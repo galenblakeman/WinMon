@@ -214,7 +214,7 @@ public sealed class CpuGraph : FrameworkElement
     /// <summary>Map an observation to monotonic seconds for plotting; support wall-time-only imported fixtures.</summary>
     /// <param name="sample">Observation to position on the timeline.</param>
     /// <returns>Seconds on the observation clock.</returns>
-    internal static double Moment(CpuSample sample) => sample.MonotonicTimestamp > 0 ? sample.MonotonicTimestamp / (double)Stopwatch.Frequency : sample.Timestamp.UtcTicks / (double)TimeSpan.TicksPerSecond;
+    internal static double Moment(CpuSample sample) => ProcessRanking.Moment(sample);
     private Brush Resource(string key, Brush fallback) => TryFindResource(key) as Brush ?? fallback;
 
     /// <param name="align">Horizontal anchor: 0 places text right of the origin, 0.5 centers it and 1 ends it at the origin.</param>

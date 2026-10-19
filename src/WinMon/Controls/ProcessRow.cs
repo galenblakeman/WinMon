@@ -66,7 +66,7 @@ public sealed class ProcessRow : Grid
         }
         memory.Text = usage.WorkingSetBytes is ulong bytes ? $"{bytes / 1_048_576d:N0} MiB" : "—";
         io.Text = usage.IoBytesPerSecond is double rate ? $"{rate / 1_000_000:0.00}" : "—";
-        System.Windows.Automation.AutomationProperties.SetName(this, $"{usage.Name}, process {usage.ProcessId}, {value.Text} of total CPU, memory {memory.Text}, read/write I/O {io.Text} MB per second");
+        System.Windows.Automation.AutomationProperties.SetName(this, $"{usage.Name}, process {usage.ProcessId}, {value.Text} of total CPU averaged over 5 seconds, memory {memory.Text}, read/write I/O {io.Text} MB per second");
     }
 
     /// <summary>Show the measured processes ranked below the visible rows as one muted summary line.</summary>
@@ -85,7 +85,7 @@ public sealed class ProcessRow : Grid
         memory.Text = "";
         io.Text = ioBytesPerSecond is double rate ? $"{rate / 1_000_000:0.00}" : "—";
         ToolTip = "Sum of the measured processes outside the list above. Memory is omitted because working sets share pages.";
-        System.Windows.Automation.AutomationProperties.SetName(this, $"{count} other processes, {value.Text} of total CPU combined");
+        System.Windows.Automation.AutomationProperties.SetName(this, $"{count} other processes, {value.Text} of total CPU combined, averaged over 5 seconds");
     }
 
     private async Task LoadIconAsync(ProcessUsage usage, (int, long) requestedIdentity)

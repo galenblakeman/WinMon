@@ -202,14 +202,16 @@ public partial class MainWindow : Window
         OverallGraph.SetData(samples, range, selectedSample);
         RangeLabel.Text = $"Last {range / 60} min · 0–100% · network on its own scale";
         LiveButton.Visibility = selectedSample is null ? Visibility.Collapsed : Visibility.Visible;
-        SelectionLabel.Text = selectedSample is not null ? visible is null ? "History expired. This sample has left the recording window. Return to live." : $"Historical sample at {visible.Timestamp:HH:mm:ss} · individual processes" : "Individual processes · percentage of total CPU";
+        SelectionLabel.Text = selectedSample is not null ? visible is null ? "History expired. This sample has left the recording window. Return to live." : $"Historical sample at {visible.Timestamp:HH:mm:ss} · {ProcessRanking.DefaultWindowSeconds}s average ending here" : $"Individual processes · {ProcessRanking.DefaultWindowSeconds}s average of total CPU";
         SelectionMetrics.Visibility = selectedSample is not null && visible is not null ? Visibility.Visible : Visibility.Collapsed;
         SelectionMetrics.Text = visible is null ? "" : $"CPU {Percent(visible.TotalCpuPercent)} · Memory {Percent(visible.Resources.MemoryPercent)} · Disk {Percent(visible.Resources.DiskActivePercent)} · Network {Rate(visible.Resources)}";
-        var active = visible?.Processes.Where(p => p.CpuPercent > 0).OrderByDescending(p => p.CpuPercent).ThenBy(p => p.ProcessId).ToArray() ?? [];
-        var top = active.Take(preferences.TopProcessCount).ToArray();
-        var rest = active.Skip(top.Length).ToArray();
         var selectedIndex = selectedSample is null ? -1 : Array.FindIndex(samples.ToArray(), s => ReferenceEquals(s, selectedSample));
         var rowSamples = selectedSample is null ? samples : samples.Take(selectedIndex + 1).ToArray();
+        // Rank on a short average ending at the live or selected sample; single intervals are tick-quantized.
+        var ranking = visible is null ? new ProcessRanking([], null, 0) : ProcessRanking.Rank(rowSamples);
+        var active = ranking.Processes;
+        var top = active.Take(preferences.TopProcessCount).ToArray();
+        var rest = active.Skip(top.Length).ToArray();
         var processData = ProcessGraphData.Build(rowSamples, preferences.CompactHistorySeconds, top);
         for (var i = 0; i < rows.Length; i++)
         {
@@ -222,7 +224,7 @@ public partial class MainWindow : Window
                 rest.Any(p => p.IoBytesPerSecond is not null) ? rest.Sum(p => p.IoBytesPerSecond ?? 0) : null);
         EmptyLabel.Visibility = top.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
         EmptyLabel.Text = visible is null && selectedSample is not null ? "Return to live to inspect current activity." : latest is null || visible?.TotalCpuPercent is null ? "Collecting a baseline or recovering after a recording gap…" : "No measurable active processes in this interval.";
-        CoverageLabel.Text = visible is null ? "" : Coverage(visible, active.Sum(p => p.CpuPercent));
+        CoverageLabel.Text = visible is null ? "" : Coverage(visible.UnavailableProcesses, ranking.TotalCpuPercent, active.Sum(p => p.CpuPercent));
         if (history.WasMemoryLimited) CoverageLabel.Text += (CoverageLabel.Text.Length > 0 ? " · " : "") + "history shortened by memory limit";
         var pausedState = Volatile.Read(ref paused) != 0;
         LiveCaption.Text = allUnavailable ? "System resources · unavailable" : "System resources";
@@ -231,10 +233,10 @@ public partial class MainWindow : Window
     }
 
     /// <summary>Summarize CPU that the measured processes do not cover, without inventing a process for it.</summary>
-    private static string Coverage(CpuSample sample, double measuredCpu)
+    private static string Coverage(int unavailableProcesses, double? totalCpu, double measuredCpu)
     {
-        var unread = sample.UnavailableProcesses > 0 ? $"{sample.UnavailableProcesses} processes need administrator access" : "";
-        if (sample.TotalCpuPercent is not double total) return unread;
+        var unread = unavailableProcesses > 0 ? $"{unavailableProcesses} processes need administrator access" : "";
+        if (totalCpu is not double total) return unread;
         var unattributed = $"{Math.Max(0, total - measuredCpu):0.0}% unattributed";
         return unread.Length > 0 ? $"{unattributed} · {unread}" : unattributed;
     }
