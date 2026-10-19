@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 
 namespace WinMon.Controls;
 
@@ -18,5 +19,12 @@ public sealed class MetricReadout : StackPanel
     }
     public string Label { get => Toggle.Content?.ToString() ?? ""; set { Toggle.Content = value; System.Windows.Automation.AutomationProperties.SetName(Toggle, $"Show {value} on chart"); } }
     public string Caption { get => caption.Text; set => caption.Text = value; }
+    /// <summary>Show a number with a smaller unit so rates fit the same column as percentages.</summary>
+    public void ShowValue(string number, string unit)
+    {
+        ValueLabel.Inlines.Clear();
+        ValueLabel.Inlines.Add(new Run(number));
+        ValueLabel.Inlines.Add(new Run(" " + unit) { FontSize = 16 });
+    }
     public string AccentKey { set { Toggle.SetResourceReference(CheckBox.ForegroundProperty, value); ValueLabel.SetResourceReference(TextBlock.ForegroundProperty, value); } }
 }

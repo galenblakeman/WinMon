@@ -88,9 +88,20 @@ public partial class MainWindow
         WindowState = WindowState.Normal;
         if (!StatusLabel.Text.EndsWith(history.Latest!.Timestamp.ToString("HH:mm:ss"), StringComparison.Ordinal))
             throw new InvalidOperationException("Restoring the minimized window did not refresh the latest sample.");
+        // A stalled UI thread must not delay capture: intervals stay on schedule and the chart draws no gap.
+        var stallCount = history.Samples.Count;
+        Thread.Sleep(3500);
+        await Task.Delay(1500, cancellationToken);
+        var stalled = history.Samples.Skip(stallCount - 1).ToArray();
+        var longestInterval = stalled.Zip(stalled.Skip(1), (a, b) => (b.MonotonicTimestamp - a.MonotonicTimestamp) / (double)Stopwatch.Frequency).DefaultIfEmpty().Max();
+        if (stalled.Length < 5 || longestInterval > 2.5 || stalled.Skip(1).Any(s => s.IsGap))
+            throw new InvalidOperationException($"A UI stall delayed sampling: {stalled.Length - 1} samples, longest interval {longestInterval:0.00}s.");
         preferences = preferences with { Theme = "Light" };
         ApplyTheme();
         await CaptureAsync(Path.Combine(outputDirectory, "light.png"), 1, cancellationToken);
+        ProcessCountSelector.SelectedItem = 20;
+        await CaptureAsync(Path.Combine(outputDirectory, "light-scroll.png"), 1, cancellationToken);
+        ProcessCountSelector.SelectedItem = 5;
         await CaptureToolTipAsync(Path.Combine(outputDirectory, "tooltip-light.png"), cancellationToken);
         var settings = new WinMon.Preferences.SettingsWindow(preferences) { Owner = this };
         settings.Show();

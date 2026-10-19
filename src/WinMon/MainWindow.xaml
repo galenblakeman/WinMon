@@ -15,21 +15,20 @@
         <DockPanel x:Name="TitleBar" LastChildFill="True">
             <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
                 <Button x:Name="PinButton" Content="Pin" controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Pin}" Click="OnPin" WindowChrome.IsHitTestVisibleInChrome="True" ToolTip="Keep this window above other windows" AutomationProperties.Name="Toggle always on top"/>
-                <Button x:Name="ExpandButton" Content="Expand" controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Expand}" Click="OnExpand" WindowChrome.IsHitTestVisibleInChrome="True" AutomationProperties.Name="Expand investigation view"/>
+                <Button x:Name="ExpandButton" Content="Expand" controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Expand}" Click="OnExpand" WindowChrome.IsHitTestVisibleInChrome="True" ToolTip="Switch between the compact view and the wider history view" AutomationProperties.Name="Expand investigation view"/>
             </StackPanel>
             <Image Source="{Binding Icon, RelativeSource={RelativeSource AncestorType=Window}}" Width="18" Height="18" Margin="0,0,8,0" DockPanel.Dock="Left" VerticalAlignment="Center"/>
-            <TextBlock x:Name="ViewTitle" Text="WinMon | System activity" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+            <TextBlock x:Name="ViewTitle" Text="WinMon · System activity" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
         </DockPanel>
         </Border>
     <Border Grid.Row="1" Background="{DynamicResource Surface}">
-    <Grid Margin="20,8,20,14">
+    <Grid Margin="20,12,20,14">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
-            <RowDefinition Height="*" MinHeight="160"/><RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*" MinHeight="108"/>
-            <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*" MinHeight="160"/>
+            <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="1.25*" MinHeight="108"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <Grid Grid.Row="1" Margin="0,0,0,16">
+        <Grid Grid.Row="0" Margin="0,0,0,16">
             <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
             <Border Grid.Column="0" BorderThickness="0,0,1,0" BorderBrush="{DynamicResource Line}"/>
             <Border Grid.Column="1" BorderThickness="0,0,1,0" BorderBrush="{DynamicResource Line}"/>
@@ -39,51 +38,53 @@
             <controls:MetricReadout x:Name="DiskMetric" Grid.Column="2" Label="Disk" Caption="Active time · read/write" AccentKey="DiskAccent" Margin="10,0,0,0"/>
             <controls:MetricReadout x:Name="NetworkMetric" Grid.Column="3" Label="Network" Caption="Busier link direction" AccentKey="NetworkAccent" Margin="10,0,0,0"/>
         </Grid>
-        <Border Grid.Row="2" Background="{DynamicResource SectionHeaderSurface}" Margin="-20,0,-20,6" Padding="20,6">
+        <!-- Section headers share one style: full-width divider, 15px title, muted 11px subtitle. -->
+        <Border Grid.Row="1" BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0" Margin="-20,0,-20,8" Padding="20,10,20,0">
         <DockPanel LastChildFill="False">
             <Button x:Name="PauseButton" Content="Pause" controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Pause}" DockPanel.Dock="Right" Click="OnPause" AutomationProperties.Name="Pause or resume recording"/>
-            <TextBlock x:Name="LiveCaption" Text="System resources · live · 0–100%" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+            <Button x:Name="LiveButton" Content="Return to live" controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Live}" DockPanel.Dock="Right" Click="OnReturnLive" Visibility="Collapsed"/>
+            <TextBlock x:Name="StatusLabel" Text="Collecting…" DockPanel.Dock="Right" Foreground="{DynamicResource Muted}" FontSize="11" VerticalAlignment="Center"
+                       TextAlignment="Right" TextWrapping="Wrap" MaxWidth="190" Margin="0,0,8,0"/>
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock x:Name="LiveCaption" Text="System resources" FontSize="15" FontWeight="SemiBold"/>
+                <TextBlock x:Name="RangeLabel" Text="Last 2 min · 0–100%" Foreground="{DynamicResource Muted}" FontSize="11" Margin="0,2,0,0"/>
+            </StackPanel>
         </DockPanel>
         </Border>
-        <controls:CpuGraph x:Name="OverallGraph" Grid.Row="3" ShowGrid="True" Focusable="True"
-                           AutomationProperties.Name="CPU, memory, disk and network overlay history. Click to inspect; arrow keys move, End returns to live."
-                           Margin="0,0,0,6"/>
-        <DockPanel Grid.Row="4" Margin="0,2,0,14" LastChildFill="False">
-            <Button x:Name="LiveButton" Content="Return to live" controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Live}" DockPanel.Dock="Right" Click="OnReturnLive" Visibility="Collapsed"/>
-            <TextBlock x:Name="RangeLabel" Text="Last 2 min · 0–100%" Foreground="{DynamicResource Muted}" FontSize="11" VerticalAlignment="Center"/>
-        </DockPanel>
-        <Border Grid.Row="5" Background="{DynamicResource SectionHeaderSurface}" Margin="-20,0,-20,12" Padding="20,8">
+        <controls:CpuGraph x:Name="OverallGraph" Grid.Row="2" ShowGrid="True" Focusable="True"
+                           AutomationProperties.Name="CPU, memory, disk and network overlay history. Click to inspect; arrow keys move, End returns to live."/>
+        <Border Grid.Row="3" BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0" Margin="-20,10,-20,8" Padding="20,10,20,0">
         <StackPanel>
             <StackPanel Orientation="Horizontal">
-                <TextBlock Text="Top" FontSize="19" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                <ComboBox x:Name="ProcessCountSelector" Width="70" Margin="8,0" FontSize="19" FontWeight="SemiBold"
+                <TextBlock Text="Top" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                <ComboBox x:Name="ProcessCountSelector" Width="58" MinHeight="28" Margin="6,0" FontSize="14" FontWeight="SemiBold"
                           AutomationProperties.Name="Number of top processes" ToolTip="Number of processes shown, ranked by CPU"/>
-                <TextBlock x:Name="RowsTitle" Text="processes by CPU" FontSize="19" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                <TextBlock x:Name="RowsTitle" Text="processes by CPU" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center"/>
             </StackPanel>
-            <TextBlock x:Name="SelectionLabel" Text="Individual processes · percentage of total CPU" Foreground="{DynamicResource Muted}" FontSize="11" TextWrapping="Wrap" Margin="0,4,0,0"/>
+            <TextBlock x:Name="SelectionLabel" Text="Individual processes · percentage of total CPU" Foreground="{DynamicResource Muted}" FontSize="11" TextWrapping="Wrap" Margin="0,2,0,0"/>
             <TextBlock x:Name="SelectionMetrics" Foreground="{DynamicResource Text}" FontSize="12" TextWrapping="Wrap" Margin="0,5,0,0" Visibility="Collapsed"/>
         </StackPanel>
         </Border>
-        <Grid Grid.Row="6" Margin="0,0,0,5" HorizontalAlignment="Left" Width="{Binding ViewportWidth, ElementName=ProcessScroll}">
+        <Grid Grid.Row="4" Margin="0,0,0,5" HorizontalAlignment="Left" Width="{Binding ViewportWidth, ElementName=ProcessScroll}">
             <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="76"/><ColumnDefinition Width="66"/><ColumnDefinition Width="94"/><ColumnDefinition Width="90"/></Grid.ColumnDefinitions>
             <TextBlock Text="Process" Foreground="{DynamicResource Muted}" FontSize="12"/>
-            <TextBlock Grid.Column="1" Text="History" HorizontalAlignment="Center" Foreground="{DynamicResource Muted}" FontSize="12" ToolTip="CPU history auto-scales independently for each process. Hover a row for its scale."/>
+            <TextBlock Grid.Column="1" Text="History" HorizontalAlignment="Center" Foreground="{DynamicResource Muted}" FontSize="12" ToolTip="CPU history on one scale shared by every row. Hover a row for the scale."/>
             <TextBlock Grid.Column="2" Text="CPU %" HorizontalAlignment="Right" Foreground="{DynamicResource Muted}" FontSize="12"/>
             <TextBlock Grid.Column="3" Text="Memory" HorizontalAlignment="Right" Foreground="{DynamicResource Muted}" FontSize="12" ToolTip="Resident working set, including shared pages"/>
             <TextBlock Grid.Column="4" Text="I/O MB/s" HorizontalAlignment="Right" Foreground="{DynamicResource Muted}" FontSize="12" ToolTip="Process read/write I/O includes file, network and device operations; not disk-only throughput"/>
         </Grid>
-        <ScrollViewer x:Name="ProcessScroll" Grid.Row="7" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+        <ScrollViewer x:Name="ProcessScroll" Grid.Row="5" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
                       Focusable="False" Padding="0,0,0,0">
             <StackPanel x:Name="ProcessRows"/>
         </ScrollViewer>
-        <TextBlock x:Name="EmptyLabel" Grid.Row="7" Text="Collecting the first interval…" VerticalAlignment="Center" Foreground="{DynamicResource Muted}" TextWrapping="Wrap" Margin="0,8"/>
-        <TextBlock x:Name="CoverageLabel" Grid.Row="8" Foreground="{DynamicResource Muted}" FontSize="11" TextWrapping="Wrap" Margin="0,10,0,12"/>
-        <DockPanel Grid.Row="9" LastChildFill="False">
-            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                <Button Content="Tray" controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Tray}" Click="OnTray" ToolTip="Hide to notification area; double-click the tray icon to restore"/>
+        <TextBlock x:Name="EmptyLabel" Grid.Row="5" Text="Collecting the first interval…" VerticalAlignment="Center" Foreground="{DynamicResource Muted}" TextWrapping="Wrap" Margin="0,8"/>
+        <DockPanel Grid.Row="6" LastChildFill="True" Margin="0,12,0,0">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Content="Hide to tray" controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Tray}" Click="OnTray" ToolTip="Hide to the notification area; double-click the tray icon to restore"/>
                 <Button x:Name="SettingsButton" Content="Settings" controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Settings}" Click="OnSettings"/>
             </StackPanel>
-            <TextBlock x:Name="StatusLabel" Text="Collecting…" Foreground="{DynamicResource Muted}" FontSize="11" VerticalAlignment="Center" MaxWidth="300" TextWrapping="Wrap"/>
+            <TextBlock x:Name="CoverageLabel" Foreground="{DynamicResource Muted}" FontSize="11" TextWrapping="Wrap" VerticalAlignment="Center" Margin="0,0,12,0"
+                       ToolTip="Unattributed CPU is total CPU minus all measured processes: kernel and interrupt time, measurement timing, and processes WinMon cannot open without administrator access."/>
         </DockPanel>
     </Grid>
     </Border>

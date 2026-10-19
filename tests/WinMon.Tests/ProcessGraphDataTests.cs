@@ -9,7 +9,7 @@ namespace WinMon.Tests;
 public sealed class ProcessGraphDataTests
 {
     [Test]
-    public void Build_MatchesOriginalLookupAndScaleAcrossRankChangesAndMissingLifetimes()
+    public void Build_MatchesOriginalLookupAndSharesScaleAcrossRankChangesAndMissingLifetimes()
     {
         var identities = Enumerable.Range(1, 5).Select(i => new ProcessUsage(i, i, $"p{i}", 1)).ToArray();
         var history = Enumerable.Range(1, 200).Select(second => new CpuSample(
@@ -20,19 +20,21 @@ public sealed class ProcessGraphDataTests
             Stopwatch.Frequency * second)).ToArray();
 
         var data = ProcessGraphData.Build(history, 120, identities);
+        var visible = history.Where(s => CpuGraph.Moment(s) >= 80).ToArray();
+        var sharedPeak = identities.SelectMany(identity => visible.Where(s => !s.IsGap).SelectMany(s => s.Processes)
+            .Where(p => p.ProcessId == identity.ProcessId && p.CreationTicks == identity.CreationTicks)
+            .Select(p => p.CpuPercent)).DefaultIfEmpty().Max();
 
         for (var row = 0; row < identities.Length; row++)
         {
             var identity = identities[row];
-            var visible = history.Where(s => CpuGraph.Moment(s) >= 80).ToArray();
             var expected = visible.Select(s => s.IsGap ? (double?)null : s.Processes
                 .FirstOrDefault(p => p.ProcessId == identity.ProcessId && p.CreationTicks == identity.CreationTicks)?.CpuPercent).ToArray();
-            var peak = expected.Where(v => v.HasValue).Select(v => v!.Value).DefaultIfEmpty().Max();
             Assert.Multiple(() =>
             {
                 Assert.That(data[row].Samples, Is.EqualTo(visible));
                 Assert.That(data[row].Values, Is.EqualTo(expected));
-                Assert.That(data[row].ScaleMaximum, Is.EqualTo(Math.Clamp(Math.Ceiling(peak * 11) / 10, 0.1, 100)));
+                Assert.That(data[row].ScaleMaximum, Is.EqualTo(Math.Clamp(Math.Ceiling(sharedPeak * 11) / 10, 0.1, 100)));
             });
         }
         Assert.That(data[0].Samples, Is.SameAs(data[1].Samples));

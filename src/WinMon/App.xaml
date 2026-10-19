@@ -6,15 +6,14 @@
     <Application.Resources>
         <SolidColorBrush x:Key="Surface" Color="#15191E"/>
         <SolidColorBrush x:Key="Raised" Color="#20262D"/>
-        <SolidColorBrush x:Key="TitleBarSurface" Color="#24415B"/>
-        <SolidColorBrush x:Key="SectionHeaderSurface" Color="#20303D"/>
+        <SolidColorBrush x:Key="TitleBarSurface" Color="#1B2026"/>
         <SolidColorBrush x:Key="Text" Color="#EDF2F6"/>
         <SolidColorBrush x:Key="Muted" Color="#B3BDC8"/>
         <SolidColorBrush x:Key="Line" Color="#35404B"/>
         <SolidColorBrush x:Key="Accent" Color="#9FE870"/>
         <SolidColorBrush x:Key="CpuAccent" Color="#9FE870"/>
         <SolidColorBrush x:Key="MemoryAccent" Color="#65ADFF"/>
-        <SolidColorBrush x:Key="DiskAccent" Color="#F2B65C"/>
+        <SolidColorBrush x:Key="DiskAccent" Color="#FF7B54"/>
         <SolidColorBrush x:Key="NetworkAccent" Color="#BD91FF"/>
         <Style TargetType="CheckBox">
             <Setter Property="VerticalContentAlignment" Value="Center"/>
@@ -122,6 +121,78 @@
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- Thin themed scrollbars; the thumb follows Line/Muted so dark, light and high contrast all apply. -->
+        <Style x:Key="ScrollPage" TargetType="RepeatButton">
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="IsTabStop" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value><ControlTemplate TargetType="RepeatButton"><Border Background="Transparent"/></ControlTemplate></Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ScrollThumb" TargetType="Thumb">
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="IsTabStop" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value><ControlTemplate TargetType="Thumb">
+                    <Border x:Name="ThumbBody" CornerRadius="4" Background="{DynamicResource Line}"/>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="ThumbBody" Property="Background" Value="{DynamicResource Muted}"/></Trigger>
+                        <Trigger Property="IsDragging" Value="True"><Setter TargetName="ThumbBody" Property="Background" Value="{DynamicResource Muted}"/></Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate></Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="ScrollBar">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Width" Value="8"/>
+            <Setter Property="MinWidth" Value="8"/>
+            <Setter Property="Template">
+                <Setter.Value><ControlTemplate TargetType="ScrollBar">
+                    <Track x:Name="PART_Track" IsDirectionReversed="True">
+                        <Track.DecreaseRepeatButton><RepeatButton Style="{StaticResource ScrollPage}" Command="ScrollBar.PageUpCommand"/></Track.DecreaseRepeatButton>
+                        <Track.Thumb><Thumb Style="{StaticResource ScrollThumb}"/></Track.Thumb>
+                        <Track.IncreaseRepeatButton><RepeatButton Style="{StaticResource ScrollPage}" Command="ScrollBar.PageDownCommand"/></Track.IncreaseRepeatButton>
+                    </Track>
+                </ControlTemplate></Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="Orientation" Value="Horizontal">
+                    <Setter Property="Width" Value="Auto"/>
+                    <Setter Property="MinWidth" Value="0"/>
+                    <Setter Property="Height" Value="8"/>
+                    <Setter Property="MinHeight" Value="8"/>
+                    <Setter Property="Template">
+                        <Setter.Value><ControlTemplate TargetType="ScrollBar">
+                            <Track x:Name="PART_Track">
+                                <Track.DecreaseRepeatButton><RepeatButton Style="{StaticResource ScrollPage}" Command="ScrollBar.PageLeftCommand"/></Track.DecreaseRepeatButton>
+                                <Track.Thumb><Thumb Style="{StaticResource ScrollThumb}"/></Track.Thumb>
+                                <Track.IncreaseRepeatButton><RepeatButton Style="{StaticResource ScrollPage}" Command="ScrollBar.PageRightCommand"/></Track.IncreaseRepeatButton>
+                            </Track>
+                        </ControlTemplate></Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <!-- A 10px gutter keeps right-aligned columns clear of the scrollbar. ViewportWidth excludes it, so bound column headings stay aligned. -->
+        <Style TargetType="ScrollViewer">
+            <Setter Property="Template">
+                <Setter.Value><ControlTemplate TargetType="ScrollViewer">
+                    <Grid Background="{TemplateBinding Background}">
+                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions><RowDefinition/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                        <ScrollContentPresenter x:Name="PART_ScrollContentPresenter" Margin="{TemplateBinding Padding}" CanContentScroll="{TemplateBinding CanContentScroll}"/>
+                        <ScrollBar x:Name="PART_VerticalScrollBar" Grid.Column="1" Margin="10,2,0,2" Cursor="Arrow"
+                                   Value="{Binding VerticalOffset, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                   Maximum="{TemplateBinding ScrollableHeight}" ViewportSize="{TemplateBinding ViewportHeight}"
+                                   Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"/>
+                        <ScrollBar x:Name="PART_HorizontalScrollBar" Grid.Row="1" Orientation="Horizontal" Margin="2,10,2,0" Cursor="Arrow"
+                                   Value="{Binding HorizontalOffset, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                   Maximum="{TemplateBinding ScrollableWidth}" ViewportSize="{TemplateBinding ViewportWidth}"
+                                   Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}"/>
+                    </Grid>
+                </ControlTemplate></Setter.Value>
             </Setter>
         </Style>
         <Style TargetType="Button">

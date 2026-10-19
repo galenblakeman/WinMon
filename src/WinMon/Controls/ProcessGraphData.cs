@@ -2,7 +2,7 @@ using WinMon.Monitoring;
 
 namespace WinMon.Controls;
 
-/// <summary>Process values shared by sparkline scaling and drawing for one refresh.</summary>
+/// <summary>Process values and the shared sparkline scale for one refresh.</summary>
 internal sealed record ProcessGraphData(IReadOnlyList<CpuSample> Samples, double?[] Values, double ScaleMaximum)
 {
     internal static ProcessGraphData[] Build(IReadOnlyList<CpuSample> history, int seconds,
@@ -31,7 +31,8 @@ internal sealed record ProcessGraphData(IReadOnlyList<CpuSample> Samples, double
                 if (--remaining == 0) break;
             }
         }
-        return identities.Select((_, i) => new ProcessGraphData(visible, values[i],
-            Math.Clamp(Math.Ceiling(peaks[i] * 11) / 10, 0.1, 100))).ToArray();
+        // One scale for every row so sparkline heights compare across processes.
+        var scale = Math.Clamp(Math.Ceiling(peaks.Max() * 11) / 10, 0.1, 100);
+        return identities.Select((_, i) => new ProcessGraphData(visible, values[i], scale)).ToArray();
     }
 }

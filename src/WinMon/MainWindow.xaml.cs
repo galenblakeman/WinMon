@@ -18,7 +18,10 @@ public partial class MainWindow : Window
     private readonly bool diagnosticMode;
     private readonly PreferenceStore preferenceStore = new();
     private readonly ProcessRow[] rows = Enumerable.Range(0, 20).Select(_ => new ProcessRow()).ToArray();
+    private readonly ProcessRow otherRow = new() { Visibility = Visibility.Collapsed };
     private readonly CpuHistory history = new();
+    private readonly System.Collections.Concurrent.ConcurrentQueue<PendingSample> pendingSamples = new();
+    private int drainScheduled;
     private MonitorPreferences preferences = new();
     private Task? samplingTask;
     private Task settingsWriteTask = Task.CompletedTask;
@@ -56,6 +59,7 @@ public partial class MainWindow : Window
             metric.Toggle.Unchecked += OnSeriesChanged;
         }
         foreach (var row in rows) { row.Visibility = Visibility.Collapsed; ProcessRows.Children.Add(row); }
+        ProcessRows.Children.Add(otherRow);
         OverallGraph.SampleSelected += (_, sample) => { selectedSample = sample; RefreshPresentation(); };
         OverallGraph.LiveRequested += (_, _) => ReturnToLive();
         IsVisibleChanged += (_, _) => { if (IsVisible && !closing) RefreshPresentation(); };
@@ -125,13 +129,7 @@ public partial class MainWindow : Window
                         sample = new CpuSample(DateTimeOffset.UtcNow, null, [], 0, false, Stopwatch.GetTimestamp());
                     }
                     sample = sample with { Resources = resources.Sample(sample.IsGap) };
-                    await Dispatcher.InvokeAsync(() =>
-                    {
-                        if (currentGeneration != Volatile.Read(ref generation) || closing) return;
-                        samplingError = cpuError;
-                        history.Add(sample);
-                        RefreshPresentation();
-                    }, System.Windows.Threading.DispatcherPriority.Background, cancellationToken);
+                    Deliver(new PendingSample(currentGeneration, sample, cpuError));
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
                 catch (Exception ex)
@@ -139,12 +137,7 @@ public partial class MainWindow : Window
                     Trace.TraceError("WinMon CPU sampling failed: {0}", ex);
                     sampler.Reset();
                     resources.Reset();
-                    await Dispatcher.InvokeAsync(() =>
-                    {
-                        if (closing) return;
-                        samplingError = "Readings unavailable; retrying each second.";
-                        RefreshPresentation();
-                    }, System.Windows.Threading.DispatcherPriority.Background, cancellationToken);
+                    Deliver(new PendingSample(currentGeneration, null, "Readings unavailable; retrying each second."));
                 }
             } while (await timer.WaitForNextTickAsync(cancellationToken));
         }
@@ -153,6 +146,38 @@ public partial class MainWindow : Window
         {
             if (sampler is IDisposable disposable) disposable.Dispose();
         }
+    }
+
+    /// <summary>A captured sample, or a failed pass when <see cref="Sample"/> is null, awaiting the UI thread.</summary>
+    private sealed record PendingSample(int Generation, CpuSample? Sample, string? Error);
+
+    // Capture never waits for the UI: a stalled dispatcher would otherwise delay the next capture and
+    // stretch the sampling interval past the chart's gap threshold. Samples queue in pendingSamples and
+    // are drained in order by at most one pending dispatcher callback.
+    private void Deliver(PendingSample pending)
+    {
+        pendingSamples.Enqueue(pending);
+        if (Interlocked.Exchange(ref drainScheduled, 1) == 0)
+            Dispatcher.BeginInvoke(DrainPendingSamples, System.Windows.Threading.DispatcherPriority.Background);
+    }
+
+    private void DrainPendingSamples()
+    {
+        // Clear the flag before draining so a sample enqueued meanwhile schedules another drain.
+        Volatile.Write(ref drainScheduled, 0);
+        var changed = false;
+        while (pendingSamples.TryDequeue(out var pending))
+        {
+            if (closing || pending.Generation != Volatile.Read(ref generation)) continue;
+            try
+            {
+                samplingError = pending.Error;
+                if (pending.Sample is not null) history.Add(pending.Sample);
+                changed = true;
+            }
+            catch (Exception ex) { Trace.TraceError("WinMon could not record a sample: {0}", ex); }
+        }
+        if (changed) RefreshPresentation();
     }
 
     private void RefreshPresentation()
@@ -175,12 +200,14 @@ public partial class MainWindow : Window
         var allUnavailable = samplingError?.StartsWith("Readings", StringComparison.Ordinal) == true;
         UpdateResources(allUnavailable ? null : latest);
         OverallGraph.SetData(samples, range, selectedSample);
-        RangeLabel.Text = $"Last {range / 60} min · 0–100%";
+        RangeLabel.Text = $"Last {range / 60} min · 0–100% · network on its own scale";
         LiveButton.Visibility = selectedSample is null ? Visibility.Collapsed : Visibility.Visible;
         SelectionLabel.Text = selectedSample is not null ? visible is null ? "History expired. This sample has left the recording window. Return to live." : $"Historical sample at {visible.Timestamp:HH:mm:ss} · individual processes" : "Individual processes · percentage of total CPU";
         SelectionMetrics.Visibility = selectedSample is not null && visible is not null ? Visibility.Visible : Visibility.Collapsed;
-        SelectionMetrics.Text = visible is null ? "" : $"CPU {Percent(visible.TotalCpuPercent)} · Memory {Percent(visible.Resources.MemoryPercent)} · Disk {Percent(visible.Resources.DiskActivePercent)} · Network {Percent(visible.Resources.NetworkPercent)}";
-        var top = visible?.Processes.Where(p => p.CpuPercent > 0).OrderByDescending(p => p.CpuPercent).ThenBy(p => p.ProcessId).Take(preferences.TopProcessCount).ToArray() ?? [];
+        SelectionMetrics.Text = visible is null ? "" : $"CPU {Percent(visible.TotalCpuPercent)} · Memory {Percent(visible.Resources.MemoryPercent)} · Disk {Percent(visible.Resources.DiskActivePercent)} · Network {Rate(visible.Resources)}";
+        var active = visible?.Processes.Where(p => p.CpuPercent > 0).OrderByDescending(p => p.CpuPercent).ThenBy(p => p.ProcessId).ToArray() ?? [];
+        var top = active.Take(preferences.TopProcessCount).ToArray();
+        var rest = active.Skip(top.Length).ToArray();
         var selectedIndex = selectedSample is null ? -1 : Array.FindIndex(samples.ToArray(), s => ReferenceEquals(s, selectedSample));
         var rowSamples = selectedSample is null ? samples : samples.Take(selectedIndex + 1).ToArray();
         var processData = ProcessGraphData.Build(rowSamples, preferences.CompactHistorySeconds, top);
@@ -189,14 +216,27 @@ public partial class MainWindow : Window
             rows[i].Visibility = i < top.Length ? Visibility.Visible : Visibility.Collapsed;
             if (i < top.Length) rows[i].Update(top[i], rowSamples, preferences.CompactHistorySeconds, expanded, processData[i]);
         }
+        otherRow.Visibility = rest.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
+        if (rest.Length > 0)
+            otherRow.ShowRemainder(rest.Length, rest.Sum(p => p.CpuPercent),
+                rest.Any(p => p.IoBytesPerSecond is not null) ? rest.Sum(p => p.IoBytesPerSecond ?? 0) : null);
         EmptyLabel.Visibility = top.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
         EmptyLabel.Text = visible is null && selectedSample is not null ? "Return to live to inspect current activity." : latest is null || visible?.TotalCpuPercent is null ? "Collecting a baseline or recovering after a recording gap…" : "No measurable active processes in this interval.";
-        CoverageLabel.Text = visible is null ? "" : $"{visible.UnavailableProcesses} processes unavailable/omitted · top {preferences.TopProcessCount} may not account for all CPU";
-        if (history.WasMemoryLimited) CoverageLabel.Text += " · history shortened by memory limit";
+        CoverageLabel.Text = visible is null ? "" : Coverage(visible, active.Sum(p => p.CpuPercent));
+        if (history.WasMemoryLimited) CoverageLabel.Text += (CoverageLabel.Text.Length > 0 ? " · " : "") + "history shortened by memory limit";
         var pausedState = Volatile.Read(ref paused) != 0;
-        LiveCaption.Text = allUnavailable ? "System resources · unavailable" : pausedState ? "System resources · paused · 0–100%" : "System resources · live · 0–100%";
-        StatusLabel.Text = samplingError ?? (pausedState ? $"Paused · last {latest?.Timestamp:HH:mm:ss}" : latest?.TotalCpuPercent is null ? "Collecting a CPU interval…" : $"Recording · 1s · {latest.Timestamp:HH:mm:ss}");
+        LiveCaption.Text = allUnavailable ? "System resources · unavailable" : "System resources";
+        StatusLabel.Text = samplingError ?? (pausedState ? $"Paused · last {latest?.Timestamp:HH:mm:ss}" : latest?.TotalCpuPercent is null ? "Collecting a CPU interval…" : $"Live · every 1s · {latest.Timestamp:HH:mm:ss}");
         UpdateTrayText(latest);
+    }
+
+    /// <summary>Summarize CPU that the measured processes do not cover, without inventing a process for it.</summary>
+    private static string Coverage(CpuSample sample, double measuredCpu)
+    {
+        var unread = sample.UnavailableProcesses > 0 ? $"{sample.UnavailableProcesses} processes need administrator access" : "";
+        if (sample.TotalCpuPercent is not double total) return unread;
+        var unattributed = $"{Math.Max(0, total - measuredCpu):0.0}% unattributed";
+        return unread.Length > 0 ? $"{unattributed} · {unread}" : unattributed;
     }
 
     private void UpdateTrayText(CpuSample? latest = null)
@@ -233,18 +273,25 @@ public partial class MainWindow : Window
         DiskMetric.Label = resource?.DiskName is { Length: > 0 } disk ? $"Disk ({disk})" : "Disk";
         DiskMetric.ValueLabel.Text = Percent(resource?.DiskActivePercent);
         DiskMetric.DetailLabel.Text = resource?.DiskBytesPerSecond is double bytes ? $"{bytes / 1_000_000:0.0} MB/s" : "Collecting / unavailable";
-        NetworkMetric.ValueLabel.Text = Percent(resource?.NetworkPercent);
+        // Throughput leads: link utilization is almost always near 0% and says little on its own.
+        if (resource is not null && CpuGraph.NetworkBitsPerSecond(resource) is double bits)
+        {
+            var (number, unit) = RateText.Parts(bits);
+            NetworkMetric.ShowValue(number, unit);
+        }
+        else NetworkMetric.ValueLabel.Text = "—";
         NetworkMetric.DetailLabel.Text = resource?.ReceiveBytesPerSecond is double rx && resource.SendBytesPerSecond is double tx
-            ? $"Rx {rx * 8 / 1_000_000:0.0} · Tx {tx * 8 / 1_000_000:0.0} Mbps" : "Collecting / disconnected";
+            ? RateText.Pair(rx * 8, tx * 8) : "Collecting / disconnected";
         NetworkMetric.Caption = resource?.LinkBitsPerSecond is long speed
-            ? $"% of {speed / 1_000_000d:0.#} Mbps link" : "Link speed unavailable";
+            ? $"{Percent(resource.NetworkPercent)} of {RateText.Format(speed)} link" : "Link speed unavailable";
         NetworkMetric.ToolTip = resource?.NetworkName is { Length: > 0 } name
-            ? $"{name}\nUtilization is the busier direction relative to link speed. Not Internet capacity."
+            ? $"{name}\nThroughput of the busier direction; utilization is relative to link speed. Not Internet capacity."
             : "No connected Ethernet or Wi-Fi interface available.";
         OverallGraph.VisibleMetrics = preferences.VisibleMetrics;
     }
 
     private static string Percent(double? value) => value is double number ? $"{number:0.0}%" : "—";
+    private static string Rate(ResourceSample resources) => CpuGraph.NetworkBitsPerSecond(resources) is double bits ? RateText.Format(bits) : "—";
 
     private void OnPause(object sender, RoutedEventArgs e)
     {
@@ -283,7 +330,7 @@ public partial class MainWindow : Window
             EnsureVisible();
         }
         ApplyTheme();
-        ViewTitle.Text = expanded ? "WinMon | System history" : "WinMon | System activity";
+        ViewTitle.Text = expanded ? "WinMon · System history" : "WinMon · System activity";
         ExpandButton.Content = expanded ? "Compact" : "Expand";
         ButtonIcon.SetData(ExpandButton, expanded ? ButtonIcon.Compact : ButtonIcon.Expand);
         System.Windows.Automation.AutomationProperties.SetName(ExpandButton, expanded ? "Return to compact view" : "Expand investigation view");
@@ -377,7 +424,6 @@ public partial class MainWindow : Window
             app.Resources["Surface"] = SystemColors.WindowBrush;
             app.Resources["Raised"] = SystemColors.ControlBrush;
             app.Resources["TitleBarSurface"] = SystemColors.WindowBrush;
-            app.Resources["SectionHeaderSurface"] = SystemColors.ControlBrush;
             app.Resources["Text"] = SystemColors.WindowTextBrush;
             app.Resources["Muted"] = SystemColors.WindowTextBrush;
             app.Resources["Line"] = SystemColors.WindowTextBrush;
@@ -388,19 +434,19 @@ public partial class MainWindow : Window
         {
             SetBrush("Surface", light ? "#F7F9FB" : "#15191E");
             SetBrush("Raised", light ? "#E8EDF2" : "#20262D");
-            SetBrush("TitleBarSurface", light ? "#C9DDED" : "#24415B");
-            SetBrush("SectionHeaderSurface", light ? "#E0EAF3" : "#20303D");
+            SetBrush("TitleBarSurface", light ? "#ECEFF3" : "#1B2026");
             SetBrush("Text", light ? "#17212A" : "#EDF2F6");
             SetBrush("Muted", light ? "#465361" : "#B3BDC8");
             SetBrush("Line", light ? "#CBD3DC" : "#35404B");
             SetBrush("Accent", light ? "#36751B" : "#9FE870");
             SetBrush("CpuAccent", light ? "#36751B" : "#9FE870");
             SetBrush("MemoryAccent", light ? "#1469B5" : "#65ADFF");
-            SetBrush("DiskAccent", light ? "#8E5900" : "#F2B65C");
+            SetBrush("DiskAccent", light ? "#B8461B" : "#FF7B54");
             SetBrush("NetworkAccent", light ? "#7944B4" : "#BD91FF");
         }
         foreach (Window window in app.Windows) WindowTheme.Apply(window);
         foreach (var row in rows) row.InvalidateVisual();
+        otherRow.InvalidateVisual();
         OverallGraph.InvalidateVisual();
     }
 

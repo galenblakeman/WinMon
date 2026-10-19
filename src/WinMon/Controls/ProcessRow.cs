@@ -56,7 +56,7 @@ public sealed class ProcessRow : Grid
         value.Text = $"{usage.CpuPercent:0.0}%";
         if (data is null) graph.SetData(samples, seconds, null, usage);
         else graph.SetProcessData(data, seconds, usage);
-        ToolTip = $"{usage.Name} · PID {usage.ProcessId}\nCPU history · last {seconds / 60d:0.#} min\nAuto-scaled · 0–{graph.ScaleMaximum:0.0}% of total machine CPU · scales differ between processes";
+        ToolTip = $"{usage.Name} · PID {usage.ProcessId}\nCPU history · last {seconds / 60d:0.#} min\n0–{graph.ScaleMaximum:0.0}% of total machine CPU · same scale for every row";
         var nextIdentity = (usage.ProcessId, usage.CreationTicks);
         if (identity != nextIdentity)
         {
@@ -67,6 +67,25 @@ public sealed class ProcessRow : Grid
         memory.Text = usage.WorkingSetBytes is ulong bytes ? $"{bytes / 1_048_576d:N0} MiB" : "—";
         io.Text = usage.IoBytesPerSecond is double rate ? $"{rate / 1_000_000:0.00}" : "—";
         System.Windows.Automation.AutomationProperties.SetName(this, $"{usage.Name}, process {usage.ProcessId}, {value.Text} of total CPU, memory {memory.Text}, read/write I/O {io.Text} MB per second");
+    }
+
+    /// <summary>Show the measured processes ranked below the visible rows as one muted summary line.</summary>
+    /// <param name="count">Measured processes outside the visible rows.</param>
+    /// <param name="cpuPercent">Their summed CPU as a percentage of total machine capacity.</param>
+    /// <param name="ioBytesPerSecond">Their summed read/write I/O, if any was readable.</param>
+    internal void ShowRemainder(int count, double cpuPercent, double? ioBytesPerSecond)
+    {
+        icon.Visibility = Visibility.Hidden;
+        graph.Visibility = Visibility.Hidden;
+        pid.Visibility = Visibility.Collapsed;
+        foreach (var text in new[] { name, value, io }) text.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
+        name.Text = $"Other processes ({count:N0})";
+        name.ToolTip = null;
+        value.Text = $"{cpuPercent:0.0}%";
+        memory.Text = "";
+        io.Text = ioBytesPerSecond is double rate ? $"{rate / 1_000_000:0.00}" : "—";
+        ToolTip = "Sum of the measured processes outside the list above. Memory is omitted because working sets share pages.";
+        System.Windows.Automation.AutomationProperties.SetName(this, $"{count} other processes, {value.Text} of total CPU combined");
     }
 
     private async Task LoadIconAsync(ProcessUsage usage, (int, long) requestedIdentity)
