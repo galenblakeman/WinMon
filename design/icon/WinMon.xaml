@@ -1,0 +1,21 @@
+<DrawingImage xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+    <DrawingImage.Drawing>
+        <DrawingGroup>
+            <!-- Fix the view box so all sizes retain the same transparent margin. -->
+            <GeometryDrawing Brush="Transparent" Geometry="M 0,0 L 256,0 256,256 0,256 Z"/>
+            <GeometryDrawing Geometry="M 48,8 L 208,8 Q 248,8 248,48 L 248,208 Q 248,248 208,248 L 48,248 Q 8,248 8,208 L 8,48 Q 8,8 48,8 Z">
+                <GeometryDrawing.Brush>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#2C333C" Offset="0"/>
+                        <GradientStop Color="#12171C" Offset="1"/>
+                    </LinearGradientBrush>
+                </GeometryDrawing.Brush>
+                <GeometryDrawing.Pen><Pen Brush="#414B56" Thickness="2"/></GeometryDrawing.Pen>
+            </GeometryDrawing>
+            <!-- A single open waveform forms W; no fine detail or glow to blur at tray sizes. -->
+            <GeometryDrawing Geometry="M 30,151 L 65,151 L 82,106 L 108,188 L 132,132 L 156,188 L 188,74 L 211,151 L 226,151">
+                <GeometryDrawing.Pen><Pen Brush="#53F56A" Thickness="14" StartLineCap="Round" EndLineCap="Round" LineJoin="Round"/></GeometryDrawing.Pen>
+            </GeometryDrawing>
+        </DrawingGroup>
+    </DrawingImage.Drawing>
+</DrawingImage>
