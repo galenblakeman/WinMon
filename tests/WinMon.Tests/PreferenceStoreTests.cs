@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using WinMon.Monitoring;
 using WinMon.Preferences;
 
 namespace WinMon.Tests;
@@ -117,9 +118,30 @@ public sealed class PreferenceStoreTests
     public async Task ProcessGpuRanking_DefaultsToCpu_AndRoundTrips()
     {
         var store = new PreferenceStore(settingsPath);
-        Assert.That((await store.LoadAsync()).SortByGpu, Is.False);
-        await store.SaveAsync(new MonitorPreferences { SortByGpu = true });
-        Assert.That((await store.LoadAsync()).SortByGpu, Is.True);
+        Assert.That((await store.LoadAsync()).ProcessSort, Is.EqualTo(ProcessSort.Cpu));
+        await store.SaveAsync(new MonitorPreferences { ProcessSort = ProcessSort.Gpu });
+        Assert.That((await store.LoadAsync()).ProcessSort, Is.EqualTo(ProcessSort.Gpu));
+    }
+
+    [TestCase("{\"SortByGpu\":true}", ProcessSort.Gpu)]
+    [TestCase("{\"SortByGpu\":false}", ProcessSort.Cpu)]
+    [TestCase("{\"ProcessSort\":\"Memory\"}", ProcessSort.Memory)]
+    [TestCase("{\"ProcessSort\":\"Io\",\"SortByGpu\":true}", ProcessSort.Io)]
+    [TestCase("{\"ProcessSort\":42}", ProcessSort.Cpu)]
+    public async Task ProcessSort_MigratesLegacyGpuFlag_AndRejectsUnknownValues(string json, ProcessSort expected)
+    {
+        Directory.CreateDirectory(testDirectory);
+        await File.WriteAllTextAsync(settingsPath, json);
+        var store = new PreferenceStore(settingsPath);
+        var loaded = await store.LoadAsync();
+        await store.SaveAsync(loaded);
+        var saved = await File.ReadAllTextAsync(settingsPath);
+        Assert.Multiple(() =>
+        {
+            Assert.That(loaded.ProcessSort, Is.EqualTo(expected));
+            Assert.That(saved, Does.Contain($"\"ProcessSort\": \"{expected}\""));
+            Assert.That(saved, Does.Not.Contain("SortByGpu"));
+        });
     }
 
     [Test]

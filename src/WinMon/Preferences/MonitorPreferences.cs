@@ -1,3 +1,6 @@
+using System.Text.Json.Serialization;
+using WinMon.Monitoring;
+
 namespace WinMon.Preferences;
 
 /// <summary>
@@ -22,7 +25,12 @@ public sealed record MonitorPreferences
     /// <summary>Gets the maximum number of CPU-ranked processes to display.</summary>
     public int TopProcessCount { get; init; } = 5;
 
-    /// <summary>Rank process rows by GPU utilization instead of CPU.</summary>
+    /// <summary>Gets the column that ranks the process rows.</summary>
+    [JsonConverter(typeof(JsonStringEnumConverter<ProcessSort>))]
+    public ProcessSort ProcessSort { get; init; }
+
+    /// <summary>Legacy GPU-ranking flag, read once and migrated to <see cref="ProcessSort"/>.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool SortByGpu { get; init; }
 
     /// <summary>Gets the saved window left position, or <see langword="null"/> when no position is saved.</summary>

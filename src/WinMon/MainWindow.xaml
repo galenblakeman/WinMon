@@ -225,13 +225,13 @@
                                     Text="processes by" />
                                 <ComboBox
                                     x:Name="ProcessSortSelector"
-                                    Width="72"
+                                    Width="100"
                                     MinHeight="28"
                                     Margin="6,0,0,0"
                                     AutomationProperties.Name="Rank processes by"
                                     FontSize="14"
                                     FontWeight="SemiBold"
-                                    ToolTip="Rank by five-second average CPU or GPU utilization" />
+                                    ToolTip="Rank by five-second average CPU, GPU or I/O, or by current memory" />
                             </StackPanel>
                             <TextBlock
                                 x:Name="SelectionLabel"
@@ -274,6 +274,7 @@
                             Text="History"
                             ToolTip="CPU history on one scale shared by every row. Hover a row for the scale." />
                         <TextBlock
+                            x:Name="CpuHeader"
                             Grid.Column="2"
                             HorizontalAlignment="Right"
                             FontSize="12"
@@ -281,6 +282,7 @@
                             Text="CPU %"
                             ToolTip="Average over the last 5 seconds. Windows counts process CPU in 15.6 ms ticks, so single seconds often read zero." />
                         <TextBlock
+                            x:Name="GpuHeader"
                             Grid.Column="3"
                             HorizontalAlignment="Right"
                             FontSize="12"
@@ -288,6 +290,7 @@
                             Text="GPU %"
                             ToolTip="Busiest GPU engine per process, averaged over readable intervals in the last 5 seconds. Percentages are not additive." />
                         <TextBlock
+                            x:Name="MemoryHeader"
                             Grid.Column="4"
                             HorizontalAlignment="Right"
                             FontSize="12"
@@ -295,6 +298,7 @@
                             Text="Memory"
                             ToolTip="Resident working set, including shared pages" />
                         <TextBlock
+                            x:Name="IoHeader"
                             Grid.Column="5"
                             HorizontalAlignment="Right"
                             FontSize="12"

@@ -52,8 +52,9 @@ public partial class MainWindow
         ProcessCountSelector.ItemsSource = new[] { 5, 10, 15, 20 };
         ProcessCountSelector.SelectedItem = _preferences.TopProcessCount;
         ProcessCountSelector.SelectionChanged += OnProcessCountChanged;
-        ProcessSortSelector.ItemsSource = new[] { "CPU", "GPU" };
-        ProcessSortSelector.SelectedItem = "CPU";
+        // Item order matches ProcessSort so the selected index is the sort column.
+        ProcessSortSelector.ItemsSource = new[] { "CPU", "GPU", "Memory", "I/O" };
+        ProcessSortSelector.SelectedIndex = (int)ProcessSort.Cpu;
         ProcessSortSelector.SelectionChanged += OnProcessSortChanged;
         WindowTheme.Attach(this);
         foreach (var metric in Metrics)
@@ -74,7 +75,7 @@ public partial class MainWindow
         try
         {
             _preferences = _diagnosticMode ? new MonitorPreferences() : await _preferenceStore.LoadAsync(_lifetime.Token);
-            ProcessSortSelector.SelectedItem = _preferences.SortByGpu ? "GPU" : "CPU";
+            ProcessSortSelector.SelectedIndex = (int)_preferences.ProcessSort;
             ProcessCountSelector.SelectedItem = _preferences.TopProcessCount;
             _expanded = _preferences.Expanded;
             Width = Math.Max(MinWidth, _preferences.Width);
@@ -213,7 +214,8 @@ public partial class MainWindow
         var rowSamples = _selectedSample is null ? samples : [.. samples.Take(selectedIndex + 1)];
         // Rank on a short average ending at the live or selected sample; single intervals are tick-quantized.
         var cpuRanking = visible is null ? new ProcessRanking([], null, 0) : ProcessRanking.Rank(rowSamples);
-        var ranking = _preferences.SortByGpu ? ProcessRanking.Rank(rowSamples, sortByGpu: true) : cpuRanking;
+        var ranking = _preferences.ProcessSort == ProcessSort.Cpu ? cpuRanking : ProcessRanking.Rank(rowSamples, sort: _preferences.ProcessSort);
+        UpdateSortHeaders();
         var active = ranking.Processes;
         var top = active.Take(_preferences.TopProcessCount).ToArray();
         var rest = active.Skip(top.Length).ToArray();
@@ -228,7 +230,13 @@ public partial class MainWindow
             _otherRow.ShowRemainder(rest.Length, rest.Sum(p => p.CpuPercent),
                 rest.Any(p => p.IoBytesPerSecond is not null) ? rest.Sum(p => p.IoBytesPerSecond ?? 0) : null);
         EmptyLabel.Visibility = top.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
-        EmptyLabel.Text = visible is null && _selectedSample is not null ? "Return to live to inspect current activity." : latest is null || visible?.TotalCpuPercent is null ? "Collecting a baseline or recovering after a recording gap…" : _preferences.SortByGpu ? "No measurable GPU activity among accessible processes in this window." : "No measurable active processes in this window.";
+        EmptyLabel.Text = visible is null && _selectedSample is not null ? "Return to live to inspect current activity." : latest is null || visible?.TotalCpuPercent is null ? "Collecting a baseline or recovering after a recording gap…" : _preferences.ProcessSort switch
+            {
+                ProcessSort.Gpu => "No measurable GPU activity among accessible processes in this window.",
+                ProcessSort.Memory => "No memory readings among accessible processes.",
+                ProcessSort.Io => "No measurable I/O among accessible processes in this window.",
+                _ => "No measurable active processes in this window."
+            };
         CoverageLabel.Text = visible is null ? "" : Coverage(visible.UnavailableProcesses, cpuRanking.TotalCpuPercent, cpuRanking.Processes.Sum(p => p.CpuPercent));
         if (_history.WasMemoryLimited) CoverageLabel.Text += (CoverageLabel.Text.Length > 0 ? " · " : "") + "history shortened by memory limit";
         var pausedState = Volatile.Read(ref _paused) != 0;
@@ -272,10 +280,27 @@ public partial class MainWindow
 
     private void OnProcessSortChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
     {
-        if (ProcessSortSelector.SelectedItem is not string sort || _closing) return;
-        _preferences = _preferences with { SortByGpu = sort == "GPU" };
+        if (ProcessSortSelector.SelectedIndex < 0 || _closing) return;
+        _preferences = _preferences with { ProcessSort = (ProcessSort)ProcessSortSelector.SelectedIndex };
         ProcessScroll.ScrollToTop();
         RefreshPresentation();
+    }
+
+    /// <summary>Mark the column that orders the rows; the others stay muted.</summary>
+    private void UpdateSortHeaders()
+    {
+        var headers = new (System.Windows.Controls.TextBlock Header, ProcessSort Sort, string Text)[]
+        {
+            (CpuHeader, ProcessSort.Cpu, "CPU %"), (GpuHeader, ProcessSort.Gpu, "GPU %"),
+            (MemoryHeader, ProcessSort.Memory, "Memory"), (IoHeader, ProcessSort.Io, "I/O MB/s")
+        };
+        foreach (var (header, sort, text) in headers)
+        {
+            var active = sort == _preferences.ProcessSort;
+            header.Text = active ? $"{text} ▾" : text;
+            header.FontWeight = active ? FontWeights.SemiBold : FontWeights.Normal;
+            header.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty, active ? "Text" : "Muted");
+        }
     }
 
     private void UpdateResources(CpuSample? latest)

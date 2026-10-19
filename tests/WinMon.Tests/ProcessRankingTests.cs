@@ -99,7 +99,7 @@ public sealed class ProcessRankingTests
             Sample(1, 10, Usage(1, 0) with { GpuPercent = 60 }, Usage(2, 8) with { GpuPercent = 10 }),
             Sample(2, 10, Usage(1, 0) with { GpuPercent = null }, Usage(2, 8) with { GpuPercent = 10 }),
             Sample(3, 10, Usage(1, 0) with { GpuPercent = 0 }, Usage(2, 8) with { GpuPercent = 10 })];
-        var gpu = ProcessRanking.Rank(history, sortByGpu: true);
+        var gpu = ProcessRanking.Rank(history, sort: ProcessSort.Gpu);
         Assert.Multiple(() =>
         {
             Assert.That(gpu.Processes.Select(p => p.ProcessId), Is.EqualTo(new[] { 1, 2 }));
@@ -115,12 +115,12 @@ public sealed class ProcessRankingTests
             Sample(1, 10, new ProcessUsage(7, 1, "old", 0) with { GpuPercent = 80 }),
             Sample(2, 10, new ProcessUsage(7, 2, "new", 0) with { GpuPercent = 20 }),
             Sample(3, 10, new ProcessUsage(7, 2, "new", 0) with { GpuPercent = 100 })];
-        var selected = ProcessRanking.Rank(history.Take(2).ToArray(), sortByGpu: true);
+        var selected = ProcessRanking.Rank(history.Take(2).ToArray(), sort: ProcessSort.Gpu);
         Assert.Multiple(() =>
         {
             Assert.That(selected.Processes.Select(p => p.GpuPercent), Is.EqualTo(new double?[] { 80, 20 }));
-            Assert.That(ProcessRanking.Rank([history[2] with { IsGap = true }], sortByGpu: true).Processes, Is.Empty);
-            Assert.That(ProcessRanking.Rank([Sample(1, 10, Usage(1, 10))], sortByGpu: true).Processes, Is.Empty);
+            Assert.That(ProcessRanking.Rank([history[2] with { IsGap = true }], sort: ProcessSort.Gpu).Processes, Is.Empty);
+            Assert.That(ProcessRanking.Rank([Sample(1, 10, Usage(1, 10))], sort: ProcessSort.Gpu).Processes, Is.Empty);
         });
     }
 
@@ -137,5 +137,37 @@ public sealed class ProcessRankingTests
 
         Assert.That(ranking.Processes.Select(p => (p.Name, p.CpuPercent)),
             Is.EqualTo(new[] { ("old", 1.5), ("new", 0.5) }));
+    }
+
+    [Test]
+    public void Rank_MemoryUsesLatestWorkingSetOfProcessesStillPresent()
+    {
+        // p1 was largest but exited before the newest sample; p3 has no readable memory.
+        CpuSample[] history =
+        [
+            Sample(1, 10, Usage(1, 0, memory: 900), Usage(2, 0, memory: 100), Usage(3, 0)),
+            Sample(2, 10, Usage(2, 0, memory: 300), Usage(3, 0), Usage(4, 0, memory: 200)),
+        ];
+
+        var ranking = ProcessRanking.Rank(history, sort: ProcessSort.Memory);
+
+        Assert.That(ranking.Processes.Select(p => (p.ProcessId, p.WorkingSetBytes)),
+            Is.EqualTo(new (int, ulong?)[] { (2, 300), (4, 200) }));
+    }
+
+    [Test]
+    public void Rank_IoAveragesReadableIntervalsAndIncludesCpuIdleProcesses()
+    {
+        CpuSample[] history =
+        [
+            Sample(1, 10, Usage(1, 0, io: 1_000), Usage(2, 5, io: 0)),
+            Sample(2, 10, Usage(1, 0, io: null), Usage(2, 5, io: 0)),
+            Sample(3, 10, Usage(1, 0, io: 3_000), Usage(2, 5, io: 500)),
+        ];
+
+        var ranking = ProcessRanking.Rank(history, sort: ProcessSort.Io);
+
+        Assert.That(ranking.Processes.Select(p => (p.ProcessId, p.IoBytesPerSecond)),
+            Is.EqualTo(new (int, double?)[] { (1, 2_000), (2, 500 / 3d) }));
     }
 }

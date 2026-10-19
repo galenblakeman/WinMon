@@ -285,7 +285,7 @@ public partial class MainWindow
         fixture.ProcessSortSelector.SelectedItem = "GPU";
         fixture.RefreshVisiblePresentation();
         visual.UpdateLayout();
-        if (!fixture._preferences.SortByGpu || !System.Windows.Automation.AutomationProperties.GetName(fixture._rows[0]).StartsWith("gpu-worker", StringComparison.Ordinal))
+        if (fixture._preferences.ProcessSort != ProcessSort.Gpu || !System.Windows.Automation.AutomationProperties.GetName(fixture._rows[0]).StartsWith("gpu-worker", StringComparison.Ordinal))
             throw new InvalidOperationException("GPU ranking failed to include a CPU-idle GPU process.");
         fixture._selectedSample = fixture._history.Samples[^2];
         fixture.RefreshVisiblePresentation();
@@ -293,6 +293,17 @@ public partial class MainWindow
             throw new InvalidOperationException("Historical GPU ranking failed.");
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "gpu-process-sort.png"), 1, cancellationToken);
         fixture._selectedSample = null;
+        // Memory ranks by the largest working set (devenv); I/O by the busiest read/write rate (chrome).
+        foreach (var (sort, expected) in new[] { ("Memory", "devenv"), ("I/O", "chrome") })
+        {
+            fixture.ProcessSortSelector.SelectedItem = sort;
+            fixture.RefreshVisiblePresentation();
+            visual.UpdateLayout();
+            if (!System.Windows.Automation.AutomationProperties.GetName(fixture._rows[0]).StartsWith(expected, StringComparison.Ordinal) ||
+                fixture.MemoryHeader.Text.EndsWith('▾') != (sort == "Memory"))
+                throw new InvalidOperationException($"{sort} ranking did not put {expected} first or mark its column.");
+            if (sort == "Memory") await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "memory-process-sort.png"), 1, cancellationToken);
+        }
         fixture.ProcessSortSelector.SelectedItem = "CPU";
         fixture.RefreshVisiblePresentation();
         var rankedSample = fixture._history.Latest! with

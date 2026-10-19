@@ -110,7 +110,10 @@ public sealed class PreferenceStore
             CompactHistorySeconds = NormalizeCompactHistory(preferences.CompactHistorySeconds),
             RetentionSeconds = Math.Clamp(preferences.RetentionSeconds, 600, 3600),
             VisibleMetrics = preferences.VisibleMetrics & 15,
-            TopProcessCount = preferences.TopProcessCount is 5 or 10 or 15 or 20 ? preferences.TopProcessCount : 5
+            TopProcessCount = preferences.TopProcessCount is 5 or 10 or 15 or 20 ? preferences.TopProcessCount : 5,
+            ProcessSort = preferences is { SortByGpu: true, ProcessSort: Monitoring.ProcessSort.Cpu } ? Monitoring.ProcessSort.Gpu
+                : Enum.IsDefined(preferences.ProcessSort) ? preferences.ProcessSort : Monitoring.ProcessSort.Cpu,
+            SortByGpu = false
         };
     }
 

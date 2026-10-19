@@ -2,8 +2,21 @@ using System.Diagnostics;
 
 namespace WinMon.Monitoring;
 
+/// <summary>Column that orders the process list.</summary>
+public enum ProcessSort
+{
+    /// <summary>Five-second average share of total machine CPU.</summary>
+    Cpu,
+    /// <summary>Busiest GPU engine, averaged over readable intervals.</summary>
+    Gpu,
+    /// <summary>Latest resident working set; only processes present in the newest sample.</summary>
+    Memory,
+    /// <summary>Five-second average read/write I/O, averaged over readable intervals.</summary>
+    Io
+}
+
 /// <summary>
-/// Ranks processes by average CPU or GPU over a short window ending at one sample.
+/// Ranks processes by CPU, GPU, memory or I/O over a short window ending at one sample.
 /// </summary>
 /// <remarks>
 /// Windows charges process CPU time in clock ticks (about 15.6 ms), so in any single one-second
@@ -24,9 +37,9 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
     /// <summary>Rank processes over the window ending at the last of <paramref name="history"/>.</summary>
     /// <param name="history">Chronological samples; the last one is the live or selected sample.</param>
     /// <param name="windowSeconds">Averaging window; with one-second sampling it covers that many intervals.</param>
-    /// <param name="sortByGpu">Rank by GPU instead of CPU; missing GPU readings do not become zero.</param>
+    /// <param name="sort">Ranking column; missing GPU, memory or I/O readings never become zero.</param>
     /// <returns>The ranking, empty when the last sample is a gap or has no CPU reading.</returns>
-    public static ProcessRanking Rank(IReadOnlyList<CpuSample> history, int windowSeconds = DefaultWindowSeconds, bool sortByGpu = false)
+    public static ProcessRanking Rank(IReadOnlyList<CpuSample> history, int windowSeconds = DefaultWindowSeconds, ProcessSort sort = ProcessSort.Cpu)
     {
         ArgumentNullException.ThrowIfNull(history);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(windowSeconds);
@@ -47,6 +60,8 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
         }
         if (window.Count == 0) return new ProcessRanking([], null, 0);
 
+        // Memory is a point-in-time reading, so a process that exited earlier in the window is not ranked by it.
+        var newest = window[0].Processes.Select(p => (p.ProcessId, p.CreationTicks)).ToHashSet();
         var totals = new Dictionary<(int, long), (ProcessUsage Latest, double Cpu, double Io, int IoCount, double Gpu, int GpuCount, ProcessUsage? GpuLatest)>();
         // Newest first: the first entry seen for a process carries its latest name and memory.
         foreach (var sample in window)
@@ -73,8 +88,20 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
                 GpuId = t.GpuLatest?.GpuId ?? "",
                 GpuEngine = t.GpuLatest?.GpuEngine ?? ""
             })
-            .Where(p => sortByGpu ? p.GpuPercent > 0 : p.CpuPercent > 0)
-            .OrderByDescending(p => sortByGpu ? p.GpuPercent ?? 0 : p.CpuPercent)
+            .Where(p => sort switch
+            {
+                ProcessSort.Gpu => p.GpuPercent > 0,
+                ProcessSort.Memory => p.WorkingSetBytes > 0 && newest.Contains((p.ProcessId, p.CreationTicks)),
+                ProcessSort.Io => p.IoBytesPerSecond > 0,
+                _ => p.CpuPercent > 0
+            })
+            .OrderByDescending(p => sort switch
+            {
+                ProcessSort.Gpu => p.GpuPercent ?? 0,
+                ProcessSort.Memory => p.WorkingSetBytes ?? 0,
+                ProcessSort.Io => p.IoBytesPerSecond ?? 0,
+                _ => p.CpuPercent
+            })
             .ThenBy(p => p.ProcessId)
             .ToArray();
         return new ProcessRanking(ranked, window.Average(s => s.TotalCpuPercent!.Value), window.Count);
