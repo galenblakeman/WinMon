@@ -123,6 +123,37 @@ public sealed class PreferenceStoreTests
         Assert.That((await store.LoadAsync()).ProcessSort, Is.EqualTo(ProcessSort.Gpu));
     }
 
+    [TestCase(120, 600, 0, new[] { 120, 600 }, 120)]
+    [TestCase(60, 3600, 3600, new[] { 60, 600, 3600 }, 3600)]
+    [TestCase(300, 1800, 600, new[] { 300, 600, 1800 }, 600)]
+    [TestCase(120, 600, 1800, new[] { 120, 600 }, 120)]
+    public void ChartRanges_FollowShortRangeAndRetention(int shortRange, int retention, int chosen, int[] ranges, int effective)
+    {
+        var preferences = new MonitorPreferences { CompactHistorySeconds = shortRange, RetentionSeconds = retention, ChartRangeSeconds = chosen };
+        Assert.Multiple(() =>
+        {
+            Assert.That(preferences.ChartRanges, Is.EqualTo(ranges));
+            Assert.That(preferences.EffectiveChartRange, Is.EqualTo(effective));
+        });
+    }
+
+    [Test]
+    public async Task ChartRange_RoundTrips_AndLegacyExpandedSettingStillLoads()
+    {
+        Directory.CreateDirectory(testDirectory);
+        await File.WriteAllTextAsync(settingsPath, "{\"Expanded\":true,\"RetentionSeconds\":1800,\"TopProcessCount\":10}");
+        var store = new PreferenceStore(settingsPath);
+        var legacy = await store.LoadAsync();
+        await store.SaveAsync(legacy with { ChartRangeSeconds = 1800 });
+        var loaded = await store.LoadAsync();
+        Assert.Multiple(() =>
+        {
+            Assert.That(legacy.TopProcessCount, Is.EqualTo(10));
+            Assert.That(legacy.EffectiveChartRange, Is.EqualTo(120));
+            Assert.That(loaded.EffectiveChartRange, Is.EqualTo(1800));
+        });
+    }
+
     [TestCase("{\"SortByGpu\":true}", ProcessSort.Gpu)]
     [TestCase("{\"SortByGpu\":false}", ProcessSort.Cpu)]
     [TestCase("{\"ProcessSort\":\"Memory\"}", ProcessSort.Memory)]

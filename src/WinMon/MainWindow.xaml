@@ -3,7 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="clr-namespace:WinMon.Controls"
-    Title="WinMon · System Activity"
+    Title="WinMon"
     Width="600"
     Height="840"
     MinWidth="600"
@@ -45,14 +45,6 @@
                             Content="Pin"
                             ToolTip="Keep this window above other windows"
                             WindowChrome.IsHitTestVisibleInChrome="True" />
-                        <Button
-                            x:Name="ExpandButton"
-                            controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Expand}"
-                            AutomationProperties.Name="Expand investigation view"
-                            Click="OnExpand"
-                            Content="Expand"
-                            ToolTip="Switch between the compact view and the wider history view"
-                            WindowChrome.IsHitTestVisibleInChrome="True" />
                     </StackPanel>
                     <Image
                         Width="18"
@@ -66,7 +58,7 @@
                         VerticalAlignment="Center"
                         FontSize="16"
                         FontWeight="SemiBold"
-                        Text="WinMon · System Activity"
+                        Text="WinMon"
                         TextTrimming="CharacterEllipsis" />
                 </DockPanel>
             </Border>
@@ -180,12 +172,20 @@
                                     FontSize="15"
                                     FontWeight="SemiBold"
                                     Text="System resources" />
-                                <TextBlock
-                                    x:Name="RangeLabel"
-                                    Margin="0,2,0,0"
-                                    FontSize="11"
-                                    Foreground="{DynamicResource Muted}"
-                                    Text="Last 2 min · 0–100%" />
+                                <StackPanel Margin="0,3,0,0" Orientation="Horizontal">
+                                    <!--  Range chips are built from the short range, 10 minutes and the retention setting.  -->
+                                    <StackPanel
+                                        x:Name="RangeSelector"
+                                        AutomationProperties.Name="Chart time range"
+                                        Orientation="Horizontal" />
+                                    <TextBlock
+                                        x:Name="RangeLabel"
+                                        Margin="4,0,0,0"
+                                        VerticalAlignment="Center"
+                                        FontSize="11"
+                                        Foreground="{DynamicResource Muted}"
+                                        Text="0–100% · network on its own scale" />
+                                </StackPanel>
                             </StackPanel>
                         </DockPanel>
                     </Border>

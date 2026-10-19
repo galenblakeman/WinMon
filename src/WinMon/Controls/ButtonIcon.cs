@@ -14,8 +14,6 @@ public static class ButtonIcon
 
     public static Geometry Pin { get; } = Create("M 5,2 L 11,2 M 6,2 L 6,6 L 3,9 L 3,10 L 13,10 L 13,9 L 10,6 L 10,2 M 8,10 L 8,15");
     public static Geometry Unpin { get; } = Create("M 5,2 L 11,2 M 6,2 L 6,4 M 10,2 L 10,6 L 13,9 L 13,10 L 7,10 M 4,8 L 3,9 L 3,10 L 4,10 M 8,10 L 8,15 M 1,1 L 15,15");
-    public static Geometry Expand { get; } = Create("M 9,2 L 14,2 L 14,7 M 14,2 L 9,7 M 7,14 L 2,14 L 2,9 M 2,14 L 7,9");
-    public static Geometry Compact { get; } = Create("M 14,2 L 9,7 M 9,2 L 9,7 L 14,7 M 2,14 L 7,9 M 2,9 L 7,9 L 7,14");
     public static Geometry Pause { get; } = Create("M 5,2 L 5,14 M 11,2 L 11,14");
     public static Geometry Resume { get; } = Create("M 4,2 L 13,8 L 4,14 Z");
     public static Geometry Live { get; } = Create("M 13,5 A 6,6 0 1 0 14,10 M 13,1 L 13,5 L 9,5");

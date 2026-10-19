@@ -56,16 +56,22 @@ public partial class MainWindow
             await CaptureVisualAsync(menu, Path.Combine(outputDirectory, "process-count-menu.png"), 1, cancellationToken);
         }
         finally { ProcessCountSelector.IsDropDownOpen = false; }
+        // Switching range and widening the window keep the same recording; wide rows gain a PID line.
         var count = _history.Samples.Count;
-        OnExpand(this, new RoutedEventArgs());
-        if (!_expanded || _history.Samples.Count != count) throw new InvalidOperationException("Expansion replaced the recording session.");
+        if (RangeSelector.Children.OfType<System.Windows.Controls.RadioButton>().FirstOrDefault(c => c.Tag is 600) is not { } tenMinutes)
+            throw new InvalidOperationException("The 10-minute range chip is missing.");
+        tenMinutes.IsChecked = true;
+        Width = 1000;
+        UpdateLayout();
+        if (_preferences.EffectiveChartRange != 600 || !_wide || _history.Samples.Count < count)
+            throw new InvalidOperationException("Range or width change did not apply to the existing recording.");
         _selectedSample = _history.Samples[^2];
         RefreshPresentation();
         if (LiveButton.Visibility != Visibility.Visible || !SelectionLabel.Text.Contains("Historical") || !SelectionMetrics.Text.Contains("Memory"))
             throw new InvalidOperationException("Historical selection was not presented.");
-        await CaptureAsync(Path.Combine(outputDirectory, "investigate.png"), 1, cancellationToken);
-        await CaptureAsync(Path.Combine(outputDirectory, "investigate-150.png"), 1.5, cancellationToken);
-        await CaptureAsync(Path.Combine(outputDirectory, "investigate-200.png"), 2, cancellationToken);
+        await CaptureAsync(Path.Combine(outputDirectory, "range-wide.png"), 1, cancellationToken);
+        await CaptureAsync(Path.Combine(outputDirectory, "range-wide-150.png"), 1.5, cancellationToken);
+        await CaptureAsync(Path.Combine(outputDirectory, "range-wide-200.png"), 2, cancellationToken);
         _history.Resize(1);
         RefreshPresentation();
         if (!SelectionLabel.Text.StartsWith("History expired", StringComparison.Ordinal)) throw new InvalidOperationException("An evicted selection was silently replaced.");
@@ -143,7 +149,7 @@ public partial class MainWindow
             ToolTipDarkAndLight = true,
             HistoricalResourceValues = true,
             _history.Samples[^1].UnavailableProcesses,
-            CompactToExpanded = true,
+            ChartRangeAndWideLayout = true,
             HistoricalSelection = true,
             SelectionExpiry = true,
             PauseResumeWithGap = true,
@@ -196,9 +202,8 @@ public partial class MainWindow
         var handle = new WindowInteropHelper(this).Handle;
         var titlePoint = ViewTitle.TranslatePoint(new Point(20, ViewTitle.ActualHeight / 2), this);
         var pinPoint = PinButton.TranslatePoint(new Point(PinButton.ActualWidth / 2, PinButton.ActualHeight / 2), this);
-        var expandPoint = ExpandButton.TranslatePoint(new Point(ExpandButton.ActualWidth / 2, ExpandButton.ActualHeight / 2), this);
-        if (Hit(titlePoint) != 2 || Hit(pinPoint) != 1 || Hit(expandPoint) != 1)
-            throw new InvalidOperationException("The title must drag the window, while Pin and Expand must receive client input.");
+        if (Hit(titlePoint) != 2 || Hit(pinPoint) != 1)
+            throw new InvalidOperationException("The title must drag the window, while Pin must receive client input.");
         if (Hit(new Point(2, ActualHeight / 2)) != 10)
             throw new InvalidOperationException("The integrated title bar lost the left resize border.");
         if (Hit(new Point(ActualWidth - 116, 16)) != 8 || Hit(new Point(ActualWidth - 70, 16)) != 9 || Hit(new Point(ActualWidth - 24, 16)) != 20)

@@ -31,12 +31,11 @@ public partial class MainWindow
     private string? _samplingError;
     private int _generation;
     private int _paused;
-    private bool _expanded;
+    private bool _wide;
+    private const double WideWidth = 800;
     private bool _closing;
     private bool _allowClose;
     private bool _forceExit;
-    private double _compactWidth = 600;
-    private double _compactHeight = 840;
     private System.Windows.Controls.TextBlock CpuValue => CpuMetric.ValueLabel;
     private MetricReadout[] Metrics => [CpuMetric, MemoryMetric, DiskMetric, NetworkMetric, GpuMetric];
 
@@ -64,6 +63,15 @@ public partial class MainWindow
         }
         foreach (var row in _rows) { row.Visibility = Visibility.Collapsed; ProcessRows.Children.Add(row); }
         ProcessRows.Children.Add(_otherRow);
+        BuildRangeChips();
+        // Rows gain a PID line in a wide window; there is no separate expanded mode.
+        SizeChanged += (_, _) =>
+        {
+            var wide = ActualWidth >= WideWidth;
+            if (wide == _wide || _closing) return;
+            _wide = wide;
+            RefreshPresentation();
+        };
         OverallGraph.SampleSelected += (_, sample) => { _selectedSample = sample; RefreshPresentation(); };
         OverallGraph.LiveRequested += (_, _) => ReturnToLive();
         IsVisibleChanged += (_, _) => { if (IsVisible && !_closing) RefreshPresentation(); };
@@ -77,7 +85,6 @@ public partial class MainWindow
             _preferences = _diagnosticMode ? new MonitorPreferences() : await _preferenceStore.LoadAsync(_lifetime.Token);
             ProcessSortSelector.SelectedIndex = (int)_preferences.ProcessSort;
             ProcessCountSelector.SelectedItem = _preferences.TopProcessCount;
-            _expanded = _preferences.Expanded;
             Width = Math.Max(MinWidth, _preferences.Width);
             Height = Math.Max(MinHeight, _preferences.Height);
             var visibleMask = _preferences.SeriesMask;
@@ -88,7 +95,8 @@ public partial class MainWindow
             Topmost = _preferences.AlwaysOnTop;
             _history.Resize(_preferences.RetentionSeconds);
             ApplyTheme();
-            UpdateLayoutMode(false);
+            BuildRangeChips();
+            UpdatePinButton();
             if (!_diagnosticMode) CreateTray();
             SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
             SystemEvents.DisplaySettingsChanged += OnDisplaySettingsChanged;
@@ -200,12 +208,11 @@ public partial class MainWindow
         var samples = _history.Samples;
         var latest = samples.Count == 0 ? null : samples[^1];
         var visible = _selectedSample is null ? latest : samples.FirstOrDefault(s => ReferenceEquals(s, _selectedSample));
-        var range = _expanded ? _preferences.RetentionSeconds : _preferences.CompactHistorySeconds;
+        var range = _preferences.EffectiveChartRange;
         CpuValue.Text = _samplingError is null && latest?.TotalCpuPercent is { } total ? $"{total:0.0}%" : "—";
         var allUnavailable = _samplingError?.StartsWith("Readings", StringComparison.Ordinal) == true;
         UpdateResources(allUnavailable ? null : latest);
         OverallGraph.SetData(samples, range, _selectedSample);
-        RangeLabel.Text = $"Last {range / 60} min · 0–100% · network on its own scale";
         LiveButton.Visibility = _selectedSample is null ? Visibility.Collapsed : Visibility.Visible;
         SelectionLabel.Text = _selectedSample is not null ? visible is null ? "History expired. This sample has left the recording window. Return to live." : $"Historical sample at {visible.Timestamp:HH:mm:ss} · {ProcessRanking.DefaultWindowSeconds}s average ending here" : $"Individual processes · {ProcessRanking.DefaultWindowSeconds}s averages · CPU history sparklines";
         SelectionMetrics.Visibility = _selectedSample is not null && visible is not null ? Visibility.Visible : Visibility.Collapsed;
@@ -223,7 +230,7 @@ public partial class MainWindow
         for (var i = 0; i < _rows.Length; i++)
         {
             _rows[i].Visibility = i < top.Length ? Visibility.Visible : Visibility.Collapsed;
-            if (i < top.Length) _rows[i].Update(top[i], rowSamples, _preferences.CompactHistorySeconds, _expanded, processData[i]);
+            if (i < top.Length) _rows[i].Update(top[i], rowSamples, _preferences.CompactHistorySeconds, _wide, processData[i]);
         }
         _otherRow.Visibility = rest.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
         if (rest.Length > 0)
@@ -353,36 +360,41 @@ public partial class MainWindow
     private void OnPin(object sender, RoutedEventArgs e)
     {
         Topmost = !Topmost;
+        UpdatePinButton();
+    }
+
+    private void UpdatePinButton()
+    {
         PinButton.Content = Topmost ? "Unpin" : "Pin";
         ButtonIcon.SetData(PinButton, Topmost ? ButtonIcon.Unpin : ButtonIcon.Pin);
     }
 
-    private void OnExpand(object sender, RoutedEventArgs e)
+    /// <summary>Rebuild the range chips; the choices follow the short range and retention settings.</summary>
+    private void BuildRangeChips()
     {
-        if (!_expanded) { _compactWidth = ActualWidth; _compactHeight = ActualHeight; }
-        _expanded = !_expanded;
-        UpdateLayoutMode(true);
-        RefreshPresentation();
-    }
-
-    private void UpdateLayoutMode(bool resize)
-    {
-        MinWidth = _expanded ? 850 : 600;
-        MinHeight = 800;
-        if (resize)
+        RangeSelector.Children.Clear();
+        foreach (var seconds in _preferences.ChartRanges)
         {
-            if (WindowState != WindowState.Normal) WindowState = WindowState.Normal;
-            Width = _expanded ? 1060 : _compactWidth;
-            Height = _expanded ? 820 : _compactHeight;
-            EnsureVisible();
+            var chip = new System.Windows.Controls.RadioButton
+            {
+                Content = $"{seconds / 60}m",
+                Tag = seconds,
+                GroupName = "ChartRange",
+                IsChecked = seconds == _preferences.EffectiveChartRange,
+                Style = (Style)FindResource("RangeChip"),
+                ToolTip = $"Show the last {seconds / 60} minutes"
+            };
+            System.Windows.Automation.AutomationProperties.SetName(chip, $"Show the last {seconds / 60} minutes");
+            chip.Checked += OnRangeChecked;
+            RangeSelector.Children.Add(chip);
         }
-        ApplyTheme();
-        ViewTitle.Text = _expanded ? "WinMon · System History" : "WinMon · System Activity";
-        ExpandButton.Content = _expanded ? "Compact" : "Expand";
-        ButtonIcon.SetData(ExpandButton, _expanded ? ButtonIcon.Compact : ButtonIcon.Expand);
-        System.Windows.Automation.AutomationProperties.SetName(ExpandButton, _expanded ? "Return to compact view" : "Expand investigation view");
-        PinButton.Content = Topmost ? "Unpin" : "Pin";
-        ButtonIcon.SetData(PinButton, Topmost ? ButtonIcon.Unpin : ButtonIcon.Pin);
+    }
+
+    private void OnRangeChecked(object sender, RoutedEventArgs e)
+    {
+        if (sender is not System.Windows.Controls.RadioButton { Tag: int seconds } || _closing) return;
+        _preferences = _preferences with { ChartRangeSeconds = seconds };
+        RefreshPresentation();
     }
 
     private void OnReturnLive(object sender, RoutedEventArgs e) => ReturnToLive();
@@ -462,6 +474,7 @@ public partial class MainWindow
         }
         _preferences = result;
         _history.Resize(_preferences.RetentionSeconds);
+        BuildRangeChips();
         ApplyTheme();
         RefreshPresentation();
     }
@@ -574,7 +587,7 @@ public partial class MainWindow
             try { await _settingsWriteTask; }
             catch (Exception settingsError) { Trace.TraceError("WinMon pending preference save failed during shutdown: {0}", settingsError); }
             var bounds = WindowState == WindowState.Normal ? new Rect(Left, Top, Width, Height) : RestoreBounds;
-            if (!_diagnosticMode) await _preferenceStore.SaveAsync(_preferences with { Width = bounds.Width, Height = bounds.Height, Left = bounds.Left, Top = bounds.Top, Expanded = _expanded, AlwaysOnTop = Topmost }, CancellationToken.None);
+            if (!_diagnosticMode) await _preferenceStore.SaveAsync(_preferences with { Width = bounds.Width, Height = bounds.Height, Left = bounds.Left, Top = bounds.Top, AlwaysOnTop = Topmost }, CancellationToken.None);
         }
         catch (Exception ex) { Trace.TraceError("WinMon shutdown or preference save failed: {0}", ex); }
         finally

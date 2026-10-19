@@ -47,14 +47,14 @@ public sealed class ProcessRow : Grid
         _io.ToolTip = "Read/write I/O includes file, network and device operations; not disk-only throughput.";
     }
 
-    internal void Update(ProcessUsage usage, IReadOnlyList<CpuSample> samples, int seconds, bool expanded,
+    internal void Update(ProcessUsage usage, IReadOnlyList<CpuSample> samples, int seconds, bool showPid,
         ProcessGraphData? data)
     {
         ArgumentNullException.ThrowIfNull(usage);
         _name.Text = usage.Name;
         _name.ToolTip = $"{usage.Name} · PID {usage.ProcessId}";
         _pid.Text = $"PID {usage.ProcessId}";
-        _pid.Visibility = expanded ? Visibility.Visible : Visibility.Collapsed;
+        _pid.Visibility = showPid ? Visibility.Visible : Visibility.Collapsed;
         _value.Text = $"{usage.CpuPercent:0.0}%";
         _gpu.Text = usage.GpuPercent is { } percent ? $"{percent:0.0}%" : "—";
         _gpu.ToolTip = usage.GpuPercent is not null

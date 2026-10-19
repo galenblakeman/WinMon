@@ -64,7 +64,7 @@ public sealed class SettingsWindow : Window
         Grid.SetRow(heading, 0);
         layout.Children.Add(heading);
         AddField(layout, "Theme", _themeSelector, 2);
-        AddField(layout, "Compact graph", _compactHistorySelector, 4);
+        AddField(layout, "Short chart range", _compactHistorySelector, 4);
         AddField(layout, "Historical retention", _retentionSelector, 6);
         Grid.SetRow(_closeToTrayCheckBox, 8);
         layout.Children.Add(_closeToTrayCheckBox);

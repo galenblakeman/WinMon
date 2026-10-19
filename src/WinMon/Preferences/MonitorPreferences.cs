@@ -39,8 +39,13 @@ public sealed record MonitorPreferences
     /// <summary>Gets the saved window top position, or <see langword="null"/> when no position is saved.</summary>
     public double? Top { get; init; }
 
-    /// <summary>Gets a value indicating whether the investigation view is open.</summary>
-    public bool Expanded { get; init; }
+    /// <summary>Gets the chosen chart range in seconds; anything outside <see cref="ChartRanges"/> means the short range.</summary>
+    public int ChartRangeSeconds { get; init; }
+
+    /// <summary>Chart range choices: the short range, ten minutes, and everything retained.</summary>
+    internal int[] ChartRanges => [.. new[] { CompactHistorySeconds, 600, RetentionSeconds }.Distinct().Order()];
+
+    internal int EffectiveChartRange => ChartRanges.Contains(ChartRangeSeconds) ? ChartRangeSeconds : CompactHistorySeconds;
 
     /// <summary>Gets a value indicating whether the monitor stays above other windows.</summary>
     public bool AlwaysOnTop { get; init; }
@@ -48,7 +53,7 @@ public sealed record MonitorPreferences
     /// <summary>Gets the selected application theme: Dark, Light, or System.</summary>
     public string Theme { get; init; } = "Dark";
 
-    /// <summary>Gets the duration, in seconds, shown by the compact graph.</summary>
+    /// <summary>Gets the short chart range and process sparkline duration, in seconds.</summary>
     public int CompactHistorySeconds { get; init; } = 120;
 
     /// <summary>Gets the duration, in seconds, retained for historical inspection.</summary>
