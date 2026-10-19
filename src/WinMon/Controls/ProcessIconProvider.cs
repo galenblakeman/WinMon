@@ -12,23 +12,23 @@ namespace WinMon.Controls;
 /// <summary>Loads icons off the UI thread, with a bounded cache keyed by process lifetime.</summary>
 internal static class ProcessIconProvider
 {
-    private static readonly Dictionary<(int, long), Task<BitmapSource>> cache = new();
-    private static readonly SemaphoreSlim workers = new(2);
+    private static readonly Dictionary<(int, long), Task<BitmapSource>> Cache = new();
+    private static readonly SemaphoreSlim Workers = new(2);
     internal static BitmapSource Fallback { get; } = Convert(System.Drawing.SystemIcons.Application);
 
     // Called on the UI thread. The cache retains images, never native process/icon handles.
     internal static Task<BitmapSource> GetAsync(ProcessUsage process)
     {
         var key = (process.ProcessId, process.CreationTicks);
-        if (cache.TryGetValue(key, out var task)) return task;
-        if (cache.Count >= 256) cache.Remove(cache.Keys.First());
+        if (Cache.TryGetValue(key, out var task)) return task;
+        if (Cache.Count >= 256) Cache.Remove(Cache.Keys.First());
         task = Task.Run(async () =>
         {
-            await workers.WaitAsync().ConfigureAwait(false);
+            await Workers.WaitAsync().ConfigureAwait(false);
             try { return Load(process); }
-            finally { workers.Release(); }
+            finally { Workers.Release(); }
         });
-        cache.Add(key, task);
+        Cache.Add(key, task);
         return task;
     }
 
@@ -46,7 +46,7 @@ internal static class ProcessIconProvider
             return icon is null ? Fallback : Convert(icon);
         }
         catch (Exception ex) when (ex is ArgumentException or System.ComponentModel.Win32Exception or
-            IOException or UnauthorizedAccessException or System.Runtime.InteropServices.ExternalException)
+            IOException or UnauthorizedAccessException or ExternalException)
         {
             Trace.TraceInformation("Process icon unavailable for PID {0}: {1}", process.ProcessId, ex.Message);
             return Fallback;

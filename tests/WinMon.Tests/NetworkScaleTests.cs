@@ -49,9 +49,9 @@ public sealed class NetworkScaleTests
         Assert.That(RateText.Format(bits), Is.EqualTo(expected));
     }
 
-    [TestCase(36_300_000, 1_000_000, "Rx 36.3 · Tx 1 Mbps")]
-    [TestCase(1_010_000, 200_000, "Rx 1.01 · Tx 0.2 Mbps")]
-    [TestCase(0, 0, "Rx 0 · Tx 0 Kbps")]
+    [TestCase(36_300_000, 1_000_000, "↓36.3 ↑1 Mbps")]
+    [TestCase(1_010_000, 200_000, "↓1.01 ↑0.2 Mbps")]
+    [TestCase(0, 0, "↓0 ↑0 Kbps")]
     public void RateText_PairSharesTheLargerRatesUnit(double rx, double tx, string expected)
     {
         Assert.That(RateText.Pair(rx, tx), Is.EqualTo(expected));

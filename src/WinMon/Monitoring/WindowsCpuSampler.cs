@@ -8,9 +8,9 @@ namespace WinMon.Monitoring;
 public sealed class WindowsCpuSampler : IDisposable
 {
     private const double GapThresholdSeconds = 5;
-    private readonly ICpuSnapshotProvider provider;
-    private CpuSnapshot? previous;
-    private bool disposed;
+    private readonly ICpuSnapshotProvider _provider;
+    private CpuSnapshot? _previous;
+    private bool _disposed;
 
     /// <summary>
     /// Initializes a sampler that uses Windows system and process CPU timing APIs.
@@ -22,7 +22,7 @@ public sealed class WindowsCpuSampler : IDisposable
 
     internal WindowsCpuSampler(ICpuSnapshotProvider provider)
     {
-        this.provider = provider ?? throw new ArgumentNullException(nameof(provider));
+        _provider = provider ?? throw new ArgumentNullException(nameof(provider));
     }
 
     /// <summary>
@@ -33,17 +33,17 @@ public sealed class WindowsCpuSampler : IDisposable
     /// <exception cref="PlatformNotSupportedException">Thrown when Windows cannot provide total CPU timing for all active processor groups.</exception>
     public CpuSample Sample()
     {
-        ObjectDisposedException.ThrowIf(disposed, this);
-        var current = provider.Capture();
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        var current = _provider.Capture();
 
-        if (previous is null || IsGap(previous, current))
+        if (_previous is null || IsGap(_previous, current))
         {
-            previous = current;
+            _previous = current;
             return new CpuSample(current.Timestamp, null, [], current.UnavailableProcesses, true, current.MonotonicTimestamp);
         }
 
-        var prior = previous;
-        previous = current;
+        var prior = _previous;
+        _previous = current;
         var totalDelta = current.SystemTimes.TotalTicks - prior.SystemTimes.TotalTicks;
         var idleDelta = current.SystemTimes.IdleTicks - prior.SystemTimes.IdleTicks;
         var busyDelta = totalDelta - idleDelta;
@@ -69,8 +69,8 @@ public sealed class WindowsCpuSampler : IDisposable
     /// </summary>
     public void Reset()
     {
-        ObjectDisposedException.ThrowIf(disposed, this);
-        previous = null;
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        _previous = null;
     }
 
     /// <summary>
@@ -78,14 +78,14 @@ public sealed class WindowsCpuSampler : IDisposable
     /// </summary>
     public void Dispose()
     {
-        disposed = true;
-        previous = null;
+        _disposed = true;
+        _previous = null;
     }
 
     private static bool IsGap(CpuSnapshot previousSnapshot, CpuSnapshot currentSnapshot)
     {
         var elapsed = (currentSnapshot.MonotonicTimestamp - previousSnapshot.MonotonicTimestamp) / (double)Stopwatch.Frequency;
-        return elapsed <= 0 || elapsed > GapThresholdSeconds;
+        return elapsed is <= 0 or > GapThresholdSeconds;
     }
 
     private static IReadOnlyList<ProcessUsage> CreateProcessUsages(
@@ -121,11 +121,13 @@ public sealed class WindowsCpuSampler : IDisposable
                 ResourceRates.PerSecond(priorCpuTicks.WriteBytes, process.WriteBytes, elapsedSeconds)));
         }
 
-        return usages
-            .OrderByDescending(process => process.CpuPercent)
-            .ThenBy(process => process.Name, StringComparer.OrdinalIgnoreCase)
-            .ThenBy(process => process.ProcessId)
-            .ToArray();
+        return
+        [
+            .. usages
+                .OrderByDescending(process => process.CpuPercent)
+                .ThenBy(process => process.Name, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(process => process.ProcessId)
+        ];
     }
 }
 

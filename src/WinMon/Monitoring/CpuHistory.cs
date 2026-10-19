@@ -5,13 +5,13 @@ namespace WinMon.Monitoring;
 /// <summary>Retain CPU observations within elapsed-time, sample-count and process-entry budgets.</summary>
 public sealed class CpuHistory
 {
-    private readonly Queue<CpuSample> samples = [];
-    private readonly int processEntryBudget;
-    private int entries;
-    private CpuSample? latest;
+    private readonly Queue<CpuSample> _samples = [];
+    private readonly int _processEntryBudget;
+    private int _entries;
+    private CpuSample? _latest;
 
     /// <summary>Get the most recent retained observation without copying history.</summary>
-    public CpuSample? Latest => samples.Count == 0 ? null : latest;
+    public CpuSample? Latest => _samples.Count == 0 ? null : _latest;
 
     /// <summary>Create a bounded CPU history for one-second observations.</summary>
     /// <param name="capacity">Maximum sample count and elapsed retention in seconds.</param>
@@ -22,7 +22,7 @@ public sealed class CpuHistory
         ArgumentOutOfRangeException.ThrowIfLessThan(capacity, 1);
         ArgumentOutOfRangeException.ThrowIfLessThan(processEntryBudget, 1);
         Capacity = capacity;
-        this.processEntryBudget = processEntryBudget;
+        _processEntryBudget = processEntryBudget;
     }
 
     /// <summary>Get the maximum sample count and elapsed retention in seconds.</summary>
@@ -32,7 +32,7 @@ public sealed class CpuHistory
     public bool WasMemoryLimited { get; private set; }
 
     /// <summary>Get a stable copy of the retained chronological observations.</summary>
-    public IReadOnlyList<CpuSample> Samples => samples.ToArray();
+    public IReadOnlyList<CpuSample> Samples => [.. _samples];
 
     /// <summary>Add an observation and evict old data within the configured budgets.</summary>
     /// <param name="sample">The observation to retain.</param>
@@ -42,11 +42,11 @@ public sealed class CpuHistory
     {
         ArgumentNullException.ThrowIfNull(sample);
         ArgumentNullException.ThrowIfNull(sample.Processes);
-        if (sample.Processes.Count > processEntryBudget)
+        if (sample.Processes.Count > _processEntryBudget)
             throw new ArgumentException("One sample exceeds the history process-entry budget.", nameof(sample));
-        samples.Enqueue(sample);
-        latest = sample;
-        entries += sample.Processes.Count;
+        _samples.Enqueue(sample);
+        _latest = sample;
+        _entries += sample.Processes.Count;
         Trim(sample);
     }
 
@@ -57,21 +57,21 @@ public sealed class CpuHistory
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(capacity, 1);
         Capacity = capacity;
-        if (samples.Count > 0) Trim(samples.Last());
+        if (_samples.Count > 0) Trim(_samples.Last());
     }
 
     private void Trim(CpuSample latest)
     {
-        while (samples.Count > 0)
+        while (_samples.Count > 0)
         {
-            var oldest = samples.Peek();
+            var oldest = _samples.Peek();
             var age = latest.MonotonicTimestamp > 0 && oldest.MonotonicTimestamp > 0
                 ? (latest.MonotonicTimestamp - oldest.MonotonicTimestamp) / (double)Stopwatch.Frequency
                 : (latest.Timestamp - oldest.Timestamp).TotalSeconds;
-            var overBudget = entries > processEntryBudget;
-            if (samples.Count <= Capacity && age < Capacity && !overBudget) break;
+            var overBudget = _entries > _processEntryBudget;
+            if (_samples.Count <= Capacity && age < Capacity && !overBudget) break;
             WasMemoryLimited |= overBudget;
-            entries -= samples.Dequeue().Processes.Count;
+            _entries -= _samples.Dequeue().Processes.Count;
         }
     }
 }

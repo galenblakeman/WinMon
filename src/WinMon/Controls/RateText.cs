@@ -25,7 +25,8 @@ internal static class RateText
     {
         var unit = Parts(Math.Max(receiveBits, sendBits)).Unit;
         var divisor = unit switch { "Gbps" => 1e9, "Mbps" => 1e6, _ => 1e3 };
+        return $"↓{Number(receiveBits / divisor)} ↑{Number(sendBits / divisor)} {unit}";
+
         static string Number(double value) => value switch { 0 => "0", < 10 => $"{value:0.##}", < 100 => $"{value:0.#}", _ => $"{value:0}" };
-        return $"Rx {Number(receiveBits / divisor)} · Tx {Number(sendBits / divisor)} {unit}";
     }
 }

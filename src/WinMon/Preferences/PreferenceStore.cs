@@ -10,10 +10,10 @@ public sealed class PreferenceStore
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
         WriteIndented = true,
-        PropertyNameCaseInsensitive = true,
+        PropertyNameCaseInsensitive = true
     };
 
-    private readonly string settingsPath;
+    private readonly string _settingsPath;
 
     /// <summary>Initializes a new instance of the <see cref="PreferenceStore"/> class.</summary>
     public PreferenceStore()
@@ -24,7 +24,7 @@ public sealed class PreferenceStore
     internal PreferenceStore(string settingsPath)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(settingsPath);
-        this.settingsPath = settingsPath;
+        _settingsPath = settingsPath;
     }
 
     /// <summary>Loads valid persisted preferences, returning defaults when the file is missing or invalid.</summary>
@@ -35,7 +35,7 @@ public sealed class PreferenceStore
         cancellationToken.ThrowIfCancellationRequested();
         try
         {
-            await using FileStream stream = new(settingsPath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
+            await using FileStream stream = new(_settingsPath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
             MonitorPreferences? preferences = await JsonSerializer.DeserializeAsync<MonitorPreferences>(stream, SerializerOptions, cancellationToken).ConfigureAwait(false);
             return Validate(preferences ?? new MonitorPreferences());
         }
@@ -69,14 +69,14 @@ public sealed class PreferenceStore
     {
         ArgumentNullException.ThrowIfNull(preferences);
         cancellationToken.ThrowIfCancellationRequested();
-        string? directory = Path.GetDirectoryName(settingsPath);
+        string? directory = Path.GetDirectoryName(_settingsPath);
         if (string.IsNullOrWhiteSpace(directory))
         {
             throw new InvalidOperationException("The settings path must include a directory.");
         }
 
         Directory.CreateDirectory(directory);
-        string temporaryPath = Path.Combine(directory, $".{Path.GetFileName(settingsPath)}.{Guid.NewGuid():N}.tmp");
+        string temporaryPath = Path.Combine(directory, $".{Path.GetFileName(_settingsPath)}.{Guid.NewGuid():N}.tmp");
 
         try
         {
@@ -86,7 +86,7 @@ public sealed class PreferenceStore
                 await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            File.Move(temporaryPath, settingsPath, true);
+            File.Move(temporaryPath, _settingsPath, true);
         }
         finally
         {
@@ -110,7 +110,7 @@ public sealed class PreferenceStore
             CompactHistorySeconds = NormalizeCompactHistory(preferences.CompactHistorySeconds),
             RetentionSeconds = Math.Clamp(preferences.RetentionSeconds, 600, 3600),
             VisibleMetrics = preferences.VisibleMetrics & 15,
-            TopProcessCount = preferences.TopProcessCount is 5 or 10 or 15 or 20 ? preferences.TopProcessCount : 5,
+            TopProcessCount = preferences.TopProcessCount is 5 or 10 or 15 or 20 ? preferences.TopProcessCount : 5
         };
     }
 
@@ -122,13 +122,13 @@ public sealed class PreferenceStore
     {
         "light" => "Light",
         "system" => "System",
-        _ => "Dark",
+        _ => "Dark"
     };
 
     private static int NormalizeCompactHistory(int seconds) => seconds switch
     {
         <= 90 => 60,
         <= 210 => 120,
-        _ => 300,
+        _ => 300
     };
 }

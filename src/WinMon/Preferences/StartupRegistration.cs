@@ -1,4 +1,5 @@
 using Microsoft.Win32;
+// ReSharper disable StringLiteralTypo
 
 namespace WinMon.Preferences;
 
@@ -7,7 +8,7 @@ namespace WinMon.Preferences;
 /// </summary>
 public static class StartupRegistration
 {
-    private const string RunKeyPath = "Software\\Microsoft\\Windows\\CurrentVersion\\Run";
+    private const string RunKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
     private const string ValueName = "WinMon";
 
     /// <summary>Gets a value indicating whether WinMon is registered to start with the current user session.</summary>

@@ -211,7 +211,7 @@ public sealed class WindowsCpuSamplerTests
     {
         private readonly Queue<CpuSnapshot> snapshots = new(snapshots);
 
-        public CpuSnapshot Capture() => this.snapshots.Dequeue();
+        public CpuSnapshot Capture() => snapshots.Dequeue();
     }
 
     private sealed class ThrowingSnapshotProvider : ICpuSnapshotProvider

@@ -33,6 +33,6 @@ internal sealed record ProcessGraphData(IReadOnlyList<CpuSample> Samples, double
         }
         // One scale for every row so sparkline heights compare across processes.
         var scale = Math.Clamp(Math.Ceiling(peaks.Max() * 11) / 10, 0.1, 100);
-        return identities.Select((_, i) => new ProcessGraphData(visible, values[i], scale)).ToArray();
+        return [.. identities.Select((_, i) => new ProcessGraphData(visible, values[i], scale))];
     }
 }

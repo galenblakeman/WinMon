@@ -37,8 +37,7 @@ internal sealed class WindowsCpuSnapshotProvider : ICpuSnapshotProvider
                     if (capturedCount++ >= 20_000) { unavailable++; continue; }
                     // CPU timing needs query-only access, not Process.Handle's broader requested rights.
                     using var handle = NativeMethods.OpenProcess(0x1000, false, process.Id);
-                    if (handle.IsInvalid) { unavailable++; continue; }
-                    if (!NativeMethods.GetProcessTimes(
+                    if (handle.IsInvalid || !NativeMethods.GetProcessTimes(
                             handle,
                             out var creationTime,
                             out _,

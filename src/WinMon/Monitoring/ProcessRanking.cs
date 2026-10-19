@@ -3,14 +3,14 @@ using System.Diagnostics;
 namespace WinMon.Monitoring;
 
 /// <summary>
-/// Ranks processes by average CPU over a short window ending at one sample.
+/// Ranks processes by average CPU or GPU over a short window ending at one sample.
 /// </summary>
 /// <remarks>
 /// Windows charges process CPU time in clock ticks (about 15.6 ms), so in any single one-second
 /// interval most lightly active processes read exactly zero. Averaging a few intervals keeps the
 /// ranked list stable, and a process stays listed while any interval in the window measured it.
 /// </remarks>
-/// <param name="Processes">Processes with non-zero average CPU, busiest first. Memory is the latest reading; I/O is averaged where readable.</param>
+/// <param name="Processes">Processes active in the selected metric, busiest first. Memory is the latest reading; I/O and GPU are averaged where readable.</param>
 /// <param name="TotalCpuPercent">Average total machine CPU over the same intervals, or <see langword="null"/> with no measurable interval.</param>
 /// <param name="IntervalCount">Number of measured intervals averaged.</param>
 public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, double? TotalCpuPercent, int IntervalCount)
@@ -24,8 +24,9 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
     /// <summary>Rank processes over the window ending at the last of <paramref name="history"/>.</summary>
     /// <param name="history">Chronological samples; the last one is the live or selected sample.</param>
     /// <param name="windowSeconds">Averaging window; with one-second sampling it covers that many intervals.</param>
+    /// <param name="sortByGpu">Rank by GPU instead of CPU; missing GPU readings do not become zero.</param>
     /// <returns>The ranking, empty when the last sample is a gap or has no CPU reading.</returns>
-    public static ProcessRanking Rank(IReadOnlyList<CpuSample> history, int windowSeconds = DefaultWindowSeconds)
+    public static ProcessRanking Rank(IReadOnlyList<CpuSample> history, int windowSeconds = DefaultWindowSeconds, bool sortByGpu = false)
     {
         ArgumentNullException.ThrowIfNull(history);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(windowSeconds);
@@ -46,7 +47,7 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
         }
         if (window.Count == 0) return new ProcessRanking([], null, 0);
 
-        var totals = new Dictionary<(int, long), (ProcessUsage Latest, double Cpu, double Io, int IoCount)>();
+        var totals = new Dictionary<(int, long), (ProcessUsage Latest, double Cpu, double Io, int IoCount, double Gpu, int GpuCount, ProcessUsage? GpuLatest)>();
         // Newest first: the first entry seen for a process carries its latest name and memory.
         foreach (var sample in window)
         {
@@ -57,17 +58,23 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
                 totals[key] = (total.Latest ?? process,
                     total.Cpu + process.CpuPercent,
                     total.Io + (process.IoBytesPerSecond ?? 0),
-                    total.IoCount + (process.IoBytesPerSecond is null ? 0 : 1));
+                    total.IoCount + (process.IoBytesPerSecond is null ? 0 : 1),
+                    total.Gpu + (process.GpuPercent ?? 0),
+                    total.GpuCount + (process.GpuPercent is null ? 0 : 1),
+                    total.GpuLatest ?? (process.GpuPercent is not null ? process : null));
             }
         }
         var ranked = totals.Values
             .Select(t => t.Latest with
             {
                 CpuPercent = t.Cpu / window.Count,
-                IoBytesPerSecond = t.IoCount > 0 ? t.Io / t.IoCount : null
+                IoBytesPerSecond = t.IoCount > 0 ? t.Io / t.IoCount : null,
+                GpuPercent = t.GpuCount > 0 ? t.Gpu / t.GpuCount : null,
+                GpuId = t.GpuLatest?.GpuId ?? "",
+                GpuEngine = t.GpuLatest?.GpuEngine ?? ""
             })
-            .Where(p => p.CpuPercent > 0)
-            .OrderByDescending(p => p.CpuPercent)
+            .Where(p => sortByGpu ? p.GpuPercent > 0 : p.CpuPercent > 0)
+            .OrderByDescending(p => sortByGpu ? p.GpuPercent ?? 0 : p.CpuPercent)
             .ThenBy(p => p.ProcessId)
             .ToArray();
         return new ProcessRanking(ranked, window.Average(s => s.TotalCpuPercent!.Value), window.Count);

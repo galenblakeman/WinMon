@@ -93,6 +93,38 @@ public sealed class ProcessRankingTests
     }
 
     [Test]
+    public void Rank_GpuUsesReadableIntervalsIncludingZero_AndCanShowCpuIdleProcesses()
+    {
+        CpuSample[] history = [
+            Sample(1, 10, Usage(1, 0) with { GpuPercent = 60 }, Usage(2, 8) with { GpuPercent = 10 }),
+            Sample(2, 10, Usage(1, 0) with { GpuPercent = null }, Usage(2, 8) with { GpuPercent = 10 }),
+            Sample(3, 10, Usage(1, 0) with { GpuPercent = 0 }, Usage(2, 8) with { GpuPercent = 10 })];
+        var gpu = ProcessRanking.Rank(history, sortByGpu: true);
+        Assert.Multiple(() =>
+        {
+            Assert.That(gpu.Processes.Select(p => p.ProcessId), Is.EqualTo(new[] { 1, 2 }));
+            Assert.That(gpu.Processes[0].GpuPercent, Is.EqualTo(30));
+            Assert.That(ProcessRanking.Rank(history).Processes.Single().ProcessId, Is.EqualTo(2));
+        });
+    }
+
+    [Test]
+    public void Rank_GpuSeparatesPidLifetimes_AndHonorsHistoricalEndAndGaps()
+    {
+        CpuSample[] history = [
+            Sample(1, 10, new ProcessUsage(7, 1, "old", 0) with { GpuPercent = 80 }),
+            Sample(2, 10, new ProcessUsage(7, 2, "new", 0) with { GpuPercent = 20 }),
+            Sample(3, 10, new ProcessUsage(7, 2, "new", 0) with { GpuPercent = 100 })];
+        var selected = ProcessRanking.Rank(history.Take(2).ToArray(), sortByGpu: true);
+        Assert.Multiple(() =>
+        {
+            Assert.That(selected.Processes.Select(p => p.GpuPercent), Is.EqualTo(new double?[] { 80, 20 }));
+            Assert.That(ProcessRanking.Rank([history[2] with { IsGap = true }], sortByGpu: true).Processes, Is.Empty);
+            Assert.That(ProcessRanking.Rank([Sample(1, 10, Usage(1, 10))], sortByGpu: true).Processes, Is.Empty);
+        });
+    }
+
+    [Test]
     public void Rank_SeparatesReusedProcessIdsByCreationTime()
     {
         CpuSample[] history =

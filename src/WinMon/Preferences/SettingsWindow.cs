@@ -9,12 +9,12 @@ namespace WinMon.Preferences;
 /// </summary>
 public sealed class SettingsWindow : Window
 {
-    private readonly MonitorPreferences initialPreferences;
-    private readonly ComboBox themeSelector;
-    private readonly ComboBox compactHistorySelector;
-    private readonly ComboBox retentionSelector;
-    private readonly CheckBox closeToTrayCheckBox;
-    private readonly CheckBox startupCheckBox;
+    private readonly MonitorPreferences _initialPreferences;
+    private readonly ComboBox _themeSelector;
+    private readonly ComboBox _compactHistorySelector;
+    private readonly ComboBox _retentionSelector;
+    private readonly CheckBox _closeToTrayCheckBox;
+    private readonly CheckBox _startupCheckBox;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SettingsWindow"/> class.
@@ -23,8 +23,8 @@ public sealed class SettingsWindow : Window
     public SettingsWindow(MonitorPreferences preferences)
     {
         ArgumentNullException.ThrowIfNull(preferences);
-        initialPreferences = preferences;
-        WinMon.Controls.WindowTheme.Attach(this);
+        _initialPreferences = preferences;
+        Controls.WindowTheme.Attach(this);
 
         Title = "WinMon settings";
         Width = 460;
@@ -36,15 +36,15 @@ public sealed class SettingsWindow : Window
         SetResourceReference(BackgroundProperty, "Surface");
         SetResourceReference(ForegroundProperty, "Text");
 
-        themeSelector = CreateSelector(["Dark", "Light", "System"], preferences.Theme);
-        compactHistorySelector = CreateSelector(["1 minute", "2 minutes", "5 minutes"], CompactHistoryLabel(preferences.CompactHistorySeconds));
-        retentionSelector = CreateSelector(["10 minutes", "30 minutes", "60 minutes"], RetentionLabel(preferences.RetentionSeconds));
-        closeToTrayCheckBox = CreateCheckBox("Close to the notification area", preferences.CloseToTray);
-        startupCheckBox = CreateCheckBox("Start WinMon when I sign in", preferences.StartWithWindows);
+        _themeSelector = CreateSelector(["Dark", "Light", "System"], preferences.Theme);
+        _compactHistorySelector = CreateSelector(["1 minute", "2 minutes", "5 minutes"], CompactHistoryLabel(preferences.CompactHistorySeconds));
+        _retentionSelector = CreateSelector(["10 minutes", "30 minutes", "60 minutes"], RetentionLabel(preferences.RetentionSeconds));
+        _closeToTrayCheckBox = CreateCheckBox("Close to the notification area", preferences.CloseToTray);
+        _startupCheckBox = CreateCheckBox("Start WinMon when I sign in", preferences.StartWithWindows);
 
         Grid layout = new()
         {
-            Margin = new Thickness(24),
+            Margin = new Thickness(24)
         };
         layout.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         layout.RowDefinitions.Add(new RowDefinition { Height = new GridLength(16) });
@@ -57,19 +57,19 @@ public sealed class SettingsWindow : Window
         layout.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         layout.RowDefinitions.Add(new RowDefinition { Height = new GridLength(8) });
         layout.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        layout.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1), });
+        layout.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1) });
         layout.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
         TextBlock heading = CreateHeading("Appearance");
         Grid.SetRow(heading, 0);
         layout.Children.Add(heading);
-        AddField(layout, "Theme", themeSelector, 2);
-        AddField(layout, "Compact graph", compactHistorySelector, 4);
-        AddField(layout, "Historical retention", retentionSelector, 6);
-        Grid.SetRow(closeToTrayCheckBox, 8);
-        layout.Children.Add(closeToTrayCheckBox);
-        Grid.SetRow(startupCheckBox, 10);
-        layout.Children.Add(startupCheckBox);
+        AddField(layout, "Theme", _themeSelector, 2);
+        AddField(layout, "Compact graph", _compactHistorySelector, 4);
+        AddField(layout, "Historical retention", _retentionSelector, 6);
+        Grid.SetRow(_closeToTrayCheckBox, 8);
+        layout.Children.Add(_closeToTrayCheckBox);
+        Grid.SetRow(_startupCheckBox, 10);
+        layout.Children.Add(_startupCheckBox);
         StackPanel buttons = CreateButtons();
         Grid.SetRow(buttons, 12);
         layout.Children.Add(buttons);
@@ -91,7 +91,7 @@ public sealed class SettingsWindow : Window
             ItemsSource = choices,
             SelectedItem = selectedValue,
             MinWidth = 170,
-            HorizontalAlignment = HorizontalAlignment.Right,
+            HorizontalAlignment = HorizontalAlignment.Right
         };
         selector.SetResourceReference(BackgroundProperty, "Raised");
         selector.SetResourceReference(ForegroundProperty, "Text");
@@ -104,7 +104,7 @@ public sealed class SettingsWindow : Window
         {
             Content = content,
             IsChecked = isChecked,
-            Margin = new Thickness(0, 2, 0, 2),
+            Margin = new Thickness(0, 2, 0, 2)
         };
         checkBox.SetResourceReference(ForegroundProperty, "Text");
         return checkBox;
@@ -116,7 +116,7 @@ public sealed class SettingsWindow : Window
         {
             Text = text,
             FontWeight = FontWeights.SemiBold,
-            FontSize = 16,
+            FontSize = 16
         };
         heading.SetResourceReference(TextBlock.ForegroundProperty, "Accent");
         return heading;
@@ -126,17 +126,17 @@ public sealed class SettingsWindow : Window
     {
         60 => "1 minute",
         300 => "5 minutes",
-        _ => "2 minutes",
+        _ => "2 minutes"
     };
 
     private static string RetentionLabel(int seconds) => seconds switch
     {
         >= 3600 => "60 minutes",
         >= 1800 => "30 minutes",
-        _ => "10 minutes",
+        _ => "10 minutes"
     };
 
-    private void AddField(Grid layout, string label, Control control, int row)
+    private static void AddField(Grid layout, string label, Control control, int row)
     {
         Grid field = new();
         field.ColumnDefinitions.Add(new ColumnDefinition());
@@ -144,7 +144,7 @@ public sealed class SettingsWindow : Window
         TextBlock text = new()
         {
             Text = label,
-            VerticalAlignment = VerticalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center
         };
         text.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
         AutomationProperties.SetLabeledBy(control, text);
@@ -163,17 +163,17 @@ public sealed class SettingsWindow : Window
             Content = "Cancel",
             IsCancel = true,
             MinWidth = 90,
-            Margin = new Thickness(0, 0, 8, 0),
+            Margin = new Thickness(0, 0, 8, 0)
         };
         Button saveButton = new()
         {
             Content = "Save",
             IsDefault = true,
-            MinWidth = 90,
+            MinWidth = 90
         };
         cancelButton.SetResourceReference(BackgroundProperty, "Raised");
-        WinMon.Controls.ButtonIcon.SetData(cancelButton, WinMon.Controls.ButtonIcon.Cancel);
-        WinMon.Controls.ButtonIcon.SetData(saveButton, WinMon.Controls.ButtonIcon.Save);
+        Controls.ButtonIcon.SetData(cancelButton, Controls.ButtonIcon.Cancel);
+        Controls.ButtonIcon.SetData(saveButton, Controls.ButtonIcon.Save);
         cancelButton.SetResourceReference(ForegroundProperty, "Text");
         saveButton.SetResourceReference(BackgroundProperty, "Raised");
         saveButton.SetResourceReference(ForegroundProperty, "Text");
@@ -183,29 +183,29 @@ public sealed class SettingsWindow : Window
         {
             Orientation = Orientation.Horizontal,
             HorizontalAlignment = HorizontalAlignment.Right,
-            Children = { cancelButton, saveButton },
+            Children = { cancelButton, saveButton }
         };
     }
 
     private void SaveButton_Click(object sender, RoutedEventArgs e)
     {
-        Result = initialPreferences with
+        Result = _initialPreferences with
         {
-            Theme = themeSelector.SelectedItem as string ?? "Dark",
-            CompactHistorySeconds = (compactHistorySelector.SelectedItem as string) switch
+            Theme = _themeSelector.SelectedItem as string ?? "Dark",
+            CompactHistorySeconds = (_compactHistorySelector.SelectedItem as string) switch
             {
                 "1 minute" => 60,
                 "5 minutes" => 300,
-                _ => 120,
+                _ => 120
             },
-            RetentionSeconds = (retentionSelector.SelectedItem as string) switch
+            RetentionSeconds = (_retentionSelector.SelectedItem as string) switch
             {
                 "30 minutes" => 1800,
                 "60 minutes" => 3600,
-                _ => 600,
+                _ => 600
             },
-            CloseToTray = closeToTrayCheckBox.IsChecked == true,
-            StartWithWindows = startupCheckBox.IsChecked == true,
+            CloseToTray = _closeToTrayCheckBox.IsChecked == true,
+            StartWithWindows = _startupCheckBox.IsChecked == true
         };
         DialogResult = true;
     }

@@ -4,27 +4,26 @@ using System.Windows;
 namespace WinMon;
 
 /// <summary>Run a single local monitoring session or an isolated diagnostic smoke run.</summary>
-public partial class App : Application
+public partial class App
 {
-    private Mutex? instance;
-    private bool ownsInstance;
-    private Task? diagnostics;
+    private Mutex? _instance;
+    private bool _ownsInstance;
 
     /// <inheritdoc/>
     protected override void OnStartup(StartupEventArgs e)
     {
-        if (e.Args.Length == 2 && e.Args[0] == "--smoke-output")
+        if (e.Args is ["--smoke-output", _])
         {
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
             base.OnStartup(e);
             var window = new MainWindow(true);
             MainWindow = window;
             window.Show();
-            diagnostics = RunDiagnosticsAsync(window, Path.GetFullPath(e.Args[1]));
+            _ = RunDiagnosticsAsync(window, Path.GetFullPath(e.Args[1]));
             return;
         }
-        instance = new Mutex(true, @"Local\WinMon.CpuMonitor", out ownsInstance);
-        if (!ownsInstance)
+        _instance = new Mutex(true, @"Local\WinMon.CpuMonitor", out _ownsInstance);
+        if (!_ownsInstance)
         {
             MessageBox.Show("WinMon is already running. Restore it from the notification area.", "WinMon", MessageBoxButton.OK, MessageBoxImage.Information);
             Shutdown();
@@ -60,8 +59,8 @@ public partial class App : Application
     /// <inheritdoc/>
     protected override void OnExit(ExitEventArgs e)
     {
-        if (ownsInstance) instance?.ReleaseMutex();
-        instance?.Dispose();
+        if (_ownsInstance) _instance?.ReleaseMutex();
+        _instance?.Dispose();
         base.OnExit(e);
     }
 }

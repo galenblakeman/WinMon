@@ -97,6 +97,32 @@ public sealed class PreferenceStoreTests
     }
 
     [Test]
+    public async Task GpuVisibility_OldPreferencesEnableGpu_AndHiddenStateRoundTrips()
+    {
+        Directory.CreateDirectory(testDirectory);
+        await File.WriteAllTextAsync(settingsPath, "{\"VisibleMetrics\":5}");
+        var store = new PreferenceStore(settingsPath);
+        var old = await store.LoadAsync();
+        Assert.That(old.SeriesMask, Is.EqualTo(21));
+        await store.SaveAsync(old with { ShowGpu = false });
+        var loaded = await store.LoadAsync();
+        Assert.Multiple(() =>
+        {
+            Assert.That(loaded.ShowGpu, Is.False);
+            Assert.That(loaded.SeriesMask, Is.EqualTo(5));
+        });
+    }
+
+    [Test]
+    public async Task ProcessGpuRanking_DefaultsToCpu_AndRoundTrips()
+    {
+        var store = new PreferenceStore(settingsPath);
+        Assert.That((await store.LoadAsync()).SortByGpu, Is.False);
+        await store.SaveAsync(new MonitorPreferences { SortByGpu = true });
+        Assert.That((await store.LoadAsync()).SortByGpu, Is.True);
+    }
+
+    [Test]
     public void SaveAsync_CanceledBeforeWriting_ThrowsWithoutCreatingPreferences()
     {
         PreferenceStore store = new(settingsPath);

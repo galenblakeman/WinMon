@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
+// ReSharper disable StringLiteralTypo
 
 namespace WinMon.Controls;
 
@@ -23,7 +24,7 @@ internal static class WindowTheme
         var caption = SystemParameters.HighContrast ? -1 : ColorValue(window, captionKey);
         var text = SystemParameters.HighContrast ? -1 : ColorValue(window, "Text");
         var surface = ((SolidColorBrush)window.FindResource("Surface")).Color;
-        var dark = !SystemParameters.HighContrast && (surface.R * 299 + surface.G * 587 + surface.B * 114 < 128000) ? 1 : 0;
+        var dark = !SystemParameters.HighContrast && surface.R * 299 + surface.G * 587 + surface.B * 114 < 128000 ? 1 : 0;
         // A failed cosmetic request must not prevent the monitor from running.
         _ = DwmSetWindowAttribute(handle, 20 /* DWMWA_USE_IMMERSIVE_DARK_MODE */, ref dark, sizeof(int));
         _ = DwmSetWindowAttribute(handle, 35 /* DWMWA_CAPTION_COLOR */, ref caption, sizeof(int));
@@ -33,7 +34,7 @@ internal static class WindowTheme
     private static int ColorValue(Window window, string key)
     {
         var color = ((SolidColorBrush)window.FindResource(key)).Color;
-        return color.R | color.G << 8 | color.B << 16;
+        return color.R | (color.G << 8) | (color.B << 16);
     }
 
     [DllImport("dwmapi.dll")]

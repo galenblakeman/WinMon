@@ -14,8 +14,16 @@ public sealed record MonitorPreferences
     /// <summary>Visible chart series: CPU=1, memory=2, disk=4, network=8.</summary>
     public int VisibleMetrics { get; init; } = 15;
 
+    /// <summary>Show GPU utilization; separate from the legacy mask so existing settings enable it by default.</summary>
+    public bool ShowGpu { get; init; } = true;
+
+    internal int SeriesMask => VisibleMetrics | (ShowGpu ? 16 : 0);
+
     /// <summary>Gets the maximum number of CPU-ranked processes to display.</summary>
     public int TopProcessCount { get; init; } = 5;
+
+    /// <summary>Rank process rows by GPU utilization instead of CPU.</summary>
+    public bool SortByGpu { get; init; }
 
     /// <summary>Gets the saved window left position, or <see langword="null"/> when no position is saved.</summary>
     public double? Left { get; init; }
