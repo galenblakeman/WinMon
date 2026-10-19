@@ -52,3 +52,17 @@ Earlier render review led to shorter process rows to preserve chart/table propor
 ## Limits
 
 Scaled bitmaps do not verify actual desktop DPI changes or mixed-DPI monitors. Keyboard/mouse automation, actual OS high-contrast interaction, tray/startup and sustained overhead remain manual/environment checks. CPU retains the existing single-active-processor-group limitation; other resources can continue if CPU is unavailable. All 46 NUnit tests passed outside the sandbox; initial sandbox host-connection failures are inconclusive.
+
+## Inline process count — 2026-10-19
+
+final result: passed
+
+Target: `design/process-count-selected.png`, the first displayed mockup. Implementation evidence: `artifacts/process-count-final/`. The opened `design-comparison.png` combines the reference normalized to 600 × 840 with the 600 × 820 WPF fixture and its separately captured native dropdown composited beside the selector. This is a comparison montage, not a desktop screenshot of a single interaction. The source has a short live history; the fixture uses illustrative traces and process names. These sample-data differences are intentional.
+
+Typography, copy, spacing, colors, and asset quality were reviewed: the inline `Top [5] processes by CPU` heading and four choices match the selected interaction; existing Segoe UI, blue headers, resource colors, graph, process columns and icons are retained. The existing application dropdown uses a green outline instead of the mockup's blue selection fill/checkmark. Reusing the application's existing focus and selection style is an accepted adaptation. Controls and text are sharp at the rendered scale. No new raster assets are required for the functional control.
+
+Earlier checks caught footer overflow at minimum height, including the extra historical-detail line. The graph minimum and scrollable process viewport were adjusted. Final `process-count-20.png` and `process-count-history.png` were opened and reviewed: the list scrolls, headers align, and complete footer buttons remain visible. Native `light.png` was opened and reviewed for theme compatibility. There are no remaining P0/P1/P2 findings for this change.
+
+Validation: final Release build succeeded with zero warnings/errors; 66 NUnit cases passed outside the sandbox. The sandboxed test run had no final result and was stopped as inconclusive. Final native smoke exited 0, with all count choices, historical sample preservation, menu rendering, minimum-size live/historical footer visibility and scrolling assertions passing. `smoke.json` records successful completion only after the fixture assertions. Earlier failed runs remain in their separate artifact folders.
+
+Limits: preference serialization and fallback were tested; physical keyboard/mouse operation, actual OS DPI transitions and restart persistence through a real user session were not automated. The count is saved through the existing normal-exit preference lifecycle.
