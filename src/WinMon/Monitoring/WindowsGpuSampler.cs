@@ -18,6 +18,7 @@ internal sealed class WindowsGpuSampler : IDisposable
     // About 600 instance names repeat every second. Each is parsed once and reused while the instance exists.
     private Dictionary<string, EngineInstance?> _instances = new(StringComparer.Ordinal);
     private Dictionary<string, EngineInstance?> _nextInstances = new(StringComparer.Ordinal);
+    private readonly EngineAggregation _aggregation = new();
     private static readonly SearchValues<char> DecimalDigits = SearchValues.Create("0123456789");
     private static readonly SearchValues<char> HexDigits = SearchValues.Create("0123456789abcdefABCDEF");
     private static readonly int ValueOffset = (int)Marshal.OffsetOf<CounterItem>(nameof(CounterItem.Value));
@@ -45,8 +46,8 @@ internal sealed class WindowsGpuSampler : IDisposable
             if (!validInterval) return sample;
             var readings = Parse(ReadCounters(), _instances, _nextInstances);
             (_instances, _nextInstances) = (_nextInstances, _instances);
-            var busiest = Busiest(readings);
-            var perProcess = ByProcess(readings);
+            var busiest = _aggregation.Busiest(readings);
+            var perProcess = _aggregation.ByProcess(readings);
             return sample with
             {
                 Resources = busiest is null ? sample.Resources : sample.Resources with
@@ -65,10 +66,10 @@ internal sealed class WindowsGpuSampler : IDisposable
     }
 
     /// <summary>Busiest physical engine across all adapters, or null when no engine has a valid reading.</summary>
-    internal static GpuUsage? Aggregate(IEnumerable<EngineCounter> counters) => Busiest(Parse(counters));
+    internal static GpuUsage? Aggregate(IEnumerable<EngineCounter> counters) => new EngineAggregation().Busiest(Parse(counters));
 
     /// <summary>Each process's busiest engine; null for a process whose engines have no valid reading.</summary>
-    internal static IReadOnlyDictionary<int, GpuUsage?> AggregateProcesses(IEnumerable<EngineCounter> counters) => ByProcess(Parse(counters));
+    internal static IReadOnlyDictionary<int, GpuUsage?> AggregateProcesses(IEnumerable<EngineCounter> counters) => new EngineAggregation().ByProcess(Parse(counters));
 
     /// <summary>Pair counter values with parsed instance names, dropping names that are not engine instances.</summary>
     /// <param name="counters">Values from one collection.</param>
@@ -125,38 +126,50 @@ internal sealed class WindowsGpuSampler : IDisposable
 
     // Instances describe process contributions. Sum within each physical engine first;
     // independent engines/adapters must never be added together.
-    private static GpuUsage? Busiest(List<EngineReading> readings)
+    // Instance-owned scratch storage: sampling is sequential, and independent samplers never share it.
+    // The result dictionaries and GpuUsage records remain independent snapshots.
+    internal sealed class EngineAggregation
     {
-        var engines = new Dictionary<(string Adapter, string Engine), EngineTotal>();
-        foreach (var reading in readings)
-        {
-            var key = (reading.Instance.Adapter, reading.Instance.Engine);
-            engines[key] = (engines.TryGetValue(key, out var total) ? total : EngineTotal.Start(reading.Instance)).Add(reading);
-        }
-        EngineTotal? busiest = null;
-        foreach (var total in engines.Values)
-            if (total.Valid && (busiest is not { } current || total.Precedes(current))) busiest = total;
-        return busiest?.ToUsage();
-    }
+        private readonly Dictionary<(string Adapter, string Engine), EngineTotal> _physicalEngines = [];
+        private readonly Dictionary<(int ProcessId, string Adapter, string Engine), EngineTotal> _processEngines = [];
+        private readonly Dictionary<int, EngineTotal?> _busiestProcesses = [];
 
-    private static Dictionary<int, GpuUsage?> ByProcess(List<EngineReading> readings)
-    {
-        var engines = new Dictionary<(int ProcessId, string Adapter, string Engine), EngineTotal>();
-        foreach (var reading in readings)
+        internal GpuUsage? Busiest(List<EngineReading> readings)
         {
-            if (reading.Instance.ProcessId is not { } processId) continue;
-            var key = (processId, reading.Instance.Adapter, reading.Instance.Engine);
-            engines[key] = (engines.TryGetValue(key, out var total) ? total : EngineTotal.Start(reading.Instance)).Add(reading);
+            var engines = _physicalEngines;
+            engines.Clear();
+            foreach (var reading in readings)
+            {
+                var key = (reading.Instance.Adapter, reading.Instance.Engine);
+                engines[key] = (engines.TryGetValue(key, out var total) ? total : EngineTotal.Start(reading.Instance)).Add(reading);
+            }
+            EngineTotal? busiest = null;
+            foreach (var total in engines.Values)
+                if (total.Valid && (busiest is not { } current || total.Precedes(current))) busiest = total;
+            return busiest?.ToUsage();
         }
-        var busiest = new Dictionary<int, EngineTotal?>();
-        foreach (var (key, total) in engines)
+
+        internal Dictionary<int, GpuUsage?> ByProcess(List<EngineReading> readings)
         {
-            busiest.TryGetValue(key.ProcessId, out var current);
-            busiest[key.ProcessId] = total.Valid && (current is not { } best || total.Precedes(best)) ? total : current;
+            var engines = _processEngines;
+            engines.Clear();
+            foreach (var reading in readings)
+            {
+                if (reading.Instance.ProcessId is not { } processId) continue;
+                var key = (processId, reading.Instance.Adapter, reading.Instance.Engine);
+                engines[key] = (engines.TryGetValue(key, out var total) ? total : EngineTotal.Start(reading.Instance)).Add(reading);
+            }
+            var busiest = _busiestProcesses;
+            busiest.Clear();
+            foreach (var (key, total) in engines)
+            {
+                busiest.TryGetValue(key.ProcessId, out var current);
+                busiest[key.ProcessId] = total.Valid && (current is not { } best || total.Precedes(best)) ? total : current;
+            }
+            var result = new Dictionary<int, GpuUsage?>(busiest.Count);
+            foreach (var (processId, total) in busiest) result[processId] = total?.ToUsage();
+            return result;
         }
-        var result = new Dictionary<int, GpuUsage?>(busiest.Count);
-        foreach (var (processId, total) in busiest) result[processId] = total?.ToUsage();
-        return result;
     }
 
     internal static IReadOnlyList<ProcessUsage> AttachProcesses(IReadOnlyList<ProcessUsage> processes,

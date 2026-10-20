@@ -7,6 +7,32 @@ namespace WinMon.Tests;
 [TestFixture]
 public sealed class GpuSamplingTests
 {
+    [Test]
+    public void Aggregation_ReusedStorageDropsOldEnginesAndPreservesReturnedSnapshots()
+    {
+        var aggregation = new WindowsGpuSampler.EngineAggregation();
+        var first = WindowsGpuSampler.Parse([Counter(1, "1234", 0, 90), Counter(2, "1234", 1, 80)]);
+        var original = aggregation.ByProcess(first);
+        Assert.That(aggregation.Busiest(first)!.Percent, Is.EqualTo(90));
+
+        var next = WindowsGpuSampler.Parse([Counter(2, "5678", 0, 10)]);
+        var current = aggregation.ByProcess(next);
+        Assert.Multiple(() =>
+        {
+            Assert.That(current.Keys, Is.EquivalentTo(new[] { 2 }));
+            Assert.That(current[2]!.Percent, Is.EqualTo(10));
+            Assert.That(aggregation.Busiest(next)!.Percent, Is.EqualTo(10));
+            Assert.That(original[1]!.Percent, Is.EqualTo(90));
+            Assert.That(original[2]!.Percent, Is.EqualTo(80));
+        });
+
+        var invalid = WindowsGpuSampler.Parse([Counter(2, "5678", 0, 90, 0xC0000BC6)]);
+        Assert.That(aggregation.ByProcess(invalid)[2], Is.Null);
+        Assert.That(aggregation.Busiest(invalid), Is.Null);
+        Assert.That(aggregation.ByProcess([]), Is.Empty);
+        Assert.That(aggregation.Busiest([]), Is.Null);
+    }
+
     private static WindowsGpuSampler.EngineCounter Counter(int pid, string adapter, int engine, double value, uint status = 0,
         string kind = "3D") => new($"pid_{pid}_luid_0x00000000_0x{adapter}_phys_0_eng_{engine}_engtype_{kind}", value, status);
 

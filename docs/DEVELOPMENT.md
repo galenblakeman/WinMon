@@ -141,6 +141,54 @@ Alternating 60-second runs isolate each change:
 
 `GCgen0size` is honored only from the environment. The runtimeconfig form used here is `System.GC.Gen0MaxBudget`, verified with `GC.GetConfigurationVariables()`. It is undocumented, so re-check it on runtime upgrades. Raw data, traces and analysis tools are in `artifacts/perf-2026-10-20/`.
 
+### GPU aggregation scratch storage (October 20, 2026 follow-up)
+
+A fresh Release `dotnet-trace` allocation profile attributed about 168 KiB/s to
+GPU per-process aggregation, mostly dictionary backing arrays. Each sampler now
+reuses its physical-engine, process-engine and busiest-process dictionaries.
+Every pass clears prior readings; returned readings remain independent snapshots.
+The GPU engine selection, invalid-reading handling and PID lifetime checks are unchanged.
+The follow-up 30-second allocation trace no longer listed the GPU aggregation
+dictionary arrays among the leading allocation types. Sampled total allocation was
+about 1,008 KiB/s before and 823 KiB/s after; these sampled, uncontrolled trace
+windows corroborate removal of the hotspot rather than quantify a sustained app-wide gain.
+
+Matched Release aggregation measurements on .NET 10.0.13 (SDK 10.0.402), using
+600 parsed synthetic engine instances across 50 processes, 1,000 warm-up iterations
+and seven batches of 1,000 iterations:
+
+| Per aggregation pass | Before | After |
+| --- | ---: | ---: |
+| Median managed allocation | 146,360 bytes | 3,824 bytes |
+| Median elapsed time | 0.0514 ms | 0.0503 ms |
+
+This is a 97.4% allocation reduction for aggregation alone. Both builds produced
+identical result values. It excludes native counter collection, parsing, rendering
+and other sampling work; it does not establish a whole-app CPU or memory improvement.
+The original and changed builds, benchmark source, JSON measurements, runtime
+counters and allocation traces are under `artifacts/perf-followup/` (local ignored
+artifacts). `run-comparison.ps1` alternates four untraced live runs, each with the
+same 20-second warm-up and 60-second measurement window.
+
+| Untraced live run | CPU ms/s | Allocation KiB/s | Private MiB |
+| --- | ---: | ---: | ---: |
+| Before 1 | 32.6 | 1,021 | 56.4 |
+| After 1 | 87.7 | 2,921 | 56.8 |
+| After 2 | 33.6 | 952 | 59.3 |
+| Before 2 | 30.6 | 982 | 54.7 |
+
+After 1 overlapped test/benchmark verification and is unsuitable for a controlled
+comparison. Other machine activity was not controlled either. These short live
+runs do not establish overall CPU or private-memory savings; the strong result
+is the matched allocation reduction in the aggregation benchmark.
+
+The Release build and all 354 tests passed. The added regression covers repeated
+aggregation with disappearing engines, invalid and empty samples, and preservation
+of previously returned results. Sandboxed VSTest could not connect to its testhost;
+the same test command completed successfully outside the sandbox. Package restore
+required network access; the test command used `-p:NuGetAudit=false` for the offline
+restore, so this validation does not include a package vulnerability audit.
+
 ### UI microbenchmark (earlier)
 
 October 19, 2026: process sparklines now share one extraction pass over the visible
