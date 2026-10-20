@@ -7,6 +7,15 @@ namespace WinMon.Tests;
 [TestFixture]
 public sealed class PreferenceStoreTests
 {
+    [Test]
+    public async Task AppsOnly_DefaultsToAllProcesses_AndRoundTrips()
+    {
+        var store = new PreferenceStore(settingsPath);
+        Assert.That((await store.LoadAsync()).AppsOnly, Is.False);
+        await store.SaveAsync(new MonitorPreferences { AppsOnly = true });
+        Assert.That((await store.LoadAsync()).AppsOnly, Is.True);
+    }
+
     private string testDirectory = null!;
     private string settingsPath = null!;
 

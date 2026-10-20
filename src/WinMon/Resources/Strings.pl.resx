@@ -1225,4 +1225,10 @@ Stan według Windows: {2}</value>
   <data name="ProcessKindExplanation" xml:space="preserve">
     <value>Aplikacja: wykryto widoczne okno najwyższego poziomu bez właściciela (także zminimalizowane). Tło: nie wykryto takiego okna. Grupy pokazują Aplikacja, jeśli ma je dowolny bieżący członek. Nieznane: wyliczanie okien niedostępne. Historia używa zapisanego stanu.</value>
   </data>
+  <data name="AppOnly" xml:space="preserve">
+    <value>Tylko aplikacje</value>
+  </data>
+  <data name="NoAppsMatchCurrentView" xml:space="preserve">
+    <value>Żadna aplikacja nie pasuje do bieżącego wyszukiwania i rankingu.</value>
+  </data>
 </root>

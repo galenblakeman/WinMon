@@ -72,6 +72,8 @@ public partial class MainWindow
         ProcessSortSelector.SelectedIndex = (int)ProcessSort.Cpu;
         ProcessSortSelector.SelectionChanged += OnProcessSortChanged;
         ProcessSearchBox.TextChanged += OnProcessSearchChanged;
+        AppsOnlyCheckBox.Checked += OnAppsOnlyChanged;
+        AppsOnlyCheckBox.Unchecked += OnAppsOnlyChanged;
         IndividualChip.Checked += OnGroupingChanged;
         GroupedChip.Checked += OnGroupingChanged;
         // Column headings are shortcuts for the "processes by" dropdown, which stays the keyboard path.
@@ -121,6 +123,7 @@ public partial class MainWindow
             ProcessSortSelector.SelectedIndex = (int)_preferences.ProcessSort;
             GroupedChip.IsChecked = _preferences.GroupProcesses;
             IndividualChip.IsChecked = !_preferences.GroupProcesses;
+            AppsOnlyCheckBox.IsChecked = _preferences.AppsOnly;
             ProcessCountSelector.SelectedItem = _preferences.TopProcessCount;
             Width = Math.Max(MinWidth, _preferences.Width);
             Height = Math.Max(MinHeight, _preferences.Height);
@@ -245,6 +248,13 @@ public partial class MainWindow
 
     private void RefreshVisiblePresentation()
     {
+        System.Windows.Controls.Grid.SetRow(ProcessSearchBorder, _wide ? 0 : 1);
+        System.Windows.Controls.Grid.SetColumn(ProcessSearchBorder, _wide ? 1 : 0);
+        System.Windows.Controls.Grid.SetColumnSpan(ProcessSearchBorder, _wide ? 1 : 3);
+        ProcessSearchBorder.Margin = _wide ? new Thickness(12, 0, 12, 0) : new Thickness(0, 6, 12, 0);
+        System.Windows.Controls.Grid.SetRow(AppsOnlyCheckBox, _wide ? 0 : 1);
+        System.Windows.Controls.Grid.SetColumn(AppsOnlyCheckBox, _wide ? 2 : 3);
+        AppsOnlyCheckBox.Margin = _wide ? new Thickness(0, 0, 12, 0) : new Thickness(0, 6, 0, 0);
         var samples = _history.Samples;
         var latest = samples.Count == 0 ? null : samples[^1];
         var visible = _selectedSample is null ? latest : samples.FirstOrDefault(s => ReferenceEquals(s, _selectedSample));
@@ -275,7 +285,8 @@ public partial class MainWindow
         var ranking = ProcessRanking.Rank(rowSamples, sort: _preferences.ProcessSort, grouped: grouped,
             includeInactive: query.Length > 0);
         UpdateSortHeaders();
-        var active = ProcessSearch.Filter(ranking.Processes, query).ToArray();
+        var appsOnly = _preferences.AppsOnly;
+        var active = ProcessSearch.Filter(ranking.Processes, query, appsOnly).ToArray();
         var top = active.Take(_preferences.TopProcessCount).ToArray();
         var rest = active.Skip(top.Length).ToArray();
         var processData = ProcessGraphData.Build(rowSamples, MonitorPreferences.ShortRangeSeconds, top, grouped, _preferences.ProcessSort);
@@ -287,11 +298,11 @@ public partial class MainWindow
         _otherRow.Visibility = rest.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
         if (rest.Length > 0)
             // Memory ranking also covers idle processes compacted out of the sample.
-            _otherRow.ShowRemainder(rest.Length + (query.Length == 0 && _preferences.ProcessSort == ProcessSort.Memory && !grouped ? visible?.CompactedProcesses ?? 0 : 0),
+            _otherRow.ShowRemainder(rest.Length + (query.Length == 0 && !appsOnly && _preferences.ProcessSort == ProcessSort.Memory && !grouped ? visible?.CompactedProcesses ?? 0 : 0),
                 rest.Sum(p => p.CpuPercent),
                 rest.Any(p => p.IoBytesPerSecond is not null) ? rest.Sum(p => p.IoBytesPerSecond ?? 0) : null, grouped);
         EmptyLabel.Visibility = top.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
-        EmptyLabel.Text = visible is null && _selectedSample is not null ? Strings.ReturnToLiveToInspectCurrentActivity : latest is null || visible?.TotalCpuPercent is null ? Strings.CollectingABaselineOrRecoveringAfterARecordingGap : query.Length > 0 ? Strings.NoRankedProcessesMatchYourSearch : _preferences.ProcessSort switch
+        EmptyLabel.Text = visible is null && _selectedSample is not null ? Strings.ReturnToLiveToInspectCurrentActivity : latest is null || visible?.TotalCpuPercent is null ? Strings.CollectingABaselineOrRecoveringAfterARecordingGap : appsOnly ? Strings.NoAppsMatchCurrentView : query.Length > 0 ? Strings.NoRankedProcessesMatchYourSearch : _preferences.ProcessSort switch
             {
                 ProcessSort.Gpu => Strings.NoMeasurableGPUActivityAmongAccessibleProcessesInThisWindow,
                 ProcessSort.Memory => Strings.NoMemoryReadingsAmongAccessibleProcesses,
@@ -358,6 +369,14 @@ public partial class MainWindow
     {
         ProcessSearchBox.Clear();
         ProcessSearchBox.Focus();
+    }
+
+    private void OnAppsOnlyChanged(object sender, RoutedEventArgs e)
+    {
+        if (_closing) return;
+        _preferences = _preferences with { AppsOnly = AppsOnlyCheckBox.IsChecked == true };
+        ProcessScroll.ScrollToTop();
+        RefreshPresentation();
     }
 
     private void OnProcessCountChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)

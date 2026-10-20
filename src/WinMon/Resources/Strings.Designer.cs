@@ -21,6 +21,7 @@ public static partial class Strings
     public static string Appearance => ResourceManager.GetString(nameof(Appearance), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ApplicationDescription => ResourceManager.GetString(nameof(ApplicationDescription), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string AppliesWhenYouSaveIfACombinationDoesnTAppear => ResourceManager.GetString(nameof(AppliesWhenYouSaveIfACombinationDoesnTAppear), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string AppOnly => ResourceManager.GetString(nameof(AppOnly), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ARM => ResourceManager.GetString(nameof(ARM), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ARM64 => ResourceManager.GetString(nameof(ARM64), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ATA => ResourceManager.GetString(nameof(ATA), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
@@ -203,6 +204,7 @@ public static partial class Strings
     public static string NetworkRatePair => ResourceManager.GetString(nameof(NetworkRatePair), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string NetworkScale0 => ResourceManager.GetString(nameof(NetworkScale0), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string No => ResourceManager.GetString(nameof(No), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string NoAppsMatchCurrentView => ResourceManager.GetString(nameof(NoAppsMatchCurrentView), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string NoConnectedEthernetOrWiFiInterfaceAvailable => ResourceManager.GetString(nameof(NoConnectedEthernetOrWiFiInterfaceAvailable), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string NoDriveLettersAssigned => ResourceManager.GetString(nameof(NoDriveLettersAssigned), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string NoHardwareAdaptersReportedByWindows => ResourceManager.GetString(nameof(NoHardwareAdaptersReportedByWindows), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;

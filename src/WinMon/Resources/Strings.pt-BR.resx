@@ -1225,4 +1225,10 @@ Integridade segundo o Windows: {2}</value>
   <data name="ProcessKindExplanation" xml:space="preserve">
     <value>Aplicativo: foi observada uma janela visível de nível superior sem proprietário (inclusive minimizada). Segundo plano: nenhuma observada. Grupos mostram Aplicativo se algum membro atual tiver uma. Desconhecido: enumeração de janelas indisponível. O histórico usa o estado registrado.</value>
   </data>
+  <data name="AppOnly" xml:space="preserve">
+    <value>Só aplicativos</value>
+  </data>
+  <data name="NoAppsMatchCurrentView" xml:space="preserve">
+    <value>Nenhum aplicativo corresponde à pesquisa e classificação atuais.</value>
+  </data>
 </root>

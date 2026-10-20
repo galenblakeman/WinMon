@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using WinMon.Preferences;
+#pragma warning disable IDE0051
 
 namespace WinMon.Shortcuts;
 

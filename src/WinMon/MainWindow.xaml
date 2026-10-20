@@ -343,13 +343,18 @@
                         BorderThickness="0,1,0,0">
                         <StackPanel>
                             <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
                                 <StackPanel
-                                    Grid.Column="2"
+                                    Grid.Column="3"
                                     VerticalAlignment="Center"
                                     AutomationProperties.Name="{Binding [ProcessGrouping], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                                     Orientation="Horizontal">
@@ -370,7 +375,7 @@
                                         Style="{StaticResource RangeChip}"
                                         ToolTip="{Binding [OneRowPerExecutableCPUAndIOSummedGPU], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                                 </StackPanel>
-                                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal">
                                     <TextBlock
                                         VerticalAlignment="Center"
                                         FontSize="15"
@@ -401,8 +406,10 @@
                                         ToolTip="{Binding [RankByFiveSecondAverageCPUGPUOrIO], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                                 </StackPanel>
                                 <Border
-                                    Grid.Column="1"
-                                    Margin="16,0"
+                                    x:Name="ProcessSearchBorder"
+                                    Grid.Row="1"
+                                    Grid.ColumnSpan="3" Grid.Column="0"
+                                    Margin="0,6,12,0"
                                     Background="{DynamicResource SearchSurface}"
                                     BorderThickness="1"
                                     CornerRadius="4">
@@ -469,6 +476,17 @@
                                             Visibility="Collapsed" />
                                     </Grid>
                                 </Border>
+                                <CheckBox
+                                    x:Name="AppsOnlyCheckBox"
+                                    Grid.Row="1"
+                                    Grid.Column="3"
+                                    Margin="0,6,0,0"
+                                    VerticalAlignment="Center"
+                                    AutomationProperties.Name="{Binding [AppOnly], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                    Content="{Binding [AppOnly], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                    FontSize="12"
+                                    Foreground="{DynamicResource Text}"
+                                    ToolTip="{Binding [ProcessKindExplanation], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                             </Grid>
                             <TextBlock
                                 x:Name="SelectionLabel"

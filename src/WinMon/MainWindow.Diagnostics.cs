@@ -691,6 +691,41 @@ public partial class MainWindow
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "design-compact.png"), 1, cancellationToken);
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "design-compact-150.png"), 1.5, cancellationToken);
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "design-compact-200.png"), 2, cancellationToken);
+        fixture.AppsOnlyCheckBox.IsChecked = true;
+        fixture.RefreshVisiblePresentation();
+        if (!fixture._preferences.AppsOnly || fixture._rows.Count(row => row.Visibility == Visibility.Visible) != 3 ||
+            fixture._otherRow.Visibility != Visibility.Collapsed)
+            throw new InvalidOperationException("App Only did not filter the individual rows before the top limit.");
+        await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "apps-only-compact.png"), 1, cancellationToken);
+        fixture._wide = true;
+        fixture.RefreshVisiblePresentation();
+        visual.Measure(new Size(1000, 820));
+        visual.Arrange(new Rect(0, 0, 1000, 820));
+        visual.UpdateLayout();
+        await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "apps-only-wide.png"), 1, cancellationToken);
+        fixture._wide = false;
+        fixture.ProcessSearchBox.Text = "chrome";
+        fixture.GroupedChip.IsChecked = true;
+        fixture._selectedSample = fixture._history.Samples[^2];
+        fixture.RefreshVisiblePresentation();
+        visual.Measure(new Size(600, 820));
+        visual.Arrange(new Rect(0, 0, 600, 820));
+        visual.UpdateLayout();
+        var filteredGroup = System.Windows.Automation.AutomationProperties.GetName(fixture._rows[0]);
+        if (fixture._rows.Count(row => row.Visibility == Visibility.Visible) != 1 ||
+            !filteredGroup.Contains(Strings.Format(Strings.Processes, 2), StringComparison.Ordinal) ||
+            !filteredGroup.Contains(Percent(9.4), StringComparison.Ordinal) ||
+            !filteredGroup.EndsWith(Strings.ProcessKindApp, StringComparison.Ordinal))
+            throw new InvalidOperationException("App Only did not preserve grouped totals with search and historical selection.");
+        await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "apps-only-grouped-history.png"), 1, cancellationToken);
+        fixture.ProcessSearchBox.Text = "no-matching-app";
+        fixture.RefreshVisiblePresentation();
+        if (fixture.EmptyLabel.Visibility != Visibility.Visible || fixture.EmptyLabel.Text != Strings.NoAppsMatchCurrentView)
+            throw new InvalidOperationException("App Only did not explain an empty filtered view.");
+        fixture.AppsOnlyCheckBox.IsChecked = false;
+        fixture.ProcessSearchBox.Clear();
+        fixture.IndividualChip.IsChecked = true;
+        fixture._selectedSample = null;
         fixture._preferences = fixture._preferences with { PrimaryDrive = "C:", SecondaryDrive = "D:" };
 
         fixture.RefreshVisiblePresentation();

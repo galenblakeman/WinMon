@@ -1225,4 +1225,10 @@ Windows-Zustandsstatus: {2}</value>
   <data name="ProcessKindExplanation" xml:space="preserve">
     <value>App: Ein sichtbares, nicht besessenes Fenster der obersten Ebene wurde erkannt (auch minimiert). Hintergrund: keines erkannt. Gruppen zeigen App, wenn ein aktuelles Mitglied eines hat. Unbekannt: Fensterermittlung nicht verfügbar. Historische Beschriftungen verwenden den aufgezeichneten Zustand.</value>
   </data>
+  <data name="AppOnly" xml:space="preserve">
+    <value>Nur Apps</value>
+  </data>
+  <data name="NoAppsMatchCurrentView" xml:space="preserve">
+    <value>Keine Apps entsprechen der aktuellen Suche und Rangfolge.</value>
+  </data>
 </root>

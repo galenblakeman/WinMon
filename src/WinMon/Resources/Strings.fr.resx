@@ -1225,4 +1225,10 @@ Fabricant : {1}
   <data name="ProcessKindExplanation" xml:space="preserve">
     <value>Application : une fenêtre visible de premier niveau sans propriétaire a été observée (même réduite). Arrière-plan : aucune observée. Un groupe indique Application si un membre actuel en possède une. Inconnu : énumération des fenêtres indisponible. Les libellés historiques utilisent un état enregistré.</value>
   </data>
+  <data name="AppOnly" xml:space="preserve">
+    <value>Applications seules</value>
+  </data>
+  <data name="NoAppsMatchCurrentView" xml:space="preserve">
+    <value>Aucune application ne correspond à la recherche et au classement actuels.</value>
+  </data>
 </root>

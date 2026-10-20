@@ -5,8 +5,9 @@ namespace WinMon.Monitoring;
 /// <summary>Search ranked rows without changing their order or grouped totals.</summary>
 public static class ProcessSearch
 {
-    public static IEnumerable<ProcessUsage> Filter(IEnumerable<ProcessUsage> processes, string query)
+    public static IEnumerable<ProcessUsage> Filter(IEnumerable<ProcessUsage> processes, string query, bool appsOnly = false)
     {
+        if (appsOnly) processes = processes.Where(p => p.HasAppWindow == true);
         query = query.Trim();
         if (query.Length == 0) return processes;
         return processes.Where(p => p.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||

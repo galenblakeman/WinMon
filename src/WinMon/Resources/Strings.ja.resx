@@ -1225,4 +1225,10 @@ Windows の正常性状態: {2}</value>
   <data name="ProcessKindExplanation" xml:space="preserve">
     <value>アプリ: 所有者のない表示状態のトップレベルウィンドウを検出（最小化を含む）。バックグラウンド: 該当するウィンドウなし。グループは現在のメンバーのいずれかが該当すればアプリと表示。不明: ウィンドウ列挙が利用不可。履歴には記録時の状態を表示。</value>
   </data>
+  <data name="AppOnly" xml:space="preserve">
+    <value>アプリのみ</value>
+  </data>
+  <data name="NoAppsMatchCurrentView" xml:space="preserve">
+    <value>現在の検索とランキングに一致するアプリはありません。</value>
+  </data>
 </root>

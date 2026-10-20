@@ -5,6 +5,48 @@ namespace WinMon.Tests;
 
 public class ProcessSearchTests
 {
+    [TestCase(ProcessSort.Cpu, false)]
+    [TestCase(ProcessSort.Cpu, true)]
+    [TestCase(ProcessSort.Gpu, false)]
+    [TestCase(ProcessSort.Gpu, true)]
+    [TestCase(ProcessSort.Memory, false)]
+    [TestCase(ProcessSort.Memory, true)]
+    [TestCase(ProcessSort.Io, false)]
+    [TestCase(ProcessSort.Io, true)]
+    public void AppsOnly_ComposesWithSearchBeforeTopLimit_AndPreservesGroupedTotals(ProcessSort sort, bool grouped)
+    {
+        var app = new ProcessUsage(10, 1, "Editor", 5, 100, 100)
+            { ImagePath = @"C:\editor.exe", HasAppWindow = true, GpuPercent = 5, PrivateBytes = 100 };
+        var helper = app with { ProcessId = 20, CreationTicks = 2, CpuPercent = 10, HasAppWindow = false };
+        var background = app with { ProcessId = 30, CreationTicks = 3, Name = "Service", ImagePath = @"C:\service.exe", CpuPercent = 20, HasAppWindow = false };
+        var unknown = background with { ProcessId = 40, CreationTicks = 4, Name = "Unknown", ImagePath = @"C:\unknown.exe", HasAppWindow = null };
+        var sample = new CpuSample(DateTimeOffset.UtcNow, 60, [app, helper, background, unknown], 0);
+        var rows = ProcessRanking.Rank([sample], sort: sort, grouped: grouped).Processes;
+        var filtered = ProcessSearch.Filter(rows, "", appsOnly: true).Take(1).Single();
+        Assert.Multiple(() =>
+        {
+            Assert.That(filtered.Name, Is.EqualTo("Editor"));
+            Assert.That(filtered.CpuPercent, Is.EqualTo(grouped ? 15 : 5));
+            Assert.That(filtered.MemberCount, Is.EqualTo(grouped ? 2 : 1));
+            Assert.That(ProcessSearch.Filter(rows, "editor", appsOnly: true), Has.Exactly(1).Items);
+            Assert.That(ProcessSearch.Filter(rows, "30", appsOnly: true), Is.Empty);
+            Assert.That(ProcessSearch.Filter(rows, "unknown", appsOnly: true), Is.Empty);
+            Assert.That(ProcessSearch.Filter(rows, "20", appsOnly: true).Count(), Is.EqualTo(grouped ? 1 : 0));
+            Assert.That(ProcessSearch.Filter(rows, "", appsOnly: false), Is.EqualTo(rows));
+        });
+    }
+
+    [TestCase(false)]
+    [TestCase(true)]
+    public void AppsOnly_UsesStateFromSelectedHistoricalSample(bool grouped)
+    {
+        var app = new ProcessUsage(10, 1, "Editor", 5) { HasAppWindow = true };
+        var earlier = new CpuSample(DateTimeOffset.UnixEpoch.AddSeconds(1), 10, [app], 0);
+        var later = earlier with { Timestamp = earlier.Timestamp.AddSeconds(1), Processes = [app with { HasAppWindow = false }] };
+        Assert.That(ProcessSearch.Filter(ProcessRanking.Rank([earlier], grouped: grouped).Processes, "", appsOnly: true), Has.Exactly(1).Items);
+        Assert.That(ProcessSearch.Filter(ProcessRanking.Rank([earlier, later], grouped: grouped).Processes, "", appsOnly: true), Is.Empty);
+    }
+
     [TestCase(false)]
     [TestCase(true)]
     public void AppNameSearch_FindsIdleExecutableByDescriptionOrProductName(bool grouped)

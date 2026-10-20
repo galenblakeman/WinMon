@@ -37,6 +37,9 @@ public sealed record MonitorPreferences
     /// <summary>Gets a value indicating whether processes of the same executable share one row.</summary>
     public bool GroupProcesses { get; init; }
 
+    /// <summary>Show only rows classified as apps at the live or selected historical sample.</summary>
+    public bool AppsOnly { get; init; }
+
     /// <summary>Legacy GPU-ranking flag, read once and migrated to <see cref="ProcessSort"/>.</summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool SortByGpu { get; init; }

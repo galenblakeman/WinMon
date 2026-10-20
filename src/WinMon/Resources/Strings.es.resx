@@ -1225,4 +1225,10 @@ Estado según Windows: {2}</value>
   <data name="ProcessKindExplanation" xml:space="preserve">
     <value>Aplicación: se observó una ventana visible de nivel superior sin propietario (incluidas las minimizadas). Segundo plano: ninguna observada. Los grupos muestran Aplicación si algún miembro actual tiene una. Desconocido: enumeración de ventanas no disponible. El historial usa el estado registrado.</value>
   </data>
+  <data name="AppOnly" xml:space="preserve">
+    <value>Solo aplicaciones</value>
+  </data>
+  <data name="NoAppsMatchCurrentView" xml:space="preserve">
+    <value>Ninguna aplicación coincide con la búsqueda y clasificación actuales.</value>
+  </data>
 </root>
