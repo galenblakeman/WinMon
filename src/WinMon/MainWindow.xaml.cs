@@ -271,9 +271,10 @@ public partial class MainWindow
         if (_selectedSample is null && _latestFull is not null && rowSamples.Count > 0 && ReferenceEquals(rowSamples[^1], _latestCompacted))
             rowSamples = [.. rowSamples.Take(rowSamples.Count - 1), _latestFull];
         // Rank on a short average ending at the live or selected sample; single intervals are tick-quantized.
-        var ranking = ProcessRanking.Rank(rowSamples, sort: _preferences.ProcessSort, grouped: grouped);
-        UpdateSortHeaders();
         var query = ProcessSearchBox.Text.Trim();
+        var ranking = ProcessRanking.Rank(rowSamples, sort: _preferences.ProcessSort, grouped: grouped,
+            includeInactive: query.Length > 0);
+        UpdateSortHeaders();
         var active = ProcessSearch.Filter(ranking.Processes, query).ToArray();
         var top = active.Take(_preferences.TopProcessCount).ToArray();
         var rest = active.Skip(top.Length).ToArray();
@@ -752,6 +753,10 @@ public partial class MainWindow
             app.Resources["Raised"] = SystemColors.ControlBrush;
             app.Resources["TitleBarSurface"] = SystemColors.WindowBrush;
             app.Resources["SectionHeaderSurface"] = SystemColors.WindowBrush;
+            app.Resources["PlotSurface"] = SystemColors.WindowBrush;
+            app.Resources["SearchSurface"] = SystemColors.WindowBrush;
+            app.Resources["SelectedSurface"] = SystemColors.HighlightBrush;
+            app.Resources["SelectedText"] = SystemColors.HighlightTextBrush;
             app.Resources["Text"] = SystemColors.WindowTextBrush;
             app.Resources["Muted"] = SystemColors.WindowTextBrush;
             app.Resources["Line"] = SystemColors.WindowTextBrush;
@@ -760,17 +765,21 @@ public partial class MainWindow
         }
         else
         {
-            SetBrush("Surface", light ? "#F7F9FB" : "#15191E");
-            SetBrush("Raised", light ? "#E8EDF2" : "#20262D");
-            SetBrush("TitleBarSurface", light ? "#DDE1E6" : "#30343B");
-            SetBrush("SectionHeaderSurface", light ? "#EBEDF0" : "#252A31");
-            SetBrush("Text", light ? "#17212A" : "#EDF2F6");
-            SetBrush("Muted", light ? "#465361" : "#B3BDC8");
-            SetBrush("Line", light ? "#CBD3DC" : "#35404B");
+            SetBrush("Surface", light ? "#F0F5FA" : "#15191E");
+            SetBrush("Raised", light ? "#FFFFFF" : "#20262D");
+            SetBrush("TitleBarSurface", light ? "#DCE7F1" : "#30343B");
+            SetBrush("SectionHeaderSurface", light ? "#E5EEF7" : "#252A31");
+            SetBrush("PlotSurface", light ? "#FFFFFF" : "#15191E");
+            SetBrush("SearchSurface", light ? "#FFFFFF" : "#15191E");
+            SetBrush("SelectedSurface", light ? "#1469B5" : "#20262D");
+            SetBrush("SelectedText", light ? "#FFFFFF" : "#EDF2F6");
+            SetBrush("Text", light ? "#20334A" : "#EDF2F6");
+            SetBrush("Muted", light ? "#465D78" : "#B3BDC8");
+            SetBrush("Line", light ? "#CCD9E5" : "#35404B");
             var colors = ChartPalettes.Colors(_preferences.ChartPalette, light);
             var keys = new[] { "CpuAccent", "MemoryAccent", "DiskAccent", "NetworkAccent", "GpuAccent", "SecondaryDiskAccent" };
             for (var i = 0; i < keys.Length; i++) SetBrush(keys[i], colors[i]);
-            SetBrush("Accent", colors[0]);
+            SetBrush("Accent", light ? "#1469B5" : colors[0]);
         }
         foreach (Window window in app.Windows) WindowTheme.Apply(window);
         foreach (var row in _rows) row.InvalidateVisual();

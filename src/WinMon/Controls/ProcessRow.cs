@@ -86,9 +86,12 @@ public sealed class ProcessRow : Grid
         _io.ToolTip = Strings.ReadWriteIOIncludesFileNetworkAndDeviceOperations;
         _usage = usage;
         var members = usage.MemberCount > 1;
-        _name.Text = members ? $"{usage.Name} ×{usage.MemberCount}" : usage.Name;
+        var name = !string.IsNullOrWhiteSpace(usage.AppName) ? usage.AppName
+            : !string.IsNullOrWhiteSpace(usage.ProductName) ? usage.ProductName : usage.Name;
+        _name.Text = members ? $"{name} ×{usage.MemberCount}" : name;
+        var tooltipName = name == usage.Name ? _name.Text : $"{_name.Text} ({usage.Name})";
         var path = usage.ImagePath.Length > 0 ? usage.ImagePath : Strings.ExecutablePathUnavailable;
-        _name.ToolTip = $"{_name.Text} · {(grouped ? MemberList(usage) : Strings.Format(Strings.PID, usage.ProcessId))}\n{path}";
+        _name.ToolTip = $"{tooltipName} · {(grouped ? MemberList(usage) : Strings.Format(Strings.PID, usage.ProcessId))}\n{path}";
         _pid.Text = members ? Strings.Format(Strings.Processes, usage.MemberCount) : Strings.Format(Strings.PID, usage.ProcessId);
         _pid.Visibility = showPid ? Visibility.Visible : Visibility.Collapsed;
         _value.Text = Strings.Format(Strings.PercentOneDecimal, usage.CpuPercent);
@@ -106,7 +109,7 @@ public sealed class ProcessRow : Grid
             ProcessSort.Io => Strings.Format(Strings.History0MBS, grouped ? Strings.SummedReadWriteIO : Strings.ReadWriteIO, scale / 1_000_000d),
             _ => Strings.Format(Strings.History0OfTotalMachineCPU, grouped ? Strings.SummedCpuTitle : Strings.CPU, scale)
         };
-        ToolTip = Strings.Format(Strings.LastMinSameScaleForEveryRow, _name.Text, grouped ? MemberList(usage) : Strings.Format(Strings.PID, usage.ProcessId), path, history, seconds / 60d);
+        ToolTip = Strings.Format(Strings.LastMinSameScaleForEveryRow, tooltipName, grouped ? MemberList(usage) : Strings.Format(Strings.PID, usage.ProcessId), path, history, seconds / 60d);
         var nextIdentity = (usage.ProcessId, usage.CreationTicks);
         if (_identity != nextIdentity)
         {
@@ -120,7 +123,7 @@ public sealed class ProcessRow : Grid
             ? Strings.PrivateBytesSummedAcrossThisExecutableSCurrentProcesses
             : Strings.ResidentWorkingSetIncludingSharedPagesDoesNotSumTo;
         _io.Text = usage.IoBytesPerSecond is { } rate ? $"{rate / 1_000_000:0.00}" : Strings.MissingReading;
-        System.Windows.Automation.AutomationProperties.SetName(this, Strings.Format(Strings.OfTotalCPUAveragedOver5SecondsGPUAveragedOver, usage.Name, members ? Strings.Format(Strings.Processes, usage.MemberCount) : Strings.Format(Strings.Process, usage.ProcessId), _value.Text, _gpu.Text, _memory.Text, _io.Text));
+        System.Windows.Automation.AutomationProperties.SetName(this, Strings.Format(Strings.OfTotalCPUAveragedOver5SecondsGPUAveragedOver, name, members ? Strings.Format(Strings.Processes, usage.MemberCount) : Strings.Format(Strings.Process, usage.ProcessId), _value.Text, _gpu.Text, _memory.Text, _io.Text));
     }
 
     /// <summary>Show the measured processes ranked below the visible rows as one muted summary line.</summary>

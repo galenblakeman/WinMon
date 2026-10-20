@@ -9,6 +9,26 @@ namespace WinMon.Tests;
 public sealed class WindowsCpuSamplerTests
 {
     [Test]
+    public void Sample_CarriesExecutableAppNamesIntoSearchableRows()
+    {
+        var path = typeof(WindowsCpuSampler).Assembly.Location;
+        var info = FileVersionInfo.GetVersionInfo(path);
+        using var sampler = new WindowsCpuSampler(new SequenceSnapshotProvider(
+            Snapshot(1, 1_000, 100, [new ProcessCpuTimes(10, 100, "unrelated", 50, ImagePath: path)]),
+            Snapshot(2, 2_000, 200, [new ProcessCpuTimes(10, 100, "unrelated", 50, ImagePath: path)])));
+        _ = sampler.Sample();
+        var sample = sampler.Sample();
+        var rows = ProcessRanking.Rank([sample], includeInactive: true).Processes;
+        Assert.Multiple(() =>
+        {
+            Assert.That(sample.Processes.Single().AppName, Is.EqualTo(info.FileDescription?.Trim()));
+            Assert.That(sample.Processes.Single().ProductName, Is.EqualTo(info.ProductName?.Trim() ?? ""));
+            Assert.That(ProcessSearch.Filter(rows, info.FileDescription!), Is.EqualTo(rows));
+            Assert.That(rows.Single().CpuPercent, Is.Zero);
+        });
+    }
+
+    [Test]
     public void Sample_FirstObservation_ReturnsGapWithoutPercentages()
     {
         using var sampler = new WindowsCpuSampler(new SequenceSnapshotProvider(Snapshot(1, 100, 50, [])));

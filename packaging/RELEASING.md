@@ -2,6 +2,10 @@
 
 The scripts require Windows x64, PowerShell 7, the .NET SDK pinned in `global.json`, and Inno Setup 6.7.3. No signing certificate is configured: current application and installer assets are unsigned. Review code-signing requirements before broad public distribution. Inno Setup's commercial licensing guidance applies to use of its compiler; see its [license information](https://jrsoftware.org/isorder.php).
 
+## Code signing policy
+
+See the [Code signing policy](../docs/CODE_SIGNING.md), [privacy policy](../docs/PRIVACY.md), and [SignPath application preparation](../docs/SIGNPATH_APPLICATION.md). SignPath signing is not yet approved or configured. Include a Code signing policy link and an accurate signing-status statement in every release's notes; the application preparation document includes text for current unsigned releases.
+
 ## Build locally
 
 From the repository root:

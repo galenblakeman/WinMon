@@ -6,7 +6,7 @@ WinMon brings CPU, memory, disk, network and GPU activity into one clear Windows
 
 **Windows x64 · Self-contained app · Portable settings · MIT licensed**
 
-[Releases](https://github.com/galenblakeman/WinMon/releases) · [Get started](#get-started) · [Developer guide](docs/DEVELOPMENT.md)
+[Releases](https://github.com/galenblakeman/WinMon/releases) · [Get started](#get-started) · [Developer guide](docs/DEVELOPMENT.md) · [Privacy](docs/PRIVACY.md) · [Code signing policy](docs/CODE_SIGNING.md)
 
 ![WinMon live dashboard showing CPU, memory, two disks, network and GPU activity above individual process rankings](example/example_individual.png)
 
@@ -100,6 +100,10 @@ The published app is at `src/WinMon/bin/Release/net10.0-windows/win-x64/publish/
 ## Open source
 
 WinMon **1.0.1** is built with C# and WPF on .NET 10, and released under the [MIT License](LICENSE).
+
+### Code signing policy
+
+Current releases are unsigned. WinMon is preparing to apply for free open-source signing through SignPath Foundation; approval and signing are not yet configured. See the [Code signing policy](docs/CODE_SIGNING.md) for release responsibilities and the [privacy policy](docs/PRIVACY.md) for local data handling.
 
 Found a problem or have an idea? [Open an issue](https://github.com/galenblakeman/WinMon/issues).
 

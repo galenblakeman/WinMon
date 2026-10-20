@@ -21,6 +21,12 @@ public sealed record ProcessUsage(int ProcessId, long CreationTicks, string Name
     /// <summary>Full executable path, or empty when it could not be read; groups processes by executable.</summary>
     public string ImagePath { get; init; } = "";
 
+    /// <summary>Friendly application description from executable version information, when available.</summary>
+    public string AppName { get; init; } = "";
+
+    /// <summary>Product name from executable version information, when available.</summary>
+    public string ProductName { get; init; } = "";
+
     /// <summary>Processes a grouped row represents; 1 for an individual process.</summary>
     public int MemberCount { get; init; } = 1;
 

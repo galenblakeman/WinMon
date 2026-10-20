@@ -10,6 +10,8 @@ public static class ProcessSearch
         query = query.Trim();
         if (query.Length == 0) return processes;
         return processes.Where(p => p.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+            p.AppName.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+            p.ProductName.Contains(query, StringComparison.OrdinalIgnoreCase) ||
             (p.MemberIds.Count > 0 ? p.MemberIds : [p.ProcessId])
             .Any(id => id.ToString(CultureInfo.InvariantCulture).Contains(query, StringComparison.Ordinal)));
     }

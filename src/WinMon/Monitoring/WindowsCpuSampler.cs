@@ -9,6 +9,7 @@ public sealed class WindowsCpuSampler : IDisposable
 {
     private const double GapThresholdSeconds = 5;
     private readonly ICpuSnapshotProvider _provider;
+    private readonly ProcessAppNameProvider _appNames = new();
     private CpuSnapshot? _previous;
     // The previous snapshot's processes by lifetime, refilled in place: a new dictionary for ~1,000 processes
     // would land on the large object heap every second and force a full collection every few seconds.
@@ -101,7 +102,7 @@ public sealed class WindowsCpuSampler : IDisposable
         return elapsed is <= 0 or > GapThresholdSeconds;
     }
 
-    private static IReadOnlyList<ProcessUsage> CreateProcessUsages(
+    private IReadOnlyList<ProcessUsage> CreateProcessUsages(
         Dictionary<(int, long), ProcessCpuTimes> baselines,
         IReadOnlyList<ProcessCpuTimes> currentProcesses,
         long totalDelta, double elapsedSeconds)
@@ -121,6 +122,7 @@ public sealed class WindowsCpuSampler : IDisposable
                 continue;
             }
 
+            var appNames = _appNames.Get(process.ImagePath ?? "");
             usages.Add(new ProcessUsage(
                 process.ProcessId,
                 process.CreationTicks,
@@ -131,7 +133,9 @@ public sealed class WindowsCpuSampler : IDisposable
                 ResourceRates.PerSecond(priorCpuTicks.WriteBytes, process.WriteBytes, elapsedSeconds))
             {
                 PrivateBytes = process.PrivateBytes,
-                ImagePath = process.ImagePath ?? ""
+                ImagePath = process.ImagePath ?? "",
+                AppName = appNames.Description,
+                ProductName = appNames.Product
             });
         }
 

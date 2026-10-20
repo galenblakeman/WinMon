@@ -1,5 +1,17 @@
 # Resource overlay visual QA
 
+## Option 3 light theme — 2026-10-20
+
+final result: passed
+
+Applied the selected pale-blue light theme through shared resources: icy title bar and section headers, navy text, blue-gray separators, white inputs and plot surface, and azure selected chips with white text. Existing layout, typography, chart palettes, thin traces and monitoring behavior remain in place. Dark resource values are preserved; the added resources also follow Windows high-contrast colors.
+
+Opened `artifacts/glacier-final/comparison.png`, with the third displayed mockup on the left and the native WPF render on the right. The generated reference is normalized from 1485 × 1059 to the source screenshot's 1116 × 795 viewport; the WPF content render is 1116 × 795 at 1x. Both show Light, Classic colors, two drives, grouped processes and a two-minute range. Fixture values, process names/icons, history coverage and network scale differ intentionally. The mock's highlighted process row is illustrative; this theme change does not introduce row selection. Native caption buttons occupy an unrendered black region in off-screen content captures, so this comparison does not verify composed caption glyphs. The native window-caption synchronization code is unchanged.
+
+Reviewed the readable individual render `glacier-light.png`, the light settings render and the dark dual-drive render. Typography, spacing and copy retain the existing application controls; no new image assets are needed. Surface colors and white inputs match the selected direction. The first render exposed navy text on selected blue chips; the explicit content binding now follows the chip foreground, and the final capture confirms white labels. No remaining P0/P1/P2 theme differences. Full-size labels and controls were readable without additional crops.
+
+Final Release build passed with zero warnings/errors; all 315 NUnit tests passed. The isolated `--snapshot-smoke-output` run exited 0; `artifacts/glacier-final/snapshot.json` records twelve corner placements, resize, short-chart scrolling, light/dark rendering, expiry and Return to live. Runtime and package-restore issues in initial attempts were resolved before these completed runs. Bitmap checks do not prove physical mixed-DPI changes or actual Windows high-contrast rendering; the latter retains system-brush mappings by source inspection.
+
 ## Anchored snapshot panel — 2026-10-20
 
 Implemented the approved snapshot popover beside the selected chart point, with colored readings, timestamp, crosshair markers and an integrated Return to live action. The process-header readout is removed. Resource values remain interval readings; the process toolbar identifies its separate five-second average. The top tiles remain live.

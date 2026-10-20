@@ -403,7 +403,7 @@
                                 <Border
                                     Grid.Column="1"
                                     Margin="16,0"
-                                    Background="{DynamicResource Surface}"
+                                    Background="{DynamicResource SearchSurface}"
                                     BorderThickness="1"
                                     CornerRadius="4">
                                     <Border.Style>

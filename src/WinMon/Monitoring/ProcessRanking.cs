@@ -39,9 +39,10 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
     /// <param name="windowSeconds">Averaging window; with one-second sampling it covers that many intervals.</param>
     /// <param name="sort">Ranking column; missing GPU, memory or I/O readings never become zero.</param>
     /// <param name="grouped">Combine processes of the same executable into one row each.</param>
+    /// <param name="includeInactive">Include observed processes even without activity or a reading in the sort column, for search.</param>
     /// <returns>The ranking, empty when the last sample is a gap or has no CPU reading.</returns>
     public static ProcessRanking Rank(IReadOnlyList<CpuSample> history, int windowSeconds = DefaultWindowSeconds,
-        ProcessSort sort = ProcessSort.Cpu, bool grouped = false)
+        ProcessSort sort = ProcessSort.Cpu, bool grouped = false, bool includeInactive = false)
     {
         ArgumentNullException.ThrowIfNull(history);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(windowSeconds);
@@ -97,7 +98,7 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
                 double? io = total.IoCount > 0 ? total.Io / window.Count : null;
                 double? gpu = total.GpuCount > 0 ? total.Gpu / total.GpuCount : null;
                 // Groups need every member. Individually, skip processes the sort drops before copying them.
-                if (!grouped && !Listed(sort, cpu, io, gpu, latest.WorkingSetBytes, newest.Contains(key))) continue;
+                if (!includeInactive && !grouped && !Listed(sort, cpu, io, gpu, latest.WorkingSetBytes, newest.Contains(key))) continue;
                 individual.Add(latest with
                 {
                     CpuPercent = cpu,
@@ -109,7 +110,7 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
             }
             // Groups sum private bytes (working sets share pages); a grouped row is current if any member is.
             var ranked = (grouped
-                    ? Group(individual, newest).Where(p => Listed(sort, p.CpuPercent, p.IoBytesPerSecond, p.GpuPercent, p.PrivateBytes, true))
+                    ? Group(individual, newest).Where(p => includeInactive || Listed(sort, p.CpuPercent, p.IoBytesPerSecond, p.GpuPercent, p.PrivateBytes, true))
                     : individual)
                 .OrderByDescending(p => sort switch
                 {

@@ -8,6 +8,10 @@
         <SolidColorBrush x:Key="Raised" Color="#20262D" />
         <SolidColorBrush x:Key="TitleBarSurface" Color="#30343B" />
         <SolidColorBrush x:Key="SectionHeaderSurface" Color="#252A31" />
+        <SolidColorBrush x:Key="PlotSurface" Color="#15191E" />
+        <SolidColorBrush x:Key="SearchSurface" Color="#15191E" />
+        <SolidColorBrush x:Key="SelectedSurface" Color="#20262D" />
+        <SolidColorBrush x:Key="SelectedText" Color="#EDF2F6" />
         <SolidColorBrush x:Key="Text" Color="#EDF2F6" />
         <SolidColorBrush x:Key="Muted" Color="#B3BDC8" />
         <SolidColorBrush x:Key="Line" Color="#35404B" />
@@ -360,7 +364,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        <!--  Segmented range choice: muted outline, selected chip raised with the accent border.  -->
+        <!--  Segmented range choice: themed selection colors also cover Windows high contrast.  -->
         <Style x:Key="RangeChip" TargetType="RadioButton">
             <Setter Property="Foreground" Value="{DynamicResource Muted}" />
             <Setter Property="FontSize" Value="11" />
@@ -377,16 +381,22 @@
                             BorderBrush="{DynamicResource Line}"
                             BorderThickness="1"
                             CornerRadius="4">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <ContentPresenter.ContentTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                                    </DataTemplate>
+                                </ContentPresenter.ContentTemplate>
+                            </ContentPresenter>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="Chip" Property="BorderBrush" Value="{DynamicResource Muted}" />
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Chip" Property="Background" Value="{DynamicResource Raised}" />
+                                <Setter TargetName="Chip" Property="Background" Value="{DynamicResource SelectedSurface}" />
                                 <Setter TargetName="Chip" Property="BorderBrush" Value="{DynamicResource Accent}" />
-                                <Setter Property="Foreground" Value="{DynamicResource Text}" />
+                                <Setter Property="Foreground" Value="{DynamicResource SelectedText}" />
                             </Trigger>
                             <Trigger Property="IsKeyboardFocused" Value="True">
                                 <Setter TargetName="Chip" Property="BorderBrush" Value="{DynamicResource Accent}" />

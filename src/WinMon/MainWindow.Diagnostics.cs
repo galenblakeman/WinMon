@@ -830,6 +830,16 @@ public partial class MainWindow
         fixture.RefreshVisiblePresentation();
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "compact-headers-wide-light.png"), 1, cancellationToken);
 
+        // Light-theme target: source screenshot dimensions, Classic palette and two-minute range.
+        fixture._preferences = fixture._preferences with { ChartPalette = "Classic", ChartRangeSeconds = 120 };
+        fixture.ApplyTheme();
+        fixture.BuildRangeChips();
+        fixture.RefreshVisiblePresentation();
+        visual.Measure(new Size(1116, 795));
+        visual.Arrange(new Rect(0, 0, 1116, 795));
+        visual.UpdateLayout();
+        await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "glacier-light.png"), 1, cancellationToken);
+
         // Exercise actual selection and layout at every corner, then resize the held selection.
         fixture._preferences = fixture._preferences with { Theme = "Dark", ChartRangeSeconds = 120, ChartPalette = "Vivid" };
         fixture.ApplyTheme();

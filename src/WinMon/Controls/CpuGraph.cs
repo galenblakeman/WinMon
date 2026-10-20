@@ -100,6 +100,7 @@ public sealed class CpuGraph : FrameworkElement
         drawingContext.DrawRectangle(Brushes.Transparent, null, new Rect(RenderSize));
         if (ShowGrid)
         {
+            drawingContext.DrawRectangle(Resource("PlotSurface", Brushes.Transparent), null, plot);
             for (var i = 0; i <= 4; i++)
             {
                 var y = plot.Top + plot.Height * i / 4;
