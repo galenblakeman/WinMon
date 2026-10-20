@@ -10,6 +10,8 @@ WinMon brings CPU, memory, disk, network and GPU activity into one clear Windows
 
 ![WinMon live dashboard showing CPU, memory, two disks, network and GPU activity above individual process rankings](example/example_individual.png)
 
+*Screenshots show WinMon 1.0.2 with illustrative sample data.*
+
 ## Your system, at a glance
 
 Keep the whole picture in view while you work, play or troubleshoot. WinMon puts live resource readings above a shared timeline, so you can see how CPU spikes, disk activity and network transfers line up.
@@ -27,19 +29,42 @@ Browsers and other applications often spread their work across many processes. S
 
 Grouped GPU shows the busiest member; grouped memory uses private bytes to avoid counting shared working-set pages repeatedly.
 
+## Find the process you need
+
+Search the ranked list by application name, executable name or PID. Turn on **App Only** to focus on processes observed with an application window, and use the **App** / **Background** labels to understand each row. In Grouped mode, an executable is an app when any current member has an app window.
+
+The ranking controls, search field, App Only filter and grouping switches fit on one row at compact 720-DIP widths.
+
+![WinMon compact view with a chrome search and App Only enabled, showing the grouped Google Chrome result](example/example_apps_only.png)
+
 ## Catch the spike—even after it passes
 
-Click the chart to inspect a recorded moment. The snapshot shows resource readings for that interval, and the process table follows your selection so you can investigate what was busy then. The top readouts stay live while you explore.
+Choose **Snapshot** in the centered **Live | Snapshot** switch above the chart to inspect the newest recorded sample, or click the chart to select an earlier moment. The snapshot shows resource readings for that interval, and the process table follows your selection so you can investigate what was busy then. Recording and the top readouts stay live while you explore.
 
 ![WinMon historical snapshot showing interval resource readings and the process table at the selected time](example/example_snapshot.png)
 
-Use **Left / Right** to step through samples, **Home** to jump to the oldest visible sample, and **End**, **Escape** or **Return to live** to resume the live view.
+Click **Snapshot** again to select the newest sample. Use **Left / Right** to step through samples, **Home** to jump to the oldest visible sample, and **Live**, **End**, **Escape** or **Return to live** to resume the live view.
 
 History is kept in memory for the current session, with configurable retention up to 60 minutes. Available history can be shorter on busy systems and is cleared when WinMon exits.
 
 ## Make it yours
 
-Choose **Light**, **Dark** or **System** appearance, then pick a chart palette independently. Options include Classic, Ocean, Colorblind and high-contrast palettes, with consistent colors across resource readings, chart traces and process sparklines.
+Choose **Light**, **Dark** or **System** appearance, then pick a chart palette independently. Options include Classic, Ocean, Colorblind and high-contrast palettes, plus the new **Neon**, **Arcade** and **Tropical** choices. Palette names sort alphabetically in Settings; swatches and descriptions help you choose. Colors stay consistent across resource readings, chart traces and process sparklines.
+
+![WinMon light theme showing the same grouped dashboard with readable resource colors and the centered Live and Snapshot switch](example/example_light.png)
+
+<details>
+<summary>Compare the new palettes and view Settings</summary>
+
+| Neon | Arcade | Tropical |
+| --- | --- | --- |
+| [![Neon palette with vivid cyan, pink, lime and violet chart colors](example/example_neon.png)](example/example_neon.png) | [![Arcade palette with saturated primary and secondary chart colors](example/example_arcade.png)](example/example_arcade.png) | [![Tropical palette with warm colors balanced by blue and teal](example/example_tropical.png)](example/example_tropical.png) |
+
+The three custom palettes keep their supplied colors in both themes. Open an image for the full-size view.
+
+![WinMon Settings with the Neon palette swatches, theme selection, keyboard shortcut and two configured disks](example/example_settings.png)
+
+</details>
 
 Settings also let you choose disk volumes, history retention, startup at sign-in and notification-area behavior. The default show/hide shortcut is **Ctrl+Shift+M**.
 
