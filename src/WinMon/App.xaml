@@ -160,6 +160,7 @@
             </Setter>
         </Style>
         <Style TargetType="ComboBox">
+            <Setter Property="Padding" Value="10,5,32,5" />
             <Setter Property="Background" Value="{DynamicResource Raised}" />
             <Setter Property="Foreground" Value="{DynamicResource Text}" />
             <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
@@ -193,7 +194,7 @@
                                 </ToggleButton.Template>
                             </ToggleButton>
                             <ContentPresenter
-                                Margin="10,5,32,5"
+                                Margin="{TemplateBinding Padding}"
                                 VerticalAlignment="Center"
                                 Content="{TemplateBinding SelectionBoxItem}"
                                 ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}"

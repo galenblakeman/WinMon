@@ -41,6 +41,8 @@ public partial class MainWindow
     private SamplingError? _samplingError;
     private bool _wide;
     private const double WideWidth = 800;
+    private const double InlineProcessToolbarWidth = 700;
+    private bool _inlineProcessToolbar;
     private bool _closing;
     private bool _allowClose;
     private WindowState _restoreState = WindowState.Normal;
@@ -105,8 +107,10 @@ public partial class MainWindow
         SizeChanged += (_, _) =>
         {
             var wide = ActualWidth >= WideWidth;
-            if (wide == _wide || _closing) return;
+            var inlineProcessToolbar = ActualWidth >= InlineProcessToolbarWidth;
+            if ((wide == _wide && inlineProcessToolbar == _inlineProcessToolbar) || _closing) return;
             _wide = wide;
+            _inlineProcessToolbar = inlineProcessToolbar;
             RefreshPresentation();
         };
         OverallGraph.SampleSelected += (_, sample) => { _selectedSample = sample; RefreshPresentation(); };
@@ -248,13 +252,13 @@ public partial class MainWindow
 
     private void RefreshVisiblePresentation()
     {
-        System.Windows.Controls.Grid.SetRow(ProcessSearchBorder, _wide ? 0 : 1);
-        System.Windows.Controls.Grid.SetColumn(ProcessSearchBorder, _wide ? 1 : 0);
-        System.Windows.Controls.Grid.SetColumnSpan(ProcessSearchBorder, _wide ? 1 : 3);
-        ProcessSearchBorder.Margin = _wide ? new Thickness(12, 0, 12, 0) : new Thickness(0, 6, 12, 0);
-        System.Windows.Controls.Grid.SetRow(AppsOnlyCheckBox, _wide ? 0 : 1);
-        System.Windows.Controls.Grid.SetColumn(AppsOnlyCheckBox, _wide ? 2 : 3);
-        AppsOnlyCheckBox.Margin = _wide ? new Thickness(0, 0, 12, 0) : new Thickness(0, 6, 0, 0);
+        System.Windows.Controls.Grid.SetRow(ProcessSearchBorder, _inlineProcessToolbar ? 0 : 1);
+        System.Windows.Controls.Grid.SetColumn(ProcessSearchBorder, _inlineProcessToolbar ? 1 : 0);
+        System.Windows.Controls.Grid.SetColumnSpan(ProcessSearchBorder, _inlineProcessToolbar ? 1 : 3);
+        ProcessSearchBorder.Margin = _inlineProcessToolbar ? new Thickness(12, 0, 12, 0) : new Thickness(0, 6, 12, 0);
+        System.Windows.Controls.Grid.SetRow(AppsOnlyCheckBox, _inlineProcessToolbar ? 0 : 1);
+        System.Windows.Controls.Grid.SetColumn(AppsOnlyCheckBox, _inlineProcessToolbar ? 2 : 3);
+        AppsOnlyCheckBox.Margin = _inlineProcessToolbar ? new Thickness(0, 0, 12, 0) : new Thickness(0, 6, 0, 0);
         var samples = _history.Samples;
         var latest = samples.Count == 0 ? null : samples[^1];
         var visible = _selectedSample is null ? latest : samples.FirstOrDefault(s => ReferenceEquals(s, _selectedSample));

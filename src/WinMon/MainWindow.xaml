@@ -383,7 +383,8 @@
                                         Text="{Binding [Top], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                                     <ComboBox
                                         x:Name="ProcessCountSelector"
-                                        Width="58"
+                                        Width="48"
+                                        Padding="6,3,24,3"
                                         MinHeight="28"
                                         Margin="6,0"
                                         AutomationProperties.Name="{Binding [NumberOfTopProcesses], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
@@ -397,7 +398,8 @@
                                         Text="{Binding [ProcessesBy], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                                     <ComboBox
                                         x:Name="ProcessSortSelector"
-                                        Width="100"
+                                        Width="90"
+                                        Padding="8,3,26,3"
                                         MinHeight="28"
                                         Margin="6,0,0,0"
                                         AutomationProperties.Name="{Binding [RankProcessesBy], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
@@ -407,6 +409,7 @@
                                 </StackPanel>
                                 <Border
                                     x:Name="ProcessSearchBorder"
+                                    MinWidth="120"
                                     Grid.Row="1"
                                     Grid.ColumnSpan="3" Grid.Column="0"
                                     Margin="0,6,12,0"
