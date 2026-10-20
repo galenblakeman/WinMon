@@ -249,7 +249,7 @@ See the [release guide](../packaging/RELEASING.md) for the portable ZIP, per-use
 
 ## Version and license
 
-Current version: **1.0.0**. Product details (version, copyright, license, repository) live in [Directory.Build.props](../Directory.Build.props) and are stamped into the executable's file properties; the Info window's About section shows them. To release, change `Version` there and the matching `assemblyIdentity version` in `src/WinMon/app.manifest` (a test fails if they differ).
+Current version: **1.0.2**. Product details (version, copyright, license, repository) live in [Directory.Build.props](../Directory.Build.props) and are stamped into the executable's file properties; the Info window's About section shows them. To release, change `Version` there and the matching `assemblyIdentity version` in `src/WinMon/app.manifest` (a test fails if they differ).
 
 Copyright © 2026 Galen Blakeman. Released under the [MIT License](../LICENSE).
 
