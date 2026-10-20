@@ -19,5 +19,11 @@ public sealed record CpuSample(
 {
     /// <summary>Resource measurements captured in the same collection pass.</summary>
     public ResourceSample Resources { get; init; } = new();
+
+    /// <summary>
+    /// Idle processes left out of <see cref="Processes"/> to bound history memory: no CPU, I/O or GPU reading,
+    /// and outside the largest working sets. Treat them as zero, not unavailable.
+    /// </summary>
+    public int CompactedProcesses { get; init; }
 }
 

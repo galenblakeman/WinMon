@@ -30,6 +30,12 @@ internal sealed record ProcessGraphData(IReadOnlyList<CpuSample> Samples, double
                     peaks[index] = Math.Max(peaks[index], Math.Clamp(process.CpuPercent, 0, 100));
                 if (--remaining == 0) break;
             }
+            // Idle processes are compacted out of retained samples; one created before the sample was idle, so zero.
+            if (sample.CompactedProcesses == 0) continue;
+            var sampleTime = sample.Timestamp.ToFileTime();
+            for (var index = 0; index < identities.Count; index++)
+                if (values[index][sampleIndex] is null && identities[index].CreationTicks <= sampleTime)
+                    values[index][sampleIndex] = 0;
         }
         // One scale for every row so sparkline heights compare across processes.
         var scale = Math.Clamp(Math.Ceiling(peaks.Max() * 11) / 10, 0.1, 100);

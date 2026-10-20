@@ -103,6 +103,11 @@ public sealed class CpuGraph : FrameworkElement
         else
         {
             var keys = new[] { "CpuAccent", "MemoryAccent", "DiskAccent", "NetworkAccent", "GpuAccent" };
+            // Paint every wash first so later series cannot tint an earlier trace.
+            if (!SystemParameters.HighContrast)
+                for (var metric = 0; metric < keys.Length; metric++)
+                    if ((VisibleMetrics & (1 << metric)) != 0)
+                        DrawSeries(drawingContext, plot, Resource(keys[metric], accent), metric, true);
             for (var metric = 0; metric < keys.Length; metric++)
                 if ((VisibleMetrics & (1 << metric)) != 0)
                     DrawSeries(drawingContext, plot, Resource(keys[metric], accent), metric);
@@ -134,7 +139,7 @@ public sealed class CpuGraph : FrameworkElement
         return (step <= 1 ? 1 : step <= 2 ? 2 : step <= 5 ? 5 : 10) * magnitude;
     }
 
-    private void DrawSeries(DrawingContext drawingContext, Rect plot, Brush accent, int metric)
+    private void DrawSeries(DrawingContext drawingContext, Rect plot, Brush accent, int metric, bool fillOnly = false)
     {
         var segment = new List<Point>();
         double? previous = null;
@@ -149,7 +154,7 @@ public sealed class CpuGraph : FrameworkElement
             var source = metric == 3 ? sample.Resources.NetworkId + "/" + sample.Resources.LinkBitsPerSecond : metric == 2 ? sample.Resources.DiskName : metric == 4 ? sample.Resources.GpuId : "";
             if (sample.IsGap || value is null || (previous is not null && Moment(sample) - previous.Value > 2.5) || previousSource != source)
             {
-                DrawSegment(drawingContext, segment, plot.Bottom, accent, ShowGrid, metric);
+                DrawSegment(drawingContext, segment, plot.Bottom, accent, ShowGrid, metric, fillOnly);
                 segment.Clear();
             }
             if (value is not null && !sample.IsGap)
@@ -157,7 +162,7 @@ public sealed class CpuGraph : FrameworkElement
             previous = Moment(sample);
             previousSource = source;
         }
-        DrawSegment(drawingContext, segment, plot.Bottom, accent, ShowGrid, metric);
+        DrawSegment(drawingContext, segment, plot.Bottom, accent, ShowGrid, metric, fillOnly);
     }
 
     internal static double? MetricValue(CpuSample sample, int metric) => metric switch
@@ -241,14 +246,14 @@ public sealed class CpuGraph : FrameworkElement
         static string Percent(double? value) => value is { } number ? $"{number:0.0}%" : "unavailable";
     }
 
-    private static void DrawSegment(DrawingContext dc, List<Point> points, double baseline, Brush accent, bool overlay, int metric)
+    private static void DrawSegment(DrawingContext dc, List<Point> points, double baseline, Brush accent, bool overlay, int metric, bool fillOnly)
     {
         if (points.Count == 0) return;
-        if (points.Count == 1) { dc.DrawEllipse(accent, null, points[0], 1.5, 1.5); return; }
+        if (points.Count == 1) { if (!fillOnly) dc.DrawEllipse(accent, null, points[0], 1.5, 1.5); return; }
         // Sparklines carry about two samples per pixel; averaging into 2px bins keeps a readable trace instead of a solid block.
         if (!overlay) points = Bin(points, 2);
-        // The CPU area fill separates it from the other series without relying on hue alone.
-        if (!overlay || metric == 0)
+        // Faint washes add depth while keeping the grid and crossing traces readable.
+        if (!overlay || fillOnly)
         {
             var area = new StreamGeometry();
             using (var context = area.Open())
@@ -258,9 +263,10 @@ public sealed class CpuGraph : FrameworkElement
                 context.LineTo(new Point(points[^1].X, baseline), true, false);
             }
             var fill = accent.Clone();
-            fill.Opacity = overlay ? 0.12 : 0.14;
+            fill.Opacity = overlay ? 0.08 : 0.14;
             dc.DrawGeometry(fill, null, area);
         }
+        if (fillOnly) return;
         var trace = new StreamGeometry();
         using (var context = trace.Open())
         {

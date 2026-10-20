@@ -11,12 +11,12 @@
         <SolidColorBrush x:Key="Text" Color="#EDF2F6" />
         <SolidColorBrush x:Key="Muted" Color="#B3BDC8" />
         <SolidColorBrush x:Key="Line" Color="#35404B" />
-        <SolidColorBrush x:Key="Accent" Color="#9FE870" />
-        <SolidColorBrush x:Key="CpuAccent" Color="#9FE870" />
-        <SolidColorBrush x:Key="MemoryAccent" Color="#65ADFF" />
-        <SolidColorBrush x:Key="DiskAccent" Color="#FF7B54" />
-        <SolidColorBrush x:Key="NetworkAccent" Color="#BD91FF" />
-        <SolidColorBrush x:Key="GpuAccent" Color="#51D8DF" />
+        <SolidColorBrush x:Key="Accent" Color="#73FF35" />
+        <SolidColorBrush x:Key="CpuAccent" Color="#73FF35" />
+        <SolidColorBrush x:Key="MemoryAccent" Color="#4285FF" />
+        <SolidColorBrush x:Key="DiskAccent" Color="#FFB000" />
+        <SolidColorBrush x:Key="NetworkAccent" Color="#F657E5" />
+        <SolidColorBrush x:Key="GpuAccent" Color="#00F0C8" />
         <Style TargetType="CheckBox">
             <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="Template">
@@ -343,6 +343,48 @@
                             <Trigger Property="IsKeyboardFocused" Value="True">
                                 <Setter TargetName="Chip" Property="BorderBrush" Value="{DynamicResource Accent}" />
                                 <Setter TargetName="Chip" Property="BorderThickness" Value="2" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!--  Matches the native Minimize/Maximize/Close buttons: flat, full caption height, 46 wide.  -->
+        <Style x:Key="CaptionButton" TargetType="Button">
+            <Setter Property="Width" Value="46" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{DynamicResource Text}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border
+                            x:Name="Body"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="Transparent"
+                            BorderThickness="1">
+                            <Path
+                                Width="16"
+                                Height="16"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Data="{Binding Path=(controls:ButtonIcon.Data), RelativeSource={RelativeSource TemplatedParent}}"
+                                Stroke="{TemplateBinding Foreground}"
+                                StrokeEndLineCap="Round"
+                                StrokeLineJoin="Round"
+                                StrokeStartLineCap="Round"
+                                StrokeThickness="1.3" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Body" Property="Background" Value="{DynamicResource Raised}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Body" Property="Background" Value="{DynamicResource Line}" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Body" Property="BorderBrush" Value="{DynamicResource Accent}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>

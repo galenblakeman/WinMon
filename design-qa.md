@@ -66,3 +66,21 @@ Earlier checks caught footer overflow at minimum height, including the extra his
 Validation: final Release build succeeded with zero warnings/errors; 66 NUnit cases passed outside the sandbox. The sandboxed test run had no final result and was stopped as inconclusive. Final native smoke exited 0, with all count choices, historical sample preservation, menu rendering, minimum-size live/historical footer visibility and scrolling assertions passing. `smoke.json` records successful completion only after the fixture assertions. Earlier failed runs remain in their separate artifact folders.
 
 Limits: preference serialization and fallback were tested; physical keyboard/mouse operation, actual OS DPI transitions and restart persistence through a real user session were not automated. The count is saved through the existing normal-exit preference lifecycle.
+
+## Bold chart colors — option 2 — 2026-10-19
+
+final result: passed
+
+Scope: apply the second displayed mockup's saturated dark resource palette, heavier chart traces, restrained halo and transparent area washes to the existing WPF monitor. Selected reference: `design/bold-chart-option-2.png`.
+
+Evidence: opened `artifacts/bold-chart-verified/comparison.png`, with reference at left and implementation at right, normalized to 600 x 820 each. Both show illustrative two-minute resource histories and five process rows. The application retains its current compact caption, range controls, sort indicators, table geometry and flat graphite surfaces; these existing product details are intentional adaptations outside the requested chart-color change. No actionable P0/P1/P2 differences in the scoped chart treatment.
+
+Required fidelity surfaces: existing Segoe UI hierarchy and small text remain readable; existing spacing, responsive layout and controls are retained; CPU #73FF35, memory #4285FF, disk #FFB000, network #F657E5 and GPU #00F0C8 are shared by dark readouts/toggles/traces. Main traces are 2.5 DIP with narrow translucent halo strokes and 8% washes painted before all traces. Existing icons remain sharp native assets; no new bitmap UI assets are required. Resource names, units, separate network scaling, illustrative-data labeling and process content retain their existing meanings. The full comparison is readable at the compact viewport and directly exposes the chart colors and crossings, so no additional focused crop is necessary.
+
+Opened `artifacts/bold-chart-verified/light.png`: existing darker light-theme colors remain readable. High contrast skips all main-chart washes and halos and retains differentiated dash styles; actual Windows high-contrast mode was not exercised.
+
+Verification: isolated Release build completed with zero warnings/errors. Native smoke exited 0; `artifacts/bold-chart-verified/smoke.json` records series toggles, chart range, wide layout, historical inspection/expiry, pause/resume gaps, return to live, process sorting/count and tooltip checks. Full history fixture and 150%/200% bitmap renders were captured. Native disk/GPU readings were unavailable in this run; full five-series visual review uses the labeled fixture. Actual desktop DPI transitions and sustained rendering cost were not measured.
+
+Tests: 110 passed, zero failed/skipped, TRX at `artifacts/bold-chart-tests/bold-chart.trx`. The sandboxed runner stalled and was canceled, so that attempt is inconclusive. The identical outside-sandbox retry failed on missing restore target; rerunning with restore enabled passed. The default build output was locked by a running app; isolated output `artifacts/bold-chart-build/` built successfully.
+
+Checklist: selected reference saved; matching resource colors; fills under traces; subtle halo; high-contrast safeguards; Release build; 110 tests; native smoke; dark/light visual review completed.

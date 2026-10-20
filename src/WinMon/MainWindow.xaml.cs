@@ -55,6 +55,15 @@ public partial class MainWindow
         ProcessSortSelector.ItemsSource = new[] { "CPU", "GPU", "Memory", "I/O" };
         ProcessSortSelector.SelectedIndex = (int)ProcessSort.Cpu;
         ProcessSortSelector.SelectionChanged += OnProcessSortChanged;
+        // Column headings are shortcuts for the "processes by" dropdown, which stays the keyboard path.
+        foreach (var (header, sort, text) in SortHeaders)
+        {
+            header.Cursor = Cursors.Hand;
+            header.ToolTip = $"{header.ToolTip}\nClick to rank processes by {text.Replace(" %", "").Replace(" MB/s", "")}.";
+            header.MouseEnter += (_, _) => header.TextDecorations = TextDecorations.Underline;
+            header.MouseLeave += (_, _) => header.TextDecorations = null;
+            header.MouseLeftButtonUp += (_, e) => { ProcessSortSelector.SelectedIndex = (int)sort; e.Handled = true; };
+        }
         WindowTheme.Attach(this);
         foreach (var metric in Metrics)
         {
@@ -65,6 +74,8 @@ public partial class MainWindow
         ProcessRows.Children.Add(_otherRow);
         BuildRangeChips();
         // Rows gain a PID line in a wide window; there is no separate expanded mode.
+        SizeChanged += (_, _) => AlignTitleBar();
+        DpiChanged += (_, _) => AlignTitleBar();
         SizeChanged += (_, _) =>
         {
             var wide = ActualWidth >= WideWidth;
@@ -97,6 +108,7 @@ public partial class MainWindow
             ApplyTheme();
             BuildRangeChips();
             UpdatePinButton();
+            AlignTitleBar();
             if (!_diagnosticMode) CreateTray();
             SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
             SystemEvents.DisplaySettingsChanged += OnDisplaySettingsChanged;
@@ -141,7 +153,7 @@ public partial class MainWindow
                         Trace.TraceWarning("CPU sampling unavailable: {0}", ex.Message);
                         sample = new CpuSample(DateTimeOffset.UtcNow, null, [], 0, false, Stopwatch.GetTimestamp());
                     }
-                    sample = resources.Sample(sample);
+                    sample = ProcessRetention.Compact(resources.Sample(sample));
                     Deliver(new PendingSample(currentGeneration, sample, cpuError));
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
@@ -234,7 +246,9 @@ public partial class MainWindow
         }
         _otherRow.Visibility = rest.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
         if (rest.Length > 0)
-            _otherRow.ShowRemainder(rest.Length, rest.Sum(p => p.CpuPercent),
+            // Memory ranking also covers idle processes compacted out of the sample.
+            _otherRow.ShowRemainder(rest.Length + (_preferences.ProcessSort == ProcessSort.Memory ? visible?.CompactedProcesses ?? 0 : 0),
+                rest.Sum(p => p.CpuPercent),
                 rest.Any(p => p.IoBytesPerSecond is not null) ? rest.Sum(p => p.IoBytesPerSecond ?? 0) : null);
         EmptyLabel.Visibility = top.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
         EmptyLabel.Text = visible is null && _selectedSample is not null ? "Return to live to inspect current activity." : latest is null || visible?.TotalCpuPercent is null ? "Collecting a baseline or recovering after a recording gap…" : _preferences.ProcessSort switch
@@ -294,14 +308,15 @@ public partial class MainWindow
     }
 
     /// <summary>Mark the column that orders the rows; the others stay muted.</summary>
+    private (System.Windows.Controls.TextBlock Header, ProcessSort Sort, string Text)[] SortHeaders =>
+    [
+        (CpuHeader, ProcessSort.Cpu, "CPU %"), (GpuHeader, ProcessSort.Gpu, "GPU %"),
+        (MemoryHeader, ProcessSort.Memory, "Memory"), (IoHeader, ProcessSort.Io, "I/O MB/s")
+    ];
+
     private void UpdateSortHeaders()
     {
-        var headers = new (System.Windows.Controls.TextBlock Header, ProcessSort Sort, string Text)[]
-        {
-            (CpuHeader, ProcessSort.Cpu, "CPU %"), (GpuHeader, ProcessSort.Gpu, "GPU %"),
-            (MemoryHeader, ProcessSort.Memory, "Memory"), (IoHeader, ProcessSort.Io, "I/O MB/s")
-        };
-        foreach (var (header, sort, text) in headers)
+        foreach (var (header, sort, text) in SortHeaders)
         {
             var active = sort == _preferences.ProcessSort;
             header.Text = active ? $"{text} ▾" : text;
@@ -365,8 +380,26 @@ public partial class MainWindow
 
     private void UpdatePinButton()
     {
-        PinButton.Content = Topmost ? "Unpin" : "Pin";
-        ButtonIcon.SetData(PinButton, Topmost ? ButtonIcon.Unpin : ButtonIcon.Pin);
+        // Icon-only toggle: the pin turns accent-colored while the window stays on top.
+        PinButton.SetResourceReference(ForegroundProperty, Topmost ? "Accent" : "Text");
+        PinButton.ToolTip = Topmost ? "Kept on top of other windows. Click to stop." : "Keep this window on top of other windows";
+        System.Windows.Automation.AutomationProperties.SetName(PinButton, Topmost ? "Keep on top, on" : "Keep on top, off");
+    }
+
+    /// <summary>Sit Pin flush against the native caption buttons at their exact height, whatever the DPI.</summary>
+    private void AlignTitleBar()
+    {
+        if (WindowTheme.CaptionButtonBounds(this) is not { } buttons || ActualWidth <= 0) return;
+        var height = Math.Max(24, buttons.Bottom);
+        TitleRow.Height = new GridLength(height);
+        TitleBarArea.Margin = new Thickness(0, 0, Math.Max(0, ActualWidth - buttons.Left), 0);
+        PinButton.Height = buttons.Height;
+        PinButton.Margin = new Thickness(0, buttons.Top, 0, 0);
+        if (System.Windows.Shell.WindowChrome.GetWindowChrome(this) is { } chrome && Math.Abs(chrome.CaptionHeight - height) > 0.5)
+        {
+            chrome.CaptionHeight = height;
+            chrome.GlassFrameThickness = new Thickness(0, height, 0, 0);
+        }
     }
 
     /// <summary>Rebuild the range chips; the choices follow the short range and retention settings.</summary>
@@ -504,12 +537,12 @@ public partial class MainWindow
             SetBrush("Text", light ? "#17212A" : "#EDF2F6");
             SetBrush("Muted", light ? "#465361" : "#B3BDC8");
             SetBrush("Line", light ? "#CBD3DC" : "#35404B");
-            SetBrush("Accent", light ? "#36751B" : "#9FE870");
-            SetBrush("CpuAccent", light ? "#36751B" : "#9FE870");
-            SetBrush("MemoryAccent", light ? "#1469B5" : "#65ADFF");
-            SetBrush("DiskAccent", light ? "#B8461B" : "#FF7B54");
-            SetBrush("NetworkAccent", light ? "#7944B4" : "#BD91FF");
-            SetBrush("GpuAccent", light ? "#007B83" : "#51D8DF");
+            SetBrush("Accent", light ? "#36751B" : "#73FF35");
+            SetBrush("CpuAccent", light ? "#36751B" : "#73FF35");
+            SetBrush("MemoryAccent", light ? "#1469B5" : "#4285FF");
+            SetBrush("DiskAccent", light ? "#B8461B" : "#FFB000");
+            SetBrush("NetworkAccent", light ? "#7944B4" : "#F657E5");
+            SetBrush("GpuAccent", light ? "#007B83" : "#00F0C8");
         }
         foreach (Window window in app.Windows) WindowTheme.Apply(window);
         foreach (var row in _rows) row.InvalidateVisual();

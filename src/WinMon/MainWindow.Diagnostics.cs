@@ -11,6 +11,63 @@ namespace WinMon;
 
 public partial class MainWindow
 {
+    /// <summary>Record whole-process CPU, memory and GC cost of live monitoring, after a warm-up that fills the compact history.</summary>
+    /// <param name="outputDirectory">Directory for profile.json.</param>
+    /// <param name="seconds">Measured duration after warm-up.</param>
+    /// <param name="cancellationToken">Cancel the profile run.</param>
+    internal async Task CaptureProfileAsync(string outputDirectory, int seconds, CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(outputDirectory);
+        Directory.CreateDirectory(outputDirectory);
+        await Task.Delay(TimeSpan.FromSeconds(20), cancellationToken);
+        using var self = Process.GetCurrentProcess();
+        var startCpu = self.TotalProcessorTime;
+        var startAllocated = GC.GetTotalAllocatedBytes(true);
+        var startCollections = (GC.CollectionCount(0), GC.CollectionCount(1), GC.CollectionCount(2));
+        var workingSets = new List<long>();
+        var privateBytes = new List<long>();
+        var managedHeaps = new List<long>();
+        var elapsed = Stopwatch.StartNew();
+        while (elapsed.Elapsed.TotalSeconds < seconds)
+        {
+            await Task.Delay(1000, cancellationToken);
+            // Process.Refresh re-enumerates every process on the machine; read only this process.
+            var memory = new ProcessMemoryCounters { Size = (uint)Marshal.SizeOf<ProcessMemoryCounters>() };
+            if (GetProcessMemoryInfo(GetCurrentProcess(), ref memory, memory.Size))
+            {
+                workingSets.Add((long)memory.WorkingSetSize);
+                privateBytes.Add((long)memory.PrivateUsage);
+            }
+            managedHeaps.Add(GC.GetGCMemoryInfo().HeapSizeBytes);
+        }
+        var wall = elapsed.Elapsed.TotalSeconds;
+        var cpuSeconds = (self.TotalProcessorTime - startCpu).TotalSeconds;
+        static double MiB(IEnumerable<long> values) => values.Average() / 1_048_576d;
+        var samples = _history.Samples;
+        var report = new
+        {
+            MeasuredSeconds = wall,
+            LogicalProcessors = Environment.ProcessorCount,
+            CpuPercentOfMachine = 100 * cpuSeconds / wall / Environment.ProcessorCount,
+            CpuMillisecondsPerSecond = 1000 * cpuSeconds / wall,
+            WorkingSetMiBAverage = MiB(workingSets),
+            WorkingSetMiBMax = workingSets.Max() / 1_048_576d,
+            PrivateMiBAverage = MiB(privateBytes),
+            PrivateMiBMax = privateBytes.Max() / 1_048_576d,
+            ManagedHeapMiBAverage = MiB(managedHeaps),
+            AllocatedKiBPerSecond = (GC.GetTotalAllocatedBytes(true) - startAllocated) / 1024d / wall,
+            Gen0Collections = GC.CollectionCount(0) - startCollections.Item1,
+            Gen1Collections = GC.CollectionCount(1) - startCollections.Item2,
+            Gen2Collections = GC.CollectionCount(2) - startCollections.Item3,
+            RetainedSamples = samples.Count,
+            RetainedProcessEntries = samples.Sum(s => s.Processes.Count),
+            ProcessesPerSample = samples.Count == 0 ? 0 : samples[^1].Processes.Count,
+            UnavailableProcesses = samples.Count == 0 ? 0 : samples[^1].UnavailableProcesses
+        };
+        await File.WriteAllTextAsync(Path.Combine(outputDirectory, "profile.json"),
+            JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true }), cancellationToken);
+    }
+
     /// <summary>Validate the real recording window and export render evidence without changing user preferences.</summary>
     /// <param name="outputDirectory">Directory for diagnostic screenshots and measurements.</param>
     /// <param name="cancellationToken">Cancel the bounded diagnostic run.</param>
@@ -250,6 +307,19 @@ public partial class MainWindow
     private static extern bool PrintWindow(IntPtr window, IntPtr deviceContext, uint flags);
     [DllImport("user32.dll")]
     private static extern IntPtr GetForegroundWindow();
+    [DllImport("kernel32.dll")]
+    private static extern IntPtr GetCurrentProcess();
+    [DllImport("psapi.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool GetProcessMemoryInfo(IntPtr process, ref ProcessMemoryCounters counters, uint size);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct ProcessMemoryCounters
+    {
+        public uint Size, PageFaultCount;
+        public UIntPtr PeakWorkingSetSize, WorkingSetSize, QuotaPeakPagedPoolUsage, QuotaPagedPoolUsage,
+            QuotaPeakNonPagedPoolUsage, QuotaNonPagedPoolUsage, PagefileUsage, PeakPagefileUsage, PrivateUsage;
+    }
 
     private static async Task CaptureDesignFixtureAsync(string outputDirectory, CancellationToken cancellationToken)
     {
@@ -309,6 +379,11 @@ public partial class MainWindow
                 throw new InvalidOperationException($"{sort} ranking did not put {expected} first or mark its column.");
             if (sort == "Memory") await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "memory-process-sort.png"), 1, cancellationToken);
         }
+        // Clicking a column heading drives the same dropdown.
+        fixture.IoHeader.RaiseEvent(new System.Windows.Input.MouseButtonEventArgs(System.Windows.Input.Mouse.PrimaryDevice, 0, System.Windows.Input.MouseButton.Left)
+            { RoutedEvent = UIElement.MouseLeftButtonUpEvent });
+        if (fixture._preferences.ProcessSort != ProcessSort.Io || fixture.ProcessSortSelector.SelectedItem as string != "I/O")
+            throw new InvalidOperationException("Clicking the I/O heading did not switch the ranking dropdown.");
         fixture.ProcessSortSelector.SelectedItem = "CPU";
         fixture.RefreshVisiblePresentation();
         var rankedSample = fixture._history.Latest! with

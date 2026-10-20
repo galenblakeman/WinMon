@@ -10,6 +10,20 @@ namespace WinMon.Monitoring;
 internal sealed class WindowsResourceSampler : IDisposable
 {
     private readonly WindowsGpuSampler _gpu = new();
+    // Enumerating adapters costs far more than reading one adapter's counters, so the candidate list is
+    // refreshed only when Windows reports a network change, or every 30 seconds for speed changes.
+    private static readonly long CandidateLifetime = 30 * Stopwatch.Frequency;
+    private NetworkInterface[]? _candidates;
+    private long _candidatesRead;
+    private int _networkChanged = 1;
+
+    internal WindowsResourceSampler()
+    {
+        NetworkChange.NetworkAddressChanged += OnNetworkChanged;
+        NetworkChange.NetworkAvailabilityChanged += OnNetworkChanged;
+    }
+
+    private void OnNetworkChanged(object? sender, EventArgs e) => Volatile.Write(ref _networkChanged, 1);
     private readonly string _diskName = Path.GetPathRoot(Environment.SystemDirectory)!.TrimEnd('\\');
     private SafePdhQuery? _query;
     private IntPtr _idleCounter, _bytesCounter;
@@ -34,6 +48,7 @@ internal sealed class WindowsResourceSampler : IDisposable
         {
             Trace.TraceWarning("Network counters unavailable: {0}", ex.Message);
             _previousNetwork = null;
+            _candidates = null;
         }
         return _gpu.Sample(cpu with { Resources = result }, reset);
     }
@@ -72,9 +87,15 @@ internal sealed class WindowsResourceSampler : IDisposable
 
     private ResourceSample ReadNetwork(ResourceSample result)
     {
-        var candidates = NetworkInterface.GetAllNetworkInterfaces()
-            .Where(n => n is { OperationalStatus: OperationalStatus.Up, NetworkInterfaceType: NetworkInterfaceType.Ethernet or NetworkInterfaceType.Wireless80211 })
-            .OrderBy(n => n.Id, StringComparer.Ordinal).ToArray();
+        var now = Stopwatch.GetTimestamp();
+        if (_candidates is null || Interlocked.Exchange(ref _networkChanged, 0) != 0 || now - _candidatesRead > CandidateLifetime)
+        {
+            _candidates = [.. NetworkInterface.GetAllNetworkInterfaces()
+                .Where(n => n is { OperationalStatus: OperationalStatus.Up, NetworkInterfaceType: NetworkInterfaceType.Ethernet or NetworkInterfaceType.Wireless80211 })
+                .OrderBy(n => n.Id, StringComparer.Ordinal)];
+            _candidatesRead = now;
+        }
+        var candidates = _candidates;
         // Prefer the previously selected link while it remains connected. Never merge interfaces.
         var network = candidates.FirstOrDefault(n => n.Id == _previousNetwork?.Id) ?? candidates
             .OrderByDescending(n => n.GetIPProperties().GatewayAddresses.Count > 0)
@@ -121,7 +142,13 @@ internal sealed class WindowsResourceSampler : IDisposable
         _diskBaseline = false;
     }
 
-    public void Dispose() => Reset();
+    public void Dispose()
+    {
+        // NetworkChange events are static and would otherwise keep this sampler alive.
+        NetworkChange.NetworkAddressChanged -= OnNetworkChanged;
+        NetworkChange.NetworkAvailabilityChanged -= OnNetworkChanged;
+        Reset();
+    }
 
     internal sealed record NetworkObservation(string Id, long Speed, long Timestamp, long Received, long Sent);
 

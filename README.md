@@ -28,7 +28,7 @@ GPU reports the busiest physical engine across available adapters. Process contr
 
 The process table defaults to CPU ranking; the selector switches it to GPU, Memory or I/O, marks the sorted column with ▾, and is remembered. Memory ranks by the current working set of processes present in the newest sample; I/O ranks by the five-second average read/write rate. Earlier GPU-sort settings carry over. CPU and GPU columns use a five-second window. GPU is each process's busiest engine per interval, averaged over readable intervals; a missing counter or unverified process lifetime shows a dash, and a valid idle reading is zero. Per-process GPU values are not additive, so the Other processes GPU cell is a dash. Sparklines continue to show CPU history in both ranking modes. Each row shows an executable icon and a CPU history sparkline covering the short chart range. All sparklines share one scale, from zero to the busiest listed process's visible peak with headroom (minimum upper limit 0.1%, capped at 100%), so heights compare across rows; hover a row to see the scale. Sparklines plot raw one-second CPU, while the CPU % column is the five-second average. Historical selection ends each sparkline at the selected interval. Icons load in the background and use a generic application icon when the process has exited or cannot be inspected; icons are cached by PID and creation time, but are not recorded in history. Memory is resident working set in MiB, including shared pages. Process I/O is interval read/write MB/s and includes file, network and device operations; it is not disk-only attribution. These columns and resource values are retained with each historical sample. Collection is sequential within one pass, not an atomic snapshot across Windows APIs.
 
-Process percentages represent shares of total machine CPU capacity, not per-core percentages or lifetime CPU time. The first reading, resumed recording, and long delays require a new baseline. Processes that cannot be queried, or exceed the 20,000-process collection cap, are counted explicitly. History also has a 500,000-process-measurement budget; the UI reports when this shortens the requested retention window. Listed processes plus the Other processes row need not sum to the overall percentage; the footer reports the unattributed remainder. Very short-lived processes can exit between polls and therefore escape attribution.
+Process percentages represent shares of total machine CPU capacity, not per-core percentages or lifetime CPU time. The first reading, resumed recording, and long delays require a new baseline. All processes are read from one system query without opening process handles, so access-restricted processes are included; any beyond the 20,000-process collection cap are counted explicitly. History also has a 500,000-process-measurement budget; the UI reports when this shortens the requested retention window. Listed processes plus the Other processes row need not sum to the overall percentage; the footer reports the unattributed remainder. Very short-lived processes can exit between polls and therefore escape attribution.
 
 The initial provider uses Windows system/process time counters. Machines with multiple active processor groups are currently unsupported and show unavailable readings rather than partial machine totals. Process ranking is individual; executable grouping is deferred.
 
@@ -53,6 +53,33 @@ An isolated native/UI smoke mode collects real resource samples, checks series t
 Bitmap renders at 100%, 150%, and 200% are layout/render evidence; they do not verify actual desktop DPI changes, keyboard automation, mixed-DPI monitor transitions, tray interaction, or startup at sign-in. Those remain manual environment checks. The smoke report includes a separate 15-second quiet observation. Both it and the full run are short measurements and are not sustained overhead benchmarks.
 
 ## Performance tuning measurements
+
+### Whole-process profile
+
+`--profile-output <directory> [seconds]` runs the real window and sampler in isolation (no preferences, tray or single-instance lock), waits 20 seconds, then measures for the given duration (default 60). It writes `profile.json` with CPU per second, working set, private bytes, managed heap, allocation rate, GC counts and retained process entries. Memory is read for this process only, so the profiler does not inflate CPU.
+
+```powershell
+.\src\WinMon\bin\Release\net10.0-windows\win-x64\WinMon.exe --profile-output D:\Projects\WinMon\artifacts\profile 60
+```
+
+October 19, 2026, this machine (12 logical processors, about 1,000 processes), build output, same tree with and without the change:
+
+| | Before | After |
+| --- | ---: | ---: |
+| CPU, 60 s run (two runs each) | 68–69 ms/s | 36–38 ms/s |
+| CPU, 11-minute run | 65 ms/s | 34 ms/s |
+| Working set with a full 10-minute history | 265 MiB | 196 MiB |
+| Private bytes with a full 10-minute history | 180 MiB | 111 MiB |
+| Retained process entries at 10 minutes | 469,400 | 60,816 |
+| Processes that could not be read | ~155 | 0 |
+
+- Processes come from one `NtQuerySystemInformation(SystemProcessInformation)` call instead of `Process.GetProcesses()` plus a handle per process, which also measures access-restricted processes. The query buffer is pinned and reused, and a process name string is reused for the life of the process.
+- Network adapters are enumerated only after a Windows network-change event or every 30 seconds; counters are still read every second.
+- Retained samples keep only processes with CPU, I/O or GPU readings plus the 32 largest working sets. Dropped idle entries are counted and treated as zero by ranking, the Other processes row and sparklines.
+
+The compressed single-file publish uses about 130 MiB more working set than an uncompressed one (312 vs 182 MiB, private 173 vs 96 MiB), because compressed assemblies are inflated into private memory instead of mapped from the file. Uncompressed, the executable is 173 MB instead of 76 MB. Software rendering made no measurable difference. The UI microbenchmark below predates later field renames and needs updating before it will run again.
+
+### UI microbenchmark (earlier)
 
 October 19, 2026: process sparklines now share one extraction pass over the visible
 history, reusing values for scaling and drawing. Hidden/minimized windows continue

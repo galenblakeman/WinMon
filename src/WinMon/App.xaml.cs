@@ -22,6 +22,17 @@ public partial class App
             _ = RunDiagnosticsAsync(window, Path.GetFullPath(e.Args[1]));
             return;
         }
+        if (e.Args is ["--profile-output", _, ..])
+        {
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            base.OnStartup(e);
+            var window = new MainWindow(true);
+            MainWindow = window;
+            window.Show();
+            var seconds = e.Args.Length > 2 && int.TryParse(e.Args[2], out var requested) ? Math.Clamp(requested, 10, 3600) : 60;
+            _ = RunProfileAsync(window, Path.GetFullPath(e.Args[1]), seconds);
+            return;
+        }
         _instance = new Mutex(true, @"Local\WinMon.CpuMonitor", out _ownsInstance);
         if (!_ownsInstance)
         {
@@ -43,6 +54,27 @@ public partial class App
         {
             exitCode = 1;
             Trace.TraceError("WinMon diagnostic validation failed: {0}", ex);
+            Directory.CreateDirectory(output);
+            await File.WriteAllTextAsync(Path.Combine(output, "failure.txt"), ex.ToString(), CancellationToken.None);
+        }
+        finally
+        {
+            var closed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            window.Closed += (_, _) => closed.TrySetResult();
+            window.Close();
+            await closed.Task;
+            Shutdown(exitCode);
+        }
+    }
+
+    private async Task RunProfileAsync(MainWindow window, string output, int seconds)
+    {
+        var exitCode = 0;
+        try { await window.CaptureProfileAsync(output, seconds, CancellationToken.None); }
+        catch (Exception ex)
+        {
+            exitCode = 1;
+            Trace.TraceError("WinMon profile failed: {0}", ex);
             Directory.CreateDirectory(output);
             await File.WriteAllTextAsync(Path.Combine(output, "failure.txt"), ex.ToString(), CancellationToken.None);
         }

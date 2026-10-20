@@ -72,7 +72,7 @@ public sealed class ProcessRankingTests
     }
 
     [Test]
-    public void Rank_HistoricalEndExcludesLaterSamplesAndKeepsLatestMemoryWithAveragedIo()
+    public void Rank_HistoricalEndExcludesLaterSamplesAndKeepsLatestMemoryWithWindowAveragedIo()
     {
         CpuSample[] history =
         [
@@ -88,7 +88,7 @@ public sealed class ProcessRankingTests
         {
             Assert.That(selected.CpuPercent, Is.EqualTo(2).Within(1e-9));
             Assert.That(selected.WorkingSetBytes, Is.EqualTo(300));
-            Assert.That(selected.IoBytesPerSecond, Is.EqualTo(20).Within(1e-9));
+            Assert.That(selected.IoBytesPerSecond, Is.EqualTo(40 / 3d).Within(1e-9));
         });
     }
 
@@ -156,7 +156,7 @@ public sealed class ProcessRankingTests
     }
 
     [Test]
-    public void Rank_IoAveragesReadableIntervalsAndIncludesCpuIdleProcesses()
+    public void Rank_IoAveragesOverTheWindowAndIncludesCpuIdleProcesses()
     {
         CpuSample[] history =
         [
@@ -168,6 +168,6 @@ public sealed class ProcessRankingTests
         var ranking = ProcessRanking.Rank(history, sort: ProcessSort.Io);
 
         Assert.That(ranking.Processes.Select(p => (p.ProcessId, p.IoBytesPerSecond)),
-            Is.EqualTo(new (int, double?)[] { (1, 2_000), (2, 500 / 3d) }));
+            Is.EqualTo(new (int, double?)[] { (1, 4_000 / 3d), (2, 500 / 3d) }));
     }
 }

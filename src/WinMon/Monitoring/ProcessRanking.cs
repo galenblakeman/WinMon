@@ -11,7 +11,7 @@ public enum ProcessSort
     Gpu,
     /// <summary>Latest resident working set; only processes present in the newest sample.</summary>
     Memory,
-    /// <summary>Five-second average read/write I/O, averaged over readable intervals.</summary>
+    /// <summary>Five-second average read/write I/O.</summary>
     Io
 }
 
@@ -23,7 +23,7 @@ public enum ProcessSort
 /// interval most lightly active processes read exactly zero. Averaging a few intervals keeps the
 /// ranked list stable, and a process stays listed while any interval in the window measured it.
 /// </remarks>
-/// <param name="Processes">Processes active in the selected metric, busiest first. Memory is the latest reading; I/O and GPU are averaged where readable.</param>
+/// <param name="Processes">Processes active in the selected metric, busiest first. Memory is the latest reading; I/O is averaged over the window and GPU over readable intervals.</param>
 /// <param name="TotalCpuPercent">Average total machine CPU over the same intervals, or <see langword="null"/> with no measurable interval.</param>
 /// <param name="IntervalCount">Number of measured intervals averaged.</param>
 public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, double? TotalCpuPercent, int IntervalCount)
@@ -83,7 +83,8 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
             .Select(t => t.Latest with
             {
                 CpuPercent = t.Cpu / window.Count,
-                IoBytesPerSecond = t.IoCount > 0 ? t.Io / t.IoCount : null,
+                // Like CPU, intervals without an entry are idle (compacted) and count as zero.
+                IoBytesPerSecond = t.IoCount > 0 ? t.Io / window.Count : null,
                 GpuPercent = t.GpuCount > 0 ? t.Gpu / t.GpuCount : null,
                 GpuId = t.GpuLatest?.GpuId ?? "",
                 GpuEngine = t.GpuLatest?.GpuEngine ?? ""

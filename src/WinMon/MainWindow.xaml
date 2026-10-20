@@ -15,40 +15,40 @@
     PreviewKeyDown="OnWindowKeyDown">
     <WindowChrome.WindowChrome>
         <WindowChrome
-            CaptionHeight="48"
-            GlassFrameThickness="0,48,0,0"
+            CaptionHeight="32"
+            GlassFrameThickness="0,32,0,0"
             ResizeBorderThickness="6"
             UseAeroCaptionButtons="True" />
     </WindowChrome.WindowChrome>
     <Border Background="Transparent">
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="48" />
+                <RowDefinition x:Name="TitleRow" Height="32" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <!--  Leave the right caption-button region unpainted so DWM owns its visuals and input.  -->
+            <!--
+                Leave the right caption-button region unpainted so DWM owns its visuals and input.
+                AlignTitleBar replaces these fallbacks with the measured caption-button bounds.
+            -->
             <Border
+                x:Name="TitleBarArea"
                 Grid.Row="0"
-                Margin="0,0,150,0"
-                Padding="16,0,0,0"
+                Margin="0,0,138,0"
+                Padding="12,0,0,0"
                 Background="{DynamicResource TitleBarSurface}">
                 <DockPanel LastChildFill="True">
-                    <StackPanel
-                        VerticalAlignment="Center"
+                    <Button
+                        x:Name="PinButton"
+                        controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Pin}"
+                        AutomationProperties.Name="Keep on top, off"
+                        Click="OnPin"
                         DockPanel.Dock="Right"
-                        Orientation="Horizontal">
-                        <Button
-                            x:Name="PinButton"
-                            controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Pin}"
-                            AutomationProperties.Name="Toggle always on top"
-                            Click="OnPin"
-                            Content="Pin"
-                            ToolTip="Keep this window above other windows"
-                            WindowChrome.IsHitTestVisibleInChrome="True" />
-                    </StackPanel>
+                        Style="{StaticResource CaptionButton}"
+                        ToolTip="Keep this window on top of other windows"
+                        WindowChrome.IsHitTestVisibleInChrome="True" />
                     <Image
-                        Width="18"
-                        Height="18"
+                        Width="16"
+                        Height="16"
                         Margin="0,0,8,0"
                         VerticalAlignment="Center"
                         DockPanel.Dock="Left"
@@ -56,7 +56,7 @@
                     <TextBlock
                         x:Name="ViewTitle"
                         VerticalAlignment="Center"
-                        FontSize="16"
+                        FontSize="14"
                         FontWeight="SemiBold"
                         Text="WinMon"
                         TextTrimming="CharacterEllipsis" />

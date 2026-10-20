@@ -37,6 +37,24 @@ internal static class WindowTheme
         return color.R | (color.G << 8) | (color.B << 16);
     }
 
+    /// <summary>Native Minimize/Maximize/Close bounds in window-relative device-independent units, if DWM reports them.</summary>
+    internal static Rect? CaptionButtonBounds(Window window)
+    {
+        var handle = new WindowInteropHelper(window).Handle;
+        if (handle == IntPtr.Zero ||
+            DwmGetWindowAttribute(handle, 5 /* DWMWA_CAPTION_BUTTON_BOUNDS */, out var bounds, Marshal.SizeOf<NativeRect>()) != 0 ||
+            bounds.Right <= bounds.Left || bounds.Bottom <= bounds.Top) return null;
+        var dpi = VisualTreeHelper.GetDpi(window);
+        return new Rect(bounds.Left / dpi.DpiScaleX, bounds.Top / dpi.DpiScaleY,
+            (bounds.Right - bounds.Left) / dpi.DpiScaleX, (bounds.Bottom - bounds.Top) / dpi.DpiScaleY);
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct NativeRect { public int Left, Top, Right, Bottom; }
+
     [DllImport("dwmapi.dll")]
     private static extern int DwmSetWindowAttribute(IntPtr window, int attribute, ref int value, int size);
+
+    [DllImport("dwmapi.dll")]
+    private static extern int DwmGetWindowAttribute(IntPtr window, int attribute, out NativeRect value, int size);
 }
