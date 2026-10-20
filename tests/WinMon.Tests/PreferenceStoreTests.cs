@@ -27,6 +27,54 @@ public sealed class PreferenceStoreTests
     }
 
     [Test]
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task StorageMode_LoadsAndSavesOnlySelectedProfile(bool portable)
+    {
+        string applicationDirectory = Path.Combine(testDirectory, "app");
+        string localDirectory = Path.Combine(testDirectory, "local");
+        string portablePath = Path.Combine(applicationDirectory, "settings.json");
+        string installedPath = Path.Combine(localDirectory, "WinMon", "settings.json");
+        Directory.CreateDirectory(applicationDirectory);
+        await new PreferenceStore(portablePath).SaveAsync(new MonitorPreferences { Theme = "Light" });
+        await new PreferenceStore(installedPath).SaveAsync(new MonitorPreferences { Theme = "Dark" });
+        if (portable)
+        {
+            await File.WriteAllTextAsync(Path.Combine(applicationDirectory, "portable.flag"), "");
+        }
+
+        var store = new PreferenceStore(applicationDirectory, localDirectory);
+        Assert.That((await store.LoadAsync()).Theme, Is.EqualTo(portable ? "Light" : "Dark"));
+        await store.SaveAsync(new MonitorPreferences { Theme = "System" });
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(File.ReadAllText(portable ? portablePath : installedPath), Does.Contain("System"));
+            Assert.That(File.ReadAllText(portable ? installedPath : portablePath), Does.Not.Contain("System"));
+        });
+    }
+
+    [Test]
+    public async Task PortableMode_MissingSettingsUsesDefaults_AndKeepsPathUntilRestart()
+    {
+        string applicationDirectory = Path.Combine(testDirectory, "app");
+        string localDirectory = Path.Combine(testDirectory, "local");
+        string installedPath = Path.Combine(localDirectory, "WinMon", "settings.json");
+        Directory.CreateDirectory(applicationDirectory);
+        string markerPath = Path.Combine(applicationDirectory, "portable.flag");
+        await File.WriteAllTextAsync(markerPath, "");
+        await new PreferenceStore(installedPath).SaveAsync(new MonitorPreferences { Theme = "Light" });
+        var store = new PreferenceStore(applicationDirectory, localDirectory);
+
+        Assert.That((await store.LoadAsync()).Theme, Is.EqualTo("Dark"));
+        File.Delete(markerPath);
+        await store.SaveAsync(new MonitorPreferences { Theme = "System" });
+
+        Assert.That((await new PreferenceStore(Path.Combine(applicationDirectory, "settings.json")).LoadAsync()).Theme, Is.EqualTo("System"));
+        Assert.That((await new PreferenceStore(applicationDirectory, localDirectory).LoadAsync()).Theme, Is.EqualTo("Light"));
+    }
+
+    [Test]
     [TestCase("{")]
     [TestCase("null")]
     public async Task LoadAsync_CorruptOrNullConfiguration_ReturnsDefaults(string content)

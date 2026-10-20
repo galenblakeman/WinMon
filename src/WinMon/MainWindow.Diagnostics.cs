@@ -274,7 +274,8 @@ public partial class MainWindow
                 _preferences = original with { Theme = theme, ChartPalette = palette };
                 ApplyTheme();
                 RefreshPresentation();
-                await CaptureAsync(Path.Combine(output, $"palette-{palette.ToLowerInvariant()}-{theme.ToLowerInvariant()}.png"), 1, cancellationToken);
+                var fileName = string.Concat(palette.ToLowerInvariant().Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '-' : c));
+                await CaptureAsync(Path.Combine(output, $"palette-{fileName}-{theme.ToLowerInvariant()}.png"), 1, cancellationToken);
             }
         }
         finally { _preferences = original; ApplyTheme(); RefreshPresentation(); }

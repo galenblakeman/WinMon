@@ -3,7 +3,8 @@ using System.Text.Json;
 namespace WinMon.Preferences;
 
 /// <summary>
-/// Loads and saves monitor preferences in the current user's local application-data folder.
+/// Loads and saves monitor preferences in the current user's local application-data folder,
+/// or beside the executable when portable.flag is present at startup.
 /// </summary>
 public sealed class PreferenceStore
 {
@@ -17,7 +18,14 @@ public sealed class PreferenceStore
 
     /// <summary>Initializes a new instance of the <see cref="PreferenceStore"/> class.</summary>
     public PreferenceStore()
-        : this(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "WinMon", "settings.json"))
+        : this(AppContext.BaseDirectory, Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData))
+    {
+    }
+
+    internal PreferenceStore(string applicationDirectory, string localApplicationDataDirectory)
+        : this(File.Exists(Path.Combine(applicationDirectory, "portable.flag"))
+            ? Path.Combine(applicationDirectory, "settings.json")
+            : Path.Combine(localApplicationDataDirectory, "WinMon", "settings.json"))
     {
     }
 

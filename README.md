@@ -20,6 +20,12 @@ The heading and Pin share the title bar with the native Minimize, Maximize and C
 
 Settings include primary and optional second drive selectors, light/dark/system theme, retained history, minimize-to-tray behavior, the show shortcut, and opt-in current-user startup. Preferences are stored atomically in `%LOCALAPPDATA%\WinMon\settings.json`. Resource history stays in memory and is discarded on exit. Monitoring requires no elevation or network service.
 
+### Portable settings
+
+To keep preferences with the app, close WinMon and create an empty file named `portable.flag` beside `WinMon.exe`. On the next launch, WinMon loads and saves `settings.json` in that same folder, regardless of the working directory. Keep the executable, marker, and settings file together when moving or updating the app. The folder must be writable; portable mode does not fall back to the local application-data folder if saving fails.
+
+Portable settings and the normal profile are separate. To carry existing preferences over, copy `%LOCALAPPDATA%\WinMon\settings.json` beside the executable while WinMon is closed. Without that copy, portable mode starts with default preferences. Remove `portable.flag` and restart to return to the normal profile. Windows startup registration and the optional Start menu shortcut remain machine-specific; disable them before moving the app and enable them again from its new location if needed.
+
 **Info** opens an on-demand hardware snapshot: CPU model and Windows-reported physical/logical core counts, installed RAM, graphics adapters with dedicated video memory and shared-memory limits, local volume capacity/free space, and network adapters with status/link speed. Refresh updates the snapshot while recording continues. Values reflect what Windows exposes, including virtual hardware; unavailable sections are labeled. GPU memory here is capacity, not live VRAM usage.
 
 Memory also shows OS-usable capacity, module count, firmware-reported slot usage, DDR type and configured speed. Expand **Module details** for each module's capacity, location, manufacturer, part number and reported/configured speeds. **Physical drives** is separate from **Local volumes**: it shows model, media type, connection, capacity and associated drive letters; expand **Drive details** for manufacturer and Windows-reported health. Identifiers must match unambiguously before media type is associated with an OS disk. RAID/virtual hardware, unavailable providers and missing firmware values can leave fields unavailable. Health is a Windows provider report, not a full SMART diagnostic. Inventory runs only when Info is opened or refreshed.
@@ -147,6 +153,10 @@ Both native smoke runs exited successfully. Their 15-second quiet observations
 reported 0.581% and 0.642% of total machine CPU respectively; these short,
 uncontrolled observations do not demonstrate a whole-process CPU reduction.
 The Release suite passed all 55 baseline tests and all 58 updated tests.
+
+## Release packaging
+
+See the [release guide](packaging/RELEASING.md) for the portable ZIP, per-user Inno Setup installer, draft GitHub Releases workflow, and generated WinGet manifests. Build all release assets with `./tools/New-Release.ps1` after bootstrapping the compiler with `./tools/Install-InnoSetup.ps1`.
 
 ## Version and license
 
