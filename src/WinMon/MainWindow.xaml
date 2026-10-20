@@ -3,7 +3,8 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="clr-namespace:WinMon.Controls"
-    Title="WinMon"
+    xmlns:resources="clr-namespace:WinMon.Resources"
+    Title="{Binding [WinMon], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
     Width="600"
     Height="840"
     MinWidth="600"
@@ -15,15 +16,15 @@
     PreviewKeyDown="OnWindowKeyDown">
     <WindowChrome.WindowChrome>
         <WindowChrome
-            CaptionHeight="32"
-            GlassFrameThickness="0,32,0,0"
+            CaptionHeight="36"
+            GlassFrameThickness="0,36,0,0"
             ResizeBorderThickness="6"
             UseAeroCaptionButtons="True" />
     </WindowChrome.WindowChrome>
     <Border Background="Transparent">
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition x:Name="TitleRow" Height="32" />
+                <RowDefinition x:Name="TitleRow" Height="36" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <!--
@@ -40,11 +41,11 @@
                     <Button
                         x:Name="PinButton"
                         controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Pin}"
-                        AutomationProperties.Name="Keep on top, off"
+                        AutomationProperties.Name="{Binding [KeepOnTopOff], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                         Click="OnPin"
                         DockPanel.Dock="Right"
                         Style="{StaticResource CaptionButton}"
-                        ToolTip="Keep this window on top of other windows"
+                        ToolTip="{Binding [KeepThisWindowOnTopOfOtherWindows], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                         WindowChrome.IsHitTestVisibleInChrome="True" />
                     <Image
                         Width="16"
@@ -55,18 +56,41 @@
                         Source="{Binding Icon, RelativeSource={RelativeSource AncestorType=Window}}" />
                     <TextBlock
                         x:Name="ViewTitle"
+                        Margin="0,0,12,0"
                         VerticalAlignment="Center"
+                        DockPanel.Dock="Left"
                         FontSize="14"
                         FontWeight="SemiBold"
-                        TextTrimming="CharacterEllipsis"><Run Text="WinMon" /><Run
+                        TextTrimming="CharacterEllipsis"><Run Text="{Binding [WinMon], Source={x:Static resources:Strings.Text}, Mode=OneWay}" /><Run
                             x:Name="VersionRun"
                             FontSize="12"
                             FontWeight="Normal"
                             Foreground="{DynamicResource Muted}" /></TextBlock>
+                    <Button
+                        x:Name="InfoButton"
+                        controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Info}"
+                        AutomationProperties.Name="{Binding [AboutWinMonAndHardwareInformation], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                        Click="OnHardwareInfo"
+                        Content="{Binding [Info], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                        DockPanel.Dock="Left"
+                        Style="{StaticResource TitleActionButton}"
+                        ToolTip="{Binding [VersionPlusCPUMemoryGraphicsVolumesAndNetworkHardware], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                        WindowChrome.IsHitTestVisibleInChrome="True" />
+                    <Button
+                        x:Name="SettingsButton"
+                        controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Settings}"
+                        AutomationProperties.Name="{Binding [WinMonSettings], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                        Click="OnSettings"
+                        Content="{Binding [Settings], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                        DockPanel.Dock="Left"
+                        Style="{StaticResource TitleActionButton}"
+                        ToolTip="{Binding [WinMonSettings], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                        WindowChrome.IsHitTestVisibleInChrome="True" />
+                    <Border Background="Transparent" />
                 </DockPanel>
             </Border>
             <Border Grid.Row="1" Background="{DynamicResource Surface}">
-                <Grid Margin="20,12,20,14">
+                <Grid Margin="20,12,20,8">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
@@ -74,9 +98,10 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="1.25*" MinHeight="108" />
-                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <Grid x:Name="MetricStrip" Grid.Row="0" Margin="0,0,0,16">
+                    <Grid
+                        Grid.Row="0"
+                        Margin="0,0,0,16">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition />
                             <ColumnDefinition />
@@ -105,60 +130,61 @@
                             x:Name="CpuMetric"
                             Grid.Column="0"
                             AccentKey="CpuAccent"
-                            Label="CPU" />
+                            Label="{Binding [CPU], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                         <controls:MetricReadout
                             x:Name="MemoryMetric"
                             Grid.Column="1"
                             Margin="10,0,0,0"
                             AccentKey="MemoryAccent"
-                            Label="Memory" />
+                            Label="{Binding [Memory], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                         <controls:MetricReadout
                             x:Name="DiskMetric"
                             Grid.Column="2"
                             Margin="10,0,0,0"
                             AccentKey="DiskAccent"
-                            Label="Disk" />
-                        <Border x:Name="SecondaryDiskDivider" Grid.Column="3"
-                            BorderBrush="{DynamicResource Line}" BorderThickness="0,0,1,0" Visibility="Collapsed" />
-                        <controls:MetricReadout x:Name="SecondaryDiskMetric" Grid.Column="3" Margin="10,0,0,0"
-                            AccentKey="SecondaryDiskAccent" Label="Disk" Visibility="Collapsed" />
+                            Label="{Binding [Disk], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                        <Border
+                            x:Name="SecondaryDiskDivider"
+                            Grid.Column="3"
+                            BorderBrush="{DynamicResource Line}"
+                            BorderThickness="0,0,1,0"
+                            Visibility="Collapsed" />
+                        <controls:MetricReadout
+                            x:Name="SecondaryDiskMetric"
+                            Grid.Column="3"
+                            Margin="10,0,0,0"
+                            AccentKey="SecondaryDiskAccent"
+                            Label="{Binding [Disk], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                            Visibility="Collapsed" />
                         <controls:MetricReadout
                             x:Name="NetworkMetric"
                             Grid.Column="4"
                             Margin="10,0,0,0"
                             AccentKey="NetworkAccent"
-                            Label="Network" />
+                            Label="{Binding [Network], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                         <controls:MetricReadout
                             x:Name="GpuMetric"
                             Grid.Column="5"
                             Margin="10,0,0,0"
                             AccentKey="GpuAccent"
-                            Label="GPU" />
+                            Label="{Binding [GPU], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                     </Grid>
-                    <!--  Section headers share a graphite surface, full-width divider, and title/subtitle typography.  -->
+                    <!--  Compact live headers; historical resource details appear only during inspection.  -->
                     <Border
+                        x:Name="ResourceHeader"
                         Grid.Row="1"
                         Margin="-20,0,-20,8"
-                        Padding="20,10,20,10"
+                        Padding="20,5"
                         Background="{DynamicResource SectionHeaderSurface}"
                         BorderBrush="{DynamicResource Line}"
                         BorderThickness="0,1,0,0">
-                        <DockPanel LastChildFill="False">
-                            <Button
-                                Margin="8,0,0,0"
-                                controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Info}"
-                                AutomationProperties.Name="About WinMon and hardware information"
-                                Click="OnHardwareInfo"
-                                Content="Info"
+                        <DockPanel LastChildFill="True">
+                            <StackPanel
+                                x:Name="RangeSelector"
+                                VerticalAlignment="Center"
+                                AutomationProperties.Name="{Binding [ChartTimeRange], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                                 DockPanel.Dock="Right"
-                                ToolTip="Version, plus CPU, memory, graphics, volumes and network hardware" />
-                            <Button
-                                x:Name="LiveButton"
-                                controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Live}"
-                                Click="OnReturnLive"
-                                Content="Return to live"
-                                DockPanel.Dock="Right"
-                                Visibility="Collapsed" />
+                                Orientation="Horizontal" />
                             <!--  Shown only when sampling fails; normal recording needs no status.  -->
                             <TextBlock
                                 x:Name="ErrorLabel"
@@ -171,111 +197,288 @@
                                 TextAlignment="Right"
                                 TextWrapping="Wrap"
                                 Visibility="Collapsed" />
-                            <StackPanel VerticalAlignment="Center">
-                                <TextBlock
-                                    x:Name="LiveCaption"
-                                    FontSize="15"
-                                    FontWeight="SemiBold"
-                                    Text="System resources" />
-                                <StackPanel Margin="0,3,0,0" Orientation="Horizontal">
-                                    <!--  Range chips: 2, 10, 30 and 60 minutes, up to the retention setting.  -->
-                                    <StackPanel
-                                        x:Name="RangeSelector"
-                                        AutomationProperties.Name="Chart time range"
-                                        Orientation="Horizontal" />
-                                    <TextBlock
-                                        x:Name="RangeLabel"
-                                        Margin="4,0,0,0"
-                                        VerticalAlignment="Center"
-                                        FontSize="11"
-                                        Foreground="{DynamicResource Muted}"
-                                        Text="0–100% · network on its own scale" />
-                                </StackPanel>
-                            </StackPanel>
+                            <TextBlock
+                                x:Name="LiveCaption"
+                                VerticalAlignment="Center"
+                                FontSize="15"
+                                FontWeight="SemiBold"
+                                Text="{Binding [SystemResources], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                TextTrimming="CharacterEllipsis" />
                         </DockPanel>
                     </Border>
                     <controls:CpuGraph
                         x:Name="OverallGraph"
                         Grid.Row="2"
-                        AutomationProperties.Name="CPU, memory, configured disks, network and GPU overlay history. Click to inspect; arrow keys move, End returns to live."
+                        AutomationProperties.Name="{Binding [CPUMemoryConfiguredDisksNetworkAndGPUOverlayHistoryClick], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                         Focusable="True"
-                        ShowGrid="True" />
+                        ShowGrid="True"
+                        SizeChanged="OnSnapshotChartSizeChanged" />
+                    <Canvas
+                        x:Name="SnapshotLayer"
+                        Grid.Row="2"
+                        ClipToBounds="True"
+                        Visibility="Collapsed">
+                        <Polygon
+                            x:Name="SnapshotPointer"
+                            Fill="{DynamicResource Raised}"
+                            IsHitTestVisible="False"
+                            Stroke="{DynamicResource Line}"
+                            StrokeThickness="1" />
+                        <Border
+                            x:Name="SnapshotPanel"
+                            Padding="12,9"
+                            AutomationProperties.Name="{Binding [SelectedChartSnapshot], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                            Background="{DynamicResource Raised}"
+                            BorderBrush="{DynamicResource Line}"
+                            BorderThickness="1"
+                            CornerRadius="6">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <StackPanel Margin="0,0,0,6">
+                                    <TextBlock
+                                        x:Name="SnapshotTitle"
+                                        FontSize="15"
+                                        FontWeight="SemiBold" />
+                                    <TextBlock
+                                        x:Name="SnapshotNote"
+                                        Margin="0,3,0,0"
+                                        FontSize="11"
+                                        Foreground="{DynamicResource Muted}"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+                                <ScrollViewer
+                                    Grid.Row="1"
+                                    HorizontalScrollBarVisibility="Disabled"
+                                    VerticalScrollBarVisibility="Auto">
+                                    <UniformGrid x:Name="SnapshotReadings" Columns="3">
+                                        <UniformGrid.Resources>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="FontSize" Value="11" />
+                                                <Setter Property="Foreground" Value="{DynamicResource Muted}" />
+                                                <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                                            </Style>
+                                            <Style TargetType="StackPanel">
+                                                <Setter Property="Margin" Value="0,0,6,6" />
+                                            </Style>
+                                        </UniformGrid.Resources>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding [CPU], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                            <TextBlock
+                                                x:Name="SnapshotCpu"
+                                                FontSize="22"
+                                                FontWeight="SemiBold"
+                                                Foreground="{DynamicResource CpuAccent}" />
+                                        </StackPanel>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding [Memory], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                            <TextBlock
+                                                x:Name="SnapshotMemory"
+                                                FontSize="22"
+                                                FontWeight="SemiBold"
+                                                Foreground="{DynamicResource MemoryAccent}" />
+                                        </StackPanel>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding [GPU], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                            <TextBlock
+                                                x:Name="SnapshotGpu"
+                                                FontSize="22"
+                                                FontWeight="SemiBold"
+                                                Foreground="{DynamicResource GpuAccent}" />
+                                        </StackPanel>
+                                        <StackPanel>
+                                            <TextBlock x:Name="SnapshotDiskName" />
+                                            <TextBlock
+                                                x:Name="SnapshotDisk"
+                                                FontSize="22"
+                                                FontWeight="SemiBold"
+                                                Foreground="{DynamicResource DiskAccent}" />
+                                        </StackPanel>
+                                        <StackPanel x:Name="SnapshotSecondaryDisk">
+                                            <TextBlock x:Name="SnapshotSecondaryDiskName" />
+                                            <TextBlock
+                                                x:Name="SnapshotDisk2"
+                                                FontSize="22"
+                                                FontWeight="SemiBold"
+                                                Foreground="{DynamicResource SecondaryDiskAccent}" />
+                                        </StackPanel>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding [Network], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                            <TextBlock
+                                                x:Name="SnapshotNetwork"
+                                                FontSize="17"
+                                                FontWeight="SemiBold"
+                                                Foreground="{DynamicResource NetworkAccent}" />
+                                        </StackPanel>
+                                    </UniformGrid>
+                                </ScrollViewer>
+                                <Border
+                                    Grid.Row="2"
+                                    Padding="0,6,0,0"
+                                    BorderBrush="{DynamicResource Line}"
+                                    BorderThickness="0,1,0,0">
+                                    <Button
+                                        x:Name="LiveButton"
+                                        MinHeight="24"
+                                        Padding="8,2"
+                                        controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Live}"
+                                        Click="OnReturnLive"
+                                        Content="{Binding [ReturnToLive], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                        FontSize="12"
+                                        ToolTip="{Binding [ResumeLiveReadingsAndProcessesEndOrEscape], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                </Border>
+                            </Grid>
+                        </Border>
+                    </Canvas>
                     <Border
+                        x:Name="ProcessHeader"
                         Grid.Row="3"
                         Margin="-20,10,-20,8"
-                        Padding="20,10,20,10"
+                        Padding="20,5"
                         Background="{DynamicResource SectionHeaderSurface}"
                         BorderBrush="{DynamicResource Line}"
                         BorderThickness="0,1,0,0">
                         <StackPanel>
-                            <DockPanel LastChildFill="False">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
                                 <StackPanel
-                                    x:Name="GroupingSelector"
+                                    Grid.Column="2"
                                     VerticalAlignment="Center"
-                                    AutomationProperties.Name="Process grouping"
-                                    DockPanel.Dock="Right"
+                                    AutomationProperties.Name="{Binding [ProcessGrouping], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                                     Orientation="Horizontal">
                                     <RadioButton
                                         x:Name="IndividualChip"
-                                        AutomationProperties.Name="One row per process"
-                                        Content="Individual"
+                                        AutomationProperties.Name="{Binding [OneRowPerProcess], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                        Content="{Binding [Individual], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                                         GroupName="ProcessGrouping"
                                         IsChecked="True"
                                         Style="{StaticResource RangeChip}"
-                                        ToolTip="One row per process" />
+                                        ToolTip="{Binding [OneRowPerProcess], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                                     <RadioButton
                                         x:Name="GroupedChip"
                                         Margin="0"
-                                        AutomationProperties.Name="One row per executable"
-                                        Content="Grouped"
+                                        AutomationProperties.Name="{Binding [OneRowPerExecutable], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                        Content="{Binding [Grouped], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                                         GroupName="ProcessGrouping"
                                         Style="{StaticResource RangeChip}"
-                                        ToolTip="One row per executable: CPU and I/O summed, GPU from the busiest member, memory as summed private bytes" />
+                                        ToolTip="{Binding [OneRowPerExecutableCPUAndIOSummedGPU], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                                 </StackPanel>
-                                <StackPanel Orientation="Horizontal">
+                                <StackPanel Grid.Column="0" Orientation="Horizontal">
                                     <TextBlock
                                         VerticalAlignment="Center"
                                         FontSize="15"
                                         FontWeight="SemiBold"
-                                        Text="Top" />
+                                        Text="{Binding [Top], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                                     <ComboBox
                                         x:Name="ProcessCountSelector"
                                         Width="58"
                                         MinHeight="28"
                                         Margin="6,0"
-                                        AutomationProperties.Name="Number of top processes"
+                                        AutomationProperties.Name="{Binding [NumberOfTopProcesses], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                                         FontSize="14"
                                         FontWeight="SemiBold"
-                                        ToolTip="Number of processes shown" />
+                                        ToolTip="{Binding [NumberOfProcessesShown], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                                     <TextBlock
                                         VerticalAlignment="Center"
                                         FontSize="15"
                                         FontWeight="SemiBold"
-                                        Text="processes by" />
+                                        Text="{Binding [ProcessesBy], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                                     <ComboBox
                                         x:Name="ProcessSortSelector"
                                         Width="100"
                                         MinHeight="28"
                                         Margin="6,0,0,0"
-                                        AutomationProperties.Name="Rank processes by"
+                                        AutomationProperties.Name="{Binding [RankProcessesBy], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                                         FontSize="14"
                                         FontWeight="SemiBold"
-                                        ToolTip="Rank by five-second average CPU, GPU or I/O, or by current memory" />
+                                        ToolTip="{Binding [RankByFiveSecondAverageCPUGPUOrIO], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                                 </StackPanel>
-                            </DockPanel>
+                                <Border
+                                    Grid.Column="1"
+                                    Margin="16,0"
+                                    Background="{DynamicResource Surface}"
+                                    BorderThickness="1"
+                                    CornerRadius="4">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+                                            <Style.Triggers>
+                                                <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                                    <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="28" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            FontFamily="Segoe MDL2 Assets"
+                                            FontSize="14"
+                                            Foreground="{DynamicResource Muted}"
+                                            IsHitTestVisible="False"
+                                            Text="{Binding [SearchGlyph], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                        <TextBox
+                                            x:Name="ProcessSearchBox"
+                                            Grid.Column="1"
+                                            MinHeight="26"
+                                            Padding="0,3"
+                                            VerticalContentAlignment="Center"
+                                            AutomationProperties.Name="{Binding [SearchProcessesByNameOrPID], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            CaretBrush="{DynamicResource Text}"
+                                            FontSize="12"
+                                            Foreground="{DynamicResource Text}"
+                                            HorizontalScrollBarVisibility="Hidden"
+                                            ToolTip="{Binding [FilterRankedProcessesByNameOrPIDCtrlFEscape], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                        <TextBlock
+                                            x:Name="ProcessSearchPlaceholder"
+                                            Grid.Column="1"
+                                            VerticalAlignment="Center"
+                                            FontSize="12"
+                                            Foreground="{DynamicResource Muted}"
+                                            IsHitTestVisible="False"
+                                            Text="{Binding [SearchNameOrPID], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                            TextTrimming="CharacterEllipsis" />
+                                        <Button
+                                            x:Name="ClearProcessSearchButton"
+                                            Grid.Column="2"
+                                            Width="28"
+                                            MinHeight="26"
+                                            Margin="0"
+                                            Padding="0"
+                                            controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Cancel}"
+                                            AutomationProperties.Name="{Binding [ClearProcessSearch], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Click="OnClearProcessSearch"
+                                            ToolTip="{Binding [ClearSearch], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                            Visibility="Collapsed" />
+                                    </Grid>
+                                </Border>
+                            </Grid>
                             <TextBlock
                                 x:Name="SelectionLabel"
-                                Margin="0,2,0,0"
+                                Margin="0,4,0,0"
+                                VerticalAlignment="Center"
                                 FontSize="11"
                                 Foreground="{DynamicResource Muted}"
-                                Text="Individual processes · 5s average of total CPU"
-                                TextWrapping="Wrap" />
-                            <TextBlock
-                                x:Name="SelectionMetrics"
-                                Margin="0,5,0,0"
-                                FontSize="12"
-                                Foreground="{DynamicResource Text}"
-                                TextWrapping="Wrap"
+                                TextAlignment="Center"
+                                TextTrimming="CharacterEllipsis"
+                                ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"
                                 Visibility="Collapsed" />
                         </StackPanel>
                     </Border>
@@ -292,50 +495,65 @@
                             <ColumnDefinition Width="82" />
                             <ColumnDefinition Width="75" />
                         </Grid.ColumnDefinitions>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock
+                                FontSize="12"
+                                Foreground="{DynamicResource Muted}"
+                                Text="{Binding [ProcessColumn], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                            <TextBlock
+                                x:Name="CoverageLabel"
+                                Grid.Column="1"
+                                Margin="10,0,4,0"
+                                VerticalAlignment="Center"
+                                FontSize="11"
+                                Foreground="{DynamicResource Muted}"
+                                TextTrimming="CharacterEllipsis"
+                                ToolTip="{Binding [UnattributedCPUIsTotalCPUMinusAllMeasuredProcessesKernel2], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                        </Grid>
                         <TextBlock
-                            FontSize="12"
-                            Foreground="{DynamicResource Muted}"
-                            Text="Process" />
-                        <TextBlock
+                            x:Name="ProcessHistoryHeader"
                             Grid.Column="1"
                             HorizontalAlignment="Center"
                             FontSize="12"
                             Foreground="{DynamicResource Muted}"
-                            Text="History"
-                            x:Name="ProcessHistoryHeader"
-                            ToolTip="CPU history on one scale shared by every row. Hover a row for the scale." />
+                            Text="{Binding [History], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                            ToolTip="{Binding [CPUHistoryOnOneScaleSharedByEveryRowHover], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                         <TextBlock
                             x:Name="CpuHeader"
                             Grid.Column="2"
                             HorizontalAlignment="Right"
                             FontSize="12"
                             Foreground="{DynamicResource Muted}"
-                            Text="CPU %"
-                            ToolTip="Average over the last 5 seconds. Windows counts process CPU in 15.6 ms ticks, so single seconds often read zero." />
+                            Text="{Binding [CpuColumn], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                            ToolTip="{Binding [AverageOverTheLast5SecondsWindowsCountsProcessCPU], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                         <TextBlock
                             x:Name="GpuHeader"
                             Grid.Column="3"
                             HorizontalAlignment="Right"
                             FontSize="12"
                             Foreground="{DynamicResource Muted}"
-                            Text="GPU %"
-                            ToolTip="Busiest GPU engine per process, averaged over readable intervals in the last 5 seconds. Percentages are not additive." />
+                            Text="{Binding [GpuColumn], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                            ToolTip="{Binding [BusiestGPUEnginePerProcessAveragedOverReadableIntervalsIn], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                         <TextBlock
                             x:Name="MemoryHeader"
                             Grid.Column="4"
                             HorizontalAlignment="Right"
                             FontSize="12"
                             Foreground="{DynamicResource Muted}"
-                            Text="Memory"
-                            ToolTip="Resident working set, including shared pages" />
+                            Text="{Binding [Memory], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                            ToolTip="{Binding [ResidentWorkingSetIncludingSharedPages], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                         <TextBlock
                             x:Name="IoHeader"
                             Grid.Column="5"
                             HorizontalAlignment="Right"
                             FontSize="12"
                             Foreground="{DynamicResource Muted}"
-                            Text="I/O MB/s"
-                            ToolTip="Process read/write I/O includes file, network and device operations; not disk-only throughput" />
+                            Text="{Binding [IOMBS], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                            ToolTip="{Binding [ProcessReadWriteIOIncludesFileNetworkAndDevice], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                     </Grid>
                     <ScrollViewer
                         x:Name="ProcessScroll"
@@ -352,31 +570,8 @@
                         Margin="0,8"
                         VerticalAlignment="Center"
                         Foreground="{DynamicResource Muted}"
-                        Text="Collecting the first interval…"
+                        Text="{Binding [CollectingTheFirstInterval], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                         TextWrapping="Wrap" />
-                    <DockPanel
-                        Grid.Row="6"
-                        Margin="0,12,0,0"
-                        LastChildFill="True">
-                        <StackPanel
-                            VerticalAlignment="Center"
-                            DockPanel.Dock="Right"
-                            Orientation="Horizontal">
-                            <Button
-                                x:Name="SettingsButton"
-                                controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Settings}"
-                                Click="OnSettings"
-                                Content="Settings" />
-                        </StackPanel>
-                        <TextBlock
-                            x:Name="CoverageLabel"
-                            Margin="0,0,12,0"
-                            VerticalAlignment="Center"
-                            FontSize="11"
-                            Foreground="{DynamicResource Muted}"
-                            TextWrapping="Wrap"
-                            ToolTip="Unattributed CPU is total CPU minus all measured processes: kernel and interrupt time, measurement timing, and processes WinMon cannot open without administrator access." />
-                    </DockPanel>
                 </Grid>
             </Border>
         </Grid>

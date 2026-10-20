@@ -11,8 +11,13 @@ namespace WinMon.Preferences;
 /// </summary>
 public sealed class SettingsWindow : Window
 {
+    private sealed record ThemeChoice(string Name, string Label)
+    {
+        public override string ToString() => Label;
+    }
     private readonly MonitorPreferences _initialPreferences;
     private readonly ComboBox _themeSelector;
+    private readonly ComboBox _languageSelector;
     private readonly ComboBox _paletteSelector;
     private readonly ComboBox _retentionSelector;
     private readonly CheckBox _minimizeToTrayCheckBox;
@@ -39,7 +44,7 @@ public sealed class SettingsWindow : Window
         _shortcut = preferences.ShowGesture;
         Controls.WindowTheme.Attach(this);
 
-        Title = "WinMon settings";
+        Title = Strings.WinMonSettings;
         Width = 460;
         Height = 810;
         MinWidth = 420;
@@ -49,18 +54,46 @@ public sealed class SettingsWindow : Window
         SetResourceReference(BackgroundProperty, "Surface");
         SetResourceReference(ForegroundProperty, "Text");
 
-        _themeSelector = CreateSelector(["Dark", "Light", "System"], preferences.Theme);
-        _paletteSelector = CreateSelector(ChartPalettes.Names, ChartPalettes.Normalize(preferences.ChartPalette));
-        _paletteSelector.ToolTip = "Resource colors for charts, labels and legends. High contrast uses Windows colors.";
-        _retentionSelector = CreateSelector(["10 minutes", "30 minutes", "60 minutes"], RetentionLabel(preferences.RetentionSeconds));
-        _minimizeToTrayCheckBox = CreateCheckBox("Minimize to the notification area", preferences.MinimizeToTray);
-        _startupCheckBox = CreateCheckBox("Start WinMon when I sign in", preferences.StartWithWindows);
+        _themeSelector = CreateSelector([], "");
+        _themeSelector.ItemsSource = new[]
+        {
+            new ThemeChoice("Dark", Strings.ThemeDark),
+            new ThemeChoice("Light", Strings.ThemeLight),
+            new ThemeChoice("System", Strings.ThemeSystem)
+        };
+        _themeSelector.DisplayMemberPath = nameof(ThemeChoice.Label);
+        _themeSelector.SelectedValuePath = nameof(ThemeChoice.Name);
+        _themeSelector.SelectedValue = preferences.Theme;
+        _languageSelector = CreateSelector([], "");
+        _languageSelector.ItemsSource = AppLanguages.Choices;
+        _languageSelector.DisplayMemberPath = nameof(AppLanguages.Choice.Label);
+        _languageSelector.SelectedValuePath = nameof(AppLanguages.Choice.Name);
+        _languageSelector.SelectedValue = AppLanguages.Normalize(preferences.Language);
+        _languageSelector.ToolTip = Strings.LanguageApplyNote;
+        var paletteChoices = ChartPalettes.Names.Select(name => new PaletteChoice(name)).ToArray();
+        _paletteSelector = CreateSelector([], "");
+        _paletteSelector.ItemsSource = paletteChoices;
+        _paletteSelector.SelectedValuePath = nameof(PaletteChoice.Name);
+        _paletteSelector.SelectedValue = ChartPalettes.Normalize(preferences.ChartPalette);
+        TextSearch.SetTextPath(_paletteSelector, nameof(PaletteChoice.DisplayName));
+        var paletteResources = new ResourceDictionary
+        {
+            Source = new Uri("/WinMon;component/Preferences/PaletteResources.xaml", UriKind.Relative)
+        };
+        _paletteSelector.ItemTemplate = paletteResources["PaletteChoiceTemplate"] as DataTemplate
+            ?? throw new InvalidOperationException("Palette choice template was not found.");
+        UpdatePalettePreviews();
+        _themeSelector.SelectionChanged += (_, _) => UpdatePalettePreviews();
+        _paletteSelector.ToolTip = Strings.ResourceColorsCPUMemoryPrimaryDiskNetworkGPUSecondDisk;
+        _retentionSelector = CreateSelector([Strings.Value10Minutes, Strings.Value30Minutes, Strings.Value60Minutes], RetentionLabel(preferences.RetentionSeconds));
+        _minimizeToTrayCheckBox = CreateCheckBox(Strings.MinimizeToTheNotificationArea, preferences.MinimizeToTray);
+        _startupCheckBox = CreateCheckBox(Strings.StartWinMonWhenISignIn, preferences.StartWithWindows);
         _shortcutBox = CreateShortcutBox();
         _shortcutStatus = new TextBlock { FontSize = 12, TextWrapping = TextWrapping.Wrap, VerticalAlignment = VerticalAlignment.Center };
         _shortcutStatus.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
         AutomationProperties.SetLiveSetting(_shortcutStatus, AutomationLiveSetting.Polite);
-        _launchCheckBox = CreateCheckBox("Also start WinMon with this shortcut", preferences.LaunchWithShortcut);
-        _launchCheckBox.ToolTip = "Adds WinMon to your Start menu. Windows then handles the shortcut, so it works even when WinMon isn't running.";
+        _launchCheckBox = CreateCheckBox(Strings.AlsoStartWinMonWithThisShortcut, preferences.LaunchWithShortcut);
+        _launchCheckBox.ToolTip = Strings.AddsWinMonToYourStartMenuWindowsThenHandlesThe;
         ShowShortcut(shortcutStatus);
 
         _primaryDriveSelector = CreateDriveSelector(preferences.PrimaryDrive, false);
@@ -70,55 +103,68 @@ public sealed class SettingsWindow : Window
         {
             Margin = new Thickness(24)
         };
-        for (var row = 0; row <= 30; row++)
-            layout.RowDefinitions.Add(new RowDefinition { Height = row % 2 == 0 ? GridLength.Auto : new GridLength(row is 7 or 11 or 19 or 29 ? 24 : 12) });
-        TextBlock heading = CreateHeading("Appearance");
+        for (var row = 0; row <= 34; row++)
+            layout.RowDefinitions.Add(new RowDefinition { Height = row % 2 == 0 ? GridLength.Auto : new GridLength(row is 11 or 15 or 23 or 33 ? 16 : 10) });
+        TextBlock heading = CreateHeading(Strings.Appearance);
         Grid.SetRow(heading, 0);
         layout.Children.Add(heading);
-        AddField(layout, "Theme", _themeSelector, 2);
-        AddField(layout, "Chart palette", _paletteSelector, 4);
-        AddField(layout, "Historical retention", _retentionSelector, 6);
-        Grid.SetRow(_minimizeToTrayCheckBox, 8);
+        AddField(layout, Strings.Language, _languageSelector, 2);
+        var languageNote = new TextBlock { Text = Strings.LanguageApplyNote, FontSize = 11, TextWrapping = TextWrapping.Wrap };
+        languageNote.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
+        Grid.SetRow(languageNote, 4);
+        layout.Children.Add(languageNote);
+        AddField(layout, Strings.Theme, _themeSelector, 6);
+        AddField(layout, Strings.ChartPalette, _paletteSelector, 8);
+        AddField(layout, Strings.HistoricalRetention, _retentionSelector, 10);
+        Grid.SetRow(_minimizeToTrayCheckBox, 12);
         layout.Children.Add(_minimizeToTrayCheckBox);
-        Grid.SetRow(_startupCheckBox, 10);
+        Grid.SetRow(_startupCheckBox, 14);
         layout.Children.Add(_startupCheckBox);
-        var shortcutHeading = CreateHeading("Keyboard shortcut");
-        Grid.SetRow(shortcutHeading, 12);
+        var shortcutHeading = CreateHeading(Strings.KeyboardShortcut);
+        Grid.SetRow(shortcutHeading, 16);
         layout.Children.Add(shortcutHeading);
-        AddField(layout, "Show WinMon", _shortcutBox, 14);
-        var resetButton = new Button { Content = "Default", MinWidth = 70, Margin = new Thickness(12, 0, 0, 0), VerticalAlignment = VerticalAlignment.Top };
+        AddField(layout, Strings.ShowWinMon, _shortcutBox, 18);
+        var resetButton = new Button { Content = Strings.Default, MinWidth = 70, Margin = new Thickness(12, 0, 0, 0), VerticalAlignment = VerticalAlignment.Top };
         resetButton.SetResourceReference(BackgroundProperty, "Raised");
         resetButton.SetResourceReference(ForegroundProperty, "Text");
-        AutomationProperties.SetName(resetButton, "Restore the default shortcut");
+        AutomationProperties.SetName(resetButton, Strings.RestoreTheDefaultShortcut);
         resetButton.Click += (_, _) => RecordShortcut(HotkeyGesture.Default);
         var statusRow = new DockPanel { LastChildFill = true };
         DockPanel.SetDock(resetButton, Dock.Right);
         statusRow.Children.Add(resetButton);
         statusRow.Children.Add(_shortcutStatus);
-        Grid.SetRow(statusRow, 16);
+        Grid.SetRow(statusRow, 20);
         layout.Children.Add(statusRow);
-        Grid.SetRow(_launchCheckBox, 18);
+        Grid.SetRow(_launchCheckBox, 22);
         layout.Children.Add(_launchCheckBox);
-        var disksHeading = CreateHeading("Disk monitoring");
-        Grid.SetRow(disksHeading, 20);
+        var disksHeading = CreateHeading(Strings.DiskMonitoring);
+        Grid.SetRow(disksHeading, 24);
         layout.Children.Add(disksHeading);
-        var diskHelp = new TextBlock { Text = "Choose up to 2 volumes.", FontSize = 12 };
+        var diskHelp = new TextBlock { Text = Strings.ChooseUpTo2Volumes, FontSize = 12 };
         diskHelp.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
-        Grid.SetRow(diskHelp, 22);
+        Grid.SetRow(diskHelp, 26);
         layout.Children.Add(diskHelp);
-        AddField(layout, "Primary drive", _primaryDriveSelector, 24);
-        AddField(layout, "Second drive", _secondaryDriveSelector, 26);
-        var diskNote = new TextBlock { Text = "Select None to monitor one drive.\nActive time and read/write throughput.", FontSize = 12 };
+        AddField(layout, Strings.PrimaryDrive, _primaryDriveSelector, 28);
+        AddField(layout, Strings.SecondDrive, _secondaryDriveSelector, 30);
+        var diskNote = new TextBlock { Text = Strings.SelectNoneToMonitorOneDriveActiveTimeAndRead, FontSize = 12 };
         diskNote.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
-        Grid.SetRow(diskNote, 28);
+        Grid.SetRow(diskNote, 32);
         layout.Children.Add(diskNote);
         StackPanel buttons = CreateButtons();
-        Grid.SetRow(buttons, 30);
+        Grid.SetRow(buttons, 34);
         layout.Children.Add(buttons);
 
         Border surface = new() { Child = layout };
         surface.SetResourceReference(Border.BackgroundProperty, "Surface");
         Content = surface;
+        return;
+
+        void UpdatePalettePreviews()
+        {
+            var theme = _themeSelector.SelectedValue as string;
+            var light = theme == "Light" || (theme == "System" && MainWindow.IsSystemLight());
+            foreach (var choice in paletteChoices) choice.UpdateTheme(light);
+        }
     }
 
     /// <summary>
@@ -134,7 +180,7 @@ public sealed class SettingsWindow : Window
     private static ComboBox CreateDriveSelector(string? selected, bool optional)
     {
         var choices = new List<DriveChoice>();
-        if (optional) choices.Add(new DriveChoice(null, "None"));
+        if (optional) choices.Add(new DriveChoice(null, Strings.None));
         try
         {
             foreach (var drive in DriveInfo.GetDrives())
@@ -142,14 +188,14 @@ public sealed class SettingsWindow : Window
                 var name = PreferenceStore.NormalizeDrive(drive.Name);
                 if (name is null) continue;
                 var label = name;
-                try { if (drive.IsReady && drive.VolumeLabel.Length > 0) label += $" — {drive.VolumeLabel}"; }
+                try { if (drive is { IsReady: true, VolumeLabel.Length: > 0 }) label += $" — {drive.VolumeLabel}"; }
                 catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Security.SecurityException) { }
                 choices.Add(new DriveChoice(name, label));
             }
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Security.SecurityException) { }
         if (selected is not null && choices.All(c => c.Name != selected))
-            choices.Add(new DriveChoice(selected, $"{selected} — Unavailable"));
+            choices.Add(new DriveChoice(selected, Strings.Format(Strings.UnavailableDrive, selected)));
         var selector = CreateSelector([], "");
         selector.ItemsSource = choices;
         selector.SelectedItem = choices.FirstOrDefault(c => c.Name == selected);
@@ -162,7 +208,7 @@ public sealed class SettingsWindow : Window
         {
             ItemsSource = choices,
             SelectedItem = selectedValue,
-            MinWidth = 170,
+            Width = 210,
             HorizontalAlignment = HorizontalAlignment.Right
         };
         selector.SetResourceReference(BackgroundProperty, "Raised");
@@ -189,7 +235,7 @@ public sealed class SettingsWindow : Window
             IsReadOnly = true,
             IsReadOnlyCaretVisible = false,
             Width = 210,
-            ToolTip = "Click here, then press the combination: at least two of Ctrl, Alt and Shift, plus a key. Backspace turns the shortcut off."
+            ToolTip = Strings.ClickHereThenPressTheCombinationAtLeastTwoOf
         };
         box.SetResourceReference(BackgroundProperty, "Raised");
         box.SetResourceReference(ForegroundProperty, "Text");
@@ -209,13 +255,13 @@ public sealed class SettingsWindow : Window
         if (modifiers == ModifierKeys.None && key is Key.Back or Key.Delete)
         {
             _shortcut = null;
-            ShowShortcut("Off. Click the box and press a combination to set one.");
+            ShowShortcut(Strings.OffClickTheBoxAndPressACombinationToSet);
             return;
         }
         if (key is Key.LeftCtrl or Key.RightCtrl or Key.LeftAlt or Key.RightAlt or Key.LeftShift or Key.RightShift or Key.LWin or Key.RWin)
         {
             // Echo the held modifiers until the key arrives.
-            string[] held = [.. new[] { (ModifierKeys.Control, "Ctrl"), (ModifierKeys.Alt, "Alt"), (ModifierKeys.Shift, "Shift"), (ModifierKeys.Windows, "Win") }
+            string[] held = [.. new[] { (ModifierKeys.Control, Strings.Ctrl), (ModifierKeys.Alt, Strings.Alt), (ModifierKeys.Shift, Strings.Shift), (ModifierKeys.Windows, Strings.Win) }
                 .Where(m => modifiers.HasFlag(m.Item1)).Select(m => m.Item2)];
             _shortcutBox.Text = held.Length == 0 ? ShortcutText(_shortcut) : string.Join(" + ", held) + " + …";
             return;
@@ -225,12 +271,12 @@ public sealed class SettingsWindow : Window
 
     private void RecordShortcut(HotkeyGesture gesture)
     {
-        if (gesture.Problem is { } problem) ShowShortcut($"{gesture.DisplayText} can't be used. {problem}");
-        else if (gesture != _shortcut && !_isShortcutAvailable(gesture)) ShowShortcut($"Another app is using {gesture.DisplayText}. Choose another.");
+        if (gesture.Problem is { } problem) ShowShortcut(Strings.Format(Strings.CanTBeUsed, gesture.DisplayText, problem));
+        else if (gesture != _shortcut && !_isShortcutAvailable(gesture)) ShowShortcut(Strings.Format(Strings.AnotherAppIsUsingChooseAnother, gesture.DisplayText));
         else
         {
             _shortcut = gesture;
-            ShowShortcut("Applies when you save. If a combination doesn't appear, another app is using it.");
+            ShowShortcut(Strings.AppliesWhenYouSaveIfACombinationDoesnTAppear);
         }
     }
 
@@ -241,7 +287,7 @@ public sealed class SettingsWindow : Window
         _launchCheckBox.IsEnabled = _shortcut is not null;
     }
 
-    private static string ShortcutText(HotkeyGesture? gesture) => gesture?.DisplayText ?? HotkeyGesture.NoneText;
+    private static string ShortcutText(HotkeyGesture? gesture) => gesture?.DisplayText ?? Strings.None;
 
     private static HotkeyModifiers ToHotkeyModifiers(ModifierKeys modifiers) =>
         (modifiers.HasFlag(ModifierKeys.Control) ? HotkeyModifiers.Control : 0) |
@@ -263,9 +309,9 @@ public sealed class SettingsWindow : Window
 
     private static string RetentionLabel(int seconds) => seconds switch
     {
-        >= 3600 => "60 minutes",
-        >= 1800 => "30 minutes",
-        _ => "10 minutes"
+        >= 3600 => Strings.Value60Minutes,
+        >= 1800 => Strings.Value30Minutes,
+        _ => Strings.Value10Minutes
     };
 
     private static void AddField(Grid layout, string label, Control control, int row)
@@ -292,14 +338,14 @@ public sealed class SettingsWindow : Window
     {
         Button cancelButton = new()
         {
-            Content = "Cancel",
+            Content = Strings.Cancel,
             IsCancel = true,
             MinWidth = 90,
             Margin = new Thickness(0, 0, 8, 0)
         };
         Button saveButton = new()
         {
-            Content = "Save",
+            Content = Strings.Save,
             IsDefault = true,
             MinWidth = 90
         };
@@ -325,19 +371,20 @@ public sealed class SettingsWindow : Window
         var secondary = (_secondaryDriveSelector.SelectedItem as DriveChoice)?.Name;
         if (primary is null || primary == secondary)
         {
-            MessageBox.Show(this, "Choose a primary volume and a different second volume, or select None.", "Disk monitoring", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show(this, Strings.ChooseAPrimaryVolumeAndADifferentSecondVolumeOr, Strings.DiskMonitoring, MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
         Result = _initialPreferences with
         {
             PrimaryDrive = primary,
             SecondaryDrive = secondary,
-            Theme = _themeSelector.SelectedItem as string ?? "Dark",
-            ChartPalette = _paletteSelector.SelectedItem as string ?? "Classic",
+            Theme = (_themeSelector.SelectedItem as ThemeChoice)?.Name ?? "Dark",
+            Language = _languageSelector.SelectedValue as string ?? AppLanguages.SystemDefault,
+            ChartPalette = _paletteSelector.SelectedValue as string ?? "Classic",
             RetentionSeconds = (_retentionSelector.SelectedItem as string) switch
             {
-                "30 minutes" => 1800,
-                "60 minutes" => 3600,
+                var label when label == Strings.Value30Minutes => 1800,
+                var label when label == Strings.Value60Minutes => 3600,
                 _ => 600
             },
             MinimizeToTray = _minimizeToTrayCheckBox.IsChecked == true,

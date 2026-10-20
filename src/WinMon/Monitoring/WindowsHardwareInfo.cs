@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 using Microsoft.Win32;
 
@@ -9,14 +8,18 @@ namespace WinMon.Monitoring;
 internal static class WindowsHardwareInfo
 {
     internal sealed record Detail(string Name, string Text);
-    internal sealed record Section(string Name, string Details, IReadOnlyList<Detail>? Items = null, string DetailHeading = "Details");
+    internal sealed record Section(string Name, string Details, IReadOnlyList<Detail>? Items, string DetailHeading)
+    {
+        public Section(string Name, string Details, IReadOnlyList<Detail>? Items = null)
+            : this(Name, Details, Items, Strings.Details) { }
+    }
 
     internal static IReadOnlyList<Section> Read()
     {
         var query = new WmiHardwareQuery();
-        return [HardwareInventory.Cpu(query, ReadSection("CPU", Cpu).Details), Memory(query),
-            ReadSection("Graphics adapters", Graphics), HardwareInventory.Disks(query), ReadSection("Local volumes", Volumes),
-            ReadSection("Network adapters", Network)];
+        return [HardwareInventory.Cpu(query, ReadSection(Strings.CPU, Cpu).Details), HardwareInventory.Motherboard(query), Memory(query),
+            ReadSection(Strings.GraphicsAdapters, Graphics), HardwareInventory.Disks(query), ReadSection(Strings.LocalVolumes, Volumes),
+            HardwareInventory.Network(query)];
     }
 
     private static Section ReadSection(string name, Func<string> read)
@@ -25,7 +28,7 @@ internal static class WindowsHardwareInfo
         catch (Exception ex) when (ex is Win32Exception or ExternalException or IOException or
             UnauthorizedAccessException or System.Security.SecurityException or InvalidOperationException)
         {
-            return new Section(name, "Unavailable on this system.");
+            return new Section(name, Strings.UnavailableOnThisSystem);
         }
     }
 
@@ -41,15 +44,15 @@ internal static class WindowsHardwareInfo
             }
         var cores = CoreCount();
         var logical = GetActiveProcessorCount(0xFFFF); // ALL_PROCESSOR_GROUPS, independent of process affinity.
-        return $"{(names.Count == 0 ? "Model unavailable" : string.Join("\n", names))}\n" +
-            $"{(cores is { } count ? $"{count} physical cores" : "Physical core count unavailable")} · {logical} logical processors";
+        return $"{(names.Count == 0 ? Strings.ModelUnavailable : string.Join("\n", names))}\n" +
+            Strings.Format(Strings.LogicalProcessors, cores is { } count ? Strings.Format(Strings.PhysicalCores, count) : Strings.PhysicalCoreCountUnavailable, logical);
     }
 
     private static int? CoreCount()
     {
         uint length = 0;
         GetLogicalProcessorInformationEx(0, IntPtr.Zero, ref length); // RelationProcessorCore
-        if (length == 0 || length > 4 * 1024 * 1024) return null;
+        if (length is 0 or > 4 * 1024 * 1024) return null;
         var buffer = Marshal.AllocHGlobal((int)length);
         try
         {
@@ -93,14 +96,14 @@ internal static class WindowsHardwareInfo
                 {
                     Marshal.ThrowExceptionForHR(Method<GetDescription>(adapter, 10)(adapter, out var desc));
                     if ((desc.Flags & 2) != 0) continue; // Software adapter, not physical hardware.
-                    descriptions.Add($"{desc.Description}\nDedicated video memory: {desc.DedicatedVideoMemory.ToUInt64() / 1_073_741_824d:0.##} GiB" +
-                        $" · shared system memory limit: {desc.SharedSystemMemory.ToUInt64() / 1_073_741_824d:0.##} GiB");
+                    descriptions.Add(Strings.Format(Strings.DedicatedVideoMemoryGiB, desc.Description, desc.DedicatedVideoMemory.ToUInt64() / 1_073_741_824d) +
+                        Strings.Format(Strings.SharedSystemMemoryLimitGiB, desc.SharedSystemMemory.ToUInt64() / 1_073_741_824d));
                 }
                 finally { Marshal.Release(adapter); }
             }
         }
         finally { Marshal.Release(factory); }
-        return descriptions.Count == 0 ? "No hardware adapters reported by Windows." : string.Join("\n\n", descriptions);
+        return descriptions.Count == 0 ? Strings.NoHardwareAdaptersReportedByWindows : string.Join("\n\n", descriptions);
     }
 
     private static string Volumes()
@@ -111,28 +114,13 @@ internal static class WindowsHardwareInfo
             try
             {
                 descriptions.Add(drive.IsReady
-                    ? $"{drive.Name} {drive.VolumeLabel} · {drive.DriveFormat}\n{drive.TotalSize / 1_073_741_824d:0.#} GiB capacity · {drive.AvailableFreeSpace / 1_073_741_824d:0.#} GiB available"
-                    : $"{drive.Name} Not ready");
+                    ? Strings.Format(Strings.GiBCapacityGiBAvailable, drive.Name, drive.VolumeLabel, drive.DriveFormat, drive.TotalSize / 1_073_741_824d, drive.AvailableFreeSpace / 1_073_741_824d)
+                    : Strings.Format(Strings.NotReady, drive.Name));
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Security.SecurityException)
-            { descriptions.Add($"{drive.Name} Details unavailable"); }
+            { descriptions.Add(Strings.Format(Strings.DetailsUnavailable, drive.Name)); }
         }
-        return descriptions.Count == 0 ? "No local volumes reported." : string.Join("\n\n", descriptions);
-    }
-
-    private static string Network()
-    {
-        var descriptions = new List<string>();
-        foreach (var adapter in NetworkInterface.GetAllNetworkInterfaces().Where(n => n.NetworkInterfaceType != NetworkInterfaceType.Loopback))
-        {
-            try
-            {
-                var speed = adapter.Speed > 0 ? Controls.RateText.Format(adapter.Speed) : "Link speed unavailable";
-                descriptions.Add($"{adapter.Name} · {adapter.OperationalStatus}\n{adapter.Description}\n{speed}");
-            }
-            catch (NetworkInformationException) { descriptions.Add($"{adapter.Name} · Details unavailable"); }
-        }
-        return descriptions.Count == 0 ? "No network adapters reported." : string.Join("\n\n", descriptions);
+        return descriptions.Count == 0 ? Strings.NoLocalVolumesReported : string.Join("\n\n", descriptions);
     }
 
     private static T Method<T>(IntPtr instance, int slot) where T : Delegate =>

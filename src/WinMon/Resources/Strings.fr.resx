@@ -1,0 +1,1219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms</value>
+  </resheader>
+  <data name="AboutWinMon" xml:space="preserve">
+    <value>À propos de WinMon</value>
+  </data>
+  <data name="AboutWinMonAndHardwareInformation" xml:space="preserve">
+    <value>À propos de WinMon et du matériel</value>
+  </data>
+  <data name="AccessDeniedWindowsDidNotAllowWinMonToEndThis" xml:space="preserve">
+    <value>Accès refusé. Windows n’a pas autorisé l’arrêt du processus, ou celui-ci est déjà terminé.</value>
+  </data>
+  <data name="AdapterUtilizationOfTheBusiestEngineAcrossAvailableGPUs" xml:space="preserve">
+    <value>Adaptateur {0} · {1}
+Utilisation du moteur le plus sollicité parmi les GPU disponibles.</value>
+  </data>
+  <data name="AdditionalCPUSpecificationsUnavailableFromWindows" xml:space="preserve">
+    <value>
+Windows ne fournit pas d’autres caractéristiques du processeur.</value>
+  </data>
+  <data name="AddsWinMonToYourStartMenuWindowsThenHandlesThe" xml:space="preserve">
+    <value>Ajoute WinMon au menu Démarrer. Windows gère alors le raccourci, qui fonctionne même si WinMon est fermé.</value>
+  </data>
+  <data name="Alpha" xml:space="preserve">
+    <value>Alpha</value>
+  </data>
+  <data name="AlsoStartWinMonWithThisShortcut" xml:space="preserve">
+    <value>Lancer aussi WinMon avec ce raccourci</value>
+  </data>
+  <data name="Alt" xml:space="preserve">
+    <value>Alt</value>
+  </data>
+  <data name="AnotherAppIsUsingChooseAnother" xml:space="preserve">
+    <value>Une autre application utilise {0}. Choisissez un autre raccourci.</value>
+  </data>
+  <data name="AnotherAppIsUsingThisShortcutChooseAnother" xml:space="preserve">
+    <value>Une autre application utilise ce raccourci. Choisissez-en un autre.</value>
+  </data>
+  <data name="Appearance" xml:space="preserve">
+    <value>Apparence</value>
+  </data>
+  <data name="AppliesWhenYouSaveIfACombinationDoesnTAppear" xml:space="preserve">
+    <value>S’applique à l’enregistrement. Si une combinaison n’apparaît pas, une autre application l’utilise.</value>
+  </data>
+  <data name="ARM" xml:space="preserve">
+    <value>ARM</value>
+  </data>
+  <data name="ARM64" xml:space="preserve">
+    <value>ARM64</value>
+  </data>
+  <data name="ATA" xml:space="preserve">
+    <value>ATA</value>
+  </data>
+  <data name="ATAPI" xml:space="preserve">
+    <value>ATAPI</value>
+  </data>
+  <data name="AvailableForLiveIndividualProcessesEndingAProcessCanLose" xml:space="preserve">
+    <value>Disponible pour les processus individuels en direct. Leur arrêt peut entraîner la perte de travail non enregistré.</value>
+  </data>
+  <data name="AverageOverTheLast5SecondsWindowsCountsProcessCPU" xml:space="preserve">
+    <value>Moyenne sur les 5 dernières secondes. Windows mesure le temps CPU par pas de 15,6 ms ; une seconde isolée affiche donc souvent zéro.</value>
+  </data>
+  <data name="BoardVersionSerialNumber" xml:space="preserve">
+    <value>Version de la carte : {0}
+Numéro de série : {1}</value>
+  </data>
+  <data name="BusiestEnginePerIntervalAveragedOverReadableIntervalsInThe" xml:space="preserve">
+    <value>Moteur le plus sollicité par intervalle, moyenné sur les intervalles lisibles des 5 dernières secondes.
+Dernier moteur mesuré : {0} · adaptateur {1}
+Les pourcentages GPU des processus ne s’additionnent pas.</value>
+  </data>
+  <data name="BusiestGPU" xml:space="preserve">
+    <value>GPU le plus sollicité</value>
+  </data>
+  <data name="BusiestGPUEnginePerProcessAveragedOverReadableIntervalsIn" xml:space="preserve">
+    <value>Moteur GPU le plus sollicité par processus, moyenné sur les intervalles lisibles des 5 dernières secondes. Les pourcentages ne s’additionnent pas.</value>
+  </data>
+  <data name="BusiestMemberGPU" xml:space="preserve">
+    <value>GPU du membre le plus sollicité</value>
+  </data>
+  <data name="BusiestMemberGpuTitle" xml:space="preserve">
+    <value>GPU du membre le plus sollicité</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Annuler</value>
+  </data>
+  <data name="CanTBeUsed" xml:space="preserve">
+    <value>Impossible d’utiliser {0}. {1}</value>
+  </data>
+  <data name="CapacityType" xml:space="preserve">
+    <value>Capacité : {0} · Type : {1}
+</value>
+  </data>
+  <data name="ChartPalette" xml:space="preserve">
+    <value>Palette des graphiques</value>
+  </data>
+  <data name="ChartTimeRange" xml:space="preserve">
+    <value>Période du graphique</value>
+  </data>
+  <data name="ChooseAPrimaryVolumeAndADifferentSecondVolumeOr" xml:space="preserve">
+    <value>Choisissez un volume principal et un second volume différent, ou sélectionnez Aucun.</value>
+  </data>
+  <data name="ChooseUpTo2Volumes" xml:space="preserve">
+    <value>Choisissez jusqu’à 2 volumes.</value>
+  </data>
+  <data name="ClearProcessSearch" xml:space="preserve">
+    <value>Effacer la recherche de processus</value>
+  </data>
+  <data name="ClearSearch" xml:space="preserve">
+    <value>Effacer la recherche</value>
+  </data>
+  <data name="ClickHereThenPressTheCombinationAtLeastTwoOf" xml:space="preserve">
+    <value>Cliquez ici, puis appuyez sur au moins deux touches parmi Ctrl, Alt et Maj, plus une autre touche. Retour arrière désactive le raccourci.</value>
+  </data>
+  <data name="ClickToRankProcessesBy" xml:space="preserve">
+    <value>{0}
+Cliquez pour classer les processus par {1}.</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Fermer</value>
+  </data>
+  <data name="Collecting" xml:space="preserve">
+    <value>Collecte…</value>
+  </data>
+  <data name="CollectingABaselineOrRecoveringAfterARecordingGap" xml:space="preserve">
+    <value>Collecte initiale ou reprise après une interruption…</value>
+  </data>
+  <data name="CollectingDisconnected" xml:space="preserve">
+    <value>Collecte / déconnecté</value>
+  </data>
+  <data name="CollectingTheFirstInterval" xml:space="preserve">
+    <value>Collecte du premier intervalle…</value>
+  </data>
+  <data name="ConfiguredSpeedReportedSpeed" xml:space="preserve">
+    <value>Vitesse configurée : {0} · Déclarée : {1}
+</value>
+  </data>
+  <data name="Copied" xml:space="preserve">
+    <value>Copié</value>
+  </data>
+  <data name="Copy" xml:space="preserve">
+    <value>Copier</value>
+  </data>
+  <data name="CopyAllInformation" xml:space="preserve">
+    <value>Copier toutes les informations</value>
+  </data>
+  <data name="CopyAllInformationAsPlainText" xml:space="preserve">
+    <value>Copier toutes les informations en texte brut</value>
+  </data>
+  <data name="CopyInformation" xml:space="preserve">
+    <value>Copier les informations</value>
+  </data>
+  <data name="CPU" xml:space="preserve">
+    <value>CPU</value>
+  </data>
+  <data name="CpuTraySuffix" xml:space="preserve">
+    <value> CPU</value>
+  </data>
+  <data name="CpuColumn" xml:space="preserve">
+    <value>CPU %</value>
+  </data>
+  <data name="CPUDetails" xml:space="preserve">
+    <value>Détails du processeur</value>
+  </data>
+  <data name="CPUHistoryOnOneScaleSharedByEveryRowHover" xml:space="preserve">
+    <value>Historique CPU avec une échelle commune à toutes les lignes. Survolez une ligne pour afficher l’échelle.</value>
+  </data>
+  <data name="CPUMemoryConfiguredDisksNetworkAndGPUOverlayHistoryClick" xml:space="preserve">
+    <value>Historique superposé du CPU, de la mémoire, des disques configurés, du réseau et du GPU. Cliquez pour inspecter ; flèches pour déplacer, Fin pour revenir au direct.</value>
+  </data>
+  <data name="CPUUnavailableOtherResourcesContinueRecording" xml:space="preserve">
+    <value>CPU indisponible ; les autres ressources restent enregistrées.</value>
+  </data>
+  <data name="Ctrl" xml:space="preserve">
+    <value>Ctrl</value>
+  </data>
+  <data name="CtrlAltDeleteIsReservedByWindows" xml:space="preserve">
+    <value>Ctrl+Alt+Suppr est réservé à Windows.</value>
+  </data>
+  <data name="DDR" xml:space="preserve">
+    <value>DDR</value>
+  </data>
+  <data name="DDR2" xml:space="preserve">
+    <value>DDR2</value>
+  </data>
+  <data name="DDR2FBDIMM" xml:space="preserve">
+    <value>DDR2 FB-DIMM</value>
+  </data>
+  <data name="DDR3" xml:space="preserve">
+    <value>DDR3</value>
+  </data>
+  <data name="DDR4" xml:space="preserve">
+    <value>DDR4</value>
+  </data>
+  <data name="DDR5" xml:space="preserve">
+    <value>DDR5</value>
+  </data>
+  <data name="DedicatedVideoMemoryGiB" xml:space="preserve">
+    <value>{0}
+Mémoire vidéo dédiée : {1:0.##} GiB</value>
+  </data>
+  <data name="Default" xml:space="preserve">
+    <value>Par défaut</value>
+  </data>
+  <data name="DetailsUnavailable" xml:space="preserve">
+    <value>{0} : détails indisponibles</value>
+  </data>
+  <data name="DevicesAreShownAsWindowsExposesThemRAIDAndVirtual" xml:space="preserve">
+    <value>
+
+Les périphériques sont affichés tels que Windows les expose ; le RAID et les disques virtuels peuvent masquer le matériel sous-jacent.</value>
+  </data>
+  <data name="Disabled" xml:space="preserve">
+    <value>Désactivé</value>
+  </data>
+  <data name="Disconnected" xml:space="preserve">
+    <value>Déconnecté</value>
+  </data>
+  <data name="Disk" xml:space="preserve">
+    <value>Disque</value>
+  </data>
+  <data name="DiskLabel" xml:space="preserve">
+    <value>Disque ({0})</value>
+  </data>
+  <data name="SecondaryDiskHistoryLine" xml:space="preserve">
+    <value>
+Disque {0} {1}{2}</value>
+  </data>
+  <data name="PhysicalDiskTitle" xml:space="preserve">
+    <value>Disque {0} · {1}</value>
+  </data>
+  <data name="DiskMonitoring" xml:space="preserve">
+    <value>Surveillance des disques</value>
+  </data>
+  <data name="Dormant" xml:space="preserve">
+    <value>En veille</value>
+  </data>
+  <data name="Down" xml:space="preserve">
+    <value>Hors service</value>
+  </data>
+  <data name="DrawnAsADashedLineOnTheChart" xml:space="preserve">
+    <value>
+Représenté par une ligne pointillée sur le graphique.</value>
+  </data>
+  <data name="EndPID" xml:space="preserve">
+    <value>Arrêter {0} (PID {1})…</value>
+  </data>
+  <data name="EndPIDUnsavedWorkMayBeLostOnlyThisProcess" xml:space="preserve">
+    <value>Arrêter {0} (PID {1}) ?
+
+Le travail non enregistré peut être perdu. Seul ce processus sera arrêté.</value>
+  </data>
+  <data name="EndProcess" xml:space="preserve">
+    <value>Arrêter le processus</value>
+  </data>
+  <data name="ExecutablePathUnavailable" xml:space="preserve">
+    <value>Chemin de l’exécutable indisponible</value>
+  </data>
+  <data name="Executables" xml:space="preserve">
+    <value>exécutables</value>
+  </data>
+  <data name="Exit" xml:space="preserve">
+    <value>Quitter</value>
+  </data>
+  <data name="FibreChannel" xml:space="preserve">
+    <value>Fibre Channel</value>
+  </data>
+  <data name="FileBackedVirtual" xml:space="preserve">
+    <value>Virtuel basé sur un fichier</value>
+  </data>
+  <data name="FilterRankedProcessesByNameOrPIDCtrlFEscape" xml:space="preserve">
+    <value>Filtrez les processus classés par nom ou PID (Ctrl+F). Échap efface la recherche.</value>
+  </data>
+  <data name="GHzMHz" xml:space="preserve">
+    <value>{0:0.###} GHz ({1} MHz)</value>
+  </data>
+  <data name="GiB" xml:space="preserve">
+    <value>{0:0.0} / {1:0.#} GiB</value>
+  </data>
+  <data name="CapacityGiB" xml:space="preserve">
+    <value>{0:0.##} GiB</value>
+  </data>
+  <data name="GiBCapacityGiBAvailable" xml:space="preserve">
+    <value>{0} {1} · {2}
+Capacité : {3:0.#} GiB · Disponible : {4:0.#} GiB</value>
+  </data>
+  <data name="GPU" xml:space="preserve">
+    <value>GPU</value>
+  </data>
+  <data name="GpuColumn" xml:space="preserve">
+    <value>GPU %</value>
+  </data>
+  <data name="GPUCountersUnavailableOrCollectingAFreshInterval" xml:space="preserve">
+    <value>Compteurs GPU indisponibles ou collecte d’un nouvel intervalle.</value>
+  </data>
+  <data name="GPUPercentagesRepresentDifferentEnginesAndCannotBeSummed" xml:space="preserve">
+    <value>Les pourcentages GPU concernent des moteurs différents et ne s’additionnent pas.</value>
+  </data>
+  <data name="GPUUtilizationUnavailableForThisProcessNoValidCounterOr" xml:space="preserve">
+    <value>Utilisation GPU indisponible pour ce processus : compteur invalide ou durée de vie non concordante.</value>
+  </data>
+  <data name="GraphicsAdapters" xml:space="preserve">
+    <value>Cartes graphiques</value>
+  </data>
+  <data name="Grouped" xml:space="preserve">
+    <value>Groupés</value>
+  </data>
+  <data name="HardwareInformationCouldNotBeReadTryRefresh" xml:space="preserve">
+    <value>Impossible de lire les informations matérielles. Essayez d’actualiser.</value>
+  </data>
+  <data name="HDD" xml:space="preserve">
+    <value>HDD</value>
+  </data>
+  <data name="HealthIsAProviderReportNotAFullSMARTDiagnostic" xml:space="preserve">
+    <value>
+L’état est un rapport du fournisseur, pas un diagnostic SMART complet.</value>
+  </data>
+  <data name="Healthy" xml:space="preserve">
+    <value>Sain</value>
+  </data>
+  <data name="HistoricalIntervalCPUMemoryDiskNetworkOfLinkGPUClick" xml:space="preserve">
+    <value>{0:HH:mm:ss} · Intervalle historique
+CPU {1}
+Mémoire {2}
+Disque {3} {4}{5}{6}
+Réseau {7} {8} · {9} de la liaison{10}
+GPU {11} · {12}
+Cliquez pour figer ; les valeurs du haut restent en direct</value>
+  </data>
+  <data name="HistoricalRetention" xml:space="preserve">
+    <value>Conservation de l’historique</value>
+  </data>
+  <data name="History" xml:space="preserve">
+    <value>Historique</value>
+  </data>
+  <data name="History0GPUUtilization" xml:space="preserve">
+    <value>Historique {0}
+Utilisation GPU 0–{1:0.0}%</value>
+  </data>
+  <data name="History0MBS" xml:space="preserve">
+    <value>Historique {0}
+0–{1:0.##} MB/s</value>
+  </data>
+  <data name="History0MiB" xml:space="preserve">
+    <value>Historique {0}
+0–{1:0.##} MiB</value>
+  </data>
+  <data name="History0OfTotalMachineCPU" xml:space="preserve">
+    <value>Historique {0}
+0–{1:0.0}% du CPU total</value>
+  </data>
+  <data name="HistoryExpiredThisSampleHasLeftTheRecordingWindow" xml:space="preserve">
+    <value>Historique expiré. Cet échantillon est sorti de la période d’enregistrement.</value>
+  </data>
+  <data name="HistoryExpiredThisSampleHasLeftTheRecordingWindowReturn" xml:space="preserve">
+    <value>Historique expiré. Cet échantillon est sorti de la période d’enregistrement. Revenez au direct.</value>
+  </data>
+  <data name="HistoryOnOneScaleSharedByEveryRowHoverA" xml:space="preserve">
+    <value>Historique {0} avec une échelle commune à toutes les lignes. Survolez une ligne pour afficher l’échelle.</value>
+  </data>
+  <data name="HistoryShortenedByMemoryLimit" xml:space="preserve">
+    <value>historique réduit par la limite mémoire</value>
+  </data>
+  <data name="IdleGroupMembersMayBeOmitted" xml:space="preserve">
+    <value> · les membres inactifs du groupe peuvent être omis</value>
+  </data>
+  <data name="IEEE1394" xml:space="preserve">
+    <value>IEEE 1394</value>
+  </data>
+  <data name="Index" xml:space="preserve">
+    <value>Index</value>
+  </data>
+  <data name="Individual" xml:space="preserve">
+    <value>Individuels</value>
+  </data>
+  <data name="Info" xml:space="preserve">
+    <value>Infos</value>
+  </data>
+  <data name="InitializationFailedCloseAndRestartWinMon" xml:space="preserve">
+    <value>Échec de l’initialisation. Fermez puis relancez WinMon.</value>
+  </data>
+  <data name="InstalledMemory" xml:space="preserve">
+    <value>Mémoire installée</value>
+  </data>
+  <data name="InstalledOSUsable" xml:space="preserve">
+    <value>Installée : {0} · Utilisable par le système : {1}
+{2} · {3}</value>
+  </data>
+  <data name="IntervalReadingsTopReadoutsStayLive" xml:space="preserve">
+    <value>Valeurs de l’intervalle · valeurs du haut en direct</value>
+  </data>
+  <data name="IO" xml:space="preserve">
+    <value>I/O</value>
+  </data>
+  <data name="IOMBS" xml:space="preserve">
+    <value>I/O MB/s</value>
+  </data>
+  <data name="ISCSI" xml:space="preserve">
+    <value>iSCSI</value>
+  </data>
+  <data name="Itanium" xml:space="preserve">
+    <value>Itanium</value>
+  </data>
+  <data name="KeepOnTopOff" xml:space="preserve">
+    <value>Toujours au premier plan, désactivé</value>
+  </data>
+  <data name="KeepOnTopOn" xml:space="preserve">
+    <value>Toujours au premier plan, activé</value>
+  </data>
+  <data name="KeepThisWindowOnTopOfOtherWindows" xml:space="preserve">
+    <value>Garder cette fenêtre au-dessus des autres</value>
+  </data>
+  <data name="KeptOnTopOfOtherWindowsClickToStop" xml:space="preserve">
+    <value>Maintenue au-dessus des autres fenêtres. Cliquez pour désactiver.</value>
+  </data>
+  <data name="KeyboardShortcut" xml:space="preserve">
+    <value>Raccourci clavier</value>
+  </data>
+  <data name="L2CacheReportedL3CacheReported" xml:space="preserve">
+    <value>Cache L2 (déclaré) : {0} · Cache L3 (déclaré) : {1}
+</value>
+  </data>
+  <data name="LastMinSameScaleForEveryRow" xml:space="preserve">
+    <value>{0} · {1}
+{2}
+{3} · dernières {4:0.#} min
+Même échelle pour toutes les lignes</value>
+  </data>
+  <data name="License" xml:space="preserve">
+    <value>{0} · Licence {1}</value>
+  </data>
+  <data name="Link" xml:space="preserve">
+    <value> · liaison {0}</value>
+  </data>
+  <data name="LinkSpeedUnavailable" xml:space="preserve">
+    <value> · débit de liaison indisponible</value>
+  </data>
+  <data name="LinkSpeedUnavailableLabel" xml:space="preserve">
+    <value>Débit de liaison indisponible</value>
+  </data>
+  <data name="LocalVolumes" xml:space="preserve">
+    <value>Volumes locaux</value>
+  </data>
+  <data name="LogicalProcessors" xml:space="preserve">
+    <value>{0} · {1} processeurs logiques</value>
+  </data>
+  <data name="LowerLayerDown" xml:space="preserve">
+    <value>Couche inférieure hors service</value>
+  </data>
+  <data name="LPDDR" xml:space="preserve">
+    <value>LPDDR</value>
+  </data>
+  <data name="LPDDR2" xml:space="preserve">
+    <value>LPDDR2</value>
+  </data>
+  <data name="LPDDR3" xml:space="preserve">
+    <value>LPDDR3</value>
+  </data>
+  <data name="LPDDR4" xml:space="preserve">
+    <value>LPDDR4</value>
+  </data>
+  <data name="LPDDR5" xml:space="preserve">
+    <value>LPDDR5</value>
+  </data>
+  <data name="M" xml:space="preserve">
+    <value>{0}m</value>
+  </data>
+  <data name="ManufacturerArchitecture" xml:space="preserve">
+    <value>Fabricant : {0} · Architecture : {1}
+</value>
+  </data>
+  <data name="ManufacturerModel" xml:space="preserve">
+    <value>Fabricant : {0}
+Modèle : {1}
+</value>
+  </data>
+  <data name="ManufacturerPartNumberBank" xml:space="preserve">
+    <value>Fabricant : {0}
+Référence : {1} · Banque : {2}</value>
+  </data>
+  <data name="MappingUnavailable" xml:space="preserve">
+    <value>Correspondance indisponible</value>
+  </data>
+  <data name="MaximumClockIsAReportedSpecificationNotLiveFrequencyOr" xml:space="preserve">
+    <value>La fréquence maximale est une caractéristique déclarée, pas la fréquence actuelle ni le turbo mesuré. Les machines virtuelles peuvent masquer des caractéristiques et capacités.</value>
+  </data>
+  <data name="MBS" xml:space="preserve">
+    <value>{0:0.0} MB/s</value>
+  </data>
+  <data name="DiskRateSuffix" xml:space="preserve">
+    <value> · {0:0.00} MB/s</value>
+  </data>
+  <data name="MediaConnectionCapacity" xml:space="preserve">
+    <value>{0}
+Support : {1} · Connexion : {2} · Capacité : {3}
+</value>
+  </data>
+  <data name="Memory" xml:space="preserve">
+    <value>Mémoire</value>
+  </data>
+  <data name="MemoryLowercase" xml:space="preserve">
+    <value>Mémoire</value>
+  </data>
+  <data name="MemoryModules" xml:space="preserve">
+    <value>{0} modules mémoire</value>
+  </data>
+  <data name="MemorySpecificationsAndSlotCountsReflectFirmwareReports" xml:space="preserve">
+    <value>
+
+Les caractéristiques mémoire et le nombre d’emplacements proviennent du micrologiciel.</value>
+  </data>
+  <data name="MHzWindowsReported" xml:space="preserve">
+    <value>{0} MHz (déclaré par Windows)</value>
+  </data>
+  <data name="MiB" xml:space="preserve">
+    <value>{0:N0} MiB</value>
+  </data>
+  <data name="CapacityMiB" xml:space="preserve">
+    <value>{0:0.##} MiB</value>
+  </data>
+  <data name="Min" xml:space="preserve">
+    <value>{0:0.#} min</value>
+  </data>
+  <data name="MinAgo" xml:space="preserve">
+    <value>il y a {0:0.#} min</value>
+  </data>
+  <data name="MinimizeToTheNotificationArea" xml:space="preserve">
+    <value>Réduire dans la zone de notification</value>
+  </data>
+  <data name="MIPS" xml:space="preserve">
+    <value>MIPS</value>
+  </data>
+  <data name="MissingReading" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="MMC" xml:space="preserve">
+    <value>MMC</value>
+  </data>
+  <data name="Model" xml:space="preserve">
+    <value>Modèle : {0}
+</value>
+  </data>
+  <data name="ModelUnavailable" xml:space="preserve">
+    <value>Modèle indisponible</value>
+  </data>
+  <data name="Module" xml:space="preserve">
+    <value>Module {0}</value>
+  </data>
+  <data name="ModuleCountUnavailable" xml:space="preserve">
+    <value>Nombre de modules indisponible</value>
+  </data>
+  <data name="ModuleDetailsUnavailableFromWindows" xml:space="preserve">
+    <value>
+Windows ne fournit pas de détails sur les modules.</value>
+  </data>
+  <data name="Motherboard" xml:space="preserve">
+    <value>Carte mère</value>
+  </data>
+  <data name="MotherboardInformationUnavailableFromWindows" xml:space="preserve">
+    <value>Windows ne fournit pas d’informations sur la carte mère.</value>
+  </data>
+  <data name="Network" xml:space="preserve">
+    <value>Réseau</value>
+  </data>
+  <data name="NetworkAdapterInventoryUnavailableFromWindows" xml:space="preserve">
+    <value>Windows ne fournit pas l’inventaire des cartes réseau.</value>
+  </data>
+  <data name="NetworkAdapters" xml:space="preserve">
+    <value>Cartes réseau</value>
+  </data>
+  <data name="NetworkScale0" xml:space="preserve">
+    <value>Échelle réseau 0–{0}</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>Non</value>
+  </data>
+  <data name="NoConnectedEthernetOrWiFiInterfaceAvailable" xml:space="preserve">
+    <value>Aucune interface Ethernet ou Wi-Fi connectée disponible.</value>
+  </data>
+  <data name="NoDriveLettersAssigned" xml:space="preserve">
+    <value>Aucune lettre de lecteur attribuée</value>
+  </data>
+  <data name="NoHardwareAdaptersReportedByWindows" xml:space="preserve">
+    <value>Windows ne signale aucune carte matérielle.</value>
+  </data>
+  <data name="NoLocalVolumesReported" xml:space="preserve">
+    <value>Aucun volume local signalé.</value>
+  </data>
+  <data name="NoMeasurableActiveProcessesInThisWindow" xml:space="preserve">
+    <value>Aucun processus actif mesurable sur cette période.</value>
+  </data>
+  <data name="NoMeasurableGPUActivityAmongAccessibleProcessesInThisWindow" xml:space="preserve">
+    <value>Aucune activité GPU mesurable parmi les processus accessibles sur cette période.</value>
+  </data>
+  <data name="NoMeasurableIOAmongAccessibleProcessesInThisWindow" xml:space="preserve">
+    <value>Aucune E/S mesurable parmi les processus accessibles sur cette période.</value>
+  </data>
+  <data name="NoMemoryReadingsAmongAccessibleProcesses" xml:space="preserve">
+    <value>Aucune mesure mémoire des processus accessibles.</value>
+  </data>
+  <data name="None" xml:space="preserve">
+    <value>Aucun</value>
+  </data>
+  <data name="NoPresentNetworkAdaptersReported" xml:space="preserve">
+    <value>Aucune carte réseau présente signalée.</value>
+  </data>
+  <data name="NoRankedProcessesMatchYourSearch" xml:space="preserve">
+    <value>Aucun processus classé ne correspond à la recherche.</value>
+  </data>
+  <data name="NoSampleInThisInterval" xml:space="preserve">
+    <value>Aucun échantillon dans cet intervalle</value>
+  </data>
+  <data name="NotReady" xml:space="preserve">
+    <value>{0} : non prêt</value>
+  </data>
+  <data name="Now" xml:space="preserve">
+    <value>Maintenant</value>
+  </data>
+  <data name="Number" xml:space="preserve">
+    <value>Number</value>
+  </data>
+  <data name="NumberOfProcessesShown" xml:space="preserve">
+    <value>Nombre de processus affichés</value>
+  </data>
+  <data name="NumberOfTopProcesses" xml:space="preserve">
+    <value>Nombre de processus principaux</value>
+  </data>
+  <data name="NVMe" xml:space="preserve">
+    <value>NVMe</value>
+  </data>
+  <data name="OffClickTheBoxAndPressACombinationToSet" xml:space="preserve">
+    <value>Désactivé. Cliquez dans le champ et appuyez sur une combinaison.</value>
+  </data>
+  <data name="OfLink" xml:space="preserve">
+    <value> · {0} de la liaison</value>
+  </data>
+  <data name="OfSlotsUsedFirmwareReported" xml:space="preserve">
+    <value>{0} emplacements utilisés sur {1} (micrologiciel)</value>
+  </data>
+  <data name="OfTotalCPUAveragedOver5SecondsGPUAveragedOver" xml:space="preserve">
+    <value>{0}, {1}, {2} du CPU total en moyenne sur 5 secondes, GPU {3} en moyenne sur les intervalles lisibles des 5 dernières secondes, mémoire {4}, E/S en lecture et écriture {5} MB par seconde</value>
+  </data>
+  <data name="OneRowPerExecutable" xml:space="preserve">
+    <value>Une ligne par exécutable</value>
+  </data>
+  <data name="OneRowPerExecutableCPUAndIOSummedGPU" xml:space="preserve">
+    <value>Une ligne par exécutable : CPU et E/S cumulés, GPU du membre le plus sollicité, mémoire en octets privés cumulés</value>
+  </data>
+  <data name="OneRowPerProcess" xml:space="preserve">
+    <value>Une ligne par processus</value>
+  </data>
+  <data name="OtherExecutables" xml:space="preserve">
+    <value>Autres exécutables ({0:N0})</value>
+  </data>
+  <data name="OtherOfTotalCPUCombinedAveragedOver5Seconds" xml:space="preserve">
+    <value>{0} autres {1}, {2} du CPU total cumulé en moyenne sur 5 secondes</value>
+  </data>
+  <data name="OtherProcesses" xml:space="preserve">
+    <value>Autres processus ({0:N0})</value>
+  </data>
+  <data name="OutsideChartRangeTopReadoutsStayLive" xml:space="preserve">
+    <value>Hors du graphique · valeurs du haut en direct</value>
+  </data>
+  <data name="PhysicalCoreCountUnavailable" xml:space="preserve">
+    <value>Nombre de cœurs physiques indisponible</value>
+  </data>
+  <data name="PhysicalCores" xml:space="preserve">
+    <value>{0} cœurs physiques</value>
+  </data>
+  <data name="PhysicalCoresInThisSocketLogicalProcessorsInThisSocket" xml:space="preserve">
+    <value>Cœurs physiques de ce socket : {0}
+Processeurs logiques de ce socket : {1}
+</value>
+  </data>
+  <data name="PhysicalDriveInventoryUnavailableVolumeInformationIsListedSeparately" xml:space="preserve">
+    <value>Inventaire des disques physiques indisponible. Les volumes sont affichés séparément.</value>
+  </data>
+  <data name="PhysicalDrives" xml:space="preserve">
+    <value>Disques physiques</value>
+  </data>
+  <data name="PID" xml:space="preserve">
+    <value>PID {0}</value>
+  </data>
+  <data name="PIDs" xml:space="preserve">
+    <value>PIDs {0}</value>
+  </data>
+  <data name="PIDsMore" xml:space="preserve">
+    <value>PID {0} et {1} de plus</value>
+  </data>
+  <data name="PopulatedCoresPerSocketReportedMaximum" xml:space="preserve">
+    <value>
+{0} {1} occupés · Cœurs par socket : {2}
+Maximum déclaré : {3}</value>
+  </data>
+  <data name="PowerPC" xml:space="preserve">
+    <value>PowerPC</value>
+  </data>
+  <data name="PrimaryDrive" xml:space="preserve">
+    <value>Lecteur principal</value>
+  </data>
+  <data name="Private" xml:space="preserve">
+    <value>Privée</value>
+  </data>
+  <data name="PrivateBytesSummedAcrossThisExecutableSCurrentProcesses" xml:space="preserve">
+    <value>Octets privés cumulés des processus actuels de cet exécutable.</value>
+  </data>
+  <data name="Process" xml:space="preserve">
+    <value>processus {0}</value>
+  </data>
+  <data name="ProcessColumn" xml:space="preserve">
+    <value>Processus</value>
+  </data>
+  <data name="Processes" xml:space="preserve">
+    <value>{0} processus</value>
+  </data>
+  <data name="ProcessesLowercase" xml:space="preserve">
+    <value>processus</value>
+  </data>
+  <data name="ProcessesAtSAverage" xml:space="preserve">
+    <value>Processus à {0:HH:mm:ss} · moyenne sur {1} s{2}</value>
+  </data>
+  <data name="ProcessesBy" xml:space="preserve">
+    <value>processus par</value>
+  </data>
+  <data name="ProcessesNeedAdministratorAccess" xml:space="preserve">
+    <value>{0} processus nécessitent les droits administrateur</value>
+  </data>
+  <data name="ProcessGrouping" xml:space="preserve">
+    <value>Regroupement des processus</value>
+  </data>
+  <data name="Processor" xml:space="preserve">
+    <value>Processeur {0}</value>
+  </data>
+  <data name="ProcessReadWriteIOIncludesFileNetworkAndDevice" xml:space="preserve">
+    <value>Les E/S du processus incluent fichiers, réseau et périphériques, pas uniquement le disque</value>
+  </data>
+  <data name="RAID" xml:space="preserve">
+    <value>RAID</value>
+  </data>
+  <data name="RankByFiveSecondAverageCPUGPUOrIO" xml:space="preserve">
+    <value>Classer par moyenne CPU, GPU ou E/S sur 5 secondes, ou par mémoire actuelle</value>
+  </data>
+  <data name="RankProcessesBy" xml:space="preserve">
+    <value>Classer les processus par</value>
+  </data>
+  <data name="ReadingHardwareInformation" xml:space="preserve">
+    <value>Lecture des informations matérielles…</value>
+  </data>
+  <data name="ReadingsUnavailableRetryingEachSecond" xml:space="preserve">
+    <value>Mesures indisponibles ; nouvel essai chaque seconde.</value>
+  </data>
+  <data name="ReadWriteIO" xml:space="preserve">
+    <value>E/S en lecture et écriture</value>
+  </data>
+  <data name="ReadWriteIOIncludesFileNetworkAndDeviceOperations" xml:space="preserve">
+    <value>Les E/S incluent fichiers, réseau et périphériques, pas uniquement le disque.</value>
+  </data>
+  <data name="ReceiveSendTheValueIsTheBusierDirectionUtilizationIs" xml:space="preserve">
+    <value>{0}{1}{2}
+↓ réception · ↑ envoi. Valeur du sens le plus sollicité ; utilisation relative au débit de liaison, pas à la capacité Internet.</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Actualiser</value>
+  </data>
+  <data name="RemainingProcessesInTheCurrentRankingCPUAndIO" xml:space="preserve">
+    <value>Processus restants du classement. CPU et E/S sont cumulés ; la mémoire partage des pages et les pourcentages GPU ne s’additionnent pas.</value>
+  </data>
+  <data name="ReportedMaximumClock" xml:space="preserve">
+    <value>Fréquence maximale déclarée : {0}
+</value>
+  </data>
+  <data name="ResidentMemory" xml:space="preserve">
+    <value>Mémoire résidente</value>
+  </data>
+  <data name="ResidentWorkingSetIncludingSharedPages" xml:space="preserve">
+    <value>Jeu de travail résident, pages partagées incluses</value>
+  </data>
+  <data name="ResidentWorkingSetIncludingSharedPagesDoesNotSumTo" xml:space="preserve">
+    <value>Jeu de travail résident, pages partagées incluses. La somme ne correspond pas à la mémoire physique totale utilisée.</value>
+  </data>
+  <data name="ResourceColorsCPUMemoryPrimaryDiskNetworkGPUSecondDisk" xml:space="preserve">
+    <value>Couleurs : CPU, mémoire, disque principal, réseau, GPU, second disque. Le contraste élevé utilise les couleurs Windows.</value>
+  </data>
+  <data name="RestoreTheDefaultShortcut" xml:space="preserve">
+    <value>Rétablir le raccourci par défaut</value>
+  </data>
+  <data name="ResumeLiveReadingsAndProcessesEndOrEscape" xml:space="preserve">
+    <value>Reprendre les mesures et processus en direct (Fin ou Échap)</value>
+  </data>
+  <data name="ReturnToLive" xml:space="preserve">
+    <value>Revenir au direct</value>
+  </data>
+  <data name="ReturnToLiveToInspectCurrentActivity" xml:space="preserve">
+    <value>Revenez au direct pour inspecter l’activité actuelle.</value>
+  </data>
+  <data name="RxTxMbps" xml:space="preserve">
+    <value>
+Réception {0:0.00} / Envoi {1:0.00} Mbps</value>
+  </data>
+  <data name="S" xml:space="preserve">
+    <value>{0:0}s</value>
+  </data>
+  <data name="SAS" xml:space="preserve">
+    <value>SAS</value>
+  </data>
+  <data name="SATA" xml:space="preserve">
+    <value>SATA</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Enregistrer</value>
+  </data>
+  <data name="SCSI" xml:space="preserve">
+    <value>SCSI</value>
+  </data>
+  <data name="SD" xml:space="preserve">
+    <value>SD</value>
+  </data>
+  <data name="SearchNameOrPID" xml:space="preserve">
+    <value>Rechercher nom ou PID</value>
+  </data>
+  <data name="SearchProcessesByNameOrPID" xml:space="preserve">
+    <value>Rechercher des processus par nom ou PID</value>
+  </data>
+  <data name="SecondDrive" xml:space="preserve">
+    <value>Second lecteur</value>
+  </data>
+  <data name="SelectedChartSnapshot" xml:space="preserve">
+    <value>Instantané du graphique sélectionné</value>
+  </data>
+  <data name="SelectNoneToMonitorOneDriveActiveTimeAndRead" xml:space="preserve">
+    <value>Sélectionnez Aucun pour surveiller un seul lecteur.
+Temps d’activité et débit de lecture/écriture.</value>
+  </data>
+  <data name="Settings" xml:space="preserve">
+    <value>Paramètres</value>
+  </data>
+  <data name="SettingsCouldNotBeSavedCheckAccessToYourLocal" xml:space="preserve">
+    <value>Impossible d’enregistrer les paramètres. Vérifiez l’accès aux paramètres locaux et à l’enregistrement du démarrage.</value>
+  </data>
+  <data name="SharedSystemMemoryLimitGiB" xml:space="preserve">
+    <value> · limite de mémoire système partagée : {0:0.##} GiB</value>
+  </data>
+  <data name="Shift" xml:space="preserve">
+    <value>Shift</value>
+  </data>
+  <data name="ShortcutUnavailable" xml:space="preserve">
+    <value> · raccourci indisponible</value>
+  </data>
+  <data name="ShowOnChart" xml:space="preserve">
+    <value>Afficher {0} sur le graphique</value>
+  </data>
+  <data name="ShowTheLastMinutes" xml:space="preserve">
+    <value>Afficher les {0} dernières minutes</value>
+  </data>
+  <data name="ShowWinMon" xml:space="preserve">
+    <value>Afficher WinMon</value>
+  </data>
+  <data name="SlotUsageUnavailable" xml:space="preserve">
+    <value>Occupation des emplacements indisponible</value>
+  </data>
+  <data name="Snapshot" xml:space="preserve">
+    <value>Instantané · {0:HH:mm:ss}</value>
+  </data>
+  <data name="ExportSnapshotTime" xml:space="preserve">
+    <value>Instantané : {0:yyyy-MM-dd HH:mm:ss zzz}</value>
+  </data>
+  <data name="HardwareSnapshotTime" xml:space="preserve">
+    <value>Instantané : {0:HH:mm:ss zzz}</value>
+  </data>
+  <data name="SnapshotTakenWhenOpenedOrRefreshed" xml:space="preserve">
+    <value>Instantané pris à l’ouverture ou à l’actualisation.</value>
+  </data>
+  <data name="SnapshotUnavailableTryRefresh" xml:space="preserve">
+    <value>Instantané indisponible. Essayez d’actualiser.</value>
+  </data>
+  <data name="Socket" xml:space="preserve">
+    <value>socket</value>
+  </data>
+  <data name="Sockets" xml:space="preserve">
+    <value>sockets</value>
+  </data>
+  <data name="SSA" xml:space="preserve">
+    <value>SSA</value>
+  </data>
+  <data name="SSD" xml:space="preserve">
+    <value>SSD</value>
+  </data>
+  <data name="StartWinMonWhenISignIn" xml:space="preserve">
+    <value>Lancer WinMon à l’ouverture de session</value>
+  </data>
+  <data name="StorageClassMemory" xml:space="preserve">
+    <value>Mémoire de classe stockage</value>
+  </data>
+  <data name="StorageSpaces" xml:space="preserve">
+    <value>Espaces de stockage</value>
+  </data>
+  <data name="SummedCPU" xml:space="preserve">
+    <value>CPU cumulé</value>
+  </data>
+  <data name="SummedCpuTitle" xml:space="preserve">
+    <value>CPU cumulé</value>
+  </data>
+  <data name="SummedIO" xml:space="preserve">
+    <value>E/S cumulées</value>
+  </data>
+  <data name="SummedPrivateMemory" xml:space="preserve">
+    <value>mémoire privée cumulée</value>
+  </data>
+  <data name="SummedPrivateMemoryTitle" xml:space="preserve">
+    <value>mémoire privée cumulée</value>
+  </data>
+  <data name="SummedReadWriteIO" xml:space="preserve">
+    <value>E/S en lecture et écriture cumulées</value>
+  </data>
+  <data name="PercentOneDecimal" xml:space="preserve">
+    <value>{0:0.0}%</value>
+  </data>
+  <data name="PercentInteger" xml:space="preserve">
+    <value>{0}%</value>
+  </data>
+  <data name="UnknownDiskNumber" xml:space="preserve">
+    <value>?</value>
+  </data>
+  <data name="SearchGlyph" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="SystemResources" xml:space="preserve">
+    <value>Ressources système</value>
+  </data>
+  <data name="SystemResourcesInspectingSnapshot" xml:space="preserve">
+    <value>Ressources système · inspection d’un instantané</value>
+  </data>
+  <data name="SystemResourcesUnavailable" xml:space="preserve">
+    <value>Ressources système · indisponibles</value>
+  </data>
+  <data name="Testing" xml:space="preserve">
+    <value>En test</value>
+  </data>
+  <data name="TheClipboardIsUnavailableTryCopyAgain" xml:space="preserve">
+    <value>Presse-papiers indisponible. Réessayez de copier.</value>
+  </data>
+  <data name="TheEmbeddedTrayIconIsUnavailable" xml:space="preserve">
+    <value>Icône intégrée de notification indisponible.</value>
+  </data>
+  <data name="Theme" xml:space="preserve">
+    <value>Thème</value>
+  </data>
+  <data name="TheOriginalProcessHasExitedAndItsPIDHasBeen" xml:space="preserve">
+    <value>Le processus d’origine est terminé et son PID a été réutilisé. Aucun processus n’a été arrêté.</value>
+  </data>
+  <data name="TheProcessCouldNotBeEnded" xml:space="preserve">
+    <value>Impossible d’arrêter le processus : {0}</value>
+  </data>
+  <data name="TheWindowsKeyIsReservedForWindowsShortcuts" xml:space="preserve">
+    <value>La touche Windows est réservée aux raccourcis Windows.</value>
+  </data>
+  <data name="ThisProcessCannotBeEndedFromWinMon" xml:space="preserve">
+    <value>Ce processus ne peut pas être arrêté depuis WinMon.</value>
+  </data>
+  <data name="ThisProcessHasAlreadyExited" xml:space="preserve">
+    <value>Ce processus est déjà terminé.</value>
+  </data>
+  <data name="ThisProcessHasAlreadyExitedOrIsNoLongerAvailable" xml:space="preserve">
+    <value>Ce processus est déjà terminé ou n’est plus disponible.</value>
+  </data>
+  <data name="ThisShortcutCouldNotBeRegisteredChooseAnother" xml:space="preserve">
+    <value>Impossible d’enregistrer ce raccourci. Choisissez-en un autre.</value>
+  </data>
+  <data name="Top" xml:space="preserve">
+    <value>Top</value>
+  </data>
+  <data name="TotalMachine" xml:space="preserve">
+    <value>Machine entière</value>
+  </data>
+  <data name="Unattributed" xml:space="preserve">
+    <value>{0:0.0}% non attribué</value>
+  </data>
+  <data name="UnattributedCPUIsTotalCPUMinusAllMeasuredProcessesKernel" xml:space="preserve">
+    <value>
+Le CPU non attribué est le total moins les processus mesurés : temps du noyau et des interruptions, décalages de mesure et données indisponibles.</value>
+  </data>
+  <data name="UnattributedCPUIsTotalCPUMinusAllMeasuredProcessesKernel2" xml:space="preserve">
+    <value>Le CPU non attribué est le total moins les processus mesurés : temps du noyau et des interruptions, décalages de mesure et données indisponibles.</value>
+  </data>
+  <data name="Unavailable" xml:space="preserve">
+    <value>Indisponible</value>
+  </data>
+  <data name="UnavailableLowercase" xml:space="preserve">
+    <value>Indisponible</value>
+  </data>
+  <data name="UnavailableDrive" xml:space="preserve">
+    <value>{0} — indisponible</value>
+  </data>
+  <data name="UnavailableOnThisSystem" xml:space="preserve">
+    <value>Indisponible sur ce système.</value>
+  </data>
+  <data name="Unhealthy" xml:space="preserve">
+    <value>Défaillant</value>
+  </data>
+  <data name="Unknown" xml:space="preserve">
+    <value>Inconnu</value>
+  </data>
+  <data name="Up" xml:space="preserve">
+    <value>En service</value>
+  </data>
+  <data name="USB" xml:space="preserve">
+    <value>USB</value>
+  </data>
+  <data name="UseALetterDigitFunctionOrNavigationKey" xml:space="preserve">
+    <value>Utilisez une lettre, un chiffre, une touche de fonction ou de navigation.</value>
+  </data>
+  <data name="UseAtLeastTwoOfCtrlAltAndShiftIncluding" xml:space="preserve">
+    <value>Utilisez au moins deux touches parmi Ctrl, Alt et Maj, dont Ctrl ou Alt.</value>
+  </data>
+  <data name="Value10Minutes" xml:space="preserve">
+    <value>10 minutes</value>
+  </data>
+  <data name="Value1PopulatedSocket" xml:space="preserve">
+    <value>
+1 socket occupé{0}
+</value>
+  </data>
+  <data name="Value30Minutes" xml:space="preserve">
+    <value>30 minutes</value>
+  </data>
+  <data name="Value60Minutes" xml:space="preserve">
+    <value>60 minutes</value>
+  </data>
+  <data name="VersionPlusCPUMemoryGraphicsVolumesAndNetworkHardware" xml:space="preserve">
+    <value>Version, CPU, mémoire, graphisme, volumes et matériel réseau</value>
+  </data>
+  <data name="Virtual" xml:space="preserve">
+    <value> · Virtuel</value>
+  </data>
+  <data name="VirtualBus" xml:space="preserve">
+    <value>Virtuel</value>
+  </data>
+  <data name="VirtualizationEnabledInFirmwareWindowsReported" xml:space="preserve">
+    <value>Virtualisation activée dans le micrologiciel (Windows) : {0}</value>
+  </data>
+  <data name="VirtualizationExtensionsWindowsReported" xml:space="preserve">
+    <value>Extensions de virtualisation (Windows) : {0}
+</value>
+  </data>
+  <data name="VolumeActiveTimeNotSpaceUsedReadWriteThroughputIn" xml:space="preserve">
+    <value>Volume {0}
+Temps d’activité, pas l’espace utilisé. Lecture/écriture en MB/s.
+Indisponible si déconnecté ou lors de la collecte d’un nouvel intervalle.</value>
+  </data>
+  <data name="VolumesManufacturerWindowsHealthStatus" xml:space="preserve">
+    <value>Volumes : {0}
+Fabricant : {1}
+État selon Windows : {2}</value>
+  </data>
+  <data name="Warning" xml:space="preserve">
+    <value>Avertissement</value>
+  </data>
+  <data name="Win" xml:space="preserve">
+    <value>Win</value>
+  </data>
+  <data name="WindowsIdentifiesThisAsACriticalProcessWinMonWillNot" xml:space="preserve">
+    <value>Windows identifie ce processus comme critique. WinMon ne l’arrêtera pas.</value>
+  </data>
+  <data name="WinMon" xml:space="preserve">
+    <value>WinMon</value>
+  </data>
+  <data name="TrayStatus" xml:space="preserve">
+    <value>WinMon · {0}</value>
+  </data>
+  <data name="ProductVersion" xml:space="preserve">
+    <value>WinMon {0}</value>
+  </data>
+  <data name="WinMonCPUMonitor" xml:space="preserve">
+    <value>WinMon · moniteur CPU</value>
+  </data>
+  <data name="WinMonIsAlreadyRunningRestoreItFromTheNotificationArea" xml:space="preserve">
+    <value>WinMon est déjà lancé. Restaurez-le depuis la zone de notification.</value>
+  </data>
+  <data name="WinMonResourceMonitor" xml:space="preserve">
+    <value>Moniteur de ressources WinMon</value>
+  </data>
+  <data name="WinMonSettings" xml:space="preserve">
+    <value>Paramètres de WinMon</value>
+  </data>
+  <data name="WinMonSourceCodeOnGitHub" xml:space="preserve">
+    <value>Code source de WinMon sur GitHub</value>
+  </data>
+  <data name="WorksFromAnyAppAndStartsWinMonWhenItIsn" xml:space="preserve">
+    <value>Fonctionne depuis toute application et lance WinMon s’il est fermé.</value>
+  </data>
+  <data name="WorksFromAnyAppWhileWinMonIsRunning" xml:space="preserve">
+    <value>Fonctionne depuis toute application tant que WinMon est lancé.</value>
+  </data>
+  <data name="X64" xml:space="preserve">
+    <value>x64</value>
+  </data>
+  <data name="X86" xml:space="preserve">
+    <value>x86</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Oui</value>
+  </data>
+  <data name="KilobitsPerSecond" xml:space="preserve">
+    <value>Kbps</value>
+  </data>
+  <data name="PaletteColorblind" xml:space="preserve">
+    <value>Daltonisme</value>
+  </data>
+  <data name="PaletteMonochromatic" xml:space="preserve">
+    <value>Vif</value>
+  </data>
+  <data name="Details" xml:space="preserve">
+    <value>Détails</value>
+  </data>
+  <data name="PaletteBotanical" xml:space="preserve">
+    <value>Botanique</value>
+  </data>
+  <data name="PaletteEarth" xml:space="preserve">
+    <value>Tons terre</value>
+  </data>
+  <data name="PaletteTech" xml:space="preserve">
+    <value>Tech froide</value>
+  </data>
+  <data name="ThemeDark" xml:space="preserve">
+    <value>Sombre</value>
+  </data>
+  <data name="PaletteHighContrast" xml:space="preserve">
+    <value>Contraste élevé</value>
+  </data>
+  <data name="PaletteStudio" xml:space="preserve">
+    <value>Studio</value>
+  </data>
+  <data name="PaletteNeon" xml:space="preserve">
+    <value>Cyberpunk</value>
+  </data>
+  <data name="NetworkRatePair" xml:space="preserve">
+    <value>↓{0} ↑{1} {2}</value>
+  </data>
+  <data name="PaletteSpectrum" xml:space="preserve">
+    <value>Spectre</value>
+  </data>
+  <data name="PalettePastel" xml:space="preserve">
+    <value>Sophistiqué</value>
+  </data>
+  <data name="ThemeSystem" xml:space="preserve">
+    <value>Système</value>
+  </data>
+  <data name="MegabitsPerSecond" xml:space="preserve">
+    <value>Mbps</value>
+  </data>
+  <data name="ThemeLight" xml:space="preserve">
+    <value>Clair</value>
+  </data>
+  <data name="PaletteSignal" xml:space="preserve">
+    <value>Signal</value>
+  </data>
+  <data name="PaletteClassic" xml:space="preserve">
+    <value>Classique</value>
+  </data>
+  <data name="PaletteOcean" xml:space="preserve">
+    <value>Océan</value>
+  </data>
+  <data name="GigabitsPerSecond" xml:space="preserve">
+    <value>Gbps</value>
+  </data>
+  <data name="ApplicationDescription" xml:space="preserve">
+    <value>Moniteur léger des ressources Windows</value>
+  </data>
+  <data name="Language" xml:space="preserve">
+    <value>Langue</value>
+  </data>
+  <data name="LanguageChinese" xml:space="preserve">
+    <value>简体中文</value>
+  </data>
+  <data name="LanguageEnglish" xml:space="preserve">
+    <value>English</value>
+  </data>
+  <data name="LanguageFrench" xml:space="preserve">
+    <value>Français</value>
+  </data>
+  <data name="LanguageGerman" xml:space="preserve">
+    <value>Deutsch</value>
+  </data>
+  <data name="LanguageJapanese" xml:space="preserve">
+    <value>日本語</value>
+  </data>
+  <data name="LanguageKorean" xml:space="preserve">
+    <value>한국어</value>
+  </data>
+  <data name="LanguagePolish" xml:space="preserve">
+    <value>Polski</value>
+  </data>
+  <data name="LanguagePortuguese" xml:space="preserve">
+    <value>Português (Brasil)</value>
+  </data>
+  <data name="LanguageApplyNote" xml:space="preserve">
+    <value>La langue change à l’enregistrement. L’option Windows suit la langue d’affichage du système.</value>
+  </data>
+  <data name="LanguageRussian" xml:space="preserve">
+    <value>Русский</value>
+  </data>
+  <data name="LanguageSpanish" xml:space="preserve">
+    <value>Español</value>
+  </data>
+  <data name="LanguageSystemDefault" xml:space="preserve">
+    <value>Langue d’affichage Windows</value>
+  </data>
+</root>

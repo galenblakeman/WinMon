@@ -1,0 +1,1219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms</value>
+  </resheader>
+  <data name="AboutWinMon" xml:space="preserve">
+    <value>关于 WinMon</value>
+  </data>
+  <data name="AboutWinMonAndHardwareInformation" xml:space="preserve">
+    <value>关于 WinMon 和硬件信息</value>
+  </data>
+  <data name="AccessDeniedWindowsDidNotAllowWinMonToEndThis" xml:space="preserve">
+    <value>访问被拒绝。Windows 不允许 WinMon 结束此进程，或进程已退出。</value>
+  </data>
+  <data name="AdapterUtilizationOfTheBusiestEngineAcrossAvailableGPUs" xml:space="preserve">
+    <value>适配器 {0} · {1}
+可用 GPU 中最繁忙引擎的利用率。</value>
+  </data>
+  <data name="AdditionalCPUSpecificationsUnavailableFromWindows" xml:space="preserve">
+    <value>
+无法从 Windows 获取更多 CPU 规格。</value>
+  </data>
+  <data name="AddsWinMonToYourStartMenuWindowsThenHandlesThe" xml:space="preserve">
+    <value>将 WinMon 添加到“开始”菜单。Windows 会处理此快捷键，因此即使 WinMon 未运行也可使用。</value>
+  </data>
+  <data name="Alpha" xml:space="preserve">
+    <value>Alpha</value>
+  </data>
+  <data name="AlsoStartWinMonWithThisShortcut" xml:space="preserve">
+    <value>也使用此快捷键启动 WinMon</value>
+  </data>
+  <data name="Alt" xml:space="preserve">
+    <value>Alt</value>
+  </data>
+  <data name="AnotherAppIsUsingChooseAnother" xml:space="preserve">
+    <value>其他应用正在使用 {0}。请选择其他快捷键。</value>
+  </data>
+  <data name="AnotherAppIsUsingThisShortcutChooseAnother" xml:space="preserve">
+    <value>其他应用正在使用此快捷键。请选择其他快捷键。</value>
+  </data>
+  <data name="Appearance" xml:space="preserve">
+    <value>外观</value>
+  </data>
+  <data name="AppliesWhenYouSaveIfACombinationDoesnTAppear" xml:space="preserve">
+    <value>保存后生效。如果组合未显示，说明其他应用正在使用它。</value>
+  </data>
+  <data name="ARM" xml:space="preserve">
+    <value>ARM</value>
+  </data>
+  <data name="ARM64" xml:space="preserve">
+    <value>ARM64</value>
+  </data>
+  <data name="ATA" xml:space="preserve">
+    <value>ATA</value>
+  </data>
+  <data name="ATAPI" xml:space="preserve">
+    <value>ATAPI</value>
+  </data>
+  <data name="AvailableForLiveIndividualProcessesEndingAProcessCanLose" xml:space="preserve">
+    <value>仅适用于实时的单个进程。结束进程可能导致未保存的工作丢失。</value>
+  </data>
+  <data name="AverageOverTheLast5SecondsWindowsCountsProcessCPU" xml:space="preserve">
+    <value>最近 5 秒的平均值。Windows 以 15.6 毫秒为单位计算进程 CPU 时间，因此单秒读数经常为零。</value>
+  </data>
+  <data name="BoardVersionSerialNumber" xml:space="preserve">
+    <value>主板版本：{0}
+序列号：{1}</value>
+  </data>
+  <data name="BusiestEnginePerIntervalAveragedOverReadableIntervalsInThe" xml:space="preserve">
+    <value>每个间隔中最繁忙的引擎，取最近 5 秒内可读间隔的平均值。
+最近测得的引擎：{0} · 适配器 {1}
+进程 GPU 百分比不能相加。</value>
+  </data>
+  <data name="BusiestGPU" xml:space="preserve">
+    <value>最繁忙的 GPU</value>
+  </data>
+  <data name="BusiestGPUEnginePerProcessAveragedOverReadableIntervalsIn" xml:space="preserve">
+    <value>每个进程最繁忙的 GPU 引擎，取最近 5 秒内可读间隔的平均值。百分比不能相加。</value>
+  </data>
+  <data name="BusiestMemberGPU" xml:space="preserve">
+    <value>成员最高 GPU</value>
+  </data>
+  <data name="BusiestMemberGpuTitle" xml:space="preserve">
+    <value>成员最高 GPU</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="CanTBeUsed" xml:space="preserve">
+    <value>无法使用 {0}。{1}</value>
+  </data>
+  <data name="CapacityType" xml:space="preserve">
+    <value>容量：{0} · 类型：{1}
+</value>
+  </data>
+  <data name="ChartPalette" xml:space="preserve">
+    <value>图表配色</value>
+  </data>
+  <data name="ChartTimeRange" xml:space="preserve">
+    <value>图表时间范围</value>
+  </data>
+  <data name="ChooseAPrimaryVolumeAndADifferentSecondVolumeOr" xml:space="preserve">
+    <value>请选择主卷和不同的第二个卷，或选择“无”。</value>
+  </data>
+  <data name="ChooseUpTo2Volumes" xml:space="preserve">
+    <value>最多选择 2 个卷。</value>
+  </data>
+  <data name="ClearProcessSearch" xml:space="preserve">
+    <value>清除进程搜索</value>
+  </data>
+  <data name="ClearSearch" xml:space="preserve">
+    <value>清除搜索</value>
+  </data>
+  <data name="ClickHereThenPressTheCombinationAtLeastTwoOf" xml:space="preserve">
+    <value>单击此处，然后按组合键：Ctrl、Alt 和 Shift 中至少两个，再加一个键。按 Backspace 关闭快捷键。</value>
+  </data>
+  <data name="ClickToRankProcessesBy" xml:space="preserve">
+    <value>{0}
+单击以按 {1} 排序进程。</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>关闭</value>
+  </data>
+  <data name="Collecting" xml:space="preserve">
+    <value>正在采集…</value>
+  </data>
+  <data name="CollectingABaselineOrRecoveringAfterARecordingGap" xml:space="preserve">
+    <value>正在采集基线或从记录中断中恢复…</value>
+  </data>
+  <data name="CollectingDisconnected" xml:space="preserve">
+    <value>正在采集 / 已断开</value>
+  </data>
+  <data name="CollectingTheFirstInterval" xml:space="preserve">
+    <value>正在采集首个间隔…</value>
+  </data>
+  <data name="ConfiguredSpeedReportedSpeed" xml:space="preserve">
+    <value>配置速度：{0} · 报告速度：{1}
+</value>
+  </data>
+  <data name="Copied" xml:space="preserve">
+    <value>已复制</value>
+  </data>
+  <data name="Copy" xml:space="preserve">
+    <value>复制</value>
+  </data>
+  <data name="CopyAllInformation" xml:space="preserve">
+    <value>复制所有信息</value>
+  </data>
+  <data name="CopyAllInformationAsPlainText" xml:space="preserve">
+    <value>以纯文本复制所有信息</value>
+  </data>
+  <data name="CopyInformation" xml:space="preserve">
+    <value>复制信息</value>
+  </data>
+  <data name="CPU" xml:space="preserve">
+    <value>CPU</value>
+  </data>
+  <data name="CpuTraySuffix" xml:space="preserve">
+    <value> CPU</value>
+  </data>
+  <data name="CpuColumn" xml:space="preserve">
+    <value>CPU %</value>
+  </data>
+  <data name="CPUDetails" xml:space="preserve">
+    <value>CPU 详情</value>
+  </data>
+  <data name="CPUHistoryOnOneScaleSharedByEveryRowHover" xml:space="preserve">
+    <value>所有行使用相同刻度的 CPU 历史。悬停于某行可查看刻度。</value>
+  </data>
+  <data name="CPUMemoryConfiguredDisksNetworkAndGPUOverlayHistoryClick" xml:space="preserve">
+    <value>CPU、内存、已配置磁盘、网络和 GPU 的叠加历史。单击检查；方向键移动，End 返回实时。</value>
+  </data>
+  <data name="CPUUnavailableOtherResourcesContinueRecording" xml:space="preserve">
+    <value>CPU 不可用；其他资源继续记录。</value>
+  </data>
+  <data name="Ctrl" xml:space="preserve">
+    <value>Ctrl</value>
+  </data>
+  <data name="CtrlAltDeleteIsReservedByWindows" xml:space="preserve">
+    <value>Ctrl+Alt+Delete 由 Windows 保留。</value>
+  </data>
+  <data name="DDR" xml:space="preserve">
+    <value>DDR</value>
+  </data>
+  <data name="DDR2" xml:space="preserve">
+    <value>DDR2</value>
+  </data>
+  <data name="DDR2FBDIMM" xml:space="preserve">
+    <value>DDR2 FB-DIMM</value>
+  </data>
+  <data name="DDR3" xml:space="preserve">
+    <value>DDR3</value>
+  </data>
+  <data name="DDR4" xml:space="preserve">
+    <value>DDR4</value>
+  </data>
+  <data name="DDR5" xml:space="preserve">
+    <value>DDR5</value>
+  </data>
+  <data name="DedicatedVideoMemoryGiB" xml:space="preserve">
+    <value>{0}
+专用显存：{1:0.##} GiB</value>
+  </data>
+  <data name="Default" xml:space="preserve">
+    <value>默认</value>
+  </data>
+  <data name="DetailsUnavailable" xml:space="preserve">
+    <value>{0} 详情不可用</value>
+  </data>
+  <data name="DevicesAreShownAsWindowsExposesThemRAIDAndVirtual" xml:space="preserve">
+    <value>
+
+设备按 Windows 提供的信息显示；RAID 和虚拟磁盘可能隐藏底层硬件。</value>
+  </data>
+  <data name="Disabled" xml:space="preserve">
+    <value>已禁用</value>
+  </data>
+  <data name="Disconnected" xml:space="preserve">
+    <value>已断开</value>
+  </data>
+  <data name="Disk" xml:space="preserve">
+    <value>磁盘</value>
+  </data>
+  <data name="DiskLabel" xml:space="preserve">
+    <value>磁盘 ({0})</value>
+  </data>
+  <data name="SecondaryDiskHistoryLine" xml:space="preserve">
+    <value>
+磁盘 {0} {1}{2}</value>
+  </data>
+  <data name="PhysicalDiskTitle" xml:space="preserve">
+    <value>磁盘 {0} · {1}</value>
+  </data>
+  <data name="DiskMonitoring" xml:space="preserve">
+    <value>磁盘监视</value>
+  </data>
+  <data name="Dormant" xml:space="preserve">
+    <value>休眠</value>
+  </data>
+  <data name="Down" xml:space="preserve">
+    <value>停用</value>
+  </data>
+  <data name="DrawnAsADashedLineOnTheChart" xml:space="preserve">
+    <value>
+在图表上显示为虚线。</value>
+  </data>
+  <data name="EndPID" xml:space="preserve">
+    <value>结束 {0} (PID {1})…</value>
+  </data>
+  <data name="EndPIDUnsavedWorkMayBeLostOnlyThisProcess" xml:space="preserve">
+    <value>结束 {0} (PID {1})？
+
+未保存的工作可能丢失。仅结束此进程。</value>
+  </data>
+  <data name="EndProcess" xml:space="preserve">
+    <value>结束进程</value>
+  </data>
+  <data name="ExecutablePathUnavailable" xml:space="preserve">
+    <value>可执行文件路径不可用</value>
+  </data>
+  <data name="Executables" xml:space="preserve">
+    <value>可执行文件</value>
+  </data>
+  <data name="Exit" xml:space="preserve">
+    <value>退出</value>
+  </data>
+  <data name="FibreChannel" xml:space="preserve">
+    <value>光纤通道</value>
+  </data>
+  <data name="FileBackedVirtual" xml:space="preserve">
+    <value>文件支持的虚拟磁盘</value>
+  </data>
+  <data name="FilterRankedProcessesByNameOrPIDCtrlFEscape" xml:space="preserve">
+    <value>按名称或 PID 筛选已排序进程 (Ctrl+F)。Esc 清除搜索。</value>
+  </data>
+  <data name="GHzMHz" xml:space="preserve">
+    <value>{0:0.###} GHz ({1} MHz)</value>
+  </data>
+  <data name="GiB" xml:space="preserve">
+    <value>{0:0.0} / {1:0.#} GiB</value>
+  </data>
+  <data name="CapacityGiB" xml:space="preserve">
+    <value>{0:0.##} GiB</value>
+  </data>
+  <data name="GiBCapacityGiBAvailable" xml:space="preserve">
+    <value>{0} {1} · {2}
+容量 {3:0.#} GiB · 可用 {4:0.#} GiB</value>
+  </data>
+  <data name="GPU" xml:space="preserve">
+    <value>GPU</value>
+  </data>
+  <data name="GpuColumn" xml:space="preserve">
+    <value>GPU %</value>
+  </data>
+  <data name="GPUCountersUnavailableOrCollectingAFreshInterval" xml:space="preserve">
+    <value>GPU 计数器不可用，或正在采集新的间隔。</value>
+  </data>
+  <data name="GPUPercentagesRepresentDifferentEnginesAndCannotBeSummed" xml:space="preserve">
+    <value>GPU 百分比代表不同的引擎，不能相加。</value>
+  </data>
+  <data name="GPUUtilizationUnavailableForThisProcessNoValidCounterOr" xml:space="preserve">
+    <value>此进程的 GPU 利用率不可用；没有有效计数器或匹配的进程生存期。</value>
+  </data>
+  <data name="GraphicsAdapters" xml:space="preserve">
+    <value>显示适配器</value>
+  </data>
+  <data name="Grouped" xml:space="preserve">
+    <value>分组</value>
+  </data>
+  <data name="HardwareInformationCouldNotBeReadTryRefresh" xml:space="preserve">
+    <value>无法读取硬件信息。请尝试刷新。</value>
+  </data>
+  <data name="HDD" xml:space="preserve">
+    <value>HDD</value>
+  </data>
+  <data name="HealthIsAProviderReportNotAFullSMARTDiagnostic" xml:space="preserve">
+    <value>
+健康状态是提供程序的报告，并非完整的 SMART 诊断。</value>
+  </data>
+  <data name="Healthy" xml:space="preserve">
+    <value>健康</value>
+  </data>
+  <data name="HistoricalIntervalCPUMemoryDiskNetworkOfLinkGPUClick" xml:space="preserve">
+    <value>{0:HH:mm:ss} · 历史间隔
+CPU {1}
+内存 {2}
+磁盘 {3} {4}{5}{6}
+网络 {7} {8} · 链路的 {9}{10}
+GPU {11} · {12}
+单击固定；顶部读数保持实时</value>
+  </data>
+  <data name="HistoricalRetention" xml:space="preserve">
+    <value>历史保留时长</value>
+  </data>
+  <data name="History" xml:space="preserve">
+    <value>历史</value>
+  </data>
+  <data name="History0GPUUtilization" xml:space="preserve">
+    <value>{0} 历史
+GPU 利用率 0–{1:0.0}%</value>
+  </data>
+  <data name="History0MBS" xml:space="preserve">
+    <value>{0} 历史
+0–{1:0.##} MB/s</value>
+  </data>
+  <data name="History0MiB" xml:space="preserve">
+    <value>{0} 历史
+0–{1:0.##} MiB</value>
+  </data>
+  <data name="History0OfTotalMachineCPU" xml:space="preserve">
+    <value>{0} 历史
+占整机 CPU 的 0–{1:0.0}%</value>
+  </data>
+  <data name="HistoryExpiredThisSampleHasLeftTheRecordingWindow" xml:space="preserve">
+    <value>历史已过期。此样本已超出记录时间窗口。</value>
+  </data>
+  <data name="HistoryExpiredThisSampleHasLeftTheRecordingWindowReturn" xml:space="preserve">
+    <value>历史已过期。此样本已超出记录时间窗口。请返回实时。</value>
+  </data>
+  <data name="HistoryOnOneScaleSharedByEveryRowHoverA" xml:space="preserve">
+    <value>所有行使用相同刻度的 {0} 历史。悬停于某行可查看刻度。</value>
+  </data>
+  <data name="HistoryShortenedByMemoryLimit" xml:space="preserve">
+    <value>内存限制缩短了历史记录</value>
+  </data>
+  <data name="IdleGroupMembersMayBeOmitted" xml:space="preserve">
+    <value> · 可能省略空闲组成员</value>
+  </data>
+  <data name="IEEE1394" xml:space="preserve">
+    <value>IEEE 1394</value>
+  </data>
+  <data name="Index" xml:space="preserve">
+    <value>Index</value>
+  </data>
+  <data name="Individual" xml:space="preserve">
+    <value>单个</value>
+  </data>
+  <data name="Info" xml:space="preserve">
+    <value>信息</value>
+  </data>
+  <data name="InitializationFailedCloseAndRestartWinMon" xml:space="preserve">
+    <value>初始化失败。请关闭并重新启动 WinMon。</value>
+  </data>
+  <data name="InstalledMemory" xml:space="preserve">
+    <value>已安装内存</value>
+  </data>
+  <data name="InstalledOSUsable" xml:space="preserve">
+    <value>已安装：{0} · 系统可用：{1}
+{2} · {3}</value>
+  </data>
+  <data name="IntervalReadingsTopReadoutsStayLive" xml:space="preserve">
+    <value>间隔读数 · 顶部读数保持实时</value>
+  </data>
+  <data name="IO" xml:space="preserve">
+    <value>I/O</value>
+  </data>
+  <data name="IOMBS" xml:space="preserve">
+    <value>I/O MB/s</value>
+  </data>
+  <data name="ISCSI" xml:space="preserve">
+    <value>iSCSI</value>
+  </data>
+  <data name="Itanium" xml:space="preserve">
+    <value>Itanium</value>
+  </data>
+  <data name="KeepOnTopOff" xml:space="preserve">
+    <value>置顶，关</value>
+  </data>
+  <data name="KeepOnTopOn" xml:space="preserve">
+    <value>置顶，开</value>
+  </data>
+  <data name="KeepThisWindowOnTopOfOtherWindows" xml:space="preserve">
+    <value>将此窗口置于其他窗口之上</value>
+  </data>
+  <data name="KeptOnTopOfOtherWindowsClickToStop" xml:space="preserve">
+    <value>已置于其他窗口之上。单击取消。</value>
+  </data>
+  <data name="KeyboardShortcut" xml:space="preserve">
+    <value>键盘快捷键</value>
+  </data>
+  <data name="L2CacheReportedL3CacheReported" xml:space="preserve">
+    <value>L2 缓存（报告值）：{0} · L3 缓存（报告值）：{1}
+</value>
+  </data>
+  <data name="LastMinSameScaleForEveryRow" xml:space="preserve">
+    <value>{0} · {1}
+{2}
+{3} · 最近 {4:0.#} 分钟
+所有行使用相同刻度</value>
+  </data>
+  <data name="License" xml:space="preserve">
+    <value>{0} · {1} 许可证</value>
+  </data>
+  <data name="Link" xml:space="preserve">
+    <value> · {0} 链路</value>
+  </data>
+  <data name="LinkSpeedUnavailable" xml:space="preserve">
+    <value> · 链路速度不可用</value>
+  </data>
+  <data name="LinkSpeedUnavailableLabel" xml:space="preserve">
+    <value>链路速度不可用</value>
+  </data>
+  <data name="LocalVolumes" xml:space="preserve">
+    <value>本地卷</value>
+  </data>
+  <data name="LogicalProcessors" xml:space="preserve">
+    <value>{0} · {1} 个逻辑处理器</value>
+  </data>
+  <data name="LowerLayerDown" xml:space="preserve">
+    <value>下层连接中断</value>
+  </data>
+  <data name="LPDDR" xml:space="preserve">
+    <value>LPDDR</value>
+  </data>
+  <data name="LPDDR2" xml:space="preserve">
+    <value>LPDDR2</value>
+  </data>
+  <data name="LPDDR3" xml:space="preserve">
+    <value>LPDDR3</value>
+  </data>
+  <data name="LPDDR4" xml:space="preserve">
+    <value>LPDDR4</value>
+  </data>
+  <data name="LPDDR5" xml:space="preserve">
+    <value>LPDDR5</value>
+  </data>
+  <data name="M" xml:space="preserve">
+    <value>{0}分</value>
+  </data>
+  <data name="ManufacturerArchitecture" xml:space="preserve">
+    <value>制造商：{0} · 架构：{1}
+</value>
+  </data>
+  <data name="ManufacturerModel" xml:space="preserve">
+    <value>制造商：{0}
+型号：{1}
+</value>
+  </data>
+  <data name="ManufacturerPartNumberBank" xml:space="preserve">
+    <value>制造商：{0}
+部件号：{1} · 内存库：{2}</value>
+  </data>
+  <data name="MappingUnavailable" xml:space="preserve">
+    <value>映射不可用</value>
+  </data>
+  <data name="MaximumClockIsAReportedSpecificationNotLiveFrequencyOr" xml:space="preserve">
+    <value>最高时钟为报告的规格，并非实时频率或测得的加速频率。虚拟机可能隐藏规格和功能。</value>
+  </data>
+  <data name="MBS" xml:space="preserve">
+    <value>{0:0.0} MB/s</value>
+  </data>
+  <data name="DiskRateSuffix" xml:space="preserve">
+    <value> · {0:0.00} MB/s</value>
+  </data>
+  <data name="MediaConnectionCapacity" xml:space="preserve">
+    <value>{0}
+介质：{1} · 连接：{2} · 容量：{3}
+</value>
+  </data>
+  <data name="Memory" xml:space="preserve">
+    <value>内存</value>
+  </data>
+  <data name="MemoryLowercase" xml:space="preserve">
+    <value>内存</value>
+  </data>
+  <data name="MemoryModules" xml:space="preserve">
+    <value>{0} 个内存模块</value>
+  </data>
+  <data name="MemorySpecificationsAndSlotCountsReflectFirmwareReports" xml:space="preserve">
+    <value>
+
+内存规格和插槽数量来自固件报告。</value>
+  </data>
+  <data name="MHzWindowsReported" xml:space="preserve">
+    <value>{0} MHz（Windows 报告）</value>
+  </data>
+  <data name="MiB" xml:space="preserve">
+    <value>{0:N0} MiB</value>
+  </data>
+  <data name="CapacityMiB" xml:space="preserve">
+    <value>{0:0.##} MiB</value>
+  </data>
+  <data name="Min" xml:space="preserve">
+    <value>{0:0.#} 分钟</value>
+  </data>
+  <data name="MinAgo" xml:space="preserve">
+    <value>{0:0.#} 分钟前</value>
+  </data>
+  <data name="MinimizeToTheNotificationArea" xml:space="preserve">
+    <value>最小化到通知区域</value>
+  </data>
+  <data name="MIPS" xml:space="preserve">
+    <value>MIPS</value>
+  </data>
+  <data name="MissingReading" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="MMC" xml:space="preserve">
+    <value>MMC</value>
+  </data>
+  <data name="Model" xml:space="preserve">
+    <value>型号：{0}
+</value>
+  </data>
+  <data name="ModelUnavailable" xml:space="preserve">
+    <value>型号不可用</value>
+  </data>
+  <data name="Module" xml:space="preserve">
+    <value>模块 {0}</value>
+  </data>
+  <data name="ModuleCountUnavailable" xml:space="preserve">
+    <value>模块数量不可用</value>
+  </data>
+  <data name="ModuleDetailsUnavailableFromWindows" xml:space="preserve">
+    <value>
+无法从 Windows 获取模块详情。</value>
+  </data>
+  <data name="Motherboard" xml:space="preserve">
+    <value>主板</value>
+  </data>
+  <data name="MotherboardInformationUnavailableFromWindows" xml:space="preserve">
+    <value>无法从 Windows 获取主板信息。</value>
+  </data>
+  <data name="Network" xml:space="preserve">
+    <value>网络</value>
+  </data>
+  <data name="NetworkAdapterInventoryUnavailableFromWindows" xml:space="preserve">
+    <value>无法从 Windows 获取网络适配器清单。</value>
+  </data>
+  <data name="NetworkAdapters" xml:space="preserve">
+    <value>网络适配器</value>
+  </data>
+  <data name="NetworkScale0" xml:space="preserve">
+    <value>网络刻度 0–{0}</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>否</value>
+  </data>
+  <data name="NoConnectedEthernetOrWiFiInterfaceAvailable" xml:space="preserve">
+    <value>没有可用的已连接以太网或 Wi-Fi 接口。</value>
+  </data>
+  <data name="NoDriveLettersAssigned" xml:space="preserve">
+    <value>未分配驱动器号</value>
+  </data>
+  <data name="NoHardwareAdaptersReportedByWindows" xml:space="preserve">
+    <value>Windows 未报告硬件适配器。</value>
+  </data>
+  <data name="NoLocalVolumesReported" xml:space="preserve">
+    <value>未报告本地卷。</value>
+  </data>
+  <data name="NoMeasurableActiveProcessesInThisWindow" xml:space="preserve">
+    <value>此时间窗口中没有可测量的活动进程。</value>
+  </data>
+  <data name="NoMeasurableGPUActivityAmongAccessibleProcessesInThisWindow" xml:space="preserve">
+    <value>此时间窗口内可访问进程中没有可测量的 GPU 活动。</value>
+  </data>
+  <data name="NoMeasurableIOAmongAccessibleProcessesInThisWindow" xml:space="preserve">
+    <value>此时间窗口内可访问进程中没有可测量的 I/O。</value>
+  </data>
+  <data name="NoMemoryReadingsAmongAccessibleProcesses" xml:space="preserve">
+    <value>可访问进程中没有内存读数。</value>
+  </data>
+  <data name="None" xml:space="preserve">
+    <value>无</value>
+  </data>
+  <data name="NoPresentNetworkAdaptersReported" xml:space="preserve">
+    <value>未报告当前存在的网络适配器。</value>
+  </data>
+  <data name="NoRankedProcessesMatchYourSearch" xml:space="preserve">
+    <value>没有与搜索匹配的已排序进程。</value>
+  </data>
+  <data name="NoSampleInThisInterval" xml:space="preserve">
+    <value>此间隔内没有样本</value>
+  </data>
+  <data name="NotReady" xml:space="preserve">
+    <value>{0} 未就绪</value>
+  </data>
+  <data name="Now" xml:space="preserve">
+    <value>现在</value>
+  </data>
+  <data name="Number" xml:space="preserve">
+    <value>Number</value>
+  </data>
+  <data name="NumberOfProcessesShown" xml:space="preserve">
+    <value>显示的进程数量</value>
+  </data>
+  <data name="NumberOfTopProcesses" xml:space="preserve">
+    <value>排名靠前的进程数量</value>
+  </data>
+  <data name="NVMe" xml:space="preserve">
+    <value>NVMe</value>
+  </data>
+  <data name="OffClickTheBoxAndPressACombinationToSet" xml:space="preserve">
+    <value>已关闭。单击输入框并按组合键进行设置。</value>
+  </data>
+  <data name="OfLink" xml:space="preserve">
+    <value> · 链路的 {0}</value>
+  </data>
+  <data name="OfSlotsUsedFirmwareReported" xml:space="preserve">
+    <value>已用 {0} / {1} 个插槽（固件报告）</value>
+  </data>
+  <data name="OfTotalCPUAveragedOver5SecondsGPUAveragedOver" xml:space="preserve">
+    <value>{0}，{1}，整机 CPU 的 {2}，5 秒平均；GPU {3}，最近 5 秒内可读间隔的平均值；内存 {4}，读写 I/O 每秒 {5} MB</value>
+  </data>
+  <data name="OneRowPerExecutable" xml:space="preserve">
+    <value>每个可执行文件一行</value>
+  </data>
+  <data name="OneRowPerExecutableCPUAndIOSummedGPU" xml:space="preserve">
+    <value>每个可执行文件一行：CPU 和 I/O 相加，GPU 取最繁忙成员，内存取专用字节总和</value>
+  </data>
+  <data name="OneRowPerProcess" xml:space="preserve">
+    <value>每个进程一行</value>
+  </data>
+  <data name="OtherExecutables" xml:space="preserve">
+    <value>其他可执行文件 ({0:N0})</value>
+  </data>
+  <data name="OtherOfTotalCPUCombinedAveragedOver5Seconds" xml:space="preserve">
+    <value>其他 {0} 个{1}，整机 CPU 合计 {2}，5 秒平均</value>
+  </data>
+  <data name="OtherProcesses" xml:space="preserve">
+    <value>其他进程 ({0:N0})</value>
+  </data>
+  <data name="OutsideChartRangeTopReadoutsStayLive" xml:space="preserve">
+    <value>超出图表范围 · 顶部读数保持实时</value>
+  </data>
+  <data name="PhysicalCoreCountUnavailable" xml:space="preserve">
+    <value>物理核心数不可用</value>
+  </data>
+  <data name="PhysicalCores" xml:space="preserve">
+    <value>{0} 个物理核心</value>
+  </data>
+  <data name="PhysicalCoresInThisSocketLogicalProcessorsInThisSocket" xml:space="preserve">
+    <value>此插槽的物理核心：{0}
+此插槽的逻辑处理器：{1}
+</value>
+  </data>
+  <data name="PhysicalDriveInventoryUnavailableVolumeInformationIsListedSeparately" xml:space="preserve">
+    <value>物理驱动器清单不可用。卷信息单独列出。</value>
+  </data>
+  <data name="PhysicalDrives" xml:space="preserve">
+    <value>物理驱动器</value>
+  </data>
+  <data name="PID" xml:space="preserve">
+    <value>PID {0}</value>
+  </data>
+  <data name="PIDs" xml:space="preserve">
+    <value>PIDs {0}</value>
+  </data>
+  <data name="PIDsMore" xml:space="preserve">
+    <value>PID {0}，另有 {1} 个</value>
+  </data>
+  <data name="PopulatedCoresPerSocketReportedMaximum" xml:space="preserve">
+    <value>
+已用 {0} 个{1} · 每插槽核心数：{2}
+报告的最高频率：{3}</value>
+  </data>
+  <data name="PowerPC" xml:space="preserve">
+    <value>PowerPC</value>
+  </data>
+  <data name="PrimaryDrive" xml:space="preserve">
+    <value>主驱动器</value>
+  </data>
+  <data name="Private" xml:space="preserve">
+    <value>专用</value>
+  </data>
+  <data name="PrivateBytesSummedAcrossThisExecutableSCurrentProcesses" xml:space="preserve">
+    <value>此可执行文件当前所有进程的专用字节总和。</value>
+  </data>
+  <data name="Process" xml:space="preserve">
+    <value>进程 {0}</value>
+  </data>
+  <data name="ProcessColumn" xml:space="preserve">
+    <value>进程</value>
+  </data>
+  <data name="Processes" xml:space="preserve">
+    <value>{0} 个进程</value>
+  </data>
+  <data name="ProcessesLowercase" xml:space="preserve">
+    <value>进程</value>
+  </data>
+  <data name="ProcessesAtSAverage" xml:space="preserve">
+    <value>{0:HH:mm:ss} 的进程 · {1}秒平均{2}</value>
+  </data>
+  <data name="ProcessesBy" xml:space="preserve">
+    <value>进程，按</value>
+  </data>
+  <data name="ProcessesNeedAdministratorAccess" xml:space="preserve">
+    <value>{0} 个进程需要管理员权限</value>
+  </data>
+  <data name="ProcessGrouping" xml:space="preserve">
+    <value>进程分组</value>
+  </data>
+  <data name="Processor" xml:space="preserve">
+    <value>处理器 {0}</value>
+  </data>
+  <data name="ProcessReadWriteIOIncludesFileNetworkAndDevice" xml:space="preserve">
+    <value>进程读写 I/O 包括文件、网络和设备操作；并非仅磁盘吞吐量</value>
+  </data>
+  <data name="RAID" xml:space="preserve">
+    <value>RAID</value>
+  </data>
+  <data name="RankByFiveSecondAverageCPUGPUOrIO" xml:space="preserve">
+    <value>按 5 秒平均 CPU、GPU、I/O 或当前内存排序</value>
+  </data>
+  <data name="RankProcessesBy" xml:space="preserve">
+    <value>进程排序依据</value>
+  </data>
+  <data name="ReadingHardwareInformation" xml:space="preserve">
+    <value>正在读取硬件信息…</value>
+  </data>
+  <data name="ReadingsUnavailableRetryingEachSecond" xml:space="preserve">
+    <value>读数不可用；每秒重试。</value>
+  </data>
+  <data name="ReadWriteIO" xml:space="preserve">
+    <value>读写 I/O</value>
+  </data>
+  <data name="ReadWriteIOIncludesFileNetworkAndDeviceOperations" xml:space="preserve">
+    <value>读写 I/O 包括文件、网络和设备操作；并非仅磁盘吞吐量。</value>
+  </data>
+  <data name="ReceiveSendTheValueIsTheBusierDirectionUtilizationIs" xml:space="preserve">
+    <value>{0}{1}{2}
+↓ 接收 · ↑ 发送。数值为较繁忙方向；利用率相对于链路速度，并非互联网带宽。</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>刷新</value>
+  </data>
+  <data name="RemainingProcessesInTheCurrentRankingCPUAndIO" xml:space="preserve">
+    <value>当前排名中的其余进程。CPU 和 I/O 相加；内存包含共享页，GPU 百分比不能相加。</value>
+  </data>
+  <data name="ReportedMaximumClock" xml:space="preserve">
+    <value>报告的最高时钟：{0}
+</value>
+  </data>
+  <data name="ResidentMemory" xml:space="preserve">
+    <value>驻留内存</value>
+  </data>
+  <data name="ResidentWorkingSetIncludingSharedPages" xml:space="preserve">
+    <value>驻留工作集，包含共享页</value>
+  </data>
+  <data name="ResidentWorkingSetIncludingSharedPagesDoesNotSumTo" xml:space="preserve">
+    <value>驻留工作集，包含共享页。不能相加得到已用物理内存总量。</value>
+  </data>
+  <data name="ResourceColorsCPUMemoryPrimaryDiskNetworkGPUSecondDisk" xml:space="preserve">
+    <value>资源颜色：CPU、内存、主磁盘、网络、GPU、第二磁盘。高对比度使用 Windows 颜色。</value>
+  </data>
+  <data name="RestoreTheDefaultShortcut" xml:space="preserve">
+    <value>恢复默认快捷键</value>
+  </data>
+  <data name="ResumeLiveReadingsAndProcessesEndOrEscape" xml:space="preserve">
+    <value>恢复实时读数和进程（End 或 Esc）</value>
+  </data>
+  <data name="ReturnToLive" xml:space="preserve">
+    <value>返回实时</value>
+  </data>
+  <data name="ReturnToLiveToInspectCurrentActivity" xml:space="preserve">
+    <value>返回实时以检查当前活动。</value>
+  </data>
+  <data name="RxTxMbps" xml:space="preserve">
+    <value>
+接收 {0:0.00} / 发送 {1:0.00} Mbps</value>
+  </data>
+  <data name="S" xml:space="preserve">
+    <value>{0:0}秒</value>
+  </data>
+  <data name="SAS" xml:space="preserve">
+    <value>SAS</value>
+  </data>
+  <data name="SATA" xml:space="preserve">
+    <value>SATA</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="SCSI" xml:space="preserve">
+    <value>SCSI</value>
+  </data>
+  <data name="SD" xml:space="preserve">
+    <value>SD</value>
+  </data>
+  <data name="SearchNameOrPID" xml:space="preserve">
+    <value>搜索名称或 PID</value>
+  </data>
+  <data name="SearchProcessesByNameOrPID" xml:space="preserve">
+    <value>按名称或 PID 搜索进程</value>
+  </data>
+  <data name="SecondDrive" xml:space="preserve">
+    <value>第二驱动器</value>
+  </data>
+  <data name="SelectedChartSnapshot" xml:space="preserve">
+    <value>选定的图表快照</value>
+  </data>
+  <data name="SelectNoneToMonitorOneDriveActiveTimeAndRead" xml:space="preserve">
+    <value>选择“无”以仅监视一个驱动器。
+活动时间和读写吞吐量。</value>
+  </data>
+  <data name="Settings" xml:space="preserve">
+    <value>设置</value>
+  </data>
+  <data name="SettingsCouldNotBeSavedCheckAccessToYourLocal" xml:space="preserve">
+    <value>无法保存设置。请检查本地应用设置和启动注册的访问权限。</value>
+  </data>
+  <data name="SharedSystemMemoryLimitGiB" xml:space="preserve">
+    <value> · 共享系统内存上限：{0:0.##} GiB</value>
+  </data>
+  <data name="Shift" xml:space="preserve">
+    <value>Shift</value>
+  </data>
+  <data name="ShortcutUnavailable" xml:space="preserve">
+    <value> · 快捷键不可用</value>
+  </data>
+  <data name="ShowOnChart" xml:space="preserve">
+    <value>在图表上显示 {0}</value>
+  </data>
+  <data name="ShowTheLastMinutes" xml:space="preserve">
+    <value>显示最近 {0} 分钟</value>
+  </data>
+  <data name="ShowWinMon" xml:space="preserve">
+    <value>显示 WinMon</value>
+  </data>
+  <data name="SlotUsageUnavailable" xml:space="preserve">
+    <value>插槽使用情况不可用</value>
+  </data>
+  <data name="Snapshot" xml:space="preserve">
+    <value>快照 · {0:HH:mm:ss}</value>
+  </data>
+  <data name="ExportSnapshotTime" xml:space="preserve">
+    <value>快照：{0:yyyy-MM-dd HH:mm:ss zzz}</value>
+  </data>
+  <data name="HardwareSnapshotTime" xml:space="preserve">
+    <value>快照：{0:HH:mm:ss zzz}</value>
+  </data>
+  <data name="SnapshotTakenWhenOpenedOrRefreshed" xml:space="preserve">
+    <value>在打开或刷新时获取快照。</value>
+  </data>
+  <data name="SnapshotUnavailableTryRefresh" xml:space="preserve">
+    <value>快照不可用。请尝试刷新。</value>
+  </data>
+  <data name="Socket" xml:space="preserve">
+    <value>插槽</value>
+  </data>
+  <data name="Sockets" xml:space="preserve">
+    <value>插槽</value>
+  </data>
+  <data name="SSA" xml:space="preserve">
+    <value>SSA</value>
+  </data>
+  <data name="SSD" xml:space="preserve">
+    <value>SSD</value>
+  </data>
+  <data name="StartWinMonWhenISignIn" xml:space="preserve">
+    <value>登录时启动 WinMon</value>
+  </data>
+  <data name="StorageClassMemory" xml:space="preserve">
+    <value>存储级内存</value>
+  </data>
+  <data name="StorageSpaces" xml:space="preserve">
+    <value>存储空间</value>
+  </data>
+  <data name="SummedCPU" xml:space="preserve">
+    <value>CPU 总和</value>
+  </data>
+  <data name="SummedCpuTitle" xml:space="preserve">
+    <value>CPU 总和</value>
+  </data>
+  <data name="SummedIO" xml:space="preserve">
+    <value>I/O 总和</value>
+  </data>
+  <data name="SummedPrivateMemory" xml:space="preserve">
+    <value>专用内存总和</value>
+  </data>
+  <data name="SummedPrivateMemoryTitle" xml:space="preserve">
+    <value>专用内存总和</value>
+  </data>
+  <data name="SummedReadWriteIO" xml:space="preserve">
+    <value>读写 I/O 总和</value>
+  </data>
+  <data name="PercentOneDecimal" xml:space="preserve">
+    <value>{0:0.0}%</value>
+  </data>
+  <data name="PercentInteger" xml:space="preserve">
+    <value>{0}%</value>
+  </data>
+  <data name="UnknownDiskNumber" xml:space="preserve">
+    <value>?</value>
+  </data>
+  <data name="SearchGlyph" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="SystemResources" xml:space="preserve">
+    <value>系统资源</value>
+  </data>
+  <data name="SystemResourcesInspectingSnapshot" xml:space="preserve">
+    <value>系统资源 · 检查快照</value>
+  </data>
+  <data name="SystemResourcesUnavailable" xml:space="preserve">
+    <value>系统资源 · 不可用</value>
+  </data>
+  <data name="Testing" xml:space="preserve">
+    <value>测试中</value>
+  </data>
+  <data name="TheClipboardIsUnavailableTryCopyAgain" xml:space="preserve">
+    <value>剪贴板不可用。请重试复制。</value>
+  </data>
+  <data name="TheEmbeddedTrayIconIsUnavailable" xml:space="preserve">
+    <value>嵌入的托盘图标不可用。</value>
+  </data>
+  <data name="Theme" xml:space="preserve">
+    <value>主题</value>
+  </data>
+  <data name="TheOriginalProcessHasExitedAndItsPIDHasBeen" xml:space="preserve">
+    <value>原进程已退出，其 PID 已被重用。未结束任何进程。</value>
+  </data>
+  <data name="TheProcessCouldNotBeEnded" xml:space="preserve">
+    <value>无法结束进程：{0}</value>
+  </data>
+  <data name="TheWindowsKeyIsReservedForWindowsShortcuts" xml:space="preserve">
+    <value>Windows 键为 Windows 快捷键保留。</value>
+  </data>
+  <data name="ThisProcessCannotBeEndedFromWinMon" xml:space="preserve">
+    <value>无法通过 WinMon 结束此进程。</value>
+  </data>
+  <data name="ThisProcessHasAlreadyExited" xml:space="preserve">
+    <value>此进程已退出。</value>
+  </data>
+  <data name="ThisProcessHasAlreadyExitedOrIsNoLongerAvailable" xml:space="preserve">
+    <value>此进程已退出或不再可用。</value>
+  </data>
+  <data name="ThisShortcutCouldNotBeRegisteredChooseAnother" xml:space="preserve">
+    <value>无法注册此快捷键。请选择其他快捷键。</value>
+  </data>
+  <data name="Top" xml:space="preserve">
+    <value>前</value>
+  </data>
+  <data name="TotalMachine" xml:space="preserve">
+    <value>整机</value>
+  </data>
+  <data name="Unattributed" xml:space="preserve">
+    <value>{0:0.0}% 未归因</value>
+  </data>
+  <data name="UnattributedCPUIsTotalCPUMinusAllMeasuredProcessesKernel" xml:space="preserve">
+    <value>
+未归因 CPU 为总 CPU 减去所有已测进程：包括内核和中断时间、测量时序及不可用的进程数据。</value>
+  </data>
+  <data name="UnattributedCPUIsTotalCPUMinusAllMeasuredProcessesKernel2" xml:space="preserve">
+    <value>未归因 CPU 为总 CPU 减去所有已测进程：包括内核和中断时间、测量时序及不可用的进程数据。</value>
+  </data>
+  <data name="Unavailable" xml:space="preserve">
+    <value>不可用</value>
+  </data>
+  <data name="UnavailableLowercase" xml:space="preserve">
+    <value>不可用</value>
+  </data>
+  <data name="UnavailableDrive" xml:space="preserve">
+    <value>{0} — 不可用</value>
+  </data>
+  <data name="UnavailableOnThisSystem" xml:space="preserve">
+    <value>此系统不可用。</value>
+  </data>
+  <data name="Unhealthy" xml:space="preserve">
+    <value>不健康</value>
+  </data>
+  <data name="Unknown" xml:space="preserve">
+    <value>未知</value>
+  </data>
+  <data name="Up" xml:space="preserve">
+    <value>正常运行</value>
+  </data>
+  <data name="USB" xml:space="preserve">
+    <value>USB</value>
+  </data>
+  <data name="UseALetterDigitFunctionOrNavigationKey" xml:space="preserve">
+    <value>请使用字母、数字、功能键或导航键。</value>
+  </data>
+  <data name="UseAtLeastTwoOfCtrlAltAndShiftIncluding" xml:space="preserve">
+    <value>Ctrl、Alt 和 Shift 中至少使用两个，且必须包含 Ctrl 或 Alt。</value>
+  </data>
+  <data name="Value10Minutes" xml:space="preserve">
+    <value>10 分钟</value>
+  </data>
+  <data name="Value1PopulatedSocket" xml:space="preserve">
+    <value>
+1 个已用插槽{0}
+</value>
+  </data>
+  <data name="Value30Minutes" xml:space="preserve">
+    <value>30 分钟</value>
+  </data>
+  <data name="Value60Minutes" xml:space="preserve">
+    <value>60 分钟</value>
+  </data>
+  <data name="VersionPlusCPUMemoryGraphicsVolumesAndNetworkHardware" xml:space="preserve">
+    <value>版本及 CPU、内存、图形、卷和网络硬件</value>
+  </data>
+  <data name="Virtual" xml:space="preserve">
+    <value> · 虚拟</value>
+  </data>
+  <data name="VirtualBus" xml:space="preserve">
+    <value>虚拟</value>
+  </data>
+  <data name="VirtualizationEnabledInFirmwareWindowsReported" xml:space="preserve">
+    <value>固件中已启用虚拟化（Windows 报告）：{0}</value>
+  </data>
+  <data name="VirtualizationExtensionsWindowsReported" xml:space="preserve">
+    <value>虚拟化扩展（Windows 报告）：{0}
+</value>
+  </data>
+  <data name="VolumeActiveTimeNotSpaceUsedReadWriteThroughputIn" xml:space="preserve">
+    <value>卷 {0}
+活动时间，而非已用空间。读写吞吐量以 MB/s 表示。
+断开连接或正在采集新间隔时不可用。</value>
+  </data>
+  <data name="VolumesManufacturerWindowsHealthStatus" xml:space="preserve">
+    <value>卷：{0}
+制造商：{1}
+Windows 健康状态：{2}</value>
+  </data>
+  <data name="Warning" xml:space="preserve">
+    <value>警告</value>
+  </data>
+  <data name="Win" xml:space="preserve">
+    <value>Win</value>
+  </data>
+  <data name="WindowsIdentifiesThisAsACriticalProcessWinMonWillNot" xml:space="preserve">
+    <value>Windows 将此进程标识为关键进程。WinMon 不会结束它。</value>
+  </data>
+  <data name="WinMon" xml:space="preserve">
+    <value>WinMon</value>
+  </data>
+  <data name="TrayStatus" xml:space="preserve">
+    <value>WinMon · {0}</value>
+  </data>
+  <data name="ProductVersion" xml:space="preserve">
+    <value>WinMon {0}</value>
+  </data>
+  <data name="WinMonCPUMonitor" xml:space="preserve">
+    <value>WinMon · CPU 监视器</value>
+  </data>
+  <data name="WinMonIsAlreadyRunningRestoreItFromTheNotificationArea" xml:space="preserve">
+    <value>WinMon 已在运行。请从通知区域恢复窗口。</value>
+  </data>
+  <data name="WinMonResourceMonitor" xml:space="preserve">
+    <value>WinMon 资源监视器</value>
+  </data>
+  <data name="WinMonSettings" xml:space="preserve">
+    <value>WinMon 设置</value>
+  </data>
+  <data name="WinMonSourceCodeOnGitHub" xml:space="preserve">
+    <value>GitHub 上的 WinMon 源代码</value>
+  </data>
+  <data name="WorksFromAnyAppAndStartsWinMonWhenItIsn" xml:space="preserve">
+    <value>在任何应用中都可用，并可在 WinMon 未运行时启动它。</value>
+  </data>
+  <data name="WorksFromAnyAppWhileWinMonIsRunning" xml:space="preserve">
+    <value>WinMon 运行时，在任何应用中都可用。</value>
+  </data>
+  <data name="X64" xml:space="preserve">
+    <value>x64</value>
+  </data>
+  <data name="X86" xml:space="preserve">
+    <value>x86</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>是</value>
+  </data>
+  <data name="KilobitsPerSecond" xml:space="preserve">
+    <value>Kbps</value>
+  </data>
+  <data name="PaletteColorblind" xml:space="preserve">
+    <value>色觉友好</value>
+  </data>
+  <data name="PaletteMonochromatic" xml:space="preserve">
+    <value>鲜明</value>
+  </data>
+  <data name="Details" xml:space="preserve">
+    <value>详情</value>
+  </data>
+  <data name="PaletteBotanical" xml:space="preserve">
+    <value>植物</value>
+  </data>
+  <data name="PaletteEarth" xml:space="preserve">
+    <value>大地色</value>
+  </data>
+  <data name="PaletteTech" xml:space="preserve">
+    <value>冷色科技</value>
+  </data>
+  <data name="ThemeDark" xml:space="preserve">
+    <value>深色</value>
+  </data>
+  <data name="PaletteHighContrast" xml:space="preserve">
+    <value>高对比度</value>
+  </data>
+  <data name="PaletteStudio" xml:space="preserve">
+    <value>工作室</value>
+  </data>
+  <data name="PaletteNeon" xml:space="preserve">
+    <value>赛博朋克</value>
+  </data>
+  <data name="NetworkRatePair" xml:space="preserve">
+    <value>↓{0} ↑{1} {2}</value>
+  </data>
+  <data name="PaletteSpectrum" xml:space="preserve">
+    <value>光谱</value>
+  </data>
+  <data name="PalettePastel" xml:space="preserve">
+    <value>雅致</value>
+  </data>
+  <data name="ThemeSystem" xml:space="preserve">
+    <value>跟随系统</value>
+  </data>
+  <data name="MegabitsPerSecond" xml:space="preserve">
+    <value>Mbps</value>
+  </data>
+  <data name="ThemeLight" xml:space="preserve">
+    <value>浅色</value>
+  </data>
+  <data name="PaletteSignal" xml:space="preserve">
+    <value>信号</value>
+  </data>
+  <data name="PaletteClassic" xml:space="preserve">
+    <value>经典</value>
+  </data>
+  <data name="PaletteOcean" xml:space="preserve">
+    <value>海洋</value>
+  </data>
+  <data name="GigabitsPerSecond" xml:space="preserve">
+    <value>Gbps</value>
+  </data>
+  <data name="ApplicationDescription" xml:space="preserve">
+    <value>轻量级 Windows 资源监视器</value>
+  </data>
+  <data name="Language" xml:space="preserve">
+    <value>语言</value>
+  </data>
+  <data name="LanguageChinese" xml:space="preserve">
+    <value>简体中文</value>
+  </data>
+  <data name="LanguageEnglish" xml:space="preserve">
+    <value>English</value>
+  </data>
+  <data name="LanguageFrench" xml:space="preserve">
+    <value>Français</value>
+  </data>
+  <data name="LanguageGerman" xml:space="preserve">
+    <value>Deutsch</value>
+  </data>
+  <data name="LanguageJapanese" xml:space="preserve">
+    <value>日本語</value>
+  </data>
+  <data name="LanguageKorean" xml:space="preserve">
+    <value>한국어</value>
+  </data>
+  <data name="LanguagePolish" xml:space="preserve">
+    <value>Polski</value>
+  </data>
+  <data name="LanguagePortuguese" xml:space="preserve">
+    <value>Português (Brasil)</value>
+  </data>
+  <data name="LanguageApplyNote" xml:space="preserve">
+    <value>保存后立即应用语言更改。Windows 显示语言选项跟随系统设置。</value>
+  </data>
+  <data name="LanguageRussian" xml:space="preserve">
+    <value>Русский</value>
+  </data>
+  <data name="LanguageSpanish" xml:space="preserve">
+    <value>Español</value>
+  </data>
+  <data name="LanguageSystemDefault" xml:space="preserve">
+    <value>Windows 显示语言</value>
+  </data>
+</root>

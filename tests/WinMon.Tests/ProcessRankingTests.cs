@@ -31,7 +31,7 @@ public sealed class ProcessRankingTests
         Assert.Multiple(() =>
         {
             Assert.That(ranking.IntervalCount, Is.EqualTo(5));
-            Assert.That(ranking.Processes.Select(p => p.ProcessId), Is.EqualTo(new[] { 1, 2 }));
+            Assert.That(ranking.Processes.Select(p => p.ProcessId), Is.EqualTo([1, 2]));
             Assert.That(ranking.Processes[0].CpuPercent, Is.EqualTo(1).Within(1e-9));
             Assert.That(ranking.Processes[1].CpuPercent, Is.EqualTo(0.6).Within(1e-9));
             Assert.That(ranking.TotalCpuPercent, Is.EqualTo(10).Within(1e-9));
@@ -63,7 +63,7 @@ public sealed class ProcessRankingTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(ProcessRanking.Rank(afterGap).Processes.Select(p => p.ProcessId), Is.EqualTo(new[] { 2 }));
+            Assert.That(ProcessRanking.Rank(afterGap).Processes.Select(p => p.ProcessId), Is.EqualTo([2]));
             Assert.That(ProcessRanking.Rank(afterGap).IntervalCount, Is.EqualTo(2));
             Assert.That(ProcessRanking.Rank(afterDelay).IntervalCount, Is.EqualTo(2));
             Assert.That(ProcessRanking.Rank([.. afterGap, gap with { MonotonicTimestamp = Stopwatch.Frequency * 6 }]).Processes, Is.Empty);
@@ -82,7 +82,7 @@ public sealed class ProcessRankingTests
             Sample(4, 90, Usage(1, 80, memory: 900, io: 900)),
         ];
 
-        var selected = ProcessRanking.Rank(history.Take(3).ToArray()).Processes.Single();
+        var selected = ProcessRanking.Rank([.. history.Take(3)]).Processes.Single();
 
         Assert.Multiple(() =>
         {
@@ -102,7 +102,7 @@ public sealed class ProcessRankingTests
         var gpu = ProcessRanking.Rank(history, sort: ProcessSort.Gpu);
         Assert.Multiple(() =>
         {
-            Assert.That(gpu.Processes.Select(p => p.ProcessId), Is.EqualTo(new[] { 1, 2 }));
+            Assert.That(gpu.Processes.Select(p => p.ProcessId), Is.EqualTo([1, 2]));
             Assert.That(gpu.Processes[0].GpuPercent, Is.EqualTo(30));
             Assert.That(ProcessRanking.Rank(history).Processes.Single().ProcessId, Is.EqualTo(2));
         });
@@ -115,7 +115,7 @@ public sealed class ProcessRankingTests
             Sample(1, 10, new ProcessUsage(7, 1, "old", 0) with { GpuPercent = 80 }),
             Sample(2, 10, new ProcessUsage(7, 2, "new", 0) with { GpuPercent = 20 }),
             Sample(3, 10, new ProcessUsage(7, 2, "new", 0) with { GpuPercent = 100 })];
-        var selected = ProcessRanking.Rank(history.Take(2).ToArray(), sort: ProcessSort.Gpu);
+        var selected = ProcessRanking.Rank([.. history.Take(2)], sort: ProcessSort.Gpu);
         Assert.Multiple(() =>
         {
             Assert.That(selected.Processes.Select(p => p.GpuPercent), Is.EqualTo(new double?[] { 80, 20 }));
@@ -136,7 +136,7 @@ public sealed class ProcessRankingTests
         var ranking = ProcessRanking.Rank(history);
 
         Assert.That(ranking.Processes.Select(p => (p.Name, p.CpuPercent)),
-            Is.EqualTo(new[] { ("old", 1.5), ("new", 0.5) }));
+            Is.EqualTo([("old", 1.5), ("new", 0.5)]));
     }
 
     [Test]
@@ -169,5 +169,43 @@ public sealed class ProcessRankingTests
 
         Assert.That(ranking.Processes.Select(p => (p.ProcessId, p.IoBytesPerSecond)),
             Is.EqualTo(new (int, double?)[] { (1, 4_000 / 3d), (2, 500 / 3d) }));
+    }
+
+    [Test]
+    public void Rank_MeasuredCpuCoversEveryProcess_WhateverTheSortOrGrouping()
+    {
+        CpuSample[] history =
+        [
+            Sample(1, 20, Usage(1, 6, memory: 100), Usage(2, 0, io: 50), Usage(3, 3) with { GpuPercent = 10 }),
+            Sample(2, 20, Usage(1, 2, memory: 100), Usage(2, 4, io: 0), Usage(3, 0) with { GpuPercent = 0 }),
+        ];
+        var cpuSum = ProcessRanking.Rank(history).Processes.Sum(p => p.CpuPercent);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(cpuSum, Is.EqualTo(7.5).Within(1e-9));
+            foreach (var sort in Enum.GetValues<ProcessSort>())
+            foreach (var grouped in new[] { false, true })
+                Assert.That(ProcessRanking.Rank(history, sort: sort, grouped: grouped).MeasuredCpuPercent, Is.EqualTo(cpuSum).Within(1e-9),
+                    $"{sort}, grouped {grouped}");
+            Assert.That(ProcessRanking.Rank([]).MeasuredCpuPercent, Is.Zero);
+        });
+    }
+
+    [Test]
+    public void Rank_ConsecutiveCallsShareNoState()
+    {
+        CpuSample[] busy = [Sample(1, 10, Usage(1, 5), Usage(2, 3))];
+        CpuSample[] quiet = [Sample(1, 10, Usage(3, 1))];
+
+        var first = ProcessRanking.Rank(busy);
+        var second = ProcessRanking.Rank(quiet);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(first.Processes.Select(p => p.ProcessId), Is.EqualTo([1, 2]));
+            Assert.That(second.Processes.Select(p => p.ProcessId), Is.EqualTo([3]));
+            Assert.That(ProcessRanking.Rank(busy).Processes, Is.EqualTo(first.Processes));
+        });
     }
 }

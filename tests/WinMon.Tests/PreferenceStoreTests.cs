@@ -47,10 +47,13 @@ public sealed class PreferenceStoreTests
         Assert.That((await store.LoadAsync()).Theme, Is.EqualTo(portable ? "Light" : "Dark"));
         await store.SaveAsync(new MonitorPreferences { Theme = "System" });
 
+        var saved = await new PreferenceStore(portable ? portablePath : installedPath).LoadAsync();
+        var untouched = await new PreferenceStore(portable ? installedPath : portablePath).LoadAsync();
+
         Assert.Multiple(() =>
         {
-            Assert.That(File.ReadAllText(portable ? portablePath : installedPath), Does.Contain("System"));
-            Assert.That(File.ReadAllText(portable ? installedPath : portablePath), Does.Not.Contain("System"));
+            Assert.That(saved.Theme, Is.EqualTo("System"));
+            Assert.That(untouched.Theme, Is.EqualTo(portable ? "Dark" : "Light"));
         });
     }
 

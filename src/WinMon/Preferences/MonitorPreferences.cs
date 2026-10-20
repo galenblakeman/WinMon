@@ -64,6 +64,9 @@ public sealed record MonitorPreferences
     /// <summary>Gets the selected application theme: Dark, Light, or System.</summary>
     public string Theme { get; init; } = "Dark";
 
+    /// <summary>UI language identifier, or System to follow the Windows display language on startup.</summary>
+    public string Language { get; init; } = AppLanguages.SystemDefault;
+
     /// <summary>Resource chart colors, independent of the light/dark appearance.</summary>
     public string ChartPalette { get; init; } = "Classic";
 

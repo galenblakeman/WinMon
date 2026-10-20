@@ -119,6 +119,7 @@ public sealed class PreferenceStore
             Left = ValidateCoordinate(preferences.Left),
             Top = ValidateCoordinate(preferences.Top),
             Theme = NormalizeTheme(preferences.Theme),
+            Language = AppLanguages.Normalize(preferences.Language),
             ChartPalette = ChartPalettes.Normalize(preferences.ChartPalette),
             RetentionSeconds = Math.Clamp(preferences.RetentionSeconds, 600, 3600),
             VisibleMetrics = preferences.VisibleMetrics & 15,
@@ -133,7 +134,7 @@ public sealed class PreferenceStore
     internal static string? NormalizeDrive(string? drive)
     {
         var value = drive?.Trim().TrimEnd('\\').ToUpperInvariant();
-        return value is { Length: 2 } && value[0] is >= 'A' and <= 'Z' && value[1] == ':' ? value : null;
+        return value is [>= 'A' and <= 'Z', ':'] ? value : null;
     }
 
     private static double ClampFinite(double value, double defaultValue, double minimum, double maximum) => double.IsFinite(value) ? Math.Clamp(value, minimum, maximum) : defaultValue;

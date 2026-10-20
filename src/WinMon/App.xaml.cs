@@ -1,6 +1,9 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.Windows;
+using WinMon.Preferences;
 using WinMon.Shortcuts;
+// ReSharper disable ConvertIfStatementToSwitchStatement
 
 namespace WinMon;
 
@@ -12,16 +15,24 @@ public partial class App
     private IDisposable? _activation;
 
     /// <inheritdoc/>
-    protected override void OnStartup(StartupEventArgs e)
+    // WPF requires a void startup override; awaiting preferences preserves the UI synchronization context.
+    // ReSharper disable once AsyncVoidEventHandlerMethod
+    protected override async void OnStartup(StartupEventArgs e)
     {
-        if (e.Args is ["--smoke-output" or "--feature-smoke-output", _])
+        // On Windows, the initial UI culture is the user's display language, independently of regional formats.
+        // Keep newly created threads on that language too; ResourceManager supplies English when unavailable.
+        AppLanguages.InitializeSystemDisplayCulture(CultureInfo.CurrentUICulture);
+        AppLanguages.Apply(AppLanguages.SystemDefault);
+
+        if (e.Args is ["--smoke-output" or "--feature-smoke-output" or "--snapshot-smoke-output" or "--search-smoke-output", _])
         {
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
             base.OnStartup(e);
-            var window = new MainWindow(true);
+            var window = new MainWindow(true, preferenceStore: new PreferenceStore(
+                Path.Combine(Path.GetFullPath(e.Args[1]), "diagnostic-settings.json")));
             MainWindow = window;
             window.Show();
-            _ = RunDiagnosticsAsync(window, Path.GetFullPath(e.Args[1]), e.Args[0] == "--feature-smoke-output");
+            _ = RunDiagnosticsAsync(window, Path.GetFullPath(e.Args[1]), e.Args[0] == "--feature-smoke-output", e.Args[0] == "--snapshot-smoke-output", e.Args[0] == "--search-smoke-output");
             return;
         }
         if (e.Args is ["--profile-output", _, ..])
@@ -35,27 +46,42 @@ public partial class App
             _ = RunProfileAsync(window, Path.GetFullPath(e.Args[1]), seconds);
             return;
         }
+        // Read once before any localized windows are created.
+        var preferenceStore = new PreferenceStore();
+        var preferences = await preferenceStore.LoadAsync();
+        AppLanguages.Apply(preferences.Language);
         _instance = new Mutex(true, @"Local\WinMon.CpuMonitor", out _ownsInstance);
         if (!_ownsInstance)
         {
             if (!InstanceActivation.SignalRunningInstance())
-                MessageBox.Show("WinMon is already running. Restore it from the notification area.", "WinMon", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(Strings.WinMonIsAlreadyRunningRestoreItFromTheNotificationArea, Strings.WinMon, MessageBoxButton.OK, MessageBoxImage.Information);
             Shutdown();
             return;
         }
         _activation = InstanceActivation.Listen(() => Dispatcher.BeginInvoke(() => (MainWindow as MainWindow)?.ShowRequested()));
         base.OnStartup(e);
-        MainWindow = new MainWindow();
+        MainWindow = new MainWindow(false, preferences, preferenceStore);
         MainWindow.Show();
     }
 
-    private async Task RunDiagnosticsAsync(MainWindow window, string output, bool featuresOnly)
+    private async Task RunDiagnosticsAsync(MainWindow window, string output, bool featuresOnly, bool snapshotsOnly = false, bool searchOnly = false)
     {
         var exitCode = 0;
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(60));
         try
         {
-            if (featuresOnly) await window.CaptureFeatureDiagnosticsAsync(output, timeout.Token);
+            if (searchOnly)
+            {
+                Directory.CreateDirectory(output);
+                await Task.Delay(TimeSpan.FromSeconds(8), timeout.Token);
+                await window.CaptureSearchDiagnosticsAsync(output, timeout.Token);
+            }
+            else if (snapshotsOnly)
+            {
+                Directory.CreateDirectory(output);
+                await WinMon.MainWindow.CaptureDesignFixtureAsync(output, timeout.Token);
+            }
+            else if (featuresOnly) await window.CaptureFeatureDiagnosticsAsync(output, timeout.Token);
             else await window.CaptureDiagnosticAsync(output, timeout.Token);
         }
         catch (Exception ex)

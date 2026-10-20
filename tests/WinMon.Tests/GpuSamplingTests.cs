@@ -76,6 +76,80 @@ public sealed class GpuSamplingTests
         });
     }
 
+    [TestCase("pid_1234_luid_0x00000000_0x0000D1E8_phys_0_eng_3_engtype_VideoDecode")]
+    [TestCase("PID_7_LUID_0xABC_0XdeF_PHYS_12_ENG_0_ENGTYPE_3D")]
+    [TestCase("pid_99999999999_luid_0x0_0x1_phys_0_eng_0_engtype_Copy")]
+    [TestCase("pid_1_luid_0x0_0x1_phys_0_eng_0_engtype_Video Encode_eng_9")]
+    [TestCase("pid_1_luid_0x0_0x1_phys_0_eng_0_engtype_3D\n")]
+    [TestCase("pid_1_luid_0x0_0x1_phys_0_eng_0_engtype_3D\nmore")]
+    [TestCase("pid_1_luid_0x0_0x1_phys_0_eng_0_engtype_")]
+    [TestCase("pid__luid_0x0_0x1_phys_0_eng_0_engtype_3D")]
+    [TestCase("pid_1_luid_0x_0x1_phys_0_eng_0_engtype_3D")]
+    [TestCase("pid_1_luid_0xg_0x1_phys_0_eng_0_engtype_3D")]
+    [TestCase("pid_1_luid_0x0_0x1_phys_a_eng_0_engtype_3D")]
+    [TestCase("xpid_1_luid_0x0_0x1_phys_0_eng_0_engtype_3D")]
+    [TestCase("unknown")]
+    [TestCase("")]
+    public void InstanceParsing_MatchesTheInstanceNamePattern(string name)
+    {
+        // The pattern the parser replaced; named groups number after unnamed ones.
+        var match = System.Text.RegularExpressions.Regex.Match(name,
+            @"^pid_(?<pid>\d+)_luid_(0x[0-9a-f]+_0x[0-9a-f]+)_phys_(\d+)_eng_(\d+)_engtype_(.+)$",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+        var parsed = WindowsGpuSampler.ParseInstance(name);
+        if (!match.Success)
+        {
+            Assert.That(parsed, Is.Null);
+            return;
+        }
+        Assert.That(parsed, Is.EqualTo(new WindowsGpuSampler.EngineInstance(
+            int.TryParse(match.Groups["pid"].Value, out var pid) ? pid : null,
+            match.Groups[1].Value.ToLowerInvariant() + "/" + match.Groups[2].Value, match.Groups[3].Value, match.Groups[4].Value)));
+    }
+
+    [Test]
+    public void InstanceParsing_ReusesNamesFromThePreviousPass_AndForgetsNamesThatDisappear()
+    {
+        var previous = new Dictionary<string, WindowsGpuSampler.EngineInstance?>();
+        var next = new Dictionary<string, WindowsGpuSampler.EngineInstance?>();
+        var first = WindowsGpuSampler.Parse([Counter(1, "1234", 0, 10), Counter(2, "1234", 0, 20), new WindowsGpuSampler.EngineCounter("unknown", 5)], previous, next);
+        (previous, next) = (next, previous);
+        var second = WindowsGpuSampler.Parse([Counter(1, "1234", 0, 30), new WindowsGpuSampler.EngineCounter("unknown", 5)], previous, next);
+        Assert.Multiple(() =>
+        {
+            Assert.That(first.Select(r => r.Value), Is.EqualTo([10d, 20d]), "Unparsed names carry no reading.");
+            Assert.That(second.Single().Instance, Is.SameAs(first[0].Instance));
+            Assert.That(second.Single().Value, Is.EqualTo(30));
+            Assert.That(next.Keys, Is.EquivalentTo([Counter(1, "1234", 0, 0).Name, "unknown"]));
+        });
+    }
+
+    [Test]
+    public void ProcessCounters_KeepAProcessWithOnlyInvalidEngines_AsUnreadable()
+    {
+        var result = WindowsGpuSampler.AggregateProcesses([Counter(1, "1234", 0, 10, 0xC0000BC6), Counter(2, "1234", 0, 5),
+            new WindowsGpuSampler.EngineCounter("pid_99999999999_luid_0x0_0x1_phys_0_eng_0_engtype_3D", 80)]);
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Keys, Is.EquivalentTo([1, 2]), "An out-of-range PID is not attributed to any process.");
+            Assert.That(result[1], Is.Null);
+            Assert.That(result[2]!.Percent, Is.EqualTo(5));
+        });
+    }
+
+    [Test]
+    public void Usage_BreaksTiesByAdapterThenEngine_AndComparesBeforeClamping()
+    {
+        Assert.Multiple(() =>
+        {
+            Assert.That(WindowsGpuSampler.Aggregate([Counter(1, "5678", 0, 40, kind: "Compute"), Counter(1, "1234", 1, 40, kind: "Copy"),
+                    Counter(1, "1234", 0, 40)]),
+                Is.EqualTo(new WindowsGpuSampler.GpuUsage("0x00000000_0x1234/0", "3D", 40)));
+            Assert.That(WindowsGpuSampler.Aggregate([Counter(1, "1234", 0, 110), Counter(1, "5678", 0, 120, kind: "Compute")])!.Engine,
+                Is.EqualTo("Compute"));
+        });
+    }
+
     [Test]
     public void ProcessAttribution_RequiresMatchingLifetimeAcrossBaselineAndCollection()
     {

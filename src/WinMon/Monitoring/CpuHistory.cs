@@ -43,6 +43,8 @@ public sealed class CpuHistory
         ArgumentNullException.ThrowIfNull(sample);
         ArgumentNullException.ThrowIfNull(sample.Processes);
         if (sample.Processes.Count > _processEntryBudget)
+            // Developer-facing argument validation; this message is not displayed in the UI.
+            // ReSharper disable once LocalizableElement
             throw new ArgumentException("One sample exceeds the history process-entry budget.", nameof(sample));
         _samples.Enqueue(sample);
         _latest = sample;

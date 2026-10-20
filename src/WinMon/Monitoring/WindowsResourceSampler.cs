@@ -95,8 +95,8 @@ internal sealed class WindowsResourceSampler : IDisposable
                 var idle = ReadCounter(_idleCounter);
                 var bytes = ReadCounter(_bytesCounter);
                 // Reconnects need a fresh query and two observations, never a stale delta.
-                if (idle is null || bytes is null) { Reset(); return (name, null, null); }
-                return (name, Math.Clamp(100 - idle.Value, 0, 100), bytes);
+                if (idle is not null && bytes is not null) return (name, Math.Clamp(100 - idle.Value, 0, 100), bytes);
+                Reset(); return (name, null, null);
             }
             catch (Win32Exception ex)
             {

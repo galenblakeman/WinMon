@@ -1,0 +1,1219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms</value>
+  </resheader>
+  <data name="AboutWinMon" xml:space="preserve">
+    <value>О WinMon</value>
+  </data>
+  <data name="AboutWinMonAndHardwareInformation" xml:space="preserve">
+    <value>О WinMon и сведения об оборудовании</value>
+  </data>
+  <data name="AccessDeniedWindowsDidNotAllowWinMonToEndThis" xml:space="preserve">
+    <value>Доступ запрещён. Windows не разрешила WinMon завершить процесс, либо он уже завершён.</value>
+  </data>
+  <data name="AdapterUtilizationOfTheBusiestEngineAcrossAvailableGPUs" xml:space="preserve">
+    <value>Адаптер {0} · {1}
+Загрузка самого занятого движка среди доступных GPU.</value>
+  </data>
+  <data name="AdditionalCPUSpecificationsUnavailableFromWindows" xml:space="preserve">
+    <value>
+Дополнительные характеристики CPU недоступны в Windows.</value>
+  </data>
+  <data name="AddsWinMonToYourStartMenuWindowsThenHandlesThe" xml:space="preserve">
+    <value>Добавляет WinMon в меню «Пуск». Сочетание обрабатывает Windows, поэтому оно работает и без запущенного WinMon.</value>
+  </data>
+  <data name="Alpha" xml:space="preserve">
+    <value>Alpha</value>
+  </data>
+  <data name="AlsoStartWinMonWithThisShortcut" xml:space="preserve">
+    <value>Также запускать WinMon этим сочетанием</value>
+  </data>
+  <data name="Alt" xml:space="preserve">
+    <value>Alt</value>
+  </data>
+  <data name="AnotherAppIsUsingChooseAnother" xml:space="preserve">
+    <value>Сочетание {0} занято другим приложением. Выберите другое.</value>
+  </data>
+  <data name="AnotherAppIsUsingThisShortcutChooseAnother" xml:space="preserve">
+    <value>Это сочетание занято другим приложением. Выберите другое.</value>
+  </data>
+  <data name="Appearance" xml:space="preserve">
+    <value>Оформление</value>
+  </data>
+  <data name="AppliesWhenYouSaveIfACombinationDoesnTAppear" xml:space="preserve">
+    <value>Вступит в силу после сохранения. Если сочетание не отображается, оно занято другим приложением.</value>
+  </data>
+  <data name="ARM" xml:space="preserve">
+    <value>ARM</value>
+  </data>
+  <data name="ARM64" xml:space="preserve">
+    <value>ARM64</value>
+  </data>
+  <data name="ATA" xml:space="preserve">
+    <value>ATA</value>
+  </data>
+  <data name="ATAPI" xml:space="preserve">
+    <value>ATAPI</value>
+  </data>
+  <data name="AvailableForLiveIndividualProcessesEndingAProcessCanLose" xml:space="preserve">
+    <value>Доступно для отдельных процессов в реальном времени. Завершение может привести к потере несохранённых данных.</value>
+  </data>
+  <data name="AverageOverTheLast5SecondsWindowsCountsProcessCPU" xml:space="preserve">
+    <value>Среднее за последние 5 секунд. Windows считает время CPU процесса с шагом 15,6 мс, поэтому отдельные секунды часто дают ноль.</value>
+  </data>
+  <data name="BoardVersionSerialNumber" xml:space="preserve">
+    <value>Версия платы: {0}
+Серийный номер: {1}</value>
+  </data>
+  <data name="BusiestEnginePerIntervalAveragedOverReadableIntervalsInThe" xml:space="preserve">
+    <value>Самый занятый движок за интервал, среднее по доступным интервалам за последние 5 секунд.
+Последний измеренный движок: {0} · адаптер {1}
+Проценты GPU процессов не складываются.</value>
+  </data>
+  <data name="BusiestGPU" xml:space="preserve">
+    <value>Самый занятый GPU</value>
+  </data>
+  <data name="BusiestGPUEnginePerProcessAveragedOverReadableIntervalsIn" xml:space="preserve">
+    <value>Самый занятый движок GPU процесса, среднее по доступным интервалам за последние 5 секунд. Проценты не складываются.</value>
+  </data>
+  <data name="BusiestMemberGPU" xml:space="preserve">
+    <value>GPU самого занятого участника</value>
+  </data>
+  <data name="BusiestMemberGpuTitle" xml:space="preserve">
+    <value>GPU самого занятого участника</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Отмена</value>
+  </data>
+  <data name="CanTBeUsed" xml:space="preserve">
+    <value>Нельзя использовать {0}. {1}</value>
+  </data>
+  <data name="CapacityType" xml:space="preserve">
+    <value>Объём: {0} · Тип: {1}
+</value>
+  </data>
+  <data name="ChartPalette" xml:space="preserve">
+    <value>Палитра графиков</value>
+  </data>
+  <data name="ChartTimeRange" xml:space="preserve">
+    <value>Период графика</value>
+  </data>
+  <data name="ChooseAPrimaryVolumeAndADifferentSecondVolumeOr" xml:space="preserve">
+    <value>Выберите основной том и другой второй том либо «Нет».</value>
+  </data>
+  <data name="ChooseUpTo2Volumes" xml:space="preserve">
+    <value>Выберите до 2 томов.</value>
+  </data>
+  <data name="ClearProcessSearch" xml:space="preserve">
+    <value>Очистить поиск процессов</value>
+  </data>
+  <data name="ClearSearch" xml:space="preserve">
+    <value>Очистить поиск</value>
+  </data>
+  <data name="ClickHereThenPressTheCombinationAtLeastTwoOf" xml:space="preserve">
+    <value>Нажмите здесь и введите сочетание: минимум две клавиши из Ctrl, Alt и Shift плюс ещё одна клавиша. Backspace отключает сочетание.</value>
+  </data>
+  <data name="ClickToRankProcessesBy" xml:space="preserve">
+    <value>{0}
+Нажмите для сортировки процессов по {1}.</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Закрыть</value>
+  </data>
+  <data name="Collecting" xml:space="preserve">
+    <value>Сбор данных…</value>
+  </data>
+  <data name="CollectingABaselineOrRecoveringAfterARecordingGap" xml:space="preserve">
+    <value>Сбор исходных данных или восстановление после перерыва записи…</value>
+  </data>
+  <data name="CollectingDisconnected" xml:space="preserve">
+    <value>Сбор данных / нет подключения</value>
+  </data>
+  <data name="CollectingTheFirstInterval" xml:space="preserve">
+    <value>Сбор первого интервала…</value>
+  </data>
+  <data name="ConfiguredSpeedReportedSpeed" xml:space="preserve">
+    <value>Настроенная скорость: {0} · Заявленная скорость: {1}
+</value>
+  </data>
+  <data name="Copied" xml:space="preserve">
+    <value>Скопировано</value>
+  </data>
+  <data name="Copy" xml:space="preserve">
+    <value>Копировать</value>
+  </data>
+  <data name="CopyAllInformation" xml:space="preserve">
+    <value>Копировать все сведения</value>
+  </data>
+  <data name="CopyAllInformationAsPlainText" xml:space="preserve">
+    <value>Копировать все сведения как текст</value>
+  </data>
+  <data name="CopyInformation" xml:space="preserve">
+    <value>Копирование сведений</value>
+  </data>
+  <data name="CPU" xml:space="preserve">
+    <value>CPU</value>
+  </data>
+  <data name="CpuTraySuffix" xml:space="preserve">
+    <value> CPU</value>
+  </data>
+  <data name="CpuColumn" xml:space="preserve">
+    <value>CPU %</value>
+  </data>
+  <data name="CPUDetails" xml:space="preserve">
+    <value>Сведения о CPU</value>
+  </data>
+  <data name="CPUHistoryOnOneScaleSharedByEveryRowHover" xml:space="preserve">
+    <value>История CPU с общей шкалой для всех строк. Наведите указатель на строку, чтобы увидеть шкалу.</value>
+  </data>
+  <data name="CPUMemoryConfiguredDisksNetworkAndGPUOverlayHistoryClick" xml:space="preserve">
+    <value>Совмещённая история CPU, памяти, настроенных дисков, сети и GPU. Щелчок — просмотр; стрелки — перемещение, End — возврат к текущим данным.</value>
+  </data>
+  <data name="CPUUnavailableOtherResourcesContinueRecording" xml:space="preserve">
+    <value>CPU недоступен; остальные ресурсы продолжают записываться.</value>
+  </data>
+  <data name="Ctrl" xml:space="preserve">
+    <value>Ctrl</value>
+  </data>
+  <data name="CtrlAltDeleteIsReservedByWindows" xml:space="preserve">
+    <value>Ctrl+Alt+Delete зарезервировано Windows.</value>
+  </data>
+  <data name="DDR" xml:space="preserve">
+    <value>DDR</value>
+  </data>
+  <data name="DDR2" xml:space="preserve">
+    <value>DDR2</value>
+  </data>
+  <data name="DDR2FBDIMM" xml:space="preserve">
+    <value>DDR2 FB-DIMM</value>
+  </data>
+  <data name="DDR3" xml:space="preserve">
+    <value>DDR3</value>
+  </data>
+  <data name="DDR4" xml:space="preserve">
+    <value>DDR4</value>
+  </data>
+  <data name="DDR5" xml:space="preserve">
+    <value>DDR5</value>
+  </data>
+  <data name="DedicatedVideoMemoryGiB" xml:space="preserve">
+    <value>{0}
+Выделенная видеопамять: {1:0.##} GiB</value>
+  </data>
+  <data name="Default" xml:space="preserve">
+    <value>По умолчанию</value>
+  </data>
+  <data name="DetailsUnavailable" xml:space="preserve">
+    <value>{0}: сведения недоступны</value>
+  </data>
+  <data name="DevicesAreShownAsWindowsExposesThemRAIDAndVirtual" xml:space="preserve">
+    <value>
+
+Устройства показаны так, как их видит Windows; RAID и виртуальные диски могут скрывать физическое оборудование.</value>
+  </data>
+  <data name="Disabled" xml:space="preserve">
+    <value>Отключён</value>
+  </data>
+  <data name="Disconnected" xml:space="preserve">
+    <value>Нет подключения</value>
+  </data>
+  <data name="Disk" xml:space="preserve">
+    <value>Диск</value>
+  </data>
+  <data name="DiskLabel" xml:space="preserve">
+    <value>Диск ({0})</value>
+  </data>
+  <data name="SecondaryDiskHistoryLine" xml:space="preserve">
+    <value>
+Диск {0} {1}{2}</value>
+  </data>
+  <data name="PhysicalDiskTitle" xml:space="preserve">
+    <value>Диск {0} · {1}</value>
+  </data>
+  <data name="DiskMonitoring" xml:space="preserve">
+    <value>Мониторинг дисков</value>
+  </data>
+  <data name="Dormant" xml:space="preserve">
+    <value>Ожидание</value>
+  </data>
+  <data name="Down" xml:space="preserve">
+    <value>Не работает</value>
+  </data>
+  <data name="DrawnAsADashedLineOnTheChart" xml:space="preserve">
+    <value>
+Показан на графике пунктиром.</value>
+  </data>
+  <data name="EndPID" xml:space="preserve">
+    <value>Завершить {0} (PID {1})…</value>
+  </data>
+  <data name="EndPIDUnsavedWorkMayBeLostOnlyThisProcess" xml:space="preserve">
+    <value>Завершить {0} (PID {1})?
+
+Несохранённые данные могут быть потеряны. Будет завершён только этот процесс.</value>
+  </data>
+  <data name="EndProcess" xml:space="preserve">
+    <value>Завершить процесс</value>
+  </data>
+  <data name="ExecutablePathUnavailable" xml:space="preserve">
+    <value>Путь к исполняемому файлу недоступен</value>
+  </data>
+  <data name="Executables" xml:space="preserve">
+    <value>исполняемых файлов</value>
+  </data>
+  <data name="Exit" xml:space="preserve">
+    <value>Выход</value>
+  </data>
+  <data name="FibreChannel" xml:space="preserve">
+    <value>Fibre Channel</value>
+  </data>
+  <data name="FileBackedVirtual" xml:space="preserve">
+    <value>Виртуальный на основе файла</value>
+  </data>
+  <data name="FilterRankedProcessesByNameOrPIDCtrlFEscape" xml:space="preserve">
+    <value>Фильтр списка по имени или PID (Ctrl+F). Escape очищает поиск.</value>
+  </data>
+  <data name="GHzMHz" xml:space="preserve">
+    <value>{0:0.###} GHz ({1} MHz)</value>
+  </data>
+  <data name="GiB" xml:space="preserve">
+    <value>{0:0.0} / {1:0.#} GiB</value>
+  </data>
+  <data name="CapacityGiB" xml:space="preserve">
+    <value>{0:0.##} GiB</value>
+  </data>
+  <data name="GiBCapacityGiBAvailable" xml:space="preserve">
+    <value>{0} {1} · {2}
+Объём {3:0.#} GiB · доступно {4:0.#} GiB</value>
+  </data>
+  <data name="GPU" xml:space="preserve">
+    <value>GPU</value>
+  </data>
+  <data name="GpuColumn" xml:space="preserve">
+    <value>GPU %</value>
+  </data>
+  <data name="GPUCountersUnavailableOrCollectingAFreshInterval" xml:space="preserve">
+    <value>Счётчики GPU недоступны либо собирается новый интервал.</value>
+  </data>
+  <data name="GPUPercentagesRepresentDifferentEnginesAndCannotBeSummed" xml:space="preserve">
+    <value>Проценты GPU относятся к разным движкам и не складываются.</value>
+  </data>
+  <data name="GPUUtilizationUnavailableForThisProcessNoValidCounterOr" xml:space="preserve">
+    <value>Загрузка GPU этого процесса недоступна: нет действительного счётчика или совпадения времени жизни.</value>
+  </data>
+  <data name="GraphicsAdapters" xml:space="preserve">
+    <value>Графические адаптеры</value>
+  </data>
+  <data name="Grouped" xml:space="preserve">
+    <value>Группы</value>
+  </data>
+  <data name="HardwareInformationCouldNotBeReadTryRefresh" xml:space="preserve">
+    <value>Не удалось прочитать сведения об оборудовании. Обновите данные.</value>
+  </data>
+  <data name="HDD" xml:space="preserve">
+    <value>HDD</value>
+  </data>
+  <data name="HealthIsAProviderReportNotAFullSMARTDiagnostic" xml:space="preserve">
+    <value>
+Состояние сообщается поставщиком данных и не является полной диагностикой SMART.</value>
+  </data>
+  <data name="Healthy" xml:space="preserve">
+    <value>Исправен</value>
+  </data>
+  <data name="HistoricalIntervalCPUMemoryDiskNetworkOfLinkGPUClick" xml:space="preserve">
+    <value>{0:HH:mm:ss} · Прошлый интервал
+CPU {1}
+Память {2}
+Диск {3} {4}{5}{6}
+Сеть {7} {8} · {9} канала{10}
+GPU {11} · {12}
+Нажмите для фиксации; верхние показания остаются текущими</value>
+  </data>
+  <data name="HistoricalRetention" xml:space="preserve">
+    <value>Хранение истории</value>
+  </data>
+  <data name="History" xml:space="preserve">
+    <value>История</value>
+  </data>
+  <data name="History0GPUUtilization" xml:space="preserve">
+    <value>История: {0}
+Загрузка GPU 0–{1:0.0}%</value>
+  </data>
+  <data name="History0MBS" xml:space="preserve">
+    <value>История: {0}
+0–{1:0.##} MB/s</value>
+  </data>
+  <data name="History0MiB" xml:space="preserve">
+    <value>История: {0}
+0–{1:0.##} MiB</value>
+  </data>
+  <data name="History0OfTotalMachineCPU" xml:space="preserve">
+    <value>История: {0}
+0–{1:0.0}% общей мощности CPU</value>
+  </data>
+  <data name="HistoryExpiredThisSampleHasLeftTheRecordingWindow" xml:space="preserve">
+    <value>История истекла. Этот образец вышел за пределы окна записи.</value>
+  </data>
+  <data name="HistoryExpiredThisSampleHasLeftTheRecordingWindowReturn" xml:space="preserve">
+    <value>История истекла. Этот образец вышел за пределы окна записи. Вернитесь к текущим данным.</value>
+  </data>
+  <data name="HistoryOnOneScaleSharedByEveryRowHoverA" xml:space="preserve">
+    <value>История {0} с общей шкалой для всех строк. Наведите указатель на строку, чтобы увидеть шкалу.</value>
+  </data>
+  <data name="HistoryShortenedByMemoryLimit" xml:space="preserve">
+    <value>история сокращена из-за лимита памяти</value>
+  </data>
+  <data name="IdleGroupMembersMayBeOmitted" xml:space="preserve">
+    <value> · неактивные участники группы могут быть пропущены</value>
+  </data>
+  <data name="IEEE1394" xml:space="preserve">
+    <value>IEEE 1394</value>
+  </data>
+  <data name="Index" xml:space="preserve">
+    <value>Index</value>
+  </data>
+  <data name="Individual" xml:space="preserve">
+    <value>Отдельно</value>
+  </data>
+  <data name="Info" xml:space="preserve">
+    <value>Инфо</value>
+  </data>
+  <data name="InitializationFailedCloseAndRestartWinMon" xml:space="preserve">
+    <value>Ошибка инициализации. Закройте и перезапустите WinMon.</value>
+  </data>
+  <data name="InstalledMemory" xml:space="preserve">
+    <value>Установленная память</value>
+  </data>
+  <data name="InstalledOSUsable" xml:space="preserve">
+    <value>Установлено: {0} · Доступно ОС: {1}
+{2} · {3}</value>
+  </data>
+  <data name="IntervalReadingsTopReadoutsStayLive" xml:space="preserve">
+    <value>Данные интервала · верхние показания остаются текущими</value>
+  </data>
+  <data name="IO" xml:space="preserve">
+    <value>I/O</value>
+  </data>
+  <data name="IOMBS" xml:space="preserve">
+    <value>I/O MB/s</value>
+  </data>
+  <data name="ISCSI" xml:space="preserve">
+    <value>iSCSI</value>
+  </data>
+  <data name="Itanium" xml:space="preserve">
+    <value>Itanium</value>
+  </data>
+  <data name="KeepOnTopOff" xml:space="preserve">
+    <value>Поверх окон: выкл.</value>
+  </data>
+  <data name="KeepOnTopOn" xml:space="preserve">
+    <value>Поверх окон: вкл.</value>
+  </data>
+  <data name="KeepThisWindowOnTopOfOtherWindows" xml:space="preserve">
+    <value>Держать это окно поверх остальных</value>
+  </data>
+  <data name="KeptOnTopOfOtherWindowsClickToStop" xml:space="preserve">
+    <value>Окно поверх остальных. Нажмите для отмены.</value>
+  </data>
+  <data name="KeyboardShortcut" xml:space="preserve">
+    <value>Сочетание клавиш</value>
+  </data>
+  <data name="L2CacheReportedL3CacheReported" xml:space="preserve">
+    <value>Кэш L2 (заявленный): {0} · Кэш L3 (заявленный): {1}
+</value>
+  </data>
+  <data name="LastMinSameScaleForEveryRow" xml:space="preserve">
+    <value>{0} · {1}
+{2}
+{3} · последние {4:0.#} мин
+Общая шкала для всех строк</value>
+  </data>
+  <data name="License" xml:space="preserve">
+    <value>{0} · Лицензия {1}</value>
+  </data>
+  <data name="Link" xml:space="preserve">
+    <value> · канал {0}</value>
+  </data>
+  <data name="LinkSpeedUnavailable" xml:space="preserve">
+    <value> · скорость канала недоступна</value>
+  </data>
+  <data name="LinkSpeedUnavailableLabel" xml:space="preserve">
+    <value>Скорость канала недоступна</value>
+  </data>
+  <data name="LocalVolumes" xml:space="preserve">
+    <value>Локальные тома</value>
+  </data>
+  <data name="LogicalProcessors" xml:space="preserve">
+    <value>{0} · Логических процессоров: {1}</value>
+  </data>
+  <data name="LowerLayerDown" xml:space="preserve">
+    <value>Нижний уровень не работает</value>
+  </data>
+  <data name="LPDDR" xml:space="preserve">
+    <value>LPDDR</value>
+  </data>
+  <data name="LPDDR2" xml:space="preserve">
+    <value>LPDDR2</value>
+  </data>
+  <data name="LPDDR3" xml:space="preserve">
+    <value>LPDDR3</value>
+  </data>
+  <data name="LPDDR4" xml:space="preserve">
+    <value>LPDDR4</value>
+  </data>
+  <data name="LPDDR5" xml:space="preserve">
+    <value>LPDDR5</value>
+  </data>
+  <data name="M" xml:space="preserve">
+    <value>{0}м</value>
+  </data>
+  <data name="ManufacturerArchitecture" xml:space="preserve">
+    <value>Производитель: {0} · Архитектура: {1}
+</value>
+  </data>
+  <data name="ManufacturerModel" xml:space="preserve">
+    <value>Производитель: {0}
+Модель: {1}
+</value>
+  </data>
+  <data name="ManufacturerPartNumberBank" xml:space="preserve">
+    <value>Производитель: {0}
+Номер детали: {1} · Банк: {2}</value>
+  </data>
+  <data name="MappingUnavailable" xml:space="preserve">
+    <value>Сопоставление недоступно</value>
+  </data>
+  <data name="MaximumClockIsAReportedSpecificationNotLiveFrequencyOr" xml:space="preserve">
+    <value>Максимальная частота — заявленная характеристика, а не текущая или измеренная частота разгона. Виртуальные машины могут скрывать характеристики и возможности.</value>
+  </data>
+  <data name="MBS" xml:space="preserve">
+    <value>{0:0.0} MB/s</value>
+  </data>
+  <data name="DiskRateSuffix" xml:space="preserve">
+    <value> · {0:0.00} MB/s</value>
+  </data>
+  <data name="MediaConnectionCapacity" xml:space="preserve">
+    <value>{0}
+Носитель: {1} · Подключение: {2} · Объём: {3}
+</value>
+  </data>
+  <data name="Memory" xml:space="preserve">
+    <value>Память</value>
+  </data>
+  <data name="MemoryLowercase" xml:space="preserve">
+    <value>Память</value>
+  </data>
+  <data name="MemoryModules" xml:space="preserve">
+    <value>Модулей памяти: {0}</value>
+  </data>
+  <data name="MemorySpecificationsAndSlotCountsReflectFirmwareReports" xml:space="preserve">
+    <value>
+
+Характеристики памяти и число слотов основаны на данных прошивки.</value>
+  </data>
+  <data name="MHzWindowsReported" xml:space="preserve">
+    <value>{0} MHz (по данным Windows)</value>
+  </data>
+  <data name="MiB" xml:space="preserve">
+    <value>{0:N0} MiB</value>
+  </data>
+  <data name="CapacityMiB" xml:space="preserve">
+    <value>{0:0.##} MiB</value>
+  </data>
+  <data name="Min" xml:space="preserve">
+    <value>{0:0.#} мин</value>
+  </data>
+  <data name="MinAgo" xml:space="preserve">
+    <value>{0:0.#} мин назад</value>
+  </data>
+  <data name="MinimizeToTheNotificationArea" xml:space="preserve">
+    <value>Сворачивать в область уведомлений</value>
+  </data>
+  <data name="MIPS" xml:space="preserve">
+    <value>MIPS</value>
+  </data>
+  <data name="MissingReading" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="MMC" xml:space="preserve">
+    <value>MMC</value>
+  </data>
+  <data name="Model" xml:space="preserve">
+    <value>Модель: {0}
+</value>
+  </data>
+  <data name="ModelUnavailable" xml:space="preserve">
+    <value>Модель недоступна</value>
+  </data>
+  <data name="Module" xml:space="preserve">
+    <value>Модуль {0}</value>
+  </data>
+  <data name="ModuleCountUnavailable" xml:space="preserve">
+    <value>Число модулей недоступно</value>
+  </data>
+  <data name="ModuleDetailsUnavailableFromWindows" xml:space="preserve">
+    <value>
+Сведения о модулях недоступны в Windows.</value>
+  </data>
+  <data name="Motherboard" xml:space="preserve">
+    <value>Материнская плата</value>
+  </data>
+  <data name="MotherboardInformationUnavailableFromWindows" xml:space="preserve">
+    <value>Сведения о материнской плате недоступны в Windows.</value>
+  </data>
+  <data name="Network" xml:space="preserve">
+    <value>Сеть</value>
+  </data>
+  <data name="NetworkAdapterInventoryUnavailableFromWindows" xml:space="preserve">
+    <value>Список сетевых адаптеров недоступен в Windows.</value>
+  </data>
+  <data name="NetworkAdapters" xml:space="preserve">
+    <value>Сетевые адаптеры</value>
+  </data>
+  <data name="NetworkScale0" xml:space="preserve">
+    <value>Шкала сети 0–{0}</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>Нет</value>
+  </data>
+  <data name="NoConnectedEthernetOrWiFiInterfaceAvailable" xml:space="preserve">
+    <value>Нет доступного подключённого интерфейса Ethernet или Wi-Fi.</value>
+  </data>
+  <data name="NoDriveLettersAssigned" xml:space="preserve">
+    <value>Буквы дисков не назначены</value>
+  </data>
+  <data name="NoHardwareAdaptersReportedByWindows" xml:space="preserve">
+    <value>Windows не сообщила об аппаратных адаптерах.</value>
+  </data>
+  <data name="NoLocalVolumesReported" xml:space="preserve">
+    <value>Локальные тома не обнаружены.</value>
+  </data>
+  <data name="NoMeasurableActiveProcessesInThisWindow" xml:space="preserve">
+    <value>Нет измеримой активности процессов за этот период.</value>
+  </data>
+  <data name="NoMeasurableGPUActivityAmongAccessibleProcessesInThisWindow" xml:space="preserve">
+    <value>Нет измеримой активности GPU у доступных процессов за этот период.</value>
+  </data>
+  <data name="NoMeasurableIOAmongAccessibleProcessesInThisWindow" xml:space="preserve">
+    <value>Нет измеримого ввода-вывода у доступных процессов за этот период.</value>
+  </data>
+  <data name="NoMemoryReadingsAmongAccessibleProcesses" xml:space="preserve">
+    <value>Нет показаний памяти у доступных процессов.</value>
+  </data>
+  <data name="None" xml:space="preserve">
+    <value>Нет</value>
+  </data>
+  <data name="NoPresentNetworkAdaptersReported" xml:space="preserve">
+    <value>Ни один присутствующий сетевой адаптер не обнаружен.</value>
+  </data>
+  <data name="NoRankedProcessesMatchYourSearch" xml:space="preserve">
+    <value>В списке нет процессов, соответствующих поиску.</value>
+  </data>
+  <data name="NoSampleInThisInterval" xml:space="preserve">
+    <value>Нет образца в этом интервале</value>
+  </data>
+  <data name="NotReady" xml:space="preserve">
+    <value>{0}: не готов</value>
+  </data>
+  <data name="Now" xml:space="preserve">
+    <value>Сейчас</value>
+  </data>
+  <data name="Number" xml:space="preserve">
+    <value>Number</value>
+  </data>
+  <data name="NumberOfProcessesShown" xml:space="preserve">
+    <value>Число отображаемых процессов</value>
+  </data>
+  <data name="NumberOfTopProcesses" xml:space="preserve">
+    <value>Число ведущих процессов</value>
+  </data>
+  <data name="NVMe" xml:space="preserve">
+    <value>NVMe</value>
+  </data>
+  <data name="OffClickTheBoxAndPressACombinationToSet" xml:space="preserve">
+    <value>Отключено. Нажмите поле и введите сочетание.</value>
+  </data>
+  <data name="OfLink" xml:space="preserve">
+    <value> · {0} канала</value>
+  </data>
+  <data name="OfSlotsUsedFirmwareReported" xml:space="preserve">
+    <value>Использовано слотов: {0} из {1} (по данным прошивки)</value>
+  </data>
+  <data name="OfTotalCPUAveragedOver5SecondsGPUAveragedOver" xml:space="preserve">
+    <value>{0}, {1}, {2} общей мощности CPU в среднем за 5 секунд, GPU {3} в среднем по доступным интервалам за последние 5 секунд, память {4}, ввод-вывод {5} MB в секунду</value>
+  </data>
+  <data name="OneRowPerExecutable" xml:space="preserve">
+    <value>Одна строка на исполняемый файл</value>
+  </data>
+  <data name="OneRowPerExecutableCPUAndIOSummedGPU" xml:space="preserve">
+    <value>Одна строка на исполняемый файл: CPU и ввод-вывод суммируются, GPU — самый занятый участник, память — сумма частных байтов</value>
+  </data>
+  <data name="OneRowPerProcess" xml:space="preserve">
+    <value>Одна строка на процесс</value>
+  </data>
+  <data name="OtherExecutables" xml:space="preserve">
+    <value>Другие исполняемые файлы ({0:N0})</value>
+  </data>
+  <data name="OtherOfTotalCPUCombinedAveragedOver5Seconds" xml:space="preserve">
+    <value>Другие {1}: {0}, суммарно {2} общей мощности CPU в среднем за 5 секунд</value>
+  </data>
+  <data name="OtherProcesses" xml:space="preserve">
+    <value>Другие процессы ({0:N0})</value>
+  </data>
+  <data name="OutsideChartRangeTopReadoutsStayLive" xml:space="preserve">
+    <value>Вне диапазона графика · верхние показания остаются текущими</value>
+  </data>
+  <data name="PhysicalCoreCountUnavailable" xml:space="preserve">
+    <value>Число физических ядер недоступно</value>
+  </data>
+  <data name="PhysicalCores" xml:space="preserve">
+    <value>Физических ядер: {0}</value>
+  </data>
+  <data name="PhysicalCoresInThisSocketLogicalProcessorsInThisSocket" xml:space="preserve">
+    <value>Физических ядер в сокете: {0}
+Логических процессоров в сокете: {1}
+</value>
+  </data>
+  <data name="PhysicalDriveInventoryUnavailableVolumeInformationIsListedSeparately" xml:space="preserve">
+    <value>Список физических дисков недоступен. Сведения о томах приведены отдельно.</value>
+  </data>
+  <data name="PhysicalDrives" xml:space="preserve">
+    <value>Физические диски</value>
+  </data>
+  <data name="PID" xml:space="preserve">
+    <value>PID {0}</value>
+  </data>
+  <data name="PIDs" xml:space="preserve">
+    <value>PIDs {0}</value>
+  </data>
+  <data name="PIDsMore" xml:space="preserve">
+    <value>PID {0} и ещё {1}</value>
+  </data>
+  <data name="PopulatedCoresPerSocketReportedMaximum" xml:space="preserve">
+    <value>
+Занято: {0} {1} · Ядер на сокет: {2}
+Заявленный максимум: {3}</value>
+  </data>
+  <data name="PowerPC" xml:space="preserve">
+    <value>PowerPC</value>
+  </data>
+  <data name="PrimaryDrive" xml:space="preserve">
+    <value>Основной диск</value>
+  </data>
+  <data name="Private" xml:space="preserve">
+    <value>Частная</value>
+  </data>
+  <data name="PrivateBytesSummedAcrossThisExecutableSCurrentProcesses" xml:space="preserve">
+    <value>Сумма частных байтов текущих процессов этого исполняемого файла.</value>
+  </data>
+  <data name="Process" xml:space="preserve">
+    <value>процесс {0}</value>
+  </data>
+  <data name="ProcessColumn" xml:space="preserve">
+    <value>Процесс</value>
+  </data>
+  <data name="Processes" xml:space="preserve">
+    <value>Процессов: {0}</value>
+  </data>
+  <data name="ProcessesLowercase" xml:space="preserve">
+    <value>процессов</value>
+  </data>
+  <data name="ProcessesAtSAverage" xml:space="preserve">
+    <value>Процессы в {0:HH:mm:ss} · среднее за {1} с{2}</value>
+  </data>
+  <data name="ProcessesBy" xml:space="preserve">
+    <value>процессов по</value>
+  </data>
+  <data name="ProcessesNeedAdministratorAccess" xml:space="preserve">
+    <value>Процессов с требованием прав администратора: {0}</value>
+  </data>
+  <data name="ProcessGrouping" xml:space="preserve">
+    <value>Группировка процессов</value>
+  </data>
+  <data name="Processor" xml:space="preserve">
+    <value>Процессор {0}</value>
+  </data>
+  <data name="ProcessReadWriteIOIncludesFileNetworkAndDevice" xml:space="preserve">
+    <value>Ввод-вывод процесса включает файлы, сеть и устройства, а не только диски</value>
+  </data>
+  <data name="RAID" xml:space="preserve">
+    <value>RAID</value>
+  </data>
+  <data name="RankByFiveSecondAverageCPUGPUOrIO" xml:space="preserve">
+    <value>Сортировать по среднему CPU, GPU или вводу-выводу за 5 секунд либо по текущей памяти</value>
+  </data>
+  <data name="RankProcessesBy" xml:space="preserve">
+    <value>Сортировать процессы по</value>
+  </data>
+  <data name="ReadingHardwareInformation" xml:space="preserve">
+    <value>Чтение сведений об оборудовании…</value>
+  </data>
+  <data name="ReadingsUnavailableRetryingEachSecond" xml:space="preserve">
+    <value>Данные недоступны; повтор каждую секунду.</value>
+  </data>
+  <data name="ReadWriteIO" xml:space="preserve">
+    <value>Ввод-вывод</value>
+  </data>
+  <data name="ReadWriteIOIncludesFileNetworkAndDeviceOperations" xml:space="preserve">
+    <value>Ввод-вывод включает файлы, сеть и устройства, а не только диски.</value>
+  </data>
+  <data name="ReceiveSendTheValueIsTheBusierDirectionUtilizationIs" xml:space="preserve">
+    <value>{0}{1}{2}
+↓ приём · ↑ передача. Значение — более занятое направление; загрузка относительно скорости канала, не пропускная способность Интернета.</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Обновить</value>
+  </data>
+  <data name="RemainingProcessesInTheCurrentRankingCPUAndIO" xml:space="preserve">
+    <value>Остальные процессы списка. CPU и ввод-вывод суммируются; память содержит общие страницы, проценты GPU не складываются.</value>
+  </data>
+  <data name="ReportedMaximumClock" xml:space="preserve">
+    <value>Заявленная максимальная частота: {0}
+</value>
+  </data>
+  <data name="ResidentMemory" xml:space="preserve">
+    <value>Резидентная память</value>
+  </data>
+  <data name="ResidentWorkingSetIncludingSharedPages" xml:space="preserve">
+    <value>Резидентный рабочий набор, включая общие страницы</value>
+  </data>
+  <data name="ResidentWorkingSetIncludingSharedPagesDoesNotSumTo" xml:space="preserve">
+    <value>Резидентный рабочий набор, включая общие страницы. Сумма не равна общему использованию физической памяти.</value>
+  </data>
+  <data name="ResourceColorsCPUMemoryPrimaryDiskNetworkGPUSecondDisk" xml:space="preserve">
+    <value>Цвета ресурсов: CPU, память, основной диск, сеть, GPU, второй диск. Высокая контрастность использует цвета Windows.</value>
+  </data>
+  <data name="RestoreTheDefaultShortcut" xml:space="preserve">
+    <value>Восстановить сочетание по умолчанию</value>
+  </data>
+  <data name="ResumeLiveReadingsAndProcessesEndOrEscape" xml:space="preserve">
+    <value>Вернуться к текущим данным и процессам (End или Escape)</value>
+  </data>
+  <data name="ReturnToLive" xml:space="preserve">
+    <value>К текущим данным</value>
+  </data>
+  <data name="ReturnToLiveToInspectCurrentActivity" xml:space="preserve">
+    <value>Вернитесь к текущим данным для просмотра активности.</value>
+  </data>
+  <data name="RxTxMbps" xml:space="preserve">
+    <value>
+Приём {0:0.00} / Передача {1:0.00} Mbps</value>
+  </data>
+  <data name="S" xml:space="preserve">
+    <value>{0:0}с</value>
+  </data>
+  <data name="SAS" xml:space="preserve">
+    <value>SAS</value>
+  </data>
+  <data name="SATA" xml:space="preserve">
+    <value>SATA</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Сохранить</value>
+  </data>
+  <data name="SCSI" xml:space="preserve">
+    <value>SCSI</value>
+  </data>
+  <data name="SD" xml:space="preserve">
+    <value>SD</value>
+  </data>
+  <data name="SearchNameOrPID" xml:space="preserve">
+    <value>Имя или PID</value>
+  </data>
+  <data name="SearchProcessesByNameOrPID" xml:space="preserve">
+    <value>Поиск процессов по имени или PID</value>
+  </data>
+  <data name="SecondDrive" xml:space="preserve">
+    <value>Второй диск</value>
+  </data>
+  <data name="SelectedChartSnapshot" xml:space="preserve">
+    <value>Выбранный снимок графика</value>
+  </data>
+  <data name="SelectNoneToMonitorOneDriveActiveTimeAndRead" xml:space="preserve">
+    <value>Выберите «Нет» для мониторинга одного диска.
+Время активности и скорость ввода-вывода.</value>
+  </data>
+  <data name="Settings" xml:space="preserve">
+    <value>Настройки</value>
+  </data>
+  <data name="SettingsCouldNotBeSavedCheckAccessToYourLocal" xml:space="preserve">
+    <value>Не удалось сохранить настройки. Проверьте доступ к локальным настройкам приложения и регистрации автозапуска.</value>
+  </data>
+  <data name="SharedSystemMemoryLimitGiB" xml:space="preserve">
+    <value> · лимит общей системной памяти: {0:0.##} GiB</value>
+  </data>
+  <data name="Shift" xml:space="preserve">
+    <value>Shift</value>
+  </data>
+  <data name="ShortcutUnavailable" xml:space="preserve">
+    <value> · сочетание недоступно</value>
+  </data>
+  <data name="ShowOnChart" xml:space="preserve">
+    <value>Показать {0} на графике</value>
+  </data>
+  <data name="ShowTheLastMinutes" xml:space="preserve">
+    <value>Показать последние {0} мин</value>
+  </data>
+  <data name="ShowWinMon" xml:space="preserve">
+    <value>Показать WinMon</value>
+  </data>
+  <data name="SlotUsageUnavailable" xml:space="preserve">
+    <value>Использование слотов недоступно</value>
+  </data>
+  <data name="Snapshot" xml:space="preserve">
+    <value>Снимок · {0:HH:mm:ss}</value>
+  </data>
+  <data name="ExportSnapshotTime" xml:space="preserve">
+    <value>Снимок: {0:yyyy-MM-dd HH:mm:ss zzz}</value>
+  </data>
+  <data name="HardwareSnapshotTime" xml:space="preserve">
+    <value>Снимок: {0:HH:mm:ss zzz}</value>
+  </data>
+  <data name="SnapshotTakenWhenOpenedOrRefreshed" xml:space="preserve">
+    <value>Снимок создаётся при открытии или обновлении.</value>
+  </data>
+  <data name="SnapshotUnavailableTryRefresh" xml:space="preserve">
+    <value>Снимок недоступен. Обновите данные.</value>
+  </data>
+  <data name="Socket" xml:space="preserve">
+    <value>сокет</value>
+  </data>
+  <data name="Sockets" xml:space="preserve">
+    <value>сокетов</value>
+  </data>
+  <data name="SSA" xml:space="preserve">
+    <value>SSA</value>
+  </data>
+  <data name="SSD" xml:space="preserve">
+    <value>SSD</value>
+  </data>
+  <data name="StartWinMonWhenISignIn" xml:space="preserve">
+    <value>Запускать WinMon при входе в систему</value>
+  </data>
+  <data name="StorageClassMemory" xml:space="preserve">
+    <value>Память класса хранения</value>
+  </data>
+  <data name="StorageSpaces" xml:space="preserve">
+    <value>Дисковые пространства</value>
+  </data>
+  <data name="SummedCPU" xml:space="preserve">
+    <value>суммарный CPU</value>
+  </data>
+  <data name="SummedCpuTitle" xml:space="preserve">
+    <value>суммарный CPU</value>
+  </data>
+  <data name="SummedIO" xml:space="preserve">
+    <value>суммарный ввод-вывод</value>
+  </data>
+  <data name="SummedPrivateMemory" xml:space="preserve">
+    <value>суммарная частная память</value>
+  </data>
+  <data name="SummedPrivateMemoryTitle" xml:space="preserve">
+    <value>суммарная частная память</value>
+  </data>
+  <data name="SummedReadWriteIO" xml:space="preserve">
+    <value>Суммарный ввод-вывод</value>
+  </data>
+  <data name="PercentOneDecimal" xml:space="preserve">
+    <value>{0:0.0}%</value>
+  </data>
+  <data name="PercentInteger" xml:space="preserve">
+    <value>{0}%</value>
+  </data>
+  <data name="UnknownDiskNumber" xml:space="preserve">
+    <value>?</value>
+  </data>
+  <data name="SearchGlyph" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="SystemResources" xml:space="preserve">
+    <value>Ресурсы системы</value>
+  </data>
+  <data name="SystemResourcesInspectingSnapshot" xml:space="preserve">
+    <value>Ресурсы системы · просмотр снимка</value>
+  </data>
+  <data name="SystemResourcesUnavailable" xml:space="preserve">
+    <value>Ресурсы системы · недоступны</value>
+  </data>
+  <data name="Testing" xml:space="preserve">
+    <value>Тестирование</value>
+  </data>
+  <data name="TheClipboardIsUnavailableTryCopyAgain" xml:space="preserve">
+    <value>Буфер обмена недоступен. Повторите копирование.</value>
+  </data>
+  <data name="TheEmbeddedTrayIconIsUnavailable" xml:space="preserve">
+    <value>Встроенный значок области уведомлений недоступен.</value>
+  </data>
+  <data name="Theme" xml:space="preserve">
+    <value>Тема</value>
+  </data>
+  <data name="TheOriginalProcessHasExitedAndItsPIDHasBeen" xml:space="preserve">
+    <value>Исходный процесс завершён, а его PID использован повторно. Ни один процесс не завершён.</value>
+  </data>
+  <data name="TheProcessCouldNotBeEnded" xml:space="preserve">
+    <value>Не удалось завершить процесс: {0}</value>
+  </data>
+  <data name="TheWindowsKeyIsReservedForWindowsShortcuts" xml:space="preserve">
+    <value>Клавиша Windows зарезервирована для сочетаний Windows.</value>
+  </data>
+  <data name="ThisProcessCannotBeEndedFromWinMon" xml:space="preserve">
+    <value>Этот процесс нельзя завершить из WinMon.</value>
+  </data>
+  <data name="ThisProcessHasAlreadyExited" xml:space="preserve">
+    <value>Этот процесс уже завершён.</value>
+  </data>
+  <data name="ThisProcessHasAlreadyExitedOrIsNoLongerAvailable" xml:space="preserve">
+    <value>Этот процесс уже завершён или больше недоступен.</value>
+  </data>
+  <data name="ThisShortcutCouldNotBeRegisteredChooseAnother" xml:space="preserve">
+    <value>Не удалось зарегистрировать сочетание. Выберите другое.</value>
+  </data>
+  <data name="Top" xml:space="preserve">
+    <value>Топ</value>
+  </data>
+  <data name="TotalMachine" xml:space="preserve">
+    <value>Вся система</value>
+  </data>
+  <data name="Unattributed" xml:space="preserve">
+    <value>{0:0.0}% не отнесено к процессам</value>
+  </data>
+  <data name="UnattributedCPUIsTotalCPUMinusAllMeasuredProcessesKernel" xml:space="preserve">
+    <value>
+Неотнесённый CPU — общий CPU минус все измеренные процессы: время ядра и прерываний, различия времени замера и недоступные данные процессов.</value>
+  </data>
+  <data name="UnattributedCPUIsTotalCPUMinusAllMeasuredProcessesKernel2" xml:space="preserve">
+    <value>Неотнесённый CPU — общий CPU минус все измеренные процессы: время ядра и прерываний, различия времени замера и недоступные данные процессов.</value>
+  </data>
+  <data name="Unavailable" xml:space="preserve">
+    <value>Недоступно</value>
+  </data>
+  <data name="UnavailableLowercase" xml:space="preserve">
+    <value>Недоступно</value>
+  </data>
+  <data name="UnavailableDrive" xml:space="preserve">
+    <value>{0} — недоступен</value>
+  </data>
+  <data name="UnavailableOnThisSystem" xml:space="preserve">
+    <value>Недоступно в этой системе.</value>
+  </data>
+  <data name="Unhealthy" xml:space="preserve">
+    <value>Неисправен</value>
+  </data>
+  <data name="Unknown" xml:space="preserve">
+    <value>Неизвестно</value>
+  </data>
+  <data name="Up" xml:space="preserve">
+    <value>Работает</value>
+  </data>
+  <data name="USB" xml:space="preserve">
+    <value>USB</value>
+  </data>
+  <data name="UseALetterDigitFunctionOrNavigationKey" xml:space="preserve">
+    <value>Используйте букву, цифру, функциональную клавишу или клавишу навигации.</value>
+  </data>
+  <data name="UseAtLeastTwoOfCtrlAltAndShiftIncluding" xml:space="preserve">
+    <value>Используйте минимум две из Ctrl, Alt и Shift, включая Ctrl или Alt.</value>
+  </data>
+  <data name="Value10Minutes" xml:space="preserve">
+    <value>10 минут</value>
+  </data>
+  <data name="Value1PopulatedSocket" xml:space="preserve">
+    <value>
+1 занятый сокет{0}
+</value>
+  </data>
+  <data name="Value30Minutes" xml:space="preserve">
+    <value>30 минут</value>
+  </data>
+  <data name="Value60Minutes" xml:space="preserve">
+    <value>60 минут</value>
+  </data>
+  <data name="VersionPlusCPUMemoryGraphicsVolumesAndNetworkHardware" xml:space="preserve">
+    <value>Версия, CPU, память, графика, тома и сетевое оборудование</value>
+  </data>
+  <data name="Virtual" xml:space="preserve">
+    <value> · Виртуальный</value>
+  </data>
+  <data name="VirtualBus" xml:space="preserve">
+    <value>Виртуальная</value>
+  </data>
+  <data name="VirtualizationEnabledInFirmwareWindowsReported" xml:space="preserve">
+    <value>Виртуализация в прошивке (по данным Windows): {0}</value>
+  </data>
+  <data name="VirtualizationExtensionsWindowsReported" xml:space="preserve">
+    <value>Расширения виртуализации (по данным Windows): {0}
+</value>
+  </data>
+  <data name="VolumeActiveTimeNotSpaceUsedReadWriteThroughputIn" xml:space="preserve">
+    <value>Том {0}
+Время активности, не занятое место. Скорость чтения/записи в MB/s.
+Недоступно при отключении или сборе нового интервала.</value>
+  </data>
+  <data name="VolumesManufacturerWindowsHealthStatus" xml:space="preserve">
+    <value>Тома: {0}
+Производитель: {1}
+Состояние по данным Windows: {2}</value>
+  </data>
+  <data name="Warning" xml:space="preserve">
+    <value>Предупреждение</value>
+  </data>
+  <data name="Win" xml:space="preserve">
+    <value>Win</value>
+  </data>
+  <data name="WindowsIdentifiesThisAsACriticalProcessWinMonWillNot" xml:space="preserve">
+    <value>Windows определяет этот процесс как критический. WinMon не будет его завершать.</value>
+  </data>
+  <data name="WinMon" xml:space="preserve">
+    <value>WinMon</value>
+  </data>
+  <data name="TrayStatus" xml:space="preserve">
+    <value>WinMon · {0}</value>
+  </data>
+  <data name="ProductVersion" xml:space="preserve">
+    <value>WinMon {0}</value>
+  </data>
+  <data name="WinMonCPUMonitor" xml:space="preserve">
+    <value>WinMon · монитор CPU</value>
+  </data>
+  <data name="WinMonIsAlreadyRunningRestoreItFromTheNotificationArea" xml:space="preserve">
+    <value>WinMon уже запущен. Восстановите окно из области уведомлений.</value>
+  </data>
+  <data name="WinMonResourceMonitor" xml:space="preserve">
+    <value>Монитор ресурсов WinMon</value>
+  </data>
+  <data name="WinMonSettings" xml:space="preserve">
+    <value>Настройки WinMon</value>
+  </data>
+  <data name="WinMonSourceCodeOnGitHub" xml:space="preserve">
+    <value>Исходный код WinMon на GitHub</value>
+  </data>
+  <data name="WorksFromAnyAppAndStartsWinMonWhenItIsn" xml:space="preserve">
+    <value>Работает из любого приложения и запускает WinMon, если он не запущен.</value>
+  </data>
+  <data name="WorksFromAnyAppWhileWinMonIsRunning" xml:space="preserve">
+    <value>Работает из любого приложения, пока запущен WinMon.</value>
+  </data>
+  <data name="X64" xml:space="preserve">
+    <value>x64</value>
+  </data>
+  <data name="X86" xml:space="preserve">
+    <value>x86</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Да</value>
+  </data>
+  <data name="KilobitsPerSecond" xml:space="preserve">
+    <value>Kbps</value>
+  </data>
+  <data name="PaletteColorblind" xml:space="preserve">
+    <value>Для дальтонизма</value>
+  </data>
+  <data name="PaletteMonochromatic" xml:space="preserve">
+    <value>Яркая</value>
+  </data>
+  <data name="Details" xml:space="preserve">
+    <value>Подробности</value>
+  </data>
+  <data name="PaletteBotanical" xml:space="preserve">
+    <value>Ботаническая</value>
+  </data>
+  <data name="PaletteEarth" xml:space="preserve">
+    <value>Земляные тона</value>
+  </data>
+  <data name="PaletteTech" xml:space="preserve">
+    <value>Холодная техника</value>
+  </data>
+  <data name="ThemeDark" xml:space="preserve">
+    <value>Тёмная</value>
+  </data>
+  <data name="PaletteHighContrast" xml:space="preserve">
+    <value>Высокий контраст</value>
+  </data>
+  <data name="PaletteStudio" xml:space="preserve">
+    <value>Студия</value>
+  </data>
+  <data name="PaletteNeon" xml:space="preserve">
+    <value>Киберпанк</value>
+  </data>
+  <data name="NetworkRatePair" xml:space="preserve">
+    <value>↓{0} ↑{1} {2}</value>
+  </data>
+  <data name="PaletteSpectrum" xml:space="preserve">
+    <value>Спектр</value>
+  </data>
+  <data name="PalettePastel" xml:space="preserve">
+    <value>Изысканная</value>
+  </data>
+  <data name="ThemeSystem" xml:space="preserve">
+    <value>Системная</value>
+  </data>
+  <data name="MegabitsPerSecond" xml:space="preserve">
+    <value>Mbps</value>
+  </data>
+  <data name="ThemeLight" xml:space="preserve">
+    <value>Светлая</value>
+  </data>
+  <data name="PaletteSignal" xml:space="preserve">
+    <value>Сигнал</value>
+  </data>
+  <data name="PaletteClassic" xml:space="preserve">
+    <value>Классическая</value>
+  </data>
+  <data name="PaletteOcean" xml:space="preserve">
+    <value>Океан</value>
+  </data>
+  <data name="GigabitsPerSecond" xml:space="preserve">
+    <value>Gbps</value>
+  </data>
+  <data name="ApplicationDescription" xml:space="preserve">
+    <value>Лёгкий монитор ресурсов Windows</value>
+  </data>
+  <data name="Language" xml:space="preserve">
+    <value>Язык</value>
+  </data>
+  <data name="LanguageChinese" xml:space="preserve">
+    <value>简体中文</value>
+  </data>
+  <data name="LanguageEnglish" xml:space="preserve">
+    <value>English</value>
+  </data>
+  <data name="LanguageFrench" xml:space="preserve">
+    <value>Français</value>
+  </data>
+  <data name="LanguageGerman" xml:space="preserve">
+    <value>Deutsch</value>
+  </data>
+  <data name="LanguageJapanese" xml:space="preserve">
+    <value>日本語</value>
+  </data>
+  <data name="LanguageKorean" xml:space="preserve">
+    <value>한국어</value>
+  </data>
+  <data name="LanguagePolish" xml:space="preserve">
+    <value>Polski</value>
+  </data>
+  <data name="LanguagePortuguese" xml:space="preserve">
+    <value>Português (Brasil)</value>
+  </data>
+  <data name="LanguageApplyNote" xml:space="preserve">
+    <value>Язык меняется при сохранении. Вариант Windows использует системный язык интерфейса.</value>
+  </data>
+  <data name="LanguageRussian" xml:space="preserve">
+    <value>Русский</value>
+  </data>
+  <data name="LanguageSpanish" xml:space="preserve">
+    <value>Español</value>
+  </data>
+  <data name="LanguageSystemDefault" xml:space="preserve">
+    <value>Язык интерфейса Windows</value>
+  </data>
+</root>

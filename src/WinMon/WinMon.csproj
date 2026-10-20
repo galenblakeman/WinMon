@@ -3,6 +3,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
+    <NeutralLanguage>en</NeutralLanguage>
     <ImplicitUsings>disable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
@@ -16,11 +17,20 @@
     <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-x64</RuntimeIdentifier>
     <SelfContained>true</SelfContained>
     <PublishSingleFile>true</PublishSingleFile>
-    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <!-- Compressed assemblies are inflated into private memory instead of mapped from the file: about +130 MiB
+         working set and +80 MiB private, and slower startup, to save about 90 MB on disk. -->
+    <EnableCompressionInSingleFile>false</EnableCompressionInSingleFile>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <Optimize>true</Optimize>
     <DebugType>embedded</DebugType>
   </PropertyGroup>
+  <ItemGroup>
+    <!-- Workstation GC sizes the gen0 budget from the L3 cache, up to 48 MiB on large-cache CPUs. WinMon allocates
+         about 1 MB/s, so it commits the whole budget between rare collections. A 6 MiB cap cut private bytes from
+         86 to 52 MiB in a 60 s profile, for about 16 cheap gen0 collections a minute. GCgen0size can only be set
+         from the environment; this is the runtimeconfig form, confirmed with GC.GetConfigurationVariables. -->
+    <RuntimeHostConfigurationOption Include="System.GC.Gen0MaxBudget" Value="6291456" />
+  </ItemGroup>
   <ItemGroup>
     <Resource Include="Assets/WinMon.ico" />
     <PackageReference Include="System.Management" Version="10.0.3" />

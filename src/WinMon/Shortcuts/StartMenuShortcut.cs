@@ -5,12 +5,15 @@ using WinMon.Preferences;
 
 namespace WinMon.Shortcuts;
 
+// ShellLink implements these interfaces through COM QueryInterface, outside the managed type hierarchy.
+// ReSharper disable SuspiciousTypeConversion.Global
+
 /// <summary>
 /// Manages the opt-in Start menu shortcut whose hotkey Explorer watches, so the show shortcut also starts WinMon.
 /// </summary>
 internal static class StartMenuShortcut
 {
-    private const string Description = "WinMon resource monitor";
+    private static string Description => Strings.WinMonResourceMonitor;
 
     private static string ShortcutPath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Programs), "WinMon.lnk");
 
@@ -18,6 +21,8 @@ internal static class StartMenuShortcut
     public static bool Exists => File.Exists(ShortcutPath);
 
     /// <summary>Gets the hotkey on the existing shortcut, or <see langword="null"/>.</summary>
+    // Retain the readback accessor for shortcut diagnostics.
+    // ReSharper disable once UnusedMember.Global
     public static ushort? Hotkey
     {
         get
@@ -83,6 +88,8 @@ internal static class StartMenuShortcut
     [Guid("00021401-0000-0000-C000-000000000046")]
     private class ShellLink;
 
+    // Every member is required in native vtable order, including slots not called by WinMon.
+    // ReSharper disable UnusedMember.Global
     [ComImport]
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     [Guid("000214F9-0000-0000-C000-000000000046")]
@@ -107,4 +114,6 @@ internal static class StartMenuShortcut
         void Resolve(IntPtr window, uint flags);
         void SetPath([MarshalAs(UnmanagedType.LPWStr)] string file);
     }
+    // ReSharper restore UnusedMember.Global
 }
+// ReSharper restore SuspiciousTypeConversion.Global

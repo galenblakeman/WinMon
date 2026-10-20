@@ -1,6 +1,6 @@
 # Basic GPU utilization
 
-Selected design: [GPU mockup](gpu-utilization-selected.png), approved October 19, 2026.
+Feature design approved October 19, 2026. The superseded GPU mockup has been removed.
 
 The existing .NET 10 WPF view now adds a cyan GPU readout, visibility toggle, and
 0–100% chart trace. Five readouts fit the existing 600-pixel minimum width using

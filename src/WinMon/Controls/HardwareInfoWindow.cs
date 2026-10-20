@@ -10,11 +10,11 @@ namespace WinMon.Controls;
 internal sealed class HardwareInfoWindow : Window
 {
     private readonly StackPanel _sections = new();
-    private readonly Button _refresh = new() { Content = "Refresh", MinWidth = 90 };
-    private readonly Button _copy = new() { Content = "Copy", MinWidth = 90, Margin = new Thickness(8, 0, 0, 0), IsEnabled = false,
-        ToolTip = "Copy all information, including collapsed details, as plain text" };
+    private readonly Button _refresh = new() { Content = Strings.Refresh, MinWidth = 90 };
+    private readonly Button _copy = new() { Content = Strings.Copy, MinWidth = 90, Margin = new Thickness(8, 0, 0, 0), IsEnabled = false,
+        ToolTip = Strings.CopyAllInformationAsPlainText };
     private readonly Action<string> _copyToClipboard;
-    private readonly TextBlock _note = new() { Text = "Snapshot taken when opened or refreshed.", TextWrapping = TextWrapping.Wrap, VerticalAlignment = VerticalAlignment.Center };
+    private readonly TextBlock _note = new() { Text = Strings.SnapshotTakenWhenOpenedOrRefreshed, TextWrapping = TextWrapping.Wrap, VerticalAlignment = VerticalAlignment.Center };
     private string _snapshotText = "";
     private bool _closed;
     private readonly TaskCompletionSource _ready = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -23,7 +23,7 @@ internal sealed class HardwareInfoWindow : Window
     internal HardwareInfoWindow(Action<string>? copyToClipboard = null)
     {
         _copyToClipboard = copyToClipboard ?? (text => Clipboard.SetDataObject(new DataObject(DataFormats.UnicodeText, text), true));
-        Title = "About WinMon";
+        Title = Strings.AboutWinMon;
         Width = 600; Height = 650; MinWidth = 420; MinHeight = 350;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         WindowTheme.Attach(this);
@@ -31,14 +31,14 @@ internal sealed class HardwareInfoWindow : Window
         SetResourceReference(ForegroundProperty, "Text");
         var layout = new DockPanel { Margin = new Thickness(24) };
         var footer = new DockPanel { Margin = new Thickness(0, 16, 0, 0) };
-        var close = new Button { Content = "Close", IsCancel = true, MinWidth = 90, Margin = new Thickness(8, 0, 0, 0) };
+        var close = new Button { Content = Strings.Close, IsCancel = true, MinWidth = 90, Margin = new Thickness(8, 0, 0, 0) };
         close.Click += (_, _) => Close();
         DockPanel.SetDock(close, Dock.Right); footer.Children.Add(close);
         DockPanel.SetDock(_copy, Dock.Right); footer.Children.Add(_copy);
         DockPanel.SetDock(_refresh, Dock.Right); footer.Children.Add(_refresh);
         _note.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
         footer.Children.Add(_note);
-        AutomationProperties.SetName(_copy, "Copy all information");
+        AutomationProperties.SetName(_copy, Strings.CopyAllInformation);
         _copy.Click += (_, _) => CopyInformation();
         DockPanel.SetDock(footer, Dock.Bottom); layout.Children.Add(footer);
         var about = CreateAbout();
@@ -56,29 +56,27 @@ internal sealed class HardwareInfoWindow : Window
     private static StackPanel CreateAbout()
     {
         var about = new StackPanel { Margin = new Thickness(0, 0, 0, 20) };
-        var heading = new TextBlock { Text = $"WinMon {AppInfo.Version}", FontSize = 16, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 6) };
+        var heading = new TextBlock { Text = Strings.Format(Strings.ProductVersion, AppInfo.Version), FontSize = 16, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 6) };
         heading.SetResourceReference(TextBlock.ForegroundProperty, "Accent");
         about.Children.Add(heading);
         about.Children.Add(new TextBlock { Text = AppInfo.Description, TextWrapping = TextWrapping.Wrap });
-        var notice = new TextBlock { Text = $"{AppInfo.Copyright} · {AppInfo.License} License", TextWrapping = TextWrapping.Wrap };
+        var notice = new TextBlock { Text = Strings.Format(Strings.License, AppInfo.Copyright, AppInfo.License), TextWrapping = TextWrapping.Wrap };
         notice.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
         about.Children.Add(notice);
-        if (Uri.TryCreate(AppInfo.RepositoryUrl, UriKind.Absolute, out var repository))
+        if (!Uri.TryCreate(AppInfo.RepositoryUrl, UriKind.Absolute, out var repository)) return about;
+        var link = new Hyperlink(new Run(repository.ToString())) { NavigateUri = repository };
+        link.SetResourceReference(TextElement.ForegroundProperty, "Accent");
+        AutomationProperties.SetName(link, Strings.WinMonSourceCodeOnGitHub);
+        link.RequestNavigate += (_, e) =>
         {
-            var link = new Hyperlink(new Run(repository.ToString())) { NavigateUri = repository };
-            link.SetResourceReference(TextElement.ForegroundProperty, "Accent");
-            AutomationProperties.SetName(link, "WinMon source code on GitHub");
-            link.RequestNavigate += (_, e) =>
+            try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true }); }
+            catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException)
             {
-                try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true }); }
-                catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException)
-                {
-                    System.Diagnostics.Trace.TraceWarning("Could not open {0}: {1}", e.Uri, ex.Message);
-                }
-                e.Handled = true;
-            };
-            about.Children.Add(new TextBlock(link) { Margin = new Thickness(0, 2, 0, 0) });
-        }
+                System.Diagnostics.Trace.TraceWarning("Could not open {0}: {1}", e.Uri, ex.Message);
+            }
+            e.Handled = true;
+        };
+        about.Children.Add(new TextBlock(link) { Margin = new Thickness(0, 2, 0, 0) });
         return about;
     }
 
@@ -87,11 +85,11 @@ internal sealed class HardwareInfoWindow : Window
         if (!_refresh.IsEnabled) return;
         _refresh.IsEnabled = false;
         _copy.IsEnabled = false;
-        _copy.Content = "Copy";
+        _copy.Content = Strings.Copy;
         _snapshotText = "";
-        _note.Text = "Reading hardware information…";
+        _note.Text = Strings.ReadingHardwareInformation;
         _sections.Children.Clear();
-        _sections.Children.Add(new TextBlock { Text = "Reading hardware information…" });
+        _sections.Children.Add(new TextBlock { Text = Strings.ReadingHardwareInformation });
         try
         {
             var sections = await Task.Run(WindowsHardwareInfo.Read);
@@ -108,28 +106,23 @@ internal sealed class HardwareInfoWindow : Window
                 details.SetResourceReference(ForegroundProperty, "Text");
                 AutomationProperties.SetName(details, section.Name);
                 _sections.Children.Add(heading); _sections.Children.Add(details);
-                if (section.Items is { Count: > 0 })
+                if (section.Items is not { Count: > 0 }) continue;
+                details.Margin = new Thickness(0, 0, 0, 8);
+                var items = new StackPanel { Margin = new Thickness(0, 0, 0, 20) };
+                foreach (var item in section.Items)
                 {
-                    details.Margin = new Thickness(0, 0, 0, 8);
-                    var items = new StackPanel { Margin = new Thickness(12, 8, 0, 0) };
-                    foreach (var item in section.Items)
-                    {
-                        var title = new TextBlock { Text = item.Name, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap };
-                        var text = new TextBox { Text = item.Text, IsReadOnly = true, TextWrapping = TextWrapping.Wrap,
-                            BorderThickness = new Thickness(0), Padding = new Thickness(0), Margin = new Thickness(0, 4, 0, 16) };
-                        text.SetResourceReference(BackgroundProperty, "Surface");
-                        text.SetResourceReference(ForegroundProperty, "Text");
-                        AutomationProperties.SetName(text, item.Name);
-                        items.Children.Add(title); items.Children.Add(text);
-                    }
-                    var expander = new Expander { Header = $"{section.DetailHeading} ({section.Items.Count})", Content = items, Margin = new Thickness(0, 0, 0, 20) };
-                    expander.SetResourceReference(ForegroundProperty, "Text");
-                    AutomationProperties.SetName(expander, section.DetailHeading);
-                    _sections.Children.Add(expander);
+                    var title = new TextBlock { Text = item.Name, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap };
+                    var text = new TextBox { Text = item.Text, IsReadOnly = true, TextWrapping = TextWrapping.Wrap,
+                        BorderThickness = new Thickness(0), Padding = new Thickness(0), Margin = new Thickness(0, 4, 0, 8) };
+                    text.SetResourceReference(BackgroundProperty, "Surface");
+                    text.SetResourceReference(ForegroundProperty, "Text");
+                    AutomationProperties.SetName(text, item.Name);
+                    items.Children.Add(title); items.Children.Add(text);
                 }
+                _sections.Children.Add(items);
             }
             _snapshotText = HardwareInfoText.Format(sections, capturedAt);
-            _note.Text = $"Snapshot: {capturedAt:HH:mm:ss zzz}";
+            _note.Text = Strings.Format(Strings.HardwareSnapshotTime, capturedAt);
             _copy.IsEnabled = true;
         }
         catch (Exception ex)
@@ -138,8 +131,8 @@ internal sealed class HardwareInfoWindow : Window
             if (!_closed)
             {
                 _sections.Children.Clear();
-                _note.Text = "Snapshot unavailable. Try Refresh.";
-                _sections.Children.Add(new TextBlock { Text = "Hardware information could not be read. Try Refresh.", TextWrapping = TextWrapping.Wrap });
+                _note.Text = Strings.SnapshotUnavailableTryRefresh;
+                _sections.Children.Add(new TextBlock { Text = Strings.HardwareInformationCouldNotBeReadTryRefresh, TextWrapping = TextWrapping.Wrap });
             }
         }
         finally { _refresh.IsEnabled = true; _ready.TrySetResult(); }
@@ -151,13 +144,13 @@ internal sealed class HardwareInfoWindow : Window
         try
         {
             _copyToClipboard(_snapshotText);
-            _copy.Content = "Copied";
+            _copy.Content = Strings.Copied;
         }
         catch (System.Runtime.InteropServices.ExternalException ex)
         {
             System.Diagnostics.Trace.TraceWarning("Could not copy hardware information: {0}", ex.Message);
-            _copy.Content = "Copy";
-            MessageBox.Show(this, "The clipboard is unavailable. Try Copy again.", "Copy information", MessageBoxButton.OK, MessageBoxImage.Information);
+            _copy.Content = Strings.Copy;
+            MessageBox.Show(this, Strings.TheClipboardIsUnavailableTryCopyAgain, Strings.CopyInformation, MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }
 }

@@ -88,11 +88,10 @@ internal sealed class GlobalHotkey : IDisposable
     private IntPtr Hook(IntPtr hwnd, int message, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
         // SC_HOTKEY arrives when Explorer started WinMon from the shortcut and passed the hotkey to its first window.
-        if ((message == WmHotkey && wParam.ToInt32() == HotkeyId) || (message == WmSysCommand && (wParam.ToInt32() & 0xFFF0) == ScHotkey))
-        {
-            handled = true;
-            _pressed();
-        }
+        if ((message != WmHotkey || wParam.ToInt32() != HotkeyId) &&
+            (message != WmSysCommand || (wParam.ToInt32() & 0xFFF0) != ScHotkey)) return IntPtr.Zero;
+        handled = true;
+        _pressed();
         return IntPtr.Zero;
     }
 

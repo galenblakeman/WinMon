@@ -12,7 +12,7 @@ internal static class AppInfo
         ?? Assembly.GetName().Version?.ToString(3) ?? "";
 
     /// <summary>Gets the one-line product description.</summary>
-    public static string Description { get; } = Assembly.GetCustomAttribute<AssemblyDescriptionAttribute>()?.Description ?? "";
+    public static string Description => Strings.ApplicationDescription;
 
     /// <summary>Gets the copyright notice.</summary>
     public static string Copyright { get; } = Assembly.GetCustomAttribute<AssemblyCopyrightAttribute>()?.Copyright ?? "";

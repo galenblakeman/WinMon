@@ -3,17 +3,17 @@ using WinMon.Monitoring;
 
 namespace WinMon.Controls;
 
-/// <summary>Plain-text export of the displayed snapshot, including collapsed details.</summary>
+/// <summary>Plain-text export of the displayed snapshot, including all hardware details.</summary>
 internal static class HardwareInfoText
 {
     internal static string Format(IReadOnlyList<WindowsHardwareInfo.Section> sections, DateTimeOffset capturedAt)
     {
         var text = new StringBuilder();
-        text.AppendLine($"WinMon {AppInfo.Version}");
+        text.AppendLine(Strings.Format(Strings.ProductVersion, AppInfo.Version));
         text.AppendLine(AppInfo.Description);
-        text.AppendLine($"{AppInfo.Copyright} · {AppInfo.License} License");
+        text.AppendLine(Strings.Format(Strings.License, AppInfo.Copyright, AppInfo.License));
         text.AppendLine(AppInfo.RepositoryUrl);
-        text.AppendLine($"Snapshot: {capturedAt:yyyy-MM-dd HH:mm:ss zzz}");
+        text.AppendLine(Strings.Format(Strings.ExportSnapshotTime, capturedAt));
         foreach (var section in sections)
         {
             text.AppendLine();

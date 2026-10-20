@@ -1,6 +1,6 @@
 # Inline top-process count
 
-Selected on 2026-10-19: option 1, [inline dropdown mockup](process-count-selected.png).
+Selected on 2026-10-19: an inline process-count dropdown. The superseded mockup has been removed.
 
 The main process heading reads `Top [5] processes by CPU`. The dropdown offers 5, 10, 15, and 20 and immediately reranks the displayed live or selected historical sample. Changing the count preserves history, pause state, and the selected timestamp. The count is saved with existing window preferences on normal exit; missing or unsupported stored counts fall back to five.
 

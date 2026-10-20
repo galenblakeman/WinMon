@@ -16,29 +16,29 @@ internal static class ProcessTerminator
     }
 
     internal static bool IsEligible(ProcessUsage process, bool live, bool grouped) =>
-        live && !grouped && process.MemberCount == 1 && process.ProcessId > 4 &&
+        live && !grouped && process is { MemberCount: 1, ProcessId: > 4 } &&
         process.ProcessId != Environment.ProcessId && process.CreationTicks > 0;
 
     // Return null only when Windows accepted the termination request. It can complete asynchronously.
     internal static string? End(ProcessUsage process, Func<int, ITarget>? open = null)
     {
-        if (!IsEligible(process, true, false)) return "This process cannot be ended from WinMon.";
+        if (!IsEligible(process, true, false)) return Strings.ThisProcessCannotBeEndedFromWinMon;
         try
         {
             using var target = (open ?? Open)(process.ProcessId);
             if (target.CreationTicks != process.CreationTicks)
-                return "The original process has exited and its PID has been reused. No process was ended.";
-            if (target.HasExited) return "This process has already exited.";
-            if (target.IsCritical) return "Windows identifies this as a critical process. WinMon will not end it.";
+                return Strings.TheOriginalProcessHasExitedAndItsPIDHasBeen;
+            if (target.HasExited) return Strings.ThisProcessHasAlreadyExited;
+            if (target.IsCritical) return Strings.WindowsIdentifiesThisAsACriticalProcessWinMonWillNot;
             target.Terminate();
             return null;
         }
         catch (Win32Exception ex) when (ex.NativeErrorCode == 5)
-        { return "Access denied. Windows did not allow WinMon to end this process, or it has already exited."; }
+        { return Strings.AccessDeniedWindowsDidNotAllowWinMonToEndThis; }
         catch (Win32Exception ex) when (ex.NativeErrorCode == 87)
-        { return "This process has already exited or is no longer available."; }
+        { return Strings.ThisProcessHasAlreadyExitedOrIsNoLongerAvailable; }
         catch (Exception ex) when (ex is Win32Exception or InvalidOperationException or UnauthorizedAccessException)
-        { return $"The process could not be ended: {ex.Message}"; }
+        { return Strings.Format(Strings.TheProcessCouldNotBeEnded, ex.Message); }
     }
 
     private static ITarget Open(int pid) => new NativeTarget(pid);
@@ -49,21 +49,13 @@ internal static class ProcessTerminator
         internal NativeTarget(int pid)
         {
             _handle = OpenProcess(0x1001, false, pid); // QUERY_LIMITED_INFORMATION | TERMINATE
-            if (_handle.IsInvalid)
-            {
-                var error = Marshal.GetLastWin32Error();
-                _handle.Dispose();
-                throw new Win32Exception(error);
-            }
+            if (!_handle.IsInvalid) return;
+            var error = Marshal.GetLastWin32Error();
+            _handle.Dispose();
+            throw new Win32Exception(error);
         }
-        public long CreationTicks
-        {
-            get
-            {
-                if (!GetProcessTimes(_handle, out var created, out _, out _, out _)) throw new Win32Exception();
-                return created;
-            }
-        }
+        public long CreationTicks => !GetProcessTimes(_handle, out var created, out _, out _, out _) ? throw new Win32Exception() : created;
+
         public bool HasExited
         {
             get
@@ -72,14 +64,8 @@ internal static class ProcessTerminator
                 return exited != 0;
             }
         }
-        public bool IsCritical
-        {
-            get
-            {
-                if (!IsProcessCritical(_handle, out var critical)) throw new Win32Exception();
-                return critical;
-            }
-        }
+        public bool IsCritical => !IsProcessCritical(_handle, out var critical) ? throw new Win32Exception() : critical;
+
         public void Terminate()
         {
             if (!TerminateProcess(_handle, 1)) throw new Win32Exception();

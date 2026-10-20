@@ -25,8 +25,6 @@ public sealed class GraphTimelineTests
     public void ProcessScaleMaximum_IgnoresExpiredSamplesGapsAndOtherProcessLifetimes()
     {
         var process = new ProcessUsage(42, 100, "example", 0.4);
-        CpuSample Sample(int second, ProcessUsage usage, bool gap = false) =>
-            new(DateTimeOffset.UtcNow, 80, [usage], 0, gap, Stopwatch.Frequency * second);
         CpuSample[] history =
         [
             Sample(1, process with { CpuPercent = 90 }),
@@ -37,6 +35,10 @@ public sealed class GraphTimelineTests
 
         Assert.That(CpuGraph.ProcessScaleMaximum(history, 10, process), Is.EqualTo(0.5));
         Assert.That(CpuGraph.ProcessScaleMaximum([], 10, process), Is.EqualTo(0.1));
+        return;
+
+        CpuSample Sample(int second, ProcessUsage usage, bool gap = false) =>
+            new(DateTimeOffset.UtcNow, 80, [usage], 0, gap, Stopwatch.Frequency * second);
     }
 
     [Test]

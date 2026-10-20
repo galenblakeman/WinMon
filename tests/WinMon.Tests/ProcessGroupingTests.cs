@@ -33,14 +33,15 @@ public sealed class ProcessGroupingTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(ranking.Processes.Select(p => (p.Name, p.MemberCount)), Is.EqualTo(new[] { ("chrome", 2), ("devenv", 1) }));
+            Assert.That(ranking.Processes.Select(p => (p.Name, p.MemberCount)), Is.EqualTo([("chrome", 2), ("devenv", 1)
+            ]));
             Assert.That(chrome.ProcessId, Is.EqualTo(1), "The busiest member represents the group.");
             Assert.That(chrome.CpuPercent, Is.EqualTo(6).Within(1e-9));
             Assert.That(chrome.IoBytesPerSecond, Is.EqualTo(30).Within(1e-9));
             Assert.That(chrome.GpuPercent, Is.EqualTo(30), "GPU is the busiest member, not a sum of engines.");
             Assert.That(chrome.GpuEngine, Is.EqualTo("VideoDecode"));
             Assert.That(chrome.PrivateBytes, Is.EqualTo(180), "Private bytes of the newest sample are summed.");
-            Assert.That(chrome.MemberIds, Is.EqualTo(new[] { 1, 2 }));
+            Assert.That(chrome.MemberIds, Is.EqualTo([1, 2]));
         });
     }
 
@@ -56,7 +57,7 @@ public sealed class ProcessGroupingTests
         var ranking = ProcessRanking.Rank(history, grouped: true);
 
         Assert.That(ranking.Processes.Select(p => (p.Name, p.MemberCount)).Order(),
-            Is.EqualTo(new[] { ("setup", 1), ("setup", 1), ("svchost", 2) }));
+            Is.EqualTo([("setup", 1), ("setup", 1), ("svchost", 2)]));
     }
 
     [Test]

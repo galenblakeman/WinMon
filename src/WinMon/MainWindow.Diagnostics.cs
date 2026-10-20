@@ -4,13 +4,41 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Runtime.InteropServices;
+using System.Windows.Controls.Primitives;
 using System.Windows.Interop;
+using System.Windows.Threading;
 using WinMon.Monitoring;
+// ReSharper disable StringLiteralTypo
 
 namespace WinMon;
 
 public partial class MainWindow
 {
+    internal async Task CaptureSearchDiagnosticsAsync(string outputDirectory, CancellationToken cancellationToken)
+    {
+        if (_history.Latest?.TotalCpuPercent is null)
+            throw new InvalidOperationException("Search diagnostics need native samples.");
+        ProcessSearchBox.Text = "__winmon_search_no_match__";
+        if (ClearProcessSearchButton.Visibility != Visibility.Visible ||
+            ProcessSearchPlaceholder.Visibility != Visibility.Collapsed ||
+            _rows.Any(row => row.Visibility == Visibility.Visible) ||
+            EmptyLabel.Visibility != Visibility.Visible || EmptyLabel.Text != Strings.NoRankedProcessesMatchYourSearch)
+            throw new InvalidOperationException("Process search did not filter the visible rows.");
+        await CaptureAsync(Path.Combine(outputDirectory, "process-search-empty.png"), 1, cancellationToken);
+        OnClearProcessSearch(this, new RoutedEventArgs());
+        if (ProcessSearchBox.Text.Length != 0 || ClearProcessSearchButton.Visibility != Visibility.Collapsed ||
+            ProcessSearchPlaceholder.Visibility != Visibility.Visible)
+            throw new InvalidOperationException("Clearing process search did not restore the idle field.");
+        await CaptureAsync(Path.Combine(outputDirectory, "process-search-idle.png"), 1, cancellationToken);
+        var originalWidth = Width;
+        Width = 886;
+        UpdateLayout();
+        await CaptureAsync(Path.Combine(outputDirectory, "process-search-wide.png"), 1, cancellationToken);
+        Width = originalWidth;
+        await File.WriteAllTextAsync(Path.Combine(outputDirectory, "search-passed.txt"),
+            "Native search filtering and clear checks passed.", cancellationToken);
+    }
+
     /// <summary>Record whole-process CPU, memory and GC cost of live monitoring, after a warm-up that fills the compact history.</summary>
     /// <param name="outputDirectory">Directory for profile.json.</param>
     /// <param name="seconds">Measured duration after warm-up.</param>
@@ -42,7 +70,6 @@ public partial class MainWindow
         }
         var wall = elapsed.Elapsed.TotalSeconds;
         var cpuSeconds = (self.TotalProcessorTime - startCpu).TotalSeconds;
-        static double MiB(IEnumerable<long> values) => values.Average() / 1_048_576d;
         var samples = _history.Samples;
         var report = new
         {
@@ -66,6 +93,8 @@ public partial class MainWindow
         };
         await File.WriteAllTextAsync(Path.Combine(outputDirectory, "profile.json"),
             JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true }), cancellationToken);
+        return;
+        static double MiB(IEnumerable<long> values) => values.Average() / 1_048_576d;
     }
 
     /// <summary>Validate the real recording window and export render evidence without changing user preferences.</summary>
@@ -88,9 +117,7 @@ public partial class MainWindow
             .Select(p => new { p.ProcessId, p.Name, p.GpuPercent, p.GpuEngine, p.GpuId }).ToArray();
         if (nativeResources.MemoryPercent is null)
             throw new InvalidOperationException("Native physical-memory sampling did not arrive.");
-        ValidateTitleBar();
         await CaptureFeatureDiagnosticsAsync(outputDirectory, cancellationToken);
-        CaptureWindowFrame(Path.Combine(outputDirectory, "titlebar-window.png"));
         await CaptureToolTipAsync(Path.Combine(outputDirectory, "tooltip-dark.png"), cancellationToken);
         MemoryMetric.Toggle.IsChecked = false;
         if ((OverallGraph.VisibleMetrics & 2) != 0) throw new InvalidOperationException("Memory series did not hide.");
@@ -100,20 +127,21 @@ public partial class MainWindow
         if ((OverallGraph.VisibleMetrics & 16) != 0 || _preferences.ShowGpu) throw new InvalidOperationException("GPU series did not hide.");
         GpuMetric.Toggle.IsChecked = true;
         if (OverallGraph.VisibleMetrics != 31 || !_preferences.ShowGpu) throw new InvalidOperationException("GPU series did not restore.");
+        await CaptureSearchDiagnosticsAsync(outputDirectory, cancellationToken);
         await CaptureDiskDiagnosticsAsync(outputDirectory, cancellationToken);
         await CaptureAsync(Path.Combine(outputDirectory, "compact.png"), 1, cancellationToken);
         GroupedChip.IsChecked = true;
         RefreshPresentation();
         if (_rows[0].Visibility != Visibility.Visible ||
-            (_otherRow.Visibility == Visibility.Visible && System.Windows.Automation.AutomationProperties.GetName(_otherRow)?.Contains("executables") != true))
+            (_otherRow.Visibility == Visibility.Visible && System.Windows.Automation.AutomationProperties.GetName(_otherRow)?.Contains(Strings.Executables, StringComparison.Ordinal) != true))
             throw new InvalidOperationException("Grouped mode showed no native processes or mislabeled the remainder.");
         await CaptureAsync(Path.Combine(outputDirectory, "grouped-native.png"), 1, cancellationToken);
         IndividualChip.IsChecked = true;
         ProcessCountSelector.IsDropDownOpen = true;
         try
         {
-            await Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.Render, cancellationToken);
-            if (ProcessCountSelector.Template.FindName("PART_Popup", ProcessCountSelector) is not System.Windows.Controls.Primitives.Popup
+            await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render, cancellationToken);
+            if (ProcessCountSelector.Template.FindName("PART_Popup", ProcessCountSelector) is not Popup
                 {
                     Child: FrameworkElement menu
                 })
@@ -133,14 +161,15 @@ public partial class MainWindow
             throw new InvalidOperationException("Range or width change did not apply to the existing recording.");
         _selectedSample = _history.Samples[^2];
         RefreshPresentation();
-        if (LiveButton.Visibility != Visibility.Visible || !SelectionLabel.Text.Contains("Historical") || !SelectionMetrics.Text.Contains("Memory"))
+        if (SnapshotLayer.Visibility != Visibility.Visible || SelectionLabel.Text != Strings.Format(Strings.ProcessesAtSAverage,
+                _selectedSample.Timestamp, ProcessRanking.DefaultWindowSeconds, "") || SnapshotMemory.Text.Length == 0)
             throw new InvalidOperationException("Historical selection was not presented.");
         await CaptureAsync(Path.Combine(outputDirectory, "range-wide.png"), 1, cancellationToken);
         await CaptureAsync(Path.Combine(outputDirectory, "range-wide-150.png"), 1.5, cancellationToken);
         await CaptureAsync(Path.Combine(outputDirectory, "range-wide-200.png"), 2, cancellationToken);
         _history.Resize(1);
         RefreshPresentation();
-        if (!SelectionLabel.Text.StartsWith("History expired", StringComparison.Ordinal)) throw new InvalidOperationException("An evicted selection was silently replaced.");
+        if (SelectionLabel.Text != Strings.HistoryExpiredThisSampleHasLeftTheRecordingWindowReturn) throw new InvalidOperationException("An evicted selection was silently replaced.");
         _history.Resize(_preferences.RetentionSeconds);
         ReturnToLive();
         if (_selectedSample is not null) throw new InvalidOperationException("Return to live retained a selection.");
@@ -229,6 +258,8 @@ public partial class MainWindow
     {
         Directory.CreateDirectory(output);
         if (_history.Samples.Count == 0) await Task.Delay(TimeSpan.FromSeconds(4), cancellationToken);
+        ValidateTitleBar();
+        CaptureWindowFrame(Path.Combine(output, "titlebar-window.png"));
         var hardware = await Task.Run(WindowsHardwareInfo.Read, cancellationToken);
         await File.WriteAllTextAsync(Path.Combine(output, "hardware.json"),
             JsonSerializer.Serialize(hardware, new JsonSerializerOptions { WriteIndented = true }), cancellationToken);
@@ -241,11 +272,11 @@ public partial class MainWindow
             info.UpdateLayout();
             var copyLayout = (System.Windows.Controls.DockPanel)((System.Windows.Controls.Border)info.Content).Child;
             var copyButton = copyLayout.Children.OfType<System.Windows.Controls.DockPanel>().Single().Children
-                .OfType<System.Windows.Controls.Button>().Single(b => System.Windows.Automation.AutomationProperties.GetName(b) == "Copy all information");
+                .OfType<System.Windows.Controls.Button>().Single(b => System.Windows.Automation.AutomationProperties.GetName(b) == Strings.CopyAllInformation);
             if (!copyButton.IsEnabled) throw new InvalidOperationException("Copy did not become available after loading information.");
-            copyButton.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
-            if (copiedInfo is null || !copiedInfo.StartsWith($"WinMon {AppInfo.Version}", StringComparison.Ordinal) ||
-                !copiedInfo.Contains("Installed memory", StringComparison.Ordinal) || !copiedInfo.Contains("Physical drives", StringComparison.Ordinal))
+            copyButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+            if (copiedInfo is null || !copiedInfo.StartsWith(Strings.Format(Strings.ProductVersion, AppInfo.Version), StringComparison.Ordinal) ||
+                !copiedInfo.Contains(Strings.InstalledMemory, StringComparison.Ordinal) || !copiedInfo.Contains(Strings.PhysicalDrives, StringComparison.Ordinal))
                 throw new InvalidOperationException("Copy did not export the loaded information.");
             await File.WriteAllTextAsync(Path.Combine(output, "copied-info.txt"), copiedInfo, cancellationToken);
             await CaptureVisualAsync((FrameworkElement)info.Content, Path.Combine(output, "hardware-info.png"), 1, cancellationToken);
@@ -283,16 +314,40 @@ public partial class MainWindow
         var row = _rows.First(r => r.Visibility == Visibility.Visible);
         // Exercise menu creation without invoking the destructive command.
         row.PrepareProcessMenu();
-        var menu = row.ContextMenu!;
-        if (menu.Items.Count != 1 || menu.Items[0] is not System.Windows.Controls.MenuItem item || !item.Header.ToString()!.StartsWith("End "))
+        var menu = row.ContextMenu ?? throw new InvalidOperationException("Process context menu was not created.");
+        if (menu.Items is not [System.Windows.Controls.MenuItem { Header: string { Length: > 0 } } item] ||
+            item.ToolTip as string != Strings.AvailableForLiveIndividualProcessesEndingAProcessCanLose)
             throw new InvalidOperationException("Process context menu did not capture its target.");
         try
         {
             menu.PlacementTarget = row;
             menu.IsOpen = true;
-            await Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.Render, cancellationToken);
+            await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render, cancellationToken);
             menu.UpdateLayout();
             await CaptureVisualAsync(menu, Path.Combine(output, "process-context-menu.png"), 1, cancellationToken);
+            var enabled = item.IsEnabled;
+            try
+            {
+                foreach (var theme in new[] { "Dark", "Light" })
+                {
+                    _preferences = original with { Theme = theme };
+                    ApplyTheme();
+                    foreach (var isEnabled in new[] { true, false })
+                    {
+                        item.IsEnabled = isEnabled;
+                        await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render, cancellationToken);
+                        menu.UpdateLayout();
+                        await CaptureVisualAsync(menu, Path.Combine(output,
+                            $"process-context-menu-{theme.ToLowerInvariant()}-{(isEnabled ? "enabled" : "disabled")}.png"), 1, cancellationToken);
+                    }
+                }
+            }
+            finally
+            {
+                item.IsEnabled = enabled;
+                _preferences = original;
+                ApplyTheme();
+            }
         }
         finally { menu.IsOpen = false; }
         var selection = _selectedSample;
@@ -301,13 +356,13 @@ public partial class MainWindow
             _selectedSample = _history.Latest;
             RefreshPresentation();
             row.PrepareProcessMenu();
-            if (((System.Windows.Controls.MenuItem)row.ContextMenu.Items[0]).IsEnabled)
+            if (menu.Items is not [System.Windows.Controls.MenuItem { IsEnabled: false }])
                 throw new InvalidOperationException("Historical rows allowed process termination.");
             _selectedSample = null;
             GroupedChip.IsChecked = true;
             RefreshPresentation();
             row.PrepareProcessMenu();
-            if (((System.Windows.Controls.MenuItem)row.ContextMenu.Items[0]).IsEnabled)
+            if (menu.Items is not [System.Windows.Controls.MenuItem { IsEnabled: false }])
                 throw new InvalidOperationException("Grouped rows allowed process termination.");
         }
         finally
@@ -323,9 +378,107 @@ public partial class MainWindow
             await CaptureVisualAsync((FrameworkElement)settings.Content, Path.Combine(output, "feature-settings.png"), 1, cancellationToken);
         }
         finally { settings.Close(); }
+        await CaptureLanguageSettingsDiagnosticsAsync(output, cancellationToken);
         await File.WriteAllTextAsync(Path.Combine(output, "features.json"),
             JsonSerializer.Serialize(new { HardwareInfo = true, PaletteRenders = true, ProcessContextMenu = true,
-                HistoricalAndGroupedActionsDisabled = true, Limitation = "No destructive command invoked by the UI smoke; native termination is tested on an owned helper in the test suite." }), cancellationToken);
+                HistoricalAndGroupedActionsDisabled = true, LanguageSelection = true,
+                LiveLanguageSwitching = true, RecordingStatePreserved = true,
+                Limitation = "No destructive command invoked by the UI smoke; native termination is tested on an owned helper in the test suite." }), cancellationToken);
+    }
+
+    private async Task CaptureLanguageSettingsDiagnosticsAsync(string output, CancellationToken cancellationToken)
+    {
+        var original = _preferences;
+        var selection = _selectedSample;
+        var query = ProcessSearchBox.Text;
+        var samplingTask = _samplingTask;
+        var anchor = _history.Latest;
+        var tray = _tray;
+        using var diagnosticTray = new System.Windows.Forms.NotifyIcon();
+        diagnosticTray.ContextMenuStrip = new System.Windows.Forms.ContextMenuStrip();
+        diagnosticTray.ContextMenuStrip.Items.Add(Strings.ShowWinMon);
+        diagnosticTray.ContextMenuStrip.Items.Add(Strings.Exit);
+        _tray = diagnosticTray;
+        try
+        {
+            ProcessSortSelector.SelectedIndex = (int)ProcessSort.Memory;
+            _selectedSample = anchor;
+            ProcessSearchBox.Text = "__live_language_no_match__";
+            foreach (var choice in Preferences.AppLanguages.Choices)
+            {
+                var dialog = new Preferences.SettingsWindow(_preferences) { Owner = this };
+                _ = Dispatcher.BeginInvoke(() =>
+                {
+                    var layout = (System.Windows.Controls.Grid)((System.Windows.Controls.Border)dialog.Content).Child;
+                    var selector = layout.Children.OfType<System.Windows.Controls.Grid>()
+                        .SelectMany(field => field.Children.OfType<System.Windows.Controls.ComboBox>())
+                        .Single(control => System.Windows.Automation.AutomationProperties.GetName(control) == Strings.Language);
+                    if (selector.SelectedValue as string != Preferences.AppLanguages.Normalize(_preferences.Language))
+                        throw new InvalidOperationException("The language selector did not restore the saved choice.");
+                    selector.SelectedValue = choice.Name;
+                    var save = layout.Children.OfType<System.Windows.Controls.StackPanel>().Single().Children
+                        .OfType<System.Windows.Controls.Button>().Single(button => button.IsDefault);
+                    var surface = (FrameworkElement)dialog.Content;
+                    var bounds = new Rect(save.TranslatePoint(new Point(), surface), save.RenderSize);
+                    if (!new Rect(surface.RenderSize).Contains(bounds))
+                        throw new InvalidOperationException("The Settings save button was clipped.");
+                    save.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+                }, DispatcherPriority.ContextIdle);
+                if (dialog.ShowDialog() != true || dialog.Result?.Language != choice.Name)
+                    throw new InvalidOperationException("Language selection was not saved.");
+                await ApplyPreferencesAsync(dialog.Result);
+                await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render, cancellationToken);
+                if (InfoButton.Content as string != Strings.Info || SettingsButton.Content as string != Strings.Settings ||
+                    ProcessHistoryHeader.Text != Strings.History || MemoryMetric.Label != Strings.Memory ||
+                    System.Windows.Automation.AutomationProperties.GetName(MemoryMetric.Toggle) != Strings.Format(Strings.ShowOnChart, Strings.Memory) ||
+                    _tray.ContextMenuStrip!.Items[0].Text != Strings.ShowWinMon || _tray.ContextMenuStrip.Items[1].Text != Strings.Exit ||
+                    _preferences.ProcessSort != ProcessSort.Memory || ProcessSortSelector.SelectedIndex != (int)ProcessSort.Memory ||
+                    ProcessSortSelector.SelectedItem as string != Strings.Memory || ProcessSearchBox.Text != "__live_language_no_match__" ||
+                    !ReferenceEquals(_selectedSample, anchor) || (anchor is not null && !_history.Samples.Contains(anchor)) ||
+                    !ReferenceEquals(_samplingTask, samplingTask) || EmptyLabel.Text != Strings.NoRankedProcessesMatchYourSearch)
+                    throw new InvalidOperationException("Live language switching left stale text or changed recording state.");
+                var error = _samplingError;
+                try
+                {
+                    _samplingError = SamplingError.ReadingsUnavailable;
+                    RefreshVisiblePresentation();
+                    if (ErrorLabel.Text != Strings.ReadingsUnavailableRetryingEachSecond || LiveCaption.Text != Strings.SystemResourcesUnavailable)
+                        throw new InvalidOperationException("Sampling error state depended on the old language.");
+                }
+                finally { _samplingError = error; RefreshVisiblePresentation(); }
+                if (choice.Name is "en" or "de" or "ja" or "zh-Hans")
+                    await CaptureAsync(Path.Combine(output, $"live-language-{choice.Name}.png"), 1, cancellationToken);
+            }
+            var beforeCancel = Strings.Culture;
+            var cancelled = new Preferences.SettingsWindow(_preferences) { Owner = this };
+            _ = Dispatcher.BeginInvoke(() =>
+            {
+                var layout = (System.Windows.Controls.Grid)((System.Windows.Controls.Border)cancelled.Content).Child;
+                var selector = layout.Children.OfType<System.Windows.Controls.Grid>()
+                    .SelectMany(field => field.Children.OfType<System.Windows.Controls.ComboBox>())
+                    .Single(control => System.Windows.Automation.AutomationProperties.GetName(control) == Strings.Language);
+                selector.SelectedValue = "en";
+                cancelled.DialogResult = false;
+            }, DispatcherPriority.ContextIdle);
+            if (cancelled.ShowDialog() == true || cancelled.Result is not null || !Equals(Strings.Culture, beforeCancel))
+                throw new InvalidOperationException("Cancelling Settings changed the language.");
+            if ((await _preferenceStore.LoadAsync(cancellationToken)).Language != _preferences.Language)
+                throw new InvalidOperationException("Cancelling Settings changed the saved language.");
+            await ApplyPreferencesAsync(_preferences with { Language = Preferences.AppLanguages.SystemDefault });
+            await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render, cancellationToken);
+            if (!Equals(Strings.Culture, Preferences.AppLanguages.SystemDisplayCulture) ||
+                InfoButton.Content as string != Strings.Info || SettingsButton.Content as string != Strings.Settings)
+                throw new InvalidOperationException("The system choice did not restore the original Windows language.");
+        }
+        finally
+        {
+            _preferences = original;
+            _selectedSample = selection;
+            _tray = tray;
+            ProcessSearchBox.Text = query;
+            ApplyLanguage();
+            diagnosticTray.ContextMenuStrip?.Dispose();
+        }
     }
 
     private async Task CaptureToolTipAsync(string path, CancellationToken cancellationToken)
@@ -335,13 +488,13 @@ public partial class MainWindow
         {
             Content = Controls.CpuGraph.DescribeSample(_history.Samples[^1]),
             PlacementTarget = OverallGraph,
-            Placement = System.Windows.Controls.Primitives.PlacementMode.Center
+            Placement = PlacementMode.Center
         };
         try
         {
             OverallGraph.ToolTip = tooltip;
             tooltip.IsOpen = true;
-            await Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.Render, cancellationToken);
+            await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render, cancellationToken);
             tooltip.UpdateLayout();
             var expectedText = (SolidColorBrush)FindResource("Text");
             var expectedBackground = (SolidColorBrush)FindResource("Raised");
@@ -364,6 +517,24 @@ public partial class MainWindow
         var pinPoint = PinButton.TranslatePoint(new Point(PinButton.ActualWidth / 2, PinButton.ActualHeight / 2), this);
         if (Hit(titlePoint) != 2 || Hit(pinPoint) != 1)
             throw new InvalidOperationException("The title must drag the window, while Pin must receive client input.");
+        foreach (var action in new[] { InfoButton, SettingsButton })
+        {
+            var point = action.TranslatePoint(new Point(action.ActualWidth / 2, action.ActualHeight / 2), this);
+            if (Hit(point) != 1 || !TitleBarArea.IsAncestorOf(action))
+                throw new InvalidOperationException($"{action.Content} must receive client input in the title bar.");
+            var bounds = action.TransformToAncestor(TitleBarArea).TransformBounds(new Rect(action.RenderSize));
+            if (bounds.Top < 0 || bounds.Bottom > TitleBarArea.ActualHeight ||
+                bounds.Right > TitleBarArea.ActualWidth || action.ActualHeight < 28)
+                throw new InvalidOperationException($"{action.Content} does not fit fully inside the title bar.");
+        }
+        var titleRight = ViewTitle.TranslatePoint(new Point(ViewTitle.ActualWidth, 0), TitleBarArea).X;
+        var infoLeft = InfoButton.TranslatePoint(new Point(), TitleBarArea).X;
+        var settingsLeft = SettingsButton.TranslatePoint(new Point(), TitleBarArea).X;
+        if (infoLeft < titleRight || infoLeft - titleRight > 16 || settingsLeft < infoLeft + InfoButton.ActualWidth)
+            throw new InvalidOperationException("Info and Settings must follow the version in the title bar.");
+        if (!ResourceHeader.IsAncestorOf(RangeSelector) || RangeSelector.ActualHeight > 25 || ResourceHeader.ActualHeight > 36 ||
+            ProcessHeader.ActualHeight > 44)
+            throw new InvalidOperationException("The live chart/process headers did not stay compact.");
         if (Hit(new Point(2, ActualHeight / 2)) != 10)
             throw new InvalidOperationException("The integrated title bar lost the left resize border.");
         if (Hit(new Point(ActualWidth - 116, 16)) != 8 || Hit(new Point(ActualWidth - 70, 16)) != 9 || Hit(new Point(ActualWidth - 24, 16)) != 20)
@@ -428,8 +599,8 @@ public partial class MainWindow
     {
         var original = _preferences;
         var drives = DriveInfo.GetDrives();
-        var second = drives.FirstOrDefault(d => d.IsReady && d.DriveType == DriveType.Fixed &&
-            d.Name.TrimEnd('\\') != original.PrimaryDrive)?.Name.TrimEnd('\\');
+        var second = drives.FirstOrDefault(d => d is { IsReady: true, DriveType: DriveType.Fixed } &&
+                                                d.Name.TrimEnd('\\') != original.PrimaryDrive)?.Name.TrimEnd('\\');
         var missing = Enumerable.Range('A', 26).Select(c => $"{(char)c}:")
             .FirstOrDefault(n => drives.All(d => d.Name.TrimEnd('\\') != n));
         if (missing is null) throw new InvalidOperationException("No unused drive letter for the unavailable-drive check.");
@@ -462,10 +633,10 @@ public partial class MainWindow
                 new JsonSerializerOptions { WriteIndented = true }), cancellationToken);
         _preferences = original;
         RefreshPresentation();
-        if (SecondaryDiskMetric.Visibility != Visibility.Collapsed || MinWidth != 600)
+        if (SecondaryDiskMetric.Visibility != Visibility.Collapsed || Math.Abs(MinWidth - 600) > 0.001)
             throw new InvalidOperationException("Single-drive layout did not restore.");
         Width = 600;
-        foreach (var selection in new string?[] { second ?? missing, null })
+        foreach (var selection in new[] { second ?? missing, null })
         {
             var dialog = new Preferences.SettingsWindow(original with { SecondaryDrive = second ?? missing }) { Owner = this };
             _ = Dispatcher.BeginInvoke(() =>
@@ -473,17 +644,17 @@ public partial class MainWindow
                 var layout = (System.Windows.Controls.Grid)((System.Windows.Controls.Border)dialog.Content).Child;
                 var selector = layout.Children.OfType<System.Windows.Controls.Grid>()
                     .SelectMany(g => g.Children.OfType<System.Windows.Controls.ComboBox>())
-                    .Single(c => System.Windows.Automation.AutomationProperties.GetName(c) == "Second drive");
+                    .Single(c => System.Windows.Automation.AutomationProperties.GetName(c) == Strings.SecondDrive);
                 selector.SelectedItem = selector.Items.Cast<object>().Single(item => selection is null
-                    ? item.ToString() == "None" : item.ToString()!.StartsWith(selection, StringComparison.Ordinal));
+                    ? item.ToString() == Strings.None : item.ToString()!.StartsWith(selection, StringComparison.Ordinal));
                 var buttons = layout.Children.OfType<System.Windows.Controls.StackPanel>().Single();
-                ((System.Windows.Controls.Button)buttons.Children[1]).RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
-            }, System.Windows.Threading.DispatcherPriority.ContextIdle);
+                ((System.Windows.Controls.Button)buttons.Children[1]).RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+            }, DispatcherPriority.ContextIdle);
             if (dialog.ShowDialog() != true || dialog.Result?.PrimaryDrive != original.PrimaryDrive || dialog.Result.SecondaryDrive != selection)
                 throw new InvalidOperationException("Saving the disk selectors did not return the selected volumes.");
         }
     }
-    private static async Task CaptureDesignFixtureAsync(string outputDirectory, CancellationToken cancellationToken)
+    internal static async Task CaptureDesignFixtureAsync(string outputDirectory, CancellationToken cancellationToken)
     {
         // Render-only fixture, separate from native sampling evidence. Never enters a user's session.
         var fixture = new MainWindow(true);
@@ -531,7 +702,8 @@ public partial class MainWindow
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "disks-design-200.png"), 2, cancellationToken);
         fixture._selectedSample = fixture._history.Samples[^2];
         fixture.RefreshVisiblePresentation();
-        if (!fixture.SelectionMetrics.Text.Contains("Disk D:") || !Controls.CpuGraph.DescribeSample(fixture._selectedSample).Contains("Disk D:"))
+        if (!fixture.SnapshotSecondaryDiskName.Text.Contains("D:") || !Controls.CpuGraph.DescribeSample(fixture._selectedSample)
+                .Contains(Strings.Format(Strings.SecondaryDiskHistoryLine, "D:", "", ""), StringComparison.Ordinal))
             throw new InvalidOperationException("Historical inspection lost the second volume.");
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "disks-history.png"), 1, cancellationToken);
         fixture._selectedSample = null;
@@ -545,7 +717,7 @@ public partial class MainWindow
         fixture.ApplyTheme();
         fixture.RefreshVisiblePresentation();
         visual.UpdateLayout();
-        await visual.Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.Render, cancellationToken);
+        await visual.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render, cancellationToken);
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "disks-light.png"), 1, cancellationToken);
         var lightSettings = new Preferences.SettingsWindow(fixture._preferences);
         var lightSettingsVisual = (FrameworkElement)lightSettings.Content;
@@ -571,19 +743,19 @@ public partial class MainWindow
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "gpu-process-sort.png"), 1, cancellationToken);
         fixture._selectedSample = null;
         // Memory ranks by the largest working set (devenv); I/O by the busiest read/write rate (chrome).
-        foreach (var (sort, expected) in new[] { ("Memory", "devenv"), ("I/O", "chrome") })
+        foreach (var (sort, expected) in new[] { (Strings.Memory, "devenv"), (Strings.IO, "chrome") })
         {
             fixture.ProcessSortSelector.SelectedItem = sort;
             fixture.RefreshVisiblePresentation();
             visual.UpdateLayout();
             if (!System.Windows.Automation.AutomationProperties.GetName(fixture._rows[0]).StartsWith(expected, StringComparison.Ordinal) ||
-                fixture.MemoryHeader.Text.EndsWith('▾') != (sort == "Memory"))
+                fixture.MemoryHeader.Text.EndsWith('▾') != (sort == Strings.Memory))
                 throw new InvalidOperationException($"{sort} ranking did not put {expected} first or mark its column.");
-            if (sort == "Memory") await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "memory-process-sort.png"), 1, cancellationToken);
+            if (sort == Strings.Memory) await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "memory-process-sort.png"), 1, cancellationToken);
         }
         // Clicking a column heading drives the same dropdown.
         fixture.IoHeader.RaiseEvent(new System.Windows.Input.MouseButtonEventArgs(System.Windows.Input.Mouse.PrimaryDevice, 0, System.Windows.Input.MouseButton.Left)
-            { RoutedEvent = UIElement.MouseLeftButtonUpEvent });
+            { RoutedEvent = MouseLeftButtonUpEvent });
         if (fixture._preferences.ProcessSort != ProcessSort.Io || fixture.ProcessSortSelector.SelectedItem as string != "I/O")
             throw new InvalidOperationException("Clicking the I/O heading did not switch the ranking dropdown.");
         fixture.ProcessSortSelector.SelectedItem = "CPU";
@@ -591,9 +763,11 @@ public partial class MainWindow
         fixture.GroupedChip.IsChecked = true;
         fixture.RefreshVisiblePresentation();
         visual.UpdateLayout();
-        if (!fixture._preferences.GroupProcesses || fixture.MemoryHeader.Text != "Private" ||
+        if (!fixture._preferences.GroupProcesses || fixture.MemoryHeader.Text != Strings.Private ||
             System.Windows.Automation.AutomationProperties.GetName(fixture._rows[0]) is not { } groupedName ||
-            !groupedName.StartsWith("chrome, 2 processes, 9.4%", StringComparison.Ordinal))
+            !groupedName.StartsWith("chrome", StringComparison.Ordinal) ||
+            !groupedName.Contains(Strings.Format(Strings.Processes, 2), StringComparison.Ordinal) ||
+            !groupedName.Contains(Percent(9.4), StringComparison.Ordinal))
             throw new InvalidOperationException("Grouped mode did not combine the chrome processes.");
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "grouped.png"), 1, cancellationToken);
         fixture.IndividualChip.IsChecked = true;
@@ -617,8 +791,9 @@ public partial class MainWindow
             if (fixture._rows.Count(row => row.Visibility == Visibility.Visible) != count || fixture._preferences.TopProcessCount != count)
                 throw new InvalidOperationException($"Selecting {count} did not update the live process count.");
         }
-        if (fixture.ProcessScroll.ScrollableHeight <= 0 || fixture.SettingsButton.TranslatePoint(new Point(0, fixture.SettingsButton.ActualHeight), visual).Y > visual.ActualHeight)
-            throw new InvalidOperationException($"Long process lists must scroll without hiding the footer at minimum size. Scrollable={fixture.ProcessScroll.ScrollableHeight}, footer={fixture.SettingsButton.TranslatePoint(new Point(), visual).Y}, height={visual.ActualHeight}.");
+        if (fixture.ProcessScroll.ScrollableHeight <= 0 || !fixture.TitleBarArea.IsAncestorOf(fixture.SettingsButton) ||
+            !fixture.TitleBarArea.IsAncestorOf(fixture.InfoButton))
+            throw new InvalidOperationException("Long process lists must scroll while title-bar actions remain available at minimum size.");
         fixture.ProcessScroll.ScrollToBottom();
         ArrangeFixture();
         if (fixture.ProcessScroll.VerticalOffset <= 0) throw new InvalidOperationException("The process list failed to scroll.");
@@ -630,14 +805,94 @@ public partial class MainWindow
         ArrangeFixture();
         if (!ReferenceEquals(fixture._selectedSample, rankedSample) || fixture._rows.Count(row => row.Visibility == Visibility.Visible) != 10)
             throw new InvalidOperationException("Changing the count replaced the historical sample or used live processes.");
-        if (fixture.SettingsButton.TranslatePoint(new Point(0, fixture.SettingsButton.ActualHeight), visual).Y > visual.ActualHeight)
-            throw new InvalidOperationException("Historical details pushed the footer outside the minimum-size window.");
+        if (fixture.ProcessScroll.ActualHeight < 108)
+            throw new InvalidOperationException("Historical details left too little room for the process list.");
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "process-count-history.png"), 1, cancellationToken);
         fixture.ProcessCountSelector.SelectedItem = 5;
         fixture.RefreshVisiblePresentation();
         ArrangeFixture();
 
+        // Approved compact-header mockup: same wide viewport, dual disks, grouped list, ten-minute range.
+        fixture._selectedSample = null;
+        fixture._wide = true;
+        fixture._preferences = fixture._preferences with { PrimaryDrive = "C:", SecondaryDrive = "D:", RetentionSeconds = 3600, ChartRangeSeconds = 600, ChartPalette = "Ocean" };
+        fixture.ApplyTheme();
+        fixture.BuildRangeChips();
+        fixture.GroupedChip.IsChecked = true;
+        fixture.ProcessCountSelector.SelectedItem = 20;
+        fixture.RefreshVisiblePresentation();
+        visual.Measure(new Size(1301, 1137));
+        visual.Arrange(new Rect(0, 0, 1301, 1137));
+        visual.UpdateLayout();
+        await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "compact-headers-wide.png"), 1, cancellationToken);
+        fixture._preferences = fixture._preferences with { Theme = "Light" };
+        fixture.ApplyTheme();
+        fixture.RefreshVisiblePresentation();
+        await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "compact-headers-wide-light.png"), 1, cancellationToken);
+
+        // Exercise actual selection and layout at every corner, then resize the held selection.
+        fixture._preferences = fixture._preferences with { Theme = "Dark", ChartRangeSeconds = 120, ChartPalette = "Vivid" };
+        fixture.ApplyTheme();
+        fixture.BuildRangeChips();
+        foreach (var (width, height) in new[] { (905d, 940d), (720d, 800d), (600d, 800d) })
+        {
+            fixture._preferences = fixture._preferences with { SecondaryDrive = width < 720 ? null : "D:" };
+            fixture.RefreshVisiblePresentation();
+            ArrangeSnapshot(width, height);
+            foreach (var (name, right, bottom) in new[] { ("top-left", false, false), ("top-right", true, false), ("bottom-left", false, true), ("bottom-right", true, true) })
+            {
+                var plot = fixture.OverallGraph.PlotBounds;
+                fixture.OverallGraph.SelectAt(new Point(right ? plot.Right : plot.Left, bottom ? plot.Bottom : plot.Top));
+                fixture.RefreshVisiblePresentation();
+                ArrangeSnapshot(width, height);
+                AssertSnapshotContained();
+                if (fixture._selectedSample is null || fixture.SnapshotCpu.Text != Percent(fixture._selectedSample.TotalCpuPercent))
+                    throw new InvalidOperationException("The selected snapshot did not match the clicked sample.");
+                await CaptureVisualAsync(visual, Path.Combine(outputDirectory, $"snapshot-{width}-{name}.png"), 1, cancellationToken);
+            }
+        }
+        // A shorter graph must scroll its values while keeping the live action within the panel.
+        ArrangeSnapshot(600, 540);
+        AssertSnapshotContained();
+        await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "snapshot-short.png"), 1, cancellationToken);
+        fixture._preferences = fixture._preferences with { Theme = "Light", SecondaryDrive = "D:" };
+        fixture.ApplyTheme();
+        fixture.RefreshVisiblePresentation();
+        ArrangeSnapshot(905, 940);
+        AssertSnapshotContained();
+        await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "snapshot-light.png"), 1, cancellationToken);
+        await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "snapshot-light-150.png"), 1.5, cancellationToken);
+        await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "snapshot-light-200.png"), 2, cancellationToken);
+        fixture._selectedSample = fixture._history.Samples[0];
+        fixture._history.Resize(1);
+        fixture.RefreshVisiblePresentation();
+        ArrangeSnapshot(905, 940);
+        if (fixture.SnapshotNote.Text != Strings.HistoryExpiredThisSampleHasLeftTheRecordingWindow || fixture.SnapshotReadings.Visibility != Visibility.Collapsed)
+            throw new InvalidOperationException("An expired snapshot displayed stale readings.");
+        fixture.LiveButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+        fixture.RefreshVisiblePresentation();
+        if (fixture._selectedSample is not null || fixture.SnapshotLayer.Visibility != Visibility.Collapsed)
+            throw new InvalidOperationException("The snapshot action did not return to live.");
+        await File.WriteAllTextAsync(Path.Combine(outputDirectory, "snapshot.json"),
+            JsonSerializer.Serialize(new { Corners = 12, ResizedWhileSelected = true, ShortChart = true, LightAndDark = true,
+                Expiry = true, ReturnToLive = true, RenderScales = new[] { 1d, 1.5, 2d } }), cancellationToken);
+
         return;
+
+        void ArrangeSnapshot(double width, double height)
+        {
+            visual.Measure(new Size(width, height));
+            visual.Arrange(new Rect(0, 0, width, height));
+            visual.UpdateLayout();
+        }
+
+        void AssertSnapshotContained()
+        {
+            var panel = fixture.SnapshotPanel.TransformToAncestor(fixture.SnapshotLayer).TransformBounds(new Rect(fixture.SnapshotPanel.RenderSize));
+            var button = fixture.LiveButton.TransformToAncestor(fixture.SnapshotLayer).TransformBounds(new Rect(fixture.LiveButton.RenderSize));
+            if (!fixture.OverallGraph.PlotBounds.Contains(panel) || !panel.Contains(button) || button.Height < 24)
+                throw new InvalidOperationException($"Snapshot panel or live action escaped the chart: {panel}, button {button}, plot {fixture.OverallGraph.PlotBounds}.");
+        }
 
         void ArrangeFixture()
         {
@@ -650,7 +905,7 @@ public partial class MainWindow
     private async Task CaptureAsync(string path, double scale, CancellationToken cancellationToken)
     {
         UpdateLayout();
-        await Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.Render, cancellationToken);
+        await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render, cancellationToken);
         if (Content is not FrameworkElement visual) throw new InvalidOperationException("The monitor has no root visual.");
         await CaptureVisualAsync(visual, path, scale, cancellationToken);
     }
@@ -658,7 +913,7 @@ public partial class MainWindow
     private static async Task CaptureVisualAsync(FrameworkElement visual, string path, double scale, CancellationToken cancellationToken)
     {
         visual.UpdateLayout();
-        await visual.Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.Render, cancellationToken);
+        await visual.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render, cancellationToken);
         var bitmap = new RenderTargetBitmap((int)Math.Ceiling(visual.ActualWidth * scale), (int)Math.Ceiling(visual.ActualHeight * scale), 96 * scale, 96 * scale, PixelFormats.Pbgra32);
         bitmap.Render(visual);
         var encoder = new PngBitmapEncoder();

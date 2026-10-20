@@ -1,0 +1,211 @@
+# WinMon developer guide
+
+[Back to WinMon](../README.md)
+
+These detailed usage, implementation and validation notes were preserved from the previous README. Benchmark results and validation counts describe the recorded builds; some implementation descriptions reflect earlier iterations. Commands assume the repository root as the working directory.
+
+A Windows resource monitor built with WPF on .NET 10. One view overlays CPU, physical memory, activity for up to two configured disk volumes, network throughput, and GPU utilization in one chart, above the busiest processes. Range chips switch the chart between 2, 10, 30 and 60 minutes, up to the retained history.
+
+## Run
+
+The Release distribution is a single optimized, self-contained Windows x64 executable at `src/WinMon/bin/Release/net10.0-windows/win-x64/publish/WinMon.exe`. Copy just that executable; no separate .NET installation is required. Bundled native libraries extract automatically when the application runs.
+
+Requires Windows. Development requires the .NET 10 SDK.
+
+```powershell
+dotnet run --project src/WinMon/WinMon.csproj -c Release
+```
+
+The default is the selected dark resource-overlay design: green CPU, blue memory, orange disk, purple network, and cyan GPU. Toggle each metric's checkbox to hide/show its trace; recording continues for all metrics and visibility is remembered. The range chips under **System resources** (`2m · 10m · 30m · 60m`) choose how much history the chart shows; the choice is remembered, and chips longer than the retention setting are hidden. Widen the window past 800 px and process rows also show their PID. Click the graph to hold a historical sample; use Left/Right to move, Home for the oldest visible sample, End or **Return to live** to resume the live display. Escape also clears a historical selection. Top readouts remain live; the historical summary and process table show the selected timestamp. Hover shows resource values and transfer rates for that interval.
+
+The heading, Info, Settings and Pin share the title bar with the native Minimize, Maximize and Close buttons. Drag the heading to move the window; title-bar double-click and the system menu retain standard Windows behavior. WPF WindowChrome defines the caption/resize regions, with all three application actions receiving normal button input.
+
+The compact System resources header puts time-range chips on the right; network scaling is labeled inside the chart. The process toolbar keeps ranking controls on the left, its explanatory note in the middle, and grouping on the right. Narrow windows shorten the note with an ellipsis; hover reveals its full text. Historical resource values appear only while inspecting a sample. Unattributed CPU appears directly beside the Process column heading, with full coverage information on hover. The process list extends to the bottom without a footer.
+
+**Pin** keeps the window above other windows. With **Minimize to the notification area** enabled in Settings, minimizing hides the window; click its tray icon or choose Show WinMon to restore it. Press **Ctrl+Shift+M** from any app to bring WinMon to the front, and again to minimize it; the combination is configurable in Settings, and can optionally also start WinMon when it isn't running (this adds it to the Start menu). Starting WinMon again while it runs also brings the existing window back. Closing the window or choosing the tray Exit command always exits.
+
+Settings include primary and optional second drive selectors, light/dark/system theme, retained history, minimize-to-tray behavior, the show shortcut, and opt-in current-user startup. Preferences are stored atomically in `%LOCALAPPDATA%\WinMon\settings.json`. Resource history stays in memory and is discarded on exit. Monitoring requires no elevation or network service.
+
+### Portable settings
+
+To keep preferences with the app, close WinMon and create an empty file named `portable.flag` beside `WinMon.exe`. On the next launch, WinMon loads and saves `settings.json` in that same folder, regardless of the working directory. Keep the executable, marker, and settings file together when moving or updating the app. The folder must be writable; portable mode does not fall back to the local application-data folder if saving fails.
+
+Portable settings and the normal profile are separate. To carry existing preferences over, copy `%LOCALAPPDATA%\WinMon\settings.json` beside the executable while WinMon is closed. Without that copy, portable mode starts with default preferences. Remove `portable.flag` and restart to return to the normal profile. Windows startup registration and the optional Start menu shortcut remain machine-specific; disable them before moving the app and enable them again from its new location if needed.
+
+**Info** opens an on-demand hardware snapshot: CPU model and Windows-reported physical/logical core counts, installed RAM, graphics adapters with dedicated video memory and shared-memory limits, local volume capacity/free space, and network adapters with status/link speed. Refresh updates the snapshot while recording continues. Values reflect what Windows exposes, including virtual hardware; unavailable sections are labeled. GPU memory here is capacity, not live VRAM usage.
+
+Memory also shows OS-usable capacity, module count, firmware-reported slot usage, DDR type and configured speed. Expand **Module details** for each module's capacity, location, manufacturer, part number and reported/configured speeds. **Physical drives** is separate from **Local volumes**: it shows model, media type, connection, capacity and associated drive letters; expand **Drive details** for manufacturer and Windows-reported health. Identifiers must match unambiguously before media type is associated with an OS disk. RAID/virtual hardware, unavailable providers and missing firmware values can leave fields unavailable. Health is a Windows provider report, not a full SMART diagnostic. Inventory runs only when Info is opened or refreshed.
+
+CPU adds populated sockets, cores per socket and reported maximum clock. Expand **CPU details** for each socket's model, manufacturer, architecture, physical/logical counts, L2/L3 cache and Windows-reported virtualization extensions and firmware enablement. Maximum clock comes from the [Windows processor inventory](https://learn.microsoft.com/windows/win32/cimwin32prov/win32-processor); it is a specification rather than live frequency or a measured boost clock. Missing specifications remain unavailable, and virtual machines may mask capabilities. Native model/core readings remain visible if the detailed provider fails.
+
+**Copy** in Info puts a plain-text report on the clipboard: product/version details, snapshot timestamp and every hardware section, including collapsed CPU/module/drive details and unavailable values. It copies the displayed snapshot without querying hardware again. Copy is unavailable while loading or after a failed refresh; a busy clipboard produces a retry message. The copied text remains available after WinMon exits.
+
+Right-click a live **Individual** process row and choose **End process** to request termination after confirming its name and PID. Unsaved work can be lost. The selected process's creation time is checked against the same native handle used to terminate it, preventing a reused PID from targeting another process. Historical, grouped, system and WinMon rows are disabled; Windows-critical processes are refused. Access-denied and already-exited outcomes are reported without elevation or a process-tree kill.
+
+**Settings → Chart palette** offers Classic, Ocean, Colorblind, High-Contrast & Inclusive, Sophisticated Pastel, Vibrant Monochromatic Shift, Cyberpunk / Neon, Warm Earth Tones, Cool Tech, Studio, Signal, Botanical and Spectrum independently of Light/Dark/System. The choice is remembered and applies consistently to resource tiles, overlay traces and process sparklines. Classic uses purple (`#9B4DCA`) for network in both themes. The ten additional schemes keep the same hex colors in both themes; their C:/D: colors follow the configured primary/secondary drives. Studio draws from Tableau 10, Signal from Okabe–Ito, Botanical from ColorBrewer Dark2 and Spectrum from Viridis. Sparklines use the selected ranking metric's color (I/O uses disk); Colorblind also adds overlay line patterns. Windows high contrast retains system colors and line patterns.
+
+In **Settings → Disk monitoring**, choose a primary volume and optionally a different second volume. The Windows system volume is the default; **None** keeps the original five-column view. Two volumes use six metric columns and a 720-DIP minimum width. Each disk has its own active-time percentage, read/write MB/s, visibility checkbox, and chart trace: orange solid for the primary, gold dashed for the second. Selecting an unavailable volume shows a dash and **Unavailable**, without disrupting the other readings. Selections and trace visibility are remembered; hiding a trace continues recording. Historical summaries and hover details retain each sample's volume names and values. Drive letters identify logical volumes, which may share a physical disk. Disk percentages are never added together.
+## Measurement semantics
+
+CPU, memory, disk, and GPU traces use a fixed 0–100% scale; network throughput uses its own visible-peak scale. Physical memory is used/total OS-visible physical RAM, with GiB readouts. Disk means active time (`100 − % Idle Time`) on each configured volume, with read/write throughput in decimal MB/s; it is not disk space used. Network measures one connected Ethernet/Wi-Fi adapter, preferring a gateway-bearing interface, then the fastest, and retaining that choice while connected. Its name and link speed are in the readout tooltip. The readout shows the busier direction's throughput, with receive (↓) and send (↑) below in adaptive decimal Kbps/Mbps/Gbps; utilization is the busier direction divided by reported link speed. This is link utilization, not a measurement of Internet bandwidth. Interface/speed changes, counter resets and long collection gaps require fresh rate baselines. Unavailable metrics show a dash and break the corresponding trace; CPU provider failure does not stop other resources.
+
+GPU reports the busiest physical engine across available adapters. Process contributions are summed within each engine before selecting the busiest; independent engines and GPUs are never added together. Hover the GPU readout for the adapter identifier and engine type. Windows GPU Engine performance counters supply utilization, without vendor libraries. Missing counters, startup and fresh rate baselines show a dash. Existing settings enable GPU visibility by default, and its toggle is remembered. Live GPU memory usage and temperature are outside this basic view; Info shows dedicated memory capacity.
+
+The process table defaults to CPU ranking; the selector switches it to GPU, Memory or I/O, marks the sorted column with ▾, and is remembered. Memory ranks by the current working set of processes present in the newest sample; I/O ranks by the five-second average read/write rate. Earlier GPU-sort settings carry over. **Individual | Grouped** (remembered) combines processes of the same executable into one row such as `chrome ×24`. Executables are identified by full path, so same-named programs in different folders stay apart; when a path cannot be read, the process name is used. A group sums CPU and I/O, reports the busiest member's GPU (engines are not additive), and shows the summed private bytes of its current members in a **Private** column, since working sets share pages. Its sparkline is the members' summed CPU, and the tooltip lists member PIDs. The live view ranks the newest sample in full, so member counts and memory are exact; in history, idle members compacted out of older samples are omitted. CPU and GPU columns use a five-second window. GPU is each process's busiest engine per interval, averaged over readable intervals; a missing counter or unverified process lifetime shows a dash, and a valid idle reading is zero. Per-process GPU values are not additive, so the Other processes GPU cell is a dash. Sparklines continue to show CPU history in both ranking modes. Each row shows an executable icon and a CPU history sparkline covering the last 2 minutes. All sparklines share one scale, from zero to the busiest listed process's visible peak with headroom (minimum upper limit 0.1%, capped at 100%), so heights compare across rows; hover a row to see the scale. Sparklines plot raw one-second CPU, while the CPU % column is the five-second average. Historical selection ends each sparkline at the selected interval. Icons load in the background and use a generic application icon when the process has exited or cannot be inspected; icons are cached by PID and creation time, but are not recorded in history. Memory is resident working set in MiB, including shared pages. Process I/O is interval read/write MB/s and includes file, network and device operations; it is not disk-only attribution. These columns and resource values are retained with each historical sample. Collection is sequential within one pass, not an atomic snapshot across Windows APIs.
+
+Process percentages represent shares of total machine CPU capacity, not per-core percentages or lifetime CPU time. The first reading and long delays require a new baseline. All processes are read from one system query without opening process handles, so access-restricted processes are included; any beyond the 20,000-process collection cap are counted explicitly. History also has a 500,000-process-measurement budget; the UI reports when this shortens the requested retention window. Listed processes plus the Other processes row need not sum to the overall percentage; the Process column heading reports the unattributed remainder. Very short-lived processes can exit between polls and therefore escape attribution.
+
+The initial provider uses Windows system/process time counters. Machines with multiple active processor groups are currently unsupported and show unavailable readings rather than partial machine totals. Process ranking is individual; executable grouping is deferred.
+
+## Build and tests
+
+The solution pins SDK 10.0.402 with latest-patch roll-forward.
+
+```powershell
+dotnet build WinMon.sln -c Release -m:1 -p:UseSharedCompilation=false
+dotnet test tests/WinMon.Tests/WinMon.Tests.csproj -c Release -m:1 -p:UseSharedCompilation=false
+dotnet publish src/WinMon/WinMon.csproj -c Release -m:1 -p:UseSharedCompilation=false
+```
+
+`dotnet publish` creates the single-file distribution; `dotnet build` produces intermediate build output. Release enables compiler optimization, bundles the runtime and native libraries, and embeds debug symbols in the assembly. Single-file compression is off: it shrank the executable from about 166 to 72 MiB, but doubled the working set and slowed startup (see [Performance tuning measurements](#performance-tuning-measurements)). Debug builds retain the normal development configuration. All configurations cap the GC gen0 budget at 6 MiB (`System.GC.Gen0MaxBudget`).
+
+An isolated native/UI smoke mode collects real resource samples, checks series toggles, expansion, historical inspection, expiry, hidden/minimized recording and shutdown, and writes PNG renders plus `smoke.json`. It bypasses user preference persistence and startup registration. Separate `design-compact*.png` renders use explicitly labeled illustrative data to compare a full history against the selected mockup; they are not native measurement evidence:
+
+```powershell
+.\src\WinMon\bin\Release\net10.0-windows\win-x64\publish\WinMon.exe --smoke-output D:\Projects\WinMon\artifacts\smoke
+```
+
+Bitmap renders at 100%, 150%, and 200% are layout/render evidence; they do not verify actual desktop DPI changes, keyboard automation, mixed-DPI monitor transitions, tray interaction, or startup at sign-in. Those remain manual environment checks. The smoke report includes a separate 15-second quiet observation. Both it and the full run are short measurements and are not sustained overhead benchmarks.
+
+The hardware/process/palette increment passed 155 Release tests, including termination of an owned disposable helper and rejection of a mismatched process lifetime. Focused feature smoke (`--feature-smoke-output <directory>`) and the full smoke both exited 0; renders and reports are under `artifacts/hardware-process-palettes-final/` and `artifacts/feature-full-smoke/`. The first full attempt failed its native caption-button check; the final full rerun passed. Tests ran outside the sandbox after its test host failed to connect. Restore used command-scoped `-p:NuGetAudit=false` because the audit endpoint was unreachable; no audit setting was changed in the repository. UI smoke does not invoke process termination; interactive confirmation and actual keyboard/mixed-DPI behavior remain manual checks.
+
+Hardware capacity uses Windows [installed-memory reporting](https://learn.microsoft.com/windows/win32/api/sysinfoapi/nf-sysinfoapi-getphysicallyinstalledsystemmemory) and [DXGI adapter descriptions](https://learn.microsoft.com/windows/win32/api/dxgi/ns-dxgi-dxgi_adapter_desc1). Expanded inventory uses System.Management 10.0.3 with read-only [memory](https://learn.microsoft.com/windows/win32/cimwin32prov/win32-physicalmemory) and [storage](https://learn.microsoft.com/windows-hardware/drivers/storage/msft-disk) queries, finite enumeration waits, and explicit disposal. Process termination uses [TerminateProcess](https://learn.microsoft.com/windows/win32/api/processthreadsapi/nf-processthreadsapi-terminateprocess) after checking lifetime and [critical-process status](https://learn.microsoft.com/windows/win32/api/processthreadsapi/nf-processthreadsapi-isprocesscritical). The application targets the pinned .NET 10 Windows project.
+
+## Performance tuning measurements
+
+### Whole-process profile
+
+`--profile-output <directory> [seconds]` runs the real window and sampler in isolation (no preferences, tray or single-instance lock), waits 20 seconds, then measures for the given duration (default 60). It writes `profile.json` with CPU per second, working set, private bytes, managed heap, allocation rate, GC counts and retained process entries. Memory is read for this process only, so the profiler does not inflate CPU.
+
+```powershell
+.\src\WinMon\bin\Release\net10.0-windows\win-x64\WinMon.exe --profile-output D:\Projects\WinMon\artifacts\profile 60
+```
+
+October 19, 2026, this machine (12 logical processors, about 1,000 processes), build output, same tree with and without the change:
+
+| | Before | After |
+| --- | ---: | ---: |
+| CPU, 60 s run (two runs each) | 68–69 ms/s | 36–38 ms/s |
+| CPU, 11-minute run | 65 ms/s | 34 ms/s |
+| Working set with a full 10-minute history | 265 MiB | 196 MiB |
+| Private bytes with a full 10-minute history | 180 MiB | 111 MiB |
+| Retained process entries at 10 minutes | 469,400 | 60,816 |
+| Processes that could not be read | ~155 | 0 |
+
+- Processes come from one `NtQuerySystemInformation(SystemProcessInformation)` call instead of `Process.GetProcesses()` plus a handle per process, which also measures access-restricted processes. The query buffer is pinned and reused, and a process name string is reused for the life of the process.
+- Network adapters are enumerated only after a Windows network-change event or every 30 seconds; counters are still read every second.
+- Retained samples keep only processes with CPU, I/O or GPU readings plus the 32 largest working sets. Dropped idle entries are counted and treated as zero by ranking, the Other processes row and sparklines.
+
+The compressed single-file publish uses about 130 MiB more working set than an uncompressed one (312 vs 182 MiB, private 173 vs 96 MiB), because compressed assemblies are inflated into private memory instead of mapped from the file. Uncompressed, the executable is 173 MB instead of 76 MB. Software rendering made no measurable difference. The UI microbenchmark below predates later field renames and needs updating before it will run again.
+
+### Allocation, GC and compression (October 20, 2026)
+
+Same machine, now about 1,250 processes and 611 GPU Engine counter instances. Allocation traces showed two main problems:
+- GPU counter names went through a regex about 1,800 times per second. That was 58% of all allocation.
+- Three per-second collections sized by the process list landed on the large object heap: the CPU baseline dictionary, the snapshot list and the ranking totals. They caused every gen2 collection.
+
+Changes:
+- GPU names are parsed once without a regex and cached, and the parsed readings serve both aggregations.
+- Those three collections are reused.
+- Ranking runs once per refresh.
+- The gen0 budget is capped. Workstation GC sizes it from L3 cache, up to 48 MiB here, and at about 1 MB/s of allocation the app committed the whole budget between rare collections.
+- Single-file compression is off.
+
+| | Before | After |
+| --- | ---: | ---: |
+| Published executable, 60 s: working set / private | 288 / 156 MiB | 132 / 53 MiB |
+| 11-minute run with full history: working set / private | 184 / 98.5 MiB (build output) | 146 / 60 MiB (published) |
+| 11-minute run: allocation | 3,771 KiB/s | 1,102 KiB/s |
+| 11-minute run: gen2 collections | 46 | 2 |
+| 11-minute run: CPU | 26.6 ms/s (build output) | 30.3 ms/s (published) |
+
+The 11-minute CPU figures are single uncontrolled runs. Alternating 60-second runs showed no CPU change from any of these changes.
+
+Alternating 60-second runs isolate each change:
+
+| Change | Working set | Private bytes | Other |
+| --- | --- | --- | --- |
+| Allocation fixes (build output) | 157 → 163 MiB | 77.5 → 86 MiB | Allocation −74%; gen2 GCs 7 → 1 per minute |
+| Gen0 cap (build output) | 166 → 132 MiB | 89.5 → 53.5 MiB | gen2 GCs 1 → 0 per minute |
+| Compression off (published) | 264 → 132 MiB | 131.5 → 53.4 MiB | Startup median 742 → 565 ms; exe 72 → 166 MiB |
+
+`GCgen0size` is honored only from the environment. The runtimeconfig form used here is `System.GC.Gen0MaxBudget`, verified with `GC.GetConfigurationVariables()`. It is undocumented, so re-check it on runtime upgrades. Raw data, traces and analysis tools are in `artifacts/perf-2026-10-20/`.
+
+### UI microbenchmark (earlier)
+
+October 19, 2026: process sparklines now share one extraction pass over the visible
+history, reusing values for scaling and drawing. Hidden/minimized windows continue
+recording and updating tray status, defer presentation work, and refresh on restore.
+Overlay rendering no longer constructs unused fill geometries or brushes.
+
+Release STA microbenchmark on this machine, SDK 10.0.402 / runtime 10.0.13:
+
+| Work per iteration | Before ms | After ms | Before allocated bytes | After allocated bytes |
+| --- | ---: | ---: | ---: | ---: |
+| Visible refresh only | 0.303 | 0.382 | 22,784 | 38,264 |
+| Visible refresh and six graph draws | 1.669 | 1.032 | 462,906 | 369,778 |
+| Historical refresh and six graph draws | 2.266 | 1.353 | 458,208 | 365,112 |
+| Hidden refresh | 0.315 | <0.001 | 22,784 | <1 |
+
+Caching moves some work and allocations into refresh preparation, while reducing
+combined refresh/drawing time by 38% live and 40% historical and allocations by
+about 20%. Live and historical rendered pixel hashes match the baseline exactly.
+Hidden measurements use diagnostic mode without a tray icon; actual tray text
+updates are excluded. The remaining fraction of a byte is measurement overhead.
+
+The fixture has 600 samples, 500 processes per sample, rotating CPU rankings,
+periodic gaps, a 120-second compact window, and a historical selection at sample
+480. Sampling is paused. Each case has 30 warmups followed by seven batches of
+100 iterations; the table reports the median batch mean. Allocation counts cover
+the calling UI thread. `DOTNET_TieredCompilation=0` is used for both variants to
+reduce tiering noise; the shipped application retains its normal runtime settings.
+Drawing is forced through WPF drawing commands and excludes compositor/GPU time.
+These measurements do not establish sustained whole-process CPU or memory savings.
+
+Reproduce against each version, in separate processes:
+
+```powershell
+dotnet build tools/WinMon.Performance/WinMon.Performance.csproj -c Release -m:1 -p:UseSharedCompilation=false
+$env:DOTNET_TieredCompilation = '0'
+./tools/WinMon.Performance/bin/Release/net10.0-windows/win-x64/WinMon.Performance.exe D:\Projects\WinMon\artifacts\performance\result.json
+Remove-Item Env:DOTNET_TieredCompilation
+```
+
+Preserve the complete benchmark output directory before editing application code
+to retain a runnable baseline. The local evidence is in
+`artifacts/performance/before.json`, `before-repeat.json`, and `after.json`, with
+the frozen baseline in `before-run/`. Each report includes the application assembly
+SHA-256, per-batch timing/allocation data, and live/historical pixel hashes.
+Native smoke evidence is in `smoke-before/` and `smoke-after/`; the latter also checks
+continued recording while hidden/minimized and immediate presentation on restore.
+Both native smoke runs exited successfully. Their 15-second quiet observations
+reported 0.581% and 0.642% of total machine CPU respectively; these short,
+uncontrolled observations do not demonstrate a whole-process CPU reduction.
+The Release suite passed all 55 baseline tests and all 58 updated tests.
+
+## Release packaging
+
+See the [release guide](../packaging/RELEASING.md) for the portable ZIP, per-user Inno Setup installer, draft GitHub Releases workflow, and generated WinGet manifests. Build all release assets with `./tools/New-Release.ps1` after bootstrapping the compiler with `./tools/Install-InnoSetup.ps1`.
+
+## Version and license
+
+Current version: **1.0.0**. Product details (version, copyright, license, repository) live in [Directory.Build.props](../Directory.Build.props) and are stamped into the executable's file properties; the Info window's About section shows them. To release, change `Version` there and the matching `assemblyIdentity version` in `src/WinMon/app.manifest` (a test fails if they differ).
+
+Copyright © 2026 Galen Blakeman. Released under the [MIT License](../LICENSE).
+
+## Design assets and validation notes
+
+- [Current design assets and feature notes](../design/README.md)
+- [Visual QA record](../design-qa.md)
+
+Superseded mockups and early CPU-only design records have been removed. Historical benchmark results and validation notes above remain records of their respective builds. This is a working developer build, not a completed production release gate.

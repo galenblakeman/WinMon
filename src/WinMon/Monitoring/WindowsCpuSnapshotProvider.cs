@@ -21,7 +21,6 @@ internal sealed class WindowsCpuSnapshotProvider : ICpuSnapshotProvider
 
     // SYSTEM_PROCESS_INFORMATION field offsets for 64-bit Windows.
     internal const int EntrySize = 0x100;
-    private const int NextEntryOffset = 0x00;
     private const int CreateTime = 0x20;
     private const int UserTime = 0x28;
     private const int KernelTime = 0x30;
@@ -40,8 +39,13 @@ internal sealed class WindowsCpuSnapshotProvider : ICpuSnapshotProvider
     private Dictionary<(int, long), string> _paths = [];
     private Dictionary<(int, long), string> _nextPaths = [];
     private readonly char[] _pathBuffer = new char[1024];
+    // Captures alternate between two process lists, so a snapshot's list stays intact until the next-but-one
+    // capture. A fresh list of ~1,000 entries would land on the large object heap every second.
+    private List<ProcessCpuTimes> _processes = [];
+    private List<ProcessCpuTimes> _spareProcesses = [];
 
     /// <inheritdoc/>
+    /// <remarks>The returned process list is reused by the capture after next; callers keep at most one prior snapshot.</remarks>
     public CpuSnapshot Capture()
     {
         if (!Environment.Is64BitProcess)
@@ -58,8 +62,9 @@ internal sealed class WindowsCpuSnapshotProvider : ICpuSnapshotProvider
         }
 
         var length = Query();
+        (_processes, _spareProcesses) = (_spareProcesses, _processes);
         var available = Parse(_buffer.AsSpan(0, length), Marshal.UnsafeAddrOfPinnedArrayElement(_buffer, 0),
-            _names, _nextNames, out var unavailable);
+            _names, _nextNames, out var unavailable, _processes);
         (_names, _nextNames) = (_nextNames, _names);
         _nextPaths.Clear();
         for (var i = 0; i < available.Count; i++)
@@ -89,11 +94,15 @@ internal sealed class WindowsCpuSnapshotProvider : ICpuSnapshotProvider
     /// <param name="previousNames">Names from the last capture, reused for unchanged process lifetimes.</param>
     /// <param name="names">Cleared and filled with this capture's names.</param>
     /// <param name="unavailable">Processes beyond the collection cap.</param>
+    /// <param name="processes">List to clear and fill, or null for a new one.</param>
     internal static List<ProcessCpuTimes> Parse(ReadOnlySpan<byte> buffer, nint baseAddress,
-        Dictionary<(int, long), string> previousNames, Dictionary<(int, long), string> names, out int unavailable)
+        Dictionary<(int, long), string> previousNames, Dictionary<(int, long), string> names, out int unavailable,
+        List<ProcessCpuTimes>? processes = null)
     {
         names.Clear();
-        var processes = new List<ProcessCpuTimes>(previousNames.Count + 16);
+        processes ??= [];
+        processes.Clear();
+        processes.EnsureCapacity(previousNames.Count + 16);
         unavailable = 0;
         for (var offset = 0; offset + EntrySize <= buffer.Length;)
         {
@@ -121,7 +130,7 @@ internal sealed class WindowsCpuSnapshotProvider : ICpuSnapshotProvider
                         BinaryPrimitives.ReadUInt64LittleEndian(entry[PrivatePageCount..])));
                 }
             }
-            var next = BinaryPrimitives.ReadUInt32LittleEndian(entry[NextEntryOffset..]);
+            var next = BinaryPrimitives.ReadUInt32LittleEndian(entry);
             if (next == 0) break;
             offset += checked((int)next);
         }

@@ -1,0 +1,30 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:preferences="clr-namespace:WinMon.Preferences">
+    <DataTemplate x:Key="PaletteChoiceTemplate" DataType="{x:Type preferences:PaletteChoice}">
+        <Grid Width="168" VerticalAlignment="Center" ToolTip="{Binding DisplayName}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock
+                Margin="0,0,10,0"
+                VerticalAlignment="Center"
+                Text="{Binding DisplayName}"
+                TextTrimming="CharacterEllipsis" />
+            <ItemsControl Grid.Column="1" VerticalAlignment="Center" ItemsSource="{Binding Colors}" IsHitTestVisible="False" Focusable="False">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Width="10" Height="10" Margin="1,0" Background="{Binding}" CornerRadius="1" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Grid>
+    </DataTemplate>
+</ResourceDictionary>

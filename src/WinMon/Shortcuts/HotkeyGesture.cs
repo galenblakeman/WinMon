@@ -1,5 +1,5 @@
 using System.Numerics;
-
+// ReSharper disable ConvertIfStatementToSwitchStatement
 namespace WinMon.Shortcuts;
 
 /// <summary>Modifier keys of a global shortcut, valued as the RegisterHotKey MOD_ flags.</summary>
@@ -47,20 +47,20 @@ public sealed record HotkeyGesture(HotkeyModifiers Modifiers, int VirtualKey)
     {
         get
         {
-            if (KeyName(VirtualKey) is null) return "Use a letter, digit, function or navigation key.";
-            if (Modifiers.HasFlag(HotkeyModifiers.Windows)) return "The Windows key is reserved for Windows shortcuts.";
+            if (KeyName(VirtualKey) is null) return Strings.UseALetterDigitFunctionOrNavigationKey;
+            if (Modifiers.HasFlag(HotkeyModifiers.Windows)) return Strings.TheWindowsKeyIsReservedForWindowsShortcuts;
             // A single modifier would take over everyday shortcuts such as Ctrl+C in every application.
             if ((Modifiers & (HotkeyModifiers.Control | HotkeyModifiers.Alt)) == 0 || BitOperations.PopCount((uint)Modifiers) < 2)
-                return "Use at least two of Ctrl, Alt and Shift, including Ctrl or Alt.";
-            if (Modifiers == (HotkeyModifiers.Control | HotkeyModifiers.Alt) && VirtualKey == DeleteKey) return "Ctrl+Alt+Delete is reserved by Windows.";
+                return Strings.UseAtLeastTwoOfCtrlAltAndShiftIncluding;
+            if (Modifiers == (HotkeyModifiers.Control | HotkeyModifiers.Alt) && VirtualKey == DeleteKey) return Strings.CtrlAltDeleteIsReservedByWindows;
             return null;
         }
     }
 
     /// <summary>Gets the IShellLink hotkey word: virtual key low, HOTKEYF_SHIFT/CONTROL/ALT high.</summary>
     internal ushort ShellLinkHotkey =>
-        (ushort)(VirtualKey | ((Modifiers.HasFlag(HotkeyModifiers.Shift) ? 1 : 0) | (Modifiers.HasFlag(HotkeyModifiers.Control) ? 2 : 0) |
-                               (Modifiers.HasFlag(HotkeyModifiers.Alt) ? 4 : 0)) << 8);
+        (ushort)(VirtualKey | (((Modifiers.HasFlag(HotkeyModifiers.Shift) ? 1 : 0) | (Modifiers.HasFlag(HotkeyModifiers.Control) ? 2 : 0) |
+                                (Modifiers.HasFlag(HotkeyModifiers.Alt) ? 4 : 0)) << 8));
 
     /// <inheritdoc/>
     public override string ToString() => Format("+");

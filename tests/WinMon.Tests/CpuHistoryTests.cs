@@ -83,7 +83,7 @@ public sealed class CpuHistoryTests
         var resumed = Sample(900);
         history.Add(resumed);
 
-        Assert.That(history.Samples, Is.EqualTo(new[] { resumed }));
+        Assert.That(history.Samples, Is.EqualTo([resumed]));
     }
 
     [Test]
@@ -94,7 +94,7 @@ public sealed class CpuHistoryTests
         var next = new CpuSample(DateTimeOffset.UnixEpoch, 5, [], 0, false, 902 * Stopwatch.Frequency);
         history.Add(next);
 
-        Assert.That(history.Samples, Is.EqualTo(new[] { next }));
+        Assert.That(history.Samples, Is.EqualTo([next]));
     }
 
     [Test]
@@ -106,7 +106,7 @@ public sealed class CpuHistoryTests
         var next = new CpuSample(DateTimeOffset.UnixEpoch.AddSeconds(1), 10, processes, 0);
         history.Add(next);
 
-        Assert.That(history.Samples, Is.EqualTo(new[] { next }));
+        Assert.That(history.Samples, Is.EqualTo([next]));
         Assert.That(history.WasMemoryLimited, Is.True);
     }
 
@@ -114,7 +114,7 @@ public sealed class CpuHistoryTests
     public void Add_ProcessExits_RetainsHistoricalAttribution()
     {
         var history = new CpuHistory();
-        var earlier = new CpuSample(DateTimeOffset.UnixEpoch, 50, new[] { new ProcessUsage(22, 100, "exited", 40) }, 0);
+        var earlier = new CpuSample(DateTimeOffset.UnixEpoch, 50, [new ProcessUsage(22, 100, "exited", 40)], 0);
         history.Add(earlier);
         history.Add(Sample(1));
 

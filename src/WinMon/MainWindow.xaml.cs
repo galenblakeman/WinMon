@@ -11,7 +11,7 @@ using WinMon.Monitoring;
 using WinMon.Preferences;
 using WinMon.Shortcuts;
 using Forms = System.Windows.Forms;
-
+// ReSharper disable ConvertIfStatementToSwitchStatement
 namespace WinMon;
 
 /// <summary>Present a shared CPU recording session in compact and investigation layouts.</summary>
@@ -19,7 +19,8 @@ public partial class MainWindow
 {
     private readonly CancellationTokenSource _lifetime = new();
     private readonly bool _diagnosticMode;
-    private readonly PreferenceStore _preferenceStore = new();
+    private readonly PreferenceStore _preferenceStore;
+    private readonly MonitorPreferences? _initialPreferences;
     private readonly ProcessRow[] _rows = [.. Enumerable.Range(0, 20).Select(_ => new ProcessRow())];
     private readonly ProcessRow _otherRow = new() { Visibility = Visibility.Collapsed };
     // History keeps compacted samples; the live view ranks the newest one in full so group counts and memory are exact.
@@ -36,7 +37,8 @@ public partial class MainWindow
     private CpuSample? _selectedSample;
     // The newest sample the visible presentation last drew; diagnostics check it stays put while hidden.
     private CpuSample? _presentedSample;
-    private string? _samplingError;
+    private enum SamplingError { CpuUnavailable, ReadingsUnavailable }
+    private SamplingError? _samplingError;
     private bool _wide;
     private const double WideWidth = 800;
     private bool _closing;
@@ -53,29 +55,34 @@ public partial class MainWindow
 
     /// <summary>Create a monitor with isolated preferences for diagnostic validation.</summary>
     /// <param name="diagnosticMode">Whether to avoid reading or saving user preferences.</param>
-    internal MainWindow(bool diagnosticMode)
+    /// <param name="initialPreferences">Preferences already read before choosing the startup UI language.</param>
+    /// <param name="preferenceStore">The store selected at startup, preserving the portable or installed storage mode.</param>
+    internal MainWindow(bool diagnosticMode, MonitorPreferences? initialPreferences = null, PreferenceStore? preferenceStore = null)
     {
         _diagnosticMode = diagnosticMode;
+        _initialPreferences = initialPreferences;
+        _preferenceStore = preferenceStore ?? new PreferenceStore();
         InitializeComponent();
         VersionRun.Text = $" {AppInfo.Version}";
         ProcessCountSelector.ItemsSource = new[] { 5, 10, 15, 20 };
         ProcessCountSelector.SelectedItem = _preferences.TopProcessCount;
         ProcessCountSelector.SelectionChanged += OnProcessCountChanged;
         // Item order matches ProcessSort so the selected index is the sort column.
-        ProcessSortSelector.ItemsSource = new[] { "CPU", "GPU", "Memory", "I/O" };
+        ProcessSortSelector.ItemsSource = new[] { Strings.CPU, Strings.GPU, Strings.Memory, Strings.IO };
         ProcessSortSelector.SelectedIndex = (int)ProcessSort.Cpu;
         ProcessSortSelector.SelectionChanged += OnProcessSortChanged;
+        ProcessSearchBox.TextChanged += OnProcessSearchChanged;
         IndividualChip.Checked += OnGroupingChanged;
         GroupedChip.Checked += OnGroupingChanged;
         // Column headings are shortcuts for the "processes by" dropdown, which stays the keyboard path.
-        foreach (var (header, sort, text) in SortHeaders)
+        foreach (var (header, sort, _) in SortHeaders)
         {
             header.Cursor = Cursors.Hand;
-            header.ToolTip = $"{header.ToolTip}\nClick to rank processes by {text.Replace(" %", "").Replace(" MB/s", "")}.";
             header.MouseEnter += (_, _) => header.TextDecorations = TextDecorations.Underline;
             header.MouseLeave += (_, _) => header.TextDecorations = null;
             header.MouseLeftButtonUp += (_, e) => { ProcessSortSelector.SelectedIndex = (int)sort; e.Handled = true; };
         }
+        UpdateSortHeaderToolTips();
         WindowTheme.Attach(this);
         foreach (var metric in Metrics)
         {
@@ -110,7 +117,7 @@ public partial class MainWindow
     {
         try
         {
-            _preferences = _diagnosticMode ? new MonitorPreferences() : await _preferenceStore.LoadAsync(_lifetime.Token);
+            _preferences = _diagnosticMode ? new MonitorPreferences() : _initialPreferences ?? await _preferenceStore.LoadAsync(_lifetime.Token);
             ProcessSortSelector.SelectedIndex = (int)_preferences.ProcessSort;
             GroupedChip.IsChecked = _preferences.GroupProcesses;
             IndividualChip.IsChecked = !_preferences.GroupProcesses;
@@ -142,7 +149,7 @@ public partial class MainWindow
         catch (Exception ex)
         {
             Trace.TraceError("WinMon initialization failed: {0}", ex);
-            ShowError("Initialization failed. Close and restart WinMon.");
+            ShowError(Strings.InitializationFailedCloseAndRestartWinMon);
         }
     }
 
@@ -159,12 +166,12 @@ public partial class MainWindow
                 try
                 {
                     CpuSample sample;
-                    string? cpuError = null;
+                    SamplingError? cpuError = null;
                     try { sample = sampler.Sample(); }
                     catch (Exception ex) when (ex is Win32Exception or PlatformNotSupportedException)
                     {
                         sampler.Reset();
-                        cpuError = "CPU unavailable; other resources continue recording.";
+                        cpuError = SamplingError.CpuUnavailable;
                         Trace.TraceWarning("CPU sampling unavailable: {0}", ex.Message);
                         sample = new CpuSample(DateTimeOffset.UtcNow, null, [], 0, false, Stopwatch.GetTimestamp());
                     }
@@ -178,7 +185,7 @@ public partial class MainWindow
                     Trace.TraceError("WinMon CPU sampling failed: {0}", ex);
                     sampler.Reset();
                     resources.Reset();
-                    Deliver(new PendingSample(null, "Readings unavailable; retrying each second."));
+                    Deliver(new PendingSample(null, SamplingError.ReadingsUnavailable));
                 }
             } while (await timer.WaitForNextTickAsync(cancellationToken));
         }
@@ -190,7 +197,7 @@ public partial class MainWindow
     }
 
     /// <summary>A captured sample, or a failed pass when <see cref="Sample"/> is null, awaiting the UI thread.</summary>
-    private sealed record PendingSample(CpuSample? Sample, string? Error, CpuSample? Full = null);
+    private sealed record PendingSample(CpuSample? Sample, SamplingError? Error, CpuSample? Full = null);
 
     // Capture never waits for the UI: a stalled dispatcher would otherwise delay the next capture and
     // stretch the sampling interval past the chart's gap threshold. Samples queue in pendingSamples and
@@ -199,7 +206,7 @@ public partial class MainWindow
     {
         _pendingSamples.Enqueue(pending);
         if (Interlocked.Exchange(ref _drainScheduled, 1) == 0)
-            Dispatcher.BeginInvoke(DrainPendingSamples, System.Windows.Threading.DispatcherPriority.Background);
+            Dispatcher.BeginInvoke(DrainPendingSamples, DispatcherPriority.Background);
     }
 
     private void DrainPendingSamples()
@@ -242,33 +249,32 @@ public partial class MainWindow
         var latest = samples.Count == 0 ? null : samples[^1];
         var visible = _selectedSample is null ? latest : samples.FirstOrDefault(s => ReferenceEquals(s, _selectedSample));
         var range = _preferences.EffectiveChartRange;
-        CpuValue.Text = _samplingError is null && latest?.TotalCpuPercent is { } total ? $"{total:0.0}%" : "—";
-        var allUnavailable = _samplingError?.StartsWith("Readings", StringComparison.Ordinal) == true;
+        CpuValue.Text = _samplingError is null && latest?.TotalCpuPercent is { } total ? Strings.Format(Strings.PercentOneDecimal, total) : Strings.MissingReading;
+        var allUnavailable = _samplingError == SamplingError.ReadingsUnavailable;
         UpdateResources(allUnavailable ? null : latest);
         OverallGraph.SetData(samples, range, _selectedSample);
-        LiveButton.Visibility = _selectedSample is null ? Visibility.Collapsed : Visibility.Visible;
+        UpdateSnapshot(_selectedSample is null ? null : visible);
         var grouped = _preferences.GroupProcesses;
         var historyMetric = _preferences.ProcessSort switch
         {
-            ProcessSort.Gpu => grouped ? "busiest-member GPU" : "GPU",
-            ProcessSort.Memory => grouped ? "summed private memory" : "memory",
-            ProcessSort.Io => grouped ? "summed I/O" : "I/O",
-            _ => grouped ? "summed CPU" : "CPU"
+            ProcessSort.Gpu => grouped ? Strings.BusiestMemberGPU : Strings.GPU,
+            ProcessSort.Memory => grouped ? Strings.SummedPrivateMemory : Strings.MemoryLowercase,
+            ProcessSort.Io => grouped ? Strings.SummedIO : Strings.IO,
+            _ => grouped ? Strings.SummedCPU : Strings.CPU
         };
-        ProcessHistoryHeader.ToolTip = $"{historyMetric} history on one scale shared by every row. Hover a row for the scale.";
-        SelectionLabel.Text = _selectedSample is not null ? visible is null ? "History expired. This sample has left the recording window. Return to live." : $"Historical sample at {visible.Timestamp:HH:mm:ss} · {ProcessRanking.DefaultWindowSeconds}s average ending here{(grouped ? " · idle group members may be omitted" : "")}"
-            : grouped ? $"Grouped by executable · {ProcessRanking.DefaultWindowSeconds}s averages · {historyMetric} history" : $"Individual processes · {ProcessRanking.DefaultWindowSeconds}s averages · {historyMetric} history sparklines";
-        SelectionMetrics.Visibility = _selectedSample is not null && visible is not null ? Visibility.Visible : Visibility.Collapsed;
-        SelectionMetrics.Text = visible is null ? "" : $"CPU {Percent(visible.TotalCpuPercent)} · Memory {Percent(visible.Resources.MemoryPercent)} · Disk {visible.Resources.DiskName} {Percent(visible.Resources.DiskActivePercent)}{(visible.Resources.SecondaryDiskName.Length > 0 ? $" · Disk {visible.Resources.SecondaryDiskName} {Percent(visible.Resources.SecondaryDiskActivePercent)}" : "")} · Network {Rate(visible.Resources)} · GPU {Percent(visible.Resources.GpuPercent)}";
+        ProcessHistoryHeader.ToolTip = Strings.Format(Strings.HistoryOnOneScaleSharedByEveryRowHoverA, historyMetric);
+        SelectionLabel.Text = _selectedSample is not null ? visible is null ? Strings.HistoryExpiredThisSampleHasLeftTheRecordingWindowReturn : Strings.Format(Strings.ProcessesAtSAverage, visible.Timestamp, ProcessRanking.DefaultWindowSeconds, grouped ? Strings.IdleGroupMembersMayBeOmitted : "")
+            : string.Empty;
+        SelectionLabel.Visibility = _selectedSample is null ? Visibility.Collapsed : Visibility.Visible;
         var selectedIndex = _selectedSample is null ? -1 : Array.FindIndex([.. samples], s => ReferenceEquals(s, _selectedSample));
         var rowSamples = _selectedSample is null ? samples : [.. samples.Take(selectedIndex + 1)];
         if (_selectedSample is null && _latestFull is not null && rowSamples.Count > 0 && ReferenceEquals(rowSamples[^1], _latestCompacted))
             rowSamples = [.. rowSamples.Take(rowSamples.Count - 1), _latestFull];
         // Rank on a short average ending at the live or selected sample; single intervals are tick-quantized.
-        var cpuRanking = visible is null ? new ProcessRanking([], null, 0) : ProcessRanking.Rank(rowSamples, grouped: grouped);
-        var ranking = _preferences.ProcessSort == ProcessSort.Cpu ? cpuRanking : ProcessRanking.Rank(rowSamples, sort: _preferences.ProcessSort, grouped: grouped);
+        var ranking = ProcessRanking.Rank(rowSamples, sort: _preferences.ProcessSort, grouped: grouped);
         UpdateSortHeaders();
-        var active = ranking.Processes;
+        var query = ProcessSearchBox.Text.Trim();
+        var active = ProcessSearch.Filter(ranking.Processes, query).ToArray();
         var top = active.Take(_preferences.TopProcessCount).ToArray();
         var rest = active.Skip(top.Length).ToArray();
         var processData = ProcessGraphData.Build(rowSamples, MonitorPreferences.ShortRangeSeconds, top, grouped, _preferences.ProcessSort);
@@ -280,21 +286,27 @@ public partial class MainWindow
         _otherRow.Visibility = rest.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
         if (rest.Length > 0)
             // Memory ranking also covers idle processes compacted out of the sample.
-            _otherRow.ShowRemainder(rest.Length + (_preferences.ProcessSort == ProcessSort.Memory && !grouped ? visible?.CompactedProcesses ?? 0 : 0),
+            _otherRow.ShowRemainder(rest.Length + (query.Length == 0 && _preferences.ProcessSort == ProcessSort.Memory && !grouped ? visible?.CompactedProcesses ?? 0 : 0),
                 rest.Sum(p => p.CpuPercent),
                 rest.Any(p => p.IoBytesPerSecond is not null) ? rest.Sum(p => p.IoBytesPerSecond ?? 0) : null, grouped);
         EmptyLabel.Visibility = top.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
-        EmptyLabel.Text = visible is null && _selectedSample is not null ? "Return to live to inspect current activity." : latest is null || visible?.TotalCpuPercent is null ? "Collecting a baseline or recovering after a recording gap…" : _preferences.ProcessSort switch
+        EmptyLabel.Text = visible is null && _selectedSample is not null ? Strings.ReturnToLiveToInspectCurrentActivity : latest is null || visible?.TotalCpuPercent is null ? Strings.CollectingABaselineOrRecoveringAfterARecordingGap : query.Length > 0 ? Strings.NoRankedProcessesMatchYourSearch : _preferences.ProcessSort switch
             {
-                ProcessSort.Gpu => "No measurable GPU activity among accessible processes in this window.",
-                ProcessSort.Memory => "No memory readings among accessible processes.",
-                ProcessSort.Io => "No measurable I/O among accessible processes in this window.",
-                _ => "No measurable active processes in this window."
+                ProcessSort.Gpu => Strings.NoMeasurableGPUActivityAmongAccessibleProcessesInThisWindow,
+                ProcessSort.Memory => Strings.NoMemoryReadingsAmongAccessibleProcesses,
+                ProcessSort.Io => Strings.NoMeasurableIOAmongAccessibleProcessesInThisWindow,
+                _ => Strings.NoMeasurableActiveProcessesInThisWindow
             };
-        CoverageLabel.Text = visible is null ? "" : Coverage(visible.UnavailableProcesses, cpuRanking.TotalCpuPercent, cpuRanking.Processes.Sum(p => p.CpuPercent));
-        if (_history.WasMemoryLimited) CoverageLabel.Text += (CoverageLabel.Text.Length > 0 ? " · " : "") + "history shortened by memory limit";
-        LiveCaption.Text = allUnavailable ? "System resources · unavailable" : "System resources";
-        ShowError(_samplingError);
+        CoverageLabel.Text = visible is null ? "" : Coverage(visible.UnavailableProcesses, ranking.TotalCpuPercent, ranking.MeasuredCpuPercent);
+        if (_history.WasMemoryLimited) CoverageLabel.Text += (CoverageLabel.Text.Length > 0 ? " · " : "") + Strings.HistoryShortenedByMemoryLimit;
+        CoverageLabel.ToolTip = CoverageLabel.Text + Strings.UnattributedCPUIsTotalCPUMinusAllMeasuredProcessesKernel;
+        LiveCaption.Text = allUnavailable ? Strings.SystemResourcesUnavailable : _selectedSample is not null ? Strings.SystemResourcesInspectingSnapshot : Strings.SystemResources;
+        ShowError(_samplingError switch
+        {
+            SamplingError.CpuUnavailable => Strings.CPUUnavailableOtherResourcesContinueRecording,
+            SamplingError.ReadingsUnavailable => Strings.ReadingsUnavailableRetryingEachSecond,
+            _ => null
+        });
         _presentedSample = latest;
         UpdateTrayText(latest);
     }
@@ -308,9 +320,9 @@ public partial class MainWindow
     /// <summary>Summarize CPU that the measured processes do not cover, without inventing a process for it.</summary>
     private static string Coverage(int unavailableProcesses, double? totalCpu, double measuredCpu)
     {
-        var unread = unavailableProcesses > 0 ? $"{unavailableProcesses} processes need administrator access" : "";
+        var unread = unavailableProcesses > 0 ? Strings.Format(Strings.ProcessesNeedAdministratorAccess, unavailableProcesses) : "";
         if (totalCpu is not { } total) return unread;
-        var unattributed = $"{Math.Max(0, total - measuredCpu):0.0}% unattributed";
+        var unattributed = Strings.Format(Strings.Unattributed, Math.Max(0, total - measuredCpu));
         return unread.Length > 0 ? $"{unattributed} · {unread}" : unattributed;
     }
 
@@ -318,8 +330,8 @@ public partial class MainWindow
     {
         if (_tray is null) return;
         latest ??= _history.Latest;
-        _tray.Text = $"WinMon · {(_samplingError is not null ? "Unavailable" : Percent(latest?.TotalCpuPercent) + " CPU")}" +
-            (_hotkeyStatus is HotkeyStatus.InUse or HotkeyStatus.Failed ? " · Shortcut unavailable" : "");
+        _tray.Text = Strings.Format(Strings.TrayStatus, _samplingError is not null ? Strings.Unavailable : Percent(latest?.TotalCpuPercent) + Strings.CpuTraySuffix) +
+            (_hotkeyStatus is HotkeyStatus.InUse or HotkeyStatus.Failed ? Strings.ShortcutUnavailable : "");
     }
 
     private void OnSeriesChanged(object sender, RoutedEventArgs e)
@@ -329,6 +341,22 @@ public partial class MainWindow
         _preferences = _preferences with { VisibleMetrics = mask & 15, ShowGpu = (mask & 16) != 0, ShowSecondaryDisk = _preferences.SecondaryDrive is null ? _preferences.ShowSecondaryDisk : (mask & 32) != 0 };
         OverallGraph.VisibleMetrics = mask;
         OverallGraph.InvalidateVisual();
+    }
+
+    private void OnProcessSearchChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+    {
+        if (_closing) return;
+        var hasText = ProcessSearchBox.Text.Length > 0;
+        ProcessSearchPlaceholder.Visibility = hasText ? Visibility.Collapsed : Visibility.Visible;
+        ClearProcessSearchButton.Visibility = hasText ? Visibility.Visible : Visibility.Collapsed;
+        ProcessScroll.ScrollToTop();
+        RefreshPresentation();
+    }
+
+    private void OnClearProcessSearch(object sender, RoutedEventArgs e)
+    {
+        ProcessSearchBox.Clear();
+        ProcessSearchBox.Focus();
     }
 
     private void OnProcessCountChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
@@ -358,15 +386,15 @@ public partial class MainWindow
     /// <summary>Mark the column that orders the rows; the others stay muted.</summary>
     private (System.Windows.Controls.TextBlock Header, ProcessSort Sort, string Text)[] SortHeaders =>
     [
-        (CpuHeader, ProcessSort.Cpu, "CPU %"), (GpuHeader, ProcessSort.Gpu, "GPU %"),
-        (MemoryHeader, ProcessSort.Memory, "Memory"), (IoHeader, ProcessSort.Io, "I/O MB/s")
+        (CpuHeader, ProcessSort.Cpu, Strings.CpuColumn), (GpuHeader, ProcessSort.Gpu, Strings.GpuColumn),
+        (MemoryHeader, ProcessSort.Memory, Strings.Memory), (IoHeader, ProcessSort.Io, Strings.IOMBS)
     ];
 
     private void UpdateSortHeaders()
     {
         foreach (var (header, sort, name) in SortHeaders)
         {
-            var text = sort == ProcessSort.Memory && _preferences.GroupProcesses ? "Private" : name;
+            var text = sort == ProcessSort.Memory && _preferences.GroupProcesses ? Strings.Private : name;
             var active = sort == _preferences.ProcessSort;
             header.Text = active ? $"{text} ▾" : text;
             header.FontWeight = active ? FontWeights.SemiBold : FontWeights.Normal;
@@ -378,15 +406,15 @@ public partial class MainWindow
     {
         var resource = latest?.Resources;
         GpuMetric.ValueLabel.Text = Percent(resource?.GpuPercent);
-        GpuMetric.DetailLabel.Text = resource?.GpuPercent is null ? "Unavailable"
-            : resource.GpuEngine is { Length: > 0 } engine ? engine : "Busiest GPU";
+        GpuMetric.DetailLabel.Text = resource?.GpuPercent is null ? Strings.Unavailable
+            : resource.GpuEngine is { Length: > 0 } engine ? engine : Strings.BusiestGPU;
         GpuMetric.ToolTip = resource?.GpuPercent is not null
-            ? $"Adapter {resource.GpuId} · {resource.GpuEngine}\nUtilization of the busiest engine across available GPUs."
-            : "GPU counters unavailable or collecting a fresh interval.";
-        CpuMetric.DetailLabel.Text = "Total machine";
+            ? Strings.Format(Strings.AdapterUtilizationOfTheBusiestEngineAcrossAvailableGPUs, resource.GpuId, resource.GpuEngine)
+            : Strings.GPUCountersUnavailableOrCollectingAFreshInterval;
+        CpuMetric.DetailLabel.Text = Strings.TotalMachine;
         MemoryMetric.ValueLabel.Text = Percent(resource?.MemoryPercent);
         MemoryMetric.DetailLabel.Text = resource is { UsedMemoryBytes: { } used, TotalMemoryBytes: { } total }
-            ? $"{used / 1_073_741_824d:0.0} / {total / 1_073_741_824d:0.#} GiB" : "Unavailable";
+            ? Strings.Format(Strings.GiB, used / 1_073_741_824d, total / 1_073_741_824d) : Strings.Unavailable;
         ConfigureDiskLayout();
         UpdateDiskMetric(DiskMetric, _preferences.PrimaryDrive,
             resource?.DiskName == _preferences.PrimaryDrive ? resource.DiskActivePercent : null,
@@ -395,22 +423,22 @@ public partial class MainWindow
             UpdateDiskMetric(SecondaryDiskMetric, secondary,
                 resource?.SecondaryDiskName == secondary ? resource.SecondaryDiskActivePercent : null,
                 resource?.SecondaryDiskName == secondary ? resource.SecondaryDiskBytesPerSecond : null);
-        if (_preferences.SecondaryDrive is not null) SecondaryDiskMetric.ToolTip += "\nDrawn as a dashed line on the chart.";
+        if (_preferences.SecondaryDrive is not null) SecondaryDiskMetric.ToolTip += Strings.DrawnAsADashedLineOnTheChart;
         // Throughput leads: link utilization is almost always near 0% and says little on its own.
         if (resource is not null && CpuGraph.NetworkBitsPerSecond(resource) is { } bits)
         {
             var (number, unit) = RateText.Parts(bits);
             NetworkMetric.ShowValue(number, unit);
         }
-        else NetworkMetric.ValueLabel.Text = "—";
+        else NetworkMetric.ValueLabel.Text = Strings.MissingReading;
         NetworkMetric.DetailLabel.Text = resource is { ReceiveBytesPerSecond: { } rx, SendBytesPerSecond: { } tx }
-            ? RateText.Pair(rx * 8, tx * 8) : "Collecting / disconnected";
+            ? RateText.Pair(rx * 8, tx * 8) : Strings.CollectingDisconnected;
         // Link speed and utilization live in the tooltip; the tiles show only the value and rates.
-        var link = resource?.LinkBitsPerSecond is { } speed ? $" · {RateText.Format(speed)} link" : "";
-        var utilization = resource?.NetworkPercent is not null ? $" · {Percent(resource.NetworkPercent)} of link" : " · link speed unavailable";
+        var link = resource?.LinkBitsPerSecond is { } speed ? Strings.Format(Strings.Link, RateText.Format(speed)) : "";
+        var utilization = resource?.NetworkPercent is not null ? Strings.Format(Strings.OfLink, Percent(resource.NetworkPercent)) : Strings.LinkSpeedUnavailable;
         NetworkMetric.ToolTip = resource?.NetworkName is { Length: > 0 } name
-            ? $"{name}{link}{utilization}\n↓ receive · ↑ send. The value is the busier direction; utilization is relative to link speed. Not Internet capacity."
-            : "No connected Ethernet or Wi-Fi interface available.";
+            ? Strings.Format(Strings.ReceiveSendTheValueIsTheBusierDirectionUtilizationIs, name, link, utilization)
+            : Strings.NoConnectedEthernetOrWiFiInterfaceAvailable;
         OverallGraph.VisibleMetrics = _preferences.SeriesMask;
     }
 
@@ -425,13 +453,13 @@ public partial class MainWindow
 
     private static void UpdateDiskMetric(MetricReadout metric, string name, double? active, double? bytes)
     {
-        metric.Label = $"Disk ({name})";
+        metric.Label = Strings.Format(Strings.DiskLabel, name);
         metric.ValueLabel.Text = Percent(active);
-        metric.DetailLabel.Text = bytes is { } rate ? $"{rate / 1_000_000:0.0} MB/s" : "Unavailable";
-        metric.ToolTip = $"Volume {name}\nActive time, not space used. Read/write throughput in MB/s.\nUnavailable while disconnected or collecting a fresh interval.";
+        metric.DetailLabel.Text = bytes is { } rate ? Strings.Format(Strings.MBS, rate / 1_000_000) : Strings.Unavailable;
+        metric.ToolTip = Strings.Format(Strings.VolumeActiveTimeNotSpaceUsedReadWriteThroughputIn, name);
     }
-    private static string Percent(double? value) => value is { } number ? $"{number:0.0}%" : "—";
-    private static string Rate(ResourceSample resources) => CpuGraph.NetworkBitsPerSecond(resources) is { } bits ? RateText.Format(bits) : "—";
+    private static string Percent(double? value) => value is { } number ? Strings.Format(Strings.PercentOneDecimal, number) : Strings.MissingReading;
+    private static string Rate(ResourceSample resources) => CpuGraph.NetworkBitsPerSecond(resources) is { } bits ? RateText.Format(bits) : Strings.MissingReading;
 
     private void OnPin(object sender, RoutedEventArgs e)
     {
@@ -443,24 +471,23 @@ public partial class MainWindow
     {
         // Icon-only toggle: the pin turns accent-colored while the window stays on top.
         PinButton.SetResourceReference(ForegroundProperty, Topmost ? "Accent" : "Text");
-        PinButton.ToolTip = Topmost ? "Kept on top of other windows. Click to stop." : "Keep this window on top of other windows";
-        System.Windows.Automation.AutomationProperties.SetName(PinButton, Topmost ? "Keep on top, on" : "Keep on top, off");
+        PinButton.ToolTip = Topmost ? Strings.KeptOnTopOfOtherWindowsClickToStop : Strings.KeepThisWindowOnTopOfOtherWindows;
+        System.Windows.Automation.AutomationProperties.SetName(PinButton, Topmost ? Strings.KeepOnTopOn : Strings.KeepOnTopOff);
     }
 
-    /// <summary>Sit Pin flush against the native caption buttons at their exact height, whatever the DPI.</summary>
+    /// <summary>Align title-bar actions with the native caption buttons at each DPI.</summary>
     private void AlignTitleBar()
     {
         if (WindowTheme.CaptionButtonBounds(this) is not { } buttons || ActualWidth <= 0) return;
-        var height = Math.Max(24, buttons.Bottom);
+        var height = Math.Max(36, buttons.Bottom);
         TitleRow.Height = new GridLength(height);
         TitleBarArea.Margin = new Thickness(0, 0, Math.Max(0, ActualWidth - buttons.Left), 0);
         PinButton.Height = buttons.Height;
         PinButton.Margin = new Thickness(0, buttons.Top, 0, 0);
-        if (System.Windows.Shell.WindowChrome.GetWindowChrome(this) is { } chrome && Math.Abs(chrome.CaptionHeight - height) > 0.5)
-        {
-            chrome.CaptionHeight = height;
-            chrome.GlassFrameThickness = new Thickness(0, height, 0, 0);
-        }
+        if (System.Windows.Shell.WindowChrome.GetWindowChrome(this) is not { } chrome ||
+            !(Math.Abs(chrome.CaptionHeight - height) > 0.5)) return;
+        chrome.CaptionHeight = height;
+        chrome.GlassFrameThickness = new Thickness(0, height, 0, 0);
     }
 
     /// <summary>Rebuild the range chips; choices longer than the retention setting are left out.</summary>
@@ -471,14 +498,14 @@ public partial class MainWindow
         {
             var chip = new System.Windows.Controls.RadioButton
             {
-                Content = $"{seconds / 60}m",
+                Content = Strings.Format(Strings.M, seconds / 60),
                 Tag = seconds,
                 GroupName = "ChartRange",
                 IsChecked = seconds == _preferences.EffectiveChartRange,
                 Style = (Style)FindResource("RangeChip"),
-                ToolTip = $"Show the last {seconds / 60} minutes"
+                ToolTip = Strings.Format(Strings.ShowTheLastMinutes, seconds / 60)
             };
-            System.Windows.Automation.AutomationProperties.SetName(chip, $"Show the last {seconds / 60} minutes");
+            System.Windows.Automation.AutomationProperties.SetName(chip, Strings.Format(Strings.ShowTheLastMinutes, seconds / 60));
             chip.Checked += OnRangeChecked;
             RangeSelector.Children.Add(chip);
         }
@@ -503,25 +530,25 @@ public partial class MainWindow
     {
         if (!CanEndProcess(process)) return;
         var answer = MessageBox.Show(this,
-            $"End {process.Name} (PID {process.ProcessId})?\n\nUnsaved work may be lost. Only this process will be ended.",
-            "End process", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
+            Strings.Format(Strings.EndPIDUnsavedWorkMayBeLostOnlyThisProcess, process.Name, process.ProcessId),
+            Strings.EndProcess, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
         if (answer != MessageBoxResult.Yes || !CanEndProcess(process)) return;
         var error = ProcessTerminator.End(process);
-        if (error is not null) MessageBox.Show(this, error, "End process", MessageBoxButton.OK, MessageBoxImage.Information);
+        if (error is not null) MessageBox.Show(this, error, Strings.EndProcess, MessageBoxButton.OK, MessageBoxImage.Information);
     }
     private void ReturnToLive() { _selectedSample = null; RefreshPresentation(); }
 
     private void CreateTray()
     {
         var resource = Application.GetResourceStream(new Uri("pack://application:,,,/Assets/WinMon.ico"))
-            ?? throw new InvalidOperationException("The embedded tray icon is unavailable.");
+            ?? throw new InvalidOperationException(Strings.TheEmbeddedTrayIconIsUnavailable);
         using (var stream = resource.Stream)
         using (var sourceIcon = new System.Drawing.Icon(stream, Forms.SystemInformation.SmallIconSize))
             _trayIcon = (System.Drawing.Icon)sourceIcon.Clone();
-        _tray = new Forms.NotifyIcon { Text = "WinMon · CPU monitor", Icon = _trayIcon, Visible = true };
+        _tray = new Forms.NotifyIcon { Text = Strings.WinMonCPUMonitor, Icon = _trayIcon, Visible = true };
         var menu = new Forms.ContextMenuStrip();
-        menu.Items.Add("Show WinMon", null, (_, _) => Dispatcher.Invoke(RestoreFromTray));
-        menu.Items.Add("Exit", null, (_, _) => Dispatcher.Invoke(Close));
+        menu.Items.Add(Strings.ShowWinMon, null, (_, _) => Dispatcher.Invoke(RestoreFromTray));
+        menu.Items.Add(Strings.Exit, null, (_, _) => Dispatcher.Invoke(Close));
         _tray.ContextMenuStrip = menu;
         _tray.MouseClick += (_, e) => { if (e.Button == Forms.MouseButtons.Left) Dispatcher.Invoke(RestoreFromTray); };
     }
@@ -544,7 +571,7 @@ public partial class MainWindow
         if (IsVisible && WindowState != WindowState.Minimized && IsActive) WindowState = WindowState.Minimized;
         else RestoreFromTray();
         // A modal dialog such as Settings keeps the focus.
-        if (OwnedWindows.Count > 0) OwnedWindows[0].Activate();
+        if (OwnedWindows.Count > 0) OwnedWindows[0]?.Activate();
     }
 
     /// <summary>Give the show shortcut to Explorer when it should also start WinMon; otherwise hold it here.</summary>
@@ -596,10 +623,10 @@ public partial class MainWindow
 
     private string ShortcutStatus => _hotkeyStatus switch
     {
-        HotkeyStatus.Registered => "Works from any app while WinMon is running.",
-        HotkeyStatus.StartMenu => "Works from any app, and starts WinMon when it isn't running.",
-        HotkeyStatus.InUse => "Another app is using this shortcut. Choose another.",
-        HotkeyStatus.Failed => "This shortcut could not be registered. Choose another.",
+        HotkeyStatus.Registered => Strings.WorksFromAnyAppWhileWinMonIsRunning,
+        HotkeyStatus.StartMenu => Strings.WorksFromAnyAppAndStartsWinMonWhenItIsn,
+        HotkeyStatus.InUse => Strings.AnotherAppIsUsingThisShortcutChooseAnother,
+        HotkeyStatus.Failed => Strings.ThisShortcutCouldNotBeRegisteredChooseAnother,
         _ => ""
     };
 
@@ -634,7 +661,7 @@ public partial class MainWindow
         catch (Exception ex)
         {
             Trace.TraceError("WinMon preferences could not be saved: {0}", ex);
-            if (!_closing) MessageBox.Show(this, "Settings could not be saved. Check access to your local application settings and startup registration.", "WinMon settings", MessageBoxButton.OK, MessageBoxImage.Warning);
+            if (!_closing) MessageBox.Show(this, Strings.SettingsCouldNotBeSavedCheckAccessToYourLocal, Strings.WinMonSettings, MessageBoxButton.OK, MessageBoxImage.Warning);
         }
         finally
         {
@@ -650,8 +677,8 @@ public partial class MainWindow
 
     private async Task ApplyPreferencesAsync(MonitorPreferences result)
     {
-        var wasEnabled = StartupRegistration.IsEnabled;
-        var startupChanged = wasEnabled != result.StartWithWindows;
+        var wasEnabled = !_diagnosticMode && StartupRegistration.IsEnabled;
+        var startupChanged = !_diagnosticMode && wasEnabled != result.StartWithWindows;
         try
         {
             if (startupChanged) StartupRegistration.SetEnabled(result.StartWithWindows);
@@ -668,10 +695,50 @@ public partial class MainWindow
         SecondaryDiskMetric.Toggle.IsChecked = _preferences.ShowSecondaryDisk;
         ConfigureDiskLayout();
         _history.Resize(_preferences.RetentionSeconds);
-        BuildRangeChips();
         ApplyTheme();
+        ApplyLanguage();
         ApplyShortcut(_preferences.LaunchWithShortcut);
         RefreshPresentation();
+    }
+
+    private void ApplyLanguage()
+    {
+        AppLanguages.Apply(_preferences.Language);
+        // Labels change, but ranking, history, selection, and scroll position stay intact.
+        var selectedSort = _preferences.ProcessSort;
+        ProcessSortSelector.SelectionChanged -= OnProcessSortChanged;
+        try
+        {
+            ProcessSortSelector.ItemsSource = new[] { Strings.CPU, Strings.GPU, Strings.Memory, Strings.IO };
+            ProcessSortSelector.SelectedIndex = (int)selectedSort;
+        }
+        finally { ProcessSortSelector.SelectionChanged += OnProcessSortChanged; }
+        UpdateSortHeaderToolTips();
+        UpdatePinButton();
+        BuildRangeChips();
+        foreach (var metric in Metrics) metric.RefreshLanguage();
+        if (_tray?.ContextMenuStrip is { } menu)
+        {
+            menu.Items[0].Text = Strings.ShowWinMon;
+            menu.Items[1].Text = Strings.Exit;
+        }
+        OverallGraph.RefreshLanguage();
+        RefreshPresentation();
+    }
+
+    private void UpdateSortHeaderToolTips()
+    {
+        foreach (var (header, sort, text) in SortHeaders)
+        {
+            var description = sort switch
+            {
+                ProcessSort.Gpu => Strings.BusiestGPUEnginePerProcessAveragedOverReadableIntervalsIn,
+                ProcessSort.Memory => Strings.ResidentWorkingSetIncludingSharedPages,
+                ProcessSort.Io => Strings.ProcessReadWriteIOIncludesFileNetworkAndDevice,
+                _ => Strings.AverageOverTheLast5SecondsWindowsCountsProcessCPU
+            };
+            header.ToolTip = Strings.Format(Strings.ClickToRankProcessesBy, description, text.Replace(" %", "").Replace(" MB/s", ""));
+        }
     }
     private void ApplyTheme()
     {
@@ -711,7 +778,7 @@ public partial class MainWindow
         OverallGraph.InvalidateVisual();
     }
 
-    private static bool IsSystemLight()
+    internal static bool IsSystemLight()
     {
         try
         {
@@ -757,6 +824,19 @@ public partial class MainWindow
 
     private void OnWindowKeyDown(object sender, KeyEventArgs e)
     {
+        if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control)
+        {
+            ProcessSearchBox.Focus();
+            ProcessSearchBox.SelectAll();
+            e.Handled = true;
+            return;
+        }
+        if (e.Key == Key.Escape && ProcessSearchBox.IsKeyboardFocusWithin && ProcessSearchBox.Text.Length > 0)
+        {
+            ProcessSearchBox.Clear();
+            e.Handled = true;
+            return;
+        }
         if (e.Key != Key.Escape || _selectedSample is null || ProcessCountSelector.IsDropDownOpen ||
             ProcessSortSelector.IsDropDownOpen) return;
         ReturnToLive(); e.Handled = true;

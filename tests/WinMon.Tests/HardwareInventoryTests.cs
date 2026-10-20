@@ -15,6 +15,38 @@ public sealed class HardwareInventoryTests
     }
 
     [Test]
+    public void Motherboard_ShowsManufacturerProductVersionAndSerialNumber()
+    {
+        var query = new Query();
+        query.Rows["Win32_BaseBoard"] = [Row(("Manufacturer", "Example"), ("Product", "Board X"),
+            ("Version", "Rev 2"), ("SerialNumber", "SN-123"))];
+
+        var section = HardwareInventory.Motherboard(query);
+        Assert.That(section.Name, Is.EqualTo("Motherboard"));
+        Assert.That(section.Details, Is.EqualTo("Manufacturer: Example\nModel: Board X\nBoard version: Rev 2\nSerial number: SN-123"));
+    }
+
+    [Test]
+    public void Motherboard_PreservesAvailableFieldsAndLabelsFirmwarePlaceholders()
+    {
+        var query = new Query();
+        query.Rows["Win32_BaseBoard"] = [Row(("Manufacturer", "Example"), ("Product", "To be filled by O.E.M."),
+            ("Version", "Unknown"), ("SerialNumber", " "))];
+
+        Assert.That(HardwareInventory.Motherboard(query).Details,
+            Is.EqualTo("Manufacturer: Example\nModel: Unavailable\nBoard version: Unavailable\nSerial number: Unavailable"));
+    }
+
+    [Test]
+    public void Motherboard_HandlesMissingAndEmptyInventory()
+    {
+        var query = new Query();
+        Assert.That(HardwareInventory.Motherboard(query).Details, Does.Contain("unavailable"));
+        query.Rows["Win32_BaseBoard"] = [];
+        Assert.That(HardwareInventory.Motherboard(query).Details, Does.Contain("unavailable"));
+    }
+
+    [Test]
     public void Cpu_ShowsSocketsCacheUnitsArchitectureAndReportedCapabilities()
     {
         var query = new Query();
@@ -24,11 +56,14 @@ public sealed class HardwareInventoryTests
         var section = HardwareInventory.Cpu(query, "Native model\n8 physical cores · 16 logical processors");
         Assert.Multiple(() =>
         {
-            Assert.That(section.Details, Does.Contain("1 populated socket").And.Contain("Cores per socket: 8").And.Contain("4.5 GHz (4500 MHz)").And.Contain("not live frequency"));
-            Assert.That(section.Items![0].Name, Is.EqualTo("Socket A"));
-            Assert.That(section.Items[0].Text, Does.Contain("Architecture: x64").And.Contain("Manufacturer: Example"));
-            Assert.That(section.Items[0].Text, Does.Contain("L2 cache (reported): 8 MiB").And.Contain("L3 cache (reported): 32 MiB"));
-            Assert.That(section.Items[0].Text, Does.Contain("Virtualization extensions (Windows-reported): Yes").And.Contain("enabled in firmware (Windows-reported): No"));
+            Assert.That(section.Details, Does.StartWith("Native model\n8 physical cores · 16 logical processors"));
+            Assert.That(section.Details, Does.Contain("1 populated socket · Socket A").And.Contain("4.5 GHz (4500 MHz)").And.Contain("not live frequency"));
+            Assert.That(section.Items, Is.Null);
+            Assert.That(section.Details, Does.Not.Contain("Model:").And.Not.Contain("cores in this socket").And.Not.Contain("Cores per socket"));
+            Assert.That(section.Details.Split("4.5 GHz (4500 MHz)"), Has.Length.EqualTo(2));
+            Assert.That(section.Details, Does.Contain("Architecture: x64").And.Contain("Manufacturer: Example"));
+            Assert.That(section.Details, Does.Contain("L2 cache (reported): 8 MiB").And.Contain("L3 cache (reported): 32 MiB"));
+            Assert.That(section.Details, Does.Contain("Virtualization extensions (Windows-reported): Yes").And.Contain("enabled in firmware (Windows-reported): No"));
         });
     }
 
@@ -49,9 +84,10 @@ public sealed class HardwareInventoryTests
     {
         var query = new Query();
         query.Rows["Win32_Processor"] = [Row(("Architecture", 999), ("L2CacheSize", 0), ("MaxClockSpeed", 0), ("SocketDesignation", "None"), ("DeviceID", "CPU0"))];
-        var item = HardwareInventory.Cpu(query, "Native CPU").Items![0];
-        Assert.That(item.Name, Is.EqualTo("CPU0"));
-        var details = item.Text;
+        var section = HardwareInventory.Cpu(query, "Native CPU");
+        Assert.That(section.Items, Is.Null);
+        var details = section.Details;
+        Assert.That(details, Does.Not.Contain("CPU0"));
         Assert.That(details, Does.Contain("Architecture: Unavailable").And.Contain("Reported maximum clock: Unavailable").And.Contain("L2 cache (reported): Unavailable"));
         Assert.That(details, Does.Contain("Virtualization extensions (Windows-reported): Unavailable"));
         Assert.That(details, Does.Not.Contain(": No"));
@@ -80,10 +116,13 @@ public sealed class HardwareInventoryTests
             Assert.That(section.Details, Does.Contain("Installed: 32 GiB · OS-usable: 31 GiB"));
             Assert.That(section.Details, Does.Contain("2 of 4 slots used"));
             Assert.That(section.Details, Does.Contain("DDR5"));
-            Assert.That(section.Details, Does.Contain("Configured: 4800"));
-            Assert.That(section.Items, Has.Count.EqualTo(2));
-            Assert.That(section.Items![0].Name, Is.EqualTo("DIMM A2"));
-            Assert.That(section.Items[0].Text, Does.Contain("Configured speed: 4800").And.Contain("Reported speed: 6000").And.Contain("RAM-16"));
+            Assert.That(section.Items, Is.Null);
+            Assert.That(section.Details.Split("DIMM A2"), Has.Length.EqualTo(2));
+            Assert.That(section.Details.Split("DIMM B2"), Has.Length.EqualTo(2));
+            Assert.That(section.Details, Does.Contain("DIMM A2\nCapacity: 16 GiB · Type: DDR5\nConfigured speed: 4800"));
+            Assert.That(section.Details, Does.Contain("Reported speed: 6000").And.Contain("RAM-16"));
+            Assert.That(section.Details, Does.Not.Contain("Configured:"));
+            Assert.That(section.Details, Does.EndWith("Memory specifications and slot counts reflect firmware reports."));
         });
     }
 
@@ -92,7 +131,7 @@ public sealed class HardwareInventoryTests
     {
         var section = HardwareInventory.Memory(new Query(), 32 * GiB, 31 * GiB);
         Assert.That(section.Details, Does.Contain("Installed: 32 GiB").And.Contain("OS-usable: 31 GiB").And.Contain("Slot usage unavailable"));
-        Assert.That(section.Items, Is.Empty);
+        Assert.That(section.Items, Is.Null);
     }
 
     [Test]
@@ -112,8 +151,31 @@ public sealed class HardwareInventoryTests
             Row(("DiskNumber", 2), ("DriveLetter", 0)), Row(("DiskNumber", 3), ("DriveLetter", 'C'))];
         var section = HardwareInventory.Disks(query);
         Assert.That(section.Details, Does.Contain("Disk 2 · Example SSD").And.Contain("Media: SSD · Connection: NVMe").And.Contain("Volumes: D:, E:"));
-        Assert.That(section.Items![0].Text, Does.Contain("Windows health status: Healthy"));
-        Assert.That(section.Items[0].Text, Does.Not.Contain("C:"));
+        Assert.That(section.Details, Does.Contain("Windows health status: Healthy"));
+        Assert.That(section.Details, Does.Not.Contain("C:"));
+        Assert.That(section.Items, Is.Null);
+    }
+
+    [Test]
+    public void Disks_CombinesEachDriveOnceAndSharesProviderNotes()
+    {
+        var query = DiskQuery();
+        query.Rows["Win32_DiskDrive"] = [
+            Row(("Index", 2), ("Model", "Example SSD"), ("Manufacturer", "Example"), ("Size", 512 * GiB)),
+            Row(("Index", 3), ("Model", "Other drive"), ("Manufacturer", "Other"), ("Size", 256 * GiB))];
+        query.Rows["MSFT_Partition"] = [Row(("DiskNumber", 2), ("DriveLetter", 'D')), Row(("DiskNumber", 3), ("DriveLetter", 'E'))];
+
+        var section = HardwareInventory.Disks(query);
+        Assert.Multiple(() =>
+        {
+            Assert.That(section.Items, Is.Null);
+            Assert.That(section.Details.Split("Disk 2 · Example SSD"), Has.Length.EqualTo(2));
+            Assert.That(section.Details.Split("Disk 3 · Other drive"), Has.Length.EqualTo(2));
+            Assert.That(section.Details, Does.Contain("Capacity: 512 GiB\nVolumes: D:\nManufacturer: Example\nWindows health status: Healthy"));
+            Assert.That(section.Details, Does.Contain("Capacity: 256 GiB\nVolumes: E:\nManufacturer: Other\nWindows health status: Unavailable"));
+            Assert.That(section.Details.Split("Health is a provider report"), Has.Length.EqualTo(2));
+            Assert.That(section.Details, Does.EndWith("Health is a provider report, not a full SMART diagnostic."));
+        });
     }
 
     [Test]
@@ -121,7 +183,7 @@ public sealed class HardwareInventoryTests
     {
         var query = DiskQuery();
         query.Rows["MSFT_PhysicalDisk"] = [Row(("DeviceId", "2"), ("UniqueId", "different"), ("UniqueIdFormat", 2), ("MediaType", 4))];
-        Assert.That(HardwareInventory.Disks(query).Items![0].Text, Does.Contain("Media: Unavailable"));
+        Assert.That(HardwareInventory.Disks(query).Details, Does.Contain("Media: Unavailable"));
     }
 
     [Test]
@@ -130,7 +192,7 @@ public sealed class HardwareInventoryTests
         var query = DiskQuery();
         query.Rows["MSFT_PhysicalDisk"] = [Row(("UniqueId", "disk-id"), ("UniqueIdFormat", 2), ("MediaType", 4)),
             Row(("UniqueId", "disk-id"), ("UniqueIdFormat", 2), ("MediaType", 3))];
-        Assert.That(HardwareInventory.Disks(query).Items![0].Text, Does.Contain("Media: Unavailable"));
+        Assert.That(HardwareInventory.Disks(query).Details, Does.Contain("Media: Unavailable"));
     }
 
     [Test]
@@ -138,7 +200,7 @@ public sealed class HardwareInventoryTests
     {
         var query = DiskQuery();
         query.Rows.Remove("MSFT_Disk"); query.Rows.Remove("MSFT_PhysicalDisk");
-        var details = HardwareInventory.Disks(query).Items![0].Text;
+        var details = HardwareInventory.Disks(query).Details;
         Assert.That(details, Does.Contain("Example SSD").And.Contain("Capacity: 512 GiB").And.Contain("Mapping unavailable").And.Contain("Windows health status: Unavailable"));
     }
 
@@ -163,6 +225,40 @@ public sealed class HardwareInventoryTests
         query.Rows["MSFT_Partition"] = [];
         var section = HardwareInventory.Disks(query);
         Assert.That(section.Details, Does.Contain("Disk 2 · Example SSD").And.Contain("Media: SSD").And.Contain("512 GiB").And.Contain("No drive letters assigned"));
+    }
+
+    [Test]
+    public void Network_KeepsDisconnectedAndDisabledAdaptersAndLabelsVirtualAdapters()
+    {
+        var query = new Query();
+        query.Rows["MSFT_NetAdapter"] = [
+            Row(("Name", "Ethernet"), ("State", 2), ("InterfaceOperationalStatus", 1), ("Virtual", false), ("ReceiveLinkSpeed", 1_000_000_000)),
+            Row(("Name", "Wi-Fi"), ("State", 2), ("InterfaceOperationalStatus", 2), ("MediaConnectState", 2)),
+            Row(("Name", "Disabled NIC"), ("State", 3), ("InterfaceOperationalStatus", 6), ("InterfaceAdminStatus", 2)),
+            Row(("Name", "VPN"), ("State", 1), ("InterfaceOperationalStatus", 2), ("MediaConnectState", 2), ("Virtual", true)),
+            Row(("Name", "Absent"), ("State", 2), ("InterfaceOperationalStatus", 6)),
+            Row(("Name", "Removed"), ("State", 3), ("InterfaceOperationalStatus", 6), ("ConfigManagerErrorCode", 45)),
+            Row(("Name", "Unknown presence"), ("InterfaceOperationalStatus", 1)),
+            Row(("Name", "Loopback"), ("State", 2), ("InterfaceOperationalStatus", 1), ("InterfaceType", 24))];
+
+        var details = HardwareInventory.Network(query).Details;
+        Assert.Multiple(() =>
+        {
+            Assert.That(details, Does.Contain("Ethernet · Up\n"));
+            Assert.That(details, Does.Contain("Wi-Fi · Disconnected"));
+            Assert.That(details, Does.Contain("Disabled NIC · Disabled"));
+            Assert.That(details, Does.Contain("VPN · Disconnected · Virtual"));
+            Assert.That(details, Does.Not.Contain("Absent").And.Not.Contain("Removed").And.Not.Contain("Unknown presence").And.Not.Contain("Loopback"));
+        });
+    }
+
+    [Test]
+    public void Network_DistinguishesProviderFailureFromNoPresentAdapters()
+    {
+        Assert.That(HardwareInventory.Network(new Query()).Details, Does.Contain("unavailable"));
+        var query = new Query();
+        query.Rows["MSFT_NetAdapter"] = [Row(("State", 1), ("InterfaceOperationalStatus", 6))];
+        Assert.That(HardwareInventory.Network(query).Details, Is.EqualTo("No present network adapters reported."));
     }
 
     private static Query DiskQuery()

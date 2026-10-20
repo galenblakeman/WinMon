@@ -26,7 +26,7 @@ public sealed class ProcessRetentionTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(compacted.Processes.Select(p => p.ProcessId), Is.EqualTo(new[] { 1, 2, 3, 4, 5 }));
+            Assert.That(compacted.Processes.Select(p => p.ProcessId), Is.EqualTo([1, 2, 3, 4, 5]));
             Assert.That(compacted.CompactedProcesses, Is.EqualTo(3));
             Assert.That(ProcessRetention.Compact(compacted, largestByMemory: 2), Is.SameAs(compacted));
         });
@@ -42,7 +42,7 @@ public sealed class ProcessRetentionTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(compacted.Processes.Select(p => p.ProcessId), Is.EqualTo(new[] { 1, 2, 3 }));
+            Assert.That(compacted.Processes.Select(p => p.ProcessId), Is.EqualTo([1, 2, 3]));
             Assert.That(compacted.CompactedProcesses, Is.EqualTo(2));
         });
     }
@@ -106,12 +106,11 @@ public sealed class ProcessRetentionTests
         Assert.Multiple(() =>
         {
             Assert.That(unavailable, Is.Zero);
-            Assert.That(processes, Is.EqualTo(new[]
-            {
+            Assert.That(processes, Is.EqualTo([
                 new ProcessCpuTimes(4, 11, "cached", 12, 4096, 100, 50, 2048),
                 new ProcessCpuTimes(1234, 22, "Chrome", 3, 8192, 3, 4, 1024)
-            }));
-            Assert.That(names.Keys, Is.EquivalentTo(new[] { (4, 11L), (1234, 22L) }));
+            ]));
+            Assert.That(names.Keys, Is.EquivalentTo([(4, 11L), (1234, 22L)]));
         });
 
         void WriteEntry(byte[] target, int offset, int next, long pid, long created, string name, int nameAt = 0,

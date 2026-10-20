@@ -10,6 +10,9 @@ public sealed class WindowsCpuSampler : IDisposable
     private const double GapThresholdSeconds = 5;
     private readonly ICpuSnapshotProvider _provider;
     private CpuSnapshot? _previous;
+    // The previous snapshot's processes by lifetime, refilled in place: a new dictionary for ~1,000 processes
+    // would land on the large object heap every second and force a full collection every few seconds.
+    private readonly Dictionary<(int, long), ProcessCpuTimes> _baselines = [];
     private bool _disposed;
 
     /// <summary>
@@ -38,23 +41,24 @@ public sealed class WindowsCpuSampler : IDisposable
 
         if (_previous is null || IsGap(_previous, current))
         {
-            _previous = current;
+            Rebaseline(current);
             return new CpuSample(current.Timestamp, null, [], current.UnavailableProcesses, true, current.MonotonicTimestamp);
         }
 
         var prior = _previous;
-        _previous = current;
         var totalDelta = current.SystemTimes.TotalTicks - prior.SystemTimes.TotalTicks;
         var idleDelta = current.SystemTimes.IdleTicks - prior.SystemTimes.IdleTicks;
         var busyDelta = totalDelta - idleDelta;
 
         if (totalDelta <= 0 || idleDelta < 0 || busyDelta < 0 || busyDelta > totalDelta)
         {
+            Rebaseline(current);
             return new CpuSample(current.Timestamp, null, [], current.UnavailableProcesses, true, current.MonotonicTimestamp);
         }
 
-        var usages = CreateProcessUsages(prior.Processes, current.Processes, totalDelta,
+        var usages = CreateProcessUsages(_baselines, current.Processes, totalDelta,
             (current.MonotonicTimestamp - prior.MonotonicTimestamp) / (double)Stopwatch.Frequency);
+        Rebaseline(current);
         return new CpuSample(
             current.Timestamp,
             Math.Clamp(100d * busyDelta / totalDelta, 0d, 100d),
@@ -71,6 +75,7 @@ public sealed class WindowsCpuSampler : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         _previous = null;
+        _baselines.Clear();
     }
 
     /// <summary>
@@ -80,6 +85,14 @@ public sealed class WindowsCpuSampler : IDisposable
     {
         _disposed = true;
         _previous = null;
+        _baselines.Clear();
+    }
+
+    private void Rebaseline(CpuSnapshot snapshot)
+    {
+        _previous = snapshot;
+        _baselines.Clear();
+        foreach (var process in snapshot.Processes) _baselines[(process.ProcessId, process.CreationTicks)] = process;
     }
 
     private static bool IsGap(CpuSnapshot previousSnapshot, CpuSnapshot currentSnapshot)
@@ -89,13 +102,10 @@ public sealed class WindowsCpuSampler : IDisposable
     }
 
     private static IReadOnlyList<ProcessUsage> CreateProcessUsages(
-        IReadOnlyList<ProcessCpuTimes> previousProcesses,
+        Dictionary<(int, long), ProcessCpuTimes> baselines,
         IReadOnlyList<ProcessCpuTimes> currentProcesses,
         long totalDelta, double elapsedSeconds)
     {
-        var baselines = previousProcesses.ToDictionary(
-            process => (process.ProcessId, process.CreationTicks),
-            process => process);
         var usages = new List<ProcessUsage>(currentProcesses.Count);
 
         foreach (var process in currentProcesses)

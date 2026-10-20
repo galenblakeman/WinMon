@@ -1,5 +1,27 @@
 # Resource overlay visual QA
 
+## Anchored snapshot panel — 2026-10-20
+
+Implemented the approved snapshot popover beside the selected chart point, with colored readings, timestamp, crosshair markers and an integrated Return to live action. The process-header readout is removed. Resource values remain interval readings; the process toolbar identifies its separate five-second average. The top tiles remain live.
+
+Release build passed with zero warnings/errors; all 215 NUnit tests passed outside the sandbox. The initial sandbox baseline was inconclusive because VSTest could not connect to its test host. The final native smoke completed with exit 0 (`artifacts/snapshot-panel/final/smoke.json`), including actual WPF layout assertions for twelve corner placements across 600/720/905 widths, resizing while selected, a short-chart scroll viewport, selection expiry and the live button. Placement tests also cover off-screen anchors and plots smaller than the panel. `--snapshot-smoke-output <directory>` runs the render fixture independently.
+
+Inspected the compact/short and final dark/light snapshot renders under `artifacts/snapshot-panel/`. The complete panel and live action stay inside the plot; placement flips to the left near the right edge. Short plots scroll readings while retaining the action. The fixture also renders at 150/200 percent; these bitmap checks do not prove physical mixed-DPI monitor transitions. Fixture data is illustrative; native sampling evidence is recorded separately in the smoke report.
+
+## Compact headers and title-bar actions — 2026-10-19
+
+final result: passed
+
+Selected target: `design/compact-headers-selected.png`, the single mockup approved in chat. Opened `artifacts/compact-headers-final/comparison.png`, which puts that mockup beside a 1301 × 1137 WPF render in the same dark, Ocean-palette, dual-volume, grouped-process, ten-minute-range state. Also opened the separate light-theme wide render and the compact native window captures. The comparison fixture uses illustrative measurements/processes; numbers, history coverage, generic process icons and graph shapes intentionally differ. Native caption glyphs are absent from off-screen WPF content renders; the actual composed `titlebar-window.png` and native hit tests separately verify those controls.
+
+All seven requested changes are present: Info and Settings join Pin in the title bar; range chips align right in the resource header; its redundant scale subtitle is removed while the chart's network-scale label remains; resource and live process headers use one compact row; the process note is centered between selectors and grouping; unattributed coverage follows Process in the column header; and the footer is removed. At minimum width, the process note and long coverage text use ellipsis with complete tooltips. Historical resource details can still add a row during inspection so selected-sample information remains available.
+
+Fidelity surfaces: existing Segoe UI typography and numeric hierarchy remain intact instead of adopting the generated mockup's larger text; compact header spacing and left/middle/right hierarchy match the requested direction; resource colors follow the selected Ocean palette in comparison renders while actual palette preferences remain unchanged; existing vector controls and native process icons are reused; labels remain functional text, including historical/expired states. Chart and process regions keep their existing flexible sizing rather than fixed raster heights. These are intentional production adaptations, with no actionable P0/P1/P2 layout differences in the reviewed scope.
+
+Validation: Release build/publish succeeded; all 204 tests passed; both published full native smoke runs exited 0. Added hit tests verify Info and Settings receive client input in the caption, while title dragging, Pin, resize and native Minimize/Maximize/Close regions remain intact. Smoke also checks compact header bounds, live/historical process-count changes, scrolling at minimum size, historical expiry, resource toggles and hidden/minimized recording. Evidence: `artifacts/compact-headers-final/smoke.json`, `titlebar-window.png`, `compact.png`, `process-count-20.png`, `process-count-history.png`, `compact-headers-wide.png`, `compact-headers-wide-light.png` and the comparison image. Bitmap renders cover 100/150/200%; physical mixed-DPI transitions and interactive window dragging remain manual checks. No deployment or performance claim is made.
+
+Implementation checklist complete: relocate existing actions, preserve WindowChrome input, compact both headers, preserve full notes on hover, move coverage, remove footer, extend diagnostics, review dark/light and minimum/wide renders, test and publish.
+
 ## Multiple disks, selected option 1 — 2026-10-19
 
 final result: passed

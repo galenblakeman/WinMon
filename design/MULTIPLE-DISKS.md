@@ -1,6 +1,6 @@
 # Multiple disk volumes
 
-Selected design: [Option 1: six metric strip](multiple-disks-selected.png).
+Selected layout: a six-metric strip for two monitored volumes. The superseded mockup has been removed.
 
 Scope: extend the existing .NET 10 WPF monitor to one or two configured logical volumes. Default primary is the Windows system volume; the optional second selector defaults to None. Preserve all other resource and process behavior. Use existing controls, themes, PDH APIs and the current sampling loop.
 

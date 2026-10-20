@@ -63,9 +63,11 @@ public sealed class ProcessGraphDataTests
         var identities = Enumerable.Range(1, 5).Select(i => new ProcessUsage(i, i, $"p{i}", 1)).ToArray();
         var history = Enumerable.Range(1, 200).Select(second => new CpuSample(
             DateTimeOffset.UtcNow, 50,
-            Enumerable.Range(1, 30).Where(i => (i + second) % 9 != 0)
-                .Select(i => new ProcessUsage(i, second % 11 == 0 ? i + 1 : i, $"p{i}", (i * second) % 15 / 10d))
-                .OrderByDescending(p => p.CpuPercent).ToArray(), 0, second % 17 == 0,
+            [
+                .. Enumerable.Range(1, 30).Where(i => (i + second) % 9 != 0)
+                    .Select(i => new ProcessUsage(i, second % 11 == 0 ? i + 1 : i, $"p{i}", i * second % 15 / 10d))
+                    .OrderByDescending(p => p.CpuPercent)
+            ], 0, second % 17 == 0,
             Stopwatch.Frequency * second)).ToArray();
 
         var data = ProcessGraphData.Build(history, 120, identities);
@@ -93,11 +95,9 @@ public sealed class ProcessGraphDataTests
     public void Build_HistoricalPrefixExcludesFutureSpikeAndPreservesZeroVersusMissing()
     {
         var process = new ProcessUsage(42, 100, "example", 0);
-        CpuSample Sample(int second, params ProcessUsage[] processes) =>
-            new(DateTimeOffset.UtcNow, 50, processes, 0, false, Stopwatch.Frequency * second);
         CpuSample[] history = [Sample(1, process), Sample(2), Sample(3, process with { CpuPercent = 90 })];
 
-        var data = ProcessGraphData.Build(history.Take(2).ToArray(), 120, [process])[0];
+        var data = ProcessGraphData.Build([.. history.Take(2)], 120, [process])[0];
 
         Assert.Multiple(() =>
         {
@@ -106,5 +106,9 @@ public sealed class ProcessGraphDataTests
             Assert.That(ProcessGraphData.Build([], 120, [process])[0].Values, Is.Empty);
             Assert.That(ProcessGraphData.Build(history, 120, []), Is.Empty);
         });
+        return;
+
+        CpuSample Sample(int second, params ProcessUsage[] processes) =>
+            new(DateTimeOffset.UtcNow, 50, processes, 0, false, Stopwatch.Frequency * second);
     }
 }
