@@ -1231,4 +1231,13 @@ Integridade segundo o Windows: {2}</value>
   <data name="NoAppsMatchCurrentView" xml:space="preserve">
     <value>Nenhum aplicativo corresponde à pesquisa e classificação atuais.</value>
   </data>
+  <data name="LiveMode" xml:space="preserve">
+    <value>Ao vivo</value>
+  </data>
+  <data name="SnapshotMode" xml:space="preserve">
+    <value>Instantâneo</value>
+  </data>
+  <data name="CaptureLatestSnapshot" xml:space="preserve">
+    <value>Selecionar a última amostra registrada. A gravação e as leituras superiores continuam ao vivo.</value>
+  </data>
 </root>

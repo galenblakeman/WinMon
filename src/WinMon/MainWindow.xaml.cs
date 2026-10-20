@@ -316,7 +316,8 @@ public partial class MainWindow
         CoverageLabel.Text = visible is null ? "" : Coverage(visible.UnavailableProcesses, ranking.TotalCpuPercent, ranking.MeasuredCpuPercent);
         if (_history.WasMemoryLimited) CoverageLabel.Text += (CoverageLabel.Text.Length > 0 ? " · " : "") + Strings.HistoryShortenedByMemoryLimit;
         CoverageLabel.ToolTip = CoverageLabel.Text + Strings.UnattributedCPUIsTotalCPUMinusAllMeasuredProcessesKernel;
-        LiveCaption.Text = allUnavailable ? Strings.SystemResourcesUnavailable : _selectedSample is not null ? Strings.SystemResourcesInspectingSnapshot : Strings.SystemResources;
+        LiveCaption.Text = allUnavailable ? Strings.SystemResourcesUnavailable : Strings.SystemResources;
+        LiveCaption.ToolTip = _selectedSample is not null ? Strings.SystemResourcesInspectingSnapshot : LiveCaption.Text;
         ShowError(_samplingError switch
         {
             SamplingError.CpuUnavailable => Strings.CPUUnavailableOtherResourcesContinueRecording,
@@ -780,6 +781,8 @@ public partial class MainWindow
             app.Resources["SearchSurface"] = SystemColors.WindowBrush;
             app.Resources["SelectedSurface"] = SystemColors.HighlightBrush;
             app.Resources["SelectedText"] = SystemColors.HighlightTextBrush;
+            app.Resources["SnapshotAccent"] = SystemColors.HighlightBrush;
+            app.Resources["SnapshotAccentText"] = SystemColors.HighlightTextBrush;
             app.Resources["Text"] = SystemColors.WindowTextBrush;
             app.Resources["Muted"] = SystemColors.WindowTextBrush;
             app.Resources["Line"] = SystemColors.WindowTextBrush;
@@ -796,6 +799,8 @@ public partial class MainWindow
             SetBrush("SearchSurface", light ? "#FFFFFF" : "#15191E");
             SetBrush("SelectedSurface", light ? "#1469B5" : "#20262D");
             SetBrush("SelectedText", light ? "#FFFFFF" : "#EDF2F6");
+            SetBrush("SnapshotAccent", "#25D5F0");
+            SetBrush("SnapshotAccentText", "#07171B");
             SetBrush("Text", light ? "#20334A" : "#EDF2F6");
             SetBrush("Muted", light ? "#465D78" : "#B3BDC8");
             SetBrush("Line", light ? "#CCD9E5" : "#35404B");

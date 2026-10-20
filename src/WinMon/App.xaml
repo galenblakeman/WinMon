@@ -4,6 +4,39 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="clr-namespace:WinMon.Controls">
     <Application.Resources>
+        <SolidColorBrush x:Key="SnapshotAccent" Color="#25D5F0" />
+        <SolidColorBrush x:Key="SnapshotAccentText" Color="#07171B" />
+        <Style x:Key="ChartModeSegment" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="{DynamicResource Text}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Padding" Value="10,4" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Segment" Padding="{TemplateBinding Padding}" CornerRadius="3"
+                                Background="Transparent" BorderBrush="Transparent" BorderThickness="1">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Segment" Property="BorderBrush" Value="{DynamicResource Muted}" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Segment" Property="Background" Value="{DynamicResource SnapshotAccent}" />
+                                <Setter Property="Foreground" Value="{DynamicResource SnapshotAccentText}" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Segment" Property="BorderBrush" Value="{DynamicResource Text}" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Segment" Property="Opacity" Value="0.45" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <SolidColorBrush x:Key="Surface" Color="#15191E" />
         <SolidColorBrush x:Key="Raised" Color="#20262D" />
         <SolidColorBrush x:Key="TitleBarSurface" Color="#30343B" />

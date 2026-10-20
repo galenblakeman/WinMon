@@ -1231,4 +1231,13 @@ Windows の正常性状態: {2}</value>
   <data name="NoAppsMatchCurrentView" xml:space="preserve">
     <value>現在の検索とランキングに一致するアプリはありません。</value>
   </data>
+  <data name="LiveMode" xml:space="preserve">
+    <value>ライブ</value>
+  </data>
+  <data name="SnapshotMode" xml:space="preserve">
+    <value>スナップショット</value>
+  </data>
+  <data name="CaptureLatestSnapshot" xml:space="preserve">
+    <value>最新の記録済みサンプルを選択します。記録と上部の表示はリアルタイムで更新されます。</value>
+  </data>
 </root>

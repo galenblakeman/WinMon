@@ -7,8 +7,15 @@ namespace WinMon;
 
 public partial class MainWindow
 {
+    private void OnLiveModeClick(object sender, RoutedEventArgs e) => ReturnToLive();
+
+    private void OnSnapshotModeClick(object sender, RoutedEventArgs e) => OverallGraph.SelectLatest();
+
     private void UpdateSnapshot(CpuSample? retained)
     {
+        LiveModeButton.IsChecked = _selectedSample is null;
+        SnapshotModeButton.IsChecked = _selectedSample is not null;
+        SnapshotModeButton.IsEnabled = _history.Latest is not null;
         SnapshotLayer.Visibility = _selectedSample is null ? Visibility.Collapsed : Visibility.Visible;
         if (_selectedSample is null) return;
         SnapshotTitle.Text = Strings.Format(Strings.Snapshot, _selectedSample.Timestamp);

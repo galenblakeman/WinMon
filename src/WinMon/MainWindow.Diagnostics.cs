@@ -111,6 +111,19 @@ public partial class MainWindow
         await Task.Delay(TimeSpan.FromSeconds(8), cancellationToken);
         if (_history.Samples.Count < 3 || _history.Samples[^1].TotalCpuPercent is null)
             throw new InvalidOperationException("Native CPU samples did not arrive in the live window.");
+        SnapshotModeButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+        var heldSnapshot = _selectedSample;
+        if (heldSnapshot is null || SnapshotModeButton.IsChecked != true)
+            throw new InvalidOperationException("The native Snapshot action did not hold a sample.");
+        await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
+        if (!ReferenceEquals(_selectedSample, heldSnapshot) || ReferenceEquals(_history.Latest, heldSnapshot))
+            throw new InvalidOperationException("Recording must advance while the snapshot stays fixed.");
+        SnapshotModeButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+        if (ReferenceEquals(_selectedSample, heldSnapshot) || !ReferenceEquals(_selectedSample, _history.Latest))
+            throw new InvalidOperationException("Clicking Snapshot again must select the newest recorded sample.");
+        LiveModeButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+        if (_selectedSample is not null || LiveModeButton.IsChecked != true || SnapshotLayer.Visibility != Visibility.Collapsed)
+            throw new InvalidOperationException("The native Live action did not release the snapshot.");
         var nativeResources = _history.Samples[^1].Resources;
         var nativeProcessGpu = _history.Samples[^1].Processes.Where(p => p.GpuPercent is not null)
             .OrderByDescending(p => p.GpuPercent).Take(10)
@@ -512,6 +525,8 @@ public partial class MainWindow
 
     private void ValidateTitleBar()
     {
+        // A mode change may just have collapsed the historical summary; measure the current layout.
+        UpdateLayout();
         var handle = new WindowInteropHelper(this).Handle;
         var titlePoint = ViewTitle.TranslatePoint(new Point(20, ViewTitle.ActualHeight / 2), this);
         var pinPoint = PinButton.TranslatePoint(new Point(PinButton.ActualWidth / 2, PinButton.ActualHeight / 2), this);
@@ -532,9 +547,11 @@ public partial class MainWindow
         var settingsLeft = SettingsButton.TranslatePoint(new Point(), TitleBarArea).X;
         if (infoLeft < titleRight || infoLeft - titleRight > 16 || settingsLeft < infoLeft + InfoButton.ActualWidth)
             throw new InvalidOperationException("Info and Settings must follow the version in the title bar.");
-        if (!ResourceHeader.IsAncestorOf(RangeSelector) || RangeSelector.ActualHeight > 25 || ResourceHeader.ActualHeight > 36 ||
-            ProcessHeader.ActualHeight > 44)
-            throw new InvalidOperationException("The live chart/process headers did not stay compact.");
+        // The centered mode switch adds a 28-DIP input target to the resource header.
+        if (!ResourceHeader.IsAncestorOf(RangeSelector) || !ResourceHeader.IsAncestorOf(ChartModeSwitch) ||
+            RangeSelector.ActualHeight > 25 || ResourceHeader.ActualHeight > 44 ||
+            ProcessHeader.ActualHeight > (_inlineProcessToolbar ? 44 : 78))
+            throw new InvalidOperationException($"The live chart/process headers did not stay compact: range={RangeSelector.ActualHeight}, resource={ResourceHeader.ActualHeight}, process={ProcessHeader.ActualHeight}.");
         if (Hit(new Point(2, ActualHeight / 2)) != 10)
             throw new InvalidOperationException("The integrated title bar lost the left resize border.");
         if (Hit(new Point(ActualWidth - 116, 16)) != 8 || Hit(new Point(ActualWidth - 70, 16)) != 9 || Hit(new Point(ActualWidth - 24, 16)) != 20)
@@ -659,6 +676,9 @@ public partial class MainWindow
         // Render-only fixture, separate from native sampling evidence. Never enters a user's session.
         var fixture = new MainWindow(true);
         fixture.ApplyTheme();
+        fixture.RefreshVisiblePresentation();
+        if (fixture.SnapshotModeButton.IsEnabled || fixture.LiveModeButton.IsChecked != true)
+            throw new InvalidOperationException("An empty recording must start live with Snapshot disabled.");
         var anchor = DateTimeOffset.Now;
         for (var i = 0; i < 120; i++)
         {
@@ -881,9 +901,27 @@ public partial class MainWindow
         fixture.BuildRangeChips();
         foreach (var (width, height) in new[] { (905d, 940d), (720d, 800d), (600d, 800d) })
         {
+            fixture._inlineProcessToolbar = width >= InlineProcessToolbarWidth;
             fixture._preferences = fixture._preferences with { SecondaryDrive = width < 720 ? null : "D:" };
             fixture.RefreshVisiblePresentation();
             ArrangeSnapshot(width, height);
+            fixture.LiveModeButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+            fixture.RefreshVisiblePresentation();
+            if (fixture.LiveModeButton.IsChecked != true || fixture.SnapshotModeButton.IsChecked == true ||
+                fixture._selectedSample is not null || fixture.SnapshotLayer.Visibility != Visibility.Collapsed)
+                throw new InvalidOperationException("Live mode did not clear the chart selection.");
+            var switchCenter = fixture.ChartModeSwitch.TranslatePoint(new Point(fixture.ChartModeSwitch.ActualWidth / 2, 0), fixture.ResourceHeader).X;
+            if (Math.Abs(switchCenter - fixture.ResourceHeader.ActualWidth / 2) > 1)
+                throw new InvalidOperationException("The chart mode switch is not centered in the header.");
+            await CaptureVisualAsync(visual, Path.Combine(outputDirectory, $"chart-mode-live-{width}.png"), 1, cancellationToken);
+            fixture.SnapshotModeButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+            fixture.RefreshVisiblePresentation();
+            if (!ReferenceEquals(fixture._selectedSample, fixture._history.Latest) ||
+                fixture.SnapshotModeButton.IsChecked != true || fixture.LiveModeButton.IsChecked == true ||
+                fixture.SnapshotLayer.Visibility != Visibility.Visible)
+                throw new InvalidOperationException("Snapshot mode did not select the newest recorded sample.");
+            ArrangeSnapshot(width, height);
+            await CaptureVisualAsync(visual, Path.Combine(outputDirectory, $"chart-mode-snapshot-{width}.png"), 1, cancellationToken);
             foreach (var (name, right, bottom) in new[] { ("top-left", false, false), ("top-right", true, false), ("bottom-left", false, true), ("bottom-right", true, true) })
             {
                 var plot = fixture.OverallGraph.PlotBounds;
@@ -920,7 +958,8 @@ public partial class MainWindow
             throw new InvalidOperationException("The snapshot action did not return to live.");
         await File.WriteAllTextAsync(Path.Combine(outputDirectory, "snapshot.json"),
             JsonSerializer.Serialize(new { Corners = 12, ResizedWhileSelected = true, ShortChart = true, LightAndDark = true,
-                Expiry = true, ReturnToLive = true, RenderScales = new[] { 1d, 1.5, 2d } }), cancellationToken);
+                Expiry = true, ReturnToLive = true, CenteredChartModeSwitch = true, LatestSampleAction = true,
+                RenderScales = new[] { 1d, 1.5, 2d } }), cancellationToken);
 
         return;
 

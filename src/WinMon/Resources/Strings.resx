@@ -1231,4 +1231,13 @@ Windows health status: {2}</value>
   <data name="NoAppsMatchCurrentView" xml:space="preserve">
     <value>No apps match the current search and ranking.</value>
   </data>
+  <data name="LiveMode" xml:space="preserve">
+    <value>Live</value>
+  </data>
+  <data name="SnapshotMode" xml:space="preserve">
+    <value>Snapshot</value>
+  </data>
+  <data name="CaptureLatestSnapshot" xml:space="preserve">
+    <value>Select the latest recorded sample. Recording and top readouts stay live.</value>
+  </data>
 </root>

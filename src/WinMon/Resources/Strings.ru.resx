@@ -1231,4 +1231,13 @@ GPU {11} · {12}
   <data name="NoAppsMatchCurrentView" xml:space="preserve">
     <value>Нет приложений, соответствующих текущему поиску и ранжированию.</value>
   </data>
+  <data name="LiveMode" xml:space="preserve">
+    <value>Онлайн</value>
+  </data>
+  <data name="SnapshotMode" xml:space="preserve">
+    <value>Снимок</value>
+  </data>
+  <data name="CaptureLatestSnapshot" xml:space="preserve">
+    <value>Выбрать последний записанный замер. Запись и верхние показания обновляются в реальном времени.</value>
+  </data>
 </root>

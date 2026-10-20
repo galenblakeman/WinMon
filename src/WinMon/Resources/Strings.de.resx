@@ -1231,4 +1231,13 @@ Windows-Zustandsstatus: {2}</value>
   <data name="NoAppsMatchCurrentView" xml:space="preserve">
     <value>Keine Apps entsprechen der aktuellen Suche und Rangfolge.</value>
   </data>
+  <data name="LiveMode" xml:space="preserve">
+    <value>Live</value>
+  </data>
+  <data name="SnapshotMode" xml:space="preserve">
+    <value>Momentaufnahme</value>
+  </data>
+  <data name="CaptureLatestSnapshot" xml:space="preserve">
+    <value>Die neueste aufgezeichnete Messung auswählen. Aufzeichnung und obere Anzeigen bleiben live.</value>
+  </data>
 </root>

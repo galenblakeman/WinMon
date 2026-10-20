@@ -1231,4 +1231,13 @@ Estado según Windows: {2}</value>
   <data name="NoAppsMatchCurrentView" xml:space="preserve">
     <value>Ninguna aplicación coincide con la búsqueda y clasificación actuales.</value>
   </data>
+  <data name="LiveMode" xml:space="preserve">
+    <value>En vivo</value>
+  </data>
+  <data name="SnapshotMode" xml:space="preserve">
+    <value>Instantánea</value>
+  </data>
+  <data name="CaptureLatestSnapshot" xml:space="preserve">
+    <value>Seleccionar la última muestra registrada. La grabación y las lecturas superiores continúan en vivo.</value>
+  </data>
 </root>

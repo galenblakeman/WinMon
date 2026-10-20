@@ -1231,4 +1231,13 @@ Fabricant : {1}
   <data name="NoAppsMatchCurrentView" xml:space="preserve">
     <value>Aucune application ne correspond à la recherche et au classement actuels.</value>
   </data>
+  <data name="LiveMode" xml:space="preserve">
+    <value>Direct</value>
+  </data>
+  <data name="SnapshotMode" xml:space="preserve">
+    <value>Instantané</value>
+  </data>
+  <data name="CaptureLatestSnapshot" xml:space="preserve">
+    <value>Sélectionner le dernier échantillon enregistré. L&apos;enregistrement et les valeurs du haut restent en direct.</value>
+  </data>
 </root>

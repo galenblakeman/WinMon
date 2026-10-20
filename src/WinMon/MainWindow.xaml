@@ -178,20 +178,57 @@
                         Background="{DynamicResource SectionHeaderSurface}"
                         BorderBrush="{DynamicResource Line}"
                         BorderThickness="0,1,0,0">
-                        <DockPanel LastChildFill="True">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
                             <StackPanel
                                 x:Name="RangeSelector"
+                                Grid.Column="2"
+                                HorizontalAlignment="Right"
                                 VerticalAlignment="Center"
                                 AutomationProperties.Name="{Binding [ChartTimeRange], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                DockPanel.Dock="Right"
                                 Orientation="Horizontal" />
+                            <Border x:Name="ChartModeSwitch" Grid.Column="1" Margin="8,0" Padding="1"
+                                    BorderBrush="{DynamicResource Line}" BorderThickness="1" CornerRadius="5">
+                                <StackPanel Orientation="Horizontal">
+                                    <RadioButton x:Name="LiveModeButton" MinWidth="72"
+                                                 GroupName="ChartMode" Style="{StaticResource ChartModeSegment}"
+                                                 AutomationProperties.Name="{Binding [ReturnToLive], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                                 ToolTip="{Binding [ReturnToLive], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                                 Click="OnLiveModeClick">
+                                        <TextBlock Text="{Binding [LiveMode], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                                   Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                                    </RadioButton>
+                                    <RadioButton x:Name="SnapshotModeButton" MinWidth="108"
+                                                 GroupName="ChartMode" Style="{StaticResource ChartModeSegment}"
+                                                 AutomationProperties.Name="{Binding [SnapshotMode], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                                 ToolTip="{Binding [CaptureLatestSnapshot], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                                 Click="OnSnapshotModeClick">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Margin="0,0,6,0" VerticalAlignment="Center"
+                                                       Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
+                                                       FontFamily="Segoe MDL2 Assets" FontSize="14" Text="&#xE722;" />
+                                            <TextBlock Text="{Binding [SnapshotMode], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                                       Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                                        </StackPanel>
+                                    </RadioButton>
+                                </StackPanel>
+                            </Border>
                             <!--  Shown only when sampling fails; normal recording needs no status.  -->
                             <TextBlock
                                 x:Name="ErrorLabel"
+                                Grid.Row="1"
+                                Grid.ColumnSpan="3"
                                 MaxWidth="190"
                                 Margin="0,0,8,0"
                                 VerticalAlignment="Center"
-                                DockPanel.Dock="Right"
                                 FontSize="11"
                                 Foreground="{DynamicResource Muted}"
                                 TextAlignment="Right"
@@ -199,12 +236,13 @@
                                 Visibility="Collapsed" />
                             <TextBlock
                                 x:Name="LiveCaption"
+                                Margin="0,0,8,0"
                                 VerticalAlignment="Center"
                                 FontSize="15"
                                 FontWeight="SemiBold"
                                 Text="{Binding [SystemResources], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                                 TextTrimming="CharacterEllipsis" />
-                        </DockPanel>
+                        </Grid>
                     </Border>
                     <controls:CpuGraph
                         x:Name="OverallGraph"

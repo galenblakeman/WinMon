@@ -1231,4 +1231,13 @@ Windows 상태: {2}</value>
   <data name="NoAppsMatchCurrentView" xml:space="preserve">
     <value>현재 검색 및 순위 조건에 맞는 앱이 없습니다.</value>
   </data>
+  <data name="LiveMode" xml:space="preserve">
+    <value>실시간</value>
+  </data>
+  <data name="SnapshotMode" xml:space="preserve">
+    <value>스냅샷</value>
+  </data>
+  <data name="CaptureLatestSnapshot" xml:space="preserve">
+    <value>가장 최근에 기록된 샘플을 선택합니다. 기록과 상단 측정값은 계속 실시간으로 업데이트됩니다.</value>
+  </data>
 </root>

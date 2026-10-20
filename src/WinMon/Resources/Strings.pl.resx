@@ -1231,4 +1231,13 @@ Stan według Windows: {2}</value>
   <data name="NoAppsMatchCurrentView" xml:space="preserve">
     <value>Żadna aplikacja nie pasuje do bieżącego wyszukiwania i rankingu.</value>
   </data>
+  <data name="LiveMode" xml:space="preserve">
+    <value>Na żywo</value>
+  </data>
+  <data name="SnapshotMode" xml:space="preserve">
+    <value>Migawka</value>
+  </data>
+  <data name="CaptureLatestSnapshot" xml:space="preserve">
+    <value>Wybierz ostatnią zapisaną próbkę. Nagrywanie i górne odczyty pozostają na żywo.</value>
+  </data>
 </root>

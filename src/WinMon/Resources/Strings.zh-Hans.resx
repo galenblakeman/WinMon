@@ -1231,4 +1231,13 @@ Windows 健康状态：{2}</value>
   <data name="NoAppsMatchCurrentView" xml:space="preserve">
     <value>没有符合当前搜索和排名条件的应用。</value>
   </data>
+  <data name="LiveMode" xml:space="preserve">
+    <value>实时</value>
+  </data>
+  <data name="SnapshotMode" xml:space="preserve">
+    <value>快照</value>
+  </data>
+  <data name="CaptureLatestSnapshot" xml:space="preserve">
+    <value>选择最新记录的采样。记录和顶部读数继续实时更新。</value>
+  </data>
 </root>

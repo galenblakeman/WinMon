@@ -130,3 +130,17 @@ Verification: isolated Release build completed with zero warnings/errors. Native
 Tests: 110 passed, zero failed/skipped, TRX at `artifacts/bold-chart-tests/bold-chart.trx`. The sandboxed runner stalled and was canceled, so that attempt is inconclusive. The identical outside-sandbox retry failed on missing restore target; rerunning with restore enabled passed. The default build output was locked by a running app; isolated output `artifacts/bold-chart-build/` built successfully.
 
 Checklist: selected reference saved; matching resource colors; fills under traces; subtle halo; high-contrast safeguards; Release build; 110 tests; native smoke; dark/light visual review completed.
+
+## Centered Live / Snapshot switch - October 20, 2026
+
+Selected target: revised option 2, `C:/Users/galen/.codex/generated_images/01a15b2b-34ce-7070-8130-949c8bbc8641/exec-072da6b6-f859-4f82-aaa9-cf37286a1f3c.png`.
+
+Final result: passed for the requested switch and its snapshot behavior.
+
+Compared the selected 1193-by-1318 mockup and the 720-by-800 WPF snapshot render together, normalizing the mockup mentally to the same compact scale. Also inspected the 600-wide live state and the 905-wide light-theme snapshot. Evidence: `artifacts/snapshot-switch/smoke-final/chart-mode-snapshot-720.png`, `chart-mode-live-600.png`, and `snapshot-light.png`. Different synthetic readings, chart shapes, process fixtures, and native title-bar composition are intentional. The existing snapshot card and table remain the production implementations; this change adds the centered switch rather than restyling those surfaces.
+
+First pass found two issues: the selected segment inherited white text on cyan, and the old inspecting-snapshot suffix truncated the chart heading. Fixed explicit foreground bindings and kept the heading as System resources, with inspection detail available in its tooltip. The second capture confirms dark text on cyan, unchanged heading, camera icon and labels at the existing Segoe UI sizing, and symmetric switch placement independent of the title/range widths. Equal grid columns center the switch; smoke assertions check its midpoint within one DIP at 600, 720 and 905 widths. Range chips remain right aligned and the single-line process toolbar remains available at 720.
+
+Interaction checks cover empty history disabling Snapshot, selecting the latest interval, live/snapshot selected states, chart clicks, expired selections, Return to live, and repeated snapshots. Unit tests include selecting a newest gap without substituting an older valid reading. The native check holds a snapshot while recording advances, retakes it, then returns to Live. All 359 Debug tests pass. High-contrast colors use Windows highlight/text brushes; actual Windows high-contrast mode and hardware DPI transitions were not manually exercised. Snapshot fixture rendering covers dark/light and 100/150/200 percent bitmap scales.
+
+Final verification: default Debug build succeeded with zero warnings/errors; 359 tests passed; snapshot fixture smoke exited 0; full native smoke exited 0 (artifacts/snapshot-switch/native-layout-refreshed/smoke.json).

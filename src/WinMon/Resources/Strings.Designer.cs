@@ -39,6 +39,7 @@ public static partial class Strings
     public static string CapacityGiB => ResourceManager.GetString(nameof(CapacityGiB), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string CapacityMiB => ResourceManager.GetString(nameof(CapacityMiB), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string CapacityType => ResourceManager.GetString(nameof(CapacityType), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string CaptureLatestSnapshot => ResourceManager.GetString(nameof(CaptureLatestSnapshot), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ChartPalette => ResourceManager.GetString(nameof(ChartPalette), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ChartTimeRange => ResourceManager.GetString(nameof(ChartTimeRange), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ChooseAPrimaryVolumeAndADifferentSecondVolumeOr => ResourceManager.GetString(nameof(ChooseAPrimaryVolumeAndADifferentSecondVolumeOr), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
@@ -162,6 +163,7 @@ public static partial class Strings
     public static string Link => ResourceManager.GetString(nameof(Link), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string LinkSpeedUnavailable => ResourceManager.GetString(nameof(LinkSpeedUnavailable), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string LinkSpeedUnavailableLabel => ResourceManager.GetString(nameof(LinkSpeedUnavailableLabel), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string LiveMode => ResourceManager.GetString(nameof(LiveMode), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string LocalVolumes => ResourceManager.GetString(nameof(LocalVolumes), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string LogicalProcessors => ResourceManager.GetString(nameof(LogicalProcessors), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string LowerLayerDown => ResourceManager.GetString(nameof(LowerLayerDown), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
@@ -320,6 +322,7 @@ public static partial class Strings
     public static string ShowWinMon => ResourceManager.GetString(nameof(ShowWinMon), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string SlotUsageUnavailable => ResourceManager.GetString(nameof(SlotUsageUnavailable), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string Snapshot => ResourceManager.GetString(nameof(Snapshot), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string SnapshotMode => ResourceManager.GetString(nameof(SnapshotMode), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string SnapshotTakenWhenOpenedOrRefreshed => ResourceManager.GetString(nameof(SnapshotTakenWhenOpenedOrRefreshed), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string SnapshotUnavailableTryRefresh => ResourceManager.GetString(nameof(SnapshotUnavailableTryRefresh), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string Socket => ResourceManager.GetString(nameof(Socket), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;

@@ -261,6 +261,15 @@ public sealed class CpuGraph : FrameworkElement
         SampleSelected?.Invoke(this, sample);
     }
 
+    /// <summary>Select the newest recorded interval without depending on the pointer or chart size.</summary>
+    internal void SelectLatest()
+    {
+        if (!ShowGrid || _samples.Count == 0) return;
+        _selectionY = 0.5;
+        ToolTip = null;
+        SampleSelected?.Invoke(this, _samples[^1]);
+    }
+
     /// <inheritdoc/>
     protected override void OnKeyDown(KeyEventArgs e)
     {
