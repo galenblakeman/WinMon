@@ -11,6 +11,7 @@ public sealed class SettingsWindow : Window
 {
     private readonly MonitorPreferences _initialPreferences;
     private readonly ComboBox _themeSelector;
+    private readonly ComboBox _paletteSelector;
     private readonly ComboBox _compactHistorySelector;
     private readonly ComboBox _retentionSelector;
     private readonly CheckBox _closeToTrayCheckBox;
@@ -28,15 +29,17 @@ public sealed class SettingsWindow : Window
 
         Title = "WinMon settings";
         Width = 460;
-        Height = 410;
+        Height = 470;
         MinWidth = 420;
-        MinHeight = 390;
+        MinHeight = 450;
         ResizeMode = ResizeMode.NoResize;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         SetResourceReference(BackgroundProperty, "Surface");
         SetResourceReference(ForegroundProperty, "Text");
 
         _themeSelector = CreateSelector(["Dark", "Light", "System"], preferences.Theme);
+        _paletteSelector = CreateSelector(ChartPalettes.Names, ChartPalettes.Normalize(preferences.ChartPalette));
+        _paletteSelector.ToolTip = "Resource colors for charts, labels and legends. High contrast uses Windows colors.";
         _compactHistorySelector = CreateSelector(["1 minute", "2 minutes", "5 minutes"], CompactHistoryLabel(preferences.CompactHistorySeconds));
         _retentionSelector = CreateSelector(["10 minutes", "30 minutes", "60 minutes"], RetentionLabel(preferences.RetentionSeconds));
         _closeToTrayCheckBox = CreateCheckBox("Close to the notification area", preferences.CloseToTray);
@@ -46,32 +49,22 @@ public sealed class SettingsWindow : Window
         {
             Margin = new Thickness(24)
         };
-        layout.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        layout.RowDefinitions.Add(new RowDefinition { Height = new GridLength(16) });
-        layout.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        layout.RowDefinitions.Add(new RowDefinition { Height = new GridLength(12) });
-        layout.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        layout.RowDefinitions.Add(new RowDefinition { Height = new GridLength(12) });
-        layout.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        layout.RowDefinitions.Add(new RowDefinition { Height = new GridLength(24) });
-        layout.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        layout.RowDefinitions.Add(new RowDefinition { Height = new GridLength(8) });
-        layout.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        layout.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1) });
-        layout.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        for (var row = 0; row <= 14; row++)
+            layout.RowDefinitions.Add(new RowDefinition { Height = row % 2 == 0 ? GridLength.Auto : new GridLength(row == 9 ? 24 : row == 11 ? 8 : 12) });
 
         TextBlock heading = CreateHeading("Appearance");
         Grid.SetRow(heading, 0);
         layout.Children.Add(heading);
         AddField(layout, "Theme", _themeSelector, 2);
-        AddField(layout, "Short chart range", _compactHistorySelector, 4);
-        AddField(layout, "Historical retention", _retentionSelector, 6);
-        Grid.SetRow(_closeToTrayCheckBox, 8);
+        AddField(layout, "Chart palette", _paletteSelector, 4);
+        AddField(layout, "Short chart range", _compactHistorySelector, 6);
+        AddField(layout, "Historical retention", _retentionSelector, 8);
+        Grid.SetRow(_closeToTrayCheckBox, 10);
         layout.Children.Add(_closeToTrayCheckBox);
-        Grid.SetRow(_startupCheckBox, 10);
+        Grid.SetRow(_startupCheckBox, 12);
         layout.Children.Add(_startupCheckBox);
         StackPanel buttons = CreateButtons();
-        Grid.SetRow(buttons, 12);
+        Grid.SetRow(buttons, 14);
         layout.Children.Add(buttons);
 
         Border surface = new() { Child = layout };
@@ -192,6 +185,7 @@ public sealed class SettingsWindow : Window
         Result = _initialPreferences with
         {
             Theme = _themeSelector.SelectedItem as string ?? "Dark",
+            ChartPalette = _paletteSelector.SelectedItem as string ?? "Classic",
             CompactHistorySeconds = (_compactHistorySelector.SelectedItem as string) switch
             {
                 "1 minute" => 60,

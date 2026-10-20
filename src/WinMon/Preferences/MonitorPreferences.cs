@@ -56,6 +56,9 @@ public sealed record MonitorPreferences
     /// <summary>Gets the selected application theme: Dark, Light, or System.</summary>
     public string Theme { get; init; } = "Dark";
 
+    /// <summary>Resource chart colors, independent of the light/dark appearance.</summary>
+    public string ChartPalette { get; init; } = "Classic";
+
     /// <summary>Gets the short chart range and process sparkline duration, in seconds.</summary>
     public int CompactHistorySeconds { get; init; } = 120;
 

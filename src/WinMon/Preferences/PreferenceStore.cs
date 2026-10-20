@@ -107,6 +107,7 @@ public sealed class PreferenceStore
             Left = ValidateCoordinate(preferences.Left),
             Top = ValidateCoordinate(preferences.Top),
             Theme = NormalizeTheme(preferences.Theme),
+            ChartPalette = ChartPalettes.Normalize(preferences.ChartPalette),
             CompactHistorySeconds = NormalizeCompactHistory(preferences.CompactHistorySeconds),
             RetentionSeconds = Math.Clamp(preferences.RetentionSeconds, 600, 3600),
             VisibleMetrics = preferences.VisibleMetrics & 15,

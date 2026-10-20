@@ -12,14 +12,14 @@ public partial class App
     /// <inheritdoc/>
     protected override void OnStartup(StartupEventArgs e)
     {
-        if (e.Args is ["--smoke-output", _])
+        if (e.Args is ["--smoke-output" or "--feature-smoke-output", _])
         {
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
             base.OnStartup(e);
             var window = new MainWindow(true);
             MainWindow = window;
             window.Show();
-            _ = RunDiagnosticsAsync(window, Path.GetFullPath(e.Args[1]));
+            _ = RunDiagnosticsAsync(window, Path.GetFullPath(e.Args[1]), e.Args[0] == "--feature-smoke-output");
             return;
         }
         if (e.Args is ["--profile-output", _, ..])
@@ -45,11 +45,15 @@ public partial class App
         MainWindow.Show();
     }
 
-    private async Task RunDiagnosticsAsync(MainWindow window, string output)
+    private async Task RunDiagnosticsAsync(MainWindow window, string output, bool featuresOnly)
     {
         var exitCode = 0;
-        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(45));
-        try { await window.CaptureDiagnosticAsync(output, timeout.Token); }
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+        try
+        {
+            if (featuresOnly) await window.CaptureFeatureDiagnosticsAsync(output, timeout.Token);
+            else await window.CaptureDiagnosticAsync(output, timeout.Token);
+        }
         catch (Exception ex)
         {
             exitCode = 1;

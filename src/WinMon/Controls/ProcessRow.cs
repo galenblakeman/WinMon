@@ -16,6 +16,39 @@ public sealed class ProcessRow : Grid
     private readonly Image _icon = new() { Width = 18, Height = 18, Margin = new Thickness(0, 0, 8, 0), Source = ProcessIconProvider.Fallback };
     private readonly CpuGraph _graph = new() { Height = 22, Margin = new Thickness(10, 0, 4, 0), VerticalAlignment = VerticalAlignment.Center, IsHitTestVisible = false };
     private (int, long)? _identity;
+    private ProcessUsage? _usage;
+    private Func<ProcessUsage, bool>? _canEnd;
+    private Action<ProcessUsage>? _end;
+
+    internal void EnableProcessActions(Func<ProcessUsage, bool> canEnd, Action<ProcessUsage> end)
+    {
+        // A real background lets right-click and keyboard context menus work across the row.
+        Background = System.Windows.Media.Brushes.Transparent;
+        Focusable = true;
+        _canEnd = canEnd;
+        _end = end;
+        ContextMenu = new ContextMenu();
+        ContextMenu.SetResourceReference(BackgroundProperty, "Raised");
+        ContextMenu.SetResourceReference(Control.ForegroundProperty, "Text");
+        ContextMenuOpening += (_, e) =>
+        {
+            e.Handled = !PrepareProcessMenu();
+        };
+    }
+
+    internal bool PrepareProcessMenu()
+    {
+        if (ContextMenu is null) return false;
+        ContextMenu.Items.Clear();
+        if (_usage is not { } target || _canEnd is null || _end is null) return false;
+        // Capture now: live ranking may replace this row while the menu is open.
+        var item = new MenuItem { Header = $"End {target.Name} (PID {target.ProcessId})…", IsEnabled = _canEnd(target),
+            ToolTip = "Available for live, individual processes. Ending a process can lose unsaved work." };
+        item.Click += (_, _) => _end(target);
+        ContextMenu.Items.Add(item);
+        return true;
+    }
+
 
     public ProcessRow()
     {
@@ -51,6 +84,7 @@ public sealed class ProcessRow : Grid
         ProcessGraphData? data, bool grouped = false)
     {
         ArgumentNullException.ThrowIfNull(usage);
+        _usage = usage;
         var members = usage.MemberCount > 1;
         _name.Text = members ? $"{usage.Name} ×{usage.MemberCount}" : usage.Name;
         _name.ToolTip = grouped

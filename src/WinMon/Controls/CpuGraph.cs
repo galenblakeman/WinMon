@@ -25,6 +25,9 @@ public sealed class CpuGraph : FrameworkElement
     /// <summary>Series visibility bit mask: CPU, memory, disk, network, GPU.</summary>
     public int VisibleMetrics { get; set; } = 31;
 
+    /// <summary>Use line patterns as an additional resource cue for the colorblind palette.</summary>
+    internal bool UseSeriesPatterns { get; set; }
+
     /// <summary>Upper CPU percentage shown; process sparklines scale to their visible peak.</summary>
     public double ScaleMaximum { get; private set; } = 100;
 
@@ -99,7 +102,7 @@ public sealed class CpuGraph : FrameworkElement
         if (ShowGrid && _process is null) _networkScale = NetworkScale(_samples.Where(s => Moment(s) >= _end - _seconds));
         drawingContext.PushClip(new RectangleGeometry(plot));
         if (_process is not null || !ShowGrid)
-            DrawSeries(drawingContext, plot, accent, 0);
+            DrawSeries(drawingContext, plot, Resource("CpuAccent", accent), 0);
         else
         {
             var keys = new[] { "CpuAccent", "MemoryAccent", "DiskAccent", "NetworkAccent", "GpuAccent" };
@@ -246,7 +249,7 @@ public sealed class CpuGraph : FrameworkElement
         static string Percent(double? value) => value is { } number ? $"{number:0.0}%" : "unavailable";
     }
 
-    private static void DrawSegment(DrawingContext dc, List<Point> points, double baseline, Brush accent, bool overlay, int metric, bool fillOnly)
+    private void DrawSegment(DrawingContext dc, List<Point> points, double baseline, Brush accent, bool overlay, int metric, bool fillOnly)
     {
         if (points.Count == 0) return;
         if (points.Count == 1) { if (!fillOnly) dc.DrawEllipse(accent, null, points[0], 1.5, 1.5); return; }
@@ -274,7 +277,7 @@ public sealed class CpuGraph : FrameworkElement
             context.PolyLineTo([.. points.Skip(1)], true, false);
         }
         var pen = new Pen(accent, overlay ? 1.7 : 1.2);
-        if (SystemParameters.HighContrast && overlay)
+        if ((SystemParameters.HighContrast || UseSeriesPatterns) && overlay)
             pen.DashStyle = metric switch { 1 => DashStyles.Dash, 2 => DashStyles.Dot, 3 => DashStyles.DashDot, 4 => DashStyles.DashDotDot, _ => DashStyles.Solid };
         dc.DrawGeometry(null, pen, trace);
     }

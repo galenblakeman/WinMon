@@ -89,6 +89,7 @@ public partial class MainWindow
         if (nativeResources.MemoryPercent is null)
             throw new InvalidOperationException("Native physical-memory sampling did not arrive.");
         ValidateTitleBar();
+        await CaptureFeatureDiagnosticsAsync(outputDirectory, cancellationToken);
         CaptureWindowFrame(Path.Combine(outputDirectory, "titlebar-window.png"));
         await CaptureToolTipAsync(Path.Combine(outputDirectory, "tooltip-dark.png"), cancellationToken);
         MemoryMetric.Toggle.IsChecked = false;
@@ -230,6 +231,85 @@ public partial class MainWindow
             MeasurementLimitation = "Short smoke measurement includes PNG rendering; the additional 15-second quiet observation excludes captures but is not a sustained overhead benchmark."
         };
         await File.WriteAllTextAsync(Path.Combine(outputDirectory, "smoke.json"), JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true }), cancellationToken);
+    }
+
+    internal async Task CaptureFeatureDiagnosticsAsync(string output, CancellationToken cancellationToken)
+    {
+        Directory.CreateDirectory(output);
+        if (_history.Samples.Count == 0) await Task.Delay(TimeSpan.FromSeconds(4), cancellationToken);
+        var hardware = await Task.Run(WindowsHardwareInfo.Read, cancellationToken);
+        await File.WriteAllTextAsync(Path.Combine(output, "hardware.json"),
+            JsonSerializer.Serialize(hardware, new JsonSerializerOptions { WriteIndented = true }), cancellationToken);
+        var info = new Controls.HardwareInfoWindow { Owner = this };
+        try
+        {
+            info.Show();
+            await info.Ready.WaitAsync(cancellationToken);
+            info.UpdateLayout();
+            await CaptureVisualAsync((FrameworkElement)info.Content, Path.Combine(output, "hardware-info.png"), 1, cancellationToken);
+        }
+        finally { info.Close(); }
+
+        var original = _preferences;
+        try
+        {
+            foreach (var theme in new[] { "Dark", "Light" })
+            foreach (var palette in Preferences.ChartPalettes.Names)
+            {
+                _preferences = original with { Theme = theme, ChartPalette = palette };
+                ApplyTheme();
+                RefreshPresentation();
+                await CaptureAsync(Path.Combine(output, $"palette-{palette.ToLowerInvariant()}-{theme.ToLowerInvariant()}.png"), 1, cancellationToken);
+            }
+        }
+        finally { _preferences = original; ApplyTheme(); RefreshPresentation(); }
+
+        var row = _rows.First(r => r.Visibility == Visibility.Visible);
+        // Exercise menu creation without invoking the destructive command.
+        row.PrepareProcessMenu();
+        var menu = row.ContextMenu!;
+        if (menu.Items.Count != 1 || menu.Items[0] is not System.Windows.Controls.MenuItem item || !item.Header.ToString()!.StartsWith("End "))
+            throw new InvalidOperationException("Process context menu did not capture its target.");
+        try
+        {
+            menu.PlacementTarget = row;
+            menu.IsOpen = true;
+            await Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.Render, cancellationToken);
+            menu.UpdateLayout();
+            await CaptureVisualAsync(menu, Path.Combine(output, "process-context-menu.png"), 1, cancellationToken);
+        }
+        finally { menu.IsOpen = false; }
+        var selection = _selectedSample;
+        try
+        {
+            _selectedSample = _history.Latest;
+            RefreshPresentation();
+            row.PrepareProcessMenu();
+            if (((System.Windows.Controls.MenuItem)row.ContextMenu.Items[0]).IsEnabled)
+                throw new InvalidOperationException("Historical rows allowed process termination.");
+            _selectedSample = null;
+            GroupedChip.IsChecked = true;
+            RefreshPresentation();
+            row.PrepareProcessMenu();
+            if (((System.Windows.Controls.MenuItem)row.ContextMenu.Items[0]).IsEnabled)
+                throw new InvalidOperationException("Grouped rows allowed process termination.");
+        }
+        finally
+        {
+            IndividualChip.IsChecked = true;
+            _selectedSample = selection;
+            RefreshPresentation();
+        }
+        var settings = new Preferences.SettingsWindow(_preferences) { Owner = this };
+        try
+        {
+            settings.Show(); settings.UpdateLayout();
+            await CaptureVisualAsync((FrameworkElement)settings.Content, Path.Combine(output, "feature-settings.png"), 1, cancellationToken);
+        }
+        finally { settings.Close(); }
+        await File.WriteAllTextAsync(Path.Combine(output, "features.json"),
+            JsonSerializer.Serialize(new { HardwareInfo = true, PaletteRenders = true, ProcessContextMenu = true,
+                HistoricalAndGroupedActionsDisabled = true, Limitation = "No destructive command invoked by the UI smoke; native termination is tested on an owned helper in the test suite." }), cancellationToken);
     }
 
     private async Task CaptureToolTipAsync(string path, CancellationToken cancellationToken)

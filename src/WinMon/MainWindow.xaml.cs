@@ -75,7 +75,12 @@ public partial class MainWindow
             metric.Toggle.Checked += OnSeriesChanged;
             metric.Toggle.Unchecked += OnSeriesChanged;
         }
-        foreach (var row in _rows) { row.Visibility = Visibility.Collapsed; ProcessRows.Children.Add(row); }
+        foreach (var row in _rows)
+        {
+            row.Visibility = Visibility.Collapsed;
+            row.EnableProcessActions(CanEndProcess, EndProcess);
+            ProcessRows.Children.Add(row);
+        }
         ProcessRows.Children.Add(_otherRow);
         BuildRangeChips();
         // Rows gain a PID line in a wide window; there is no separate expanded mode.
@@ -456,6 +461,23 @@ public partial class MainWindow
     }
 
     private void OnReturnLive(object sender, RoutedEventArgs e) => ReturnToLive();
+    private void OnHardwareInfo(object sender, RoutedEventArgs e)
+    {
+        if (!_closing) new HardwareInfoWindow { Owner = this }.ShowDialog();
+    }
+    private bool CanEndProcess(ProcessUsage process) => !_closing && ProcessTerminator.IsEligible(process,
+        _selectedSample is null && Volatile.Read(ref _paused) == 0, _preferences.GroupProcesses);
+
+    private void EndProcess(ProcessUsage process)
+    {
+        if (!CanEndProcess(process)) return;
+        var answer = MessageBox.Show(this,
+            $"End {process.Name} (PID {process.ProcessId})?\n\nUnsaved work may be lost. Only this process will be ended.",
+            "End process", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
+        if (answer != MessageBoxResult.Yes || !CanEndProcess(process)) return;
+        var error = ProcessTerminator.End(process);
+        if (error is not null) MessageBox.Show(this, error, "End process", MessageBoxButton.OK, MessageBoxImage.Information);
+    }
     private void ReturnToLive() { _selectedSample = null; RefreshPresentation(); }
     private void OnTray(object sender, RoutedEventArgs e) { if (_tray is not null) Hide(); }
 
@@ -541,6 +563,7 @@ public partial class MainWindow
         var light = _preferences.Theme == "Light" || (_preferences.Theme == "System" && IsSystemLight());
         var app = Application.Current;
         if (app is null) return;
+        OverallGraph.UseSeriesPatterns = _preferences.ChartPalette == "Colorblind";
         if (SystemParameters.HighContrast)
         {
             app.Resources["Surface"] = SystemColors.WindowBrush;
@@ -562,12 +585,10 @@ public partial class MainWindow
             SetBrush("Text", light ? "#17212A" : "#EDF2F6");
             SetBrush("Muted", light ? "#465361" : "#B3BDC8");
             SetBrush("Line", light ? "#CBD3DC" : "#35404B");
-            SetBrush("Accent", light ? "#36751B" : "#73FF35");
-            SetBrush("CpuAccent", light ? "#36751B" : "#73FF35");
-            SetBrush("MemoryAccent", light ? "#1469B5" : "#4285FF");
-            SetBrush("DiskAccent", light ? "#B8461B" : "#FFB000");
-            SetBrush("NetworkAccent", light ? "#7944B4" : "#F657E5");
-            SetBrush("GpuAccent", light ? "#007B83" : "#00F0C8");
+            var colors = ChartPalettes.Colors(_preferences.ChartPalette, light);
+            var keys = new[] { "CpuAccent", "MemoryAccent", "DiskAccent", "NetworkAccent", "GpuAccent" };
+            for (var i = 0; i < keys.Length; i++) SetBrush(keys[i], colors[i]);
+            SetBrush("Accent", colors[0]);
         }
         foreach (Window window in app.Windows) WindowTheme.Apply(window);
         foreach (var row in _rows) row.InvalidateVisual();

@@ -366,6 +366,13 @@
                                 controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Settings}"
                                 Click="OnSettings"
                                 Content="Settings" />
+                            <Button
+                                Margin="8,0,0,0"
+                                controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Info}"
+                                Click="OnHardwareInfo"
+                                Content="Info"
+                                AutomationProperties.Name="Hardware information"
+                                ToolTip="CPU, memory, graphics, volumes and network hardware" />
                         </StackPanel>
                         <TextBlock
                             x:Name="CoverageLabel"
