@@ -138,6 +138,15 @@ public sealed class PreferenceStoreTests
     }
 
     [Test]
+    public async Task GroupProcesses_DefaultsToIndividual_AndRoundTrips()
+    {
+        var store = new PreferenceStore(settingsPath);
+        Assert.That((await store.LoadAsync()).GroupProcesses, Is.False);
+        await store.SaveAsync(new MonitorPreferences { GroupProcesses = true });
+        Assert.That((await store.LoadAsync()).GroupProcesses, Is.True);
+    }
+
+    [Test]
     public async Task ChartRange_RoundTrips_AndLegacyExpandedSettingStillLoads()
     {
         Directory.CreateDirectory(testDirectory);

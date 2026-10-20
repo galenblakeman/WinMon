@@ -19,6 +19,9 @@ public partial class MainWindow
     private readonly PreferenceStore _preferenceStore = new();
     private readonly ProcessRow[] _rows = [.. Enumerable.Range(0, 20).Select(_ => new ProcessRow())];
     private readonly ProcessRow _otherRow = new() { Visibility = Visibility.Collapsed };
+    // History keeps compacted samples; the live view ranks the newest one in full so group counts and memory are exact.
+    private CpuSample? _latestFull;
+    private CpuSample? _latestCompacted;
     private readonly CpuHistory _history = new();
     private readonly System.Collections.Concurrent.ConcurrentQueue<PendingSample> _pendingSamples = new();
     private int _drainScheduled;
@@ -55,6 +58,8 @@ public partial class MainWindow
         ProcessSortSelector.ItemsSource = new[] { "CPU", "GPU", "Memory", "I/O" };
         ProcessSortSelector.SelectedIndex = (int)ProcessSort.Cpu;
         ProcessSortSelector.SelectionChanged += OnProcessSortChanged;
+        IndividualChip.Checked += OnGroupingChanged;
+        GroupedChip.Checked += OnGroupingChanged;
         // Column headings are shortcuts for the "processes by" dropdown, which stays the keyboard path.
         foreach (var (header, sort, text) in SortHeaders)
         {
@@ -95,6 +100,8 @@ public partial class MainWindow
         {
             _preferences = _diagnosticMode ? new MonitorPreferences() : await _preferenceStore.LoadAsync(_lifetime.Token);
             ProcessSortSelector.SelectedIndex = (int)_preferences.ProcessSort;
+            GroupedChip.IsChecked = _preferences.GroupProcesses;
+            IndividualChip.IsChecked = !_preferences.GroupProcesses;
             ProcessCountSelector.SelectedItem = _preferences.TopProcessCount;
             Width = Math.Max(MinWidth, _preferences.Width);
             Height = Math.Max(MinHeight, _preferences.Height);
@@ -153,8 +160,8 @@ public partial class MainWindow
                         Trace.TraceWarning("CPU sampling unavailable: {0}", ex.Message);
                         sample = new CpuSample(DateTimeOffset.UtcNow, null, [], 0, false, Stopwatch.GetTimestamp());
                     }
-                    sample = ProcessRetention.Compact(resources.Sample(sample));
-                    Deliver(new PendingSample(currentGeneration, sample, cpuError));
+                    var full = resources.Sample(sample);
+                    Deliver(new PendingSample(currentGeneration, ProcessRetention.Compact(full), cpuError, full));
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
                 catch (Exception ex)
@@ -174,7 +181,7 @@ public partial class MainWindow
     }
 
     /// <summary>A captured sample, or a failed pass when <see cref="Sample"/> is null, awaiting the UI thread.</summary>
-    private sealed record PendingSample(int Generation, CpuSample? Sample, string? Error);
+    private sealed record PendingSample(int Generation, CpuSample? Sample, string? Error, CpuSample? Full = null);
 
     // Capture never waits for the UI: a stalled dispatcher would otherwise delay the next capture and
     // stretch the sampling interval past the chart's gap threshold. Samples queue in pendingSamples and
@@ -197,7 +204,12 @@ public partial class MainWindow
             try
             {
                 _samplingError = pending.Error;
-                if (pending.Sample is not null) _history.Add(pending.Sample);
+                if (pending.Sample is not null)
+                {
+                    _history.Add(pending.Sample);
+                    _latestCompacted = pending.Sample;
+                    _latestFull = pending.Full;
+                }
                 changed = true;
             }
             catch (Exception ex) { Trace.TraceError("WinMon could not record a sample: {0}", ex); }
@@ -226,30 +238,34 @@ public partial class MainWindow
         UpdateResources(allUnavailable ? null : latest);
         OverallGraph.SetData(samples, range, _selectedSample);
         LiveButton.Visibility = _selectedSample is null ? Visibility.Collapsed : Visibility.Visible;
-        SelectionLabel.Text = _selectedSample is not null ? visible is null ? "History expired. This sample has left the recording window. Return to live." : $"Historical sample at {visible.Timestamp:HH:mm:ss} · {ProcessRanking.DefaultWindowSeconds}s average ending here" : $"Individual processes · {ProcessRanking.DefaultWindowSeconds}s averages · CPU history sparklines";
+        var grouped = _preferences.GroupProcesses;
+        SelectionLabel.Text = _selectedSample is not null ? visible is null ? "History expired. This sample has left the recording window. Return to live." : $"Historical sample at {visible.Timestamp:HH:mm:ss} · {ProcessRanking.DefaultWindowSeconds}s average ending here{(grouped ? " · idle group members may be omitted" : "")}"
+            : grouped ? $"Grouped by executable · {ProcessRanking.DefaultWindowSeconds}s averages · summed CPU history" : $"Individual processes · {ProcessRanking.DefaultWindowSeconds}s averages · CPU history sparklines";
         SelectionMetrics.Visibility = _selectedSample is not null && visible is not null ? Visibility.Visible : Visibility.Collapsed;
         SelectionMetrics.Text = visible is null ? "" : $"CPU {Percent(visible.TotalCpuPercent)} · Memory {Percent(visible.Resources.MemoryPercent)} · Disk {Percent(visible.Resources.DiskActivePercent)} · Network {Rate(visible.Resources)} · GPU {Percent(visible.Resources.GpuPercent)}";
         var selectedIndex = _selectedSample is null ? -1 : Array.FindIndex([.. samples], s => ReferenceEquals(s, _selectedSample));
         var rowSamples = _selectedSample is null ? samples : [.. samples.Take(selectedIndex + 1)];
+        if (_selectedSample is null && _latestFull is not null && rowSamples.Count > 0 && ReferenceEquals(rowSamples[^1], _latestCompacted))
+            rowSamples = [.. rowSamples.Take(rowSamples.Count - 1), _latestFull];
         // Rank on a short average ending at the live or selected sample; single intervals are tick-quantized.
-        var cpuRanking = visible is null ? new ProcessRanking([], null, 0) : ProcessRanking.Rank(rowSamples);
-        var ranking = _preferences.ProcessSort == ProcessSort.Cpu ? cpuRanking : ProcessRanking.Rank(rowSamples, sort: _preferences.ProcessSort);
+        var cpuRanking = visible is null ? new ProcessRanking([], null, 0) : ProcessRanking.Rank(rowSamples, grouped: grouped);
+        var ranking = _preferences.ProcessSort == ProcessSort.Cpu ? cpuRanking : ProcessRanking.Rank(rowSamples, sort: _preferences.ProcessSort, grouped: grouped);
         UpdateSortHeaders();
         var active = ranking.Processes;
         var top = active.Take(_preferences.TopProcessCount).ToArray();
         var rest = active.Skip(top.Length).ToArray();
-        var processData = ProcessGraphData.Build(rowSamples, _preferences.CompactHistorySeconds, top);
+        var processData = ProcessGraphData.Build(rowSamples, _preferences.CompactHistorySeconds, top, grouped);
         for (var i = 0; i < _rows.Length; i++)
         {
             _rows[i].Visibility = i < top.Length ? Visibility.Visible : Visibility.Collapsed;
-            if (i < top.Length) _rows[i].Update(top[i], rowSamples, _preferences.CompactHistorySeconds, _wide, processData[i]);
+            if (i < top.Length) _rows[i].Update(top[i], rowSamples, _preferences.CompactHistorySeconds, _wide, processData[i], grouped);
         }
         _otherRow.Visibility = rest.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
         if (rest.Length > 0)
             // Memory ranking also covers idle processes compacted out of the sample.
-            _otherRow.ShowRemainder(rest.Length + (_preferences.ProcessSort == ProcessSort.Memory ? visible?.CompactedProcesses ?? 0 : 0),
+            _otherRow.ShowRemainder(rest.Length + (_preferences.ProcessSort == ProcessSort.Memory && !grouped ? visible?.CompactedProcesses ?? 0 : 0),
                 rest.Sum(p => p.CpuPercent),
-                rest.Any(p => p.IoBytesPerSecond is not null) ? rest.Sum(p => p.IoBytesPerSecond ?? 0) : null);
+                rest.Any(p => p.IoBytesPerSecond is not null) ? rest.Sum(p => p.IoBytesPerSecond ?? 0) : null, grouped);
         EmptyLabel.Visibility = top.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
         EmptyLabel.Text = visible is null && _selectedSample is not null ? "Return to live to inspect current activity." : latest is null || visible?.TotalCpuPercent is null ? "Collecting a baseline or recovering after a recording gap…" : _preferences.ProcessSort switch
             {
@@ -299,6 +315,14 @@ public partial class MainWindow
         RefreshPresentation();
     }
 
+    private void OnGroupingChanged(object sender, RoutedEventArgs e)
+    {
+        if (_closing) return;
+        _preferences = _preferences with { GroupProcesses = GroupedChip.IsChecked == true };
+        ProcessScroll.ScrollToTop();
+        RefreshPresentation();
+    }
+
     private void OnProcessSortChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
     {
         if (ProcessSortSelector.SelectedIndex < 0 || _closing) return;
@@ -316,8 +340,9 @@ public partial class MainWindow
 
     private void UpdateSortHeaders()
     {
-        foreach (var (header, sort, text) in SortHeaders)
+        foreach (var (header, sort, name) in SortHeaders)
         {
+            var text = sort == ProcessSort.Memory && _preferences.GroupProcesses ? "Private" : name;
             var active = sort == _preferences.ProcessSort;
             header.Text = active ? $"{text} ▾" : text;
             header.FontWeight = active ? FontWeights.SemiBold : FontWeights.Normal;

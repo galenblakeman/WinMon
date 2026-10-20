@@ -100,6 +100,13 @@ public partial class MainWindow
         GpuMetric.Toggle.IsChecked = true;
         if (OverallGraph.VisibleMetrics != 31 || !_preferences.ShowGpu) throw new InvalidOperationException("GPU series did not restore.");
         await CaptureAsync(Path.Combine(outputDirectory, "compact.png"), 1, cancellationToken);
+        GroupedChip.IsChecked = true;
+        RefreshPresentation();
+        if (_rows[0].Visibility != Visibility.Visible ||
+            (_otherRow.Visibility == Visibility.Visible && System.Windows.Automation.AutomationProperties.GetName(_otherRow)?.Contains("executables") != true))
+            throw new InvalidOperationException("Grouped mode showed no native processes or mislabeled the remainder.");
+        await CaptureAsync(Path.Combine(outputDirectory, "grouped-native.png"), 1, cancellationToken);
+        IndividualChip.IsChecked = true;
         ProcessCountSelector.IsDropDownOpen = true;
         try
         {
@@ -332,7 +339,8 @@ public partial class MainWindow
             var pulse = Math.Exp(-Math.Pow((i - 92) / 2d, 2));
             var cpu = 18 + 6 * Math.Sin(i * 1.7) + 52 * pulse;
             fixture._history.Add(new CpuSample(anchor.AddSeconds(i - 119), cpu,
-                [new ProcessUsage(100, 1, "chrome", 8.4, 1_303_379_968, 18_600_000) { GpuPercent = 12.4, GpuEngine = "3D", GpuId = "fixture" }, new ProcessUsage(101, 2, "devenv", 4.1, 1_914_699_776, 6_400_000) { GpuPercent = 1.2 },
+                [new ProcessUsage(100, 1, "chrome", 8.4, 1_303_379_968, 18_600_000) { GpuPercent = 12.4, GpuEngine = "3D", GpuId = "fixture", PrivateBytes = 900_000_000 },
+                 new ProcessUsage(106, 7, "chrome", 1.0, 400_000_000, 500_000) { PrivateBytes = 250_000_000 }, new ProcessUsage(101, 2, "devenv", 4.1, 1_914_699_776, 6_400_000) { GpuPercent = 1.2 },
                  new ProcessUsage(102, 3, "MsMpEng", 3.6, 306_184_192, 12_800_000), new ProcessUsage(4, 4, "System", 2.9, 188_743_680, 4_100_000),
                  new ProcessUsage(103, 5, "WinMon", 1.8, 97_517_568, 1_600_000) { GpuPercent = 0.5 },
                  new ProcessUsage(104, 6, "gpu-worker", 0, 200_000_000, 0) { GpuPercent = 65, GpuEngine = "Compute", GpuId = "fixture" }], 0, false, Stopwatch.Frequency * (i + 1))
@@ -385,6 +393,16 @@ public partial class MainWindow
         if (fixture._preferences.ProcessSort != ProcessSort.Io || fixture.ProcessSortSelector.SelectedItem as string != "I/O")
             throw new InvalidOperationException("Clicking the I/O heading did not switch the ranking dropdown.");
         fixture.ProcessSortSelector.SelectedItem = "CPU";
+        // Grouped: the two chrome processes become one row with summed CPU, and memory switches to private bytes.
+        fixture.GroupedChip.IsChecked = true;
+        fixture.RefreshVisiblePresentation();
+        visual.UpdateLayout();
+        if (!fixture._preferences.GroupProcesses || fixture.MemoryHeader.Text != "Private" ||
+            System.Windows.Automation.AutomationProperties.GetName(fixture._rows[0]) is not { } groupedName ||
+            !groupedName.StartsWith("chrome, 2 processes, 9.4%", StringComparison.Ordinal))
+            throw new InvalidOperationException("Grouped mode did not combine the chrome processes.");
+        await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "grouped.png"), 1, cancellationToken);
+        fixture.IndividualChip.IsChecked = true;
         fixture.RefreshVisiblePresentation();
         var rankedSample = fixture._history.Latest! with
         {

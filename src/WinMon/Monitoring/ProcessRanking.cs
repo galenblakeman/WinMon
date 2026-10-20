@@ -38,8 +38,10 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
     /// <param name="history">Chronological samples; the last one is the live or selected sample.</param>
     /// <param name="windowSeconds">Averaging window; with one-second sampling it covers that many intervals.</param>
     /// <param name="sort">Ranking column; missing GPU, memory or I/O readings never become zero.</param>
+    /// <param name="grouped">Combine processes of the same executable into one row each.</param>
     /// <returns>The ranking, empty when the last sample is a gap or has no CPU reading.</returns>
-    public static ProcessRanking Rank(IReadOnlyList<CpuSample> history, int windowSeconds = DefaultWindowSeconds, ProcessSort sort = ProcessSort.Cpu)
+    public static ProcessRanking Rank(IReadOnlyList<CpuSample> history, int windowSeconds = DefaultWindowSeconds,
+        ProcessSort sort = ProcessSort.Cpu, bool grouped = false)
     {
         ArgumentNullException.ThrowIfNull(history);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(windowSeconds);
@@ -79,7 +81,7 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
                     total.GpuLatest ?? (process.GpuPercent is not null ? process : null));
             }
         }
-        var ranked = totals.Values
+        var individual = totals.Values
             .Select(t => t.Latest with
             {
                 CpuPercent = t.Cpu / window.Count,
@@ -88,24 +90,55 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
                 GpuPercent = t.GpuCount > 0 ? t.Gpu / t.GpuCount : null,
                 GpuId = t.GpuLatest?.GpuId ?? "",
                 GpuEngine = t.GpuLatest?.GpuEngine ?? ""
-            })
+            });
+        var ranked = (grouped ? Group(individual, newest) : individual)
             .Where(p => sort switch
             {
                 ProcessSort.Gpu => p.GpuPercent > 0,
-                ProcessSort.Memory => p.WorkingSetBytes > 0 && newest.Contains((p.ProcessId, p.CreationTicks)),
+                // Groups sum private bytes (working sets share pages); a grouped row is current if any member is.
+                ProcessSort.Memory => grouped ? p.PrivateBytes > 0 : p.WorkingSetBytes > 0 && newest.Contains((p.ProcessId, p.CreationTicks)),
                 ProcessSort.Io => p.IoBytesPerSecond > 0,
                 _ => p.CpuPercent > 0
             })
             .OrderByDescending(p => sort switch
             {
                 ProcessSort.Gpu => p.GpuPercent ?? 0,
-                ProcessSort.Memory => p.WorkingSetBytes ?? 0,
+                ProcessSort.Memory => (grouped ? p.PrivateBytes : p.WorkingSetBytes) ?? 0,
                 ProcessSort.Io => p.IoBytesPerSecond ?? 0,
                 _ => p.CpuPercent
             })
             .ThenBy(p => p.ProcessId)
             .ToArray();
         return new ProcessRanking(ranked, window.Average(s => s.TotalCpuPercent!.Value), window.Count);
+    }
+
+    /// <summary>Executable identity for grouping: the full path, or the name when the path is unreadable.</summary>
+    /// <remarks>A path always contains a backslash and a name never does, so the two kinds cannot collide.</remarks>
+    internal static string GroupKey(ProcessUsage process) => process.ImagePath.Length > 0 ? process.ImagePath : process.Name;
+
+    /// <summary>Combine window averages by executable. CPU and I/O add up; GPU members may use different
+    /// engines, so a group reports its busiest member; memory sums the private bytes of current members.</summary>
+    private static IEnumerable<ProcessUsage> Group(IEnumerable<ProcessUsage> processes, HashSet<(int, long)> newest)
+    {
+        foreach (var members in processes.GroupBy(GroupKey, StringComparer.OrdinalIgnoreCase))
+        {
+            var all = members.ToArray();
+            var busiest = all.MaxBy(p => p.CpuPercent)!;
+            var gpu = all.Where(p => p.GpuPercent is not null).MaxBy(p => p.GpuPercent);
+            var current = all.Where(p => newest.Contains((p.ProcessId, p.CreationTicks))).ToArray();
+            yield return busiest with
+            {
+                CpuPercent = all.Sum(p => p.CpuPercent),
+                IoBytesPerSecond = all.Any(p => p.IoBytesPerSecond is not null) ? all.Sum(p => p.IoBytesPerSecond ?? 0) : null,
+                GpuPercent = gpu?.GpuPercent,
+                GpuEngine = gpu?.GpuEngine ?? "",
+                GpuId = gpu?.GpuId ?? "",
+                WorkingSetBytes = current.Any(p => p.WorkingSetBytes is not null) ? (ulong)current.Sum(p => (decimal)(p.WorkingSetBytes ?? 0)) : null,
+                PrivateBytes = current.Any(p => p.PrivateBytes is not null) ? (ulong)current.Sum(p => (decimal)(p.PrivateBytes ?? 0)) : null,
+                MemberCount = all.Length,
+                MemberIds = [.. all.Select(p => p.ProcessId).Order()]
+            };
+        }
     }
 
     /// <summary>Map an observation to monotonic seconds; support wall-time-only imported fixtures.</summary>

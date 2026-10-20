@@ -203,36 +203,61 @@
                         BorderBrush="{DynamicResource Line}"
                         BorderThickness="0,1,0,0">
                         <StackPanel>
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock
+                            <DockPanel LastChildFill="False">
+                                <StackPanel
+                                    x:Name="GroupingSelector"
                                     VerticalAlignment="Center"
-                                    FontSize="15"
-                                    FontWeight="SemiBold"
-                                    Text="Top" />
-                                <ComboBox
-                                    x:Name="ProcessCountSelector"
-                                    Width="58"
-                                    MinHeight="28"
-                                    Margin="6,0"
-                                    AutomationProperties.Name="Number of top processes"
-                                    FontSize="14"
-                                    FontWeight="SemiBold"
-                                    ToolTip="Number of processes shown" />
-                                <TextBlock
-                                    VerticalAlignment="Center"
-                                    FontSize="15"
-                                    FontWeight="SemiBold"
-                                    Text="processes by" />
-                                <ComboBox
-                                    x:Name="ProcessSortSelector"
-                                    Width="100"
-                                    MinHeight="28"
-                                    Margin="6,0,0,0"
-                                    AutomationProperties.Name="Rank processes by"
-                                    FontSize="14"
-                                    FontWeight="SemiBold"
-                                    ToolTip="Rank by five-second average CPU, GPU or I/O, or by current memory" />
-                            </StackPanel>
+                                    AutomationProperties.Name="Process grouping"
+                                    DockPanel.Dock="Right"
+                                    Orientation="Horizontal">
+                                    <RadioButton
+                                        x:Name="IndividualChip"
+                                        AutomationProperties.Name="One row per process"
+                                        Content="Individual"
+                                        GroupName="ProcessGrouping"
+                                        IsChecked="True"
+                                        Style="{StaticResource RangeChip}"
+                                        ToolTip="One row per process" />
+                                    <RadioButton
+                                        x:Name="GroupedChip"
+                                        Margin="0"
+                                        AutomationProperties.Name="One row per executable"
+                                        Content="Grouped"
+                                        GroupName="ProcessGrouping"
+                                        Style="{StaticResource RangeChip}"
+                                        ToolTip="One row per executable: CPU and I/O summed, GPU from the busiest member, memory as summed private bytes" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        FontSize="15"
+                                        FontWeight="SemiBold"
+                                        Text="Top" />
+                                    <ComboBox
+                                        x:Name="ProcessCountSelector"
+                                        Width="58"
+                                        MinHeight="28"
+                                        Margin="6,0"
+                                        AutomationProperties.Name="Number of top processes"
+                                        FontSize="14"
+                                        FontWeight="SemiBold"
+                                        ToolTip="Number of processes shown" />
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        FontSize="15"
+                                        FontWeight="SemiBold"
+                                        Text="processes by" />
+                                    <ComboBox
+                                        x:Name="ProcessSortSelector"
+                                        Width="100"
+                                        MinHeight="28"
+                                        Margin="6,0,0,0"
+                                        AutomationProperties.Name="Rank processes by"
+                                        FontSize="14"
+                                        FontWeight="SemiBold"
+                                        ToolTip="Rank by five-second average CPU, GPU or I/O, or by current memory" />
+                                </StackPanel>
+                            </DockPanel>
                             <TextBlock
                                 x:Name="SelectionLabel"
                                 Margin="0,2,0,0"

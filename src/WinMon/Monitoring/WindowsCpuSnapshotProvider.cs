@@ -1,4 +1,5 @@
 using System.Buffers.Binary;
+using Microsoft.Win32.SafeHandles;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -28,12 +29,17 @@ internal sealed class WindowsCpuSnapshotProvider : ICpuSnapshotProvider
     private const int ImageNameBuffer = 0x40;
     private const int UniqueProcessId = 0x50;
     private const int WorkingSetSize = 0x90;
+    private const int PrivatePageCount = 0xC8;
     private const int ReadTransferCount = 0xE8;
     private const int WriteTransferCount = 0xF0;
 
     private byte[] _buffer = GC.AllocateUninitializedArray<byte>(1024 * 1024, pinned: true);
     private Dictionary<(int, long), string> _names = [];
     private Dictionary<(int, long), string> _nextNames = [];
+    // Paths group processes by executable. One handle per process lifetime; "" records an unreadable path.
+    private Dictionary<(int, long), string> _paths = [];
+    private Dictionary<(int, long), string> _nextPaths = [];
+    private readonly char[] _pathBuffer = new char[1024];
 
     /// <inheritdoc/>
     public CpuSnapshot Capture()
@@ -55,6 +61,16 @@ internal sealed class WindowsCpuSnapshotProvider : ICpuSnapshotProvider
         var available = Parse(_buffer.AsSpan(0, length), Marshal.UnsafeAddrOfPinnedArrayElement(_buffer, 0),
             _names, _nextNames, out var unavailable);
         (_names, _nextNames) = (_nextNames, _names);
+        _nextPaths.Clear();
+        for (var i = 0; i < available.Count; i++)
+        {
+            var process = available[i];
+            var key = (process.ProcessId, process.CreationTicks);
+            if (!_paths.TryGetValue(key, out var path)) path = ReadImagePath(process.ProcessId, process.CreationTicks);
+            _nextPaths[key] = path;
+            if (path.Length > 0) available[i] = process with { ImagePath = path };
+        }
+        (_paths, _nextPaths) = (_nextPaths, _paths);
 
         return new CpuSnapshot(
             DateTimeOffset.UtcNow,
@@ -101,7 +117,8 @@ internal sealed class WindowsCpuSnapshotProvider : ICpuSnapshotProvider
                                 BinaryPrimitives.ReadInt64LittleEndian(entry[UserTime..])),
                         BinaryPrimitives.ReadUInt64LittleEndian(entry[WorkingSetSize..]),
                         BinaryPrimitives.ReadUInt64LittleEndian(entry[ReadTransferCount..]),
-                        BinaryPrimitives.ReadUInt64LittleEndian(entry[WriteTransferCount..])));
+                        BinaryPrimitives.ReadUInt64LittleEndian(entry[WriteTransferCount..]),
+                        BinaryPrimitives.ReadUInt64LittleEndian(entry[PrivatePageCount..])));
                 }
             }
             var next = BinaryPrimitives.ReadUInt32LittleEndian(entry[NextEntryOffset..]);
@@ -120,6 +137,15 @@ internal sealed class WindowsCpuSnapshotProvider : ICpuSnapshotProvider
         var chars = MemoryMarshal.Cast<byte, char>(buffer.Slice((int)offset, bytes));
         if (chars.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)) chars = chars[..^4];
         return new string(chars);
+    }
+
+    // The creation-time check rejects a PID reused between the system query and the open.
+    private string ReadImagePath(int processId, long created)
+    {
+        using var handle = NativeMethods.OpenProcess(0x1000 /* PROCESS_QUERY_LIMITED_INFORMATION */, false, processId);
+        if (handle.IsInvalid || !NativeMethods.GetProcessTimes(handle, out var actual, out _, out _, out _) || actual != created) return "";
+        var length = _pathBuffer.Length;
+        return NativeMethods.QueryFullProcessImageNameW(handle, 0, _pathBuffer, ref length) ? new string(_pathBuffer, 0, length) : "";
     }
 
     private int Query()
@@ -145,6 +171,17 @@ internal sealed class WindowsCpuSnapshotProvider : ICpuSnapshotProvider
 
         [DllImport("kernel32.dll")]
         internal static extern ushort GetActiveProcessorGroupCount();
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        internal static extern SafeProcessHandle OpenProcess(uint access, [MarshalAs(UnmanagedType.Bool)] bool inherit, int processId);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool GetProcessTimes(SafeProcessHandle process, out long created, out long exited, out long kernel, out long user);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool QueryFullProcessImageNameW(SafeProcessHandle process, uint flags, [Out] char[] path, ref int size);
 
         [DllImport("ntdll.dll")]
         internal static extern uint NtQuerySystemInformation(int informationClass, nint information, int length, out int returnLength);

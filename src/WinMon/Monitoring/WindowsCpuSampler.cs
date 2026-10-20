@@ -118,7 +118,11 @@ public sealed class WindowsCpuSampler : IDisposable
                 Math.Clamp(100d * processDelta / totalDelta, 0d, 100d),
                 process.WorkingSetBytes,
                 ResourceRates.PerSecond(priorCpuTicks.ReadBytes, process.ReadBytes, elapsedSeconds) +
-                ResourceRates.PerSecond(priorCpuTicks.WriteBytes, process.WriteBytes, elapsedSeconds)));
+                ResourceRates.PerSecond(priorCpuTicks.WriteBytes, process.WriteBytes, elapsedSeconds))
+            {
+                PrivateBytes = process.PrivateBytes,
+                ImagePath = process.ImagePath ?? ""
+            });
         }
 
         return

@@ -48,12 +48,15 @@ public sealed class ProcessRow : Grid
     }
 
     internal void Update(ProcessUsage usage, IReadOnlyList<CpuSample> samples, int seconds, bool showPid,
-        ProcessGraphData? data)
+        ProcessGraphData? data, bool grouped = false)
     {
         ArgumentNullException.ThrowIfNull(usage);
-        _name.Text = usage.Name;
-        _name.ToolTip = $"{usage.Name} · PID {usage.ProcessId}";
-        _pid.Text = $"PID {usage.ProcessId}";
+        var members = usage.MemberCount > 1;
+        _name.Text = members ? $"{usage.Name} ×{usage.MemberCount}" : usage.Name;
+        _name.ToolTip = grouped
+            ? $"{(usage.ImagePath.Length > 0 ? usage.ImagePath : usage.Name)}\n{MemberList(usage)}"
+            : $"{usage.Name} · PID {usage.ProcessId}";
+        _pid.Text = members ? $"{usage.MemberCount} processes" : $"PID {usage.ProcessId}";
         _pid.Visibility = showPid ? Visibility.Visible : Visibility.Collapsed;
         _value.Text = $"{usage.CpuPercent:0.0}%";
         _gpu.Text = usage.GpuPercent is { } percent ? $"{percent:0.0}%" : "—";
@@ -62,7 +65,7 @@ public sealed class ProcessRow : Grid
             : "GPU utilization unavailable for this process; no valid counter or lifetime match.";
         if (data is null) _graph.SetData(samples, seconds, null, usage);
         else _graph.SetProcessData(data, seconds, usage);
-        ToolTip = $"{usage.Name} · PID {usage.ProcessId}\nCPU history · last {seconds / 60d:0.#} min\n0–{_graph.ScaleMaximum:0.0}% of total machine CPU · same scale for every row";
+        ToolTip = $"{_name.Text} · {(grouped ? MemberList(usage) : $"PID {usage.ProcessId}")}\n{(grouped ? "Summed CPU" : "CPU")} history · last {seconds / 60d:0.#} min\n0–{_graph.ScaleMaximum:0.0}% of total machine CPU · same scale for every row";
         var nextIdentity = (usage.ProcessId, usage.CreationTicks);
         if (_identity != nextIdentity)
         {
@@ -70,22 +73,26 @@ public sealed class ProcessRow : Grid
             _icon.Source = ProcessIconProvider.Fallback;
             _ = LoadIconAsync(usage, nextIdentity);
         }
-        _memory.Text = usage.WorkingSetBytes is { } bytes ? $"{bytes / 1_048_576d:N0} MiB" : "—";
+        // Working sets share pages, so a group shows summed private bytes instead.
+        _memory.Text = (grouped ? usage.PrivateBytes : usage.WorkingSetBytes) is { } bytes ? $"{bytes / 1_048_576d:N0} MiB" : "—";
+        _memory.ToolTip = grouped
+            ? "Private bytes summed across this executable's current processes."
+            : "Resident working set, including shared pages. Does not sum to total physical memory used.";
         _io.Text = usage.IoBytesPerSecond is { } rate ? $"{rate / 1_000_000:0.00}" : "—";
-        System.Windows.Automation.AutomationProperties.SetName(this, $"{usage.Name}, process {usage.ProcessId}, {_value.Text} of total CPU averaged over 5 seconds, GPU {_gpu.Text} averaged over readable intervals in the last 5 seconds, memory {_memory.Text}, read/write I/O {_io.Text} MB per second");
+        System.Windows.Automation.AutomationProperties.SetName(this, $"{usage.Name}, {(members ? $"{usage.MemberCount} processes" : $"process {usage.ProcessId}")}, {_value.Text} of total CPU averaged over 5 seconds, GPU {_gpu.Text} averaged over readable intervals in the last 5 seconds, memory {_memory.Text}, read/write I/O {_io.Text} MB per second");
     }
 
     /// <summary>Show the measured processes ranked below the visible rows as one muted summary line.</summary>
     /// <param name="count">Measured processes outside the visible rows.</param>
     /// <param name="cpuPercent">Their summed CPU as a percentage of total machine capacity.</param>
     /// <param name="ioBytesPerSecond">Their summed read/write I/O, if any was readable.</param>
-    internal void ShowRemainder(int count, double cpuPercent, double? ioBytesPerSecond)
+    internal void ShowRemainder(int count, double cpuPercent, double? ioBytesPerSecond, bool grouped = false)
     {
         _icon.Visibility = Visibility.Hidden;
         _graph.Visibility = Visibility.Hidden;
         _pid.Visibility = Visibility.Collapsed;
         foreach (var text in new[] { _name, _value, _io }) text.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
-        _name.Text = $"Other processes ({count:N0})";
+        _name.Text = grouped ? $"Other executables ({count:N0})" : $"Other processes ({count:N0})";
         _name.ToolTip = null;
         _value.Text = $"{cpuPercent:0.0}%";
         _memory.Text = "";
@@ -93,7 +100,14 @@ public sealed class ProcessRow : Grid
         _gpu.ToolTip = "GPU percentages represent different engines and cannot be summed.";
         _io.Text = ioBytesPerSecond is { } rate ? $"{rate / 1_000_000:0.00}" : "—";
         ToolTip = "Remaining processes in the current ranking. CPU and I/O are summed; memory shares pages and GPU percentages are not additive.";
-        System.Windows.Automation.AutomationProperties.SetName(this, $"{count} other processes, {_value.Text} of total CPU combined, averaged over 5 seconds");
+        System.Windows.Automation.AutomationProperties.SetName(this, $"{count} other {(grouped ? "executables" : "processes")}, {_value.Text} of total CPU combined, averaged over 5 seconds");
+    }
+
+    private static string MemberList(ProcessUsage usage)
+    {
+        if (usage.MemberIds.Count <= 1) return $"PID {usage.ProcessId}";
+        var shown = string.Join(", ", usage.MemberIds.Take(12));
+        return usage.MemberIds.Count > 12 ? $"PIDs {shown} +{usage.MemberIds.Count - 12} more" : $"PIDs {shown}";
     }
 
     private async Task LoadIconAsync(ProcessUsage usage, (int, long) requestedIdentity)

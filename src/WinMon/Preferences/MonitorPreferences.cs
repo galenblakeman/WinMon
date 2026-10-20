@@ -29,6 +29,9 @@ public sealed record MonitorPreferences
     [JsonConverter(typeof(JsonStringEnumConverter<ProcessSort>))]
     public ProcessSort ProcessSort { get; init; }
 
+    /// <summary>Gets a value indicating whether processes of the same executable share one row.</summary>
+    public bool GroupProcesses { get; init; }
+
     /// <summary>Legacy GPU-ranking flag, read once and migrated to <see cref="ProcessSort"/>.</summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool SortByGpu { get; init; }

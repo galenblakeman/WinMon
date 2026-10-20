@@ -95,9 +95,9 @@ public sealed class ProcessRetentionTests
         const nint baseAddress = 0x10000;
         WriteEntry(buffer, 0, next: WindowsCpuSnapshotProvider.EntrySize, pid: 0, created: 0, "");
         WriteEntry(buffer, WindowsCpuSnapshotProvider.EntrySize, next: WindowsCpuSnapshotProvider.EntrySize, pid: 4, created: 11, "System",
-            nameAt: 3 * WindowsCpuSnapshotProvider.EntrySize, user: 5, kernel: 7, workingSet: 4096, read: 100, write: 50);
+            nameAt: 3 * WindowsCpuSnapshotProvider.EntrySize, user: 5, kernel: 7, workingSet: 4096, read: 100, write: 50, privateBytes: 2048);
         WriteEntry(buffer, 2 * WindowsCpuSnapshotProvider.EntrySize, next: 0, pid: 1234, created: 22, "Chrome.EXE",
-            nameAt: 3 * WindowsCpuSnapshotProvider.EntrySize + 16, user: 1, kernel: 2, workingSet: 8192, read: 3, write: 4);
+            nameAt: 3 * WindowsCpuSnapshotProvider.EntrySize + 16, user: 1, kernel: 2, workingSet: 8192, read: 3, write: 4, privateBytes: 1024);
         var previous = new Dictionary<(int, long), string> { [(4, 11)] = "cached" };
         var names = new Dictionary<(int, long), string>();
 
@@ -108,14 +108,14 @@ public sealed class ProcessRetentionTests
             Assert.That(unavailable, Is.Zero);
             Assert.That(processes, Is.EqualTo(new[]
             {
-                new ProcessCpuTimes(4, 11, "cached", 12, 4096, 100, 50),
-                new ProcessCpuTimes(1234, 22, "Chrome", 3, 8192, 3, 4)
+                new ProcessCpuTimes(4, 11, "cached", 12, 4096, 100, 50, 2048),
+                new ProcessCpuTimes(1234, 22, "Chrome", 3, 8192, 3, 4, 1024)
             }));
             Assert.That(names.Keys, Is.EquivalentTo(new[] { (4, 11L), (1234, 22L) }));
         });
 
         void WriteEntry(byte[] target, int offset, int next, long pid, long created, string name, int nameAt = 0,
-            long user = 0, long kernel = 0, ulong workingSet = 0, ulong read = 0, ulong write = 0)
+            long user = 0, long kernel = 0, ulong workingSet = 0, ulong read = 0, ulong write = 0, ulong privateBytes = 0)
         {
             var entry = target.AsSpan(offset, WindowsCpuSnapshotProvider.EntrySize);
             BinaryPrimitives.WriteUInt32LittleEndian(entry, (uint)next);
@@ -126,6 +126,7 @@ public sealed class ProcessRetentionTests
             BinaryPrimitives.WriteUInt64LittleEndian(entry[0x90..], workingSet);
             BinaryPrimitives.WriteUInt64LittleEndian(entry[0xE8..], read);
             BinaryPrimitives.WriteUInt64LittleEndian(entry[0xF0..], write);
+            BinaryPrimitives.WriteUInt64LittleEndian(entry[0xC8..], privateBytes);
             if (name.Length == 0) return;
             var bytes = Encoding.Unicode.GetBytes(name);
             bytes.CopyTo(target.AsSpan(nameAt));

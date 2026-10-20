@@ -14,4 +14,16 @@ public sealed record ProcessUsage(int ProcessId, long CreationTicks, string Name
     public double? GpuPercent { get; init; }
     public string GpuEngine { get; init; } = "";
     public string GpuId { get; init; } = "";
+
+    /// <summary>Private committed memory; summed for groups because shared pages make working sets overlap.</summary>
+    public ulong? PrivateBytes { get; init; }
+
+    /// <summary>Full executable path, or empty when it could not be read; groups processes by executable.</summary>
+    public string ImagePath { get; init; } = "";
+
+    /// <summary>Processes a grouped row represents; 1 for an individual process.</summary>
+    public int MemberCount { get; init; } = 1;
+
+    /// <summary>Process IDs a grouped row represents, lowest first; empty for an individual process.</summary>
+    public IReadOnlyList<int> MemberIds { get; init; } = [];
 }
