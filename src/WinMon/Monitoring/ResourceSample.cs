@@ -13,6 +13,9 @@ public sealed record ResourceSample
     public string DiskName { get; init; } = "";
     public double? DiskActivePercent { get; init; }
     public double? DiskBytesPerSecond { get; init; }
+    public string SecondaryDiskName { get; init; } = "";
+    public double? SecondaryDiskActivePercent { get; init; }
+    public double? SecondaryDiskBytesPerSecond { get; init; }
     public string NetworkName { get; init; } = "";
     public string NetworkId { get; init; } = "";
     public long? LinkBitsPerSecond { get; init; }

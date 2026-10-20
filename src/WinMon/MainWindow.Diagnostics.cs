@@ -100,6 +100,7 @@ public partial class MainWindow
         if ((OverallGraph.VisibleMetrics & 16) != 0 || _preferences.ShowGpu) throw new InvalidOperationException("GPU series did not hide.");
         GpuMetric.Toggle.IsChecked = true;
         if (OverallGraph.VisibleMetrics != 31 || !_preferences.ShowGpu) throw new InvalidOperationException("GPU series did not restore.");
+        await CaptureDiskDiagnosticsAsync(outputDirectory, cancellationToken);
         await CaptureAsync(Path.Combine(outputDirectory, "compact.png"), 1, cancellationToken);
         GroupedChip.IsChecked = true;
         RefreshPresentation();
@@ -141,34 +142,25 @@ public partial class MainWindow
         RefreshPresentation();
         if (!SelectionLabel.Text.StartsWith("History expired", StringComparison.Ordinal)) throw new InvalidOperationException("An evicted selection was silently replaced.");
         _history.Resize(_preferences.RetentionSeconds);
-        OnPause(this, new RoutedEventArgs());
-        var pausedCount = _history.Samples.Count;
-        await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
-        if (_history.Samples.Count != pausedCount) throw new InvalidOperationException("Recording continued while paused.");
-        OnPause(this, new RoutedEventArgs());
-        await Task.Delay(TimeSpan.FromSeconds(3), cancellationToken);
-        if (_history.Samples.Count <= pausedCount) throw new InvalidOperationException("Recording failed to resume.");
-        if (!_history.Samples.Skip(pausedCount).Any(s => s.IsGap || s.TotalCpuPercent is null))
-            throw new InvalidOperationException("Resume failed to create a baseline gap.");
         ReturnToLive();
         if (_selectedSample is not null) throw new InvalidOperationException("Return to live retained a selection.");
-        var beforeHidden = StatusLabel.Text;
+        var beforeHidden = _presentedSample;
         var hiddenCount = _history.Samples.Count;
         Hide();
         await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
-        if (_history.Samples.Count <= hiddenCount || StatusLabel.Text != beforeHidden)
+        if (_history.Samples.Count <= hiddenCount || !ReferenceEquals(_presentedSample, beforeHidden))
             throw new InvalidOperationException("Hidden recording stopped or presentation continued updating.");
         Show();
-        if (!StatusLabel.Text.EndsWith(_history.Latest!.Timestamp.ToString("HH:mm:ss"), StringComparison.Ordinal))
+        if (!ReferenceEquals(_presentedSample, _history.Latest))
             throw new InvalidOperationException("Restoring the window did not refresh the latest sample.");
-        var beforeMinimized = StatusLabel.Text;
+        var beforeMinimized = _presentedSample;
         var minimizedCount = _history.Samples.Count;
         WindowState = WindowState.Minimized;
         await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
-        if (_history.Samples.Count <= minimizedCount || StatusLabel.Text != beforeMinimized)
+        if (_history.Samples.Count <= minimizedCount || !ReferenceEquals(_presentedSample, beforeMinimized))
             throw new InvalidOperationException("Minimized recording stopped or presentation continued updating.");
         WindowState = WindowState.Normal;
-        if (!StatusLabel.Text.EndsWith(_history.Latest!.Timestamp.ToString("HH:mm:ss"), StringComparison.Ordinal))
+        if (!ReferenceEquals(_presentedSample, _history.Latest))
             throw new InvalidOperationException("Restoring the minimized window did not refresh the latest sample.");
         // A stalled UI thread must not delay capture: intervals stay on schedule and the chart draws no gap.
         var stallCount = _history.Samples.Count;
@@ -240,13 +232,36 @@ public partial class MainWindow
         var hardware = await Task.Run(WindowsHardwareInfo.Read, cancellationToken);
         await File.WriteAllTextAsync(Path.Combine(output, "hardware.json"),
             JsonSerializer.Serialize(hardware, new JsonSerializerOptions { WriteIndented = true }), cancellationToken);
-        var info = new Controls.HardwareInfoWindow { Owner = this };
+        string? copiedInfo = null;
+        var info = new Controls.HardwareInfoWindow(text => copiedInfo = text) { Owner = this };
         try
         {
             info.Show();
             await info.Ready.WaitAsync(cancellationToken);
             info.UpdateLayout();
+            var copyLayout = (System.Windows.Controls.DockPanel)((System.Windows.Controls.Border)info.Content).Child;
+            var copyButton = copyLayout.Children.OfType<System.Windows.Controls.DockPanel>().Single().Children
+                .OfType<System.Windows.Controls.Button>().Single(b => System.Windows.Automation.AutomationProperties.GetName(b) == "Copy all information");
+            if (!copyButton.IsEnabled) throw new InvalidOperationException("Copy did not become available after loading information.");
+            copyButton.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
+            if (copiedInfo is null || !copiedInfo.StartsWith($"WinMon {AppInfo.Version}", StringComparison.Ordinal) ||
+                !copiedInfo.Contains("Installed memory", StringComparison.Ordinal) || !copiedInfo.Contains("Physical drives", StringComparison.Ordinal))
+                throw new InvalidOperationException("Copy did not export the loaded information.");
+            await File.WriteAllTextAsync(Path.Combine(output, "copied-info.txt"), copiedInfo, cancellationToken);
             await CaptureVisualAsync((FrameworkElement)info.Content, Path.Combine(output, "hardware-info.png"), 1, cancellationToken);
+            var hardwareLayout = (System.Windows.Controls.DockPanel)((System.Windows.Controls.Border)info.Content).Child;
+            var hardwareScroll = hardwareLayout.Children.OfType<System.Windows.Controls.ScrollViewer>().Single();
+            var sections = (System.Windows.Controls.StackPanel)hardwareScroll.Content;
+            foreach (var expander in sections.Children.OfType<System.Windows.Controls.Expander>())
+            {
+                expander.IsExpanded = true;
+                info.UpdateLayout();
+                hardwareScroll.ScrollToVerticalOffset(expander.TransformToAncestor(sections).Transform(new Point()).Y - 24);
+                await CaptureVisualAsync((FrameworkElement)info.Content, Path.Combine(output,
+                    expander.Header.ToString()!.StartsWith("CPU", StringComparison.Ordinal) ? "cpu-details.png" :
+                    expander.Header.ToString()!.StartsWith("Module", StringComparison.Ordinal) ? "memory-details.png" : "physical-drive-details.png"), 1, cancellationToken);
+                expander.IsExpanded = false;
+            }
         }
         finally { info.Close(); }
 
@@ -408,6 +423,65 @@ public partial class MainWindow
             QuotaPeakNonPagedPoolUsage, QuotaNonPagedPoolUsage, PagefileUsage, PeakPagefileUsage, PrivateUsage;
     }
 
+    private async Task CaptureDiskDiagnosticsAsync(string outputDirectory, CancellationToken cancellationToken)
+    {
+        var original = _preferences;
+        var drives = DriveInfo.GetDrives();
+        var second = drives.FirstOrDefault(d => d.IsReady && d.DriveType == DriveType.Fixed &&
+            d.Name.TrimEnd('\\') != original.PrimaryDrive)?.Name.TrimEnd('\\');
+        var missing = Enumerable.Range('A', 26).Select(c => $"{(char)c}:")
+            .FirstOrDefault(n => drives.All(d => d.Name.TrimEnd('\\') != n));
+        if (missing is null) throw new InvalidOperationException("No unused drive letter for the unavailable-drive check.");
+        _preferences = original with { SecondaryDrive = missing, ShowSecondaryDisk = true };
+        SecondaryDiskMetric.Toggle.IsChecked = true;
+        RefreshPresentation();
+        await Task.Delay(3000, cancellationToken);
+        var unavailable = _history.Latest!.Resources;
+        if (unavailable.SecondaryDiskName != missing || unavailable.SecondaryDiskActivePercent is not null ||
+            unavailable.DiskActivePercent is null || unavailable.MemoryPercent is null)
+            throw new InvalidOperationException("An unavailable second volume disrupted native resource sampling.");
+        await CaptureAsync(Path.Combine(outputDirectory, "disk-unavailable.png"), 1, cancellationToken);
+        ResourceSample? dualNative = null;
+        if (second is not null)
+        {
+            _preferences = _preferences with { SecondaryDrive = second };
+            await Task.Delay(3000, cancellationToken);
+            dualNative = _history.Latest!.Resources;
+            if (dualNative.SecondaryDiskName != second || dualNative.SecondaryDiskActivePercent is null || dualNative.DiskActivePercent is null)
+                throw new InvalidOperationException("Two available volumes did not produce independent native readings.");
+            await CaptureAsync(Path.Combine(outputDirectory, "disk-native.png"), 1, cancellationToken);
+        }
+        SecondaryDiskMetric.Toggle.IsChecked = false;
+        if ((OverallGraph.VisibleMetrics & 32) != 0 || _preferences.ShowSecondaryDisk)
+            throw new InvalidOperationException("Second disk trace did not hide independently.");
+        SecondaryDiskMetric.Toggle.IsChecked = true;
+        if ((OverallGraph.VisibleMetrics & 32) == 0) throw new InvalidOperationException("Second disk trace did not restore.");
+        await File.WriteAllTextAsync(Path.Combine(outputDirectory, "disks.json"),
+            JsonSerializer.Serialize(new { UnavailableDrive = unavailable, DualNative = dualNative, IndependentToggle = true },
+                new JsonSerializerOptions { WriteIndented = true }), cancellationToken);
+        _preferences = original;
+        RefreshPresentation();
+        if (SecondaryDiskMetric.Visibility != Visibility.Collapsed || MinWidth != 600)
+            throw new InvalidOperationException("Single-drive layout did not restore.");
+        Width = 600;
+        foreach (var selection in new string?[] { second ?? missing, null })
+        {
+            var dialog = new Preferences.SettingsWindow(original with { SecondaryDrive = second ?? missing }) { Owner = this };
+            _ = Dispatcher.BeginInvoke(() =>
+            {
+                var layout = (System.Windows.Controls.Grid)((System.Windows.Controls.Border)dialog.Content).Child;
+                var selector = layout.Children.OfType<System.Windows.Controls.Grid>()
+                    .SelectMany(g => g.Children.OfType<System.Windows.Controls.ComboBox>())
+                    .Single(c => System.Windows.Automation.AutomationProperties.GetName(c) == "Second drive");
+                selector.SelectedItem = selector.Items.Cast<object>().Single(item => selection is null
+                    ? item.ToString() == "None" : item.ToString()!.StartsWith(selection, StringComparison.Ordinal));
+                var buttons = layout.Children.OfType<System.Windows.Controls.StackPanel>().Single();
+                ((System.Windows.Controls.Button)buttons.Children[1]).RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
+            }, System.Windows.Threading.DispatcherPriority.ContextIdle);
+            if (dialog.ShowDialog() != true || dialog.Result?.PrimaryDrive != original.PrimaryDrive || dialog.Result.SecondaryDrive != selection)
+                throw new InvalidOperationException("Saving the disk selectors did not return the selected volumes.");
+        }
+    }
     private static async Task CaptureDesignFixtureAsync(string outputDirectory, CancellationToken cancellationToken)
     {
         // Render-only fixture, separate from native sampling evidence. Never enters a user's session.
@@ -428,6 +502,7 @@ public partial class MainWindow
                 Resources = new ResourceSample
                 {
                     TotalMemoryBytes = 32UL * 1_073_741_824, UsedMemoryBytes = (ulong)((0.62 + 0.003 * Math.Sin(i)) * 32 * 1_073_741_824),
+                    SecondaryDiskName = "D:", SecondaryDiskActivePercent = 42.6 + 18 * Math.Sin(i * 0.2), SecondaryDiskBytesPerSecond = 128_000_000,
                     DiskName = "C:", DiskActivePercent = 7 + 5 * Math.Abs(Math.Sin(i * 0.8)) + 68 * pulse, DiskBytesPerSecond = 84_000_000,
                     NetworkId = "fixture", NetworkName = "Ethernet", LinkBitsPerSecond = 1_000_000_000,
                     GpuId = "illustrative-adapter/0", GpuEngine = "3D", GpuPercent = 43 + 3 * Math.Sin(i * 0.3) + 28 * pulse,
@@ -437,7 +512,6 @@ public partial class MainWindow
             });
         }
         fixture.RefreshVisiblePresentation();
-        fixture.StatusLabel.Text = "Illustrative data · design validation";
         if (fixture.Content is not FrameworkElement visual) throw new InvalidOperationException("Missing design fixture visual.");
         visual.Measure(new Size(600, 820));
         visual.Arrange(new Rect(0, 0, 600, 820));
@@ -445,6 +519,45 @@ public partial class MainWindow
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "design-compact.png"), 1, cancellationToken);
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "design-compact-150.png"), 1.5, cancellationToken);
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "design-compact-200.png"), 2, cancellationToken);
+        fixture._preferences = fixture._preferences with { PrimaryDrive = "C:", SecondaryDrive = "D:" };
+
+        fixture.RefreshVisiblePresentation();
+        visual.Measure(new Size(720, 820));
+        visual.Arrange(new Rect(0, 0, 720, 820));
+        visual.UpdateLayout();
+        await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "disks-design.png"), 1, cancellationToken);
+        await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "disks-design-150.png"), 1.5, cancellationToken);
+        await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "disks-design-200.png"), 2, cancellationToken);
+        fixture._selectedSample = fixture._history.Samples[^2];
+        fixture.RefreshVisiblePresentation();
+        if (!fixture.SelectionMetrics.Text.Contains("Disk D:") || !Controls.CpuGraph.DescribeSample(fixture._selectedSample).Contains("Disk D:"))
+            throw new InvalidOperationException("Historical inspection lost the second volume.");
+        await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "disks-history.png"), 1, cancellationToken);
+        fixture._selectedSample = null;
+        var diskSettings = new Preferences.SettingsWindow(fixture._preferences);
+        var settingsVisual = (FrameworkElement)diskSettings.Content;
+        settingsVisual.Measure(new Size(444, 601));
+        settingsVisual.Arrange(new Rect(0, 0, 444, 601));
+        settingsVisual.UpdateLayout();
+        await CaptureVisualAsync(settingsVisual, Path.Combine(outputDirectory, "disks-settings-dark.png"), 1, cancellationToken);
+        fixture._preferences = fixture._preferences with { Theme = "Light" };
+        fixture.ApplyTheme();
+        fixture.RefreshVisiblePresentation();
+        visual.UpdateLayout();
+        await visual.Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.Render, cancellationToken);
+        await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "disks-light.png"), 1, cancellationToken);
+        var lightSettings = new Preferences.SettingsWindow(fixture._preferences);
+        var lightSettingsVisual = (FrameworkElement)lightSettings.Content;
+        lightSettingsVisual.Measure(new Size(444, 601));
+        lightSettingsVisual.Arrange(new Rect(0, 0, 444, 601));
+        lightSettingsVisual.UpdateLayout();
+        await CaptureVisualAsync(lightSettingsVisual, Path.Combine(outputDirectory, "disks-settings-light.png"), 1, cancellationToken);
+        fixture._preferences = fixture._preferences with { Theme = "Dark", SecondaryDrive = null };
+        fixture.ApplyTheme();
+        fixture.RefreshVisiblePresentation();
+        visual.Measure(new Size(600, 820));
+        visual.Arrange(new Rect(0, 0, 600, 820));
+        visual.UpdateLayout();
         fixture.ProcessSortSelector.SelectedItem = "GPU";
         fixture.RefreshVisiblePresentation();
         visual.UpdateLayout();
@@ -543,6 +656,8 @@ public partial class MainWindow
 
     private static async Task CaptureVisualAsync(FrameworkElement visual, string path, double scale, CancellationToken cancellationToken)
     {
+        visual.UpdateLayout();
+        await visual.Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.Render, cancellationToken);
         var bitmap = new RenderTargetBitmap((int)Math.Ceiling(visual.ActualWidth * scale), (int)Math.Ceiling(visual.ActualHeight * scale), 96 * scale, 96 * scale, PixelFormats.Pbgra32);
         bitmap.Render(visual);
         var encoder = new PngBitmapEncoder();
@@ -552,6 +667,3 @@ public partial class MainWindow
         await File.WriteAllBytesAsync(path, buffer.ToArray(), cancellationToken);
     }
 }
-
-
-

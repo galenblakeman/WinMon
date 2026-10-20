@@ -20,7 +20,12 @@ public sealed record MonitorPreferences
     /// <summary>Show GPU utilization; separate from the legacy mask so existing settings enable it by default.</summary>
     public bool ShowGpu { get; init; } = true;
 
-    internal int SeriesMask => VisibleMetrics | (ShowGpu ? 16 : 0);
+    public string PrimaryDrive { get; init; } = Path.GetPathRoot(Environment.SystemDirectory)!.TrimEnd('\\');
+    public string? SecondaryDrive { get; init; }
+    public bool ShowSecondaryDisk { get; init; } = true;
+
+    internal int SeriesMask => VisibleMetrics | (ShowGpu ? 16 : 0) |
+        (SecondaryDrive is not null && ShowSecondaryDisk ? 32 : 0);
 
     /// <summary>Gets the maximum number of CPU-ranked processes to display.</summary>
     public int TopProcessCount { get; init; } = 5;
@@ -42,13 +47,16 @@ public sealed record MonitorPreferences
     /// <summary>Gets the saved window top position, or <see langword="null"/> when no position is saved.</summary>
     public double? Top { get; init; }
 
+    /// <summary>The short chart range and the process sparkline duration, in seconds.</summary>
+    internal const int ShortRangeSeconds = 120;
+
     /// <summary>Gets the chosen chart range in seconds; anything outside <see cref="ChartRanges"/> means the short range.</summary>
     public int ChartRangeSeconds { get; init; }
 
-    /// <summary>Chart range choices: the short range, ten minutes, and everything retained.</summary>
-    internal int[] ChartRanges => [.. new[] { CompactHistorySeconds, 600, RetentionSeconds }.Distinct().Order()];
+    /// <summary>Chart range choices: 2, 10, 30 and 60 minutes, up to the retained history.</summary>
+    internal int[] ChartRanges => [.. new[] { ShortRangeSeconds, 600, 1800, 3600 }.Where(seconds => seconds <= RetentionSeconds)];
 
-    internal int EffectiveChartRange => ChartRanges.Contains(ChartRangeSeconds) ? ChartRangeSeconds : CompactHistorySeconds;
+    internal int EffectiveChartRange => ChartRanges.Contains(ChartRangeSeconds) ? ChartRangeSeconds : ShortRangeSeconds;
 
     /// <summary>Gets a value indicating whether the monitor stays above other windows.</summary>
     public bool AlwaysOnTop { get; init; }
@@ -59,15 +67,22 @@ public sealed record MonitorPreferences
     /// <summary>Resource chart colors, independent of the light/dark appearance.</summary>
     public string ChartPalette { get; init; } = "Classic";
 
-    /// <summary>Gets the short chart range and process sparkline duration, in seconds.</summary>
-    public int CompactHistorySeconds { get; init; } = 120;
-
     /// <summary>Gets the duration, in seconds, retained for historical inspection.</summary>
     public int RetentionSeconds { get; init; } = 600;
 
-    /// <summary>Gets a value indicating whether closing the monitor hides it in the notification area.</summary>
-    public bool CloseToTray { get; init; }
+    /// <summary>Gets a value indicating whether minimizing the monitor hides it in the notification area.</summary>
+    public bool MinimizeToTray { get; init; }
 
     /// <summary>Gets a value indicating whether the monitor starts with the current user session.</summary>
     public bool StartWithWindows { get; init; }
+
+    /// <summary>Gets the global shortcut that shows the monitor, such as "Ctrl+Shift+M", or "None".</summary>
+    public string ShowShortcut { get; init; } = Shortcuts.HotkeyGesture.Default.ToString();
+
+    /// <summary>Gets a value indicating whether the shortcut also starts the monitor; the Start menu shortcut's presence is authoritative.</summary>
+    public bool LaunchWithShortcut { get; init; }
+
+    /// <summary>Gets the usable show shortcut, or <see langword="null"/> when it is turned off.</summary>
+    internal Shortcuts.HotkeyGesture? ShowGesture =>
+        Shortcuts.HotkeyGesture.TryParse(ShowShortcut, out var gesture) && gesture?.Problem is null ? gesture : null;
 }

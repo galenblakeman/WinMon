@@ -8,6 +8,55 @@ namespace WinMon.Tests;
 [TestFixture]
 public sealed class ProcessGraphDataTests
 {
+    [TestCase(ProcessSort.Cpu, false, 2, 3)]
+    [TestCase(ProcessSort.Gpu, false, 20, 40)]
+    [TestCase(ProcessSort.Memory, false, 2000, 4000)]
+    [TestCase(ProcessSort.Io, false, 200, 400)]
+    [TestCase(ProcessSort.Cpu, true, 5, 3)]
+    [TestCase(ProcessSort.Gpu, true, 40, 40)]
+    [TestCase(ProcessSort.Memory, true, 600, 500)]
+    [TestCase(ProcessSort.Io, true, 600, 400)]
+    public void Build_SelectedMetricUsesMatchingValuesAndSharedScale(ProcessSort sort, bool grouped, double first, double second)
+    {
+        var a = new ProcessUsage(1, 100, "a", 2, 2000, 200) { PrivateBytes = 100, GpuPercent = 20 };
+        var b = new ProcessUsage(2, 200, "a", 3, 4000, 400) { PrivateBytes = 500, GpuPercent = 40 };
+        var c = b with { ProcessId = 3, Name = "c" };
+        CpuSample[] samples = [new(DateTimeOffset.UtcNow, 50, [a, b, c], 0, false, Stopwatch.Frequency)];
+
+        var data = ProcessGraphData.Build(samples, 120, [a, c], grouped, sort);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(data[0].Values, Is.EqualTo(new double?[] { first }));
+            Assert.That(data[1].Values, Is.EqualTo(new double?[] { second }));
+            Assert.That(data[0].Sort, Is.EqualTo(sort));
+            Assert.That(data[0].ScaleMaximum, Is.GreaterThan(Math.Max(first, second)));
+            Assert.That(data[1].ScaleMaximum, Is.EqualTo(data[0].ScaleMaximum));
+        });
+    }
+
+    [TestCase(ProcessSort.Gpu, false)]
+    [TestCase(ProcessSort.Memory, false)]
+    [TestCase(ProcessSort.Io, false)]
+    [TestCase(ProcessSort.Gpu, true)]
+    [TestCase(ProcessSort.Memory, true)]
+    [TestCase(ProcessSort.Io, true)]
+    public void Build_PreservesUnavailableReadingsAndRecordingGaps(ProcessSort sort, bool grouped)
+    {
+        var now = DateTimeOffset.UtcNow;
+        var process = new ProcessUsage(1, now.AddMinutes(-1).ToFileTime(), "a", 1);
+        CpuSample[] samples =
+        [
+            new(now, 50, [process], 0, false, Stopwatch.Frequency),
+            new(now.AddSeconds(1), null, [process], 0, true, Stopwatch.Frequency * 2),
+            new(now.AddSeconds(2), 50, [], 0, false, Stopwatch.Frequency * 3) { CompactedProcesses = 1 }
+        ];
+
+        var data = ProcessGraphData.Build(samples, 120, [process], grouped, sort)[0];
+
+        Assert.That(data.Values, Is.EqualTo(new double?[] { null, null, sort == ProcessSort.Io ? 0 : null }));
+    }
+
     [Test]
     public void Build_MatchesOriginalLookupAndSharesScaleAcrossRankChangesAndMissingLifetimes()
     {

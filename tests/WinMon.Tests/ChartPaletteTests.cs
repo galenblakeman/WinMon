@@ -16,18 +16,20 @@ public sealed class ChartPaletteTests
     }
 
     [Test]
-    public async Task Palette_RoundTripsWithoutChangingTheme()
+    public async Task Palette_RoundTripsWithoutChangingThemeOrDiskSelection()
     {
         var directory = Path.Combine(Path.GetTempPath(), "WinMon.Tests", Guid.NewGuid().ToString("N"));
         try
         {
             var store = new PreferenceStore(Path.Combine(directory, "settings.json"));
-            await store.SaveAsync(new MonitorPreferences { ChartPalette = "Ocean", Theme = "Light" });
+            await store.SaveAsync(new MonitorPreferences { ChartPalette = "Ocean", Theme = "Light", PrimaryDrive = "D:", SecondaryDrive = "E:" });
             var loaded = await store.LoadAsync();
             Assert.Multiple(() =>
             {
                 Assert.That(loaded.ChartPalette, Is.EqualTo("Ocean"));
                 Assert.That(loaded.Theme, Is.EqualTo("Light"));
+                Assert.That(loaded.PrimaryDrive, Is.EqualTo("D:"));
+                Assert.That(loaded.SecondaryDrive, Is.EqualTo("E:"));
             });
         }
         finally { if (Directory.Exists(directory)) Directory.Delete(directory, true); }

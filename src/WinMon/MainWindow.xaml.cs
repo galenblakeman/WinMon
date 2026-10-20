@@ -1,12 +1,15 @@
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using Microsoft.Win32;
 using WinMon.Controls;
 using WinMon.Monitoring;
 using WinMon.Preferences;
+using WinMon.Shortcuts;
 using Forms = System.Windows.Forms;
 
 namespace WinMon;
@@ -31,16 +34,19 @@ public partial class MainWindow
     private Forms.NotifyIcon? _tray;
     private System.Drawing.Icon? _trayIcon;
     private CpuSample? _selectedSample;
+    // The newest sample the visible presentation last drew; diagnostics check it stays put while hidden.
+    private CpuSample? _presentedSample;
     private string? _samplingError;
-    private int _generation;
-    private int _paused;
     private bool _wide;
     private const double WideWidth = 800;
     private bool _closing;
     private bool _allowClose;
-    private bool _forceExit;
+    private WindowState _restoreState = WindowState.Normal;
+    private GlobalHotkey? _hotkey;
+    private HotkeyStatus _hotkeyStatus;
+    private DispatcherTimer? _hotkeyRetry;
     private System.Windows.Controls.TextBlock CpuValue => CpuMetric.ValueLabel;
-    private MetricReadout[] Metrics => [CpuMetric, MemoryMetric, DiskMetric, NetworkMetric, GpuMetric];
+    private MetricReadout[] Metrics => [CpuMetric, MemoryMetric, DiskMetric, NetworkMetric, GpuMetric, SecondaryDiskMetric];
 
     /// <summary>Create the CPU monitor and its shared live/history presentation.</summary>
     public MainWindow() : this(false) { }
@@ -51,6 +57,7 @@ public partial class MainWindow
     {
         _diagnosticMode = diagnosticMode;
         InitializeComponent();
+        VersionRun.Text = $" {AppInfo.Version}";
         ProcessCountSelector.ItemsSource = new[] { 5, 10, 15, 20 };
         ProcessCountSelector.SelectedItem = _preferences.TopProcessCount;
         ProcessCountSelector.SelectionChanged += OnProcessCountChanged;
@@ -96,7 +103,7 @@ public partial class MainWindow
         OverallGraph.SampleSelected += (_, sample) => { _selectedSample = sample; RefreshPresentation(); };
         OverallGraph.LiveRequested += (_, _) => ReturnToLive();
         IsVisibleChanged += (_, _) => { if (IsVisible && !_closing) RefreshPresentation(); };
-        StateChanged += (_, _) => { if (IsVisible && WindowState != WindowState.Minimized && !_closing) RefreshPresentation(); };
+        StateChanged += (_, _) => OnWindowStateChanged();
     }
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
@@ -121,7 +128,12 @@ public partial class MainWindow
             BuildRangeChips();
             UpdatePinButton();
             AlignTitleBar();
-            if (!_diagnosticMode) CreateTray();
+            if (!_diagnosticMode)
+            {
+                CreateTray();
+                _hotkey = new GlobalHotkey(this, ShowRequested);
+                ApplyShortcut(StartMenuShortcut.Exists);
+            }
             SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
             SystemEvents.DisplaySettingsChanged += OnDisplaySettingsChanged;
             _samplingTask = Task.Run(() => CollectAsync(_lifetime.Token), _lifetime.Token);
@@ -130,7 +142,7 @@ public partial class MainWindow
         catch (Exception ex)
         {
             Trace.TraceError("WinMon initialization failed: {0}", ex);
-            StatusLabel.Text = "Initialization failed. Close and restart WinMon.";
+            ShowError("Initialization failed. Close and restart WinMon.");
         }
     }
 
@@ -138,21 +150,12 @@ public partial class MainWindow
     {
         var sampler = new WindowsCpuSampler();
         using var resources = new WindowsResourceSampler();
-        var previousGeneration = -1;
         using var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
         try
         {
             do
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var currentGeneration = Volatile.Read(ref _generation);
-                if (previousGeneration != currentGeneration)
-                {
-                    sampler.Reset();
-                    resources.Reset();
-                    previousGeneration = currentGeneration;
-                }
-                if (Volatile.Read(ref _paused) != 0) continue;
                 try
                 {
                     CpuSample sample;
@@ -165,8 +168,9 @@ public partial class MainWindow
                         Trace.TraceWarning("CPU sampling unavailable: {0}", ex.Message);
                         sample = new CpuSample(DateTimeOffset.UtcNow, null, [], 0, false, Stopwatch.GetTimestamp());
                     }
-                    var full = resources.Sample(sample);
-                    Deliver(new PendingSample(currentGeneration, ProcessRetention.Compact(full), cpuError, full));
+                    var diskPreferences = Volatile.Read(ref _preferences);
+                    var full = resources.Sample(sample, diskPreferences.PrimaryDrive, diskPreferences.SecondaryDrive);
+                    Deliver(new PendingSample(ProcessRetention.Compact(full), cpuError, full));
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
                 catch (Exception ex)
@@ -174,7 +178,7 @@ public partial class MainWindow
                     Trace.TraceError("WinMon CPU sampling failed: {0}", ex);
                     sampler.Reset();
                     resources.Reset();
-                    Deliver(new PendingSample(currentGeneration, null, "Readings unavailable; retrying each second."));
+                    Deliver(new PendingSample(null, "Readings unavailable; retrying each second."));
                 }
             } while (await timer.WaitForNextTickAsync(cancellationToken));
         }
@@ -186,7 +190,7 @@ public partial class MainWindow
     }
 
     /// <summary>A captured sample, or a failed pass when <see cref="Sample"/> is null, awaiting the UI thread.</summary>
-    private sealed record PendingSample(int Generation, CpuSample? Sample, string? Error, CpuSample? Full = null);
+    private sealed record PendingSample(CpuSample? Sample, string? Error, CpuSample? Full = null);
 
     // Capture never waits for the UI: a stalled dispatcher would otherwise delay the next capture and
     // stretch the sampling interval past the chart's gap threshold. Samples queue in pendingSamples and
@@ -205,7 +209,7 @@ public partial class MainWindow
         var changed = false;
         while (_pendingSamples.TryDequeue(out var pending))
         {
-            if (_closing || pending.Generation != Volatile.Read(ref _generation)) continue;
+            if (_closing) continue;
             try
             {
                 _samplingError = pending.Error;
@@ -244,10 +248,18 @@ public partial class MainWindow
         OverallGraph.SetData(samples, range, _selectedSample);
         LiveButton.Visibility = _selectedSample is null ? Visibility.Collapsed : Visibility.Visible;
         var grouped = _preferences.GroupProcesses;
+        var historyMetric = _preferences.ProcessSort switch
+        {
+            ProcessSort.Gpu => grouped ? "busiest-member GPU" : "GPU",
+            ProcessSort.Memory => grouped ? "summed private memory" : "memory",
+            ProcessSort.Io => grouped ? "summed I/O" : "I/O",
+            _ => grouped ? "summed CPU" : "CPU"
+        };
+        ProcessHistoryHeader.ToolTip = $"{historyMetric} history on one scale shared by every row. Hover a row for the scale.";
         SelectionLabel.Text = _selectedSample is not null ? visible is null ? "History expired. This sample has left the recording window. Return to live." : $"Historical sample at {visible.Timestamp:HH:mm:ss} · {ProcessRanking.DefaultWindowSeconds}s average ending here{(grouped ? " · idle group members may be omitted" : "")}"
-            : grouped ? $"Grouped by executable · {ProcessRanking.DefaultWindowSeconds}s averages · summed CPU history" : $"Individual processes · {ProcessRanking.DefaultWindowSeconds}s averages · CPU history sparklines";
+            : grouped ? $"Grouped by executable · {ProcessRanking.DefaultWindowSeconds}s averages · {historyMetric} history" : $"Individual processes · {ProcessRanking.DefaultWindowSeconds}s averages · {historyMetric} history sparklines";
         SelectionMetrics.Visibility = _selectedSample is not null && visible is not null ? Visibility.Visible : Visibility.Collapsed;
-        SelectionMetrics.Text = visible is null ? "" : $"CPU {Percent(visible.TotalCpuPercent)} · Memory {Percent(visible.Resources.MemoryPercent)} · Disk {Percent(visible.Resources.DiskActivePercent)} · Network {Rate(visible.Resources)} · GPU {Percent(visible.Resources.GpuPercent)}";
+        SelectionMetrics.Text = visible is null ? "" : $"CPU {Percent(visible.TotalCpuPercent)} · Memory {Percent(visible.Resources.MemoryPercent)} · Disk {visible.Resources.DiskName} {Percent(visible.Resources.DiskActivePercent)}{(visible.Resources.SecondaryDiskName.Length > 0 ? $" · Disk {visible.Resources.SecondaryDiskName} {Percent(visible.Resources.SecondaryDiskActivePercent)}" : "")} · Network {Rate(visible.Resources)} · GPU {Percent(visible.Resources.GpuPercent)}";
         var selectedIndex = _selectedSample is null ? -1 : Array.FindIndex([.. samples], s => ReferenceEquals(s, _selectedSample));
         var rowSamples = _selectedSample is null ? samples : [.. samples.Take(selectedIndex + 1)];
         if (_selectedSample is null && _latestFull is not null && rowSamples.Count > 0 && ReferenceEquals(rowSamples[^1], _latestCompacted))
@@ -259,11 +271,11 @@ public partial class MainWindow
         var active = ranking.Processes;
         var top = active.Take(_preferences.TopProcessCount).ToArray();
         var rest = active.Skip(top.Length).ToArray();
-        var processData = ProcessGraphData.Build(rowSamples, _preferences.CompactHistorySeconds, top, grouped);
+        var processData = ProcessGraphData.Build(rowSamples, MonitorPreferences.ShortRangeSeconds, top, grouped, _preferences.ProcessSort);
         for (var i = 0; i < _rows.Length; i++)
         {
             _rows[i].Visibility = i < top.Length ? Visibility.Visible : Visibility.Collapsed;
-            if (i < top.Length) _rows[i].Update(top[i], rowSamples, _preferences.CompactHistorySeconds, _wide, processData[i], grouped);
+            if (i < top.Length) _rows[i].Update(top[i], rowSamples, MonitorPreferences.ShortRangeSeconds, _wide, processData[i], grouped);
         }
         _otherRow.Visibility = rest.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
         if (rest.Length > 0)
@@ -281,10 +293,16 @@ public partial class MainWindow
             };
         CoverageLabel.Text = visible is null ? "" : Coverage(visible.UnavailableProcesses, cpuRanking.TotalCpuPercent, cpuRanking.Processes.Sum(p => p.CpuPercent));
         if (_history.WasMemoryLimited) CoverageLabel.Text += (CoverageLabel.Text.Length > 0 ? " · " : "") + "history shortened by memory limit";
-        var pausedState = Volatile.Read(ref _paused) != 0;
         LiveCaption.Text = allUnavailable ? "System resources · unavailable" : "System resources";
-        StatusLabel.Text = _samplingError ?? (pausedState ? $"Paused · last {latest?.Timestamp:HH:mm:ss}" : latest?.TotalCpuPercent is null ? "Collecting a CPU interval…" : $"Live · every 1s · {latest.Timestamp:HH:mm:ss}");
+        ShowError(_samplingError);
+        _presentedSample = latest;
         UpdateTrayText(latest);
+    }
+
+    private void ShowError(string? message)
+    {
+        ErrorLabel.Text = message ?? "";
+        ErrorLabel.Visibility = message is null ? Visibility.Collapsed : Visibility.Visible;
     }
 
     /// <summary>Summarize CPU that the measured processes do not cover, without inventing a process for it.</summary>
@@ -300,14 +318,15 @@ public partial class MainWindow
     {
         if (_tray is null) return;
         latest ??= _history.Latest;
-        _tray.Text = $"WinMon · {(Volatile.Read(ref _paused) != 0 ? "Paused" : _samplingError is not null ? "Unavailable" : Percent(latest?.TotalCpuPercent) + " CPU")}";
+        _tray.Text = $"WinMon · {(_samplingError is not null ? "Unavailable" : Percent(latest?.TotalCpuPercent) + " CPU")}" +
+            (_hotkeyStatus is HotkeyStatus.InUse or HotkeyStatus.Failed ? " · Shortcut unavailable" : "");
     }
 
     private void OnSeriesChanged(object sender, RoutedEventArgs e)
     {
         var mask = 0;
         for (var i = 0; i < Metrics.Length; i++) if (Metrics[i].Toggle.IsChecked == true) mask |= 1 << i;
-        _preferences = _preferences with { VisibleMetrics = mask & 15, ShowGpu = (mask & 16) != 0 };
+        _preferences = _preferences with { VisibleMetrics = mask & 15, ShowGpu = (mask & 16) != 0, ShowSecondaryDisk = _preferences.SecondaryDrive is null ? _preferences.ShowSecondaryDisk : (mask & 32) != 0 };
         OverallGraph.VisibleMetrics = mask;
         OverallGraph.InvalidateVisual();
     }
@@ -368,9 +387,15 @@ public partial class MainWindow
         MemoryMetric.ValueLabel.Text = Percent(resource?.MemoryPercent);
         MemoryMetric.DetailLabel.Text = resource is { UsedMemoryBytes: { } used, TotalMemoryBytes: { } total }
             ? $"{used / 1_073_741_824d:0.0} / {total / 1_073_741_824d:0.#} GiB" : "Unavailable";
-        DiskMetric.Label = resource?.DiskName is { Length: > 0 } disk ? $"Disk ({disk})" : "Disk";
-        DiskMetric.ValueLabel.Text = Percent(resource?.DiskActivePercent);
-        DiskMetric.DetailLabel.Text = resource?.DiskBytesPerSecond is { } bytes ? $"{bytes / 1_000_000:0.0} MB/s" : "Collecting / unavailable";
+        ConfigureDiskLayout();
+        UpdateDiskMetric(DiskMetric, _preferences.PrimaryDrive,
+            resource?.DiskName == _preferences.PrimaryDrive ? resource.DiskActivePercent : null,
+            resource?.DiskName == _preferences.PrimaryDrive ? resource.DiskBytesPerSecond : null);
+        if (_preferences.SecondaryDrive is { } secondary)
+            UpdateDiskMetric(SecondaryDiskMetric, secondary,
+                resource?.SecondaryDiskName == secondary ? resource.SecondaryDiskActivePercent : null,
+                resource?.SecondaryDiskName == secondary ? resource.SecondaryDiskBytesPerSecond : null);
+        if (_preferences.SecondaryDrive is not null) SecondaryDiskMetric.ToolTip += "\nDrawn as a dashed line on the chart.";
         // Throughput leads: link utilization is almost always near 0% and says little on its own.
         if (resource is not null && CpuGraph.NetworkBitsPerSecond(resource) is { } bits)
         {
@@ -380,27 +405,33 @@ public partial class MainWindow
         else NetworkMetric.ValueLabel.Text = "—";
         NetworkMetric.DetailLabel.Text = resource is { ReceiveBytesPerSecond: { } rx, SendBytesPerSecond: { } tx }
             ? RateText.Pair(rx * 8, tx * 8) : "Collecting / disconnected";
-        // Five tiles share 600px, so the link speed lives in the tooltip rather than the caption.
+        // Link speed and utilization live in the tooltip; the tiles show only the value and rates.
         var link = resource?.LinkBitsPerSecond is { } speed ? $" · {RateText.Format(speed)} link" : "";
-        NetworkMetric.Caption = resource?.NetworkPercent is not null ? $"{Percent(resource.NetworkPercent)} of link" : "Link speed unavailable";
+        var utilization = resource?.NetworkPercent is not null ? $" · {Percent(resource.NetworkPercent)} of link" : " · link speed unavailable";
         NetworkMetric.ToolTip = resource?.NetworkName is { Length: > 0 } name
-            ? $"{name}{link}\n↓ receive · ↑ send. The value is the busier direction; utilization is relative to link speed. Not Internet capacity."
+            ? $"{name}{link}{utilization}\n↓ receive · ↑ send. The value is the busier direction; utilization is relative to link speed. Not Internet capacity."
             : "No connected Ethernet or Wi-Fi interface available.";
         OverallGraph.VisibleMetrics = _preferences.SeriesMask;
     }
 
+    private void ConfigureDiskLayout()
+    {
+        var dual = _preferences.SecondaryDrive is not null;
+        SecondaryDiskColumn.Width = dual ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
+        SecondaryDiskMetric.Visibility = SecondaryDiskDivider.Visibility = dual ? Visibility.Visible : Visibility.Collapsed;
+        MinWidth = dual ? 720 : 600;
+        if (Width < MinWidth) Width = MinWidth;
+    }
+
+    private static void UpdateDiskMetric(MetricReadout metric, string name, double? active, double? bytes)
+    {
+        metric.Label = $"Disk ({name})";
+        metric.ValueLabel.Text = Percent(active);
+        metric.DetailLabel.Text = bytes is { } rate ? $"{rate / 1_000_000:0.0} MB/s" : "Unavailable";
+        metric.ToolTip = $"Volume {name}\nActive time, not space used. Read/write throughput in MB/s.\nUnavailable while disconnected or collecting a fresh interval.";
+    }
     private static string Percent(double? value) => value is { } number ? $"{number:0.0}%" : "—";
     private static string Rate(ResourceSample resources) => CpuGraph.NetworkBitsPerSecond(resources) is { } bits ? RateText.Format(bits) : "—";
-
-    private void OnPause(object sender, RoutedEventArgs e)
-    {
-        var next = Volatile.Read(ref _paused) == 0;
-        Volatile.Write(ref _paused, next ? 1 : 0);
-        Interlocked.Increment(ref _generation);
-        PauseButton.Content = next ? "Resume" : "Pause";
-        ButtonIcon.SetData(PauseButton, next ? ButtonIcon.Resume : ButtonIcon.Pause);
-        RefreshPresentation();
-    }
 
     private void OnPin(object sender, RoutedEventArgs e)
     {
@@ -432,7 +463,7 @@ public partial class MainWindow
         }
     }
 
-    /// <summary>Rebuild the range chips; the choices follow the short range and retention settings.</summary>
+    /// <summary>Rebuild the range chips; choices longer than the retention setting are left out.</summary>
     private void BuildRangeChips()
     {
         RangeSelector.Children.Clear();
@@ -466,7 +497,7 @@ public partial class MainWindow
         if (!_closing) new HardwareInfoWindow { Owner = this }.ShowDialog();
     }
     private bool CanEndProcess(ProcessUsage process) => !_closing && ProcessTerminator.IsEligible(process,
-        _selectedSample is null && Volatile.Read(ref _paused) == 0, _preferences.GroupProcesses);
+        _selectedSample is null, _preferences.GroupProcesses);
 
     private void EndProcess(ProcessUsage process)
     {
@@ -479,7 +510,6 @@ public partial class MainWindow
         if (error is not null) MessageBox.Show(this, error, "End process", MessageBoxButton.OK, MessageBoxImage.Information);
     }
     private void ReturnToLive() { _selectedSample = null; RefreshPresentation(); }
-    private void OnTray(object sender, RoutedEventArgs e) { if (_tray is not null) Hide(); }
 
     private void CreateTray()
     {
@@ -491,15 +521,92 @@ public partial class MainWindow
         _tray = new Forms.NotifyIcon { Text = "WinMon · CPU monitor", Icon = _trayIcon, Visible = true };
         var menu = new Forms.ContextMenuStrip();
         menu.Items.Add("Show WinMon", null, (_, _) => Dispatcher.Invoke(RestoreFromTray));
-        menu.Items.Add("Exit", null, (_, _) => Dispatcher.Invoke(() => { _forceExit = true; Close(); }));
+        menu.Items.Add("Exit", null, (_, _) => Dispatcher.Invoke(Close));
         _tray.ContextMenuStrip = menu;
-        _tray.DoubleClick += (_, _) => Dispatcher.Invoke(RestoreFromTray);
+        _tray.MouseClick += (_, e) => { if (e.Button == Forms.MouseButtons.Left) Dispatcher.Invoke(RestoreFromTray); };
     }
+
+    private void OnWindowStateChanged()
+    {
+        if (_closing) return;
+        if (WindowState != WindowState.Minimized)
+        {
+            _restoreState = WindowState;
+            if (IsVisible) RefreshPresentation();
+        }
+        else if (_preferences.MinimizeToTray && _tray is not null) Hide();
+    }
+
+    /// <summary>Show the window for the shortcut or another launch; minimize it instead when it is already in front.</summary>
+    internal void ShowRequested()
+    {
+        if (_closing) return;
+        if (IsVisible && WindowState != WindowState.Minimized && IsActive) WindowState = WindowState.Minimized;
+        else RestoreFromTray();
+        // A modal dialog such as Settings keeps the focus.
+        if (OwnedWindows.Count > 0) OwnedWindows[0].Activate();
+    }
+
+    /// <summary>Give the show shortcut to Explorer when it should also start WinMon; otherwise hold it here.</summary>
+    private void ApplyShortcut(bool launch)
+    {
+        if (_hotkey is null) return;
+        _hotkeyRetry?.Stop();
+        var gesture = _preferences.ShowGesture;
+        try
+        {
+            if (launch && gesture is not null)
+            {
+                // Explorer cannot take a combination WinMon holds, and does not retry once WinMon exits.
+                _hotkey.Unregister();
+                StartMenuShortcut.Write(gesture);
+                _hotkeyStatus = HotkeyStatus.StartMenu;
+            }
+            else
+            {
+                StartMenuShortcut.Delete();
+                RegisterShortcut(gesture);
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or COMException or InvalidOperationException)
+        {
+            Trace.TraceError("WinMon Start menu shortcut could not be updated: {0}", ex);
+            RegisterShortcut(gesture);
+        }
+        UpdateTrayText();
+    }
+
+    private void RegisterShortcut(HotkeyGesture? gesture)
+    {
+        var hotkey = _hotkey!;
+        _hotkeyStatus = hotkey.Register(gesture);
+        if (_hotkeyStatus != HotkeyStatus.InUse) return;
+        // Explorer releases a deleted shortcut's hotkey within a few seconds, so keep trying briefly.
+        var attempts = 0;
+        _hotkeyRetry = new DispatcherTimer(TimeSpan.FromSeconds(1), DispatcherPriority.Background, (_, _) =>
+        {
+            if (!_closing) _hotkeyStatus = hotkey.Register(gesture);
+            if (_closing || _hotkeyStatus != HotkeyStatus.InUse || ++attempts >= 10) _hotkeyRetry?.Stop();
+            UpdateTrayText();
+        }, Dispatcher);
+    }
+
+    private bool IsShortcutAvailable(HotkeyGesture gesture) =>
+        gesture == (_hotkey?.Current ?? (_hotkeyStatus == HotkeyStatus.StartMenu ? _preferences.ShowGesture : null)) || GlobalHotkey.IsAvailable(gesture);
+
+    private string ShortcutStatus => _hotkeyStatus switch
+    {
+        HotkeyStatus.Registered => "Works from any app while WinMon is running.",
+        HotkeyStatus.StartMenu => "Works from any app, and starts WinMon when it isn't running.",
+        HotkeyStatus.InUse => "Another app is using this shortcut. Choose another.",
+        HotkeyStatus.Failed => "This shortcut could not be registered. Choose another.",
+        _ => ""
+    };
 
     private void RestoreFromTray()
     {
         Show();
-        if (WindowState == WindowState.Minimized) WindowState = WindowState.Normal;
+        if (WindowState == WindowState.Minimized) WindowState = _restoreState;
         EnsureVisible();
         Activate();
     }
@@ -511,7 +618,11 @@ public partial class MainWindow
         if (_closing) return;
         try
         {
-            var dialog = new SettingsWindow(_preferences with { AlwaysOnTop = Topmost, StartWithWindows = StartupRegistration.IsEnabled }) { Owner = this };
+            var dialog = new SettingsWindow(_preferences with { AlwaysOnTop = Topmost, StartWithWindows = StartupRegistration.IsEnabled, LaunchWithShortcut = StartMenuShortcut.Exists },
+                IsShortcutAvailable, ShortcutStatus) { Owner = this };
+            // Let the shortcut recorder receive WinMon's own combination; Save or the finally block takes it back.
+            _hotkeyRetry?.Stop();
+            _hotkey?.Unregister();
             if (dialog.ShowDialog() != true || dialog.Result is not { } result || _closing) return;
             SettingsButton.IsEnabled = false;
             ProcessCountSelector.IsEnabled = false;
@@ -532,6 +643,7 @@ public partial class MainWindow
                 SettingsButton.IsEnabled = true;
                 ProcessCountSelector.IsEnabled = true;
                 ProcessSortSelector.IsEnabled = true;
+                if (_hotkey is { Current: null } && _hotkeyStatus != HotkeyStatus.StartMenu) ApplyShortcut(StartMenuShortcut.Exists);
             }
         }
     }
@@ -552,10 +664,13 @@ public partial class MainWindow
             catch (Exception rollbackError) { Trace.TraceError("WinMon startup registration rollback failed: {0}", rollbackError); }
             throw;
         }
-        _preferences = result;
+        _preferences = PreferenceStore.Validate(result);
+        SecondaryDiskMetric.Toggle.IsChecked = _preferences.ShowSecondaryDisk;
+        ConfigureDiskLayout();
         _history.Resize(_preferences.RetentionSeconds);
         BuildRangeChips();
         ApplyTheme();
+        ApplyShortcut(_preferences.LaunchWithShortcut);
         RefreshPresentation();
     }
     private void ApplyTheme()
@@ -574,7 +689,7 @@ public partial class MainWindow
             app.Resources["Muted"] = SystemColors.WindowTextBrush;
             app.Resources["Line"] = SystemColors.WindowTextBrush;
             app.Resources["Accent"] = SystemColors.HighlightBrush;
-            foreach (var key in new[] { "CpuAccent", "MemoryAccent", "DiskAccent", "NetworkAccent", "GpuAccent" }) app.Resources[key] = SystemColors.WindowTextBrush;
+            foreach (var key in new[] { "CpuAccent", "MemoryAccent", "DiskAccent", "NetworkAccent", "GpuAccent", "SecondaryDiskAccent" }) app.Resources[key] = SystemColors.WindowTextBrush;
         }
         else
         {
@@ -586,7 +701,7 @@ public partial class MainWindow
             SetBrush("Muted", light ? "#465361" : "#B3BDC8");
             SetBrush("Line", light ? "#CBD3DC" : "#35404B");
             var colors = ChartPalettes.Colors(_preferences.ChartPalette, light);
-            var keys = new[] { "CpuAccent", "MemoryAccent", "DiskAccent", "NetworkAccent", "GpuAccent" };
+            var keys = new[] { "CpuAccent", "MemoryAccent", "DiskAccent", "NetworkAccent", "GpuAccent", "SecondaryDiskAccent" };
             for (var i = 0; i < keys.Length; i++) SetBrush(keys[i], colors[i]);
             SetBrush("Accent", colors[0]);
         }
@@ -654,7 +769,6 @@ public partial class MainWindow
         if (_allowClose) return;
         e.Cancel = true;
         if (_closing) return;
-        if (!_forceExit && _preferences.CloseToTray && _tray is not null) { Hide(); return; }
         _closing = true;
         IsEnabled = false;
         SystemEvents.UserPreferenceChanged -= OnUserPreferenceChanged;
@@ -671,6 +785,8 @@ public partial class MainWindow
         catch (Exception ex) { Trace.TraceError("WinMon shutdown or preference save failed: {0}", ex); }
         finally
         {
+            _hotkeyRetry?.Stop();
+            _hotkey?.Dispose();
             _tray?.ContextMenuStrip?.Dispose();
             _tray?.Dispose();
             _trayIcon?.Dispose();
@@ -680,9 +796,3 @@ public partial class MainWindow
         }
     }
 }
-
-
-
-
-
-

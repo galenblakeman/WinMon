@@ -24,25 +24,27 @@ internal sealed class WindowsResourceSampler : IDisposable
     }
 
     private void OnNetworkChanged(object? sender, EventArgs e) => Volatile.Write(ref _networkChanged, 1);
-    private readonly string _diskName = Path.GetPathRoot(Environment.SystemDirectory)!.TrimEnd('\\');
-    private SafePdhQuery? _query;
-    private IntPtr _idleCounter, _bytesCounter;
-    private bool _diskBaseline;
-    private long _lastDiskTimestamp;
+    private readonly DiskCounter _primaryDisk = new();
+    private readonly DiskCounter _secondaryDisk = new();
     private NetworkObservation? _previousNetwork;
 
-    internal CpuSample Sample(CpuSample cpu)
+    internal CpuSample Sample(CpuSample cpu, string? primaryDrive = null, string? secondaryDrive = null)
     {
         var reset = cpu.IsGap;
         if (reset) Reset();
-        var result = new ResourceSample { DiskName = _diskName };
+        var result = new ResourceSample();
         var memory = new MemoryStatus { Length = (uint)Marshal.SizeOf<MemoryStatus>() };
         if (Native.GlobalMemoryStatusEx(ref memory) && memory.TotalPhysical > 0 && memory.AvailablePhysical <= memory.TotalPhysical)
             result = result with { TotalMemoryBytes = memory.TotalPhysical, UsedMemoryBytes = memory.TotalPhysical - memory.AvailablePhysical };
 
         // PDH failures only make disk unavailable; they never stop memory, network or CPU.
-        try { result = ReadDisk(result); }
-        catch (Win32Exception ex) { Trace.TraceWarning("Disk counters unavailable: {0}", ex.Message); ResetDisk(); }
+        var primary = _primaryDisk.Read(primaryDrive ?? Path.GetPathRoot(Environment.SystemDirectory)!.TrimEnd('\\'));
+        var secondary = _secondaryDisk.Read(secondaryDrive);
+        result = result with
+        {
+            DiskName = primary.Name, DiskActivePercent = primary.Active, DiskBytesPerSecond = primary.Bytes,
+            SecondaryDiskName = secondary.Name, SecondaryDiskActivePercent = secondary.Active, SecondaryDiskBytesPerSecond = secondary.Bytes
+        };
         try { result = ReadNetwork(result); }
         catch (Exception ex) when (ex is NetworkInformationException or InvalidOperationException)
         {
@@ -56,35 +58,62 @@ internal sealed class WindowsResourceSampler : IDisposable
     internal void Reset()
     {
         _gpu.Reset();
-        ResetDisk();
+        _primaryDisk.Reset();
+        _secondaryDisk.Reset();
         _previousNetwork = null;
     }
 
-    private ResourceSample ReadDisk(ResourceSample result)
+    // Each volume owns its query and baseline so a missing drive cannot invalidate the other.
+    private sealed class DiskCounter
     {
-        if (_query is null)
-        {
-            Check(Native.PdhOpenQueryW(null, UIntPtr.Zero, out var opened));
-            _query = opened;
-            Check(Native.PdhAddEnglishCounterW(_query, $@"\LogicalDisk({_diskName})\% Idle Time", UIntPtr.Zero, out _idleCounter));
-            Check(Native.PdhAddEnglishCounterW(_query, $@"\LogicalDisk({_diskName})\Disk Bytes/sec", UIntPtr.Zero, out _bytesCounter));
-        }
-        Check(Native.PdhCollectQueryData(_query));
-        var now = Stopwatch.GetTimestamp();
-        var interval = (now - _lastDiskTimestamp) / (double)Stopwatch.Frequency;
-        var valid = _diskBaseline && interval is > 0 and <= 5;
-        _diskBaseline = true;
-        _lastDiskTimestamp = now;
-        // Rate counters need two observations. Never join across sleep or pause.
-        if (!valid) return result;
-        var idle = ReadCounter(_idleCounter);
-        return result with
-        {
-            DiskActivePercent = idle is { } value ? Math.Clamp(100 - value, 0, 100) : null,
-            DiskBytesPerSecond = ReadCounter(_bytesCounter)
-        };
-    }
+        private string? _name;
+        private SafePdhQuery? _query;
+        private IntPtr _idleCounter, _bytesCounter;
+        private bool _baseline;
+        private long _timestamp;
 
+        internal (string Name, double? Active, double? Bytes) Read(string? name)
+        {
+            if (_name != name) { Reset(); _name = name; }
+            if (name is null) return ("", null, null);
+            try
+            {
+                if (_query is null)
+                {
+                    Check(Native.PdhOpenQueryW(null, UIntPtr.Zero, out var opened));
+                    _query = opened;
+                    Check(Native.PdhAddEnglishCounterW(_query, $@"\LogicalDisk({name})\% Idle Time", UIntPtr.Zero, out _idleCounter));
+                    Check(Native.PdhAddEnglishCounterW(_query, $@"\LogicalDisk({name})\Disk Bytes/sec", UIntPtr.Zero, out _bytesCounter));
+                }
+                Check(Native.PdhCollectQueryData(_query));
+                var now = Stopwatch.GetTimestamp();
+                var interval = (now - _timestamp) / (double)Stopwatch.Frequency;
+                var valid = _baseline && interval is > 0 and <= 5;
+                _timestamp = now;
+                _baseline = true;
+                if (!valid) return (name, null, null);
+                var idle = ReadCounter(_idleCounter);
+                var bytes = ReadCounter(_bytesCounter);
+                // Reconnects need a fresh query and two observations, never a stale delta.
+                if (idle is null || bytes is null) { Reset(); return (name, null, null); }
+                return (name, Math.Clamp(100 - idle.Value, 0, 100), bytes);
+            }
+            catch (Win32Exception ex)
+            {
+                Trace.TraceWarning("Disk {0} counters unavailable: {1}", name, ex.Message);
+                Reset();
+                return (name, null, null);
+            }
+        }
+
+        internal void Reset()
+        {
+            _query?.Dispose();
+            _query = null;
+            _idleCounter = _bytesCounter = IntPtr.Zero;
+            _baseline = false;
+        }
+    }
     private ResourceSample ReadNetwork(ResourceSample result)
     {
         var now = Stopwatch.GetTimestamp();
@@ -132,14 +161,6 @@ internal sealed class WindowsResourceSampler : IDisposable
     private static void Check(uint status)
     {
         if (status != 0) throw new Win32Exception(unchecked((int)status));
-    }
-
-    private void ResetDisk()
-    {
-        _query?.Dispose();
-        _query = null;
-        _idleCounter = _bytesCounter = IntPtr.Zero;
-        _diskBaseline = false;
     }
 
     public void Dispose()

@@ -13,6 +13,7 @@ public sealed class CpuGraph : FrameworkElement
 {
     private IReadOnlyList<CpuSample> _samples = [];
     private ProcessUsage? _process;
+    private ProcessSort _processSort;
     private double?[]? _processValues;
     private CpuSample? _selected;
     private double _end;
@@ -61,6 +62,7 @@ public sealed class CpuGraph : FrameworkElement
         _seconds = windowSeconds;
         _selected = selection;
         _process = identity;
+        _processSort = data?.Sort ?? ProcessSort.Cpu;
         _end = history.Count > 0 ? Moment(history[^1]) : 0;
         ScaleMaximum = data?.ScaleMaximum ?? 100;
         InvalidateVisual();
@@ -102,10 +104,17 @@ public sealed class CpuGraph : FrameworkElement
         if (ShowGrid && _process is null) _networkScale = NetworkScale(_samples.Where(s => Moment(s) >= _end - _seconds));
         drawingContext.PushClip(new RectangleGeometry(plot));
         if (_process is not null || !ShowGrid)
-            DrawSeries(drawingContext, plot, Resource("CpuAccent", accent), 0);
+        {
+            var key = _processSort switch
+            {
+                ProcessSort.Gpu => "GpuAccent", ProcessSort.Memory => "MemoryAccent",
+                ProcessSort.Io => "DiskAccent", _ => "CpuAccent"
+            };
+            DrawSeries(drawingContext, plot, Resource(key, accent), 0);
+        }
         else
         {
-            var keys = new[] { "CpuAccent", "MemoryAccent", "DiskAccent", "NetworkAccent", "GpuAccent" };
+            var keys = new[] { "CpuAccent", "MemoryAccent", "DiskAccent", "NetworkAccent", "GpuAccent", "SecondaryDiskAccent" };
             // Paint every wash first so later series cannot tint an earlier trace.
             if (!SystemParameters.HighContrast)
                 for (var metric = 0; metric < keys.Length; metric++)
@@ -154,7 +163,7 @@ public sealed class CpuGraph : FrameworkElement
             double? value = _process is not null ? _processValues![sampleIndex]
                 : metric == 3 ? NetworkBitsPerSecond(sample.Resources) * 100 / _networkScale
                 : MetricValue(sample, metric);
-            var source = metric == 3 ? sample.Resources.NetworkId + "/" + sample.Resources.LinkBitsPerSecond : metric == 2 ? sample.Resources.DiskName : metric == 4 ? sample.Resources.GpuId : "";
+            var source = metric == 3 ? sample.Resources.NetworkId + "/" + sample.Resources.LinkBitsPerSecond : metric == 2 ? sample.Resources.DiskName : metric == 4 ? sample.Resources.GpuId : metric == 5 ? sample.Resources.SecondaryDiskName : "";
             if (sample.IsGap || value is null || (previous is not null && Moment(sample) - previous.Value > 2.5) || previousSource != source)
             {
                 DrawSegment(drawingContext, segment, plot.Bottom, accent, ShowGrid, metric, fillOnly);
@@ -175,6 +184,7 @@ public sealed class CpuGraph : FrameworkElement
         2 => sample.Resources.DiskActivePercent,
         3 => sample.Resources.NetworkPercent,
         4 => sample.Resources.GpuPercent,
+        5 => sample.Resources.SecondaryDiskActivePercent,
         _ => null
     };
 
@@ -241,10 +251,12 @@ public sealed class CpuGraph : FrameworkElement
     {
         var r = sample.Resources;
         var diskRate = r.DiskBytesPerSecond is { } disk ? $" · {disk / 1_000_000:0.00} MB/s" : "";
+        var secondDisk = r.SecondaryDiskName.Length > 0
+            ? $"\nDisk {r.SecondaryDiskName} {Percent(r.SecondaryDiskActivePercent)}{(r.SecondaryDiskBytesPerSecond is { } secondRate ? $" · {secondRate / 1_000_000:0.00} MB/s" : "")}" : "";
         var networkRate = r is { ReceiveBytesPerSecond: { } rx, SendBytesPerSecond: { } tx }
             ? $"\nRx {rx * 8 / 1_000_000:0.00} / Tx {tx * 8 / 1_000_000:0.00} Mbps" : "";
         var network = NetworkBitsPerSecond(r) is { } bits ? RateText.Format(bits) : "unavailable";
-        return $"{sample.Timestamp:HH:mm:ss} · Historical interval\nCPU {Percent(sample.TotalCpuPercent)}\nMemory {Percent(r.MemoryPercent)}\nDisk {r.DiskName} {Percent(r.DiskActivePercent)}{diskRate}\nNetwork {r.NetworkName} {network} · {Percent(r.NetworkPercent)} of link{networkRate}\nGPU {Percent(r.GpuPercent)} · {r.GpuEngine}\nClick to hold; top readouts stay live";
+        return $"{sample.Timestamp:HH:mm:ss} · Historical interval\nCPU {Percent(sample.TotalCpuPercent)}\nMemory {Percent(r.MemoryPercent)}\nDisk {r.DiskName} {Percent(r.DiskActivePercent)}{diskRate}{secondDisk}\nNetwork {r.NetworkName} {network} · {Percent(r.NetworkPercent)} of link{networkRate}\nGPU {Percent(r.GpuPercent)} · {r.GpuEngine}\nClick to hold; top readouts stay live";
 
         static string Percent(double? value) => value is { } number ? $"{number:0.0}%" : "unavailable";
     }
@@ -277,8 +289,9 @@ public sealed class CpuGraph : FrameworkElement
             context.PolyLineTo([.. points.Skip(1)], true, false);
         }
         var pen = new Pen(accent, overlay ? 1.7 : 1.2);
+        if (overlay && metric == 5) pen.DashStyle = DashStyles.Dash;
         if ((SystemParameters.HighContrast || UseSeriesPatterns) && overlay)
-            pen.DashStyle = metric switch { 1 => DashStyles.Dash, 2 => DashStyles.Dot, 3 => DashStyles.DashDot, 4 => DashStyles.DashDotDot, _ => DashStyles.Solid };
+            pen.DashStyle = metric switch { 1 => DashStyles.Dash, 2 => DashStyles.Dot, 3 => DashStyles.DashDot, 4 => DashStyles.DashDotDot, 5 => new DashStyle([6d, 2d], 0), _ => DashStyles.Solid };
         dc.DrawGeometry(null, pen, trace);
     }
 
@@ -296,6 +309,3 @@ public sealed class CpuGraph : FrameworkElement
         return binned;
     }
 }
-
-
-

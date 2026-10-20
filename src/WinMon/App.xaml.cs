@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Windows;
+using WinMon.Shortcuts;
 
 namespace WinMon;
 
@@ -8,6 +9,7 @@ public partial class App
 {
     private Mutex? _instance;
     private bool _ownsInstance;
+    private IDisposable? _activation;
 
     /// <inheritdoc/>
     protected override void OnStartup(StartupEventArgs e)
@@ -36,10 +38,12 @@ public partial class App
         _instance = new Mutex(true, @"Local\WinMon.CpuMonitor", out _ownsInstance);
         if (!_ownsInstance)
         {
-            MessageBox.Show("WinMon is already running. Restore it from the notification area.", "WinMon", MessageBoxButton.OK, MessageBoxImage.Information);
+            if (!InstanceActivation.SignalRunningInstance())
+                MessageBox.Show("WinMon is already running. Restore it from the notification area.", "WinMon", MessageBoxButton.OK, MessageBoxImage.Information);
             Shutdown();
             return;
         }
+        _activation = InstanceActivation.Listen(() => Dispatcher.BeginInvoke(() => (MainWindow as MainWindow)?.ShowRequested()));
         base.OnStartup(e);
         MainWindow = new MainWindow();
         MainWindow.Show();
@@ -95,10 +99,9 @@ public partial class App
     /// <inheritdoc/>
     protected override void OnExit(ExitEventArgs e)
     {
+        _activation?.Dispose();
         if (_ownsInstance) _instance?.ReleaseMutex();
         _instance?.Dispose();
         base.OnExit(e);
     }
 }
-
-

@@ -9,6 +9,8 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets/WinMon.ico</ApplicationIcon>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AssemblyTitle>WinMon</AssemblyTitle>
+    <Description>Lightweight Windows resource monitor</Description>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-x64</RuntimeIdentifier>
@@ -21,5 +23,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Resource Include="Assets/WinMon.ico" />
+    <PackageReference Include="System.Management" Version="10.0.3" />
+  </ItemGroup>
+  <ItemGroup>
+    <AssemblyMetadata Include="RepositoryUrl" Value="$(RepositoryUrl)" />
+    <AssemblyMetadata Include="License" Value="$(PackageLicenseExpression)" />
   </ItemGroup>
 </Project>

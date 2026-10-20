@@ -1,5 +1,17 @@
 # Resource overlay visual QA
 
+## Multiple disks, selected option 1 — 2026-10-19
+
+final result: passed
+
+Scope: the selected six-column mockup at design/multiple-disks-selected.png, adapted to the existing production WPF monitor. Comparison evidence: artifacts/multiple-disks-capture-verified/comparison.png combines the actual selected image with the implementation's 720 x 820 DIP dark main view and 444 x 601 settings content. The reference includes presentation margins, native chrome and illustrative data; comparison focuses on app content, order, hierarchy and the disk configuration flow rather than those margins or exact graph values. The existing process GPU column, ranking/grouping controls, range chips and native title bar remain intentionally intact.
+
+Fidelity surfaces checked: Segoe UI and the existing 27-pixel metric hierarchy remain readable; the strip has CPU, Memory, primary disk, secondary disk, Network and GPU with aligned separators; orange primary and gold dashed secondary traces match the selected direction. Settings has primary and second-drive dropdowns, None, volume labels, helper copy, Cancel and Save. The existing darker section bands and other resource colors are preserved. Existing native icons are reused without new image assets. Focused full-size disk/settings captures show no clipped primary labels or controls. No actionable P0/P1/P2 differences remain within the requested scope.
+
+Also opened disks-light.png and disks-history.png: the light palette has readable text and traces, and historical inspection names both volumes. The diagnostic capture helper now waits for WPF rendering to settle before capturing; regenerated evidence fixes a stale-frame artifact found during review. The published smoke then completed successfully (exit 0). 100/150/200-percent renders are bitmap checks, not physical display DPI-transition testing. Actual removable-drive unplug/replug and Windows high-contrast operation remain manual environment checks.
+
+Validation: Release publish with zero warnings/errors; 129 tests passed; native C:/D: readings and independent trace visibility; unavailable A: left C:/memory sampling intact; real Settings Save action accepted a second volume and None. Evidence is in disks.json and smoke.json in the same artifacts directory. Implementation checklist: settings, persistence, per-volume sampling/reset/disposal, six-column layout, independent traces, history, tests, publish and visual review complete.
+
 ## Blue title bar and section headers - 2026-10-19
 
 final result: passed

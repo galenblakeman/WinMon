@@ -100,22 +100,32 @@ public sealed class PreferenceStore
     internal static MonitorPreferences Validate(MonitorPreferences preferences)
     {
         ArgumentNullException.ThrowIfNull(preferences);
+        var primary = NormalizeDrive(preferences.PrimaryDrive) ?? new MonitorPreferences().PrimaryDrive;
+        var secondary = NormalizeDrive(preferences.SecondaryDrive);
         return preferences with
         {
+            PrimaryDrive = primary,
+            SecondaryDrive = secondary == primary ? null : secondary,
             Width = ClampFinite(preferences.Width, 600, 600, 2000),
             Height = ClampFinite(preferences.Height, 840, 800, 1500),
             Left = ValidateCoordinate(preferences.Left),
             Top = ValidateCoordinate(preferences.Top),
             Theme = NormalizeTheme(preferences.Theme),
             ChartPalette = ChartPalettes.Normalize(preferences.ChartPalette),
-            CompactHistorySeconds = NormalizeCompactHistory(preferences.CompactHistorySeconds),
             RetentionSeconds = Math.Clamp(preferences.RetentionSeconds, 600, 3600),
             VisibleMetrics = preferences.VisibleMetrics & 15,
             TopProcessCount = preferences.TopProcessCount is 5 or 10 or 15 or 20 ? preferences.TopProcessCount : 5,
             ProcessSort = preferences is { SortByGpu: true, ProcessSort: Monitoring.ProcessSort.Cpu } ? Monitoring.ProcessSort.Gpu
                 : Enum.IsDefined(preferences.ProcessSort) ? preferences.ProcessSort : Monitoring.ProcessSort.Cpu,
-            SortByGpu = false
+            SortByGpu = false,
+            ShowShortcut = Shortcuts.HotkeyGesture.Normalize(preferences.ShowShortcut)
         };
+    }
+
+    internal static string? NormalizeDrive(string? drive)
+    {
+        var value = drive?.Trim().TrimEnd('\\').ToUpperInvariant();
+        return value is { Length: 2 } && value[0] is >= 'A' and <= 'Z' && value[1] == ':' ? value : null;
     }
 
     private static double ClampFinite(double value, double defaultValue, double minimum, double maximum) => double.IsFinite(value) ? Math.Clamp(value, minimum, maximum) : defaultValue;
@@ -127,12 +137,5 @@ public sealed class PreferenceStore
         "light" => "Light",
         "system" => "System",
         _ => "Dark"
-    };
-
-    private static int NormalizeCompactHistory(int seconds) => seconds switch
-    {
-        <= 90 => 60,
-        <= 210 => 120,
-        _ => 300
     };
 }

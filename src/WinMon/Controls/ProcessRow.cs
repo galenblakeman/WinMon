@@ -49,7 +49,6 @@ public sealed class ProcessRow : Grid
         return true;
     }
 
-
     public ProcessRow()
     {
         Height = 36;
@@ -87,9 +86,8 @@ public sealed class ProcessRow : Grid
         _usage = usage;
         var members = usage.MemberCount > 1;
         _name.Text = members ? $"{usage.Name} ×{usage.MemberCount}" : usage.Name;
-        _name.ToolTip = grouped
-            ? $"{(usage.ImagePath.Length > 0 ? usage.ImagePath : usage.Name)}\n{MemberList(usage)}"
-            : $"{usage.Name} · PID {usage.ProcessId}";
+        var path = usage.ImagePath.Length > 0 ? usage.ImagePath : "Executable path unavailable";
+        _name.ToolTip = $"{_name.Text} · {(grouped ? MemberList(usage) : $"PID {usage.ProcessId}")}\n{path}";
         _pid.Text = members ? $"{usage.MemberCount} processes" : $"PID {usage.ProcessId}";
         _pid.Visibility = showPid ? Visibility.Visible : Visibility.Collapsed;
         _value.Text = $"{usage.CpuPercent:0.0}%";
@@ -99,7 +97,15 @@ public sealed class ProcessRow : Grid
             : "GPU utilization unavailable for this process; no valid counter or lifetime match.";
         if (data is null) _graph.SetData(samples, seconds, null, usage);
         else _graph.SetProcessData(data, seconds, usage);
-        ToolTip = $"{_name.Text} · {(grouped ? MemberList(usage) : $"PID {usage.ProcessId}")}\n{(grouped ? "Summed CPU" : "CPU")} history · last {seconds / 60d:0.#} min\n0–{_graph.ScaleMaximum:0.0}% of total machine CPU · same scale for every row";
+        var scale = _graph.ScaleMaximum;
+        var history = (data?.Sort ?? ProcessSort.Cpu) switch
+        {
+            ProcessSort.Gpu => $"{(grouped ? "Busiest-member GPU" : "GPU")} history\n0–{scale:0.0}% GPU utilization",
+            ProcessSort.Memory => $"{(grouped ? "Summed private memory" : "Resident memory")} history\n0–{scale / 1_048_576d:0.##} MiB",
+            ProcessSort.Io => $"{(grouped ? "Summed read/write I/O" : "Read/write I/O")} history\n0–{scale / 1_000_000d:0.##} MB/s",
+            _ => $"{(grouped ? "Summed CPU" : "CPU")} history\n0–{scale:0.0}% of total machine CPU"
+        };
+        ToolTip = $"{_name.Text} · {(grouped ? MemberList(usage) : $"PID {usage.ProcessId}")}\n{path}\n{history} · last {seconds / 60d:0.#} min\nSame scale for every row";
         var nextIdentity = (usage.ProcessId, usage.CreationTicks);
         if (_identity != nextIdentity)
         {

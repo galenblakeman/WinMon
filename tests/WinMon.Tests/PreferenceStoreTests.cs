@@ -42,7 +42,6 @@ public sealed class PreferenceStoreTests
             Assert.That(preferences.Width, Is.EqualTo(600));
             Assert.That(preferences.Height, Is.EqualTo(840));
             Assert.That(preferences.Theme, Is.EqualTo("Dark"));
-            Assert.That(preferences.CompactHistorySeconds, Is.EqualTo(120));
             Assert.That(preferences.RetentionSeconds, Is.EqualTo(600));
         });
     }
@@ -52,7 +51,7 @@ public sealed class PreferenceStoreTests
     {
         Directory.CreateDirectory(testDirectory);
         await File.WriteAllTextAsync(settingsPath, """
-            { "Width": -1, "Height": 9000, "Theme": "unsupported", "CompactHistorySeconds": 200, "RetentionSeconds": 9999 }
+            { "Width": -1, "Height": 9000, "Theme": "unsupported", "RetentionSeconds": 9999 }
             """);
         PreferenceStore store = new(settingsPath);
 
@@ -63,7 +62,6 @@ public sealed class PreferenceStoreTests
             Assert.That(preferences.Width, Is.EqualTo(600));
             Assert.That(preferences.Height, Is.EqualTo(1500));
             Assert.That(preferences.Theme, Is.EqualTo("Dark"));
-            Assert.That(preferences.CompactHistorySeconds, Is.EqualTo(120));
             Assert.That(preferences.RetentionSeconds, Is.EqualTo(3600));
         });
     }
@@ -77,9 +75,8 @@ public sealed class PreferenceStoreTests
             Width = 100,
             Height = 100,
             Theme = "system",
-            CompactHistorySeconds = 500,
             RetentionSeconds = 1,
-            CloseToTray = true,
+            MinimizeToTray = true,
         };
 
         await store.SaveAsync(supplied);
@@ -90,9 +87,8 @@ public sealed class PreferenceStoreTests
             Assert.That(loaded.Width, Is.EqualTo(600));
             Assert.That(loaded.Height, Is.EqualTo(800));
             Assert.That(loaded.Theme, Is.EqualTo("System"));
-            Assert.That(loaded.CompactHistorySeconds, Is.EqualTo(300));
             Assert.That(loaded.RetentionSeconds, Is.EqualTo(600));
-            Assert.That(loaded.CloseToTray, Is.True);
+            Assert.That(loaded.MinimizeToTray, Is.True);
             Assert.That(Directory.GetFiles(testDirectory, "*.tmp"), Is.Empty);
         });
     }
@@ -123,13 +119,15 @@ public sealed class PreferenceStoreTests
         Assert.That((await store.LoadAsync()).ProcessSort, Is.EqualTo(ProcessSort.Gpu));
     }
 
-    [TestCase(120, 600, 0, new[] { 120, 600 }, 120)]
-    [TestCase(60, 3600, 3600, new[] { 60, 600, 3600 }, 3600)]
-    [TestCase(300, 1800, 600, new[] { 300, 600, 1800 }, 600)]
-    [TestCase(120, 600, 1800, new[] { 120, 600 }, 120)]
-    public void ChartRanges_FollowShortRangeAndRetention(int shortRange, int retention, int chosen, int[] ranges, int effective)
+    [TestCase(600, 0, new[] { 120, 600 }, 120)]
+    [TestCase(3600, 3600, new[] { 120, 600, 1800, 3600 }, 3600)]
+    [TestCase(3600, 1800, new[] { 120, 600, 1800, 3600 }, 1800)]
+    [TestCase(1800, 600, new[] { 120, 600, 1800 }, 600)]
+    [TestCase(600, 1800, new[] { 120, 600 }, 120)]
+    [TestCase(1800, 300, new[] { 120, 600, 1800 }, 120)]
+    public void ChartRanges_AreFixedChoicesUpToRetention(int retention, int chosen, int[] ranges, int effective)
     {
-        var preferences = new MonitorPreferences { CompactHistorySeconds = shortRange, RetentionSeconds = retention, ChartRangeSeconds = chosen };
+        var preferences = new MonitorPreferences { RetentionSeconds = retention, ChartRangeSeconds = chosen };
         Assert.Multiple(() =>
         {
             Assert.That(preferences.ChartRanges, Is.EqualTo(ranges));

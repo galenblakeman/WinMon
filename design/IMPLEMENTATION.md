@@ -67,7 +67,7 @@ The first native smoke exposed a diagnostic startup URI error, corrected before 
 - Process interval history retains individual identities rather than grouping by display name.
 - Native machine timing supports one active processor group. Multiple groups fail with an unavailable state rather than presenting a partial total. This is a known platform limitation.
 - Pauses, sampling errors and long delays create baselines/gaps. Wall-clock changes affect displayed labels, not plotting distance, history identity, or CPU normalization.
-- Closing exits by default; close-to-tray and startup are opt-in settings. Tray Exit always exits.
+- Closing always exits; minimize-to-tray and startup are opt-in settings. Tray Exit always exits.
 - Data stays local; history is volatile. No credentials, command lines, network collection or process-control features are added.
 
 Native API references: [GetSystemTimes](https://learn.microsoft.com/windows/win32/api/processthreadsapi/nf-processthreadsapi-getsystemtimes), [GetProcessTimes](https://learn.microsoft.com/windows/win32/api/processthreadsapi/nf-processthreadsapi-getprocesstimes). The latter supports `PROCESS_QUERY_LIMITED_INFORMATION`, used here with owned safe handles.

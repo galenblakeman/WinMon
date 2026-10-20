@@ -58,8 +58,11 @@
                         VerticalAlignment="Center"
                         FontSize="14"
                         FontWeight="SemiBold"
-                        Text="WinMon"
-                        TextTrimming="CharacterEllipsis" />
+                        TextTrimming="CharacterEllipsis"><Run Text="WinMon" /><Run
+                            x:Name="VersionRun"
+                            FontSize="12"
+                            FontWeight="Normal"
+                            Foreground="{DynamicResource Muted}" /></TextBlock>
                 </DockPanel>
             </Border>
             <Border Grid.Row="1" Background="{DynamicResource Surface}">
@@ -73,11 +76,12 @@
                         <RowDefinition Height="1.25*" MinHeight="108" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <Grid Grid.Row="0" Margin="0,0,0,16">
+                    <Grid x:Name="MetricStrip" Grid.Row="0" Margin="0,0,0,16">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition />
                             <ColumnDefinition />
                             <ColumnDefinition />
+                            <ColumnDefinition x:Name="SecondaryDiskColumn" Width="0" />
                             <ColumnDefinition />
                             <ColumnDefinition />
                         </Grid.ColumnDefinitions>
@@ -94,42 +98,41 @@
                             BorderBrush="{DynamicResource Line}"
                             BorderThickness="0,0,1,0" />
                         <Border
-                            Grid.Column="3"
+                            Grid.Column="4"
                             BorderBrush="{DynamicResource Line}"
                             BorderThickness="0,0,1,0" />
                         <controls:MetricReadout
                             x:Name="CpuMetric"
                             Grid.Column="0"
                             AccentKey="CpuAccent"
-                            Caption="Total processor usage"
                             Label="CPU" />
                         <controls:MetricReadout
                             x:Name="MemoryMetric"
                             Grid.Column="1"
                             Margin="10,0,0,0"
                             AccentKey="MemoryAccent"
-                            Caption="RAM in use"
                             Label="Memory" />
                         <controls:MetricReadout
                             x:Name="DiskMetric"
                             Grid.Column="2"
                             Margin="10,0,0,0"
                             AccentKey="DiskAccent"
-                            Caption="Active time"
                             Label="Disk" />
+                        <Border x:Name="SecondaryDiskDivider" Grid.Column="3"
+                            BorderBrush="{DynamicResource Line}" BorderThickness="0,0,1,0" Visibility="Collapsed" />
+                        <controls:MetricReadout x:Name="SecondaryDiskMetric" Grid.Column="3" Margin="10,0,0,0"
+                            AccentKey="SecondaryDiskAccent" Label="Disk" Visibility="Collapsed" />
                         <controls:MetricReadout
                             x:Name="NetworkMetric"
-                            Grid.Column="3"
+                            Grid.Column="4"
                             Margin="10,0,0,0"
                             AccentKey="NetworkAccent"
-                            Caption="Busier link direction"
                             Label="Network" />
                         <controls:MetricReadout
                             x:Name="GpuMetric"
-                            Grid.Column="4"
+                            Grid.Column="5"
                             Margin="10,0,0,0"
                             AccentKey="GpuAccent"
-                            Caption="Busiest GPU engine"
                             Label="GPU" />
                     </Grid>
                     <!--  Section headers share a graphite surface, full-width divider, and title/subtitle typography.  -->
@@ -142,12 +145,13 @@
                         BorderThickness="0,1,0,0">
                         <DockPanel LastChildFill="False">
                             <Button
-                                x:Name="PauseButton"
-                                controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Pause}"
-                                AutomationProperties.Name="Pause or resume recording"
-                                Click="OnPause"
-                                Content="Pause"
-                                DockPanel.Dock="Right" />
+                                Margin="8,0,0,0"
+                                controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Info}"
+                                AutomationProperties.Name="About WinMon and hardware information"
+                                Click="OnHardwareInfo"
+                                Content="Info"
+                                DockPanel.Dock="Right"
+                                ToolTip="Version, plus CPU, memory, graphics, volumes and network hardware" />
                             <Button
                                 x:Name="LiveButton"
                                 controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Live}"
@@ -155,17 +159,18 @@
                                 Content="Return to live"
                                 DockPanel.Dock="Right"
                                 Visibility="Collapsed" />
+                            <!--  Shown only when sampling fails; normal recording needs no status.  -->
                             <TextBlock
-                                x:Name="StatusLabel"
+                                x:Name="ErrorLabel"
                                 MaxWidth="190"
                                 Margin="0,0,8,0"
                                 VerticalAlignment="Center"
                                 DockPanel.Dock="Right"
                                 FontSize="11"
                                 Foreground="{DynamicResource Muted}"
-                                Text="Collecting…"
                                 TextAlignment="Right"
-                                TextWrapping="Wrap" />
+                                TextWrapping="Wrap"
+                                Visibility="Collapsed" />
                             <StackPanel VerticalAlignment="Center">
                                 <TextBlock
                                     x:Name="LiveCaption"
@@ -173,7 +178,7 @@
                                     FontWeight="SemiBold"
                                     Text="System resources" />
                                 <StackPanel Margin="0,3,0,0" Orientation="Horizontal">
-                                    <!--  Range chips are built from the short range, 10 minutes and the retention setting.  -->
+                                    <!--  Range chips: 2, 10, 30 and 60 minutes, up to the retention setting.  -->
                                     <StackPanel
                                         x:Name="RangeSelector"
                                         AutomationProperties.Name="Chart time range"
@@ -192,7 +197,7 @@
                     <controls:CpuGraph
                         x:Name="OverallGraph"
                         Grid.Row="2"
-                        AutomationProperties.Name="CPU, memory, disk and network overlay history. Click to inspect; arrow keys move, End returns to live."
+                        AutomationProperties.Name="CPU, memory, configured disks, network and GPU overlay history. Click to inspect; arrow keys move, End returns to live."
                         Focusable="True"
                         ShowGrid="True" />
                     <Border
@@ -297,6 +302,7 @@
                             FontSize="12"
                             Foreground="{DynamicResource Muted}"
                             Text="History"
+                            x:Name="ProcessHistoryHeader"
                             ToolTip="CPU history on one scale shared by every row. Hover a row for the scale." />
                         <TextBlock
                             x:Name="CpuHeader"
@@ -357,22 +363,10 @@
                             DockPanel.Dock="Right"
                             Orientation="Horizontal">
                             <Button
-                                controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Tray}"
-                                Click="OnTray"
-                                Content="Hide to tray"
-                                ToolTip="Hide to the notification area; double-click the tray icon to restore" />
-                            <Button
                                 x:Name="SettingsButton"
                                 controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Settings}"
                                 Click="OnSettings"
                                 Content="Settings" />
-                            <Button
-                                Margin="8,0,0,0"
-                                controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Info}"
-                                Click="OnHardwareInfo"
-                                Content="Info"
-                                AutomationProperties.Name="Hardware information"
-                                ToolTip="CPU, memory, graphics, volumes and network hardware" />
                         </StackPanel>
                         <TextBlock
                             x:Name="CoverageLabel"

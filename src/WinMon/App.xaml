@@ -14,7 +14,8 @@
         <SolidColorBrush x:Key="Accent" Color="#73FF35" />
         <SolidColorBrush x:Key="CpuAccent" Color="#73FF35" />
         <SolidColorBrush x:Key="MemoryAccent" Color="#4285FF" />
-        <SolidColorBrush x:Key="DiskAccent" Color="#FFB000" />
+        <SolidColorBrush x:Key="DiskAccent" Color="#FF773D" />
+        <SolidColorBrush x:Key="SecondaryDiskAccent" Color="#FFD044" />
         <SolidColorBrush x:Key="NetworkAccent" Color="#F657E5" />
         <SolidColorBrush x:Key="GpuAccent" Color="#00F0C8" />
         <Style TargetType="CheckBox">
@@ -477,4 +478,3 @@
         </Style>
     </Application.Resources>
 </Application>
-

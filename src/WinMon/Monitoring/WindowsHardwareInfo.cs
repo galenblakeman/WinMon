@@ -8,12 +8,14 @@ namespace WinMon.Monitoring;
 /// <summary>On-demand hardware inventory; never runs in the resource sampling loop.</summary>
 internal static class WindowsHardwareInfo
 {
-    internal sealed record Section(string Name, string Details);
+    internal sealed record Detail(string Name, string Text);
+    internal sealed record Section(string Name, string Details, IReadOnlyList<Detail>? Items = null, string DetailHeading = "Details");
 
     internal static IReadOnlyList<Section> Read()
     {
-        return [ReadSection("CPU", Cpu), ReadSection("Installed memory", Memory),
-            ReadSection("Graphics adapters", Graphics), ReadSection("Local volumes", Volumes),
+        var query = new WmiHardwareQuery();
+        return [HardwareInventory.Cpu(query, ReadSection("CPU", Cpu).Details), Memory(query),
+            ReadSection("Graphics adapters", Graphics), HardwareInventory.Disks(query), ReadSection("Local volumes", Volumes),
             ReadSection("Network adapters", Network)];
     }
 
@@ -65,9 +67,13 @@ internal static class WindowsHardwareInfo
         finally { Marshal.FreeHGlobal(buffer); }
     }
 
-    private static string Memory() => GetPhysicallyInstalledSystemMemory(out var kilobytes) && kilobytes > 0
-        ? $"{kilobytes / 1_048_576d:0.##} GiB installed\nUsable physical memory can be lower due to hardware reservations."
-        : "Installed capacity unavailable. See the live memory tile for OS-visible capacity.";
+    private static Section Memory(IHardwareQuery query)
+    {
+        ulong? installed = GetPhysicallyInstalledSystemMemory(out var kilobytes) && kilobytes > 0 ? kilobytes * 1024 : null;
+        var status = new MemoryStatus { Length = (uint)Marshal.SizeOf<MemoryStatus>() };
+        ulong? usable = GlobalMemoryStatusEx(ref status) ? status.TotalPhysical : null;
+        return HardwareInventory.Memory(query, installed, usable);
+    }
 
     private static string Graphics()
     {
@@ -158,4 +164,14 @@ internal static class WindowsHardwareInfo
     [DllImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool GetPhysicallyInstalledSystemMemory(out ulong kilobytes);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct MemoryStatus
+    {
+        public uint Length, MemoryLoad;
+        public ulong TotalPhysical, AvailablePhysical, TotalPageFile, AvailablePageFile, TotalVirtual, AvailableVirtual, AvailableExtendedVirtual;
+    }
+    [DllImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool GlobalMemoryStatusEx(ref MemoryStatus status);
 }
