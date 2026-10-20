@@ -1,7 +1,7 @@
 <Project>
   <!-- Product metadata shared by every project. Bump Version for each release; app.manifest carries the same number. -->
   <PropertyGroup>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <Product>WinMon</Product>
     <Authors>Galen Blakeman</Authors>
     <Company>Galen Blakeman</Company>

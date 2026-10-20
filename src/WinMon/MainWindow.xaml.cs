@@ -339,7 +339,7 @@ public partial class MainWindow
         var mask = 0;
         for (var i = 0; i < Metrics.Length; i++) if (Metrics[i].Toggle.IsChecked == true) mask |= 1 << i;
         _preferences = _preferences with { VisibleMetrics = mask & 15, ShowGpu = (mask & 16) != 0, ShowSecondaryDisk = _preferences.SecondaryDrive is null ? _preferences.ShowSecondaryDisk : (mask & 32) != 0 };
-        OverallGraph.VisibleMetrics = mask;
+        OverallGraph.VisibleMetrics = _preferences.SeriesMask;
         OverallGraph.InvalidateVisual();
     }
 
