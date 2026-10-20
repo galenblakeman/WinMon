@@ -1240,4 +1240,22 @@ Integridade segundo o Windows: {2}</value>
   <data name="CaptureLatestSnapshot" xml:space="preserve">
     <value>Selecionar a última amostra registrada. A gravação e as leituras superiores continuam ao vivo.</value>
   </data>
+  <data name="PaletteNeonVivid" xml:space="preserve">
+    <value>Neon</value>
+  </data>
+  <data name="PaletteArcade" xml:space="preserve">
+    <value>Arcade</value>
+  </data>
+  <data name="PaletteTropical" xml:space="preserve">
+    <value>Tropical</value>
+  </data>
+  <data name="PaletteNeonVividDescription" xml:space="preserve">
+    <value>Personalizada · ciano, rosa, lima e violeta vivos</value>
+  </data>
+  <data name="PaletteArcadeDescription" xml:space="preserve">
+    <value>Personalizada · cores primárias e secundárias saturadas</value>
+  </data>
+  <data name="PaletteTropicalDescription" xml:space="preserve">
+    <value>Personalizada · cores quentes vibrantes equilibradas com azul e verde-azulado</value>
+  </data>
 </root>

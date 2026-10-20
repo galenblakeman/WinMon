@@ -1240,4 +1240,22 @@ GPU {11} · {12}
   <data name="CaptureLatestSnapshot" xml:space="preserve">
     <value>Выбрать последний записанный замер. Запись и верхние показания обновляются в реальном времени.</value>
   </data>
+  <data name="PaletteNeonVivid" xml:space="preserve">
+    <value>Neon</value>
+  </data>
+  <data name="PaletteArcade" xml:space="preserve">
+    <value>Arcade</value>
+  </data>
+  <data name="PaletteTropical" xml:space="preserve">
+    <value>Tropical</value>
+  </data>
+  <data name="PaletteNeonVividDescription" xml:space="preserve">
+    <value>Своя палитра · яркие голубой, розовый, лаймовый и фиолетовый</value>
+  </data>
+  <data name="PaletteArcadeDescription" xml:space="preserve">
+    <value>Своя палитра · насыщенные основные и вторичные цвета</value>
+  </data>
+  <data name="PaletteTropicalDescription" xml:space="preserve">
+    <value>Своя палитра · яркие тёплые цвета с синим и бирюзовым</value>
+  </data>
 </root>

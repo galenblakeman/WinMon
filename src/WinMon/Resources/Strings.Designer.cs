@@ -236,6 +236,8 @@ public static partial class Strings
     public static string OtherOfTotalCPUCombinedAveragedOver5Seconds => ResourceManager.GetString(nameof(OtherOfTotalCPUCombinedAveragedOver5Seconds), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string OtherProcesses => ResourceManager.GetString(nameof(OtherProcesses), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string OutsideChartRangeTopReadoutsStayLive => ResourceManager.GetString(nameof(OutsideChartRangeTopReadoutsStayLive), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string PaletteArcade => ResourceManager.GetString(nameof(PaletteArcade), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string PaletteArcadeDescription => ResourceManager.GetString(nameof(PaletteArcadeDescription), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string PaletteBotanical => ResourceManager.GetString(nameof(PaletteBotanical), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string PaletteClassic => ResourceManager.GetString(nameof(PaletteClassic), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string PaletteColorblind => ResourceManager.GetString(nameof(PaletteColorblind), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
@@ -243,12 +245,16 @@ public static partial class Strings
     public static string PaletteHighContrast => ResourceManager.GetString(nameof(PaletteHighContrast), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string PaletteMonochromatic => ResourceManager.GetString(nameof(PaletteMonochromatic), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string PaletteNeon => ResourceManager.GetString(nameof(PaletteNeon), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string PaletteNeonVivid => ResourceManager.GetString(nameof(PaletteNeonVivid), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string PaletteNeonVividDescription => ResourceManager.GetString(nameof(PaletteNeonVividDescription), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string PaletteOcean => ResourceManager.GetString(nameof(PaletteOcean), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string PalettePastel => ResourceManager.GetString(nameof(PalettePastel), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string PaletteSignal => ResourceManager.GetString(nameof(PaletteSignal), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string PaletteSpectrum => ResourceManager.GetString(nameof(PaletteSpectrum), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string PaletteStudio => ResourceManager.GetString(nameof(PaletteStudio), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string PaletteTech => ResourceManager.GetString(nameof(PaletteTech), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string PaletteTropical => ResourceManager.GetString(nameof(PaletteTropical), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string PaletteTropicalDescription => ResourceManager.GetString(nameof(PaletteTropicalDescription), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string PercentInteger => ResourceManager.GetString(nameof(PercentInteger), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string PercentOneDecimal => ResourceManager.GetString(nameof(PercentOneDecimal), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string PhysicalCoreCountUnavailable => ResourceManager.GetString(nameof(PhysicalCoreCountUnavailable), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;

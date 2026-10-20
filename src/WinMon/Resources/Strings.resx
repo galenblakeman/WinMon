@@ -1240,4 +1240,22 @@ Windows health status: {2}</value>
   <data name="CaptureLatestSnapshot" xml:space="preserve">
     <value>Select the latest recorded sample. Recording and top readouts stay live.</value>
   </data>
+  <data name="PaletteNeonVivid" xml:space="preserve">
+    <value>Neon</value>
+  </data>
+  <data name="PaletteArcade" xml:space="preserve">
+    <value>Arcade</value>
+  </data>
+  <data name="PaletteTropical" xml:space="preserve">
+    <value>Tropical</value>
+  </data>
+  <data name="PaletteNeonVividDescription" xml:space="preserve">
+    <value>Custom · vivid cyan, pink, lime, and violet</value>
+  </data>
+  <data name="PaletteArcadeDescription" xml:space="preserve">
+    <value>Custom · saturated primary and secondary colors</value>
+  </data>
+  <data name="PaletteTropicalDescription" xml:space="preserve">
+    <value>Custom · bright warm colors balanced with blue and teal</value>
+  </data>
 </root>

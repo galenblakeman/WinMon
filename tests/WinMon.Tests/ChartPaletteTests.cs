@@ -10,9 +10,30 @@ public sealed class ChartPaletteTests
     [TestCase("unknown", "Classic")]
     [TestCase(" ocean ", "Ocean")]
     [TestCase("COLORBLIND", "Colorblind")]
+    [TestCase(" neon ", "Neon")]
+    [TestCase("ARCADE", "Arcade")]
+    [TestCase("tropical", "Tropical")]
+    [TestCase("Cyberpunk / Neon", "Cyberpunk / Neon")]
     public void Validate_NormalizesPalette(string? input, string expected)
     {
         Assert.That(PreferenceStore.Validate(new MonitorPreferences { ChartPalette = input! }).ChartPalette, Is.EqualTo(expected));
+    }
+
+    [TestCase("Neon", "#00E5FF,#FF1493,#B6FF00,#FF6D00,#A100FF,#FFE600")]
+    [TestCase("Arcade", "#FF1744,#2979FF,#00E676,#FFEA00,#D500F9,#FF9100")]
+    [TestCase("Tropical", "#FF3D71,#00B8D9,#FFAB00,#6554FF,#00C896,#FF5630")]
+    public void CustomPalette_PreservesRequestedResourceOrderInBothThemes(string palette, string hexColors)
+    {
+        var expected = hexColors.Split(',');
+        var choice = new PaletteChoice(palette);
+        Assert.That(choice.Colors, Is.EqualTo(expected));
+        choice.UpdateTheme(true);
+        Assert.Multiple(() =>
+        {
+            Assert.That(choice.Colors, Is.EqualTo(expected));
+            Assert.That(ChartPalettes.Colors(palette, false), Is.EqualTo(expected));
+            Assert.That(ChartPalettes.Names, Does.Contain(palette));
+        });
     }
 
     [TestCaseSource(typeof(ChartPalettes), nameof(ChartPalettes.Names))]

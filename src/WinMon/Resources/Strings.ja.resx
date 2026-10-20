@@ -1240,4 +1240,22 @@ Windows の正常性状態: {2}</value>
   <data name="CaptureLatestSnapshot" xml:space="preserve">
     <value>最新の記録済みサンプルを選択します。記録と上部の表示はリアルタイムで更新されます。</value>
   </data>
+  <data name="PaletteNeonVivid" xml:space="preserve">
+    <value>Neon</value>
+  </data>
+  <data name="PaletteArcade" xml:space="preserve">
+    <value>Arcade</value>
+  </data>
+  <data name="PaletteTropical" xml:space="preserve">
+    <value>Tropical</value>
+  </data>
+  <data name="PaletteNeonVividDescription" xml:space="preserve">
+    <value>カスタム · 鮮やかなシアン、ピンク、ライム、バイオレット</value>
+  </data>
+  <data name="PaletteArcadeDescription" xml:space="preserve">
+    <value>カスタム · 高彩度の原色と二次色</value>
+  </data>
+  <data name="PaletteTropicalDescription" xml:space="preserve">
+    <value>カスタム · 明るい暖色とブルー、ティールのバランス</value>
+  </data>
 </root>

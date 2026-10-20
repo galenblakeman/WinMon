@@ -70,7 +70,8 @@ public sealed class SettingsWindow : Window
         _languageSelector.SelectedValuePath = nameof(AppLanguages.Choice.Name);
         _languageSelector.SelectedValue = AppLanguages.Normalize(preferences.Language);
         _languageSelector.ToolTip = Strings.LanguageApplyNote;
-        var paletteChoices = ChartPalettes.Names.Select(name => new PaletteChoice(name)).ToArray();
+        var paletteChoices = ChartPalettes.Names.Select(name => new PaletteChoice(name))
+            .OrderBy(choice => choice.DisplayName, StringComparer.CurrentCultureIgnoreCase).ToArray();
         _paletteSelector = CreateSelector([], "");
         _paletteSelector.ItemsSource = paletteChoices;
         _paletteSelector.SelectedValuePath = nameof(PaletteChoice.Name);

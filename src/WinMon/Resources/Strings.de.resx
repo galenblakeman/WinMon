@@ -1240,4 +1240,22 @@ Windows-Zustandsstatus: {2}</value>
   <data name="CaptureLatestSnapshot" xml:space="preserve">
     <value>Die neueste aufgezeichnete Messung auswählen. Aufzeichnung und obere Anzeigen bleiben live.</value>
   </data>
+  <data name="PaletteNeonVivid" xml:space="preserve">
+    <value>Neon</value>
+  </data>
+  <data name="PaletteArcade" xml:space="preserve">
+    <value>Arcade</value>
+  </data>
+  <data name="PaletteTropical" xml:space="preserve">
+    <value>Tropical</value>
+  </data>
+  <data name="PaletteNeonVividDescription" xml:space="preserve">
+    <value>Eigene Palette · leuchtendes Cyan, Pink, Limettengrün und Violett</value>
+  </data>
+  <data name="PaletteArcadeDescription" xml:space="preserve">
+    <value>Eigene Palette · gesättigte Primär- und Sekundärfarben</value>
+  </data>
+  <data name="PaletteTropicalDescription" xml:space="preserve">
+    <value>Eigene Palette · helle warme Farben mit Blau und Türkis</value>
+  </data>
 </root>

@@ -9,6 +9,8 @@ internal sealed class PaletteChoice(string name) : INotifyPropertyChanged
 
     public string DisplayName => ChartPalettes.DisplayName(Name);
 
+    public string Description => ChartPalettes.Description(Name);
+
     public IReadOnlyList<string> Colors { get; private set; } = ChartPalettes.Colors(name, false);
 
     public event PropertyChangedEventHandler? PropertyChanged;

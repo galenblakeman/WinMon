@@ -3,7 +3,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:preferences="clr-namespace:WinMon.Preferences">
     <DataTemplate x:Key="PaletteChoiceTemplate" DataType="{x:Type preferences:PaletteChoice}">
-        <Grid Width="168" VerticalAlignment="Center" ToolTip="{Binding DisplayName}">
+        <Grid Width="168" VerticalAlignment="Center" ToolTip="{Binding Description}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition />
                 <ColumnDefinition Width="Auto" />

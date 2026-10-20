@@ -1240,4 +1240,22 @@ Windows 상태: {2}</value>
   <data name="CaptureLatestSnapshot" xml:space="preserve">
     <value>가장 최근에 기록된 샘플을 선택합니다. 기록과 상단 측정값은 계속 실시간으로 업데이트됩니다.</value>
   </data>
+  <data name="PaletteNeonVivid" xml:space="preserve">
+    <value>Neon</value>
+  </data>
+  <data name="PaletteArcade" xml:space="preserve">
+    <value>Arcade</value>
+  </data>
+  <data name="PaletteTropical" xml:space="preserve">
+    <value>Tropical</value>
+  </data>
+  <data name="PaletteNeonVividDescription" xml:space="preserve">
+    <value>사용자 지정 · 선명한 청록색, 분홍색, 라임색, 보라색</value>
+  </data>
+  <data name="PaletteArcadeDescription" xml:space="preserve">
+    <value>사용자 지정 · 채도가 높은 기본색과 보조색</value>
+  </data>
+  <data name="PaletteTropicalDescription" xml:space="preserve">
+    <value>사용자 지정 · 파란색과 틸색으로 균형을 잡은 밝은 따뜻한 색상</value>
+  </data>
 </root>

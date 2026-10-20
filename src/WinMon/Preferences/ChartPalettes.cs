@@ -17,6 +17,9 @@ internal static class ChartPalettes
         "Signal" => Strings.PaletteSignal,
         "Botanical" => Strings.PaletteBotanical,
         "Spectrum" => Strings.PaletteSpectrum,
+        "Neon" => Strings.PaletteNeonVivid,
+        "Arcade" => Strings.PaletteArcade,
+        "Tropical" => Strings.PaletteTropical,
         _ => Strings.PaletteClassic
     };
 
@@ -25,8 +28,16 @@ internal static class ChartPalettes
         "Classic", "Ocean", "Colorblind",
         "High-Contrast & Inclusive", "Sophisticated Pastel", "Vibrant Monochromatic Shift",
         "Cyberpunk / Neon", "Warm Earth Tones", "Cool Tech",
-        "Studio", "Signal", "Botanical", "Spectrum"
+        "Studio", "Signal", "Botanical", "Spectrum", "Neon", "Arcade", "Tropical"
     ];
+
+    internal static string Description(string name) => Normalize(name) switch
+    {
+        "Neon" => Strings.PaletteNeonVividDescription,
+        "Arcade" => Strings.PaletteArcadeDescription,
+        "Tropical" => Strings.PaletteTropicalDescription,
+        _ => DisplayName(name)
+    };
 
     internal static string Normalize(string? value) => Names.FirstOrDefault(n =>
         string.Equals(n, value?.Trim(), StringComparison.OrdinalIgnoreCase)) ?? "Classic";
@@ -44,6 +55,9 @@ internal static class ChartPalettes
         ("Signal", _) => ["#009E73", "#0072B2", "#D55E00", "#CC79A7", "#56B4E9", "#E69F00"],
         ("Botanical", _) => ["#66A61E", "#7570B3", "#D95F02", "#E7298A", "#1B9E77", "#E6AB02"],
         ("Spectrum", _) => ["#22A884", "#2A788E", "#7AD151", "#414487", "#440154", "#FDE725"],
+        ("Neon", _) => ["#00E5FF", "#FF1493", "#B6FF00", "#FF6D00", "#A100FF", "#FFE600"],
+        ("Arcade", _) => ["#FF1744", "#2979FF", "#00E676", "#FFEA00", "#D500F9", "#FF9100"],
+        ("Tropical", _) => ["#FF3D71", "#00B8D9", "#FFAB00", "#6554FF", "#00C896", "#FF5630"],
         ("Ocean", false) => ["#55CFFF", "#B0A0FF", "#FFAE70", "#FF89B5", "#60E0BD", "#E5D66A"],
         ("Ocean", true) => ["#006C96", "#6745A5", "#9E4810", "#A02E62", "#08765C", "#776600"],
         ("Colorblind", false) => ["#56B4E9", "#E69F00", "#F0E442", "#CC79A7", "#00BFA0", "#FF8054"],

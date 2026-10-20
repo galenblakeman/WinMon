@@ -1240,4 +1240,22 @@ Fabricant : {1}
   <data name="CaptureLatestSnapshot" xml:space="preserve">
     <value>Sélectionner le dernier échantillon enregistré. L&apos;enregistrement et les valeurs du haut restent en direct.</value>
   </data>
+  <data name="PaletteNeonVivid" xml:space="preserve">
+    <value>Neon</value>
+  </data>
+  <data name="PaletteArcade" xml:space="preserve">
+    <value>Arcade</value>
+  </data>
+  <data name="PaletteTropical" xml:space="preserve">
+    <value>Tropical</value>
+  </data>
+  <data name="PaletteNeonVividDescription" xml:space="preserve">
+    <value>Personnalisée · cyan, rose, vert citron et violet vifs</value>
+  </data>
+  <data name="PaletteArcadeDescription" xml:space="preserve">
+    <value>Personnalisée · couleurs primaires et secondaires saturées</value>
+  </data>
+  <data name="PaletteTropicalDescription" xml:space="preserve">
+    <value>Personnalisée · couleurs chaudes lumineuses équilibrées par du bleu et du turquoise</value>
+  </data>
 </root>

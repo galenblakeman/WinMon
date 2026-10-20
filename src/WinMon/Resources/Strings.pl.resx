@@ -1240,4 +1240,22 @@ Stan według Windows: {2}</value>
   <data name="CaptureLatestSnapshot" xml:space="preserve">
     <value>Wybierz ostatnią zapisaną próbkę. Nagrywanie i górne odczyty pozostają na żywo.</value>
   </data>
+  <data name="PaletteNeonVivid" xml:space="preserve">
+    <value>Neon</value>
+  </data>
+  <data name="PaletteArcade" xml:space="preserve">
+    <value>Arcade</value>
+  </data>
+  <data name="PaletteTropical" xml:space="preserve">
+    <value>Tropical</value>
+  </data>
+  <data name="PaletteNeonVividDescription" xml:space="preserve">
+    <value>Własna · żywy cyjan, róż, limonka i fiolet</value>
+  </data>
+  <data name="PaletteArcadeDescription" xml:space="preserve">
+    <value>Własna · nasycone kolory podstawowe i pochodne</value>
+  </data>
+  <data name="PaletteTropicalDescription" xml:space="preserve">
+    <value>Własna · jasne ciepłe kolory zrównoważone błękitem i turkusem</value>
+  </data>
 </root>

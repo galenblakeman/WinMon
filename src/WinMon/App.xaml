@@ -2,6 +2,7 @@
     x:Class="WinMon.App"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:system="clr-namespace:System;assembly=System.Runtime"
     xmlns:controls="clr-namespace:WinMon.Controls">
     <Application.Resources>
         <SolidColorBrush x:Key="SnapshotAccent" Color="#25D5F0" />
@@ -105,6 +106,11 @@
             <Setter Property="Foreground" Value="{DynamicResource Text}" />
         </Style>
         <Style TargetType="ToolTip">
+            <Style.Resources>
+                <DataTemplate DataType="{x:Type system:String}">
+                    <TextBlock MaxWidth="360" Text="{Binding}" TextWrapping="Wrap" />
+                </DataTemplate>
+            </Style.Resources>
             <Setter Property="Background" Value="{DynamicResource Raised}" />
             <Setter Property="Foreground" Value="{DynamicResource Text}" />
             <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
