@@ -8,7 +8,7 @@ namespace WinMon.Controls;
 public sealed class ProcessRow : Grid
 {
     private readonly TextBlock _name = new() { FontSize = 14, TextTrimming = TextTrimming.CharacterEllipsis };
-    private readonly TextBlock _pid = new() { FontSize = 10 };
+    private readonly TextBlock _pid = new() { FontSize = 10, TextTrimming = TextTrimming.CharacterEllipsis };
     private readonly TextBlock _value = Cell();
     private readonly TextBlock _memory = Cell();
     private readonly TextBlock _io = Cell();
@@ -92,8 +92,10 @@ public sealed class ProcessRow : Grid
         var tooltipName = name == usage.Name ? _name.Text : $"{_name.Text} ({usage.Name})";
         var path = usage.ImagePath.Length > 0 ? usage.ImagePath : Strings.ExecutablePathUnavailable;
         _name.ToolTip = $"{tooltipName} · {(grouped ? MemberList(usage) : Strings.Format(Strings.PID, usage.ProcessId))}\n{path}";
-        _pid.Text = members ? Strings.Format(Strings.Processes, usage.MemberCount) : Strings.Format(Strings.PID, usage.ProcessId);
-        _pid.Visibility = showPid ? Visibility.Visible : Visibility.Collapsed;
+        var kind = usage.HasAppWindow switch { true => Strings.ProcessKindApp, false => Strings.ProcessKindBackground, null => Strings.Unknown };
+        _pid.Text = showPid ? $"{(members ? Strings.Format(Strings.Processes, usage.MemberCount) : Strings.Format(Strings.PID, usage.ProcessId))} · {kind}" : kind;
+        _pid.ToolTip = Strings.ProcessKindExplanation;
+        _pid.Visibility = Visibility.Visible;
         _value.Text = Strings.Format(Strings.PercentOneDecimal, usage.CpuPercent);
         _gpu.Text = usage.GpuPercent is { } percent ? Strings.Format(Strings.PercentOneDecimal, percent) : Strings.MissingReading;
         _gpu.ToolTip = usage.GpuPercent is not null
@@ -123,7 +125,7 @@ public sealed class ProcessRow : Grid
             ? Strings.PrivateBytesSummedAcrossThisExecutableSCurrentProcesses
             : Strings.ResidentWorkingSetIncludingSharedPagesDoesNotSumTo;
         _io.Text = usage.IoBytesPerSecond is { } rate ? $"{rate / 1_000_000:0.00}" : Strings.MissingReading;
-        System.Windows.Automation.AutomationProperties.SetName(this, Strings.Format(Strings.OfTotalCPUAveragedOver5SecondsGPUAveragedOver, name, members ? Strings.Format(Strings.Processes, usage.MemberCount) : Strings.Format(Strings.Process, usage.ProcessId), _value.Text, _gpu.Text, _memory.Text, _io.Text));
+        System.Windows.Automation.AutomationProperties.SetName(this, Strings.Format(Strings.OfTotalCPUAveragedOver5SecondsGPUAveragedOver, name, members ? Strings.Format(Strings.Processes, usage.MemberCount) : Strings.Format(Strings.Process, usage.ProcessId), _value.Text, _gpu.Text, _memory.Text, _io.Text) + $" · {kind}");
     }
 
     /// <summary>Show the measured processes ranked below the visible rows as one muted summary line.</summary>

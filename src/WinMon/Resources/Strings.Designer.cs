@@ -269,6 +269,9 @@ public static partial class Strings
     public static string ProcessesLowercase => ResourceManager.GetString(nameof(ProcessesLowercase), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ProcessesNeedAdministratorAccess => ResourceManager.GetString(nameof(ProcessesNeedAdministratorAccess), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ProcessGrouping => ResourceManager.GetString(nameof(ProcessGrouping), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string ProcessKindApp => ResourceManager.GetString(nameof(ProcessKindApp), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string ProcessKindBackground => ResourceManager.GetString(nameof(ProcessKindBackground), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string ProcessKindExplanation => ResourceManager.GetString(nameof(ProcessKindExplanation), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string Processor => ResourceManager.GetString(nameof(Processor), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ProcessReadWriteIOIncludesFileNetworkAndDevice => ResourceManager.GetString(nameof(ProcessReadWriteIOIncludesFileNetworkAndDevice), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ProductVersion => ResourceManager.GetString(nameof(ProductVersion), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;

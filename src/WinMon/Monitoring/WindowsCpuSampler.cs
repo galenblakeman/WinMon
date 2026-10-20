@@ -135,7 +135,9 @@ public sealed class WindowsCpuSampler : IDisposable
                 PrivateBytes = process.PrivateBytes,
                 ImagePath = process.ImagePath ?? "",
                 AppName = appNames.Description,
-                ProductName = appNames.Product
+                ProductName = appNames.Product,
+                HasAppWindow = process.HasAppWindow,
+                HasHadAppWindow = process.HasHadAppWindow
             });
         }
 

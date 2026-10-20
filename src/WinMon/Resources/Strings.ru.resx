@@ -1216,4 +1216,13 @@ GPU {11} · {12}
   <data name="LanguageSystemDefault" xml:space="preserve">
     <value>Язык интерфейса Windows</value>
   </data>
+  <data name="ProcessKindApp" xml:space="preserve">
+    <value>Приложение</value>
+  </data>
+  <data name="ProcessKindBackground" xml:space="preserve">
+    <value>Фоновый</value>
+  </data>
+  <data name="ProcessKindExplanation" xml:space="preserve">
+    <value>Приложение: обнаружено видимое окно верхнего уровня без владельца (включая свёрнутое). Фоновый: такое окно не обнаружено. Группа отмечается как приложение, если такое окно есть у любого текущего участника. Неизвестно: перечисление окон недоступно. История использует записанное состояние.</value>
+  </data>
 </root>

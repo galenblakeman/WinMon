@@ -665,11 +665,11 @@ public partial class MainWindow
             var pulse = Math.Exp(-Math.Pow((i - 92) / 2d, 2));
             var cpu = 18 + 6 * Math.Sin(i * 1.7) + 52 * pulse;
             fixture._history.Add(new CpuSample(anchor.AddSeconds(i - 119), cpu,
-                [new ProcessUsage(100, 1, "chrome", 8.4, 1_303_379_968, 18_600_000) { GpuPercent = 12.4, GpuEngine = "3D", GpuId = "fixture", PrivateBytes = 900_000_000 },
-                 new ProcessUsage(106, 7, "chrome", 1.0, 400_000_000, 500_000) { PrivateBytes = 250_000_000 }, new ProcessUsage(101, 2, "devenv", 4.1, 1_914_699_776, 6_400_000) { GpuPercent = 1.2 },
-                 new ProcessUsage(102, 3, "MsMpEng", 3.6, 306_184_192, 12_800_000), new ProcessUsage(4, 4, "System", 2.9, 188_743_680, 4_100_000),
-                 new ProcessUsage(103, 5, "WinMon", 1.8, 97_517_568, 1_600_000) { GpuPercent = 0.5 },
-                 new ProcessUsage(104, 6, "gpu-worker", 0, 200_000_000, 0) { GpuPercent = 65, GpuEngine = "Compute", GpuId = "fixture" }], 0, false, Stopwatch.Frequency * (i + 1))
+                [new ProcessUsage(100, 1, "chrome", 8.4, 1_303_379_968, 18_600_000) { HasAppWindow = true, GpuPercent = 12.4, GpuEngine = "3D", GpuId = "fixture", PrivateBytes = 900_000_000 },
+                 new ProcessUsage(106, 7, "chrome", 1.0, 400_000_000, 500_000) { HasAppWindow = false, PrivateBytes = 250_000_000 }, new ProcessUsage(101, 2, "devenv", 4.1, 1_914_699_776, 6_400_000) { HasAppWindow = true, GpuPercent = 1.2 },
+                 new ProcessUsage(102, 3, "MsMpEng", 3.6, 306_184_192, 12_800_000) { HasAppWindow = false }, new ProcessUsage(4, 4, "System", 2.9, 188_743_680, 4_100_000) { HasAppWindow = false },
+                 new ProcessUsage(103, 5, "WinMon", 1.8, 97_517_568, 1_600_000) { HasAppWindow = true, GpuPercent = 0.5 },
+                 new ProcessUsage(104, 6, "gpu-worker", 0, 200_000_000, 0) { HasAppWindow = false, GpuPercent = 65, GpuEngine = "Compute", GpuId = "fixture" }], 0, false, Stopwatch.Frequency * (i + 1))
             {
                 Resources = new ResourceSample
                 {

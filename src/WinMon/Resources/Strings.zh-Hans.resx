@@ -1216,4 +1216,13 @@ Windows 健康状态：{2}</value>
   <data name="LanguageSystemDefault" xml:space="preserve">
     <value>Windows 显示语言</value>
   </data>
+  <data name="ProcessKindApp" xml:space="preserve">
+    <value>应用</value>
+  </data>
+  <data name="ProcessKindBackground" xml:space="preserve">
+    <value>后台</value>
+  </data>
+  <data name="ProcessKindExplanation" xml:space="preserve">
+    <value>应用：观察到可见且无所有者的顶层窗口（包括最小化窗口）。后台：未观察到此类窗口。只要任一当前成员有此类窗口，分组就显示为应用。未知：无法枚举窗口。历史标签使用记录时的状态。</value>
+  </data>
 </root>

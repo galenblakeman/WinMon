@@ -1216,4 +1216,13 @@ Windows health status: {2}</value>
   <data name="LanguageSystemDefault" xml:space="preserve">
     <value>Windows display language</value>
   </data>
+  <data name="ProcessKindApp" xml:space="preserve">
+    <value>App</value>
+  </data>
+  <data name="ProcessKindBackground" xml:space="preserve">
+    <value>Background</value>
+  </data>
+  <data name="ProcessKindExplanation" xml:space="preserve">
+    <value>App: a visible, unowned top-level window was observed (including minimized windows). Background: none was observed. Groups show App if any current member has one. Unknown: window enumeration unavailable. Historical labels use the recorded state.</value>
+  </data>
 </root>

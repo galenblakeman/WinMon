@@ -165,9 +165,14 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
             WorkingSetBytes = current.Any(p => p.WorkingSetBytes is not null) ? (ulong)current.Sum(p => (decimal)(p.WorkingSetBytes ?? 0)) : null,
             PrivateBytes = current.Any(p => p.PrivateBytes is not null) ? (ulong)current.Sum(p => (decimal)(p.PrivateBytes ?? 0)) : null,
             MemberCount = all.Length,
+            HasAppWindow = AppWindowState(current.Length > 0 ? current : all),
             MemberIds = [.. all.Select(p => p.ProcessId).Order()]
         };
     }
+
+    // A group is an app if any current member owns an app window, independent of which member is busiest.
+    private static bool? AppWindowState(ProcessUsage[] members) => members.Any(p => p.HasAppWindow == true)
+        ? true : members.All(p => p.HasAppWindow == false) ? false : null;
 
     /// <summary>Map an observation to monotonic seconds; support wall-time-only imported fixtures.</summary>
     internal static double Moment(CpuSample sample) => sample.MonotonicTimestamp > 0

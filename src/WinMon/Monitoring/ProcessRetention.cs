@@ -5,6 +5,7 @@ namespace WinMon.Monitoring;
 /// A sample lists about a thousand processes, but in any one second most read zero CPU, I/O and GPU.
 /// Those are dropped and counted in <see cref="CpuSample.CompactedProcesses"/>, except the largest working
 /// sets, which memory ranking needs. Averages treat a dropped process as zero for that interval.
+/// Processes that have shown an app window are also retained, including later background observations.
 /// </remarks>
 internal static class ProcessRetention
 {
@@ -27,7 +28,7 @@ internal static class ProcessRetention
         var threshold = largest.Count == largestByMemory && largest.TryPeek(out _, out var smallest) ? smallest : 0UL;
         ProcessUsage[] kept =
         [
-            .. sample.Processes.Where(p => p.CpuPercent > 0 || p.IoBytesPerSecond > 0 || p.GpuPercent is not null ||
+            .. sample.Processes.Where(p => p.HasHadAppWindow || p.HasAppWindow == true || p.CpuPercent > 0 || p.IoBytesPerSecond > 0 || p.GpuPercent is not null ||
                 p.WorkingSetBytes >= threshold)
         ];
         return kept.Length == sample.Processes.Count

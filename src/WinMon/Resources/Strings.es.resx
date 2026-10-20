@@ -1216,4 +1216,13 @@ Estado según Windows: {2}</value>
   <data name="LanguageSystemDefault" xml:space="preserve">
     <value>Idioma de pantalla de Windows</value>
   </data>
+  <data name="ProcessKindApp" xml:space="preserve">
+    <value>Aplicación</value>
+  </data>
+  <data name="ProcessKindBackground" xml:space="preserve">
+    <value>Segundo plano</value>
+  </data>
+  <data name="ProcessKindExplanation" xml:space="preserve">
+    <value>Aplicación: se observó una ventana visible de nivel superior sin propietario (incluidas las minimizadas). Segundo plano: ninguna observada. Los grupos muestran Aplicación si algún miembro actual tiene una. Desconocido: enumeración de ventanas no disponible. El historial usa el estado registrado.</value>
+  </data>
 </root>

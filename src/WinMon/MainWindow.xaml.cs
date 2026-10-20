@@ -97,7 +97,7 @@ public partial class MainWindow
         }
         ProcessRows.Children.Add(_otherRow);
         BuildRangeChips();
-        // Rows gain a PID line in a wide window; there is no separate expanded mode.
+        // The process-type line gains a PID in a wide window; there is no separate expanded mode.
         SizeChanged += (_, _) => AlignTitleBar();
         DpiChanged += (_, _) => AlignTitleBar();
         SizeChanged += (_, _) =>

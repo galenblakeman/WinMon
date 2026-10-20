@@ -1216,4 +1216,13 @@ Integridade segundo o Windows: {2}</value>
   <data name="LanguageSystemDefault" xml:space="preserve">
     <value>Idioma de exibição do Windows</value>
   </data>
+  <data name="ProcessKindApp" xml:space="preserve">
+    <value>Aplicativo</value>
+  </data>
+  <data name="ProcessKindBackground" xml:space="preserve">
+    <value>Segundo plano</value>
+  </data>
+  <data name="ProcessKindExplanation" xml:space="preserve">
+    <value>Aplicativo: foi observada uma janela visível de nível superior sem proprietário (inclusive minimizada). Segundo plano: nenhuma observada. Grupos mostram Aplicativo se algum membro atual tiver uma. Desconhecido: enumeração de janelas indisponível. O histórico usa o estado registrado.</value>
+  </data>
 </root>

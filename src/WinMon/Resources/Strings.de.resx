@@ -1216,4 +1216,13 @@ Windows-Zustandsstatus: {2}</value>
   <data name="LanguageSystemDefault" xml:space="preserve">
     <value>Windows-Anzeigesprache</value>
   </data>
+  <data name="ProcessKindApp" xml:space="preserve">
+    <value>App</value>
+  </data>
+  <data name="ProcessKindBackground" xml:space="preserve">
+    <value>Hintergrund</value>
+  </data>
+  <data name="ProcessKindExplanation" xml:space="preserve">
+    <value>App: Ein sichtbares, nicht besessenes Fenster der obersten Ebene wurde erkannt (auch minimiert). Hintergrund: keines erkannt. Gruppen zeigen App, wenn ein aktuelles Mitglied eines hat. Unbekannt: Fensterermittlung nicht verfügbar. Historische Beschriftungen verwenden den aufgezeichneten Zustand.</value>
+  </data>
 </root>

@@ -1216,4 +1216,13 @@ Stan według Windows: {2}</value>
   <data name="LanguageSystemDefault" xml:space="preserve">
     <value>Język wyświetlania Windows</value>
   </data>
+  <data name="ProcessKindApp" xml:space="preserve">
+    <value>Aplikacja</value>
+  </data>
+  <data name="ProcessKindBackground" xml:space="preserve">
+    <value>Tło</value>
+  </data>
+  <data name="ProcessKindExplanation" xml:space="preserve">
+    <value>Aplikacja: wykryto widoczne okno najwyższego poziomu bez właściciela (także zminimalizowane). Tło: nie wykryto takiego okna. Grupy pokazują Aplikacja, jeśli ma je dowolny bieżący członek. Nieznane: wyliczanie okien niedostępne. Historia używa zapisanego stanu.</value>
+  </data>
 </root>

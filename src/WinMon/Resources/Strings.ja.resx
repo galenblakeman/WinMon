@@ -1216,4 +1216,13 @@ Windows の正常性状態: {2}</value>
   <data name="LanguageSystemDefault" xml:space="preserve">
     <value>Windows の表示言語</value>
   </data>
+  <data name="ProcessKindApp" xml:space="preserve">
+    <value>アプリ</value>
+  </data>
+  <data name="ProcessKindBackground" xml:space="preserve">
+    <value>バックグラウンド</value>
+  </data>
+  <data name="ProcessKindExplanation" xml:space="preserve">
+    <value>アプリ: 所有者のない表示状態のトップレベルウィンドウを検出（最小化を含む）。バックグラウンド: 該当するウィンドウなし。グループは現在のメンバーのいずれかが該当すればアプリと表示。不明: ウィンドウ列挙が利用不可。履歴には記録時の状態を表示。</value>
+  </data>
 </root>

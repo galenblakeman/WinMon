@@ -27,6 +27,12 @@ public sealed record ProcessUsage(int ProcessId, long CreationTicks, string Name
     /// <summary>Product name from executable version information, when available.</summary>
     public string ProductName { get; init; } = "";
 
+    /// <summary>Whether a visible, unowned top-level window was observed at sampling time; null when unavailable.</summary>
+    public bool? HasAppWindow { get; init; }
+
+    // Keep later background observations too, so compaction cannot leave an old App label in the averaging window.
+    internal bool HasHadAppWindow { get; init; }
+
     /// <summary>Processes a grouped row represents; 1 for an individual process.</summary>
     public int MemberCount { get; init; } = 1;
 

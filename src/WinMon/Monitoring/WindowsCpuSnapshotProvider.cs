@@ -39,6 +39,9 @@ internal sealed class WindowsCpuSnapshotProvider : ICpuSnapshotProvider
     private Dictionary<(int, long), string> _paths = [];
     private Dictionary<(int, long), string> _nextPaths = [];
     private readonly char[] _pathBuffer = new char[1024];
+    private readonly WindowsAppWindowProvider _appWindows = new();
+    private HashSet<(int, long)> _windowLifetimes = [];
+    private HashSet<(int, long)> _nextWindowLifetimes = [];
     // Captures alternate between two process lists, so a snapshot's list stays intact until the next-but-one
     // capture. A fresh list of ~1,000 entries would land on the large object heap every second.
     private List<ProcessCpuTimes> _processes = [];
@@ -66,6 +69,8 @@ internal sealed class WindowsCpuSnapshotProvider : ICpuSnapshotProvider
         var available = Parse(_buffer.AsSpan(0, length), Marshal.UnsafeAddrOfPinnedArrayElement(_buffer, 0),
             _names, _nextNames, out var unavailable, _processes);
         (_names, _nextNames) = (_nextNames, _names);
+        var appWindows = _appWindows.Capture();
+        _nextWindowLifetimes.Clear();
         _nextPaths.Clear();
         for (var i = 0; i < available.Count; i++)
         {
@@ -73,9 +78,13 @@ internal sealed class WindowsCpuSnapshotProvider : ICpuSnapshotProvider
             var key = (process.ProcessId, process.CreationTicks);
             if (!_paths.TryGetValue(key, out var path)) path = ReadImagePath(process.ProcessId, process.CreationTicks);
             _nextPaths[key] = path;
-            if (path.Length > 0) available[i] = process with { ImagePath = path };
+            var hasAppWindow = appWindows?.Contains(process.ProcessId);
+            var hasHadAppWindow = hasAppWindow == true || _windowLifetimes.Contains(key);
+            if (hasHadAppWindow) _nextWindowLifetimes.Add(key);
+            available[i] = process with { ImagePath = path, HasAppWindow = hasAppWindow, HasHadAppWindow = hasHadAppWindow };
         }
         (_paths, _nextPaths) = (_nextPaths, _paths);
+        (_windowLifetimes, _nextWindowLifetimes) = (_nextWindowLifetimes, _windowLifetimes);
 
         return new CpuSnapshot(
             DateTimeOffset.UtcNow,

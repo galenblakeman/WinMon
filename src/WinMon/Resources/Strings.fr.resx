@@ -1216,4 +1216,13 @@ Fabricant : {1}
   <data name="LanguageSystemDefault" xml:space="preserve">
     <value>Langue d’affichage Windows</value>
   </data>
+  <data name="ProcessKindApp" xml:space="preserve">
+    <value>Application</value>
+  </data>
+  <data name="ProcessKindBackground" xml:space="preserve">
+    <value>Arrière-plan</value>
+  </data>
+  <data name="ProcessKindExplanation" xml:space="preserve">
+    <value>Application : une fenêtre visible de premier niveau sans propriétaire a été observée (même réduite). Arrière-plan : aucune observée. Un groupe indique Application si un membre actuel en possède une. Inconnu : énumération des fenêtres indisponible. Les libellés historiques utilisent un état enregistré.</value>
+  </data>
 </root>

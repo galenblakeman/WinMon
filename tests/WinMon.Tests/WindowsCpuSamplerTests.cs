@@ -9,6 +9,25 @@ namespace WinMon.Tests;
 public sealed class WindowsCpuSamplerTests
 {
     [Test]
+    public void Sample_RecordsWindowClassificationChangesWithoutChangingEarlierSamples()
+    {
+        var process = new ProcessCpuTimes(10, 100, "app", 50) { HasAppWindow = true, HasHadAppWindow = true };
+        using var sampler = new WindowsCpuSampler(new SequenceSnapshotProvider(
+            Snapshot(1, 1_000, 100, [process]),
+            Snapshot(2, 2_000, 200, [process]),
+            Snapshot(3, 3_000, 300, [process with { HasAppWindow = false }])));
+        _ = sampler.Sample();
+        var app = sampler.Sample();
+        var background = sampler.Sample();
+        Assert.Multiple(() =>
+        {
+            Assert.That(app.Processes.Single().HasAppWindow, Is.True);
+            Assert.That(background.Processes.Single().HasAppWindow, Is.False);
+            Assert.That(background.Processes.Single().HasHadAppWindow, Is.True);
+        });
+    }
+
+    [Test]
     public void Sample_CarriesExecutableAppNamesIntoSearchableRows()
     {
         var path = typeof(WindowsCpuSampler).Assembly.Location;
