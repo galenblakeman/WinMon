@@ -13,6 +13,8 @@ public sealed class ProcessRow : Grid
     private readonly TextBlock _memory = Cell();
     private readonly TextBlock _io = Cell();
     private readonly TextBlock _gpu = Cell();
+    private readonly TextBlock _threads = Cell();
+    private readonly TextBlock _handles = Cell();
     private readonly Image _icon = new() { Width = 18, Height = 18, Margin = new Thickness(0, 0, 8, 0), Source = ProcessIconProvider.Fallback };
     private readonly CpuGraph _graph = new() { Height = 22, Margin = new Thickness(10, 0, 4, 0), VerticalAlignment = VerticalAlignment.Center, IsHitTestVisible = false };
     private (int, long)? _identity;
@@ -54,13 +56,15 @@ public sealed class ProcessRow : Grid
         Height = 36;
         var separator = new Border { BorderThickness = new Thickness(0, 0, 0, 1), IsHitTestVisible = false };
         separator.SetResourceReference(Border.BorderBrushProperty, "Line");
-        SetColumnSpan(separator, 6); Children.Add(separator);
+        SetColumnSpan(separator, 8); Children.Add(separator);
         ColumnDefinitions.Add(new ColumnDefinition());
-        ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(60) });
+        ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(160) });
         ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(55) });
         ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(55) });
         ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(82) });
         ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(75) });
+        ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(64) });
+        ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(72) });
         var stack = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 0) };
         stack.Children.Add(_name); stack.Children.Add(_pid);
         var process = new Grid { ClipToBounds = true };
@@ -73,7 +77,9 @@ public sealed class ProcessRow : Grid
         Children.Add(_gpu); SetColumn(_gpu, 3);
         Children.Add(_memory); SetColumn(_memory, 4);
         Children.Add(_io); SetColumn(_io, 5);
-        foreach (var text in new[] { _name, _value, _gpu, _memory, _io }) text.SetResourceReference(TextBlock.ForegroundProperty, "Text");
+        Children.Add(_threads); SetColumn(_threads, 6);
+        Children.Add(_handles); SetColumn(_handles, 7);
+        foreach (var text in new[] { _name, _value, _gpu, _memory, _io, _threads, _handles }) text.SetResourceReference(TextBlock.ForegroundProperty, "Text");
         _pid.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
         _memory.ToolTip = Strings.ResidentWorkingSetIncludingSharedPagesDoesNotSumTo;
         _io.ToolTip = Strings.ReadWriteIOIncludesFileNetworkAndDeviceOperations;
@@ -109,6 +115,8 @@ public sealed class ProcessRow : Grid
             ProcessSort.Gpu => Strings.Format(Strings.History0GPUUtilization, grouped ? Strings.BusiestMemberGpuTitle : Strings.GPU, scale),
             ProcessSort.Memory => Strings.Format(Strings.History0MiB, grouped ? Strings.SummedPrivateMemoryTitle : Strings.ResidentMemory, scale / 1_048_576d),
             ProcessSort.Io => Strings.Format(Strings.History0MBS, grouped ? Strings.SummedReadWriteIO : Strings.ReadWriteIO, scale / 1_000_000d),
+            ProcessSort.Threads => Strings.Format(Strings.HistoryCount, Strings.Threads, scale),
+            ProcessSort.Handles => Strings.Format(Strings.HistoryCount, Strings.Handles, scale),
             _ => Strings.Format(Strings.History0OfTotalMachineCPU, grouped ? Strings.SummedCpuTitle : Strings.CPU, scale)
         };
         ToolTip = Strings.Format(Strings.LastMinSameScaleForEveryRow, tooltipName, grouped ? MemberList(usage) : Strings.Format(Strings.PID, usage.ProcessId), path, history, seconds / 60d);
@@ -125,7 +133,11 @@ public sealed class ProcessRow : Grid
             ? Strings.PrivateBytesSummedAcrossThisExecutableSCurrentProcesses
             : Strings.ResidentWorkingSetIncludingSharedPagesDoesNotSumTo;
         _io.Text = usage.IoBytesPerSecond is { } rate ? $"{rate / 1_000_000:0.00}" : Strings.MissingReading;
-        System.Windows.Automation.AutomationProperties.SetName(this, Strings.Format(Strings.OfTotalCPUAveragedOver5SecondsGPUAveragedOver, name, members ? Strings.Format(Strings.Processes, usage.MemberCount) : Strings.Format(Strings.Process, usage.ProcessId), _value.Text, _gpu.Text, _memory.Text, _io.Text) + $" · {kind}");
+        _threads.Text = usage.ThreadCount?.ToString("N0") ?? Strings.MissingReading;
+        _handles.Text = usage.HandleCount?.ToString("N0") ?? Strings.MissingReading;
+        _threads.ToolTip = Strings.ProcessThreadsExplanation;
+        _handles.ToolTip = Strings.ProcessHandlesExplanation;
+        System.Windows.Automation.AutomationProperties.SetName(this, Strings.Format(Strings.OfTotalCPUAveragedOver5SecondsGPUAveragedOver, name, members ? Strings.Format(Strings.Processes, usage.MemberCount) : Strings.Format(Strings.Process, usage.ProcessId), _value.Text, _gpu.Text, _memory.Text, _io.Text) + $" · {kind} · {Strings.Threads}: {_threads.Text} · {Strings.Handles}: {_handles.Text}");
     }
 
     /// <summary>Show the measured processes ranked below the visible rows as one muted summary line.</summary>
@@ -143,6 +155,8 @@ public sealed class ProcessRow : Grid
         _name.ToolTip = null;
         _value.Text = Strings.Format(Strings.PercentOneDecimal, cpuPercent);
         _memory.Text = "";
+        _threads.Text = "";
+        _handles.Text = "";
         _gpu.Text = Strings.MissingReading;
         _gpu.ToolTip = Strings.GPUPercentagesRepresentDifferentEnginesAndCannotBeSummed;
         _io.Text = ioBytesPerSecond is { } rate ? $"{rate / 1_000_000:0.00}" : Strings.MissingReading;

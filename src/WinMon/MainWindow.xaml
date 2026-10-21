@@ -5,9 +5,9 @@
     xmlns:controls="clr-namespace:WinMon.Controls"
     xmlns:resources="clr-namespace:WinMon.Resources"
     Title="{Binding [WinMon], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-    Width="600"
+    Width="836"
     Height="840"
-    MinWidth="600"
+    MinWidth="836"
     MinHeight="800"
     Background="Transparent"
     Closing="OnClosing"
@@ -436,7 +436,7 @@
                                         Text="{Binding [ProcessesBy], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                                     <ComboBox
                                         x:Name="ProcessSortSelector"
-                                        Width="90"
+                                        MinWidth="90"
                                         Padding="8,3,26,3"
                                         MinHeight="28"
                                         Margin="6,0,0,0"
@@ -548,11 +548,13 @@
                         HorizontalAlignment="Left">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition />
-                            <ColumnDefinition Width="60" />
+                            <ColumnDefinition Width="160" />
                             <ColumnDefinition Width="55" />
                             <ColumnDefinition Width="55" />
                             <ColumnDefinition Width="82" />
                             <ColumnDefinition Width="75" />
+                            <ColumnDefinition Width="64" />
+                            <ColumnDefinition Width="72" />
                         </Grid.ColumnDefinitions>
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -613,6 +615,22 @@
                             Foreground="{DynamicResource Muted}"
                             Text="{Binding [IOMBS], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                             ToolTip="{Binding [ProcessReadWriteIOIncludesFileNetworkAndDevice], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                        <TextBlock
+                            x:Name="ThreadsHeader"
+                            Grid.Column="6"
+                            HorizontalAlignment="Right"
+                            FontSize="12"
+                            Foreground="{DynamicResource Muted}"
+                            Text="{Binding [Threads], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                            ToolTip="{Binding [ProcessThreadsExplanation], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                        <TextBlock
+                            x:Name="HandlesHeader"
+                            Grid.Column="7"
+                            HorizontalAlignment="Right"
+                            FontSize="12"
+                            Foreground="{DynamicResource Muted}"
+                            Text="{Binding [Handles], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                            ToolTip="{Binding [ProcessHandlesExplanation], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                     </Grid>
                     <ScrollViewer
                         x:Name="ProcessScroll"

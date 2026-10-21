@@ -749,7 +749,7 @@ Zgłoszone maksimum: {3}</value>
     <value>RAID</value>
   </data>
   <data name="RankByFiveSecondAverageCPUGPUOrIO" xml:space="preserve">
-    <value>Sortuj według średniej CPU, GPU lub I/O z 5 sekund albo bieżącej pamięci</value>
+    <value>Sortuj według CPU, GPU, pamięci, We/Wy, wątków lub uchwytów. Liczniki i pamięć używają ostatniej próbki.</value>
   </data>
   <data name="RankProcessesBy" xml:space="preserve">
     <value>Sortuj procesy według</value>
@@ -1263,4 +1263,10 @@ Stan według Windows: {2}</value>
 
 Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną zakończone. Procesy uruchomione po otwarciu tego potwierdzenia nie zostaną uwzględnione.</value></data>
   <data name="EndGroupMenu" xml:space="preserve"><value>Zakończ wszystkie procesy w {0}</value></data>
+  <data name="Threads" xml:space="preserve"><value>Wątki</value></data>
+  <data name="Handles" xml:space="preserve"><value>Uchwyty</value></data>
+  <data name="ProcessThreadsExplanation" xml:space="preserve"><value>Ostatnia zmierzona liczba; grupy sumują obecnie obserwowane procesy. Historia może pomijać skompaktowane nieaktywne procesy.</value></data>
+  <data name="ProcessHandlesExplanation" xml:space="preserve"><value>Ostatnia zmierzona liczba; grupy sumują obecnie obserwowane procesy. Historia może pomijać skompaktowane nieaktywne procesy.</value></data>
+  <data name="HistoryCount" xml:space="preserve"><value>Historia {0}: 0–{1:N0}.</value></data>
+  <data name="NoProcessCountReadings" xml:space="preserve"><value>Brak odczytów liczników procesów.</value></data>
 </root>

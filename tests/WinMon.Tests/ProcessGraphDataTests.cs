@@ -16,10 +16,14 @@ public sealed class ProcessGraphDataTests
     [TestCase(ProcessSort.Gpu, true, 40, 40)]
     [TestCase(ProcessSort.Memory, true, 600, 500)]
     [TestCase(ProcessSort.Io, true, 600, 400)]
+    [TestCase(ProcessSort.Threads, false, 10, 20)]
+    [TestCase(ProcessSort.Handles, false, 100, 200)]
+    [TestCase(ProcessSort.Threads, true, 30, 20)]
+    [TestCase(ProcessSort.Handles, true, 300, 200)]
     public void Build_SelectedMetricUsesMatchingValuesAndSharedScale(ProcessSort sort, bool grouped, double first, double second)
     {
-        var a = new ProcessUsage(1, 100, "a", 2, 2000, 200) { PrivateBytes = 100, GpuPercent = 20 };
-        var b = new ProcessUsage(2, 200, "a", 3, 4000, 400) { PrivateBytes = 500, GpuPercent = 40 };
+        var a = new ProcessUsage(1, 100, "a", 2, 2000, 200) { PrivateBytes = 100, GpuPercent = 20, ThreadCount = 10, HandleCount = 100 };
+        var b = new ProcessUsage(2, 200, "a", 3, 4000, 400) { PrivateBytes = 500, GpuPercent = 40, ThreadCount = 20, HandleCount = 200 };
         var c = b with { ProcessId = 3, Name = "c" };
         CpuSample[] samples = [new(DateTimeOffset.UtcNow, 50, [a, b, c], 0, false, Stopwatch.Frequency)];
 
@@ -41,6 +45,10 @@ public sealed class ProcessGraphDataTests
     [TestCase(ProcessSort.Gpu, true)]
     [TestCase(ProcessSort.Memory, true)]
     [TestCase(ProcessSort.Io, true)]
+    [TestCase(ProcessSort.Threads, false)]
+    [TestCase(ProcessSort.Handles, false)]
+    [TestCase(ProcessSort.Threads, true)]
+    [TestCase(ProcessSort.Handles, true)]
     public void Build_PreservesUnavailableReadingsAndRecordingGaps(ProcessSort sort, bool grouped)
     {
         var now = DateTimeOffset.UtcNow;

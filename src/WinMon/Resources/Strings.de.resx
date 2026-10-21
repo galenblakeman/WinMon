@@ -749,7 +749,7 @@ Gemeldetes Maximum: {3}</value>
     <value>RAID</value>
   </data>
   <data name="RankByFiveSecondAverageCPUGPUOrIO" xml:space="preserve">
-    <value>Nach 5-Sekunden-Mittel von CPU, GPU oder E/A oder nach aktuellem Speicher sortieren</value>
+    <value>Nach CPU, GPU, Speicher, E/A, Threads oder Handles sortieren. Anzahl und Speicher stammen aus der letzten Messung.</value>
   </data>
   <data name="RankProcessesBy" xml:space="preserve">
     <value>Prozesse sortieren nach</value>
@@ -1263,4 +1263,10 @@ Windows-Zustandsstatus: {2}</value>
 
 Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse werden beendet. Nach dem Öffnen dieser Bestätigung gestartete Prozesse sind nicht enthalten.</value></data>
   <data name="EndGroupMenu" xml:space="preserve"><value>Alle Prozesse in {0} beenden</value></data>
+  <data name="Threads" xml:space="preserve"><value>Threads</value></data>
+  <data name="Handles" xml:space="preserve"><value>Handles</value></data>
+  <data name="ProcessThreadsExplanation" xml:space="preserve"><value>Zuletzt erfasste Anzahl; Gruppen summieren aktuell beobachtete Prozesse. Im Verlauf können komprimierte inaktive Prozesse fehlen.</value></data>
+  <data name="ProcessHandlesExplanation" xml:space="preserve"><value>Zuletzt erfasste Anzahl; Gruppen summieren aktuell beobachtete Prozesse. Im Verlauf können komprimierte inaktive Prozesse fehlen.</value></data>
+  <data name="HistoryCount" xml:space="preserve"><value>{0}-Verlauf: 0–{1:N0}.</value></data>
+  <data name="NoProcessCountReadings" xml:space="preserve"><value>Keine Prozessanzahlen verfügbar.</value></data>
 </root>

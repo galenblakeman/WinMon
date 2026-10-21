@@ -749,7 +749,7 @@ Maximum déclaré : {3}</value>
     <value>RAID</value>
   </data>
   <data name="RankByFiveSecondAverageCPUGPUOrIO" xml:space="preserve">
-    <value>Classer par moyenne CPU, GPU ou E/S sur 5 secondes, ou par mémoire actuelle</value>
+    <value>Trier par CPU, GPU, mémoire, E/S, threads ou handles. Les compteurs et la mémoire utilisent le dernier relevé.</value>
   </data>
   <data name="RankProcessesBy" xml:space="preserve">
     <value>Classer les processus par</value>
@@ -1263,4 +1263,10 @@ Fabricant : {1}
 
 Le travail non enregistré peut être perdu. Tous les processus ci-dessous seront terminés. Les processus démarrés après l&apos;ouverture de cette confirmation ne seront pas inclus.</value></data>
   <data name="EndGroupMenu" xml:space="preserve"><value>Terminer tous les processus de {0}</value></data>
+  <data name="Threads" xml:space="preserve"><value>Threads</value></data>
+  <data name="Handles" xml:space="preserve"><value>Handles</value></data>
+  <data name="ProcessThreadsExplanation" xml:space="preserve"><value>Dernier nombre relevé ; les groupes additionnent les processus actuellement observés. L’historique peut omettre des processus inactifs compactés.</value></data>
+  <data name="ProcessHandlesExplanation" xml:space="preserve"><value>Dernier nombre relevé ; les groupes additionnent les processus actuellement observés. L’historique peut omettre des processus inactifs compactés.</value></data>
+  <data name="HistoryCount" xml:space="preserve"><value>Historique {0} : 0–{1:N0}.</value></data>
+  <data name="NoProcessCountReadings" xml:space="preserve"><value>Aucun relevé de comptage des processus disponible.</value></data>
 </root>

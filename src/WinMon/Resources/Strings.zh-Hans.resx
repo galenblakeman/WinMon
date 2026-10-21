@@ -749,7 +749,7 @@ GPU 利用率 0–{1:0.0}%</value>
     <value>RAID</value>
   </data>
   <data name="RankByFiveSecondAverageCPUGPUOrIO" xml:space="preserve">
-    <value>按 5 秒平均 CPU、GPU、I/O 或当前内存排序</value>
+    <value>按 CPU、GPU、内存、I/O、线程或句柄排序。计数和内存使用最新采样。</value>
   </data>
   <data name="RankProcessesBy" xml:space="preserve">
     <value>进程排序依据</value>
@@ -1263,4 +1263,10 @@ Windows 健康状态：{2}</value>
 
 未保存的工作可能会丢失。下面列出的所有进程都将结束。打开此确认窗口后启动的进程将不包括在内。</value></data>
   <data name="EndGroupMenu" xml:space="preserve"><value>结束 {0} 中的所有进程</value></data>
+  <data name="Threads" xml:space="preserve"><value>线程</value></data>
+  <data name="Handles" xml:space="preserve"><value>句柄</value></data>
+  <data name="ProcessThreadsExplanation" xml:space="preserve"><value>最近采样的数量；分组行汇总当前观测到的进程。历史记录可能省略已压缩的空闲进程。</value></data>
+  <data name="ProcessHandlesExplanation" xml:space="preserve"><value>最近采样的数量；分组行汇总当前观测到的进程。历史记录可能省略已压缩的空闲进程。</value></data>
+  <data name="HistoryCount" xml:space="preserve"><value>{0}历史：0–{1:N0}。</value></data>
+  <data name="NoProcessCountReadings" xml:space="preserve"><value>没有可用的进程计数读数。</value></data>
 </root>

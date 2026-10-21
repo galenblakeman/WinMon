@@ -35,8 +35,28 @@ public partial class MainWindow
         UpdateLayout();
         await CaptureAsync(Path.Combine(outputDirectory, "process-search-wide.png"), 1, cancellationToken);
         Width = originalWidth;
+        foreach (var (sort, header) in new[] { (ProcessSort.Threads, ThreadsHeader), (ProcessSort.Handles, HandlesHeader) })
+        {
+            ProcessSortSelector.SelectedIndex = (int)sort;
+            if (_preferences.ProcessSort != sort || !header.Text.EndsWith('▾'))
+                throw new InvalidOperationException($"The {sort} dropdown did not update its column heading.");
+            await CaptureAsync(Path.Combine(outputDirectory, $"process-sort-{sort}-live.png"), 1, cancellationToken);
+            GroupedChip.IsChecked = true;
+            await CaptureAsync(Path.Combine(outputDirectory, $"process-sort-{sort}-grouped.png"), 1, cancellationToken);
+            _selectedSample = _history.Samples[^2];
+            RefreshPresentation();
+            await CaptureAsync(Path.Combine(outputDirectory, $"process-sort-{sort}-history.png"), 1, cancellationToken);
+            _selectedSample = null;
+            IndividualChip.IsChecked = true;
+            ProcessSortSelector.SelectedIndex = (int)ProcessSort.Cpu;
+            header.RaiseEvent(new System.Windows.Input.MouseButtonEventArgs(System.Windows.Input.Mouse.PrimaryDevice, 0, System.Windows.Input.MouseButton.Left)
+                { RoutedEvent = MouseLeftButtonUpEvent });
+            if (_preferences.ProcessSort != sort || ProcessSortSelector.SelectedIndex != (int)sort)
+                throw new InvalidOperationException($"Clicking the {sort} heading did not update the dropdown.");
+        }
+        ProcessSortSelector.SelectedIndex = (int)ProcessSort.Cpu;
         await File.WriteAllTextAsync(Path.Combine(outputDirectory, "search-passed.txt"),
-            "Native search filtering and clear checks passed.", cancellationToken);
+            "Native search filtering, clear, count sorting and header checks passed.", cancellationToken);
     }
 
     /// <summary>Record whole-process CPU, memory and GC cost of live monitoring, after a warm-up that fills the compact history.</summary>
@@ -675,9 +695,9 @@ public partial class MainWindow
                 new JsonSerializerOptions { WriteIndented = true }), cancellationToken);
         _preferences = original;
         RefreshPresentation();
-        if (SecondaryDiskMetric.Visibility != Visibility.Collapsed || Math.Abs(MinWidth - 600) > 0.001)
+        if (SecondaryDiskMetric.Visibility != Visibility.Collapsed || Math.Abs(MinWidth - 836) > 0.001)
             throw new InvalidOperationException("Single-drive layout did not restore.");
-        Width = 600;
+        Width = MinWidth;
         foreach (var selection in new[] { second ?? missing, null })
         {
             var dialog = new Preferences.SettingsWindow(original with { SecondaryDrive = second ?? missing }) { Owner = this };

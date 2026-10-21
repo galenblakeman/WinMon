@@ -749,7 +749,7 @@ Máximo informado: {3}</value>
     <value>RAID</value>
   </data>
   <data name="RankByFiveSecondAverageCPUGPUOrIO" xml:space="preserve">
-    <value>Ordenar por média de CPU, GPU ou E/S de 5 segundos, ou memória atual</value>
+    <value>Ordenar por CPU, GPU, memória, E/S, threads ou handles. As contagens e a memória usam a última amostra.</value>
   </data>
   <data name="RankProcessesBy" xml:space="preserve">
     <value>Ordenar processos por</value>
@@ -1263,4 +1263,10 @@ Integridade segundo o Windows: {2}</value>
 
 O trabalho não salvo pode ser perdido. Todos os processos listados abaixo serão encerrados. Os processos iniciados após a abertura desta confirmação não serão incluídos.</value></data>
   <data name="EndGroupMenu" xml:space="preserve"><value>Encerrar todos os processos de {0}</value></data>
+  <data name="Threads" xml:space="preserve"><value>Threads</value></data>
+  <data name="Handles" xml:space="preserve"><value>Handles</value></data>
+  <data name="ProcessThreadsExplanation" xml:space="preserve"><value>Última contagem; os grupos somam os processos observados atuais. O histórico pode omitir processos ociosos compactados.</value></data>
+  <data name="ProcessHandlesExplanation" xml:space="preserve"><value>Última contagem; os grupos somam os processos observados atuais. O histórico pode omitir processos ociosos compactados.</value></data>
+  <data name="HistoryCount" xml:space="preserve"><value>Histórico de {0}: 0–{1:N0}.</value></data>
+  <data name="NoProcessCountReadings" xml:space="preserve"><value>Nenhuma contagem de processos disponível.</value></data>
 </root>

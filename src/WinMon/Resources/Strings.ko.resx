@@ -749,7 +749,7 @@ Windows에서 모듈 세부 정보를 가져올 수 없습니다.</value>
     <value>RAID</value>
   </data>
   <data name="RankByFiveSecondAverageCPUGPUOrIO" xml:space="preserve">
-    <value>CPU, GPU, I/O의 5초 평균 또는 현재 메모리로 정렬</value>
+    <value>CPU, GPU, 메모리, I/O, 스레드 또는 핸들로 정렬합니다. 수와 메모리는 최신 샘플을 사용합니다.</value>
   </data>
   <data name="RankProcessesBy" xml:space="preserve">
     <value>프로세스 정렬 기준</value>
@@ -1263,4 +1263,10 @@ Windows 상태: {2}</value>
 
 저장하지 않은 작업이 손실될 수 있습니다. 아래의 모든 프로세스가 종료됩니다. 이 확인 창을 연 후 시작된 프로세스는 포함되지 않습니다.</value></data>
   <data name="EndGroupMenu" xml:space="preserve"><value>{0}의 모든 프로세스 종료</value></data>
+  <data name="Threads" xml:space="preserve"><value>스레드</value></data>
+  <data name="Handles" xml:space="preserve"><value>핸들</value></data>
+  <data name="ProcessThreadsExplanation" xml:space="preserve"><value>최근 측정된 수입니다. 그룹 행은 현재 관측된 프로세스의 합계입니다. 기록에서는 압축된 유휴 프로세스가 생략될 수 있습니다.</value></data>
+  <data name="ProcessHandlesExplanation" xml:space="preserve"><value>최근 측정된 수입니다. 그룹 행은 현재 관측된 프로세스의 합계입니다. 기록에서는 압축된 유휴 프로세스가 생략될 수 있습니다.</value></data>
+  <data name="HistoryCount" xml:space="preserve"><value>{0} 기록: 0–{1:N0}.</value></data>
+  <data name="NoProcessCountReadings" xml:space="preserve"><value>프로세스 수 측정값이 없습니다.</value></data>
 </root>

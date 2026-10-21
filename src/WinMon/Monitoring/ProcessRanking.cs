@@ -12,11 +12,15 @@ public enum ProcessSort
     /// <summary>Latest resident working set; only processes present in the newest sample.</summary>
     Memory,
     /// <summary>Five-second average read/write I/O.</summary>
-    Io
+    Io,
+    /// <summary>Latest thread count of processes present in the newest sample.</summary>
+    Threads,
+    /// <summary>Latest open handle count of processes present in the newest sample.</summary>
+    Handles
 }
 
 /// <summary>
-/// Ranks processes by CPU, GPU, memory or I/O over a short window ending at one sample.
+/// Ranks processes by CPU, GPU, memory, I/O, threads or handles over a short window ending at one sample.
 /// </summary>
 /// <remarks>
 /// Windows charges process CPU time in clock ticks (about 15.6 ms), so in any single one-second
@@ -69,7 +73,7 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
         var totals = _scratchTotals ??= [];
         try
         {
-            // Memory is a point-in-time reading, so a process that exited earlier in the window is not ranked by it.
+            // Memory and counts are point-in-time readings: exclude processes that exited earlier in the window.
             foreach (var process in window[0].Processes) newest.Add((process.ProcessId, process.CreationTicks));
             // Newest first: the first entry seen for a process carries its latest name and memory.
             foreach (var sample in window)
@@ -98,7 +102,7 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
                 double? io = total.IoCount > 0 ? total.Io / window.Count : null;
                 double? gpu = total.GpuCount > 0 ? total.Gpu / total.GpuCount : null;
                 // Groups need every member. Individually, skip processes the sort drops before copying them.
-                if (!includeInactive && !grouped && !Listed(sort, cpu, io, gpu, latest.WorkingSetBytes, newest.Contains(key))) continue;
+                if (!includeInactive && !grouped && !Listed(sort, cpu, io, gpu, latest.WorkingSetBytes, newest.Contains(key), latest.ThreadCount, latest.HandleCount)) continue;
                 individual.Add(latest with
                 {
                     CpuPercent = cpu,
@@ -110,13 +114,15 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
             }
             // Groups sum private bytes (working sets share pages); a grouped row is current if any member is.
             var ranked = (grouped
-                    ? Group(individual, newest).Where(p => includeInactive || Listed(sort, p.CpuPercent, p.IoBytesPerSecond, p.GpuPercent, p.PrivateBytes, true))
+                    ? Group(individual, newest).Where(p => includeInactive || Listed(sort, p.CpuPercent, p.IoBytesPerSecond, p.GpuPercent, p.PrivateBytes, true, p.ThreadCount, p.HandleCount))
                     : individual)
                 .OrderByDescending(p => sort switch
                 {
                     ProcessSort.Gpu => p.GpuPercent ?? 0,
                     ProcessSort.Memory => (grouped ? p.PrivateBytes : p.WorkingSetBytes) ?? 0,
                     ProcessSort.Io => p.IoBytesPerSecond ?? 0,
+                    ProcessSort.Threads => p.ThreadCount ?? 0,
+                    ProcessSort.Handles => p.HandleCount ?? 0,
                     _ => p.CpuPercent
                 })
                 .ThenBy(p => p.ProcessId)
@@ -139,11 +145,14 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
     private record struct WindowTotals(ProcessUsage? Latest, double Cpu, double Io, int IoCount, double Gpu, int GpuCount, ProcessUsage? GpuLatest);
 
     /// <summary>Whether a process or group has a reading in the sort column; missing readings never become zero.</summary>
-    private static bool Listed(ProcessSort sort, double cpu, double? io, double? gpu, ulong? memory, bool current) => sort switch
+    private static bool Listed(ProcessSort sort, double cpu, double? io, double? gpu, ulong? memory, bool current,
+        long? threads, long? handles) => sort switch
     {
         ProcessSort.Gpu => gpu > 0,
         ProcessSort.Memory => memory > 0 && current,
         ProcessSort.Io => io > 0,
+        ProcessSort.Threads => threads is not null && current,
+        ProcessSort.Handles => handles is not null && current,
         _ => cpu > 0
     };
 
@@ -164,6 +173,8 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
             GpuId = gpu?.GpuId ?? "",
             WorkingSetBytes = current.Any(p => p.WorkingSetBytes is not null) ? (ulong)current.Sum(p => (decimal)(p.WorkingSetBytes ?? 0)) : null,
             PrivateBytes = current.Any(p => p.PrivateBytes is not null) ? (ulong)current.Sum(p => (decimal)(p.PrivateBytes ?? 0)) : null,
+            ThreadCount = current.Length > 0 && current.All(p => p.ThreadCount is not null) ? current.Sum(p => p.ThreadCount!.Value) : null,
+            HandleCount = current.Length > 0 && current.All(p => p.HandleCount is not null) ? current.Sum(p => p.HandleCount!.Value) : null,
             MemberCount = all.Length,
             HasAppWindow = AppWindowState(current.Length > 0 ? current : all),
             MemberIds = [.. all.Select(p => p.ProcessId).Order()]

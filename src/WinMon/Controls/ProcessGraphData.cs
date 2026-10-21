@@ -59,9 +59,15 @@ internal sealed record ProcessGraphData(IReadOnlyList<CpuSample> Samples, double
         {
             var sample = visible[sampleIndex];
             if (sample.IsGap) continue;
+            var missingCounts = sort is ProcessSort.Threads or ProcessSort.Handles ? new bool[groups.Count] : null;
             foreach (var process in sample.Processes)
             {
-                if (!indices.TryGetValue(ProcessRanking.GroupKey(process), out var index) || Value(process, sort, true) is not { } value) continue;
+                if (!indices.TryGetValue(ProcessRanking.GroupKey(process), out var index)) continue;
+                if (Value(process, sort, true) is not { } value)
+                {
+                    if (missingCounts is not null) missingCounts[index] = true;
+                    continue;
+                }
                 values[index][sampleIndex] = sort == ProcessSort.Gpu
                     ? Math.Max(values[index][sampleIndex] ?? 0, value)
                     : (values[index][sampleIndex] ?? 0) + value;
@@ -69,6 +75,7 @@ internal sealed record ProcessGraphData(IReadOnlyList<CpuSample> Samples, double
             var sampleTime = sample.Timestamp.ToFileTime();
             for (var index = 0; index < groups.Count; index++)
             {
+                if (missingCounts?[index] == true) values[index][sampleIndex] = null;
                 if (values[index][sampleIndex] is { } total) peaks[index] = Math.Max(peaks[index], total);
                 else if (sort is ProcessSort.Cpu or ProcessSort.Io && sample.CompactedProcesses > 0 && groups[index].CreationTicks <= sampleTime) values[index][sampleIndex] = 0;
             }
@@ -84,6 +91,8 @@ internal sealed record ProcessGraphData(IReadOnlyList<CpuSample> Samples, double
             ProcessSort.Gpu => process.GpuPercent,
             ProcessSort.Memory => grouped ? process.PrivateBytes : process.WorkingSetBytes,
             ProcessSort.Io => process.IoBytesPerSecond,
+            ProcessSort.Threads => process.ThreadCount,
+            ProcessSort.Handles => process.HandleCount,
             _ => process.CpuPercent
         };
         return value is { } measured && double.IsFinite(measured) ? Math.Max(0, measured) : null;

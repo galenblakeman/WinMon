@@ -107,8 +107,8 @@ public sealed class ProcessRetentionTests
         {
             Assert.That(unavailable, Is.Zero);
             Assert.That(processes, Is.EqualTo([
-                new ProcessCpuTimes(4, 11, "cached", 12, 4096, 100, 50, 2048),
-                new ProcessCpuTimes(1234, 22, "Chrome", 3, 8192, 3, 4, 1024)
+                new ProcessCpuTimes(4, 11, "cached", 12, 4096, 100, 50, 2048) { ThreadCount = 0, HandleCount = 0 },
+                new ProcessCpuTimes(1234, 22, "Chrome", 3, 8192, 3, 4, 1024) { ThreadCount = 0, HandleCount = 0 }
             ]));
             Assert.That(names.Keys, Is.EquivalentTo([(4, 11L), (1234, 22L)]));
         });

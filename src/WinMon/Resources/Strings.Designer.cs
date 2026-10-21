@@ -112,6 +112,7 @@ public static partial class Strings
     public static string GPUUtilizationUnavailableForThisProcessNoValidCounterOr => ResourceManager.GetString(nameof(GPUUtilizationUnavailableForThisProcessNoValidCounterOr), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string GraphicsAdapters => ResourceManager.GetString(nameof(GraphicsAdapters), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string Grouped => ResourceManager.GetString(nameof(Grouped), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string Handles => ResourceManager.GetString(nameof(Handles), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string HardwareInformationCouldNotBeReadTryRefresh => ResourceManager.GetString(nameof(HardwareInformationCouldNotBeReadTryRefresh), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string HardwareSnapshotTime => ResourceManager.GetString(nameof(HardwareSnapshotTime), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string HDD => ResourceManager.GetString(nameof(HDD), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
@@ -124,6 +125,7 @@ public static partial class Strings
     public static string History0MBS => ResourceManager.GetString(nameof(History0MBS), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string History0MiB => ResourceManager.GetString(nameof(History0MiB), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string History0OfTotalMachineCPU => ResourceManager.GetString(nameof(History0OfTotalMachineCPU), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string HistoryCount => ResourceManager.GetString(nameof(HistoryCount), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string HistoryExpiredThisSampleHasLeftTheRecordingWindow => ResourceManager.GetString(nameof(HistoryExpiredThisSampleHasLeftTheRecordingWindow), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string HistoryExpiredThisSampleHasLeftTheRecordingWindowReturn => ResourceManager.GetString(nameof(HistoryExpiredThisSampleHasLeftTheRecordingWindowReturn), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string HistoryOnOneScaleSharedByEveryRowHoverA => ResourceManager.GetString(nameof(HistoryOnOneScaleSharedByEveryRowHoverA), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
@@ -220,6 +222,7 @@ public static partial class Strings
     public static string NoMemoryReadingsAmongAccessibleProcesses => ResourceManager.GetString(nameof(NoMemoryReadingsAmongAccessibleProcesses), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string None => ResourceManager.GetString(nameof(None), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string NoPresentNetworkAdaptersReported => ResourceManager.GetString(nameof(NoPresentNetworkAdaptersReported), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string NoProcessCountReadings => ResourceManager.GetString(nameof(NoProcessCountReadings), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string NoRankedProcessesMatchYourSearch => ResourceManager.GetString(nameof(NoRankedProcessesMatchYourSearch), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string NoSampleInThisInterval => ResourceManager.GetString(nameof(NoSampleInThisInterval), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string NotReady => ResourceManager.GetString(nameof(NotReady), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
@@ -282,11 +285,13 @@ public static partial class Strings
     public static string ProcessesLowercase => ResourceManager.GetString(nameof(ProcessesLowercase), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ProcessesNeedAdministratorAccess => ResourceManager.GetString(nameof(ProcessesNeedAdministratorAccess), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ProcessGrouping => ResourceManager.GetString(nameof(ProcessGrouping), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string ProcessHandlesExplanation => ResourceManager.GetString(nameof(ProcessHandlesExplanation), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ProcessKindApp => ResourceManager.GetString(nameof(ProcessKindApp), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ProcessKindBackground => ResourceManager.GetString(nameof(ProcessKindBackground), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ProcessKindExplanation => ResourceManager.GetString(nameof(ProcessKindExplanation), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string Processor => ResourceManager.GetString(nameof(Processor), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ProcessReadWriteIOIncludesFileNetworkAndDevice => ResourceManager.GetString(nameof(ProcessReadWriteIOIncludesFileNetworkAndDevice), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string ProcessThreadsExplanation => ResourceManager.GetString(nameof(ProcessThreadsExplanation), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ProductVersion => ResourceManager.GetString(nameof(ProductVersion), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string RAID => ResourceManager.GetString(nameof(RAID), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string RankByFiveSecondAverageCPUGPUOrIO => ResourceManager.GetString(nameof(RankByFiveSecondAverageCPUGPUOrIO), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
@@ -364,6 +369,7 @@ public static partial class Strings
     public static string ThisProcessHasAlreadyExited => ResourceManager.GetString(nameof(ThisProcessHasAlreadyExited), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ThisProcessHasAlreadyExitedOrIsNoLongerAvailable => ResourceManager.GetString(nameof(ThisProcessHasAlreadyExitedOrIsNoLongerAvailable), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ThisShortcutCouldNotBeRegisteredChooseAnother => ResourceManager.GetString(nameof(ThisShortcutCouldNotBeRegisteredChooseAnother), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string Threads => ResourceManager.GetString(nameof(Threads), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string Top => ResourceManager.GetString(nameof(Top), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string TotalMachine => ResourceManager.GetString(nameof(TotalMachine), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string TrayStatus => ResourceManager.GetString(nameof(TrayStatus), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;

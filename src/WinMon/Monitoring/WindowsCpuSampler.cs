@@ -133,6 +133,8 @@ public sealed class WindowsCpuSampler : IDisposable
                 ResourceRates.PerSecond(priorCpuTicks.WriteBytes, process.WriteBytes, elapsedSeconds))
             {
                 PrivateBytes = process.PrivateBytes,
+                ThreadCount = process.ThreadCount,
+                HandleCount = process.HandleCount,
                 ImagePath = process.ImagePath ?? "",
                 AppName = appNames.Description,
                 ProductName = appNames.Product,

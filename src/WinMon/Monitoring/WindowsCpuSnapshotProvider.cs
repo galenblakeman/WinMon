@@ -21,6 +21,8 @@ internal sealed class WindowsCpuSnapshotProvider : ICpuSnapshotProvider
 
     // SYSTEM_PROCESS_INFORMATION field offsets for 64-bit Windows.
     internal const int EntrySize = 0x100;
+    private const int NumberOfThreads = 0x04;
+    private const int HandleCount = 0x60;
     private const int CreateTime = 0x20;
     private const int UserTime = 0x28;
     private const int KernelTime = 0x30;
@@ -136,7 +138,11 @@ internal sealed class WindowsCpuSnapshotProvider : ICpuSnapshotProvider
                         BinaryPrimitives.ReadUInt64LittleEndian(entry[WorkingSetSize..]),
                         BinaryPrimitives.ReadUInt64LittleEndian(entry[ReadTransferCount..]),
                         BinaryPrimitives.ReadUInt64LittleEndian(entry[WriteTransferCount..]),
-                        BinaryPrimitives.ReadUInt64LittleEndian(entry[PrivatePageCount..])));
+                        BinaryPrimitives.ReadUInt64LittleEndian(entry[PrivatePageCount..]))
+                    {
+                        ThreadCount = BinaryPrimitives.ReadUInt32LittleEndian(entry[NumberOfThreads..]),
+                        HandleCount = BinaryPrimitives.ReadUInt32LittleEndian(entry[HandleCount..])
+                    });
                 }
             }
             var next = BinaryPrimitives.ReadUInt32LittleEndian(entry);

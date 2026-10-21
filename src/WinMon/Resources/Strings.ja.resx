@@ -749,7 +749,7 @@ Windows からモジュールの詳細を取得できません。</value>
     <value>RAID</value>
   </data>
   <data name="RankByFiveSecondAverageCPUGPUOrIO" xml:space="preserve">
-    <value>CPU・GPU・I/O の 5 秒平均、または現在のメモリで並べ替え</value>
+    <value>CPU、GPU、メモリ、I/O、スレッド、ハンドルで並べ替えます。カウントとメモリは最新のサンプルを使用します。</value>
   </data>
   <data name="RankProcessesBy" xml:space="preserve">
     <value>プロセスの並べ替え基準</value>
@@ -1263,4 +1263,10 @@ Windows の正常性状態: {2}</value>
 
 未保存の作業が失われる可能性があります。以下のすべてのプロセスが終了されます。この確認画面を開いた後に開始されたプロセスは含まれません。</value></data>
   <data name="EndGroupMenu" xml:space="preserve"><value>{0} のすべてのプロセスを終了</value></data>
+  <data name="Threads" xml:space="preserve"><value>スレッド</value></data>
+  <data name="Handles" xml:space="preserve"><value>ハンドル</value></data>
+  <data name="ProcessThreadsExplanation" xml:space="preserve"><value>最新の測定数。グループ行は現在観測されているプロセスの合計です。履歴では圧縮されたアイドルプロセスが省略される場合があります。</value></data>
+  <data name="ProcessHandlesExplanation" xml:space="preserve"><value>最新の測定数。グループ行は現在観測されているプロセスの合計です。履歴では圧縮されたアイドルプロセスが省略される場合があります。</value></data>
+  <data name="HistoryCount" xml:space="preserve"><value>{0}の履歴: 0–{1:N0}。</value></data>
+  <data name="NoProcessCountReadings" xml:space="preserve"><value>プロセスのカウントを取得できません。</value></data>
 </root>

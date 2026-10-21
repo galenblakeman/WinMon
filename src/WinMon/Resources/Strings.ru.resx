@@ -749,7 +749,7 @@ GPU {11} · {12}
     <value>RAID</value>
   </data>
   <data name="RankByFiveSecondAverageCPUGPUOrIO" xml:space="preserve">
-    <value>Сортировать по среднему CPU, GPU или вводу-выводу за 5 секунд либо по текущей памяти</value>
+    <value>Сортировка по ЦП, ГП, памяти, вводу-выводу, потокам или дескрипторам. Счётчики и память используют последний замер.</value>
   </data>
   <data name="RankProcessesBy" xml:space="preserve">
     <value>Сортировать процессы по</value>
@@ -1263,4 +1263,10 @@ GPU {11} · {12}
 
 Несохранённые данные могут быть потеряны. Все перечисленные ниже процессы будут завершены. Процессы, запущенные после открытия этого подтверждения, не будут включены.</value></data>
   <data name="EndGroupMenu" xml:space="preserve"><value>Завершить все процессы в {0}</value></data>
+  <data name="Threads" xml:space="preserve"><value>Потоки</value></data>
+  <data name="Handles" xml:space="preserve"><value>Дескрипторы</value></data>
+  <data name="ProcessThreadsExplanation" xml:space="preserve"><value>Последнее измеренное число; группы суммируют текущие наблюдаемые процессы. История может не включать сжатые неактивные процессы.</value></data>
+  <data name="ProcessHandlesExplanation" xml:space="preserve"><value>Последнее измеренное число; группы суммируют текущие наблюдаемые процессы. История может не включать сжатые неактивные процессы.</value></data>
+  <data name="HistoryCount" xml:space="preserve"><value>История {0}: 0–{1:N0}.</value></data>
+  <data name="NoProcessCountReadings" xml:space="preserve"><value>Показания счётчиков процессов недоступны.</value></data>
 </root>

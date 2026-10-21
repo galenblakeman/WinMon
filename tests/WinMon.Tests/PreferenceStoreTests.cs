@@ -224,6 +224,8 @@ public sealed class PreferenceStoreTests
     [TestCase("{\"SortByGpu\":true}", ProcessSort.Gpu)]
     [TestCase("{\"SortByGpu\":false}", ProcessSort.Cpu)]
     [TestCase("{\"ProcessSort\":\"Memory\"}", ProcessSort.Memory)]
+    [TestCase("{\"ProcessSort\":\"Threads\"}", ProcessSort.Threads)]
+    [TestCase("{\"ProcessSort\":\"Handles\"}", ProcessSort.Handles)]
     [TestCase("{\"ProcessSort\":\"Io\",\"SortByGpu\":true}", ProcessSort.Io)]
     [TestCase("{\"ProcessSort\":42}", ProcessSort.Cpu)]
     public async Task ProcessSort_MigratesLegacyGpuFlag_AndRejectsUnknownValues(string json, ProcessSort expected)

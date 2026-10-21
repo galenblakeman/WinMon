@@ -70,7 +70,7 @@ public partial class MainWindow
         ProcessCountSelector.SelectedItem = _preferences.TopProcessCount;
         ProcessCountSelector.SelectionChanged += OnProcessCountChanged;
         // Item order matches ProcessSort so the selected index is the sort column.
-        ProcessSortSelector.ItemsSource = new[] { Strings.CPU, Strings.GPU, Strings.Memory, Strings.IO };
+        ProcessSortSelector.ItemsSource = new[] { Strings.CPU, Strings.GPU, Strings.Memory, Strings.IO, Strings.Threads, Strings.Handles };
         ProcessSortSelector.SelectedIndex = (int)ProcessSort.Cpu;
         ProcessSortSelector.SelectionChanged += OnProcessSortChanged;
         ProcessSearchBox.TextChanged += OnProcessSearchChanged;
@@ -274,6 +274,8 @@ public partial class MainWindow
             ProcessSort.Gpu => grouped ? Strings.BusiestMemberGPU : Strings.GPU,
             ProcessSort.Memory => grouped ? Strings.SummedPrivateMemory : Strings.MemoryLowercase,
             ProcessSort.Io => grouped ? Strings.SummedIO : Strings.IO,
+            ProcessSort.Threads => Strings.Threads,
+            ProcessSort.Handles => Strings.Handles,
             _ => grouped ? Strings.SummedCPU : Strings.CPU
         };
         ProcessHistoryHeader.ToolTip = Strings.Format(Strings.HistoryOnOneScaleSharedByEveryRowHoverA, historyMetric);
@@ -311,6 +313,7 @@ public partial class MainWindow
                 ProcessSort.Gpu => Strings.NoMeasurableGPUActivityAmongAccessibleProcessesInThisWindow,
                 ProcessSort.Memory => Strings.NoMemoryReadingsAmongAccessibleProcesses,
                 ProcessSort.Io => Strings.NoMeasurableIOAmongAccessibleProcessesInThisWindow,
+                ProcessSort.Threads or ProcessSort.Handles => Strings.NoProcessCountReadings,
                 _ => Strings.NoMeasurableActiveProcessesInThisWindow
             };
         CoverageLabel.Text = visible is null ? "" : Coverage(visible.UnavailableProcesses, ranking.TotalCpuPercent, ranking.MeasuredCpuPercent);
@@ -412,7 +415,8 @@ public partial class MainWindow
     private (System.Windows.Controls.TextBlock Header, ProcessSort Sort, string Text)[] SortHeaders =>
     [
         (CpuHeader, ProcessSort.Cpu, Strings.CpuColumn), (GpuHeader, ProcessSort.Gpu, Strings.GpuColumn),
-        (MemoryHeader, ProcessSort.Memory, Strings.Memory), (IoHeader, ProcessSort.Io, Strings.IOMBS)
+        (MemoryHeader, ProcessSort.Memory, Strings.Memory), (IoHeader, ProcessSort.Io, Strings.IOMBS),
+        (ThreadsHeader, ProcessSort.Threads, Strings.Threads), (HandlesHeader, ProcessSort.Handles, Strings.Handles)
     ];
 
     private void UpdateSortHeaders()
@@ -472,7 +476,7 @@ public partial class MainWindow
         var dual = _preferences.SecondaryDrive is not null;
         SecondaryDiskColumn.Width = dual ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
         SecondaryDiskMetric.Visibility = SecondaryDiskDivider.Visibility = dual ? Visibility.Visible : Visibility.Collapsed;
-        MinWidth = dual ? 720 : 600;
+        MinWidth = 836;
         if (Width < MinWidth) Width = MinWidth;
     }
 
@@ -741,7 +745,7 @@ public partial class MainWindow
         ProcessSortSelector.SelectionChanged -= OnProcessSortChanged;
         try
         {
-            ProcessSortSelector.ItemsSource = new[] { Strings.CPU, Strings.GPU, Strings.Memory, Strings.IO };
+            ProcessSortSelector.ItemsSource = new[] { Strings.CPU, Strings.GPU, Strings.Memory, Strings.IO, Strings.Threads, Strings.Handles };
             ProcessSortSelector.SelectedIndex = (int)selectedSort;
         }
         finally { ProcessSortSelector.SelectionChanged += OnProcessSortChanged; }
@@ -767,6 +771,8 @@ public partial class MainWindow
                 ProcessSort.Gpu => Strings.BusiestGPUEnginePerProcessAveragedOverReadableIntervalsIn,
                 ProcessSort.Memory => Strings.ResidentWorkingSetIncludingSharedPages,
                 ProcessSort.Io => Strings.ProcessReadWriteIOIncludesFileNetworkAndDevice,
+                ProcessSort.Threads => Strings.ProcessThreadsExplanation,
+                ProcessSort.Handles => Strings.ProcessHandlesExplanation,
                 _ => Strings.AverageOverTheLast5SecondsWindowsCountsProcessCPU
             };
             header.ToolTip = Strings.Format(Strings.ClickToRankProcessesBy, description, text.Replace(" %", "").Replace(" MB/s", ""));

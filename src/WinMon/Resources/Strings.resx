@@ -749,7 +749,7 @@ Reported maximum: {3}</value>
     <value>RAID</value>
   </data>
   <data name="RankByFiveSecondAverageCPUGPUOrIO" xml:space="preserve">
-    <value>Rank by five-second average CPU, GPU or I/O, or by current memory</value>
+    <value>Rank by CPU, GPU, memory, I/O, threads, or handles. Counts and memory use the latest sample.</value>
   </data>
   <data name="RankProcessesBy" xml:space="preserve">
     <value>Rank processes by</value>
@@ -1263,4 +1263,10 @@ Windows health status: {2}</value>
 
 Unsaved work may be lost. All processes listed below will be ended. Processes started after this confirmation opens will not be included.</value></data>
   <data name="EndGroupMenu" xml:space="preserve"><value>End all processes in {0}</value></data>
+  <data name="Threads" xml:space="preserve"><value>Threads</value></data>
+  <data name="Handles" xml:space="preserve"><value>Handles</value></data>
+  <data name="ProcessThreadsExplanation" xml:space="preserve"><value>Latest sampled count; grouped rows sum current observed members. Historical groups may omit compacted idle members.</value></data>
+  <data name="ProcessHandlesExplanation" xml:space="preserve"><value>Latest sampled count; grouped rows sum current observed members. Historical groups may omit compacted idle members.</value></data>
+  <data name="HistoryCount" xml:space="preserve"><value>{0} history: 0–{1:N0}.</value></data>
+  <data name="NoProcessCountReadings" xml:space="preserve"><value>No process count readings available.</value></data>
 </root>
