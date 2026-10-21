@@ -19,6 +19,31 @@ internal static class ProcessTerminator
         live && !grouped && process is { MemberCount: 1, ProcessId: > 4 } &&
         process.ProcessId != Environment.ProcessId && process.CreationTicks > 0;
 
+    /// <summary>Capture exact live lifetimes before confirmation, including idle group members.</summary>
+    internal static ProcessUsage[] CaptureTargets(ProcessUsage row, bool live, bool grouped,
+        IReadOnlyList<ProcessUsage> current)
+    {
+        if (!live) return [];
+        if (!grouped) return IsEligible(row, true, false) ? [row] : [];
+        var key = ProcessRanking.GroupKey(row);
+        var targets = current.Where(p => string.Equals(ProcessRanking.GroupKey(p), key,
+                StringComparison.OrdinalIgnoreCase))
+            .DistinctBy(p => (p.ProcessId, p.CreationTicks)).OrderBy(p => p.ProcessId).ToArray();
+        // Never silently omit a protected or unidentified member from an all-process request.
+        return targets.All(p => IsEligible(p, true, false)) ? targets : [];
+    }
+
+    internal static IReadOnlyList<string> EndAll(IReadOnlyList<ProcessUsage> targets, Func<int, ITarget>? open = null)
+    {
+        var errors = new List<string>();
+        foreach (var target in targets)
+        {
+            var error = End(target, open);
+            if (error is not null) errors.Add($"{target.Name} (PID {target.ProcessId}): {error}");
+        }
+        return errors;
+    }
+
     // Return null only when Windows accepted the termination request. It can complete asynchronously.
     internal static string? End(ProcessUsage process, Func<int, ITarget>? open = null)
     {

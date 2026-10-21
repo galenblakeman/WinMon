@@ -1258,4 +1258,9 @@ Integridade segundo o Windows: {2}</value>
   <data name="PaletteTropicalDescription" xml:space="preserve">
     <value>Personalizada · cores quentes vibrantes equilibradas com azul e verde-azulado</value>
   </data>
+  <data name="AvailableForLiveProcesses" xml:space="preserve"><value>Disponível para processos e grupos ao vivo. Encerrá-los pode causar perda de trabalho não salvo.</value></data>
+  <data name="EndGroupConfirmation" xml:space="preserve"><value>Encerrar todos os {0} processos de {1}?
+
+O trabalho não salvo pode ser perdido. Todos os processos listados abaixo serão encerrados. Os processos iniciados após a abertura desta confirmação não serão incluídos.</value></data>
+  <data name="EndGroupMenu" xml:space="preserve"><value>Encerrar todos os processos de {0}</value></data>
 </root>

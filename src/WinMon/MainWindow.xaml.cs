@@ -548,18 +548,25 @@ public partial class MainWindow
     {
         if (!_closing) new HardwareInfoWindow { Owner = this }.ShowDialog();
     }
-    private bool CanEndProcess(ProcessUsage process) => !_closing && ProcessTerminator.IsEligible(process,
-        _selectedSample is null, _preferences.GroupProcesses);
+    private ProcessUsage[] CaptureEndTargets(ProcessUsage process) => ProcessTerminator.CaptureTargets(process,
+        !_closing && _selectedSample is null, _preferences.GroupProcesses, _latestFull?.Processes ?? []);
+
+    private bool CanEndProcess(ProcessUsage process) => CaptureEndTargets(process).Length > 0;
 
     private void EndProcess(ProcessUsage process)
     {
-        if (!CanEndProcess(process)) return;
-        var answer = MessageBox.Show(this,
-            Strings.Format(Strings.EndPIDUnsavedWorkMayBeLostOnlyThisProcess, process.Name, process.ProcessId),
-            Strings.EndProcess, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
-        if (answer != MessageBoxResult.Yes || !CanEndProcess(process)) return;
-        var error = ProcessTerminator.End(process);
-        if (error is not null) MessageBox.Show(this, error, Strings.EndProcess, MessageBoxButton.OK, MessageBoxImage.Information);
+        var targets = CaptureEndTargets(process);
+        if (targets.Length == 0) return;
+        var grouped = _preferences.GroupProcesses;
+        var message = grouped
+            ? Strings.Format(Strings.EndGroupConfirmation, targets.Length, process.Name) + "\n\n" +
+              string.Join("\n", targets.Select(p => $"{p.Name} (PID {p.ProcessId})"))
+            : Strings.Format(Strings.EndPIDUnsavedWorkMayBeLostOnlyThisProcess, process.Name, process.ProcessId);
+        if (new ProcessActionDialog(message, true) { Owner = this }.ShowDialog() != true ||
+            _closing || _selectedSample is not null || grouped != _preferences.GroupProcesses) return;
+        var errors = ProcessTerminator.EndAll(targets);
+        if (errors.Count > 0)
+            new ProcessActionDialog(string.Join("\n\n", errors), false) { Owner = this }.ShowDialog();
     }
     private void ReturnToLive() { _selectedSample = null; RefreshPresentation(); }
 

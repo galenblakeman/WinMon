@@ -1258,4 +1258,9 @@ Fabricant : {1}
   <data name="PaletteTropicalDescription" xml:space="preserve">
     <value>Personnalisée · couleurs chaudes lumineuses équilibrées par du bleu et du turquoise</value>
   </data>
+  <data name="AvailableForLiveProcesses" xml:space="preserve"><value>Disponible pour les processus et groupes en direct. Les terminer peut entraîner la perte du travail non enregistré.</value></data>
+  <data name="EndGroupConfirmation" xml:space="preserve"><value>Terminer les {0} processus de {1} ?
+
+Le travail non enregistré peut être perdu. Tous les processus ci-dessous seront terminés. Les processus démarrés après l&apos;ouverture de cette confirmation ne seront pas inclus.</value></data>
+  <data name="EndGroupMenu" xml:space="preserve"><value>Terminer tous les processus de {0}</value></data>
 </root>

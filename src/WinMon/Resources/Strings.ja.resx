@@ -1258,4 +1258,9 @@ Windows の正常性状態: {2}</value>
   <data name="PaletteTropicalDescription" xml:space="preserve">
     <value>カスタム · 明るい暖色とブルー、ティールのバランス</value>
   </data>
+  <data name="AvailableForLiveProcesses" xml:space="preserve"><value>ライブのプロセスとグループで利用できます。終了すると未保存の作業が失われる可能性があります。</value></data>
+  <data name="EndGroupConfirmation" xml:space="preserve"><value>{1} の {0} 個のプロセスをすべて終了しますか？
+
+未保存の作業が失われる可能性があります。以下のすべてのプロセスが終了されます。この確認画面を開いた後に開始されたプロセスは含まれません。</value></data>
+  <data name="EndGroupMenu" xml:space="preserve"><value>{0} のすべてのプロセスを終了</value></data>
 </root>

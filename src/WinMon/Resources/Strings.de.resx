@@ -1258,4 +1258,9 @@ Windows-Zustandsstatus: {2}</value>
   <data name="PaletteTropicalDescription" xml:space="preserve">
     <value>Eigene Palette · helle warme Farben mit Blau und Türkis</value>
   </data>
+  <data name="AvailableForLiveProcesses" xml:space="preserve"><value>Für laufende Prozesse und Gruppen verfügbar. Beim Beenden können nicht gespeicherte Daten verloren gehen.</value></data>
+  <data name="EndGroupConfirmation" xml:space="preserve"><value>Alle {0} Prozesse in {1} beenden?
+
+Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse werden beendet. Nach dem Öffnen dieser Bestätigung gestartete Prozesse sind nicht enthalten.</value></data>
+  <data name="EndGroupMenu" xml:space="preserve"><value>Alle Prozesse in {0} beenden</value></data>
 </root>

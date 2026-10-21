@@ -27,6 +27,7 @@ public static partial class Strings
     public static string ATA => ResourceManager.GetString(nameof(ATA), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ATAPI => ResourceManager.GetString(nameof(ATAPI), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string AvailableForLiveIndividualProcessesEndingAProcessCanLose => ResourceManager.GetString(nameof(AvailableForLiveIndividualProcessesEndingAProcessCanLose), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string AvailableForLiveProcesses => ResourceManager.GetString(nameof(AvailableForLiveProcesses), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string AverageOverTheLast5SecondsWindowsCountsProcessCPU => ResourceManager.GetString(nameof(AverageOverTheLast5SecondsWindowsCountsProcessCPU), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string BoardVersionSerialNumber => ResourceManager.GetString(nameof(BoardVersionSerialNumber), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string BusiestEnginePerIntervalAveragedOverReadableIntervalsInThe => ResourceManager.GetString(nameof(BusiestEnginePerIntervalAveragedOverReadableIntervalsInThe), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
@@ -88,6 +89,8 @@ public static partial class Strings
     public static string Dormant => ResourceManager.GetString(nameof(Dormant), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string Down => ResourceManager.GetString(nameof(Down), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string DrawnAsADashedLineOnTheChart => ResourceManager.GetString(nameof(DrawnAsADashedLineOnTheChart), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string EndGroupConfirmation => ResourceManager.GetString(nameof(EndGroupConfirmation), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string EndGroupMenu => ResourceManager.GetString(nameof(EndGroupMenu), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string EndPID => ResourceManager.GetString(nameof(EndPID), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string EndPIDUnsavedWorkMayBeLostOnlyThisProcess => ResourceManager.GetString(nameof(EndPIDUnsavedWorkMayBeLostOnlyThisProcess), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string EndProcess => ResourceManager.GetString(nameof(EndProcess), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;

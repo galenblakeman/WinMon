@@ -1258,4 +1258,9 @@ Windows health status: {2}</value>
   <data name="PaletteTropicalDescription" xml:space="preserve">
     <value>Custom · bright warm colors balanced with blue and teal</value>
   </data>
+  <data name="AvailableForLiveProcesses" xml:space="preserve"><value>Available for live processes and groups. Ending processes can lose unsaved work.</value></data>
+  <data name="EndGroupConfirmation" xml:space="preserve"><value>End all {0} processes in {1}?
+
+Unsaved work may be lost. All processes listed below will be ended. Processes started after this confirmation opens will not be included.</value></data>
+  <data name="EndGroupMenu" xml:space="preserve"><value>End all processes in {0}</value></data>
 </root>

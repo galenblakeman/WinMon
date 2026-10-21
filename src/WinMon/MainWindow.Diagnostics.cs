@@ -329,7 +329,7 @@ public partial class MainWindow
         row.PrepareProcessMenu();
         var menu = row.ContextMenu ?? throw new InvalidOperationException("Process context menu was not created.");
         if (menu.Items is not [System.Windows.Controls.MenuItem { Header: string { Length: > 0 } } item] ||
-            item.ToolTip as string != Strings.AvailableForLiveIndividualProcessesEndingAProcessCanLose)
+            item.ToolTip as string != Strings.AvailableForLiveProcesses)
             throw new InvalidOperationException("Process context menu did not capture its target.");
         try
         {
@@ -375,8 +375,9 @@ public partial class MainWindow
             GroupedChip.IsChecked = true;
             RefreshPresentation();
             row.PrepareProcessMenu();
-            if (menu.Items is not [System.Windows.Controls.MenuItem { IsEnabled: false }])
-                throw new InvalidOperationException("Grouped rows allowed process termination.");
+            if (menu.Items is not [System.Windows.Controls.MenuItem { Header: string groupHeader }] ||
+                !groupHeader.Contains(Strings.Format(Strings.EndGroupMenu, "").Trim(), StringComparison.Ordinal))
+                throw new InvalidOperationException("Grouped rows did not offer group termination.");
         }
         finally
         {
@@ -384,6 +385,30 @@ public partial class MainWindow
             _selectedSample = selection;
             RefreshPresentation();
         }
+        try
+        {
+            foreach (var theme in new[] { "Dark", "Light" })
+            {
+                _preferences = original with { Theme = theme };
+                ApplyTheme();
+                foreach (var confirmation in new[] { true, false })
+                {
+                    var text = confirmation
+                        ? Strings.Format(Strings.EndGroupConfirmation, 2, "Example") + "\n\nExample (PID 12345)\nExample (PID 12346)"
+                        : Strings.AccessDeniedWindowsDidNotAllowWinMonToEndThis;
+                    var dialog = new Controls.ProcessActionDialog(text, confirmation) { Owner = this };
+                    try
+                    {
+                        // Show non-modally for a screenshot; never invoke termination in diagnostics.
+                        dialog.Show(); dialog.UpdateLayout();
+                        await CaptureVisualAsync((FrameworkElement)dialog.Content, Path.Combine(output,
+                            $"process-dialog-{theme.ToLowerInvariant()}-{(confirmation ? "confirmation" : "result")}.png"), 1, cancellationToken);
+                    }
+                    finally { dialog.Close(); }
+                }
+            }
+        }
+        finally { _preferences = original; ApplyTheme(); }
         var settings = new Preferences.SettingsWindow(_preferences) { Owner = this };
         try
         {
@@ -394,7 +419,7 @@ public partial class MainWindow
         await CaptureLanguageSettingsDiagnosticsAsync(output, cancellationToken);
         await File.WriteAllTextAsync(Path.Combine(output, "features.json"),
             JsonSerializer.Serialize(new { HardwareInfo = true, PaletteRenders = true, ProcessContextMenu = true,
-                HistoricalAndGroupedActionsDisabled = true, LanguageSelection = true,
+                HistoricalActionsDisabled = true, GroupTerminationOffered = true, ThemedProcessDialogs = true, LanguageSelection = true,
                 LiveLanguageSwitching = true, RecordingStatePreserved = true,
                 Limitation = "No destructive command invoked by the UI smoke; native termination is tested on an owned helper in the test suite." }), cancellationToken);
     }

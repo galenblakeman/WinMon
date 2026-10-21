@@ -1258,4 +1258,9 @@ Windows 健康状态：{2}</value>
   <data name="PaletteTropicalDescription" xml:space="preserve">
     <value>自定义 · 明亮暖色与蓝色和蓝绿色相平衡</value>
   </data>
+  <data name="AvailableForLiveProcesses" xml:space="preserve"><value>适用于实时进程和进程组。结束进程可能会丢失未保存的工作。</value></data>
+  <data name="EndGroupConfirmation" xml:space="preserve"><value>结束 {1} 中的全部 {0} 个进程？
+
+未保存的工作可能会丢失。下面列出的所有进程都将结束。打开此确认窗口后启动的进程将不包括在内。</value></data>
+  <data name="EndGroupMenu" xml:space="preserve"><value>结束 {0} 中的所有进程</value></data>
 </root>

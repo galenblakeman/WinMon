@@ -1258,4 +1258,9 @@ Stan według Windows: {2}</value>
   <data name="PaletteTropicalDescription" xml:space="preserve">
     <value>Własna · jasne ciepłe kolory zrównoważone błękitem i turkusem</value>
   </data>
+  <data name="AvailableForLiveProcesses" xml:space="preserve"><value>Dostępne dla bieżących procesów i grup. Zakończenie może spowodować utratę niezapisanej pracy.</value></data>
+  <data name="EndGroupConfirmation" xml:space="preserve"><value>Zakończyć wszystkie procesy ({0}) w {1}?
+
+Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną zakończone. Procesy uruchomione po otwarciu tego potwierdzenia nie zostaną uwzględnione.</value></data>
+  <data name="EndGroupMenu" xml:space="preserve"><value>Zakończ wszystkie procesy w {0}</value></data>
 </root>

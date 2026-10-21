@@ -42,8 +42,8 @@ public sealed class ProcessRow : Grid
         ContextMenu.Items.Clear();
         if (_usage is not { } target || _canEnd is null || _end is null) return false;
         // Capture now: live ranking may replace this row while the menu is open.
-        var item = new MenuItem { Header = Strings.Format(Strings.EndPID, target.Name, target.ProcessId), IsEnabled = _canEnd(target),
-            ToolTip = Strings.AvailableForLiveIndividualProcessesEndingAProcessCanLose };
+        var item = new MenuItem { Header = target.MemberIds.Count > 0 ? Strings.Format(Strings.EndGroupMenu, target.Name) : Strings.Format(Strings.EndPID, target.Name, target.ProcessId), IsEnabled = _canEnd(target),
+            ToolTip = Strings.AvailableForLiveProcesses };
         item.Click += (_, _) => _end(target);
         ContextMenu.Items.Add(item);
         return true;

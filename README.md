@@ -120,7 +120,7 @@ The published app is at `src/WinMon/bin/Release/net10.0-windows/win-x64/publish/
 - GPU utilization reflects the busiest engine. Live GPU temperature and VRAM usage are outside this view.
 - Unavailable readings appear as a dash and leave gaps in the chart. Very short-lived processes can exit between samples; process totals may not account for all system activity.
 - Systems with multiple active processor groups are currently unsupported.
-- To end a process, right-click a live **Individual** row and confirm **End process**. Unsaved work can be lost; historical, grouped, system and WinMon rows cannot be terminated through this action.
+- To end a process, right-click a live **Individual** row and confirm **End process**. In **Grouped** mode, confirm the list to end all current processes in that group, including idle members. Processes started after confirmation opens are not included. Unsaved work can be lost; historical, system and WinMon rows cannot be terminated through this action.
 
 ## Open source
 

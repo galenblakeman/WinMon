@@ -66,6 +66,50 @@ public sealed class ProcessTerminatorTests
     }
 
     [Test]
+    public void GroupTargets_IncludeIdleMembersAndExcludeOtherExecutablePaths()
+    {
+        var first = Process with { ImagePath = @"C:\Apps\example.exe" };
+        var idle = first with { ProcessId = 123457, CreationTicks = 800, CpuPercent = 0 };
+        var other = first with { ProcessId = 123458, ImagePath = @"D:\Apps\example.exe" };
+        var row = first with { MemberCount = 3 };
+        var targets = ProcessTerminator.CaptureTargets(row, true, true, [first, idle, other]);
+        Assert.That(targets, Is.EqualTo(new[] { first, idle }));
+        Assert.That(ProcessTerminator.CaptureTargets(row, false, true, [first, idle]), Is.Empty);
+        Assert.That(ProcessTerminator.CaptureTargets(row, true, true, []), Is.Empty);
+    }
+
+    [Test]
+    public void GroupTargets_RejectWholeGroupWithProtectedOrUnknownMember()
+    {
+        foreach (var member in new[] { Process with { CreationTicks = 0 },
+                     Process with { ProcessId = 4 }, Process with { ProcessId = Environment.ProcessId } })
+            Assert.That(ProcessTerminator.CaptureTargets(Process, true, true, [Process, member]), Is.Empty);
+        Assert.That(ProcessTerminator.CaptureTargets(Process, true, true, [Process]), Has.Length.EqualTo(1));
+    }
+
+    [Test]
+    public void EndAll_ContinuesAfterFailureAndChecksEveryCapturedLifetime()
+    {
+        var first = new Target { CreationTicks = 701 };
+        var second = new Target();
+        var third = new Target { IsCritical = true };
+        var targets = new[] { Process, Process with { ProcessId = 123457 }, Process with { ProcessId = 123458 } };
+        var opened = new List<int>();
+        var errors = ProcessTerminator.EndAll(targets, pid =>
+        {
+            opened.Add(pid);
+            return pid == 123456 ? first : pid == 123457 ? second : third;
+        });
+        Assert.That(opened, Is.EqualTo(targets.Select(p => p.ProcessId)));
+        Assert.That(first.Terminated, Is.False);
+        Assert.That(second.Terminated, Is.True);
+        Assert.That(third.Terminated, Is.False);
+        Assert.That(errors, Has.Count.EqualTo(2));
+        Assert.That(errors[0], Does.Contain("123456").And.Contain("reused"));
+        Assert.That(new[] { first, second, third }.All(t => t.Disposed), Is.True);
+    }
+
+    [Test]
     public void Native_EndRejectsWrongLifetimeThenEndsOnlyOwnedHelper()
     {
         using var helper = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo

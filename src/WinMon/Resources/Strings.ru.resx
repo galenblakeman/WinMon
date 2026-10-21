@@ -1258,4 +1258,9 @@ GPU {11} · {12}
   <data name="PaletteTropicalDescription" xml:space="preserve">
     <value>Своя палитра · яркие тёплые цвета с синим и бирюзовым</value>
   </data>
+  <data name="AvailableForLiveProcesses" xml:space="preserve"><value>Доступно для текущих процессов и групп. Завершение может привести к потере несохранённых данных.</value></data>
+  <data name="EndGroupConfirmation" xml:space="preserve"><value>Завершить все процессы ({0}) в {1}?
+
+Несохранённые данные могут быть потеряны. Все перечисленные ниже процессы будут завершены. Процессы, запущенные после открытия этого подтверждения, не будут включены.</value></data>
+  <data name="EndGroupMenu" xml:space="preserve"><value>Завершить все процессы в {0}</value></data>
 </root>

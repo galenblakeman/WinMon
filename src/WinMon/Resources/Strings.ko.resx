@@ -1258,4 +1258,9 @@ Windows 상태: {2}</value>
   <data name="PaletteTropicalDescription" xml:space="preserve">
     <value>사용자 지정 · 파란색과 틸색으로 균형을 잡은 밝은 따뜻한 색상</value>
   </data>
+  <data name="AvailableForLiveProcesses" xml:space="preserve"><value>실시간 프로세스와 그룹에서 사용할 수 있습니다. 종료하면 저장하지 않은 작업이 손실될 수 있습니다.</value></data>
+  <data name="EndGroupConfirmation" xml:space="preserve"><value>{1}의 프로세스 {0}개를 모두 종료하시겠습니까?
+
+저장하지 않은 작업이 손실될 수 있습니다. 아래의 모든 프로세스가 종료됩니다. 이 확인 창을 연 후 시작된 프로세스는 포함되지 않습니다.</value></data>
+  <data name="EndGroupMenu" xml:space="preserve"><value>{0}의 모든 프로세스 종료</value></data>
 </root>

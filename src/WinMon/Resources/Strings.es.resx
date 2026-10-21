@@ -1258,4 +1258,9 @@ Estado según Windows: {2}</value>
   <data name="PaletteTropicalDescription" xml:space="preserve">
     <value>Personalizada · colores cálidos brillantes equilibrados con azul y turquesa</value>
   </data>
+  <data name="AvailableForLiveProcesses" xml:space="preserve"><value>Disponible para procesos y grupos en vivo. Finalizarlos puede causar la pérdida del trabajo sin guardar.</value></data>
+  <data name="EndGroupConfirmation" xml:space="preserve"><value>¿Finalizar los {0} procesos de {1}?
+
+Se puede perder el trabajo sin guardar. Se finalizarán todos los procesos indicados abajo. No se incluirán los procesos iniciados después de abrir esta confirmación.</value></data>
+  <data name="EndGroupMenu" xml:space="preserve"><value>Finalizar todos los procesos de {0}</value></data>
 </root>
