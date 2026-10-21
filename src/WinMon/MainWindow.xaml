@@ -8,7 +8,7 @@
     Width="836"
     Height="840"
     MinWidth="836"
-    MinHeight="800"
+    MinHeight="160"
     Background="Transparent"
     Closing="OnClosing"
     Icon="Assets/WinMon.ico"

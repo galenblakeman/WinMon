@@ -145,7 +145,7 @@ public sealed class PreferenceStoreTests
         Assert.Multiple(() =>
         {
             Assert.That(loaded.Width, Is.EqualTo(600));
-            Assert.That(loaded.Height, Is.EqualTo(800));
+            Assert.That(loaded.Height, Is.EqualTo(160));
             Assert.That(loaded.Theme, Is.EqualTo("System"));
             Assert.That(loaded.RetentionSeconds, Is.EqualTo(600));
             Assert.That(loaded.MinimizeToTray, Is.True);

@@ -115,7 +115,7 @@ public sealed class PreferenceStore
             PrimaryDrive = primary,
             SecondaryDrive = secondary == primary ? null : secondary,
             Width = ClampFinite(preferences.Width, 600, 600, 2000),
-            Height = ClampFinite(preferences.Height, 840, 800, 1500),
+            Height = ClampFinite(preferences.Height, 840, 160, 1500),
             Left = ValidateCoordinate(preferences.Left),
             Top = ValidateCoordinate(preferences.Top),
             Theme = NormalizeTheme(preferences.Theme),
