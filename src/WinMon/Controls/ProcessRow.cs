@@ -97,10 +97,10 @@ public sealed class ProcessRow : Grid
         _name.Text = members ? $"{name} ×{usage.MemberCount}" : name;
         var tooltipName = name == usage.Name ? _name.Text : $"{_name.Text} ({usage.Name})";
         var path = usage.ImagePath.Length > 0 ? usage.ImagePath : Strings.ExecutablePathUnavailable;
-        _name.ToolTip = $"{tooltipName} · {(grouped ? MemberList(usage) : Strings.Format(Strings.PID, usage.ProcessId))}\n{path}";
+        var publisherAndPath = string.IsNullOrWhiteSpace(usage.Publisher) ? path : $"{usage.Publisher}\n{path}";
+        _name.ToolTip = $"{tooltipName} · {(grouped ? MemberList(usage) : Strings.Format(Strings.PID, usage.ProcessId))}\n{publisherAndPath}";
         var kind = usage.HasAppWindow switch { true => Strings.ProcessKindApp, false => Strings.ProcessKindBackground, null => Strings.Unknown };
         _pid.Text = showPid ? $"{(members ? Strings.Format(Strings.Processes, usage.MemberCount) : Strings.Format(Strings.PID, usage.ProcessId))} · {kind}" : kind;
-        _pid.ToolTip = Strings.ProcessKindExplanation;
         _pid.Visibility = Visibility.Visible;
         _value.Text = Strings.Format(Strings.PercentOneDecimal, usage.CpuPercent);
         _gpu.Text = usage.GpuPercent is { } percent ? Strings.Format(Strings.PercentOneDecimal, percent) : Strings.MissingReading;
@@ -119,7 +119,7 @@ public sealed class ProcessRow : Grid
             ProcessSort.Handles => Strings.Format(Strings.HistoryCount, Strings.Handles, scale),
             _ => Strings.Format(Strings.History0OfTotalMachineCPU, grouped ? Strings.SummedCpuTitle : Strings.CPU, scale)
         };
-        ToolTip = Strings.Format(Strings.LastMinSameScaleForEveryRow, tooltipName, grouped ? MemberList(usage) : Strings.Format(Strings.PID, usage.ProcessId), path, history, seconds / 60d);
+        ToolTip = Strings.Format(Strings.LastMinSameScaleForEveryRow, tooltipName, grouped ? MemberList(usage) : Strings.Format(Strings.PID, usage.ProcessId), publisherAndPath, history, seconds / 60d);
         var nextIdentity = (usage.ProcessId, usage.CreationTicks);
         if (_identity != nextIdentity)
         {

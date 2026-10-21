@@ -33,6 +33,9 @@ public sealed record ProcessUsage(int ProcessId, long CreationTicks, string Name
     /// <summary>Product name from executable version information, when available.</summary>
     public string ProductName { get; init; } = "";
 
+    /// <summary>Publisher from executable company metadata, when available; not a verified signing identity.</summary>
+    public string Publisher { get; init; } = "";
+
     /// <summary>Whether a visible, unowned top-level window was observed at sampling time; null when unavailable.</summary>
     public bool? HasAppWindow { get; init; }
 

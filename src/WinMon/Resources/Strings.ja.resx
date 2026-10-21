@@ -1258,6 +1258,54 @@ Windows の正常性状態: {2}</value>
   <data name="PaletteTropicalDescription" xml:space="preserve">
     <value>カスタム · 明るい暖色とブルー、ティールのバランス</value>
   </data>
+  <data name="AutomaticallyCheckForUpdates" xml:space="preserve">
+    <value>更新プログラムを自動的に確認する</value>
+  </data>
+  <data name="CheckForUpdates" xml:space="preserve">
+    <value>更新プログラムを確認</value>
+  </data>
+  <data name="Dismiss" xml:space="preserve">
+    <value>閉じる</value>
+  </data>
+  <data name="UpdateAvailable" xml:space="preserve">
+    <value>WinMon {0} を利用できます</value>
+  </data>
+  <data name="UpdateChecking" xml:space="preserve">
+    <value>更新プログラムを確認中...</value>
+  </data>
+  <data name="UpdateFailed" xml:space="preserve">
+    <value>更新プログラムを確認できませんでした。後でもう一度お試しください。</value>
+  </data>
+  <data name="UpdateNow" xml:space="preserve">
+    <value>今すぐ更新</value>
+  </data>
+  <data name="UpdateRolledBack" xml:space="preserve">
+    <value>更新を開始できませんでした。WinMon を復元しました。</value>
+  </data>
+  <data name="UpdateSucceeded" xml:space="preserve">
+    <value>WinMon {0} に更新しました</value>
+  </data>
+  <data name="Updates" xml:space="preserve">
+    <value>更新</value>
+  </data>
+  <data name="WhatsNew" xml:space="preserve">
+    <value>新機能</value>
+  </data>
+  <data name="DownloadingUpdate" xml:space="preserve">
+    <value>更新プログラムをダウンロード中... {0}%</value>
+  </data>
+  <data name="RestartingToUpdate" xml:space="preserve">
+    <value>更新のため再起動中...</value>
+  </data>
+  <data name="UpToDate" xml:space="preserve">
+    <value>WinMon は最新です。</value>
+  </data>
+  <data name="UpdateCancelled" xml:space="preserve">
+    <value>更新をキャンセルしました。</value>
+  </data>
+  <data name="UpdateNowHelp" xml:space="preserve">
+    <value>更新をダウンロードして WinMon を再起動します。現在の監視履歴は消去されます。</value>
+  </data>
   <data name="AvailableForLiveProcesses" xml:space="preserve"><value>ライブのプロセスとグループで利用できます。終了すると未保存の作業が失われる可能性があります。</value></data>
   <data name="EndGroupConfirmation" xml:space="preserve"><value>{1} の {0} 個のプロセスをすべて終了しますか？
 

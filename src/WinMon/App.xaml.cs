@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Windows;
 using WinMon.Preferences;
 using WinMon.Shortcuts;
+using WinMon.Updates;
 // ReSharper disable ConvertIfStatementToSwitchStatement
 
 namespace WinMon;
@@ -19,6 +20,13 @@ public partial class App
     // ReSharper disable once AsyncVoidEventHandlerMethod
     protected override async void OnStartup(StartupEventArgs e)
     {
+        if (e.Args is ["--apply-update", var directory, var token])
+        {
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            var code = await Task.Run(() => UpdateRuntime.RunHelper(directory, token));
+            Shutdown(code);
+            return;
+        }
         // On Windows, the initial UI culture is the user's display language, independently of regional formats.
         // Keep newly created threads on that language too; ResourceManager supplies English when unavailable.
         AppLanguages.InitializeSystemDisplayCulture(CultureInfo.CurrentUICulture);
@@ -50,6 +58,12 @@ public partial class App
         var preferenceStore = new PreferenceStore();
         var preferences = await preferenceStore.LoadAsync();
         AppLanguages.Apply(preferences.Language);
+        UpdateRuntime.AcceptResultArguments(e.Args);
+        if (UpdateRuntime.IsUpdating() && !UpdateRuntime.IsExpectedRestart)
+        {
+            Shutdown();
+            return;
+        }
         _instance = new Mutex(true, @"Local\WinMon.CpuMonitor", out _ownsInstance);
         if (!_ownsInstance)
         {
@@ -126,6 +140,7 @@ public partial class App
     protected override void OnExit(ExitEventArgs e)
     {
         _activation?.Dispose();
+        UpdateLauncher.Dispose();
         if (_ownsInstance) _instance?.ReleaseMutex();
         _instance?.Dispose();
         base.OnExit(e);

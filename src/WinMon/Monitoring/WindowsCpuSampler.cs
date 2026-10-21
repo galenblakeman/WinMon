@@ -138,6 +138,7 @@ public sealed class WindowsCpuSampler : IDisposable
                 ImagePath = process.ImagePath ?? "",
                 AppName = appNames.Description,
                 ProductName = appNames.Product,
+                Publisher = appNames.Publisher,
                 HasAppWindow = process.HasAppWindow,
                 HasHadAppWindow = process.HasHadAppWindow
             });

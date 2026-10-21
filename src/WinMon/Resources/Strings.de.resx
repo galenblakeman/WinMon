@@ -1258,6 +1258,54 @@ Windows-Zustandsstatus: {2}</value>
   <data name="PaletteTropicalDescription" xml:space="preserve">
     <value>Eigene Palette · helle warme Farben mit Blau und Türkis</value>
   </data>
+  <data name="AutomaticallyCheckForUpdates" xml:space="preserve">
+    <value>Automatisch nach Updates suchen</value>
+  </data>
+  <data name="CheckForUpdates" xml:space="preserve">
+    <value>Nach Updates suchen</value>
+  </data>
+  <data name="Dismiss" xml:space="preserve">
+    <value>Schließen</value>
+  </data>
+  <data name="UpdateAvailable" xml:space="preserve">
+    <value>WinMon {0} ist verfügbar</value>
+  </data>
+  <data name="UpdateChecking" xml:space="preserve">
+    <value>Suche nach Updates...</value>
+  </data>
+  <data name="UpdateFailed" xml:space="preserve">
+    <value>Updates konnten nicht geprüft werden. Versuchen Sie es später erneut.</value>
+  </data>
+  <data name="UpdateNow" xml:space="preserve">
+    <value>Jetzt aktualisieren</value>
+  </data>
+  <data name="UpdateRolledBack" xml:space="preserve">
+    <value>Das Update konnte nicht gestartet werden. WinMon wurde wiederhergestellt.</value>
+  </data>
+  <data name="UpdateSucceeded" xml:space="preserve">
+    <value>Aktualisiert auf WinMon {0}</value>
+  </data>
+  <data name="Updates" xml:space="preserve">
+    <value>Updates</value>
+  </data>
+  <data name="WhatsNew" xml:space="preserve">
+    <value>Neuigkeiten</value>
+  </data>
+  <data name="DownloadingUpdate" xml:space="preserve">
+    <value>Update wird heruntergeladen... {0}%</value>
+  </data>
+  <data name="RestartingToUpdate" xml:space="preserve">
+    <value>Neustart für das Update...</value>
+  </data>
+  <data name="UpToDate" xml:space="preserve">
+    <value>WinMon ist auf dem neuesten Stand.</value>
+  </data>
+  <data name="UpdateCancelled" xml:space="preserve">
+    <value>Update abgebrochen.</value>
+  </data>
+  <data name="UpdateNowHelp" xml:space="preserve">
+    <value>Lädt das Update herunter und startet WinMon neu. Der aktuelle Überwachungsverlauf wird gelöscht.</value>
+  </data>
   <data name="AvailableForLiveProcesses" xml:space="preserve"><value>Für laufende Prozesse und Gruppen verfügbar. Beim Beenden können nicht gespeicherte Daten verloren gehen.</value></data>
   <data name="EndGroupConfirmation" xml:space="preserve"><value>Alle {0} Prozesse in {1} beenden?
 

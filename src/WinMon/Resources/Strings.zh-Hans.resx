@@ -1258,6 +1258,54 @@ Windows 健康状态：{2}</value>
   <data name="PaletteTropicalDescription" xml:space="preserve">
     <value>自定义 · 明亮暖色与蓝色和蓝绿色相平衡</value>
   </data>
+  <data name="AutomaticallyCheckForUpdates" xml:space="preserve">
+    <value>自动检查更新</value>
+  </data>
+  <data name="CheckForUpdates" xml:space="preserve">
+    <value>检查更新</value>
+  </data>
+  <data name="Dismiss" xml:space="preserve">
+    <value>关闭</value>
+  </data>
+  <data name="UpdateAvailable" xml:space="preserve">
+    <value>WinMon {0} 可用</value>
+  </data>
+  <data name="UpdateChecking" xml:space="preserve">
+    <value>正在检查更新...</value>
+  </data>
+  <data name="UpdateFailed" xml:space="preserve">
+    <value>无法检查更新。请稍后重试。</value>
+  </data>
+  <data name="UpdateNow" xml:space="preserve">
+    <value>立即更新</value>
+  </data>
+  <data name="UpdateRolledBack" xml:space="preserve">
+    <value>无法启动更新。WinMon 已恢复。</value>
+  </data>
+  <data name="UpdateSucceeded" xml:space="preserve">
+    <value>已更新到 WinMon {0}</value>
+  </data>
+  <data name="Updates" xml:space="preserve">
+    <value>更新</value>
+  </data>
+  <data name="WhatsNew" xml:space="preserve">
+    <value>新功能</value>
+  </data>
+  <data name="DownloadingUpdate" xml:space="preserve">
+    <value>正在下载更新... {0}%</value>
+  </data>
+  <data name="RestartingToUpdate" xml:space="preserve">
+    <value>正在重启以更新...</value>
+  </data>
+  <data name="UpToDate" xml:space="preserve">
+    <value>WinMon 已是最新版本。</value>
+  </data>
+  <data name="UpdateCancelled" xml:space="preserve">
+    <value>已取消更新。</value>
+  </data>
+  <data name="UpdateNowHelp" xml:space="preserve">
+    <value>下载更新并重启 WinMon。当前监控历史将被清除。</value>
+  </data>
   <data name="AvailableForLiveProcesses" xml:space="preserve"><value>适用于实时进程和进程组。结束进程可能会丢失未保存的工作。</value></data>
   <data name="EndGroupConfirmation" xml:space="preserve"><value>结束 {1} 中的全部 {0} 个进程？
 

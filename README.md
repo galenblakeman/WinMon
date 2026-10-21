@@ -98,6 +98,12 @@ WinMon targets **Windows x64** and bundles its .NET runtime, so no separate .NET
 
 For a standalone executable, create an empty `portable.flag` beside `WinMon.exe` before launching to enable portable settings. Otherwise, preferences are saved in `%LOCALAPPDATA%\WinMon\settings.json`.
 
+### Updates
+
+WinMon checks GitHub for newer stable releases and offers **Update now** in the footer when a verified update is available. It downloads the update, saves preferences, exits, and restarts at the same location. Restarting clears the current monitoring history. Settings includes a manual check and an option to disable automatic checks.
+
+In-app updates require a release signed with the update key already trusted by your copy of WinMon. Earlier copies without the updater require a manual upgrade. See [update setup and behavior](docs/UPDATING.md) for publishing and recovery details.
+
 ### Build from source
 
 Development uses **.NET 10**, with SDK **10.0.402** pinned in [global.json](global.json).

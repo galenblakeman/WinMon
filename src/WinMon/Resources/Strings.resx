@@ -1258,11 +1258,59 @@ Windows health status: {2}</value>
   <data name="PaletteTropicalDescription" xml:space="preserve">
     <value>Custom · bright warm colors balanced with blue and teal</value>
   </data>
-  <data name="AvailableForLiveProcesses" xml:space="preserve"><value>Available for live processes and groups. Ending processes can lose unsaved work.</value></data>
+  <data name="AutomaticallyCheckForUpdates" xml:space="preserve">
+    <value>Automatically check for updates</value>
+  </data>
+  <data name="CheckForUpdates" xml:space="preserve">
+    <value>Check for updates</value>
+  </data>
+  <data name="Dismiss" xml:space="preserve">
+    <value>Dismiss</value>
+  </data>
+  <data name="UpdateAvailable" xml:space="preserve">
+    <value>WinMon {0} is available</value>
+  </data>
+  <data name="UpdateChecking" xml:space="preserve">
+    <value>Checking for updates...</value>
+  </data>
+  <data name="UpdateFailed" xml:space="preserve">
+    <value>Could not check for updates. Try again later.</value>
+  </data>
+  <data name="UpdateNow" xml:space="preserve">
+    <value>Update now</value>
+  </data>
+  <data name="UpdateRolledBack" xml:space="preserve">
+    <value>The update could not start. WinMon was restored.</value>
+  </data>
+  <data name="UpdateSucceeded" xml:space="preserve">
+    <value>Updated to WinMon {0}</value>
+  </data>
+  <data name="Updates" xml:space="preserve">
+    <value>Updates</value>
+  </data>
+  <data name="WhatsNew" xml:space="preserve">
+    <value>What's new</value>
+  </data>
+  <data name="DownloadingUpdate" xml:space="preserve">
+    <value>Downloading update... {0}%</value>
+  </data>
+  <data name="RestartingToUpdate" xml:space="preserve">
+    <value>Restarting to update...</value>
+  </data>
+  <data name="UpToDate" xml:space="preserve">
+    <value>WinMon is up to date.</value>
+  </data>
+  <data name="UpdateCancelled" xml:space="preserve">
+    <value>Update cancelled.</value>
+  </data>
+  <data name="UpdateNowHelp" xml:space="preserve">
+    <value>Downloads the update and restarts WinMon. Current monitoring history will be cleared.</value>
+  </data>
+  <data name="EndGroupMenu" xml:space="preserve"><value>End all processes in {0}</value></data>
   <data name="EndGroupConfirmation" xml:space="preserve"><value>End all {0} processes in {1}?
 
 Unsaved work may be lost. All processes listed below will be ended. Processes started after this confirmation opens will not be included.</value></data>
-  <data name="EndGroupMenu" xml:space="preserve"><value>End all processes in {0}</value></data>
+  <data name="AvailableForLiveProcesses" xml:space="preserve"><value>Available for live processes and groups. Ending processes can lose unsaved work.</value></data>
   <data name="Threads" xml:space="preserve"><value>Threads</value></data>
   <data name="Handles" xml:space="preserve"><value>Handles</value></data>
   <data name="ProcessThreadsExplanation" xml:space="preserve"><value>Latest sampled count; grouped rows sum current observed members. Historical groups may omit compacted idle members.</value></data>

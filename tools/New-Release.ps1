@@ -3,7 +3,8 @@
 param(
     [string]$InnoCompiler,
     [string]$OutputDirectory,
-    [string]$ExpectedTag
+    [string]$ExpectedTag,
+    [string]$UpdateSigningKeyPath
 )
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
@@ -13,6 +14,26 @@ if ($version -notmatch '^\d+\.\d+\.\d+$') { throw 'Release Version must have the
 if ($ExpectedTag -and $ExpectedTag -cne "v$version") { throw "Tag $ExpectedTag does not match Version $version." }
 [xml]$manifest = Get-Content -LiteralPath (Join-Path $root 'src/WinMon/app.manifest') -Raw
 if ($manifest.assembly.assemblyIdentity.version -ne "$version.0") { throw 'Application manifest version does not match Version.' }
+if ($UpdateSigningKeyPath) {
+    $publicKeyPath = Join-Path $root 'src/WinMon/Updates/update-public-key.pem'
+    if (!(Test-Path -LiteralPath $publicKeyPath -PathType Leaf)) {
+        throw "An update-signing key was supplied but the embedded trust key is missing: $publicKeyPath"
+    }
+    $privateKey = [Security.Cryptography.RSA]::Create()
+    $publicKey = [Security.Cryptography.RSA]::Create()
+    try {
+        $privateKey.ImportFromPem([IO.File]::ReadAllText((Resolve-Path -LiteralPath $UpdateSigningKeyPath)))
+        $publicKey.ImportFromPem([IO.File]::ReadAllText((Resolve-Path -LiteralPath $publicKeyPath)))
+        if ($privateKey.KeySize -lt 2048 -or $publicKey.KeySize -lt 2048) { throw 'Update signing keys must be RSA 2048 bits or stronger.' }
+        if (![Security.Cryptography.CryptographicOperations]::FixedTimeEquals($privateKey.ExportSubjectPublicKeyInfo(), $publicKey.ExportSubjectPublicKeyInfo())) {
+            throw 'The update signing key does not match src/WinMon/Updates/update-public-key.pem.'
+        }
+    }
+    finally {
+        $privateKey.Dispose()
+        $publicKey.Dispose()
+    }
+}
 if (!$InnoCompiler) { $InnoCompiler = Join-Path $root 'artifacts/toolchain/innosetup-6.7.3/ISCC.exe' }
 if (!(Test-Path -LiteralPath $InnoCompiler)) { throw 'Run tools/Install-InnoSetup.ps1 first, or supply -InnoCompiler.' }
 if (!$OutputDirectory) { $OutputDirectory = Join-Path $root "artifacts/releases/$version" }
@@ -46,6 +67,12 @@ Startup registration and launch shortcuts are machine-specific; disable them bef
     $winget = Join-Path $work 'winget'
     & (Join-Path $PSScriptRoot 'New-WinGetManifest.ps1') -Version $version -InstallerPath $installer -OutputDirectory $winget | Out-Host
     Compress-Archive -Path (Join-Path $winget 'manifests') -DestinationPath (Join-Path $assets "WinMon-$version-winget.zip")
+    if ($UpdateSigningKeyPath) {
+        & (Join-Path $PSScriptRoot 'New-UpdateManifest.ps1') -Version $version -PortablePath $zip -InstallerPath $installer -SigningKeyPath $UpdateSigningKeyPath -OutputDirectory $assets
+    }
+    else {
+        Write-Warning 'No update-signing key was supplied. This package is not eligible for in-app updates.'
+    }
     Get-ChildItem -LiteralPath $assets -File | Sort-Object Name | ForEach-Object {
         '{0}  {1}' -f (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant(), $_.Name
     } | Set-Content -LiteralPath (Join-Path $assets 'SHA256SUMS.txt') -Encoding utf8NoBOM

@@ -30,10 +30,24 @@ jobs:
         env:
           RELEASE_TAG: ${{ github.ref_name }}
           REF_TYPE: ${{ github.ref_type }}
+          UPDATE_SIGNING_KEY_BASE64: ${{ secrets.WINMON_UPDATE_SIGNING_KEY_BASE64 }}
         run: |
           $parameters = @{ OutputDirectory = "$PWD/artifacts/release" }
           if ($env:REF_TYPE -eq 'tag') { $parameters.ExpectedTag = $env:RELEASE_TAG }
-          ./tools/New-Release.ps1 @parameters
+          $keyPath = Join-Path $env:RUNNER_TEMP 'winmon-update-signing-key.pem'
+          try {
+            if ($env:UPDATE_SIGNING_KEY_BASE64) {
+              [IO.File]::WriteAllBytes($keyPath, [Convert]::FromBase64String($env:UPDATE_SIGNING_KEY_BASE64))
+              $parameters.UpdateSigningKeyPath = $keyPath
+            }
+            elseif ($env:REF_TYPE -eq 'tag') {
+              throw 'Tagged releases require the WINMON_UPDATE_SIGNING_KEY_BASE64 secret so they are eligible for in-app updates.'
+            }
+            ./tools/New-Release.ps1 @parameters
+          }
+          finally {
+            if (Test-Path -LiteralPath $keyPath) { Remove-Item -LiteralPath $keyPath -Force -ErrorAction SilentlyContinue }
+          }
       - name: Validate installer lifecycle and application startup
         run: |
           $installer = Get-ChildItem artifacts/release/*-Setup-x64.exe

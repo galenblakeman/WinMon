@@ -1258,6 +1258,54 @@ Estado según Windows: {2}</value>
   <data name="PaletteTropicalDescription" xml:space="preserve">
     <value>Personalizada · colores cálidos brillantes equilibrados con azul y turquesa</value>
   </data>
+  <data name="AutomaticallyCheckForUpdates" xml:space="preserve">
+    <value>Buscar actualizaciones automáticamente</value>
+  </data>
+  <data name="CheckForUpdates" xml:space="preserve">
+    <value>Buscar actualizaciones</value>
+  </data>
+  <data name="Dismiss" xml:space="preserve">
+    <value>Descartar</value>
+  </data>
+  <data name="UpdateAvailable" xml:space="preserve">
+    <value>WinMon {0} está disponible</value>
+  </data>
+  <data name="UpdateChecking" xml:space="preserve">
+    <value>Buscando actualizaciones...</value>
+  </data>
+  <data name="UpdateFailed" xml:space="preserve">
+    <value>No se pudieron buscar actualizaciones. Inténtelo de nuevo más tarde.</value>
+  </data>
+  <data name="UpdateNow" xml:space="preserve">
+    <value>Actualizar ahora</value>
+  </data>
+  <data name="UpdateRolledBack" xml:space="preserve">
+    <value>No se pudo iniciar la actualización. WinMon se restauró.</value>
+  </data>
+  <data name="UpdateSucceeded" xml:space="preserve">
+    <value>Actualizado a WinMon {0}</value>
+  </data>
+  <data name="Updates" xml:space="preserve">
+    <value>Actualizaciones</value>
+  </data>
+  <data name="WhatsNew" xml:space="preserve">
+    <value>Novedades</value>
+  </data>
+  <data name="DownloadingUpdate" xml:space="preserve">
+    <value>Descargando actualización... {0}%</value>
+  </data>
+  <data name="RestartingToUpdate" xml:space="preserve">
+    <value>Reiniciando para actualizar...</value>
+  </data>
+  <data name="UpToDate" xml:space="preserve">
+    <value>WinMon está actualizado.</value>
+  </data>
+  <data name="UpdateCancelled" xml:space="preserve">
+    <value>Actualización cancelada.</value>
+  </data>
+  <data name="UpdateNowHelp" xml:space="preserve">
+    <value>Descarga la actualización y reinicia WinMon. Se borrará el historial de supervisión actual.</value>
+  </data>
   <data name="AvailableForLiveProcesses" xml:space="preserve"><value>Disponible para procesos y grupos en vivo. Finalizarlos puede causar la pérdida del trabajo sin guardar.</value></data>
   <data name="EndGroupConfirmation" xml:space="preserve"><value>¿Finalizar los {0} procesos de {1}?
 

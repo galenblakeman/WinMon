@@ -1258,6 +1258,54 @@ GPU {11} · {12}
   <data name="PaletteTropicalDescription" xml:space="preserve">
     <value>Своя палитра · яркие тёплые цвета с синим и бирюзовым</value>
   </data>
+  <data name="AutomaticallyCheckForUpdates" xml:space="preserve">
+    <value>Автоматически проверять обновления</value>
+  </data>
+  <data name="CheckForUpdates" xml:space="preserve">
+    <value>Проверить обновления</value>
+  </data>
+  <data name="Dismiss" xml:space="preserve">
+    <value>Закрыть</value>
+  </data>
+  <data name="UpdateAvailable" xml:space="preserve">
+    <value>Доступна версия WinMon {0}</value>
+  </data>
+  <data name="UpdateChecking" xml:space="preserve">
+    <value>Проверка обновлений...</value>
+  </data>
+  <data name="UpdateFailed" xml:space="preserve">
+    <value>Не удалось проверить обновления. Повторите попытку позже.</value>
+  </data>
+  <data name="UpdateNow" xml:space="preserve">
+    <value>Обновить сейчас</value>
+  </data>
+  <data name="UpdateRolledBack" xml:space="preserve">
+    <value>Не удалось запустить обновление. WinMon восстановлен.</value>
+  </data>
+  <data name="UpdateSucceeded" xml:space="preserve">
+    <value>Обновлено до WinMon {0}</value>
+  </data>
+  <data name="Updates" xml:space="preserve">
+    <value>Обновления</value>
+  </data>
+  <data name="WhatsNew" xml:space="preserve">
+    <value>Что нового</value>
+  </data>
+  <data name="DownloadingUpdate" xml:space="preserve">
+    <value>Загрузка обновления... {0}%</value>
+  </data>
+  <data name="RestartingToUpdate" xml:space="preserve">
+    <value>Перезапуск для обновления...</value>
+  </data>
+  <data name="UpToDate" xml:space="preserve">
+    <value>Установлена последняя версия WinMon.</value>
+  </data>
+  <data name="UpdateCancelled" xml:space="preserve">
+    <value>Обновление отменено.</value>
+  </data>
+  <data name="UpdateNowHelp" xml:space="preserve">
+    <value>Загружает обновление и перезапускает WinMon. Текущая история мониторинга будет очищена.</value>
+  </data>
   <data name="AvailableForLiveProcesses" xml:space="preserve"><value>Доступно для текущих процессов и групп. Завершение может привести к потере несохранённых данных.</value></data>
   <data name="EndGroupConfirmation" xml:space="preserve"><value>Завершить все процессы ({0}) в {1}?
 

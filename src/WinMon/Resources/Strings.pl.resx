@@ -1258,6 +1258,54 @@ Stan według Windows: {2}</value>
   <data name="PaletteTropicalDescription" xml:space="preserve">
     <value>Własna · jasne ciepłe kolory zrównoważone błękitem i turkusem</value>
   </data>
+  <data name="AutomaticallyCheckForUpdates" xml:space="preserve">
+    <value>Automatycznie sprawdzaj aktualizacje</value>
+  </data>
+  <data name="CheckForUpdates" xml:space="preserve">
+    <value>Sprawdź aktualizacje</value>
+  </data>
+  <data name="Dismiss" xml:space="preserve">
+    <value>Zamknij</value>
+  </data>
+  <data name="UpdateAvailable" xml:space="preserve">
+    <value>Dostępna jest wersja WinMon {0}</value>
+  </data>
+  <data name="UpdateChecking" xml:space="preserve">
+    <value>Sprawdzanie aktualizacji...</value>
+  </data>
+  <data name="UpdateFailed" xml:space="preserve">
+    <value>Nie można sprawdzić aktualizacji. Spróbuj ponownie później.</value>
+  </data>
+  <data name="UpdateNow" xml:space="preserve">
+    <value>Aktualizuj teraz</value>
+  </data>
+  <data name="UpdateRolledBack" xml:space="preserve">
+    <value>Nie można uruchomić aktualizacji. Przywrócono WinMon.</value>
+  </data>
+  <data name="UpdateSucceeded" xml:space="preserve">
+    <value>Zaktualizowano do WinMon {0}</value>
+  </data>
+  <data name="Updates" xml:space="preserve">
+    <value>Aktualizacje</value>
+  </data>
+  <data name="WhatsNew" xml:space="preserve">
+    <value>Co nowego</value>
+  </data>
+  <data name="DownloadingUpdate" xml:space="preserve">
+    <value>Pobieranie aktualizacji... {0}%</value>
+  </data>
+  <data name="RestartingToUpdate" xml:space="preserve">
+    <value>Ponowne uruchamianie w celu aktualizacji...</value>
+  </data>
+  <data name="UpToDate" xml:space="preserve">
+    <value>WinMon jest aktualny.</value>
+  </data>
+  <data name="UpdateCancelled" xml:space="preserve">
+    <value>Anulowano aktualizację.</value>
+  </data>
+  <data name="UpdateNowHelp" xml:space="preserve">
+    <value>Pobiera aktualizację i uruchamia ponownie WinMon. Bieżąca historia monitorowania zostanie usunięta.</value>
+  </data>
   <data name="AvailableForLiveProcesses" xml:space="preserve"><value>Dostępne dla bieżących procesów i grup. Zakończenie może spowodować utratę niezapisanej pracy.</value></data>
   <data name="EndGroupConfirmation" xml:space="preserve"><value>Zakończyć wszystkie procesy ({0}) w {1}?
 

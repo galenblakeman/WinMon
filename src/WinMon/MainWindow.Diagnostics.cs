@@ -239,7 +239,7 @@ public partial class MainWindow
         await CaptureAsync(Path.Combine(outputDirectory, "light-scroll.png"), 1, cancellationToken);
         ProcessCountSelector.SelectedItem = 5;
         await CaptureToolTipAsync(Path.Combine(outputDirectory, "tooltip-light.png"), cancellationToken);
-        var settings = new Preferences.SettingsWindow(_preferences) { Owner = this };
+        var settings = new Preferences.SettingsWindow(_preferences, checkForUpdates: () => Task.FromResult(Strings.UpToDate)) { Owner = this };
         settings.Show();
         settings.UpdateLayout();
         if (settings.Content is FrameworkElement settingsVisual)
@@ -429,13 +429,14 @@ public partial class MainWindow
             }
         }
         finally { _preferences = original; ApplyTheme(); }
-        var settings = new Preferences.SettingsWindow(_preferences) { Owner = this };
+        var settings = new Preferences.SettingsWindow(_preferences, checkForUpdates: () => Task.FromResult(Strings.UpToDate)) { Owner = this };
         try
         {
             settings.Show(); settings.UpdateLayout();
             await CaptureVisualAsync((FrameworkElement)settings.Content, Path.Combine(output, "feature-settings.png"), 1, cancellationToken);
         }
         finally { settings.Close(); }
+        await CaptureUpdateDiagnosticsAsync(output, cancellationToken);
         await CaptureLanguageSettingsDiagnosticsAsync(output, cancellationToken);
         await File.WriteAllTextAsync(Path.Combine(output, "features.json"),
             JsonSerializer.Serialize(new { HardwareInfo = true, PaletteRenders = true, ProcessContextMenu = true,
@@ -443,6 +444,38 @@ public partial class MainWindow
                 LiveLanguageSwitching = true, RecordingStatePreserved = true,
                 Limitation = "No destructive command invoked by the UI smoke; native termination is tested on an owned helper in the test suite." }), cancellationToken);
     }
+
+    private async Task CaptureUpdateDiagnosticsAsync(string output, CancellationToken cancellationToken)
+    {
+        var original = _preferences;
+        try
+        {
+            foreach (var theme in new[] { "Dark", "Light" })
+            {
+                _preferences = original with { Theme = theme };
+                ApplyTheme();
+                ShowUpdateStatus(Strings.Format(Strings.UpdateAvailable, "1.0.3"), dismissible: true);
+                ReleaseNotesButton.Visibility = Visibility.Visible;
+                UpdateNowButton.Visibility = Visibility.Visible;
+                UpdateLayout();
+                if (UpdateStatusText.ActualWidth < 60 || UpdateNowButton.ActualWidth < 50 || UpdateFooter.ActualHeight < 30)
+                    throw new InvalidOperationException("The update footer controls do not fit the compact window.");
+                await CaptureAsync(Path.Combine(output, $"update-footer-{theme.ToLowerInvariant()}.png"), 1, cancellationToken);
+            }
+            ShowUpdateStatus(Strings.Format(Strings.DownloadingUpdate, 42), dismissible: false);
+            CancelUpdateButton.Visibility = Visibility.Visible;
+            await CaptureAsync(Path.Combine(output, "update-progress.png"), 1, cancellationToken);
+        }
+        finally
+        {
+            UpdateFooter.Visibility = Visibility.Collapsed;
+            _preferences = original;
+            ApplyTheme();
+        }
+    }
+
+    private static System.Windows.Controls.Grid SettingsLayout(Preferences.SettingsWindow dialog) =>
+        (System.Windows.Controls.Grid)((System.Windows.Controls.Border)((System.Windows.Controls.ScrollViewer)dialog.Content).Content).Child;
 
     private async Task CaptureLanguageSettingsDiagnosticsAsync(string output, CancellationToken cancellationToken)
     {
@@ -467,7 +500,7 @@ public partial class MainWindow
                 var dialog = new Preferences.SettingsWindow(_preferences) { Owner = this };
                 _ = Dispatcher.BeginInvoke(() =>
                 {
-                    var layout = (System.Windows.Controls.Grid)((System.Windows.Controls.Border)dialog.Content).Child;
+                    var layout = SettingsLayout(dialog);
                     var selector = layout.Children.OfType<System.Windows.Controls.Grid>()
                         .SelectMany(field => field.Children.OfType<System.Windows.Controls.ComboBox>())
                         .Single(control => System.Windows.Automation.AutomationProperties.GetName(control) == Strings.Language);
@@ -511,7 +544,7 @@ public partial class MainWindow
             var cancelled = new Preferences.SettingsWindow(_preferences) { Owner = this };
             _ = Dispatcher.BeginInvoke(() =>
             {
-                var layout = (System.Windows.Controls.Grid)((System.Windows.Controls.Border)cancelled.Content).Child;
+                var layout = SettingsLayout(cancelled);
                 var selector = layout.Children.OfType<System.Windows.Controls.Grid>()
                     .SelectMany(field => field.Children.OfType<System.Windows.Controls.ComboBox>())
                     .Single(control => System.Windows.Automation.AutomationProperties.GetName(control) == Strings.Language);
@@ -703,7 +736,7 @@ public partial class MainWindow
             var dialog = new Preferences.SettingsWindow(original with { SecondaryDrive = second ?? missing }) { Owner = this };
             _ = Dispatcher.BeginInvoke(() =>
             {
-                var layout = (System.Windows.Controls.Grid)((System.Windows.Controls.Border)dialog.Content).Child;
+                var layout = SettingsLayout(dialog);
                 var selector = layout.Children.OfType<System.Windows.Controls.Grid>()
                     .SelectMany(g => g.Children.OfType<System.Windows.Controls.ComboBox>())
                     .Single(c => System.Windows.Automation.AutomationProperties.GetName(c) == Strings.SecondDrive);

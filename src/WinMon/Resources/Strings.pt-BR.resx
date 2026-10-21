@@ -1258,6 +1258,54 @@ Integridade segundo o Windows: {2}</value>
   <data name="PaletteTropicalDescription" xml:space="preserve">
     <value>Personalizada · cores quentes vibrantes equilibradas com azul e verde-azulado</value>
   </data>
+  <data name="AutomaticallyCheckForUpdates" xml:space="preserve">
+    <value>Verificar atualizações automaticamente</value>
+  </data>
+  <data name="CheckForUpdates" xml:space="preserve">
+    <value>Verificar atualizações</value>
+  </data>
+  <data name="Dismiss" xml:space="preserve">
+    <value>Fechar</value>
+  </data>
+  <data name="UpdateAvailable" xml:space="preserve">
+    <value>WinMon {0} está disponível</value>
+  </data>
+  <data name="UpdateChecking" xml:space="preserve">
+    <value>Verificando atualizações...</value>
+  </data>
+  <data name="UpdateFailed" xml:space="preserve">
+    <value>Não foi possível verificar atualizações. Tente novamente mais tarde.</value>
+  </data>
+  <data name="UpdateNow" xml:space="preserve">
+    <value>Atualizar agora</value>
+  </data>
+  <data name="UpdateRolledBack" xml:space="preserve">
+    <value>Não foi possível iniciar a atualização. O WinMon foi restaurado.</value>
+  </data>
+  <data name="UpdateSucceeded" xml:space="preserve">
+    <value>Atualizado para WinMon {0}</value>
+  </data>
+  <data name="Updates" xml:space="preserve">
+    <value>Atualizações</value>
+  </data>
+  <data name="WhatsNew" xml:space="preserve">
+    <value>Novidades</value>
+  </data>
+  <data name="DownloadingUpdate" xml:space="preserve">
+    <value>Baixando atualização... {0}%</value>
+  </data>
+  <data name="RestartingToUpdate" xml:space="preserve">
+    <value>Reiniciando para atualizar...</value>
+  </data>
+  <data name="UpToDate" xml:space="preserve">
+    <value>O WinMon está atualizado.</value>
+  </data>
+  <data name="UpdateCancelled" xml:space="preserve">
+    <value>Atualização cancelada.</value>
+  </data>
+  <data name="UpdateNowHelp" xml:space="preserve">
+    <value>Baixa a atualização e reinicia o WinMon. O histórico de monitoramento atual será apagado.</value>
+  </data>
   <data name="AvailableForLiveProcesses" xml:space="preserve"><value>Disponível para processos e grupos ao vivo. Encerrá-los pode causar perda de trabalho não salvo.</value></data>
   <data name="EndGroupConfirmation" xml:space="preserve"><value>Encerrar todos os {0} processos de {1}?
 

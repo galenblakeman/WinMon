@@ -12,6 +12,7 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <AssemblyTitle>WinMon</AssemblyTitle>
     <Description>Lightweight Windows resource monitor</Description>
+    <UpdatePublicKeyPath Condition="'$(UpdatePublicKeyPath)' == ''">Updates/update-public-key.pem</UpdatePublicKeyPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-x64</RuntimeIdentifier>
@@ -32,6 +33,7 @@
     <RuntimeHostConfigurationOption Include="System.GC.Gen0MaxBudget" Value="6291456" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="$(UpdatePublicKeyPath)" LogicalName="WinMon.UpdatePublicKey" Condition="Exists('$(UpdatePublicKeyPath)')" />
     <Resource Include="Assets/WinMon.ico" />
     <PackageReference Include="System.Management" Version="10.0.3" />
   </ItemGroup>

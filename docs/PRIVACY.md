@@ -1,8 +1,10 @@
 # WinMon privacy policy
 
-WinMon monitors resources on your Windows PC. The application has no analytics, advertising, automatic update checks, or automatic diagnostic uploads.
+WinMon monitors resources on your Windows PC. The application has no analytics, advertising, or automatic diagnostic uploads.
 
-WinMon does not send information to other systems automatically. Any transfer requires an explicit request from the user or the person installing or operating it.
+When automatic update checks are enabled (the default), WinMon periodically requests public release metadata and a signed update manifest from its GitHub Releases page. The requests include no account, hardware, monitoring, process, preference, or diagnostic data. Turn off automatic checks in Settings; manually checking or selecting Update Now sends the same release requests and downloads only the chosen update asset.
+
+GitHub and its download infrastructure receive normal connection information, including your IP address. The request's User-Agent identifies WinMon and its version.
 
 ## Data on your PC
 

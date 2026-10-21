@@ -22,6 +22,8 @@ public sealed class SettingsWindow : Window
     private readonly ComboBox _retentionSelector;
     private readonly CheckBox _minimizeToTrayCheckBox;
     private readonly CheckBox _startupCheckBox;
+    private readonly CheckBox _automaticUpdateCheckBox;
+    private readonly TextBlock _updateCheckStatus = new() { FontSize = 12, TextWrapping = TextWrapping.Wrap };
     private readonly ComboBox _primaryDriveSelector;
     private readonly ComboBox _secondaryDriveSelector;
     private readonly TextBox _shortcutBox;
@@ -36,7 +38,7 @@ public sealed class SettingsWindow : Window
     /// <param name="preferences">The preferences shown when the dialog opens.</param>
     /// <param name="isShortcutAvailable">Reports whether no other application holds a recorded shortcut.</param>
     /// <param name="shortcutStatus">Describes whether the current shortcut works.</param>
-    public SettingsWindow(MonitorPreferences preferences, Func<HotkeyGesture, bool>? isShortcutAvailable = null, string shortcutStatus = "")
+    public SettingsWindow(MonitorPreferences preferences, Func<HotkeyGesture, bool>? isShortcutAvailable = null, string shortcutStatus = "", Func<Task<string>>? checkForUpdates = null)
     {
         ArgumentNullException.ThrowIfNull(preferences);
         _initialPreferences = preferences;
@@ -46,9 +48,11 @@ public sealed class SettingsWindow : Window
 
         Title = Strings.WinMonSettings;
         Width = 460;
-        Height = 810;
+        Height = 870;
         MinWidth = 420;
-        MinHeight = 810;
+        MinHeight = Math.Min(810, Math.Max(320, SystemParameters.WorkArea.Height - 32));
+        MaxHeight = Math.Max(MinHeight, SystemParameters.WorkArea.Height - 32);
+        Height = Math.Min(Height, MaxHeight);
         ResizeMode = ResizeMode.NoResize;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         SetResourceReference(BackgroundProperty, "Surface");
@@ -89,6 +93,7 @@ public sealed class SettingsWindow : Window
         _retentionSelector = CreateSelector([Strings.Value10Minutes, Strings.Value30Minutes, Strings.Value60Minutes], RetentionLabel(preferences.RetentionSeconds));
         _minimizeToTrayCheckBox = CreateCheckBox(Strings.MinimizeToTheNotificationArea, preferences.MinimizeToTray);
         _startupCheckBox = CreateCheckBox(Strings.StartWinMonWhenISignIn, preferences.StartWithWindows);
+        _automaticUpdateCheckBox = CreateCheckBox(Strings.AutomaticallyCheckForUpdates, preferences.AutomaticallyCheckForUpdates);
         _shortcutBox = CreateShortcutBox();
         _shortcutStatus = new TextBlock { FontSize = 12, TextWrapping = TextWrapping.Wrap, VerticalAlignment = VerticalAlignment.Center };
         _shortcutStatus.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
@@ -104,7 +109,7 @@ public sealed class SettingsWindow : Window
         {
             Margin = new Thickness(24)
         };
-        for (var row = 0; row <= 34; row++)
+        for (var row = 0; row <= 40; row++)
             layout.RowDefinitions.Add(new RowDefinition { Height = row % 2 == 0 ? GridLength.Auto : new GridLength(row is 11 or 15 or 23 or 33 ? 16 : 10) });
         TextBlock heading = CreateHeading(Strings.Appearance);
         Grid.SetRow(heading, 0);
@@ -151,13 +156,22 @@ public sealed class SettingsWindow : Window
         diskNote.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
         Grid.SetRow(diskNote, 32);
         layout.Children.Add(diskNote);
-        StackPanel buttons = CreateButtons();
-        Grid.SetRow(buttons, 34);
+        var updateHeading = CreateHeading(Strings.Updates);
+        Grid.SetRow(updateHeading, 34);
+        layout.Children.Add(updateHeading);
+        Grid.SetRow(_automaticUpdateCheckBox, 36);
+        layout.Children.Add(_automaticUpdateCheckBox);
+        _updateCheckStatus.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
+        AutomationProperties.SetLiveSetting(_updateCheckStatus, AutomationLiveSetting.Polite);
+        Grid.SetRow(_updateCheckStatus, 38);
+        layout.Children.Add(_updateCheckStatus);
+        StackPanel buttons = CreateButtons(checkForUpdates);
+        Grid.SetRow(buttons, 40);
         layout.Children.Add(buttons);
 
         Border surface = new() { Child = layout };
         surface.SetResourceReference(Border.BackgroundProperty, "Surface");
-        Content = surface;
+        Content = new ScrollViewer { VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Content = surface };
         return;
 
         void UpdatePalettePreviews()
@@ -335,7 +349,7 @@ public sealed class SettingsWindow : Window
         layout.Children.Add(field);
     }
 
-    private StackPanel CreateButtons()
+    private StackPanel CreateButtons(Func<Task<string>>? checkForUpdates)
     {
         Button cancelButton = new()
         {
@@ -358,12 +372,33 @@ public sealed class SettingsWindow : Window
         saveButton.SetResourceReference(ForegroundProperty, "Text");
         saveButton.Click += SaveButton_Click;
 
-        return new StackPanel
+        Button? checkButton = null;
+        if (checkForUpdates is not null)
+        {
+            var button = new Button { Content = Strings.CheckForUpdates, MinWidth = 130, Margin = new Thickness(0, 0, 8, 0) };
+            checkButton = button;
+            button.SetResourceReference(BackgroundProperty, "Raised");
+            button.SetResourceReference(ForegroundProperty, "Text");
+            button.Click += async (_, _) =>
+            {
+                button.IsEnabled = false;
+                _updateCheckStatus.Text = Strings.UpdateChecking;
+                try { _updateCheckStatus.Text = await checkForUpdates(); }
+                catch (OperationCanceledException) { }
+                catch (Exception ex) { System.Diagnostics.Trace.TraceWarning("WinMon manual update check: {0}", ex.Message); _updateCheckStatus.Text = Strings.UpdateFailed; }
+                finally { button.IsEnabled = true; }
+            };
+        }
+
+        var buttons = new StackPanel
         {
             Orientation = Orientation.Horizontal,
-            HorizontalAlignment = HorizontalAlignment.Right,
-            Children = { cancelButton, saveButton }
+            HorizontalAlignment = HorizontalAlignment.Right
         };
+        if (checkButton is not null) buttons.Children.Add(checkButton);
+        buttons.Children.Add(cancelButton);
+        buttons.Children.Add(saveButton);
+        return buttons;
     }
 
     private void SaveButton_Click(object sender, RoutedEventArgs e)
@@ -390,6 +425,7 @@ public sealed class SettingsWindow : Window
             },
             MinimizeToTray = _minimizeToTrayCheckBox.IsChecked == true,
             StartWithWindows = _startupCheckBox.IsChecked == true,
+            AutomaticallyCheckForUpdates = _automaticUpdateCheckBox.IsChecked == true,
             ShowShortcut = _shortcut?.ToString() ?? HotkeyGesture.NoneText,
             LaunchWithShortcut = _shortcut is not null && _launchCheckBox.IsChecked == true
         };

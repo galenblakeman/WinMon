@@ -1258,6 +1258,54 @@ Fabricant : {1}
   <data name="PaletteTropicalDescription" xml:space="preserve">
     <value>Personnalisée · couleurs chaudes lumineuses équilibrées par du bleu et du turquoise</value>
   </data>
+  <data name="AutomaticallyCheckForUpdates" xml:space="preserve">
+    <value>Rechercher automatiquement les mises à jour</value>
+  </data>
+  <data name="CheckForUpdates" xml:space="preserve">
+    <value>Rechercher les mises à jour</value>
+  </data>
+  <data name="Dismiss" xml:space="preserve">
+    <value>Fermer</value>
+  </data>
+  <data name="UpdateAvailable" xml:space="preserve">
+    <value>WinMon {0} est disponible</value>
+  </data>
+  <data name="UpdateChecking" xml:space="preserve">
+    <value>Recherche de mises à jour...</value>
+  </data>
+  <data name="UpdateFailed" xml:space="preserve">
+    <value>Impossible de rechercher les mises à jour. Réessayez plus tard.</value>
+  </data>
+  <data name="UpdateNow" xml:space="preserve">
+    <value>Mettre à jour</value>
+  </data>
+  <data name="UpdateRolledBack" xml:space="preserve">
+    <value>La mise à jour ne peut pas démarrer. WinMon a été restauré.</value>
+  </data>
+  <data name="UpdateSucceeded" xml:space="preserve">
+    <value>Mis à jour vers WinMon {0}</value>
+  </data>
+  <data name="Updates" xml:space="preserve">
+    <value>Mises à jour</value>
+  </data>
+  <data name="WhatsNew" xml:space="preserve">
+    <value>Nouveautés</value>
+  </data>
+  <data name="DownloadingUpdate" xml:space="preserve">
+    <value>Téléchargement de la mise à jour... {0}%</value>
+  </data>
+  <data name="RestartingToUpdate" xml:space="preserve">
+    <value>Redémarrage pour la mise à jour...</value>
+  </data>
+  <data name="UpToDate" xml:space="preserve">
+    <value>WinMon est à jour.</value>
+  </data>
+  <data name="UpdateCancelled" xml:space="preserve">
+    <value>Mise à jour annulée.</value>
+  </data>
+  <data name="UpdateNowHelp" xml:space="preserve">
+    <value>Télécharge la mise à jour et redémarre WinMon. La surveillance actuelle sera effacée.</value>
+  </data>
   <data name="AvailableForLiveProcesses" xml:space="preserve"><value>Disponible pour les processus et groupes en direct. Les terminer peut entraîner la perte du travail non enregistré.</value></data>
   <data name="EndGroupConfirmation" xml:space="preserve"><value>Terminer les {0} processus de {1} ?
 

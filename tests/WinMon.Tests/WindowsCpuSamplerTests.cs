@@ -42,6 +42,7 @@ public sealed class WindowsCpuSamplerTests
         {
             Assert.That(sample.Processes.Single().AppName, Is.EqualTo(info.FileDescription?.Trim()));
             Assert.That(sample.Processes.Single().ProductName, Is.EqualTo(info.ProductName?.Trim() ?? ""));
+            Assert.That(sample.Processes.Single().Publisher, Is.EqualTo(info.CompanyName?.Trim() ?? ""));
             Assert.That(ProcessSearch.Filter(rows, info.FileDescription!), Is.EqualTo(rows));
             Assert.That(rows.Single().CpuPercent, Is.Zero);
         });

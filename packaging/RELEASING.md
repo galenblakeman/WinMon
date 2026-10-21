@@ -22,6 +22,7 @@ The release script checks the product/application manifest versions, runs the co
 - `WinMon-<version>-win-x64.zip`: executable, MIT license, portable instructions and `portable.flag`. Extract into a writable folder; preserve `settings.json` when upgrading.
 - `WinMon-<version>-Setup-x64.exe`: per-user installer, normally targeting `%LOCALAPPDATA%\Programs\WinMon`. It adds a Start menu entry, an optional desktop shortcut, and an Apps & Features uninstall entry. It requires WinMon to be closed. Silent installations do not launch the app.
 - `WinMon-<version>-winget.zip`: three WinGet schema 1.10.0 manifests under the community repository's directory structure. The installer hash is calculated from the compiled installer.
+- `update-manifest.json` and `update-manifest.sig`: emitted only when `-UpdateSigningKeyPath` is supplied. The first is a compact signed record of the portable ZIP and installer name, size and SHA-256; the second is its base64 RSA SHA-256 PKCS#1 v1.5 detached signature.
 - `SHA256SUMS.txt`: checksums for all three assets above.
 
 Assets are placed in `artifacts/releases/<version>`. Existing output is refused to prevent accidental replacement of a published version. For another local build, specify a fresh `-OutputDirectory`. Build output and TRX results remain under the printed `artifacts/packaging/<run>` directory. These are repeatable build steps, not a guarantee of byte-identical binaries.
@@ -42,7 +43,7 @@ Uninstall preserves preferences. It removes the startup registry value and the a
 
 ## GitHub Releases
 
-The `Package release` workflow can be run manually to build and validate artifacts without creating a release. Pushing a `v<version>` tag runs the same checks and creates a **draft** GitHub release with the four assets and generated release notes. The tag must match `Directory.Build.props` and `app.manifest`. The workflow uses the SDK from `global.json`, the pinned compiler, and WinGet 1.29.380 on Windows Server 2025. It requires GitHub Actions and a `GITHUB_TOKEN` allowed to write repository contents.
+The `Package release` workflow can be run manually to build and validate artifacts without creating a release. Pushing a `v<version>` tag runs the same checks and creates a **draft** GitHub release with the assets and generated release notes. The tag must match `Directory.Build.props` and `app.manifest`. Tagged releases require the `WINMON_UPDATE_SIGNING_KEY_BASE64` repository secret and produce a signed update manifest; manually dispatched builds without that secret are deliberately ineligible for in-app updates. The workflow uses the SDK from `global.json`, the pinned compiler, and WinGet 1.29.380 on Windows Server 2025. It requires GitHub Actions and a `GITHUB_TOKEN` allowed to write repository contents. See [update publishing](../docs/UPDATING.md) for key provisioning and rotation.
 
 For each release:
 

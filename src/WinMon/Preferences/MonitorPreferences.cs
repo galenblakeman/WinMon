@@ -82,6 +82,9 @@ public sealed record MonitorPreferences
     /// <summary>Gets a value indicating whether the monitor starts with the current user session.</summary>
     public bool StartWithWindows { get; init; }
 
+    /// <summary>Gets a value indicating whether WinMon checks GitHub for signed releases while it runs.</summary>
+    public bool AutomaticallyCheckForUpdates { get; init; } = true;
+
     /// <summary>Gets the global shortcut that shows the monitor, such as "Ctrl+Shift+M", or "None".</summary>
     public string ShowShortcut { get; init; } = Shortcuts.HotkeyGesture.Default.ToString();
 

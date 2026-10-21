@@ -26,6 +26,7 @@ public static partial class Strings
     public static string ARM64 => ResourceManager.GetString(nameof(ARM64), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ATA => ResourceManager.GetString(nameof(ATA), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ATAPI => ResourceManager.GetString(nameof(ATAPI), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string AutomaticallyCheckForUpdates => ResourceManager.GetString(nameof(AutomaticallyCheckForUpdates), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string AvailableForLiveIndividualProcessesEndingAProcessCanLose => ResourceManager.GetString(nameof(AvailableForLiveIndividualProcessesEndingAProcessCanLose), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string AvailableForLiveProcesses => ResourceManager.GetString(nameof(AvailableForLiveProcesses), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string AverageOverTheLast5SecondsWindowsCountsProcessCPU => ResourceManager.GetString(nameof(AverageOverTheLast5SecondsWindowsCountsProcessCPU), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
@@ -43,6 +44,7 @@ public static partial class Strings
     public static string CaptureLatestSnapshot => ResourceManager.GetString(nameof(CaptureLatestSnapshot), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ChartPalette => ResourceManager.GetString(nameof(ChartPalette), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ChartTimeRange => ResourceManager.GetString(nameof(ChartTimeRange), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string CheckForUpdates => ResourceManager.GetString(nameof(CheckForUpdates), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ChooseAPrimaryVolumeAndADifferentSecondVolumeOr => ResourceManager.GetString(nameof(ChooseAPrimaryVolumeAndADifferentSecondVolumeOr), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ChooseUpTo2Volumes => ResourceManager.GetString(nameof(ChooseUpTo2Volumes), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ClearProcessSearch => ResourceManager.GetString(nameof(ClearProcessSearch), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
@@ -86,8 +88,10 @@ public static partial class Strings
     public static string DiskLabel => ResourceManager.GetString(nameof(DiskLabel), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string DiskMonitoring => ResourceManager.GetString(nameof(DiskMonitoring), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string DiskRateSuffix => ResourceManager.GetString(nameof(DiskRateSuffix), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string Dismiss => ResourceManager.GetString(nameof(Dismiss), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string Dormant => ResourceManager.GetString(nameof(Dormant), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string Down => ResourceManager.GetString(nameof(Down), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string DownloadingUpdate => ResourceManager.GetString(nameof(DownloadingUpdate), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string DrawnAsADashedLineOnTheChart => ResourceManager.GetString(nameof(DrawnAsADashedLineOnTheChart), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string EndGroupConfirmation => ResourceManager.GetString(nameof(EndGroupConfirmation), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string EndGroupMenu => ResourceManager.GetString(nameof(EndGroupMenu), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
@@ -308,6 +312,7 @@ public static partial class Strings
     public static string ResidentWorkingSetIncludingSharedPages => ResourceManager.GetString(nameof(ResidentWorkingSetIncludingSharedPages), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ResidentWorkingSetIncludingSharedPagesDoesNotSumTo => ResourceManager.GetString(nameof(ResidentWorkingSetIncludingSharedPagesDoesNotSumTo), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ResourceColorsCPUMemoryPrimaryDiskNetworkGPUSecondDisk => ResourceManager.GetString(nameof(ResourceColorsCPUMemoryPrimaryDiskNetworkGPUSecondDisk), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string RestartingToUpdate => ResourceManager.GetString(nameof(RestartingToUpdate), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string RestoreTheDefaultShortcut => ResourceManager.GetString(nameof(RestoreTheDefaultShortcut), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ResumeLiveReadingsAndProcessesEndOrEscape => ResourceManager.GetString(nameof(ResumeLiveReadingsAndProcessesEndOrEscape), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ReturnToLive => ResourceManager.GetString(nameof(ReturnToLive), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
@@ -384,6 +389,16 @@ public static partial class Strings
     public static string Unknown => ResourceManager.GetString(nameof(Unknown), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string UnknownDiskNumber => ResourceManager.GetString(nameof(UnknownDiskNumber), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string Up => ResourceManager.GetString(nameof(Up), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string UpdateAvailable => ResourceManager.GetString(nameof(UpdateAvailable), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string UpdateCancelled => ResourceManager.GetString(nameof(UpdateCancelled), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string UpdateChecking => ResourceManager.GetString(nameof(UpdateChecking), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string UpdateFailed => ResourceManager.GetString(nameof(UpdateFailed), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string UpdateNow => ResourceManager.GetString(nameof(UpdateNow), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string UpdateNowHelp => ResourceManager.GetString(nameof(UpdateNowHelp), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string UpdateRolledBack => ResourceManager.GetString(nameof(UpdateRolledBack), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string Updates => ResourceManager.GetString(nameof(Updates), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string UpdateSucceeded => ResourceManager.GetString(nameof(UpdateSucceeded), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string UpToDate => ResourceManager.GetString(nameof(UpToDate), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string USB => ResourceManager.GetString(nameof(USB), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string UseALetterDigitFunctionOrNavigationKey => ResourceManager.GetString(nameof(UseALetterDigitFunctionOrNavigationKey), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string UseAtLeastTwoOfCtrlAltAndShiftIncluding => ResourceManager.GetString(nameof(UseAtLeastTwoOfCtrlAltAndShiftIncluding), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
@@ -399,6 +414,7 @@ public static partial class Strings
     public static string VolumeActiveTimeNotSpaceUsedReadWriteThroughputIn => ResourceManager.GetString(nameof(VolumeActiveTimeNotSpaceUsedReadWriteThroughputIn), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string VolumesManufacturerWindowsHealthStatus => ResourceManager.GetString(nameof(VolumesManufacturerWindowsHealthStatus), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string Warning => ResourceManager.GetString(nameof(Warning), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string WhatsNew => ResourceManager.GetString(nameof(WhatsNew), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string Win => ResourceManager.GetString(nameof(Win), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string WindowsIdentifiesThisAsACriticalProcessWinMonWillNot => ResourceManager.GetString(nameof(WindowsIdentifiesThisAsACriticalProcessWinMonWillNot), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string WinMon => ResourceManager.GetString(nameof(WinMon), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;

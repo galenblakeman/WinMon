@@ -184,6 +184,50 @@ comparison. Other machine activity was not controlled either. These short live
 runs do not establish overall CPU or private-memory savings; the strong result
 is the matched allocation reduction in the aggregation benchmark.
 
+### CPU profile and JIT settings (October 20, 2026, later)
+
+Same machine, about 430–520 processes and 5,500–6,300 threads, .NET 10.0.13. Release build output
+and the published single-file executable behave the same. No code or build setting changed: nothing
+tested lowered both startup and steady-state CPU.
+
+Where steady-state CPU goes (OS per-thread CPU, 60 s window from 82 s, 17.4 ms/s in total):
+
+| Thread | ms/s | Main cost |
+| --- | ---: | --- |
+| Thread-pool sampling pass | 7.8 | `NtQuerySystemInformation(SystemProcessInformation)` |
+| WPF render thread (native) | 3.6 | Composing the values that changed |
+| UI thread | 3.4 | WPF text measure and layout of about 35 changing text fields |
+| Other | 2.6 | Mostly threads that exited during the window (retired pool workers); finalizer 0.3 |
+
+- The process snapshot costs about 4.8 ms per call at 1 Hz, but 1.6 ms in a tight loop. Between
+  calls the CPU caches and clocks go cold, so this is the OS floor for one call per second. The
+  buffer size makes no difference.
+- Each pass spends about 0.6–0.8 ms on GPU PDH counters (0.2 ms of that is per-process lifetime
+  checks), about 0.6 ms on disk, network and memory, 0.1 ms on `EnumWindows` and 0.06 ms on
+  retention compaction. Each is below the ±0.5 ms/s difference between repeated runs.
+- WinMon's own refresh code (ranking, sparkline data, readouts) is about 0.6 ms/s of the UI
+  thread. The rest is WPF formatting text that genuinely changed.
+
+At launch, the first 20 seconds use about 3.1 s of CPU. In the first 100 s the JIT compiled about
+5,300 methods at tier 1. Half were instrumented, mostly hot precompiled WPF methods: Tiered PGO
+compiles each one twice, first instrumented and then optimized. One-time PDH counter setup and
+the first sample's icon and version-info reads come next. Runtime settings were compared on the
+same binary, with runs in parallel:
+
+| Setting | CPU 0–20 s | CPU 0–140 s | Steady state from 140 s | Verdict |
+| --- | ---: | ---: | ---: | --- |
+| Default (4 runs, to 620 s) | 3.13 s | 5.46 s | 17.2 ms/s | Kept |
+| `TieredPGO=0` (4 runs, to 620 s) | 1.93 s | 3.77 s | 17.6 ms/s | Breaks even after about 1 hour |
+| `TieredCompilation=0` (2 runs, to 320 s) | 1.54 s | 3.52 s | 17.9 ms/s vs 16.2 default | Precompiled code is never re-optimized |
+| `TC_QuickJit=0` + `TieredPGO=0` (2 runs, to 320 s) | 1.96 s | 3.83 s | 16.6 ms/s vs 16.2 default | Inside the noise; not adopted |
+| `PublishReadyToRun` (published, 3 runs) | 2.90 s vs 3.18 s | 5.54 s vs 5.79 s | Unchanged | +20 MB exe, +3.6 MiB private |
+
+Turning off PGO also saves about 2 MiB of private memory and 6 MiB of working set. It is the
+only lever worth reconsidering, if launch cost ever matters more than all-day cost. ReadyToRun
+helps little because most tier-1 work is WPF framework code that is already precompiled, not
+WinMon's own code. Traces, scripts (`run-configs.ps1`, `measure-startup.ps1`), the per-step
+sampling harness and the analyzers are in `artifacts/perf-cpu/`.
+
 The Release build and all 354 tests passed. The added regression covers repeated
 aggregation with disappearing engines, invalid and empty samples, and preservation
 of previously returned results. Sandboxed VSTest could not connect to its testhost;

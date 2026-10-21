@@ -10,6 +10,7 @@ using WinMon.Controls;
 using WinMon.Monitoring;
 using WinMon.Preferences;
 using WinMon.Shortcuts;
+using WinMon.Updates;
 using Forms = System.Windows.Forms;
 // ReSharper disable ConvertIfStatementToSwitchStatement
 namespace WinMon;
@@ -45,6 +46,8 @@ public partial class MainWindow
     private bool _inlineProcessToolbar;
     private bool _closing;
     private bool _allowClose;
+    private bool _preparingUpdateExit;
+    private bool _updateReadySignaled;
     private WindowState _restoreState = WindowState.Normal;
     private GlobalHotkey? _hotkey;
     private HotkeyStatus _hotkeyStatus;
@@ -151,6 +154,7 @@ public partial class MainWindow
             SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
             SystemEvents.DisplaySettingsChanged += OnDisplaySettingsChanged;
             _samplingTask = Task.Run(() => CollectAsync(_lifetime.Token), _lifetime.Token);
+            InitializeUpdates();
         }
         catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { }
         catch (Exception ex)
@@ -232,6 +236,12 @@ public partial class MainWindow
                     _history.Add(pending.Sample);
                     _latestCompacted = pending.Sample;
                     _latestFull = pending.Full;
+                    if (!_diagnosticMode && !_updateReadySignaled && pending.Error is null)
+                    {
+                        _updateReadySignaled = true;
+                        UpdateRuntime.SignalReady();
+                        ShowCompletedUpdateNotice();
+                    }
                 }
                 changed = true;
             }
@@ -682,7 +692,7 @@ public partial class MainWindow
         try
         {
             var dialog = new SettingsWindow(_preferences with { AlwaysOnTop = Topmost, StartWithWindows = StartupRegistration.IsEnabled, LaunchWithShortcut = StartMenuShortcut.Exists },
-                IsShortcutAvailable, ShortcutStatus) { Owner = this };
+                IsShortcutAvailable, ShortcutStatus, async () => { await CheckForUpdatesAsync(true, _lifetime.Token); return UpdateStatusText.Text; }) { Owner = this };
             // Let the shortcut recorder receive WinMon's own combination; Save or the finally block takes it back.
             _hotkeyRetry?.Stop();
             _hotkey?.Unregister();
@@ -759,6 +769,7 @@ public partial class MainWindow
             menu.Items[1].Text = Strings.Exit;
         }
         OverallGraph.RefreshLanguage();
+        RefreshUpdateText();
         RefreshPresentation();
     }
 
@@ -898,7 +909,29 @@ public partial class MainWindow
     {
         if (_allowClose) return;
         e.Cancel = true;
-        if (_closing) return;
+        if (_closing || _preparingUpdateExit) return;
+        if (_updateRestartPending)
+        {
+            _preparingUpdateExit = true;
+            IsEnabled = false;
+            try
+            {
+                await _settingsWriteTask;
+                var savedBounds = WindowState == WindowState.Normal ? new Rect(Left, Top, Width, Height) : RestoreBounds;
+                await _preferenceStore.SaveAsync(_preferences with { Width = savedBounds.Width, Height = savedBounds.Height, Left = savedBounds.Left, Top = savedBounds.Top, AlwaysOnTop = Topmost }, CancellationToken.None);
+            }
+            catch (Exception saveError)
+            {
+                Trace.TraceError("WinMon update cancelled because preferences could not be saved: {0}", saveError);
+                AbortPendingUpdate();
+                UpdateLauncher.Dispose();
+                IsEnabled = true;
+                ShowUpdateStatus(Strings.UpdateFailed, dismissible: true);
+                _preparingUpdateExit = false;
+                return;
+            }
+            _preparingUpdateExit = false;
+        }
         _closing = true;
         IsEnabled = false;
         SystemEvents.UserPreferenceChanged -= OnUserPreferenceChanged;
@@ -910,16 +943,18 @@ public partial class MainWindow
             try { await _settingsWriteTask; }
             catch (Exception settingsError) { Trace.TraceError("WinMon pending preference save failed during shutdown: {0}", settingsError); }
             var bounds = WindowState == WindowState.Normal ? new Rect(Left, Top, Width, Height) : RestoreBounds;
-            if (!_diagnosticMode) await _preferenceStore.SaveAsync(_preferences with { Width = bounds.Width, Height = bounds.Height, Left = bounds.Left, Top = bounds.Top, AlwaysOnTop = Topmost }, CancellationToken.None);
+            if (!_diagnosticMode && !_updateRestartPending) await _preferenceStore.SaveAsync(_preferences with { Width = bounds.Width, Height = bounds.Height, Left = bounds.Left, Top = bounds.Top, AlwaysOnTop = Topmost }, CancellationToken.None);
         }
-        catch (Exception ex) { Trace.TraceError("WinMon shutdown or preference save failed: {0}", ex); }
+        catch (Exception ex) { AbortPendingUpdate(); Trace.TraceError("WinMon shutdown or preference save failed: {0}", ex); }
         finally
         {
+            await ShutdownUpdatesAsync();
             _hotkeyRetry?.Stop();
             _hotkey?.Dispose();
             _tray?.ContextMenuStrip?.Dispose();
             _tray?.Dispose();
             _trayIcon?.Dispose();
+            if (_updateRestartPending) UpdateLauncher.Commit();
             _lifetime.Dispose();
             _allowClose = true;
             Close();
