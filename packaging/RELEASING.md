@@ -1,10 +1,10 @@
 # Releasing WinMon
 
-The scripts require Windows x64, PowerShell 7, the .NET SDK pinned in `global.json`, and Inno Setup 6.7.3. No signing certificate is configured: current application and installer assets are unsigned. Review code-signing requirements before broad public distribution. Inno Setup's commercial licensing guidance applies to use of its compiler; see its [license information](https://jrsoftware.org/isorder.php).
+The scripts require Windows x64, PowerShell 7.4 or later, the .NET SDK pinned in `global.json`, and Inno Setup 6.7.3. Official release packaging signs and timestamps the application and installer through Azure Artifact Signing. Its pinned PowerShell module also requires the .NET 8 runtime. Inno Setup's commercial licensing guidance applies to use of its compiler; see its [license information](https://jrsoftware.org/isorder.php).
 
 ## Code signing policy
 
-See the [Code signing policy](../docs/CODE_SIGNING.md), [privacy policy](../docs/PRIVACY.md), and [SignPath application preparation](../docs/SIGNPATH_APPLICATION.md). SignPath signing is not yet approved or configured. Include a Code signing policy link and an accurate signing-status statement in every release's notes; the application preparation document includes text for current unsigned releases.
+See the [Code signing policy](../docs/CODE_SIGNING.md) for Azure OIDC, signing permissions, and the `release` environment secrets. Include a policy link and an accurate signing-status statement in release notes. Authenticode and the RSA update-manifest signature are separate requirements; both must verify before publication.
 
 ## Build locally
 
@@ -12,7 +12,7 @@ From the repository root:
 
 ```powershell
 ./tools/Install-InnoSetup.ps1
-./tools/New-Release.ps1 -ExpectedTag v1.0.0
+./tools/New-Release.ps1 -ExpectedTag v1.0.3 -CodeSign -UpdateSigningKeyPath C:\secure\winmon-update-private.pem
 ```
 
 The compiler bootstrap downloads the pinned vendor release, verifies its SHA-256 and Authenticode signature, and installs it per-user under `artifacts/toolchain`. It also registers the compiler's own uninstaller with Windows. An existing compiler can instead be supplied with `-InnoCompiler path/to/ISCC.exe`; use version 6.7.3.
@@ -21,7 +21,7 @@ The release script checks the product/application manifest versions, runs the co
 
 - `WinMon-<version>-win-x64.zip`: executable, MIT license, portable instructions and `portable.flag`. Extract into a writable folder; preserve `settings.json` when upgrading.
 - `WinMon-<version>-Setup-x64.exe`: per-user installer, normally targeting `%LOCALAPPDATA%\Programs\WinMon`. It adds a Start menu entry, an optional desktop shortcut, and an Apps & Features uninstall entry. It requires WinMon to be closed. Silent installations do not launch the app.
-- `WinMon-<version>-winget.zip`: three WinGet schema 1.10.0 manifests under the community repository's directory structure. The installer hash is calculated from the compiled installer.
+- `WinMon-<version>-winget.zip`: three WinGet schema 1.12.0 manifests under the community repository's directory structure. The installer hash is calculated from the final signed installer.
 - `update-manifest.json` and `update-manifest.sig`: emitted only when `-UpdateSigningKeyPath` is supplied. The first is a compact signed record of the portable ZIP and installer name, size and SHA-256; the second is its base64 RSA SHA-256 PKCS#1 v1.5 detached signature.
 - `SHA256SUMS.txt`: checksums for all three assets above.
 
@@ -43,7 +43,7 @@ Uninstall preserves preferences. It removes the startup registry value and the a
 
 ## GitHub Releases
 
-The `Package release` workflow can be run manually to build and validate artifacts without creating a release. Pushing a `v<version>` tag runs the same checks and creates a **draft** GitHub release with the assets and generated release notes. The tag must match `Directory.Build.props` and `app.manifest`. Tagged releases require the `WINMON_UPDATE_SIGNING_KEY_BASE64` repository secret and produce a signed update manifest; manually dispatched builds without that secret are deliberately ineligible for in-app updates. The workflow uses the SDK from `global.json`, the pinned compiler, and WinGet 1.29.380 on Windows Server 2025. It requires GitHub Actions and a `GITHUB_TOKEN` allowed to write repository contents. See [update publishing](../docs/UPDATING.md) for key provisioning and rotation.
+The `Package release` workflow can be run manually to build and validate artifacts without creating a release. Pushing a `v<version>` tag runs the same checks and creates a **draft** GitHub release with the assets and generated release notes. The tag must match `Directory.Build.props` and `app.manifest`. Every run requires the Azure OIDC secrets and `WINMON_UPDATE_SIGNING_KEY_BASE64` in the `release` environment and produces Authenticode-signed artifacts plus a signed update manifest. The workflow uses the SDK from `global.json`, the pinned compiler, and WinGet 1.29.380 on Windows Server 2025. It requires GitHub Actions and a `GITHUB_TOKEN` allowed to write repository contents. See [update publishing](../docs/UPDATING.md) for key provisioning and rotation.
 
 For each release:
 

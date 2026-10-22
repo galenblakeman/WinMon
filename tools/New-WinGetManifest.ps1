@@ -14,15 +14,15 @@ $id = 'GalenBlakeman.WinMon'
 $directory = Join-Path $OutputDirectory "manifests/g/GalenBlakeman/WinMon/$Version"
 New-Item -ItemType Directory -Path $directory -Force | Out-Null
 @"
-# yaml-language-server: `$schema=https://aka.ms/winget-manifest.version.1.10.0.schema.json
+# yaml-language-server: `$schema=https://aka.ms/winget-manifest.version.1.12.0.schema.json
 PackageIdentifier: $id
 PackageVersion: $Version
 DefaultLocale: en-US
 ManifestType: version
-ManifestVersion: 1.10.0
+ManifestVersion: 1.12.0
 "@ | Set-Content -LiteralPath (Join-Path $directory "$id.yaml") -Encoding utf8NoBOM
 @"
-# yaml-language-server: `$schema=https://aka.ms/winget-manifest.defaultLocale.1.10.0.schema.json
+# yaml-language-server: `$schema=https://aka.ms/winget-manifest.defaultLocale.1.12.0.schema.json
 PackageIdentifier: $id
 PackageVersion: $Version
 PackageLocale: en-US
@@ -40,10 +40,10 @@ Tags:
 - wpf
 ReleaseNotesUrl: $repository/releases/tag/v$Version
 ManifestType: defaultLocale
-ManifestVersion: 1.10.0
+ManifestVersion: 1.12.0
 "@ | Set-Content -LiteralPath (Join-Path $directory "$id.locale.en-US.yaml") -Encoding utf8NoBOM
 @"
-# yaml-language-server: `$schema=https://aka.ms/winget-manifest.installer.1.10.0.schema.json
+# yaml-language-server: `$schema=https://aka.ms/winget-manifest.installer.1.12.0.schema.json
 PackageIdentifier: $id
 PackageVersion: $Version
 InstallerType: inno
@@ -65,6 +65,6 @@ Installers:
     Publisher: Galen Blakeman
     ProductCode: '{D736D24F-6A1E-4FD4-AC66-790F93DC61B4}_is1'
 ManifestType: installer
-ManifestVersion: 1.10.0
+ManifestVersion: 1.12.0
 "@ | Set-Content -LiteralPath (Join-Path $directory "$id.installer.yaml") -Encoding utf8NoBOM
 Write-Output $directory
