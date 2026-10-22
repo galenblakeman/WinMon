@@ -512,7 +512,8 @@ public partial class MainWindow
             ProcessSearchBox.Text = "__live_language_no_match__";
             foreach (var choice in Preferences.AppLanguages.Choices)
             {
-                var dialog = new Preferences.SettingsWindow(_preferences) { Owner = this };
+                // Exercise the scrollable dialog even on desktops tall enough to show it all.
+                var dialog = new Preferences.SettingsWindow(_preferences) { Owner = this, MinHeight = 320, Height = 600 };
                 _ = Dispatcher.BeginInvoke(() =>
                 {
                     var layout = SettingsLayout(dialog);
@@ -524,6 +525,8 @@ public partial class MainWindow
                     selector.SelectedValue = choice.Name;
                     var save = layout.Children.OfType<System.Windows.Controls.StackPanel>().Single().Children
                         .OfType<System.Windows.Controls.Button>().Single(button => button.IsDefault);
+                    save.BringIntoView();
+                    dialog.UpdateLayout();
                     var surface = (FrameworkElement)dialog.Content;
                     var bounds = new Rect(save.TranslatePoint(new Point(), surface), save.RenderSize);
                     if (!new Rect(surface.RenderSize).Contains(bounds))
