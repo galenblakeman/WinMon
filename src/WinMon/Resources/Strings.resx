@@ -521,7 +521,7 @@ Media: {1} · Connection: {2} · Capacity: {3}
 Memory specifications and slot counts reflect firmware reports.</value>
   </data>
   <data name="MHzWindowsReported" xml:space="preserve">
-    <value>{0} MHz (Windows-reported)</value>
+    <value>{0} MHz</value>
   </data>
   <data name="MiB" xml:space="preserve">
     <value>{0:N0} MiB</value>
@@ -646,7 +646,7 @@ Module details unavailable from Windows.</value>
     <value> · {0} of link</value>
   </data>
   <data name="OfSlotsUsedFirmwareReported" xml:space="preserve">
-    <value>{0} of {1} slots used (firmware-reported)</value>
+    <value>{0} of {1} slots used</value>
   </data>
   <data name="OfTotalCPUAveragedOver5SecondsGPUAveragedOver" xml:space="preserve">
     <value>{0}, {1}, {2} of total CPU averaged over 5 seconds, GPU {3} averaged over readable intervals in the last 5 seconds, memory {4}, read/write I/O {5} MB per second</value>
@@ -1047,10 +1047,10 @@ Unattributed CPU is total CPU minus all measured processes: kernel and interrupt
     <value>Virtual</value>
   </data>
   <data name="VirtualizationEnabledInFirmwareWindowsReported" xml:space="preserve">
-    <value>Virtualization enabled in firmware (Windows-reported): {0}</value>
+    <value>Virtualization enabled in firmware: {0}</value>
   </data>
   <data name="VirtualizationExtensionsWindowsReported" xml:space="preserve">
-    <value>Virtualization extensions (Windows-reported): {0}
+    <value>Virtualization extensions: {0}
 </value>
   </data>
   <data name="VolumeActiveTimeNotSpaceUsedReadWriteThroughputIn" xml:space="preserve">

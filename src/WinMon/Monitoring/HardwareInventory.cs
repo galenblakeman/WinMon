@@ -188,7 +188,7 @@ internal static class HardwareInventory
     {
         var adapters = query.Read(@"root\StandardCimv2", "MSFT_NetAdapter", "Name", "InterfaceDescription",
             "InterfaceType", "InterfaceOperationalStatus", "InterfaceAdminStatus", "MediaConnectState",
-            "State", "ConfigManagerErrorCode", "Virtual", "ReceiveLinkSpeed");
+            "State", "Virtual", "ReceiveLinkSpeed");
         if (adapters is null)
             return new WindowsHardwareInfo.Section(Strings.NetworkAdapters, Strings.NetworkAdapterInventoryUnavailableFromWindows);
 
@@ -198,8 +198,8 @@ internal static class HardwareInventory
             var operation = adapter.Number("InterfaceOperationalStatus");
             var state = adapter.Number("State");
             // Operational NotPresent can also be reported for a disabled PnP device.
-            // State 3 identifies disabled devices; configuration error 45 identifies removed devices.
-            if (adapter.Number("InterfaceType") == 24 || adapter.Number("ConfigManagerErrorCode") == 45 ||
+            // State 3 identifies disabled devices. ConfigManagerErrorCode is not exposed by this provider.
+            if (adapter.Number("InterfaceType") == 24 ||
                 state is not (1 or 2 or 3) || (operation == 6 && state != 3)) continue;
 
             var status = state == 3 || adapter.Number("InterfaceAdminStatus") == 2 ? Strings.Disabled :

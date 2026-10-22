@@ -63,7 +63,7 @@ public sealed class HardwareInventoryTests
             Assert.That(section.Details.Split("4.5 GHz (4500 MHz)"), Has.Length.EqualTo(2));
             Assert.That(section.Details, Does.Contain("Architecture: x64").And.Contain("Manufacturer: Example"));
             Assert.That(section.Details, Does.Contain("L2 cache (reported): 8 MiB").And.Contain("L3 cache (reported): 32 MiB"));
-            Assert.That(section.Details, Does.Contain("Virtualization extensions (Windows-reported): Yes").And.Contain("enabled in firmware (Windows-reported): No"));
+            Assert.That(section.Details, Does.Contain("Virtualization extensions: Yes").And.Contain("enabled in firmware: No"));
         });
     }
 
@@ -89,7 +89,7 @@ public sealed class HardwareInventoryTests
         var details = section.Details;
         Assert.That(details, Does.Not.Contain("CPU0"));
         Assert.That(details, Does.Contain("Architecture: Unavailable").And.Contain("Reported maximum clock: Unavailable").And.Contain("L2 cache (reported): Unavailable"));
-        Assert.That(details, Does.Contain("Virtualization extensions (Windows-reported): Unavailable"));
+        Assert.That(details, Does.Contain("Virtualization extensions: Unavailable"));
         Assert.That(details, Does.Not.Contain(": No"));
     }
 
@@ -237,7 +237,7 @@ public sealed class HardwareInventoryTests
             Row(("Name", "Disabled NIC"), ("State", 3), ("InterfaceOperationalStatus", 6), ("InterfaceAdminStatus", 2)),
             Row(("Name", "VPN"), ("State", 1), ("InterfaceOperationalStatus", 2), ("MediaConnectState", 2), ("Virtual", true)),
             Row(("Name", "Absent"), ("State", 2), ("InterfaceOperationalStatus", 6)),
-            Row(("Name", "Removed"), ("State", 3), ("InterfaceOperationalStatus", 6), ("ConfigManagerErrorCode", 45)),
+            Row(("Name", "Removed"), ("State", 0), ("InterfaceOperationalStatus", 6)),
             Row(("Name", "Unknown presence"), ("InterfaceOperationalStatus", 1)),
             Row(("Name", "Loopback"), ("State", 2), ("InterfaceOperationalStatus", 1), ("InterfaceType", 24))];
 
@@ -250,6 +250,19 @@ public sealed class HardwareInventoryTests
             Assert.That(details, Does.Contain("VPN · Disconnected · Virtual"));
             Assert.That(details, Does.Not.Contain("Absent").And.Not.Contain("Removed").And.Not.Contain("Unknown presence").And.Not.Contain("Loopback"));
         });
+    }
+
+    [Test]
+    public void Network_LoadsWhenProviderExposesOnlySupportedAdapterProperties()
+    {
+        var query = new Query
+        {
+            SupportedProperties = ["Name", "InterfaceDescription", "InterfaceType", "InterfaceOperationalStatus",
+                "InterfaceAdminStatus", "MediaConnectState", "State", "Virtual", "ReceiveLinkSpeed"]
+        };
+        query.Rows["MSFT_NetAdapter"] = [Row(("Name", "Ethernet"), ("State", 2), ("InterfaceOperationalStatus", 1))];
+
+        Assert.That(HardwareInventory.Network(query).Details, Does.Contain("Ethernet · Up"));
     }
 
     [Test]
@@ -273,6 +286,9 @@ public sealed class HardwareInventoryTests
     private sealed class Query : IHardwareQuery
     {
         internal Dictionary<string, IReadOnlyList<HardwareRow>> Rows { get; } = new();
-        public IReadOnlyList<HardwareRow>? Read(string scope, string className, params string[] properties) => Rows.GetValueOrDefault(className);
+        internal HashSet<string>? SupportedProperties { get; init; }
+        public IReadOnlyList<HardwareRow>? Read(string scope, string className, params string[] properties) =>
+            SupportedProperties is { } supported && properties.Any(p => !supported.Contains(p))
+                ? null : Rows.GetValueOrDefault(className);
     }
 }
