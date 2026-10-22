@@ -4,5 +4,6 @@ obj/
 *.user
 TestResults/
 artifacts/
+.artifacts/
 winmon-update-signing-key.pem
 *.update-private.pem

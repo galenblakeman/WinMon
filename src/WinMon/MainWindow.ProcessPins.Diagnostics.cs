@@ -16,7 +16,7 @@ public partial class MainWindow
         if (!_inlinePinToolbar) return;
         var right = 0.0;
         foreach (FrameworkElement control in new FrameworkElement[]
-                 { PinSummary, ProcessRankingControls, ProcessSearchBorder, AppsOnlyCheckBox, PinnedOnlyCheckBox, ProcessGroupingControls })
+                 { ProcessRankingControls, ProcessSearchBorder, AppsOnlyCheckBox, PinnedOnlyCheckBox, ProcessGroupingControls })
         {
             var bounds = control.TransformToAncestor(ProcessToolbarGrid).TransformBounds(new Rect(control.RenderSize));
             if (Grid.GetRow(control) != 0 || bounds.Left < right - 0.5 || bounds.Right > ProcessToolbarGrid.ActualWidth + 0.5 ||
@@ -54,8 +54,10 @@ public partial class MainWindow
             {
                 Resources = new ResourceSample { UsedMemoryBytes = 23_056_165_683, TotalMemoryBytes = 32UL * 1_073_741_824,
                     DiskName = "C:", DiskActivePercent = 6.4 + 60 * pulse, SecondaryDiskName = "D:", SecondaryDiskActivePercent = 3.5 + 18 * pulse,
-                    GpuPercent = 10.5 + 40 * pulse, NetworkName = "Ethernet", LinkBitsPerSecond = 1_000_000_000,
-                    ReceiveBytesPerSecond = 955_000 + 10_000_000 * pulse, SendBytesPerSecond = 150_000 }
+                    GpuPercent = 10.5 + 40 * pulse, GpuMemoryUsedBytes = 2_254_857_830, GpuMemoryTotalBytes = 8UL * 1_073_741_824,
+                    NetworkName = "Ethernet", LinkBitsPerSecond = 1_000_000_000,
+                    ReceiveBytesPerSecond = 955_000 + 10_000_000 * pulse, SendBytesPerSecond = 150_000,
+                    CpuClockMhz = 4200 }
             });
         }
         fixture.ToggleProcessPin(code, false);
@@ -63,6 +65,21 @@ public partial class MainWindow
         fixture.ToggleProcessPin(exited, false);
         fixture.ApplyTheme();
         Draw();
+        var filledPin = Descendants(fixture._pinnedRows[0]).OfType<Button>().Single();
+        if (fixture.PinSummary.Visibility != Visibility.Visible ||
+            fixture.PinnedCountLabel.Text != Strings.Format(Strings.PinnedProcessCount, 3) ||
+            fixture.PinSummary.Parent != fixture.CoverageLabel.Parent)
+            throw new InvalidOperationException("Pinned count was not displayed beside CPU coverage.");
+        var pinPath = (System.Windows.Shapes.Path)filledPin.Template.FindName("CaptionIcon", filledPin);
+        if (!ButtonIcon.GetFilled(filledPin) || pinPath.Fill is null ||
+            !Equals(pinPath.Fill, filledPin.Foreground) ||
+            fixture.CpuMetric.DetailLabel.Text != $"{4.2:0.00} GHz" ||
+            fixture.NetworkMetric.ValueLabel.Inlines.FirstInline is not System.Windows.Documents.Run { Text: var networkText } ||
+            !networkText.StartsWith('↓') || !fixture.NetworkMetric.DetailLabel.Text.StartsWith('↑') ||
+            fixture.NetworkMetric.DetailLabel.Text.Contains('↓') ||
+            fixture.GpuMetric.DetailLabel.Text != $"{2.1:0.0} / {8.0:0.0} GiB" ||
+            fixture.MemoryHeader.Text != $"{Strings.Memory} MiB")
+            throw new InvalidOperationException($"UI presentation failed: filled={ButtonIcon.GetFilled(filledPin)}, fill={pinPath.Fill}, foreground={filledPin.Foreground}, clock={fixture.CpuMetric.DetailLabel.Text}, network={fixture.NetworkMetric.ValueLabel.Text}, memory={fixture.MemoryHeader.Text}.");
         if (fixture._pinnedRows.Count != 3 || fixture._rows.Count(r => r.Visibility == Visibility.Visible) != 4 ||
             !AutomationProperties.GetName(fixture._pinnedRows[0]).StartsWith("Visual Studio Code", StringComparison.Ordinal) ||
             !AutomationProperties.GetName(fixture._pinnedRows[2]).Contains(Strings.ProcessExited, StringComparison.Ordinal))
@@ -87,7 +104,7 @@ public partial class MainWindow
         fixture.AppsOnlyCheckBox.IsChecked = false;
         fixture.GroupedChip.IsChecked = true;
         Draw();
-        if (fixture._pinnedRows.Any(r => r.Visibility == Visibility.Visible))
+        if (fixture._pinnedRows.Any(r => r.Visibility == Visibility.Visible) || fixture.PinSummary.Visibility != Visibility.Collapsed)
             throw new InvalidOperationException("Individual pins leaked into grouped view.");
         fixture.ToggleProcessPin(chrome, true);
         Draw();
@@ -110,6 +127,26 @@ public partial class MainWindow
         fixture.ApplyTheme();
         Draw(836, 840);
         await CaptureVisualAsync(visual, Path.Combine(output, "pins-minimum.png"), 1, cancellationToken);
+        var initialChartHeight = fixture.ChartAreaRow.Height;
+        var initialProcessHeight = fixture.ProcessesAreaRow.Height;
+        var chartHeight = fixture.ChartAreaRow.ActualHeight;
+        var processHeight = fixture.ProcessesAreaRow.ActualHeight;
+        DragDivider(-40);
+        if (Math.Abs(fixture.ChartAreaRow.ActualHeight - (chartHeight - 40)) > 1 ||
+            Math.Abs(fixture.ProcessesAreaRow.ActualHeight - (processHeight + 40)) > 1)
+            throw new InvalidOperationException("Dragging the divider did not redistribute chart and process height.");
+        DragDivider(-10_000);
+        if (Math.Abs(fixture.ChartAreaRow.ActualHeight - fixture.ChartAreaRow.MinHeight) > 1)
+            throw new InvalidOperationException("The divider did not protect the chart minimum height.");
+        await CaptureVisualAsync(visual, Path.Combine(output, "divider-chart-minimum.png"), 1, cancellationToken);
+        DragDivider(10_000);
+        if (Math.Abs(fixture.ProcessesAreaRow.ActualHeight - fixture.ProcessesAreaRow.MinHeight) > 1 ||
+            fixture.ProcessScroll.ActualHeight < 108)
+            throw new InvalidOperationException("The divider did not protect the process section and scrolling list minimums.");
+        await CaptureVisualAsync(visual, Path.Combine(output, "divider-process-minimum.png"), 1, cancellationToken);
+        fixture.ChartAreaRow.Height = initialChartHeight;
+        fixture.ProcessesAreaRow.Height = initialProcessHeight;
+        Draw(836, 840);
         // Invoke the real row button; the row can change position after this click.
         var pinButton = Descendants(fixture._pinnedRows[0]).OfType<Button>().Single();
         pinButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
@@ -121,6 +158,14 @@ public partial class MainWindow
         { StableOrder = true, Deduplicated = true, Exited = true, PinnedOnly = true, Search = true, AppsOnly = true,
             GroupedPins = true, SnapshotCopy = true, RowButtonUnpin = true, Themes = new[] { "Dark", "Light" } }), cancellationToken);
         return;
+
+        void DragDivider(double delta)
+        {
+            fixture.ChartProcessDivider.RaiseEvent(new DragStartedEventArgs(0, 0) { RoutedEvent = Thumb.DragStartedEvent });
+            fixture.ChartProcessDivider.RaiseEvent(new DragDeltaEventArgs(0, delta) { RoutedEvent = Thumb.DragDeltaEvent });
+            fixture.ChartProcessDivider.RaiseEvent(new DragCompletedEventArgs(0, delta, false) { RoutedEvent = Thumb.DragCompletedEvent });
+            Draw(836, 840);
+        }
 
         void Draw(double width = 1000, double height = 1000)
         {

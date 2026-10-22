@@ -14,6 +14,14 @@ invalidate their engine; unavailable data is not converted to zero. The readout
 tooltip identifies the adapter and engine. Adapter changes break the chart trace.
 The initial basic view omitted adapter selection, GPU memory, sensors, and GPU process ranking.
 
+The GPU tile now shows dedicated video memory used / total in GiB below utilization.
+Adapter-wide PDH `GPU Adapter Memory(*)\Dedicated Usage` supplies current usage;
+DXGI 1.1 `IDXGIAdapter1::GetDesc1` supplies dedicated capacity. Both must match the
+utilization adapter's LUID and physical GPU. Other adapters are never summed or
+substituted. Missing memory readings display 3D, and memory collection
+failures leave utilization sampling running. DXGI capacities refresh every 30 seconds.
+Linked physical GPUs without a separately identified capacity remain unavailable.
+
 GPU uses its own query and failure handling. Rate formatting waits for the second
 collection, and pause, reset and collection gaps establish a new interval. Handles
 and native buffers are released. Collection continues when the series is hidden.

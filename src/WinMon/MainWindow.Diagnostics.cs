@@ -363,7 +363,9 @@ public partial class MainWindow
         // Exercise menu creation without invoking the destructive command.
         row.PrepareProcessMenu();
         var menu = row.ContextMenu ?? throw new InvalidOperationException("Process context menu was not created.");
-        if (menu.Items is not [System.Windows.Controls.MenuItem, System.Windows.Controls.MenuItem { Header: string { Length: > 0 } } item] ||
+        var item = menu.Items.OfType<System.Windows.Controls.MenuItem>().Last();
+        if (menu.Items.OfType<System.Windows.Controls.MenuItem>().Count() != 6 ||
+            menu.Items.OfType<System.Windows.Controls.MenuItem>().Any(i => i.Icon is null) ||
             item.ToolTip as string != Strings.AvailableForLiveProcesses)
             throw new InvalidOperationException("Process context menu did not capture its target.");
         try
@@ -404,13 +406,14 @@ public partial class MainWindow
             _selectedSample = _history.Latest;
             RefreshPresentation();
             row.PrepareProcessMenu();
-            if (menu.Items is not [System.Windows.Controls.MenuItem, System.Windows.Controls.MenuItem { IsEnabled: false }])
+            if (menu.Items.OfType<System.Windows.Controls.MenuItem>().Last().IsEnabled ||
+                menu.Items.OfType<System.Windows.Controls.MenuItem>().Single(i => (string)i.Header == Strings.CreateDumpFile + "…").IsEnabled)
                 throw new InvalidOperationException("Historical rows allowed process termination.");
             _selectedSample = null;
             GroupedChip.IsChecked = true;
             RefreshPresentation();
             row.PrepareProcessMenu();
-            if (menu.Items is not [System.Windows.Controls.MenuItem, System.Windows.Controls.MenuItem { Header: string groupHeader }] ||
+            if (menu.Items.OfType<System.Windows.Controls.MenuItem>().Last().Header is not string groupHeader ||
                 !groupHeader.Contains(Strings.Format(Strings.EndGroupMenu, "").Trim(), StringComparison.Ordinal))
                 throw new InvalidOperationException("Grouped rows did not offer group termination.");
         }
@@ -426,6 +429,22 @@ public partial class MainWindow
             {
                 _preferences = original with { Theme = theme };
                 ApplyTheme();
+                var example = new Monitoring.ProcessUsage(12345, DateTime.UtcNow.AddHours(-2).ToFileTimeUtc(), "example.exe", 4.2,
+                    100 * 1_048_576, 230_000) { ImagePath = @"C:\Program Files\Example\example.exe", AppName = "Example application",
+                    Publisher = "Example publisher", ThreadCount = 12, HandleCount = 240, PrivateBytes = 80 * 1_048_576 };
+                var snapshot = new Monitoring.ProcessDetailsSnapshot(example, false, DateTimeOffset.Now, false, true, "");
+                foreach (var dialog in new Window[] { new Controls.ProcessPropertiesWindow(snapshot, _ => { }),
+                    new Controls.ProcessDumpDialog(example, () => false) })
+                {
+                    dialog.Owner = this;
+                    try
+                    {
+                        dialog.Show(); dialog.UpdateLayout();
+                        await CaptureVisualAsync(dialog, Path.Combine(output,
+                            $"{(dialog is Controls.ProcessPropertiesWindow ? "process-properties" : "process-dump")}-{theme.ToLowerInvariant()}.png"), 1, cancellationToken);
+                    }
+                    finally { dialog.Close(); }
+                }
                 foreach (var confirmation in new[] { true, false })
                 {
                     var text = confirmation
@@ -915,7 +934,7 @@ public partial class MainWindow
         fixture.GroupedChip.IsChecked = true;
         fixture.RefreshVisiblePresentation();
         visual.UpdateLayout();
-        if (!fixture._preferences.GroupProcesses || fixture.MemoryHeader.Text != Strings.Private ||
+        if (!fixture._preferences.GroupProcesses || fixture.MemoryHeader.Text != $"{Strings.Private} MiB" ||
             System.Windows.Automation.AutomationProperties.GetName(fixture._rows[0]) is not { } groupedName ||
             !groupedName.StartsWith("chrome", StringComparison.Ordinal) ||
             !groupedName.Contains(Strings.Format(Strings.Processes, 2), StringComparison.Ordinal) ||

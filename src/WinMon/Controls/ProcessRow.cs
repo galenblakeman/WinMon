@@ -27,6 +27,14 @@ public sealed class ProcessRow : Grid
     private Action<ProcessUsage, bool>? _togglePin;
     private bool _grouped;
     private bool _unavailable;
+    private DateTimeOffset? _sampleAt;
+    private string _state = "";
+    private Action<ProcessDetailsSnapshot>? _properties;
+    private Action<ProcessDetailsSnapshot>? _copyDetails;
+    private Action<ProcessUsage>? _openLocation;
+    private Action<ProcessUsage>? _dump;
+    private Func<ProcessUsage, bool>? _canDump;
+    private Func<bool>? _historical;
     private string? _pinForeground;
     private string? _background;
     private string? _nameForeground = "Text";
@@ -57,20 +65,64 @@ public sealed class ProcessRow : Grid
         };
     }
 
+    internal void EnableInspectionActions(Action<ProcessDetailsSnapshot> properties, Action<ProcessDetailsSnapshot> copy,
+        Action<ProcessUsage> location, Action<ProcessUsage> dump, Func<ProcessUsage, bool> canDump, Func<bool> historical)
+    {
+        _properties = properties; _copyDetails = copy; _openLocation = location;
+        _dump = dump; _canDump = canDump; _historical = historical;
+    }
+
+    private static MenuItem ActionItem(string header, System.Windows.Media.Geometry geometry)
+    {
+        var item = new MenuItem { Header = header };
+        var icon = new System.Windows.Shapes.Path { Data = geometry, Width = 16, Height = 16,
+            Stretch = System.Windows.Media.Stretch.Uniform, StrokeThickness = 1.5,
+            StrokeStartLineCap = System.Windows.Media.PenLineCap.Round, StrokeEndLineCap = System.Windows.Media.PenLineCap.Round };
+        icon.SetBinding(System.Windows.Shapes.Shape.StrokeProperty,
+            new System.Windows.Data.Binding(nameof(MenuItem.Foreground)) { Source = item });
+        item.Icon = icon;
+        return item;
+    }
+
     internal bool PrepareProcessMenu()
     {
         if (ContextMenu is null) return false;
         ContextMenu.Items.Clear();
         if (_usage is not { } target || _canEnd is null || _end is null) return false;
         // Capture now: live ranking may replace this row while the menu is open.
-        var item = new MenuItem { Header = target.MemberIds.Count > 0 ? Strings.Format(Strings.EndGroupMenu, target.Name) : Strings.Format(Strings.EndPID, target.Name, target.ProcessId), IsEnabled = _canEnd(target),
-            ToolTip = Strings.AvailableForLiveProcesses };
+        var item = ActionItem(target.MemberIds.Count > 0 ? Strings.Format(Strings.EndGroupMenu, target.Name) : Strings.Format(Strings.EndPID, target.Name, target.ProcessId), ButtonIcon.Cancel);
+        item.IsEnabled = _canEnd(target);
+        item.ToolTip = Strings.AvailableForLiveProcesses;
+        if (_properties is not null && _copyDetails is not null && _openLocation is not null && _dump is not null)
+        {
+            var snapshot = new ProcessDetailsSnapshot(target, _grouped, _sampleAt, _historical?.Invoke() == true, !_unavailable, _state);
+            var properties = ActionItem(Strings.ProcessProperties + "…", ButtonIcon.Info);
+            properties.Click += (_, _) => _properties(snapshot);
+            ContextMenu.Items.Add(properties);
+            var location = ActionItem(Strings.OpenFileLocation, ButtonIcon.Folder);
+            location.IsEnabled = !string.IsNullOrWhiteSpace(target.ImagePath);
+            location.Click += (_, _) => _openLocation(target);
+            ContextMenu.Items.Add(location);
+            var copy = ActionItem(Strings.CopyDetails, ButtonIcon.Copy);
+            copy.Click += (_, _) => _copyDetails(snapshot);
+            ContextMenu.Items.Add(copy);
+            ContextMenu.Items.Add(new Separator());
+        }
         if (_togglePin is not null && _isPinned is not null)
         {
             var grouped = _grouped;
-            var pinItem = new MenuItem { Header = _isPinned(target, grouped) ? Strings.UnpinProcess : Strings.PinProcess };
+            var pinItem = ActionItem(_isPinned(target, grouped) ? Strings.UnpinProcess : Strings.PinProcess, ButtonIcon.Pin);
             pinItem.Click += (_, _) => _togglePin(target, grouped);
             ContextMenu.Items.Add(pinItem);
+        }
+        if (_dump is not null)
+        {
+            var dump = ActionItem(Strings.CreateDumpFile + "…", ButtonIcon.Save);
+            dump.IsEnabled = !_unavailable && _canDump?.Invoke(target) == true;
+            dump.ToolTip = Strings.ProcessDumpUnavailable;
+            dump.Click += (_, _) => _dump(target);
+            ContextMenu.Items.Add(dump);
+            ContextMenu.Items.Add(new Separator());
         }
         item.IsEnabled &= !_unavailable;
         item.Click += (_, _) => _end(target);
@@ -121,7 +173,11 @@ public sealed class ProcessRow : Grid
         _usage = usage;
         _grouped = grouped;
         _unavailable = state != PinnedProcessState.Present;
+        _sampleAt = samples.LastOrDefault()?.Timestamp;
+        _state = StateText(state);
         var pinned = _isPinned?.Invoke(usage, grouped) == true;
+        ButtonIcon.SetData(_pin, pinned ? ButtonIcon.PinFilled : ButtonIcon.Pin);
+        ButtonIcon.SetFilled(_pin, pinned);
         _pin.ToolTip = pinned ? Strings.UnpinProcess : Strings.PinProcess;
         System.Windows.Automation.AutomationProperties.SetName(_pin, $"{_pin.ToolTip}: {(string.IsNullOrWhiteSpace(usage.AppName) ? usage.Name : usage.AppName)}");
         SetResourceKey(ref _pinForeground, _pin, Control.ForegroundProperty, pinned ? "ProcessPinAccent" : "Muted");
@@ -164,7 +220,7 @@ public sealed class ProcessRow : Grid
             _ = LoadIconAsync(usage, nextIdentity);
         }
         // Working sets share pages, so a group shows summed private bytes instead.
-        _memory.Text = (grouped ? usage.PrivateBytes : usage.WorkingSetBytes) is { } bytes ? Strings.Format(Strings.MiB, bytes / 1_048_576d) : Strings.MissingReading;
+        _memory.Text = (grouped ? usage.PrivateBytes : usage.WorkingSetBytes) is { } bytes ? (bytes / 1_048_576d).ToString("N0", System.Globalization.CultureInfo.CurrentCulture) : Strings.MissingReading;
         _memory.ToolTip = grouped
             ? Strings.PrivateBytesSummedAcrossThisExecutableSCurrentProcesses
             : Strings.ResidentWorkingSetIncludingSharedPagesDoesNotSumTo;

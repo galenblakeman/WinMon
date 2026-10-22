@@ -762,7 +762,7 @@ Máximo informado: {3}</value>
   </data>
   <data name="ReceiveSendTheValueIsTheBusierDirectionUtilizationIs" xml:space="preserve">
     <value>{0}{1}{2}
-↓ recebimento · ↑ envio. O valor é da direção mais ocupada; uso relativo ao link, não à capacidade da Internet.</value>
+↓ recepção · ↑ envio. O valor principal mostra a recepção; utilização relativa à velocidade do link, não à capacidade da Internet.</value>
   </data>
   <data name="Refresh" xml:space="preserve">
     <value>Atualizar</value>
@@ -1335,4 +1335,35 @@ O trabalho não salvo pode ser perdido. Todos os processos listados abaixo serã
   <data name="ProcessesHeading" xml:space="preserve"><value>Processos</value></data>
   <data name="CompactView" xml:space="preserve"><value>Vista compacta</value></data>
   <data name="FullView" xml:space="preserve"><value>Vista completa</value></data>
+  <data name="ProcessProperties" xml:space="preserve"><value>Propriedades do processo</value></data>
+  <data name="OpenFileLocation" xml:space="preserve"><value>Abrir local do arquivo</value></data>
+  <data name="CopyDetails" xml:space="preserve"><value>Copiar detalhes</value></data>
+  <data name="CreateDumpFile" xml:space="preserve"><value>Criar arquivo de despejo</value></data>
+  <data name="ProcessNameLabel" xml:space="preserve"><value>Executable name</value></data>
+  <data name="ProcessProductLabel" xml:space="preserve"><value>Product</value></data>
+  <data name="ProcessPublisherLabel" xml:space="preserve"><value>Publisher (file metadata, not verified)</value></data>
+  <data name="ProcessPathLabel" xml:space="preserve"><value>Executable path</value></data>
+  <data name="ProcessObservationLabel" xml:space="preserve"><value>Observation time</value></data>
+  <data name="ProcessViewLabel" xml:space="preserve"><value>View</value></data>
+  <data name="ProcessHistoricalView" xml:space="preserve"><value>Historical snapshot</value></data>
+  <data name="ProcessCapturedView" xml:space="preserve"><value>Captured from live view</value></data>
+  <data name="ProcessStateLabel" xml:space="preserve"><value>State</value></data>
+  <data name="ProcessMembersLabel" xml:space="preserve"><value>Member process IDs</value></data>
+  <data name="ProcessStartedLabel" xml:space="preserve"><value>Started</value></data>
+  <data name="ProcessWorkingSetLabel" xml:space="preserve"><value>Working set</value></data>
+  <data name="ProcessPrivateMemoryLabel" xml:space="preserve"><value>Private memory</value></data>
+  <data name="ProcessIoLabel" xml:space="preserve"><value>Read/write I/O</value></data>
+  <data name="ProcessMetricsNote" xml:space="preserve"><value>Details are captured when the menu opens. Resource values use the same averaging window as the process row. Unavailable readings are shown as a dash.</value></data>
+  <data name="ProcessDumpUnavailable" xml:space="preserve"><value>Dump creation requires a live, available process other than WinMon. A grouped row must contain exactly one process. Return to Live if needed.</value></data>
+  <data name="ProcessDumpNote" xml:space="preserve"><value>A minidump captures thread stacks and diagnostic information. Select full memory for heap analysis; this can create a very large file. Both types can contain passwords and other private data. Keep dump files secure.</value></data>
+  <data name="ProcessFullDump" xml:space="preserve"><value>Include full process memory</value></data>
+  <data name="ProcessDumpFilter" xml:space="preserve"><value>Process dump (*.dmp)|*.dmp</value></data>
+  <data name="ProcessDumpWriting" xml:space="preserve"><value>Creating dump file. Please wait…</value></data>
+  <data name="ProcessDumpSaved" xml:space="preserve"><value>Dump saved to {0}</value></data>
+  <data name="ProcessDumpFailed" xml:space="preserve"><value>Could not create the dump: {0}</value></data>
+  <data name="ProcessFileMissing" xml:space="preserve"><value>The recorded executable no longer exists at this location.</value></data>
+  <data name="ProcessApplicationLabel" xml:space="preserve"><value>Aplicativo</value></data>
+  <data name="PinTop" xml:space="preserve"><value>Fixar no topo</value></data>
+  <data name="CpuClockDescription" xml:space="preserve"><value>Frequência atual da CPU informada pelo Windows, média dos processadores lógicos.</value></data>
+  <data name="ResizeChartAndProcesses" xml:space="preserve"><value>Arraste para redimensionar o gráfico e os processos</value></data>
 </root>

@@ -13,6 +13,7 @@ internal sealed class WindowsGpuSampler : IDisposable
 {
     private SafeQuery? _query;
     private IntPtr _counter;
+    private readonly WindowsGpuMemory _memory = new();
     private long _timestamp;
     private long _collectionFileTime;
     // About 600 instance names repeat every second. Each is parsed once and reused while the instance exists.
@@ -44,16 +45,16 @@ internal sealed class WindowsGpuSampler : IDisposable
             // Formatting a rate before its second collection can fail. Keep the query
             // alive so that failure cannot turn every pass into another first sample.
             if (!validInterval) return sample;
-            var readings = Parse(ReadCounters(), _instances, _nextInstances);
+            var readings = Parse(ReadCounters(_counter), _instances, _nextInstances);
             (_instances, _nextInstances) = (_nextInstances, _instances);
             var busiest = _aggregation.Busiest(readings);
             var perProcess = _aggregation.ByProcess(readings);
             return sample with
             {
-                Resources = busiest is null ? sample.Resources : sample.Resources with
+                Resources = busiest is null ? sample.Resources : _memory.Attach(sample.Resources with
                 {
                     GpuPercent = busiest.Percent, GpuId = busiest.Adapter, GpuEngine = busiest.Engine
-                },
+                }),
                 Processes = AttachProcesses(sample.Processes, perProcess, intervalStart, ReadCreationTime)
             };
         }
@@ -195,13 +196,13 @@ internal sealed class WindowsGpuSampler : IDisposable
         return !handle.IsInvalid && Native.GetProcessTimes(handle, out var created, out _, out _, out _) ? created : null;
     }
 
-    private EngineCounter[] ReadCounters()
+    internal static EngineCounter[] ReadCounters(IntPtr counter)
     {
         // Instance counts can change between sizing and reading. Bound retries and allocation.
         for (var attempt = 0; attempt < 3; attempt++)
         {
             uint bytes = 0;
-            var status = Native.PdhGetFormattedCounterArrayW(_counter, 0x200 | 0x8000, ref bytes, out _, IntPtr.Zero);
+            var status = Native.PdhGetFormattedCounterArrayW(counter, 0x200 | 0x8000, ref bytes, out _, IntPtr.Zero);
             if (status == 0 && bytes == 0) return [];
             if (status != 0x800007D2) Check(status); // PDH_MORE_DATA
             if (bytes is 0 or > 16 * 1024 * 1024) throw new Win32Exception("GPU counter data exceeds the collection limit.");
@@ -209,7 +210,7 @@ internal sealed class WindowsGpuSampler : IDisposable
             var buffer = Marshal.AllocHGlobal(checked((int)bytes));
             try
             {
-                status = Native.PdhGetFormattedCounterArrayW(_counter, 0x200 | 0x8000, ref bytes, out var count, buffer);
+                status = Native.PdhGetFormattedCounterArrayW(counter, 0x200 | 0x8000, ref bytes, out var count, buffer);
                 if (status == 0x800007D2) continue;
                 Check(status);
                 var stride = Marshal.SizeOf<CounterItem>();
@@ -237,6 +238,7 @@ internal sealed class WindowsGpuSampler : IDisposable
 
     internal void Reset()
     {
+        _memory.Dispose();
         _query?.Dispose();
         _query = null;
         _counter = IntPtr.Zero;

@@ -10,6 +10,7 @@ namespace WinMon.Monitoring;
 internal sealed class WindowsResourceSampler : IDisposable
 {
     private readonly WindowsGpuSampler _gpu = new();
+    private readonly WindowsCpuClock _cpuClock = new();
     // Enumerating adapters costs far more than reading one adapter's counters, so the candidate list is
     // refreshed only when Windows reports a network change, or every 30 seconds for speed changes.
     private static readonly long CandidateLifetime = 30 * Stopwatch.Frequency;
@@ -32,7 +33,7 @@ internal sealed class WindowsResourceSampler : IDisposable
     {
         var reset = cpu.IsGap;
         if (reset) Reset();
-        var result = new ResourceSample();
+        var result = new ResourceSample { CpuClockMhz = _cpuClock.ReadMhz() };
         var memory = new MemoryStatus { Length = (uint)Marshal.SizeOf<MemoryStatus>() };
         if (Native.GlobalMemoryStatusEx(ref memory) && memory.TotalPhysical > 0 && memory.AvailablePhysical <= memory.TotalPhysical)
             result = result with { TotalMemoryBytes = memory.TotalPhysical, UsedMemoryBytes = memory.TotalPhysical - memory.AvailablePhysical };

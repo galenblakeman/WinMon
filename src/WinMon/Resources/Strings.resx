@@ -762,7 +762,7 @@ Reported maximum: {3}</value>
   </data>
   <data name="ReceiveSendTheValueIsTheBusierDirectionUtilizationIs" xml:space="preserve">
     <value>{0}{1}{2}
-↓ receive · ↑ send. The value is the busier direction; utilization is relative to link speed. Not Internet capacity.</value>
+↓ receive · ↑ send. The headline shows receive throughput; utilization is relative to link speed. Not Internet capacity.</value>
   </data>
   <data name="Refresh" xml:space="preserve">
     <value>Refresh</value>
@@ -793,7 +793,7 @@ Reported maximum: {3}</value>
     <value>Resume live readings and processes (End or Escape)</value>
   </data>
   <data name="ReturnToLive" xml:space="preserve">
-    <value>Return to live</value>
+    <value>Return to Live</value>
   </data>
   <data name="ReturnToLiveToInspectCurrentActivity" xml:space="preserve">
     <value>Return to live to inspect current activity.</value>
@@ -933,7 +933,7 @@ Active time and read/write throughput.</value>
     <value></value>
   </data>
   <data name="SystemResources" xml:space="preserve">
-    <value>System resources</value>
+    <value>System Resources</value>
   </data>
   <data name="SystemResourcesInspectingSnapshot" xml:space="preserve">
     <value>System resources · inspecting snapshot</value>
@@ -1312,7 +1312,7 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="HistoryCount" xml:space="preserve"><value>{0} history: 0–{1:N0}.</value></data>
   <data name="NoProcessCountReadings" xml:space="preserve"><value>No process count readings available.</value></data>
   <data name="CopySnapshot" xml:space="preserve">
-    <value>Copy snapshot</value>
+    <value>Copy Snapshot</value>
   </data>
   <data name="SnapshotExportIntervals" xml:space="preserve">
     <value>System resources: interval readings.</value>
@@ -1325,7 +1325,7 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   </data>
   <data name="PinProcess" xml:space="preserve"><value>Pin process</value></data>
   <data name="UnpinProcess" xml:space="preserve"><value>Unpin process</value></data>
-  <data name="PinnedOnly" xml:space="preserve"><value>Pinned only</value></data>
+  <data name="PinnedOnly" xml:space="preserve"><value>Pinned Only</value></data>
   <data name="PinnedProcessCount" xml:space="preserve"><value>{0} pinned</value></data>
   <data name="PinnedProcessesExplanation" xml:space="preserve"><value>Pinned rows stay above the rankings and do not count toward Top N. Search and App Only apply. Individual and grouped pins are separate and last for this session.</value></data>
   <data name="RankedByMetric" xml:space="preserve"><value>Ranked by {0}</value></data>
@@ -1333,6 +1333,37 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="ProcessNotRecorded" xml:space="preserve"><value>Not recorded at this sample</value></data>
   <data name="NoPinnedProcessesMatch" xml:space="preserve"><value>No pinned processes in this view. Pin a process using its pin button or row menu.</value></data>
   <data name="ProcessesHeading" xml:space="preserve"><value>Processes</value></data>
-  <data name="CompactView" xml:space="preserve"><value>Compact view</value></data>
-  <data name="FullView" xml:space="preserve"><value>Full view</value></data>
+  <data name="CompactView" xml:space="preserve"><value>Compact View</value></data>
+  <data name="FullView" xml:space="preserve"><value>Full View</value></data>
+  <data name="ProcessProperties" xml:space="preserve"><value>Process properties</value></data>
+  <data name="OpenFileLocation" xml:space="preserve"><value>Open file location</value></data>
+  <data name="CopyDetails" xml:space="preserve"><value>Copy details</value></data>
+  <data name="CreateDumpFile" xml:space="preserve"><value>Create dump file</value></data>
+  <data name="ProcessNameLabel" xml:space="preserve"><value>Executable name</value></data>
+  <data name="ProcessProductLabel" xml:space="preserve"><value>Product</value></data>
+  <data name="ProcessPublisherLabel" xml:space="preserve"><value>Publisher (file metadata, not verified)</value></data>
+  <data name="ProcessPathLabel" xml:space="preserve"><value>Executable path</value></data>
+  <data name="ProcessObservationLabel" xml:space="preserve"><value>Observation time</value></data>
+  <data name="ProcessViewLabel" xml:space="preserve"><value>View</value></data>
+  <data name="ProcessHistoricalView" xml:space="preserve"><value>Historical snapshot</value></data>
+  <data name="ProcessCapturedView" xml:space="preserve"><value>Captured from live view</value></data>
+  <data name="ProcessStateLabel" xml:space="preserve"><value>State</value></data>
+  <data name="ProcessMembersLabel" xml:space="preserve"><value>Member process IDs</value></data>
+  <data name="ProcessStartedLabel" xml:space="preserve"><value>Started</value></data>
+  <data name="ProcessWorkingSetLabel" xml:space="preserve"><value>Working set</value></data>
+  <data name="ProcessPrivateMemoryLabel" xml:space="preserve"><value>Private memory</value></data>
+  <data name="ProcessIoLabel" xml:space="preserve"><value>Read/write I/O</value></data>
+  <data name="ProcessMetricsNote" xml:space="preserve"><value>Details are captured when the menu opens. Resource values use the same averaging window as the process row. Unavailable readings are shown as a dash.</value></data>
+  <data name="ProcessDumpUnavailable" xml:space="preserve"><value>Dump creation requires a live, available process other than WinMon. A grouped row must contain exactly one process. Return to Live if needed.</value></data>
+  <data name="ProcessDumpNote" xml:space="preserve"><value>A minidump captures thread stacks and diagnostic information. Select full memory for heap analysis; this can create a very large file. Both types can contain passwords and other private data. Keep dump files secure.</value></data>
+  <data name="ProcessFullDump" xml:space="preserve"><value>Include full process memory</value></data>
+  <data name="ProcessDumpFilter" xml:space="preserve"><value>Process dump (*.dmp)|*.dmp</value></data>
+  <data name="ProcessDumpWriting" xml:space="preserve"><value>Creating dump file. Please wait…</value></data>
+  <data name="ProcessDumpSaved" xml:space="preserve"><value>Dump saved to {0}</value></data>
+  <data name="ProcessDumpFailed" xml:space="preserve"><value>Could not create the dump: {0}</value></data>
+  <data name="ProcessFileMissing" xml:space="preserve"><value>The recorded executable no longer exists at this location.</value></data>
+  <data name="ProcessApplicationLabel" xml:space="preserve"><value>Application</value></data>
+  <data name="PinTop" xml:space="preserve"><value>Pin Top</value></data>
+  <data name="CpuClockDescription" xml:space="preserve"><value>Windows-reported current CPU clock, averaged across logical processors.</value></data>
+  <data name="ResizeChartAndProcesses" xml:space="preserve"><value>Drag to resize chart and processes</value></data>
 </root>

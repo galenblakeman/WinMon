@@ -5,8 +5,8 @@
     xmlns:system="clr-namespace:System;assembly=System.Runtime"
     xmlns:controls="clr-namespace:WinMon.Controls">
     <Application.Resources>
-        <SolidColorBrush x:Key="SnapshotAccent" Color="#25D5F0" />
-        <SolidColorBrush x:Key="ProcessPinAccent" Color="#25D5F0" />
+        <SolidColorBrush x:Key="SnapshotAccent" Color="#73FF35" />
+        <SolidColorBrush x:Key="ProcessPinAccent" Color="#73FF35" />
         <Style x:Key="PinnedOnlySwitch" TargetType="CheckBox">
             <Setter Property="Foreground" Value="{DynamicResource Text}" />
             <Setter Property="Cursor" Value="Hand" />
@@ -49,7 +49,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
                         <Border x:Name="Segment" Padding="{TemplateBinding Padding}" CornerRadius="3"
-                                Background="Transparent" BorderBrush="Transparent" BorderThickness="1">
+                                Background="{DynamicResource Raised}" BorderBrush="{DynamicResource Line}" BorderThickness="1">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
                         <ControlTemplate.Triggers>
@@ -57,8 +57,7 @@
                                 <Setter TargetName="Segment" Property="BorderBrush" Value="{DynamicResource Muted}" />
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Segment" Property="Background" Value="{DynamicResource SnapshotAccent}" />
-                                <Setter Property="Foreground" Value="{DynamicResource SnapshotAccentText}" />
+                                <Setter TargetName="Segment" Property="BorderBrush" Value="{DynamicResource Accent}" />
                             </Trigger>
                             <Trigger Property="IsKeyboardFocused" Value="True">
                                 <Setter TargetName="Segment" Property="BorderBrush" Value="{DynamicResource Text}" />
@@ -184,7 +183,14 @@
                             x:Name="MenuBody"
                             Padding="12,8"
                             Background="{DynamicResource Raised}">
-                            <ContentPresenter ContentSource="Header" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="16" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <ContentPresenter ContentSource="Icon" VerticalAlignment="Center" />
+                                <ContentPresenter Grid.Column="1" Margin="10,0,0,0" ContentSource="Header" VerticalAlignment="Center" />
+                            </Grid>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsHighlighted" Value="True">
@@ -496,6 +502,7 @@
                             BorderBrush="Transparent"
                             BorderThickness="1">
                             <Path
+                                x:Name="CaptionIcon"
                                 Width="16"
                                 Height="16"
                                 HorizontalAlignment="Center"
@@ -505,7 +512,17 @@
                                 StrokeEndLineCap="Round"
                                 StrokeLineJoin="Round"
                                 StrokeStartLineCap="Round"
-                                StrokeThickness="1.3" />
+                                StrokeThickness="1.3">
+                                <Path.Style>
+                                    <Style TargetType="Path">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Path=(controls:ButtonIcon.Filled), RelativeSource={RelativeSource TemplatedParent}}" Value="True">
+                                                <Setter Property="Fill" Value="{Binding Foreground, RelativeSource={RelativeSource TemplatedParent}}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Path.Style>
+                            </Path>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">

@@ -107,6 +107,7 @@ public partial class MainWindow
         {
             row.Visibility = Visibility.Collapsed;
             row.EnableProcessActions(CanEndProcess, EndProcess);
+            EnableProcessInspection(row);
             row.EnablePinning(_processPins.Contains, ToggleProcessPin);
             ProcessRows.Children.Add(row);
         }
@@ -463,7 +464,7 @@ public partial class MainWindow
     {
         foreach (var (header, sort, name) in SortHeaders)
         {
-            var text = sort == ProcessSort.Memory && _preferences.GroupProcesses ? Strings.Private : name;
+            var text = sort == ProcessSort.Memory ? $"{(_preferences.GroupProcesses ? Strings.Private : name)} MiB" : name;
             var active = sort == _preferences.ProcessSort;
             header.Text = active ? $"{text} ▾" : text;
             header.FontWeight = active ? FontWeights.SemiBold : FontWeights.Normal;
@@ -478,12 +479,16 @@ public partial class MainWindow
     {
         var resource = latest?.Resources;
         GpuMetric.ValueLabel.Text = Percent(resource?.GpuPercent);
-        GpuMetric.DetailLabel.Text = resource?.GpuPercent is null ? Strings.Unavailable
-            : resource.GpuEngine is { Length: > 0 } engine ? engine : Strings.BusiestGPU;
+        GpuMetric.DetailLabel.Text = resource is { GpuMemoryUsedBytes: { } gpuUsed, GpuMemoryTotalBytes: > 0 }
+            ? $"{gpuUsed / 1_073_741_824d:0.0} / {resource.GpuMemoryTotalBytes.Value / 1_073_741_824d:0.0} GiB" : "3D";
+        GpuMetric.DetailLabel.ToolTip = resource?.GpuMemoryTotalBytes is { } gpuTotal
+            ? Strings.Format(Strings.DedicatedVideoMemoryGiB, resource.GpuId, gpuTotal / 1_073_741_824d) : Strings.Unavailable;
         GpuMetric.ToolTip = resource?.GpuPercent is not null
             ? Strings.Format(Strings.AdapterUtilizationOfTheBusiestEngineAcrossAvailableGPUs, resource.GpuId, resource.GpuEngine)
             : Strings.GPUCountersUnavailableOrCollectingAFreshInterval;
-        CpuMetric.DetailLabel.Text = Strings.TotalMachine;
+        CpuMetric.DetailLabel.Text = resource?.CpuClockMhz is > 0
+            ? $"{resource.CpuClockMhz.Value / 1000d:0.00} GHz" : Strings.Unavailable;
+        CpuMetric.DetailLabel.ToolTip = Strings.CpuClockDescription;
         MemoryMetric.ValueLabel.Text = Percent(resource?.MemoryPercent);
         MemoryMetric.DetailLabel.Text = resource is { UsedMemoryBytes: { } used, TotalMemoryBytes: { } total }
             ? Strings.Format(Strings.GiB, used / 1_073_741_824d, total / 1_073_741_824d) : Strings.Unavailable;
@@ -497,14 +502,14 @@ public partial class MainWindow
                 resource?.SecondaryDiskName == secondary ? resource.SecondaryDiskBytesPerSecond : null);
         if (_preferences.SecondaryDrive is not null) SecondaryDiskMetric.ToolTip += Strings.DrawnAsADashedLineOnTheChart;
         // Throughput leads: link utilization is almost always near 0% and says little on its own.
-        if (resource is not null && CpuGraph.NetworkBitsPerSecond(resource) is { } bits)
+        if (resource?.ReceiveBytesPerSecond is { } receive)
         {
-            var (number, unit) = RateText.Parts(bits);
-            NetworkMetric.ShowValue(number, unit);
+            var (number, unit) = RateText.Parts(receive * 8);
+            NetworkMetric.ShowValue("↓" + number, unit);
         }
         else NetworkMetric.ValueLabel.Text = Strings.MissingReading;
-        NetworkMetric.DetailLabel.Text = resource is { ReceiveBytesPerSecond: { } rx, SendBytesPerSecond: { } tx }
-            ? RateText.Pair(rx * 8, tx * 8) : Strings.CollectingDisconnected;
+        NetworkMetric.DetailLabel.Text = resource?.SendBytesPerSecond is { } tx
+            ? "↑" + RateText.Format(tx * 8) : Strings.CollectingDisconnected;
         // Link speed and utilization live in the tooltip; the tiles show only the value and rates.
         var link = resource?.LinkBitsPerSecond is { } speed ? Strings.Format(Strings.Link, RateText.Format(speed)) : "";
         var utilization = resource?.NetworkPercent is not null ? Strings.Format(Strings.OfLink, Percent(resource.NetworkPercent)) : Strings.LinkSpeedUnavailable;
@@ -541,7 +546,7 @@ public partial class MainWindow
 
     private void UpdatePinButton()
     {
-        // Icon-only toggle: the pin turns accent-colored while the window stays on top.
+        // The labeled toggle turns accent-colored while the window stays on top.
         PinButton.SetResourceReference(ForegroundProperty, Topmost ? "Accent" : "Text");
         PinButton.ToolTip = Topmost ? Strings.KeptOnTopOfOtherWindowsClickToStop : Strings.KeepThisWindowOnTopOfOtherWindows;
         System.Windows.Automation.AutomationProperties.SetName(PinButton, Topmost ? Strings.KeepOnTopOn : Strings.KeepOnTopOff);
@@ -847,8 +852,6 @@ public partial class MainWindow
             SetBrush("SearchSurface", light ? "#FFFFFF" : "#15191E");
             SetBrush("SelectedSurface", light ? "#1469B5" : "#20262D");
             SetBrush("SelectedText", light ? "#FFFFFF" : "#EDF2F6");
-            SetBrush("SnapshotAccent", "#25D5F0");
-            SetBrush("ProcessPinAccent", light ? "#00788A" : "#25D5F0");
             SetBrush("SnapshotAccentText", "#07171B");
             SetBrush("Text", light ? "#20334A" : "#EDF2F6");
             SetBrush("Muted", light ? "#465D78" : "#B3BDC8");
@@ -857,6 +860,8 @@ public partial class MainWindow
             var keys = new[] { "CpuAccent", "MemoryAccent", "DiskAccent", "NetworkAccent", "GpuAccent", "SecondaryDiskAccent" };
             for (var i = 0; i < keys.Length; i++) SetBrush(keys[i], colors[i]);
             SetBrush("Accent", light ? "#1469B5" : colors[0]);
+            SetBrush("SnapshotAccent", light ? "#1469B5" : colors[0]);
+            SetBrush("ProcessPinAccent", light ? "#1469B5" : colors[0]);
         }
         foreach (Window window in app.Windows) WindowTheme.Apply(window);
         foreach (var row in _rows) row.InvalidateVisual();

@@ -3,9 +3,12 @@ namespace WinMon.Monitoring;
 /// <summary>Immutable system resources for a single interval. Null means unavailable, never zero.</summary>
 public sealed record ResourceSample
 {
+    public double? CpuClockMhz { get; init; }
     public double? GpuPercent { get; init; }
     public string GpuId { get; init; } = "";
     public string GpuEngine { get; init; } = "";
+    public ulong? GpuMemoryUsedBytes { get; init; }
+    public ulong? GpuMemoryTotalBytes { get; init; }
     public ulong? TotalMemoryBytes { get; init; }
     public ulong? UsedMemoryBytes { get; init; }
     public double? MemoryPercent => TotalMemoryBytes is > 0 && UsedMemoryBytes is { } used
