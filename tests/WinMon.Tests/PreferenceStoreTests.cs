@@ -259,6 +259,7 @@ public sealed class PreferenceStoreTests
     [TestCase(10)]
     [TestCase(15)]
     [TestCase(20)]
+    [TestCase(50)]
     public async Task TopProcessCount_RoundTrips(int count)
     {
         PreferenceStore store = new(settingsPath);

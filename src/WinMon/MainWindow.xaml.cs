@@ -74,7 +74,7 @@ public partial class MainWindow
         InitializeComponent();
         InitializeCompactView();
         VersionRun.Text = $" {AppInfo.Version}";
-        ProcessCountSelector.ItemsSource = new[] { 5, 10, 15, 20 };
+        ProcessCountSelector.ItemsSource = new[] { 5, 10, 15, 20, 50 };
         ProcessCountSelector.SelectedItem = _preferences.TopProcessCount;
         ProcessCountSelector.SelectionChanged += OnProcessCountChanged;
         // Item order matches ProcessSort so the selected index is the sort column.

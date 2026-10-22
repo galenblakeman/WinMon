@@ -56,11 +56,10 @@ public sealed class SettingsWindow : Window
 
         Title = Strings.WinMonSettings;
         Width = 460;
-        Height = 838;
+        SizeToContent = SizeToContent.Height;
         MinWidth = 420;
-        MinHeight = Math.Min(778, Math.Max(320, SystemParameters.WorkArea.Height - 32));
+        MinHeight = 320;
         MaxHeight = Math.Max(MinHeight, SystemParameters.WorkArea.Height - 32);
-        Height = Math.Min(Height, MaxHeight);
         ResizeMode = ResizeMode.NoResize;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         SetResourceReference(BackgroundProperty, "Surface");
