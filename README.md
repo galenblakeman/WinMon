@@ -139,7 +139,7 @@ WinMon **1.0.2** is built with C# and WPF on .NET 10, and released under the [MI
 
 ### Code signing policy
 
-Current releases are unsigned. WinMon is preparing to apply for free open-source signing through SignPath Foundation; approval and signing are not yet configured. See the [Code signing policy](docs/CODE_SIGNING.md) for release responsibilities and the [privacy policy](docs/PRIVACY.md) for local data handling.
+Existing releases remain unsigned. The release workflow now integrates Azure Artifact Signing; the first signed release still requires a successful GitHub signing run and verification. See the [Code signing policy](docs/CODE_SIGNING.md) for setup and release responsibilities and the [privacy policy](docs/PRIVACY.md) for local data handling.
 
 Found a problem or have an idea? [Open an issue](https://github.com/galenblakeman/WinMon/issues).
 

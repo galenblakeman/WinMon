@@ -1,29 +1,58 @@
-# Code signing policy
+# Code signing
 
-WinMon's current releases are unsigned. This policy prepares the project for a SignPath Foundation application; it does not indicate acceptance or an active signing service.
+WinMon's release workflow is configured to use Azure Artifact Signing with the Public Trust profile `WinMonPublic` in `galenwinmonsigning` (East US). Configuration alone does not prove a release is signed: the first GitHub run must complete Azure authentication, signing, signature verification, and packaging validation. Existing unsigned releases remain unchanged.
 
-## Responsibilities
+## GitHub configuration
 
-[Galen Blakeman](https://github.com/galenblakeman) is the sole maintainer, committer, reviewer, and intended signing approver. Contributions from other people must be reviewed by the maintainer before merging. Each signing request must receive manual approval from the maintainer.
+The `release` GitHub environment must exist and contain:
 
-All contributors with repository write access or signing roles must use MFA for GitHub and, when provisioned, SignPath. GitHub MFA was confirmed by the maintainer on October 20, 2026. SignPath MFA must be enabled when the account is created.
+| Secret | Value |
+| --- | --- |
+| `AZURE_CLIENT_ID` | Application (client) ID of `WinMon-GitHub-Signing` |
+| `AZURE_TENANT_ID` | Directory (tenant) ID of that application |
+| `AZURE_SUBSCRIPTION_ID` | Subscription containing the signing account |
 
-## Signing scope
+The application's federated credential must trust the repository's OIDC token for environment `release`. The release job declares that environment and requests `id-token: write`. Its Azure login action is pinned to an immutable commit. No Azure client secret or user password is needed. Assign the application the **Artifact Signing Certificate Profile Signer** role on the signing account or individual profile.
 
-Signing will cover WinMon release artifacts built from this repository through the approved CI integration. Product metadata must identify WinMon and use the release's product version consistently. Upstream libraries must not be individually signed as WinMon code.
+For this repository's current immutable-ID subject format, the configured subject is:
 
-WinMon currently ships as a self-contained .NET executable, an Inno Setup installer, and a portable ZIP. The treatment of the bundled runtime and dependencies must be agreed with SignPath during onboarding. Signed output must be verified before publication; installer hashes, portable archives, and WinGet manifests must be generated from the final signed files. Existing public release assets must not be replaced with newly signed bytes.
+```text
+repo:galenblakeman@4369241/WinMon@1426202531:environment:release
+```
 
-The maintainer must review the source revision, build results, artifact contents, and requested signing scope before approving each request. Changes to build scripts and workflow configuration require the same review as application code.
+Issuer: `https://token.actions.githubusercontent.com`; audience: `api://AzureADTokenExchange`. Keep these aligned if the repository or OIDC settings change. Restrict the GitHub environment's allowed deployment branches/tags to refs approved for signing. The maintainer reviews changes and draft releases before publication; environment protection rules can add a separate approval gate if desired.
 
-## Provider credit after activation
+## Packaging and verification
 
-Once the service is approved and active, the signing credit will be:
+GitHub installs Microsoft's `ArtifactSigning` PowerShell module at version **0.1.20**, supplies its required .NET 8 runtime alongside WinMon's pinned .NET 10 SDK, and always passes `-CodeSign` to `tools/New-Release.ps1`. Using the module inside packaging preserves this order:
 
-Free code signing provided by [SignPath.io](https://signpath.io), certificate by [SignPath Foundation](https://signpath.org).
+1. Run Release tests and publish the self-contained executable.
+2. Sign and timestamp `WinMon.exe`, then verify its Authenticode status, publisher (`Galen Blakeman`), and timestamp presence.
+3. Build the Inno Setup installer containing the signed executable, then sign, timestamp, and verify the installer.
+4. Create the portable ZIP, WinGet manifests, RSA update manifest, and checksums from the final bytes.
+5. Validate installer lifecycle/startup and WinGet manifests, then create a draft release for a version tag.
 
-SignPath Foundation would be the certificate publisher. This credit is conditional until onboarding is complete. Every download/release page must link to this Code signing policy and accurately describe whether its assets are signed.
+Signing uses SHA-256 and RFC 3161 timestamping at `http://timestamp.acs.microsoft.com`. Authentication uses only the Azure CLI session established by GitHub OIDC. Provider errors, invalid signatures, unexpected publishers, and absent timestamps fail packaging. The Windows signature check establishes trust on the build machine; it does not guarantee immediate SmartScreen acceptance on every customer's machine.
 
-## Privacy
+Application and installer signature evidence is written under `artifacts/packaging/<run>/` as `application-signature.json` and `installer-signature.json`, and uploaded with validation evidence. It contains final hashes and certificate details. Upstream dependencies are not individually re-signed as WinMon code. The generated Inno uninstaller is not separately signed by this integration.
 
-See the [privacy policy](PRIVACY.md) for local data, clipboard use, diagnostic output, and user-requested browser navigation.
+The RSA update-manifest signature remains separate from Authenticode. Keep the existing `WINMON_UPDATE_SIGNING_KEY_BASE64` repository secret; Azure signing does not replace it. See [Updating WinMon](UPDATING.md).
+
+## Local use
+
+Unsigned packaging remains available for local testing by omitting `-CodeSign`. To sign locally, install the pinned module, sign in with `az login` as an identity with profile signing access, and run:
+
+```powershell
+Install-Module ArtifactSigning -RequiredVersion 0.1.20 -Repository PSGallery -Scope CurrentUser
+./tools/New-Release.ps1 -CodeSign -UpdateSigningKeyPath C:\secure\winmon-update-private.pem
+```
+
+Defaults are `https://eus.codesigning.azure.net/`, `galenwinmonsigning`, `WinMonPublic`, and expected publisher `Galen Blakeman`. Override with `-SigningEndpoint`, `-SigningAccountName`, `-CertificateProfileName`, and `-ExpectedPublisher`.
+
+Run `./tools/Test-ReleaseSigning.ps1` to exercise packaging order, final hashes, updater RSA verification, and signing failure gates using simulated build/signing boundaries. It makes no Azure calls and does not prove live signing. Private fixture keys remain only under ignored `artifacts/signing-validation/` and must never be uploaded as release assets.
+
+## Responsibilities and privacy
+
+[Galen Blakeman](https://github.com/galenblakeman) maintains the repository and Azure publisher identity. Use MFA for human GitHub and Azure access. Existing public release assets must not be replaced with newly signed bytes; publish a new version instead.
+
+See Microsoft's [OIDC integration](https://github.com/Azure/artifact-signing-action/blob/main/docs/OIDC.md), [signing module](https://www.powershellgallery.com/packages/ArtifactSigning/0.1.20), and [role documentation](https://learn.microsoft.com/en-us/azure/artifact-signing/tutorial-assign-roles). See the [privacy policy](PRIVACY.md) for local data handling.

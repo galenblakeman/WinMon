@@ -31,7 +31,7 @@ The script refuses an existing folder to avoid overwriting a signing identity. `
 ./tools/Set-UpdatePublicKey.ps1 -PublicKeyPath (Join-Path $env:USERPROFILE '.winmon-signing/winmon.update-public.pem')
 ```
 
-Review and commit **only** `src/WinMon/Updates/update-public-key.pem` with the updater code. This initial updater-enabled build must be distributed manually to copies that do not yet have the updater or its trust key. Subsequent signed releases can be offered through the footer. Signing is deliberately not configured by this implementation.
+Review and commit **only** `src/WinMon/Updates/update-public-key.pem` with the updater code. This initial updater-enabled build must be distributed manually to copies that do not yet have the updater or its trust key. Subsequent signed releases can be offered through the footer. Authenticode signing is configured separately through [Azure Artifact Signing](CODE_SIGNING.md).
 
 ### Building a release
 

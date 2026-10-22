@@ -4,9 +4,21 @@ param(
     [string]$InnoCompiler,
     [string]$OutputDirectory,
     [string]$ExpectedTag,
-    [string]$UpdateSigningKeyPath
+    [string]$UpdateSigningKeyPath,
+    [switch]$CodeSign,
+    [string]$SigningEndpoint = 'https://eus.codesigning.azure.net/',
+    [string]$SigningAccountName = 'galenwinmonsigning',
+    [string]$CertificateProfileName = 'WinMonPublic',
+    [string]$ExpectedPublisher = 'Galen Blakeman'
 )
 $ErrorActionPreference = 'Stop'
+if ($CodeSign) { Import-Module ArtifactSigning -RequiredVersion 0.1.20 -ErrorAction Stop }
+$signingParameters = @{
+    Endpoint = $SigningEndpoint
+    AccountName = $SigningAccountName
+    CertificateProfileName = $CertificateProfileName
+    ExpectedPublisher = $ExpectedPublisher
+}
 $root = Split-Path $PSScriptRoot -Parent
 [xml]$props = Get-Content -LiteralPath (Join-Path $root 'Directory.Build.props') -Raw
 $version = [string]$props.Project.PropertyGroup.Version
@@ -49,8 +61,20 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Release tests failed.' }
     dotnet publish src/WinMon/WinMon.csproj -c Release -r win-x64 -m:1 -p:UseSharedCompilation=false --artifacts-path "$work/build" -o $publish
     if ($LASTEXITCODE -ne 0) { throw 'Release publish failed.' }
+    if ($CodeSign) {
+        & (Join-Path $PSScriptRoot 'Sign-ReleaseFile.ps1') -Path (Join-Path $publish 'WinMon.exe') @signingParameters |
+            ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $work 'application-signature.json') -Encoding utf8NoBOM
+    }
     & $InnoCompiler "/DAppVersion=$version" "/DPublishDirectory=$publish" "/DReleaseDirectory=$assets" (Join-Path $root 'packaging/WinMon.iss')
     if ($LASTEXITCODE -ne 0) { throw 'Installer compilation failed.' }
+    $installer = Join-Path $assets "WinMon-$version-Setup-x64.exe"
+    if ($CodeSign) {
+        & (Join-Path $PSScriptRoot 'Sign-ReleaseFile.ps1') -Path $installer @signingParameters |
+            ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $work 'installer-signature.json') -Encoding utf8NoBOM
+    }
+    else {
+        Write-Warning 'Authenticode signing is disabled. This package is for local testing; GitHub release builds require -CodeSign.'
+    }
     $portable = Join-Path $work 'portable'
     New-Item -ItemType Directory -Path $portable | Out-Null
     Copy-Item -LiteralPath (Join-Path $publish 'WinMon.exe'), (Join-Path $root 'LICENSE') -Destination $portable
@@ -63,7 +87,6 @@ Startup registration and launch shortcuts are machine-specific; disable them bef
 '@ | Set-Content -LiteralPath (Join-Path $portable 'PORTABLE.txt') -Encoding utf8NoBOM
     $zip = Join-Path $assets "WinMon-$version-win-x64.zip"
     Compress-Archive -Path "$portable/*" -DestinationPath $zip
-    $installer = Join-Path $assets "WinMon-$version-Setup-x64.exe"
     $winget = Join-Path $work 'winget'
     & (Join-Path $PSScriptRoot 'New-WinGetManifest.ps1') -Version $version -InstallerPath $installer -OutputDirectory $winget | Out-Host
     Compress-Archive -Path (Join-Path $winget 'manifests') -DestinationPath (Join-Path $assets "WinMon-$version-winget.zip")

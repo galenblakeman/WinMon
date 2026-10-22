@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  id-token: write
 
 concurrency:
   group: release-${{ github.ref }}
@@ -14,8 +15,9 @@ concurrency:
 
 jobs:
   package:
+    environment: release
     runs-on: windows-2025
-    timeout-minutes: 25
+    timeout-minutes: 40
     defaults:
       run:
         shell: pwsh
@@ -24,15 +26,25 @@ jobs:
       - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
         with:
           global-json-file: global.json
+          # ArtifactSigning 0.1.20 also requires the .NET 8 runtime.
+          dotnet-version: '8.0.x'
       - name: Install pinned Inno Setup compiler
         run: ./tools/Install-InnoSetup.ps1
+      - name: Sign in to Azure using GitHub OIDC
+        uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Install pinned Artifact Signing module
+        run: Install-Module ArtifactSigning -RequiredVersion 0.1.20 -Repository PSGallery -Scope CurrentUser -Force
       - name: Test and package
         env:
           RELEASE_TAG: ${{ github.ref_name }}
           REF_TYPE: ${{ github.ref_type }}
           UPDATE_SIGNING_KEY_BASE64: ${{ secrets.WINMON_UPDATE_SIGNING_KEY_BASE64 }}
         run: |
-          $parameters = @{ OutputDirectory = "$PWD/artifacts/release" }
+          $parameters = @{ OutputDirectory = "$PWD/artifacts/release"; CodeSign = $true }
           if ($env:REF_TYPE -eq 'tag') { $parameters.ExpectedTag = $env:RELEASE_TAG }
           $keyPath = Join-Path $env:RUNNER_TEMP 'winmon-update-signing-key.pem'
           try {
@@ -70,6 +82,7 @@ jobs:
           path: |
             artifacts/release/*
             artifacts/packaging/**/test-results/*
+            artifacts/packaging/**/*-signature.json
             artifacts/installer-validation/**/*.log
             artifacts/installer-validation/**/smoke/*
           if-no-files-found: error
