@@ -10,7 +10,7 @@ WinMon brings CPU, memory, disk, network and GPU activity into one clear Windows
 
 ![WinMon live dashboard showing CPU, memory, two disks, network and GPU activity above individual process rankings](docs/example/example_individual.png)
 
-*Screenshots captured October 22, 2026 from the current source (version 1.0.3), using illustrative sample data. See the [example gallery](docs/example/README.md) for all views and capture instructions.*
+*Screenshots captured October 22, 2026 from version 1.0.3 source, using illustrative sample data. See the [example gallery](docs/example/README.md) for all views and capture instructions.*
 
 ## Your system, at a glance
 
@@ -143,7 +143,7 @@ The published app is at `src/WinMon/bin/Release/net10.0-windows/win-x64/publish/
 
 ## Open source
 
-WinMon **1.0.3** is built with C# and WPF on .NET 10, and released under the [MIT License](LICENSE).
+WinMon **1.0.4** is built with C# and WPF on .NET 10, and released under the [MIT License](LICENSE).
 
 ### Code signing policy
 
