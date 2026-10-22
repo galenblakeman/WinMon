@@ -27,6 +27,9 @@ public sealed class ProcessRow : Grid
     private Action<ProcessUsage, bool>? _togglePin;
     private bool _grouped;
     private bool _unavailable;
+    private string? _pinForeground;
+    private string? _background;
+    private string? _nameForeground = "Text";
 
     internal void EnablePinning(Func<ProcessUsage, bool, bool> isPinned, Action<ProcessUsage, bool> toggle)
     {
@@ -121,9 +124,9 @@ public sealed class ProcessRow : Grid
         var pinned = _isPinned?.Invoke(usage, grouped) == true;
         _pin.ToolTip = pinned ? Strings.UnpinProcess : Strings.PinProcess;
         System.Windows.Automation.AutomationProperties.SetName(_pin, $"{_pin.ToolTip}: {(string.IsNullOrWhiteSpace(usage.AppName) ? usage.Name : usage.AppName)}");
-        _pin.SetResourceReference(Control.ForegroundProperty, pinned ? "ProcessPinAccent" : "Muted");
-        SetResourceReference(BackgroundProperty, pinned ? "SectionHeaderSurface" : "Surface");
-        _name.SetResourceReference(TextBlock.ForegroundProperty, _unavailable ? "Muted" : "Text");
+        SetResourceKey(ref _pinForeground, _pin, Control.ForegroundProperty, pinned ? "ProcessPinAccent" : "Muted");
+        SetResourceKey(ref _background, this, BackgroundProperty, pinned ? "SectionHeaderSurface" : "Surface");
+        SetResourceKey(ref _nameForeground, _name, TextBlock.ForegroundProperty, _unavailable ? "Muted" : "Text");
         var members = usage.MemberCount > 1;
         var name = !string.IsNullOrWhiteSpace(usage.AppName) ? usage.AppName
             : !string.IsNullOrWhiteSpace(usage.ProductName) ? usage.ProductName : usage.Name;
@@ -182,6 +185,14 @@ public sealed class ProcessRow : Grid
             System.Windows.Automation.AutomationProperties.GetName(this) + $" · {StateText(state)}");
     }
 
+    // A new resource reference is re-resolved through the element tree, so set one only when the key changes.
+    private static void SetResourceKey(ref string? current, FrameworkElement element, DependencyProperty property, string key)
+    {
+        if (current == key) return;
+        current = key;
+        element.SetResourceReference(property, key);
+    }
+
     internal static string StateText(PinnedProcessState state) => state switch
     {
         PinnedProcessState.Exited => Strings.ProcessExited,
@@ -200,7 +211,8 @@ public sealed class ProcessRow : Grid
         _icon.Visibility = Visibility.Hidden;
         _graph.Visibility = Visibility.Hidden;
         _pid.Visibility = Visibility.Collapsed;
-        foreach (var text in new[] { _name, _value, _io }) text.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
+        foreach (var text in new[] { _value, _io }) text.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
+        SetResourceKey(ref _nameForeground, _name, TextBlock.ForegroundProperty, "Muted");
         _name.Text = grouped ? Strings.Format(Strings.OtherExecutables, count) : Strings.Format(Strings.OtherProcesses, count);
         _name.ToolTip = null;
         _value.Text = Strings.Format(Strings.PercentOneDecimal, cpuPercent);

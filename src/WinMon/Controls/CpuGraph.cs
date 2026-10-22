@@ -20,6 +20,15 @@ public sealed class CpuGraph : FrameworkElement
     private int _seconds = 120;
     private double _networkScale = 1_000_000;
     private double _selectionY = 0.5;
+    // Every graph redraws each second. Reusing points, frozen pens and brushes, and shaped labels keeps
+    // a redraw from allocating them again and from sending new resources to the render thread.
+    private readonly List<Point> _segment = [];
+    private readonly List<Point> _binned = [];
+    private Point[] _trace = [];
+    private readonly Dictionary<(Brush, double), Brush> _fills = [];
+    private readonly Dictionary<(Brush, double, DashStyle?), Pen> _pens = [];
+    private readonly Dictionary<(string, Brush, double), FormattedText> _labels = [];
+    private static readonly Typeface LabelTypeface = new("Segoe UI");
 
     internal Rect PlotBounds => Plot();
     internal bool SelectionInPlot => _selected is not null && _samples.Any(s => ReferenceEquals(s, _selected)) && Moment(_selected) >= _end - _seconds;
@@ -107,13 +116,13 @@ public sealed class CpuGraph : FrameworkElement
             for (var i = 0; i <= 4; i++)
             {
                 var y = plot.Top + plot.Height * i / 4;
-                drawingContext.DrawLine(new Pen(line, 0.7), new Point(plot.Left, y), new Point(plot.Right, y));
+                drawingContext.DrawLine(CachedPen(line, 0.7), new Point(plot.Left, y), new Point(plot.Right, y));
                 Label(drawingContext, Strings.Format(Strings.PercentInteger, 100 - i * 25), new Point(0, Math.Max(0, y - 7)), muted);
             }
             for (var i = 0; i <= 4; i++)
             {
                 var x = plot.Left + plot.Width * i / 4;
-                drawingContext.DrawLine(new Pen(line, 0.5), new Point(x, plot.Top), new Point(x, plot.Bottom));
+                drawingContext.DrawLine(CachedPen(line, 0.5), new Point(x, plot.Top), new Point(x, plot.Bottom));
                 var text = i == 0 ? Strings.Format(Strings.MinAgo, _seconds / 60d) : i == 4 ? Strings.Now : Ago(_seconds * (4 - i) / 4d);
                 Label(drawingContext, text, new Point(x, plot.Bottom + 5), muted, i == 0 ? 0 : i == 4 ? 1 : 0.5);
             }
@@ -150,7 +159,7 @@ public sealed class CpuGraph : FrameworkElement
         if (_selected is not null && _samples.Any(s => ReferenceEquals(s, _selected)) && Moment(_selected) >= _end - _seconds)
         {
             var x = X(_selected, plot);
-            drawingContext.DrawLine(new Pen(muted, 1) { DashStyle = DashStyles.Dash }, new Point(x, plot.Top), new Point(x, plot.Bottom));
+            drawingContext.DrawLine(CachedPen(muted, 1, DashStyles.Dash), new Point(x, plot.Top), new Point(x, plot.Bottom));
             if (ShowGrid && _process is null)
                 for (var metric = 0; metric < 6; metric++)
                 {
@@ -158,7 +167,7 @@ public sealed class CpuGraph : FrameworkElement
                     var value = metric == 3 ? NetworkBitsPerSecond(_selected.Resources) * 100 / _networkScale : MetricValue(_selected, metric);
                     if (value is null) continue;
                     var key = metric switch { 0 => "CpuAccent", 1 => "MemoryAccent", 2 => "DiskAccent", 3 => "NetworkAccent", 4 => "GpuAccent", _ => "SecondaryDiskAccent" };
-                    drawingContext.DrawEllipse(Resource("Raised", Brushes.Black), new Pen(Resource(key, accent), 2),
+                    drawingContext.DrawEllipse(Resource("Raised", Brushes.Black), CachedPen(Resource(key, accent), 2),
                         new Point(x, plot.Bottom - Math.Clamp(value.Value, 0, 100) / 100 * plot.Height), 3.5, 3.5);
                 }
         }
@@ -168,9 +177,9 @@ public sealed class CpuGraph : FrameworkElement
             // Clamp the timestamp separately so its full text remains inside the chart at both ends.
             var text = $"{_selected.Timestamp:HH:mm:ss}";
             var formatted = new FormattedText(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
-                new Typeface("Segoe UI"), 11, muted, VisualTreeHelper.GetDpi(this).PixelsPerDip);
+                LabelTypeface, 11, muted, VisualTreeHelper.GetDpi(this).PixelsPerDip);
             var x = Math.Clamp(X(_selected, plot) - formatted.Width / 2, plot.Left, Math.Max(plot.Left, plot.Right - formatted.Width));
-            drawingContext.DrawRectangle(Resource("Raised", Brushes.Black), new Pen(line, 1),
+            drawingContext.DrawRectangle(Resource("Raised", Brushes.Black), CachedPen(line, 1),
                 new Rect(x - 2, plot.Bottom + 3, formatted.Width + 4, formatted.Height + 2));
             drawingContext.DrawText(formatted, new Point(x, plot.Bottom + 4));
         }
@@ -197,9 +206,10 @@ public sealed class CpuGraph : FrameworkElement
 
     private void DrawSeries(DrawingContext drawingContext, Rect plot, Brush accent, int metric, bool fillOnly = false)
     {
-        var segment = new List<Point>();
+        var segment = _segment;
+        segment.Clear();
         double? previous = null;
-        string? previousSource = null;
+        ResourceSample? previousSource = null;
         for (var sampleIndex = 0; sampleIndex < _samples.Count; sampleIndex++)
         {
             var sample = _samples[sampleIndex];
@@ -207,8 +217,8 @@ public sealed class CpuGraph : FrameworkElement
             double? value = _process is not null ? _processValues![sampleIndex]
                 : metric == 3 ? NetworkBitsPerSecond(sample.Resources) * 100 / _networkScale
                 : MetricValue(sample, metric);
-            var source = metric == 3 ? sample.Resources.NetworkId + "/" + sample.Resources.LinkBitsPerSecond : metric == 2 ? sample.Resources.DiskName : metric == 4 ? sample.Resources.GpuId : metric == 5 ? sample.Resources.SecondaryDiskName : "";
-            if (sample.IsGap || value is null || (previous is not null && Moment(sample) - previous.Value > 2.5) || previousSource != source)
+            if (sample.IsGap || value is null || (previous is not null && Moment(sample) - previous.Value > 2.5) ||
+                (previousSource is not null && !SameSource(previousSource, sample.Resources, metric)))
             {
                 DrawSegment(drawingContext, segment, plot.Bottom, accent, ShowGrid, metric, fillOnly);
                 segment.Clear();
@@ -216,10 +226,21 @@ public sealed class CpuGraph : FrameworkElement
             if (value is not null && !sample.IsGap)
                 segment.Add(new Point(X(sample, plot), plot.Bottom - Math.Clamp(value.Value, 0, ScaleMaximum) / ScaleMaximum * plot.Height));
             previous = Moment(sample);
-            previousSource = source;
+            previousSource = sample.Resources;
         }
         DrawSegment(drawingContext, segment, plot.Bottom, accent, ShowGrid, metric, fillOnly);
+        segment.Clear();
     }
+
+    /// <summary>Whether two samples measured the same network link, volume or adapter, so their trace may join.</summary>
+    private static bool SameSource(ResourceSample previous, ResourceSample current, int metric) => metric switch
+    {
+        2 => previous.DiskName == current.DiskName,
+        3 => previous.NetworkId == current.NetworkId && previous.LinkBitsPerSecond == current.LinkBitsPerSecond,
+        4 => previous.GpuId == current.GpuId,
+        5 => previous.SecondaryDiskName == current.SecondaryDiskName,
+        _ => true
+    };
 
     internal static double? MetricValue(CpuSample sample, int metric) => metric switch
     {
@@ -249,6 +270,7 @@ public sealed class CpuGraph : FrameworkElement
             var sample = IsMouseOver && _selected is null ? Nearest(Mouse.GetPosition(this).X) : null;
             ToolTip = !IsMouseOver || _selected is not null ? null : sample is null ? Strings.NoSampleInThisInterval : DescribeSample(sample);
         }
+        _labels.Clear();
         InvalidateVisual();
     }
 
@@ -320,9 +342,37 @@ public sealed class CpuGraph : FrameworkElement
     /// </param>
     private void Label(DrawingContext dc, string text, Point origin, Brush brush, double align = 0)
     {
-        var formatted = new FormattedText(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, new Typeface("Segoe UI"), 11, brush,
-            VisualTreeHelper.GetDpi(this).PixelsPerDip);
+        var pixelsPerDip = VisualTreeHelper.GetDpi(this).PixelsPerDip;
+        // Axis labels rarely change, and shaping text is the costly part of drawing them.
+        if (!_labels.TryGetValue((text, brush, pixelsPerDip), out var formatted))
+        {
+            if (_labels.Count >= 64) _labels.Clear();
+            formatted = new FormattedText(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, LabelTypeface, 11, brush, pixelsPerDip);
+            _labels[(text, brush, pixelsPerDip)] = formatted;
+        }
         dc.DrawText(formatted, origin with { X = origin.X - formatted.Width * align });
+    }
+
+    /// <summary>A frozen pen reused across redraws; theme changes replace the brush and so the key.</summary>
+    private Pen CachedPen(Brush brush, double thickness, DashStyle? dashStyle = null)
+    {
+        if (_pens.TryGetValue((brush, thickness, dashStyle), out var pen)) return pen;
+        if (_pens.Count >= 64) _pens.Clear();
+        // Freezing a pen freezes its brush; copy a theme brush rather than freeze the shared resource.
+        pen = new Pen(brush.IsFrozen ? brush : brush.CloneCurrentValue(), thickness);
+        if (dashStyle is not null) pen.DashStyle = dashStyle;
+        pen.Freeze();
+        return _pens[(brush, thickness, dashStyle)] = pen;
+    }
+
+    private Brush CachedFill(Brush brush, double opacity)
+    {
+        if (_fills.TryGetValue((brush, opacity), out var fill)) return fill;
+        if (_fills.Count >= 64) _fills.Clear();
+        fill = brush.Clone();
+        fill.Opacity = opacity;
+        fill.Freeze();
+        return _fills[(brush, opacity)] = fill;
     }
 
     internal static string DescribeSample(CpuSample sample)
@@ -344,7 +394,7 @@ public sealed class CpuGraph : FrameworkElement
         if (points.Count == 0) return;
         if (points.Count == 1) { if (!fillOnly) dc.DrawEllipse(accent, null, points[0], 1.5, 1.5); return; }
         // Sparklines carry about two samples per pixel; averaging into 2px bins keeps a readable trace instead of a solid block.
-        if (!overlay) points = Bin(points, 2);
+        if (!overlay) points = Bin(points, 2, _binned);
         // Faint washes add depth while keeping the grid and crossing traces readable.
         if ((!overlay || fillOnly) && (TileMetric is null || !SystemParameters.HighContrast))
         {
@@ -355,27 +405,37 @@ public sealed class CpuGraph : FrameworkElement
                 context.PolyLineTo(points, true, false);
                 context.LineTo(new Point(points[^1].X, baseline), true, false);
             }
-            var fill = accent.Clone();
-            fill.Opacity = TileMetric is not null ? 0.23 : overlay ? 0.08 : 0.14;
-            dc.DrawGeometry(fill, null, area);
+            area.Freeze();
+            dc.DrawGeometry(CachedFill(accent, TileMetric is not null ? 0.23 : overlay ? 0.08 : 0.14), null, area);
         }
         if (fillOnly) return;
         var trace = new StreamGeometry();
+        // PolyLineTo copies the points, so one buffer serves every segment.
+        if (_trace.Length < points.Count) _trace = new Point[Math.Max(points.Count, _trace.Length * 2)];
+        points.CopyTo(1, _trace, 0, points.Count - 1);
         using (var context = trace.Open())
         {
             context.BeginFigure(points[0], false, false);
-            context.PolyLineTo([.. points.Skip(1)], true, false);
+            context.PolyLineTo(new ArraySegment<Point>(_trace, 0, points.Count - 1), true, false);
         }
-        var pen = new Pen(accent, overlay ? 1.7 : 1.2);
-        if (overlay && metric == 5) pen.DashStyle = DashStyles.Dash;
+        trace.Freeze();
+        var dashStyle = overlay && metric == 5 ? DashStyles.Dash : null;
         if ((SystemParameters.HighContrast || UseSeriesPatterns) && (overlay || TileMetric is not null))
-            pen.DashStyle = metric switch { 1 => DashStyles.Dash, 2 => DashStyles.Dot, 3 => DashStyles.DashDot, 4 => DashStyles.DashDotDot, 5 => new DashStyle([6d, 2d], 0), _ => DashStyles.Solid };
-        dc.DrawGeometry(null, pen, trace);
+            dashStyle = metric switch { 1 => DashStyles.Dash, 2 => DashStyles.Dot, 3 => DashStyles.DashDot, 4 => DashStyles.DashDotDot, 5 => LongDash, _ => DashStyles.Solid };
+        dc.DrawGeometry(null, CachedPen(accent, overlay ? 1.7 : 1.2, dashStyle), trace);
     }
 
-    private static List<Point> Bin(List<Point> points, double width)
+    private static readonly DashStyle LongDash = Frozen(new DashStyle([6d, 2d], 0));
+
+    private static DashStyle Frozen(DashStyle style)
     {
-        var binned = new List<Point>(points.Count);
+        style.Freeze();
+        return style;
+    }
+
+    private static List<Point> Bin(List<Point> points, double width, List<Point> binned)
+    {
+        binned.Clear();
         for (var i = 0; i < points.Count;)
         {
             var bin = Math.Floor(points[i].X / width);

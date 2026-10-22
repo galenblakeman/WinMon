@@ -467,6 +467,9 @@ public partial class MainWindow
             var active = sort == _preferences.ProcessSort;
             header.Text = active ? $"{text} ▾" : text;
             header.FontWeight = active ? FontWeights.SemiBold : FontWeights.Normal;
+            // Each new resource reference is resolved again, so set one only when the heading changes state.
+            if (header.Tag is bool shown && shown == active) continue;
+            header.Tag = active;
             header.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty, active ? "Text" : "Muted");
         }
     }

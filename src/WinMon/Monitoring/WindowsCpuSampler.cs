@@ -144,14 +144,17 @@ public sealed class WindowsCpuSampler : IDisposable
             });
         }
 
-        return
-        [
-            .. usages
-                .OrderByDescending(process => process.CpuPercent)
-                .ThenBy(process => process.Name, StringComparer.OrdinalIgnoreCase)
-                .ThenBy(process => process.ProcessId)
-        ];
+        // Sorted in place: the keys form a total order (PIDs are unique in a snapshot), so this matches a stable sort.
+        usages.Sort(BusiestFirst);
+        return usages;
     }
+
+    private static readonly Comparison<ProcessUsage> BusiestFirst = (left, right) =>
+    {
+        var order = right.CpuPercent.CompareTo(left.CpuPercent);
+        if (order == 0) order = StringComparer.OrdinalIgnoreCase.Compare(left.Name, right.Name);
+        return order != 0 ? order : left.ProcessId.CompareTo(right.ProcessId);
+    };
 }
 
 

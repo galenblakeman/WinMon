@@ -30,9 +30,19 @@ public sealed class MetricReadout : StackPanel
     /// <summary>Show a number with a smaller unit so rates fit the same column as percentages.</summary>
     public void ShowValue(string number, string unit)
     {
-        ValueLabel.Inlines.Clear();
-        ValueLabel.Inlines.Add(new Run(number));
-        ValueLabel.Inlines.Add(new Run(" " + unit) { FontSize = 16 });
+        // Setting Text replaces the runs, so check they are still the label's before reusing them.
+        if (ValueLabel.Inlines.Count != 2 || ValueLabel.Inlines.FirstInline != _number || ValueLabel.Inlines.LastInline != _unit)
+        {
+            ValueLabel.Inlines.Clear();
+            ValueLabel.Inlines.Add(_number);
+            ValueLabel.Inlines.Add(_unit);
+        }
+        // Unchanged text leaves the runs, and so the label's layout, as they are.
+        _number.Text = number;
+        _unit.Text = " " + unit;
     }
+
+    private readonly Run _number = new();
+    private readonly Run _unit = new() { FontSize = 16 };
     public string AccentKey { set { Toggle.SetResourceReference(Control.ForegroundProperty, value); ValueLabel.SetResourceReference(TextBlock.ForegroundProperty, value); } }
 }

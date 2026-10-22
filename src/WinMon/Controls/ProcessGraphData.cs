@@ -34,7 +34,7 @@ internal sealed record ProcessGraphData(IReadOnlyList<CpuSample> Samples, double
             }
             // Compaction establishes idle CPU/I/O, but cannot recover memory or unavailable GPU readings.
             if (sample.CompactedProcesses == 0 || sort is not (ProcessSort.Cpu or ProcessSort.Io)) continue;
-            var sampleTime = sample.Timestamp.ToFileTime();
+            var sampleTime = FileTime(sample);
             for (var index = 0; index < identities.Count; index++)
                 if (values[index][sampleIndex] is null && identities[index].CreationTicks <= sampleTime)
                     values[index][sampleIndex] = 0;
@@ -72,7 +72,7 @@ internal sealed record ProcessGraphData(IReadOnlyList<CpuSample> Samples, double
                     ? Math.Max(values[index][sampleIndex] ?? 0, value)
                     : (values[index][sampleIndex] ?? 0) + value;
             }
-            var sampleTime = sample.Timestamp.ToFileTime();
+            var sampleTime = FileTime(sample);
             for (var index = 0; index < groups.Count; index++)
             {
                 if (missingCounts?[index] == true) values[index][sampleIndex] = null;
@@ -83,6 +83,13 @@ internal sealed record ProcessGraphData(IReadOnlyList<CpuSample> Samples, double
         var scale = Scale(peaks.Max(), sort);
         return [.. groups.Select((_, i) => new ProcessGraphData(visible, values[i], scale, sort))];
     }
+
+    // DateTimeOffset.ToFileTime makes a leap-second-aware system call on current Windows, and every refresh
+    // revisits the same samples. Samples are immutable, so each is converted once.
+    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<CpuSample, object> FileTimes = new();
+
+    private static long FileTime(CpuSample sample) =>
+        (long)FileTimes.GetValue(sample, static s => s.Timestamp.ToFileTime());
 
     private static double? Value(ProcessUsage process, ProcessSort sort, bool grouped)
     {

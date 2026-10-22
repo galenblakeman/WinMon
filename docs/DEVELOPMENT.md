@@ -110,7 +110,7 @@ October 19, 2026, this machine (12 logical processors, about 1,000 processes), b
 - Network adapters are enumerated only after a Windows network-change event or every 30 seconds; counters are still read every second.
 - Retained samples keep only processes with CPU, I/O or GPU readings plus the 32 largest working sets. Dropped idle entries are counted and treated as zero by ranking, the Other processes row and sparklines.
 
-The compressed single-file publish uses about 130 MiB more working set than an uncompressed one (312 vs 182 MiB, private 173 vs 96 MiB), because compressed assemblies are inflated into private memory instead of mapped from the file. Uncompressed, the executable is 173 MB instead of 76 MB. Software rendering made no measurable difference. The UI microbenchmark below predates later field renames and needs updating before it will run again.
+The compressed single-file publish uses about 130 MiB more working set than an uncompressed one (312 vs 182 MiB, private 173 vs 96 MiB), because compressed assemblies are inflated into private memory instead of mapped from the file. Uncompressed, the executable is 173 MB instead of 76 MB. Software rendering made no measurable difference. The UI microbenchmark was rewritten on October 22, 2026 (see [Chart drawing and refresh](#chart-drawing-and-refresh-october-22-2026)).
 
 ### Allocation, GC and compression (October 20, 2026)
 
@@ -236,6 +236,78 @@ of previously returned results. Sandboxed VSTest could not connect to its testho
 the same test command completed successfully outside the sandbox. Package restore
 required network access; the test command used `-p:NuGetAudit=false` for the offline
 restore, so this validation does not include a package vulnerability audit.
+
+### Chart drawing and refresh (October 22, 2026)
+
+Same machine, now about 850 processes and 10,000 threads, .NET 10.0.13, Release build output.
+
+Where steady-state CPU goes now (OS per-thread CPU, 90 s window from 150 s, 28.6 ms/s in total):
+
+| Thread | ms/s | Main cost |
+| --- | ---: | --- |
+| Thread-pool sampling pass | ~15 | `NtQuerySystemInformation(SystemProcessInformation)`: 9.6 ms per call |
+| UI thread | ~4–7 | WPF text formatting and layout of changed values, then WinMon's refresh and chart drawing |
+| WPF render thread | ~6 | Composing the charts, sparklines and changed text |
+
+The process snapshot now costs twice what it did on October 20 because the machine has about 10,000
+threads instead of 6,000: the query returns every thread, and its cost follows the thread count (a later
+pass with 1,290 processes and 13,400 threads took 17 ms). It is the OS floor for 1 Hz sampling. The rest
+of a sampling pass is building process usages (about 1.7 ms), GPU counters (1.3 ms), other resources
+(0.3 ms) and compaction (0.2 ms), measured with thread cycle counts by the per-step harness.
+
+An allocation trace of the UI benchmark showed chart drawing, not the refresh logic, as the largest
+allocator on the UI thread. Each redraw built a network-source string per sample, cloned a brush and
+created a pen per segment, copied each segment's points, and shaped all eleven axis labels again. A CPU
+trace showed most of `ProcessGraphData.Build` in `DateTimeOffset.ToFileTime`, which on current Windows
+makes a leap-second-aware system call (about 4 µs), once per visible sample per refresh.
+
+Changes:
+- `CpuGraph` compares trace sources without building strings, reuses its point buffers, caches frozen pens
+  and fill brushes and the shaped axis labels, and freezes its geometries. Pens copy a theme brush rather
+  than freeze the shared resource.
+- `ProcessGraphData` converts each sample's timestamp once, cached per sample object.
+- `MetricReadout.ShowValue` updates its two runs in place, so an unchanged network value no longer
+  replaces the label's content and lays it out again.
+- Process rows and column headings set a resource reference only when its key changes.
+- The sampler sorts process usages in place instead of through a three-key LINQ sort and a copy.
+
+`tools/WinMon.Performance` was rewritten for the current window. It adds one synthetic 850-process sample per
+frame, then measures the refresh and the dispatcher's layout, render and channel commit with UI-thread cycle
+counts. Sampling is stopped and the rendered window is hashed:
+
+```powershell
+dotnet build tools/WinMon.Performance/WinMon.Performance.csproj -c Release
+.\tools\WinMon.Performance\bin\Release\net10.0-windows\win-x64\WinMon.Performance.exe D:\Projects\WinMon\artifacts\bench.json D:\Projects\WinMon\artifacts\bench.png
+```
+
+Four alternating runs of each build (medians of seven 60-frame batches after 400 warm-up frames):
+
+| Per refresh | Before | After |
+| --- | ---: | ---: |
+| Live: UI-thread CPU, median of runs | 4.1 ms | 3.4 ms |
+| Live: allocated | 706 KiB | 535 KiB |
+| Historical: UI-thread CPU, median of runs | 1.57 ms | 1.19 ms |
+| Historical: allocated | 295 KiB | 167 KiB |
+
+After was faster in all four pairs, and the rendered window hashes match the baseline exactly. Text
+formatting and layout of values that genuinely change are about half of a live frame, and are unchanged.
+Giving each value cell a fixed-width slot, so a new width cannot re-lay out its row, made frames about
+0.3 ms slower and was dropped.
+
+Two whole-app runs ran both builds side by side, swapping launch order (profile mode, 120 s window from 90 s):
+
+| | Before | After |
+| --- | ---: | ---: |
+| Allocation | 1,133 / 1,161 KiB/s | 904 / 928 KiB/s |
+| Gen0 collections over the 210 s profile | 40 / 41 | 31 / 33 |
+| Total CPU | 33.5 / 29.8 ms/s | 30.3 / 31.9 ms/s |
+| UI thread | 5.1 / 3.9 ms/s | 3.6 / 5.0 ms/s |
+
+Allocation fell by a fifth in both runs. Whole-app CPU did not move beyond the noise: in both runs the
+instance launched first used about 1 ms/s more on its UI thread, and the averages differ by under 2%. The
+gain is real on the UI thread but small next to the process snapshot and WPF's own text and composition work.
+Raw data, scripts (`ab-app.ps1`, `threads.ps1`, `bench.sh`, `ab.sh`), traces and the per-step harness are in
+`artifacts/perf-2026-10-22/`.
 
 ### UI microbenchmark (earlier)
 
