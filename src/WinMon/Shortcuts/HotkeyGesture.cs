@@ -57,11 +57,6 @@ public sealed record HotkeyGesture(HotkeyModifiers Modifiers, int VirtualKey)
         }
     }
 
-    /// <summary>Gets the IShellLink hotkey word: virtual key low, HOTKEYF_SHIFT/CONTROL/ALT high.</summary>
-    internal ushort ShellLinkHotkey =>
-        (ushort)(VirtualKey | (((Modifiers.HasFlag(HotkeyModifiers.Shift) ? 1 : 0) | (Modifiers.HasFlag(HotkeyModifiers.Control) ? 2 : 0) |
-                                (Modifiers.HasFlag(HotkeyModifiers.Alt) ? 4 : 0)) << 8));
-
     /// <inheritdoc/>
     public override string ToString() => Format("+");
 

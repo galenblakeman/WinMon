@@ -29,14 +29,8 @@ Utilization of the busiest engine across available GPUs.</value>
     <value>
 Additional CPU specifications unavailable from Windows.</value>
   </data>
-  <data name="AddsWinMonToYourStartMenuWindowsThenHandlesThe" xml:space="preserve">
-    <value>Adds WinMon to your Start menu. Windows then handles the shortcut, so it works even when WinMon isn't running.</value>
-  </data>
   <data name="Alpha" xml:space="preserve">
     <value>Alpha</value>
-  </data>
-  <data name="AlsoStartWinMonWithThisShortcut" xml:space="preserve">
-    <value>Also start WinMon with this shortcut</value>
   </data>
   <data name="Alt" xml:space="preserve">
     <value>Alt</value>
@@ -863,6 +857,9 @@ Active time and read/write throughput.</value>
   <data name="ShowTheLastMinutes" xml:space="preserve">
     <value>Show the last {0} minutes</value>
   </data>
+  <data name="ShowHideWinMon" xml:space="preserve">
+    <value>Show/Hide WinMon</value>
+  </data>
   <data name="ShowWinMon" xml:space="preserve">
     <value>Show WinMon</value>
   </data>
@@ -1095,9 +1092,6 @@ Windows health status: {2}</value>
   </data>
   <data name="WinMonSourceCodeOnGitHub" xml:space="preserve">
     <value>WinMon source code on GitHub</value>
-  </data>
-  <data name="WorksFromAnyAppAndStartsWinMonWhenItIsn" xml:space="preserve">
-    <value>Works from any app, and starts WinMon when it isn't running.</value>
   </data>
   <data name="WorksFromAnyAppWhileWinMonIsRunning" xml:space="preserve">
     <value>Works from any app while WinMon is running.</value>

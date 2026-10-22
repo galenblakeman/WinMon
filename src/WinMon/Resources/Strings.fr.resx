@@ -29,14 +29,8 @@ Utilisation du moteur le plus sollicité parmi les GPU disponibles.</value>
     <value>
 Windows ne fournit pas d’autres caractéristiques du processeur.</value>
   </data>
-  <data name="AddsWinMonToYourStartMenuWindowsThenHandlesThe" xml:space="preserve">
-    <value>Ajoute WinMon au menu Démarrer. Windows gère alors le raccourci, qui fonctionne même si WinMon est fermé.</value>
-  </data>
   <data name="Alpha" xml:space="preserve">
     <value>Alpha</value>
-  </data>
-  <data name="AlsoStartWinMonWithThisShortcut" xml:space="preserve">
-    <value>Lancer aussi WinMon avec ce raccourci</value>
   </data>
   <data name="Alt" xml:space="preserve">
     <value>Alt</value>
@@ -863,6 +857,9 @@ Temps d’activité et débit de lecture/écriture.</value>
   <data name="ShowTheLastMinutes" xml:space="preserve">
     <value>Afficher les {0} dernières minutes</value>
   </data>
+  <data name="ShowHideWinMon" xml:space="preserve">
+    <value>Afficher/masquer WinMon</value>
+  </data>
   <data name="ShowWinMon" xml:space="preserve">
     <value>Afficher WinMon</value>
   </data>
@@ -1095,9 +1092,6 @@ Fabricant : {1}
   </data>
   <data name="WinMonSourceCodeOnGitHub" xml:space="preserve">
     <value>Code source de WinMon sur GitHub</value>
-  </data>
-  <data name="WorksFromAnyAppAndStartsWinMonWhenItIsn" xml:space="preserve">
-    <value>Fonctionne depuis toute application et lance WinMon s’il est fermé.</value>
   </data>
   <data name="WorksFromAnyAppWhileWinMonIsRunning" xml:space="preserve">
     <value>Fonctionne depuis toute application tant que WinMon est lancé.</value>

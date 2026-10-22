@@ -28,9 +28,11 @@ public sealed class SettingsWindow : Window
     private readonly ComboBox _secondaryDriveSelector;
     private readonly TextBox _shortcutBox;
     private readonly TextBlock _shortcutStatus;
-    private readonly CheckBox _launchCheckBox;
     private readonly Func<HotkeyGesture, bool> _isShortcutAvailable;
     private HotkeyGesture? _shortcut;
+    private readonly Func<DriveChoice[]> _loadDrives;
+    private Task? _driveLoadTask;
+    private bool _closed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SettingsWindow"/> class.
@@ -39,8 +41,14 @@ public sealed class SettingsWindow : Window
     /// <param name="isShortcutAvailable">Reports whether no other application holds a recorded shortcut.</param>
     /// <param name="shortcutStatus">Describes whether the current shortcut works.</param>
     public SettingsWindow(MonitorPreferences preferences, Func<HotkeyGesture, bool>? isShortcutAvailable = null, string shortcutStatus = "", Func<Task<string>>? checkForUpdates = null)
+        : this(preferences, DiscoverDrives, isShortcutAvailable, shortcutStatus, checkForUpdates)
+    {
+    }
+
+    internal SettingsWindow(MonitorPreferences preferences, Func<DriveChoice[]> loadDrives, Func<HotkeyGesture, bool>? isShortcutAvailable = null, string shortcutStatus = "", Func<Task<string>>? checkForUpdates = null)
     {
         ArgumentNullException.ThrowIfNull(preferences);
+        _loadDrives = loadDrives;
         _initialPreferences = preferences;
         _isShortcutAvailable = isShortcutAvailable ?? (_ => true);
         _shortcut = preferences.ShowGesture;
@@ -48,9 +56,9 @@ public sealed class SettingsWindow : Window
 
         Title = Strings.WinMonSettings;
         Width = 460;
-        Height = 870;
+        Height = 838;
         MinWidth = 420;
-        MinHeight = Math.Min(810, Math.Max(320, SystemParameters.WorkArea.Height - 32));
+        MinHeight = Math.Min(778, Math.Max(320, SystemParameters.WorkArea.Height - 32));
         MaxHeight = Math.Max(MinHeight, SystemParameters.WorkArea.Height - 32);
         Height = Math.Min(Height, MaxHeight);
         ResizeMode = ResizeMode.NoResize;
@@ -98,19 +106,19 @@ public sealed class SettingsWindow : Window
         _shortcutStatus = new TextBlock { FontSize = 12, TextWrapping = TextWrapping.Wrap, VerticalAlignment = VerticalAlignment.Center };
         _shortcutStatus.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
         AutomationProperties.SetLiveSetting(_shortcutStatus, AutomationLiveSetting.Polite);
-        _launchCheckBox = CreateCheckBox(Strings.AlsoStartWinMonWithThisShortcut, preferences.LaunchWithShortcut);
-        _launchCheckBox.ToolTip = Strings.AddsWinMonToYourStartMenuWindowsThenHandlesThe;
         ShowShortcut(shortcutStatus);
 
         _primaryDriveSelector = CreateDriveSelector(preferences.PrimaryDrive, false);
         _secondaryDriveSelector = CreateDriveSelector(preferences.SecondaryDrive, true);
+        ContentRendered += async (_, _) => await LoadDrivesAsync();
+        Closed += (_, _) => _closed = true;
 
         Grid layout = new()
         {
             Margin = new Thickness(24)
         };
         for (var row = 0; row <= 40; row++)
-            layout.RowDefinitions.Add(new RowDefinition { Height = row % 2 == 0 ? GridLength.Auto : new GridLength(row is 11 or 15 or 23 or 33 ? 16 : 10) });
+            layout.RowDefinitions.Add(new RowDefinition { Height = row is 22 or 23 ? new GridLength(0) : row % 2 == 0 ? GridLength.Auto : new GridLength(row is 11 or 15 or 21 or 33 ? 16 : 10) });
         TextBlock heading = CreateHeading(Strings.Appearance);
         Grid.SetRow(heading, 0);
         layout.Children.Add(heading);
@@ -129,7 +137,7 @@ public sealed class SettingsWindow : Window
         var shortcutHeading = CreateHeading(Strings.KeyboardShortcut);
         Grid.SetRow(shortcutHeading, 16);
         layout.Children.Add(shortcutHeading);
-        AddField(layout, Strings.ShowWinMon, _shortcutBox, 18);
+        AddField(layout, Strings.ShowHideWinMon, _shortcutBox, 18);
         var resetButton = new Button { Content = Strings.Default, MinWidth = 70, Margin = new Thickness(12, 0, 0, 0), VerticalAlignment = VerticalAlignment.Top };
         resetButton.SetResourceReference(BackgroundProperty, "Raised");
         resetButton.SetResourceReference(ForegroundProperty, "Text");
@@ -141,8 +149,6 @@ public sealed class SettingsWindow : Window
         statusRow.Children.Add(_shortcutStatus);
         Grid.SetRow(statusRow, 20);
         layout.Children.Add(statusRow);
-        Grid.SetRow(_launchCheckBox, 22);
-        layout.Children.Add(_launchCheckBox);
         var disksHeading = CreateHeading(Strings.DiskMonitoring);
         Grid.SetRow(disksHeading, 24);
         layout.Children.Add(disksHeading);
@@ -187,15 +193,43 @@ public sealed class SettingsWindow : Window
     /// </summary>
     public MonitorPreferences? Result { get; private set; }
 
-    private sealed record DriveChoice(string? Name, string Label)
+    internal sealed record DriveChoice(string? Name, string Label)
     {
         public override string ToString() => Label;
     }
 
     private static ComboBox CreateDriveSelector(string? selected, bool optional)
     {
+        var selector = CreateSelector([], "");
+        SetDriveChoices(selector, [], selected, optional, loading: true);
+        selector.Width = 210;
+        return selector;
+    }
+
+    // Start after the dialog's first render; neither construction nor painting waits for a drive.
+    internal Task LoadDrivesAsync() => _driveLoadTask ??= LoadDrivesCoreAsync();
+
+    private async Task LoadDrivesCoreAsync()
+    {
+        try
+        {
+            var drives = await Task.Run(_loadDrives);
+            if (_closed) return;
+            // Read the current selections, since the user may have changed them while loading.
+            var primary = (_primaryDriveSelector.SelectedItem as DriveChoice)?.Name;
+            var secondary = (_secondaryDriveSelector.SelectedItem as DriveChoice)?.Name;
+            SetDriveChoices(_primaryDriveSelector, drives, primary, false);
+            SetDriveChoices(_secondaryDriveSelector, drives, secondary, true);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.TraceWarning("WinMon drive discovery: {0}", ex);
+        }
+    }
+
+    private static DriveChoice[] DiscoverDrives()
+    {
         var choices = new List<DriveChoice>();
-        if (optional) choices.Add(new DriveChoice(null, Strings.None));
         try
         {
             foreach (var drive in DriveInfo.GetDrives())
@@ -203,19 +237,28 @@ public sealed class SettingsWindow : Window
                 var name = PreferenceStore.NormalizeDrive(drive.Name);
                 if (name is null) continue;
                 var label = name;
-                try { if (drive is { IsReady: true, VolumeLabel.Length: > 0 }) label += $" — {drive.VolumeLabel}"; }
+                try
+                {
+                    if (drive.IsReady && drive.VolumeLabel is { Length: > 0 } volumeLabel)
+                        label += $" — {volumeLabel}";
+                }
                 catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Security.SecurityException) { }
                 choices.Add(new DriveChoice(name, label));
             }
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Security.SecurityException) { }
+        return choices.ToArray();
+    }
+
+    private static void SetDriveChoices(ComboBox selector, IReadOnlyList<DriveChoice> drives, string? selected, bool optional, bool loading = false)
+    {
+        var choices = new List<DriveChoice>();
+        if (optional) choices.Add(new DriveChoice(null, Strings.None));
+        choices.AddRange(drives);
         if (selected is not null && choices.All(c => c.Name != selected))
-            choices.Add(new DriveChoice(selected, Strings.Format(Strings.UnavailableDrive, selected)));
-        var selector = CreateSelector([], "");
+            choices.Add(new DriveChoice(selected, loading ? selected : Strings.Format(Strings.UnavailableDrive, selected)));
         selector.ItemsSource = choices;
         selector.SelectedItem = choices.FirstOrDefault(c => c.Name == selected);
-        selector.Width = 210;
-        return selector;
     }
     private static ComboBox CreateSelector(IReadOnlyList<string> choices, string selectedValue)
     {
@@ -299,7 +342,6 @@ public sealed class SettingsWindow : Window
     {
         _shortcutBox.Text = ShortcutText(_shortcut);
         _shortcutStatus.Text = status;
-        _launchCheckBox.IsEnabled = _shortcut is not null;
     }
 
     private static string ShortcutText(HotkeyGesture? gesture) => gesture?.DisplayText ?? Strings.None;
@@ -426,8 +468,7 @@ public sealed class SettingsWindow : Window
             MinimizeToTray = _minimizeToTrayCheckBox.IsChecked == true,
             StartWithWindows = _startupCheckBox.IsChecked == true,
             AutomaticallyCheckForUpdates = _automaticUpdateCheckBox.IsChecked == true,
-            ShowShortcut = _shortcut?.ToString() ?? HotkeyGesture.NoneText,
-            LaunchWithShortcut = _shortcut is not null && _launchCheckBox.IsChecked == true
+            ShowShortcut = _shortcut?.ToString() ?? HotkeyGesture.NoneText
         };
         DialogResult = true;
     }

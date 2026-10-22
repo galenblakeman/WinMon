@@ -66,17 +66,6 @@ public sealed class HotkeyGestureTests
     public void Problem_RejectsUnsupportedKeys() =>
         Assert.That(new HotkeyGesture(CtrlAltShift, 0x1B).Problem, Is.Not.Null);
 
-    [Test]
-    public void ShellLinkHotkey_PacksModifiersAboveTheKey()
-    {
-        Assert.Multiple(() =>
-        {
-            Assert.That(HotkeyGesture.Default.ShellLinkHotkey, Is.EqualTo(0x034D));
-            Assert.That(new HotkeyGesture(CtrlAltShift, 'W').ShellLinkHotkey, Is.EqualTo(0x0757));
-            Assert.That(new HotkeyGesture(HotkeyModifiers.Control | HotkeyModifiers.Shift, 0x7B).ShellLinkHotkey, Is.EqualTo(0x037B));
-        });
-    }
-
     [TestCase(null, "Ctrl+Shift+M")]
     [TestCase("garbage", "Ctrl+Shift+M")]
     [TestCase("Ctrl+W", "Ctrl+Shift+M")]
@@ -84,6 +73,25 @@ public sealed class HotkeyGestureTests
     [TestCase("alt+ctrl+m", "Ctrl+Alt+M")]
     public void Validate_NormalizesShortcut(string? stored, string expected) =>
         Assert.That(PreferenceStore.Validate(new MonitorPreferences { ShowShortcut = stored! }).ShowShortcut, Is.EqualTo(expected));
+
+    [Test]
+    public async Task LegacyLaunchOption_IsIgnored_AndRemovedOnSave()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), "WinMon.Tests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory);
+        var path = Path.Combine(directory, "settings.json");
+        try
+        {
+            await File.WriteAllTextAsync(path, """{"LaunchWithShortcut":true,"ShowShortcut":"Ctrl+Shift+F12","StartWithWindows":true}""");
+            var store = new PreferenceStore(path);
+            var loaded = await store.LoadAsync();
+            Assert.That(loaded.ShowShortcut, Is.EqualTo("Ctrl+Shift+F12"));
+            Assert.That(loaded.StartWithWindows, Is.True);
+            await store.SaveAsync(loaded);
+            Assert.That(await File.ReadAllTextAsync(path), Does.Not.Contain("LaunchWithShortcut"));
+        }
+        finally { Directory.Delete(directory, true); }
+    }
 
     [Test]
     public async Task Shortcut_RoundTripsThroughTheStore()

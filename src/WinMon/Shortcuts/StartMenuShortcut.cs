@@ -1,7 +1,6 @@
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
-using WinMon.Preferences;
 #pragma warning disable IDE0051
 
 namespace WinMon.Shortcuts;
@@ -9,79 +8,24 @@ namespace WinMon.Shortcuts;
 // ShellLink implements these interfaces through COM QueryInterface, outside the managed type hierarchy.
 // ReSharper disable SuspiciousTypeConversion.Global
 
-/// <summary>
-/// Manages the opt-in Start menu shortcut whose hotkey Explorer watches, so the show shortcut also starts WinMon.
-/// </summary>
+/// <summary>Clears the Explorer hotkey left by older WinMon versions, preserving the Start menu entry.</summary>
 internal static class StartMenuShortcut
 {
-    private static string Description => Strings.WinMonResourceMonitor;
+    public static void ClearHotkey() => ClearHotkey(Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.Programs), "WinMon.lnk"));
 
-    private static string ShortcutPath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Programs), "WinMon.lnk");
-
-    /// <summary>Gets a value indicating whether the shortcut exists; its presence is the setting.</summary>
-    public static bool Exists => File.Exists(ShortcutPath);
-
-    /// <summary>Gets the hotkey on the existing shortcut, or <see langword="null"/>.</summary>
-    // Retain the readback accessor for shortcut diagnostics.
-    // ReSharper disable once UnusedMember.Global
-    public static ushort? Hotkey
+    internal static void ClearHotkey(string shortcutPath)
     {
-        get
-        {
-            if (!Exists) return null;
-            var link = (IShellLinkW)new ShellLink();
-            try
-            {
-                ((IPersistFile)link).Load(ShortcutPath, 0);
-                link.GetHotkey(out var hotkey);
-                return hotkey;
-            }
-            finally { Marshal.FinalReleaseComObject(link); }
-        }
-    }
-
-    /// <summary>Write or update the shortcut to start this executable with <paramref name="gesture"/>.</summary>
-    /// <exception cref="InvalidOperationException">Thrown when running from a development or test host.</exception>
-    public static void Write(HotkeyGesture gesture)
-    {
-        var executable = Environment.ProcessPath;
-        if (!StartupRegistration.CanRegisterExecutablePath(executable))
-            throw new InvalidOperationException("The Start menu shortcut is unavailable while running from a development or test host.");
-        if (IsCurrent(executable!, gesture)) return;
+        if (!File.Exists(shortcutPath)) return;
         var link = (IShellLinkW)new ShellLink();
         try
         {
-            link.SetPath(executable!);
-            link.SetWorkingDirectory(Path.GetDirectoryName(executable)!);
-            link.SetDescription(Description);
-            link.SetIconLocation(executable!, 0);
-            link.SetHotkey(gesture.ShellLinkHotkey);
-            Directory.CreateDirectory(Path.GetDirectoryName(ShortcutPath)!);
-            ((IPersistFile)link).Save(ShortcutPath, true);
-        }
-        finally { Marshal.FinalReleaseComObject(link); }
-    }
-
-    /// <summary>Remove the shortcut; Explorer then releases its hotkey.</summary>
-    public static void Delete()
-    {
-        if (Exists) File.Delete(ShortcutPath);
-    }
-
-    // Rewriting an unchanged shortcut makes Explorer release and retake the hotkey, so skip it.
-    private static bool IsCurrent(string executable, HotkeyGesture gesture)
-    {
-        if (!Exists) return false;
-        var link = (IShellLinkW)new ShellLink();
-        try
-        {
-            ((IPersistFile)link).Load(ShortcutPath, 0);
-            var path = new StringBuilder(1024);
-            link.GetPath(path, path.Capacity, IntPtr.Zero, 0);
+            ((IPersistFile)link).Load(shortcutPath, 0);
             link.GetHotkey(out var hotkey);
-            return hotkey == gesture.ShellLinkHotkey && string.Equals(path.ToString(), executable, StringComparison.OrdinalIgnoreCase);
+            if (hotkey == 0) return;
+            link.SetHotkey(0);
+            ((IPersistFile)link).Save(shortcutPath, true);
         }
-        catch (COMException) { return false; }
         finally { Marshal.FinalReleaseComObject(link); }
     }
 

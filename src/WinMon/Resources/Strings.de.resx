@@ -29,14 +29,8 @@ Auslastung der am stärksten belasteten Engine aller verfügbaren GPUs.</value>
     <value>
 Weitere CPU-Daten sind unter Windows nicht verfügbar.</value>
   </data>
-  <data name="AddsWinMonToYourStartMenuWindowsThenHandlesThe" xml:space="preserve">
-    <value>Fügt WinMon zum Startmenü hinzu. Windows verwaltet dann das Tastenkürzel, sodass es auch bei geschlossenem WinMon funktioniert.</value>
-  </data>
   <data name="Alpha" xml:space="preserve">
     <value>Alpha</value>
-  </data>
-  <data name="AlsoStartWinMonWithThisShortcut" xml:space="preserve">
-    <value>WinMon auch mit diesem Kürzel starten</value>
   </data>
   <data name="Alt" xml:space="preserve">
     <value>Alt</value>
@@ -863,6 +857,9 @@ Aktive Zeit und Lese-/Schreibdurchsatz.</value>
   <data name="ShowTheLastMinutes" xml:space="preserve">
     <value>Letzte {0} Minuten anzeigen</value>
   </data>
+  <data name="ShowHideWinMon" xml:space="preserve">
+    <value>WinMon anzeigen/ausblenden</value>
+  </data>
   <data name="ShowWinMon" xml:space="preserve">
     <value>WinMon anzeigen</value>
   </data>
@@ -1095,9 +1092,6 @@ Windows-Zustandsstatus: {2}</value>
   </data>
   <data name="WinMonSourceCodeOnGitHub" xml:space="preserve">
     <value>WinMon-Quellcode auf GitHub</value>
-  </data>
-  <data name="WorksFromAnyAppAndStartsWinMonWhenItIsn" xml:space="preserve">
-    <value>Funktioniert in jeder App und startet WinMon, wenn es geschlossen ist.</value>
   </data>
   <data name="WorksFromAnyAppWhileWinMonIsRunning" xml:space="preserve">
     <value>Funktioniert in jeder App, solange WinMon läuft.</value>

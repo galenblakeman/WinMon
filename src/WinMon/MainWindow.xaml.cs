@@ -163,7 +163,7 @@ public partial class MainWindow
             {
                 CreateTray();
                 _hotkey = new GlobalHotkey(this, ShowRequested);
-                ApplyShortcut(StartMenuShortcut.Exists);
+                ApplyShortcut();
             }
             SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
             SystemEvents.DisplaySettingsChanged += OnDisplaySettingsChanged;
@@ -653,32 +653,22 @@ public partial class MainWindow
         if (OwnedWindows.Count > 0) OwnedWindows[0]?.Activate();
     }
 
-    /// <summary>Give the show shortcut to Explorer when it should also start WinMon; otherwise hold it here.</summary>
-    private void ApplyShortcut(bool launch)
+    /// <summary>Release any legacy Explorer hotkey and register the show shortcut directly.</summary>
+    private void ApplyShortcut()
     {
         if (_hotkey is null) return;
         _hotkeyRetry?.Stop();
         var gesture = _preferences.ShowGesture;
         try
         {
-            if (launch && gesture is not null)
-            {
-                // Explorer cannot take a combination WinMon holds, and does not retry once WinMon exits.
-                _hotkey.Unregister();
-                StartMenuShortcut.Write(gesture);
-                _hotkeyStatus = HotkeyStatus.StartMenu;
-            }
-            else
-            {
-                StartMenuShortcut.Delete();
-                RegisterShortcut(gesture);
-            }
+            StartMenuShortcut.ClearHotkey();
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or COMException or InvalidOperationException)
         {
-            Trace.TraceError("WinMon Start menu shortcut could not be updated: {0}", ex);
-            RegisterShortcut(gesture);
+            Trace.TraceError("WinMon legacy Start menu hotkey could not be cleared: {0}", ex);
         }
+        // A cleanup failure must not prevent direct registration or conflict reporting.
+        RegisterShortcut(gesture);
         UpdateTrayText();
     }
 
@@ -687,7 +677,7 @@ public partial class MainWindow
         var hotkey = _hotkey!;
         _hotkeyStatus = hotkey.Register(gesture);
         if (_hotkeyStatus != HotkeyStatus.InUse) return;
-        // Explorer releases a deleted shortcut's hotkey within a few seconds, so keep trying briefly.
+        // Explorer may briefly retain a cleared legacy hotkey, so keep trying during the handoff.
         var attempts = 0;
         _hotkeyRetry = new DispatcherTimer(TimeSpan.FromSeconds(1), DispatcherPriority.Background, (_, _) =>
         {
@@ -698,12 +688,11 @@ public partial class MainWindow
     }
 
     private bool IsShortcutAvailable(HotkeyGesture gesture) =>
-        gesture == (_hotkey?.Current ?? (_hotkeyStatus == HotkeyStatus.StartMenu ? _preferences.ShowGesture : null)) || GlobalHotkey.IsAvailable(gesture);
+        gesture == _hotkey?.Current || GlobalHotkey.IsAvailable(gesture);
 
     private string ShortcutStatus => _hotkeyStatus switch
     {
         HotkeyStatus.Registered => Strings.WorksFromAnyAppWhileWinMonIsRunning,
-        HotkeyStatus.StartMenu => Strings.WorksFromAnyAppAndStartsWinMonWhenItIsn,
         HotkeyStatus.InUse => Strings.AnotherAppIsUsingThisShortcutChooseAnother,
         HotkeyStatus.Failed => Strings.ThisShortcutCouldNotBeRegisteredChooseAnother,
         _ => ""
@@ -724,7 +713,7 @@ public partial class MainWindow
         if (_closing) return;
         try
         {
-            var dialog = new SettingsWindow(_preferences with { AlwaysOnTop = Topmost, StartWithWindows = StartupRegistration.IsEnabled, LaunchWithShortcut = StartMenuShortcut.Exists },
+            var dialog = new SettingsWindow(_preferences with { AlwaysOnTop = Topmost, StartWithWindows = StartupRegistration.IsEnabled },
                 IsShortcutAvailable, ShortcutStatus, async () => { await CheckForUpdatesAsync(true, _lifetime.Token); return UpdateStatusText.Text; }) { Owner = this };
             // Let the shortcut recorder receive WinMon's own combination; Save or the finally block takes it back.
             _hotkeyRetry?.Stop();
@@ -749,7 +738,7 @@ public partial class MainWindow
                 SettingsButton.IsEnabled = true;
                 ProcessCountSelector.IsEnabled = true;
                 ProcessSortSelector.IsEnabled = true;
-                if (_hotkey is { Current: null } && _hotkeyStatus != HotkeyStatus.StartMenu) ApplyShortcut(StartMenuShortcut.Exists);
+                if (_hotkey is { Current: null }) ApplyShortcut();
             }
         }
     }
@@ -776,7 +765,7 @@ public partial class MainWindow
         _history.Resize(_preferences.RetentionSeconds);
         ApplyTheme();
         ApplyLanguage();
-        ApplyShortcut(_preferences.LaunchWithShortcut);
+        ApplyShortcut();
         RefreshPresentation();
     }
 

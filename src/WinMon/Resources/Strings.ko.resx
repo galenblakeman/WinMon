@@ -29,14 +29,8 @@
     <value>
 Windows에서 추가 CPU 사양을 가져올 수 없습니다.</value>
   </data>
-  <data name="AddsWinMonToYourStartMenuWindowsThenHandlesThe" xml:space="preserve">
-    <value>시작 메뉴에 WinMon을 추가합니다. Windows가 단축키를 처리하므로 WinMon이 실행 중이 아니어도 작동합니다.</value>
-  </data>
   <data name="Alpha" xml:space="preserve">
     <value>Alpha</value>
-  </data>
-  <data name="AlsoStartWinMonWithThisShortcut" xml:space="preserve">
-    <value>이 단축키로 WinMon도 시작</value>
   </data>
   <data name="Alt" xml:space="preserve">
     <value>Alt</value>
@@ -863,6 +857,9 @@ Windows에서 모듈 세부 정보를 가져올 수 없습니다.</value>
   <data name="ShowTheLastMinutes" xml:space="preserve">
     <value>최근 {0}분 표시</value>
   </data>
+  <data name="ShowHideWinMon" xml:space="preserve">
+    <value>WinMon 표시/숨기기</value>
+  </data>
   <data name="ShowWinMon" xml:space="preserve">
     <value>WinMon 표시</value>
   </data>
@@ -1095,9 +1092,6 @@ Windows 상태: {2}</value>
   </data>
   <data name="WinMonSourceCodeOnGitHub" xml:space="preserve">
     <value>GitHub의 WinMon 소스 코드</value>
-  </data>
-  <data name="WorksFromAnyAppAndStartsWinMonWhenItIsn" xml:space="preserve">
-    <value>모든 앱에서 작동하며 WinMon이 실행 중이 아니면 시작합니다.</value>
   </data>
   <data name="WorksFromAnyAppWhileWinMonIsRunning" xml:space="preserve">
     <value>WinMon이 실행 중이면 모든 앱에서 작동합니다.</value>

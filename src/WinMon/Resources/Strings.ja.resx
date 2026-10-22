@@ -29,14 +29,8 @@
     <value>
 Windows から追加の CPU 仕様を取得できません。</value>
   </data>
-  <data name="AddsWinMonToYourStartMenuWindowsThenHandlesThe" xml:space="preserve">
-    <value>WinMon をスタートメニューに追加します。Windows がショートカットを処理するため、WinMon が起動していなくても使えます。</value>
-  </data>
   <data name="Alpha" xml:space="preserve">
     <value>Alpha</value>
-  </data>
-  <data name="AlsoStartWinMonWithThisShortcut" xml:space="preserve">
-    <value>このショートカットで WinMon も起動する</value>
   </data>
   <data name="Alt" xml:space="preserve">
     <value>Alt</value>
@@ -863,6 +857,9 @@ Windows からモジュールの詳細を取得できません。</value>
   <data name="ShowTheLastMinutes" xml:space="preserve">
     <value>直近 {0} 分を表示</value>
   </data>
+  <data name="ShowHideWinMon" xml:space="preserve">
+    <value>WinMon を表示/非表示</value>
+  </data>
   <data name="ShowWinMon" xml:space="preserve">
     <value>WinMon を表示</value>
   </data>
@@ -1095,9 +1092,6 @@ Windows の正常性状態: {2}</value>
   </data>
   <data name="WinMonSourceCodeOnGitHub" xml:space="preserve">
     <value>GitHub 上の WinMon ソースコード</value>
-  </data>
-  <data name="WorksFromAnyAppAndStartsWinMonWhenItIsn" xml:space="preserve">
-    <value>どのアプリからでも使え、WinMon が起動していなければ起動します。</value>
   </data>
   <data name="WorksFromAnyAppWhileWinMonIsRunning" xml:space="preserve">
     <value>WinMon の起動中は、どのアプリからでも使えます。</value>

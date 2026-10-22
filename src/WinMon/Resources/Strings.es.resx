@@ -29,14 +29,8 @@ Uso del motor más ocupado entre las GPU disponibles.</value>
     <value>
 Windows no proporciona más especificaciones de la CPU.</value>
   </data>
-  <data name="AddsWinMonToYourStartMenuWindowsThenHandlesThe" xml:space="preserve">
-    <value>Añade WinMon al menú Inicio. Windows gestiona el atajo, por lo que funciona aunque WinMon no esté abierto.</value>
-  </data>
   <data name="Alpha" xml:space="preserve">
     <value>Alpha</value>
-  </data>
-  <data name="AlsoStartWinMonWithThisShortcut" xml:space="preserve">
-    <value>Iniciar también WinMon con este atajo</value>
   </data>
   <data name="Alt" xml:space="preserve">
     <value>Alt</value>
@@ -863,6 +857,9 @@ Tiempo activo y velocidad de lectura y escritura.</value>
   <data name="ShowTheLastMinutes" xml:space="preserve">
     <value>Mostrar los últimos {0} minutos</value>
   </data>
+  <data name="ShowHideWinMon" xml:space="preserve">
+    <value>Mostrar/ocultar WinMon</value>
+  </data>
   <data name="ShowWinMon" xml:space="preserve">
     <value>Mostrar WinMon</value>
   </data>
@@ -1095,9 +1092,6 @@ Estado según Windows: {2}</value>
   </data>
   <data name="WinMonSourceCodeOnGitHub" xml:space="preserve">
     <value>Código fuente de WinMon en GitHub</value>
-  </data>
-  <data name="WorksFromAnyAppAndStartsWinMonWhenItIsn" xml:space="preserve">
-    <value>Funciona desde cualquier aplicación e inicia WinMon si no está abierto.</value>
   </data>
   <data name="WorksFromAnyAppWhileWinMonIsRunning" xml:space="preserve">
     <value>Funciona desde cualquier aplicación mientras WinMon esté abierto.</value>

@@ -13,9 +13,6 @@ public enum HotkeyStatus
     /// <summary>WinMon holds the combination with RegisterHotKey.</summary>
     Registered,
 
-    /// <summary>Explorer holds the combination for the Start menu shortcut and starts or signals WinMon.</summary>
-    StartMenu,
-
     /// <summary>Another application already holds the combination.</summary>
     InUse,
 
@@ -29,8 +26,6 @@ internal sealed class GlobalHotkey : IDisposable
     private const int HotkeyId = 0x5749;
     private const int ProbeId = 0x574A;
     private const int WmHotkey = 0x0312;
-    private const int WmSysCommand = 0x0112;
-    private const int ScHotkey = 0xF150;
     private const int ErrorHotkeyAlreadyRegistered = 1409;
     private const uint ModNoRepeat = 0x4000;
 
@@ -62,7 +57,7 @@ internal sealed class GlobalHotkey : IDisposable
         return HotkeyStatus.Registered;
     }
 
-    /// <summary>Release the held combination so another owner, such as Explorer, can take it.</summary>
+    /// <summary>Release the held combination, including while the Settings recorder is active.</summary>
     public void Unregister()
     {
         if (_registered) UnregisterHotKey(_source.Handle, HotkeyId);
@@ -87,9 +82,7 @@ internal sealed class GlobalHotkey : IDisposable
 
     private IntPtr Hook(IntPtr hwnd, int message, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
-        // SC_HOTKEY arrives when Explorer started WinMon from the shortcut and passed the hotkey to its first window.
-        if ((message != WmHotkey || wParam.ToInt32() != HotkeyId) &&
-            (message != WmSysCommand || (wParam.ToInt32() & 0xFFF0) != ScHotkey)) return IntPtr.Zero;
+        if (message != WmHotkey || wParam.ToInt32() != HotkeyId) return IntPtr.Zero;
         handled = true;
         _pressed();
         return IntPtr.Zero;

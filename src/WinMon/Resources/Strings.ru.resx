@@ -29,14 +29,8 @@
     <value>
 Дополнительные характеристики CPU недоступны в Windows.</value>
   </data>
-  <data name="AddsWinMonToYourStartMenuWindowsThenHandlesThe" xml:space="preserve">
-    <value>Добавляет WinMon в меню «Пуск». Сочетание обрабатывает Windows, поэтому оно работает и без запущенного WinMon.</value>
-  </data>
   <data name="Alpha" xml:space="preserve">
     <value>Alpha</value>
-  </data>
-  <data name="AlsoStartWinMonWithThisShortcut" xml:space="preserve">
-    <value>Также запускать WinMon этим сочетанием</value>
   </data>
   <data name="Alt" xml:space="preserve">
     <value>Alt</value>
@@ -863,6 +857,9 @@ GPU {11} · {12}
   <data name="ShowTheLastMinutes" xml:space="preserve">
     <value>Показать последние {0} мин</value>
   </data>
+  <data name="ShowHideWinMon" xml:space="preserve">
+    <value>Показать/скрыть WinMon</value>
+  </data>
   <data name="ShowWinMon" xml:space="preserve">
     <value>Показать WinMon</value>
   </data>
@@ -1095,9 +1092,6 @@ GPU {11} · {12}
   </data>
   <data name="WinMonSourceCodeOnGitHub" xml:space="preserve">
     <value>Исходный код WinMon на GitHub</value>
-  </data>
-  <data name="WorksFromAnyAppAndStartsWinMonWhenItIsn" xml:space="preserve">
-    <value>Работает из любого приложения и запускает WinMon, если он не запущен.</value>
   </data>
   <data name="WorksFromAnyAppWhileWinMonIsRunning" xml:space="preserve">
     <value>Работает из любого приложения, пока запущен WinMon.</value>

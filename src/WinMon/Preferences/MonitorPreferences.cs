@@ -97,9 +97,6 @@ public sealed record MonitorPreferences
     /// <summary>Gets the global shortcut that shows the monitor, such as "Ctrl+Shift+M", or "None".</summary>
     public string ShowShortcut { get; init; } = Shortcuts.HotkeyGesture.Default.ToString();
 
-    /// <summary>Gets a value indicating whether the shortcut also starts the monitor; the Start menu shortcut's presence is authoritative.</summary>
-    public bool LaunchWithShortcut { get; init; }
-
     /// <summary>Gets the usable show shortcut, or <see langword="null"/> when it is turned off.</summary>
     internal Shortcuts.HotkeyGesture? ShowGesture =>
         Shortcuts.HotkeyGesture.TryParse(ShowShortcut, out var gesture) && gesture?.Problem is null ? gesture : null;

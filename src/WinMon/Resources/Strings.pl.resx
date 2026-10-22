@@ -29,14 +29,8 @@ Użycie najbardziej obciążonego silnika dostępnych GPU.</value>
     <value>
 Dodatkowe dane CPU są niedostępne w Windows.</value>
   </data>
-  <data name="AddsWinMonToYourStartMenuWindowsThenHandlesThe" xml:space="preserve">
-    <value>Dodaje WinMon do menu Start. Skrót obsługuje Windows, więc działa on także wtedy, gdy WinMon nie jest uruchomiony.</value>
-  </data>
   <data name="Alpha" xml:space="preserve">
     <value>Alpha</value>
-  </data>
-  <data name="AlsoStartWinMonWithThisShortcut" xml:space="preserve">
-    <value>Uruchamiaj WinMon także tym skrótem</value>
   </data>
   <data name="Alt" xml:space="preserve">
     <value>Alt</value>
@@ -863,6 +857,9 @@ Czas aktywności i szybkość odczytu/zapisu.</value>
   <data name="ShowTheLastMinutes" xml:space="preserve">
     <value>Pokaż ostatnie {0} min</value>
   </data>
+  <data name="ShowHideWinMon" xml:space="preserve">
+    <value>Pokaż/ukryj WinMon</value>
+  </data>
   <data name="ShowWinMon" xml:space="preserve">
     <value>Pokaż WinMon</value>
   </data>
@@ -1095,9 +1092,6 @@ Stan według Windows: {2}</value>
   </data>
   <data name="WinMonSourceCodeOnGitHub" xml:space="preserve">
     <value>Kod źródłowy WinMon na GitHub</value>
-  </data>
-  <data name="WorksFromAnyAppAndStartsWinMonWhenItIsn" xml:space="preserve">
-    <value>Działa z każdej aplikacji i uruchamia WinMon, gdy nie jest włączony.</value>
   </data>
   <data name="WorksFromAnyAppWhileWinMonIsRunning" xml:space="preserve">
     <value>Działa z każdej aplikacji, gdy WinMon jest uruchomiony.</value>

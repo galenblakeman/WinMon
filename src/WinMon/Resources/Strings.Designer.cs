@@ -12,9 +12,7 @@ public static partial class Strings
     public static string AccessDeniedWindowsDidNotAllowWinMonToEndThis => ResourceManager.GetString(nameof(AccessDeniedWindowsDidNotAllowWinMonToEndThis), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string AdapterUtilizationOfTheBusiestEngineAcrossAvailableGPUs => ResourceManager.GetString(nameof(AdapterUtilizationOfTheBusiestEngineAcrossAvailableGPUs), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string AdditionalCPUSpecificationsUnavailableFromWindows => ResourceManager.GetString(nameof(AdditionalCPUSpecificationsUnavailableFromWindows), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
-    public static string AddsWinMonToYourStartMenuWindowsThenHandlesThe => ResourceManager.GetString(nameof(AddsWinMonToYourStartMenuWindowsThenHandlesThe), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string Alpha => ResourceManager.GetString(nameof(Alpha), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
-    public static string AlsoStartWinMonWithThisShortcut => ResourceManager.GetString(nameof(AlsoStartWinMonWithThisShortcut), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string Alt => ResourceManager.GetString(nameof(Alt), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string AnotherAppIsUsingChooseAnother => ResourceManager.GetString(nameof(AnotherAppIsUsingChooseAnother), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string AnotherAppIsUsingThisShortcutChooseAnother => ResourceManager.GetString(nameof(AnotherAppIsUsingThisShortcutChooseAnother), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
@@ -350,6 +348,7 @@ public static partial class Strings
     public static string ShortcutUnavailable => ResourceManager.GetString(nameof(ShortcutUnavailable), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ShowOnChart => ResourceManager.GetString(nameof(ShowOnChart), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ShowTheLastMinutes => ResourceManager.GetString(nameof(ShowTheLastMinutes), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string ShowHideWinMon => ResourceManager.GetString(nameof(ShowHideWinMon), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ShowWinMon => ResourceManager.GetString(nameof(ShowWinMon), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string SlotUsageUnavailable => ResourceManager.GetString(nameof(SlotUsageUnavailable), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string Snapshot => ResourceManager.GetString(nameof(Snapshot), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
@@ -439,7 +438,6 @@ public static partial class Strings
     public static string WinMonResourceMonitor => ResourceManager.GetString(nameof(WinMonResourceMonitor), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string WinMonSettings => ResourceManager.GetString(nameof(WinMonSettings), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string WinMonSourceCodeOnGitHub => ResourceManager.GetString(nameof(WinMonSourceCodeOnGitHub), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
-    public static string WorksFromAnyAppAndStartsWinMonWhenItIsn => ResourceManager.GetString(nameof(WorksFromAnyAppAndStartsWinMonWhenItIsn), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string WorksFromAnyAppWhileWinMonIsRunning => ResourceManager.GetString(nameof(WorksFromAnyAppWhileWinMonIsRunning), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string X64 => ResourceManager.GetString(nameof(X64), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string X86 => ResourceManager.GetString(nameof(X86), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
