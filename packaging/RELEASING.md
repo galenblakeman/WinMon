@@ -12,7 +12,7 @@ From the repository root:
 
 ```powershell
 ./tools/Install-InnoSetup.ps1
-./tools/New-Release.ps1 -ExpectedTag v1.0.6 -CodeSign -UpdateSigningKeyPath C:\secure\winmon-update-private.pem
+./tools/New-Release.ps1 -ExpectedTag v1.0.7 -CodeSign -UpdateSigningKeyPath C:\secure\winmon-update-private.pem
 ```
 
 The compiler bootstrap downloads the pinned vendor release, verifies its SHA-256 and Authenticode signature, and installs it per-user under `artifacts/toolchain`. It also registers the compiler's own uninstaller with Windows. An existing compiler can instead be supplied with `-InnoCompiler path/to/ISCC.exe`; use version 6.7.3.
