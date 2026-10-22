@@ -291,7 +291,22 @@ public partial class MainWindow
     {
         Directory.CreateDirectory(output);
         if (_history.Samples.Count == 0) await Task.Delay(TimeSpan.FromSeconds(4), cancellationToken);
-        ValidateTitleBar();
+        // Pin controls add another row below 1000 DIPs; exercise every responsive header layout.
+        var headerWidth = Width;
+        try
+        {
+            foreach (var width in new[] { MinWidth, 886, 1000 })
+            {
+                Width = width;
+                UpdateLayout();
+                ValidateTitleBar();
+            }
+        }
+        finally
+        {
+            Width = headerWidth;
+            UpdateLayout();
+        }
         CaptureWindowFrame(Path.Combine(output, "titlebar-window.png"));
         var hardware = await Task.Run(WindowsHardwareInfo.Read, cancellationToken);
         await File.WriteAllTextAsync(Path.Combine(output, "hardware.json"),
@@ -628,7 +643,7 @@ public partial class MainWindow
         // The centered mode switch adds a 28-DIP input target to the resource header.
         if (!ResourceHeader.IsAncestorOf(RangeSelector) || !ResourceHeader.IsAncestorOf(ChartModeSwitch) ||
             RangeSelector.ActualHeight > 25 || ResourceHeader.ActualHeight > 44 ||
-            ProcessHeader.ActualHeight > (_inlineProcessToolbar ? 44 : 78))
+            ProcessHeader.ActualHeight > (_inlinePinToolbar ? 44 : _inlineProcessToolbar ? 78 : 112))
             throw new InvalidOperationException($"The live chart/process headers did not stay compact: range={RangeSelector.ActualHeight}, resource={ResourceHeader.ActualHeight}, process={ProcessHeader.ActualHeight}.");
         if (Hit(new Point(2, ActualHeight / 2)) != 10)
             throw new InvalidOperationException("The integrated title bar lost the left resize border.");

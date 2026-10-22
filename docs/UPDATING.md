@@ -25,7 +25,7 @@ try {
 finally { $signingKey.Dispose() }
 ```
 
-The script refuses an existing folder to avoid overwriting a signing identity. `github-secret.txt` contains private key material too. In the GitHub repository's Actions secrets, create **WINMON_UPDATE_SIGNING_KEY_BASE64** using that file's entire content. Keep both private files out of Git and release uploads. Then provision the public key from the repository root:
+The script refuses an existing folder to avoid overwriting a signing identity. `github-secret.txt` contains private key material too. In **GitHub Settings → Environments → release → Environment secrets**, create **WINMON_UPDATE_SIGNING_KEY_BASE64** using that file's entire content. Keep both private files out of Git and release uploads. Then provision the public key from the repository root:
 
 ```powershell
 ./tools/Set-UpdatePublicKey.ps1 -PublicKeyPath (Join-Path $env:USERPROFILE '.winmon-signing/winmon.update-public.pem')
@@ -43,7 +43,9 @@ Review and commit **only** `src/WinMon/Updates/update-public-key.pem` with the u
 
 `New-Release.ps1 -UpdateSigningKeyPath C:\secure\winmon-update-private.pem` first requires that the private RSA key (at least 2048 bits) matches the committed `update-public-key.pem`; it then emits `update-manifest.json` and its base64 detached `update-manifest.sig`. The manifest contains only the exact versioned x64 portable ZIP and installer names, each no larger than 512 MiB. Without that parameter the package is intentionally marked in the build log as ineligible for in-app updating; this is suitable for local testing only.
 
-For tagged GitHub Actions releases, set the repository secret `WINMON_UPDATE_SIGNING_KEY_BASE64` to the base64-encoded PKCS#8 RSA private-key PEM. The workflow writes it to the runner's temporary directory only, passes it to the packaging script, and fails a tagged release if the secret is absent. Do not put the private key in workflow files, release assets or repository secrets with a broader scope than the release workflow.
+Every GitHub Actions release-packaging run, including manual validation runs, requires the `release` environment secret `WINMON_UPDATE_SIGNING_KEY_BASE64` containing the base64-encoded PKCS#8 RSA private-key PEM. The workflow writes it to the runner's temporary directory only, passes it to the packaging script, and fails if the secret is absent. Do not put the private key in workflow files, release assets or secrets with a broader scope than the release workflow.
+
+WinMon 1.0.3 is the first release configured with the permanent update trust key. Install it manually on older copies that do not carry that public key. Back up the corresponding private key securely: losing it prevents issuing updates trusted by those installations. Never replace it without the bridge-release rotation described above.
 
 ## Recovery and verification
 

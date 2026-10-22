@@ -11,6 +11,7 @@ The `release` GitHub environment must exist and contain:
 | `AZURE_CLIENT_ID` | Application (client) ID of `WinMon-GitHub-Signing` |
 | `AZURE_TENANT_ID` | Directory (tenant) ID of that application |
 | `AZURE_SUBSCRIPTION_ID` | Subscription containing the signing account |
+| `WINMON_UPDATE_SIGNING_KEY_BASE64` | Base64-encoded permanent RSA PKCS#8 update private-key PEM |
 
 The application's federated credential must trust the repository's OIDC token for environment `release`. The release job declares that environment and requests `id-token: write`. Its Azure login action is pinned to an immutable commit. No Azure client secret or user password is needed. Assign the application the **Artifact Signing Certificate Profile Signer** role on the signing account or individual profile.
 
@@ -36,7 +37,7 @@ Signing uses SHA-256 and RFC 3161 timestamping at `http://timestamp.acs.microsof
 
 Application and installer signature evidence is written under `artifacts/packaging/<run>/` as `application-signature.json` and `installer-signature.json`, and uploaded with validation evidence. It contains final hashes and certificate details. Upstream dependencies are not individually re-signed as WinMon code. The generated Inno uninstaller is not separately signed by this integration.
 
-The RSA update-manifest signature remains separate from Authenticode. Keep the existing `WINMON_UPDATE_SIGNING_KEY_BASE64` repository secret; Azure signing does not replace it. See [Updating WinMon](UPDATING.md).
+The RSA update-manifest signature remains separate from Authenticode. Every workflow run requires `WINMON_UPDATE_SIGNING_KEY_BASE64` from the `release` environment; Azure signing does not replace it. WinMon 1.0.3 introduces the permanent embedded update public key. Earlier copies without that trust key need a manual update to establish it. See [Updating WinMon](UPDATING.md).
 
 ## Local use
 

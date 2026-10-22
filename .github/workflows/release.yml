@@ -52,8 +52,8 @@ jobs:
               [IO.File]::WriteAllBytes($keyPath, [Convert]::FromBase64String($env:UPDATE_SIGNING_KEY_BASE64))
               $parameters.UpdateSigningKeyPath = $keyPath
             }
-            elseif ($env:REF_TYPE -eq 'tag') {
-              throw 'Tagged releases require the WINMON_UPDATE_SIGNING_KEY_BASE64 secret so they are eligible for in-app updates.'
+            else {
+              throw 'Release packaging requires the WINMON_UPDATE_SIGNING_KEY_BASE64 secret so artifacts are eligible for in-app updates.'
             }
             ./tools/New-Release.ps1 @parameters
           }
