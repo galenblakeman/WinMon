@@ -6,7 +6,10 @@ namespace WinMon.Controls;
 
 /// <summary>The selected sample and the exact ranked, filtered rows last presented by the window.</summary>
 internal sealed record SnapshotReport(CpuSample Sample, IReadOnlyList<ProcessUsage> Processes, bool Grouped,
-    string Sort, string Filter, bool AppsOnly, string Coverage, SnapshotRemainder? Remainder);
+    string Sort, string Filter, bool AppsOnly, string Coverage, SnapshotRemainder? Remainder)
+{
+    internal IReadOnlyList<string>? ProcessStates { get; init; }
+}
 
 internal sealed record SnapshotRemainder(int Count, double CpuPercent, double? IoBytesPerSecond);
 
@@ -41,8 +44,15 @@ internal static class SnapshotText
         for (var index = 0; index < report.Processes.Count; index++)
         {
             var p = report.Processes[index];
+            var state = report.ProcessStates is { } states && index < states.Count ? states[index] : "";
             var name = !string.IsNullOrWhiteSpace(p.AppName) ? p.AppName : !string.IsNullOrWhiteSpace(p.ProductName) ? p.ProductName : p.Name;
             if (p.MemberCount > 1) name += $" ×{p.MemberCount}";
+            if (state.Length > 0)
+            {
+                Row($"{name} · {state}", p.ProcessId.ToString(CultureInfo.CurrentCulture),
+                    Strings.Unavailable, Strings.Unavailable, Strings.Unavailable, Strings.Unavailable, Strings.Unavailable, Strings.Unavailable);
+                continue;
+            }
             Row(name, p.MemberIds.Count > 0 ? string.Join(", ", p.MemberIds) : p.ProcessId.ToString(CultureInfo.CurrentCulture),
                 Number(p.CpuPercent), Number(p.GpuPercent),
                 Number((report.Grouped ? p.PrivateBytes : p.WorkingSetBytes) / 1_048_576d),

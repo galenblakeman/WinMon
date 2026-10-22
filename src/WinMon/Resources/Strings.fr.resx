@@ -1329,4 +1329,14 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
   <data name="SnapshotExportAverages" xml:space="preserve">
     <value>CPU et E/S des processus : moyennes sur cinq secondes ; GPU : moyenne des intervalles lisibles dans la fenêtre de cinq secondes. Mémoire, threads et handles : dernières mesures.</value>
   </data>
+  <data name="PinProcess" xml:space="preserve"><value>Épingler le processus</value></data>
+  <data name="UnpinProcess" xml:space="preserve"><value>Désépingler le processus</value></data>
+  <data name="PinnedOnly" xml:space="preserve"><value>Épinglés uniquement</value></data>
+  <data name="PinnedProcessCount" xml:space="preserve"><value>{0} épinglés</value></data>
+  <data name="PinnedProcessesExplanation" xml:space="preserve"><value>Les lignes épinglées restent au-dessus du classement et ne comptent pas dans le Top N. La recherche et le filtre des applications restent actifs. Les épingles individuelles et groupées sont distinctes et durent cette session.</value></data>
+  <data name="RankedByMetric" xml:space="preserve"><value>Classés par {0}</value></data>
+  <data name="ProcessExited" xml:space="preserve"><value>Terminé</value></data>
+  <data name="ProcessNotRecorded" xml:space="preserve"><value>Non enregistré à cet instant</value></data>
+  <data name="NoPinnedProcessesMatch" xml:space="preserve"><value>Aucun processus épinglé dans cette vue. Utilisez le bouton ou le menu de la ligne pour en épingler un.</value></data>
+  <data name="ProcessesHeading" xml:space="preserve"><value>Processus</value></data>
 </root>

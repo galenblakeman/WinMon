@@ -21,6 +21,22 @@ public sealed class ProcessRow : Grid
     private ProcessUsage? _usage;
     private Func<ProcessUsage, bool>? _canEnd;
     private Action<ProcessUsage>? _end;
+    private readonly Button _pin = new() { Width = 24, Height = 28, MinHeight = 0, Padding = new Thickness(4),
+        VerticalAlignment = VerticalAlignment.Center, Visibility = Visibility.Collapsed };
+    private Func<ProcessUsage, bool, bool>? _isPinned;
+    private Action<ProcessUsage, bool>? _togglePin;
+    private bool _grouped;
+    private bool _unavailable;
+
+    internal void EnablePinning(Func<ProcessUsage, bool, bool> isPinned, Action<ProcessUsage, bool> toggle)
+    {
+        _isPinned = isPinned;
+        _togglePin = toggle;
+        ButtonIcon.SetData(_pin, ButtonIcon.Pin);
+        _pin.SetResourceReference(StyleProperty, "CaptionButton");
+        _pin.Visibility = Visibility.Visible;
+        _pin.Click += (_, _) => { if (_usage is { } target) toggle(target, _grouped); };
+    }
 
     internal void EnableProcessActions(Func<ProcessUsage, bool> canEnd, Action<ProcessUsage> end)
     {
@@ -46,6 +62,14 @@ public sealed class ProcessRow : Grid
         // Capture now: live ranking may replace this row while the menu is open.
         var item = new MenuItem { Header = target.MemberIds.Count > 0 ? Strings.Format(Strings.EndGroupMenu, target.Name) : Strings.Format(Strings.EndPID, target.Name, target.ProcessId), IsEnabled = _canEnd(target),
             ToolTip = Strings.AvailableForLiveProcesses };
+        if (_togglePin is not null && _isPinned is not null)
+        {
+            var grouped = _grouped;
+            var pinItem = new MenuItem { Header = _isPinned(target, grouped) ? Strings.UnpinProcess : Strings.PinProcess };
+            pinItem.Click += (_, _) => _togglePin(target, grouped);
+            ContextMenu.Items.Add(pinItem);
+        }
+        item.IsEnabled &= !_unavailable;
         item.Click += (_, _) => _end(target);
         ContextMenu.Items.Add(item);
         return true;
@@ -69,9 +93,10 @@ public sealed class ProcessRow : Grid
         stack.Children.Add(_name); stack.Children.Add(_pid);
         var process = new Grid { ClipToBounds = true };
         process.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        process.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         process.ColumnDefinitions.Add(new ColumnDefinition());
-        SetColumn(stack, 1);
-        process.Children.Add(_icon); process.Children.Add(stack); Children.Add(process);
+        SetColumn(_icon, 1); SetColumn(stack, 2);
+        process.Children.Add(_pin); process.Children.Add(_icon); process.Children.Add(stack); Children.Add(process);
         Children.Add(_graph); SetColumn(_graph, 1);
         Children.Add(_value); SetColumn(_value, 2);
         Children.Add(_gpu); SetColumn(_gpu, 3);
@@ -86,11 +111,19 @@ public sealed class ProcessRow : Grid
     }
 
     internal void Update(ProcessUsage usage, IReadOnlyList<CpuSample> samples, int seconds, bool showPid,
-        ProcessGraphData? data, bool grouped = false)
+        ProcessGraphData? data, bool grouped = false, PinnedProcessState state = PinnedProcessState.Present)
     {
         ArgumentNullException.ThrowIfNull(usage);
         _io.ToolTip = Strings.ReadWriteIOIncludesFileNetworkAndDeviceOperations;
         _usage = usage;
+        _grouped = grouped;
+        _unavailable = state != PinnedProcessState.Present;
+        var pinned = _isPinned?.Invoke(usage, grouped) == true;
+        _pin.ToolTip = pinned ? Strings.UnpinProcess : Strings.PinProcess;
+        System.Windows.Automation.AutomationProperties.SetName(_pin, $"{_pin.ToolTip}: {(string.IsNullOrWhiteSpace(usage.AppName) ? usage.Name : usage.AppName)}");
+        _pin.SetResourceReference(Control.ForegroundProperty, pinned ? "ProcessPinAccent" : "Muted");
+        SetResourceReference(BackgroundProperty, pinned ? "SectionHeaderSurface" : "Surface");
+        _name.SetResourceReference(TextBlock.ForegroundProperty, _unavailable ? "Muted" : "Text");
         var members = usage.MemberCount > 1;
         var name = !string.IsNullOrWhiteSpace(usage.AppName) ? usage.AppName
             : !string.IsNullOrWhiteSpace(usage.ProductName) ? usage.ProductName : usage.Name;
@@ -137,8 +170,25 @@ public sealed class ProcessRow : Grid
         _handles.Text = usage.HandleCount?.ToString("N0") ?? Strings.MissingReading;
         _threads.ToolTip = Strings.ProcessThreadsExplanation;
         _handles.ToolTip = Strings.ProcessHandlesExplanation;
+        if (_unavailable)
+        {
+            var status = StateText(state);
+            _pid.Text = $"{Strings.Format(Strings.PID, usage.ProcessId)} · {status}";
+            foreach (var text in new[] { _value, _gpu, _memory, _io, _threads, _handles }) text.Text = Strings.MissingReading;
+            _gpu.ToolTip = status;
+        }
         System.Windows.Automation.AutomationProperties.SetName(this, Strings.Format(Strings.OfTotalCPUAveragedOver5SecondsGPUAveragedOver, name, members ? Strings.Format(Strings.Processes, usage.MemberCount) : Strings.Format(Strings.Process, usage.ProcessId), _value.Text, _gpu.Text, _memory.Text, _io.Text) + $" · {kind} · {Strings.Threads}: {_threads.Text} · {Strings.Handles}: {_handles.Text}");
+        if (_unavailable) System.Windows.Automation.AutomationProperties.SetName(this,
+            System.Windows.Automation.AutomationProperties.GetName(this) + $" · {StateText(state)}");
     }
+
+    internal static string StateText(PinnedProcessState state) => state switch
+    {
+        PinnedProcessState.Exited => Strings.ProcessExited,
+        PinnedProcessState.NotRecorded => Strings.ProcessNotRecorded,
+        PinnedProcessState.Unavailable => Strings.Unavailable,
+        _ => ""
+    };
 
     /// <summary>Show the measured processes ranked below the visible rows as one muted summary line.</summary>
     /// <param name="count">Measured processes outside the visible rows.</param>

@@ -1329,4 +1329,14 @@ Windows の正常性状態: {2}</value>
   <data name="SnapshotExportAverages" xml:space="preserve">
     <value>プロセスの CPU と I/O：5 秒平均。GPU：5 秒間の読み取り可能な区間の平均。メモリ、スレッド、ハンドル：最新の測定値。</value>
   </data>
+  <data name="PinProcess" xml:space="preserve"><value>プロセスを固定</value></data>
+  <data name="UnpinProcess" xml:space="preserve"><value>プロセスの固定を解除</value></data>
+  <data name="PinnedOnly" xml:space="preserve"><value>固定のみ</value></data>
+  <data name="PinnedProcessCount" xml:space="preserve"><value>{0} 件を固定</value></data>
+  <data name="PinnedProcessesExplanation" xml:space="preserve"><value>固定した行はランキングの上に表示され、上位 N 件には含まれません。検索とアプリフィルターは適用されます。個別とグループの固定は別々で、このセッションのみ有効です。</value></data>
+  <data name="RankedByMetric" xml:space="preserve"><value>{0} 順</value></data>
+  <data name="ProcessExited" xml:space="preserve"><value>終了</value></data>
+  <data name="ProcessNotRecorded" xml:space="preserve"><value>このサンプルには記録なし</value></data>
+  <data name="NoPinnedProcessesMatch" xml:space="preserve"><value>この表示に固定されたプロセスはありません。行の固定ボタンまたはメニューを使用してください。</value></data>
+  <data name="ProcessesHeading" xml:space="preserve"><value>プロセス</value></data>
 </root>

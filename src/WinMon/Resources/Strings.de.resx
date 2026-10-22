@@ -1329,4 +1329,14 @@ Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse
   <data name="SnapshotExportAverages" xml:space="preserve">
     <value>Prozess-CPU und E/A: Fünf-Sekunden-Mittelwerte; GPU: Mittelwert lesbarer Intervalle im Fünf-Sekunden-Fenster. Arbeitsspeicher, Threads und Handles: letzte Messwerte.</value>
   </data>
+  <data name="PinProcess" xml:space="preserve"><value>Prozess anheften</value></data>
+  <data name="UnpinProcess" xml:space="preserve"><value>Prozess lösen</value></data>
+  <data name="PinnedOnly" xml:space="preserve"><value>Nur angeheftete</value></data>
+  <data name="PinnedProcessCount" xml:space="preserve"><value>{0} angeheftet</value></data>
+  <data name="PinnedProcessesExplanation" xml:space="preserve"><value>Angeheftete Zeilen bleiben über der Rangliste und zählen nicht zu Top N. Suche und App-Filter gelten. Einzelne und gruppierte Pins sind getrennt und gelten für diese Sitzung.</value></data>
+  <data name="RankedByMetric" xml:space="preserve"><value>Sortiert nach {0}</value></data>
+  <data name="ProcessExited" xml:space="preserve"><value>Beendet</value></data>
+  <data name="ProcessNotRecorded" xml:space="preserve"><value>In diesem Messpunkt nicht aufgezeichnet</value></data>
+  <data name="NoPinnedProcessesMatch" xml:space="preserve"><value>Keine angehefteten Prozesse in dieser Ansicht. Nutzen Sie die Pin-Schaltfläche oder das Zeilenmenü.</value></data>
+  <data name="ProcessesHeading" xml:space="preserve"><value>Prozesse</value></data>
 </root>

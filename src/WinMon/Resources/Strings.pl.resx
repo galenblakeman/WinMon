@@ -1329,4 +1329,14 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
   <data name="SnapshotExportAverages" xml:space="preserve">
     <value>CPU i we/wy procesów: średnie z pięciu sekund; GPU: średnia z odczytanych interwałów w oknie pięciu sekund. Pamięć, wątki i uchwyty: najnowsze odczyty.</value>
   </data>
+  <data name="PinProcess" xml:space="preserve"><value>Przypnij proces</value></data>
+  <data name="UnpinProcess" xml:space="preserve"><value>Odepnij proces</value></data>
+  <data name="PinnedOnly" xml:space="preserve"><value>Tylko przypięte</value></data>
+  <data name="PinnedProcessCount" xml:space="preserve"><value>Przypięte: {0}</value></data>
+  <data name="PinnedProcessesExplanation" xml:space="preserve"><value>Przypięte wiersze pozostają nad rankingiem i nie wliczają się do Top N. Wyszukiwanie i filtr aplikacji nadal działają. Przypięcia pojedyncze i grupowe są oddzielne i obowiązują w tej sesji.</value></data>
+  <data name="RankedByMetric" xml:space="preserve"><value>Ranking według {0}</value></data>
+  <data name="ProcessExited" xml:space="preserve"><value>Zakończony</value></data>
+  <data name="ProcessNotRecorded" xml:space="preserve"><value>Nie zarejestrowano w tej próbce</value></data>
+  <data name="NoPinnedProcessesMatch" xml:space="preserve"><value>Brak przypiętych procesów w tym widoku. Przypnij proces przyciskiem lub w menu wiersza.</value></data>
+  <data name="ProcessesHeading" xml:space="preserve"><value>Procesy</value></data>
 </root>

@@ -24,6 +24,9 @@ public partial class MainWindow
     private readonly MonitorPreferences? _initialPreferences;
     private readonly ProcessRow[] _rows = [.. Enumerable.Range(0, 20).Select(_ => new ProcessRow())];
     private readonly ProcessRow _otherRow = new() { Visibility = Visibility.Collapsed };
+    private readonly ProcessPins _processPins = new();
+    private readonly List<ProcessRow> _pinnedRows = [];
+    private Func<ProcessUsage, bool>? _retainPinned;
     // History keeps compacted samples; the live view ranks the newest one in full so group counts and memory are exact.
     private CpuSample? _latestFull;
     private CpuSample? _latestCompacted;
@@ -44,6 +47,7 @@ public partial class MainWindow
     private const double WideWidth = 800;
     private const double InlineProcessToolbarWidth = 700;
     private bool _inlineProcessToolbar;
+    private bool _inlinePinToolbar;
     private bool _closing;
     private bool _allowClose;
     private bool _preparingUpdateExit;
@@ -79,6 +83,8 @@ public partial class MainWindow
         ProcessSearchBox.TextChanged += OnProcessSearchChanged;
         AppsOnlyCheckBox.Checked += OnAppsOnlyChanged;
         AppsOnlyCheckBox.Unchecked += OnAppsOnlyChanged;
+        PinnedOnlyCheckBox.Checked += OnPinnedOnlyChanged;
+        PinnedOnlyCheckBox.Unchecked += OnPinnedOnlyChanged;
         IndividualChip.Checked += OnGroupingChanged;
         GroupedChip.Checked += OnGroupingChanged;
         // Column headings are shortcuts for the "processes by" dropdown, which stays the keyboard path.
@@ -100,6 +106,7 @@ public partial class MainWindow
         {
             row.Visibility = Visibility.Collapsed;
             row.EnableProcessActions(CanEndProcess, EndProcess);
+            row.EnablePinning(_processPins.Contains, ToggleProcessPin);
             ProcessRows.Children.Add(row);
         }
         ProcessRows.Children.Add(_otherRow);
@@ -111,9 +118,11 @@ public partial class MainWindow
         {
             var wide = ActualWidth >= WideWidth;
             var inlineProcessToolbar = ActualWidth >= InlineProcessToolbarWidth;
-            if ((wide == _wide && inlineProcessToolbar == _inlineProcessToolbar) || _closing) return;
+            var inlinePinToolbar = ActualWidth >= 1000;
+            if ((wide == _wide && inlineProcessToolbar == _inlineProcessToolbar && inlinePinToolbar == _inlinePinToolbar) || _closing) return;
             _wide = wide;
             _inlineProcessToolbar = inlineProcessToolbar;
+            _inlinePinToolbar = inlinePinToolbar;
             RefreshPresentation();
         };
         OverallGraph.SampleSelected += (_, sample) => { _selectedSample = sample; RefreshPresentation(); };
@@ -188,7 +197,7 @@ public partial class MainWindow
                     }
                     var diskPreferences = Volatile.Read(ref _preferences);
                     var full = resources.Sample(sample, diskPreferences.PrimaryDrive, diskPreferences.SecondaryDrive);
-                    Deliver(new PendingSample(ProcessRetention.Compact(full), cpuError, full));
+                    Deliver(new PendingSample(ProcessRetention.Compact(full, retain: Volatile.Read(ref _retainPinned)), cpuError, full));
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
                 catch (Exception ex)
@@ -263,12 +272,14 @@ public partial class MainWindow
     private void RefreshVisiblePresentation()
     {
         System.Windows.Controls.Grid.SetRow(ProcessSearchBorder, _inlineProcessToolbar ? 0 : 1);
-        System.Windows.Controls.Grid.SetColumn(ProcessSearchBorder, _inlineProcessToolbar ? 1 : 0);
-        System.Windows.Controls.Grid.SetColumnSpan(ProcessSearchBorder, _inlineProcessToolbar ? 1 : 3);
+        System.Windows.Controls.Grid.SetColumn(ProcessSearchBorder, _inlineProcessToolbar ? 2 : 0);
+        System.Windows.Controls.Grid.SetColumnSpan(ProcessSearchBorder, _inlineProcessToolbar ? 1 : 4);
         ProcessSearchBorder.Margin = _inlineProcessToolbar ? new Thickness(12, 0, 12, 0) : new Thickness(0, 6, 12, 0);
         System.Windows.Controls.Grid.SetRow(AppsOnlyCheckBox, _inlineProcessToolbar ? 0 : 1);
-        System.Windows.Controls.Grid.SetColumn(AppsOnlyCheckBox, _inlineProcessToolbar ? 2 : 3);
+        System.Windows.Controls.Grid.SetColumn(AppsOnlyCheckBox, _inlineProcessToolbar ? 3 : 4);
+        System.Windows.Controls.Grid.SetColumnSpan(AppsOnlyCheckBox, _inlineProcessToolbar ? 1 : 2);
         AppsOnlyCheckBox.Margin = _inlineProcessToolbar ? new Thickness(0, 0, 12, 0) : new Thickness(0, 6, 0, 0);
+        ArrangePinToolbar();
         var samples = _history.Samples;
         var latest = samples.Count == 0 ? null : samples[^1];
         var visible = _selectedSample is null ? latest : samples.FirstOrDefault(s => ReferenceEquals(s, _selectedSample));
@@ -303,13 +314,18 @@ public partial class MainWindow
         UpdateSortHeaders();
         var appsOnly = _preferences.AppsOnly;
         var active = ProcessSearch.Filter(ranking.Processes, query, appsOnly).ToArray();
-        var top = active.Take(_preferences.TopProcessCount).ToArray();
-        var rest = active.Skip(top.Length).ToArray();
-        var processData = ProcessGraphData.Build(rowSamples, MonitorPreferences.ShortRangeSeconds, top, grouped, _preferences.ProcessSort);
+        var pinned = ResolvePinnedRows(rowSamples, grouped, query, appsOnly);
+        var unpinned = active.Where(p => !_processPins.Contains(p, grouped)).ToArray();
+        var pinnedOnly = PinnedOnlyCheckBox.IsChecked == true;
+        var top = pinnedOnly ? [] : unpinned.Take(_preferences.TopProcessCount).ToArray();
+        var rest = pinnedOnly ? [] : unpinned.Skip(top.Length).ToArray();
+        var displayed = pinned.Select(p => p.Usage).Concat(top).ToArray();
+        var processData = ProcessGraphData.Build(rowSamples, MonitorPreferences.ShortRangeSeconds, displayed, grouped, _preferences.ProcessSort);
+        UpdatePinnedRows(pinned, processData, rowSamples, grouped);
         for (var i = 0; i < _rows.Length; i++)
         {
             _rows[i].Visibility = i < top.Length ? Visibility.Visible : Visibility.Collapsed;
-            if (i < top.Length) _rows[i].Update(top[i], rowSamples, MonitorPreferences.ShortRangeSeconds, _wide, processData[i], grouped);
+            if (i < top.Length) _rows[i].Update(top[i], rowSamples, MonitorPreferences.ShortRangeSeconds, _wide, processData[pinned.Length + i], grouped);
         }
         _otherRow.Visibility = rest.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
         if (rest.Length > 0)
@@ -317,7 +333,7 @@ public partial class MainWindow
             _otherRow.ShowRemainder(rest.Length + (query.Length == 0 && !appsOnly && _preferences.ProcessSort == ProcessSort.Memory && !grouped ? visible?.CompactedProcesses ?? 0 : 0),
                 rest.Sum(p => p.CpuPercent),
                 rest.Any(p => p.IoBytesPerSecond is not null) ? rest.Sum(p => p.IoBytesPerSecond ?? 0) : null, grouped);
-        EmptyLabel.Visibility = top.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
+        EmptyLabel.Visibility = displayed.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
         EmptyLabel.Text = visible is null && _selectedSample is not null ? Strings.ReturnToLiveToInspectCurrentActivity : latest is null || visible?.TotalCpuPercent is null ? Strings.CollectingABaselineOrRecoveringAfterARecordingGap : appsOnly ? Strings.NoAppsMatchCurrentView : query.Length > 0 ? Strings.NoRankedProcessesMatchYourSearch : _preferences.ProcessSort switch
             {
                 ProcessSort.Gpu => Strings.NoMeasurableGPUActivityAmongAccessibleProcessesInThisWindow,
@@ -326,15 +342,17 @@ public partial class MainWindow
                 ProcessSort.Threads or ProcessSort.Handles => Strings.NoProcessCountReadings,
                 _ => Strings.NoMeasurableActiveProcessesInThisWindow
             };
+        if (pinnedOnly && displayed.Length == 0) EmptyLabel.Text = Strings.NoPinnedProcessesMatch;
         CoverageLabel.Text = visible is null ? "" : Coverage(visible.UnavailableProcesses, ranking.TotalCpuPercent, ranking.MeasuredCpuPercent);
         if (_history.WasMemoryLimited) CoverageLabel.Text += (CoverageLabel.Text.Length > 0 ? " · " : "") + Strings.HistoryShortenedByMemoryLimit;
         CoverageLabel.ToolTip = CoverageLabel.Text + Strings.UnattributedCPUIsTotalCPUMinusAllMeasuredProcessesKernel;
         if (_selectedSample is not null && visible is not null)
-            _snapshotReport = new SnapshotReport(visible, top, grouped,
+            _snapshotReport = new SnapshotReport(visible, displayed, grouped,
                 SortHeaders.First(h => h.Sort == _preferences.ProcessSort).Text, query, appsOnly, CoverageLabel.Text,
                 rest.Length == 0 ? null : new SnapshotRemainder(
                     rest.Length + (query.Length == 0 && !appsOnly && _preferences.ProcessSort == ProcessSort.Memory && !grouped ? visible.CompactedProcesses : 0),
-                    rest.Sum(p => p.CpuPercent), rest.Any(p => p.IoBytesPerSecond is not null) ? rest.Sum(p => p.IoBytesPerSecond ?? 0) : null));
+                    rest.Sum(p => p.CpuPercent), rest.Any(p => p.IoBytesPerSecond is not null) ? rest.Sum(p => p.IoBytesPerSecond ?? 0) : null))
+            { ProcessStates = [.. pinned.Select(p => ProcessRow.StateText(p.State)), .. top.Select(_ => "")] };
         LiveCaption.Text = allUnavailable ? Strings.SystemResourcesUnavailable : Strings.SystemResources;
         LiveCaption.ToolTip = _selectedSample is not null ? Strings.SystemResourcesInspectingSnapshot : LiveCaption.Text;
         ShowError(_samplingError switch
@@ -812,6 +830,7 @@ public partial class MainWindow
             app.Resources["SelectedSurface"] = SystemColors.HighlightBrush;
             app.Resources["SelectedText"] = SystemColors.HighlightTextBrush;
             app.Resources["SnapshotAccent"] = SystemColors.HighlightBrush;
+            app.Resources["ProcessPinAccent"] = SystemColors.WindowTextBrush;
             app.Resources["SnapshotAccentText"] = SystemColors.HighlightTextBrush;
             app.Resources["Text"] = SystemColors.WindowTextBrush;
             app.Resources["Muted"] = SystemColors.WindowTextBrush;
@@ -830,6 +849,7 @@ public partial class MainWindow
             SetBrush("SelectedSurface", light ? "#1469B5" : "#20262D");
             SetBrush("SelectedText", light ? "#FFFFFF" : "#EDF2F6");
             SetBrush("SnapshotAccent", "#25D5F0");
+            SetBrush("ProcessPinAccent", light ? "#00788A" : "#25D5F0");
             SetBrush("SnapshotAccentText", "#07171B");
             SetBrush("Text", light ? "#20334A" : "#EDF2F6");
             SetBrush("Muted", light ? "#465D78" : "#B3BDC8");

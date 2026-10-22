@@ -305,3 +305,9 @@ Copyright © 2026 Galen Blakeman. Released under the [MIT License](../LICENSE).
 - [Visual QA record](../design-qa.md)
 
 Superseded mockups and early CPU-only design records have been removed. Historical benchmark results and validation notes above remain records of their respective builds. This is a working developer build, not a completed production release gate.
+
+## Pinned process rows
+
+Pins are session-only and live in `Monitoring/ProcessPins.cs`. Individual pins use PID plus creation time; grouped pins use the same executable key as grouping, with separate lists for the two modes. Immutable retention predicates are published to the sampling thread so idle pinned processes and all pinned-group members remain in future compacted samples. Existing retained samples are not rewritten. Ranked rows exclude pinned identities before applying Top N and calculating the remainder; pin rows stay in insertion order and share the process sparkline scale. Search and App Only apply to both sections. Missing live observations show Exited only for a complete readable sample; gaps and incomplete captures remain unavailable. Historical omissions are labeled Not recorded at this sample. Snapshot copying includes displayed pin rows and suppresses stale readings.
+
+`--snapshot-smoke-output <directory>` also runs the pinning fixture and emits `pins-dark.png`, `pins-light.png`, `pins-minimum.png`, `pins-only.png` and `pins.json`. The wide fixture uses 1000 x 1000 DIPs; the pin controls wrap below the ranking toolbar at narrower widths. These are render/interaction fixtures, not sustained performance evidence. Final verification for the feature: 446 Release tests passed outside the sandbox, snapshot/pinning smoke exited 0, and `git diff --check` passed.

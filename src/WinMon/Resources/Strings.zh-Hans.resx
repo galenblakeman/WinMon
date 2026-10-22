@@ -1329,4 +1329,14 @@ Windows 健康状态：{2}</value>
   <data name="SnapshotExportAverages" xml:space="preserve">
     <value>进程 CPU 和 I/O：五秒平均值；GPU：五秒窗口内可读取区间的平均值。内存、线程和句柄：最新读数。</value>
   </data>
+  <data name="PinProcess" xml:space="preserve"><value>固定进程</value></data>
+  <data name="UnpinProcess" xml:space="preserve"><value>取消固定进程</value></data>
+  <data name="PinnedOnly" xml:space="preserve"><value>仅显示已固定</value></data>
+  <data name="PinnedProcessCount" xml:space="preserve"><value>已固定 {0} 个</value></data>
+  <data name="PinnedProcessesExplanation" xml:space="preserve"><value>固定的行显示在排名上方，不计入前 N 个。搜索和应用筛选仍然生效。单个进程和分组的固定相互独立，仅在本次会话中保留。</value></data>
+  <data name="RankedByMetric" xml:space="preserve"><value>按 {0} 排名</value></data>
+  <data name="ProcessExited" xml:space="preserve"><value>已退出</value></data>
+  <data name="ProcessNotRecorded" xml:space="preserve"><value>此采样未记录</value></data>
+  <data name="NoPinnedProcessesMatch" xml:space="preserve"><value>此视图没有已固定的进程。使用进程的固定按钮或行菜单进行固定。</value></data>
+  <data name="ProcessesHeading" xml:space="preserve"><value>进程</value></data>
 </root>

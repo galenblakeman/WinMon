@@ -1329,4 +1329,14 @@ O trabalho não salvo pode ser perdido. Todos os processos listados abaixo serã
   <data name="SnapshotExportAverages" xml:space="preserve">
     <value>CPU e E/S dos processos: médias de cinco segundos; GPU: média dos intervalos legíveis na janela de cinco segundos. Memória, threads e identificadores: últimas leituras.</value>
   </data>
+  <data name="PinProcess" xml:space="preserve"><value>Fixar processo</value></data>
+  <data name="UnpinProcess" xml:space="preserve"><value>Desafixar processo</value></data>
+  <data name="PinnedOnly" xml:space="preserve"><value>Somente fixados</value></data>
+  <data name="PinnedProcessCount" xml:space="preserve"><value>{0} fixados</value></data>
+  <data name="PinnedProcessesExplanation" xml:space="preserve"><value>As linhas fixadas ficam acima da classificação e não contam no Top N. A busca e o filtro de aplicativos se aplicam. As fixações individuais e agrupadas são separadas e duram esta sessão.</value></data>
+  <data name="RankedByMetric" xml:space="preserve"><value>Ordenados por {0}</value></data>
+  <data name="ProcessExited" xml:space="preserve"><value>Encerrado</value></data>
+  <data name="ProcessNotRecorded" xml:space="preserve"><value>Não registrado nesta amostra</value></data>
+  <data name="NoPinnedProcessesMatch" xml:space="preserve"><value>Nenhum processo fixado nesta exibição. Use o botão ou o menu da linha para fixar um processo.</value></data>
+  <data name="ProcessesHeading" xml:space="preserve"><value>Processos</value></data>
 </root>

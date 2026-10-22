@@ -348,7 +348,7 @@ public partial class MainWindow
         // Exercise menu creation without invoking the destructive command.
         row.PrepareProcessMenu();
         var menu = row.ContextMenu ?? throw new InvalidOperationException("Process context menu was not created.");
-        if (menu.Items is not [System.Windows.Controls.MenuItem { Header: string { Length: > 0 } } item] ||
+        if (menu.Items is not [System.Windows.Controls.MenuItem, System.Windows.Controls.MenuItem { Header: string { Length: > 0 } } item] ||
             item.ToolTip as string != Strings.AvailableForLiveProcesses)
             throw new InvalidOperationException("Process context menu did not capture its target.");
         try
@@ -389,13 +389,13 @@ public partial class MainWindow
             _selectedSample = _history.Latest;
             RefreshPresentation();
             row.PrepareProcessMenu();
-            if (menu.Items is not [System.Windows.Controls.MenuItem { IsEnabled: false }])
+            if (menu.Items is not [System.Windows.Controls.MenuItem, System.Windows.Controls.MenuItem { IsEnabled: false }])
                 throw new InvalidOperationException("Historical rows allowed process termination.");
             _selectedSample = null;
             GroupedChip.IsChecked = true;
             RefreshPresentation();
             row.PrepareProcessMenu();
-            if (menu.Items is not [System.Windows.Controls.MenuItem { Header: string groupHeader }] ||
+            if (menu.Items is not [System.Windows.Controls.MenuItem, System.Windows.Controls.MenuItem { Header: string groupHeader }] ||
                 !groupHeader.Contains(Strings.Format(Strings.EndGroupMenu, "").Trim(), StringComparison.Ordinal))
                 throw new InvalidOperationException("Grouped rows did not offer group termination.");
         }

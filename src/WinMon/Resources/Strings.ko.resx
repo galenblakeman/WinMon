@@ -1329,4 +1329,14 @@ Windows 상태: {2}</value>
   <data name="SnapshotExportAverages" xml:space="preserve">
     <value>프로세스 CPU 및 I/O: 5초 평균. GPU: 5초 구간 내 읽을 수 있는 측정값의 평균. 메모리, 스레드 및 핸들: 최신 측정값.</value>
   </data>
+  <data name="PinProcess" xml:space="preserve"><value>프로세스 고정</value></data>
+  <data name="UnpinProcess" xml:space="preserve"><value>프로세스 고정 해제</value></data>
+  <data name="PinnedOnly" xml:space="preserve"><value>고정 항목만</value></data>
+  <data name="PinnedProcessCount" xml:space="preserve"><value>{0}개 고정됨</value></data>
+  <data name="PinnedProcessesExplanation" xml:space="preserve"><value>고정된 행은 순위 위에 표시되며 상위 N개에 포함되지 않습니다. 검색과 앱 필터가 적용됩니다. 개별 및 그룹 고정은 별개이며 현재 세션 동안 유지됩니다.</value></data>
+  <data name="RankedByMetric" xml:space="preserve"><value>{0} 기준 순위</value></data>
+  <data name="ProcessExited" xml:space="preserve"><value>종료됨</value></data>
+  <data name="ProcessNotRecorded" xml:space="preserve"><value>이 샘플에 기록되지 않음</value></data>
+  <data name="NoPinnedProcessesMatch" xml:space="preserve"><value>이 보기에 고정된 프로세스가 없습니다. 행의 고정 버튼이나 메뉴로 프로세스를 고정하세요.</value></data>
+  <data name="ProcessesHeading" xml:space="preserve"><value>프로세스</value></data>
 </root>

@@ -1329,4 +1329,14 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="SnapshotExportAverages" xml:space="preserve">
     <value>Process CPU and I/O: five-second averages; GPU: average over readable intervals in the five-second window. Memory, threads and handles: latest readings.</value>
   </data>
+  <data name="PinProcess" xml:space="preserve"><value>Pin process</value></data>
+  <data name="UnpinProcess" xml:space="preserve"><value>Unpin process</value></data>
+  <data name="PinnedOnly" xml:space="preserve"><value>Pinned only</value></data>
+  <data name="PinnedProcessCount" xml:space="preserve"><value>{0} pinned</value></data>
+  <data name="PinnedProcessesExplanation" xml:space="preserve"><value>Pinned rows stay above the rankings and do not count toward Top N. Search and App Only apply. Individual and grouped pins are separate and last for this session.</value></data>
+  <data name="RankedByMetric" xml:space="preserve"><value>Ranked by {0}</value></data>
+  <data name="ProcessExited" xml:space="preserve"><value>Exited</value></data>
+  <data name="ProcessNotRecorded" xml:space="preserve"><value>Not recorded at this sample</value></data>
+  <data name="NoPinnedProcessesMatch" xml:space="preserve"><value>No pinned processes in this view. Pin a process using its pin button or row menu.</value></data>
+  <data name="ProcessesHeading" xml:space="preserve"><value>Processes</value></data>
 </root>

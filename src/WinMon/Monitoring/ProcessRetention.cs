@@ -13,7 +13,8 @@ internal static class ProcessRetention
     /// <summary>Largest working sets kept per sample; above the 20-row maximum, so memory ranking stays exact.</summary>
     internal const int LargestByMemory = 32;
 
-    internal static CpuSample Compact(CpuSample sample, int largestByMemory = LargestByMemory)
+    internal static CpuSample Compact(CpuSample sample, int largestByMemory = LargestByMemory,
+        Func<ProcessUsage, bool>? retain = null)
     {
         ArgumentNullException.ThrowIfNull(sample);
         if (sample.Processes.Count <= largestByMemory) return sample;
@@ -31,7 +32,7 @@ internal static class ProcessRetention
         var handleThreshold = CountThreshold(sample.Processes, largestByMemory, threads: false);
         ProcessUsage[] kept =
         [
-            .. sample.Processes.Where(p => p.HasHadAppWindow || p.HasAppWindow == true || p.CpuPercent > 0 || p.IoBytesPerSecond > 0 || p.GpuPercent is not null ||
+            .. sample.Processes.Where(p => retain?.Invoke(p) == true || p.HasHadAppWindow || p.HasAppWindow == true || p.CpuPercent > 0 || p.IoBytesPerSecond > 0 || p.GpuPercent is not null ||
                 p.WorkingSetBytes >= threshold || p.ThreadCount >= threadThreshold || p.HandleCount >= handleThreshold)
         ];
         return kept.Length == sample.Processes.Count

@@ -94,6 +94,7 @@ public partial class App
             {
                 Directory.CreateDirectory(output);
                 await WinMon.MainWindow.CaptureDesignFixtureAsync(output, timeout.Token);
+                await WinMon.MainWindow.CapturePinsFixtureAsync(output, timeout.Token);
             }
             else if (featuresOnly) await window.CaptureFeatureDiagnosticsAsync(output, timeout.Token);
             else await window.CaptureDiagnosticAsync(output, timeout.Token);

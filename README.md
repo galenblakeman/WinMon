@@ -35,6 +35,8 @@ Search the ranked list by application name, executable name or PID. Turn on **Ap
 
 The ranking controls, search field, App Only filter and grouping switches fit on one row at compact 720-DIP widths.
 
+**Pin a process** using the pin beside its name or its row menu. Pinned rows stay above the rankings in pin order, with a cyan pin and a subtle background. They do not count toward the Top N limit or appear twice. **Pinned only** hides the ranked rows; search and App Only still filter both sections. Pins remain when a process becomes idle or exits and last until WinMon closes. Individual processes and executable groups have separate pin lists. An individual pin follows one process lifetime, so a reused PID cannot inherit it. Missing historical observations show “Not recorded at this sample”; gaps or uncertain observations show unavailable values.
+
 ![WinMon compact view with a chrome search and App Only enabled, showing the grouped Google Chrome result](example/example_apps_only.png)
 
 ## Catch the spike—even after it passes

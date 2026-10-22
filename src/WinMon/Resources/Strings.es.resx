@@ -1329,4 +1329,14 @@ Se puede perder el trabajo sin guardar. Se finalizarán todos los procesos indic
   <data name="SnapshotExportAverages" xml:space="preserve">
     <value>CPU y E/S de procesos: promedios de cinco segundos; GPU: promedio de intervalos legibles en la ventana de cinco segundos. Memoria, hilos e identificadores: últimas lecturas.</value>
   </data>
+  <data name="PinProcess" xml:space="preserve"><value>Fijar proceso</value></data>
+  <data name="UnpinProcess" xml:space="preserve"><value>Desfijar proceso</value></data>
+  <data name="PinnedOnly" xml:space="preserve"><value>Solo fijados</value></data>
+  <data name="PinnedProcessCount" xml:space="preserve"><value>{0} fijados</value></data>
+  <data name="PinnedProcessesExplanation" xml:space="preserve"><value>Los procesos fijados permanecen sobre la clasificación y no cuentan para Top N. Se aplican la búsqueda y el filtro de aplicaciones. Las fijaciones individuales y agrupadas son independientes y duran esta sesión.</value></data>
+  <data name="RankedByMetric" xml:space="preserve"><value>Ordenados por {0}</value></data>
+  <data name="ProcessExited" xml:space="preserve"><value>Finalizado</value></data>
+  <data name="ProcessNotRecorded" xml:space="preserve"><value>No registrado en esta muestra</value></data>
+  <data name="NoPinnedProcessesMatch" xml:space="preserve"><value>No hay procesos fijados en esta vista. Fije uno con su botón o menú de fila.</value></data>
+  <data name="ProcessesHeading" xml:space="preserve"><value>Procesos</value></data>
 </root>

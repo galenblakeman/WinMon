@@ -390,18 +390,22 @@
                         BorderBrush="{DynamicResource Line}"
                         BorderThickness="0,1,0,0">
                         <StackPanel>
-                            <Grid>
+                            <Grid x:Name="ProcessToolbarGrid">
                                 <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
                                 <StackPanel
+                                    x:Name="ProcessGroupingControls"
                                     Grid.Column="3"
                                     VerticalAlignment="Center"
                                     AutomationProperties.Name="{Binding [ProcessGrouping], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
@@ -423,7 +427,7 @@
                                         Style="{StaticResource RangeChip}"
                                         ToolTip="{Binding [OneRowPerExecutableCPUAndIOSummedGPU], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                                 </StackPanel>
-                                <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal">
+                                <StackPanel x:Name="ProcessRankingControls" Grid.Row="0" Grid.Column="0" Orientation="Horizontal">
                                     <TextBlock
                                         VerticalAlignment="Center"
                                         FontSize="15"
@@ -538,6 +542,17 @@
                                     FontSize="12"
                                     Foreground="{DynamicResource Text}"
                                     ToolTip="{Binding [ProcessKindExplanation], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                            <StackPanel x:Name="PinSummary" Orientation="Horizontal" Margin="0,6,0,0">
+                                <TextBlock Text="{Binding [ProcessesHeading], Source={x:Static resources:Strings.Text}}"
+                                           VerticalAlignment="Center" FontSize="13" FontWeight="SemiBold" />
+                                <TextBlock x:Name="PinnedCountLabel" Margin="12,0,0,0" VerticalAlignment="Center"
+                                           FontSize="12" Foreground="{DynamicResource ProcessPinAccent}" />
+                            </StackPanel>
+                                <CheckBox x:Name="PinnedOnlyCheckBox" Content="{Binding [PinnedOnly], Source={x:Static resources:Strings.Text}}"
+                                          Style="{StaticResource PinnedOnlySwitch}"
+                                          AutomationProperties.Name="{Binding [PinnedOnly], Source={x:Static resources:Strings.Text}}"
+                                          ToolTip="{Binding [PinnedProcessesExplanation], Source={x:Static resources:Strings.Text}}"
+                                          HorizontalAlignment="Right" FontSize="12" />
                             </Grid>
                             <TextBlock
                                 x:Name="SelectionLabel"
@@ -649,7 +664,13 @@
                         Focusable="False"
                         HorizontalScrollBarVisibility="Disabled"
                         VerticalScrollBarVisibility="Auto">
-                        <StackPanel x:Name="ProcessRows" />
+                        <StackPanel x:Name="ProcessRows">
+                            <StackPanel x:Name="PinnedProcessRows" />
+                            <Border x:Name="RankedDivider" Visibility="Collapsed" Padding="0,5" BorderThickness="0,1,0,0"
+                                    BorderBrush="{DynamicResource Line}">
+                                <TextBlock x:Name="RankedDividerText" FontSize="11" Foreground="{DynamicResource Muted}" />
+                            </Border>
+                        </StackPanel>
                     </ScrollViewer>
                     <TextBlock
                         x:Name="EmptyLabel"

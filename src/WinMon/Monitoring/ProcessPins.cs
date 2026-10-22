@@ -1,0 +1,58 @@
+namespace WinMon.Monitoring;
+
+internal enum PinnedProcessState { Present, Exited, Unavailable, NotRecorded }
+internal sealed record PinnedProcess(ProcessUsage Usage, PinnedProcessState State);
+
+/// <summary>Session-only pins, in insertion order. Individual pins identify one process lifetime.</summary>
+internal sealed class ProcessPins
+{
+    private sealed record Pin(ProcessUsage Usage, bool Grouped);
+    private readonly List<Pin> _pins = [];
+
+    internal int Count(bool grouped) => _pins.Count(p => p.Grouped == grouped);
+    internal bool Contains(ProcessUsage process, bool grouped) => _pins.Any(p => Matches(p, process, grouped));
+
+    internal void Toggle(ProcessUsage process, bool grouped)
+    {
+        var index = _pins.FindIndex(p => Matches(p, process, grouped));
+        if (index >= 0) _pins.RemoveAt(index);
+        else _pins.Add(new Pin(process, grouped));
+    }
+
+    // The sampling thread receives an immutable snapshot, never the UI-owned list.
+    internal Func<ProcessUsage, bool>? RetentionSnapshot()
+    {
+        if (_pins.Count == 0) return null;
+        var pins = _pins.ToArray();
+        return process => pins.Any(p => Matches(p, process, p.Grouped));
+    }
+
+    internal PinnedProcess[] Resolve(CpuSample? newest, IReadOnlyList<ProcessUsage> averages,
+        bool grouped, bool historical)
+    {
+        var result = new List<PinnedProcess>();
+        foreach (var pin in _pins.Where(p => p.Grouped == grouped))
+        {
+            var observed = newest?.Processes.FirstOrDefault(p => Matches(pin, p, grouped));
+            var current = observed is null ? null : averages.FirstOrDefault(p => Matches(pin, p, grouped)) ?? observed;
+            var state = newest is null || newest.IsGap || newest.TotalCpuPercent is null
+                ? PinnedProcessState.Unavailable
+                : current is not null ? PinnedProcessState.Present
+                : historical ? PinnedProcessState.NotRecorded
+                : newest.UnavailableProcesses > 0 ? PinnedProcessState.Unavailable
+                : PinnedProcessState.Exited;
+            // Missing data must never expose the saved pin's stale readings as current measurements.
+            var usage = current ?? pin.Usage with
+            {
+                CpuPercent = 0, GpuPercent = null, WorkingSetBytes = null, PrivateBytes = null,
+                IoBytesPerSecond = null, ThreadCount = null, HandleCount = null
+            };
+            result.Add(new PinnedProcess(usage, state));
+        }
+        return [.. result];
+    }
+
+    private static bool Matches(Pin pin, ProcessUsage process, bool grouped) => pin.Grouped == grouped &&
+        (grouped ? StringComparer.OrdinalIgnoreCase.Equals(ProcessRanking.GroupKey(pin.Usage), ProcessRanking.GroupKey(process))
+            : pin.Usage.ProcessId == process.ProcessId && pin.Usage.CreationTicks == process.CreationTicks);
+}

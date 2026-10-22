@@ -1329,4 +1329,14 @@ GPU {11} · {12}
   <data name="SnapshotExportAverages" xml:space="preserve">
     <value>ЦП и ввод-вывод процессов: средние за пять секунд; ГП: среднее доступных интервалов в пятисекундном окне. Память, потоки и дескрипторы: последние показания.</value>
   </data>
+  <data name="PinProcess" xml:space="preserve"><value>Закрепить процесс</value></data>
+  <data name="UnpinProcess" xml:space="preserve"><value>Открепить процесс</value></data>
+  <data name="PinnedOnly" xml:space="preserve"><value>Только закреплённые</value></data>
+  <data name="PinnedProcessCount" xml:space="preserve"><value>Закреплено: {0}</value></data>
+  <data name="PinnedProcessesExplanation" xml:space="preserve"><value>Закреплённые строки остаются над рейтингом и не входят в Top N. Поиск и фильтр приложений действуют. Закрепления отдельных процессов и групп независимы и сохраняются до конца сеанса.</value></data>
+  <data name="RankedByMetric" xml:space="preserve"><value>Рейтинг по {0}</value></data>
+  <data name="ProcessExited" xml:space="preserve"><value>Завершён</value></data>
+  <data name="ProcessNotRecorded" xml:space="preserve"><value>Не записан в этом замере</value></data>
+  <data name="NoPinnedProcessesMatch" xml:space="preserve"><value>В этом представлении нет закреплённых процессов. Используйте кнопку закрепления или меню строки.</value></data>
+  <data name="ProcessesHeading" xml:space="preserve"><value>Процессы</value></data>
 </root>
