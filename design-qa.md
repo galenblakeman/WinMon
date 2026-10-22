@@ -154,7 +154,6 @@ First pass found two issues: the selected segment inherited white text on cyan, 
 Interaction checks cover empty history disabling Snapshot, selecting the latest interval, live/snapshot selected states, chart clicks, expired selections, Return to live, and repeated snapshots. Unit tests include selecting a newest gap without substituting an older valid reading. The native check holds a snapshot while recording advances, retakes it, then returns to Live. All 359 Debug tests pass. High-contrast colors use Windows highlight/text brushes; actual Windows high-contrast mode and hardware DPI transitions were not manually exercised. Snapshot fixture rendering covers dark/light and 100/150/200 percent bitmap scales.
 
 Final verification: default Debug build succeeded with zero warnings/errors; 359 tests passed; snapshot fixture smoke exited 0; full native smoke exited 0 (artifacts/snapshot-switch/native-layout-refreshed/smoke.json).
-
 ## Snapshot clipboard export — 2026-10-21
 
 Copy snapshot beside Return to live always copies a plain-text summary of the selected historical resources and displayed top processes. Reports retain sorting, grouping, filters, the remainder row, units, unavailable readings and averaging notes. Copy confirms success for two seconds; expired samples cannot be copied.

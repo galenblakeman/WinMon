@@ -10,17 +10,19 @@ WinMon brings CPU, memory, disk, network and GPU activity into one clear Windows
 
 ![WinMon live dashboard showing CPU, memory, two disks, network and GPU activity above individual process rankings](example/example_individual.png)
 
-*Screenshots show WinMon 1.0.2 with illustrative sample data.*
+*Screenshots captured October 22, 2026 from the current source (version 1.0.2), using illustrative sample data. See the [example gallery](example/README.md) for all views and capture instructions.*
 
 ## Your system, at a glance
 
 Keep the whole picture in view while you work, play or troubleshoot. WinMon puts live resource readings above a shared timeline, so you can see how CPU spikes, disk activity and network transfers line up.
 
 - **Watch the resources that matter.** Monitor CPU, physical memory, GPU, network throughput and up to two disk volumes. Hide individual chart traces to focus the view while recording continues.
-- **Find the busiest processes.** Rank by CPU, GPU, memory or I/O, with application icons and history sparklines that follow your selected metric.
+- **Find the busiest processes.** Rank by CPU, GPU, memory, I/O, thread count or handle count, with application icons and history sparklines that follow your selected metric.
 - **Look beyond the latest number.** Switch between 2, 10, 30 and 60-minute chart ranges, subject to your retained history, and inspect earlier samples.
 - **Keep it close.** Pin WinMon above other windows, minimize it to the notification area, or bring it forward with a configurable shortcut.
 - **Use less screen space.** Choose **Compact view** in the title bar for a horizontal strip with live readings and filled two-minute charts inside each resource box. **Full view** restores the dashboard and its size. The selected view is remembered when WinMon closes.
+
+![WinMon Compact view with live CPU, memory, two disks, network and GPU readings over filled history charts](example/example_compact.png)
 
 ## See the app behind the processes
 
@@ -34,11 +36,15 @@ Grouped GPU shows the busiest member; grouped memory uses private bytes to avoid
 
 Search the ranked list by application name, executable name or PID. Turn on **App Only** to focus on processes observed with an application window, and use the **App** / **Background** labels to understand each row. In Grouped mode, an executable is an app when any current member has an app window.
 
-The ranking controls, search field, App Only filter and grouping switches fit on one row at compact 720-DIP widths.
+The ranking controls, search field, App Only filter and grouping switches fit on one row at 720-DIP widths. Pin controls wrap below them in narrower windows. Thread and handle counts show the latest observation at the selected moment; click either column heading to rank by it. Hover over a process name for its publisher metadata and executable path.
 
 **Pin a process** using the pin beside its name or its row menu. Pinned rows stay above the rankings in pin order, with a cyan pin and a subtle background. They do not count toward the Top N limit or appear twice. **Pinned only** hides the ranked rows; search and App Only still filter both sections. Pins remain when a process becomes idle or exits and last until WinMon closes. Individual processes and executable groups have separate pin lists. An individual pin follows one process lifetime, so a reused PID cannot inherit it. Missing historical observations show “Not recorded at this sample”; gaps or uncertain observations show unavailable values.
 
-![WinMon compact view with a chrome search and App Only enabled, showing the grouped Google Chrome result](example/example_apps_only.png)
+![WinMon with a chrome search and App Only enabled, showing the grouped Google Chrome result](example/example_apps_only.png)
+
+![WinMon with Visual Studio Code and Google Chrome pinned above the CPU rankings](example/example_pinned.png)
+
+See the [Pinned only example](example/example_pinned_only.png) for a focused view of those processes.
 
 ## Catch the spike—even after it passes
 
@@ -72,6 +78,8 @@ The three custom palettes keep their supplied colors in both themes. Open an ima
 </details>
 
 Settings also let you choose disk volumes, history retention, startup at sign-in and notification-area behavior. The default show/hide shortcut is **Ctrl+Shift+M**.
+
+Choose **Windows display language** or select English, Simplified Chinese, Russian, Spanish, Brazilian Portuguese, German, Japanese, French, Polish or Korean in Settings. Language changes apply when you save.
 
 Need a hardware overview? **Info** brings together CPU, RAM, graphics adapters, physical drives, local volumes and network adapters. Expand the details or copy the report to share when troubleshooting.
 
