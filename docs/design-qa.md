@@ -34,7 +34,7 @@ Inspected the compact/short and final dark/light snapshot renders under `artifac
 
 final result: passed
 
-Selected target: `design/compact-headers-selected.png`, the single mockup approved in chat. Opened `artifacts/compact-headers-final/comparison.png`, which puts that mockup beside a 1301 × 1137 WPF render in the same dark, Ocean-palette, dual-volume, grouped-process, ten-minute-range state. Also opened the separate light-theme wide render and the compact native window captures. The comparison fixture uses illustrative measurements/processes; numbers, history coverage, generic process icons and graph shapes intentionally differ. Native caption glyphs are absent from off-screen WPF content renders; the actual composed `titlebar-window.png` and native hit tests separately verify those controls.
+Selected target: `docs/design/compact-headers-selected.png`, the single mockup approved in chat. Opened `artifacts/compact-headers-final/comparison.png`, which puts that mockup beside a 1301 × 1137 WPF render in the same dark, Ocean-palette, dual-volume, grouped-process, ten-minute-range state. Also opened the separate light-theme wide render and the compact native window captures. The comparison fixture uses illustrative measurements/processes; numbers, history coverage, generic process icons and graph shapes intentionally differ. Native caption glyphs are absent from off-screen WPF content renders; the actual composed `titlebar-window.png` and native hit tests separately verify those controls.
 
 All seven requested changes are present: Info and Settings join Pin in the title bar; range chips align right in the resource header; its redundant scale subtitle is removed while the chart's network-scale label remains; resource and live process headers use one compact row; the process note is centered between selectors and grouping; unattributed coverage follows Process in the column header; and the footer is removed. At minimum width, the process note and long coverage text use ellipsis with complete tooltips. Historical resource details can still add a row during inspection so selected-sample information remains available.
 
@@ -48,7 +48,7 @@ Implementation checklist complete: relocate existing actions, preserve WindowChr
 
 final result: passed
 
-Scope: the selected six-column mockup at design/multiple-disks-selected.png, adapted to the existing production WPF monitor. Comparison evidence: artifacts/multiple-disks-capture-verified/comparison.png combines the actual selected image with the implementation's 720 x 820 DIP dark main view and 444 x 601 settings content. The reference includes presentation margins, native chrome and illustrative data; comparison focuses on app content, order, hierarchy and the disk configuration flow rather than those margins or exact graph values. The existing process GPU column, ranking/grouping controls, range chips and native title bar remain intentionally intact.
+Scope: the selected six-column mockup at docs/design/multiple-disks-selected.png, adapted to the existing production WPF monitor. Comparison evidence: artifacts/multiple-disks-capture-verified/comparison.png combines the actual selected image with the implementation's 720 x 820 DIP dark main view and 444 x 601 settings content. The reference includes presentation margins, native chrome and illustrative data; comparison focuses on app content, order, hierarchy and the disk configuration flow rather than those margins or exact graph values. The existing process GPU column, ranking/grouping controls, range chips and native title bar remain intentionally intact.
 
 Fidelity surfaces checked: Segoe UI and the existing 27-pixel metric hierarchy remain readable; the strip has CPU, Memory, primary disk, secondary disk, Network and GPU with aligned separators; orange primary and gold dashed secondary traces match the selected direction. Settings has primary and second-drive dropdowns, None, volume labels, helper copy, Cancel and Save. The existing darker section bands and other resource colors are preserved. Existing native icons are reused without new image assets. Focused full-size disk/settings captures show no clipped primary labels or controls. No actionable P0/P1/P2 differences remain within the requested scope.
 
@@ -60,7 +60,7 @@ Validation: Release publish with zero warnings/errors; 129 tests passed; native 
 
 final result: passed
 
-Scope: apply the second displayed contrast concept's blue title bar and blue section headers to the existing WPF app. Selected reference: `design/contrast-option-2.png`. The existing footer, typography, resource colors, controls and monitoring behavior are retained under this scoped request.
+Scope: apply the second displayed contrast concept's blue title bar and blue section headers to the existing WPF app. Selected reference: `docs/design/contrast-option-2.png`. The existing footer, typography, resource colors, controls and monitoring behavior are retained under this scoped request.
 
 Opened and inspected `artifacts/blue-sections-verified/comparison.png`: reference at left, native composed compact window at right, both normalized to 600 x 840. Both show the compact dark live state; reference numbers are illustrative and implementation numbers are real samples, so data and graph shapes differ intentionally. Title chrome uses #24415B; the system-resources and process-heading bands use #20303D. Native caption buttons have the matching background. The scoped changes have no actionable P0/P1/P2 visual differences.
 
@@ -88,7 +88,7 @@ Published build: `artifacts/titlebar-app/WinMon.exe`. Final native capture, open
 
 ## Target and evidence
 
-- Target: first displayed resource-overlay mockup, saved as `design/resource-overlay-selected.png`.
+- Target: first displayed resource-overlay mockup, saved as `docs/design/resource-overlay-selected.png`.
 - Combined comparison: `artifacts/resources-final/design-comparison.png`, opened and visually inspected. Reference normalized to 600 × 820 and WPF root rendered at 600 × 820, both compact/dark with four traces and five process rows. Native window chrome is outside the captured WPF root.
 - `design-compact.png`, `design-compact-150.png`, `design-compact-200.png`: explicitly labeled illustrative data for full-history layout comparison; not native measurement evidence.
 - `compact.png`, `investigate.png`, `investigate-150.png`, `investigate-200.png`, `light.png`: native live/selected/light/scaled evidence in the same folder. `smoke.json`: native diagnostic exit 0.
@@ -113,7 +113,7 @@ Scaled bitmaps do not verify actual desktop DPI changes or mixed-DPI monitors. K
 
 final result: passed
 
-Target: `design/process-count-selected.png`, the first displayed mockup. Implementation evidence: `artifacts/process-count-final/`. The opened `design-comparison.png` combines the reference normalized to 600 × 840 with the 600 × 820 WPF fixture and its separately captured native dropdown composited beside the selector. This is a comparison montage, not a desktop screenshot of a single interaction. The source has a short live history; the fixture uses illustrative traces and process names. These sample-data differences are intentional.
+Target: `docs/design/process-count-selected.png`, the first displayed mockup. Implementation evidence: `artifacts/process-count-final/`. The opened `design-comparison.png` combines the reference normalized to 600 × 840 with the 600 × 820 WPF fixture and its separately captured native dropdown composited beside the selector. This is a comparison montage, not a desktop screenshot of a single interaction. The source has a short live history; the fixture uses illustrative traces and process names. These sample-data differences are intentional.
 
 Typography, copy, spacing, colors, and asset quality were reviewed: the inline `Top [5] processes by CPU` heading and four choices match the selected interaction; existing Segoe UI, blue headers, resource colors, graph, process columns and icons are retained. The existing application dropdown uses a green outline instead of the mockup's blue selection fill/checkmark. Reusing the application's existing focus and selection style is an accepted adaptation. Controls and text are sharp at the rendered scale. No new raster assets are required for the functional control.
 
@@ -127,7 +127,7 @@ Limits: preference serialization and fallback were tested; physical keyboard/mou
 
 final result: passed
 
-Scope: apply the second displayed mockup's saturated dark resource palette, heavier chart traces, restrained halo and transparent area washes to the existing WPF monitor. Selected reference: `design/bold-chart-option-2.png`.
+Scope: apply the second displayed mockup's saturated dark resource palette, heavier chart traces, restrained halo and transparent area washes to the existing WPF monitor. Selected reference: `docs/design/bold-chart-option-2.png`.
 
 Evidence: opened `artifacts/bold-chart-verified/comparison.png`, with reference at left and implementation at right, normalized to 600 x 820 each. Both show illustrative two-minute resource histories and five process rows. The application retains its current compact caption, range controls, sort indicators, table geometry and flat graphite surfaces; these existing product details are intentional adaptations outside the requested chart-color change. No actionable P0/P1/P2 differences in the scoped chart treatment.
 

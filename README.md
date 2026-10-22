@@ -8,9 +8,9 @@ WinMon brings CPU, memory, disk, network and GPU activity into one clear Windows
 
 [Releases](https://github.com/galenblakeman/WinMon/releases) · [Get started](#get-started) · [Developer guide](docs/DEVELOPMENT.md) · [Privacy](docs/PRIVACY.md) · [Code signing policy](docs/CODE_SIGNING.md)
 
-![WinMon live dashboard showing CPU, memory, two disks, network and GPU activity above individual process rankings](example/example_individual.png)
+![WinMon live dashboard showing CPU, memory, two disks, network and GPU activity above individual process rankings](docs/example/example_individual.png)
 
-*Screenshots captured October 22, 2026 from the current source (version 1.0.2), using illustrative sample data. See the [example gallery](example/README.md) for all views and capture instructions.*
+*Screenshots captured October 22, 2026 from the current source (version 1.0.3), using illustrative sample data. See the [example gallery](docs/example/README.md) for all views and capture instructions.*
 
 ## Your system, at a glance
 
@@ -22,13 +22,13 @@ Keep the whole picture in view while you work, play or troubleshoot. WinMon puts
 - **Keep it close.** Pin WinMon above other windows, minimize it to the notification area, or bring it forward with a configurable shortcut.
 - **Use less screen space.** Choose **Compact view** in the title bar for a horizontal strip with live readings and filled two-minute charts inside each resource box. **Full view** restores the dashboard and its size. The selected view is remembered when WinMon closes.
 
-![WinMon Compact view with live CPU, memory, two disks, network and GPU readings over filled history charts](example/example_compact.png)
+![WinMon Compact view with live CPU, memory, two disks, network and GPU readings over filled history charts](docs/example/example_compact.png)
 
 ## See the app behind the processes
 
 Browsers and other applications often spread their work across many processes. Switch to **Grouped** to bring processes from the same executable together and see their combined CPU, memory and I/O activity. Switch back to **Individual** when you need to investigate a specific process.
 
-![WinMon grouped view combining application processes into rows with process counts and resource usage](example/example_grouped.png)
+![WinMon grouped view combining application processes into rows with process counts and resource usage](docs/example/example_grouped.png)
 
 Grouped GPU shows the busiest member; grouped memory uses private bytes to avoid counting shared working-set pages repeatedly.
 
@@ -40,17 +40,17 @@ The pinned count, ranking controls, search field, App Only and Pinned only filte
 
 **Pin a process** using the pin beside its name or its row menu. Pinned rows stay above the rankings in pin order, with a cyan pin and a subtle background. They do not count toward the Top N limit or appear twice. **Pinned only** hides the ranked rows; search and App Only still filter both sections. Pins and the Pinned only filter are saved when WinMon closes and restored when it reopens. Individual processes and executable groups have separate pin lists. An individual pin follows one process lifetime, so an exited or restarted process stays marked exited and a reused PID cannot inherit it; executable-group pins match new instances of the same executable. Missing historical observations show “Not recorded at this sample”; gaps or uncertain observations show unavailable values.
 
-![WinMon with a chrome search and App Only enabled, showing the grouped Google Chrome result](example/example_apps_only.png)
+![WinMon with a chrome search and App Only enabled, showing the grouped Google Chrome result](docs/example/example_apps_only.png)
 
-![WinMon with Visual Studio Code and Google Chrome pinned above the CPU rankings](example/example_pinned.png)
+![WinMon with Visual Studio Code and Google Chrome pinned above the CPU rankings](docs/example/example_pinned.png)
 
-See the [Pinned only example](example/example_pinned_only.png) for a focused view of those processes.
+See the [Pinned only example](docs/example/example_pinned_only.png) for a focused view of those processes.
 
 ## Catch the spike—even after it passes
 
 Choose **Snapshot** in the centered **Live | Snapshot** switch above the chart to inspect the newest recorded sample, or click the chart to select an earlier moment. The snapshot shows resource readings for that interval, and the process table follows your selection so you can investigate what was busy then. Recording and the top readouts stay live while you explore.
 
-![WinMon historical snapshot showing interval resource readings and the process table at the selected time](example/example_snapshot.png)
+![WinMon historical snapshot showing interval resource readings and the process table at the selected time](docs/example/example_snapshot.png)
 
 Click **Snapshot** again to select the newest sample. Use **Left / Right** to step through samples, **Home** to jump to the oldest visible sample, and **Live**, **End**, **Escape** or **Return to live** to resume the live view.
 
@@ -62,18 +62,18 @@ History is kept in memory for the current session, with configurable retention u
 
 Choose **Light**, **Dark** or **System** appearance, then pick a chart palette independently. Options include Classic, Ocean, Colorblind and high-contrast palettes, plus the new **Neon**, **Arcade** and **Tropical** choices. Palette names sort alphabetically in Settings; swatches and descriptions help you choose. Colors stay consistent across resource readings, chart traces and process sparklines.
 
-![WinMon light theme showing the same grouped dashboard with readable resource colors and the centered Live and Snapshot switch](example/example_light.png)
+![WinMon light theme showing the same grouped dashboard with readable resource colors and the centered Live and Snapshot switch](docs/example/example_light.png)
 
 <details>
 <summary>Compare the new palettes and view Settings</summary>
 
 | Neon | Arcade | Tropical |
 | --- | --- | --- |
-| [![Neon palette with vivid cyan, pink, lime and violet chart colors](example/example_neon.png)](example/example_neon.png) | [![Arcade palette with saturated primary and secondary chart colors](example/example_arcade.png)](example/example_arcade.png) | [![Tropical palette with warm colors balanced by blue and teal](example/example_tropical.png)](example/example_tropical.png) |
+| [![Neon palette with vivid cyan, pink, lime and violet chart colors](docs/example/example_neon.png)](docs/example/example_neon.png) | [![Arcade palette with saturated primary and secondary chart colors](docs/example/example_arcade.png)](docs/example/example_arcade.png) | [![Tropical palette with warm colors balanced by blue and teal](docs/example/example_tropical.png)](docs/example/example_tropical.png) |
 
 The three custom palettes keep their supplied colors in both themes. Open an image for the full-size view.
 
-![WinMon Settings with the Neon palette swatches, theme selection, keyboard shortcut and two configured disks](example/example_settings.png)
+![WinMon Settings with the Neon palette swatches, theme selection, keyboard shortcut and two configured disks](docs/example/example_settings.png)
 
 </details>
 

@@ -8,4 +8,4 @@ The process list scrolls independently, keeping the resource graph, column headi
 
 Implementation targets the existing .NET 10 WPF application without additional dependencies. Eight preference cases cover all supported counts and old/unsupported settings. Native diagnostics exercise live counts, historical selection, scrolling, minimum-size footer visibility, the menu, and light rendering. Bitmap scale captures do not verify actual desktop DPI or physical keyboard/mouse interaction.
 
-Final verification: Release build succeeded with zero warnings/errors, 66 NUnit cases passed, and native smoke exited 0. Screenshots and `smoke.json` are in `artifacts/process-count-final/`; the visual comparison and accepted adaptations are recorded in `design-qa.md`.
+Final verification: Release build succeeded with zero warnings/errors, 66 NUnit cases passed, and native smoke exited 0. Screenshots and `smoke.json` are in `artifacts/process-count-final/`; the visual comparison and accepted adaptations are recorded in `docs/design-qa.md`.

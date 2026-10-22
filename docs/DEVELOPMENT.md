@@ -301,8 +301,8 @@ Copyright © 2026 Galen Blakeman. Released under the [MIT License](../LICENSE).
 
 ## Design assets and validation notes
 
-- [Current design assets and feature notes](../design/README.md)
-- [Visual QA record](../design-qa.md)
+- [Current design assets and feature notes](design/README.md)
+- [Visual QA record](design-qa.md)
 
 Superseded mockups and early CPU-only design records have been removed. Historical benchmark results and validation notes above remain records of their respective builds. This is a working developer build, not a completed production release gate.
 

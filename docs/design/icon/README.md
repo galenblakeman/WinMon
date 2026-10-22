@@ -5,7 +5,7 @@ Selected concept: option 3, a green activity waveform forming a W on a charcoal 
 `WinMon.xaml` is the editable vector source. Regenerate the application assets on Windows:
 
 ```powershell
-pwsh -NoProfile -STA -File design/icon/Generate-Icon.ps1
+pwsh -NoProfile -STA -File docs/design/icon/Generate-Icon.ps1
 ```
 
 The script writes `src/WinMon/Assets/WinMon.ico` with 16, 20, 24, 32, 40, 48, 64, 128, and 256-pixel frames, plus a 256-pixel PNG preview. WPF renders the source directly; no external image packages are needed.

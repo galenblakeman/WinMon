@@ -1,6 +1,6 @@
 # WinMon screenshot examples
 
-Captured October 22, 2026, using the current WinMon WPF source (version 1.0.2). These examples use illustrative process identities and measurements so the screenshots are consistent and do not expose a user's running processes. They are UI examples, not performance measurements or a claim about an already published release.
+Captured October 22, 2026, using the current WinMon WPF source (version 1.0.3). These examples use illustrative process identities and measurements so the screenshots are consistent and do not expose a user's running processes. They are UI examples, not performance measurements or a claim about an already published release.
 
 | File | View |
 | --- | --- |
@@ -18,7 +18,7 @@ Captured October 22, 2026, using the current WinMon WPF source (version 1.0.2). 
 | [example_tropical.png](example_tropical.png) | Tropical palette. |
 | [example_settings.png](example_settings.png) | Settings with language selection, Neon swatches, keyboard shortcut, dual disks and automatic update controls. |
 
-The dashboard and compact views use the same illustrative recording. Settings uses the real controls, expanded to show the complete scrollable content; its disk choices reflect the capture machine. Screenshots render the app's WPF content; Windows-composed caption buttons are outside these renders. Generic process icons are used for the illustrative executable paths.
+The dashboard and compact views use the same illustrative recording. Settings uses the real window and controls; its disk choices reflect the capture machine. Screenshots capture the complete Windows-composed window, including native caption buttons, and use the current responsive layout. Generic process icons are used for the illustrative executable paths.
 
 ## Regenerate
 
@@ -29,4 +29,4 @@ dotnet build src/WinMon/WinMon.csproj -c Release -m:1 -p:UseSharedCompilation=fa
 & ./artifacts/examples-build/bin/WinMon/release_win-x64/WinMon.exe --examples-output "$PWD/artifacts/readme-examples"
 ```
 
-Wait for the app to exit successfully, inspect the `example_*.png` files, then copy them into this directory. A failed capture writes `failure.txt` in the output directory; use a fresh output directory for each run. The diagnostic mode renders in English and does not load or save your normal preferences or copy to the clipboard.
+Run in an interactive Windows desktop with enough screen space for the 1000-by-940 dashboard window. The capture windows appear briefly; keep them unobstructed and do not switch applications during capture. Capture fails if its window is not foreground or does not fit on screen. Wait for the app to exit successfully, inspect the `example_*.png` files, then copy them into this directory. A failed capture writes `failure.txt` in the output directory; use a fresh output directory for each run. The diagnostic mode renders in English and does not load or save your normal preferences or copy to the clipboard.

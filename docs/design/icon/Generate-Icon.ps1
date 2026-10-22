@@ -1,8 +1,8 @@
-# Run on Windows: pwsh -STA -File design/icon/Generate-Icon.ps1
+# Run on Windows: pwsh -STA -File docs/design/icon/Generate-Icon.ps1
 # Editable WPF vector source; no external image tools or packages required.
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName PresentationCore, PresentationFramework, WindowsBase
-$assetDirectory = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../src/WinMon/Assets'))
+$assetDirectory = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../../src/WinMon/Assets'))
 [IO.Directory]::CreateDirectory($assetDirectory) | Out-Null
 $source = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'WinMon.xaml'))
 $drawing = [Windows.Markup.XamlReader]::Parse($source)
