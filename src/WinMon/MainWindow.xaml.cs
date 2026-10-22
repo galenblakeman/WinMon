@@ -119,7 +119,7 @@ public partial class MainWindow
         {
             var wide = ActualWidth >= WideWidth;
             var inlineProcessToolbar = ActualWidth >= InlineProcessToolbarWidth;
-            var inlinePinToolbar = ActualWidth >= 1000;
+            var inlinePinToolbar = inlineProcessToolbar;
             if ((wide == _wide && inlineProcessToolbar == _inlineProcessToolbar && inlinePinToolbar == _inlinePinToolbar) || _closing) return;
             _wide = wide;
             _inlineProcessToolbar = inlineProcessToolbar;

@@ -11,6 +11,23 @@ namespace WinMon;
 
 public partial class MainWindow
 {
+    private void ValidateProcessToolbar()
+    {
+        if (!_inlinePinToolbar) return;
+        var right = 0.0;
+        foreach (FrameworkElement control in new FrameworkElement[]
+                 { PinSummary, ProcessRankingControls, ProcessSearchBorder, AppsOnlyCheckBox, PinnedOnlyCheckBox, ProcessGroupingControls })
+        {
+            var bounds = control.TransformToAncestor(ProcessToolbarGrid).TransformBounds(new Rect(control.RenderSize));
+            if (Grid.GetRow(control) != 0 || bounds.Left < right - 0.5 || bounds.Right > ProcessToolbarGrid.ActualWidth + 0.5 ||
+                bounds.Top < -0.5 || bounds.Bottom > ProcessToolbarGrid.ActualHeight + 0.5)
+                throw new InvalidOperationException($"Process toolbar control {control.Name} overlaps, clips, or wraps at width {ProcessToolbarGrid.ActualWidth}.");
+            right = bounds.Right;
+        }
+        if (ProcessSearchBorder.ActualWidth < ProcessSearchBorder.MinWidth)
+            throw new InvalidOperationException("The compact process toolbar lost its minimum search width.");
+    }
+
     internal static async Task CapturePinsFixtureAsync(string output, CancellationToken cancellationToken)
     {
         var fixture = new MainWindow(true);
@@ -107,11 +124,13 @@ public partial class MainWindow
 
         void Draw(double width = 1000, double height = 1000)
         {
-            fixture._inlinePinToolbar = width >= 1000;
+            fixture._inlineProcessToolbar = width >= InlineProcessToolbarWidth;
+            fixture._inlinePinToolbar = fixture._inlineProcessToolbar;
             fixture.RefreshVisiblePresentation();
             visual.Measure(new Size(width, height));
             visual.Arrange(new Rect(0, 0, width, height));
             visual.UpdateLayout();
+            fixture.ValidateProcessToolbar();
         }
         static IEnumerable<DependencyObject> Descendants(DependencyObject parent)
         {

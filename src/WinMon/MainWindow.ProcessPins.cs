@@ -11,16 +11,16 @@ public partial class MainWindow
     {
         System.Windows.Controls.Grid.SetColumn(ProcessRankingControls, _inlinePinToolbar ? 1 : 0);
         System.Windows.Controls.Grid.SetColumnSpan(ProcessRankingControls, _inlinePinToolbar ? 1 : 2);
-        System.Windows.Controls.Grid.SetColumn(ProcessGroupingControls, 4);
+        System.Windows.Controls.Grid.SetColumn(ProcessGroupingControls, _inlinePinToolbar ? 5 : 4);
         System.Windows.Controls.Grid.SetColumnSpan(ProcessGroupingControls, _inlinePinToolbar ? 1 : 2);
         var pinRow = _inlinePinToolbar ? 0 : _inlineProcessToolbar ? 1 : 2;
         System.Windows.Controls.Grid.SetRow(PinSummary, pinRow);
         System.Windows.Controls.Grid.SetColumnSpan(PinSummary, _inlinePinToolbar ? 1 : 2);
         PinSummary.Margin = _inlinePinToolbar ? new Thickness(0, 0, 12, 0) : new Thickness(0, 6, 0, 0);
         System.Windows.Controls.Grid.SetRow(PinnedOnlyCheckBox, pinRow);
-        System.Windows.Controls.Grid.SetColumn(PinnedOnlyCheckBox, _inlinePinToolbar ? 5 : 4);
+        System.Windows.Controls.Grid.SetColumn(PinnedOnlyCheckBox, 4);
         System.Windows.Controls.Grid.SetColumnSpan(PinnedOnlyCheckBox, _inlinePinToolbar ? 1 : 2);
-        PinnedOnlyCheckBox.Margin = _inlinePinToolbar ? new Thickness(12, 0, 0, 0) : new Thickness(0, 6, 0, 0);
+        PinnedOnlyCheckBox.Margin = _inlinePinToolbar ? new Thickness(0, 0, 12, 0) : new Thickness(0, 6, 0, 0);
     }
 
     private void ToggleProcessPin(ProcessUsage process, bool grouped)

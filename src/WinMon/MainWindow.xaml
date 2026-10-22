@@ -441,7 +441,7 @@
                                 <StackPanel x:Name="ProcessRankingControls" Grid.Row="0" Grid.Column="0" Orientation="Horizontal">
                                     <TextBlock
                                         VerticalAlignment="Center"
-                                        FontSize="15"
+                                        FontSize="13"
                                         FontWeight="SemiBold"
                                         Text="{Binding [Top], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                                     <ComboBox
@@ -451,12 +451,12 @@
                                         MinHeight="28"
                                         Margin="6,0"
                                         AutomationProperties.Name="{Binding [NumberOfTopProcesses], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                        FontSize="14"
+                                        FontSize="13"
                                         FontWeight="SemiBold"
                                         ToolTip="{Binding [NumberOfProcessesShown], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                                     <TextBlock
                                         VerticalAlignment="Center"
-                                        FontSize="15"
+                                        FontSize="13"
                                         FontWeight="SemiBold"
                                         Text="{Binding [ProcessesBy], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                                     <ComboBox
@@ -466,7 +466,7 @@
                                         MinHeight="28"
                                         Margin="6,0,0,0"
                                         AutomationProperties.Name="{Binding [RankProcessesBy], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                        FontSize="14"
+                                        FontSize="13"
                                         FontWeight="SemiBold"
                                         ToolTip="{Binding [RankByFiveSecondAverageCPUGPUOrIO], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                                 </StackPanel>
@@ -554,13 +554,11 @@
                                     Foreground="{DynamicResource Text}"
                                     ToolTip="{Binding [ProcessKindExplanation], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                             <StackPanel x:Name="PinSummary" Orientation="Horizontal" Margin="0,6,0,0">
-                                <TextBlock Text="{Binding [ProcessesHeading], Source={x:Static resources:Strings.Text}}"
-                                           VerticalAlignment="Center" FontSize="13" FontWeight="SemiBold" />
-                                <TextBlock x:Name="PinnedCountLabel" Margin="12,0,0,0" VerticalAlignment="Center"
+                                <TextBlock x:Name="PinnedCountLabel" VerticalAlignment="Center"
                                            FontSize="12" Foreground="{DynamicResource ProcessPinAccent}" />
                             </StackPanel>
                                 <CheckBox x:Name="PinnedOnlyCheckBox" Content="{Binding [PinnedOnly], Source={x:Static resources:Strings.Text}}"
-                                          Style="{StaticResource PinnedOnlySwitch}"
+                                          Foreground="{DynamicResource Text}"
                                           AutomationProperties.Name="{Binding [PinnedOnly], Source={x:Static resources:Strings.Text}}"
                                           ToolTip="{Binding [PinnedProcessesExplanation], Source={x:Static resources:Strings.Text}}"
                                           HorizontalAlignment="Right" FontSize="12" />

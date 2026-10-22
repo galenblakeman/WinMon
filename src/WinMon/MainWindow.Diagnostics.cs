@@ -291,7 +291,7 @@ public partial class MainWindow
     {
         Directory.CreateDirectory(output);
         if (_history.Samples.Count == 0) await Task.Delay(TimeSpan.FromSeconds(4), cancellationToken);
-        // Pin controls add another row below 1000 DIPs; exercise every responsive header layout.
+        // Check the compact process toolbar at the minimum and wider supported window sizes.
         var headerWidth = Width;
         try
         {
@@ -623,6 +623,7 @@ public partial class MainWindow
     {
         // A mode change may just have collapsed the historical summary; measure the current layout.
         UpdateLayout();
+        ValidateProcessToolbar();
         var handle = new WindowInteropHelper(this).Handle;
         var titlePoint = ViewTitle.TranslatePoint(new Point(20, ViewTitle.ActualHeight / 2), this);
         var pinPoint = PinButton.TranslatePoint(new Point(PinButton.ActualWidth / 2, PinButton.ActualHeight / 2), this);
