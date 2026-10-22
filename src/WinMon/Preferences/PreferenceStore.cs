@@ -127,6 +127,7 @@ public sealed class PreferenceStore
             ProcessSort = preferences is { SortByGpu: true, ProcessSort: Monitoring.ProcessSort.Cpu } ? Monitoring.ProcessSort.Gpu
                 : Enum.IsDefined(preferences.ProcessSort) ? preferences.ProcessSort : Monitoring.ProcessSort.Cpu,
             SortByGpu = false,
+            PinnedProcesses = Monitoring.ProcessPins.Normalize(preferences.PinnedProcesses),
             ShowShortcut = Shortcuts.HotkeyGesture.Normalize(preferences.ShowShortcut)
         };
     }

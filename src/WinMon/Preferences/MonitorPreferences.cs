@@ -43,6 +43,12 @@ public sealed record MonitorPreferences
     /// <summary>Show only rows classified as apps at the live or selected historical sample.</summary>
     public bool AppsOnly { get; init; }
 
+    /// <summary>Individual process lifetimes and executable groups pinned in insertion order.</summary>
+    public ProcessPinPreference[] PinnedProcesses { get; init; } = [];
+
+    /// <summary>Restore the pinned-only process filter on startup.</summary>
+    public bool PinnedOnly { get; init; }
+
     /// <summary>Legacy GPU-ranking flag, read once and migrated to <see cref="ProcessSort"/>.</summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool SortByGpu { get; init; }

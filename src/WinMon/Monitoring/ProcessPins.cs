@@ -1,9 +1,11 @@
+using WinMon.Preferences;
+
 namespace WinMon.Monitoring;
 
 internal enum PinnedProcessState { Present, Exited, Unavailable, NotRecorded }
 internal sealed record PinnedProcess(ProcessUsage Usage, PinnedProcessState State);
 
-/// <summary>Session-only pins, in insertion order. Individual pins identify one process lifetime.</summary>
+/// <summary>Pins in insertion order. Individual pins identify one process lifetime.</summary>
 internal sealed class ProcessPins
 {
     private sealed record Pin(ProcessUsage Usage, bool Grouped);
@@ -11,6 +13,31 @@ internal sealed class ProcessPins
 
     internal int Count(bool grouped) => _pins.Count(p => p.Grouped == grouped);
     internal bool Contains(ProcessUsage process, bool grouped) => _pins.Any(p => Matches(p, process, grouped));
+
+    internal ProcessPinPreference[] Snapshot() => [.. _pins.Select(pin => new ProcessPinPreference(
+        pin.Usage.ProcessId, pin.Usage.CreationTicks, pin.Usage.Name, pin.Usage.ImagePath,
+        pin.Usage.AppName, pin.Usage.HasAppWindow, pin.Grouped))];
+
+    internal void Restore(IEnumerable<ProcessPinPreference>? saved)
+    {
+        _pins.Clear();
+        foreach (var pin in saved ?? [])
+        {
+            if (pin is null || pin.ProcessId < 0 || pin.CreationTicks < 0 || string.IsNullOrWhiteSpace(pin.Name)) continue;
+            var usage = new ProcessUsage(pin.ProcessId, pin.CreationTicks, pin.Name, 0)
+            {
+                ImagePath = pin.ImagePath ?? "", AppName = pin.AppName ?? "", HasAppWindow = pin.HasAppWindow
+            };
+            if (!Contains(usage, pin.Grouped)) _pins.Add(new Pin(usage, pin.Grouped));
+        }
+    }
+
+    internal static ProcessPinPreference[] Normalize(IEnumerable<ProcessPinPreference>? saved)
+    {
+        var pins = new ProcessPins();
+        pins.Restore(saved);
+        return pins.Snapshot();
+    }
 
     internal void Toggle(ProcessUsage process, bool grouped)
     {

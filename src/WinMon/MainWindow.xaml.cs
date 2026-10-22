@@ -137,6 +137,9 @@ public partial class MainWindow
         try
         {
             _preferences = _diagnosticMode ? new MonitorPreferences() : _initialPreferences ?? await _preferenceStore.LoadAsync(_lifetime.Token);
+            _processPins.Restore(_preferences.PinnedProcesses);
+            Volatile.Write(ref _retainPinned, _processPins.RetentionSnapshot());
+            PinnedOnlyCheckBox.IsChecked = _preferences.PinnedOnly;
             ProcessSortSelector.SelectedIndex = (int)_preferences.ProcessSort;
             GroupedChip.IsChecked = _preferences.GroupProcesses;
             IndividualChip.IsChecked = !_preferences.GroupProcesses;

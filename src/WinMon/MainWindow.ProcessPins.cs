@@ -26,11 +26,17 @@ public partial class MainWindow
     private void ToggleProcessPin(ProcessUsage process, bool grouped)
     {
         _processPins.Toggle(process, grouped);
+        _preferences = _preferences with { PinnedProcesses = _processPins.Snapshot() };
         Volatile.Write(ref _retainPinned, _processPins.RetentionSnapshot());
         RefreshPresentation();
     }
 
-    private void OnPinnedOnlyChanged(object sender, RoutedEventArgs e) => RefreshPresentation();
+    private void OnPinnedOnlyChanged(object sender, RoutedEventArgs e)
+    {
+        if (_closing) return;
+        _preferences = _preferences with { PinnedOnly = PinnedOnlyCheckBox.IsChecked == true };
+        RefreshPresentation();
+    }
 
     private PinnedProcess[] ResolvePinnedRows(IReadOnlyList<CpuSample> samples, bool grouped, string query, bool appsOnly)
     {
