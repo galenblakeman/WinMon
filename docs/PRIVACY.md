@@ -16,7 +16,7 @@ Diagnostic and performance command-line modes write reports and, for some modes,
 
 ## Actions you choose
 
-The Info window copies hardware information to the Windows clipboard only when you select Copy. Windows clipboard history or synchronization, if enabled, is controlled by your Windows settings. Review the report before pasting it into an issue or message.
+The Info window copies hardware information to the Windows clipboard only when you select Copy. The snapshot card copies selected historical resource readings and displayed process names, IDs and measurements only when you select Copy snapshot. Windows clipboard history or synchronization, if enabled, is controlled by your Windows settings. Review the report before pasting it into an issue or message.
 
 Selecting the source-code link opens GitHub in your default browser. Downloads, issues, and any information you choose to submit there are covered by [GitHub's privacy statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement). WinMon does not send a hardware report with that link.
 

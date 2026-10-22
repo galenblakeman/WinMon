@@ -813,7 +813,7 @@ public partial class MainWindow
         if (fixture._rows.Count(row => row.Visibility == Visibility.Visible) != 1 ||
             !filteredGroup.Contains(Strings.Format(Strings.Processes, 2), StringComparison.Ordinal) ||
             !filteredGroup.Contains(Percent(9.4), StringComparison.Ordinal) ||
-            !filteredGroup.EndsWith(Strings.ProcessKindApp, StringComparison.Ordinal))
+            !filteredGroup.Contains($" · {Strings.ProcessKindApp} · {Strings.Threads}:", StringComparison.Ordinal))
             throw new InvalidOperationException("App Only did not preserve grouped totals with search and historical selection.");
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "apps-only-grouped-history.png"), 1, cancellationToken);
         fixture.ProcessSearchBox.Text = "no-matching-app";
@@ -1012,6 +1012,20 @@ public partial class MainWindow
                 await CaptureVisualAsync(visual, Path.Combine(outputDirectory, $"snapshot-{width}-{name}.png"), 1, cancellationToken);
             }
         }
+        // Copy from a held historical sample without touching the user's Windows clipboard.
+        fixture._selectedSample = fixture._history.Samples[^2];
+        fixture.RefreshVisiblePresentation();
+        string? copied = null;
+        fixture.CopySnapshot(value => copied = value);
+        if (copied is null || !copied.Contains(Strings.Format(Strings.ExportSnapshotTime, fixture._selectedSample.Timestamp)) ||
+            !copied.Contains(Strings.SnapshotExportAverages) ||
+            fixture.SnapshotCopyButton.Content as string != Strings.Copied ||
+            !ReferenceEquals(fixture._snapshotReport?.Sample, fixture._selectedSample))
+            throw new InvalidOperationException("Copy did not export the held snapshot with processes or confirm success.");
+        await File.WriteAllTextAsync(Path.Combine(outputDirectory, "clipboard.txt"), copied, cancellationToken);
+        fixture.ResetSnapshotCopyCaption();
+        if (fixture.SnapshotCopyButton.Content as string != Strings.CopySnapshot)
+            throw new InvalidOperationException("Copy confirmation did not reset.");
         // A shorter graph must scroll its values while keeping the live action within the panel.
         ArrangeSnapshot(600, 540);
         AssertSnapshotContained();
@@ -1030,13 +1044,17 @@ public partial class MainWindow
         ArrangeSnapshot(905, 940);
         if (fixture.SnapshotNote.Text != Strings.HistoryExpiredThisSampleHasLeftTheRecordingWindow || fixture.SnapshotReadings.Visibility != Visibility.Collapsed)
             throw new InvalidOperationException("An expired snapshot displayed stale readings.");
+        copied = null;
+        fixture.CopySnapshot(value => copied = value);
+        if (fixture.SnapshotCopyButton.IsEnabled || copied is not null)
+            throw new InvalidOperationException("An expired snapshot remained available for copying.");
         fixture.LiveButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
         fixture.RefreshVisiblePresentation();
         if (fixture._selectedSample is not null || fixture.SnapshotLayer.Visibility != Visibility.Collapsed)
             throw new InvalidOperationException("The snapshot action did not return to live.");
         await File.WriteAllTextAsync(Path.Combine(outputDirectory, "snapshot.json"),
             JsonSerializer.Serialize(new { Corners = 12, ResizedWhileSelected = true, ShortChart = true, LightAndDark = true,
-                Expiry = true, ReturnToLive = true, CenteredChartModeSwitch = true, LatestSampleAction = true,
+                Expiry = true, ReturnToLive = true, CenteredChartModeSwitch = true, LatestSampleAction = true, SnapshotCopy = true,
                 RenderScales = new[] { 1d, 1.5, 2d } }), cancellationToken);
 
         return;
@@ -1052,7 +1070,9 @@ public partial class MainWindow
         {
             var panel = fixture.SnapshotPanel.TransformToAncestor(fixture.SnapshotLayer).TransformBounds(new Rect(fixture.SnapshotPanel.RenderSize));
             var button = fixture.LiveButton.TransformToAncestor(fixture.SnapshotLayer).TransformBounds(new Rect(fixture.LiveButton.RenderSize));
-            if (!fixture.OverallGraph.PlotBounds.Contains(panel) || !panel.Contains(button) || button.Height < 24)
+            var copy = fixture.SnapshotCopyButton.TransformToAncestor(fixture.SnapshotLayer).TransformBounds(new Rect(fixture.SnapshotCopyButton.RenderSize));
+            if (!fixture.OverallGraph.PlotBounds.Contains(panel) || !panel.Contains(button) || button.Height < 24 ||
+                !panel.Contains(copy) || copy.Height < 24)
                 throw new InvalidOperationException($"Snapshot panel or live action escaped the chart: {panel}, button {button}, plot {fixture.OverallGraph.PlotBounds}.");
         }
 

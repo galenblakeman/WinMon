@@ -1317,4 +1317,16 @@ O trabalho não salvo pode ser perdido. Todos os processos listados abaixo serã
   <data name="ProcessHandlesExplanation" xml:space="preserve"><value>Última contagem; os grupos somam os processos observados atuais. O histórico pode omitir processos ociosos compactados.</value></data>
   <data name="HistoryCount" xml:space="preserve"><value>Histórico de {0}: 0–{1:N0}.</value></data>
   <data name="NoProcessCountReadings" xml:space="preserve"><value>Nenhuma contagem de processos disponível.</value></data>
+  <data name="CopySnapshot" xml:space="preserve">
+    <value>Copiar captura</value>
+  </data>
+  <data name="SnapshotExportIntervals" xml:space="preserve">
+    <value>Recursos do sistema: leituras do intervalo.</value>
+  </data>
+  <data name="SnapshotExportProcesses" xml:space="preserve">
+    <value>Processos — {0}; ordenados por {1}</value>
+  </data>
+  <data name="SnapshotExportAverages" xml:space="preserve">
+    <value>CPU e E/S dos processos: médias de cinco segundos; GPU: média dos intervalos legíveis na janela de cinco segundos. Memória, threads e identificadores: últimas leituras.</value>
+  </data>
 </root>

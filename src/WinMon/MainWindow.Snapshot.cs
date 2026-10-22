@@ -7,6 +7,44 @@ namespace WinMon;
 
 public partial class MainWindow
 {
+    private SnapshotReport? _snapshotReport;
+    private readonly System.Windows.Threading.DispatcherTimer _snapshotCopiedTimer = new() { Interval = TimeSpan.FromSeconds(2) };
+
+    private void OnCopySnapshot(object sender, RoutedEventArgs e) => CopySnapshot();
+
+    private void CopySnapshot(Action<string>? copyToClipboard = null)
+    {
+        // Never substitute the live sample when the selected sample has expired.
+        if (_snapshotReport is not { } report || !ReferenceEquals(report.Sample, _selectedSample) ||
+            !_history.Samples.Contains(report.Sample)) return;
+        try
+        {
+            var text = SnapshotText.Format(report);
+            if (copyToClipboard is null) Clipboard.SetDataObject(new DataObject(DataFormats.UnicodeText, text), true);
+            else copyToClipboard(text);
+            SnapshotCopyButton.Content = Strings.Copied;
+            _snapshotCopiedTimer.Stop();
+            _snapshotCopiedTimer.Tick -= OnSnapshotCopiedTimeout;
+            _snapshotCopiedTimer.Tick += OnSnapshotCopiedTimeout;
+            _snapshotCopiedTimer.Start();
+        }
+        catch (System.Runtime.InteropServices.ExternalException ex)
+        {
+            System.Diagnostics.Trace.TraceWarning("Could not copy snapshot: {0}", ex.Message);
+            ResetSnapshotCopyCaption();
+            MessageBox.Show(this, Strings.TheClipboardIsUnavailableTryCopyAgain, Strings.CopySnapshot, MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+    }
+
+    private void OnSnapshotCopiedTimeout(object? sender, EventArgs e) => ResetSnapshotCopyCaption();
+
+    private void ResetSnapshotCopyCaption()
+    {
+        _snapshotCopiedTimer.Stop();
+        SnapshotCopyButton.SetBinding(ContentControl.ContentProperty,
+            new System.Windows.Data.Binding("[CopySnapshot]") { Source = Strings.Text, Mode = System.Windows.Data.BindingMode.OneWay });
+    }
+
     private void OnLiveModeClick(object sender, RoutedEventArgs e) => ReturnToLive();
 
     private void OnSnapshotModeClick(object sender, RoutedEventArgs e) => OverallGraph.SelectLatest();
@@ -17,6 +55,9 @@ public partial class MainWindow
         SnapshotModeButton.IsChecked = _selectedSample is not null;
         SnapshotModeButton.IsEnabled = _history.Latest is not null;
         SnapshotLayer.Visibility = _selectedSample is null ? Visibility.Collapsed : Visibility.Visible;
+        SnapshotCopyButton.IsEnabled = retained is not null;
+        if (!ReferenceEquals(_snapshotReport?.Sample, retained)) ResetSnapshotCopyCaption();
+        if (retained is null) _snapshotReport = null;
         if (_selectedSample is null) return;
         SnapshotTitle.Text = Strings.Format(Strings.Snapshot, _selectedSample.Timestamp);
         SnapshotNote.Text = retained is null ? Strings.HistoryExpiredThisSampleHasLeftTheRecordingWindow

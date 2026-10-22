@@ -1317,4 +1317,16 @@ Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse
   <data name="ProcessHandlesExplanation" xml:space="preserve"><value>Zuletzt erfasste Anzahl; Gruppen summieren aktuell beobachtete Prozesse. Im Verlauf können komprimierte inaktive Prozesse fehlen.</value></data>
   <data name="HistoryCount" xml:space="preserve"><value>{0}-Verlauf: 0–{1:N0}.</value></data>
   <data name="NoProcessCountReadings" xml:space="preserve"><value>Keine Prozessanzahlen verfügbar.</value></data>
+  <data name="CopySnapshot" xml:space="preserve">
+    <value>Snapshot kopieren</value>
+  </data>
+  <data name="SnapshotExportIntervals" xml:space="preserve">
+    <value>Systemressourcen: Intervallmesswerte.</value>
+  </data>
+  <data name="SnapshotExportProcesses" xml:space="preserve">
+    <value>Prozesse — {0}; sortiert nach {1}</value>
+  </data>
+  <data name="SnapshotExportAverages" xml:space="preserve">
+    <value>Prozess-CPU und E/A: Fünf-Sekunden-Mittelwerte; GPU: Mittelwert lesbarer Intervalle im Fünf-Sekunden-Fenster. Arbeitsspeicher, Threads und Handles: letzte Messwerte.</value>
+  </data>
 </root>

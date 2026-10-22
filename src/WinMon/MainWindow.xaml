@@ -359,7 +359,15 @@
                                     Padding="0,6,0,0"
                                     BorderBrush="{DynamicResource Line}"
                                     BorderThickness="0,1,0,0">
-                                    <Button
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Button x:Name="SnapshotCopyButton" MinHeight="24" Padding="4,2" Margin="0,0,4,0" FontSize="11"
+                                            Click="OnCopySnapshot"
+                                            Content="{Binding [CopySnapshot], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                    <Button Grid.Column="1"
                                         x:Name="LiveButton"
                                         MinHeight="24"
                                         Padding="8,2"
@@ -368,6 +376,7 @@
                                         Content="{Binding [ReturnToLive], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                                         FontSize="12"
                                         ToolTip="{Binding [ResumeLiveReadingsAndProcessesEndOrEscape], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                    </Grid>
                                 </Border>
                             </Grid>
                         </Border>

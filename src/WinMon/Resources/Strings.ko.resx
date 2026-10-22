@@ -1317,4 +1317,16 @@ Windows 상태: {2}</value>
   <data name="ProcessHandlesExplanation" xml:space="preserve"><value>최근 측정된 수입니다. 그룹 행은 현재 관측된 프로세스의 합계입니다. 기록에서는 압축된 유휴 프로세스가 생략될 수 있습니다.</value></data>
   <data name="HistoryCount" xml:space="preserve"><value>{0} 기록: 0–{1:N0}.</value></data>
   <data name="NoProcessCountReadings" xml:space="preserve"><value>프로세스 수 측정값이 없습니다.</value></data>
+  <data name="CopySnapshot" xml:space="preserve">
+    <value>스냅샷 복사</value>
+  </data>
+  <data name="SnapshotExportIntervals" xml:space="preserve">
+    <value>시스템 리소스: 구간 측정값.</value>
+  </data>
+  <data name="SnapshotExportProcesses" xml:space="preserve">
+    <value>프로세스 — {0}; 정렬 기준: {1}</value>
+  </data>
+  <data name="SnapshotExportAverages" xml:space="preserve">
+    <value>프로세스 CPU 및 I/O: 5초 평균. GPU: 5초 구간 내 읽을 수 있는 측정값의 평균. 메모리, 스레드 및 핸들: 최신 측정값.</value>
+  </data>
 </root>

@@ -45,6 +45,8 @@ Choose **Snapshot** in the centered **Live | Snapshot** switch above the chart t
 
 Click **Snapshot** again to select the newest sample. Use **Left / Right** to step through samples, **Home** to jump to the oldest visible sample, and **Live**, **End**, **Escape** or **Return to live** to resume the live view.
 
+**Copy snapshot** always copies the selected moment’s resource summary and displayed top process rows as plain text, preserving their sorting, grouping and filters. Reports include the timestamp and time zone, units, unavailable readings and averaging notes. Copying keeps the snapshot open; expired samples cannot be copied.
+
 History is kept in memory for the current session, with configurable retention up to 60 minutes. Available history can be shorter on busy systems and is cleared when WinMon exits.
 
 ## Make it yours

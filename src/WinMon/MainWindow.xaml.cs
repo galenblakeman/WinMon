@@ -329,6 +329,12 @@ public partial class MainWindow
         CoverageLabel.Text = visible is null ? "" : Coverage(visible.UnavailableProcesses, ranking.TotalCpuPercent, ranking.MeasuredCpuPercent);
         if (_history.WasMemoryLimited) CoverageLabel.Text += (CoverageLabel.Text.Length > 0 ? " · " : "") + Strings.HistoryShortenedByMemoryLimit;
         CoverageLabel.ToolTip = CoverageLabel.Text + Strings.UnattributedCPUIsTotalCPUMinusAllMeasuredProcessesKernel;
+        if (_selectedSample is not null && visible is not null)
+            _snapshotReport = new SnapshotReport(visible, top, grouped,
+                SortHeaders.First(h => h.Sort == _preferences.ProcessSort).Text, query, appsOnly, CoverageLabel.Text,
+                rest.Length == 0 ? null : new SnapshotRemainder(
+                    rest.Length + (query.Length == 0 && !appsOnly && _preferences.ProcessSort == ProcessSort.Memory && !grouped ? visible.CompactedProcesses : 0),
+                    rest.Sum(p => p.CpuPercent), rest.Any(p => p.IoBytesPerSecond is not null) ? rest.Sum(p => p.IoBytesPerSecond ?? 0) : null));
         LiveCaption.Text = allUnavailable ? Strings.SystemResourcesUnavailable : Strings.SystemResources;
         LiveCaption.ToolTip = _selectedSample is not null ? Strings.SystemResourcesInspectingSnapshot : LiveCaption.Text;
         ShowError(_samplingError switch
@@ -933,6 +939,7 @@ public partial class MainWindow
             _preparingUpdateExit = false;
         }
         _closing = true;
+        _snapshotCopiedTimer.Stop();
         IsEnabled = false;
         SystemEvents.UserPreferenceChanged -= OnUserPreferenceChanged;
         SystemEvents.DisplaySettingsChanged -= OnDisplaySettingsChanged;

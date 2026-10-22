@@ -62,6 +62,7 @@ public static partial class Strings
     public static string CopyAllInformation => ResourceManager.GetString(nameof(CopyAllInformation), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string CopyAllInformationAsPlainText => ResourceManager.GetString(nameof(CopyAllInformationAsPlainText), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string CopyInformation => ResourceManager.GetString(nameof(CopyInformation), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string CopySnapshot => ResourceManager.GetString(nameof(CopySnapshot), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string CPU => ResourceManager.GetString(nameof(CPU), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string CpuColumn => ResourceManager.GetString(nameof(CpuColumn), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string CPUDetails => ResourceManager.GetString(nameof(CPUDetails), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
@@ -341,6 +342,9 @@ public static partial class Strings
     public static string ShowWinMon => ResourceManager.GetString(nameof(ShowWinMon), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string SlotUsageUnavailable => ResourceManager.GetString(nameof(SlotUsageUnavailable), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string Snapshot => ResourceManager.GetString(nameof(Snapshot), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string SnapshotExportAverages => ResourceManager.GetString(nameof(SnapshotExportAverages), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string SnapshotExportIntervals => ResourceManager.GetString(nameof(SnapshotExportIntervals), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string SnapshotExportProcesses => ResourceManager.GetString(nameof(SnapshotExportProcesses), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string SnapshotMode => ResourceManager.GetString(nameof(SnapshotMode), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string SnapshotTakenWhenOpenedOrRefreshed => ResourceManager.GetString(nameof(SnapshotTakenWhenOpenedOrRefreshed), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string SnapshotUnavailableTryRefresh => ResourceManager.GetString(nameof(SnapshotUnavailableTryRefresh), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
