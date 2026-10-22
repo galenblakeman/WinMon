@@ -1339,4 +1339,6 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="ProcessNotRecorded" xml:space="preserve"><value>Not recorded at this sample</value></data>
   <data name="NoPinnedProcessesMatch" xml:space="preserve"><value>No pinned processes in this view. Pin a process using its pin button or row menu.</value></data>
   <data name="ProcessesHeading" xml:space="preserve"><value>Processes</value></data>
+  <data name="CompactView" xml:space="preserve"><value>Compact view</value></data>
+  <data name="FullView" xml:space="preserve"><value>Full view</value></data>
 </root>

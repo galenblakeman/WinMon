@@ -306,6 +306,12 @@ Copyright © 2026 Galen Blakeman. Released under the [MIT License](../LICENSE).
 
 Superseded mockups and early CPU-only design records have been removed. Historical benchmark results and validation notes above remain records of their respective builds. This is a working developer build, not a completed production release gate.
 
+## Compact resource strip
+
+The title-bar **Compact view** action switches to a 156-DIP-high horizontal resource strip. `MainWindow.Compact.cs` reuses the live readouts and `CpuGraph` history, preserving gaps, resource identities and the existing throughput scale. Percentages retain the 0–100 scale; the strip shows the last two minutes independently of the full chart's selected range. Optional second-drive tiles collapse when unconfigured. `CompactMode` persists separately from full-view dimensions. Ctrl+F restores the full view before focusing process search.
+
+Run `WinMon.exe --compact-smoke-output <directory>` for isolated live-data, button switching, saved-dimension and fixture checks. It emits `compact.json`, `strip-live.png`, and dark/light renders at 836 and 1000 DIPs and 100/150/200 percent scale. These renders do not prove physical mixed-DPI transitions or composed native caption buttons.
+
 ## Pinned process rows
 
 Pins are session-only and live in `Monitoring/ProcessPins.cs`. Individual pins use PID plus creation time; grouped pins use the same executable key as grouping, with separate lists for the two modes. Immutable retention predicates are published to the sampling thread so idle pinned processes and all pinned-group members remain in future compacted samples. Existing retained samples are not rewritten. Ranked rows exclude pinned identities before applying Top N and calculating the remainder; pin rows stay in insertion order and share the process sparkline scale. Search and App Only apply to both sections. Missing live observations show Exited only for a complete readable sample; gaps and incomplete captures remain unavailable. Historical omissions are labeled Not recorded at this sample. Snapshot copying includes displayed pin rows and suppresses stale readings.

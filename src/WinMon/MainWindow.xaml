@@ -39,6 +39,13 @@
                 Background="{DynamicResource TitleBarSurface}">
                 <DockPanel LastChildFill="True">
                     <Button
+                        x:Name="CompactViewButton"
+                        controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Compact}"
+                        Click="OnToggleCompactView"
+                        DockPanel.Dock="Right"
+                        Style="{StaticResource TitleActionButton}"
+                        WindowChrome.IsHitTestVisibleInChrome="True" />
+                    <Button
                         x:Name="PinButton"
                         controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Pin}"
                         AutomationProperties.Name="{Binding [KeepOnTopOff], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
@@ -76,6 +83,9 @@
                         Style="{StaticResource TitleActionButton}"
                         ToolTip="{Binding [VersionPlusCPUMemoryGraphicsVolumesAndNetworkHardware], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                         WindowChrome.IsHitTestVisibleInChrome="True" />
+                    <TextBlock x:Name="CompactStatus" DockPanel.Dock="Left" VerticalAlignment="Center"
+                        FontSize="11" Margin="0,0,10,0" Foreground="{DynamicResource SnapshotAccent}"
+                        Text="{Binding [LiveMode], Source={x:Static resources:Strings.Text}, Mode=OneWay}" Visibility="Collapsed" />
                     <Button
                         x:Name="SettingsButton"
                         controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Settings}"
@@ -89,7 +99,8 @@
                     <Border Background="Transparent" />
                 </DockPanel>
             </Border>
-            <Border Grid.Row="1" Background="{DynamicResource Surface}">
+            <Grid x:Name="CompactStrip" Grid.Row="1" Background="{DynamicResource Surface}" Visibility="Collapsed" />
+            <Border x:Name="FullView" Grid.Row="1" Background="{DynamicResource Surface}">
                 <Grid Margin="20,12,20,8">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />

@@ -56,6 +56,7 @@ public static partial class Strings
     public static string CollectingABaselineOrRecoveringAfterARecordingGap => ResourceManager.GetString(nameof(CollectingABaselineOrRecoveringAfterARecordingGap), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string CollectingDisconnected => ResourceManager.GetString(nameof(CollectingDisconnected), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string CollectingTheFirstInterval => ResourceManager.GetString(nameof(CollectingTheFirstInterval), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string CompactView => ResourceManager.GetString(nameof(CompactView), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ConfiguredSpeedReportedSpeed => ResourceManager.GetString(nameof(ConfiguredSpeedReportedSpeed), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string Copied => ResourceManager.GetString(nameof(Copied), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string Copy => ResourceManager.GetString(nameof(Copy), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
@@ -106,6 +107,7 @@ public static partial class Strings
     public static string FibreChannel => ResourceManager.GetString(nameof(FibreChannel), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string FileBackedVirtual => ResourceManager.GetString(nameof(FileBackedVirtual), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string FilterRankedProcessesByNameOrPIDCtrlFEscape => ResourceManager.GetString(nameof(FilterRankedProcessesByNameOrPIDCtrlFEscape), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string FullView => ResourceManager.GetString(nameof(FullView), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string GHzMHz => ResourceManager.GetString(nameof(GHzMHz), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string GiB => ResourceManager.GetString(nameof(GiB), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string GiBCapacityGiBAvailable => ResourceManager.GetString(nameof(GiBCapacityGiBAvailable), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;

@@ -1339,4 +1339,6 @@ Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse
   <data name="ProcessNotRecorded" xml:space="preserve"><value>In diesem Messpunkt nicht aufgezeichnet</value></data>
   <data name="NoPinnedProcessesMatch" xml:space="preserve"><value>Keine angehefteten Prozesse in dieser Ansicht. Nutzen Sie die Pin-Schaltfläche oder das Zeilenmenü.</value></data>
   <data name="ProcessesHeading" xml:space="preserve"><value>Prozesse</value></data>
+  <data name="CompactView" xml:space="preserve"><value>Kompaktansicht</value></data>
+  <data name="FullView" xml:space="preserve"><value>Vollansicht</value></data>
 </root>

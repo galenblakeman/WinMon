@@ -1339,4 +1339,6 @@ Se puede perder el trabajo sin guardar. Se finalizarán todos los procesos indic
   <data name="ProcessNotRecorded" xml:space="preserve"><value>No registrado en esta muestra</value></data>
   <data name="NoPinnedProcessesMatch" xml:space="preserve"><value>No hay procesos fijados en esta vista. Fije uno con su botón o menú de fila.</value></data>
   <data name="ProcessesHeading" xml:space="preserve"><value>Procesos</value></data>
+  <data name="CompactView" xml:space="preserve"><value>Vista compacta</value></data>
+  <data name="FullView" xml:space="preserve"><value>Vista completa</value></data>
 </root>

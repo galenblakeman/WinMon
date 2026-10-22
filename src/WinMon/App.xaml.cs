@@ -32,7 +32,7 @@ public partial class App
         AppLanguages.InitializeSystemDisplayCulture(CultureInfo.CurrentUICulture);
         AppLanguages.Apply(AppLanguages.SystemDefault);
 
-        if (e.Args is ["--smoke-output" or "--feature-smoke-output" or "--snapshot-smoke-output" or "--search-smoke-output", _])
+        if (e.Args is ["--smoke-output" or "--feature-smoke-output" or "--snapshot-smoke-output" or "--search-smoke-output" or "--compact-smoke-output", _])
         {
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
             base.OnStartup(e);
@@ -40,7 +40,7 @@ public partial class App
                 Path.Combine(Path.GetFullPath(e.Args[1]), "diagnostic-settings.json")));
             MainWindow = window;
             window.Show();
-            _ = RunDiagnosticsAsync(window, Path.GetFullPath(e.Args[1]), e.Args[0] == "--feature-smoke-output", e.Args[0] == "--snapshot-smoke-output", e.Args[0] == "--search-smoke-output");
+            _ = RunDiagnosticsAsync(window, Path.GetFullPath(e.Args[1]), e.Args[0] == "--feature-smoke-output", e.Args[0] == "--snapshot-smoke-output", e.Args[0] == "--search-smoke-output", e.Args[0] == "--compact-smoke-output");
             return;
         }
         if (e.Args is ["--profile-output", _, ..])
@@ -78,13 +78,19 @@ public partial class App
         MainWindow.Show();
     }
 
-    private async Task RunDiagnosticsAsync(MainWindow window, string output, bool featuresOnly, bool snapshotsOnly = false, bool searchOnly = false)
+    private async Task RunDiagnosticsAsync(MainWindow window, string output, bool featuresOnly, bool snapshotsOnly = false, bool searchOnly = false, bool compactOnly = false)
     {
         var exitCode = 0;
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(60));
         try
         {
-            if (searchOnly)
+            if (compactOnly)
+            {
+                Directory.CreateDirectory(output);
+                await Task.Delay(TimeSpan.FromSeconds(4), timeout.Token);
+                await window.CaptureCompactDiagnosticsAsync(output, timeout.Token);
+            }
+            else if (searchOnly)
             {
                 Directory.CreateDirectory(output);
                 await Task.Delay(TimeSpan.FromSeconds(8), timeout.Token);

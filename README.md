@@ -20,6 +20,7 @@ Keep the whole picture in view while you work, play or troubleshoot. WinMon puts
 - **Find the busiest processes.** Rank by CPU, GPU, memory or I/O, with application icons and history sparklines that follow your selected metric.
 - **Look beyond the latest number.** Switch between 2, 10, 30 and 60-minute chart ranges, subject to your retained history, and inspect earlier samples.
 - **Keep it close.** Pin WinMon above other windows, minimize it to the notification area, or bring it forward with a configurable shortcut.
+- **Use less screen space.** Choose **Compact view** in the title bar for a horizontal strip with live readings and filled two-minute charts inside each resource box. **Full view** restores the dashboard and its size. The selected view is remembered when WinMon closes.
 
 ## See the app behind the processes
 

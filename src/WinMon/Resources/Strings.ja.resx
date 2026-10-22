@@ -1339,4 +1339,6 @@ Windows の正常性状態: {2}</value>
   <data name="ProcessNotRecorded" xml:space="preserve"><value>このサンプルには記録なし</value></data>
   <data name="NoPinnedProcessesMatch" xml:space="preserve"><value>この表示に固定されたプロセスはありません。行の固定ボタンまたはメニューを使用してください。</value></data>
   <data name="ProcessesHeading" xml:space="preserve"><value>プロセス</value></data>
+  <data name="CompactView" xml:space="preserve"><value>コンパクト表示</value></data>
+  <data name="FullView" xml:space="preserve"><value>全体表示</value></data>
 </root>

@@ -1339,4 +1339,6 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
   <data name="ProcessNotRecorded" xml:space="preserve"><value>Non enregistré à cet instant</value></data>
   <data name="NoPinnedProcessesMatch" xml:space="preserve"><value>Aucun processus épinglé dans cette vue. Utilisez le bouton ou le menu de la ligne pour en épingler un.</value></data>
   <data name="ProcessesHeading" xml:space="preserve"><value>Processus</value></data>
+  <data name="CompactView" xml:space="preserve"><value>Vue compacte</value></data>
+  <data name="FullView" xml:space="preserve"><value>Vue complète</value></data>
 </root>

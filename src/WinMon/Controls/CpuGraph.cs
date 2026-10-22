@@ -36,6 +36,9 @@ public sealed class CpuGraph : FrameworkElement
     /// <summary>Get or set whether to draw percentage and time guides.</summary>
     public bool ShowGrid { get; set; }
 
+    /// <summary>Render one resource as an edge-to-edge filled chart in a compact metric tile.</summary>
+    internal int? TileMetric { get; set; }
+
     /// <summary>Series visibility bit mask: CPU, memory, disk, network, GPU.</summary>
     public int VisibleMetrics { get; set; } = 31;
 
@@ -116,9 +119,14 @@ public sealed class CpuGraph : FrameworkElement
             }
         }
         var network = Resource("NetworkAccent", accent);
-        if (ShowGrid && _process is null) _networkScale = NetworkScale(_samples.Where(s => Moment(s) >= _end - _seconds));
+        if ((ShowGrid || TileMetric == 3) && _process is null) _networkScale = NetworkScale(_samples.Where(s => Moment(s) >= _end - _seconds));
         drawingContext.PushClip(new RectangleGeometry(plot));
-        if (_process is not null || !ShowGrid)
+        if (TileMetric is { } tileMetric)
+        {
+            var key = tileMetric switch { 0 => "CpuAccent", 1 => "MemoryAccent", 2 => "DiskAccent", 3 => "NetworkAccent", 4 => "GpuAccent", _ => "SecondaryDiskAccent" };
+            DrawSeries(drawingContext, plot, Resource(key, accent), tileMetric);
+        }
+        else if (_process is not null || !ShowGrid)
         {
             var key = _processSort switch
             {
@@ -338,7 +346,7 @@ public sealed class CpuGraph : FrameworkElement
         // Sparklines carry about two samples per pixel; averaging into 2px bins keeps a readable trace instead of a solid block.
         if (!overlay) points = Bin(points, 2);
         // Faint washes add depth while keeping the grid and crossing traces readable.
-        if (!overlay || fillOnly)
+        if ((!overlay || fillOnly) && (TileMetric is null || !SystemParameters.HighContrast))
         {
             var area = new StreamGeometry();
             using (var context = area.Open())
@@ -348,7 +356,7 @@ public sealed class CpuGraph : FrameworkElement
                 context.LineTo(new Point(points[^1].X, baseline), true, false);
             }
             var fill = accent.Clone();
-            fill.Opacity = overlay ? 0.08 : 0.14;
+            fill.Opacity = TileMetric is not null ? 0.23 : overlay ? 0.08 : 0.14;
             dc.DrawGeometry(fill, null, area);
         }
         if (fillOnly) return;
@@ -360,7 +368,7 @@ public sealed class CpuGraph : FrameworkElement
         }
         var pen = new Pen(accent, overlay ? 1.7 : 1.2);
         if (overlay && metric == 5) pen.DashStyle = DashStyles.Dash;
-        if ((SystemParameters.HighContrast || UseSeriesPatterns) && overlay)
+        if ((SystemParameters.HighContrast || UseSeriesPatterns) && (overlay || TileMetric is not null))
             pen.DashStyle = metric switch { 1 => DashStyles.Dash, 2 => DashStyles.Dot, 3 => DashStyles.DashDot, 4 => DashStyles.DashDotDot, 5 => new DashStyle([6d, 2d], 0), _ => DashStyles.Solid };
         dc.DrawGeometry(null, pen, trace);
     }

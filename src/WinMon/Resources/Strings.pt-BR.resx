@@ -1339,4 +1339,6 @@ O trabalho não salvo pode ser perdido. Todos os processos listados abaixo serã
   <data name="ProcessNotRecorded" xml:space="preserve"><value>Não registrado nesta amostra</value></data>
   <data name="NoPinnedProcessesMatch" xml:space="preserve"><value>Nenhum processo fixado nesta exibição. Use o botão ou o menu da linha para fixar um processo.</value></data>
   <data name="ProcessesHeading" xml:space="preserve"><value>Processos</value></data>
+  <data name="CompactView" xml:space="preserve"><value>Vista compacta</value></data>
+  <data name="FullView" xml:space="preserve"><value>Vista completa</value></data>
 </root>

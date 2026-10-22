@@ -1,3 +1,13 @@
+# Revised compact strip — 2026-10-21
+
+final result: passed
+
+Implemented the selected revised Monitor Strip concept in the existing WPF application. Compared the displayed generated reference `exec-785bd341-3874-4ed4-914f-fae8e4492c2d.png` against `artifacts/compact-strip-verified/strip-dark-1000-100.png`, and inspected the minimum-width light render and native live capture. The strip keeps the graphite surface, resource colors, horizontal metric order, filled charts rising into each box, pin control and full-view action. Native resource labels and controls replace the illustration's decorative check marks; full-view series toggles remain available in the dashboard. Percentages retain the real 0–100 scale, so low disk/GPU activity remains low rather than being exaggerated to match illustrative curves. Memory capacity and network direction readings remain readable; other secondary detail lines are omitted to keep the strip compact. Text backings protect readings from crossing traces. No remaining P0/P1/P2 layout or readability issues in the reviewed app content.
+
+Native UI diagnostics exited 0 and recorded button switching, live readings, full-size restoration, isolated preference round-trip, optional disk collapse and unavailable readings in `compact.json`. Dark/light fixtures cover 836 and 1000 DIP widths and 100/150/200 percent bitmap scales. Fixtures include an explicit recording gap. Off-screen captures leave the native DWM caption region black; these checks do not verify composed native caption buttons, physical mixed-DPI transitions or Windows high-contrast operation. Existing system-brush mappings are reused, and compact fills are suppressed in high contrast by source inspection.
+
+Final Release build passed with zero warnings/errors; all 446 NUnit tests passed outside the sandbox. The sandboxed test host failed to connect and was inconclusive; the same command completed outside it. `git diff --check` passed. Existing unrelated uncommitted process-pinning changes were preserved. The build is in `artifacts/compact-strip-app`; diagnostics used an isolated preferences file and did not replace a running user session.
+
 # Resource overlay visual QA
 
 ## Option 3 light theme — 2026-10-20

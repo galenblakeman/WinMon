@@ -1339,4 +1339,6 @@ Windows 상태: {2}</value>
   <data name="ProcessNotRecorded" xml:space="preserve"><value>이 샘플에 기록되지 않음</value></data>
   <data name="NoPinnedProcessesMatch" xml:space="preserve"><value>이 보기에 고정된 프로세스가 없습니다. 행의 고정 버튼이나 메뉴로 프로세스를 고정하세요.</value></data>
   <data name="ProcessesHeading" xml:space="preserve"><value>프로세스</value></data>
+  <data name="CompactView" xml:space="preserve"><value>간략 보기</value></data>
+  <data name="FullView" xml:space="preserve"><value>전체 보기</value></data>
 </root>

@@ -12,6 +12,8 @@ public static class ButtonIcon
     public static Geometry? GetData(DependencyObject element) => (Geometry?)element.GetValue(DataProperty);
     public static void SetData(DependencyObject element, Geometry? value) => element.SetValue(DataProperty, value);
 
+    public static Geometry Compact { get; } = Create("M 2,3 L 14,3 L 14,13 L 2,13 Z M 2,7 L 14,7");
+    public static Geometry Expand { get; } = Create("M 2,6 L 2,2 L 6,2 M 10,2 L 14,2 L 14,6 M 14,10 L 14,14 L 10,14 M 6,14 L 2,14 L 2,10");
     public static Geometry Pin { get; } = Create("M 5,2 L 11,2 M 6,2 L 6,6 L 3,9 L 3,10 L 13,10 L 13,9 L 10,6 L 10,2 M 8,10 L 8,15");
     public static Geometry Live { get; } = Create("M 13,5 A 6,6 0 1 0 14,10 M 13,1 L 13,5 L 9,5");
     public static Geometry Settings { get; } = Create("M 2,4 L 5,4 M 9,4 L 14,4 M 2,12 L 9,12 M 13,12 L 14,12 M 5,2 L 9,2 L 9,6 L 5,6 Z M 9,10 L 13,10 L 13,14 L 9,14 Z");

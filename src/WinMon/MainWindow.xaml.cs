@@ -72,6 +72,7 @@ public partial class MainWindow
         _initialPreferences = initialPreferences;
         _preferenceStore = preferenceStore ?? new PreferenceStore();
         InitializeComponent();
+        InitializeCompactView();
         VersionRun.Text = $" {AppInfo.Version}";
         ProcessCountSelector.ItemsSource = new[] { 5, 10, 15, 20 };
         ProcessCountSelector.SelectedItem = _preferences.TopProcessCount;
@@ -151,6 +152,7 @@ public partial class MainWindow
             Topmost = _preferences.AlwaysOnTop;
             _history.Resize(_preferences.RetentionSeconds);
             ApplyTheme();
+            if (_preferences.CompactMode) SetCompactView(true);
             BuildRangeChips();
             UpdatePinButton();
             AlignTitleBar();
@@ -288,6 +290,7 @@ public partial class MainWindow
         var allUnavailable = _samplingError == SamplingError.ReadingsUnavailable;
         UpdateResources(allUnavailable ? null : latest);
         OverallGraph.SetData(samples, range, _selectedSample);
+        RefreshCompactView();
         UpdateSnapshot(_selectedSample is null ? null : visible);
         var grouped = _preferences.GroupProcesses;
         var historyMetric = _preferences.ProcessSort switch
@@ -787,6 +790,7 @@ public partial class MainWindow
         UpdatePinButton();
         BuildRangeChips();
         foreach (var metric in Metrics) metric.RefreshLanguage();
+        UpdateCompactButton();
         if (_tray?.ContextMenuStrip is { } menu)
         {
             menu.Items[0].Text = Strings.ShowWinMon;
@@ -913,6 +917,7 @@ public partial class MainWindow
     {
         if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control)
         {
+            if (_compactMode) SetCompactView(false);
             ProcessSearchBox.Focus();
             ProcessSearchBox.SelectAll();
             e.Handled = true;
@@ -944,7 +949,8 @@ public partial class MainWindow
             {
                 await _settingsWriteTask;
                 var savedBounds = WindowState == WindowState.Normal ? new Rect(Left, Top, Width, Height) : RestoreBounds;
-                await _preferenceStore.SaveAsync(_preferences with { Width = savedBounds.Width, Height = savedBounds.Height, Left = savedBounds.Left, Top = savedBounds.Top, AlwaysOnTop = Topmost }, CancellationToken.None);
+                var savedSize = SavedFullViewSize(savedBounds);
+                await _preferenceStore.SaveAsync(_preferences with { Width = savedSize.Width, Height = savedSize.Height, Left = savedBounds.Left, Top = savedBounds.Top, AlwaysOnTop = Topmost }, CancellationToken.None);
             }
             catch (Exception saveError)
             {
@@ -970,7 +976,8 @@ public partial class MainWindow
             try { await _settingsWriteTask; }
             catch (Exception settingsError) { Trace.TraceError("WinMon pending preference save failed during shutdown: {0}", settingsError); }
             var bounds = WindowState == WindowState.Normal ? new Rect(Left, Top, Width, Height) : RestoreBounds;
-            if (!_diagnosticMode && !_updateRestartPending) await _preferenceStore.SaveAsync(_preferences with { Width = bounds.Width, Height = bounds.Height, Left = bounds.Left, Top = bounds.Top, AlwaysOnTop = Topmost }, CancellationToken.None);
+            var size = SavedFullViewSize(bounds);
+            if (!_diagnosticMode && !_updateRestartPending) await _preferenceStore.SaveAsync(_preferences with { Width = size.Width, Height = size.Height, Left = bounds.Left, Top = bounds.Top, AlwaysOnTop = Topmost }, CancellationToken.None);
         }
         catch (Exception ex) { AbortPendingUpdate(); Trace.TraceError("WinMon shutdown or preference save failed: {0}", ex); }
         finally

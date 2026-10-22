@@ -8,6 +8,9 @@ namespace WinMon.Preferences;
 /// </summary>
 public sealed record MonitorPreferences
 {
+    /// <summary>Open the compact resource strip while retaining full-view window dimensions.</summary>
+    public bool CompactMode { get; init; }
+
     /// <summary>Gets the compact window width in device-independent pixels.</summary>
     public double Width { get; init; } = 600;
 

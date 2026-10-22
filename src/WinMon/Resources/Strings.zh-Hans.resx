@@ -1339,4 +1339,6 @@ Windows 健康状态：{2}</value>
   <data name="ProcessNotRecorded" xml:space="preserve"><value>此采样未记录</value></data>
   <data name="NoPinnedProcessesMatch" xml:space="preserve"><value>此视图没有已固定的进程。使用进程的固定按钮或行菜单进行固定。</value></data>
   <data name="ProcessesHeading" xml:space="preserve"><value>进程</value></data>
+  <data name="CompactView" xml:space="preserve"><value>紧凑视图</value></data>
+  <data name="FullView" xml:space="preserve"><value>完整视图</value></data>
 </root>
