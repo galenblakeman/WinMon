@@ -50,7 +50,7 @@ internal static class SnapshotText
             if (state.Length > 0)
             {
                 Row($"{name} · {state}", p.ProcessId.ToString(CultureInfo.CurrentCulture),
-                    Strings.Unavailable, Strings.Unavailable, Strings.Unavailable, Strings.Unavailable, Strings.Unavailable, Strings.Unavailable);
+                    Strings.MissingReading, Strings.MissingReading, Strings.MissingReading, Strings.MissingReading, Strings.MissingReading, Strings.MissingReading);
                 continue;
             }
             Row(name, p.MemberIds.Count > 0 ? string.Join(", ", p.MemberIds) : p.ProcessId.ToString(CultureInfo.CurrentCulture),
@@ -60,19 +60,19 @@ internal static class SnapshotText
         }
         if (report.Remainder is { } rest)
             Row(Strings.Format(report.Grouped ? Strings.OtherExecutables : Strings.OtherProcesses, rest.Count), "",
-                Number(rest.CpuPercent), Strings.Unavailable, Strings.Unavailable,
-                Number(rest.IoBytesPerSecond / 1_000_000d, "0.00"), Strings.Unavailable, Strings.Unavailable);
+                Number(rest.CpuPercent), Strings.MissingReading, Strings.MissingReading,
+                Number(rest.IoBytesPerSecond / 1_000_000d, "0.00"), Strings.MissingReading, Strings.MissingReading);
         return text.ToString().TrimEnd();
 
         void Row(params string[] cells) => text.AppendLine(string.Join('\t', cells.Select(Clean)));
         void Disk(string name, double? active, double? bytes) => Row(name.Length == 0 ? Strings.Disk : Strings.Format(Strings.DiskLabel, name),
-            $"{Percent(active)} · {(bytes is { } b ? Strings.Format(Strings.MBS, b / 1_000_000d) : Strings.Unavailable)}");
+            $"{Percent(active)} · {(bytes is { } b ? Strings.Format(Strings.MBS, b / 1_000_000d) : Strings.MissingReading)}");
     }
 
-    private static string Number(double? value, string format = "0.0") => value?.ToString(format, CultureInfo.CurrentCulture) ?? Strings.Unavailable;
-    private static string Count(long? value) => value?.ToString(CultureInfo.CurrentCulture) ?? Strings.Unavailable;
-    private static string Percent(double? value) => value is { } v ? Strings.Format(Strings.PercentOneDecimal, v) : Strings.Unavailable;
-    private static string Rate(double? bytes) => bytes is { } b ? RateText.Format(b * 8) : Strings.Unavailable;
+    private static string Number(double? value, string format = "0.0") => value?.ToString(format, CultureInfo.CurrentCulture) ?? Strings.MissingReading;
+    private static string Count(long? value) => value?.ToString(CultureInfo.CurrentCulture) ?? Strings.MissingReading;
+    private static string Percent(double? value) => value is { } v ? Strings.Format(Strings.PercentOneDecimal, v) : Strings.MissingReading;
+    private static string Rate(double? bytes) => bytes is { } b ? RateText.Format(b * 8) : Strings.MissingReading;
     private static string Clean(string value) => value.Replace('\t', ' ').Replace('\r', ' ').Replace('\n', ' ');
 
 }

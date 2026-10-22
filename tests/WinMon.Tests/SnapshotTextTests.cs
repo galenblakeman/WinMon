@@ -30,7 +30,7 @@ public sealed class SnapshotTextTests
         {
             Assert.That(text, Does.Contain("2026-10-21 14:32:08 -05:00"));
             Assert.That(text, Does.Contain("42.3%").And.Contain("8.0 / 16 GiB").And.Contain("50.0%"));
-            Assert.That(text, Does.Contain("GPU\tUnavailable"));
+            Assert.That(text, Does.Contain("GPU\t—"));
             Assert.That(text, Does.Contain("Disk (C:)\t0.0%").And.Contain("Disk (D:)\t28.0%"));
             Assert.That(text, Does.Contain("↓ 8 Mbps").And.Contain("↑ 0 Kbps"));
             Assert.That(text, Does.Contain("Browser").And.Contain("five-second averages"));
@@ -48,7 +48,7 @@ public sealed class SnapshotTextTests
         {
             Assert.That(row, Has.Length.EqualTo(8));
             Assert.That(row[1], Is.EqualTo(grouped ? "123, 456" : "123"));
-            Assert.That(row[2..], Is.EqualTo(new[] { "18.2", "Unavailable", memory, "2.00", "12", "34" }));
+            Assert.That(row[2..], Is.EqualTo(new[] { "18.2", "—", memory, "2.00", "12", "34" }));
             Assert.That(text, Does.Contain(grouped ? "Private (MiB)" : "Memory (MiB)"));
             Assert.That(text, Does.Contain("five-second averages").And.Contain("browser").And.Contain("Coverage note"));
             Assert.That(text, Does.Contain(grouped ? "Other executables" : "Other processes"));
@@ -70,7 +70,7 @@ public sealed class SnapshotTextTests
             Assert.That(row, Has.Length.EqualTo(8));
             Assert.That(row[0], Is.EqualTo(name + " line  next"));
             Assert.That(row[2], Is.EqualTo("0.0"));
-            Assert.That(row[4], Is.EqualTo("Unavailable"));
+            Assert.That(row[4], Is.EqualTo("—"));
         });
     }
 
@@ -79,6 +79,6 @@ public sealed class SnapshotTextTests
     public void Format_UsesLocalDecimalSeparatorWithoutThousandsSeparators()
     {
         var text = SnapshotText.Format(Report());
-        Assert.That(text, Does.Contain("Browser\t123\t18,2\tUnavailable\t100,0\t2,00\t12\t34"));
+        Assert.That(text, Does.Contain("Browser\t123\t18,2\t—\t100,0\t2,00\t12\t34"));
     }
 }
