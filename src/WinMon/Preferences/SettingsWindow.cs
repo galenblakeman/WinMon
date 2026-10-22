@@ -163,13 +163,13 @@ public sealed class SettingsWindow : Window
         layout.Children.Add(diskNote);
         var updateHeading = CreateHeading(Strings.Updates);
         Grid.SetRow(updateHeading, 34);
-        layout.Children.Add(updateHeading);
+        if (Updates.UpdatePolicy.GitHubUpdatesEnabled) layout.Children.Add(updateHeading);
         Grid.SetRow(_automaticUpdateCheckBox, 36);
-        layout.Children.Add(_automaticUpdateCheckBox);
+        if (Updates.UpdatePolicy.GitHubUpdatesEnabled) layout.Children.Add(_automaticUpdateCheckBox);
         _updateCheckStatus.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
         AutomationProperties.SetLiveSetting(_updateCheckStatus, AutomationLiveSetting.Polite);
         Grid.SetRow(_updateCheckStatus, 38);
-        layout.Children.Add(_updateCheckStatus);
+        if (Updates.UpdatePolicy.GitHubUpdatesEnabled) layout.Children.Add(_updateCheckStatus);
         StackPanel buttons = CreateButtons(checkForUpdates);
         Grid.SetRow(buttons, 40);
         layout.Children.Add(buttons);
@@ -414,7 +414,7 @@ public sealed class SettingsWindow : Window
         saveButton.Click += SaveButton_Click;
 
         Button? checkButton = null;
-        if (checkForUpdates is not null)
+        if (Updates.UpdatePolicy.GitHubUpdatesEnabled && checkForUpdates is not null)
         {
             var button = new Button { Content = Strings.CheckForUpdates, MinWidth = 130, Margin = new Thickness(0, 0, 8, 0) };
             checkButton = button;

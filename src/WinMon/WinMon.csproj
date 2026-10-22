@@ -25,6 +25,9 @@
     <Optimize>true</Optimize>
     <DebugType>embedded</DebugType>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(StoreBuild)' == 'true'">
+    <DefineConstants>$(DefineConstants);WINMON_STORE</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <!-- Workstation GC sizes the gen0 budget from the L3 cache, up to 48 MiB on large-cache CPUs. WinMon allocates
          about 1 MB/s, so it commits the whole budget between rare collections. A 6 MiB cap cut private bytes from

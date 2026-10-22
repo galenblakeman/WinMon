@@ -22,7 +22,7 @@ public partial class MainWindow
 
     private void InitializeUpdates()
     {
-        if (_diagnosticMode) return;
+        if (_diagnosticMode || !UpdatePolicy.GitHubUpdatesEnabled) return;
         _updateClient = new UpdateClient();
         var notice = UpdateRuntime.ConsumeNotice();
         if (!string.IsNullOrWhiteSpace(notice)) ShowUpdateStatus(notice, dismissible: true);
@@ -198,6 +198,7 @@ public partial class MainWindow
 
     internal void ShowCompletedUpdateNotice()
     {
+        if (!UpdatePolicy.GitHubUpdatesEnabled) return;
         _ = ShowCompletedUpdateNoticeAsync();
     }
 

@@ -11,6 +11,7 @@ internal static class UpdateRuntime
 
     internal static bool IsUpdating()
     {
+        if (!UpdatePolicy.GitHubUpdatesEnabled) return false;
         using var mutex = new Mutex(false, UpdateMutexName);
         try
         {
@@ -23,6 +24,7 @@ internal static class UpdateRuntime
 
     internal static void AcceptResultArguments(string[] args)
     {
+        if (!UpdatePolicy.GitHubUpdatesEnabled) return;
         if (args is not ["--update-result", var directory, var token]) return;
         try
         {
@@ -40,6 +42,7 @@ internal static class UpdateRuntime
 
     internal static void SignalReady()
     {
+        if (!UpdatePolicy.GitHubUpdatesEnabled) return;
         try
         {
             if (_resultToken is not null)
@@ -85,6 +88,7 @@ internal static class UpdateRuntime
 
     internal static string? ConsumeNotice()
     {
+        if (!UpdatePolicy.GitHubUpdatesEnabled) return null;
         foreach (var directory in Transactions())
         {
             try
@@ -120,6 +124,7 @@ internal static class UpdateRuntime
 
     internal static int RunHelper(string directory, string token)
     {
+        if (!UpdatePolicy.GitHubUpdatesEnabled) return 1;
         UpdateJob? job = null;
         Process? child = null;
         var replaced = false;

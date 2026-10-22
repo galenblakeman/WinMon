@@ -37,6 +37,7 @@ internal sealed class UpdateClient : IDisposable
 
     internal async Task<UpdateOffer?> CheckAsync(string currentVersion, CancellationToken cancellationToken)
     {
+        UpdatePolicy.RequireGitHubUpdates();
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeout.CancelAfter(TimeSpan.FromSeconds(30));
         using var request = new HttpRequestMessage(HttpMethod.Get, "https://api.github.com/repos/galenblakeman/WinMon/releases/latest");
@@ -69,6 +70,7 @@ internal sealed class UpdateClient : IDisposable
 
     internal async Task<PreparedUpdate> DownloadAsync(UpdateOffer offer, IProgress<int>? progress, CancellationToken cancellationToken)
     {
+        UpdatePolicy.RequireGitHubUpdates();
         // Reverify before using cached metadata to select or execute an asset.
         var manifest = UpdateManifest.Verify(offer.ManifestBytes, offer.Signature, _publicKey, offer.Version);
         var target = Environment.ProcessPath ?? throw new InvalidOperationException("Cannot find the running executable.");

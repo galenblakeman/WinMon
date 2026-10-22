@@ -11,6 +11,7 @@ internal static class UpdateLauncher
 
     internal static async Task StartAsync(PreparedUpdate update, CancellationToken cancellationToken)
     {
+        UpdatePolicy.RequireGitHubUpdates();
         var directory = UpdateFiles.ValidateDirectory(update.TransactionDirectory);
         var job = UpdateFiles.ReadJson<UpdateJob>(Path.Combine(directory, "job.json"));
         using var ready = new EventWaitHandle(false, EventResetMode.ManualReset, EventName(job.Token, "Ready"));

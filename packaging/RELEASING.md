@@ -29,6 +29,10 @@ Assets are placed in `artifacts/releases/<version>`. Existing output is refused 
 
 The installer supports x64 Windows starting at build 14393; runtime compatibility does not establish Microsoft support for an out-of-support Windows edition. Windows ARM64 and x86 are not included in this release. No separate .NET installation is required.
 
+## MSIX / Microsoft Store
+
+Build the additional Store channel with `tools/New-MsixPackage.ps1`. See [MSIX packaging and validation](msix/README.md) for identity inputs, prerequisites, local testing and submission. Store builds disable the GitHub updater; installer and portable builds retain it.
+
 ## Validate the installer
 
 Use a clean Windows user profile or disposable VM/CI runner:
