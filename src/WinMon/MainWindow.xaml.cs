@@ -101,6 +101,7 @@ public partial class MainWindow
         InitializeCompactView();
         InitializeServices();
         ProcessActions.ActionRequested += OnProcessAction;
+        ProcessActions.EnablePriorityActions(CanSetProcessPriority, process => ProcessPriorityChanger.Read(process), SetProcessPriority);
         UpdateActivityActionsToggle();
         VersionRun.Text = $" {AppInfo.Version}";
         ProcessCountSelector.ItemsSource = TopCountChoices.Items;

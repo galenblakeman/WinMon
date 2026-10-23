@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -50,6 +51,9 @@ public sealed class ProcessActionBar : Border
 
     private ProcessDetailsSnapshot? _snapshot;
     private bool _canDump;
+    private Func<ProcessUsage, bool>? _canSetPriority;
+    private Func<ProcessUsage, ProcessPriorityClass?>? _readPriority;
+    private Action<ProcessUsage, ProcessPriorityClass>? _setPriority;
     private (int, long)? _iconIdentity;
     internal event Action<string, ProcessDetailsSnapshot>? ActionRequested;
 
@@ -188,6 +192,14 @@ public sealed class ProcessActionBar : Border
         if (_snapshot is { } snapshot) ActionRequested?.Invoke(action, snapshot);
     }
 
+    internal void EnablePriorityActions(Func<ProcessUsage, bool> canSet,
+        Func<ProcessUsage, ProcessPriorityClass?> read, Action<ProcessUsage, ProcessPriorityClass> set)
+    {
+        _canSetPriority = canSet;
+        _readPriority = read;
+        _setPriority = set;
+    }
+
     internal ContextMenu? CreateMoreMenu()
     {
         if (_snapshot is not { } snapshot) return null;
@@ -206,6 +218,14 @@ public sealed class ProcessActionBar : Border
             if (action == "dump") item.ToolTip = Strings.ProcessDumpUnavailable;
             item.Click += (_, _) => ActionRequested?.Invoke(action, snapshot);
             menu.Items.Add(item);
+        }
+
+        if (_canSetPriority is not null && _readPriority is not null && _setPriority is not null)
+        {
+            menu.Items.Add(new Separator());
+            menu.Items.Add(ProcessPriorityMenu.Create(snapshot.Process,
+                snapshot is { Available: true, Historical: false } && _canSetPriority(snapshot.Process),
+                _readPriority, _setPriority));
         }
 
         return menu;

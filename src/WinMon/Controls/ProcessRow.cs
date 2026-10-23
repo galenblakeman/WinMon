@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
@@ -37,6 +38,9 @@ public sealed class ProcessRow : Grid
     private ProcessUsage? _usage;
     private Func<ProcessUsage, bool>? _canEnd;
     private Action<ProcessUsage>? _end;
+    private Func<ProcessUsage, bool>? _canSetPriority;
+    private Func<ProcessUsage, ProcessPriorityClass?>? _readPriority;
+    private Action<ProcessUsage, ProcessPriorityClass>? _setPriority;
 
     private readonly Button _pin = new()
     {
@@ -99,6 +103,14 @@ public sealed class ProcessRow : Grid
         ContextMenu.SetResourceReference(BackgroundProperty, "Raised");
         ContextMenu.SetResourceReference(Control.ForegroundProperty, "Text");
         ContextMenuOpening += (_, e) => { e.Handled = !PrepareProcessMenu(); };
+    }
+
+    internal void EnablePriorityActions(Func<ProcessUsage, bool> canSet,
+        Func<ProcessUsage, ProcessPriorityClass?> read, Action<ProcessUsage, ProcessPriorityClass> set)
+    {
+        _canSetPriority = canSet;
+        _readPriority = read;
+        _setPriority = set;
     }
 
     internal void EnableInspectionActions(Action<ProcessDetailsSnapshot> properties,
@@ -174,6 +186,13 @@ public sealed class ProcessRow : Grid
             dump.ToolTip = Strings.ProcessDumpUnavailable;
             dump.Click += (_, _) => _dump(target);
             ContextMenu.Items.Add(dump);
+            ContextMenu.Items.Add(new Separator());
+        }
+
+        if (_canSetPriority is not null && _readPriority is not null && _setPriority is not null)
+        {
+            ContextMenu.Items.Add(ProcessPriorityMenu.Create(target,
+                !_unavailable && _canSetPriority(target), _readPriority, _setPriority));
             ContextMenu.Items.Add(new Separator());
         }
 

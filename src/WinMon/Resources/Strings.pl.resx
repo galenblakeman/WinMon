@@ -1423,4 +1423,12 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
     <value>Pokaż działania</value>
   </data>
   <data name="AllEntries" xml:space="preserve"><value>Wszystkie</value></data>
+  <data name="SetPriority" xml:space="preserve"><value>Ustaw priorytet</value></data>
+  <data name="PriorityLow" xml:space="preserve"><value>Niski</value></data>
+  <data name="PriorityBelowNormal" xml:space="preserve"><value>Poniżej normalnego</value></data>
+  <data name="PriorityNormal" xml:space="preserve"><value>Normalny</value></data>
+  <data name="PriorityAboveNormal" xml:space="preserve"><value>Powyżej normalnego</value></data>
+  <data name="ProcessPriorityUnavailable" xml:space="preserve"><value>Priorytet można zmienić tylko dla dostępnego, pojedynczego, działającego procesu.</value></data>
+  <data name="ProcessPriorityAccessDenied" xml:space="preserve"><value>Odmowa dostępu. System Windows nie zezwolił WinMon na zmianę priorytetu tego procesu.</value></data>
+  <data name="ProcessPriorityFailed" xml:space="preserve"><value>Nie udało się zmienić priorytetu procesu: {0}</value></data>
 </root>

@@ -1423,4 +1423,12 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
     <value>Afficher les actions</value>
   </data>
   <data name="AllEntries" xml:space="preserve"><value>Tous</value></data>
+  <data name="SetPriority" xml:space="preserve"><value>Définir la priorité</value></data>
+  <data name="PriorityLow" xml:space="preserve"><value>Basse</value></data>
+  <data name="PriorityBelowNormal" xml:space="preserve"><value>Inférieure à la normale</value></data>
+  <data name="PriorityNormal" xml:space="preserve"><value>Normale</value></data>
+  <data name="PriorityAboveNormal" xml:space="preserve"><value>Supérieure à la normale</value></data>
+  <data name="ProcessPriorityUnavailable" xml:space="preserve"><value>La priorité ne peut être modifiée que pour un processus individuel actif et disponible.</value></data>
+  <data name="ProcessPriorityAccessDenied" xml:space="preserve"><value>Accès refusé. Windows n'a pas autorisé WinMon à modifier la priorité de ce processus.</value></data>
+  <data name="ProcessPriorityFailed" xml:space="preserve"><value>Impossible de modifier la priorité du processus : {0}</value></data>
 </root>

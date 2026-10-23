@@ -1423,4 +1423,12 @@ Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse
     <value>Aktionen anzeigen</value>
   </data>
   <data name="AllEntries" xml:space="preserve"><value>Alle</value></data>
+  <data name="SetPriority" xml:space="preserve"><value>Priorität festlegen</value></data>
+  <data name="PriorityLow" xml:space="preserve"><value>Niedrig</value></data>
+  <data name="PriorityBelowNormal" xml:space="preserve"><value>Unter Normal</value></data>
+  <data name="PriorityNormal" xml:space="preserve"><value>Normal</value></data>
+  <data name="PriorityAboveNormal" xml:space="preserve"><value>Über Normal</value></data>
+  <data name="ProcessPriorityUnavailable" xml:space="preserve"><value>Die Priorität kann nur für einen verfügbaren einzelnen Liveprozess geändert werden.</value></data>
+  <data name="ProcessPriorityAccessDenied" xml:space="preserve"><value>Zugriff verweigert. Windows hat WinMon nicht erlaubt, die Priorität dieses Prozesses zu ändern.</value></data>
+  <data name="ProcessPriorityFailed" xml:space="preserve"><value>Die Prozesspriorität konnte nicht geändert werden: {0}</value></data>
 </root>

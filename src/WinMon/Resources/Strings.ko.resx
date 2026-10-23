@@ -1423,4 +1423,12 @@ Windows 상태: {2}</value>
     <value>작업 표시</value>
   </data>
   <data name="AllEntries" xml:space="preserve"><value>모두</value></data>
+  <data name="SetPriority" xml:space="preserve"><value>우선 순위 설정</value></data>
+  <data name="PriorityLow" xml:space="preserve"><value>낮음</value></data>
+  <data name="PriorityBelowNormal" xml:space="preserve"><value>보통 이하</value></data>
+  <data name="PriorityNormal" xml:space="preserve"><value>보통</value></data>
+  <data name="PriorityAboveNormal" xml:space="preserve"><value>보통 이상</value></data>
+  <data name="ProcessPriorityUnavailable" xml:space="preserve"><value>사용 가능한 개별 실행 중 프로세스의 우선 순위만 변경할 수 있습니다.</value></data>
+  <data name="ProcessPriorityAccessDenied" xml:space="preserve"><value>액세스가 거부되었습니다. Windows에서 WinMon의 프로세스 우선 순위 변경을 허용하지 않았습니다.</value></data>
+  <data name="ProcessPriorityFailed" xml:space="preserve"><value>프로세스 우선 순위를 변경할 수 없습니다: {0}</value></data>
 </root>

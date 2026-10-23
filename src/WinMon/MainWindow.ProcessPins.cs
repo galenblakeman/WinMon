@@ -56,6 +56,7 @@ public partial class MainWindow
         {
             var row = new ProcessRow();
             row.EnableProcessActions(CanEndProcess, EndProcess);
+            row.EnablePriorityActions(CanSetProcessPriority, process => ProcessPriorityChanger.Read(process), SetProcessPriority);
             EnableProcessInspection(row);
             row.EnablePinning(_processPins.Contains, ToggleProcessPin);
             _pinnedRows.Add(row);

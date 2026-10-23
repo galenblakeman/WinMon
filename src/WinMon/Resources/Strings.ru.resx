@@ -1423,4 +1423,12 @@ GPU {11} · {12}
     <value>Показать действия</value>
   </data>
   <data name="AllEntries" xml:space="preserve"><value>Все</value></data>
+  <data name="SetPriority" xml:space="preserve"><value>Задать приоритет</value></data>
+  <data name="PriorityLow" xml:space="preserve"><value>Низкий</value></data>
+  <data name="PriorityBelowNormal" xml:space="preserve"><value>Ниже обычного</value></data>
+  <data name="PriorityNormal" xml:space="preserve"><value>Обычный</value></data>
+  <data name="PriorityAboveNormal" xml:space="preserve"><value>Выше обычного</value></data>
+  <data name="ProcessPriorityUnavailable" xml:space="preserve"><value>Приоритет можно изменить только для доступного отдельного работающего процесса.</value></data>
+  <data name="ProcessPriorityAccessDenied" xml:space="preserve"><value>Доступ запрещён. Windows не разрешила WinMon изменить приоритет этого процесса.</value></data>
+  <data name="ProcessPriorityFailed" xml:space="preserve"><value>Не удалось изменить приоритет процесса: {0}</value></data>
 </root>

@@ -1423,4 +1423,12 @@ Windows の正常性状態: {2}</value>
     <value>操作を表示</value>
   </data>
   <data name="AllEntries" xml:space="preserve"><value>すべて</value></data>
+  <data name="SetPriority" xml:space="preserve"><value>優先度を設定</value></data>
+  <data name="PriorityLow" xml:space="preserve"><value>低</value></data>
+  <data name="PriorityBelowNormal" xml:space="preserve"><value>通常以下</value></data>
+  <data name="PriorityNormal" xml:space="preserve"><value>通常</value></data>
+  <data name="PriorityAboveNormal" xml:space="preserve"><value>通常以上</value></data>
+  <data name="ProcessPriorityUnavailable" xml:space="preserve"><value>優先度を変更できるのは、利用可能な個別の実行中プロセスだけです。</value></data>
+  <data name="ProcessPriorityAccessDenied" xml:space="preserve"><value>アクセスが拒否されました。Windows により、このプロセスの優先度の変更が許可されませんでした。</value></data>
+  <data name="ProcessPriorityFailed" xml:space="preserve"><value>プロセスの優先度を変更できませんでした: {0}</value></data>
 </root>

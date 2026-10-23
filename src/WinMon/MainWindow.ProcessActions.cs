@@ -18,6 +18,7 @@ public partial class MainWindow
         {
             var row = new ProcessRow { Visibility = Visibility.Collapsed };
             row.EnableProcessActions(CanEndProcess, EndProcess);
+            row.EnablePriorityActions(CanSetProcessPriority, process => ProcessPriorityChanger.Read(process), SetProcessPriority);
             EnableProcessInspection(row);
             row.EnablePinning(_processPins.Contains, ToggleProcessPin);
             _rows.Add(row);
@@ -108,6 +109,17 @@ public partial class MainWindow
                              snapshot.Grouped == _preferences.GroupProcesses && CanDumpProcess(process):
                 new ProcessDumpDialog(process, () => CanDumpProcess(process)) { Owner = this }.ShowDialog(); break;
         }
+    }
+
+    private bool CanSetProcessPriority(ProcessUsage process) =>
+        ProcessPriorityChanger.IsEligible(process,
+            !_closing && _selectedSample is null && _samplingError is null, _preferences.GroupProcesses);
+
+    private void SetProcessPriority(ProcessUsage process, ProcessPriorityClass priority)
+    {
+        if (!CanSetProcessPriority(process)) return;
+        if (ProcessPriorityChanger.Set(process, priority) is { } error)
+            MessageDialog.ShowNotice(this, error, Strings.SetPriority);
     }
 
     private bool CanDumpProcess(ProcessUsage process)

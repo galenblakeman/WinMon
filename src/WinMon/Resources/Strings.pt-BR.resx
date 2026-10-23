@@ -1423,4 +1423,12 @@ O trabalho não salvo pode ser perdido. Todos os processos listados abaixo serã
     <value>Mostrar ações</value>
   </data>
   <data name="AllEntries" xml:space="preserve"><value>Todos</value></data>
+  <data name="SetPriority" xml:space="preserve"><value>Definir prioridade</value></data>
+  <data name="PriorityLow" xml:space="preserve"><value>Baixa</value></data>
+  <data name="PriorityBelowNormal" xml:space="preserve"><value>Abaixo do normal</value></data>
+  <data name="PriorityNormal" xml:space="preserve"><value>Normal</value></data>
+  <data name="PriorityAboveNormal" xml:space="preserve"><value>Acima do normal</value></data>
+  <data name="ProcessPriorityUnavailable" xml:space="preserve"><value>A prioridade só pode ser alterada para um processo individual ativo e disponível.</value></data>
+  <data name="ProcessPriorityAccessDenied" xml:space="preserve"><value>Acesso negado. O Windows não permitiu que o WinMon alterasse a prioridade deste processo.</value></data>
+  <data name="ProcessPriorityFailed" xml:space="preserve"><value>Não foi possível alterar a prioridade do processo: {0}</value></data>
 </root>

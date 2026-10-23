@@ -1423,4 +1423,12 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
     <value>Show actions</value>
   </data>
   <data name="AllEntries" xml:space="preserve"><value>All</value></data>
+  <data name="SetPriority" xml:space="preserve"><value>Set Priority</value></data>
+  <data name="PriorityLow" xml:space="preserve"><value>Low</value></data>
+  <data name="PriorityBelowNormal" xml:space="preserve"><value>Below Normal</value></data>
+  <data name="PriorityNormal" xml:space="preserve"><value>Normal</value></data>
+  <data name="PriorityAboveNormal" xml:space="preserve"><value>Above Normal</value></data>
+  <data name="ProcessPriorityUnavailable" xml:space="preserve"><value>Priority can be changed only for an available individual live process.</value></data>
+  <data name="ProcessPriorityAccessDenied" xml:space="preserve"><value>Access denied. Windows did not allow WinMon to change this process priority.</value></data>
+  <data name="ProcessPriorityFailed" xml:space="preserve"><value>The process priority could not be changed: {0}</value></data>
 </root>

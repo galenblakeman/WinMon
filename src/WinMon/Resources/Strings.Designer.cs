@@ -302,6 +302,10 @@ public static partial class Strings
     public static string PopulatedCoresPerSocketReportedMaximum => ResourceManager.GetString(nameof(PopulatedCoresPerSocketReportedMaximum), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string PowerPC => ResourceManager.GetString(nameof(PowerPC), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string PrimaryDrive => ResourceManager.GetString(nameof(PrimaryDrive), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string PriorityAboveNormal => ResourceManager.GetString(nameof(PriorityAboveNormal), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string PriorityBelowNormal => ResourceManager.GetString(nameof(PriorityBelowNormal), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string PriorityLow => ResourceManager.GetString(nameof(PriorityLow), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string PriorityNormal => ResourceManager.GetString(nameof(PriorityNormal), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string Private => ResourceManager.GetString(nameof(Private), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string PrivateBytesSummedAcrossThisExecutableSCurrentProcesses => ResourceManager.GetString(nameof(PrivateBytesSummedAcrossThisExecutableSCurrentProcesses), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string Process => ResourceManager.GetString(nameof(Process), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
@@ -338,6 +342,9 @@ public static partial class Strings
     public static string ProcessObservationLabel => ResourceManager.GetString(nameof(ProcessObservationLabel), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string Processor => ResourceManager.GetString(nameof(Processor), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ProcessPathLabel => ResourceManager.GetString(nameof(ProcessPathLabel), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string ProcessPriorityAccessDenied => ResourceManager.GetString(nameof(ProcessPriorityAccessDenied), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string ProcessPriorityFailed => ResourceManager.GetString(nameof(ProcessPriorityFailed), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string ProcessPriorityUnavailable => ResourceManager.GetString(nameof(ProcessPriorityUnavailable), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ProcessPrivateMemoryLabel => ResourceManager.GetString(nameof(ProcessPrivateMemoryLabel), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ProcessProductLabel => ResourceManager.GetString(nameof(ProcessProductLabel), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ProcessProperties => ResourceManager.GetString(nameof(ProcessProperties), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
@@ -417,6 +424,7 @@ public static partial class Strings
     public static string ServiceWorkerExplanation => ResourceManager.GetString(nameof(ServiceWorkerExplanation), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ServiceWorkers => ResourceManager.GetString(nameof(ServiceWorkers), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ServiceWorkersIncluded => ResourceManager.GetString(nameof(ServiceWorkersIncluded), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string SetPriority => ResourceManager.GetString(nameof(SetPriority), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string Settings => ResourceManager.GetString(nameof(Settings), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string SettingsCouldNotBeSavedCheckAccessToYourLocal => ResourceManager.GetString(nameof(SettingsCouldNotBeSavedCheckAccessToYourLocal), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string SharedServiceCount => ResourceManager.GetString(nameof(SharedServiceCount), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
