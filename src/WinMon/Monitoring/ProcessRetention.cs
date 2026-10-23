@@ -10,8 +10,8 @@ namespace WinMon.Monitoring;
 /// </remarks>
 internal static class ProcessRetention
 {
-    /// <summary>Largest working sets kept per sample; above the 20-row maximum, so memory ranking stays exact.</summary>
-    internal const int LargestByMemory = 32;
+    /// <summary>Largest working sets and counts kept per sample to cover the 50-row maximum.</summary>
+    internal const int LargestByMemory = 50;
 
     internal static CpuSample Compact(CpuSample sample, int largestByMemory = LargestByMemory,
         Func<ProcessUsage, bool>? retain = null)

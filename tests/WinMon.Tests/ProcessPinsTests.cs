@@ -96,7 +96,7 @@ public sealed class ProcessPinsTests
         pins.Toggle(process, false);
         var snapshot = pins.RetentionSnapshot();
         pins.Toggle(process, false);
-        var all = new[] { process }.Concat(Enumerable.Range(100, 40).Select(i => Process(i) with
+        var all = new[] { process }.Concat(Enumerable.Range(100, ProcessRetention.LargestByMemory + 8).Select(i => Process(i) with
             { WorkingSetBytes = 1000, ThreadCount = 100, HandleCount = 100 })).ToArray();
         Assert.Multiple(() =>
         {

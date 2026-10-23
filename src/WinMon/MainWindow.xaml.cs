@@ -22,7 +22,7 @@ public partial class MainWindow
     private readonly bool _diagnosticMode;
     private readonly PreferenceStore _preferenceStore;
     private readonly MonitorPreferences? _initialPreferences;
-    private readonly ProcessRow[] _rows = [.. Enumerable.Range(0, 20).Select(_ => new ProcessRow())];
+    private readonly ProcessRow[] _rows = [.. Enumerable.Range(0, 50).Select(_ => new ProcessRow())];
     private readonly ProcessRow _otherRow = new() { Visibility = Visibility.Collapsed };
     private readonly ProcessPins _processPins = new();
     private readonly List<ProcessRow> _pinnedRows = [];

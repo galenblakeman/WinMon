@@ -54,6 +54,29 @@ public sealed class ProcessRetentionTests
         Assert.That(ProcessRetention.Compact(sample), Is.SameAs(sample));
     }
 
+    [TestCase(ProcessSort.Memory)]
+    [TestCase(ProcessSort.Threads)]
+    [TestCase(ProcessSort.Handles)]
+    public void Compact_PreservesHistoricalTop50ForIdleBackgroundProcesses(ProcessSort sort)
+    {
+        var processes = Enumerable.Range(1, 60).Select(id =>
+            Usage(id, memory: (ulong)(100 - id)) with
+            {
+                ThreadCount = 100 - id,
+                HandleCount = 100 - id
+            }).ToArray();
+        var full = new CpuSample(DateTimeOffset.UtcNow, 10, processes, 0);
+        var compacted = ProcessRetention.Compact(full);
+        var expected = ProcessRanking.Rank([full], sort: sort).Processes.Take(50).ToArray();
+        var actual = ProcessRanking.Rank([compacted], sort: sort).Processes.Take(50).ToArray();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(actual, Is.EqualTo(expected));
+            Assert.That(compacted.CompactedProcesses, Is.EqualTo(10));
+        });
+    }
+
     [Test]
     public void Ranking_TreatsCompactedProcessesAsIdle()
     {

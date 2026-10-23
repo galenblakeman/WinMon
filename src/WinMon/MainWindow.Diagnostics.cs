@@ -949,12 +949,12 @@ public partial class MainWindow
             MonotonicTimestamp = Stopwatch.Frequency * 121,
             Processes =
             [
-                .. Enumerable.Range(1, 25).Select(i =>
+                .. Enumerable.Range(1, 60).Select(i =>
                     new ProcessUsage(1000 + i, i, $"process-{i:00}", 1d / i))
             ]
         };
         fixture._history.Add(rankedSample);
-        foreach (var count in new[] { 5, 10, 15, 20 })
+        foreach (var count in new[] { 5, 10, 15, 20, 50 })
         {
             fixture.ProcessCountSelector.SelectedItem = count;
             fixture.RefreshVisiblePresentation();
@@ -968,7 +968,7 @@ public partial class MainWindow
         fixture.ProcessScroll.ScrollToBottom();
         ArrangeFixture();
         if (fixture.ProcessScroll.VerticalOffset <= 0) throw new InvalidOperationException("The process list failed to scroll.");
-        await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "process-count-20.png"), 1, cancellationToken);
+        await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "process-count-50.png"), 1, cancellationToken);
         fixture._selectedSample = rankedSample;
         fixture._history.Add(rankedSample with { Timestamp = anchor.AddSeconds(2), MonotonicTimestamp = Stopwatch.Frequency * 122, Processes = [] });
         fixture.ProcessCountSelector.SelectedItem = 10;
