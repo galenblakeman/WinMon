@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Automation;
+using System.Windows.Input;
 using WinMon.Controls;
 using WinMon.Monitoring;
 
@@ -31,6 +32,84 @@ public partial class MainWindow
             ProcessRows.Children.Remove(_rows[^1]);
             _rows.RemoveAt(_rows.Count - 1);
         }
+    }
+
+    // Keep each process on the row that last showed it and move rows to the new ranking. Rebinding rows in place
+    // renamed almost every row (and its pin button) for screen readers, and moved keyboard focus to another process,
+    // whenever the ranking reordered.
+    private void ArrangeProcessRows(IReadOnlyList<ProcessUsage> top, bool grouped)
+    {
+        EnsureProcessRows(top.Count);
+        var byIdentity = new Dictionary<(int, long, string?), ProcessRow>();
+        foreach (var row in _rows)
+            if (row.Identity is { } identity)
+                byIdentity.TryAdd(identity, row);
+        var arranged = new ProcessRow?[_rows.Count];
+        var claimed = new HashSet<ProcessRow>();
+        for (var i = 0; i < top.Count; i++)
+            if (byIdentity.Remove(ProcessRow.IdentityOf(top[i], grouped), out var row))
+            {
+                arranged[i] = row;
+                claimed.Add(row);
+            }
+
+        using (var spare = _rows.Where(row => !claimed.Contains(row)).GetEnumerator())
+            for (var i = 0; i < arranged.Length; i++)
+                if (arranged[i] is null && spare.MoveNext())
+                    arranged[i] = spare.Current;
+
+        var order = arranged.Select(row => row!).ToArray();
+        if (!order.SequenceEqual(_rows)) MoveProcessRows(order);
+        _rows.Clear();
+        _rows.AddRange(order);
+    }
+
+    // Moves only the rows outside the longest run already in the new order, so most rows keep their visuals.
+    private void MoveProcessRows(ProcessRow[] order)
+    {
+        var current = new Dictionary<ProcessRow, int>(_rows.Count);
+        for (var i = 0; i < _rows.Count; i++) current[_rows[i]] = i;
+        var staying = LongestIncreasingRun(order.Select(row => current[row]).ToArray());
+        var focused = Keyboard.FocusedElement as DependencyObject;
+        var refocus = (IInputElement?)null;
+        for (var i = 0; i < order.Length; i++)
+        {
+            if (staying[i]) continue;
+            if (focused is not null && (order[i] == focused || order[i].IsAncestorOf(focused)))
+                refocus = focused as IInputElement;
+            ProcessRows.Children.Remove(order[i]);
+        }
+
+        var start = ProcessRows.Children.IndexOf(_otherRow) - staying.Count(stays => stays);
+        for (var i = 0; i < order.Length; i++)
+            if (!staying[i])
+                ProcessRows.Children.Insert(start + i, order[i]);
+        if (refocus is not null && !ReferenceEquals(Keyboard.FocusedElement, refocus)) Keyboard.Focus(refocus);
+    }
+
+    internal static bool[] LongestIncreasingRun(int[] values)
+    {
+        // Patience sorting: tails[k] is the index ending the best run of length k + 1.
+        var tails = new List<int>();
+        var previous = new int[values.Length];
+        for (var i = 0; i < values.Length; i++)
+        {
+            int low = 0, high = tails.Count;
+            while (low < high)
+            {
+                var middle = (low + high) / 2;
+                if (values[tails[middle]] < values[i]) low = middle + 1;
+                else high = middle;
+            }
+
+            previous[i] = low > 0 ? tails[low - 1] : -1;
+            if (low == tails.Count) tails.Add(i);
+            else tails[low] = i;
+        }
+
+        var result = new bool[values.Length];
+        for (var i = tails.Count > 0 ? tails[^1] : -1; i >= 0; i = previous[i]) result[i] = true;
+        return result;
     }
 
     private void OnToggleActivityActions(object sender, RoutedEventArgs e)

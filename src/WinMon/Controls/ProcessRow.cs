@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Automation;
+using System.Windows.Automation.Peers;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
@@ -77,6 +78,16 @@ public sealed class ProcessRow : Grid
     internal bool Represents(Func<ProcessUsage, bool, bool> matches)
     {
         return _usage is { } usage && matches(usage, _grouped);
+    }
+
+    /// <summary>The lifetime or executable group this row last showed, matched the same way as pins.</summary>
+    internal (int, long, string?)? Identity => _usage is { } usage ? IdentityOf(usage, _grouped) : null;
+
+    internal static (int, long, string?) IdentityOf(ProcessUsage usage, bool grouped)
+    {
+        return grouped
+            ? (0, 0, ProcessRanking.GroupKey(usage).ToUpperInvariant())
+            : (usage.ProcessId, usage.CreationTicks, null);
     }
 
     internal void EnablePinning(Func<ProcessUsage, bool, bool> isPinned, Action<ProcessUsage, bool> toggle)
@@ -439,11 +450,56 @@ public sealed class ProcessRow : Grid
         if (_identity == requestedIdentity) _icon.Source = source;
     }
 
+    protected override AutomationPeer OnCreateAutomationPeer()
+    {
+        return new RowAutomationPeer(this);
+    }
+
     private static TextBlock Cell()
     {
         return new TextBlock
         {
             FontSize = 12, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center
         };
+    }
+
+    /// <summary>
+    /// Exposes the row as one element whose name already carries every cell, plus the pin button.
+    /// WPF re-walks the automation tree after each layout pass while a client listens, so hiding the
+    /// per-cell text, icon and graph peers keeps that walk proportional to the row count.
+    /// </summary>
+    private sealed class RowAutomationPeer(ProcessRow owner) : FrameworkElementAutomationPeer(owner)
+    {
+        protected override string GetClassNameCore()
+        {
+            return nameof(ProcessRow);
+        }
+
+        // WPF re-checks every Custom peer's subtree on each layout pass; a data item is re-checked only when invalidated.
+        protected override AutomationControlType GetAutomationControlTypeCore()
+        {
+            return AutomationControlType.DataItem;
+        }
+
+        // WPF compares Name after every layout pass and raises an event when it differs, so the name carries
+        // only the identity; the per-tick readings travel as help text, which is never compared.
+        protected override string GetNameCore()
+        {
+            var row = (ProcessRow)Owner;
+            return row._pid.Visibility == Visibility.Visible ? $"{row._name.Text} · {row._pid.Text}" : row._name.Text;
+        }
+
+        protected override string GetHelpTextCore()
+        {
+            return AutomationProperties.GetName(Owner);
+        }
+
+        protected override List<AutomationPeer>? GetChildrenCore()
+        {
+            var row = (ProcessRow)Owner;
+            return row._pin.Visibility == Visibility.Visible && UIElementAutomationPeer.CreatePeerForElement(row._pin) is { } pin
+                ? [pin]
+                : null;
+        }
     }
 }

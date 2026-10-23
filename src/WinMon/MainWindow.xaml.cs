@@ -455,7 +455,7 @@ public partial class MainWindow
         var processData = ProcessGraphData.Build(rowSamples, MonitorPreferences.ShortRangeSeconds, displayed, grouped,
             _preferences.ProcessSort);
         UpdatePinnedRows(pinned, processData, rowSamples, grouped);
-        EnsureProcessRows(top.Length);
+        ArrangeProcessRows(top, grouped);
         for (var i = 0; i < _rows.Count; i++)
         {
             _rows[i].Visibility = i < top.Length ? Visibility.Visible : Visibility.Collapsed;

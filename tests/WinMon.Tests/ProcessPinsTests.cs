@@ -1,5 +1,7 @@
 using System.Threading;
 using System.Windows;
+using System.Windows.Automation;
+using System.Windows.Automation.Peers;
 using System.Windows.Controls;
 using NUnit.Framework;
 using WinMon.Controls;
@@ -131,6 +133,56 @@ public sealed class ProcessPinsTests
         Assert.That(((MenuItem)row.ContextMenu.Items[1]).IsEnabled, Is.False);
         Assert.That(row.Children.OfType<TextBlock>().Where(t => Grid.GetColumn(t) >= 2).Select(t => t.Text),
             Is.All.EqualTo(Strings.MissingReading));
+    }
+
+    [Test]
+    [Apartment(ApartmentState.STA)]
+    public void AutomationPeer_ExposesStableRowNameReadingsAndOnlyThePinButton()
+    {
+        var row = new ProcessRow();
+        Assert.That(UIElementAutomationPeer.CreatePeerForElement(row).GetChildren(), Is.Null);
+        row.EnablePinning((_, _) => false, (_, _) => { });
+        row.Update(Process(20) with { CpuPercent = 42 }, [], 120, true, null);
+        var peer = UIElementAutomationPeer.CreatePeerForElement(row);
+        var name = peer.GetName();
+        row.Update(Process(20) with { CpuPercent = 7 }, [], 120, true, null);
+        peer.ResetChildrenCache();
+        var children = peer.GetChildren();
+        Assert.Multiple(() =>
+        {
+            Assert.That(peer.GetClassName(), Is.EqualTo(nameof(ProcessRow)));
+            Assert.That(peer.GetAutomationControlType(), Is.EqualTo(AutomationControlType.DataItem));
+            Assert.That(name, Does.StartWith("example ·").And.Contain("20"));
+            Assert.That(peer.GetName(), Is.EqualTo(name), "readings must not change the name");
+            Assert.That(peer.GetHelpText(), Is.EqualTo(AutomationProperties.GetName(row)));
+            Assert.That(children, Has.Count.EqualTo(1));
+            Assert.That(children[0].GetAutomationControlType(), Is.EqualTo(AutomationControlType.Button));
+            Assert.That(children[0].GetName(), Is.EqualTo($"{Strings.PinProcess}: example"));
+        });
+    }
+
+    [Test]
+    [Apartment(ApartmentState.STA)]
+    public void RowIdentity_FollowsLifetimeOrExecutableGroup()
+    {
+        var row = new ProcessRow();
+        Assert.That(row.Identity, Is.Null);
+        row.Update(Process(20), [], 120, true, null);
+        Assert.Multiple(() =>
+        {
+            Assert.That(row.Identity, Is.EqualTo(ProcessRow.IdentityOf(Process(20) with { CpuPercent = 9 }, false)));
+            Assert.That(row.Identity, Is.Not.EqualTo(ProcessRow.IdentityOf(Process(20, created: 11), false)));
+            Assert.That(ProcessRow.IdentityOf(Process(20), true), Is.EqualTo(ProcessRow.IdentityOf(Process(30), true)));
+        });
+    }
+
+    [TestCase(new int[0], new bool[0])]
+    [TestCase(new[] { 0, 1, 2 }, new[] { true, true, true })]
+    [TestCase(new[] { 2, 0, 1 }, new[] { false, true, true })]
+    [TestCase(new[] { 1, 0, 3, 2, 4 }, new[] { false, true, false, true, true })]
+    public void LongestIncreasingRun_KeepsTheMostRowsInPlace(int[] positions, bool[] staying)
+    {
+        Assert.That(MainWindow.LongestIncreasingRun(positions), Is.EqualTo(staying));
     }
 
     [Test]
