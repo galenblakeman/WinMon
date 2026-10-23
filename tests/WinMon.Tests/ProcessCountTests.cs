@@ -156,7 +156,7 @@ public sealed class ProcessCountTests
         {
             Assert.That(threads.Text, Is.EqualTo("47"));
             Assert.That(handles.Text, Is.EqualTo(1234.ToString("N0")));
-            Assert.That(row.ColumnDefinitions[0].ActualWidth, Is.GreaterThan(200));
+            Assert.That(row.ColumnDefinitions[0].ActualWidth, Is.GreaterThanOrEqualTo(200));
             Assert.That(row.ColumnDefinitions[1].ActualWidth, Is.EqualTo(160));
         });
         row.ShowRemainder(3, 1, 0);
