@@ -427,9 +427,11 @@ public partial class MainWindow
         // Exercise menu creation without invoking the destructive command.
         row.PrepareProcessMenu();
         var menu = row.ContextMenu ?? throw new InvalidOperationException("Process context menu was not created.");
-        var item = menu.Items.OfType<MenuItem>().Last();
-        if (menu.Items.OfType<MenuItem>().Count() != 6 ||
-            menu.Items.OfType<MenuItem>().Any(i => i.Icon is null) ||
+        var items = menu.Items.OfType<MenuItem>().ToArray();
+        var item = items.Last();
+        var priority = items.SingleOrDefault(i => Equals(i.Header, Strings.SetPriority));
+        if (items.Length != 7 || priority?.Items.Count != ProcessPriorityChanger.Choices.Length ||
+            items.Where(i => i != priority).Any(i => i.Icon is null) ||
             item.ToolTip as string != Strings.AvailableForLiveProcesses)
             throw new InvalidOperationException("Process context menu did not capture its target.");
         try
