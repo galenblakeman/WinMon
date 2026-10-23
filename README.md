@@ -175,7 +175,7 @@ The published app is at `src/WinMon/bin/Release/net10.0-windows/win-x64/publish/
 
 ## Open source
 
-WinMon **2.0.0** is built with C# and WPF on .NET 10, and released under the [MIT License](LICENSE).
+WinMon **2.0.1** is built with C# and WPF on .NET 10, and released under the [MIT License](LICENSE).
 
 ### Code signing policy
 
