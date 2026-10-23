@@ -830,7 +830,7 @@ Windows からモジュールの詳細を取得できません。</value>
     <value>セカンダリドライブ</value>
   </data>
   <data name="SelectedChartSnapshot" xml:space="preserve">
-    <value>選択したグラフのスナップショット</value>
+    <value>選択したグラフのキャプチャ</value>
   </data>
   <data name="SelectNoneToMonitorOneDriveActiveTimeAndRead" xml:space="preserve">
     <value>1 ドライブだけ監視するには「なし」を選択します。
@@ -867,19 +867,19 @@ Windows からモジュールの詳細を取得できません。</value>
     <value>スロット使用状況不明</value>
   </data>
   <data name="Snapshot" xml:space="preserve">
-    <value>スナップショット · {0:HH:mm:ss}</value>
+    <value>キャプチャ · {0:HH:mm:ss}</value>
   </data>
   <data name="ExportSnapshotTime" xml:space="preserve">
-    <value>スナップショット: {0:yyyy-MM-dd HH:mm:ss zzz}</value>
+    <value>キャプチャ: {0:yyyy-MM-dd HH:mm:ss zzz}</value>
   </data>
   <data name="HardwareSnapshotTime" xml:space="preserve">
-    <value>スナップショット: {0:HH:mm:ss zzz}</value>
+    <value>キャプチャ: {0:HH:mm:ss zzz}</value>
   </data>
   <data name="SnapshotTakenWhenOpenedOrRefreshed" xml:space="preserve">
-    <value>開いたとき、または更新時に取得したスナップショット。</value>
+    <value>開いたとき、または更新時に取得したキャプチャ。</value>
   </data>
   <data name="SnapshotUnavailableTryRefresh" xml:space="preserve">
-    <value>スナップショットを取得できません。更新を試してください。</value>
+    <value>キャプチャを取得できません。更新を試してください。</value>
   </data>
   <data name="Socket" xml:space="preserve">
     <value>ソケット</value>
@@ -936,7 +936,7 @@ Windows からモジュールの詳細を取得できません。</value>
     <value>システムリソース</value>
   </data>
   <data name="SystemResourcesInspectingSnapshot" xml:space="preserve">
-    <value>システムリソース · スナップショット確認中</value>
+    <value>システムリソース · キャプチャ確認中</value>
   </data>
   <data name="SystemResourcesUnavailable" xml:space="preserve">
     <value>システムリソース · 利用不可</value>
@@ -1229,7 +1229,7 @@ Windows の正常性状態: {2}</value>
     <value>ライブ</value>
   </data>
   <data name="SnapshotMode" xml:space="preserve">
-    <value>スナップショット</value>
+    <value>キャプチャ</value>
   </data>
   <data name="CaptureLatestSnapshot" xml:space="preserve">
     <value>最新の記録済みサンプルを選択します。記録と上部の表示はリアルタイムで更新されます。</value>
@@ -1312,7 +1312,7 @@ Windows の正常性状態: {2}</value>
   <data name="HistoryCount" xml:space="preserve"><value>{0}の履歴: 0–{1:N0}。</value></data>
   <data name="NoProcessCountReadings" xml:space="preserve"><value>プロセスのカウントを取得できません。</value></data>
   <data name="CopySnapshot" xml:space="preserve">
-    <value>スナップショットをコピー</value>
+    <value>キャプチャをコピー</value>
   </data>
   <data name="SnapshotExportIntervals" xml:space="preserve">
     <value>システムリソース：区間の測定値。</value>
@@ -1345,7 +1345,7 @@ Windows の正常性状態: {2}</value>
   <data name="ProcessPathLabel" xml:space="preserve"><value>Executable path</value></data>
   <data name="ProcessObservationLabel" xml:space="preserve"><value>Observation time</value></data>
   <data name="ProcessViewLabel" xml:space="preserve"><value>View</value></data>
-  <data name="ProcessHistoricalView" xml:space="preserve"><value>Historical snapshot</value></data>
+  <data name="ProcessHistoricalView" xml:space="preserve"><value>過去のキャプチャ</value></data>
   <data name="ProcessCapturedView" xml:space="preserve"><value>Captured from live view</value></data>
   <data name="ProcessStateLabel" xml:space="preserve"><value>State</value></data>
   <data name="ProcessMembersLabel" xml:space="preserve"><value>Member process IDs</value></data>
@@ -1363,7 +1363,54 @@ Windows の正常性状態: {2}</value>
   <data name="ProcessDumpFailed" xml:space="preserve"><value>Could not create the dump: {0}</value></data>
   <data name="ProcessFileMissing" xml:space="preserve"><value>The recorded executable no longer exists at this location.</value></data>
   <data name="ProcessApplicationLabel" xml:space="preserve"><value>アプリケーション</value></data>
-  <data name="PinTop" xml:space="preserve"><value>最前面に固定</value></data>
+  <data name="AlwaysOnTop" xml:space="preserve"><value>常に最前面</value></data>
   <data name="CpuClockDescription" xml:space="preserve"><value>Windows が報告する現在の CPU クロック（論理プロセッサの平均）。</value></data>
   <data name="ResizeChartAndProcesses" xml:space="preserve"><value>ドラッグしてグラフとプロセスの高さを調整</value></data>
+  <data name="ProcessesTab" xml:space="preserve"><value>プロセス</value></data>
+  <data name="Services" xml:space="preserve"><value>サービス</value></data>
+  <data name="SearchServices" xml:space="preserve"><value>名前または PID でサービスを検索</value></data>
+  <data name="ServiceStatus" xml:space="preserve"><value>状態</value></data>
+  <data name="IncludeWorkerProcesses" xml:space="preserve"><value>ワーカー プロセスを含める</value></data>
+  <data name="ServiceSort" xml:space="preserve"><value>並べ替え</value></data>
+  <data name="AllServiceStatuses" xml:space="preserve"><value>すべての状態</value></data>
+  <data name="ServiceRunning" xml:space="preserve"><value>実行中</value></data>
+  <data name="ServiceStopped" xml:space="preserve"><value>停止</value></data>
+  <data name="ServiceName" xml:space="preserve"><value>名前</value></data>
+  <data name="ServiceProcess" xml:space="preserve"><value>サービス / プロセス</value></data>
+  <data name="ServicePrivateMiB" xml:space="preserve"><value>プライベート MiB</value></data>
+  <data name="ViewServiceProcess" xml:space="preserve"><value>プロセスを表示</value></data>
+  <data name="StartService" xml:space="preserve"><value>開始</value></data>
+  <data name="StopService" xml:space="preserve"><value>停止</value></data>
+  <data name="RestartService" xml:space="preserve"><value>再起動</value></data>
+  <data name="ServiceActionInProgress" xml:space="preserve"><value>サービス操作を実行しています…</value></data>
+  <data name="ServiceHistoryExpired" xml:space="preserve"><value>サービス履歴は最大 2 分間保持されます。現在のサービスを確認するには、ライブに戻ってください。</value></data>
+  <data name="ServicesCollecting" xml:space="preserve"><value>サービスとプロセスのメトリックを収集しています…</value></data>
+  <data name="ServicesUnavailable" xml:space="preserve"><value>サービスの測定値を利用できません。毎秒再試行します。</value></data>
+  <data name="NoServicesMatch" xml:space="preserve"><value>この検索と状態フィルターに一致するサービスはありません。</value></data>
+  <data name="ServiceWorkerExplanation" xml:space="preserve"><value>ワーカー関係は、観測されたプロセスの系統から推測されます。共有サービスではホスト合計を 1 つ使用します。履歴: 最大 2 分。</value></data>
+  <data name="SelectService" xml:space="preserve"><value>サービスまたはプロセスを選択</value></data>
+  <data name="ExpandService" xml:space="preserve"><value>{0} を展開または折りたたむ</value></data>
+  <data name="SharedServiceHost" xml:space="preserve"><value>共有ホスト · {0} · PID {1}</value></data>
+  <data name="ServiceProcessPid" xml:space="preserve"><value>PID {0}</value></data>
+  <data name="SharedServiceCount" xml:space="preserve"><value>{0} サービス · ホスト合計 1 つ</value></data>
+  <data name="ServiceHostWorkers" xml:space="preserve"><value>ホスト + ワーカー {0} 個</value></data>
+  <data name="ServiceDedicatedHost" xml:space="preserve"><value>専用ホスト</value></data>
+  <data name="IncludedInHostTotal" xml:space="preserve"><value>ホスト合計に含まれます</value></data>
+  <data name="ServiceStarting" xml:space="preserve"><value>開始中</value></data>
+  <data name="ServiceStopping" xml:space="preserve"><value>停止中</value></data>
+  <data name="ServiceContinuing" xml:space="preserve"><value>再開中</value></data>
+  <data name="ServicePausing" xml:space="preserve"><value>一時停止中</value></data>
+  <data name="ServicePaused" xml:space="preserve"><value>一時停止</value></data>
+  <data name="ConfirmServiceAction" xml:space="preserve"><value>{0} {1}？ このサービスを使用するアプリケーションが中断される可能性があります。Windows で管理者の承認を求められる場合があります。</value></data>
+  <data name="ServiceActionFailed" xml:space="preserve"><value>サービス操作に失敗しました: {0}</value></data>
+  <data name="ServicesBy" xml:space="preserve"><value>サービス、並べ替え</value></data>
+  <data name="NumberOfTopServices" xml:space="preserve"><value>表示するサービスホストの数</value></data>
+  <data name="ServiceWorkers" xml:space="preserve"><value>ワーカー</value></data>
+  <data name="ServiceAverageSummary" xml:space="preserve"><value>CPU と I/O · 5 秒間の平均</value></data>
+  <data name="ServiceWorkersIncluded" xml:space="preserve"><value>ワーカーを含む</value></data>
+  <data name="ServiceHostOnly" xml:space="preserve"><value>ホストのみ</value></data>
+  <data name="SelectProcess" xml:space="preserve"><value>プロセスを選択</value></data>
+  <data name="MoreActions" xml:space="preserve"><value>その他</value></data>
+  <data name="EndProcessGroup" xml:space="preserve"><value>グループを終了</value></data>
+  <data name="Properties" xml:space="preserve"><value>プロパティ</value></data>
 </root>

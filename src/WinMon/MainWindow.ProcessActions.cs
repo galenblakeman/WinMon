@@ -8,11 +8,60 @@ namespace WinMon;
 
 public partial class MainWindow
 {
-    private void EnableProcessInspection(ProcessRow row) => row.EnableInspectionActions(
+    private readonly ProcessSelection _processSelection = new();
+
+    private void EnableProcessInspection(ProcessRow row)
+    {
+        row.ProcessSelected += (process, grouped) =>
+        {
+            _processSelection.Select(process, grouped);
+            UpdateProcessRetention();
+            RefreshPresentation();
+        };
+        row.EnableInspectionActions(
         snapshot => new ProcessPropertiesWindow(snapshot, CopyProcessDetails) { Owner = this }.ShowDialog(),
         snapshot => CopyProcessDetails(snapshot.Format()), OpenProcessLocation,
         process => new ProcessDumpDialog(process, () => CanDumpProcess(process)) { Owner = this }.ShowDialog(),
         CanDumpProcess, () => _selectedSample is not null);
+    }
+
+    private void UpdateProcessRetention()
+    {
+        var pins = _processPins.RetentionSnapshot();
+        var selected = _processSelection.RetentionSnapshot();
+        Volatile.Write(ref _retainPinned, pins is null && selected is null ? null :
+            process => pins?.Invoke(process) == true || selected?.Invoke(process) == true);
+    }
+
+    private void RefreshProcessActions(IReadOnlyList<CpuSample> samples, bool grouped)
+    {
+        var hadSelection = _processSelection.HasSelection;
+        var target = _processSelection.Resolve(samples, grouped, _selectedSample is not null, _preferences.ProcessSort);
+        if (hadSelection && !_processSelection.HasSelection) UpdateProcessRetention();
+        ProcessDetailsSnapshot? snapshot = target is null ? null : new(target.Usage, grouped, samples.LastOrDefault()?.Timestamp,
+            _selectedSample is not null, target.State == PinnedProcessState.Present && _samplingError is null,
+            _samplingError is not null ? Strings.Unavailable : ProcessRow.StateText(target.State));
+        ProcessActions.Update(snapshot,
+            snapshot?.Available == true && CanEndProcess(snapshot.Process),
+            snapshot?.Available == true && CanDumpProcess(snapshot.Process));
+        foreach (var row in _rows.Concat(_pinnedRows)) row.SetSelected(row.Represents(_processSelection.Contains));
+    }
+
+    private void OnProcessAction(string action, ProcessDetailsSnapshot snapshot)
+    {
+        if (_closing) return;
+        var process = snapshot.Process;
+        switch (action)
+        {
+            case "properties": new ProcessPropertiesWindow(snapshot, CopyProcessDetails) { Owner = this }.ShowDialog(); break;
+            case "copy": CopyProcessDetails(snapshot.Format()); break;
+            case "location": OpenProcessLocation(process); break;
+            case "end" when snapshot.Available && !snapshot.Historical && snapshot.Grouped == _preferences.GroupProcesses:
+                EndProcess(process); break;
+            case "dump" when snapshot.Available && !snapshot.Historical && snapshot.Grouped == _preferences.GroupProcesses && CanDumpProcess(process):
+                new ProcessDumpDialog(process, () => CanDumpProcess(process)) { Owner = this }.ShowDialog(); break;
+        }
+    }
 
     private bool CanDumpProcess(ProcessUsage process) => ProcessDumpWriter.IsEligible(process,
         !_closing && _selectedSample is null, _preferences.GroupProcesses);
@@ -21,7 +70,7 @@ public partial class MainWindow
     {
         try { Clipboard.SetDataObject(new DataObject(DataFormats.UnicodeText, text), true); }
         catch (System.Runtime.InteropServices.ExternalException)
-        { MessageBox.Show(this, Strings.TheClipboardIsUnavailableTryCopyAgain, Strings.CopyDetails, MessageBoxButton.OK, MessageBoxImage.Information); }
+        { WinMon.Controls.MessageDialog.ShowNotice(this, Strings.TheClipboardIsUnavailableTryCopyAgain, Strings.CopyDetails); }
     }
 
     private void OpenProcessLocation(ProcessUsage process)
@@ -34,6 +83,6 @@ public partial class MainWindow
             Process.Start(start)?.Dispose();
         }
         catch (Exception ex) when (ex is Win32Exception or IOException or UnauthorizedAccessException or InvalidOperationException)
-        { MessageBox.Show(this, ex.Message, Strings.OpenFileLocation, MessageBoxButton.OK, MessageBoxImage.Information); }
+        { WinMon.Controls.MessageDialog.ShowNotice(this, ex.Message, Strings.OpenFileLocation); }
     }
 }

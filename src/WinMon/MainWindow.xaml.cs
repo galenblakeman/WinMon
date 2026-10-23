@@ -73,6 +73,8 @@ public partial class MainWindow
         _preferenceStore = preferenceStore ?? new PreferenceStore();
         InitializeComponent();
         InitializeCompactView();
+        InitializeServices();
+        ProcessActions.ActionRequested += OnProcessAction;
         VersionRun.Text = $" {AppInfo.Version}";
         ProcessCountSelector.ItemsSource = new[] { 5, 10, 15, 20, 50 };
         ProcessCountSelector.SelectedItem = _preferences.TopProcessCount;
@@ -139,7 +141,7 @@ public partial class MainWindow
         {
             _preferences = _diagnosticMode ? new MonitorPreferences() : _initialPreferences ?? await _preferenceStore.LoadAsync(_lifetime.Token);
             _processPins.Restore(_preferences.PinnedProcesses);
-            Volatile.Write(ref _retainPinned, _processPins.RetentionSnapshot());
+            UpdateProcessRetention();
             PinnedOnlyCheckBox.IsChecked = _preferences.PinnedOnly;
             ProcessSortSelector.SelectedIndex = (int)_preferences.ProcessSort;
             GroupedChip.IsChecked = _preferences.GroupProcesses;
@@ -182,6 +184,7 @@ public partial class MainWindow
     private async Task CollectAsync(CancellationToken cancellationToken)
     {
         var sampler = new WindowsCpuSampler();
+        var serviceTree = new ServiceTree();
         using var resources = new WindowsResourceSampler();
         using var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
         try
@@ -192,6 +195,10 @@ public partial class MainWindow
                 try
                 {
                     CpuSample sample;
+                    ServiceCatalog? serviceCatalog = null;
+                    try { serviceCatalog = WindowsServices.Capture(); }
+                    catch (Exception ex) when (ex is Win32Exception or UnauthorizedAccessException)
+                    { Trace.TraceWarning("Service enumeration unavailable: {0}", ex.Message); }
                     SamplingError? cpuError = null;
                     try { sample = sampler.Sample(); }
                     catch (Exception ex) when (ex is Win32Exception or PlatformNotSupportedException)
@@ -203,7 +210,8 @@ public partial class MainWindow
                     }
                     var diskPreferences = Volatile.Read(ref _preferences);
                     var full = resources.Sample(sample, diskPreferences.PrimaryDrive, diskPreferences.SecondaryDrive);
-                    Deliver(new PendingSample(ProcessRetention.Compact(full, retain: Volatile.Read(ref _retainPinned)), cpuError, full));
+                    Deliver(new PendingSample(ProcessRetention.Compact(full, retain: Volatile.Read(ref _retainPinned)), cpuError, full,
+                        serviceTree.Capture(full, serviceCatalog)));
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
                 catch (Exception ex)
@@ -223,7 +231,7 @@ public partial class MainWindow
     }
 
     /// <summary>A captured sample, or a failed pass when <see cref="Sample"/> is null, awaiting the UI thread.</summary>
-    private sealed record PendingSample(CpuSample? Sample, SamplingError? Error, CpuSample? Full = null);
+    private sealed record PendingSample(CpuSample? Sample, SamplingError? Error, CpuSample? Full = null, ServiceFrame? Services = null);
 
     // Capture never waits for the UI: a stalled dispatcher would otherwise delay the next capture and
     // stretch the sampling interval past the chart's gap threshold. Samples queue in pendingSamples and
@@ -251,6 +259,7 @@ public partial class MainWindow
                     _history.Add(pending.Sample);
                     _latestCompacted = pending.Sample;
                     _latestFull = pending.Full;
+                    if (pending.Services is not null) _serviceHistory.Add(pending.Services);
                     if (!_diagnosticMode && !_updateReadySignaled && pending.Error is null)
                     {
                         _updateReadySignaled = true;
@@ -295,6 +304,7 @@ public partial class MainWindow
         UpdateResources(allUnavailable ? null : latest);
         OverallGraph.SetData(samples, range, _selectedSample);
         RefreshCompactView();
+        RefreshServices();
         UpdateSnapshot(_selectedSample is null ? null : visible);
         var grouped = _preferences.GroupProcesses;
         var historyMetric = _preferences.ProcessSort switch
@@ -334,6 +344,7 @@ public partial class MainWindow
             _rows[i].Visibility = i < top.Length ? Visibility.Visible : Visibility.Collapsed;
             if (i < top.Length) _rows[i].Update(top[i], rowSamples, MonitorPreferences.ShortRangeSeconds, _wide, processData[pinned.Length + i], grouped);
         }
+        RefreshProcessActions(rowSamples, grouped);
         _otherRow.Visibility = rest.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
         if (rest.Length > 0)
             // Memory ranking also covers idle processes compacted out of the sample.
@@ -546,8 +557,18 @@ public partial class MainWindow
 
     private void UpdatePinButton()
     {
-        // The labeled toggle turns accent-colored while the window stays on top.
-        PinButton.SetResourceReference(ForegroundProperty, Topmost ? "Accent" : "Text");
+        // Keep the active toggle distinct from the surrounding title bar in every theme.
+        PinButton.SetResourceReference(ForegroundProperty, Topmost ? "SelectedText" : "Text");
+        if (Topmost)
+        {
+            PinButton.SetResourceReference(System.Windows.Controls.Control.BackgroundProperty, "SelectedSurface");
+            PinButton.SetResourceReference(System.Windows.Controls.Control.BorderBrushProperty, "Accent");
+        }
+        else
+        {
+            PinButton.ClearValue(System.Windows.Controls.Control.BackgroundProperty);
+            PinButton.ClearValue(System.Windows.Controls.Control.BorderBrushProperty);
+        }
         PinButton.ToolTip = Topmost ? Strings.KeptOnTopOfOtherWindowsClickToStop : Strings.KeepThisWindowOnTopOfOtherWindows;
         System.Windows.Automation.AutomationProperties.SetName(PinButton, Topmost ? Strings.KeepOnTopOn : Strings.KeepOnTopOff);
     }
@@ -734,7 +755,7 @@ public partial class MainWindow
         catch (Exception ex)
         {
             Trace.TraceError("WinMon preferences could not be saved: {0}", ex);
-            if (!_closing) MessageBox.Show(this, Strings.SettingsCouldNotBeSavedCheckAccessToYourLocal, Strings.WinMonSettings, MessageBoxButton.OK, MessageBoxImage.Warning);
+            if (!_closing) WinMon.Controls.MessageDialog.ShowNotice(this, Strings.SettingsCouldNotBeSavedCheckAccessToYourLocal, Strings.WinMonSettings);
         }
         finally
         {
@@ -918,8 +939,19 @@ public partial class MainWindow
         if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control)
         {
             if (_compactMode) SetCompactView(false);
+            if (ServicesTab.IsChecked == true)
+            {
+                ServiceView.FocusSearch();
+                e.Handled = true;
+                return;
+            }
             ProcessSearchBox.Focus();
             ProcessSearchBox.SelectAll();
+            e.Handled = true;
+            return;
+        }
+        if (e.Key == Key.Escape && ServicesTab.IsChecked == true && ServiceView.ClearSearch())
+        {
             e.Handled = true;
             return;
         }
@@ -941,6 +973,9 @@ public partial class MainWindow
         if (_allowClose) return;
         e.Cancel = true;
         if (_closing || _preparingUpdateExit) return;
+        // A restart may already have stopped its service. Let the bounded control operation finish
+        // before cancelling the monitor lifetime or exiting its helper owner.
+        if (_serviceActionBusy) { _closeAfterServiceAction = true; return; }
         if (_updateRestartPending)
         {
             _preparingUpdateExit = true;

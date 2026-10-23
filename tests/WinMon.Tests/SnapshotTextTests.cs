@@ -29,6 +29,8 @@ public sealed class SnapshotTextTests
         Assert.Multiple(() =>
         {
             Assert.That(text, Does.Contain("2026-10-21 14:32:08 -05:00"));
+            Assert.That(text, Does.Contain("Capture:").And.Not.Contain("Snapshot"));
+            Assert.That(WinMon.Resources.Strings.CopySnapshot, Is.EqualTo("Copy capture"));
             Assert.That(text, Does.Contain("42.3%").And.Contain("8.0 / 16 GiB").And.Contain("50.0%"));
             Assert.That(text, Does.Contain("GPU\t—"));
             Assert.That(text, Does.Contain("Disk (C:)\t0.0%").And.Contain("Disk (D:)\t28.0%"));

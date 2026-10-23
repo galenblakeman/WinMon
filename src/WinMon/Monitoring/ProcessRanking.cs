@@ -51,20 +51,8 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
         ArgumentNullException.ThrowIfNull(history);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(windowSeconds);
         var window = new List<CpuSample>(windowSeconds + 1);
-        if (history.Count > 0)
-        {
-            var end = Moment(history[^1]);
-            // Each sample covers about one second ending at its timestamp, so half a second of slack
-            // keeps timer jitter from adding or dropping an interval.
-            var start = end - (windowSeconds - 0.5);
-            for (var i = history.Count - 1; i >= 0; i--)
-            {
-                var sample = history[i];
-                if (Moment(sample) < start || sample.IsGap || sample.TotalCpuPercent is null) break;
-                if (window.Count > 0 && Moment(window[^1]) - Moment(sample) > GapSeconds) break;
-                window.Add(sample);
-            }
-        }
+        var first = WindowStart(history, windowSeconds);
+        for (var i = history.Count - 1; i >= first; i--) window.Add(history[i]);
         if (window.Count == 0) return new ProcessRanking([], null, 0);
 
         // Reused on each thread: for ~1,000 processes, new collections would land on the large object heap on
@@ -138,6 +126,23 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
 
     /// <summary>Average CPU of every measured process in the window, whatever the sort; zero with no measurable interval.</summary>
     public double MeasuredCpuPercent { get; init; }
+
+    /// <summary>Shared interval selection for process and service rankings, including jitter and gap boundaries.</summary>
+    internal static int WindowStart(IReadOnlyList<CpuSample> history, int windowSeconds = DefaultWindowSeconds)
+    {
+        var first = history.Count;
+        if (first == 0) return first;
+        // Half a second of slack keeps timer jitter from adding or dropping an interval.
+        var start = Moment(history[^1]) - (windowSeconds - 0.5);
+        for (var i = history.Count - 1; i >= 0; i--)
+        {
+            var sample = history[i];
+            if (Moment(sample) < start || sample.IsGap || sample.TotalCpuPercent is null) break;
+            if (i < history.Count - 1 && Moment(history[i + 1]) - Moment(sample) > GapSeconds) break;
+            first = i;
+        }
+        return first;
+    }
 
     [ThreadStatic] private static HashSet<(int, long)>? _scratchNewest;
     [ThreadStatic] private static Dictionary<(int, long), WindowTotals>? _scratchTotals;

@@ -150,7 +150,7 @@ internal sealed class HardwareInfoWindow : Window
         {
             System.Diagnostics.Trace.TraceWarning("Could not copy hardware information: {0}", ex.Message);
             _copy.Content = Strings.Copy;
-            MessageBox.Show(this, Strings.TheClipboardIsUnavailableTryCopyAgain, Strings.CopyInformation, MessageBoxButton.OK, MessageBoxImage.Information);
+            WinMon.Controls.MessageDialog.ShowNotice(this, Strings.TheClipboardIsUnavailableTryCopyAgain, Strings.CopyInformation);
         }
     }
 }

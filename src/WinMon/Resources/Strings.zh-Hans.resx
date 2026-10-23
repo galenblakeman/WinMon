@@ -830,7 +830,7 @@ GPU 利用率 0–{1:0.0}%</value>
     <value>第二驱动器</value>
   </data>
   <data name="SelectedChartSnapshot" xml:space="preserve">
-    <value>选定的图表快照</value>
+    <value>选定的图表捕获</value>
   </data>
   <data name="SelectNoneToMonitorOneDriveActiveTimeAndRead" xml:space="preserve">
     <value>选择“无”以仅监视一个驱动器。
@@ -867,19 +867,19 @@ GPU 利用率 0–{1:0.0}%</value>
     <value>插槽使用情况不可用</value>
   </data>
   <data name="Snapshot" xml:space="preserve">
-    <value>快照 · {0:HH:mm:ss}</value>
+    <value>捕获 · {0:HH:mm:ss}</value>
   </data>
   <data name="ExportSnapshotTime" xml:space="preserve">
-    <value>快照：{0:yyyy-MM-dd HH:mm:ss zzz}</value>
+    <value>捕获：{0:yyyy-MM-dd HH:mm:ss zzz}</value>
   </data>
   <data name="HardwareSnapshotTime" xml:space="preserve">
-    <value>快照：{0:HH:mm:ss zzz}</value>
+    <value>捕获：{0:HH:mm:ss zzz}</value>
   </data>
   <data name="SnapshotTakenWhenOpenedOrRefreshed" xml:space="preserve">
-    <value>在打开或刷新时获取快照。</value>
+    <value>在打开或刷新时获取捕获。</value>
   </data>
   <data name="SnapshotUnavailableTryRefresh" xml:space="preserve">
-    <value>快照不可用。请尝试刷新。</value>
+    <value>捕获不可用。请尝试刷新。</value>
   </data>
   <data name="Socket" xml:space="preserve">
     <value>插槽</value>
@@ -936,7 +936,7 @@ GPU 利用率 0–{1:0.0}%</value>
     <value>系统资源</value>
   </data>
   <data name="SystemResourcesInspectingSnapshot" xml:space="preserve">
-    <value>系统资源 · 检查快照</value>
+    <value>系统资源 · 检查捕获</value>
   </data>
   <data name="SystemResourcesUnavailable" xml:space="preserve">
     <value>系统资源 · 不可用</value>
@@ -1229,7 +1229,7 @@ Windows 健康状态：{2}</value>
     <value>实时</value>
   </data>
   <data name="SnapshotMode" xml:space="preserve">
-    <value>快照</value>
+    <value>捕获</value>
   </data>
   <data name="CaptureLatestSnapshot" xml:space="preserve">
     <value>选择最新记录的采样。记录和顶部读数继续实时更新。</value>
@@ -1312,7 +1312,7 @@ Windows 健康状态：{2}</value>
   <data name="HistoryCount" xml:space="preserve"><value>{0}历史：0–{1:N0}。</value></data>
   <data name="NoProcessCountReadings" xml:space="preserve"><value>没有可用的进程计数读数。</value></data>
   <data name="CopySnapshot" xml:space="preserve">
-    <value>复制快照</value>
+    <value>复制捕获</value>
   </data>
   <data name="SnapshotExportIntervals" xml:space="preserve">
     <value>系统资源：采样区间读数。</value>
@@ -1345,7 +1345,7 @@ Windows 健康状态：{2}</value>
   <data name="ProcessPathLabel" xml:space="preserve"><value>Executable path</value></data>
   <data name="ProcessObservationLabel" xml:space="preserve"><value>Observation time</value></data>
   <data name="ProcessViewLabel" xml:space="preserve"><value>View</value></data>
-  <data name="ProcessHistoricalView" xml:space="preserve"><value>Historical snapshot</value></data>
+  <data name="ProcessHistoricalView" xml:space="preserve"><value>历史捕获</value></data>
   <data name="ProcessCapturedView" xml:space="preserve"><value>Captured from live view</value></data>
   <data name="ProcessStateLabel" xml:space="preserve"><value>State</value></data>
   <data name="ProcessMembersLabel" xml:space="preserve"><value>Member process IDs</value></data>
@@ -1363,7 +1363,54 @@ Windows 健康状态：{2}</value>
   <data name="ProcessDumpFailed" xml:space="preserve"><value>Could not create the dump: {0}</value></data>
   <data name="ProcessFileMissing" xml:space="preserve"><value>The recorded executable no longer exists at this location.</value></data>
   <data name="ProcessApplicationLabel" xml:space="preserve"><value>应用程序</value></data>
-  <data name="PinTop" xml:space="preserve"><value>置顶</value></data>
+  <data name="AlwaysOnTop" xml:space="preserve"><value>始终置顶</value></data>
   <data name="CpuClockDescription" xml:space="preserve"><value>Windows 报告的当前 CPU 时钟频率，取逻辑处理器的平均值。</value></data>
   <data name="ResizeChartAndProcesses" xml:space="preserve"><value>拖动以调整图表和进程区域的高度</value></data>
+  <data name="ProcessesTab" xml:space="preserve"><value>进程</value></data>
+  <data name="Services" xml:space="preserve"><value>服务</value></data>
+  <data name="SearchServices" xml:space="preserve"><value>按名称或 PID 搜索服务</value></data>
+  <data name="ServiceStatus" xml:space="preserve"><value>状态</value></data>
+  <data name="IncludeWorkerProcesses" xml:space="preserve"><value>包括工作进程</value></data>
+  <data name="ServiceSort" xml:space="preserve"><value>排序方式</value></data>
+  <data name="AllServiceStatuses" xml:space="preserve"><value>所有状态</value></data>
+  <data name="ServiceRunning" xml:space="preserve"><value>正在运行</value></data>
+  <data name="ServiceStopped" xml:space="preserve"><value>已停止</value></data>
+  <data name="ServiceName" xml:space="preserve"><value>名称</value></data>
+  <data name="ServiceProcess" xml:space="preserve"><value>服务 / 进程</value></data>
+  <data name="ServicePrivateMiB" xml:space="preserve"><value>专用 MiB</value></data>
+  <data name="ViewServiceProcess" xml:space="preserve"><value>查看进程</value></data>
+  <data name="StartService" xml:space="preserve"><value>启动</value></data>
+  <data name="StopService" xml:space="preserve"><value>停止</value></data>
+  <data name="RestartService" xml:space="preserve"><value>重启</value></data>
+  <data name="ServiceActionInProgress" xml:space="preserve"><value>正在执行服务操作…</value></data>
+  <data name="ServiceHistoryExpired" xml:space="preserve"><value>服务历史记录最多保留两分钟。返回实时视图以检查当前服务。</value></data>
+  <data name="ServicesCollecting" xml:space="preserve"><value>正在收集服务和进程指标…</value></data>
+  <data name="ServicesUnavailable" xml:space="preserve"><value>服务读数不可用。每秒重试一次。</value></data>
+  <data name="NoServicesMatch" xml:space="preserve"><value>没有服务符合此搜索和状态筛选条件。</value></data>
+  <data name="ServiceWorkerExplanation" xml:space="preserve"><value>工作进程关系根据观察到的进程谱系推断。共享服务使用一个主机总计。历史记录：最多 2 分钟。</value></data>
+  <data name="SelectService" xml:space="preserve"><value>选择服务或进程</value></data>
+  <data name="ExpandService" xml:space="preserve"><value>展开或折叠 {0}</value></data>
+  <data name="SharedServiceHost" xml:space="preserve"><value>共享主机 · {0} · PID {1}</value></data>
+  <data name="ServiceProcessPid" xml:space="preserve"><value>PID {0}</value></data>
+  <data name="SharedServiceCount" xml:space="preserve"><value>{0} 个服务 · 一个主机总计</value></data>
+  <data name="ServiceHostWorkers" xml:space="preserve"><value>主机 + {0} 个工作进程</value></data>
+  <data name="ServiceDedicatedHost" xml:space="preserve"><value>专用主机</value></data>
+  <data name="IncludedInHostTotal" xml:space="preserve"><value>已包括在主机总计中</value></data>
+  <data name="ServiceStarting" xml:space="preserve"><value>正在启动</value></data>
+  <data name="ServiceStopping" xml:space="preserve"><value>正在停止</value></data>
+  <data name="ServiceContinuing" xml:space="preserve"><value>正在恢复</value></data>
+  <data name="ServicePausing" xml:space="preserve"><value>正在暂停</value></data>
+  <data name="ServicePaused" xml:space="preserve"><value>已暂停</value></data>
+  <data name="ConfirmServiceAction" xml:space="preserve"><value>{0} {1}？这可能会中断使用此服务的应用程序。Windows 可能请求管理员批准。</value></data>
+  <data name="ServiceActionFailed" xml:space="preserve"><value>服务操作失败：{0}</value></data>
+  <data name="ServicesBy" xml:space="preserve"><value>服务，排序依据</value></data>
+  <data name="NumberOfTopServices" xml:space="preserve"><value>排名靠前的服务主机数量</value></data>
+  <data name="ServiceWorkers" xml:space="preserve"><value>工作进程</value></data>
+  <data name="ServiceAverageSummary" xml:space="preserve"><value>CPU 和 I/O · 5 秒平均值</value></data>
+  <data name="ServiceWorkersIncluded" xml:space="preserve"><value>包含工作进程</value></data>
+  <data name="ServiceHostOnly" xml:space="preserve"><value>仅主机</value></data>
+  <data name="SelectProcess" xml:space="preserve"><value>选择进程</value></data>
+  <data name="MoreActions" xml:space="preserve"><value>更多</value></data>
+  <data name="EndProcessGroup" xml:space="preserve"><value>结束组</value></data>
+  <data name="Properties" xml:space="preserve"><value>属性</value></data>
 </root>

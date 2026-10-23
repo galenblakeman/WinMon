@@ -65,6 +65,13 @@ public partial class MainWindow
         fixture.ToggleProcessPin(exited, false);
         fixture.ApplyTheme();
         Draw();
+        fixture._pinnedRows[1].RaiseEvent(new System.Windows.Input.MouseButtonEventArgs(
+            System.Windows.Input.Mouse.PrimaryDevice, 0, System.Windows.Input.MouseButton.Left)
+            { RoutedEvent = PreviewMouseDownEvent });
+        Draw();
+        if (!fixture._processSelection.Contains(chrome, false) ||
+            !Descendants(fixture.ProcessActions).OfType<TextBlock>().Any(t => t.Text == chrome.Name))
+            throw new InvalidOperationException("Clicking a process did not populate the process action bar.");
         var filledPin = Descendants(fixture._pinnedRows[0]).OfType<Button>().Single();
         if (fixture.PinSummary.Visibility != Visibility.Visible ||
             fixture.PinnedCountLabel.Text != Strings.Format(Strings.PinnedProcessCount, 3) ||
@@ -93,6 +100,8 @@ public partial class MainWindow
         await CaptureVisualAsync(visual, Path.Combine(output, "pins-only.png"), 1, cancellationToken);
         fixture.ProcessSearchBox.Text = "Code";
         Draw();
+        if (!Descendants(fixture.ProcessActions).OfType<TextBlock>().Any(t => t.Text == chrome.Name))
+            throw new InvalidOperationException("Filtering a selected process out of the list cleared its action bar.");
         if (fixture._pinnedRows.Count(r => r.Visibility == Visibility.Visible) != 1)
             throw new InvalidOperationException("Search did not filter pinned rows.");
         fixture.ProcessSearchBox.Clear();

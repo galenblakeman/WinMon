@@ -18,10 +18,10 @@ public partial class MainWindow
         fixture.Loaded -= fixture.OnLoaded;
         fixture.Left = SystemParameters.WorkArea.Left + 20;
         fixture.Top = SystemParameters.WorkArea.Top + 20;
+        var chrome = Process(12000, "chrome", "Google Chrome", 8.7, 1260, 92, 1420);
         try
         {
             fixture._preferences = new MonitorPreferences { Theme = "Dark", PrimaryDrive = "C:", SecondaryDrive = "D:" };
-            var chrome = Process(12000, "chrome", "Google Chrome", 8.7, 1260, 92, 1420);
             var code = Process(12003, "Code", "Visual Studio Code", 4.7, 840, 64, 980);
             ProcessUsage[] processes =
             [
@@ -32,7 +32,7 @@ public partial class MainWindow
                 Process(12004, "Taskmgr", "Task Manager", 2, 195, 22, 560),
                 Process(12010, "OneDrive", "Microsoft OneDrive", 0.8, 175, 36, 740)
             ];
-            var anchor = new DateTimeOffset(2026, 10, 22, 10, 24, 0, TimeSpan.FromHours(-5));
+            var anchor = new DateTimeOffset(2026, 10, 23, 10, 24, 0, TimeSpan.FromHours(-5));
             for (var i = 0; i < 120; i++)
             {
                 var pulse = Math.Exp(-Math.Pow((i - 92) / 3d, 2));
@@ -105,12 +105,14 @@ public partial class MainWindow
         }
         return;
 
-        async Task Draw(string name, double width = 1000, double height = 840)
+        async Task Draw(string name, double width = 1000, double height = 940)
         {
             fixture.Width = width;
             fixture.Height = height;
             if (!fixture.IsVisible) fixture.Show();
             fixture.ApplyTheme();
+            fixture._processSelection.Select(chrome, fixture._preferences.GroupProcesses);
+            fixture.UpdateProcessRetention();
             fixture.RefreshVisiblePresentation();
             await CaptureExampleWindowAsync(fixture, Path.Combine(output, $"example_{name}.png"), cancellationToken);
         }

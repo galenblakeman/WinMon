@@ -20,6 +20,24 @@ public partial class App
     // ReSharper disable once AsyncVoidEventHandlerMethod
     protected override async void OnStartup(StartupEventArgs e)
     {
+        if (e.Args is ["--service-action", var action, var service, var pidText, var createdText])
+        {
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            var result = 87;
+            if (action is "start" or "stop" or "restart" && int.TryParse(pidText, NumberStyles.None, CultureInfo.InvariantCulture, out var pid) &&
+                long.TryParse(createdText, NumberStyles.None, CultureInfo.InvariantCulture, out var created))
+            {
+                try
+                {
+                    await Task.Run(() => Monitoring.WindowsServices.ExecuteAsync(service, action, pid, created, CancellationToken.None));
+                    result = 0;
+                }
+                catch (System.ComponentModel.Win32Exception ex) { result = ex.NativeErrorCode; }
+                catch (Exception ex) when (ex is ArgumentException or InvalidOperationException) { result = 1237; }
+            }
+            Shutdown(result);
+            return;
+        }
         if (e.Args is ["--apply-update", var directory, var token])
         {
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
@@ -32,6 +50,16 @@ public partial class App
         AppLanguages.InitializeSystemDisplayCulture(CultureInfo.CurrentUICulture);
         AppLanguages.Apply(AppLanguages.SystemDefault);
 
+        if (e.Args is ["--services-smoke-output", var servicesOutput])
+        {
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            base.OnStartup(e);
+            var window = new MainWindow(true);
+            MainWindow = window;
+            window.Show();
+            _ = RunServicesDiagnosticsAsync(window, Path.GetFullPath(servicesOutput));
+            return;
+        }
         if (e.Args is ["--smoke-output" or "--feature-smoke-output" or "--snapshot-smoke-output" or "--search-smoke-output" or "--compact-smoke-output" or "--examples-output", _])
         {
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
@@ -68,7 +96,7 @@ public partial class App
         if (!_ownsInstance)
         {
             if (!InstanceActivation.SignalRunningInstance())
-                MessageBox.Show(Strings.WinMonIsAlreadyRunningRestoreItFromTheNotificationArea, Strings.WinMon, MessageBoxButton.OK, MessageBoxImage.Information);
+                WinMon.Controls.MessageDialog.ShowNotice(null, Strings.WinMonIsAlreadyRunningRestoreItFromTheNotificationArea, Strings.WinMon);
             Shutdown();
             return;
         }

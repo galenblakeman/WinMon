@@ -21,7 +21,7 @@ public sealed class HardwareInfoTextTests
         {
             Assert.That(text, Does.StartWith($"WinMon {AppInfo.Version}"));
             Assert.That(text, Does.Contain(AppInfo.Description).And.Contain(AppInfo.RepositoryUrl).And.Contain(AppInfo.Copyright));
-            Assert.That(text, Does.Contain("Snapshot: 2026-10-19 22:30:00 -05:00"));
+            Assert.That(text, Does.Contain("Capture: 2026-10-19 22:30:00 -05:00"));
             Assert.That(text, Does.Contain("CPU details").And.Contain("L3 cache: 32 MiB").And.Contain("Model · 8 cores"));
             Assert.That(text, Does.Contain("Module details").And.Contain("RAM-16"));
             Assert.That(text, Does.Contain("Drive details").And.Contain("Volumes: C:, D:"));

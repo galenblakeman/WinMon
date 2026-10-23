@@ -830,7 +830,7 @@ Windows에서 모듈 세부 정보를 가져올 수 없습니다.</value>
     <value>보조 드라이브</value>
   </data>
   <data name="SelectedChartSnapshot" xml:space="preserve">
-    <value>선택한 차트 스냅샷</value>
+    <value>선택한 차트 캡처</value>
   </data>
   <data name="SelectNoneToMonitorOneDriveActiveTimeAndRead" xml:space="preserve">
     <value>드라이브 하나만 모니터링하려면 없음을 선택하세요.
@@ -867,19 +867,19 @@ Windows에서 모듈 세부 정보를 가져올 수 없습니다.</value>
     <value>슬롯 사용 정보를 가져올 수 없음</value>
   </data>
   <data name="Snapshot" xml:space="preserve">
-    <value>스냅샷 · {0:HH:mm:ss}</value>
+    <value>캡처 · {0:HH:mm:ss}</value>
   </data>
   <data name="ExportSnapshotTime" xml:space="preserve">
-    <value>스냅샷: {0:yyyy-MM-dd HH:mm:ss zzz}</value>
+    <value>캡처: {0:yyyy-MM-dd HH:mm:ss zzz}</value>
   </data>
   <data name="HardwareSnapshotTime" xml:space="preserve">
-    <value>스냅샷: {0:HH:mm:ss zzz}</value>
+    <value>캡처: {0:HH:mm:ss zzz}</value>
   </data>
   <data name="SnapshotTakenWhenOpenedOrRefreshed" xml:space="preserve">
-    <value>열거나 새로 고칠 때 촬영된 스냅샷입니다.</value>
+    <value>열거나 새로 고칠 때 촬영된 캡처입니다.</value>
   </data>
   <data name="SnapshotUnavailableTryRefresh" xml:space="preserve">
-    <value>스냅샷을 사용할 수 없습니다. 새로 고침을 시도하세요.</value>
+    <value>캡처을 사용할 수 없습니다. 새로 고침을 시도하세요.</value>
   </data>
   <data name="Socket" xml:space="preserve">
     <value>소켓</value>
@@ -936,7 +936,7 @@ Windows에서 모듈 세부 정보를 가져올 수 없습니다.</value>
     <value>시스템 리소스</value>
   </data>
   <data name="SystemResourcesInspectingSnapshot" xml:space="preserve">
-    <value>시스템 리소스 · 스냅샷 확인 중</value>
+    <value>시스템 리소스 · 캡처 확인 중</value>
   </data>
   <data name="SystemResourcesUnavailable" xml:space="preserve">
     <value>시스템 리소스 · 사용할 수 없음</value>
@@ -1229,7 +1229,7 @@ Windows 상태: {2}</value>
     <value>실시간</value>
   </data>
   <data name="SnapshotMode" xml:space="preserve">
-    <value>스냅샷</value>
+    <value>캡처</value>
   </data>
   <data name="CaptureLatestSnapshot" xml:space="preserve">
     <value>가장 최근에 기록된 샘플을 선택합니다. 기록과 상단 측정값은 계속 실시간으로 업데이트됩니다.</value>
@@ -1312,7 +1312,7 @@ Windows 상태: {2}</value>
   <data name="HistoryCount" xml:space="preserve"><value>{0} 기록: 0–{1:N0}.</value></data>
   <data name="NoProcessCountReadings" xml:space="preserve"><value>프로세스 수 측정값이 없습니다.</value></data>
   <data name="CopySnapshot" xml:space="preserve">
-    <value>스냅샷 복사</value>
+    <value>캡처 복사</value>
   </data>
   <data name="SnapshotExportIntervals" xml:space="preserve">
     <value>시스템 리소스: 구간 측정값.</value>
@@ -1345,7 +1345,7 @@ Windows 상태: {2}</value>
   <data name="ProcessPathLabel" xml:space="preserve"><value>Executable path</value></data>
   <data name="ProcessObservationLabel" xml:space="preserve"><value>Observation time</value></data>
   <data name="ProcessViewLabel" xml:space="preserve"><value>View</value></data>
-  <data name="ProcessHistoricalView" xml:space="preserve"><value>Historical snapshot</value></data>
+  <data name="ProcessHistoricalView" xml:space="preserve"><value>이전 캡처</value></data>
   <data name="ProcessCapturedView" xml:space="preserve"><value>Captured from live view</value></data>
   <data name="ProcessStateLabel" xml:space="preserve"><value>State</value></data>
   <data name="ProcessMembersLabel" xml:space="preserve"><value>Member process IDs</value></data>
@@ -1363,7 +1363,54 @@ Windows 상태: {2}</value>
   <data name="ProcessDumpFailed" xml:space="preserve"><value>Could not create the dump: {0}</value></data>
   <data name="ProcessFileMissing" xml:space="preserve"><value>The recorded executable no longer exists at this location.</value></data>
   <data name="ProcessApplicationLabel" xml:space="preserve"><value>응용 프로그램</value></data>
-  <data name="PinTop" xml:space="preserve"><value>맨 위에 고정</value></data>
+  <data name="AlwaysOnTop" xml:space="preserve"><value>항상 위에 표시</value></data>
   <data name="CpuClockDescription" xml:space="preserve"><value>Windows가 보고한 현재 CPU 클럭(논리 프로세서 평균).</value></data>
   <data name="ResizeChartAndProcesses" xml:space="preserve"><value>드래그하여 차트와 프로세스 높이 조절</value></data>
+  <data name="ProcessesTab" xml:space="preserve"><value>프로세스</value></data>
+  <data name="Services" xml:space="preserve"><value>서비스</value></data>
+  <data name="SearchServices" xml:space="preserve"><value>이름 또는 PID로 서비스 검색</value></data>
+  <data name="ServiceStatus" xml:space="preserve"><value>상태</value></data>
+  <data name="IncludeWorkerProcesses" xml:space="preserve"><value>작업자 프로세스 포함</value></data>
+  <data name="ServiceSort" xml:space="preserve"><value>정렬 기준</value></data>
+  <data name="AllServiceStatuses" xml:space="preserve"><value>모든 상태</value></data>
+  <data name="ServiceRunning" xml:space="preserve"><value>실행 중</value></data>
+  <data name="ServiceStopped" xml:space="preserve"><value>중지됨</value></data>
+  <data name="ServiceName" xml:space="preserve"><value>이름</value></data>
+  <data name="ServiceProcess" xml:space="preserve"><value>서비스 / 프로세스</value></data>
+  <data name="ServicePrivateMiB" xml:space="preserve"><value>프라이빗 MiB</value></data>
+  <data name="ViewServiceProcess" xml:space="preserve"><value>프로세스 보기</value></data>
+  <data name="StartService" xml:space="preserve"><value>시작</value></data>
+  <data name="StopService" xml:space="preserve"><value>중지</value></data>
+  <data name="RestartService" xml:space="preserve"><value>다시 시작</value></data>
+  <data name="ServiceActionInProgress" xml:space="preserve"><value>서비스 작업 진행 중…</value></data>
+  <data name="ServiceHistoryExpired" xml:space="preserve"><value>서비스 기록은 최대 2분 동안 보존됩니다. 현재 서비스를 검사하려면 라이브로 돌아가세요.</value></data>
+  <data name="ServicesCollecting" xml:space="preserve"><value>서비스 및 프로세스 메트릭 수집 중…</value></data>
+  <data name="ServicesUnavailable" xml:space="preserve"><value>서비스 판독값을 사용할 수 없습니다. 매초 다시 시도합니다.</value></data>
+  <data name="NoServicesMatch" xml:space="preserve"><value>이 검색 및 상태 필터와 일치하는 서비스가 없습니다.</value></data>
+  <data name="ServiceWorkerExplanation" xml:space="preserve"><value>작업자 관계는 관찰된 프로세스 계보에서 추론됩니다. 공유 서비스는 하나의 호스트 합계를 사용합니다. 기록: 최대 2분.</value></data>
+  <data name="SelectService" xml:space="preserve"><value>서비스 또는 프로세스 선택</value></data>
+  <data name="ExpandService" xml:space="preserve"><value>{0} 확장 또는 축소</value></data>
+  <data name="SharedServiceHost" xml:space="preserve"><value>공유 호스트 · {0} · PID {1}</value></data>
+  <data name="ServiceProcessPid" xml:space="preserve"><value>PID {0}</value></data>
+  <data name="SharedServiceCount" xml:space="preserve"><value>서비스 {0}개 · 호스트 합계 하나</value></data>
+  <data name="ServiceHostWorkers" xml:space="preserve"><value>호스트 + 작업자 {0}개</value></data>
+  <data name="ServiceDedicatedHost" xml:space="preserve"><value>전용 호스트</value></data>
+  <data name="IncludedInHostTotal" xml:space="preserve"><value>호스트 합계에 포함됨</value></data>
+  <data name="ServiceStarting" xml:space="preserve"><value>시작 중</value></data>
+  <data name="ServiceStopping" xml:space="preserve"><value>중지 중</value></data>
+  <data name="ServiceContinuing" xml:space="preserve"><value>다시 시작 중</value></data>
+  <data name="ServicePausing" xml:space="preserve"><value>일시 중지 중</value></data>
+  <data name="ServicePaused" xml:space="preserve"><value>일시 중지됨</value></data>
+  <data name="ConfirmServiceAction" xml:space="preserve"><value>{0} {1}? 이 서비스를 사용하는 애플리케이션이 중단될 수 있습니다. Windows에서 관리자 승인을 요청할 수 있습니다.</value></data>
+  <data name="ServiceActionFailed" xml:space="preserve"><value>서비스 작업 실패: {0}</value></data>
+  <data name="ServicesBy" xml:space="preserve"><value>서비스 정렬 기준</value></data>
+  <data name="NumberOfTopServices" xml:space="preserve"><value>표시할 상위 서비스 호스트 수</value></data>
+  <data name="ServiceWorkers" xml:space="preserve"><value>작업 프로세스</value></data>
+  <data name="ServiceAverageSummary" xml:space="preserve"><value>CPU 및 I/O · 5초 평균</value></data>
+  <data name="ServiceWorkersIncluded" xml:space="preserve"><value>작업 프로세스 포함</value></data>
+  <data name="ServiceHostOnly" xml:space="preserve"><value>호스트만</value></data>
+  <data name="SelectProcess" xml:space="preserve"><value>프로세스 선택</value></data>
+  <data name="MoreActions" xml:space="preserve"><value>더 보기</value></data>
+  <data name="EndProcessGroup" xml:space="preserve"><value>그룹 끝내기</value></data>
+  <data name="Properties" xml:space="preserve"><value>속성</value></data>
 </root>

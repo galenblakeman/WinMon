@@ -2,7 +2,7 @@
 
 **See what your PC is doing. Find what's slowing it down.**
 
-WinMon brings CPU, memory, disk, network and GPU activity into one clear Windows dashboard. Spot a spike, find the busiest processes, and look back at what was happening when it occurred—all from the same window.
+WinMon brings CPU, memory, disk, network and GPU activity into one clear Windows dashboard. Spot a spike, find the busiest processes and services, and look back at what was happening when it occurred—all from the same window.
 
 **Windows x64 · Self-contained app · Portable settings · MIT licensed**
 
@@ -34,7 +34,7 @@ Keep the whole picture in view while you work, play or troubleshoot. WinMon puts
 - **Watch the resources that matter.** Monitor CPU, physical memory, GPU, network throughput and up to two disk volumes. Hide individual chart traces to focus the view while recording continues.
 - **Find the busiest processes.** Rank by CPU, GPU, memory, I/O, thread count or handle count, with application icons and history sparklines that follow your selected metric.
 - **Look beyond the latest number.** Switch between 2, 10, 30 and 60-minute chart ranges, subject to your retained history, and inspect earlier samples.
-- **Keep it close.** Pin WinMon above other windows, minimize it to the notification area, or bring it forward with a configurable shortcut.
+- **Keep it close.** Enable **Always on top** in the title bar to keep WinMon above other windows, minimize it to the notification area, or bring it forward with a configurable shortcut. Its highlighted background shows when it is enabled.
 - **Use less screen space.** Choose **Compact view** in the title bar for a horizontal strip with live readings and filled two-minute charts inside each resource box. **Full view** restores the dashboard and its size. The selected view is remembered when WinMon closes.
 
 ![WinMon Compact view with live CPU, memory, two disks, network and GPU readings over filled history charts](docs/example/example_compact.png)
@@ -47,7 +47,7 @@ Grouped GPU shows the busiest member; grouped memory uses private bytes to avoid
 
 ## Find the process you need
 
-Search the ranked list by application name, executable name or PID. Turn on **App Only** to focus on processes observed with an application window, and use the **App** / **Background** labels to understand each row. In Grouped mode, an executable is an app when any current member has an app window.
+Search the ranked list by application name, executable name or PID. Turn on **App only** to focus on processes observed with an application window, and use the **App** / **Background** labels to understand each row. In Grouped mode, an executable is an app when any current member has an app window.
 
 Click the **Threads** or **Handles** column heading to rank by that count. Hover over a process name for its publisher metadata and executable path.
 
@@ -58,23 +58,43 @@ Click the **Threads** or **Handles** column heading to rank by that count. Hover
 
 Individual processes and executable groups have separate pin lists. An individual pin follows one process lifetime, so an exited or restarted process stays marked exited and a reused PID cannot inherit it. Executable-group pins match new instances of the same executable.
 
-Search and App Only filter both pinned and ranked rows. Pinned processes do not appear twice. Missing historical observations show “Not recorded at this sample”; gaps or uncertain observations show unavailable values. Thread and handle counts show the latest observation at the selected moment.
+Search and App only filter both pinned and ranked rows. Pinned processes do not appear twice. Missing historical observations show “Not recorded at this sample”; gaps or uncertain observations show unavailable values. Thread and handle counts show the latest observation at the selected moment.
 
 </details>
 
 See [grouped, filtered and pinned process views](docs/example/README.md) in the example gallery.
 
-Right-click a process row to open **Properties**, **Open file location**, or **Copy details**. The menu also includes pinning, memory-dump creation for eligible live processes, and process termination with confirmation. Available actions depend on the selected process, Windows permissions, and whether you are inspecting history.
+Select a process row to use the accent action bar: **Properties**, **Copy details**, **More**, and **End process** (or **End group**). **More** includes **Open file location** and memory-dump creation for eligible live processes. The same actions, plus pinning, remain available by right-clicking a row. Selection follows the process lifetime even when it falls out of the rankings or is filtered out; a reused PID cannot take over the selection. Group selections follow the executable, and switching between Individual and Grouped clears selection. Process termination retains its confirmation. Available actions depend on the selected process, Windows permissions, and whether you are inspecting history.
+
+## Follow Windows services and their workers
+
+Choose **Services** beside **Processes** to inspect local Windows services, including stopped services. Expand a service to see its hosting process and observed workers. CPU, private memory and read/write I/O totals follow the **Include worker processes** toggle; each metric row has a CPU history sparkline.
+
+CPU and I/O values and rankings use the same five-second averaging window as Processes. Private memory uses the latest sample; sparklines show individual recorded intervals.
+
+![Services view with an expanded worker tree and a shared host total](docs/example/example_services.png)
+
+*Illustrative service identities and measurements, captured from the native WinMon window.*
+
+Search by service name, display name, process name or PID, filter by status, and sort by CPU, memory or I/O. Services sharing a host appear under one host total, with no separate resource attribution to each service. Worker relationships are inferred from observed process ancestry.
+
+The **Top … services by …** toolbar defaults to 20 service/host rows, with choices from 5 to 50. Click the CPU, private-memory, or I/O column header to change ranking; the dropdown and active-column arrow stay in sync. Search and status filters apply before the limit; expanded workers do not count against it. The search field grows with the window, and controls wrap below the ranking selectors when space is limited.
+
+The selected service stays in the action bar when ranking or filters hide its row. Its status and action targets continue to refresh, including after a host restart. Selecting another row changes the target; historical or unavailable data disables service controls.
+
+Right-click a service or process row for the same **View process**, **Copy details**, **Start**, **Stop**, and **Restart** actions. Right-click selects the row; the menu keeps its captured target if the rankings change. Shared-host and process rows disable individual service controls. Service controls use the same availability checks and confirmations as the action bar.
+
+**View process** opens the corresponding PID in the process view. **Copy details** copies the selected service or process identity, status, observation time, resource metrics, and associated services/processes, including while inspecting history. Start, Stop and Restart operate on the selected service; Stop and Restart require confirmation, and Windows requests elevation when needed. Service controls are disabled while inspecting history. Service history retains up to two minutes, subject to a separate memory bound; older service captures are unavailable. Driver services are outside this view.
 
 ## Catch the spike—even after it passes
 
-Choose **Snapshot** in the centered **Live | Snapshot** switch above the chart to inspect the newest recorded sample, or click the chart to select an earlier moment. The snapshot shows resource readings for that interval, and the process table follows your selection so you can investigate what was busy then. Recording and the top readouts stay live while you explore.
+Choose **Capture** in the centered **Live | Capture** switch above the chart to inspect the newest recorded sample, or click the chart to select an earlier moment. The capture shows resource readings for that interval, and the process table follows your selection so you can investigate what was busy then. Recording and the top readouts stay live while you explore.
 
-![WinMon historical snapshot showing interval resource readings and the process table at the selected time](docs/example/example_snapshot.png)
+![WinMon historical capture showing interval resource readings and the process table at the selected time](docs/example/example_snapshot.png)
 
-Click **Snapshot** again to select the newest sample. Use **Left / Right** to step through samples, **Home** to jump to the oldest visible sample, and **Live**, **End**, **Escape** or **Return to live** to resume the live view.
+Click **Capture** again to select the newest sample. Use **Left / Right** to step through samples, **Home** to jump to the oldest visible sample, and **Live**, **End**, **Escape** or **Return to live** to resume the live view.
 
-**Copy snapshot** always copies the selected moment’s resource summary and displayed top process rows as plain text, preserving their sorting, grouping and filters. Reports include the timestamp and time zone, units, unavailable readings and averaging notes. Copying keeps the snapshot open; expired samples cannot be copied.
+**Copy capture** always copies the selected moment’s resource summary and displayed top process rows as plain text, preserving their sorting, grouping and filters. Reports include the timestamp and time zone, units, unavailable readings and averaging notes. Copying keeps the capture open; expired samples cannot be copied.
 
 History is kept in memory for the current session, with configurable retention up to 60 minutes. Available history can be shorter on busy systems and is cleared when WinMon exits.
 
@@ -155,7 +175,7 @@ The published app is at `src/WinMon/bin/Release/net10.0-windows/win-x64/publish/
 
 ## Open source
 
-WinMon **1.0.7** is built with C# and WPF on .NET 10, and released under the [MIT License](LICENSE).
+WinMon **2.0.0** is built with C# and WPF on .NET 10, and released under the [MIT License](LICENSE).
 
 ### Code signing policy
 

@@ -32,7 +32,7 @@ public partial class MainWindow
         {
             System.Diagnostics.Trace.TraceWarning("Could not copy snapshot: {0}", ex.Message);
             ResetSnapshotCopyCaption();
-            MessageBox.Show(this, Strings.TheClipboardIsUnavailableTryCopyAgain, Strings.CopySnapshot, MessageBoxButton.OK, MessageBoxImage.Information);
+            WinMon.Controls.MessageDialog.ShowNotice(this, Strings.TheClipboardIsUnavailableTryCopyAgain, Strings.CopySnapshot);
         }
     }
 

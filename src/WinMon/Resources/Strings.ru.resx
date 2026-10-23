@@ -830,7 +830,7 @@ GPU {11} · {12}
     <value>Второй диск</value>
   </data>
   <data name="SelectedChartSnapshot" xml:space="preserve">
-    <value>Выбранный снимок графика</value>
+    <value>Выбранный захват графика</value>
   </data>
   <data name="SelectNoneToMonitorOneDriveActiveTimeAndRead" xml:space="preserve">
     <value>Выберите «Нет» для мониторинга одного диска.
@@ -867,19 +867,19 @@ GPU {11} · {12}
     <value>Использование слотов недоступно</value>
   </data>
   <data name="Snapshot" xml:space="preserve">
-    <value>Снимок · {0:HH:mm:ss}</value>
+    <value>Захват · {0:HH:mm:ss}</value>
   </data>
   <data name="ExportSnapshotTime" xml:space="preserve">
-    <value>Снимок: {0:yyyy-MM-dd HH:mm:ss zzz}</value>
+    <value>Захват: {0:yyyy-MM-dd HH:mm:ss zzz}</value>
   </data>
   <data name="HardwareSnapshotTime" xml:space="preserve">
-    <value>Снимок: {0:HH:mm:ss zzz}</value>
+    <value>Захват: {0:HH:mm:ss zzz}</value>
   </data>
   <data name="SnapshotTakenWhenOpenedOrRefreshed" xml:space="preserve">
-    <value>Снимок создаётся при открытии или обновлении.</value>
+    <value>Захват создаётся при открытии или обновлении.</value>
   </data>
   <data name="SnapshotUnavailableTryRefresh" xml:space="preserve">
-    <value>Снимок недоступен. Обновите данные.</value>
+    <value>Захват недоступен. Обновите данные.</value>
   </data>
   <data name="Socket" xml:space="preserve">
     <value>сокет</value>
@@ -936,7 +936,7 @@ GPU {11} · {12}
     <value>Ресурсы системы</value>
   </data>
   <data name="SystemResourcesInspectingSnapshot" xml:space="preserve">
-    <value>Ресурсы системы · просмотр снимка</value>
+    <value>Ресурсы системы · просмотр захвата</value>
   </data>
   <data name="SystemResourcesUnavailable" xml:space="preserve">
     <value>Ресурсы системы · недоступны</value>
@@ -1229,7 +1229,7 @@ GPU {11} · {12}
     <value>Онлайн</value>
   </data>
   <data name="SnapshotMode" xml:space="preserve">
-    <value>Снимок</value>
+    <value>Захват</value>
   </data>
   <data name="CaptureLatestSnapshot" xml:space="preserve">
     <value>Выбрать последний записанный замер. Запись и верхние показания обновляются в реальном времени.</value>
@@ -1312,7 +1312,7 @@ GPU {11} · {12}
   <data name="HistoryCount" xml:space="preserve"><value>История {0}: 0–{1:N0}.</value></data>
   <data name="NoProcessCountReadings" xml:space="preserve"><value>Показания счётчиков процессов недоступны.</value></data>
   <data name="CopySnapshot" xml:space="preserve">
-    <value>Копировать снимок</value>
+    <value>Копировать захват</value>
   </data>
   <data name="SnapshotExportIntervals" xml:space="preserve">
     <value>Системные ресурсы: показания за интервал.</value>
@@ -1345,7 +1345,7 @@ GPU {11} · {12}
   <data name="ProcessPathLabel" xml:space="preserve"><value>Executable path</value></data>
   <data name="ProcessObservationLabel" xml:space="preserve"><value>Observation time</value></data>
   <data name="ProcessViewLabel" xml:space="preserve"><value>View</value></data>
-  <data name="ProcessHistoricalView" xml:space="preserve"><value>Historical snapshot</value></data>
+  <data name="ProcessHistoricalView" xml:space="preserve"><value>Исторический захват</value></data>
   <data name="ProcessCapturedView" xml:space="preserve"><value>Captured from live view</value></data>
   <data name="ProcessStateLabel" xml:space="preserve"><value>State</value></data>
   <data name="ProcessMembersLabel" xml:space="preserve"><value>Member process IDs</value></data>
@@ -1363,7 +1363,54 @@ GPU {11} · {12}
   <data name="ProcessDumpFailed" xml:space="preserve"><value>Could not create the dump: {0}</value></data>
   <data name="ProcessFileMissing" xml:space="preserve"><value>The recorded executable no longer exists at this location.</value></data>
   <data name="ProcessApplicationLabel" xml:space="preserve"><value>Приложение</value></data>
-  <data name="PinTop" xml:space="preserve"><value>Поверх окон</value></data>
+  <data name="AlwaysOnTop" xml:space="preserve"><value>Всегда поверх окон</value></data>
   <data name="CpuClockDescription" xml:space="preserve"><value>Текущая частота ЦП по данным Windows, среднее по логическим процессорам.</value></data>
   <data name="ResizeChartAndProcesses" xml:space="preserve"><value>Перетащите для изменения высоты графика и процессов</value></data>
+  <data name="ProcessesTab" xml:space="preserve"><value>Процессы</value></data>
+  <data name="Services" xml:space="preserve"><value>Службы</value></data>
+  <data name="SearchServices" xml:space="preserve"><value>Поиск служб по имени или PID</value></data>
+  <data name="ServiceStatus" xml:space="preserve"><value>Состояние</value></data>
+  <data name="IncludeWorkerProcesses" xml:space="preserve"><value>Включать рабочие процессы</value></data>
+  <data name="ServiceSort" xml:space="preserve"><value>Сортировать по</value></data>
+  <data name="AllServiceStatuses" xml:space="preserve"><value>Все состояния</value></data>
+  <data name="ServiceRunning" xml:space="preserve"><value>Выполняется</value></data>
+  <data name="ServiceStopped" xml:space="preserve"><value>Остановлена</value></data>
+  <data name="ServiceName" xml:space="preserve"><value>Имя</value></data>
+  <data name="ServiceProcess" xml:space="preserve"><value>Служба / процесс</value></data>
+  <data name="ServicePrivateMiB" xml:space="preserve"><value>Частная память, МиБ</value></data>
+  <data name="ViewServiceProcess" xml:space="preserve"><value>Показать процесс</value></data>
+  <data name="StartService" xml:space="preserve"><value>Запустить</value></data>
+  <data name="StopService" xml:space="preserve"><value>Остановить</value></data>
+  <data name="RestartService" xml:space="preserve"><value>Перезапустить</value></data>
+  <data name="ServiceActionInProgress" xml:space="preserve"><value>Выполняется действие со службой…</value></data>
+  <data name="ServiceHistoryExpired" xml:space="preserve"><value>История службы хранится до двух минут. Вернитесь в режим «В реальном времени», чтобы просмотреть текущие службы.</value></data>
+  <data name="ServicesCollecting" xml:space="preserve"><value>Сбор данных о службах и метрик процессов…</value></data>
+  <data name="ServicesUnavailable" xml:space="preserve"><value>Показания служб недоступны. Повторная попытка каждую секунду.</value></data>
+  <data name="NoServicesMatch" xml:space="preserve"><value>Нет служб, соответствующих этому поиску и фильтру состояния.</value></data>
+  <data name="ServiceWorkerExplanation" xml:space="preserve"><value>Связи с рабочими процессами выводятся из наблюдаемой родословной процессов. Общие службы используют один итог хоста. История: до 2 минут.</value></data>
+  <data name="SelectService" xml:space="preserve"><value>Выберите службу или процесс</value></data>
+  <data name="ExpandService" xml:space="preserve"><value>Развернуть или свернуть {0}</value></data>
+  <data name="SharedServiceHost" xml:space="preserve"><value>Общий хост · {0} · PID {1}</value></data>
+  <data name="ServiceProcessPid" xml:space="preserve"><value>PID {0}</value></data>
+  <data name="SharedServiceCount" xml:space="preserve"><value>{0} служб · один итог хоста</value></data>
+  <data name="ServiceHostWorkers" xml:space="preserve"><value>Хост + {0} рабочих процессов</value></data>
+  <data name="ServiceDedicatedHost" xml:space="preserve"><value>Выделенный хост</value></data>
+  <data name="IncludedInHostTotal" xml:space="preserve"><value>Включено в итог хоста</value></data>
+  <data name="ServiceStarting" xml:space="preserve"><value>Запускается</value></data>
+  <data name="ServiceStopping" xml:space="preserve"><value>Останавливается</value></data>
+  <data name="ServiceContinuing" xml:space="preserve"><value>Возобновляется</value></data>
+  <data name="ServicePausing" xml:space="preserve"><value>Приостанавливается</value></data>
+  <data name="ServicePaused" xml:space="preserve"><value>Приостановлена</value></data>
+  <data name="ConfirmServiceAction" xml:space="preserve"><value>{0} {1}? Это может прервать работу приложений, использующих эту службу. Windows может запросить разрешение администратора.</value></data>
+  <data name="ServiceActionFailed" xml:space="preserve"><value>Сбой действия со службой: {0}</value></data>
+  <data name="ServicesBy" xml:space="preserve"><value>служб по</value></data>
+  <data name="NumberOfTopServices" xml:space="preserve"><value>Количество ведущих процессов служб</value></data>
+  <data name="ServiceWorkers" xml:space="preserve"><value>Рабочие процессы</value></data>
+  <data name="ServiceAverageSummary" xml:space="preserve"><value>ЦП и ввод-вывод · среднее за 5 секунд</value></data>
+  <data name="ServiceWorkersIncluded" xml:space="preserve"><value>С рабочими процессами</value></data>
+  <data name="ServiceHostOnly" xml:space="preserve"><value>Только процесс службы</value></data>
+  <data name="SelectProcess" xml:space="preserve"><value>Выберите процесс</value></data>
+  <data name="MoreActions" xml:space="preserve"><value>Ещё</value></data>
+  <data name="EndProcessGroup" xml:space="preserve"><value>Завершить группу</value></data>
+  <data name="Properties" xml:space="preserve"><value>Свойства</value></data>
 </root>

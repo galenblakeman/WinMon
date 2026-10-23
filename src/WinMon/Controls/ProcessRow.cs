@@ -38,6 +38,10 @@ public sealed class ProcessRow : Grid
     private string? _pinForeground;
     private string? _background;
     private string? _nameForeground = "Text";
+    private readonly Border _selection = new() { BorderThickness = new Thickness(3, 0, 0, 0), IsHitTestVisible = false, Visibility = Visibility.Collapsed };
+    internal event Action<ProcessUsage, bool>? ProcessSelected;
+    internal void SetSelected(bool selected) => _selection.Visibility = selected ? Visibility.Visible : Visibility.Collapsed;
+    internal bool Represents(Func<ProcessUsage, bool, bool> matches) => _usage is { } usage && matches(usage, _grouped);
 
     internal void EnablePinning(Func<ProcessUsage, bool, bool> isPinned, Action<ProcessUsage, bool> toggle)
     {
@@ -72,7 +76,7 @@ public sealed class ProcessRow : Grid
         _dump = dump; _canDump = canDump; _historical = historical;
     }
 
-    private static MenuItem ActionItem(string header, System.Windows.Media.Geometry geometry)
+    internal static MenuItem ActionItem(string header, System.Windows.Media.Geometry geometry)
     {
         var item = new MenuItem { Header = header };
         var icon = new System.Windows.Shapes.Path { Data = geometry, Width = 16, Height = 16,
@@ -133,6 +137,16 @@ public sealed class ProcessRow : Grid
     public ProcessRow()
     {
         Height = 36;
+        PreviewMouseDown += (_, _) => { if (_usage is { } usage) ProcessSelected?.Invoke(usage, _grouped); };
+        KeyDown += (_, e) =>
+        {
+            if (e.Key is System.Windows.Input.Key.Enter or System.Windows.Input.Key.Space && _usage is { } usage)
+            { ProcessSelected?.Invoke(usage, _grouped); e.Handled = true; }
+        };
+        _selection.SetResourceReference(Border.BorderBrushProperty, "Accent");
+        _selection.SetResourceReference(Border.BackgroundProperty, "Raised");
+        SetColumnSpan(_selection, 8);
+        Children.Add(_selection);
         var separator = new Border { BorderThickness = new Thickness(0, 0, 0, 1), IsHitTestVisible = false };
         separator.SetResourceReference(Border.BorderBrushProperty, "Line");
         SetColumnSpan(separator, 8); Children.Add(separator);

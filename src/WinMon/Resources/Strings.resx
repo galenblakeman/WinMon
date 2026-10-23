@@ -407,10 +407,10 @@ Click to hold; top readouts stay live</value>
     <value>Itanium</value>
   </data>
   <data name="KeepOnTopOff" xml:space="preserve">
-    <value>Keep on top, off</value>
+    <value>Always on top, off</value>
   </data>
   <data name="KeepOnTopOn" xml:space="preserve">
-    <value>Keep on top, on</value>
+    <value>Always on top, on</value>
   </data>
   <data name="KeepThisWindowOnTopOfOtherWindows" xml:space="preserve">
     <value>Keep this window on top of other windows</value>
@@ -793,7 +793,7 @@ Reported maximum: {3}</value>
     <value>Resume live readings and processes (End or Escape)</value>
   </data>
   <data name="ReturnToLive" xml:space="preserve">
-    <value>Return to Live</value>
+    <value>Return to live</value>
   </data>
   <data name="ReturnToLiveToInspectCurrentActivity" xml:space="preserve">
     <value>Return to live to inspect current activity.</value>
@@ -830,7 +830,7 @@ Rx {0:0.00} / Tx {1:0.00} Mbps</value>
     <value>Second drive</value>
   </data>
   <data name="SelectedChartSnapshot" xml:space="preserve">
-    <value>Selected chart snapshot</value>
+    <value>Selected chart capture</value>
   </data>
   <data name="SelectNoneToMonitorOneDriveActiveTimeAndRead" xml:space="preserve">
     <value>Select None to monitor one drive.
@@ -858,7 +858,7 @@ Active time and read/write throughput.</value>
     <value>Show the last {0} minutes</value>
   </data>
   <data name="ShowHideWinMon" xml:space="preserve">
-    <value>Show/Hide WinMon</value>
+    <value>Show/hide WinMon</value>
   </data>
   <data name="ShowWinMon" xml:space="preserve">
     <value>Show WinMon</value>
@@ -867,19 +867,19 @@ Active time and read/write throughput.</value>
     <value>Slot usage unavailable</value>
   </data>
   <data name="Snapshot" xml:space="preserve">
-    <value>Snapshot · {0:HH:mm:ss}</value>
+    <value>Capture · {0:HH:mm:ss}</value>
   </data>
   <data name="ExportSnapshotTime" xml:space="preserve">
-    <value>Snapshot: {0:yyyy-MM-dd HH:mm:ss zzz}</value>
+    <value>Capture: {0:yyyy-MM-dd HH:mm:ss zzz}</value>
   </data>
   <data name="HardwareSnapshotTime" xml:space="preserve">
-    <value>Snapshot: {0:HH:mm:ss zzz}</value>
+    <value>Capture: {0:HH:mm:ss zzz}</value>
   </data>
   <data name="SnapshotTakenWhenOpenedOrRefreshed" xml:space="preserve">
-    <value>Snapshot taken when opened or refreshed.</value>
+    <value>Capture taken when opened or refreshed.</value>
   </data>
   <data name="SnapshotUnavailableTryRefresh" xml:space="preserve">
-    <value>Snapshot unavailable. Try Refresh.</value>
+    <value>Capture unavailable. Try Refresh.</value>
   </data>
   <data name="Socket" xml:space="preserve">
     <value>socket</value>
@@ -933,10 +933,10 @@ Active time and read/write throughput.</value>
     <value></value>
   </data>
   <data name="SystemResources" xml:space="preserve">
-    <value>System Resources</value>
+    <value>System resources</value>
   </data>
   <data name="SystemResourcesInspectingSnapshot" xml:space="preserve">
-    <value>System resources · inspecting snapshot</value>
+    <value>System resources · inspecting capture</value>
   </data>
   <data name="SystemResourcesUnavailable" xml:space="preserve">
     <value>System resources · unavailable</value>
@@ -1220,7 +1220,7 @@ Windows health status: {2}</value>
     <value>App: a visible, unowned top-level window was observed (including minimized windows). Background: none was observed. Groups show App if any current member has one. Unknown: window enumeration unavailable. Historical labels use the recorded state.</value>
   </data>
   <data name="AppOnly" xml:space="preserve">
-    <value>App Only</value>
+    <value>App only</value>
   </data>
   <data name="NoAppsMatchCurrentView" xml:space="preserve">
     <value>No apps match the current search and ranking.</value>
@@ -1229,7 +1229,7 @@ Windows health status: {2}</value>
     <value>Live</value>
   </data>
   <data name="SnapshotMode" xml:space="preserve">
-    <value>Snapshot</value>
+    <value>Capture</value>
   </data>
   <data name="CaptureLatestSnapshot" xml:space="preserve">
     <value>Select the latest recorded sample. Recording and top readouts stay live.</value>
@@ -1312,7 +1312,7 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="HistoryCount" xml:space="preserve"><value>{0} history: 0–{1:N0}.</value></data>
   <data name="NoProcessCountReadings" xml:space="preserve"><value>No process count readings available.</value></data>
   <data name="CopySnapshot" xml:space="preserve">
-    <value>Copy Snapshot</value>
+    <value>Copy capture</value>
   </data>
   <data name="SnapshotExportIntervals" xml:space="preserve">
     <value>System resources: interval readings.</value>
@@ -1325,16 +1325,16 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   </data>
   <data name="PinProcess" xml:space="preserve"><value>Pin process</value></data>
   <data name="UnpinProcess" xml:space="preserve"><value>Unpin process</value></data>
-  <data name="PinnedOnly" xml:space="preserve"><value>Pinned Only</value></data>
+  <data name="PinnedOnly" xml:space="preserve"><value>Pinned only</value></data>
   <data name="PinnedProcessCount" xml:space="preserve"><value>{0} pinned</value></data>
-  <data name="PinnedProcessesExplanation" xml:space="preserve"><value>Pinned rows stay above the rankings and do not count toward Top N. Search and App Only apply. Individual and grouped pins are separate and last for this session.</value></data>
+  <data name="PinnedProcessesExplanation" xml:space="preserve"><value>Pinned rows stay above the rankings and do not count toward Top N. Search and App only apply. Individual and grouped pins are separate and last for this session.</value></data>
   <data name="RankedByMetric" xml:space="preserve"><value>Ranked by {0}</value></data>
   <data name="ProcessExited" xml:space="preserve"><value>Exited</value></data>
   <data name="ProcessNotRecorded" xml:space="preserve"><value>Not recorded at this sample</value></data>
   <data name="NoPinnedProcessesMatch" xml:space="preserve"><value>No pinned processes in this view. Pin a process using its pin button or row menu.</value></data>
   <data name="ProcessesHeading" xml:space="preserve"><value>Processes</value></data>
-  <data name="CompactView" xml:space="preserve"><value>Compact View</value></data>
-  <data name="FullView" xml:space="preserve"><value>Full View</value></data>
+  <data name="CompactView" xml:space="preserve"><value>Compact view</value></data>
+  <data name="FullView" xml:space="preserve"><value>Full view</value></data>
   <data name="ProcessProperties" xml:space="preserve"><value>Process properties</value></data>
   <data name="OpenFileLocation" xml:space="preserve"><value>Open file location</value></data>
   <data name="CopyDetails" xml:space="preserve"><value>Copy details</value></data>
@@ -1345,7 +1345,7 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="ProcessPathLabel" xml:space="preserve"><value>Executable path</value></data>
   <data name="ProcessObservationLabel" xml:space="preserve"><value>Observation time</value></data>
   <data name="ProcessViewLabel" xml:space="preserve"><value>View</value></data>
-  <data name="ProcessHistoricalView" xml:space="preserve"><value>Historical snapshot</value></data>
+  <data name="ProcessHistoricalView" xml:space="preserve"><value>Historical capture</value></data>
   <data name="ProcessCapturedView" xml:space="preserve"><value>Captured from live view</value></data>
   <data name="ProcessStateLabel" xml:space="preserve"><value>State</value></data>
   <data name="ProcessMembersLabel" xml:space="preserve"><value>Member process IDs</value></data>
@@ -1354,7 +1354,7 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="ProcessPrivateMemoryLabel" xml:space="preserve"><value>Private memory</value></data>
   <data name="ProcessIoLabel" xml:space="preserve"><value>Read/write I/O</value></data>
   <data name="ProcessMetricsNote" xml:space="preserve"><value>Details are captured when the menu opens. Resource values use the same averaging window as the process row. Unavailable readings are shown as a dash.</value></data>
-  <data name="ProcessDumpUnavailable" xml:space="preserve"><value>Dump creation requires a live, available process other than WinMon. A grouped row must contain exactly one process. Return to Live if needed.</value></data>
+  <data name="ProcessDumpUnavailable" xml:space="preserve"><value>Dump creation requires a live, available process other than WinMon. A grouped row must contain exactly one process. Return to live if needed.</value></data>
   <data name="ProcessDumpNote" xml:space="preserve"><value>A minidump captures thread stacks and diagnostic information. Select full memory for heap analysis; this can create a very large file. Both types can contain passwords and other private data. Keep dump files secure.</value></data>
   <data name="ProcessFullDump" xml:space="preserve"><value>Include full process memory</value></data>
   <data name="ProcessDumpFilter" xml:space="preserve"><value>Process dump (*.dmp)|*.dmp</value></data>
@@ -1363,7 +1363,54 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="ProcessDumpFailed" xml:space="preserve"><value>Could not create the dump: {0}</value></data>
   <data name="ProcessFileMissing" xml:space="preserve"><value>The recorded executable no longer exists at this location.</value></data>
   <data name="ProcessApplicationLabel" xml:space="preserve"><value>Application</value></data>
-  <data name="PinTop" xml:space="preserve"><value>Pin Top</value></data>
+  <data name="AlwaysOnTop" xml:space="preserve"><value>Always on top</value></data>
   <data name="CpuClockDescription" xml:space="preserve"><value>Windows-reported current CPU clock, averaged across logical processors.</value></data>
   <data name="ResizeChartAndProcesses" xml:space="preserve"><value>Drag to resize chart and processes</value></data>
+  <data name="ProcessesTab" xml:space="preserve"><value>Processes</value></data>
+  <data name="Services" xml:space="preserve"><value>Services</value></data>
+  <data name="SearchServices" xml:space="preserve"><value>Search services by name or PID</value></data>
+  <data name="ServiceStatus" xml:space="preserve"><value>Status</value></data>
+  <data name="IncludeWorkerProcesses" xml:space="preserve"><value>Include worker processes</value></data>
+  <data name="ServiceSort" xml:space="preserve"><value>Sort by</value></data>
+  <data name="AllServiceStatuses" xml:space="preserve"><value>All statuses</value></data>
+  <data name="ServiceRunning" xml:space="preserve"><value>Running</value></data>
+  <data name="ServiceStopped" xml:space="preserve"><value>Stopped</value></data>
+  <data name="ServiceName" xml:space="preserve"><value>Name</value></data>
+  <data name="ServiceProcess" xml:space="preserve"><value>Service / process</value></data>
+  <data name="ServicePrivateMiB" xml:space="preserve"><value>Private MiB</value></data>
+  <data name="ViewServiceProcess" xml:space="preserve"><value>View process</value></data>
+  <data name="StartService" xml:space="preserve"><value>Start</value></data>
+  <data name="StopService" xml:space="preserve"><value>Stop</value></data>
+  <data name="RestartService" xml:space="preserve"><value>Restart</value></data>
+  <data name="ServiceActionInProgress" xml:space="preserve"><value>Service action in progress…</value></data>
+  <data name="ServiceHistoryExpired" xml:space="preserve"><value>Service history is retained for up to two minutes. Return to live to inspect current services.</value></data>
+  <data name="ServicesCollecting" xml:space="preserve"><value>Collecting services and process metrics…</value></data>
+  <data name="ServicesUnavailable" xml:space="preserve"><value>Service readings unavailable. Retrying each second.</value></data>
+  <data name="NoServicesMatch" xml:space="preserve"><value>No services match this search and status filter.</value></data>
+  <data name="ServiceWorkerExplanation" xml:space="preserve"><value>Worker relationships are inferred from observed process ancestry. Shared services use one host total. History: up to 2 minutes.</value></data>
+  <data name="SelectService" xml:space="preserve"><value>Select a service or process</value></data>
+  <data name="ExpandService" xml:space="preserve"><value>Expand or collapse {0}</value></data>
+  <data name="SharedServiceHost" xml:space="preserve"><value>Shared host · {0} · PID {1}</value></data>
+  <data name="ServiceProcessPid" xml:space="preserve"><value>PID {0}</value></data>
+  <data name="SharedServiceCount" xml:space="preserve"><value>{0} services · one host total</value></data>
+  <data name="ServiceHostWorkers" xml:space="preserve"><value>Host + {0} workers</value></data>
+  <data name="ServiceDedicatedHost" xml:space="preserve"><value>Dedicated host</value></data>
+  <data name="IncludedInHostTotal" xml:space="preserve"><value>Included in host total</value></data>
+  <data name="ServiceStarting" xml:space="preserve"><value>Starting</value></data>
+  <data name="ServiceStopping" xml:space="preserve"><value>Stopping</value></data>
+  <data name="ServiceContinuing" xml:space="preserve"><value>Resuming</value></data>
+  <data name="ServicePausing" xml:space="preserve"><value>Pausing</value></data>
+  <data name="ServicePaused" xml:space="preserve"><value>Paused</value></data>
+  <data name="ConfirmServiceAction" xml:space="preserve"><value>{0} {1}? This can interrupt applications using this service. Windows may request administrator approval.</value></data>
+  <data name="ServiceActionFailed" xml:space="preserve"><value>Service action failed: {0}</value></data>
+  <data name="ServicesBy" xml:space="preserve"><value>services by</value></data>
+  <data name="NumberOfTopServices" xml:space="preserve"><value>Number of top service hosts</value></data>
+  <data name="ServiceWorkers" xml:space="preserve"><value>Workers</value></data>
+  <data name="ServiceAverageSummary" xml:space="preserve"><value>CPU and I/O · 5-second average</value></data>
+  <data name="ServiceWorkersIncluded" xml:space="preserve"><value>Workers included</value></data>
+  <data name="ServiceHostOnly" xml:space="preserve"><value>Host only</value></data>
+  <data name="SelectProcess" xml:space="preserve"><value>Select a process</value></data>
+  <data name="MoreActions" xml:space="preserve"><value>More</value></data>
+  <data name="EndProcessGroup" xml:space="preserve"><value>End group</value></data>
+  <data name="Properties" xml:space="preserve"><value>Properties</value></data>
 </root>

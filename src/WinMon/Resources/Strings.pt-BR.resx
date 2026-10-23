@@ -1229,7 +1229,7 @@ Integridade segundo o Windows: {2}</value>
     <value>Ao vivo</value>
   </data>
   <data name="SnapshotMode" xml:space="preserve">
-    <value>Instantâneo</value>
+    <value>Captura</value>
   </data>
   <data name="CaptureLatestSnapshot" xml:space="preserve">
     <value>Selecionar a última amostra registrada. A gravação e as leituras superiores continuam ao vivo.</value>
@@ -1345,7 +1345,7 @@ O trabalho não salvo pode ser perdido. Todos os processos listados abaixo serã
   <data name="ProcessPathLabel" xml:space="preserve"><value>Executable path</value></data>
   <data name="ProcessObservationLabel" xml:space="preserve"><value>Observation time</value></data>
   <data name="ProcessViewLabel" xml:space="preserve"><value>View</value></data>
-  <data name="ProcessHistoricalView" xml:space="preserve"><value>Historical snapshot</value></data>
+  <data name="ProcessHistoricalView" xml:space="preserve"><value>Captura histórica</value></data>
   <data name="ProcessCapturedView" xml:space="preserve"><value>Captured from live view</value></data>
   <data name="ProcessStateLabel" xml:space="preserve"><value>State</value></data>
   <data name="ProcessMembersLabel" xml:space="preserve"><value>Member process IDs</value></data>
@@ -1363,7 +1363,54 @@ O trabalho não salvo pode ser perdido. Todos os processos listados abaixo serã
   <data name="ProcessDumpFailed" xml:space="preserve"><value>Could not create the dump: {0}</value></data>
   <data name="ProcessFileMissing" xml:space="preserve"><value>The recorded executable no longer exists at this location.</value></data>
   <data name="ProcessApplicationLabel" xml:space="preserve"><value>Aplicativo</value></data>
-  <data name="PinTop" xml:space="preserve"><value>Fixar no topo</value></data>
+  <data name="AlwaysOnTop" xml:space="preserve"><value>Sempre visível</value></data>
   <data name="CpuClockDescription" xml:space="preserve"><value>Frequência atual da CPU informada pelo Windows, média dos processadores lógicos.</value></data>
   <data name="ResizeChartAndProcesses" xml:space="preserve"><value>Arraste para redimensionar o gráfico e os processos</value></data>
+  <data name="ProcessesTab" xml:space="preserve"><value>Processos</value></data>
+  <data name="Services" xml:space="preserve"><value>Serviços</value></data>
+  <data name="SearchServices" xml:space="preserve"><value>Pesquisar serviços por nome ou PID</value></data>
+  <data name="ServiceStatus" xml:space="preserve"><value>Status</value></data>
+  <data name="IncludeWorkerProcesses" xml:space="preserve"><value>Incluir processos de trabalho</value></data>
+  <data name="ServiceSort" xml:space="preserve"><value>Ordenar por</value></data>
+  <data name="AllServiceStatuses" xml:space="preserve"><value>Todos os status</value></data>
+  <data name="ServiceRunning" xml:space="preserve"><value>Em execução</value></data>
+  <data name="ServiceStopped" xml:space="preserve"><value>Parado</value></data>
+  <data name="ServiceName" xml:space="preserve"><value>Nome</value></data>
+  <data name="ServiceProcess" xml:space="preserve"><value>Serviço / processo</value></data>
+  <data name="ServicePrivateMiB" xml:space="preserve"><value>MiB privado</value></data>
+  <data name="ViewServiceProcess" xml:space="preserve"><value>Exibir processo</value></data>
+  <data name="StartService" xml:space="preserve"><value>Iniciar</value></data>
+  <data name="StopService" xml:space="preserve"><value>Parar</value></data>
+  <data name="RestartService" xml:space="preserve"><value>Reiniciar</value></data>
+  <data name="ServiceActionInProgress" xml:space="preserve"><value>Ação do serviço em andamento…</value></data>
+  <data name="ServiceHistoryExpired" xml:space="preserve"><value>O histórico do serviço é mantido por até dois minutos. Volte para Ao vivo para inspecionar os serviços atuais.</value></data>
+  <data name="ServicesCollecting" xml:space="preserve"><value>Coletando serviços e métricas de processos…</value></data>
+  <data name="ServicesUnavailable" xml:space="preserve"><value>Leituras de serviço indisponíveis. Tentando novamente a cada segundo.</value></data>
+  <data name="NoServicesMatch" xml:space="preserve"><value>Nenhum serviço corresponde a esta pesquisa e filtro de status.</value></data>
+  <data name="ServiceWorkerExplanation" xml:space="preserve"><value>As relações de trabalho são inferidas pela ancestralidade observada do processo. Serviços compartilhados usam um total de host. Histórico: até 2 minutos.</value></data>
+  <data name="SelectService" xml:space="preserve"><value>Selecione um serviço ou processo</value></data>
+  <data name="ExpandService" xml:space="preserve"><value>Expandir ou recolher {0}</value></data>
+  <data name="SharedServiceHost" xml:space="preserve"><value>Host compartilhado · {0} · PID {1}</value></data>
+  <data name="ServiceProcessPid" xml:space="preserve"><value>PID {0}</value></data>
+  <data name="SharedServiceCount" xml:space="preserve"><value>{0} serviços · um total de host</value></data>
+  <data name="ServiceHostWorkers" xml:space="preserve"><value>Host + {0} processos de trabalho</value></data>
+  <data name="ServiceDedicatedHost" xml:space="preserve"><value>Host dedicado</value></data>
+  <data name="IncludedInHostTotal" xml:space="preserve"><value>Incluído no total do host</value></data>
+  <data name="ServiceStarting" xml:space="preserve"><value>Iniciando</value></data>
+  <data name="ServiceStopping" xml:space="preserve"><value>Parando</value></data>
+  <data name="ServiceContinuing" xml:space="preserve"><value>Retomando</value></data>
+  <data name="ServicePausing" xml:space="preserve"><value>Pausando</value></data>
+  <data name="ServicePaused" xml:space="preserve"><value>Pausado</value></data>
+  <data name="ConfirmServiceAction" xml:space="preserve"><value>{0} {1}? Isso pode interromper aplicativos que usam este serviço. O Windows pode solicitar aprovação de administrador.</value></data>
+  <data name="ServiceActionFailed" xml:space="preserve"><value>Falha na ação do serviço: {0}</value></data>
+  <data name="ServicesBy" xml:space="preserve"><value>serviços por</value></data>
+  <data name="NumberOfTopServices" xml:space="preserve"><value>Número de hosts de serviço em destaque</value></data>
+  <data name="ServiceWorkers" xml:space="preserve"><value>Processos auxiliares</value></data>
+  <data name="ServiceAverageSummary" xml:space="preserve"><value>CPU e E/S · média de 5 segundos</value></data>
+  <data name="ServiceWorkersIncluded" xml:space="preserve"><value>Processos auxiliares incluídos</value></data>
+  <data name="ServiceHostOnly" xml:space="preserve"><value>Somente host</value></data>
+  <data name="SelectProcess" xml:space="preserve"><value>Selecionar um processo</value></data>
+  <data name="MoreActions" xml:space="preserve"><value>Mais</value></data>
+  <data name="EndProcessGroup" xml:space="preserve"><value>Finalizar grupo</value></data>
+  <data name="Properties" xml:space="preserve"><value>Propriedades</value></data>
 </root>

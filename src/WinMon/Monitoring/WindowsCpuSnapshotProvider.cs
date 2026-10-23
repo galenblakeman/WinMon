@@ -28,6 +28,7 @@ internal sealed class WindowsCpuSnapshotProvider : ICpuSnapshotProvider
     private const int ImageNameLength = 0x38;
     private const int ImageNameBuffer = 0x40;
     private const int UniqueProcessId = 0x50;
+    private const int InheritedFromUniqueProcessId = 0x58;
     private const int WorkingSetSize = 0x90;
     private const int PrivatePageCount = 0xC8;
     private const int ReadTransferCount = 0xE8;
@@ -133,6 +134,7 @@ internal sealed class WindowsCpuSnapshotProvider : ICpuSnapshotProvider
                         BinaryPrimitives.ReadUInt64LittleEndian(entry[WriteTransferCount..]),
                         BinaryPrimitives.ReadUInt64LittleEndian(entry[PrivatePageCount..]))
                     {
+                        ParentProcessId = checked((int)BinaryPrimitives.ReadInt64LittleEndian(entry[InheritedFromUniqueProcessId..])),
                         ThreadCount = BinaryPrimitives.ReadUInt32LittleEndian(entry[NumberOfThreads..]),
                         HandleCount = BinaryPrimitives.ReadUInt32LittleEndian(entry[HandleCount..])
                     });

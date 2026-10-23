@@ -10,6 +10,8 @@ namespace WinMon.Monitoring;
 public sealed record ProcessUsage(int ProcessId, long CreationTicks, string Name, double CpuPercent,
     ulong? WorkingSetBytes = null, double? IoBytesPerSecond = null)
 {
+    /// <summary>Observed parent PID; ancestry must also be checked against process creation times.</summary>
+    public int ParentProcessId { get; init; }
     /// <summary>Number of threads at the latest observation, or null when unavailable.</summary>
     public long? ThreadCount { get; init; }
 

@@ -40,12 +40,12 @@
                 <DockPanel LastChildFill="True">
                     <Button
                         x:Name="PinButton"
-                        controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Pin}"
+                        controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.AlwaysOnTop}"
                         AutomationProperties.Name="{Binding [KeepOnTopOff], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                         Click="OnPin"
                         DockPanel.Dock="Right"
-                        Content="{Binding [PinTop], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                        Style="{StaticResource TitleActionButton}"
+                        Content="{Binding [AlwaysOnTop], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                        Style="{StaticResource AlwaysOnTopButton}"
                         ToolTip="{Binding [KeepThisWindowOnTopOfOtherWindows], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                         WindowChrome.IsHitTestVisibleInChrome="True" />
                     <Button
@@ -108,7 +108,7 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition x:Name="ChartAreaRow" Height="*" MinHeight="160" />
                         <RowDefinition Height="Auto" />
-                        <RowDefinition x:Name="ProcessesAreaRow" Height="1.25*" MinHeight="240" />
+                        <RowDefinition x:Name="ProcessesAreaRow" Height="1.25*" MinHeight="344" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Grid
@@ -231,9 +231,13 @@
                                                  ToolTip="{Binding [CaptureLatestSnapshot], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                                                  Click="OnSnapshotModeClick">
                                         <StackPanel Orientation="Horizontal">
-                                            <TextBlock Margin="0,0,6,0" VerticalAlignment="Center"
-                                                       Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
-                                                       FontFamily="Segoe MDL2 Assets" FontSize="14" Text="&#xE722;" />
+                                            <Grid Width="16" Height="16" Margin="0,0,6,0" VerticalAlignment="Center" IsHitTestVisible="False">
+                                                <Path Data="{x:Static controls:ButtonIcon.CaptureFrame}" StrokeThickness="1.5"
+                                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                                      Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                                                <Ellipse Width="3" Height="3" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                         Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                                            </Grid>
                                             <TextBlock Text="{Binding [SnapshotMode], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                                                        Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
                                         </StackPanel>
@@ -382,17 +386,16 @@
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="*" />
                                         </Grid.ColumnDefinitions>
-                                        <Button x:Name="SnapshotCopyButton" MinHeight="24" Padding="4,2" Margin="0,0,4,0" FontSize="11"
+                                        <Button x:Name="SnapshotCopyButton" Style="{StaticResource ActionBarButton}"
+                                            controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Copy}"
                                             Click="OnCopySnapshot"
                                             Content="{Binding [CopySnapshot], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                                     <Button Grid.Column="1"
                                         x:Name="LiveButton"
-                                        MinHeight="24"
-                                        Padding="8,2"
+                                        Style="{StaticResource ActionBarLastButton}"
                                         controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Live}"
                                         Click="OnReturnLive"
                                         Content="{Binding [ReturnToLive], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                        FontSize="12"
                                         ToolTip="{Binding [ResumeLiveReadingsAndProcessesEndOrEscape], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                                     </Grid>
                                 </Border>
@@ -424,11 +427,23 @@
                             </ControlTemplate>
                         </GridSplitter.Template>
                     </GridSplitter>
-                    <Grid Grid.Row="4" x:Name="ProcessesArea">
+                    <Grid Grid.Row="4">
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                    <Border x:Name="ActivityTabStrip" Margin="-20,0,-20,0" Padding="20,0,0,0"
+                            Background="{DynamicResource SectionHeaderSurface}">
+                    <StackPanel Orientation="Horizontal" KeyboardNavigation.TabNavigation="Once">
+                        <RadioButton x:Name="ProcessesTab" GroupName="ActivityView" IsChecked="True" Style="{StaticResource ActivityTab}"
+                                     Content="{Binding [ProcessesTab], Source={x:Static resources:Strings.Text}}" />
+                        <RadioButton x:Name="ServicesTab" GroupName="ActivityView" Style="{StaticResource ActivityTab}"
+                                     Content="{Binding [Services], Source={x:Static resources:Strings.Text}}" />
+                    </StackPanel>
+                    </Border>
+                    <Grid Grid.Row="1" x:Name="ProcessesArea">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" MinHeight="108" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                     <Border
                         x:Name="ProcessHeader"
@@ -437,7 +452,7 @@
                         Padding="20,5"
                         Background="{DynamicResource SectionHeaderSurface}"
                         BorderBrush="{DynamicResource Line}"
-                        BorderThickness="0,1,0,0">
+                        BorderThickness="0">
                         <StackPanel>
                             <Grid x:Name="ProcessToolbarGrid">
                                 <Grid.RowDefinitions>
@@ -722,6 +737,7 @@
                             </Border>
                         </StackPanel>
                     </ScrollViewer>
+                    <controls:ProcessActionBar x:Name="ProcessActions" Grid.Row="3" />
                     <TextBlock
                         x:Name="EmptyLabel"
                         Grid.Row="2"
@@ -730,6 +746,8 @@
                         Foreground="{DynamicResource Muted}"
                         Text="{Binding [CollectingTheFirstInterval], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                         TextWrapping="Wrap" />
+                    </Grid>
+                    <controls:ServicesView x:Name="ServiceView" Grid.Row="1" Visibility="Collapsed"/>
                     </Grid>
                     <Border
                         x:Name="UpdateFooter"

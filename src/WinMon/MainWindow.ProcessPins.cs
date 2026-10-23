@@ -24,7 +24,7 @@ public partial class MainWindow
     {
         _processPins.Toggle(process, grouped);
         _preferences = _preferences with { PinnedProcesses = _processPins.Snapshot() };
-        Volatile.Write(ref _retainPinned, _processPins.RetentionSnapshot());
+        UpdateProcessRetention();
         RefreshPresentation();
     }
 

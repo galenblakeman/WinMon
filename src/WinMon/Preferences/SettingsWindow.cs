@@ -448,7 +448,7 @@ public sealed class SettingsWindow : Window
         var secondary = (_secondaryDriveSelector.SelectedItem as DriveChoice)?.Name;
         if (primary is null || primary == secondary)
         {
-            MessageBox.Show(this, Strings.ChooseAPrimaryVolumeAndADifferentSecondVolumeOr, Strings.DiskMonitoring, MessageBoxButton.OK, MessageBoxImage.Information);
+            WinMon.Controls.MessageDialog.ShowNotice(this, Strings.ChooseAPrimaryVolumeAndADifferentSecondVolumeOr, Strings.DiskMonitoring);
             return;
         }
         Result = _initialPreferences with

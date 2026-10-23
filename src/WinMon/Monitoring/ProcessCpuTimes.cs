@@ -11,6 +11,7 @@ internal readonly record struct ProcessCpuTimes(int ProcessId, long CreationTick
     ulong? WorkingSetBytes = null, ulong? ReadBytes = null, ulong? WriteBytes = null,
     ulong? PrivateBytes = null, string? ImagePath = null)
 {
+    public int ParentProcessId { get; init; }
     public long? ThreadCount { get; init; }
     public long? HandleCount { get; init; }
     public bool? HasAppWindow { get; init; }

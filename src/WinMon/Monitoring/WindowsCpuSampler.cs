@@ -132,6 +132,7 @@ public sealed class WindowsCpuSampler : IDisposable
                 ResourceRates.PerSecond(priorCpuTicks.ReadBytes, process.ReadBytes, elapsedSeconds) +
                 ResourceRates.PerSecond(priorCpuTicks.WriteBytes, process.WriteBytes, elapsedSeconds))
             {
+                ParentProcessId = process.ParentProcessId,
                 PrivateBytes = process.PrivateBytes,
                 ThreadCount = process.ThreadCount,
                 HandleCount = process.HandleCount,
