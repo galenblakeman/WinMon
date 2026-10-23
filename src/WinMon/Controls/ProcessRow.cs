@@ -237,8 +237,8 @@ public sealed class ProcessRow : Grid
         ColumnDefinitions.Add(new ColumnDefinition());
         ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(160) });
         ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(55) });
-        ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(55) });
-        ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(82) });
+        ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(62) });
+        ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(100) });
         ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(75) });
         ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(64) });
         ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(72) });

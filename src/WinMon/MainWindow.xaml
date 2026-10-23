@@ -741,8 +741,8 @@
                                     <ColumnDefinition />
                                     <ColumnDefinition Width="160" />
                                     <ColumnDefinition Width="55" />
-                                    <ColumnDefinition Width="55" />
-                                    <ColumnDefinition Width="82" />
+                                    <ColumnDefinition Width="62" />
+                                    <ColumnDefinition Width="100" />
                                     <ColumnDefinition Width="75" />
                                     <ColumnDefinition Width="64" />
                                     <ColumnDefinition Width="72" />
