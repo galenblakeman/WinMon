@@ -13,7 +13,7 @@ public sealed class ProcessActionBar : Border
     private readonly StackPanel _identity = new() { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 14, 0) };
     private readonly WrapPanel _buttons = new() { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center };
     private readonly TextBlock _name = new() { FontSize = 16, FontWeight = FontWeights.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis };
-    private readonly TextBlock _detail = new() { FontSize = 11, Margin = new Thickness(0, 3, 0, 0), TextTrimming = TextTrimming.CharacterEllipsis };
+    private readonly TextBlock _detail = new() { FontSize = 11, Margin = new Thickness(0, 2, 0, 0), TextTrimming = TextTrimming.CharacterEllipsis };
     private readonly Image _icon = new() { Width = 28, Height = 28, Margin = new Thickness(0, 0, 12, 0), Source = ProcessIconProvider.Fallback };
     private readonly TextBlock _status = new() { FontSize = 11, VerticalAlignment = VerticalAlignment.Center };
     private readonly Button _properties = ActionButton(), _copy = ActionButton(), _more = ActionButton(), _end = ActionButton();
@@ -24,7 +24,7 @@ public sealed class ProcessActionBar : Border
 
     public ProcessActionBar()
     {
-        MinHeight = 68; Margin = new Thickness(0, 8, 0, 0);
+        MinHeight = 54; Margin = new Thickness(0, 6, 0, 0);
         BorderThickness = new Thickness(1); CornerRadius = new CornerRadius(4);
         SetResourceReference(BackgroundProperty, "SectionHeaderSurface");
         SetResourceReference(BorderBrushProperty, "Line");
@@ -32,7 +32,7 @@ public sealed class ProcessActionBar : Border
         outer.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(4) });
         outer.ColumnDefinitions.Add(new ColumnDefinition());
         outer.Children.Add(_accent);
-        _layout.Margin = new Thickness(14, 10, 14, 10); Grid.SetColumn(_layout, 1); outer.Children.Add(_layout); Child = outer;
+        _layout.Margin = new Thickness(14, 6, 14, 6); Grid.SetColumn(_layout, 1); outer.Children.Add(_layout); Child = outer;
         _layout.ColumnDefinitions.Add(new ColumnDefinition());
         _layout.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         _layout.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -78,7 +78,7 @@ public sealed class ProcessActionBar : Border
         var wide = ActualWidth >= _buttons.DesiredSize.Width + 300;
         Grid.SetColumn(_buttons, wide ? 1 : 0); Grid.SetRow(_buttons, wide ? 0 : 1);
         _layout.ColumnDefinitions[1].Width = wide ? GridLength.Auto : new GridLength(0);
-        _buttons.Margin = wide ? new Thickness(0) : new Thickness(0, 10, 0, 0);
+        _buttons.Margin = wide ? new Thickness(0) : new Thickness(0, 6, 0, 0);
     }
 
     internal void Update(ProcessDetailsSnapshot? snapshot, bool canEnd, bool canDump)

@@ -122,6 +122,48 @@ public sealed class CpuHistoryTests
         Assert.That(history.Samples[0].Processes[0].Name, Is.EqualTo("exited"));
     }
 
+    [Test]
+    public void Samples_IsSharedUntilHistoryChangesAndEarlierCopiesStayStable()
+    {
+        var history = new CpuHistory(2);
+        var first = Sample(1);
+        history.Add(first);
+        var copy = history.Samples;
+
+        Assert.That(history.Samples, Is.SameAs(copy));
+        history.Add(Sample(2));
+        history.Add(Sample(3));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(history.Samples, Is.Not.SameAs(copy));
+            Assert.That(copy, Is.EqualTo([first]));
+            Assert.That(history.Samples.Select(s => s.TotalCpuPercent), Is.EqualTo([2d, 3d]));
+        });
+    }
+
+    [Test]
+    public void SampleList_ShowsAPrefixOrReplacesTheLastSampleWithoutCopying()
+    {
+        CpuSample[] samples = [Sample(1), Sample(2), Sample(3)];
+        var replacement = Sample(4);
+
+        var prefix = new SampleList(samples, 2);
+        var replaced = new SampleList(samples, 3, replacement);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(prefix, Is.EqualTo(samples[..2]));
+            Assert.That(prefix.LastOrDefault(), Is.SameAs(samples[1]));
+            Assert.That(replaced, Is.EqualTo([samples[0], samples[1], replacement]));
+            Assert.That(replaced[^1], Is.SameAs(replacement));
+            Assert.That(replaced.ToArray(), Is.EqualTo([samples[0], samples[1], replacement]));
+            Assert.That(new SampleList(samples, 0), Is.Empty);
+            Assert.That(() => prefix[2], Throws.TypeOf<ArgumentOutOfRangeException>());
+            Assert.That(() => new SampleList(samples, 0, replacement), Throws.TypeOf<ArgumentOutOfRangeException>());
+        });
+    }
+
     private static CpuSample Sample(int seconds) => new(
         DateTimeOffset.UnixEpoch.AddSeconds(seconds),
         seconds,

@@ -10,6 +10,7 @@ namespace WinMon.Controls;
 public partial class ServicesView : UserControl
 {
     private readonly ObservableCollection<ServiceDisplayRow> _rows = [];
+    private readonly Dictionary<string, ServiceDisplayRow> _spareRows = [];
     private readonly HashSet<string> _expanded = [];
     private ServiceFrame? _frame;
     private IReadOnlyList<ServiceFrame> _history = [];
@@ -60,7 +61,7 @@ public partial class ServicesView : UserControl
         ActionBarGrid.ColumnDefinitions[1].Width = wide ? GridLength.Auto : new GridLength(0);
         Grid.SetRow(ActionControls, wide ? 0 : 1);
         Grid.SetColumn(ActionControls, wide ? 1 : 0);
-        ActionControls.Margin = wide ? new Thickness() : new Thickness(0, 10, 0, 0);
+        ActionControls.Margin = wide ? new Thickness() : new Thickness(0, 6, 0, 0);
     }
 
     private void ArrangeToolbar()
@@ -117,8 +118,11 @@ public partial class ServicesView : UserControl
             var active = Sort.SelectedIndex == i;
             header.Text = active ? label + " ▾" : label;
             header.FontWeight = active ? FontWeights.SemiBold : FontWeights.Normal;
-            header.SetResourceReference(TextBlock.ForegroundProperty, active ? "Text" : "Muted");
             header.ToolTip = $"{Strings.ServiceSort} {label}";
+            // Each new resource reference is resolved again, so set one only when the heading changes state.
+            if (header.Tag is bool shown && shown == active) continue;
+            header.Tag = active;
+            header.SetResourceReference(TextBlock.ForegroundProperty, active ? "Text" : "Muted");
         }
     }
     private void OnSearchChanged(object sender, TextChangedEventArgs e)
@@ -178,14 +182,14 @@ public partial class ServicesView : UserControl
         try
         {
             var old = _rows.ToDictionary(r => r.Key);
+            foreach (var (key, spare) in _spareRows) old.TryAdd(key, spare);
             var desired = new List<ServiceDisplayRow>();
             var groups = _frame?.Groups ?? [];
-            var ranking = ServiceRanking.Build(_history, Workers.IsChecked == true);
+            var workers = Workers.IsChecked == true;
+            var ranking = ServiceRanking.Build(_history, workers);
             var moments = _history.Select(f => f.Sample).ToArray();
-            var historyGroups = _history.Select(f => f.Groups.ToDictionary(g => g.Key)).ToArray();
             // Expansion state is session-local and bounded to retained service lifetimes.
-            var retained = _history.SelectMany(f => f.Groups).Select(g => g.Key).ToHashSet();
-            _expanded.RemoveWhere(k => !retained.Contains(k));
+            _expanded.RemoveWhere(k => !Retained(k));
             var query = Search.Text.Trim();
             var filtered = groups.Where(g => Matches(g, query) && (StatusFilter.SelectedIndex switch
             {
@@ -199,7 +203,10 @@ public partial class ServicesView : UserControl
                 2 => filtered.OrderByDescending(g => RankedMetrics(g).Io),
                 _ => filtered.OrderByDescending(g => RankedMetrics(g).Cpu)
             };
-            var scale = Math.Max(1, _history.SelectMany(f => f.Groups).Select(g => g.Metrics(Workers.IsChecked == true).Cpu ?? 0).DefaultIfEmpty().Max() * 1.1);
+            var peak = 0d;
+            foreach (var past in _history)
+                if (past.Index.PeakCpu(workers) is var busiest && busiest > peak) peak = busiest;
+            var scale = Math.Max(1, peak * 1.1);
             foreach (var group in ordered.ThenBy(g => g.Services[0].DisplayName, StringComparer.CurrentCultureIgnoreCase)
                 .Take(TopCount.SelectedItem is int limit ? limit : 20))
             {
@@ -216,11 +223,23 @@ public partial class ServicesView : UserControl
                     Add($"process:{process.ProcessId}:{process.CreationTicks}", group, process, null, true, false);
                 }
             }
-            if (!_rows.Select(r => r.Key).SequenceEqual(desired.Select(r => r.Key)))
+            // Move rows into place rather than reset the list: a reset re-creates every visible row's
+            // container and lays out its text again, and the CPU order changes most seconds.
+            for (var i = 0; i < desired.Count; i++)
             {
-                _rows.Clear();
-                foreach (var row in desired) _rows.Add(row);
+                if (i < _rows.Count && ReferenceEquals(_rows[i], desired[i])) continue;
+                var from = -1;
+                for (var j = i + 1; j < _rows.Count; j++)
+                    if (ReferenceEquals(_rows[j], desired[i])) { from = j; break; }
+                if (from >= 0) _rows.Move(from, i);
+                else _rows.Insert(i, desired[i]);
             }
+            while (_rows.Count > desired.Count) _rows.RemoveAt(_rows.Count - 1);
+            // Keep rows whose group is still observed, so a group re-entering the top rows keeps its row and graph.
+            _spareRows.Clear();
+            var shown = desired.ToHashSet();
+            foreach (var (key, row) in old)
+                if (!shown.Contains(row) && _frame?.Index.IndexOf(row.Group.Key) >= 0) _spareRows[key] = row;
             RefreshActionSelection(groups);
             Rows.SelectedItem = _actionRow is null ? null : _rows.FirstOrDefault(r => r.Key == _actionRow.Key);
             Notice.Text = _error ?? (_busy ? Strings.ServiceActionInProgress : _frame is null ?
@@ -228,23 +247,33 @@ public partial class ServicesView : UserControl
                 _rows.Count == 0 ? Strings.NoServicesMatch : string.Empty);
             Notice.Visibility = Notice.Text.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
 
-            ServiceMetrics RankedMetrics(ServiceGroup group) => ranking.Groups.GetValueOrDefault(group.Key) ?? new(null, null, null);
+            ServiceMetrics RankedMetrics(ServiceGroup group) => ranking.Groups.GetValueOrDefault(group.Key) ?? ServiceMetrics.None;
+
+            // Newest first: an expanded group is almost always in the latest frame.
+            bool Retained(string key)
+            {
+                for (var i = _history.Count - 1; i >= 0; i--)
+                    if (_history[i].Index.IndexOf(key) >= 0) return true;
+                return false;
+            }
 
             void Add(string key, ServiceGroup group, ProcessUsage? process, ServiceObservation? service, bool child, bool header)
             {
                 if (!old.TryGetValue(key, out var row)) row = new ServiceDisplayRow(key);
-                var metrics = service is not null && group.Shared ? new ServiceMetrics(null, null, null) :
-                    process is null ? RankedMetrics(group) : ranking.Processes.GetValueOrDefault((process.ProcessId, process.CreationTicks)) ?? new(null, null, null);
-                row.Update(group, process, service, child, header, _expanded.Contains(group.Key), Workers.IsChecked == true, metrics);
+                var metrics = service is not null && group.Shared ? ServiceMetrics.None :
+                    process is null ? RankedMetrics(group) : ranking.Processes.GetValueOrDefault((process.ProcessId, process.CreationTicks)) ?? ServiceMetrics.None;
+                row.Update(group, process, service, child, header, _expanded.Contains(group.Key), workers, metrics);
                 if (service is null && (process is not null || group.Host is not null))
                 {
-                    var values = _history.Select((f, i) =>
+                    var values = row.GraphValues(_history.Count);
+                    for (var i = 0; i < values.Length; i++)
                     {
-                        if (!f.Available) return (double?)null;
-                        var past = historyGroups[i].GetValueOrDefault(group.Key);
-                        return process is null ? past?.Metrics(Workers.IsChecked == true).Cpu :
-                            past?.Processes.FirstOrDefault(p => p.ProcessId == process.ProcessId && p.CreationTicks == process.CreationTicks)?.CpuPercent;
-                    }).ToArray();
+                        var frame = _history[i];
+                        values[i] = null;
+                        if (!frame.Available || frame.Index.IndexOf(group.Key) is not (var position and >= 0)) continue;
+                        values[i] = process is null ? frame.Index.Metrics(position, workers).Cpu :
+                            frame.Groups[position].Processes.FirstOrDefault(p => p.ProcessId == process.ProcessId && p.CreationTicks == process.CreationTicks)?.CpuPercent;
+                    }
                     var identity = process ?? group.Host!;
                     row.Graph.SetProcessData(new ProcessGraphData(moments, values, scale), 120, identity);
                     row.Graph.Visibility = Visibility.Visible;
@@ -444,7 +473,7 @@ internal sealed class ServiceDisplayRow(string key) : INotifyPropertyChanged
     public string Io { get; private set; } = "";
     public string Icon { get; private set; } = "";
     public string ExpandGlyph { get; private set; } = "";
-    public string ExpandLabel => Strings.Format(Strings.ExpandService, Name);
+    public string ExpandLabel { get; private set; } = "";
     public Visibility ExpandVisibility { get; private set; }
     public Thickness Indent { get; private set; }
     public CpuGraph Graph { get; } = new() { Height = 24, ShowGrid = false, IsHitTestVisible = false };
@@ -455,10 +484,12 @@ internal sealed class ServiceDisplayRow(string key) : INotifyPropertyChanged
 
     internal void Update(ServiceGroup group, ProcessUsage? process, ServiceObservation? service, bool child, bool header, bool expanded, bool workers, ServiceMetrics metrics)
     {
+        var shown = Shown();
         Group = group;
         Service = service ?? (header && !group.Shared ? group.Services[0] : null);
         Process = process ?? group.Host;
         Name = process?.Name ?? (header && group.Shared ? Strings.Format(Strings.SharedServiceHost, group.Host?.Name ?? "", group.Services[0].ProcessId) : (service ?? group.Services[0]).DisplayName);
+        ExpandLabel = Strings.Format(Strings.ExpandService, Name);
         Detail = process is not null ? Strings.Format(Strings.ServiceProcessPid, process.ProcessId) : header ?
             group.Shared ? Strings.Format(Strings.SharedServiceCount, group.Services.Count) : group.Services[0].Name + " · " +
                 (workers && group.Processes.Count > 1 ? Strings.Format(Strings.ServiceHostWorkers, group.Processes.Count - 1) : Strings.ServiceDedicatedHost) : service!.Name + " · " + Strings.IncludedInHostTotal;
@@ -471,8 +502,18 @@ internal sealed class ServiceDisplayRow(string key) : INotifyPropertyChanged
         Cpu = metrics.Cpu is { } cpu ? Strings.Format(Strings.PercentOneDecimal, cpu) : Strings.MissingReading;
         Memory = metrics.PrivateBytes is { } memory ? (memory / 1048576d).ToString("N0", CultureInfo.CurrentCulture) : Strings.MissingReading;
         Io = metrics.Io is { } io ? (io / 1000000d).ToString("N2", CultureInfo.CurrentCulture) : Strings.MissingReading;
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(string.Empty));
+        // Most rows are unchanged each second; refreshing every binding would re-lay out their text anyway.
+        if (Shown() != shown) PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(string.Empty));
     }
+
+    // The graph keeps this array only to draw it, and the row replaces its data before the next redraw.
+    private double?[] _graphValues = [];
+    internal double?[] GraphValues(int length) =>
+        _graphValues.Length == length ? _graphValues : _graphValues = new double?[length];
+
+    // Every bound value; ExpandLabel also follows the UI language.
+    private (string, string, string, bool, string, string, string, string, string, string, Visibility, Thickness) Shown() =>
+        (Name, Detail, Status, IsRunning, Cpu, Memory, Io, Icon, ExpandGlyph, ExpandLabel, ExpandVisibility, Indent);
 
     internal static string StateText(uint state) => state switch
     {

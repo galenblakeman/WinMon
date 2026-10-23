@@ -120,6 +120,7 @@ public class ProcessSearchTests
             Assert.That(ProcessSearch.Filter(Rows, "120"), Is.EqualTo([Rows[0]]));
             Assert.That(ProcessSearch.Filter(Rows, "360"), Is.EqualTo([Rows[1]]));
             Assert.That(ProcessSearch.Filter(Rows, "360").Single().MemberCount, Is.EqualTo(2));
+            Assert.That(ProcessSearch.Filter(Rows, "12x"), Is.Empty, "Only digits can match a PID.");
         });
     }
 

@@ -15,37 +15,75 @@ internal sealed record ServiceCatalog(long ObservedFileTime, IReadOnlyList<Servi
 /// <summary>Local SCM enumeration and explicit service control. No driver services or host termination.</summary>
 internal static class WindowsServices
 {
-    internal static ServiceCatalog Capture()
+    internal static ServiceCatalog Capture() => new Reader().Capture();
+
+    /// <summary>Enumerates services once per sample, reusing its buffer and every unchanged observation.</summary>
+    /// <remarks>
+    /// Service history keeps two minutes of catalogs. Nearly every service is unchanged from one second to the
+    /// next, so reusing the previous observation keeps one copy of its name strings instead of one per frame.
+    /// </remarks>
+    internal sealed class Reader
     {
-        // Processes born after enumeration began cannot safely inherit an enumerated PID.
-        var observed = DateTime.UtcNow.ToFileTimeUtc();
-        using var manager = OpenSCManagerW(null, null, 4);
-        CheckHandle(manager);
-        var buffer = Marshal.AllocHGlobal(256 * 1024);
-        try
+        private const int BufferBytes = 256 * 1024;
+        private readonly byte[] _buffer = GC.AllocateUninitializedArray<byte>(BufferBytes, pinned: true);
+        private Dictionary<string, ServiceObservation> _previous = new(StringComparer.Ordinal);
+        private Dictionary<string, ServiceObservation> _next = new(StringComparer.Ordinal);
+
+        internal ServiceCatalog Capture()
         {
-            var services = new List<ServiceObservation>();
+            // Processes born after enumeration began cannot safely inherit an enumerated PID.
+            var observed = DateTime.UtcNow.ToFileTimeUtc();
+            using var manager = OpenSCManagerW(null, null, 4);
+            CheckHandle(manager);
+            var address = Marshal.UnsafeAddrOfPinnedArrayElement(_buffer, 0);
+            var services = new List<ServiceObservation>(_previous.Count);
+            var previous = _previous.GetAlternateLookup<ReadOnlySpan<char>>();
+            _next.Clear();
             uint resume = 0;
             for (var page = 0; page < 32; page++)
             {
-                var success = EnumServicesStatusExW(manager, 0, 0x30, 3, buffer, 256 * 1024,
+                var success = EnumServicesStatusExW(manager, 0, 0x30, 3, address, BufferBytes,
                     out _, out var count, ref resume, null);
                 var error = Marshal.GetLastPInvokeError();
                 if (!success && error != 234) throw new Win32Exception(error);
                 var size = Marshal.SizeOf<EnumStatus>();
                 for (var i = 0; i < count; i++)
                 {
-                    var item = Marshal.PtrToStructure<EnumStatus>(buffer + i * size);
-                    services.Add(new ServiceObservation(Marshal.PtrToStringUni(item.Name)!,
-                        Marshal.PtrToStringUni(item.DisplayName)!, item.Status.State,
-                        checked((int)item.Status.ProcessId), item.Status.Controls));
+                    var item = MemoryMarshal.Read<EnumStatus>(_buffer.AsSpan(i * size, size));
+                    var name = Text(item.Name, address);
+                    var displayName = Text(item.DisplayName, address);
+                    var processId = checked((int)item.Status.ProcessId);
+                    if (!previous.TryGetValue(name, out var service) || service.State != item.Status.State ||
+                        service.ProcessId != processId || service.ControlsAccepted != item.Status.Controls ||
+                        !displayName.SequenceEqual(service.DisplayName))
+                    {
+                        service = new ServiceObservation(service?.Name ?? name.ToString(),
+                            service is not null && displayName.SequenceEqual(service.DisplayName) ? service.DisplayName : displayName.ToString(),
+                            item.Status.State, processId, item.Status.Controls);
+                    }
+                    _next[service.Name] = service;
+                    services.Add(service);
                 }
-                if (success) return new ServiceCatalog(observed, services);
+                if (success)
+                {
+                    (_previous, _next) = (_next, _previous);
+                    return new ServiceCatalog(observed, services);
+                }
                 if (count == 0) throw new Win32Exception(234);
             }
             throw new Win32Exception(234);
         }
-        finally { Marshal.FreeHGlobal(buffer); }
+
+        // The SCM writes strings after the fixed entries and points at them with absolute addresses.
+        private ReadOnlySpan<char> Text(nint pointer, nint address)
+        {
+            var offset = pointer - address;
+            if (pointer == 0 || offset < 0 || offset >= BufferBytes || offset % 2 != 0) throw new Win32Exception(13);
+            var chars = MemoryMarshal.Cast<byte, char>(_buffer.AsSpan((int)offset));
+            var end = chars.IndexOf('\0');
+            if (end < 0) throw new Win32Exception(13);
+            return chars[..end];
+        }
     }
 
     internal static async Task ExecuteAsync(string name, string action, int expectedPid, long expectedCreation,

@@ -209,6 +209,71 @@ public sealed class ServiceTreeTests
         Assert.That(sample.Processes.Single(p => p.ProcessId == 11).ParentProcessId, Is.EqualTo(10));
     }
 
+    [Test]
+    public void Capture_SharesUnchangedGroupsKeysAndServiceListsBetweenFrames()
+    {
+        var tree = new ServiceTree();
+        var hosted = Service("agent", 10);
+        var stopped = new ServiceObservation("idle", "idle", 1, 0, 0);
+        var pending = Service("pending", 30);
+        var catalog = Catalog(1_000, hosted, stopped, pending);
+
+        var first = tree.Capture(Sample(1, Usage(10, 100, 0, cpu: 1)), catalog);
+        var second = tree.Capture(Sample(2, Usage(10, 100, 0, cpu: 2)), catalog);
+        var host = (First: first.Groups.Single(g => g.Host is not null), Second: second.Groups.Single(g => g.Host is not null));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(second.Groups.Select(g => g.Key), Is.EqualTo(first.Groups.Select(g => g.Key)));
+            Assert.That(second.Groups.Single(g => g.Key == "service:idle"), Is.SameAs(first.Groups.Single(g => g.Key == "service:idle")));
+            Assert.That(second.Groups.Single(g => g.Key == "pending:30"), Is.SameAs(first.Groups.Single(g => g.Key == "pending:30")));
+            Assert.That(host.Second, Is.Not.SameAs(host.First), "A host group carries this frame's process readings.");
+            Assert.That(host.Second.Key, Is.SameAs(host.First.Key));
+            Assert.That(host.Second.Services, Is.SameAs(host.First.Services));
+            Assert.That(host.Second.Processes.Single().CpuPercent, Is.EqualTo(2));
+        });
+    }
+
+    [Test]
+    public void Capture_ReplacesAServiceListWhenAnObservationChanges()
+    {
+        var tree = new ServiceTree();
+        var first = tree.Capture(Sample(1, Usage(10, 100, 0)), Catalog(1_000, Service("alpha", 10), Service("beta", 10)));
+        var changed = Service("alpha", 10) with { ControlsAccepted = 5 };
+
+        var second = tree.Capture(Sample(2, Usage(10, 100, 0)), Catalog(1_000, changed, Service("beta", 10)));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(second.Groups.Single().Services, Is.Not.SameAs(first.Groups.Single().Services));
+            Assert.That(second.Groups.Single().Services[0], Is.SameAs(changed));
+        });
+    }
+
+    [Test]
+    public void FrameIndex_MatchesEachGroupsMetricsAndFindsGroupsByKey()
+    {
+        var frame = new ServiceTree().Capture(Sample(1,
+            Usage(10, 100, 0, cpu: 1, privateBytes: 100, io: 2),
+            Usage(11, 110, 10, cpu: 4, privateBytes: 200, io: null),
+            Usage(20, 120, 0, cpu: 3)), Catalog(1_000, Service("agent", 10), Service("other", 20)));
+
+        Assert.Multiple(() =>
+        {
+            for (var i = 0; i < frame.Groups.Count; i++)
+            {
+                Assert.That(frame.Index.Metrics(i, workers: false), Is.EqualTo(frame.Groups[i].Metrics(false)));
+                Assert.That(frame.Index.Metrics(i, workers: true), Is.EqualTo(frame.Groups[i].Metrics(true)));
+                Assert.That(frame.Index.Find(frame.Groups[i].Key), Is.SameAs(frame.Groups[i]));
+            }
+            Assert.That(frame.Index.IndexOf("missing"), Is.EqualTo(-1));
+            Assert.That(frame.Index.PeakCpu(workers: false), Is.EqualTo(3));
+            Assert.That(frame.Index.PeakCpu(workers: true), Is.EqualTo(5));
+            Assert.That(frame.Groups.Single(g => g.Host?.ProcessId == 10).Metrics(true), Is.EqualTo(new ServiceMetrics(5, 300, null)),
+                "A worker without an I/O reading leaves the group's I/O unavailable.");
+        });
+    }
+
     private static ServiceObservation Service(string name, int processId) => new(name, name, 4, processId, 1);
     private static ServiceCatalog Catalog(long observed, params ServiceObservation[] services) => new(observed, services);
     private static ProcessUsage Usage(int id, long created, int parent, double cpu = 0, ulong? privateBytes = 0, double? io = 0) =>

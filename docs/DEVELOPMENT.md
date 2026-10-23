@@ -309,6 +309,74 @@ gain is real on the UI thread but small next to the process snapshot and WPF's o
 Raw data, scripts (`ab-app.ps1`, `threads.ps1`, `bench.sh`, `ab.sh`), traces and the per-step harness are in
 `artifacts/perf-2026-10-22/`.
 
+### Services view and 2.0 refresh paths (October 23, 2026)
+
+Same machine, about 450–850 processes and 309 services, .NET 10.0.13, Release build output.
+
+Version 2.0.0 added service collection every second, the Services tab, the action bar and process pins, and the UI
+benchmark exercised none of them. With the Services tab open, one refresh took 13 ms and allocated 4.2 MiB: it
+rebuilt a dictionary for each of the 121 retained service frames and recomputed every group's metrics in all of
+them. Service collection allocated about 340 KiB/s whether or not the tab was open, and two minutes of service
+frames held about 17 MiB, mostly identical copies of the same service names.
+
+`tools/WinMon.Performance` now also measures a grouped live frame, the Services tab (60 shared hosts and 300
+services, every group expanded), the compact strip, and pinned plus selected processes, individual and grouped.
+It records a pixel hash for each scenario, and baseline runs matched each other.
+
+Changes:
+- Service enumeration reuses its buffer, reads the service manager's strings as spans and reuses the previous
+  observation of every unchanged service. `ServiceTree` reuses its collections, group keys, service lists and
+  unchanged groups. It no longer allocates a visited set per process: each ancestry step moves to a strictly
+  older lifetime, so the walk cannot cycle.
+- Each service frame builds its key lookup, group metrics and peak CPU once, on first use.
+- The Services list moves rows into place instead of resetting the list, which re-created every visible row's
+  container whenever the CPU order changed. Rows whose group is still observed are kept for reuse, and a row
+  raises a change only when a bound value changed.
+- Pins and the selection share one inclusive ranking per refresh, which is the search ranking when a search is
+  active. Grouped ranking builds a row only for each group's busiest member instead of copying every process first.
+- Compact mode skips the hidden process list and Services tab. History is copied once per change rather than per
+  access, and the live and selected rankings wrap it instead of copying it again.
+- Pin retention, PID search and row tooltips no longer allocate per process.
+
+Sampling pass, per second (per-step harness; 442 processes before, 646 after):
+
+| | Before | After |
+| --- | ---: | ---: |
+| Service enumeration | 1.33 ms, 83 KiB | 1.07 ms, 2.5 KiB |
+| `ServiceTree.Capture` | 0.31 ms, 259 KiB | 0.16 ms, 12 KiB |
+| Retained per service frame | 145 KiB (17 MiB for 121 frames) | 45 KiB (5.3 MiB) |
+
+UI benchmark, four alternating runs of each build (median of the runs' UI-thread time; allocation was identical
+across runs):
+
+| Per refresh | Before | After |
+| --- | ---: | ---: |
+| Live | 3.95 ms, 538 KiB | 3.71 ms, 524 KiB |
+| Historical | 1.03 ms, 172 KiB | 0.97 ms, 167 KiB |
+| Grouped live | 4.65 ms, 875 KiB | 4.66 ms, 540 KiB |
+| Services tab | 12.65 ms, 4,302 KiB | 6.54 ms, 1,263 KiB |
+| Compact strip | 2.69 ms, 683 KiB | 1.33 ms, 305 KiB |
+| Pinned and selected | 3.01 ms, 1,075 KiB | 2.88 ms, 837 KiB |
+| Pinned and selected, grouped | 5.84 ms, 1,712 KiB | 5.19 ms, 699 KiB |
+
+Grouped live time is unchanged within its noise (4.17–5.57 ms before) despite the lower allocation. Every run of
+the new build rendered the same pixels as the baseline in every scenario. One baseline run differed in its last
+scenario only; the window is on screen, so pointer hover can change a frame.
+
+Two whole-app profiles ran both builds side by side, swapping launch order, for 150 s after the 20 s warm-up so
+that service history reaches its two-minute steady state (the default 60 s ends before it does):
+
+| | Before | After |
+| --- | ---: | ---: |
+| Allocation | 1,206 / 1,207 KiB/s | 809 / 795 KiB/s |
+| Private bytes, average / peak | 68 / 85, 71 / 85 MiB | 60 / 68, 63 / 70 MiB |
+| Managed heap, average | 23.8 / 25.4 MiB | 16.3 / 17.8 MiB |
+| Gen0 / gen1 collections over 170 s | 32 / 8, 31 / 8 | 21 / 4, 20 / 3 |
+| Total CPU | 24.6 / 24.1 ms/s | 24.6 / 23.8 ms/s |
+
+Whole-app CPU did not change: it is dominated by the process snapshot, and the profile does not open the Services
+tab, where the refresh savings are.
+
 ### UI microbenchmark (earlier)
 
 October 19, 2026: process sparklines now share one extraction pass over the visible

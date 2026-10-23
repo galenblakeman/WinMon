@@ -185,6 +185,7 @@ public partial class MainWindow
     {
         var sampler = new WindowsCpuSampler();
         var serviceTree = new ServiceTree();
+        var services = new WindowsServices.Reader();
         using var resources = new WindowsResourceSampler();
         using var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
         try
@@ -196,7 +197,7 @@ public partial class MainWindow
                 {
                     CpuSample sample;
                     ServiceCatalog? serviceCatalog = null;
-                    try { serviceCatalog = WindowsServices.Capture(); }
+                    try { serviceCatalog = services.Capture(); }
                     catch (Exception ex) when (ex is Win32Exception or UnauthorizedAccessException)
                     { Trace.TraceWarning("Service enumeration unavailable: {0}", ex.Message); }
                     SamplingError? cpuError = null;
@@ -306,6 +307,22 @@ public partial class MainWindow
         RefreshCompactView();
         RefreshServices();
         UpdateSnapshot(_selectedSample is null ? null : visible);
+        // The compact strip hides the process list; leaving compact mode refreshes it.
+        if (!_compactMode) RefreshProcesses(samples, latest, visible);
+        LiveCaption.Text = allUnavailable ? Strings.SystemResourcesUnavailable : Strings.SystemResources;
+        LiveCaption.ToolTip = _selectedSample is not null ? Strings.SystemResourcesInspectingSnapshot : LiveCaption.Text;
+        ShowError(_samplingError switch
+        {
+            SamplingError.CpuUnavailable => Strings.CPUUnavailableOtherResourcesContinueRecording,
+            SamplingError.ReadingsUnavailable => Strings.ReadingsUnavailableRetryingEachSecond,
+            _ => null
+        });
+        _presentedSample = latest;
+        UpdateTrayText(latest);
+    }
+
+    private void RefreshProcesses(IReadOnlyList<CpuSample> samples, CpuSample? latest, CpuSample? visible)
+    {
         var grouped = _preferences.GroupProcesses;
         var historyMetric = _preferences.ProcessSort switch
         {
@@ -320,18 +337,26 @@ public partial class MainWindow
         SelectionLabel.Text = _selectedSample is not null ? visible is null ? Strings.HistoryExpiredThisSampleHasLeftTheRecordingWindowReturn : Strings.Format(Strings.ProcessesAtSAverage, visible.Timestamp, ProcessRanking.DefaultWindowSeconds, grouped ? Strings.IdleGroupMembersMayBeOmitted : "")
             : string.Empty;
         SelectionLabel.Visibility = _selectedSample is null ? Visibility.Collapsed : Visibility.Visible;
-        var selectedIndex = _selectedSample is null ? -1 : Array.FindIndex([.. samples], s => ReferenceEquals(s, _selectedSample));
-        var rowSamples = _selectedSample is null ? samples : [.. samples.Take(selectedIndex + 1)];
+        var selectedIndex = -1;
+        if (_selectedSample is not null)
+            for (var i = 0; i < samples.Count; i++)
+                if (ReferenceEquals(samples[i], _selectedSample)) { selectedIndex = i; break; }
+        // Views over the history snapshot rather than copies of it, which run to 3,600 samples.
+        IReadOnlyList<CpuSample> rowSamples = _selectedSample is null ? samples : new SampleList(samples, selectedIndex + 1);
         if (_selectedSample is null && _latestFull is not null && rowSamples.Count > 0 && ReferenceEquals(rowSamples[^1], _latestCompacted))
-            rowSamples = [.. rowSamples.Take(rowSamples.Count - 1), _latestFull];
+            rowSamples = new SampleList(samples, samples.Count, _latestFull);
         // Rank on a short average ending at the live or selected sample; single intervals are tick-quantized.
         var query = ProcessSearchBox.Text.Trim();
         var ranking = ProcessRanking.Rank(rowSamples, sort: _preferences.ProcessSort, grouped: grouped,
             includeInactive: query.Length > 0);
+        // Pins and the selection need inactive processes too. A search already ranked them; otherwise rank once.
+        var inclusive = query.Length > 0 ? ranking : null;
+        ProcessRanking Inclusive() => inclusive ??= ProcessRanking.Rank(rowSamples, sort: _preferences.ProcessSort,
+            grouped: grouped, includeInactive: true);
         UpdateSortHeaders();
         var appsOnly = _preferences.AppsOnly;
         var active = ProcessSearch.Filter(ranking.Processes, query, appsOnly).ToArray();
-        var pinned = ResolvePinnedRows(rowSamples, grouped, query, appsOnly);
+        var pinned = ResolvePinnedRows(rowSamples, grouped, query, appsOnly, Inclusive);
         var unpinned = active.Where(p => !_processPins.Contains(p, grouped)).ToArray();
         var pinnedOnly = PinnedOnlyCheckBox.IsChecked == true;
         var top = pinnedOnly ? [] : unpinned.Take(_preferences.TopProcessCount).ToArray();
@@ -344,7 +369,7 @@ public partial class MainWindow
             _rows[i].Visibility = i < top.Length ? Visibility.Visible : Visibility.Collapsed;
             if (i < top.Length) _rows[i].Update(top[i], rowSamples, MonitorPreferences.ShortRangeSeconds, _wide, processData[pinned.Length + i], grouped);
         }
-        RefreshProcessActions(rowSamples, grouped);
+        RefreshProcessActions(rowSamples, grouped, Inclusive);
         _otherRow.Visibility = rest.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
         if (rest.Length > 0)
             // Memory ranking also covers idle processes compacted out of the sample.
@@ -371,16 +396,6 @@ public partial class MainWindow
                     rest.Length + (query.Length == 0 && !appsOnly && _preferences.ProcessSort == ProcessSort.Memory && !grouped ? visible.CompactedProcesses : 0),
                     rest.Sum(p => p.CpuPercent), rest.Any(p => p.IoBytesPerSecond is not null) ? rest.Sum(p => p.IoBytesPerSecond ?? 0) : null))
             { ProcessStates = [.. pinned.Select(p => ProcessRow.StateText(p.State)), .. top.Select(_ => "")] };
-        LiveCaption.Text = allUnavailable ? Strings.SystemResourcesUnavailable : Strings.SystemResources;
-        LiveCaption.ToolTip = _selectedSample is not null ? Strings.SystemResourcesInspectingSnapshot : LiveCaption.Text;
-        ShowError(_samplingError switch
-        {
-            SamplingError.CpuUnavailable => Strings.CPUUnavailableOtherResourcesContinueRecording,
-            SamplingError.ReadingsUnavailable => Strings.ReadingsUnavailableRetryingEachSecond,
-            _ => null
-        });
-        _presentedSample = latest;
-        UpdateTrayText(latest);
     }
 
     private void ShowError(string? message)

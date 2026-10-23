@@ -136,11 +136,11 @@
    </ListBox.ItemTemplate>
   </ListBox>
   <TextBlock x:Name="Notice" Grid.Row="3" Margin="0,6,0,4" FontSize="11" Foreground="{DynamicResource Muted}" TextWrapping="Wrap" Visibility="Collapsed"/>
-  <Border Grid.Row="4" MinHeight="68" Background="{DynamicResource SectionHeaderSurface}" BorderThickness="1" BorderBrush="{DynamicResource Line}" CornerRadius="4">
+  <Border Grid.Row="4" MinHeight="54" Background="{DynamicResource SectionHeaderSurface}" BorderThickness="1" BorderBrush="{DynamicResource Line}" CornerRadius="4">
    <Grid>
     <Grid.ColumnDefinitions><ColumnDefinition Width="4"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
     <Border x:Name="ActionAccent" Background="{DynamicResource Accent}" CornerRadius="3,0,0,3"/>
-    <Grid x:Name="ActionBarGrid" Grid.Column="1" Margin="14,10">
+    <Grid x:Name="ActionBarGrid" Grid.Column="1" Margin="14,6">
      <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
      <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
      <StackPanel x:Name="SelectionIdentity" VerticalAlignment="Center" Margin="0,0,14,0">
@@ -155,7 +155,7 @@
         </StackPanel>
        </Border>
       </Grid>
-      <TextBlock x:Name="SelectionDetail" Margin="0,3,0,0" FontSize="11" Foreground="{DynamicResource Muted}" TextTrimming="CharacterEllipsis"
+      <TextBlock x:Name="SelectionDetail" Margin="0,2,0,0" FontSize="11" Foreground="{DynamicResource Muted}" TextTrimming="CharacterEllipsis"
        ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
      </StackPanel>
      <WrapPanel x:Name="ActionControls" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">

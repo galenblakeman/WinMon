@@ -59,6 +59,7 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
         // every refresh. Cleared again on exit so they do not keep samples alive.
         var newest = _scratchNewest ??= [];
         var totals = _scratchTotals ??= [];
+        var groups = grouped ? _scratchGroups ??= new(StringComparer.OrdinalIgnoreCase) : null;
         try
         {
             // Memory and counts are point-in-time readings: exclude processes that exited earlier in the window.
@@ -89,8 +90,20 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
                 // Like CPU, intervals without an entry are idle (compacted) and count as zero.
                 double? io = total.IoCount > 0 ? total.Io / window.Count : null;
                 double? gpu = total.GpuCount > 0 ? total.Gpu / total.GpuCount : null;
-                // Groups need every member. Individually, skip processes the sort drops before copying them.
-                if (!includeInactive && !grouped && !Listed(sort, cpu, io, gpu, latest.WorkingSetBytes, newest.Contains(key), latest.ThreadCount, latest.HandleCount)) continue;
+                // Groups need every member, but only each group's busiest member becomes a row.
+                if (groups is not null)
+                {
+                    var groupKey = GroupKey(latest);
+                    if (!groups.TryGetValue(groupKey, out var members))
+                    {
+                        members = _spareMembers?.TryPop(out var spare) == true ? spare : [];
+                        groups.Add(groupKey, members);
+                    }
+                    members.Add(new Member(latest, cpu, io, gpu, total.GpuLatest?.GpuId ?? "", total.GpuLatest?.GpuEngine ?? "", newest.Contains(key)));
+                    continue;
+                }
+                // Individually, skip processes the sort drops before copying them.
+                if (!includeInactive && !Listed(sort, cpu, io, gpu, latest.WorkingSetBytes, newest.Contains(key), latest.ThreadCount, latest.HandleCount)) continue;
                 individual.Add(latest with
                 {
                     CpuPercent = cpu,
@@ -101,8 +114,8 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
                 });
             }
             // Groups sum private bytes (working sets share pages); a grouped row is current if any member is.
-            var ranked = (grouped
-                    ? Group(individual, newest).Where(p => includeInactive || Listed(sort, p.CpuPercent, p.IoBytesPerSecond, p.GpuPercent, p.PrivateBytes, true, p.ThreadCount, p.HandleCount))
+            var ranked = (groups is not null
+                    ? Group(groups).Where(p => includeInactive || Listed(sort, p.CpuPercent, p.IoBytesPerSecond, p.GpuPercent, p.PrivateBytes, true, p.ThreadCount, p.HandleCount))
                     : individual)
                 .OrderByDescending(p => sort switch
                 {
@@ -121,6 +134,12 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
         {
             newest.Clear();
             totals.Clear();
+            if (groups is not null)
+            {
+                var spares = _spareMembers ??= [];
+                foreach (var members in groups.Values) { members.Clear(); spares.Push(members); }
+                groups.Clear();
+            }
         }
     }
 
@@ -165,30 +184,72 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
     /// <remarks>A path always contains a backslash and a name never does, so the two kinds cannot collide.</remarks>
     internal static string GroupKey(ProcessUsage process) => process.ImagePath.Length > 0 ? process.ImagePath : process.Name;
 
+    [ThreadStatic] private static Dictionary<string, List<Member>>? _scratchGroups;
+    [ThreadStatic] private static Stack<List<Member>>? _spareMembers;
+
+    /// <summary>A process's window averages before grouping; <paramref name="Latest"/> is its newest observation.</summary>
+    private readonly record struct Member(ProcessUsage Latest, double Cpu, double? Io, double? Gpu, string GpuId, string GpuEngine, bool Current);
+
     /// <summary>Combine window averages by executable. CPU and I/O add up; GPU members may use different
     /// engines, so a group reports its busiest member; memory sums the private bytes of current members.</summary>
-    private static IEnumerable<ProcessUsage> Group(IEnumerable<ProcessUsage> processes, HashSet<(int, long)> newest)
+    /// <remarks>Members keep window order, so ties pick the same busiest member as a stable maximum.</remarks>
+    private static List<ProcessUsage> Group(Dictionary<string, List<Member>> groups)
     {
-        return from members in processes.GroupBy(GroupKey, StringComparer.OrdinalIgnoreCase) select members.ToArray() into all let busiest = all.MaxBy(p => p.CpuPercent)! let gpu = all.Where(p => p.GpuPercent is not null).MaxBy(p => p.GpuPercent) let current = all.Where(p => newest.Contains((p.ProcessId, p.CreationTicks))).ToArray() select busiest with
+        var rows = new List<ProcessUsage>(groups.Count);
+        foreach (var members in groups.Values)
         {
-            CpuPercent = all.Sum(p => p.CpuPercent),
-            IoBytesPerSecond = all.Any(p => p.IoBytesPerSecond is not null) ? all.Sum(p => p.IoBytesPerSecond ?? 0) : null,
-            GpuPercent = gpu?.GpuPercent,
-            GpuEngine = gpu?.GpuEngine ?? "",
-            GpuId = gpu?.GpuId ?? "",
-            WorkingSetBytes = current.Any(p => p.WorkingSetBytes is not null) ? (ulong)current.Sum(p => (decimal)(p.WorkingSetBytes ?? 0)) : null,
-            PrivateBytes = current.Any(p => p.PrivateBytes is not null) ? (ulong)current.Sum(p => (decimal)(p.PrivateBytes ?? 0)) : null,
-            ThreadCount = current.Length > 0 && current.All(p => p.ThreadCount is not null) ? current.Sum(p => p.ThreadCount!.Value) : null,
-            HandleCount = current.Length > 0 && current.All(p => p.HandleCount is not null) ? current.Sum(p => p.HandleCount!.Value) : null,
-            MemberCount = all.Length,
-            HasAppWindow = AppWindowState(current.Length > 0 ? current : all),
-            MemberIds = [.. all.Select(p => p.ProcessId).Order()]
-        };
+            var busiest = members[0];
+            Member? gpu = null;
+            double cpu = 0, io = 0;
+            var hasIo = false;
+            ulong workingSet = 0, privateBytes = 0;
+            bool hasWorkingSet = false, hasPrivate = false, allThreads = true, allHandles = true;
+            long threads = 0, handles = 0;
+            var current = 0;
+            // App-window state of all members and of current members: any app, and all background.
+            bool anyApp = false, allBackground = true, anyCurrentApp = false, allCurrentBackground = true;
+            var ids = new int[members.Count];
+            for (var i = 0; i < members.Count; i++)
+            {
+                var member = members[i];
+                var process = member.Latest;
+                if (member.Cpu.CompareTo(busiest.Cpu) > 0) busiest = member;
+                if (member.Gpu is { } percent && (gpu is null || percent.CompareTo(gpu.Value.Gpu!.Value) > 0)) gpu = member;
+                cpu += member.Cpu;
+                if (member.Io is { } rate) { io += rate; hasIo = true; }
+                ids[i] = process.ProcessId;
+                anyApp |= process.HasAppWindow == true;
+                allBackground &= process.HasAppWindow == false;
+                if (!member.Current) continue;
+                current++;
+                anyCurrentApp |= process.HasAppWindow == true;
+                allCurrentBackground &= process.HasAppWindow == false;
+                if (process.WorkingSetBytes is { } bytes) { workingSet = checked(workingSet + bytes); hasWorkingSet = true; }
+                if (process.PrivateBytes is { } committed) { privateBytes = checked(privateBytes + committed); hasPrivate = true; }
+                if (process.ThreadCount is { } count) threads = checked(threads + count); else allThreads = false;
+                if (process.HandleCount is { } open) handles = checked(handles + open); else allHandles = false;
+            }
+            Array.Sort(ids);
+            // A group is an app if any current member owns an app window, independent of which member is busiest.
+            var (app, background) = current > 0 ? (anyCurrentApp, allCurrentBackground) : (anyApp, allBackground);
+            rows.Add(busiest.Latest with
+            {
+                CpuPercent = cpu,
+                IoBytesPerSecond = hasIo ? io : null,
+                GpuPercent = gpu?.Gpu,
+                GpuEngine = gpu?.GpuEngine ?? "",
+                GpuId = gpu?.GpuId ?? "",
+                WorkingSetBytes = hasWorkingSet ? workingSet : null,
+                PrivateBytes = hasPrivate ? privateBytes : null,
+                ThreadCount = current > 0 && allThreads ? threads : null,
+                HandleCount = current > 0 && allHandles ? handles : null,
+                MemberCount = members.Count,
+                HasAppWindow = app ? true : background ? false : null,
+                MemberIds = ids
+            });
+        }
+        return rows;
     }
-
-    // A group is an app if any current member owns an app window, independent of which member is busiest.
-    private static bool? AppWindowState(ProcessUsage[] members) => members.Any(p => p.HasAppWindow == true)
-        ? true : members.All(p => p.HasAppWindow == false) ? false : null;
 
     /// <summary>Map an observation to monotonic seconds; support wall-time-only imported fixtures.</summary>
     internal static double Moment(CpuSample sample) => sample.MonotonicTimestamp > 0

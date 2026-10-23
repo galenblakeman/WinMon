@@ -35,11 +35,11 @@ public partial class MainWindow
         RefreshPresentation();
     }
 
-    private PinnedProcess[] ResolvePinnedRows(IReadOnlyList<CpuSample> samples, bool grouped, string query, bool appsOnly)
+    private PinnedProcess[] ResolvePinnedRows(IReadOnlyList<CpuSample> samples, bool grouped, string query, bool appsOnly,
+        Func<ProcessRanking> inclusive)
     {
         if (_processPins.Count(grouped) == 0) return [];
-        var all = ProcessRanking.Rank(samples, sort: _preferences.ProcessSort, grouped: grouped, includeInactive: true);
-        return [.. _processPins.Resolve(samples.LastOrDefault(), all.Processes, grouped, _selectedSample is not null)
+        return [.. _processPins.Resolve(samples.LastOrDefault(), inclusive().Processes, grouped, _selectedSample is not null)
             .Where(p => ProcessSearch.Filter([p.Usage], query, appsOnly).Any())];
     }
 

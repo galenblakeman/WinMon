@@ -642,11 +642,11 @@
             </Setter>
         </Style>
         <Style x:Key="ActionBarButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-            <Setter Property="Height" Value="34" />
-            <Setter Property="MinHeight" Value="34" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="MinHeight" Value="28" />
             <Setter Property="MinWidth" Value="80" />
             <Setter Property="FontSize" Value="12" />
-            <Setter Property="Padding" Value="12,4" />
+            <Setter Property="Padding" Value="12,2" />
             <Setter Property="Margin" Value="0,0,8,0" />
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
@@ -655,7 +655,7 @@
         </Style>
         <Style x:Key="ActionBarDivider" TargetType="Border">
             <Setter Property="Width" Value="1" />
-            <Setter Property="Height" Value="32" />
+            <Setter Property="Height" Value="24" />
             <Setter Property="Margin" Value="4,0,12,0" />
             <Setter Property="Background" Value="{DynamicResource Line}" />
         </Style>

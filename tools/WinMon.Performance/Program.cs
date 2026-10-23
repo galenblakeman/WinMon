@@ -12,7 +12,8 @@ using WinMon;
 using WinMon.Monitoring;
 
 // Deterministic UI-thread benchmark: one synthetic sample per frame, then the same refresh, layout and
-// render pass the dispatcher runs once a second. Sampling is stopped; history is synthetic.
+// render pass the dispatcher runs once a second. Sampling is stopped; history is synthetic. Besides the live
+// and historical frames it covers grouping, the Services tab, compact mode, and pinned and selected processes.
 // usage: WinMon.Performance <result.json> [screenshot.png]
 internal static class Program
 {
@@ -22,6 +23,8 @@ internal static class Program
     private const int WarmupFrames = 400;
     private const int Batches = 7;
     private const int FramesPerBatch = 60;
+    private const int ServiceHosts = 60;
+    private const int Services = 300;
 
     [STAThread]
     private static void Main(string[] args)
@@ -39,6 +42,11 @@ internal static class Program
         var history = (CpuHistory)Field("_history").GetValue(window)!;
         var compact = typeof(CpuHistory).Assembly.GetType("WinMon.Monitoring.ProcessRetention", true)!.GetMethod("Compact", Static)!;
         var refresh = (Action)typeof(MainWindow).GetMethod("RefreshPresentation", Private)!.CreateDelegate(typeof(Action), window);
+        var serviceHistory = Field("_serviceHistory").GetValue(window)!;
+        var addFrame = serviceHistory.GetType().GetMethod("Add", Private)!;
+        var serviceTree = Activator.CreateInstance(typeof(CpuHistory).Assembly.GetType("WinMon.Monitoring.ServiceTree", true)!, true)!;
+        var captureFrame = serviceTree.GetType().GetMethod("Capture", Private)!;
+        var catalog = Catalog();
         var anchor = DateTimeOffset.Parse("2026-10-19T12:00:00Z");
         var second = 0;
         void AddSample()
@@ -46,9 +54,10 @@ internal static class Program
             second++;
             var full = Sample(anchor, second);
             Field("_latestFull").SetValue(window, full);
-            var compacted = (CpuSample)compact.Invoke(null, [full, 32, null])!;
+            var compacted = (CpuSample)compact.Invoke(null, [full, 32, Field("_retainPinned").GetValue(window)])!;
             Field("_latestCompacted").SetValue(window, compacted);
             history.Add(compacted);
+            addFrame.Invoke(serviceHistory, [captureFrame.Invoke(serviceTree, [full, catalog])]);
         }
         window.Width = 1000;
         window.Height = 900;
@@ -71,6 +80,23 @@ internal static class Program
         Field("_selectedSample").SetValue(window, history.Samples[^60]);
         Measure("historical-frame");
         Field("_selectedSample").SetValue(window, null);
+        Check("GroupedChip", true);
+        Measure("grouped-live-frame");
+        Check("IndividualChip", true);
+        Check("ServicesTab", true);
+        typeof(CpuHistory).Assembly.GetType("WinMon.Controls.ServicesView", true)!.GetMethod("ExpandAll", Private)!
+            .Invoke(Field("ServiceView").GetValue(window), null);
+        Measure("services-live-frame");
+        Check("ProcessesTab", true);
+        Call("SetCompactView", true);
+        Measure("compact-live-frame");
+        Call("SetCompactView", false);
+        PinAndSelect(false);
+        Measure("pinned-selected-live-frame");
+        Check("GroupedChip", true);
+        PinAndSelect(true);
+        Measure("pinned-selected-grouped-live-frame");
+        Check("IndividualChip", true);
         refresh();
         Flush();
         var pixels = Pixels(args.Length > 1 ? args[1] : null);
@@ -121,7 +147,29 @@ internal static class Program
                 times.Add(cycles / cyclesPerMs / FramesPerBatch);
             }
             results.Add(new { Name = name, MedianMilliseconds = Median(times), MedianAllocatedBytes = Median(allocations),
-                MillisecondsPerFrame = times, AllocatedBytesPerFrame = allocations });
+                MillisecondsPerFrame = times, AllocatedBytesPerFrame = allocations, PixelsSha256 = Pixels(null) });
+        }
+
+        void Check(string toggle, bool value)
+        {
+            ((System.Windows.Controls.Primitives.ToggleButton)Field(toggle).GetValue(window)!).IsChecked = value;
+            Flush();
+        }
+
+        void Call(string method, params object[] arguments)
+        {
+            typeof(MainWindow).GetMethod(method, Private)!.Invoke(window, arguments);
+            Flush();
+        }
+
+        // Two pins and one selection, each a fixture lifetime that ranks in some frames and not others.
+        void PinAndSelect(bool grouped)
+        {
+            Call("ToggleProcessPin", Fixture(3), grouped);
+            Call("ToggleProcessPin", Fixture(100), grouped);
+            var selection = Field("_processSelection").GetValue(window)!;
+            selection.GetType().GetMethod("Select", Private)!.Invoke(selection, [Fixture(50), grouped]);
+            Call("UpdateProcessRetention");
         }
 
         string Pixels(string? path)
@@ -144,6 +192,27 @@ internal static class Program
         }
     }
 
+    private static ProcessUsage Fixture(int i) => new(100000 + i, i + 1, $"fixture-{i % 120}", 0)
+    {
+        ImagePath = $@"C:\Program Files\Fixture\fixture-{i % 120}.exe"
+    };
+
+    // Shared hosts are the first fixture processes, each with four running services; later processes are
+    // their worker children. The rest of the services are stopped.
+    private static object Catalog()
+    {
+        var assembly = typeof(CpuHistory).Assembly;
+        var observation = assembly.GetType("WinMon.Monitoring.ServiceObservation", true)!;
+        var services = Array.CreateInstance(observation, Services);
+        for (var i = 0; i < Services; i++)
+        {
+            var running = i < ServiceHosts * 4;
+            services.SetValue(Activator.CreateInstance(observation, $"Fixture{i:000}", $"Fixture service {i:000}",
+                running ? 4u : 1u, running ? 100000 + i % ServiceHosts : 0, running ? 1u : 0u), i);
+        }
+        return Activator.CreateInstance(assembly.GetType("WinMon.Monitoring.ServiceCatalog", true)!, long.MaxValue, services)!;
+    }
+
     // CPU rank rotates, so rows change identity and every numeric cell changes text each frame.
     private static CpuSample Sample(DateTimeOffset anchor, int second)
     {
@@ -158,6 +227,7 @@ internal static class Program
                 PrivateBytes = (ulong)(10_000_000 + (i * 104729 + second) % 300_000_000),
                 ThreadCount = 4 + (i * 7 + second) % 90,
                 HandleCount = 100 + (i * 13 + second) % 4000,
+                ParentProcessId = i >= 600 ? 100000 + i % ServiceHosts : 0,
                 GpuPercent = i % 40 == 0 ? (i + second) % 30 : null,
                 GpuEngine = i % 40 == 0 ? "3D" : "",
                 GpuId = i % 40 == 0 ? "luid_0x0_0x1/0" : "",

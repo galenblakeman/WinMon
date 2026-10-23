@@ -18,6 +18,7 @@ public sealed class ProcessRow : Grid
     private readonly Image _icon = new() { Width = 18, Height = 18, Margin = new Thickness(0, 0, 8, 0), Source = ProcessIconProvider.Fallback };
     private readonly CpuGraph _graph = new() { Height = 22, Margin = new Thickness(10, 0, 4, 0), VerticalAlignment = VerticalAlignment.Center, IsHitTestVisible = false };
     private (int, long)? _identity;
+    private (string?, string?, string?) _nameTipParts;
     private ProcessUsage? _usage;
     private Func<ProcessUsage, bool>? _canEnd;
     private Action<ProcessUsage>? _end;
@@ -204,7 +205,13 @@ public sealed class ProcessRow : Grid
         var tooltipName = name == usage.Name ? _name.Text : $"{_name.Text} ({usage.Name})";
         var path = usage.ImagePath.Length > 0 ? usage.ImagePath : Strings.ExecutablePathUnavailable;
         var publisherAndPath = string.IsNullOrWhiteSpace(usage.Publisher) ? path : $"{usage.Publisher}\n{path}";
-        _name.ToolTip = $"{tooltipName} · {(grouped ? MemberList(usage) : Strings.Format(Strings.PID, usage.ProcessId))}\n{publisherAndPath}";
+        var identity = grouped ? MemberList(usage) : Strings.Format(Strings.PID, usage.ProcessId);
+        // The name tooltip rarely changes for a row; build it only when one of its parts does.
+        if (_nameTipParts != (tooltipName, identity, publisherAndPath))
+        {
+            _nameTipParts = (tooltipName, identity, publisherAndPath);
+            _name.ToolTip = $"{tooltipName} · {identity}\n{publisherAndPath}";
+        }
         var kind = usage.HasAppWindow switch { true => Strings.ProcessKindApp, false => Strings.ProcessKindBackground, null => Strings.Unknown };
         _pid.Text = showPid ? $"{(members ? Strings.Format(Strings.Processes, usage.MemberCount) : Strings.Format(Strings.PID, usage.ProcessId))} · {kind}" : kind;
         _pid.Visibility = Visibility.Visible;
@@ -225,7 +232,7 @@ public sealed class ProcessRow : Grid
             ProcessSort.Handles => Strings.Format(Strings.HistoryCount, Strings.Handles, scale),
             _ => Strings.Format(Strings.History0OfTotalMachineCPU, grouped ? Strings.SummedCpuTitle : Strings.CPU, scale)
         };
-        ToolTip = Strings.Format(Strings.LastMinSameScaleForEveryRow, tooltipName, grouped ? MemberList(usage) : Strings.Format(Strings.PID, usage.ProcessId), publisherAndPath, history, seconds / 60d);
+        ToolTip = Strings.Format(Strings.LastMinSameScaleForEveryRow, tooltipName, identity, publisherAndPath, history, seconds / 60d);
         var nextIdentity = (usage.ProcessId, usage.CreationTicks);
         if (_identity != nextIdentity)
         {
@@ -285,6 +292,7 @@ public sealed class ProcessRow : Grid
         SetResourceKey(ref _nameForeground, _name, TextBlock.ForegroundProperty, "Muted");
         _name.Text = grouped ? Strings.Format(Strings.OtherExecutables, count) : Strings.Format(Strings.OtherProcesses, count);
         _name.ToolTip = null;
+        _nameTipParts = default;
         _value.Text = Strings.Format(Strings.PercentOneDecimal, cpuPercent);
         _memory.Text = "";
         _threads.Text = "";

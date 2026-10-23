@@ -51,7 +51,13 @@ internal sealed class ProcessPins
     {
         if (_pins.Count == 0) return null;
         var pins = _pins.ToArray();
-        return process => pins.Any(p => Matches(p, process, p.Grouped));
+        // Compaction asks once per process per sample, so avoid a LINQ enumerator and closure each time.
+        return process =>
+        {
+            foreach (var pin in pins)
+                if (Matches(pin, process, pin.Grouped)) return true;
+            return false;
+        };
     }
 
     internal PinnedProcess[] Resolve(CpuSample? newest, IReadOnlyList<ProcessUsage> averages,

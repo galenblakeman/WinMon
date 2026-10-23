@@ -32,7 +32,10 @@ public sealed class CpuHistory
     public bool WasMemoryLimited { get; private set; }
 
     /// <summary>Get a stable copy of the retained chronological observations.</summary>
-    public IReadOnlyList<CpuSample> Samples => [.. _samples];
+    /// <remarks>The copy is shared until history next changes, so one refresh does not copy history repeatedly.</remarks>
+    public IReadOnlyList<CpuSample> Samples => _snapshot ??= [.. _samples];
+
+    private CpuSample[]? _snapshot;
 
     /// <summary>Add an observation and evict old data within the configured budgets.</summary>
     /// <param name="sample">The observation to retain.</param>
@@ -47,6 +50,7 @@ public sealed class CpuHistory
             // ReSharper disable once LocalizableElement
             throw new ArgumentException("One sample exceeds the history process-entry budget.", nameof(sample));
         _samples.Enqueue(sample);
+        _snapshot = null;
         _latest = sample;
         _entries += sample.Processes.Count;
         Trim(sample);
@@ -74,6 +78,7 @@ public sealed class CpuHistory
             if (_samples.Count <= Capacity && age < Capacity && !overBudget) break;
             WasMemoryLimited |= overBudget;
             _entries -= _samples.Dequeue().Processes.Count;
+            _snapshot = null;
         }
     }
 }

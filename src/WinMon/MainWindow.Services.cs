@@ -38,12 +38,17 @@ public partial class MainWindow
 
     private void RefreshServices()
     {
-        if (ServicesTab.IsChecked != true) return;
+        // The compact strip hides the Services tab as well.
+        if (ServicesTab.IsChecked != true || _compactMode) return;
         var frame = _serviceHistory.Find(_selectedSample);
         // A failed collection must not leave stale live metrics or actions on screen.
         if (_selectedSample is null && _samplingError is not null) frame = null;
-        var index = frame is null ? -1 : _serviceHistory.Frames.ToList().FindIndex(f => ReferenceEquals(f, frame));
-        var history = _serviceHistory.Frames.Take(index + 1).ToArray();
+        var frames = _serviceHistory.Frames;
+        var count = 0;
+        if (frame is not null)
+            for (var i = frames.Count - 1; i >= 0; i--)
+                if (ReferenceEquals(frames[i], frame)) { count = i + 1; break; }
+        var history = frames.Take(count).ToArray();
         ServiceView.Update(frame, history, _selectedSample is not null);
     }
 

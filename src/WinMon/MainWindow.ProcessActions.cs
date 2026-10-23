@@ -33,10 +33,10 @@ public partial class MainWindow
             process => pins?.Invoke(process) == true || selected?.Invoke(process) == true);
     }
 
-    private void RefreshProcessActions(IReadOnlyList<CpuSample> samples, bool grouped)
+    private void RefreshProcessActions(IReadOnlyList<CpuSample> samples, bool grouped, Func<ProcessRanking> inclusive)
     {
         var hadSelection = _processSelection.HasSelection;
-        var target = _processSelection.Resolve(samples, grouped, _selectedSample is not null, _preferences.ProcessSort);
+        var target = _processSelection.Resolve(samples, grouped, _selectedSample is not null, inclusive);
         if (hadSelection && !_processSelection.HasSelection) UpdateProcessRetention();
         ProcessDetailsSnapshot? snapshot = target is null ? null : new(target.Usage, grouped, samples.LastOrDefault()?.Timestamp,
             _selectedSample is not null, target.State == PinnedProcessState.Present && _samplingError is null,
