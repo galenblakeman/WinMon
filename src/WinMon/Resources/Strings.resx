@@ -1422,4 +1422,5 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="ShowActions" xml:space="preserve">
     <value>Show actions</value>
   </data>
+  <data name="AllEntries" xml:space="preserve"><value>All</value></data>
 </root>

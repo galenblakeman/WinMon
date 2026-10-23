@@ -14,6 +14,7 @@ public partial class MainWindow
 
     private void InitializeServices()
     {
+        ServiceView.TopServiceCountChanged += count => _preferences = _preferences with { TopServiceCount = count };
         ProcessesTab.Checked += (_, _) => SelectServiceView(false);
         ServicesTab.Checked += (_, _) => SelectServiceView(true);
         ServiceView.ProcessRequested += process =>

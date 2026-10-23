@@ -10,6 +10,20 @@ namespace WinMon.Tests;
 [TestFixture]
 public sealed class ProcessRetentionTests
 {
+    [Test]
+    public void AllPreservesEveryIdleProcessForHistoricalRanking()
+    {
+        var processes = Enumerable.Range(1, 125).Select(id => Usage(id, memory: (ulong)id) with
+            { ThreadCount = id, HandleCount = id }).ToArray();
+        var full = new CpuSample(DateTimeOffset.UtcNow, 0, processes, 0);
+        var all = ProcessRetention.Compact(full, retainAll: true);
+        Assert.That(all, Is.SameAs(full));
+        Assert.That(ProcessRetention.Compact(full).Processes.Count, Is.LessThan(processes.Length));
+        foreach (var sort in new[] { ProcessSort.Cpu, ProcessSort.Memory, ProcessSort.Threads, ProcessSort.Handles })
+            Assert.That(ProcessRanking.Rank([all], sort: sort, includeInactive: true).Processes.Count,
+                Is.EqualTo(processes.Length), sort.ToString());
+    }
+
     private static ProcessUsage Usage(int id, double cpu = 0, ulong? memory = null, double? io = null, double? gpu = null) =>
         new(id, id * 10, $"p{id}", cpu, memory, io) { GpuPercent = gpu };
 

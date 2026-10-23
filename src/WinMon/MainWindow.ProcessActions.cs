@@ -10,6 +10,25 @@ public partial class MainWindow
 {
     private readonly ProcessSelection _processSelection = new();
 
+    private void EnsureProcessRows(int count)
+    {
+        while (_rows.Count < count)
+        {
+            var row = new ProcessRow { Visibility = Visibility.Collapsed };
+            row.EnableProcessActions(CanEndProcess, EndProcess);
+            EnableProcessInspection(row);
+            row.EnablePinning(_processPins.Contains, ToggleProcessPin);
+            _rows.Add(row);
+            ProcessRows.Children.Insert(ProcessRows.Children.IndexOf(_otherRow), row);
+        }
+        // Release the extra row/graph controls when leaving All or narrowing the results.
+        while (_rows.Count > Math.Max(50, count))
+        {
+            ProcessRows.Children.Remove(_rows[^1]);
+            _rows.RemoveAt(_rows.Count - 1);
+        }
+    }
+
     private void OnToggleActivityActions(object sender, RoutedEventArgs e)
     {
         _preferences = _preferences with { ProcessActionsHidden = !_preferences.ProcessActionsHidden };

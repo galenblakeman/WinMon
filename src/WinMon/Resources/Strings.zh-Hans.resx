@@ -1422,4 +1422,5 @@ Windows 健康状态：{2}</value>
   <data name="ShowActions" xml:space="preserve">
     <value>显示操作</value>
   </data>
+  <data name="AllEntries" xml:space="preserve"><value>全部</value></data>
 </root>

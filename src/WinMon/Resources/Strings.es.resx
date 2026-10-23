@@ -1422,4 +1422,5 @@ Se puede perder el trabajo sin guardar. Se finalizarán todos los procesos indic
   <data name="ShowActions" xml:space="preserve">
     <value>Mostrar acciones</value>
   </data>
+  <data name="AllEntries" xml:space="preserve"><value>Todos</value></data>
 </root>

@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using NUnit.Framework;
 using WinMon.Controls;
 using WinMon.Monitoring;
+using WinMon.Preferences;
 
 namespace WinMon.Tests;
 
@@ -12,6 +13,33 @@ namespace WinMon.Tests;
 [SetUICulture("en")]
 public sealed class ServicesViewTests
 {
+    [Test]
+    public void AllShowsMoreThanFiftyGroupsAndKeepsFiltersAndCountEvents()
+    {
+        var groups = Enumerable.Range(1, 75).Select(i =>
+        {
+            var host = ServiceRankingTests.P(i, 100, i, i * 1_000_000, (ulong)i);
+            return new ServiceGroup($"host:{i}:100", [new($"s{i}", $"Service {i}", 4, i, 1)], host, [host]);
+        }).ToArray();
+        var frame = ServiceRankingTests.Frame(1, groups[0].Host!) with { Groups = groups };
+        var view = new ServicesView();
+        view.Update(frame, [frame], false);
+        var rows = (ListBox)view.FindName("Rows");
+        Assert.That(rows.Items.Count, Is.EqualTo(20));
+        var counts = new List<int>();
+        view.TopServiceCountChanged += counts.Add;
+        ((ComboBox)view.FindName("TopCount")).SelectedItem = TopCountChoices.All;
+        Assert.That(rows.Items.Count, Is.EqualTo(75));
+        Assert.That(((ServiceDisplayRow)rows.Items[0]).Service?.Name, Is.EqualTo("s75"));
+        ((ComboBox)view.FindName("StatusFilter")).SelectedIndex = 2;
+        Assert.That(rows.Items.Count, Is.Zero);
+        ((ComboBox)view.FindName("StatusFilter")).SelectedIndex = 0;
+        Assert.That(rows.Items.Count, Is.EqualTo(75));
+        view.TopServiceCount = 5;
+        Assert.That(rows.Items.Count, Is.EqualTo(5));
+        Assert.That(counts, Is.EqualTo(new[] { 0, 5 }));
+    }
+
     [Test]
     public void HiddenActionBarReclaimsSpaceAndPreservesSelectionAcrossRefresh()
     {

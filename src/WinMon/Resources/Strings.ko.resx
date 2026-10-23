@@ -1422,4 +1422,5 @@ Windows 상태: {2}</value>
   <data name="ShowActions" xml:space="preserve">
     <value>작업 표시</value>
   </data>
+  <data name="AllEntries" xml:space="preserve"><value>모두</value></data>
 </root>

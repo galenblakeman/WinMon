@@ -22,7 +22,7 @@ public partial class MainWindow
     private readonly bool _diagnosticMode;
     private readonly PreferenceStore _preferenceStore;
     private readonly MonitorPreferences? _initialPreferences;
-    private readonly ProcessRow[] _rows = [.. Enumerable.Range(0, 50).Select(_ => new ProcessRow())];
+    private readonly List<ProcessRow> _rows = [];
     private readonly ProcessRow _otherRow = new() { Visibility = Visibility.Collapsed };
     private readonly ProcessPins _processPins = new();
     private readonly List<ProcessRow> _pinnedRows = [];
@@ -78,8 +78,8 @@ public partial class MainWindow
         ProcessActions.ActionRequested += OnProcessAction;
         UpdateActivityActionsToggle();
         VersionRun.Text = $" {AppInfo.Version}";
-        ProcessCountSelector.ItemsSource = new[] { 5, 10, 15, 20, 50 };
-        ProcessCountSelector.SelectedItem = _preferences.TopProcessCount;
+        ProcessCountSelector.ItemsSource = TopCountChoices.Items;
+        ProcessCountSelector.SelectedItem = TopCountChoices.Selection(_preferences.TopProcessCount);
         ProcessCountSelector.SelectionChanged += OnProcessCountChanged;
         // Item order matches ProcessSort so the selected index is the sort column.
         ProcessSortSelector.ItemsSource = new[] { Strings.CPU, Strings.GPU, Strings.Memory, Strings.IO, Strings.Threads, Strings.Handles };
@@ -106,14 +106,6 @@ public partial class MainWindow
         {
             metric.Toggle.Checked += OnSeriesChanged;
             metric.Toggle.Unchecked += OnSeriesChanged;
-        }
-        foreach (var row in _rows)
-        {
-            row.Visibility = Visibility.Collapsed;
-            row.EnableProcessActions(CanEndProcess, EndProcess);
-            EnableProcessInspection(row);
-            row.EnablePinning(_processPins.Contains, ToggleProcessPin);
-            ProcessRows.Children.Add(row);
         }
         ProcessRows.Children.Add(_otherRow);
         BuildRangeChips();
@@ -151,7 +143,8 @@ public partial class MainWindow
             GroupedChip.IsChecked = _preferences.GroupProcesses;
             IndividualChip.IsChecked = !_preferences.GroupProcesses;
             AppsOnlyCheckBox.IsChecked = _preferences.AppsOnly;
-            ProcessCountSelector.SelectedItem = _preferences.TopProcessCount;
+            ProcessCountSelector.SelectedItem = TopCountChoices.Selection(_preferences.TopProcessCount);
+            ServiceView.TopServiceCount = _preferences.TopServiceCount;
             Width = Math.Max(MinWidth, _preferences.Width);
             Height = Math.Max(MinHeight, _preferences.Height);
             var visibleMask = _preferences.SeriesMask;
@@ -215,7 +208,8 @@ public partial class MainWindow
                     }
                     var diskPreferences = Volatile.Read(ref _preferences);
                     var full = resources.Sample(sample, diskPreferences.PrimaryDrive, diskPreferences.SecondaryDrive);
-                    Deliver(new PendingSample(ProcessRetention.Compact(full, retain: Volatile.Read(ref _retainPinned)), cpuError, full,
+                    Deliver(new PendingSample(ProcessRetention.Compact(full, retain: Volatile.Read(ref _retainPinned),
+                        retainAll: Volatile.Read(ref _preferences).TopProcessCount == 0), cpuError, full,
                         serviceTree.Capture(full, serviceCatalog)));
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
@@ -363,12 +357,13 @@ public partial class MainWindow
         var pinned = ResolvePinnedRows(rowSamples, grouped, query, appsOnly, Inclusive);
         var unpinned = active.Where(p => !_processPins.Contains(p, grouped)).ToArray();
         var pinnedOnly = PinnedOnlyCheckBox.IsChecked == true;
-        var top = pinnedOnly ? [] : unpinned.Take(_preferences.TopProcessCount).ToArray();
+        var top = pinnedOnly ? [] : TopCountChoices.Limit(unpinned, _preferences.TopProcessCount).ToArray();
         var rest = pinnedOnly ? [] : unpinned.Skip(top.Length).ToArray();
         var displayed = pinned.Select(p => p.Usage).Concat(top).ToArray();
         var processData = ProcessGraphData.Build(rowSamples, MonitorPreferences.ShortRangeSeconds, displayed, grouped, _preferences.ProcessSort);
         UpdatePinnedRows(pinned, processData, rowSamples, grouped);
-        for (var i = 0; i < _rows.Length; i++)
+        EnsureProcessRows(top.Length);
+        for (var i = 0; i < _rows.Count; i++)
         {
             _rows[i].Visibility = i < top.Length ? Visibility.Visible : Visibility.Collapsed;
             if (i < top.Length) _rows[i].Update(top[i], rowSamples, MonitorPreferences.ShortRangeSeconds, _wide, processData[pinned.Length + i], grouped);
@@ -460,7 +455,7 @@ public partial class MainWindow
 
     private void OnProcessCountChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
     {
-        if (ProcessCountSelector.SelectedItem is not int count || _closing) return;
+        if (!TopCountChoices.TryGetCount(ProcessCountSelector.SelectedItem, out var count) || _closing) return;
         _preferences = _preferences with { TopProcessCount = count };
         ProcessScroll.ScrollToTop();
         RefreshPresentation();
@@ -818,6 +813,13 @@ public partial class MainWindow
     private void ApplyLanguage()
     {
         AppLanguages.Apply(_preferences.Language);
+        ProcessCountSelector.SelectionChanged -= OnProcessCountChanged;
+        try
+        {
+            ProcessCountSelector.ItemsSource = TopCountChoices.Items;
+            ProcessCountSelector.SelectedItem = TopCountChoices.Selection(_preferences.TopProcessCount);
+        }
+        finally { ProcessCountSelector.SelectionChanged += OnProcessCountChanged; }
         // Labels change, but ranking, history, selection, and scroll position stay intact.
         var selectedSort = _preferences.ProcessSort;
         ProcessSortSelector.SelectionChanged -= OnProcessSortChanged;

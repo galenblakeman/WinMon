@@ -17,8 +17,8 @@
    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
    <StackPanel x:Name="RankingControls" Orientation="Horizontal" VerticalAlignment="Center">
     <TextBlock Text="{Binding [Top], Source={x:Static r:Strings.Text}}" VerticalAlignment="Center" FontSize="13" FontWeight="SemiBold"/>
-    <ComboBox x:Name="TopCount" Width="48" MinHeight="28" Padding="6,3,24,3" Margin="6,0"
-     FontSize="13" FontWeight="SemiBold" SelectionChanged="OnFilterChanged"
+    <ComboBox x:Name="TopCount" MinWidth="60" MinHeight="28" Padding="6,3,24,3" Margin="6,0"
+     FontSize="13" FontWeight="SemiBold" SelectionChanged="OnTopCountChanged"
      AutomationProperties.Name="{Binding [NumberOfTopServices], Source={x:Static r:Strings.Text}}"
      ToolTip="{Binding [NumberOfTopServices], Source={x:Static r:Strings.Text}}"/>
     <TextBlock Text="{Binding [ServicesBy], Source={x:Static r:Strings.Text}}" VerticalAlignment="Center" FontSize="13" FontWeight="SemiBold"/>

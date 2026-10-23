@@ -30,8 +30,11 @@ public sealed record MonitorPreferences
     internal int SeriesMask => VisibleMetrics | (ShowGpu ? 16 : 0) |
         (SecondaryDrive is not null && ShowSecondaryDisk ? 32 : 0);
 
-    /// <summary>Gets the maximum number of CPU-ranked processes to display.</summary>
+    /// <summary>Maximum ranked processes to display; zero shows all available entries.</summary>
     public int TopProcessCount { get; init; } = 5;
+
+    /// <summary>Maximum ranked service groups to display; zero shows all matching groups.</summary>
+    public int TopServiceCount { get; init; } = 20;
 
     /// <summary>Gets the column that ranks the process rows.</summary>
     [JsonConverter(typeof(JsonStringEnumConverter<ProcessSort>))]

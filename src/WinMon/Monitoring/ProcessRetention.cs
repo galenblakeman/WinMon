@@ -10,13 +10,14 @@ namespace WinMon.Monitoring;
 /// </remarks>
 internal static class ProcessRetention
 {
-    /// <summary>Largest working sets and counts kept per sample to cover the 50-row maximum.</summary>
+    /// <summary>Largest working sets and counts kept for finite Top N choices.</summary>
     internal const int LargestByMemory = 50;
 
     internal static CpuSample Compact(CpuSample sample, int largestByMemory = LargestByMemory,
-        Func<ProcessUsage, bool>? retain = null)
+        Func<ProcessUsage, bool>? retain = null, bool retainAll = false)
     {
         ArgumentNullException.ThrowIfNull(sample);
+        if (retainAll) return sample;
         if (sample.Processes.Count <= largestByMemory) return sample;
         // A small min-heap finds the Nth-largest working set without sorting every process each second.
         var largest = new PriorityQueue<ProcessUsage, ulong>(largestByMemory + 1);

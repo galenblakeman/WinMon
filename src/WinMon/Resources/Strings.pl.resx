@@ -1422,4 +1422,5 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
   <data name="ShowActions" xml:space="preserve">
     <value>Pokaż działania</value>
   </data>
+  <data name="AllEntries" xml:space="preserve"><value>Wszystkie</value></data>
 </root>

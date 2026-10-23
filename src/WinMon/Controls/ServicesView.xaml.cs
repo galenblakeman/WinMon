@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using WinMon.Monitoring;
+using WinMon.Preferences;
 
 namespace WinMon.Controls;
 
@@ -38,6 +39,21 @@ public partial class ServicesView : UserControl
     private sealed record ActionSelection(string? ServiceName, string RowKey);
     internal event Action<ProcessUsage>? ProcessRequested;
     internal event Action<string>? CopyRequested;
+    internal event Action<int>? TopServiceCountChanged;
+
+    internal int TopServiceCount
+    {
+        get => TopCountChoices.TryGetCount(TopCount.SelectedItem, out var count) ? count : 20;
+        set => TopCount.SelectedItem = TopCountChoices.Selection(TopCountChoices.IsSupported(value) ? value : 20);
+    }
+
+    private void OnTopCountChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!_ready) return;
+        TopServiceCountChanged?.Invoke(TopServiceCount);
+        RefreshRows();
+        ArrangeToolbar();
+    }
     internal event Action<ServiceObservation, ProcessUsage?, string>? ActionRequested;
 
     public ServicesView()
@@ -50,7 +66,7 @@ public partial class ServicesView : UserControl
         }
         Rows.ItemsSource = _rows;
         Rows.ContextMenu = new ContextMenu();
-        TopCount.ItemsSource = new[] { 5, 10, 15, 20, 50 };
+        TopCount.ItemsSource = TopCountChoices.Items;
         TopCount.SelectedItem = 20;
         RefreshLabels();
         _ready = true;
@@ -96,10 +112,13 @@ public partial class ServicesView : UserControl
     }
     private void RefreshLabels()
     {
+        var topCount = TopServiceCount;
         var status = StatusFilter.SelectedIndex;
         var sort = Sort.SelectedIndex;
         var ready = _ready;
         _ready = false;
+        TopCount.ItemsSource = TopCountChoices.Items;
+        TopServiceCount = topCount;
         StatusFilter.ItemsSource = new[] { Strings.AllServiceStatuses, Strings.ServiceRunning, Strings.ServiceStopped };
         StatusFilter.SelectedIndex = Math.Max(0, status);
         Sort.ItemsSource = new[] { Strings.CPU, Strings.Memory, Strings.IO };
@@ -221,8 +240,8 @@ public partial class ServicesView : UserControl
             foreach (var past in _history)
                 if (past.Index.PeakCpu(workers) is var busiest && busiest > peak) peak = busiest;
             var scale = Math.Max(1, peak * 1.1);
-            foreach (var group in ordered.ThenBy(g => g.Services[0].DisplayName, StringComparer.CurrentCultureIgnoreCase)
-                .Take(TopCount.SelectedItem is int limit ? limit : 20))
+            foreach (var group in TopCountChoices.Limit(
+                ordered.ThenBy(g => g.Services[0].DisplayName, StringComparer.CurrentCultureIgnoreCase), TopServiceCount))
             {
                 Add(group.Key, group, null, null, false, true);
                 if (!_expanded.Contains(group.Key)) continue;

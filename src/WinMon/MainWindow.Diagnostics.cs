@@ -8,6 +8,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Interop;
 using System.Windows.Threading;
 using WinMon.Monitoring;
+using WinMon.Preferences;
 // ReSharper disable StringLiteralTypo
 
 namespace WinMon;
@@ -969,8 +970,18 @@ public partial class MainWindow
         ArrangeFixture();
         if (fixture.ProcessScroll.VerticalOffset <= 0) throw new InvalidOperationException("The process list failed to scroll.");
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "process-count-50.png"), 1, cancellationToken);
+        fixture.ProcessCountSelector.SelectedItem = TopCountChoices.All;
+        fixture.RefreshVisiblePresentation();
+        ArrangeFixture();
+        if (fixture._preferences.TopProcessCount != 0 || fixture._rows.Count(row => row.Visibility == Visibility.Visible) < 60 ||
+            fixture._otherRow.Visibility != Visibility.Collapsed)
+            throw new InvalidOperationException("All did not render every available process beyond the old 50-row limit.");
+        await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "process-count-all.png"), 1, cancellationToken);
         fixture._selectedSample = rankedSample;
         fixture._history.Add(rankedSample with { Timestamp = anchor.AddSeconds(2), MonotonicTimestamp = Stopwatch.Frequency * 122, Processes = [] });
+        fixture.RefreshVisiblePresentation();
+        if (fixture._rows.Count(row => row.Visibility == Visibility.Visible) < 60)
+            throw new InvalidOperationException("All lost processes from the selected historical sample.");
         fixture.ProcessCountSelector.SelectedItem = 10;
         fixture.RefreshVisiblePresentation();
         ArrangeFixture();

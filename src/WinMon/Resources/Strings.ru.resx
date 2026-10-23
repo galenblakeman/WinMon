@@ -1422,4 +1422,5 @@ GPU {11} · {12}
   <data name="ShowActions" xml:space="preserve">
     <value>Показать действия</value>
   </data>
+  <data name="AllEntries" xml:space="preserve"><value>Все</value></data>
 </root>

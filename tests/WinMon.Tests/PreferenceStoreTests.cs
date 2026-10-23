@@ -273,6 +273,7 @@ public sealed class PreferenceStoreTests
     [TestCase(15)]
     [TestCase(20)]
     [TestCase(50)]
+    [TestCase(0)]
     public async Task TopProcessCount_RoundTrips(int count)
     {
         PreferenceStore store = new(settingsPath);
@@ -281,7 +282,6 @@ public sealed class PreferenceStoreTests
     }
 
     [TestCase("{}")]
-    [TestCase("{\"TopProcessCount\":0}")]
     [TestCase("{\"TopProcessCount\":7}")]
     [TestCase("{\"TopProcessCount\":1000000}")]
     public async Task TopProcessCount_MissingOrUnsupported_UsesFive(string json)
@@ -289,6 +289,34 @@ public sealed class PreferenceStoreTests
         Directory.CreateDirectory(testDirectory);
         await File.WriteAllTextAsync(settingsPath, json);
         Assert.That((await new PreferenceStore(settingsPath).LoadAsync()).TopProcessCount, Is.EqualTo(5));
+    }
+
+    [TestCase(0)]
+    [TestCase(5)]
+    [TestCase(10)]
+    [TestCase(15)]
+    [TestCase(20)]
+    [TestCase(50)]
+    public async Task ServiceAndProcessCountsRoundTripIndependently(int serviceCount)
+    {
+        var store = new PreferenceStore(settingsPath);
+        await store.SaveAsync(new MonitorPreferences { TopProcessCount = 0, TopServiceCount = serviceCount });
+        var loaded = await new PreferenceStore(settingsPath).LoadAsync();
+        Assert.Multiple(() =>
+        {
+            Assert.That(loaded.TopProcessCount, Is.Zero);
+            Assert.That(loaded.TopServiceCount, Is.EqualTo(serviceCount));
+        });
+    }
+
+    [TestCase("{}")]
+    [TestCase("{\"TopServiceCount\":7}")]
+    [TestCase("{\"TopServiceCount\":-1}")]
+    public async Task ServiceCountMissingOrInvalidDefaultsToTwenty(string json)
+    {
+        Directory.CreateDirectory(testDirectory);
+        await File.WriteAllTextAsync(settingsPath, json);
+        Assert.That((await new PreferenceStore(settingsPath).LoadAsync()).TopServiceCount, Is.EqualTo(20));
     }
 
     [TestCase("C:\\Program Files\\WinMon\\WinMon.exe", true)]

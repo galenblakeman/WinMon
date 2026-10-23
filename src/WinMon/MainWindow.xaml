@@ -505,7 +505,7 @@
                                         Text="{Binding [Top], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                                     <ComboBox
                                         x:Name="ProcessCountSelector"
-                                        Width="48"
+                                        MinWidth="60"
                                         Padding="6,3,24,3"
                                         MinHeight="28"
                                         Margin="6,0"

@@ -13,6 +13,7 @@ public static partial class Strings
     public static string Actions => ResourceManager.GetString(nameof(Actions), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string AdapterUtilizationOfTheBusiestEngineAcrossAvailableGPUs => ResourceManager.GetString(nameof(AdapterUtilizationOfTheBusiestEngineAcrossAvailableGPUs), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string AdditionalCPUSpecificationsUnavailableFromWindows => ResourceManager.GetString(nameof(AdditionalCPUSpecificationsUnavailableFromWindows), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string AllEntries => ResourceManager.GetString(nameof(AllEntries), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string AllServiceStatuses => ResourceManager.GetString(nameof(AllServiceStatuses), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string Alpha => ResourceManager.GetString(nameof(Alpha), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string Alt => ResourceManager.GetString(nameof(Alt), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;

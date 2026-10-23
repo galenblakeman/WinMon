@@ -1422,4 +1422,5 @@ Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse
   <data name="ShowActions" xml:space="preserve">
     <value>Aktionen anzeigen</value>
   </data>
+  <data name="AllEntries" xml:space="preserve"><value>Alle</value></data>
 </root>

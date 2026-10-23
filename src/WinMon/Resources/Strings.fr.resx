@@ -1422,4 +1422,5 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
   <data name="ShowActions" xml:space="preserve">
     <value>Afficher les actions</value>
   </data>
+  <data name="AllEntries" xml:space="preserve"><value>Tous</value></data>
 </root>

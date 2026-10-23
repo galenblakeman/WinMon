@@ -1422,4 +1422,5 @@ Windows の正常性状態: {2}</value>
   <data name="ShowActions" xml:space="preserve">
     <value>操作を表示</value>
   </data>
+  <data name="AllEntries" xml:space="preserve"><value>すべて</value></data>
 </root>
