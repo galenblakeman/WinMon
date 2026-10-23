@@ -1,5 +1,9 @@
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Threading;
 using WinMon.Controls;
 using WinMon.Monitoring;
 
@@ -8,9 +12,12 @@ namespace WinMon;
 public partial class MainWindow
 {
     private SnapshotReport? _snapshotReport;
-    private readonly System.Windows.Threading.DispatcherTimer _snapshotCopiedTimer = new() { Interval = TimeSpan.FromSeconds(2) };
+    private readonly DispatcherTimer _snapshotCopiedTimer = new() { Interval = TimeSpan.FromSeconds(2) };
 
-    private void OnCopySnapshot(object sender, RoutedEventArgs e) => CopySnapshot();
+    private void OnCopySnapshot(object sender, RoutedEventArgs e)
+    {
+        CopySnapshot();
+    }
 
     private void CopySnapshot(Action<string>? copyToClipboard = null)
     {
@@ -28,26 +35,35 @@ public partial class MainWindow
             _snapshotCopiedTimer.Tick += OnSnapshotCopiedTimeout;
             _snapshotCopiedTimer.Start();
         }
-        catch (System.Runtime.InteropServices.ExternalException ex)
+        catch (ExternalException ex)
         {
-            System.Diagnostics.Trace.TraceWarning("Could not copy snapshot: {0}", ex.Message);
+            Trace.TraceWarning("Could not copy snapshot: {0}", ex.Message);
             ResetSnapshotCopyCaption();
-            WinMon.Controls.MessageDialog.ShowNotice(this, Strings.TheClipboardIsUnavailableTryCopyAgain, Strings.CopySnapshot);
+            MessageDialog.ShowNotice(this, Strings.TheClipboardIsUnavailableTryCopyAgain, Strings.CopySnapshot);
         }
     }
 
-    private void OnSnapshotCopiedTimeout(object? sender, EventArgs e) => ResetSnapshotCopyCaption();
+    private void OnSnapshotCopiedTimeout(object? sender, EventArgs e)
+    {
+        ResetSnapshotCopyCaption();
+    }
 
     private void ResetSnapshotCopyCaption()
     {
         _snapshotCopiedTimer.Stop();
-        SnapshotCopyButton.SetBinding(ContentControl.ContentProperty,
-            new System.Windows.Data.Binding("[CopySnapshot]") { Source = Strings.Text, Mode = System.Windows.Data.BindingMode.OneWay });
+        SnapshotCopyButton.SetBinding(ContentProperty,
+            new Binding("[CopySnapshot]") { Source = Strings.Text, Mode = BindingMode.OneWay });
     }
 
-    private void OnLiveModeClick(object sender, RoutedEventArgs e) => ReturnToLive();
+    private void OnLiveModeClick(object sender, RoutedEventArgs e)
+    {
+        ReturnToLive();
+    }
 
-    private void OnSnapshotModeClick(object sender, RoutedEventArgs e) => OverallGraph.SelectLatest();
+    private void OnSnapshotModeClick(object sender, RoutedEventArgs e)
+    {
+        OverallGraph.SelectLatest();
+    }
 
     private void UpdateSnapshot(CpuSample? retained)
     {
@@ -60,7 +76,8 @@ public partial class MainWindow
         if (retained is null) _snapshotReport = null;
         if (_selectedSample is null) return;
         SnapshotTitle.Text = Strings.Format(Strings.Snapshot, _selectedSample.Timestamp);
-        SnapshotNote.Text = retained is null ? Strings.HistoryExpiredThisSampleHasLeftTheRecordingWindow
+        SnapshotNote.Text = retained is null
+            ? Strings.HistoryExpiredThisSampleHasLeftTheRecordingWindow
             : Strings.IntervalReadingsTopReadoutsStayLive;
         SnapshotReadings.Visibility = retained is null ? Visibility.Collapsed : Visibility.Visible;
         if (retained is not null)
@@ -69,25 +86,32 @@ public partial class MainWindow
             SnapshotCpu.Text = Percent(retained.TotalCpuPercent);
             SnapshotMemory.Text = Percent(r.MemoryPercent);
             SnapshotGpu.Text = Percent(r.GpuPercent);
-            SnapshotDiskName.Text = r.DiskName.Length == 0 ? Strings.Disk : Strings.Format(Strings.DiskLabel, r.DiskName);
+            SnapshotDiskName.Text =
+                r.DiskName.Length == 0 ? Strings.Disk : Strings.Format(Strings.DiskLabel, r.DiskName);
             SnapshotDisk.Text = Percent(r.DiskActivePercent);
             SnapshotSecondaryDiskName.Text = Strings.Format(Strings.DiskLabel, r.SecondaryDiskName);
             SnapshotDisk2.Text = Percent(r.SecondaryDiskActivePercent);
-            SnapshotSecondaryDisk.Visibility = r.SecondaryDiskName.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
+            SnapshotSecondaryDisk.Visibility =
+                r.SecondaryDiskName.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
             SnapshotNetwork.Text = Rate(r);
         }
+
         SnapshotPanel.ToolTip = retained is null ? SnapshotNote.Text : CpuGraph.DescribeSample(retained);
         PositionSnapshot();
     }
 
-    private void OnSnapshotChartSizeChanged(object sender, SizeChangedEventArgs e) => PositionSnapshot();
+    private void OnSnapshotChartSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        PositionSnapshot();
+    }
 
     private void PositionSnapshot()
     {
         if (_selectedSample is null || SnapshotLayer is null) return;
         var plot = OverallGraph.PlotBounds;
         if (SnapshotReadings.Visibility == Visibility.Visible)
-            SnapshotNote.Text = OverallGraph.SelectionInPlot ? Strings.IntervalReadingsTopReadoutsStayLive
+            SnapshotNote.Text = OverallGraph.SelectionInPlot
+                ? Strings.IntervalReadingsTopReadoutsStayLive
                 : Strings.OutsideChartRangeTopReadoutsStayLive;
         var bounds = SnapshotPlacement.Calculate(plot, OverallGraph.SelectionAnchor, new Size(320, 216));
         SnapshotPanel.Width = bounds.Width;
@@ -99,7 +123,8 @@ public partial class MainWindow
         SnapshotPointer.Visibility = left || anchor.X > bounds.Right ? Visibility.Visible : Visibility.Collapsed;
         var side = left ? bounds.Left : bounds.Right;
         var tip = Math.Clamp(side + (left ? -10 : 10), plot.Left, plot.Right);
-        var y = Math.Clamp(anchor.Y, bounds.Top + Math.Min(12, bounds.Height / 2), bounds.Bottom - Math.Min(12, bounds.Height / 2));
+        var y = Math.Clamp(anchor.Y, bounds.Top + Math.Min(12, bounds.Height / 2),
+            bounds.Bottom - Math.Min(12, bounds.Height / 2));
         var half = Math.Min(7, bounds.Height / 2);
         SnapshotPointer.Points =
         [

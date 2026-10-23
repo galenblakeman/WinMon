@@ -17,27 +17,35 @@ public partial class MainWindow
         CompactViewButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
         await CaptureAsync(Path.Combine(output, "strip-live.png"), 1, cancellationToken);
         if (!_compactMode || FullView.Visibility != Visibility.Collapsed ||
-            CompactStrip.Visibility != Visibility.Visible || Height != 156 ||
+            CompactStrip.Visibility != Visibility.Visible || Math.Abs(Height - 156) > 0.001 ||
             _stripTiles[0].Value.Text != CpuMetric.ValueLabel.Text)
             throw new InvalidOperationException("Compact mode did not display the native live readings.");
         var savedSize = SavedFullViewSize(new Rect(Left, Top, Width, Height));
-        await _preferenceStore.SaveAsync(_preferences with { Width = savedSize.Width, Height = savedSize.Height }, cancellationToken);
+        await _preferenceStore.SaveAsync(_preferences with { Width = savedSize.Width, Height = savedSize.Height },
+            cancellationToken);
         var saved = await _preferenceStore.LoadAsync(cancellationToken);
+        // Sizes round-trip unchanged, so exact comparison is intended.
+        // ReSharper disable CompareOfFloatsByEqualityOperator
         if (!saved.CompactMode || saved.Width != fullSize.Width || saved.Height != fullSize.Height)
             throw new InvalidOperationException("Compact preferences overwrote full-view dimensions.");
         CompactViewButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
-        if (_compactMode || Width != fullSize.Width || Height != fullSize.Height || FullView.Visibility != Visibility.Visible)
+        if (_compactMode || Width != fullSize.Width || Height != fullSize.Height ||
+            FullView.Visibility != Visibility.Visible)
             throw new InvalidOperationException("Full-view restoration failed.");
+        // ReSharper restore CompareOfFloatsByEqualityOperator
 
-        var fixture = new MainWindow(true) { Left = 40, Top = 40, Width = 1000, Height = 840 };
-        fixture._preferences = new MonitorPreferences { PrimaryDrive = "C:", SecondaryDrive = "D:" };
+        var fixture = new MainWindow(true)
+        {
+            Left = 40, Top = 40, Width = 1000, Height = 840,
+            _preferences = new MonitorPreferences { PrimaryDrive = "C:", SecondaryDrive = "D:" }
+        };
         var now = DateTimeOffset.Now;
         for (var i = 0; i < 120; i++)
         {
             var pulse = Math.Exp(-Math.Pow((i - 94) / 3d, 2));
             var wobble = 2 * Math.Sin(i * 1.7);
             fixture._history.Add(new CpuSample(now.AddSeconds(i - 119), 32.8 + 45 * pulse + wobble, [], 0,
-                IsGap: i == 45, MonotonicTimestamp: Stopwatch.Frequency * (i + 1))
+                i == 45, Stopwatch.Frequency * (i + 1))
             {
                 Resources = new ResourceSample
                 {
@@ -50,9 +58,11 @@ public partial class MainWindow
                 }
             });
         }
+
         fixture.SetCompactView(true);
         fixture.RefreshVisiblePresentation();
-        if (fixture._stripTiles[4].Value.Text == Strings.MissingReading || !fixture._stripTiles[4].Value.Text.Contains("Mbps", StringComparison.Ordinal))
+        if (fixture._stripTiles[4].Value.Text == Strings.MissingReading ||
+            !fixture._stripTiles[4].Value.Text.Contains("Mbps", StringComparison.Ordinal))
             throw new InvalidOperationException("The strip lost the formatted network rate.");
         var visual = (FrameworkElement)fixture.Content;
         foreach (var theme in new[] { "Dark", "Light" })
@@ -63,20 +73,25 @@ public partial class MainWindow
             {
                 Draw(width);
                 foreach (var scale in new[] { 1d, 1.5, 2d })
-                    await CaptureVisualAsync(visual, Path.Combine(output, $"strip-{theme.ToLowerInvariant()}-{width}-{scale * 100:0}.png"), scale, cancellationToken);
+                    await CaptureVisualAsync(visual,
+                        Path.Combine(output, $"strip-{theme.ToLowerInvariant()}-{width}-{scale * 100:0}.png"), scale,
+                        cancellationToken);
             }
         }
+
         fixture._preferences = fixture._preferences with { SecondaryDrive = null };
         Draw(836);
-        if (fixture._stripTiles[3].Box.Visibility != Visibility.Collapsed || fixture.CompactStrip.ColumnDefinitions[3].Width.Value != 0)
+        if (fixture._stripTiles[3].Box.Visibility != Visibility.Collapsed ||
+            fixture.CompactStrip.ColumnDefinitions[3].Width.Value != 0)
             throw new InvalidOperationException("Unconfigured second disk left an empty strip column.");
         fixture._samplingError = SamplingError.ReadingsUnavailable;
         Draw(836);
-        if (fixture._stripTiles.Any(t => t.Box.Visibility == Visibility.Visible && t.Value.Text != Strings.MissingReading))
+        if (fixture._stripTiles.Any(t =>
+                t.Box.Visibility == Visibility.Visible && t.Value.Text != Strings.MissingReading))
             throw new InvalidOperationException("Unavailable readings were presented as live values.");
         await CaptureVisualAsync(visual, Path.Combine(output, "strip-unavailable.png"), 1, cancellationToken);
         fixture.SetCompactView(false);
-        if (fixture.Height != 840 || fixture.Width != 1000)
+        if (Math.Abs(fixture.Height - 840) > 0.001 || Math.Abs(fixture.Width - 1000) > 0.001)
             throw new InvalidOperationException("Fixture full-view dimensions were not restored.");
         await File.WriteAllTextAsync(Path.Combine(output, "compact.json"), JsonSerializer.Serialize(new
         {

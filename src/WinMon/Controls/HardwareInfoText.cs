@@ -29,6 +29,7 @@ internal static class HardwareInfoText
                 text.AppendLine();
             }
         }
+
         return text.ToString().TrimEnd();
     }
 }

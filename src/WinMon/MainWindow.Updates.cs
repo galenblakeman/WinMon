@@ -18,14 +18,12 @@ public partial class MainWindow
     private bool _updateRestartPending;
     private bool _updateDownloading;
 
-    internal bool UpdateRestartPending => _updateRestartPending;
-
     private void InitializeUpdates()
     {
         if (_diagnosticMode || !UpdatePolicy.GitHubUpdatesEnabled) return;
         _updateClient = new UpdateClient();
         var notice = UpdateRuntime.ConsumeNotice();
-        if (!string.IsNullOrWhiteSpace(notice)) ShowUpdateStatus(notice, dismissible: true);
+        if (!string.IsNullOrWhiteSpace(notice)) ShowUpdateStatus(notice, true);
         _updateCheckTask = MonitorUpdatesAsync(_updateLifetime.Token);
     }
 
@@ -41,8 +39,13 @@ public partial class MainWindow
                 await Task.Delay(TimeSpan.FromHours(6), cancellationToken);
             }
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
-        catch (Exception ex) { Trace.TraceError("WinMon update monitor stopped: {0}", ex); }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+        }
+        catch (Exception ex)
+        {
+            Trace.TraceError("WinMon update monitor stopped: {0}", ex);
+        }
     }
 
     private async Task CheckForUpdatesAsync(bool requestedByUser, CancellationToken cancellationToken = default)
@@ -51,8 +54,9 @@ public partial class MainWindow
         if (requestedByUser)
         {
             _updateDismissed = false;
-            ShowUpdateStatus(Strings.UpdateChecking, dismissible: true);
+            ShowUpdateStatus(Strings.UpdateChecking, true);
         }
+
         var gateHeld = false;
         try
         {
@@ -65,10 +69,11 @@ public partial class MainWindow
             if (changedOffer) _updateDismissed = false;
             if (offer is null)
             {
-                if (requestedByUser) ShowUpdateStatus(Strings.UpToDate, dismissible: true);
+                if (requestedByUser) ShowUpdateStatus(Strings.UpToDate, true);
                 else if (changedOffer) UpdateFooter.Visibility = Visibility.Collapsed;
                 return;
             }
+
             if (_updateDismissed) return;
             UpdateStatusText.Text = Strings.Format(Strings.UpdateAvailable, offer.Version);
             UpdateFooter.Visibility = Visibility.Visible;
@@ -76,13 +81,18 @@ public partial class MainWindow
             UpdateNowButton.Visibility = Visibility.Visible;
             DismissUpdateButton.Visibility = Visibility.Visible;
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+        }
         catch (Exception ex)
         {
             Trace.TraceWarning("WinMon update check failed: {0}", ex.Message);
-            if (requestedByUser) ShowUpdateStatus(Strings.UpdateFailed, dismissible: true);
+            if (requestedByUser) ShowUpdateStatus(Strings.UpdateFailed, true);
         }
-        finally { if (gateHeld) _updateGate.Release(); }
+        finally
+        {
+            if (gateHeld) _updateGate.Release();
+        }
     }
 
     private void ShowUpdateStatus(string text, bool dismissible)
@@ -101,13 +111,22 @@ public partial class MainWindow
         UpdateFooter.Visibility = Visibility.Collapsed;
     }
 
-    private void OnCancelUpdate(object sender, RoutedEventArgs e) => _updateDownload?.Cancel();
+    private void OnCancelUpdate(object sender, RoutedEventArgs e)
+    {
+        _updateDownload?.Cancel();
+    }
 
     private void OnReleaseNotes(object sender, RoutedEventArgs e)
     {
         if (_updateOffer?.ReleaseNotesUrl is not { } url) return;
-        try { Process.Start(new ProcessStartInfo(url.AbsoluteUri) { UseShellExecute = true }); }
-        catch (Exception ex) { Trace.TraceWarning("WinMon could not open release notes: {0}", ex.Message); }
+        try
+        {
+            Process.Start(new ProcessStartInfo(url.AbsoluteUri) { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            Trace.TraceWarning("WinMon could not open release notes: {0}", ex.Message);
+        }
     }
 
     // WPF requires a void click handler; all transfer and replacement failures leave the current app running.
@@ -138,19 +157,22 @@ public partial class MainWindow
             {
                 if (_updateDownloading) UpdateStatusText.Text = Strings.Format(Strings.DownloadingUpdate, percent);
             });
-            ShowUpdateStatus(Strings.Format(Strings.DownloadingUpdate, 0), dismissible: false);
+            ShowUpdateStatus(Strings.Format(Strings.DownloadingUpdate, 0), false);
             CancelUpdateButton.Visibility = Visibility.Visible;
             var prepared = await _updateClient.DownloadAsync(offer, progress, _updateDownload.Token);
-            ShowUpdateStatus(Strings.RestartingToUpdate, dismissible: false);
+            ShowUpdateStatus(Strings.RestartingToUpdate, false);
             await UpdateLauncher.StartAsync(prepared, _updateDownload.Token);
             _updateRestartPending = true;
             Close();
         }
-        catch (OperationCanceledException) when (_updateDownload?.IsCancellationRequested == true) { ShowUpdateStatus(Strings.UpdateCancelled, dismissible: true); }
+        catch (OperationCanceledException) when (_updateDownload?.IsCancellationRequested == true)
+        {
+            ShowUpdateStatus(Strings.UpdateCancelled, true);
+        }
         catch (Exception ex)
         {
             Trace.TraceError("WinMon update download or handoff failed: {0}", ex);
-            ShowUpdateStatus(Strings.UpdateFailed, dismissible: true);
+            ShowUpdateStatus(Strings.UpdateFailed, true);
         }
         finally
         {
@@ -176,18 +198,26 @@ public partial class MainWindow
 
     internal async Task ShutdownUpdatesAsync()
     {
-        _updateDownload?.Cancel();
-        _updateLifetime.Cancel();
+        if (_updateDownload is not null) await _updateDownload.CancelAsync();
+        await _updateLifetime.CancelAsync();
         if (_updateDownloadTask is not null)
-        {
-            try { await _updateDownloadTask; }
-            catch (OperationCanceledException) { }
-        }
+            try
+            {
+                await _updateDownloadTask;
+            }
+            catch (OperationCanceledException)
+            {
+            }
+
         if (_updateCheckTask is not null)
-        {
-            try { await _updateCheckTask; }
-            catch (OperationCanceledException) { }
-        }
+            try
+            {
+                await _updateCheckTask;
+            }
+            catch (OperationCanceledException)
+            {
+            }
+
         // A manual Settings check uses the same gate but is not the periodic task.
         await _updateGate.WaitAsync();
         _updateGate.Release();
@@ -210,13 +240,20 @@ public partial class MainWindow
             for (var attempt = 0; attempt < (UpdateRuntime.IsExpectedRestart ? 20 : 1) && !_closing; attempt++)
             {
                 var notice = UpdateRuntime.ConsumeNotice();
-                if (string.IsNullOrWhiteSpace(notice)) { await Task.Delay(250, _updateLifetime.Token); continue; }
-                ShowUpdateStatus(notice, dismissible: true);
+                if (string.IsNullOrWhiteSpace(notice))
+                {
+                    await Task.Delay(250, _updateLifetime.Token);
+                    continue;
+                }
+
+                ShowUpdateStatus(notice, true);
                 await HideTransientNoticeAsync(notice, _updateLifetime.Token);
                 return;
             }
         }
-        catch (OperationCanceledException) when (_updateLifetime.IsCancellationRequested) { }
+        catch (OperationCanceledException) when (_updateLifetime.IsCancellationRequested)
+        {
+        }
     }
 
     private async Task HideTransientNoticeAsync(string notice, CancellationToken cancellationToken)
@@ -226,12 +263,15 @@ public partial class MainWindow
             await Task.Delay(TimeSpan.FromSeconds(8), cancellationToken);
             if (!_closing && UpdateStatusText.Text == notice) UpdateFooter.Visibility = Visibility.Collapsed;
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+        }
     }
 
     private void RefreshUpdateText()
     {
         if (_updateDismissed || _updateDownloading || UpdateFooter.Visibility != Visibility.Visible) return;
-        if (_updateOffer is not null) UpdateStatusText.Text = Strings.Format(Strings.UpdateAvailable, _updateOffer.Version);
+        if (_updateOffer is not null)
+            UpdateStatusText.Text = Strings.Format(Strings.UpdateAvailable, _updateOffer.Version);
     }
 }

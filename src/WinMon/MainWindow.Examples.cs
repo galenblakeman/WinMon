@@ -1,9 +1,15 @@
 using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Windows;
+using System.Windows.Forms;
 using System.Windows.Interop;
 using System.Windows.Threading;
 using WinMon.Monitoring;
 using WinMon.Preferences;
+using Point = System.Drawing.Point;
+
+// ReSharper disable StringLiteralTypo
 
 namespace WinMon;
 
@@ -21,13 +27,17 @@ public partial class MainWindow
         var chrome = Process(12000, "chrome", "Google Chrome", 8.7, 1260, 92, 1420);
         try
         {
-            fixture._preferences = new MonitorPreferences { Theme = "Dark", PrimaryDrive = "C:", SecondaryDrive = "D:" };
+            fixture._preferences = new MonitorPreferences
+                { Theme = "Dark", PrimaryDrive = "C:", SecondaryDrive = "D:" };
             var code = Process(12003, "Code", "Visual Studio Code", 4.7, 840, 64, 980);
             ProcessUsage[] processes =
             [
                 chrome, code,
                 Process(12001, "chrome", "Google Chrome", 1.2, 360, 28, 420) with { HasAppWindow = false },
-                Process(12006, "MsMpEng", "Antimalware Service Executable", 3.3, 286, 48, 820) with { HasAppWindow = false },
+                Process(12006, "MsMpEng", "Antimalware Service Executable", 3.3, 286, 48, 820) with
+                {
+                    HasAppWindow = false
+                },
                 Process(4, "System", "System", 2.3, 84, 240, 3200) with { HasAppWindow = false },
                 Process(12004, "Taskmgr", "Task Manager", 2, 195, 22, 560),
                 Process(12010, "OneDrive", "Microsoft OneDrive", 0.8, 175, 36, 740)
@@ -43,13 +53,15 @@ public partial class MainWindow
                     {
                         UsedMemoryBytes = 23_056_165_683, TotalMemoryBytes = 32UL * 1_073_741_824,
                         DiskName = "C:", DiskActivePercent = 6.4 + 60 * pulse, DiskBytesPerSecond = 84_000_000,
-                        SecondaryDiskName = "D:", SecondaryDiskActivePercent = 3.5 + 18 * pulse, SecondaryDiskBytesPerSecond = 28_000_000,
+                        SecondaryDiskName = "D:", SecondaryDiskActivePercent = 3.5 + 18 * pulse,
+                        SecondaryDiskBytesPerSecond = 28_000_000,
                         GpuId = "illustrative-adapter", GpuEngine = "3D", GpuPercent = 10.5 + 40 * pulse,
                         NetworkId = "fixture", NetworkName = "Ethernet", LinkBitsPerSecond = 1_000_000_000,
                         ReceiveBytesPerSecond = 955_000 + 10_000_000 * pulse, SendBytesPerSecond = 150_000
                     }
                 });
             }
+
             await Draw("individual");
             fixture.GroupedChip.IsChecked = true;
             await Draw("grouped");
@@ -61,12 +73,12 @@ public partial class MainWindow
             fixture.IndividualChip.IsChecked = true;
             fixture.ToggleProcessPin(code, false);
             fixture.ToggleProcessPin(chrome, false);
-            await Draw("pinned", 1000, 940);
+            await Draw("pinned");
             fixture.PinnedOnlyCheckBox.IsChecked = true;
             await Draw("pinned_only");
             fixture.PinnedOnlyCheckBox.IsChecked = false;
             fixture._selectedSample = fixture._history.Samples[92];
-            await Draw("snapshot", 1000, 940);
+            await Draw("snapshot");
             fixture._selectedSample = null;
             fixture.ToggleProcessPin(code, false);
             fixture.ToggleProcessPin(chrome, false);
@@ -79,16 +91,25 @@ public partial class MainWindow
                 fixture._preferences = fixture._preferences with { ChartPalette = palette };
                 await Draw(palette.ToLowerInvariant());
             }
+
             fixture._preferences = fixture._preferences with { ChartPalette = "Neon" };
             fixture.ApplyTheme();
-            var settings = new SettingsWindow(fixture._preferences, checkForUpdates: () => Task.FromResult(Strings.UpToDate));
-            settings.Owner = fixture;
+            var settings = new SettingsWindow(fixture._preferences,
+                checkForUpdates: () => Task.FromResult(Strings.UpToDate))
+            {
+                Owner = fixture
+            };
             try
             {
                 settings.Show();
-                await CaptureExampleWindowAsync(settings, Path.Combine(output, "example_settings.png"), cancellationToken);
+                await CaptureExampleWindowAsync(settings, Path.Combine(output, "example_settings.png"),
+                    cancellationToken);
             }
-            finally { settings.Close(); }
+            finally
+            {
+                settings.Close();
+            }
+
             fixture._preferences = fixture._preferences with { ChartPalette = "Classic" };
             fixture.SetCompactView(true);
             await Draw("compact", 1000, 156);
@@ -103,6 +124,7 @@ public partial class MainWindow
             fixture.Close();
             fixture._lifetime.Dispose();
         }
+
         return;
 
         async Task Draw(string name, double width = 1000, double height = 940)
@@ -117,13 +139,16 @@ public partial class MainWindow
             await CaptureExampleWindowAsync(fixture, Path.Combine(output, $"example_{name}.png"), cancellationToken);
         }
 
-        static ProcessUsage Process(int pid, string name, string app, double cpu, ulong memoryMiB, long threads, long handles) =>
-            new(pid, pid, name, cpu, memoryMiB * 1_048_576, cpu * 400_000)
+        static ProcessUsage Process(int pid, string name, string app, double cpu, ulong memoryMiB, long threads,
+            long handles)
+        {
+            return new ProcessUsage(pid, pid, name, cpu, memoryMiB * 1_048_576, cpu * 400_000)
             {
                 AppName = app, HasAppWindow = true, PrivateBytes = memoryMiB * 800_000,
                 ThreadCount = threads, HandleCount = handles, GpuPercent = cpu / 2,
                 ImagePath = $@"C:\Apps\{name}.exe", Publisher = "Example publisher"
             };
+        }
     }
 
     private static async Task CaptureExampleWindowAsync(Window window, string path, CancellationToken cancellationToken)
@@ -136,13 +161,13 @@ public partial class MainWindow
         var handle = new WindowInteropHelper(window).Handle;
         if (GetForegroundWindow() != handle || !GetWindowRect(handle, out var bounds))
             throw new InvalidOperationException("Example window must be foreground to capture its native caption.");
-        var screen = System.Windows.Forms.Screen.FromHandle(handle).Bounds;
-        var rectangle = System.Drawing.Rectangle.FromLTRB(bounds.Left, bounds.Top, bounds.Right, bounds.Bottom);
+        var screen = Screen.FromHandle(handle).Bounds;
+        var rectangle = Rectangle.FromLTRB(bounds.Left, bounds.Top, bounds.Right, bounds.Bottom);
         if (!screen.Contains(rectangle))
             throw new InvalidOperationException("Example window must fit on screen for a complete capture.");
-        using var bitmap = new System.Drawing.Bitmap(rectangle.Width, rectangle.Height);
-        using var graphics = System.Drawing.Graphics.FromImage(bitmap);
-        graphics.CopyFromScreen(rectangle.Location, System.Drawing.Point.Empty, rectangle.Size);
-        bitmap.Save(path, System.Drawing.Imaging.ImageFormat.Png);
+        using var bitmap = new Bitmap(rectangle.Width, rectangle.Height);
+        using var graphics = Graphics.FromImage(bitmap);
+        graphics.CopyFromScreen(rectangle.Location, Point.Empty, rectangle.Size);
+        bitmap.Save(path, ImageFormat.Png);
     }
 }

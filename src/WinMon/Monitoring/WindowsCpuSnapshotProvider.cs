@@ -34,13 +34,15 @@ internal sealed class WindowsCpuSnapshotProvider : ICpuSnapshotProvider
     private const int ReadTransferCount = 0xE8;
     private const int WriteTransferCount = 0xF0;
 
-    private byte[] _buffer = GC.AllocateUninitializedArray<byte>(1024 * 1024, pinned: true);
+    private byte[] _buffer = GC.AllocateUninitializedArray<byte>(1024 * 1024, true);
     private Dictionary<(int, long), string> _names = [];
     private Dictionary<(int, long), string> _nextNames = [];
     private readonly ProcessImagePathProvider _paths = new();
     private readonly WindowsAppWindowProvider _appWindows = new();
     private HashSet<(int, long)> _windowLifetimes = [];
+
     private HashSet<(int, long)> _nextWindowLifetimes = [];
+
     // Captures alternate between two process lists, so a snapshot's list stays intact until the next-but-one
     // capture. A fresh list of ~1,000 entries would land on the large object heap every second.
     private List<ProcessCpuTimes> _processes = [];
@@ -53,15 +55,11 @@ internal sealed class WindowsCpuSnapshotProvider : ICpuSnapshotProvider
         if (!Environment.Is64BitProcess)
             throw new PlatformNotSupportedException("Process sampling requires a 64-bit process.");
         if (NativeMethods.GetActiveProcessorGroupCount() > 1)
-        {
             throw new PlatformNotSupportedException(
                 "CPU sampling is unavailable on systems with more than one active processor group.");
-        }
 
         if (!NativeMethods.GetSystemTimes(out var idleTime, out var kernelTime, out var userTime))
-        {
             throw new Win32Exception(Marshal.GetLastPInvokeError(), "GetSystemTimes failed.");
-        }
 
         var length = Query();
         (_processes, _spareProcesses) = (_spareProcesses, _processes);
@@ -80,6 +78,7 @@ internal sealed class WindowsCpuSnapshotProvider : ICpuSnapshotProvider
             if (hasHadAppWindow) _nextWindowLifetimes.Add(key);
             available[i] = process with { HasAppWindow = hasAppWindow, HasHadAppWindow = hasHadAppWindow };
         }
+
         (_windowLifetimes, _nextWindowLifetimes) = (_nextWindowLifetimes, _windowLifetimes);
 
         return new CpuSnapshot(
@@ -115,7 +114,10 @@ internal sealed class WindowsCpuSnapshotProvider : ICpuSnapshotProvider
             var processId = (int)BinaryPrimitives.ReadInt64LittleEndian(entry[UniqueProcessId..]);
             if (processId != 0)
             {
-                if (processes.Count >= MaximumProcesses) unavailable++;
+                if (processes.Count >= MaximumProcesses)
+                {
+                    unavailable++;
+                }
                 else
                 {
                     var created = BinaryPrimitives.ReadInt64LittleEndian(entry[CreateTime..]);
@@ -134,16 +136,19 @@ internal sealed class WindowsCpuSnapshotProvider : ICpuSnapshotProvider
                         BinaryPrimitives.ReadUInt64LittleEndian(entry[WriteTransferCount..]),
                         BinaryPrimitives.ReadUInt64LittleEndian(entry[PrivatePageCount..]))
                     {
-                        ParentProcessId = checked((int)BinaryPrimitives.ReadInt64LittleEndian(entry[InheritedFromUniqueProcessId..])),
+                        ParentProcessId =
+                            checked((int)BinaryPrimitives.ReadInt64LittleEndian(entry[InheritedFromUniqueProcessId..])),
                         ThreadCount = BinaryPrimitives.ReadUInt32LittleEndian(entry[NumberOfThreads..]),
                         HandleCount = BinaryPrimitives.ReadUInt32LittleEndian(entry[HandleCount..])
                     });
                 }
             }
+
             var next = BinaryPrimitives.ReadUInt32LittleEndian(entry);
             if (next == 0) break;
             offset += checked((int)next);
         }
+
         return processes;
     }
 
@@ -169,7 +174,7 @@ internal sealed class WindowsCpuSnapshotProvider : ICpuSnapshotProvider
                 throw new Win32Exception($"NtQuerySystemInformation failed with status 0x{status:X8}.");
             // Processes and threads can appear between calls, so leave headroom.
             var size = Math.Min(MaximumBufferBytes, Math.Max(_buffer.Length * 2, needed + 256 * 1024));
-            _buffer = GC.AllocateUninitializedArray<byte>(size, pinned: true);
+            _buffer = GC.AllocateUninitializedArray<byte>(size, true);
         }
     }
 
@@ -177,15 +182,20 @@ internal sealed class WindowsCpuSnapshotProvider : ICpuSnapshotProvider
     {
         [DllImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool GetSystemTimes(out FileTime idleTime, out FileTime kernelTime, out FileTime userTime);
+        internal static extern bool GetSystemTimes(out FileTime idleTime, out FileTime kernelTime,
+            out FileTime userTime);
 
         [DllImport("kernel32.dll")]
         internal static extern ushort GetActiveProcessorGroupCount();
 
         [DllImport("ntdll.dll")]
-        internal static extern uint NtQuerySystemInformation(int informationClass, nint information, int length, out int returnLength);
+        internal static extern uint NtQuerySystemInformation(int informationClass, nint information, int length,
+            out int returnLength);
 
-        internal static long ToLong(FileTime fileTime) => ((long)fileTime.HighDateTime << 32) | fileTime.LowDateTime;
+        internal static long ToLong(FileTime fileTime)
+        {
+            return ((long)fileTime.HighDateTime << 32) | fileTime.LowDateTime;
+        }
     }
 
     [StructLayout(LayoutKind.Sequential)]

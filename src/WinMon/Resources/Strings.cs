@@ -1,5 +1,5 @@
-using System.Globalization;
 using System.ComponentModel;
+using System.Globalization;
 using System.Windows.Data;
 
 namespace WinMon.Resources;
@@ -21,16 +21,22 @@ public static partial class Strings
     }
 
     /// <summary>Format localized text using the user's number and date conventions.</summary>
-    public static string Format(string format, params object?[] arguments) =>
-        string.Format(CultureInfo.CurrentCulture, format, arguments);
+    public static string Format(string format, params object?[] arguments)
+    {
+        return string.Format(CultureInfo.CurrentCulture, format, arguments);
+    }
 }
 
 /// <summary>A binding source that refreshes resource text without rebuilding windows.</summary>
 public sealed class LocalizedTextSource : INotifyPropertyChanged
 {
-    public string this[string key] => Strings.ResourceManager.GetString(key, Strings.Culture ?? CultureInfo.CurrentUICulture)!;
+    public string this[string key] =>
+        Strings.ResourceManager.GetString(key, Strings.Culture ?? CultureInfo.CurrentUICulture)!;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    internal void NotifyLanguageChanged() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(Binding.IndexerName));
+    internal void NotifyLanguageChanged()
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(Binding.IndexerName));
+    }
 }

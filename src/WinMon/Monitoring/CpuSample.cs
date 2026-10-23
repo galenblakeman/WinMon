@@ -26,4 +26,3 @@ public sealed record CpuSample(
     /// </summary>
     public int CompactedProcesses { get; init; }
 }
-

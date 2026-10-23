@@ -1,9 +1,13 @@
+using System.Runtime.CompilerServices;
 using WinMon.Monitoring;
 
 namespace WinMon.Controls;
 
 /// <summary>Process values and the shared sparkline scale for one refresh.</summary>
-internal sealed record ProcessGraphData(IReadOnlyList<CpuSample> Samples, double?[] Values, double ScaleMaximum,
+internal sealed record ProcessGraphData(
+    IReadOnlyList<CpuSample> Samples,
+    double?[] Values,
+    double ScaleMaximum,
     ProcessSort Sort = ProcessSort.Cpu)
 {
     internal static ProcessGraphData[] Build(IReadOnlyList<CpuSample> history, int seconds,
@@ -32,6 +36,7 @@ internal sealed record ProcessGraphData(IReadOnlyList<CpuSample> Samples, double
                     peaks[index] = Math.Max(peaks[index], value);
                 if (--remaining == 0) break;
             }
+
             // Compaction establishes idle CPU/I/O, but cannot recover memory or unavailable GPU readings.
             if (sample.CompactedProcesses == 0 || sort is not (ProcessSort.Cpu or ProcessSort.Io)) continue;
             var sampleTime = FileTime(sample);
@@ -39,6 +44,7 @@ internal sealed record ProcessGraphData(IReadOnlyList<CpuSample> Samples, double
                 if (values[index][sampleIndex] is null && identities[index].CreationTicks <= sampleTime)
                     values[index][sampleIndex] = 0;
         }
+
         // One scale for every row so sparkline heights compare across processes.
         var scale = Scale(peaks.Max(), sort);
         return [.. identities.Select((_, i) => new ProcessGraphData(visible, values[i], scale, sort))];
@@ -65,35 +71,41 @@ internal sealed record ProcessGraphData(IReadOnlyList<CpuSample> Samples, double
                 if (!indices.TryGetValue(ProcessRanking.GroupKey(process), out var index)) continue;
                 if (Value(process, sort, true) is not { } value)
                 {
-                    if (missingCounts is not null) missingCounts[index] = true;
+                    missingCounts?[index] = true;
                     continue;
                 }
+
                 values[index][sampleIndex] = sort == ProcessSort.Gpu
                     ? Math.Max(values[index][sampleIndex] ?? 0, value)
                     : (values[index][sampleIndex] ?? 0) + value;
             }
+
             var sampleTime = FileTime(sample);
             for (var index = 0; index < groups.Count; index++)
             {
                 if (missingCounts?[index] == true) values[index][sampleIndex] = null;
                 if (values[index][sampleIndex] is { } total) peaks[index] = Math.Max(peaks[index], total);
-                else if (sort is ProcessSort.Cpu or ProcessSort.Io && sample.CompactedProcesses > 0 && groups[index].CreationTicks <= sampleTime) values[index][sampleIndex] = 0;
+                else if (sort is ProcessSort.Cpu or ProcessSort.Io && sample.CompactedProcesses > 0 &&
+                         groups[index].CreationTicks <= sampleTime) values[index][sampleIndex] = 0;
             }
         }
+
         var scale = Scale(peaks.Max(), sort);
         return [.. groups.Select((_, i) => new ProcessGraphData(visible, values[i], scale, sort))];
     }
 
     // DateTimeOffset.ToFileTime makes a leap-second-aware system call on current Windows, and every refresh
     // revisits the same samples. Samples are immutable, so each is converted once.
-    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<CpuSample, object> FileTimes = new();
+    private static readonly ConditionalWeakTable<CpuSample, object> FileTimes = new();
 
-    private static long FileTime(CpuSample sample) =>
-        (long)FileTimes.GetValue(sample, static s => s.Timestamp.ToFileTime());
+    private static long FileTime(CpuSample sample)
+    {
+        return (long)FileTimes.GetValue(sample, static s => s.Timestamp.ToFileTime());
+    }
 
     private static double? Value(ProcessUsage process, ProcessSort sort, bool grouped)
     {
-        double? value = sort switch
+        var value = sort switch
         {
             ProcessSort.Gpu => process.GpuPercent,
             ProcessSort.Memory => grouped ? process.PrivateBytes : process.WorkingSetBytes,
@@ -105,7 +117,10 @@ internal sealed record ProcessGraphData(IReadOnlyList<CpuSample> Samples, double
         return value is { } measured && double.IsFinite(measured) ? Math.Max(0, measured) : null;
     }
 
-    private static double Scale(double peak, ProcessSort sort) => sort is ProcessSort.Cpu or ProcessSort.Gpu
-        ? Math.Clamp(Math.Ceiling(peak * 11) / 10, 0.1, 100)
-        : Math.Max(1, peak * 1.1);
+    private static double Scale(double peak, ProcessSort sort)
+    {
+        return sort is ProcessSort.Cpu or ProcessSort.Gpu
+            ? Math.Clamp(Math.Ceiling(peak * 11) / 10, 0.1, 100)
+            : Math.Max(1, peak * 1.1);
+    }
 }

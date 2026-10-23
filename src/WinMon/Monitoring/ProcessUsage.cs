@@ -7,11 +7,17 @@ namespace WinMon.Monitoring;
 /// <param name="CreationTicks">Identifies this specific lifetime of the process.</param>
 /// <param name="Name">Provides the executable name captured during the sample.</param>
 /// <param name="CpuPercent">Provides CPU consumed as a percentage of total machine capacity.</param>
-public sealed record ProcessUsage(int ProcessId, long CreationTicks, string Name, double CpuPercent,
-    ulong? WorkingSetBytes = null, double? IoBytesPerSecond = null)
+public sealed record ProcessUsage(
+    int ProcessId,
+    long CreationTicks,
+    string Name,
+    double CpuPercent,
+    ulong? WorkingSetBytes = null,
+    double? IoBytesPerSecond = null)
 {
     /// <summary>Observed parent PID; ancestry must also be checked against process creation times.</summary>
     public int ParentProcessId { get; init; }
+
     /// <summary>Number of threads at the latest observation, or null when unavailable.</summary>
     public long? ThreadCount { get; init; }
 
@@ -20,6 +26,7 @@ public sealed record ProcessUsage(int ProcessId, long CreationTicks, string Name
 
     /// <summary>Busiest GPU engine utilization for this process interval; null means unavailable.</summary>
     public double? GpuPercent { get; init; }
+
     public string GpuEngine { get; init; } = "";
     public string GpuId { get; init; } = "";
 

@@ -1,4 +1,6 @@
 using System.Text.Json;
+using WinMon.Monitoring;
+using WinMon.Shortcuts;
 
 namespace WinMon.Preferences;
 
@@ -43,8 +45,11 @@ public sealed class PreferenceStore
         cancellationToken.ThrowIfCancellationRequested();
         try
         {
-            await using FileStream stream = new(_settingsPath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
-            MonitorPreferences? preferences = await JsonSerializer.DeserializeAsync<MonitorPreferences>(stream, SerializerOptions, cancellationToken).ConfigureAwait(false);
+            await using FileStream stream = new(_settingsPath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096,
+                FileOptions.Asynchronous | FileOptions.SequentialScan);
+            var preferences = await JsonSerializer
+                .DeserializeAsync<MonitorPreferences>(stream, SerializerOptions, cancellationToken)
+                .ConfigureAwait(false);
             return Validate(preferences ?? new MonitorPreferences());
         }
         catch (FileNotFoundException)
@@ -77,20 +82,20 @@ public sealed class PreferenceStore
     {
         ArgumentNullException.ThrowIfNull(preferences);
         cancellationToken.ThrowIfCancellationRequested();
-        string? directory = Path.GetDirectoryName(_settingsPath);
+        var directory = Path.GetDirectoryName(_settingsPath);
         if (string.IsNullOrWhiteSpace(directory))
-        {
             throw new InvalidOperationException("The settings path must include a directory.");
-        }
 
         Directory.CreateDirectory(directory);
-        string temporaryPath = Path.Combine(directory, $".{Path.GetFileName(_settingsPath)}.{Guid.NewGuid():N}.tmp");
+        var temporaryPath = Path.Combine(directory, $".{Path.GetFileName(_settingsPath)}.{Guid.NewGuid():N}.tmp");
 
         try
         {
-            await using (FileStream stream = new(temporaryPath, FileMode.CreateNew, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous | FileOptions.WriteThrough))
+            await using (FileStream stream = new(temporaryPath, FileMode.CreateNew, FileAccess.Write, FileShare.None,
+                             4096, FileOptions.Asynchronous | FileOptions.WriteThrough))
             {
-                await JsonSerializer.SerializeAsync(stream, Validate(preferences), SerializerOptions, cancellationToken).ConfigureAwait(false);
+                await JsonSerializer.SerializeAsync(stream, Validate(preferences), SerializerOptions, cancellationToken)
+                    .ConfigureAwait(false);
                 await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
 
@@ -98,10 +103,7 @@ public sealed class PreferenceStore
         }
         finally
         {
-            if (File.Exists(temporaryPath))
-            {
-                File.Delete(temporaryPath);
-            }
+            if (File.Exists(temporaryPath)) File.Delete(temporaryPath);
         }
     }
 
@@ -123,13 +125,16 @@ public sealed class PreferenceStore
             ChartPalette = ChartPalettes.Normalize(preferences.ChartPalette),
             RetentionSeconds = Math.Clamp(preferences.RetentionSeconds, 600, 3600),
             VisibleMetrics = preferences.VisibleMetrics & 15,
-            TopProcessCount = TopCountChoices.IsSupported(preferences.TopProcessCount) ? preferences.TopProcessCount : 5,
-            TopServiceCount = TopCountChoices.IsSupported(preferences.TopServiceCount) ? preferences.TopServiceCount : 20,
-            ProcessSort = preferences is { SortByGpu: true, ProcessSort: Monitoring.ProcessSort.Cpu } ? Monitoring.ProcessSort.Gpu
-                : Enum.IsDefined(preferences.ProcessSort) ? preferences.ProcessSort : Monitoring.ProcessSort.Cpu,
+            TopProcessCount =
+            TopCountChoices.IsSupported(preferences.TopProcessCount) ? preferences.TopProcessCount : 5,
+            TopServiceCount = TopCountChoices.IsSupported(preferences.TopServiceCount)
+                ? preferences.TopServiceCount
+                : 20,
+            ProcessSort = preferences is { SortByGpu: true, ProcessSort: ProcessSort.Cpu } ? ProcessSort.Gpu
+            : Enum.IsDefined(preferences.ProcessSort) ? preferences.ProcessSort : ProcessSort.Cpu,
             SortByGpu = false,
-            PinnedProcesses = Monitoring.ProcessPins.Normalize(preferences.PinnedProcesses),
-            ShowShortcut = Shortcuts.HotkeyGesture.Normalize(preferences.ShowShortcut)
+            PinnedProcesses = ProcessPins.Normalize(preferences.PinnedProcesses),
+            ShowShortcut = HotkeyGesture.Normalize(preferences.ShowShortcut)
         };
     }
 
@@ -139,14 +144,23 @@ public sealed class PreferenceStore
         return value is [>= 'A' and <= 'Z', ':'] ? value : null;
     }
 
-    private static double ClampFinite(double value, double defaultValue, double minimum, double maximum) => double.IsFinite(value) ? Math.Clamp(value, minimum, maximum) : defaultValue;
-
-    private static double? ValidateCoordinate(double? value) => value is { } coordinate && double.IsFinite(coordinate) ? coordinate : null;
-
-    private static string NormalizeTheme(string? theme) => theme?.Trim().ToLowerInvariant() switch
+    private static double ClampFinite(double value, double defaultValue, double minimum, double maximum)
     {
-        "light" => "Light",
-        "system" => "System",
-        _ => "Dark"
-    };
+        return double.IsFinite(value) ? Math.Clamp(value, minimum, maximum) : defaultValue;
+    }
+
+    private static double? ValidateCoordinate(double? value)
+    {
+        return value is { } coordinate && double.IsFinite(coordinate) ? coordinate : null;
+    }
+
+    private static string NormalizeTheme(string? theme)
+    {
+        return theme?.Trim().ToLowerInvariant() switch
+        {
+            "light" => "Light",
+            "system" => "System",
+            _ => "Dark"
+        };
+    }
 }

@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using WinMon.Monitoring;
+
 // ReSharper disable ConvertConditionalTernaryExpressionToSwitchExpression
 // ReSharper disable ConvertIfStatementToSwitchStatement
 
@@ -19,7 +20,9 @@ public sealed class CpuGraph : FrameworkElement
     private double _end;
     private int _seconds = 120;
     private double _networkScale = 1_000_000;
+
     private double _selectionY = 0.5;
+
     // Every graph redraws each second. Reusing points, frozen pens and brushes, and shaped labels keeps
     // a redraw from allocating them again and from sending new resources to the render thread.
     private readonly List<Point> _segment = [];
@@ -31,7 +34,10 @@ public sealed class CpuGraph : FrameworkElement
     private static readonly Typeface LabelTypeface = new("Segoe UI");
 
     internal Rect PlotBounds => Plot();
-    internal bool SelectionInPlot => _selected is not null && _samples.Any(s => ReferenceEquals(s, _selected)) && Moment(_selected) >= _end - _seconds;
+
+    internal bool SelectionInPlot => _selected is not null && _samples.Any(s => ReferenceEquals(s, _selected)) &&
+                                     Moment(_selected) >= _end - _seconds;
+
     internal Point SelectionAnchor
     {
         get
@@ -68,7 +74,8 @@ public sealed class CpuGraph : FrameworkElement
     /// <param name="windowSeconds">Visible time range in seconds.</param>
     /// <param name="selection">Selected historical time, if any.</param>
     /// <param name="identity">Optional process identity for a sparkline.</param>
-    public void SetData(IReadOnlyList<CpuSample> history, int windowSeconds, CpuSample? selection, ProcessUsage? identity = null)
+    public void SetData(IReadOnlyList<CpuSample> history, int windowSeconds, CpuSample? selection,
+        ProcessUsage? identity = null)
     {
         ArgumentNullException.ThrowIfNull(history);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(windowSeconds);
@@ -76,8 +83,10 @@ public sealed class CpuGraph : FrameworkElement
         SetDataCore(history, windowSeconds, selection, identity, data);
     }
 
-    internal void SetProcessData(ProcessGraphData data, int windowSeconds, ProcessUsage identity) =>
+    internal void SetProcessData(ProcessGraphData data, int windowSeconds, ProcessUsage identity)
+    {
         SetDataCore(data.Samples, windowSeconds, null, identity, data);
+    }
 
     private void SetDataCore(IReadOnlyList<CpuSample> history, int windowSeconds, CpuSample? selection,
         ProcessUsage? identity, ProcessGraphData? data)
@@ -94,7 +103,8 @@ public sealed class CpuGraph : FrameworkElement
         InvalidateVisual();
     }
 
-    internal static double ProcessScaleMaximum(IReadOnlyList<CpuSample> history, int windowSeconds, ProcessUsage identity)
+    internal static double ProcessScaleMaximum(IReadOnlyList<CpuSample> history, int windowSeconds,
+        ProcessUsage identity)
     {
         return ProcessGraphData.Build(history, windowSeconds, [identity])[0].ScaleMaximum;
     }
@@ -117,22 +127,31 @@ public sealed class CpuGraph : FrameworkElement
             {
                 var y = plot.Top + plot.Height * i / 4;
                 drawingContext.DrawLine(CachedPen(line, 0.7), new Point(plot.Left, y), new Point(plot.Right, y));
-                Label(drawingContext, Strings.Format(Strings.PercentInteger, 100 - i * 25), new Point(0, Math.Max(0, y - 7)), muted);
+                Label(drawingContext, Strings.Format(Strings.PercentInteger, 100 - i * 25),
+                    new Point(0, Math.Max(0, y - 7)), muted);
             }
+
             for (var i = 0; i <= 4; i++)
             {
                 var x = plot.Left + plot.Width * i / 4;
                 drawingContext.DrawLine(CachedPen(line, 0.5), new Point(x, plot.Top), new Point(x, plot.Bottom));
-                var text = i == 0 ? Strings.Format(Strings.MinAgo, _seconds / 60d) : i == 4 ? Strings.Now : Ago(_seconds * (4 - i) / 4d);
+                var text = i == 0 ? Strings.Format(Strings.MinAgo, _seconds / 60d) :
+                    i == 4 ? Strings.Now : Ago(_seconds * (4 - i) / 4d);
                 Label(drawingContext, text, new Point(x, plot.Bottom + 5), muted, i == 0 ? 0 : i == 4 ? 1 : 0.5);
             }
         }
+
         var network = Resource("NetworkAccent", accent);
-        if ((ShowGrid || TileMetric == 3) && _process is null) _networkScale = NetworkScale(_samples.Where(s => Moment(s) >= _end - _seconds));
+        if ((ShowGrid || TileMetric == 3) && _process is null)
+            _networkScale = NetworkScale(_samples.Where(s => Moment(s) >= _end - _seconds));
         drawingContext.PushClip(new RectangleGeometry(plot));
         if (TileMetric is { } tileMetric)
         {
-            var key = tileMetric switch { 0 => "CpuAccent", 1 => "MemoryAccent", 2 => "DiskAccent", 3 => "NetworkAccent", 4 => "GpuAccent", _ => "SecondaryDiskAccent" };
+            var key = tileMetric switch
+            {
+                0 => "CpuAccent", 1 => "MemoryAccent", 2 => "DiskAccent", 3 => "NetworkAccent", 4 => "GpuAccent",
+                _ => "SecondaryDiskAccent"
+            };
             DrawSeries(drawingContext, plot, Resource(key, accent), tileMetric);
         }
         else if (_process is not null || !ShowGrid)
@@ -146,7 +165,8 @@ public sealed class CpuGraph : FrameworkElement
         }
         else
         {
-            var keys = new[] { "CpuAccent", "MemoryAccent", "DiskAccent", "NetworkAccent", "GpuAccent", "SecondaryDiskAccent" };
+            var keys = new[]
+                { "CpuAccent", "MemoryAccent", "DiskAccent", "NetworkAccent", "GpuAccent", "SecondaryDiskAccent" };
             // Paint every wash first so later series cannot tint an earlier trace.
             if (!SystemParameters.HighContrast)
                 for (var metric = 0; metric < keys.Length; metric++)
@@ -156,48 +176,68 @@ public sealed class CpuGraph : FrameworkElement
                 if ((VisibleMetrics & (1 << metric)) != 0)
                     DrawSeries(drawingContext, plot, Resource(keys[metric], accent), metric);
         }
-        if (_selected is not null && _samples.Any(s => ReferenceEquals(s, _selected)) && Moment(_selected) >= _end - _seconds)
+
+        if (_selected is not null && _samples.Any(s => ReferenceEquals(s, _selected)) &&
+            Moment(_selected) >= _end - _seconds)
         {
             var x = X(_selected, plot);
-            drawingContext.DrawLine(CachedPen(muted, 1, DashStyles.Dash), new Point(x, plot.Top), new Point(x, plot.Bottom));
+            drawingContext.DrawLine(CachedPen(muted, 1, DashStyles.Dash), new Point(x, plot.Top),
+                new Point(x, plot.Bottom));
             if (ShowGrid && _process is null)
                 for (var metric = 0; metric < 6; metric++)
                 {
                     if ((VisibleMetrics & (1 << metric)) == 0 || _selected.IsGap) continue;
-                    var value = metric == 3 ? NetworkBitsPerSecond(_selected.Resources) * 100 / _networkScale : MetricValue(_selected, metric);
+                    var value = metric == 3
+                        ? NetworkBitsPerSecond(_selected.Resources) * 100 / _networkScale
+                        : MetricValue(_selected, metric);
                     if (value is null) continue;
-                    var key = metric switch { 0 => "CpuAccent", 1 => "MemoryAccent", 2 => "DiskAccent", 3 => "NetworkAccent", 4 => "GpuAccent", _ => "SecondaryDiskAccent" };
+                    var key = metric switch
+                    {
+                        0 => "CpuAccent", 1 => "MemoryAccent", 2 => "DiskAccent", 3 => "NetworkAccent",
+                        4 => "GpuAccent", _ => "SecondaryDiskAccent"
+                    };
                     drawingContext.DrawEllipse(Resource("Raised", Brushes.Black), CachedPen(Resource(key, accent), 2),
                         new Point(x, plot.Bottom - Math.Clamp(value.Value, 0, 100) / 100 * plot.Height), 3.5, 3.5);
                 }
         }
+
         drawingContext.Pop();
-        if (ShowGrid && _process is null && _selected is not null && _samples.Any(s => ReferenceEquals(s, _selected)) && Moment(_selected) >= _end - _seconds)
+        if (ShowGrid && _process is null && _selected is not null && _samples.Any(s => ReferenceEquals(s, _selected)) &&
+            Moment(_selected) >= _end - _seconds)
         {
             // Clamp the timestamp separately so its full text remains inside the chart at both ends.
             var text = $"{_selected.Timestamp:HH:mm:ss}";
             var formatted = new FormattedText(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
                 LabelTypeface, 11, muted, VisualTreeHelper.GetDpi(this).PixelsPerDip);
-            var x = Math.Clamp(X(_selected, plot) - formatted.Width / 2, plot.Left, Math.Max(plot.Left, plot.Right - formatted.Width));
+            var x = Math.Clamp(X(_selected, plot) - formatted.Width / 2, plot.Left,
+                Math.Max(plot.Left, plot.Right - formatted.Width));
             drawingContext.DrawRectangle(Resource("Raised", Brushes.Black), CachedPen(line, 1),
                 new Rect(x - 2, plot.Bottom + 3, formatted.Width + 4, formatted.Height + 2));
             drawingContext.DrawText(formatted, new Point(x, plot.Bottom + 4));
         }
+
         // Link utilization is nearly always ~0%, so the network trace uses its own throughput scale.
         if (ShowGrid && _process is null && (VisibleMetrics & 8) != 0)
-            Label(drawingContext, Strings.Format(Strings.NetworkScale0, RateText.Format(_networkScale)), new Point(plot.Right - 4, plot.Top + 2), network, 1);
+            Label(drawingContext, Strings.Format(Strings.NetworkScale0, RateText.Format(_networkScale)),
+                new Point(plot.Right - 4, plot.Top + 2), network, 1);
     }
 
-    private static string Ago(double secondsAgo) => secondsAgo < 120 ? Strings.Format(Strings.S, secondsAgo) : Strings.Format(Strings.Min, secondsAgo / 60);
+    private static string Ago(double secondsAgo)
+    {
+        return secondsAgo < 120 ? Strings.Format(Strings.S, secondsAgo) : Strings.Format(Strings.Min, secondsAgo / 60);
+    }
 
     /// <summary>Busier-direction network throughput in bits per second.</summary>
-    internal static double? NetworkBitsPerSecond(ResourceSample resources) =>
-        resources is { ReceiveBytesPerSecond: { } rx, SendBytesPerSecond: { } tx } ? Math.Max(rx, tx) * 8 : null;
+    internal static double? NetworkBitsPerSecond(ResourceSample resources)
+    {
+        return resources is { ReceiveBytesPerSecond: { } rx, SendBytesPerSecond: { } tx } ? Math.Max(rx, tx) * 8 : null;
+    }
 
     /// <summary>Round the visible network peak up to a 1-2-5 step, at least 1 Mbps so idle traffic stays low.</summary>
     internal static double NetworkScale(IEnumerable<CpuSample> visible)
     {
-        var peak = visible.Where(s => !s.IsGap).Select(s => NetworkBitsPerSecond(s.Resources) ?? 0).DefaultIfEmpty().Max();
+        var peak = visible.Where(s => !s.IsGap).Select(s => NetworkBitsPerSecond(s.Resources) ?? 0).DefaultIfEmpty()
+            .Max();
         var target = Math.Max(peak, 1_000_000);
         var magnitude = Math.Pow(10, Math.Floor(Math.Log10(target)));
         var step = target / magnitude;
@@ -206,59 +246,72 @@ public sealed class CpuGraph : FrameworkElement
 
     private void DrawSeries(DrawingContext drawingContext, Rect plot, Brush accent, int metric, bool fillOnly = false)
     {
-        var segment = _segment;
-        segment.Clear();
+        _segment.Clear();
         double? previous = null;
         ResourceSample? previousSource = null;
         for (var sampleIndex = 0; sampleIndex < _samples.Count; sampleIndex++)
         {
             var sample = _samples[sampleIndex];
             if (Moment(sample) < _end - _seconds) continue;
-            double? value = _process is not null ? _processValues![sampleIndex]
+            var value = _process is not null ? _processValues![sampleIndex]
                 : metric == 3 ? NetworkBitsPerSecond(sample.Resources) * 100 / _networkScale
                 : MetricValue(sample, metric);
             if (sample.IsGap || value is null || (previous is not null && Moment(sample) - previous.Value > 2.5) ||
                 (previousSource is not null && !SameSource(previousSource, sample.Resources, metric)))
             {
-                DrawSegment(drawingContext, segment, plot.Bottom, accent, ShowGrid, metric, fillOnly);
-                segment.Clear();
+                DrawSegment(drawingContext, _segment, plot.Bottom, accent, ShowGrid, metric, fillOnly);
+                _segment.Clear();
             }
+
             if (value is not null && !sample.IsGap)
-                segment.Add(new Point(X(sample, plot), plot.Bottom - Math.Clamp(value.Value, 0, ScaleMaximum) / ScaleMaximum * plot.Height));
+                _segment.Add(new Point(X(sample, plot),
+                    plot.Bottom - Math.Clamp(value.Value, 0, ScaleMaximum) / ScaleMaximum * plot.Height));
             previous = Moment(sample);
             previousSource = sample.Resources;
         }
-        DrawSegment(drawingContext, segment, plot.Bottom, accent, ShowGrid, metric, fillOnly);
-        segment.Clear();
+
+        DrawSegment(drawingContext, _segment, plot.Bottom, accent, ShowGrid, metric, fillOnly);
+        _segment.Clear();
     }
 
     /// <summary>Whether two samples measured the same network link, volume or adapter, so their trace may join.</summary>
-    private static bool SameSource(ResourceSample previous, ResourceSample current, int metric) => metric switch
+    private static bool SameSource(ResourceSample previous, ResourceSample current, int metric)
     {
-        2 => previous.DiskName == current.DiskName,
-        3 => previous.NetworkId == current.NetworkId && previous.LinkBitsPerSecond == current.LinkBitsPerSecond,
-        4 => previous.GpuId == current.GpuId,
-        5 => previous.SecondaryDiskName == current.SecondaryDiskName,
-        _ => true
-    };
+        return metric switch
+        {
+            2 => previous.DiskName == current.DiskName,
+            3 => previous.NetworkId == current.NetworkId && previous.LinkBitsPerSecond == current.LinkBitsPerSecond,
+            4 => previous.GpuId == current.GpuId,
+            5 => previous.SecondaryDiskName == current.SecondaryDiskName,
+            _ => true
+        };
+    }
 
-    internal static double? MetricValue(CpuSample sample, int metric) => metric switch
+    internal static double? MetricValue(CpuSample sample, int metric)
     {
-        0 => sample.TotalCpuPercent,
-        1 => sample.Resources.MemoryPercent,
-        2 => sample.Resources.DiskActivePercent,
-        3 => sample.Resources.NetworkPercent,
-        4 => sample.Resources.GpuPercent,
-        5 => sample.Resources.SecondaryDiskActivePercent,
-        _ => null
-    };
+        return metric switch
+        {
+            0 => sample.TotalCpuPercent,
+            1 => sample.Resources.MemoryPercent,
+            2 => sample.Resources.DiskActivePercent,
+            3 => sample.Resources.NetworkPercent,
+            4 => sample.Resources.GpuPercent,
+            5 => sample.Resources.SecondaryDiskActivePercent,
+            _ => null
+        };
+    }
 
     /// <inheritdoc/>
     protected override void OnMouseMove(MouseEventArgs e)
     {
         base.OnMouseMove(e);
         if (!ShowGrid) return;
-        if (_selected is not null) { ToolTip = null; return; }
+        if (_selected is not null)
+        {
+            ToolTip = null;
+            return;
+        }
+
         var sample = Nearest(e.GetPosition(this).X);
         ToolTip = sample is null ? Strings.NoSampleInThisInterval : DescribeSample(sample);
     }
@@ -268,8 +321,10 @@ public sealed class CpuGraph : FrameworkElement
         if (ShowGrid)
         {
             var sample = IsMouseOver && _selected is null ? Nearest(Mouse.GetPosition(this).X) : null;
-            ToolTip = !IsMouseOver || _selected is not null ? null : sample is null ? Strings.NoSampleInThisInterval : DescribeSample(sample);
+            ToolTip = !IsMouseOver || _selected is not null ? null :
+                sample is null ? Strings.NoSampleInThisInterval : DescribeSample(sample);
         }
+
         _labels.Clear();
         InvalidateVisual();
     }
@@ -305,10 +360,18 @@ public sealed class CpuGraph : FrameworkElement
     {
         base.OnKeyDown(e);
         if (!ShowGrid || _samples.Count == 0) return;
-        if (e.Key == Key.End) { LiveRequested?.Invoke(this, EventArgs.Empty); e.Handled = true; return; }
+        if (e.Key == Key.End)
+        {
+            LiveRequested?.Invoke(this, EventArgs.Empty);
+            e.Handled = true;
+            return;
+        }
+
         if (e.Key is not (Key.Left or Key.Right or Key.Home)) return;
         var visible = _samples.Where(s => Moment(s) >= _end - _seconds).ToArray();
-        var index = _selected is null ? visible.Length - 1 : Array.FindIndex(visible, s => ReferenceEquals(s, _selected));
+        var index = _selected is null
+            ? visible.Length - 1
+            : Array.FindIndex(visible, s => ReferenceEquals(s, _selected));
         index = e.Key == Key.Home ? 0 : Math.Clamp(index + (e.Key == Key.Left ? -1 : 1), 0, visible.Length - 1);
         SampleSelected?.Invoke(this, visible[index]);
         e.Handled = true;
@@ -324,13 +387,30 @@ public sealed class CpuGraph : FrameworkElement
         return nearest is not null && Math.Abs(Moment(nearest) - target) <= 2 ? nearest : null;
     }
 
-    private Rect Plot() => ShowGrid ? new Rect(39, 8, Math.Max(0, ActualWidth - 41), Math.Max(0, ActualHeight - 33)) : new Rect(0, 0, ActualWidth, ActualHeight);
-    private double X(CpuSample sample, Rect plot) => plot.Right - (_end - Moment(sample)) / _seconds * plot.Width;
+    private Rect Plot()
+    {
+        return ShowGrid
+            ? new Rect(39, 8, Math.Max(0, ActualWidth - 41), Math.Max(0, ActualHeight - 33))
+            : new Rect(0, 0, ActualWidth, ActualHeight);
+    }
+
+    private double X(CpuSample sample, Rect plot)
+    {
+        return plot.Right - (_end - Moment(sample)) / _seconds * plot.Width;
+    }
+
     /// <summary>Map an observation to monotonic seconds for plotting; support wall-time-only imported fixtures.</summary>
     /// <param name="sample">Observation to position on the timeline.</param>
     /// <returns>Seconds on the observation clock.</returns>
-    internal static double Moment(CpuSample sample) => ProcessRanking.Moment(sample);
-    private Brush Resource(string key, Brush fallback) => TryFindResource(key) as Brush ?? fallback;
+    internal static double Moment(CpuSample sample)
+    {
+        return ProcessRanking.Moment(sample);
+    }
+
+    private Brush Resource(string key, Brush fallback)
+    {
+        return TryFindResource(key) as Brush ?? fallback;
+    }
 
     /// <summary>Draw a label at the requested anchor.</summary>
     /// <param name="dc">Drawing context for the label.</param>
@@ -347,9 +427,11 @@ public sealed class CpuGraph : FrameworkElement
         if (!_labels.TryGetValue((text, brush, pixelsPerDip), out var formatted))
         {
             if (_labels.Count >= 64) _labels.Clear();
-            formatted = new FormattedText(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, LabelTypeface, 11, brush, pixelsPerDip);
+            formatted = new FormattedText(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, LabelTypeface,
+                11, brush, pixelsPerDip);
             _labels[(text, brush, pixelsPerDip)] = formatted;
         }
+
         dc.DrawText(formatted, origin with { X = origin.X - formatted.Width * align });
     }
 
@@ -380,19 +462,39 @@ public sealed class CpuGraph : FrameworkElement
         var r = sample.Resources;
         var diskRate = r.DiskBytesPerSecond is { } disk ? Strings.Format(Strings.DiskRateSuffix, disk / 1_000_000) : "";
         var secondDisk = r.SecondaryDiskName.Length > 0
-            ? Strings.Format(Strings.SecondaryDiskHistoryLine, r.SecondaryDiskName, Percent(r.SecondaryDiskActivePercent), r.SecondaryDiskBytesPerSecond is { } secondRate ? Strings.Format(Strings.DiskRateSuffix, secondRate / 1_000_000) : "") : "";
+            ? Strings.Format(Strings.SecondaryDiskHistoryLine, r.SecondaryDiskName,
+                Percent(r.SecondaryDiskActivePercent),
+                r.SecondaryDiskBytesPerSecond is { } secondRate
+                    ? Strings.Format(Strings.DiskRateSuffix, secondRate / 1_000_000)
+                    : "")
+            : "";
         var networkRate = r is { ReceiveBytesPerSecond: { } rx, SendBytesPerSecond: { } tx }
-            ? Strings.Format(Strings.RxTxMbps, rx * 8 / 1_000_000, tx * 8 / 1_000_000) : "";
+            ? Strings.Format(Strings.RxTxMbps, rx * 8 / 1_000_000, tx * 8 / 1_000_000)
+            : "";
         var network = NetworkBitsPerSecond(r) is { } bits ? RateText.Format(bits) : Strings.UnavailableLowercase;
-        return Strings.Format(Strings.HistoricalIntervalCPUMemoryDiskNetworkOfLinkGPUClick, sample.Timestamp, Percent(sample.TotalCpuPercent), Percent(r.MemoryPercent), r.DiskName, Percent(r.DiskActivePercent), diskRate, secondDisk, r.NetworkName, network, Percent(r.NetworkPercent), networkRate, Percent(r.GpuPercent), r.GpuEngine);
+        return Strings.Format(Strings.HistoricalIntervalCPUMemoryDiskNetworkOfLinkGPUClick, sample.Timestamp,
+            Percent(sample.TotalCpuPercent), Percent(r.MemoryPercent), r.DiskName, Percent(r.DiskActivePercent),
+            diskRate, secondDisk, r.NetworkName, network, Percent(r.NetworkPercent), networkRate, Percent(r.GpuPercent),
+            r.GpuEngine);
 
-        static string Percent(double? value) => value is { } number ? Strings.Format(Strings.PercentOneDecimal, number) : Strings.UnavailableLowercase;
+        static string Percent(double? value)
+        {
+            return value is { } number
+                ? Strings.Format(Strings.PercentOneDecimal, number)
+                : Strings.UnavailableLowercase;
+        }
     }
 
-    private void DrawSegment(DrawingContext dc, List<Point> points, double baseline, Brush accent, bool overlay, int metric, bool fillOnly)
+    private void DrawSegment(DrawingContext dc, List<Point> points, double baseline, Brush accent, bool overlay,
+        int metric, bool fillOnly)
     {
         if (points.Count == 0) return;
-        if (points.Count == 1) { if (!fillOnly) dc.DrawEllipse(accent, null, points[0], 1.5, 1.5); return; }
+        if (points.Count == 1)
+        {
+            if (!fillOnly) dc.DrawEllipse(accent, null, points[0], 1.5, 1.5);
+            return;
+        }
+
         // Sparklines carry about two samples per pixel; averaging into 2px bins keeps a readable trace instead of a solid block.
         if (!overlay) points = Bin(points, 2, _binned);
         // Faint washes add depth while keeping the grid and crossing traces readable.
@@ -405,9 +507,11 @@ public sealed class CpuGraph : FrameworkElement
                 context.PolyLineTo(points, true, false);
                 context.LineTo(new Point(points[^1].X, baseline), true, false);
             }
+
             area.Freeze();
             dc.DrawGeometry(CachedFill(accent, TileMetric is not null ? 0.23 : overlay ? 0.08 : 0.14), null, area);
         }
+
         if (fillOnly) return;
         var trace = new StreamGeometry();
         // PolyLineTo copies the points, so one buffer serves every segment.
@@ -418,10 +522,15 @@ public sealed class CpuGraph : FrameworkElement
             context.BeginFigure(points[0], false, false);
             context.PolyLineTo(new ArraySegment<Point>(_trace, 0, points.Count - 1), true, false);
         }
+
         trace.Freeze();
         var dashStyle = overlay && metric == 5 ? DashStyles.Dash : null;
         if ((SystemParameters.HighContrast || UseSeriesPatterns) && (overlay || TileMetric is not null))
-            dashStyle = metric switch { 1 => DashStyles.Dash, 2 => DashStyles.Dot, 3 => DashStyles.DashDot, 4 => DashStyles.DashDotDot, 5 => LongDash, _ => DashStyles.Solid };
+            dashStyle = metric switch
+            {
+                1 => DashStyles.Dash, 2 => DashStyles.Dot, 3 => DashStyles.DashDot, 4 => DashStyles.DashDotDot,
+                5 => LongDash, _ => DashStyles.Solid
+            };
         dc.DrawGeometry(null, CachedPen(accent, overlay ? 1.7 : 1.2, dashStyle), trace);
     }
 
@@ -441,9 +550,15 @@ public sealed class CpuGraph : FrameworkElement
             var bin = Math.Floor(points[i].X / width);
             double x = 0, y = 0;
             var count = 0;
-            for (; i < points.Count && Math.Abs(Math.Floor(points[i].X / width) - bin) < 0.001; i++, count++) { x += points[i].X; y += points[i].Y; }
+            for (; i < points.Count && Math.Abs(Math.Floor(points[i].X / width) - bin) < 0.001; i++, count++)
+            {
+                x += points[i].X;
+                y += points[i].Y;
+            }
+
             binned.Add(new Point(x / count, y / count));
         }
+
         return binned;
     }
 }

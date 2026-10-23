@@ -1,18 +1,21 @@
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
+
 #pragma warning disable IDE0051
 
 namespace WinMon.Shortcuts;
 
 // ShellLink implements these interfaces through COM QueryInterface, outside the managed type hierarchy.
 // ReSharper disable SuspiciousTypeConversion.Global
-
 /// <summary>Clears the Explorer hotkey left by older WinMon versions, preserving the Start menu entry.</summary>
 internal static class StartMenuShortcut
 {
-    public static void ClearHotkey() => ClearHotkey(Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.Programs), "WinMon.lnk"));
+    public static void ClearHotkey()
+    {
+        ClearHotkey(Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.Programs), "WinMon.lnk"));
+    }
 
     internal static void ClearHotkey(string shortcutPath)
     {
@@ -26,7 +29,10 @@ internal static class StartMenuShortcut
             link.SetHotkey(0);
             ((IPersistFile)link).Save(shortcutPath, true);
         }
-        finally { Marshal.FinalReleaseComObject(link); }
+        finally
+        {
+            Marshal.FinalReleaseComObject(link);
+        }
     }
 
     [ComImport]
@@ -40,20 +46,25 @@ internal static class StartMenuShortcut
     [Guid("000214F9-0000-0000-C000-000000000046")]
     private interface IShellLinkW
     {
-        void GetPath([Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder file, int maxPath, IntPtr findData, uint flags);
+        void GetPath([Out] [MarshalAs(UnmanagedType.LPWStr)] StringBuilder file, int maxPath, IntPtr findData,
+            uint flags);
+
         void GetIDList(out IntPtr idList);
         void SetIDList(IntPtr idList);
-        void GetDescription([Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder name, int maxName);
+        void GetDescription([Out] [MarshalAs(UnmanagedType.LPWStr)] StringBuilder name, int maxName);
         void SetDescription([MarshalAs(UnmanagedType.LPWStr)] string name);
-        void GetWorkingDirectory([Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder directory, int maxPath);
+        void GetWorkingDirectory([Out] [MarshalAs(UnmanagedType.LPWStr)] StringBuilder directory, int maxPath);
         void SetWorkingDirectory([MarshalAs(UnmanagedType.LPWStr)] string directory);
-        void GetArguments([Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder arguments, int maxPath);
+        void GetArguments([Out] [MarshalAs(UnmanagedType.LPWStr)] StringBuilder arguments, int maxPath);
         void SetArguments([MarshalAs(UnmanagedType.LPWStr)] string arguments);
         void GetHotkey(out ushort hotkey);
         void SetHotkey(ushort hotkey);
         void GetShowCmd(out int showCommand);
         void SetShowCmd(int showCommand);
-        void GetIconLocation([Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder iconPath, int maxIconPath, out int iconIndex);
+
+        void GetIconLocation([Out] [MarshalAs(UnmanagedType.LPWStr)] StringBuilder iconPath, int maxIconPath,
+            out int iconIndex);
+
         void SetIconLocation([MarshalAs(UnmanagedType.LPWStr)] string iconPath, int iconIndex);
         void SetRelativePath([MarshalAs(UnmanagedType.LPWStr)] string relativePath, uint reserved);
         void Resolve(IntPtr window, uint flags);

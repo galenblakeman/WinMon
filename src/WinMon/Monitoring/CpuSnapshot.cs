@@ -6,4 +6,9 @@ namespace WinMon.Monitoring;
 /// <param name="SystemTimes">Machine CPU timing counters.</param>
 /// <param name="Processes">Readable process timing counters.</param>
 /// <param name="UnavailableProcesses">Processes unavailable or omitted by the collection limit.</param>
-internal sealed record CpuSnapshot(DateTimeOffset Timestamp, long MonotonicTimestamp, SystemCpuTimes SystemTimes, IReadOnlyList<ProcessCpuTimes> Processes, int UnavailableProcesses);
+internal sealed record CpuSnapshot(
+    DateTimeOffset Timestamp,
+    long MonotonicTimestamp,
+    SystemCpuTimes SystemTimes,
+    IReadOnlyList<ProcessCpuTimes> Processes,
+    int UnavailableProcesses);

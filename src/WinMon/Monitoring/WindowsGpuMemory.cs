@@ -23,16 +23,21 @@ internal sealed class WindowsGpuMemory : IDisposable
                 _capacities = ReadCapacities();
                 _capacitiesRead = now;
             }
+
             if (!_capacities.TryGetValue(sample.GpuId, out var capacity) || capacity == 0) return sample;
             if (_query is null)
             {
                 Check(PdhOpenQueryW(null, UIntPtr.Zero, out var query));
                 _query = query;
-                Check(PdhAddEnglishCounterW(query, @"\GPU Adapter Memory(*)\Dedicated Usage", UIntPtr.Zero, out _counter));
+                Check(PdhAddEnglishCounterW(query, @"\GPU Adapter Memory(*)\Dedicated Usage", UIntPtr.Zero,
+                    out _counter));
             }
+
             Check(PdhCollectQueryData(_query));
             var used = SelectUsage(WindowsGpuSampler.ReadCounters(_counter), sample.GpuId);
-            return used is { } bytes ? sample with { GpuMemoryUsedBytes = bytes, GpuMemoryTotalBytes = capacity } : sample;
+            return used is { } bytes
+                ? sample with { GpuMemoryUsedBytes = bytes, GpuMemoryTotalBytes = capacity }
+                : sample;
         }
         catch (Exception ex) when (ex is Win32Exception or COMException)
         {
@@ -54,6 +59,7 @@ internal sealed class WindowsGpuMemory : IDisposable
                 counter.Value < 0 || counter.Value >= ulong.MaxValue) return null;
             usage = (ulong)counter.Value;
         }
+
         return usage;
     }
 
@@ -66,7 +72,7 @@ internal sealed class WindowsGpuMemory : IDisposable
         {
             // IDXGIFactory1::EnumAdapters1 follows IUnknown, IDXGIObject and IDXGIFactory (slot 12).
             var enumerate = Method<EnumAdapters>(factory, 12);
-            for (uint index = 0; ; index++)
+            for (uint index = 0;; index++)
             {
                 var status = enumerate(factory, index, out var adapter);
                 if (status == unchecked((int)0x887A0002)) break; // DXGI_ERROR_NOT_FOUND
@@ -77,20 +83,32 @@ internal sealed class WindowsGpuMemory : IDisposable
                     Marshal.ThrowExceptionForHR(Method<GetDesc>(adapter, 10)(adapter, out var description));
                     if ((description.Flags & 2) != 0) continue; // Software adapter.
                     // DXGI describes one adapter. Do not reuse its capacity for linked physical GPUs.
-                    result[$"0x{description.LuidHigh:x8}_0x{description.LuidLow:x8}/0"] = description.DedicatedVideoMemory.ToUInt64();
+                    result[$"0x{description.LuidHigh:x8}_0x{description.LuidLow:x8}/0"] =
+                        description.DedicatedVideoMemory.ToUInt64();
                 }
-                finally { Marshal.Release(adapter); }
+                finally
+                {
+                    Marshal.Release(adapter);
+                }
             }
         }
-        finally { Marshal.Release(factory); }
+        finally
+        {
+            Marshal.Release(factory);
+        }
+
         return result;
     }
 
-    private static T Method<T>(IntPtr instance, int slot) where T : Delegate =>
-        Marshal.GetDelegateForFunctionPointer<T>(Marshal.ReadIntPtr(Marshal.ReadIntPtr(instance), slot * IntPtr.Size));
+    private static T Method<T>(IntPtr instance, int slot) where T : Delegate
+    {
+        return Marshal.GetDelegateForFunctionPointer<T>(Marshal.ReadIntPtr(Marshal.ReadIntPtr(instance),
+            slot * IntPtr.Size));
+    }
 
     [UnmanagedFunctionPointer(CallingConvention.StdCall)]
     private delegate int EnumAdapters(IntPtr factory, uint index, out IntPtr adapter);
+
     [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
     private delegate int GetDesc(IntPtr adapter, out AdapterDescription description);
 
@@ -98,7 +116,9 @@ internal sealed class WindowsGpuMemory : IDisposable
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     private struct AdapterDescription
     {
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)] public string Description;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
+        public string Description;
+
         public uint VendorId, DeviceId, SubSysId, Revision;
         public UIntPtr DedicatedVideoMemory, DedicatedSystemMemory, SharedSystemMemory;
         public uint LuidLow, LuidHigh, Flags;
@@ -116,19 +136,29 @@ internal sealed class WindowsGpuMemory : IDisposable
         _counter = IntPtr.Zero;
     }
 
+    // Created by the P/Invoke marshaller.
+    // ReSharper disable once ClassNeverInstantiated.Local
     private sealed class SafeQuery() : SafeHandleZeroOrMinusOneIsInvalid(true)
     {
-        protected override bool ReleaseHandle() => PdhCloseQuery(handle) == 0;
+        protected override bool ReleaseHandle()
+        {
+            return PdhCloseQuery(handle) == 0;
+        }
     }
 
     [DllImport("dxgi.dll", ExactSpelling = true)]
     private static extern int CreateDXGIFactory1(ref Guid iid, out IntPtr factory);
+
     [DllImport("pdh.dll", CharSet = CharSet.Unicode, ExactSpelling = true)]
     private static extern uint PdhOpenQueryW(string? source, UIntPtr userData, out SafeQuery query);
+
     [DllImport("pdh.dll", CharSet = CharSet.Unicode, ExactSpelling = true)]
-    private static extern uint PdhAddEnglishCounterW(SafeQuery query, string path, UIntPtr userData, out IntPtr counter);
+    private static extern uint
+        PdhAddEnglishCounterW(SafeQuery query, string path, UIntPtr userData, out IntPtr counter);
+
     [DllImport("pdh.dll", ExactSpelling = true)]
     private static extern uint PdhCollectQueryData(SafeQuery query);
+
     [DllImport("pdh.dll", ExactSpelling = true)]
     private static extern uint PdhCloseQuery(IntPtr query);
 }

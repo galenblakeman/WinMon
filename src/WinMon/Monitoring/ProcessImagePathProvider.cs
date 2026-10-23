@@ -1,5 +1,8 @@
-using Microsoft.Win32.SafeHandles;
 using System.Runtime.InteropServices;
+using Microsoft.Win32.SafeHandles;
+
+// ReSharper disable StringLiteralTypo
+// ReSharper disable CommentTypo
 
 namespace WinMon.Monitoring;
 
@@ -40,9 +43,11 @@ internal sealed class ProcessImagePathProvider
                     if (candidate.Length > 0) _nextPending[key] = candidate;
                 }
             }
+
             _nextPaths[key] = path;
             processes[i] = process with { ImagePath = path };
         }
+
         (_paths, _nextPaths) = (_nextPaths, _paths);
         (_pending, _nextPending) = (_nextPending, _pending);
     }
@@ -50,9 +55,12 @@ internal sealed class ProcessImagePathProvider
     private string Read(int processId, long created)
     {
         using var handle = NativeMethods.OpenProcess(0x1000 /* PROCESS_QUERY_LIMITED_INFORMATION */, false, processId);
-        if (handle.IsInvalid || !NativeMethods.GetProcessTimes(handle, out var actual, out _, out _, out _) || actual != created) return "";
+        if (handle.IsInvalid || !NativeMethods.GetProcessTimes(handle, out var actual, out _, out _, out _) ||
+            actual != created) return "";
         var length = _pathBuffer.Length;
-        return NativeMethods.QueryFullProcessImageNameW(handle, 0, _pathBuffer, ref length) ? new string(_pathBuffer, 0, length) : "";
+        return NativeMethods.QueryFullProcessImageNameW(handle, 0, _pathBuffer, ref length)
+            ? new string(_pathBuffer, 0, length)
+            : "";
     }
 
     internal string ReadByProcessId(int processId)
@@ -63,14 +71,15 @@ internal sealed class ProcessImagePathProvider
             // also used by System Informer (phlib/nativeprocess.c). It needs no process handle.
             // Use a bounded UNICODE_STRING buffer; unsupported classes and all failed queries
             // simply leave the executable path unavailable.
-            var buffer = _nativeBuffer ??= GC.AllocateArray<char>(32767, pinned: true);
+            var buffer = _nativeBuffer ??= GC.AllocateArray<char>(32767, true);
             var address = Marshal.UnsafeAddrOfPinnedArrayElement(buffer, 0);
             var info = new ProcessIdInformation
             {
                 ProcessId = processId,
                 ImageName = new UnicodeString { MaximumLength = checked((ushort)(buffer.Length * 2)), Buffer = address }
             };
-            var status = NativeMethods.NtQuerySystemInformation(88, ref info, Marshal.SizeOf<ProcessIdInformation>(), out _);
+            var status =
+                NativeMethods.NtQuerySystemInformation(88, ref info, Marshal.SizeOf<ProcessIdInformation>(), out _);
             if (status != 0 || info.ImageName.Buffer != address || info.ImageName.Length == 0 ||
                 info.ImageName.Length > buffer.Length * 2 || info.ImageName.Length % 2 != 0) return "";
             var nativePath = new string(buffer, 0, info.ImageName.Length / 2);
@@ -92,8 +101,10 @@ internal sealed class ProcessImagePathProvider
         if (path.StartsWith(@"\??\", StringComparison.OrdinalIgnoreCase))
         {
             var dosPath = path[4..];
-            if (dosPath.Length >= 3 && char.IsAsciiLetter(dosPath[0]) && dosPath[1] == ':' && dosPath[2] == '\\') return dosPath;
+            if (dosPath.Length >= 3 && char.IsAsciiLetter(dosPath[0]) && dosPath[1] == ':' && dosPath[2] == '\\')
+                return dosPath;
         }
+
         if (!path.StartsWith(@"\Device\", StringComparison.OrdinalIgnoreCase)) return "";
         for (var drive = 'A'; drive <= 'Z'; drive++)
         {
@@ -102,6 +113,7 @@ internal sealed class ProcessImagePathProvider
             if (!string.IsNullOrEmpty(target) && path.StartsWith(target + "\\", StringComparison.OrdinalIgnoreCase))
                 return name + path[target.Length..];
         }
+
         return "";
     }
 
@@ -123,18 +135,22 @@ internal sealed class ProcessImagePathProvider
     private static class NativeMethods
     {
         [DllImport("kernel32.dll", SetLastError = true)]
-        internal static extern SafeProcessHandle OpenProcess(uint access, [MarshalAs(UnmanagedType.Bool)] bool inherit, int processId);
+        internal static extern SafeProcessHandle OpenProcess(uint access, [MarshalAs(UnmanagedType.Bool)] bool inherit,
+            int processId);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool GetProcessTimes(SafeProcessHandle process, out long created, out long exited, out long kernel, out long user);
+        internal static extern bool GetProcessTimes(SafeProcessHandle process, out long created, out long exited,
+            out long kernel, out long user);
 
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool QueryFullProcessImageNameW(SafeProcessHandle process, uint flags, [Out] char[] path, ref int size);
+        internal static extern bool QueryFullProcessImageNameW(SafeProcessHandle process, uint flags, [Out] char[] path,
+            ref int size);
 
         [DllImport("ntdll.dll")]
-        internal static extern uint NtQuerySystemInformation(int informationClass, ref ProcessIdInformation information, int length, out int returnLength);
+        internal static extern uint NtQuerySystemInformation(int informationClass, ref ProcessIdInformation information,
+            int length, out int returnLength);
 
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         internal static extern uint QueryDosDeviceW(string deviceName, [Out] char[] targetPath, int length);

@@ -1,5 +1,7 @@
 using System.Runtime.InteropServices;
 
+// ReSharper disable StringLiteralTypo
+
 namespace WinMon.Monitoring;
 
 /// <summary>Windows-reported current clock, averaged across logical processors.</summary>
@@ -27,6 +29,7 @@ internal sealed class WindowsCpuClock
             if (processor.CurrentMhz == 0) return null;
             total += processor.CurrentMhz;
         }
+
         return total / processors.Length;
     }
 

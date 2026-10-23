@@ -8,8 +8,9 @@ internal sealed record ServiceRanking(
 {
     internal static ServiceRanking Build(IReadOnlyList<ServiceFrame> history, bool workers)
     {
-        if (history.Count == 0) return new ServiceRanking(new Dictionary<string, ServiceMetrics>(),
-            new Dictionary<(int, long), ServiceMetrics>(), 0);
+        if (history.Count == 0)
+            return new ServiceRanking(new Dictionary<string, ServiceMetrics>(),
+                new Dictionary<(int, long), ServiceMetrics>(), 0);
         // Missing service discovery breaks the service window even if CPU collection continued.
         var samples = history.Select(f => f.Available ? f.Sample : f.Sample with { IsGap = true }).ToArray();
         var first = ProcessRanking.WindowStart(samples);
@@ -50,6 +51,7 @@ internal sealed record ServiceRanking(
                 }
             }
         }
+
         var latest = history[^1];
         // Add, like ToDictionary: a duplicate key is an error, not a silent choice.
         var groupMetrics = new Dictionary<string, ServiceMetrics>(latest.Groups.Count);
@@ -57,23 +59,36 @@ internal sealed record ServiceRanking(
         for (var j = 0; j < latest.Groups.Count; j++)
         {
             var group = latest.Groups[j];
-            groupMetrics.Add(group.Key, groups.GetValueOrDefault(group.Key).Average(count, latest.Index.Metrics(j, workers).PrivateBytes));
+            groupMetrics.Add(group.Key,
+                groups.GetValueOrDefault(group.Key).Average(count, latest.Index.Metrics(j, workers).PrivateBytes));
             foreach (var process in group.Processes)
             {
                 var key = (process.ProcessId, process.CreationTicks);
                 processMetrics.Add(key, processes.GetValueOrDefault(key).Average(count, process.PrivateBytes));
             }
         }
+
         return new ServiceRanking(groupMetrics, processMetrics, count);
     }
 
     private readonly record struct Totals(double Cpu, double Io, bool HasCpu, bool HasIo)
     {
-        internal Totals Add(ServiceMetrics metrics) => Add(metrics.Cpu, metrics.Io);
-        internal Totals Add(double? cpu, double? io) => new(Cpu + (cpu ?? 0), Io + (io ?? 0),
-            HasCpu || cpu.HasValue, HasIo || io.HasValue);
+        internal Totals Add(ServiceMetrics metrics)
+        {
+            return Add(metrics.Cpu, metrics.Io);
+        }
+
+        internal Totals Add(double? cpu, double? io)
+        {
+            return new Totals(Cpu + (cpu ?? 0), Io + (io ?? 0),
+                HasCpu || cpu.HasValue, HasIo || io.HasValue);
+        }
+
         // Match ProcessRanking: divide by every interval in the window; no readable I/O remains unavailable.
-        internal ServiceMetrics Average(int count, ulong? memory) => new(count > 0 && HasCpu ? Cpu / count : null,
-            memory, count > 0 && HasIo ? Io / count : null);
+        internal ServiceMetrics Average(int count, ulong? memory)
+        {
+            return new ServiceMetrics(count > 0 && HasCpu ? Cpu / count : null,
+                memory, count > 0 && HasIo ? Io / count : null);
+        }
     }
 }

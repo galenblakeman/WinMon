@@ -6,14 +6,24 @@ namespace WinMon.Preferences;
 internal static class AppLanguages
 {
     internal const string SystemDefault = "System";
+
     internal sealed record Choice(string Name, string Label)
     {
-        public override string ToString() => Label;
+        public override string ToString()
+        {
+            return Label;
+        }
     }
-    private static readonly string[] Names = [SystemDefault, "en", "zh-Hans", "ru", "es", "pt-BR", "de", "ja", "fr", "pl", "ko"];
+
+    private static readonly string[] Names =
+        [SystemDefault, "en", "zh-Hans", "ru", "es", "pt-BR", "de", "ja", "fr", "pl", "ko"];
+
     internal static CultureInfo SystemDisplayCulture { get; private set; } = CultureInfo.CurrentUICulture;
 
-    internal static void InitializeSystemDisplayCulture(CultureInfo culture) => SystemDisplayCulture = culture;
+    internal static void InitializeSystemDisplayCulture(CultureInfo culture)
+    {
+        SystemDisplayCulture = culture;
+    }
 
     internal static void Apply(string? language)
     {
@@ -38,8 +48,11 @@ internal static class AppLanguages
         new("ko", Strings.LanguageKorean)
     ];
 
-    internal static string Normalize(string? language) => Names.FirstOrDefault(name =>
-        string.Equals(name, language?.Trim(), StringComparison.OrdinalIgnoreCase)) ?? SystemDefault;
+    internal static string Normalize(string? language)
+    {
+        return Names.FirstOrDefault(name =>
+            string.Equals(name, language?.Trim(), StringComparison.OrdinalIgnoreCase)) ?? SystemDefault;
+    }
 
     internal static CultureInfo ResolveCulture(string? language, CultureInfo systemDisplayCulture)
     {

@@ -10,7 +10,9 @@ public sealed class WindowsCpuSampler : IDisposable
     private const double GapThresholdSeconds = 5;
     private readonly ICpuSnapshotProvider _provider;
     private readonly ProcessAppNameProvider _appNames = new();
+
     private CpuSnapshot? _previous;
+
     // The previous snapshot's processes by lifetime, refilled in place: a new dictionary for ~1,000 processes
     // would land on the large object heap every second and force a full collection every few seconds.
     private readonly Dictionary<(int, long), ProcessCpuTimes> _baselines = [];
@@ -43,7 +45,8 @@ public sealed class WindowsCpuSampler : IDisposable
         if (_previous is null || IsGap(_previous, current))
         {
             Rebaseline(current);
-            return new CpuSample(current.Timestamp, null, [], current.UnavailableProcesses, true, current.MonotonicTimestamp);
+            return new CpuSample(current.Timestamp, null, [], current.UnavailableProcesses, true,
+                current.MonotonicTimestamp);
         }
 
         var prior = _previous;
@@ -54,7 +57,8 @@ public sealed class WindowsCpuSampler : IDisposable
         if (totalDelta <= 0 || idleDelta < 0 || busyDelta < 0 || busyDelta > totalDelta)
         {
             Rebaseline(current);
-            return new CpuSample(current.Timestamp, null, [], current.UnavailableProcesses, true, current.MonotonicTimestamp);
+            return new CpuSample(current.Timestamp, null, [], current.UnavailableProcesses, true,
+                current.MonotonicTimestamp);
         }
 
         var usages = CreateProcessUsages(_baselines, current.Processes, totalDelta,
@@ -98,7 +102,8 @@ public sealed class WindowsCpuSampler : IDisposable
 
     private static bool IsGap(CpuSnapshot previousSnapshot, CpuSnapshot currentSnapshot)
     {
-        var elapsed = (currentSnapshot.MonotonicTimestamp - previousSnapshot.MonotonicTimestamp) / (double)Stopwatch.Frequency;
+        var elapsed = (currentSnapshot.MonotonicTimestamp - previousSnapshot.MonotonicTimestamp) /
+                      (double)Stopwatch.Frequency;
         return elapsed is <= 0 or > GapThresholdSeconds;
     }
 
@@ -111,16 +116,10 @@ public sealed class WindowsCpuSampler : IDisposable
 
         foreach (var process in currentProcesses)
         {
-            if (!baselines.TryGetValue((process.ProcessId, process.CreationTicks), out var priorCpuTicks))
-            {
-                continue;
-            }
+            if (!baselines.TryGetValue((process.ProcessId, process.CreationTicks), out var priorCpuTicks)) continue;
 
             var processDelta = process.CpuTicks - priorCpuTicks.CpuTicks;
-            if (processDelta < 0)
-            {
-                continue;
-            }
+            if (processDelta < 0) continue;
 
             var appNames = _appNames.Get(process.ImagePath ?? "");
             usages.Add(new ProcessUsage(
@@ -157,5 +156,3 @@ public sealed class WindowsCpuSampler : IDisposable
         return order != 0 ? order : left.ProcessId.CompareTo(right.ProcessId);
     };
 }
-
-

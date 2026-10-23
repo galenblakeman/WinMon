@@ -1,4 +1,5 @@
 using Microsoft.Win32;
+
 // ReSharper disable StringLiteralTypo
 
 namespace WinMon.Preferences;
@@ -16,7 +17,7 @@ public static class StartupRegistration
     {
         get
         {
-            using RegistryKey? key = Registry.CurrentUser.OpenSubKey(RunKeyPath, writable: false);
+            using var key = Registry.CurrentUser.OpenSubKey(RunKeyPath, false);
             return key?.GetValue(ValueName) is string value && !string.IsNullOrWhiteSpace(value);
         }
     }
@@ -26,30 +27,27 @@ public static class StartupRegistration
     /// <exception cref="InvalidOperationException">Thrown when running from a development host instead of the application executable.</exception>
     public static void SetEnabled(bool enabled)
     {
-        using RegistryKey key = Registry.CurrentUser.CreateSubKey(RunKeyPath, writable: true);
+        using var key = Registry.CurrentUser.CreateSubKey(RunKeyPath, true);
         if (!enabled)
         {
-            key.DeleteValue(ValueName, throwOnMissingValue: false);
+            key.DeleteValue(ValueName, false);
             return;
         }
 
-        string executablePath = Environment.ProcessPath ?? throw new InvalidOperationException("The application executable path is unavailable.");
+        var executablePath = Environment.ProcessPath ??
+                             throw new InvalidOperationException("The application executable path is unavailable.");
         if (!CanRegisterExecutablePath(executablePath))
-        {
-            throw new InvalidOperationException("Startup registration is unavailable while running from a development or test host.");
-        }
+            throw new InvalidOperationException(
+                "Startup registration is unavailable while running from a development or test host.");
 
         key.SetValue(ValueName, $"\"{executablePath}\"", RegistryValueKind.String);
     }
 
     internal static bool CanRegisterExecutablePath(string? executablePath)
     {
-        if (string.IsNullOrWhiteSpace(executablePath))
-        {
-            return false;
-        }
+        if (string.IsNullOrWhiteSpace(executablePath)) return false;
 
-        string executableName = Path.GetFileNameWithoutExtension(executablePath);
+        var executableName = Path.GetFileNameWithoutExtension(executablePath);
         return !executableName.Equals("dotnet", StringComparison.OrdinalIgnoreCase) &&
                !executableName.StartsWith("testhost", StringComparison.OrdinalIgnoreCase);
     }

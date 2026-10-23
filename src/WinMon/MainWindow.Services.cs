@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Windows;
+using WinMon.Controls;
 using WinMon.Monitoring;
 
 namespace WinMon;
@@ -48,16 +49,24 @@ public partial class MainWindow
         var count = 0;
         if (frame is not null)
             for (var i = frames.Count - 1; i >= 0; i--)
-                if (ReferenceEquals(frames[i], frame)) { count = i + 1; break; }
+                if (ReferenceEquals(frames[i], frame))
+                {
+                    count = i + 1;
+                    break;
+                }
+
         var history = frames.Take(count).ToArray();
         ServiceView.Update(frame, history, _selectedSample is not null);
     }
 
+    // Fire-and-forget from a menu command; expected failures are reported in the view.
+    // ReSharper disable once AsyncVoidMethod
     private async void RunServiceAction(ServiceObservation service, ProcessUsage? host, string action)
     {
         if (_serviceActionBusy || _closing || _selectedSample is not null || _diagnosticMode) return;
-        if (action != "start" && !Controls.MessageDialog.Confirm(this, Strings.Format(Strings.ConfirmServiceAction,
-                action == "stop" ? Strings.StopService : Strings.RestartService, service.DisplayName), Strings.Services,
+        if (action != "start" && !MessageDialog.Confirm(this, Strings.Format(Strings.ConfirmServiceAction,
+                    action == "stop" ? Strings.StopService : Strings.RestartService, service.DisplayName),
+                Strings.Services,
                 action == "stop" ? Strings.StopService : Strings.RestartService)) return;
         if (_closing || _selectedSample is not null) return;
         _serviceActionBusy = true;
@@ -69,12 +78,13 @@ public partial class MainWindow
             try
             {
                 await Task.Run(() => WindowsServices.ExecuteAsync(service.Name, action,
-                    host?.ProcessId ?? 0, host?.CreationTicks ?? 0, actionCancellation));
+                    host?.ProcessId ?? 0, host?.CreationTicks ?? 0, actionCancellation), actionCancellation);
             }
             catch (Win32Exception ex) when (ex.NativeErrorCode == 5)
             {
                 // Keep the monitor unelevated. The narrowly scoped helper exits after one SCM operation.
-                var start = new ProcessStartInfo(Environment.ProcessPath!) { UseShellExecute = true, Verb = "runas", WindowStyle = ProcessWindowStyle.Hidden };
+                var start = new ProcessStartInfo(Environment.ProcessPath!)
+                    { UseShellExecute = true, Verb = "runas", WindowStyle = ProcessWindowStyle.Hidden };
                 start.ArgumentList.Add("--service-action");
                 start.ArgumentList.Add(action);
                 start.ArgumentList.Add(service.Name);
@@ -85,9 +95,13 @@ public partial class MainWindow
                 if (helper.ExitCode != 0) throw new Win32Exception(helper.ExitCode);
             }
         }
-        catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { }
+        catch (OperationCanceledException) when (_lifetime.IsCancellationRequested)
+        {
+        }
         catch (Exception ex) when (ex is Win32Exception or InvalidOperationException or ArgumentException)
-        { error = Strings.Format(Strings.ServiceActionFailed, ex.Message); }
+        {
+            error = Strings.Format(Strings.ServiceActionFailed, ex.Message);
+        }
         finally
         {
             _serviceActionBusy = false;

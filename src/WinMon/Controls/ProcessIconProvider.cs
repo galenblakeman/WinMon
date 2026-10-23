@@ -1,10 +1,12 @@
-using Microsoft.Win32.SafeHandles;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media.Imaging;
+using Microsoft.Win32.SafeHandles;
 using WinMon.Monitoring;
 
 namespace WinMon.Controls;
@@ -14,7 +16,7 @@ internal static class ProcessIconProvider
 {
     private static readonly Dictionary<(int, long), Task<BitmapSource>> Cache = new();
     private static readonly SemaphoreSlim Workers = new(2);
-    internal static BitmapSource Fallback { get; } = Convert(System.Drawing.SystemIcons.Application);
+    internal static BitmapSource Fallback { get; } = Convert(SystemIcons.Application);
 
     // Called on the UI thread. The cache retains images, never native process/icon handles.
     internal static Task<BitmapSource> GetAsync(ProcessUsage process)
@@ -25,8 +27,14 @@ internal static class ProcessIconProvider
         task = Task.Run(async () =>
         {
             await Workers.WaitAsync().ConfigureAwait(false);
-            try { return Load(process); }
-            finally { Workers.Release(); }
+            try
+            {
+                return Load(process);
+            }
+            finally
+            {
+                Workers.Release();
+            }
         });
         Cache.Add(key, task);
         return task;
@@ -42,32 +50,36 @@ internal static class ProcessIconProvider
             var path = new StringBuilder(32768);
             var length = path.Capacity;
             if (!QueryFullProcessImageNameW(handle, 0, path, ref length)) return Fallback;
-            using var icon = System.Drawing.Icon.ExtractAssociatedIcon(path.ToString());
+            using var icon = Icon.ExtractAssociatedIcon(path.ToString());
             return icon is null ? Fallback : Convert(icon);
         }
-        catch (Exception ex) when (ex is ArgumentException or System.ComponentModel.Win32Exception or
-            IOException or UnauthorizedAccessException or ExternalException)
+        catch (Exception ex) when (ex is ArgumentException or Win32Exception or
+                                       IOException or UnauthorizedAccessException or ExternalException)
         {
             Trace.TraceInformation("Process icon unavailable for PID {0}: {1}", process.ProcessId, ex.Message);
             return Fallback;
         }
     }
 
-    private static BitmapSource Convert(System.Drawing.Icon icon)
+    private static BitmapSource Convert(Icon icon)
     {
-        var image = Imaging.CreateBitmapSourceFromHIcon(icon.Handle, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
+        var image = Imaging.CreateBitmapSourceFromHIcon(icon.Handle, Int32Rect.Empty,
+            BitmapSizeOptions.FromEmptyOptions());
         image.Freeze();
         return image;
     }
 
     [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern SafeProcessHandle OpenProcess(uint access, [MarshalAs(UnmanagedType.Bool)] bool inherit, int processId);
+    private static extern SafeProcessHandle OpenProcess(uint access, [MarshalAs(UnmanagedType.Bool)] bool inherit,
+        int processId);
 
     [DllImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool GetProcessTimes(SafeProcessHandle process, out long creation, out long exit, out long kernel, out long user);
+    private static extern bool GetProcessTimes(SafeProcessHandle process, out long creation, out long exit,
+        out long kernel, out long user);
 
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode, ExactSpelling = true, SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool QueryFullProcessImageNameW(SafeProcessHandle process, uint flags, StringBuilder path, ref int length);
+    private static extern bool QueryFullProcessImageNameW(SafeProcessHandle process, uint flags, StringBuilder path,
+        ref int length);
 }

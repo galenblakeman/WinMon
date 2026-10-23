@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using WinMon.Monitoring;
+using WinMon.Shortcuts;
 
 namespace WinMon.Preferences;
 
@@ -28,7 +29,7 @@ public sealed record MonitorPreferences
     public bool ShowSecondaryDisk { get; init; } = true;
 
     internal int SeriesMask => VisibleMetrics | (ShowGpu ? 16 : 0) |
-        (SecondaryDrive is not null && ShowSecondaryDisk ? 32 : 0);
+                               (SecondaryDrive is not null && ShowSecondaryDisk ? 32 : 0);
 
     /// <summary>Maximum ranked processes to display; zero shows all available entries.</summary>
     public int TopProcessCount { get; init; } = 5;
@@ -72,7 +73,10 @@ public sealed record MonitorPreferences
     public int ChartRangeSeconds { get; init; }
 
     /// <summary>Chart range choices: 2, 10, 30 and 60 minutes, up to the retained history.</summary>
-    internal int[] ChartRanges => [.. new[] { ShortRangeSeconds, 600, 1800, 3600 }.Where(seconds => seconds <= RetentionSeconds)];
+    internal int[] ChartRanges =>
+    [
+        .. new[] { ShortRangeSeconds, 600, 1800, 3600 }.Where(seconds => seconds <= RetentionSeconds)
+    ];
 
     internal int EffectiveChartRange => ChartRanges.Contains(ChartRangeSeconds) ? ChartRangeSeconds : ShortRangeSeconds;
 
@@ -101,9 +105,9 @@ public sealed record MonitorPreferences
     public bool AutomaticallyCheckForUpdates { get; init; } = true;
 
     /// <summary>Gets the global shortcut that shows the monitor, such as "Ctrl+Shift+M", or "None".</summary>
-    public string ShowShortcut { get; init; } = Shortcuts.HotkeyGesture.Default.ToString();
+    public string ShowShortcut { get; init; } = HotkeyGesture.Default.ToString();
 
     /// <summary>Gets the usable show shortcut, or <see langword="null"/> when it is turned off.</summary>
-    internal Shortcuts.HotkeyGesture? ShowGesture =>
-        Shortcuts.HotkeyGesture.TryParse(ShowShortcut, out var gesture) && gesture?.Problem is null ? gesture : null;
+    internal HotkeyGesture? ShowGesture =>
+        HotkeyGesture.TryParse(ShowShortcut, out var gesture) && gesture?.Problem is null ? gesture : null;
 }

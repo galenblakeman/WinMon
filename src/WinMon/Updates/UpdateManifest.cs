@@ -5,7 +5,13 @@ using System.Text.RegularExpressions;
 namespace WinMon.Updates;
 
 internal sealed record UpdateAsset(string Name, string Sha256, long Size);
-internal sealed record UpdateManifest(int SchemaVersion, string Version, string Runtime, UpdateAsset Portable, UpdateAsset Installer)
+
+internal sealed record UpdateManifest(
+    int SchemaVersion,
+    string Version,
+    string Runtime,
+    UpdateAsset Portable,
+    UpdateAsset Installer)
 {
     internal static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
     internal const long MaximumAssetBytes = 512L * 1024 * 1024;
@@ -23,9 +29,11 @@ internal sealed record UpdateManifest(int SchemaVersion, string Version, string 
             throw new InvalidDataException("Trusted update signing is not configured or the manifest is invalid.");
         using var rsa = RSA.Create();
         rsa.ImportFromPem(publicKey);
-        if (rsa.KeySize < 2048 || !rsa.VerifyData(bytes, Convert.FromBase64String(signature), HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1))
+        if (rsa.KeySize < 2048 || !rsa.VerifyData(bytes, Convert.FromBase64String(signature), HashAlgorithmName.SHA256,
+                RSASignaturePadding.Pkcs1))
             throw new InvalidDataException("The update signature is invalid.");
-        var manifest = JsonSerializer.Deserialize<UpdateManifest>(bytes, JsonOptions) ?? throw new InvalidDataException("Missing update manifest.");
+        var manifest = JsonSerializer.Deserialize<UpdateManifest>(bytes, JsonOptions) ??
+                       throw new InvalidDataException("Missing update manifest.");
         ParseVersion(manifest.Version);
         if (manifest.SchemaVersion != 1 || manifest.Runtime != "win-x64" || manifest.Version != expectedVersion)
             throw new InvalidDataException("The update manifest does not match this release.");
@@ -46,9 +54,16 @@ internal sealed record UpdateManifest(int SchemaVersion, string Version, string 
         await using var file = File.OpenRead(path);
         if (file.Length != asset.Size) throw new InvalidDataException("The update download has the wrong size.");
         var hash = Convert.ToHexString(await SHA256.HashDataAsync(file, cancellationToken).ConfigureAwait(false));
-        if (!hash.Equals(asset.Sha256, StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("The update checksum is invalid.");
+        if (!hash.Equals(asset.Sha256, StringComparison.OrdinalIgnoreCase))
+            throw new InvalidDataException("The update checksum is invalid.");
     }
 }
 
-internal sealed record UpdateOffer(string Version, Uri ReleaseNotesUrl, UpdateManifest Manifest, byte[] ManifestBytes, string Signature);
+internal sealed record UpdateOffer(
+    string Version,
+    Uri ReleaseNotesUrl,
+    UpdateManifest Manifest,
+    byte[] ManifestBytes,
+    string Signature);
+
 internal sealed record PreparedUpdate(string TransactionDirectory);

@@ -31,6 +31,7 @@ internal class MessageDialog : Window
             confirm.Click += (_, _) => DialogResult = true;
             buttons.Children.Add(confirm);
         }
+
         var close = new Button
         {
             Content = confirmLabel is null ? Strings.Close : Strings.Cancel,
@@ -54,10 +55,15 @@ internal class MessageDialog : Window
         Content = surface;
     }
 
-    internal static void ShowNotice(Window? owner, string message, string title) => Show(owner, title, message);
+    internal static void ShowNotice(Window? owner, string message, string title)
+    {
+        Show(owner, title, message);
+    }
 
-    internal static bool Confirm(Window owner, string message, string title, string confirmLabel) =>
-        Show(owner, title, message, confirmLabel);
+    internal static bool Confirm(Window owner, string message, string title, string confirmLabel)
+    {
+        return Show(owner, title, message, confirmLabel);
+    }
 
     private static bool Show(Window? owner, string title, string message, string? confirmLabel = null)
     {

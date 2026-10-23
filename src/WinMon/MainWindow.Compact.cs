@@ -1,8 +1,9 @@
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Documents;
-using System.Windows.Media;
 using WinMon.Controls;
+using WinMon.Preferences;
 
 namespace WinMon;
 
@@ -10,22 +11,26 @@ public partial class MainWindow
 {
     private bool _compactMode;
     private Size _fullViewSize = new(1000, 840);
-    private readonly List<(MetricReadout Source, Border Box, CpuGraph Graph, TextBlock Label, TextBlock Value, TextBlock Detail)> _stripTiles = [];
+
+    private readonly
+        List<(MetricReadout Source, Border Box, CpuGraph Graph, TextBlock Label, TextBlock Value, TextBlock Detail)>
+        _stripTiles = [];
 
     private void InitializeCompactView()
     {
         foreach (var (source, metric, accent) in new[]
-        {
-            (CpuMetric, 0, "CpuAccent"), (MemoryMetric, 1, "MemoryAccent"),
-            (DiskMetric, 2, "DiskAccent"), (SecondaryDiskMetric, 5, "SecondaryDiskAccent"),
-            (NetworkMetric, 3, "NetworkAccent"), (GpuMetric, 4, "GpuAccent")
-        })
+                 {
+                     (CpuMetric, 0, "CpuAccent"), (MemoryMetric, 1, "MemoryAccent"),
+                     (DiskMetric, 2, "DiskAccent"), (SecondaryDiskMetric, 5, "SecondaryDiskAccent"),
+                     (NetworkMetric, 3, "NetworkAccent"), (GpuMetric, 4, "GpuAccent")
+                 })
         {
             var column = CompactStrip.ColumnDefinitions.Count;
             CompactStrip.ColumnDefinitions.Add(new ColumnDefinition());
             var graph = new CpuGraph { TileMetric = metric, IsHitTestVisible = false };
             var label = new TextBlock { FontSize = 12, TextTrimming = TextTrimming.CharacterEllipsis };
-            var value = new TextBlock { FontSize = 23, FontWeight = FontWeights.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis };
+            var value = new TextBlock
+                { FontSize = 23, FontWeight = FontWeights.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis };
             value.SetResourceReference(TextBlock.ForegroundProperty, accent);
             var detail = new TextBlock { FontSize = 11, TextTrimming = TextTrimming.CharacterEllipsis };
             foreach (var block in new[] { label, value, detail })
@@ -33,7 +38,9 @@ public partial class MainWindow
                 block.HorizontalAlignment = HorizontalAlignment.Left;
                 block.SetResourceReference(TextBlock.BackgroundProperty, "Surface");
             }
-            var text = new StackPanel { Margin = new Thickness(10, 7, 6, 0), VerticalAlignment = VerticalAlignment.Top };
+
+            var text = new StackPanel
+                { Margin = new Thickness(10, 7, 6, 0), VerticalAlignment = VerticalAlignment.Top };
             text.Children.Add(label);
             text.Children.Add(value);
             text.Children.Add(detail);
@@ -46,10 +53,14 @@ public partial class MainWindow
             CompactStrip.Children.Add(box);
             _stripTiles.Add((source, box, graph, label, value, detail));
         }
+
         UpdateCompactButton();
     }
 
-    private void OnToggleCompactView(object sender, RoutedEventArgs e) => SetCompactView(!_compactMode);
+    private void OnToggleCompactView(object sender, RoutedEventArgs e)
+    {
+        SetCompactView(!_compactMode);
+    }
 
     private void SetCompactView(bool compact)
     {
@@ -60,6 +71,7 @@ public partial class MainWindow
             _fullViewSize = bounds.Size;
             WindowState = WindowState.Normal;
         }
+
         _compactMode = compact;
         _preferences = _preferences with { CompactMode = compact };
         FullView.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
@@ -82,7 +94,7 @@ public partial class MainWindow
         var text = _compactMode ? Strings.FullView : Strings.CompactView;
         CompactViewButton.Content = text;
         CompactViewButton.ToolTip = text;
-        System.Windows.Automation.AutomationProperties.SetName(CompactViewButton, text);
+        AutomationProperties.SetName(CompactViewButton, text);
         ButtonIcon.SetData(CompactViewButton, _compactMode ? ButtonIcon.Expand : ButtonIcon.Compact);
     }
 
@@ -91,22 +103,27 @@ public partial class MainWindow
         if (!_compactMode) return;
         var history = _history.Samples;
         CompactStatus.Text = _samplingError is null ? Strings.LiveMode : Strings.Unavailable;
-        CompactStatus.ToolTip = _samplingError is null ? Strings.LiveMode : Strings.ReadingsUnavailableRetryingEachSecond;
+        CompactStatus.ToolTip =
+            _samplingError is null ? Strings.LiveMode : Strings.ReadingsUnavailableRetryingEachSecond;
         foreach (var (source, box, graph, label, value, detail) in _stripTiles)
         {
             var visible = source != SecondaryDiskMetric || _preferences.SecondaryDrive is not null;
             box.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
             CompactStrip.ColumnDefinitions[Grid.GetColumn(box)].Width = visible
-                ? new GridLength(source == NetworkMetric ? 1.3 : 1, GridUnitType.Star) : new GridLength(0);
+                ? new GridLength(source == NetworkMetric ? 1.3 : 1, GridUnitType.Star)
+                : new GridLength(0);
             label.Text = source.Label;
             value.Text = new TextRange(source.ValueLabel.ContentStart, source.ValueLabel.ContentEnd).Text;
             // The compact strip prioritizes memory capacity and network direction readings.
             detail.Text = source == MemoryMetric || source == NetworkMetric ? source.DetailLabel.Text : "";
             box.ToolTip = source.ToolTip;
             graph.UseSeriesPatterns = OverallGraph.UseSeriesPatterns;
-            graph.SetData(history, Preferences.MonitorPreferences.ShortRangeSeconds, null);
+            graph.SetData(history, MonitorPreferences.ShortRangeSeconds, null);
         }
     }
 
-    private Size SavedFullViewSize(Rect bounds) => _compactMode ? _fullViewSize : bounds.Size;
+    private Size SavedFullViewSize(Rect bounds)
+    {
+        return _compactMode ? _fullViewSize : bounds.Size;
+    }
 }

@@ -17,8 +17,7 @@ internal static class ProcessRetention
         Func<ProcessUsage, bool>? retain = null, bool retainAll = false)
     {
         ArgumentNullException.ThrowIfNull(sample);
-        if (retainAll) return sample;
-        if (sample.Processes.Count <= largestByMemory) return sample;
+        if (retainAll || sample.Processes.Count <= largestByMemory) return sample;
         // A small min-heap finds the Nth-largest working set without sorting every process each second.
         var largest = new PriorityQueue<ProcessUsage, ulong>(largestByMemory + 1);
         foreach (var process in sample.Processes)
@@ -27,18 +26,25 @@ internal static class ProcessRetention
             largest.Enqueue(process, bytes);
             if (largest.Count > largestByMemory) largest.Dequeue();
         }
+
         // Ties at the cut-off are all kept, so ranking never depends on which equal entry survived.
         var threshold = largest.Count == largestByMemory && largest.TryPeek(out _, out var smallest) ? smallest : 0UL;
-        var threadThreshold = CountThreshold(sample.Processes, largestByMemory, threads: true);
-        var handleThreshold = CountThreshold(sample.Processes, largestByMemory, threads: false);
+        var threadThreshold = CountThreshold(sample.Processes, largestByMemory, true);
+        var handleThreshold = CountThreshold(sample.Processes, largestByMemory, false);
         ProcessUsage[] kept =
         [
-            .. sample.Processes.Where(p => retain?.Invoke(p) == true || p.HasHadAppWindow || p.HasAppWindow == true || p.CpuPercent > 0 || p.IoBytesPerSecond > 0 || p.GpuPercent is not null ||
-                p.WorkingSetBytes >= threshold || p.ThreadCount >= threadThreshold || p.HandleCount >= handleThreshold)
+            .. sample.Processes.Where(p => retain?.Invoke(p) == true || p.HasHadAppWindow || p.HasAppWindow == true ||
+                                           p.CpuPercent > 0 || p.IoBytesPerSecond > 0 || p.GpuPercent is not null ||
+                                           p.WorkingSetBytes >= threshold || p.ThreadCount >= threadThreshold ||
+                                           p.HandleCount >= handleThreshold)
         ];
         return kept.Length == sample.Processes.Count
             ? sample
-            : sample with { Processes = kept, CompactedProcesses = sample.CompactedProcesses + sample.Processes.Count - kept.Length };
+            : sample with
+            {
+                Processes = kept,
+                CompactedProcesses = sample.CompactedProcesses + sample.Processes.Count - kept.Length
+            };
     }
 
     // Keep the largest counts even for CPU-idle processes, so historical count ranking has its top rows.
@@ -51,6 +57,7 @@ internal static class ProcessRetention
             largest.Enqueue(value, value);
             if (largest.Count > count) largest.Dequeue();
         }
+
         return largest.Count == count && largest.TryPeek(out var smallest, out _) ? smallest : 0;
     }
 }

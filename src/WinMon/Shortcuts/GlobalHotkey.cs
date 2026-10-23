@@ -38,7 +38,7 @@ internal sealed class GlobalHotkey : IDisposable
     {
         _pressed = pressed;
         _source = HwndSource.FromHwnd(new WindowInteropHelper(window).EnsureHandle())
-            ?? throw new InvalidOperationException("The window handle is unavailable.");
+                  ?? throw new InvalidOperationException("The window handle is unavailable.");
         _source.AddHook(Hook);
     }
 
@@ -51,7 +51,9 @@ internal sealed class GlobalHotkey : IDisposable
         Unregister();
         if (gesture is null) return HotkeyStatus.Off;
         if (!RegisterHotKey(_source.Handle, HotkeyId, (uint)gesture.Modifiers | ModNoRepeat, (uint)gesture.VirtualKey))
-            return Marshal.GetLastPInvokeError() == ErrorHotkeyAlreadyRegistered ? HotkeyStatus.InUse : HotkeyStatus.Failed;
+            return Marshal.GetLastPInvokeError() == ErrorHotkeyAlreadyRegistered
+                ? HotkeyStatus.InUse
+                : HotkeyStatus.Failed;
         _registered = true;
         Current = gesture;
         return HotkeyStatus.Registered;
@@ -68,7 +70,8 @@ internal sealed class GlobalHotkey : IDisposable
     /// <summary>Report whether no other application holds <paramref name="gesture"/>, by registering and releasing it.</summary>
     public static bool IsAvailable(HotkeyGesture gesture)
     {
-        if (!RegisterHotKey(IntPtr.Zero, ProbeId, (uint)gesture.Modifiers | ModNoRepeat, (uint)gesture.VirtualKey)) return false;
+        if (!RegisterHotKey(IntPtr.Zero, ProbeId, (uint)gesture.Modifiers | ModNoRepeat, (uint)gesture.VirtualKey))
+            return false;
         UnregisterHotKey(IntPtr.Zero, ProbeId);
         return true;
     }

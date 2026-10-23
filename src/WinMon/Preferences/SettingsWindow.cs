@@ -1,8 +1,12 @@
+using System.Diagnostics;
+using System.Security;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Input;
+using WinMon.Controls;
 using WinMon.Shortcuts;
+using WinMon.Updates;
 
 namespace WinMon.Preferences;
 
@@ -13,8 +17,12 @@ public sealed class SettingsWindow : Window
 {
     private sealed record ThemeChoice(string Name, string Label)
     {
-        public override string ToString() => Label;
+        public override string ToString()
+        {
+            return Label;
+        }
     }
+
     private readonly MonitorPreferences _initialPreferences;
     private readonly ComboBox _themeSelector;
     private readonly ComboBox _languageSelector;
@@ -40,19 +48,23 @@ public sealed class SettingsWindow : Window
     /// <param name="preferences">The preferences shown when the dialog opens.</param>
     /// <param name="isShortcutAvailable">Reports whether no other application holds a recorded shortcut.</param>
     /// <param name="shortcutStatus">Describes whether the current shortcut works.</param>
-    public SettingsWindow(MonitorPreferences preferences, Func<HotkeyGesture, bool>? isShortcutAvailable = null, string shortcutStatus = "", Func<Task<string>>? checkForUpdates = null)
+    /// <param name="checkForUpdates">Checks for an update and describes the result.</param>
+    public SettingsWindow(MonitorPreferences preferences, Func<HotkeyGesture, bool>? isShortcutAvailable = null,
+        string shortcutStatus = "", Func<Task<string>>? checkForUpdates = null)
         : this(preferences, DiscoverDrives, isShortcutAvailable, shortcutStatus, checkForUpdates)
     {
     }
 
-    internal SettingsWindow(MonitorPreferences preferences, Func<DriveChoice[]> loadDrives, Func<HotkeyGesture, bool>? isShortcutAvailable = null, string shortcutStatus = "", Func<Task<string>>? checkForUpdates = null)
+    internal SettingsWindow(MonitorPreferences preferences, Func<DriveChoice[]> loadDrives,
+        Func<HotkeyGesture, bool>? isShortcutAvailable = null, string shortcutStatus = "",
+        Func<Task<string>>? checkForUpdates = null)
     {
         ArgumentNullException.ThrowIfNull(preferences);
         _loadDrives = loadDrives;
         _initialPreferences = preferences;
         _isShortcutAvailable = isShortcutAvailable ?? (_ => true);
         _shortcut = preferences.ShowGesture;
-        Controls.WindowTheme.Attach(this);
+        WindowTheme.Attach(this);
 
         Title = Strings.WinMonSettings;
         Width = 460;
@@ -93,16 +105,20 @@ public sealed class SettingsWindow : Window
             Source = new Uri("/WinMon;component/Preferences/PaletteResources.xaml", UriKind.Relative)
         };
         _paletteSelector.ItemTemplate = paletteResources["PaletteChoiceTemplate"] as DataTemplate
-            ?? throw new InvalidOperationException("Palette choice template was not found.");
+                                        ?? throw new InvalidOperationException(
+                                            "Palette choice template was not found.");
         UpdatePalettePreviews();
         _themeSelector.SelectionChanged += (_, _) => UpdatePalettePreviews();
         _paletteSelector.ToolTip = Strings.ResourceColorsCPUMemoryPrimaryDiskNetworkGPUSecondDisk;
-        _retentionSelector = CreateSelector([Strings.Value10Minutes, Strings.Value30Minutes, Strings.Value60Minutes], RetentionLabel(preferences.RetentionSeconds));
+        _retentionSelector = CreateSelector([Strings.Value10Minutes, Strings.Value30Minutes, Strings.Value60Minutes],
+            RetentionLabel(preferences.RetentionSeconds));
         _minimizeToTrayCheckBox = CreateCheckBox(Strings.MinimizeToTheNotificationArea, preferences.MinimizeToTray);
         _startupCheckBox = CreateCheckBox(Strings.StartWinMonWhenISignIn, preferences.StartWithWindows);
-        _automaticUpdateCheckBox = CreateCheckBox(Strings.AutomaticallyCheckForUpdates, preferences.AutomaticallyCheckForUpdates);
+        _automaticUpdateCheckBox =
+            CreateCheckBox(Strings.AutomaticallyCheckForUpdates, preferences.AutomaticallyCheckForUpdates);
         _shortcutBox = CreateShortcutBox();
-        _shortcutStatus = new TextBlock { FontSize = 12, TextWrapping = TextWrapping.Wrap, VerticalAlignment = VerticalAlignment.Center };
+        _shortcutStatus = new TextBlock
+            { FontSize = 12, TextWrapping = TextWrapping.Wrap, VerticalAlignment = VerticalAlignment.Center };
         _shortcutStatus.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
         AutomationProperties.SetLiveSetting(_shortcutStatus, AutomationLiveSetting.Polite);
         ShowShortcut(shortcutStatus);
@@ -117,12 +133,17 @@ public sealed class SettingsWindow : Window
             Margin = new Thickness(24)
         };
         for (var row = 0; row <= 40; row++)
-            layout.RowDefinitions.Add(new RowDefinition { Height = row is 22 or 23 ? new GridLength(0) : row % 2 == 0 ? GridLength.Auto : new GridLength(row is 11 or 15 or 21 or 33 ? 16 : 10) });
-        TextBlock heading = CreateHeading(Strings.Appearance);
+            layout.RowDefinitions.Add(new RowDefinition
+            {
+                Height = row is 22 or 23 ? new GridLength(0) :
+                    row % 2 == 0 ? GridLength.Auto : new GridLength(row is 11 or 15 or 21 or 33 ? 16 : 10)
+            });
+        var heading = CreateHeading(Strings.Appearance);
         Grid.SetRow(heading, 0);
         layout.Children.Add(heading);
         AddField(layout, Strings.Language, _languageSelector, 2);
-        var languageNote = new TextBlock { Text = Strings.LanguageApplyNote, FontSize = 11, TextWrapping = TextWrapping.Wrap };
+        var languageNote = new TextBlock
+            { Text = Strings.LanguageApplyNote, FontSize = 11, TextWrapping = TextWrapping.Wrap };
         languageNote.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
         Grid.SetRow(languageNote, 4);
         layout.Children.Add(languageNote);
@@ -137,7 +158,11 @@ public sealed class SettingsWindow : Window
         Grid.SetRow(shortcutHeading, 16);
         layout.Children.Add(shortcutHeading);
         AddField(layout, Strings.ShowHideWinMon, _shortcutBox, 18);
-        var resetButton = new Button { Content = Strings.Default, MinWidth = 70, Margin = new Thickness(12, 0, 0, 0), VerticalAlignment = VerticalAlignment.Top };
+        var resetButton = new Button
+        {
+            Content = Strings.Default, MinWidth = 70, Margin = new Thickness(12, 0, 0, 0),
+            VerticalAlignment = VerticalAlignment.Top
+        };
         resetButton.SetResourceReference(BackgroundProperty, "Raised");
         resetButton.SetResourceReference(ForegroundProperty, "Text");
         AutomationProperties.SetName(resetButton, Strings.RestoreTheDefaultShortcut);
@@ -163,20 +188,24 @@ public sealed class SettingsWindow : Window
         layout.Children.Add(diskNote);
         var updateHeading = CreateHeading(Strings.Updates);
         Grid.SetRow(updateHeading, 34);
-        if (Updates.UpdatePolicy.GitHubUpdatesEnabled) layout.Children.Add(updateHeading);
+        if (UpdatePolicy.GitHubUpdatesEnabled) layout.Children.Add(updateHeading);
         Grid.SetRow(_automaticUpdateCheckBox, 36);
-        if (Updates.UpdatePolicy.GitHubUpdatesEnabled) layout.Children.Add(_automaticUpdateCheckBox);
+        if (UpdatePolicy.GitHubUpdatesEnabled) layout.Children.Add(_automaticUpdateCheckBox);
         _updateCheckStatus.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
         AutomationProperties.SetLiveSetting(_updateCheckStatus, AutomationLiveSetting.Polite);
         Grid.SetRow(_updateCheckStatus, 38);
-        if (Updates.UpdatePolicy.GitHubUpdatesEnabled) layout.Children.Add(_updateCheckStatus);
-        StackPanel buttons = CreateButtons(checkForUpdates);
+        if (UpdatePolicy.GitHubUpdatesEnabled) layout.Children.Add(_updateCheckStatus);
+        var buttons = CreateButtons(checkForUpdates);
         Grid.SetRow(buttons, 40);
         layout.Children.Add(buttons);
 
         Border surface = new() { Child = layout };
         surface.SetResourceReference(Border.BackgroundProperty, "Surface");
-        Content = new ScrollViewer { VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Content = surface };
+        Content = new ScrollViewer
+        {
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Content = surface
+        };
         return;
 
         void UpdatePalettePreviews()
@@ -197,35 +226,44 @@ public sealed class SettingsWindow : Window
     /// Everything else, such as grouping, pins and compact mode, belongs to the main window and may change while
     /// a confirmed result is being saved, so applying a result must not restore the values the dialog opened with.
     /// </remarks>
-    internal static MonitorPreferences ApplySettings(MonitorPreferences current, MonitorPreferences settings) => current with
+    internal static MonitorPreferences ApplySettings(MonitorPreferences current, MonitorPreferences settings)
     {
-        PrimaryDrive = settings.PrimaryDrive,
-        SecondaryDrive = settings.SecondaryDrive,
-        Theme = settings.Theme,
-        Language = settings.Language,
-        ChartPalette = settings.ChartPalette,
-        RetentionSeconds = settings.RetentionSeconds,
-        MinimizeToTray = settings.MinimizeToTray,
-        StartWithWindows = settings.StartWithWindows,
-        AutomaticallyCheckForUpdates = settings.AutomaticallyCheckForUpdates,
-        ShowShortcut = settings.ShowShortcut
-    };
+        return current with
+        {
+            PrimaryDrive = settings.PrimaryDrive,
+            SecondaryDrive = settings.SecondaryDrive,
+            Theme = settings.Theme,
+            Language = settings.Language,
+            ChartPalette = settings.ChartPalette,
+            RetentionSeconds = settings.RetentionSeconds,
+            MinimizeToTray = settings.MinimizeToTray,
+            StartWithWindows = settings.StartWithWindows,
+            AutomaticallyCheckForUpdates = settings.AutomaticallyCheckForUpdates,
+            ShowShortcut = settings.ShowShortcut
+        };
+    }
 
     internal sealed record DriveChoice(string? Name, string Label)
     {
-        public override string ToString() => Label;
+        public override string ToString()
+        {
+            return Label;
+        }
     }
 
     private static ComboBox CreateDriveSelector(string? selected, bool optional)
     {
         var selector = CreateSelector([], "");
-        SetDriveChoices(selector, [], selected, optional, loading: true);
+        SetDriveChoices(selector, [], selected, optional, true);
         selector.Width = 210;
         return selector;
     }
 
     // Start after the dialog's first render; neither construction nor painting waits for a drive.
-    internal Task LoadDrivesAsync() => _driveLoadTask ??= LoadDrivesCoreAsync();
+    internal Task LoadDrivesAsync()
+    {
+        return _driveLoadTask ??= LoadDrivesCoreAsync();
+    }
 
     private async Task LoadDrivesCoreAsync()
     {
@@ -241,7 +279,7 @@ public sealed class SettingsWindow : Window
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Trace.TraceWarning("WinMon drive discovery: {0}", ex);
+            Trace.TraceWarning("WinMon drive discovery: {0}", ex);
         }
     }
 
@@ -257,27 +295,36 @@ public sealed class SettingsWindow : Window
                 var label = name;
                 try
                 {
-                    if (drive.IsReady && drive.VolumeLabel is { Length: > 0 } volumeLabel)
+                    if (drive is { IsReady: true, VolumeLabel: { Length: > 0 } volumeLabel })
                         label += $" — {volumeLabel}";
                 }
-                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Security.SecurityException) { }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or SecurityException)
+                {
+                }
+
                 choices.Add(new DriveChoice(name, label));
             }
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Security.SecurityException) { }
-        return choices.ToArray();
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or SecurityException)
+        {
+        }
+
+        return [.. choices];
     }
 
-    private static void SetDriveChoices(ComboBox selector, IReadOnlyList<DriveChoice> drives, string? selected, bool optional, bool loading = false)
+    private static void SetDriveChoices(ComboBox selector, IReadOnlyList<DriveChoice> drives, string? selected,
+        bool optional, bool loading = false)
     {
         var choices = new List<DriveChoice>();
         if (optional) choices.Add(new DriveChoice(null, Strings.None));
         choices.AddRange(drives);
         if (selected is not null && choices.All(c => c.Name != selected))
-            choices.Add(new DriveChoice(selected, loading ? selected : Strings.Format(Strings.UnavailableDrive, selected)));
+            choices.Add(new DriveChoice(selected,
+                loading ? selected : Strings.Format(Strings.UnavailableDrive, selected)));
         selector.ItemsSource = choices;
         selector.SelectedItem = choices.FirstOrDefault(c => c.Name == selected);
     }
+
     private static ComboBox CreateSelector(IReadOnlyList<string> choices, string selectedValue)
     {
         ComboBox selector = new()
@@ -316,7 +363,10 @@ public sealed class SettingsWindow : Window
         box.SetResourceReference(BackgroundProperty, "Raised");
         box.SetResourceReference(ForegroundProperty, "Text");
         box.PreviewKeyDown += OnShortcutKeyDown;
-        box.PreviewKeyUp += (_, _) => { if (Keyboard.Modifiers == ModifierKeys.None) box.Text = ShortcutText(_shortcut); };
+        box.PreviewKeyUp += (_, _) =>
+        {
+            if (Keyboard.Modifiers == ModifierKeys.None) box.Text = ShortcutText(_shortcut);
+        };
         box.LostKeyboardFocus += (_, _) => box.Text = ShortcutText(_shortcut);
         return box;
     }
@@ -334,21 +384,37 @@ public sealed class SettingsWindow : Window
             ShowShortcut(Strings.OffClickTheBoxAndPressACombinationToSet);
             return;
         }
-        if (key is Key.LeftCtrl or Key.RightCtrl or Key.LeftAlt or Key.RightAlt or Key.LeftShift or Key.RightShift or Key.LWin or Key.RWin)
+
+        if (key is Key.LeftCtrl or Key.RightCtrl or Key.LeftAlt or Key.RightAlt or Key.LeftShift or Key.RightShift
+            or Key.LWin or Key.RWin)
         {
             // Echo the held modifiers until the key arrives.
-            string[] held = [.. new[] { (ModifierKeys.Control, Strings.Ctrl), (ModifierKeys.Alt, Strings.Alt), (ModifierKeys.Shift, Strings.Shift), (ModifierKeys.Windows, Strings.Win) }
-                .Where(m => modifiers.HasFlag(m.Item1)).Select(m => m.Item2)];
+            string[] held =
+            [
+                .. new[]
+                    {
+                        (ModifierKeys.Control, Strings.Ctrl), (ModifierKeys.Alt, Strings.Alt),
+                        (ModifierKeys.Shift, Strings.Shift), (ModifierKeys.Windows, Strings.Win)
+                    }
+                    .Where(m => modifiers.HasFlag(m.Item1)).Select(m => m.Item2)
+            ];
             _shortcutBox.Text = held.Length == 0 ? ShortcutText(_shortcut) : string.Join(" + ", held) + " + …";
             return;
         }
+
         RecordShortcut(new HotkeyGesture(ToHotkeyModifiers(modifiers), KeyInterop.VirtualKeyFromKey(key)));
     }
 
     private void RecordShortcut(HotkeyGesture gesture)
     {
-        if (gesture.Problem is { } problem) ShowShortcut(Strings.Format(Strings.CanTBeUsed, gesture.DisplayText, problem));
-        else if (gesture != _shortcut && !_isShortcutAvailable(gesture)) ShowShortcut(Strings.Format(Strings.AnotherAppIsUsingChooseAnother, gesture.DisplayText));
+        if (gesture.Problem is { } problem)
+        {
+            ShowShortcut(Strings.Format(Strings.CanTBeUsed, gesture.DisplayText, problem));
+        }
+        else if (gesture != _shortcut && !_isShortcutAvailable(gesture))
+        {
+            ShowShortcut(Strings.Format(Strings.AnotherAppIsUsingChooseAnother, gesture.DisplayText));
+        }
         else
         {
             _shortcut = gesture;
@@ -362,13 +428,18 @@ public sealed class SettingsWindow : Window
         _shortcutStatus.Text = status;
     }
 
-    private static string ShortcutText(HotkeyGesture? gesture) => gesture?.DisplayText ?? Strings.None;
+    private static string ShortcutText(HotkeyGesture? gesture)
+    {
+        return gesture?.DisplayText ?? Strings.None;
+    }
 
-    private static HotkeyModifiers ToHotkeyModifiers(ModifierKeys modifiers) =>
-        (modifiers.HasFlag(ModifierKeys.Control) ? HotkeyModifiers.Control : 0) |
-        (modifiers.HasFlag(ModifierKeys.Alt) ? HotkeyModifiers.Alt : 0) |
-        (modifiers.HasFlag(ModifierKeys.Shift) ? HotkeyModifiers.Shift : 0) |
-        (modifiers.HasFlag(ModifierKeys.Windows) ? HotkeyModifiers.Windows : 0);
+    private static HotkeyModifiers ToHotkeyModifiers(ModifierKeys modifiers)
+    {
+        return (modifiers.HasFlag(ModifierKeys.Control) ? HotkeyModifiers.Control : 0) |
+               (modifiers.HasFlag(ModifierKeys.Alt) ? HotkeyModifiers.Alt : 0) |
+               (modifiers.HasFlag(ModifierKeys.Shift) ? HotkeyModifiers.Shift : 0) |
+               (modifiers.HasFlag(ModifierKeys.Windows) ? HotkeyModifiers.Windows : 0);
+    }
 
     private static TextBlock CreateHeading(string text)
     {
@@ -382,12 +453,15 @@ public sealed class SettingsWindow : Window
         return heading;
     }
 
-    private static string RetentionLabel(int seconds) => seconds switch
+    private static string RetentionLabel(int seconds)
     {
-        >= 3600 => Strings.Value60Minutes,
-        >= 1800 => Strings.Value30Minutes,
-        _ => Strings.Value10Minutes
-    };
+        return seconds switch
+        {
+            >= 3600 => Strings.Value60Minutes,
+            >= 1800 => Strings.Value30Minutes,
+            _ => Strings.Value10Minutes
+        };
+    }
 
     private static void AddField(Grid layout, string label, Control control, int row)
     {
@@ -425,17 +499,18 @@ public sealed class SettingsWindow : Window
             MinWidth = 90
         };
         cancelButton.SetResourceReference(BackgroundProperty, "Raised");
-        Controls.ButtonIcon.SetData(cancelButton, Controls.ButtonIcon.Cancel);
-        Controls.ButtonIcon.SetData(saveButton, Controls.ButtonIcon.Save);
+        ButtonIcon.SetData(cancelButton, ButtonIcon.Cancel);
+        ButtonIcon.SetData(saveButton, ButtonIcon.Save);
         cancelButton.SetResourceReference(ForegroundProperty, "Text");
         saveButton.SetResourceReference(BackgroundProperty, "Raised");
         saveButton.SetResourceReference(ForegroundProperty, "Text");
         saveButton.Click += SaveButton_Click;
 
         Button? checkButton = null;
-        if (Updates.UpdatePolicy.GitHubUpdatesEnabled && checkForUpdates is not null)
+        if (UpdatePolicy.GitHubUpdatesEnabled && checkForUpdates is not null)
         {
-            var button = new Button { Content = Strings.CheckForUpdates, MinWidth = 130, Margin = new Thickness(0, 0, 8, 0) };
+            var button = new Button
+                { Content = Strings.CheckForUpdates, MinWidth = 130, Margin = new Thickness(0, 0, 8, 0) };
             checkButton = button;
             button.SetResourceReference(BackgroundProperty, "Raised");
             button.SetResourceReference(ForegroundProperty, "Text");
@@ -443,10 +518,22 @@ public sealed class SettingsWindow : Window
             {
                 button.IsEnabled = false;
                 _updateCheckStatus.Text = Strings.UpdateChecking;
-                try { _updateCheckStatus.Text = await checkForUpdates(); }
-                catch (OperationCanceledException) { }
-                catch (Exception ex) { System.Diagnostics.Trace.TraceWarning("WinMon manual update check: {0}", ex.Message); _updateCheckStatus.Text = Strings.UpdateFailed; }
-                finally { button.IsEnabled = true; }
+                try
+                {
+                    _updateCheckStatus.Text = await checkForUpdates();
+                }
+                catch (OperationCanceledException)
+                {
+                }
+                catch (Exception ex)
+                {
+                    Trace.TraceWarning("WinMon manual update check: {0}", ex.Message);
+                    _updateCheckStatus.Text = Strings.UpdateFailed;
+                }
+                finally
+                {
+                    button.IsEnabled = true;
+                }
             };
         }
 
@@ -467,9 +554,11 @@ public sealed class SettingsWindow : Window
         var secondary = (_secondaryDriveSelector.SelectedItem as DriveChoice)?.Name;
         if (primary is null || primary == secondary)
         {
-            WinMon.Controls.MessageDialog.ShowNotice(this, Strings.ChooseAPrimaryVolumeAndADifferentSecondVolumeOr, Strings.DiskMonitoring);
+            MessageDialog.ShowNotice(this, Strings.ChooseAPrimaryVolumeAndADifferentSecondVolumeOr,
+                Strings.DiskMonitoring);
             return;
         }
+
         Result = ApplySettings(_initialPreferences, new MonitorPreferences
         {
             PrimaryDrive = primary,

@@ -3,9 +3,16 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
 
+// ReSharper disable ClassNeverInstantiated.Local
+
 namespace WinMon.Monitoring;
 
-internal sealed record ServiceObservation(string Name, string DisplayName, uint State, int ProcessId, uint ControlsAccepted)
+internal sealed record ServiceObservation(
+    string Name,
+    string DisplayName,
+    uint State,
+    int ProcessId,
+    uint ControlsAccepted)
 {
     internal bool HasHost => ProcessId > 0 && State is 4 or 7 or 5 or 6;
 }
@@ -15,7 +22,10 @@ internal sealed record ServiceCatalog(long ObservedFileTime, IReadOnlyList<Servi
 /// <summary>Local SCM enumeration and explicit service control. No driver services or host termination.</summary>
 internal static class WindowsServices
 {
-    internal static ServiceCatalog Capture() => new Reader().Capture();
+    internal static ServiceCatalog Capture()
+    {
+        return new Reader().Read();
+    }
 
     /// <summary>Enumerates services once per sample, reusing its buffer and every unchanged observation.</summary>
     /// <remarks>
@@ -25,11 +35,11 @@ internal static class WindowsServices
     internal sealed class Reader
     {
         private const int BufferBytes = 256 * 1024;
-        private readonly byte[] _buffer = GC.AllocateUninitializedArray<byte>(BufferBytes, pinned: true);
+        private readonly byte[] _buffer = GC.AllocateUninitializedArray<byte>(BufferBytes, true);
         private Dictionary<string, ServiceObservation> _previous = new(StringComparer.Ordinal);
         private Dictionary<string, ServiceObservation> _next = new(StringComparer.Ordinal);
 
-        internal ServiceCatalog Capture()
+        internal ServiceCatalog Read()
         {
             // Processes born after enumeration began cannot safely inherit an enumerated PID.
             var observed = DateTime.UtcNow.ToFileTimeUtc();
@@ -56,21 +66,24 @@ internal static class WindowsServices
                     if (!previous.TryGetValue(name, out var service) || service.State != item.Status.State ||
                         service.ProcessId != processId || service.ControlsAccepted != item.Status.Controls ||
                         !displayName.SequenceEqual(service.DisplayName))
-                    {
                         service = new ServiceObservation(service?.Name ?? name.ToString(),
-                            service is not null && displayName.SequenceEqual(service.DisplayName) ? service.DisplayName : displayName.ToString(),
+                            service is not null && displayName.SequenceEqual(service.DisplayName)
+                                ? service.DisplayName
+                                : displayName.ToString(),
                             item.Status.State, processId, item.Status.Controls);
-                    }
                     _next[service.Name] = service;
                     services.Add(service);
                 }
+
                 if (success)
                 {
                     (_previous, _next) = (_next, _previous);
                     return new ServiceCatalog(observed, services);
                 }
+
                 if (count == 0) throw new Win32Exception(234);
             }
+
             throw new Win32Exception(234);
         }
 
@@ -81,8 +94,7 @@ internal static class WindowsServices
             if (pointer == 0 || offset < 0 || offset >= BufferBytes || offset % 2 != 0) throw new Win32Exception(13);
             var chars = MemoryMarshal.Cast<byte, char>(_buffer.AsSpan((int)offset));
             var end = chars.IndexOf('\0');
-            if (end < 0) throw new Win32Exception(13);
-            return chars[..end];
+            return end < 0 ? throw new Win32Exception(13) : chars[..end];
         }
     }
 
@@ -92,7 +104,7 @@ internal static class WindowsServices
         if (action is not ("start" or "stop" or "restart")) throw new ArgumentException(nameof(action));
         using var manager = OpenSCManagerW(null, null, 1);
         CheckHandle(manager);
-        using var service = OpenServiceW(manager, name, 4u | (action == "start" ? 16u : action == "stop" ? 32u : 48u));
+        using var service = OpenServiceW(manager, name, 4u | action switch { "start" => 16u, "stop" => 32u, _ => 48u });
         CheckHandle(service);
         var status = Query(service);
         if (action == "start")
@@ -114,6 +126,7 @@ internal static class WindowsServices
             if (!ControlService(service, 1, out _)) throw new Win32Exception(Marshal.GetLastPInvokeError());
             await WaitAsync(service, 1, cancellationToken);
         }
+
         if (action is "start" or "restart")
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -134,9 +147,9 @@ internal static class WindowsServices
 
     private static Status Query(ServiceHandle service)
     {
-        if (!QueryServiceStatusEx(service, 0, out var status, Marshal.SizeOf<Status>(), out _))
-            throw new Win32Exception(Marshal.GetLastPInvokeError());
-        return status;
+        return QueryServiceStatusEx(service, 0, out var status, Marshal.SizeOf<Status>(), out _)
+            ? status
+            : throw new Win32Exception(Marshal.GetLastPInvokeError());
     }
 
     private static void CheckHandle(ServiceHandle handle)
@@ -144,10 +157,12 @@ internal static class WindowsServices
         if (handle.IsInvalid) throw new Win32Exception(Marshal.GetLastPInvokeError());
     }
 
-    private sealed class ServiceHandle : SafeHandleZeroOrMinusOneIsInvalid
+    private sealed class ServiceHandle() : SafeHandleZeroOrMinusOneIsInvalid(true)
     {
-        public ServiceHandle() : base(true) { }
-        protected override bool ReleaseHandle() => CloseServiceHandle(handle);
+        protected override bool ReleaseHandle()
+        {
+            return CloseServiceHandle(handle);
+        }
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -171,21 +186,28 @@ internal static class WindowsServices
 
     [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     private static extern ServiceHandle OpenSCManagerW(string? machine, string? database, uint access);
+
     [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     private static extern ServiceHandle OpenServiceW(ServiceHandle manager, string name, uint access);
+
     [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool EnumServicesStatusExW(ServiceHandle manager, int level, uint type, uint state,
         nint buffer, int bufferSize, out int needed, out int count, ref uint resume, string? group);
+
     [DllImport("advapi32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool QueryServiceStatusEx(ServiceHandle service, int level, out Status status, int size, out int needed);
+    private static extern bool QueryServiceStatusEx(ServiceHandle service, int level, out Status status, int size,
+        out int needed);
+
     [DllImport("advapi32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool ControlService(ServiceHandle service, uint control, out ControlStatus status);
+
     [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool StartServiceW(ServiceHandle service, int count, nint arguments);
+
     [DllImport("advapi32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool CloseServiceHandle(nint handle);

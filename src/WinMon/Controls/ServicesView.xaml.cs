@@ -1,14 +1,18 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Shapes;
 using WinMon.Monitoring;
 using WinMon.Preferences;
 
 namespace WinMon.Controls;
 
-public partial class ServicesView : UserControl
+public partial class ServicesView
 {
     private readonly ObservableCollection<ServiceDisplayRow> _rows = [];
     private readonly Dictionary<string, ServiceDisplayRow> _spareRows = [];
@@ -22,21 +26,24 @@ public partial class ServicesView : UserControl
     private ActionSelection? _actionSelection;
     private ServiceDisplayRow? _actionRow;
     private ServiceDisplayRow? _contextRow;
-    private bool _actionsHidden;
 
     internal bool ActionsHidden
     {
-        get => _actionsHidden;
+        get;
         set
         {
-            _actionsHidden = value;
+            field = value;
             UpdateActionBarVisibility();
         }
     }
 
-    private void UpdateActionBarVisibility() =>
+    private void UpdateActionBarVisibility()
+    {
         ActionBar.Visibility = ActionsHidden ? Visibility.Collapsed : Visibility.Visible;
+    }
+
     private sealed record ActionSelection(string? ServiceName, string RowKey);
+
     internal event Action<ProcessUsage>? ProcessRequested;
     internal event Action<string>? CopyRequested;
     internal event Action<int>? TopServiceCountChanged;
@@ -54,6 +61,7 @@ public partial class ServicesView : UserControl
         RefreshRows();
         ArrangeToolbar();
     }
+
     internal event Action<ServiceObservation, ProcessUsage?, string>? ActionRequested;
 
     public ServicesView()
@@ -64,6 +72,7 @@ public partial class ServicesView : UserControl
             header.MouseEnter += (_, _) => header.TextDecorations = TextDecorations.Underline;
             header.MouseLeave += (_, _) => header.TextDecorations = null;
         }
+
         Rows.ItemsSource = _rows;
         Rows.ContextMenu = new ContextMenu();
         TopCount.ItemsSource = TopCountChoices.Items;
@@ -72,14 +81,30 @@ public partial class ServicesView : UserControl
         _ready = true;
         Strings.Text.PropertyChanged += OnLanguageChanged;
         Unloaded += (_, _) => Strings.Text.PropertyChanged -= OnLanguageChanged;
-        Loaded += (_, _) => { Strings.Text.PropertyChanged -= OnLanguageChanged; Strings.Text.PropertyChanged += OnLanguageChanged; ArrangeToolbar(); ArrangeActionBar(); };
-        SizeChanged += (_, _) => { ArrangeToolbar(); ArrangeActionBar(); };
+        Loaded += (_, _) =>
+        {
+            Strings.Text.PropertyChanged -= OnLanguageChanged;
+            Strings.Text.PropertyChanged += OnLanguageChanged;
+            ArrangeToolbar();
+            ArrangeActionBar();
+        };
+        SizeChanged += (_, _) =>
+        {
+            ArrangeToolbar();
+            ArrangeActionBar();
+        };
         ToolbarGrid.SizeChanged += (_, _) => ArrangeToolbar();
         ActionControls.SizeChanged += (_, _) => ArrangeActionBar();
         RefreshRows();
     }
 
-    private void OnLanguageChanged(object? sender, PropertyChangedEventArgs e) { RefreshLabels(); RefreshRows(); ArrangeToolbar(); ArrangeActionBar(); }
+    private void OnLanguageChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        RefreshLabels();
+        RefreshRows();
+        ArrangeToolbar();
+        ArrangeActionBar();
+    }
 
     private void ArrangeActionBar()
     {
@@ -110,6 +135,7 @@ public partial class ServicesView : UserControl
         SearchBorder.Margin = wide ? new Thickness(12, 0, 12, 0) : new Thickness(0, 6, 12, 0);
         ServiceFilters.Margin = wide ? new Thickness() : new Thickness(0, 6, 0, 0);
     }
+
     private void RefreshLabels()
     {
         var topCount = TopServiceCount;
@@ -134,9 +160,21 @@ public partial class ServicesView : UserControl
         RefreshRows();
     }
 
-    internal void SetBusy(bool busy, string? error = null) { _busy = busy; _error = error; RefreshRows(); }
-    private void OnFilterChanged(object sender, RoutedEventArgs e) { if (_ready) { RefreshRows(); ArrangeToolbar(); } }
-    private void OnRankHeader(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    internal void SetBusy(bool busy, string? error = null)
+    {
+        _busy = busy;
+        _error = error;
+        RefreshRows();
+    }
+
+    private void OnFilterChanged(object sender, RoutedEventArgs e)
+    {
+        if (!_ready) return;
+        RefreshRows();
+        ArrangeToolbar();
+    }
+
+    private void OnRankHeader(object sender, MouseButtonEventArgs e)
     {
         Sort.SelectedIndex = ReferenceEquals(sender, CpuHeader) ? 0 : ReferenceEquals(sender, MemoryHeader) ? 1 : 2;
         e.Handled = true;
@@ -144,7 +182,8 @@ public partial class ServicesView : UserControl
 
     private void UpdateRankHeaders()
     {
-        (TextBlock Header, string Label)[] headers = [(CpuHeader, Strings.CpuColumn), (MemoryHeader, Strings.ServicePrivateMiB), (IoHeader, Strings.IOMBS)];
+        (TextBlock Header, string Label)[] headers =
+            [(CpuHeader, Strings.CpuColumn), (MemoryHeader, Strings.ServicePrivateMiB), (IoHeader, Strings.IOMBS)];
         for (var i = 0; i < headers.Length; i++)
         {
             var (header, label) = headers[i];
@@ -158,24 +197,33 @@ public partial class ServicesView : UserControl
             header.SetResourceReference(TextBlock.ForegroundProperty, active ? "Text" : "Muted");
         }
     }
+
     private void OnSearchChanged(object sender, TextChangedEventArgs e)
     {
         if (!_ready) return;
         ClearServiceSearchButton.Visibility = Search.Text.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
         RefreshRows();
     }
+
     private void OnClearSearch(object sender, RoutedEventArgs e)
     {
         Search.Clear();
         Search.Focus();
     }
-    internal void FocusSearch() { Search.Focus(); Search.SelectAll(); }
+
+    internal void FocusSearch()
+    {
+        Search.Focus();
+        Search.SelectAll();
+    }
+
     internal bool ClearSearch()
     {
         if (!Search.IsKeyboardFocusWithin || Search.Text.Length == 0) return false;
         Search.Clear();
         return true;
     }
+
     private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (_refreshing) return;
@@ -183,14 +231,17 @@ public partial class ServicesView : UserControl
         _actionSelection = _actionRow is { } row ? new ActionSelection(row.Service?.Name, row.Key) : null;
         UpdateButtons();
     }
+
     private void OnScrollChanged(object sender, ScrollChangedEventArgs e)
     {
         if (e.OriginalSource is not ScrollViewer scroll || scroll.ViewportWidth <= 0) return;
         // Match the row viewport, including the vertical scrollbar gutter, at every horizontal offset.
         HeaderScroll.Width = scroll.ViewportWidth;
-        ColumnHeaders.Width = Math.Max(ColumnHeaders.MinWidth, scroll.ViewportWidth - ColumnHeaders.Margin.Left - ColumnHeaders.Margin.Right);
+        ColumnHeaders.Width = Math.Max(ColumnHeaders.MinWidth,
+            scroll.ViewportWidth - ColumnHeaders.Margin.Left - ColumnHeaders.Margin.Right);
         HeaderScroll.ScrollToHorizontalOffset(e.HorizontalOffset);
     }
+
     private void OnExpand(object sender, RoutedEventArgs e)
     {
         if ((sender as FrameworkElement)?.DataContext is not ServiceDisplayRow row) return;
@@ -205,7 +256,11 @@ public partial class ServicesView : UserControl
         RefreshRows();
     }
 
-    internal void ExpandGroup(string key) { _expanded.Add(key); RefreshRows(); }
+    internal void ExpandGroup(string key)
+    {
+        _expanded.Add(key);
+        RefreshRows();
+    }
 
     private void RefreshRows()
     {
@@ -224,12 +279,12 @@ public partial class ServicesView : UserControl
             // Expansion state is session-local and bounded to retained service lifetimes.
             _expanded.RemoveWhere(k => !Retained(k));
             var query = Search.Text.Trim();
-            var filtered = groups.Where(g => Matches(g, query) && (StatusFilter.SelectedIndex switch
+            var filtered = groups.Where(g => Matches(g, query) && StatusFilter.SelectedIndex switch
             {
                 1 => g.Services.Any(s => s.State == 4),
                 2 => g.Services.Any(s => s.State == 1),
                 _ => true
-            }));
+            });
             var ordered = Sort.SelectedIndex switch
             {
                 1 => filtered.OrderByDescending(g => RankedMetrics(g).PrivateBytes),
@@ -238,24 +293,30 @@ public partial class ServicesView : UserControl
             };
             var peak = 0d;
             foreach (var past in _history)
-                if (past.Index.PeakCpu(workers) is var busiest && busiest > peak) peak = busiest;
+                if (past.Index.PeakCpu(workers) is var busiest && busiest > peak)
+                    peak = busiest;
             var scale = Math.Max(1, peak * 1.1);
             foreach (var group in TopCountChoices.Limit(
-                ordered.ThenBy(g => g.Services[0].DisplayName, StringComparer.CurrentCultureIgnoreCase), TopServiceCount))
+                         ordered.ThenBy(g => g.Services[0].DisplayName, StringComparer.CurrentCultureIgnoreCase),
+                         TopServiceCount))
             {
                 Add(group.Key, group, null, null, false, true);
                 if (!_expanded.Contains(group.Key)) continue;
                 if (group.Shared)
-                    foreach (var service in group.Services.OrderBy(s => s.DisplayName, StringComparer.CurrentCultureIgnoreCase))
+                    foreach (var service in group.Services.OrderBy(s => s.DisplayName,
+                                 StringComparer.CurrentCultureIgnoreCase))
                         Add(group.Key + ":service:" + service.Name, group, null, service, true, false);
-                var processes = Workers.IsChecked == true ? group.Processes : group.Host is null ? [] : new[] { group.Host };
+                var processes = Workers.IsChecked == true ? group.Processes :
+                    group.Host is null ? [] : new[] { group.Host };
                 foreach (var process in processes.OrderBy(p => p == group.Host ? 0 : 1)
-                    .ThenByDescending(p => ranking.Processes.GetValueOrDefault((p.ProcessId, p.CreationTicks))?.Cpu))
+                             .ThenByDescending(p =>
+                                 ranking.Processes.GetValueOrDefault((p.ProcessId, p.CreationTicks))?.Cpu))
                 {
-                    if (group.Shared && group.Processes.Count == 1 && process == group.Host) continue;
+                    if (group is { Shared: true, Processes.Count: 1 } && process == group.Host) continue;
                     Add($"process:{process.ProcessId}:{process.CreationTicks}", group, process, null, true, false);
                 }
             }
+
             // Move rows into place rather than reset the list: a reset re-creates every visible row's
             // container and lays out its text again, and the CPU order changes most seconds.
             for (var i = 0; i < desired.Count; i++)
@@ -263,39 +324,54 @@ public partial class ServicesView : UserControl
                 if (i < _rows.Count && ReferenceEquals(_rows[i], desired[i])) continue;
                 var from = -1;
                 for (var j = i + 1; j < _rows.Count; j++)
-                    if (ReferenceEquals(_rows[j], desired[i])) { from = j; break; }
+                    if (ReferenceEquals(_rows[j], desired[i]))
+                    {
+                        from = j;
+                        break;
+                    }
+
                 if (from >= 0) _rows.Move(from, i);
                 else _rows.Insert(i, desired[i]);
             }
+
             while (_rows.Count > desired.Count) _rows.RemoveAt(_rows.Count - 1);
             // Keep the header rows of groups still observed, so a group re-entering the top rows keeps its row and
             // graph. Child rows are not kept: a worker that exited would otherwise be kept while its host runs.
             _spareRows.Clear();
             var shown = desired.ToHashSet();
             foreach (var (key, row) in old)
-                if (!shown.Contains(row) && key == row.Group.Key && _frame?.Index.IndexOf(key) >= 0) _spareRows[key] = row;
+                if (!shown.Contains(row) && key == row.Group.Key && _frame?.Index.IndexOf(key) >= 0)
+                    _spareRows[key] = row;
             RefreshActionSelection(groups);
             Rows.SelectedItem = _actionRow is null ? null : _rows.FirstOrDefault(r => r.Key == _actionRow.Key);
-            Notice.Text = _error ?? (_busy ? Strings.ServiceActionInProgress : _frame is null ?
-                (_historical ? Strings.ServiceHistoryExpired : Strings.ServicesCollecting) : !_frame.Available ? Strings.ServicesUnavailable :
+            Notice.Text = _error ?? (_busy ? Strings.ServiceActionInProgress :
+                _frame is null ? _historical ? Strings.ServiceHistoryExpired : Strings.ServicesCollecting :
+                !_frame.Available ? Strings.ServicesUnavailable :
                 _rows.Count == 0 ? Strings.NoServicesMatch : string.Empty);
             Notice.Visibility = Notice.Text.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
 
-            ServiceMetrics RankedMetrics(ServiceGroup group) => ranking.Groups.GetValueOrDefault(group.Key) ?? ServiceMetrics.None;
+            ServiceMetrics RankedMetrics(ServiceGroup group)
+            {
+                return ranking.Groups.GetValueOrDefault(group.Key) ?? ServiceMetrics.None;
+            }
 
             // Newest first: an expanded group is almost always in the latest frame.
             bool Retained(string key)
             {
                 for (var i = _history.Count - 1; i >= 0; i--)
-                    if (_history[i].Index.IndexOf(key) >= 0) return true;
+                    if (_history[i].Index.IndexOf(key) >= 0)
+                        return true;
                 return false;
             }
 
-            void Add(string key, ServiceGroup group, ProcessUsage? process, ServiceObservation? service, bool child, bool header)
+            void Add(string key, ServiceGroup group, ProcessUsage? process, ServiceObservation? service, bool child,
+                bool header)
             {
                 if (!old.TryGetValue(key, out var row)) row = new ServiceDisplayRow(key);
                 var metrics = service is not null && group.Shared ? ServiceMetrics.None :
-                    process is null ? RankedMetrics(group) : ranking.Processes.GetValueOrDefault((process.ProcessId, process.CreationTicks)) ?? ServiceMetrics.None;
+                    process is null ? RankedMetrics(group) :
+                    ranking.Processes.GetValueOrDefault((process.ProcessId, process.CreationTicks)) ??
+                    ServiceMetrics.None;
                 row.Update(group, process, service, child, header, _expanded.Contains(group.Key), workers, metrics);
                 if (service is null && (process is not null || group.Host is not null))
                 {
@@ -305,23 +381,42 @@ public partial class ServicesView : UserControl
                         var frame = _history[i];
                         values[i] = null;
                         if (!frame.Available || frame.Index.IndexOf(group.Key) is not (var position and >= 0)) continue;
-                        values[i] = process is null ? frame.Index.Metrics(position, workers).Cpu :
-                            frame.Groups[position].Processes.FirstOrDefault(p => p.ProcessId == process.ProcessId && p.CreationTicks == process.CreationTicks)?.CpuPercent;
+                        values[i] = process is null
+                            ? frame.Index.Metrics(position, workers).Cpu
+                            : frame.Groups[position].Processes.FirstOrDefault(p =>
+                                    p.ProcessId == process.ProcessId && p.CreationTicks == process.CreationTicks)
+                                ?.CpuPercent;
                     }
+
                     var identity = process ?? group.Host!;
                     row.Graph.SetProcessData(new ProcessGraphData(moments, values, scale), 120, identity);
                     row.Graph.Visibility = Visibility.Visible;
                 }
-                else row.Graph.Visibility = Visibility.Hidden;
+                else
+                {
+                    row.Graph.Visibility = Visibility.Hidden;
+                }
+
                 desired.Add(row);
             }
         }
-        finally { _refreshing = false; UpdateButtons(); }
+        finally
+        {
+            _refreshing = false;
+            UpdateButtons();
+        }
     }
 
-    private static bool Matches(ServiceGroup group, string query) => query.Length == 0 ||
-        group.Services.Any(s => s.Name.Contains(query, StringComparison.OrdinalIgnoreCase) || s.DisplayName.Contains(query, StringComparison.CurrentCultureIgnoreCase)) ||
-        group.Processes.Any(p => p.Name.Contains(query, StringComparison.OrdinalIgnoreCase) || p.ProcessId.ToString(CultureInfo.InvariantCulture).Contains(query, StringComparison.Ordinal));
+    private static bool Matches(ServiceGroup group, string query)
+    {
+        return query.Length == 0 ||
+               group.Services.Any(s =>
+                   s.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                   s.DisplayName.Contains(query, StringComparison.CurrentCultureIgnoreCase)) ||
+               group.Processes.Any(p =>
+                   p.Name.Contains(query, StringComparison.OrdinalIgnoreCase) || p.ProcessId
+                       .ToString(CultureInfo.InvariantCulture).Contains(query, StringComparison.Ordinal));
+    }
 
     private void RefreshActionSelection(IReadOnlyList<ServiceGroup> groups)
     {
@@ -338,7 +433,8 @@ public partial class ServicesView : UserControl
             bool header;
             if (selection.ServiceName is { } name)
             {
-                service = group.Services.FirstOrDefault(s => string.Equals(s.Name, name, StringComparison.OrdinalIgnoreCase));
+                service = group.Services.FirstOrDefault(s =>
+                    string.Equals(s.Name, name, StringComparison.OrdinalIgnoreCase));
                 if (service is null) continue;
                 header = !group.Shared;
                 key = header ? group.Key : group.Key + ":service:" + service.Name;
@@ -350,21 +446,26 @@ public partial class ServicesView : UserControl
             }
             else
             {
-                process = group.Processes.FirstOrDefault(p => $"process:{p.ProcessId}:{p.CreationTicks}" == selection.RowKey);
+                process = group.Processes.FirstOrDefault(p =>
+                    $"process:{p.ProcessId}:{p.CreationTicks}" == selection.RowKey);
                 if (process is null) continue;
                 header = false;
                 key = selection.RowKey;
             }
+
             _actionRow = _rows.FirstOrDefault(r => r.Key == key);
             if (_actionRow is null)
             {
                 _actionRow = previous?.Key == key ? previous : new ServiceDisplayRow(key);
-                _actionRow.Update(group, process, header ? null : service, !header, header, _expanded.Contains(group.Key),
+                _actionRow.Update(group, process, header ? null : service, !header, header,
+                    _expanded.Contains(group.Key),
                     Workers.IsChecked == true, new ServiceMetrics(null, null, null));
             }
-            _actionSelection = new ActionSelection(selection.ServiceName, key);
+
+            _actionSelection = selection with { RowKey = key };
             return;
         }
+
         _actionSelection = null;
     }
 
@@ -384,85 +485,129 @@ public partial class ServicesView : UserControl
         SelectionStatusBadge.Visibility = SelectionStatus.Text.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
         var statusBrush = row?.IsRunning == true ? "Accent" : "Muted";
         SelectionStatus.SetResourceReference(TextBlock.ForegroundProperty, statusBrush);
-        SelectionStatusDot.SetResourceReference(System.Windows.Shapes.Shape.FillProperty, statusBrush);
+        SelectionStatusDot.SetResourceReference(Shape.FillProperty, statusBrush);
         SelectionStatusBadge.SetResourceReference(Border.BorderBrushProperty, statusBrush);
         ActionAccent.SetResourceReference(Border.BackgroundProperty, row is null ? "Line" : "Accent");
-        Stop.BorderBrush = SystemParameters.HighContrast ? SystemColors.WindowTextBrush :
-            (System.Windows.Media.Brush)Resources["ServiceStopOutline"];
+        Stop.BorderBrush = SystemParameters.HighContrast
+            ? SystemColors.WindowTextBrush
+            : (Brush)FindResource("ServiceStopOutline");
     }
 
     private void OnViewProcess(object sender, RoutedEventArgs e)
     {
         if (_actionRow?.Process is { } process) ProcessRequested?.Invoke(process);
     }
+
     private void OnCopyDetails(object sender, RoutedEventArgs e)
     {
         if (_actionRow is { } row && FormatDetails(row) is { } text) CopyRequested?.Invoke(text);
     }
+
     private string? FormatDetails(ServiceDisplayRow row)
     {
         if (_frame?.Available != true) return null;
         var workers = Workers.IsChecked == true;
         var ranking = ServiceRanking.Build(_history, workers);
         // Shared service children have no individually attributable metrics.
-        var metrics = row.Service is not null && row.Group.Shared ? null : row.Key == row.Group.Key
-            ? ranking.Groups.GetValueOrDefault(row.Group.Key)
-            : row.Process is { } process ? ranking.Processes.GetValueOrDefault((process.ProcessId, process.CreationTicks)) : null;
-        var text = new System.Text.StringBuilder();
+        var metrics = row.Service is not null && row.Group.Shared
+            ? null
+            : row.Key == row.Group.Key
+                ? ranking.Groups.GetValueOrDefault(row.Group.Key)
+                : row.Process is { } process
+                    ? ranking.Processes.GetValueOrDefault((process.ProcessId, process.CreationTicks))
+                    : null;
+        var text = new StringBuilder();
         text.AppendLine(row.Name);
         text.AppendLine(row.Detail);
         if (row.Status.Length > 0) text.AppendLine($"{Strings.ServiceStatus}: {row.Status}");
         text.AppendLine($"{Strings.ProcessObservationLabel}: {_frame.Sample.Timestamp.ToLocalTime():G}");
-        text.AppendLine($"{Strings.ProcessViewLabel}: {(_historical ? Strings.ProcessHistoricalView : Strings.LiveMode)}");
+        text.AppendLine(
+            $"{Strings.ProcessViewLabel}: {(_historical ? Strings.ProcessHistoricalView : Strings.LiveMode)}");
         text.AppendLine(workers ? Strings.ServiceWorkersIncluded : Strings.ServiceHostOnly);
-        text.AppendLine($"{Strings.CPU}: {(metrics?.Cpu is { } cpu ? Strings.Format(Strings.PercentOneDecimal, cpu) : Strings.MissingReading)}");
-        text.AppendLine($"{Strings.ServicePrivateMiB}: {(metrics?.PrivateBytes is { } memory ? (memory / 1048576d).ToString("N0", CultureInfo.CurrentCulture) : Strings.MissingReading)}");
-        text.AppendLine($"{Strings.IOMBS}: {(metrics?.Io is { } io ? (io / 1000000d).ToString("N2", CultureInfo.CurrentCulture) : Strings.MissingReading)}");
+        text.AppendLine(
+            $"{Strings.CPU}: {(metrics?.Cpu is { } cpu ? Strings.Format(Strings.PercentOneDecimal, cpu) : Strings.MissingReading)}");
+        text.AppendLine(
+            $"{Strings.ServicePrivateMiB}: {(metrics?.PrivateBytes is { } memory ? (memory / 1048576d).ToString("N0", CultureInfo.CurrentCulture) : Strings.MissingReading)}");
+        text.AppendLine(
+            $"{Strings.IOMBS}: {(metrics?.Io is { } io ? (io / 1000000d).ToString("N2", CultureInfo.CurrentCulture) : Strings.MissingReading)}");
         text.AppendLine($"{Strings.Services}:");
-        foreach (var service in row.Service is { } selected ? new[] { selected } : row.Group.Services)
+        foreach (var service in row.Service is { } selected ? [selected] : row.Group.Services)
             text.AppendLine($"  {service.DisplayName} ({service.Name}) · {ServiceDisplayRow.StateText(service.State)}");
-        var processes = row.Key != row.Group.Key && row.Service is null && row.Process is { } child ? new[] { child } :
-            workers ? row.Group.Processes : row.Group.Host is { } host ? new[] { host } : [];
+        var processes = row.Key != row.Group.Key && row.Service is null && row.Process is { } child ? [child] :
+            workers ? row.Group.Processes :
+            row.Group.Host is { } host ? new[] { host } : [];
         foreach (var member in processes)
             text.AppendLine($"  {member.Name} · {Strings.Format(Strings.PID, member.ProcessId)}");
         return text.ToString();
     }
-    private void OnStart(object sender, RoutedEventArgs e) => Request("start");
-    private void OnStop(object sender, RoutedEventArgs e) => Request("stop");
-    private void OnRestart(object sender, RoutedEventArgs e) => Request("restart");
+
+    private void OnStart(object sender, RoutedEventArgs e)
+    {
+        Request("start");
+    }
+
+    private void OnStop(object sender, RoutedEventArgs e)
+    {
+        Request("stop");
+    }
+
+    private void OnRestart(object sender, RoutedEventArgs e)
+    {
+        Request("restart");
+    }
+
     private void Request(string action)
     {
         if (_actionRow is { Service: { } service } row) RequestService(service, row.Group.Host, action);
     }
 
-    private bool CanServiceAction(ServiceObservation? service, ProcessUsage? host, string action) =>
-        !_historical && !_busy && _frame?.Available == true && service is not null &&
-        (action == "start" ? service.State == 1 : service.State is 4 or 7 && (service.ControlsAccepted & 1) != 0 && host is not null);
+    private bool CanServiceAction(ServiceObservation? service, ProcessUsage? host, string action)
+    {
+        return !_historical && !_busy && _frame?.Available == true && service is not null &&
+               (action == "start"
+                   ? service.State == 1
+                   : service.State is 4 or 7 && (service.ControlsAccepted & 1) != 0 && host is not null);
+    }
 
     private void RequestService(ServiceObservation service, ProcessUsage? host, string action)
     {
         if (!CanServiceAction(service, host, action)) return;
         // Popup targets are immutable. Reject changed status or a replaced host instead of redirecting.
-        var group = _frame!.Groups.FirstOrDefault(g => g.Services.Any(s => string.Equals(s.Name, service.Name, StringComparison.OrdinalIgnoreCase)));
-        var current = group?.Services.FirstOrDefault(s => string.Equals(s.Name, service.Name, StringComparison.OrdinalIgnoreCase));
+        var group = _frame!.Groups.FirstOrDefault(g =>
+            g.Services.Any(s => string.Equals(s.Name, service.Name, StringComparison.OrdinalIgnoreCase)));
+        var current =
+            group?.Services.FirstOrDefault(s =>
+                string.Equals(s.Name, service.Name, StringComparison.OrdinalIgnoreCase));
         if (current is null || current.State != service.State || current.ProcessId != service.ProcessId ||
             group?.Host?.ProcessId != host?.ProcessId || group?.Host?.CreationTicks != host?.CreationTicks ||
             !CanServiceAction(current, group?.Host, action)) return;
         ActionRequested?.Invoke(service, host, action);
     }
 
-    private void OnRowRightClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    private void OnRowRightClick(object sender, MouseButtonEventArgs e)
     {
         _contextRow = null;
-        if (e.OriginalSource is DependencyObject source && ItemsControl.ContainerFromElement(Rows, source) is ListBoxItem item)
-        { _contextRow = item.DataContext as ServiceDisplayRow; item.IsSelected = true; item.Focus(); }
+        if (e.OriginalSource is not DependencyObject source ||
+            ItemsControl.ContainerFromElement(Rows, source) is not ListBoxItem item) return;
+        _contextRow = item.DataContext as ServiceDisplayRow;
+        item.IsSelected = true;
+        item.Focus();
     }
 
     private void OnServiceMenuOpening(object sender, ContextMenuEventArgs e)
     {
-        var row = e.OriginalSource is DependencyObject source && ItemsControl.ContainerFromElement(Rows, source) is ListBoxItem item
-            ? item.DataContext as ServiceDisplayRow : e.CursorLeft < 0 ? Rows.SelectedItem as ServiceDisplayRow : _contextRow;
-        if (row is null || CreateServiceMenu(row) is not { } menu) { e.Handled = true; return; }
+        var row = e.OriginalSource is DependencyObject source &&
+                  ItemsControl.ContainerFromElement(Rows, source) is ListBoxItem item
+            ? item.DataContext as ServiceDisplayRow
+            : e.CursorLeft < 0
+                ? Rows.SelectedItem as ServiceDisplayRow
+                : _contextRow;
+        if (row is null || CreateServiceMenu(row) is not { } menu)
+        {
+            e.Handled = true;
+            return;
+        }
+
         // A placeholder menu already exists, so WPF can use the replacement on the first invocation.
         Rows.ContextMenu = menu;
     }
@@ -478,19 +623,31 @@ public partial class ServicesView : UserControl
         var menu = new ContextMenu();
         menu.SetResourceReference(BackgroundProperty, "Raised");
         menu.SetResourceReference(ForegroundProperty, "Text");
-        Add(Strings.ViewServiceProcess, ButtonIcon.Process, process is not null, () => { if (process is not null) ProcessRequested?.Invoke(process); });
-        Add(Strings.CopyDetails, ButtonIcon.Copy, details is not null, () => { if (details is not null) CopyRequested?.Invoke(details); });
+        Add(Strings.ViewServiceProcess, ButtonIcon.Process, process is not null, () =>
+        {
+            if (process is not null) ProcessRequested?.Invoke(process);
+        });
+        Add(Strings.CopyDetails, ButtonIcon.Copy, details is not null, () =>
+        {
+            if (details is not null) CopyRequested?.Invoke(details);
+        });
         menu.Items.Add(new Separator());
-        Add(Strings.StartService, ButtonIcon.Start, CanServiceAction(service, host, "start"), () => RequestService(service!, host, "start"));
-        Add(Strings.StopService, ButtonIcon.Stop, CanServiceAction(service, host, "stop"), () => RequestService(service!, host, "stop"));
-        Add(Strings.RestartService, ButtonIcon.Live, CanServiceAction(service, host, "restart"), () => RequestService(service!, host, "restart"));
+        Add(Strings.StartService, ButtonIcon.Start, CanServiceAction(service, host, "start"),
+            () => RequestService(service!, host, "start"));
+        Add(Strings.StopService, ButtonIcon.Stop, CanServiceAction(service, host, "stop"),
+            () => RequestService(service!, host, "stop"));
+        Add(Strings.RestartService, ButtonIcon.Live, CanServiceAction(service, host, "restart"),
+            () => RequestService(service!, host, "restart"));
         return menu;
 
-        void Add(string label, System.Windows.Media.Geometry icon, bool enabled, Action action)
+        void Add(string label, Geometry icon, bool enabled, Action action)
         {
             var entry = ProcessRow.ActionItem(label, icon);
             entry.IsEnabled = enabled;
-            entry.Click += (_, _) => { if (enabled) action(); };
+            entry.Click += (_, _) =>
+            {
+                if (enabled) action();
+            };
             menu.Items.Add(entry);
         }
     }
@@ -517,25 +674,37 @@ internal sealed class ServiceDisplayRow(string key) : INotifyPropertyChanged
     internal ProcessUsage? Process { get; private set; }
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    internal void Update(ServiceGroup group, ProcessUsage? process, ServiceObservation? service, bool child, bool header, bool expanded, bool workers, ServiceMetrics metrics)
+    internal void Update(ServiceGroup group, ProcessUsage? process, ServiceObservation? service, bool child,
+        bool header, bool expanded, bool workers, ServiceMetrics metrics)
     {
         var shown = Shown();
         Group = group;
         Service = service ?? (header && !group.Shared ? group.Services[0] : null);
         Process = process ?? group.Host;
-        Name = process?.Name ?? (header && group.Shared ? Strings.Format(Strings.SharedServiceHost, group.Host?.Name ?? "", group.Services[0].ProcessId) : (service ?? group.Services[0]).DisplayName);
+        Name = process?.Name ?? (header && group.Shared
+            ? Strings.Format(Strings.SharedServiceHost, group.Host?.Name ?? "", group.Services[0].ProcessId)
+            : (service ?? group.Services[0]).DisplayName);
         ExpandLabel = Strings.Format(Strings.ExpandService, Name);
-        Detail = process is not null ? Strings.Format(Strings.ServiceProcessPid, process.ProcessId) : header ?
-            group.Shared ? Strings.Format(Strings.SharedServiceCount, group.Services.Count) : group.Services[0].Name + " · " +
-                (workers && group.Processes.Count > 1 ? Strings.Format(Strings.ServiceHostWorkers, group.Processes.Count - 1) : Strings.ServiceDedicatedHost) : service!.Name + " · " + Strings.IncludedInHostTotal;
-        Status = process is not null ? "" : header && group.Shared ? "" : StateText((service ?? group.Services[0]).State);
+        Detail = process is not null ? Strings.Format(Strings.ServiceProcessPid, process.ProcessId) :
+            header ? group.Shared
+                ? Strings.Format(Strings.SharedServiceCount, group.Services.Count)
+                : group.Services[0].Name + " · " +
+                  (workers && group.Processes.Count > 1
+                      ? Strings.Format(Strings.ServiceHostWorkers, group.Processes.Count - 1)
+                      : Strings.ServiceDedicatedHost) : service!.Name + " · " + Strings.IncludedInHostTotal;
+        Status = process is not null ? "" :
+            header && group.Shared ? "" : StateText((service ?? group.Services[0]).State);
         IsRunning = Status.Length > 0 && (service ?? group.Services[0]).State == 4;
         Icon = process is not null ? "\uE8A5" : "\uE713";
         Indent = new Thickness(child ? 30 : 0, 4, 8, 4);
         ExpandGlyph = expanded ? "⌄" : "›";
-        ExpandVisibility = header && (group.Host is not null || group.Shared) ? Visibility.Visible : Visibility.Collapsed;
+        ExpandVisibility = header && (group.Host is not null || group.Shared)
+            ? Visibility.Visible
+            : Visibility.Collapsed;
         Cpu = metrics.Cpu is { } cpu ? Strings.Format(Strings.PercentOneDecimal, cpu) : Strings.MissingReading;
-        Memory = metrics.PrivateBytes is { } memory ? (memory / 1048576d).ToString("N0", CultureInfo.CurrentCulture) : Strings.MissingReading;
+        Memory = metrics.PrivateBytes is { } memory
+            ? (memory / 1048576d).ToString("N0", CultureInfo.CurrentCulture)
+            : Strings.MissingReading;
         Io = metrics.Io is { } io ? (io / 1000000d).ToString("N2", CultureInfo.CurrentCulture) : Strings.MissingReading;
         // Most rows are unchanged each second; refreshing every binding would re-lay out their text anyway.
         if (Shown() != shown) PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(string.Empty));
@@ -543,16 +712,28 @@ internal sealed class ServiceDisplayRow(string key) : INotifyPropertyChanged
 
     // The graph keeps this array only to draw it, and the row replaces its data before the next redraw.
     private double?[] _graphValues = [];
-    internal double?[] GraphValues(int length) =>
-        _graphValues.Length == length ? _graphValues : _graphValues = new double?[length];
+
+    internal double?[] GraphValues(int length)
+    {
+        return _graphValues.Length == length ? _graphValues : _graphValues = new double?[length];
+    }
 
     // Every bound value; ExpandLabel also follows the UI language.
-    private (string, string, string, bool, string, string, string, string, string, string, Visibility, Thickness) Shown() =>
-        (Name, Detail, Status, IsRunning, Cpu, Memory, Io, Icon, ExpandGlyph, ExpandLabel, ExpandVisibility, Indent);
-
-    internal static string StateText(uint state) => state switch
+    private (string, string, string, bool, string, string, string, string, string, string, Visibility, Thickness)
+        Shown()
     {
-        1 => Strings.ServiceStopped, 2 => Strings.ServiceStarting, 3 => Strings.ServiceStopping, 4 => Strings.ServiceRunning,
-        5 => Strings.ServiceContinuing, 6 => Strings.ServicePausing, 7 => Strings.ServicePaused, _ => Strings.Unavailable
-    };
+        return (Name, Detail, Status, IsRunning, Cpu, Memory, Io, Icon, ExpandGlyph, ExpandLabel, ExpandVisibility,
+            Indent);
+    }
+
+    internal static string StateText(uint state)
+    {
+        return state switch
+        {
+            1 => Strings.ServiceStopped, 2 => Strings.ServiceStarting, 3 => Strings.ServiceStopping,
+            4 => Strings.ServiceRunning,
+            5 => Strings.ServiceContinuing, 6 => Strings.ServicePausing, 7 => Strings.ServicePaused,
+            _ => Strings.Unavailable
+        };
+    }
 }

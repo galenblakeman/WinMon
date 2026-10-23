@@ -7,7 +7,10 @@ internal static class UpdateLauncher
     private static EventWaitHandle? _commit;
     private static EventWaitHandle? _cancel;
 
-    internal static string EventName(string token, string kind) => @"Local\WinMon.Update." + token + "." + kind;
+    internal static string EventName(string token, string kind)
+    {
+        return @"Local\WinMon.Update." + token + "." + kind;
+    }
 
     internal static async Task StartAsync(PreparedUpdate update, CancellationToken cancellationToken)
     {
@@ -21,7 +24,8 @@ internal static class UpdateLauncher
         {
             var helper = Path.Combine(directory, "WinMon.Update.exe");
             File.Copy(Environment.ProcessPath!, helper, false);
-            var start = new ProcessStartInfo(helper) { UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = directory };
+            var start = new ProcessStartInfo(helper)
+                { UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = directory };
             start.ArgumentList.Add("--apply-update");
             start.ArgumentList.Add(directory);
             start.ArgumentList.Add(job.Token);
@@ -30,15 +34,29 @@ internal static class UpdateLauncher
             while (!ready.WaitOne(0))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                if (process.HasExited || DateTime.UtcNow >= deadline) throw new IOException("The updater did not become ready.");
+                if (process.HasExited || DateTime.UtcNow >= deadline)
+                    throw new IOException("The updater did not become ready.");
                 await Task.Delay(100, cancellationToken).ConfigureAwait(false);
             }
         }
-        catch { Cancel(); Dispose(); throw; }
+        catch
+        {
+            Cancel();
+            Dispose();
+            throw;
+        }
     }
 
-    internal static void Commit() => _commit?.Set();
-    internal static void Cancel() => _cancel?.Set();
+    internal static void Commit()
+    {
+        _commit?.Set();
+    }
+
+    internal static void Cancel()
+    {
+        _cancel?.Set();
+    }
+
     internal static void Dispose()
     {
         _commit?.Dispose();

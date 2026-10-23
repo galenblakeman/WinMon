@@ -8,7 +8,10 @@ internal sealed class WindowsAppWindowProvider
     private readonly HashSet<int> _processIds = [];
     private readonly EnumWindowsCallback _callback;
 
-    internal WindowsAppWindowProvider() => _callback = Observe;
+    internal WindowsAppWindowProvider()
+    {
+        _callback = Observe;
+    }
 
     // The returned set is reused on the next capture. A failed enumeration is unavailable, not background.
     internal IReadOnlySet<int>? Capture()

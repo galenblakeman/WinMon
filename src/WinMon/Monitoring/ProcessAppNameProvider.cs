@@ -8,7 +8,10 @@ namespace WinMon.Monitoring;
 internal sealed class ProcessAppNameProvider
 {
     private const int Capacity = 1024;
-    private readonly Dictionary<string, (string Description, string Product, string Publisher)> _cache = new(StringComparer.OrdinalIgnoreCase);
+
+    private readonly Dictionary<string, (string Description, string Product, string Publisher)> _cache =
+        new(StringComparer.OrdinalIgnoreCase);
+
     private readonly Func<string, (string Description, string Product, string Publisher)> _read;
 
     internal ProcessAppNameProvider(Func<string, (string Description, string Product, string Publisher)>? read = null)
@@ -24,11 +27,13 @@ internal sealed class ProcessAppNameProvider
         {
             names = _read(path);
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or Win32Exception or ArgumentException or SecurityException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or Win32Exception
+                                       or ArgumentException or SecurityException)
         {
             // An inaccessible or removed executable must not interrupt process sampling.
             names = ("", "", "");
         }
+
         if (_cache.Count >= Capacity) _cache.Remove(_cache.Keys.First());
         _cache[path] = names;
         return names;

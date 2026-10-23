@@ -1,8 +1,14 @@
 using System.Diagnostics;
 using System.Text.Json;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Media;
+using WinMon.Controls;
 using WinMon.Monitoring;
 using WinMon.Preferences;
+
+// ReSharper disable StringLiteralTypo
 
 namespace WinMon;
 
@@ -22,7 +28,8 @@ public partial class App
         {
             exit = 1;
             Directory.CreateDirectory(output);
-            await File.WriteAllTextAsync(Path.Combine(output, "failure.txt"), ex.ToString());
+            // Record the failure even when it was the timeout.
+            await File.WriteAllTextAsync(Path.Combine(output, "failure.txt"), ex.ToString(), CancellationToken.None);
         }
         finally
         {
@@ -39,15 +46,20 @@ public partial class MainWindow
 {
     private static async Task CaptureServiceWindowAsync(Window window, string path, CancellationToken cancellationToken)
     {
-        try { await CaptureExampleWindowAsync(window, path, cancellationToken); }
+        try
+        {
+            await CaptureExampleWindowAsync(window, path, cancellationToken);
+        }
         catch (InvalidOperationException ex) when (ex.Message.Contains("must be foreground", StringComparison.Ordinal))
         {
             // Content-only QA remains useful for the controls when Windows denies foreground activation.
             // Keep it clearly separate from native-composed screenshots; never substitute it in the gallery.
-            var contentPath = Path.Combine(Path.GetDirectoryName(path)!, Path.GetFileNameWithoutExtension(path) + "-content.png");
+            var contentPath = Path.Combine(Path.GetDirectoryName(path)!,
+                Path.GetFileNameWithoutExtension(path) + "-content.png");
             await CaptureVisualAsync(window, contentPath, 1, cancellationToken);
             await File.AppendAllTextAsync(Path.Combine(Path.GetDirectoryName(path)!, "content-capture-notes.txt"),
-                Path.GetFileName(contentPath) + ": WPF content capture; native caption not verified.\n", cancellationToken);
+                Path.GetFileName(contentPath) + ": WPF content capture; native caption not verified.\n",
+                cancellationToken);
         }
     }
 
@@ -55,7 +67,8 @@ public partial class MainWindow
     {
         var live = _serviceHistory.Frames.LastOrDefault();
         if (live is null || !live.Available || !live.Groups.Any(g => g.Host is not null))
-            throw new InvalidOperationException("Live SCM enumeration and process mapping did not produce service readings.");
+            throw new InvalidOperationException(
+                "Live SCM enumeration and process mapping did not produce service readings.");
         var catalog = await Task.Run(WindowsServices.Capture, cancellationToken);
         using var sampler = new WindowsCpuSampler();
         sampler.Sample();
@@ -122,9 +135,11 @@ public partial class MainWindow
                 fixture._history.Add(sample);
                 fixture._serviceHistory.Add(tree.Capture(sample, new ServiceCatalog(long.MaxValue, services)));
             }
+
             fixture.Show();
             fixture.ServicesTab.IsChecked = true;
-            foreach (var group in fixture._serviceHistory.Frames[^1].Groups.Where(g => g.Shared || g.Services[0].Name == "BuildAgent"))
+            foreach (var group in fixture._serviceHistory.Frames[^1].Groups
+                         .Where(g => g.Shared || g.Services[0].Name == "BuildAgent"))
                 fixture.ServiceView.ExpandGroup(group.Key);
             fixture.ServiceView.Rows.SelectedIndex = 0;
             foreach (var theme in new[] { "Dark", "Light" })
@@ -132,36 +147,55 @@ public partial class MainWindow
                 fixture._preferences = fixture._preferences with { Theme = theme };
                 fixture.ApplyTheme();
                 fixture.RefreshVisiblePresentation();
-                await CaptureServiceWindowAsync(fixture, Path.Combine(output, $"services-{theme.ToLowerInvariant()}.png"), cancellationToken);
+                await CaptureServiceWindowAsync(fixture,
+                    Path.Combine(output, $"services-{theme.ToLowerInvariant()}.png"), cancellationToken);
                 VerifyToolbar(fixture.ServiceView);
                 fixture.OnPin(fixture, new RoutedEventArgs());
                 try
                 {
                     if (!fixture.Topmost || fixture.PinButton.Background != fixture.FindResource("SelectedSurface"))
-                        throw new InvalidOperationException("Always on top must show its highlighted enabled background.");
-                    await CaptureServiceWindowAsync(fixture, Path.Combine(output, $"always-on-top-{theme.ToLowerInvariant()}.png"), cancellationToken);
+                        throw new InvalidOperationException(
+                            "Always on top must show its highlighted enabled background.");
+                    await CaptureServiceWindowAsync(fixture,
+                        Path.Combine(output, $"always-on-top-{theme.ToLowerInvariant()}.png"), cancellationToken);
                 }
-                finally { fixture.OnPin(fixture, new RoutedEventArgs()); }
-                if (fixture.Topmost || fixture.PinButton.ReadLocalValue(System.Windows.Controls.Control.BackgroundProperty) != DependencyProperty.UnsetValue)
-                    throw new InvalidOperationException("Disabling Always on top must restore the title button's default background.");
+                finally
+                {
+                    fixture.OnPin(fixture, new RoutedEventArgs());
+                }
+
+                if (fixture.Topmost || fixture.PinButton.ReadLocalValue(BackgroundProperty) !=
+                    DependencyProperty.UnsetValue)
+                    throw new InvalidOperationException(
+                        "Disabling Always on top must restore the title button's default background.");
                 fixture.PinButton.Focus();
                 fixture.UpdateLayout();
-                var buttonBody = (System.Windows.Controls.Border)fixture.PinButton.Template.FindName("Body", fixture.PinButton);
-                if (buttonBody.BorderBrush is not System.Windows.Media.SolidColorBrush offBorder || offBorder.Color.A != 0)
-                    throw new InvalidOperationException("Always on top must have no selected outline when off, even while focused.");
-                await CaptureServiceWindowAsync(fixture, Path.Combine(output, $"always-on-top-off-focused-{theme.ToLowerInvariant()}.png"), cancellationToken);
-                var target = (Controls.ServiceDisplayRow)fixture.ServiceView.Rows.Items[0];
+                var buttonBody = (Border)fixture.PinButton.Template.FindName("Body", fixture.PinButton);
+                if (buttonBody.BorderBrush is not SolidColorBrush offBorder || offBorder.Color.A != 0)
+                    throw new InvalidOperationException(
+                        "Always on top must have no selected outline when off, even while focused.");
+                await CaptureServiceWindowAsync(fixture,
+                    Path.Combine(output, $"always-on-top-off-focused-{theme.ToLowerInvariant()}.png"),
+                    cancellationToken);
+                if (fixture.ServiceView.Rows.Items[0] is not ServiceDisplayRow target)
+                    throw new InvalidOperationException("The first service row is missing.");
                 var menu = fixture.ServiceView.CreateServiceMenu(target)!;
                 menu.PlacementTarget = fixture.ServiceView.Rows;
-                menu.Placement = System.Windows.Controls.Primitives.PlacementMode.Relative;
-                menu.HorizontalOffset = 80; menu.VerticalOffset = 30;
+                menu.Placement = PlacementMode.Relative;
+                menu.HorizontalOffset = 80;
+                menu.VerticalOffset = 30;
                 try
                 {
                     menu.IsOpen = true;
-                    await CaptureServiceWindowAsync(fixture, Path.Combine(output, $"services-menu-{theme.ToLowerInvariant()}.png"), cancellationToken);
+                    await CaptureServiceWindowAsync(fixture,
+                        Path.Combine(output, $"services-menu-{theme.ToLowerInvariant()}.png"), cancellationToken);
                 }
-                finally { menu.IsOpen = false; }
+                finally
+                {
+                    menu.IsOpen = false;
+                }
             }
+
             fixture.Width = 836;
             fixture.Height = 840;
             fixture.RefreshVisiblePresentation();
@@ -169,25 +203,29 @@ public partial class MainWindow
             VerifyToolbar(fixture.ServiceView);
             fixture.ServiceView.Search.Text = "Build";
             await CaptureServiceWindowAsync(fixture, Path.Combine(output, "services-search.png"), cancellationToken);
-            fixture.ServiceView.ClearServiceSearchButton.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
+            fixture.ServiceView.ClearServiceSearchButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
             if (fixture.ServiceView.Search.Text.Length != 0 || !fixture.ServiceView.Search.IsKeyboardFocusWithin)
                 throw new InvalidOperationException("Service search clear must reset the query and restore focus.");
             // Constrain only the control, keeping the main window's minimum size and caption behavior intact.
             fixture.ServiceView.Width = 600;
             fixture.ServiceView.HorizontalAlignment = HorizontalAlignment.Left;
-            await CaptureServiceWindowAsync(fixture, Path.Combine(output, "services-header-wrapped.png"), cancellationToken);
+            await CaptureServiceWindowAsync(fixture, Path.Combine(output, "services-header-wrapped.png"),
+                cancellationToken);
             VerifyToolbar(fixture.ServiceView);
-            if (System.Windows.Controls.Grid.GetRow(fixture.ServiceView.SearchBorder) != 1)
-                throw new InvalidOperationException("Constrained service toolbar must wrap search below the ranking controls.");
+            if (Grid.GetRow(fixture.ServiceView.SearchBorder) != 1)
+                throw new InvalidOperationException(
+                    "Constrained service toolbar must wrap search below the ranking controls.");
             fixture.ServiceView.Width = double.NaN;
             fixture.ServiceView.HorizontalAlignment = HorizontalAlignment.Stretch;
             AppLanguages.Apply("de");
-            await CaptureServiceWindowAsync(fixture, Path.Combine(output, "services-header-german.png"), cancellationToken);
+            await CaptureServiceWindowAsync(fixture, Path.Combine(output, "services-header-german.png"),
+                cancellationToken);
             VerifyToolbar(fixture.ServiceView);
             AppLanguages.Apply("en");
             fixture._selectedSample = fixture._history.Samples[90];
             fixture.RefreshVisiblePresentation();
-            if (fixture.ServiceView.Stop.IsEnabled || fixture.ServiceView.Restart.IsEnabled || fixture.ServiceView.Start.IsEnabled)
+            if (fixture.ServiceView.Stop.IsEnabled || fixture.ServiceView.Restart.IsEnabled ||
+                fixture.ServiceView.Start.IsEnabled)
                 throw new InvalidOperationException("Historical service actions must be disabled.");
             await CaptureServiceWindowAsync(fixture, Path.Combine(output, "services-snapshot.png"), cancellationToken);
             foreach (var theme in new[] { "Dark", "Light" })
@@ -196,19 +234,25 @@ public partial class MainWindow
                 fixture.ApplyTheme();
                 foreach (var confirmation in new[] { true, false })
                 {
-                    var message = confirmation ? Strings.Format(Strings.ConfirmServiceAction, Strings.StopService, "Example Service")
+                    var message = confirmation
+                        ? Strings.Format(Strings.ConfirmServiceAction, Strings.StopService, "Example Service")
                         : Strings.TheClipboardIsUnavailableTryCopyAgain;
-                    var dialog = new Controls.MessageDialog(confirmation ? Strings.Services : Strings.CopyDetails,
+                    var dialog = new MessageDialog(confirmation ? Strings.Services : Strings.CopyDetails,
                         message, confirmation ? Strings.StopService : null) { Owner = fixture };
                     try
                     {
                         dialog.Show();
                         await CaptureServiceWindowAsync(dialog, Path.Combine(output,
-                            $"dialog-{theme.ToLowerInvariant()}-{(confirmation ? "confirmation" : "notice")}.png"), cancellationToken);
+                                $"dialog-{theme.ToLowerInvariant()}-{(confirmation ? "confirmation" : "notice")}.png"),
+                            cancellationToken);
                     }
-                    finally { dialog.Close(); }
+                    finally
+                    {
+                        dialog.Close();
+                    }
                 }
             }
+
             fixture._serviceActionBusy = true;
             fixture.Close();
             if (!fixture.IsVisible || fixture._closing || !fixture._closeAfterServiceAction)
@@ -216,28 +260,41 @@ public partial class MainWindow
             fixture._serviceActionBusy = false;
             fixture._closeAfterServiceAction = false;
         }
-        finally { fixture.Closing -= fixture.OnClosing; fixture.Close(); }
+        finally
+        {
+            fixture.Closing -= fixture.OnClosing;
+            fixture.Close();
+        }
 
-        static ProcessUsage P(int pid, long created, int parent, string name, double cpu, ulong memory) =>
-            new(pid, created, name, cpu, memory * 1048576, cpu * 250000)
-            { ParentProcessId = parent, PrivateBytes = memory * 1048576 };
+        return;
 
-        static void VerifyToolbar(Controls.ServicesView view)
+        static ProcessUsage P(int pid, long created, int parent, string name, double cpu, ulong memory)
+        {
+            return new ProcessUsage(pid, created, name, cpu, memory * 1048576, cpu * 250000)
+                { ParentProcessId = parent, PrivateBytes = memory * 1048576 };
+        }
+
+        static void VerifyToolbar(ServicesView view)
         {
             view.UpdateLayout();
             FrameworkElement[] parts = [view.RankingControls, view.SearchBorder, view.ServiceFilters];
-            var bounds = parts.Select(p => p.TransformToAncestor(view).TransformBounds(new Rect(p.RenderSize))).ToArray();
+            var bounds = parts.Select(p => p.TransformToAncestor(view).TransformBounds(new Rect(p.RenderSize)))
+                .ToArray();
             if (bounds.Any(b => b.Left < -1 || b.Right > view.ActualWidth + 1) ||
                 bounds.SelectMany((b, i) => bounds.Skip(i + 1).Select(other => Rect.Intersect(b, other)))
-                    .Any(intersection => !intersection.IsEmpty && intersection.Width > 1 && intersection.Height > 1))
-                throw new InvalidOperationException("Service toolbar controls overlap or extend beyond the available width.");
-            var identity = view.SelectionIdentity.TransformToAncestor(view).TransformBounds(new Rect(view.SelectionIdentity.RenderSize));
-            var actions = view.ActionControls.TransformToAncestor(view).TransformBounds(new Rect(view.ActionControls.RenderSize));
+                    .Any(intersection => intersection is { IsEmpty: false, Width: > 1, Height: > 1 }))
+                throw new InvalidOperationException(
+                    "Service toolbar controls overlap or extend beyond the available width.");
+            var identity = view.SelectionIdentity.TransformToAncestor(view)
+                .TransformBounds(new Rect(view.SelectionIdentity.RenderSize));
+            var actions = view.ActionControls.TransformToAncestor(view)
+                .TransformBounds(new Rect(view.ActionControls.RenderSize));
             var overlap = Rect.Intersect(identity, actions);
             if (identity.Width < 20 || view.Summary.ActualWidth < 12 || view.Summary.ActualHeight < 1 ||
                 identity.Left < -1 || actions.Right > view.ActualWidth + 1 ||
-                (!overlap.IsEmpty && overlap.Width > 1 && overlap.Height > 1))
-                throw new InvalidOperationException("Service identity and action buttons must remain visible without overlap.");
+                overlap is { IsEmpty: false, Width: > 1, Height: > 1 })
+                throw new InvalidOperationException(
+                    "Service identity and action buttons must remain visible without overlap.");
         }
     }
 }

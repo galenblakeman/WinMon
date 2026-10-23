@@ -39,11 +39,15 @@ internal sealed class SampleList : IList<CpuSample>, IReadOnlyList<CpuSample>
     public int IndexOf(CpuSample item)
     {
         for (var i = 0; i < Count; i++)
-            if (EqualityComparer<CpuSample>.Default.Equals(this[i], item)) return i;
+            if (EqualityComparer<CpuSample>.Default.Equals(this[i], item))
+                return i;
         return -1;
     }
 
-    public bool Contains(CpuSample item) => IndexOf(item) >= 0;
+    public bool Contains(CpuSample item)
+    {
+        return IndexOf(item) >= 0;
+    }
 
     public void CopyTo(CpuSample[] array, int arrayIndex)
     {
@@ -56,11 +60,33 @@ internal sealed class SampleList : IList<CpuSample>, IReadOnlyList<CpuSample>
         for (var i = 0; i < Count; i++) yield return this[i];
     }
 
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
 
-    public void Add(CpuSample item) => throw new NotSupportedException();
-    public void Clear() => throw new NotSupportedException();
-    public void Insert(int index, CpuSample item) => throw new NotSupportedException();
-    public bool Remove(CpuSample item) => throw new NotSupportedException();
-    public void RemoveAt(int index) => throw new NotSupportedException();
+    public void Add(CpuSample item)
+    {
+        throw new NotSupportedException();
+    }
+
+    public void Clear()
+    {
+        throw new NotSupportedException();
+    }
+
+    public void Insert(int index, CpuSample item)
+    {
+        throw new NotSupportedException();
+    }
+
+    public bool Remove(CpuSample item)
+    {
+        throw new NotSupportedException();
+    }
+
+    public void RemoveAt(int index)
+    {
+        throw new NotSupportedException();
+    }
 }

@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+
 // ReSharper disable IdentifierTypo
 
 namespace WinMon.Shortcuts;
@@ -28,16 +29,16 @@ internal static class InstanceActivation
         for (var attempt = 0; attempt < 20; attempt++)
         {
             if (EventWaitHandle.TryOpenExisting(EventName, out var signal))
-            {
                 using (signal)
                 {
                     // This launch came from user input, so it may hand foreground rights to the running instance.
                     AllowSetForegroundWindow(AsfwAny);
                     return signal.Set();
                 }
-            }
+
             Thread.Sleep(100);
         }
+
         return false;
     }
 

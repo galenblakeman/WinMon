@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
+
 // ReSharper disable StringLiteralTypo
 
 namespace WinMon.Controls;
@@ -24,7 +25,9 @@ internal static class WindowTheme
         var caption = SystemParameters.HighContrast ? -1 : ColorValue(window, captionKey);
         var text = SystemParameters.HighContrast ? -1 : ColorValue(window, "Text");
         var surface = ((SolidColorBrush)window.FindResource("Surface")).Color;
-        var dark = !SystemParameters.HighContrast && surface.R * 299 + surface.G * 587 + surface.B * 114 < 128000 ? 1 : 0;
+        var dark = !SystemParameters.HighContrast && surface.R * 299 + surface.G * 587 + surface.B * 114 < 128000
+            ? 1
+            : 0;
         // A failed cosmetic request must not prevent the monitor from running.
         _ = DwmSetWindowAttribute(handle, 20 /* DWMWA_USE_IMMERSIVE_DARK_MODE */, ref dark, sizeof(int));
         _ = DwmSetWindowAttribute(handle, 35 /* DWMWA_CAPTION_COLOR */, ref caption, sizeof(int));
@@ -42,7 +45,8 @@ internal static class WindowTheme
     {
         var handle = new WindowInteropHelper(window).Handle;
         if (handle == IntPtr.Zero ||
-            DwmGetWindowAttribute(handle, 5 /* DWMWA_CAPTION_BUTTON_BOUNDS */, out var bounds, Marshal.SizeOf<NativeRect>()) != 0 ||
+            DwmGetWindowAttribute(handle, 5 /* DWMWA_CAPTION_BUTTON_BOUNDS */, out var bounds,
+                Marshal.SizeOf<NativeRect>()) != 0 ||
             bounds.Right <= bounds.Left || bounds.Bottom <= bounds.Top) return null;
         var dpi = VisualTreeHelper.GetDpi(window);
         return new Rect(bounds.Left / dpi.DpiScaleX, bounds.Top / dpi.DpiScaleY,
@@ -50,7 +54,10 @@ internal static class WindowTheme
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    private struct NativeRect { public int Left, Top, Right, Bottom; }
+    private struct NativeRect
+    {
+        public int Left, Top, Right, Bottom;
+    }
 
     [DllImport("dwmapi.dll")]
     private static extern int DwmSetWindowAttribute(IntPtr window, int attribute, ref int value, int size);

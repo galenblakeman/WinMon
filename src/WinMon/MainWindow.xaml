@@ -43,8 +43,8 @@
                         controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.AlwaysOnTop}"
                         AutomationProperties.Name="{Binding [KeepOnTopOff], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                         Click="OnPin"
-                        DockPanel.Dock="Right"
                         Content="{Binding [AlwaysOnTop], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                        DockPanel.Dock="Right"
                         Style="{StaticResource AlwaysOnTopButton}"
                         ToolTip="{Binding [KeepThisWindowOnTopOfOtherWindows], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                         WindowChrome.IsHitTestVisibleInChrome="True" />
@@ -84,9 +84,15 @@
                         Style="{StaticResource TitleActionButton}"
                         ToolTip="{Binding [VersionPlusCPUMemoryGraphicsVolumesAndNetworkHardware], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                         WindowChrome.IsHitTestVisibleInChrome="True" />
-                    <TextBlock x:Name="CompactStatus" DockPanel.Dock="Left" VerticalAlignment="Center"
-                        FontSize="11" Margin="0,0,10,0" Foreground="{DynamicResource SnapshotAccent}"
-                        Text="{Binding [LiveMode], Source={x:Static resources:Strings.Text}, Mode=OneWay}" Visibility="Collapsed" />
+                    <TextBlock
+                        x:Name="CompactStatus"
+                        Margin="0,0,10,0"
+                        VerticalAlignment="Center"
+                        DockPanel.Dock="Left"
+                        FontSize="11"
+                        Foreground="{DynamicResource SnapshotAccent}"
+                        Text="{Binding [LiveMode], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                        Visibility="Collapsed" />
                     <Button
                         x:Name="SettingsButton"
                         controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Settings}"
@@ -100,20 +106,31 @@
                     <Border Background="Transparent" />
                 </DockPanel>
             </Border>
-            <Grid x:Name="CompactStrip" Grid.Row="1" Background="{DynamicResource Surface}" Visibility="Collapsed" />
-            <Border x:Name="FullView" Grid.Row="1" Background="{DynamicResource Surface}">
+            <Grid
+                x:Name="CompactStrip"
+                Grid.Row="1"
+                Background="{DynamicResource Surface}"
+                Visibility="Collapsed" />
+            <Border
+                x:Name="FullView"
+                Grid.Row="1"
+                Background="{DynamicResource Surface}">
                 <Grid Margin="20,12,20,8">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
-                        <RowDefinition x:Name="ChartAreaRow" Height="*" MinHeight="160" />
+                        <RowDefinition
+                            x:Name="ChartAreaRow"
+                            Height="*"
+                            MinHeight="160" />
                         <RowDefinition Height="Auto" />
-                        <RowDefinition x:Name="ProcessesAreaRow" Height="1.25*" MinHeight="344" />
+                        <RowDefinition
+                            x:Name="ProcessesAreaRow"
+                            Height="1.25*"
+                            MinHeight="344" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <Grid
-                        Grid.Row="0"
-                        Margin="0,0,0,16">
+                    <Grid Grid.Row="0" Margin="0,0,0,16">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition />
                             <ColumnDefinition />
@@ -207,39 +224,70 @@
                                 VerticalAlignment="Center"
                                 AutomationProperties.Name="{Binding [ChartTimeRange], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                                 Orientation="Horizontal" />
-                            <Border x:Name="ChartModeSwitch" Grid.Column="1" Margin="8,0" Padding="1"
-                                    BorderBrush="{DynamicResource Line}" BorderThickness="1" CornerRadius="5">
+                            <Border
+                                x:Name="ChartModeSwitch"
+                                Grid.Row="0"
+                                Grid.Column="1"
+                                Margin="8,0"
+                                Padding="1"
+                                BorderBrush="{DynamicResource Line}"
+                                BorderThickness="1"
+                                CornerRadius="5">
                                 <StackPanel Orientation="Horizontal">
-                                    <RadioButton x:Name="LiveModeButton" MinWidth="72"
-                                                 GroupName="ChartMode" Style="{StaticResource ChartModeSegment}"
-                                                 AutomationProperties.Name="{Binding [ReturnToLive], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                                 ToolTip="{Binding [ReturnToLive], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                                 Click="OnLiveModeClick">
+                                    <RadioButton
+                                        x:Name="LiveModeButton"
+                                        MinWidth="72"
+                                        AutomationProperties.Name="{Binding [ReturnToLive], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                        Click="OnLiveModeClick"
+                                        GroupName="ChartMode"
+                                        Style="{StaticResource ChartModeSegment}"
+                                        ToolTip="{Binding [ReturnToLive], Source={x:Static resources:Strings.Text}, Mode=OneWay}">
                                         <StackPanel Orientation="Horizontal">
-                                            <Path Width="14" Height="14" Margin="0,0,6,0" VerticalAlignment="Center"
-                                                  Data="{x:Static controls:ButtonIcon.Live}" Stretch="Uniform"
-                                                  Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
-                                                  StrokeThickness="1.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                                  StrokeLineJoin="Round" />
-                                            <TextBlock Text="{Binding [LiveMode], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                                       Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                                            <Path
+                                                Width="14"
+                                                Height="14"
+                                                Margin="0,0,6,0"
+                                                VerticalAlignment="Center"
+                                                Data="{x:Static controls:ButtonIcon.Live}"
+                                                Stretch="Uniform"
+                                                Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
+                                                StrokeEndLineCap="Round"
+                                                StrokeLineJoin="Round"
+                                                StrokeStartLineCap="Round"
+                                                StrokeThickness="1.5" />
+                                            <TextBlock Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" Text="{Binding [LiveMode], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                                         </StackPanel>
                                     </RadioButton>
-                                    <RadioButton x:Name="SnapshotModeButton" MinWidth="108"
-                                                 GroupName="ChartMode" Style="{StaticResource ChartModeSegment}"
-                                                 AutomationProperties.Name="{Binding [SnapshotMode], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                                 ToolTip="{Binding [CaptureLatestSnapshot], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                                 Click="OnSnapshotModeClick">
+                                    <RadioButton
+                                        x:Name="SnapshotModeButton"
+                                        MinWidth="108"
+                                        AutomationProperties.Name="{Binding [SnapshotMode], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                        Click="OnSnapshotModeClick"
+                                        GroupName="ChartMode"
+                                        Style="{StaticResource ChartModeSegment}"
+                                        ToolTip="{Binding [CaptureLatestSnapshot], Source={x:Static resources:Strings.Text}, Mode=OneWay}">
                                         <StackPanel Orientation="Horizontal">
-                                            <Grid Width="16" Height="16" Margin="0,0,6,0" VerticalAlignment="Center" IsHitTestVisible="False">
-                                                <Path Data="{x:Static controls:ButtonIcon.CaptureFrame}" StrokeThickness="1.5"
-                                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
-                                                      Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
-                                                <Ellipse Width="3" Height="3" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                         Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                                            <Grid
+                                                Width="16"
+                                                Height="16"
+                                                Margin="0,0,6,0"
+                                                VerticalAlignment="Center"
+                                                IsHitTestVisible="False">
+                                                <Path
+                                                    Data="{x:Static controls:ButtonIcon.CaptureFrame}"
+                                                    Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
+                                                    StrokeEndLineCap="Round"
+                                                    StrokeLineJoin="Round"
+                                                    StrokeStartLineCap="Round"
+                                                    StrokeThickness="1.5" />
+                                                <Ellipse
+                                                    Width="3"
+                                                    Height="3"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
                                             </Grid>
-                                            <TextBlock Text="{Binding [SnapshotMode], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                                       Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                                            <TextBlock Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" Text="{Binding [SnapshotMode], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                                         </StackPanel>
                                     </RadioButton>
                                 </StackPanel>
@@ -248,6 +296,7 @@
                             <TextBlock
                                 x:Name="ErrorLabel"
                                 Grid.Row="1"
+                                Grid.Column="0"
                                 Grid.ColumnSpan="3"
                                 MaxWidth="190"
                                 Margin="0,0,8,0"
@@ -259,6 +308,8 @@
                                 Visibility="Collapsed" />
                             <TextBlock
                                 x:Name="LiveCaption"
+                                Grid.Row="0"
+                                Grid.Column="0"
                                 Margin="0,0,8,0"
                                 VerticalAlignment="Center"
                                 FontSize="15"
@@ -386,34 +437,55 @@
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="*" />
                                         </Grid.ColumnDefinitions>
-                                        <Button x:Name="SnapshotCopyButton" Style="{StaticResource ActionBarButton}"
+                                        <Button
+                                            x:Name="SnapshotCopyButton"
                                             controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Copy}"
                                             Click="OnCopySnapshot"
-                                            Content="{Binding [CopySnapshot], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
-                                    <Button Grid.Column="1"
-                                        x:Name="LiveButton"
-                                        Style="{StaticResource ActionBarLastButton}"
-                                        controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Live}"
-                                        Click="OnReturnLive"
-                                        Content="{Binding [ReturnToLive], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                        ToolTip="{Binding [ResumeLiveReadingsAndProcessesEndOrEscape], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                            Content="{Binding [CopySnapshot], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                            Style="{StaticResource ActionBarButton}" />
+                                        <Button
+                                            x:Name="LiveButton"
+                                            Grid.Column="1"
+                                            controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Live}"
+                                            Click="OnReturnLive"
+                                            Content="{Binding [ReturnToLive], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                            Style="{StaticResource ActionBarLastButton}"
+                                            ToolTip="{Binding [ResumeLiveReadingsAndProcessesEndOrEscape], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                                     </Grid>
                                 </Border>
                             </Grid>
                         </Border>
                     </Canvas>
-                    <GridSplitter x:Name="ChartProcessDivider" Grid.Row="3" Height="8" Margin="-20,2,-20,2"
-                                  HorizontalAlignment="Stretch" VerticalAlignment="Center"
-                                  ResizeDirection="Rows" ResizeBehavior="PreviousAndNext" ShowsPreview="False"
-                                  Cursor="SizeNS" Focusable="True" KeyboardIncrement="10"
-                                  AutomationProperties.Name="{Binding [ResizeChartAndProcesses], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                  ToolTip="{Binding [ResizeChartAndProcesses], Source={x:Static resources:Strings.Text}, Mode=OneWay}">
+                    <GridSplitter
+                        x:Name="ChartProcessDivider"
+                        Grid.Row="3"
+                        Height="8"
+                        Margin="-20,2,-20,2"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Center"
+                        AutomationProperties.Name="{Binding [ResizeChartAndProcesses], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                        Cursor="SizeNS"
+                        Focusable="True"
+                        KeyboardIncrement="10"
+                        ResizeBehavior="PreviousAndNext"
+                        ResizeDirection="Rows"
+                        ShowsPreview="False"
+                        ToolTip="{Binding [ResizeChartAndProcesses], Source={x:Static resources:Strings.Text}, Mode=OneWay}">
                         <GridSplitter.Template>
                             <ControlTemplate TargetType="GridSplitter">
                                 <Grid Background="Transparent">
-                                    <Border x:Name="DividerLine" Height="1" VerticalAlignment="Center" Background="{DynamicResource Line}" />
-                                    <Border x:Name="DividerGrip" Width="32" Height="3" VerticalAlignment="Center" CornerRadius="1.5"
-                                            Background="{DynamicResource Muted}" />
+                                    <Border
+                                        x:Name="DividerLine"
+                                        Height="1"
+                                        VerticalAlignment="Center"
+                                        Background="{DynamicResource Line}" />
+                                    <Border
+                                        x:Name="DividerGrip"
+                                        Width="32"
+                                        Height="3"
+                                        VerticalAlignment="Center"
+                                        Background="{DynamicResource Muted}"
+                                        CornerRadius="1.5" />
                                 </Grid>
                                 <ControlTemplate.Triggers>
                                     <Trigger Property="IsMouseOver" Value="True">
@@ -428,332 +500,383 @@
                         </GridSplitter.Template>
                     </GridSplitter>
                     <Grid Grid.Row="4">
-                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-                    <Border x:Name="ActivityTabStrip" Margin="-20,0,-20,0" Padding="20,0,0,0"
-                            Background="{DynamicResource SectionHeaderSurface}">
-                    <Grid>
-                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                    <StackPanel Orientation="Horizontal" KeyboardNavigation.TabNavigation="Once">
-                        <RadioButton x:Name="ProcessesTab" GroupName="ActivityView" IsChecked="True" Style="{StaticResource ActivityTab}"
-                                     Content="{Binding [ProcessesTab], Source={x:Static resources:Strings.Text}}" />
-                        <RadioButton x:Name="ServicesTab" GroupName="ActivityView" Style="{StaticResource ActivityTab}"
-                                     Content="{Binding [Services], Source={x:Static resources:Strings.Text}}" />
-                    </StackPanel>
-                    <Button x:Name="ActivityActionsToggle" Grid.Column="1" Margin="0,0,20,0"
-                            Style="{StaticResource TitleActionButton}" FontSize="12"
-                            Foreground="{DynamicResource Muted}" Click="OnToggleActivityActions" />
-                    </Grid>
-                    </Border>
-                    <Grid Grid.Row="1" x:Name="ProcessesArea">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" MinHeight="108" />
-                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
-                    <Border
-                        x:Name="ProcessHeader"
-                        Grid.Row="0"
-                        Margin="-20,0,-20,8"
-                        Padding="20,5"
-                        Background="{DynamicResource SectionHeaderSurface}"
-                        BorderBrush="{DynamicResource Line}"
-                        BorderThickness="0">
-                        <StackPanel>
-                            <Grid x:Name="ProcessToolbarGrid">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
+                        <Border
+                            Margin="-20,0,-20,0"
+                            Padding="20,0,0,0"
+                            Background="{DynamicResource SectionHeaderSurface}">
+                            <Grid>
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-                                <StackPanel
-                                    x:Name="ProcessGroupingControls"
-                                    Grid.Column="3"
-                                    VerticalAlignment="Center"
-                                    AutomationProperties.Name="{Binding [ProcessGrouping], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                    Orientation="Horizontal">
+                                <StackPanel KeyboardNavigation.TabNavigation="Once" Orientation="Horizontal">
                                     <RadioButton
-                                        x:Name="IndividualChip"
-                                        AutomationProperties.Name="{Binding [OneRowPerProcess], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                        Content="{Binding [Individual], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                        GroupName="ProcessGrouping"
+                                        x:Name="ProcessesTab"
+                                        Content="{Binding [ProcessesTab], Source={x:Static resources:Strings.Text}}"
+                                        GroupName="ActivityView"
                                         IsChecked="True"
-                                        Style="{StaticResource RangeChip}"
-                                        ToolTip="{Binding [OneRowPerProcess], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                        Style="{StaticResource ActivityTab}" />
                                     <RadioButton
-                                        x:Name="GroupedChip"
-                                        Margin="0"
-                                        AutomationProperties.Name="{Binding [OneRowPerExecutable], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                        Content="{Binding [Grouped], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                        GroupName="ProcessGrouping"
-                                        Style="{StaticResource RangeChip}"
-                                        ToolTip="{Binding [OneRowPerExecutableCPUAndIOSummedGPU], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                        x:Name="ServicesTab"
+                                        Content="{Binding [Services], Source={x:Static resources:Strings.Text}}"
+                                        GroupName="ActivityView"
+                                        Style="{StaticResource ActivityTab}" />
                                 </StackPanel>
-                                <StackPanel x:Name="ProcessRankingControls" Grid.Row="0" Grid.Column="0" Orientation="Horizontal">
-                                    <TextBlock
-                                        VerticalAlignment="Center"
-                                        FontSize="13"
-                                        FontWeight="SemiBold"
-                                        Text="{Binding [Top], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
-                                    <ComboBox
-                                        x:Name="ProcessCountSelector"
-                                        MinWidth="60"
-                                        Padding="6,3,24,3"
-                                        MinHeight="28"
-                                        Margin="6,0"
-                                        AutomationProperties.Name="{Binding [NumberOfTopProcesses], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                        FontSize="13"
-                                        FontWeight="SemiBold"
-                                        ToolTip="{Binding [NumberOfProcessesShown], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
-                                    <TextBlock
-                                        VerticalAlignment="Center"
-                                        FontSize="13"
-                                        FontWeight="SemiBold"
-                                        Text="{Binding [ProcessesBy], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
-                                    <ComboBox
-                                        x:Name="ProcessSortSelector"
-                                        MinWidth="90"
-                                        Padding="8,3,26,3"
-                                        MinHeight="28"
-                                        Margin="6,0,0,0"
-                                        AutomationProperties.Name="{Binding [RankProcessesBy], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                        FontSize="13"
-                                        FontWeight="SemiBold"
-                                        ToolTip="{Binding [RankByFiveSecondAverageCPUGPUOrIO], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
-                                </StackPanel>
-                                <Border
-                                    x:Name="ProcessSearchBorder"
-                                    MinWidth="120"
-                                    Grid.Row="1"
-                                    Grid.ColumnSpan="3" Grid.Column="0"
-                                    Margin="0,6,12,0"
-                                    Background="{DynamicResource SearchSurface}"
-                                    BorderThickness="1"
-                                    CornerRadius="4">
-                                    <Border.Style>
-                                        <Style TargetType="Border">
-                                            <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
-                                            <Style.Triggers>
-                                                <Trigger Property="IsKeyboardFocusWithin" Value="True">
-                                                    <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
-                                                </Trigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Border.Style>
-                                    <Grid>
+                                <Button
+                                    x:Name="ActivityActionsToggle"
+                                    Grid.Column="1"
+                                    Margin="0,0,20,0"
+                                    Click="OnToggleActivityActions"
+                                    FontSize="12"
+                                    Foreground="{DynamicResource Muted}"
+                                    Style="{StaticResource TitleActionButton}" />
+                            </Grid>
+                        </Border>
+                        <Grid x:Name="ProcessesArea" Grid.Row="1">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" MinHeight="108" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Border
+                                x:Name="ProcessHeader"
+                                Grid.Row="0"
+                                Margin="-20,0,-20,8"
+                                Padding="20,5"
+                                Background="{DynamicResource SectionHeaderSurface}"
+                                BorderBrush="{DynamicResource Line}"
+                                BorderThickness="0">
+                                <StackPanel>
+                                    <Grid x:Name="ProcessToolbarGrid">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="28" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock
-                                            HorizontalAlignment="Center"
+                                        <StackPanel
+                                            x:Name="ProcessGroupingControls"
+                                            Grid.Column="3"
                                             VerticalAlignment="Center"
-                                            FontFamily="Segoe MDL2 Assets"
-                                            FontSize="14"
-                                            Foreground="{DynamicResource Muted}"
-                                            IsHitTestVisible="False"
-                                            Text="{Binding [SearchGlyph], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
-                                        <TextBox
-                                            x:Name="ProcessSearchBox"
-                                            Grid.Column="1"
-                                            MinHeight="26"
-                                            Padding="0,3"
-                                            VerticalContentAlignment="Center"
-                                            AutomationProperties.Name="{Binding [SearchProcessesByNameOrPID], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                            Background="Transparent"
-                                            BorderThickness="0"
-                                            CaretBrush="{DynamicResource Text}"
+                                            AutomationProperties.Name="{Binding [ProcessGrouping], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                            Orientation="Horizontal">
+                                            <RadioButton
+                                                x:Name="IndividualChip"
+                                                AutomationProperties.Name="{Binding [OneRowPerProcess], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                                Content="{Binding [Individual], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                                GroupName="ProcessGrouping"
+                                                IsChecked="True"
+                                                Style="{StaticResource RangeChip}"
+                                                ToolTip="{Binding [OneRowPerProcess], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                            <RadioButton
+                                                x:Name="GroupedChip"
+                                                Margin="0"
+                                                AutomationProperties.Name="{Binding [OneRowPerExecutable], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                                Content="{Binding [Grouped], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                                GroupName="ProcessGrouping"
+                                                Style="{StaticResource RangeChip}"
+                                                ToolTip="{Binding [OneRowPerExecutableCPUAndIOSummedGPU], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                        </StackPanel>
+                                        <StackPanel
+                                            x:Name="ProcessRankingControls"
+                                            Grid.Row="0"
+                                            Grid.Column="0"
+                                            Orientation="Horizontal">
+                                            <TextBlock
+                                                VerticalAlignment="Center"
+                                                FontSize="13"
+                                                FontWeight="SemiBold"
+                                                Text="{Binding [Top], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                            <ComboBox
+                                                x:Name="ProcessCountSelector"
+                                                MinWidth="60"
+                                                MinHeight="28"
+                                                Margin="6,0"
+                                                Padding="6,3,24,3"
+                                                AutomationProperties.Name="{Binding [NumberOfTopProcesses], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                                FontSize="13"
+                                                FontWeight="SemiBold"
+                                                ToolTip="{Binding [NumberOfProcessesShown], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                            <TextBlock
+                                                VerticalAlignment="Center"
+                                                FontSize="13"
+                                                FontWeight="SemiBold"
+                                                Text="{Binding [ProcessesBy], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                            <ComboBox
+                                                x:Name="ProcessSortSelector"
+                                                MinWidth="90"
+                                                MinHeight="28"
+                                                Margin="6,0,0,0"
+                                                Padding="8,3,26,3"
+                                                AutomationProperties.Name="{Binding [RankProcessesBy], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                                FontSize="13"
+                                                FontWeight="SemiBold"
+                                                ToolTip="{Binding [RankByFiveSecondAverageCPUGPUOrIO], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                        </StackPanel>
+                                        <Border
+                                            x:Name="ProcessSearchBorder"
+                                            Grid.Row="1"
+                                            Grid.Column="0"
+                                            Grid.ColumnSpan="3"
+                                            MinWidth="120"
+                                            Margin="0,6,12,0"
+                                            Background="{DynamicResource SearchSurface}"
+                                            BorderThickness="1"
+                                            CornerRadius="4">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+                                                    <Style.Triggers>
+                                                        <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                                            <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+                                                        </Trigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="28" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    FontFamily="Segoe MDL2 Assets"
+                                                    FontSize="14"
+                                                    Foreground="{DynamicResource Muted}"
+                                                    IsHitTestVisible="False"
+                                                    Text="{Binding [SearchGlyph], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                                <TextBox
+                                                    x:Name="ProcessSearchBox"
+                                                    Grid.Column="1"
+                                                    MinHeight="26"
+                                                    Padding="0,3"
+                                                    VerticalContentAlignment="Center"
+                                                    AutomationProperties.Name="{Binding [SearchProcessesByNameOrPID], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    CaretBrush="{DynamicResource Text}"
+                                                    FontSize="12"
+                                                    Foreground="{DynamicResource Text}"
+                                                    HorizontalScrollBarVisibility="Hidden"
+                                                    ToolTip="{Binding [FilterRankedProcessesByNameOrPIDCtrlFEscape], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                                <TextBlock
+                                                    x:Name="ProcessSearchPlaceholder"
+                                                    Grid.Column="1"
+                                                    VerticalAlignment="Center"
+                                                    FontSize="12"
+                                                    Foreground="{DynamicResource Muted}"
+                                                    IsHitTestVisible="False"
+                                                    Text="{Binding [SearchNameOrPID], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                                    TextTrimming="CharacterEllipsis" />
+                                                <Button
+                                                    x:Name="ClearProcessSearchButton"
+                                                    Grid.Column="2"
+                                                    Width="28"
+                                                    MinHeight="26"
+                                                    Margin="0"
+                                                    Padding="0"
+                                                    controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Cancel}"
+                                                    AutomationProperties.Name="{Binding [ClearProcessSearch], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    Click="OnClearProcessSearch"
+                                                    ToolTip="{Binding [ClearSearch], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                                    Visibility="Collapsed" />
+                                            </Grid>
+                                        </Border>
+                                        <CheckBox
+                                            x:Name="AppsOnlyCheckBox"
+                                            Grid.Row="1"
+                                            Grid.Column="3"
+                                            Margin="0,6,0,0"
+                                            VerticalAlignment="Center"
+                                            AutomationProperties.Name="{Binding [AppOnly], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                            Content="{Binding [AppOnly], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                                             FontSize="12"
                                             Foreground="{DynamicResource Text}"
-                                            HorizontalScrollBarVisibility="Hidden"
-                                            ToolTip="{Binding [FilterRankedProcessesByNameOrPIDCtrlFEscape], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
-                                        <TextBlock
-                                            x:Name="ProcessSearchPlaceholder"
-                                            Grid.Column="1"
-                                            VerticalAlignment="Center"
+                                            ToolTip="{Binding [ProcessKindExplanation], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                        <CheckBox
+                                            x:Name="PinnedOnlyCheckBox"
+                                            Grid.Row="0"
+                                            Grid.Column="0"
+                                            HorizontalAlignment="Right"
+                                            AutomationProperties.Name="{Binding [PinnedOnly], Source={x:Static resources:Strings.Text}}"
+                                            Content="{Binding [PinnedOnly], Source={x:Static resources:Strings.Text}}"
                                             FontSize="12"
-                                            Foreground="{DynamicResource Muted}"
-                                            IsHitTestVisible="False"
-                                            Text="{Binding [SearchNameOrPID], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                            TextTrimming="CharacterEllipsis" />
-                                        <Button
-                                            x:Name="ClearProcessSearchButton"
-                                            Grid.Column="2"
-                                            Width="28"
-                                            MinHeight="26"
-                                            Margin="0"
-                                            Padding="0"
-                                            controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Cancel}"
-                                            AutomationProperties.Name="{Binding [ClearProcessSearch], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                            Background="Transparent"
-                                            BorderThickness="0"
-                                            Click="OnClearProcessSearch"
-                                            ToolTip="{Binding [ClearSearch], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                            Visibility="Collapsed" />
+                                            Foreground="{DynamicResource Text}"
+                                            ToolTip="{Binding [PinnedProcessesExplanation], Source={x:Static resources:Strings.Text}}" />
                                     </Grid>
-                                </Border>
-                                <CheckBox
-                                    x:Name="AppsOnlyCheckBox"
-                                    Grid.Row="1"
-                                    Grid.Column="3"
-                                    Margin="0,6,0,0"
-                                    VerticalAlignment="Center"
-                                    AutomationProperties.Name="{Binding [AppOnly], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                    Content="{Binding [AppOnly], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                    FontSize="12"
-                                    Foreground="{DynamicResource Text}"
-                                    ToolTip="{Binding [ProcessKindExplanation], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
-                                <CheckBox x:Name="PinnedOnlyCheckBox" Content="{Binding [PinnedOnly], Source={x:Static resources:Strings.Text}}"
-                                          Foreground="{DynamicResource Text}"
-                                          AutomationProperties.Name="{Binding [PinnedOnly], Source={x:Static resources:Strings.Text}}"
-                                          ToolTip="{Binding [PinnedProcessesExplanation], Source={x:Static resources:Strings.Text}}"
-                                          HorizontalAlignment="Right" FontSize="12" />
-                            </Grid>
-                            <TextBlock
-                                x:Name="SelectionLabel"
-                                Margin="0,4,0,0"
-                                VerticalAlignment="Center"
-                                FontSize="11"
-                                Foreground="{DynamicResource Muted}"
-                                TextAlignment="Center"
-                                TextTrimming="CharacterEllipsis"
-                                ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"
-                                Visibility="Collapsed" />
-                        </StackPanel>
-                    </Border>
-                    <Grid
-                        Grid.Row="1"
-                        Width="{Binding ViewportWidth, ElementName=ProcessScroll}"
-                        Margin="0,0,0,5"
-                        HorizontalAlignment="Left">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition />
-                            <ColumnDefinition Width="160" />
-                            <ColumnDefinition Width="55" />
-                            <ColumnDefinition Width="55" />
-                            <ColumnDefinition Width="82" />
-                            <ColumnDefinition Width="75" />
-                            <ColumnDefinition Width="64" />
-                            <ColumnDefinition Width="72" />
-                        </Grid.ColumnDefinitions>
-                        <Grid HorizontalAlignment="Left">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock
-                                FontSize="12"
-                                Foreground="{DynamicResource Muted}"
-                                Text="{Binding [ProcessColumn], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
-                            <TextBlock
-                                x:Name="CoverageLabel"
-                                Grid.Column="1"
-                                Margin="10,0,4,0"
-                                VerticalAlignment="Center"
-                                FontSize="11"
-                                Foreground="{DynamicResource Muted}"
-                                TextTrimming="CharacterEllipsis"
-                                ToolTip="{Binding [UnattributedCPUIsTotalCPUMinusAllMeasuredProcessesKernel2], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
-                            <StackPanel x:Name="PinSummary" Grid.Column="2" Orientation="Horizontal"
-                                        VerticalAlignment="Center" Visibility="Collapsed">
-                                <TextBlock Text="·" FontSize="11" Margin="2,0,6,0" Foreground="{DynamicResource Muted}" />
-                                <TextBlock x:Name="PinnedCountLabel" VerticalAlignment="Center"
-                                           FontSize="11" Foreground="{DynamicResource ProcessPinAccent}" />
-                            </StackPanel>
-                        </Grid>
-                        <TextBlock
-                            x:Name="ProcessHistoryHeader"
-                            Grid.Column="1"
-                            HorizontalAlignment="Center"
-                            FontSize="12"
-                            Foreground="{DynamicResource Muted}"
-                            Text="{Binding [History], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                            ToolTip="{Binding [CPUHistoryOnOneScaleSharedByEveryRowHover], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
-                        <TextBlock
-                            x:Name="CpuHeader"
-                            Grid.Column="2"
-                            HorizontalAlignment="Right"
-                            FontSize="12"
-                            Foreground="{DynamicResource Muted}"
-                            Text="{Binding [CpuColumn], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                            ToolTip="{Binding [AverageOverTheLast5SecondsWindowsCountsProcessCPU], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
-                        <TextBlock
-                            x:Name="GpuHeader"
-                            Grid.Column="3"
-                            HorizontalAlignment="Right"
-                            FontSize="12"
-                            Foreground="{DynamicResource Muted}"
-                            Text="{Binding [GpuColumn], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                            ToolTip="{Binding [BusiestGPUEnginePerProcessAveragedOverReadableIntervalsIn], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
-                        <TextBlock
-                            x:Name="MemoryHeader"
-                            Grid.Column="4"
-                            HorizontalAlignment="Right"
-                            FontSize="12"
-                            Foreground="{DynamicResource Muted}"
-                            Text="{Binding [Memory], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                            ToolTip="{Binding [ResidentWorkingSetIncludingSharedPages], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
-                        <TextBlock
-                            x:Name="IoHeader"
-                            Grid.Column="5"
-                            HorizontalAlignment="Right"
-                            FontSize="12"
-                            Foreground="{DynamicResource Muted}"
-                            Text="{Binding [IOMBS], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                            ToolTip="{Binding [ProcessReadWriteIOIncludesFileNetworkAndDevice], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
-                        <TextBlock
-                            x:Name="ThreadsHeader"
-                            Grid.Column="6"
-                            HorizontalAlignment="Right"
-                            FontSize="12"
-                            Foreground="{DynamicResource Muted}"
-                            Text="{Binding [Threads], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                            ToolTip="{Binding [ProcessThreadsExplanation], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
-                        <TextBlock
-                            x:Name="HandlesHeader"
-                            Grid.Column="7"
-                            HorizontalAlignment="Right"
-                            FontSize="12"
-                            Foreground="{DynamicResource Muted}"
-                            Text="{Binding [Handles], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                            ToolTip="{Binding [ProcessHandlesExplanation], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
-                    </Grid>
-                    <ScrollViewer
-                        x:Name="ProcessScroll"
-                        Grid.Row="2"
-                        Padding="0,0,0,0"
-                        Focusable="False"
-                        HorizontalScrollBarVisibility="Disabled"
-                        VerticalScrollBarVisibility="Auto">
-                        <StackPanel x:Name="ProcessRows">
-                            <StackPanel x:Name="PinnedProcessRows" />
-                            <Border x:Name="RankedDivider" Visibility="Collapsed" Padding="0,5" BorderThickness="0,1,0,0"
-                                    BorderBrush="{DynamicResource Line}">
-                                <TextBlock x:Name="RankedDividerText" FontSize="11" Foreground="{DynamicResource Muted}" />
+                                    <TextBlock
+                                        x:Name="SelectionLabel"
+                                        Margin="0,4,0,0"
+                                        VerticalAlignment="Center"
+                                        FontSize="11"
+                                        Foreground="{DynamicResource Muted}"
+                                        TextAlignment="Center"
+                                        TextTrimming="CharacterEllipsis"
+                                        ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"
+                                        Visibility="Collapsed" />
+                                </StackPanel>
                             </Border>
-                        </StackPanel>
-                    </ScrollViewer>
-                    <controls:ProcessActionBar x:Name="ProcessActions" Grid.Row="3" />
-                    <TextBlock
-                        x:Name="EmptyLabel"
-                        Grid.Row="2"
-                        Margin="0,8"
-                        VerticalAlignment="Center"
-                        Foreground="{DynamicResource Muted}"
-                        Text="{Binding [CollectingTheFirstInterval], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                        TextWrapping="Wrap" />
-                    </Grid>
-                    <controls:ServicesView x:Name="ServiceView" Grid.Row="1" Visibility="Collapsed"/>
+                            <Grid
+                                Grid.Row="1"
+                                Width="{Binding ViewportWidth, ElementName=ProcessScroll}"
+                                Margin="0,0,0,5"
+                                HorizontalAlignment="Left">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition />
+                                    <ColumnDefinition Width="160" />
+                                    <ColumnDefinition Width="55" />
+                                    <ColumnDefinition Width="55" />
+                                    <ColumnDefinition Width="82" />
+                                    <ColumnDefinition Width="75" />
+                                    <ColumnDefinition Width="64" />
+                                    <ColumnDefinition Width="72" />
+                                </Grid.ColumnDefinitions>
+                                <Grid HorizontalAlignment="Left">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock
+                                        FontSize="12"
+                                        Foreground="{DynamicResource Muted}"
+                                        Text="{Binding [ProcessColumn], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                    <TextBlock
+                                        x:Name="CoverageLabel"
+                                        Grid.Column="1"
+                                        Margin="10,0,4,0"
+                                        VerticalAlignment="Center"
+                                        FontSize="11"
+                                        Foreground="{DynamicResource Muted}"
+                                        TextTrimming="CharacterEllipsis"
+                                        ToolTip="{Binding [UnattributedCPUIsTotalCPUMinusAllMeasuredProcessesKernel2], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                    <StackPanel
+                                        x:Name="PinSummary"
+                                        Grid.Column="2"
+                                        VerticalAlignment="Center"
+                                        Orientation="Horizontal"
+                                        Visibility="Collapsed">
+                                        <TextBlock
+                                            Margin="2,0,6,0"
+                                            FontSize="11"
+                                            Foreground="{DynamicResource Muted}"
+                                            Text="·" />
+                                        <TextBlock
+                                            x:Name="PinnedCountLabel"
+                                            VerticalAlignment="Center"
+                                            FontSize="11"
+                                            Foreground="{DynamicResource ProcessPinAccent}" />
+                                    </StackPanel>
+                                </Grid>
+                                <TextBlock
+                                    x:Name="ProcessHistoryHeader"
+                                    Grid.Column="1"
+                                    HorizontalAlignment="Center"
+                                    FontSize="12"
+                                    Foreground="{DynamicResource Muted}"
+                                    Text="{Binding [History], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                    ToolTip="{Binding [CPUHistoryOnOneScaleSharedByEveryRowHover], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                <TextBlock
+                                    x:Name="CpuHeader"
+                                    Grid.Column="2"
+                                    HorizontalAlignment="Right"
+                                    FontSize="12"
+                                    Foreground="{DynamicResource Muted}"
+                                    Text="{Binding [CpuColumn], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                    ToolTip="{Binding [AverageOverTheLast5SecondsWindowsCountsProcessCPU], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                <TextBlock
+                                    x:Name="GpuHeader"
+                                    Grid.Column="3"
+                                    HorizontalAlignment="Right"
+                                    FontSize="12"
+                                    Foreground="{DynamicResource Muted}"
+                                    Text="{Binding [GpuColumn], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                    ToolTip="{Binding [BusiestGPUEnginePerProcessAveragedOverReadableIntervalsIn], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                <TextBlock
+                                    x:Name="MemoryHeader"
+                                    Grid.Column="4"
+                                    HorizontalAlignment="Right"
+                                    FontSize="12"
+                                    Foreground="{DynamicResource Muted}"
+                                    Text="{Binding [Memory], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                    ToolTip="{Binding [ResidentWorkingSetIncludingSharedPages], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                <TextBlock
+                                    x:Name="IoHeader"
+                                    Grid.Column="5"
+                                    HorizontalAlignment="Right"
+                                    FontSize="12"
+                                    Foreground="{DynamicResource Muted}"
+                                    Text="{Binding [IOMBS], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                    ToolTip="{Binding [ProcessReadWriteIOIncludesFileNetworkAndDevice], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                <TextBlock
+                                    x:Name="ThreadsHeader"
+                                    Grid.Column="6"
+                                    HorizontalAlignment="Right"
+                                    FontSize="12"
+                                    Foreground="{DynamicResource Muted}"
+                                    Text="{Binding [Threads], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                    ToolTip="{Binding [ProcessThreadsExplanation], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                <TextBlock
+                                    x:Name="HandlesHeader"
+                                    Grid.Column="7"
+                                    HorizontalAlignment="Right"
+                                    FontSize="12"
+                                    Foreground="{DynamicResource Muted}"
+                                    Text="{Binding [Handles], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                    ToolTip="{Binding [ProcessHandlesExplanation], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                            </Grid>
+                            <ScrollViewer
+                                x:Name="ProcessScroll"
+                                Grid.Row="2"
+                                Padding="0,0,0,0"
+                                Focusable="False"
+                                HorizontalScrollBarVisibility="Disabled"
+                                VerticalScrollBarVisibility="Auto">
+                                <StackPanel x:Name="ProcessRows">
+                                    <StackPanel x:Name="PinnedProcessRows" />
+                                    <Border
+                                        x:Name="RankedDivider"
+                                        Padding="0,5"
+                                        BorderBrush="{DynamicResource Line}"
+                                        BorderThickness="0,1,0,0"
+                                        Visibility="Collapsed">
+                                        <TextBlock
+                                            x:Name="RankedDividerText"
+                                            FontSize="11"
+                                            Foreground="{DynamicResource Muted}" />
+                                    </Border>
+                                </StackPanel>
+                            </ScrollViewer>
+                            <controls:ProcessActionBar x:Name="ProcessActions" Grid.Row="3" />
+                            <TextBlock
+                                x:Name="EmptyLabel"
+                                Grid.Row="2"
+                                Margin="0,8"
+                                VerticalAlignment="Center"
+                                Foreground="{DynamicResource Muted}"
+                                Text="{Binding [CollectingTheFirstInterval], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                        </Grid>
+                        <controls:ServicesView
+                            x:Name="ServiceView"
+                            Grid.Row="1"
+                            Visibility="Collapsed" />
                     </Grid>
                     <Border
                         x:Name="UpdateFooter"
@@ -773,23 +896,48 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock x:Name="UpdateStatusText" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
-                                       AutomationProperties.LiveSetting="Polite" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
-                            <Button x:Name="ReleaseNotesButton" Grid.Column="1" Margin="8,0,0,0"
-                                    Background="Transparent" BorderThickness="0" Foreground="{DynamicResource Text}"
-                                    Content="{Binding [WhatsNew], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                    Click="OnReleaseNotes" Visibility="Collapsed" />
-                            <Button x:Name="UpdateNowButton" Grid.Column="2" Margin="8,0,0,0"
-                                    Content="{Binding [UpdateNow], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                    ToolTip="{Binding [UpdateNowHelp], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                    Click="OnUpdateNow" Visibility="Collapsed" />
-                            <Button x:Name="CancelUpdateButton" Grid.Column="3" Margin="8,0,0,0"
-                                    Content="{Binding [Cancel], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                    Click="OnCancelUpdate" Visibility="Collapsed" />
-                            <Button x:Name="DismissUpdateButton" Grid.Column="4" Width="28" Margin="8,0,0,0" Padding="0"
-                                    controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Cancel}"
-                                    AutomationProperties.Name="{Binding [Dismiss], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                    Background="Transparent" BorderThickness="0" Click="OnDismissUpdate" />
+                            <TextBlock
+                                x:Name="UpdateStatusText"
+                                VerticalAlignment="Center"
+                                AutomationProperties.LiveSetting="Polite"
+                                TextTrimming="CharacterEllipsis"
+                                ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
+                            <Button
+                                x:Name="ReleaseNotesButton"
+                                Grid.Column="1"
+                                Margin="8,0,0,0"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Click="OnReleaseNotes"
+                                Content="{Binding [WhatsNew], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                Foreground="{DynamicResource Text}"
+                                Visibility="Collapsed" />
+                            <Button
+                                x:Name="UpdateNowButton"
+                                Grid.Column="2"
+                                Margin="8,0,0,0"
+                                Click="OnUpdateNow"
+                                Content="{Binding [UpdateNow], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                ToolTip="{Binding [UpdateNowHelp], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                Visibility="Collapsed" />
+                            <Button
+                                x:Name="CancelUpdateButton"
+                                Grid.Column="3"
+                                Margin="8,0,0,0"
+                                Click="OnCancelUpdate"
+                                Content="{Binding [Cancel], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                Visibility="Collapsed" />
+                            <Button
+                                x:Name="DismissUpdateButton"
+                                Grid.Column="4"
+                                Width="28"
+                                Margin="8,0,0,0"
+                                Padding="0"
+                                controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Cancel}"
+                                AutomationProperties.Name="{Binding [Dismiss], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Click="OnDismissUpdate" />
                         </Grid>
                     </Border>
                 </Grid>

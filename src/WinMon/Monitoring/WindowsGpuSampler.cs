@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
+
 // ReSharper disable StringLiteralTypo
 
 namespace WinMon.Monitoring;
@@ -15,7 +16,9 @@ internal sealed class WindowsGpuSampler : IDisposable
     private IntPtr _counter;
     private readonly WindowsGpuMemory _memory = new();
     private long _timestamp;
+
     private long _collectionFileTime;
+
     // About 600 instance names repeat every second. Each is parsed once and reused while the instance exists.
     private Dictionary<string, EngineInstance?> _instances = new(StringComparer.Ordinal);
     private Dictionary<string, EngineInstance?> _nextInstances = new(StringComparer.Ordinal);
@@ -33,8 +36,10 @@ internal sealed class WindowsGpuSampler : IDisposable
             {
                 Check(Native.PdhOpenQueryW(null, UIntPtr.Zero, out var opened));
                 _query = opened;
-                Check(Native.PdhAddEnglishCounterW(_query, @"\GPU Engine(*)\Utilization Percentage", UIntPtr.Zero, out _counter));
+                Check(Native.PdhAddEnglishCounterW(_query, @"\GPU Engine(*)\Utilization Percentage", UIntPtr.Zero,
+                    out _counter));
             }
+
             Check(Native.PdhCollectQueryData(_query));
             var intervalStart = _collectionFileTime;
             _collectionFileTime = DateTime.UtcNow.ToFileTimeUtc();
@@ -51,10 +56,12 @@ internal sealed class WindowsGpuSampler : IDisposable
             var perProcess = _aggregation.ByProcess(readings);
             return sample with
             {
-                Resources = busiest is null ? sample.Resources : _memory.Attach(sample.Resources with
-                {
-                    GpuPercent = busiest.Percent, GpuId = busiest.Adapter, GpuEngine = busiest.Engine
-                }),
+                Resources = busiest is null
+                    ? sample.Resources
+                    : _memory.Attach(sample.Resources with
+                    {
+                        GpuPercent = busiest.Percent, GpuId = busiest.Adapter, GpuEngine = busiest.Engine
+                    }),
                 Processes = AttachProcesses(sample.Processes, perProcess, intervalStart, ReadCreationTime)
             };
         }
@@ -67,10 +74,16 @@ internal sealed class WindowsGpuSampler : IDisposable
     }
 
     /// <summary>Busiest physical engine across all adapters, or null when no engine has a valid reading.</summary>
-    internal static GpuUsage? Aggregate(IEnumerable<EngineCounter> counters) => new EngineAggregation().Busiest(Parse(counters));
+    internal static GpuUsage? Aggregate(IEnumerable<EngineCounter> counters)
+    {
+        return new EngineAggregation().Busiest(Parse(counters));
+    }
 
     /// <summary>Each process's busiest engine; null for a process whose engines have no valid reading.</summary>
-    internal static IReadOnlyDictionary<int, GpuUsage?> AggregateProcesses(IEnumerable<EngineCounter> counters) => new EngineAggregation().ByProcess(Parse(counters));
+    internal static IReadOnlyDictionary<int, GpuUsage?> AggregateProcesses(IEnumerable<EngineCounter> counters)
+    {
+        return new EngineAggregation().ByProcess(Parse(counters));
+    }
 
     /// <summary>Pair counter values with parsed instance names, dropping names that are not engine instances.</summary>
     /// <param name="counters">Values from one collection.</param>
@@ -83,12 +96,14 @@ internal sealed class WindowsGpuSampler : IDisposable
         var readings = new List<EngineReading>(counters.TryGetNonEnumeratedCount(out var count) ? count : 0);
         foreach (var counter in counters)
         {
-            if (previous is null || !previous.TryGetValue(counter.Name, out var instance)) instance = ParseInstance(counter.Name);
+            if (previous is null || !previous.TryGetValue(counter.Name, out var instance))
+                instance = ParseInstance(counter.Name);
             next?[counter.Name] = instance;
             if (instance is null) continue;
             var valid = counter.Status is 0 or 1 && double.IsFinite(counter.Value) && counter.Value >= 0;
             readings.Add(new EngineReading(instance, counter.Value, valid));
         }
+
         return readings;
     }
 
@@ -96,18 +111,22 @@ internal sealed class WindowsGpuSampler : IDisposable
     internal static EngineInstance? ParseInstance(string name)
     {
         var rest = name.AsSpan();
-        if (!Literal(ref rest, "pid_") || !Run(ref rest, DecimalDigits, out var pid) || !Literal(ref rest, "_luid_")) return null;
+        if (!Literal(ref rest, "pid_") || !Run(ref rest, DecimalDigits, out var pid) ||
+            !Literal(ref rest, "_luid_")) return null;
         var luidStart = name.Length - rest.Length;
-        if (!Literal(ref rest, "0x") || !Run(ref rest, HexDigits, out _) || !Literal(ref rest, "_0x") || !Run(ref rest, HexDigits, out _)) return null;
+        if (!Literal(ref rest, "0x") || !Run(ref rest, HexDigits, out _) || !Literal(ref rest, "_0x") ||
+            !Run(ref rest, HexDigits, out _)) return null;
         var luid = name.AsSpan(luidStart, name.Length - rest.Length - luidStart);
         if (!Literal(ref rest, "_phys_") || !Run(ref rest, DecimalDigits, out var physical) ||
-            !Literal(ref rest, "_eng_") || !Run(ref rest, DecimalDigits, out var engine) || !Literal(ref rest, "_engtype_")) return null;
+            !Literal(ref rest, "_eng_") || !Run(ref rest, DecimalDigits, out var engine) ||
+            !Literal(ref rest, "_engtype_")) return null;
         // The engine type runs to the end of the name: at least one character, no line breaks.
         if (rest.EndsWith('\n')) rest = rest[..^1];
         if (rest.IsEmpty || rest.Contains('\n')) return null;
         // An out-of-range PID still describes a physical engine, so it counts towards the busiest engine.
         int? processId = int.TryParse(pid, NumberStyles.None, CultureInfo.InvariantCulture, out var id) ? id : null;
-        return new EngineInstance(processId, $"{luid.ToString().ToLowerInvariant()}/{physical}", engine.ToString(), rest.ToString());
+        return new EngineInstance(processId, $"{luid.ToString().ToLowerInvariant()}/{physical}", engine.ToString(),
+            rest.ToString());
 
         static bool Literal(ref ReadOnlySpan<char> text, string literal)
         {
@@ -137,38 +156,44 @@ internal sealed class WindowsGpuSampler : IDisposable
 
         internal GpuUsage? Busiest(List<EngineReading> readings)
         {
-            var engines = _physicalEngines;
-            engines.Clear();
+            _physicalEngines.Clear();
             foreach (var reading in readings)
             {
                 var key = (reading.Instance.Adapter, reading.Instance.Engine);
-                engines[key] = (engines.TryGetValue(key, out var total) ? total : EngineTotal.Start(reading.Instance)).Add(reading);
+                _physicalEngines[key] =
+                    (_physicalEngines.TryGetValue(key, out var total) ? total : EngineTotal.Start(reading.Instance))
+                    .Add(reading);
             }
+
             EngineTotal? busiest = null;
-            foreach (var total in engines.Values)
-                if (total.Valid && (busiest is not { } current || total.Precedes(current))) busiest = total;
+            foreach (var total in _physicalEngines.Values)
+                if (total.Valid && (busiest is not { } current || total.Precedes(current)))
+                    busiest = total;
             return busiest?.ToUsage();
         }
 
         internal Dictionary<int, GpuUsage?> ByProcess(List<EngineReading> readings)
         {
-            var engines = _processEngines;
-            engines.Clear();
+            _processEngines.Clear();
             foreach (var reading in readings)
             {
                 if (reading.Instance.ProcessId is not { } processId) continue;
                 var key = (processId, reading.Instance.Adapter, reading.Instance.Engine);
-                engines[key] = (engines.TryGetValue(key, out var total) ? total : EngineTotal.Start(reading.Instance)).Add(reading);
+                _processEngines[key] =
+                    (_processEngines.TryGetValue(key, out var total) ? total : EngineTotal.Start(reading.Instance))
+                    .Add(reading);
             }
-            var busiest = _busiestProcesses;
-            busiest.Clear();
-            foreach (var (key, total) in engines)
+
+            _busiestProcesses.Clear();
+            foreach (var (key, total) in _processEngines)
             {
-                busiest.TryGetValue(key.ProcessId, out var current);
-                busiest[key.ProcessId] = total.Valid && (current is not { } best || total.Precedes(best)) ? total : current;
+                _busiestProcesses.TryGetValue(key.ProcessId, out var current);
+                _busiestProcesses[key.ProcessId] =
+                    total.Valid && (current is not { } best || total.Precedes(best)) ? total : current;
             }
-            var result = new Dictionary<int, GpuUsage?>(busiest.Count);
-            foreach (var (processId, total) in busiest) result[processId] = total?.ToUsage();
+
+            var result = new Dictionary<int, GpuUsage?>(_busiestProcesses.Count);
+            foreach (var (processId, total) in _busiestProcesses) result[processId] = total?.ToUsage();
             return result;
         }
     }
@@ -193,7 +218,9 @@ internal sealed class WindowsGpuSampler : IDisposable
     private static long? ReadCreationTime(int pid)
     {
         using var handle = Native.OpenProcess(0x1000, false, pid);
-        return !handle.IsInvalid && Native.GetProcessTimes(handle, out var created, out _, out _, out _) ? created : null;
+        return !handle.IsInvalid && Native.GetProcessTimes(handle, out var created, out _, out _, out _)
+            ? created
+            : null;
     }
 
     internal static EngineCounter[] ReadCounters(IntPtr counter)
@@ -205,7 +232,8 @@ internal sealed class WindowsGpuSampler : IDisposable
             var status = Native.PdhGetFormattedCounterArrayW(counter, 0x200 | 0x8000, ref bytes, out _, IntPtr.Zero);
             if (status == 0 && bytes == 0) return [];
             if (status != 0x800007D2) Check(status); // PDH_MORE_DATA
-            if (bytes is 0 or > 16 * 1024 * 1024) throw new Win32Exception("GPU counter data exceeds the collection limit.");
+            if (bytes is 0 or > 16 * 1024 * 1024)
+                throw new Win32Exception("GPU counter data exceeds the collection limit.");
             var allocated = bytes;
             var buffer = Marshal.AllocHGlobal(checked((int)bytes));
             try
@@ -224,10 +252,15 @@ internal sealed class WindowsGpuSampler : IDisposable
                         BitConverter.Int64BitsToDouble(Marshal.ReadInt64(item, ValueOffset + 8)),
                         unchecked((uint)Marshal.ReadInt32(item, ValueOffset)));
                 }
+
                 return result;
             }
-            finally { Marshal.FreeHGlobal(buffer); }
+            finally
+            {
+                Marshal.FreeHGlobal(buffer);
+            }
         }
+
         throw new Win32Exception("GPU counter instances changed during collection.");
     }
 
@@ -246,8 +279,13 @@ internal sealed class WindowsGpuSampler : IDisposable
         _collectionFileTime = 0;
     }
 
-    public void Dispose() => Reset();
+    public void Dispose()
+    {
+        Reset();
+    }
+
     internal readonly record struct EngineCounter(string Name, double Value, uint Status = 0);
+
     internal sealed record GpuUsage(string Adapter, string Engine, double Percent);
 
     /// <summary>A parsed engine instance name. Adapter is the lower-case LUID and physical index, such as <c>0x0_0x1234/0</c>.</summary>
@@ -257,12 +295,22 @@ internal sealed class WindowsGpuSampler : IDisposable
     internal readonly record struct EngineReading(EngineInstance Instance, double Value, bool Valid);
 
     /// <summary>One physical engine's summed contributions; any invalid contribution invalidates the engine.</summary>
-    private readonly record struct EngineTotal(string Adapter, string Engine, string EngineType, double Total, bool Valid)
+    private readonly record struct EngineTotal(
+        string Adapter,
+        string Engine,
+        string EngineType,
+        double Total,
+        bool Valid)
     {
-        internal static EngineTotal Start(EngineInstance instance) => new(instance.Adapter, instance.Engine, instance.EngineType, 0, true);
+        internal static EngineTotal Start(EngineInstance instance)
+        {
+            return new EngineTotal(instance.Adapter, instance.Engine, instance.EngineType, 0, true);
+        }
 
-        internal EngineTotal Add(EngineReading reading) =>
-            this with { Total = Total + (reading.Valid ? reading.Value : 0), Valid = Valid && reading.Valid };
+        internal EngineTotal Add(EngineReading reading)
+        {
+            return this with { Total = Total + (reading.Valid ? reading.Value : 0), Valid = Valid && reading.Valid };
+        }
 
         // Busiest first; ties fall to adapter, then engine, in ordinal order, so selection is stable.
         internal bool Precedes(EngineTotal other)
@@ -272,14 +320,20 @@ internal sealed class WindowsGpuSampler : IDisposable
             return adapter != 0 ? adapter < 0 : string.CompareOrdinal(Engine, other.Engine) < 0;
         }
 
-        internal GpuUsage ToUsage() => new(Adapter, EngineType, Math.Clamp(Total, 0, 100));
+        internal GpuUsage ToUsage()
+        {
+            return new GpuUsage(Adapter, EngineType, Math.Clamp(Total, 0, 100));
+        }
     }
 
     // The P/Invoke marshaller constructs this handle for PdhOpenQueryW.
     // ReSharper disable once ClassNeverInstantiated.Local
     private sealed class SafeQuery() : SafeHandleZeroOrMinusOneIsInvalid(true)
     {
-        protected override bool ReleaseHandle() => Native.PdhCloseQuery(handle) == 0;
+        protected override bool ReleaseHandle()
+        {
+            return Native.PdhCloseQuery(handle) == 0;
+        }
     }
 
     [StructLayout(LayoutKind.Explicit, Size = 16)]
@@ -299,18 +353,28 @@ internal sealed class WindowsGpuSampler : IDisposable
     private static class Native
     {
         [DllImport("kernel32.dll", SetLastError = true)]
-        internal static extern SafeProcessHandle OpenProcess(uint access, [MarshalAs(UnmanagedType.Bool)] bool inherit, int pid);
+        internal static extern SafeProcessHandle OpenProcess(uint access, [MarshalAs(UnmanagedType.Bool)] bool inherit,
+            int pid);
+
         [DllImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool GetProcessTimes(SafeProcessHandle process, out long created, out long exited, out long kernel, out long user);
+        internal static extern bool GetProcessTimes(SafeProcessHandle process, out long created, out long exited,
+            out long kernel, out long user);
+
         [DllImport("pdh.dll", CharSet = CharSet.Unicode, ExactSpelling = true)]
         internal static extern uint PdhOpenQueryW(string? source, UIntPtr userData, out SafeQuery query);
+
         [DllImport("pdh.dll", CharSet = CharSet.Unicode, ExactSpelling = true)]
-        internal static extern uint PdhAddEnglishCounterW(SafeQuery query, string path, UIntPtr userData, out IntPtr counter);
+        internal static extern uint PdhAddEnglishCounterW(SafeQuery query, string path, UIntPtr userData,
+            out IntPtr counter);
+
         [DllImport("pdh.dll", ExactSpelling = true)]
         internal static extern uint PdhCollectQueryData(SafeQuery query);
+
         [DllImport("pdh.dll", ExactSpelling = true)]
-        internal static extern uint PdhGetFormattedCounterArrayW(IntPtr counter, uint format, ref uint bytes, out uint count, IntPtr buffer);
+        internal static extern uint PdhGetFormattedCounterArrayW(IntPtr counter, uint format, ref uint bytes,
+            out uint count, IntPtr buffer);
+
         [DllImport("pdh.dll", ExactSpelling = true)]
         internal static extern uint PdhCloseQuery(IntPtr query);
     }

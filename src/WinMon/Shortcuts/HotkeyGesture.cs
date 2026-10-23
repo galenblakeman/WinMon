@@ -1,4 +1,5 @@
 using System.Numerics;
+
 // ReSharper disable ConvertIfStatementToSwitchStatement
 namespace WinMon.Shortcuts;
 
@@ -32,12 +33,15 @@ public sealed record HotkeyGesture(HotkeyModifiers Modifiers, int VirtualKey)
     };
 
     /// <summary>Gets the name of a key a shortcut may use, or <see langword="null"/> for any other key.</summary>
-    internal static string? KeyName(int virtualKey) => virtualKey switch
+    internal static string? KeyName(int virtualKey)
     {
-        >= 'A' and <= 'Z' or >= '0' and <= '9' => ((char)virtualKey).ToString(),
-        >= 0x70 and <= 0x87 => $"F{virtualKey - 0x6F}",
-        _ => NamedKeys.GetValueOrDefault(virtualKey)
-    };
+        return virtualKey switch
+        {
+            >= 'A' and <= 'Z' or >= '0' and <= '9' => ((char)virtualKey).ToString(),
+            >= 0x70 and <= 0x87 => $"F{virtualKey - 0x6F}",
+            _ => NamedKeys.GetValueOrDefault(virtualKey)
+        };
+    }
 
     /// <summary>Gets the spaced form shown in Settings, such as "Ctrl + Shift + M".</summary>
     public string DisplayText => Format(" + ");
@@ -50,15 +54,20 @@ public sealed record HotkeyGesture(HotkeyModifiers Modifiers, int VirtualKey)
             if (KeyName(VirtualKey) is null) return Strings.UseALetterDigitFunctionOrNavigationKey;
             if (Modifiers.HasFlag(HotkeyModifiers.Windows)) return Strings.TheWindowsKeyIsReservedForWindowsShortcuts;
             // A single modifier would take over everyday shortcuts such as Ctrl+C in every application.
-            if ((Modifiers & (HotkeyModifiers.Control | HotkeyModifiers.Alt)) == 0 || BitOperations.PopCount((uint)Modifiers) < 2)
+            if ((Modifiers & (HotkeyModifiers.Control | HotkeyModifiers.Alt)) == 0 ||
+                BitOperations.PopCount((uint)Modifiers) < 2)
                 return Strings.UseAtLeastTwoOfCtrlAltAndShiftIncluding;
-            if (Modifiers == (HotkeyModifiers.Control | HotkeyModifiers.Alt) && VirtualKey == DeleteKey) return Strings.CtrlAltDeleteIsReservedByWindows;
+            if (Modifiers == (HotkeyModifiers.Control | HotkeyModifiers.Alt) && VirtualKey == DeleteKey)
+                return Strings.CtrlAltDeleteIsReservedByWindows;
             return null;
         }
     }
 
     /// <inheritdoc/>
-    public override string ToString() => Format("+");
+    public override string ToString()
+    {
+        return Format("+");
+    }
 
     /// <summary>Parses stored text; "None" succeeds with a <see langword="null"/> gesture.</summary>
     public static bool TryParse(string? text, out HotkeyGesture? gesture)
@@ -82,23 +91,28 @@ public sealed record HotkeyGesture(HotkeyModifiers Modifiers, int VirtualKey)
             if (modifier == HotkeyModifiers.None || modifiers.HasFlag(modifier)) return false;
             modifiers |= modifier;
         }
+
         if (VirtualKeyFromName(parts[^1]) is not { } key) return false;
         gesture = new HotkeyGesture(modifiers, key);
         return true;
     }
 
     /// <summary>Returns canonical stored text: a usable gesture, "None", or the default for anything else.</summary>
-    internal static string Normalize(string? text) =>
-        !TryParse(text, out var gesture) ? Default.ToString()
-        : gesture is null ? NoneText
-        : gesture.Problem is null ? gesture.ToString() : Default.ToString();
+    internal static string Normalize(string? text)
+    {
+        return !TryParse(text, out var gesture) ? Default.ToString()
+            : gesture is null ? NoneText
+            : gesture.Problem is null ? gesture.ToString() : Default.ToString();
+    }
 
     private static int? VirtualKeyFromName(string name)
     {
         if (name.Length == 1 && char.IsAsciiLetterOrDigit(name[0])) return char.ToUpperInvariant(name[0]);
-        if (name.Length > 1 && name[0] is 'F' or 'f' && int.TryParse(name.AsSpan(1), out var number) && number is >= 1 and <= 24) return 0x6F + number;
+        if (name.Length > 1 && name[0] is 'F' or 'f' && int.TryParse(name.AsSpan(1), out var number) &&
+            number is >= 1 and <= 24) return 0x6F + number;
         foreach (var (key, keyName) in NamedKeys)
-            if (keyName.Equals(name, StringComparison.OrdinalIgnoreCase)) return key;
+            if (keyName.Equals(name, StringComparison.OrdinalIgnoreCase))
+                return key;
         return null;
     }
 

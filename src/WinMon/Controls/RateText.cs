@@ -27,6 +27,9 @@ internal static class RateText
         var divisor = Math.Max(receiveBits, sendBits) switch { >= 1e9 => 1e9, >= 1e6 => 1e6, _ => 1e3 };
         return Strings.Format(Strings.NetworkRatePair, Number(receiveBits / divisor), Number(sendBits / divisor), unit);
 
-        static string Number(double value) => value switch { 0 => "0", < 10 => $"{value:0.##}", < 100 => $"{value:0.#}", _ => $"{value:0}" };
+        static string Number(double value)
+        {
+            return value switch { 0 => "0", < 10 => $"{value:0.##}", < 100 => $"{value:0.#}", _ => $"{value:0}" };
+        }
     }
 }

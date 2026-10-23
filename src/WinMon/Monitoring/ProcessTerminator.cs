@@ -15,9 +15,11 @@ internal static class ProcessTerminator
         void Terminate();
     }
 
-    internal static bool IsEligible(ProcessUsage process, bool live, bool grouped) =>
-        live && !grouped && process is { MemberCount: 1, ProcessId: > 4 } &&
-        process.ProcessId != Environment.ProcessId && process.CreationTicks > 0;
+    internal static bool IsEligible(ProcessUsage process, bool live, bool grouped)
+    {
+        return live && !grouped && process is { MemberCount: 1, ProcessId: > 4 } &&
+               process.ProcessId != Environment.ProcessId && process.CreationTicks > 0;
+    }
 
     /// <summary>Capture exact live lifetimes before confirmation, including idle group members.</summary>
     internal static ProcessUsage[] CaptureTargets(ProcessUsage row, bool live, bool grouped,
@@ -36,11 +38,14 @@ internal static class ProcessTerminator
     internal static IReadOnlyList<string> EndAll(IReadOnlyList<ProcessUsage> targets, Func<int, ITarget>? open = null)
     {
         var errors = new List<string>();
+        // Termination is a side effect, not a projection.
+        // ReSharper disable once LoopCanBeConvertedToQuery
         foreach (var target in targets)
         {
             var error = End(target, open);
             if (error is not null) errors.Add($"{target.Name} (PID {target.ProcessId}): {error}");
         }
+
         return errors;
     }
 
@@ -59,18 +64,28 @@ internal static class ProcessTerminator
             return null;
         }
         catch (Win32Exception ex) when (ex.NativeErrorCode == 5)
-        { return Strings.AccessDeniedWindowsDidNotAllowWinMonToEndThis; }
+        {
+            return Strings.AccessDeniedWindowsDidNotAllowWinMonToEndThis;
+        }
         catch (Win32Exception ex) when (ex.NativeErrorCode == 87)
-        { return Strings.ThisProcessHasAlreadyExitedOrIsNoLongerAvailable; }
+        {
+            return Strings.ThisProcessHasAlreadyExitedOrIsNoLongerAvailable;
+        }
         catch (Exception ex) when (ex is Win32Exception or InvalidOperationException or UnauthorizedAccessException)
-        { return Strings.Format(Strings.TheProcessCouldNotBeEnded, ex.Message); }
+        {
+            return Strings.Format(Strings.TheProcessCouldNotBeEnded, ex.Message);
+        }
     }
 
-    private static ITarget Open(int pid) => new NativeTarget(pid);
+    private static ITarget Open(int pid)
+    {
+        return new NativeTarget(pid);
+    }
 
     private sealed class NativeTarget : ITarget
     {
         private readonly SafeProcessHandle _handle;
+
         internal NativeTarget(int pid)
         {
             _handle = OpenProcess(0x1001, false, pid); // QUERY_LIMITED_INFORMATION | TERMINATE
@@ -79,7 +94,10 @@ internal static class ProcessTerminator
             _handle.Dispose();
             throw new Win32Exception(error);
         }
-        public long CreationTicks => !GetProcessTimes(_handle, out var created, out _, out _, out _) ? throw new Win32Exception() : created;
+
+        public long CreationTicks => !GetProcessTimes(_handle, out var created, out _, out _, out _)
+            ? throw new Win32Exception()
+            : created;
 
         public bool HasExited
         {
@@ -89,23 +107,34 @@ internal static class ProcessTerminator
                 return exited != 0;
             }
         }
+
         public bool IsCritical => !IsProcessCritical(_handle, out var critical) ? throw new Win32Exception() : critical;
 
         public void Terminate()
         {
             if (!TerminateProcess(_handle, 1)) throw new Win32Exception();
         }
-        public void Dispose() => _handle.Dispose();
+
+        public void Dispose()
+        {
+            _handle.Dispose();
+        }
     }
 
     [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern SafeProcessHandle OpenProcess(uint access, [MarshalAs(UnmanagedType.Bool)] bool inherit, int pid);
+    private static extern SafeProcessHandle OpenProcess(uint access, [MarshalAs(UnmanagedType.Bool)] bool inherit,
+        int pid);
+
     [DllImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool GetProcessTimes(SafeProcessHandle process, out long created, out long exited, out long kernel, out long user);
+    private static extern bool GetProcessTimes(SafeProcessHandle process, out long created, out long exited,
+        out long kernel, out long user);
+
     [DllImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool IsProcessCritical(SafeProcessHandle process, [MarshalAs(UnmanagedType.Bool)] out bool critical);
+    private static extern bool IsProcessCritical(SafeProcessHandle process,
+        [MarshalAs(UnmanagedType.Bool)] out bool critical);
+
     [DllImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool TerminateProcess(SafeProcessHandle process, uint exitCode);
