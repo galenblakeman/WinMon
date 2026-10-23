@@ -1,6 +1,14 @@
 # Code signing
 
-WinMon's release workflow is configured to use Azure Artifact Signing with the Public Trust profile `WinMonPublic` in `galenwinmonsigning` (East US). Configuration alone does not prove a release is signed: the first GitHub run must complete Azure authentication, signing, signature verification, and packaging validation. Existing unsigned releases remain unchanged.
+WinMon's release workflow uses Azure Artifact Signing with the Public Trust profile `WinMonPublic` in `galenwinmonsigning` (East US), with publisher Galen Blakeman. Recorded validation for version 1.0.3 reports valid Authenticode signatures and Microsoft timestamps for both `WinMon.exe` and `WinMon-1.0.3-Setup-x64.exe`. Each release must complete Azure authentication, signing, signature verification, and packaging validation; workflow configuration alone is not signature evidence. Existing unsigned assets remain unchanged.
+
+To inspect a downloaded executable or installer, open **Properties → Digital Signatures** and check the signer and signature details. PowerShell can also report the signature status:
+
+```powershell
+Get-AuthenticodeSignature -LiteralPath .\WinMon.exe | Format-List Status, StatusMessage, SignerCertificate, TimeStamperCertificate
+```
+
+Use the downloaded installer's path instead when checking the installer. Check for a valid signature, publisher Galen Blakeman, and a timestamp.
 
 ## GitHub configuration
 

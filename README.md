@@ -6,11 +6,26 @@ WinMon brings CPU, memory, disk, network and GPU activity into one clear Windows
 
 **Windows x64 · Self-contained app · Portable settings · MIT licensed**
 
-[Releases](https://github.com/galenblakeman/WinMon/releases) · [Get started](#get-started) · [Developer guide](docs/DEVELOPMENT.md) · [Privacy](docs/PRIVACY.md) · [Code signing policy](docs/CODE_SIGNING.md)
+[**Download latest release**](https://github.com/galenblakeman/WinMon/releases/latest) · [Get started](#get-started) · [Developer guide](docs/DEVELOPMENT.md) · [Privacy](docs/PRIVACY.md) · [Code signing policy](docs/CODE_SIGNING.md)
 
 ![WinMon live dashboard showing CPU, memory, two disks, network and GPU activity above individual process rankings](docs/example/example_individual.png)
 
-*Screenshots captured October 22, 2026 from version 1.0.3 source, using illustrative sample data. See the [example gallery](docs/example/README.md) for all views and capture instructions.*
+*Screenshots use illustrative sample data. See the [example gallery](docs/example/README.md) for more views, capture dates and version details.*
+
+## Get started
+
+[Download the latest release](https://github.com/galenblakeman/WinMon/releases/latest), then choose how to run WinMon:
+
+| Option | How it works |
+| --- | --- |
+| **Installer** | Install for your Windows account, with a Start menu entry and an uninstaller. |
+| **Portable ZIP** | Extract into a writable folder and run `WinMon.exe`. The included `portable.flag` keeps preferences beside the app. |
+
+WinMon targets **Windows x64** and bundles its .NET runtime, so no separate .NET installation is required. Monitoring runs without administrator rights or a network service.
+
+For a standalone executable, create an empty `portable.flag` beside `WinMon.exe` before launching to enable portable settings. Otherwise, preferences are saved in `%LOCALAPPDATA%\WinMon\settings.json`.
+
+Developers can also create an [MSIX / Microsoft Store build](packaging/msix/README.md) using the packaging tools. Store builds use Store-managed updates instead of the GitHub updater.
 
 ## Your system, at a glance
 
@@ -28,23 +43,28 @@ Keep the whole picture in view while you work, play or troubleshoot. WinMon puts
 
 Browsers and other applications often spread their work across many processes. Switch to **Grouped** to bring processes from the same executable together and see their combined CPU, memory and I/O activity. Switch back to **Individual** when you need to investigate a specific process.
 
-![WinMon grouped view combining application processes into rows with process counts and resource usage](docs/example/example_grouped.png)
-
 Grouped GPU shows the busiest member; grouped memory uses private bytes to avoid counting shared working-set pages repeatedly.
 
 ## Find the process you need
 
 Search the ranked list by application name, executable name or PID. Turn on **App Only** to focus on processes observed with an application window, and use the **App** / **Background** labels to understand each row. In Grouped mode, an executable is an app when any current member has an app window.
 
-The pinned count, ranking controls, search field, App Only and Pinned only filters, and grouping switches fit on one row at the minimum supported window width. Thread and handle counts show the latest observation at the selected moment; click either column heading to rank by it. Hover over a process name for its publisher metadata and executable path.
+Click the **Threads** or **Handles** column heading to rank by that count. Hover over a process name for its publisher metadata and executable path.
 
-**Pin a process** using the pin beside its name or its row menu. Pinned rows stay above the rankings in pin order, with a cyan pin and a subtle background. They do not count toward the Top N limit or appear twice. **Pinned only** hides the ranked rows; search and App Only still filter both sections. Pins and the Pinned only filter are saved when WinMon closes and restored when it reopens. Individual processes and executable groups have separate pin lists. An individual pin follows one process lifetime, so an exited or restarted process stays marked exited and a reused PID cannot inherit it; executable-group pins match new instances of the same executable. Missing historical observations show “Not recorded at this sample”; gaps or uncertain observations show unavailable values.
+**Pin a process** using the pin beside its name or its row menu. Pinned rows stay above the rankings in pin order and do not count toward the Top N limit. Turn on **Pinned only** to focus on them. Pins and the Pinned only filter are saved when WinMon closes and restored when it reopens.
 
-![WinMon with a chrome search and App Only enabled, showing the grouped Google Chrome result](docs/example/example_apps_only.png)
+<details>
+<summary>How pins behave across restarts and history</summary>
 
-![WinMon with Visual Studio Code and Google Chrome pinned above the CPU rankings](docs/example/example_pinned.png)
+Individual processes and executable groups have separate pin lists. An individual pin follows one process lifetime, so an exited or restarted process stays marked exited and a reused PID cannot inherit it. Executable-group pins match new instances of the same executable.
 
-See the [Pinned only example](docs/example/example_pinned_only.png) for a focused view of those processes.
+Search and App Only filter both pinned and ranked rows. Pinned processes do not appear twice. Missing historical observations show “Not recorded at this sample”; gaps or uncertain observations show unavailable values. Thread and handle counts show the latest observation at the selected moment.
+
+</details>
+
+See [grouped, filtered and pinned process views](docs/example/README.md) in the example gallery.
+
+Right-click a process row to open **Properties**, **Open file location**, or **Copy details**. The menu also includes pinning, memory-dump creation for eligible live processes, and process termination with confirmation. Available actions depend on the selected process, Windows permissions, and whether you are inspecting history.
 
 ## Catch the spike—even after it passes
 
@@ -60,12 +80,12 @@ History is kept in memory for the current session, with configurable retention u
 
 ## Make it yours
 
-Choose **Light**, **Dark** or **System** appearance, then pick a chart palette independently. Options include Classic, Ocean, Colorblind and high-contrast palettes, plus the new **Neon**, **Arcade** and **Tropical** choices. Palette names sort alphabetically in Settings; swatches and descriptions help you choose. Colors stay consistent across resource readings, chart traces and process sparklines.
+Choose **Light**, **Dark** or **System** appearance, then pick a chart palette independently. Options include Classic, Ocean, Colorblind, high-contrast, **Neon**, **Arcade** and **Tropical** palettes. Settings includes swatches and descriptions to help you choose. Colors stay consistent across resource readings, chart traces and process sparklines.
 
-![WinMon light theme showing the same grouped dashboard with readable resource colors and the centered Live and Snapshot switch](docs/example/example_light.png)
+See [Light appearance and additional palettes](docs/example/README.md) in the example gallery.
 
 <details>
-<summary>Compare the new palettes and view Settings</summary>
+<summary>Compare palettes and view Settings</summary>
 
 | Neon | Arcade | Tropical |
 | --- | --- | --- |
@@ -74,6 +94,10 @@ Choose **Light**, **Dark** or **System** appearance, then pick a chart palette i
 The three custom palettes keep their supplied colors in both themes. Open an image for the full-size view.
 
 ![WinMon Settings with the Neon palette swatches, theme selection, keyboard shortcut and two configured disks](docs/example/example_settings.png)
+
+The Settings image above is from the installer/portable configuration. Store builds hide the GitHub update controls and use Store-managed updates:
+
+![WinMon Store Settings with appearance, language and monitoring options, without GitHub update controls](docs/example/example_settings_store.png)
 
 </details>
 
@@ -85,41 +109,27 @@ Need a hardware overview? **Info** brings together CPU, RAM, graphics adapters, 
 
 ## Light on your system
 
-A monitor shouldn't become the thing slowing your PC down. WinMon samples once per second and reads every process in a single system query, without opening a handle to each one. When hidden or minimized, it keeps recording but skips drawing.
+A monitor shouldn't become the thing slowing your PC down. WinMon samples once per second and collects process resource counters in one system query. Executable paths are cached for each process lifetime. When hidden or minimized, it keeps recording but skips drawing.
 
-Measured over 11 minutes on a 12-thread desktop with about 1,250 running processes and a full 10-minute history:
+Example measurements from October 20, 2026, using a published build on a 12-thread desktop with about 1,250 running processes and a full 10-minute history. These results came from one 11-minute run:
 
-| | Typical |
+| Measurement | Example result |
 | --- | ---: |
-| CPU | about 0.2–0.25% of the machine |
-| Memory (working set) | about 145 MiB |
+| CPU | about 0.25% of the machine |
+| Memory (working set) | about 146 MiB |
 | Private memory | about 60 MiB |
-| Startup to a ready window | about 0.6 s |
 
-Longer history retention uses more memory. Your numbers will vary with process count and hardware; the [developer guide](docs/DEVELOPMENT.md#performance-tuning-measurements) explains how to measure them.
+Separate startup measurements on that machine recorded a median of about **0.6 seconds** for the uncompressed published executable.
 
-## Get started
+These measurements predate the current release. Longer history retention uses more memory, and results vary with process count and hardware. See the [measurement notes](docs/DEVELOPMENT.md#allocation-gc-and-compression-october-20-2026) for the benchmark context and the [developer guide](docs/DEVELOPMENT.md#performance-tuning-measurements) to measure your own system.
 
-Check the [releases page](https://github.com/galenblakeman/WinMon/releases) for published builds. Release packaging supports two ways to run WinMon:
-
-| Option | How it works |
-| --- | --- |
-| **Installer** | Install for your Windows account, with a Start menu entry and an uninstaller. |
-| **Portable ZIP** | Extract into a writable folder and run `WinMon.exe`. The included `portable.flag` keeps preferences beside the app. |
-
-WinMon targets **Windows x64** and bundles its .NET runtime, so no separate .NET installation is required. Monitoring runs without administrator rights or a network service.
-
-An additional [MSIX / Microsoft Store build](packaging/msix/README.md) is available through the packaging tools. Store builds use Store-managed updates instead of the GitHub updater.
-
-For a standalone executable, create an empty `portable.flag` beside `WinMon.exe` before launching to enable portable settings. Otherwise, preferences are saved in `%LOCALAPPDATA%\WinMon\settings.json`.
-
-### Updates
+## Updates
 
 Installer and portable builds check GitHub for newer stable releases and offer **Update now** in the footer when a verified update is available. The updater downloads the update, saves preferences, exits, and restarts at the same location. Restarting clears the current monitoring history. Settings includes a manual check and an option to disable automatic checks. Store builds disable these controls and use Store-managed updates.
 
 In-app updates require a release signed with the update key already trusted by your copy of WinMon. Earlier copies without the updater require a manual upgrade. See [update setup and behavior](docs/UPDATING.md) for publishing and recovery details.
 
-### Build from source
+## Build from source
 
 Development uses **.NET 10**, with SDK **10.0.402** pinned in [global.json](global.json).
 
@@ -149,7 +159,7 @@ WinMon **1.0.7** is built with C# and WPF on .NET 10, and released under the [MI
 
 ### Code signing policy
 
-Starting with 1.0.3, the official executable and installer are signed and timestamped through Azure Artifact Signing with publisher Galen Blakeman. Earlier release assets remain unsigned. See the [Code signing policy](docs/CODE_SIGNING.md) for verification and release responsibilities and the [privacy policy](docs/PRIVACY.md) for local data handling.
+Official executable and installer releases use Azure Artifact Signing with publisher Galen Blakeman and a timestamp. Version 1.0.3 has recorded signature validation for both files. Older assets may be unsigned; check the downloaded file's **Properties → Digital Signatures**. See the [Code signing policy](docs/CODE_SIGNING.md) for verification and release responsibilities and the [privacy policy](docs/PRIVACY.md) for local data handling.
 
 Found a problem or have an idea? [Open an issue](https://github.com/galenblakeman/WinMon/issues).
 
