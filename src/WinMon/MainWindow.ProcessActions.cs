@@ -10,6 +10,24 @@ public partial class MainWindow
 {
     private readonly ProcessSelection _processSelection = new();
 
+    private void OnToggleActivityActions(object sender, RoutedEventArgs e)
+    {
+        _preferences = _preferences with { ProcessActionsHidden = !_preferences.ProcessActionsHidden };
+        UpdateActivityActionsToggle();
+    }
+
+    private void UpdateActivityActionsToggle()
+    {
+        var hidden = _preferences.ProcessActionsHidden;
+        ProcessActions.ActionsHidden = hidden;
+        ServiceView.ActionsHidden = hidden;
+        var label = hidden ? Strings.ShowActions : Strings.HideActions;
+        ActivityActionsToggle.Content = label;
+        ButtonIcon.SetData(ActivityActionsToggle, hidden ? ButtonIcon.ChevronDown : ButtonIcon.ChevronUp);
+        ActivityActionsToggle.ToolTip = label;
+        System.Windows.Automation.AutomationProperties.SetName(ActivityActionsToggle, label);
+    }
+
     private void EnableProcessInspection(ProcessRow row)
     {
         row.ProcessSelected += (process, grouped) =>

@@ -1413,4 +1413,13 @@ Windows の正常性状態: {2}</value>
   <data name="MoreActions" xml:space="preserve"><value>その他</value></data>
   <data name="EndProcessGroup" xml:space="preserve"><value>グループを終了</value></data>
   <data name="Properties" xml:space="preserve"><value>プロパティ</value></data>
+  <data name="HideActions" xml:space="preserve">
+    <value>操作を非表示</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>操作</value>
+  </data>
+  <data name="ShowActions" xml:space="preserve">
+    <value>操作を表示</value>
+  </data>
 </root>

@@ -1413,4 +1413,13 @@ Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse
   <data name="MoreActions" xml:space="preserve"><value>Mehr</value></data>
   <data name="EndProcessGroup" xml:space="preserve"><value>Gruppe beenden</value></data>
   <data name="Properties" xml:space="preserve"><value>Eigenschaften</value></data>
+  <data name="HideActions" xml:space="preserve">
+    <value>Aktionen ausblenden</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Aktionen</value>
+  </data>
+  <data name="ShowActions" xml:space="preserve">
+    <value>Aktionen anzeigen</value>
+  </data>
 </root>

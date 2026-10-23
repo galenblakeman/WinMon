@@ -49,6 +49,9 @@ public sealed record MonitorPreferences
     /// <summary>Restore the pinned-only process filter on startup.</summary>
     public bool PinnedOnly { get; init; }
 
+    /// <summary>Keep both process and service action bars collapsed between launches. Retains the original JSON key.</summary>
+    public bool ProcessActionsHidden { get; init; }
+
     /// <summary>Legacy GPU-ranking flag, read once and migrated to <see cref="ProcessSort"/>.</summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool SortByGpu { get; init; }

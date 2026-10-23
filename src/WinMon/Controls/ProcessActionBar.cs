@@ -5,7 +5,7 @@ using WinMon.Monitoring;
 
 namespace WinMon.Controls;
 
-/// <summary>Persistent actions for the selected process, with captured targets in popup menus.</summary>
+/// <summary>Collapsible actions for the selected process, with captured targets in popup menus.</summary>
 public sealed class ProcessActionBar : Border
 {
     private readonly Grid _layout = new();
@@ -17,6 +17,18 @@ public sealed class ProcessActionBar : Border
     private readonly Image _icon = new() { Width = 28, Height = 28, Margin = new Thickness(0, 0, 12, 0), Source = ProcessIconProvider.Fallback };
     private readonly TextBlock _status = new() { FontSize = 11, VerticalAlignment = VerticalAlignment.Center };
     private readonly Button _properties = ActionButton(), _copy = ActionButton(), _more = ActionButton(), _end = ActionButton();
+    private bool _actionsHidden;
+
+    internal bool ActionsHidden
+    {
+        get => _actionsHidden;
+        set
+        {
+            if (_actionsHidden == value) return;
+            _actionsHidden = value;
+            UpdateVisibility();
+        }
+    }
     private ProcessDetailsSnapshot? _snapshot;
     private bool _canDump;
     private (int, long)? _iconIdentity;
@@ -32,7 +44,8 @@ public sealed class ProcessActionBar : Border
         outer.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(4) });
         outer.ColumnDefinitions.Add(new ColumnDefinition());
         outer.Children.Add(_accent);
-        _layout.Margin = new Thickness(14, 6, 14, 6); Grid.SetColumn(_layout, 1); outer.Children.Add(_layout); Child = outer;
+        _layout.Margin = new Thickness(14, 6, 14, 6); Grid.SetColumn(_layout, 1); outer.Children.Add(_layout);
+        Child = outer;
         _layout.ColumnDefinitions.Add(new ColumnDefinition());
         _layout.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         _layout.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -65,6 +78,11 @@ public sealed class ProcessActionBar : Border
         Update(null, false, false);
     }
 
+    private void UpdateVisibility()
+    {
+        Visibility = ActionsHidden ? Visibility.Collapsed : Visibility.Visible;
+    }
+
     private static Button ActionButton()
     {
         var button = new Button();
@@ -84,6 +102,7 @@ public sealed class ProcessActionBar : Border
     internal void Update(ProcessDetailsSnapshot? snapshot, bool canEnd, bool canDump)
     {
         _snapshot = snapshot; _canDump = canDump;
+        UpdateVisibility();
         var process = snapshot?.Process;
         _accent.SetResourceReference(BackgroundProperty, process is null ? "Line" : "Accent");
         _icon.Visibility = process is null ? Visibility.Collapsed : Visibility.Visible;

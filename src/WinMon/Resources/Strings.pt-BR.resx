@@ -1413,4 +1413,13 @@ O trabalho não salvo pode ser perdido. Todos os processos listados abaixo serã
   <data name="MoreActions" xml:space="preserve"><value>Mais</value></data>
   <data name="EndProcessGroup" xml:space="preserve"><value>Finalizar grupo</value></data>
   <data name="Properties" xml:space="preserve"><value>Propriedades</value></data>
+  <data name="HideActions" xml:space="preserve">
+    <value>Ocultar ações</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Ações</value>
+  </data>
+  <data name="ShowActions" xml:space="preserve">
+    <value>Mostrar ações</value>
+  </data>
 </root>

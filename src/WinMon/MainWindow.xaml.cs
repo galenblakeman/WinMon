@@ -75,6 +75,7 @@ public partial class MainWindow
         InitializeCompactView();
         InitializeServices();
         ProcessActions.ActionRequested += OnProcessAction;
+        UpdateActivityActionsToggle();
         VersionRun.Text = $" {AppInfo.Version}";
         ProcessCountSelector.ItemsSource = new[] { 5, 10, 15, 20, 50 };
         ProcessCountSelector.SelectedItem = _preferences.TopProcessCount;
@@ -141,6 +142,7 @@ public partial class MainWindow
         {
             _preferences = _diagnosticMode ? new MonitorPreferences() : _initialPreferences ?? await _preferenceStore.LoadAsync(_lifetime.Token);
             _processPins.Restore(_preferences.PinnedProcesses);
+            UpdateActivityActionsToggle();
             UpdateProcessRetention();
             PinnedOnlyCheckBox.IsChecked = _preferences.PinnedOnly;
             ProcessSortSelector.SelectedIndex = (int)_preferences.ProcessSort;
@@ -827,6 +829,7 @@ public partial class MainWindow
         BuildRangeChips();
         foreach (var metric in Metrics) metric.RefreshLanguage();
         UpdateCompactButton();
+        UpdateActivityActionsToggle();
         if (_tray?.ContextMenuStrip is { } menu)
         {
             menu.Items[0].Text = Strings.ShowWinMon;

@@ -1413,4 +1413,13 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
   <data name="MoreActions" xml:space="preserve"><value>Plus</value></data>
   <data name="EndProcessGroup" xml:space="preserve"><value>Terminer le groupe</value></data>
   <data name="Properties" xml:space="preserve"><value>Propriétés</value></data>
+  <data name="HideActions" xml:space="preserve">
+    <value>Masquer les actions</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="ShowActions" xml:space="preserve">
+    <value>Afficher les actions</value>
+  </data>
 </root>

@@ -14,6 +14,71 @@ public sealed class ProcessActionBarTests
     private static ProcessDetailsSnapshot Snapshot => new(new(123, 456, "example.exe", 2) { ImagePath = @"C:\Apps\example.exe" }, false, DateTimeOffset.Now, false, true, "");
 
     [Test]
+    public void HiddenStateSurvivesSelectionChangesAndCanBeRestored()
+    {
+        var bar = new ProcessActionBar();
+        bar.Update(Snapshot, true, true);
+        bar.ActionsHidden = true;
+        bar.Update(Snapshot with { Process = Snapshot.Process with { ProcessId = 999 } }, true, true);
+        Assert.That(bar.ActionsHidden, Is.True);
+        ProcessDetailsSnapshot? captured = null;
+        bar.ActionRequested += (_, snapshot) => captured = snapshot;
+        Assert.That(bar.Visibility, Is.EqualTo(Visibility.Collapsed));
+        bar.ActionsHidden = false;
+        Buttons(bar).Single(b => Equals(b.Content, Strings.CopyDetails))
+            .RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Assert.Multiple(() =>
+        {
+            Assert.That(bar.ActionsHidden, Is.False);
+            Assert.That(bar.Visibility, Is.EqualTo(Visibility.Visible));
+            Assert.That(Buttons(bar).Count(), Is.EqualTo(4));
+            Assert.That(captured?.Process.ProcessId, Is.EqualTo(999));
+        });
+    }
+
+    [TestCase(false)]
+    [TestCase(true)]
+    public void NoSelectionRespectsVisibilityPreferenceAndDisablesActions(bool hidden)
+    {
+        var bar = new ProcessActionBar { ActionsHidden = hidden };
+        var expectedVisibility = hidden ? Visibility.Collapsed : Visibility.Visible;
+        Assert.That(bar.Visibility, Is.EqualTo(expectedVisibility));
+        Assert.That(Buttons(bar).All(b => !b.IsEnabled), Is.True);
+        bar.Update(Snapshot, true, true);
+        Assert.That(bar.Visibility, Is.EqualTo(hidden ? Visibility.Collapsed : Visibility.Visible));
+        bar.Update(null, false, false);
+        bar.Measure(new Size(560, double.PositiveInfinity));
+        Assert.Multiple(() =>
+        {
+            Assert.That(bar.Visibility, Is.EqualTo(expectedVisibility));
+            Assert.That(bar.DesiredSize.Height, hidden ? Is.Zero : Is.GreaterThan(0));
+            Assert.That(Buttons(bar).All(b => !b.IsEnabled), Is.True);
+            Assert.That(bar.ActionsHidden, Is.EqualTo(hidden));
+        });
+        bar.Update(Snapshot, true, true);
+        Assert.That(bar.ActionsHidden, Is.EqualTo(hidden));
+    }
+
+    [Test]
+    public void CollapsingReclaimsVerticalSpace()
+    {
+        var bar = new ProcessActionBar();
+        bar.Update(Snapshot, true, true);
+        bar.Measure(new Size(560, double.PositiveInfinity));
+        var expandedHeight = bar.DesiredSize.Height;
+        bar.ActionsHidden = true;
+        bar.Measure(new Size(560, double.PositiveInfinity));
+        Assert.Multiple(() =>
+        {
+            Assert.That(bar.DesiredSize.Height, Is.Zero);
+            Assert.That(expandedHeight, Is.GreaterThan(0));
+        });
+        bar.ActionsHidden = false;
+        bar.Measure(new Size(560, double.PositiveInfinity));
+        Assert.That(bar.DesiredSize.Height, Is.EqualTo(expandedHeight));
+    }
+
+    [Test]
     public void MoreMenuKeepsCapturedTargetWhenSelectionChanges()
     {
         var bar = new ProcessActionBar(); var original = Snapshot;
@@ -52,6 +117,7 @@ public sealed class ProcessActionBarTests
         bar.Measure(new Size(width, double.PositiveInfinity)); bar.Arrange(new Rect(0, 0, width, bar.DesiredSize.Height)); bar.UpdateLayout();
         foreach (var button in Buttons(bar))
         {
+            if (button.Visibility == Visibility.Collapsed) continue;
             var bounds = button.TransformToAncestor(bar).TransformBounds(new Rect(button.RenderSize));
             Assert.That(bounds.Right, Is.LessThanOrEqualTo(width));
             Assert.That(bounds.Bottom, Is.LessThanOrEqualTo(bar.ActualHeight));

@@ -136,7 +136,7 @@
    </ListBox.ItemTemplate>
   </ListBox>
   <TextBlock x:Name="Notice" Grid.Row="3" Margin="0,6,0,4" FontSize="11" Foreground="{DynamicResource Muted}" TextWrapping="Wrap" Visibility="Collapsed"/>
-  <Border Grid.Row="4" MinHeight="54" Background="{DynamicResource SectionHeaderSurface}" BorderThickness="1" BorderBrush="{DynamicResource Line}" CornerRadius="4">
+  <Border x:Name="ActionBar" Grid.Row="4" MinHeight="54" Background="{DynamicResource SectionHeaderSurface}" BorderThickness="1" BorderBrush="{DynamicResource Line}" CornerRadius="4">
    <Grid>
     <Grid.ColumnDefinitions><ColumnDefinition Width="4"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
     <Border x:Name="ActionAccent" Background="{DynamicResource Accent}" CornerRadius="3,0,0,3"/>

@@ -10,6 +10,7 @@ public static partial class Strings
     public static string AboutWinMon => ResourceManager.GetString(nameof(AboutWinMon), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string AboutWinMonAndHardwareInformation => ResourceManager.GetString(nameof(AboutWinMonAndHardwareInformation), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string AccessDeniedWindowsDidNotAllowWinMonToEndThis => ResourceManager.GetString(nameof(AccessDeniedWindowsDidNotAllowWinMonToEndThis), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string Actions => ResourceManager.GetString(nameof(Actions), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string AdapterUtilizationOfTheBusiestEngineAcrossAvailableGPUs => ResourceManager.GetString(nameof(AdapterUtilizationOfTheBusiestEngineAcrossAvailableGPUs), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string AdditionalCPUSpecificationsUnavailableFromWindows => ResourceManager.GetString(nameof(AdditionalCPUSpecificationsUnavailableFromWindows), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string AllServiceStatuses => ResourceManager.GetString(nameof(AllServiceStatuses), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
@@ -131,6 +132,7 @@ public static partial class Strings
     public static string HDD => ResourceManager.GetString(nameof(HDD), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string HealthIsAProviderReportNotAFullSMARTDiagnostic => ResourceManager.GetString(nameof(HealthIsAProviderReportNotAFullSMARTDiagnostic), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string Healthy => ResourceManager.GetString(nameof(Healthy), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string HideActions => ResourceManager.GetString(nameof(HideActions), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string HistoricalIntervalCPUMemoryDiskNetworkOfLinkGPUClick => ResourceManager.GetString(nameof(HistoricalIntervalCPUMemoryDiskNetworkOfLinkGPUClick), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string HistoricalRetention => ResourceManager.GetString(nameof(HistoricalRetention), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string History => ResourceManager.GetString(nameof(History), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
@@ -421,6 +423,7 @@ public static partial class Strings
     public static string SharedSystemMemoryLimitGiB => ResourceManager.GetString(nameof(SharedSystemMemoryLimitGiB), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string Shift => ResourceManager.GetString(nameof(Shift), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ShortcutUnavailable => ResourceManager.GetString(nameof(ShortcutUnavailable), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string ShowActions => ResourceManager.GetString(nameof(ShowActions), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ShowHideWinMon => ResourceManager.GetString(nameof(ShowHideWinMon), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ShowOnChart => ResourceManager.GetString(nameof(ShowOnChart), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ShowTheLastMinutes => ResourceManager.GetString(nameof(ShowTheLastMinutes), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;

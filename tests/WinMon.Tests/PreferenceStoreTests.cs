@@ -8,6 +8,19 @@ namespace WinMon.Tests;
 public sealed class PreferenceStoreTests
 {
     [Test]
+    public async Task ProcessActionsHidden_DefaultsForLegacySettings_AndRoundTripsBothStates()
+    {
+        Directory.CreateDirectory(testDirectory);
+        await File.WriteAllTextAsync(settingsPath, "{\"TopProcessCount\":10}");
+        Assert.That((await new PreferenceStore(settingsPath).LoadAsync()).ProcessActionsHidden, Is.False);
+        foreach (var hidden in new[] { true, false })
+        {
+            await new PreferenceStore(settingsPath).SaveAsync(new MonitorPreferences { ProcessActionsHidden = hidden });
+            Assert.That((await new PreferenceStore(settingsPath).LoadAsync()).ProcessActionsHidden, Is.EqualTo(hidden));
+        }
+    }
+
+    [Test]
     public async Task AppsOnly_DefaultsToAllProcesses_AndRoundTrips()
     {
         var store = new PreferenceStore(settingsPath);

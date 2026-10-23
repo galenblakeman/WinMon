@@ -13,6 +13,61 @@ namespace WinMon.Tests;
 public sealed class ServicesViewTests
 {
     [Test]
+    public void HiddenActionBarReclaimsSpaceAndPreservesSelectionAcrossRefresh()
+    {
+        var view = new ServicesView();
+        var bar = (Border)view.FindName("ActionBar");
+        Assert.That(bar.Visibility, Is.EqualTo(Visibility.Visible));
+        var frame = SelectionFrame(1, 80);
+        view.Update(frame, [frame], false);
+        var rows = (ListBox)view.FindName("Rows");
+        rows.SelectedItem = rows.Items.Cast<ServiceDisplayRow>().Single(r => r.Service?.Name == "agent");
+        bar.Measure(new Size(1000, double.PositiveInfinity));
+        var originalHeight = bar.DesiredSize.Height;
+        Assert.That(bar.Visibility, Is.EqualTo(Visibility.Visible));
+        view.ActionsHidden = true;
+        frame = SelectionFrame(2, 70);
+        view.Update(frame, [frame], false);
+        bar.Measure(new Size(1000, double.PositiveInfinity));
+        Assert.Multiple(() =>
+        {
+            Assert.That(bar.Visibility, Is.EqualTo(Visibility.Collapsed));
+            Assert.That(bar.DesiredSize.Height, Is.Zero);
+            Assert.That(((TextBlock)view.FindName("Summary")).Text, Is.EqualTo("Build Agent"));
+        });
+        view.ActionsHidden = false;
+        bar.Measure(new Size(1000, double.PositiveInfinity));
+        Assert.That(bar.Visibility, Is.EqualTo(Visibility.Visible));
+        Assert.That(bar.DesiredSize.Height, Is.EqualTo(originalHeight));
+        string? copied = null;
+        view.CopyRequested += text => copied = text;
+        ((Button)view.FindName("CopyDetails")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Assert.That(copied, Does.Contain("Build Agent (agent)"));
+        rows.SelectedItem = null;
+        Assert.That(bar.Visibility, Is.EqualTo(Visibility.Visible));
+    }
+
+    [TestCase(false)]
+    [TestCase(true)]
+    public void NoSelectionRespectsVisibilityPreferenceAndDisablesActions(bool hidden)
+    {
+        var view = new ServicesView { ActionsHidden = hidden };
+        view.Update(null, [], false);
+        var bar = (Border)view.FindName("ActionBar");
+        bar.Measure(new Size(1000, double.PositiveInfinity));
+        Assert.Multiple(() =>
+        {
+            Assert.That(bar.Visibility, Is.EqualTo(hidden ? Visibility.Collapsed : Visibility.Visible));
+            Assert.That(bar.DesiredSize.Height, hidden ? Is.Zero : Is.GreaterThan(0));
+            Assert.That(((TextBlock)view.FindName("Summary")).Text, Is.EqualTo(WinMon.Resources.Strings.SelectService));
+            foreach (var name in new[] { "ViewProcess", "CopyDetails", "Start", "Stop", "Restart" })
+                Assert.That(((Button)view.FindName(name)).IsEnabled, Is.False, name);
+        });
+        view.ActionsHidden = !hidden;
+        Assert.That(bar.Visibility, Is.EqualTo(hidden ? Visibility.Visible : Visibility.Collapsed));
+    }
+
+    [Test]
     public void RankingHeaders_SwitchOrderAndKeepDropdownAndIndicatorInSync()
     {
         var groups = new[] {

@@ -1413,4 +1413,13 @@ Windows 健康状态：{2}</value>
   <data name="MoreActions" xml:space="preserve"><value>更多</value></data>
   <data name="EndProcessGroup" xml:space="preserve"><value>结束组</value></data>
   <data name="Properties" xml:space="preserve"><value>属性</value></data>
+  <data name="HideActions" xml:space="preserve">
+    <value>隐藏操作</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>操作</value>
+  </data>
+  <data name="ShowActions" xml:space="preserve">
+    <value>显示操作</value>
+  </data>
 </root>

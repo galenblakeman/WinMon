@@ -431,12 +431,18 @@
                     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                     <Border x:Name="ActivityTabStrip" Margin="-20,0,-20,0" Padding="20,0,0,0"
                             Background="{DynamicResource SectionHeaderSurface}">
+                    <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                     <StackPanel Orientation="Horizontal" KeyboardNavigation.TabNavigation="Once">
                         <RadioButton x:Name="ProcessesTab" GroupName="ActivityView" IsChecked="True" Style="{StaticResource ActivityTab}"
                                      Content="{Binding [ProcessesTab], Source={x:Static resources:Strings.Text}}" />
                         <RadioButton x:Name="ServicesTab" GroupName="ActivityView" Style="{StaticResource ActivityTab}"
                                      Content="{Binding [Services], Source={x:Static resources:Strings.Text}}" />
                     </StackPanel>
+                    <Button x:Name="ActivityActionsToggle" Grid.Column="1" Margin="0,0,20,0"
+                            Style="{StaticResource TitleActionButton}" FontSize="12"
+                            Foreground="{DynamicResource Muted}" Click="OnToggleActivityActions" />
+                    </Grid>
                     </Border>
                     <Grid Grid.Row="1" x:Name="ProcessesArea">
                         <Grid.RowDefinitions>

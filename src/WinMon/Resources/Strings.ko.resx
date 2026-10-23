@@ -1413,4 +1413,13 @@ Windows 상태: {2}</value>
   <data name="MoreActions" xml:space="preserve"><value>더 보기</value></data>
   <data name="EndProcessGroup" xml:space="preserve"><value>그룹 끝내기</value></data>
   <data name="Properties" xml:space="preserve"><value>속성</value></data>
+  <data name="HideActions" xml:space="preserve">
+    <value>작업 숨기기</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>작업</value>
+  </data>
+  <data name="ShowActions" xml:space="preserve">
+    <value>작업 표시</value>
+  </data>
 </root>

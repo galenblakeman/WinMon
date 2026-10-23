@@ -21,6 +21,20 @@ public partial class ServicesView : UserControl
     private ActionSelection? _actionSelection;
     private ServiceDisplayRow? _actionRow;
     private ServiceDisplayRow? _contextRow;
+    private bool _actionsHidden;
+
+    internal bool ActionsHidden
+    {
+        get => _actionsHidden;
+        set
+        {
+            _actionsHidden = value;
+            UpdateActionBarVisibility();
+        }
+    }
+
+    private void UpdateActionBarVisibility() =>
+        ActionBar.Visibility = ActionsHidden ? Visibility.Collapsed : Visibility.Visible;
     private sealed record ActionSelection(string? ServiceName, string RowKey);
     internal event Action<ProcessUsage>? ProcessRequested;
     internal event Action<string>? CopyRequested;
@@ -336,6 +350,7 @@ public partial class ServicesView : UserControl
 
     private void UpdateButtons()
     {
+        UpdateActionBarVisibility();
         var row = _actionRow;
         ViewProcess.IsEnabled = row?.Process is not null;
         CopyDetails.IsEnabled = row is not null;

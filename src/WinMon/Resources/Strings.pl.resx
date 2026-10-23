@@ -1413,4 +1413,13 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
   <data name="MoreActions" xml:space="preserve"><value>Więcej</value></data>
   <data name="EndProcessGroup" xml:space="preserve"><value>Zakończ grupę</value></data>
   <data name="Properties" xml:space="preserve"><value>Właściwości</value></data>
+  <data name="HideActions" xml:space="preserve">
+    <value>Ukryj działania</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Działania</value>
+  </data>
+  <data name="ShowActions" xml:space="preserve">
+    <value>Pokaż działania</value>
+  </data>
 </root>
