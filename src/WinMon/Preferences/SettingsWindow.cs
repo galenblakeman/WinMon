@@ -192,6 +192,25 @@ public sealed class SettingsWindow : Window
     /// </summary>
     public MonitorPreferences? Result { get; private set; }
 
+    /// <summary>Copy the preferences this dialog edits from <paramref name="settings"/> onto <paramref name="current"/>.</summary>
+    /// <remarks>
+    /// Everything else, such as grouping, pins and compact mode, belongs to the main window and may change while
+    /// a confirmed result is being saved, so applying a result must not restore the values the dialog opened with.
+    /// </remarks>
+    internal static MonitorPreferences ApplySettings(MonitorPreferences current, MonitorPreferences settings) => current with
+    {
+        PrimaryDrive = settings.PrimaryDrive,
+        SecondaryDrive = settings.SecondaryDrive,
+        Theme = settings.Theme,
+        Language = settings.Language,
+        ChartPalette = settings.ChartPalette,
+        RetentionSeconds = settings.RetentionSeconds,
+        MinimizeToTray = settings.MinimizeToTray,
+        StartWithWindows = settings.StartWithWindows,
+        AutomaticallyCheckForUpdates = settings.AutomaticallyCheckForUpdates,
+        ShowShortcut = settings.ShowShortcut
+    };
+
     internal sealed record DriveChoice(string? Name, string Label)
     {
         public override string ToString() => Label;
@@ -451,7 +470,7 @@ public sealed class SettingsWindow : Window
             WinMon.Controls.MessageDialog.ShowNotice(this, Strings.ChooseAPrimaryVolumeAndADifferentSecondVolumeOr, Strings.DiskMonitoring);
             return;
         }
-        Result = _initialPreferences with
+        Result = ApplySettings(_initialPreferences, new MonitorPreferences
         {
             PrimaryDrive = primary,
             SecondaryDrive = secondary,
@@ -468,7 +487,7 @@ public sealed class SettingsWindow : Window
             StartWithWindows = _startupCheckBox.IsChecked == true,
             AutomaticallyCheckForUpdates = _automaticUpdateCheckBox.IsChecked == true,
             ShowShortcut = _shortcut?.ToString() ?? HotkeyGesture.NoneText
-        };
+        });
         DialogResult = true;
     }
 }

@@ -383,6 +383,29 @@ public sealed class ServicesViewTests
     }
 
     [Test]
+    public void ExitedWorkerRow_IsNotKeptForReuseWhileItsHostRuns()
+    {
+        var view = new ServicesView();
+        var frame = Frame();
+        view.Update(frame, [frame], false);
+        view.ExpandAll();
+        var host = new ProcessUsage(10, 100, "host", 2, IoBytesPerSecond: 100) { PrivateBytes = 100 };
+        var exited = new ServiceTree().Capture(new CpuSample(DateTimeOffset.UtcNow, 5, [host], 0),
+            new ServiceCatalog(1000, [new("agent", "Build Agent", 4, 10, 1)]));
+
+        view.Update(exited, [frame, exited], false);
+
+        var spares = (Dictionary<string, ServiceDisplayRow>)typeof(ServicesView)
+            .GetField("_spareRows", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.GetValue(view)!;
+        Assert.Multiple(() =>
+        {
+            Assert.That(((ListBox)view.FindName("Rows")).Items.Cast<ServiceDisplayRow>().Select(r => r.Key),
+                Has.None.EqualTo("process:11:200"));
+            Assert.That(spares.Keys, Has.None.StartsWith("process:"));
+        });
+    }
+
+    [Test]
     public void Selection_ServiceActionsAreDisabledForHistoryAndWhileBusy()
     {
         var view = new ServicesView();

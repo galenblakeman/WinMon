@@ -299,4 +299,29 @@ public sealed class PreferenceStoreTests
     {
         Assert.That(StartupRegistration.CanRegisterExecutablePath(executablePath), Is.EqualTo(expected));
     }
+
+    [Test]
+    public void ApplySettings_TakesOnlyDialogSettings_AndKeepsChoicesMadeInTheWindowMeanwhile()
+    {
+        var opened = new MonitorPreferences { Theme = "Dark", RetentionSeconds = 600, GroupProcesses = false, CompactMode = false };
+        var confirmed = opened with { Theme = "Light", RetentionSeconds = 1800, MinimizeToTray = !opened.MinimizeToTray };
+        // While the confirmed settings were being saved, the user grouped processes and pinned one.
+        var current = opened with
+        {
+            GroupProcesses = true, CompactMode = true,
+            PinnedProcesses = [new ProcessPinPreference(10, 100, "pinned", "", "", null, false)]
+        };
+
+        var applied = SettingsWindow.ApplySettings(current, confirmed);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(applied.Theme, Is.EqualTo("Light"));
+            Assert.That(applied.RetentionSeconds, Is.EqualTo(1800));
+            Assert.That(applied.MinimizeToTray, Is.EqualTo(confirmed.MinimizeToTray));
+            Assert.That(applied.GroupProcesses, Is.True);
+            Assert.That(applied.CompactMode, Is.True);
+            Assert.That(applied.PinnedProcesses.Single().Name, Is.EqualTo("pinned"));
+        });
+    }
 }

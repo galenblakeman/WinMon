@@ -50,12 +50,15 @@ internal static class UpdateRuntime
                 using var ready = EventWaitHandle.OpenExisting(UpdateLauncher.EventName(_resultToken, "Healthy"));
                 ready.Set();
             }
-            // Recover a completed replacement after power loss/helper termination, once a real sample proves startup.
+            // Recover a completed replacement after power loss/helper termination, once a real sample proves startup,
+            // and remove what earlier sessions' abandoned transactions left behind.
+            using var current = Process.GetCurrentProcess();
+            var sessionStart = current.StartTime.ToUniversalTime();
             foreach (var directory in Transactions())
             {
                 try
                 {
-                    CompleteInterruptedTransaction(directory, Environment.ProcessPath!, AppInfo.Version, _resultToken);
+                    CompleteInterruptedTransaction(directory, Environment.ProcessPath!, AppInfo.Version, _resultToken, sessionStart);
                 }
                 catch (Exception ex) { Trace.TraceWarning("WinMon stale update cleanup: {0}", ex.Message); }
             }
@@ -63,21 +66,48 @@ internal static class UpdateRuntime
         catch (Exception ex) { Trace.TraceError("WinMon update ready signal: {0}", ex); }
     }
 
-    internal static void CompleteInterruptedTransaction(string directory, string target, string currentVersion, string? activeToken)
+    /// <param name="sessionStartUtc">When this process started. Only transactions created before it can be
+    /// abandoned: this session has not begun an update of its own when startup is proven.</param>
+    internal static void CompleteInterruptedTransaction(string directory, string target, string currentVersion, string? activeToken,
+        DateTime? sessionStartUtc = null)
     {
-        var job = UpdateFiles.ReadJson<UpdateJob>(Path.Combine(directory, "job.json"));
+        var earlier = sessionStartUtc is { } start && Directory.GetCreationTimeUtc(directory) < start;
+        var jobPath = Path.Combine(directory, "job.json");
+        if (!File.Exists(jobPath))
+        {
+            // The job is written last, so this download was interrupted before it finished.
+            if (earlier) TryDeleteDirectory(directory);
+            return;
+        }
+        var job = UpdateFiles.ReadJson<UpdateJob>(jobPath);
         // The live helper owns this transaction until it has committed readiness and removed its backup.
         if (job.Token == activeToken) return;
         var statePath = Path.Combine(directory, "state.json");
-        if (!SamePath(job.Target, target) || !Guid.TryParseExact(job.Token, "N", out _) || !File.Exists(statePath)) return;
+        if (!SamePath(job.Target, target) || !Guid.TryParseExact(job.Token, "N", out _)) return;
+        if (!File.Exists(statePath))
+        {
+            // Prepared but never applied: the helper writes a state before it changes anything outside this directory.
+            if (earlier) TryDeleteDirectory(directory);
+            return;
+        }
         var state = UpdateFiles.ReadJson<UpdateState>(statePath);
         if (job.Version == currentVersion && state.Status is "replacing" or "awaiting-ready")
         {
             UpdateFiles.WriteJson(statePath, new UpdateState("succeeded"));
             state = new UpdateState("succeeded");
         }
-        if (state.Status != "succeeded") return;
-        TryDelete(UpdateFiles.BackupPath(job));
+        if (state.Status is not ("succeeded" or "failed" or "rolled-back")) return;
+        if (state.Status != "succeeded" && !earlier) return;
+        // The small job and state files stay until the result notice has been shown.
+        if (earlier && File.Exists(Path.Combine(directory, "notice-shown")) && File.Exists(job.Target))
+        {
+            TryDelete(UpdateFiles.BackupPath(job));
+            TryDelete(UpdateFiles.StagedPath(job));
+            TryDeleteDirectory(directory);
+            return;
+        }
+        // A backup is the only copy of WinMon while the target is missing.
+        if (File.Exists(job.Target)) TryDelete(UpdateFiles.BackupPath(job));
         TryDelete(UpdateFiles.StagedPath(job));
         TryDelete(Path.Combine(directory, "WinMon.Update.exe"));
         TryDelete(Path.Combine(directory, "WinMon.exe"));
@@ -225,6 +255,7 @@ internal static class UpdateRuntime
                         }
                         PortableUpdate.Restore(job.Target, UpdateFiles.BackupPath(job));
                     }
+                    else if (!job.Installed) PortableUpdate.RecoverIncompleteReplace(job.Target, UpdateFiles.BackupPath(job));
                     UpdateFiles.WriteJson(Path.Combine(directory, "state.json"), new UpdateState(replaced ? "rolled-back" : "failed", ex.Message));
                     if (File.Exists(job.Target) && !IsProcessRunning(job.ParentId, job.ParentStartTicks)) Launch(job, directory).Dispose();
                 }
@@ -255,6 +286,14 @@ internal static class UpdateRuntime
     private static void TryDelete(string path)
     {
         try { if (File.Exists(path)) File.Delete(path); }
+        catch (IOException) { }
+        catch (UnauthorizedAccessException) { }
+    }
+
+    // A helper that is still exiting keeps its executable open; a later startup retries.
+    private static void TryDeleteDirectory(string path)
+    {
+        try { Directory.Delete(path, recursive: true); }
         catch (IOException) { }
         catch (UnauthorizedAccessException) { }
     }

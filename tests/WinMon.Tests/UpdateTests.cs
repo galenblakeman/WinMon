@@ -257,6 +257,114 @@ public sealed class UpdateTests
     }
 
     [Test]
+    public void CompleteInterruptedTransaction_RemovesEarlierSessionsAbandonedDownloadsAndUnappliedJobs()
+    {
+        var interrupted = Path.Combine(_directory, Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(interrupted);
+        File.WriteAllText(Path.Combine(interrupted, "WinMon-1.2.3-win-x64.zip"), "partial download");
+        var (unapplied, target, _) = PrepareRecovery("1.2.3", "unused");
+        File.Delete(Path.Combine(unapplied, "state.json"));
+        File.WriteAllText(Path.Combine(unapplied, "WinMon.Update.exe"), "helper");
+        var current = Path.Combine(_directory, Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(current);
+        Age(interrupted);
+        Age(unapplied);
+
+        foreach (var directory in new[] { interrupted, unapplied, current })
+            UpdateRuntime.CompleteInterruptedTransaction(directory, target, "1.2.2", activeToken: null, sessionStartUtc: DateTime.UtcNow.AddMinutes(-1));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(Directory.Exists(interrupted), Is.False);
+            Assert.That(Directory.Exists(unapplied), Is.False);
+            Assert.That(Directory.Exists(current), Is.True, "A download this session may have started must not be removed.");
+            Assert.That(File.Exists(target), Is.True);
+        });
+    }
+
+    [Test]
+    public void CompleteInterruptedTransaction_KeepsTheActiveTransactionAndTheResultNoticeOfAFailedOne()
+    {
+        var (active, activeTarget, activeJob) = PrepareRecovery("1.2.3", "awaiting-ready");
+        File.Delete(Path.Combine(active, "state.json"));
+        var (failed, target, _) = PrepareRecovery("1.2.3", "rolled-back");
+        File.WriteAllText(Path.Combine(failed, "WinMon.Update.exe"), "helper");
+        File.WriteAllText(Path.Combine(failed, "verified.exe"), "extracted");
+        Age(active);
+        Age(failed);
+        var start = DateTime.UtcNow.AddMinutes(-1);
+
+        UpdateRuntime.CompleteInterruptedTransaction(active, activeTarget, "1.2.2", activeJob.Token, start);
+        UpdateRuntime.CompleteInterruptedTransaction(failed, target, "1.2.2", activeToken: null, start);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(Directory.Exists(active), Is.True);
+            Assert.That(File.Exists(Path.Combine(failed, "WinMon.Update.exe")), Is.False);
+            Assert.That(File.Exists(Path.Combine(failed, "verified.exe")), Is.False);
+            Assert.That(UpdateFiles.ReadJson<UpdateState>(Path.Combine(failed, "state.json")).Status, Is.EqualTo("rolled-back"),
+                "The result notice reads the state, so it stays until the notice has been shown.");
+        });
+
+        File.WriteAllText(Path.Combine(failed, "notice-shown"), "");
+        UpdateRuntime.CompleteInterruptedTransaction(failed, target, "1.2.2", activeToken: null, start);
+
+        Assert.That(Directory.Exists(failed), Is.False);
+    }
+
+    [Test]
+    public void CompleteInterruptedTransaction_KeepsTheBackupWhileTheTargetIsMissing()
+    {
+        var (directory, target, job) = PrepareRecovery("1.2.3", "failed");
+        File.Delete(target);
+        File.WriteAllText(UpdateFiles.BackupPath(job), "only copy");
+        File.WriteAllText(Path.Combine(directory, "notice-shown"), "");
+        Age(directory);
+
+        UpdateRuntime.CompleteInterruptedTransaction(directory, target, "1.2.2", activeToken: null, DateTime.UtcNow.AddMinutes(-1));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(File.ReadAllText(UpdateFiles.BackupPath(job)), Is.EqualTo("only copy"));
+            Assert.That(Directory.Exists(directory), Is.True);
+        });
+    }
+
+    [Test]
+    public void RecoverIncompleteReplace_RestoresTheOriginalOnlyWhenTheTargetIsMissing()
+    {
+        Directory.CreateDirectory(_directory);
+        var target = Path.Combine(_directory, "WinMon.exe");
+        var backup = Path.Combine(_directory, ".WinMon-token.backup.exe");
+        File.WriteAllText(backup, "original");
+
+        Assert.That(PortableUpdate.RecoverIncompleteReplace(target, backup), Is.True);
+        Assert.That(File.ReadAllText(target), Is.EqualTo("original"));
+
+        File.WriteAllText(backup, "second backup");
+        Assert.Multiple(() =>
+        {
+            Assert.That(PortableUpdate.RecoverIncompleteReplace(target, backup), Is.False);
+            Assert.That(File.ReadAllText(target), Is.EqualTo("original"));
+            Assert.That(File.Exists(backup), Is.True);
+        });
+    }
+
+    [Test]
+    public void AvailableFreeSpace_ReadsLocalDirectoriesAndNetworkShares()
+    {
+        Directory.CreateDirectory(_directory);
+        Assert.That(UpdateClient.AvailableFreeSpace(_directory), Is.GreaterThan(0));
+        var root = Path.GetPathRoot(Path.GetFullPath(_directory))!;
+        // An administrative share stands in for a network share where one is available.
+        var share = $@"\\localhost\{root[0]}$";
+        if (!Directory.Exists(share)) Assert.Ignore("No administrative share is available to read through UNC.");
+        Assert.That(UpdateClient.AvailableFreeSpace(share), Is.GreaterThan(0));
+    }
+
+    private static void Age(string directory) => Directory.SetCreationTimeUtc(directory, DateTime.UtcNow.AddHours(-1));
+
+    [Test]
     public async Task CheckAsync_ReturnsOnlySignedNewerEligibleRelease_AndUsesEtagCache()
     {
         using var key = RSA.Create(2048);

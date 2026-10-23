@@ -80,4 +80,14 @@ internal static class PortableUpdate
         if (File.Exists(target)) File.Replace(backup, target, null);
         else File.Move(backup, target);
     }
+
+    /// <summary>Put the original back when a replacement stopped after moving it to the backup name.</summary>
+    /// <remarks>ReplaceFile can fail with ERROR_UNABLE_TO_MOVE_REPLACEMENT_2 after renaming the original, leaving
+    /// no executable at the target. Returns whether it restored one.</remarks>
+    internal static bool RecoverIncompleteReplace(string target, string backup)
+    {
+        if (File.Exists(target) || !File.Exists(backup)) return false;
+        File.Move(backup, target);
+        return true;
+    }
 }

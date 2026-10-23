@@ -3,6 +3,7 @@ using System.IO.Compression;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 
 namespace WinMon.Updates;
@@ -82,11 +83,9 @@ internal sealed class UpdateClient : IDisposable
         Directory.CreateDirectory(directory);
         try
         {
-            var drive = new DriveInfo(Path.GetPathRoot(Path.GetFullPath(target))!);
-            if (drive.AvailableFreeSpace < asset.Size * 4 + new FileInfo(target).Length)
+            if (AvailableFreeSpace(Path.GetDirectoryName(Path.GetFullPath(target))!) < asset.Size * 4 + new FileInfo(target).Length)
                 throw new IOException("Not enough disk space to update WinMon.");
-            var stagingDrive = new DriveInfo(Path.GetPathRoot(Path.GetFullPath(directory))!);
-            if (stagingDrive.AvailableFreeSpace < asset.Size * 4 + new FileInfo(target).Length)
+            if (AvailableFreeSpace(directory) < asset.Size * 4 + new FileInfo(target).Length)
                 throw new IOException("Not enough staging space to download the update.");
             // Probe the destination before asking the application to exit.
             var probe = Path.Combine(Path.GetDirectoryName(target)!, ".winmon-update-" + Guid.NewGuid().ToString("N"));
@@ -176,4 +175,19 @@ internal sealed class UpdateClient : IDisposable
     }
 
     public void Dispose() => _http.Dispose();
+
+    /// <summary>Free bytes available to this user on the volume holding <paramref name="directory"/>.</summary>
+    /// <remarks>DriveInfo rejects network share roots, so a portable copy on a share could never update.</remarks>
+    internal static long AvailableFreeSpace(string directory)
+    {
+        // A UNC directory needs a trailing separator.
+        var path = Path.EndsInDirectorySeparator(directory) ? directory : directory + Path.DirectorySeparatorChar;
+        if (!GetDiskFreeSpaceExW(path, out var available, out _, out _))
+            throw new IOException($"Cannot read free space for {directory}.", Marshal.GetHRForLastWin32Error());
+        return (long)Math.Min(available, long.MaxValue);
+    }
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool GetDiskFreeSpaceExW(string directory, out ulong freeBytesAvailable, out ulong totalBytes, out ulong totalFreeBytes);
 }

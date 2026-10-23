@@ -36,6 +36,7 @@ public partial class MainWindow
     private MonitorPreferences _preferences = new();
     private Task? _samplingTask;
     private Task _settingsWriteTask = Task.CompletedTask;
+    private bool _preferencesLoaded;
     private Forms.NotifyIcon? _tray;
     private System.Drawing.Icon? _trayIcon;
     private CpuSample? _selectedSample;
@@ -141,6 +142,7 @@ public partial class MainWindow
         try
         {
             _preferences = _diagnosticMode ? new MonitorPreferences() : _initialPreferences ?? await _preferenceStore.LoadAsync(_lifetime.Token);
+            _preferencesLoaded = true;
             _processPins.Restore(_preferences.PinnedProcesses);
             UpdateActivityActionsToggle();
             UpdateProcessRetention();
@@ -802,7 +804,8 @@ public partial class MainWindow
             catch (Exception rollbackError) { Trace.TraceError("WinMon startup registration rollback failed: {0}", rollbackError); }
             throw;
         }
-        _preferences = PreferenceStore.Validate(result);
+        // Choices made in the window while the file was written, such as grouping or a new pin, stay in effect.
+        _preferences = PreferenceStore.Validate(SettingsWindow.ApplySettings(_preferences, result));
         SecondaryDiskMetric.Toggle.IsChecked = _preferences.ShowSecondaryDisk;
         ConfigureDiskLayout();
         _history.Resize(_preferences.RetentionSeconds);
@@ -1000,10 +1003,10 @@ public partial class MainWindow
             IsEnabled = false;
             try
             {
-                await _settingsWriteTask;
-                var savedBounds = WindowState == WindowState.Normal ? new Rect(Left, Top, Width, Height) : RestoreBounds;
-                var savedSize = SavedFullViewSize(savedBounds);
-                await _preferenceStore.SaveAsync(_preferences with { Width = savedSize.Width, Height = savedSize.Height, Left = savedBounds.Left, Top = savedBounds.Top, AlwaysOnTop = Topmost }, CancellationToken.None);
+                // An earlier failed Settings save was already reported; only this exit save decides the update.
+                try { await _settingsWriteTask; }
+                catch (Exception settingsError) { Trace.TraceError("WinMon earlier preference save failed: {0}", settingsError); }
+                await _preferenceStore.SaveAsync(ExitPreferences(), CancellationToken.None);
             }
             catch (Exception saveError)
             {
@@ -1028,9 +1031,7 @@ public partial class MainWindow
             if (_samplingTask is not null) await _samplingTask;
             try { await _settingsWriteTask; }
             catch (Exception settingsError) { Trace.TraceError("WinMon pending preference save failed during shutdown: {0}", settingsError); }
-            var bounds = WindowState == WindowState.Normal ? new Rect(Left, Top, Width, Height) : RestoreBounds;
-            var size = SavedFullViewSize(bounds);
-            if (!_diagnosticMode && !_updateRestartPending) await _preferenceStore.SaveAsync(_preferences with { Width = size.Width, Height = size.Height, Left = bounds.Left, Top = bounds.Top, AlwaysOnTop = Topmost }, CancellationToken.None);
+            if (!_diagnosticMode && !_updateRestartPending) await _preferenceStore.SaveAsync(ExitPreferences(), CancellationToken.None);
         }
         catch (Exception ex) { AbortPendingUpdate(); Trace.TraceError("WinMon shutdown or preference save failed: {0}", ex); }
         finally
@@ -1046,5 +1047,31 @@ public partial class MainWindow
             _allowClose = true;
             Close();
         }
+    }
+    /// <summary>The preferences to persist on exit, including the window's bounds and keep-on-top state.</summary>
+    private MonitorPreferences ExitPreferences()
+    {
+        var bounds = WindowState == WindowState.Normal ? new Rect(Left, Top, Width, Height) : RestoreBounds;
+        var size = SavedFullViewSize(bounds);
+        return _preferences with { Width = size.Width, Height = size.Height, Left = bounds.Left, Top = bounds.Top, AlwaysOnTop = Topmost };
+    }
+
+    /// <summary>Save preferences synchronously while Windows signs out or shuts down.</summary>
+    /// <remarks>
+    /// WPF does not raise Closing when the session ends, and the process may end as soon as this returns, so the
+    /// asynchronous save in <see cref="OnClosing"/> never runs. The save runs on the thread pool: blocking the UI
+    /// thread on a continuation that needs it would deadlock.
+    /// </remarks>
+    internal void SaveForSessionEnd()
+    {
+        // Before OnLoaded has read them, the in-memory preferences are defaults that must not replace the saved ones.
+        if (_diagnosticMode || !_preferencesLoaded || _closing || _preparingUpdateExit || _updateRestartPending) return;
+        var preferences = ExitPreferences();
+        try
+        {
+            if (!Task.Run(() => _preferenceStore.SaveAsync(preferences, CancellationToken.None)).Wait(TimeSpan.FromSeconds(3)))
+                Trace.TraceWarning("WinMon preferences were still saving when the session ended.");
+        }
+        catch (AggregateException ex) { Trace.TraceError("WinMon session-end preference save failed: {0}", ex.InnerException); }
     }
 }

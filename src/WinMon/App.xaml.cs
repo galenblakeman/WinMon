@@ -177,6 +177,13 @@ public partial class App
     }
 
     /// <inheritdoc/>
+    protected override void OnSessionEnding(SessionEndingCancelEventArgs e)
+    {
+        base.OnSessionEnding(e);
+        if (!e.Cancel) (MainWindow as MainWindow)?.SaveForSessionEnd();
+    }
+
+    /// <inheritdoc/>
     protected override void OnExit(ExitEventArgs e)
     {
         _activation?.Dispose();

@@ -249,11 +249,12 @@ public partial class ServicesView : UserControl
                 else _rows.Insert(i, desired[i]);
             }
             while (_rows.Count > desired.Count) _rows.RemoveAt(_rows.Count - 1);
-            // Keep rows whose group is still observed, so a group re-entering the top rows keeps its row and graph.
+            // Keep the header rows of groups still observed, so a group re-entering the top rows keeps its row and
+            // graph. Child rows are not kept: a worker that exited would otherwise be kept while its host runs.
             _spareRows.Clear();
             var shown = desired.ToHashSet();
             foreach (var (key, row) in old)
-                if (!shown.Contains(row) && _frame?.Index.IndexOf(row.Group.Key) >= 0) _spareRows[key] = row;
+                if (!shown.Contains(row) && key == row.Group.Key && _frame?.Index.IndexOf(key) >= 0) _spareRows[key] = row;
             RefreshActionSelection(groups);
             Rows.SelectedItem = _actionRow is null ? null : _rows.FirstOrDefault(r => r.Key == _actionRow.Key);
             Notice.Text = _error ?? (_busy ? Strings.ServiceActionInProgress : _frame is null ?
