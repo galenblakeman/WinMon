@@ -146,6 +146,58 @@ public sealed class MonitorSessionTests
         });
     }
 
+    [Test]
+    public async Task HasLiveSample_IsSetByADrainButNotByARestoredSample()
+    {
+        var harness = new Harness(Frame(2));
+        harness.Session.Record(ProcessRetention.Compact(Frame(1)(new SamplingOptions()).Full));
+        var restoredOnly = harness.Session.HasLiveSample;
+
+        await harness.RunToEnd();
+        harness.Drain();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(restoredOnly, Is.False, "A restored sample sets Latest but cannot prove a new version healthy.");
+            Assert.That(harness.Session.HasLiveSample, Is.True);
+        });
+    }
+
+    [Test]
+    public async Task HasLiveSample_StaysFalseWhenTheFirstCaptureFails()
+    {
+        var harness = new Harness(_ => throw new InvalidOperationException("Native read failed."));
+        harness.Session.Record(ProcessRetention.Compact(Frame(1)(new SamplingOptions()).Full));
+
+        await harness.RunToEnd();
+        harness.Drain();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(harness.Session.Latest, Is.Not.Null);
+            Assert.That(harness.Session.HasLiveSample, Is.False);
+        });
+    }
+
+    [Test]
+    public void Record_FeedsUsageOnlyFromAFullSample()
+    {
+        var harness = new Harness();
+        var first = Frame(1)(new SamplingOptions()).Full;
+        var second = Frame(2)(new SamplingOptions()).Full;
+
+        harness.Session.Record(ProcessRetention.Compact(first));
+        harness.Session.Record(ProcessRetention.Compact(second), second);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(harness.Session.History.Samples, Has.Count.EqualTo(2));
+            Assert.That(harness.Session.Usage.Apps.Sum(app => app.Lifetimes), Is.EqualTo(Processes),
+                "A compacted-only frame, as restored after an update, is not counted.");
+            Assert.That(harness.Session.Usage.Apps.Sum(app => app.Running), Is.EqualTo(Processes));
+        });
+    }
+
     // Working sets rise with the PID, so compaction drops the ten smallest idle processes.
     private static Func<SamplingOptions, CapturedFrame> Frame(int second)
     {

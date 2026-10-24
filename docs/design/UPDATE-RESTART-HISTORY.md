@@ -1,6 +1,6 @@
 # Keep history across update restarts
 
-Proposed on 2026-10-24. Status: design, not started.
+Proposed on 2026-10-24. Status: implemented on 2026-10-24 (Sequence steps 1 to 5), except the native update smoke test; see Implementation notes.
 
 ## Why
 
@@ -164,3 +164,15 @@ The usage ledger is its own chunk with its own CRC. If it is invalid, the Usage 
 3. Benchmark scenario and recorded measurements.
 4. README and PRIVACY.md updates.
 5. Fill the ledger chunk once the [Usage tab](USAGE-TAB.md) lands. Until then the writer emits it empty.
+
+## Implementation notes
+
+All five steps landed together, after the Usage ledger, so the ledger chunk was filled from the start.
+
+- `Monitoring/RestartHistory.cs` holds the writer, reader and a table-driven CRC-32 (the runtime has no CRC-32 without a package). `RestartClock` injects the two monotonic clocks, so the deadline and restart checks are tested without waiting.
+- `UpdateLauncher.StartAsync` now returns the transaction directory and token; `MainWindow` saves under them in `OnClosing` right after sampling stops, and `UpdateRuntime.RestartHistory` gives the new instance the path to read in `OnLoaded`.
+- `MonitorSession.HasLiveSample` is set only by a drain, and the update readiness check uses it.
+- `UsageLedger.Export` and `Restore` carry the totals and counted lifetimes; running counts restart at zero until the first valid sample.
+- Tests: `RestartHistoryTests` covers the round trip (every settable property is set by reflection, so a field the format forgets fails), every rejection, a damaged sample chunk and ledger chunk, the 1.2 s cut-off and 1.5 s deadline with a stepping clock, a failing write, retention trimming and the checked-in format 1 fixture `tests/WinMon.Tests/Fixtures/restart-history-v1.bin`. `MonitorSessionTests` covers `HasLiveSample`. `Fixture_Write` regenerates the fixture and is explicit.
+- Not yet done: the native smoke test through a real update, and an automated check that `OnClosing` stops waiting at the deadline when a write blocks. Both paths are covered only by reading the code and the unit tests of `RestartHistory.Save`.
+- Measured on the development machine (see the developer guide): at the 500,000-entry budget, 1,961 samples save in about 0.94 s into a 15 MB file and read back in about 0.6 s, so the 1.2 s cut-off is not reached there. Slower disks would drop the oldest chunks first.

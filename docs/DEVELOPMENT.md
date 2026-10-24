@@ -494,6 +494,46 @@ The open-tooltip scenario includes its popup, ranking and layout; its 2.63 ms / 
 the adjacent grouped run measures the cost of keeping one CPU tooltip open. The native smoke run and
 609 tests passed. Full reports are in `artifacts/performance/hover-before.json` and `hover-after.json`.
 
+### Usage ledger (October 24, 2026)
+
+`MonitorSession.Record` now feeds every live full sample to `UsageLedger`, the data behind the planned Usage
+tab. The refresh scenarios time `RefreshPresentation` only, not `Record`, so the benchmark adds a separate
+`usage-ledger-add` scenario that times one `UsageLedger.Add` per synthetic 850-process sample. `HEAD` before the
+change and the updated build were run on the same machine in Release:
+
+| Per refresh or sample | Before | After |
+| --- | ---: | ---: |
+| Live | 5.91 ms / 564 KiB | 5.48 ms / 564 KiB |
+| Grouped live | 4.71 ms / 571 KiB | 4.86 ms / 572 KiB |
+| Services live | 11.73 ms / 1,505 KiB | 11.82 ms / 1,506 KiB |
+| Pinned, selected, grouped | 5.92 ms / 740 KiB | 5.80 ms / 740 KiB |
+| `UsageLedger.Add` | — | 0.014 ms / 32 B |
+
+Every refresh scenario is within run-to-run noise, and all pixel hashes match the baseline. The ledger hashes
+an executable path once per process lifetime and allocates only for new lifetimes and apps, so steady-state
+samples cost about 14 µs. The 624 tests passed. Full reports are in `artifacts/performance/usage-before.json`
+and `usage-after.json`.
+
+### Restart history (October 24, 2026)
+
+In-app updates now save history to the update's transaction directory and the new version restores it
+(see [the design note](design/UPDATE-RESTART-HISTORY.md)). The benchmark adds a `restart-history-60-minutes`
+scenario: 3,600 synthetic 850-process samples are compacted into a 60-minute `MonitorHistory`, which the
+500,000-entry budget trims to 1,961 samples (499,896 entries), then saved and read five times with the real
+clock and deadline. Release build on the development machine:
+
+| Measurement | Result |
+| --- | ---: |
+| Save, median of 5 (first run 1.03 s) | 0.94 s |
+| Read, median of 5 (first run 0.85 s) | 0.60 s |
+| File size | 15.3 MB |
+| Samples restored | 1,961 of 1,961 |
+
+This is the worst case the history budget allows; typical histories are smaller. The save stays inside the
+1.2 s point where it stops starting new chunks, so nothing was dropped here. A slower disk drops the oldest
+chunks first. The refresh scenarios stayed within run-to-run noise of the previous run, and all pixel hashes
+match. The 646 tests passed. The report is `artifacts/performance/restart-after.json`.
+
 ## Release packaging
 
 See the [release guide](../packaging/RELEASING.md) for the portable ZIP, per-user Inno Setup installer, draft GitHub Releases workflow, and generated WinGet manifests. Build all release assets with `./tools/New-Release.ps1` after bootstrapping the compiler with `./tools/Install-InnoSetup.ps1`.

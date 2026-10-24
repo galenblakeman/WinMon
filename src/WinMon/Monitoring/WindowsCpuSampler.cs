@@ -61,8 +61,8 @@ public sealed class WindowsCpuSampler : IDisposable
                 current.MonotonicTimestamp);
         }
 
-        var usages = CreateProcessUsages(_baselines, current.Processes, totalDelta,
-            (current.MonotonicTimestamp - prior.MonotonicTimestamp) / (double)Stopwatch.Frequency);
+        var elapsedSeconds = (current.MonotonicTimestamp - prior.MonotonicTimestamp) / (double)Stopwatch.Frequency;
+        var usages = CreateProcessUsages(_baselines, current.Processes, totalDelta, elapsedSeconds);
         Rebaseline(current);
         var kernelDelta = current.SystemTimes.KernelTicks - prior.SystemTimes.KernelTicks - idleDelta;
         return new MonitorSample(
@@ -73,6 +73,8 @@ public sealed class WindowsCpuSampler : IDisposable
             false,
             current.MonotonicTimestamp)
         {
+            IntervalSeconds = elapsedSeconds,
+            IntervalCpuTicks = totalDelta,
             Resources = new ResourceSample
             {
                 CpuKernelPercent = kernelDelta >= 0 && kernelDelta <= busyDelta

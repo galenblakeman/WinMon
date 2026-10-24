@@ -98,6 +98,8 @@ internal static class Program
         Check(window.Processes.IndividualChip);
         window.RefreshPresentation();
         Flush();
+        MeasureUsageLedger();
+        MeasureRestartHistory();
         var pixels = Pixels(args.Length > 1 ? args[1] : null);
         var report = new
         {
@@ -123,6 +125,87 @@ internal static class Program
             Flush();
             QueryThreadCycleTime(thread, out var after);
             return (after - before, GC.GetAllocatedBytesForCurrentThread() - allocated);
+        }
+
+        // The usage ledger runs inside Record, which the refresh scenarios leave out, so it is timed on its own:
+        // one Add per synthetic 850-process sample, excluding building the sample.
+        void MeasureUsageLedger()
+        {
+            var ledger = new UsageLedger(anchor);
+            var ledgerSecond = 0;
+            (ulong Cycles, long Bytes) Add()
+            {
+                var sample = Sample(anchor, ++ledgerSecond);
+                var allocated = GC.GetAllocatedBytesForCurrentThread();
+                QueryThreadCycleTime(thread, out var before);
+                ledger.Add(sample);
+                QueryThreadCycleTime(thread, out var after);
+                return (after - before, GC.GetAllocatedBytesForCurrentThread() - allocated);
+            }
+
+            for (var i = 0; i < WarmupFrames; i++) Add();
+            var times = new List<double>();
+            var allocations = new List<double>();
+            for (var batch = 0; batch < Batches; batch++)
+            {
+                GC.Collect(); GC.WaitForPendingFinalizers(); GC.Collect();
+                ulong cycles = 0;
+                long bytes = 0;
+                for (var i = 0; i < FramesPerBatch; i++)
+                {
+                    var (addCycles, addBytes) = Add();
+                    cycles += addCycles;
+                    bytes += addBytes;
+                }
+                allocations.Add(bytes / (double)FramesPerBatch);
+                times.Add(cycles / cyclesPerMs / FramesPerBatch);
+            }
+            results.Add(new { Name = "usage-ledger-add", MedianMilliseconds = Median(times),
+                MedianAllocatedBytes = Median(allocations), MillisecondsPerFrame = times,
+                AllocatedBytesPerFrame = allocations, PixelsSha256 = (string?)null });
+        }
+
+        // A full 60-minute history at the 500,000-entry budget, saved and read as an update restart would, with
+        // the real clock and deadline: RestoredSamples below the history's count means the save ran out of time.
+        void MeasureRestartHistory()
+        {
+            var full = new MonitorHistory(3600);
+            var options = window.CurrentSamplingOptions();
+            for (var s = 1; s <= 3600; s++)
+                full.Add(ProcessRetention.Compact(Sample(anchor, s), 32, options.Retain, options.RetainAll));
+            var samples = full.Samples;
+            var usage = session.Usage.Export();
+            var directory = Path.Combine(Path.GetTempPath(), "WinMon.Performance", Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(directory);
+            var path = Path.Combine(directory, RestartHistory.FileName);
+            var saves = new List<double>();
+            var reads = new List<double>();
+            long bytes = 0;
+            var restored = 0;
+            try
+            {
+                for (var run = 0; run < 5; run++)
+                {
+                    var start = Stopwatch.GetTimestamp();
+                    var saved = RestartHistory.Save(path, "benchmark", AppInfo.Version, samples, usage,
+                        RestartClock.System);
+                    saves.Add(Stopwatch.GetElapsedTime(start).TotalMilliseconds);
+                    bytes = saved ? new FileInfo(path).Length : 0;
+                    start = Stopwatch.GetTimestamp();
+                    var contents = RestartHistory.Read(path, "benchmark", RestartClock.System);
+                    reads.Add(Stopwatch.GetElapsedTime(start).TotalMilliseconds);
+                    restored = contents?.Samples.Count ?? 0;
+                }
+            }
+            finally
+            {
+                Directory.Delete(directory, true);
+            }
+
+            results.Add(new { Name = "restart-history-60-minutes", Samples = samples.Count,
+                ProcessEntries = samples.Sum(sample => sample.Processes.Count), full.WasMemoryLimited,
+                FileBytes = bytes, RestoredSamples = restored, MedianSaveMilliseconds = Median(saves),
+                MedianReadMilliseconds = Median(reads), SaveMilliseconds = saves, ReadMilliseconds = reads });
         }
 
         void Measure(string name)
@@ -228,6 +311,8 @@ internal static class Program
         Array.Sort(processes, (a, b) => b.CpuPercent.CompareTo(a.CpuPercent));
         return new MonitorSample(anchor.AddSeconds(second), 20 + second % 50, processes, 0, false, Stopwatch.Frequency * second)
         {
+            IntervalSeconds = 1,
+            IntervalCpuTicks = 12 * TimeSpan.TicksPerSecond,
             Resources = new ResourceSample
             {
                 TotalMemoryBytes = 32_000_000_000, UsedMemoryBytes = (ulong)(16_000_000_000 + second * 1_000_000L % 4_000_000_000),

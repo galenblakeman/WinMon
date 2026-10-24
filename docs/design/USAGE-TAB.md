@@ -1,6 +1,6 @@
 # Usage tab
 
-Proposed on 2026-10-24. Status: design, not started.
+Proposed on 2026-10-24. Status: data layer done on 2026-10-24 (Sequence steps 1 and 2); the tab itself is not started.
 
 ## Why
 
@@ -116,7 +116,7 @@ internal sealed class UsageLedger
     internal DateTimeOffset Since { get; }
     internal void Add(MonitorSample full);              // one live, uncompacted sample
     internal IReadOnlyList<AppUsage> Apps { get; }      // copied on read, like MonitorHistory.Samples
-    internal AppUsage NotAttributed { get; }
+    internal long NotAttributedCpuTicks { get; }        // machine busy minus attributed, never negative
     internal long MachineBusyTicks { get; }             // the denominator for every Share
     internal void Reset(DateTimeOffset now);
 }
@@ -197,8 +197,8 @@ internal sealed record AppUsage(string Key, string Name, string ImagePath, strin
 
 ## Sequence
 
-1. `MonitorSample.IntervalSeconds` and `IntervalCpuTicks`, with sampler tests.
-2. `UsageLedger` and its session wiring, with tests.
+1. Done: `MonitorSample.IntervalSeconds` and `IntervalCpuTicks`, with sampler tests.
+2. Done: `UsageLedger`, the shared `SampleKey`, and the session wiring, with tests. Not attributed is a tick count (`NotAttributedCpuTicks`) rather than an `AppUsage` row, since its other columns would be meaningless; the view draws its row. Executables beyond the cap share the `UsageLedger.OtherAppsKey` row, which the view labels.
 3. `UsageView`, the tab, preferences, row actions, Copy usage and Reset.
 4. Strings for all 10 languages, diagnostics captures in light and dark, and the README section.
 5. With [UPDATE-RESTART-HISTORY.md](UPDATE-RESTART-HISTORY.md): serialize the ledger in its ledger chunk.

@@ -12,7 +12,9 @@ internal static class UpdateLauncher
         return @"Local\WinMon.Update." + token + "." + kind;
     }
 
-    internal static async Task StartAsync(PreparedUpdate update, CancellationToken cancellationToken)
+    /// <returns>The validated transaction directory and the job's token, which the restart history is saved under.</returns>
+    internal static async Task<(string Directory, string Token)> StartAsync(PreparedUpdate update,
+        CancellationToken cancellationToken)
     {
         UpdatePolicy.RequireGitHubUpdates();
         var directory = UpdateFiles.ValidateDirectory(update.TransactionDirectory);
@@ -38,6 +40,8 @@ internal static class UpdateLauncher
                     throw new IOException("The updater did not become ready.");
                 await Task.Delay(100, cancellationToken).ConfigureAwait(false);
             }
+
+            return (directory, job.Token);
         }
         catch
         {

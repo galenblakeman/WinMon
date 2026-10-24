@@ -1,1 +1,2 @@
 src/WinMon/Resources/*.resx text eol=lf
+tests/WinMon.Tests/Fixtures/** binary

@@ -97,7 +97,7 @@ Click **Capture** again to select the newest sample. Use **Left / Right** to ste
 
 **Copy capture** always copies the selected moment’s resource summary and displayed top process rows as plain text, preserving their sorting, grouping and filters. Reports include the timestamp and time zone, units, unavailable readings and averaging notes. Copying keeps the capture open; expired samples cannot be copied.
 
-History is kept in memory for the current session, with configurable retention up to 60 minutes. Available history can be shorter on busy systems and is cleared when WinMon exits.
+History is kept in memory for the current session, with configurable retention up to 60 minutes. Available history can be shorter on busy systems and is cleared when WinMon exits, except across an in-app update.
 
 ## Make it yours
 
@@ -146,7 +146,7 @@ These measurements predate the current release. Longer history retention uses mo
 
 ## Updates
 
-Installer and portable builds check GitHub for newer stable releases and offer **Update now** in the footer when a verified update is available. The updater downloads the update, saves preferences, exits, and restarts at the same location. Restarting clears the current monitoring history. Settings includes a manual check and an option to disable automatic checks. Store builds disable these controls and use Store-managed updates.
+Installer and portable builds check GitHub for newer stable releases and offer **Update now** in the footer when a verified update is available. The updater downloads the update, saves preferences, exits, and restarts at the same location. History recorded before the update is kept, so the chart and Capture mode continue after the restart; updating from 2.0.4 or earlier starts with empty history, because those versions do not save it. Settings includes a manual check and an option to disable automatic checks. Store builds disable these controls and use Store-managed updates.
 
 In-app updates require a release signed with the update key already trusted by your copy of WinMon. Earlier copies without the updater require a manual upgrade. See [update setup and behavior](docs/UPDATING.md) for publishing and recovery details.
 

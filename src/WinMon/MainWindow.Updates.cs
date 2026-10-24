@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Windows;
+using WinMon.Monitoring;
 using WinMon.Updates;
 
 namespace WinMon;
@@ -17,6 +18,9 @@ public partial class MainWindow
     private bool _updateDismissed;
     private bool _updateRestartPending;
     private bool _updateDownloading;
+
+    // Where this exit saves history for the new version: the update's transaction directory and token.
+    private (string Path, string Token)? _restartHistoryTarget;
 
     private void InitializeUpdates()
     {
@@ -161,7 +165,8 @@ public partial class MainWindow
             CancelUpdateButton.Visibility = Visibility.Visible;
             var prepared = await _updateClient.DownloadAsync(offer, progress, _updateDownload.Token);
             ShowUpdateStatus(Strings.RestartingToUpdate, false);
-            await UpdateLauncher.StartAsync(prepared, _updateDownload.Token);
+            var (directory, token) = await UpdateLauncher.StartAsync(prepared, _updateDownload.Token);
+            _restartHistoryTarget = (Path.Combine(directory, RestartHistory.FileName), token);
             _updateRestartPending = true;
             Close();
         }
@@ -186,6 +191,50 @@ public partial class MainWindow
                 ReleaseNotesButton.IsEnabled = true;
                 DismissUpdateButton.IsEnabled = true;
             }
+        }
+    }
+
+    /// <summary>Save history for the new version once sampling has stopped. Best effort, and never throws.</summary>
+    /// <remarks>
+    /// The wait ends at the restart budget even if a write is blocked, so a stalled disk cannot hold the update;
+    /// the save then discards its temporary file instead of moving it into place.
+    /// </remarks>
+    private async Task SaveRestartHistoryAsync()
+    {
+        if (_restartHistoryTarget is not { } target) return;
+        try
+        {
+            // Copied on the UI thread: sampling has stopped, but the ledger is not thread-safe.
+            var samples = Session.History.Samples;
+            var usage = Session.Usage.Export();
+            await Task.Run(() => RestartHistory.Save(target.Path, target.Token, AppInfo.Version, samples, usage,
+                RestartClock.System)).WaitAsync(RestartHistory.Budget);
+        }
+        catch (TimeoutException)
+        {
+            Trace.TraceWarning("WinMon restart history was still saving at its deadline; updating without it.");
+        }
+        catch (Exception ex)
+        {
+            Trace.TraceError("WinMon restart history save failed: {0}", ex);
+        }
+    }
+
+    /// <summary>Restore what the previous version saved for this update restart, before sampling starts.</summary>
+    /// <remarks>The read finishes before anything is recorded, so the session gets all of it or none.</remarks>
+    private async Task RestoreRestartHistoryAsync()
+    {
+        if (_diagnosticMode || UpdateRuntime.RestartHistory is not { } source) return;
+        try
+        {
+            var contents = await Task.Run(() => RestartHistory.Read(source.Path, source.Token, RestartClock.System));
+            if (contents is null) return;
+            foreach (var sample in contents.Samples) Session.Record(sample);
+            if (contents.Usage is { } usage) Session.Usage.Restore(usage);
+        }
+        catch (Exception ex)
+        {
+            Trace.TraceError("WinMon restart history restore failed: {0}", ex);
         }
     }
 

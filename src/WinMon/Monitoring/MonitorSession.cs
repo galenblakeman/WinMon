@@ -57,11 +57,21 @@ internal sealed class MonitorSession(
     /// <summary>Complete service frames for the last two minutes.</summary>
     internal ServiceHistory Services { get; } = new();
 
+    /// <summary>Per-app totals since WinMon started, from every live full sample.</summary>
+    internal UsageLedger Usage { get; } = new(DateTimeOffset.Now);
+
     /// <summary>The newest compacted sample, the same instance history ends with.</summary>
     internal MonitorSample? Latest { get; private set; }
 
     /// <summary>The newest sample before compaction, so live ranking and group totals are exact.</summary>
     internal MonitorSample? LatestFull { get; private set; }
+
+    /// <summary>Whether this session has drained a sample it captured itself.</summary>
+    /// <remarks>
+    /// Samples restored after an update restart set <see cref="Latest"/> but not this, so only a live capture can
+    /// prove a new version healthy.
+    /// </remarks>
+    internal bool HasLiveSample { get; private set; }
 
     /// <summary>Why the most recent capture is incomplete, or null when it succeeded.</summary>
     internal SamplingError? Error { get; private set; }
@@ -82,12 +92,17 @@ internal sealed class MonitorSession(
     }
 
     /// <summary>Record a frame as a drain would, without raising <see cref="Recorded"/>.</summary>
+    /// <remarks>
+    /// Only a frame with its full sample feeds <see cref="Usage"/>: live frames carry one, while samples restored
+    /// after an update restart are compacted only and must not be counted twice.
+    /// </remarks>
     internal void Record(MonitorSample compacted, MonitorSample? full = null, ServiceFrame? services = null)
     {
         History.Add(compacted);
         Latest = compacted;
         LatestFull = full;
         if (services is not null) Services.Add(services);
+        if (full is not null) Usage.Add(full);
     }
 
     private async Task CollectAsync(CancellationToken cancellationToken)
@@ -141,7 +156,11 @@ internal sealed class MonitorSession(
             try
             {
                 Error = pending.Error;
-                if (pending.Sample is not null) Record(pending.Sample, pending.Full, pending.Services);
+                if (pending.Sample is not null)
+                {
+                    Record(pending.Sample, pending.Full, pending.Services);
+                    HasLiveSample = true;
+                }
                 changed = true;
             }
             catch (Exception ex)

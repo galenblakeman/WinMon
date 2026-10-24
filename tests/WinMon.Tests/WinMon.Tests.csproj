@@ -16,4 +16,7 @@
   <ItemGroup>
     <ProjectReference Include="../../src/WinMon/WinMon.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Fixtures/**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

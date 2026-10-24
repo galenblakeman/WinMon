@@ -158,6 +158,8 @@ public partial class MainWindow
             EnsureVisible();
             Topmost = _preferences.AlwaysOnTop;
             Session.History.Resize(_preferences.RetentionSeconds);
+            await RestoreRestartHistoryAsync();
+            _lifetime.Token.ThrowIfCancellationRequested();
             ApplyTheme();
             if (_preferences.CompactMode) SetCompactView(true);
             BuildRangeChips();
@@ -200,7 +202,8 @@ public partial class MainWindow
     private void OnSamplesRecorded()
     {
         _samplingError = Session.Error;
-        if (!_diagnosticMode && !_updateReadySignaled && Session.Latest is not null && Session.Error is null)
+        // Only a live capture proves the new version healthy: samples restored after an update set Latest too.
+        if (!_diagnosticMode && !_updateReadySignaled && Session.HasLiveSample && Session.Error is null)
         {
             _updateReadySignaled = true;
             UpdateRuntime.SignalReady();
@@ -858,6 +861,8 @@ public partial class MainWindow
         {
             await _lifetime.CancelAsync();
             if (_samplingTask is not null) await _samplingTask;
+            // History no longer changes, and the helper waits for Commit below before replacing the executable.
+            if (_updateRestartPending) await SaveRestartHistoryAsync();
             try
             {
                 await _settingsWriteTask;

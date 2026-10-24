@@ -64,6 +64,32 @@ public sealed class WindowsCpuSamplerTests
     }
 
     [Test]
+    public void Sample_IntervalAmountsReproduceTheProcessCpuDeltaExactly()
+    {
+        using var sampler = new WindowsCpuSampler(new SequenceSnapshotProvider(
+            Snapshot(1, 2_000, 600, [new ProcessCpuTimes(10, 100, "alpha", 200)]),
+            Snapshot(3, 3_000, 700, [new ProcessCpuTimes(10, 100, "alpha", 450)]),
+            Snapshot(20, 4_000, 800, [new ProcessCpuTimes(10, 100, "alpha", 700)])));
+
+        var baseline = sampler.Sample();
+        var interval = sampler.Sample();
+        var gap = sampler.Sample();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(interval.IntervalSeconds, Is.EqualTo(2));
+            Assert.That(interval.IntervalCpuTicks, Is.EqualTo(1_000));
+            Assert.That(interval.Processes.Single().CpuPercent / 100 * interval.IntervalCpuTicks,
+                Is.EqualTo(250).Within(1e-9), "The process's own tick delta.");
+            Assert.That(interval.TotalCpuPercent / 100 * interval.IntervalCpuTicks, Is.EqualTo(900).Within(1e-9));
+            Assert.That(baseline.IntervalSeconds, Is.Zero);
+            Assert.That(baseline.IntervalCpuTicks, Is.Zero);
+            Assert.That(gap.IsGap, Is.True, "Seventeen seconds exceeds the gap threshold.");
+            Assert.That(gap.IntervalCpuTicks, Is.Zero);
+        });
+    }
+
+    [Test]
     public void Sample_ValidDeltas_NormalizesTotalAndProcessUsageToMachineCapacity()
     {
         using var sampler = new WindowsCpuSampler(new SequenceSnapshotProvider(

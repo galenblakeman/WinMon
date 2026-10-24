@@ -9,7 +9,14 @@ internal static class UpdateRuntime
 {
     internal const string UpdateMutexName = @"Local\WinMon.Update";
     private static string? _resultToken;
+    private static string? _resultDirectory;
     internal static bool IsExpectedRestart => _resultToken is not null;
+
+    /// <summary>The history the previous version saved for this restart, with the token it must carry.</summary>
+    internal static (string Path, string Token)? RestartHistory =>
+        _resultToken is { } token && _resultDirectory is { } directory
+            ? (Path.Combine(directory, Monitoring.RestartHistory.FileName), token)
+            : null;
 
     internal static bool IsUpdating()
     {
@@ -39,6 +46,7 @@ internal static class UpdateRuntime
             if (!EventWaitHandle.TryOpenExisting(UpdateLauncher.EventName(token, "Healthy"), out var healthy)) return;
             healthy.Dispose();
             _resultToken = token;
+            _resultDirectory = directory;
         }
         catch (Exception ex)
         {

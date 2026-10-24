@@ -25,4 +25,13 @@ public sealed record MonitorSample(
     /// and outside the largest working sets. Treat them as zero, not unavailable.
     /// </summary>
     public int CompactedProcesses { get; init; }
+
+    /// <summary>Seconds this sample's interval covers; zero for gaps and fixtures.</summary>
+    public double IntervalSeconds { get; init; }
+
+    /// <summary>
+    /// Machine CPU capacity in the interval, in 100-ns ticks across all logical processors; zero for gaps and
+    /// fixtures. A process's interval CPU time is <c>CpuPercent / 100 * IntervalCpuTicks</c>.
+    /// </summary>
+    public long IntervalCpuTicks { get; init; }
 }
