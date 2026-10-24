@@ -459,10 +459,10 @@
                         VerticalAlignment="Center"
                         Orientation="Horizontal">
                         <Button
-                            x:Name="ViewProcess"
-                            local:ButtonIcon.Data="{x:Static local:ButtonIcon.Process}"
-                            Click="OnViewProcess"
-                            Content="{Binding [ViewServiceProcess], Source={x:Static r:Strings.Text}}"
+                            x:Name="Properties"
+                            local:ButtonIcon.Data="{x:Static local:ButtonIcon.Info}"
+                            Click="OnProperties"
+                            Content="{Binding [Properties], Source={x:Static r:Strings.Text}}"
                             Style="{DynamicResource ActionBarButton}" />
                         <Button
                             x:Name="CopyDetails"

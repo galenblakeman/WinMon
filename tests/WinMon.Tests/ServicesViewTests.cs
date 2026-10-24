@@ -88,7 +88,7 @@ public sealed class ServicesViewTests
             Assert.That(bar.Visibility, Is.EqualTo(hidden ? Visibility.Collapsed : Visibility.Visible));
             Assert.That(bar.DesiredSize.Height, hidden ? Is.Zero : Is.GreaterThan(0));
             Assert.That(((TextBlock)view.FindName("Summary")).Text, Is.EqualTo(WinMon.Resources.Strings.SelectService));
-            foreach (var name in new[] { "ViewProcess", "CopyDetails", "Start", "Stop", "Restart" })
+            foreach (var name in new[] { "Properties", "CopyDetails", "Start", "Stop", "Restart" })
                 Assert.That(((Button)view.FindName(name)).IsEnabled, Is.False, name);
         });
         view.ActionsHidden = !hidden;
@@ -120,6 +120,31 @@ public sealed class ServicesViewTests
         Assert.That(headers[2].Text.EndsWith('▾'), Is.True);
         Assert.That(headers.Take(2).Any(h => h.Text.EndsWith('▾')), Is.False);
         Assert.That(((ServiceDisplayRow)rows.Items[0]).Group.Host!.ProcessId, Is.EqualTo(3));
+    }
+
+    [Test]
+    public void NameSort_IsAvailableForAllAndRestoresMetricSortForFiniteTop()
+    {
+        var groups = new[]
+        {
+            new ServiceGroup("service:z", [new("z", "Zulu", 4, 0, 1)], null, []),
+            new ServiceGroup("service:a", [new("a", "Alpha", 4, 0, 1)], null, []),
+            new ServiceGroup("service:b", [new("b", "Bravo", 4, 0, 1)], null, [])
+        };
+        var frame = ServiceRankingTests.Frame(1, ServiceRankingTests.P(1, 100, 1, 1, 1)) with { Groups = groups };
+        var view = new ServicesView();
+        view.Update(frame, [frame], false);
+        var sort = (ComboBox)view.FindName("Sort");
+        var rows = (ListBox)view.FindName("Rows");
+        Assert.That(sort.Items.Count, Is.EqualTo(3));
+        ((ComboBox)view.FindName("TopCount")).SelectedItem = TopCountChoices.All;
+        Assert.That(sort.Items.Cast<string>().Last(), Is.EqualTo(WinMon.Resources.Strings.ServiceName));
+        sort.SelectedIndex = 3;
+        Assert.That(rows.Items.Cast<ServiceDisplayRow>().Select(r => r.Service?.Name),
+            Is.EqualTo(new[] { "a", "b", "z" }));
+        view.TopServiceCount = 5;
+        Assert.That(sort.Items.Count, Is.EqualTo(3));
+        Assert.That(sort.SelectedIndex, Is.EqualTo(0));
     }
 
     [Test]
@@ -239,10 +264,11 @@ public sealed class ServicesViewTests
         ((Button)view.FindName("Restart")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         Assert.That(actedHost?.ProcessId, Is.EqualTo(99));
         Assert.That(actedHost?.CreationTicks, Is.EqualTo(900));
-        ProcessUsage? inspected = null;
-        view.ProcessRequested += p => inspected = p;
-        ((Button)view.FindName("ViewProcess")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-        Assert.That(inspected, Is.SameAs(restarted.Groups[0].Host));
+        string? propertyName = null, propertyDetails = null;
+        view.PropertiesRequested += (name, details) => (propertyName, propertyDetails) = (name, details);
+        ((Button)view.FindName("Properties")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Assert.That(propertyName, Is.EqualTo("Build Agent"));
+        Assert.That(propertyDetails, Does.Contain("Build Agent (agent)"));
     }
 
     [Test]
@@ -315,7 +341,7 @@ public sealed class ServicesViewTests
         rows.SelectedItem = rows.Items.Cast<ServiceDisplayRow>().First(r => r.Key == "process:10:100");
         var replacement = SelectionFrame(2, 80, created: 900);
         view.Update(replacement, [replacement], false);
-        Assert.That(((Button)view.FindName("ViewProcess")).IsEnabled, Is.False);
+        Assert.That(((Button)view.FindName("Properties")).IsEnabled, Is.False);
         Assert.That(((TextBlock)view.FindName("Summary")).Text, Is.EqualTo(WinMon.Resources.Strings.SelectService));
     }
 

@@ -45,6 +45,7 @@ public partial class ServicesView
     private sealed record ActionSelection(string? ServiceName, string RowKey);
 
     internal event Action<ProcessUsage>? ProcessRequested;
+    internal event Action<string, string>? PropertiesRequested;
     internal event Action<string>? CopyRequested;
     internal event Action<int>? TopServiceCountChanged;
 
@@ -57,6 +58,7 @@ public partial class ServicesView
     private void OnTopCountChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!_ready) return;
+        RefreshSortChoices();
         TopServiceCountChanged?.Invoke(TopServiceCount);
         RefreshRows();
         ArrangeToolbar();
@@ -147,9 +149,22 @@ public partial class ServicesView
         TopServiceCount = topCount;
         StatusFilter.ItemsSource = new[] { Strings.AllServiceStatuses, Strings.ServiceRunning, Strings.ServiceStopped };
         StatusFilter.SelectedIndex = Math.Max(0, status);
-        Sort.ItemsSource = new[] { Strings.CPU, Strings.Memory, Strings.IO };
-        Sort.SelectedIndex = Math.Clamp(sort, 0, 2);
+        Sort.ItemsSource = SortChoices();
+        Sort.SelectedIndex = sort >= 0 && sort < Sort.Items.Count ? sort : 0;
         _ready = ready;
+    }
+
+    private string[] SortChoices() => TopServiceCount == 0
+        ? [Strings.CPU, Strings.Memory, Strings.IO, Strings.ServiceName]
+        : [Strings.CPU, Strings.Memory, Strings.IO];
+
+    private void RefreshSortChoices()
+    {
+        var sort = Sort.SelectedIndex;
+        _ready = false;
+        Sort.ItemsSource = SortChoices();
+        Sort.SelectedIndex = sort >= 0 && sort < Sort.Items.Count ? sort : 0;
+        _ready = true;
     }
 
     internal void Update(ServiceFrame? frame, IReadOnlyList<ServiceFrame> history, bool historical)
@@ -289,6 +304,8 @@ public partial class ServicesView
             {
                 1 => filtered.OrderByDescending(g => RankedMetrics(g).PrivateBytes),
                 2 => filtered.OrderByDescending(g => RankedMetrics(g).Io),
+                3 when TopServiceCount == 0 => filtered.OrderBy(g => g.Services[0].DisplayName,
+                    StringComparer.CurrentCultureIgnoreCase),
                 _ => filtered.OrderByDescending(g => RankedMetrics(g).Cpu)
             };
             var peak = 0d;
@@ -473,7 +490,7 @@ public partial class ServicesView
     {
         UpdateActionBarVisibility();
         var row = _actionRow;
-        ViewProcess.IsEnabled = row?.Process is not null;
+        Properties.IsEnabled = row is not null && _frame?.Available == true;
         CopyDetails.IsEnabled = row is not null;
         Start.IsEnabled = CanServiceAction(row?.Service, row?.Group.Host, "start");
         Stop.IsEnabled = CanServiceAction(row?.Service, row?.Group.Host, "stop");
@@ -493,9 +510,10 @@ public partial class ServicesView
             : (Brush)FindResource("ServiceStopOutline");
     }
 
-    private void OnViewProcess(object sender, RoutedEventArgs e)
+    private void OnProperties(object sender, RoutedEventArgs e)
     {
-        if (_actionRow?.Process is { } process) ProcessRequested?.Invoke(process);
+        if (_actionRow is { } row && FormatDetails(row) is { } details)
+            PropertiesRequested?.Invoke(row.Name, details);
     }
 
     private void OnCopyDetails(object sender, RoutedEventArgs e)
