@@ -113,6 +113,91 @@ public sealed class CaptureRulesTests
     }
 
     [Test]
+    public void Observe_AProcessGapBreaksItsRun()
+    {
+        var rules = new CaptureRules([Rule(CaptureMetric.Process, 90, 2)], TimeSpan.Zero, 1);
+        var process = Process(7, 70, "spin", 95);
+
+        var beforeGap = rules.Observe(Sample(0, 30, [process]));
+        var gap = rules.Observe(new MonitorSample(Anchor.AddSeconds(1), null, [], 0, true,
+            Stopwatch.Frequency * 2));
+        var afterGap = rules.Observe(Sample(2, 30, [process]));
+        var completed = rules.Observe(Sample(3, 30, [process]));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(beforeGap, Is.Empty);
+            Assert.That(gap, Is.Empty);
+            Assert.That(afterGap, Is.Empty, "A gap cannot supply the second consecutive reading.");
+            Assert.That(completed.Single().Run, Is.EqualTo(new[] { 95d, 95d }));
+        });
+    }
+
+    [Test]
+    public void Observe_AProcessGapDoesNotRearmAnAlreadyFiredLifetime()
+    {
+        var rules = new CaptureRules([Rule(CaptureMetric.Process, 90, 2)], TimeSpan.Zero, 1);
+        var process = Process(7, 70, "spin", 95);
+
+        rules.Observe(Sample(0, 30, [process]));
+        var initial = rules.Observe(Sample(1, 30, [process]));
+        rules.Observe(new MonitorSample(Anchor.AddSeconds(2), null, [], 0, true,
+            Stopwatch.Frequency * 3));
+        var afterGap = rules.Observe(Sample(3, 30, [process]));
+        var continued = rules.Observe(Sample(4, 30, [process]));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(initial, Has.Count.EqualTo(1));
+            Assert.That(afterGap, Is.Empty);
+            Assert.That(continued, Is.Empty, "The gap must not make the same lifetime eligible again.");
+        });
+    }
+
+    [Test]
+    public void Observe_AValidSampleWithoutAProcessEndsItsRun()
+    {
+        var rules = new CaptureRules([Rule(CaptureMetric.Process, 90, 2)], TimeSpan.Zero, 1);
+        var process = Process(7, 70, "spin", 95);
+
+        rules.Observe(Sample(0, 30, [process]));
+        rules.Observe(Sample(1, 30, []));
+        var returned = rules.Observe(Sample(2, 30, [process]));
+        var completed = rules.Observe(Sample(3, 30, [process]));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(returned, Is.Empty);
+            Assert.That(completed.Single().Process, Is.EqualTo(process));
+        });
+    }
+
+    [Test]
+    public void Observe_ResourceRulesCanFireOnTheSameSample()
+    {
+        var rules = Rules(Rule(CaptureMetric.Cpu, 90, 2), Rule(CaptureMetric.Memory, 80, 2));
+        var first = Sample(0, 95, []) with
+        {
+            Resources = new ResourceSample { TotalMemoryBytes = 100, UsedMemoryBytes = 85 }
+        };
+        var second = Sample(1, 96, []) with
+        {
+            Resources = new ResourceSample { TotalMemoryBytes = 100, UsedMemoryBytes = 86 }
+        };
+
+        Assert.That(rules.Observe(first), Is.Empty);
+        var fired = rules.Observe(second);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(fired.Select(result => result.Rule.Metric),
+                Is.EqualTo(new[] { CaptureMetric.Cpu, CaptureMetric.Memory }));
+            Assert.That(fired.Select(result => result.Run),
+                Is.EqualTo(new[] { new[] { 95d, 96d }, new[] { 85d, 86d } }));
+        });
+    }
+
+    [Test]
     public void Observe_IgnoresDisabledRulesAndAnUnconfiguredSecondDisk()
     {
         var rules = new CaptureRules(

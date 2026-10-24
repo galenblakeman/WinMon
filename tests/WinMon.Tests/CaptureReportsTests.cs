@@ -64,6 +64,22 @@ public sealed class CaptureReportsTests
     }
 
     [Test]
+    public void Write_DoesNotOverwriteAnUnrelatedFileWithTheFirstAvailableName()
+    {
+        var collision = Save(CaptureReports.FileName(Fired, CaptureMetric.Cpu), "Personal notes\n");
+
+        var report = CaptureReports.Write(_folder, Fired, CaptureMetric.Cpu, Report());
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(File.ReadAllText(collision), Is.EqualTo("Personal notes\n"));
+            Assert.That(Path.GetFileName(report), Is.EqualTo(CaptureReports.FileName(Fired, CaptureMetric.Cpu, 2)));
+            Assert.That(CaptureReports.Find(_folder), Is.EqualTo(new[] { report }),
+                "A matching name alone does not make the unrelated file a report.");
+        });
+    }
+
+    [Test]
     public void Prune_DeletesOnlyGenuineReportsBeyondTheLimit()
     {
         var reports = Enumerable.Range(0, 5)

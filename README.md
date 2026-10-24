@@ -95,6 +95,8 @@ Choose **Usage** beside **Processes** and **Services** to see each app's total *
 
 Right-click an app for **Show in Processes**: a running app opens live with its group selected, and an exited app opens Capture at the moment it was last active, while that moment is still in history. Totals continue across in-app updates and are cleared when WinMon exits.
 
+![WinMon Usage view showing session CPU time, I/O, GPU time and app rankings](docs/example/example_usage.png)
+
 ## Catch the spike—even after it passes
 
 Choose **Capture** in the centered **Live | Capture** switch above the chart to inspect the newest recorded sample, or click the chart to select an earlier moment. The capture shows resource readings for that interval, and the process table follows your selection so you can investigate what was busy then. Recording and the top readouts stay live while you explore.
@@ -190,7 +192,7 @@ The published app is at `src/WinMon/bin/Release/net10.0-windows/win-x64/publish/
 
 ## Open source
 
-WinMon **2.0.4** is built with C# and WPF on .NET 10, and released under the [MIT License](LICENSE).
+WinMon **3.0.0** is built with C# and WPF on .NET 10, and released under the [MIT License](LICENSE).
 
 ### Code signing policy
 

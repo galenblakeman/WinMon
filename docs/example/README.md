@@ -1,12 +1,13 @@
 # WinMon screenshot examples
 
-Refreshed October 23, 2026, using WinMon 2.0.0 built from the current WPF source. The main gallery uses the ordinary installer/portable configuration; the separate Store Settings capture uses `StoreBuild=true`. These examples use illustrative process identities and measurements so the screenshots are consistent and do not expose a user's running processes. They are UI examples, not performance measurements or proof of installed MSIX behavior.
+Refreshed October 24, 2026, using WinMon 3.0.0 built from the current WPF source. The main gallery uses the ordinary installer/portable configuration; the separate Store Settings capture uses `StoreBuild=true`. These examples use illustrative process identities and measurements so the screenshots are consistent and do not expose a user's running processes. They are UI examples, not performance measurements or proof of installed MSIX behavior.
 
 | File | View |
 | --- | --- |
-| [example_individual.png](example_individual.png) | Dark live dashboard with Processes / Services tabs, individual process rankings and a selected-process action bar. |
+| [example_individual.png](example_individual.png) | Dark live dashboard with Processes / Services / Usage tabs, individual process rankings and a selected-process action bar. |
 | [example_grouped.png](example_grouped.png) | The same recording grouped by executable, with App / Background labels and private-memory totals. |
 | [example_services.png](example_services.png) | Services view with a Top N toolbar, clickable metric headers, an expanded worker tree, five-second CPU/I/O averages and a selected-service action bar with Copy details and service controls. |
+| [example_usage.png](example_usage.png) | Usage view with session totals, app rankings, CPU share and the Not attributed row. |
 | [example_snapshot.png](example_snapshot.png) | An earlier spike selected in Capture mode, with the bracket-and-dot glyph, Copy capture / Return to live buttons and pinned process rows, while the top readouts remain live. |
 | [example_apps_only.png](example_apps_only.png) | Chrome search with App only enabled in Grouped mode. |
 | [example_pinned.png](example_pinned.png) | Visual Studio Code and Google Chrome pinned in insertion order above the CPU rankings. |
@@ -20,16 +21,18 @@ Refreshed October 23, 2026, using WinMon 2.0.0 built from the current WPF source
 | [example_settings.png](example_settings.png) | Settings with language selection, Neon swatches, keyboard shortcut, dual disks and automatic update controls. |
 | [example_settings_store.png](example_settings_store.png) | Store Settings with the same appearance and monitoring options, without GitHub update controls. |
 
-The dashboard and compact views use the same illustrative recording. Settings uses the real window and controls; its disk choices reflect the capture machine. Screenshots capture the complete Windows-composed window, including native caption buttons, and use the current responsive layout. Generic process icons are used for the illustrative executable paths.
+The process dashboard and compact views use the same illustrative recording. Services and Usage use separate illustrative recordings. Settings uses the real window and controls; its disk choices reflect the capture machine. Screenshots capture the complete Windows-composed window, including native caption buttons, and use the current responsive layout. Generic process icons are used for the illustrative executable paths.
 
 The Services example uses a separate illustrative service recording. Regenerate it with `--services-smoke-output <output-directory>` using the same build. That diagnostic first checks live service discovery without controlling any services, then captures illustrative dark, light, narrow and historical service views. Copy `services-dark.png` to `example_services.png` after inspection. The live diagnostics are machine-specific; only the illustrative capture belongs in this gallery.
+
+The Usage example uses a separate illustrative session ledger. Regenerate it with `--usage-smoke-output <output-directory>` using the ordinary build. Copy `usage-dark.png` to `example_usage.png` after inspection; the diagnostic's other outputs are verification evidence.
 
 If Windows denies foreground activation, Services diagnostics can save separately named `*-content.png` files and `content-capture-notes.txt` for control-layout QA. Those captures omit native caption proof and must not replace the native-composed gallery images.
 
 ## Current UI highlights
 
-- The title bar shows version 2.0.0, the Compact view / Full view toggle, and Always on top with a stacked-window glyph and highlighted enabled state.
-- Processes and Services use a shared divider and a tab strip with heading-sized labels and an accent underline.
+- The title bar shows version 3.0.0, the Compact view / Full view toggle, and Always on top with a stacked-window glyph and highlighted enabled state.
+- Processes, Services and Usage share a divider and a tab strip with heading-sized labels and an accent underline.
 - Process rows include thread and handle counts, App / Background labels, grouping, search and pins. Pin accents follow the theme and chart palette.
 - Capture mode keeps the live readouts visible while showing an earlier interval and its process rankings; Copy capture exports the selected interval.
 - The process action bar offers Properties, Copy details, More and End process/group. More contains file location and eligible memory-dump creation; pinning remains in the row menu.
