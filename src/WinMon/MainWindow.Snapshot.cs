@@ -113,7 +113,8 @@ public partial class MainWindow
             SnapshotNote.Text = OverallGraph.SelectionInPlot
                 ? Strings.IntervalReadingsTopReadoutsStayLive
                 : Strings.OutsideChartRangeTopReadoutsStayLive;
-        var bounds = SnapshotPlacement.Calculate(plot, OverallGraph.SelectionAnchor, new Size(320, 216));
+        var bounds = SnapshotPlacement.Calculate(plot, OverallGraph.SelectionAnchor,
+            new Size(320, CaptureBanner.Visibility == Visibility.Visible ? 250 : 216));
         SnapshotPanel.Width = bounds.Width;
         SnapshotPanel.Height = bounds.Height;
         Canvas.SetLeft(SnapshotPanel, bounds.Left);

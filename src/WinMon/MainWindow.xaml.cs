@@ -92,6 +92,7 @@ public partial class MainWindow
         InitializeCompactView();
         InitializeServices();
         InitializeUsage();
+        InitializeCaptures();
         InitializeProcesses();
         UpdateActivityActionsToggle();
         VersionRun.Text = $" {AppInfo.Version}";
@@ -244,6 +245,7 @@ public partial class MainWindow
         RefreshCompactView();
         RefreshServices();
         RefreshUsage();
+        RefreshCaptures(samples);
         UpdateSnapshot(_selectedSample is null ? null : visible);
         // The compact strip hides the process list; leaving compact mode refreshes it.
         if (!_compactMode &&
@@ -570,7 +572,7 @@ public partial class MainWindow
                 {
                     await CheckForUpdatesAsync(true, _lifetime.Token);
                     return UpdateStatusText.Text;
-                }) { Owner = this };
+                }, _preferenceStore.DefaultCaptureFolder) { Owner = this };
             // Let the shortcut recorder receive WinMon's own combination; Save or the finally block takes it back.
             _hotkeyRetry?.Stop();
             _hotkey?.Unregister();

@@ -1495,4 +1495,54 @@ GPU {11} · {12}
   <data name="UsageReportSince" xml:space="preserve"><value>Использование с {0:G}</value></data>
   <data name="UsageReportBusy" xml:space="preserve"><value>Время занятости ЦП компьютера: {0} на {1} логических процессорах</value></data>
   <data name="UsageReportView" xml:space="preserve"><value>Топ {0} приложений по {1}</value></data>
+  <data name="AutoCaptureHeading" xml:space="preserve"><value>Автоматические захваты</value></data>
+  <data name="AutoCaptureEnable" xml:space="preserve"><value>Сохранять захват, когда нагрузка остаётся высокой</value></data>
+  <data name="AutoCaptureHelp" xml:space="preserve"><value>WinMon отмечает момент на графике и сохраняет отчёт «Копировать захват» в текстовый файл. Отчёты содержат имена и пути процессов. Ничего не отправляется.</value></data>
+  <data name="AutoCaptureAnyProcess" xml:space="preserve"><value>Любой процесс</value></data>
+  <data name="AutoCaptureThresholdFor" xml:space="preserve"><value>Порог для {0}</value></data>
+  <data name="AutoCaptureSecondsFor" xml:space="preserve"><value>Длительность для {0} в секундах</value></data>
+  <data name="AutoCapturePercentOfCore" xml:space="preserve"><value>% ядра</value></data>
+  <data name="AutoCapturePercentActive" xml:space="preserve"><value>% активности</value></data>
+  <data name="AutoCaptureAbove" xml:space="preserve"><value>выше</value></data>
+  <data name="AutoCaptureFor" xml:space="preserve"><value>в течение</value></data>
+  <data name="AutoCaptureSecondsUnit" xml:space="preserve"><value>с</value></data>
+  <data name="AutoCaptureProcessHelp" xml:space="preserve"><value>«Любой процесс» отслеживает один зависший процесс: 100 % — это полностью занятый логический процессор, поэтому правило работает одинаково на 4 и на 32 ядрах.</value></data>
+  <data name="AutoCaptureCooldown" xml:space="preserve"><value>Минут между захватами по одному правилу</value></data>
+  <data name="AutoCaptureWaitBefore" xml:space="preserve"><value>Ждать не менее</value></data>
+  <data name="AutoCaptureWaitAfter" xml:space="preserve"><value>мин, прежде чем правило сработает снова</value></data>
+  <data name="AutoCaptureFolder" xml:space="preserve"><value>Сохранять отчёты в</value></data>
+  <data name="AutoCaptureChangeFolder" xml:space="preserve"><value>Изменить…</value></data>
+  <data name="AutoCaptureOpenFolder" xml:space="preserve"><value>Открыть</value></data>
+  <data name="AutoCaptureKeepNote" xml:space="preserve"><value>Хранятся {0} самых новых отчётов. WinMon удаляет только свои отчёты, даже в общей папке.</value></data>
+  <data name="AutoCaptureNotify" xml:space="preserve"><value>Показывать уведомление при сохранении захвата</value></data>
+  <data name="AutoCaptureInvalidThreshold" xml:space="preserve"><value>Введите порог от {0} до {1}.</value></data>
+  <data name="AutoCaptureInvalidSeconds" xml:space="preserve"><value>Введите длительность от 1 до 300 секунд.</value></data>
+  <data name="AutoCaptureInvalidCooldown" xml:space="preserve"><value>Введите ожидание от 1 до 1440 минут.</value></data>
+  <data name="AutoCaptureFolderNotWritable" xml:space="preserve"><value>WinMon не может записывать в выбранную папку отчётов. Выберите другую папку.</value></data>
+  <data name="AutoCapturePercentOfCoreValue" xml:space="preserve"><value>{0:0.0} % ядра</value></data>
+  <data name="AutoCaptureRuleText" xml:space="preserve"><value>{0} выше {1} в течение {2} с</value></data>
+  <data name="AutoCaptureReportTitle" xml:space="preserve"><value>Автоматический захват: {0}</value></data>
+  <data name="AutoCaptureReportFired" xml:space="preserve"><value>Сработало {0:G}; пик {1} в {2:T}</value></data>
+  <data name="AutoCaptureReportRun" xml:space="preserve"><value>{0} за период: {1}</value></data>
+  <data name="AutoCaptureIoDisclaimer" xml:space="preserve"><value>Ввод-вывод процессов не разделяется по дискам и сетевым адаптерам. Эти процессы могли не быть причиной этой активности.</value></data>
+  <data name="AutoCaptureTotalIo" xml:space="preserve"><value>общий ввод-вывод (все файлы, сеть и устройства)</value></data>
+  <data name="AutoCaptureNotificationPeak" xml:space="preserve"><value>Пик {0} в {1:T}</value></data>
+  <data name="AutoCaptureWriteFailed" xml:space="preserve"><value>Не удалось сохранить отчёт автоматического захвата в {0}. Захваты по-прежнему видны на графике.</value></data>
+  <data name="AutoCaptureGone" xml:space="preserve"><value>Этого захвата больше нет в истории, и его отчёт не найден.</value></data>
+  <data name="AutoCaptureOpenReport" xml:space="preserve"><value>Открыть отчёт</value></data>
+  <data name="AutoCaptureReportMissing" xml:space="preserve"><value>Файл отчёта не найден. Возможно, он был перемещён или удалён.</value></data>
+  <data name="AutoCaptureReportFailed" xml:space="preserve"><value>Не удалось сохранить отчёт.</value></data>
+  <data name="AutoCaptureReportPending" xml:space="preserve"><value>Отчёт ещё сохраняется.</value></data>
+  <data name="AutoCaptureMarkerTooltip" xml:space="preserve"><value>Сработало {0:T} · пик {1} в {2:T}</value></data>
+  <data name="AutoCaptureMarkerHint" xml:space="preserve"><value>Щёлкните, чтобы открыть пик · Ctrl+Влево / Ctrl+Вправо — другие захваты</value></data>
+  <data name="AutoCapturePeakGone" xml:space="preserve"><value>Пика больше нет в истории; щёлкните, чтобы открыть сохранённый отчёт</value></data>
+  <data name="AutoCaptureNone" xml:space="preserve"><value>Нет автоматических захватов</value></data>
+  <data name="AutoCaptureCount" xml:space="preserve"><value>Автоматические захваты: {0}</value></data>
+  <data name="AutoCaptureBanner" xml:space="preserve"><value>Автоматический захват · {0}</value></data>
+  <data name="AutoCaptureOff" xml:space="preserve"><value>выключено</value></data>
+  <data name="AutoCaptureWatching" xml:space="preserve"><value>Отслеживается: {0}</value></data>
+  <data name="AutoCaptureNoneYet" xml:space="preserve"><value>В истории пока нет захватов</value></data>
+  <data name="AutoCaptureMenuDetail" xml:space="preserve"><value>{0:T} · пик {1} · {2} назад</value></data>
+  <data name="AutoCaptureOpenFolderCount" xml:space="preserve"><value>Открыть папку отчётов ({0})</value></data>
+  <data name="AutoCaptureSettings" xml:space="preserve"><value>Параметры автоматических захватов…</value></data>
 </root>

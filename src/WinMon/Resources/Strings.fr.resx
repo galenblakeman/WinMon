@@ -1495,4 +1495,54 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
   <data name="UsageReportSince" xml:space="preserve"><value>Utilisation depuis {0:G}</value></data>
   <data name="UsageReportBusy" xml:space="preserve"><value>Temps CPU occupé de la machine : {0} sur {1} processeurs logiques</value></data>
   <data name="UsageReportView" xml:space="preserve"><value>Top {0} des applications par {1}</value></data>
+  <data name="AutoCaptureHeading" xml:space="preserve"><value>Captures automatiques</value></data>
+  <data name="AutoCaptureEnable" xml:space="preserve"><value>Enregistrer une capture quand une ressource reste élevée</value></data>
+  <data name="AutoCaptureHelp" xml:space="preserve"><value>WinMon marque le moment sur le graphique et enregistre le rapport de Copier la capture dans un fichier texte. Les rapports contiennent des noms et chemins de processus. Rien n’est envoyé.</value></data>
+  <data name="AutoCaptureAnyProcess" xml:space="preserve"><value>Un seul processus</value></data>
+  <data name="AutoCaptureThresholdFor" xml:space="preserve"><value>Seuil pour {0}</value></data>
+  <data name="AutoCaptureSecondsFor" xml:space="preserve"><value>Durée pour {0} en secondes</value></data>
+  <data name="AutoCapturePercentOfCore" xml:space="preserve"><value>% d’un cœur</value></data>
+  <data name="AutoCapturePercentActive" xml:space="preserve"><value>% actif</value></data>
+  <data name="AutoCaptureAbove" xml:space="preserve"><value>au-dessus de</value></data>
+  <data name="AutoCaptureFor" xml:space="preserve"><value>pendant</value></data>
+  <data name="AutoCaptureSecondsUnit" xml:space="preserve"><value>s</value></data>
+  <data name="AutoCaptureProcessHelp" xml:space="preserve"><value>Un seul processus repère un processus qui s’emballe : 100 % correspond à un processeur logique entièrement occupé, ce qui fonctionne de la même façon avec 4 ou 32 cœurs.</value></data>
+  <data name="AutoCaptureCooldown" xml:space="preserve"><value>Minutes entre deux captures de la même règle</value></data>
+  <data name="AutoCaptureWaitBefore" xml:space="preserve"><value>Attendre au moins</value></data>
+  <data name="AutoCaptureWaitAfter" xml:space="preserve"><value>minutes avant que la même règle capture à nouveau</value></data>
+  <data name="AutoCaptureFolder" xml:space="preserve"><value>Enregistrer les rapports dans</value></data>
+  <data name="AutoCaptureChangeFolder" xml:space="preserve"><value>Modifier…</value></data>
+  <data name="AutoCaptureOpenFolder" xml:space="preserve"><value>Ouvrir</value></data>
+  <data name="AutoCaptureKeepNote" xml:space="preserve"><value>Conserve les {0} rapports les plus récents. WinMon ne supprime que ses propres rapports, même dans un dossier partagé.</value></data>
+  <data name="AutoCaptureNotify" xml:space="preserve"><value>Afficher une notification quand une capture est enregistrée</value></data>
+  <data name="AutoCaptureInvalidThreshold" xml:space="preserve"><value>Saisissez un seuil compris entre {0} et {1}.</value></data>
+  <data name="AutoCaptureInvalidSeconds" xml:space="preserve"><value>Saisissez une durée de 1 à 300 secondes.</value></data>
+  <data name="AutoCaptureInvalidCooldown" xml:space="preserve"><value>Saisissez une attente de 1 à 1440 minutes.</value></data>
+  <data name="AutoCaptureFolderNotWritable" xml:space="preserve"><value>WinMon ne peut pas écrire dans le dossier de rapports choisi. Choisissez un autre dossier.</value></data>
+  <data name="AutoCapturePercentOfCoreValue" xml:space="preserve"><value>{0:0.0} % d’un cœur</value></data>
+  <data name="AutoCaptureRuleText" xml:space="preserve"><value>{0} au-dessus de {1} pendant {2} s</value></data>
+  <data name="AutoCaptureReportTitle" xml:space="preserve"><value>Capture automatique : {0}</value></data>
+  <data name="AutoCaptureReportFired" xml:space="preserve"><value>Déclenchée {0:G} ; pic {1} à {2:T}</value></data>
+  <data name="AutoCaptureReportRun" xml:space="preserve"><value>{0} sur la période : {1}</value></data>
+  <data name="AutoCaptureIoDisclaimer" xml:space="preserve"><value>Les E/S des processus ne sont pas réparties par lecteur ni par carte réseau. Ces processus ne sont peut-être pas à l’origine de cette activité.</value></data>
+  <data name="AutoCaptureTotalIo" xml:space="preserve"><value>E/S totales (tous fichiers, réseau et périphériques)</value></data>
+  <data name="AutoCaptureNotificationPeak" xml:space="preserve"><value>Pic {0} à {1:T}</value></data>
+  <data name="AutoCaptureWriteFailed" xml:space="preserve"><value>Impossible d’enregistrer un rapport de capture automatique dans {0}. Les captures restent visibles sur le graphique.</value></data>
+  <data name="AutoCaptureGone" xml:space="preserve"><value>Cette capture n’est plus dans l’historique et son rapport est introuvable.</value></data>
+  <data name="AutoCaptureOpenReport" xml:space="preserve"><value>Ouvrir le rapport</value></data>
+  <data name="AutoCaptureReportMissing" xml:space="preserve"><value>Le fichier du rapport est introuvable. Il a peut-être été déplacé ou supprimé.</value></data>
+  <data name="AutoCaptureReportFailed" xml:space="preserve"><value>Le rapport n’a pas pu être enregistré.</value></data>
+  <data name="AutoCaptureReportPending" xml:space="preserve"><value>Le rapport est en cours d’enregistrement.</value></data>
+  <data name="AutoCaptureMarkerTooltip" xml:space="preserve"><value>Déclenchée {0:T} · pic {1} à {2:T}</value></data>
+  <data name="AutoCaptureMarkerHint" xml:space="preserve"><value>Cliquez pour ouvrir le pic · Ctrl+Gauche / Ctrl+Droite pour les autres captures</value></data>
+  <data name="AutoCapturePeakGone" xml:space="preserve"><value>Le pic n’est plus dans l’historique ; cliquez pour ouvrir le rapport enregistré</value></data>
+  <data name="AutoCaptureNone" xml:space="preserve"><value>Aucune capture automatique</value></data>
+  <data name="AutoCaptureCount" xml:space="preserve"><value>Captures automatiques : {0}</value></data>
+  <data name="AutoCaptureBanner" xml:space="preserve"><value>Capture automatique · {0}</value></data>
+  <data name="AutoCaptureOff" xml:space="preserve"><value>désactivé</value></data>
+  <data name="AutoCaptureWatching" xml:space="preserve"><value>Surveillance : {0}</value></data>
+  <data name="AutoCaptureNoneYet" xml:space="preserve"><value>Aucune capture dans l’historique pour l’instant</value></data>
+  <data name="AutoCaptureMenuDetail" xml:space="preserve"><value>{0:T} · pic {1} · il y a {2}</value></data>
+  <data name="AutoCaptureOpenFolderCount" xml:space="preserve"><value>Ouvrir le dossier des rapports ({0})</value></data>
+  <data name="AutoCaptureSettings" xml:space="preserve"><value>Paramètres des captures automatiques…</value></data>
 </root>

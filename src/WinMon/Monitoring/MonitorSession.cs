@@ -79,6 +79,13 @@ internal sealed class MonitorSession(
     /// <summary>Raised after queued captures, including failed ones, have been recorded.</summary>
     internal event Action? Recorded;
 
+    /// <summary>
+    /// Raised for each live full sample as a drain records it, in order, before <see cref="Recorded"/>; a drain of
+    /// several frames raises it once per frame. Restored and synthetic samples recorded through
+    /// <see cref="Record"/> do not raise it.
+    /// </summary>
+    internal event Action<MonitorSample>? LiveSampleRecorded;
+
     /// <summary>Capture until cancelled. Completes without throwing when cancelled.</summary>
     internal Task Run(CancellationToken cancellationToken)
     {
@@ -160,6 +167,7 @@ internal sealed class MonitorSession(
                 {
                     Record(pending.Sample, pending.Full, pending.Services);
                     HasLiveSample = true;
+                    if (pending.Full is not null) LiveSampleRecorded?.Invoke(pending.Full);
                 }
                 changed = true;
             }

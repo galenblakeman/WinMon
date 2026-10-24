@@ -1495,4 +1495,54 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
   <data name="UsageReportSince" xml:space="preserve"><value>Użycie od {0:G}</value></data>
   <data name="UsageReportBusy" xml:space="preserve"><value>Czas zajętości CPU komputera: {0} na {1} procesorach logicznych</value></data>
   <data name="UsageReportView" xml:space="preserve"><value>Top {0} aplikacji wg {1}</value></data>
+  <data name="AutoCaptureHeading" xml:space="preserve"><value>Automatyczne przechwycenia</value></data>
+  <data name="AutoCaptureEnable" xml:space="preserve"><value>Zapisz przechwycenie, gdy zasób pozostaje wysoki</value></data>
+  <data name="AutoCaptureHelp" xml:space="preserve"><value>WinMon zaznacza moment na wykresie i zapisuje raport Kopiuj przechwycenie jako plik tekstowy. Raporty zawierają nazwy i ścieżki procesów. Nic nie jest wysyłane.</value></data>
+  <data name="AutoCaptureAnyProcess" xml:space="preserve"><value>Dowolny proces</value></data>
+  <data name="AutoCaptureThresholdFor" xml:space="preserve"><value>Próg dla: {0}</value></data>
+  <data name="AutoCaptureSecondsFor" xml:space="preserve"><value>Czas trwania dla: {0} w sekundach</value></data>
+  <data name="AutoCapturePercentOfCore" xml:space="preserve"><value>% rdzenia</value></data>
+  <data name="AutoCapturePercentActive" xml:space="preserve"><value>% aktywności</value></data>
+  <data name="AutoCaptureAbove" xml:space="preserve"><value>powyżej</value></data>
+  <data name="AutoCaptureFor" xml:space="preserve"><value>przez</value></data>
+  <data name="AutoCaptureSecondsUnit" xml:space="preserve"><value>s</value></data>
+  <data name="AutoCaptureProcessHelp" xml:space="preserve"><value>Dowolny proces wykrywa pojedynczy proces, który wymknął się spod kontroli: 100% to jeden w pełni zajęty procesor logiczny, więc działa tak samo przy 4 i 32 rdzeniach.</value></data>
+  <data name="AutoCaptureCooldown" xml:space="preserve"><value>Minuty między przechwyceniami tej samej reguły</value></data>
+  <data name="AutoCaptureWaitBefore" xml:space="preserve"><value>Czekaj co najmniej</value></data>
+  <data name="AutoCaptureWaitAfter" xml:space="preserve"><value>min, zanim ta sama reguła ponownie przechwyci</value></data>
+  <data name="AutoCaptureFolder" xml:space="preserve"><value>Zapisuj raporty w</value></data>
+  <data name="AutoCaptureChangeFolder" xml:space="preserve"><value>Zmień…</value></data>
+  <data name="AutoCaptureOpenFolder" xml:space="preserve"><value>Otwórz</value></data>
+  <data name="AutoCaptureKeepNote" xml:space="preserve"><value>Zachowuje {0} najnowszych raportów. WinMon usuwa tylko własne raporty, nawet we współdzielonym folderze.</value></data>
+  <data name="AutoCaptureNotify" xml:space="preserve"><value>Pokaż powiadomienie po zapisaniu przechwycenia</value></data>
+  <data name="AutoCaptureInvalidThreshold" xml:space="preserve"><value>Wpisz próg od {0} do {1}.</value></data>
+  <data name="AutoCaptureInvalidSeconds" xml:space="preserve"><value>Wpisz czas trwania od 1 do 300 sekund.</value></data>
+  <data name="AutoCaptureInvalidCooldown" xml:space="preserve"><value>Wpisz czas oczekiwania od 1 do 1440 minut.</value></data>
+  <data name="AutoCaptureFolderNotWritable" xml:space="preserve"><value>WinMon nie może zapisywać w wybranym folderze raportów. Wybierz inny folder.</value></data>
+  <data name="AutoCapturePercentOfCoreValue" xml:space="preserve"><value>{0:0.0}% rdzenia</value></data>
+  <data name="AutoCaptureRuleText" xml:space="preserve"><value>{0} powyżej {1} przez {2} s</value></data>
+  <data name="AutoCaptureReportTitle" xml:space="preserve"><value>Automatyczne przechwycenie: {0}</value></data>
+  <data name="AutoCaptureReportFired" xml:space="preserve"><value>Wyzwolono {0:G}; szczyt {1} o {2:T}</value></data>
+  <data name="AutoCaptureReportRun" xml:space="preserve"><value>{0} w tym okresie: {1}</value></data>
+  <data name="AutoCaptureIoDisclaimer" xml:space="preserve"><value>We/wy procesów nie jest rozbite na dyski ani karty sieciowe. Te procesy mogły nie spowodować tej aktywności.</value></data>
+  <data name="AutoCaptureTotalIo" xml:space="preserve"><value>łączne we/wy (wszystkie pliki, sieć i urządzenia)</value></data>
+  <data name="AutoCaptureNotificationPeak" xml:space="preserve"><value>Szczyt {0} o {1:T}</value></data>
+  <data name="AutoCaptureWriteFailed" xml:space="preserve"><value>Nie można zapisać raportu automatycznego przechwycenia w {0}. Przechwycenia nadal są widoczne na wykresie.</value></data>
+  <data name="AutoCaptureGone" xml:space="preserve"><value>Tego przechwycenia nie ma już w historii, a jego raportu nie znaleziono.</value></data>
+  <data name="AutoCaptureOpenReport" xml:space="preserve"><value>Otwórz raport</value></data>
+  <data name="AutoCaptureReportMissing" xml:space="preserve"><value>Nie znaleziono pliku raportu. Mógł zostać przeniesiony lub usunięty.</value></data>
+  <data name="AutoCaptureReportFailed" xml:space="preserve"><value>Nie można zapisać raportu.</value></data>
+  <data name="AutoCaptureReportPending" xml:space="preserve"><value>Raport jest jeszcze zapisywany.</value></data>
+  <data name="AutoCaptureMarkerTooltip" xml:space="preserve"><value>Wyzwolono {0:T} · szczyt {1} o {2:T}</value></data>
+  <data name="AutoCaptureMarkerHint" xml:space="preserve"><value>Kliknij, aby otworzyć szczyt · Ctrl+Lewo / Ctrl+Prawo dla innych przechwyceń</value></data>
+  <data name="AutoCapturePeakGone" xml:space="preserve"><value>Szczytu nie ma już w historii; kliknij, aby otworzyć zapisany raport</value></data>
+  <data name="AutoCaptureNone" xml:space="preserve"><value>Brak automatycznych przechwyceń</value></data>
+  <data name="AutoCaptureCount" xml:space="preserve"><value>Automatyczne przechwycenia: {0}</value></data>
+  <data name="AutoCaptureBanner" xml:space="preserve"><value>Automatyczne przechwycenie · {0}</value></data>
+  <data name="AutoCaptureOff" xml:space="preserve"><value>wyłączone</value></data>
+  <data name="AutoCaptureWatching" xml:space="preserve"><value>Obserwowane: {0}</value></data>
+  <data name="AutoCaptureNoneYet" xml:space="preserve"><value>Brak jeszcze przechwyceń w historii</value></data>
+  <data name="AutoCaptureMenuDetail" xml:space="preserve"><value>{0:T} · szczyt {1} · {2} temu</value></data>
+  <data name="AutoCaptureOpenFolderCount" xml:space="preserve"><value>Otwórz folder raportów ({0})</value></data>
+  <data name="AutoCaptureSettings" xml:space="preserve"><value>Ustawienia automatycznych przechwyceń…</value></data>
 </root>

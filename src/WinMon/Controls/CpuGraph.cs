@@ -9,6 +9,13 @@ using WinMon.Monitoring;
 
 namespace WinMon.Controls;
 
+/// <summary>An automatic capture on the chart's top edge, drawn at the sample that completed its rule.</summary>
+/// <param name="Moment">Where it is drawn, in <see cref="CpuGraph.Moment"/> seconds.</param>
+/// <param name="BrushKey">The resource color, so the marker matches that resource's trace.</param>
+/// <param name="Selected">Whether the selected sample is this capture's peak.</param>
+/// <param name="Tag">The host's own capture record.</param>
+internal sealed record ChartMarker(double Moment, string BrushKey, string Tooltip, bool Selected, object Tag);
+
 /// <summary>Draw time-based resource graphs and auto-scaled process sparklines.</summary>
 public sealed class CpuGraph : FrameworkElement
 {
@@ -68,6 +75,12 @@ public sealed class CpuGraph : FrameworkElement
 
     /// <summary>Notify the host when keyboard navigation requests the live view.</summary>
     public event EventHandler? LiveRequested;
+
+    /// <summary>Automatic capture markers, oldest first; drawn only on the full resource chart.</summary>
+    internal IReadOnlyList<ChartMarker> Markers { get; set; } = [];
+
+    /// <summary>Notify the host when a marker is clicked or reached with Ctrl+Left or Ctrl+Right.</summary>
+    internal event EventHandler<ChartMarker>? MarkerSelected;
 
     /// <summary>Replace the visible series and invalidate the drawing.</summary>
     /// <param name="history">Chronologically ordered snapshots.</param>
@@ -216,10 +229,49 @@ public sealed class CpuGraph : FrameworkElement
             drawingContext.DrawText(formatted, new Point(x, plot.Bottom + 4));
         }
 
+        if (ShowGrid && _process is null) DrawMarkers(drawingContext, plot);
+
         // Link utilization is nearly always ~0%, so the network trace uses its own throughput scale.
         if (ShowGrid && _process is null && (VisibleMetrics & 8) != 0)
             Label(drawingContext, Strings.Format(Strings.NetworkScale0, RateText.Format(_networkScale)),
                 new Point(plot.Right - 4, plot.Top + 2), network, 1);
+    }
+
+    private void DrawMarkers(DrawingContext drawingContext, Rect plot)
+    {
+        var surface = Resource("PlotSurface", Brushes.Black);
+        var text = Resource("Text", Brushes.White);
+        foreach (var marker in Markers)
+        {
+            if (MarkerX(marker, plot) is not { } x) continue;
+            var triangle = new StreamGeometry();
+            using (var context = triangle.Open())
+            {
+                context.BeginFigure(new Point(x - 6, 0), true, true);
+                context.LineTo(new Point(x + 6, 0), true, false);
+                context.LineTo(new Point(x, plot.Top + 3), true, false);
+            }
+
+            triangle.Freeze();
+            drawingContext.DrawGeometry(Resource(marker.BrushKey, Brushes.LimeGreen),
+                marker.Selected ? CachedPen(text, 2) : CachedPen(surface, 1), triangle);
+        }
+    }
+
+    private double? MarkerX(ChartMarker marker, Rect plot)
+    {
+        if (marker.Moment < _end - _seconds || marker.Moment > _end + 1) return null;
+        return plot.Right - (_end - marker.Moment) / _seconds * plot.Width;
+    }
+
+    /// <summary>The marker under a point on the top edge, if any.</summary>
+    internal ChartMarker? MarkerAt(Point point)
+    {
+        if (!ShowGrid || _process is not null || Markers.Count == 0) return null;
+        var plot = Plot();
+        if (point.Y > plot.Top + 6) return null;
+        return Markers.Where(m => MarkerX(m, plot) is { } x && Math.Abs(x - point.X) <= 8)
+            .MinBy(m => Math.Abs(MarkerX(m, plot)!.Value - point.X));
     }
 
     private static string Ago(double secondsAgo)
@@ -306,6 +358,12 @@ public sealed class CpuGraph : FrameworkElement
     {
         base.OnMouseMove(e);
         if (!ShowGrid) return;
+        if (MarkerAt(e.GetPosition(this)) is { } marker)
+        {
+            ToolTip = marker.Tooltip;
+            return;
+        }
+
         if (_selected is not null)
         {
             ToolTip = null;
@@ -334,6 +392,13 @@ public sealed class CpuGraph : FrameworkElement
     {
         base.OnMouseLeftButtonDown(e);
         Focus();
+        if (MarkerAt(e.GetPosition(this)) is { } marker)
+        {
+            ToolTip = null;
+            MarkerSelected?.Invoke(this, marker);
+            return;
+        }
+
         SelectAt(e.GetPosition(this));
     }
 
@@ -363,6 +428,18 @@ public sealed class CpuGraph : FrameworkElement
         if (e.Key == Key.End)
         {
             LiveRequested?.Invoke(this, EventArgs.Empty);
+            e.Handled = true;
+            return;
+        }
+
+        if (e.Key is Key.Left or Key.Right && Keyboard.Modifiers == ModifierKeys.Control)
+        {
+            // Step between captures; the selected capture's own marker is skipped, since its peak precedes it.
+            var current = _selected is null ? _end + 1 : Moment(_selected);
+            var marker = e.Key == Key.Left
+                ? Markers.LastOrDefault(m => !m.Selected && m.Moment < current)
+                : Markers.FirstOrDefault(m => !m.Selected && m.Moment > current);
+            if (marker is not null) MarkerSelected?.Invoke(this, marker);
             e.Handled = true;
             return;
         }

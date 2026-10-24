@@ -1495,4 +1495,54 @@ Windows 상태: {2}</value>
   <data name="UsageReportSince" xml:space="preserve"><value>{0:G}부터의 사용량</value></data>
   <data name="UsageReportBusy" xml:space="preserve"><value>컴퓨터 사용 중 CPU 시간: {0}, 논리 프로세서 {1}개</value></data>
   <data name="UsageReportView" xml:space="preserve"><value>{1} 기준 상위 앱 {0}개</value></data>
+  <data name="AutoCaptureHeading" xml:space="preserve"><value>자동 캡처</value></data>
+  <data name="AutoCaptureEnable" xml:space="preserve"><value>리소스가 높은 상태로 유지되면 캡처 저장</value></data>
+  <data name="AutoCaptureHelp" xml:space="preserve"><value>WinMon은 차트에 해당 시점을 표시하고 캡처 복사 보고서를 텍스트 파일로 저장합니다. 보고서에는 프로세스 이름과 경로가 포함됩니다. 아무것도 업로드되지 않습니다.</value></data>
+  <data name="AutoCaptureAnyProcess" xml:space="preserve"><value>단일 프로세스</value></data>
+  <data name="AutoCaptureThresholdFor" xml:space="preserve"><value>{0} 임계값</value></data>
+  <data name="AutoCaptureSecondsFor" xml:space="preserve"><value>{0} 지속 시간(초)</value></data>
+  <data name="AutoCapturePercentOfCore" xml:space="preserve"><value>% (코어 1개)</value></data>
+  <data name="AutoCapturePercentActive" xml:space="preserve"><value>% 활성</value></data>
+  <data name="AutoCaptureAbove" xml:space="preserve"><value>초과</value></data>
+  <data name="AutoCaptureFor" xml:space="preserve"><value>지속</value></data>
+  <data name="AutoCaptureSecondsUnit" xml:space="preserve"><value>초</value></data>
+  <data name="AutoCaptureProcessHelp" xml:space="preserve"><value>단일 프로세스는 폭주하는 프로세스 하나를 감지합니다. 100%는 논리 프로세서 하나가 완전히 사용 중인 상태이므로 코어가 4개든 32개든 동일하게 작동합니다.</value></data>
+  <data name="AutoCaptureCooldown" xml:space="preserve"><value>같은 규칙의 캡처 간격(분)</value></data>
+  <data name="AutoCaptureWaitBefore" xml:space="preserve"><value>같은 규칙이 다시 캡처하기 전에 최소</value></data>
+  <data name="AutoCaptureWaitAfter" xml:space="preserve"><value>분 기다림</value></data>
+  <data name="AutoCaptureFolder" xml:space="preserve"><value>보고서 저장 위치</value></data>
+  <data name="AutoCaptureChangeFolder" xml:space="preserve"><value>변경…</value></data>
+  <data name="AutoCaptureOpenFolder" xml:space="preserve"><value>열기</value></data>
+  <data name="AutoCaptureKeepNote" xml:space="preserve"><value>최신 보고서 {0}개를 보관합니다. 공유 폴더에서도 WinMon은 자신의 보고서만 삭제합니다.</value></data>
+  <data name="AutoCaptureNotify" xml:space="preserve"><value>캡처가 저장되면 알림 표시</value></data>
+  <data name="AutoCaptureInvalidThreshold" xml:space="preserve"><value>{0}에서 {1} 사이의 임계값을 입력하세요.</value></data>
+  <data name="AutoCaptureInvalidSeconds" xml:space="preserve"><value>1초에서 300초 사이의 지속 시간을 입력하세요.</value></data>
+  <data name="AutoCaptureInvalidCooldown" xml:space="preserve"><value>1분에서 1440분 사이의 대기 시간을 입력하세요.</value></data>
+  <data name="AutoCaptureFolderNotWritable" xml:space="preserve"><value>선택한 보고서 폴더에 쓸 수 없습니다. 다른 폴더를 선택하세요.</value></data>
+  <data name="AutoCapturePercentOfCoreValue" xml:space="preserve"><value>코어 1개의 {0:0.0}%</value></data>
+  <data name="AutoCaptureRuleText" xml:space="preserve"><value>{0}이(가) {2}초 동안 {1} 초과</value></data>
+  <data name="AutoCaptureReportTitle" xml:space="preserve"><value>자동 캡처: {0}</value></data>
+  <data name="AutoCaptureReportFired" xml:space="preserve"><value>{0:G}에 발생, 최고 {1} ({2:T})</value></data>
+  <data name="AutoCaptureReportRun" xml:space="preserve"><value>구간 동안의 {0}: {1}</value></data>
+  <data name="AutoCaptureIoDisclaimer" xml:space="preserve"><value>프로세스 I/O는 드라이브나 네트워크 어댑터별로 구분되지 않습니다. 이 프로세스들이 이 활동의 원인이 아닐 수 있습니다.</value></data>
+  <data name="AutoCaptureTotalIo" xml:space="preserve"><value>전체 I/O(모든 파일, 네트워크, 장치)</value></data>
+  <data name="AutoCaptureNotificationPeak" xml:space="preserve"><value>최고 {0} ({1:T})</value></data>
+  <data name="AutoCaptureWriteFailed" xml:space="preserve"><value>{0}에 자동 캡처 보고서를 저장할 수 없습니다. 캡처는 계속 차트에 표시됩니다.</value></data>
+  <data name="AutoCaptureGone" xml:space="preserve"><value>이 캡처는 더 이상 기록에 없고 보고서도 찾을 수 없습니다.</value></data>
+  <data name="AutoCaptureOpenReport" xml:space="preserve"><value>보고서 열기</value></data>
+  <data name="AutoCaptureReportMissing" xml:space="preserve"><value>보고서 파일을 찾을 수 없습니다. 이동되었거나 삭제되었을 수 있습니다.</value></data>
+  <data name="AutoCaptureReportFailed" xml:space="preserve"><value>보고서를 저장할 수 없습니다.</value></data>
+  <data name="AutoCaptureReportPending" xml:space="preserve"><value>보고서를 저장하는 중입니다.</value></data>
+  <data name="AutoCaptureMarkerTooltip" xml:space="preserve"><value>{0:T}에 발생 · 최고 {1} ({2:T})</value></data>
+  <data name="AutoCaptureMarkerHint" xml:space="preserve"><value>클릭하여 최고점 열기 · Ctrl+← / Ctrl+→로 다른 캡처</value></data>
+  <data name="AutoCapturePeakGone" xml:space="preserve"><value>최고점이 더 이상 기록에 없습니다. 클릭하여 저장된 보고서 열기</value></data>
+  <data name="AutoCaptureNone" xml:space="preserve"><value>자동 캡처 없음</value></data>
+  <data name="AutoCaptureCount" xml:space="preserve"><value>자동 캡처: {0}</value></data>
+  <data name="AutoCaptureBanner" xml:space="preserve"><value>자동 캡처 · {0}</value></data>
+  <data name="AutoCaptureOff" xml:space="preserve"><value>끔</value></data>
+  <data name="AutoCaptureWatching" xml:space="preserve"><value>감시 중: {0}</value></data>
+  <data name="AutoCaptureNoneYet" xml:space="preserve"><value>아직 기록에 캡처가 없습니다</value></data>
+  <data name="AutoCaptureMenuDetail" xml:space="preserve"><value>{0:T} · 최고 {1} · {2} 전</value></data>
+  <data name="AutoCaptureOpenFolderCount" xml:space="preserve"><value>보고서 폴더 열기({0})</value></data>
+  <data name="AutoCaptureSettings" xml:space="preserve"><value>자동 캡처 설정…</value></data>
 </root>

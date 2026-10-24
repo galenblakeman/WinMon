@@ -1495,4 +1495,54 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="UsageReportSince" xml:space="preserve"><value>Usage since {0:G}</value></data>
   <data name="UsageReportBusy" xml:space="preserve"><value>Machine busy CPU time: {0} on {1} logical processors</value></data>
   <data name="UsageReportView" xml:space="preserve"><value>Top {0} apps by {1}</value></data>
+  <data name="AutoCaptureHeading" xml:space="preserve"><value>Automatic captures</value></data>
+  <data name="AutoCaptureEnable" xml:space="preserve"><value>Save a capture when a resource stays high</value></data>
+  <data name="AutoCaptureHelp" xml:space="preserve"><value>WinMon marks the moment on the chart and saves the Copy capture report as a text file. Reports include process names and paths. Nothing is uploaded.</value></data>
+  <data name="AutoCaptureAnyProcess" xml:space="preserve"><value>Any one process</value></data>
+  <data name="AutoCaptureThresholdFor" xml:space="preserve"><value>{0} threshold</value></data>
+  <data name="AutoCaptureSecondsFor" xml:space="preserve"><value>{0} duration in seconds</value></data>
+  <data name="AutoCapturePercentOfCore" xml:space="preserve"><value>% of a core</value></data>
+  <data name="AutoCapturePercentActive" xml:space="preserve"><value>% active</value></data>
+  <data name="AutoCaptureAbove" xml:space="preserve"><value>above</value></data>
+  <data name="AutoCaptureFor" xml:space="preserve"><value>for</value></data>
+  <data name="AutoCaptureSecondsUnit" xml:space="preserve"><value>s</value></data>
+  <data name="AutoCaptureProcessHelp" xml:space="preserve"><value>Any one process catches a single runaway process: 100% is one fully busy logical processor, so it works the same on 4 or 32 cores.</value></data>
+  <data name="AutoCaptureCooldown" xml:space="preserve"><value>Minutes between captures of the same rule</value></data>
+  <data name="AutoCaptureWaitBefore" xml:space="preserve"><value>Wait at least</value></data>
+  <data name="AutoCaptureWaitAfter" xml:space="preserve"><value>minutes before the same rule captures again</value></data>
+  <data name="AutoCaptureFolder" xml:space="preserve"><value>Save reports to</value></data>
+  <data name="AutoCaptureChangeFolder" xml:space="preserve"><value>Change…</value></data>
+  <data name="AutoCaptureOpenFolder" xml:space="preserve"><value>Open</value></data>
+  <data name="AutoCaptureKeepNote" xml:space="preserve"><value>Keeps the newest {0} reports. WinMon only deletes its own reports, even in a shared folder.</value></data>
+  <data name="AutoCaptureNotify" xml:space="preserve"><value>Show a notification when a capture is saved</value></data>
+  <data name="AutoCaptureInvalidThreshold" xml:space="preserve"><value>Enter a threshold from {0} to {1}.</value></data>
+  <data name="AutoCaptureInvalidSeconds" xml:space="preserve"><value>Enter a duration from 1 to 300 seconds.</value></data>
+  <data name="AutoCaptureInvalidCooldown" xml:space="preserve"><value>Enter a wait from 1 to 1440 minutes.</value></data>
+  <data name="AutoCaptureFolderNotWritable" xml:space="preserve"><value>WinMon cannot write to the chosen reports folder. Choose another folder.</value></data>
+  <data name="AutoCapturePercentOfCoreValue" xml:space="preserve"><value>{0:0.0}% of one core</value></data>
+  <data name="AutoCaptureRuleText" xml:space="preserve"><value>{0} above {1} for {2} s</value></data>
+  <data name="AutoCaptureReportTitle" xml:space="preserve"><value>Automatic capture: {0}</value></data>
+  <data name="AutoCaptureReportFired" xml:space="preserve"><value>Fired {0:G}; peak {1} at {2:T}</value></data>
+  <data name="AutoCaptureReportRun" xml:space="preserve"><value>{0} over the run: {1}</value></data>
+  <data name="AutoCaptureIoDisclaimer" xml:space="preserve"><value>Process I/O is not broken down by drive or network adapter. These processes may not have caused this activity.</value></data>
+  <data name="AutoCaptureTotalIo" xml:space="preserve"><value>total I/O (all files, network and devices)</value></data>
+  <data name="AutoCaptureNotificationPeak" xml:space="preserve"><value>Peak {0} at {1:T}</value></data>
+  <data name="AutoCaptureWriteFailed" xml:space="preserve"><value>Couldn't save an automatic capture report in {0}. Captures still appear on the chart.</value></data>
+  <data name="AutoCaptureGone" xml:space="preserve"><value>This capture is no longer in history, and its report was not found.</value></data>
+  <data name="AutoCaptureOpenReport" xml:space="preserve"><value>Open report</value></data>
+  <data name="AutoCaptureReportMissing" xml:space="preserve"><value>The report file was not found. It may have been moved or deleted.</value></data>
+  <data name="AutoCaptureReportFailed" xml:space="preserve"><value>The report could not be saved.</value></data>
+  <data name="AutoCaptureReportPending" xml:space="preserve"><value>The report is still being saved.</value></data>
+  <data name="AutoCaptureMarkerTooltip" xml:space="preserve"><value>Fired {0:T} · peak {1} at {2:T}</value></data>
+  <data name="AutoCaptureMarkerHint" xml:space="preserve"><value>Click to open the peak · Ctrl+Left / Ctrl+Right for other captures</value></data>
+  <data name="AutoCapturePeakGone" xml:space="preserve"><value>Peak no longer in history; click to open the saved report</value></data>
+  <data name="AutoCaptureNone" xml:space="preserve"><value>No automatic captures</value></data>
+  <data name="AutoCaptureCount" xml:space="preserve"><value>Automatic captures: {0}</value></data>
+  <data name="AutoCaptureBanner" xml:space="preserve"><value>Automatic capture · {0}</value></data>
+  <data name="AutoCaptureOff" xml:space="preserve"><value>off</value></data>
+  <data name="AutoCaptureWatching" xml:space="preserve"><value>Watching: {0}</value></data>
+  <data name="AutoCaptureNoneYet" xml:space="preserve"><value>No captures in history yet</value></data>
+  <data name="AutoCaptureMenuDetail" xml:space="preserve"><value>{0:T} · peak {1} · {2} ago</value></data>
+  <data name="AutoCaptureOpenFolderCount" xml:space="preserve"><value>Open reports folder ({0})</value></data>
+  <data name="AutoCaptureSettings" xml:space="preserve"><value>Automatic capture settings…</value></data>
 </root>

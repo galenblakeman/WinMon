@@ -107,6 +107,12 @@ Click **Capture** again to select the newest sample. Use **Left / Right** to ste
 
 History is kept in memory for the current session, with configurable retention up to 60 minutes. Available history can be shorter on busy systems and is cleared when WinMon exits, except across an in-app update.
 
+### Automatic captures
+
+Turn on **Automatic captures** in Settings to catch spikes while you are away. Each resource has a rule, such as **CPU above 90% for 10 s**, plus **Any one process** for a single runaway process, measured in percent of one core. When a rule holds, WinMon marks the moment with a triangle in that resource's color at the top of the chart and saves the Copy capture report for the peak as a text file. A rule waits for its cooldown, and for the value to drop clearly below the threshold, before it captures again.
+
+Click a marker, or choose a capture from **Automatic captures** in the chart header, to open Capture mode at the peak; **Ctrl+Left** and **Ctrl+Right** step between captures. The capture card names the rule and offers **Open report**. Once a peak leaves history, its marker opens the saved report instead. Reports go to `%LOCALAPPDATA%\WinMon\Captures` (or a `Captures` folder beside a portable copy) unless you choose another folder; WinMon keeps the newest 200 and deletes only its own reports. Disk and network reports list processes by total I/O and say so, because Windows does not break process I/O down by drive or adapter. A notification for each capture is optional.
+
 ## Make it yours
 
 Choose **Light**, **Dark** or **System** appearance, then pick a chart palette independently. Options include Classic, Ocean, Colorblind, high-contrast, **Neon**, **Arcade** and **Tropical** palettes. Settings includes swatches and descriptions to help you choose. Colors stay consistent across resource readings, chart traces and process sparklines.
@@ -130,7 +136,7 @@ The Settings image above is from the installer/portable configuration. Store bui
 
 </details>
 
-Settings also let you choose disk volumes, history retention, startup at sign-in and notification-area behavior. The default show/hide shortcut is **Ctrl+Shift+M**.
+Settings also let you choose disk volumes, history retention, automatic captures, startup at sign-in and notification-area behavior. The default show/hide shortcut is **Ctrl+Shift+M**.
 
 Choose **Windows display language** or select English, Simplified Chinese, Russian, Spanish, Brazilian Portuguese, German, Japanese, French, Polish or Korean in Settings. Language changes apply when you save.
 

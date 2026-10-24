@@ -180,6 +180,20 @@ public sealed class MonitorSessionTests
     }
 
     [Test]
+    public async Task LiveSampleRecorded_RaisesOncePerDrainedFrameInOrder()
+    {
+        var harness = new Harness(Frame(1), Frame(2), Frame(3));
+        var seen = new List<long>();
+        harness.Session.LiveSampleRecorded += full => seen.Add(full.Timestamp.ToUnixTimeSeconds());
+        harness.Session.Record(ProcessRetention.Compact(Frame(9)(new SamplingOptions()).Full));
+
+        await harness.RunToEnd();
+        harness.Drain();
+
+        Assert.That(seen, Is.EqualTo(new long[] { 1, 2, 3 }), "One drain of three frames; restored samples excluded.");
+    }
+
+    [Test]
     public void Record_FeedsUsageOnlyFromAFullSample()
     {
         var harness = new Harness();

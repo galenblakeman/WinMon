@@ -218,12 +218,26 @@
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
                             <StackPanel
-                                x:Name="RangeSelector"
                                 Grid.Column="2"
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Center"
-                                AutomationProperties.Name="{Binding [ChartTimeRange], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                Orientation="Horizontal" />
+                                Orientation="Horizontal">
+                                <Button
+                                    x:Name="CapturesButton"
+                                    Margin="0,0,8,0"
+                                    Padding="8,2"
+                                    VerticalAlignment="Center"
+                                    AutomationProperties.Name="{Binding [AutoCaptureHeading], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                    Click="OnCapturesMenu"
+                                    FontSize="12"
+                                    Style="{StaticResource TitleActionButton}"
+                                    Visibility="Collapsed" />
+                                <StackPanel
+                                    x:Name="RangeSelector"
+                                    VerticalAlignment="Center"
+                                    AutomationProperties.Name="{Binding [ChartTimeRange], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                    Orientation="Horizontal" />
+                            </StackPanel>
                             <Border
                                 x:Name="ChartModeSwitch"
                                 Grid.Row="0"
@@ -351,6 +365,41 @@
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
                                 <StackPanel Margin="0,0,0,6">
+                                    <Border
+                                        x:Name="CaptureBanner"
+                                        Margin="0,0,0,6"
+                                        Padding="6,3"
+                                        Background="{DynamicResource SectionHeaderSurface}"
+                                        BorderBrush="{DynamicResource Line}"
+                                        BorderThickness="1"
+                                        CornerRadius="4"
+                                        Visibility="Collapsed">
+                                        <DockPanel>
+                                            <Button
+                                                x:Name="OpenReportButton"
+                                                Padding="6,1"
+                                                controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Folder}"
+                                                Click="OnOpenCaptureReport"
+                                                Content="{Binding [AutoCaptureOpenReport], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                                DockPanel.Dock="Right"
+                                                FontSize="11"
+                                                Style="{StaticResource TitleActionButton}"
+                                                ToolTipService.ShowOnDisabled="True" />
+                                            <Path
+                                                x:Name="CaptureBannerMarker"
+                                                Width="10"
+                                                Height="8"
+                                                Margin="0,0,6,0"
+                                                VerticalAlignment="Center"
+                                                Data="M 0,0 L 10,0 L 5,8 Z"
+                                                Stretch="Fill" />
+                                            <TextBlock
+                                                x:Name="CaptureBannerText"
+                                                VerticalAlignment="Center"
+                                                FontSize="11"
+                                                TextTrimming="CharacterEllipsis" />
+                                        </DockPanel>
+                                    </Border>
                                     <TextBlock
                                         x:Name="SnapshotTitle"
                                         FontSize="15"

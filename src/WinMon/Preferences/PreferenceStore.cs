@@ -37,6 +37,9 @@ public sealed class PreferenceStore
         _settingsPath = settingsPath;
     }
 
+    /// <summary>Where automatic capture reports go unless another folder is chosen: beside the settings file.</summary>
+    internal string DefaultCaptureFolder => Path.Combine(Path.GetDirectoryName(_settingsPath) ?? ".", "Captures");
+
     /// <summary>Loads valid persisted preferences, returning defaults when the file is missing or invalid.</summary>
     /// <param name="cancellationToken">Cancels the asynchronous read.</param>
     /// <returns>Validated monitor preferences.</returns>
@@ -136,6 +139,7 @@ public sealed class PreferenceStore
             : Enum.IsDefined(preferences.ProcessSort) ? preferences.ProcessSort : ProcessSort.Cpu,
             SortByGpu = false,
             PinnedProcesses = ProcessPins.Normalize(preferences.PinnedProcesses),
+            AutoCapture = (preferences.AutoCapture ?? new AutoCapturePreferences()).Normalized(),
             ShowShortcut = HotkeyGesture.Normalize(preferences.ShowShortcut)
         };
     }

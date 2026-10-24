@@ -1495,4 +1495,54 @@ Windows の正常性状態: {2}</value>
   <data name="UsageReportSince" xml:space="preserve"><value>{0:G} からの使用状況</value></data>
   <data name="UsageReportBusy" xml:space="preserve"><value>マシンのビジー CPU 時間: {0}、論理プロセッサ {1} 個</value></data>
   <data name="UsageReportView" xml:space="preserve"><value>上位 {0} 件のアプリ ({1} 順)</value></data>
+  <data name="AutoCaptureHeading" xml:space="preserve"><value>自動キャプチャ</value></data>
+  <data name="AutoCaptureEnable" xml:space="preserve"><value>リソースが高い状態を続けたらキャプチャを保存する</value></data>
+  <data name="AutoCaptureHelp" xml:space="preserve"><value>WinMon はグラフ上にその時点をマークし、キャプチャのコピーと同じレポートをテキスト ファイルとして保存します。レポートにはプロセス名とパスが含まれます。何もアップロードされません。</value></data>
+  <data name="AutoCaptureAnyProcess" xml:space="preserve"><value>いずれかのプロセス</value></data>
+  <data name="AutoCaptureThresholdFor" xml:space="preserve"><value>{0} のしきい値</value></data>
+  <data name="AutoCaptureSecondsFor" xml:space="preserve"><value>{0} の継続時間 (秒)</value></data>
+  <data name="AutoCapturePercentOfCore" xml:space="preserve"><value>% (1 コア)</value></data>
+  <data name="AutoCapturePercentActive" xml:space="preserve"><value>% アクティブ</value></data>
+  <data name="AutoCaptureAbove" xml:space="preserve"><value>超過</value></data>
+  <data name="AutoCaptureFor" xml:space="preserve"><value>継続</value></data>
+  <data name="AutoCaptureSecondsUnit" xml:space="preserve"><value>秒</value></data>
+  <data name="AutoCaptureProcessHelp" xml:space="preserve"><value>「いずれかのプロセス」は暴走した単一のプロセスを検出します。100% は論理プロセッサ 1 個が完全にビジーな状態なので、4 コアでも 32 コアでも同じように機能します。</value></data>
+  <data name="AutoCaptureCooldown" xml:space="preserve"><value>同じルールのキャプチャ間隔 (分)</value></data>
+  <data name="AutoCaptureWaitBefore" xml:space="preserve"><value>同じルールで再度キャプチャするまで少なくとも</value></data>
+  <data name="AutoCaptureWaitAfter" xml:space="preserve"><value>分待つ</value></data>
+  <data name="AutoCaptureFolder" xml:space="preserve"><value>レポートの保存先</value></data>
+  <data name="AutoCaptureChangeFolder" xml:space="preserve"><value>変更…</value></data>
+  <data name="AutoCaptureOpenFolder" xml:space="preserve"><value>開く</value></data>
+  <data name="AutoCaptureKeepNote" xml:space="preserve"><value>最新の {0} 件のレポートを保持します。共有フォルダーでも、WinMon が削除するのは自身のレポートだけです。</value></data>
+  <data name="AutoCaptureNotify" xml:space="preserve"><value>キャプチャを保存したら通知を表示する</value></data>
+  <data name="AutoCaptureInvalidThreshold" xml:space="preserve"><value>{0} から {1} までのしきい値を入力してください。</value></data>
+  <data name="AutoCaptureInvalidSeconds" xml:space="preserve"><value>1 から 300 秒までの継続時間を入力してください。</value></data>
+  <data name="AutoCaptureInvalidCooldown" xml:space="preserve"><value>1 から 1440 分までの待機時間を入力してください。</value></data>
+  <data name="AutoCaptureFolderNotWritable" xml:space="preserve"><value>選択したレポート フォルダーに書き込めません。別のフォルダーを選択してください。</value></data>
+  <data name="AutoCapturePercentOfCoreValue" xml:space="preserve"><value>1 コアの {0:0.0}%</value></data>
+  <data name="AutoCaptureRuleText" xml:space="preserve"><value>{0} が {1} を {2} 秒間超過</value></data>
+  <data name="AutoCaptureReportTitle" xml:space="preserve"><value>自動キャプチャ: {0}</value></data>
+  <data name="AutoCaptureReportFired" xml:space="preserve"><value>{0:G} に発生、ピーク {1} ({2:T})</value></data>
+  <data name="AutoCaptureReportRun" xml:space="preserve"><value>期間中の {0}: {1}</value></data>
+  <data name="AutoCaptureIoDisclaimer" xml:space="preserve"><value>プロセスの I/O はドライブやネットワーク アダプター別に分かれていません。これらのプロセスがこのアクティビティの原因とは限りません。</value></data>
+  <data name="AutoCaptureTotalIo" xml:space="preserve"><value>I/O 合計 (すべてのファイル、ネットワーク、デバイス)</value></data>
+  <data name="AutoCaptureNotificationPeak" xml:space="preserve"><value>ピーク {0} ({1:T})</value></data>
+  <data name="AutoCaptureWriteFailed" xml:space="preserve"><value>自動キャプチャのレポートを {0} に保存できませんでした。キャプチャは引き続きグラフに表示されます。</value></data>
+  <data name="AutoCaptureGone" xml:space="preserve"><value>このキャプチャは履歴になく、レポートも見つかりませんでした。</value></data>
+  <data name="AutoCaptureOpenReport" xml:space="preserve"><value>レポートを開く</value></data>
+  <data name="AutoCaptureReportMissing" xml:space="preserve"><value>レポート ファイルが見つかりません。移動または削除された可能性があります。</value></data>
+  <data name="AutoCaptureReportFailed" xml:space="preserve"><value>レポートを保存できませんでした。</value></data>
+  <data name="AutoCaptureReportPending" xml:space="preserve"><value>レポートを保存しています。</value></data>
+  <data name="AutoCaptureMarkerTooltip" xml:space="preserve"><value>{0:T} に発生 · ピーク {1} ({2:T})</value></data>
+  <data name="AutoCaptureMarkerHint" xml:space="preserve"><value>クリックしてピークを開く · Ctrl+← / Ctrl+→ で他のキャプチャ</value></data>
+  <data name="AutoCapturePeakGone" xml:space="preserve"><value>ピークは履歴にありません。クリックして保存済みのレポートを開きます</value></data>
+  <data name="AutoCaptureNone" xml:space="preserve"><value>自動キャプチャなし</value></data>
+  <data name="AutoCaptureCount" xml:space="preserve"><value>自動キャプチャ: {0}</value></data>
+  <data name="AutoCaptureBanner" xml:space="preserve"><value>自動キャプチャ · {0}</value></data>
+  <data name="AutoCaptureOff" xml:space="preserve"><value>オフ</value></data>
+  <data name="AutoCaptureWatching" xml:space="preserve"><value>監視中: {0}</value></data>
+  <data name="AutoCaptureNoneYet" xml:space="preserve"><value>履歴にはまだキャプチャがありません</value></data>
+  <data name="AutoCaptureMenuDetail" xml:space="preserve"><value>{0:T} · ピーク {1} · {2} 前</value></data>
+  <data name="AutoCaptureOpenFolderCount" xml:space="preserve"><value>レポート フォルダーを開く ({0})</value></data>
+  <data name="AutoCaptureSettings" xml:space="preserve"><value>自動キャプチャの設定…</value></data>
 </root>

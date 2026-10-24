@@ -119,4 +119,42 @@ public sealed record MonitorPreferences
     /// <summary>Gets the usable show shortcut, or <see langword="null"/> when it is turned off.</summary>
     internal HotkeyGesture? ShowGesture =>
         HotkeyGesture.TryParse(ShowShortcut, out var gesture) && gesture?.Problem is null ? gesture : null;
+
+    /// <summary>Gets the automatic capture rules and where their reports go; off by default.</summary>
+    public AutoCapturePreferences AutoCapture { get; init; } = new();
+}
+
+/// <summary>Automatic captures: one rule per resource, a cooldown, the reports folder and notifications.</summary>
+public sealed record AutoCapturePreferences
+{
+    /// <summary>Gets a value indicating whether any rule may fire; reports contain process names, so off by default.</summary>
+    public bool Enabled { get; init; }
+
+    /// <summary>Gets one rule per <see cref="CaptureMetric"/>, in display order.</summary>
+    public CaptureRuleSetting[] Rules { get; init; } = CaptureRuleSetting.Defaults;
+
+    /// <summary>Gets the minutes a rule waits after firing before it may fire again.</summary>
+    public int CooldownMinutes { get; init; } = 5;
+
+    /// <summary>Gets the reports folder, or <see langword="null"/> for the default beside the settings file.</summary>
+    public string? Folder { get; init; }
+
+    /// <summary>Gets a value indicating whether a saved capture also shows a notification.</summary>
+    public bool Notify { get; init; }
+
+    /// <summary>A copy with one valid rule per metric, missing ones at their defaults, and the cooldown in range.</summary>
+    internal AutoCapturePreferences Normalized()
+    {
+        var rules = Rules ?? [];
+        return this with
+        {
+            Rules =
+            [
+                .. CaptureRuleSetting.Defaults.Select(fallback =>
+                    (rules.FirstOrDefault(rule => rule?.Metric == fallback.Metric) ?? fallback).Normalized())
+            ],
+            CooldownMinutes = Math.Clamp(CooldownMinutes, 1, 1440),
+            Folder = string.IsNullOrWhiteSpace(Folder) ? null : Folder.Trim()
+        };
+    }
 }

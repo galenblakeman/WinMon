@@ -657,7 +657,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                     if (selector.SelectedValue as string != AppLanguages.Normalize(window.Preferences.Language))
                         throw new InvalidOperationException("The language selector did not restore the saved choice.");
                     selector.SelectedValue = choice.Name;
-                    var save = layout.Children.OfType<StackPanel>().Single().Children
+                    var save = layout.Children.OfType<StackPanel>().Single(panel => panel is not AutoCaptureSection).Children
                         .OfType<Button>().Single(button => button.IsDefault);
                     save.BringIntoView();
                     dialog.UpdateLayout();
@@ -1016,7 +1016,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                 selector.SelectedItem = selector.Items.Cast<object>().Single(item => selection is null
                     ? item.ToString() == Strings.None
                     : item.ToString()!.StartsWith(selection, StringComparison.Ordinal));
-                var buttons = layout.Children.OfType<StackPanel>().Single();
+                var buttons = layout.Children.OfType<StackPanel>().Single(panel => panel is not AutoCaptureSection);
                 ((Button)buttons.Children[1]).RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
             }, DispatcherPriority.ContextIdle);
             if (dialog.ShowDialog() != true || dialog.Result?.PrimaryDrive != original.PrimaryDrive ||

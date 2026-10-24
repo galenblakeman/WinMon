@@ -9,6 +9,11 @@ internal readonly record struct SampleKey(long MonotonicTimestamp, DateTimeOffse
         return new SampleKey(sample.MonotonicTimestamp, sample.Timestamp);
     }
 
+    /// <summary>The sample's position in <see cref="ProcessRanking.Moment"/> seconds.</summary>
+    internal double Moment => MonotonicTimestamp > 0
+        ? MonotonicTimestamp / (double)System.Diagnostics.Stopwatch.Frequency
+        : Timestamp.UtcTicks / (double)TimeSpan.TicksPerSecond;
+
     internal bool Matches(MonitorSample sample)
     {
         return sample.MonotonicTimestamp == MonotonicTimestamp && sample.Timestamp == Timestamp;

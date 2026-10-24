@@ -534,6 +534,18 @@ This is the worst case the history budget allows; typical histories are smaller.
 chunks first. The refresh scenarios stayed within run-to-run noise of the previous run, and all pixel hashes
 match. The 646 tests passed. The report is `artifacts/performance/restart-after.json`.
 
+### Usage tab and automatic captures (October 24, 2026)
+
+Both features were measured against the previous run on the same machine. The Usage tab refreshes only while it
+is selected, and the refresh scenarios kept their timings; their pixel hashes changed because the tab strip gained
+a third tab, while compact view, which has no tab strip, still matches. Automatic captures are off in the
+benchmark, as they are by default, and the chart then skips all marker work: allocations per refresh match the
+Usage-tab run exactly in every scenario, and timings stayed within run-to-run variation over two runs (live
+5.77 and 6.14 ms against 5.67 ms; services 11.81 and 11.93 ms against 11.42 ms). The 671 tests passed, and the
+`--usage-smoke-output`, `--capture-smoke-output`, `--services-smoke-output` and `--smoke-output` diagnostics
+exited successfully. Reports are `artifacts/performance/usage-tab-after.json` and `capture-after-3.json` and
+`capture-after-4.json`.
+
 ## Release packaging
 
 See the [release guide](../packaging/RELEASING.md) for the portable ZIP, per-user Inno Setup installer, draft GitHub Releases workflow, and generated WinGet manifests. Build all release assets with `./tools/New-Release.ps1` after bootstrapping the compiler with `./tools/Install-InnoSetup.ps1`.

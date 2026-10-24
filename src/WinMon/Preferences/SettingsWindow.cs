@@ -39,6 +39,8 @@ public sealed class SettingsWindow : Window
     private readonly Func<HotkeyGesture, bool> _isShortcutAvailable;
     private HotkeyGesture? _shortcut;
     private readonly Func<DriveChoice[]> _loadDrives;
+    private readonly AutoCaptureSection _autoCapture;
+    private readonly string _defaultCaptureFolder;
     private Task? _driveLoadTask;
     private bool _closed;
 
@@ -49,15 +51,16 @@ public sealed class SettingsWindow : Window
     /// <param name="isShortcutAvailable">Reports whether no other application holds a recorded shortcut.</param>
     /// <param name="shortcutStatus">Describes whether the current shortcut works.</param>
     /// <param name="checkForUpdates">Checks for an update and describes the result.</param>
+    /// <param name="captureFolder">The default automatic capture folder; the installed default when omitted.</param>
     public SettingsWindow(MonitorPreferences preferences, Func<HotkeyGesture, bool>? isShortcutAvailable = null,
-        string shortcutStatus = "", Func<Task<string>>? checkForUpdates = null)
-        : this(preferences, DiscoverDrives, isShortcutAvailable, shortcutStatus, checkForUpdates)
+        string shortcutStatus = "", Func<Task<string>>? checkForUpdates = null, string? captureFolder = null)
+        : this(preferences, DiscoverDrives, isShortcutAvailable, shortcutStatus, checkForUpdates, captureFolder)
     {
     }
 
     internal SettingsWindow(MonitorPreferences preferences, Func<DriveChoice[]> loadDrives,
         Func<HotkeyGesture, bool>? isShortcutAvailable = null, string shortcutStatus = "",
-        Func<Task<string>>? checkForUpdates = null)
+        Func<Task<string>>? checkForUpdates = null, string? captureFolder = null)
     {
         ArgumentNullException.ThrowIfNull(preferences);
         _loadDrives = loadDrives;
@@ -67,7 +70,7 @@ public sealed class SettingsWindow : Window
         WindowTheme.Attach(this);
 
         Title = Strings.WinMonSettings;
-        Width = 460;
+        Width = 500;
         SizeToContent = SizeToContent.Height;
         MinWidth = 420;
         MinHeight = 320;
@@ -125,6 +128,9 @@ public sealed class SettingsWindow : Window
 
         _primaryDriveSelector = CreateDriveSelector(preferences.PrimaryDrive, false);
         _secondaryDriveSelector = CreateDriveSelector(preferences.SecondaryDrive, true);
+        _defaultCaptureFolder = captureFolder ?? new PreferenceStore().DefaultCaptureFolder;
+        _autoCapture = new AutoCaptureSection(preferences.AutoCapture, _defaultCaptureFolder, preferences.PrimaryDrive,
+            preferences.SecondaryDrive);
         ContentRendered += async (_, _) => await LoadDrivesAsync();
         Closed += (_, _) => _closed = true;
 
@@ -132,11 +138,11 @@ public sealed class SettingsWindow : Window
         {
             Margin = new Thickness(24)
         };
-        for (var row = 0; row <= 40; row++)
+        for (var row = 0; row <= 44; row++)
             layout.RowDefinitions.Add(new RowDefinition
             {
                 Height = row is 22 or 23 ? new GridLength(0) :
-                    row % 2 == 0 ? GridLength.Auto : new GridLength(row is 11 or 15 or 21 or 33 ? 16 : 10)
+                    row % 2 == 0 ? GridLength.Auto : new GridLength(row is 11 or 15 or 21 or 33 or 37 ? 16 : 10)
             });
         var heading = CreateHeading(Strings.Appearance);
         Grid.SetRow(heading, 0);
@@ -186,17 +192,22 @@ public sealed class SettingsWindow : Window
         diskNote.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
         Grid.SetRow(diskNote, 32);
         layout.Children.Add(diskNote);
+        var captureHeading = CreateHeading(Strings.AutoCaptureHeading);
+        Grid.SetRow(captureHeading, 34);
+        layout.Children.Add(captureHeading);
+        Grid.SetRow(_autoCapture, 36);
+        layout.Children.Add(_autoCapture);
         var updateHeading = CreateHeading(Strings.Updates);
-        Grid.SetRow(updateHeading, 34);
+        Grid.SetRow(updateHeading, 38);
         if (UpdatePolicy.GitHubUpdatesEnabled) layout.Children.Add(updateHeading);
-        Grid.SetRow(_automaticUpdateCheckBox, 36);
+        Grid.SetRow(_automaticUpdateCheckBox, 40);
         if (UpdatePolicy.GitHubUpdatesEnabled) layout.Children.Add(_automaticUpdateCheckBox);
         _updateCheckStatus.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
         AutomationProperties.SetLiveSetting(_updateCheckStatus, AutomationLiveSetting.Polite);
-        Grid.SetRow(_updateCheckStatus, 38);
+        Grid.SetRow(_updateCheckStatus, 42);
         if (UpdatePolicy.GitHubUpdatesEnabled) layout.Children.Add(_updateCheckStatus);
         var buttons = CreateButtons(checkForUpdates);
-        Grid.SetRow(buttons, 40);
+        Grid.SetRow(buttons, 44);
         layout.Children.Add(buttons);
 
         Border surface = new() { Child = layout };
@@ -239,7 +250,8 @@ public sealed class SettingsWindow : Window
             MinimizeToTray = settings.MinimizeToTray,
             StartWithWindows = settings.StartWithWindows,
             AutomaticallyCheckForUpdates = settings.AutomaticallyCheckForUpdates,
-            ShowShortcut = settings.ShowShortcut
+            ShowShortcut = settings.ShowShortcut,
+            AutoCapture = settings.AutoCapture
         };
     }
 
@@ -559,6 +571,19 @@ public sealed class SettingsWindow : Window
             return;
         }
 
+        if (_autoCapture.Read(out var captureError) is not { } autoCapture)
+        {
+            MessageDialog.ShowNotice(this, captureError!, Strings.AutoCaptureHeading);
+            return;
+        }
+
+        // Only a chosen folder is probed; the default is created when the first report is written.
+        if (autoCapture is { Enabled: true, Folder: { } folder } && !AutoCaptureSection.CanWrite(folder))
+        {
+            MessageDialog.ShowNotice(this, Strings.AutoCaptureFolderNotWritable, Strings.AutoCaptureHeading);
+            return;
+        }
+
         Result = ApplySettings(_initialPreferences, new MonitorPreferences
         {
             PrimaryDrive = primary,
@@ -575,7 +600,8 @@ public sealed class SettingsWindow : Window
             MinimizeToTray = _minimizeToTrayCheckBox.IsChecked == true,
             StartWithWindows = _startupCheckBox.IsChecked == true,
             AutomaticallyCheckForUpdates = _automaticUpdateCheckBox.IsChecked == true,
-            ShowShortcut = _shortcut?.ToString() ?? HotkeyGesture.NoneText
+            ShowShortcut = _shortcut?.ToString() ?? HotkeyGesture.NoneText,
+            AutoCapture = autoCapture
         });
         DialogResult = true;
     }

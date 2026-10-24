@@ -64,14 +64,14 @@ public partial class App
         AppLanguages.InitializeSystemDisplayCulture(CultureInfo.CurrentUICulture);
         AppLanguages.Apply(AppLanguages.SystemDefault);
 
-        if (e.Args is ["--services-smoke-output" or "--usage-smoke-output", var servicesOutput])
+        if (e.Args is ["--services-smoke-output" or "--usage-smoke-output" or "--capture-smoke-output", var servicesOutput])
         {
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
             base.OnStartup(e);
             var window = new MainWindow(true);
             MainWindow = window;
             window.Show();
-            _ = RunServicesDiagnosticsAsync(window, Path.GetFullPath(servicesOutput), e.Args[0] == "--usage-smoke-output");
+            _ = RunServicesDiagnosticsAsync(window, Path.GetFullPath(servicesOutput), e.Args[0]);
             return;
         }
 
@@ -233,16 +233,21 @@ public partial class App
         base.OnExit(e);
     }
 
-    private async Task RunServicesDiagnosticsAsync(MainWindow window, string output, bool usage)
+    private async Task RunServicesDiagnosticsAsync(MainWindow window, string output, string mode)
     {
         var exit = 0;
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(60));
         try
         {
             Directory.CreateDirectory(output);
-            await Task.Delay(usage ? 1000 : 5000, timeout.Token);
-            if (usage) await new WindowDiagnostics(window).CaptureUsageDiagnosticsAsync(output, timeout.Token);
-            else await new WindowDiagnostics(window).CaptureServicesDiagnosticsAsync(output, timeout.Token);
+            var diagnostics = new WindowDiagnostics(window);
+            await Task.Delay(mode == "--services-smoke-output" ? 5000 : 1000, timeout.Token);
+            await (mode switch
+            {
+                "--usage-smoke-output" => diagnostics.CaptureUsageDiagnosticsAsync(output, timeout.Token),
+                "--capture-smoke-output" => diagnostics.CaptureAutoCaptureDiagnosticsAsync(output, timeout.Token),
+                _ => diagnostics.CaptureServicesDiagnosticsAsync(output, timeout.Token)
+            });
         }
         catch (Exception ex)
         {
