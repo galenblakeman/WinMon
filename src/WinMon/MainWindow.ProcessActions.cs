@@ -130,14 +130,16 @@ public partial class MainWindow
         AutomationProperties.SetName(ActivityActionsToggle, label);
     }
 
+    internal void SelectProcess(ProcessUsage process, bool grouped)
+    {
+        _processSelection.Select(process, grouped);
+        UpdateProcessRetention();
+        RefreshPresentation();
+    }
+
     private void EnableProcessInspection(ProcessRow row)
     {
-        row.ProcessSelected += (process, grouped) =>
-        {
-            _processSelection.Select(process, grouped);
-            UpdateProcessRetention();
-            RefreshPresentation();
-        };
+        row.ProcessSelected += SelectProcess;
         row.EnableInspectionActions(
             snapshot => new ProcessPropertiesWindow(snapshot, CopyProcessDetails) { Owner = this }.ShowDialog(),
             snapshot => CopyProcessDetails(snapshot.Format()), OpenProcessLocation,

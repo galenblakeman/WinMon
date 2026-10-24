@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -15,10 +14,9 @@ using WinMon.Monitoring;
 // render pass the dispatcher runs once a second. Sampling is stopped; history is synthetic. Besides the live
 // and historical frames it covers grouping, the Services tab, compact mode, and pinned and selected processes.
 // usage: WinMon.Performance <result.json> [screenshot.png]
+// It reaches WinMon through InternalsVisibleTo, so renaming a member it uses breaks the build, not the run.
 internal static class Program
 {
-    private const BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;
-    private const BindingFlags Static = BindingFlags.Static | BindingFlags.NonPublic;
     private const int Processes = 850;
     private const int WarmupFrames = 400;
     private const int Batches = 7;
@@ -32,20 +30,11 @@ internal static class Program
         var app = new App();
         app.InitializeComponent();
         app.ShutdownMode = ShutdownMode.OnExplicitShutdown;
-        // The Application constructor queues App.OnStartup, which would start a normal session or activate a running
-        // instance. WPF skips that callback while shutting down, so report shutdown until it has been dequeued.
-        var shuttingDown = typeof(Application).GetProperty("IsShuttingDown", Static)!;
-        shuttingDown.SetValue(null, true);
-        Flush();
-        shuttingDown.SetValue(null, false);
-        var window = (MainWindow)Activator.CreateInstance(typeof(MainWindow), Private, null, [true, null, null], null)!;
-        var session = typeof(MainWindow).GetProperty("Session", Private)!.GetValue(window)!;
-        var history = (MonitorHistory)session.GetType().GetProperty("History", Private)!.GetValue(session)!;
-        var record = session.GetType().GetMethod("Record", Private)!;
-        var compact = typeof(MonitorHistory).Assembly.GetType("WinMon.Monitoring.ProcessRetention", true)!.GetMethod("Compact", Static)!;
-        var refresh = (Action)typeof(MainWindow).GetMethod("RefreshPresentation", Private)!.CreateDelegate(typeof(Action), window);
-        var serviceTree = Activator.CreateInstance(typeof(MonitorHistory).Assembly.GetType("WinMon.Monitoring.ServiceTree", true)!, true)!;
-        var captureFrame = serviceTree.GetType().GetMethod("Capture", Private)!;
+        SkipStartup();
+        var window = new MainWindow(true);
+        var session = window.Session;
+        var history = session.History;
+        var serviceTree = new ServiceTree();
         var catalog = Catalog();
         var anchor = DateTimeOffset.Parse("2026-10-19T12:00:00Z");
         var second = 0;
@@ -53,48 +42,49 @@ internal static class Program
         {
             second++;
             var full = Sample(anchor, second);
-            var compacted = (MonitorSample)compact.Invoke(null, [full, 32, Field("_retainPinned").GetValue(window), false])!;
-            record.Invoke(session, [compacted, full, captureFrame.Invoke(serviceTree, [full, catalog])]);
+            var options = window.CurrentSamplingOptions();
+            var compacted = ProcessRetention.Compact(full, 32, options.Retain, options.RetainAll);
+            session.Record(compacted, full, serviceTree.Capture(full, catalog));
         }
         window.Width = 1000;
         window.Height = 900;
         window.Show();
         Flush();
         // Stop the real sampler, then replace anything it recorded with synthetic history.
-        ((CancellationTokenSource)Field("_lifetime").GetValue(window)!).Cancel();
-        ((Task?)Field("_samplingTask").GetValue(window))?.ContinueWith(_ => { }).Wait();
+        window.StopForFixtureAsync().Wait();
         Flush();
         history.Resize(1);
         history.Resize(600);
         for (var i = 0; i < 600; i++) AddSample();
-        refresh();
+        window.RefreshPresentation();
         Flush();
 
         var thread = GetCurrentThread();
         var cyclesPerMs = CyclesPerMillisecond(thread);
         var results = new List<object>();
         Measure("live-frame");
-        Field("_selectedSample").SetValue(window, history.Samples[^60]);
+        window.SelectedSample = history.Samples[^60];
         Measure("historical-frame");
-        Field("_selectedSample").SetValue(window, null);
-        Check("GroupedChip", true);
+        window.SelectedSample = null;
+        Check(window.GroupedChip);
         Measure("grouped-live-frame");
-        Check("IndividualChip", true);
-        Check("ServicesTab", true);
-        typeof(MonitorHistory).Assembly.GetType("WinMon.Controls.ServicesView", true)!.GetMethod("ExpandAll", Private)!
-            .Invoke(Field("ServiceView").GetValue(window), null);
+        Check(window.IndividualChip);
+        Check(window.ServicesTab);
+        window.ServiceView.ExpandAll();
         Measure("services-live-frame");
-        Check("ProcessesTab", true);
-        Call("SetCompactView", true);
+        Check(window.ProcessesTab);
+        window.SetCompactView(true);
+        Flush();
         Measure("compact-live-frame");
-        Call("SetCompactView", false);
+        window.SetCompactView(false);
+        Flush();
         PinAndSelect(false);
         Measure("pinned-selected-live-frame");
-        Check("GroupedChip", true);
+        Check(window.GroupedChip);
         PinAndSelect(true);
         Measure("pinned-selected-grouped-live-frame");
-        Check("IndividualChip", true);
-        refresh();
+        Check(window.IndividualChip);
+        window.RefreshPresentation();
         Flush();
         var pixels = Pixels(args.Length > 1 ? args[1] : null);
         var report = new
@@ -108,8 +98,7 @@ internal static class Program
         };
         File.WriteAllText(args[0], JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true }));
         Console.WriteLine(JsonSerializer.Serialize(results));
-        Field("_allowClose").SetValue(window, true);
-        window.Close();
+        window.CloseForFixture();
         app.Shutdown();
 
         // Only the refresh and the dispatcher work it causes are measured, not building the synthetic sample.
@@ -118,7 +107,7 @@ internal static class Program
             AddSample();
             var allocated = GC.GetAllocatedBytesForCurrentThread();
             QueryThreadCycleTime(thread, out var before);
-            refresh();
+            window.RefreshPresentation();
             Flush();
             QueryThreadCycleTime(thread, out var after);
             return (after - before, GC.GetAllocatedBytesForCurrentThread() - allocated);
@@ -147,26 +136,19 @@ internal static class Program
                 MillisecondsPerFrame = times, AllocatedBytesPerFrame = allocations, PixelsSha256 = Pixels(null) });
         }
 
-        void Check(string toggle, bool value)
+        void Check(System.Windows.Controls.Primitives.ToggleButton toggle)
         {
-            ((System.Windows.Controls.Primitives.ToggleButton)Field(toggle).GetValue(window)!).IsChecked = value;
-            Flush();
-        }
-
-        void Call(string method, params object[] arguments)
-        {
-            typeof(MainWindow).GetMethod(method, Private)!.Invoke(window, arguments);
+            toggle.IsChecked = true;
             Flush();
         }
 
         // Two pins and one selection, each a fixture lifetime that ranks in some frames and not others.
         void PinAndSelect(bool grouped)
         {
-            Call("ToggleProcessPin", Fixture(3), grouped);
-            Call("ToggleProcessPin", Fixture(100), grouped);
-            var selection = Field("_processSelection").GetValue(window)!;
-            selection.GetType().GetMethod("Select", Private)!.Invoke(selection, [Fixture(50), grouped]);
-            Call("UpdateProcessRetention");
+            window.ToggleProcessPin(Fixture(3), grouped);
+            window.ToggleProcessPin(Fixture(100), grouped);
+            window.SelectProcess(Fixture(50), grouped);
+            Flush();
         }
 
         string Pixels(string? path)
@@ -196,18 +178,16 @@ internal static class Program
 
     // Shared hosts are the first fixture processes, each with four running services; later processes are
     // their worker children. The rest of the services are stopped.
-    private static object Catalog()
+    private static ServiceCatalog Catalog()
     {
-        var assembly = typeof(MonitorHistory).Assembly;
-        var observation = assembly.GetType("WinMon.Monitoring.ServiceObservation", true)!;
-        var services = Array.CreateInstance(observation, Services);
+        var services = new ServiceObservation[Services];
         for (var i = 0; i < Services; i++)
         {
             var running = i < ServiceHosts * 4;
-            services.SetValue(Activator.CreateInstance(observation, $"Fixture{i:000}", $"Fixture service {i:000}",
-                running ? 4u : 1u, running ? 100000 + i % ServiceHosts : 0, running ? 1u : 0u), i);
+            services[i] = new ServiceObservation($"Fixture{i:000}", $"Fixture service {i:000}", running ? 4u : 1u,
+                running ? 100000 + i % ServiceHosts : 0, running ? 1u : 0u);
         }
-        return Activator.CreateInstance(assembly.GetType("WinMon.Monitoring.ServiceCatalog", true)!, long.MaxValue, services)!;
+        return new ServiceCatalog(long.MaxValue, services);
     }
 
     // CPU rank rotates, so rows change identity and every numeric cell changes text each frame.
@@ -261,7 +241,17 @@ internal static class Program
         return (end - start) / timer.Elapsed.TotalMilliseconds;
     }
 
-    private static FieldInfo Field(string name) => typeof(MainWindow).GetField(name, Private)!;
+    // The Application constructor queues App.OnStartup, which would start a normal session or activate a running
+    // instance. WPF skips that callback while shutting down, so report shutdown until it has been dequeued.
+    // IsShuttingDown is internal to WPF rather than WinMon, so this is the benchmark's one use of reflection.
+    private static void SkipStartup()
+    {
+        var shuttingDown = typeof(Application).GetProperty("IsShuttingDown",
+            System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!;
+        shuttingDown.SetValue(null, true);
+        Flush();
+        shuttingDown.SetValue(null, false);
+    }
 
     [DllImport("kernel32.dll")] private static extern nint GetCurrentThread();
     [DllImport("kernel32.dll")] private static extern bool QueryThreadCycleTime(nint thread, out ulong cycles);

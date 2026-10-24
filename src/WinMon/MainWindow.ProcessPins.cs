@@ -21,7 +21,7 @@ public partial class MainWindow
         PinnedOnlyCheckBox.Margin = _inlinePinToolbar ? new Thickness(0, 0, 12, 0) : new Thickness(0, 6, 0, 0);
     }
 
-    private void ToggleProcessPin(ProcessUsage process, bool grouped)
+    internal void ToggleProcessPin(ProcessUsage process, bool grouped)
     {
         _processPins.Toggle(process, grouped);
         _preferences = _preferences with { PinnedProcesses = _processPins.Snapshot() };

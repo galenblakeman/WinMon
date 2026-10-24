@@ -62,7 +62,7 @@ public partial class MainWindow
         SetCompactView(!_compactMode);
     }
 
-    private void SetCompactView(bool compact)
+    internal void SetCompactView(bool compact)
     {
         if (compact == _compactMode) return;
         if (compact)

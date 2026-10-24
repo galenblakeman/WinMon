@@ -62,7 +62,7 @@ Regular commits on `main`, one per step, each built and tested on its own:
 1. Done: make `Monitoring` a leaf: fix the two back-references and add the IL guard test.
 2. Done: rename `CpuSample` and `CpuHistory`.
 3. Done: add `MonitorSession`, `IFrameSource` and `WindowsFrameSource`, with session tests using a fake source (gaps, error and recovery, drain order, no drain after close).
-4. Move `WinMon.Performance` from reflection to `InternalsVisibleTo`.
+4. Done: move `WinMon.Performance` from reflection to `InternalsVisibleTo`. The window members it uses are collected in `MainWindow.Internal.cs` or made internal where they are defined.
 5. Move diagnostics and examples into `Diagnostics/`.
 6. Extract `ProcessesView` and the view state records.
 7. Update the developer guide's code structure section with what landed.

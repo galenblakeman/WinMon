@@ -227,7 +227,7 @@ public partial class MainWindow
 
     // Read once per capture on the sampling thread: one immutable preferences snapshot, so drives and the
     // retain-all choice always come from the same moment.
-    private SamplingOptions CurrentSamplingOptions()
+    internal SamplingOptions CurrentSamplingOptions()
     {
         var preferences = Volatile.Read(ref _preferences);
         return new SamplingOptions(preferences.PrimaryDrive, preferences.SecondaryDrive, Volatile.Read(ref _retainPinned),
@@ -247,7 +247,7 @@ public partial class MainWindow
         RefreshPresentation();
     }
 
-    private void RefreshPresentation()
+    internal void RefreshPresentation()
     {
         if (!IsVisible || WindowState == WindowState.Minimized)
         {
