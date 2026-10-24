@@ -22,20 +22,20 @@ internal sealed partial class WindowDiagnostics
         var right = 0.0;
         foreach (var control in new FrameworkElement[]
                  {
-                     window.ProcessRankingControls, window.ProcessSearchBorder, window.AppsOnlyCheckBox, window.PinnedOnlyCheckBox,
-                     window.ProcessGroupingControls
+                     window.Processes.ProcessRankingControls, window.Processes.ProcessSearchBorder, window.Processes.AppsOnlyCheckBox, window.Processes.PinnedOnlyCheckBox,
+                     window.Processes.ProcessGroupingControls
                  })
         {
-            var bounds = control.TransformToAncestor(window.ProcessToolbarGrid).TransformBounds(new Rect(control.RenderSize));
+            var bounds = control.TransformToAncestor(window.Processes.ProcessToolbarGrid).TransformBounds(new Rect(control.RenderSize));
             if (Grid.GetRow(control) != 0 || bounds.Left < right - 0.5 ||
-                bounds.Right > window.ProcessToolbarGrid.ActualWidth + 0.5 ||
-                bounds.Top < -0.5 || bounds.Bottom > window.ProcessToolbarGrid.ActualHeight + 0.5)
+                bounds.Right > window.Processes.ProcessToolbarGrid.ActualWidth + 0.5 ||
+                bounds.Top < -0.5 || bounds.Bottom > window.Processes.ProcessToolbarGrid.ActualHeight + 0.5)
                 throw new InvalidOperationException(
-                    $"Process toolbar control {control.Name} overlaps, clips, or wraps at width {window.ProcessToolbarGrid.ActualWidth}.");
+                    $"Process toolbar control {control.Name} overlaps, clips, or wraps at width {window.Processes.ProcessToolbarGrid.ActualWidth}.");
             right = bounds.Right;
         }
 
-        if (window.ProcessSearchBorder.ActualWidth < window.ProcessSearchBorder.MinWidth)
+        if (window.Processes.ProcessSearchBorder.ActualWidth < window.Processes.ProcessSearchBorder.MinWidth)
             throw new InvalidOperationException("The compact process toolbar lost its minimum search width.");
     }
 
@@ -81,22 +81,22 @@ internal sealed partial class WindowDiagnostics
             });
         }
 
-        fixture.ToggleProcessPin(code, false);
-        fixture.ToggleProcessPin(chrome, false);
-        fixture.ToggleProcessPin(exited, false);
+        fixture.Processes.ToggleProcessPin(code, false);
+        fixture.Processes.ToggleProcessPin(chrome, false);
+        fixture.Processes.ToggleProcessPin(exited, false);
         fixture.ApplyTheme();
         Draw();
-        fixture.PinnedRows[1].RaiseEvent(new MouseButtonEventArgs(
+        fixture.Processes.PinnedRows[1].RaiseEvent(new MouseButtonEventArgs(
                 Mouse.PrimaryDevice, 0, MouseButton.Left)
             { RoutedEvent = UIElement.PreviewMouseDownEvent });
         Draw();
-        if (!fixture.Selection.Contains(chrome, false) ||
-            Descendants(fixture.ProcessActions).OfType<TextBlock>().All(t => t.Text != chrome.Name))
+        if (!fixture.Processes.Selection.Contains(chrome, false) ||
+            Descendants(fixture.Processes.ProcessActions).OfType<TextBlock>().All(t => t.Text != chrome.Name))
             throw new InvalidOperationException("Clicking a process did not populate the process action bar.");
-        var filledPin = Descendants(fixture.PinnedRows[0]).OfType<Button>().Single();
-        if (fixture.PinSummary.Visibility != Visibility.Visible ||
-            fixture.PinnedCountLabel.Text != Strings.Format(Strings.PinnedProcessCount, 3) ||
-            fixture.PinSummary.Parent != fixture.CoverageLabel.Parent)
+        var filledPin = Descendants(fixture.Processes.PinnedRows[0]).OfType<Button>().Single();
+        if (fixture.Processes.PinSummary.Visibility != Visibility.Visible ||
+            fixture.Processes.PinnedCountLabel.Text != Strings.Format(Strings.PinnedProcessCount, 3) ||
+            fixture.Processes.PinSummary.Parent != fixture.Processes.CoverageLabel.Parent)
             throw new InvalidOperationException("Pinned count was not displayed beside CPU coverage.");
         var pinPath = (Path)filledPin.Template.FindName("CaptionIcon", filledPin);
         if (!ButtonIcon.GetFilled(filledPin) || pinPath.Fill is null ||
@@ -106,46 +106,46 @@ internal sealed partial class WindowDiagnostics
             !networkText.StartsWith('↓') || !fixture.NetworkMetric.DetailLabel.Text.StartsWith('↑') ||
             fixture.NetworkMetric.DetailLabel.Text.Contains('↓') ||
             fixture.GpuMetric.DetailLabel.Text != $"{2.1:0.0} / {8.0:0.0} GiB" ||
-            fixture.MemoryHeader.Text != $"{Strings.Memory} MiB")
+            fixture.Processes.MemoryHeader.Text != $"{Strings.Memory} MiB")
             throw new InvalidOperationException(
-                $"UI presentation failed: filled={ButtonIcon.GetFilled(filledPin)}, fill={pinPath.Fill}, foreground={filledPin.Foreground}, clock={fixture.CpuMetric.DetailLabel.Text}, network={fixture.NetworkMetric.ValueLabel.Text}, memory={fixture.MemoryHeader.Text}.");
-        if (fixture.PinnedRows.Count != 3 || fixture.Rows.Count(r => r.Visibility == Visibility.Visible) != 4 ||
-            !AutomationProperties.GetName(fixture.PinnedRows[0])
+                $"UI presentation failed: filled={ButtonIcon.GetFilled(filledPin)}, fill={pinPath.Fill}, foreground={filledPin.Foreground}, clock={fixture.CpuMetric.DetailLabel.Text}, network={fixture.NetworkMetric.ValueLabel.Text}, memory={fixture.Processes.MemoryHeader.Text}.");
+        if (fixture.Processes.PinnedRows.Count != 3 || fixture.Processes.Rows.Count(r => r.Visibility == Visibility.Visible) != 4 ||
+            !AutomationProperties.GetName(fixture.Processes.PinnedRows[0])
                 .StartsWith("Visual Studio Code", StringComparison.Ordinal) ||
-            !AutomationProperties.GetName(fixture.PinnedRows[2])
+            !AutomationProperties.GetName(fixture.Processes.PinnedRows[2])
                 .Contains(Strings.ProcessExited, StringComparison.Ordinal))
             throw new InvalidOperationException("Pinned order, ranking deduplication or exit state failed.");
         await CaptureVisualAsync(visual, System.IO.Path.Combine(output, "pins-dark.png"), 1.254, cancellationToken);
         await CaptureVisualAsync(visual, System.IO.Path.Combine(output, "pins-dark-150.png"), 1.5, cancellationToken);
-        fixture.PinnedOnlyCheckBox.IsChecked = true;
+        fixture.Processes.PinnedOnlyCheckBox.IsChecked = true;
         Draw();
-        if (fixture.Rows.Any(r => r.Visibility == Visibility.Visible) ||
-            fixture.RankedDivider.Visibility != Visibility.Collapsed)
+        if (fixture.Processes.Rows.Any(r => r.Visibility == Visibility.Visible) ||
+            fixture.Processes.RankedDivider.Visibility != Visibility.Collapsed)
             throw new InvalidOperationException("Pinned only left ranked rows visible.");
         await CaptureVisualAsync(visual, System.IO.Path.Combine(output, "pins-only.png"), 1, cancellationToken);
-        fixture.ProcessSearchBox.Text = "Code";
+        fixture.Processes.ProcessSearchBox.Text = "Code";
         Draw();
-        if (Descendants(fixture.ProcessActions).OfType<TextBlock>().All(t => t.Text != chrome.Name))
+        if (Descendants(fixture.Processes.ProcessActions).OfType<TextBlock>().All(t => t.Text != chrome.Name))
             throw new InvalidOperationException("Filtering a selected process out of the list cleared its action bar.");
-        if (fixture.PinnedRows.Count(r => r.Visibility == Visibility.Visible) != 1)
+        if (fixture.Processes.PinnedRows.Count(r => r.Visibility == Visibility.Visible) != 1)
             throw new InvalidOperationException("Search did not filter pinned rows.");
-        fixture.ProcessSearchBox.Clear();
-        fixture.PinnedOnlyCheckBox.IsChecked = false;
-        fixture.AppsOnlyCheckBox.IsChecked = true;
+        fixture.Processes.ProcessSearchBox.Clear();
+        fixture.Processes.PinnedOnlyCheckBox.IsChecked = false;
+        fixture.Processes.AppsOnlyCheckBox.IsChecked = true;
         Draw();
-        if (fixture.PinnedRows.Count(r => r.Visibility == Visibility.Visible) != 2)
+        if (fixture.Processes.PinnedRows.Count(r => r.Visibility == Visibility.Visible) != 2)
             throw new InvalidOperationException("App Only did not filter pinned rows.");
-        fixture.AppsOnlyCheckBox.IsChecked = false;
-        fixture.GroupedChip.IsChecked = true;
+        fixture.Processes.AppsOnlyCheckBox.IsChecked = false;
+        fixture.Processes.GroupedChip.IsChecked = true;
         Draw();
-        if (fixture.PinnedRows.Any(r => r.Visibility == Visibility.Visible) ||
-            fixture.PinSummary.Visibility != Visibility.Collapsed)
+        if (fixture.Processes.PinnedRows.Any(r => r.Visibility == Visibility.Visible) ||
+            fixture.Processes.PinSummary.Visibility != Visibility.Collapsed)
             throw new InvalidOperationException("Individual pins leaked into grouped view.");
-        fixture.ToggleProcessPin(chrome, true);
+        fixture.Processes.ToggleProcessPin(chrome, true);
         Draw();
-        if (fixture.PinnedRows.Count(r => r.Visibility == Visibility.Visible) != 1)
+        if (fixture.Processes.PinnedRows.Count(r => r.Visibility == Visibility.Visible) != 1)
             throw new InvalidOperationException("Grouped pin was not displayed.");
-        fixture.IndividualChip.IsChecked = true;
+        fixture.Processes.IndividualChip.IsChecked = true;
         fixture.SelectedSample = fixture.Session.History.Samples[^2];
         Draw();
         string? copied = null;
@@ -178,7 +178,7 @@ internal sealed partial class WindowDiagnostics
             cancellationToken);
         DragDivider(10_000);
         if (Math.Abs(fixture.ProcessesAreaRow.ActualHeight - fixture.ProcessesAreaRow.MinHeight) > 1 ||
-            fixture.ProcessScroll.ActualHeight < 108)
+            fixture.Processes.ProcessScroll.ActualHeight < 108)
             throw new InvalidOperationException(
                 "The divider did not protect the process section and scrolling list minimums.");
         await CaptureVisualAsync(visual, System.IO.Path.Combine(output, "divider-process-minimum.png"), 1,
@@ -187,11 +187,11 @@ internal sealed partial class WindowDiagnostics
         fixture.ProcessesAreaRow.Height = initialProcessHeight;
         Draw(836, 840);
         // Invoke the real row button; the row can change position after this click.
-        var pinButton = Descendants(fixture.PinnedRows[0]).OfType<Button>().Single();
+        var pinButton = Descendants(fixture.Processes.PinnedRows[0]).OfType<Button>().Single();
         pinButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
         Draw();
-        if (fixture.Pins.Contains(code, false) ||
-            fixture.PinnedRows.Count(r => r.Visibility == Visibility.Visible) != 2)
+        if (fixture.Processes.Pins.Contains(code, false) ||
+            fixture.Processes.PinnedRows.Count(r => r.Visibility == Visibility.Visible) != 2)
             throw new InvalidOperationException("The row button did not unpin its process.");
         fixture.SnapshotCopiedTimer.Stop();
         await File.WriteAllTextAsync(System.IO.Path.Combine(output, "pins.json"), JsonSerializer.Serialize(new

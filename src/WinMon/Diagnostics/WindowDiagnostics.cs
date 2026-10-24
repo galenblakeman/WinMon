@@ -35,16 +35,16 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
     {
         if (window.Session.History.Latest?.TotalCpuPercent is null)
             throw new InvalidOperationException("Search diagnostics need native samples.");
-        window.ProcessSearchBox.Text = "__winmon_search_no_match__";
-        if (window.ClearProcessSearchButton.Visibility != Visibility.Visible ||
-            window.ProcessSearchPlaceholder.Visibility != Visibility.Collapsed ||
-            window.Rows.Any(row => row.Visibility == Visibility.Visible) ||
-            window.EmptyLabel.Visibility != Visibility.Visible || window.EmptyLabel.Text != Strings.NoRankedProcessesMatchYourSearch)
+        window.Processes.ProcessSearchBox.Text = "__winmon_search_no_match__";
+        if (window.Processes.ClearProcessSearchButton.Visibility != Visibility.Visible ||
+            window.Processes.ProcessSearchPlaceholder.Visibility != Visibility.Collapsed ||
+            window.Processes.Rows.Any(row => row.Visibility == Visibility.Visible) ||
+            window.Processes.EmptyLabel.Visibility != Visibility.Visible || window.Processes.EmptyLabel.Text != Strings.NoRankedProcessesMatchYourSearch)
             throw new InvalidOperationException("Process search did not filter the visible rows.");
         await CaptureAsync(Path.Combine(outputDirectory, "process-search-empty.png"), 1, cancellationToken);
-        window.OnClearProcessSearch(window, new RoutedEventArgs());
-        if (window.ProcessSearchBox.Text.Length != 0 || window.ClearProcessSearchButton.Visibility != Visibility.Collapsed ||
-            window.ProcessSearchPlaceholder.Visibility != Visibility.Visible)
+        window.Processes.OnClearProcessSearch(window, new RoutedEventArgs());
+        if (window.Processes.ProcessSearchBox.Text.Length != 0 || window.Processes.ClearProcessSearchButton.Visibility != Visibility.Collapsed ||
+            window.Processes.ProcessSearchPlaceholder.Visibility != Visibility.Visible)
             throw new InvalidOperationException("Clearing process search did not restore the idle field.");
         await CaptureAsync(Path.Combine(outputDirectory, "process-search-idle.png"), 1, cancellationToken);
         var originalWidth = window.Width;
@@ -53,27 +53,27 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         await CaptureAsync(Path.Combine(outputDirectory, "process-search-wide.png"), 1, cancellationToken);
         window.Width = originalWidth;
         foreach (var (sort, header) in new[]
-                     { (ProcessSort.Threads, window.ThreadsHeader), (ProcessSort.Handles, window.HandlesHeader) })
+                     { (ProcessSort.Threads, window.Processes.ThreadsHeader), (ProcessSort.Handles, window.Processes.HandlesHeader) })
         {
-            window.ProcessSortSelector.SelectedIndex = (int)sort;
+            window.Processes.ProcessSortSelector.SelectedIndex = (int)sort;
             if (window.Preferences.ProcessSort != sort || !header.Text.EndsWith('▾'))
                 throw new InvalidOperationException($"The {sort} dropdown did not update its column heading.");
             await CaptureAsync(Path.Combine(outputDirectory, $"process-sort-{sort}-live.png"), 1, cancellationToken);
-            window.GroupedChip.IsChecked = true;
+            window.Processes.GroupedChip.IsChecked = true;
             await CaptureAsync(Path.Combine(outputDirectory, $"process-sort-{sort}-grouped.png"), 1, cancellationToken);
             window.SelectedSample = window.Session.History.Samples[^2];
             window.RefreshPresentation();
             await CaptureAsync(Path.Combine(outputDirectory, $"process-sort-{sort}-history.png"), 1, cancellationToken);
             window.SelectedSample = null;
-            window.IndividualChip.IsChecked = true;
-            window.ProcessSortSelector.SelectedIndex = (int)ProcessSort.Cpu;
+            window.Processes.IndividualChip.IsChecked = true;
+            window.Processes.ProcessSortSelector.SelectedIndex = (int)ProcessSort.Cpu;
             header.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, 0, MouseButton.Left)
                 { RoutedEvent = UIElement.MouseLeftButtonUpEvent });
-            if (window.Preferences.ProcessSort != sort || window.ProcessSortSelector.SelectedIndex != (int)sort)
+            if (window.Preferences.ProcessSort != sort || window.Processes.ProcessSortSelector.SelectedIndex != (int)sort)
                 throw new InvalidOperationException($"Clicking the {sort} heading did not update the dropdown.");
         }
 
-        window.ProcessSortSelector.SelectedIndex = (int)ProcessSort.Cpu;
+        window.Processes.ProcessSortSelector.SelectedIndex = (int)ProcessSort.Cpu;
         await File.WriteAllTextAsync(Path.Combine(outputDirectory, "search-passed.txt"),
             "Native search filtering, clear, count sorting and header checks passed.", cancellationToken);
     }
@@ -192,19 +192,19 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         await CaptureSearchDiagnosticsAsync(outputDirectory, cancellationToken);
         await CaptureDiskDiagnosticsAsync(outputDirectory, cancellationToken);
         await CaptureAsync(Path.Combine(outputDirectory, "compact.png"), 1, cancellationToken);
-        window.GroupedChip.IsChecked = true;
+        window.Processes.GroupedChip.IsChecked = true;
         window.RefreshPresentation();
-        if (window.Rows[0].Visibility != Visibility.Visible ||
-            (window.OtherRow.Visibility == Visibility.Visible && AutomationProperties.GetName(window.OtherRow)
+        if (window.Processes.Rows[0].Visibility != Visibility.Visible ||
+            (window.Processes.OtherRow.Visibility == Visibility.Visible && AutomationProperties.GetName(window.Processes.OtherRow)
                 ?.Contains(Strings.Executables, StringComparison.Ordinal) != true))
             throw new InvalidOperationException("Grouped mode showed no native processes or mislabeled the remainder.");
         await CaptureAsync(Path.Combine(outputDirectory, "grouped-native.png"), 1, cancellationToken);
-        window.IndividualChip.IsChecked = true;
-        window.ProcessCountSelector.IsDropDownOpen = true;
+        window.Processes.IndividualChip.IsChecked = true;
+        window.Processes.ProcessCountSelector.IsDropDownOpen = true;
         try
         {
             await window.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render, cancellationToken);
-            if (window.ProcessCountSelector.Template.FindName("PART_Popup", window.ProcessCountSelector) is not Popup
+            if (window.Processes.ProcessCountSelector.Template.FindName("PART_Popup", window.Processes.ProcessCountSelector) is not Popup
                 {
                     Child: FrameworkElement menu
                 })
@@ -215,7 +215,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         }
         finally
         {
-            window.ProcessCountSelector.IsDropDownOpen = false;
+            window.Processes.ProcessCountSelector.IsDropDownOpen = false;
         }
 
         // Switching range and widening the window keep the same recording; wide rows gain a PID line.
@@ -229,7 +229,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
             throw new InvalidOperationException("Range or width change did not apply to the existing recording.");
         window.SelectedSample = window.Session.History.Samples[^2];
         window.RefreshPresentation();
-        if (window.SnapshotLayer.Visibility != Visibility.Visible || window.SelectionLabel.Text != Strings.Format(
+        if (window.SnapshotLayer.Visibility != Visibility.Visible || window.Processes.SelectionLabel.Text != Strings.Format(
                 Strings.ProcessesAtSAverage,
                 window.SelectedSample.Timestamp, ProcessRanking.DefaultWindowSeconds, "") || window.SnapshotMemory.Text.Length == 0)
             throw new InvalidOperationException("Historical selection was not presented.");
@@ -238,7 +238,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         await CaptureAsync(Path.Combine(outputDirectory, "range-wide-200.png"), 2, cancellationToken);
         window.Session.History.Resize(1);
         window.RefreshPresentation();
-        if (window.SelectionLabel.Text != Strings.HistoryExpiredThisSampleHasLeftTheRecordingWindowReturn)
+        if (window.Processes.SelectionLabel.Text != Strings.HistoryExpiredThisSampleHasLeftTheRecordingWindowReturn)
             throw new InvalidOperationException("An evicted selection was silently replaced.");
         window.Session.History.Resize(window.Preferences.RetentionSeconds);
         window.ReturnToLive();
@@ -275,9 +275,9 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         window.Preferences = window.Preferences with { Theme = "Light" };
         window.ApplyTheme();
         await CaptureAsync(Path.Combine(outputDirectory, "light.png"), 1, cancellationToken);
-        window.ProcessCountSelector.SelectedItem = 20;
+        window.Processes.ProcessCountSelector.SelectedItem = 20;
         await CaptureAsync(Path.Combine(outputDirectory, "light-scroll.png"), 1, cancellationToken);
-        window.ProcessCountSelector.SelectedItem = 5;
+        window.Processes.ProcessCountSelector.SelectedItem = 5;
         await CaptureToolTipAsync(Path.Combine(outputDirectory, "tooltip-light.png"), cancellationToken);
         var settings = new SettingsWindow(window.Preferences, checkForUpdates: () => Task.FromResult(Strings.UpToDate))
             { Owner = window };
@@ -423,7 +423,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
             window.RefreshPresentation();
         }
 
-        var row = window.Rows.First(r => r.Visibility == Visibility.Visible);
+        var row = window.Processes.Rows.First(r => r.Visibility == Visibility.Visible);
         // Exercise menu creation without invoking the destructive command.
         row.PrepareProcessMenu();
         var menu = row.ContextMenu ?? throw new InvalidOperationException("Process context menu was not created.");
@@ -481,7 +481,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                 menu.Items.OfType<MenuItem>().Single(i => (string)i.Header == Strings.CreateDumpFile + "…").IsEnabled)
                 throw new InvalidOperationException("Historical rows allowed process termination.");
             window.SelectedSample = null;
-            window.GroupedChip.IsChecked = true;
+            window.Processes.GroupedChip.IsChecked = true;
             window.RefreshPresentation();
             row.PrepareProcessMenu();
             if (menu.Items.OfType<MenuItem>().Last().Header is not string groupHeader ||
@@ -490,7 +490,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         }
         finally
         {
-            window.IndividualChip.IsChecked = true;
+            window.Processes.IndividualChip.IsChecked = true;
             window.SelectedSample = selection;
             window.RefreshPresentation();
         }
@@ -628,7 +628,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
     {
         var original = window.Preferences;
         var selection = window.SelectedSample;
-        var query = window.ProcessSearchBox.Text;
+        var query = window.Processes.ProcessSearchBox.Text;
         var samplingTask = window.SamplingTask;
         var anchor = window.Session.History.Latest;
         var tray = window.Tray;
@@ -639,9 +639,9 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         window.Tray = diagnosticTray;
         try
         {
-            window.ProcessSortSelector.SelectedIndex = (int)ProcessSort.Memory;
+            window.Processes.ProcessSortSelector.SelectedIndex = (int)ProcessSort.Memory;
             window.SelectedSample = anchor;
-            window.ProcessSearchBox.Text = "__live_language_no_match__";
+            window.Processes.ProcessSearchBox.Text = "__live_language_no_match__";
             foreach (var choice in AppLanguages.Choices)
             {
                 // Exercise the scrollable dialog even on desktops tall enough to show it all.
@@ -671,19 +671,19 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                 await window.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render, cancellationToken);
                 if (window.InfoButton.Content as string != Strings.Info ||
                     window.SettingsButton.Content as string != Strings.Settings ||
-                    window.ProcessHistoryHeader.Text != Strings.History || window.MemoryMetric.Label != Strings.Memory ||
+                    window.Processes.ProcessHistoryHeader.Text != Strings.History || window.MemoryMetric.Label != Strings.Memory ||
                     AutomationProperties.GetName(window.MemoryMetric.Toggle) !=
                     Strings.Format(Strings.ShowOnChart, Strings.Memory) ||
                     window.Tray.ContextMenuStrip!.Items[0].Text != Strings.ShowWinMon ||
                     window.Tray.ContextMenuStrip.Items[1].Text != Strings.Exit ||
                     window.Preferences.ProcessSort != ProcessSort.Memory ||
-                    window.ProcessSortSelector.SelectedIndex != (int)ProcessSort.Memory ||
-                    window.ProcessSortSelector.SelectedItem as string != Strings.Memory ||
-                    window.ProcessSearchBox.Text != "__live_language_no_match__" ||
+                    window.Processes.ProcessSortSelector.SelectedIndex != (int)ProcessSort.Memory ||
+                    window.Processes.ProcessSortSelector.SelectedItem as string != Strings.Memory ||
+                    window.Processes.ProcessSearchBox.Text != "__live_language_no_match__" ||
                     !Object.ReferenceEquals(window.SelectedSample, anchor) ||
                     (anchor is not null && !window.Session.History.Samples.Contains(anchor)) ||
                     !Object.ReferenceEquals(window.SamplingTask, samplingTask) ||
-                    window.EmptyLabel.Text != Strings.NoRankedProcessesMatchYourSearch)
+                    window.Processes.EmptyLabel.Text != Strings.NoRankedProcessesMatchYourSearch)
                     throw new InvalidOperationException(
                         "Live language switching left stale text or changed recording state.");
                 var error = window.ShownSamplingError;
@@ -732,7 +732,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
             window.Preferences = original;
             window.SelectedSample = selection;
             window.Tray = tray;
-            window.ProcessSearchBox.Text = query;
+            window.Processes.ProcessSearchBox.Text = query;
             window.ApplyLanguage();
             diagnosticTray.ContextMenuStrip?.Dispose();
         }
@@ -797,9 +797,9 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         // The centered mode switch adds a 28-DIP input target to the resource header.
         if (!window.ResourceHeader.IsAncestorOf(window.RangeSelector) || !window.ResourceHeader.IsAncestorOf(window.ChartModeSwitch) ||
             window.RangeSelector.ActualHeight > 25 || window.ResourceHeader.ActualHeight > 44 ||
-            window.ProcessHeader.ActualHeight > (window.InlinePinToolbar ? 44 : window.InlineProcessToolbar ? 78 : 112))
+            window.Processes.ProcessHeader.ActualHeight > (window.InlinePinToolbar ? 44 : window.InlineProcessToolbar ? 78 : 112))
             throw new InvalidOperationException(
-                $"The live chart/process headers did not stay compact: range={window.RangeSelector.ActualHeight}, resource={window.ResourceHeader.ActualHeight}, process={window.ProcessHeader.ActualHeight}.");
+                $"The live chart/process headers did not stay compact: range={window.RangeSelector.ActualHeight}, resource={window.ResourceHeader.ActualHeight}, process={window.Processes.ProcessHeader.ActualHeight}.");
         if (Hit(new Point(2, window.ActualHeight / 2)) != 10)
             throw new InvalidOperationException("The integrated title bar lost the left resize border.");
         if (Hit(new Point(window.ActualWidth - 116, 16)) != 8 || Hit(new Point(window.ActualWidth - 70, 16)) != 9 ||
@@ -1010,10 +1010,10 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "design-compact-150.png"), 1.5,
             cancellationToken);
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "design-compact-200.png"), 2, cancellationToken);
-        fixture.AppsOnlyCheckBox.IsChecked = true;
+        fixture.Processes.AppsOnlyCheckBox.IsChecked = true;
         fixture.RefreshVisiblePresentation();
-        if (!fixture.Preferences.AppsOnly || fixture.Rows.Count(row => row.Visibility == Visibility.Visible) != 3 ||
-            fixture.OtherRow.Visibility != Visibility.Collapsed)
+        if (!fixture.Preferences.AppsOnly || fixture.Processes.Rows.Count(row => row.Visibility == Visibility.Visible) != 3 ||
+            fixture.Processes.OtherRow.Visibility != Visibility.Collapsed)
             throw new InvalidOperationException("App Only did not filter the individual rows before the top limit.");
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "apps-only-compact.png"), 1, cancellationToken);
         fixture.Wide = true;
@@ -1023,15 +1023,15 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         visual.UpdateLayout();
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "apps-only-wide.png"), 1, cancellationToken);
         fixture.Wide = false;
-        fixture.ProcessSearchBox.Text = "chrome";
-        fixture.GroupedChip.IsChecked = true;
+        fixture.Processes.ProcessSearchBox.Text = "chrome";
+        fixture.Processes.GroupedChip.IsChecked = true;
         fixture.SelectedSample = fixture.Session.History.Samples[^2];
         fixture.RefreshVisiblePresentation();
         visual.Measure(new Size(600, 820));
         visual.Arrange(new Rect(0, 0, 600, 820));
         visual.UpdateLayout();
-        var filteredGroup = AutomationProperties.GetName(fixture.Rows[0]);
-        if (fixture.Rows.Count(row => row.Visibility == Visibility.Visible) != 1 ||
+        var filteredGroup = AutomationProperties.GetName(fixture.Processes.Rows[0]);
+        if (fixture.Processes.Rows.Count(row => row.Visibility == Visibility.Visible) != 1 ||
             !filteredGroup.Contains(Strings.Format(Strings.Processes, 2), StringComparison.Ordinal) ||
             !filteredGroup.Contains(MainWindow.Percent(9.4), StringComparison.Ordinal) ||
             !filteredGroup.Contains($" · {Strings.ProcessKindApp} · {Strings.Threads}:", StringComparison.Ordinal))
@@ -1039,14 +1039,14 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                 "App Only did not preserve grouped totals with search and historical selection.");
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "apps-only-grouped-history.png"), 1,
             cancellationToken);
-        fixture.ProcessSearchBox.Text = "no-matching-app";
+        fixture.Processes.ProcessSearchBox.Text = "no-matching-app";
         fixture.RefreshVisiblePresentation();
-        if (fixture.EmptyLabel.Visibility != Visibility.Visible ||
-            fixture.EmptyLabel.Text != Strings.NoAppsMatchCurrentView)
+        if (fixture.Processes.EmptyLabel.Visibility != Visibility.Visible ||
+            fixture.Processes.EmptyLabel.Text != Strings.NoAppsMatchCurrentView)
             throw new InvalidOperationException("App Only did not explain an empty filtered view.");
-        fixture.AppsOnlyCheckBox.IsChecked = false;
-        fixture.ProcessSearchBox.Clear();
-        fixture.IndividualChip.IsChecked = true;
+        fixture.Processes.AppsOnlyCheckBox.IsChecked = false;
+        fixture.Processes.ProcessSearchBox.Clear();
+        fixture.Processes.IndividualChip.IsChecked = true;
         fixture.SelectedSample = null;
         fixture.Preferences = fixture.Preferences with { PrimaryDrive = "C:", SecondaryDrive = "D:" };
 
@@ -1090,26 +1090,26 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         visual.Measure(new Size(600, 820));
         visual.Arrange(new Rect(0, 0, 600, 820));
         visual.UpdateLayout();
-        fixture.ProcessSortSelector.SelectedItem = "GPU";
+        fixture.Processes.ProcessSortSelector.SelectedItem = "GPU";
         fixture.RefreshVisiblePresentation();
         visual.UpdateLayout();
-        if (fixture.Preferences.ProcessSort != ProcessSort.Gpu || !AutomationProperties.GetName(fixture.Rows[0])
+        if (fixture.Preferences.ProcessSort != ProcessSort.Gpu || !AutomationProperties.GetName(fixture.Processes.Rows[0])
                 .StartsWith("gpu-worker", StringComparison.Ordinal))
             throw new InvalidOperationException("GPU ranking failed to include a CPU-idle GPU process.");
         fixture.SelectedSample = fixture.Session.History.Samples[^2];
         fixture.RefreshVisiblePresentation();
-        if (!AutomationProperties.GetName(fixture.Rows[0]).StartsWith("gpu-worker", StringComparison.Ordinal))
+        if (!AutomationProperties.GetName(fixture.Processes.Rows[0]).StartsWith("gpu-worker", StringComparison.Ordinal))
             throw new InvalidOperationException("Historical GPU ranking failed.");
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "gpu-process-sort.png"), 1, cancellationToken);
         fixture.SelectedSample = null;
         // Memory ranks by the largest working set (devenv); I/O by the busiest read/write rate (chrome).
         foreach (var (sort, expected) in new[] { (Strings.Memory, "devenv"), (Strings.IO, "chrome") })
         {
-            fixture.ProcessSortSelector.SelectedItem = sort;
+            fixture.Processes.ProcessSortSelector.SelectedItem = sort;
             fixture.RefreshVisiblePresentation();
             visual.UpdateLayout();
-            if (!AutomationProperties.GetName(fixture.Rows[0]).StartsWith(expected, StringComparison.Ordinal) ||
-                fixture.MemoryHeader.Text.EndsWith('▾') != (sort == Strings.Memory))
+            if (!AutomationProperties.GetName(fixture.Processes.Rows[0]).StartsWith(expected, StringComparison.Ordinal) ||
+                fixture.Processes.MemoryHeader.Text.EndsWith('▾') != (sort == Strings.Memory))
                 throw new InvalidOperationException($"{sort} ranking did not put {expected} first or mark its column.");
             if (sort == Strings.Memory)
                 await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "memory-process-sort.png"), 1,
@@ -1117,24 +1117,24 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         }
 
         // Clicking a column heading drives the same dropdown.
-        fixture.IoHeader.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, 0, MouseButton.Left)
+        fixture.Processes.IoHeader.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, 0, MouseButton.Left)
             { RoutedEvent = UIElement.MouseLeftButtonUpEvent });
         if (fixture.Preferences.ProcessSort != ProcessSort.Io ||
-            fixture.ProcessSortSelector.SelectedItem as string != "I/O")
+            fixture.Processes.ProcessSortSelector.SelectedItem as string != "I/O")
             throw new InvalidOperationException("Clicking the I/O heading did not switch the ranking dropdown.");
-        fixture.ProcessSortSelector.SelectedItem = "CPU";
+        fixture.Processes.ProcessSortSelector.SelectedItem = "CPU";
         // Grouped: the two chrome processes become one row with summed CPU, and memory switches to private bytes.
-        fixture.GroupedChip.IsChecked = true;
+        fixture.Processes.GroupedChip.IsChecked = true;
         fixture.RefreshVisiblePresentation();
         visual.UpdateLayout();
-        if (!fixture.Preferences.GroupProcesses || fixture.MemoryHeader.Text != $"{Strings.Private} MiB" ||
-            AutomationProperties.GetName(fixture.Rows[0]) is not { } groupedName ||
+        if (!fixture.Preferences.GroupProcesses || fixture.Processes.MemoryHeader.Text != $"{Strings.Private} MiB" ||
+            AutomationProperties.GetName(fixture.Processes.Rows[0]) is not { } groupedName ||
             !groupedName.StartsWith("chrome", StringComparison.Ordinal) ||
             !groupedName.Contains(Strings.Format(Strings.Processes, 2), StringComparison.Ordinal) ||
             !groupedName.Contains(MainWindow.Percent(9.4), StringComparison.Ordinal))
             throw new InvalidOperationException("Grouped mode did not combine the chrome processes.");
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "grouped.png"), 1, cancellationToken);
-        fixture.IndividualChip.IsChecked = true;
+        fixture.Processes.IndividualChip.IsChecked = true;
         fixture.RefreshVisiblePresentation();
         var rankedSample = fixture.Session.History.Latest! with
         {
@@ -1149,29 +1149,29 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         fixture.Session.History.Add(rankedSample);
         foreach (var count in new[] { 5, 10, 15, 20, 50 })
         {
-            fixture.ProcessCountSelector.SelectedItem = count;
+            fixture.Processes.ProcessCountSelector.SelectedItem = count;
             fixture.RefreshVisiblePresentation();
             ArrangeFixture();
-            if (fixture.Rows.Count(row => row.Visibility == Visibility.Visible) != count ||
+            if (fixture.Processes.Rows.Count(row => row.Visibility == Visibility.Visible) != count ||
                 fixture.Preferences.TopProcessCount != count)
                 throw new InvalidOperationException($"Selecting {count} did not update the live process count.");
         }
 
-        if (fixture.ProcessScroll.ScrollableHeight <= 0 || !fixture.TitleBarArea.IsAncestorOf(fixture.SettingsButton) ||
+        if (fixture.Processes.ProcessScroll.ScrollableHeight <= 0 || !fixture.TitleBarArea.IsAncestorOf(fixture.SettingsButton) ||
             !fixture.TitleBarArea.IsAncestorOf(fixture.InfoButton))
             throw new InvalidOperationException(
                 "Long process lists must scroll while title-bar actions remain available at minimum size.");
-        fixture.ProcessScroll.ScrollToBottom();
+        fixture.Processes.ProcessScroll.ScrollToBottom();
         ArrangeFixture();
-        if (fixture.ProcessScroll.VerticalOffset <= 0)
+        if (fixture.Processes.ProcessScroll.VerticalOffset <= 0)
             throw new InvalidOperationException("The process list failed to scroll.");
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "process-count-50.png"), 1, cancellationToken);
-        fixture.ProcessCountSelector.SelectedItem = TopCountChoices.All;
+        fixture.Processes.ProcessCountSelector.SelectedItem = TopCountChoices.All;
         fixture.RefreshVisiblePresentation();
         ArrangeFixture();
         if (fixture.Preferences.TopProcessCount != 0 ||
-            fixture.Rows.Count(row => row.Visibility == Visibility.Visible) < 60 ||
-            fixture.OtherRow.Visibility != Visibility.Collapsed)
+            fixture.Processes.Rows.Count(row => row.Visibility == Visibility.Visible) < 60 ||
+            fixture.Processes.OtherRow.Visibility != Visibility.Collapsed)
             throw new InvalidOperationException(
                 "All did not render every available process beyond the old 50-row limit.");
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "process-count-all.png"), 1, cancellationToken);
@@ -1181,20 +1181,20 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
             Timestamp = anchor.AddSeconds(2), MonotonicTimestamp = Stopwatch.Frequency * 122, Processes = []
         });
         fixture.RefreshVisiblePresentation();
-        if (fixture.Rows.Count(row => row.Visibility == Visibility.Visible) < 60)
+        if (fixture.Processes.Rows.Count(row => row.Visibility == Visibility.Visible) < 60)
             throw new InvalidOperationException("All lost processes from the selected historical sample.");
-        fixture.ProcessCountSelector.SelectedItem = 10;
+        fixture.Processes.ProcessCountSelector.SelectedItem = 10;
         fixture.RefreshVisiblePresentation();
         ArrangeFixture();
         if (!Object.ReferenceEquals(fixture.SelectedSample, rankedSample) ||
-            fixture.Rows.Count(row => row.Visibility == Visibility.Visible) != 10)
+            fixture.Processes.Rows.Count(row => row.Visibility == Visibility.Visible) != 10)
             throw new InvalidOperationException(
                 "Changing the count replaced the historical sample or used live processes.");
-        if (fixture.ProcessScroll.ActualHeight < 108)
+        if (fixture.Processes.ProcessScroll.ActualHeight < 108)
             throw new InvalidOperationException("Historical details left too little room for the process list.");
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "process-count-history.png"), 1,
             cancellationToken);
-        fixture.ProcessCountSelector.SelectedItem = 5;
+        fixture.Processes.ProcessCountSelector.SelectedItem = 5;
         fixture.RefreshVisiblePresentation();
         ArrangeFixture();
 
@@ -1208,8 +1208,8 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         };
         fixture.ApplyTheme();
         fixture.BuildRangeChips();
-        fixture.GroupedChip.IsChecked = true;
-        fixture.ProcessCountSelector.SelectedItem = 20;
+        fixture.Processes.GroupedChip.IsChecked = true;
+        fixture.Processes.ProcessCountSelector.SelectedItem = 20;
         fixture.RefreshVisiblePresentation();
         visual.Measure(new Size(1301, 1137));
         visual.Arrange(new Rect(0, 0, 1301, 1137));

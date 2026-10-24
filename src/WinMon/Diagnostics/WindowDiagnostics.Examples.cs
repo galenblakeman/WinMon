@@ -63,26 +63,26 @@ internal sealed partial class WindowDiagnostics
             }
 
             await Draw("individual");
-            fixture.GroupedChip.IsChecked = true;
+            fixture.Processes.GroupedChip.IsChecked = true;
             await Draw("grouped");
-            fixture.AppsOnlyCheckBox.IsChecked = true;
-            fixture.ProcessSearchBox.Text = "chrome";
+            fixture.Processes.AppsOnlyCheckBox.IsChecked = true;
+            fixture.Processes.ProcessSearchBox.Text = "chrome";
             await Draw("apps_only");
-            fixture.AppsOnlyCheckBox.IsChecked = false;
-            fixture.ProcessSearchBox.Clear();
-            fixture.IndividualChip.IsChecked = true;
-            fixture.ToggleProcessPin(code, false);
-            fixture.ToggleProcessPin(chrome, false);
+            fixture.Processes.AppsOnlyCheckBox.IsChecked = false;
+            fixture.Processes.ProcessSearchBox.Clear();
+            fixture.Processes.IndividualChip.IsChecked = true;
+            fixture.Processes.ToggleProcessPin(code, false);
+            fixture.Processes.ToggleProcessPin(chrome, false);
             await Draw("pinned");
-            fixture.PinnedOnlyCheckBox.IsChecked = true;
+            fixture.Processes.PinnedOnlyCheckBox.IsChecked = true;
             await Draw("pinned_only");
-            fixture.PinnedOnlyCheckBox.IsChecked = false;
+            fixture.Processes.PinnedOnlyCheckBox.IsChecked = false;
             fixture.SelectedSample = fixture.Session.History.Samples[92];
             await Draw("snapshot");
             fixture.SelectedSample = null;
-            fixture.ToggleProcessPin(code, false);
-            fixture.ToggleProcessPin(chrome, false);
-            fixture.GroupedChip.IsChecked = true;
+            fixture.Processes.ToggleProcessPin(code, false);
+            fixture.Processes.ToggleProcessPin(chrome, false);
+            fixture.Processes.GroupedChip.IsChecked = true;
             fixture.Preferences = fixture.Preferences with { Theme = "Light" };
             await Draw("light");
             fixture.Preferences = fixture.Preferences with { Theme = "Dark" };
@@ -133,8 +133,8 @@ internal sealed partial class WindowDiagnostics
             fixture.Height = height;
             if (!fixture.IsVisible) fixture.Show();
             fixture.ApplyTheme();
-            fixture.Selection.Select(chrome, fixture.Preferences.GroupProcesses);
-            fixture.UpdateProcessRetention();
+            fixture.Processes.Selection.Select(chrome, fixture.Preferences.GroupProcesses);
+            fixture.Processes.UpdateRetention();
             fixture.RefreshVisiblePresentation();
             await CaptureExampleWindowAsync(fixture, Path.Combine(output, $"example_{name}.png"), cancellationToken);
         }

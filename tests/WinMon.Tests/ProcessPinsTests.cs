@@ -182,7 +182,7 @@ public sealed class ProcessPinsTests
     [TestCase(new[] { 1, 0, 3, 2, 4 }, new[] { false, true, false, true, true })]
     public void LongestIncreasingRun_KeepsTheMostRowsInPlace(int[] positions, bool[] staying)
     {
-        Assert.That(MainWindow.LongestIncreasingRun(positions), Is.EqualTo(staying));
+        Assert.That(ProcessesView.LongestIncreasingRun(positions), Is.EqualTo(staying));
     }
 
     [Test]

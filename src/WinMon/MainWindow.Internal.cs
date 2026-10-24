@@ -72,10 +72,6 @@ public partial class MainWindow
 
     internal CancellationTokenSource Lifetime => _lifetime;
 
-    internal ProcessRow OtherRow => _otherRow;
-
-    internal List<ProcessRow> PinnedRows => _pinnedRows;
-
     internal MonitorPreferences Preferences
     {
         get => _preferences;
@@ -89,12 +85,6 @@ public partial class MainWindow
         get => _presentedSample;
         set => _presentedSample = value;
     }
-
-    internal ProcessPins Pins => _processPins;
-
-    internal ProcessSelection Selection => _processSelection;
-
-    internal List<ProcessRow> Rows => _rows;
 
     internal SamplingError? ShownSamplingError
     {

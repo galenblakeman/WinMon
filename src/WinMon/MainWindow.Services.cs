@@ -20,10 +20,7 @@ public partial class MainWindow
         ServiceView.ProcessRequested += process =>
         {
             // Use the existing process view for the selected PID, preserving the selected historical instant.
-            AppsOnlyCheckBox.IsChecked = false;
-            PinnedOnlyCheckBox.IsChecked = false;
-            IndividualChip.IsChecked = true;
-            ProcessSearchBox.Text = process.ProcessId.ToString(CultureInfo.InvariantCulture);
+            Processes.ShowProcess(process);
             ProcessesTab.IsChecked = true;
         };
         ServiceView.ActionRequested += RunServiceAction;
@@ -32,7 +29,7 @@ public partial class MainWindow
 
     private void SelectServiceView(bool services)
     {
-        ProcessesArea.Visibility = services ? Visibility.Collapsed : Visibility.Visible;
+        Processes.Visibility = services ? Visibility.Collapsed : Visibility.Visible;
         ServiceView.Visibility = services ? Visibility.Visible : Visibility.Collapsed;
         RefreshPresentation();
     }

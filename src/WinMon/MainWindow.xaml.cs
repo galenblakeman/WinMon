@@ -90,39 +90,9 @@ public partial class MainWindow
         InitializeComponent();
         InitializeCompactView();
         InitializeServices();
-        ProcessActions.ActionRequested += OnProcessAction;
-        ProcessActions.EnablePriorityActions(CanSetProcessPriority, process => ProcessPriorityChanger.Read(process), SetProcessPriority);
+        InitializeProcesses();
         UpdateActivityActionsToggle();
         VersionRun.Text = $" {AppInfo.Version}";
-        ProcessCountSelector.ItemsSource = TopCountChoices.Items;
-        ProcessCountSelector.SelectedItem = TopCountChoices.Selection(_preferences.TopProcessCount);
-        ProcessCountSelector.SelectionChanged += OnProcessCountChanged;
-        // Item order matches ProcessSort so the selected index is the sort column.
-        ProcessSortSelector.ItemsSource = new[]
-            { Strings.CPU, Strings.GPU, Strings.Memory, Strings.IO, Strings.Threads, Strings.Handles };
-        ProcessSortSelector.SelectedIndex = (int)ProcessSort.Cpu;
-        ProcessSortSelector.SelectionChanged += OnProcessSortChanged;
-        ProcessSearchBox.TextChanged += OnProcessSearchChanged;
-        AppsOnlyCheckBox.Checked += OnAppsOnlyChanged;
-        AppsOnlyCheckBox.Unchecked += OnAppsOnlyChanged;
-        PinnedOnlyCheckBox.Checked += OnPinnedOnlyChanged;
-        PinnedOnlyCheckBox.Unchecked += OnPinnedOnlyChanged;
-        IndividualChip.Checked += OnGroupingChanged;
-        GroupedChip.Checked += OnGroupingChanged;
-        // Column headings are shortcuts for the "processes by" dropdown, which stays the keyboard path.
-        foreach (var (header, sort, _) in SortHeaders)
-        {
-            header.Cursor = Cursors.Hand;
-            header.MouseEnter += (_, _) => header.TextDecorations = TextDecorations.Underline;
-            header.MouseLeave += (_, _) => header.TextDecorations = null;
-            header.MouseLeftButtonUp += (_, e) =>
-            {
-                ProcessSortSelector.SelectedIndex = (int)sort;
-                e.Handled = true;
-            };
-        }
-
-        UpdateSortHeaderToolTips();
         WindowTheme.Attach(this);
         foreach (var metric in Metrics)
         {
@@ -130,7 +100,6 @@ public partial class MainWindow
             metric.Toggle.Unchecked += OnSeriesChanged;
         }
 
-        ProcessRows.Children.Add(_otherRow);
         BuildRangeChips();
         // The process-type line gains a PID in a wide window; there is no separate expanded mode.
         SizeChanged += (_, _) => AlignTitleBar();
@@ -167,15 +136,8 @@ public partial class MainWindow
                 ? new MonitorPreferences()
                 : _initialPreferences ?? await _preferenceStore.LoadAsync(_lifetime.Token);
             _preferencesLoaded = true;
-            _processPins.Restore(_preferences.PinnedProcesses);
             UpdateActivityActionsToggle();
-            UpdateProcessRetention();
-            PinnedOnlyCheckBox.IsChecked = _preferences.PinnedOnly;
-            ProcessSortSelector.SelectedIndex = (int)_preferences.ProcessSort;
-            GroupedChip.IsChecked = _preferences.GroupProcesses;
-            IndividualChip.IsChecked = !_preferences.GroupProcesses;
-            AppsOnlyCheckBox.IsChecked = _preferences.AppsOnly;
-            ProcessCountSelector.SelectedItem = TopCountChoices.Selection(_preferences.TopProcessCount);
+            Processes.Load(ProcessListSettings.From(_preferences), _preferences.PinnedProcesses);
             ServiceView.TopServiceCount = _preferences.TopServiceCount;
             Width = Math.Max(MinWidth, _preferences.Width);
             Height = Math.Max(MinHeight, _preferences.Height);
@@ -260,15 +222,7 @@ public partial class MainWindow
 
     internal void RefreshVisiblePresentation()
     {
-        Grid.SetRow(ProcessSearchBorder, _inlineProcessToolbar ? 0 : 1);
-        Grid.SetColumn(ProcessSearchBorder, _inlineProcessToolbar ? 2 : 0);
-        Grid.SetColumnSpan(ProcessSearchBorder, _inlineProcessToolbar ? 1 : 4);
-        ProcessSearchBorder.Margin = _inlineProcessToolbar ? new Thickness(12, 0, 12, 0) : new Thickness(0, 6, 12, 0);
-        Grid.SetRow(AppsOnlyCheckBox, _inlineProcessToolbar ? 0 : 1);
-        Grid.SetColumn(AppsOnlyCheckBox, _inlineProcessToolbar ? 3 : 4);
-        Grid.SetColumnSpan(AppsOnlyCheckBox, _inlineProcessToolbar ? 1 : 2);
-        AppsOnlyCheckBox.Margin = _inlineProcessToolbar ? new Thickness(0, 0, 12, 0) : new Thickness(0, 6, 0, 0);
-        ArrangePinToolbar();
+        Processes.ArrangeToolbar(_inlineProcessToolbar, _inlinePinToolbar);
         var samples = Session.History.Samples;
         var latest = samples.Count == 0 ? null : samples[^1];
         var visible = _selectedSample is null
@@ -285,7 +239,11 @@ public partial class MainWindow
         RefreshServices();
         UpdateSnapshot(_selectedSample is null ? null : visible);
         // The compact strip hides the process list; leaving compact mode refreshes it.
-        if (!_compactMode) RefreshProcesses(samples, latest, visible);
+        if (!_compactMode &&
+            Processes.Update(new ProcessListFrame(samples, latest, visible, _selectedSample, Session.LatestFull,
+                Session.Latest, Session.History.WasMemoryLimited, _samplingError, _wide,
+                ProcessListSettings.From(_preferences))) is { } report)
+            _snapshotReport = report;
         LiveCaption.Text = allUnavailable ? Strings.SystemResourcesUnavailable : Strings.SystemResources;
         LiveCaption.ToolTip =
             _selectedSample is not null ? Strings.SystemResourcesInspectingSnapshot : LiveCaption.Text;
@@ -299,128 +257,6 @@ public partial class MainWindow
         UpdateTrayText(latest);
     }
 
-    private void RefreshProcesses(IReadOnlyList<MonitorSample> samples, MonitorSample? latest, MonitorSample? visible)
-    {
-        var grouped = _preferences.GroupProcesses;
-        var historyMetric = _preferences.ProcessSort switch
-        {
-            ProcessSort.Gpu => grouped ? Strings.BusiestMemberGPU : Strings.GPU,
-            ProcessSort.Memory => grouped ? Strings.SummedPrivateMemory : Strings.MemoryLowercase,
-            ProcessSort.Io => grouped ? Strings.SummedIO : Strings.IO,
-            ProcessSort.Threads => Strings.Threads,
-            ProcessSort.Handles => Strings.Handles,
-            _ => grouped ? Strings.SummedCPU : Strings.CPU
-        };
-        ProcessHistoryHeader.ToolTip = Strings.Format(Strings.HistoryOnOneScaleSharedByEveryRowHoverA, historyMetric);
-        SelectionLabel.Text = _selectedSample is not null
-            ? visible is null
-                ? Strings.HistoryExpiredThisSampleHasLeftTheRecordingWindowReturn
-                : Strings.Format(Strings.ProcessesAtSAverage, visible.Timestamp, ProcessRanking.DefaultWindowSeconds,
-                    grouped ? Strings.IdleGroupMembersMayBeOmitted : "")
-            : string.Empty;
-        SelectionLabel.Visibility = _selectedSample is null ? Visibility.Collapsed : Visibility.Visible;
-        var selectedIndex = -1;
-        if (_selectedSample is not null)
-            for (var i = 0; i < samples.Count; i++)
-                if (ReferenceEquals(samples[i], _selectedSample))
-                {
-                    selectedIndex = i;
-                    break;
-                }
-
-        // Views over the history snapshot rather than copies of it, which run to 3,600 samples.
-        var rowSamples = _selectedSample is null ? samples : new SampleList(samples, selectedIndex + 1);
-        if (_selectedSample is null && Session.LatestFull is not null && rowSamples.Count > 0 &&
-            ReferenceEquals(rowSamples[^1], Session.Latest))
-            rowSamples = new SampleList(samples, samples.Count, Session.LatestFull);
-        // Rank on a short average ending at the live or selected sample; single intervals are tick-quantized.
-        var query = ProcessSearchBox.Text.Trim();
-        var ranking = ProcessRanking.Rank(rowSamples, sort: _preferences.ProcessSort, grouped: grouped,
-            includeInactive: query.Length > 0 || _preferences.TopProcessCount == 0);
-        // Pins and the selection need inactive processes too. A search already ranked them; otherwise rank once.
-        var inclusive = query.Length > 0 || _preferences.TopProcessCount == 0 ? ranking : null;
-        UpdateSortHeaders();
-        var appsOnly = _preferences.AppsOnly;
-        var active = ProcessSearch.Filter(ranking.Processes, query, appsOnly).ToArray();
-        var pinned = ResolvePinnedRows(rowSamples, grouped, query, appsOnly, Inclusive);
-        var unpinned = active.Where(p => !_processPins.Contains(p, grouped)).ToArray();
-        var pinnedOnly = PinnedOnlyCheckBox.IsChecked == true;
-        var top = pinnedOnly ? [] : TopCountChoices.Limit(unpinned, _preferences.TopProcessCount).ToArray();
-        var rest = pinnedOnly ? [] : unpinned.Skip(top.Length).ToArray();
-        var displayed = pinned.Select(p => p.Usage).Concat(top).ToArray();
-        var processData = ProcessGraphData.Build(rowSamples, MonitorPreferences.ShortRangeSeconds, displayed, grouped,
-            _preferences.ProcessSort);
-        UpdatePinnedRows(pinned, processData, rowSamples, grouped);
-        ArrangeProcessRows(top, grouped);
-        for (var i = 0; i < _rows.Count; i++)
-        {
-            _rows[i].Visibility = i < top.Length ? Visibility.Visible : Visibility.Collapsed;
-            if (i < top.Length)
-                _rows[i].Update(top[i], rowSamples, MonitorPreferences.ShortRangeSeconds, _wide,
-                    processData[pinned.Length + i], grouped);
-        }
-
-        RefreshProcessActions(rowSamples, grouped, Inclusive);
-        _otherRow.Visibility = rest.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
-        if (rest.Length > 0)
-            // Memory ranking also covers idle processes compacted out of the sample.
-            _otherRow.ShowRemainder(
-                rest.Length +
-                (query.Length == 0 && !appsOnly && _preferences.ProcessSort == ProcessSort.Memory && !grouped
-                    ? visible?.CompactedProcesses ?? 0
-                    : 0),
-                rest.Sum(p => p.CpuPercent),
-                rest.Any(p => p.IoBytesPerSecond is not null) ? rest.Sum(p => p.IoBytesPerSecond ?? 0) : null, grouped);
-        EmptyLabel.Visibility = displayed.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
-        EmptyLabel.Text = visible is null && _selectedSample is not null
-            ?
-            Strings.ReturnToLiveToInspectCurrentActivity
-            : latest is null || visible?.TotalCpuPercent is null
-                ? Strings.CollectingABaselineOrRecoveringAfterARecordingGap
-                : appsOnly
-                    ? Strings.NoAppsMatchCurrentView
-                    : query.Length > 0
-                        ? Strings.NoRankedProcessesMatchYourSearch
-                        : _preferences.ProcessSort switch
-                        {
-                            ProcessSort.Gpu => Strings.NoMeasurableGPUActivityAmongAccessibleProcessesInThisWindow,
-                            ProcessSort.Memory => Strings.NoMemoryReadingsAmongAccessibleProcesses,
-                            ProcessSort.Io => Strings.NoMeasurableIOAmongAccessibleProcessesInThisWindow,
-                            ProcessSort.Threads or ProcessSort.Handles => Strings.NoProcessCountReadings,
-                            _ => Strings.NoMeasurableActiveProcessesInThisWindow
-                        };
-        if (pinnedOnly && displayed.Length == 0) EmptyLabel.Text = Strings.NoPinnedProcessesMatch;
-        CoverageLabel.Text = visible is null
-            ? ""
-            : Coverage(visible.UnavailableProcesses, ranking.TotalCpuPercent, ranking.MeasuredCpuPercent);
-        if (Session.History.WasMemoryLimited)
-            CoverageLabel.Text += (CoverageLabel.Text.Length > 0 ? " · " : "") + Strings.HistoryShortenedByMemoryLimit;
-        CoverageLabel.ToolTip = CoverageLabel.Text + Strings.UnattributedCPUIsTotalCPUMinusAllMeasuredProcessesKernel;
-        if (_selectedSample is not null && visible is not null)
-            _snapshotReport = new SnapshotReport(visible, displayed, grouped,
-                    SortHeaders.First(h => h.Sort == _preferences.ProcessSort).Text, query, appsOnly,
-                    CoverageLabel.Text,
-                    rest.Length == 0
-                        ? null
-                        : new SnapshotRemainder(
-                            rest.Length +
-                            (query.Length == 0 && !appsOnly && _preferences.ProcessSort == ProcessSort.Memory &&
-                             !grouped
-                                ? visible.CompactedProcesses
-                                : 0),
-                            rest.Sum(p => p.CpuPercent),
-                            rest.Any(p => p.IoBytesPerSecond is not null)
-                                ? rest.Sum(p => p.IoBytesPerSecond ?? 0)
-                                : null))
-                { ProcessStates = [.. pinned.Select(p => ProcessRow.StateText(p.State)), .. top.Select(_ => "")] };
-        return;
-
-        ProcessRanking Inclusive()
-        {
-            return inclusive ??= ProcessRanking.Rank(rowSamples, sort: _preferences.ProcessSort,
-                grouped: grouped, includeInactive: true);
-        }
-    }
 
     private void ShowError(string? message)
     {
@@ -428,16 +264,6 @@ public partial class MainWindow
         ErrorLabel.Visibility = message is null ? Visibility.Collapsed : Visibility.Visible;
     }
 
-    /// <summary>Summarize CPU that the measured processes do not cover, without inventing a process for it.</summary>
-    private static string Coverage(int unavailableProcesses, double? totalCpu, double measuredCpu)
-    {
-        var unread = unavailableProcesses > 0
-            ? Strings.Format(Strings.ProcessesNeedAdministratorAccess, unavailableProcesses)
-            : "";
-        if (totalCpu is not { } total) return unread;
-        var unattributed = Strings.Format(Strings.Unattributed, Math.Max(0, total - measuredCpu));
-        return unread.Length > 0 ? $"{unattributed} · {unread}" : unattributed;
-    }
 
     private void UpdateTrayText(MonitorSample? latest = null)
     {
@@ -467,78 +293,6 @@ public partial class MainWindow
         OverallGraph.InvalidateVisual();
     }
 
-    private void OnProcessSearchChanged(object sender, TextChangedEventArgs e)
-    {
-        if (_closing) return;
-        var hasText = ProcessSearchBox.Text.Length > 0;
-        ProcessSearchPlaceholder.Visibility = hasText ? Visibility.Collapsed : Visibility.Visible;
-        ClearProcessSearchButton.Visibility = hasText ? Visibility.Visible : Visibility.Collapsed;
-        ProcessScroll.ScrollToTop();
-        RefreshPresentation();
-    }
-
-    internal void OnClearProcessSearch(object sender, RoutedEventArgs e)
-    {
-        ProcessSearchBox.Clear();
-        ProcessSearchBox.Focus();
-    }
-
-    private void OnAppsOnlyChanged(object sender, RoutedEventArgs e)
-    {
-        if (_closing) return;
-        _preferences = _preferences with { AppsOnly = AppsOnlyCheckBox.IsChecked == true };
-        ProcessScroll.ScrollToTop();
-        RefreshPresentation();
-    }
-
-    private void OnProcessCountChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (!TopCountChoices.TryGetCount(ProcessCountSelector.SelectedItem, out var count) || _closing) return;
-        _preferences = _preferences with { TopProcessCount = count };
-        ProcessScroll.ScrollToTop();
-        RefreshPresentation();
-    }
-
-    private void OnGroupingChanged(object sender, RoutedEventArgs e)
-    {
-        if (_closing) return;
-        _preferences = _preferences with { GroupProcesses = GroupedChip.IsChecked == true };
-        ProcessScroll.ScrollToTop();
-        RefreshPresentation();
-    }
-
-    private void OnProcessSortChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (ProcessSortSelector.SelectedIndex < 0 || _closing) return;
-        _preferences = _preferences with { ProcessSort = (ProcessSort)ProcessSortSelector.SelectedIndex };
-        ProcessScroll.ScrollToTop();
-        RefreshPresentation();
-    }
-
-    /// <summary>Mark the column that orders the rows; the others stay muted.</summary>
-    private (TextBlock Header, ProcessSort Sort, string Text)[] SortHeaders =>
-    [
-        (CpuHeader, ProcessSort.Cpu, Strings.CpuColumn), (GpuHeader, ProcessSort.Gpu, Strings.GpuColumn),
-        (MemoryHeader, ProcessSort.Memory, Strings.Memory), (IoHeader, ProcessSort.Io, Strings.IOMBS),
-        (ThreadsHeader, ProcessSort.Threads, Strings.Threads), (HandlesHeader, ProcessSort.Handles, Strings.Handles)
-    ];
-
-    private void UpdateSortHeaders()
-    {
-        foreach (var (header, sort, name) in SortHeaders)
-        {
-            var text = sort == ProcessSort.Memory
-                ? $"{(_preferences.GroupProcesses ? Strings.Private : name)} MiB"
-                : name;
-            var active = sort == _preferences.ProcessSort;
-            header.Text = active ? $"{text} ▾" : text;
-            header.FontWeight = active ? FontWeights.SemiBold : FontWeights.Normal;
-            // Each new resource reference is resolved again, so set one only when the heading changes state.
-            if (header.Tag is bool shown && shown == active) continue;
-            header.Tag = active;
-            header.SetResourceReference(TextBlock.ForegroundProperty, active ? "Text" : "Muted");
-        }
-    }
 
     private void UpdateResources(MonitorSample? latest)
     {
@@ -705,32 +459,6 @@ public partial class MainWindow
         if (!_closing) new HardwareInfoWindow { Owner = this }.ShowDialog();
     }
 
-    private ProcessUsage[] CaptureEndTargets(ProcessUsage process)
-    {
-        return ProcessTerminator.CaptureTargets(process,
-            !_closing && _selectedSample is null, _preferences.GroupProcesses, Session.LatestFull?.Processes ?? []);
-    }
-
-    private bool CanEndProcess(ProcessUsage process)
-    {
-        return CaptureEndTargets(process).Length > 0;
-    }
-
-    private void EndProcess(ProcessUsage process)
-    {
-        var targets = CaptureEndTargets(process);
-        if (targets.Length == 0) return;
-        var grouped = _preferences.GroupProcesses;
-        var message = grouped
-            ? Strings.Format(Strings.EndGroupConfirmation, targets.Length, process.Name) + "\n\n" +
-              string.Join("\n", targets.Select(p => $"{p.Name} (PID {p.ProcessId})"))
-            : Strings.Format(Strings.EndPIDUnsavedWorkMayBeLostOnlyThisProcess, process.Name, process.ProcessId);
-        if (new ProcessActionDialog(message, true) { Owner = this }.ShowDialog() != true ||
-            _closing || _selectedSample is not null || grouped != _preferences.GroupProcesses) return;
-        var errors = ProcessTerminator.EndAll(targets);
-        if (errors.Count > 0)
-            new ProcessActionDialog(string.Join("\n\n", errors), false) { Owner = this }.ShowDialog();
-    }
 
     internal void ReturnToLive()
     {
@@ -859,8 +587,7 @@ public partial class MainWindow
             _hotkey?.Unregister();
             if (dialog.ShowDialog() != true || dialog.Result is not { } result || _closing) return;
             SettingsButton.IsEnabled = false;
-            ProcessCountSelector.IsEnabled = false;
-            ProcessSortSelector.IsEnabled = false;
+            Processes.RankingEnabled = false;
             _settingsWriteTask = ApplyPreferencesAsync(result);
             await _settingsWriteTask;
         }
@@ -879,8 +606,7 @@ public partial class MainWindow
             if (!_closing)
             {
                 SettingsButton.IsEnabled = true;
-                ProcessCountSelector.IsEnabled = true;
-                ProcessSortSelector.IsEnabled = true;
+                Processes.RankingEnabled = true;
                 if (_hotkey is { Current: null }) ApplyShortcut();
             }
         }
@@ -924,32 +650,7 @@ public partial class MainWindow
     internal void ApplyLanguage()
     {
         AppLanguages.Apply(_preferences.Language);
-        ProcessCountSelector.SelectionChanged -= OnProcessCountChanged;
-        try
-        {
-            ProcessCountSelector.ItemsSource = TopCountChoices.Items;
-            ProcessCountSelector.SelectedItem = TopCountChoices.Selection(_preferences.TopProcessCount);
-        }
-        finally
-        {
-            ProcessCountSelector.SelectionChanged += OnProcessCountChanged;
-        }
-
-        // Labels change, but ranking, history, selection, and scroll position stay intact.
-        var selectedSort = _preferences.ProcessSort;
-        ProcessSortSelector.SelectionChanged -= OnProcessSortChanged;
-        try
-        {
-            ProcessSortSelector.ItemsSource = new[]
-                { Strings.CPU, Strings.GPU, Strings.Memory, Strings.IO, Strings.Threads, Strings.Handles };
-            ProcessSortSelector.SelectedIndex = (int)selectedSort;
-        }
-        finally
-        {
-            ProcessSortSelector.SelectionChanged += OnProcessSortChanged;
-        }
-
-        UpdateSortHeaderToolTips();
+        Processes.ApplyLanguage(ProcessListSettings.From(_preferences));
         UpdatePinButton();
         BuildRangeChips();
         foreach (var metric in Metrics) metric.RefreshLanguage();
@@ -966,23 +667,6 @@ public partial class MainWindow
         RefreshPresentation();
     }
 
-    private void UpdateSortHeaderToolTips()
-    {
-        foreach (var (header, sort, text) in SortHeaders)
-        {
-            var description = sort switch
-            {
-                ProcessSort.Gpu => Strings.BusiestGPUEnginePerProcessAveragedOverReadableIntervalsIn,
-                ProcessSort.Memory => Strings.ResidentWorkingSetIncludingSharedPages,
-                ProcessSort.Io => Strings.ProcessReadWriteIOIncludesFileNetworkAndDevice,
-                ProcessSort.Threads => Strings.ProcessThreadsExplanation,
-                ProcessSort.Handles => Strings.ProcessHandlesExplanation,
-                _ => Strings.AverageOverTheLast5SecondsWindowsCountsProcessCPU
-            };
-            header.ToolTip = Strings.Format(Strings.ClickToRankProcessesBy, description,
-                text.Replace(" %", "").Replace(" MB/s", ""));
-        }
-    }
 
     internal void ApplyTheme()
     {
@@ -1110,8 +794,7 @@ public partial class MainWindow
                 return;
             }
 
-            ProcessSearchBox.Focus();
-            ProcessSearchBox.SelectAll();
+            Processes.FocusSearch();
             e.Handled = true;
             return;
         }
@@ -1122,15 +805,13 @@ public partial class MainWindow
             return;
         }
 
-        if (e.Key == Key.Escape && ProcessSearchBox.IsKeyboardFocusWithin && ProcessSearchBox.Text.Length > 0)
+        if (e.Key == Key.Escape && Processes.ClearFocusedSearch())
         {
-            ProcessSearchBox.Clear();
             e.Handled = true;
             return;
         }
 
-        if (e.Key != Key.Escape || _selectedSample is null || ProcessCountSelector.IsDropDownOpen ||
-            ProcessSortSelector.IsDropDownOpen) return;
+        if (e.Key != Key.Escape || _selectedSample is null || Processes.HasOpenDropDown) return;
         ReturnToLive();
         e.Handled = true;
     }
@@ -1184,6 +865,7 @@ public partial class MainWindow
 
         _closing = true;
         Session.Close();
+        Processes.Close();
         _snapshotCopiedTimer.Stop();
         IsEnabled = false;
         SystemEvents.UserPreferenceChanged -= OnUserPreferenceChanged;

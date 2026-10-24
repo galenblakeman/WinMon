@@ -66,9 +66,9 @@ internal static class Program
         window.SelectedSample = history.Samples[^60];
         Measure("historical-frame");
         window.SelectedSample = null;
-        Check(window.GroupedChip);
+        Check(window.Processes.GroupedChip);
         Measure("grouped-live-frame");
-        Check(window.IndividualChip);
+        Check(window.Processes.IndividualChip);
         Check(window.ServicesTab);
         window.ServiceView.ExpandAll();
         Measure("services-live-frame");
@@ -80,10 +80,10 @@ internal static class Program
         Flush();
         PinAndSelect(false);
         Measure("pinned-selected-live-frame");
-        Check(window.GroupedChip);
+        Check(window.Processes.GroupedChip);
         PinAndSelect(true);
         Measure("pinned-selected-grouped-live-frame");
-        Check(window.IndividualChip);
+        Check(window.Processes.IndividualChip);
         window.RefreshPresentation();
         Flush();
         var pixels = Pixels(args.Length > 1 ? args[1] : null);
@@ -145,9 +145,9 @@ internal static class Program
         // Two pins and one selection, each a fixture lifetime that ranks in some frames and not others.
         void PinAndSelect(bool grouped)
         {
-            window.ToggleProcessPin(Fixture(3), grouped);
-            window.ToggleProcessPin(Fixture(100), grouped);
-            window.SelectProcess(Fixture(50), grouped);
+            window.Processes.ToggleProcessPin(Fixture(3), grouped);
+            window.Processes.ToggleProcessPin(Fixture(100), grouped);
+            window.Processes.SelectProcess(Fixture(50), grouped);
             Flush();
         }
 
