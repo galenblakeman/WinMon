@@ -170,9 +170,11 @@ internal sealed class CaptureRules(IReadOnlyList<CaptureRuleSetting> rules, Time
         return null;
     }
 
+    /// <summary>How far below the threshold a value must fall to count toward re-arming.</summary>
+    /// <remarks>Never more than half the threshold, so a low threshold, which Settings allows from 1, can still re-arm.</remarks>
     private static double Margin(CaptureRuleSetting rule)
     {
-        return rule.Metric == CaptureMetric.Network ? rule.Threshold / 10 : 5;
+        return rule.Metric == CaptureMetric.Network ? rule.Threshold / 10 : Math.Min(5, rule.Threshold / 2);
     }
 
     /// <summary>The value a machine rule compares; null when the reading is unavailable.</summary>

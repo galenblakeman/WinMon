@@ -227,6 +227,19 @@ internal sealed class AutoCaptureSection : StackPanel
         }
 
         var folder = Folder;
+        // A relative folder would follow the current directory, which differs when Windows starts WinMon at sign-in.
+        // Anchor it beside the default reports folder instead, and show where it resolved.
+        if (folder.Length > 0 && !Path.IsPathFullyQualified(folder))
+            try
+            {
+                folder = Path.GetFullPath(folder, Path.GetDirectoryName(_defaultFolder) ?? AppContext.BaseDirectory);
+                _folder.Text = folder;
+            }
+            catch (Exception ex) when (ex is ArgumentException or NotSupportedException or IOException)
+            {
+                // Left as typed; the writability check on save rejects it.
+            }
+
         return new AutoCapturePreferences
         {
             Enabled = IsOn, Rules = [.. rules], CooldownMinutes = cooldown,
@@ -238,6 +251,7 @@ internal sealed class AutoCaptureSection : StackPanel
     /// <summary>Whether the reports folder can be created and written; checked on save for a chosen folder.</summary>
     internal static bool CanWrite(string folder)
     {
+        if (!Path.IsPathFullyQualified(folder)) return false;
         try
         {
             Directory.CreateDirectory(folder);

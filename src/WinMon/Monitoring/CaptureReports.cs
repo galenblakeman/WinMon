@@ -68,15 +68,31 @@ internal static class CaptureReports
         for (var copy = 1; copy < 1000; copy++)
         {
             var path = Path.Combine(folder, FileName(fired, metric, copy));
+            FileStream stream;
             try
             {
-                using var stream = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None);
-                using var writer = new StreamWriter(stream, new UTF8Encoding(false));
-                writer.Write(text);
-                return path;
+                stream = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None);
             }
             catch (IOException) when (File.Exists(path))
             {
+                continue;
+            }
+
+            try
+            {
+                using (stream)
+                using (var writer = new StreamWriter(stream, new UTF8Encoding(false)))
+                {
+                    writer.Write(text);
+                }
+
+                return path;
+            }
+            catch
+            {
+                // A failed write, such as a full disk, is not a name collision: remove the partial file and report it.
+                TryDelete(path);
+                throw;
             }
         }
 
@@ -154,6 +170,18 @@ internal static class CaptureReports
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             Trace.TraceWarning("WinMon could not list capture reports: {0}", ex.Message);
+        }
+    }
+
+    private static void TryDelete(string path)
+    {
+        try
+        {
+            File.Delete(path);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            Trace.TraceWarning("WinMon could not remove partial capture report {0}: {1}", path, ex.Message);
         }
     }
 

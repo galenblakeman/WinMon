@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Security;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
@@ -64,13 +65,13 @@ public partial class MainWindow
             return;
         }
 
-        // A changed rule set starts afresh; unrelated preference changes keep the same settings instance.
-        if (!ReferenceEquals(settings, _captureRulesSource))
-        {
+        // A changed rule set starts afresh. Settings saves rebuild the preferences even when the rules are unchanged,
+        // so compare by value: otherwise saving any setting would drop the runs and the cooldown.
+        if (_captureRulesSource is not { } source || source.CooldownMinutes != settings.CooldownMinutes ||
+            !source.Rules.SequenceEqual(settings.Rules))
             _captureRules = new CaptureRules(settings.Rules, TimeSpan.FromMinutes(settings.CooldownMinutes),
                 Environment.ProcessorCount);
-            _captureRulesSource = settings;
-        }
+        _captureRulesSource = settings;
 
         foreach (var fired in _captureRules!.Observe(full)) RecordCapture(fired, settings);
     }
@@ -80,10 +81,11 @@ public partial class MainWindow
         var history = Session.History.Samples;
         var marker = new CaptureMarker(fired, Guid.NewGuid(), CaptureReportText.Rule(fired));
         _captureMarkers.Add(marker);
-        var text = CaptureReportText.Report(fired, marker.ReportId, history);
+        var snapshot = CaptureReportText.Snapshot(fired, history);
+        var text = CaptureReportText.Report(fired, marker.ReportId, snapshot);
         var folder = settings.Folder ?? _preferenceStore.DefaultCaptureFolder;
         _ = WriteCaptureAsync(marker, folder, text);
-        if (settings.Notify) NotifyCapture(marker, CaptureReportText.Notification(fired, history));
+        if (settings.Notify) NotifyCapture(marker, CaptureReportText.Notification(fired, snapshot));
     }
 
     private async Task WriteCaptureAsync(CaptureMarker marker, string folder, string text)
@@ -295,8 +297,8 @@ public partial class MainWindow
 
         menu.Items.Add(new Separator());
         var folder = settings.Folder ?? _preferenceStore.DefaultCaptureFolder;
-        var open = ProcessRow.ActionItem(Strings.Format(Strings.AutoCaptureOpenFolderCount,
-            CaptureReports.Find(folder).Count), ButtonIcon.Folder);
+        var open = ProcessRow.ActionItem(Strings.Format(Strings.AutoCaptureOpenFolderCount, "…"), ButtonIcon.Folder);
+        _ = ShowReportCountAsync(open, folder);
         open.Click += (_, _) =>
         {
             try
@@ -317,5 +319,21 @@ public partial class MainWindow
         settingsItem.Click += (_, _) => OnSettings(this, new RoutedEventArgs());
         menu.Items.Add(settingsItem);
         return menu;
+    }
+
+    /// <summary>Fill in the report count once it is known; an unreadable folder keeps the placeholder.</summary>
+    /// <remarks>Counting opens every report to check its first line, so a slow or offline folder must not block the menu.</remarks>
+    private static async Task ShowReportCountAsync(MenuItem item, string folder)
+    {
+        try
+        {
+            var count = await Task.Run(() => CaptureReports.Find(folder).Count);
+            item.Header = Strings.Format(Strings.AutoCaptureOpenFolderCount, count);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException or
+                                       NotSupportedException or SecurityException)
+        {
+            Trace.TraceWarning("WinMon could not count capture reports in {0}: {1}", folder, ex.Message);
+        }
     }
 }

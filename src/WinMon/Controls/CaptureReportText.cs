@@ -63,8 +63,8 @@ internal static class CaptureReportText
     /// <summary>The report saved to the folder: the trigger header, then the Copy capture text of the peak.</summary>
     /// <param name="fired">The rule trigger and its peak reading.</param>
     /// <param name="id">The capture identifier written into the report header.</param>
-    /// <param name="history">Compacted history that still holds the peak.</param>
-    internal static string Report(CaptureFired fired, Guid id, IReadOnlyList<MonitorSample> history)
+    /// <param name="snapshot">The peak's <see cref="Snapshot"/>, shared with <see cref="Notification"/>.</param>
+    internal static string Report(CaptureFired fired, Guid id, SnapshotReport snapshot)
     {
         var metric = fired.Rule.Metric;
         var text = new StringBuilder();
@@ -76,7 +76,7 @@ internal static class CaptureReportText
             string.Join(' ', fired.Run.Select(v => v.ToString("0.0", CultureInfo.CurrentCulture)))));
         if (!AttributesProcesses(metric)) text.AppendLine(Strings.AutoCaptureIoDisclaimer);
         text.AppendLine();
-        text.Append(SnapshotText.Format(Snapshot(fired, history)));
+        text.Append(SnapshotText.Format(snapshot));
         text.AppendLine();
         return text.ToString();
     }
@@ -124,15 +124,23 @@ internal static class CaptureReportText
     }
 
     /// <summary>The notification body: the peak, and the busiest process where the rule can attribute one.</summary>
-    internal static string Notification(CaptureFired fired, IReadOnlyList<MonitorSample> history)
+    /// <param name="fired">The rule trigger and its peak reading.</param>
+    /// <param name="snapshot">The peak's <see cref="Snapshot"/>, ranked by the rule's resource.</param>
+    internal static string Notification(CaptureFired fired, SnapshotReport snapshot)
     {
-        var peak = Strings.Format(Strings.AutoCaptureNotificationPeak, Value(fired.Rule.Metric, fired.PeakValue),
+        var metric = fired.Rule.Metric;
+        var peak = Strings.Format(Strings.AutoCaptureNotificationPeak, Value(metric, fired.PeakValue),
             fired.Peak.Timestamp);
-        if (!AttributesProcesses(fired.Rule.Metric)) return peak;
-        var busiest = Snapshot(fired, history).Processes.FirstOrDefault();
-        return busiest is null
-            ? peak
-            : $"{peak} · {DisplayName(busiest)} {Strings.Format(Strings.PercentOneDecimal, busiest.CpuPercent)}";
+        if (!AttributesProcesses(metric) || snapshot.Processes.FirstOrDefault() is not { } busiest) return peak;
+        // The process's own share of the resource it was ranked by. A process rule's peak is already that process's.
+        var value = metric switch
+        {
+            CaptureMetric.Process => null,
+            CaptureMetric.Memory => busiest.WorkingSetBytes is { } bytes ? UsageText.Bytes(bytes) : null,
+            CaptureMetric.Gpu => busiest.GpuPercent is { } gpu ? Strings.Format(Strings.PercentOneDecimal, gpu) : null,
+            _ => Strings.Format(Strings.PercentOneDecimal, busiest.CpuPercent)
+        };
+        return value is null ? $"{peak} · {DisplayName(busiest)}" : $"{peak} · {DisplayName(busiest)} {value}";
     }
 
     private static string DisplayName(ProcessUsage process)

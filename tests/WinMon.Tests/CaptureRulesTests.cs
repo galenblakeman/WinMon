@@ -79,6 +79,18 @@ public sealed class CaptureRulesTests
     }
 
     [Test]
+    public void Observe_ALowThresholdCanStillReArm()
+    {
+        // At 3% a five-point margin would demand a negative reading; the margin is capped at half the threshold.
+        var rules = Rules(Rule(CaptureMetric.Cpu, 3, 1));
+
+        var fired = Feed(rules, 0, 10, 2, 10, 1, 10);
+
+        Assert.That(fired.Select(f => f.Second), Is.EqualTo(new[] { 0, 4 }),
+            "2% is above 3 − 1.5 and does not re-arm; 1% does.");
+    }
+
+    [Test]
     public void Observe_AnyProcessUsesPercentOfOneLogicalProcessor()
     {
         // 6.25% of a 16-processor machine is one full core.

@@ -42,7 +42,7 @@ Automatic captures                                  [ On ]
 After firing, a rule **re-arms** only when both of these are true:
 
 - **Cooldown:** the configured time has passed since that rule last fired.
-- **Hysteresis:** the value has dropped below the threshold minus a margin for at least the rule's duration. The margin is 5 points for percentages and 10% of the threshold for network.
+- **Hysteresis:** the value has dropped below the threshold minus a margin for at least the rule's duration. The margin is 5 points for percentages, capped at half the threshold so a low threshold can still re-arm, and 10% of the threshold for network.
 
 Without the hysteresis, a value hovering at the threshold would fire again as soon as the cooldown ends.
 

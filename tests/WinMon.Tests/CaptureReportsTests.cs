@@ -164,15 +164,49 @@ public sealed class CaptureReportsTests
         var fired = new CaptureFired(new CaptureRuleSetting(CaptureMetric.PrimaryDisk, true, 95, 3), history[^1],
             history[^2], 99, [97, 99, 98]);
 
-        var text = CaptureReportText.Report(fired, id, history);
+        var snapshot = CaptureReportText.Snapshot(fired, history);
+        var text = CaptureReportText.Report(fired, id, snapshot);
 
         Assert.Multiple(() =>
         {
             Assert.That(text.Split('\n')[0].TrimEnd('\r'), Is.EqualTo(CaptureReports.FirstLine(id)));
             Assert.That(text, Does.Contain(Strings.AutoCaptureIoDisclaimer));
             Assert.That(text, Does.Contain(Strings.AutoCaptureTotalIo));
-            Assert.That(CaptureReportText.Notification(fired, history), Does.Not.Contain("busy"),
+            Assert.That(CaptureReportText.Notification(fired, snapshot), Does.Not.Contain("busy"),
                 "Disk notifications name no process.");
+        });
+    }
+
+    [Test]
+    public void Notification_ShowsTheBusiestProcessInTheRulesOwnResource()
+    {
+        var history = Enumerable.Range(0, 5).Select(i => Sample(i, 40, 10)).ToArray();
+        var memory = new CaptureFired(new CaptureRuleSetting(CaptureMetric.Memory, true, 90, 2), history[^1],
+            history[^1], 95, [95, 95]);
+        var trigger = history[^1].Processes.Single(p => p.Name == "quiet");
+        var process = new CaptureFired(new CaptureRuleSetting(CaptureMetric.Process, true, 50, 2), history[^1],
+            history[^1], 80, [80, 80], trigger);
+
+        var memoryText = CaptureReportText.Notification(memory, CaptureReportText.Snapshot(memory, history));
+        var processText = CaptureReportText.Notification(process, CaptureReportText.Snapshot(process, history));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(memoryText, Does.EndWith($"busy {UsageText.Bytes(100_000_000)}"),
+                "A memory rule shows the process's memory, not its CPU share.");
+            Assert.That(processText, Does.EndWith("· quiet"),
+                "A process rule's peak already gives that process's share of one core.");
+        });
+    }
+
+    [Test]
+    public void CanWrite_RejectsARelativeFolder()
+    {
+        Assert.Multiple(() =>
+        {
+            Assert.That(AutoCaptureSection.CanWrite("Captures"), Is.False,
+                "A relative folder would follow the current directory.");
+            Assert.That(AutoCaptureSection.CanWrite(_folder), Is.True);
         });
     }
 
