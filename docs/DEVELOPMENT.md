@@ -412,7 +412,14 @@ Steps 1–5 (renames, `MonitorSession`, benchmark and diagnostics moves), quiet 
 
 The differences are within the baseline's own run-to-run spread (live 3.65–4.57 ms). Allocation per refresh was identical, and every run rendered the baseline's pixels, except two runs whose last two scenarios matched an alternate frame the baseline also produces when the pointer is over the window.
 
-Step 6 (`ProcessesView`) ran while the machine was busy: the IDE was indexing and a Debug WinMon was open. The baseline's own Services time doubled, to 14 ms. Three alternating pairs differed in both directions (live 2.76 → 3.72 ms, compact 3.07 → 1.88 ms). Allocation stayed within 5 KiB per refresh in every scenario, and every pixel hash matched the baseline. Repeat this comparison on a quiet machine before relying on it.
+Step 6 (`ProcessesView`) was first measured while the IDE was indexing, and the noise hid any difference; it was measured again on a quiet machine. Eight alternating pairs, baseline first in each pair:
+
+| Build | Live | Historical | Grouped | Services | Compact | Pinned | Pinned grouped |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Baseline, 8 runs | 3.59 | 1.06 | 5.36 | 6.72 | 1.49 | 2.93 | 5.54 |
+| After `ProcessesView`, 8 runs | 3.82 | 0.98 | 4.68 | 6.96 | 1.43 | 2.91 | 5.62 |
+
+Allocation per refresh was identical in every scenario. Only the live frame was consistently slower: the new build lost 7 of 8 pairs, typically by about 0.2 ms. The other scenarios that also refresh the process list (historical, grouped, pinned) showed no consistent difference, and Services, slower in 6 of 8 pairs, stayed within its run-to-run spread (6.2–7.9 ms). Live is the first scenario measured. With tiered compilation off (`DOTNET_TieredCompilation=0`, three pairs), the live difference disappeared (−0.00, −0.87 and +0.39 ms) and no scenario was consistently slower, so the gap comes from how the JIT tiers the first scenario's code rather than from more work per refresh. Pixels matched the baseline except the known pointer-hover frame and one compact-strip frame in 1 of 8 runs that did not recur.
 
 The full smoke (`--smoke-output`) passed after step 6, but its first run under that load hit the mode's 60-second timeout during the final 15-second idle observation. On a quiet machine its measured phase takes about 50 seconds, so the budget is tight.
 
