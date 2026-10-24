@@ -14,6 +14,7 @@ These records describe the individual feature increments and their validation at
 - [GPU utilization](GPU-UTILIZATION.md)
 - [Multiple disk volumes](MULTIPLE-DISKS.md)
 - [Process count selector](PROCESS-COUNT.md)
+- [Code structure](STRUCTURE.md)
 
 ## Application icon
 

@@ -61,6 +61,17 @@ Process percentages represent shares of total machine CPU capacity, not per-core
 
 The initial provider uses Windows system/process time counters. Machines with multiple active processor groups are currently unsupported and show unavailable readings rather than partial machine totals. Process ranking is individual; executable grouping is deferred.
 
+## Code structure
+
+These rules apply to new code now. Existing code is being moved to them in the order recorded in the [structure note](design/STRUCTURE.md).
+
+- **`Monitoring` is a leaf.** It never references WPF, `WinMon.Controls` or `WinMon.Preferences`. A test checks the compiled IL.
+- **Sampling lives outside the window.** `MonitorSession` owns the sampling loop, the queue and history. It reaches the UI thread through a `post` delegate the window supplies.
+- **A view is a UserControl updated through one `Update(...)` call** and owns its own state. The window writes that state back into `MonitorPreferences` at exit.
+- **XAML for layout and window chrome; code-built elements only for rows updated every tick.**
+- **Diagnostics and the benchmark use internal members, never reflection on private names.**
+- **Structural changes must not regress performance.** Record `WinMon.Performance` results before and after under [Performance tuning measurements](#performance-tuning-measurements).
+
 ## Build and tests
 
 The solution pins SDK 10.0.402 with latest-patch roll-forward.
