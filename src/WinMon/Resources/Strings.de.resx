@@ -1431,4 +1431,37 @@ Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse
   <data name="ProcessPriorityUnavailable" xml:space="preserve"><value>Die Priorität kann nur für einen verfügbaren einzelnen Liveprozess geändert werden.</value></data>
   <data name="ProcessPriorityAccessDenied" xml:space="preserve"><value>Zugriff verweigert. Windows hat WinMon nicht erlaubt, die Priorität dieses Prozesses zu ändern.</value></data>
   <data name="ProcessPriorityFailed" xml:space="preserve"><value>Die Prozesspriorität konnte nicht geändert werden: {0}</value></data>
+  <data name="DetailLive" xml:space="preserve"><value>live</value></data>
+  <data name="DetailCpuDefinition" xml:space="preserve"><value>Anteil an der gesamten Prozessorzeit.</value></data>
+  <data name="DetailMemoryDefinition" xml:space="preserve"><value>Anteil des verwendeten physischen Speichers.</value></data>
+  <data name="DetailNetworkDefinition" xml:space="preserve"><value>Empfang und Versand über den ausgewählten Adapter. Die Auslastung bezieht sich auf die Verbindungsgeschwindigkeit, nicht auf die Internetgeschwindigkeit.</value></data>
+  <data name="DetailGpuDefinition" xml:space="preserve"><value>Auslastung der am stärksten genutzten GPU-Einheit.</value></data>
+  <data name="DetailDiskDefinition" xml:space="preserve"><value>Aktive Zeit, nicht belegter Speicherplatz. Lese- und Schreibdurchsatz in MB/s.</value></data>
+  <data name="DetailClockSpeed" xml:space="preserve"><value>Taktrate</value></data>
+  <data name="DetailUserKernel" xml:space="preserve"><value>Benutzer / Kernel</value></data>
+  <data name="DetailProcessesThreads" xml:space="preserve"><value>Prozesse · Threads</value></data>
+  <data name="DetailHandles" xml:space="preserve"><value>Handles</value></data>
+  <data name="DetailBusiestProcess" xml:space="preserve"><value>Aktivster Prozess (live)</value></data>
+  <data name="DetailUpTime" xml:space="preserve"><value>Betriebszeit</value></data>
+  <data name="DetailInUseTotal" xml:space="preserve"><value>Belegt / gesamt</value></data>
+  <data name="DetailAvailable" xml:space="preserve"><value>Verfügbar</value></data>
+  <data name="DetailCommittedLimit" xml:space="preserve"><value>Zugewiesen / Limit</value></data>
+  <data name="DetailCached" xml:space="preserve"><value>Zwischengespeichert</value></data>
+  <data name="DetailPagedNonPaged" xml:space="preserve"><value>Ausgelagerter / nicht ausgelagerter Pool</value></data>
+  <data name="DetailLargestWorkingSet" xml:space="preserve"><value>Größter Arbeitsspeicher</value></data>
+  <data name="DetailAdapter" xml:space="preserve"><value>Adapter</value></data>
+  <data name="DetailLinkSpeed" xml:space="preserve"><value>Verbindungsgeschwindigkeit</value></data>
+  <data name="DetailUtilization" xml:space="preserve"><value>Auslastung</value></data>
+  <data name="DetailReceiveSend" xml:space="preserve"><value>Empfangen / gesendet</value></data>
+  <data name="DetailReceivedSent" xml:space="preserve"><value>Empfangen / gesendet seit Start</value></data>
+  <data name="DetailAdapterName" xml:space="preserve"><value>Adaptername</value></data>
+  <data name="DetailBusiestEngine" xml:space="preserve"><value>Aktivste Einheit</value></data>
+  <data name="DetailDedicatedMemory" xml:space="preserve"><value>Dedizierter Speicher</value></data>
+  <data name="DetailSharedMemory" xml:space="preserve"><value>Gemeinsamer Speicher</value></data>
+  <data name="DetailActiveTime" xml:space="preserve"><value>Aktive Zeit</value></data>
+  <data name="DetailRead" xml:space="preserve"><value>Lesen</value></data>
+  <data name="DetailWrite" xml:space="preserve"><value>Schreiben</value></data>
+  <data name="DetailAverageResponse" xml:space="preserve"><value>Durchschnittliche Antwortzeit</value></data>
+  <data name="DetailQueueLength" xml:space="preserve"><value>Warteschlangenlänge</value></data>
+  <data name="DetailFreeSpace" xml:space="preserve"><value>Freier Speicherplatz</value></data>
 </root>

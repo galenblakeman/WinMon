@@ -64,13 +64,22 @@ public sealed class WindowsCpuSampler : IDisposable
         var usages = CreateProcessUsages(_baselines, current.Processes, totalDelta,
             (current.MonotonicTimestamp - prior.MonotonicTimestamp) / (double)Stopwatch.Frequency);
         Rebaseline(current);
+        var kernelDelta = current.SystemTimes.KernelTicks - prior.SystemTimes.KernelTicks - idleDelta;
         return new MonitorSample(
             current.Timestamp,
             Math.Clamp(100d * busyDelta / totalDelta, 0d, 100d),
             usages,
             current.UnavailableProcesses,
             false,
-            current.MonotonicTimestamp);
+            current.MonotonicTimestamp)
+        {
+            Resources = new ResourceSample
+            {
+                CpuKernelPercent = kernelDelta >= 0 && kernelDelta <= busyDelta
+                    ? 100d * kernelDelta / totalDelta
+                    : null
+            }
+        };
     }
 
     /// <summary>

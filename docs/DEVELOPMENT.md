@@ -475,6 +475,25 @@ reported 0.581% and 0.642% of total machine CPU respectively; these short,
 uncontrolled observations do not demonstrate a whole-process CPU reduction.
 The Release suite passed all 55 baseline tests and all 58 updated tests.
 
+### Resource detail tooltips (October 24, 2026)
+
+`WinMon.Performance` was run against `HEAD` before the change and the resource-detail build on the same
+machine, in Release with 850 synthetic processes. The original scenarios keep the same order; the updated
+benchmark adds an open CPU tooltip after them. Median UI-thread results from one comparable pair:
+
+| Per refresh | Before | After |
+| --- | ---: | ---: |
+| Live | 4.45 ms / 558 KiB | 6.17 ms / 564 KiB |
+| Compact live | 1.53 ms / 325 KiB | 1.73 ms / 326 KiB |
+| Pinned, selected, grouped | 5.93 ms / 738 KiB | 6.07 ms / 740 KiB |
+| Same grouped view, CPU tooltip open | — | 8.70 ms / 859 KiB |
+
+Closed-view allocations stayed close to baseline. Timing varied between runs on this machine: updated
+live medians ranged from 3.84 to 6.45 ms, so this pair does not establish a sustained CPU change.
+The open-tooltip scenario includes its popup, ranking and layout; its 2.63 ms / 119 KiB difference from
+the adjacent grouped run measures the cost of keeping one CPU tooltip open. The native smoke run and
+609 tests passed. Full reports are in `artifacts/performance/hover-before.json` and `hover-after.json`.
+
 ## Release packaging
 
 See the [release guide](../packaging/RELEASING.md) for the portable ZIP, per-user Inno Setup installer, draft GitHub Releases workflow, and generated WinGet manifests. Build all release assets with `./tools/New-Release.ps1` after bootstrapping the compiler with `./tools/Install-InnoSetup.ps1`.

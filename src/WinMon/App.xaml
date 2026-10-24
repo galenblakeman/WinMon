@@ -154,6 +154,48 @@
         <Style TargetType="TextBlock">
             <Setter Property="Foreground" Value="{DynamicResource Text}" />
         </Style>
+        <DataTemplate DataType="{x:Type controls:MetricDetails}">
+            <StackPanel Width="380" Grid.IsSharedSizeScope="True">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{Binding Title}" Foreground="{Binding Accent}"
+                               FontSize="16" FontWeight="SemiBold" />
+                    <TextBlock Grid.Column="1" Text="{Binding Live}" Foreground="{DynamicResource Muted}" />
+                </Grid>
+                <TextBlock Margin="0,5,0,9" Text="{Binding Definition}" TextWrapping="Wrap"
+                           Foreground="{DynamicResource Muted}" />
+                <Border Height="1" Background="{DynamicResource Line}" Margin="0,0,0,6" />
+                <ItemsControl ItemsSource="{Binding Rows}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0,4,0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="DetailLabels" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock MaxWidth="210" Margin="0,0,10,0" Text="{Binding Label}"
+                                           TextTrimming="CharacterEllipsis" Foreground="{DynamicResource Muted}" />
+                                <TextBlock Grid.Column="1" Text="{Binding Value}" TextAlignment="Right"
+                                           FontFamily="Segoe UI" TextTrimming="CharacterEllipsis" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </DataTemplate>
+        <Style x:Key="MetricTileFocusVisual" TargetType="Control">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Control">
+                        <Rectangle Margin="2" Stroke="{DynamicResource Text}" StrokeDashArray="2,2"
+                                   StrokeThickness="1" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <Style TargetType="ToolTip">
             <Style.Resources>
                 <DataTemplate DataType="{x:Type system:String}">

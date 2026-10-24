@@ -83,6 +83,18 @@ internal static class Program
         Check(window.Processes.GroupedChip);
         PinAndSelect(true);
         Measure("pinned-selected-grouped-live-frame");
+        var detailsTip = new System.Windows.Controls.ToolTip
+        {
+            Content = window.CpuMetric.ToolTip, PlacementTarget = window.CpuMetric
+        };
+        window.OpenDetails(window.CpuMetric);
+        detailsTip.IsOpen = true;
+        Flush();
+        Measure("pinned-selected-grouped-tooltip-open");
+        detailsTip.IsOpen = false;
+        detailsTip.Content = null;
+        detailsTip.PlacementTarget = null;
+        window.CloseDetails(window.CpuMetric);
         Check(window.Processes.IndividualChip);
         window.RefreshPresentation();
         Flush();

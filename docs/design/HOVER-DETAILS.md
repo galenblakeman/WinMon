@@ -1,6 +1,6 @@
 # Resource detail tooltips
 
-Proposed on 2026-10-24. Status: design, not started.
+Proposed on 2026-10-24. Status: implemented on 2026-10-24.
 
 ## Why
 

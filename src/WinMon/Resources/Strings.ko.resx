@@ -1431,4 +1431,37 @@ Windows 상태: {2}</value>
   <data name="ProcessPriorityUnavailable" xml:space="preserve"><value>사용 가능한 개별 실행 중 프로세스의 우선 순위만 변경할 수 있습니다.</value></data>
   <data name="ProcessPriorityAccessDenied" xml:space="preserve"><value>액세스가 거부되었습니다. Windows에서 WinMon의 프로세스 우선 순위 변경을 허용하지 않았습니다.</value></data>
   <data name="ProcessPriorityFailed" xml:space="preserve"><value>프로세스 우선 순위를 변경할 수 없습니다: {0}</value></data>
+  <data name="DetailLive" xml:space="preserve"><value>실시간</value></data>
+  <data name="DetailCpuDefinition" xml:space="preserve"><value>전체 프로세서 시간 중 사용 비율입니다.</value></data>
+  <data name="DetailMemoryDefinition" xml:space="preserve"><value>사용 중인 실제 메모리의 비율입니다.</value></data>
+  <data name="DetailNetworkDefinition" xml:space="preserve"><value>선택한 어댑터의 수신 및 송신입니다. 사용률은 인터넷 속도가 아닌 링크 속도 기준입니다.</value></data>
+  <data name="DetailGpuDefinition" xml:space="preserve"><value>가장 사용량이 높은 GPU 엔진의 사용률입니다.</value></data>
+  <data name="DetailDiskDefinition" xml:space="preserve"><value>사용 공간이 아닌 활성 시간입니다. 읽기/쓰기 처리량은 MB/s입니다.</value></data>
+  <data name="DetailClockSpeed" xml:space="preserve"><value>클록 속도</value></data>
+  <data name="DetailUserKernel" xml:space="preserve"><value>사용자 / 커널</value></data>
+  <data name="DetailProcessesThreads" xml:space="preserve"><value>프로세스 · 스레드</value></data>
+  <data name="DetailHandles" xml:space="preserve"><value>핸들</value></data>
+  <data name="DetailBusiestProcess" xml:space="preserve"><value>가장 바쁜 프로세스(실시간)</value></data>
+  <data name="DetailUpTime" xml:space="preserve"><value>가동 시간</value></data>
+  <data name="DetailInUseTotal" xml:space="preserve"><value>사용 중 / 전체</value></data>
+  <data name="DetailAvailable" xml:space="preserve"><value>사용 가능</value></data>
+  <data name="DetailCommittedLimit" xml:space="preserve"><value>커밋 / 한도</value></data>
+  <data name="DetailCached" xml:space="preserve"><value>캐시됨</value></data>
+  <data name="DetailPagedNonPaged" xml:space="preserve"><value>페이지 / 비페이지 풀</value></data>
+  <data name="DetailLargestWorkingSet" xml:space="preserve"><value>최대 작업 집합</value></data>
+  <data name="DetailAdapter" xml:space="preserve"><value>어댑터</value></data>
+  <data name="DetailLinkSpeed" xml:space="preserve"><value>링크 속도</value></data>
+  <data name="DetailUtilization" xml:space="preserve"><value>사용률</value></data>
+  <data name="DetailReceiveSend" xml:space="preserve"><value>수신 / 송신</value></data>
+  <data name="DetailReceivedSent" xml:space="preserve"><value>시작 후 수신 / 송신</value></data>
+  <data name="DetailAdapterName" xml:space="preserve"><value>어댑터 이름</value></data>
+  <data name="DetailBusiestEngine" xml:space="preserve"><value>가장 바쁜 엔진</value></data>
+  <data name="DetailDedicatedMemory" xml:space="preserve"><value>전용 메모리</value></data>
+  <data name="DetailSharedMemory" xml:space="preserve"><value>공유 메모리</value></data>
+  <data name="DetailActiveTime" xml:space="preserve"><value>활성 시간</value></data>
+  <data name="DetailRead" xml:space="preserve"><value>읽기</value></data>
+  <data name="DetailWrite" xml:space="preserve"><value>쓰기</value></data>
+  <data name="DetailAverageResponse" xml:space="preserve"><value>평균 응답 시간</value></data>
+  <data name="DetailQueueLength" xml:space="preserve"><value>대기열 길이</value></data>
+  <data name="DetailFreeSpace" xml:space="preserve"><value>사용 가능 공간</value></data>
 </root>

@@ -1431,4 +1431,37 @@ GPU {11} · {12}
   <data name="ProcessPriorityUnavailable" xml:space="preserve"><value>Приоритет можно изменить только для доступного отдельного работающего процесса.</value></data>
   <data name="ProcessPriorityAccessDenied" xml:space="preserve"><value>Доступ запрещён. Windows не разрешила WinMon изменить приоритет этого процесса.</value></data>
   <data name="ProcessPriorityFailed" xml:space="preserve"><value>Не удалось изменить приоритет процесса: {0}</value></data>
+  <data name="DetailLive" xml:space="preserve"><value>сейчас</value></data>
+  <data name="DetailCpuDefinition" xml:space="preserve"><value>Доля общего времени процессора.</value></data>
+  <data name="DetailMemoryDefinition" xml:space="preserve"><value>Доля используемой физической памяти.</value></data>
+  <data name="DetailNetworkDefinition" xml:space="preserve"><value>Приём и отправка на выбранном адаптере. Загрузка относится к скорости соединения, а не Интернета.</value></data>
+  <data name="DetailGpuDefinition" xml:space="preserve"><value>Загрузка самого занятого движка GPU.</value></data>
+  <data name="DetailDiskDefinition" xml:space="preserve"><value>Активное время, а не занятое место. Скорость чтения и записи в МБ/с.</value></data>
+  <data name="DetailClockSpeed" xml:space="preserve"><value>Тактовая частота</value></data>
+  <data name="DetailUserKernel" xml:space="preserve"><value>Пользователь / ядро</value></data>
+  <data name="DetailProcessesThreads" xml:space="preserve"><value>Процессы · потоки</value></data>
+  <data name="DetailHandles" xml:space="preserve"><value>Дескрипторы</value></data>
+  <data name="DetailBusiestProcess" xml:space="preserve"><value>Самый загруженный процесс (сейчас)</value></data>
+  <data name="DetailUpTime" xml:space="preserve"><value>Время работы</value></data>
+  <data name="DetailInUseTotal" xml:space="preserve"><value>Используется / всего</value></data>
+  <data name="DetailAvailable" xml:space="preserve"><value>Доступно</value></data>
+  <data name="DetailCommittedLimit" xml:space="preserve"><value>Выделено / предел</value></data>
+  <data name="DetailCached" xml:space="preserve"><value>Кэшировано</value></data>
+  <data name="DetailPagedNonPaged" xml:space="preserve"><value>Выгружаемый / невыгружаемый пул</value></data>
+  <data name="DetailLargestWorkingSet" xml:space="preserve"><value>Наибольший рабочий набор</value></data>
+  <data name="DetailAdapter" xml:space="preserve"><value>Адаптер</value></data>
+  <data name="DetailLinkSpeed" xml:space="preserve"><value>Скорость соединения</value></data>
+  <data name="DetailUtilization" xml:space="preserve"><value>Загрузка</value></data>
+  <data name="DetailReceiveSend" xml:space="preserve"><value>Получение / отправка</value></data>
+  <data name="DetailReceivedSent" xml:space="preserve"><value>Получено / отправлено с запуска</value></data>
+  <data name="DetailAdapterName" xml:space="preserve"><value>Имя адаптера</value></data>
+  <data name="DetailBusiestEngine" xml:space="preserve"><value>Самый занятый движок</value></data>
+  <data name="DetailDedicatedMemory" xml:space="preserve"><value>Выделенная память</value></data>
+  <data name="DetailSharedMemory" xml:space="preserve"><value>Общая память</value></data>
+  <data name="DetailActiveTime" xml:space="preserve"><value>Активное время</value></data>
+  <data name="DetailRead" xml:space="preserve"><value>Чтение</value></data>
+  <data name="DetailWrite" xml:space="preserve"><value>Запись</value></data>
+  <data name="DetailAverageResponse" xml:space="preserve"><value>Среднее время отклика</value></data>
+  <data name="DetailQueueLength" xml:space="preserve"><value>Длина очереди</value></data>
+  <data name="DetailFreeSpace" xml:space="preserve"><value>Свободное место</value></data>
 </root>

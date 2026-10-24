@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Input;
 using WinMon.Controls;
 using WinMon.Preferences;
 
@@ -47,8 +48,17 @@ public partial class MainWindow
             var content = new Grid { ClipToBounds = true };
             content.Children.Add(graph);
             content.Children.Add(text);
-            var box = new Border { BorderThickness = new Thickness(0, 0, 1, 0), Child = content };
+            var box = new Border
+            {
+                BorderThickness = new Thickness(0, 0, 1, 0), Child = content,
+                Focusable = true, ToolTip = source.ToolTip
+            };
+            KeyboardNavigation.SetTabIndex(box, column);
             box.SetResourceReference(Border.BorderBrushProperty, "Line");
+            box.SetResourceReference(FocusVisualStyleProperty, "MetricTileFocusVisual");
+            ToolTipService.SetShowsToolTipOnKeyboardFocus(box, true);
+            box.ToolTipOpening += (_, _) => OpenDetails(source);
+            box.ToolTipClosing += (_, _) => CloseDetails(source);
             Grid.SetColumn(box, column);
             CompactStrip.Children.Add(box);
             _stripTiles.Add((source, box, graph, label, value, detail));
@@ -112,11 +122,19 @@ public partial class MainWindow
             CompactStrip.ColumnDefinitions[Grid.GetColumn(box)].Width = visible
                 ? new GridLength(source == NetworkMetric ? 1.3 : 1, GridUnitType.Star)
                 : new GridLength(0);
-            label.Text = source.Label;
-            value.Text = new TextRange(source.ValueLabel.ContentStart, source.ValueLabel.ContentEnd).Text;
+            var nextLabel = source.Label;
+            var nextValue = new TextRange(source.ValueLabel.ContentStart, source.ValueLabel.ContentEnd).Text;
+            var nameChanged = label.Text != nextLabel || value.Text != nextValue;
+            if (label.Text != nextLabel) label.Text = nextLabel;
+            if (value.Text != nextValue) value.Text = nextValue;
             // The compact strip prioritizes memory capacity and network direction readings.
-            detail.Text = source == MemoryMetric || source == NetworkMetric ? source.DetailLabel.Text : "";
-            box.ToolTip = source.ToolTip;
+            var nextDetail = source == MemoryMetric || source == NetworkMetric ? source.DetailLabel.Text : "";
+            if (detail.Text != nextDetail) detail.Text = nextDetail;
+            if (nameChanged || string.IsNullOrEmpty(AutomationProperties.GetName(box)))
+                AutomationProperties.SetName(box, $"{nextLabel} {nextValue}");
+            var definition = _metricDetails[source].Definition;
+            if (AutomationProperties.GetHelpText(box) != definition)
+                AutomationProperties.SetHelpText(box, definition);
             graph.UseSeriesPatterns = OverallGraph.UseSeriesPatterns;
             graph.SetData(history, MonitorPreferences.ShortRangeSeconds, null);
         }

@@ -1431,4 +1431,37 @@ Windows 健康状态：{2}</value>
   <data name="ProcessPriorityUnavailable" xml:space="preserve"><value>只能更改可用的单个正在运行的进程的优先级。</value></data>
   <data name="ProcessPriorityAccessDenied" xml:space="preserve"><value>访问被拒绝。Windows 不允许 WinMon 更改此进程的优先级。</value></data>
   <data name="ProcessPriorityFailed" xml:space="preserve"><value>无法更改进程优先级：{0}</value></data>
+  <data name="DetailLive" xml:space="preserve"><value>实时</value></data>
+  <data name="DetailCpuDefinition" xml:space="preserve"><value>占处理器总时间的比例。</value></data>
+  <data name="DetailMemoryDefinition" xml:space="preserve"><value>已使用的物理内存比例。</value></data>
+  <data name="DetailNetworkDefinition" xml:space="preserve"><value>所选适配器的接收与发送。利用率相对于链路速度，而非互联网速度。</value></data>
+  <data name="DetailGpuDefinition" xml:space="preserve"><value>最繁忙 GPU 引擎的利用率。</value></data>
+  <data name="DetailDiskDefinition" xml:space="preserve"><value>活动时间，并非已用空间。读写吞吐量以 MB/s 显示。</value></data>
+  <data name="DetailClockSpeed" xml:space="preserve"><value>时钟速度</value></data>
+  <data name="DetailUserKernel" xml:space="preserve"><value>用户 / 内核</value></data>
+  <data name="DetailProcessesThreads" xml:space="preserve"><value>进程 · 线程</value></data>
+  <data name="DetailHandles" xml:space="preserve"><value>句柄</value></data>
+  <data name="DetailBusiestProcess" xml:space="preserve"><value>最繁忙进程（实时）</value></data>
+  <data name="DetailUpTime" xml:space="preserve"><value>运行时间</value></data>
+  <data name="DetailInUseTotal" xml:space="preserve"><value>已用 / 总量</value></data>
+  <data name="DetailAvailable" xml:space="preserve"><value>可用</value></data>
+  <data name="DetailCommittedLimit" xml:space="preserve"><value>已提交 / 上限</value></data>
+  <data name="DetailCached" xml:space="preserve"><value>已缓存</value></data>
+  <data name="DetailPagedNonPaged" xml:space="preserve"><value>分页 / 非分页池</value></data>
+  <data name="DetailLargestWorkingSet" xml:space="preserve"><value>最大工作集</value></data>
+  <data name="DetailAdapter" xml:space="preserve"><value>适配器</value></data>
+  <data name="DetailLinkSpeed" xml:space="preserve"><value>链路速度</value></data>
+  <data name="DetailUtilization" xml:space="preserve"><value>利用率</value></data>
+  <data name="DetailReceiveSend" xml:space="preserve"><value>接收 / 发送</value></data>
+  <data name="DetailReceivedSent" xml:space="preserve"><value>启动后接收 / 发送</value></data>
+  <data name="DetailAdapterName" xml:space="preserve"><value>适配器名称</value></data>
+  <data name="DetailBusiestEngine" xml:space="preserve"><value>最繁忙引擎</value></data>
+  <data name="DetailDedicatedMemory" xml:space="preserve"><value>专用内存</value></data>
+  <data name="DetailSharedMemory" xml:space="preserve"><value>共享内存</value></data>
+  <data name="DetailActiveTime" xml:space="preserve"><value>活动时间</value></data>
+  <data name="DetailRead" xml:space="preserve"><value>读取</value></data>
+  <data name="DetailWrite" xml:space="preserve"><value>写入</value></data>
+  <data name="DetailAverageResponse" xml:space="preserve"><value>平均响应时间</value></data>
+  <data name="DetailQueueLength" xml:space="preserve"><value>队列长度</value></data>
+  <data name="DetailFreeSpace" xml:space="preserve"><value>可用空间</value></data>
 </root>

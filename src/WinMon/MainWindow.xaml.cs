@@ -88,6 +88,7 @@ public partial class MainWindow
             drain => Dispatcher.BeginInvoke(drain, DispatcherPriority.Background));
         Session.Recorded += OnSamplesRecorded;
         InitializeComponent();
+        InitializeMetricDetails();
         InitializeCompactView();
         InitializeServices();
         InitializeProcesses();
@@ -301,17 +302,9 @@ public partial class MainWindow
         GpuMetric.DetailLabel.Text = resource is { GpuMemoryUsedBytes: { } gpuUsed, GpuMemoryTotalBytes: > 0 }
             ? $"{gpuUsed / 1_073_741_824d:0.0} / {resource.GpuMemoryTotalBytes.Value / 1_073_741_824d:0.0} GiB"
             : "3D";
-        GpuMetric.DetailLabel.ToolTip = resource?.GpuMemoryTotalBytes is { } gpuTotal
-            ? Strings.Format(Strings.DedicatedVideoMemoryGiB, resource.GpuId, gpuTotal / 1_073_741_824d)
-            : Strings.Unavailable;
-        GpuMetric.ToolTip = resource?.GpuPercent is not null
-            ? Strings.Format(Strings.AdapterUtilizationOfTheBusiestEngineAcrossAvailableGPUs, resource.GpuId,
-                resource.GpuEngine)
-            : Strings.GPUCountersUnavailableOrCollectingAFreshInterval;
         CpuMetric.DetailLabel.Text = resource?.CpuClockMhz is > 0
             ? $"{resource.CpuClockMhz.Value / 1000d:0.00} GHz"
             : Strings.Unavailable;
-        CpuMetric.DetailLabel.ToolTip = Strings.CpuClockDescription;
         MemoryMetric.ValueLabel.Text = Percent(resource?.MemoryPercent);
         MemoryMetric.DetailLabel.Text = resource is { UsedMemoryBytes: { } used, TotalMemoryBytes: { } total }
             ? Strings.Format(Strings.GiB, used / 1_073_741_824d, total / 1_073_741_824d)
@@ -324,8 +317,6 @@ public partial class MainWindow
             UpdateDiskMetric(SecondaryDiskMetric, secondary,
                 resource?.SecondaryDiskName == secondary ? resource.SecondaryDiskActivePercent : null,
                 resource?.SecondaryDiskName == secondary ? resource.SecondaryDiskBytesPerSecond : null);
-        if (_preferences.SecondaryDrive is not null)
-            SecondaryDiskMetric.ToolTip += Strings.DrawnAsADashedLineOnTheChart;
         // Throughput leads: link utilization is almost always near 0% and says little on its own.
         if (resource?.ReceiveBytesPerSecond is { } receive)
         {
@@ -340,14 +331,7 @@ public partial class MainWindow
         NetworkMetric.DetailLabel.Text = resource?.SendBytesPerSecond is { } tx
             ? "↑" + RateText.Format(tx * 8)
             : Strings.CollectingDisconnected;
-        // Link speed and utilization live in the tooltip; the tiles show only the value and rates.
-        var link = resource?.LinkBitsPerSecond is { } speed ? Strings.Format(Strings.Link, RateText.Format(speed)) : "";
-        var utilization = resource?.NetworkPercent is not null
-            ? Strings.Format(Strings.OfLink, Percent(resource.NetworkPercent))
-            : Strings.LinkSpeedUnavailable;
-        NetworkMetric.ToolTip = resource?.NetworkName is { Length: > 0 } name
-            ? Strings.Format(Strings.ReceiveSendTheValueIsTheBusierDirectionUtilizationIs, name, link, utilization)
-            : Strings.NoConnectedEthernetOrWiFiInterfaceAvailable;
+        UpdateMetricDetails(latest);
         OverallGraph.VisibleMetrics = _preferences.SeriesMask;
     }
 
@@ -367,7 +351,6 @@ public partial class MainWindow
         metric.ValueLabel.Text = Percent(active);
         metric.DetailLabel.Text =
             bytes is { } rate ? Strings.Format(Strings.MBS, rate / 1_000_000) : Strings.Unavailable;
-        metric.ToolTip = Strings.Format(Strings.VolumeActiveTimeNotSpaceUsedReadWriteThroughputIn, name);
     }
 
     internal static string Percent(double? value)
@@ -654,6 +637,7 @@ public partial class MainWindow
         UpdatePinButton();
         BuildRangeChips();
         foreach (var metric in Metrics) metric.RefreshLanguage();
+        RefreshMetricDetailsLanguage();
         UpdateCompactButton();
         UpdateActivityActionsToggle();
         if (_tray?.ContextMenuStrip is { } menu)

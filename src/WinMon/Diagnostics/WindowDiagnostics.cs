@@ -178,6 +178,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
             throw new InvalidOperationException("Native physical-memory sampling did not arrive.");
         await CaptureFeatureDiagnosticsAsync(outputDirectory, cancellationToken);
         await CaptureToolTipAsync(Path.Combine(outputDirectory, "tooltip-dark.png"), cancellationToken);
+        await CaptureMetricDetailsAsync(outputDirectory, "dark", cancellationToken);
         window.MemoryMetric.Toggle.IsChecked = false;
         if ((window.OverallGraph.VisibleMetrics & 2) != 0) throw new InvalidOperationException("Memory series did not hide.");
         window.MemoryMetric.Toggle.IsChecked = true;
@@ -279,6 +280,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         await CaptureAsync(Path.Combine(outputDirectory, "light-scroll.png"), 1, cancellationToken);
         window.Processes.ProcessCountSelector.SelectedItem = 5;
         await CaptureToolTipAsync(Path.Combine(outputDirectory, "tooltip-light.png"), cancellationToken);
+        await CaptureMetricDetailsAsync(outputDirectory, "light", cancellationToken);
         var settings = new SettingsWindow(window.Preferences, checkForUpdates: () => Task.FromResult(Strings.UpToDate))
             { Owner = window };
         settings.Show();
@@ -768,6 +770,74 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         }
     }
 
+    private async Task CaptureMetricDetailsAsync(string output, string theme, CancellationToken cancellationToken)
+    {
+        foreach (var metric in new[] { window.CpuMetric, window.MemoryMetric, window.DiskMetric, window.GpuMetric })
+        {
+            if (metric.ToolTip is not MetricDetails details ||
+                ToolTipService.GetShowsToolTipOnKeyboardFocus(metric.Toggle) is not true ||
+                !ReferenceEquals(metric.Toggle.ToolTip, details))
+                throw new InvalidOperationException("Full resource tooltip does not share its detail model.");
+            await CaptureMetric(false, metric);
+        }
+
+        window.SetCompactView(true);
+        try
+        {
+            foreach (var metric in new[] { window.CpuMetric, window.MemoryMetric, window.DiskMetric, window.GpuMetric })
+            {
+                var box = window.StripTiles.Single(tile => tile.Source == metric).Box;
+                if (!box.Focusable || ToolTipService.GetShowsToolTipOnKeyboardFocus(box) is not true ||
+                    !ReferenceEquals(box.ToolTip, metric.ToolTip) ||
+                    !AutomationProperties.GetName(box).Contains(metric.Label, StringComparison.Ordinal))
+                    throw new InvalidOperationException("Compact resource tile lacks keyboard-accessible details.");
+                await CaptureMetric(true, metric);
+            }
+            var visibleBoxes = window.StripTiles.Where(tile => tile.Box.Visibility == Visibility.Visible)
+                .Select(tile => tile.Box).ToArray();
+            for (var i = 0; i + 1 < visibleBoxes.Length; i++)
+            {
+                visibleBoxes[i].Focus();
+                visibleBoxes[i].MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
+                if (!ReferenceEquals(Keyboard.FocusedElement, visibleBoxes[i + 1]))
+                    throw new InvalidOperationException("Compact resource tab order is not left to right.");
+            }
+        }
+        finally
+        {
+            window.SetCompactView(false);
+        }
+
+        async Task CaptureMetric(bool compact, MetricReadout metric)
+        {
+            var target = compact
+                ? window.StripTiles.Single(tile => tile.Source == metric).Box
+                : (FrameworkElement)metric;
+            var tooltip = new ToolTip
+            {
+                Content = metric.ToolTip, PlacementTarget = target, Placement = PlacementMode.Bottom
+            };
+            var name = metric == window.CpuMetric ? "cpu" : metric == window.MemoryMetric ? "memory"
+                : metric == window.GpuMetric ? "gpu" : "disk";
+            try
+            {
+                window.OpenDetails(metric);
+                window.RefreshVisiblePresentation();
+                tooltip.IsOpen = true;
+                await window.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render, cancellationToken);
+                tooltip.UpdateLayout();
+                await CaptureVisualAsync(tooltip,
+                    Path.Combine(output, $"tooltip-{name}-{theme}-{(compact ? "compact" : "full")}.png"), 1,
+                    cancellationToken);
+            }
+            finally
+            {
+                tooltip.IsOpen = false;
+                window.CloseDetails(metric);
+            }
+        }
+    }
+
     private void ValidateTitleBar()
     {
         // A mode change may just have collapsed the historical summary; measure the current layout.
@@ -900,7 +970,11 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         var unavailable = window.Session.History.Latest!.Resources;
         if (unavailable.SecondaryDiskName != missing || unavailable.SecondaryDiskActivePercent is not null ||
             unavailable.DiskActivePercent is null || unavailable.MemoryPercent is null)
-            throw new InvalidOperationException("An unavailable second volume disrupted native resource sampling.");
+            throw new InvalidOperationException(
+                $"An unavailable second volume disrupted native resource sampling: " +
+                $"secondary={unavailable.SecondaryDiskName}, secondary active={unavailable.SecondaryDiskActivePercent}, " +
+                $"primary={unavailable.DiskName}, primary active={unavailable.DiskActivePercent}, " +
+                $"primary bytes={unavailable.DiskBytesPerSecond}, memory={unavailable.MemoryPercent}.");
         await CaptureAsync(Path.Combine(outputDirectory, "disk-unavailable.png"), 1, cancellationToken);
         ResourceSample? dualNative = null;
         if (second is not null)

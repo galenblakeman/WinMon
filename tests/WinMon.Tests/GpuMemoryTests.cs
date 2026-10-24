@@ -43,6 +43,10 @@ public sealed class GpuMemoryTests
         var resources = sampler.Sample(sample, false).Resources;
         TestContext.Out.WriteLine($"GPU {resources.GpuId}: {resources.GpuMemoryUsedBytes?.ToString() ?? "unavailable"} / {resources.GpuMemoryTotalBytes?.ToString() ?? "unavailable"} bytes");
         Assert.That(resources.GpuMemoryUsedBytes.HasValue, Is.EqualTo(resources.GpuMemoryTotalBytes.HasValue));
-        if (resources.GpuMemoryTotalBytes is { } total) Assert.That(total, Is.GreaterThan(0));
+        if (resources.GpuMemoryTotalBytes is { } total)
+        {
+            Assert.That(total, Is.GreaterThan(0));
+            Assert.That(resources.GpuName, Is.Not.Empty);
+        }
     }
 }

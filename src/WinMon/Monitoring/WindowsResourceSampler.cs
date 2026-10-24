@@ -34,12 +34,16 @@ internal sealed class WindowsResourceSampler : IDisposable
     private readonly DiskCounter _primaryDisk = new();
     private readonly DiskCounter _secondaryDisk = new();
     private NetworkObservation? _previousNetwork;
+    private NetworkObservation? _networkStart;
 
     internal MonitorSample Sample(MonitorSample cpu, string? primaryDrive = null, string? secondaryDrive = null)
     {
         var reset = cpu.IsGap;
         if (reset) Reset();
-        var result = new ResourceSample { CpuClockMhz = _cpuClock.ReadMhz() };
+        var result = new ResourceSample
+        {
+            CpuClockMhz = _cpuClock.ReadMhz(), CpuKernelPercent = cpu.Resources.CpuKernelPercent
+        };
         var memory = new MemoryStatus { Length = (uint)Marshal.SizeOf<MemoryStatus>() };
         if (Native.GlobalMemoryStatusEx(ref memory) && memory.TotalPhysical > 0 &&
             memory.AvailablePhysical <= memory.TotalPhysical)
@@ -48,6 +52,19 @@ internal sealed class WindowsResourceSampler : IDisposable
                 TotalMemoryBytes = memory.TotalPhysical,
                 UsedMemoryBytes = memory.TotalPhysical - memory.AvailablePhysical
             };
+        var performance = new PerformanceInfo { Size = (uint)Marshal.SizeOf<PerformanceInfo>() };
+        if (Native.GetPerformanceInfo(ref performance, performance.Size))
+            result = result with
+            {
+                AvailableMemoryBytes = performance.PhysicalAvailablePages.ToUInt64() * performance.PageSize.ToUInt64(),
+                CommittedBytes = performance.CommitTotalPages.ToUInt64() * performance.PageSize.ToUInt64(),
+                CommitLimitBytes = performance.CommitLimitPages.ToUInt64() * performance.PageSize.ToUInt64(),
+                CachedBytes = performance.SystemCachePages.ToUInt64() * performance.PageSize.ToUInt64(),
+                PagedPoolBytes = performance.KernelPagedPages.ToUInt64() * performance.PageSize.ToUInt64(),
+                NonPagedPoolBytes = performance.KernelNonPagedPages.ToUInt64() * performance.PageSize.ToUInt64(),
+                ProcessCount = performance.ProcessCount, ThreadCount = performance.ThreadCount,
+                HandleCount = performance.HandleCount
+            };
 
         // PDH failures only make disk unavailable; they never stop memory, network or CPU.
         var primary = _primaryDisk.Read(primaryDrive ?? Path.GetPathRoot(Environment.SystemDirectory)!.TrimEnd('\\'));
@@ -55,8 +72,16 @@ internal sealed class WindowsResourceSampler : IDisposable
         result = result with
         {
             DiskName = primary.Name, DiskActivePercent = primary.Active, DiskBytesPerSecond = primary.Bytes,
+            DiskReadBytesPerSecond = primary.Read, DiskWriteBytesPerSecond = primary.Write,
+            DiskResponseSeconds = primary.Response, DiskQueueLength = primary.Queue,
+            DiskFreeBytes = primary.Free, DiskTotalBytes = primary.Total,
             SecondaryDiskName = secondary.Name, SecondaryDiskActivePercent = secondary.Active,
-            SecondaryDiskBytesPerSecond = secondary.Bytes
+            SecondaryDiskBytesPerSecond = secondary.Bytes,
+            SecondaryDiskReadBytesPerSecond = secondary.Read,
+            SecondaryDiskWriteBytesPerSecond = secondary.Write,
+            SecondaryDiskResponseSeconds = secondary.Response,
+            SecondaryDiskQueueLength = secondary.Queue,
+            SecondaryDiskFreeBytes = secondary.Free, SecondaryDiskTotalBytes = secondary.Total
         };
         try
         {
@@ -66,6 +91,7 @@ internal sealed class WindowsResourceSampler : IDisposable
         {
             Trace.TraceWarning("Network counters unavailable: {0}", ex.Message);
             _previousNetwork = null;
+            _networkStart = null;
             _candidates = null;
         }
 
@@ -78,6 +104,7 @@ internal sealed class WindowsResourceSampler : IDisposable
         _primaryDisk.Reset();
         _secondaryDisk.Reset();
         _previousNetwork = null;
+        _networkStart = null;
     }
 
     // Each volume owns its query and baseline so a missing drive cannot invalidate the other.
@@ -85,11 +112,15 @@ internal sealed class WindowsResourceSampler : IDisposable
     {
         private string? _name;
         private SafePdhQuery? _query;
-        private IntPtr _idleCounter, _bytesCounter;
+        private IntPtr _idleCounter, _bytesCounter, _readCounter, _writeCounter, _responseCounter, _queueCounter;
         private bool _baseline;
         private long _timestamp;
+        private Task<(ulong Free, ulong Total)?>? _spaceTask;
+        private (ulong Free, ulong Total)? _space;
+        private long _spaceRead;
 
-        internal (string Name, double? Active, double? Bytes) Read(string? name)
+        internal (string Name, double? Active, double? Bytes, double? Read, double? Write,
+            double? Response, double? Queue, ulong? Free, ulong? Total) Read(string? name)
         {
             if (_name != name)
             {
@@ -97,7 +128,8 @@ internal sealed class WindowsResourceSampler : IDisposable
                 _name = name;
             }
 
-            if (name is null) return ("", null, null);
+            if (name is null) return ("", null, null, null, null, null, null, null, null);
+            RefreshSpace(name);
             try
             {
                 if (_query is null)
@@ -108,6 +140,10 @@ internal sealed class WindowsResourceSampler : IDisposable
                         out _idleCounter));
                     Check(Native.PdhAddEnglishCounterW(_query, $@"\LogicalDisk({name})\Disk Bytes/sec", UIntPtr.Zero,
                         out _bytesCounter));
+                    _readCounter = AddOptionalCounter(_query, $@"\LogicalDisk({name})\Disk Read Bytes/sec");
+                    _writeCounter = AddOptionalCounter(_query, $@"\LogicalDisk({name})\Disk Write Bytes/sec");
+                    _responseCounter = AddOptionalCounter(_query, $@"\LogicalDisk({name})\Avg. Disk sec/Transfer");
+                    _queueCounter = AddOptionalCounter(_query, $@"\LogicalDisk({name})\Current Disk Queue Length");
                 }
 
                 Check(Native.PdhCollectQueryData(_query));
@@ -116,27 +152,70 @@ internal sealed class WindowsResourceSampler : IDisposable
                 var valid = _baseline && interval is > 0 and <= 5;
                 _timestamp = now;
                 _baseline = true;
-                if (!valid) return (name, null, null);
+                if (!valid) return (name, null, null, null, null, null, null, _space?.Free, _space?.Total);
                 var idle = ReadCounter(_idleCounter);
                 var bytes = ReadCounter(_bytesCounter);
+                var read = ReadCounter(_readCounter);
+                var write = ReadCounter(_writeCounter);
+                var response = ReadCounter(_responseCounter);
+                var queue = ReadCounter(_queueCounter);
                 // Reconnects need a fresh query and two observations, never a stale delta.
-                if (idle is not null && bytes is not null) return (name, Math.Clamp(100 - idle.Value, 0, 100), bytes);
-                Reset();
-                return (name, null, null);
+                if (idle is not null && bytes is not null)
+                    return (name, Math.Clamp(100 - idle.Value, 0, 100), bytes, read, write, response, queue,
+                        _space?.Free, _space?.Total);
+                ResetQuery();
+                return (name, null, null, null, null, null, null, _space?.Free, _space?.Total);
             }
             catch (Win32Exception ex)
             {
                 Trace.TraceWarning("Disk {0} counters unavailable: {1}", name, ex.Message);
-                Reset();
-                return (name, null, null);
+                ResetQuery();
+                return (name, null, null, null, null, null, null, _space?.Free, _space?.Total);
+            }
+        }
+
+        private void RefreshSpace(string name)
+        {
+            if (_spaceTask is { IsCompleted: true })
+            {
+                _space = _spaceTask.Result;
+                _spaceTask = null;
+            }
+
+            var now = Stopwatch.GetTimestamp();
+            if (_spaceTask is null && (_spaceRead == 0 || now - _spaceRead >= 30 * Stopwatch.Frequency))
+            {
+                _spaceRead = now;
+                _spaceTask = Task.Run(() =>
+                {
+                    try
+                    {
+                        var drive = new DriveInfo(name + "\\");
+                        return drive.IsReady ? (drive.AvailableFreeSpace >= 0 ? (ulong)drive.AvailableFreeSpace : 0,
+                            drive.TotalSize >= 0 ? (ulong)drive.TotalSize : 0) : ((ulong, ulong)?)null;
+                    }
+                    catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException
+                                                   or NotSupportedException or System.Security.SecurityException)
+                    {
+                        return null;
+                    }
+                });
             }
         }
 
         internal void Reset()
         {
+            ResetQuery();
+            _spaceTask = null;
+            _space = null;
+            _spaceRead = 0;
+        }
+
+        private void ResetQuery()
+        {
             _query?.Dispose();
             _query = null;
-            _idleCounter = _bytesCounter = IntPtr.Zero;
+            _idleCounter = _bytesCounter = _readCounter = _writeCounter = _responseCounter = _queueCounter = IntPtr.Zero;
             _baseline = false;
         }
     }
@@ -168,6 +247,7 @@ internal sealed class WindowsResourceSampler : IDisposable
         if (network is null)
         {
             _previousNetwork = null;
+            _networkStart = null;
             return result;
         }
 
@@ -176,10 +256,14 @@ internal sealed class WindowsResourceSampler : IDisposable
             stats.BytesReceived, stats.BytesSent);
         var prior = _previousNetwork;
         _previousNetwork = observation;
+        var totals = NetworkTotals(_networkStart, observation);
+        _networkStart = totals.Start;
         result = result with
         {
             NetworkName = network.Name, NetworkId = network.Id,
-            LinkBitsPerSecond = observation.Speed > 0 ? observation.Speed : null
+            LinkBitsPerSecond = observation.Speed > 0 ? observation.Speed : null,
+            ReceivedBytesSinceStart = totals.Received,
+            SentBytesSinceStart = totals.Sent
         };
         return result with
         {
@@ -198,12 +282,35 @@ internal sealed class WindowsResourceSampler : IDisposable
             (current.Timestamp - prior.Timestamp) / (double)Stopwatch.Frequency);
     }
 
+    internal static (ulong? Received, ulong? Sent, NetworkObservation Start) NetworkTotals(
+        NetworkObservation? start, NetworkObservation current)
+    {
+        if (start is null || start.Id != current.Id || start.Speed != current.Speed ||
+            start.Received < 0 || start.Sent < 0 ||
+            current.Received < start.Received || current.Sent < start.Sent)
+            start = current;
+        return (current.Received >= 0 && start.Received >= 0
+                ? (ulong)(current.Received - start.Received) : null,
+            current.Sent >= 0 && start.Sent >= 0
+                ? (ulong)(current.Sent - start.Sent) : null,
+            start);
+    }
+
     private static double? ReadCounter(IntPtr counter)
     {
+        if (counter == IntPtr.Zero) return null;
         var code = Native.PdhGetFormattedCounterValue(counter, 0x200 | 0x1000, out _, out var value);
         return code == 0 && value.Status is 0 or 1 && double.IsFinite(value.Value) && value.Value >= 0
             ? value.Value
             : null;
+    }
+
+    private static IntPtr AddOptionalCounter(SafePdhQuery query, string path)
+    {
+        var status = Native.PdhAddEnglishCounterW(query, path, UIntPtr.Zero, out var counter);
+        if (status == 0) return counter;
+        Trace.TraceWarning("Optional disk counter unavailable ({0}): 0x{1:X8}", path, status);
+        return IntPtr.Zero;
     }
 
     private static void Check(uint status)
@@ -245,6 +352,17 @@ internal sealed class WindowsResourceSampler : IDisposable
             AvailableExtendedVirtual;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    private struct PerformanceInfo
+    {
+        public uint Size;
+        public UIntPtr CommitTotalPages, CommitLimitPages, CommitPeakPages;
+        public UIntPtr PhysicalTotalPages, PhysicalAvailablePages, SystemCachePages;
+        public UIntPtr KernelTotalPages, KernelPagedPages, KernelNonPagedPages;
+        public UIntPtr PageSize;
+        public uint HandleCount, ProcessCount, ThreadCount;
+    }
+
     [StructLayout(LayoutKind.Explicit, Size = 16)]
     private struct CounterValue
     {
@@ -257,6 +375,10 @@ internal sealed class WindowsResourceSampler : IDisposable
         [DllImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         internal static extern bool GlobalMemoryStatusEx(ref MemoryStatus status);
+
+        [DllImport("psapi.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool GetPerformanceInfo(ref PerformanceInfo info, uint size);
 
         [DllImport("pdh.dll", CharSet = CharSet.Unicode, ExactSpelling = true)]
         internal static extern uint PdhOpenQueryW(string? source, UIntPtr userData, out SafePdhQuery query);

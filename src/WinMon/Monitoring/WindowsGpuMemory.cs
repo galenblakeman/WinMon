@@ -10,7 +10,9 @@ internal sealed class WindowsGpuMemory : IDisposable
 {
     private SafeQuery? _query;
     private IntPtr _counter;
+    private IntPtr _sharedCounter;
     private IReadOnlyDictionary<string, ulong> _capacities = new Dictionary<string, ulong>();
+    private readonly Dictionary<string, string> _names = new(StringComparer.Ordinal);
     private long _capacitiesRead;
 
     internal ResourceSample Attach(ResourceSample sample)
@@ -20,24 +22,49 @@ internal sealed class WindowsGpuMemory : IDisposable
             var now = Stopwatch.GetTimestamp();
             if (_capacitiesRead == 0 || now - _capacitiesRead > 30 * Stopwatch.Frequency)
             {
-                _capacities = ReadCapacities();
+                _names.Clear();
+                _capacities = ReadCapacities(_names);
                 _capacitiesRead = now;
             }
 
-            if (!_capacities.TryGetValue(sample.GpuId, out var capacity) || capacity == 0) return sample;
+            var name = _names.GetValueOrDefault(sample.GpuId);
+            if (name is null) return sample;
+            sample = sample with { GpuName = name };
+            _capacities.TryGetValue(sample.GpuId, out var capacity);
             if (_query is null)
             {
                 Check(PdhOpenQueryW(null, UIntPtr.Zero, out var query));
                 _query = query;
                 Check(PdhAddEnglishCounterW(query, @"\GPU Adapter Memory(*)\Dedicated Usage", UIntPtr.Zero,
                     out _counter));
+                var sharedStatus = PdhAddEnglishCounterW(query, @"\GPU Adapter Memory(*)\Shared Usage", UIntPtr.Zero,
+                    out _sharedCounter);
+                if (sharedStatus != 0)
+                {
+                    Trace.TraceWarning("GPU shared-memory counter unavailable: 0x{0:X8}", sharedStatus);
+                    _sharedCounter = IntPtr.Zero;
+                }
             }
 
             Check(PdhCollectQueryData(_query));
             var used = SelectUsage(WindowsGpuSampler.ReadCounters(_counter), sample.GpuId);
-            return used is { } bytes
-                ? sample with { GpuMemoryUsedBytes = bytes, GpuMemoryTotalBytes = capacity }
-                : sample;
+            ulong? shared = null;
+            if (_sharedCounter != IntPtr.Zero)
+                try
+                {
+                    shared = SelectUsage(WindowsGpuSampler.ReadCounters(_sharedCounter), sample.GpuId);
+                }
+                catch (Win32Exception ex)
+                {
+                    Trace.TraceWarning("GPU shared-memory reading unavailable: {0}", ex.Message);
+                    _sharedCounter = IntPtr.Zero;
+                }
+            return sample with
+            {
+                GpuMemoryUsedBytes = capacity == 0 ? null : used,
+                GpuMemoryTotalBytes = used is null || capacity == 0 ? null : capacity,
+                GpuSharedMemoryUsedBytes = shared
+            };
         }
         catch (Exception ex) when (ex is Win32Exception or COMException)
         {
@@ -63,7 +90,7 @@ internal sealed class WindowsGpuMemory : IDisposable
         return usage;
     }
 
-    internal static IReadOnlyDictionary<string, ulong> ReadCapacities()
+    internal static IReadOnlyDictionary<string, ulong> ReadCapacities(Dictionary<string, string>? names = null)
     {
         var result = new Dictionary<string, ulong>(StringComparer.Ordinal);
         var iid = new Guid("770AAE78-F26F-4DBA-A829-253C83D1B387"); // IDXGIFactory1
@@ -81,10 +108,11 @@ internal sealed class WindowsGpuMemory : IDisposable
                 {
                     // IDXGIAdapter1::GetDesc1 follows IDXGIAdapter (slot 10).
                     Marshal.ThrowExceptionForHR(Method<GetDesc>(adapter, 10)(adapter, out var description));
-                    if ((description.Flags & 2) != 0) continue; // Software adapter.
+                    var id = $"0x{description.LuidHigh:x8}_0x{description.LuidLow:x8}/0";
+                    if (names is not null) names[id] = description.Description.TrimEnd('\0', ' ');
+                    if ((description.Flags & 2) != 0) continue; // Software adapter has no physical capacity.
                     // DXGI describes one adapter. Do not reuse its capacity for linked physical GPUs.
-                    result[$"0x{description.LuidHigh:x8}_0x{description.LuidLow:x8}/0"] =
-                        description.DedicatedVideoMemory.ToUInt64();
+                    result[id] = description.DedicatedVideoMemory.ToUInt64();
                 }
                 finally
                 {
@@ -134,6 +162,7 @@ internal sealed class WindowsGpuMemory : IDisposable
         _query?.Dispose();
         _query = null;
         _counter = IntPtr.Zero;
+        _sharedCounter = IntPtr.Zero;
     }
 
     // Created by the P/Invoke marshaller.

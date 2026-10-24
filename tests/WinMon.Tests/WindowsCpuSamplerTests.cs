@@ -83,6 +83,24 @@ public sealed class WindowsCpuSamplerTests
     }
 
     [Test]
+    public void Sample_KernelBusyExcludesIdleAndComplementsUserTime()
+    {
+        var first = Snapshot(1, 1_000, 200, []) with
+            { SystemTimes = new SystemCpuTimes(200, 700, 300) };
+        var second = Snapshot(2, 2_000, 300, []) with
+            { SystemTimes = new SystemCpuTimes(300, 1_300, 700) };
+        using var sampler = new WindowsCpuSampler(new SequenceSnapshotProvider(first, second));
+        _ = sampler.Sample();
+        var sample = sampler.Sample();
+        Assert.Multiple(() =>
+        {
+            Assert.That(sample.TotalCpuPercent, Is.EqualTo(90));
+            Assert.That(sample.Resources.CpuKernelPercent, Is.EqualTo(50));
+            Assert.That(sample.TotalCpuPercent - sample.Resources.CpuKernelPercent, Is.EqualTo(40));
+        });
+    }
+
+    [Test]
     public void Sample_ReusedProcessId_DoesNotAttributePriorLifetimeCpu()
     {
         using var sampler = new WindowsCpuSampler(new SequenceSnapshotProvider(

@@ -70,6 +70,25 @@ public sealed class ResourceSamplingTests
     }
 
     [Test]
+    public void Network_TotalsResetOnAdapterChangeOrCounterRegression()
+    {
+        var start = new WindowsResourceSampler.NetworkObservation("a", 1000, 1, 100, 200);
+        var current = start with { Received = 300, Sent = 500 };
+        var totals = WindowsResourceSampler.NetworkTotals(start, current);
+        var adapter = WindowsResourceSampler.NetworkTotals(totals.Start, current with { Id = "b" });
+        var regression = WindowsResourceSampler.NetworkTotals(start, current with { Received = 50 });
+        Assert.Multiple(() =>
+        {
+            Assert.That(totals.Received, Is.EqualTo(200));
+            Assert.That(totals.Sent, Is.EqualTo(300));
+            Assert.That(adapter.Received, Is.Zero);
+            Assert.That(adapter.Sent, Is.Zero);
+            Assert.That(regression.Received, Is.Zero);
+            Assert.That(regression.Sent, Is.Zero);
+        });
+    }
+
+    [Test]
     public void History_RetainsResourceValuesAndProcessMeasurementsForSelectedTimestamp()
     {
         var resource = new ResourceSample { TotalMemoryBytes = 1000, UsedMemoryBytes = 500, DiskActivePercent = 30 };

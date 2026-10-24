@@ -1431,4 +1431,37 @@ Windows の正常性状態: {2}</value>
   <data name="ProcessPriorityUnavailable" xml:space="preserve"><value>優先度を変更できるのは、利用可能な個別の実行中プロセスだけです。</value></data>
   <data name="ProcessPriorityAccessDenied" xml:space="preserve"><value>アクセスが拒否されました。Windows により、このプロセスの優先度の変更が許可されませんでした。</value></data>
   <data name="ProcessPriorityFailed" xml:space="preserve"><value>プロセスの優先度を変更できませんでした: {0}</value></data>
+  <data name="DetailLive" xml:space="preserve"><value>ライブ</value></data>
+  <data name="DetailCpuDefinition" xml:space="preserve"><value>プロセッサーの総稼働時間に占める割合。</value></data>
+  <data name="DetailMemoryDefinition" xml:space="preserve"><value>使用中の物理メモリの割合。</value></data>
+  <data name="DetailNetworkDefinition" xml:space="preserve"><value>選択したアダプターの受信と送信。使用率はインターネット速度ではなくリンク速度に対する値です。</value></data>
+  <data name="DetailGpuDefinition" xml:space="preserve"><value>最も使用率が高い GPU エンジンの使用率。</value></data>
+  <data name="DetailDiskDefinition" xml:space="preserve"><value>使用容量ではなくアクティブ時間です。読み書き速度は MB/s で表示します。</value></data>
+  <data name="DetailClockSpeed" xml:space="preserve"><value>クロック速度</value></data>
+  <data name="DetailUserKernel" xml:space="preserve"><value>ユーザー / カーネル</value></data>
+  <data name="DetailProcessesThreads" xml:space="preserve"><value>プロセス · スレッド</value></data>
+  <data name="DetailHandles" xml:space="preserve"><value>ハンドル</value></data>
+  <data name="DetailBusiestProcess" xml:space="preserve"><value>最も負荷の高いプロセス（ライブ）</value></data>
+  <data name="DetailUpTime" xml:space="preserve"><value>稼働時間</value></data>
+  <data name="DetailInUseTotal" xml:space="preserve"><value>使用中 / 合計</value></data>
+  <data name="DetailAvailable" xml:space="preserve"><value>使用可能</value></data>
+  <data name="DetailCommittedLimit" xml:space="preserve"><value>コミット済み / 上限</value></data>
+  <data name="DetailCached" xml:space="preserve"><value>キャッシュ済み</value></data>
+  <data name="DetailPagedNonPaged" xml:space="preserve"><value>ページ / 非ページプール</value></data>
+  <data name="DetailLargestWorkingSet" xml:space="preserve"><value>最大ワーキングセット</value></data>
+  <data name="DetailAdapter" xml:space="preserve"><value>アダプター</value></data>
+  <data name="DetailLinkSpeed" xml:space="preserve"><value>リンク速度</value></data>
+  <data name="DetailUtilization" xml:space="preserve"><value>使用率</value></data>
+  <data name="DetailReceiveSend" xml:space="preserve"><value>受信 / 送信</value></data>
+  <data name="DetailReceivedSent" xml:space="preserve"><value>起動後の受信 / 送信</value></data>
+  <data name="DetailAdapterName" xml:space="preserve"><value>アダプター名</value></data>
+  <data name="DetailBusiestEngine" xml:space="preserve"><value>最も負荷の高いエンジン</value></data>
+  <data name="DetailDedicatedMemory" xml:space="preserve"><value>専用メモリ</value></data>
+  <data name="DetailSharedMemory" xml:space="preserve"><value>共有メモリ</value></data>
+  <data name="DetailActiveTime" xml:space="preserve"><value>アクティブ時間</value></data>
+  <data name="DetailRead" xml:space="preserve"><value>読み取り</value></data>
+  <data name="DetailWrite" xml:space="preserve"><value>書き込み</value></data>
+  <data name="DetailAverageResponse" xml:space="preserve"><value>平均応答時間</value></data>
+  <data name="DetailQueueLength" xml:space="preserve"><value>キューの長さ</value></data>
+  <data name="DetailFreeSpace" xml:space="preserve"><value>空き容量</value></data>
 </root>
