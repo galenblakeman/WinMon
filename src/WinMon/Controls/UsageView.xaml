@@ -18,7 +18,7 @@
             Margin="-20,0,-20,8"
             Padding="20,5"
             Background="{DynamicResource SectionHeaderSurface}">
-        <Grid x:Name="ToolbarGrid">
+        <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -67,6 +67,7 @@
             </StackPanel>
             <Border
                 x:Name="SearchBorder"
+                Grid.Row="0"
                 Grid.Column="1"
                 MinWidth="160"
                 Margin="12,0"
@@ -147,6 +148,7 @@
             </Border>
             <CheckBox
                 x:Name="AppsOnly"
+                Grid.Row="0"
                 Grid.Column="2"
                 VerticalAlignment="Center"
                 AutomationProperties.Name="{Binding [AppOnly], Source={x:Static r:Strings.Text}}"
@@ -158,6 +160,7 @@
                 Unchecked="OnSettingsChanged" />
             <StackPanel
                 x:Name="UsageActions"
+                Grid.Row="0"
                 Grid.Column="3"
                 Margin="12,0,0,0"
                 Orientation="Horizontal">
@@ -208,7 +211,6 @@
                     Cursor="Hand"
                     MouseLeftButtonUp="OnRankHeader" />
                 <TextBlock
-                    x:Name="ShareHeader"
                     Grid.Column="2"
                     HorizontalAlignment="Right"
                     Foreground="{DynamicResource Muted}"
@@ -437,7 +439,7 @@
                     </Grid.ColumnDefinitions>
                     <DockPanel VerticalAlignment="Center" Margin="0,0,14,0">
                         <Image x:Name="SelectionIcon" Width="28" Height="28" Margin="0,0,12,0"
-                               Source="{Binding SelectedItem.Icon, ElementName=Rows}" Visibility="Collapsed" />
+                               Visibility="Collapsed" />
                         <StackPanel>
                             <TextBlock x:Name="SelectionName" FontSize="16" FontWeight="SemiBold"
                                        TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
@@ -446,7 +448,7 @@
                                        ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
                         </StackPanel>
                     </DockPanel>
-                    <WrapPanel x:Name="ActionControls" Grid.Column="1" HorizontalAlignment="Right"
+                    <WrapPanel x:Name="ActionControls" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right"
                                VerticalAlignment="Center" Orientation="Horizontal">
                         <Button x:Name="Properties" local:ButtonIcon.Data="{x:Static local:ButtonIcon.Info}"
                                 Click="OnProperties" Content="{Binding [Properties], Source={x:Static r:Strings.Text}}"

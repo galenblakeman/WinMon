@@ -10,7 +10,6 @@ namespace WinMon;
 
 public partial class MainWindow
 {
-    private bool _compactMode;
     private Size _fullViewSize = new(1000, 840);
 
     private readonly
@@ -69,12 +68,12 @@ public partial class MainWindow
 
     private void OnToggleCompactView(object sender, RoutedEventArgs e)
     {
-        SetCompactView(!_compactMode);
+        SetCompactView(!CompactMode);
     }
 
     internal void SetCompactView(bool compact)
     {
-        if (compact == _compactMode) return;
+        if (compact == CompactMode) return;
         if (compact)
         {
             var bounds = WindowState == WindowState.Normal ? new Rect(Left, Top, Width, Height) : RestoreBounds;
@@ -82,7 +81,7 @@ public partial class MainWindow
             WindowState = WindowState.Normal;
         }
 
-        _compactMode = compact;
+        CompactMode = compact;
         _preferences = _preferences with { CompactMode = compact };
         FullView.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
         CompactStrip.Visibility = compact ? Visibility.Visible : Visibility.Collapsed;
@@ -101,16 +100,16 @@ public partial class MainWindow
 
     private void UpdateCompactButton()
     {
-        var text = _compactMode ? Strings.FullView : Strings.CompactView;
+        var text = CompactMode ? Strings.FullView : Strings.CompactView;
         CompactViewButton.Content = text;
         CompactViewButton.ToolTip = text;
         AutomationProperties.SetName(CompactViewButton, text);
-        ButtonIcon.SetData(CompactViewButton, _compactMode ? ButtonIcon.Expand : ButtonIcon.Compact);
+        ButtonIcon.SetData(CompactViewButton, CompactMode ? ButtonIcon.Expand : ButtonIcon.Compact);
     }
 
     private void RefreshCompactView()
     {
-        if (!_compactMode) return;
+        if (!CompactMode) return;
         var history = Session.History.Samples;
         CompactStatus.Text = _samplingError is null ? Strings.LiveMode : Strings.Unavailable;
         CompactStatus.ToolTip =
@@ -142,6 +141,6 @@ public partial class MainWindow
 
     internal Size SavedFullViewSize(Rect bounds)
     {
-        return _compactMode ? _fullViewSize : bounds.Size;
+        return CompactMode ? _fullViewSize : bounds.Size;
     }
 }

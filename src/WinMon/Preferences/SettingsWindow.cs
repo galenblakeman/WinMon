@@ -5,9 +5,11 @@ using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Shapes;
 using WinMon.Controls;
 using WinMon.Shortcuts;
 using WinMon.Updates;
+using Path = System.Windows.Shapes.Path;
 
 namespace WinMon.Preferences;
 
@@ -35,33 +37,35 @@ public sealed class SettingsWindow : Window
 
     private readonly MonitorPreferences _initialPreferences;
     private readonly ComboBox _themeSelector;
-    private readonly ComboBox _languageSelector;
     private readonly ComboBox _paletteSelector;
     private readonly ComboBox _retentionSelector;
     private readonly CheckBox _minimizeToTrayCheckBox;
     private readonly CheckBox _startupCheckBox;
     private readonly CheckBox _automaticUpdateCheckBox;
     private readonly TextBlock _updateCheckStatus = new() { FontSize = 12, TextWrapping = TextWrapping.Wrap };
-    private readonly ComboBox _primaryDriveSelector;
-    private readonly ComboBox _secondaryDriveSelector;
     private readonly TextBox _shortcutBox;
     private readonly TextBlock _shortcutStatus;
     private readonly Func<HotkeyGesture, bool> _isShortcutAvailable;
     private HotkeyGesture? _shortcut;
     private readonly Func<DriveChoice[]> _loadDrives;
-    private readonly AutoCaptureSection _autoCapture;
     private readonly string _defaultCaptureFolder;
     private Task? _driveLoadTask;
     private bool _closed;
-    private readonly ListBox _navigation = new() { BorderThickness = new Thickness(0), Background = Brushes.Transparent };
+
+    private readonly ListBox _navigation = new()
+        { BorderThickness = new Thickness(0), Background = Brushes.Transparent };
+
     private readonly ScrollViewer _page = new()
     {
         VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
         HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Focusable = false
     };
+
     private readonly List<(SettingsSection Section, string Label, Geometry Icon, FrameworkElement Page)> _pages = [];
+
     private readonly TextBlock _captureState =
         new() { FontSize = 11, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(8, 0, 0, 0) };
+
     private readonly TextBlock _lastChecked = new();
     private Button? _saveButton;
 
@@ -118,12 +122,12 @@ public sealed class SettingsWindow : Window
         _themeSelector.DisplayMemberPath = nameof(ThemeChoice.Label);
         _themeSelector.SelectedValuePath = nameof(ThemeChoice.Name);
         _themeSelector.SelectedValue = preferences.Theme;
-        _languageSelector = CreateSelector([], "");
-        _languageSelector.ItemsSource = AppLanguages.Choices;
-        _languageSelector.DisplayMemberPath = nameof(AppLanguages.Choice.Label);
-        _languageSelector.SelectedValuePath = nameof(AppLanguages.Choice.Name);
-        _languageSelector.SelectedValue = AppLanguages.Normalize(preferences.Language);
-        _languageSelector.ToolTip = Strings.LanguageApplyNote;
+        LanguageSelector = CreateSelector([], "");
+        LanguageSelector.ItemsSource = AppLanguages.Choices;
+        LanguageSelector.DisplayMemberPath = nameof(AppLanguages.Choice.Label);
+        LanguageSelector.SelectedValuePath = nameof(AppLanguages.Choice.Name);
+        LanguageSelector.SelectedValue = AppLanguages.Normalize(preferences.Language);
+        LanguageSelector.ToolTip = Strings.LanguageApplyNote;
         var paletteChoices = ChartPalettes.Names.Select(name => new PaletteChoice(name))
             .OrderBy(choice => choice.DisplayName, StringComparer.CurrentCultureIgnoreCase).ToArray();
         _paletteSelector = CreateSelector([], "");
@@ -154,16 +158,16 @@ public sealed class SettingsWindow : Window
         AutomationProperties.SetLiveSetting(_shortcutStatus, AutomationLiveSetting.Polite);
         ShowShortcut(shortcutStatus);
 
-        _primaryDriveSelector = CreateDriveSelector(preferences.PrimaryDrive, false);
-        _secondaryDriveSelector = CreateDriveSelector(preferences.SecondaryDrive, true);
+        PrimaryDriveSelector = CreateDriveSelector(preferences.PrimaryDrive, false);
+        SecondaryDriveSelector = CreateDriveSelector(preferences.SecondaryDrive, true);
         _defaultCaptureFolder = captureFolder ?? new PreferenceStore().DefaultCaptureFolder;
-        _autoCapture = new AutoCaptureSection(preferences.AutoCapture, _defaultCaptureFolder, preferences.PrimaryDrive,
+        AutoCapture = new AutoCaptureSection(preferences.AutoCapture, _defaultCaptureFolder, preferences.PrimaryDrive,
             preferences.SecondaryDrive);
         ContentRendered += async (_, _) => await LoadDrivesAsync();
         Closed += (_, _) => _closed = true;
 
-        _primaryDriveSelector.SelectionChanged += (_, _) => FollowDrives();
-        _secondaryDriveSelector.SelectionChanged += (_, _) => FollowDrives();
+        PrimaryDriveSelector.SelectionChanged += (_, _) => FollowDrives();
+        SecondaryDriveSelector.SelectionChanged += (_, _) => FollowDrives();
 
         _pages.Add((SettingsSection.General, Strings.SettingsGeneral, ButtonIcon.Settings, CreateGeneralPage()));
         _pages.Add((SettingsSection.Monitoring, Strings.SettingsMonitoring, Monitoring, CreateMonitoringPage()));
@@ -275,10 +279,10 @@ public sealed class SettingsWindow : Window
             var drives = await Task.Run(_loadDrives);
             if (_closed) return;
             // Read the current selections, since the user may have changed them while loading.
-            var primary = (_primaryDriveSelector.SelectedItem as DriveChoice)?.Name;
-            var secondary = (_secondaryDriveSelector.SelectedItem as DriveChoice)?.Name;
-            SetDriveChoices(_primaryDriveSelector, drives, primary, false);
-            SetDriveChoices(_secondaryDriveSelector, drives, secondary, true);
+            var primary = (PrimaryDriveSelector.SelectedItem as DriveChoice)?.Name;
+            var secondary = (SecondaryDriveSelector.SelectedItem as DriveChoice)?.Name;
+            SetDriveChoices(PrimaryDriveSelector, drives, primary, false);
+            SetDriveChoices(SecondaryDriveSelector, drives, secondary, true);
         }
         catch (Exception ex)
         {
@@ -454,11 +458,14 @@ public sealed class SettingsWindow : Window
         if (index >= 0) _navigation.SelectedIndex = index;
     }
 
-    internal ComboBox LanguageSelector => _languageSelector;
-    internal ComboBox PrimaryDriveSelector => _primaryDriveSelector;
-    internal ComboBox SecondaryDriveSelector => _secondaryDriveSelector;
+    internal ComboBox LanguageSelector { get; }
+
+    internal ComboBox PrimaryDriveSelector { get; }
+
+    internal ComboBox SecondaryDriveSelector { get; }
+
     internal Button SaveButton => _saveButton!;
-    internal AutoCaptureSection AutoCapture => _autoCapture;
+    internal AutoCaptureSection AutoCapture { get; }
 
     // Ctrl+Tab and Ctrl+Shift+Tab step through the sections, except while the shortcut box records a combination.
     private void OnSectionKeyDown(object sender, KeyEventArgs e)
@@ -473,18 +480,18 @@ public sealed class SettingsWindow : Window
 
     private void FollowDrives()
     {
-        _autoCapture.UpdateDrives((_primaryDriveSelector.SelectedItem as DriveChoice)?.Name,
-            (_secondaryDriveSelector.SelectedItem as DriveChoice)?.Name);
+        AutoCapture.UpdateDrives((PrimaryDriveSelector.SelectedItem as DriveChoice)?.Name,
+            (SecondaryDriveSelector.SelectedItem as DriveChoice)?.Name);
     }
 
     private ListBoxItem CreateNavItem(SettingsSection section, string label, Geometry icon)
     {
-        var path = new System.Windows.Shapes.Path
+        var path = new Path
         {
             Data = icon, Width = 16, Height = 16, StrokeThickness = 1.5, Stretch = Stretch.None,
             Margin = new Thickness(0, 0, 10, 0), VerticalAlignment = VerticalAlignment.Center
         };
-        path.SetResourceReference(System.Windows.Shapes.Shape.StrokeProperty, "Text");
+        path.SetResourceReference(Shape.StrokeProperty, "Text");
         var content = new DockPanel { LastChildFill = true };
         DockPanel.SetDock(path, Dock.Left);
         content.Children.Add(path);
@@ -493,14 +500,16 @@ public sealed class SettingsWindow : Window
         {
             DockPanel.SetDock(_captureState, Dock.Right);
             content.Children.Add(_captureState);
-            _autoCapture.EnabledChanged += ShowCaptureState;
+            AutoCapture.EnabledChanged += ShowCaptureState;
         }
 
         content.Children.Add(new TextBlock
-            { Text = label, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis });
+        {
+            Text = label, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis
+        });
         item.SetResourceReference(StyleProperty, "SettingsNavItem");
         AutomationProperties.SetName(item, label);
-        if (section == SettingsSection.AutomaticCaptures) ShowCaptureState(_autoCapture.IsOn);
+        if (section == SettingsSection.AutomaticCaptures) ShowCaptureState(AutoCapture.IsOn);
         return item;
 
         void ShowCaptureState(bool on)
@@ -515,7 +524,7 @@ public sealed class SettingsWindow : Window
     {
         var page = Page(Strings.SettingsGeneral);
         page.Children.Add(CreateHeading(Strings.Appearance, true));
-        page.Children.Add(Field(Strings.Language, _languageSelector));
+        page.Children.Add(Field(Strings.Language, LanguageSelector));
         page.Children.Add(Note(Strings.LanguageApplyNote));
         page.Children.Add(Field(Strings.Theme, _themeSelector));
         page.Children.Add(Field(Strings.ChartPalette, _paletteSelector));
@@ -549,16 +558,16 @@ public sealed class SettingsWindow : Window
         page.Children.Add(Note(Strings.SettingsRetentionNote));
         page.Children.Add(CreateHeading(Strings.DiskMonitoring));
         page.Children.Add(Note(Strings.ChooseUpTo2Volumes));
-        page.Children.Add(Field(Strings.PrimaryDrive, _primaryDriveSelector));
-        page.Children.Add(Field(Strings.SecondDrive, _secondaryDriveSelector));
+        page.Children.Add(Field(Strings.PrimaryDrive, PrimaryDriveSelector));
+        page.Children.Add(Field(Strings.SecondDrive, SecondaryDriveSelector));
         page.Children.Add(Note(Strings.SelectNoneToMonitorOneDriveActiveTimeAndRead));
         return page;
     }
 
     private StackPanel CreateCapturePage()
     {
-        var page = Page(Strings.AutoCaptureHeading, _autoCapture.EnabledSwitch);
-        page.Children.Add(_autoCapture);
+        var page = Page(Strings.AutoCaptureHeading, AutoCapture.EnabledSwitch);
+        page.Children.Add(AutoCapture);
         return page;
     }
 
@@ -755,16 +764,16 @@ public sealed class SettingsWindow : Window
 
     private void SaveButton_Click(object sender, RoutedEventArgs e)
     {
-        var primary = (_primaryDriveSelector.SelectedItem as DriveChoice)?.Name;
-        var secondary = (_secondaryDriveSelector.SelectedItem as DriveChoice)?.Name;
+        var primary = (PrimaryDriveSelector.SelectedItem as DriveChoice)?.Name;
+        var secondary = (SecondaryDriveSelector.SelectedItem as DriveChoice)?.Name;
         if (primary is null || primary == secondary)
         {
-            Reject(SettingsSection.Monitoring, primary is null ? _primaryDriveSelector : _secondaryDriveSelector,
+            Reject(SettingsSection.Monitoring, primary is null ? PrimaryDriveSelector : SecondaryDriveSelector,
                 Strings.ChooseAPrimaryVolumeAndADifferentSecondVolumeOr, Strings.DiskMonitoring);
             return;
         }
 
-        if (_autoCapture.Read(out var captureError, out var invalid) is not { } autoCapture)
+        if (AutoCapture.Read(out var captureError, out var invalid) is not { } autoCapture)
         {
             Reject(SettingsSection.AutomaticCaptures, invalid, captureError!, Strings.AutoCaptureHeading);
             return;
@@ -783,7 +792,7 @@ public sealed class SettingsWindow : Window
             PrimaryDrive = primary,
             SecondaryDrive = secondary,
             Theme = (_themeSelector.SelectedItem as ThemeChoice)?.Name ?? "Dark",
-            Language = _languageSelector.SelectedValue as string ?? AppLanguages.SystemDefault,
+            Language = LanguageSelector.SelectedValue as string ?? AppLanguages.SystemDefault,
             ChartPalette = _paletteSelector.SelectedValue as string ?? "Classic",
             RetentionSeconds = (_retentionSelector.SelectedItem as string) switch
             {

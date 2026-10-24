@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Windows;
@@ -53,10 +54,7 @@ internal sealed record ProcessListFrame(
 public partial class ProcessesView
 {
     private readonly List<ProcessRow> _rows = [];
-    private readonly ProcessRow _otherRow = new() { Visibility = Visibility.Collapsed };
-    private readonly ProcessPins _pins = new();
     private readonly List<ProcessRow> _pinnedRows = [];
-    private readonly ProcessSelection _selection = new();
     private ProcessListSettings _settings = ProcessListSettings.From(new MonitorPreferences());
     private ProcessListFrame? _frame;
     private bool _closing;
@@ -65,7 +63,8 @@ public partial class ProcessesView
     {
         InitializeComponent();
         ProcessActions.ActionRequested += OnProcessAction;
-        ProcessActions.EnablePriorityActions(CanSetProcessPriority, process => ProcessPriorityChanger.Read(process), SetProcessPriority);
+        ProcessActions.EnablePriorityActions(CanSetProcessPriority, process => ProcessPriorityChanger.Read(process),
+            SetProcessPriority);
         ProcessCountSelector.ItemsSource = TopCountChoices.Items;
         ProcessCountSelector.SelectedItem = TopCountChoices.Selection(_settings.TopCount);
         ProcessCountSelector.SelectionChanged += OnProcessCountChanged;
@@ -94,7 +93,7 @@ public partial class ProcessesView
         }
 
         UpdateSortHeaderToolTips();
-        ProcessRows.Children.Add(_otherRow);
+        ProcessRows.Children.Add(OtherRow);
     }
 
     /// <summary>A control changed a setting; the window stores it and refreshes.</summary>
@@ -114,12 +113,14 @@ public partial class ProcessesView
     /// <summary>Pinned and selected processes that compacted history keeps even while idle.</summary>
     internal Func<ProcessUsage, bool>? Retention { get; private set; }
 
-    internal SavedProcessPin[] SavedPins => _pins.Snapshot();
+    internal SavedProcessPin[] SavedPins => Pins.Snapshot();
     internal IReadOnlyList<ProcessRow> Rows => _rows;
     internal IReadOnlyList<ProcessRow> PinnedRows => _pinnedRows;
-    internal ProcessRow OtherRow => _otherRow;
-    internal ProcessPins Pins => _pins;
-    internal ProcessSelection Selection => _selection;
+    internal ProcessRow OtherRow { get; } = new() { Visibility = Visibility.Collapsed };
+
+    internal ProcessPins Pins { get; } = new();
+
+    internal ProcessSelection Selection { get; } = new();
 
     internal bool ActionsHidden
     {
@@ -143,7 +144,7 @@ public partial class ProcessesView
     internal void Load(ProcessListSettings settings, IEnumerable<SavedProcessPin> pins)
     {
         _settings = settings;
-        _pins.Restore(pins);
+        Pins.Restore(pins);
         UpdateRetention();
         PinnedOnlyCheckBox.IsChecked = settings.PinnedOnly;
         ProcessSortSelector.SelectedIndex = (int)settings.Sort;
@@ -184,10 +185,9 @@ public partial class ProcessesView
     internal SnapshotReport? Update(ProcessListFrame frame)
     {
         _frame = frame;
-        var settings = _settings = frame.Settings;
+        var (topCount, processSort, grouped, appsOnly, _) = _settings = frame.Settings;
         var (samples, latest, visible, selected) = (frame.Samples, frame.Latest, frame.Visible, frame.Selected);
-        var grouped = settings.Grouped;
-        var historyMetric = settings.Sort switch
+        var historyMetric = processSort switch
         {
             ProcessSort.Gpu => grouped ? Strings.BusiestMemberGPU : Strings.GPU,
             ProcessSort.Memory => grouped ? Strings.SummedPrivateMemory : Strings.MemoryLowercase,
@@ -220,21 +220,20 @@ public partial class ProcessesView
             rowSamples = new SampleList(samples, samples.Count, frame.LatestFull);
         // Rank on a short average ending at the live or selected sample; single intervals are tick-quantized.
         var query = ProcessSearchBox.Text.Trim();
-        var ranking = ProcessRanking.Rank(rowSamples, sort: settings.Sort, grouped: grouped,
-            includeInactive: query.Length > 0 || settings.TopCount == 0);
+        var ranking = ProcessRanking.Rank(rowSamples, sort: processSort, grouped: grouped,
+            includeInactive: query.Length > 0 || topCount == 0);
         // Pins and the selection need inactive processes too. A search already ranked them; otherwise rank once.
-        var inclusive = query.Length > 0 || settings.TopCount == 0 ? ranking : null;
+        var inclusive = query.Length > 0 || topCount == 0 ? ranking : null;
         UpdateSortHeaders();
-        var appsOnly = settings.AppsOnly;
         var active = ProcessSearch.Filter(ranking.Processes, query, appsOnly).ToArray();
         var pinned = ResolvePinnedRows(rowSamples, grouped, query, appsOnly, Inclusive);
-        var unpinned = active.Where(p => !_pins.Contains(p, grouped)).ToArray();
+        var unpinned = active.Where(p => !Pins.Contains(p, grouped)).ToArray();
         var pinnedOnly = PinnedOnlyCheckBox.IsChecked == true;
-        var top = pinnedOnly ? [] : TopCountChoices.Limit(unpinned, settings.TopCount).ToArray();
+        var top = pinnedOnly ? [] : TopCountChoices.Limit(unpinned, topCount).ToArray();
         var rest = pinnedOnly ? [] : unpinned.Skip(top.Length).ToArray();
         var displayed = pinned.Select(p => p.Usage).Concat(top).ToArray();
         var processData = ProcessGraphData.Build(rowSamples, MonitorPreferences.ShortRangeSeconds, displayed, grouped,
-            settings.Sort);
+            processSort);
         UpdatePinnedRows(pinned, processData, rowSamples, grouped);
         ArrangeProcessRows(top, grouped);
         for (var i = 0; i < _rows.Count; i++)
@@ -246,27 +245,26 @@ public partial class ProcessesView
         }
 
         RefreshProcessActions(rowSamples, grouped, Inclusive);
-        _otherRow.Visibility = rest.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
+        OtherRow.Visibility = rest.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
         if (rest.Length > 0)
             // Memory ranking also covers idle processes compacted out of the sample.
-            _otherRow.ShowRemainder(
+            OtherRow.ShowRemainder(
                 rest.Length +
-                (query.Length == 0 && !appsOnly && settings.Sort == ProcessSort.Memory && !grouped
+                (query.Length == 0 && !appsOnly && processSort == ProcessSort.Memory && !grouped
                     ? visible?.CompactedProcesses ?? 0
                     : 0),
                 rest.Sum(p => p.CpuPercent),
                 rest.Any(p => p.IoBytesPerSecond is not null) ? rest.Sum(p => p.IoBytesPerSecond ?? 0) : null, grouped);
         EmptyLabel.Visibility = displayed.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
         EmptyLabel.Text = visible is null && selected is not null
-            ?
-            Strings.ReturnToLiveToInspectCurrentActivity
+            ? Strings.ReturnToLiveToInspectCurrentActivity
             : latest is null || visible?.TotalCpuPercent is null
                 ? Strings.CollectingABaselineOrRecoveringAfterARecordingGap
                 : appsOnly
                     ? Strings.NoAppsMatchCurrentView
                     : query.Length > 0
                         ? Strings.NoRankedProcessesMatchYourSearch
-                        : settings.Sort switch
+                        : processSort switch
                         {
                             ProcessSort.Gpu => Strings.NoMeasurableGPUActivityAmongAccessibleProcessesInThisWindow,
                             ProcessSort.Memory => Strings.NoMemoryReadingsAmongAccessibleProcesses,
@@ -283,13 +281,13 @@ public partial class ProcessesView
         CoverageLabel.ToolTip = CoverageLabel.Text + Strings.UnattributedCPUIsTotalCPUMinusAllMeasuredProcessesKernel;
         if (selected is null || visible is null) return null;
         return new SnapshotReport(visible, displayed, grouped,
-                SortHeaders.First(h => h.Sort == settings.Sort).Text, query, appsOnly,
+                SortHeaders.First(h => h.Sort == processSort).Text, query, appsOnly,
                 CoverageLabel.Text,
                 rest.Length == 0
                     ? null
                     : new SnapshotRemainder(
                         rest.Length +
-                        (query.Length == 0 && !appsOnly && settings.Sort == ProcessSort.Memory &&
+                        (query.Length == 0 && !appsOnly && processSort == ProcessSort.Memory &&
                          !grouped
                             ? visible.CompactedProcesses
                             : 0),
@@ -301,7 +299,7 @@ public partial class ProcessesView
 
         ProcessRanking Inclusive()
         {
-            return inclusive ??= ProcessRanking.Rank(rowSamples, sort: settings.Sort,
+            return inclusive ??= ProcessRanking.Rank(rowSamples, sort: processSort,
                 grouped: grouped, includeInactive: true);
         }
     }
@@ -370,14 +368,14 @@ public partial class ProcessesView
 
     internal void ToggleProcessPin(ProcessUsage process, bool grouped)
     {
-        _pins.Toggle(process, grouped);
+        Pins.Toggle(process, grouped);
         UpdateRetention();
         PinsChanged?.Invoke();
     }
 
     internal void SelectProcess(ProcessUsage process, bool grouped)
     {
-        _selection.Select(process, grouped);
+        Selection.Select(process, grouped);
         UpdateRetention();
         RefreshRequested?.Invoke();
     }
@@ -409,8 +407,8 @@ public partial class ProcessesView
 
     internal void UpdateRetention()
     {
-        var pins = _pins.RetentionSnapshot();
-        var selected = _selection.RetentionSnapshot();
+        var pins = Pins.RetentionSnapshot();
+        var selected = Selection.RetentionSnapshot();
         Retention = pins is null && selected is null
             ? null
             : process => pins?.Invoke(process) == true || selected?.Invoke(process) == true;
@@ -536,10 +534,10 @@ public partial class ProcessesView
         bool appsOnly,
         Func<ProcessRanking> inclusive)
     {
-        if (_pins.Count(grouped) == 0) return [];
+        if (Pins.Count(grouped) == 0) return [];
         return
         [
-            .. _pins.Resolve(samples.LastOrDefault(), inclusive().Processes, grouped,
+            .. Pins.Resolve(samples.LastOrDefault(), inclusive().Processes, grouped,
                     _frame?.Selected is not null)
                 .Where(p => ProcessSearch.Filter([p.Usage], query, appsOnly).Any())
         ];
@@ -564,7 +562,7 @@ public partial class ProcessesView
                     MonitorPreferences.ShortRangeSeconds, _frame!.Wide, data[i], grouped, pinned[i].State);
         }
 
-        var pinCount = _pins.Count(grouped);
+        var pinCount = Pins.Count(grouped);
         PinnedCountLabel.Text = Strings.Format(Strings.PinnedProcessCount, pinCount);
         PinSummary.Visibility = pinCount > 0 ? Visibility.Visible : Visibility.Collapsed;
         PinnedCountLabel.ToolTip = Strings.PinnedProcessesExplanation;
@@ -578,14 +576,16 @@ public partial class ProcessesView
     private void EnableRowActions(ProcessRow row)
     {
         row.EnableProcessActions(CanEndProcess, EndProcess);
-        row.EnablePriorityActions(CanSetProcessPriority, process => ProcessPriorityChanger.Read(process), SetProcessPriority);
+        row.EnablePriorityActions(CanSetProcessPriority, process => ProcessPriorityChanger.Read(process),
+            SetProcessPriority);
         row.ProcessSelected += SelectProcess;
         row.EnableInspectionActions(
             snapshot => new ProcessPropertiesWindow(snapshot, Copy) { Owner = Window.GetWindow(this) }.ShowDialog(),
             snapshot => Copy(snapshot.Format()), OpenProcessLocation,
-            process => new ProcessDumpDialog(process, () => CanDumpProcess(process)) { Owner = Window.GetWindow(this) }.ShowDialog(),
+            process => new ProcessDumpDialog(process, () => CanDumpProcess(process)) { Owner = Window.GetWindow(this) }
+                .ShowDialog(),
             CanDumpProcess, () => _frame?.Selected is not null);
-        row.EnablePinning(_pins.Contains, ToggleProcessPin);
+        row.EnablePinning(Pins.Contains, ToggleProcessPin);
     }
 
     private void EnsureProcessRows(int count)
@@ -595,7 +595,7 @@ public partial class ProcessesView
             var row = new ProcessRow { Visibility = Visibility.Collapsed };
             EnableRowActions(row);
             _rows.Add(row);
-            ProcessRows.Children.Insert(ProcessRows.Children.IndexOf(_otherRow), row);
+            ProcessRows.Children.Insert(ProcessRows.Children.IndexOf(OtherRow), row);
         }
 
         // Release the extra row/graph controls when leaving All or narrowing the results.
@@ -626,9 +626,11 @@ public partial class ProcessesView
             }
 
         using (var spare = _rows.Where(row => !claimed.Contains(row)).GetEnumerator())
+        {
             for (var i = 0; i < arranged.Length; i++)
                 if (arranged[i] is null && spare.MoveNext())
                     arranged[i] = spare.Current;
+        }
 
         var order = arranged.Select(row => row!).ToArray();
         if (!order.SequenceEqual(_rows)) MoveProcessRows(order);
@@ -641,9 +643,9 @@ public partial class ProcessesView
     {
         var current = new Dictionary<ProcessRow, int>(_rows.Count);
         for (var i = 0; i < _rows.Count; i++) current[_rows[i]] = i;
-        var staying = LongestIncreasingRun(order.Select(row => current[row]).ToArray());
+        var staying = LongestIncreasingRun([.. order.Select(row => current[row])]);
         var focused = Keyboard.FocusedElement as DependencyObject;
-        var refocus = (IInputElement?)null;
+        IInputElement? refocus = null;
         for (var i = 0; i < order.Length; i++)
         {
             if (staying[i]) continue;
@@ -652,20 +654,21 @@ public partial class ProcessesView
             ProcessRows.Children.Remove(order[i]);
         }
 
-        var start = ProcessRows.Children.IndexOf(_otherRow) - staying.Count(stays => stays);
+        var start = ProcessRows.Children.IndexOf(OtherRow) - staying.Count(stays => stays);
         for (var i = 0; i < order.Length; i++)
             if (!staying[i])
                 ProcessRows.Children.Insert(start + i, order[i]);
         if (refocus is not null && !ReferenceEquals(Keyboard.FocusedElement, refocus)) Keyboard.Focus(refocus);
     }
 
-    private void RefreshProcessActions(IReadOnlyList<MonitorSample> samples, bool grouped, Func<ProcessRanking> inclusive)
+    private void RefreshProcessActions(IReadOnlyList<MonitorSample> samples, bool grouped,
+        Func<ProcessRanking> inclusive)
     {
         var historical = _frame?.Selected is not null;
         var error = _frame?.Error;
-        var hadSelection = _selection.HasSelection;
-        var target = _selection.Resolve(samples, grouped, historical, inclusive);
-        if (hadSelection && !_selection.HasSelection) UpdateRetention();
+        var hadSelection = Selection.HasSelection;
+        var target = Selection.Resolve(samples, grouped, historical, inclusive);
+        if (hadSelection && !Selection.HasSelection) UpdateRetention();
         var snapshot = target is null
             ? null
             : new ProcessDetailsSnapshot(target.Usage, grouped, samples.LastOrDefault()?.Timestamp,
@@ -674,7 +677,7 @@ public partial class ProcessesView
         ProcessActions.Update(snapshot,
             snapshot?.Available == true && CanEndProcess(snapshot.Process),
             snapshot?.Available == true && CanDumpProcess(snapshot.Process));
-        foreach (var row in _rows.Concat(_pinnedRows)) row.SetSelected(row.Represents(_selection.Contains));
+        foreach (var row in _rows.Concat(_pinnedRows)) row.SetSelected(row.Represents(Selection.Contains));
     }
 
     private void OnProcessAction(string action, ProcessDetailsSnapshot snapshot)
@@ -692,7 +695,8 @@ public partial class ProcessesView
                 EndProcess(process); break;
             case "dump" when snapshot is { Available: true, Historical: false } &&
                              snapshot.Grouped == _settings.Grouped && CanDumpProcess(process):
-                new ProcessDumpDialog(process, () => CanDumpProcess(process)) { Owner = Window.GetWindow(this) }.ShowDialog();
+                new ProcessDumpDialog(process, () => CanDumpProcess(process)) { Owner = Window.GetWindow(this) }
+                    .ShowDialog();
                 break;
         }
     }
@@ -729,9 +733,11 @@ public partial class ProcessesView
             new ProcessActionDialog(string.Join("\n\n", errors), false) { Owner = Window.GetWindow(this) }.ShowDialog();
     }
 
-    private bool CanSetProcessPriority(ProcessUsage process) =>
-        ProcessPriorityChanger.IsEligible(process,
+    private bool CanSetProcessPriority(ProcessUsage process)
+    {
+        return ProcessPriorityChanger.IsEligible(process,
             !_closing && _frame?.Selected is null && _frame?.Error is null, _settings.Grouped);
+    }
 
     private void SetProcessPriority(ProcessUsage process, ProcessPriorityClass priority)
     {
@@ -756,7 +762,7 @@ public partial class ProcessesView
                 { UseShellExecute = false, Arguments = $"/select,\"{process.ImagePath}\"" };
             Process.Start(start)?.Dispose();
         }
-        catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or IOException or UnauthorizedAccessException
+        catch (Exception ex) when (ex is Win32Exception or IOException or UnauthorizedAccessException
                                        or InvalidOperationException)
         {
             MessageDialog.ShowNotice(Window.GetWindow(this), ex.Message, Strings.OpenFileLocation);

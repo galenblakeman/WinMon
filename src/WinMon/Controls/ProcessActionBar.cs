@@ -220,13 +220,11 @@ public sealed class ProcessActionBar : Border
             menu.Items.Add(item);
         }
 
-        if (_canSetPriority is not null && _readPriority is not null && _setPriority is not null)
-        {
-            menu.Items.Add(new Separator());
-            menu.Items.Add(ProcessPriorityMenu.Create(snapshot.Process,
-                snapshot is { Available: true, Historical: false } && _canSetPriority(snapshot.Process),
-                _readPriority, _setPriority));
-        }
+        if (_canSetPriority is null || _readPriority is null || _setPriority is null) return menu;
+        menu.Items.Add(new Separator());
+        menu.Items.Add(ProcessPriorityMenu.Create(snapshot.Process,
+            snapshot is { Available: true, Historical: false } && _canSetPriority(snapshot.Process),
+            _readPriority, _setPriority));
 
         return menu;
     }

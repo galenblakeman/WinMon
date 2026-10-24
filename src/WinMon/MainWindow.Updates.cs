@@ -55,7 +55,7 @@ public partial class MainWindow
 
     private async Task CheckForUpdatesAsync(bool requestedByUser, CancellationToken cancellationToken = default)
     {
-        if (_updateClient is null || _closing || _updateDownloading) return;
+        if (_updateClient is null || IsClosing || _updateDownloading) return;
         if (requestedByUser)
         {
             _updateDismissed = false;
@@ -69,7 +69,7 @@ public partial class MainWindow
             gateHeld = true;
             var offer = await _updateClient.CheckAsync(AppInfo.Version, cancellationToken);
             _lastUpdateCheck = DateTimeOffset.Now;
-            if (_closing) return;
+            if (IsClosing) return;
             var changedOffer = offer?.Version != _updateOffer?.Version;
             _updateOffer = offer;
             if (changedOffer) _updateDismissed = false;
@@ -139,7 +139,7 @@ public partial class MainWindow
     // ReSharper disable once AsyncVoidEventHandlerMethod
     private async void OnUpdateNow(object sender, RoutedEventArgs e)
     {
-        if (_updateClient is null || _updateOffer is null || _closing) return;
+        if (_updateClient is null || _updateOffer is null || IsClosing) return;
         UpdateNowButton.IsEnabled = false;
         ReleaseNotesButton.IsEnabled = false;
         DismissUpdateButton.IsEnabled = false;
@@ -154,11 +154,11 @@ public partial class MainWindow
         {
             await _updateGate.WaitAsync(_updateLifetime.Token);
             gateHeld = true;
-            if (_updateClient is null || _updateOffer is null || _closing) return;
+            if (_updateClient is null || _updateOffer is null || IsClosing) return;
             // No concurrent check can now replace the version or footer while its matching asset downloads.
             var offer = _updateOffer;
             _updateDownloading = true;
-            _updateDownload = CancellationTokenSource.CreateLinkedTokenSource(_lifetime.Token, _updateLifetime.Token);
+            _updateDownload = CancellationTokenSource.CreateLinkedTokenSource(Lifetime.Token, _updateLifetime.Token);
             var progress = new Progress<int>(percent =>
             {
                 if (_updateDownloading) UpdateStatusText.Text = Strings.Format(Strings.DownloadingUpdate, percent);
@@ -187,7 +187,7 @@ public partial class MainWindow
             _updateDownload = null;
             _updateDownloading = false;
             if (gateHeld) _updateGate.Release();
-            if (!_closing)
+            if (!IsClosing)
             {
                 UpdateNowButton.IsEnabled = true;
                 ReleaseNotesButton.IsEnabled = true;
@@ -288,7 +288,7 @@ public partial class MainWindow
         try
         {
             // The helper persists success just after receiving the first-sample readiness signal.
-            for (var attempt = 0; attempt < (UpdateRuntime.IsExpectedRestart ? 20 : 1) && !_closing; attempt++)
+            for (var attempt = 0; attempt < (UpdateRuntime.IsExpectedRestart ? 20 : 1) && !IsClosing; attempt++)
             {
                 var notice = UpdateRuntime.ConsumeNotice();
                 if (string.IsNullOrWhiteSpace(notice))
@@ -312,7 +312,7 @@ public partial class MainWindow
         try
         {
             await Task.Delay(TimeSpan.FromSeconds(8), cancellationToken);
-            if (!_closing && UpdateStatusText.Text == notice) UpdateFooter.Visibility = Visibility.Collapsed;
+            if (!IsClosing && UpdateStatusText.Text == notice) UpdateFooter.Visibility = Visibility.Collapsed;
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {

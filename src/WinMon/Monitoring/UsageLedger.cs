@@ -89,12 +89,13 @@ internal sealed class UsageLedger(DateTimeOffset since)
     internal int RememberedLifetimes => _lifetimes.Count;
 
     /// <summary>A stable copy of every app's totals, shared until the next change.</summary>
-    internal IReadOnlyList<AppUsage> Apps => _snapshot ??= [.. _apps.Values.Select(entry => entry.ToUsage(_generation))];
+    internal IReadOnlyList<AppUsage> Apps =>
+        _snapshot ??= [.. _apps.Values.Select(entry => entry.ToUsage(_generation))];
 
     /// <summary>Whether a sample's process list describes the machine, rather than a baseline or gap.</summary>
     internal static bool IsValid(MonitorSample sample)
     {
-        return !sample.IsGap && sample.TotalCpuPercent is not null;
+        return sample is { IsGap: false, TotalCpuPercent: not null };
     }
 
     /// <summary>Add one live, uncompacted sample. Invalid samples change nothing.</summary>
@@ -151,8 +152,10 @@ internal sealed class UsageLedger(DateTimeOffset since)
         for (var i = 0; i < entries.Length; i++) index[entries[i]] = i;
         return new UsageLedgerState(Since, _machineBusyTicks, _attributedTicks,
             [.. entries.Select(entry => entry.ToState())],
-            [.. _lifetimes.Select(pair => new UsageLifetimeState(pair.Key.Item1, pair.Key.Item2,
-                index[pair.Value.Entry], pair.Value.Absences))]);
+            [
+                .. _lifetimes.Select(pair => new UsageLifetimeState(pair.Key.Item1, pair.Key.Item2,
+                    index[pair.Value.Entry], pair.Value.Absences))
+            ]);
     }
 
     /// <summary>Replace everything with a saved state, so lifetimes still running are not counted again.</summary>

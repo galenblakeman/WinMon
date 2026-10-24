@@ -18,11 +18,15 @@ internal static class ProcessPriorityChanger
     }
 
     internal static readonly ProcessPriorityClass[] Choices =
-        [ProcessPriorityClass.Idle, ProcessPriorityClass.BelowNormal,
-            ProcessPriorityClass.Normal, ProcessPriorityClass.AboveNormal];
+    [
+        ProcessPriorityClass.Idle, ProcessPriorityClass.BelowNormal,
+        ProcessPriorityClass.Normal, ProcessPriorityClass.AboveNormal
+    ];
 
-    internal static bool IsEligible(ProcessUsage process, bool live, bool grouped) =>
-        ProcessTerminator.IsEligible(process, live, grouped) && process.MemberIds.Count == 0;
+    internal static bool IsEligible(ProcessUsage process, bool live, bool grouped)
+    {
+        return ProcessTerminator.IsEligible(process, live, grouped) && process.MemberIds.Count == 0;
+    }
 
     internal static ProcessPriorityClass? Read(ProcessUsage process, Func<int, ITarget>? open = null)
     {
@@ -66,10 +70,15 @@ internal static class ProcessPriorityChanger
         }
     }
 
-    private static bool Valid(ITarget target, ProcessUsage process) =>
-        target.CreationTicks == process.CreationTicks && !target.HasExited && !target.IsCritical;
+    private static bool Valid(ITarget target, ProcessUsage process)
+    {
+        return target.CreationTicks == process.CreationTicks && target is { HasExited: false, IsCritical: false };
+    }
 
-    private static ITarget Open(int pid) => new NativeTarget(pid);
+    private static ITarget Open(int pid)
+    {
+        return new NativeTarget(pid);
+    }
 
     private sealed class NativeTarget : ITarget
     {
@@ -113,11 +122,15 @@ internal static class ProcessPriorityChanger
             if (!ProcessPriorityChanger.SetPriorityClass(_handle, (uint)priority)) throw new Win32Exception();
         }
 
-        public void Dispose() => _handle.Dispose();
+        public void Dispose()
+        {
+            _handle.Dispose();
+        }
     }
 
     [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern SafeProcessHandle OpenProcess(uint access, [MarshalAs(UnmanagedType.Bool)] bool inherit, int pid);
+    private static extern SafeProcessHandle OpenProcess(uint access, [MarshalAs(UnmanagedType.Bool)] bool inherit,
+        int pid);
 
     [DllImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]

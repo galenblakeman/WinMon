@@ -27,24 +27,17 @@ namespace WinMon;
 /// <summary>Present a shared CPU recording session in compact and investigation layouts.</summary>
 public partial class MainWindow
 {
-    private readonly CancellationTokenSource _lifetime = new();
     private readonly bool _diagnosticMode;
     private readonly PreferenceStore _preferenceStore;
     private readonly MonitorPreferences? _initialPreferences;
-    private readonly List<ProcessRow> _rows = [];
     private readonly ProcessRow _otherRow = new() { Visibility = Visibility.Collapsed };
-    private readonly ProcessPins _processPins = new();
-    private readonly List<ProcessRow> _pinnedRows = [];
 
     private Func<ProcessUsage, bool>? _retainPinned;
     private MonitorPreferences _preferences = new();
-    private Task? _samplingTask;
     private Task _settingsWriteTask = Task.CompletedTask;
     private bool _preferencesLoaded;
     private Forms.NotifyIcon? _tray;
     private Icon? _trayIcon;
-
-    private MonitorSample? _selectedSample;
 
     // The newest sample the visible presentation last drew; diagnostics check it stays put while hidden.
     private MonitorSample? _presentedSample;
@@ -55,8 +48,6 @@ public partial class MainWindow
     private const double WideWidth = 800;
     internal const double InlineProcessToolbarWidth = 700;
     private bool _inlineProcessToolbar;
-    private bool _inlinePinToolbar;
-    private bool _closing;
     private bool _allowClose;
     private bool _preparingUpdateExit;
     private bool _updateReadySignaled;
@@ -112,21 +103,21 @@ public partial class MainWindow
             var wide = ActualWidth >= WideWidth;
             var inlineProcessToolbar = ActualWidth >= InlineProcessToolbarWidth;
             if ((wide == _wide && inlineProcessToolbar == _inlineProcessToolbar &&
-                 inlineProcessToolbar == _inlinePinToolbar) || _closing) return;
+                 inlineProcessToolbar == InlinePinToolbar) || IsClosing) return;
             _wide = wide;
             _inlineProcessToolbar = inlineProcessToolbar;
-            _inlinePinToolbar = inlineProcessToolbar;
+            InlinePinToolbar = inlineProcessToolbar;
             RefreshPresentation();
         };
         OverallGraph.SampleSelected += (_, sample) =>
         {
-            _selectedSample = sample;
+            SelectedSample = sample;
             RefreshPresentation();
         };
         OverallGraph.LiveRequested += (_, _) => ReturnToLive();
         IsVisibleChanged += (_, _) =>
         {
-            if (IsVisible && !_closing) RefreshPresentation();
+            if (IsVisible && !IsClosing) RefreshPresentation();
         };
         StateChanged += (_, _) => OnWindowStateChanged();
     }
@@ -137,7 +128,7 @@ public partial class MainWindow
         {
             _preferences = _diagnosticMode
                 ? new MonitorPreferences()
-                : _initialPreferences ?? await _preferenceStore.LoadAsync(_lifetime.Token);
+                : _initialPreferences ?? await _preferenceStore.LoadAsync(Lifetime.Token);
             _preferencesLoaded = true;
             UpdateActivityActionsToggle();
             Processes.Load(ProcessListSettings.From(_preferences), _preferences.PinnedProcesses);
@@ -162,7 +153,7 @@ public partial class MainWindow
             Topmost = _preferences.AlwaysOnTop;
             Session.History.Resize(_preferences.RetentionSeconds);
             await RestoreRestartHistoryAsync();
-            _lifetime.Token.ThrowIfCancellationRequested();
+            Lifetime.Token.ThrowIfCancellationRequested();
             ApplyTheme();
             if (_preferences.CompactMode) SetCompactView(true);
             BuildRangeChips();
@@ -177,10 +168,10 @@ public partial class MainWindow
 
             SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
             SystemEvents.DisplaySettingsChanged += OnDisplaySettingsChanged;
-            _samplingTask = Session.Run(_lifetime.Token);
+            SamplingTask = Session.Run(Lifetime.Token);
             InitializeUpdates();
         }
-        catch (OperationCanceledException) when (_lifetime.IsCancellationRequested)
+        catch (OperationCanceledException) when (Lifetime.IsCancellationRequested)
         {
         }
         catch (Exception ex)
@@ -198,7 +189,8 @@ public partial class MainWindow
     internal SamplingOptions CurrentSamplingOptions()
     {
         var preferences = Volatile.Read(ref _preferences);
-        return new SamplingOptions(preferences.PrimaryDrive, preferences.SecondaryDrive, Volatile.Read(ref _retainPinned),
+        return new SamplingOptions(preferences.PrimaryDrive, preferences.SecondaryDrive,
+            Volatile.Read(ref _retainPinned),
             preferences.TopProcessCount == 0);
     }
 
@@ -206,7 +198,7 @@ public partial class MainWindow
     {
         _samplingError = Session.Error;
         // Only a live capture proves the new version healthy: samples restored after an update set Latest too.
-        if (!_diagnosticMode && !_updateReadySignaled && Session.HasLiveSample && Session.Error is null)
+        if (!_diagnosticMode && !_updateReadySignaled && Session is { HasLiveSample: true, Error: null })
         {
             _updateReadySignaled = true;
             UpdateRuntime.SignalReady();
@@ -229,33 +221,33 @@ public partial class MainWindow
 
     internal void RefreshVisiblePresentation()
     {
-        Processes.ArrangeToolbar(_inlineProcessToolbar, _inlinePinToolbar);
+        Processes.ArrangeToolbar(_inlineProcessToolbar, InlinePinToolbar);
         var samples = Session.History.Samples;
         var latest = samples.Count == 0 ? null : samples[^1];
-        var visible = _selectedSample is null
+        var visible = SelectedSample is null
             ? latest
-            : samples.FirstOrDefault(s => ReferenceEquals(s, _selectedSample));
+            : samples.FirstOrDefault(s => ReferenceEquals(s, SelectedSample));
         var range = _preferences.EffectiveChartRange;
         CpuValue.Text = _samplingError is null && latest?.TotalCpuPercent is { } total
             ? Strings.Format(Strings.PercentOneDecimal, total)
             : Strings.MissingReading;
         var allUnavailable = _samplingError == SamplingError.ReadingsUnavailable;
         UpdateResources(allUnavailable ? null : latest);
-        OverallGraph.SetData(samples, range, _selectedSample);
+        OverallGraph.SetData(samples, range, SelectedSample);
         RefreshCompactView();
         RefreshServices();
         RefreshUsage();
         RefreshCaptures(samples);
-        UpdateSnapshot(_selectedSample is null ? null : visible);
+        UpdateSnapshot(SelectedSample is null ? null : visible);
         // The compact strip hides the process list; leaving compact mode refreshes it.
-        if (!_compactMode &&
-            Processes.Update(new ProcessListFrame(samples, latest, visible, _selectedSample, Session.LatestFull,
+        if (!CompactMode &&
+            Processes.Update(new ProcessListFrame(samples, latest, visible, SelectedSample, Session.LatestFull,
                 Session.Latest, Session.History.WasMemoryLimited, _samplingError, _wide,
                 ProcessListSettings.From(_preferences))) is { } report)
             _snapshotReport = report;
         LiveCaption.Text = allUnavailable ? Strings.SystemResourcesUnavailable : Strings.SystemResources;
         LiveCaption.ToolTip =
-            _selectedSample is not null ? Strings.SystemResourcesInspectingSnapshot : LiveCaption.Text;
+            SelectedSample is not null ? Strings.SystemResourcesInspectingSnapshot : LiveCaption.Text;
         ShowError(_samplingError switch
         {
             SamplingError.CpuUnavailable => Strings.CPUUnavailableOtherResourcesContinueRecording,
@@ -435,7 +427,7 @@ public partial class MainWindow
 
     private void OnRangeChecked(object sender, RoutedEventArgs e)
     {
-        if (sender is not RadioButton { Tag: int seconds } || _closing) return;
+        if (sender is not RadioButton { Tag: int seconds } || IsClosing) return;
         _preferences = _preferences with { ChartRangeSeconds = seconds };
         RefreshPresentation();
     }
@@ -447,13 +439,13 @@ public partial class MainWindow
 
     private void OnHardwareInfo(object sender, RoutedEventArgs e)
     {
-        if (!_closing) new HardwareInfoWindow { Owner = this }.ShowDialog();
+        if (!IsClosing) new HardwareInfoWindow { Owner = this }.ShowDialog();
     }
 
 
     internal void ReturnToLive()
     {
-        _selectedSample = null;
+        SelectedSample = null;
         RefreshPresentation();
     }
 
@@ -480,7 +472,7 @@ public partial class MainWindow
 
     private void OnWindowStateChanged()
     {
-        if (_closing) return;
+        if (IsClosing) return;
         if (WindowState != WindowState.Minimized)
         {
             _restoreState = WindowState;
@@ -495,7 +487,7 @@ public partial class MainWindow
     /// <summary>Show the window for the shortcut or another launch; minimize it instead when it is already in front.</summary>
     internal void ShowRequested()
     {
-        if (_closing) return;
+        if (IsClosing) return;
         if (IsVisible && WindowState != WindowState.Minimized && IsActive) WindowState = WindowState.Minimized;
         else RestoreFromTray();
         // A modal dialog such as Settings keeps the focus.
@@ -532,8 +524,8 @@ public partial class MainWindow
         var attempts = 0;
         _hotkeyRetry = new DispatcherTimer(TimeSpan.FromSeconds(1), DispatcherPriority.Background, (_, _) =>
         {
-            if (!_closing) _hotkeyStatus = hotkey.Register(gesture);
-            if (_closing || _hotkeyStatus != HotkeyStatus.InUse || ++attempts >= 10) _hotkeyRetry?.Stop();
+            if (!IsClosing) _hotkeyStatus = hotkey.Register(gesture);
+            if (IsClosing || _hotkeyStatus != HotkeyStatus.InUse || ++attempts >= 10) _hotkeyRetry?.Stop();
             UpdateTrayText();
         }, Dispatcher);
     }
@@ -563,38 +555,38 @@ public partial class MainWindow
     // ReSharper disable once AsyncVoidEventHandlerMethod
     private async void OnSettings(object sender, RoutedEventArgs e)
     {
-        if (_closing) return;
+        if (IsClosing) return;
         try
         {
             var dialog = new SettingsWindow(
                 _preferences with { AlwaysOnTop = Topmost, StartWithWindows = StartupRegistration.IsEnabled },
                 IsShortcutAvailable, ShortcutStatus, async () =>
                 {
-                    await CheckForUpdatesAsync(true, _lifetime.Token);
+                    await CheckForUpdatesAsync(true, Lifetime.Token);
                     return UpdateStatusText.Text;
                 }, _preferenceStore.DefaultCaptureFolder, _lastUpdateCheck) { Owner = this };
             // Let the shortcut recorder receive WinMon's own combination; Save or the finally block takes it back.
             _hotkeyRetry?.Stop();
             _hotkey?.Unregister();
-            if (dialog.ShowDialog() != true || dialog.Result is not { } result || _closing) return;
+            if (dialog.ShowDialog() != true || dialog.Result is not { } result || IsClosing) return;
             SettingsButton.IsEnabled = false;
             Processes.RankingEnabled = false;
             _settingsWriteTask = ApplyPreferencesAsync(result);
             await _settingsWriteTask;
         }
-        catch (OperationCanceledException) when (_lifetime.IsCancellationRequested)
+        catch (OperationCanceledException) when (Lifetime.IsCancellationRequested)
         {
         }
         catch (Exception ex)
         {
             Trace.TraceError("WinMon preferences could not be saved: {0}", ex);
-            if (!_closing)
+            if (!IsClosing)
                 MessageDialog.ShowNotice(this, Strings.SettingsCouldNotBeSavedCheckAccessToYourLocal,
                     Strings.WinMonSettings);
         }
         finally
         {
-            if (!_closing)
+            if (!IsClosing)
             {
                 SettingsButton.IsEnabled = true;
                 Processes.RankingEnabled = true;
@@ -610,7 +602,7 @@ public partial class MainWindow
         try
         {
             if (startupChanged) StartupRegistration.SetEnabled(result.StartWithWindows);
-            await _preferenceStore.SaveAsync(result, _lifetime.Token);
+            await _preferenceStore.SaveAsync(result, Lifetime.Token);
         }
         catch
         {
@@ -714,7 +706,7 @@ public partial class MainWindow
         }
 
         foreach (Window window in app.Windows) WindowTheme.Apply(window);
-        foreach (var row in _rows) row.InvalidateVisual();
+        foreach (var row in Processes.Rows) row.InvalidateVisual();
         _otherRow.InvalidateVisual();
         OverallGraph.InvalidateVisual();
     }
@@ -763,7 +755,7 @@ public partial class MainWindow
 
     private void OnUserPreferenceChanged(object sender, UserPreferenceChangedEventArgs e)
     {
-        if (!_closing)
+        if (!IsClosing)
             Dispatcher.BeginInvoke(() =>
             {
                 ApplyTheme();
@@ -773,14 +765,14 @@ public partial class MainWindow
 
     private void OnDisplaySettingsChanged(object? sender, EventArgs e)
     {
-        if (!_closing) Dispatcher.BeginInvoke(EnsureVisible);
+        if (!IsClosing) Dispatcher.BeginInvoke(EnsureVisible);
     }
 
     private void OnWindowKeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control)
         {
-            if (_compactMode) SetCompactView(false);
+            if (CompactMode) SetCompactView(false);
             if (ServicesTab.IsChecked == true)
             {
                 ServiceView.FocusSearch();
@@ -800,25 +792,15 @@ public partial class MainWindow
             return;
         }
 
-        if (e.Key == Key.Escape && ServicesTab.IsChecked == true && ServiceView.ClearSearch())
+        if ((e.Key == Key.Escape && ServicesTab.IsChecked == true && ServiceView.ClearSearch()) ||
+            (e.Key == Key.Escape && UsageTab.IsChecked == true && UsageView.ClearSearch()) ||
+            (e.Key == Key.Escape && Processes.ClearFocusedSearch()))
         {
             e.Handled = true;
             return;
         }
 
-        if (e.Key == Key.Escape && UsageTab.IsChecked == true && UsageView.ClearSearch())
-        {
-            e.Handled = true;
-            return;
-        }
-
-        if (e.Key == Key.Escape && Processes.ClearFocusedSearch())
-        {
-            e.Handled = true;
-            return;
-        }
-
-        if (e.Key != Key.Escape || _selectedSample is null || Processes.HasOpenDropDown) return;
+        if (e.Key != Key.Escape || SelectedSample is null || Processes.HasOpenDropDown) return;
         ReturnToLive();
         e.Handled = true;
     }
@@ -829,12 +811,12 @@ public partial class MainWindow
     {
         if (_allowClose) return;
         e.Cancel = true;
-        if (_closing || _preparingUpdateExit) return;
+        if (IsClosing || _preparingUpdateExit) return;
         // A restart may already have stopped its service. Let the bounded control operation finish
         // before cancelling the monitor lifetime or exiting its helper owner.
         if (_serviceActionBusy)
         {
-            _closeAfterServiceAction = true;
+            CloseAfterServiceAction = true;
             return;
         }
 
@@ -870,7 +852,7 @@ public partial class MainWindow
             _preparingUpdateExit = false;
         }
 
-        _closing = true;
+        IsClosing = true;
         Session.Close();
         Processes.Close();
         _snapshotCopiedTimer.Stop();
@@ -879,8 +861,8 @@ public partial class MainWindow
         SystemEvents.DisplaySettingsChanged -= OnDisplaySettingsChanged;
         try
         {
-            await _lifetime.CancelAsync();
-            if (_samplingTask is not null) await _samplingTask;
+            await Lifetime.CancelAsync();
+            if (SamplingTask is not null) await SamplingTask;
             // History no longer changes, and the helper waits for Commit below before replacing the executable.
             if (_updateRestartPending) await SaveRestartHistoryAsync();
             try
@@ -909,7 +891,7 @@ public partial class MainWindow
             _tray?.Dispose();
             _trayIcon?.Dispose();
             if (_updateRestartPending) UpdateLauncher.Commit();
-            _lifetime.Dispose();
+            Lifetime.Dispose();
             _allowClose = true;
             Close();
         }
@@ -935,7 +917,8 @@ public partial class MainWindow
     internal void SaveForSessionEnd()
     {
         // Before OnLoaded has read them, the in-memory preferences are defaults that must not replace the saved ones.
-        if (_diagnosticMode || !_preferencesLoaded || _closing || _preparingUpdateExit || _updateRestartPending) return;
+        if (_diagnosticMode || !_preferencesLoaded || IsClosing || _preparingUpdateExit ||
+            _updateRestartPending) return;
         var preferences = ExitPreferences();
         try
         {

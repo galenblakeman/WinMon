@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace WinMon.Monitoring;
 
 /// <summary>Identifies one recorded sample, so a later lookup finds that exact sample and never a neighbour.</summary>
@@ -11,7 +13,7 @@ internal readonly record struct SampleKey(long MonotonicTimestamp, DateTimeOffse
 
     /// <summary>The sample's position in <see cref="ProcessRanking.Moment"/> seconds.</summary>
     internal double Moment => MonotonicTimestamp > 0
-        ? MonotonicTimestamp / (double)System.Diagnostics.Stopwatch.Frequency
+        ? MonotonicTimestamp / (double)Stopwatch.Frequency
         : Timestamp.UtcTicks / (double)TimeSpan.TicksPerSecond;
 
     internal bool Matches(MonitorSample sample)

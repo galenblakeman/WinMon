@@ -10,7 +10,6 @@ namespace WinMon;
 public partial class MainWindow
 {
     private bool _serviceActionBusy;
-    private bool _closeAfterServiceAction;
 
     private void InitializeServices()
     {
@@ -42,10 +41,10 @@ public partial class MainWindow
     private void RefreshServices()
     {
         // The compact strip hides the Services tab as well.
-        if (ServicesTab.IsChecked != true || _compactMode) return;
-        var frame = Session.Services.Find(_selectedSample);
+        if (ServicesTab.IsChecked != true || CompactMode) return;
+        var frame = Session.Services.Find(SelectedSample);
         // A failed collection must not leave stale live metrics or actions on screen.
-        if (_selectedSample is null && _samplingError is not null) frame = null;
+        if (SelectedSample is null && _samplingError is not null) frame = null;
         var frames = Session.Services.Frames;
         var count = 0;
         if (frame is not null)
@@ -57,21 +56,21 @@ public partial class MainWindow
                 }
 
         var history = frames.Take(count).ToArray();
-        ServiceView.Update(frame, history, _selectedSample is not null);
+        ServiceView.Update(frame, history, SelectedSample is not null);
     }
 
     // Fire-and-forget from a menu command; expected failures are reported in the view.
     // ReSharper disable once AsyncVoidMethod
     private async void RunServiceAction(ServiceObservation service, ProcessUsage? host, string action)
     {
-        if (_serviceActionBusy || _closing || _selectedSample is not null || _diagnosticMode) return;
+        if (_serviceActionBusy || IsClosing || SelectedSample is not null || _diagnosticMode) return;
         if (action != "start" && !MessageDialog.Confirm(this, Strings.Format(Strings.ConfirmServiceAction,
                     action == "stop" ? Strings.StopService : Strings.RestartService, service.DisplayName),
                 Strings.Services,
                 action == "stop" ? Strings.StopService : Strings.RestartService)) return;
-        if (_closing || _selectedSample is not null) return;
+        if (IsClosing || SelectedSample is not null) return;
         _serviceActionBusy = true;
-        var actionCancellation = _lifetime.Token;
+        var actionCancellation = Lifetime.Token;
         ServiceView.SetBusy(true);
         string? error = null;
         try
@@ -96,7 +95,7 @@ public partial class MainWindow
                 if (helper.ExitCode != 0) throw new Win32Exception(helper.ExitCode);
             }
         }
-        catch (OperationCanceledException) when (_lifetime.IsCancellationRequested)
+        catch (OperationCanceledException) when (Lifetime.IsCancellationRequested)
         {
         }
         catch (Exception ex) when (ex is Win32Exception or InvalidOperationException or ArgumentException)
@@ -106,8 +105,8 @@ public partial class MainWindow
         finally
         {
             _serviceActionBusy = false;
-            if (!_closing) ServiceView.SetBusy(false, error);
-            if (_closeAfterServiceAction) Close();
+            if (!IsClosing) ServiceView.SetBusy(false, error);
+            if (CloseAfterServiceAction) Close();
         }
     }
 }

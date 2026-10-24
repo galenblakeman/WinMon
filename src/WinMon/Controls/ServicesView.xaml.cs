@@ -154,9 +154,12 @@ public partial class ServicesView
         _ready = ready;
     }
 
-    private string[] SortChoices() => TopServiceCount == 0
-        ? [Strings.CPU, Strings.Memory, Strings.IO, Strings.ServiceName]
-        : [Strings.CPU, Strings.Memory, Strings.IO];
+    private string[] SortChoices()
+    {
+        return TopServiceCount == 0
+            ? [Strings.CPU, Strings.Memory, Strings.IO, Strings.ServiceName]
+            : [Strings.CPU, Strings.Memory, Strings.IO];
+    }
 
     private void RefreshSortChoices()
     {

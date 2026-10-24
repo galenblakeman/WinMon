@@ -80,15 +80,13 @@ internal sealed class CaptureRules(IReadOnlyList<CaptureRuleSetting> rules, Time
     private readonly Dictionary<CaptureMetric, double> _lastFired = [];
     private readonly List<(int, long)> _absent = [];
 
-    internal bool IsEmpty => _rules.Length == 0;
-
     /// <summary>Feed one live, uncompacted sample; returns the rules it completed.</summary>
     internal IReadOnlyList<CaptureFired> Observe(MonitorSample full)
     {
         ArgumentNullException.ThrowIfNull(full);
         List<CaptureFired>? fired = null;
         var moment = ProcessRanking.Moment(full);
-        var valid = !full.IsGap && full.TotalCpuPercent is not null;
+        var valid = full is { IsGap: false, TotalCpuPercent: not null };
         foreach (var rule in _rules)
         {
             if (rule.Metric == CaptureMetric.Process)
@@ -126,6 +124,8 @@ internal sealed class CaptureRules(IReadOnlyList<CaptureRuleSetting> rules, Time
 
         // A lifetime missing from a valid sample has exited or become unreadable; a reused PID starts afresh.
         foreach (var (key, run) in _processRuns)
+            // Seen is assigned from this exact sample's moment, so equality distinguishes current from stale runs.
+            // ReSharper disable once CompareOfFloatsByEqualityOperator
             if (run.Seen != moment)
                 _absent.Add(key);
         foreach (var key in _absent) _processRuns.Remove(key);

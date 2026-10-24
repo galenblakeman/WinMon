@@ -61,6 +61,8 @@ internal static class CaptureReportText
     }
 
     /// <summary>The report saved to the folder: the trigger header, then the Copy capture text of the peak.</summary>
+    /// <param name="fired">The rule trigger and its peak reading.</param>
+    /// <param name="id">The capture identifier written into the report header.</param>
     /// <param name="history">Compacted history that still holds the peak.</param>
     internal static string Report(CaptureFired fired, Guid id, IReadOnlyList<MonitorSample> history)
     {
@@ -92,7 +94,8 @@ internal static class CaptureReportText
             }
 
         // Rank on the window ending at the peak, with the peak's own uncompacted values, as live ranking does.
-        IReadOnlyList<MonitorSample> window = index >= 0 ? new SampleList(history, index + 1, fired.Peak) : [fired.Peak];
+        IReadOnlyList<MonitorSample>
+            window = index >= 0 ? new SampleList(history, index + 1, fired.Peak) : [fired.Peak];
         var metric = fired.Rule.Metric;
         var sort = metric switch
         {

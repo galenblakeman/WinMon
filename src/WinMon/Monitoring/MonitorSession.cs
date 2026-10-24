@@ -1,6 +1,8 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 
+// ReSharper disable GrammarMistakeInComment
+
 namespace WinMon.Monitoring;
 
 /// <summary>Why the latest capture is incomplete.</summary>
@@ -169,6 +171,7 @@ internal sealed class MonitorSession(
                     HasLiveSample = true;
                     if (pending.Full is not null) LiveSampleRecorded?.Invoke(pending.Full);
                 }
+
                 changed = true;
             }
             catch (Exception ex)

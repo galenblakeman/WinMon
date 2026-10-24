@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
+using System.Security;
 using Microsoft.Win32.SafeHandles;
 
 namespace WinMon.Monitoring;
@@ -183,24 +184,24 @@ internal sealed class WindowsResourceSampler : IDisposable
             }
 
             var now = Stopwatch.GetTimestamp();
-            if (_spaceTask is null && (_spaceRead == 0 || now - _spaceRead >= 30 * Stopwatch.Frequency))
+            if (_spaceTask is not null || (_spaceRead != 0 && now - _spaceRead < 30 * Stopwatch.Frequency)) return;
+            _spaceRead = now;
+            _spaceTask = Task.Run(() =>
             {
-                _spaceRead = now;
-                _spaceTask = Task.Run(() =>
+                try
                 {
-                    try
-                    {
-                        var drive = new DriveInfo(name + "\\");
-                        return drive.IsReady ? (drive.AvailableFreeSpace >= 0 ? (ulong)drive.AvailableFreeSpace : 0,
-                            drive.TotalSize >= 0 ? (ulong)drive.TotalSize : 0) : ((ulong, ulong)?)null;
-                    }
-                    catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException
-                                                   or NotSupportedException or System.Security.SecurityException)
-                    {
-                        return null;
-                    }
-                });
-            }
+                    var drive = new DriveInfo(name + "\\");
+                    return drive.IsReady
+                        ? (drive.AvailableFreeSpace >= 0 ? (ulong)drive.AvailableFreeSpace : 0,
+                            drive.TotalSize >= 0 ? (ulong)drive.TotalSize : 0)
+                        : ((ulong, ulong)?)null;
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException
+                                               or NotSupportedException or SecurityException)
+                {
+                    return null;
+                }
+            });
         }
 
         internal void Reset()
@@ -215,7 +216,8 @@ internal sealed class WindowsResourceSampler : IDisposable
         {
             _query?.Dispose();
             _query = null;
-            _idleCounter = _bytesCounter = _readCounter = _writeCounter = _responseCounter = _queueCounter = IntPtr.Zero;
+            _idleCounter = _bytesCounter =
+                _readCounter = _writeCounter = _responseCounter = _queueCounter = IntPtr.Zero;
             _baseline = false;
         }
     }
@@ -290,9 +292,11 @@ internal sealed class WindowsResourceSampler : IDisposable
             current.Received < start.Received || current.Sent < start.Sent)
             start = current;
         return (current.Received >= 0 && start.Received >= 0
-                ? (ulong)(current.Received - start.Received) : null,
+                ? (ulong)(current.Received - start.Received)
+                : null,
             current.Sent >= 0 && start.Sent >= 0
-                ? (ulong)(current.Sent - start.Sent) : null,
+                ? (ulong)(current.Sent - start.Sent)
+                : null,
             start);
     }
 

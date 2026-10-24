@@ -58,7 +58,7 @@ Install-Module ArtifactSigning -RequiredVersion 0.1.20 -Repository PSGallery -Sc
 
 Defaults are `https://eus.codesigning.azure.net/`, `galenwinmonsigning`, `WinMonPublic`, and expected publisher `Galen Blakeman`. Override with `-SigningEndpoint`, `-SigningAccountName`, `-CertificateProfileName`, and `-ExpectedPublisher`.
 
-Run `./tools/Test-ReleaseSigning.ps1` to exercise packaging order, final hashes, updater RSA verification, and signing failure gates using simulated build/signing boundaries. It makes no Azure calls and does not prove live signing. Private fixture keys remain only under ignored `artifacts/signing-validation/` and must never be uploaded as release assets.
+Run `./tools/Test-ReleaseSigning.ps1` to exercise packaging order, final hashes, updater RSA verification, and signing failure gates using simulated build/signing boundaries. It makes no Azure calls and does not prove live signing. Its private fixture key is written under ignored `artifacts/signing-validation/` and deleted once the signed fixture release completes; it must never be uploaded as a release asset.
 
 ## Responsibilities and privacy
 

@@ -145,12 +145,15 @@ public sealed record AutoCapturePreferences
     /// <summary>A copy with one valid rule per metric, missing ones at their defaults, and the cooldown in range.</summary>
     internal AutoCapturePreferences Normalized()
     {
+        // Deserialized settings can contain null despite the non-nullable declarations.
+        // ReSharper disable once NullCoalescingConditionIsAlwaysNotNullAccordingToAPIContract
         var rules = Rules ?? [];
         return this with
         {
             Rules =
             [
                 .. CaptureRuleSetting.Defaults.Select(fallback =>
+                    // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
                     (rules.FirstOrDefault(rule => rule?.Metric == fallback.Metric) ?? fallback).Normalized())
             ],
             CooldownMinutes = Math.Clamp(CooldownMinutes, 1, 1440),

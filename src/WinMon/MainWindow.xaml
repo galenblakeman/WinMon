@@ -226,7 +226,6 @@
                                     x:Name="CapturesButton"
                                     Margin="0,0,8,0"
                                     Padding="8,2"
-                                    VerticalAlignment="Center"
                                     AutomationProperties.Name="{Binding [AutoCaptureHeading], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                                     Click="OnCapturesMenu"
                                     FontSize="12"

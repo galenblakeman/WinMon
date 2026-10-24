@@ -5,6 +5,8 @@ using System.Windows.Media;
 
 namespace WinMon.Controls;
 
+// Keep explicit fields because Set updates them by reference and raises PropertyChanged only on change.
+// ReSharper disable ReplaceWithFieldKeyword
 /// <summary>One shared set of live readings, rendered separately by full and compact tooltips.</summary>
 public sealed class MetricDetails : INotifyPropertyChanged
 {
@@ -13,10 +15,30 @@ public sealed class MetricDetails : INotifyPropertyChanged
     private string _live = "";
     private Brush? _accent;
 
-    public string Title { get => _title; set => Set(ref _title, value); }
-    public string Definition { get => _definition; set => Set(ref _definition, value); }
-    public string Live { get => _live; set => Set(ref _live, value); }
-    public Brush? Accent { get => _accent; set => Set(ref _accent, value); }
+    public string Title
+    {
+        get => _title;
+        set => Set(ref _title, value);
+    }
+
+    public string Definition
+    {
+        get => _definition;
+        set => Set(ref _definition, value);
+    }
+
+    public string Live
+    {
+        get => _live;
+        set => Set(ref _live, value);
+    }
+
+    public Brush? Accent
+    {
+        get => _accent;
+        set => Set(ref _accent, value);
+    }
+
     public ObservableCollection<DetailRow> Rows { get; } = [];
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -35,8 +57,17 @@ public sealed class DetailRow : INotifyPropertyChanged
     private string _label = "";
     private string _value = "";
 
-    public string Label { get => _label; set => Set(ref _label, value); }
-    public string Value { get => _value; set => Set(ref _value, value); }
+    public string Label
+    {
+        get => _label;
+        set => Set(ref _label, value);
+    }
+
+    public string Value
+    {
+        get => _value;
+        set => Set(ref _value, value);
+    }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

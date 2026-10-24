@@ -139,6 +139,8 @@ public sealed class PreferenceStore
             : Enum.IsDefined(preferences.ProcessSort) ? preferences.ProcessSort : ProcessSort.Cpu,
             SortByGpu = false,
             PinnedProcesses = ProcessPins.Normalize(preferences.PinnedProcesses),
+            // Persisted JSON can contain an explicit null despite the non-nullable declaration.
+            // ReSharper disable once NullCoalescingConditionIsAlwaysNotNullAccordingToAPIContract
             AutoCapture = (preferences.AutoCapture ?? new AutoCapturePreferences()).Normalized(),
             ShowShortcut = HotkeyGesture.Normalize(preferences.ShowShortcut)
         };

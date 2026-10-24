@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using System.Windows;
+using System.Windows.Input;
 using WinMon.Controls;
 using WinMon.Monitoring;
 
@@ -14,7 +15,7 @@ internal sealed partial class WindowDiagnostics
     /// Render the Usage tab from an illustrative two-minute ledger in both themes, and check ranking, the copied
     /// report and Show in Processes for a running and an exited app.
     /// </summary>
-    internal async Task CaptureUsageDiagnosticsAsync(string output, CancellationToken cancellationToken)
+    internal static async Task CaptureUsageDiagnosticsAsync(string output, CancellationToken cancellationToken)
     {
         var fixture = new MainWindow(true) { Width = 1200, Height = 950 };
         fixture.Loaded -= fixture.OnLoaded;
@@ -78,8 +79,8 @@ internal sealed partial class WindowDiagnostics
                 throw new InvalidOperationException("Usage must list every app, Google Chrome first by CPU time.");
             checks["Rows"] = rows.Select(r => new { r.Name, r.CpuTime, r.Share, r.Processes, r.LastActive }).ToArray();
 
-            view.IoHeader.RaiseEvent(new System.Windows.Input.MouseButtonEventArgs(
-                System.Windows.Input.Mouse.PrimaryDevice, 0, System.Windows.Input.MouseButton.Left)
+            view.IoHeader.RaiseEvent(new MouseButtonEventArgs(
+                Mouse.PrimaryDevice, 0, MouseButton.Left)
             {
                 RoutedEvent = UIElement.MouseLeftButtonUpEvent
             });
@@ -104,12 +105,15 @@ internal sealed partial class WindowDiagnostics
             if (fixture.SelectedSample is not null)
                 throw new InvalidOperationException("Show in Processes must stay live for a running app.");
             await File.WriteAllTextAsync(Path.Combine(output, "usage.json"),
-                JsonSerializer.Serialize(checks, new JsonSerializerOptions { WriteIndented = true }), cancellationToken);
+                JsonSerializer.Serialize(checks, new JsonSerializerOptions { WriteIndented = true }),
+                cancellationToken);
         }
         finally
         {
             fixture.CloseForFixture();
         }
+
+        return;
 
         static ProcessUsage App(int pid, long created, string name, string path, string appName, double cpu,
             double io, double? gpu, bool window)

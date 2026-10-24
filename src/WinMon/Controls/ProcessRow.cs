@@ -1,5 +1,5 @@
-using System.Globalization;
 using System.Diagnostics;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Automation.Peers;
@@ -497,7 +497,7 @@ public sealed class ProcessRow : Grid
         protected override List<AutomationPeer>? GetChildrenCore()
         {
             var row = (ProcessRow)Owner;
-            return row._pin.Visibility == Visibility.Visible && UIElementAutomationPeer.CreatePeerForElement(row._pin) is { } pin
+            return row._pin.Visibility == Visibility.Visible && CreatePeerForElement(row._pin) is { } pin
                 ? [pin]
                 : null;
         }

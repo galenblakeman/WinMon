@@ -15,7 +15,7 @@ internal sealed partial class WindowDiagnostics
     /// Inject illustrative CPU and disk runs into a fixture window with automatic captures on, then check the
     /// markers, report files, Capture-mode selection, the card banner and the captures menu, and render them.
     /// </summary>
-    internal async Task CaptureAutoCaptureDiagnosticsAsync(string output, CancellationToken cancellationToken)
+    internal static async Task CaptureAutoCaptureDiagnosticsAsync(string output, CancellationToken cancellationToken)
     {
         var reports = Path.Combine(output, "reports");
         var fixture = new MainWindow(true) { Width = 1200, Height = 950 };
@@ -48,7 +48,9 @@ internal sealed partial class WindowDiagnostics
                 ProcessUsage[] processes =
                 [
                     new(12000, 1, "chrome", cpuSpike ? 60 + i % 3 : 6, 900_000_000, 400_000)
-                        { AppName = "Google Chrome", ImagePath = @"C:\Program Files\Google\Chrome\Application\chrome.exe" },
+                    {
+                        AppName = "Google Chrome", ImagePath = @"C:\Program Files\Google\Chrome\Application\chrome.exe"
+                    },
                     new(15288, 2, "node", cpuSpike ? 30 : 2, 300_000_000, 100_000) { ImagePath = @"C:\Tools\node.exe" },
                     new(4120, 3, "MsMpEng", 2, 280_000_000, diskSpike ? 40_000_000 : 1_000_000)
                         { AppName = "Antimalware Service Executable" }
@@ -90,7 +92,7 @@ internal sealed partial class WindowDiagnostics
             var x = plot.Right - (end - markers[0].FiredKey.Moment) / MonitorPreferences.ShortRangeSeconds * plot.Width;
             if (graph.MarkerAt(new Point(x, 2))?.Tag != markers[0])
                 throw new InvalidOperationException("The CPU marker must be hit-testable at the chart's top edge.");
-            if (graph.Markers.Select(m => m.BrushKey).SequenceEqual(["CpuAccent", "DiskAccent"]) is false)
+            if (!graph.Markers.Select(m => m.BrushKey).SequenceEqual(["CpuAccent", "DiskAccent"]))
                 throw new InvalidOperationException("Markers must use their resource colors.");
             await CaptureServiceWindowAsync(fixture, Path.Combine(output, "captures-live.png"), cancellationToken);
 
@@ -109,7 +111,9 @@ internal sealed partial class WindowDiagnostics
             }
 
             var menu = fixture.CreateCapturesMenu();
-            if (menu.Items.Count != 6) throw new InvalidOperationException("The captures menu needs header, 2 captures, separator and 2 links.");
+            if (menu.Items.Count != 6)
+                throw new InvalidOperationException(
+                    "The captures menu needs header, 2 captures, separator and 2 links.");
 
             fixture.Preferences = fixture.Preferences with { Theme = "Dark" };
             fixture.ApplyTheme();
@@ -124,7 +128,8 @@ internal sealed partial class WindowDiagnostics
                     if (settings.Section != section) continue;
                     settings.UpdateLayout();
                     await CaptureServiceWindowAsync(settings,
-                        Path.Combine(output, $"settings-{section.ToString().ToLowerInvariant()}.png"), cancellationToken);
+                        Path.Combine(output, $"settings-{section.ToString().ToLowerInvariant()}.png"),
+                        cancellationToken);
                 }
             }
             finally

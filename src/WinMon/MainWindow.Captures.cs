@@ -1,12 +1,16 @@
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using WinMon.Controls;
 using WinMon.Monitoring;
 using WinMon.Preferences;
 using Forms = System.Windows.Forms;
+using Path = System.Windows.Shapes.Path;
 
 namespace WinMon;
 
@@ -99,14 +103,14 @@ public partial class MainWindow
             marker.WriteFailed = true;
             Trace.TraceError("WinMon could not save an automatic capture report: {0}", ex);
             // Once per session: a full disk must not interrupt the user every few minutes.
-            if (!_captureWriteErrorShown && !_closing)
+            if (!_captureWriteErrorShown && !IsClosing)
             {
                 _captureWriteErrorShown = true;
                 ShowCaptureNotice(Strings.Format(Strings.AutoCaptureWriteFailed, folder));
             }
         }
 
-        if (!_closing) RefreshPresentation();
+        if (!IsClosing) RefreshPresentation();
     }
 
     private void NotifyCapture(CaptureMarker marker, string body)
@@ -144,19 +148,20 @@ public partial class MainWindow
             // Widen the chart to the smallest range that shows the peak.
             var age = CpuGraph.Moment(samples[^1]) - marker.Peak.Moment;
             if (age > _preferences.EffectiveChartRange &&
-                _preferences.ChartRanges.FirstOrDefault(range => range >= age) is var range and > 0)
+                _preferences.ChartRanges.FirstOrDefault(candidate => candidate >= age) is var range and > 0)
             {
                 _preferences = _preferences with { ChartRangeSeconds = range };
                 BuildRangeChips();
             }
 
-            _selectedSample = peak;
+            SelectedSample = peak;
             RefreshPresentation();
             OverallGraph.Focus();
             return;
         }
 
-        if (!OpenCaptureReport(marker)) MessageDialog.ShowNotice(this, Strings.AutoCaptureGone, Strings.AutoCaptureHeading);
+        if (!OpenCaptureReport(marker))
+            MessageDialog.ShowNotice(this, Strings.AutoCaptureGone, Strings.AutoCaptureHeading);
     }
 
     private bool OpenCaptureReport(CaptureMarker marker)
@@ -167,7 +172,7 @@ public partial class MainWindow
             Process.Start(new ProcessStartInfo(path) { UseShellExecute = true })?.Dispose();
             return true;
         }
-        catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException)
+        catch (Exception ex) when (ex is Win32Exception or InvalidOperationException)
         {
             MessageDialog.ShowNotice(this, ex.Message, Strings.AutoCaptureOpenReport);
             return true;
@@ -182,7 +187,7 @@ public partial class MainWindow
 
     private CaptureMarker? SelectedCapture()
     {
-        return _selectedSample is { } selected ? _captureMarkers.LastOrDefault(m => m.Peak.Matches(selected)) : null;
+        return SelectedSample is { } selected ? _captureMarkers.LastOrDefault(m => m.Peak.Matches(selected)) : null;
     }
 
     /// <summary>A dismissible footer line, unless the footer is offering an update.</summary>
@@ -215,8 +220,10 @@ public partial class MainWindow
             var marker = _captureMarkers[i];
             var inHistory = samples.Count > 0 && marker.Peak.Moment >= oldest;
             var tooltip = marker.Rule + "\n" + Strings.Format(Strings.AutoCaptureMarkerTooltip,
-                marker.FiredKey.Timestamp, CaptureReportText.Value(marker.Fired.Rule.Metric, marker.Fired.PeakValue),
-                marker.Peak.Timestamp) + "\n" + (inHistory ? Strings.AutoCaptureMarkerHint : Strings.AutoCapturePeakGone);
+                              marker.FiredKey.Timestamp,
+                              CaptureReportText.Value(marker.Fired.Rule.Metric, marker.Fired.PeakValue),
+                              marker.Peak.Timestamp) + "\n" +
+                          (inHistory ? Strings.AutoCaptureMarkerHint : Strings.AutoCapturePeakGone);
             markers[i] = new ChartMarker(marker.FiredKey.Moment, CaptureReportText.BrushKey(marker.Fired.Rule.Metric),
                 tooltip, ReferenceEquals(marker, selected), marker);
         }
@@ -243,7 +250,7 @@ public partial class MainWindow
     {
         var menu = CreateCapturesMenu();
         menu.PlacementTarget = CapturesButton;
-        menu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+        menu.Placement = PlacementMode.Bottom;
         menu.IsOpen = true;
     }
 
@@ -259,7 +266,8 @@ public partial class MainWindow
             : Strings.AutoCaptureOff;
         menu.Items.Add(new MenuItem
         {
-            Header = Strings.Format(Strings.AutoCaptureWatching, watching), IsEnabled = false, FontWeight = FontWeights.SemiBold
+            Header = Strings.Format(Strings.AutoCaptureWatching, watching), IsEnabled = false,
+            FontWeight = FontWeights.SemiBold
         });
         if (_captureMarkers.Count == 0)
             menu.Items.Add(new MenuItem { Header = Strings.AutoCaptureNoneYet, IsEnabled = false });
@@ -274,13 +282,13 @@ public partial class MainWindow
             var line = new TextBlock { Text = detail, FontSize = 11 };
             line.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
             header.Children.Add(line);
-            var triangle = new System.Windows.Shapes.Path
+            var triangle = new Path
             {
                 Data = Geometry.Parse("M 0,0 L 10,0 L 5,8 Z"), Width = 10, Height = 8, Stretch = Stretch.Fill
             };
             triangle.SetResourceReference(Shape.FillProperty, CaptureReportText.BrushKey(marker.Fired.Rule.Metric));
             var item = new MenuItem { Header = header, Icon = triangle };
-            System.Windows.Automation.AutomationProperties.SetName(item, $"{marker.Rule}, {detail}");
+            AutomationProperties.SetName(item, $"{marker.Rule}, {detail}");
             item.Click += (_, _) => OpenCapture(marker);
             menu.Items.Add(item);
         }
@@ -299,7 +307,7 @@ public partial class MainWindow
                     { UseShellExecute = false, Arguments = $"\"{folder}\"" })?.Dispose();
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or
-                                           System.ComponentModel.Win32Exception or InvalidOperationException)
+                                           Win32Exception or InvalidOperationException)
             {
                 MessageDialog.ShowNotice(this, ex.Message, Strings.AutoCaptureFolder);
             }

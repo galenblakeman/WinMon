@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using WinMon.Controls;
@@ -12,8 +11,10 @@ public partial class MainWindow
     private readonly Dictionary<MetricReadout, MetricDetails> _metricDetails = [];
     private MetricReadout? _openMetricDetails;
 
-    private static string DetailText(string key) =>
-        Strings.ResourceManager.GetString(key, Strings.Culture ?? CultureInfo.CurrentUICulture) ?? key;
+    private static string DetailText(string key)
+    {
+        return Strings.ResourceManager.GetString(key, Strings.Culture ?? CultureInfo.CurrentUICulture) ?? key;
+    }
 
     private void InitializeMetricDetails()
     {
@@ -57,19 +58,34 @@ public partial class MainWindow
                 metric == NetworkMetric ? "DetailNetworkDefinition" :
                 metric == GpuMetric ? "DetailGpuDefinition" : "DetailDiskDefinition");
             var keys = metric == CpuMetric
-                ? new[] { "DetailClockSpeed", "DetailUserKernel", "DetailProcessesThreads", "DetailHandles",
-                    "DetailBusiestProcess", "DetailUpTime" }
+                ? new[]
+                {
+                    "DetailClockSpeed", "DetailUserKernel", "DetailProcessesThreads", "DetailHandles",
+                    "DetailBusiestProcess", "DetailUpTime"
+                }
                 : metric == MemoryMetric
-                    ? ["DetailInUseTotal", "DetailAvailable", "DetailCommittedLimit", "DetailCached",
-                        "DetailPagedNonPaged", "DetailLargestWorkingSet"]
+                    ?
+                    [
+                        "DetailInUseTotal", "DetailAvailable", "DetailCommittedLimit", "DetailCached",
+                        "DetailPagedNonPaged", "DetailLargestWorkingSet"
+                    ]
                     : metric == NetworkMetric
-                        ? ["DetailAdapter", "DetailLinkSpeed", "DetailUtilization", "DetailReceiveSend",
-                            "DetailReceivedSent"]
+                        ?
+                        [
+                            "DetailAdapter", "DetailLinkSpeed", "DetailUtilization", "DetailReceiveSend",
+                            "DetailReceivedSent"
+                        ]
                         : metric == GpuMetric
-                            ? ["DetailAdapterName", "DetailBusiestEngine", "DetailDedicatedMemory",
-                                "DetailSharedMemory", "DetailBusiestProcess"]
-                            : ["DetailActiveTime", "DetailRead", "DetailWrite", "DetailAverageResponse",
-                                "DetailQueueLength", "DetailFreeSpace"];
+                            ?
+                            [
+                                "DetailAdapterName", "DetailBusiestEngine", "DetailDedicatedMemory",
+                                "DetailSharedMemory", "DetailBusiestProcess"
+                            ]
+                            :
+                            [
+                                "DetailActiveTime", "DetailRead", "DetailWrite", "DetailAverageResponse",
+                                "DetailQueueLength", "DetailFreeSpace"
+                            ];
             for (var i = 0; i < keys.Length; i++) details.Rows[i].Label = DetailText(keys[i]);
             AutomationProperties.SetHelpText(metric.Toggle, details.Definition);
         }
@@ -87,9 +103,11 @@ public partial class MainWindow
         if (metric == CpuMetric)
         {
             rows[0].Value = resource?.CpuClockMhz is > 0
-                ? F("{0:0.00} GHz", resource.CpuClockMhz.Value / 1000) : Dash;
+                ? F("{0:0.00} GHz", resource.CpuClockMhz.Value / 1000)
+                : Dash;
             rows[1].Value = latest?.TotalCpuPercent is { } total && resource?.CpuKernelPercent is { } kernel
-                ? F("{0:0.0}% / {1:0.0}%", Math.Max(0, total - kernel), kernel) : Dash;
+                ? F("{0:0.0}% / {1:0.0}%", Math.Max(0, total - kernel), kernel)
+                : Dash;
             rows[2].Value = ProcessThreadCounts(resource);
             rows[3].Value = HandleCountText(resource);
             rows[4].Value = Busiest(CpuMetric, ProcessSort.Cpu);
@@ -132,11 +150,12 @@ public partial class MainWindow
             rows[0].Value = string.IsNullOrEmpty(resource?.NetworkName) ? Dash : resource.NetworkName;
             rows[1].Value = resource?.LinkBitsPerSecond is { } speed ? RateText.Format(speed) : Dash;
             rows[2].Value = Percent(resource?.NetworkPercent);
-            rows[3].Value = resource?.ReceiveBytesPerSecond is { } rx && resource.SendBytesPerSecond is { } tx
-                ? F("↓{0} / ↑{1}", RateText.Format(rx * 8), RateText.Format(tx * 8)) : Dash;
-            rows[4].Value = resource?.ReceivedBytesSinceStart is { } received &&
-                            resource.SentBytesSinceStart is { } sent
-                ? F("↓{0} / ↑{1}", Bytes(received), Bytes(sent)) : Dash;
+            rows[3].Value = resource is { ReceiveBytesPerSecond: { } rx, SendBytesPerSecond: { } tx }
+                ? F("↓{0} / ↑{1}", RateText.Format(rx * 8), RateText.Format(tx * 8))
+                : Dash;
+            rows[4].Value = resource is { ReceivedBytesSinceStart: { } received, SentBytesSinceStart: { } sent }
+                ? F("↓{0} / ↑{1}", Bytes(received), Bytes(sent))
+                : Dash;
         }
         else if (metric == GpuMetric)
         {
@@ -185,16 +204,37 @@ public partial class MainWindow
     }
 
     private static string Dash => Strings.MissingReading;
-    internal static string ProcessThreadCounts(ResourceSample? resource) =>
-        resource?.ProcessCount is { } processes && resource.ThreadCount is { } threads
-            ? F("{0:N0} · {1:N0}", processes, threads) : Dash;
-    internal static string HandleCountText(ResourceSample? resource) =>
-        resource?.HandleCount is { } handles ? F("{0:N0}", handles) : Dash;
-    private static string F(string format, params object[] values) => Strings.Format(format, values);
-    private static string Bytes(ulong? value) => value is { } bytes
-        ? bytes >= 1_073_741_824 ? F("{0:0.0} GiB", bytes / 1_073_741_824d)
-            : F("{0:0.0} MiB", bytes / 1_048_576d)
-        : Dash;
-    private static string PairBytes(ulong? first, ulong? second) => first is { } a && second is { } b
-        ? F("{0} / {1}", Bytes(a), Bytes(b)) : Dash;
+
+    internal static string ProcessThreadCounts(ResourceSample? resource)
+    {
+        return resource is { ProcessCount: { } processes, ThreadCount: { } threads }
+            ? F("{0:N0} · {1:N0}", processes, threads)
+            : Dash;
+    }
+
+    internal static string HandleCountText(ResourceSample? resource)
+    {
+        return resource?.HandleCount is { } handles ? F("{0:N0}", handles) : Dash;
+    }
+
+    private static string F(string format, params object[] values)
+    {
+        return Strings.Format(format, values);
+    }
+
+    private static string Bytes(ulong? value)
+    {
+        return value is { } bytes
+            ? bytes >= 1_073_741_824
+                ? F("{0:0.0} GiB", bytes / 1_073_741_824d)
+                : F("{0:0.0} MiB", bytes / 1_048_576d)
+            : Dash;
+    }
+
+    private static string PairBytes(ulong? first, ulong? second)
+    {
+        return first is { } a && second is { } b
+            ? F("{0} / {1}", Bytes(a), Bytes(b))
+            : Dash;
+    }
 }

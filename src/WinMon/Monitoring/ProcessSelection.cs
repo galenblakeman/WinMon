@@ -24,7 +24,8 @@ internal sealed class ProcessSelection
         return _target.RetentionSnapshot();
     }
 
-    internal PinnedProcess? Resolve(IReadOnlyList<MonitorSample> samples, bool grouped, bool historical, ProcessSort sort)
+    internal PinnedProcess? Resolve(IReadOnlyList<MonitorSample> samples, bool grouped, bool historical,
+        ProcessSort sort)
     {
         return Resolve(samples, grouped, historical,
             () => ProcessRanking.Rank(samples, sort: sort, grouped: grouped, includeInactive: true));

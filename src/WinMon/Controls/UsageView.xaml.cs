@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 using System.Windows;
@@ -48,12 +49,7 @@ public partial class UsageView
 
     internal bool ActionsHidden
     {
-        get;
-        set
-        {
-            field = value;
-            ActionBar.Visibility = value ? Visibility.Collapsed : Visibility.Visible;
-        }
+        set => ActionBar.Visibility = value ? Visibility.Collapsed : Visibility.Visible;
     }
 
     internal event Action<UsageListSettings>? SettingsChanged;
@@ -252,12 +248,17 @@ public partial class UsageView
         {
             UsageSort.Io => filtered.OrderByDescending(app => app.IoBytes),
             UsageSort.GpuTime => filtered.OrderByDescending(app => app.GpuSeconds ?? -1),
-            UsageSort.Processes => filtered.OrderByDescending(app => app.Lifetimes).ThenByDescending(app => app.Running),
-            UsageSort.LastActive => filtered.OrderByDescending(app => app.LastActive?.Timestamp ?? DateTimeOffset.MinValue),
+            UsageSort.Processes => filtered.OrderByDescending(app => app.Lifetimes)
+                .ThenByDescending(app => app.Running),
+            UsageSort.LastActive => filtered.OrderByDescending(app =>
+                app.LastActive?.Timestamp ?? DateTimeOffset.MinValue),
             _ => filtered.OrderByDescending(app => app.CpuTicks)
         };
-        return [.. TopCountChoices.Limit(ordered.ThenBy(UsageText.DisplayName, StringComparer.CurrentCultureIgnoreCase),
-            settings.TopCount)];
+        return
+        [
+            .. TopCountChoices.Limit(ordered.ThenBy(UsageText.DisplayName, StringComparer.CurrentCultureIgnoreCase),
+                settings.TopCount)
+        ];
     }
 
     private static bool Matches(AppUsage app, string query)
@@ -273,7 +274,7 @@ public partial class UsageView
         if (!_ready) return;
         UpdateRankHeaders();
         var frame = _frame;
-        IReadOnlyList<AppUsage> visible = frame is null ? [] : Visible(frame.Apps, Settings, Search.Text);
+        var visible = frame is null ? [] : Visible(frame.Apps, Settings, Search.Text);
         var desired = new List<UsageDisplayRow>(visible.Count);
         foreach (var app in visible)
         {
@@ -307,6 +308,7 @@ public partial class UsageView
         {
             _refreshingRows = false;
         }
+
         if (frame is not null && _rowsByKey.Count > frame.Apps.Count * 2 + 64)
         {
             // A reset clears the ledger; drop rows for apps it no longer has.
@@ -338,11 +340,12 @@ public partial class UsageView
         SelectionName.Text = row?.Name ?? Strings.UsageApp;
         SelectionDetail.Text = row?.Detail ?? "";
         SelectionDetail.Visibility = row is null ? Visibility.Collapsed : Visibility.Visible;
+        SelectionIcon.Source = row?.Icon;
         SelectionIcon.Visibility = row is null ? Visibility.Collapsed : Visibility.Visible;
         ActionAccent.SetResourceReference(Border.BackgroundProperty, row is null ? "Line" : "Accent");
         Properties.IsEnabled = app is not null && _frame is not null;
         CopyDetails.IsEnabled = app is not null && _frame is not null;
-        OpenFileLocation.IsEnabled = app is { ImagePath: { Length: > 0 } } && !other;
+        OpenFileLocation.IsEnabled = app is { ImagePath.Length: > 0 } && !other;
         ArrangeActionBar();
     }
 
@@ -360,7 +363,7 @@ public partial class UsageView
 
     private void OnOpenFileLocation(object sender, RoutedEventArgs e)
     {
-        if (Rows.SelectedItem is UsageDisplayRow { App: { ImagePath: { Length: > 0 } } app } &&
+        if (Rows.SelectedItem is UsageDisplayRow { App: { ImagePath.Length: > 0 } app } &&
             app.Key != UsageLedger.OtherAppsKey)
             OpenLocation(app.ImagePath);
     }
@@ -450,10 +453,10 @@ public partial class UsageView
         try
         {
             if (!File.Exists(path)) throw new IOException(Strings.ProcessFileMissing);
-            var start = new System.Diagnostics.ProcessStartInfo(Path.Combine(
+            var start = new ProcessStartInfo(Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe"))
                 { UseShellExecute = false, Arguments = $"/select,\"{path}\"" };
-            System.Diagnostics.Process.Start(start)?.Dispose();
+            Process.Start(start)?.Dispose();
         }
         catch (Exception ex) when (ex is Win32Exception or IOException or UnauthorizedAccessException
                                        or InvalidOperationException)
@@ -550,8 +553,9 @@ internal static class UsageText
             unit++;
         }
 
-        return (unit == 0 ? bytes.ToString("N0", CultureInfo.CurrentCulture) :
-            bytes.ToString("N1", CultureInfo.CurrentCulture)) + " " + units[unit];
+        return (unit == 0
+            ? bytes.ToString("N0", CultureInfo.CurrentCulture)
+            : bytes.ToString("N1", CultureInfo.CurrentCulture)) + " " + units[unit];
     }
 
     internal static string Processes(AppUsage app)
@@ -578,7 +582,8 @@ internal static class UsageText
         if (app.Publisher.Length > 0) text.AppendLine(app.Publisher);
         text.AppendLine(app.IsApp ? Strings.ProcessKindApp : Strings.ProcessKindBackground);
         text.AppendLine(Strings.Format(Strings.UsageReportSince, frame.Since.ToLocalTime().DateTime));
-        text.AppendLine($"{Strings.UsageCpuTime}: {CpuTime(app.CpuTicks)} ({Share(app.CpuTicks, frame.MachineBusyTicks)})");
+        text.AppendLine(
+            $"{Strings.UsageCpuTime}: {CpuTime(app.CpuTicks)} ({Share(app.CpuTicks, frame.MachineBusyTicks)})");
         text.AppendLine($"{Strings.IO}: {Bytes(app.IoBytes)}");
         text.AppendLine(
             $"{Strings.UsageGpuTime}: {(app.GpuSeconds is { } gpu ? Duration(TimeSpan.FromSeconds(gpu)) : Strings.MissingReading)}");

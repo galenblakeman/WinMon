@@ -51,10 +51,14 @@ internal static class CaptureReports
         var sign = offset < TimeSpan.Zero ? '-' : '+';
         var absolute = offset.Duration();
         var offsetText = string.Create(CultureInfo.InvariantCulture, $"{sign}{absolute.Hours:00}{absolute.Minutes:00}");
-        return $"WinMon-capture_{time}_o{offsetText}_{Token(metric)}{(copy > 1 ? "_" + copy.ToString(CultureInfo.InvariantCulture) : "")}.txt";
+        return
+            $"WinMon-capture_{time}_o{offsetText}_{Token(metric)}{(copy > 1 ? "_" + copy.ToString(CultureInfo.InvariantCulture) : "")}.txt";
     }
 
     /// <summary>Write a report under a name no other file has, and return its path.</summary>
+    /// <param name="folder">Directory for the report.</param>
+    /// <param name="fired">Time the rule fired.</param>
+    /// <param name="metric">Metric used in the file name.</param>
     /// <param name="text">The whole report, starting with <see cref="FirstLine"/>.</param>
     /// <exception cref="IOException">The folder cannot be created or written.</exception>
     /// <exception cref="UnauthorizedAccessException">The folder is not writable.</exception>
@@ -163,7 +167,10 @@ internal static class CaptureReports
             Span<byte> start = stackalloc byte[128];
             int read;
             using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
                 read = stream.ReadAtLeast(start, start.Length, false);
+            }
+
             var text = Encoding.UTF8.GetString(start[..read]);
             var end = text.IndexOfAny(['\r', '\n']);
             return end > 0 && FirstLinePattern.IsMatch(text[..end]);

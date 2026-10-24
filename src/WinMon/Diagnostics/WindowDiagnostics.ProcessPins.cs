@@ -22,11 +22,13 @@ internal sealed partial class WindowDiagnostics
         var right = 0.0;
         foreach (var control in new FrameworkElement[]
                  {
-                     window.Processes.ProcessRankingControls, window.Processes.ProcessSearchBorder, window.Processes.AppsOnlyCheckBox, window.Processes.PinnedOnlyCheckBox,
+                     window.Processes.ProcessRankingControls, window.Processes.ProcessSearchBorder,
+                     window.Processes.AppsOnlyCheckBox, window.Processes.PinnedOnlyCheckBox,
                      window.Processes.ProcessGroupingControls
                  })
         {
-            var bounds = control.TransformToAncestor(window.Processes.ProcessToolbarGrid).TransformBounds(new Rect(control.RenderSize));
+            var bounds = control.TransformToAncestor(window.Processes.ProcessToolbarGrid)
+                .TransformBounds(new Rect(control.RenderSize));
             if (Grid.GetRow(control) != 0 || bounds.Left < right - 0.5 ||
                 bounds.Right > window.Processes.ProcessToolbarGrid.ActualWidth + 0.5 ||
                 bounds.Top < -0.5 || bounds.Bottom > window.Processes.ProcessToolbarGrid.ActualHeight + 0.5)
@@ -100,7 +102,7 @@ internal sealed partial class WindowDiagnostics
             throw new InvalidOperationException("Pinned count was not displayed beside CPU coverage.");
         var pinPath = (Path)filledPin.Template.FindName("CaptionIcon", filledPin);
         if (!ButtonIcon.GetFilled(filledPin) || pinPath.Fill is null ||
-            !Object.Equals(pinPath.Fill, filledPin.Foreground) ||
+            !Equals(pinPath.Fill, filledPin.Foreground) ||
             fixture.CpuMetric.DetailLabel.Text != $"{4.2:0.00} GHz" ||
             fixture.NetworkMetric.ValueLabel.Inlines.FirstInline is not Run { Text: var networkText } ||
             !networkText.StartsWith('↓') || !fixture.NetworkMetric.DetailLabel.Text.StartsWith('↑') ||
@@ -109,7 +111,8 @@ internal sealed partial class WindowDiagnostics
             fixture.Processes.MemoryHeader.Text != $"{Strings.Memory} MiB")
             throw new InvalidOperationException(
                 $"UI presentation failed: filled={ButtonIcon.GetFilled(filledPin)}, fill={pinPath.Fill}, foreground={filledPin.Foreground}, clock={fixture.CpuMetric.DetailLabel.Text}, network={fixture.NetworkMetric.ValueLabel.Text}, memory={fixture.Processes.MemoryHeader.Text}.");
-        if (fixture.Processes.PinnedRows.Count != 3 || fixture.Processes.Rows.Count(r => r.Visibility == Visibility.Visible) != 4 ||
+        if (fixture.Processes.PinnedRows.Count != 3 ||
+            fixture.Processes.Rows.Count(r => r.Visibility == Visibility.Visible) != 4 ||
             !AutomationProperties.GetName(fixture.Processes.PinnedRows[0])
                 .StartsWith("Visual Studio Code", StringComparison.Ordinal) ||
             !AutomationProperties.GetName(fixture.Processes.PinnedRows[2])

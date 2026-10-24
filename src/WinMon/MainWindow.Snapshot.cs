@@ -22,7 +22,7 @@ public partial class MainWindow
     internal void CopySnapshot(Action<string>? copyToClipboard = null)
     {
         // Never substitute the live sample when the selected sample has expired.
-        if (_snapshotReport is not { } report || !ReferenceEquals(report.Sample, _selectedSample) ||
+        if (_snapshotReport is not { } report || !ReferenceEquals(report.Sample, SelectedSample) ||
             !Session.History.Samples.Contains(report.Sample)) return;
         try
         {
@@ -67,15 +67,15 @@ public partial class MainWindow
 
     private void UpdateSnapshot(MonitorSample? retained)
     {
-        LiveModeButton.IsChecked = _selectedSample is null;
-        SnapshotModeButton.IsChecked = _selectedSample is not null;
+        LiveModeButton.IsChecked = SelectedSample is null;
+        SnapshotModeButton.IsChecked = SelectedSample is not null;
         SnapshotModeButton.IsEnabled = Session.History.Latest is not null;
-        SnapshotLayer.Visibility = _selectedSample is null ? Visibility.Collapsed : Visibility.Visible;
+        SnapshotLayer.Visibility = SelectedSample is null ? Visibility.Collapsed : Visibility.Visible;
         SnapshotCopyButton.IsEnabled = retained is not null;
         if (!ReferenceEquals(_snapshotReport?.Sample, retained)) ResetSnapshotCopyCaption();
         if (retained is null) _snapshotReport = null;
-        if (_selectedSample is null) return;
-        SnapshotTitle.Text = Strings.Format(Strings.Snapshot, _selectedSample.Timestamp);
+        if (SelectedSample is null) return;
+        SnapshotTitle.Text = Strings.Format(Strings.Snapshot, SelectedSample.Timestamp);
         SnapshotNote.Text = retained is null
             ? Strings.HistoryExpiredThisSampleHasLeftTheRecordingWindow
             : Strings.IntervalReadingsTopReadoutsStayLive;
@@ -107,7 +107,7 @@ public partial class MainWindow
 
     private void PositionSnapshot()
     {
-        if (_selectedSample is null || SnapshotLayer is null) return;
+        if (SelectedSample is null || SnapshotLayer is null) return;
         var plot = OverallGraph.PlotBounds;
         if (SnapshotReadings.Visibility == Visibility.Visible)
             SnapshotNote.Text = OverallGraph.SelectionInPlot

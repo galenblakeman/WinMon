@@ -64,7 +64,10 @@ public partial class App
         AppLanguages.InitializeSystemDisplayCulture(CultureInfo.CurrentUICulture);
         AppLanguages.Apply(AppLanguages.SystemDefault);
 
-        if (e.Args is ["--services-smoke-output" or "--usage-smoke-output" or "--capture-smoke-output", var servicesOutput])
+        if (e.Args is
+            [
+                "--services-smoke-output" or "--usage-smoke-output" or "--capture-smoke-output", var servicesOutput
+            ])
         {
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
             base.OnStartup(e);
@@ -244,8 +247,8 @@ public partial class App
             await Task.Delay(mode == "--services-smoke-output" ? 5000 : 1000, timeout.Token);
             await (mode switch
             {
-                "--usage-smoke-output" => diagnostics.CaptureUsageDiagnosticsAsync(output, timeout.Token),
-                "--capture-smoke-output" => diagnostics.CaptureAutoCaptureDiagnosticsAsync(output, timeout.Token),
+                "--usage-smoke-output" => WindowDiagnostics.CaptureUsageDiagnosticsAsync(output, timeout.Token),
+                "--capture-smoke-output" => WindowDiagnostics.CaptureAutoCaptureDiagnosticsAsync(output, timeout.Token),
                 _ => diagnostics.CaptureServicesDiagnosticsAsync(output, timeout.Token)
             });
         }

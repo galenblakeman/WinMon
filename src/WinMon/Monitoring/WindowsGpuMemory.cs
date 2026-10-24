@@ -49,16 +49,23 @@ internal sealed class WindowsGpuMemory : IDisposable
             Check(PdhCollectQueryData(_query));
             var used = SelectUsage(WindowsGpuSampler.ReadCounters(_counter), sample.GpuId);
             ulong? shared = null;
-            if (_sharedCounter != IntPtr.Zero)
-                try
+            if (_sharedCounter == IntPtr.Zero)
+                return sample with
                 {
-                    shared = SelectUsage(WindowsGpuSampler.ReadCounters(_sharedCounter), sample.GpuId);
-                }
-                catch (Win32Exception ex)
-                {
-                    Trace.TraceWarning("GPU shared-memory reading unavailable: {0}", ex.Message);
-                    _sharedCounter = IntPtr.Zero;
-                }
+                    GpuMemoryUsedBytes = capacity == 0 ? null : used,
+                    GpuMemoryTotalBytes = used is null || capacity == 0 ? null : capacity,
+                    GpuSharedMemoryUsedBytes = shared
+                };
+            try
+            {
+                shared = SelectUsage(WindowsGpuSampler.ReadCounters(_sharedCounter), sample.GpuId);
+            }
+            catch (Win32Exception ex)
+            {
+                Trace.TraceWarning("GPU shared-memory reading unavailable: {0}", ex.Message);
+                _sharedCounter = IntPtr.Zero;
+            }
+
             return sample with
             {
                 GpuMemoryUsedBytes = capacity == 0 ? null : used,
@@ -109,7 +116,7 @@ internal sealed class WindowsGpuMemory : IDisposable
                     // IDXGIAdapter1::GetDesc1 follows IDXGIAdapter (slot 10).
                     Marshal.ThrowExceptionForHR(Method<GetDesc>(adapter, 10)(adapter, out var description));
                     var id = $"0x{description.LuidHigh:x8}_0x{description.LuidLow:x8}/0";
-                    if (names is not null) names[id] = description.Description.TrimEnd('\0', ' ');
+                    names?[id] = description.Description.TrimEnd('\0', ' ');
                     if ((description.Flags & 2) != 0) continue; // Software adapter has no physical capacity.
                     // DXGI describes one adapter. Do not reuse its capacity for linked physical GPUs.
                     result[id] = description.DedicatedVideoMemory.ToUInt64();

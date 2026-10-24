@@ -29,10 +29,10 @@ public partial class MainWindow
     private void RefreshUsage()
     {
         // The compact strip hides the Usage tab as well.
-        if (UsageTab.IsChecked != true || _compactMode) return;
+        if (UsageTab.IsChecked != true || CompactMode) return;
         var ledger = Session.Usage;
         UsageView.Update(new UsageFrame(ledger.Apps, ledger.MachineBusyTicks, ledger.NotAttributedCpuTicks,
-            ledger.Since, (Session.LatestFull ?? Session.Latest)?.Timestamp, _selectedSample is not null));
+            ledger.Since, (Session.LatestFull ?? Session.Latest)?.Timestamp, SelectedSample is not null));
     }
 
     private void ResetUsage()
@@ -67,7 +67,7 @@ public partial class MainWindow
             return;
         }
 
-        _selectedSample = moment;
+        SelectedSample = moment;
         Processes.ShowGroup(new ProcessUsage(0, 0, app.Name, 0)
             { ImagePath = app.ImagePath, AppName = app.AppName, Publisher = app.Publisher });
         ProcessesTab.IsChecked = true;

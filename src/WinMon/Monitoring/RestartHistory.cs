@@ -47,13 +47,19 @@ internal static class RestartHistory
     private const byte SampleChunk = 2;
     private const int TrailerLength = 12;
     private const int FrameLength = 9;
-    private static readonly byte[] HeaderMagic = "WMRH"u8.ToArray();
-    private static readonly byte[] TrailerMagic = "WMRT"u8.ToArray();
+    private static readonly byte[] HeaderMagic = [.. "WMRH"u8];
+    private static readonly byte[] TrailerMagic = [.. "WMRT"u8];
 
     /// <summary>
     /// Write history newest first until <see cref="StopChunksAfterSeconds"/>, then move the file into place only
     /// if the whole save finished within <see cref="Budget"/>. Never throws.
     /// </summary>
+    /// <param name="path">Final history file path.</param>
+    /// <param name="token">Session token used to identify the saved history.</param>
+    /// <param name="appVersion">Version that wrote the history.</param>
+    /// <param name="samples">Samples to save, newest chunks first.</param>
+    /// <param name="usage">Usage totals to restore with the samples.</param>
+    /// <param name="clock">Clock used to enforce the save deadline.</param>
     /// <param name="createTemporary">Opens the temporary file; tests pass a slow stream.</param>
     /// <returns>Whether the final file now exists.</returns>
     internal static bool Save(string path, string token, string appVersion, IReadOnlyList<MonitorSample> samples,
@@ -76,7 +82,8 @@ internal static class RestartHistory
                      end -= ChunkSamples)
                 {
                     var first = Math.Max(0, end - ChunkSamples);
-                    WriteChunk(stream, buffer, SampleChunk, writer => WriteSamples(writer, samples, first, end));
+                    var last = end;
+                    WriteChunk(stream, buffer, SampleChunk, writer => WriteSamples(writer, samples, first, last));
                     chunks++;
                 }
 
@@ -232,7 +239,10 @@ internal static class RestartHistory
         buffer.SetLength(0);
         using (var deflate = new DeflateStream(buffer, CompressionLevel.Fastest, true))
         using (var writer = new BinaryWriter(deflate, Encoding.UTF8, true))
+        {
             body(writer);
+        }
+
         var payload = buffer.GetBuffer().AsSpan(0, (int)buffer.Length);
         Span<byte> frame = stackalloc byte[FrameLength];
         frame[0] = kind;
@@ -263,11 +273,6 @@ internal static class RestartHistory
         var strings = new Dictionary<string, int>(StringComparer.Ordinal);
         var table = new List<string>();
 
-        void Add(string value)
-        {
-            if (strings.TryAdd(value, table.Count)) table.Add(value);
-        }
-
         for (var i = first; i < end; i++)
             foreach (var process in samples[i].Processes)
             {
@@ -284,6 +289,12 @@ internal static class RestartHistory
         foreach (var value in table) writer.Write(value);
         writer.Write(end - first);
         for (var i = first; i < end; i++) WriteSample(writer, samples[i], strings);
+        return;
+
+        void Add(string value)
+        {
+            if (strings.TryAdd(value, table.Count)) table.Add(value);
+        }
     }
 
     private static List<MonitorSample> ReadSamples(BinaryReader reader)
@@ -327,7 +338,8 @@ internal static class RestartHistory
             writer.Write(strings[process.AppName]);
             writer.Write(strings[process.ProductName]);
             writer.Write(strings[process.Publisher]);
-            writer.Write(process.HasAppWindow switch { null => (byte)0, false => (byte)1, true => (byte)2 });
+            byte hasAppWindow = process.HasAppWindow switch { null => 0, false => 1, true => 2 };
+            writer.Write(hasAppWindow);
             writer.Write(process.HasHadAppWindow);
             writer.Write(process.MemberCount);
             writer.Write(process.MemberIds.Count);
@@ -648,12 +660,15 @@ internal static class RestartHistory
     /// <summary>CRC-32 (IEEE 802.3), so the format needs no package beyond the runtime.</summary>
     internal static class Crc32
     {
-        private static readonly uint[] Table = Enumerable.Range(0, 256).Select(n =>
-        {
-            var c = (uint)n;
-            for (var k = 0; k < 8; k++) c = (c & 1) != 0 ? 0xEDB88320 ^ (c >> 1) : c >> 1;
-            return c;
-        }).ToArray();
+        private static readonly uint[] Table =
+        [
+            .. Enumerable.Range(0, 256).Select(n =>
+            {
+                var c = (uint)n;
+                for (var k = 0; k < 8; k++) c = (c & 1) != 0 ? 0xEDB88320 ^ (c >> 1) : c >> 1;
+                return c;
+            })
+        ];
 
         internal static uint Compute(ReadOnlySpan<byte> data)
         {

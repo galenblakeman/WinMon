@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Windows;
@@ -7,6 +8,9 @@ using System.Windows.Shapes;
 using Microsoft.Win32;
 using WinMon.Controls;
 using WinMon.Monitoring;
+using Path = System.IO.Path;
+
+// ReSharper disable GrammarMistakeInComment
 
 namespace WinMon.Preferences;
 
@@ -16,25 +20,29 @@ namespace WinMon.Preferences;
 /// </summary>
 internal sealed class AutoCaptureSection : StackPanel
 {
-    private readonly CheckBox _enabled;
     private readonly CheckBox _notify;
     private readonly TextBox _cooldown;
     private readonly TextBox _folder;
     private readonly string _defaultFolder;
     private readonly List<Rule> _rules = [];
 
-    private sealed record Rule(CaptureMetric Metric, CheckBox Enabled, TextBlock Label, TextBox Threshold, TextBox Seconds);
+    private sealed record Rule(
+        CaptureMetric Metric,
+        CheckBox Enabled,
+        TextBlock Label,
+        TextBox Threshold,
+        TextBox Seconds);
 
     internal AutoCaptureSection(AutoCapturePreferences preferences, string defaultFolder, string primaryDrive,
         string? secondaryDrive)
     {
         _defaultFolder = defaultFolder;
-        _enabled = new CheckBox { IsChecked = preferences.Enabled, VerticalAlignment = VerticalAlignment.Center };
-        _enabled.SetResourceReference(StyleProperty, "SettingsSwitch");
-        AutomationProperties.SetName(_enabled, Strings.AutoCaptureEnable);
-        _enabled.ToolTip = Strings.AutoCaptureEnable;
-        _enabled.Checked += (_, _) => OnEnabledChanged();
-        _enabled.Unchecked += (_, _) => OnEnabledChanged();
+        EnabledSwitch = new CheckBox { IsChecked = preferences.Enabled, VerticalAlignment = VerticalAlignment.Center };
+        EnabledSwitch.SetResourceReference(StyleProperty, "SettingsSwitch");
+        AutomationProperties.SetName(EnabledSwitch, Strings.AutoCaptureEnable);
+        EnabledSwitch.ToolTip = Strings.AutoCaptureEnable;
+        EnabledSwitch.Checked += (_, _) => OnEnabledChanged();
+        EnabledSwitch.Unchecked += (_, _) => OnEnabledChanged();
         OnEnabledChanged();
         Children.Add(Note(Strings.AutoCaptureHelp, new Thickness(0, 0, 0, 10)));
 
@@ -52,7 +60,9 @@ internal sealed class AutoCaptureSection : StackPanel
             table.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             var label = new TextBlock { VerticalAlignment = VerticalAlignment.Center };
             var swatch = new Rectangle
-                { Width = 8, Height = 8, Margin = new Thickness(0, 0, 6, 0), VerticalAlignment = VerticalAlignment.Center };
+            {
+                Width = 8, Height = 8, Margin = new Thickness(0, 0, 6, 0), VerticalAlignment = VerticalAlignment.Center
+            };
             swatch.SetResourceReference(Shape.FillProperty,
                 setting.Metric == CaptureMetric.Process ? "Muted" : CaptureReportText.BrushKey(setting.Metric));
             var content = new StackPanel { Orientation = Orientation.Horizontal };
@@ -118,7 +128,8 @@ internal sealed class AutoCaptureSection : StackPanel
         folder.Children.Add(change);
         folder.Children.Add(_folder);
         Children.Add(folder);
-        Children.Add(Note(Strings.Format(Strings.AutoCaptureKeepNote, CaptureReports.Keep), new Thickness(0, 4, 0, 10)));
+        Children.Add(Note(Strings.Format(Strings.AutoCaptureKeepNote, CaptureReports.Keep),
+            new Thickness(0, 4, 0, 10)));
         _notify = new CheckBox { Content = Strings.AutoCaptureNotify, IsChecked = preferences.Notify };
         _notify.SetResourceReference(Control.ForegroundProperty, "Text");
         Children.Add(_notify);
@@ -136,18 +147,18 @@ internal sealed class AutoCaptureSection : StackPanel
     }
 
     /// <summary>The page's on/off switch, placed in its header by the Settings window.</summary>
-    internal CheckBox EnabledSwitch => _enabled;
+    internal CheckBox EnabledSwitch { get; }
 
     /// <summary>Raised when the switch changes, so the sidebar can show On or Off.</summary>
     internal event Action<bool>? EnabledChanged;
 
-    internal bool IsOn => _enabled.IsChecked == true;
+    internal bool IsOn => EnabledSwitch.IsChecked == true;
 
     internal string Folder => _folder.Text.Trim();
 
     private void OnEnabledChanged()
     {
-        _enabled.Content = IsOn ? Strings.SettingsOn : Strings.SettingsOff;
+        EnabledSwitch.Content = IsOn ? Strings.SettingsOn : Strings.SettingsOff;
         EnabledChanged?.Invoke(IsOn);
     }
 
@@ -230,7 +241,7 @@ internal sealed class AutoCaptureSection : StackPanel
         try
         {
             Directory.CreateDirectory(folder);
-            var probe = System.IO.Path.Combine(folder, $".winmon-{Guid.NewGuid():N}.tmp");
+            var probe = Path.Combine(folder, $".winmon-{Guid.NewGuid():N}.tmp");
             File.WriteAllText(probe, "");
             File.Delete(probe);
             return true;
@@ -253,12 +264,12 @@ internal sealed class AutoCaptureSection : StackPanel
         try
         {
             Directory.CreateDirectory(Folder);
-            Process.Start(new ProcessStartInfo(System.IO.Path.Combine(
+            Process.Start(new ProcessStartInfo(Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe"))
                 { UseShellExecute = false, Arguments = $"\"{Folder}\"" })?.Dispose();
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or
-                                       System.ComponentModel.Win32Exception or InvalidOperationException)
+                                       Win32Exception or InvalidOperationException)
         {
             MessageDialog.ShowNotice(Window.GetWindow(this), ex.Message, Strings.AutoCaptureFolder);
         }
