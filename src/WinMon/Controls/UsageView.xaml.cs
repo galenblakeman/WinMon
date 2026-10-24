@@ -133,7 +133,9 @@ public partial class UsageView
         if (!_ready || ActualWidth <= 0) return;
         RankingControls.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
         AppsOnly.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-        var wide = ActualWidth >= RankingControls.DesiredSize.Width + AppsOnly.DesiredSize.Width + 224;
+        UsageActions.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+        var wide = ActualWidth >= RankingControls.DesiredSize.Width + AppsOnly.DesiredSize.Width +
+            UsageActions.DesiredSize.Width + SearchBorder.MinWidth + 24;
         if (_wideToolbar == wide) return;
         _wideToolbar = wide;
         Grid.SetColumnSpan(RankingControls, wide ? 1 : 3);
@@ -269,11 +271,6 @@ public partial class UsageView
             foreach (var key in _rowsByKey.Keys.Where(key => !keys.Contains(key)).ToArray()) _rowsByKey.Remove(key);
         }
 
-        Summary.Text = frame is null
-            ? Strings.UsageCollecting
-            : Strings.Format(Strings.UsageSummary, frame.Since.ToLocalTime().DateTime,
-                UsageText.Duration((frame.Latest ?? frame.Since) - frame.Since),
-                UsageText.CpuTime(frame.MachineBusyTicks), Environment.ProcessorCount);
         NotAttributedCpu.Text = frame is null ? Strings.MissingReading : UsageText.CpuTime(frame.NotAttributedTicks);
         NotAttributedShare.Text =
             frame is null ? Strings.MissingReading : UsageText.Share(frame.NotAttributedTicks, frame.MachineBusyTicks);

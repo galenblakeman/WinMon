@@ -9,42 +9,12 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <Grid Margin="0,6,0,0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <TextBlock
-                x:Name="Summary"
-                VerticalAlignment="Center"
-                FontSize="12"
-                Foreground="{DynamicResource Muted}"
-                TextTrimming="CharacterEllipsis"
-                ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
-            <StackPanel Grid.Column="1" Orientation="Horizontal">
-                <Button
-                    x:Name="CopyUsage"
-                    local:ButtonIcon.Data="{x:Static local:ButtonIcon.Copy}"
-                    Click="OnCopyUsage"
-                    Content="{Binding [UsageCopy], Source={x:Static r:Strings.Text}}"
-                    Style="{DynamicResource ActionBarButton}" />
-                <Button
-                    x:Name="ResetUsage"
-                    local:ButtonIcon.Data="{x:Static local:ButtonIcon.Live}"
-                    Click="OnReset"
-                    Content="{Binding [UsageReset], Source={x:Static r:Strings.Text}}"
-                    Style="{DynamicResource ActionBarLastButton}"
-                    ToolTip="{Binding [UsageResetConfirm], Source={x:Static r:Strings.Text}}" />
-            </StackPanel>
-        </Grid>
         <Grid
             x:Name="ToolbarGrid"
-            Grid.Row="1"
             Margin="0,6,0,6">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -53,6 +23,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <StackPanel
@@ -182,10 +153,29 @@
                 Foreground="{DynamicResource Text}"
                 ToolTip="{Binding [ProcessKindExplanation], Source={x:Static r:Strings.Text}}"
                 Unchecked="OnSettingsChanged" />
+            <StackPanel
+                x:Name="UsageActions"
+                Grid.Column="3"
+                Margin="12,0,0,0"
+                Orientation="Horizontal">
+                <Button
+                    x:Name="CopyUsage"
+                    local:ButtonIcon.Data="{x:Static local:ButtonIcon.Copy}"
+                    Click="OnCopyUsage"
+                    Content="{Binding [UsageCopy], Source={x:Static r:Strings.Text}}"
+                    Style="{DynamicResource ActionBarButton}" />
+                <Button
+                    x:Name="ResetUsage"
+                    local:ButtonIcon.Data="{x:Static local:ButtonIcon.Live}"
+                    Click="OnReset"
+                    Content="{Binding [UsageReset], Source={x:Static r:Strings.Text}}"
+                    Style="{DynamicResource ActionBarLastButton}"
+                    ToolTip="{Binding [UsageResetConfirm], Source={x:Static r:Strings.Text}}" />
+            </StackPanel>
         </Grid>
         <ScrollViewer
             x:Name="HeaderScroll"
-            Grid.Row="2"
+            Grid.Row="1"
             HorizontalAlignment="Left"
             Focusable="False"
             HorizontalScrollBarVisibility="Hidden"
@@ -248,7 +238,7 @@
         </ScrollViewer>
         <ListBox
             x:Name="Rows"
-            Grid.Row="3"
+            Grid.Row="2"
             Padding="0"
             HorizontalContentAlignment="Stretch"
             AutomationProperties.Name="{Binding [UsageTab], Source={x:Static r:Strings.Text}}"
@@ -373,7 +363,7 @@
         </ListBox>
         <Grid
             x:Name="NotAttributedRow"
-            Grid.Row="4"
+            Grid.Row="3"
             MinWidth="560"
             Margin="0,2,18,0"
             Background="Transparent"
@@ -410,7 +400,7 @@
         </Grid>
         <TextBlock
             x:Name="Notice"
-            Grid.Row="5"
+            Grid.Row="4"
             Margin="0,6,0,4"
             FontSize="11"
             Foreground="{DynamicResource Muted}"
