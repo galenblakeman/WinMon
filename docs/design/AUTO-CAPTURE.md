@@ -75,8 +75,8 @@ CPU, Memory, GPU and Any process attribute directly per process, so their report
 
 The folder can be any writable folder you choose, including one that holds other files, so WinMon must only ever delete reports it wrote itself.
 
-**Names** follow one WinMon-specific pattern: `WinMon-capture_2026-10-24_14-03-12_cpu.txt`.
-- The timestamp is in local time, followed by a fixed rule token: `cpu`, `memory`, `disk1`, `disk2`, `network`, `gpu` or `process`.
+**Names** follow one WinMon-specific pattern: `WinMon-capture_2026-10-24_14-03-12_o-0500_cpu.txt`.
+- The timestamp is in local time with its UTC offset (`o-0500` in this example), followed by a fixed rule token: `cpu`, `memory`, `disk1`, `disk2`, `network`, `gpu` or `process`.
 - Two reports in the same second get `_2`, `_3` and so on.
 - The rule tokens are never localized, so the pattern stays the same in every UI language.
 
@@ -97,7 +97,7 @@ Anything after that line is localized as usual.
 
 A file that fails any check is never deleted and does not count toward the 200. That covers a renamed report, an edited first line, or someone else's `WinMon-capture_*.txt`.
 
-Reports are ordered by the timestamp in their name, not by file times, which copying or syncing can change. If a check fails because a file cannot be read, WinMon leaves it alone and traces the error.
+Reports are ordered by the instant represented by the timestamp and offset in their name, not by file times, which copying or syncing can change. Earlier offset-free names remain recognized; their local timestamp is interpreted in the current machine time zone. During the repeated hour of a daylight saving time change, those legacy names use file creation time as a best-effort tie breaker because the filename cannot identify which occurrence of the hour produced it. If a check fails because a file cannot be read, WinMon leaves it alone and traces the error.
 
 There is deliberately no manifest file. It would fall out of step as soon as someone moves, deletes or syncs reports. Each report proves on its own that WinMon wrote it.
 

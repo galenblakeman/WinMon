@@ -38,9 +38,11 @@ public sealed class CaptureReportsTests
         CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(culture);
         try
         {
-            var time = Fired.ToLocalTime().ToString("yyyy-MM-dd_HH-mm-ss", CultureInfo.InvariantCulture);
+            var local = Fired.ToLocalTime();
+            var time = local.ToString("yyyy-MM-dd_HH-mm-ss", CultureInfo.InvariantCulture);
+            var offset = local.ToString("zzz", CultureInfo.InvariantCulture).Replace(":", "");
             Assert.That(CaptureReports.FileName(Fired, CaptureMetric.SecondaryDisk, 3),
-                Is.EqualTo($"WinMon-capture_{time}_disk2_3.txt"));
+                Is.EqualTo($"WinMon-capture_{time}_o{offset}_disk2_3.txt"));
         }
         finally
         {
@@ -92,6 +94,50 @@ public sealed class CaptureReportsTests
             Assert.That(survivors.Where(path => !File.Exists(path)), Is.Empty);
             Assert.That(CaptureReports.Find(_folder), Has.Count.EqualTo(2), "Only genuine reports are counted.");
         });
+    }
+
+    [Test]
+    public void Find_IgnoresUnicodeDigitsInCopyNumber()
+    {
+        var genuine = CaptureReports.Write(_folder, Fired, CaptureMetric.Cpu, Report());
+        var lookalike = Save("WinMon-capture_2026-10-24_10-00-00_cpu_1٢.txt", Report());
+        var invalidOffset = Save("WinMon-capture_2026-10-24_10-00-00_o+9999_cpu.txt", Report());
+        var outOfRange = Save("WinMon-capture_0001-01-01_00-00-00_o+1400_cpu.txt", Report());
+
+        Assert.That(CaptureReports.Find(_folder), Is.EqualTo(new[] { genuine }));
+        CaptureReports.Prune(_folder, 0);
+        Assert.Multiple(() =>
+        {
+            Assert.That(File.Exists(lookalike), Is.True);
+            Assert.That(File.Exists(invalidOffset), Is.True);
+            Assert.That(File.Exists(outOfRange), Is.True);
+        });
+    }
+
+    [Test]
+    public void Find_OrdersRepeatedLocalHourByOffset()
+    {
+        var firstHour = Save("WinMon-capture_2026-11-01_01-50-00_o-0500_cpu.txt", Report());
+        var secondHour = Save("WinMon-capture_2026-11-01_01-10-00_o-0600_cpu.txt", Report());
+
+        Assert.That(CaptureReports.Find(_folder), Is.EqualTo(new[] { secondHour, firstHour }));
+        CaptureReports.Prune(_folder, 1);
+        Assert.Multiple(() =>
+        {
+            Assert.That(File.Exists(secondHour), Is.True);
+            Assert.That(File.Exists(firstHour), Is.False);
+        });
+    }
+
+    [Test]
+    public void Find_StillRecognizesOlderNamesWithoutAnOffset()
+    {
+        var olderTime = Fired.AddDays(-1).ToLocalTime().ToString("yyyy-MM-dd_HH-mm-ss",
+            CultureInfo.InvariantCulture);
+        var older = Save($"WinMon-capture_{olderTime}_cpu.txt", Report());
+        var newer = CaptureReports.Write(_folder, Fired, CaptureMetric.Cpu, Report());
+
+        Assert.That(CaptureReports.Find(_folder), Is.EqualTo(new[] { newer, older }));
     }
 
     [Test]

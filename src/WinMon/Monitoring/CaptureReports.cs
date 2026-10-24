@@ -20,7 +20,7 @@ internal static class CaptureReports
 
     // Plain regular expressions: generated ones would add types outside the Monitoring namespace.
     private static readonly Regex NamePattern = new(
-        @"^WinMon-capture_(?<time>\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2})_(cpu|memory|disk1|disk2|network|gpu|process)(_(?<n>[2-9]|[1-9]\d{1,3}))?\.txt$",
+        @"^WinMon-capture_(?<time>[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}-[0-9]{2})(?:_o(?<offset>[+-][0-9]{4}))?_(cpu|memory|disk1|disk2|network|gpu|process)(_(?<n>[2-9]|[1-9][0-9]{1,3}))?\.txt$",
         RegexOptions.CultureInvariant);
 
     private static readonly Regex FirstLinePattern =
@@ -45,8 +45,13 @@ internal static class CaptureReports
 
     internal static string FileName(DateTimeOffset fired, CaptureMetric metric, int copy = 1)
     {
-        var time = fired.ToLocalTime().ToString("yyyy-MM-dd_HH-mm-ss", CultureInfo.InvariantCulture);
-        return $"WinMon-capture_{time}_{Token(metric)}{(copy > 1 ? "_" + copy.ToString(CultureInfo.InvariantCulture) : "")}.txt";
+        var local = fired.ToLocalTime();
+        var time = local.ToString("yyyy-MM-dd_HH-mm-ss", CultureInfo.InvariantCulture);
+        var offset = local.Offset;
+        var sign = offset < TimeSpan.Zero ? '-' : '+';
+        var absolute = offset.Duration();
+        var offsetText = string.Create(CultureInfo.InvariantCulture, $"{sign}{absolute.Hours:00}{absolute.Minutes:00}");
+        return $"WinMon-capture_{time}_o{offsetText}_{Token(metric)}{(copy > 1 ? "_" + copy.ToString(CultureInfo.InvariantCulture) : "")}.txt";
     }
 
     /// <summary>Write a report under a name no other file has, and return its path.</summary>
@@ -78,22 +83,53 @@ internal static class CaptureReports
     internal static IReadOnlyList<string> Find(string folder)
     {
         if (!Directory.Exists(folder)) return [];
-        var reports = new List<(string Path, string Time, int Copy)>();
+        var reports = new List<(string Path, long Moment, int Copy)>();
         foreach (var path in Directory.EnumerateFiles(folder, "WinMon-capture_*.txt", SearchOption.TopDirectoryOnly))
         {
             var match = NamePattern.Match(Path.GetFileName(path));
-            if (!match.Success || !IsOwn(path)) continue;
+            if (!match.Success || !IsOwn(path) || !TryMoment(path, match, out var moment)) continue;
             var copy = match.Groups["n"].Success
                 ? int.Parse(match.Groups["n"].Value, CultureInfo.InvariantCulture)
                 : 1;
-            reports.Add((path, match.Groups["time"].Value, copy));
+            reports.Add((path, moment, copy));
         }
 
         return
         [
-            .. reports.OrderByDescending(r => r.Time, StringComparer.Ordinal).ThenByDescending(r => r.Copy)
+            .. reports.OrderByDescending(r => r.Moment).ThenByDescending(r => r.Copy)
                 .Select(r => r.Path)
         ];
+    }
+
+    private static bool TryMoment(string path, Match match, out long moment)
+    {
+        moment = 0;
+        if (!DateTime.TryParseExact(match.Groups["time"].Value, "yyyy-MM-dd_HH-mm-ss",
+                CultureInfo.InvariantCulture, DateTimeStyles.None, out var local)) return false;
+        try
+        {
+            if (match.Groups["offset"].Success)
+            {
+                var text = match.Groups["offset"].Value;
+                var hours = int.Parse(text.AsSpan(1, 2), CultureInfo.InvariantCulture);
+                var minutes = int.Parse(text.AsSpan(3, 2), CultureInfo.InvariantCulture);
+                if (minutes >= 60 || hours * 60 + minutes > 14 * 60) return false;
+                var offset = TimeSpan.FromMinutes((text[0] == '-' ? -1 : 1) * (hours * 60 + minutes));
+                moment = new DateTimeOffset(local, offset).UtcTicks;
+                return true;
+            }
+
+            // Older names have no offset. During the repeated hour, their creation time is the only available clue.
+            moment = TimeZoneInfo.Local.IsAmbiguousTime(local)
+                ? File.GetCreationTimeUtc(path).Ticks
+                : new DateTimeOffset(local, TimeZoneInfo.Local.GetUtcOffset(local)).UtcTicks;
+            return true;
+        }
+        catch (Exception ex) when (ex is ArgumentOutOfRangeException or IOException or UnauthorizedAccessException)
+        {
+            Trace.TraceWarning("WinMon left capture report {0} alone: {1}", path, ex.Message);
+            return false;
+        }
     }
 
     /// <summary>Delete WinMon's reports beyond the newest <paramref name="keep"/>. Never throws.</summary>
