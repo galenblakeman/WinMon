@@ -1464,4 +1464,35 @@ Windows の正常性状態: {2}</value>
   <data name="DetailAverageResponse" xml:space="preserve"><value>平均応答時間</value></data>
   <data name="DetailQueueLength" xml:space="preserve"><value>キューの長さ</value></data>
   <data name="DetailFreeSpace" xml:space="preserve"><value>空き容量</value></data>
+  <data name="UsageTab" xml:space="preserve"><value>使用状況</value></data>
+  <data name="UsageAppsBy" xml:space="preserve"><value>アプリ、並べ替え</value></data>
+  <data name="UsageNumberOfApps" xml:space="preserve"><value>表示するアプリの数</value></data>
+  <data name="UsageSort" xml:space="preserve"><value>アプリの並べ替え</value></data>
+  <data name="UsageSearch" xml:space="preserve"><value>アプリを検索</value></data>
+  <data name="UsageApp" xml:space="preserve"><value>アプリ</value></data>
+  <data name="UsageCpuTime" xml:space="preserve"><value>CPU 時間</value></data>
+  <data name="UsageShare" xml:space="preserve"><value>割合</value></data>
+  <data name="UsageGpuTime" xml:space="preserve"><value>GPU 時間</value></data>
+  <data name="UsageLastActive" xml:space="preserve"><value>最終アクティブ</value></data>
+  <data name="UsageNow" xml:space="preserve"><value>現在</value></data>
+  <data name="UsageSummary" xml:space="preserve"><value>{0:t} から ({1}) · マシンのビジー時間 {2}、論理プロセッサ {3} 個</value></data>
+  <data name="UsageNotAttributed" xml:space="preserve"><value>未割り当て</value></data>
+  <data name="UsageNotAttributedHelp" xml:space="preserve"><value>どのアプリにも割り当てられていないマシンの CPU 時間です。サンプルの間に開始して終了したプロセス、各プロセスの最初と最後の部分的な 1 秒、CPU 時間を読み取れなかったプロセスが含まれます。</value></data>
+  <data name="UsageOtherApps" xml:space="preserve"><value>その他のアプリ</value></data>
+  <data name="UsageCopy" xml:space="preserve"><value>使用状況をコピー</value></data>
+  <data name="UsageReset" xml:space="preserve"><value>リセット</value></data>
+  <data name="UsageResetConfirm" xml:space="preserve"><value>すべての使用状況の合計を消去し、今から数え直しますか?</value></data>
+  <data name="UsageShowInProcesses" xml:space="preserve"><value>プロセスに表示</value></data>
+  <data name="UsageNotInHistory" xml:space="preserve"><value>このアプリは記録された履歴にもうありません。</value></data>
+  <data name="UsageLiveNote" xml:space="preserve"><value>使用状況の合計はライブです。選択したキャプチャはプロセスとサービスに適用されます。</value></data>
+  <data name="UsageNoAppsMatch" xml:space="preserve"><value>検索またはフィルターに一致するアプリはありません。</value></data>
+  <data name="UsageCollecting" xml:space="preserve"><value>使用状況を収集しています…</value></data>
+  <data name="UsageCpuTimeHelp" xml:space="preserve"><value>すべてのプロセスのプロセッサ時間です。複数のコアがビジーな場合は、実時間より速く増えます。</value></data>
+  <data name="UsageShareHelp" xml:space="preserve"><value>使用状況の記録開始以降のマシン全体のビジー CPU 時間に対する割合です。</value></data>
+  <data name="UsageGpuTimeHelp" xml:space="preserve"><value>最もビジーな GPU エンジンがビジーだった時間です。</value></data>
+  <data name="UsageIoHelp" xml:space="preserve"><value>ファイル、ネットワーク、デバイスの I/O を含む読み取りと書き込みのバイト数です。</value></data>
+  <data name="UsageProcessesHelp" xml:space="preserve"><value>観測されたプロセスの数です。かっこ内は現在実行中の数です。</value></data>
+  <data name="UsageReportSince" xml:space="preserve"><value>{0:G} からの使用状況</value></data>
+  <data name="UsageReportBusy" xml:space="preserve"><value>マシンのビジー CPU 時間: {0}、論理プロセッサ {1} 個</value></data>
+  <data name="UsageReportView" xml:space="preserve"><value>上位 {0} 件のアプリ ({1} 順)</value></data>
 </root>

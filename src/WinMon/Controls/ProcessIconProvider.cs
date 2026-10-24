@@ -61,6 +61,38 @@ internal static class ProcessIconProvider
         }
     }
 
+    private static readonly Dictionary<string, Task<BitmapSource>> PathCache = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>An executable's icon by path, for apps that may have exited; the fallback when there is no path.</summary>
+    /// <remarks>Called on the UI thread, like <see cref="GetAsync"/>.</remarks>
+    internal static Task<BitmapSource> GetForPathAsync(string path)
+    {
+        if (path.Length == 0) return Task.FromResult(Fallback);
+        if (PathCache.TryGetValue(path, out var task)) return task;
+        if (PathCache.Count >= 256) PathCache.Remove(PathCache.Keys.First());
+        task = Task.Run(async () =>
+        {
+            await Workers.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                using var icon = Icon.ExtractAssociatedIcon(path);
+                return icon is null ? Fallback : Convert(icon);
+            }
+            catch (Exception ex) when (ex is ArgumentException or IOException or UnauthorizedAccessException or
+                                           ExternalException)
+            {
+                Trace.TraceInformation("Executable icon unavailable for {0}: {1}", path, ex.Message);
+                return Fallback;
+            }
+            finally
+            {
+                Workers.Release();
+            }
+        });
+        PathCache.Add(path, task);
+        return task;
+    }
+
     private static BitmapSource Convert(Icon icon)
     {
         var image = Imaging.CreateBitmapSourceFromHIcon(icon.Handle, Int32Rect.Empty,

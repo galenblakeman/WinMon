@@ -315,6 +315,17 @@ public partial class ProcessesView
         ProcessSearchBox.Text = process.ProcessId.ToString(CultureInfo.InvariantCulture);
     }
 
+    /// <summary>Show one executable group from another view: grouped, unfiltered, with the group selected.</summary>
+    /// <remarks>Grouped selection matches by executable, so the representative needs only its name and path.</remarks>
+    internal void ShowGroup(ProcessUsage representative)
+    {
+        AppsOnlyCheckBox.IsChecked = false;
+        PinnedOnlyCheckBox.IsChecked = false;
+        GroupedChip.IsChecked = true;
+        ProcessSearchBox.Text = "";
+        SelectProcess(representative, true);
+    }
+
     internal void FocusSearch()
     {
         ProcessSearchBox.Focus();

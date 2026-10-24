@@ -15,8 +15,9 @@ public partial class MainWindow
     private void InitializeServices()
     {
         ServiceView.TopServiceCountChanged += count => _preferences = _preferences with { TopServiceCount = count };
-        ProcessesTab.Checked += (_, _) => SelectServiceView(false);
-        ServicesTab.Checked += (_, _) => SelectServiceView(true);
+        ProcessesTab.Checked += (_, _) => SelectActivityView();
+        ServicesTab.Checked += (_, _) => SelectActivityView();
+        UsageTab.Checked += (_, _) => SelectActivityView();
         ServiceView.ProcessRequested += process =>
         {
             // Use the existing process view for the selected PID, preserving the selected historical instant.
@@ -27,10 +28,12 @@ public partial class MainWindow
         ServiceView.CopyRequested += CopyProcessDetails;
     }
 
-    private void SelectServiceView(bool services)
+    private void SelectActivityView()
     {
-        Processes.Visibility = services ? Visibility.Collapsed : Visibility.Visible;
-        ServiceView.Visibility = services ? Visibility.Visible : Visibility.Collapsed;
+        Processes.Visibility = ProcessesTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+        ServiceView.Visibility = ServicesTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+        UsageView.Visibility = UsageTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+        ActivityActionsToggle.Visibility = UsageTab.IsChecked == true ? Visibility.Hidden : Visibility.Visible;
         RefreshPresentation();
     }
 

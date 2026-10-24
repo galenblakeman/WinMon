@@ -1464,4 +1464,35 @@ Windows 상태: {2}</value>
   <data name="DetailAverageResponse" xml:space="preserve"><value>평균 응답 시간</value></data>
   <data name="DetailQueueLength" xml:space="preserve"><value>대기열 길이</value></data>
   <data name="DetailFreeSpace" xml:space="preserve"><value>사용 가능 공간</value></data>
+  <data name="UsageTab" xml:space="preserve"><value>사용량</value></data>
+  <data name="UsageAppsBy" xml:space="preserve"><value>앱 정렬 기준</value></data>
+  <data name="UsageNumberOfApps" xml:space="preserve"><value>표시할 앱 수</value></data>
+  <data name="UsageSort" xml:space="preserve"><value>앱 정렬 기준</value></data>
+  <data name="UsageSearch" xml:space="preserve"><value>앱 검색</value></data>
+  <data name="UsageApp" xml:space="preserve"><value>앱</value></data>
+  <data name="UsageCpuTime" xml:space="preserve"><value>CPU 시간</value></data>
+  <data name="UsageShare" xml:space="preserve"><value>비율</value></data>
+  <data name="UsageGpuTime" xml:space="preserve"><value>GPU 시간</value></data>
+  <data name="UsageLastActive" xml:space="preserve"><value>마지막 활동</value></data>
+  <data name="UsageNow" xml:space="preserve"><value>지금</value></data>
+  <data name="UsageSummary" xml:space="preserve"><value>{0:t}부터 ({1}) · 컴퓨터 사용 시간 {2}, 논리 프로세서 {3}개</value></data>
+  <data name="UsageNotAttributed" xml:space="preserve"><value>할당되지 않음</value></data>
+  <data name="UsageNotAttributedHelp" xml:space="preserve"><value>어떤 앱에도 할당되지 않은 컴퓨터 CPU 시간입니다. 샘플 사이에 시작하고 종료된 프로세스, 각 프로세스의 처음과 마지막 1초 미만 구간, CPU 시간을 읽을 수 없었던 프로세스가 포함됩니다.</value></data>
+  <data name="UsageOtherApps" xml:space="preserve"><value>기타 앱</value></data>
+  <data name="UsageCopy" xml:space="preserve"><value>사용량 복사</value></data>
+  <data name="UsageReset" xml:space="preserve"><value>초기화</value></data>
+  <data name="UsageResetConfirm" xml:space="preserve"><value>모든 사용량 합계를 지우고 지금부터 다시 집계할까요?</value></data>
+  <data name="UsageShowInProcesses" xml:space="preserve"><value>프로세스에서 보기</value></data>
+  <data name="UsageNotInHistory" xml:space="preserve"><value>이 앱은 더 이상 기록된 기록에 없습니다.</value></data>
+  <data name="UsageLiveNote" xml:space="preserve"><value>사용량 합계는 실시간입니다. 선택한 캡처는 프로세스와 서비스에 적용됩니다.</value></data>
+  <data name="UsageNoAppsMatch" xml:space="preserve"><value>검색 또는 필터와 일치하는 앱이 없습니다.</value></data>
+  <data name="UsageCollecting" xml:space="preserve"><value>사용량 수집 중…</value></data>
+  <data name="UsageCpuTimeHelp" xml:space="preserve"><value>모든 프로세스의 프로세서 시간입니다. 여러 코어가 사용 중이면 실제 시간보다 빠르게 늘어납니다.</value></data>
+  <data name="UsageShareHelp" xml:space="preserve"><value>사용량 집계 시작 이후 컴퓨터 전체의 사용 중 CPU 시간 대비 비율입니다.</value></data>
+  <data name="UsageGpuTimeHelp" xml:space="preserve"><value>가장 바쁜 GPU 엔진이 사용 중이던 시간입니다.</value></data>
+  <data name="UsageIoHelp" xml:space="preserve"><value>파일, 네트워크, 장치 I/O를 포함한 읽기 및 쓰기 바이트입니다.</value></data>
+  <data name="UsageProcessesHelp" xml:space="preserve"><value>관찰된 프로세스 수이며, 괄호 안은 현재 실행 중인 수입니다.</value></data>
+  <data name="UsageReportSince" xml:space="preserve"><value>{0:G}부터의 사용량</value></data>
+  <data name="UsageReportBusy" xml:space="preserve"><value>컴퓨터 사용 중 CPU 시간: {0}, 논리 프로세서 {1}개</value></data>
+  <data name="UsageReportView" xml:space="preserve"><value>{1} 기준 상위 앱 {0}개</value></data>
 </root>

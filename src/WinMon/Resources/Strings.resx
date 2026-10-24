@@ -1464,4 +1464,35 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="DetailAverageResponse" xml:space="preserve"><value>Average response</value></data>
   <data name="DetailQueueLength" xml:space="preserve"><value>Queue length</value></data>
   <data name="DetailFreeSpace" xml:space="preserve"><value>Free space</value></data>
+  <data name="UsageTab" xml:space="preserve"><value>Usage</value></data>
+  <data name="UsageAppsBy" xml:space="preserve"><value>apps by</value></data>
+  <data name="UsageNumberOfApps" xml:space="preserve"><value>Number of apps shown</value></data>
+  <data name="UsageSort" xml:space="preserve"><value>Rank apps by</value></data>
+  <data name="UsageSearch" xml:space="preserve"><value>Search apps</value></data>
+  <data name="UsageApp" xml:space="preserve"><value>App</value></data>
+  <data name="UsageCpuTime" xml:space="preserve"><value>CPU time</value></data>
+  <data name="UsageShare" xml:space="preserve"><value>Share</value></data>
+  <data name="UsageGpuTime" xml:space="preserve"><value>GPU time</value></data>
+  <data name="UsageLastActive" xml:space="preserve"><value>Last active</value></data>
+  <data name="UsageNow" xml:space="preserve"><value>now</value></data>
+  <data name="UsageSummary" xml:space="preserve"><value>Since {0:t} ({1}) · machine busy {2} on {3} logical processors</value></data>
+  <data name="UsageNotAttributed" xml:space="preserve"><value>Not attributed</value></data>
+  <data name="UsageNotAttributedHelp" xml:space="preserve"><value>Machine CPU time not assigned to any app: processes that started and exited between samples, each process's first and last partial second, and processes whose CPU time could not be read.</value></data>
+  <data name="UsageOtherApps" xml:space="preserve"><value>Other apps</value></data>
+  <data name="UsageCopy" xml:space="preserve"><value>Copy usage</value></data>
+  <data name="UsageReset" xml:space="preserve"><value>Reset</value></data>
+  <data name="UsageResetConfirm" xml:space="preserve"><value>Clear all usage totals and start counting again from now?</value></data>
+  <data name="UsageShowInProcesses" xml:space="preserve"><value>Show in Processes</value></data>
+  <data name="UsageNotInHistory" xml:space="preserve"><value>This app is no longer in the recorded history.</value></data>
+  <data name="UsageLiveNote" xml:space="preserve"><value>Usage totals are live; the selected capture applies to Processes and Services.</value></data>
+  <data name="UsageNoAppsMatch" xml:space="preserve"><value>No apps match the search or filter.</value></data>
+  <data name="UsageCollecting" xml:space="preserve"><value>Collecting usage…</value></data>
+  <data name="UsageCpuTimeHelp" xml:space="preserve"><value>Processor time across all its processes. With several busy cores it grows faster than the clock.</value></data>
+  <data name="UsageShareHelp" xml:space="preserve"><value>CPU time as a share of all busy machine CPU time since usage started.</value></data>
+  <data name="UsageGpuTimeHelp" xml:space="preserve"><value>Time its busiest GPU engine was busy.</value></data>
+  <data name="UsageIoHelp" xml:space="preserve"><value>Read and write bytes, including file, network and device I/O.</value></data>
+  <data name="UsageProcessesHelp" xml:space="preserve"><value>Process lifetimes seen, with the number running now in brackets.</value></data>
+  <data name="UsageReportSince" xml:space="preserve"><value>Usage since {0:G}</value></data>
+  <data name="UsageReportBusy" xml:space="preserve"><value>Machine busy CPU time: {0} on {1} logical processors</value></data>
+  <data name="UsageReportView" xml:space="preserve"><value>Top {0} apps by {1}</value></data>
 </root>

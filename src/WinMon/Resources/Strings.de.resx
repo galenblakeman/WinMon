@@ -1464,4 +1464,35 @@ Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse
   <data name="DetailAverageResponse" xml:space="preserve"><value>Durchschnittliche Antwortzeit</value></data>
   <data name="DetailQueueLength" xml:space="preserve"><value>Warteschlangenlänge</value></data>
   <data name="DetailFreeSpace" xml:space="preserve"><value>Freier Speicherplatz</value></data>
+  <data name="UsageTab" xml:space="preserve"><value>Nutzung</value></data>
+  <data name="UsageAppsBy" xml:space="preserve"><value>Apps nach</value></data>
+  <data name="UsageNumberOfApps" xml:space="preserve"><value>Anzahl angezeigter Apps</value></data>
+  <data name="UsageSort" xml:space="preserve"><value>Apps sortieren nach</value></data>
+  <data name="UsageSearch" xml:space="preserve"><value>Apps suchen</value></data>
+  <data name="UsageApp" xml:space="preserve"><value>App</value></data>
+  <data name="UsageCpuTime" xml:space="preserve"><value>CPU-Zeit</value></data>
+  <data name="UsageShare" xml:space="preserve"><value>Anteil</value></data>
+  <data name="UsageGpuTime" xml:space="preserve"><value>GPU-Zeit</value></data>
+  <data name="UsageLastActive" xml:space="preserve"><value>Zuletzt aktiv</value></data>
+  <data name="UsageNow" xml:space="preserve"><value>jetzt</value></data>
+  <data name="UsageSummary" xml:space="preserve"><value>Seit {0:t} ({1}) · Rechner ausgelastet {2} auf {3} logischen Prozessoren</value></data>
+  <data name="UsageNotAttributed" xml:space="preserve"><value>Nicht zugeordnet</value></data>
+  <data name="UsageNotAttributedHelp" xml:space="preserve"><value>CPU-Zeit des Rechners, die keiner App zugeordnet ist: Prozesse, die zwischen zwei Messungen starteten und endeten, die erste und letzte Teilsekunde jedes Prozesses sowie Prozesse, deren CPU-Zeit nicht lesbar war.</value></data>
+  <data name="UsageOtherApps" xml:space="preserve"><value>Andere Apps</value></data>
+  <data name="UsageCopy" xml:space="preserve"><value>Nutzung kopieren</value></data>
+  <data name="UsageReset" xml:space="preserve"><value>Zurücksetzen</value></data>
+  <data name="UsageResetConfirm" xml:space="preserve"><value>Alle Nutzungssummen löschen und ab jetzt neu zählen?</value></data>
+  <data name="UsageShowInProcesses" xml:space="preserve"><value>In Prozessen anzeigen</value></data>
+  <data name="UsageNotInHistory" xml:space="preserve"><value>Diese App ist nicht mehr im aufgezeichneten Verlauf.</value></data>
+  <data name="UsageLiveNote" xml:space="preserve"><value>Die Nutzungssummen sind live; die ausgewählte Aufnahme gilt für Prozesse und Dienste.</value></data>
+  <data name="UsageNoAppsMatch" xml:space="preserve"><value>Keine Apps entsprechen der Suche oder dem Filter.</value></data>
+  <data name="UsageCollecting" xml:space="preserve"><value>Nutzung wird erfasst…</value></data>
+  <data name="UsageCpuTimeHelp" xml:space="preserve"><value>Prozessorzeit aller ihrer Prozesse. Bei mehreren ausgelasteten Kernen wächst sie schneller als die Uhrzeit.</value></data>
+  <data name="UsageShareHelp" xml:space="preserve"><value>CPU-Zeit als Anteil der gesamten ausgelasteten CPU-Zeit des Rechners seit Beginn der Erfassung.</value></data>
+  <data name="UsageGpuTimeHelp" xml:space="preserve"><value>Zeit, in der ihre am stärksten ausgelastete GPU-Engine aktiv war.</value></data>
+  <data name="UsageIoHelp" xml:space="preserve"><value>Gelesene und geschriebene Bytes, einschließlich Datei-, Netzwerk- und Geräte-E/A.</value></data>
+  <data name="UsageProcessesHelp" xml:space="preserve"><value>Erfasste Prozesslaufzeiten, in Klammern die Anzahl der jetzt laufenden.</value></data>
+  <data name="UsageReportSince" xml:space="preserve"><value>Nutzung seit {0:G}</value></data>
+  <data name="UsageReportBusy" xml:space="preserve"><value>Ausgelastete CPU-Zeit des Rechners: {0} auf {1} logischen Prozessoren</value></data>
+  <data name="UsageReportView" xml:space="preserve"><value>Top {0} Apps nach {1}</value></data>
 </root>

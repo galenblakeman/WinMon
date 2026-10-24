@@ -124,7 +124,8 @@ public sealed class PreferenceStoreTests
     {
         Directory.CreateDirectory(testDirectory);
         await File.WriteAllTextAsync(settingsPath, """
-            { "Width": -1, "Height": 9000, "Theme": "unsupported", "RetentionSeconds": 9999 }
+            { "Width": -1, "Height": 9000, "Theme": "unsupported", "RetentionSeconds": 9999,
+              "TopUsageCount": 7, "UsageSortColumn": 9 }
             """);
         PreferenceStore store = new(settingsPath);
 
@@ -136,6 +137,9 @@ public sealed class PreferenceStoreTests
             Assert.That(preferences.Height, Is.EqualTo(1500));
             Assert.That(preferences.Theme, Is.EqualTo("Dark"));
             Assert.That(preferences.RetentionSeconds, Is.EqualTo(3600));
+            Assert.That(preferences.TopUsageCount, Is.EqualTo(20));
+            Assert.That(preferences.UsageSortColumn, Is.Zero);
+            Assert.That(preferences.UsageAppsOnly, Is.False);
         });
     }
 

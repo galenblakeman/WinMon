@@ -1464,4 +1464,35 @@ Windows 健康状态：{2}</value>
   <data name="DetailAverageResponse" xml:space="preserve"><value>平均响应时间</value></data>
   <data name="DetailQueueLength" xml:space="preserve"><value>队列长度</value></data>
   <data name="DetailFreeSpace" xml:space="preserve"><value>可用空间</value></data>
+  <data name="UsageTab" xml:space="preserve"><value>使用情况</value></data>
+  <data name="UsageAppsBy" xml:space="preserve"><value>应用，排序依据</value></data>
+  <data name="UsageNumberOfApps" xml:space="preserve"><value>显示的应用数</value></data>
+  <data name="UsageSort" xml:space="preserve"><value>应用排序依据</value></data>
+  <data name="UsageSearch" xml:space="preserve"><value>搜索应用</value></data>
+  <data name="UsageApp" xml:space="preserve"><value>应用</value></data>
+  <data name="UsageCpuTime" xml:space="preserve"><value>CPU 时间</value></data>
+  <data name="UsageShare" xml:space="preserve"><value>占比</value></data>
+  <data name="UsageGpuTime" xml:space="preserve"><value>GPU 时间</value></data>
+  <data name="UsageLastActive" xml:space="preserve"><value>上次活动</value></data>
+  <data name="UsageNow" xml:space="preserve"><value>现在</value></data>
+  <data name="UsageSummary" xml:space="preserve"><value>自 {0:t} 起 ({1}) · 计算机繁忙 {2}，{3} 个逻辑处理器</value></data>
+  <data name="UsageNotAttributed" xml:space="preserve"><value>未归属</value></data>
+  <data name="UsageNotAttributedHelp" xml:space="preserve"><value>未归属到任何应用的计算机 CPU 时间：在两次采样之间启动并退出的进程、每个进程开头和结尾不足一秒的部分，以及无法读取 CPU 时间的进程。</value></data>
+  <data name="UsageOtherApps" xml:space="preserve"><value>其他应用</value></data>
+  <data name="UsageCopy" xml:space="preserve"><value>复制使用情况</value></data>
+  <data name="UsageReset" xml:space="preserve"><value>重置</value></data>
+  <data name="UsageResetConfirm" xml:space="preserve"><value>清除所有使用情况总计并从现在重新开始统计？</value></data>
+  <data name="UsageShowInProcesses" xml:space="preserve"><value>在进程中显示</value></data>
+  <data name="UsageNotInHistory" xml:space="preserve"><value>此应用已不在记录的历史中。</value></data>
+  <data name="UsageLiveNote" xml:space="preserve"><value>使用情况总计为实时数据；所选捕获适用于进程和服务。</value></data>
+  <data name="UsageNoAppsMatch" xml:space="preserve"><value>没有与搜索或筛选匹配的应用。</value></data>
+  <data name="UsageCollecting" xml:space="preserve"><value>正在收集使用情况…</value></data>
+  <data name="UsageCpuTimeHelp" xml:space="preserve"><value>其所有进程的处理器时间。多个内核繁忙时，增长速度会快于时钟。</value></data>
+  <data name="UsageShareHelp" xml:space="preserve"><value>CPU 时间占自开始统计以来计算机全部繁忙 CPU 时间的比例。</value></data>
+  <data name="UsageGpuTimeHelp" xml:space="preserve"><value>其最繁忙的 GPU 引擎处于繁忙状态的时间。</value></data>
+  <data name="UsageIoHelp" xml:space="preserve"><value>读取和写入的字节，包括文件、网络和设备 I/O。</value></data>
+  <data name="UsageProcessesHelp" xml:space="preserve"><value>观察到的进程实例数，括号中为当前正在运行的数量。</value></data>
+  <data name="UsageReportSince" xml:space="preserve"><value>自 {0:G} 起的使用情况</value></data>
+  <data name="UsageReportBusy" xml:space="preserve"><value>计算机繁忙 CPU 时间：{0}，{1} 个逻辑处理器</value></data>
+  <data name="UsageReportView" xml:space="preserve"><value>按{1}排序的前 {0} 个应用</value></data>
 </root>

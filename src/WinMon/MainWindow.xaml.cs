@@ -91,6 +91,7 @@ public partial class MainWindow
         InitializeMetricDetails();
         InitializeCompactView();
         InitializeServices();
+        InitializeUsage();
         InitializeProcesses();
         UpdateActivityActionsToggle();
         VersionRun.Text = $" {AppInfo.Version}";
@@ -140,6 +141,7 @@ public partial class MainWindow
             UpdateActivityActionsToggle();
             Processes.Load(ProcessListSettings.From(_preferences), _preferences.PinnedProcesses);
             ServiceView.TopServiceCount = _preferences.TopServiceCount;
+            UsageView.Load(UsageSettings(_preferences));
             Width = Math.Max(MinWidth, _preferences.Width);
             Height = Math.Max(MinHeight, _preferences.Height);
             var visibleMask = _preferences.SeriesMask;
@@ -241,6 +243,7 @@ public partial class MainWindow
         OverallGraph.SetData(samples, range, _selectedSample);
         RefreshCompactView();
         RefreshServices();
+        RefreshUsage();
         UpdateSnapshot(_selectedSample is null ? null : visible);
         // The compact strip hides the process list; leaving compact mode refreshes it.
         if (!_compactMode &&
@@ -781,12 +784,25 @@ public partial class MainWindow
                 return;
             }
 
+            if (UsageTab.IsChecked == true)
+            {
+                UsageView.FocusSearch();
+                e.Handled = true;
+                return;
+            }
+
             Processes.FocusSearch();
             e.Handled = true;
             return;
         }
 
         if (e.Key == Key.Escape && ServicesTab.IsChecked == true && ServiceView.ClearSearch())
+        {
+            e.Handled = true;
+            return;
+        }
+
+        if (e.Key == Key.Escape && UsageTab.IsChecked == true && UsageView.ClearSearch())
         {
             e.Handled = true;
             return;

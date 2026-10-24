@@ -525,6 +525,11 @@
                                         Content="{Binding [Services], Source={x:Static resources:Strings.Text}}"
                                         GroupName="ActivityView"
                                         Style="{StaticResource ActivityTab}" />
+                                    <RadioButton
+                                        x:Name="UsageTab"
+                                        Content="{Binding [UsageTab], Source={x:Static resources:Strings.Text}}"
+                                        GroupName="ActivityView"
+                                        Style="{StaticResource ActivityTab}" />
                                 </StackPanel>
                                 <Button
                                     x:Name="ActivityActionsToggle"
@@ -539,6 +544,10 @@
                         <controls:ProcessesView x:Name="Processes" Grid.Row="1" />
                         <controls:ServicesView
                             x:Name="ServiceView"
+                            Grid.Row="1"
+                            Visibility="Collapsed" />
+                        <controls:UsageView
+                            x:Name="UsageView"
                             Grid.Row="1"
                             Visibility="Collapsed" />
                     </Grid>

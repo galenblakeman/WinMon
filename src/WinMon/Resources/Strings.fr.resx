@@ -1464,4 +1464,35 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
   <data name="DetailAverageResponse" xml:space="preserve"><value>Temps de réponse moyen</value></data>
   <data name="DetailQueueLength" xml:space="preserve"><value>Longueur de file</value></data>
   <data name="DetailFreeSpace" xml:space="preserve"><value>Espace libre</value></data>
+  <data name="UsageTab" xml:space="preserve"><value>Utilisation</value></data>
+  <data name="UsageAppsBy" xml:space="preserve"><value>applications par</value></data>
+  <data name="UsageNumberOfApps" xml:space="preserve"><value>Nombre d’applications affichées</value></data>
+  <data name="UsageSort" xml:space="preserve"><value>Classer les applications par</value></data>
+  <data name="UsageSearch" xml:space="preserve"><value>Rechercher des applications</value></data>
+  <data name="UsageApp" xml:space="preserve"><value>Application</value></data>
+  <data name="UsageCpuTime" xml:space="preserve"><value>Temps CPU</value></data>
+  <data name="UsageShare" xml:space="preserve"><value>Part</value></data>
+  <data name="UsageGpuTime" xml:space="preserve"><value>Temps GPU</value></data>
+  <data name="UsageLastActive" xml:space="preserve"><value>Dernière activité</value></data>
+  <data name="UsageNow" xml:space="preserve"><value>maintenant</value></data>
+  <data name="UsageSummary" xml:space="preserve"><value>Depuis {0:t} ({1}) · machine occupée {2} sur {3} processeurs logiques</value></data>
+  <data name="UsageNotAttributed" xml:space="preserve"><value>Non attribué</value></data>
+  <data name="UsageNotAttributedHelp" xml:space="preserve"><value>Temps CPU de la machine attribué à aucune application : processus démarrés et terminés entre deux mesures, première et dernière fraction de seconde de chaque processus, et processus dont le temps CPU n’a pas pu être lu.</value></data>
+  <data name="UsageOtherApps" xml:space="preserve"><value>Autres applications</value></data>
+  <data name="UsageCopy" xml:space="preserve"><value>Copier l’utilisation</value></data>
+  <data name="UsageReset" xml:space="preserve"><value>Réinitialiser</value></data>
+  <data name="UsageResetConfirm" xml:space="preserve"><value>Effacer tous les totaux d’utilisation et recommencer à compter maintenant ?</value></data>
+  <data name="UsageShowInProcesses" xml:space="preserve"><value>Afficher dans Processus</value></data>
+  <data name="UsageNotInHistory" xml:space="preserve"><value>Cette application n’est plus dans l’historique enregistré.</value></data>
+  <data name="UsageLiveNote" xml:space="preserve"><value>Les totaux d’utilisation sont en direct ; la capture sélectionnée s’applique aux Processus et aux Services.</value></data>
+  <data name="UsageNoAppsMatch" xml:space="preserve"><value>Aucune application ne correspond à la recherche ou au filtre.</value></data>
+  <data name="UsageCollecting" xml:space="preserve"><value>Collecte de l’utilisation…</value></data>
+  <data name="UsageCpuTimeHelp" xml:space="preserve"><value>Temps processeur de tous ses processus. Avec plusieurs cœurs occupés, il augmente plus vite que l’horloge.</value></data>
+  <data name="UsageShareHelp" xml:space="preserve"><value>Temps CPU en part de tout le temps CPU occupé de la machine depuis le début du suivi.</value></data>
+  <data name="UsageGpuTimeHelp" xml:space="preserve"><value>Temps pendant lequel son moteur GPU le plus occupé était actif.</value></data>
+  <data name="UsageIoHelp" xml:space="preserve"><value>Octets lus et écrits, y compris les E/S de fichiers, de réseau et de périphériques.</value></data>
+  <data name="UsageProcessesHelp" xml:space="preserve"><value>Durées de vie de processus observées, avec entre parenthèses le nombre en cours d’exécution.</value></data>
+  <data name="UsageReportSince" xml:space="preserve"><value>Utilisation depuis {0:G}</value></data>
+  <data name="UsageReportBusy" xml:space="preserve"><value>Temps CPU occupé de la machine : {0} sur {1} processeurs logiques</value></data>
+  <data name="UsageReportView" xml:space="preserve"><value>Top {0} des applications par {1}</value></data>
 </root>

@@ -1464,4 +1464,35 @@ GPU {11} · {12}
   <data name="DetailAverageResponse" xml:space="preserve"><value>Среднее время отклика</value></data>
   <data name="DetailQueueLength" xml:space="preserve"><value>Длина очереди</value></data>
   <data name="DetailFreeSpace" xml:space="preserve"><value>Свободное место</value></data>
+  <data name="UsageTab" xml:space="preserve"><value>Использование</value></data>
+  <data name="UsageAppsBy" xml:space="preserve"><value>приложений по</value></data>
+  <data name="UsageNumberOfApps" xml:space="preserve"><value>Число показываемых приложений</value></data>
+  <data name="UsageSort" xml:space="preserve"><value>Сортировать приложения по</value></data>
+  <data name="UsageSearch" xml:space="preserve"><value>Поиск приложений</value></data>
+  <data name="UsageApp" xml:space="preserve"><value>Приложение</value></data>
+  <data name="UsageCpuTime" xml:space="preserve"><value>Время ЦП</value></data>
+  <data name="UsageShare" xml:space="preserve"><value>Доля</value></data>
+  <data name="UsageGpuTime" xml:space="preserve"><value>Время ГП</value></data>
+  <data name="UsageLastActive" xml:space="preserve"><value>Последняя активность</value></data>
+  <data name="UsageNow" xml:space="preserve"><value>сейчас</value></data>
+  <data name="UsageSummary" xml:space="preserve"><value>С {0:t} ({1}) · занятость компьютера {2} на {3} логических процессорах</value></data>
+  <data name="UsageNotAttributed" xml:space="preserve"><value>Не распределено</value></data>
+  <data name="UsageNotAttributedHelp" xml:space="preserve"><value>Время ЦП компьютера, не отнесённое ни к одному приложению: процессы, которые запустились и завершились между замерами, первая и последняя неполная секунда каждого процесса и процессы, время ЦП которых не удалось прочитать.</value></data>
+  <data name="UsageOtherApps" xml:space="preserve"><value>Другие приложения</value></data>
+  <data name="UsageCopy" xml:space="preserve"><value>Копировать использование</value></data>
+  <data name="UsageReset" xml:space="preserve"><value>Сбросить</value></data>
+  <data name="UsageResetConfirm" xml:space="preserve"><value>Очистить все итоги использования и начать подсчёт заново?</value></data>
+  <data name="UsageShowInProcesses" xml:space="preserve"><value>Показать в процессах</value></data>
+  <data name="UsageNotInHistory" xml:space="preserve"><value>Этого приложения больше нет в записанной истории.</value></data>
+  <data name="UsageLiveNote" xml:space="preserve"><value>Итоги использования обновляются онлайн; выбранный захват относится к процессам и службам.</value></data>
+  <data name="UsageNoAppsMatch" xml:space="preserve"><value>Нет приложений, соответствующих поиску или фильтру.</value></data>
+  <data name="UsageCollecting" xml:space="preserve"><value>Сбор данных об использовании…</value></data>
+  <data name="UsageCpuTimeHelp" xml:space="preserve"><value>Время процессора всех её процессов. При нескольких занятых ядрах растёт быстрее часов.</value></data>
+  <data name="UsageShareHelp" xml:space="preserve"><value>Время ЦП как доля всего времени занятости ЦП компьютера с начала подсчёта.</value></data>
+  <data name="UsageGpuTimeHelp" xml:space="preserve"><value>Время занятости её самого загруженного движка ГП.</value></data>
+  <data name="UsageIoHelp" xml:space="preserve"><value>Прочитанные и записанные байты, включая ввод-вывод файлов, сети и устройств.</value></data>
+  <data name="UsageProcessesHelp" xml:space="preserve"><value>Замеченные экземпляры процессов, в скобках — число работающих сейчас.</value></data>
+  <data name="UsageReportSince" xml:space="preserve"><value>Использование с {0:G}</value></data>
+  <data name="UsageReportBusy" xml:space="preserve"><value>Время занятости ЦП компьютера: {0} на {1} логических процессорах</value></data>
+  <data name="UsageReportView" xml:space="preserve"><value>Топ {0} приложений по {1}</value></data>
 </root>

@@ -1464,4 +1464,35 @@ Se puede perder el trabajo sin guardar. Se finalizarán todos los procesos indic
   <data name="DetailAverageResponse" xml:space="preserve"><value>Respuesta media</value></data>
   <data name="DetailQueueLength" xml:space="preserve"><value>Longitud de cola</value></data>
   <data name="DetailFreeSpace" xml:space="preserve"><value>Espacio libre</value></data>
+  <data name="UsageTab" xml:space="preserve"><value>Uso</value></data>
+  <data name="UsageAppsBy" xml:space="preserve"><value>aplicaciones por</value></data>
+  <data name="UsageNumberOfApps" xml:space="preserve"><value>Número de aplicaciones mostradas</value></data>
+  <data name="UsageSort" xml:space="preserve"><value>Ordenar aplicaciones por</value></data>
+  <data name="UsageSearch" xml:space="preserve"><value>Buscar aplicaciones</value></data>
+  <data name="UsageApp" xml:space="preserve"><value>Aplicación</value></data>
+  <data name="UsageCpuTime" xml:space="preserve"><value>Tiempo de CPU</value></data>
+  <data name="UsageShare" xml:space="preserve"><value>Proporción</value></data>
+  <data name="UsageGpuTime" xml:space="preserve"><value>Tiempo de GPU</value></data>
+  <data name="UsageLastActive" xml:space="preserve"><value>Última actividad</value></data>
+  <data name="UsageNow" xml:space="preserve"><value>ahora</value></data>
+  <data name="UsageSummary" xml:space="preserve"><value>Desde {0:t} ({1}) · equipo ocupado {2} en {3} procesadores lógicos</value></data>
+  <data name="UsageNotAttributed" xml:space="preserve"><value>Sin atribuir</value></data>
+  <data name="UsageNotAttributedHelp" xml:space="preserve"><value>Tiempo de CPU del equipo no asignado a ninguna aplicación: procesos que se iniciaron y terminaron entre muestras, el primer y último segundo parcial de cada proceso y procesos cuyo tiempo de CPU no se pudo leer.</value></data>
+  <data name="UsageOtherApps" xml:space="preserve"><value>Otras aplicaciones</value></data>
+  <data name="UsageCopy" xml:space="preserve"><value>Copiar uso</value></data>
+  <data name="UsageReset" xml:space="preserve"><value>Restablecer</value></data>
+  <data name="UsageResetConfirm" xml:space="preserve"><value>¿Borrar todos los totales de uso y empezar a contar de nuevo desde ahora?</value></data>
+  <data name="UsageShowInProcesses" xml:space="preserve"><value>Mostrar en Procesos</value></data>
+  <data name="UsageNotInHistory" xml:space="preserve"><value>Esta aplicación ya no está en el historial registrado.</value></data>
+  <data name="UsageLiveNote" xml:space="preserve"><value>Los totales de uso son en directo; la captura seleccionada se aplica a Procesos y Servicios.</value></data>
+  <data name="UsageNoAppsMatch" xml:space="preserve"><value>Ninguna aplicación coincide con la búsqueda o el filtro.</value></data>
+  <data name="UsageCollecting" xml:space="preserve"><value>Recopilando uso…</value></data>
+  <data name="UsageCpuTimeHelp" xml:space="preserve"><value>Tiempo de procesador de todos sus procesos. Con varios núcleos ocupados crece más rápido que el reloj.</value></data>
+  <data name="UsageShareHelp" xml:space="preserve"><value>Tiempo de CPU como proporción de todo el tiempo de CPU ocupado del equipo desde que empezó el registro.</value></data>
+  <data name="UsageGpuTimeHelp" xml:space="preserve"><value>Tiempo en que su motor de GPU más ocupado estuvo activo.</value></data>
+  <data name="UsageIoHelp" xml:space="preserve"><value>Bytes leídos y escritos, incluida la E/S de archivos, red y dispositivos.</value></data>
+  <data name="UsageProcessesHelp" xml:space="preserve"><value>Vidas de proceso observadas, con el número en ejecución ahora entre paréntesis.</value></data>
+  <data name="UsageReportSince" xml:space="preserve"><value>Uso desde {0:G}</value></data>
+  <data name="UsageReportBusy" xml:space="preserve"><value>Tiempo de CPU ocupado del equipo: {0} en {1} procesadores lógicos</value></data>
+  <data name="UsageReportView" xml:space="preserve"><value>Las {0} principales aplicaciones por {1}</value></data>
 </root>

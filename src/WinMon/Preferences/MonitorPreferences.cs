@@ -37,6 +37,15 @@ public sealed record MonitorPreferences
     /// <summary>Maximum ranked service groups to display; zero shows all matching groups.</summary>
     public int TopServiceCount { get; init; } = 20;
 
+    /// <summary>Maximum apps the Usage tab lists; zero shows all matching apps.</summary>
+    public int TopUsageCount { get; init; } = 20;
+
+    /// <summary>The Usage tab's ranking column, by position: CPU time, I/O, GPU time, processes, last active.</summary>
+    public int UsageSortColumn { get; init; }
+
+    /// <summary>Gets a value indicating whether the Usage tab lists only apps observed with a window.</summary>
+    public bool UsageAppsOnly { get; init; }
+
     /// <summary>Gets the column that ranks the process rows.</summary>
     [JsonConverter(typeof(JsonStringEnumConverter<ProcessSort>))]
     public ProcessSort ProcessSort { get; init; }

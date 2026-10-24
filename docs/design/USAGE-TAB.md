@@ -1,6 +1,6 @@
 # Usage tab
 
-Proposed on 2026-10-24. Status: data layer done on 2026-10-24 (Sequence steps 1 and 2); the tab itself is not started.
+Proposed on 2026-10-24. Status: implemented on 2026-10-24 (Sequence steps 1 to 5); see Implementation notes.
 
 ## Why
 
@@ -202,3 +202,12 @@ internal sealed record AppUsage(string Key, string Name, string ImagePath, strin
 3. `UsageView`, the tab, preferences, row actions, Copy usage and Reset.
 4. Strings for all 10 languages, diagnostics captures in light and dark, and the README section.
 5. With [UPDATE-RESTART-HISTORY.md](UPDATE-RESTART-HISTORY.md): serialize the ledger in its ledger chunk.
+
+## Implementation notes
+
+- `Controls/UsageView.xaml` holds the toolbar, column headers, rows, the pinned Not attributed row and the notice; `UsageText` formats durations, bytes, shares and the copied reports. `MainWindow.Usage.cs` wires it to `Session.Usage`.
+- List choices are stored as three plain preferences (`TopUsageCount`, `UsageSortColumn`, `UsageAppsOnly`), like `TopServiceCount`, rather than a `UsageListSettings` record in `MonitorPreferences`, so `Preferences` does not depend on `Controls`. The view still exchanges a `UsageListSettings` record with the window.
+- Show in Processes uses `ProcessesView.ShowGroup` with a representative `ProcessUsage` carrying the executable's name and path; grouped selection matches by `ProcessRanking.GroupKey`. The menu item is disabled, with a tooltip, when the app neither runs nor has its last-active sample in history; a click that loses that race shows a notice.
+- Icons for apps that may have exited load by path through `ProcessIconProvider.GetForPathAsync`.
+- The Hide actions toggle is hidden on the Usage tab, which has no action bar.
+- Validation: `UsageViewTests` (ranking, filtering before the limit, text formats, the report), preference normalization, and `WinMon.exe --usage-smoke-output <directory>`, which renders the tab in both themes from an illustrative ledger and checks I/O ranking, the stored preference, the report, and Show in Processes for a running and an exited app. The refresh benchmark is unchanged in timing; its pixel hashes changed only because the tab strip gained the Usage tab.

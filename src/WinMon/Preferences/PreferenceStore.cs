@@ -130,6 +130,8 @@ public sealed class PreferenceStore
             TopServiceCount = TopCountChoices.IsSupported(preferences.TopServiceCount)
                 ? preferences.TopServiceCount
                 : 20,
+            TopUsageCount = TopCountChoices.IsSupported(preferences.TopUsageCount) ? preferences.TopUsageCount : 20,
+            UsageSortColumn = preferences.UsageSortColumn is >= 0 and <= 4 ? preferences.UsageSortColumn : 0,
             ProcessSort = preferences is { SortByGpu: true, ProcessSort: ProcessSort.Cpu } ? ProcessSort.Gpu
             : Enum.IsDefined(preferences.ProcessSort) ? preferences.ProcessSort : ProcessSort.Cpu,
             SortByGpu = false,

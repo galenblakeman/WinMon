@@ -64,14 +64,14 @@ public partial class App
         AppLanguages.InitializeSystemDisplayCulture(CultureInfo.CurrentUICulture);
         AppLanguages.Apply(AppLanguages.SystemDefault);
 
-        if (e.Args is ["--services-smoke-output", var servicesOutput])
+        if (e.Args is ["--services-smoke-output" or "--usage-smoke-output", var servicesOutput])
         {
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
             base.OnStartup(e);
             var window = new MainWindow(true);
             MainWindow = window;
             window.Show();
-            _ = RunServicesDiagnosticsAsync(window, Path.GetFullPath(servicesOutput));
+            _ = RunServicesDiagnosticsAsync(window, Path.GetFullPath(servicesOutput), e.Args[0] == "--usage-smoke-output");
             return;
         }
 
@@ -233,15 +233,16 @@ public partial class App
         base.OnExit(e);
     }
 
-    private async Task RunServicesDiagnosticsAsync(MainWindow window, string output)
+    private async Task RunServicesDiagnosticsAsync(MainWindow window, string output, bool usage)
     {
         var exit = 0;
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(60));
         try
         {
             Directory.CreateDirectory(output);
-            await Task.Delay(5000, timeout.Token);
-            await new WindowDiagnostics(window).CaptureServicesDiagnosticsAsync(output, timeout.Token);
+            await Task.Delay(usage ? 1000 : 5000, timeout.Token);
+            if (usage) await new WindowDiagnostics(window).CaptureUsageDiagnosticsAsync(output, timeout.Token);
+            else await new WindowDiagnostics(window).CaptureServicesDiagnosticsAsync(output, timeout.Token);
         }
         catch (Exception ex)
         {
