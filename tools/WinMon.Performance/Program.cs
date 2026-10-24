@@ -54,7 +54,7 @@ internal static class Program
             second++;
             var full = Sample(anchor, second);
             Field("_latestFull").SetValue(window, full);
-            var compacted = (CpuSample)compact.Invoke(null, [full, 32, Field("_retainPinned").GetValue(window)])!;
+            var compacted = (CpuSample)compact.Invoke(null, [full, 32, Field("_retainPinned").GetValue(window), false])!;
             Field("_latestCompacted").SetValue(window, compacted);
             history.Add(compacted);
             addFrame.Invoke(serviceHistory, [captureFrame.Invoke(serviceTree, [full, catalog])]);
