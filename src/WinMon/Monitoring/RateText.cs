@@ -1,4 +1,4 @@
-namespace WinMon.Controls;
+namespace WinMon.Monitoring;
 
 /// <summary>Format network rates with three significant digits and an adaptive bit unit.</summary>
 internal static class RateText

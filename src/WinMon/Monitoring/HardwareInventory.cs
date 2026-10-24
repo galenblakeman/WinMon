@@ -3,7 +3,6 @@ using System.Globalization;
 using System.Management;
 using System.Runtime.InteropServices;
 using System.Security;
-using WinMon.Controls;
 using EnumerationOptions = System.Management.EnumerationOptions;
 
 namespace WinMon.Monitoring;

@@ -1,6 +1,6 @@
 # Code structure
 
-Agreed on 2026-10-24 after a design review of the 2.0.4 code. Status: planned; no step has landed yet.
+Agreed on 2026-10-24 after a design review of the 2.0.4 code. Status: in progress; see Sequence for the steps that have landed.
 
 ## Why
 
@@ -38,8 +38,8 @@ flowchart TB
 | Area | Decision |
 | --- | --- |
 | Assembly | Stay one assembly. A guard test enforces the `Monitoring` rule instead of a project boundary. |
-| `Monitoring` layering | Leaf namespace: no references to WPF, `WinMon.Controls` or `WinMon.Preferences`. Fix the two current back-references: `HardwareInventory` uses `Controls.RateText`; `ProcessPins` uses `Preferences.ProcessPinPreference`. `ProcessPins` gets its own snapshot type and `Preferences` maps it. |
-| Guard test | Inspect the compiled IL with `System.Reflection.Metadata`. Every type in `WinMon.Monitoring` may reference only an allow-list (BCL, `System.Management`, P/Invoke). A source-text scan would miss method-body references and the `global using` directives in `GlobalUsings.cs`. |
+| `Monitoring` layering | Leaf namespace: no references to WPF, `WinMon.Controls` or `WinMon.Preferences`. The two back-references were removed by moving types down: `RateText` moved from `Controls` to `Monitoring`, and `Preferences.ProcessPinPreference` became `Monitoring.SavedProcessPin`, which `MonitorPreferences` stores. Type names are not serialized, so the settings file is unchanged. |
+| Guard test | `MonitoringLayerTests` reads every `WinMon.Monitoring` type's base type, interfaces, field and method signatures, and the tokens in its method bodies. It fails on any type from a WPF or Windows Forms assembly, or from a WinMon namespace other than `Monitoring` and `Resources` (the localized strings). A source-text scan would miss fully qualified names and the `global using` directives in `GlobalUsings.cs`. |
 | Names | `CpuSample` → `MonitorSample`, `CpuHistory` → `MonitorHistory`. `CpuSnapshot`, `ICpuSnapshotProvider`, `WindowsCpuSampler`, `SystemCpuTimes` and `ProcessCpuTimes` keep their names because they are CPU timing only. |
 | Sampling | `MonitorSession` in `Monitoring` owns the 1-second `PeriodicTimer` loop, the pending queue and its drain, retention compaction, `MonitorHistory`, service history, `Latest`, `LatestFull` and `Error`. Surface: `Start(ct)`; a `Func<SamplingOptions>` read once per tick; a `Recorded` event after each drain; `Record(sample, full, services)` to add a synthetic frame without the loop. |
 | UI thread | The session takes an `Action<Action> post`. The window passes `a => Dispatcher.BeginInvoke(a, DispatcherPriority.Background)`, which keeps today's drain priority. Tests and the benchmark pass `a => a()`. `Monitoring` does not reference `Dispatcher` or `SynchronizationContext`. |
@@ -58,7 +58,7 @@ flowchart TB
 
 Regular commits on `main`, one per step, each built and tested on its own:
 
-1. Make `Monitoring` a leaf: fix the two back-references and add the IL guard test.
+1. Done: make `Monitoring` a leaf: fix the two back-references and add the IL guard test.
 2. Rename `CpuSample` and `CpuHistory`.
 3. Add `MonitorSession`, `IFrameSource` and `WindowsFrameSource`, with session tests using a fake source (gaps, error and recovery, drain order, no drain after close).
 4. Move `WinMon.Performance` from reflection to `InternalsVisibleTo`.

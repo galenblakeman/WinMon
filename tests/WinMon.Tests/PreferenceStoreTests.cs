@@ -337,7 +337,7 @@ public sealed class PreferenceStoreTests
         var current = opened with
         {
             GroupProcesses = true, CompactMode = true,
-            PinnedProcesses = [new ProcessPinPreference(10, 100, "pinned", "", "", null, false)]
+            PinnedProcesses = [new SavedProcessPin(10, 100, "pinned", "", "", null, false)]
         };
 
         var applied = SettingsWindow.ApplySettings(current, confirmed);

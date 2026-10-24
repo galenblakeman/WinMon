@@ -48,7 +48,7 @@ public sealed record MonitorPreferences
     public bool AppsOnly { get; init; }
 
     /// <summary>Individual process lifetimes and executable groups pinned in insertion order.</summary>
-    public ProcessPinPreference[] PinnedProcesses { get; init; } = [];
+    public SavedProcessPin[] PinnedProcesses { get; init; } = [];
 
     /// <summary>Restore the pinned-only process filter on startup.</summary>
     public bool PinnedOnly { get; init; }

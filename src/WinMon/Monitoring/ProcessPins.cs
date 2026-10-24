@@ -1,5 +1,3 @@
-using WinMon.Preferences;
-
 namespace WinMon.Monitoring;
 
 internal enum PinnedProcessState
@@ -29,17 +27,17 @@ internal sealed class ProcessPins
         return _pins.Any(p => Matches(p, process, grouped));
     }
 
-    internal ProcessPinPreference[] Snapshot()
+    internal SavedProcessPin[] Snapshot()
     {
         return
         [
-            .. _pins.Select(pin => new ProcessPinPreference(
+            .. _pins.Select(pin => new SavedProcessPin(
                 pin.Usage.ProcessId, pin.Usage.CreationTicks, pin.Usage.Name, pin.Usage.ImagePath,
                 pin.Usage.AppName, pin.Usage.HasAppWindow, pin.Grouped))
         ];
     }
 
-    internal void Restore(IEnumerable<ProcessPinPreference>? saved)
+    internal void Restore(IEnumerable<SavedProcessPin>? saved)
     {
         _pins.Clear();
         // Deserialized preferences can hold nulls that the annotations do not admit.
@@ -57,7 +55,7 @@ internal sealed class ProcessPins
         // ReSharper restore ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract, NullCoalescingConditionIsAlwaysNotNullAccordingToAPIContract
     }
 
-    internal static ProcessPinPreference[] Normalize(IEnumerable<ProcessPinPreference>? saved)
+    internal static SavedProcessPin[] Normalize(IEnumerable<SavedProcessPin>? saved)
     {
         var pins = new ProcessPins();
         pins.Restore(saved);

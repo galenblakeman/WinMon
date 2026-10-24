@@ -1,7 +1,7 @@
-namespace WinMon.Preferences;
+namespace WinMon.Monitoring;
 
 /// <summary>Saved pin identity and display metadata, without sampled resource readings.</summary>
-public sealed record ProcessPinPreference(
+public sealed record SavedProcessPin(
     int ProcessId,
     long CreationTicks,
     string Name,
