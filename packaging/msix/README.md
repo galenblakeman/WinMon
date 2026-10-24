@@ -6,20 +6,16 @@ This is an additional release channel. `tools/New-Release.ps1` continues to prod
 
 Use PowerShell 7 on Windows, the SDK pinned by `global.json`, and the Windows SDK's x64 `MakeAppx.exe`. The script discovers MakeAppx under `Windows Kits/10/bin`, or accepts `-MakeAppxPath` (including a copy from Microsoft's `Microsoft.Windows.SDK.BuildTools` NuGet package).
 
-From the repository root, a development package can be built with:
+The Store identity from Partner Center is saved in `StoreIdentity.psd1`. From the repository root, build the Store package with:
+
+```powershell
+./tools/New-MsixPackage.ps1
+```
+
+The saved values are package metadata, not signing credentials. If the Store identity changes, copy `Package/Identity/Name`, `Package/Identity/Publisher`, and `Package/Properties/PublisherDisplayName` exactly from Partner Center's Product identity page, and use a reserved app name for `DisplayName`. Command-line arguments can override the saved values, for example for a local development package:
 
 ```powershell
 ./tools/New-MsixPackage.ps1 -PackageName 'WinMon.Local' -Publisher 'CN=WinMon.Local'
-```
-
-For Store submission, reserve a product in Partner Center and copy its package identity name, publisher distinguished name, publisher display name and reserved product display name exactly:
-
-```powershell
-./tools/New-MsixPackage.ps1 `
-    -PackageName '<Partner Center package identity name>' `
-    -Publisher 'CN=<Partner Center publisher ID>' `
-    -PublisherDisplayName '<Partner Center publisher display name>' `
-    -DisplayName '<reserved product name>'
 ```
 
 The script publishes a self-contained x64 directory with `StoreBuild=true` and `PublishSingleFile=false`, generates package logos from the existing WinMon PNG, fills the manifest, and invokes MakeAppx with validation enabled. `/l` allows localized resources. No separately installed .NET runtime is required. `portable.flag` is excluded; preferences use the existing local application-data path. Verify packaged storage and migration on a test account.

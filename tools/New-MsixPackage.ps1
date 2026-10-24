@@ -1,16 +1,21 @@
 #requires -Version 7.0
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory)][ValidateNotNullOrEmpty()][string]$PackageName,
-    [Parameter(Mandatory)][ValidateNotNullOrEmpty()][string]$Publisher,
-    [ValidateNotNullOrEmpty()][string]$PublisherDisplayName = 'Galen Blakeman',
-    [ValidateNotNullOrEmpty()][string]$DisplayName = 'WinMon',
+    [ValidateNotNullOrEmpty()][string]$PackageName,
+    [ValidateNotNullOrEmpty()][string]$Publisher,
+    [ValidateNotNullOrEmpty()][string]$PublisherDisplayName,
+    [ValidateNotNullOrEmpty()][string]$DisplayName,
     [string]$OutputDirectory,
     [string]$MakeAppxPath,
     [switch]$DisableNuGetAudit
 )
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
+$storeIdentity = Import-PowerShellDataFile -LiteralPath (Join-Path $root 'packaging/msix/StoreIdentity.psd1')
+foreach ($field in @('PackageName', 'Publisher', 'PublisherDisplayName', 'DisplayName')) {
+    if (!$PSBoundParameters.ContainsKey($field)) { Set-Variable -Name $field -Value ([string]$storeIdentity[$field]) }
+    if (!(Get-Variable -Name $field -ValueOnly)) { throw "Missing MSIX identity value: $field" }
+}
 [xml]$props = Get-Content -LiteralPath (Join-Path $root 'Directory.Build.props') -Raw
 $version = [string]$props.Project.PropertyGroup.Version
 if ($version -notmatch '^\d+\.\d+\.\d+$') { throw 'Release Version must have the form major.minor.patch.' }
