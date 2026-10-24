@@ -555,8 +555,10 @@
                         </Grid.RowDefinitions>
                         <Border
                             Margin="-20,0,-20,0"
-                            Padding="20,0,0,0"
-                            Background="{DynamicResource SectionHeaderSurface}">
+                            Padding="8,0,0,0"
+                            Background="{DynamicResource SectionHeaderSurface}"
+                            BorderBrush="{DynamicResource Line}"
+                            BorderThickness="0,0,0,1">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />

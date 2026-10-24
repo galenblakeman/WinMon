@@ -95,6 +95,7 @@
         <SolidColorBrush x:Key="SearchSurface" Color="#15191E" />
         <SolidColorBrush x:Key="SelectedSurface" Color="#20262D" />
         <SolidColorBrush x:Key="SelectedText" Color="#EDF2F6" />
+        <SolidColorBrush x:Key="SegmentSelectedSurface" Color="#3D4855" />
         <SolidColorBrush x:Key="Text" Color="#EDF2F6" />
         <SolidColorBrush x:Key="Muted" Color="#B3BDC8" />
         <SolidColorBrush x:Key="Line" Color="#35404B" />
@@ -509,12 +510,13 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        <!--  Segmented range choice: themed selection colors also cover Windows high contrast.  -->
+        <!--  Segmented range choice: a filled chip marks the selection; themed selection colors also cover Windows high contrast.  -->
         <Style x:Key="RangeChip" TargetType="RadioButton">
             <Setter Property="Foreground" Value="{DynamicResource Muted}" />
             <Setter Property="FontSize" Value="11" />
             <Setter Property="Margin" Value="0,0,4,0" />
             <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{StaticResource MetricTileFocusVisual}" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
@@ -539,13 +541,9 @@
                                 <Setter TargetName="Chip" Property="BorderBrush" Value="{DynamicResource Muted}" />
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Chip" Property="Background" Value="{DynamicResource SelectedSurface}" />
-                                <Setter TargetName="Chip" Property="BorderBrush" Value="{DynamicResource Accent}" />
+                                <Setter TargetName="Chip" Property="Background" Value="{DynamicResource SegmentSelectedSurface}" />
+                                <Setter TargetName="Chip" Property="BorderBrush" Value="{DynamicResource SegmentSelectedSurface}" />
                                 <Setter Property="Foreground" Value="{DynamicResource SelectedText}" />
-                            </Trigger>
-                            <Trigger Property="IsKeyboardFocused" Value="True">
-                                <Setter TargetName="Chip" Property="BorderBrush" Value="{DynamicResource Accent}" />
-                                <Setter TargetName="Chip" Property="BorderThickness" Value="2" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -647,58 +645,55 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <!--  View tabs: a text-width accent underline and a semibold label mark the selected tab; the focus cue shows only for keyboard focus.  -->
         <Style x:Key="ActivityTab" TargetType="RadioButton">
-            <Setter Property="Height" Value="34" />
-            <Setter Property="MinWidth" Value="128" />
-            <Setter Property="FontSize" Value="15" />
-            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="FontSize" Value="14" />
             <Setter Property="Foreground" Value="{DynamicResource Muted}" />
             <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{StaticResource MetricTileFocusVisual}" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
-                        <Grid>
-                            <Border
-                                x:Name="TabBody"
-                                Padding="20,0,20,4"
-                                Background="Transparent">
+                        <Border Padding="12,0" Background="Transparent">
+                            <Grid>
                                 <ContentPresenter
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
                                     RecognizesAccessKey="True">
                                     <ContentPresenter.ContentTemplate>
                                         <DataTemplate>
-                                            <TextBlock Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" Text="{Binding}" />
+                                            <Grid>
+                                                <!--  Reserves the semibold width so tabs don't shift when selection changes.  -->
+                                                <TextBlock
+                                                    FontWeight="SemiBold"
+                                                    Text="{Binding}"
+                                                    Visibility="Hidden" />
+                                                <TextBlock
+                                                    HorizontalAlignment="Center"
+                                                    Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
+                                                    Text="{Binding}" />
+                                            </Grid>
                                         </DataTemplate>
                                     </ContentPresenter.ContentTemplate>
                                 </ContentPresenter>
-                            </Border>
-                            <Border
-                                x:Name="ActiveUnderline"
-                                Height="3"
-                                VerticalAlignment="Bottom"
-                                Background="{DynamicResource Accent}"
-                                Visibility="Collapsed" />
-                            <Border
-                                x:Name="FocusOutline"
-                                Margin="2"
-                                BorderBrush="{DynamicResource Accent}"
-                                BorderThickness="1"
-                                IsHitTestVisible="False"
-                                Visibility="Collapsed" />
-                        </Grid>
+                                <Border
+                                    x:Name="ActiveUnderline"
+                                    Height="3"
+                                    VerticalAlignment="Bottom"
+                                    Background="{DynamicResource Accent}"
+                                    CornerRadius="1.5"
+                                    Visibility="Collapsed" />
+                            </Grid>
+                        </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="TabBody" Property="Background" Value="{DynamicResource Raised}" />
                                 <Setter Property="Foreground" Value="{DynamicResource Text}" />
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="TabBody" Property="Background" Value="{DynamicResource TitleBarSurface}" />
                                 <Setter TargetName="ActiveUnderline" Property="Visibility" Value="Visible" />
                                 <Setter Property="Foreground" Value="{DynamicResource Text}" />
-                            </Trigger>
-                            <Trigger Property="IsKeyboardFocused" Value="True">
-                                <Setter TargetName="FocusOutline" Property="Visibility" Value="Visible" />
+                                <Setter Property="FontWeight" Value="SemiBold" />
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Opacity" Value="0.45" />

@@ -676,6 +676,7 @@ public partial class MainWindow
             app.Resources["SearchSurface"] = SystemColors.WindowBrush;
             app.Resources["SelectedSurface"] = SystemColors.HighlightBrush;
             app.Resources["SelectedText"] = SystemColors.HighlightTextBrush;
+            app.Resources["SegmentSelectedSurface"] = SystemColors.HighlightBrush;
             app.Resources["SnapshotAccent"] = SystemColors.HighlightBrush;
             app.Resources["ProcessPinAccent"] = SystemColors.WindowTextBrush;
             app.Resources["SnapshotAccentText"] = SystemColors.HighlightTextBrush;
@@ -698,6 +699,7 @@ public partial class MainWindow
             SetBrush("SearchSurface", light ? "#FFFFFF" : "#15191E");
             SetBrush("SelectedSurface", light ? "#1469B5" : "#20262D");
             SetBrush("SelectedText", light ? "#FFFFFF" : "#EDF2F6");
+            SetBrush("SegmentSelectedSurface", light ? "#1469B5" : "#3D4855");
             SetBrush("SnapshotAccentText", "#07171B");
             SetBrush("Text", light ? "#20334A" : "#EDF2F6");
             SetBrush("Muted", light ? "#465D78" : "#B3BDC8");
