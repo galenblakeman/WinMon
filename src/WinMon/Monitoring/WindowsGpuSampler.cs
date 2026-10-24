@@ -27,7 +27,7 @@ internal sealed class WindowsGpuSampler : IDisposable
     private static readonly SearchValues<char> HexDigits = SearchValues.Create("0123456789abcdefABCDEF");
     private static readonly int ValueOffset = (int)Marshal.OffsetOf<CounterItem>(nameof(CounterItem.Value));
 
-    internal CpuSample Sample(CpuSample sample, bool reset)
+    internal MonitorSample Sample(MonitorSample sample, bool reset)
     {
         if (reset) Reset();
         try

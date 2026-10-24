@@ -50,12 +50,12 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
     /// <param name="grouped">Combine processes of the same executable into one row each.</param>
     /// <param name="includeInactive">Include observed processes even without activity or a reading in the sort column, for search.</param>
     /// <returns>The ranking, empty when the last sample is a gap or has no CPU reading.</returns>
-    public static ProcessRanking Rank(IReadOnlyList<CpuSample> history, int windowSeconds = DefaultWindowSeconds,
+    public static ProcessRanking Rank(IReadOnlyList<MonitorSample> history, int windowSeconds = DefaultWindowSeconds,
         ProcessSort sort = ProcessSort.Cpu, bool grouped = false, bool includeInactive = false)
     {
         ArgumentNullException.ThrowIfNull(history);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(windowSeconds);
-        var window = new List<CpuSample>(windowSeconds + 1);
+        var window = new List<MonitorSample>(windowSeconds + 1);
         var first = WindowStart(history, windowSeconds);
         for (var i = history.Count - 1; i >= first; i--) window.Add(history[i]);
         if (window.Count == 0) return new ProcessRanking([], null, 0);
@@ -165,7 +165,7 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
     public double MeasuredCpuPercent { get; init; }
 
     /// <summary>Shared interval selection for process and service rankings, including jitter and gap boundaries.</summary>
-    internal static int WindowStart(IReadOnlyList<CpuSample> history, int windowSeconds = DefaultWindowSeconds)
+    internal static int WindowStart(IReadOnlyList<MonitorSample> history, int windowSeconds = DefaultWindowSeconds)
     {
         var first = history.Count;
         if (first == 0) return first;
@@ -311,7 +311,7 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
     }
 
     /// <summary>Map an observation to monotonic seconds; support wall-time-only imported fixtures.</summary>
-    internal static double Moment(CpuSample sample)
+    internal static double Moment(MonitorSample sample)
     {
         return sample.MonotonicTimestamp > 0
             ? sample.MonotonicTimestamp / (double)Stopwatch.Frequency

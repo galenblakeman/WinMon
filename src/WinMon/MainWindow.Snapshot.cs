@@ -65,7 +65,7 @@ public partial class MainWindow
         OverallGraph.SelectLatest();
     }
 
-    private void UpdateSnapshot(CpuSample? retained)
+    private void UpdateSnapshot(MonitorSample? retained)
     {
         LiveModeButton.IsChecked = _selectedSample is null;
         SnapshotModeButton.IsChecked = _selectedSample is not null;

@@ -3,7 +3,7 @@ namespace WinMon.Monitoring;
 /// <summary>Bound history memory by keeping only the process entries that ranking and sparklines can use.</summary>
 /// <remarks>
 /// A sample lists about a thousand processes, but in any one second most read zero CPU, I/O and GPU.
-/// Those are dropped and counted in <see cref="CpuSample.CompactedProcesses"/>, except the largest working
+/// Those are dropped and counted in <see cref="MonitorSample.CompactedProcesses"/>, except the largest working
 /// sets and largest thread/handle counts, which point-in-time ranking needs.
 /// Averages treat a dropped process as zero for that interval.
 /// Processes that have shown an app window are also retained, including later background observations.
@@ -13,7 +13,7 @@ internal static class ProcessRetention
     /// <summary>Largest working sets and counts kept for finite Top N choices.</summary>
     internal const int LargestByMemory = 50;
 
-    internal static CpuSample Compact(CpuSample sample, int largestByMemory = LargestByMemory,
+    internal static MonitorSample Compact(MonitorSample sample, int largestByMemory = LargestByMemory,
         Func<ProcessUsage, bool>? retain = null, bool retainAll = false)
     {
         ArgumentNullException.ThrowIfNull(sample);

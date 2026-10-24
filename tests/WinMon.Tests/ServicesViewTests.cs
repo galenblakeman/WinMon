@@ -387,7 +387,7 @@ public sealed class ServicesViewTests
     {
         var host = new ProcessUsage(10, 100, "host", 2, IoBytesPerSecond: 100) { PrivateBytes = 100 };
         var worker = new ProcessUsage(11, 200, "worker", 3, IoBytesPerSecond: 200) { PrivateBytes = 200, ParentProcessId = 10 };
-        return new ServiceTree().Capture(new CpuSample(DateTimeOffset.UtcNow, 5, [host, worker], 0),
+        return new ServiceTree().Capture(new MonitorSample(DateTimeOffset.UtcNow, 5, [host, worker], 0),
             new ServiceCatalog(1000, [new("agent", "Build Agent", 4, 10, 1)]));
     }
 
@@ -418,7 +418,7 @@ public sealed class ServicesViewTests
         view.Update(frame, [frame], false);
         view.ExpandAll();
         var host = new ProcessUsage(10, 100, "host", 2, IoBytesPerSecond: 100) { PrivateBytes = 100 };
-        var exited = new ServiceTree().Capture(new CpuSample(DateTimeOffset.UtcNow, 5, [host], 0),
+        var exited = new ServiceTree().Capture(new MonitorSample(DateTimeOffset.UtcNow, 5, [host], 0),
             new ServiceCatalog(1000, [new("agent", "Build Agent", 4, 10, 1)]));
 
         view.Update(exited, [frame, exited], false);

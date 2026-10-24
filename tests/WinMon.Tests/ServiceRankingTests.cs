@@ -81,7 +81,7 @@ public sealed class ServiceRankingTests
     internal static ProcessUsage P(int pid, long created, double cpu, double? io, ulong memory) =>
         new(pid, created, "p" + pid, cpu, IoBytesPerSecond: io) { PrivateBytes = memory };
     internal static ServiceFrame Frame(int second, params ProcessUsage[] processes) => new(
-        new CpuSample(DateTimeOffset.UnixEpoch.AddSeconds(second), 50, [], 0, MonotonicTimestamp: second * Stopwatch.Frequency),
+        new MonitorSample(DateTimeOffset.UnixEpoch.AddSeconds(second), 50, [], 0, MonotonicTimestamp: second * Stopwatch.Frequency),
         [new ServiceGroup($"host:{processes[0].ProcessId}:{processes[0].CreationTicks}",
             [new("agent", "Agent", 4, processes[0].ProcessId, 1)], processes[0], processes)]);
 }

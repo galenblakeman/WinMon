@@ -14,7 +14,7 @@ namespace WinMon.Tests;
 [NonParallelizable]
 public sealed class ProcessKindTests
 {
-    private static CpuSample Sample(int second, params ProcessUsage[] processes) =>
+    private static MonitorSample Sample(int second, params ProcessUsage[] processes) =>
         new(DateTimeOffset.UnixEpoch.AddSeconds(second), 10, processes, 0, false, second * Stopwatch.Frequency);
 
     private static ProcessUsage Usage(int id, bool? app, double cpu = 1) =>
@@ -24,7 +24,7 @@ public sealed class ProcessKindTests
     [TestCase(true)]
     public void Ranking_UsesRecordedStateAtSelectedTime_ThroughCompactionAndWindowChanges(bool grouped)
     {
-        var history = new CpuHistory();
+        var history = new MonitorHistory();
         var app = Usage(1, true) with { HasHadAppWindow = true };
         var background = app with { HasAppWindow = false, CpuPercent = 0 };
         var helper = Usage(2, false, 5);

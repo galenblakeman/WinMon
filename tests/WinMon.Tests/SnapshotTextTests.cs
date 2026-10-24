@@ -10,7 +10,7 @@ namespace WinMon.Tests;
 public sealed class SnapshotTextTests
 {
     private static SnapshotReport Report(bool grouped = false) => new(
-        new CpuSample(new DateTimeOffset(2026, 10, 21, 14, 32, 8, TimeSpan.FromHours(-5)), 42.3, [], 1)
+        new MonitorSample(new DateTimeOffset(2026, 10, 21, 14, 32, 8, TimeSpan.FromHours(-5)), 42.3, [], 1)
         {
             Resources = new ResourceSample { UsedMemoryBytes = 8UL << 30, TotalMemoryBytes = 16UL << 30,
                 DiskName = "C:", DiskActivePercent = 0, SecondaryDiskName = "D:", SecondaryDiskActivePercent = 28,

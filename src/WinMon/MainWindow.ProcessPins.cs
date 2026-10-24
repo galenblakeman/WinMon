@@ -36,7 +36,7 @@ public partial class MainWindow
         RefreshPresentation();
     }
 
-    private PinnedProcess[] ResolvePinnedRows(IReadOnlyList<CpuSample> samples, bool grouped, string query,
+    private PinnedProcess[] ResolvePinnedRows(IReadOnlyList<MonitorSample> samples, bool grouped, string query,
         bool appsOnly,
         Func<ProcessRanking> inclusive)
     {
@@ -49,7 +49,7 @@ public partial class MainWindow
         ];
     }
 
-    private void UpdatePinnedRows(PinnedProcess[] pinned, ProcessGraphData[] data, IReadOnlyList<CpuSample> samples,
+    private void UpdatePinnedRows(PinnedProcess[] pinned, ProcessGraphData[] data, IReadOnlyList<MonitorSample> samples,
         bool grouped)
     {
         while (_pinnedRows.Count < pinned.Length)

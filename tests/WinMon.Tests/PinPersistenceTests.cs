@@ -64,7 +64,7 @@ public sealed class PinPersistenceTests
         var reopened = new ProcessPins();
         reopened.Restore(first.Snapshot());
         var reused = original with { CreationTicks = 200 };
-        var sample = new CpuSample(DateTimeOffset.UtcNow, 10, [reused], 0);
+        var sample = new MonitorSample(DateTimeOffset.UtcNow, 10, [reused], 0);
         var missing = reopened.Resolve(sample, [reused], false, false).Single();
         Assert.Multiple(() =>
         {

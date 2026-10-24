@@ -15,7 +15,7 @@ public sealed class ProcessPinsTests
 {
     private static ProcessUsage Process(int pid, long created = 10, string path = @"C:\Apps\example.exe") =>
         new(pid, created, "example", 0, 123, 0) { ImagePath = path, ThreadCount = 4, HandleCount = 8 };
-    private static CpuSample Sample(params ProcessUsage[] processes) => new(DateTimeOffset.Now, 10, processes, 0);
+    private static MonitorSample Sample(params ProcessUsage[] processes) => new(DateTimeOffset.Now, 10, processes, 0);
 
     [Test]
     public void Pins_PreserveInsertionOrderAndNeverFollowReusedPid()

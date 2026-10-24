@@ -55,7 +55,7 @@ public partial class MainWindow
         for (var i = 0; i < 120; i++)
         {
             var pulse = Math.Exp(-Math.Pow((i - 92) / 2d, 2));
-            fixture._history.Add(new CpuSample(anchor.AddSeconds(i - 119), 32.8 + 40 * pulse,
+            fixture._history.Add(new MonitorSample(anchor.AddSeconds(i - 119), 32.8 + 40 * pulse,
             [
                 code, chrome,
                 new ProcessUsage(12006, 5, "MsMpEng", 3.3, 286UL * 1_048_576, 3_000_000)

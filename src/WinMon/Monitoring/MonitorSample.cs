@@ -1,7 +1,7 @@
 namespace WinMon.Monitoring;
 
 /// <summary>
-/// Captures the CPU measurements available for one sampling instant.
+/// Captures the CPU, process and resource measurements available for one sampling instant.
 /// </summary>
 /// <param name="Timestamp">Identifies when the observation was collected.</param>
 /// <param name="TotalCpuPercent">Provides total machine CPU consumption, or <see langword="null"/> when a baseline or gap prevents a reliable value.</param>
@@ -9,7 +9,7 @@ namespace WinMon.Monitoring;
 /// <param name="UnavailableProcesses">Counts processes whose CPU timing could not be read.</param>
 /// <param name="MonotonicTimestamp">Identifies the monotonic collection instant, or zero for wall-time-only fixtures.</param>
 /// <param name="IsGap">Indicates that this sample cannot be connected to the preceding sample.</param>
-public sealed record CpuSample(
+public sealed record MonitorSample(
     DateTimeOffset Timestamp,
     double? TotalCpuPercent,
     IReadOnlyList<ProcessUsage> Processes,

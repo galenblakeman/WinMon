@@ -40,9 +40,9 @@ public partial class MainWindow
     private Func<ProcessUsage, bool>? _retainPinned;
 
     // History keeps compacted samples; the live view ranks the newest one in full so group counts and memory are exact.
-    private CpuSample? _latestFull;
-    private CpuSample? _latestCompacted;
-    private readonly CpuHistory _history = new();
+    private MonitorSample? _latestFull;
+    private MonitorSample? _latestCompacted;
+    private readonly MonitorHistory _history = new();
     private readonly ConcurrentQueue<PendingSample> _pendingSamples = new();
     private int _drainScheduled;
     private MonitorPreferences _preferences = new();
@@ -52,10 +52,10 @@ public partial class MainWindow
     private Forms.NotifyIcon? _tray;
     private Icon? _trayIcon;
 
-    private CpuSample? _selectedSample;
+    private MonitorSample? _selectedSample;
 
     // The newest sample the visible presentation last drew; diagnostics check it stays put while hidden.
-    private CpuSample? _presentedSample;
+    private MonitorSample? _presentedSample;
 
     private enum SamplingError
     {
@@ -246,7 +246,7 @@ public partial class MainWindow
                 cancellationToken.ThrowIfCancellationRequested();
                 try
                 {
-                    CpuSample sample;
+                    MonitorSample sample;
                     ServiceCatalog? serviceCatalog = null;
                     try
                     {
@@ -267,7 +267,7 @@ public partial class MainWindow
                         sampler.Reset();
                         cpuError = SamplingError.CpuUnavailable;
                         Trace.TraceWarning("CPU sampling unavailable: {0}", ex.Message);
-                        sample = new CpuSample(DateTimeOffset.UtcNow, null, [], 0, false, Stopwatch.GetTimestamp());
+                        sample = new MonitorSample(DateTimeOffset.UtcNow, null, [], 0, false, Stopwatch.GetTimestamp());
                     }
 
                     var diskPreferences = Volatile.Read(ref _preferences);
@@ -300,9 +300,9 @@ public partial class MainWindow
 
     /// <summary>A captured sample, or a failed pass when <see cref="Sample"/> is null, awaiting the UI thread.</summary>
     private sealed record PendingSample(
-        CpuSample? Sample,
+        MonitorSample? Sample,
         SamplingError? Error,
-        CpuSample? Full = null,
+        MonitorSample? Full = null,
         ServiceFrame? Services = null);
 
     // Capture never waits for the UI: a stalled dispatcher would otherwise delay the next capture and
@@ -403,7 +403,7 @@ public partial class MainWindow
         UpdateTrayText(latest);
     }
 
-    private void RefreshProcesses(IReadOnlyList<CpuSample> samples, CpuSample? latest, CpuSample? visible)
+    private void RefreshProcesses(IReadOnlyList<MonitorSample> samples, MonitorSample? latest, MonitorSample? visible)
     {
         var grouped = _preferences.GroupProcesses;
         var historyMetric = _preferences.ProcessSort switch
@@ -543,7 +543,7 @@ public partial class MainWindow
         return unread.Length > 0 ? $"{unattributed} · {unread}" : unattributed;
     }
 
-    private void UpdateTrayText(CpuSample? latest = null)
+    private void UpdateTrayText(MonitorSample? latest = null)
     {
         if (_tray is null) return;
         latest ??= _history.Latest;
@@ -644,7 +644,7 @@ public partial class MainWindow
         }
     }
 
-    private void UpdateResources(CpuSample? latest)
+    private void UpdateResources(MonitorSample? latest)
     {
         var resource = latest?.Resources;
         GpuMetric.ValueLabel.Text = Percent(resource?.GpuPercent);

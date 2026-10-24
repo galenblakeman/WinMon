@@ -20,7 +20,7 @@ public class ProcessSearchTests
         var helper = app with { ProcessId = 20, CreationTicks = 2, CpuPercent = 10, HasAppWindow = false };
         var background = app with { ProcessId = 30, CreationTicks = 3, Name = "Service", ImagePath = @"C:\service.exe", CpuPercent = 20, HasAppWindow = false };
         var unknown = background with { ProcessId = 40, CreationTicks = 4, Name = "Unknown", ImagePath = @"C:\unknown.exe", HasAppWindow = null };
-        var sample = new CpuSample(DateTimeOffset.UtcNow, 60, [app, helper, background, unknown], 0);
+        var sample = new MonitorSample(DateTimeOffset.UtcNow, 60, [app, helper, background, unknown], 0);
         var rows = ProcessRanking.Rank([sample], sort: sort, grouped: grouped).Processes;
         var filtered = ProcessSearch.Filter(rows, "", appsOnly: true).Take(1).Single();
         Assert.Multiple(() =>
@@ -41,7 +41,7 @@ public class ProcessSearchTests
     public void AppsOnly_UsesStateFromSelectedHistoricalSample(bool grouped)
     {
         var app = new ProcessUsage(10, 1, "Editor", 5) { HasAppWindow = true };
-        var earlier = new CpuSample(DateTimeOffset.UnixEpoch.AddSeconds(1), 10, [app], 0);
+        var earlier = new MonitorSample(DateTimeOffset.UnixEpoch.AddSeconds(1), 10, [app], 0);
         var later = earlier with { Timestamp = earlier.Timestamp.AddSeconds(1), Processes = [app with { HasAppWindow = false }] };
         Assert.That(ProcessSearch.Filter(ProcessRanking.Rank([earlier], grouped: grouped).Processes, "", appsOnly: true), Has.Exactly(1).Items);
         Assert.That(ProcessSearch.Filter(ProcessRanking.Rank([earlier, later], grouped: grouped).Processes, "", appsOnly: true), Is.Empty);
@@ -55,7 +55,7 @@ public class ProcessSearchTests
         {
             AppName = "Programmer's Notepad 2", ProductName = "PN Editor", ImagePath = @"C:\Apps\pn.exe"
         };
-        CpuSample[] history = [new(DateTimeOffset.UtcNow, 10, [notepad, notepad with { ProcessId = 240, CreationTicks = 2 }], 0)];
+        MonitorSample[] history = [new(DateTimeOffset.UtcNow, 10, [notepad, notepad with { ProcessId = 240, CreationTicks = 2 }], 0)];
         var rows = ProcessRanking.Rank(history, grouped: grouped, includeInactive: true).Processes;
 
         Assert.Multiple(() =>
@@ -84,7 +84,7 @@ public class ProcessSearchTests
             new(20, 2, "Idle", 0, 0, 0) { GpuPercent = 0, PrivateBytes = 0 },
             new(30, 3, "Unavailable", 0)
         ];
-        CpuSample[] history = [new(DateTimeOffset.UtcNow, 10, processes, 0)];
+        MonitorSample[] history = [new(DateTimeOffset.UtcNow, 10, processes, 0)];
         var normal = ProcessRanking.Rank(history, sort: sort, grouped: grouped);
         var searchable = ProcessRanking.Rank(history, sort: sort, grouped: grouped, includeInactive: true);
 

@@ -155,7 +155,7 @@ public partial class MainWindow
                 : process => pins?.Invoke(process) == true || selected?.Invoke(process) == true);
     }
 
-    private void RefreshProcessActions(IReadOnlyList<CpuSample> samples, bool grouped, Func<ProcessRanking> inclusive)
+    private void RefreshProcessActions(IReadOnlyList<MonitorSample> samples, bool grouped, Func<ProcessRanking> inclusive)
     {
         var hadSelection = _processSelection.HasSelection;
         var target = _processSelection.Resolve(samples, grouped, _selectedSample is not null, inclusive);

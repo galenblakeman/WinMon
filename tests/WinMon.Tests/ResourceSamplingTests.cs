@@ -73,8 +73,8 @@ public sealed class ResourceSamplingTests
     public void History_RetainsResourceValuesAndProcessMeasurementsForSelectedTimestamp()
     {
         var resource = new ResourceSample { TotalMemoryBytes = 1000, UsedMemoryBytes = 500, DiskActivePercent = 30 };
-        var first = new CpuSample(DateTimeOffset.UnixEpoch, 10, [new ProcessUsage(1, 1, "a", 5, 200, 300)], 0) { Resources = resource };
-        var history = new CpuHistory();
+        var first = new MonitorSample(DateTimeOffset.UnixEpoch, 10, [new ProcessUsage(1, 1, "a", 5, 200, 300)], 0) { Resources = resource };
+        var history = new MonitorHistory();
         history.Add(first);
         history.Add(first with { Timestamp = first.Timestamp.AddSeconds(1), Resources = resource with { UsedMemoryBytes = 800 } });
         Assert.Multiple(() =>

@@ -14,13 +14,13 @@ public sealed class ChartSnapshotTests
     [TestCase(true)]
     public void SelectLatest_UsesSameRecordedSampleAsChartClick_AndCentersAnchorVertically(bool gap)
     {
-        var first = new CpuSample(DateTimeOffset.UtcNow, 10, [], 0);
+        var first = new MonitorSample(DateTimeOffset.UtcNow, 10, [], 0);
         var latest = first with { Timestamp = first.Timestamp.AddSeconds(1), TotalCpuPercent = gap ? null : 70, IsGap = gap };
         var graph = new CpuGraph { ShowGrid = true };
         graph.Measure(new Size(600, 240));
         graph.Arrange(new Rect(0, 0, 600, 240));
         graph.SetData([first, latest], 120, null);
-        CpuSample? selected = null;
+        MonitorSample? selected = null;
         graph.SampleSelected += (_, sample) => selected = sample;
         var plot = graph.PlotBounds;
         graph.SelectAt(new Point(plot.Right, plot.Top));
@@ -40,10 +40,10 @@ public sealed class ChartSnapshotTests
     [Test]
     public void SelectLatest_AfterRecordingAdvances_SelectsNewSampleWithoutChangingOldOne()
     {
-        var original = new CpuSample(DateTimeOffset.UtcNow, 10, [], 0);
+        var original = new MonitorSample(DateTimeOffset.UtcNow, 10, [], 0);
         var next = original with { Timestamp = original.Timestamp.AddSeconds(1), TotalCpuPercent = 50 };
         var graph = new CpuGraph { ShowGrid = true };
-        CpuSample? selected = null;
+        MonitorSample? selected = null;
         graph.SampleSelected += (_, sample) => selected = sample;
         graph.SetData([original], 120, null);
         graph.SelectLatest();
@@ -66,7 +66,7 @@ public sealed class ChartSnapshotTests
         graph.SelectLatest();
         if (!showGrid)
         {
-            graph.SetData([new CpuSample(DateTimeOffset.UtcNow, null, [], 0, true)], 120, null);
+            graph.SetData([new MonitorSample(DateTimeOffset.UtcNow, null, [], 0, true)], 120, null);
             graph.SelectLatest();
         }
         Assert.That(selections, Is.Zero);

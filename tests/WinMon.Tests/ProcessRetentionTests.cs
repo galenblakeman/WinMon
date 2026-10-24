@@ -15,7 +15,7 @@ public sealed class ProcessRetentionTests
     {
         var processes = Enumerable.Range(1, 125).Select(id => Usage(id, memory: (ulong)id) with
             { ThreadCount = id, HandleCount = id }).ToArray();
-        var full = new CpuSample(DateTimeOffset.UtcNow, 0, processes, 0);
+        var full = new MonitorSample(DateTimeOffset.UtcNow, 0, processes, 0);
         var all = ProcessRetention.Compact(full, retainAll: true);
         Assert.That(all, Is.SameAs(full));
         Assert.That(ProcessRetention.Compact(full).Processes.Count, Is.LessThan(processes.Length));
@@ -30,7 +30,7 @@ public sealed class ProcessRetentionTests
     [Test]
     public void Compact_KeepsActiveAndLargestMemory_AndCountsTheRest()
     {
-        var sample = new CpuSample(DateTimeOffset.UtcNow, 10,
+        var sample = new MonitorSample(DateTimeOffset.UtcNow, 10,
         [
             Usage(1, cpu: 2, memory: 10), Usage(2, io: 5, memory: 10), Usage(3, gpu: 0, memory: 10),
             Usage(4, memory: 900), Usage(5, memory: 800), Usage(6, memory: 10), Usage(7, memory: 20), Usage(8)
@@ -49,7 +49,7 @@ public sealed class ProcessRetentionTests
     [Test]
     public void Compact_KeepsEveryProcessTiedAtTheMemoryCutOff()
     {
-        var sample = new CpuSample(DateTimeOffset.UtcNow, 10,
+        var sample = new MonitorSample(DateTimeOffset.UtcNow, 10,
             [Usage(1, memory: 500), Usage(2, memory: 300), Usage(3, memory: 300), Usage(4, memory: 100), Usage(5)], 0);
 
         var compacted = ProcessRetention.Compact(sample, largestByMemory: 2);
@@ -64,7 +64,7 @@ public sealed class ProcessRetentionTests
     [Test]
     public void Compact_LeavesSmallSamplesUnchanged()
     {
-        var sample = new CpuSample(DateTimeOffset.UtcNow, 10, [Usage(1), Usage(2)], 0);
+        var sample = new MonitorSample(DateTimeOffset.UtcNow, 10, [Usage(1), Usage(2)], 0);
         Assert.That(ProcessRetention.Compact(sample), Is.SameAs(sample));
     }
 
@@ -79,7 +79,7 @@ public sealed class ProcessRetentionTests
                 ThreadCount = 100 - id,
                 HandleCount = 100 - id
             }).ToArray();
-        var full = new CpuSample(DateTimeOffset.UtcNow, 10, processes, 0);
+        var full = new MonitorSample(DateTimeOffset.UtcNow, 10, processes, 0);
         var compacted = ProcessRetention.Compact(full);
         var expected = ProcessRanking.Rank([full], sort: sort).Processes.Take(50).ToArray();
         var actual = ProcessRanking.Rank([compacted], sort: sort).Processes.Take(50).ToArray();
@@ -95,8 +95,8 @@ public sealed class ProcessRetentionTests
     public void Ranking_TreatsCompactedProcessesAsIdle()
     {
         // p2 had CPU in the first interval and was compacted out of the second as idle.
-        var full = new CpuSample(DateTimeOffset.UtcNow, 10, [Usage(1, cpu: 4), Usage(2, cpu: 2, io: 6)], 0, false, Stopwatch.Frequency);
-        var idle = new CpuSample(DateTimeOffset.UtcNow, 10, [Usage(1, cpu: 4)], 0, false, Stopwatch.Frequency * 2) { CompactedProcesses = 1 };
+        var full = new MonitorSample(DateTimeOffset.UtcNow, 10, [Usage(1, cpu: 4), Usage(2, cpu: 2, io: 6)], 0, false, Stopwatch.Frequency);
+        var idle = new MonitorSample(DateTimeOffset.UtcNow, 10, [Usage(1, cpu: 4)], 0, false, Stopwatch.Frequency * 2) { CompactedProcesses = 1 };
 
         var ranking = ProcessRanking.Rank([full, idle]);
 
@@ -110,7 +110,7 @@ public sealed class ProcessRetentionTests
         var created = DateTimeOffset.UtcNow;
         var existing = new ProcessUsage(1, created.AddMinutes(-5).ToFileTime(), "old", 1);
         var newer = new ProcessUsage(2, created.ToFileTime(), "new", 1);
-        CpuSample[] history =
+        MonitorSample[] history =
         [
             new(created.AddSeconds(-1), 10, [], 0, false, Stopwatch.Frequency) { CompactedProcesses = 2 },
             new(created.AddSeconds(1), 10, [existing, newer], 0, false, Stopwatch.Frequency * 2),

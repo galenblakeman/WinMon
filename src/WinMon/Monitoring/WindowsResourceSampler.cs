@@ -35,7 +35,7 @@ internal sealed class WindowsResourceSampler : IDisposable
     private readonly DiskCounter _secondaryDisk = new();
     private NetworkObservation? _previousNetwork;
 
-    internal CpuSample Sample(CpuSample cpu, string? primaryDrive = null, string? secondaryDrive = null)
+    internal MonitorSample Sample(MonitorSample cpu, string? primaryDrive = null, string? secondaryDrive = null)
     {
         var reset = cpu.IsGap;
         if (reset) Reset();

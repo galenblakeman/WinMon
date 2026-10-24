@@ -8,7 +8,7 @@ namespace WinMon.Tests;
 [TestFixture]
 public sealed class NetworkScaleTests
 {
-    private static CpuSample Sample(double? rxBytes, double? txBytes, bool gap = false) =>
+    private static MonitorSample Sample(double? rxBytes, double? txBytes, bool gap = false) =>
         new(DateTimeOffset.UtcNow, 10, [], 0, gap, Stopwatch.Frequency)
         {
             Resources = new ResourceSample { ReceiveBytesPerSecond = rxBytes, SendBytesPerSecond = txBytes }

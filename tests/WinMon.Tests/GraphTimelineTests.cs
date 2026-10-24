@@ -16,7 +16,7 @@ public sealed class GraphTimelineTests
     public void ProcessScaleMaximum_VisiblePeak_AddsHeadroomWithSafeBounds(double peak, double expected)
     {
         var process = new ProcessUsage(42, 100, "example", peak);
-        var sample = new CpuSample(DateTimeOffset.UtcNow, 80, [process], 0);
+        var sample = new MonitorSample(DateTimeOffset.UtcNow, 80, [process], 0);
 
         Assert.That(CpuGraph.ProcessScaleMaximum([sample], 120, process), Is.EqualTo(expected).Within(0.000001));
     }
@@ -25,7 +25,7 @@ public sealed class GraphTimelineTests
     public void ProcessScaleMaximum_IgnoresExpiredSamplesGapsAndOtherProcessLifetimes()
     {
         var process = new ProcessUsage(42, 100, "example", 0.4);
-        CpuSample[] history =
+        MonitorSample[] history =
         [
             Sample(1, process with { CpuPercent = 90 }),
             Sample(119, process with { CreationTicks = 99, CpuPercent = 80 }),
@@ -37,7 +37,7 @@ public sealed class GraphTimelineTests
         Assert.That(CpuGraph.ProcessScaleMaximum([], 10, process), Is.EqualTo(0.1));
         return;
 
-        CpuSample Sample(int second, ProcessUsage usage, bool gap = false) =>
+        MonitorSample Sample(int second, ProcessUsage usage, bool gap = false) =>
             new(DateTimeOffset.UtcNow, 80, [usage], 0, gap, Stopwatch.Frequency * second);
     }
 
@@ -45,7 +45,7 @@ public sealed class GraphTimelineTests
     public void ProcessScaleMaximum_HistoricalWindow_ExcludesLaterSpike()
     {
         var process = new ProcessUsage(42, 100, "example", 0.4);
-        var first = new CpuSample(DateTimeOffset.UtcNow, 20, [process], 0, false, Stopwatch.Frequency);
+        var first = new MonitorSample(DateTimeOffset.UtcNow, 20, [process], 0, false, Stopwatch.Frequency);
         var spike = first with { Processes = [process with { CpuPercent = 50 }], MonotonicTimestamp = Stopwatch.Frequency * 2 };
 
         Assert.That(CpuGraph.ProcessScaleMaximum([first], 120, process), Is.EqualTo(0.5));
@@ -57,8 +57,8 @@ public sealed class GraphTimelineTests
     public void Moment_WallClockJumps_PreservesOneSecondTimelineDistance(int wallClockJumpSeconds)
     {
         var stamp = DateTimeOffset.Parse("2026-10-19T12:00:00Z");
-        var first = new CpuSample(stamp, 25, [], 0, false, Stopwatch.Frequency * 10);
-        var next = new CpuSample(stamp.AddSeconds(wallClockJumpSeconds), 50, [], 0, false, Stopwatch.Frequency * 11);
+        var first = new MonitorSample(stamp, 25, [], 0, false, Stopwatch.Frequency * 10);
+        var next = new MonitorSample(stamp.AddSeconds(wallClockJumpSeconds), 50, [], 0, false, Stopwatch.Frequency * 11);
 
         Assert.That(CpuGraph.Moment(next) - CpuGraph.Moment(first), Is.EqualTo(1).Within(0.000001));
     }

@@ -12,11 +12,11 @@ namespace WinMon.Controls;
 /// <summary>Draw time-based resource graphs and auto-scaled process sparklines.</summary>
 public sealed class CpuGraph : FrameworkElement
 {
-    private IReadOnlyList<CpuSample> _samples = [];
+    private IReadOnlyList<MonitorSample> _samples = [];
     private ProcessUsage? _process;
     private ProcessSort _processSort;
     private double?[]? _processValues;
-    private CpuSample? _selected;
+    private MonitorSample? _selected;
     private double _end;
     private int _seconds = 120;
     private double _networkScale = 1_000_000;
@@ -64,7 +64,7 @@ public sealed class CpuGraph : FrameworkElement
     public double ScaleMaximum { get; private set; } = 100;
 
     /// <summary>Notify the host when a sample is selected for historical inspection.</summary>
-    public event EventHandler<CpuSample>? SampleSelected;
+    public event EventHandler<MonitorSample>? SampleSelected;
 
     /// <summary>Notify the host when keyboard navigation requests the live view.</summary>
     public event EventHandler? LiveRequested;
@@ -74,7 +74,7 @@ public sealed class CpuGraph : FrameworkElement
     /// <param name="windowSeconds">Visible time range in seconds.</param>
     /// <param name="selection">Selected historical time, if any.</param>
     /// <param name="identity">Optional process identity for a sparkline.</param>
-    public void SetData(IReadOnlyList<CpuSample> history, int windowSeconds, CpuSample? selection,
+    public void SetData(IReadOnlyList<MonitorSample> history, int windowSeconds, MonitorSample? selection,
         ProcessUsage? identity = null)
     {
         ArgumentNullException.ThrowIfNull(history);
@@ -88,7 +88,7 @@ public sealed class CpuGraph : FrameworkElement
         SetDataCore(data.Samples, windowSeconds, null, identity, data);
     }
 
-    private void SetDataCore(IReadOnlyList<CpuSample> history, int windowSeconds, CpuSample? selection,
+    private void SetDataCore(IReadOnlyList<MonitorSample> history, int windowSeconds, MonitorSample? selection,
         ProcessUsage? identity, ProcessGraphData? data)
     {
         _samples = data?.Samples ?? history;
@@ -103,7 +103,7 @@ public sealed class CpuGraph : FrameworkElement
         InvalidateVisual();
     }
 
-    internal static double ProcessScaleMaximum(IReadOnlyList<CpuSample> history, int windowSeconds,
+    internal static double ProcessScaleMaximum(IReadOnlyList<MonitorSample> history, int windowSeconds,
         ProcessUsage identity)
     {
         return ProcessGraphData.Build(history, windowSeconds, [identity])[0].ScaleMaximum;
@@ -234,7 +234,7 @@ public sealed class CpuGraph : FrameworkElement
     }
 
     /// <summary>Round the visible network peak up to a 1-2-5 step, at least 1 Mbps so idle traffic stays low.</summary>
-    internal static double NetworkScale(IEnumerable<CpuSample> visible)
+    internal static double NetworkScale(IEnumerable<MonitorSample> visible)
     {
         var peak = visible.Where(s => !s.IsGap).Select(s => NetworkBitsPerSecond(s.Resources) ?? 0).DefaultIfEmpty()
             .Max();
@@ -287,7 +287,7 @@ public sealed class CpuGraph : FrameworkElement
         };
     }
 
-    internal static double? MetricValue(CpuSample sample, int metric)
+    internal static double? MetricValue(MonitorSample sample, int metric)
     {
         return metric switch
         {
@@ -377,7 +377,7 @@ public sealed class CpuGraph : FrameworkElement
         e.Handled = true;
     }
 
-    private CpuSample? Nearest(double x)
+    private MonitorSample? Nearest(double x)
     {
         if (_samples.Count == 0) return null;
         var plot = Plot();
@@ -394,7 +394,7 @@ public sealed class CpuGraph : FrameworkElement
             : new Rect(0, 0, ActualWidth, ActualHeight);
     }
 
-    private double X(CpuSample sample, Rect plot)
+    private double X(MonitorSample sample, Rect plot)
     {
         return plot.Right - (_end - Moment(sample)) / _seconds * plot.Width;
     }
@@ -402,7 +402,7 @@ public sealed class CpuGraph : FrameworkElement
     /// <summary>Map an observation to monotonic seconds for plotting; support wall-time-only imported fixtures.</summary>
     /// <param name="sample">Observation to position on the timeline.</param>
     /// <returns>Seconds on the observation clock.</returns>
-    internal static double Moment(CpuSample sample)
+    internal static double Moment(MonitorSample sample)
     {
         return ProcessRanking.Moment(sample);
     }
@@ -457,7 +457,7 @@ public sealed class CpuGraph : FrameworkElement
         return _fills[(brush, opacity)] = fill;
     }
 
-    internal static string DescribeSample(CpuSample sample)
+    internal static string DescribeSample(MonitorSample sample)
     {
         var r = sample.Resources;
         var diskRate = r.DiskBytesPerSecond is { } disk ? Strings.Format(Strings.DiskRateSuffix, disk / 1_000_000) : "";

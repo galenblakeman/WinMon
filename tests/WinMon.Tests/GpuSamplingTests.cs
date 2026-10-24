@@ -196,11 +196,11 @@ public sealed class GpuSamplingTests
     [Test]
     public void History_RetainsGpuValuesAndIdentity_AndExposesThemInGraphAndTooltip()
     {
-        var first = new CpuSample(DateTimeOffset.UnixEpoch, 10, [], 0)
+        var first = new MonitorSample(DateTimeOffset.UnixEpoch, 10, [], 0)
         {
             Resources = new ResourceSample { GpuPercent = 46.2, GpuId = "adapter-a", GpuEngine = "3D" }
         };
-        var history = new CpuHistory();
+        var history = new MonitorHistory();
         history.Add(first);
         history.Add(first with { Timestamp = first.Timestamp.AddSeconds(1), Resources = new ResourceSample() });
         Assert.Multiple(() =>

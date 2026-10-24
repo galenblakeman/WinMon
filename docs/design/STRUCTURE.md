@@ -59,7 +59,7 @@ flowchart TB
 Regular commits on `main`, one per step, each built and tested on its own:
 
 1. Done: make `Monitoring` a leaf: fix the two back-references and add the IL guard test.
-2. Rename `CpuSample` and `CpuHistory`.
+2. Done: rename `CpuSample` and `CpuHistory`.
 3. Add `MonitorSession`, `IFrameSource` and `WindowsFrameSource`, with session tests using a fake source (gaps, error and recovery, drain order, no drain after close).
 4. Move `WinMon.Performance` from reflection to `InternalsVisibleTo`.
 5. Move diagnostics and examples into `Diagnostics/`.

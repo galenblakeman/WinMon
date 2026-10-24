@@ -5,12 +5,12 @@ using WinMon.Monitoring;
 namespace WinMon.Tests;
 
 [TestFixture]
-public sealed class CpuHistoryTests
+public sealed class MonitorHistoryTests
 {
     [Test]
     public void Latest_TracksNewestRetainedObservationAcrossTrimming()
     {
-        var history = new CpuHistory(2);
+        var history = new MonitorHistory(2);
         Assert.That(history.Latest, Is.Null);
         history.Add(Sample(1));
         history.Add(Sample(2));
@@ -23,7 +23,7 @@ public sealed class CpuHistoryTests
     [Test]
     public void Add_ExceedsCapacity_EvictsOldestSample()
     {
-        var history = new CpuHistory(2);
+        var history = new MonitorHistory(2);
         var first = Sample(1);
         var second = Sample(2);
         var third = Sample(3);
@@ -38,7 +38,7 @@ public sealed class CpuHistoryTests
     [Test]
     public void Resize_SmallerCapacity_ImmediatelyEvictsOldestSamples()
     {
-        var history = new CpuHistory(3);
+        var history = new MonitorHistory(3);
         var first = Sample(1);
         var second = Sample(2);
         var third = Sample(3);
@@ -58,7 +58,7 @@ public sealed class CpuHistoryTests
     [Test]
     public void Samples_ReturnsStableCopy()
     {
-        var history = new CpuHistory();
+        var history = new MonitorHistory();
         var first = Sample(1);
         history.Add(first);
         var before = history.Samples;
@@ -70,7 +70,7 @@ public sealed class CpuHistoryTests
     [Test]
     public void Resize_Zero_Throws()
     {
-        var history = new CpuHistory();
+        var history = new MonitorHistory();
 
         Assert.That(() => history.Resize(0), Throws.TypeOf<ArgumentOutOfRangeException>());
     }
@@ -78,7 +78,7 @@ public sealed class CpuHistoryTests
     [Test]
     public void Add_LongRecordingGap_ExpiresElapsedHistory()
     {
-        var history = new CpuHistory(600);
+        var history = new MonitorHistory(600);
         history.Add(Sample(1));
         var resumed = Sample(900);
         history.Add(resumed);
@@ -89,9 +89,9 @@ public sealed class CpuHistoryTests
     [Test]
     public void Add_WallClockMovesBackward_ExpiresByMonotonicTime()
     {
-        var history = new CpuHistory(600);
-        history.Add(new CpuSample(DateTimeOffset.UnixEpoch.AddHours(2), 5, [], 0, false, Stopwatch.Frequency));
-        var next = new CpuSample(DateTimeOffset.UnixEpoch, 5, [], 0, false, 902 * Stopwatch.Frequency);
+        var history = new MonitorHistory(600);
+        history.Add(new MonitorSample(DateTimeOffset.UnixEpoch.AddHours(2), 5, [], 0, false, Stopwatch.Frequency));
+        var next = new MonitorSample(DateTimeOffset.UnixEpoch, 5, [], 0, false, 902 * Stopwatch.Frequency);
         history.Add(next);
 
         Assert.That(history.Samples, Is.EqualTo([next]));
@@ -100,10 +100,10 @@ public sealed class CpuHistoryTests
     [Test]
     public void Add_ProcessEntryBudgetExceeded_EvictsOldestAndReportsMemoryLimit()
     {
-        var history = new CpuHistory(600, 3);
+        var history = new MonitorHistory(600, 3);
         var processes = new[] { new ProcessUsage(1, 100, "app", 5), new ProcessUsage(2, 200, "other", 3) };
-        history.Add(new CpuSample(DateTimeOffset.UnixEpoch, 10, processes, 0));
-        var next = new CpuSample(DateTimeOffset.UnixEpoch.AddSeconds(1), 10, processes, 0);
+        history.Add(new MonitorSample(DateTimeOffset.UnixEpoch, 10, processes, 0));
+        var next = new MonitorSample(DateTimeOffset.UnixEpoch.AddSeconds(1), 10, processes, 0);
         history.Add(next);
 
         Assert.That(history.Samples, Is.EqualTo([next]));
@@ -113,8 +113,8 @@ public sealed class CpuHistoryTests
     [Test]
     public void Add_ProcessExits_RetainsHistoricalAttribution()
     {
-        var history = new CpuHistory();
-        var earlier = new CpuSample(DateTimeOffset.UnixEpoch, 50, [new ProcessUsage(22, 100, "exited", 40)], 0);
+        var history = new MonitorHistory();
+        var earlier = new MonitorSample(DateTimeOffset.UnixEpoch, 50, [new ProcessUsage(22, 100, "exited", 40)], 0);
         history.Add(earlier);
         history.Add(Sample(1));
 
@@ -125,7 +125,7 @@ public sealed class CpuHistoryTests
     [Test]
     public void Samples_IsSharedUntilHistoryChangesAndEarlierCopiesStayStable()
     {
-        var history = new CpuHistory(2);
+        var history = new MonitorHistory(2);
         var first = Sample(1);
         history.Add(first);
         var copy = history.Samples;
@@ -145,7 +145,7 @@ public sealed class CpuHistoryTests
     [Test]
     public void SampleList_ShowsAPrefixOrReplacesTheLastSampleWithoutCopying()
     {
-        CpuSample[] samples = [Sample(1), Sample(2), Sample(3)];
+        MonitorSample[] samples = [Sample(1), Sample(2), Sample(3)];
         var replacement = Sample(4);
 
         var prefix = new SampleList(samples, 2);
@@ -164,7 +164,7 @@ public sealed class CpuHistoryTests
         });
     }
 
-    private static CpuSample Sample(int seconds) => new(
+    private static MonitorSample Sample(int seconds) => new(
         DateTimeOffset.UnixEpoch.AddSeconds(seconds),
         seconds,
         [],

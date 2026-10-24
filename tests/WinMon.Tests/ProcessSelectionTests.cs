@@ -7,7 +7,7 @@ namespace WinMon.Tests;
 public sealed class ProcessSelectionTests
 {
     private static readonly ProcessUsage Target = new(100, 1000, "selected.exe", 80) { ImagePath = @"C:\Apps\selected.exe" };
-    private static CpuSample Sample(int second, params ProcessUsage[] processes) => new(DateTimeOffset.UnixEpoch.AddSeconds(second), 20, processes, 0);
+    private static MonitorSample Sample(int second, params ProcessUsage[] processes) => new(DateTimeOffset.UnixEpoch.AddSeconds(second), 20, processes, 0);
 
     [Test]
     public void SelectionSurvivesRankingLossAndRefreshesLatestReadings()

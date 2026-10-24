@@ -85,7 +85,7 @@ internal sealed class ProcessPins
         };
     }
 
-    internal PinnedProcess[] Resolve(CpuSample? newest, IReadOnlyList<ProcessUsage> averages,
+    internal PinnedProcess[] Resolve(MonitorSample? newest, IReadOnlyList<ProcessUsage> averages,
         bool grouped, bool historical)
     {
         var result = new List<PinnedProcess>();

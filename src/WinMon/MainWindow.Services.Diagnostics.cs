@@ -120,7 +120,7 @@ public partial class MainWindow
                     P(6340, 130, 0, "SearchIndexer.exe", 1.6, 164),
                     P(2160, 140, 0, "svchost.exe", 0.2, 28)
                 ];
-                var sample = new CpuSample(anchor.AddSeconds(i - 119), 28 + factor * 10, processes, 0,
+                var sample = new MonitorSample(anchor.AddSeconds(i - 119), 28 + factor * 10, processes, 0,
                     MonotonicTimestamp: Stopwatch.Frequency * (i + 1))
                 {
                     Resources = new ResourceSample

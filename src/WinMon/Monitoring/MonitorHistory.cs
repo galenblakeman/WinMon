@@ -2,22 +2,22 @@ using System.Diagnostics;
 
 namespace WinMon.Monitoring;
 
-/// <summary>Retain CPU observations within elapsed-time, sample-count and process-entry budgets.</summary>
-public sealed class CpuHistory
+/// <summary>Retain sample observations within elapsed-time, sample-count and process-entry budgets.</summary>
+public sealed class MonitorHistory
 {
-    private readonly Queue<CpuSample> _samples = [];
+    private readonly Queue<MonitorSample> _samples = [];
     private readonly int _processEntryBudget;
     private int _entries;
-    private CpuSample? _latest;
+    private MonitorSample? _latest;
 
     /// <summary>Get the most recent retained observation without copying history.</summary>
-    public CpuSample? Latest => _samples.Count == 0 ? null : _latest;
+    public MonitorSample? Latest => _samples.Count == 0 ? null : _latest;
 
-    /// <summary>Create a bounded CPU history for one-second observations.</summary>
+    /// <summary>Create a bounded history for one-second observations.</summary>
     /// <param name="capacity">Maximum sample count and elapsed retention in seconds.</param>
     /// <param name="processEntryBudget">Maximum retained per-process measurements.</param>
     /// <exception cref="ArgumentOutOfRangeException">A bound is less than one.</exception>
-    public CpuHistory(int capacity = 600, int processEntryBudget = 500_000)
+    public MonitorHistory(int capacity = 600, int processEntryBudget = 500_000)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(capacity, 1);
         ArgumentOutOfRangeException.ThrowIfLessThan(processEntryBudget, 1);
@@ -33,15 +33,15 @@ public sealed class CpuHistory
 
     /// <summary>Get a stable copy of the retained chronological observations.</summary>
     /// <remarks>The copy is shared until history next changes, so one refresh does not copy history repeatedly.</remarks>
-    public IReadOnlyList<CpuSample> Samples => _snapshot ??= [.. _samples];
+    public IReadOnlyList<MonitorSample> Samples => _snapshot ??= [.. _samples];
 
-    private CpuSample[]? _snapshot;
+    private MonitorSample[]? _snapshot;
 
     /// <summary>Add an observation and evict old data within the configured budgets.</summary>
     /// <param name="sample">The observation to retain.</param>
     /// <exception cref="ArgumentNullException">The sample or process list is null.</exception>
     /// <exception cref="ArgumentException">A single observation exceeds the process-entry budget.</exception>
-    public void Add(CpuSample sample)
+    public void Add(MonitorSample sample)
     {
         ArgumentNullException.ThrowIfNull(sample);
         ArgumentNullException.ThrowIfNull(sample.Processes);
@@ -66,7 +66,7 @@ public sealed class CpuHistory
         if (_samples.Count > 0) Trim(_samples.Last());
     }
 
-    private void Trim(CpuSample latest)
+    private void Trim(MonitorSample latest)
     {
         while (_samples.Count > 0)
         {

@@ -964,7 +964,7 @@ public partial class MainWindow
         {
             var pulse = Math.Exp(-Math.Pow((i - 92) / 2d, 2));
             var cpu = 18 + 6 * Math.Sin(i * 1.7) + 52 * pulse;
-            fixture._history.Add(new CpuSample(anchor.AddSeconds(i - 119), cpu,
+            fixture._history.Add(new MonitorSample(anchor.AddSeconds(i - 119), cpu,
             [
                 new ProcessUsage(100, 1, "chrome", 8.4, 1_303_379_968, 18_600_000)
                 {

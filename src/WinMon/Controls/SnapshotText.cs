@@ -6,7 +6,7 @@ namespace WinMon.Controls;
 
 /// <summary>The selected sample and the exact ranked, filtered rows last presented by the window.</summary>
 internal sealed record SnapshotReport(
-    CpuSample Sample,
+    MonitorSample Sample,
     IReadOnlyList<ProcessUsage> Processes,
     bool Grouped,
     string Sort,

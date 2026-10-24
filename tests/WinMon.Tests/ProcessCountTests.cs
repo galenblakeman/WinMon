@@ -25,7 +25,7 @@ public sealed class ProcessCountTests
         var missing = new ProcessUsage(5, 50, "missing", 10);
         var tie = a with { ProcessId = 6, Name = "tie" };
         var zero = a with { ProcessId = 7, Name = "zero", ThreadCount = 0, HandleCount = 0 };
-        CpuSample[] history = [Sample(1, a, b with { ThreadCount = 100, HandleCount = 100 }, c, exited), Sample(2, a, b, c, missing, tie, zero)];
+        MonitorSample[] history = [Sample(1, a, b with { ThreadCount = 100, HandleCount = 100 }, c, exited), Sample(2, a, b, c, missing, tie, zero)];
         var ranking = ProcessRanking.Rank(history, sort: sort, grouped: grouped);
         Assert.Multiple(() =>
         {
@@ -113,7 +113,7 @@ public sealed class ProcessCountTests
     {
         var first = new ProcessUsage(1, 10, "example", 2) { ThreadCount = 3, HandleCount = 40 };
         var second = first with { ProcessId = 2, CreationTicks = 20, ThreadCount = 5, HandleCount = 60 };
-        CpuSample[] history =
+        MonitorSample[] history =
         [
             Sample(1, first, second),
             Sample(2, first with { ThreadCount = 7, HandleCount = 80 })
@@ -166,7 +166,7 @@ public sealed class ProcessCountTests
         Assert.That(handles.Text, Is.EqualTo(WinMon.Resources.Strings.MissingReading));
     }
 
-    private static CpuSample Sample(int second, params ProcessUsage[] processes) =>
+    private static MonitorSample Sample(int second, params ProcessUsage[] processes) =>
         new(DateTimeOffset.UnixEpoch.AddSeconds(second), 10, processes, 0, false, second * Stopwatch.Frequency);
 
     private static CpuSnapshot Snapshot(int second, ProcessCpuTimes process) =>

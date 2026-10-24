@@ -7,7 +7,7 @@ namespace WinMon.Tests;
 [TestFixture]
 public sealed class ProcessRankingTests
 {
-    private static CpuSample Sample(double second, double total, params ProcessUsage[] processes) =>
+    private static MonitorSample Sample(double second, double total, params ProcessUsage[] processes) =>
         new(DateTimeOffset.UtcNow, total, processes, 0, false, (long)(Stopwatch.Frequency * second));
 
     private static ProcessUsage Usage(int id, double cpu, ulong? memory = null, double? io = null) =>
@@ -17,7 +17,7 @@ public sealed class ProcessRankingTests
     public void Rank_KeepsAProcessListedWhileAnyIntervalInTheWindowMeasuredIt()
     {
         // p1 registers a tick only in the oldest interval of the window; single-interval ranking would drop it.
-        CpuSample[] history =
+        MonitorSample[] history =
         [
             Sample(1, 10, Usage(1, 5), Usage(2, 0)),
             Sample(2, 10, Usage(2, 1)),
@@ -57,9 +57,9 @@ public sealed class ProcessRankingTests
     [Test]
     public void Rank_StopsAtGapsAndLongIntervals()
     {
-        var gap = new CpuSample(DateTimeOffset.UtcNow, null, [], 0, true, Stopwatch.Frequency * 3);
-        CpuSample[] afterGap = [Sample(1, 10, Usage(1, 9)), Sample(2, 10, Usage(1, 9)), gap, Sample(4, 10, Usage(2, 2)), Sample(5, 10, Usage(2, 2))];
-        CpuSample[] afterDelay = [Sample(2, 10, Usage(1, 9)), Sample(4.6, 10, Usage(2, 2)), Sample(5.6, 10, Usage(2, 2))];
+        var gap = new MonitorSample(DateTimeOffset.UtcNow, null, [], 0, true, Stopwatch.Frequency * 3);
+        MonitorSample[] afterGap = [Sample(1, 10, Usage(1, 9)), Sample(2, 10, Usage(1, 9)), gap, Sample(4, 10, Usage(2, 2)), Sample(5, 10, Usage(2, 2))];
+        MonitorSample[] afterDelay = [Sample(2, 10, Usage(1, 9)), Sample(4.6, 10, Usage(2, 2)), Sample(5.6, 10, Usage(2, 2))];
 
         Assert.Multiple(() =>
         {
@@ -74,7 +74,7 @@ public sealed class ProcessRankingTests
     [Test]
     public void Rank_HistoricalEndExcludesLaterSamplesAndKeepsLatestMemoryWithWindowAveragedIo()
     {
-        CpuSample[] history =
+        MonitorSample[] history =
         [
             Sample(1, 10, Usage(1, 2, memory: 100, io: 10)),
             Sample(2, 10, Usage(1, 2, memory: 200, io: null)),
@@ -95,7 +95,7 @@ public sealed class ProcessRankingTests
     [Test]
     public void Rank_GpuUsesReadableIntervalsIncludingZero_AndCanShowCpuIdleProcesses()
     {
-        CpuSample[] history = [
+        MonitorSample[] history = [
             Sample(1, 10, Usage(1, 0) with { GpuPercent = 60 }, Usage(2, 8) with { GpuPercent = 10 }),
             Sample(2, 10, Usage(1, 0) with { GpuPercent = null }, Usage(2, 8) with { GpuPercent = 10 }),
             Sample(3, 10, Usage(1, 0) with { GpuPercent = 0 }, Usage(2, 8) with { GpuPercent = 10 })];
@@ -111,7 +111,7 @@ public sealed class ProcessRankingTests
     [Test]
     public void Rank_GpuSeparatesPidLifetimes_AndHonorsHistoricalEndAndGaps()
     {
-        CpuSample[] history = [
+        MonitorSample[] history = [
             Sample(1, 10, new ProcessUsage(7, 1, "old", 0) with { GpuPercent = 80 }),
             Sample(2, 10, new ProcessUsage(7, 2, "new", 0) with { GpuPercent = 20 }),
             Sample(3, 10, new ProcessUsage(7, 2, "new", 0) with { GpuPercent = 100 })];
@@ -127,7 +127,7 @@ public sealed class ProcessRankingTests
     [Test]
     public void Rank_SeparatesReusedProcessIdsByCreationTime()
     {
-        CpuSample[] history =
+        MonitorSample[] history =
         [
             Sample(1, 10, new ProcessUsage(7, 1, "old", 3)),
             Sample(2, 10, new ProcessUsage(7, 2, "new", 1)),
@@ -143,7 +143,7 @@ public sealed class ProcessRankingTests
     public void Rank_MemoryUsesLatestWorkingSetOfProcessesStillPresent()
     {
         // p1 was largest but exited before the newest sample; p3 has no readable memory.
-        CpuSample[] history =
+        MonitorSample[] history =
         [
             Sample(1, 10, Usage(1, 0, memory: 900), Usage(2, 0, memory: 100), Usage(3, 0)),
             Sample(2, 10, Usage(2, 0, memory: 300), Usage(3, 0), Usage(4, 0, memory: 200)),
@@ -158,7 +158,7 @@ public sealed class ProcessRankingTests
     [Test]
     public void Rank_IoAveragesOverTheWindowAndIncludesCpuIdleProcesses()
     {
-        CpuSample[] history =
+        MonitorSample[] history =
         [
             Sample(1, 10, Usage(1, 0, io: 1_000), Usage(2, 5, io: 0)),
             Sample(2, 10, Usage(1, 0, io: null), Usage(2, 5, io: 0)),
@@ -174,7 +174,7 @@ public sealed class ProcessRankingTests
     [Test]
     public void Rank_MeasuredCpuCoversEveryProcess_WhateverTheSortOrGrouping()
     {
-        CpuSample[] history =
+        MonitorSample[] history =
         [
             Sample(1, 20, Usage(1, 6, memory: 100), Usage(2, 0, io: 50), Usage(3, 3) with { GpuPercent = 10 }),
             Sample(2, 20, Usage(1, 2, memory: 100), Usage(2, 4, io: 0), Usage(3, 0) with { GpuPercent = 0 }),
@@ -195,8 +195,8 @@ public sealed class ProcessRankingTests
     [Test]
     public void Rank_ConsecutiveCallsShareNoState()
     {
-        CpuSample[] busy = [Sample(1, 10, Usage(1, 5), Usage(2, 3))];
-        CpuSample[] quiet = [Sample(1, 10, Usage(3, 1))];
+        MonitorSample[] busy = [Sample(1, 10, Usage(1, 5), Usage(2, 3))];
+        MonitorSample[] quiet = [Sample(1, 10, Usage(3, 1))];
 
         var first = ProcessRanking.Rank(busy);
         var second = ProcessRanking.Rank(quiet);

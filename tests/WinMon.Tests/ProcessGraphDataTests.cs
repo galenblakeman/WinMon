@@ -25,7 +25,7 @@ public sealed class ProcessGraphDataTests
         var a = new ProcessUsage(1, 100, "a", 2, 2000, 200) { PrivateBytes = 100, GpuPercent = 20, ThreadCount = 10, HandleCount = 100 };
         var b = new ProcessUsage(2, 200, "a", 3, 4000, 400) { PrivateBytes = 500, GpuPercent = 40, ThreadCount = 20, HandleCount = 200 };
         var c = b with { ProcessId = 3, Name = "c" };
-        CpuSample[] samples = [new(DateTimeOffset.UtcNow, 50, [a, b, c], 0, false, Stopwatch.Frequency)];
+        MonitorSample[] samples = [new(DateTimeOffset.UtcNow, 50, [a, b, c], 0, false, Stopwatch.Frequency)];
 
         var data = ProcessGraphData.Build(samples, 120, [a, c], grouped, sort);
 
@@ -53,7 +53,7 @@ public sealed class ProcessGraphDataTests
     {
         var now = DateTimeOffset.UtcNow;
         var process = new ProcessUsage(1, now.AddMinutes(-1).ToFileTime(), "a", 1);
-        CpuSample[] samples =
+        MonitorSample[] samples =
         [
             new(now, 50, [process], 0, false, Stopwatch.Frequency),
             new(now.AddSeconds(1), null, [process], 0, true, Stopwatch.Frequency * 2),
@@ -69,7 +69,7 @@ public sealed class ProcessGraphDataTests
     public void Build_MatchesOriginalLookupAndSharesScaleAcrossRankChangesAndMissingLifetimes()
     {
         var identities = Enumerable.Range(1, 5).Select(i => new ProcessUsage(i, i, $"p{i}", 1)).ToArray();
-        var history = Enumerable.Range(1, 200).Select(second => new CpuSample(
+        var history = Enumerable.Range(1, 200).Select(second => new MonitorSample(
             DateTimeOffset.UtcNow, 50,
             [
                 .. Enumerable.Range(1, 30).Where(i => (i + second) % 9 != 0)
@@ -103,7 +103,7 @@ public sealed class ProcessGraphDataTests
     public void Build_HistoricalPrefixExcludesFutureSpikeAndPreservesZeroVersusMissing()
     {
         var process = new ProcessUsage(42, 100, "example", 0);
-        CpuSample[] history = [Sample(1, process), Sample(2), Sample(3, process with { CpuPercent = 90 })];
+        MonitorSample[] history = [Sample(1, process), Sample(2), Sample(3, process with { CpuPercent = 90 })];
 
         var data = ProcessGraphData.Build([.. history.Take(2)], 120, [process])[0];
 
@@ -116,7 +116,7 @@ public sealed class ProcessGraphDataTests
         });
         return;
 
-        CpuSample Sample(int second, params ProcessUsage[] processes) =>
+        MonitorSample Sample(int second, params ProcessUsage[] processes) =>
             new(DateTimeOffset.UtcNow, 50, processes, 0, false, Stopwatch.Frequency * second);
     }
 }

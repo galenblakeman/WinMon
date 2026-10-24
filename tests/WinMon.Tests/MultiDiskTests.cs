@@ -101,8 +101,8 @@ public sealed class MultiDiskTests
         });
 
         var resources = new ResourceSample { SecondaryDiskName = "E:", SecondaryDiskActivePercent = 61.5, SecondaryDiskBytesPerSecond = 9_250_000 };
-        var sample = new CpuSample(DateTimeOffset.UnixEpoch, 10, [], 0) { Resources = resources };
-        var history = new CpuHistory();
+        var sample = new MonitorSample(DateTimeOffset.UnixEpoch, 10, [], 0) { Resources = resources };
+        var history = new MonitorHistory();
         history.Add(sample);
         var before = history.Samples;
         var changed = resources with { SecondaryDiskActivePercent = 3 };
@@ -120,7 +120,7 @@ public sealed class MultiDiskTests
     [Test]
     public void CpuGraph_MapsAndDescribesConfiguredSecondaryDisk()
     {
-        var sample = new CpuSample(DateTimeOffset.UnixEpoch, 10, [], 0)
+        var sample = new MonitorSample(DateTimeOffset.UnixEpoch, 10, [], 0)
         {
             Resources = new ResourceSample
             {

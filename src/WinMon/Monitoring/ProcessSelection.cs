@@ -24,7 +24,7 @@ internal sealed class ProcessSelection
         return _target.RetentionSnapshot();
     }
 
-    internal PinnedProcess? Resolve(IReadOnlyList<CpuSample> samples, bool grouped, bool historical, ProcessSort sort)
+    internal PinnedProcess? Resolve(IReadOnlyList<MonitorSample> samples, bool grouped, bool historical, ProcessSort sort)
     {
         return Resolve(samples, grouped, historical,
             () => ProcessRanking.Rank(samples, sort: sort, grouped: grouped, includeInactive: true));
@@ -34,7 +34,7 @@ internal sealed class ProcessSelection
     /// <param name="grouped">Whether rows are grouped by application.</param>
     /// <param name="historical">Whether the samples end at a selected past moment.</param>
     /// <param name="inclusive">The ranking of the same samples with inactive processes included, ranked only if needed.</param>
-    internal PinnedProcess? Resolve(IReadOnlyList<CpuSample> samples, bool grouped, bool historical,
+    internal PinnedProcess? Resolve(IReadOnlyList<MonitorSample> samples, bool grouped, bool historical,
         Func<ProcessRanking> inclusive)
     {
         if (grouped != Grouped) _target = new ProcessPins();

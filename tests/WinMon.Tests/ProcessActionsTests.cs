@@ -30,7 +30,7 @@ public sealed class ProcessActionsTests
         row.EnablePinning((_, _) => false, (_, _) => { });
         row.EnableInspectionActions(s => captured = s, s => captured = s, p => location = p, p => dumped = p,
             _ => true, () => true);
-        row.Update(process, [new CpuSample(time, 1, [process], 0)], 120, true, null);
+        row.Update(process, [new MonitorSample(time, 1, [process], 0)], 120, true, null);
         row.PrepareProcessMenu();
         var items = row.ContextMenu!.Items.OfType<MenuItem>().ToArray();
         Assert.That(items.Select(i => i.Header), Is.EqualTo(new[] { Strings.ProcessProperties + "…", Strings.OpenFileLocation,

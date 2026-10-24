@@ -5,12 +5,12 @@ namespace WinMon.Controls;
 
 /// <summary>Process values and the shared sparkline scale for one refresh.</summary>
 internal sealed record ProcessGraphData(
-    IReadOnlyList<CpuSample> Samples,
+    IReadOnlyList<MonitorSample> Samples,
     double?[] Values,
     double ScaleMaximum,
     ProcessSort Sort = ProcessSort.Cpu)
 {
-    internal static ProcessGraphData[] Build(IReadOnlyList<CpuSample> history, int seconds,
+    internal static ProcessGraphData[] Build(IReadOnlyList<MonitorSample> history, int seconds,
         IReadOnlyList<ProcessUsage> identities, bool grouped = false, ProcessSort sort = ProcessSort.Cpu)
     {
         if (grouped) return BuildGrouped(history, seconds, identities, sort);
@@ -51,7 +51,7 @@ internal sealed record ProcessGraphData(
     }
 
     /// <summary>Aggregate each executable group per sample, using its busiest member for GPU.</summary>
-    private static ProcessGraphData[] BuildGrouped(IReadOnlyList<CpuSample> history, int seconds,
+    private static ProcessGraphData[] BuildGrouped(IReadOnlyList<MonitorSample> history, int seconds,
         IReadOnlyList<ProcessUsage> groups, ProcessSort sort)
     {
         if (groups.Count == 0) return [];
@@ -96,9 +96,9 @@ internal sealed record ProcessGraphData(
 
     // DateTimeOffset.ToFileTime makes a leap-second-aware system call on current Windows, and every refresh
     // revisits the same samples. Samples are immutable, so each is converted once.
-    private static readonly ConditionalWeakTable<CpuSample, object> FileTimes = new();
+    private static readonly ConditionalWeakTable<MonitorSample, object> FileTimes = new();
 
-    private static long FileTime(CpuSample sample)
+    private static long FileTime(MonitorSample sample)
     {
         return (long)FileTimes.GetValue(sample, static s => s.Timestamp.ToFileTime());
     }

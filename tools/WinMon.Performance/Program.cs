@@ -39,12 +39,12 @@ internal static class Program
         Flush();
         shuttingDown.SetValue(null, false);
         var window = (MainWindow)Activator.CreateInstance(typeof(MainWindow), Private, null, [true, null, null], null)!;
-        var history = (CpuHistory)Field("_history").GetValue(window)!;
-        var compact = typeof(CpuHistory).Assembly.GetType("WinMon.Monitoring.ProcessRetention", true)!.GetMethod("Compact", Static)!;
+        var history = (MonitorHistory)Field("_history").GetValue(window)!;
+        var compact = typeof(MonitorHistory).Assembly.GetType("WinMon.Monitoring.ProcessRetention", true)!.GetMethod("Compact", Static)!;
         var refresh = (Action)typeof(MainWindow).GetMethod("RefreshPresentation", Private)!.CreateDelegate(typeof(Action), window);
         var serviceHistory = Field("_serviceHistory").GetValue(window)!;
         var addFrame = serviceHistory.GetType().GetMethod("Add", Private)!;
-        var serviceTree = Activator.CreateInstance(typeof(CpuHistory).Assembly.GetType("WinMon.Monitoring.ServiceTree", true)!, true)!;
+        var serviceTree = Activator.CreateInstance(typeof(MonitorHistory).Assembly.GetType("WinMon.Monitoring.ServiceTree", true)!, true)!;
         var captureFrame = serviceTree.GetType().GetMethod("Capture", Private)!;
         var catalog = Catalog();
         var anchor = DateTimeOffset.Parse("2026-10-19T12:00:00Z");
@@ -54,7 +54,7 @@ internal static class Program
             second++;
             var full = Sample(anchor, second);
             Field("_latestFull").SetValue(window, full);
-            var compacted = (CpuSample)compact.Invoke(null, [full, 32, Field("_retainPinned").GetValue(window), false])!;
+            var compacted = (MonitorSample)compact.Invoke(null, [full, 32, Field("_retainPinned").GetValue(window), false])!;
             Field("_latestCompacted").SetValue(window, compacted);
             history.Add(compacted);
             addFrame.Invoke(serviceHistory, [captureFrame.Invoke(serviceTree, [full, catalog])]);
@@ -84,7 +84,7 @@ internal static class Program
         Measure("grouped-live-frame");
         Check("IndividualChip", true);
         Check("ServicesTab", true);
-        typeof(CpuHistory).Assembly.GetType("WinMon.Controls.ServicesView", true)!.GetMethod("ExpandAll", Private)!
+        typeof(MonitorHistory).Assembly.GetType("WinMon.Controls.ServicesView", true)!.GetMethod("ExpandAll", Private)!
             .Invoke(Field("ServiceView").GetValue(window), null);
         Measure("services-live-frame");
         Check("ProcessesTab", true);
@@ -201,7 +201,7 @@ internal static class Program
     // their worker children. The rest of the services are stopped.
     private static object Catalog()
     {
-        var assembly = typeof(CpuHistory).Assembly;
+        var assembly = typeof(MonitorHistory).Assembly;
         var observation = assembly.GetType("WinMon.Monitoring.ServiceObservation", true)!;
         var services = Array.CreateInstance(observation, Services);
         for (var i = 0; i < Services; i++)
@@ -214,7 +214,7 @@ internal static class Program
     }
 
     // CPU rank rotates, so rows change identity and every numeric cell changes text each frame.
-    private static CpuSample Sample(DateTimeOffset anchor, int second)
+    private static MonitorSample Sample(DateTimeOffset anchor, int second)
     {
         var processes = new ProcessUsage[Processes];
         for (var i = 0; i < Processes; i++)
@@ -237,7 +237,7 @@ internal static class Program
             };
         }
         Array.Sort(processes, (a, b) => b.CpuPercent.CompareTo(a.CpuPercent));
-        return new CpuSample(anchor.AddSeconds(second), 20 + second % 50, processes, 0, false, Stopwatch.Frequency * second)
+        return new MonitorSample(anchor.AddSeconds(second), 20 + second % 50, processes, 0, false, Stopwatch.Frequency * second)
         {
             Resources = new ResourceSample
             {

@@ -37,7 +37,7 @@ public sealed class GpuMemoryTests
         foreach (var (id, bytes) in WindowsGpuMemory.ReadCapacities())
             TestContext.Out.WriteLine($"DXGI {id}: {bytes} bytes dedicated memory");
         using var sampler = new WindowsGpuSampler();
-        var sample = new CpuSample(DateTimeOffset.Now, 0, [], 0);
+        var sample = new MonitorSample(DateTimeOffset.Now, 0, [], 0);
         sampler.Sample(sample, false);
         await Task.Delay(1100);
         var resources = sampler.Sample(sample, false).Resources;

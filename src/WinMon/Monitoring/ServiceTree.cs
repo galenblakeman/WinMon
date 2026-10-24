@@ -51,7 +51,7 @@ internal sealed record ServiceGroup(
     }
 }
 
-internal sealed record ServiceFrame(CpuSample Sample, IReadOnlyList<ServiceGroup> Groups, bool Available = true)
+internal sealed record ServiceFrame(MonitorSample Sample, IReadOnlyList<ServiceGroup> Groups, bool Available = true)
 {
     private static readonly ConditionalWeakTable<ServiceFrame, ServiceFrameIndex> Indexes = new();
 
@@ -137,7 +137,7 @@ internal sealed class ServiceTree
     private static readonly Comparison<ProcessUsage> ByProcessId = (left, right) =>
         left.ProcessId.CompareTo(right.ProcessId);
 
-    internal ServiceFrame Capture(CpuSample sample, ServiceCatalog? catalog)
+    internal ServiceFrame Capture(MonitorSample sample, ServiceCatalog? catalog)
     {
         var moment = sample with { Processes = [] };
         if (catalog is null || sample.IsGap)
@@ -316,14 +316,14 @@ internal sealed class ServiceHistory
         return frame.Groups.Sum(g => g.Processes.Count + g.Services.Count);
     }
 
-    private static double Age(CpuSample oldest, CpuSample newest)
+    private static double Age(MonitorSample oldest, MonitorSample newest)
     {
         return oldest.MonotonicTimestamp > 0 && newest.MonotonicTimestamp > 0
             ? (newest.MonotonicTimestamp - oldest.MonotonicTimestamp) / (double)Stopwatch.Frequency
             : (newest.Timestamp - oldest.Timestamp).TotalSeconds;
     }
 
-    internal ServiceFrame? Find(CpuSample? sample)
+    internal ServiceFrame? Find(MonitorSample? sample)
     {
         return sample is null
             ? _frames.LastOrDefault()

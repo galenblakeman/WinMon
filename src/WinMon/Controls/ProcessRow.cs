@@ -276,7 +276,7 @@ public sealed class ProcessRow : Grid
         _io.ToolTip = Strings.ReadWriteIOIncludesFileNetworkAndDeviceOperations;
     }
 
-    internal void Update(ProcessUsage usage, IReadOnlyList<CpuSample> samples, int seconds, bool showPid,
+    internal void Update(ProcessUsage usage, IReadOnlyList<MonitorSample> samples, int seconds, bool showPid,
         ProcessGraphData? data, bool grouped = false, PinnedProcessState state = PinnedProcessState.Present)
     {
         ArgumentNullException.ThrowIfNull(usage);

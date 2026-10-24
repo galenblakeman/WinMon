@@ -180,8 +180,8 @@ public sealed class ServiceTreeTests
     {
         var history = new ServiceHistory();
         var now = DateTimeOffset.UtcNow;
-        var first = new ServiceFrame(new CpuSample(now, 50, [], 0, false, Stopwatch.Frequency), []);
-        var later = new ServiceFrame(new CpuSample(now.AddHours(-1), 50, [], 0, false, Stopwatch.Frequency * 122), []);
+        var first = new ServiceFrame(new MonitorSample(now, 50, [], 0, false, Stopwatch.Frequency), []);
+        var later = new ServiceFrame(new MonitorSample(now.AddHours(-1), 50, [], 0, false, Stopwatch.Frequency * 122), []);
 
         history.Add(first);
         history.Add(later);
@@ -278,10 +278,10 @@ public sealed class ServiceTreeTests
     private static ServiceCatalog Catalog(long observed, params ServiceObservation[] services) => new(observed, services);
     private static ProcessUsage Usage(int id, long created, int parent, double cpu = 0, ulong? privateBytes = 0, double? io = 0) =>
         new(id, created, $"p{id}", cpu, WorkingSetBytes: null, IoBytesPerSecond: io) { ParentProcessId = parent, PrivateBytes = privateBytes };
-    private static CpuSample Sample(int second, params ProcessUsage[] processes) => Sample(second, false, second, processes);
-    private static CpuSample Sample(int second, bool isGap, params ProcessUsage[] processes) => Sample(second, isGap, second, processes);
-    private static CpuSample Sample(int second, long monotonic) => Sample(second, false, monotonic, []);
-    private static CpuSample Sample(int second, bool isGap, long monotonic, params ProcessUsage[] processes) =>
+    private static MonitorSample Sample(int second, params ProcessUsage[] processes) => Sample(second, false, second, processes);
+    private static MonitorSample Sample(int second, bool isGap, params ProcessUsage[] processes) => Sample(second, isGap, second, processes);
+    private static MonitorSample Sample(int second, long monotonic) => Sample(second, false, monotonic, []);
+    private static MonitorSample Sample(int second, bool isGap, long monotonic, params ProcessUsage[] processes) =>
         new(DateTimeOffset.UnixEpoch.AddSeconds(second), 50, processes, 0, isGap, monotonic * Stopwatch.Frequency);
 
     private static CpuSnapshot Snapshot(int second, params ProcessCpuTimes[] processes) => new(
