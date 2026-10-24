@@ -63,13 +63,24 @@ The initial provider uses Windows system/process time counters. Machines with mu
 
 ## Code structure
 
-These rules apply to new code now. Existing code is being moved to them in the order recorded in the [structure note](design/STRUCTURE.md).
+The [structure note](design/STRUCTURE.md) records why the code is laid out this way and how it got there.
 
-- **`Monitoring` is a leaf.** It never references WPF, `WinMon.Controls` or `WinMon.Preferences`. A test checks the compiled IL.
-- **Sampling lives outside the window.** `MonitorSession` owns the sampling loop, the queue and history. It reaches the UI thread through a `post` delegate the window supplies.
-- **A view is a UserControl updated through one `Update(...)` call** and owns its own state. The window writes that state back into `MonitorPreferences` at exit.
+| Area | Where |
+| --- | --- |
+| Sampling, history, ranking, retention, Windows samplers | `Monitoring/`. `MonitorSession` runs the capture loop through an `IFrameSource` (`WindowsFrameSource` in the app, fakes in tests) |
+| Window shell: title bar, readouts, chart, compact strip, tray, settings, updates | `MainWindow*.cs` |
+| Process list | `Controls/ProcessesView.xaml` |
+| Services list | `Controls/ServicesView.xaml` |
+| Smoke, feature, snapshot, search, compact, services and example modes | `Diagnostics/WindowDiagnostics*.cs` |
+| Window members that diagnostics and the benchmark use | `MainWindow.Internal.cs` |
+
+Rules for new code:
+
+- **`Monitoring` is a leaf.** It never references WPF, Windows Forms, `WinMon.Controls` or `WinMon.Preferences`. `MonitoringLayerTests` checks the compiled IL.
+- **Sampling lives outside the window.** `MonitorSession` owns the capture loop, the queue and history. It reaches the UI thread through a `post` delegate the window supplies.
+- **A view is a UserControl updated through one `Update(...)` call.** It raises events when the user changes something; the window keeps persisted settings in `MonitorPreferences` and passes them back in.
 - **XAML for layout and window chrome; code-built elements only for rows updated every tick.**
-- **Diagnostics and the benchmark use internal members, never reflection on private names.**
+- **Diagnostics and the benchmark use internal members, never reflection on WinMon's private names.** When one needs more, add a named member to `MainWindow.Internal.cs` or the view.
 - **Structural changes must not regress performance.** Record `WinMon.Performance` results before and after under [Performance tuning measurements](#performance-tuning-measurements).
 
 ## Build and tests
@@ -387,6 +398,23 @@ that service history reaches its two-minute steady state (the default 60 s ends 
 
 Whole-app CPU did not change: it is dominated by the process snapshot, and the profile does not open the Services
 tab, where the refresh savings are.
+
+### Code structure refactor (October 24, 2026)
+
+The [structure refactor](design/STRUCTURE.md) moved sampling into `MonitorSession`, diagnostics into `Diagnostics/` and the process list into `ProcessesView`, with no intended change to any frame. Same machine; the baseline binary is the benchmark built from `main` before step 1, run alternately with each step. The benchmark itself had to be fixed first: a reflection call had broken when `ProcessRetention.Compact` gained a parameter.
+
+Steps 1–5 (renames, `MonitorSession`, benchmark and diagnostics moves), quiet machine, median of each build's per-run medians, in ms per refresh:
+
+| Build | Live | Historical | Grouped | Services | Compact | Pinned | Pinned grouped |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Baseline, 7 runs | 3.81 | 0.99 | 4.52 | 6.66 | 1.29 | 3.01 | 5.61 |
+| After `MonitorSession`, 5 runs | 3.94 | 1.04 | 4.77 | 6.82 | 1.32 | 3.02 | 5.70 |
+
+The differences are within the baseline's own run-to-run spread (live 3.65–4.57 ms). Allocation per refresh was identical, and every run rendered the baseline's pixels, except two runs whose last two scenarios matched an alternate frame the baseline also produces when the pointer is over the window.
+
+Step 6 (`ProcessesView`) ran while the machine was busy: the IDE was indexing and a Debug WinMon was open. The baseline's own Services time doubled, to 14 ms. Three alternating pairs differed in both directions (live 2.76 → 3.72 ms, compact 3.07 → 1.88 ms). Allocation stayed within 5 KiB per refresh in every scenario, and every pixel hash matched the baseline. Repeat this comparison on a quiet machine before relying on it.
+
+The full smoke (`--smoke-output`) passed after step 6, but its first run under that load hit the mode's 60-second timeout during the final 15-second idle observation. On a quiet machine its measured phase takes about 50 seconds, so the budget is tight.
 
 ### UI microbenchmark (earlier)
 

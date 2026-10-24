@@ -1,6 +1,6 @@
 # Code structure
 
-Agreed on 2026-10-24 after a design review of the 2.0.4 code. Status: in progress; see Sequence for the steps that have landed.
+Agreed on 2026-10-24 after a design review of the 2.0.4 code. Status: done on 2026-10-24; the Sequence records what each step changed, including where it departed from the plan.
 
 ## Why
 
@@ -65,6 +65,6 @@ Regular commits on `main`, one per step, each built and tested on its own:
 4. Done: move `WinMon.Performance` from reflection to `InternalsVisibleTo`. The window members it uses are collected in `MainWindow.Internal.cs` or made internal where they are defined.
 5. Done: move diagnostics and examples into `Diagnostics/`. They became `WinMon.Diagnostics.WindowDiagnostics`, one partial class taking a `MainWindow`, rewritten with a Roslyn script that used the compiler's binding information. The surface is larger than estimated: 24 window fields became named internal properties in `MainWindow.Internal.cs` (for example `Preferences`, `Rows`, `Tray`, `ShownSamplingError`), and 17 methods and one constant changed from private to internal. A later cut should shrink it as `ProcessesView` takes over the process list.
 6. Done: extract `ProcessesView` (`Controls/ProcessesView.xaml`) with `ProcessListSettings` and `ProcessListFrame`. The process markup moved unchanged, and the benchmark's pixel hashes match the baseline in every scenario. The `MainWindow.ProcessActions` and `MainWindow.ProcessPins` partials are gone. `MainWindow.Processes.cs` keeps only the event wiring, the actions toggle shared with Services, and clipboard copying.
-7. Update the developer guide's code structure section with what landed.
+7. Done: update the developer guide's code structure section and record the benchmark results.
 
 Steps 1 and 2 are independent. Step 3 depends on both, steps 4 and 5 depend on step 3, and step 6 depends on step 5.
