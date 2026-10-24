@@ -126,19 +126,25 @@ public sealed class UsageViewTests
         Assert.That(view.CopyDetails.IsEnabled, Is.False);
 
         view.Rows.SelectedItem = view.Rows.Items.Cast<UsageDisplayRow>().Single(row => row.Key == first.Key);
-        AppUsage? shown = null;
+        string? propertiesName = null;
+        string? propertiesDetails = null;
         string? copied = null;
-        view.ShowInProcessesRequested += app => shown = app;
+        view.PropertiesRequested += (name, details) =>
+        {
+            propertiesName = name;
+            propertiesDetails = details;
+        };
         view.CopyRequested += details => copied = details;
         view.Update(new UsageFrame([first with { CpuTicks = 50 }, second with { CpuTicks = 300 }],
             350, 0, Now, Now, false));
-        view.ShowInProcesses.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        view.Properties.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         view.CopyDetails.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         Assert.Multiple(() =>
         {
             Assert.That((view.Rows.SelectedItem as UsageDisplayRow)?.Key, Is.EqualTo(first.Key));
             Assert.That(view.SelectionName.Text, Is.EqualTo("first"));
-            Assert.That(shown?.Key, Is.EqualTo(first.Key));
+            Assert.That(propertiesName, Is.EqualTo("first"));
+            Assert.That(propertiesDetails, Does.Contain("first"));
             Assert.That(copied, Does.Contain("first"));
             Assert.That(view.OpenFileLocation.IsEnabled, Is.True);
         });
@@ -150,7 +156,7 @@ public sealed class UsageViewTests
         {
             Assert.That(view.Rows.SelectedItem, Is.Null);
             Assert.That(view.CopyDetails.IsEnabled, Is.False);
-            Assert.That(view.ShowInProcesses.IsEnabled, Is.False);
+            Assert.That(view.Properties.IsEnabled, Is.False);
             Assert.That(view.OpenFileLocation.IsEnabled, Is.False);
             Assert.That(view.ActionBar.Visibility, Is.EqualTo(Visibility.Collapsed));
         });

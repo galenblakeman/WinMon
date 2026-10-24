@@ -58,6 +58,7 @@ public partial class UsageView
 
     internal event Action<UsageListSettings>? SettingsChanged;
     internal event Action<string>? CopyRequested;
+    internal event Action<string, string>? PropertiesRequested;
     internal event Action? ResetRequested;
     internal event Action<AppUsage>? ShowInProcessesRequested;
 
@@ -339,20 +340,16 @@ public partial class UsageView
         SelectionDetail.Visibility = row is null ? Visibility.Collapsed : Visibility.Visible;
         SelectionIcon.Visibility = row is null ? Visibility.Collapsed : Visibility.Visible;
         ActionAccent.SetResourceReference(Border.BackgroundProperty, row is null ? "Line" : "Accent");
-        ShowInProcesses.IsEnabled = app is not null && !other && CanShowInProcesses?.Invoke(app) == true;
-        ToolTipService.SetShowOnDisabled(ShowInProcesses, app is not null && !other);
-        ShowInProcesses.ToolTip = app is not null && !other && !ShowInProcesses.IsEnabled
-            ? Strings.UsageNotInHistory : null;
+        Properties.IsEnabled = app is not null && _frame is not null;
         CopyDetails.IsEnabled = app is not null && _frame is not null;
         OpenFileLocation.IsEnabled = app is { ImagePath: { Length: > 0 } } && !other;
         ArrangeActionBar();
     }
 
-    private void OnShowInProcesses(object sender, RoutedEventArgs e)
+    private void OnProperties(object sender, RoutedEventArgs e)
     {
-        if (Rows.SelectedItem is UsageDisplayRow { App: { } app } &&
-            app.Key != UsageLedger.OtherAppsKey && CanShowInProcesses?.Invoke(app) == true)
-            ShowInProcessesRequested?.Invoke(app);
+        if (Rows.SelectedItem is UsageDisplayRow { App: { } app } row && _frame is { } frame)
+            PropertiesRequested?.Invoke(row.Name, UsageText.Details(app, frame));
     }
 
     private void OnCopyDetails(object sender, RoutedEventArgs e)

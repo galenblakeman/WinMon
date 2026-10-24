@@ -448,8 +448,8 @@
                     </DockPanel>
                     <WrapPanel x:Name="ActionControls" Grid.Column="1" HorizontalAlignment="Right"
                                VerticalAlignment="Center" Orientation="Horizontal">
-                        <Button x:Name="ShowInProcesses" local:ButtonIcon.Data="{x:Static local:ButtonIcon.Process}"
-                                Click="OnShowInProcesses" Content="{Binding [UsageShowInProcesses], Source={x:Static r:Strings.Text}}"
+                        <Button x:Name="Properties" local:ButtonIcon.Data="{x:Static local:ButtonIcon.Info}"
+                                Click="OnProperties" Content="{Binding [Properties], Source={x:Static r:Strings.Text}}"
                                 Style="{DynamicResource ActionBarButton}" />
                         <Button x:Name="CopyDetails" local:ButtonIcon.Data="{x:Static local:ButtonIcon.Copy}"
                                 Click="OnCopyDetails" Content="{Binding [CopyDetails], Source={x:Static r:Strings.Text}}"

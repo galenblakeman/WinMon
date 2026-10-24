@@ -13,6 +13,8 @@ public partial class MainWindow
             TopUsageCount = settings.TopCount, UsageSortColumn = (int)settings.Sort, UsageAppsOnly = settings.AppsOnly
         };
         UsageView.CopyRequested += CopyProcessDetails;
+        UsageView.PropertiesRequested += (name, details) =>
+            new ServicePropertiesWindow(name, details, CopyProcessDetails) { Owner = this }.ShowDialog();
         UsageView.ResetRequested += ResetUsage;
         UsageView.CanShowInProcesses = app => app.Running > 0 || LastActiveSample(app) is not null;
         UsageView.ShowInProcessesRequested += ShowUsageInProcesses;
