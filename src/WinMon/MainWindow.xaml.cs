@@ -572,7 +572,7 @@ public partial class MainWindow
                 {
                     await CheckForUpdatesAsync(true, _lifetime.Token);
                     return UpdateStatusText.Text;
-                }, _preferenceStore.DefaultCaptureFolder) { Owner = this };
+                }, _preferenceStore.DefaultCaptureFolder, _lastUpdateCheck) { Owner = this };
             // Let the shortcut recorder receive WinMon's own combination; Save or the finally block takes it back.
             _hotkeyRetry?.Stop();
             _hotkey?.Unregister();

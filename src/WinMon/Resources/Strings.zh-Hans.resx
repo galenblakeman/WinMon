@@ -1503,8 +1503,6 @@ Windows 健康状态：{2}</value>
   <data name="AutoCaptureSecondsFor" xml:space="preserve"><value>{0} 持续时间（秒）</value></data>
   <data name="AutoCapturePercentOfCore" xml:space="preserve"><value>% (单核)</value></data>
   <data name="AutoCapturePercentActive" xml:space="preserve"><value>% 活动</value></data>
-  <data name="AutoCaptureAbove" xml:space="preserve"><value>高于</value></data>
-  <data name="AutoCaptureFor" xml:space="preserve"><value>持续</value></data>
   <data name="AutoCaptureSecondsUnit" xml:space="preserve"><value>秒</value></data>
   <data name="AutoCaptureProcessHelp" xml:space="preserve"><value>“任一进程”用于发现单个失控进程：100% 表示一个逻辑处理器完全繁忙，因此在 4 核或 32 核计算机上效果相同。</value></data>
   <data name="AutoCaptureCooldown" xml:space="preserve"><value>同一规则两次捕获之间的分钟数</value></data>
@@ -1545,4 +1543,21 @@ Windows 健康状态：{2}</value>
   <data name="AutoCaptureMenuDetail" xml:space="preserve"><value>{0:T} · 峰值 {1} · {2} 前</value></data>
   <data name="AutoCaptureOpenFolderCount" xml:space="preserve"><value>打开报告文件夹 ({0})</value></data>
   <data name="AutoCaptureSettings" xml:space="preserve"><value>自动捕获设置…</value></data>
+  <data name="SettingsGeneral" xml:space="preserve"><value>常规</value></data>
+  <data name="SettingsMonitoring" xml:space="preserve"><value>监视</value></data>
+  <data name="SettingsSections" xml:space="preserve"><value>设置分区</value></data>
+  <data name="SettingsStartupAndTray" xml:space="preserve"><value>启动和通知区域</value></data>
+  <data name="SettingsHistory" xml:space="preserve"><value>历史</value></data>
+  <data name="SettingsRetentionNote" xml:space="preserve"><value>图表、捕获模式和进程历史可回溯的时长。保留时间越长，占用内存越多。</value></data>
+  <data name="SettingsOn" xml:space="preserve"><value>开</value></data>
+  <data name="SettingsOff" xml:space="preserve"><value>关</value></data>
+  <data name="SettingsInstalledVersion" xml:space="preserve"><value>已安装版本</value></data>
+  <data name="SettingsLastChecked" xml:space="preserve"><value>上次检查</value></data>
+  <data name="SettingsCheckedAt" xml:space="preserve"><value>{0:g}</value></data>
+  <data name="SettingsNotChecked" xml:space="preserve"><value>自 WinMon 启动以来未检查</value></data>
+  <data name="SettingsAutomaticChecks" xml:space="preserve"><value>自动检查</value></data>
+  <data name="SettingsUpdatesNote" xml:space="preserve"><value>WinMon 运行时会向 GitHub 查询已签名的版本。请求不包含任何监视数据或个人数据。更新会保留历史和使用情况总计。</value></data>
+  <data name="AutoCaptureRuleHeader" xml:space="preserve"><value>规则</value></data>
+  <data name="AutoCaptureAboveHeader" xml:space="preserve"><value>高于</value></data>
+  <data name="AutoCaptureForHeader" xml:space="preserve"><value>持续</value></data>
 </root>

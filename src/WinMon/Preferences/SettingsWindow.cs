@@ -4,14 +4,24 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using WinMon.Controls;
 using WinMon.Shortcuts;
 using WinMon.Updates;
 
 namespace WinMon.Preferences;
 
+/// <summary>A page of the Settings window, in sidebar order.</summary>
+internal enum SettingsSection
+{
+    General,
+    Monitoring,
+    AutomaticCaptures,
+    Updates
+}
+
 /// <summary>
-/// Provides controls for editing monitor preferences before they are persisted.
+/// Provides controls for editing monitor preferences before they are persisted, one sidebar section at a time.
 /// </summary>
 public sealed class SettingsWindow : Window
 {
@@ -43,6 +53,20 @@ public sealed class SettingsWindow : Window
     private readonly string _defaultCaptureFolder;
     private Task? _driveLoadTask;
     private bool _closed;
+    private readonly ListBox _navigation = new() { BorderThickness = new Thickness(0), Background = Brushes.Transparent };
+    private readonly ScrollViewer _page = new()
+    {
+        VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+        HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Focusable = false
+    };
+    private readonly List<(SettingsSection Section, string Label, Geometry Icon, FrameworkElement Page)> _pages = [];
+    private readonly TextBlock _captureState =
+        new() { FontSize = 11, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(8, 0, 0, 0) };
+    private readonly TextBlock _lastChecked = new();
+    private Button? _saveButton;
+
+    private static readonly Geometry Monitoring = Geometry.Parse("M 1,9 L 4,9 L 6,3 L 9,13 L 11,7 L 15,7");
+    private static readonly Geometry Capture = Geometry.Parse("M 2,3 L 14,3 L 8,13 Z");
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SettingsWindow"/> class.
@@ -52,15 +76,19 @@ public sealed class SettingsWindow : Window
     /// <param name="shortcutStatus">Describes whether the current shortcut works.</param>
     /// <param name="checkForUpdates">Checks for an update and describes the result.</param>
     /// <param name="captureFolder">The default automatic capture folder; the installed default when omitted.</param>
+    /// <param name="lastUpdateCheck">When this session last finished an update check, if it has.</param>
     public SettingsWindow(MonitorPreferences preferences, Func<HotkeyGesture, bool>? isShortcutAvailable = null,
-        string shortcutStatus = "", Func<Task<string>>? checkForUpdates = null, string? captureFolder = null)
-        : this(preferences, DiscoverDrives, isShortcutAvailable, shortcutStatus, checkForUpdates, captureFolder)
+        string shortcutStatus = "", Func<Task<string>>? checkForUpdates = null, string? captureFolder = null,
+        DateTimeOffset? lastUpdateCheck = null)
+        : this(preferences, DiscoverDrives, isShortcutAvailable, shortcutStatus, checkForUpdates, captureFolder,
+            lastUpdateCheck)
     {
     }
 
     internal SettingsWindow(MonitorPreferences preferences, Func<DriveChoice[]> loadDrives,
         Func<HotkeyGesture, bool>? isShortcutAvailable = null, string shortcutStatus = "",
-        Func<Task<string>>? checkForUpdates = null, string? captureFolder = null)
+        Func<Task<string>>? checkForUpdates = null, string? captureFolder = null,
+        DateTimeOffset? lastUpdateCheck = null)
     {
         ArgumentNullException.ThrowIfNull(preferences);
         _loadDrives = loadDrives;
@@ -70,11 +98,11 @@ public sealed class SettingsWindow : Window
         WindowTheme.Attach(this);
 
         Title = Strings.WinMonSettings;
-        Width = 500;
-        SizeToContent = SizeToContent.Height;
-        MinWidth = 420;
+        // Every section fits this size; a section that outgrows it scrolls on its own.
+        Width = 780;
+        Height = Math.Min(600, Math.Max(320, SystemParameters.WorkArea.Height - 32));
+        MinWidth = 640;
         MinHeight = 320;
-        MaxHeight = Math.Max(MinHeight, SystemParameters.WorkArea.Height - 32);
         ResizeMode = ResizeMode.NoResize;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         SetResourceReference(BackgroundProperty, "Surface");
@@ -134,89 +162,52 @@ public sealed class SettingsWindow : Window
         ContentRendered += async (_, _) => await LoadDrivesAsync();
         Closed += (_, _) => _closed = true;
 
-        Grid layout = new()
-        {
-            Margin = new Thickness(24)
-        };
-        for (var row = 0; row <= 44; row++)
-            layout.RowDefinitions.Add(new RowDefinition
-            {
-                Height = row is 22 or 23 ? new GridLength(0) :
-                    row % 2 == 0 ? GridLength.Auto : new GridLength(row is 11 or 15 or 21 or 33 or 37 ? 16 : 10)
-            });
-        var heading = CreateHeading(Strings.Appearance);
-        Grid.SetRow(heading, 0);
-        layout.Children.Add(heading);
-        AddField(layout, Strings.Language, _languageSelector, 2);
-        var languageNote = new TextBlock
-            { Text = Strings.LanguageApplyNote, FontSize = 11, TextWrapping = TextWrapping.Wrap };
-        languageNote.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
-        Grid.SetRow(languageNote, 4);
-        layout.Children.Add(languageNote);
-        AddField(layout, Strings.Theme, _themeSelector, 6);
-        AddField(layout, Strings.ChartPalette, _paletteSelector, 8);
-        AddField(layout, Strings.HistoricalRetention, _retentionSelector, 10);
-        Grid.SetRow(_minimizeToTrayCheckBox, 12);
-        layout.Children.Add(_minimizeToTrayCheckBox);
-        Grid.SetRow(_startupCheckBox, 14);
-        layout.Children.Add(_startupCheckBox);
-        var shortcutHeading = CreateHeading(Strings.KeyboardShortcut);
-        Grid.SetRow(shortcutHeading, 16);
-        layout.Children.Add(shortcutHeading);
-        AddField(layout, Strings.ShowHideWinMon, _shortcutBox, 18);
-        var resetButton = new Button
-        {
-            Content = Strings.Default, MinWidth = 70, Margin = new Thickness(12, 0, 0, 0),
-            VerticalAlignment = VerticalAlignment.Top
-        };
-        resetButton.SetResourceReference(BackgroundProperty, "Raised");
-        resetButton.SetResourceReference(ForegroundProperty, "Text");
-        AutomationProperties.SetName(resetButton, Strings.RestoreTheDefaultShortcut);
-        resetButton.Click += (_, _) => RecordShortcut(HotkeyGesture.Default);
-        var statusRow = new DockPanel { LastChildFill = true };
-        DockPanel.SetDock(resetButton, Dock.Right);
-        statusRow.Children.Add(resetButton);
-        statusRow.Children.Add(_shortcutStatus);
-        Grid.SetRow(statusRow, 20);
-        layout.Children.Add(statusRow);
-        var disksHeading = CreateHeading(Strings.DiskMonitoring);
-        Grid.SetRow(disksHeading, 24);
-        layout.Children.Add(disksHeading);
-        var diskHelp = new TextBlock { Text = Strings.ChooseUpTo2Volumes, FontSize = 12 };
-        diskHelp.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
-        Grid.SetRow(diskHelp, 26);
-        layout.Children.Add(diskHelp);
-        AddField(layout, Strings.PrimaryDrive, _primaryDriveSelector, 28);
-        AddField(layout, Strings.SecondDrive, _secondaryDriveSelector, 30);
-        var diskNote = new TextBlock { Text = Strings.SelectNoneToMonitorOneDriveActiveTimeAndRead, FontSize = 12 };
-        diskNote.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
-        Grid.SetRow(diskNote, 32);
-        layout.Children.Add(diskNote);
-        var captureHeading = CreateHeading(Strings.AutoCaptureHeading);
-        Grid.SetRow(captureHeading, 34);
-        layout.Children.Add(captureHeading);
-        Grid.SetRow(_autoCapture, 36);
-        layout.Children.Add(_autoCapture);
-        var updateHeading = CreateHeading(Strings.Updates);
-        Grid.SetRow(updateHeading, 38);
-        if (UpdatePolicy.GitHubUpdatesEnabled) layout.Children.Add(updateHeading);
-        Grid.SetRow(_automaticUpdateCheckBox, 40);
-        if (UpdatePolicy.GitHubUpdatesEnabled) layout.Children.Add(_automaticUpdateCheckBox);
-        _updateCheckStatus.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
-        AutomationProperties.SetLiveSetting(_updateCheckStatus, AutomationLiveSetting.Polite);
-        Grid.SetRow(_updateCheckStatus, 42);
-        if (UpdatePolicy.GitHubUpdatesEnabled) layout.Children.Add(_updateCheckStatus);
-        var buttons = CreateButtons(checkForUpdates);
-        Grid.SetRow(buttons, 44);
-        layout.Children.Add(buttons);
+        _primaryDriveSelector.SelectionChanged += (_, _) => FollowDrives();
+        _secondaryDriveSelector.SelectionChanged += (_, _) => FollowDrives();
 
-        Border surface = new() { Child = layout };
-        surface.SetResourceReference(Border.BackgroundProperty, "Surface");
-        Content = new ScrollViewer
+        _pages.Add((SettingsSection.General, Strings.SettingsGeneral, ButtonIcon.Settings, CreateGeneralPage()));
+        _pages.Add((SettingsSection.Monitoring, Strings.SettingsMonitoring, Monitoring, CreateMonitoringPage()));
+        _pages.Add((SettingsSection.AutomaticCaptures, Strings.AutoCaptureHeading, Capture, CreateCapturePage()));
+        // Store builds update through the Store, so they have no Updates section.
+        if (UpdatePolicy.GitHubUpdatesEnabled)
+            _pages.Add((SettingsSection.Updates, Strings.Updates, ButtonIcon.Live,
+                CreateUpdatesPage(checkForUpdates, lastUpdateCheck)));
+        foreach (var page in _pages) _navigation.Items.Add(CreateNavItem(page.Section, page.Label, page.Icon));
+        _navigation.SelectionChanged += (_, _) =>
         {
-            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Content = surface
+            if (_navigation.SelectedIndex < 0) return;
+            _page.Content = _pages[_navigation.SelectedIndex].Page;
+            _page.ScrollToTop();
         };
+        _navigation.SelectedIndex = 0;
+        AutomationProperties.SetName(_navigation, Strings.SettingsSections);
+        // Labels trim instead of scrolling sideways.
+        ScrollViewer.SetHorizontalScrollBarVisibility(_navigation, ScrollBarVisibility.Disabled);
+        PreviewKeyDown += OnSectionKeyDown;
+
+        var navigation = new Border
+        {
+            Child = _navigation, Width = 216, Padding = new Thickness(8, 12, 8, 12),
+            BorderThickness = new Thickness(0, 0, 1, 0)
+        };
+        navigation.SetResourceReference(Border.BackgroundProperty, "SectionHeaderSurface");
+        navigation.SetResourceReference(Border.BorderBrushProperty, "Line");
+        var footer = new Border
+        {
+            Child = CreateButtons(), Padding = new Thickness(20, 12, 20, 12),
+            BorderThickness = new Thickness(0, 1, 0, 0)
+        };
+        footer.SetResourceReference(Border.BorderBrushProperty, "Line");
+        var layout = new DockPanel { LastChildFill = true };
+        DockPanel.SetDock(footer, Dock.Bottom);
+        DockPanel.SetDock(navigation, Dock.Left);
+        layout.Children.Add(footer);
+        layout.Children.Add(navigation);
+        layout.Children.Add(_page);
+        Border surface = new() { Child = layout, BorderThickness = new Thickness(0, 1, 0, 0) };
+        surface.SetResourceReference(Border.BackgroundProperty, "Surface");
+        surface.SetResourceReference(Border.BorderBrushProperty, "Line");
+        Content = surface;
         return;
 
         void UpdatePalettePreviews()
@@ -453,77 +444,159 @@ public sealed class SettingsWindow : Window
                (modifiers.HasFlag(ModifierKeys.Windows) ? HotkeyModifiers.Windows : 0);
     }
 
-    private static TextBlock CreateHeading(string text)
+    /// <summary>The section on screen.</summary>
+    internal SettingsSection Section => _pages[Math.Max(0, _navigation.SelectedIndex)].Section;
+
+    /// <summary>Show a section, as choosing it in the sidebar does.</summary>
+    internal void ShowSection(SettingsSection section)
     {
-        TextBlock heading = new()
-        {
-            Text = text,
-            FontWeight = FontWeights.SemiBold,
-            FontSize = 16
-        };
-        heading.SetResourceReference(TextBlock.ForegroundProperty, "Accent");
-        return heading;
+        var index = _pages.FindIndex(page => page.Section == section);
+        if (index >= 0) _navigation.SelectedIndex = index;
     }
 
-    private static string RetentionLabel(int seconds)
+    internal ComboBox LanguageSelector => _languageSelector;
+    internal ComboBox PrimaryDriveSelector => _primaryDriveSelector;
+    internal ComboBox SecondaryDriveSelector => _secondaryDriveSelector;
+    internal Button SaveButton => _saveButton!;
+    internal AutoCaptureSection AutoCapture => _autoCapture;
+
+    // Ctrl+Tab and Ctrl+Shift+Tab step through the sections, except while the shortcut box records a combination.
+    private void OnSectionKeyDown(object sender, KeyEventArgs e)
     {
-        return seconds switch
-        {
-            >= 3600 => Strings.Value60Minutes,
-            >= 1800 => Strings.Value30Minutes,
-            _ => Strings.Value10Minutes
-        };
+        if (e.Key != Key.Tab || !Keyboard.Modifiers.HasFlag(ModifierKeys.Control) ||
+            _shortcutBox.IsKeyboardFocusWithin) return;
+        var step = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? -1 : 1;
+        _navigation.SelectedIndex = (_navigation.SelectedIndex + step + _pages.Count) % _pages.Count;
+        (_navigation.ItemContainerGenerator.ContainerFromIndex(_navigation.SelectedIndex) as ListBoxItem)?.Focus();
+        e.Handled = true;
     }
 
-    private static void AddField(Grid layout, string label, Control control, int row)
+    private void FollowDrives()
     {
-        Grid field = new();
-        field.ColumnDefinitions.Add(new ColumnDefinition());
-        field.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        TextBlock text = new()
-        {
-            Text = label,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        text.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
-        AutomationProperties.SetLabeledBy(control, text);
-        AutomationProperties.SetName(control, label);
-        field.Children.Add(text);
-        Grid.SetColumn(control, 1);
-        field.Children.Add(control);
-        Grid.SetRow(field, row);
-        layout.Children.Add(field);
+        _autoCapture.UpdateDrives((_primaryDriveSelector.SelectedItem as DriveChoice)?.Name,
+            (_secondaryDriveSelector.SelectedItem as DriveChoice)?.Name);
     }
 
-    private StackPanel CreateButtons(Func<Task<string>>? checkForUpdates)
+    private ListBoxItem CreateNavItem(SettingsSection section, string label, Geometry icon)
     {
-        Button cancelButton = new()
+        var path = new System.Windows.Shapes.Path
         {
-            Content = Strings.Cancel,
-            IsCancel = true,
-            MinWidth = 90,
-            Margin = new Thickness(0, 0, 8, 0)
+            Data = icon, Width = 16, Height = 16, StrokeThickness = 1.5, Stretch = Stretch.None,
+            Margin = new Thickness(0, 0, 10, 0), VerticalAlignment = VerticalAlignment.Center
         };
-        Button saveButton = new()
+        path.SetResourceReference(System.Windows.Shapes.Shape.StrokeProperty, "Text");
+        var content = new DockPanel { LastChildFill = true };
+        DockPanel.SetDock(path, Dock.Left);
+        content.Children.Add(path);
+        var item = new ListBoxItem { Content = content };
+        if (section == SettingsSection.AutomaticCaptures)
         {
-            Content = Strings.Save,
-            IsDefault = true,
-            MinWidth = 90
-        };
-        cancelButton.SetResourceReference(BackgroundProperty, "Raised");
-        ButtonIcon.SetData(cancelButton, ButtonIcon.Cancel);
-        ButtonIcon.SetData(saveButton, ButtonIcon.Save);
-        cancelButton.SetResourceReference(ForegroundProperty, "Text");
-        saveButton.SetResourceReference(BackgroundProperty, "Raised");
-        saveButton.SetResourceReference(ForegroundProperty, "Text");
-        saveButton.Click += SaveButton_Click;
+            DockPanel.SetDock(_captureState, Dock.Right);
+            content.Children.Add(_captureState);
+            _autoCapture.EnabledChanged += ShowCaptureState;
+        }
 
-        Button? checkButton = null;
-        if (UpdatePolicy.GitHubUpdatesEnabled && checkForUpdates is not null)
+        content.Children.Add(new TextBlock
+            { Text = label, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis });
+        item.SetResourceReference(StyleProperty, "SettingsNavItem");
+        AutomationProperties.SetName(item, label);
+        if (section == SettingsSection.AutomaticCaptures) ShowCaptureState(_autoCapture.IsOn);
+        return item;
+
+        void ShowCaptureState(bool on)
+        {
+            _captureState.Text = on ? Strings.SettingsOn : Strings.SettingsOff;
+            _captureState.SetResourceReference(TextBlock.ForegroundProperty, on ? "Accent" : "Muted");
+            AutomationProperties.SetName(item, $"{label}, {_captureState.Text}");
+        }
+    }
+
+    private StackPanel CreateGeneralPage()
+    {
+        var page = Page(Strings.SettingsGeneral);
+        page.Children.Add(CreateHeading(Strings.Appearance, true));
+        page.Children.Add(Field(Strings.Language, _languageSelector));
+        page.Children.Add(Note(Strings.LanguageApplyNote));
+        page.Children.Add(Field(Strings.Theme, _themeSelector));
+        page.Children.Add(Field(Strings.ChartPalette, _paletteSelector));
+        page.Children.Add(CreateHeading(Strings.SettingsStartupAndTray));
+        page.Children.Add(_startupCheckBox);
+        page.Children.Add(_minimizeToTrayCheckBox);
+        page.Children.Add(CreateHeading(Strings.KeyboardShortcut));
+        page.Children.Add(Field(Strings.ShowHideWinMon, _shortcutBox));
+        var resetButton = new Button
+        {
+            Content = Strings.Default, MinWidth = 70, Margin = new Thickness(12, 4, 0, 0),
+            VerticalAlignment = VerticalAlignment.Top
+        };
+        resetButton.SetResourceReference(BackgroundProperty, "Raised");
+        resetButton.SetResourceReference(ForegroundProperty, "Text");
+        AutomationProperties.SetName(resetButton, Strings.RestoreTheDefaultShortcut);
+        resetButton.Click += (_, _) => RecordShortcut(HotkeyGesture.Default);
+        var statusRow = new DockPanel { LastChildFill = true };
+        DockPanel.SetDock(resetButton, Dock.Right);
+        statusRow.Children.Add(resetButton);
+        statusRow.Children.Add(_shortcutStatus);
+        page.Children.Add(statusRow);
+        return page;
+    }
+
+    private StackPanel CreateMonitoringPage()
+    {
+        var page = Page(Strings.SettingsMonitoring);
+        page.Children.Add(CreateHeading(Strings.SettingsHistory, true));
+        page.Children.Add(Field(Strings.HistoricalRetention, _retentionSelector));
+        page.Children.Add(Note(Strings.SettingsRetentionNote));
+        page.Children.Add(CreateHeading(Strings.DiskMonitoring));
+        page.Children.Add(Note(Strings.ChooseUpTo2Volumes));
+        page.Children.Add(Field(Strings.PrimaryDrive, _primaryDriveSelector));
+        page.Children.Add(Field(Strings.SecondDrive, _secondaryDriveSelector));
+        page.Children.Add(Note(Strings.SelectNoneToMonitorOneDriveActiveTimeAndRead));
+        return page;
+    }
+
+    private StackPanel CreateCapturePage()
+    {
+        var page = Page(Strings.AutoCaptureHeading, _autoCapture.EnabledSwitch);
+        page.Children.Add(_autoCapture);
+        return page;
+    }
+
+    private StackPanel CreateUpdatesPage(Func<Task<string>>? checkForUpdates, DateTimeOffset? lastUpdateCheck)
+    {
+        var page = Page(Strings.Updates);
+        var facts = new Grid { Margin = new Thickness(0, 0, 0, 8) };
+        facts.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(150) });
+        facts.ColumnDefinitions.Add(new ColumnDefinition());
+        facts.RowDefinitions.Add(new RowDefinition());
+        facts.RowDefinitions.Add(new RowDefinition());
+        ShowLastChecked(lastUpdateCheck);
+        foreach (var (row, label, value) in new[]
+                 {
+                     (0, Strings.SettingsInstalledVersion, new TextBlock { Text = AppInfo.Version }),
+                     (1, Strings.SettingsLastChecked, _lastChecked)
+                 })
+        {
+            var name = new TextBlock { Text = label, Margin = new Thickness(0, 3, 12, 3) };
+            name.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
+            value.Margin = new Thickness(0, 3, 0, 3);
+            AutomationProperties.SetLabeledBy(value, name);
+            Grid.SetRow(name, row);
+            Grid.SetRow(value, row);
+            Grid.SetColumn(value, 1);
+            facts.Children.Add(name);
+            facts.Children.Add(value);
+        }
+
+        page.Children.Add(facts);
+        _updateCheckStatus.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
+        _updateCheckStatus.VerticalAlignment = VerticalAlignment.Center;
+        AutomationProperties.SetLiveSetting(_updateCheckStatus, AutomationLiveSetting.Polite);
+        var check = new DockPanel { LastChildFill = true };
+        if (checkForUpdates is not null)
         {
             var button = new Button
-                { Content = Strings.CheckForUpdates, MinWidth = 130, Margin = new Thickness(0, 0, 8, 0) };
-            checkButton = button;
+                { Content = Strings.CheckForUpdates, MinWidth = 130, Margin = new Thickness(0, 0, 12, 0) };
             button.SetResourceReference(BackgroundProperty, "Raised");
             button.SetResourceReference(ForegroundProperty, "Text");
             button.Click += async (_, _) =>
@@ -533,6 +606,7 @@ public sealed class SettingsWindow : Window
                 try
                 {
                     _updateCheckStatus.Text = await checkForUpdates();
+                    ShowLastChecked(DateTimeOffset.Now);
                 }
                 catch (OperationCanceledException)
                 {
@@ -547,17 +621,136 @@ public sealed class SettingsWindow : Window
                     button.IsEnabled = true;
                 }
             };
+            DockPanel.SetDock(button, Dock.Left);
+            check.Children.Add(button);
         }
 
+        check.Children.Add(_updateCheckStatus);
+        page.Children.Add(check);
+        page.Children.Add(CreateHeading(Strings.SettingsAutomaticChecks));
+        page.Children.Add(_automaticUpdateCheckBox);
+        page.Children.Add(Note(Strings.SettingsUpdatesNote));
+        return page;
+
+        void ShowLastChecked(DateTimeOffset? time)
+        {
+            _lastChecked.Text = time is { } checkedAt
+                ? Strings.Format(Strings.SettingsCheckedAt, checkedAt.LocalDateTime)
+                : Strings.SettingsNotChecked;
+        }
+    }
+
+    /// <summary>A section page: its title, with an optional control such as a switch at the right.</summary>
+    private static StackPanel Page(string title, FrameworkElement? headerControl = null)
+    {
+        var page = new StackPanel { Margin = new Thickness(26, 18, 26, 18) };
+        var header = new DockPanel { LastChildFill = true, Margin = new Thickness(0, 0, 0, 8) };
+        if (headerControl is not null)
+        {
+            DockPanel.SetDock(headerControl, Dock.Right);
+            header.Children.Add(headerControl);
+        }
+
+        var heading = new TextBlock { Text = title, FontSize = 20, FontWeight = FontWeights.SemiBold };
+        heading.SetResourceReference(TextBlock.ForegroundProperty, "Text");
+        AutomationProperties.SetHeadingLevel(heading, AutomationHeadingLevel.Level1);
+        header.Children.Add(heading);
+        page.Children.Add(header);
+        return page;
+    }
+
+    private static TextBlock CreateHeading(string text, bool first = false)
+    {
+        TextBlock heading = new()
+        {
+            Text = text,
+            FontWeight = FontWeights.SemiBold,
+            FontSize = 14,
+            Margin = new Thickness(0, first ? 2 : 16, 0, 4)
+        };
+        heading.SetResourceReference(TextBlock.ForegroundProperty, "Accent");
+        AutomationProperties.SetHeadingLevel(heading, AutomationHeadingLevel.Level2);
+        return heading;
+    }
+
+    private static TextBlock Note(string text)
+    {
+        var note = new TextBlock
+            { Text = text, FontSize = 12, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 4) };
+        note.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
+        return note;
+    }
+
+    private static string RetentionLabel(int seconds)
+    {
+        return seconds switch
+        {
+            >= 3600 => Strings.Value60Minutes,
+            >= 1800 => Strings.Value30Minutes,
+            _ => Strings.Value10Minutes
+        };
+    }
+
+    private static Grid Field(string label, Control control)
+    {
+        Grid field = new() { Margin = new Thickness(0, 3, 0, 3) };
+        field.ColumnDefinitions.Add(new ColumnDefinition());
+        field.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        TextBlock text = new()
+        {
+            Text = label,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        text.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
+        AutomationProperties.SetLabeledBy(control, text);
+        AutomationProperties.SetName(control, label);
+        field.Children.Add(text);
+        Grid.SetColumn(control, 1);
+        field.Children.Add(control);
+        return field;
+    }
+
+    private StackPanel CreateButtons()
+    {
+        Button cancelButton = new()
+        {
+            Content = Strings.Cancel,
+            IsCancel = true,
+            MinWidth = 90,
+            Margin = new Thickness(0, 0, 8, 0)
+        };
+        Button saveButton = new()
+        {
+            Content = Strings.Save,
+            IsDefault = true,
+            MinWidth = 90
+        };
+        _saveButton = saveButton;
+        cancelButton.SetResourceReference(BackgroundProperty, "Raised");
+        ButtonIcon.SetData(cancelButton, ButtonIcon.Cancel);
+        ButtonIcon.SetData(saveButton, ButtonIcon.Save);
+        cancelButton.SetResourceReference(ForegroundProperty, "Text");
+        saveButton.SetResourceReference(BackgroundProperty, "Raised");
+        saveButton.SetResourceReference(ForegroundProperty, "Text");
+        saveButton.SetResourceReference(BorderBrushProperty, "Accent");
+        saveButton.Click += SaveButton_Click;
         var buttons = new StackPanel
         {
             Orientation = Orientation.Horizontal,
             HorizontalAlignment = HorizontalAlignment.Right
         };
-        if (checkButton is not null) buttons.Children.Add(checkButton);
         buttons.Children.Add(cancelButton);
         buttons.Children.Add(saveButton);
         return buttons;
+    }
+
+    /// <summary>Show the section holding a field that failed validation, then focus that field.</summary>
+    private void Reject(SettingsSection section, Control? field, string message, string title)
+    {
+        ShowSection(section);
+        UpdateLayout();
+        MessageDialog.ShowNotice(this, message, title);
+        field?.Focus();
     }
 
     private void SaveButton_Click(object sender, RoutedEventArgs e)
@@ -566,21 +759,22 @@ public sealed class SettingsWindow : Window
         var secondary = (_secondaryDriveSelector.SelectedItem as DriveChoice)?.Name;
         if (primary is null || primary == secondary)
         {
-            MessageDialog.ShowNotice(this, Strings.ChooseAPrimaryVolumeAndADifferentSecondVolumeOr,
-                Strings.DiskMonitoring);
+            Reject(SettingsSection.Monitoring, primary is null ? _primaryDriveSelector : _secondaryDriveSelector,
+                Strings.ChooseAPrimaryVolumeAndADifferentSecondVolumeOr, Strings.DiskMonitoring);
             return;
         }
 
-        if (_autoCapture.Read(out var captureError) is not { } autoCapture)
+        if (_autoCapture.Read(out var captureError, out var invalid) is not { } autoCapture)
         {
-            MessageDialog.ShowNotice(this, captureError!, Strings.AutoCaptureHeading);
+            Reject(SettingsSection.AutomaticCaptures, invalid, captureError!, Strings.AutoCaptureHeading);
             return;
         }
 
         // Only a chosen folder is probed; the default is created when the first report is written.
         if (autoCapture is { Enabled: true, Folder: { } folder } && !AutoCaptureSection.CanWrite(folder))
         {
-            MessageDialog.ShowNotice(this, Strings.AutoCaptureFolderNotWritable, Strings.AutoCaptureHeading);
+            Reject(SettingsSection.AutomaticCaptures, null, Strings.AutoCaptureFolderNotWritable,
+                Strings.AutoCaptureHeading);
             return;
         }
 

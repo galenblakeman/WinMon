@@ -136,7 +136,7 @@ The Settings image above is from the installer/portable configuration. Store bui
 
 </details>
 
-Settings also let you choose disk volumes, history retention, automatic captures, startup at sign-in and notification-area behavior. The default show/hide shortcut is **Ctrl+Shift+M**.
+Settings is organized into **General**, **Monitoring**, **Automatic captures** and **Updates** sections in a sidebar, with one Save for all of them. Choose disk volumes, history retention, automatic captures, startup at sign-in and notification-area behavior there. The default show/hide shortcut is **Ctrl+Shift+M**.
 
 Choose **Windows display language** or select English, Simplified Chinese, Russian, Spanish, Brazilian Portuguese, German, Japanese, French, Polish or Korean in Settings. Language changes apply when you save.
 

@@ -16,12 +16,13 @@ These records describe the individual feature increments and their validation at
 - [Process count selector](PROCESS-COUNT.md)
 - [Code structure](STRUCTURE.md)
 
-Proposed, not started:
+Implemented on 2026-10-24; each note ends with what landed and where it departed from the design:
 
 - [Keep history across update restarts](UPDATE-RESTART-HISTORY.md)
 - [Resource detail tooltips](HOVER-DETAILS.md)
 - [Automatic captures](AUTO-CAPTURE.md)
 - [Usage tab](USAGE-TAB.md)
+- [Settings sidebar](SETTINGS-LAYOUT.md)
 
 ## Application icon
 

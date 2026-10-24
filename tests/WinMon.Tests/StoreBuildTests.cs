@@ -18,6 +18,9 @@ public sealed class StoreBuildTests
         var window = new SettingsWindow(new MonitorPreferences(), () => [], checkForUpdates: () => Task.FromResult("checked"));
         try
         {
+            // Store builds have no Updates section, so this leaves the General section showing.
+            window.ShowSection(SettingsSection.Updates);
+            Assert.That(window.Section == SettingsSection.Updates, Is.EqualTo(UpdatePolicy.GitHubUpdatesEnabled));
             var elements = Descendants(window).ToArray();
             Assert.That(elements.OfType<CheckBox>().Any(c => Equals(c.Content, Strings.AutomaticallyCheckForUpdates)),
                 Is.EqualTo(UpdatePolicy.GitHubUpdatesEnabled));

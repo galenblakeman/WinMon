@@ -1503,8 +1503,6 @@ Se puede perder el trabajo sin guardar. Se finalizarán todos los procesos indic
   <data name="AutoCaptureSecondsFor" xml:space="preserve"><value>Duración de {0} en segundos</value></data>
   <data name="AutoCapturePercentOfCore" xml:space="preserve"><value>% de un núcleo</value></data>
   <data name="AutoCapturePercentActive" xml:space="preserve"><value>% activo</value></data>
-  <data name="AutoCaptureAbove" xml:space="preserve"><value>por encima de</value></data>
-  <data name="AutoCaptureFor" xml:space="preserve"><value>durante</value></data>
   <data name="AutoCaptureSecondsUnit" xml:space="preserve"><value>s</value></data>
   <data name="AutoCaptureProcessHelp" xml:space="preserve"><value>Cualquier proceso detecta un proceso descontrolado: 100 % es un procesador lógico totalmente ocupado, así que funciona igual con 4 o 32 núcleos.</value></data>
   <data name="AutoCaptureCooldown" xml:space="preserve"><value>Minutos entre capturas de la misma regla</value></data>
@@ -1545,4 +1543,21 @@ Se puede perder el trabajo sin guardar. Se finalizarán todos los procesos indic
   <data name="AutoCaptureMenuDetail" xml:space="preserve"><value>{0:T} · pico {1} · hace {2}</value></data>
   <data name="AutoCaptureOpenFolderCount" xml:space="preserve"><value>Abrir carpeta de informes ({0})</value></data>
   <data name="AutoCaptureSettings" xml:space="preserve"><value>Configuración de capturas automáticas…</value></data>
+  <data name="SettingsGeneral" xml:space="preserve"><value>General</value></data>
+  <data name="SettingsMonitoring" xml:space="preserve"><value>Supervisión</value></data>
+  <data name="SettingsSections" xml:space="preserve"><value>Secciones de configuración</value></data>
+  <data name="SettingsStartupAndTray" xml:space="preserve"><value>Inicio y área de notificación</value></data>
+  <data name="SettingsHistory" xml:space="preserve"><value>Historial</value></data>
+  <data name="SettingsRetentionNote" xml:space="preserve"><value>Hasta dónde llegan el gráfico, el modo Captura y el historial de procesos. Conservar más tiempo usa más memoria.</value></data>
+  <data name="SettingsOn" xml:space="preserve"><value>Activado</value></data>
+  <data name="SettingsOff" xml:space="preserve"><value>Desactivado</value></data>
+  <data name="SettingsInstalledVersion" xml:space="preserve"><value>Versión instalada</value></data>
+  <data name="SettingsLastChecked" xml:space="preserve"><value>Última comprobación</value></data>
+  <data name="SettingsCheckedAt" xml:space="preserve"><value>{0:g}</value></data>
+  <data name="SettingsNotChecked" xml:space="preserve"><value>Sin comprobar desde que se inició WinMon</value></data>
+  <data name="SettingsAutomaticChecks" xml:space="preserve"><value>Comprobaciones automáticas</value></data>
+  <data name="SettingsUpdatesNote" xml:space="preserve"><value>WinMon consulta a GitHub las versiones firmadas mientras se ejecuta. Las solicitudes no incluyen datos de supervisión ni personales. Al actualizar se conservan el historial y los totales de uso.</value></data>
+  <data name="AutoCaptureRuleHeader" xml:space="preserve"><value>Regla</value></data>
+  <data name="AutoCaptureAboveHeader" xml:space="preserve"><value>Por encima de</value></data>
+  <data name="AutoCaptureForHeader" xml:space="preserve"><value>Durante</value></data>
 </root>

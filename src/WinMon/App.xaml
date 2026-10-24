@@ -552,6 +552,101 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <!--  Settings sidebar sections: an accent bar marks the selected section.  -->
+        <Style x:Key="SettingsNavItem" TargetType="ListBoxItem">
+            <Setter Property="Foreground" Value="{DynamicResource Text}" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Height" Value="40" />
+            <Setter Property="Margin" Value="0,1" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Grid>
+                            <Border
+                                x:Name="Body"
+                                Padding="12,0"
+                                Background="Transparent"
+                                CornerRadius="4">
+                                <ContentPresenter VerticalAlignment="Center" />
+                            </Border>
+                            <Border
+                                x:Name="Bar"
+                                Width="3"
+                                Margin="0,6"
+                                HorizontalAlignment="Left"
+                                Background="{DynamicResource Accent}"
+                                CornerRadius="2"
+                                Visibility="Collapsed" />
+                            <Border
+                                x:Name="Focus"
+                                BorderBrush="{DynamicResource Accent}"
+                                BorderThickness="1"
+                                CornerRadius="4"
+                                IsHitTestVisible="False"
+                                Visibility="Collapsed" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Body" Property="Background" Value="{DynamicResource Raised}" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Body" Property="Background" Value="{DynamicResource SelectedSurface}" />
+                                <Setter TargetName="Bar" Property="Visibility" Value="Visible" />
+                                <Setter Property="FontWeight" Value="SemiBold" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Focus" Property="Visibility" Value="Visible" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!--  An on/off switch: the CheckBox content is its state label, drawn before the track.  -->
+        <Style x:Key="SettingsSwitch" TargetType="CheckBox">
+            <Setter Property="Foreground" Value="{DynamicResource Text}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <StackPanel Background="Transparent" Orientation="Horizontal">
+                            <ContentPresenter Margin="0,0,8,0" VerticalAlignment="Center" />
+                            <Grid Width="40" Height="20">
+                                <Border
+                                    x:Name="Track"
+                                    Background="{DynamicResource Raised}"
+                                    BorderBrush="{DynamicResource Muted}"
+                                    BorderThickness="1"
+                                    CornerRadius="10" />
+                                <Ellipse
+                                    x:Name="Thumb"
+                                    Width="12"
+                                    Height="12"
+                                    Margin="4,0"
+                                    HorizontalAlignment="Left"
+                                    Fill="{DynamicResource Muted}" />
+                            </Grid>
+                        </StackPanel>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Track" Property="Background" Value="{DynamicResource Accent}" />
+                                <Setter TargetName="Track" Property="BorderBrush" Value="{DynamicResource Accent}" />
+                                <Setter TargetName="Thumb" Property="HorizontalAlignment" Value="Right" />
+                                <Setter TargetName="Thumb" Property="Fill" Value="{DynamicResource Surface}" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Track" Property="BorderBrush" Value="{DynamicResource Text}" />
+                                <Setter TargetName="Track" Property="BorderThickness" Value="2" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <Style x:Key="ActivityTab" TargetType="RadioButton">
             <Setter Property="Height" Value="34" />
             <Setter Property="MinWidth" Value="128" />

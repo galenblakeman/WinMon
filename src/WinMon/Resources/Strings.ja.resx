@@ -1503,8 +1503,6 @@ Windows の正常性状態: {2}</value>
   <data name="AutoCaptureSecondsFor" xml:space="preserve"><value>{0} の継続時間 (秒)</value></data>
   <data name="AutoCapturePercentOfCore" xml:space="preserve"><value>% (1 コア)</value></data>
   <data name="AutoCapturePercentActive" xml:space="preserve"><value>% アクティブ</value></data>
-  <data name="AutoCaptureAbove" xml:space="preserve"><value>超過</value></data>
-  <data name="AutoCaptureFor" xml:space="preserve"><value>継続</value></data>
   <data name="AutoCaptureSecondsUnit" xml:space="preserve"><value>秒</value></data>
   <data name="AutoCaptureProcessHelp" xml:space="preserve"><value>「いずれかのプロセス」は暴走した単一のプロセスを検出します。100% は論理プロセッサ 1 個が完全にビジーな状態なので、4 コアでも 32 コアでも同じように機能します。</value></data>
   <data name="AutoCaptureCooldown" xml:space="preserve"><value>同じルールのキャプチャ間隔 (分)</value></data>
@@ -1545,4 +1543,21 @@ Windows の正常性状態: {2}</value>
   <data name="AutoCaptureMenuDetail" xml:space="preserve"><value>{0:T} · ピーク {1} · {2} 前</value></data>
   <data name="AutoCaptureOpenFolderCount" xml:space="preserve"><value>レポート フォルダーを開く ({0})</value></data>
   <data name="AutoCaptureSettings" xml:space="preserve"><value>自動キャプチャの設定…</value></data>
+  <data name="SettingsGeneral" xml:space="preserve"><value>全般</value></data>
+  <data name="SettingsMonitoring" xml:space="preserve"><value>監視</value></data>
+  <data name="SettingsSections" xml:space="preserve"><value>設定のセクション</value></data>
+  <data name="SettingsStartupAndTray" xml:space="preserve"><value>起動と通知領域</value></data>
+  <data name="SettingsHistory" xml:space="preserve"><value>履歴</value></data>
+  <data name="SettingsRetentionNote" xml:space="preserve"><value>グラフ、キャプチャ モード、プロセス履歴でさかのぼれる期間です。長く保持するほどメモリを多く使います。</value></data>
+  <data name="SettingsOn" xml:space="preserve"><value>オン</value></data>
+  <data name="SettingsOff" xml:space="preserve"><value>オフ</value></data>
+  <data name="SettingsInstalledVersion" xml:space="preserve"><value>インストール済みのバージョン</value></data>
+  <data name="SettingsLastChecked" xml:space="preserve"><value>最終確認</value></data>
+  <data name="SettingsCheckedAt" xml:space="preserve"><value>{0:g}</value></data>
+  <data name="SettingsNotChecked" xml:space="preserve"><value>WinMon の起動以降、確認していません</value></data>
+  <data name="SettingsAutomaticChecks" xml:space="preserve"><value>自動確認</value></data>
+  <data name="SettingsUpdatesNote" xml:space="preserve"><value>WinMon は実行中に GitHub で署名済みリリースを確認します。要求に監視データや個人データは含まれません。更新しても履歴と使用状況の合計は保持されます。</value></data>
+  <data name="AutoCaptureRuleHeader" xml:space="preserve"><value>ルール</value></data>
+  <data name="AutoCaptureAboveHeader" xml:space="preserve"><value>しきい値</value></data>
+  <data name="AutoCaptureForHeader" xml:space="preserve"><value>継続時間</value></data>
 </root>

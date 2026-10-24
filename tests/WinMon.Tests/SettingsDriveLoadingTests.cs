@@ -118,9 +118,6 @@ public sealed class SettingsDriveLoadingTests
 
     private static (ComboBox Primary, ComboBox Secondary) Selectors(SettingsWindow window)
     {
-        var layout = (Grid)((Border)((ScrollViewer)window.Content).Content).Child;
-        ComboBox Field(int row) => ((Grid)layout.Children.Cast<System.Windows.UIElement>().Single(c => Grid.GetRow(c) == row))
-            .Children.OfType<ComboBox>().Single();
-        return (Field(28), Field(30));
+        return (window.PrimaryDriveSelector, window.SecondaryDriveSelector);
     }
 }

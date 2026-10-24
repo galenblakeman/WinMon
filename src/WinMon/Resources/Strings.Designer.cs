@@ -28,7 +28,7 @@ public static partial class Strings
     public static string ARM64 => ResourceManager.GetString(nameof(ARM64), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ATA => ResourceManager.GetString(nameof(ATA), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string ATAPI => ResourceManager.GetString(nameof(ATAPI), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
-    public static string AutoCaptureAbove => ResourceManager.GetString(nameof(AutoCaptureAbove), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string AutoCaptureAboveHeader => ResourceManager.GetString(nameof(AutoCaptureAboveHeader), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string AutoCaptureAnyProcess => ResourceManager.GetString(nameof(AutoCaptureAnyProcess), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string AutoCaptureBanner => ResourceManager.GetString(nameof(AutoCaptureBanner), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string AutoCaptureChangeFolder => ResourceManager.GetString(nameof(AutoCaptureChangeFolder), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
@@ -37,7 +37,7 @@ public static partial class Strings
     public static string AutoCaptureEnable => ResourceManager.GetString(nameof(AutoCaptureEnable), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string AutoCaptureFolder => ResourceManager.GetString(nameof(AutoCaptureFolder), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string AutoCaptureFolderNotWritable => ResourceManager.GetString(nameof(AutoCaptureFolderNotWritable), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
-    public static string AutoCaptureFor => ResourceManager.GetString(nameof(AutoCaptureFor), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string AutoCaptureForHeader => ResourceManager.GetString(nameof(AutoCaptureForHeader), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string AutoCaptureGone => ResourceManager.GetString(nameof(AutoCaptureGone), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string AutoCaptureHeading => ResourceManager.GetString(nameof(AutoCaptureHeading), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string AutoCaptureHelp => ResourceManager.GetString(nameof(AutoCaptureHelp), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
@@ -68,6 +68,7 @@ public static partial class Strings
     public static string AutoCaptureReportPending => ResourceManager.GetString(nameof(AutoCaptureReportPending), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string AutoCaptureReportRun => ResourceManager.GetString(nameof(AutoCaptureReportRun), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string AutoCaptureReportTitle => ResourceManager.GetString(nameof(AutoCaptureReportTitle), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string AutoCaptureRuleHeader => ResourceManager.GetString(nameof(AutoCaptureRuleHeader), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string AutoCaptureRuleText => ResourceManager.GetString(nameof(AutoCaptureRuleText), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string AutoCaptureSecondsFor => ResourceManager.GetString(nameof(AutoCaptureSecondsFor), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string AutoCaptureSecondsUnit => ResourceManager.GetString(nameof(AutoCaptureSecondsUnit), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
@@ -509,7 +510,21 @@ public static partial class Strings
     public static string ServiceWorkersIncluded => ResourceManager.GetString(nameof(ServiceWorkersIncluded), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string SetPriority => ResourceManager.GetString(nameof(SetPriority), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string Settings => ResourceManager.GetString(nameof(Settings), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string SettingsAutomaticChecks => ResourceManager.GetString(nameof(SettingsAutomaticChecks), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string SettingsCheckedAt => ResourceManager.GetString(nameof(SettingsCheckedAt), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string SettingsCouldNotBeSavedCheckAccessToYourLocal => ResourceManager.GetString(nameof(SettingsCouldNotBeSavedCheckAccessToYourLocal), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string SettingsGeneral => ResourceManager.GetString(nameof(SettingsGeneral), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string SettingsHistory => ResourceManager.GetString(nameof(SettingsHistory), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string SettingsInstalledVersion => ResourceManager.GetString(nameof(SettingsInstalledVersion), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string SettingsLastChecked => ResourceManager.GetString(nameof(SettingsLastChecked), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string SettingsMonitoring => ResourceManager.GetString(nameof(SettingsMonitoring), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string SettingsNotChecked => ResourceManager.GetString(nameof(SettingsNotChecked), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string SettingsOff => ResourceManager.GetString(nameof(SettingsOff), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string SettingsOn => ResourceManager.GetString(nameof(SettingsOn), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string SettingsRetentionNote => ResourceManager.GetString(nameof(SettingsRetentionNote), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string SettingsSections => ResourceManager.GetString(nameof(SettingsSections), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string SettingsStartupAndTray => ResourceManager.GetString(nameof(SettingsStartupAndTray), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
+    public static string SettingsUpdatesNote => ResourceManager.GetString(nameof(SettingsUpdatesNote), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string SharedServiceCount => ResourceManager.GetString(nameof(SharedServiceCount), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string SharedServiceHost => ResourceManager.GetString(nameof(SharedServiceHost), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;
     public static string SharedSystemMemoryLimitGiB => ResourceManager.GetString(nameof(SharedSystemMemoryLimitGiB), Culture ?? System.Globalization.CultureInfo.CurrentUICulture)!;

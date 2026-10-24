@@ -113,12 +113,19 @@ internal sealed partial class WindowDiagnostics
 
             fixture.Preferences = fixture.Preferences with { Theme = "Dark" };
             fixture.ApplyTheme();
-            var settings = new SettingsWindow(fixture.Preferences, captureFolder: reports) { Owner = fixture, Height = 1200 };
+            var settings = new SettingsWindow(fixture.Preferences, captureFolder: reports,
+                checkForUpdates: () => Task.FromResult(Strings.UpToDate)) { Owner = fixture };
             try
             {
                 settings.Show();
-                await CaptureServiceWindowAsync(settings, Path.Combine(output, "settings-auto-capture.png"),
-                    cancellationToken);
+                foreach (var section in Enum.GetValues<SettingsSection>())
+                {
+                    settings.ShowSection(section);
+                    if (settings.Section != section) continue;
+                    settings.UpdateLayout();
+                    await CaptureServiceWindowAsync(settings,
+                        Path.Combine(output, $"settings-{section.ToString().ToLowerInvariant()}.png"), cancellationToken);
+                }
             }
             finally
             {

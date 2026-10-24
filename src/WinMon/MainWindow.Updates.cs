@@ -17,6 +17,7 @@ public partial class MainWindow
     private Task? _updateDownloadTask;
     private bool _updateDismissed;
     private bool _updateRestartPending;
+    private DateTimeOffset? _lastUpdateCheck;
     private bool _updateDownloading;
 
     // Where this exit saves history for the new version: the update's transaction directory and token.
@@ -67,6 +68,7 @@ public partial class MainWindow
             await _updateGate.WaitAsync(cancellationToken);
             gateHeld = true;
             var offer = await _updateClient.CheckAsync(AppInfo.Version, cancellationToken);
+            _lastUpdateCheck = DateTimeOffset.Now;
             if (_closing) return;
             var changedOffer = offer?.Version != _updateOffer?.Version;
             _updateOffer = offer;

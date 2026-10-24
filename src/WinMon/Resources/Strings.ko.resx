@@ -1503,8 +1503,6 @@ Windows 상태: {2}</value>
   <data name="AutoCaptureSecondsFor" xml:space="preserve"><value>{0} 지속 시간(초)</value></data>
   <data name="AutoCapturePercentOfCore" xml:space="preserve"><value>% (코어 1개)</value></data>
   <data name="AutoCapturePercentActive" xml:space="preserve"><value>% 활성</value></data>
-  <data name="AutoCaptureAbove" xml:space="preserve"><value>초과</value></data>
-  <data name="AutoCaptureFor" xml:space="preserve"><value>지속</value></data>
   <data name="AutoCaptureSecondsUnit" xml:space="preserve"><value>초</value></data>
   <data name="AutoCaptureProcessHelp" xml:space="preserve"><value>단일 프로세스는 폭주하는 프로세스 하나를 감지합니다. 100%는 논리 프로세서 하나가 완전히 사용 중인 상태이므로 코어가 4개든 32개든 동일하게 작동합니다.</value></data>
   <data name="AutoCaptureCooldown" xml:space="preserve"><value>같은 규칙의 캡처 간격(분)</value></data>
@@ -1545,4 +1543,21 @@ Windows 상태: {2}</value>
   <data name="AutoCaptureMenuDetail" xml:space="preserve"><value>{0:T} · 최고 {1} · {2} 전</value></data>
   <data name="AutoCaptureOpenFolderCount" xml:space="preserve"><value>보고서 폴더 열기({0})</value></data>
   <data name="AutoCaptureSettings" xml:space="preserve"><value>자동 캡처 설정…</value></data>
+  <data name="SettingsGeneral" xml:space="preserve"><value>일반</value></data>
+  <data name="SettingsMonitoring" xml:space="preserve"><value>모니터링</value></data>
+  <data name="SettingsSections" xml:space="preserve"><value>설정 섹션</value></data>
+  <data name="SettingsStartupAndTray" xml:space="preserve"><value>시작 및 알림 영역</value></data>
+  <data name="SettingsHistory" xml:space="preserve"><value>기록</value></data>
+  <data name="SettingsRetentionNote" xml:space="preserve"><value>차트, 캡처 모드, 프로세스 기록이 거슬러 올라가는 기간입니다. 오래 보존할수록 메모리를 더 사용합니다.</value></data>
+  <data name="SettingsOn" xml:space="preserve"><value>켬</value></data>
+  <data name="SettingsOff" xml:space="preserve"><value>끔</value></data>
+  <data name="SettingsInstalledVersion" xml:space="preserve"><value>설치된 버전</value></data>
+  <data name="SettingsLastChecked" xml:space="preserve"><value>마지막 확인</value></data>
+  <data name="SettingsCheckedAt" xml:space="preserve"><value>{0:g}</value></data>
+  <data name="SettingsNotChecked" xml:space="preserve"><value>WinMon 시작 이후 확인하지 않음</value></data>
+  <data name="SettingsAutomaticChecks" xml:space="preserve"><value>자동 확인</value></data>
+  <data name="SettingsUpdatesNote" xml:space="preserve"><value>WinMon은 실행 중에 GitHub에서 서명된 릴리스를 확인합니다. 요청에는 모니터링 데이터나 개인 데이터가 포함되지 않습니다. 업데이트해도 기록과 사용량 합계는 유지됩니다.</value></data>
+  <data name="AutoCaptureRuleHeader" xml:space="preserve"><value>규칙</value></data>
+  <data name="AutoCaptureAboveHeader" xml:space="preserve"><value>초과 기준</value></data>
+  <data name="AutoCaptureForHeader" xml:space="preserve"><value>지속 시간</value></data>
 </root>

@@ -3,13 +3,17 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Shapes;
 using Microsoft.Win32;
 using WinMon.Controls;
 using WinMon.Monitoring;
 
 namespace WinMon.Preferences;
 
-/// <summary>The Settings section for automatic captures: one row per rule, cooldown, folder and notifications.</summary>
+/// <summary>
+/// The Settings page for automatic captures: a rule table, cooldown, folder and notifications. Its on/off switch,
+/// <see cref="EnabledSwitch"/>, sits in the page header, outside this panel.
+/// </summary>
 internal sealed class AutoCaptureSection : StackPanel
 {
     private readonly CheckBox _enabled;
@@ -17,82 +21,94 @@ internal sealed class AutoCaptureSection : StackPanel
     private readonly TextBox _cooldown;
     private readonly TextBox _folder;
     private readonly string _defaultFolder;
-    private readonly List<(CaptureMetric Metric, CheckBox Enabled, TextBox Threshold, TextBox Seconds)> _rules = [];
+    private readonly List<Rule> _rules = [];
+
+    private sealed record Rule(CaptureMetric Metric, CheckBox Enabled, TextBlock Label, TextBox Threshold, TextBox Seconds);
 
     internal AutoCaptureSection(AutoCapturePreferences preferences, string defaultFolder, string primaryDrive,
         string? secondaryDrive)
     {
         _defaultFolder = defaultFolder;
-        _enabled = Check(Strings.AutoCaptureEnable, preferences.Enabled);
-        _enabled.FontWeight = FontWeights.SemiBold;
-        Children.Add(_enabled);
-        Children.Add(Note(Strings.AutoCaptureHelp, new Thickness(0, 4, 0, 8)));
+        _enabled = new CheckBox { IsChecked = preferences.Enabled, VerticalAlignment = VerticalAlignment.Center };
+        _enabled.SetResourceReference(StyleProperty, "SettingsSwitch");
+        AutomationProperties.SetName(_enabled, Strings.AutoCaptureEnable);
+        _enabled.ToolTip = Strings.AutoCaptureEnable;
+        _enabled.Checked += (_, _) => OnEnabledChanged();
+        _enabled.Unchecked += (_, _) => OnEnabledChanged();
+        OnEnabledChanged();
+        Children.Add(Note(Strings.AutoCaptureHelp, new Thickness(0, 0, 0, 10)));
 
-        var table = new Grid { Margin = new Thickness(0, 0, 0, 8) };
-        // The label takes the spare width; every other column fits its content.
+        var table = new Grid();
         table.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        for (var column = 1; column < 7; column++)
+        for (var column = 1; column < 5; column++)
             table.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        var row = 0;
-        foreach (var rule in preferences.Rules)
+        table.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        Place(Header(Strings.AutoCaptureRuleHeader), 0, 0);
+        Place(Header(Strings.AutoCaptureAboveHeader), 0, 1, 2);
+        Place(Header(Strings.AutoCaptureForHeader), 0, 3, 2);
+        var row = 1;
+        foreach (var setting in preferences.Rules)
         {
-            if (rule.Metric == CaptureMetric.Process)
-            {
-                table.RowDefinitions.Add(new RowDefinition { Height = new GridLength(6) });
-                row++;
-            }
-
             table.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            var label = rule.Metric switch
-            {
-                CaptureMetric.Cpu => Strings.CPU, CaptureMetric.Memory => Strings.Memory,
-                CaptureMetric.PrimaryDisk => Strings.Format(Strings.DiskLabel, primaryDrive),
-                CaptureMetric.SecondaryDisk => secondaryDrive is null
-                    ? Strings.SecondDrive
-                    : Strings.Format(Strings.DiskLabel, secondaryDrive),
-                CaptureMetric.Network => Strings.Network, CaptureMetric.Gpu => Strings.GPU,
-                _ => Strings.AutoCaptureAnyProcess
-            };
-            var enabled = Check(label, rule.Enabled);
-            var threshold = Number(rule.Threshold, Strings.Format(Strings.AutoCaptureThresholdFor, label));
-            var seconds = Number(rule.Seconds, Strings.Format(Strings.AutoCaptureSecondsFor, label));
-            var unit = rule.Metric switch
+            var label = new TextBlock { VerticalAlignment = VerticalAlignment.Center };
+            var swatch = new Rectangle
+                { Width = 8, Height = 8, Margin = new Thickness(0, 0, 6, 0), VerticalAlignment = VerticalAlignment.Center };
+            swatch.SetResourceReference(Shape.FillProperty,
+                setting.Metric == CaptureMetric.Process ? "Muted" : CaptureReportText.BrushKey(setting.Metric));
+            var content = new StackPanel { Orientation = Orientation.Horizontal };
+            content.Children.Add(swatch);
+            content.Children.Add(label);
+            var enabled = new CheckBox
+                { Content = content, IsChecked = setting.Enabled, VerticalAlignment = VerticalAlignment.Center };
+            enabled.SetResourceReference(Control.ForegroundProperty, "Text");
+            if (setting.Metric == CaptureMetric.Process) enabled.ToolTip = Strings.AutoCaptureProcessHelp;
+            var threshold = Number(setting.Threshold);
+            var seconds = Number(setting.Seconds);
+            var unit = setting.Metric switch
             {
                 CaptureMetric.Network => "Mbps", CaptureMetric.Process => Strings.AutoCapturePercentOfCore,
                 CaptureMetric.PrimaryDisk or CaptureMetric.SecondaryDisk => Strings.AutoCapturePercentActive,
                 _ => "%"
             };
-            Place(enabled, 0);
-            Place(Muted(Strings.AutoCaptureAbove), 1);
-            Place(threshold, 2);
-            Place(Muted(unit), 3);
-            Place(Muted(Strings.AutoCaptureFor), 4);
-            Place(seconds, 5);
-            Place(Muted(Strings.AutoCaptureSecondsUnit), 6);
-            _rules.Add((rule.Metric, enabled, threshold, seconds));
+            Place(enabled, row, 0);
+            Place(threshold, row, 1);
+            Place(Muted(unit), row, 2);
+            Place(seconds, row, 3);
+            Place(Muted(Strings.AutoCaptureSecondsUnit), row, 4);
+            _rules.Add(new Rule(setting.Metric, enabled, label, threshold, seconds));
             row++;
         }
 
-        Children.Add(table);
-        Children.Add(Note(Strings.AutoCaptureProcessHelp, new Thickness(0, 0, 0, 8)));
+        UpdateDrives(primaryDrive, secondaryDrive);
+        var frame = new Border
+        {
+            Child = table, Padding = new Thickness(12, 6, 12, 6), BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(6), Margin = new Thickness(0, 0, 0, 10)
+        };
+        frame.SetResourceReference(Border.BackgroundProperty, "SectionHeaderSurface");
+        frame.SetResourceReference(Border.BorderBrushProperty, "Line");
+        AutomationProperties.SetName(table, Strings.AutoCaptureHeading);
+        Children.Add(frame);
 
-        _cooldown = Number(preferences.CooldownMinutes, Strings.AutoCaptureCooldown);
-        var cooldown = new WrapPanel { Margin = new Thickness(0, 0, 0, 8) };
-        cooldown.Children.Add(Text(Strings.AutoCaptureWaitBefore));
+        _cooldown = Number(preferences.CooldownMinutes);
+        AutomationProperties.SetName(_cooldown, Strings.AutoCaptureCooldown);
         _cooldown.Margin = new Thickness(0, 0, 6, 0);
+        var cooldown = new WrapPanel { Margin = new Thickness(0, 0, 0, 10) };
+        cooldown.Children.Add(Text(Strings.AutoCaptureWaitBefore));
         cooldown.Children.Add(_cooldown);
         cooldown.Children.Add(Text(Strings.AutoCaptureWaitAfter));
         Children.Add(cooldown);
 
-        Children.Add(Text(Strings.AutoCaptureFolder));
+        var folderLabel = Muted(Strings.AutoCaptureFolder);
+        Children.Add(folderLabel);
         _folder = new TextBox
         {
-            Text = preferences.Folder ?? defaultFolder, IsReadOnly = true, MinHeight = 26,
+            Text = preferences.Folder ?? defaultFolder, IsReadOnly = true, MinHeight = 28,
             VerticalContentAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 4, 8, 0)
         };
         _folder.SetResourceReference(Control.BackgroundProperty, "Raised");
         _folder.SetResourceReference(Control.ForegroundProperty, "Text");
-        AutomationProperties.SetName(_folder, Strings.AutoCaptureFolder);
+        AutomationProperties.SetLabeledBy(_folder, folderLabel);
         var change = ActionButton(Strings.AutoCaptureChangeFolder, ChooseFolder);
         var open = ActionButton(Strings.AutoCaptureOpenFolder, OpenFolder);
         var folder = new DockPanel { LastChildFill = true };
@@ -102,60 +118,107 @@ internal sealed class AutoCaptureSection : StackPanel
         folder.Children.Add(change);
         folder.Children.Add(_folder);
         Children.Add(folder);
-        Children.Add(Note(Strings.Format(Strings.AutoCaptureKeepNote, CaptureReports.Keep), new Thickness(0, 4, 0, 8)));
-        _notify = Check(Strings.AutoCaptureNotify, preferences.Notify);
+        Children.Add(Note(Strings.Format(Strings.AutoCaptureKeepNote, CaptureReports.Keep), new Thickness(0, 4, 0, 10)));
+        _notify = new CheckBox { Content = Strings.AutoCaptureNotify, IsChecked = preferences.Notify };
+        _notify.SetResourceReference(Control.ForegroundProperty, "Text");
         Children.Add(_notify);
         return;
 
-        void Place(UIElement element, int column)
+        void Place(UIElement element, int at, int column, int span = 1)
         {
-            Grid.SetRow(element, row);
+            Grid.SetRow(element, at);
             Grid.SetColumn(element, column);
-            if (element is FrameworkElement framework) framework.Margin = new Thickness(column == 0 ? 0 : 6, 3, 0, 3);
+            Grid.SetColumnSpan(element, span);
+            if (element is FrameworkElement framework)
+                framework.Margin = new Thickness(column == 0 ? 0 : 6, 3, 0, 3);
             table.Children.Add(element);
         }
     }
 
-    /// <summary>The section's settings, or null with a message when a number is outside its range.</summary>
-    internal AutoCapturePreferences? Read(out string? error)
+    /// <summary>The page's on/off switch, placed in its header by the Settings window.</summary>
+    internal CheckBox EnabledSwitch => _enabled;
+
+    /// <summary>Raised when the switch changes, so the sidebar can show On or Off.</summary>
+    internal event Action<bool>? EnabledChanged;
+
+    internal bool IsOn => _enabled.IsChecked == true;
+
+    internal string Folder => _folder.Text.Trim();
+
+    private void OnEnabledChanged()
+    {
+        _enabled.Content = IsOn ? Strings.SettingsOn : Strings.SettingsOff;
+        EnabledChanged?.Invoke(IsOn);
+    }
+
+    /// <summary>Follow the drive selectors: label the disk rules and disable the second-disk rule without one.</summary>
+    internal void UpdateDrives(string? primaryDrive, string? secondaryDrive)
+    {
+        foreach (var rule in _rules)
+        {
+            rule.Label.Text = rule.Metric switch
+            {
+                CaptureMetric.Cpu => Strings.CPU, CaptureMetric.Memory => Strings.Memory,
+                CaptureMetric.PrimaryDisk => primaryDrive is null
+                    ? Strings.Disk
+                    : Strings.Format(Strings.DiskLabel, primaryDrive),
+                CaptureMetric.SecondaryDisk => secondaryDrive is null
+                    ? Strings.SecondDrive
+                    : Strings.Format(Strings.DiskLabel, secondaryDrive),
+                CaptureMetric.Network => Strings.Network, CaptureMetric.Gpu => Strings.GPU,
+                _ => Strings.AutoCaptureAnyProcess
+            };
+            AutomationProperties.SetName(rule.Threshold,
+                Strings.Format(Strings.AutoCaptureThresholdFor, rule.Label.Text));
+            AutomationProperties.SetName(rule.Seconds, Strings.Format(Strings.AutoCaptureSecondsFor, rule.Label.Text));
+            if (rule.Metric != CaptureMetric.SecondaryDisk) continue;
+            // The values are kept, so choosing a second drive again restores the rule as it was.
+            var available = secondaryDrive is not null;
+            rule.Enabled.IsEnabled = rule.Threshold.IsEnabled = rule.Seconds.IsEnabled = available;
+        }
+    }
+
+    /// <summary>The page's settings, or null with a message and the field to fix when a number is out of range.</summary>
+    internal AutoCapturePreferences? Read(out string? error, out Control? invalid)
     {
         error = null;
+        invalid = null;
         var rules = new List<CaptureRuleSetting>();
-        foreach (var (metric, enabled, thresholdBox, secondsBox) in _rules)
+        foreach (var rule in _rules)
         {
-            var minimum = metric == CaptureMetric.Network ? 0.1 : 1;
-            var maximum = CaptureRuleSetting.MaximumThreshold(metric);
-            if (!double.TryParse(thresholdBox.Text, NumberStyles.Float, CultureInfo.CurrentCulture, out var threshold) ||
-                threshold < minimum || threshold > maximum)
+            var minimum = rule.Metric == CaptureMetric.Network ? 0.1 : 1;
+            var maximum = CaptureRuleSetting.MaximumThreshold(rule.Metric);
+            if (!double.TryParse(rule.Threshold.Text, NumberStyles.Float, CultureInfo.CurrentCulture,
+                    out var threshold) || threshold < minimum || threshold > maximum)
             {
                 error = Strings.Format(Strings.AutoCaptureInvalidThreshold, minimum, maximum);
-                thresholdBox.Focus();
+                invalid = rule.Threshold;
                 return null;
             }
 
-            if (!int.TryParse(secondsBox.Text, NumberStyles.Integer, CultureInfo.CurrentCulture, out var seconds) ||
+            if (!int.TryParse(rule.Seconds.Text, NumberStyles.Integer, CultureInfo.CurrentCulture, out var seconds) ||
                 seconds is < 1 or > 300)
             {
                 error = Strings.AutoCaptureInvalidSeconds;
-                secondsBox.Focus();
+                invalid = rule.Seconds;
                 return null;
             }
 
-            rules.Add(new CaptureRuleSetting(metric, enabled.IsChecked == true, threshold, seconds));
+            rules.Add(new CaptureRuleSetting(rule.Metric, rule.Enabled.IsChecked == true, threshold, seconds));
         }
 
         if (!int.TryParse(_cooldown.Text, NumberStyles.Integer, CultureInfo.CurrentCulture, out var cooldown) ||
             cooldown is < 1 or > 1440)
         {
             error = Strings.AutoCaptureInvalidCooldown;
-            _cooldown.Focus();
+            invalid = _cooldown;
             return null;
         }
 
-        var folder = _folder.Text.Trim();
+        var folder = Folder;
         return new AutoCapturePreferences
         {
-            Enabled = _enabled.IsChecked == true, Rules = [.. rules], CooldownMinutes = cooldown,
+            Enabled = IsOn, Rules = [.. rules], CooldownMinutes = cooldown,
             Folder = string.Equals(folder, _defaultFolder, StringComparison.OrdinalIgnoreCase) ? null : folder,
             Notify = _notify.IsChecked == true
         };
@@ -167,7 +230,7 @@ internal sealed class AutoCaptureSection : StackPanel
         try
         {
             Directory.CreateDirectory(folder);
-            var probe = Path.Combine(folder, $".winmon-{Guid.NewGuid():N}.tmp");
+            var probe = System.IO.Path.Combine(folder, $".winmon-{Guid.NewGuid():N}.tmp");
             File.WriteAllText(probe, "");
             File.Delete(probe);
             return true;
@@ -178,8 +241,6 @@ internal sealed class AutoCaptureSection : StackPanel
             return false;
         }
     }
-
-    internal string Folder => _folder.Text.Trim();
 
     private void ChooseFolder()
     {
@@ -192,7 +253,7 @@ internal sealed class AutoCaptureSection : StackPanel
         try
         {
             Directory.CreateDirectory(Folder);
-            Process.Start(new ProcessStartInfo(Path.Combine(
+            Process.Start(new ProcessStartInfo(System.IO.Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe"))
                 { UseShellExecute = false, Arguments = $"\"{Folder}\"" })?.Dispose();
         }
@@ -203,14 +264,7 @@ internal sealed class AutoCaptureSection : StackPanel
         }
     }
 
-    private static CheckBox Check(string content, bool isChecked)
-    {
-        var box = new CheckBox { Content = content, IsChecked = isChecked, VerticalAlignment = VerticalAlignment.Center };
-        box.SetResourceReference(Control.ForegroundProperty, "Text");
-        return box;
-    }
-
-    private static TextBox Number(double value, string name)
+    private static TextBox Number(double value)
     {
         var box = new TextBox
         {
@@ -219,13 +273,20 @@ internal sealed class AutoCaptureSection : StackPanel
         };
         box.SetResourceReference(Control.BackgroundProperty, "Raised");
         box.SetResourceReference(Control.ForegroundProperty, "Text");
-        AutomationProperties.SetName(box, name);
         return box;
+    }
+
+    private static TextBlock Header(string text)
+    {
+        var block = new TextBlock { Text = text, FontSize = 11, FontWeight = FontWeights.SemiBold };
+        block.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
+        return block;
     }
 
     private static TextBlock Text(string text)
     {
-        var block = new TextBlock { Text = text, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 6, 0) };
+        var block = new TextBlock
+            { Text = text, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 6, 0) };
         block.SetResourceReference(TextBlock.ForegroundProperty, "Text");
         return block;
     }
@@ -239,7 +300,7 @@ internal sealed class AutoCaptureSection : StackPanel
 
     private static TextBlock Note(string text, Thickness margin)
     {
-        var block = new TextBlock { Text = text, FontSize = 11, TextWrapping = TextWrapping.Wrap, Margin = margin };
+        var block = new TextBlock { Text = text, FontSize = 12, TextWrapping = TextWrapping.Wrap, Margin = margin };
         block.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
         return block;
     }

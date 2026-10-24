@@ -1503,8 +1503,6 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="AutoCaptureSecondsFor" xml:space="preserve"><value>{0} duration in seconds</value></data>
   <data name="AutoCapturePercentOfCore" xml:space="preserve"><value>% of a core</value></data>
   <data name="AutoCapturePercentActive" xml:space="preserve"><value>% active</value></data>
-  <data name="AutoCaptureAbove" xml:space="preserve"><value>above</value></data>
-  <data name="AutoCaptureFor" xml:space="preserve"><value>for</value></data>
   <data name="AutoCaptureSecondsUnit" xml:space="preserve"><value>s</value></data>
   <data name="AutoCaptureProcessHelp" xml:space="preserve"><value>Any one process catches a single runaway process: 100% is one fully busy logical processor, so it works the same on 4 or 32 cores.</value></data>
   <data name="AutoCaptureCooldown" xml:space="preserve"><value>Minutes between captures of the same rule</value></data>
@@ -1545,4 +1543,21 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="AutoCaptureMenuDetail" xml:space="preserve"><value>{0:T} · peak {1} · {2} ago</value></data>
   <data name="AutoCaptureOpenFolderCount" xml:space="preserve"><value>Open reports folder ({0})</value></data>
   <data name="AutoCaptureSettings" xml:space="preserve"><value>Automatic capture settings…</value></data>
+  <data name="SettingsGeneral" xml:space="preserve"><value>General</value></data>
+  <data name="SettingsMonitoring" xml:space="preserve"><value>Monitoring</value></data>
+  <data name="SettingsSections" xml:space="preserve"><value>Settings sections</value></data>
+  <data name="SettingsStartupAndTray" xml:space="preserve"><value>Startup and tray</value></data>
+  <data name="SettingsHistory" xml:space="preserve"><value>History</value></data>
+  <data name="SettingsRetentionNote" xml:space="preserve"><value>How far back the chart, Capture mode and process history reach. Longer retention uses more memory.</value></data>
+  <data name="SettingsOn" xml:space="preserve"><value>On</value></data>
+  <data name="SettingsOff" xml:space="preserve"><value>Off</value></data>
+  <data name="SettingsInstalledVersion" xml:space="preserve"><value>Installed version</value></data>
+  <data name="SettingsLastChecked" xml:space="preserve"><value>Last checked</value></data>
+  <data name="SettingsCheckedAt" xml:space="preserve"><value>{0:g}</value></data>
+  <data name="SettingsNotChecked" xml:space="preserve"><value>Not checked since WinMon started</value></data>
+  <data name="SettingsAutomaticChecks" xml:space="preserve"><value>Automatic checks</value></data>
+  <data name="SettingsUpdatesNote" xml:space="preserve"><value>WinMon asks GitHub for signed releases while it runs. Requests include no monitoring or personal data. Updating keeps your history and Usage totals.</value></data>
+  <data name="AutoCaptureRuleHeader" xml:space="preserve"><value>Rule</value></data>
+  <data name="AutoCaptureAboveHeader" xml:space="preserve"><value>Above</value></data>
+  <data name="AutoCaptureForHeader" xml:space="preserve"><value>For</value></data>
 </root>

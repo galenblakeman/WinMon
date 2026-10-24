@@ -620,12 +620,6 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         }
     }
 
-    private static Grid SettingsLayout(SettingsWindow dialog)
-    {
-        return (Grid)
-            ((Border)((ScrollViewer)dialog.Content).Content).Child;
-    }
-
     private async Task CaptureLanguageSettingsDiagnosticsAsync(string output, CancellationToken cancellationToken)
     {
         var original = window.Preferences;
@@ -650,15 +644,11 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                 var dialog = new SettingsWindow(window.Preferences) { Owner = window, MinHeight = 320, Height = 600 };
                 _ = window.Dispatcher.BeginInvoke(() =>
                 {
-                    var layout = SettingsLayout(dialog);
-                    var selector = layout.Children.OfType<Grid>()
-                        .SelectMany(field => field.Children.OfType<ComboBox>())
-                        .Single(control => AutomationProperties.GetName(control) == Strings.Language);
+                    var selector = dialog.LanguageSelector;
                     if (selector.SelectedValue as string != AppLanguages.Normalize(window.Preferences.Language))
                         throw new InvalidOperationException("The language selector did not restore the saved choice.");
                     selector.SelectedValue = choice.Name;
-                    var save = layout.Children.OfType<StackPanel>().Single(panel => panel is not AutoCaptureSection).Children
-                        .OfType<Button>().Single(button => button.IsDefault);
+                    var save = dialog.SaveButton;
                     save.BringIntoView();
                     dialog.UpdateLayout();
                     var surface = (FrameworkElement)dialog.Content;
@@ -711,10 +701,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
             var cancelled = new SettingsWindow(window.Preferences) { Owner = window };
             _ = window.Dispatcher.BeginInvoke(() =>
             {
-                var layout = SettingsLayout(cancelled);
-                var selector = layout.Children.OfType<Grid>()
-                    .SelectMany(field => field.Children.OfType<ComboBox>())
-                    .Single(control => AutomationProperties.GetName(control) == Strings.Language);
+                var selector = cancelled.LanguageSelector;
                 selector.SelectedValue = "en";
                 cancelled.DialogResult = false;
             }, DispatcherPriority.ContextIdle);
@@ -1009,15 +996,11 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
             var dialog = new SettingsWindow(original with { SecondaryDrive = second ?? missing }) { Owner = window };
             _ = window.Dispatcher.BeginInvoke(() =>
             {
-                var layout = SettingsLayout(dialog);
-                var selector = layout.Children.OfType<Grid>()
-                    .SelectMany(g => g.Children.OfType<ComboBox>())
-                    .Single(c => AutomationProperties.GetName(c) == Strings.SecondDrive);
+                var selector = dialog.SecondaryDriveSelector;
                 selector.SelectedItem = selector.Items.Cast<object>().Single(item => selection is null
                     ? item.ToString() == Strings.None
                     : item.ToString()!.StartsWith(selection, StringComparison.Ordinal));
-                var buttons = layout.Children.OfType<StackPanel>().Single(panel => panel is not AutoCaptureSection);
-                ((Button)buttons.Children[1]).RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+                dialog.SaveButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
             }, DispatcherPriority.ContextIdle);
             if (dialog.ShowDialog() != true || dialog.Result?.PrimaryDrive != original.PrimaryDrive ||
                 dialog.Result.SecondaryDrive != selection)

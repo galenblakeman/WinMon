@@ -1503,8 +1503,6 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
   <data name="AutoCaptureSecondsFor" xml:space="preserve"><value>Durée pour {0} en secondes</value></data>
   <data name="AutoCapturePercentOfCore" xml:space="preserve"><value>% d’un cœur</value></data>
   <data name="AutoCapturePercentActive" xml:space="preserve"><value>% actif</value></data>
-  <data name="AutoCaptureAbove" xml:space="preserve"><value>au-dessus de</value></data>
-  <data name="AutoCaptureFor" xml:space="preserve"><value>pendant</value></data>
   <data name="AutoCaptureSecondsUnit" xml:space="preserve"><value>s</value></data>
   <data name="AutoCaptureProcessHelp" xml:space="preserve"><value>Un seul processus repère un processus qui s’emballe : 100 % correspond à un processeur logique entièrement occupé, ce qui fonctionne de la même façon avec 4 ou 32 cœurs.</value></data>
   <data name="AutoCaptureCooldown" xml:space="preserve"><value>Minutes entre deux captures de la même règle</value></data>
@@ -1545,4 +1543,21 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
   <data name="AutoCaptureMenuDetail" xml:space="preserve"><value>{0:T} · pic {1} · il y a {2}</value></data>
   <data name="AutoCaptureOpenFolderCount" xml:space="preserve"><value>Ouvrir le dossier des rapports ({0})</value></data>
   <data name="AutoCaptureSettings" xml:space="preserve"><value>Paramètres des captures automatiques…</value></data>
+  <data name="SettingsGeneral" xml:space="preserve"><value>Général</value></data>
+  <data name="SettingsMonitoring" xml:space="preserve"><value>Surveillance</value></data>
+  <data name="SettingsSections" xml:space="preserve"><value>Sections des paramètres</value></data>
+  <data name="SettingsStartupAndTray" xml:space="preserve"><value>Démarrage et zone de notification</value></data>
+  <data name="SettingsHistory" xml:space="preserve"><value>Historique</value></data>
+  <data name="SettingsRetentionNote" xml:space="preserve"><value>Jusqu’où remontent le graphique, le mode Capture et l’historique des processus. Une conservation plus longue utilise plus de mémoire.</value></data>
+  <data name="SettingsOn" xml:space="preserve"><value>Activé</value></data>
+  <data name="SettingsOff" xml:space="preserve"><value>Désactivé</value></data>
+  <data name="SettingsInstalledVersion" xml:space="preserve"><value>Version installée</value></data>
+  <data name="SettingsLastChecked" xml:space="preserve"><value>Dernière vérification</value></data>
+  <data name="SettingsCheckedAt" xml:space="preserve"><value>{0:g}</value></data>
+  <data name="SettingsNotChecked" xml:space="preserve"><value>Pas vérifié depuis le démarrage de WinMon</value></data>
+  <data name="SettingsAutomaticChecks" xml:space="preserve"><value>Vérifications automatiques</value></data>
+  <data name="SettingsUpdatesNote" xml:space="preserve"><value>WinMon interroge GitHub pour les versions signées pendant son exécution. Les requêtes ne contiennent aucune donnée de surveillance ni personnelle. La mise à jour conserve l’historique et les totaux d’utilisation.</value></data>
+  <data name="AutoCaptureRuleHeader" xml:space="preserve"><value>Règle</value></data>
+  <data name="AutoCaptureAboveHeader" xml:space="preserve"><value>Au-dessus de</value></data>
+  <data name="AutoCaptureForHeader" xml:space="preserve"><value>Pendant</value></data>
 </root>
