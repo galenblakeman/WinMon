@@ -34,9 +34,10 @@ Automatic captures                                  [ On ]
 
 ### When a rule fires
 
-1. **Marker.** A small marker appears at the top edge of the chart at the moment the duration completed. Hovering it shows the rule. Clicking it opens Capture mode at the run's **peak** sample, or opens the saved report once the peak has left history (see [Markers](#markers)).
-2. **Report.** A report is saved to the folder (see [Report](#report)).
-3. **Notification** (only if enabled). "CPU above 90% for 10 s — chrome 62%". Disk and Network notifications name no process (see [Report](#report)). Clicking it shows WinMon and selects the peak sample if it is still in history; otherwise it opens the report.
+1. **Marker.** A small triangle appears at the top edge of the chart at the moment the duration completed. It is drawn in the **color of the rule's resource**, the same color as that resource's chart trace. Hovering it shows the rule. Clicking it opens Capture mode at the run's **peak** sample, or opens the saved report once the peak has left history (see [Markers](#markers)).
+2. **Captures menu.** The chart header shows a count, for example "3 automatic captures", that opens a list of the captures still in history (see [Captures menu](#captures-menu)).
+3. **Report.** A report is saved to the folder (see [Report](#report)). When Capture mode is opened at a capture's peak, the capture card shows the rule and an **Open report** button (see [Capture card](#capture-card)).
+4. **Notification** (only if enabled). "CPU above 90% for 10 s — chrome 62%". Disk and Network notifications name no process (see [Report](#report)). Clicking it shows WinMon and selects the peak sample if it is still in history; otherwise it opens the report.
 
 After firing, a rule **re-arms** only when both of these are true:
 
@@ -151,8 +152,40 @@ The **Any process** report sorts by CPU and puts the triggering process first, e
   - a click opens the saved report instead, if `ReportPath` still exists;
   - if the report doesn't exist either, a click shows "This capture is no longer in history and its report was not found" in the dismissible footer line.
 - **Notification clicks** follow the same order: select the peak if it is in history, otherwise open the report, otherwise show the footer line.
-- **Drawing.** `CpuGraph` draws them as small triangles on the top edge in the accent color, with an automation peer entry per marker so they are reachable without a mouse.
+- **Drawing.** `CpuGraph` draws them as small triangles on the top edge, with an automation peer entry per marker so they are reachable without a mouse.
+  - **Color.** Each triangle uses its resource's palette brush (`CpuAccent`, `MemoryAccent`, `DiskAccent`, `SecondaryDiskAccent`, `NetworkAccent`, `GpuAccent`), so it matches the trace and follows the chosen palette and theme. Any process uses `CpuAccent`.
+  - **Contrast.** A one-pixel outline in the plot surface color keeps a triangle visible where it overlaps a trace of the same color.
+  - **Selected marker.** When the selected sample is a marker's peak, that marker gets a `Text`-colored outline.
+  - **Color is never the only cue.** The tooltip, automation name and captures menu all name the resource.
 - **Navigation.** In Capture mode, **Ctrl+Left / Ctrl+Right** jumps to the previous or next marker, next to the existing Left/Right sample stepping.
+
+### Captures menu
+
+Markers are easy to miss on a busy chart, and the reports folder is outside WinMon, so the chart header gets one entry point for captures.
+
+- **Button.** It sits in the chart header, left of the range chips, labelled with a triangle and "N automatic captures ▾", where N counts the markers still in history. With the feature on but no captures yet, it reads "No automatic captures". With the feature off, it is hidden. It is not shown in Compact view, which has no chart header.
+- **Menu header.** "Automatic captures", with the enabled rules on the right ("Watching CPU, Disk (C:), GPU"), so you can see what is armed without opening Settings.
+- **Items.** One per marker, newest first:
+  - a resource-colored triangle;
+  - the rule, for example "CPU above 90% for 10 s";
+  - the fire time and peak, plus the busiest process for CPU, Memory, GPU and Any process (Disk and Network name none, as in [Report](#report));
+  - the age, for example "2 min ago".
+- **Selecting an item** does exactly what clicking its marker does: select the peak, else open the report, else show the footer line. If the peak is outside the visible chart range, the range first widens to the smallest chip that contains it.
+- **Footer.**
+  - "Open reports folder (N)", where N is the number of files that pass the pruning checks in [File names and pruning](#file-names-and-pruning);
+  - "Automatic capture settings…", which opens Settings at the section.
+- **Keyboard.** The button is in the tab order. The menu uses the existing themed menu style and its standard keyboard behavior.
+
+### Capture card
+
+When the selected sample is a marker's peak, however it was reached, the capture card gains two things:
+
+- **A banner** above "Capture · 14:03:08": a resource-colored triangle with "Automatic capture · CPU above 90% for 10 s" and a "peak" label.
+- **An Open report button** between **Copy capture** and **Return to live**. It opens `ReportPath` with the default text editor.
+  - The button is disabled when there is no report: the write is still pending, it failed, or the file has gone. Its tooltip says which.
+  - The button is checked when the card is drawn, so a report deleted meanwhile shows as missing.
+
+Stepping to any other sample removes the banner and the button. The card is otherwise unchanged, and **Copy capture** still copies the on-screen view, not the saved report.
 
 ### Notification
 
@@ -178,6 +211,9 @@ Rules, cooldown, folder, notification and the master switch go into `MonitorPref
 | Marker identity | A marker stores both its firing and peak samples by monotonic and wall-clock timestamp. A click selects the exact peak, or falls back to the report once the peak has left history. |
 | Disk and network attribution | The process list is labelled as total process I/O and carries a disclaimer. Notifications for these rules name no process. |
 | Notification | Tray balloon, off by default, rate-limited. |
+| Marker color | The rule's resource color from the active palette, with a surface outline. The resource is also named in the tooltip, automation name and menu. |
+| Finding captures | One "N automatic captures" menu in the chart header lists what is still in history. Older captures are reached through the reports folder. |
+| Capture card | A banner and an Open report button appear only while the selected sample is a capture's peak. |
 
 ## Docs to change
 
@@ -219,16 +255,32 @@ Other tests:
   - after the peak leaves history but before the firing sample does, the marker stays and a click opens the report;
   - with the report deleted, a click shows the footer line;
   - the marker is removed once the firing sample leaves history;
-  - notification clicks follow the same fallback order.
+  - notification clicks follow the same fallback order;
+  - each marker's brush is its resource's palette brush, and changes with the palette and theme.
+- Captures menu:
+  - the count matches the markers in history, and the button reads "No automatic captures" with none and is hidden with the feature off;
+  - items are newest first, and Disk and Network items name no process;
+  - selecting an item behaves like clicking its marker, including widening the chart range when the peak is outside it;
+  - the folder count includes only files that pass the pruning checks.
+- Capture card:
+  - the banner and Open report appear only on a marker's peak sample, and disappear when stepping to another sample;
+  - Open report is disabled, with the matching tooltip, for a pending, failed or deleted report.
 - Preferences round trip, and old settings without the new fields load as off.
-- Diagnostics: a smoke mode that injects a synthetic CPU run and checks the marker, the report file, Capture-mode selection on marker click and Ctrl+Left/Right. Light and dark captures of the Settings section.
+- Diagnostics: a smoke mode that injects synthetic CPU and Disk runs and checks:
+  - the markers and their colors;
+  - the report files;
+  - Capture-mode selection on marker click and from the captures menu;
+  - the capture card's banner and Open report;
+  - Ctrl+Left/Right between markers.
+
+  Light and dark captures of the Settings section, the open captures menu and the capture card.
 
 ## Sequence
 
 1. `CaptureRules` with tests, and the session change that passes each drained sample.
 2. Preferences and the Settings section.
 3. Report writing, folder pruning and the error footer line.
-4. Chart markers, marker navigation and click-to-select.
+4. Chart markers, marker navigation and click-to-select, the captures menu, and the capture card's banner and Open report button.
 5. Notification.
 6. README, PRIVACY.md, strings for all 10 languages and diagnostics captures.
 
