@@ -12,10 +12,13 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <Grid
-            x:Name="ToolbarGrid"
-            Margin="0,6,0,6">
+        <Border
+            Margin="-20,0,-20,8"
+            Padding="20,5"
+            Background="{DynamicResource SectionHeaderSurface}">
+        <Grid x:Name="ToolbarGrid">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -173,6 +176,7 @@
                     ToolTip="{Binding [UsageResetConfirm], Source={x:Static r:Strings.Text}}" />
             </StackPanel>
         </Grid>
+        </Border>
         <ScrollViewer
             x:Name="HeaderScroll"
             Grid.Row="1"
@@ -247,6 +251,7 @@
             ContextMenuOpening="OnMenuOpening"
             Foreground="{DynamicResource Text}"
             PreviewMouseRightButtonDown="OnRowRightClick"
+            SelectionChanged="OnSelectionChanged"
             ScrollViewer.HorizontalScrollBarVisibility="Auto"
             ScrollViewer.ScrollChanged="OnScrollChanged"
             ScrollViewer.VerticalScrollBarVisibility="Auto"
@@ -406,5 +411,55 @@
             Foreground="{DynamicResource Muted}"
             TextWrapping="Wrap"
             Visibility="Collapsed" />
+        <Border
+            x:Name="ActionBar"
+            Grid.Row="5"
+            MinHeight="54"
+            Margin="0,6,0,0"
+            Background="{DynamicResource SectionHeaderSurface}"
+            BorderBrush="{DynamicResource Line}"
+            BorderThickness="1"
+            CornerRadius="4">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="4" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Border x:Name="ActionAccent" Background="{DynamicResource Line}" CornerRadius="3,0,0,3" />
+                <Grid x:Name="ActionBarGrid" Grid.Column="1" Margin="14,6">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <DockPanel VerticalAlignment="Center" Margin="0,0,14,0">
+                        <Image x:Name="SelectionIcon" Width="28" Height="28" Margin="0,0,12,0"
+                               Source="{Binding SelectedItem.Icon, ElementName=Rows}" Visibility="Collapsed" />
+                        <StackPanel>
+                            <TextBlock x:Name="SelectionName" FontSize="16" FontWeight="SemiBold"
+                                       TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
+                            <TextBlock x:Name="SelectionDetail" Margin="0,2,0,0" FontSize="11"
+                                       Foreground="{DynamicResource Muted}" TextTrimming="CharacterEllipsis"
+                                       ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
+                        </StackPanel>
+                    </DockPanel>
+                    <WrapPanel x:Name="ActionControls" Grid.Column="1" HorizontalAlignment="Right"
+                               VerticalAlignment="Center" Orientation="Horizontal">
+                        <Button x:Name="ShowInProcesses" local:ButtonIcon.Data="{x:Static local:ButtonIcon.Process}"
+                                Click="OnShowInProcesses" Content="{Binding [UsageShowInProcesses], Source={x:Static r:Strings.Text}}"
+                                Style="{DynamicResource ActionBarButton}" />
+                        <Button x:Name="CopyDetails" local:ButtonIcon.Data="{x:Static local:ButtonIcon.Copy}"
+                                Click="OnCopyDetails" Content="{Binding [CopyDetails], Source={x:Static r:Strings.Text}}"
+                                Style="{DynamicResource ActionBarButton}" />
+                        <Button x:Name="OpenFileLocation" local:ButtonIcon.Data="{x:Static local:ButtonIcon.Folder}"
+                                Click="OnOpenFileLocation" Content="{Binding [OpenFileLocation], Source={x:Static r:Strings.Text}}"
+                                Style="{DynamicResource ActionBarLastButton}" />
+                    </WrapPanel>
+                </Grid>
+            </Grid>
+        </Border>
     </Grid>
 </UserControl>

@@ -43,6 +43,18 @@ public partial class UsageView
     private UsageDisplayRow? _contextRow;
     private bool _ready;
     private bool? _wideToolbar;
+    private bool? _wideActionBar;
+    private bool _refreshingRows;
+
+    internal bool ActionsHidden
+    {
+        get;
+        set
+        {
+            field = value;
+            ActionBar.Visibility = value ? Visibility.Collapsed : Visibility.Visible;
+        }
+    }
 
     internal event Action<UsageListSettings>? SettingsChanged;
     internal event Action<string>? CopyRequested;
@@ -72,8 +84,14 @@ public partial class UsageView
             Strings.Text.PropertyChanged -= OnLanguageChanged;
             Strings.Text.PropertyChanged += OnLanguageChanged;
             ArrangeToolbar();
+            ArrangeActionBar();
         };
-        SizeChanged += (_, _) => ArrangeToolbar();
+        SizeChanged += (_, _) =>
+        {
+            ArrangeToolbar();
+            ArrangeActionBar();
+        };
+        ActionControls.SizeChanged += (_, _) => ArrangeActionBar();
         RefreshRows();
     }
 
@@ -114,6 +132,20 @@ public partial class UsageView
     {
         Load(Settings);
         ArrangeToolbar();
+        ArrangeActionBar();
+    }
+
+    private void ArrangeActionBar()
+    {
+        if (!_ready || ActualWidth <= 0) return;
+        ActionControls.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+        var wide = ActualWidth >= ActionControls.DesiredSize.Width + 300;
+        if (_wideActionBar == wide) return;
+        _wideActionBar = wide;
+        ActionBarGrid.ColumnDefinitions[1].Width = wide ? GridLength.Auto : new GridLength(0);
+        Grid.SetRow(ActionControls, wide ? 0 : 1);
+        Grid.SetColumn(ActionControls, wide ? 1 : 0);
+        ActionControls.Margin = wide ? new Thickness() : new Thickness(0, 6, 0, 0);
     }
 
     private void RefreshLabels(UsageListSettings settings)
@@ -254,16 +286,26 @@ public partial class UsageView
             desired.Add(row);
         }
 
-        // Move rows into place rather than reset the list, as the Services view does.
-        for (var i = 0; i < desired.Count; i++)
+        var selectedKey = (Rows.SelectedItem as UsageDisplayRow)?.Key;
+        _refreshingRows = true;
+        try
         {
-            if (i < _rows.Count && ReferenceEquals(_rows[i], desired[i])) continue;
-            var from = _rows.IndexOf(desired[i]);
-            if (from > i) _rows.Move(from, i);
-            else _rows.Insert(i, desired[i]);
-        }
+            // Move rows into place rather than reset the list, as the Services view does.
+            for (var i = 0; i < desired.Count; i++)
+            {
+                if (i < _rows.Count && ReferenceEquals(_rows[i], desired[i])) continue;
+                var from = _rows.IndexOf(desired[i]);
+                if (from > i) _rows.Move(from, i);
+                else _rows.Insert(i, desired[i]);
+            }
 
-        while (_rows.Count > desired.Count) _rows.RemoveAt(_rows.Count - 1);
+            while (_rows.Count > desired.Count) _rows.RemoveAt(_rows.Count - 1);
+            Rows.SelectedItem = selectedKey is null ? null : _rows.FirstOrDefault(row => row.Key == selectedKey);
+        }
+        finally
+        {
+            _refreshingRows = false;
+        }
         if (frame is not null && _rowsByKey.Count > frame.Apps.Count * 2 + 64)
         {
             // A reset clears the ledger; drop rows for apps it no longer has.
@@ -279,6 +321,51 @@ public partial class UsageView
             frame.Capturing ? Strings.UsageLiveNote :
             _rows.Count == 0 ? Strings.UsageNoAppsMatch : "";
         Notice.Visibility = Notice.Text.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
+        UpdateActionBar();
+    }
+
+    private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!_refreshingRows) UpdateActionBar();
+    }
+
+    private void UpdateActionBar()
+    {
+        var row = Rows.SelectedItem as UsageDisplayRow;
+        var app = row?.App;
+        var other = app?.Key == UsageLedger.OtherAppsKey;
+        SelectionName.Text = row?.Name ?? Strings.UsageApp;
+        SelectionDetail.Text = row?.Detail ?? "";
+        SelectionDetail.Visibility = row is null ? Visibility.Collapsed : Visibility.Visible;
+        SelectionIcon.Visibility = row is null ? Visibility.Collapsed : Visibility.Visible;
+        ActionAccent.SetResourceReference(Border.BackgroundProperty, row is null ? "Line" : "Accent");
+        ShowInProcesses.IsEnabled = app is not null && !other && CanShowInProcesses?.Invoke(app) == true;
+        ToolTipService.SetShowOnDisabled(ShowInProcesses, app is not null && !other);
+        ShowInProcesses.ToolTip = app is not null && !other && !ShowInProcesses.IsEnabled
+            ? Strings.UsageNotInHistory : null;
+        CopyDetails.IsEnabled = app is not null && _frame is not null;
+        OpenFileLocation.IsEnabled = app is { ImagePath: { Length: > 0 } } && !other;
+        ArrangeActionBar();
+    }
+
+    private void OnShowInProcesses(object sender, RoutedEventArgs e)
+    {
+        if (Rows.SelectedItem is UsageDisplayRow { App: { } app } &&
+            app.Key != UsageLedger.OtherAppsKey && CanShowInProcesses?.Invoke(app) == true)
+            ShowInProcessesRequested?.Invoke(app);
+    }
+
+    private void OnCopyDetails(object sender, RoutedEventArgs e)
+    {
+        if (Rows.SelectedItem is UsageDisplayRow { App: { } app } && _frame is { } frame)
+            CopyRequested?.Invoke(UsageText.Details(app, frame));
+    }
+
+    private void OnOpenFileLocation(object sender, RoutedEventArgs e)
+    {
+        if (Rows.SelectedItem is UsageDisplayRow { App: { ImagePath: { Length: > 0 } } app } &&
+            app.Key != UsageLedger.OtherAppsKey)
+            OpenLocation(app.ImagePath);
     }
 
     private static void LoadIcon(UsageDisplayRow row, string path)

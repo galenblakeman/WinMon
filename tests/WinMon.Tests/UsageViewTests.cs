@@ -1,4 +1,7 @@
 using System.Globalization;
+using System.Threading;
+using System.Windows;
+using System.Windows.Controls;
 using NUnit.Framework;
 using WinMon.Controls;
 using WinMon.Monitoring;
@@ -111,6 +114,48 @@ public sealed class UsageViewTests
     {
         Assert.That(UsageText.DisplayName(App(UsageLedger.OtherAppsKey) with { Name = "" }),
             Is.EqualTo(Strings.UsageOtherApps));
+    }
+
+    [Test, Apartment(ApartmentState.STA)]
+    public void ActionBarTracksSelectedAppAcrossRefreshAndFilter()
+    {
+        var view = new UsageView { CanShowInProcesses = _ => true };
+        var first = App("first", cpu: 200) with { ImagePath = @"C:\Apps\first.exe" };
+        var second = App("second", cpu: 100) with { ImagePath = @"C:\Apps\second.exe" };
+        view.Update(new UsageFrame([first, second], 300, 0, Now, Now, false));
+        Assert.That(view.CopyDetails.IsEnabled, Is.False);
+
+        view.Rows.SelectedItem = view.Rows.Items.Cast<UsageDisplayRow>().Single(row => row.Key == first.Key);
+        AppUsage? shown = null;
+        string? copied = null;
+        view.ShowInProcessesRequested += app => shown = app;
+        view.CopyRequested += details => copied = details;
+        view.Update(new UsageFrame([first with { CpuTicks = 50 }, second with { CpuTicks = 300 }],
+            350, 0, Now, Now, false));
+        view.ShowInProcesses.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        view.CopyDetails.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Assert.Multiple(() =>
+        {
+            Assert.That((view.Rows.SelectedItem as UsageDisplayRow)?.Key, Is.EqualTo(first.Key));
+            Assert.That(view.SelectionName.Text, Is.EqualTo("first"));
+            Assert.That(shown?.Key, Is.EqualTo(first.Key));
+            Assert.That(copied, Does.Contain("first"));
+            Assert.That(view.OpenFileLocation.IsEnabled, Is.True);
+        });
+
+        view.ActionsHidden = true;
+        Assert.That(view.ActionBar.Visibility, Is.EqualTo(Visibility.Collapsed));
+        view.Search.Text = "second";
+        Assert.Multiple(() =>
+        {
+            Assert.That(view.Rows.SelectedItem, Is.Null);
+            Assert.That(view.CopyDetails.IsEnabled, Is.False);
+            Assert.That(view.ShowInProcesses.IsEnabled, Is.False);
+            Assert.That(view.OpenFileLocation.IsEnabled, Is.False);
+            Assert.That(view.ActionBar.Visibility, Is.EqualTo(Visibility.Collapsed));
+        });
+        view.ActionsHidden = false;
+        Assert.That(view.ActionBar.Visibility, Is.EqualTo(Visibility.Visible));
     }
 
     private static AppUsage App(string name, long cpu = 0, double io = 0, double? gpu = null, int lifetimes = 1,

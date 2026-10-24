@@ -35,6 +35,7 @@ public partial class MainWindow
         var hidden = _preferences.ProcessActionsHidden;
         Processes.ActionsHidden = hidden;
         ServiceView.ActionsHidden = hidden;
+        UsageView.ActionsHidden = hidden;
         var label = hidden ? Strings.ShowActions : Strings.HideActions;
         ActivityActionsToggle.Content = label;
         ButtonIcon.SetData(ActivityActionsToggle, hidden ? ButtonIcon.ChevronDown : ButtonIcon.ChevronUp);

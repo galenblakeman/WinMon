@@ -18,7 +18,11 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <Grid x:Name="ToolbarGrid" Margin="0,5,0,6">
+        <Border
+            Margin="-20,0,-20,8"
+            Padding="20,5"
+            Background="{DynamicResource SectionHeaderSurface}">
+        <Grid x:Name="ToolbarGrid">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -175,6 +179,7 @@
                     Unchecked="OnFilterChanged" />
             </StackPanel>
         </Grid>
+        </Border>
         <ScrollViewer
             x:Name="HeaderScroll"
             Grid.Row="1"
