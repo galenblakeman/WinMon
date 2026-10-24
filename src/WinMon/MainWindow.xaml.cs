@@ -239,8 +239,9 @@ public partial class MainWindow
         RefreshUsage();
         RefreshCaptures(samples);
         UpdateSnapshot(SelectedSample is null ? null : visible);
-        // The compact strip hides the process list; leaving compact mode refreshes it.
-        if (!CompactMode &&
+        // A hidden live process list is refreshed when its tab is selected. Historical capture
+        // reports still need current process rows for Copy capture on any tab.
+        if (!CompactMode && (ProcessesTab.IsChecked == true || SelectedSample is not null) &&
             Processes.Update(new ProcessListFrame(samples, latest, visible, SelectedSample, Session.LatestFull,
                 Session.Latest, Session.History.WasMemoryLimited, _samplingError, _wide,
                 ProcessListSettings.From(_preferences))) is { } report)

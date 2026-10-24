@@ -194,6 +194,8 @@ internal sealed partial class WindowDiagnostics
             AppLanguages.Apply("en");
             fixture.SelectedSample = fixture.Session.History.Samples[90];
             fixture.RefreshVisiblePresentation();
+            if (!ReferenceEquals(fixture.SnapshotReport?.Sample, fixture.SelectedSample))
+                throw new InvalidOperationException("Copy capture must include processes while Services is selected.");
             if (fixture.ServiceView.Stop.IsEnabled || fixture.ServiceView.Restart.IsEnabled ||
                 fixture.ServiceView.Start.IsEnabled)
                 throw new InvalidOperationException("Historical service actions must be disabled.");
@@ -222,6 +224,19 @@ internal sealed partial class WindowDiagnostics
                     }
                 }
             }
+
+            fixture.SelectedSample = null;
+            var newest = fixture.Session.History.Samples[^1];
+            fixture.Session.History.Add(newest with
+            {
+                Timestamp = newest.Timestamp.AddSeconds(1),
+                MonotonicTimestamp = newest.MonotonicTimestamp + Stopwatch.Frequency,
+                Processes = [.. newest.Processes, P(9999, 999, 0, "new-worker.exe", 100, 50)]
+            });
+            fixture.RefreshVisiblePresentation();
+            fixture.ProcessesTab.IsChecked = true;
+            if (!fixture.Processes.Rows.Any(row => row.Visibility == Visibility.Visible && row.Identity?.Item1 == 9999))
+                throw new InvalidOperationException("Processes must show the latest sample after leaving Services.");
 
             fixture.ServiceActionBusy = true;
             fixture.Close();
