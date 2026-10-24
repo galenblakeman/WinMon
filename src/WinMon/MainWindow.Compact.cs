@@ -101,7 +101,7 @@ public partial class MainWindow
     private void RefreshCompactView()
     {
         if (!_compactMode) return;
-        var history = _history.Samples;
+        var history = Session.History.Samples;
         CompactStatus.Text = _samplingError is null ? Strings.LiveMode : Strings.Unavailable;
         CompactStatus.ToolTip =
             _samplingError is null ? Strings.LiveMode : Strings.ReadingsUnavailableRetryingEachSecond;

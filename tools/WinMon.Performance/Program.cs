@@ -39,11 +39,11 @@ internal static class Program
         Flush();
         shuttingDown.SetValue(null, false);
         var window = (MainWindow)Activator.CreateInstance(typeof(MainWindow), Private, null, [true, null, null], null)!;
-        var history = (MonitorHistory)Field("_history").GetValue(window)!;
+        var session = typeof(MainWindow).GetProperty("Session", Private)!.GetValue(window)!;
+        var history = (MonitorHistory)session.GetType().GetProperty("History", Private)!.GetValue(session)!;
+        var record = session.GetType().GetMethod("Record", Private)!;
         var compact = typeof(MonitorHistory).Assembly.GetType("WinMon.Monitoring.ProcessRetention", true)!.GetMethod("Compact", Static)!;
         var refresh = (Action)typeof(MainWindow).GetMethod("RefreshPresentation", Private)!.CreateDelegate(typeof(Action), window);
-        var serviceHistory = Field("_serviceHistory").GetValue(window)!;
-        var addFrame = serviceHistory.GetType().GetMethod("Add", Private)!;
         var serviceTree = Activator.CreateInstance(typeof(MonitorHistory).Assembly.GetType("WinMon.Monitoring.ServiceTree", true)!, true)!;
         var captureFrame = serviceTree.GetType().GetMethod("Capture", Private)!;
         var catalog = Catalog();
@@ -53,11 +53,8 @@ internal static class Program
         {
             second++;
             var full = Sample(anchor, second);
-            Field("_latestFull").SetValue(window, full);
             var compacted = (MonitorSample)compact.Invoke(null, [full, 32, Field("_retainPinned").GetValue(window), false])!;
-            Field("_latestCompacted").SetValue(window, compacted);
-            history.Add(compacted);
-            addFrame.Invoke(serviceHistory, [captureFrame.Invoke(serviceTree, [full, catalog])]);
+            record.Invoke(session, [compacted, full, captureFrame.Invoke(serviceTree, [full, catalog])]);
         }
         window.Width = 1000;
         window.Height = 900;

@@ -46,7 +46,7 @@ public partial class MainWindow
             for (var i = 0; i < 120; i++)
             {
                 var pulse = Math.Exp(-Math.Pow((i - 92) / 3d, 2));
-                fixture._history.Add(new MonitorSample(anchor.AddSeconds(i - 119), 32.8 + 40 * pulse + 3 * Math.Sin(i),
+                fixture.Session.History.Add(new MonitorSample(anchor.AddSeconds(i - 119), 32.8 + 40 * pulse + 3 * Math.Sin(i),
                     processes, 0, MonotonicTimestamp: Stopwatch.Frequency * (i + 1))
                 {
                     Resources = new ResourceSample
@@ -77,7 +77,7 @@ public partial class MainWindow
             fixture.PinnedOnlyCheckBox.IsChecked = true;
             await Draw("pinned_only");
             fixture.PinnedOnlyCheckBox.IsChecked = false;
-            fixture._selectedSample = fixture._history.Samples[92];
+            fixture._selectedSample = fixture.Session.History.Samples[92];
             await Draw("snapshot");
             fixture._selectedSample = null;
             fixture.ToggleProcessPin(code, false);

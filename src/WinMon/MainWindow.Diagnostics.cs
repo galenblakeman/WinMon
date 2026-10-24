@@ -33,7 +33,7 @@ public partial class MainWindow
 {
     internal async Task CaptureSearchDiagnosticsAsync(string outputDirectory, CancellationToken cancellationToken)
     {
-        if (_history.Latest?.TotalCpuPercent is null)
+        if (Session.History.Latest?.TotalCpuPercent is null)
             throw new InvalidOperationException("Search diagnostics need native samples.");
         ProcessSearchBox.Text = "__winmon_search_no_match__";
         if (ClearProcessSearchButton.Visibility != Visibility.Visible ||
@@ -61,7 +61,7 @@ public partial class MainWindow
             await CaptureAsync(Path.Combine(outputDirectory, $"process-sort-{sort}-live.png"), 1, cancellationToken);
             GroupedChip.IsChecked = true;
             await CaptureAsync(Path.Combine(outputDirectory, $"process-sort-{sort}-grouped.png"), 1, cancellationToken);
-            _selectedSample = _history.Samples[^2];
+            _selectedSample = Session.History.Samples[^2];
             RefreshPresentation();
             await CaptureAsync(Path.Combine(outputDirectory, $"process-sort-{sort}-history.png"), 1, cancellationToken);
             _selectedSample = null;
@@ -111,7 +111,7 @@ public partial class MainWindow
 
         var wall = elapsed.Elapsed.TotalSeconds;
         var cpuSeconds = (self.TotalProcessorTime - startCpu).TotalSeconds;
-        var samples = _history.Samples;
+        var samples = Session.History.Samples;
         var report = new
         {
             MeasuredSeconds = wall,
@@ -154,24 +154,24 @@ public partial class MainWindow
         var startCpu = self.TotalProcessorTime;
         var elapsed = Stopwatch.StartNew();
         await Task.Delay(TimeSpan.FromSeconds(8), cancellationToken);
-        if (_history.Samples.Count < 3 || _history.Samples[^1].TotalCpuPercent is null)
+        if (Session.History.Samples.Count < 3 || Session.History.Samples[^1].TotalCpuPercent is null)
             throw new InvalidOperationException("Native CPU samples did not arrive in the live window.");
         SnapshotModeButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
         var heldSnapshot = _selectedSample;
         if (heldSnapshot is null || SnapshotModeButton.IsChecked != true)
             throw new InvalidOperationException("The native Snapshot action did not hold a sample.");
         await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
-        if (!ReferenceEquals(_selectedSample, heldSnapshot) || ReferenceEquals(_history.Latest, heldSnapshot))
+        if (!ReferenceEquals(_selectedSample, heldSnapshot) || ReferenceEquals(Session.History.Latest, heldSnapshot))
             throw new InvalidOperationException("Recording must advance while the snapshot stays fixed.");
         SnapshotModeButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
-        if (ReferenceEquals(_selectedSample, heldSnapshot) || !ReferenceEquals(_selectedSample, _history.Latest))
+        if (ReferenceEquals(_selectedSample, heldSnapshot) || !ReferenceEquals(_selectedSample, Session.History.Latest))
             throw new InvalidOperationException("Clicking Snapshot again must select the newest recorded sample.");
         LiveModeButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
         if (_selectedSample is not null || LiveModeButton.IsChecked != true ||
             SnapshotLayer.Visibility != Visibility.Collapsed)
             throw new InvalidOperationException("The native Live action did not release the snapshot.");
-        var nativeResources = _history.Samples[^1].Resources;
-        var nativeProcessGpu = _history.Samples[^1].Processes.Where(p => p.GpuPercent is not null)
+        var nativeResources = Session.History.Samples[^1].Resources;
+        var nativeProcessGpu = Session.History.Samples[^1].Processes.Where(p => p.GpuPercent is not null)
             .OrderByDescending(p => p.GpuPercent).Take(10)
             .Select(p => new { p.ProcessId, p.Name, p.GpuPercent, p.GpuEngine, p.GpuId }).ToArray();
         if (nativeResources.MemoryPercent is null)
@@ -219,15 +219,15 @@ public partial class MainWindow
         }
 
         // Switching range and widening the window keep the same recording; wide rows gain a PID line.
-        var count = _history.Samples.Count;
+        var count = Session.History.Samples.Count;
         if (RangeSelector.Children.OfType<RadioButton>().FirstOrDefault(c => c.Tag is 600) is not { } tenMinutes)
             throw new InvalidOperationException("The 10-minute range chip is missing.");
         tenMinutes.IsChecked = true;
         Width = 1000;
         UpdateLayout();
-        if (_preferences.EffectiveChartRange != 600 || !_wide || _history.Samples.Count < count)
+        if (_preferences.EffectiveChartRange != 600 || !_wide || Session.History.Samples.Count < count)
             throw new InvalidOperationException("Range or width change did not apply to the existing recording.");
-        _selectedSample = _history.Samples[^2];
+        _selectedSample = Session.History.Samples[^2];
         RefreshPresentation();
         if (SnapshotLayer.Visibility != Visibility.Visible || SelectionLabel.Text != Strings.Format(
                 Strings.ProcessesAtSAverage,
@@ -236,36 +236,36 @@ public partial class MainWindow
         await CaptureAsync(Path.Combine(outputDirectory, "range-wide.png"), 1, cancellationToken);
         await CaptureAsync(Path.Combine(outputDirectory, "range-wide-150.png"), 1.5, cancellationToken);
         await CaptureAsync(Path.Combine(outputDirectory, "range-wide-200.png"), 2, cancellationToken);
-        _history.Resize(1);
+        Session.History.Resize(1);
         RefreshPresentation();
         if (SelectionLabel.Text != Strings.HistoryExpiredThisSampleHasLeftTheRecordingWindowReturn)
             throw new InvalidOperationException("An evicted selection was silently replaced.");
-        _history.Resize(_preferences.RetentionSeconds);
+        Session.History.Resize(_preferences.RetentionSeconds);
         ReturnToLive();
         if (_selectedSample is not null) throw new InvalidOperationException("Return to live retained a selection.");
         var beforeHidden = _presentedSample;
-        var hiddenCount = _history.Samples.Count;
+        var hiddenCount = Session.History.Samples.Count;
         Hide();
         await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
-        if (_history.Samples.Count <= hiddenCount || !ReferenceEquals(_presentedSample, beforeHidden))
+        if (Session.History.Samples.Count <= hiddenCount || !ReferenceEquals(_presentedSample, beforeHidden))
             throw new InvalidOperationException("Hidden recording stopped or presentation continued updating.");
         Show();
-        if (!ReferenceEquals(_presentedSample, _history.Latest))
+        if (!ReferenceEquals(_presentedSample, Session.History.Latest))
             throw new InvalidOperationException("Restoring the window did not refresh the latest sample.");
         var beforeMinimized = _presentedSample;
-        var minimizedCount = _history.Samples.Count;
+        var minimizedCount = Session.History.Samples.Count;
         WindowState = WindowState.Minimized;
         await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
-        if (_history.Samples.Count <= minimizedCount || !ReferenceEquals(_presentedSample, beforeMinimized))
+        if (Session.History.Samples.Count <= minimizedCount || !ReferenceEquals(_presentedSample, beforeMinimized))
             throw new InvalidOperationException("Minimized recording stopped or presentation continued updating.");
         WindowState = WindowState.Normal;
-        if (!ReferenceEquals(_presentedSample, _history.Latest))
+        if (!ReferenceEquals(_presentedSample, Session.History.Latest))
             throw new InvalidOperationException("Restoring the minimized window did not refresh the latest sample.");
         // A stalled UI thread must not delay capture: intervals stay on schedule and the chart draws no gap.
-        var stallCount = _history.Samples.Count;
+        var stallCount = Session.History.Samples.Count;
         Thread.Sleep(3500);
         await Task.Delay(1500, cancellationToken);
-        var stalled = _history.Samples.Skip(stallCount - 1).ToArray();
+        var stalled = Session.History.Samples.Skip(stallCount - 1).ToArray();
         var longestInterval = stalled
             .Zip(stalled.Skip(1), (a, b) => (b.MonotonicTimestamp - a.MonotonicTimestamp) / (double)Stopwatch.Frequency)
             .DefaultIfEmpty().Max();
@@ -297,8 +297,8 @@ public partial class MainWindow
         var report = new
         {
             CompletedAtUtc = DateTimeOffset.UtcNow,
-            NativeSamples = _history.Samples.Count,
-            LastTotalCpu = _history.Samples[^1].TotalCpuPercent,
+            NativeSamples = Session.History.Samples.Count,
+            LastTotalCpu = Session.History.Samples[^1].TotalCpuPercent,
             // Preserve the smoke report's public JSON property name.
             // ReSharper disable once RedundantAnonymousTypePropertyName
             NativeResources = nativeResources,
@@ -310,7 +310,7 @@ public partial class MainWindow
             IntegratedTitleBarHitTesting = true,
             ToolTipDarkAndLight = true,
             HistoricalResourceValues = true,
-            _history.Samples[^1].UnavailableProcesses,
+            Session.History.Samples[^1].UnavailableProcesses,
             ChartRangeAndWideLayout = true,
             HistoricalSelection = true,
             SelectionExpiry = true,
@@ -337,7 +337,7 @@ public partial class MainWindow
     internal async Task CaptureFeatureDiagnosticsAsync(string output, CancellationToken cancellationToken)
     {
         Directory.CreateDirectory(output);
-        if (_history.Samples.Count == 0) await Task.Delay(TimeSpan.FromSeconds(4), cancellationToken);
+        if (Session.History.Samples.Count == 0) await Task.Delay(TimeSpan.FromSeconds(4), cancellationToken);
         // Check the compact process toolbar at the minimum and wider supported window sizes.
         var headerWidth = Width;
         try
@@ -474,7 +474,7 @@ public partial class MainWindow
         var selection = _selectedSample;
         try
         {
-            _selectedSample = _history.Latest;
+            _selectedSample = Session.History.Latest;
             RefreshPresentation();
             row.PrepareProcessMenu();
             if (menu.Items.OfType<MenuItem>().Last().IsEnabled ||
@@ -630,7 +630,7 @@ public partial class MainWindow
         var selection = _selectedSample;
         var query = ProcessSearchBox.Text;
         var samplingTask = _samplingTask;
-        var anchor = _history.Latest;
+        var anchor = Session.History.Latest;
         var tray = _tray;
         using var diagnosticTray = new NotifyIcon();
         diagnosticTray.ContextMenuStrip = new ContextMenuStrip();
@@ -681,7 +681,7 @@ public partial class MainWindow
                     ProcessSortSelector.SelectedItem as string != Strings.Memory ||
                     ProcessSearchBox.Text != "__live_language_no_match__" ||
                     !ReferenceEquals(_selectedSample, anchor) ||
-                    (anchor is not null && !_history.Samples.Contains(anchor)) ||
+                    (anchor is not null && !Session.History.Samples.Contains(anchor)) ||
                     !ReferenceEquals(_samplingTask, samplingTask) ||
                     EmptyLabel.Text != Strings.NoRankedProcessesMatchYourSearch)
                     throw new InvalidOperationException(
@@ -743,7 +743,7 @@ public partial class MainWindow
         var original = OverallGraph.ToolTip;
         var tooltip = new ToolTip
         {
-            Content = CpuGraph.DescribeSample(_history.Samples[^1]),
+            Content = CpuGraph.DescribeSample(Session.History.Samples[^1]),
             PlacementTarget = OverallGraph,
             Placement = PlacementMode.Center
         };
@@ -897,7 +897,7 @@ public partial class MainWindow
         SecondaryDiskMetric.Toggle.IsChecked = true;
         RefreshPresentation();
         await Task.Delay(3000, cancellationToken);
-        var unavailable = _history.Latest!.Resources;
+        var unavailable = Session.History.Latest!.Resources;
         if (unavailable.SecondaryDiskName != missing || unavailable.SecondaryDiskActivePercent is not null ||
             unavailable.DiskActivePercent is null || unavailable.MemoryPercent is null)
             throw new InvalidOperationException("An unavailable second volume disrupted native resource sampling.");
@@ -907,7 +907,7 @@ public partial class MainWindow
         {
             _preferences = _preferences with { SecondaryDrive = second };
             await Task.Delay(3000, cancellationToken);
-            dualNative = _history.Latest!.Resources;
+            dualNative = Session.History.Latest!.Resources;
             if (dualNative.SecondaryDiskName != second || dualNative.SecondaryDiskActivePercent is null ||
                 dualNative.DiskActivePercent is null)
                 throw new InvalidOperationException(
@@ -964,7 +964,7 @@ public partial class MainWindow
         {
             var pulse = Math.Exp(-Math.Pow((i - 92) / 2d, 2));
             var cpu = 18 + 6 * Math.Sin(i * 1.7) + 52 * pulse;
-            fixture._history.Add(new MonitorSample(anchor.AddSeconds(i - 119), cpu,
+            fixture.Session.History.Add(new MonitorSample(anchor.AddSeconds(i - 119), cpu,
             [
                 new ProcessUsage(100, 1, "chrome", 8.4, 1_303_379_968, 18_600_000)
                 {
@@ -1025,7 +1025,7 @@ public partial class MainWindow
         fixture._wide = false;
         fixture.ProcessSearchBox.Text = "chrome";
         fixture.GroupedChip.IsChecked = true;
-        fixture._selectedSample = fixture._history.Samples[^2];
+        fixture._selectedSample = fixture.Session.History.Samples[^2];
         fixture.RefreshVisiblePresentation();
         visual.Measure(new Size(600, 820));
         visual.Arrange(new Rect(0, 0, 600, 820));
@@ -1057,7 +1057,7 @@ public partial class MainWindow
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "disks-design.png"), 1, cancellationToken);
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "disks-design-150.png"), 1.5, cancellationToken);
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "disks-design-200.png"), 2, cancellationToken);
-        fixture._selectedSample = fixture._history.Samples[^2];
+        fixture._selectedSample = fixture.Session.History.Samples[^2];
         fixture.RefreshVisiblePresentation();
         if (!fixture.SnapshotSecondaryDiskName.Text.Contains("D:") || !CpuGraph.DescribeSample(fixture._selectedSample)
                 .Contains(Strings.Format(Strings.SecondaryDiskHistoryLine, "D:", "", ""), StringComparison.Ordinal))
@@ -1096,7 +1096,7 @@ public partial class MainWindow
         if (fixture._preferences.ProcessSort != ProcessSort.Gpu || !AutomationProperties.GetName(fixture._rows[0])
                 .StartsWith("gpu-worker", StringComparison.Ordinal))
             throw new InvalidOperationException("GPU ranking failed to include a CPU-idle GPU process.");
-        fixture._selectedSample = fixture._history.Samples[^2];
+        fixture._selectedSample = fixture.Session.History.Samples[^2];
         fixture.RefreshVisiblePresentation();
         if (!AutomationProperties.GetName(fixture._rows[0]).StartsWith("gpu-worker", StringComparison.Ordinal))
             throw new InvalidOperationException("Historical GPU ranking failed.");
@@ -1136,7 +1136,7 @@ public partial class MainWindow
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "grouped.png"), 1, cancellationToken);
         fixture.IndividualChip.IsChecked = true;
         fixture.RefreshVisiblePresentation();
-        var rankedSample = fixture._history.Latest! with
+        var rankedSample = fixture.Session.History.Latest! with
         {
             Timestamp = anchor.AddSeconds(1),
             MonotonicTimestamp = Stopwatch.Frequency * 121,
@@ -1146,7 +1146,7 @@ public partial class MainWindow
                     new ProcessUsage(1000 + i, i, $"process-{i:00}", 1d / i))
             ]
         };
-        fixture._history.Add(rankedSample);
+        fixture.Session.History.Add(rankedSample);
         foreach (var count in new[] { 5, 10, 15, 20, 50 })
         {
             fixture.ProcessCountSelector.SelectedItem = count;
@@ -1176,7 +1176,7 @@ public partial class MainWindow
                 "All did not render every available process beyond the old 50-row limit.");
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "process-count-all.png"), 1, cancellationToken);
         fixture._selectedSample = rankedSample;
-        fixture._history.Add(rankedSample with
+        fixture.Session.History.Add(rankedSample with
         {
             Timestamp = anchor.AddSeconds(2), MonotonicTimestamp = Stopwatch.Frequency * 122, Processes = []
         });
@@ -1258,7 +1258,7 @@ public partial class MainWindow
                 cancellationToken);
             fixture.SnapshotModeButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
             fixture.RefreshVisiblePresentation();
-            if (!ReferenceEquals(fixture._selectedSample, fixture._history.Latest) ||
+            if (!ReferenceEquals(fixture._selectedSample, fixture.Session.History.Latest) ||
                 fixture.SnapshotModeButton.IsChecked != true || fixture.LiveModeButton.IsChecked == true ||
                 fixture.SnapshotLayer.Visibility != Visibility.Visible)
                 throw new InvalidOperationException("Snapshot mode did not select the newest recorded sample.");
@@ -1286,7 +1286,7 @@ public partial class MainWindow
         }
 
         // Copy from a held historical sample without touching the user's Windows clipboard.
-        fixture._selectedSample = fixture._history.Samples[^2];
+        fixture._selectedSample = fixture.Session.History.Samples[^2];
         fixture.RefreshVisiblePresentation();
         string? copied = null;
         fixture.CopySnapshot(value => copied = value);
@@ -1314,8 +1314,8 @@ public partial class MainWindow
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "snapshot-light-150.png"), 1.5,
             cancellationToken);
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "snapshot-light-200.png"), 2, cancellationToken);
-        fixture._selectedSample = fixture._history.Samples[0];
-        fixture._history.Resize(1);
+        fixture._selectedSample = fixture.Session.History.Samples[0];
+        fixture.Session.History.Resize(1);
         fixture.RefreshVisiblePresentation();
         ArrangeSnapshot(905, 940);
         if (fixture.SnapshotNote.Text != Strings.HistoryExpiredThisSampleHasLeftTheRecordingWindow ||

@@ -11,7 +11,7 @@ public partial class MainWindow
 {
     internal async Task CaptureCompactDiagnosticsAsync(string output, CancellationToken cancellationToken)
     {
-        if (_history.Latest?.Resources.TotalMemoryBytes is null)
+        if (Session.History.Latest?.Resources.TotalMemoryBytes is null)
             throw new InvalidOperationException("Compact diagnostics require native resource samples.");
         var fullSize = new Size(Width, Height);
         CompactViewButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
@@ -44,7 +44,7 @@ public partial class MainWindow
         {
             var pulse = Math.Exp(-Math.Pow((i - 94) / 3d, 2));
             var wobble = 2 * Math.Sin(i * 1.7);
-            fixture._history.Add(new MonitorSample(now.AddSeconds(i - 119), 32.8 + 45 * pulse + wobble, [], 0,
+            fixture.Session.History.Add(new MonitorSample(now.AddSeconds(i - 119), 32.8 + 45 * pulse + wobble, [], 0,
                 i == 45, Stopwatch.Frequency * (i + 1))
             {
                 Resources = new ResourceSample

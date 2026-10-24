@@ -65,7 +65,7 @@ public partial class MainWindow
 
     internal async Task CaptureServicesDiagnosticsAsync(string output, CancellationToken cancellationToken)
     {
-        var live = _serviceHistory.Frames.LastOrDefault();
+        var live = Session.Services.Frames.LastOrDefault();
         if (live is null || !live.Available || !live.Groups.Any(g => g.Host is not null))
             throw new InvalidOperationException(
                 "Live SCM enumeration and process mapping did not produce service readings.");
@@ -132,13 +132,13 @@ public partial class MainWindow
                         GpuPercent = 11, GpuEngine = "3D", GpuId = "illustrative"
                     }
                 };
-                fixture._history.Add(sample);
-                fixture._serviceHistory.Add(tree.Capture(sample, new ServiceCatalog(long.MaxValue, services)));
+                fixture.Session.History.Add(sample);
+                fixture.Session.Services.Add(tree.Capture(sample, new ServiceCatalog(long.MaxValue, services)));
             }
 
             fixture.Show();
             fixture.ServicesTab.IsChecked = true;
-            foreach (var group in fixture._serviceHistory.Frames[^1].Groups
+            foreach (var group in fixture.Session.Services.Frames[^1].Groups
                          .Where(g => g.Shared || g.Services[0].Name == "BuildAgent"))
                 fixture.ServiceView.ExpandGroup(group.Key);
             fixture.ServiceView.Rows.SelectedIndex = 0;
@@ -222,7 +222,7 @@ public partial class MainWindow
                 cancellationToken);
             VerifyToolbar(fixture.ServiceView);
             AppLanguages.Apply("en");
-            fixture._selectedSample = fixture._history.Samples[90];
+            fixture._selectedSample = fixture.Session.History.Samples[90];
             fixture.RefreshVisiblePresentation();
             if (fixture.ServiceView.Stop.IsEnabled || fixture.ServiceView.Restart.IsEnabled ||
                 fixture.ServiceView.Start.IsEnabled)

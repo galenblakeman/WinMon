@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
@@ -38,13 +37,6 @@ public partial class MainWindow
     private readonly List<ProcessRow> _pinnedRows = [];
 
     private Func<ProcessUsage, bool>? _retainPinned;
-
-    // History keeps compacted samples; the live view ranks the newest one in full so group counts and memory are exact.
-    private MonitorSample? _latestFull;
-    private MonitorSample? _latestCompacted;
-    private readonly MonitorHistory _history = new();
-    private readonly ConcurrentQueue<PendingSample> _pendingSamples = new();
-    private int _drainScheduled;
     private MonitorPreferences _preferences = new();
     private Task? _samplingTask;
     private Task _settingsWriteTask = Task.CompletedTask;
@@ -57,12 +49,7 @@ public partial class MainWindow
     // The newest sample the visible presentation last drew; diagnostics check it stays put while hidden.
     private MonitorSample? _presentedSample;
 
-    private enum SamplingError
-    {
-        CpuUnavailable,
-        ReadingsUnavailable
-    }
-
+    // The error the presentation shows, copied from the session after each drain; diagnostics set it directly.
     private SamplingError? _samplingError;
     private bool _wide;
     private const double WideWidth = 800;
@@ -97,6 +84,9 @@ public partial class MainWindow
         _diagnosticMode = diagnosticMode;
         _initialPreferences = initialPreferences;
         _preferenceStore = preferenceStore ?? new PreferenceStore();
+        Session = new MonitorSession(() => new WindowsFrameSource(), CurrentSamplingOptions,
+            drain => Dispatcher.BeginInvoke(drain, DispatcherPriority.Background));
+        Session.Recorded += OnSamplesRecorded;
         InitializeComponent();
         InitializeCompactView();
         InitializeServices();
@@ -204,7 +194,7 @@ public partial class MainWindow
 
             EnsureVisible();
             Topmost = _preferences.AlwaysOnTop;
-            _history.Resize(_preferences.RetentionSeconds);
+            Session.History.Resize(_preferences.RetentionSeconds);
             ApplyTheme();
             if (_preferences.CompactMode) SetCompactView(true);
             BuildRangeChips();
@@ -219,7 +209,7 @@ public partial class MainWindow
 
             SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
             SystemEvents.DisplaySettingsChanged += OnDisplaySettingsChanged;
-            _samplingTask = Task.Run(() => CollectAsync(_lifetime.Token), _lifetime.Token);
+            _samplingTask = Session.Run(_lifetime.Token);
             InitializeUpdates();
         }
         catch (OperationCanceledException) when (_lifetime.IsCancellationRequested)
@@ -232,123 +222,29 @@ public partial class MainWindow
         }
     }
 
-    private async Task CollectAsync(CancellationToken cancellationToken)
+    /// <summary>Samples, the service history and the capture loop; the window only presents them.</summary>
+    internal MonitorSession Session { get; }
+
+    // Read once per capture on the sampling thread: one immutable preferences snapshot, so drives and the
+    // retain-all choice always come from the same moment.
+    private SamplingOptions CurrentSamplingOptions()
     {
-        var sampler = new WindowsCpuSampler();
-        var serviceTree = new ServiceTree();
-        var services = new WindowsServices.Reader();
-        using var resources = new WindowsResourceSampler();
-        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
-        try
-        {
-            do
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                try
-                {
-                    MonitorSample sample;
-                    ServiceCatalog? serviceCatalog = null;
-                    try
-                    {
-                        serviceCatalog = services.Read();
-                    }
-                    catch (Exception ex) when (ex is Win32Exception or UnauthorizedAccessException)
-                    {
-                        Trace.TraceWarning("Service enumeration unavailable: {0}", ex.Message);
-                    }
-
-                    SamplingError? cpuError = null;
-                    try
-                    {
-                        sample = sampler.Sample();
-                    }
-                    catch (Exception ex) when (ex is Win32Exception or PlatformNotSupportedException)
-                    {
-                        sampler.Reset();
-                        cpuError = SamplingError.CpuUnavailable;
-                        Trace.TraceWarning("CPU sampling unavailable: {0}", ex.Message);
-                        sample = new MonitorSample(DateTimeOffset.UtcNow, null, [], 0, false, Stopwatch.GetTimestamp());
-                    }
-
-                    var diskPreferences = Volatile.Read(ref _preferences);
-                    var full = resources.Sample(sample, diskPreferences.PrimaryDrive, diskPreferences.SecondaryDrive);
-                    Deliver(new PendingSample(ProcessRetention.Compact(full, retain: Volatile.Read(ref _retainPinned),
-                            retainAll: Volatile.Read(ref _preferences).TopProcessCount == 0), cpuError, full,
-                        serviceTree.Capture(full, serviceCatalog)));
-                }
-                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-                {
-                    throw;
-                }
-                catch (Exception ex)
-                {
-                    Trace.TraceError("WinMon CPU sampling failed: {0}", ex);
-                    sampler.Reset();
-                    resources.Reset();
-                    Deliver(new PendingSample(null, SamplingError.ReadingsUnavailable));
-                }
-            } while (await timer.WaitForNextTickAsync(cancellationToken));
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-        }
-        finally
-        {
-            if (sampler is IDisposable disposable) disposable.Dispose();
-        }
+        var preferences = Volatile.Read(ref _preferences);
+        return new SamplingOptions(preferences.PrimaryDrive, preferences.SecondaryDrive, Volatile.Read(ref _retainPinned),
+            preferences.TopProcessCount == 0);
     }
 
-    /// <summary>A captured sample, or a failed pass when <see cref="Sample"/> is null, awaiting the UI thread.</summary>
-    private sealed record PendingSample(
-        MonitorSample? Sample,
-        SamplingError? Error,
-        MonitorSample? Full = null,
-        ServiceFrame? Services = null);
-
-    // Capture never waits for the UI: a stalled dispatcher would otherwise delay the next capture and
-    // stretch the sampling interval past the chart's gap threshold. Samples queue in pendingSamples and
-    // are drained in order by at most one pending dispatcher callback.
-    private void Deliver(PendingSample pending)
+    private void OnSamplesRecorded()
     {
-        _pendingSamples.Enqueue(pending);
-        if (Interlocked.Exchange(ref _drainScheduled, 1) == 0)
-            Dispatcher.BeginInvoke(DrainPendingSamples, DispatcherPriority.Background);
-    }
-
-    private void DrainPendingSamples()
-    {
-        // Clear the flag before draining so a sample enqueued meanwhile schedules another drain.
-        Volatile.Write(ref _drainScheduled, 0);
-        var changed = false;
-        while (_pendingSamples.TryDequeue(out var pending))
+        _samplingError = Session.Error;
+        if (!_diagnosticMode && !_updateReadySignaled && Session.Latest is not null && Session.Error is null)
         {
-            if (_closing) continue;
-            try
-            {
-                _samplingError = pending.Error;
-                if (pending.Sample is not null)
-                {
-                    _history.Add(pending.Sample);
-                    _latestCompacted = pending.Sample;
-                    _latestFull = pending.Full;
-                    if (pending.Services is not null) _serviceHistory.Add(pending.Services);
-                    if (!_diagnosticMode && !_updateReadySignaled && pending.Error is null)
-                    {
-                        _updateReadySignaled = true;
-                        UpdateRuntime.SignalReady();
-                        ShowCompletedUpdateNotice();
-                    }
-                }
-
-                changed = true;
-            }
-            catch (Exception ex)
-            {
-                Trace.TraceError("WinMon could not record a sample: {0}", ex);
-            }
+            _updateReadySignaled = true;
+            UpdateRuntime.SignalReady();
+            ShowCompletedUpdateNotice();
         }
 
-        if (changed) RefreshPresentation();
+        RefreshPresentation();
     }
 
     private void RefreshPresentation()
@@ -373,7 +269,7 @@ public partial class MainWindow
         Grid.SetColumnSpan(AppsOnlyCheckBox, _inlineProcessToolbar ? 1 : 2);
         AppsOnlyCheckBox.Margin = _inlineProcessToolbar ? new Thickness(0, 0, 12, 0) : new Thickness(0, 6, 0, 0);
         ArrangePinToolbar();
-        var samples = _history.Samples;
+        var samples = Session.History.Samples;
         var latest = samples.Count == 0 ? null : samples[^1];
         var visible = _selectedSample is null
             ? latest
@@ -434,9 +330,9 @@ public partial class MainWindow
 
         // Views over the history snapshot rather than copies of it, which run to 3,600 samples.
         var rowSamples = _selectedSample is null ? samples : new SampleList(samples, selectedIndex + 1);
-        if (_selectedSample is null && _latestFull is not null && rowSamples.Count > 0 &&
-            ReferenceEquals(rowSamples[^1], _latestCompacted))
-            rowSamples = new SampleList(samples, samples.Count, _latestFull);
+        if (_selectedSample is null && Session.LatestFull is not null && rowSamples.Count > 0 &&
+            ReferenceEquals(rowSamples[^1], Session.Latest))
+            rowSamples = new SampleList(samples, samples.Count, Session.LatestFull);
         // Rank on a short average ending at the live or selected sample; single intervals are tick-quantized.
         var query = ProcessSearchBox.Text.Trim();
         var ranking = ProcessRanking.Rank(rowSamples, sort: _preferences.ProcessSort, grouped: grouped,
@@ -497,7 +393,7 @@ public partial class MainWindow
         CoverageLabel.Text = visible is null
             ? ""
             : Coverage(visible.UnavailableProcesses, ranking.TotalCpuPercent, ranking.MeasuredCpuPercent);
-        if (_history.WasMemoryLimited)
+        if (Session.History.WasMemoryLimited)
             CoverageLabel.Text += (CoverageLabel.Text.Length > 0 ? " · " : "") + Strings.HistoryShortenedByMemoryLimit;
         CoverageLabel.ToolTip = CoverageLabel.Text + Strings.UnattributedCPUIsTotalCPUMinusAllMeasuredProcessesKernel;
         if (_selectedSample is not null && visible is not null)
@@ -546,7 +442,7 @@ public partial class MainWindow
     private void UpdateTrayText(MonitorSample? latest = null)
     {
         if (_tray is null) return;
-        latest ??= _history.Latest;
+        latest ??= Session.History.Latest;
         _tray.Text = Strings.Format(Strings.TrayStatus,
                          _samplingError is not null
                              ? Strings.Unavailable
@@ -812,7 +708,7 @@ public partial class MainWindow
     private ProcessUsage[] CaptureEndTargets(ProcessUsage process)
     {
         return ProcessTerminator.CaptureTargets(process,
-            !_closing && _selectedSample is null, _preferences.GroupProcesses, _latestFull?.Processes ?? []);
+            !_closing && _selectedSample is null, _preferences.GroupProcesses, Session.LatestFull?.Processes ?? []);
     }
 
     private bool CanEndProcess(ProcessUsage process)
@@ -1018,7 +914,7 @@ public partial class MainWindow
         _preferences = PreferenceStore.Validate(SettingsWindow.ApplySettings(_preferences, result));
         SecondaryDiskMetric.Toggle.IsChecked = _preferences.ShowSecondaryDisk;
         ConfigureDiskLayout();
-        _history.Resize(_preferences.RetentionSeconds);
+        Session.History.Resize(_preferences.RetentionSeconds);
         ApplyTheme();
         ApplyLanguage();
         ApplyShortcut();
@@ -1287,6 +1183,7 @@ public partial class MainWindow
         }
 
         _closing = true;
+        Session.Close();
         _snapshotCopiedTimer.Stop();
         IsEnabled = false;
         SystemEvents.UserPreferenceChanged -= OnUserPreferenceChanged;

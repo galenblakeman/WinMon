@@ -9,7 +9,6 @@ namespace WinMon;
 
 public partial class MainWindow
 {
-    private readonly ServiceHistory _serviceHistory = new();
     private bool _serviceActionBusy;
     private bool _closeAfterServiceAction;
 
@@ -42,10 +41,10 @@ public partial class MainWindow
     {
         // The compact strip hides the Services tab as well.
         if (ServicesTab.IsChecked != true || _compactMode) return;
-        var frame = _serviceHistory.Find(_selectedSample);
+        var frame = Session.Services.Find(_selectedSample);
         // A failed collection must not leave stale live metrics or actions on screen.
         if (_selectedSample is null && _samplingError is not null) frame = null;
-        var frames = _serviceHistory.Frames;
+        var frames = Session.Services.Frames;
         var count = 0;
         if (frame is not null)
             for (var i = frames.Count - 1; i >= 0; i--)

@@ -55,7 +55,7 @@ public partial class MainWindow
         for (var i = 0; i < 120; i++)
         {
             var pulse = Math.Exp(-Math.Pow((i - 92) / 2d, 2));
-            fixture._history.Add(new MonitorSample(anchor.AddSeconds(i - 119), 32.8 + 40 * pulse,
+            fixture.Session.History.Add(new MonitorSample(anchor.AddSeconds(i - 119), 32.8 + 40 * pulse,
             [
                 code, chrome,
                 new ProcessUsage(12006, 5, "MsMpEng", 3.3, 286UL * 1_048_576, 3_000_000)
@@ -146,7 +146,7 @@ public partial class MainWindow
         if (fixture._pinnedRows.Count(r => r.Visibility == Visibility.Visible) != 1)
             throw new InvalidOperationException("Grouped pin was not displayed.");
         fixture.IndividualChip.IsChecked = true;
-        fixture._selectedSample = fixture._history.Samples[^2];
+        fixture._selectedSample = fixture.Session.History.Samples[^2];
         Draw();
         string? copied = null;
         fixture.CopySnapshot(text => copied = text);

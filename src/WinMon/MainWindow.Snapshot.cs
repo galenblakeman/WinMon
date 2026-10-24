@@ -23,7 +23,7 @@ public partial class MainWindow
     {
         // Never substitute the live sample when the selected sample has expired.
         if (_snapshotReport is not { } report || !ReferenceEquals(report.Sample, _selectedSample) ||
-            !_history.Samples.Contains(report.Sample)) return;
+            !Session.History.Samples.Contains(report.Sample)) return;
         try
         {
             var text = SnapshotText.Format(report);
@@ -69,7 +69,7 @@ public partial class MainWindow
     {
         LiveModeButton.IsChecked = _selectedSample is null;
         SnapshotModeButton.IsChecked = _selectedSample is not null;
-        SnapshotModeButton.IsEnabled = _history.Latest is not null;
+        SnapshotModeButton.IsEnabled = Session.History.Latest is not null;
         SnapshotLayer.Visibility = _selectedSample is null ? Visibility.Collapsed : Visibility.Visible;
         SnapshotCopyButton.IsEnabled = retained is not null;
         if (!ReferenceEquals(_snapshotReport?.Sample, retained)) ResetSnapshotCopyCaption();
