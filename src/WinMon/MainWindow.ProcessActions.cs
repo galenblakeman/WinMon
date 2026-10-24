@@ -147,7 +147,7 @@ public partial class MainWindow
             CanDumpProcess, () => _selectedSample is not null);
     }
 
-    private void UpdateProcessRetention()
+    internal void UpdateProcessRetention()
     {
         var pins = _processPins.RetentionSnapshot();
         var selected = _processSelection.RetentionSnapshot();

@@ -95,7 +95,7 @@ public partial class MainWindow
         }
     }
 
-    private void ShowUpdateStatus(string text, bool dismissible)
+    internal void ShowUpdateStatus(string text, bool dismissible)
     {
         UpdateStatusText.Text = text;
         UpdateFooter.Visibility = Visibility.Visible;

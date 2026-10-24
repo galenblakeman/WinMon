@@ -10,39 +10,9 @@ using WinMon.Preferences;
 
 // ReSharper disable StringLiteralTypo
 
-namespace WinMon;
+namespace WinMon.Diagnostics;
 
-public partial class App
-{
-    private async Task RunServicesDiagnosticsAsync(MainWindow window, string output)
-    {
-        var exit = 0;
-        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(60));
-        try
-        {
-            Directory.CreateDirectory(output);
-            await Task.Delay(5000, timeout.Token);
-            await window.CaptureServicesDiagnosticsAsync(output, timeout.Token);
-        }
-        catch (Exception ex)
-        {
-            exit = 1;
-            Directory.CreateDirectory(output);
-            // Record the failure even when it was the timeout.
-            await File.WriteAllTextAsync(Path.Combine(output, "failure.txt"), ex.ToString(), CancellationToken.None);
-        }
-        finally
-        {
-            var closed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-            window.Closed += (_, _) => closed.TrySetResult();
-            window.Close();
-            await closed.Task;
-            Shutdown(exit);
-        }
-    }
-}
-
-public partial class MainWindow
+internal sealed partial class WindowDiagnostics
 {
     private static async Task CaptureServiceWindowAsync(Window window, string path, CancellationToken cancellationToken)
     {
@@ -65,7 +35,7 @@ public partial class MainWindow
 
     internal async Task CaptureServicesDiagnosticsAsync(string output, CancellationToken cancellationToken)
     {
-        var live = Session.Services.Frames.LastOrDefault();
+        var live = window.Session.Services.Frames.LastOrDefault();
         if (live is null || !live.Available || !live.Groups.Any(g => g.Host is not null))
             throw new InvalidOperationException(
                 "Live SCM enumeration and process mapping did not produce service readings.");
@@ -84,10 +54,10 @@ public partial class MainWindow
             current.ProcessId, current.ParentProcessId, current.CreationTicks,
             ServiceActionsExecuted = false
         }, new JsonSerializerOptions { WriteIndented = true }), cancellationToken);
-        ServicesTab.IsChecked = true;
-        Width = 1200;
-        Height = 950;
-        await CaptureServiceWindowAsync(this, Path.Combine(output, "services-live.png"), cancellationToken);
+        window.ServicesTab.IsChecked = true;
+        window.Width = 1200;
+        window.Height = 950;
+        await CaptureServiceWindowAsync(window, Path.Combine(output, "services-live.png"), cancellationToken);
 
         var fixture = new MainWindow(true) { Width = 1200, Height = 950 };
         fixture.Loaded -= fixture.OnLoaded;
@@ -144,7 +114,7 @@ public partial class MainWindow
             fixture.ServiceView.Rows.SelectedIndex = 0;
             foreach (var theme in new[] { "Dark", "Light" })
             {
-                fixture._preferences = fixture._preferences with { Theme = theme };
+                fixture.Preferences = fixture.Preferences with { Theme = theme };
                 fixture.ApplyTheme();
                 fixture.RefreshVisiblePresentation();
                 await CaptureServiceWindowAsync(fixture,
@@ -164,7 +134,7 @@ public partial class MainWindow
                     fixture.OnPin(fixture, new RoutedEventArgs());
                 }
 
-                if (fixture.Topmost || fixture.PinButton.ReadLocalValue(BackgroundProperty) !=
+                if (fixture.Topmost || fixture.PinButton.ReadLocalValue(Control.BackgroundProperty) !=
                     DependencyProperty.UnsetValue)
                     throw new InvalidOperationException(
                         "Disabling Always on top must restore the title button's default background.");
@@ -222,7 +192,7 @@ public partial class MainWindow
                 cancellationToken);
             VerifyToolbar(fixture.ServiceView);
             AppLanguages.Apply("en");
-            fixture._selectedSample = fixture.Session.History.Samples[90];
+            fixture.SelectedSample = fixture.Session.History.Samples[90];
             fixture.RefreshVisiblePresentation();
             if (fixture.ServiceView.Stop.IsEnabled || fixture.ServiceView.Restart.IsEnabled ||
                 fixture.ServiceView.Start.IsEnabled)
@@ -230,7 +200,7 @@ public partial class MainWindow
             await CaptureServiceWindowAsync(fixture, Path.Combine(output, "services-snapshot.png"), cancellationToken);
             foreach (var theme in new[] { "Dark", "Light" })
             {
-                fixture._preferences = fixture._preferences with { Theme = theme };
+                fixture.Preferences = fixture.Preferences with { Theme = theme };
                 fixture.ApplyTheme();
                 foreach (var confirmation in new[] { true, false })
                 {
@@ -253,12 +223,12 @@ public partial class MainWindow
                 }
             }
 
-            fixture._serviceActionBusy = true;
+            fixture.ServiceActionBusy = true;
             fixture.Close();
-            if (!fixture.IsVisible || fixture._closing || !fixture._closeAfterServiceAction)
+            if (!fixture.IsVisible || fixture.IsClosing || !fixture.CloseAfterServiceAction)
                 throw new InvalidOperationException("Closing must wait for an accepted service action to finish.");
-            fixture._serviceActionBusy = false;
-            fixture._closeAfterServiceAction = false;
+            fixture.ServiceActionBusy = false;
+            fixture.CloseAfterServiceAction = false;
         }
         finally
         {

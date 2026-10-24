@@ -53,7 +53,7 @@ public partial class MainWindow
     private SamplingError? _samplingError;
     private bool _wide;
     private const double WideWidth = 800;
-    private const double InlineProcessToolbarWidth = 700;
+    internal const double InlineProcessToolbarWidth = 700;
     private bool _inlineProcessToolbar;
     private bool _inlinePinToolbar;
     private bool _closing;
@@ -159,7 +159,7 @@ public partial class MainWindow
         StateChanged += (_, _) => OnWindowStateChanged();
     }
 
-    private async void OnLoaded(object sender, RoutedEventArgs e)
+    internal async void OnLoaded(object sender, RoutedEventArgs e)
     {
         try
         {
@@ -258,7 +258,7 @@ public partial class MainWindow
         RefreshVisiblePresentation();
     }
 
-    private void RefreshVisiblePresentation()
+    internal void RefreshVisiblePresentation()
     {
         Grid.SetRow(ProcessSearchBorder, _inlineProcessToolbar ? 0 : 1);
         Grid.SetColumn(ProcessSearchBorder, _inlineProcessToolbar ? 2 : 0);
@@ -477,7 +477,7 @@ public partial class MainWindow
         RefreshPresentation();
     }
 
-    private void OnClearProcessSearch(object sender, RoutedEventArgs e)
+    internal void OnClearProcessSearch(object sender, RoutedEventArgs e)
     {
         ProcessSearchBox.Clear();
         ProcessSearchBox.Focus();
@@ -616,7 +616,7 @@ public partial class MainWindow
         metric.ToolTip = Strings.Format(Strings.VolumeActiveTimeNotSpaceUsedReadWriteThroughputIn, name);
     }
 
-    private static string Percent(double? value)
+    internal static string Percent(double? value)
     {
         return value is { } number ? Strings.Format(Strings.PercentOneDecimal, number) : Strings.MissingReading;
     }
@@ -626,7 +626,7 @@ public partial class MainWindow
         return CpuGraph.NetworkBitsPerSecond(resources) is { } bits ? RateText.Format(bits) : Strings.MissingReading;
     }
 
-    private void OnPin(object sender, RoutedEventArgs e)
+    internal void OnPin(object sender, RoutedEventArgs e)
     {
         Topmost = !Topmost;
         UpdatePinButton();
@@ -668,7 +668,7 @@ public partial class MainWindow
     }
 
     /// <summary>Rebuild the range chips; choices longer than the retention setting are left out.</summary>
-    private void BuildRangeChips()
+    internal void BuildRangeChips()
     {
         RangeSelector.Children.Clear();
         foreach (var seconds in _preferences.ChartRanges)
@@ -732,7 +732,7 @@ public partial class MainWindow
             new ProcessActionDialog(string.Join("\n\n", errors), false) { Owner = this }.ShowDialog();
     }
 
-    private void ReturnToLive()
+    internal void ReturnToLive()
     {
         _selectedSample = null;
         RefreshPresentation();
@@ -886,7 +886,7 @@ public partial class MainWindow
         }
     }
 
-    private async Task ApplyPreferencesAsync(MonitorPreferences result)
+    internal async Task ApplyPreferencesAsync(MonitorPreferences result)
     {
         var wasEnabled = !_diagnosticMode && StartupRegistration.IsEnabled;
         var startupChanged = !_diagnosticMode && wasEnabled != result.StartWithWindows;
@@ -921,7 +921,7 @@ public partial class MainWindow
         RefreshPresentation();
     }
 
-    private void ApplyLanguage()
+    internal void ApplyLanguage()
     {
         AppLanguages.Apply(_preferences.Language);
         ProcessCountSelector.SelectionChanged -= OnProcessCountChanged;
@@ -984,7 +984,7 @@ public partial class MainWindow
         }
     }
 
-    private void ApplyTheme()
+    internal void ApplyTheme()
     {
         var light = _preferences.Theme == "Light" || (_preferences.Theme == "System" && IsSystemLight());
         var app = Application.Current;
@@ -1137,7 +1137,7 @@ public partial class MainWindow
 
     // WPF requires a void event handler; shutdown failures are caught and logged below.
     // ReSharper disable once AsyncVoidEventHandlerMethod
-    private async void OnClosing(object? sender, CancelEventArgs e)
+    internal async void OnClosing(object? sender, CancelEventArgs e)
     {
         if (_allowClose) return;
         e.Cancel = true;

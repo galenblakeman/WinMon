@@ -19,7 +19,7 @@ public partial class MainWindow
         CopySnapshot();
     }
 
-    private void CopySnapshot(Action<string>? copyToClipboard = null)
+    internal void CopySnapshot(Action<string>? copyToClipboard = null)
     {
         // Never substitute the live sample when the selected sample has expired.
         if (_snapshotReport is not { } report || !ReferenceEquals(report.Sample, _selectedSample) ||
@@ -48,7 +48,7 @@ public partial class MainWindow
         ResetSnapshotCopyCaption();
     }
 
-    private void ResetSnapshotCopyCaption()
+    internal void ResetSnapshotCopyCaption()
     {
         _snapshotCopiedTimer.Stop();
         SnapshotCopyButton.SetBinding(ContentProperty,

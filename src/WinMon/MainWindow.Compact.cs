@@ -122,7 +122,7 @@ public partial class MainWindow
         }
     }
 
-    private Size SavedFullViewSize(Rect bounds)
+    internal Size SavedFullViewSize(Rect bounds)
     {
         return _compactMode ? _fullViewSize : bounds.Size;
     }

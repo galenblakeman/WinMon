@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Windows;
 using WinMon.Controls;
+using WinMon.Diagnostics;
 using WinMon.Monitoring;
 using WinMon.Preferences;
 using WinMon.Shortcuts;
@@ -145,33 +146,33 @@ public partial class App
             if (examplesOnly)
             {
                 Directory.CreateDirectory(output);
-                await WinMon.MainWindow.CaptureExamplesAsync(output, timeout.Token);
+                await WindowDiagnostics.CaptureExamplesAsync(output, timeout.Token);
             }
             else if (compactOnly)
             {
                 Directory.CreateDirectory(output);
                 await Task.Delay(TimeSpan.FromSeconds(4), timeout.Token);
-                await window.CaptureCompactDiagnosticsAsync(output, timeout.Token);
+                await new WindowDiagnostics(window).CaptureCompactDiagnosticsAsync(output, timeout.Token);
             }
             else if (searchOnly)
             {
                 Directory.CreateDirectory(output);
                 await Task.Delay(TimeSpan.FromSeconds(8), timeout.Token);
-                await window.CaptureSearchDiagnosticsAsync(output, timeout.Token);
+                await new WindowDiagnostics(window).CaptureSearchDiagnosticsAsync(output, timeout.Token);
             }
             else if (snapshotsOnly)
             {
                 Directory.CreateDirectory(output);
-                await WinMon.MainWindow.CaptureDesignFixtureAsync(output, timeout.Token);
-                await WinMon.MainWindow.CapturePinsFixtureAsync(output, timeout.Token);
+                await WindowDiagnostics.CaptureDesignFixtureAsync(output, timeout.Token);
+                await WindowDiagnostics.CapturePinsFixtureAsync(output, timeout.Token);
             }
             else if (featuresOnly)
             {
-                await window.CaptureFeatureDiagnosticsAsync(output, timeout.Token);
+                await new WindowDiagnostics(window).CaptureFeatureDiagnosticsAsync(output, timeout.Token);
             }
             else
             {
-                await window.CaptureDiagnosticAsync(output, timeout.Token);
+                await new WindowDiagnostics(window).CaptureDiagnosticAsync(output, timeout.Token);
             }
         }
         catch (Exception ex)
@@ -196,7 +197,7 @@ public partial class App
         var exitCode = 0;
         try
         {
-            await window.CaptureProfileAsync(output, seconds, CancellationToken.None);
+            await new WindowDiagnostics(window).CaptureProfileAsync(output, seconds, CancellationToken.None);
         }
         catch (Exception ex)
         {
@@ -230,5 +231,32 @@ public partial class App
         if (_ownsInstance) _instance?.ReleaseMutex();
         _instance?.Dispose();
         base.OnExit(e);
+    }
+
+    private async Task RunServicesDiagnosticsAsync(MainWindow window, string output)
+    {
+        var exit = 0;
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+        try
+        {
+            Directory.CreateDirectory(output);
+            await Task.Delay(5000, timeout.Token);
+            await new WindowDiagnostics(window).CaptureServicesDiagnosticsAsync(output, timeout.Token);
+        }
+        catch (Exception ex)
+        {
+            exit = 1;
+            Directory.CreateDirectory(output);
+            // Record the failure even when it was the timeout.
+            await File.WriteAllTextAsync(Path.Combine(output, "failure.txt"), ex.ToString(), CancellationToken.None);
+        }
+        finally
+        {
+            var closed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            window.Closed += (_, _) => closed.TrySetResult();
+            window.Close();
+            await closed.Task;
+            Shutdown(exit);
+        }
     }
 }

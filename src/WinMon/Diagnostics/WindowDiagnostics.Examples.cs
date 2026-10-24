@@ -11,9 +11,9 @@ using Point = System.Drawing.Point;
 
 // ReSharper disable StringLiteralTypo
 
-namespace WinMon;
+namespace WinMon.Diagnostics;
 
-public partial class MainWindow
+internal sealed partial class WindowDiagnostics
 {
     /// <summary>Render README examples with illustrative data and isolated, English preferences.</summary>
     internal static async Task CaptureExamplesAsync(string output, CancellationToken cancellationToken)
@@ -27,7 +27,7 @@ public partial class MainWindow
         var chrome = Process(12000, "chrome", "Google Chrome", 8.7, 1260, 92, 1420);
         try
         {
-            fixture._preferences = new MonitorPreferences
+            fixture.Preferences = new MonitorPreferences
                 { Theme = "Dark", PrimaryDrive = "C:", SecondaryDrive = "D:" };
             var code = Process(12003, "Code", "Visual Studio Code", 4.7, 840, 64, 980);
             ProcessUsage[] processes =
@@ -77,24 +77,24 @@ public partial class MainWindow
             fixture.PinnedOnlyCheckBox.IsChecked = true;
             await Draw("pinned_only");
             fixture.PinnedOnlyCheckBox.IsChecked = false;
-            fixture._selectedSample = fixture.Session.History.Samples[92];
+            fixture.SelectedSample = fixture.Session.History.Samples[92];
             await Draw("snapshot");
-            fixture._selectedSample = null;
+            fixture.SelectedSample = null;
             fixture.ToggleProcessPin(code, false);
             fixture.ToggleProcessPin(chrome, false);
             fixture.GroupedChip.IsChecked = true;
-            fixture._preferences = fixture._preferences with { Theme = "Light" };
+            fixture.Preferences = fixture.Preferences with { Theme = "Light" };
             await Draw("light");
-            fixture._preferences = fixture._preferences with { Theme = "Dark" };
+            fixture.Preferences = fixture.Preferences with { Theme = "Dark" };
             foreach (var palette in new[] { "Neon", "Arcade", "Tropical" })
             {
-                fixture._preferences = fixture._preferences with { ChartPalette = palette };
+                fixture.Preferences = fixture.Preferences with { ChartPalette = palette };
                 await Draw(palette.ToLowerInvariant());
             }
 
-            fixture._preferences = fixture._preferences with { ChartPalette = "Neon" };
+            fixture.Preferences = fixture.Preferences with { ChartPalette = "Neon" };
             fixture.ApplyTheme();
-            var settings = new SettingsWindow(fixture._preferences,
+            var settings = new SettingsWindow(fixture.Preferences,
                 checkForUpdates: () => Task.FromResult(Strings.UpToDate))
             {
                 Owner = fixture
@@ -110,19 +110,19 @@ public partial class MainWindow
                 settings.Close();
             }
 
-            fixture._preferences = fixture._preferences with { ChartPalette = "Classic" };
+            fixture.Preferences = fixture.Preferences with { ChartPalette = "Classic" };
             fixture.SetCompactView(true);
             await Draw("compact", 1000, 156);
-            fixture._preferences = fixture._preferences with { Theme = "Light" };
+            fixture.Preferences = fixture.Preferences with { Theme = "Light" };
             await Draw("compact_light", 1000, 156);
         }
         finally
         {
             // This fixture never initialized sampling, updates, tray state or preference writes.
-            fixture._snapshotCopiedTimer.Stop();
-            fixture._allowClose = true;
+            fixture.SnapshotCopiedTimer.Stop();
+            fixture.AllowClose = true;
             fixture.Close();
-            fixture._lifetime.Dispose();
+            fixture.Lifetime.Dispose();
         }
 
         return;
@@ -133,7 +133,7 @@ public partial class MainWindow
             fixture.Height = height;
             if (!fixture.IsVisible) fixture.Show();
             fixture.ApplyTheme();
-            fixture._processSelection.Select(chrome, fixture._preferences.GroupProcesses);
+            fixture.Selection.Select(chrome, fixture.Preferences.GroupProcesses);
             fixture.UpdateProcessRetention();
             fixture.RefreshVisiblePresentation();
             await CaptureExampleWindowAsync(fixture, Path.Combine(output, $"example_{name}.png"), cancellationToken);

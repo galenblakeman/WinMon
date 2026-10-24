@@ -63,7 +63,7 @@ Regular commits on `main`, one per step, each built and tested on its own:
 2. Done: rename `CpuSample` and `CpuHistory`.
 3. Done: add `MonitorSession`, `IFrameSource` and `WindowsFrameSource`, with session tests using a fake source (gaps, error and recovery, drain order, no drain after close).
 4. Done: move `WinMon.Performance` from reflection to `InternalsVisibleTo`. The window members it uses are collected in `MainWindow.Internal.cs` or made internal where they are defined.
-5. Move diagnostics and examples into `Diagnostics/`.
+5. Done: move diagnostics and examples into `Diagnostics/`. They became `WinMon.Diagnostics.WindowDiagnostics`, one partial class taking a `MainWindow`, rewritten with a Roslyn script that used the compiler's binding information. The surface is larger than estimated: 24 window fields became named internal properties in `MainWindow.Internal.cs` (for example `Preferences`, `Rows`, `Tray`, `ShownSamplingError`), and 17 methods and one constant changed from private to internal. A later cut should shrink it as `ProcessesView` takes over the process list.
 6. Extract `ProcessesView` and the view state records.
 7. Update the developer guide's code structure section with what landed.
 
