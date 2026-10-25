@@ -34,7 +34,7 @@ internal sealed class WindowsFrameSource : IFrameSource
             _cpu.Reset();
             error = SamplingError.CpuUnavailable;
             Trace.TraceWarning("CPU sampling unavailable: {0}", ex.Message);
-            sample = new MonitorSample(DateTimeOffset.UtcNow, null, [], 0, false, Stopwatch.GetTimestamp());
+            sample = new MonitorSample(DateTimeOffset.Now, null, [], 0, false, Stopwatch.GetTimestamp());
         }
 
         var full = _resources.Sample(sample, options.PrimaryDrive, options.SecondaryDrive);

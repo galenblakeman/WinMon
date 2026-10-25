@@ -82,7 +82,7 @@ internal sealed class WindowsCpuSnapshotProvider : ICpuSnapshotProvider
         (_windowLifetimes, _nextWindowLifetimes) = (_nextWindowLifetimes, _windowLifetimes);
 
         return new CpuSnapshot(
-            DateTimeOffset.UtcNow,
+            DateTimeOffset.Now, // Local offset: views format sample times as wall-clock text.
             Stopwatch.GetTimestamp(),
             new SystemCpuTimes(
                 NativeMethods.ToLong(idleTime),
