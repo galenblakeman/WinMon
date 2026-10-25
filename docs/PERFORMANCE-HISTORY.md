@@ -8,17 +8,17 @@ Add a section at the top for each measured change: what changed, the machine and
 
 ## Gauge styles (October 25, 2026)
 
-Release UI-thread benchmark on the development machine, before and after replacing the `MicroGauge.Wpf` rails with WinMon's own `MetricGauge` drawing, measured with the default Needle style. Four baseline and four changed runs alternated; each value is the median of the four run medians. Full-view hashes changed as intended; Compact view kept its hash.
+Release UI-thread benchmark on the development machine, before and after replacing the `MicroGauge.Wpf` rails with WinMon's own `MetricGauge` drawing, measured with the default Bowl style. Four baseline and four changed runs alternated; each value is the median of the four run medians. The baseline is the commit that added the rails. The changed build is the working tree, which also contained the shared chart label rail below. That work reports unchanged allocation, so the allocation differences here are the gauges'. The time differences in the chart modes are partly the label rail's. Full-view hashes changed as intended; Compact view kept its hash.
 
 | Scenario | Before | After | Allocation before | Allocation after |
 | --- | ---: | ---: | ---: | ---: |
-| Live overlay | 4.54 ms | 4.68 ms | 611.6 KiB | 533.2 KiB |
-| Live small multiples | 3.37 ms | 2.98 ms | 578.4 KiB | 504.4 KiB |
-| Historical | 1.75 ms | 1.39 ms | 249.8 KiB | 175.9 KiB |
-| Grouped live | 6.39 ms | 5.82 ms | 618.9 KiB | 545.6 KiB |
-| Compact live | 1.79 ms | 1.86 ms | 337.8 KiB | 338.2 KiB |
+| Live overlay | 4.42 ms | 4.34 ms | 603.5 KiB | 531.0 KiB |
+| Live small multiples | 3.57 ms | 2.96 ms | 578.4 KiB | 502.3 KiB |
+| Historical | 1.91 ms | 1.47 ms | 249.8 KiB | 173.6 KiB |
+| Grouped live | 6.70 ms | 6.50 ms | 618.9 KiB | 543.4 KiB |
+| Compact live | 1.65 ms | 1.73 ms | 337.7 KiB | 338.5 KiB |
 
-Every Full-view scenario allocates about 74 KiB less per refresh, which recovers most of the 86–92 KiB the rails added. The gauges redraw only when a mark moves by half a pixel and reuse frozen pens and geometry. Time differences are within run-to-run variation. Raw reports: `artifacts/gauge-styles-bench/baseline1.json` through `baseline4.json` and `changed1.json` through `changed4.json`.
+Every Full-view scenario allocates about 72–80 KiB less per refresh, which recovers most of the 86–92 KiB the rails added. The gauges redraw only when a mark moves by half a pixel and reuse frozen pens and geometry. No scenario got slower beyond run-to-run variation. An earlier run with the Needle default gave the same allocation saving. Raw reports: `artifacts/gauge-styles-bench/baseline1.json` through `baseline4.json` and `changed1.json` through `changed4.json`.
 
 ## Shared chart label rail (October 25, 2026)
 
