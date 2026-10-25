@@ -355,6 +355,15 @@ internal static class UpdateRuntime
             if (job is not null && validatedJob)
                 try
                 {
+                    if (job.Installed && child is { HasExited: false })
+                    {
+                        // Setup has installed the new version and it is running, only slow to sample. Launching
+                        // another copy would just signal this one, and "failed" would be untrue. The state stays
+                        // awaiting-ready, which the next launch of this version records as succeeded.
+                        Trace.TraceWarning("WinMon updater left the slow new version running.");
+                        return 1;
+                    }
+
                     if (replaced)
                     {
                         if (child is { HasExited: false })
