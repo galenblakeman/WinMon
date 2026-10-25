@@ -1560,4 +1560,10 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
   <data name="AutoCaptureRuleHeader" xml:space="preserve"><value>Règle</value></data>
   <data name="AutoCaptureAboveHeader" xml:space="preserve"><value>Au-dessus de</value></data>
   <data name="AutoCaptureForHeader" xml:space="preserve"><value>Pendant</value></data>
+  <data name="ChartDisplay" xml:space="preserve"><value>Affichage du graphique</value></data>
+  <data name="ChartOverlay" xml:space="preserve"><value>Superposition</value></data>
+  <data name="ChartSmallMultiples" xml:space="preserve"><value>Graphiques séparés</value></data>
+  <data name="ChartHeatmap" xml:space="preserve"><value>Carte thermique</value></data>
+  <data name="ChartFocus" xml:space="preserve"><value>Focus</value></data>
+  <data name="ChartFocusResourceChoice" xml:space="preserve"><value>Focus : {0}</value></data>
 </root>

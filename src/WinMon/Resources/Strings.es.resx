@@ -1560,4 +1560,10 @@ Se puede perder el trabajo sin guardar. Se finalizarán todos los procesos indic
   <data name="AutoCaptureRuleHeader" xml:space="preserve"><value>Regla</value></data>
   <data name="AutoCaptureAboveHeader" xml:space="preserve"><value>Por encima de</value></data>
   <data name="AutoCaptureForHeader" xml:space="preserve"><value>Durante</value></data>
+  <data name="ChartDisplay" xml:space="preserve"><value>Vista del gráfico</value></data>
+  <data name="ChartOverlay" xml:space="preserve"><value>Superpuesto</value></data>
+  <data name="ChartSmallMultiples" xml:space="preserve"><value>Gráficos separados</value></data>
+  <data name="ChartHeatmap" xml:space="preserve"><value>Mapa de calor</value></data>
+  <data name="ChartFocus" xml:space="preserve"><value>Enfoque</value></data>
+  <data name="ChartFocusResourceChoice" xml:space="preserve"><value>Enfoque: {0}</value></data>
 </root>

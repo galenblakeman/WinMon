@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using WinMon.Monitoring;
+using WinMon.Preferences;
 
 // ReSharper disable ConvertConditionalTernaryExpressionToSwitchExpression
 // ReSharper disable ConvertIfStatementToSwitchStatement
@@ -39,6 +40,7 @@ public sealed class CpuGraph : FrameworkElement
     private readonly Dictionary<(Brush, double, DashStyle?), Pen> _pens = [];
     private readonly Dictionary<(string, Brush, double), FormattedText> _labels = [];
     private static readonly Typeface LabelTypeface = new("Segoe UI");
+    private static readonly int[] MetricOrder = [0, 1, 2, 5, 3, 4];
 
     internal Rect PlotBounds => Plot();
 
@@ -57,6 +59,15 @@ public sealed class CpuGraph : FrameworkElement
 
     /// <summary>Get or set whether to draw percentage and time guides.</summary>
     public bool ShowGrid { get; set; }
+
+    /// <summary>Full-view chart presentation; process and compact sparklines ignore this choice.</summary>
+    public ResourceChartType ChartType { get; set; }
+
+    /// <summary>Resource enlarged in the focus chart.</summary>
+    public int FocusMetric { get; set; }
+
+    /// <summary>Localized names for the six resource lanes.</summary>
+    public string[] MetricLabels { get; set; } = [];
 
     /// <summary>Render one resource as an edge-to-edge filled chart in a compact metric tile.</summary>
     internal int? TileMetric { get; set; }
@@ -132,16 +143,26 @@ public sealed class CpuGraph : FrameworkElement
         var accent = Resource("Accent", Brushes.LimeGreen);
         var line = Resource("Line", Brushes.DimGray);
         var muted = Resource("Muted", Brushes.Gray);
+        if ((ShowGrid || TileMetric == 3) && _process is null)
+            _networkScale = NetworkScale(_samples.Where(s => Moment(s) >= _end - _seconds));
         drawingContext.DrawRectangle(Brushes.Transparent, null, new Rect(RenderSize));
+        var alternative = ShowGrid && _process is null && TileMetric is null && ChartType != ResourceChartType.Overlay;
         if (ShowGrid)
         {
             drawingContext.DrawRectangle(Resource("PlotSurface", Brushes.Transparent), null, plot);
-            for (var i = 0; i <= 4; i++)
+            if (!alternative || ChartType == ResourceChartType.Focus)
+                for (var i = 0; i <= 4; i++)
             {
-                var y = plot.Top + plot.Height * i / 4;
+                var height = alternative ? plot.Height * 0.55 : plot.Height;
+                var y = plot.Top + height * i / 4;
                 drawingContext.DrawLine(CachedPen(line, 0.7), new Point(plot.Left, y), new Point(plot.Right, y));
-                Label(drawingContext, Strings.Format(Strings.PercentInteger, 100 - i * 25),
-                    new Point(0, Math.Max(0, y - 7)), muted);
+                var focusNetwork = alternative && ChartType == ResourceChartType.Focus && FocusMetric == 3 &&
+                                   (VisibleMetrics & 8) != 0;
+                Label(drawingContext, focusNetwork
+                        ? RateText.Format(_networkScale * (4 - i) / 4)
+                        : Strings.Format(Strings.PercentInteger, 100 - i * 25),
+                    new Point(focusNetwork ? 0 : alternative ? plot.Left - 38 : 0,
+                        Math.Max(0, y - 7)), muted);
             }
 
             for (var i = 0; i <= 4; i++)
@@ -155,9 +176,8 @@ public sealed class CpuGraph : FrameworkElement
         }
 
         var network = Resource("NetworkAccent", accent);
-        if ((ShowGrid || TileMetric == 3) && _process is null)
-            _networkScale = NetworkScale(_samples.Where(s => Moment(s) >= _end - _seconds));
-        drawingContext.PushClip(new RectangleGeometry(plot));
+        drawingContext.PushClip(new RectangleGeometry(alternative
+            ? new Rect(0, plot.Top, ActualWidth, plot.Height) : plot));
         if (TileMetric is { } tileMetric)
         {
             var key = tileMetric switch
@@ -175,6 +195,10 @@ public sealed class CpuGraph : FrameworkElement
                 ProcessSort.Io => "DiskAccent", _ => "CpuAccent"
             };
             DrawSeries(drawingContext, plot, Resource(key, accent), 0);
+        }
+        else if (alternative)
+        {
+            DrawAlternative(drawingContext, plot, accent, line, muted);
         }
         else
         {
@@ -196,7 +220,9 @@ public sealed class CpuGraph : FrameworkElement
             var x = X(_selected, plot);
             drawingContext.DrawLine(CachedPen(muted, 1, DashStyles.Dash), new Point(x, plot.Top),
                 new Point(x, plot.Bottom));
-            if (ShowGrid && _process is null)
+            if (alternative && ChartType != ResourceChartType.Heatmap && !_selected.IsGap)
+                DrawAlternativeSelection(drawingContext, plot, x, _selected, accent);
+            if (ShowGrid && _process is null && !alternative)
                 for (var metric = 0; metric < 6; metric++)
                 {
                     if ((VisibleMetrics & (1 << metric)) == 0 || _selected.IsGap) continue;
@@ -232,10 +258,125 @@ public sealed class CpuGraph : FrameworkElement
         if (ShowGrid && _process is null) DrawMarkers(drawingContext, plot);
 
         // Link utilization is nearly always ~0%, so the network trace uses its own throughput scale.
-        if (ShowGrid && _process is null && (VisibleMetrics & 8) != 0)
+        if (ShowGrid && _process is null && !alternative && (VisibleMetrics & 8) != 0)
             Label(drawingContext, Strings.Format(Strings.NetworkScale0, RateText.Format(_networkScale)),
                 new Point(plot.Right - 4, plot.Top + 2), network, 1);
     }
+
+    private void DrawAlternative(DrawingContext dc, Rect plot, Brush accent, Brush line, Brush muted)
+    {
+        var metrics = MetricOrder.Where(i => (VisibleMetrics & (1 << i)) != 0).ToArray();
+        if (metrics.Length == 0) return;
+        if (ChartType == ResourceChartType.Focus)
+        {
+            var focus = metrics.Contains(FocusMetric) ? FocusMetric : metrics[0];
+            var main = new Rect(plot.Left, plot.Top, plot.Width, plot.Height * 0.55);
+            if (!SystemParameters.HighContrast)
+                DrawSeries(dc, main, MetricBrush(focus, accent), focus, true);
+            DrawSeries(dc, main, MetricBrush(focus, accent), focus);
+            Label(dc, MetricName(focus), new Point(plot.Left + 5, plot.Top + 4), MetricBrush(focus, accent));
+            var others = metrics.Where(i => i != focus).ToArray();
+            for (var index = 0; index < others.Length; index++)
+            {
+                var lane = Lane(plot, index, others.Length, 0.59, 1);
+                DrawLane(dc, lane, others[index], accent, line, muted, false, true);
+            }
+        }
+        else
+        {
+            for (var index = 0; index < metrics.Length; index++)
+            {
+                var lane = Lane(plot, index, metrics.Length, 0, 1);
+                DrawLane(dc, lane, metrics[index], accent, line, muted,
+                    ChartType == ResourceChartType.Heatmap);
+            }
+        }
+
+    }
+
+    private void DrawAlternativeSelection(DrawingContext dc, Rect plot, double x, MonitorSample sample,
+        Brush fallback)
+    {
+        var metrics = MetricOrder.Where(i => (VisibleMetrics & (1 << i)) != 0).ToArray();
+        var focus = metrics.Contains(FocusMetric) ? FocusMetric : metrics.FirstOrDefault();
+        var others = metrics.Where(i => i != focus).ToArray();
+        for (var index = 0; index < metrics.Length; index++)
+        {
+            var metric = metrics[index];
+            var value = metric == 3 ? NetworkBitsPerSecond(sample.Resources) * 100 / _networkScale
+                : MetricValue(sample, metric);
+            if (value is null) continue;
+            Rect lane;
+            if (ChartType == ResourceChartType.Focus)
+                lane = metric == focus
+                    ? new Rect(plot.Left, plot.Top, plot.Width, plot.Height * 0.55)
+                    : Lane(plot, Array.IndexOf(others, metric), others.Length, 0.59, 1);
+            else lane = Lane(plot, index, metrics.Length, 0, 1);
+            if (ChartType != ResourceChartType.Focus || metric != focus)
+                lane = new Rect(lane.Left, lane.Top + 3, lane.Width, Math.Max(1, lane.Height - 6));
+            var y = lane.Bottom - Math.Clamp(value.Value, 0, 100) / 100 * lane.Height;
+            dc.DrawEllipse(Resource("Raised", Brushes.Black), CachedPen(MetricBrush(metric, fallback), 2),
+                new Point(x, y), 3.5, 3.5);
+        }
+    }
+
+    private void DrawLane(DrawingContext dc, Rect lane, int metric, Brush accent, Brush line, Brush muted,
+        bool heatmap, bool compact = false)
+    {
+        var color = MetricBrush(metric, accent);
+        dc.DrawLine(CachedPen(line, 0.6), lane.TopLeft, lane.TopRight);
+        Label(dc, MetricName(metric), new Point(2, lane.Top + Math.Max(2, lane.Height / 2 - (compact ? 7 : 12))),
+            color);
+        if (!compact)
+            Label(dc, metric == 3 ? RateText.Format(_networkScale) :
+                Strings.Format(Strings.PercentInteger, 100),
+                new Point(2, lane.Top + Math.Max(14, lane.Height / 2 + 2)), muted);
+        var inset = new Rect(lane.Left, lane.Top + 3, lane.Width, Math.Max(1, lane.Height - 6));
+        if (heatmap) DrawHeatmap(dc, inset, metric, color);
+        else DrawSeries(dc, inset, color, metric);
+    }
+
+    private void DrawHeatmap(DrawingContext dc, Rect lane, int metric, Brush color)
+    {
+        var width = Math.Max(1, lane.Width / _seconds);
+        ResourceSample? previousSource = null;
+        foreach (var sample in _samples)
+        {
+            if (Moment(sample) < _end - _seconds) continue;
+            var value = metric == 3
+                ? NetworkBitsPerSecond(sample.Resources) * 100 / _networkScale
+                : MetricValue(sample, metric);
+            if (!sample.IsGap && value is { } amount &&
+                (previousSource is null || SameSource(previousSource, sample.Resources, metric)))
+            {
+                var intensity = Math.Clamp((int)Math.Ceiling(amount / 100 * 12), 0, 12);
+                dc.DrawRectangle(CachedFill(color, 0.08 + intensity * 0.075), null,
+                    new Rect(Math.Max(lane.Left, X(sample, lane) - width / 2), lane.Top,
+                        Math.Min(width + 0.5, lane.Right - Math.Max(lane.Left, X(sample, lane) - width / 2)),
+                        lane.Height));
+            }
+
+            previousSource = sample.Resources;
+        }
+    }
+
+    private static Rect Lane(Rect plot, int index, int count, double topFraction, double bottomFraction)
+    {
+        var height = plot.Height * (bottomFraction - topFraction) / count;
+        return new Rect(plot.Left, plot.Top + plot.Height * topFraction + index * height, plot.Width, height);
+    }
+
+    private string MetricName(int metric) => metric < MetricLabels.Length ? MetricLabels[metric] : metric switch
+    {
+        0 => Strings.CPU, 1 => Strings.Memory, 2 or 5 => Strings.Disk,
+        3 => Strings.Network, _ => Strings.GPU
+    };
+
+    private Brush MetricBrush(int metric, Brush fallback) => Resource(metric switch
+    {
+        0 => "CpuAccent", 1 => "MemoryAccent", 2 => "DiskAccent", 3 => "NetworkAccent",
+        4 => "GpuAccent", _ => "SecondaryDiskAccent"
+    }, fallback);
 
     private void DrawMarkers(DrawingContext drawingContext, Rect plot)
     {
@@ -467,7 +608,9 @@ public sealed class CpuGraph : FrameworkElement
     private Rect Plot()
     {
         return ShowGrid
-            ? new Rect(39, 8, Math.Max(0, ActualWidth - 41), Math.Max(0, ActualHeight - 33))
+            ? ChartType == ResourceChartType.Overlay
+                ? new Rect(39, 8, Math.Max(0, ActualWidth - 41), Math.Max(0, ActualHeight - 33))
+                : new Rect(105, 8, Math.Max(0, ActualWidth - 107), Math.Max(0, ActualHeight - 33))
             : new Rect(0, 0, ActualWidth, ActualHeight);
     }
 

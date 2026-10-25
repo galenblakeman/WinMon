@@ -1560,4 +1560,10 @@ Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse
   <data name="AutoCaptureRuleHeader" xml:space="preserve"><value>Regel</value></data>
   <data name="AutoCaptureAboveHeader" xml:space="preserve"><value>Über</value></data>
   <data name="AutoCaptureForHeader" xml:space="preserve"><value>Dauer</value></data>
+  <data name="ChartDisplay" xml:space="preserve"><value>Diagrammansicht</value></data>
+  <data name="ChartOverlay" xml:space="preserve"><value>Überlagerung</value></data>
+  <data name="ChartSmallMultiples" xml:space="preserve"><value>Einzelne Diagramme</value></data>
+  <data name="ChartHeatmap" xml:space="preserve"><value>Heatmap</value></data>
+  <data name="ChartFocus" xml:space="preserve"><value>Fokus</value></data>
+  <data name="ChartFocusResourceChoice" xml:space="preserve"><value>Fokus: {0}</value></data>
 </root>

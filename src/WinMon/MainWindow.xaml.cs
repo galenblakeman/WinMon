@@ -24,6 +24,9 @@ using SystemColors = System.Windows.SystemColors;
 // ReSharper disable ConvertIfStatementToSwitchStatement
 namespace WinMon;
 
+/// <summary>A chart menu choice, with a metric only for a focused resource.</summary>
+internal readonly record struct ResourceChartChoice(ResourceChartType Type, int? Metric = null);
+
 /// <summary>Present a shared CPU recording session in compact and investigation layouts.</summary>
 public partial class MainWindow
 {
@@ -36,6 +39,8 @@ public partial class MainWindow
     private MonitorPreferences _preferences = new();
     private Task _settingsWriteTask = Task.CompletedTask;
     private bool _preferencesLoaded;
+    private bool _updatingChartSelectors;
+    private bool _restoringSeries;
     private Forms.NotifyIcon? _tray;
     private Icon? _trayIcon;
 
@@ -95,6 +100,7 @@ public partial class MainWindow
         }
 
         BuildRangeChips();
+        BuildChartSelectors();
         // The process-type line gains a PID in a wide window; there is no separate expanded mode.
         SizeChanged += (_, _) => AlignTitleBar();
         DpiChanged += (_, _) => AlignTitleBar();
@@ -130,6 +136,7 @@ public partial class MainWindow
                 ? new MonitorPreferences()
                 : _initialPreferences ?? await _preferenceStore.LoadAsync(Lifetime.Token);
             _preferencesLoaded = true;
+            BuildChartSelectors();
             UpdateActivityActionsToggle();
             Processes.Load(ProcessListSettings.From(_preferences), _preferences.PinnedProcesses);
             ServiceView.TopServiceCount = _preferences.TopServiceCount;
@@ -137,7 +144,9 @@ public partial class MainWindow
             Width = Math.Max(MinWidth, _preferences.Width);
             Height = Math.Max(MinHeight, _preferences.Height);
             var visibleMask = _preferences.SeriesMask;
+            _restoringSeries = true;
             for (var i = 0; i < Metrics.Length; i++) Metrics[i].Toggle.IsChecked = (visibleMask & (1 << i)) != 0;
+            _restoringSeries = false;
             if (_preferences is { Left: { } left, Top: { } top })
             {
                 Left = left;
@@ -233,6 +242,9 @@ public partial class MainWindow
             : Strings.MissingReading;
         var allUnavailable = _samplingError == SamplingError.ReadingsUnavailable;
         UpdateResources(allUnavailable ? null : latest);
+        OverallGraph.ChartType = _preferences.ResourceChartType;
+        OverallGraph.FocusMetric = _preferences.FocusMetric;
+        OverallGraph.MetricLabels = Metrics.Select(metric => metric.Label).ToArray();
         OverallGraph.SetData(samples, range, SelectedSample);
         RefreshCompactView();
         RefreshServices();
@@ -280,18 +292,26 @@ public partial class MainWindow
 
     private void OnSeriesChanged(object sender, RoutedEventArgs e)
     {
+        if (_restoringSeries) return;
         var mask = 0;
         for (var i = 0; i < Metrics.Length; i++)
             if (Metrics[i].Toggle.IsChecked == true)
                 mask |= 1 << i;
+        var focusMetric = mask != 0 && (mask & (1 << _preferences.FocusMetric)) == 0
+            ? Enumerable.Range(0, Metrics.Length).First(i => (mask & (1 << i)) != 0)
+            : _preferences.FocusMetric;
+        var focusChanged = focusMetric != _preferences.FocusMetric;
         _preferences = _preferences with
         {
             VisibleMetrics = mask & 15, ShowGpu = (mask & 16) != 0,
+            FocusMetric = focusMetric,
             ShowSecondaryDisk = _preferences.SecondaryDrive is null
                 ? _preferences.ShowSecondaryDisk
                 : (mask & 32) != 0
         };
         OverallGraph.VisibleMetrics = _preferences.SeriesMask;
+        OverallGraph.FocusMetric = _preferences.FocusMetric;
+        if (focusChanged) BuildChartSelectors();
         OverallGraph.InvalidateVisual();
     }
 
@@ -424,6 +444,65 @@ public partial class MainWindow
             chip.Checked += OnRangeChecked;
             RangeSelector.Children.Add(chip);
         }
+    }
+
+    internal void BuildChartSelectors()
+    {
+        var visible = _preferences.SeriesMask;
+        if (visible != 0 && (visible & (1 << _preferences.FocusMetric)) == 0)
+            _preferences = _preferences with
+            {
+                FocusMetric = Enumerable.Range(0, Metrics.Length).First(i => (visible & (1 << i)) != 0)
+            };
+        _updatingChartSelectors = true;
+        try
+        {
+            ChartTypeSelector.Items.Clear();
+            foreach (var (type, label) in new[]
+                     {
+                         (ResourceChartType.Overlay, Strings.ChartOverlay),
+                         (ResourceChartType.SmallMultiples, Strings.ChartSmallMultiples),
+                         (ResourceChartType.Heatmap, Strings.ChartHeatmap)
+                     })
+                ChartTypeSelector.Items.Add(new ComboBoxItem
+                {
+                    Content = label, Tag = new ResourceChartChoice(type), ToolTip = label
+                });
+            ChartTypeSelector.Items.Add(new Separator());
+            foreach (var metric in new[] { 0, 1, 2, 5, 3, 4 })
+            {
+                if (metric == 5 && _preferences.SecondaryDrive is null) continue;
+                var label = Strings.Format(Strings.ChartFocusResourceChoice, Metrics[metric].Label);
+                ChartTypeSelector.Items.Add(new ComboBoxItem
+                {
+                    Content = label, Tag = new ResourceChartChoice(ResourceChartType.Focus, metric),
+                    ToolTip = label
+                });
+            }
+
+            var selected = ChartTypeSelector.Items.OfType<ComboBoxItem>().First(item =>
+                item.Tag is ResourceChartChoice choice && choice.Type == _preferences.ResourceChartType &&
+                (choice.Type != ResourceChartType.Focus || choice.Metric == _preferences.FocusMetric));
+            ChartTypeSelector.SelectedItem = selected;
+            ChartTypeSelector.ToolTip = selected.Content;
+            AutomationProperties.SetName(ChartTypeSelector, Strings.ChartDisplay);
+        }
+        finally { _updatingChartSelectors = false; }
+    }
+
+    private void OnChartTypeChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_updatingChartSelectors || !_preferencesLoaded || IsClosing ||
+            ChartTypeSelector.SelectedItem is not ComboBoxItem { Tag: ResourceChartChoice choice } item) return;
+        _preferences = _preferences with
+        {
+            ResourceChartType = choice.Type,
+            FocusMetric = choice.Metric ?? _preferences.FocusMetric
+        };
+        ChartTypeSelector.ToolTip = item.Content;
+        if (choice.Metric is { } metric && Metrics[metric].Toggle.IsChecked != true)
+            Metrics[metric].Toggle.IsChecked = true;
+        RefreshPresentation();
     }
 
     private void OnRangeChecked(object sender, RoutedEventArgs e)
@@ -637,6 +716,7 @@ public partial class MainWindow
         Processes.ApplyLanguage(ProcessListSettings.From(_preferences));
         UpdatePinButton();
         BuildRangeChips();
+        BuildChartSelectors();
         foreach (var metric in Metrics) metric.RefreshLanguage();
         RefreshMetricDetailsLanguage();
         UpdateCompactButton();

@@ -98,7 +98,13 @@ public static partial class Strings
     public static string CapacityMiB => ResourceManager.GetString(nameof(CapacityMiB), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CapacityType => ResourceManager.GetString(nameof(CapacityType), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CaptureLatestSnapshot => ResourceManager.GetString(nameof(CaptureLatestSnapshot), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ChartDisplay => ResourceManager.GetString(nameof(ChartDisplay), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ChartFocus => ResourceManager.GetString(nameof(ChartFocus), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ChartFocusResourceChoice => ResourceManager.GetString(nameof(ChartFocusResourceChoice), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ChartHeatmap => ResourceManager.GetString(nameof(ChartHeatmap), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ChartOverlay => ResourceManager.GetString(nameof(ChartOverlay), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartPalette => ResourceManager.GetString(nameof(ChartPalette), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ChartSmallMultiples => ResourceManager.GetString(nameof(ChartSmallMultiples), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartTimeRange => ResourceManager.GetString(nameof(ChartTimeRange), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CheckForUpdates => ResourceManager.GetString(nameof(CheckForUpdates), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChooseAPrimaryVolumeAndADifferentSecondVolumeOr => ResourceManager.GetString(nameof(ChooseAPrimaryVolumeAndADifferentSecondVolumeOr), Culture ?? CultureInfo.CurrentUICulture)!;

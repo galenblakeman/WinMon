@@ -1560,4 +1560,10 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
   <data name="AutoCaptureRuleHeader" xml:space="preserve"><value>Reguła</value></data>
   <data name="AutoCaptureAboveHeader" xml:space="preserve"><value>Powyżej</value></data>
   <data name="AutoCaptureForHeader" xml:space="preserve"><value>Przez</value></data>
+  <data name="ChartDisplay" xml:space="preserve"><value>Widok wykresu</value></data>
+  <data name="ChartOverlay" xml:space="preserve"><value>Nakładanie</value></data>
+  <data name="ChartSmallMultiples" xml:space="preserve"><value>Osobne wykresy</value></data>
+  <data name="ChartHeatmap" xml:space="preserve"><value>Mapa cieplna</value></data>
+  <data name="ChartFocus" xml:space="preserve"><value>Fokus</value></data>
+  <data name="ChartFocusResourceChoice" xml:space="preserve"><value>Fokus: {0}</value></data>
 </root>

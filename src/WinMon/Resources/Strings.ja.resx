@@ -1560,4 +1560,10 @@ Windows の正常性状態: {2}</value>
   <data name="AutoCaptureRuleHeader" xml:space="preserve"><value>ルール</value></data>
   <data name="AutoCaptureAboveHeader" xml:space="preserve"><value>しきい値</value></data>
   <data name="AutoCaptureForHeader" xml:space="preserve"><value>継続時間</value></data>
+  <data name="ChartDisplay" xml:space="preserve"><value>グラフ表示</value></data>
+  <data name="ChartOverlay" xml:space="preserve"><value>重ね合わせ</value></data>
+  <data name="ChartSmallMultiples" xml:space="preserve"><value>個別グラフ</value></data>
+  <data name="ChartHeatmap" xml:space="preserve"><value>ヒートマップ</value></data>
+  <data name="ChartFocus" xml:space="preserve"><value>フォーカス</value></data>
+  <data name="ChartFocusResourceChoice" xml:space="preserve"><value>フォーカス: {0}</value></data>
 </root>

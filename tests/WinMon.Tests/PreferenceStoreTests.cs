@@ -238,6 +238,36 @@ public sealed class PreferenceStoreTests
         });
     }
 
+    [Test]
+    public async Task ResourceChartChoice_RoundTrips_AndRejectsInvalidValues()
+    {
+        var store = new PreferenceStore(settingsPath);
+        await store.SaveAsync(new MonitorPreferences
+        {
+            ResourceChartType = ResourceChartType.Focus,
+            FocusMetric = 5,
+            SecondaryDrive = "D:"
+        });
+        var loaded = await store.LoadAsync();
+        var saved = await File.ReadAllTextAsync(settingsPath);
+        var invalid = PreferenceStore.Validate(new MonitorPreferences
+        {
+            ResourceChartType = (ResourceChartType)99,
+            FocusMetric = 99,
+            SecondaryDrive = "D:"
+        });
+        Assert.Multiple(() =>
+        {
+            Assert.That(loaded.ResourceChartType, Is.EqualTo(ResourceChartType.Focus));
+            Assert.That(saved, Does.Contain("\"ResourceChartType\": \"Focus\""));
+            Assert.That(loaded.FocusMetric, Is.EqualTo(5));
+            Assert.That(invalid.ResourceChartType, Is.EqualTo(ResourceChartType.Overlay));
+            Assert.That(invalid.FocusMetric, Is.EqualTo(5));
+            Assert.That(PreferenceStore.Validate(new MonitorPreferences { FocusMetric = 5 }).FocusMetric,
+                Is.EqualTo(0));
+        });
+    }
+
     [TestCase("{\"SortByGpu\":true}", ProcessSort.Gpu)]
     [TestCase("{\"SortByGpu\":false}", ProcessSort.Cpu)]
     [TestCase("{\"ProcessSort\":\"Memory\"}", ProcessSort.Memory)]

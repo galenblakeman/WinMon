@@ -81,7 +81,7 @@ public partial class App
         if (e.Args is
             [
                 "--smoke-output" or "--feature-smoke-output" or "--snapshot-smoke-output" or "--search-smoke-output"
-                or "--compact-smoke-output" or "--examples-output",
+                or "--compact-smoke-output" or "--examples-output" or "--chart-smoke-output",
                 _
             ])
         {
@@ -93,7 +93,8 @@ public partial class App
             window.Show();
             _ = RunDiagnosticsAsync(window, Path.GetFullPath(e.Args[1]), e.Args[0] == "--feature-smoke-output",
                 e.Args[0] == "--snapshot-smoke-output", e.Args[0] == "--search-smoke-output",
-                e.Args[0] == "--compact-smoke-output", e.Args[0] == "--examples-output");
+                e.Args[0] == "--compact-smoke-output", e.Args[0] == "--examples-output",
+                e.Args[0] == "--chart-smoke-output");
             return;
         }
 
@@ -140,13 +141,20 @@ public partial class App
     }
 
     private async Task RunDiagnosticsAsync(MainWindow window, string output, bool featuresOnly,
-        bool snapshotsOnly = false, bool searchOnly = false, bool compactOnly = false, bool examplesOnly = false)
+        bool snapshotsOnly = false, bool searchOnly = false, bool compactOnly = false, bool examplesOnly = false,
+        bool chartsOnly = false)
     {
         var exitCode = 0;
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(60));
         try
         {
-            if (examplesOnly)
+            if (chartsOnly)
+            {
+                Directory.CreateDirectory(output);
+                await Task.Delay(TimeSpan.FromSeconds(8), timeout.Token);
+                await new WindowDiagnostics(window).CaptureChartDiagnosticsAsync(output, timeout.Token);
+            }
+            else if (examplesOnly)
             {
                 Directory.CreateDirectory(output);
                 await WindowDiagnostics.CaptureExamplesAsync(output, timeout.Token);

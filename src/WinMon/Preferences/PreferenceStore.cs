@@ -126,6 +126,10 @@ public sealed class PreferenceStore
             Theme = NormalizeTheme(preferences.Theme),
             Language = AppLanguages.Normalize(preferences.Language),
             ChartPalette = ChartPalettes.Normalize(preferences.ChartPalette),
+            ResourceChartType = Enum.IsDefined(preferences.ResourceChartType)
+                ? preferences.ResourceChartType : ResourceChartType.Overlay,
+            FocusMetric = secondary is null && preferences.FocusMetric == 5
+                ? 0 : Math.Clamp(preferences.FocusMetric, 0, 5),
             RetentionSeconds = Math.Clamp(preferences.RetentionSeconds, 600, 3600),
             VisibleMetrics = preferences.VisibleMetrics & 15,
             TopProcessCount =

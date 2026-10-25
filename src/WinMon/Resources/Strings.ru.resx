@@ -1560,4 +1560,10 @@ GPU {11} · {12}
   <data name="AutoCaptureRuleHeader" xml:space="preserve"><value>Правило</value></data>
   <data name="AutoCaptureAboveHeader" xml:space="preserve"><value>Выше</value></data>
   <data name="AutoCaptureForHeader" xml:space="preserve"><value>В течение</value></data>
+  <data name="ChartDisplay" xml:space="preserve"><value>Вид графика</value></data>
+  <data name="ChartOverlay" xml:space="preserve"><value>Наложение</value></data>
+  <data name="ChartSmallMultiples" xml:space="preserve"><value>Отдельные графики</value></data>
+  <data name="ChartHeatmap" xml:space="preserve"><value>Тепловая карта</value></data>
+  <data name="ChartFocus" xml:space="preserve"><value>Фокус</value></data>
+  <data name="ChartFocusResourceChoice" xml:space="preserve"><value>Фокус: {0}</value></data>
 </root>

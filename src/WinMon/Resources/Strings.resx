@@ -1560,4 +1560,10 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="AutoCaptureRuleHeader" xml:space="preserve"><value>Rule</value></data>
   <data name="AutoCaptureAboveHeader" xml:space="preserve"><value>Above</value></data>
   <data name="AutoCaptureForHeader" xml:space="preserve"><value>For</value></data>
+  <data name="ChartDisplay" xml:space="preserve"><value>Chart display</value></data>
+  <data name="ChartOverlay" xml:space="preserve"><value>Overlay</value></data>
+  <data name="ChartSmallMultiples" xml:space="preserve"><value>Small multiples</value></data>
+  <data name="ChartHeatmap" xml:space="preserve"><value>Heatmap</value></data>
+  <data name="ChartFocus" xml:space="preserve"><value>Focus</value></data>
+  <data name="ChartFocusResourceChoice" xml:space="preserve"><value>Focus: {0}</value></data>
 </root>

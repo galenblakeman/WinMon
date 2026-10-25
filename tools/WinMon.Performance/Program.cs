@@ -9,6 +9,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using WinMon;
 using WinMon.Monitoring;
+using WinMon.Preferences;
 
 // Deterministic UI-thread benchmark: one synthetic sample per frame, then the same refresh, layout and
 // render pass the dispatcher runs once a second. Sampling is stopped; history is synthetic. Besides the live
@@ -63,6 +64,21 @@ internal static class Program
         var cyclesPerMs = CyclesPerMillisecond(thread);
         var results = new List<object>();
         Measure("live-frame");
+        foreach (var (type, name) in new[]
+                 {
+                     (ResourceChartType.SmallMultiples, "small-multiples-live-frame"),
+                     (ResourceChartType.Heatmap, "heatmap-live-frame"),
+                     (ResourceChartType.Focus, "focus-live-frame")
+                 })
+        {
+            window.Preferences = window.Preferences with { ResourceChartType = type };
+            window.RefreshPresentation();
+            Flush();
+            Measure(name);
+        }
+        window.Preferences = window.Preferences with { ResourceChartType = ResourceChartType.Overlay };
+        window.RefreshPresentation();
+        Flush();
         window.SelectedSample = history.Samples[^60];
         Measure("historical-frame");
         window.SelectedSample = null;

@@ -319,16 +319,18 @@
                                 TextAlignment="Right"
                                 TextWrapping="Wrap"
                                 Visibility="Collapsed" />
-                            <TextBlock
-                                x:Name="LiveCaption"
-                                Grid.Row="0"
-                                Grid.Column="0"
-                                Margin="0,0,8,0"
-                                VerticalAlignment="Center"
-                                FontSize="15"
-                                FontWeight="SemiBold"
-                                Text="{Binding [SystemResources], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                TextTrimming="CharacterEllipsis" />
+                            <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock
+                                    x:Name="LiveCaption"
+                                    Margin="0,0,10,0"
+                                    VerticalAlignment="Center"
+                                    FontSize="15"
+                                    FontWeight="SemiBold"
+                                    Text="{Binding [SystemResources], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                    TextTrimming="CharacterEllipsis" />
+                                <ComboBox x:Name="ChartTypeSelector" Width="150" Height="27" Margin="0,0,6,0"
+                                          VerticalAlignment="Center" SelectionChanged="OnChartTypeChanged" />
+                            </StackPanel>
                         </Grid>
                     </Border>
                     <controls:CpuGraph

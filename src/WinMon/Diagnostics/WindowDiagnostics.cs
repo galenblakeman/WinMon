@@ -147,6 +147,66 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         }
     }
 
+    /// <summary>Exercise every full-view chart choice against native samples and export its visible state.</summary>
+    internal async Task CaptureChartDiagnosticsAsync(string outputDirectory, CancellationToken cancellationToken)
+    {
+        Directory.CreateDirectory(outputDirectory);
+        if (window.Session.History.Samples.Count < 3)
+            throw new InvalidOperationException("Native chart samples did not arrive.");
+        if (window.ChartTypeSelector.Items.OfType<ComboBoxItem>().Count() != 8 ||
+            window.ChartTypeSelector.Items.OfType<Separator>().Count() != 1)
+            throw new InvalidOperationException("The combined chart menu has the wrong choices.");
+        window.ChartTypeSelector.IsDropDownOpen = true;
+        try
+        {
+            await window.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render, cancellationToken);
+            if (window.ChartTypeSelector.Template.FindName("PART_Popup", window.ChartTypeSelector) is not Popup
+                { Child: FrameworkElement menu })
+                throw new InvalidOperationException("The combined chart menu did not open.");
+            menu.UpdateLayout();
+            await CaptureVisualAsync(menu, Path.Combine(outputDirectory, "chart-menu.png"), 1, cancellationToken);
+        }
+        finally { window.ChartTypeSelector.IsDropDownOpen = false; }
+        foreach (var chartType in Enum.GetValues<ResourceChartType>())
+        {
+            window.ChartTypeSelector.SelectedItem = ChartChoiceItem(window, chartType,
+                chartType == ResourceChartType.Focus ? 0 : null);
+            if (window.Preferences.ResourceChartType != chartType || window.OverallGraph.ChartType != chartType)
+                throw new InvalidOperationException($"The {chartType} chart choice did not apply.");
+            if (chartType == ResourceChartType.Focus)
+            {
+                window.CpuMetric.Toggle.IsChecked = false;
+                if (window.Preferences.FocusMetric != 1 || window.OverallGraph.FocusMetric != 1 ||
+                    !ReferenceEquals(window.ChartTypeSelector.SelectedItem,
+                        ChartChoiceItem(window, ResourceChartType.Focus, 1)))
+                    throw new InvalidOperationException("Hiding the focused resource did not choose a visible one.");
+                window.CpuMetric.Toggle.IsChecked = true;
+            }
+            window.OverallGraph.SelectLatest();
+            if (window.SelectedSample is null || window.SnapshotLayer.Visibility != Visibility.Visible)
+                throw new InvalidOperationException($"The {chartType} chart did not support capture inspection.");
+            window.ReturnToLive();
+            await CaptureAsync(Path.Combine(outputDirectory, $"chart-{chartType.ToString().ToLowerInvariant()}.png"),
+                1, cancellationToken);
+        }
+        window.ChartTypeSelector.SelectedItem = ChartChoiceItem(window, ResourceChartType.Focus, 3);
+        if (window.Preferences.FocusMetric != 3 || window.OverallGraph.FocusMetric != 3)
+            throw new InvalidOperationException("The focus resource choice did not apply.");
+        window.NetworkMetric.Toggle.IsChecked = false;
+        window.ChartTypeSelector.SelectedItem = ChartChoiceItem(window, ResourceChartType.Focus, 3);
+        if (window.NetworkMetric.Toggle.IsChecked != true || window.Preferences.FocusMetric != 3 ||
+            window.OverallGraph.VisibleMetrics != 31)
+            throw new InvalidOperationException("Selecting a hidden focus resource did not show it again.");
+        await CaptureAsync(Path.Combine(outputDirectory, "chart-focus-network.png"), 1, cancellationToken);
+        window.ChartTypeSelector.SelectedItem = ChartChoiceItem(window, ResourceChartType.Overlay);
+    }
+
+    private static ComboBoxItem ChartChoiceItem(MainWindow target, ResourceChartType type, int? metric = null)
+    {
+        return target.ChartTypeSelector.Items.OfType<ComboBoxItem>().Single(item =>
+            item.Tag is ResourceChartChoice choice && choice.Type == type && choice.Metric == metric);
+    }
+
     /// <summary>Validate the real recording window and export render evidence without changing user preferences.</summary>
     /// <param name="outputDirectory">Directory for diagnostic screenshots and measurements.</param>
     /// <param name="cancellationToken">Cancel the bounded diagnostic run.</param>
@@ -183,6 +243,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
             .Select(p => new { p.ProcessId, p.Name, p.GpuPercent, p.GpuEngine, p.GpuId }).ToArray();
         if (nativeResources.MemoryPercent is null)
             throw new InvalidOperationException("Native physical-memory sampling did not arrive.");
+        await CaptureChartDiagnosticsAsync(outputDirectory, cancellationToken);
         await CaptureFeatureDiagnosticsAsync(outputDirectory, cancellationToken);
         await CaptureToolTipAsync(Path.Combine(outputDirectory, "tooltip-dark.png"), cancellationToken);
         await CaptureMetricDetailsAsync(outputDirectory, "dark", cancellationToken);
@@ -1091,6 +1152,40 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         visual.Measure(new Size(600, 820));
         visual.Arrange(new Rect(0, 0, 600, 820));
         visual.UpdateLayout();
+        foreach (var chartType in Enum.GetValues<ResourceChartType>())
+        {
+            fixture.Preferences = fixture.Preferences with { ResourceChartType = chartType };
+            fixture.BuildChartSelectors();
+            fixture.RefreshVisiblePresentation();
+            visual.Measure(new Size(1000, 820));
+            visual.Arrange(new Rect(0, 0, 1000, 820));
+            visual.UpdateLayout();
+            if (fixture.OverallGraph.ChartType != chartType ||
+                !ReferenceEquals(fixture.ChartTypeSelector.SelectedItem,
+                    ChartChoiceItem(fixture, chartType, chartType == ResourceChartType.Focus ? 0 : null)))
+                throw new InvalidOperationException($"The {chartType} design fixture did not select the chart.");
+            await CaptureVisualAsync(visual, Path.Combine(outputDirectory,
+                $"chart-design-{chartType.ToString().ToLowerInvariant()}.png"), 1, cancellationToken);
+        }
+        fixture.Preferences = fixture.Preferences with { ResourceChartType = ResourceChartType.Focus, FocusMetric = 3 };
+        fixture.BuildChartSelectors();
+        fixture.RefreshVisiblePresentation();
+        visual.UpdateLayout();
+        await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "chart-design-focus-network.png"), 1,
+            cancellationToken);
+        fixture.SelectedSample = fixture.Session.History.Samples[92];
+        fixture.RefreshVisiblePresentation();
+        visual.UpdateLayout();
+        await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "chart-design-focus-capture.png"), 1,
+            cancellationToken);
+        fixture.SelectedSample = null;
+        fixture.Preferences = fixture.Preferences with { ResourceChartType = ResourceChartType.Overlay,
+            FocusMetric = 0 };
+        fixture.BuildChartSelectors();
+        fixture.RefreshVisiblePresentation();
+        visual.Measure(new Size(600, 820));
+        visual.Arrange(new Rect(0, 0, 600, 820));
+        visual.UpdateLayout();
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "design-compact.png"), 1, cancellationToken);
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "design-compact-150.png"), 1.5,
             cancellationToken);
@@ -1135,6 +1230,31 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         fixture.Processes.IndividualChip.IsChecked = true;
         fixture.SelectedSample = null;
         fixture.Preferences = fixture.Preferences with { PrimaryDrive = "C:", SecondaryDrive = "D:" };
+
+        fixture.Preferences = fixture.Preferences with
+            { ResourceChartType = ResourceChartType.SmallMultiples, FocusMetric = 5 };
+        fixture.BuildChartSelectors();
+        fixture.RefreshVisiblePresentation();
+        visual.Measure(new Size(1000, 820));
+        visual.Arrange(new Rect(0, 0, 1000, 820));
+        visual.UpdateLayout();
+        if (fixture.ChartTypeSelector.Items.OfType<ComboBoxItem>().Count(item =>
+                item.Tag is ResourceChartChoice { Type: ResourceChartType.Focus }) != 6 ||
+            fixture.OverallGraph.VisibleMetrics != 63)
+            throw new InvalidOperationException("The second volume is missing from the chart choices.");
+        await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "chart-design-two-disks.png"), 1,
+            cancellationToken);
+        fixture.Preferences = fixture.Preferences with { ResourceChartType = ResourceChartType.Focus };
+        fixture.BuildChartSelectors();
+        fixture.RefreshVisiblePresentation();
+        visual.UpdateLayout();
+        if (!ReferenceEquals(fixture.ChartTypeSelector.SelectedItem,
+                ChartChoiceItem(fixture, ResourceChartType.Focus, 5)))
+            throw new InvalidOperationException("The second volume focus choice was not selected.");
+        await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "chart-design-focus-second-disk.png"), 1,
+            cancellationToken);
+        fixture.Preferences = fixture.Preferences with { ResourceChartType = ResourceChartType.Overlay };
+        fixture.BuildChartSelectors();
 
         fixture.RefreshVisiblePresentation();
         visual.Measure(new Size(720, 820));

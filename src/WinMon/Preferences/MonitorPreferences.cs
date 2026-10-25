@@ -81,6 +81,13 @@ public sealed record MonitorPreferences
     /// <summary>Gets the chosen chart range in seconds; anything outside <see cref="ChartRanges"/> means the short range.</summary>
     public int ChartRangeSeconds { get; init; }
 
+    /// <summary>Full-view resource history layout.</summary>
+    [JsonConverter(typeof(JsonStringEnumConverter<ResourceChartType>))]
+    public ResourceChartType ResourceChartType { get; init; }
+
+    /// <summary>Resource enlarged in the focus layout, in chart metric order.</summary>
+    public int FocusMetric { get; init; }
+
     /// <summary>Chart range choices: 2, 10, 30 and 60 minutes, up to the retained history.</summary>
     internal int[] ChartRanges =>
     [
