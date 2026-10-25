@@ -12,15 +12,16 @@ public partial class CsvExportDialog : Window
 {
     internal CsvExportChoice? Choice { get; private set; }
 
-    internal CsvExportDialog(CsvExportKind initialKind)
+    internal CsvExportDialog(CsvExportKind initialKind, string theme)
     {
         InitializeComponent();
         WindowTheme.Attach(this);
+        if (theme == "Slate") SaveButton.Background = (Brush)FindResource("SelectedSurface");
         Loaded += (_, _) =>
         {
-            if (FindResource("Accent") is not SolidColorBrush accent) return;
-            SaveButton.Foreground = ChartPalettes.ContrastRatio(accent.Color, Colors.White) >=
-                                    ChartPalettes.ContrastRatio(accent.Color, Colors.Black)
+            if (SaveButton.Background is not SolidColorBrush background) return;
+            SaveButton.Foreground = ChartPalettes.ContrastRatio(background.Color, Colors.White) >=
+                                    ChartPalettes.ContrastRatio(background.Color, Colors.Black)
                 ? Brushes.White : Brushes.Black;
         };
         switch (initialKind)

@@ -25,7 +25,7 @@ public partial class MainWindow
         var initial = CompactMode ? CsvExportKind.ResourceHistory :
             UsageTab.IsChecked == true ? CsvExportKind.UsageTotals :
             ProcessesTab.IsChecked == true ? CsvExportKind.ProcessSamples : CsvExportKind.ResourceHistory;
-        var dialog = new CsvExportDialog(initial) { Owner = this };
+        var dialog = new CsvExportDialog(initial, _preferences.Theme) { Owner = this };
         if (dialog.ShowDialog() != true || dialog.Choice is not { } choice || IsClosing) return;
 
         try

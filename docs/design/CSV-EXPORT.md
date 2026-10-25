@@ -23,6 +23,8 @@ Let a normal user save WinMon's existing observations for a spreadsheet or analy
 
 ## What landed
 
-`MainWindow.Export.cs` opens the dialog and passes immutable snapshots to `Monitoring/CsvExport.cs`, which writes the CSV on a worker thread. `Controls/CsvExportDialog.xaml` holds the layout. `CsvExportTests` cover range selection, raw/invariant values, quoting and formula safety, Usage totals and atomic failure behavior. Feature smoke captures the dialog in dark and light themes.
+`MainWindow.Export.cs` opens the dialog and passes immutable snapshots to `Monitoring/CsvExport.cs`, which writes the CSV on a worker thread. `Controls/CsvExportDialog.xaml` holds the layout. `CsvExportTests` cover range selection, raw/invariant values, quoting and formula safety, Usage totals and atomic failure behavior. Feature smoke captures the dialog in Dark, Light and Slate themes.
 
 The concept showed “Current session” as a time choice; the implementation says “All retained history,” because the in-memory history can be shorter than the whole session. The concept's time choice is hidden for Usage totals. The button label is **Export**, as requested.
+
+The Save CSV button uses the selected surface as its fill. Slate's pale accent made an enabled button look disabled; the darker selected surface keeps the action distinct while the text color is chosen for contrast.

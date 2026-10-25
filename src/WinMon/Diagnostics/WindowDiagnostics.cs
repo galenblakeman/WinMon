@@ -440,12 +440,13 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         {
             foreach (var (theme, kind) in new[]
                      {
-                         ("Dark", CsvExportKind.UsageTotals), ("Light", CsvExportKind.ResourceHistory)
+                         ("Dark", CsvExportKind.UsageTotals), ("Light", CsvExportKind.ResourceHistory),
+                         ("Slate", CsvExportKind.ProcessSamples)
                      })
             {
                 window.Preferences = exportTheme with { Theme = theme };
                 window.ApplyTheme();
-                var export = new CsvExportDialog(kind) { Owner = window };
+                var export = new CsvExportDialog(kind, theme) { Owner = window };
                 try
                 {
                     export.Show();
@@ -454,7 +455,8 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                             ? Visibility.Collapsed : Visibility.Visible) ||
                         export.FileNameBox.Text.Length == 0)
                         throw new InvalidOperationException("Export dialog showed the wrong time choices or file name.");
-                    if (export.SaveButton.Background is not SolidColorBrush saveBackground ||
+                    if (!export.SaveButton.IsEnabled ||
+                        export.SaveButton.Background is not SolidColorBrush saveBackground ||
                         export.SaveButton.Foreground is not SolidColorBrush saveText ||
                         ChartPalettes.ContrastRatio(saveBackground.Color, saveText.Color) < 4.5)
                         throw new InvalidOperationException("Export Save button lacks readable text contrast.");
