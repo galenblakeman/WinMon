@@ -1578,9 +1578,9 @@ Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse
 <data name="ThemeCopper" xml:space="preserve"><value>Kupfer</value></data>
 <data name="ThemeGunmetal" xml:space="preserve"><value>Rotguss</value></data>
 <data name="ThemePorcelain" xml:space="preserve"><value>Porzellan</value></data>
-<data name="ThemeMidnightInk" xml:space="preserve"><value>Mitternachtstinte</value></data>
-<data name="ThemeEvergreenInstrument" xml:space="preserve"><value>Immergrünes Instrument</value></data>
-<data name="ThemeFrostedPorcelain" xml:space="preserve"><value>Mattiertes Porzellan</value></data>
-<data name="ThemeSmokedSapphire" xml:space="preserve"><value>Rauchblauer Saphir</value></data>
-<data name="ThemeGlassRim" xml:space="preserve"><value>Glasrahmen</value></data>
+<data name="ThemeMidnightInk" xml:space="preserve"><value>Mitternacht</value></data>
+<data name="ThemeEvergreenInstrument" xml:space="preserve"><value>Immergrün</value></data>
+<data name="ThemeFrostedPorcelain" xml:space="preserve"><value>Frost</value></data>
+<data name="ThemeSmokedSapphire" xml:space="preserve"><value>Saphir</value></data>
+<data name="ThemeGlassRim" xml:space="preserve"><value>Glas</value></data>
 </root>

@@ -1576,11 +1576,11 @@ Se puede perder el trabajo sin guardar. Se finalizarán todos los procesos indic
   <data name="GaugeBottomBar" xml:space="preserve"><value>Barra inferior</value></data>
   <data name="GaugeSegmentedBar" xml:space="preserve"><value>Barra segmentada</value></data>
 <data name="ThemeCopper" xml:space="preserve"><value>Cobre</value></data>
-<data name="ThemeGunmetal" xml:space="preserve"><value>Acero pavonado</value></data>
+<data name="ThemeGunmetal" xml:space="preserve"><value>Grafito</value></data>
 <data name="ThemePorcelain" xml:space="preserve"><value>Porcelana</value></data>
-<data name="ThemeMidnightInk" xml:space="preserve"><value>Tinta de medianoche</value></data>
-<data name="ThemeEvergreenInstrument" xml:space="preserve"><value>Instrumento verde bosque</value></data>
-<data name="ThemeFrostedPorcelain" xml:space="preserve"><value>Porcelana esmerilada</value></data>
-<data name="ThemeSmokedSapphire" xml:space="preserve"><value>Zafiro ahumado</value></data>
-<data name="ThemeGlassRim" xml:space="preserve"><value>Borde de cristal</value></data>
+<data name="ThemeMidnightInk" xml:space="preserve"><value>Medianoche</value></data>
+<data name="ThemeEvergreenInstrument" xml:space="preserve"><value>Bosque</value></data>
+<data name="ThemeFrostedPorcelain" xml:space="preserve"><value>Escarcha</value></data>
+<data name="ThemeSmokedSapphire" xml:space="preserve"><value>Zafiro</value></data>
+<data name="ThemeGlassRim" xml:space="preserve"><value>Cristal</value></data>
 </root>

@@ -1578,9 +1578,9 @@ Windows 상태: {2}</value>
 <data name="ThemeCopper" xml:space="preserve"><value>구리</value></data>
 <data name="ThemeGunmetal" xml:space="preserve"><value>건메탈</value></data>
 <data name="ThemePorcelain" xml:space="preserve"><value>포슬린</value></data>
-<data name="ThemeMidnightInk" xml:space="preserve"><value>미드나이트 잉크</value></data>
-<data name="ThemeEvergreenInstrument" xml:space="preserve"><value>에버그린 계기판</value></data>
-<data name="ThemeFrostedPorcelain" xml:space="preserve"><value>서리 낀 포슬린</value></data>
-<data name="ThemeSmokedSapphire" xml:space="preserve"><value>스모키 사파이어</value></data>
-<data name="ThemeGlassRim" xml:space="preserve"><value>유리 테두리</value></data>
+<data name="ThemeMidnightInk" xml:space="preserve"><value>미드나이트</value></data>
+<data name="ThemeEvergreenInstrument" xml:space="preserve"><value>에버그린</value></data>
+<data name="ThemeFrostedPorcelain" xml:space="preserve"><value>프로스트</value></data>
+<data name="ThemeSmokedSapphire" xml:space="preserve"><value>사파이어</value></data>
+<data name="ThemeGlassRim" xml:space="preserve"><value>글라스</value></data>
 </root>

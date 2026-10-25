@@ -58,6 +58,28 @@ public sealed class StringResourceTests
         }
     }
 
+    [TestCase("en")]
+    [TestCase("de")]
+    [TestCase("es")]
+    [TestCase("fr")]
+    [TestCase("ja")]
+    [TestCase("ko")]
+    [TestCase("pl")]
+    [TestCase("pt-BR")]
+    [TestCase("ru")]
+    [TestCase("zh-Hans")]
+    public void ThemeLabels_AreSingleWordsInEveryLanguage(string culture)
+    {
+        foreach (var key in new[] { "ThemeDark", "ThemeLight", "ThemeSystem", "ThemeCopper",
+                     "ThemeGunmetal", "ThemePorcelain", "ThemeMidnightInk", "ThemeEvergreenInstrument",
+                     "ThemeFrostedPorcelain", "ThemeSmokedSapphire", "ThemeGlassRim" })
+        {
+            var label = Strings.ResourceManager.GetString(key, CultureInfo.GetCultureInfo(culture));
+            Assert.That(label, Is.Not.Null.And.Not.Empty, key);
+            Assert.That(label, Does.Not.Match(@"\s"), $"{culture}: {key}");
+        }
+    }
+
     [TestCase("zh-CN", "WinMon 设置")]
     [TestCase("zh-SG", "WinMon 设置")]
     [TestCase("ru-RU", "Настройки WinMon")]

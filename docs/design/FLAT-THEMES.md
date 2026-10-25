@@ -22,6 +22,7 @@ Resource readouts, chart traces and process sparklines continue to use the separ
 - Added colors to the shared theme finish model without applying the metal grain to flat finishes.
 - Included all three in full and compact smoke renders and the isolated Settings preview.
 - Preference and preview tests check persistence, surfaces and palette independence.
+- Selector labels were later shortened to Porcelain, Midnight and Evergreen; stored identifiers stayed the same.
 
 ## Departures from the mockups
 

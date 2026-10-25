@@ -26,6 +26,7 @@ The chart palette still supplies all six resource colors. These themes affect on
 - DWM Acrylic or Mica setup in `WindowTheme`, with full glass frame only for active backdrops.
 - Theme opacity in the shared finish model, Settings preview, full and compact views, and high-contrast fallback.
 - Preference round trips, preview checks, and desktop-composed smoke renders.
+- Selector labels were later shortened to Frost, Sapphire and Glass; stored identifiers stayed the same.
 
 ## Departures from the mockups
 

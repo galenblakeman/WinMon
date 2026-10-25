@@ -1576,11 +1576,11 @@ GPU {11} · {12}
   <data name="GaugeBottomBar" xml:space="preserve"><value>Полоса снизу</value></data>
   <data name="GaugeSegmentedBar" xml:space="preserve"><value>Сегментная полоса</value></data>
 <data name="ThemeCopper" xml:space="preserve"><value>Медь</value></data>
-<data name="ThemeGunmetal" xml:space="preserve"><value>Оружейная сталь</value></data>
+<data name="ThemeGunmetal" xml:space="preserve"><value>Графит</value></data>
 <data name="ThemePorcelain" xml:space="preserve"><value>Фарфор</value></data>
-<data name="ThemeMidnightInk" xml:space="preserve"><value>Полуночные чернила</value></data>
-<data name="ThemeEvergreenInstrument" xml:space="preserve"><value>Лесной прибор</value></data>
-<data name="ThemeFrostedPorcelain" xml:space="preserve"><value>Матовый фарфор</value></data>
-<data name="ThemeSmokedSapphire" xml:space="preserve"><value>Дымчатый сапфир</value></data>
-<data name="ThemeGlassRim" xml:space="preserve"><value>Стеклянная рамка</value></data>
+<data name="ThemeMidnightInk" xml:space="preserve"><value>Полночь</value></data>
+<data name="ThemeEvergreenInstrument" xml:space="preserve"><value>Вечнозелёный</value></data>
+<data name="ThemeFrostedPorcelain" xml:space="preserve"><value>Иней</value></data>
+<data name="ThemeSmokedSapphire" xml:space="preserve"><value>Сапфир</value></data>
+<data name="ThemeGlassRim" xml:space="preserve"><value>Стекло</value></data>
 </root>
