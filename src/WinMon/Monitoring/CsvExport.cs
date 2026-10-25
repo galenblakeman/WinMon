@@ -24,7 +24,8 @@ internal static class CsvExport
         var temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
         try
         {
-            using (var writer = new StreamWriter(temporary, false, new UTF8Encoding(true), 1 << 16))
+            using (var file = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None, 1 << 16))
+            using (var writer = new StreamWriter(file, new UTF8Encoding(true), 1 << 16))
             {
                 switch (kind)
                 {
@@ -34,6 +35,10 @@ internal static class CsvExport
                         WriteUsage(writer, apps, usageSince, machineBusyTicks, notAttributedTicks); break;
                     default: throw new ArgumentOutOfRangeException(nameof(kind));
                 }
+
+                // Reach the disk before the rename, so a power loss cannot leave the replaced file empty.
+                writer.Flush();
+                file.Flush(true);
             }
 
             File.Move(temporary, path, true);
