@@ -3,6 +3,7 @@ using System.Windows;
 using NUnit.Framework;
 using WinMon.Controls;
 using WinMon.Monitoring;
+using WinMon.Preferences;
 
 namespace WinMon.Tests;
 
@@ -34,6 +35,33 @@ public sealed class ChartSnapshotTests
             Assert.That(selected, Is.SameAs(latest).And.SameAs(clicked));
             Assert.That(graph.SelectionAnchor.X, Is.EqualTo(plot.Right));
             Assert.That(graph.SelectionAnchor.Y, Is.EqualTo(plot.Top + plot.Height / 2));
+        });
+    }
+
+    [TestCase(ResourceChartType.SmallMultiples)]
+    [TestCase(ResourceChartType.Heatmap)]
+    [TestCase(ResourceChartType.Focus)]
+    public void PlotBounds_VisibleLaneLabels_ExpandSharedRail(ResourceChartType chartType)
+    {
+        var graph = new CpuGraph
+        {
+            ShowGrid = true,
+            ChartType = chartType,
+            VisibleMetrics = 1,
+            MetricLabels = ["CPU", "A much longer localized memory label"]
+        };
+        graph.Measure(new Size(600, 240));
+        graph.Arrange(new Rect(0, 0, 600, 240));
+        var cpuOnly = graph.PlotBounds;
+
+        graph.VisibleMetrics = 3;
+        var withMemory = graph.PlotBounds;
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(cpuOnly.Left, Is.LessThan(105));
+            Assert.That(withMemory.Left, Is.GreaterThan(cpuOnly.Left));
+            Assert.That(withMemory.Right, Is.EqualTo(cpuOnly.Right));
         });
     }
 

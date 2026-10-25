@@ -11,3 +11,5 @@ The implementation uses the existing `CpuGraph` drawing and input path so every 
 Landed in `CpuGraph`, `MainWindow`, `MonitorPreferences` and `PreferenceStore`. The production heatmap uses one flat intensity strip per resource instead of the mockup's multi-row blocks, because each recorded interval has one scalar reading per resource. The combined dropdown keeps the chart type and resource visible in its selected label. Compact lane labels omit numeric scale cues when space is tight; the large focus chart retains its axis.
 
 The Focus disk choices take their drive letters from preferences when the menu is built, including the second volume. This keeps the choices distinct before either readout receives its first sample.
+
+The non-overlay views now share a measured left label column. Axis ticks and lane labels end at the same inset from the plot, so the chart can use the space previously reserved by the fixed 105-pixel gutter while still fitting longer localized names.

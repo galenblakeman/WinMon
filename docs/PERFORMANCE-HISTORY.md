@@ -6,6 +6,21 @@ Dated measurement and validation records, newest first. Each section describes t
 
 Add a section at the top for each measured change: what changed, the machine and build, before and after results, and where the raw reports are.
 
+## Shared chart label rail (October 25, 2026)
+
+Release UI-thread benchmark on the development machine, with four baseline and four changed runs alternated. The baseline used the current working tree with only CpuGraph.cs restored from main; the changed build used the measured label rail. Values are medians of the four run medians. The non-overlay charts gained about 50 DIPs of plot width and measure their visible labels to size the rail.
+
+| Scenario | Before | After | Allocation before | Allocation after |
+| --- | ---: | ---: | ---: | ---: |
+| Live overlay | 4.53 ms | 3.93 ms | 533.2 KiB | 533.2 KiB |
+| Small multiples | 2.56 ms | 2.99 ms | 504.4 KiB | 504.5 KiB |
+| Heatmap | 2.50 ms | 2.51 ms | 547.6 KiB | 547.7 KiB |
+| Focus | 2.48 ms | 2.70 ms | 516.9 KiB | 517.0 KiB |
+| Historical | 1.13 ms | 1.11 ms | 175.9 KiB | 175.9 KiB |
+| Compact live | 1.52 ms | 1.47 ms | 338.2 KiB | 338.2 KiB |
+
+The small-multiples and Focus scenarios took 0.44 ms and 0.22 ms more per refresh respectively, consistent with the wider plotted area and label sizing work. Heatmap time was effectively unchanged. Allocation changed by at most 0.1 KiB per frame in these chart modes. Pixel hashes changed only for the three non-overlay modes, as intended. Raw reports: artifacts/label-rail/baseline-1.json through baseline-4.json and changed-1.json through changed-4.json.
+
 ## Wide resource gauges (October 25, 2026)
 
 Release UI-thread benchmark on the development machine, before and after adding five live `MicroGauge.Wpf` rails to the benchmark's Full view. Four baseline and four changed runs alternated; each value below is the median of the four run medians. The Full-view cost is the per-frame gauge refresh and drawing. Compact view skips that work, retains its pixel hash, and has unchanged allocation within run variation. Full-view hashes changed as intended.

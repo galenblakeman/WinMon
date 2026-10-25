@@ -39,6 +39,7 @@ public sealed class CpuGraph : FrameworkElement
     private readonly Dictionary<(Brush, double), Brush> _fills = [];
     private readonly Dictionary<(Brush, double, DashStyle?), Pen> _pens = [];
     private readonly Dictionary<(string, Brush, double), FormattedText> _labels = [];
+    private readonly Dictionary<(string, double), double> _labelWidths = [];
     private static readonly Typeface LabelTypeface = new("Segoe UI");
     private static readonly int[] MetricOrder = [0, 1, 2, 5, 3, 4];
 
@@ -138,13 +139,13 @@ public sealed class CpuGraph : FrameworkElement
     {
         base.OnRender(drawingContext);
         if (ActualWidth < 2 || ActualHeight < 2) return;
+        if ((ShowGrid || TileMetric == 3) && _process is null)
+            _networkScale = NetworkScale(_samples.Where(s => Moment(s) >= _end - _seconds));
         var plot = Plot();
         if (plot.Width < 2 || plot.Height < 2) return;
         var accent = Resource("Accent", Brushes.LimeGreen);
         var line = Resource("Line", Brushes.DimGray);
         var muted = Resource("Muted", Brushes.Gray);
-        if ((ShowGrid || TileMetric == 3) && _process is null)
-            _networkScale = NetworkScale(_samples.Where(s => Moment(s) >= _end - _seconds));
         drawingContext.DrawRectangle(Brushes.Transparent, null, new Rect(RenderSize));
         var alternative = ShowGrid && _process is null && TileMetric is null && ChartType != ResourceChartType.Overlay;
         if (ShowGrid)
@@ -161,8 +162,8 @@ public sealed class CpuGraph : FrameworkElement
                 Label(drawingContext, focusNetwork
                         ? RateText.Format(_networkScale * (4 - i) / 4)
                         : Strings.Format(Strings.PercentInteger, 100 - i * 25),
-                    new Point(focusNetwork ? 0 : alternative ? plot.Left - 38 : 0,
-                        Math.Max(0, y - 7)), muted);
+                    new Point(alternative ? plot.Left - 8 : 0, Math.Max(0, y - 7)), muted,
+                    alternative ? 1 : 0);
             }
 
             for (var i = 0; i <= 4; i++)
@@ -325,12 +326,12 @@ public sealed class CpuGraph : FrameworkElement
     {
         var color = MetricBrush(metric, accent);
         dc.DrawLine(CachedPen(line, 0.6), lane.TopLeft, lane.TopRight);
-        Label(dc, MetricName(metric), new Point(2, lane.Top + Math.Max(2, lane.Height / 2 - (compact ? 7 : 12))),
-            color);
+        Label(dc, MetricName(metric),
+            new Point(lane.Left - 8, lane.Top + Math.Max(2, lane.Height / 2 - (compact ? 7 : 12))), color, 1);
         if (!compact)
             Label(dc, metric == 3 ? RateText.Format(_networkScale) :
                 Strings.Format(Strings.PercentInteger, 100),
-                new Point(2, lane.Top + Math.Max(14, lane.Height / 2 + 2)), muted);
+                new Point(lane.Left - 8, lane.Top + Math.Max(14, lane.Height / 2 + 2)), muted, 1);
         var inset = new Rect(lane.Left, lane.Top + 3, lane.Width, Math.Max(1, lane.Height - 6));
         if (heatmap) DrawHeatmap(dc, inset, metric, color);
         else DrawSeries(dc, inset, color, metric);
@@ -607,11 +608,32 @@ public sealed class CpuGraph : FrameworkElement
 
     private Rect Plot()
     {
-        return ShowGrid
-            ? ChartType == ResourceChartType.Overlay
-                ? new Rect(39, 8, Math.Max(0, ActualWidth - 41), Math.Max(0, ActualHeight - 33))
-                : new Rect(105, 8, Math.Max(0, ActualWidth - 107), Math.Max(0, ActualHeight - 33))
-            : new Rect(0, 0, ActualWidth, ActualHeight);
+        if (!ShowGrid) return new Rect(0, 0, ActualWidth, ActualHeight);
+        if (ChartType == ResourceChartType.Overlay)
+            return new Rect(39, 8, Math.Max(0, ActualWidth - 41), Math.Max(0, ActualHeight - 33));
+
+        var labelWidth = LabelWidth(Strings.Format(Strings.PercentInteger, 100));
+        foreach (var metric in MetricOrder)
+        {
+            if ((VisibleMetrics & (1 << metric)) == 0) continue;
+            labelWidth = Math.Max(labelWidth, LabelWidth(MetricName(metric)));
+            if (metric == 3)
+                labelWidth = Math.Max(labelWidth, LabelWidth(RateText.Format(_networkScale)));
+        }
+
+        var left = Math.Ceiling(labelWidth + 10);
+        return new Rect(left, 8, Math.Max(0, ActualWidth - left - 2), Math.Max(0, ActualHeight - 33));
+    }
+
+    private double LabelWidth(string text)
+    {
+        var pixelsPerDip = VisualTreeHelper.GetDpi(this).PixelsPerDip;
+        if (_labelWidths.TryGetValue((text, pixelsPerDip), out var width)) return width;
+        if (_labelWidths.Count >= 64) _labelWidths.Clear();
+        width = new FormattedText(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
+            LabelTypeface, 11, Brushes.Black, pixelsPerDip).Width;
+        _labelWidths[(text, pixelsPerDip)] = width;
+        return width;
     }
 
     private double X(MonitorSample sample, Rect plot)
