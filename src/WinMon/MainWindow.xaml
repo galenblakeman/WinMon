@@ -574,6 +574,10 @@
                                 BorderBrush="{DynamicResource Line}"
                                 BorderThickness="0,0,0,1">
                                 <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
                                     <StackPanel KeyboardNavigation.TabNavigation="Once" Orientation="Horizontal">
                                         <RadioButton
                                             x:Name="ProcessesTab"
@@ -592,6 +596,14 @@
                                             GroupName="ActivityView"
                                             Style="{StaticResource ActivityTab}" />
                                     </StackPanel>
+                                    <!--  Machine totals for the moment the table shows; the tooltip has exact values.  -->
+                                    <TextBlock
+                                        x:Name="SystemCounts"
+                                        Grid.Column="1"
+                                        Margin="12,0,20,0"
+                                        VerticalAlignment="Center"
+                                        FontSize="12"
+                                        Foreground="{DynamicResource Muted}"><Run Text="{Binding [ProcessesHeading], Source={x:Static resources:Strings.Text}, Mode=OneWay}" /><Run Text=" " /><Run x:Name="ProcessCountValue" Foreground="{DynamicResource Text}" /><Run Text="  ·  " /><Run Text="{Binding [Threads], Source={x:Static resources:Strings.Text}, Mode=OneWay}" /><Run Text=" " /><Run x:Name="ThreadCountValue" Foreground="{DynamicResource Text}" /><Run Text="  ·  " /><Run Text="{Binding [Handles], Source={x:Static resources:Strings.Text}, Mode=OneWay}" /><Run Text=" " /><Run x:Name="HandleCountValue" Foreground="{DynamicResource Text}" /></TextBlock>
                                 </Grid>
                             </Border>
                             <controls:ProcessesView x:Name="Processes" Grid.Row="1" />

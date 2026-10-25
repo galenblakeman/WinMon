@@ -660,7 +660,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
             {
                 HardwareInfo = true, PaletteRenders = true, ProcessContextMenu = true,
                 HistoricalActionsDisabled = true, GroupTerminationOffered = true, ThemedProcessDialogs = true,
-                ActionDrawer = true, LanguageSelection = true,
+                ActionDrawer = true, SystemCounts = true, LanguageSelection = true,
                 LiveLanguageSwitching = true, RecordingStatePreserved = true,
                 Limitation =
                     "No destructive command invoked by the UI smoke; native termination is tested on an owned helper in the test suite."
@@ -678,6 +678,11 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         {
             window.Processes.SelectProcess(process, false);
             window.UpdateLayout();
+            // The tab strip shows the machine's counts where the old Hide actions toggle sat.
+            if (new[] { window.ProcessCountValue, window.ThreadCountValue, window.HandleCountValue }.Any(v =>
+                    v.Text.Length == 0 || v.Text == Strings.MissingReading) ||
+                window.SystemCounts.ToolTip is not string counts || !counts.Contains(Strings.Handles))
+                throw new InvalidOperationException("The tab strip did not show process, thread and handle counts.");
             var open = drawer.ActualHeight;
             var bar = window.Processes.ProcessActions;
             var hide = Descendants(bar).OfType<Button>().Single(b => b.Command == ActionDrawer.CollapseCommand);

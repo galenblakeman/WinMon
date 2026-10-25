@@ -217,6 +217,23 @@ public partial class MainWindow
         return resource?.HandleCount is { } handles ? F("{0:N0}", handles) : Dash;
     }
 
+    /// <summary>A count short enough for the activity tab strip: 4,812, 152K, 1.2M.</summary>
+    internal static string CompactCount(uint? value)
+    {
+        return value switch
+        {
+            null => Dash,
+            < 100_000 => F("{0:N0}", value),
+            < 999_500 => F("{0:0}K", value / 1_000d),
+            _ => F("{0:0.0}M", value / 1_000_000d)
+        };
+    }
+
+    internal static string ExactCount(uint? value)
+    {
+        return value is { } count ? F("{0:N0}", count) : Dash;
+    }
+
     private static string F(string format, params object[] values)
     {
         return Strings.Format(format, values);

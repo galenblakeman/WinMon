@@ -67,4 +67,23 @@ public sealed class MetricDetailsTests
             Assert.That(MainWindow.HandleCountText(null), Is.EqualTo(WinMon.Resources.Strings.MissingReading));
         });
     }
+
+    [TestCase(312u, "312")]
+    [TestCase(18_903u, "18,903")]
+    [TestCase(99_999u, "99,999")]
+    [TestCase(100_000u, "100K")]
+    [TestCase(612_880u, "613K")]
+    [TestCase(999_499u, "999K")]
+    [TestCase(999_500u, "1.0M")]
+    [TestCase(1_234_567u, "1.2M")]
+    [SetCulture("en-US")]
+    public void CompactCount_StaysShortForTheTabStrip(uint value, string expected)
+    {
+        Assert.Multiple(() =>
+        {
+            Assert.That(MainWindow.CompactCount(value), Is.EqualTo(expected));
+            Assert.That(MainWindow.CompactCount(null), Is.EqualTo(WinMon.Resources.Strings.MissingReading));
+            Assert.That(MainWindow.ExactCount(value), Is.EqualTo(value.ToString("N0")));
+        });
+    }
 }

@@ -1,11 +1,16 @@
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Automation;
 using WinMon.Controls;
+using WinMon.Monitoring;
 
 namespace WinMon;
 
 public partial class MainWindow
 {
+    // Null until first shown, and after a language change, so the next refresh writes every label.
+    private (uint? ProcessCount, uint? ThreadCount, uint? HandleCount)? _systemCounts;
+
     private void InitializeProcesses()
     {
         Processes.SettingsChanged += settings =>
@@ -31,6 +36,22 @@ public partial class MainWindow
     {
         _preferences = _preferences with { ProcessActionsHidden = hidden };
         ApplyActionsHidden();
+    }
+
+    // Machine totals beside the activity tabs follow the moment the table shows. Unchanged counts cost no layout.
+    private void UpdateSystemCounts(ResourceSample? resource)
+    {
+        var counts = (resource?.ProcessCount, resource?.ThreadCount, resource?.HandleCount);
+        if (_systemCounts == counts) return;
+        _systemCounts = counts;
+        ProcessCountValue.Text = CompactCount(counts.ProcessCount);
+        ThreadCountValue.Text = CompactCount(counts.ThreadCount);
+        HandleCountValue.Text = CompactCount(counts.HandleCount);
+        var exact = $"{Strings.ProcessesHeading}: {ExactCount(counts.ProcessCount)}\n" +
+                    $"{Strings.Threads}: {ExactCount(counts.ThreadCount)}\n" +
+                    $"{Strings.Handles}: {ExactCount(counts.HandleCount)}";
+        SystemCounts.ToolTip = exact;
+        AutomationProperties.SetName(SystemCounts, exact);
     }
 
     private void ApplyActionsHidden()

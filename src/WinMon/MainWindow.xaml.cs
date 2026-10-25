@@ -242,6 +242,7 @@ public partial class MainWindow
             : Strings.MissingReading;
         var allUnavailable = _samplingError == SamplingError.ReadingsUnavailable;
         UpdateResources(allUnavailable ? null : latest);
+        UpdateSystemCounts(allUnavailable ? null : visible?.Resources);
         UpdateMetricGauges(samples, latest);
         OverallGraph.ChartType = _preferences.ResourceChartType;
         OverallGraph.FocusMetric = _preferences.FocusMetric;
@@ -728,6 +729,7 @@ public partial class MainWindow
         RefreshMetricDetailsLanguage();
         UpdateCompactButton();
         ApplyActionsHidden();
+        _systemCounts = null;
         if (_tray?.ContextMenuStrip is { } menu)
         {
             menu.Items[0].Text = Strings.ShowWinMon;
