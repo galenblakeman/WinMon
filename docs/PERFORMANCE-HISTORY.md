@@ -6,6 +6,32 @@ Dated measurement and validation records, newest first. Each section describes t
 
 Add a section at the top for each measured change: what changed, the machine and build, before and after results, and where the raw reports are.
 
+## Action drawer and activity counts (October 25, 2026)
+
+Release UI-thread benchmark on the development machine, comparing the 3.2.0 compact gauge build (the code of `16f9d77`) with the action drawer and tab-strip counts (the code of `c4b0125` and `2070796`). The machine was not quiet: another agent was building and editing in the same checkout throughout. Each value is the median of four run medians.
+
+Pass 1 alternated baseline first. Pass 2 put the changed build first, and that build also clipped and transformed the bar only while it slid, to test whether the drawer's steady clip cost anything; that variant was not kept.
+
+| Scenario | Pass 1 before | Pass 1 after | Pass 2 before | Pass 2 after | Allocation before | Allocation after |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Live overlay | 4.25 ms | 4.39 ms | 4.31 ms | 4.32 ms | 531.0 KiB | 531.0 KiB |
+| Small multiples | 2.78 ms | 2.60 ms | 2.59 ms | 2.79 ms | 502.3 KiB | 502.3 KiB |
+| Heatmap | 2.64 ms | 2.75 ms | 2.69 ms | 2.86 ms | 545.3 KiB | 545.3 KiB |
+| Focus | 2.79 ms | 2.67 ms | 2.63 ms | 3.14 ms | 515.2 KiB | 515.2 KiB |
+| Historical | 1.24 ms | 1.22 ms | 1.18 ms | 1.43 ms | 173.6 KiB | 173.6 KiB |
+| Grouped live | 5.75 ms | 5.56 ms | 5.97 ms | 6.30 ms | 543.4 KiB | 543.4 KiB |
+| Services | 5.66 ms | 5.34 ms | 6.39 ms | 5.64 ms | 1,013.2 KiB | 950.2 KiB |
+| Compact live | 1.66 ms | 1.59 ms | 1.68 ms | 1.71 ms | 362.0 KiB | 362.0 KiB |
+| Pinned and selected | 3.48 ms | 3.63 ms | 3.66 ms | 3.82 ms | 838.2 KiB | 838.2 KiB |
+| Pinned and selected, grouped | 7.00 ms | 7.45 ms | 6.64 ms | 7.01 ms | 708.4 KiB | 708.4 KiB |
+| Same grouped view, CPU tooltip open | 9.93 ms | 10.00 ms | 9.62 ms | 10.38 ms | 845.5 KiB | 847.3 KiB |
+
+- Pixel hashes changed in every Full-view scenario, as intended: the tab strip shows the counts and each action bar ends with the chevron. The compact hash matched.
+- Services allocates 63 KiB less per refresh in every run of both passes. The drawer adds a 6-DIP gap above the Services bar, which had none, so the list most likely realizes one fewer row. This was not confirmed by counting rows.
+- **Unresolved:** grouped selection with pinned rows was about 0.4 ms (6%) slower after the change in both passes and in seven of eight pairs. Other scenarios, including ones the drawer cannot affect such as Historical, moved by up to 20% between passes, so this run cannot separate the difference from machine noise. Steady clipping was ruled out by pass 2. Rerun on a quiet machine before relying on either reading.
+
+Raw reports: `artifacts/drawer-bench/base-1.json` through `-4.json` and `changed-*.json` (pass 1), and `base2-*.json` and `rest-*.json` (pass 2).
+
 ## Compact gauge view (October 25, 2026)
 
 Release UI-thread benchmark on the development machine, comparing `fda5af2` with the compact gauge working tree. Four baseline and four changed runs alternated; each value is the median of the four run medians. Compact mode now renders `MetricReadout` gauges instead of filled `CpuGraph` tiles. The compact pixel hash changed as intended; every noncompact scenario's hash matched.
