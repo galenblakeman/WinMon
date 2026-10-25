@@ -242,7 +242,7 @@ public partial class MainWindow
             : Strings.MissingReading;
         var allUnavailable = _samplingError == SamplingError.ReadingsUnavailable;
         UpdateResources(allUnavailable ? null : latest);
-        if (!CompactMode) UpdateMetricGauges(samples, latest);
+        UpdateMetricGauges(samples, latest);
         OverallGraph.ChartType = _preferences.ResourceChartType;
         OverallGraph.FocusMetric = _preferences.FocusMetric;
         OverallGraph.MetricLabels = Metrics.Select(metric => metric.Label).ToArray();

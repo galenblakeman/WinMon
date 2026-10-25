@@ -81,8 +81,7 @@ public partial class MainWindow
 
     internal SnapshotReport? SnapshotReport => _snapshotReport;
 
-    internal List<(MetricReadout Source, Border Box, CpuGraph Graph, TextBlock Label, TextBlock Value, TextBlock Detail
-        )> StripTiles => _stripTiles;
+    internal List<(MetricReadout Source, Border Box, MetricReadout Readout)> CompactTiles => _compactTiles;
 
     internal Forms.NotifyIcon? Tray
     {

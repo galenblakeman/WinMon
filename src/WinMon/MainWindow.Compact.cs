@@ -4,52 +4,33 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using WinMon.Controls;
-using WinMon.Preferences;
 
 namespace WinMon;
 
 public partial class MainWindow
 {
+    internal const double CompactHeight = 136;
     private Size _fullViewSize = new(1000, 840);
 
-    private readonly
-        List<(MetricReadout Source, Border Box, CpuGraph Graph, TextBlock Label, TextBlock Value, TextBlock Detail)>
-        _stripTiles = [];
+    private readonly List<(MetricReadout Source, Border Box, MetricReadout Readout)> _compactTiles = [];
+    private readonly Dictionary<MetricReadout, MetricReadout> _compactMetrics = [];
 
     private void InitializeCompactView()
     {
-        foreach (var (source, metric, accent) in new[]
+        foreach (var (source, accent) in new[]
                  {
-                     (CpuMetric, 0, "CpuAccent"), (MemoryMetric, 1, "MemoryAccent"),
-                     (DiskMetric, 2, "DiskAccent"), (SecondaryDiskMetric, 5, "SecondaryDiskAccent"),
-                     (NetworkMetric, 3, "NetworkAccent"), (GpuMetric, 4, "GpuAccent")
+                     (CpuMetric, "CpuAccent"), (MemoryMetric, "MemoryAccent"),
+                     (DiskMetric, "DiskAccent"), (SecondaryDiskMetric, "SecondaryDiskAccent"),
+                     (NetworkMetric, "NetworkAccent"), (GpuMetric, "GpuAccent")
                  })
         {
             var column = CompactStrip.ColumnDefinitions.Count;
             CompactStrip.ColumnDefinitions.Add(new ColumnDefinition());
-            var graph = new CpuGraph { TileMetric = metric, IsHitTestVisible = false };
-            var label = new TextBlock { FontSize = 12, TextTrimming = TextTrimming.CharacterEllipsis };
-            var value = new TextBlock
-                { FontSize = 23, FontWeight = FontWeights.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis };
-            value.SetResourceReference(TextBlock.ForegroundProperty, accent);
-            var detail = new TextBlock { FontSize = 11, TextTrimming = TextTrimming.CharacterEllipsis };
-            foreach (var block in new[] { label, value, detail })
-            {
-                block.HorizontalAlignment = HorizontalAlignment.Left;
-                block.SetResourceReference(TextBlock.BackgroundProperty, "Surface");
-            }
-
-            var text = new StackPanel
-                { Margin = new Thickness(10, 7, 6, 0), VerticalAlignment = VerticalAlignment.Top };
-            text.Children.Add(label);
-            text.Children.Add(value);
-            text.Children.Add(detail);
-            var content = new Grid { ClipToBounds = true };
-            content.Children.Add(graph);
-            content.Children.Add(text);
+            var readout = new MetricReadout { ShowSeriesToggle = false, Margin = new Thickness(10, 4, 8, 4) };
+            readout.AccentKey = accent;
             var box = new Border
             {
-                BorderThickness = new Thickness(0, 0, 1, 0), Child = content,
+                BorderThickness = new Thickness(0, 0, 1, 0), Child = readout,
                 Focusable = true, ToolTip = source.ToolTip
             };
             KeyboardNavigation.SetTabIndex(box, column);
@@ -60,7 +41,8 @@ public partial class MainWindow
             box.ToolTipClosing += (_, _) => CloseDetails(source);
             Grid.SetColumn(box, column);
             CompactStrip.Children.Add(box);
-            _stripTiles.Add((source, box, graph, label, value, detail));
+            _compactTiles.Add((source, box, readout));
+            _compactMetrics.Add(source, readout);
         }
 
         UpdateCompactButton();
@@ -88,9 +70,9 @@ public partial class MainWindow
         CompactStatus.Visibility = compact ? Visibility.Visible : Visibility.Collapsed;
         InfoButton.Visibility = SettingsButton.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
         VersionRun.Text = compact ? "" : $" {AppInfo.Version}";
-        MaxHeight = compact ? 156 : double.PositiveInfinity;
-        MinHeight = compact ? 156 : 160;
-        Height = compact ? 156 : Math.Max(MinHeight, _fullViewSize.Height);
+        MaxHeight = compact ? CompactHeight : double.PositiveInfinity;
+        MinHeight = compact ? CompactHeight : 160;
+        Height = compact ? CompactHeight : Math.Max(MinHeight, _fullViewSize.Height);
         if (!compact) Width = Math.Max(MinWidth, _fullViewSize.Width);
         UpdateCompactButton();
         RefreshPresentation();
@@ -110,32 +92,23 @@ public partial class MainWindow
     private void RefreshCompactView()
     {
         if (!CompactMode) return;
-        var history = Session.History.Samples;
         CompactStatus.Text = _samplingError is null ? Strings.LiveMode : Strings.Unavailable;
         CompactStatus.ToolTip =
             _samplingError is null ? Strings.LiveMode : Strings.ReadingsUnavailableRetryingEachSecond;
-        foreach (var (source, box, graph, label, value, detail) in _stripTiles)
+        foreach (var (source, box, readout) in _compactTiles)
         {
             var visible = source != SecondaryDiskMetric || _preferences.SecondaryDrive is not null;
             box.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
             CompactStrip.ColumnDefinitions[Grid.GetColumn(box)].Width = visible
-                ? new GridLength(source == NetworkMetric ? 1.3 : 1, GridUnitType.Star)
+                ? new GridLength(1, GridUnitType.Star)
                 : new GridLength(0);
-            var nextLabel = source.Label;
-            var nextValue = new TextRange(source.ValueLabel.ContentStart, source.ValueLabel.ContentEnd).Text;
-            var nameChanged = label.Text != nextLabel || value.Text != nextValue;
-            if (label.Text != nextLabel) label.Text = nextLabel;
-            if (value.Text != nextValue) value.Text = nextValue;
-            // The compact strip prioritizes memory capacity and network direction readings.
-            var nextDetail = source == MemoryMetric || source == NetworkMetric ? source.DetailLabel.Text : "";
-            if (detail.Text != nextDetail) detail.Text = nextDetail;
-            if (nameChanged || string.IsNullOrEmpty(AutomationProperties.GetName(box)))
-                AutomationProperties.SetName(box, $"{nextLabel} {nextValue}");
+            readout.CopyReadingFrom(source);
+            var value = new TextRange(readout.ValueLabel.ContentStart, readout.ValueLabel.ContentEnd).Text;
+            var name = $"{readout.Label} {value}";
+            if (AutomationProperties.GetName(box) != name) AutomationProperties.SetName(box, name);
             var definition = _metricDetails[source].Definition;
             if (AutomationProperties.GetHelpText(box) != definition)
                 AutomationProperties.SetHelpText(box, definition);
-            graph.UseSeriesPatterns = OverallGraph.UseSeriesPatterns;
-            graph.SetData(history, MonitorPreferences.ShortRangeSeconds, null);
         }
     }
 

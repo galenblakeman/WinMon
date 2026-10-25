@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using System.Windows;
+using System.Windows.Documents;
 using System.Windows.Controls.Primitives;
 using WinMon.Monitoring;
 using WinMon.Preferences;
@@ -17,8 +18,9 @@ internal sealed partial class WindowDiagnostics
         window.CompactViewButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
         await CaptureAsync(Path.Combine(output, "strip-live.png"), 1, cancellationToken);
         if (!window.CompactMode || window.FullView.Visibility != Visibility.Collapsed ||
-            window.CompactStrip.Visibility != Visibility.Visible || Math.Abs(window.Height - 156) > 0.001 ||
-            window.StripTiles[0].Value.Text != window.CpuMetric.ValueLabel.Text)
+            window.CompactStrip.Visibility != Visibility.Visible ||
+            Math.Abs(window.Height - MainWindow.CompactHeight) > 0.001 ||
+            window.CompactTiles[0].Readout.ValueLabel.Text != window.CpuMetric.ValueLabel.Text)
             throw new InvalidOperationException("Compact mode did not display the native live readings.");
         var savedSize = window.SavedFullViewSize(new Rect(window.Left, window.Top, window.Width, window.Height));
         await window.Store.SaveAsync(window.Preferences with { Width = savedSize.Width, Height = savedSize.Height },
@@ -59,44 +61,68 @@ internal sealed partial class WindowDiagnostics
             });
         }
 
+        fixture.GpuMetric.Toggle.IsChecked = false;
+        if (fixture.Preferences.ShowGpu)
+            throw new InvalidOperationException("The Full-view GPU chart toggle did not update its setting.");
         fixture.SetCompactView(true);
         fixture.RefreshVisiblePresentation();
-        if (fixture.StripTiles[4].Value.Text == Strings.MissingReading ||
-            !fixture.StripTiles[4].Value.Text.Contains("Mbps", StringComparison.Ordinal))
-            throw new InvalidOperationException("The strip lost the formatted network rate.");
+        if (fixture.CompactTiles[5].Box.Visibility != Visibility.Visible)
+            throw new InvalidOperationException("A hidden chart series also hid its compact resource gauge.");
+        var networkValue = new TextRange(
+            fixture.CompactTiles[4].Readout.ValueLabel.ContentStart,
+            fixture.CompactTiles[4].Readout.ValueLabel.ContentEnd).Text;
+        if (networkValue == Strings.MissingReading || !networkValue.Contains("Mbps", StringComparison.Ordinal))
+            throw new InvalidOperationException($"The compact gauges lost the formatted network rate: {networkValue}.");
         var visual = (FrameworkElement)fixture.Content;
         foreach (var theme in new[] { "Dark", "Light" })
         {
             fixture.Preferences = fixture.Preferences with { Theme = theme };
             fixture.ApplyTheme();
+            foreach (var style in Enum.GetValues<GaugeStyle>())
             foreach (var width in new[] { 1000d, 836d })
             {
+                fixture.Preferences = fixture.Preferences with { GaugeStyle = style };
+                fixture.ApplyGaugeStyle();
                 Draw(width);
+                if (fixture.CompactTiles.Where(tile => tile.Box.Visibility == Visibility.Visible).Any(tile =>
+                        tile.Readout.Label != tile.Source.Label ||
+                        tile.Readout.DetailLabel.Text != tile.Source.DetailLabel.Text ||
+                        new TextRange(tile.Readout.ValueLabel.ContentStart,
+                            tile.Readout.ValueLabel.ContentEnd).Text !=
+                        new TextRange(tile.Source.ValueLabel.ContentStart,
+                            tile.Source.ValueLabel.ContentEnd).Text))
+                    throw new InvalidOperationException("Compact readouts did not mirror the Full-view readings.");
+                if (fixture.CompactTiles.Any(tile => tile.Readout.GaugeStyle != style ||
+                    tile.Readout.Toggle.Parent is not null ||
+                    tile.Readout.Gauge.Visibility != (style == GaugeStyle.None
+                        ? Visibility.Hidden : Visibility.Visible)))
+                    throw new InvalidOperationException($"Compact readouts did not follow {style}.");
                 foreach (var scale in new[] { 1d, 1.5, 2d })
                     await CaptureVisualAsync(visual,
-                        Path.Combine(output, $"strip-{theme.ToLowerInvariant()}-{width}-{scale * 100:0}.png"), scale,
+                        Path.Combine(output, $"gauges-{style.ToString().ToLowerInvariant()}-{theme.ToLowerInvariant()}-{width}-{scale * 100:0}.png"), scale,
                         cancellationToken);
             }
         }
 
         fixture.Preferences = fixture.Preferences with { SecondaryDrive = null };
         Draw(836);
-        if (fixture.StripTiles[3].Box.Visibility != Visibility.Collapsed ||
+        if (fixture.CompactTiles[3].Box.Visibility != Visibility.Collapsed ||
             fixture.CompactStrip.ColumnDefinitions[3].Width.Value != 0)
             throw new InvalidOperationException("Unconfigured second disk left an empty strip column.");
         fixture.ShownSamplingError = SamplingError.ReadingsUnavailable;
         Draw(836);
-        if (fixture.StripTiles.Any(t =>
-                t.Box.Visibility == Visibility.Visible && t.Value.Text != Strings.MissingReading))
+        if (fixture.CompactTiles.Any(t =>
+                t.Box.Visibility == Visibility.Visible && t.Readout.ValueLabel.Text != Strings.MissingReading))
             throw new InvalidOperationException("Unavailable readings were presented as live values.");
         await CaptureVisualAsync(visual, Path.Combine(output, "strip-unavailable.png"), 1, cancellationToken);
         fixture.SetCompactView(false);
-        if (Math.Abs(fixture.Height - 840) > 0.001 || Math.Abs(fixture.Width - 1000) > 0.001)
+        if (Math.Abs(fixture.Height - 840) > 0.001 || Math.Abs(fixture.Width - 1000) > 0.001 ||
+            fixture.GpuMetric.Toggle.IsChecked != false)
             throw new InvalidOperationException("Fixture full-view dimensions were not restored.");
         await File.WriteAllTextAsync(Path.Combine(output, "compact.json"), JsonSerializer.Serialize(new
         {
             NativeReadings = true, ButtonRoundTrip = true, PreferenceRoundTrip = true,
-            FullSizeRestored = true, OptionalDisk = true, MissingReadings = true,
+            FullSizeRestored = true, ChartTogglePreserved = true, OptionalDisk = true, MissingReadings = true,
             GapInFixture = true, Themes = new[] { "Dark", "Light" }, RenderScales = new[] { 1, 1.5, 2 }
         }), cancellationToken);
         return;
@@ -104,8 +130,8 @@ internal sealed partial class WindowDiagnostics
         void Draw(double width)
         {
             fixture.RefreshVisiblePresentation();
-            visual.Measure(new Size(width, 156));
-            visual.Arrange(new Rect(0, 0, width, 156));
+            visual.Measure(new Size(width, MainWindow.CompactHeight));
+            visual.Arrange(new Rect(0, 0, width, MainWindow.CompactHeight));
             visual.UpdateLayout();
         }
     }

@@ -6,6 +6,26 @@ Dated measurement and validation records, newest first. Each section describes t
 
 Add a section at the top for each measured change: what changed, the machine and build, before and after results, and where the raw reports are.
 
+## Compact gauge view (October 25, 2026)
+
+Release UI-thread benchmark on the development machine, comparing `fda5af2` with the compact gauge working tree. Four baseline and four changed runs alternated; each value is the median of the four run medians. Compact mode now renders `MetricReadout` gauges instead of filled `CpuGraph` tiles. The compact pixel hash changed as intended; every noncompact scenario's hash matched.
+
+| Scenario | Before | After | Allocation before | Allocation after |
+| --- | ---: | ---: | ---: | ---: |
+| Live overlay | 4.41 ms | 5.73 ms | 529.1 KiB | 531.0 KiB |
+| Small multiples | 3.26 ms | 3.30 ms | 502.3 KiB | 502.3 KiB |
+| Heatmap | 3.11 ms | 3.17 ms | 545.3 KiB | 545.3 KiB |
+| Focus | 3.12 ms | 3.32 ms | 515.2 KiB | 515.1 KiB |
+| Historical | 1.60 ms | 1.54 ms | 173.6 KiB | 173.5 KiB |
+| Grouped live | 6.49 ms | 6.54 ms | 543.4 KiB | 543.3 KiB |
+| Services | 6.76 ms | 7.05 ms | 1,013.2 KiB | 1,013.2 KiB |
+| Compact live | 2.02 ms | 1.99 ms | 338.5 KiB | 362.0 KiB |
+| Pinned and selected | 4.23 ms | 3.94 ms | 840.1 KiB | 838.1 KiB |
+| Pinned and selected, grouped | 7.80 ms | 7.75 ms | 709.8 KiB | 708.4 KiB |
+| Same grouped view, CPU tooltip open | 11.27 ms | 10.77 ms | 843.6 KiB | 845.5 KiB |
+
+Compact time stayed level while allocation rose 23.5 KiB per refresh from the new gauge readouts. The first live scenario alone had a larger time difference, though its pixels and allocation were stable. As the developer guide recommends for that JIT-sensitive scenario, two more alternating pairs ran with tiered compilation disabled. Their live results were 4.80 → 5.36 and 5.29 → 5.98 ms, but unrelated scenarios also drifted widely in those runs. One more default-tiering pair reversed the order: changed ran first at 4.56 ms, then baseline at 5.54 ms. The first-scenario timing follows run conditions rather than a consistent code difference. Raw reports: `artifacts/compact-baseline-final-1.json` through `-4.json`, `artifacts/compact-changed-final-1.json` through `-4.json`, corresponding `*-notier-1.json` and `*-notier-2.json` files, and `*-reverse-1.json`.
+
 ## 3.1.0 baseline (October 25, 2026)
 
 A reference measurement of the 3.1.0 release build (`544e2ba`) on the development machine, now about 640 processes and 8,000 threads, with no code change and no side-by-side baseline. UI-thread benchmark, four consecutive runs; each value is the median of the four run medians:

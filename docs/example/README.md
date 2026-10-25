@@ -12,8 +12,8 @@ Refreshed October 25, 2026, using WinMon 3.1.0 built from the current WPF source
 | [example_apps_only.png](example_apps_only.png) | Chrome search with App only enabled in Grouped mode. |
 | [example_pinned.png](example_pinned.png) | Visual Studio Code and Google Chrome pinned in insertion order above the CPU rankings. |
 | [example_pinned_only.png](example_pinned_only.png) | Pinned only enabled, hiding the ranked section. |
-| [example_compact.png](example_compact.png) | Dark Compact view with live readings and filled two-minute charts in each resource tile. |
-| [example_compact_light.png](example_compact_light.png) | The same compact strip in Light appearance. |
+| [example_compact.png](example_compact.png) | Dark Compact view with live resource gauges and two-minute peak marks. |
+| [example_compact_light.png](example_compact_light.png) | The same gauge cluster in Light appearance. |
 | [example_light.png](example_light.png) | Light appearance with the Classic palette. |
 | [example_neon.png](example_neon.png) | Neon palette. |
 | [example_arcade.png](example_arcade.png) | Arcade palette. |

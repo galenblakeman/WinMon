@@ -38,9 +38,9 @@ Keep the whole picture in view while you work, play or troubleshoot. WinMon puts
 - **Look beyond the latest number.** Switch between 2, 10, 30 and 60-minute chart ranges, subject to your retained history, and inspect earlier samples.
 - **Choose how history looks.** One chart dropdown offers the original overlaid traces, aligned small charts, a heatmap timeline, and Focus choices for each configured resource. The small charts, heatmap and Focus views fit their axis and resource labels into one narrow column beside the plot. Disk choices include their drive letters. Choosing a hidden Focus resource shows it again. WinMon remembers the selection. Chart clicks, Capture mode and automatic capture markers work in every view.
 - **Keep it close.** Enable **Always on top** in the title bar to keep WinMon above other windows, minimize it to the notification area, or bring it forward with a configurable shortcut. Its highlighted background shows when it is enabled.
-- **Use less screen space.** Choose **Compact view** in the title bar for a horizontal strip with live readings and filled two-minute charts inside each resource box. **Full view** restores the dashboard and its size. The selected view is remembered when WinMon closes.
+- **Use less screen space.** Choose **Compact view** in the title bar for the same live resource gauges, colors, details and two-minute peak marks shown in Full view. Its resource names replace the chart-series checkboxes because the chart is hidden. The selected gauge style, including **None**, applies to both views. **Full view** restores the dashboard and its size. The selected view is remembered when WinMon closes.
 
-![WinMon Compact view with live CPU, memory, two disks, network and GPU readings over filled history charts](docs/example/example_compact.png)
+![WinMon Compact view with live CPU, memory, two disks, network and GPU gauges](docs/example/example_compact.png)
 
 ## See the app behind the processes
 
@@ -198,7 +198,7 @@ The published app is at `src/WinMon/bin/Release/net10.0-windows/win-x64/publish/
 
 ## Open source
 
-WinMon **3.1.0** is built with C# and WPF on .NET 10, and released under the [MIT License](LICENSE).
+WinMon **3.2.0** is built with C# and WPF on .NET 10, and released under the [MIT License](LICENSE).
 
 ### Code signing policy
 

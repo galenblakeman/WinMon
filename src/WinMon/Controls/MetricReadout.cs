@@ -14,6 +14,22 @@ public sealed class MetricReadout : Grid
 
     public CheckBox Toggle { get; } = new() { IsChecked = true, FontSize = 14, Margin = new Thickness(0, 0, 0, 5) };
 
+    private readonly TextBlock _plainName = new() { FontSize = 14, Margin = new Thickness(0, 0, 0, 5) };
+
+    /// <summary>Show a resource name instead of a chart-series checkbox when there is no chart.</summary>
+    public bool ShowSeriesToggle
+    {
+        get => _showSeriesToggle;
+        set
+        {
+            if (_showSeriesToggle == value) return;
+            _showSeriesToggle = value;
+            Lay(_style);
+        }
+    }
+
+    private bool _showSeriesToggle = true;
+
     public TextBlock ValueLabel { get; } = new()
         { Text = Strings.MissingReading, FontSize = 27, FontWeight = FontWeights.SemiBold };
 
@@ -95,6 +111,7 @@ public sealed class MetricReadout : Grid
         RowDefinitions.Clear();
         ColumnDefinitions.Clear();
         Toggle.Margin = new Thickness(0, 0, 0, 5);
+        _plainName.Margin = new Thickness(0, 0, 0, 5);
         ValueLabel.HorizontalAlignment = HorizontalAlignment.Left;
         ValueLabel.VerticalAlignment = VerticalAlignment.Top;
         ValueLabel.Margin = new Thickness();
@@ -162,7 +179,7 @@ public sealed class MetricReadout : Grid
 
         StackPanel AddLabels()
         {
-            _labels.Children.Add(Toggle);
+            _labels.Children.Add(_showSeriesToggle ? Toggle : _plainName);
             _labels.Children.Add(ValueLabel);
             _labels.Children.Add(DetailLabel);
             Children.Add(_labels);
@@ -173,11 +190,12 @@ public sealed class MetricReadout : Grid
         void AddNameRow()
         {
             Toggle.Margin = new Thickness();
+            _plainName.Margin = new Thickness();
             DockPanel.SetDock(ScaleLabel, Dock.Right);
             ScaleLabel.VerticalAlignment = VerticalAlignment.Center;
             ScaleLabel.Margin = new Thickness(4, 0, 0, 0);
             _toggleRow.Children.Add(ScaleLabel);
-            _toggleRow.Children.Add(Toggle);
+            _toggleRow.Children.Add(_showSeriesToggle ? Toggle : _plainName);
             Children.Add(_toggleRow);
         }
     }
@@ -211,6 +229,7 @@ public sealed class MetricReadout : Grid
         {
             var readout = (MetricReadout)sender;
             readout.Toggle.Content = args.NewValue;
+            readout._plainName.Text = (string)args.NewValue;
             AutomationProperties.SetName(readout.Toggle, Strings.Format(Strings.ShowOnChart, args.NewValue));
         }));
 
@@ -242,6 +261,18 @@ public sealed class MetricReadout : Grid
         _unit.Text = " " + unit;
     }
 
+    /// <summary>Copy the shared live text into a second layout without changing the source's chart toggle.</summary>
+    internal void CopyReadingFrom(MetricReadout source)
+    {
+        if (Label != source.Label) Label = source.Label;
+        if (source.ValueLabel.Inlines.Count == 2 && source.ValueLabel.Inlines.FirstInline == source._number &&
+            source.ValueLabel.Inlines.LastInline == source._unit)
+            ShowValue(source._number.Text, source._unit.Text.TrimStart());
+        else if (ValueLabel.Text != source.ValueLabel.Text)
+            ValueLabel.Text = source.ValueLabel.Text;
+        if (DetailLabel.Text != source.DetailLabel.Text) DetailLabel.Text = source.DetailLabel.Text;
+    }
+
     private readonly Run _number = new();
     private readonly Run _unit = new() { FontSize = 16 };
 
@@ -250,6 +281,7 @@ public sealed class MetricReadout : Grid
         set
         {
             Toggle.SetResourceReference(Control.ForegroundProperty, value);
+            _plainName.SetResourceReference(TextBlock.ForegroundProperty, value);
             ValueLabel.SetResourceReference(TextBlock.ForegroundProperty, value);
             Gauge.SetResourceReference(MetricGauge.FillProperty, value);
         }

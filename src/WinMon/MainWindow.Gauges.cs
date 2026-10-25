@@ -12,7 +12,7 @@ public partial class MainWindow
     {
         if (_samplingError == SamplingError.ReadingsUnavailable || latest is null)
         {
-            foreach (var metric in Metrics) metric.ShowGauge(null, null, 100);
+            foreach (var metric in Metrics) ShowGaugeInActiveView(metric, null, null, 100);
             return;
         }
 
@@ -29,19 +29,32 @@ public partial class MainWindow
         var peaks = TwoMinuteGaugePeaks(samples, latest, _preferences.PrimaryDrive,
             _preferences.SecondaryDrive);
 
-        CpuMetric.ShowGauge(cpu, peaks.Cpu, 100);
-        MemoryMetric.ShowGauge(memory, peaks.Memory, 100);
-        DiskMetric.ShowGauge(disk, peaks.Disk, 100);
-        SecondaryDiskMetric.ShowGauge(secondary, peaks.SecondaryDisk, 100);
+        ShowGaugeInActiveView(CpuMetric, cpu, peaks.Cpu, 100);
+        ShowGaugeInActiveView(MemoryMetric, memory, peaks.Memory, 100);
+        ShowGaugeInActiveView(DiskMetric, disk, peaks.Disk, 100);
+        ShowGaugeInActiveView(SecondaryDiskMetric, secondary, peaks.SecondaryDisk, 100);
         var networkScale = CpuGraph.NetworkScale(samples.Where(sample => InGaugeWindow(sample, latest)));
-        NetworkMetric.ShowGauge(network, peaks.Network, networkScale, RateText.Short(networkScale));
-        GpuMetric.ShowGauge(gpu, peaks.Gpu, 100);
+        ShowGaugeInActiveView(NetworkMetric, network, peaks.Network, networkScale, RateText.Short(networkScale));
+        ShowGaugeInActiveView(GpuMetric, gpu, peaks.Gpu, 100);
+    }
+
+    private void ShowGaugeInActiveView(MetricReadout source, double? current, double? peak, double maximum,
+        string? scale = null)
+    {
+        if (CompactMode)
+            _compactMetrics[source].ShowGauge(current, peak, maximum, scale);
+        else
+            source.ShowGauge(current, peak, maximum, scale);
     }
 
     /// <summary>Draw every readout's gauge in the chosen style; the peak legend goes with the gauges.</summary>
     internal void ApplyGaugeStyle()
     {
-        foreach (var metric in Metrics) metric.GaugeStyle = _preferences.GaugeStyle;
+        foreach (var metric in Metrics)
+        {
+            metric.GaugeStyle = _preferences.GaugeStyle;
+            _compactMetrics[metric].GaugeStyle = _preferences.GaugeStyle;
+        }
         PeakLegend.Visibility = _preferences.GaugeStyle == GaugeStyle.None ? Visibility.Collapsed : Visibility.Visible;
     }
 

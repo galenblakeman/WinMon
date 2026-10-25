@@ -874,7 +874,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         {
             foreach (var metric in new[] { window.CpuMetric, window.MemoryMetric, window.DiskMetric, window.GpuMetric })
             {
-                var box = window.StripTiles.Single(tile => tile.Source == metric).Box;
+                var box = window.CompactTiles.Single(tile => tile.Source == metric).Box;
                 if (!box.Focusable || ToolTipService.GetShowsToolTipOnKeyboardFocus(box) is not true ||
                     !ReferenceEquals(box.ToolTip, metric.ToolTip) ||
                     !AutomationProperties.GetName(box).Contains(metric.Label, StringComparison.Ordinal))
@@ -882,7 +882,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                 await CaptureMetric(true, metric);
             }
 
-            var visibleBoxes = window.StripTiles.Where(tile => tile.Box.Visibility == Visibility.Visible)
+            var visibleBoxes = window.CompactTiles.Where(tile => tile.Box.Visibility == Visibility.Visible)
                 .Select(tile => tile.Box).ToArray();
             for (var i = 0; i + 1 < visibleBoxes.Length; i++)
             {
@@ -902,7 +902,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         async Task CaptureMetric(bool compact, MetricReadout metric)
         {
             FrameworkElement target = compact
-                ? window.StripTiles.Single(tile => tile.Source == metric).Box
+                ? window.CompactTiles.Single(tile => tile.Source == metric).Box
                 : metric;
             var tooltip = new ToolTip
             {
