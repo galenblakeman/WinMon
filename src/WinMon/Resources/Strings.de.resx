@@ -1582,5 +1582,7 @@ Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse
 <data name="ThemeEvergreenInstrument" xml:space="preserve"><value>Immergrün</value></data>
 <data name="ThemeFrostedPorcelain" xml:space="preserve"><value>Frost</value></data>
 <data name="ThemeSmokedSapphire" xml:space="preserve"><value>Saphir</value></data>
-<data name="ThemeGlassRim" xml:space="preserve"><value>Glas</value></data>
+<data name="ThemeCrystal" xml:space="preserve"><value>Kristall</value></data>
+<data name="ThemeSlate" xml:space="preserve"><value>Schiefer</value></data>
+<data name="ThemePrism" xml:space="preserve"><value>Prisma</value></data>
 </root>

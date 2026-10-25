@@ -1582,5 +1582,7 @@ GPU {11} · {12}
 <data name="ThemeEvergreenInstrument" xml:space="preserve"><value>Вечнозелёный</value></data>
 <data name="ThemeFrostedPorcelain" xml:space="preserve"><value>Иней</value></data>
 <data name="ThemeSmokedSapphire" xml:space="preserve"><value>Сапфир</value></data>
-<data name="ThemeGlassRim" xml:space="preserve"><value>Стекло</value></data>
+<data name="ThemeCrystal" xml:space="preserve"><value>Кристалл</value></data>
+<data name="ThemeSlate" xml:space="preserve"><value>Сланец</value></data>
+<data name="ThemePrism" xml:space="preserve"><value>Призма</value></data>
 </root>

@@ -111,7 +111,7 @@ internal sealed partial class WindowDiagnostics
         var backdropResults = new List<object>();
         try
         {
-            foreach (var theme in new[] { "FrostedPorcelain", "SmokedSapphire", "GlassRim" })
+            foreach (var theme in new[] { "FrostedPorcelain", "SmokedSapphire", "Crystal", "Slate", "Prism" })
             {
                 fixture.Preferences = fixture.Preferences with { Theme = theme, GaugeStyle = GaugeStyle.Bowl };
                 fixture.ApplyTheme();

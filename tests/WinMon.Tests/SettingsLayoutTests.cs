@@ -152,7 +152,9 @@ public sealed class SettingsLayoutTests
     [TestCase("EvergreenInstrument", "#111E1B", "#87B782")]
     [TestCase("FrostedPorcelain", "#FFFFFF", "#38698E")]
     [TestCase("SmokedSapphire", "#0B1930", "#5C9BE0")]
-    [TestCase("GlassRim", "#15191E", "#8DA8CB")]
+    [TestCase("Crystal", "#121B27", "#A5D0F2")]
+    [TestCase("Slate", "#111A23", "#B6CAD7")]
+    [TestCase("Prism", "#101624", "#8DCAFF")]
     public void NewThemePreview_UsesFlatSurfaceAndIndependentUiAccent(string theme, string plot, string accent)
     {
         var window = Settings(new MonitorPreferences { Theme = theme, ChartPalette = "Ocean" });
@@ -180,7 +182,9 @@ public sealed class SettingsLayoutTests
 
     [TestCase("FrostedPorcelain", 226)]
     [TestCase("SmokedSapphire", 228)]
-    [TestCase("GlassRim", 255)]
+    [TestCase("Crystal", 240)]
+    [TestCase("Slate", 210)]
+    [TestCase("Prism", 238)]
     public void TranslucentThemePreview_KeepsThePlotOpaque(string theme, byte panelOpacity)
     {
         var window = Settings(new MonitorPreferences { Theme = theme });
@@ -198,6 +202,24 @@ public sealed class SettingsLayoutTests
                     Is.EqualTo((Color)ColorConverter.ConvertFromString(theme == "FrostedPorcelain"
                         ? "#1469B5" : "#4285FF")));
             });
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [TestCase("Crystal", true)]
+    [TestCase("Slate", false)]
+    [TestCase("Prism", true)]
+    public void GlassVariantPreview_UsesTheSelectedHeaderTreatment(string theme, bool sheen)
+    {
+        var window = Settings(new MonitorPreferences { Theme = theme });
+        try
+        {
+            if (SystemParameters.HighContrast) return;
+            var header = window.CombinedPreview.TryFindResource("SectionHeaderSurface");
+            Assert.That(header, sheen ? Is.TypeOf<LinearGradientBrush>() : Is.TypeOf<SolidColorBrush>());
         }
         finally
         {

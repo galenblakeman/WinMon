@@ -12,9 +12,8 @@ Give the window a glass treatment without changing dashboard layout, resource co
 | --- | --- | --- | --- |
 | Frosted porcelain | Acrylic | Pale blue-white | Opaque white |
 | Smoked sapphire | Acrylic | Deep navy blue | Opaque navy |
-| Glass rim | Mica | Charcoal and cool gray | Opaque charcoal |
 
-The app requests the documented DWM system backdrop on Windows 11 build 22621 or later. WPF's glass frame spans the window. Frosted porcelain and Smoked sapphire expose the backdrop through tinted panel, title and section brushes. Glass rim keeps its main panel opaque and exposes the backdrop through the title bar; its section headers use a translucent tint over that panel. The main chart plot, search surface and controls remain opaque. The Windows caption-button area keeps its native glyphs and a solid matching caption tint.
+The app requests the documented DWM system backdrop on Windows 11 build 22621 or later. WPF's glass frame spans the window. Frosted porcelain and Smoked sapphire expose the backdrop through tinted panel, title and section brushes. The main chart plot, search surface and controls remain opaque. The Windows caption-button area keeps its native glyphs and a solid matching caption tint.
 
 If the DWM request fails, the system lacks support, or Windows high contrast is active, the colors fall back to opaque WPF surfaces. Settings previews show the tint and the chosen palette, but the desktop backdrop itself appears only in the running window. The `gauges` smoke captures both WPF-only renders and desktop-composed window screenshots for visual checks; `backdrops.json` records whether DWM accepted each request.
 
@@ -26,7 +25,7 @@ The chart palette still supplies all six resource colors. These themes affect on
 - DWM Acrylic or Mica setup in `WindowTheme`, with full glass frame only for active backdrops.
 - Theme opacity in the shared finish model, Settings preview, full and compact views, and high-contrast fallback.
 - Preference round trips, preview checks, and desktop-composed smoke renders.
-- Selector labels were later shortened to Frost, Sapphire and Glass; stored identifiers stayed the same.
+- Selector labels were later shortened to Frost, Sapphire and Glass. Glass was subsequently replaced by Crystal, Slate and Prism; old Glass settings load as Crystal.
 
 ## Departures from the mockups
 

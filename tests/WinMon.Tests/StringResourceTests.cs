@@ -72,7 +72,8 @@ public sealed class StringResourceTests
     {
         foreach (var key in new[] { "ThemeDark", "ThemeLight", "ThemeSystem", "ThemeCopper",
                      "ThemeGunmetal", "ThemePorcelain", "ThemeMidnightInk", "ThemeEvergreenInstrument",
-                     "ThemeFrostedPorcelain", "ThemeSmokedSapphire", "ThemeGlassRim" })
+                     "ThemeFrostedPorcelain", "ThemeSmokedSapphire", "ThemeCrystal", "ThemeSlate",
+                     "ThemePrism" })
         {
             var label = Strings.ResourceManager.GetString(key, CultureInfo.GetCultureInfo(culture));
             Assert.That(label, Is.Not.Null.And.Not.Empty, key);

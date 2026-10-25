@@ -1582,5 +1582,7 @@ Windows の正常性状態: {2}</value>
 <data name="ThemeEvergreenInstrument" xml:space="preserve"><value>エバーグリーン</value></data>
 <data name="ThemeFrostedPorcelain" xml:space="preserve"><value>フロスト</value></data>
 <data name="ThemeSmokedSapphire" xml:space="preserve"><value>サファイア</value></data>
-<data name="ThemeGlassRim" xml:space="preserve"><value>ガラス</value></data>
+<data name="ThemeCrystal" xml:space="preserve"><value>クリスタル</value></data>
+<data name="ThemeSlate" xml:space="preserve"><value>スレート</value></data>
+<data name="ThemePrism" xml:space="preserve"><value>プリズム</value></data>
 </root>

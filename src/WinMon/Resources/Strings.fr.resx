@@ -1582,5 +1582,7 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
 <data name="ThemeEvergreenInstrument" xml:space="preserve"><value>Sapin</value></data>
 <data name="ThemeFrostedPorcelain" xml:space="preserve"><value>Givre</value></data>
 <data name="ThemeSmokedSapphire" xml:space="preserve"><value>Saphir</value></data>
-<data name="ThemeGlassRim" xml:space="preserve"><value>Verre</value></data>
+<data name="ThemeCrystal" xml:space="preserve"><value>Cristal</value></data>
+<data name="ThemeSlate" xml:space="preserve"><value>Ardoise</value></data>
+<data name="ThemePrism" xml:space="preserve"><value>Prisme</value></data>
 </root>

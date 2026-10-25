@@ -1582,5 +1582,7 @@ Windows 상태: {2}</value>
 <data name="ThemeEvergreenInstrument" xml:space="preserve"><value>에버그린</value></data>
 <data name="ThemeFrostedPorcelain" xml:space="preserve"><value>프로스트</value></data>
 <data name="ThemeSmokedSapphire" xml:space="preserve"><value>사파이어</value></data>
-<data name="ThemeGlassRim" xml:space="preserve"><value>글라스</value></data>
+<data name="ThemeCrystal" xml:space="preserve"><value>크리스털</value></data>
+<data name="ThemeSlate" xml:space="preserve"><value>슬레이트</value></data>
+<data name="ThemePrism" xml:space="preserve"><value>프리즘</value></data>
 </root>

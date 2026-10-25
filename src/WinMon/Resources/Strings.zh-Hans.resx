@@ -1582,5 +1582,7 @@ Windows 健康状态：{2}</value>
 <data name="ThemeEvergreenInstrument" xml:space="preserve"><value>常青</value></data>
 <data name="ThemeFrostedPorcelain" xml:space="preserve"><value>霜</value></data>
 <data name="ThemeSmokedSapphire" xml:space="preserve"><value>蓝宝石</value></data>
-<data name="ThemeGlassRim" xml:space="preserve"><value>玻璃</value></data>
+<data name="ThemeCrystal" xml:space="preserve"><value>水晶</value></data>
+<data name="ThemeSlate" xml:space="preserve"><value>板岩</value></data>
+<data name="ThemePrism" xml:space="preserve"><value>棱镜</value></data>
 </root>

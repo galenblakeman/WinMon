@@ -1582,5 +1582,7 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
 <data name="ThemeEvergreenInstrument" xml:space="preserve"><value>Evergreen</value></data>
 <data name="ThemeFrostedPorcelain" xml:space="preserve"><value>Frost</value></data>
 <data name="ThemeSmokedSapphire" xml:space="preserve"><value>Sapphire</value></data>
-<data name="ThemeGlassRim" xml:space="preserve"><value>Glass</value></data>
+<data name="ThemeCrystal" xml:space="preserve"><value>Crystal</value></data>
+<data name="ThemeSlate" xml:space="preserve"><value>Slate</value></data>
+<data name="ThemePrism" xml:space="preserve"><value>Prism</value></data>
 </root>

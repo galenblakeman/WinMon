@@ -36,6 +36,15 @@ public sealed class PreferenceStoreTests
     }
 
     [Test]
+    public async Task RemovedGlassTheme_LoadsAsCrystal()
+    {
+        Directory.CreateDirectory(testDirectory);
+        await File.WriteAllTextAsync(settingsPath, "{\"Theme\":\"GlassRim\"}");
+
+        Assert.That((await new PreferenceStore(settingsPath).LoadAsync()).Theme, Is.EqualTo("Crystal"));
+    }
+
+    [Test]
     public async Task ProcessActionsHidden_DefaultsForLegacySettings_AndRoundTripsBothStates()
     {
         Directory.CreateDirectory(testDirectory);

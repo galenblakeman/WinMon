@@ -48,8 +48,10 @@ public sealed partial class AppearancePreview : UserControl
                 : Brush(finish?.Surface ?? (light ? "#F0F5FA" : "#15191E"), finish?.PanelOpacity ?? byte.MaxValue);
             Resources["SectionHeaderSurface"] = finish is { Brushed: true }
                 ? ThemeFinishes.ChromeBrush(finish, true)
-                : Brush(finish?.Header ?? (light ? "#E5EEF7" : "#252A31"),
-                    finish?.HeaderOpacity ?? byte.MaxValue);
+                : finish is { GlassSheen: true }
+                    ? ThemeFinishes.GlassHeaderBrush(finish, finish.HeaderOpacity)
+                    : Brush(finish?.Header ?? (light ? "#E5EEF7" : "#252A31"),
+                        finish?.HeaderOpacity ?? byte.MaxValue);
             Resources["PlotSurface"] = Brush(finish?.Plot ?? (light ? "#FFFFFF" : "#15191E"));
             Resources["Text"] = Brush(finish?.Text ?? (light ? "#20334A" : "#EDF2F6"));
             Resources["Muted"] = Brush(finish?.Muted ?? (light ? "#465D78" : "#B3BDC8"));

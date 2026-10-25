@@ -14,11 +14,11 @@ internal static class ThemeFinishes
         string Text, string Muted, string Line, string GaugeTrack, string Highlight,
         bool Light, bool Brushed = true, string? UiAccent = null,
         BackdropKind Backdrop = BackdropKind.None, byte PanelOpacity = 255, byte ChromeOpacity = 255,
-        byte HeaderOpacity = 255);
+        byte HeaderOpacity = 255, bool GlassSheen = false);
 
     internal static readonly string[] Names =
         ["Copper", "Gunmetal", "Porcelain", "MidnightInk", "EvergreenInstrument",
-            "FrostedPorcelain", "SmokedSapphire", "GlassRim"];
+            "FrostedPorcelain", "SmokedSapphire", "Crystal", "Slate", "Prism"];
 
     internal static bool IsFinish(string? name) => Names.Contains(name);
 
@@ -45,9 +45,18 @@ internal static class ThemeFinishes
         "SmokedSapphire" => new("#10213C", "#1B3050", "#19395F", "#1A3658", "#0B1930",
             "#0B1930", "#315D90", "#FFFFFF", "#2B527F", "#F1F6FF", "#C2D2E5",
             "#496787", "#56718E", "#4E82B1", false, false, "#5C9BE0", BackdropKind.Acrylic, 228, 208, 224),
-        "GlassRim" => new("#15191E", "#20262D", "#32343F", "#30343E", "#15191E",
-            "#15191E", "#324050", "#FFFFFF", "#3D4855", "#EDF2F6", "#B3BDC8",
-            "#46515F", "#566473", "#6B7588", false, false, "#8DA8CB", BackdropKind.Mica, 255, 185, 200),
+        "Crystal" => new("#1C2938", "#344B61", "#537399", "#435E7D", "#121B27",
+            "#142333", "#426992", "#FFFFFF", "#516C89", "#EDF5FC", "#C5D3E0",
+            "#5A7894", "#5C7185", "#95C5E7", false, false, "#A5D0F2",
+            BackdropKind.Mica, 240, 215, 229, true),
+        "Slate" => new("#2B3A48", "#3D5061", "#526878", "#4D6374", "#111A23",
+            "#14212E", "#56768C", "#FFFFFF", "#566E80", "#F1F6F9", "#CAD6DD",
+            "#647986", "#718591", "#B7CBD7", false, false, "#B6CAD7",
+            BackdropKind.Acrylic, 210, 190, 205),
+        "Prism" => new("#1A2031", "#303A53", "#332F5C", "#303A63", "#101624",
+            "#151F32", "#455A91", "#FFFFFF", "#43527A", "#F1F2FF", "#C0C3E0",
+            "#5467A0", "#636F93", "#8C76D7", false, false, "#8DCAFF",
+            BackdropKind.Mica, 238, 216, 224, true),
         _ => throw new ArgumentOutOfRangeException(nameof(name), name, "Unknown appearance finish")
     };
 
@@ -86,6 +95,28 @@ internal static class ThemeFinishes
     /// <summary>Small absolute tiles keep the grain the same size in compact and full views.</summary>
     internal static DrawingBrush PanelBrush(Finish finish)
         => TiledGrainBrush(finish.Surface, finish.Light);
+
+    /// <summary>A restrained horizontal reflection within translucent glass headers.</summary>
+    internal static LinearGradientBrush GlassHeaderBrush(Finish finish, byte opacity)
+    {
+        var baseColor = (Color)ColorConverter.ConvertFromString(finish.Header);
+        var highlight = (Color)ColorConverter.ConvertFromString(finish.Highlight);
+        var sheen = Color.FromArgb(opacity,
+            (byte)((baseColor.R * 2 + highlight.R) / 3),
+            (byte)((baseColor.G * 2 + highlight.G) / 3),
+            (byte)((baseColor.B * 2 + highlight.B) / 3));
+        var edge = Color.FromArgb(opacity, baseColor.R, baseColor.G, baseColor.B);
+        var brush = new LinearGradientBrush
+        {
+            StartPoint = new Point(0, 0), EndPoint = new Point(1, 0),
+            GradientStops = new GradientStopCollection
+            {
+                new(edge, 0), new(sheen, 0.5), new(edge, 1)
+            }
+        };
+        brush.Freeze();
+        return brush;
+    }
 
     private static DrawingBrush TiledGrainBrush(string colorHex, bool light)
     {

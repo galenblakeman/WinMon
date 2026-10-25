@@ -181,7 +181,10 @@ public sealed class PreferenceStore
             "evergreeninstrument" => "EvergreenInstrument",
             "frostedporcelain" => "FrostedPorcelain",
             "smokedsapphire" => "SmokedSapphire",
-            "glassrim" => "GlassRim",
+            "glassrim" => "Crystal",
+            "crystal" => "Crystal",
+            "slate" => "Slate",
+            "prism" => "Prism",
             _ => "Dark"
         };
     }

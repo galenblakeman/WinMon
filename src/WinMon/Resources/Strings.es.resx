@@ -1582,5 +1582,7 @@ Se puede perder el trabajo sin guardar. Se finalizarán todos los procesos indic
 <data name="ThemeEvergreenInstrument" xml:space="preserve"><value>Bosque</value></data>
 <data name="ThemeFrostedPorcelain" xml:space="preserve"><value>Escarcha</value></data>
 <data name="ThemeSmokedSapphire" xml:space="preserve"><value>Zafiro</value></data>
-<data name="ThemeGlassRim" xml:space="preserve"><value>Cristal</value></data>
+<data name="ThemeCrystal" xml:space="preserve"><value>Cristal</value></data>
+<data name="ThemeSlate" xml:space="preserve"><value>Pizarra</value></data>
+<data name="ThemePrism" xml:space="preserve"><value>Prisma</value></data>
 </root>

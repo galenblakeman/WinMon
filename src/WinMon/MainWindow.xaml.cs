@@ -792,8 +792,12 @@ public partial class MainWindow
             {
                 SetBrush("TitleBarSurface", finish?.Chrome ?? (light ? "#DCE7F1" : "#30343B"),
                     BackdropActive ? finish?.ChromeOpacity ?? byte.MaxValue : byte.MaxValue);
-                SetBrush("SectionHeaderSurface", finish?.Header ?? (light ? "#E5EEF7" : "#252A31"),
-                    BackdropActive ? finish?.HeaderOpacity ?? byte.MaxValue : byte.MaxValue);
+                if (finish is { GlassSheen: true })
+                    app.Resources["SectionHeaderSurface"] = ThemeFinishes.GlassHeaderBrush(finish,
+                        BackdropActive ? finish.HeaderOpacity : byte.MaxValue);
+                else
+                    SetBrush("SectionHeaderSurface", finish?.Header ?? (light ? "#E5EEF7" : "#252A31"),
+                        BackdropActive ? finish?.HeaderOpacity ?? byte.MaxValue : byte.MaxValue);
             }
             else
             {

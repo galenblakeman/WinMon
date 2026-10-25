@@ -1582,5 +1582,7 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
 <data name="ThemeEvergreenInstrument" xml:space="preserve"><value>Zimozielony</value></data>
 <data name="ThemeFrostedPorcelain" xml:space="preserve"><value>Szron</value></data>
 <data name="ThemeSmokedSapphire" xml:space="preserve"><value>Szafir</value></data>
-<data name="ThemeGlassRim" xml:space="preserve"><value>Szkło</value></data>
+<data name="ThemeCrystal" xml:space="preserve"><value>Kryształ</value></data>
+<data name="ThemeSlate" xml:space="preserve"><value>Łupek</value></data>
+<data name="ThemePrism" xml:space="preserve"><value>Pryzmat</value></data>
 </root>
