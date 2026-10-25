@@ -37,7 +37,7 @@ public sealed class SettingsLayoutTests
             {
                 Assert.That(opened, Is.EqualTo(SettingsSection.General));
                 Assert.That(shown, Is.EqualTo(expected));
-                Assert.That(window.Height, Is.LessThanOrEqualTo(600), "Every section fits without growing the dialog.");
+                Assert.That(window.Height, Is.LessThanOrEqualTo(640), "Every section fits without growing the dialog.");
             });
         }
         finally

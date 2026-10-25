@@ -59,7 +59,7 @@ $run.ExitCode
 | `--compact-smoke-output <dir>` | `compact` | Compact gauges: live data, every gauge style, view switching, saved dimensions, optional disk, dark/light renders at 836 and 1000 DIPs, plus one render per additional appearance finish (`compact.json`) |
 | `--services-smoke-output <dir>` | `services` | Services tab |
 | `--usage-smoke-output <dir>` | `usage` | Usage tab |
-| `--capture-smoke-output <dir>` | `capture` | Automatic captures and Settings sections in Dark and Light appearances |
+| `--capture-smoke-output <dir>` | `capture` | Automatic captures and Settings sections in Dark and Light appearances; fails if the Appearance section scrolls at full height, and records each section's overflow in `captures.json` |
 | `--chart-smoke-output <dir>` | `chart` | Chart dropdown, focused resources, hidden-resource selection and capture inspection |
 | `--gauges-smoke-output <dir>` | `gauges` | Every gauge style in dark and light at 1000 and 836 DIPs, plus one render per additional appearance finish: shared readout height, unclipped values, network scale, peak legend, unavailable readings, the saved style and combined Settings appearance previews (`gauges.json`). The translucent finishes also get desktop-composed captures (`backdrop-*.png`, `backdrops.json`) |
 | `--examples-output <dir>` | — | README screenshots; follow [the example gallery's steps](example/README.md#regenerate) |

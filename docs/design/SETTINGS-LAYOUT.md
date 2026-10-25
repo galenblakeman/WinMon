@@ -8,7 +8,7 @@ With automatic captures added, the single-column Settings dialog grew to about 1
 
 ## Layout
 
-The dialog is 780 × 600 DIPs, shorter on small work areas, and does not resize. A 216-DIP sidebar lists the sections; the selected one has an accent bar. Cancel and Save stay in a footer below every section, so one Save applies changes from all of them.
+The dialog is 780 × 640 DIPs, shorter on small work areas, and does not resize. A 216-DIP sidebar lists the sections; the selected one has an accent bar. Cancel and Save stay in a footer below every section, so one Save applies changes from all of them.
 
 | Section | Contents |
 | --- | --- |
@@ -25,13 +25,15 @@ The dialog is 780 × 600 DIPs, shorter on small work areas, and does not resize.
 - **Validation.** When Save finds a problem in another section, the dialog switches to that section, shows the message, and focuses the field to fix: the drive selectors for a drive conflict, or the threshold, duration or cooldown box that is out of range.
 - **Keyboard.** Arrow keys move through the sidebar. Ctrl+Tab and Ctrl+Shift+Tab step through sections from anywhere in the dialog, except while the shortcut box is recording a combination.
 - **Selection contrast.** The selected section uses the theme's selected-text color for its label, icon and On/Off state, including in Light and high-contrast appearances.
-- **Diagnostics and tests** reach the dialog through named members (`ShowSection`, `Section`, `LanguageSelector`, the drive selectors, `SaveButton`, `AutoCapture`) instead of its layout. `WinMon.exe --capture-smoke-output <directory>` renders every section.
+- **Diagnostics and tests** reach the dialog through named members (`ShowSection`, `Section`, `PageOverflow`, `HeightLimitedByWorkArea`, `LanguageSelector`, the drive selectors, `SaveButton`, `AutoCapture`) instead of its layout. `WinMon.exe --capture-smoke-output <directory>` renders every section.
 
 ## 2026-10-25 refinement
 
 Appearance became its own sidebar section as the theme choices expanded. The three appearance selectors and gauge preview moved together; language remains in General. The dialog size, navigation behavior and single Save action remain the same. Layout tests check that the controls belong to the intended sections, and the capture smoke renders the new page in Dark and Light.
 
 The main window now remembers the last section viewed when Settings closes, whether the user saved, cancelled or dismissed the dialog. Opening Settings again in the same app session selects that section; a new app session starts on General. The dialog still selects General by default when created independently for tests and diagnostics.
+
+Later the same day, the Appearance section had grown to need 28 DIPs of scrolling at 600 DIPs, so its preview fell below the fold. The dialog grew to 640 DIPs: the 28 DIPs plus room for the taller line height of Chinese, Japanese and Korean fonts. The capture smoke now records each section's overflow in `captures.json` and fails if Appearance scrolls when the work area allows the full height.
 
 ## Departures from the mockup
 

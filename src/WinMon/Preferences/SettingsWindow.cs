@@ -97,6 +97,8 @@ public sealed class SettingsWindow : Window
     private readonly ListBox _navigation = new()
         { BorderThickness = new Thickness(0), Background = Brushes.Transparent };
 
+    private const double DesignedHeight = 640;
+
     private readonly ScrollViewer _page = new()
     {
         VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
@@ -149,7 +151,7 @@ public sealed class SettingsWindow : Window
         Title = Strings.WinMonSettings;
         // Every section fits this size; a section that outgrows it scrolls on its own.
         Width = 780;
-        Height = Math.Min(600, Math.Max(320, SystemParameters.WorkArea.Height - 32));
+        Height = Math.Min(DesignedHeight, Math.Max(320, SystemParameters.WorkArea.Height - 32));
         MinWidth = 640;
         MinHeight = 320;
         ResizeMode = ResizeMode.NoResize;
@@ -575,6 +577,12 @@ public sealed class SettingsWindow : Window
         var index = _pages.FindIndex(page => page.Section == section);
         if (index >= 0) _navigation.SelectedIndex = index;
     }
+
+    /// <summary>DIPs of the shown section that need scrolling after the last layout pass.</summary>
+    internal double PageOverflow => Math.Max(0, _page.ExtentHeight - _page.ViewportHeight);
+
+    /// <summary>Whether the work area left the dialog shorter than its designed height.</summary>
+    internal bool HeightLimitedByWorkArea => Height < DesignedHeight;
 
     internal ComboBox LanguageSelector { get; }
 

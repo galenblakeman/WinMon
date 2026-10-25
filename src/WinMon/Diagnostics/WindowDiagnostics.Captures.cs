@@ -115,6 +115,7 @@ internal sealed partial class WindowDiagnostics
                 throw new InvalidOperationException(
                     "The captures menu needs header, 2 captures, separator and 2 links.");
 
+            var overflow = new Dictionary<string, double>();
             foreach (var theme in new[] { "Dark", "Light" })
             {
                 fixture.Preferences = fixture.Preferences with { Theme = theme };
@@ -129,6 +130,12 @@ internal sealed partial class WindowDiagnostics
                         settings.ShowSection(section);
                         if (settings.Section != section) continue;
                         settings.UpdateLayout();
+                        overflow[$"{theme} {section}"] = Math.Round(settings.PageOverflow, 1);
+                        // Appearance shows its preview beside every choice, so it must not scroll at full height.
+                        if (section == SettingsSection.Appearance && settings.PageOverflow > 0.5 &&
+                            !settings.HeightLimitedByWorkArea)
+                            throw new InvalidOperationException(
+                                $"Settings Appearance scrolls by {settings.PageOverflow:F0} DIPs in {theme}.");
                         var name = theme == "Dark" ? $"settings-{section.ToString().ToLowerInvariant()}.png"
                             : $"settings-light-{section.ToString().ToLowerInvariant()}.png";
                         await CaptureServiceWindowAsync(settings, Path.Combine(output, name), cancellationToken);
@@ -143,7 +150,8 @@ internal sealed partial class WindowDiagnostics
             await File.WriteAllTextAsync(Path.Combine(output, "captures.json"), JsonSerializer.Serialize(new
             {
                 Markers = markers.Select(m => new { m.Rule, m.ReportPath, Peak = m.Peak.Timestamp }),
-                Reports = files.Select(Path.GetFileName)
+                Reports = files.Select(Path.GetFileName),
+                SettingsOverflow = overflow
             }, new JsonSerializerOptions { WriteIndented = true }), cancellationToken);
         }
         finally
