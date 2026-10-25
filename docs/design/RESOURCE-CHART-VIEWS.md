@@ -13,3 +13,5 @@ Landed in `CpuGraph`, `MainWindow`, `MonitorPreferences` and `PreferenceStore`. 
 The Focus disk choices take their drive letters from preferences when the menu is built, including the second volume. This keeps the choices distinct before either readout receives its first sample.
 
 The non-overlay views now share a measured left label column. Axis ticks and lane labels end at the same inset from the plot, so the chart can use the space previously reserved by the fixed 105-pixel gutter while still fitting longer localized names.
+
+On 2026-10-25, the chart header label was shortened from "System resources" to "System" in every language. The unavailable header and capture-inspection tooltip use the same short name with their status suffixes. No chart behavior or layout changed.

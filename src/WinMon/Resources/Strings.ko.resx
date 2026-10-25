@@ -933,13 +933,13 @@ Windows에서 모듈 세부 정보를 가져올 수 없습니다.</value>
     <value></value>
   </data>
   <data name="SystemResources" xml:space="preserve">
-    <value>시스템 리소스</value>
+    <value>시스템</value>
   </data>
   <data name="SystemResourcesInspectingSnapshot" xml:space="preserve">
-    <value>시스템 리소스 · 캡처 확인 중</value>
+    <value>시스템 · 캡처 확인 중</value>
   </data>
   <data name="SystemResourcesUnavailable" xml:space="preserve">
-    <value>시스템 리소스 · 사용할 수 없음</value>
+    <value>시스템 · 사용할 수 없음</value>
   </data>
   <data name="Testing" xml:space="preserve">
     <value>테스트 중</value>

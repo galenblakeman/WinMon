@@ -933,13 +933,13 @@ GPU 利用率 0–{1:0.0}%</value>
     <value></value>
   </data>
   <data name="SystemResources" xml:space="preserve">
-    <value>系统资源</value>
+    <value>系统</value>
   </data>
   <data name="SystemResourcesInspectingSnapshot" xml:space="preserve">
-    <value>系统资源 · 检查捕获</value>
+    <value>系统 · 检查捕获</value>
   </data>
   <data name="SystemResourcesUnavailable" xml:space="preserve">
-    <value>系统资源 · 不可用</value>
+    <value>系统 · 不可用</value>
   </data>
   <data name="Testing" xml:space="preserve">
     <value>测试中</value>

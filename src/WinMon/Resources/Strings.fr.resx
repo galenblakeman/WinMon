@@ -933,13 +933,13 @@ Temps d’activité et débit de lecture/écriture.</value>
     <value></value>
   </data>
   <data name="SystemResources" xml:space="preserve">
-    <value>Ressources système</value>
+    <value>Système</value>
   </data>
   <data name="SystemResourcesInspectingSnapshot" xml:space="preserve">
-    <value>Ressources système · inspection d’une capture</value>
+    <value>Système · inspection d’une capture</value>
   </data>
   <data name="SystemResourcesUnavailable" xml:space="preserve">
-    <value>Ressources système · indisponibles</value>
+    <value>Système · indisponible</value>
   </data>
   <data name="Testing" xml:space="preserve">
     <value>En test</value>

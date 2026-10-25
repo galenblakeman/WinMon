@@ -933,13 +933,13 @@ Windows からモジュールの詳細を取得できません。</value>
     <value></value>
   </data>
   <data name="SystemResources" xml:space="preserve">
-    <value>システムリソース</value>
+    <value>システム</value>
   </data>
   <data name="SystemResourcesInspectingSnapshot" xml:space="preserve">
-    <value>システムリソース · キャプチャ確認中</value>
+    <value>システム · キャプチャ確認中</value>
   </data>
   <data name="SystemResourcesUnavailable" xml:space="preserve">
-    <value>システムリソース · 利用不可</value>
+    <value>システム · 利用不可</value>
   </data>
   <data name="Testing" xml:space="preserve">
     <value>テスト中</value>

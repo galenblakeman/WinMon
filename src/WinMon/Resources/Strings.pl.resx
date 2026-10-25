@@ -933,13 +933,13 @@ Czas aktywności i szybkość odczytu/zapisu.</value>
     <value></value>
   </data>
   <data name="SystemResources" xml:space="preserve">
-    <value>Zasoby systemowe</value>
+    <value>System</value>
   </data>
   <data name="SystemResourcesInspectingSnapshot" xml:space="preserve">
-    <value>Zasoby systemowe · przeglądanie przechwycenia</value>
+    <value>System · przeglądanie przechwycenia</value>
   </data>
   <data name="SystemResourcesUnavailable" xml:space="preserve">
-    <value>Zasoby systemowe · niedostępne</value>
+    <value>System · niedostępny</value>
   </data>
   <data name="Testing" xml:space="preserve">
     <value>Testowanie</value>

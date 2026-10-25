@@ -933,13 +933,13 @@ Tempo ativo e taxa de leitura e gravação.</value>
     <value></value>
   </data>
   <data name="SystemResources" xml:space="preserve">
-    <value>Recursos do sistema</value>
+    <value>Sistema</value>
   </data>
   <data name="SystemResourcesInspectingSnapshot" xml:space="preserve">
-    <value>Recursos do sistema · inspecionando captura</value>
+    <value>Sistema · inspecionando captura</value>
   </data>
   <data name="SystemResourcesUnavailable" xml:space="preserve">
-    <value>Recursos do sistema · indisponíveis</value>
+    <value>Sistema · indisponível</value>
   </data>
   <data name="Testing" xml:space="preserve">
     <value>Em teste</value>

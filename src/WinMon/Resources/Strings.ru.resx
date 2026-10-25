@@ -933,13 +933,13 @@ GPU {11} · {12}
     <value></value>
   </data>
   <data name="SystemResources" xml:space="preserve">
-    <value>Ресурсы системы</value>
+    <value>Система</value>
   </data>
   <data name="SystemResourcesInspectingSnapshot" xml:space="preserve">
-    <value>Ресурсы системы · просмотр захвата</value>
+    <value>Система · просмотр захвата</value>
   </data>
   <data name="SystemResourcesUnavailable" xml:space="preserve">
-    <value>Ресурсы системы · недоступны</value>
+    <value>Система · недоступна</value>
   </data>
   <data name="Testing" xml:space="preserve">
     <value>Тестирование</value>
