@@ -12,6 +12,9 @@ internal sealed class ProcessAppNameProvider
     private readonly Dictionary<string, (string Description, string Product, string Publisher)> _cache =
         new(StringComparer.OrdinalIgnoreCase);
 
+    // Dictionary order is not insertion order once an entry is removed: a removal's slot takes the next insert.
+    private readonly Queue<string> _added = new();
+
     private readonly Func<string, (string Description, string Product, string Publisher)> _read;
 
     internal ProcessAppNameProvider(Func<string, (string Description, string Product, string Publisher)>? read = null)
@@ -34,8 +37,9 @@ internal sealed class ProcessAppNameProvider
             names = ("", "", "");
         }
 
-        if (_cache.Count >= Capacity) _cache.Remove(_cache.Keys.First());
+        if (_cache.Count >= Capacity) _cache.Remove(_added.Dequeue());
         _cache[path] = names;
+        _added.Enqueue(path);
         return names;
     }
 

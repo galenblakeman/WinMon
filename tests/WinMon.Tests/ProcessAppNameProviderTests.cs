@@ -66,6 +66,24 @@ public class ProcessAppNameProviderTests
     }
 
     [Test]
+    public void Get_FullCache_EvictsTheOldestPath()
+    {
+        var reads = new List<string>();
+        var provider = new ProcessAppNameProvider(path => { reads.Add(path); return (path, "", ""); });
+        for (var i = 0; i < 1024; i++) provider.Get($@"C:\Apps\p{i}.exe");
+        provider.Get(@"C:\Apps\a.exe");
+        provider.Get(@"C:\Apps\b.exe");
+        reads.Clear();
+
+        provider.Get(@"C:\Apps\a.exe");
+        provider.Get(@"C:\Apps\b.exe");
+        provider.Get(@"C:\Apps\p2.exe");
+        provider.Get(@"C:\Apps\p0.exe");
+
+        Assert.That(reads, Is.EqualTo(new[] { @"C:\Apps\p0.exe" }));
+    }
+
+    [Test]
     public void Get_ReadsRealFileMetadata()
     {
         var path = typeof(WindowsCpuSampler).Assembly.Location;
