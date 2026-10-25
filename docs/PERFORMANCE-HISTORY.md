@@ -6,6 +6,40 @@ Dated measurement and validation records, newest first. Each section describes t
 
 Add a section at the top for each measured change: what changed, the machine and build, before and after results, and where the raw reports are.
 
+## 3.1.0 baseline (October 25, 2026)
+
+A reference measurement of the 3.1.0 release build (`544e2ba`) on the development machine, now about 640 processes and 8,000 threads, with no code change and no side-by-side baseline. UI-thread benchmark, four consecutive runs; each value is the median of the four run medians:
+
+| Scenario | Per refresh | Allocation |
+| --- | ---: | ---: |
+| Live overlay | 4.10 ms | 531.0 KiB |
+| Small multiples | 2.54 ms | 502.3 KiB |
+| Heatmap | 2.73 ms | 545.3 KiB |
+| Focus | 2.84 ms | 515.2 KiB |
+| Historical | 1.19 ms | 173.6 KiB |
+| Grouped live | 5.58 ms | 543.4 KiB |
+| Services | 6.08 ms | 1,019.0 KiB |
+| Compact live | 1.45 ms | 338.5 KiB |
+| Pinned and selected | 3.21 ms | 840.1 KiB |
+| Pinned and selected, grouped | 6.56 ms | 709.8 KiB |
+| Same grouped view, CPU tooltip open | 8.39 ms | 843.6 KiB |
+| `UsageLedger.Add` | 0.01 ms | 0 B |
+| Restart history, 60 minutes | save 0.97 s, read 0.62 s | — |
+
+Allocation per refresh matches the gauge-styles run below exactly, and every time difference from earlier sections is within run-to-run spread (pinned and selected, grouped ranged from 5.99 to 8.14 ms). Live, pinned and tooltip scenarios rendered the same pixels in all four runs. In the other chart and view scenarios one run rendered an alternate frame, consistent with the pointer being over the window. Compact view's hash matches the gauge-styles run.
+
+Two whole-app profiles of 150 s after the 20 s warm-up, run one after the other:
+
+| | Run 1 | Run 2 |
+| --- | ---: | ---: |
+| Total CPU | 31.4 ms/s | 29.2 ms/s |
+| Allocation | 732 KiB/s | 707 KiB/s |
+| Private bytes, average / peak | 62 / 70 MiB | 63 / 72 MiB |
+| Managed heap, average | 17.6 MiB | 17.1 MiB |
+| Gen0 / gen1 / gen2 collections over 170 s | 19 / 4 / 1 | 19 / 4 / 1 |
+
+Allocation and collections are below the October 23 profile (795–809 KiB/s, 20–21 gen0). Total CPU is above its 24 ms/s but within the 30–33 ms/s of October 22; without an alternating baseline these runs do not establish a CPU change. Raw reports: `artifacts/perf-analysis-2026-10-25/bench1.json` through `bench4.json`, `profile/profile.json` and `profile2/profile.json`.
+
 ## Gauge styles (October 25, 2026)
 
 Release UI-thread benchmark on the development machine, before and after replacing the `MicroGauge.Wpf` rails with WinMon's own `MetricGauge` drawing, measured with the default Bowl style. Four baseline and four changed runs alternated; each value is the median of the four run medians. The baseline is the commit that added the rails. The changed build is the working tree, which also contained the shared chart label rail below. That work reports unchanged allocation, so the allocation differences here are the gauges'. The time differences in the chart modes are partly the label rail's. Full-view hashes changed as intended; Compact view kept its hash.
