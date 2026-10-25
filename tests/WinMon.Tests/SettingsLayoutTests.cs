@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Windows.Controls;
 using System.Windows;
 using System.Windows.Media;
@@ -281,15 +282,17 @@ public sealed class SettingsLayoutTests
         }
     }
 
-    [Test]
-    public void CaptureRead_NamesTheFieldToFix()
+    [TestCase("250")]
+    [TestCase("NaN")]
+    public void CaptureRead_NamesTheFieldToFix(string threshold)
     {
         var window = Settings(new MonitorPreferences());
         try
         {
             window.ShowSection(SettingsSection.AutomaticCaptures);
             var box = Descendants(window.AutoCapture).OfType<TextBox>().First(b => b.Text == "90");
-            box.Text = "250";
+            // NaN fails every range comparison, so only an explicit finiteness check rejects it.
+            box.Text = threshold == "NaN" ? CultureInfo.CurrentCulture.NumberFormat.NaNSymbol : threshold;
 
             var result = window.AutoCapture.Read(out var error, out var invalid);
 

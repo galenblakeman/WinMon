@@ -200,7 +200,7 @@ internal sealed class AutoCaptureSection : StackPanel
             var minimum = rule.Metric == CaptureMetric.Network ? 0.1 : 1;
             var maximum = CaptureRuleSetting.MaximumThreshold(rule.Metric);
             if (!double.TryParse(rule.Threshold.Text, NumberStyles.Float, CultureInfo.CurrentCulture,
-                    out var threshold) || threshold < minimum || threshold > maximum)
+                    out var threshold) || !double.IsFinite(threshold) || threshold < minimum || threshold > maximum)
             {
                 error = Strings.Format(Strings.AutoCaptureInvalidThreshold, minimum, maximum);
                 invalid = rule.Threshold;
