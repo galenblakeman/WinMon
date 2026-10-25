@@ -159,7 +159,7 @@ Example measurements from October 20, 2026, using a published build on a 12-thre
 
 Separate startup measurements on that machine recorded a median of about **0.6 seconds** for the uncompressed published executable.
 
-These measurements predate the current release. Longer history retention uses more memory, and results vary with process count and hardware. See the [measurement notes](docs/DEVELOPMENT.md#allocation-gc-and-compression-october-20-2026) for the benchmark context and the [developer guide](docs/DEVELOPMENT.md#performance-tuning-measurements) to measure your own system.
+These measurements predate the current release. Longer history retention uses more memory, and results vary with process count and hardware. See the [measurement notes](docs/PERFORMANCE-HISTORY.md#allocation-gc-and-compression-october-20-2026) for the benchmark context and the [developer guide](docs/DEVELOPMENT.md#performance) to measure your own system.
 
 ## Updates
 
