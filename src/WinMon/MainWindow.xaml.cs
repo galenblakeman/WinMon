@@ -1008,6 +1008,7 @@ public partial class MainWindow
             await Lifetime.CancelAsync();
             if (SamplingTask is not null) await SamplingTask;
             await ProcessDumpDialog.WhenWritesFinishAsync();
+            await WhenExportsFinishAsync();
             // History no longer changes, and the helper waits for Commit below before replacing the executable.
             if (_updateRestartPending) await SaveRestartHistoryAsync();
             try

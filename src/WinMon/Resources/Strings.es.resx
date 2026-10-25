@@ -1602,4 +1602,22 @@ Se puede perder el trabajo sin guardar. Se finalizarán todos los procesos indic
 <data name="ThemePrism" xml:space="preserve"><value>Prisma</value></data>
 <data name="ThemeCandy" xml:space="preserve"><value>Dulce</value></data>
 <data name="ThemeWildberry" xml:space="preserve"><value>Zarzamora</value></data>
+  <data name="Export" xml:space="preserve"><value>Exportar</value></data>
+  <data name="ExportCsv" xml:space="preserve"><value>Exportar CSV</value></data>
+  <data name="ExportData" xml:space="preserve"><value>Datos</value></data>
+  <data name="ExportResourceHistory" xml:space="preserve"><value>Historial de recursos</value></data>
+  <data name="ExportProcessSamples" xml:space="preserve"><value>Muestras de procesos</value></data>
+  <data name="ExportUsageTotals" xml:space="preserve"><value>Totales de uso</value></data>
+  <data name="ExportTime" xml:space="preserve"><value>Período</value></data>
+  <data name="ExportRetainedHistory" xml:space="preserve"><value>Todo el historial conservado</value></data>
+  <data name="ExportChartRange" xml:space="preserve"><value>Intervalo actual del gráfico</value></data>
+  <data name="ExportResourceNote" xml:space="preserve"><value>Una fila por muestra registrada. Las celdas vacías indican lecturas no disponibles.</value></data>
+  <data name="ExportProcessNote" xml:space="preserve"><value>Solo filas conservadas; pueden omitirse procesos inactivos. La E/S incluye archivos, red y dispositivos.</value></data>
+  <data name="ExportUsageNote" xml:space="preserve"><value>Una fila por aplicación, incluso las cerradas. Los totales comienzan en el último restablecimiento.</value></data>
+  <data name="ExportFileName" xml:space="preserve"><value>Nombre de archivo</value></data>
+  <data name="SaveCsv" xml:space="preserve"><value>Guardar CSV</value></data>
+  <data name="ExportCsvFilter" xml:space="preserve"><value>Archivos CSV (*.csv)|*.csv</value></data>
+  <data name="ExportNoData" xml:space="preserve"><value>Todavía no hay muestras registradas para exportar.</value></data>
+  <data name="ExportSaved" xml:space="preserve"><value>CSV guardado en {0}</value></data>
+  <data name="ExportFailed" xml:space="preserve"><value>No se pudo guardar el CSV: {0}</value></data>
 </root>

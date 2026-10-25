@@ -115,6 +115,18 @@
                         Style="{StaticResource TitleActionButton}"
                         ToolTip="{Binding [WinMonSettings], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                         WindowChrome.IsHitTestVisibleInChrome="True" />
+                    <Button
+                        x:Name="ExportButton"
+                        controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Save}"
+                        AutomationProperties.Name="{Binding [ExportCsv], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                        Click="OnExport"
+                        Content="{Binding [Export], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                        ContentTemplate="{StaticResource TitleBarButtonText}"
+                        DockPanel.Dock="Left"
+                        Foreground="{DynamicResource TitleText}"
+                        Style="{StaticResource TitleActionButton}"
+                        ToolTip="{Binding [ExportCsv], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                        WindowChrome.IsHitTestVisibleInChrome="True" />
                     <Border Background="Transparent" />
                 </DockPanel>
             </Border>

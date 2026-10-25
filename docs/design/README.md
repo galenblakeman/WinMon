@@ -39,6 +39,7 @@ Implemented on 2026-10-24; each note ends with what landed and where it departed
 - [Automatic captures](AUTO-CAPTURE.md)
 - [Usage tab](USAGE-TAB.md)
 - [Settings sidebar](SETTINGS-LAYOUT.md)
+- [CSV export](CSV-EXPORT.md)
 
 ## Application icon
 

@@ -53,7 +53,7 @@ $run.ExitCode
 | Mode | `Verify.ps1 -Smoke` | Covers |
 | --- | --- | --- |
 | `--smoke-output <dir>` | `full` | Series toggles, expansion, history inspection, expiry, hidden and minimized recording, shutdown, renders at 100/150/200% and a 15-second quiet observation, in `smoke.json` |
-| `--feature-smoke-output <dir>` | `feature` | Title bar, hardware Info and its copied report (`hardware.json`, `copied-info.txt`), process actions, the action drawer, palettes, the update footer at full and minimum window heights |
+| `--feature-smoke-output <dir>` | `feature` | Title bar, CSV export dialog in dark/light (`export-*.png`), hardware Info and its copied report (`hardware.json`, `copied-info.txt`), process actions, the action drawer, palettes, the update footer at full and minimum window heights |
 | `--snapshot-smoke-output <dir>` | `snapshot` | Fixture renders: design reference, App only filtering, two disk volumes, GPU/Memory/I/O ranking and pinned processes (`pins.json`) |
 | `--search-smoke-output <dir>` | `search` | Process search, clearing, thread and handle sorting, live and historical |
 | `--compact-smoke-output <dir>` | `compact` | Compact gauges: live data, every gauge style, view switching, saved dimensions, optional disk, dark/light renders at 836 and 1000 DIPs, plus one render per additional appearance finish (`compact.json`) |

@@ -1,0 +1,99 @@
+<Window
+    x:Class="WinMon.Controls.CsvExportDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:resources="clr-namespace:WinMon.Resources"
+    Title="{Binding [ExportCsv], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+    Width="510"
+    MinWidth="420"
+    SizeToContent="Height"
+    ResizeMode="NoResize"
+    ShowInTaskbar="False"
+    WindowStartupLocation="CenterOwner"
+    Background="{DynamicResource Surface}"
+    Foreground="{DynamicResource Text}"
+    FontSize="14">
+    <Window.Resources>
+        <Style TargetType="RadioButton">
+            <Setter Property="MinHeight" Value="26" />
+            <Setter Property="Foreground" Value="{DynamicResource Text}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Grid Background="Transparent">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="24" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Border x:Name="Ring" Width="17" Height="17" BorderThickness="2"
+                                    BorderBrush="{DynamicResource Muted}" CornerRadius="9"
+                                    VerticalAlignment="Center">
+                                <Ellipse x:Name="Dot" Width="7" Height="7" Visibility="Collapsed"
+                                         Fill="{DynamicResource Accent}" HorizontalAlignment="Center"
+                                         VerticalAlignment="Center" />
+                            </Border>
+                            <ContentPresenter Grid.Column="1" VerticalAlignment="Center"
+                                              RecognizesAccessKey="True" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Ring" Property="BorderBrush" Value="{DynamicResource Accent}" />
+                                <Setter TargetName="Dot" Property="Visibility" Value="Visible" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Ring" Property="BorderBrush" Value="{DynamicResource Accent}" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+    <Border Padding="24" Background="{DynamicResource Surface}">
+    <StackPanel>
+        <TextBlock FontSize="18" FontWeight="SemiBold"
+                   Text="{Binding [ExportCsv], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+        <TextBlock Margin="0,20,0,9" FontWeight="SemiBold"
+                   Text="{Binding [ExportData], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+        <RadioButton x:Name="ResourceChoice" GroupName="ExportData" Margin="8,0,0,9"
+                     Checked="OnChoiceChanged"
+                     Content="{Binding [ExportResourceHistory], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+        <RadioButton x:Name="ProcessChoice" GroupName="ExportData" Margin="8,0,0,9"
+                     Checked="OnChoiceChanged"
+                     Content="{Binding [ExportProcessSamples], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+        <RadioButton x:Name="UsageChoice" GroupName="ExportData" Margin="8,0,0,0"
+                     Checked="OnChoiceChanged"
+                     Content="{Binding [ExportUsageTotals], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+        <Separator Margin="0,18,0,0" />
+        <StackPanel x:Name="TimeChoices">
+            <TextBlock Margin="0,15,0,9" FontWeight="SemiBold"
+                       Text="{Binding [ExportTime], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+            <RadioButton x:Name="RetainedChoice" GroupName="ExportTime" Margin="8,0,0,9"
+                         IsChecked="True"
+                         Content="{Binding [ExportRetainedHistory], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+            <RadioButton x:Name="RangeChoice" GroupName="ExportTime" Margin="8,0,0,0"
+                         Content="{Binding [ExportChartRange], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+            <Separator Margin="0,18,0,0" />
+        </StackPanel>
+        <TextBlock x:Name="DataNote" Margin="0,16,0,0" Foreground="{DynamicResource Muted}"
+                   TextWrapping="Wrap" />
+        <TextBlock Margin="0,18,0,8" FontWeight="SemiBold"
+                   Text="{Binding [ExportFileName], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+        <TextBox x:Name="FileNameBox" MinHeight="34" Padding="8,4"
+                 VerticalContentAlignment="Center" Background="{DynamicResource SearchSurface}"
+                 Foreground="{DynamicResource Text}" CaretBrush="{DynamicResource Text}"
+                 BorderBrush="{DynamicResource Line}" />
+        <StackPanel Margin="0,24,0,0" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button MinWidth="90" IsCancel="True" Margin="0,0,8,0"
+                    Content="{Binding [Cancel], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+            <Button x:Name="SaveButton" MinWidth="115" IsDefault="True" Click="OnSave"
+                    Background="{DynamicResource Accent}" BorderBrush="{DynamicResource Accent}"
+                    Content="{Binding [SaveCsv], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+        </StackPanel>
+    </StackPanel>
+    </Border>
+</Window>

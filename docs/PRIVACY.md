@@ -16,6 +16,8 @@ Diagnostic and performance command-line modes write reports and, for some modes,
 
 When you turn on automatic captures (off by default), WinMon writes capture reports containing process names, IDs, executable paths and measurements to the folder you choose, `%LOCALAPPDATA%\WinMon\Captures` by default. It keeps the newest 200 and deletes only files it wrote, identified by their name and first line. Nothing is uploaded.
 
+When you choose Export, WinMon saves a CSV file in the location you select. Depending on the dataset, it can contain resource readings, process names, IDs, executable paths, publishers and Usage totals. The export remains on your PC unless you share it.
+
 ## Actions you choose
 
 The Info window copies hardware information to the Windows clipboard only when you select Copy. The snapshot card copies selected historical resource readings and displayed process names, IDs and measurements only when you select Copy snapshot. Windows clipboard history or synchronization, if enabled, is controlled by your Windows settings. Review the report before pasting it into an issue or message.

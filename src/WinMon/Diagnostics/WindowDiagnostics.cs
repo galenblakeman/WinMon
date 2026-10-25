@@ -435,6 +435,44 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         }
 
         CaptureWindowFrame(Path.Combine(output, "titlebar-window.png"));
+        var exportTheme = window.Preferences;
+        try
+        {
+            foreach (var (theme, kind) in new[]
+                     {
+                         ("Dark", CsvExportKind.UsageTotals), ("Light", CsvExportKind.ResourceHistory)
+                     })
+            {
+                window.Preferences = exportTheme with { Theme = theme };
+                window.ApplyTheme();
+                var export = new CsvExportDialog(kind) { Owner = window };
+                try
+                {
+                    export.Show();
+                    export.UpdateLayout();
+                    if (export.TimeChoices.Visibility != (kind == CsvExportKind.UsageTotals
+                            ? Visibility.Collapsed : Visibility.Visible) ||
+                        export.FileNameBox.Text.Length == 0)
+                        throw new InvalidOperationException("Export dialog showed the wrong time choices or file name.");
+                    if (export.SaveButton.Background is not SolidColorBrush saveBackground ||
+                        export.SaveButton.Foreground is not SolidColorBrush saveText ||
+                        ChartPalettes.ContrastRatio(saveBackground.Color, saveText.Color) < 4.5)
+                        throw new InvalidOperationException("Export Save button lacks readable text contrast.");
+                    await CaptureVisualAsync((FrameworkElement)export.Content,
+                        Path.Combine(output, $"export-{theme.ToLowerInvariant()}.png"),
+                        1, cancellationToken);
+                }
+                finally
+                {
+                    export.Close();
+                }
+            }
+        }
+        finally
+        {
+            window.Preferences = exportTheme;
+            window.ApplyTheme();
+        }
         var hardware = await Task.Run(WindowsHardwareInfo.Read, cancellationToken);
         await File.WriteAllTextAsync(Path.Combine(output, "hardware.json"),
             JsonSerializer.Serialize(hardware, new JsonSerializerOptions { WriteIndented = true }), cancellationToken);
@@ -658,7 +696,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         await File.WriteAllTextAsync(Path.Combine(output, "features.json"),
             JsonSerializer.Serialize(new
             {
-                HardwareInfo = true, PaletteRenders = true, ProcessContextMenu = true,
+                HardwareInfo = true, PaletteRenders = true, ProcessContextMenu = true, CsvExportDialog = true,
                 HistoricalActionsDisabled = true, GroupTerminationOffered = true, ThemedProcessDialogs = true,
                 ActionDrawer = true, SystemCounts = true, LanguageSelection = true,
                 LiveLanguageSwitching = true, RecordingStatePreserved = true,
@@ -1033,7 +1071,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                 new Point(window.PinButton.ActualWidth / 2, window.PinButton.ActualHeight / 2), window);
         if (Hit(titlePoint) != 2 || Hit(pinPoint) != 1)
             throw new InvalidOperationException("The title must drag the window, while Pin must receive client input.");
-        foreach (var action in new[] { window.InfoButton, window.SettingsButton })
+        foreach (var action in new[] { window.InfoButton, window.SettingsButton, window.ExportButton })
         {
             var point = action.TranslatePoint(new Point(action.ActualWidth / 2, action.ActualHeight / 2), window);
             if (Hit(point) != 1 || !window.TitleBarArea.IsAncestorOf(action))

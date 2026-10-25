@@ -1602,4 +1602,22 @@ Windows 상태: {2}</value>
 <data name="ThemePrism" xml:space="preserve"><value>프리즘</value></data>
 <data name="ThemeCandy" xml:space="preserve"><value>캔디</value></data>
 <data name="ThemeWildberry" xml:space="preserve"><value>와일드베리</value></data>
+  <data name="Export" xml:space="preserve"><value>내보내기</value></data>
+  <data name="ExportCsv" xml:space="preserve"><value>CSV 내보내기</value></data>
+  <data name="ExportData" xml:space="preserve"><value>데이터</value></data>
+  <data name="ExportResourceHistory" xml:space="preserve"><value>리소스 기록</value></data>
+  <data name="ExportProcessSamples" xml:space="preserve"><value>프로세스 샘플</value></data>
+  <data name="ExportUsageTotals" xml:space="preserve"><value>사용량 합계</value></data>
+  <data name="ExportTime" xml:space="preserve"><value>기간</value></data>
+  <data name="ExportRetainedHistory" xml:space="preserve"><value>보관된 전체 기록</value></data>
+  <data name="ExportChartRange" xml:space="preserve"><value>현재 차트 범위</value></data>
+  <data name="ExportResourceNote" xml:space="preserve"><value>기록된 샘플당 한 행입니다. 빈 셀은 사용할 수 없는 측정값을 뜻합니다.</value></data>
+  <data name="ExportProcessNote" xml:space="preserve"><value>보관된 행만 포함합니다. 유휴 프로세스는 생략될 수 있습니다. I/O에는 파일, 네트워크, 장치가 포함됩니다.</value></data>
+  <data name="ExportUsageNote" xml:space="preserve"><value>앱당 한 행이며 종료된 앱도 포함됩니다. 합계는 마지막 초기화부터 계산됩니다.</value></data>
+  <data name="ExportFileName" xml:space="preserve"><value>파일 이름</value></data>
+  <data name="SaveCsv" xml:space="preserve"><value>CSV 저장</value></data>
+  <data name="ExportCsvFilter" xml:space="preserve"><value>CSV 파일 (*.csv)|*.csv</value></data>
+  <data name="ExportNoData" xml:space="preserve"><value>아직 내보낼 기록된 샘플이 없습니다.</value></data>
+  <data name="ExportSaved" xml:space="preserve"><value>CSV를 {0}에 저장했습니다</value></data>
+  <data name="ExportFailed" xml:space="preserve"><value>CSV를 저장할 수 없습니다: {0}</value></data>
 </root>

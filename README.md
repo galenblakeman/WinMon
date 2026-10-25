@@ -103,6 +103,12 @@ Select an app for **Properties**, **Copy details** and **Open file location** in
 
 ![WinMon Usage view showing session CPU time, I/O, GPU time and app rankings](docs/example/example_usage.png)
 
+## Export readings as CSV
+
+Choose **Export** beside Settings in the title bar, including from Compact view. The dialog starts with process samples, resource history or Usage totals according to the view you are in, and lets you choose another dataset. Resource and process exports can use all retained history or the current chart range. Usage totals cover the period since WinMon started or you last pressed Reset; chart range does not apply to them. A normal Windows Save dialog lets you choose the destination.
+
+CSV columns use stable English identifiers, UTC timestamps, invariant numbers and raw units such as bytes and bytes per second. Blank cells mean a reading was unavailable. Resource history includes gap rows. Process samples contain **retained observations**, not every process in every interval: WinMon omits many idle entries to limit memory, and their I/O includes files, network and devices. Usage totals include exited apps and a Not attributed row. Files are saved locally and may contain process names and executable paths; WinMon never uploads them. Export needs no administrator rights.
+
 ## Catch the spike—even after it passes
 
 Choose **Capture** in the centered **Live | Capture** switch above the chart to inspect the newest recorded sample, or click the chart to select an earlier moment. The capture shows resource readings for that interval, and the process table follows your selection so you can investigate what was busy then. Recording and the top readouts stay live while you explore.

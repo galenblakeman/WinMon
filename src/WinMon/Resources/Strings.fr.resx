@@ -1602,4 +1602,22 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
 <data name="ThemePrism" xml:space="preserve"><value>Prisme</value></data>
 <data name="ThemeCandy" xml:space="preserve"><value>Bonbon</value></data>
 <data name="ThemeWildberry" xml:space="preserve"><value>Mûre</value></data>
+  <data name="Export" xml:space="preserve"><value>Exporter</value></data>
+  <data name="ExportCsv" xml:space="preserve"><value>Exporter en CSV</value></data>
+  <data name="ExportData" xml:space="preserve"><value>Données</value></data>
+  <data name="ExportResourceHistory" xml:space="preserve"><value>Historique des ressources</value></data>
+  <data name="ExportProcessSamples" xml:space="preserve"><value>Échantillons de processus</value></data>
+  <data name="ExportUsageTotals" xml:space="preserve"><value>Totaux d’utilisation</value></data>
+  <data name="ExportTime" xml:space="preserve"><value>Période</value></data>
+  <data name="ExportRetainedHistory" xml:space="preserve"><value>Tout l’historique conservé</value></data>
+  <data name="ExportChartRange" xml:space="preserve"><value>Plage actuelle du graphique</value></data>
+  <data name="ExportResourceNote" xml:space="preserve"><value>Une ligne par échantillon enregistré. Une cellule vide indique une valeur indisponible.</value></data>
+  <data name="ExportProcessNote" xml:space="preserve"><value>Lignes conservées uniquement ; les processus inactifs peuvent être omis. Les E/S incluent fichiers, réseau et appareils.</value></data>
+  <data name="ExportUsageNote" xml:space="preserve"><value>Une ligne par application, même fermée. Les totaux commencent à la dernière réinitialisation.</value></data>
+  <data name="ExportFileName" xml:space="preserve"><value>Nom du fichier</value></data>
+  <data name="SaveCsv" xml:space="preserve"><value>Enregistrer le CSV</value></data>
+  <data name="ExportCsvFilter" xml:space="preserve"><value>Fichiers CSV (*.csv)|*.csv</value></data>
+  <data name="ExportNoData" xml:space="preserve"><value>Aucun échantillon enregistré n’est encore disponible à l’exportation.</value></data>
+  <data name="ExportSaved" xml:space="preserve"><value>CSV enregistré dans {0}</value></data>
+  <data name="ExportFailed" xml:space="preserve"><value>Impossible d’enregistrer le CSV : {0}</value></data>
 </root>

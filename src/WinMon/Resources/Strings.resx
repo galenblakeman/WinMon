@@ -1602,4 +1602,22 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
 <data name="ThemePrism" xml:space="preserve"><value>Prism</value></data>
 <data name="ThemeCandy" xml:space="preserve"><value>Candy</value></data>
 <data name="ThemeWildberry" xml:space="preserve"><value>Wildberry</value></data>
+  <data name="Export" xml:space="preserve"><value>Export</value></data>
+  <data name="ExportCsv" xml:space="preserve"><value>Export CSV</value></data>
+  <data name="ExportData" xml:space="preserve"><value>Data</value></data>
+  <data name="ExportResourceHistory" xml:space="preserve"><value>Resource history</value></data>
+  <data name="ExportProcessSamples" xml:space="preserve"><value>Process samples</value></data>
+  <data name="ExportUsageTotals" xml:space="preserve"><value>Usage totals</value></data>
+  <data name="ExportTime" xml:space="preserve"><value>Time</value></data>
+  <data name="ExportRetainedHistory" xml:space="preserve"><value>All retained history</value></data>
+  <data name="ExportChartRange" xml:space="preserve"><value>Current chart range</value></data>
+  <data name="ExportResourceNote" xml:space="preserve"><value>One row per recorded sample. Blank cells mean unavailable readings.</value></data>
+  <data name="ExportProcessNote" xml:space="preserve"><value>Retained rows only; idle processes may be omitted. I/O includes files, network and devices.</value></data>
+  <data name="ExportUsageNote" xml:space="preserve"><value>One row per app, including exited apps. Totals start at the last reset.</value></data>
+  <data name="ExportFileName" xml:space="preserve"><value>File name</value></data>
+  <data name="SaveCsv" xml:space="preserve"><value>Save CSV</value></data>
+  <data name="ExportCsvFilter" xml:space="preserve"><value>CSV files (*.csv)|*.csv</value></data>
+  <data name="ExportNoData" xml:space="preserve"><value>No recorded samples are available to export yet.</value></data>
+  <data name="ExportSaved" xml:space="preserve"><value>CSV saved to {0}</value></data>
+  <data name="ExportFailed" xml:space="preserve"><value>Couldn't save the CSV: {0}</value></data>
 </root>

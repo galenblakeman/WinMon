@@ -1602,4 +1602,22 @@ Windows の正常性状態: {2}</value>
 <data name="ThemePrism" xml:space="preserve"><value>プリズム</value></data>
 <data name="ThemeCandy" xml:space="preserve"><value>キャンディ</value></data>
 <data name="ThemeWildberry" xml:space="preserve"><value>ワイルドベリー</value></data>
+  <data name="Export" xml:space="preserve"><value>エクスポート</value></data>
+  <data name="ExportCsv" xml:space="preserve"><value>CSV をエクスポート</value></data>
+  <data name="ExportData" xml:space="preserve"><value>データ</value></data>
+  <data name="ExportResourceHistory" xml:space="preserve"><value>リソース履歴</value></data>
+  <data name="ExportProcessSamples" xml:space="preserve"><value>プロセスのサンプル</value></data>
+  <data name="ExportUsageTotals" xml:space="preserve"><value>使用量の合計</value></data>
+  <data name="ExportTime" xml:space="preserve"><value>期間</value></data>
+  <data name="ExportRetainedHistory" xml:space="preserve"><value>保持中の履歴すべて</value></data>
+  <data name="ExportChartRange" xml:space="preserve"><value>現在のグラフ範囲</value></data>
+  <data name="ExportResourceNote" xml:space="preserve"><value>記録したサンプルごとに 1 行。空欄は値を取得できなかったことを示します。</value></data>
+  <data name="ExportProcessNote" xml:space="preserve"><value>保持中の行のみ。アイドル状態のプロセスは省略される場合があります。I/O にはファイル、ネットワーク、デバイスが含まれます。</value></data>
+  <data name="ExportUsageNote" xml:space="preserve"><value>アプリごとに 1 行。終了したアプリも含みます。合計は最後のリセットから計算されます。</value></data>
+  <data name="ExportFileName" xml:space="preserve"><value>ファイル名</value></data>
+  <data name="SaveCsv" xml:space="preserve"><value>CSV を保存</value></data>
+  <data name="ExportCsvFilter" xml:space="preserve"><value>CSV ファイル (*.csv)|*.csv</value></data>
+  <data name="ExportNoData" xml:space="preserve"><value>エクスポートできる記録済みサンプルはまだありません。</value></data>
+  <data name="ExportSaved" xml:space="preserve"><value>CSV を {0} に保存しました</value></data>
+  <data name="ExportFailed" xml:space="preserve"><value>CSV を保存できませんでした: {0}</value></data>
 </root>

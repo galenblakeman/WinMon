@@ -1602,4 +1602,22 @@ Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse
 <data name="ThemePrism" xml:space="preserve"><value>Prisma</value></data>
 <data name="ThemeCandy" xml:space="preserve"><value>Bonbon</value></data>
 <data name="ThemeWildberry" xml:space="preserve"><value>Waldbeere</value></data>
+  <data name="Export" xml:space="preserve"><value>Exportieren</value></data>
+  <data name="ExportCsv" xml:space="preserve"><value>CSV exportieren</value></data>
+  <data name="ExportData" xml:space="preserve"><value>Daten</value></data>
+  <data name="ExportResourceHistory" xml:space="preserve"><value>Ressourcenverlauf</value></data>
+  <data name="ExportProcessSamples" xml:space="preserve"><value>Prozessmesswerte</value></data>
+  <data name="ExportUsageTotals" xml:space="preserve"><value>Nutzungssummen</value></data>
+  <data name="ExportTime" xml:space="preserve"><value>Zeitraum</value></data>
+  <data name="ExportRetainedHistory" xml:space="preserve"><value>Gesamter gespeicherter Verlauf</value></data>
+  <data name="ExportChartRange" xml:space="preserve"><value>Aktueller Diagrammbereich</value></data>
+  <data name="ExportResourceNote" xml:space="preserve"><value>Eine Zeile pro aufgezeichnetem Messwert. Leere Zellen bedeuten nicht verfügbare Werte.</value></data>
+  <data name="ExportProcessNote" xml:space="preserve"><value>Nur gespeicherte Zeilen; inaktive Prozesse können fehlen. E/A umfasst Dateien, Netzwerk und Geräte.</value></data>
+  <data name="ExportUsageNote" xml:space="preserve"><value>Eine Zeile pro App, auch für beendete Apps. Summen beginnen beim letzten Zurücksetzen.</value></data>
+  <data name="ExportFileName" xml:space="preserve"><value>Dateiname</value></data>
+  <data name="SaveCsv" xml:space="preserve"><value>CSV speichern</value></data>
+  <data name="ExportCsvFilter" xml:space="preserve"><value>CSV-Dateien (*.csv)|*.csv</value></data>
+  <data name="ExportNoData" xml:space="preserve"><value>Es sind noch keine aufgezeichneten Messwerte zum Exportieren verfügbar.</value></data>
+  <data name="ExportSaved" xml:space="preserve"><value>CSV gespeichert unter {0}</value></data>
+  <data name="ExportFailed" xml:space="preserve"><value>CSV konnte nicht gespeichert werden: {0}</value></data>
 </root>
