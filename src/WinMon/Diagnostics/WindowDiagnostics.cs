@@ -668,6 +668,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
     private async Task CaptureUpdateDiagnosticsAsync(string output, CancellationToken cancellationToken)
     {
         var original = window.Preferences;
+        var originalHeight = window.Height;
         try
         {
             foreach (var theme in new[] { "Dark", "Light" })
@@ -685,15 +686,36 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                     cancellationToken);
             }
 
+            // With room, the footer has a row of its own; shorter than the rows' minimums, it overlays their bottom.
+            if (Bounds(window.Processes).Bottom > Bounds(window.UpdateFooter).Top + 0.5)
+                throw new InvalidOperationException("The update footer covers the process list in a full-height window.");
+            foreach (var height in new[] { 300, window.MinHeight })
+            {
+                window.Height = height;
+                window.UpdateLayout();
+                var footer = Bounds(window.UpdateFooter);
+                if (footer.Top < Bounds(window.FullView).Top || footer.Bottom > Bounds(window.FullView).Bottom + 0.5)
+                    throw new InvalidOperationException($"The update footer is not visible in a {height}-DIP window.");
+            }
+
+            await CaptureAsync(Path.Combine(output, "update-footer-short.png"), 1, cancellationToken);
+            window.Height = originalHeight;
+            window.UpdateLayout();
             window.ShowUpdateStatus(Strings.Format(Strings.DownloadingUpdate, 42), false);
             window.CancelUpdateButton.Visibility = Visibility.Visible;
             await CaptureAsync(Path.Combine(output, "update-progress.png"), 1, cancellationToken);
         }
         finally
         {
+            window.Height = originalHeight;
             window.UpdateFooter.Visibility = Visibility.Collapsed;
             window.Preferences = original;
             window.ApplyTheme();
+        }
+
+        Rect Bounds(FrameworkElement element)
+        {
+            return element.TransformToAncestor(window).TransformBounds(new Rect(element.RenderSize));
         }
     }
 

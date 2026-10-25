@@ -76,16 +76,14 @@ public partial class MainWindow
             if (offer is null)
             {
                 if (requestedByUser) ShowUpdateStatus(Strings.UpToDate, true);
-                else if (changedOffer) UpdateFooter.Visibility = Visibility.Collapsed;
+                // Hide a withdrawn offer, but not a capture notice sharing the footer.
+                else if (changedOffer && UpdateNowButton.Visibility == Visibility.Visible)
+                    UpdateFooter.Visibility = Visibility.Collapsed;
                 return;
             }
 
             if (_updateDismissed) return;
-            UpdateStatusText.Text = Strings.Format(Strings.UpdateAvailable, offer.Version);
-            UpdateFooter.Visibility = Visibility.Visible;
-            ReleaseNotesButton.Visibility = Visibility.Visible;
-            UpdateNowButton.Visibility = Visibility.Visible;
-            DismissUpdateButton.Visibility = Visibility.Visible;
+            ShowUpdateOffer(offer);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -93,7 +91,7 @@ public partial class MainWindow
         catch (Exception ex)
         {
             Trace.TraceWarning("WinMon update check failed: {0}", ex.Message);
-            if (requestedByUser) ShowUpdateStatus(Strings.UpdateFailed, true);
+            if (requestedByUser) ShowUpdateFailure(Strings.UpdateFailed);
         }
         finally
         {
@@ -109,6 +107,21 @@ public partial class MainWindow
         UpdateNowButton.Visibility = Visibility.Collapsed;
         DismissUpdateButton.Visibility = dismissible ? Visibility.Visible : Visibility.Collapsed;
         CancelUpdateButton.Visibility = Visibility.Collapsed;
+    }
+
+    /// <summary>Offer <paramref name="offer"/>, under <paramref name="text"/> or its availability line.</summary>
+    private void ShowUpdateOffer(UpdateOffer offer, string? text = null)
+    {
+        ShowUpdateStatus(text ?? Strings.Format(Strings.UpdateAvailable, offer.Version), true);
+        ReleaseNotesButton.Visibility = Visibility.Visible;
+        UpdateNowButton.Visibility = Visibility.Visible;
+    }
+
+    /// <summary>Show <paramref name="text"/>, keeping a pending offer's buttons so it can be retried at once.</summary>
+    private void ShowUpdateFailure(string text)
+    {
+        if (_updateOffer is { } offer && !_updateDismissed) ShowUpdateOffer(offer, text);
+        else ShowUpdateStatus(text, true);
     }
 
     private void OnDismissUpdate(object sender, RoutedEventArgs e)
@@ -156,15 +169,21 @@ public partial class MainWindow
             gateHeld = true;
             if (_updateClient is null || _updateOffer is null || IsClosing) return;
             // No concurrent check can now replace the version or footer while its matching asset downloads.
-            var offer = _updateOffer;
             _updateDownloading = true;
             _updateDownload = CancellationTokenSource.CreateLinkedTokenSource(Lifetime.Token, _updateLifetime.Token);
+            ShowUpdateStatus(Strings.UpdateChecking, false);
+            CancelUpdateButton.Visibility = Visibility.Visible;
+            if (await LatestOfferAsync(_updateClient, _updateDownload.Token) is not { } offer)
+            {
+                ShowUpdateStatus(Strings.UpToDate, true);
+                return;
+            }
+
             var progress = new Progress<int>(percent =>
             {
                 if (_updateDownloading) UpdateStatusText.Text = Strings.Format(Strings.DownloadingUpdate, percent);
             });
-            ShowUpdateStatus(Strings.Format(Strings.DownloadingUpdate, 0), false);
-            CancelUpdateButton.Visibility = Visibility.Visible;
+            UpdateStatusText.Text = Strings.Format(Strings.DownloadingUpdate, 0);
             var prepared = await _updateClient.DownloadAsync(offer, progress, _updateDownload.Token);
             ShowUpdateStatus(Strings.RestartingToUpdate, false);
             var (directory, token) = await UpdateLauncher.StartAsync(prepared, _updateDownload.Token);
@@ -174,12 +193,12 @@ public partial class MainWindow
         }
         catch (OperationCanceledException) when (_updateDownload?.IsCancellationRequested == true)
         {
-            ShowUpdateStatus(Strings.UpdateCancelled, true);
+            ShowUpdateFailure(Strings.UpdateCancelled);
         }
         catch (Exception ex)
         {
             Trace.TraceError("WinMon update download or handoff failed: {0}", ex);
-            ShowUpdateStatus(Strings.UpdateFailed, true);
+            ShowUpdateFailure(Strings.UpdateFailed);
         }
         finally
         {
@@ -193,6 +212,27 @@ public partial class MainWindow
                 ReleaseNotesButton.IsEnabled = true;
                 DismissUpdateButton.IsEnabled = true;
             }
+        }
+    }
+
+    /// <summary>The newest release, checked again on Update now because the footer's offer may be hours old.</summary>
+    /// <remarks>
+    /// An unchanged release costs one 304 response. When the check itself fails, the signed offer already shown is
+    /// used, and its download reports any lasting network fault.
+    /// </remarks>
+    private async Task<UpdateOffer?> LatestOfferAsync(UpdateClient client, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var latest = await client.CheckAsync(AppInfo.Version, cancellationToken);
+            _lastUpdateCheck = DateTimeOffset.Now;
+            _updateOffer = latest;
+            return latest;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+        {
+            Trace.TraceWarning("WinMon could not recheck the update before downloading: {0}", ex.Message);
+            return _updateOffer;
         }
     }
 

@@ -30,3 +30,9 @@ Final full NUnit run: **400 passed**, including 31 updater cases. Native feature
 Final process harness evidence: `artifacts/updater-validation/6d18707d1dab40eab5a2db62391093ae/evidence.json` (cancel, tampered signature, rollback, portable success, installer success). UI renders: `artifacts/update-smoke/screenshots-final/`. Installer rollback is not promised; installer failures retain logs and restart the executable left by Setup. Production signing and a live GitHub release were not validated.
 
 An unrelated concurrent edit to docs/DEVELOPMENT.md was left intact.
+
+## Later changes
+
+- **Update Now rechecks.** The footer's offer can be up to six hours old, so the download first checks GitHub again and installs whatever is newest. A failed recheck falls back to the signed offer already shown.
+- **The offer survives a failure.** A cancelled or failed download, or a failed manual check, keeps **Update Now** and **What's new** under the status line instead of hiding them until the next periodic check. A withdrawn release hides only the offer, not a capture notice sharing the footer.
+- **The footer overlays the window's bottom edge.** It used to be the last grid row, below rows with minimum heights totalling over 500 DIPs, so windows shorter than that clipped it away. It now sits over the content, and a spacer row reserves its height whenever the window has room. The feature smoke checks it at full height, 300 DIPs and the minimum height (`update-footer-short.png`).

@@ -115,498 +115,509 @@
                 x:Name="FullView"
                 Grid.Row="1"
                 Background="{DynamicResource Surface}">
-                <Grid Margin="20,12,20,8">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition
-                            x:Name="ChartAreaRow"
-                            Height="*"
-                            MinHeight="160" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition
-                            x:Name="ProcessesAreaRow"
-                            Height="1.25*"
-                            MinHeight="344" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Grid Grid.Row="0" Margin="0,0,0,16">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition />
-                            <ColumnDefinition />
-                            <ColumnDefinition />
-                            <ColumnDefinition x:Name="SecondaryDiskColumn" Width="0" />
-                            <ColumnDefinition />
-                            <ColumnDefinition />
-                        </Grid.ColumnDefinitions>
-                        <Border
-                            Grid.Column="0"
-                            BorderBrush="{DynamicResource Line}"
-                            BorderThickness="0,0,1,0" />
-                        <Border
-                            Grid.Column="1"
-                            BorderBrush="{DynamicResource Line}"
-                            BorderThickness="0,0,1,0" />
-                        <Border
-                            Grid.Column="2"
-                            BorderBrush="{DynamicResource Line}"
-                            BorderThickness="0,0,1,0" />
-                        <Border
-                            Grid.Column="4"
-                            BorderBrush="{DynamicResource Line}"
-                            BorderThickness="0,0,1,0" />
-                        <controls:MetricReadout
-                            x:Name="CpuMetric"
-                            Grid.Column="0"
-                            AccentKey="CpuAccent"
-                            Label="{Binding [CPU], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
-                        <controls:MetricReadout
-                            x:Name="MemoryMetric"
-                            Grid.Column="1"
-                            Margin="10,0,0,0"
-                            AccentKey="MemoryAccent"
-                            Label="{Binding [Memory], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
-                        <controls:MetricReadout
-                            x:Name="DiskMetric"
-                            Grid.Column="2"
-                            Margin="10,0,0,0"
-                            AccentKey="DiskAccent"
-                            Label="{Binding [Disk], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
-                        <Border
-                            x:Name="SecondaryDiskDivider"
-                            Grid.Column="3"
-                            BorderBrush="{DynamicResource Line}"
-                            BorderThickness="0,0,1,0"
-                            Visibility="Collapsed" />
-                        <controls:MetricReadout
-                            x:Name="SecondaryDiskMetric"
-                            Grid.Column="3"
-                            Margin="10,0,0,0"
-                            AccentKey="SecondaryDiskAccent"
-                            Label="{Binding [Disk], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                            Visibility="Collapsed" />
-                        <controls:MetricReadout
-                            x:Name="NetworkMetric"
-                            Grid.Column="4"
-                            Margin="10,0,0,0"
-                            AccentKey="NetworkAccent"
-                            Label="{Binding [Network], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
-                        <controls:MetricReadout
-                            x:Name="GpuMetric"
-                            Grid.Column="5"
-                            Margin="10,0,0,0"
-                            AccentKey="GpuAccent"
-                            Label="{Binding [GPU], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
-                    </Grid>
-                    <!--  Compact live headers; historical resource details appear only during inspection.  -->
-                    <Border
-                        x:Name="ResourceHeader"
-                        Grid.Row="1"
-                        Margin="-20,0,-20,8"
-                        Padding="20,5"
-                        Background="{DynamicResource SectionHeaderSurface}"
-                        BorderBrush="{DynamicResource Line}"
-                        BorderThickness="0,1,0,0">
-                        <Grid>
+                <!--
+                    The update footer overlays the bottom edge instead of taking the last row, so a window shorter
+                    than the rows' minimum heights still shows it. The last row reserves its height when there is room.
+                -->
+                <Grid>
+                    <Grid Margin="20,12,20,8">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition
+                                x:Name="ChartAreaRow"
+                                Height="*"
+                                MinHeight="160" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition
+                                x:Name="ProcessesAreaRow"
+                                Height="1.25*"
+                                MinHeight="344" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid Grid.Row="0" Margin="0,0,0,16">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition />
+                                <ColumnDefinition />
+                                <ColumnDefinition />
+                                <ColumnDefinition x:Name="SecondaryDiskColumn" Width="0" />
+                                <ColumnDefinition />
+                                <ColumnDefinition />
                             </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
-                            <StackPanel
-                                Grid.Column="2"
-                                HorizontalAlignment="Right"
-                                VerticalAlignment="Center"
-                                Orientation="Horizontal">
-                                <Button
-                                    x:Name="CapturesButton"
-                                    Margin="0,0,8,0"
-                                    Padding="8,2"
-                                    AutomationProperties.Name="{Binding [AutoCaptureHeading], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                    Click="OnCapturesMenu"
-                                    FontSize="12"
-                                    Style="{StaticResource TitleActionButton}"
-                                    Visibility="Collapsed" />
-                                <StackPanel
-                                    x:Name="RangeSelector"
-                                    VerticalAlignment="Center"
-                                    AutomationProperties.Name="{Binding [ChartTimeRange], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                    Orientation="Horizontal" />
-                            </StackPanel>
                             <Border
-                                x:Name="ChartModeSwitch"
-                                Grid.Row="0"
-                                Grid.Column="1"
-                                Margin="8,0"
-                                Padding="1"
+                                Grid.Column="0"
                                 BorderBrush="{DynamicResource Line}"
-                                BorderThickness="1"
-                                CornerRadius="5">
-                                <StackPanel Orientation="Horizontal">
-                                    <RadioButton
-                                        x:Name="LiveModeButton"
-                                        MinWidth="72"
-                                        AutomationProperties.Name="{Binding [ReturnToLive], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                        Click="OnLiveModeClick"
-                                        GroupName="ChartMode"
-                                        Style="{StaticResource ChartModeSegment}"
-                                        ToolTip="{Binding [ReturnToLive], Source={x:Static resources:Strings.Text}, Mode=OneWay}">
-                                        <StackPanel Orientation="Horizontal">
-                                            <Path
-                                                Width="14"
-                                                Height="14"
-                                                Margin="0,0,6,0"
-                                                VerticalAlignment="Center"
-                                                Data="{x:Static controls:ButtonIcon.Live}"
-                                                Stretch="Uniform"
-                                                Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
-                                                StrokeEndLineCap="Round"
-                                                StrokeLineJoin="Round"
-                                                StrokeStartLineCap="Round"
-                                                StrokeThickness="1.5" />
-                                            <TextBlock Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" Text="{Binding [LiveMode], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
-                                        </StackPanel>
-                                    </RadioButton>
-                                    <RadioButton
-                                        x:Name="SnapshotModeButton"
-                                        MinWidth="108"
-                                        AutomationProperties.Name="{Binding [SnapshotMode], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                        Click="OnSnapshotModeClick"
-                                        GroupName="ChartMode"
-                                        Style="{StaticResource ChartModeSegment}"
-                                        ToolTip="{Binding [CaptureLatestSnapshot], Source={x:Static resources:Strings.Text}, Mode=OneWay}">
-                                        <StackPanel Orientation="Horizontal">
-                                            <Grid
-                                                Width="16"
-                                                Height="16"
-                                                Margin="0,0,6,0"
-                                                VerticalAlignment="Center"
-                                                IsHitTestVisible="False">
+                                BorderThickness="0,0,1,0" />
+                            <Border
+                                Grid.Column="1"
+                                BorderBrush="{DynamicResource Line}"
+                                BorderThickness="0,0,1,0" />
+                            <Border
+                                Grid.Column="2"
+                                BorderBrush="{DynamicResource Line}"
+                                BorderThickness="0,0,1,0" />
+                            <Border
+                                Grid.Column="4"
+                                BorderBrush="{DynamicResource Line}"
+                                BorderThickness="0,0,1,0" />
+                            <controls:MetricReadout
+                                x:Name="CpuMetric"
+                                Grid.Column="0"
+                                AccentKey="CpuAccent"
+                                Label="{Binding [CPU], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                            <controls:MetricReadout
+                                x:Name="MemoryMetric"
+                                Grid.Column="1"
+                                Margin="10,0,0,0"
+                                AccentKey="MemoryAccent"
+                                Label="{Binding [Memory], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                            <controls:MetricReadout
+                                x:Name="DiskMetric"
+                                Grid.Column="2"
+                                Margin="10,0,0,0"
+                                AccentKey="DiskAccent"
+                                Label="{Binding [Disk], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                            <Border
+                                x:Name="SecondaryDiskDivider"
+                                Grid.Column="3"
+                                BorderBrush="{DynamicResource Line}"
+                                BorderThickness="0,0,1,0"
+                                Visibility="Collapsed" />
+                            <controls:MetricReadout
+                                x:Name="SecondaryDiskMetric"
+                                Grid.Column="3"
+                                Margin="10,0,0,0"
+                                AccentKey="SecondaryDiskAccent"
+                                Label="{Binding [Disk], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                Visibility="Collapsed" />
+                            <controls:MetricReadout
+                                x:Name="NetworkMetric"
+                                Grid.Column="4"
+                                Margin="10,0,0,0"
+                                AccentKey="NetworkAccent"
+                                Label="{Binding [Network], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                            <controls:MetricReadout
+                                x:Name="GpuMetric"
+                                Grid.Column="5"
+                                Margin="10,0,0,0"
+                                AccentKey="GpuAccent"
+                                Label="{Binding [GPU], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                        </Grid>
+                        <!--  Compact live headers; historical resource details appear only during inspection.  -->
+                        <Border
+                            x:Name="ResourceHeader"
+                            Grid.Row="1"
+                            Margin="-20,0,-20,8"
+                            Padding="20,5"
+                            Background="{DynamicResource SectionHeaderSurface}"
+                            BorderBrush="{DynamicResource Line}"
+                            BorderThickness="0,1,0,0">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <StackPanel
+                                    Grid.Column="2"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center"
+                                    Orientation="Horizontal">
+                                    <Button
+                                        x:Name="CapturesButton"
+                                        Margin="0,0,8,0"
+                                        Padding="8,2"
+                                        AutomationProperties.Name="{Binding [AutoCaptureHeading], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                        Click="OnCapturesMenu"
+                                        FontSize="12"
+                                        Style="{StaticResource TitleActionButton}"
+                                        Visibility="Collapsed" />
+                                    <StackPanel
+                                        x:Name="RangeSelector"
+                                        VerticalAlignment="Center"
+                                        AutomationProperties.Name="{Binding [ChartTimeRange], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                        Orientation="Horizontal" />
+                                </StackPanel>
+                                <Border
+                                    x:Name="ChartModeSwitch"
+                                    Grid.Row="0"
+                                    Grid.Column="1"
+                                    Margin="8,0"
+                                    Padding="1"
+                                    BorderBrush="{DynamicResource Line}"
+                                    BorderThickness="1"
+                                    CornerRadius="5">
+                                    <StackPanel Orientation="Horizontal">
+                                        <RadioButton
+                                            x:Name="LiveModeButton"
+                                            MinWidth="72"
+                                            AutomationProperties.Name="{Binding [ReturnToLive], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                            Click="OnLiveModeClick"
+                                            GroupName="ChartMode"
+                                            Style="{StaticResource ChartModeSegment}"
+                                            ToolTip="{Binding [ReturnToLive], Source={x:Static resources:Strings.Text}, Mode=OneWay}">
+                                            <StackPanel Orientation="Horizontal">
                                                 <Path
-                                                    Data="{x:Static controls:ButtonIcon.CaptureFrame}"
+                                                    Width="14"
+                                                    Height="14"
+                                                    Margin="0,0,6,0"
+                                                    VerticalAlignment="Center"
+                                                    Data="{x:Static controls:ButtonIcon.Live}"
+                                                    Stretch="Uniform"
                                                     Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
                                                     StrokeEndLineCap="Round"
                                                     StrokeLineJoin="Round"
                                                     StrokeStartLineCap="Round"
                                                     StrokeThickness="1.5" />
-                                                <Ellipse
-                                                    Width="3"
-                                                    Height="3"
-                                                    HorizontalAlignment="Center"
+                                                <TextBlock Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" Text="{Binding [LiveMode], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                            </StackPanel>
+                                        </RadioButton>
+                                        <RadioButton
+                                            x:Name="SnapshotModeButton"
+                                            MinWidth="108"
+                                            AutomationProperties.Name="{Binding [SnapshotMode], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                            Click="OnSnapshotModeClick"
+                                            GroupName="ChartMode"
+                                            Style="{StaticResource ChartModeSegment}"
+                                            ToolTip="{Binding [CaptureLatestSnapshot], Source={x:Static resources:Strings.Text}, Mode=OneWay}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Grid
+                                                    Width="16"
+                                                    Height="16"
+                                                    Margin="0,0,6,0"
                                                     VerticalAlignment="Center"
-                                                    Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
-                                            </Grid>
-                                            <TextBlock Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" Text="{Binding [SnapshotMode], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
-                                        </StackPanel>
-                                    </RadioButton>
-                                </StackPanel>
-                            </Border>
-                            <!--  Shown only when sampling fails; normal recording needs no status.  -->
-                            <TextBlock
-                                x:Name="ErrorLabel"
-                                Grid.Row="1"
-                                Grid.Column="0"
-                                Grid.ColumnSpan="3"
-                                MaxWidth="190"
-                                Margin="0,0,8,0"
-                                VerticalAlignment="Center"
-                                FontSize="11"
-                                Foreground="{DynamicResource Muted}"
-                                TextAlignment="Right"
-                                TextWrapping="Wrap"
-                                Visibility="Collapsed" />
-                            <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock
-                                    x:Name="LiveCaption"
-                                    Margin="0,0,10,0"
-                                    VerticalAlignment="Center"
-                                    FontSize="15"
-                                    FontWeight="SemiBold"
-                                    Text="{Binding [SystemResources], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                    TextTrimming="CharacterEllipsis" />
-                                <ComboBox x:Name="ChartTypeSelector" Width="150" Height="27" Margin="0,0,6,0"
-                                          VerticalAlignment="Center" SelectionChanged="OnChartTypeChanged" />
-                            </StackPanel>
-                        </Grid>
-                    </Border>
-                    <controls:CpuGraph
-                        x:Name="OverallGraph"
-                        Grid.Row="2"
-                        AutomationProperties.Name="{Binding [CPUMemoryConfiguredDisksNetworkAndGPUOverlayHistoryClick], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                        Focusable="True"
-                        ShowGrid="True"
-                        SizeChanged="OnSnapshotChartSizeChanged" />
-                    <Canvas
-                        x:Name="SnapshotLayer"
-                        Grid.Row="2"
-                        ClipToBounds="True"
-                        Visibility="Collapsed">
-                        <Polygon
-                            x:Name="SnapshotPointer"
-                            Fill="{DynamicResource Raised}"
-                            IsHitTestVisible="False"
-                            Stroke="{DynamicResource Line}"
-                            StrokeThickness="1" />
-                        <Border
-                            x:Name="SnapshotPanel"
-                            Padding="12,9"
-                            AutomationProperties.Name="{Binding [SelectedChartSnapshot], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                            Background="{DynamicResource Raised}"
-                            BorderBrush="{DynamicResource Line}"
-                            BorderThickness="1"
-                            CornerRadius="6">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="*" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
-                                <StackPanel Margin="0,0,0,6">
-                                    <Border
-                                        x:Name="CaptureBanner"
-                                        Margin="0,0,0,6"
-                                        Padding="6,3"
-                                        Background="{DynamicResource SectionHeaderSurface}"
-                                        BorderBrush="{DynamicResource Line}"
-                                        BorderThickness="1"
-                                        CornerRadius="4"
-                                        Visibility="Collapsed">
-                                        <DockPanel>
-                                            <Button
-                                                x:Name="OpenReportButton"
-                                                Padding="6,1"
-                                                controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Folder}"
-                                                Click="OnOpenCaptureReport"
-                                                Content="{Binding [AutoCaptureOpenReport], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                                DockPanel.Dock="Right"
-                                                FontSize="11"
-                                                Style="{StaticResource TitleActionButton}"
-                                                ToolTipService.ShowOnDisabled="True" />
-                                            <Path
-                                                x:Name="CaptureBannerMarker"
-                                                Width="10"
-                                                Height="8"
-                                                Margin="0,0,6,0"
-                                                VerticalAlignment="Center"
-                                                Data="M 0,0 L 10,0 L 5,8 Z"
-                                                Stretch="Fill" />
-                                            <TextBlock
-                                                x:Name="CaptureBannerText"
-                                                VerticalAlignment="Center"
-                                                FontSize="11"
-                                                TextTrimming="CharacterEllipsis" />
-                                        </DockPanel>
-                                    </Border>
-                                    <TextBlock
-                                        x:Name="SnapshotTitle"
-                                        FontSize="15"
-                                        FontWeight="SemiBold" />
-                                    <TextBlock
-                                        x:Name="SnapshotNote"
-                                        Margin="0,3,0,0"
-                                        FontSize="11"
-                                        Foreground="{DynamicResource Muted}"
-                                        TextWrapping="Wrap" />
-                                </StackPanel>
-                                <ScrollViewer
-                                    Grid.Row="1"
-                                    HorizontalScrollBarVisibility="Disabled"
-                                    VerticalScrollBarVisibility="Auto">
-                                    <UniformGrid x:Name="SnapshotReadings" Columns="3">
-                                        <UniformGrid.Resources>
-                                            <Style TargetType="TextBlock">
-                                                <Setter Property="FontSize" Value="11" />
-                                                <Setter Property="Foreground" Value="{DynamicResource Muted}" />
-                                                <Setter Property="TextTrimming" Value="CharacterEllipsis" />
-                                            </Style>
-                                            <Style TargetType="StackPanel">
-                                                <Setter Property="Margin" Value="0,0,6,6" />
-                                            </Style>
-                                        </UniformGrid.Resources>
-                                        <StackPanel>
-                                            <TextBlock Text="{Binding [CPU], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
-                                            <TextBlock
-                                                x:Name="SnapshotCpu"
-                                                FontSize="22"
-                                                FontWeight="SemiBold"
-                                                Foreground="{DynamicResource CpuAccent}" />
-                                        </StackPanel>
-                                        <StackPanel>
-                                            <TextBlock Text="{Binding [Memory], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
-                                            <TextBlock
-                                                x:Name="SnapshotMemory"
-                                                FontSize="22"
-                                                FontWeight="SemiBold"
-                                                Foreground="{DynamicResource MemoryAccent}" />
-                                        </StackPanel>
-                                        <StackPanel>
-                                            <TextBlock Text="{Binding [GPU], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
-                                            <TextBlock
-                                                x:Name="SnapshotGpu"
-                                                FontSize="22"
-                                                FontWeight="SemiBold"
-                                                Foreground="{DynamicResource GpuAccent}" />
-                                        </StackPanel>
-                                        <StackPanel>
-                                            <TextBlock x:Name="SnapshotDiskName" />
-                                            <TextBlock
-                                                x:Name="SnapshotDisk"
-                                                FontSize="22"
-                                                FontWeight="SemiBold"
-                                                Foreground="{DynamicResource DiskAccent}" />
-                                        </StackPanel>
-                                        <StackPanel x:Name="SnapshotSecondaryDisk">
-                                            <TextBlock x:Name="SnapshotSecondaryDiskName" />
-                                            <TextBlock
-                                                x:Name="SnapshotDisk2"
-                                                FontSize="22"
-                                                FontWeight="SemiBold"
-                                                Foreground="{DynamicResource SecondaryDiskAccent}" />
-                                        </StackPanel>
-                                        <StackPanel>
-                                            <TextBlock Text="{Binding [Network], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
-                                            <TextBlock
-                                                x:Name="SnapshotNetwork"
-                                                FontSize="17"
-                                                FontWeight="SemiBold"
-                                                Foreground="{DynamicResource NetworkAccent}" />
-                                        </StackPanel>
-                                    </UniformGrid>
-                                </ScrollViewer>
-                                <Border
-                                    Grid.Row="2"
-                                    Padding="0,6,0,0"
-                                    BorderBrush="{DynamicResource Line}"
-                                    BorderThickness="0,1,0,0">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
-                                        <Button
-                                            x:Name="SnapshotCopyButton"
-                                            controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Copy}"
-                                            Click="OnCopySnapshot"
-                                            Content="{Binding [CopySnapshot], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                            Style="{StaticResource ActionBarButton}" />
-                                        <Button
-                                            x:Name="LiveButton"
-                                            Grid.Column="1"
-                                            controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Live}"
-                                            Click="OnReturnLive"
-                                            Content="{Binding [ReturnToLive], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                            Style="{StaticResource ActionBarLastButton}"
-                                            ToolTip="{Binding [ResumeLiveReadingsAndProcessesEndOrEscape], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
-                                    </Grid>
+                                                    IsHitTestVisible="False">
+                                                    <Path
+                                                        Data="{x:Static controls:ButtonIcon.CaptureFrame}"
+                                                        Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
+                                                        StrokeEndLineCap="Round"
+                                                        StrokeLineJoin="Round"
+                                                        StrokeStartLineCap="Round"
+                                                        StrokeThickness="1.5" />
+                                                    <Ellipse
+                                                        Width="3"
+                                                        Height="3"
+                                                        HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center"
+                                                        Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                                                </Grid>
+                                                <TextBlock Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" Text="{Binding [SnapshotMode], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                            </StackPanel>
+                                        </RadioButton>
+                                    </StackPanel>
                                 </Border>
-                            </Grid>
-                        </Border>
-                    </Canvas>
-                    <GridSplitter
-                        x:Name="ChartProcessDivider"
-                        Grid.Row="3"
-                        Height="8"
-                        Margin="-20,2,-20,2"
-                        HorizontalAlignment="Stretch"
-                        VerticalAlignment="Center"
-                        AutomationProperties.Name="{Binding [ResizeChartAndProcesses], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                        Cursor="SizeNS"
-                        Focusable="True"
-                        KeyboardIncrement="10"
-                        ResizeBehavior="PreviousAndNext"
-                        ResizeDirection="Rows"
-                        ShowsPreview="False"
-                        ToolTip="{Binding [ResizeChartAndProcesses], Source={x:Static resources:Strings.Text}, Mode=OneWay}">
-                        <GridSplitter.Template>
-                            <ControlTemplate TargetType="GridSplitter">
-                                <Grid Background="Transparent">
-                                    <Border
-                                        x:Name="DividerLine"
-                                        Height="1"
-                                        VerticalAlignment="Center"
-                                        Background="{DynamicResource Line}" />
-                                    <Border
-                                        x:Name="DividerGrip"
-                                        Width="32"
-                                        Height="3"
-                                        VerticalAlignment="Center"
-                                        Background="{DynamicResource Muted}"
-                                        CornerRadius="1.5" />
-                                </Grid>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="DividerGrip" Property="Background" Value="{DynamicResource Accent}" />
-                                    </Trigger>
-                                    <Trigger Property="IsKeyboardFocused" Value="True">
-                                        <Setter TargetName="DividerLine" Property="Background" Value="{DynamicResource Accent}" />
-                                        <Setter TargetName="DividerGrip" Property="Background" Value="{DynamicResource Accent}" />
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </GridSplitter.Template>
-                    </GridSplitter>
-                    <Grid Grid.Row="4">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
-                        <Border
-                            Margin="-20,0,-20,0"
-                            Padding="8,0,0,0"
-                            Background="{DynamicResource SectionHeaderSurface}"
-                            BorderBrush="{DynamicResource Line}"
-                            BorderThickness="0,0,0,1">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <StackPanel KeyboardNavigation.TabNavigation="Once" Orientation="Horizontal">
-                                    <RadioButton
-                                        x:Name="ProcessesTab"
-                                        Content="{Binding [ProcessesTab], Source={x:Static resources:Strings.Text}}"
-                                        GroupName="ActivityView"
-                                        IsChecked="True"
-                                        Style="{StaticResource ActivityTab}" />
-                                    <RadioButton
-                                        x:Name="ServicesTab"
-                                        Content="{Binding [Services], Source={x:Static resources:Strings.Text}}"
-                                        GroupName="ActivityView"
-                                        Style="{StaticResource ActivityTab}" />
-                                    <RadioButton
-                                        x:Name="UsageTab"
-                                        Content="{Binding [UsageTab], Source={x:Static resources:Strings.Text}}"
-                                        GroupName="ActivityView"
-                                        Style="{StaticResource ActivityTab}" />
-                                </StackPanel>
-                                <Button
-                                    x:Name="ActivityActionsToggle"
-                                    Grid.Column="1"
-                                    Margin="0,0,20,0"
-                                    Click="OnToggleActivityActions"
-                                    FontSize="12"
+                                <!--  Shown only when sampling fails; normal recording needs no status.  -->
+                                <TextBlock
+                                    x:Name="ErrorLabel"
+                                    Grid.Row="1"
+                                    Grid.Column="0"
+                                    Grid.ColumnSpan="3"
+                                    MaxWidth="190"
+                                    Margin="0,0,8,0"
+                                    VerticalAlignment="Center"
+                                    FontSize="11"
                                     Foreground="{DynamicResource Muted}"
-                                    Style="{StaticResource TitleActionButton}" />
+                                    TextAlignment="Right"
+                                    TextWrapping="Wrap"
+                                    Visibility="Collapsed" />
+                                <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock
+                                        x:Name="LiveCaption"
+                                        Margin="0,0,10,0"
+                                        VerticalAlignment="Center"
+                                        FontSize="15"
+                                        FontWeight="SemiBold"
+                                        Text="{Binding [SystemResources], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                        TextTrimming="CharacterEllipsis" />
+                                    <ComboBox x:Name="ChartTypeSelector" Width="150" Height="27" Margin="0,0,6,0"
+                                              VerticalAlignment="Center" SelectionChanged="OnChartTypeChanged" />
+                                </StackPanel>
                             </Grid>
                         </Border>
-                        <controls:ProcessesView x:Name="Processes" Grid.Row="1" />
-                        <controls:ServicesView
-                            x:Name="ServiceView"
-                            Grid.Row="1"
-                            Visibility="Collapsed" />
-                        <controls:UsageView
-                            x:Name="UsageView"
-                            Grid.Row="1"
-                            Visibility="Collapsed" />
+                        <controls:CpuGraph
+                            x:Name="OverallGraph"
+                            Grid.Row="2"
+                            AutomationProperties.Name="{Binding [CPUMemoryConfiguredDisksNetworkAndGPUOverlayHistoryClick], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                            Focusable="True"
+                            ShowGrid="True"
+                            SizeChanged="OnSnapshotChartSizeChanged" />
+                        <Canvas
+                            x:Name="SnapshotLayer"
+                            Grid.Row="2"
+                            ClipToBounds="True"
+                            Visibility="Collapsed">
+                            <Polygon
+                                x:Name="SnapshotPointer"
+                                Fill="{DynamicResource Raised}"
+                                IsHitTestVisible="False"
+                                Stroke="{DynamicResource Line}"
+                                StrokeThickness="1" />
+                            <Border
+                                x:Name="SnapshotPanel"
+                                Padding="12,9"
+                                AutomationProperties.Name="{Binding [SelectedChartSnapshot], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                Background="{DynamicResource Raised}"
+                                BorderBrush="{DynamicResource Line}"
+                                BorderThickness="1"
+                                CornerRadius="6">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <StackPanel Margin="0,0,0,6">
+                                        <Border
+                                            x:Name="CaptureBanner"
+                                            Margin="0,0,0,6"
+                                            Padding="6,3"
+                                            Background="{DynamicResource SectionHeaderSurface}"
+                                            BorderBrush="{DynamicResource Line}"
+                                            BorderThickness="1"
+                                            CornerRadius="4"
+                                            Visibility="Collapsed">
+                                            <DockPanel>
+                                                <Button
+                                                    x:Name="OpenReportButton"
+                                                    Padding="6,1"
+                                                    controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Folder}"
+                                                    Click="OnOpenCaptureReport"
+                                                    Content="{Binding [AutoCaptureOpenReport], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                                    DockPanel.Dock="Right"
+                                                    FontSize="11"
+                                                    Style="{StaticResource TitleActionButton}"
+                                                    ToolTipService.ShowOnDisabled="True" />
+                                                <Path
+                                                    x:Name="CaptureBannerMarker"
+                                                    Width="10"
+                                                    Height="8"
+                                                    Margin="0,0,6,0"
+                                                    VerticalAlignment="Center"
+                                                    Data="M 0,0 L 10,0 L 5,8 Z"
+                                                    Stretch="Fill" />
+                                                <TextBlock
+                                                    x:Name="CaptureBannerText"
+                                                    VerticalAlignment="Center"
+                                                    FontSize="11"
+                                                    TextTrimming="CharacterEllipsis" />
+                                            </DockPanel>
+                                        </Border>
+                                        <TextBlock
+                                            x:Name="SnapshotTitle"
+                                            FontSize="15"
+                                            FontWeight="SemiBold" />
+                                        <TextBlock
+                                            x:Name="SnapshotNote"
+                                            Margin="0,3,0,0"
+                                            FontSize="11"
+                                            Foreground="{DynamicResource Muted}"
+                                            TextWrapping="Wrap" />
+                                    </StackPanel>
+                                    <ScrollViewer
+                                        Grid.Row="1"
+                                        HorizontalScrollBarVisibility="Disabled"
+                                        VerticalScrollBarVisibility="Auto">
+                                        <UniformGrid x:Name="SnapshotReadings" Columns="3">
+                                            <UniformGrid.Resources>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="FontSize" Value="11" />
+                                                    <Setter Property="Foreground" Value="{DynamicResource Muted}" />
+                                                    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                                                </Style>
+                                                <Style TargetType="StackPanel">
+                                                    <Setter Property="Margin" Value="0,0,6,6" />
+                                                </Style>
+                                            </UniformGrid.Resources>
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding [CPU], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                                <TextBlock
+                                                    x:Name="SnapshotCpu"
+                                                    FontSize="22"
+                                                    FontWeight="SemiBold"
+                                                    Foreground="{DynamicResource CpuAccent}" />
+                                            </StackPanel>
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding [Memory], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                                <TextBlock
+                                                    x:Name="SnapshotMemory"
+                                                    FontSize="22"
+                                                    FontWeight="SemiBold"
+                                                    Foreground="{DynamicResource MemoryAccent}" />
+                                            </StackPanel>
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding [GPU], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                                <TextBlock
+                                                    x:Name="SnapshotGpu"
+                                                    FontSize="22"
+                                                    FontWeight="SemiBold"
+                                                    Foreground="{DynamicResource GpuAccent}" />
+                                            </StackPanel>
+                                            <StackPanel>
+                                                <TextBlock x:Name="SnapshotDiskName" />
+                                                <TextBlock
+                                                    x:Name="SnapshotDisk"
+                                                    FontSize="22"
+                                                    FontWeight="SemiBold"
+                                                    Foreground="{DynamicResource DiskAccent}" />
+                                            </StackPanel>
+                                            <StackPanel x:Name="SnapshotSecondaryDisk">
+                                                <TextBlock x:Name="SnapshotSecondaryDiskName" />
+                                                <TextBlock
+                                                    x:Name="SnapshotDisk2"
+                                                    FontSize="22"
+                                                    FontWeight="SemiBold"
+                                                    Foreground="{DynamicResource SecondaryDiskAccent}" />
+                                            </StackPanel>
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding [Network], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                                <TextBlock
+                                                    x:Name="SnapshotNetwork"
+                                                    FontSize="17"
+                                                    FontWeight="SemiBold"
+                                                    Foreground="{DynamicResource NetworkAccent}" />
+                                            </StackPanel>
+                                        </UniformGrid>
+                                    </ScrollViewer>
+                                    <Border
+                                        Grid.Row="2"
+                                        Padding="0,6,0,0"
+                                        BorderBrush="{DynamicResource Line}"
+                                        BorderThickness="0,1,0,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <Button
+                                                x:Name="SnapshotCopyButton"
+                                                controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Copy}"
+                                                Click="OnCopySnapshot"
+                                                Content="{Binding [CopySnapshot], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                                Style="{StaticResource ActionBarButton}" />
+                                            <Button
+                                                x:Name="LiveButton"
+                                                Grid.Column="1"
+                                                controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Live}"
+                                                Click="OnReturnLive"
+                                                Content="{Binding [ReturnToLive], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                                Style="{StaticResource ActionBarLastButton}"
+                                                ToolTip="{Binding [ResumeLiveReadingsAndProcessesEndOrEscape], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                        </Grid>
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </Canvas>
+                        <GridSplitter
+                            x:Name="ChartProcessDivider"
+                            Grid.Row="3"
+                            Height="8"
+                            Margin="-20,2,-20,2"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Center"
+                            AutomationProperties.Name="{Binding [ResizeChartAndProcesses], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                            Cursor="SizeNS"
+                            Focusable="True"
+                            KeyboardIncrement="10"
+                            ResizeBehavior="PreviousAndNext"
+                            ResizeDirection="Rows"
+                            ShowsPreview="False"
+                            ToolTip="{Binding [ResizeChartAndProcesses], Source={x:Static resources:Strings.Text}, Mode=OneWay}">
+                            <GridSplitter.Template>
+                                <ControlTemplate TargetType="GridSplitter">
+                                    <Grid Background="Transparent">
+                                        <Border
+                                            x:Name="DividerLine"
+                                            Height="1"
+                                            VerticalAlignment="Center"
+                                            Background="{DynamicResource Line}" />
+                                        <Border
+                                            x:Name="DividerGrip"
+                                            Width="32"
+                                            Height="3"
+                                            VerticalAlignment="Center"
+                                            Background="{DynamicResource Muted}"
+                                            CornerRadius="1.5" />
+                                    </Grid>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="DividerGrip" Property="Background" Value="{DynamicResource Accent}" />
+                                        </Trigger>
+                                        <Trigger Property="IsKeyboardFocused" Value="True">
+                                            <Setter TargetName="DividerLine" Property="Background" Value="{DynamicResource Accent}" />
+                                            <Setter TargetName="DividerGrip" Property="Background" Value="{DynamicResource Accent}" />
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </GridSplitter.Template>
+                        </GridSplitter>
+                        <Grid Grid.Row="4">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Border
+                                Margin="-20,0,-20,0"
+                                Padding="8,0,0,0"
+                                Background="{DynamicResource SectionHeaderSurface}"
+                                BorderBrush="{DynamicResource Line}"
+                                BorderThickness="0,0,0,1">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel KeyboardNavigation.TabNavigation="Once" Orientation="Horizontal">
+                                        <RadioButton
+                                            x:Name="ProcessesTab"
+                                            Content="{Binding [ProcessesTab], Source={x:Static resources:Strings.Text}}"
+                                            GroupName="ActivityView"
+                                            IsChecked="True"
+                                            Style="{StaticResource ActivityTab}" />
+                                        <RadioButton
+                                            x:Name="ServicesTab"
+                                            Content="{Binding [Services], Source={x:Static resources:Strings.Text}}"
+                                            GroupName="ActivityView"
+                                            Style="{StaticResource ActivityTab}" />
+                                        <RadioButton
+                                            x:Name="UsageTab"
+                                            Content="{Binding [UsageTab], Source={x:Static resources:Strings.Text}}"
+                                            GroupName="ActivityView"
+                                            Style="{StaticResource ActivityTab}" />
+                                    </StackPanel>
+                                    <Button
+                                        x:Name="ActivityActionsToggle"
+                                        Grid.Column="1"
+                                        Margin="0,0,20,0"
+                                        Click="OnToggleActivityActions"
+                                        FontSize="12"
+                                        Foreground="{DynamicResource Muted}"
+                                        Style="{StaticResource TitleActionButton}" />
+                                </Grid>
+                            </Border>
+                            <controls:ProcessesView x:Name="Processes" Grid.Row="1" />
+                            <controls:ServicesView
+                                x:Name="ServiceView"
+                                Grid.Row="1"
+                                Visibility="Collapsed" />
+                            <controls:UsageView
+                                x:Name="UsageView"
+                                Grid.Row="1"
+                                Visibility="Collapsed" />
+                        </Grid>
+                        <Border
+                            Grid.Row="5"
+                            Height="{Binding ActualHeight, ElementName=UpdateFooter}"
+                            Margin="0,10,0,0"
+                            Visibility="{Binding Visibility, ElementName=UpdateFooter}" />
                     </Grid>
                     <Border
                         x:Name="UpdateFooter"
-                        Grid.Row="5"
-                        Margin="0,10,0,0"
+                        Margin="20,0,20,8"
+                        VerticalAlignment="Bottom"
                         Padding="12,8"
                         Background="{DynamicResource SectionHeaderSurface}"
                         BorderBrush="{DynamicResource Line}"
