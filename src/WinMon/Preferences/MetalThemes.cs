@@ -18,7 +18,7 @@ internal static class MetalThemes
 
     internal static Finish For(string name) => name switch
     {
-        "BrushedSteel" => new("#B8C0C6", "#D5DADF", "#C5CDD2", "#B6C0C7", "#142336",
+        "BrushedSteel" => new("#B8C0C6", "#D5DADF", "#C5CDD2", "#B6C0C7", "#B8C1C6",
             "#E4E8EB", "#315D85", "#FFFFFF", "#52708B", "#182B3A", "#455969",
             "#8999A4", "#A0AFBA", "#ECF1F3", true),
         "Copper" => new("#574033", "#71503E", "#A67556", "#77513C", "#171D24",
@@ -27,7 +27,7 @@ internal static class MetalThemes
         "Gunmetal" => new("#1D252C", "#2A343D", "#3A454D", "#303B43", "#151D26",
             "#1B252E", "#49687C", "#FFFFFF", "#465B68", "#ECF3F5", "#B6C5CB",
             "#53626B", "#667985", "#849BA6", false),
-        "BrushedNickel" => new("#D0D2D1", "#EAEBE9", "#CFD1D0", "#DADBD9", "#172A40",
+        "BrushedNickel" => new("#D0D2D1", "#EAEBE9", "#CFD1D0", "#DADBD9", "#C8C9C7",
             "#F2F2EF", "#456B88", "#FFFFFF", "#6B8293", "#202B32", "#50606A",
             "#ABB2B5", "#B4BDC1", "#FFFFFF", true),
         _ => throw new ArgumentOutOfRangeException(nameof(name), name, "Unknown metal finish")
@@ -62,10 +62,17 @@ internal static class MetalThemes
 
     /// <summary>Small absolute tiles keep the grain the same size in compact and full views.</summary>
     internal static DrawingBrush PanelBrush(Finish finish)
+        => TiledGrainBrush(finish.Surface, finish.Light);
+
+    /// <summary>A low-contrast matte alloy plot for the two light metal finishes.</summary>
+    internal static DrawingBrush PlotBrush(Finish finish)
+        => TiledGrainBrush(finish.Plot, finish.Light);
+
+    private static DrawingBrush TiledGrainBrush(string colorHex, bool light)
     {
         const double tile = 16;
-        var color = (Color)ColorConverter.ConvertFromString(finish.Surface);
-        var drawing = Grain(new Rect(0, 0, tile, tile), new SolidColorBrush(color), finish.Light, tile, tile);
+        var color = (Color)ColorConverter.ConvertFromString(colorHex);
+        var drawing = Grain(new Rect(0, 0, tile, tile), new SolidColorBrush(color), light, tile, tile);
         var brush = new DrawingBrush(drawing)
         {
             Viewbox = new Rect(0, 0, tile, tile),

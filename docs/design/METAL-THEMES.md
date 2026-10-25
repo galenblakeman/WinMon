@@ -10,12 +10,12 @@ Offer alternate material finishes without moving controls or changing monitoring
 
 | Theme | Surface | Detail |
 | --- | --- | --- |
-| Brushed steel | Cool medium silver | Satin chrome headers, dark chart inset |
+| Brushed steel | Cool medium silver | Satin chrome headers, matte alloy chart plot |
 | Copper | Warm bronze | Copper headers, charcoal plot and table |
 | Gunmetal | Dark graphite | Smoked titanium headers, restrained highlights |
-| Brushed nickel | Pale cool silver | Soft satin headers, deep slate plot |
+| Brushed nickel | Pale cool silver | Soft satin headers, pale nickel chart plot |
 
-The satin effect combines a broad reflection with fine horizontal grain in frozen drawing brushes on the title and section headers. An absolute 16-DIP grain tile covers the full and compact window backgrounds, so its scale does not change with the window size. Charts and controls keep their solid surfaces for legibility. Native Windows caption color uses the reflection's middle color.
+The satin effect combines a broad reflection with fine horizontal grain in frozen drawing brushes on the title and section headers. An absolute 16-DIP grain tile covers the full and compact window backgrounds, so its scale does not change with the window size. Brushed steel and brushed nickel use a lighter, subtly grained matte alloy chart plot; the other plots and controls keep their solid surfaces. Native Windows caption color uses the reflection's middle color.
 
 ## Landed
 
@@ -26,6 +26,7 @@ The satin effect combines a broad reflection with fine horizontal grain in froze
 - Preference tests check theme persistence without changing the selected gauge or chart palette.
 - A later texture refinement added deterministic hairline grain to the metal chrome and resource backgrounds without adding UI elements or work to the sampling loop.
 - The title-bar background extends beneath the Windows caption-button area, while the WPF title actions still stop at the measured button bounds. The underlay does not receive input; Windows keeps the native button visuals and behavior.
+- The selected light alloy chart treatment applies only to brushed steel and brushed nickel. Chart traces, grid geometry, palettes, and interaction stay as before.
 
 ## Departures from the mockups
 
