@@ -1585,4 +1585,6 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
 <data name="ThemeCrystal" xml:space="preserve"><value>Kryształ</value></data>
 <data name="ThemeSlate" xml:space="preserve"><value>Łupek</value></data>
 <data name="ThemePrism" xml:space="preserve"><value>Pryzmat</value></data>
+<data name="ThemeCandy" xml:space="preserve"><value>Cukierek</value></data>
+<data name="ThemeWildberry" xml:space="preserve"><value>Jeżyna</value></data>
 </root>

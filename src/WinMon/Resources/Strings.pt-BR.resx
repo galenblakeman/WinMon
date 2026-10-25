@@ -1585,4 +1585,6 @@ O trabalho não salvo pode ser perdido. Todos os processos listados abaixo serã
 <data name="ThemeCrystal" xml:space="preserve"><value>Cristal</value></data>
 <data name="ThemeSlate" xml:space="preserve"><value>Ardósia</value></data>
 <data name="ThemePrism" xml:space="preserve"><value>Prisma</value></data>
+<data name="ThemeCandy" xml:space="preserve"><value>Doce</value></data>
+<data name="ThemeWildberry" xml:space="preserve"><value>Amora</value></data>
 </root>

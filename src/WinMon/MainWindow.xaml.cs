@@ -769,6 +769,9 @@ public partial class MainWindow
             app.Resources["ProcessPinAccent"] = SystemColors.WindowTextBrush;
             app.Resources["SnapshotAccentText"] = SystemColors.HighlightTextBrush;
             app.Resources["Text"] = SystemColors.WindowTextBrush;
+            app.Resources["TitleText"] = SystemColors.WindowTextBrush;
+            app.Resources["TitleMuted"] = SystemColors.WindowTextBrush;
+            app.Resources["TitleStatus"] = SystemColors.WindowTextBrush;
             app.Resources["Muted"] = SystemColors.WindowTextBrush;
             app.Resources["Line"] = SystemColors.WindowTextBrush;
             // Resource colors are all WindowText here, so a gauge's empty part needs a different system color.
@@ -811,6 +814,8 @@ public partial class MainWindow
             SetBrush("SegmentSelectedSurface", finish?.SegmentSelected ?? (light ? "#1469B5" : "#3D4855"));
             SetBrush("SnapshotAccentText", "#07171B");
             SetBrush("Text", finish?.Text ?? (light ? "#20334A" : "#EDF2F6"));
+            SetBrush("TitleText", finish?.TitleText ?? finish?.Text ?? (light ? "#20334A" : "#EDF2F6"));
+            SetBrush("TitleMuted", finish?.TitleText ?? finish?.Muted ?? (light ? "#465D78" : "#B3BDC8"));
             SetBrush("Muted", finish?.Muted ?? (light ? "#465D78" : "#B3BDC8"));
             SetBrush("Line", finish?.Line ?? (light ? "#CCD9E5" : "#35404B"));
             SetBrush("GaugeTrack", finish?.GaugeTrack ?? (light ? "#CCD9E5" : "#35404B"));
@@ -822,6 +827,7 @@ public partial class MainWindow
             SetBrush("Accent", uiAccent);
             SetBrush("SnapshotAccent", uiAccent);
             SetBrush("ProcessPinAccent", uiAccent);
+            SetBrush("TitleStatus", finish?.TitleText ?? uiAccent);
         }
 
         foreach (Window window in app.Windows) WindowTheme.Apply(window);

@@ -583,6 +583,7 @@ public static partial class Strings
     public static string TheClipboardIsUnavailableTryCopyAgain => ResourceManager.GetString(nameof(TheClipboardIsUnavailableTryCopyAgain), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string TheEmbeddedTrayIconIsUnavailable => ResourceManager.GetString(nameof(TheEmbeddedTrayIconIsUnavailable), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string Theme => ResourceManager.GetString(nameof(Theme), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ThemeCandy => ResourceManager.GetString(nameof(ThemeCandy), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ThemeCopper => ResourceManager.GetString(nameof(ThemeCopper), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ThemeCrystal => ResourceManager.GetString(nameof(ThemeCrystal), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ThemeDark => ResourceManager.GetString(nameof(ThemeDark), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -596,6 +597,7 @@ public static partial class Strings
     public static string ThemeSlate => ResourceManager.GetString(nameof(ThemeSlate), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ThemeSmokedSapphire => ResourceManager.GetString(nameof(ThemeSmokedSapphire), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ThemeSystem => ResourceManager.GetString(nameof(ThemeSystem), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ThemeWildberry => ResourceManager.GetString(nameof(ThemeWildberry), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string TheOriginalProcessHasExitedAndItsPIDHasBeen => ResourceManager.GetString(nameof(TheOriginalProcessHasExitedAndItsPIDHasBeen), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string TheProcessCouldNotBeEnded => ResourceManager.GetString(nameof(TheProcessCouldNotBeEnded), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string TheWindowsKeyIsReservedForWindowsShortcuts => ResourceManager.GetString(nameof(TheWindowsKeyIsReservedForWindowsShortcuts), Culture ?? CultureInfo.CurrentUICulture)!;

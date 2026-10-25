@@ -174,6 +174,7 @@ public sealed class PreferenceStore
             "light" => "Light",
             "system" => "System",
             "brushedsteel" or "brushednickel" => "Porcelain",
+            "candy" => "Candy",
             "copper" => "Copper",
             "gunmetal" => "Gunmetal",
             "porcelain" => "Porcelain",
@@ -185,6 +186,7 @@ public sealed class PreferenceStore
             "crystal" => "Crystal",
             "slate" => "Slate",
             "prism" => "Prism",
+            "wildberry" => "Wildberry",
             _ => "Dark"
         };
     }

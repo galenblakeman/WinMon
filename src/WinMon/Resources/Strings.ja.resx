@@ -1585,4 +1585,6 @@ Windows の正常性状態: {2}</value>
 <data name="ThemeCrystal" xml:space="preserve"><value>クリスタル</value></data>
 <data name="ThemeSlate" xml:space="preserve"><value>スレート</value></data>
 <data name="ThemePrism" xml:space="preserve"><value>プリズム</value></data>
+<data name="ThemeCandy" xml:space="preserve"><value>キャンディ</value></data>
+<data name="ThemeWildberry" xml:space="preserve"><value>ワイルドベリー</value></data>
 </root>

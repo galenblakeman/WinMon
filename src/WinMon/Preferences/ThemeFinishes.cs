@@ -14,16 +14,20 @@ internal static class ThemeFinishes
         string Text, string Muted, string Line, string GaugeTrack, string Highlight,
         bool Light, bool Brushed = true, string? UiAccent = null,
         BackdropKind Backdrop = BackdropKind.None, byte PanelOpacity = 255, byte ChromeOpacity = 255,
-        byte HeaderOpacity = 255, bool GlassSheen = false);
+        byte HeaderOpacity = 255, bool GlassSheen = false, string? TitleText = null);
 
     internal static readonly string[] Names =
-        ["Copper", "Gunmetal", "Porcelain", "MidnightInk", "EvergreenInstrument",
-            "FrostedPorcelain", "SmokedSapphire", "Crystal", "Slate", "Prism"];
+        ["Candy", "Copper", "Crystal", "EvergreenInstrument", "FrostedPorcelain", "Gunmetal",
+            "MidnightInk", "Porcelain", "Prism", "SmokedSapphire", "Slate", "Wildberry"];
 
     internal static bool IsFinish(string? name) => Names.Contains(name);
 
     internal static Finish For(string name) => name switch
     {
+        "Candy" => new("#FFF8F1", "#FFFFFF", "#D31D6A", "#F7A6C7", "#FFFCF9",
+            "#FFFFFF", "#C71D68", "#FFFFFF", "#A9EFE3", "#2E2134", "#655369",
+            "#D3C6CE", "#D9D2D2", "#FF78AA", true, false, "#BF155D",
+            TitleText: "#FFFFFF"),
         "Copper" => new("#574033", "#71503E", "#A67556", "#77513C", "#171D24",
             "#2E2927", "#B77A4D", "#15191E", "#96664B", "#FFF1E6", "#E0BEAA",
             "#956E59", "#A47D68", "#EFC398", false),
@@ -57,6 +61,9 @@ internal static class ThemeFinishes
             "#151F32", "#455A91", "#FFFFFF", "#43527A", "#F1F2FF", "#C0C3E0",
             "#5467A0", "#636F93", "#8C76D7", false, false, "#8DCAFF",
             BackdropKind.Mica, 238, 216, 224, true),
+        "Wildberry" => new("#211629", "#38203F", "#492447", "#4A2549", "#1D1424",
+            "#25162C", "#753259", "#FFF3F9", "#5C2B4F", "#FFF1FA", "#D0AFC8",
+            "#69405F", "#796878", "#BA5A8A", false, false, "#E36B9D"),
         _ => throw new ArgumentOutOfRangeException(nameof(name), name, "Unknown appearance finish")
     };
 

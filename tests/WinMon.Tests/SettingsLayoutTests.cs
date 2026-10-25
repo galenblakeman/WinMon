@@ -78,6 +78,35 @@ public sealed class SettingsLayoutTests
     }
 
     [Test]
+    public void ThemeSelector_ListsBuiltInModesBeforeAlphabeticalLocalizedFinishes()
+    {
+        var window = Settings(new MonitorPreferences());
+        try
+        {
+            var choices = window.ThemeSelector.Items.Cast<object>().Select(choice =>
+            {
+                var type = choice.GetType();
+                return (Name: (string)type.GetProperty("Name")!.GetValue(choice)!,
+                    Label: (string)type.GetProperty("Label")!.GetValue(choice)!);
+            }).ToArray();
+            Assert.Multiple(() =>
+            {
+                Assert.That(choices.Take(3).Select(choice => choice.Name),
+                    Is.EqualTo(new[] { "System", "Light", "Dark" }));
+                Assert.That(choices.Skip(3).Select(choice => choice.Name),
+                    Is.EquivalentTo(ThemeFinishes.Names));
+                Assert.That(choices.Skip(3).Select(choice => choice.Label),
+                    Is.EqualTo(choices.Skip(3).Select(choice => choice.Label)
+                        .OrderBy(label => label, StringComparer.CurrentCultureIgnoreCase)));
+            });
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [Test]
     public void GaugeSelector_OpensOnTheSavedStyleAndPreviewsEachChoice()
     {
         var window = Settings(new MonitorPreferences { GaugeStyle = GaugeStyle.SegmentedArc });
@@ -155,6 +184,8 @@ public sealed class SettingsLayoutTests
     [TestCase("Crystal", "#121B27", "#A5D0F2")]
     [TestCase("Slate", "#111A23", "#B6CAD7")]
     [TestCase("Prism", "#101624", "#8DCAFF")]
+    [TestCase("Candy", "#FFFCF9", "#BF155D")]
+    [TestCase("Wildberry", "#1D1424", "#E36B9D")]
     public void NewThemePreview_UsesFlatSurfaceAndIndependentUiAccent(string theme, string plot, string accent)
     {
         var window = Settings(new MonitorPreferences { Theme = theme, ChartPalette = "Ocean" });
@@ -170,7 +201,7 @@ public sealed class SettingsLayoutTests
                 Assert.That(((SolidColorBrush)preview.ChartPreview.TryFindResource("Accent")!).Color,
                     Is.EqualTo((Color)ColorConverter.ConvertFromString(accent)));
                 Assert.That(((SolidColorBrush)preview.ChartPreview.TryFindResource("MemoryAccent")!).Color,
-                    Is.EqualTo((Color)ColorConverter.ConvertFromString(theme is "Porcelain" or "FrostedPorcelain"
+                    Is.EqualTo((Color)ColorConverter.ConvertFromString(theme is "Porcelain" or "FrostedPorcelain" or "Candy"
                         ? "#6745A5" : "#B0A0FF")));
             });
         }

@@ -1585,4 +1585,6 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
 <data name="ThemeCrystal" xml:space="preserve"><value>Cristal</value></data>
 <data name="ThemeSlate" xml:space="preserve"><value>Ardoise</value></data>
 <data name="ThemePrism" xml:space="preserve"><value>Prisme</value></data>
+<data name="ThemeCandy" xml:space="preserve"><value>Bonbon</value></data>
+<data name="ThemeWildberry" xml:space="preserve"><value>Mûre</value></data>
 </root>

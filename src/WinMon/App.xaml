@@ -99,6 +99,9 @@
         <SolidColorBrush x:Key="SelectedText" Color="#EDF2F6" />
         <SolidColorBrush x:Key="SegmentSelectedSurface" Color="#3D4855" />
         <SolidColorBrush x:Key="Text" Color="#EDF2F6" />
+        <SolidColorBrush x:Key="TitleText" Color="#EDF2F6" />
+        <SolidColorBrush x:Key="TitleMuted" Color="#B3BDC8" />
+        <SolidColorBrush x:Key="TitleStatus" Color="#73FF35" />
         <SolidColorBrush x:Key="Muted" Color="#B3BDC8" />
         <SolidColorBrush x:Key="Line" Color="#35404B" />
         <SolidColorBrush x:Key="GaugeTrack" Color="#35404B" />

@@ -1585,4 +1585,6 @@ Windows 健康状态：{2}</value>
 <data name="ThemeCrystal" xml:space="preserve"><value>水晶</value></data>
 <data name="ThemeSlate" xml:space="preserve"><value>板岩</value></data>
 <data name="ThemePrism" xml:space="preserve"><value>棱镜</value></data>
+<data name="ThemeCandy" xml:space="preserve"><value>糖果</value></data>
+<data name="ThemeWildberry" xml:space="preserve"><value>野莓</value></data>
 </root>

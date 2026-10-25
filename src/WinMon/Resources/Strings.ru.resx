@@ -1585,4 +1585,6 @@ GPU {11} · {12}
 <data name="ThemeCrystal" xml:space="preserve"><value>Кристалл</value></data>
 <data name="ThemeSlate" xml:space="preserve"><value>Сланец</value></data>
 <data name="ThemePrism" xml:space="preserve"><value>Призма</value></data>
+<data name="ThemeCandy" xml:space="preserve"><value>Конфета</value></data>
+<data name="ThemeWildberry" xml:space="preserve"><value>Ежевика</value></data>
 </root>

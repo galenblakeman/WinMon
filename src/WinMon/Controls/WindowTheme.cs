@@ -49,7 +49,8 @@ internal static class WindowTheme
         if (handle == IntPtr.Zero) return;
         var captionKey = window is MainWindow ? "TitleBarSurface" : "Surface";
         var caption = SystemParameters.HighContrast ? -1 : ColorValue(window, captionKey);
-        var text = SystemParameters.HighContrast ? -1 : ColorValue(window, "Text");
+        var text = SystemParameters.HighContrast ? -1 : ColorValue(window,
+            window is MainWindow ? "TitleText" : "Text");
         var surface = ((SolidColorBrush)window.FindResource("Surface")).Color;
         var dark = !SystemParameters.HighContrast && surface.R * 299 + surface.G * 587 + surface.B * 114 < 128000
             ? 1

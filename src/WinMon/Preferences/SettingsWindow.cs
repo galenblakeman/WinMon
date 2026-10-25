@@ -155,22 +155,29 @@ public sealed class SettingsWindow : Window
         SetResourceReference(ForegroundProperty, "Text");
 
         _themeSelector = CreateSelector([], "");
-        _themeSelector.ItemsSource = new[]
+        ThemeChoice[] standardThemes =
         {
-            new ThemeChoice("Dark", Strings.ThemeDark),
-            new ThemeChoice("Light", Strings.ThemeLight),
             new ThemeChoice("System", Strings.ThemeSystem),
+            new ThemeChoice("Light", Strings.ThemeLight),
+            new ThemeChoice("Dark", Strings.ThemeDark)
+        };
+        ThemeChoice[] customThemes =
+        {
+            new ThemeChoice("Candy", Strings.ThemeCandy),
             new ThemeChoice("Copper", Strings.ThemeCopper),
-            new ThemeChoice("Gunmetal", Strings.ThemeGunmetal),
-            new ThemeChoice("Porcelain", Strings.ThemePorcelain),
-            new ThemeChoice("MidnightInk", Strings.ThemeMidnightInk),
+            new ThemeChoice("Crystal", Strings.ThemeCrystal),
             new ThemeChoice("EvergreenInstrument", Strings.ThemeEvergreenInstrument),
             new ThemeChoice("FrostedPorcelain", Strings.ThemeFrostedPorcelain),
+            new ThemeChoice("Gunmetal", Strings.ThemeGunmetal),
+            new ThemeChoice("MidnightInk", Strings.ThemeMidnightInk),
+            new ThemeChoice("Porcelain", Strings.ThemePorcelain),
+            new ThemeChoice("Prism", Strings.ThemePrism),
             new ThemeChoice("SmokedSapphire", Strings.ThemeSmokedSapphire),
-            new ThemeChoice("Crystal", Strings.ThemeCrystal),
             new ThemeChoice("Slate", Strings.ThemeSlate),
-            new ThemeChoice("Prism", Strings.ThemePrism)
+            new ThemeChoice("Wildberry", Strings.ThemeWildberry)
         };
+        _themeSelector.ItemsSource = standardThemes.Concat(customThemes
+            .OrderBy(choice => choice.Label, StringComparer.CurrentCultureIgnoreCase)).ToArray();
         _themeSelector.DisplayMemberPath = nameof(ThemeChoice.Label);
         _themeSelector.SelectedValuePath = nameof(ThemeChoice.Name);
         _themeSelector.SelectedValue = preferences.Theme;

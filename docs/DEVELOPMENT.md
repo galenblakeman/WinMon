@@ -88,6 +88,8 @@ The [structure note](design/STRUCTURE.md) records why the code is laid out this 
 | Smoke, example and profile modes | `Diagnostics/WindowDiagnostics*.cs`, dispatched from `App.xaml.cs` |
 | Window members that diagnostics and the benchmark use | `MainWindow.Internal.cs` |
 
+Appearance finishes live in `Preferences/ThemeFinishes.cs`; Settings lists the built-in modes first and sorts custom labels in the current language. `MainWindow.ApplyTheme` keeps `TitleText` separate from body `Text` so bright title bars can use white caption text without changing data-surface text. Chart palette brushes remain independent of the selected finish.
+
 Rules for new code:
 
 - **`Monitoring` is a leaf.** It never references WPF, Windows Forms, `WinMon.Controls` or `WinMon.Preferences`. `MonitoringLayerTests` checks the compiled IL.

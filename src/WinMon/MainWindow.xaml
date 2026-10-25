@@ -35,6 +35,11 @@
                 Margin="0,0,138,0"
                 Padding="12,0,0,0"
                 Background="{DynamicResource TitleBarSurface}">
+                <Border.Resources>
+                    <DataTemplate x:Key="TitleBarButtonText">
+                        <TextBlock Text="{Binding}" Foreground="{DynamicResource TitleText}" />
+                    </DataTemplate>
+                </Border.Resources>
                 <DockPanel LastChildFill="True">
                     <Button
                         x:Name="PinButton"
@@ -42,7 +47,9 @@
                         AutomationProperties.Name="{Binding [KeepOnTopOff], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                         Click="OnPin"
                         Content="{Binding [AlwaysOnTop], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                        ContentTemplate="{StaticResource TitleBarButtonText}"
                         DockPanel.Dock="Right"
+                        Foreground="{DynamicResource TitleText}"
                         Style="{StaticResource AlwaysOnTopButton}"
                         ToolTip="{Binding [KeepThisWindowOnTopOfOtherWindows], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                         WindowChrome.IsHitTestVisibleInChrome="True" />
@@ -50,7 +57,9 @@
                         x:Name="CompactViewButton"
                         controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Compact}"
                         Click="OnToggleCompactView"
+                        ContentTemplate="{StaticResource TitleBarButtonText}"
                         DockPanel.Dock="Right"
+                        Foreground="{DynamicResource TitleText}"
                         Style="{StaticResource TitleActionButton}"
                         WindowChrome.IsHitTestVisibleInChrome="True" />
                     <Image
@@ -67,18 +76,21 @@
                         DockPanel.Dock="Left"
                         FontSize="14"
                         FontWeight="SemiBold"
+                        Foreground="{DynamicResource TitleText}"
                         TextTrimming="CharacterEllipsis"><Run Text="{Binding [WinMon], Source={x:Static resources:Strings.Text}, Mode=OneWay}" /><Run
                             x:Name="VersionRun"
                             FontSize="12"
                             FontWeight="Normal"
-                            Foreground="{DynamicResource Muted}" /></TextBlock>
+                            Foreground="{DynamicResource TitleMuted}" /></TextBlock>
                     <Button
                         x:Name="InfoButton"
                         controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Info}"
                         AutomationProperties.Name="{Binding [AboutWinMonAndHardwareInformation], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                         Click="OnHardwareInfo"
                         Content="{Binding [Info], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                        ContentTemplate="{StaticResource TitleBarButtonText}"
                         DockPanel.Dock="Left"
+                        Foreground="{DynamicResource TitleText}"
                         Style="{StaticResource TitleActionButton}"
                         ToolTip="{Binding [VersionPlusCPUMemoryGraphicsVolumesAndNetworkHardware], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                         WindowChrome.IsHitTestVisibleInChrome="True" />
@@ -88,7 +100,7 @@
                         VerticalAlignment="Center"
                         DockPanel.Dock="Left"
                         FontSize="11"
-                        Foreground="{DynamicResource SnapshotAccent}"
+                        Foreground="{DynamicResource TitleStatus}"
                         Text="{Binding [LiveMode], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                         Visibility="Collapsed" />
                     <Button
@@ -97,7 +109,9 @@
                         AutomationProperties.Name="{Binding [WinMonSettings], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                         Click="OnSettings"
                         Content="{Binding [Settings], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                        ContentTemplate="{StaticResource TitleBarButtonText}"
                         DockPanel.Dock="Left"
+                        Foreground="{DynamicResource TitleText}"
                         Style="{StaticResource TitleActionButton}"
                         ToolTip="{Binding [WinMonSettings], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                         WindowChrome.IsHitTestVisibleInChrome="True" />

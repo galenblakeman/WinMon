@@ -1585,4 +1585,6 @@ Se puede perder el trabajo sin guardar. Se finalizarán todos los procesos indic
 <data name="ThemeCrystal" xml:space="preserve"><value>Cristal</value></data>
 <data name="ThemeSlate" xml:space="preserve"><value>Pizarra</value></data>
 <data name="ThemePrism" xml:space="preserve"><value>Prisma</value></data>
+<data name="ThemeCandy" xml:space="preserve"><value>Dulce</value></data>
+<data name="ThemeWildberry" xml:space="preserve"><value>Zarzamora</value></data>
 </root>
