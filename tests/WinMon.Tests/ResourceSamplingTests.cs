@@ -77,10 +77,13 @@ public sealed class ResourceSamplingTests
         var totals = WindowsResourceSampler.NetworkTotals(start, current);
         var adapter = WindowsResourceSampler.NetworkTotals(totals.Start, current with { Id = "b" });
         var regression = WindowsResourceSampler.NetworkTotals(start, current with { Received = 50 });
+        var speed = WindowsResourceSampler.NetworkTotals(totals.Start, current with { Speed = 2000 });
         Assert.Multiple(() =>
         {
             Assert.That(totals.Received, Is.EqualTo(200));
             Assert.That(totals.Sent, Is.EqualTo(300));
+            Assert.That(speed.Received, Is.EqualTo(200), "A Wi-Fi link-rate change is the same adapter.");
+            Assert.That(speed.Start, Is.SameAs(start));
             Assert.That(adapter.Received, Is.Zero);
             Assert.That(adapter.Sent, Is.Zero);
             Assert.That(regression.Received, Is.Zero);

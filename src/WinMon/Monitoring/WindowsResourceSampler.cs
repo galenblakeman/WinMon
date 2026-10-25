@@ -105,7 +105,7 @@ internal sealed class WindowsResourceSampler : IDisposable
         _primaryDisk.Reset();
         _secondaryDisk.Reset();
         _previousNetwork = null;
-        _networkStart = null;
+        // A gap invalidates rates, not totals: the adapter's counters keep counting through it.
     }
 
     // Each volume owns its query and baseline so a missing drive cannot invalidate the other.
@@ -287,7 +287,8 @@ internal sealed class WindowsResourceSampler : IDisposable
     internal static (ulong? Received, ulong? Sent, NetworkObservation Start) NetworkTotals(
         NetworkObservation? start, NetworkObservation current)
     {
-        if (start is null || start.Id != current.Id || start.Speed != current.Speed ||
+        // Unlike a rate, a total survives a link-speed change, which Wi-Fi makes often.
+        if (start is null || start.Id != current.Id ||
             start.Received < 0 || start.Sent < 0 ||
             current.Received < start.Received || current.Sent < start.Sent)
             start = current;
