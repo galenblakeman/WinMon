@@ -79,6 +79,8 @@ public partial class MainWindow
     private void RecordCapture(CaptureFired fired, AutoCapturePreferences settings)
     {
         var history = Session.History.Samples;
+        // Refreshes prune too, but none run while the window is hidden, and each marker holds two full samples.
+        PruneCaptureMarkers(history);
         var marker = new CaptureMarker(fired, Guid.NewGuid(), CaptureReportText.Rule(fired));
         _captureMarkers.Add(marker);
         var snapshot = CaptureReportText.Snapshot(fired, history);
@@ -200,6 +202,14 @@ public partial class MainWindow
         else ShowUpdateStatus(text, true);
     }
 
+    /// <summary>Drop captures whose firing sample left history; returns the oldest moment still in it.</summary>
+    private double PruneCaptureMarkers(IReadOnlyList<MonitorSample> samples)
+    {
+        var oldest = samples.Count == 0 ? double.MaxValue : CpuGraph.Moment(samples[0]);
+        _captureMarkers.RemoveAll(m => m.FiredKey.Moment < oldest);
+        return oldest;
+    }
+
     /// <summary>Drop captures whose firing sample left history, then update the markers, button and card.</summary>
     private void RefreshCaptures(IReadOnlyList<MonitorSample> samples)
     {
@@ -213,8 +223,7 @@ public partial class MainWindow
             return;
         }
 
-        var oldest = samples.Count == 0 ? double.MaxValue : CpuGraph.Moment(samples[0]);
-        _captureMarkers.RemoveAll(m => m.FiredKey.Moment < oldest);
+        var oldest = PruneCaptureMarkers(samples);
         var selected = SelectedCapture();
         var markers = new ChartMarker[_captureMarkers.Count];
         for (var i = 0; i < markers.Length; i++)
