@@ -345,7 +345,8 @@ public sealed class CpuGraph : FrameworkElement
         ResourceSample? previousSource = null;
         foreach (var sample in _samples)
         {
-            if (Moment(sample) < _end - _seconds) continue;
+            // A sample past the newest one, from out-of-order history, would give a negative cell width.
+            if (Moment(sample) is var moment && (moment < _end - _seconds || moment > _end)) continue;
             var value = metric == 3
                 ? NetworkBitsPerSecond(sample.Resources) * 100 / _networkScale
                 : MetricValue(sample, metric);
