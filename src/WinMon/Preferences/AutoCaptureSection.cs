@@ -121,6 +121,8 @@ internal sealed class AutoCaptureSection : StackPanel
         AutomationProperties.SetLabeledBy(_folder, folderLabel);
         var change = ActionButton(Strings.AutoCaptureChangeFolder, ChooseFolder);
         var open = ActionButton(Strings.AutoCaptureOpenFolder, OpenFolder);
+        ButtonIcon.SetData(change, ButtonIcon.Folder);
+        ButtonIcon.SetData(open, ButtonIcon.Folder);
         var folder = new DockPanel { LastChildFill = true };
         DockPanel.SetDock(open, Dock.Right);
         DockPanel.SetDock(change, Dock.Right);

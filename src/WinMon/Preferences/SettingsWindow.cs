@@ -670,6 +670,7 @@ public sealed class SettingsWindow : Window
             Content = Strings.Default, MinWidth = 70, Margin = new Thickness(12, 4, 0, 0),
             VerticalAlignment = VerticalAlignment.Top
         };
+        ButtonIcon.SetData(resetButton, ButtonIcon.Live);
         resetButton.SetResourceReference(BackgroundProperty, "Raised");
         resetButton.SetResourceReference(ForegroundProperty, "Text");
         AutomationProperties.SetName(resetButton, Strings.RestoreTheDefaultShortcut);
@@ -753,6 +754,7 @@ public sealed class SettingsWindow : Window
         {
             var button = new Button
                 { Content = Strings.CheckForUpdates, MinWidth = 130, Margin = new Thickness(0, 0, 12, 0) };
+            ButtonIcon.SetData(button, ButtonIcon.Live);
             button.SetResourceReference(BackgroundProperty, "Raised");
             button.SetResourceReference(ForegroundProperty, "Text");
             button.Click += async (_, _) =>

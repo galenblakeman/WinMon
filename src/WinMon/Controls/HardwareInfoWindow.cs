@@ -51,6 +51,9 @@ internal sealed class HardwareInfoWindow : Window
         var footer = new DockPanel { Margin = new Thickness(0, 16, 0, 0) };
         var close = new Button
             { Content = Strings.Close, IsCancel = true, MinWidth = 90, Margin = new Thickness(8, 0, 0, 0) };
+        ButtonIcon.SetData(close, ButtonIcon.Cancel);
+        ButtonIcon.SetData(_refresh, ButtonIcon.Live);
+        ButtonIcon.SetData(_copy, ButtonIcon.Copy);
         close.Click += (_, _) => Close();
         DockPanel.SetDock(close, Dock.Right);
         footer.Children.Add(close);

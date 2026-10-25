@@ -27,4 +27,4 @@ Let a normal user save WinMon's existing observations for a spreadsheet or analy
 
 The concept showed “Current session” as a time choice; the implementation says “All retained history,” because the in-memory history can be shorter than the whole session. The concept's time choice is hidden for Usage totals. The button label is **Export**, as requested.
 
-The Save CSV button uses the selected surface as its fill. Slate's pale accent made an enabled button look disabled; the darker selected surface keeps the action distinct while the text color is chosen for contrast.
+Save CSV and Cancel use the standard button appearance and vector icon treatment. This replaces the earlier accent and Slate-specific Save CSV fills, which could resemble a disabled button.

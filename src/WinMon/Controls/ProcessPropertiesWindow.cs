@@ -46,6 +46,7 @@ internal sealed class ProcessPropertiesWindow : Window
             Content = Strings.Close, IsCancel = true, IsDefault = true, MinWidth = 90,
             Margin = new Thickness(8, 0, 0, 0)
         };
+        ButtonIcon.SetData(close, ButtonIcon.Cancel);
         close.Click += (_, _) => Close();
         buttons.Children.Add(close);
         DockPanel.SetDock(buttons, Dock.Bottom);

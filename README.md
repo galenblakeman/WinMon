@@ -107,7 +107,7 @@ Select an app for **Properties**, **Copy details** and **Open file location** in
 
 Choose **Export** beside Settings in the title bar, including from Compact view. The dialog starts with process samples, resource history or Usage totals according to the view you are in, and lets you choose another dataset. Resource and process exports can use all retained history or the current chart range. Usage totals cover the period since WinMon started or you last pressed Reset; chart range does not apply to them. A normal Windows Save dialog lets you choose the destination.
 
-In Slate, **Save CSV** uses a darker fill so the enabled action is easier to distinguish from disabled controls.
+The export dialog's Save CSV and Cancel actions use the standard button appearance with icons alongside their labels.
 
 CSV columns use stable English identifiers, UTC timestamps, invariant numbers and raw units such as bytes and bytes per second. Blank cells mean a reading was unavailable. Resource history includes gap rows. Process samples contain **retained observations**, not every process in every interval: WinMon omits many idle entries to limit memory, and their I/O includes files, network and devices. Usage totals include exited apps and a Not attributed row. Files are saved locally and may contain process names and executable paths; WinMon never uploads them. Export needs no administrator rights.
 

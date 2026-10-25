@@ -1,8 +1,6 @@
 using System.Globalization;
 using System.Windows;
-using System.Windows.Media;
 using WinMon.Monitoring;
-using WinMon.Preferences;
 
 namespace WinMon.Controls;
 
@@ -12,18 +10,10 @@ public partial class CsvExportDialog : Window
 {
     internal CsvExportChoice? Choice { get; private set; }
 
-    internal CsvExportDialog(CsvExportKind initialKind, string theme)
+    internal CsvExportDialog(CsvExportKind initialKind)
     {
         InitializeComponent();
         WindowTheme.Attach(this);
-        if (theme == "Slate") SaveButton.Background = (Brush)FindResource("SelectedSurface");
-        Loaded += (_, _) =>
-        {
-            if (SaveButton.Background is not SolidColorBrush background) return;
-            SaveButton.Foreground = ChartPalettes.ContrastRatio(background.Color, Colors.White) >=
-                                    ChartPalettes.ContrastRatio(background.Color, Colors.Black)
-                ? Brushes.White : Brushes.Black;
-        };
         switch (initialKind)
         {
             case CsvExportKind.ResourceHistory: ResourceChoice.IsChecked = true; break;
