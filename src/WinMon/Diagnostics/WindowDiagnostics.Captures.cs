@@ -115,26 +115,29 @@ internal sealed partial class WindowDiagnostics
                 throw new InvalidOperationException(
                     "The captures menu needs header, 2 captures, separator and 2 links.");
 
-            fixture.Preferences = fixture.Preferences with { Theme = "Dark" };
-            fixture.ApplyTheme();
-            var settings = new SettingsWindow(fixture.Preferences, captureFolder: reports,
-                checkForUpdates: () => Task.FromResult(Strings.UpToDate)) { Owner = fixture };
-            try
+            foreach (var theme in new[] { "Dark", "Light" })
             {
-                settings.Show();
-                foreach (var section in Enum.GetValues<SettingsSection>())
+                fixture.Preferences = fixture.Preferences with { Theme = theme };
+                fixture.ApplyTheme();
+                var settings = new SettingsWindow(fixture.Preferences, captureFolder: reports,
+                    checkForUpdates: () => Task.FromResult(Strings.UpToDate)) { Owner = fixture };
+                try
                 {
-                    settings.ShowSection(section);
-                    if (settings.Section != section) continue;
-                    settings.UpdateLayout();
-                    await CaptureServiceWindowAsync(settings,
-                        Path.Combine(output, $"settings-{section.ToString().ToLowerInvariant()}.png"),
-                        cancellationToken);
+                    settings.Show();
+                    foreach (var section in Enum.GetValues<SettingsSection>())
+                    {
+                        settings.ShowSection(section);
+                        if (settings.Section != section) continue;
+                        settings.UpdateLayout();
+                        var name = theme == "Dark" ? $"settings-{section.ToString().ToLowerInvariant()}.png"
+                            : $"settings-light-{section.ToString().ToLowerInvariant()}.png";
+                        await CaptureServiceWindowAsync(settings, Path.Combine(output, name), cancellationToken);
+                    }
                 }
-            }
-            finally
-            {
-                settings.Close();
+                finally
+                {
+                    settings.Close();
+                }
             }
 
             await File.WriteAllTextAsync(Path.Combine(output, "captures.json"), JsonSerializer.Serialize(new

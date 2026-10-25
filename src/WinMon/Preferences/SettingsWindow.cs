@@ -3,6 +3,7 @@ using System.Security;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
@@ -491,22 +492,26 @@ public sealed class SettingsWindow : Window
             Data = icon, Width = 16, Height = 16, StrokeThickness = 1.5, Stretch = Stretch.None,
             Margin = new Thickness(0, 0, 10, 0), VerticalAlignment = VerticalAlignment.Center
         };
-        path.SetResourceReference(Shape.StrokeProperty, "Text");
         var content = new DockPanel { LastChildFill = true };
         DockPanel.SetDock(path, Dock.Left);
         content.Children.Add(path);
         var item = new ListBoxItem { Content = content };
+        path.SetBinding(Shape.StrokeProperty, new Binding(nameof(Control.Foreground)) { Source = item });
         if (section == SettingsSection.AutomaticCaptures)
         {
             DockPanel.SetDock(_captureState, Dock.Right);
             content.Children.Add(_captureState);
             AutoCapture.EnabledChanged += ShowCaptureState;
+            item.Selected += (_, _) => ShowCaptureState(AutoCapture.IsOn);
+            item.Unselected += (_, _) => ShowCaptureState(AutoCapture.IsOn);
         }
 
-        content.Children.Add(new TextBlock
+        var labelBlock = new TextBlock
         {
             Text = label, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis
-        });
+        };
+        labelBlock.SetBinding(TextBlock.ForegroundProperty, new Binding(nameof(Control.Foreground)) { Source = item });
+        content.Children.Add(labelBlock);
         item.SetResourceReference(StyleProperty, "SettingsNavItem");
         AutomationProperties.SetName(item, label);
         if (section == SettingsSection.AutomaticCaptures) ShowCaptureState(AutoCapture.IsOn);
@@ -515,7 +520,8 @@ public sealed class SettingsWindow : Window
         void ShowCaptureState(bool on)
         {
             _captureState.Text = on ? Strings.SettingsOn : Strings.SettingsOff;
-            _captureState.SetResourceReference(TextBlock.ForegroundProperty, on ? "Accent" : "Muted");
+            _captureState.SetResourceReference(TextBlock.ForegroundProperty,
+                item.IsSelected ? "SelectedText" : on ? "Accent" : "Muted");
             AutomationProperties.SetName(item, $"{label}, {_captureState.Text}");
         }
     }

@@ -593,6 +593,7 @@
                             <Trigger Property="IsSelected" Value="True">
                                 <Setter TargetName="Body" Property="Background" Value="{DynamicResource SelectedSurface}" />
                                 <Setter TargetName="Bar" Property="Visibility" Value="Visible" />
+                                <Setter Property="Foreground" Value="{DynamicResource SelectedText}" />
                                 <Setter Property="FontWeight" Value="SemiBold" />
                             </Trigger>
                             <Trigger Property="IsKeyboardFocused" Value="True">

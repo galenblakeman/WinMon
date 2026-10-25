@@ -23,6 +23,7 @@ The dialog is 780 × 600 DIPs, shorter on small work areas, and does not resize.
 - **Last checked** records the end of this session's most recent update check, automatic or manual, and is not saved.
 - **Validation.** When Save finds a problem in another section, the dialog switches to that section, shows the message, and focuses the field to fix: the drive selectors for a drive conflict, or the threshold, duration or cooldown box that is out of range.
 - **Keyboard.** Arrow keys move through the sidebar. Ctrl+Tab and Ctrl+Shift+Tab step through sections from anywhere in the dialog, except while the shortcut box is recording a combination.
+- **Selection contrast.** The selected section uses the theme's selected-text color for its label, icon and On/Off state, including in Light and high-contrast appearances.
 - **Diagnostics and tests** reach the dialog through named members (`ShowSection`, `Section`, `LanguageSelector`, the drive selectors, `SaveButton`, `AutoCapture`) instead of its layout. `WinMon.exe --capture-smoke-output <directory>` renders every section.
 
 ## Departures from the mockup

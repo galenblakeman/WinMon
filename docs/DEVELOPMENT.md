@@ -59,7 +59,7 @@ $run.ExitCode
 | `--compact-smoke-output <dir>` | `compact` | Compact strip: live data, view switching, saved dimensions, dark/light renders at 836 and 1000 DIPs (`compact.json`) |
 | `--services-smoke-output <dir>` | `services` | Services tab |
 | `--usage-smoke-output <dir>` | `usage` | Usage tab |
-| `--capture-smoke-output <dir>` | `capture` | Automatic captures |
+| `--capture-smoke-output <dir>` | `capture` | Automatic captures and Settings sections in Dark and Light appearances |
 | `--chart-smoke-output <dir>` | `chart` | Chart dropdown, focused resources, hidden-resource selection and capture inspection |
 | `--examples-output <dir>` | — | README screenshots; follow [the example gallery's steps](example/README.md#regenerate) |
 | `--profile-output <dir> [seconds]` | — | Whole-process cost; see [Profile the whole app](#profile-the-whole-app) |
