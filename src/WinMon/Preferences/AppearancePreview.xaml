@@ -8,18 +8,16 @@
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="126" />
+                <RowDefinition Height="104" />
             </Grid.RowDefinitions>
-            <Grid Background="{DynamicResource SectionHeaderSurface}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
+            <UniformGrid Rows="2" Columns="3" Background="{DynamicResource SectionHeaderSurface}">
                 <controls:MetricReadout x:Name="CpuReadout" Margin="7,4" />
-                <controls:MetricReadout x:Name="MemoryReadout" Grid.Column="1" Margin="7,4" />
-                <controls:MetricReadout x:Name="DiskReadout" Grid.Column="2" Margin="7,4" />
-            </Grid>
+                <controls:MetricReadout x:Name="MemoryReadout" Margin="7,4" />
+                <controls:MetricReadout x:Name="DiskReadout" Margin="7,4" />
+                <controls:MetricReadout x:Name="NetworkReadout" Margin="7,4" />
+                <controls:MetricReadout x:Name="GpuReadout" Margin="7,4" />
+                <controls:MetricReadout x:Name="SecondaryDiskReadout" Margin="7,4" />
+            </UniformGrid>
             <controls:CpuGraph x:Name="Chart" Grid.Row="1" Margin="0,6,0,0" />
         </Grid>
     </Border>

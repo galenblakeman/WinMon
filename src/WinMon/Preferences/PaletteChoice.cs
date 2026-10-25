@@ -15,9 +15,9 @@ internal sealed class PaletteChoice(string name) : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    internal void UpdateTheme(bool light)
+    internal void UpdateTheme(bool light, ThemeFinishes.Finish? finish = null)
     {
-        Colors = ChartPalettes.Colors(Name, light);
+        Colors = ChartPalettes.ColorsForTheme(Name, light, finish);
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Colors)));
     }
 

@@ -1,3 +1,5 @@
+using System.Windows.Media;
+
 namespace WinMon.Preferences;
 
 /// <summary>Curated resource colors, in CPU, memory, disk, network, GPU, second-disk order.</summary>
@@ -76,5 +78,81 @@ internal static class ChartPalettes
             (_, true) => ["#36751B", "#1469B5", "#B8461B", "#9B4DCA", "#007B83", "#876300"],
             _ => ["#73FF35", "#4285FF", "#FF773D", "#9B4DCA", "#00F0C8", "#FFD044"]
         };
+    }
+
+    // The same accent is used for a fine chart trace and small text inside a gauge.
+    // Leave recognizable palette colors alone when they already clear both surfaces.
+    internal static string[] ColorsForTheme(string? name, bool light, ThemeFinishes.Finish? finish)
+    {
+        var surface = (Color)ColorConverter.ConvertFromString(finish?.Surface ?? (light ? "#F0F5FA" : "#15191E"));
+        var plot = (Color)ColorConverter.ConvertFromString(finish?.Plot ?? (light ? "#FFFFFF" : "#15191E"));
+        return Colors(name, light).Select(hex => EnsureContrast(
+            (Color)ColorConverter.ConvertFromString(hex), surface, plot, light)).ToArray();
+    }
+
+    internal static double ContrastRatio(Color first, Color second)
+    {
+        static double Luminance(Color color)
+        {
+            static double Channel(byte value)
+            {
+                var normalized = value / 255d;
+                return normalized <= 0.04045 ? normalized / 12.92 : Math.Pow((normalized + 0.055) / 1.055, 2.4);
+            }
+            return 0.2126 * Channel(color.R) + 0.7152 * Channel(color.G) + 0.0722 * Channel(color.B);
+        }
+        var a = Luminance(first);
+        var b = Luminance(second);
+        return (Math.Max(a, b) + 0.05) / (Math.Min(a, b) + 0.05);
+    }
+
+    private static string EnsureContrast(Color color, Color surface, Color plot, bool light)
+    {
+        const double readoutMinimum = 4.75;
+        const double traceMinimum = 3.5;
+        bool Passes(Color candidate) => ContrastRatio(candidate, surface) >= readoutMinimum &&
+                                        ContrastRatio(candidate, plot) >= traceMinimum;
+        if (Passes(color)) return $"#{color.R:X2}{color.G:X2}{color.B:X2}";
+
+        // Move along the original hue and saturation, changing lightness only.
+        var r = color.R / 255d;
+        var g = color.G / 255d;
+        var b = color.B / 255d;
+        var maximum = Math.Max(r, Math.Max(g, b));
+        var minimum = Math.Min(r, Math.Min(g, b));
+        var delta = maximum - minimum;
+        var originalLightness = (maximum + minimum) / 2;
+        var saturation = delta == 0 ? 0 : delta / (1 - Math.Abs(2 * originalLightness - 1));
+        var hue = delta == 0 ? 0 : maximum == r ? ((g - b) / delta + 6) % 6
+            : maximum == g ? (b - r) / delta + 2 : (r - g) / delta + 4;
+
+        Color At(double value)
+        {
+            var chroma = (1 - Math.Abs(2 * value - 1)) * saturation;
+            var x = chroma * (1 - Math.Abs(hue % 2 - 1));
+            var offset = value - chroma / 2;
+            var (red, green, blue) = hue switch
+            {
+                < 1 => (chroma, x, 0d),
+                < 2 => (x, chroma, 0d),
+                < 3 => (0d, chroma, x),
+                < 4 => (0d, x, chroma),
+                < 5 => (x, 0d, chroma),
+                _ => (chroma, 0d, x)
+            };
+            return Color.FromRgb((byte)Math.Round((red + offset) * 255),
+                (byte)Math.Round((green + offset) * 255), (byte)Math.Round((blue + offset) * 255));
+        }
+
+        var low = light ? 0d : originalLightness;
+        var high = light ? originalLightness : 1d;
+        for (var i = 0; i < 20; i++)
+        {
+            var middle = (low + high) / 2;
+            if (Passes(At(middle)) == light) low = middle;
+            else high = middle;
+        }
+        var adjusted = At(light ? low : high);
+        return $"#{adjusted.R:X2}{adjusted.G:X2}{adjusted.B:X2}";
     }
 }

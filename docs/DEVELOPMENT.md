@@ -88,7 +88,7 @@ The [structure note](design/STRUCTURE.md) records why the code is laid out this 
 | Smoke, example and profile modes | `Diagnostics/WindowDiagnostics*.cs`, dispatched from `App.xaml.cs` |
 | Window members that diagnostics and the benchmark use | `MainWindow.Internal.cs` |
 
-Appearance finishes live in `Preferences/ThemeFinishes.cs`; Settings lists the built-in modes first and sorts custom labels in the current language. `MainWindow.ApplyTheme` keeps `TitleText` separate from body `Text` so bright title bars can use white caption text without changing data-surface text. The shared time-range and process-grouping chips use dedicated `ChipText` and `ChipSelectedText` brushes, with high-contrast system colors taking precedence. Chart palette brushes remain independent of the selected finish.
+Appearance finishes live in `Preferences/ThemeFinishes.cs`; Settings lists the built-in modes first and sorts custom labels in the current language. `MainWindow.ApplyTheme` keeps `TitleText` separate from body `Text` so bright title bars can use white caption text without changing data-surface text. The shared time-range and process-grouping chips use dedicated `ChipText` and `ChipSelectedText` brushes, with high-contrast system colors taking precedence. `ChartPalettes.ColorsForTheme` keeps palette hues but adjusts lightness against the finish's panel and plot colors for gauge text and chart traces. Settings swatches and the six-resource Appearance preview use the same adjusted colors; Windows high contrast mode uses system brushes instead.
 
 Rules for new code:
 

@@ -144,6 +144,11 @@ public sealed class SettingsLayoutTests
             var appMemoryBrush = Application.Current?.Resources["MemoryAccent"];
             Assert.That(preview.GaugePreview.GaugeStyle, Is.EqualTo(GaugeStyle.Needle));
             Assert.That(preview.ChartPreview.ShowGrid, Is.True);
+            Assert.That(preview.MetricPreviews.Select(readout => readout.Label), Is.EqualTo(new[]
+            {
+                Strings.CPU, Strings.Memory, Strings.Format(Strings.DiskLabel, "C:"), Strings.Network,
+                Strings.GPU, Strings.Format(Strings.DiskLabel, "D:")
+            }));
             if (!SystemParameters.HighContrast)
             {
                 Assert.That(((SolidColorBrush)preview.ChartPreview.TryFindResource("PlotSurface")!).Color,
@@ -167,7 +172,8 @@ public sealed class SettingsLayoutTests
                     Assert.That(((SolidColorBrush)preview.ChartPreview.TryFindResource("PlotSurface")!).Color,
                         Is.EqualTo((Color)ColorConverter.ConvertFromString("#151D26")));
                     Assert.That(((SolidColorBrush)preview.ChartPreview.TryFindResource("MemoryAccent")!).Color,
-                        Is.EqualTo((Color)ColorConverter.ConvertFromString("#4285FF")));
+                        Is.EqualTo((Color)ColorConverter.ConvertFromString(
+                            ChartPalettes.ColorsForTheme("Classic", false, ThemeFinishes.For("Gunmetal"))[1])));
                 }
             });
         }
@@ -231,8 +237,9 @@ public sealed class SettingsLayoutTests
                 Assert.That(((SolidColorBrush)preview.ChartPreview.TryFindResource("PlotSurface")!).Color.A,
                     Is.EqualTo(byte.MaxValue));
                 Assert.That(((SolidColorBrush)preview.ChartPreview.TryFindResource("MemoryAccent")!).Color,
-                    Is.EqualTo((Color)ColorConverter.ConvertFromString(theme == "FrostedPorcelain"
-                        ? "#1469B5" : "#4285FF")));
+                    Is.EqualTo((Color)ColorConverter.ConvertFromString(
+                        ChartPalettes.ColorsForTheme("Classic", ThemeFinishes.For(theme).Light,
+                            ThemeFinishes.For(theme))[1])));
             });
         }
         finally

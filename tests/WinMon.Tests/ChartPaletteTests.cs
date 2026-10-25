@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using System.Windows.Media;
 using WinMon.Preferences;
 
 namespace WinMon.Tests;
@@ -25,16 +26,49 @@ public sealed class ChartPaletteTests
     public void CustomPalette_PreservesRequestedResourceOrderInBothThemes(string palette, string hexColors)
     {
         var expected = hexColors.Split(',');
-        var choice = new PaletteChoice(palette);
-        Assert.That(choice.Colors, Is.EqualTo(expected));
-        choice.UpdateTheme(true);
         Assert.Multiple(() =>
         {
-            Assert.That(choice.Colors, Is.EqualTo(expected));
             Assert.That(ChartPalettes.Colors(palette, false), Is.EqualTo(expected));
+            Assert.That(ChartPalettes.Colors(palette, true), Is.EqualTo(expected));
             Assert.That(ChartPalettes.Names, Does.Contain(palette));
         });
     }
+
+    [Test]
+    public void EveryPaletteColor_ClearsPlotAndReadoutContrastOnEveryTheme()
+    {
+        foreach (var theme in new[] { "Dark", "Light" }.Concat(ThemeFinishes.Names))
+        {
+            var finish = ThemeFinishes.IsFinish(theme) ? ThemeFinishes.For(theme) : null;
+            var light = theme == "Light" || finish?.Light == true;
+            var surface = ColorOf(finish?.Surface ?? (light ? "#F0F5FA" : "#15191E"));
+            var plot = ColorOf(finish?.Plot ?? (light ? "#FFFFFF" : "#15191E"));
+            foreach (var palette in ChartPalettes.Names)
+            {
+                var colors = ChartPalettes.ColorsForTheme(palette, light, finish);
+                Assert.That(colors, Has.Length.EqualTo(6), $"{theme} / {palette}");
+                foreach (var color in colors)
+                {
+                    Assert.That(ChartPalettes.ContrastRatio(ColorOf(color), surface), Is.GreaterThanOrEqualTo(4.5),
+                        $"Gauge text: {theme} / {palette} / {color}");
+                    Assert.That(ChartPalettes.ContrastRatio(ColorOf(color), plot), Is.GreaterThanOrEqualTo(3.0),
+                        $"Chart trace: {theme} / {palette} / {color}");
+                }
+            }
+        }
+    }
+
+    [Test]
+    public void PaletteSwatches_FollowSelectedFinish()
+    {
+        var choice = new PaletteChoice("Sophisticated Pastel");
+        var candy = ThemeFinishes.For("Candy");
+        choice.UpdateTheme(candy.Light, candy);
+        Assert.That(choice.Colors, Is.EqualTo(ChartPalettes.ColorsForTheme(choice.Name, candy.Light, candy)));
+        Assert.That(choice.Colors, Is.Not.EqualTo(ChartPalettes.Colors(choice.Name, candy.Light)));
+    }
+
+    private static Color ColorOf(string hex) => (Color)ColorConverter.ConvertFromString(hex);
 
     [TestCaseSource(typeof(ChartPalettes), nameof(ChartPalettes.Names))]
     public async Task Palette_RoundTripsWithoutChangingThemeOrDiskSelection(string palette)

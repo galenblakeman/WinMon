@@ -309,7 +309,8 @@ public sealed class SettingsWindow : Window
             var theme = _themeSelector.SelectedValue as string;
             var light = theme == "Light" || (theme == "System" && MainWindow.IsSystemLight()) ||
                         (ThemeFinishes.IsFinish(theme) && ThemeFinishes.For(theme!).Light);
-            foreach (var choice in paletteChoices) choice.UpdateTheme(light);
+            var finish = ThemeFinishes.IsFinish(theme) ? ThemeFinishes.For(theme!) : null;
+            foreach (var choice in paletteChoices) choice.UpdateTheme(light, finish);
         }
     }
 

@@ -828,7 +828,7 @@ public partial class MainWindow
             SetBrush("Muted", finish?.Muted ?? (light ? "#465D78" : "#B3BDC8"));
             SetBrush("Line", finish?.Line ?? (light ? "#CCD9E5" : "#35404B"));
             SetBrush("GaugeTrack", finish?.GaugeTrack ?? (light ? "#CCD9E5" : "#35404B"));
-            var colors = ChartPalettes.Colors(_preferences.ChartPalette, light);
+            var colors = ChartPalettes.ColorsForTheme(_preferences.ChartPalette, light, finish);
             var keys = new[]
                 { "CpuAccent", "MemoryAccent", "DiskAccent", "NetworkAccent", "GpuAccent", "SecondaryDiskAccent" };
             for (var i = 0; i < keys.Length; i++) SetBrush(keys[i], colors[i]);

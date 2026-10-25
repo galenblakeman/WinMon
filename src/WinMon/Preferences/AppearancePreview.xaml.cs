@@ -11,6 +11,9 @@ public sealed partial class AppearancePreview : UserControl
 {
     internal MetricReadout GaugePreview => MemoryReadout;
 
+    internal IReadOnlyList<MetricReadout> MetricPreviews =>
+        [CpuReadout, MemoryReadout, DiskReadout, NetworkReadout, GpuReadout, SecondaryDiskReadout];
+
     internal CpuGraph ChartPreview => Chart;
 
     internal AppearancePreview()
@@ -19,9 +22,14 @@ public sealed partial class AppearancePreview : UserControl
         Configure(CpuReadout, Strings.CPU, "CpuAccent", 32.8, "4.30 GHz");
         Configure(MemoryReadout, Strings.Memory, "MemoryAccent", 51.6,
             Strings.Format(Strings.GiB, 32.2, 62.5));
-        Configure(DiskReadout, Strings.Disk, "DiskAccent", 42.0, Strings.Format(Strings.MBS, 0.2));
+        Configure(DiskReadout, Strings.Format(Strings.DiskLabel, "C:"), "DiskAccent", 42.0, Strings.Format(Strings.MBS, 0.2));
+        Configure(NetworkReadout, Strings.Network, "NetworkAccent", 28.0, "↑ " + RateText.Format(9_600_000));
+        Configure(GpuReadout, Strings.GPU, "GpuAccent", 9.0, "3D");
+        Configure(SecondaryDiskReadout, Strings.Format(Strings.DiskLabel, "D:"), "SecondaryDiskAccent", 24.0,
+            Strings.Format(Strings.MBS, 0.1));
         Chart.ShowGrid = true;
-        Chart.MetricLabels = [Strings.CPU, Strings.Memory, Strings.Disk, Strings.Network, Strings.GPU];
+        Chart.MetricLabels = [Strings.CPU, Strings.Memory, Strings.Format(Strings.DiskLabel, "C:"),
+            Strings.Network, Strings.GPU, Strings.Format(Strings.DiskLabel, "D:")];
         Chart.SetData(Samples(), 120, null);
     }
 
@@ -57,15 +65,19 @@ public sealed partial class AppearancePreview : UserControl
             Resources["Muted"] = Brush(finish?.Muted ?? (light ? "#465D78" : "#B3BDC8"));
             Resources["Line"] = Brush(finish?.Line ?? (light ? "#CCD9E5" : "#35404B"));
             Resources["GaugeTrack"] = Brush(finish?.GaugeTrack ?? (light ? "#CCD9E5" : "#35404B"));
-            var colors = ChartPalettes.Colors(palette, light);
+            var colors = ChartPalettes.ColorsForTheme(palette, light, finish);
             for (var i = 0; i < AccentKeys.Length; i++) Resources[AccentKeys[i]] = Brush(colors[i]);
             Resources["Accent"] = Brush(finish?.UiAccent ?? (light ? "#1469B5" : colors[0]));
         }
 
-        foreach (var readout in new[] { CpuReadout, MemoryReadout, DiskReadout })
+        foreach (var (readout, value) in new[]
+                 {
+                     (CpuReadout, 32.8), (MemoryReadout, 51.6), (DiskReadout, 42.0),
+                     (NetworkReadout, 28.0), (GpuReadout, 9.0), (SecondaryDiskReadout, 24.0)
+                 })
         {
             readout.GaugeStyle = style;
-            readout.ShowGauge(readout == CpuReadout ? 32.8 : readout == MemoryReadout ? 51.6 : 42.0, 68, 100);
+            readout.ShowGauge(value, 68, 100);
         }
 
         Chart.UseSeriesPatterns = palette == "Colorblind";
@@ -105,6 +117,7 @@ public sealed partial class AppearancePreview : UserControl
                 {
                     TotalMemoryBytes = 1000, UsedMemoryBytes = (ulong)(516 + 140 * pulse),
                     DiskName = "C:", DiskActivePercent = 15 + 60 * pulse,
+                    SecondaryDiskName = "D:", SecondaryDiskActivePercent = 12 + 48 * pulse,
                     NetworkId = "preview", ReceiveBytesPerSecond = 100_000 + 5_000_000 * pulse,
                     SendBytesPerSecond = 80_000,
                     GpuId = "preview", GpuPercent = 9 + 55 * pulse
