@@ -149,6 +149,9 @@ public sealed class SettingsLayoutTests
     [TestCase("Porcelain", "#FFFEFA", "#365F85")]
     [TestCase("MidnightInk", "#0D1724", "#477DAE")]
     [TestCase("EvergreenInstrument", "#111E1B", "#87B782")]
+    [TestCase("FrostedPorcelain", "#FFFFFF", "#38698E")]
+    [TestCase("SmokedSapphire", "#0B1930", "#5C9BE0")]
+    [TestCase("GlassRim", "#15191E", "#8DA8CB")]
     public void NewThemePreview_UsesFlatSurfaceAndIndependentUiAccent(string theme, string plot, string accent)
     {
         var window = Settings(new MonitorPreferences { Theme = theme, ChartPalette = "Ocean" });
@@ -164,7 +167,35 @@ public sealed class SettingsLayoutTests
                 Assert.That(((SolidColorBrush)preview.ChartPreview.TryFindResource("Accent")!).Color,
                     Is.EqualTo((Color)ColorConverter.ConvertFromString(accent)));
                 Assert.That(((SolidColorBrush)preview.ChartPreview.TryFindResource("MemoryAccent")!).Color,
-                    Is.EqualTo((Color)ColorConverter.ConvertFromString(theme == "Porcelain" ? "#6745A5" : "#B0A0FF")));
+                    Is.EqualTo((Color)ColorConverter.ConvertFromString(theme is "Porcelain" or "FrostedPorcelain"
+                        ? "#6745A5" : "#B0A0FF")));
+            });
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [TestCase("FrostedPorcelain", 226)]
+    [TestCase("SmokedSapphire", 228)]
+    [TestCase("GlassRim", 255)]
+    public void TranslucentThemePreview_KeepsThePlotOpaque(string theme, byte panelOpacity)
+    {
+        var window = Settings(new MonitorPreferences { Theme = theme });
+        try
+        {
+            if (SystemParameters.HighContrast) return;
+            var preview = window.CombinedPreview;
+            Assert.Multiple(() =>
+            {
+                Assert.That(((SolidColorBrush)preview.TryFindResource("PanelSurface")!).Color.A,
+                    Is.EqualTo(panelOpacity));
+                Assert.That(((SolidColorBrush)preview.ChartPreview.TryFindResource("PlotSurface")!).Color.A,
+                    Is.EqualTo(byte.MaxValue));
+                Assert.That(((SolidColorBrush)preview.ChartPreview.TryFindResource("MemoryAccent")!).Color,
+                    Is.EqualTo((Color)ColorConverter.ConvertFromString(theme == "FrostedPorcelain"
+                        ? "#1469B5" : "#4285FF")));
             });
         }
         finally

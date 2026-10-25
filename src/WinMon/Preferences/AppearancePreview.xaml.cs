@@ -45,10 +45,11 @@ public sealed partial class AppearancePreview : UserControl
         else
         {
             Resources["PanelSurface"] = finish is { Brushed: true } ? ThemeFinishes.PanelBrush(finish)
-                : Brush(finish?.Surface ?? (light ? "#F0F5FA" : "#15191E"));
+                : Brush(finish?.Surface ?? (light ? "#F0F5FA" : "#15191E"), finish?.PanelOpacity ?? byte.MaxValue);
             Resources["SectionHeaderSurface"] = finish is { Brushed: true }
                 ? ThemeFinishes.ChromeBrush(finish, true)
-                : Brush(finish?.Header ?? (light ? "#E5EEF7" : "#252A31"));
+                : Brush(finish?.Header ?? (light ? "#E5EEF7" : "#252A31"),
+                    finish?.HeaderOpacity ?? byte.MaxValue);
             Resources["PlotSurface"] = finish is { Brushed: true } && theme is ("BrushedSteel" or "BrushedNickel")
                 ? ThemeFinishes.PlotBrush(finish)
                 : Brush(finish?.Plot ?? (light ? "#FFFFFF" : "#15191E"));
@@ -74,9 +75,10 @@ public sealed partial class AppearancePreview : UserControl
     private static readonly string[] AccentKeys =
         ["CpuAccent", "MemoryAccent", "DiskAccent", "NetworkAccent", "GpuAccent", "SecondaryDiskAccent"];
 
-    private static SolidColorBrush Brush(string color)
+    private static SolidColorBrush Brush(string color, byte opacity = byte.MaxValue)
     {
-        var brush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(color));
+        var value = (Color)ColorConverter.ConvertFromString(color);
+        var brush = new SolidColorBrush(Color.FromArgb(opacity, value.R, value.G, value.B));
         brush.Freeze();
         return brush;
     }

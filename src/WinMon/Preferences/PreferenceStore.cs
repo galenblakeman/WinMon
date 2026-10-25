@@ -180,6 +180,9 @@ public sealed class PreferenceStore
             "porcelain" => "Porcelain",
             "midnightink" => "MidnightInk",
             "evergreeninstrument" => "EvergreenInstrument",
+            "frostedporcelain" => "FrostedPorcelain",
+            "smokedsapphire" => "SmokedSapphire",
+            "glassrim" => "GlassRim",
             _ => "Dark"
         };
     }

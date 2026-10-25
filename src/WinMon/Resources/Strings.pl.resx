@@ -1582,4 +1582,7 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
 <data name="ThemePorcelain" xml:space="preserve"><value>Porcelana</value></data>
 <data name="ThemeMidnightInk" xml:space="preserve"><value>Atrament północy</value></data>
 <data name="ThemeEvergreenInstrument" xml:space="preserve"><value>Zielony instrument</value></data>
+<data name="ThemeFrostedPorcelain" xml:space="preserve"><value>Matowa porcelana</value></data>
+<data name="ThemeSmokedSapphire" xml:space="preserve"><value>Przydymiony szafir</value></data>
+<data name="ThemeGlassRim" xml:space="preserve"><value>Szklana ramka</value></data>
 </root>

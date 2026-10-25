@@ -1582,4 +1582,7 @@ Windows の正常性状態: {2}</value>
 <data name="ThemePorcelain" xml:space="preserve"><value>ポーセリン</value></data>
 <data name="ThemeMidnightInk" xml:space="preserve"><value>ミッドナイトインク</value></data>
 <data name="ThemeEvergreenInstrument" xml:space="preserve"><value>エバーグリーン・インストルメント</value></data>
+<data name="ThemeFrostedPorcelain" xml:space="preserve"><value>すりガラス・ポーセリン</value></data>
+<data name="ThemeSmokedSapphire" xml:space="preserve"><value>スモークサファイア</value></data>
+<data name="ThemeGlassRim" xml:space="preserve"><value>グラスリム</value></data>
 </root>

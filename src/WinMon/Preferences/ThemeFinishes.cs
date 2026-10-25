@@ -6,14 +6,19 @@ namespace WinMon.Preferences;
 /// <summary>Appearance finishes; resource colors remain controlled by the chart palette.</summary>
 internal static class ThemeFinishes
 {
+    internal enum BackdropKind { None = 0, Mica = 2, Acrylic = 3 }
+
     internal sealed record Finish(
         string Surface, string Raised, string Chrome, string Header, string Plot,
         string Search, string Selected, string SelectedText, string SegmentSelected,
         string Text, string Muted, string Line, string GaugeTrack, string Highlight,
-        bool Light, bool Brushed = true, string? UiAccent = null);
+        bool Light, bool Brushed = true, string? UiAccent = null,
+        BackdropKind Backdrop = BackdropKind.None, byte PanelOpacity = 255, byte ChromeOpacity = 255,
+        byte HeaderOpacity = 255);
 
     internal static readonly string[] Names =
-        ["BrushedSteel", "Copper", "Gunmetal", "BrushedNickel", "Porcelain", "MidnightInk", "EvergreenInstrument"];
+        ["BrushedSteel", "Copper", "Gunmetal", "BrushedNickel", "Porcelain", "MidnightInk", "EvergreenInstrument",
+            "FrostedPorcelain", "SmokedSapphire", "GlassRim"];
 
     internal static bool IsFinish(string? name) => Names.Contains(name);
 
@@ -40,6 +45,15 @@ internal static class ThemeFinishes
         "EvergreenInstrument" => new("#172522", "#23352F", "#30463D", "#273C34", "#111E1B",
             "#111E1B", "#456C4B", "#FFFFFF", "#345540", "#EFF3EA", "#BFCCBE",
             "#52665A", "#627968", "#78967A", false, false, "#87B782"),
+        "FrostedPorcelain" => new("#F2F4F6", "#FFFFFF", "#EDF2F8", "#F1F5FA", "#FFFFFF",
+            "#FFFFFF", "#38698E", "#FFFFFF", "#DCE9F3", "#202B39", "#536476",
+            "#B9C8D5", "#C4D0DA", "#FFFFFF", true, false, "#38698E", BackdropKind.Acrylic, 226, 212, 230),
+        "SmokedSapphire" => new("#10213C", "#1B3050", "#19395F", "#1A3658", "#0B1930",
+            "#0B1930", "#315D90", "#FFFFFF", "#2B527F", "#F1F6FF", "#C2D2E5",
+            "#496787", "#56718E", "#4E82B1", false, false, "#5C9BE0", BackdropKind.Acrylic, 228, 208, 224),
+        "GlassRim" => new("#15191E", "#20262D", "#32343F", "#30343E", "#15191E",
+            "#15191E", "#324050", "#FFFFFF", "#3D4855", "#EDF2F6", "#B3BDC8",
+            "#46515F", "#566473", "#6B7588", false, false, "#8DA8CB", BackdropKind.Mica, 255, 185, 200),
         _ => throw new ArgumentOutOfRangeException(nameof(name), name, "Unknown appearance finish")
     };
 

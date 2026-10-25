@@ -1582,4 +1582,7 @@ GPU {11} · {12}
 <data name="ThemePorcelain" xml:space="preserve"><value>Фарфор</value></data>
 <data name="ThemeMidnightInk" xml:space="preserve"><value>Полуночные чернила</value></data>
 <data name="ThemeEvergreenInstrument" xml:space="preserve"><value>Лесной прибор</value></data>
+<data name="ThemeFrostedPorcelain" xml:space="preserve"><value>Матовый фарфор</value></data>
+<data name="ThemeSmokedSapphire" xml:space="preserve"><value>Дымчатый сапфир</value></data>
+<data name="ThemeGlassRim" xml:space="preserve"><value>Стеклянная рамка</value></data>
 </root>

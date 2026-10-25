@@ -1582,4 +1582,7 @@ Se puede perder el trabajo sin guardar. Se finalizarán todos los procesos indic
 <data name="ThemePorcelain" xml:space="preserve"><value>Porcelana</value></data>
 <data name="ThemeMidnightInk" xml:space="preserve"><value>Tinta de medianoche</value></data>
 <data name="ThemeEvergreenInstrument" xml:space="preserve"><value>Instrumento verde bosque</value></data>
+<data name="ThemeFrostedPorcelain" xml:space="preserve"><value>Porcelana esmerilada</value></data>
+<data name="ThemeSmokedSapphire" xml:space="preserve"><value>Zafiro ahumado</value></data>
+<data name="ThemeGlassRim" xml:space="preserve"><value>Borde de cristal</value></data>
 </root>

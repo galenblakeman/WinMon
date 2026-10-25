@@ -2,6 +2,8 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Shell;
+using WinMon.Preferences;
 
 // ReSharper disable StringLiteralTypo
 
@@ -10,6 +12,30 @@ namespace WinMon.Controls;
 /// <summary>Keeps the standard Windows caption in sync with the application palette.</summary>
 internal static class WindowTheme
 {
+    /// <summary>Use the system backdrop only when DWM supports it; keep native caption buttons.</summary>
+    internal static bool SetBackdrop(MainWindow window, ThemeFinishes.BackdropKind backdrop)
+    {
+        var handle = new WindowInteropHelper(window).Handle;
+        var canSet = OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22621) && handle != IntPtr.Zero;
+        var requested = !SystemParameters.HighContrast && SystemParameters.IsGlassEnabled
+            ? backdrop : ThemeFinishes.BackdropKind.None;
+        var kind = requested == ThemeFinishes.BackdropKind.None ? 1 : (int)requested; // DWMSBT_NONE
+        var applied = canSet && DwmSetWindowAttribute(handle, 38 /* DWMWA_SYSTEMBACKDROP_TYPE */,
+            ref kind, sizeof(int)) == 0;
+        var active = applied && requested != ThemeFinishes.BackdropKind.None;
+        if (canSet && !applied)
+        {
+            kind = 1;
+            _ = DwmSetWindowAttribute(handle, 38, ref kind, sizeof(int));
+        }
+
+        if (WindowChrome.GetWindowChrome(window) is { } chrome)
+            chrome.GlassFrameThickness = active ? new Thickness(-1) : new Thickness(0, chrome.CaptionHeight, 0, 0);
+        if (handle != IntPtr.Zero && HwndSource.FromHwnd(handle)?.CompositionTarget is { } target)
+            target.BackgroundColor = Colors.Transparent;
+        return active;
+    }
+
     internal static void Attach(Window window)
     {
         window.SourceInitialized += (_, _) => Apply(window);

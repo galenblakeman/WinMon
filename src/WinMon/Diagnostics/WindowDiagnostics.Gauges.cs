@@ -101,6 +101,37 @@ internal sealed partial class WindowDiagnostics
                 1, cancellationToken);
         }
 
+        // RenderTargetBitmap cannot include the DWM backdrop. Capture the composed window as well.
+        fixture.Loaded -= fixture.OnLoaded;
+        fixture.Left = SystemParameters.WorkArea.Left + 20;
+        fixture.Top = SystemParameters.WorkArea.Top + 20;
+        fixture.Width = 1000;
+        fixture.Height = 840;
+        fixture.Show();
+        var backdropResults = new List<object>();
+        try
+        {
+            foreach (var theme in new[] { "FrostedPorcelain", "SmokedSapphire", "GlassRim" })
+            {
+                fixture.Preferences = fixture.Preferences with { Theme = theme, GaugeStyle = GaugeStyle.Bowl };
+                fixture.ApplyTheme();
+                Draw(1000, 840);
+                backdropResults.Add(new
+                {
+                    Theme = theme, Active = fixture.BackdropActive,
+                    PanelOpacity = ((System.Windows.Media.SolidColorBrush)fixture.FindResource("PanelSurface")).Color.A
+                });
+                await CaptureExampleWindowAsync(fixture,
+                    Path.Combine(output, $"backdrop-{theme.ToLowerInvariant()}.png"), cancellationToken);
+            }
+        }
+        finally
+        {
+            fixture.Hide();
+        }
+        await File.WriteAllTextAsync(Path.Combine(output, "backdrops.json"),
+            JsonSerializer.Serialize(backdropResults), cancellationToken);
+
         if (heights.Count != 1 || Math.Abs(heights.Single() - MetricReadout.LayoutHeight) > 0.001)
             throw new InvalidOperationException($"Readout heights varied by style: {string.Join(", ", heights)}.");
 

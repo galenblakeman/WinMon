@@ -166,7 +166,10 @@ public sealed class SettingsWindow : Window
             new ThemeChoice("BrushedNickel", Strings.ThemeBrushedNickel),
             new ThemeChoice("Porcelain", Strings.ThemePorcelain),
             new ThemeChoice("MidnightInk", Strings.ThemeMidnightInk),
-            new ThemeChoice("EvergreenInstrument", Strings.ThemeEvergreenInstrument)
+            new ThemeChoice("EvergreenInstrument", Strings.ThemeEvergreenInstrument),
+            new ThemeChoice("FrostedPorcelain", Strings.ThemeFrostedPorcelain),
+            new ThemeChoice("SmokedSapphire", Strings.ThemeSmokedSapphire),
+            new ThemeChoice("GlassRim", Strings.ThemeGlassRim)
         };
         _themeSelector.DisplayMemberPath = nameof(ThemeChoice.Label);
         _themeSelector.SelectedValuePath = nameof(ThemeChoice.Name);

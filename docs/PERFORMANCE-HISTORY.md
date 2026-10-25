@@ -6,6 +6,28 @@ Dated measurement and validation records, newest first. Each section describes t
 
 Add a section at the top for each measured change: what changed, the machine and build, before and after results, and where the raw reports are.
 
+## Translucent appearance themes (October 25, 2026)
+
+Release UI-thread benchmark on the development machine, comparing `21fddde` with the translucent-theme working tree. Four baseline and four changed runs alternated launch order; values are medians of the four run medians. The benchmark used the default Dark theme, so it measures whether adding backdrop support affects the normal sampling presentation path. It does not measure desktop compositor cost while an Acrylic or Mica theme is active.
+
+| Scenario | Before | After | Allocation before | Allocation after |
+| --- | ---: | ---: | ---: | ---: |
+| Live overlay | 4.58 ms | 4.81 ms | 531.0 KiB | 531.0 KiB |
+| Small multiples | 2.80 ms | 3.06 ms | 502.3 KiB | 502.2 KiB |
+| Heatmap | 2.80 ms | 3.08 ms | 545.3 KiB | 545.3 KiB |
+| Focus | 3.29 ms | 2.86 ms | 515.2 KiB | 515.1 KiB |
+| Historical | 1.26 ms | 1.44 ms | 173.6 KiB | 173.5 KiB |
+| Grouped live | 5.31 ms | 5.77 ms | 543.4 KiB | 543.3 KiB |
+| Services | 6.71 ms | 6.01 ms | 950.2 KiB | 950.2 KiB |
+| Compact live | 2.00 ms | 1.78 ms | 362.0 KiB | 362.0 KiB |
+| Pinned and selected | 3.92 ms | 3.81 ms | 838.2 KiB | 838.1 KiB |
+| Pinned and selected, grouped | 6.91 ms | 6.47 ms | 708.5 KiB | 708.4 KiB |
+| Same grouped view, CPU tooltip open | 8.97 ms | 9.27 ms | 847.3 KiB | 847.2 KiB |
+
+The timings moved in both directions by up to 15%, including scenarios whose render path is unchanged. Live and grouped results also reversed direction with launch order. Allocation stayed within 0.1 KiB per frame. All pixel hashes matched except the tooltip scenario, which alternated between the same two hashes across both builds. There is no repeatable UI-thread regression in these runs; active-backdrop compositor cost remains unmeasured.
+
+Raw reports: `artifacts/translucence-benchmark/base-1.json` through `base-4.json` and `changed-1.json` through `changed-4.json`.
+
 ## Action drawer and activity counts (October 25, 2026)
 
 Release UI-thread benchmark on the development machine, comparing the 3.2.0 compact gauge build (the code of `16f9d77`) with the action drawer and tab-strip counts (the code of `c4b0125` and `2070796`). The machine was not quiet: another agent was building and editing in the same checkout throughout. Each value is the median of four run medians.

@@ -39,6 +39,7 @@ public partial class MainWindow
     private MonitorPreferences _preferences = new();
     private Task _settingsWriteTask = Task.CompletedTask;
     private bool _preferencesLoaded;
+    internal bool BackdropActive { get; private set; }
     private bool _updatingChartSelectors;
     private bool _restoringSeries;
     private Forms.NotifyIcon? _tray;
@@ -424,7 +425,7 @@ public partial class MainWindow
         if (WindowChrome.GetWindowChrome(this) is not { } chrome ||
             !(Math.Abs(chrome.CaptionHeight - height) > 0.5)) return;
         chrome.CaptionHeight = height;
-        chrome.GlassFrameThickness = new Thickness(0, height, 0, 0);
+        chrome.GlassFrameThickness = BackdropActive ? new Thickness(-1) : new Thickness(0, height, 0, 0);
     }
 
     /// <summary>Rebuild the range chips; choices longer than the retention setting are left out.</summary>
@@ -750,6 +751,7 @@ public partial class MainWindow
         ApplyGaugeStyle();
         var app = Application.Current;
         if (app is null) return;
+        BackdropActive = WindowTheme.SetBackdrop(this, finish?.Backdrop ?? ThemeFinishes.BackdropKind.None);
         OverallGraph.UseSeriesPatterns = _preferences.ChartPalette == "Colorblind";
         if (SystemParameters.HighContrast)
         {
@@ -781,14 +783,17 @@ public partial class MainWindow
         {
             SetBrush("Surface", finish?.Surface ?? (light ? "#F0F5FA" : "#15191E"));
             if (finish is null || !finish.Brushed)
-                SetBrush("PanelSurface", finish?.Surface ?? (light ? "#F0F5FA" : "#15191E"));
+                SetBrush("PanelSurface", finish?.Surface ?? (light ? "#F0F5FA" : "#15191E"),
+                    BackdropActive ? finish?.PanelOpacity ?? byte.MaxValue : byte.MaxValue);
             else
                 app.Resources["PanelSurface"] = ThemeFinishes.PanelBrush(finish);
             SetBrush("Raised", finish?.Raised ?? (light ? "#FFFFFF" : "#20262D"));
             if (finish is null || !finish.Brushed)
             {
-                SetBrush("TitleBarSurface", finish?.Chrome ?? (light ? "#DCE7F1" : "#30343B"));
-                SetBrush("SectionHeaderSurface", finish?.Header ?? (light ? "#E5EEF7" : "#252A31"));
+                SetBrush("TitleBarSurface", finish?.Chrome ?? (light ? "#DCE7F1" : "#30343B"),
+                    BackdropActive ? finish?.ChromeOpacity ?? byte.MaxValue : byte.MaxValue);
+                SetBrush("SectionHeaderSurface", finish?.Header ?? (light ? "#E5EEF7" : "#252A31"),
+                    BackdropActive ? finish?.HeaderOpacity ?? byte.MaxValue : byte.MaxValue);
             }
             else
             {
@@ -842,10 +847,13 @@ public partial class MainWindow
         }
     }
 
-    private static void SetBrush(string key, string color)
+    private static void SetBrush(string key, string color, byte opacity = byte.MaxValue)
     {
         if (Application.Current is { } app)
-            app.Resources[key] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(color));
+        {
+            var value = (Color)ColorConverter.ConvertFromString(color);
+            app.Resources[key] = new SolidColorBrush(Color.FromArgb(opacity, value.R, value.G, value.B));
+        }
     }
 
     private void EnsureVisible()

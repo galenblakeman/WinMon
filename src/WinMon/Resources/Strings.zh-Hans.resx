@@ -1582,4 +1582,7 @@ Windows 健康状态：{2}</value>
 <data name="ThemePorcelain" xml:space="preserve"><value>瓷白</value></data>
 <data name="ThemeMidnightInk" xml:space="preserve"><value>午夜墨蓝</value></data>
 <data name="ThemeEvergreenInstrument" xml:space="preserve"><value>常青仪表</value></data>
+<data name="ThemeFrostedPorcelain" xml:space="preserve"><value>磨砂瓷白</value></data>
+<data name="ThemeSmokedSapphire" xml:space="preserve"><value>烟熏蓝宝石</value></data>
+<data name="ThemeGlassRim" xml:space="preserve"><value>玻璃边框</value></data>
 </root>
