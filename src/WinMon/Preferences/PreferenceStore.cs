@@ -20,6 +20,9 @@ public sealed class PreferenceStore
 
     private readonly string _settingsPath;
 
+    // Set when a load could neither read the file nor copy it; the next save copies it first or fails.
+    private bool _keepCopyBeforeReplace;
+
     /// <summary>Initializes a new instance of the <see cref="PreferenceStore"/> class.</summary>
     public PreferenceStore()
         : this(AppContext.BaseDirectory, Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData))
@@ -89,7 +92,8 @@ public sealed class PreferenceStore
             }
             catch (IOException)
             {
-                KeepInvalidCopy();
+                // A file locked by another program may be valid: never replace it until a copy is kept.
+                _keepCopyBeforeReplace = !KeepInvalidCopy();
                 return new MonitorPreferences();
             }
             catch (UnauthorizedAccessException)
@@ -99,15 +103,17 @@ public sealed class PreferenceStore
         }
     }
 
-    private void KeepInvalidCopy()
+    private bool KeepInvalidCopy()
     {
         try
         {
             File.Copy(_settingsPath, InvalidCopyPath, true);
+            return true;
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             Trace.TraceWarning("WinMon could not keep a copy of its unreadable settings: {0}", ex.Message);
+            return false;
         }
     }
 
@@ -134,6 +140,12 @@ public sealed class PreferenceStore
                 await JsonSerializer.SerializeAsync(stream, Validate(preferences), SerializerOptions, cancellationToken)
                     .ConfigureAwait(false);
                 await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            if (_keepCopyBeforeReplace && File.Exists(_settingsPath))
+            {
+                if (!KeepInvalidCopy()) throw new IOException("The unread settings file could not be preserved.");
+                _keepCopyBeforeReplace = false;
             }
 
             File.Move(temporaryPath, _settingsPath, true);

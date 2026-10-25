@@ -182,6 +182,21 @@ public sealed class PreferenceStoreTests
     }
 
     [Test]
+    public async Task LoadAsync_LockedConfiguration_IsCopiedBeforeTheNextSaveReplacesIt()
+    {
+        var store = new PreferenceStore(settingsPath);
+        await store.SaveAsync(new MonitorPreferences { Theme = "Light" });
+        var saved = await File.ReadAllTextAsync(settingsPath);
+
+        await using (new FileStream(settingsPath, FileMode.Open, FileAccess.Read, FileShare.None))
+            Assert.That((await store.LoadAsync()).Theme, Is.EqualTo("Dark"));
+        Assert.That(File.Exists(store.InvalidCopyPath), Is.False, "The lock also blocked the copy.");
+        await store.SaveAsync(new MonitorPreferences());
+
+        Assert.That(await File.ReadAllTextAsync(store.InvalidCopyPath), Is.EqualTo(saved));
+    }
+
+    [Test]
     public async Task LoadAsync_ValidConfiguration_KeepsNoCopy()
     {
         var store = new PreferenceStore(settingsPath);
