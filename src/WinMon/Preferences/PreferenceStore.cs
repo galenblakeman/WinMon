@@ -173,10 +173,9 @@ public sealed class PreferenceStore
         {
             "light" => "Light",
             "system" => "System",
-            "brushedsteel" => "BrushedSteel",
+            "brushedsteel" or "brushednickel" => "Porcelain",
             "copper" => "Copper",
             "gunmetal" => "Gunmetal",
-            "brushednickel" => "BrushedNickel",
             "porcelain" => "Porcelain",
             "midnightink" => "MidnightInk",
             "evergreeninstrument" => "EvergreenInstrument",

@@ -25,6 +25,16 @@ public sealed class PreferenceStoreTests
         });
     }
 
+    [TestCase("BrushedSteel")]
+    [TestCase("BrushedNickel")]
+    public async Task RemovedLightMetalTheme_LoadsAsPorcelain(string theme)
+    {
+        Directory.CreateDirectory(testDirectory);
+        await File.WriteAllTextAsync(settingsPath, $"{{\"Theme\":\"{theme}\"}}");
+
+        Assert.That((await new PreferenceStore(settingsPath).LoadAsync()).Theme, Is.EqualTo("Porcelain"));
+    }
+
     [Test]
     public async Task ProcessActionsHidden_DefaultsForLegacySettings_AndRoundTripsBothStates()
     {

@@ -17,7 +17,7 @@ Show the selected theme, chart palette and resource gauge style together before 
 
 - `AppearancePreview` contains the gauge strip and chart, with no sampling or preference writes.
 - Changing any of the three selectors updates the sample immediately. Palette changes also retain the existing palette swatches.
-- The `gauges` smoke captures Dark and a Brushed Nickel/Ocean/Needle combination in Settings; layout tests check the unsaved resources and gauge style.
+- The `gauges` smoke captures Dark and a Porcelain/Ocean/Needle combination in Settings; layout tests check the unsaved resources and gauge style.
 
 ## Departures
 

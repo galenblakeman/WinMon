@@ -159,11 +159,11 @@ internal sealed partial class WindowDiagnostics
                 throw new InvalidOperationException("Settings did not preview the saved gauge style.");
             await CaptureVisualAsync((FrameworkElement)settings.Content, Path.Combine(output, "settings-gauges.png"),
                 1, cancellationToken);
-            settings.ThemeSelector.SelectedValue = "BrushedNickel";
+            settings.ThemeSelector.SelectedValue = "Porcelain";
             settings.PaletteSelector.SelectedValue = "Ocean";
             settings.GaugeSelector.SelectedValue = GaugeStyle.Needle;
             await CaptureVisualAsync((FrameworkElement)settings.Content,
-                Path.Combine(output, "settings-appearance-nickel.png"), 1, cancellationToken);
+                Path.Combine(output, "settings-appearance-porcelain.png"), 1, cancellationToken);
         }
         finally
         {

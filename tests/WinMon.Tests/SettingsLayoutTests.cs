@@ -49,7 +49,7 @@ public sealed class SettingsLayoutTests
     public void Appearance_ContainsThemePaletteAndGaugeWhileGeneralKeepsLanguage()
     {
         var window = Settings(new MonitorPreferences
-            { Theme = "BrushedNickel", ChartPalette = "Ocean", GaugeStyle = GaugeStyle.Needle });
+            { Theme = "Porcelain", ChartPalette = "Ocean", GaugeStyle = GaugeStyle.Needle });
         try
         {
             var general = Descendants(window).ToArray();
@@ -66,7 +66,7 @@ public sealed class SettingsLayoutTests
                 Assert.That(appearance, Does.Contain(window.ThemeSelector));
                 Assert.That(appearance, Does.Contain(window.PaletteSelector));
                 Assert.That(appearance, Does.Contain(window.GaugeSelector));
-                Assert.That(window.ThemeSelector.SelectedValue, Is.EqualTo("BrushedNickel"));
+                Assert.That(window.ThemeSelector.SelectedValue, Is.EqualTo("Porcelain"));
                 Assert.That(window.PaletteSelector.SelectedValue, Is.EqualTo("Ocean"));
                 Assert.That(window.GaugeSelector.SelectedValue, Is.EqualTo(GaugeStyle.Needle));
             });
@@ -107,7 +107,7 @@ public sealed class SettingsLayoutTests
     public void AppearancePreview_CombinesUnsavedThemePaletteAndGaugeChoices()
     {
         var window = Settings(new MonitorPreferences
-            { Theme = "BrushedNickel", ChartPalette = "Ocean", GaugeStyle = GaugeStyle.Needle });
+            { Theme = "Porcelain", ChartPalette = "Ocean", GaugeStyle = GaugeStyle.Needle });
         try
         {
             var preview = window.CombinedPreview;
@@ -116,7 +116,8 @@ public sealed class SettingsLayoutTests
             Assert.That(preview.ChartPreview.ShowGrid, Is.True);
             if (!SystemParameters.HighContrast)
             {
-                Assert.That(preview.ChartPreview.TryFindResource("PlotSurface"), Is.TypeOf<DrawingBrush>());
+                Assert.That(((SolidColorBrush)preview.ChartPreview.TryFindResource("PlotSurface")!).Color,
+                    Is.EqualTo((Color)ColorConverter.ConvertFromString("#FFFEFA")));
                 Assert.That(((SolidColorBrush)preview.ChartPreview.TryFindResource("MemoryAccent")!).Color,
                     Is.EqualTo((Color)ColorConverter.ConvertFromString("#6745A5")));
             }

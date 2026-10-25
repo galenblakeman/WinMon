@@ -50,9 +50,7 @@ public sealed partial class AppearancePreview : UserControl
                 ? ThemeFinishes.ChromeBrush(finish, true)
                 : Brush(finish?.Header ?? (light ? "#E5EEF7" : "#252A31"),
                     finish?.HeaderOpacity ?? byte.MaxValue);
-            Resources["PlotSurface"] = finish is { Brushed: true } && theme is ("BrushedSteel" or "BrushedNickel")
-                ? ThemeFinishes.PlotBrush(finish)
-                : Brush(finish?.Plot ?? (light ? "#FFFFFF" : "#15191E"));
+            Resources["PlotSurface"] = Brush(finish?.Plot ?? (light ? "#FFFFFF" : "#15191E"));
             Resources["Text"] = Brush(finish?.Text ?? (light ? "#20334A" : "#EDF2F6"));
             Resources["Muted"] = Brush(finish?.Muted ?? (light ? "#465D78" : "#B3BDC8"));
             Resources["Line"] = Brush(finish?.Line ?? (light ? "#CCD9E5" : "#35404B"));

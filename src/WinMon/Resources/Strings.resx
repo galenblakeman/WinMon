@@ -1575,10 +1575,8 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="GaugeLeftBar" xml:space="preserve"><value>Left bar</value></data>
   <data name="GaugeBottomBar" xml:space="preserve"><value>Bottom bar</value></data>
   <data name="GaugeSegmentedBar" xml:space="preserve"><value>Segmented bar</value></data>
-<data name="ThemeBrushedSteel" xml:space="preserve"><value>Brushed steel</value></data>
 <data name="ThemeCopper" xml:space="preserve"><value>Copper</value></data>
 <data name="ThemeGunmetal" xml:space="preserve"><value>Gunmetal</value></data>
-<data name="ThemeBrushedNickel" xml:space="preserve"><value>Brushed nickel</value></data>
 <data name="ThemePorcelain" xml:space="preserve"><value>Porcelain</value></data>
 <data name="ThemeMidnightInk" xml:space="preserve"><value>Midnight Ink</value></data>
 <data name="ThemeEvergreenInstrument" xml:space="preserve"><value>Evergreen Instrument</value></data>

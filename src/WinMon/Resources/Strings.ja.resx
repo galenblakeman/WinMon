@@ -1575,10 +1575,8 @@ Windows の正常性状態: {2}</value>
   <data name="GaugeLeftBar" xml:space="preserve"><value>左バー</value></data>
   <data name="GaugeBottomBar" xml:space="preserve"><value>下バー</value></data>
   <data name="GaugeSegmentedBar" xml:space="preserve"><value>分割バー</value></data>
-<data name="ThemeBrushedSteel" xml:space="preserve"><value>ブラッシュドスチール</value></data>
 <data name="ThemeCopper" xml:space="preserve"><value>銅</value></data>
 <data name="ThemeGunmetal" xml:space="preserve"><value>ガンメタル</value></data>
-<data name="ThemeBrushedNickel" xml:space="preserve"><value>ブラッシュドニッケル</value></data>
 <data name="ThemePorcelain" xml:space="preserve"><value>ポーセリン</value></data>
 <data name="ThemeMidnightInk" xml:space="preserve"><value>ミッドナイトインク</value></data>
 <data name="ThemeEvergreenInstrument" xml:space="preserve"><value>エバーグリーン・インストルメント</value></data>

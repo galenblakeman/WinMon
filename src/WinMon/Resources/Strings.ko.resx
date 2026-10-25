@@ -1575,10 +1575,8 @@ Windows 상태: {2}</value>
   <data name="GaugeLeftBar" xml:space="preserve"><value>왼쪽 막대</value></data>
   <data name="GaugeBottomBar" xml:space="preserve"><value>아래쪽 막대</value></data>
   <data name="GaugeSegmentedBar" xml:space="preserve"><value>분할 막대</value></data>
-<data name="ThemeBrushedSteel" xml:space="preserve"><value>브러시드 스틸</value></data>
 <data name="ThemeCopper" xml:space="preserve"><value>구리</value></data>
 <data name="ThemeGunmetal" xml:space="preserve"><value>건메탈</value></data>
-<data name="ThemeBrushedNickel" xml:space="preserve"><value>브러시드 니켈</value></data>
 <data name="ThemePorcelain" xml:space="preserve"><value>포슬린</value></data>
 <data name="ThemeMidnightInk" xml:space="preserve"><value>미드나이트 잉크</value></data>
 <data name="ThemeEvergreenInstrument" xml:space="preserve"><value>에버그린 계기판</value></data>

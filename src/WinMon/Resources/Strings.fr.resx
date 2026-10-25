@@ -1575,10 +1575,8 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
   <data name="GaugeLeftBar" xml:space="preserve"><value>Barre à gauche</value></data>
   <data name="GaugeBottomBar" xml:space="preserve"><value>Barre en bas</value></data>
   <data name="GaugeSegmentedBar" xml:space="preserve"><value>Barre segmentée</value></data>
-<data name="ThemeBrushedSteel" xml:space="preserve"><value>Acier brossé</value></data>
 <data name="ThemeCopper" xml:space="preserve"><value>Cuivre</value></data>
 <data name="ThemeGunmetal" xml:space="preserve"><value>Acier canon</value></data>
-<data name="ThemeBrushedNickel" xml:space="preserve"><value>Nickel brossé</value></data>
 <data name="ThemePorcelain" xml:space="preserve"><value>Porcelaine</value></data>
 <data name="ThemeMidnightInk" xml:space="preserve"><value>Encre de minuit</value></data>
 <data name="ThemeEvergreenInstrument" xml:space="preserve"><value>Instrument vert forêt</value></data>

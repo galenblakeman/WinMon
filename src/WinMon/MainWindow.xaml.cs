@@ -800,10 +800,7 @@ public partial class MainWindow
                 app.Resources["TitleBarSurface"] = ThemeFinishes.ChromeBrush(finish, false);
                 app.Resources["SectionHeaderSurface"] = ThemeFinishes.ChromeBrush(finish, true);
             }
-            if (finish is { Brushed: true } && _preferences.Theme is ("BrushedSteel" or "BrushedNickel"))
-                app.Resources["PlotSurface"] = ThemeFinishes.PlotBrush(finish);
-            else
-                SetBrush("PlotSurface", finish?.Plot ?? (light ? "#FFFFFF" : "#15191E"));
+            SetBrush("PlotSurface", finish?.Plot ?? (light ? "#FFFFFF" : "#15191E"));
             SetBrush("SearchSurface", finish?.Search ?? (light ? "#FFFFFF" : "#15191E"));
             SetBrush("SelectedSurface", finish?.Selected ?? (light ? "#1469B5" : "#20262D"));
             SetBrush("SelectedText", finish?.SelectedText ?? (light ? "#FFFFFF" : "#EDF2F6"));
