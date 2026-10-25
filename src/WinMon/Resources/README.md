@@ -1,5 +1,7 @@
 Edit `Strings.resx` for application text, including accessibility names, tooltips, formatted messages, and hardware reports. Numeric placeholders such as `{0:0.0}` preserve number and date formatting.
 
+Use sentence case for English buttons, menus, headings and status labels. Keep product names, palette names, abbreviations and units in their established capitalization; translations follow each language's grammar.
+
 After adding or renaming a resource, regenerate the typed properties from the repository root:
 
 ```powershell
