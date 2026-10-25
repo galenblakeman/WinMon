@@ -472,7 +472,13 @@ public partial class MainWindow
             foreach (var metric in new[] { 0, 1, 2, 5, 3, 4 })
             {
                 if (metric == 5 && _preferences.SecondaryDrive is null) continue;
-                var label = Strings.Format(Strings.ChartFocusResourceChoice, Metrics[metric].Label);
+                var resourceLabel = metric switch
+                {
+                    2 => Strings.Format(Strings.DiskLabel, _preferences.PrimaryDrive),
+                    5 => Strings.Format(Strings.DiskLabel, _preferences.SecondaryDrive!),
+                    _ => Metrics[metric].Label
+                };
+                var label = Strings.Format(Strings.ChartFocusResourceChoice, resourceLabel);
                 ChartTypeSelector.Items.Add(new ComboBoxItem
                 {
                     Content = label, Tag = new ResourceChartChoice(ResourceChartType.Focus, metric),

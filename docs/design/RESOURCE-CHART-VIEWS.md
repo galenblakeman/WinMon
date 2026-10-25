@@ -9,3 +9,5 @@ The implementation uses the existing `CpuGraph` drawing and input path so every 
 `--chart-smoke-output <directory>` exercises the dropdown and capture inspection with native samples. `--snapshot-smoke-output` renders full synthetic histories for each chart type, a selected capture, and a second configured disk.
 
 Landed in `CpuGraph`, `MainWindow`, `MonitorPreferences` and `PreferenceStore`. The production heatmap uses one flat intensity strip per resource instead of the mockup's multi-row blocks, because each recorded interval has one scalar reading per resource. The combined dropdown keeps the chart type and resource visible in its selected label. Compact lane labels omit numeric scale cues when space is tight; the large focus chart retains its axis.
+
+The Focus disk choices take their drive letters from preferences when the menu is built, including the second volume. This keeps the choices distinct before either readout receives its first sample.

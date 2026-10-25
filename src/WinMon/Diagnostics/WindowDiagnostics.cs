@@ -1242,6 +1242,13 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                 item.Tag is ResourceChartChoice { Type: ResourceChartType.Focus }) != 6 ||
             fixture.OverallGraph.VisibleMetrics != 63)
             throw new InvalidOperationException("The second volume is missing from the chart choices.");
+        foreach (var (metric, drive) in new[] { (2, "C:"), (5, "D:") })
+        {
+            var expected = Strings.Format(Strings.ChartFocusResourceChoice,
+                Strings.Format(Strings.DiskLabel, drive));
+            if (!Equals(ChartChoiceItem(fixture, ResourceChartType.Focus, metric).Content, expected))
+                throw new InvalidOperationException($"The {drive} focus choice has the wrong drive label.");
+        }
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "chart-design-two-disks.png"), 1,
             cancellationToken);
         fixture.Preferences = fixture.Preferences with { ResourceChartType = ResourceChartType.Focus };
