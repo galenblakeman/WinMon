@@ -1249,6 +1249,9 @@ Windows 健康状态：{2}</value>
   <data name="PaletteTropical" xml:space="preserve">
     <value>Tropical</value>
   </data>
+  <data name="PaletteCandy" xml:space="preserve">
+    <value>糖果</value>
+  </data>
   <data name="PaletteNeonVividDescription" xml:space="preserve">
     <value>自定义 · 鲜艳的青色、粉色、青柠色和紫色</value>
   </data>
@@ -1257,6 +1260,9 @@ Windows 健康状态：{2}</value>
   </data>
   <data name="PaletteTropicalDescription" xml:space="preserve">
     <value>自定义 · 明亮暖色与蓝色和蓝绿色相平衡</value>
+  </data>
+  <data name="PaletteCandyDescription" xml:space="preserve">
+    <value>自定义 · 酸苹果、蓝覆盆子、泡泡糖和奶油硬糖</value>
   </data>
   <data name="AutomaticallyCheckForUpdates" xml:space="preserve">
     <value>自动检查更新</value>

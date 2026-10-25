@@ -114,6 +114,12 @@
         <SolidColorBrush x:Key="SecondaryDiskAccent" Color="#FFD044" />
         <SolidColorBrush x:Key="NetworkAccent" Color="#F657E5" />
         <SolidColorBrush x:Key="GpuAccent" Color="#00F0C8" />
+        <SolidColorBrush x:Key="CpuChartAccent" Color="#73FF35" />
+        <SolidColorBrush x:Key="MemoryChartAccent" Color="#4285FF" />
+        <SolidColorBrush x:Key="DiskChartAccent" Color="#FF773D" />
+        <SolidColorBrush x:Key="SecondaryDiskChartAccent" Color="#FFD044" />
+        <SolidColorBrush x:Key="NetworkChartAccent" Color="#F657E5" />
+        <SolidColorBrush x:Key="GpuChartAccent" Color="#00F0C8" />
         <Style TargetType="CheckBox">
             <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="Template">

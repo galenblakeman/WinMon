@@ -1249,6 +1249,9 @@ Windows 상태: {2}</value>
   <data name="PaletteTropical" xml:space="preserve">
     <value>Tropical</value>
   </data>
+  <data name="PaletteCandy" xml:space="preserve">
+    <value>캔디</value>
+  </data>
   <data name="PaletteNeonVividDescription" xml:space="preserve">
     <value>사용자 지정 · 선명한 청록색, 분홍색, 라임색, 보라색</value>
   </data>
@@ -1257,6 +1260,9 @@ Windows 상태: {2}</value>
   </data>
   <data name="PaletteTropicalDescription" xml:space="preserve">
     <value>사용자 지정 · 파란색과 틸색으로 균형을 잡은 밝은 따뜻한 색상</value>
+  </data>
+  <data name="PaletteCandyDescription" xml:space="preserve">
+    <value>사용자 지정 · 사워 애플, 블루 라즈베리, 버블검, 버터스카치</value>
   </data>
   <data name="AutomaticallyCheckForUpdates" xml:space="preserve">
     <value>업데이트 자동 확인</value>

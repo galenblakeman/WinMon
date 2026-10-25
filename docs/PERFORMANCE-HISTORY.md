@@ -6,6 +6,22 @@ Dated measurement and validation records, newest first. Each section describes t
 
 Add a section at the top for each measured change: what changed, the machine and build, before and after results, and where the raw reports are.
 
+## Separate chart and readout palette shades (October 25, 2026)
+
+Release UI-thread benchmark on the development machine, comparing `18c35e0` with the working-tree build that added chart-only resource brushes and direct chart brush lookup. Four baseline and four changed runs alternated. The first live scenario varied widely with default JIT tiering, so four more pairs ran with `DOTNET_TieredCompilation=0` as the developer guide recommends. Values below are medians of those no-tiering run medians. These binaries were built before later concurrent palette edits in the checkout.
+
+| Scenario | Before | After | Allocation before | Allocation after |
+| --- | ---: | ---: | ---: | ---: |
+| Live overlay | 3.73 ms | 3.78 ms | 530.8 KiB | 530.5 KiB |
+| Small multiples | 3.96 ms | 3.89 ms | 510.8 KiB | 510.4 KiB |
+| Heatmap | 4.19 ms | 3.93 ms | 553.8 KiB | 553.4 KiB |
+| Focus | 3.94 ms | 3.86 ms | 523.6 KiB | 523.3 KiB |
+| Historical | 1.55 ms | 1.55 ms | 174.0 KiB | 173.7 KiB |
+| Grouped live | 6.66 ms | 6.81 ms | 551.5 KiB | 551.1 KiB |
+| Compact live | 2.26 ms | 2.28 ms | 362.4 KiB | 362.0 KiB |
+
+Other UI scenarios moved by at most 2.5% with no-tiering, apart from the faster heatmap; allocation fell slightly throughout. No repeatable UI-thread regression was measured. Pixel hashes changed in rendered scenarios as expected from the chart colors. Raw reports: `artifacts/perf-palette/baseline-no-tier-1.json` through `-4.json` and `optimized-no-tier-1.json` through `-4.json`; default-tiering comparisons are in the same folder as `baseline-optimized-*.json` and `optimized-*.json`.
+
 ## Translucent appearance themes (October 25, 2026)
 
 Release UI-thread benchmark on the development machine, comparing `21fddde` with the translucent-theme working tree. Four baseline and four changed runs alternated launch order; values are medians of the four run medians. The benchmark used the default Dark theme, so it measures whether adding backdrop support affects the normal sampling presentation path. It does not measure desktop compositor cost while an Acrylic or Mica theme is active.

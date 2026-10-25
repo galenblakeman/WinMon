@@ -1249,6 +1249,9 @@ Fabricant : {1}
   <data name="PaletteTropical" xml:space="preserve">
     <value>Tropical</value>
   </data>
+  <data name="PaletteCandy" xml:space="preserve">
+    <value>Bonbon</value>
+  </data>
   <data name="PaletteNeonVividDescription" xml:space="preserve">
     <value>Personnalisée · cyan, rose, vert citron et violet vifs</value>
   </data>
@@ -1257,6 +1260,9 @@ Fabricant : {1}
   </data>
   <data name="PaletteTropicalDescription" xml:space="preserve">
     <value>Personnalisée · couleurs chaudes lumineuses équilibrées par du bleu et du turquoise</value>
+  </data>
+  <data name="PaletteCandyDescription" xml:space="preserve">
+    <value>Personnalisée · pomme acidulée, framboise bleue, chewing-gum et caramel</value>
   </data>
   <data name="AutomaticallyCheckForUpdates" xml:space="preserve">
     <value>Rechercher automatiquement les mises à jour</value>

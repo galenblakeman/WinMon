@@ -183,8 +183,8 @@ public sealed class CpuGraph : FrameworkElement
         {
             var key = tileMetric switch
             {
-                0 => "CpuAccent", 1 => "MemoryAccent", 2 => "DiskAccent", 3 => "NetworkAccent", 4 => "GpuAccent",
-                _ => "SecondaryDiskAccent"
+                0 => "CpuChartAccent", 1 => "MemoryChartAccent", 2 => "DiskChartAccent",
+                3 => "NetworkChartAccent", 4 => "GpuChartAccent", _ => "SecondaryDiskChartAccent"
             };
             DrawSeries(drawingContext, plot, Resource(key, accent), tileMetric);
         }
@@ -192,8 +192,8 @@ public sealed class CpuGraph : FrameworkElement
         {
             var key = _processSort switch
             {
-                ProcessSort.Gpu => "GpuAccent", ProcessSort.Memory => "MemoryAccent",
-                ProcessSort.Io => "DiskAccent", _ => "CpuAccent"
+                ProcessSort.Gpu => "GpuChartAccent", ProcessSort.Memory => "MemoryChartAccent",
+                ProcessSort.Io => "DiskChartAccent", _ => "CpuChartAccent"
             };
             DrawSeries(drawingContext, plot, Resource(key, accent), 0);
         }
@@ -204,7 +204,8 @@ public sealed class CpuGraph : FrameworkElement
         else
         {
             var keys = new[]
-                { "CpuAccent", "MemoryAccent", "DiskAccent", "NetworkAccent", "GpuAccent", "SecondaryDiskAccent" };
+                { "CpuChartAccent", "MemoryChartAccent", "DiskChartAccent", "NetworkChartAccent",
+                    "GpuChartAccent", "SecondaryDiskChartAccent" };
             // Paint every wash first so later series cannot tint an earlier trace.
             if (!SystemParameters.HighContrast)
                 for (var metric = 0; metric < keys.Length; metric++)
@@ -233,8 +234,8 @@ public sealed class CpuGraph : FrameworkElement
                     if (value is null) continue;
                     var key = metric switch
                     {
-                        0 => "CpuAccent", 1 => "MemoryAccent", 2 => "DiskAccent", 3 => "NetworkAccent",
-                        4 => "GpuAccent", _ => "SecondaryDiskAccent"
+                        0 => "CpuChartAccent", 1 => "MemoryChartAccent", 2 => "DiskChartAccent",
+                        3 => "NetworkChartAccent", 4 => "GpuChartAccent", _ => "SecondaryDiskChartAccent"
                     };
                     drawingContext.DrawEllipse(Resource("Raised", Brushes.Black), CachedPen(Resource(key, accent), 2),
                         new Point(x, plot.Bottom - Math.Clamp(value.Value, 0, 100) / 100 * plot.Height), 3.5, 3.5);
@@ -275,7 +276,7 @@ public sealed class CpuGraph : FrameworkElement
             if (!SystemParameters.HighContrast)
                 DrawSeries(dc, main, MetricBrush(focus, accent), focus, true);
             DrawSeries(dc, main, MetricBrush(focus, accent), focus);
-            Label(dc, MetricName(focus), new Point(plot.Left + 5, plot.Top + 4), MetricBrush(focus, accent));
+            Label(dc, MetricName(focus), new Point(plot.Left + 5, plot.Top + 4), MetricTextBrush(focus, accent));
             var others = metrics.Where(i => i != focus).ToArray();
             for (var index = 0; index < others.Length; index++)
             {
@@ -327,7 +328,8 @@ public sealed class CpuGraph : FrameworkElement
         var color = MetricBrush(metric, accent);
         dc.DrawLine(CachedPen(line, 0.6), lane.TopLeft, lane.TopRight);
         Label(dc, MetricName(metric),
-            new Point(lane.Left - 8, lane.Top + Math.Max(2, lane.Height / 2 - (compact ? 7 : 12))), color, 1);
+            new Point(lane.Left - 8, lane.Top + Math.Max(2, lane.Height / 2 - (compact ? 7 : 12))),
+            MetricTextBrush(metric, accent), 1);
         if (!compact)
             Label(dc, metric == 3 ? RateText.Format(_networkScale) :
                 Strings.Format(Strings.PercentInteger, 100),
@@ -373,11 +375,27 @@ public sealed class CpuGraph : FrameworkElement
         3 => Strings.Network, _ => Strings.GPU
     };
 
-    private Brush MetricBrush(int metric, Brush fallback) => Resource(metric switch
+    private static string MetricBrushKey(int metric) => metric switch
     {
         0 => "CpuAccent", 1 => "MemoryAccent", 2 => "DiskAccent", 3 => "NetworkAccent",
         4 => "GpuAccent", _ => "SecondaryDiskAccent"
+    };
+
+    private static string ChartBrushKey(string key) => key switch
+    {
+        "CpuAccent" => "CpuChartAccent", "MemoryAccent" => "MemoryChartAccent",
+        "DiskAccent" => "DiskChartAccent", "NetworkAccent" => "NetworkChartAccent",
+        "GpuAccent" => "GpuChartAccent", "SecondaryDiskAccent" => "SecondaryDiskChartAccent",
+        _ => key
+    };
+
+    private Brush MetricBrush(int metric, Brush fallback) => Resource(metric switch
+    {
+        0 => "CpuChartAccent", 1 => "MemoryChartAccent", 2 => "DiskChartAccent",
+        3 => "NetworkChartAccent", 4 => "GpuChartAccent", _ => "SecondaryDiskChartAccent"
     }, fallback);
+
+    private Brush MetricTextBrush(int metric, Brush fallback) => Resource(MetricBrushKey(metric), fallback);
 
     private void DrawMarkers(DrawingContext drawingContext, Rect plot)
     {
@@ -395,7 +413,7 @@ public sealed class CpuGraph : FrameworkElement
             }
 
             triangle.Freeze();
-            drawingContext.DrawGeometry(Resource(marker.BrushKey, Brushes.LimeGreen),
+            drawingContext.DrawGeometry(Resource(ChartBrushKey(marker.BrushKey), Brushes.LimeGreen),
                 marker.Selected ? CachedPen(text, 2) : CachedPen(surface, 1), triangle);
         }
     }

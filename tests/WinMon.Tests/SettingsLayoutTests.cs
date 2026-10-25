@@ -155,6 +155,9 @@ public sealed class SettingsLayoutTests
                     Is.EqualTo((Color)ColorConverter.ConvertFromString("#FFFEFA")));
                 Assert.That(((SolidColorBrush)preview.ChartPreview.TryFindResource("MemoryAccent")!).Color,
                     Is.EqualTo((Color)ColorConverter.ConvertFromString("#6745A5")));
+                Assert.That(((SolidColorBrush)preview.ChartPreview.TryFindResource("MemoryChartAccent")!).Color,
+                    Is.EqualTo((Color)ColorConverter.ConvertFromString(
+                        ChartPalettes.ChartColorsForTheme("Ocean", true, ThemeFinishes.For("Porcelain"))[1])));
             }
 
             window.ThemeSelector.SelectedValue = "Gunmetal";

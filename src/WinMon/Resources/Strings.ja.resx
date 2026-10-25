@@ -1249,6 +1249,9 @@ Windows の正常性状態: {2}</value>
   <data name="PaletteTropical" xml:space="preserve">
     <value>Tropical</value>
   </data>
+  <data name="PaletteCandy" xml:space="preserve">
+    <value>キャンディ</value>
+  </data>
   <data name="PaletteNeonVividDescription" xml:space="preserve">
     <value>カスタム · 鮮やかなシアン、ピンク、ライム、バイオレット</value>
   </data>
@@ -1257,6 +1260,9 @@ Windows の正常性状態: {2}</value>
   </data>
   <data name="PaletteTropicalDescription" xml:space="preserve">
     <value>カスタム · 明るい暖色とブルー、ティールのバランス</value>
+  </data>
+  <data name="PaletteCandyDescription" xml:space="preserve">
+    <value>カスタム · サワーアップル、ブルーラズベリー、バブルガム、バタースコッチ</value>
   </data>
   <data name="AutomaticallyCheckForUpdates" xml:space="preserve">
     <value>更新プログラムを自動的に確認する</value>

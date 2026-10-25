@@ -1249,6 +1249,9 @@ Windows-Zustandsstatus: {2}</value>
   <data name="PaletteTropical" xml:space="preserve">
     <value>Tropical</value>
   </data>
+  <data name="PaletteCandy" xml:space="preserve">
+    <value>Bonbon</value>
+  </data>
   <data name="PaletteNeonVividDescription" xml:space="preserve">
     <value>Eigene Palette · leuchtendes Cyan, Pink, Limettengrün und Violett</value>
   </data>
@@ -1257,6 +1260,9 @@ Windows-Zustandsstatus: {2}</value>
   </data>
   <data name="PaletteTropicalDescription" xml:space="preserve">
     <value>Eigene Palette · helle warme Farben mit Blau und Türkis</value>
+  </data>
+  <data name="PaletteCandyDescription" xml:space="preserve">
+    <value>Eigene Palette · Sauerapfel, blaue Himbeere, Kaugummi und Butterscotch</value>
   </data>
   <data name="AutomaticallyCheckForUpdates" xml:space="preserve">
     <value>Automatisch nach Updates suchen</value>

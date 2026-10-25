@@ -198,7 +198,7 @@ public sealed class MetricReadout : Grid
             _plainName.Margin = new Thickness();
             DockPanel.SetDock(ScaleLabel, Dock.Right);
             ScaleLabel.VerticalAlignment = VerticalAlignment.Center;
-            ScaleLabel.Margin = new Thickness(4, 0, 0, 0);
+            ScaleLabel.Margin = new Thickness(4, 0, 8, 0);
             _toggleRow.Children.Add(ScaleLabel);
             _toggleRow.Children.Add(_showSeriesToggle ? Toggle : _plainName);
             Children.Add(_toggleRow);

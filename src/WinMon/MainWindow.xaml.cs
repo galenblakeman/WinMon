@@ -785,7 +785,9 @@ public partial class MainWindow
             app.Resources["Accent"] = SystemColors.HighlightBrush;
             foreach (var key in new[]
                      {
-                         "CpuAccent", "MemoryAccent", "DiskAccent", "NetworkAccent", "GpuAccent", "SecondaryDiskAccent"
+                         "CpuAccent", "MemoryAccent", "DiskAccent", "NetworkAccent", "GpuAccent", "SecondaryDiskAccent",
+                         "CpuChartAccent", "MemoryChartAccent", "DiskChartAccent", "NetworkChartAccent",
+                         "GpuChartAccent", "SecondaryDiskChartAccent"
                      }) app.Resources[key] = SystemColors.WindowTextBrush;
         }
         else
@@ -829,9 +831,14 @@ public partial class MainWindow
             SetBrush("Line", finish?.Line ?? (light ? "#CCD9E5" : "#35404B"));
             SetBrush("GaugeTrack", finish?.GaugeTrack ?? (light ? "#CCD9E5" : "#35404B"));
             var colors = ChartPalettes.ColorsForTheme(_preferences.ChartPalette, light, finish);
+            var chartColors = ChartPalettes.ChartColorsForTheme(_preferences.ChartPalette, light, finish);
             var keys = new[]
                 { "CpuAccent", "MemoryAccent", "DiskAccent", "NetworkAccent", "GpuAccent", "SecondaryDiskAccent" };
-            for (var i = 0; i < keys.Length; i++) SetBrush(keys[i], colors[i]);
+            for (var i = 0; i < keys.Length; i++)
+            {
+                SetBrush(keys[i], colors[i]);
+                SetBrush(keys[i].Replace("Accent", "ChartAccent", StringComparison.Ordinal), chartColors[i]);
+            }
             var uiAccent = finish?.UiAccent ?? (light ? "#1469B5" : colors[0]);
             SetBrush("Accent", uiAccent);
             SetBrush("SnapshotAccent", uiAccent);

@@ -19,6 +19,8 @@ Show the selected theme, chart palette and resource gauge style together before 
 - Changing any of the three selectors updates the sample immediately. Palette changes also retain the existing palette swatches.
 - The `gauges` smoke captures Dark and a Porcelain/Ocean/Needle combination in Settings; layout tests check the unsaved resources and gauge style. The chart palette test covers every palette against every theme panel and plot.
 
+Later refinement: the preview now uses separate chart and readout shades. Chart strokes and Settings swatches keep more of the palette color while gauge text keeps its stronger contrast threshold; chart labels use the text shade.
+
 ## Departures
 
 The chart is shorter to keep the six readouts within the existing Settings dialog.

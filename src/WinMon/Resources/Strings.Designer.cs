@@ -367,6 +367,8 @@ public static partial class Strings
     public static string PaletteArcade => ResourceManager.GetString(nameof(PaletteArcade), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PaletteArcadeDescription => ResourceManager.GetString(nameof(PaletteArcadeDescription), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PaletteBotanical => ResourceManager.GetString(nameof(PaletteBotanical), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string PaletteCandy => ResourceManager.GetString(nameof(PaletteCandy), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string PaletteCandyDescription => ResourceManager.GetString(nameof(PaletteCandyDescription), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PaletteClassic => ResourceManager.GetString(nameof(PaletteClassic), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PaletteColorblind => ResourceManager.GetString(nameof(PaletteColorblind), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PaletteEarth => ResourceManager.GetString(nameof(PaletteEarth), Culture ?? CultureInfo.CurrentUICulture)!;

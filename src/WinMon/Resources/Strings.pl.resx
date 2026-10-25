@@ -1249,6 +1249,9 @@ Stan według Windows: {2}</value>
   <data name="PaletteTropical" xml:space="preserve">
     <value>Tropical</value>
   </data>
+  <data name="PaletteCandy" xml:space="preserve">
+    <value>Cukierek</value>
+  </data>
   <data name="PaletteNeonVividDescription" xml:space="preserve">
     <value>Własna · żywy cyjan, róż, limonka i fiolet</value>
   </data>
@@ -1257,6 +1260,9 @@ Stan według Windows: {2}</value>
   </data>
   <data name="PaletteTropicalDescription" xml:space="preserve">
     <value>Własna · jasne ciepłe kolory zrównoważone błękitem i turkusem</value>
+  </data>
+  <data name="PaletteCandyDescription" xml:space="preserve">
+    <value>Własna · kwaśne jabłko, niebieska malina, guma balonowa i toffi</value>
   </data>
   <data name="AutomaticallyCheckForUpdates" xml:space="preserve">
     <value>Automatycznie sprawdzaj aktualizacje</value>

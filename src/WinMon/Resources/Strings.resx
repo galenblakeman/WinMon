@@ -1249,6 +1249,9 @@ Windows health status: {2}</value>
   <data name="PaletteTropical" xml:space="preserve">
     <value>Tropical</value>
   </data>
+  <data name="PaletteCandy" xml:space="preserve">
+    <value>Candy</value>
+  </data>
   <data name="PaletteNeonVividDescription" xml:space="preserve">
     <value>Custom · vivid cyan, pink, lime, and violet</value>
   </data>
@@ -1257,6 +1260,9 @@ Windows health status: {2}</value>
   </data>
   <data name="PaletteTropicalDescription" xml:space="preserve">
     <value>Custom · bright warm colors balanced with blue and teal</value>
+  </data>
+  <data name="PaletteCandyDescription" xml:space="preserve">
+    <value>Custom · sour apple, blue raspberry, bubblegum, and butterscotch</value>
   </data>
   <data name="AutomaticallyCheckForUpdates" xml:space="preserve">
     <value>Automatically check for updates</value>
