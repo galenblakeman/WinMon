@@ -764,6 +764,8 @@ public partial class MainWindow
             app.Resources["Text"] = SystemColors.WindowTextBrush;
             app.Resources["Muted"] = SystemColors.WindowTextBrush;
             app.Resources["Line"] = SystemColors.WindowTextBrush;
+            // Resource colors are all WindowText here, so a gauge's empty part needs a different system color.
+            app.Resources["GaugeTrack"] = SystemColors.GrayTextBrush;
             app.Resources["Accent"] = SystemColors.HighlightBrush;
             foreach (var key in new[]
                      {
@@ -785,6 +787,7 @@ public partial class MainWindow
             SetBrush("Text", light ? "#20334A" : "#EDF2F6");
             SetBrush("Muted", light ? "#465D78" : "#B3BDC8");
             SetBrush("Line", light ? "#CCD9E5" : "#35404B");
+            SetBrush("GaugeTrack", light ? "#CCD9E5" : "#35404B");
             var colors = ChartPalettes.Colors(_preferences.ChartPalette, light);
             var keys = new[]
                 { "CpuAccent", "MemoryAccent", "DiskAccent", "NetworkAccent", "GpuAccent", "SecondaryDiskAccent" };

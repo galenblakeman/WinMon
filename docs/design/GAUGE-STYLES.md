@@ -54,3 +54,4 @@ Settings saved before this choice existed load as Bowl, so everyone sees the new
 - The bowl first flattened to fill the tile's width, about 1.6 times as wide as tall. It was made nearly round to match the needle.
 - For a while the segmented arc shared the needle's layout, with its detail in the tooltip. It now shares the bowl's layout instead, so it keeps its detail line.
 - The mockups' scale label read "100 Mbps", which was wider than a small arc and overlapped the bowl's resource name. It now reads "100M".
+- The empty part of a gauge first used the `Line` brush. High contrast sets `Line` and every resource color to WindowText, so the bowl, segmented arc and both bars drew full whatever the reading. The track now has its own `GaugeTrack` brush: the same color as `Line` in the normal themes, and GrayText in high contrast.

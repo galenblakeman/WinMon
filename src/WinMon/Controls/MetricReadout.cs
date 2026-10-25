@@ -40,7 +40,7 @@ public sealed class MetricReadout : Grid
     {
         Height = LayoutHeight;
         Gauge.SetResourceReference(MetricGauge.TrackProperty, "SectionHeaderSurface");
-        Gauge.SetResourceReference(MetricGauge.OutlineProperty, "Line");
+        Gauge.SetResourceReference(MetricGauge.OutlineProperty, "GaugeTrack");
         Gauge.SetResourceReference(MetricGauge.MarkProperty, "Text");
         ScaleLabel.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
         DetailLabel.SetResourceReference(TextBlock.ForegroundProperty, "Text");
