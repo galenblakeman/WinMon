@@ -364,6 +364,8 @@ public sealed class UpdateTests
 
     private static void Age(string directory) => Directory.SetCreationTimeUtc(directory, DateTime.UtcNow.AddHours(-1));
 
+#if !WINMON_STORE
+    // Store builds reject every check before contacting GitHub; StoreBuildTests covers that.
     [Test]
     public async Task CheckAsync_ReturnsOnlySignedNewerEligibleRelease_AndUsesEtagCache()
     {
@@ -411,6 +413,7 @@ public sealed class UpdateTests
         using var oversized = new UpdateClient(new HttpClient(new DelegateHandler(_ => BytesResponse(Encoding.UTF8.GetBytes(excessive)))), "unused", _directory);
         Assert.ThatAsync(() => oversized.CheckAsync("1.0.2", CancellationToken.None), Throws.InstanceOf<InvalidDataException>());
     }
+#endif
 
     private static (byte[] Bytes, string Signature) SignedManifest(RSA key, string version)
     {
