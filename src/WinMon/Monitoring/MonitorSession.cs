@@ -92,7 +92,8 @@ internal sealed class MonitorSession(
     /// <summary>Capture until cancelled. Completes without throwing when cancelled.</summary>
     internal Task Run(CancellationToken cancellationToken)
     {
-        return Task.Run(() => CollectAsync(cancellationToken), cancellationToken);
+        // No token for Task.Run: cancelled before it starts, it would return a cancelled task, not complete.
+        return Task.Run(() => CollectAsync(cancellationToken));
     }
 
     /// <summary>Ignore captures that are still queued or arrive later, while the owner shuts down.</summary>
@@ -120,7 +121,7 @@ internal sealed class MonitorSession(
 
     private async Task CollectAsync(CancellationToken cancellationToken)
     {
-        using var source = createSource();
+        IFrameSource? source = null;
         using var timer = new PeriodicTimer(_interval);
         try
         {
@@ -130,6 +131,9 @@ internal sealed class MonitorSession(
                 try
                 {
                     var current = options();
+                    // Created inside the loop, so a source that cannot start is reported and retried each second
+                    // like a failed capture instead of ending sampling unseen.
+                    source ??= createSource();
                     var frame = source.Capture(current);
                     Deliver(new Pending(
                         ProcessRetention.Compact(frame.Full, retain: current.Retain, retainAll: current.RetainAll),
@@ -142,13 +146,49 @@ internal sealed class MonitorSession(
                 catch (Exception ex)
                 {
                     Trace.TraceError("WinMon CPU sampling failed: {0}", ex);
-                    source.Reset();
+                    if (!TryReset(source))
+                    {
+                        // A source that cannot drop its baselines is replaced on the next tick.
+                        TryDispose(source);
+                        source = null;
+                    }
+
                     Deliver(new Pending(null, SamplingError.ReadingsUnavailable));
                 }
             } while (await timer.WaitForNextTickAsync(cancellationToken));
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
+        }
+        finally
+        {
+            TryDispose(source);
+        }
+    }
+
+    private static bool TryReset(IFrameSource? source)
+    {
+        try
+        {
+            source?.Reset();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Trace.TraceError("WinMon could not reset sampling: {0}", ex);
+            return false;
+        }
+    }
+
+    private static void TryDispose(IFrameSource? source)
+    {
+        try
+        {
+            source?.Dispose();
+        }
+        catch (Exception ex)
+        {
+            Trace.TraceError("WinMon could not release sampling resources: {0}", ex);
         }
     }
 

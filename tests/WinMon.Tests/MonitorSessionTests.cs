@@ -51,6 +51,50 @@ public sealed class MonitorSessionTests
     }
 
     [Test]
+    public async Task SourceThatCannotStart_IsReportedAndRetried()
+    {
+        var harness = new Harness { FailedCreates = 1 };
+
+        await harness.RunToEnd();
+        harness.Drain();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(harness.Session.Error, Is.EqualTo(SamplingError.ReadingsUnavailable));
+            Assert.That(harness.Creates, Is.EqualTo(2), "The next tick creates the source again.");
+            Assert.That(harness.RecordedCount, Is.EqualTo(1));
+        });
+    }
+
+    [Test]
+    public async Task SourceThatCannotReset_IsReplaced()
+    {
+        var harness = new Harness(_ => throw new InvalidOperationException("Native read failed."), Frame(2));
+        harness.Source.FailReset = true;
+
+        await harness.RunToEnd();
+        harness.Drain();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(harness.Creates, Is.EqualTo(2));
+            Assert.That(harness.Session.Error, Is.Null);
+            Assert.That(harness.Session.History.Samples, Has.Count.EqualTo(1));
+        });
+    }
+
+    [Test]
+    public void Run_CancelledBeforeItStarts_CompletesWithoutThrowing()
+    {
+        var harness = new Harness(Frame(1));
+        using var cancelled = new CancellationTokenSource();
+        cancelled.Cancel();
+
+        Assert.That(async () => await harness.Session.Run(cancelled.Token).WaitAsync(TimeSpan.FromSeconds(10)),
+            Throws.Nothing);
+    }
+
+    [Test]
     public async Task SuccessfulCapture_ClearsAnEarlierFailure()
     {
         var harness = new Harness(_ => throw new InvalidOperationException("Native read failed."), Frame(2));
@@ -252,6 +296,7 @@ public sealed class MonitorSessionTests
     {
         private readonly CancellationTokenSource _cancellation = new();
         private int _optionReads;
+        private int _creates;
 
         internal Harness(params Func<SamplingOptions, CapturedFrame>[] script) : this(new SamplingOptions(), script)
         {
@@ -260,7 +305,9 @@ public sealed class MonitorSessionTests
         internal Harness(SamplingOptions options, params Func<SamplingOptions, CapturedFrame>[] script)
         {
             Source = new FakeSource(script, _cancellation);
-            Session = new MonitorSession(() => Source, () =>
+            Session = new MonitorSession(() => Interlocked.Increment(ref _creates) <= FailedCreates
+                ? throw new InvalidOperationException("Sampling could not start.")
+                : Source, () =>
             {
                 Interlocked.Increment(ref _optionReads);
                 return options;
@@ -273,6 +320,10 @@ public sealed class MonitorSessionTests
         internal ConcurrentQueue<Action> Posted { get; } = new();
         internal int RecordedCount { get; private set; }
         internal int OptionReads => Volatile.Read(ref _optionReads);
+        internal int Creates => Volatile.Read(ref _creates);
+
+        /// <summary>How many times creating the source throws before it succeeds.</summary>
+        internal int FailedCreates { get; init; }
 
         internal async Task RunToEnd()
         {
@@ -294,6 +345,7 @@ public sealed class MonitorSessionTests
         internal List<SamplingOptions> Options { get; } = [];
         internal int Resets { get; private set; }
         internal bool Disposed { get; private set; }
+        internal bool FailReset { get; set; }
 
         public CapturedFrame Capture(SamplingOptions options)
         {
@@ -310,6 +362,7 @@ public sealed class MonitorSessionTests
         public void Reset()
         {
             Resets++;
+            if (FailReset) throw new InvalidOperationException("Baselines could not be dropped.");
         }
 
         public void Dispose()

@@ -1015,7 +1015,15 @@ public partial class MainWindow
         try
         {
             await Lifetime.CancelAsync();
-            if (SamplingTask is not null) await SamplingTask;
+            try
+            {
+                if (SamplingTask is not null) await SamplingTask;
+            }
+            catch (Exception samplingError)
+            {
+                // Sampling has stopped either way; a fault must not skip the saves below.
+                Trace.TraceError("WinMon sampling ended with an error: {0}", samplingError);
+            }
             await ProcessDumpDialog.WhenWritesFinishAsync();
             await WhenExportsFinishAsync();
             // History no longer changes, and the helper waits for Commit below before replacing the executable.
