@@ -79,13 +79,13 @@ CPU and I/O values and rankings use the same five-second averaging window as Pro
 
 *Illustrative service identities and measurements, captured from the native WinMon window.*
 
-Search by service name, display name, process name or PID, filter by status, and sort by CPU, memory or I/O. Services sharing a host appear under one host total, with no separate resource attribution to each service. Worker relationships are inferred from observed process ancestry.
+Search by service name, display name, process name or PID, filter by status, and sort by CPU, memory, I/O or name when showing all services. Services sharing a host appear under one host total, with no separate resource attribution to each service. Worker relationships are inferred from observed process ancestry.
 
-The **Top … services by …** toolbar defaults to 20 service/host rows, with choices from 5 to 50. Click the CPU, private-memory, or I/O column header to change ranking; the dropdown and active-column arrow stay in sync. Search and status filters apply before the limit; expanded workers do not count against it. The search field grows with the window, and controls wrap below the ranking selectors when space is limited.
+The **Top … services by …** toolbar defaults to 20 service/host rows, with choices from 5 to 50 and **All**. Click a CPU, private-memory, I/O or Name column header to change sorting; Name sorting is available with **All**. The dropdown and active-column arrow stay in sync. Search and status filters apply before the limit; expanded workers do not count against it. The search field grows with the window, and controls wrap below the ranking selectors when space is limited.
 
 The selected service stays in the action bar when ranking or filters hide its row. Its status and action targets continue to refresh, including after a host restart. Selecting another row changes the target; historical or unavailable data disables service controls.
 
-Right-click a service or process row for the same **View process**, **Copy details**, **Start**, **Stop**, and **Restart** actions. Right-click selects the row; the menu keeps its captured target if the rankings change. Shared-host and process rows disable individual service controls. Service controls use the same availability checks and confirmations as the action bar.
+The service action bar offers **Properties**, **Copy details**, **Start**, **Stop** and **Restart**. Properties opens a read-only detail window. Right-click a service or process row for **View process**, **Copy details**, **Start**, **Stop** and **Restart**. Right-click selects the row; the menu keeps its captured target if the rankings change. Shared-host and process rows disable individual service controls. Service controls use the same availability checks and confirmations as the action bar.
 
 **View process** opens the corresponding PID in the process view. **Copy details** copies the selected service or process identity, status, observation time, resource metrics, and associated services/processes, including while inspecting history. Start, Stop and Restart operate on the selected service; Stop and Restart require confirmation, and Windows requests elevation when needed. Service controls are disabled while inspecting history. Service history retains up to two minutes, subject to a separate memory bound; older service captures are unavailable. Driver services are outside this view.
 
@@ -95,7 +95,7 @@ Choose **Usage** beside **Processes** and **Services** to see each app's total *
 
 **Share** compares an app's CPU time with all the time the machine was busy. **Not attributed** at the bottom holds busy time WinMon could not assign to an app, such as processes that started and exited between samples. Rank by any column, search by name or path, turn on **App only**, and use **Copy usage** for a plain-text report. **Reset** starts the totals again from now.
 
-Right-click an app for **Show in Processes**: a running app opens live with its group selected, and an exited app opens Capture at the moment it was last active, while that moment is still in history. Totals continue across in-app updates and are cleared when WinMon exits.
+Select an app for **Properties**, **Copy details** and **Open file location** in the action bar. Properties opens a read-only detail window. Right-click an app for **Show in Processes**: a running app opens live with its group selected, and an exited app opens Capture at the moment it was last active, while that moment is still in history. Totals continue across in-app updates and are cleared when WinMon exits.
 
 ![WinMon Usage view showing session CPU time, I/O, GPU time and app rankings](docs/example/example_usage.png)
 
@@ -136,15 +136,15 @@ See [Light appearance and additional palettes](docs/example/README.md) in the ex
 
 The three custom palettes keep their supplied colors in both themes. Open an image for the full-size view.
 
-![WinMon Settings with the Neon palette swatches, theme selection, keyboard shortcut and two configured disks](docs/example/example_settings.png)
+![WinMon Settings with language, theme, Neon palette and resource gauge preview](docs/example/example_settings.png)
 
 The Settings image above is from the installer/portable configuration. Store builds hide the GitHub update controls and use Store-managed updates:
 
-![WinMon Store Settings with appearance, language and monitoring options, without GitHub update controls](docs/example/example_settings_store.png)
+![WinMon Store Settings with appearance, language and gauge options, without an Updates section](docs/example/example_settings_store.png)
 
 </details>
 
-Settings is organized into **General**, **Monitoring**, **Automatic captures** and **Updates** sections in a sidebar, with one Save for all of them. Choose disk volumes, history retention, automatic captures, startup at sign-in and notification-area behavior there. The default show/hide shortcut is **Ctrl+Shift+M**.
+Settings is organized into **General**, **Monitoring** and **Automatic captures** sections in a sidebar, plus **Updates** in installer and portable builds, with one Save for all of them. Choose disk volumes, history retention, automatic captures, startup at sign-in and notification-area behavior there. The default show/hide shortcut is **Ctrl+Shift+M**.
 
 Choose **Windows display language** or select English, Simplified Chinese, Russian, Spanish, Brazilian Portuguese, German, Japanese, French, Polish or Korean in Settings. Language changes apply when you save.
 
@@ -198,7 +198,7 @@ The published app is at `src/WinMon/bin/Release/net10.0-windows/win-x64/publish/
 
 ## Open source
 
-WinMon **3.0.0** is built with C# and WPF on .NET 10, and released under the [MIT License](LICENSE).
+WinMon **3.1.0** is built with C# and WPF on .NET 10, and released under the [MIT License](LICENSE).
 
 ### Code signing policy
 

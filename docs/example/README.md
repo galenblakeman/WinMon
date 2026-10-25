@@ -1,13 +1,13 @@
 # WinMon screenshot examples
 
-Refreshed October 24, 2026, using WinMon 3.0.0 built from the current WPF source. The main gallery uses the ordinary installer/portable configuration; the separate Store Settings capture uses `StoreBuild=true`. These examples use illustrative process identities and measurements so the screenshots are consistent and do not expose a user's running processes. They are UI examples, not performance measurements or proof of installed MSIX behavior.
+Refreshed October 25, 2026, using WinMon 3.1.0 built from the current WPF source. The main gallery uses the ordinary installer/portable configuration; the separate Store Settings capture uses `StoreBuild=true`. These examples use illustrative process identities and measurements so the screenshots are consistent and do not expose a user's running processes. They are UI examples, not performance measurements or proof of installed MSIX behavior.
 
 | File | View |
 | --- | --- |
 | [example_individual.png](example_individual.png) | Dark live dashboard with Processes / Services / Usage tabs, individual process rankings and a selected-process action bar. |
 | [example_grouped.png](example_grouped.png) | The same recording grouped by executable, with App / Background labels and private-memory totals. |
-| [example_services.png](example_services.png) | Services view with a Top N toolbar, clickable metric headers, an expanded worker tree, five-second CPU/I/O averages and a selected-service action bar with Copy details and service controls. |
-| [example_usage.png](example_usage.png) | Usage view with session totals, app rankings, CPU share and the Not attributed row. |
+| [example_services.png](example_services.png) | Services view with a Top N toolbar, clickable metric headers, an expanded worker tree, five-second CPU/I/O averages and a selected-service action bar with Properties, Copy details and service controls. |
+| [example_usage.png](example_usage.png) | Usage view with session totals, app rankings, CPU share, the Not attributed row and a selected-app action bar. |
 | [example_snapshot.png](example_snapshot.png) | An earlier spike selected in Capture mode, with the bracket-and-dot glyph, Copy capture / Return to live buttons and pinned process rows, while the top readouts remain live. |
 | [example_apps_only.png](example_apps_only.png) | Chrome search with App only enabled in Grouped mode. |
 | [example_pinned.png](example_pinned.png) | Visual Studio Code and Google Chrome pinned in insertion order above the CPU rankings. |
@@ -18,8 +18,8 @@ Refreshed October 24, 2026, using WinMon 3.0.0 built from the current WPF source
 | [example_neon.png](example_neon.png) | Neon palette. |
 | [example_arcade.png](example_arcade.png) | Arcade palette. |
 | [example_tropical.png](example_tropical.png) | Tropical palette. |
-| [example_settings.png](example_settings.png) | Settings with language selection, Neon swatches, keyboard shortcut, dual disks and automatic update controls. |
-| [example_settings_store.png](example_settings_store.png) | Store Settings with the same appearance and monitoring options, without GitHub update controls. |
+| [example_settings.png](example_settings.png) | Installer/portable Settings with language selection, Neon swatches, gauge preview and an Updates section. |
+| [example_settings_store.png](example_settings_store.png) | Store Settings with the same appearance options and gauge preview, without an Updates section. |
 
 The process dashboard and compact views use the same illustrative recording. Services and Usage use separate illustrative recordings. Settings uses the real window and controls; its disk choices reflect the capture machine. Screenshots capture the complete Windows-composed window, including native caption buttons, and use the current responsive layout. Generic process icons are used for the illustrative executable paths.
 
@@ -31,20 +31,21 @@ If Windows denies foreground activation, Services diagnostics can save separatel
 
 ## Current UI highlights
 
-- The title bar shows version 3.0.0, the Compact view / Full view toggle, and Always on top with a stacked-window glyph and highlighted enabled state.
+- The title bar shows version 3.1.0, the Compact view / Full view toggle, and Always on top with a stacked-window glyph and highlighted enabled state.
 - Processes, Services and Usage share a divider and a tab strip with heading-sized labels and an accent underline.
 - Process rows include thread and handle counts, App / Background labels, grouping, search and pins. Pin accents follow the theme and chart palette.
 - Capture mode keeps the live readouts visible while showing an earlier interval and its process rankings; Copy capture exports the selected interval.
 - The process action bar offers Properties, Copy details, More and End process/group. More contains file location and eligible memory-dump creation; pinning remains in the row menu.
-- The service action bar and row menu share View process, Copy details, Start, Stop and Restart actions. Both views retain the action-bar target when it falls out of rank or is filtered out.
+- The service action bar offers Properties, Copy details, Start, Stop and Restart; the row menu offers View process, Copy details and service controls. Services and Processes retain the action-bar target when it falls out of rank or is filtered out.
+- The Usage action bar offers Properties, Copy details and Open file location for the selected app.
 - Action buttons share icon styling, height, padding and spacing, including Copy capture and Return to live.
-- Installer/portable Settings retains GitHub update controls; Store Settings omits them.
+- Installer/portable Settings has an Updates section with GitHub controls; Store Settings omits that section.
 
 ### Settings by distribution channel
 
 | Installer / portable | Microsoft Store |
 | --- | --- |
-| ![Installer and portable Settings with GitHub update controls](example_settings.png) | ![Store Settings without GitHub update controls](example_settings_store.png) |
+| ![Installer and portable Settings with an Updates section in the sidebar](example_settings.png) | ![Store Settings without an Updates section in the sidebar](example_settings_store.png) |
 
 ## Regenerate
 

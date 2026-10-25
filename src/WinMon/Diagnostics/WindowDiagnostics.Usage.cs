@@ -64,6 +64,7 @@ internal sealed partial class WindowDiagnostics
             fixture.Show();
             fixture.UsageTab.IsChecked = true;
             var view = fixture.UsageView;
+            view.Rows.SelectedItem = view.Rows.Items.Cast<UsageDisplayRow>().First();
             var checks = new Dictionary<string, object>();
             foreach (var theme in new[] { "Dark", "Light" })
             {
