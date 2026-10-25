@@ -1252,6 +1252,12 @@ Windows-Zustandsstatus: {2}</value>
   <data name="PaletteWildberry" xml:space="preserve">
     <value>Waldbeere</value>
   </data>
+  <data name="PaletteCopper" xml:space="preserve">
+    <value>Kupfer</value>
+  </data>
+  <data name="PaletteGunmetal" xml:space="preserve">
+    <value>Rotguss</value>
+  </data>
   <data name="PaletteNeonVividDescription" xml:space="preserve">
     <value>Eigene Palette · leuchtendes Cyan, Pink, Limettengrün und Violett</value>
   </data>
@@ -1266,6 +1272,12 @@ Windows-Zustandsstatus: {2}</value>
   </data>
   <data name="PaletteWildberryDescription" xml:space="preserve">
     <value>Eigene Palette · Stachelbeere, Heidelbeere, Moltebeere, Himbeere und Schwarze Johannisbeere</value>
+  </data>
+  <data name="PaletteCopperDescription" xml:space="preserve">
+    <value>Eigene Palette · Grünspan, Immergrünblau, Messing, Rosé, Aqua und Lavendel</value>
+  </data>
+  <data name="PaletteGunmetalDescription" xml:space="preserve">
+    <value>Eigene Palette · Instrumentengrün, Himmelblau, Bernstein, Magenta, Violett und Rotorange</value>
   </data>
   <data name="AutomaticallyCheckForUpdates" xml:space="preserve">
     <value>Automatisch nach Updates suchen</value>

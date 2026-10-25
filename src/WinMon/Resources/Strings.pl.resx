@@ -1252,6 +1252,12 @@ Stan według Windows: {2}</value>
   <data name="PaletteWildberry" xml:space="preserve">
     <value>Jeżyna</value>
   </data>
+  <data name="PaletteCopper" xml:space="preserve">
+    <value>Miedź</value>
+  </data>
+  <data name="PaletteGunmetal" xml:space="preserve">
+    <value>Grafit</value>
+  </data>
   <data name="PaletteNeonVividDescription" xml:space="preserve">
     <value>Własna · żywy cyjan, róż, limonka i fiolet</value>
   </data>
@@ -1266,6 +1272,12 @@ Stan według Windows: {2}</value>
   </data>
   <data name="PaletteWildberryDescription" xml:space="preserve">
     <value>Własna · agrest, borówka, moroszka, malina i czarna porzeczka</value>
+  </data>
+  <data name="PaletteCopperDescription" xml:space="preserve">
+    <value>Własna · patyna, barwinek, mosiądz, róż, akwamaryna i lawenda</value>
+  </data>
+  <data name="PaletteGunmetalDescription" xml:space="preserve">
+    <value>Własna · zieleń wskaźników, błękit, bursztyn, magenta, fiolet i czerwonopomarańczowy</value>
   </data>
   <data name="AutomaticallyCheckForUpdates" xml:space="preserve">
     <value>Automatycznie sprawdzaj aktualizacje</value>

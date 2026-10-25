@@ -1252,6 +1252,12 @@ Windows 健康状态：{2}</value>
   <data name="PaletteWildberry" xml:space="preserve">
     <value>野莓</value>
   </data>
+  <data name="PaletteCopper" xml:space="preserve">
+    <value>铜</value>
+  </data>
+  <data name="PaletteGunmetal" xml:space="preserve">
+    <value>枪灰</value>
+  </data>
   <data name="PaletteNeonVividDescription" xml:space="preserve">
     <value>自定义 · 鲜艳的青色、粉色、青柠色和紫色</value>
   </data>
@@ -1266,6 +1272,12 @@ Windows 健康状态：{2}</value>
   </data>
   <data name="PaletteWildberryDescription" xml:space="preserve">
     <value>自定义 · 醋栗、蓝莓、云莓、覆盆子和黑加仑</value>
+  </data>
+  <data name="PaletteCopperDescription" xml:space="preserve">
+    <value>自定义 · 铜绿、长春花蓝、黄铜、玫瑰、水绿和薰衣草</value>
+  </data>
+  <data name="PaletteGunmetalDescription" xml:space="preserve">
+    <value>自定义 · 仪表绿、天蓝、琥珀、品红、紫罗兰和橙红</value>
   </data>
   <data name="AutomaticallyCheckForUpdates" xml:space="preserve">
     <value>自动检查更新</value>

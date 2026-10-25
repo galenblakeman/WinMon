@@ -1252,6 +1252,12 @@ Windows health status: {2}</value>
   <data name="PaletteWildberry" xml:space="preserve">
     <value>Wildberry</value>
   </data>
+  <data name="PaletteCopper" xml:space="preserve">
+    <value>Copper</value>
+  </data>
+  <data name="PaletteGunmetal" xml:space="preserve">
+    <value>Gunmetal</value>
+  </data>
   <data name="PaletteNeonVividDescription" xml:space="preserve">
     <value>Custom · vivid cyan, pink, lime, and violet</value>
   </data>
@@ -1266,6 +1272,12 @@ Windows health status: {2}</value>
   </data>
   <data name="PaletteWildberryDescription" xml:space="preserve">
     <value>Custom · gooseberry, blueberry, cloudberry, raspberry, and blackcurrant</value>
+  </data>
+  <data name="PaletteCopperDescription" xml:space="preserve">
+    <value>Custom · verdigris, periwinkle, brass, rose, aqua, and lavender</value>
+  </data>
+  <data name="PaletteGunmetalDescription" xml:space="preserve">
+    <value>Custom · instrument green, sky blue, amber, magenta, violet, and red-orange</value>
   </data>
   <data name="AutomaticallyCheckForUpdates" xml:space="preserve">
     <value>Automatically check for updates</value>

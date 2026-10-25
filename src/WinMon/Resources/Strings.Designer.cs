@@ -390,7 +390,11 @@ public static partial class Strings
     public static string PaletteCandyDescription => ResourceManager.GetString(nameof(PaletteCandyDescription), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PaletteClassic => ResourceManager.GetString(nameof(PaletteClassic), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PaletteColorblind => ResourceManager.GetString(nameof(PaletteColorblind), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string PaletteCopper => ResourceManager.GetString(nameof(PaletteCopper), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string PaletteCopperDescription => ResourceManager.GetString(nameof(PaletteCopperDescription), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PaletteEarth => ResourceManager.GetString(nameof(PaletteEarth), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string PaletteGunmetal => ResourceManager.GetString(nameof(PaletteGunmetal), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string PaletteGunmetalDescription => ResourceManager.GetString(nameof(PaletteGunmetalDescription), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PaletteHighContrast => ResourceManager.GetString(nameof(PaletteHighContrast), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PaletteMonochromatic => ResourceManager.GetString(nameof(PaletteMonochromatic), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PaletteNeonVivid => ResourceManager.GetString(nameof(PaletteNeonVivid), Culture ?? CultureInfo.CurrentUICulture)!;

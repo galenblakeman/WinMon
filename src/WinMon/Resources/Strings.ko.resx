@@ -1252,6 +1252,12 @@ Windows 상태: {2}</value>
   <data name="PaletteWildberry" xml:space="preserve">
     <value>와일드베리</value>
   </data>
+  <data name="PaletteCopper" xml:space="preserve">
+    <value>구리</value>
+  </data>
+  <data name="PaletteGunmetal" xml:space="preserve">
+    <value>건메탈</value>
+  </data>
   <data name="PaletteNeonVividDescription" xml:space="preserve">
     <value>사용자 지정 · 선명한 청록색, 분홍색, 라임색, 보라색</value>
   </data>
@@ -1266,6 +1272,12 @@ Windows 상태: {2}</value>
   </data>
   <data name="PaletteWildberryDescription" xml:space="preserve">
     <value>사용자 지정 · 구스베리, 블루베리, 클라우드베리, 라즈베리, 블랙커런트</value>
+  </data>
+  <data name="PaletteCopperDescription" xml:space="preserve">
+    <value>사용자 지정 · 녹청, 페리윙클, 황동, 로즈, 아쿠아, 라벤더</value>
+  </data>
+  <data name="PaletteGunmetalDescription" xml:space="preserve">
+    <value>사용자 지정 · 계기판 초록, 하늘색, 호박색, 마젠타, 보라, 주홍</value>
   </data>
   <data name="AutomaticallyCheckForUpdates" xml:space="preserve">
     <value>업데이트 자동 확인</value>

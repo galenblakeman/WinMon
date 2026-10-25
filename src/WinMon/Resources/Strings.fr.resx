@@ -1252,6 +1252,12 @@ Fabricant : {1}
   <data name="PaletteWildberry" xml:space="preserve">
     <value>Mûre</value>
   </data>
+  <data name="PaletteCopper" xml:space="preserve">
+    <value>Cuivre</value>
+  </data>
+  <data name="PaletteGunmetal" xml:space="preserve">
+    <value>Graphite</value>
+  </data>
   <data name="PaletteNeonVividDescription" xml:space="preserve">
     <value>Personnalisée · cyan, rose, vert citron et violet vifs</value>
   </data>
@@ -1266,6 +1272,12 @@ Fabricant : {1}
   </data>
   <data name="PaletteWildberryDescription" xml:space="preserve">
     <value>Personnalisée · groseille à maquereau, myrtille, plaquebière, framboise et cassis</value>
+  </data>
+  <data name="PaletteCopperDescription" xml:space="preserve">
+    <value>Personnalisée · vert-de-gris, pervenche, laiton, rose, aqua et lavande</value>
+  </data>
+  <data name="PaletteGunmetalDescription" xml:space="preserve">
+    <value>Personnalisée · vert instrument, bleu ciel, ambre, magenta, violet et rouge orangé</value>
   </data>
   <data name="AutomaticallyCheckForUpdates" xml:space="preserve">
     <value>Rechercher automatiquement les mises à jour</value>

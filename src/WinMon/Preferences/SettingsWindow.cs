@@ -205,11 +205,15 @@ public sealed class SettingsWindow : Window
                                         ?? throw new InvalidOperationException(
                                             "Palette choice template was not found.");
         UpdatePalettePreviews();
+        var previousTheme = _themeSelector.SelectedValue as string;
         _themeSelector.SelectionChanged += (_, _) =>
         {
-            // A theme with its own palette suggests it; the user can still pick another before Save.
-            if (ChartPalettes.ForTheme(_themeSelector.SelectedValue as string) is { } matching)
-                _paletteSelector.SelectedValue = matching;
+            // Follow the theme's palette only while the user has kept the default or the previous theme's pair.
+            var theme = _themeSelector.SelectedValue as string;
+            if (_paletteSelector.SelectedValue is "Classic" ||
+                _paletteSelector.SelectedValue as string == ChartPalettes.ForTheme(previousTheme))
+                _paletteSelector.SelectedValue = ChartPalettes.ForTheme(theme);
+            previousTheme = theme;
             UpdatePalettePreviews();
             UpdateAppearancePreview();
         };

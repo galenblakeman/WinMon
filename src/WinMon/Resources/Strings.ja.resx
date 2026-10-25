@@ -1252,6 +1252,12 @@ Windows の正常性状態: {2}</value>
   <data name="PaletteWildberry" xml:space="preserve">
     <value>ワイルドベリー</value>
   </data>
+  <data name="PaletteCopper" xml:space="preserve">
+    <value>銅</value>
+  </data>
+  <data name="PaletteGunmetal" xml:space="preserve">
+    <value>ガンメタル</value>
+  </data>
   <data name="PaletteNeonVividDescription" xml:space="preserve">
     <value>カスタム · 鮮やかなシアン、ピンク、ライム、バイオレット</value>
   </data>
@@ -1266,6 +1272,12 @@ Windows の正常性状態: {2}</value>
   </data>
   <data name="PaletteWildberryDescription" xml:space="preserve">
     <value>カスタム · グーズベリー、ブルーベリー、クラウドベリー、ラズベリー、カシス</value>
+  </data>
+  <data name="PaletteCopperDescription" xml:space="preserve">
+    <value>カスタム · 緑青、ペリウィンクル、真鍮、ローズ、アクア、ラベンダー</value>
+  </data>
+  <data name="PaletteGunmetalDescription" xml:space="preserve">
+    <value>カスタム · 計器のグリーン、スカイブルー、アンバー、マゼンタ、バイオレット、レッドオレンジ</value>
   </data>
   <data name="AutomaticallyCheckForUpdates" xml:space="preserve">
     <value>更新プログラムを自動的に確認する</value>

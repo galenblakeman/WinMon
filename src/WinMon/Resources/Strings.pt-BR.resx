@@ -1252,6 +1252,12 @@ Integridade segundo o Windows: {2}</value>
   <data name="PaletteWildberry" xml:space="preserve">
     <value>Amora</value>
   </data>
+  <data name="PaletteCopper" xml:space="preserve">
+    <value>Cobre</value>
+  </data>
+  <data name="PaletteGunmetal" xml:space="preserve">
+    <value>Grafite</value>
+  </data>
   <data name="PaletteNeonVividDescription" xml:space="preserve">
     <value>Personalizada · ciano, rosa, lima e violeta vivos</value>
   </data>
@@ -1266,6 +1272,12 @@ Integridade segundo o Windows: {2}</value>
   </data>
   <data name="PaletteWildberryDescription" xml:space="preserve">
     <value>Personalizada · groselha-espinhosa, mirtilo, amora-ártica, framboesa e cassis</value>
+  </data>
+  <data name="PaletteCopperDescription" xml:space="preserve">
+    <value>Personalizada · verdete, azul-pervinca, latão, rosa, água-marinha e lavanda</value>
+  </data>
+  <data name="PaletteGunmetalDescription" xml:space="preserve">
+    <value>Personalizada · verde de painel, azul-celeste, âmbar, magenta, violeta e vermelho-alaranjado</value>
   </data>
   <data name="AutomaticallyCheckForUpdates" xml:space="preserve">
     <value>Verificar atualizações automaticamente</value>

@@ -1252,6 +1252,12 @@ GPU {11} · {12}
   <data name="PaletteWildberry" xml:space="preserve">
     <value>Ежевика</value>
   </data>
+  <data name="PaletteCopper" xml:space="preserve">
+    <value>Медь</value>
+  </data>
+  <data name="PaletteGunmetal" xml:space="preserve">
+    <value>Графит</value>
+  </data>
   <data name="PaletteNeonVividDescription" xml:space="preserve">
     <value>Своя палитра · яркие голубой, розовый, лаймовый и фиолетовый</value>
   </data>
@@ -1266,6 +1272,12 @@ GPU {11} · {12}
   </data>
   <data name="PaletteWildberryDescription" xml:space="preserve">
     <value>Своя палитра · крыжовник, черника, морошка, малина и чёрная смородина</value>
+  </data>
+  <data name="PaletteCopperDescription" xml:space="preserve">
+    <value>Своя палитра · патина, барвинок, латунь, розовый, аква и лаванда</value>
+  </data>
+  <data name="PaletteGunmetalDescription" xml:space="preserve">
+    <value>Своя палитра · приборный зелёный, небесно-голубой, янтарный, пурпурный, фиолетовый и красно-оранжевый</value>
   </data>
   <data name="AutomaticallyCheckForUpdates" xml:space="preserve">
     <value>Автоматически проверять обновления</value>

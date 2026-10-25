@@ -29,6 +29,8 @@ These records describe the individual feature increments and their validation at
 - [Combined appearance preview](APPEARANCE-PREVIEW.md), which shows theme, palette and gauge choices together before Save
 - [Palette theme variants](PALETTE-THEME-VARIANTS.md), which give nine palettes hand-tuned light or dark sets and add Candy
 - [Palette accessibility and pairing](PALETTE-ACCESSIBILITY.md), which tests color-blind separation, keeps darkened yellows gold, merges the neon palettes and pairs Candy and Wildberry with their palettes
+- [Copper and Gunmetal palettes](COPPER-GUNMETAL-PALETTES.md), which add palettes made for the two metal themes
+- [Theme palette pairing](THEME-PALETTE-PAIRING.md), which pairs every appearance with a palette and follows it until the user picks their own
 - [Store sign-in startup](STORE-STARTUP.md), which starts the Store build at sign-in through its MSIX startup task
 
 Implemented on 2026-10-24; each note ends with what landed and where it departed from the design:

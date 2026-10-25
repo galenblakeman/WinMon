@@ -1252,6 +1252,12 @@ Estado según Windows: {2}</value>
   <data name="PaletteWildberry" xml:space="preserve">
     <value>Zarzamora</value>
   </data>
+  <data name="PaletteCopper" xml:space="preserve">
+    <value>Cobre</value>
+  </data>
+  <data name="PaletteGunmetal" xml:space="preserve">
+    <value>Grafito</value>
+  </data>
   <data name="PaletteNeonVividDescription" xml:space="preserve">
     <value>Personalizada · cian, rosa, lima y violeta vivos</value>
   </data>
@@ -1266,6 +1272,12 @@ Estado según Windows: {2}</value>
   </data>
   <data name="PaletteWildberryDescription" xml:space="preserve">
     <value>Personalizada · grosella espinosa, arándano, mora de los pantanos, frambuesa y grosella negra</value>
+  </data>
+  <data name="PaletteCopperDescription" xml:space="preserve">
+    <value>Personalizada · verdete, azul pervinca, latón, rosa, aguamarina y lavanda</value>
+  </data>
+  <data name="PaletteGunmetalDescription" xml:space="preserve">
+    <value>Personalizada · verde de instrumento, azul cielo, ámbar, magenta, violeta y rojo anaranjado</value>
   </data>
   <data name="AutomaticallyCheckForUpdates" xml:space="preserve">
     <value>Buscar actualizaciones automáticamente</value>

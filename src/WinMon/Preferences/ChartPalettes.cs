@@ -25,6 +25,8 @@ internal static class ChartPalettes
             "Tropical" => Strings.PaletteTropical,
             "Candy" => Strings.PaletteCandy,
             "Wildberry" => Strings.PaletteWildberry,
+            "Copper" => Strings.PaletteCopper,
+            "Gunmetal" => Strings.PaletteGunmetal,
             _ => Strings.PaletteClassic
         };
     }
@@ -34,7 +36,8 @@ internal static class ChartPalettes
         "Classic", "Ocean", "Colorblind",
         "High-Contrast & Inclusive", "Sophisticated Pastel", "Vibrant Monochromatic Shift",
         "Warm Earth Tones", "Cool Tech",
-        "Studio", "Signal", "Botanical", "Spectrum", "Neon", "Arcade", "Tropical", "Candy", "Wildberry"
+        "Studio", "Signal", "Botanical", "Spectrum", "Neon", "Arcade", "Tropical", "Candy", "Wildberry",
+        "Copper", "Gunmetal"
     ];
 
     internal static string Description(string name)
@@ -46,12 +49,25 @@ internal static class ChartPalettes
             "Tropical" => Strings.PaletteTropicalDescription,
             "Candy" => Strings.PaletteCandyDescription,
             "Wildberry" => Strings.PaletteWildberryDescription,
+            "Copper" => Strings.PaletteCopperDescription,
+            "Gunmetal" => Strings.PaletteGunmetalDescription,
             _ => DisplayName(name)
         };
     }
 
-    /// <summary>The palette made for an appearance, which Settings preselects when that appearance is chosen.</summary>
-    internal static string? ForTheme(string? theme) => theme is "Candy" or "Wildberry" ? theme : null;
+    /// <summary>The palette paired with an appearance; Settings follows it until the user picks another palette.</summary>
+    internal static string ForTheme(string? theme) => theme switch
+    {
+        "Candy" or "Wildberry" or "Copper" or "Gunmetal" => theme,
+        "Crystal" => "Cool Tech",
+        "EvergreenInstrument" or "Porcelain" => "Warm Earth Tones",
+        "FrostedPorcelain" => "High-Contrast & Inclusive",
+        "MidnightInk" => "Neon",
+        "Prism" => "Arcade",
+        "SmokedSapphire" => "Tropical",
+        "Slate" => "Ocean",
+        _ => "Classic"
+    };
 
     internal static string Normalize(string? value)
     {
@@ -77,8 +93,9 @@ internal static class ChartPalettes
             ("Sophisticated Pastel", true) => ["#6E8C3F", "#6673C2", "#BF6F55", "#A86478", "#3E8F7A", "#957A4E"],
             ("Vibrant Monochromatic Shift", false) => ["#2E9E5E", "#3A9AE0", "#4F8F84", "#4A7FE8", "#8AD6CF", "#B8C9A8"],
             ("Vibrant Monochromatic Shift", true) => ["#014421", "#0072B5", "#2F5F57", "#0047AB", "#1F8F87", "#6B8752"],
-            ("Warm Earth Tones", false) => ["#7FB27E", "#E2A03F", "#D9683C", "#A28FB8", "#E3C9A0", "#B3A65E"],
-            ("Warm Earth Tones", true) => ["#5B8C5A", "#E2A03F", "#C85A32", "#6C5B7B", "#D4A373", "#9E472A"],
+            // The dark CPU green stays clear of Evergreen's accent greens.
+            ("Warm Earth Tones", false) => ["#60CA81", "#E29F3D", "#D7673B", "#B7A8E2", "#E7CCA3", "#CAAF60"],
+            ("Warm Earth Tones", true) => ["#428156", "#A06D20", "#963712", "#573669", "#6F4E33", "#706F33"],
             ("Signal", false) => ["#009E73", "#0072B2", "#D55E00", "#CC79A7", "#56B4E9", "#E69F00"],
             ("Signal", true) => ["#007A57", "#0B4F8A", "#A33C00", "#B0588A", "#298DCD", "#B57A00"],
             ("Spectrum", false) => ["#22A884", "#3A8FA8", "#7AD151", "#6F75C8", "#B06CD8", "#FDE725"],
@@ -88,9 +105,14 @@ internal static class ChartPalettes
             ("Arcade", false) => ["#FF1744", "#2979FF", "#00E676", "#FFEA00", "#D500F9", "#FF9100"],
             ("Arcade", true) => ["#F0153F", "#2266F0", "#009C4E", "#B07D00", "#B800D9", "#C24E00"],
             ("Candy", false) => ["#7EE36E", "#5FA8FF", "#FF9C52", "#FF7DB8", "#45E0C6", "#FFD25E"],
-            ("Candy", true) => ["#2E7D32", "#1565C0", "#C2410A", "#C2185B", "#00796B", "#7A5200"],
-            ("Wildberry", false) => ["#99D87A", "#80A8FF", "#FF9F5A", "#FF6FA8", "#AA7DD8", "#FFD56C"],
+            ("Candy", true) => ["#1F6A2D", "#1265C0", "#C2430A", "#910B43", "#0E7A6C", "#694100"],
+            ("Wildberry", false) => ["#9BD87B", "#81A8FF", "#FD9E5A", "#FF5BA0", "#AA7BD6", "#FFD56C"],
             ("Wildberry", true) => ["#4D8A2E", "#185BCF", "#B4510C", "#C2195B", "#7436A8", "#724700"],
+            // Copper's dark set clears 4.75:1 on its brown panel, and avoids its peach and gold chrome.
+            ("Copper", false) => ["#77DC95", "#AFC0E5", "#F3D447", "#FD9CB6", "#97F4F0", "#C9A9FF"],
+            ("Copper", true) => ["#206B31", "#2F60C6", "#8A6A00", "#B52162", "#1A7B87", "#602994"],
+            ("Gunmetal", false) => ["#5CE47F", "#6BB7FA", "#FFAF21", "#F05FCE", "#9A86FD", "#FF6B4A"],
+            ("Gunmetal", true) => ["#297F3B", "#2B60B7", "#B66400", "#B0257F", "#443BBA", "#B32F21"],
             ("Ocean", false) => ["#55CFFF", "#B0A0FF", "#FFAE70", "#FF89B5", "#60E0BD", "#E5D66A"],
             ("Ocean", true) => ["#006C96", "#6745A5", "#9E4810", "#A02E62", "#08765C", "#776600"],
             ("Colorblind", false) => ["#56B4E9", "#E69F00", "#F0E442", "#CC79A7", "#3DCCA2", "#FF8053"],

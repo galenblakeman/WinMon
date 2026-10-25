@@ -16,6 +16,8 @@ public sealed class ChartPaletteTests
     [TestCase("tropical", "Tropical")]
     [TestCase(" candy ", "Candy")]
     [TestCase("wildberry", "Wildberry")]
+    [TestCase("COPPER", "Copper")]
+    [TestCase("gunmetal", "Gunmetal")]
     [TestCase("Cyberpunk / Neon", "Neon")]
     public void Validate_NormalizesPalette(string? input, string expected)
     {
@@ -25,8 +27,10 @@ public sealed class ChartPaletteTests
     [TestCase("Neon", "#00E5FF,#FF1493,#B6FF00,#FF6D00,#A100FF,#FFE600", "#0090C1,#F0127F,#4E9700,#E55900,#9A00F0,#B07D00")]
     [TestCase("Arcade", "#FF1744,#2979FF,#00E676,#FFEA00,#D500F9,#FF9100", "#F0153F,#2266F0,#009C4E,#B07D00,#B800D9,#C24E00")]
     [TestCase("Tropical", "#FF3D71,#00B8D9,#FFAB00,#6554FF,#00C896,#FF5630", "#FF3D71,#00B8D9,#FFAB00,#6554FF,#00C896,#FF5630")]
-    [TestCase("Candy", "#7EE36E,#5FA8FF,#FF9C52,#FF7DB8,#45E0C6,#FFD25E", "#2E7D32,#1565C0,#C2410A,#C2185B,#00796B,#7A5200")]
-    [TestCase("Wildberry", "#99D87A,#80A8FF,#FF9F5A,#FF6FA8,#AA7DD8,#FFD56C", "#4D8A2E,#185BCF,#B4510C,#C2195B,#7436A8,#724700")]
+    [TestCase("Candy", "#7EE36E,#5FA8FF,#FF9C52,#FF7DB8,#45E0C6,#FFD25E", "#1F6A2D,#1265C0,#C2430A,#910B43,#0E7A6C,#694100")]
+    [TestCase("Wildberry", "#9BD87B,#81A8FF,#FD9E5A,#FF5BA0,#AA7BD6,#FFD56C", "#4D8A2E,#185BCF,#B4510C,#C2195B,#7436A8,#724700")]
+    [TestCase("Copper", "#77DC95,#AFC0E5,#F3D447,#FD9CB6,#97F4F0,#C9A9FF", "#206B31,#2F60C6,#8A6A00,#B52162,#1A7B87,#602994")]
+    [TestCase("Gunmetal", "#5CE47F,#6BB7FA,#FFAF21,#F05FCE,#9A86FD,#FF6B4A", "#297F3B,#2B60B7,#B66400,#B0257F,#443BBA,#B32F21")]
     public void CustomPalette_PreservesRequestedResourceOrderInEachTheme(string palette, string darkColors, string lightColors)
     {
         Assert.Multiple(() =>
@@ -43,6 +47,7 @@ public sealed class ChartPaletteTests
     [TestCase("Vibrant Monochromatic Shift", false)]
     [TestCase("Vibrant Monochromatic Shift", true)]
     [TestCase("Warm Earth Tones", false)]
+    [TestCase("Warm Earth Tones", true)]
     [TestCase("Signal", true)]
     [TestCase("Spectrum", false)]
     [TestCase("Spectrum", true)]
@@ -52,6 +57,10 @@ public sealed class ChartPaletteTests
     [TestCase("Candy", true)]
     [TestCase("Wildberry", false)]
     [TestCase("Wildberry", true)]
+    [TestCase("Copper", false)]
+    [TestCase("Copper", true)]
+    [TestCase("Gunmetal", false)]
+    [TestCase("Gunmetal", true)]
     public void HandTunedVariant_KeepsDesignedChartColorsOnEveryThemeInItsMode(string palette, bool light)
     {
         foreach (var theme in new[] { light ? "Light" : "Dark" }.Concat(ThemeFinishes.Names))
@@ -98,6 +107,8 @@ public sealed class ChartPaletteTests
     [TestCase("Colorblind")]
     [TestCase("Signal")]
     [TestCase("High-Contrast & Inclusive")]
+    [TestCase("Copper")]
+    [TestCase("Gunmetal")]
     public void AccessiblePalette_KeepsResourcesApartUnderColorVisionDeficiency(string palette)
     {
         foreach (var theme in new[] { "Dark", "Light" }.Concat(ThemeFinishes.Names))
@@ -157,6 +168,32 @@ public sealed class ChartPaletteTests
         Assert.That(ChartPalettes.ChartColorsForTheme("Neon", candy.Light, candy)[2],
             Is.Not.EqualTo(ChartPalettes.ColorsForTheme("Neon", candy.Light, candy)[2]),
             "A bright chart trace should not inherit the gauge text threshold.");
+    }
+
+    [Test]
+    public void PairedPalette_KeepsReadoutsClearOfItsThemeAccents()
+    {
+        foreach (var theme in ThemeFinishes.Names)
+        {
+            var finish = ThemeFinishes.For(theme);
+            var palette = ChartPalettes.ForTheme(theme);
+            var accents = new[] { finish.Selected, finish.Highlight, finish.UiAccent ?? finish.Selected }
+                .Select(hex => Lab(ColorOf(hex), Identity)).ToArray();
+            foreach (var color in ChartPalettes.ColorsForTheme(palette, finish.Light, finish))
+            foreach (var accent in accents)
+                Assert.That(Distance(Lab(ColorOf(color), Identity), accent), Is.GreaterThanOrEqualTo(12),
+                    $"{theme} / {palette} / {color} reads as a theme accent");
+        }
+    }
+
+    private static readonly double[,] Identity = { { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
+
+    [Test]
+    public void CopperPalette_KeepsDesignedReadoutColorsOnCopperPanel()
+    {
+        var copper = ThemeFinishes.For("Copper");
+        Assert.That(ChartPalettes.ColorsForTheme("Copper", copper.Light, copper),
+            Is.EqualTo(ChartPalettes.Colors("Copper", copper.Light)));
     }
 
     [Test]

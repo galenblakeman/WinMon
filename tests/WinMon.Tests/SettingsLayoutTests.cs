@@ -187,24 +187,56 @@ public sealed class SettingsLayoutTests
     }
 
     [Test]
-    public void ChoosingThemeWithItsOwnPalette_PreselectsThatPaletteUntilSave()
+    public void ChoosingTheme_FollowsItsPaletteUntilTheUserPicksAnother()
     {
-        var window = Settings(new MonitorPreferences { Theme = "Candy", ChartPalette = "Ocean" });
+        var window = Settings(new MonitorPreferences { Theme = "Dark", ChartPalette = "Classic" });
         try
         {
-            Assert.That(window.PaletteSelector.SelectedValue, Is.EqualTo("Ocean"),
-                "Opening Settings keeps the saved palette.");
-
-            window.ThemeSelector.SelectedValue = "Wildberry";
-            Assert.That(window.PaletteSelector.SelectedValue, Is.EqualTo("Wildberry"));
+            foreach (var (theme, palette) in new[]
+                     {
+                         ("Candy", "Candy"), ("Copper", "Copper"), ("Crystal", "Cool Tech"),
+                         ("EvergreenInstrument", "Warm Earth Tones"), ("FrostedPorcelain", "High-Contrast & Inclusive"),
+                         ("Gunmetal", "Gunmetal"), ("MidnightInk", "Neon"), ("Porcelain", "Warm Earth Tones"),
+                         ("Prism", "Arcade"), ("SmokedSapphire", "Tropical"), ("Slate", "Ocean"),
+                         ("Wildberry", "Wildberry"), ("Light", "Classic")
+                     })
+            {
+                window.ThemeSelector.SelectedValue = theme;
+                Assert.That(window.PaletteSelector.SelectedValue, Is.EqualTo(palette), theme);
+            }
 
             window.PaletteSelector.SelectedValue = "Signal";
-            window.ThemeSelector.SelectedValue = "Porcelain";
-            Assert.That(window.PaletteSelector.SelectedValue, Is.EqualTo("Signal"),
-                "A theme without its own palette leaves the choice alone.");
-
             window.ThemeSelector.SelectedValue = "Candy";
-            Assert.That(window.PaletteSelector.SelectedValue, Is.EqualTo("Candy"));
+            Assert.That(window.PaletteSelector.SelectedValue, Is.EqualTo("Signal"),
+                "A palette the user picked survives a theme change.");
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [Test]
+    public void OpeningSettings_KeepsAChosenPaletteThroughThemeChanges()
+    {
+        var window = Settings(new MonitorPreferences { Theme = "Candy", ChartPalette = "Colorblind" });
+        try
+        {
+            Assert.That(window.PaletteSelector.SelectedValue, Is.EqualTo("Colorblind"));
+            window.ThemeSelector.SelectedValue = "Slate";
+            Assert.That(window.PaletteSelector.SelectedValue, Is.EqualTo("Colorblind"));
+        }
+        finally
+        {
+            window.Close();
+        }
+
+        window = Settings(new MonitorPreferences { Theme = "Candy", ChartPalette = "Candy" });
+        try
+        {
+            window.ThemeSelector.SelectedValue = "Slate";
+            Assert.That(window.PaletteSelector.SelectedValue, Is.EqualTo("Ocean"),
+                "A saved theme pair still follows the next theme.");
         }
         finally
         {
