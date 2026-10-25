@@ -1575,4 +1575,8 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
   <data name="GaugeLeftBar" xml:space="preserve"><value>Pasek po lewej</value></data>
   <data name="GaugeBottomBar" xml:space="preserve"><value>Pasek u dołu</value></data>
   <data name="GaugeSegmentedBar" xml:space="preserve"><value>Pasek segmentowy</value></data>
+<data name="ThemeBrushedSteel" xml:space="preserve"><value>Stal szczotkowana</value></data>
+<data name="ThemeCopper" xml:space="preserve"><value>Miedź</value></data>
+<data name="ThemeGunmetal" xml:space="preserve"><value>Stal oksydowana</value></data>
+<data name="ThemeBrushedNickel" xml:space="preserve"><value>Nikiel szczotkowany</value></data>
 </root>

@@ -14,6 +14,8 @@ Selected on 2026-10-25: use the space the **Hide actions** toggle left at the ri
 
 `MainWindow.xaml` adds the `SystemCounts` text, which binds its labels to the existing `ProcessesHeading`, `Threads` and `Handles` strings, so no translations changed. `MainWindow.Processes.cs` updates the three value runs only when a count changes, and `MainWindow.Details.cs` formats them (`CompactCount`, `ExactCount`). `MetricDetailsTests` covers the formatting thresholds, and the feature smoke checks that the strip shows live values and renders it in the action drawer captures.
 
+A failed live sampling pass clears the live counts. While inspecting a retained sample, its recorded counts stay visible; the feature smoke checks both states.
+
 ## Departures
 
 - The `K` and `M` suffixes are not translated, matching the network gauge's scale label.

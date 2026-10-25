@@ -104,6 +104,15 @@ internal sealed partial class WindowDiagnostics
             }
         }
 
+        foreach (var theme in MetalThemes.Names)
+        {
+            fixture.Preferences = fixture.Preferences with { Theme = theme, GaugeStyle = GaugeStyle.Bowl };
+            fixture.ApplyTheme();
+            Draw(836);
+            await CaptureVisualAsync(visual, Path.Combine(output, $"theme-{theme.ToLowerInvariant()}.png"),
+                1, cancellationToken);
+        }
+
         fixture.Preferences = fixture.Preferences with { SecondaryDrive = null };
         Draw(836);
         if (fixture.CompactTiles[3].Box.Visibility != Visibility.Collapsed ||
@@ -123,7 +132,8 @@ internal sealed partial class WindowDiagnostics
         {
             NativeReadings = true, ButtonRoundTrip = true, PreferenceRoundTrip = true,
             FullSizeRestored = true, ChartTogglePreserved = true, OptionalDisk = true, MissingReadings = true,
-            GapInFixture = true, Themes = new[] { "Dark", "Light" }, RenderScales = new[] { 1, 1.5, 2 }
+            GapInFixture = true, Themes = new[] { "Dark", "Light" }.Concat(MetalThemes.Names),
+            RenderScales = new[] { 1, 1.5, 2 }
         }), cancellationToken);
         return;
 

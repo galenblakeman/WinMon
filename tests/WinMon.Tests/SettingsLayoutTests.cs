@@ -1,4 +1,6 @@
 using System.Windows.Controls;
+using System.Windows;
+using System.Windows.Media;
 using NUnit.Framework;
 using WinMon.Monitoring;
 using WinMon.Preferences;
@@ -19,9 +21,11 @@ public sealed class SettingsLayoutTests
         {
             var opened = window.Section;
             SettingsSection[] expected = UpdatePolicy.GitHubUpdatesEnabled
-                ? [SettingsSection.General, SettingsSection.Monitoring, SettingsSection.AutomaticCaptures,
+                ? [SettingsSection.General, SettingsSection.Appearance, SettingsSection.Monitoring,
+                    SettingsSection.AutomaticCaptures,
                     SettingsSection.Updates]
-                : [SettingsSection.General, SettingsSection.Monitoring, SettingsSection.AutomaticCaptures];
+                : [SettingsSection.General, SettingsSection.Appearance, SettingsSection.Monitoring,
+                    SettingsSection.AutomaticCaptures];
             var shown = expected.Select(section =>
             {
                 window.ShowSection(section);
@@ -33,6 +37,38 @@ public sealed class SettingsLayoutTests
                 Assert.That(opened, Is.EqualTo(SettingsSection.General));
                 Assert.That(shown, Is.EqualTo(expected));
                 Assert.That(window.Height, Is.LessThanOrEqualTo(600), "Every section fits without growing the dialog.");
+            });
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [Test]
+    public void Appearance_ContainsThemePaletteAndGaugeWhileGeneralKeepsLanguage()
+    {
+        var window = Settings(new MonitorPreferences
+            { Theme = "BrushedNickel", ChartPalette = "Ocean", GaugeStyle = GaugeStyle.Needle });
+        try
+        {
+            var general = Descendants(window).ToArray();
+            window.ShowSection(SettingsSection.Appearance);
+            var appearance = Descendants(window).ToArray();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(general, Does.Contain(window.LanguageSelector));
+                Assert.That(general, Does.Not.Contain(window.ThemeSelector));
+                Assert.That(general, Does.Not.Contain(window.PaletteSelector));
+                Assert.That(general, Does.Not.Contain(window.GaugeSelector));
+                Assert.That(appearance, Does.Not.Contain(window.LanguageSelector));
+                Assert.That(appearance, Does.Contain(window.ThemeSelector));
+                Assert.That(appearance, Does.Contain(window.PaletteSelector));
+                Assert.That(appearance, Does.Contain(window.GaugeSelector));
+                Assert.That(window.ThemeSelector.SelectedValue, Is.EqualTo("BrushedNickel"));
+                Assert.That(window.PaletteSelector.SelectedValue, Is.EqualTo("Ocean"));
+                Assert.That(window.GaugeSelector.SelectedValue, Is.EqualTo(GaugeStyle.Needle));
             });
         }
         finally
@@ -59,6 +95,49 @@ public sealed class SettingsLayoutTests
                 Assert.That(choices, Is.EqualTo(Enum.GetValues<GaugeStyle>().Length));
                 Assert.That(window.GaugePreview.GaugeStyle, Is.EqualTo(GaugeStyle.None));
                 Assert.That(window.GaugePreview.IsHitTestVisible, Is.False);
+            });
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [Test]
+    public void AppearancePreview_CombinesUnsavedThemePaletteAndGaugeChoices()
+    {
+        var window = Settings(new MonitorPreferences
+            { Theme = "BrushedNickel", ChartPalette = "Ocean", GaugeStyle = GaugeStyle.Needle });
+        try
+        {
+            var preview = window.CombinedPreview;
+            var appMemoryBrush = Application.Current?.Resources["MemoryAccent"];
+            Assert.That(preview.GaugePreview.GaugeStyle, Is.EqualTo(GaugeStyle.Needle));
+            Assert.That(preview.ChartPreview.ShowGrid, Is.True);
+            if (!SystemParameters.HighContrast)
+            {
+                Assert.That(preview.ChartPreview.TryFindResource("PlotSurface"), Is.TypeOf<DrawingBrush>());
+                Assert.That(((SolidColorBrush)preview.ChartPreview.TryFindResource("MemoryAccent")!).Color,
+                    Is.EqualTo((Color)ColorConverter.ConvertFromString("#6745A5")));
+            }
+
+            window.ThemeSelector.SelectedValue = "Gunmetal";
+            window.PaletteSelector.SelectedValue = "Classic";
+            window.GaugeSelector.SelectedValue = GaugeStyle.BottomBar;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(preview.GaugePreview.GaugeStyle, Is.EqualTo(GaugeStyle.BottomBar));
+                if (Application.Current is not null)
+                    Assert.That(Application.Current.Resources["MemoryAccent"], Is.SameAs(appMemoryBrush),
+                        "The unsaved preview must not recolor the main window.");
+                if (!SystemParameters.HighContrast)
+                {
+                    Assert.That(((SolidColorBrush)preview.ChartPreview.TryFindResource("PlotSurface")!).Color,
+                        Is.EqualTo((Color)ColorConverter.ConvertFromString("#151D26")));
+                    Assert.That(((SolidColorBrush)preview.ChartPreview.TryFindResource("MemoryAccent")!).Color,
+                        Is.EqualTo((Color)ColorConverter.ConvertFromString("#4285FF")));
+                }
             });
         }
         finally

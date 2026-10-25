@@ -1,0 +1,26 @@
+<UserControl x:Class="WinMon.Preferences.AppearancePreview"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:WinMon.Controls"
+             Focusable="False" IsHitTestVisible="False">
+    <Border x:Name="PreviewSurface" BorderThickness="1" CornerRadius="4" Padding="8"
+            Background="{DynamicResource PanelSurface}" BorderBrush="{DynamicResource Line}">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="120" />
+            </Grid.RowDefinitions>
+            <Grid Background="{DynamicResource SectionHeaderSurface}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <controls:MetricReadout x:Name="CpuReadout" Margin="7,4" />
+                <controls:MetricReadout x:Name="MemoryReadout" Grid.Column="1" Margin="7,4" />
+                <controls:MetricReadout x:Name="DiskReadout" Grid.Column="2" Margin="7,4" />
+            </Grid>
+            <controls:CpuGraph x:Name="Chart" Grid.Row="1" Margin="0,6,0,0" />
+        </Grid>
+    </Border>
+</UserControl>

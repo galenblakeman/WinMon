@@ -19,6 +19,7 @@ namespace WinMon.Preferences;
 internal enum SettingsSection
 {
     General,
+    Appearance,
     Monitoring,
     AutomaticCaptures,
     Updates
@@ -45,7 +46,7 @@ public sealed class SettingsWindow : Window
         }
     }
 
-    /// <summary>Hosts the gauge preview, which is an illustration: assistive technology skips it and its checkbox.</summary>
+    /// <summary>Hosts the appearance illustration; assistive technology skips its sample controls.</summary>
     private sealed class PreviewHost : Border
     {
         protected override AutomationPeer OnCreateAutomationPeer()
@@ -76,7 +77,7 @@ public sealed class SettingsWindow : Window
     private readonly ComboBox _themeSelector;
     private readonly ComboBox _paletteSelector;
     private readonly ComboBox _gaugeSelector;
-    private readonly MetricReadout _gaugePreview;
+    private readonly AppearancePreview _appearancePreview;
     private readonly ComboBox _retentionSelector;
     private readonly CheckBox _minimizeToTrayCheckBox;
     private readonly CheckBox _startupCheckBox;
@@ -109,6 +110,8 @@ public sealed class SettingsWindow : Window
     private Button? _saveButton;
 
     private static readonly Geometry Monitoring = Geometry.Parse("M 1,9 L 4,9 L 6,3 L 9,13 L 11,7 L 15,7");
+    private static readonly Geometry AppearanceIcon =
+        Geometry.Parse("M 2,2 L 14,2 L 14,12 L 2,12 Z M 8,12 L 8,15 M 5,15 L 11,15 M 4,8 L 7,5 L 9,8 L 12,5");
     private static readonly Geometry Capture = Geometry.Parse("M 2,3 L 14,3 L 8,13 Z");
 
     /// <summary>
@@ -156,7 +159,11 @@ public sealed class SettingsWindow : Window
         {
             new ThemeChoice("Dark", Strings.ThemeDark),
             new ThemeChoice("Light", Strings.ThemeLight),
-            new ThemeChoice("System", Strings.ThemeSystem)
+            new ThemeChoice("System", Strings.ThemeSystem),
+            new ThemeChoice("BrushedSteel", Strings.ThemeBrushedSteel),
+            new ThemeChoice("Copper", Strings.ThemeCopper),
+            new ThemeChoice("Gunmetal", Strings.ThemeGunmetal),
+            new ThemeChoice("BrushedNickel", Strings.ThemeBrushedNickel)
         };
         _themeSelector.DisplayMemberPath = nameof(ThemeChoice.Label);
         _themeSelector.SelectedValuePath = nameof(ThemeChoice.Name);
@@ -182,7 +189,11 @@ public sealed class SettingsWindow : Window
                                         ?? throw new InvalidOperationException(
                                             "Palette choice template was not found.");
         UpdatePalettePreviews();
-        _themeSelector.SelectionChanged += (_, _) => UpdatePalettePreviews();
+        _themeSelector.SelectionChanged += (_, _) =>
+        {
+            UpdatePalettePreviews();
+            UpdateAppearancePreview();
+        };
         _paletteSelector.ToolTip = Strings.ResourceColorsCPUMemoryPrimaryDiskNetworkGPUSecondDisk;
         _gaugeSelector = CreateSelector([], "");
         _gaugeSelector.ItemsSource = new[]
@@ -199,15 +210,10 @@ public sealed class SettingsWindow : Window
         _gaugeSelector.SelectedValuePath = nameof(GaugeChoice.Style);
         _gaugeSelector.SelectedValue = preferences.GaugeStyle;
         _gaugeSelector.ToolTip = Strings.PeakLastTwoMinutesExplanation;
-        _gaugePreview = new MetricReadout
-        {
-            Label = Strings.Memory, AccentKey = "MemoryAccent", Width = 210, IsHitTestVisible = false
-        };
-        _gaugePreview.Toggle.Focusable = false;
-        _gaugePreview.ValueLabel.Text = Strings.Format(Strings.PercentOneDecimal, 51.5);
-        _gaugePreview.DetailLabel.Text = Strings.Format(Strings.GiB, 32.2, 62.5);
-        ShowGaugePreview();
-        _gaugeSelector.SelectionChanged += (_, _) => ShowGaugePreview();
+        _appearancePreview = new AppearancePreview();
+        UpdateAppearancePreview();
+        _paletteSelector.SelectionChanged += (_, _) => UpdateAppearancePreview();
+        _gaugeSelector.SelectionChanged += (_, _) => UpdateAppearancePreview();
         _retentionSelector = CreateSelector([Strings.Value10Minutes, Strings.Value30Minutes, Strings.Value60Minutes],
             RetentionLabel(preferences.RetentionSeconds));
         _minimizeToTrayCheckBox = CreateCheckBox(Strings.MinimizeToTheNotificationArea, preferences.MinimizeToTray);
@@ -233,6 +239,7 @@ public sealed class SettingsWindow : Window
         SecondaryDriveSelector.SelectionChanged += (_, _) => FollowDrives();
 
         _pages.Add((SettingsSection.General, Strings.SettingsGeneral, ButtonIcon.Settings, CreateGeneralPage()));
+        _pages.Add((SettingsSection.Appearance, Strings.Appearance, AppearanceIcon, CreateAppearancePage()));
         _pages.Add((SettingsSection.Monitoring, Strings.SettingsMonitoring, Monitoring, CreateMonitoringPage()));
         _pages.Add((SettingsSection.AutomaticCaptures, Strings.AutoCaptureHeading, Capture, CreateCapturePage()));
         // Store builds update through the Store, so they have no Updates section.
@@ -277,16 +284,18 @@ public sealed class SettingsWindow : Window
         Content = surface;
         return;
 
-        void ShowGaugePreview()
+        void UpdateAppearancePreview()
         {
-            _gaugePreview.GaugeStyle = SelectedGaugeStyle;
-            _gaugePreview.ShowGauge(51.5, 68, 100);
+            if (_appearancePreview is not { } preview) return;
+            preview.Update(_themeSelector.SelectedValue as string ?? "Dark",
+                _paletteSelector.SelectedValue as string ?? "Classic", SelectedGaugeStyle);
         }
 
         void UpdatePalettePreviews()
         {
             var theme = _themeSelector.SelectedValue as string;
-            var light = theme == "Light" || (theme == "System" && MainWindow.IsSystemLight());
+            var light = theme == "Light" || (theme == "System" && MainWindow.IsSystemLight()) ||
+                        theme is "BrushedSteel" or "BrushedNickel";
             foreach (var choice in paletteChoices) choice.UpdateTheme(light);
         }
     }
@@ -298,7 +307,13 @@ public sealed class SettingsWindow : Window
 
     internal ComboBox GaugeSelector => _gaugeSelector;
 
-    internal MetricReadout GaugePreview => _gaugePreview;
+    internal ComboBox ThemeSelector => _themeSelector;
+
+    internal ComboBox PaletteSelector => _paletteSelector;
+
+    internal MetricReadout GaugePreview => _appearancePreview.GaugePreview;
+
+    internal AppearancePreview CombinedPreview => _appearancePreview;
 
     private GaugeStyle SelectedGaugeStyle => _gaugeSelector.SelectedValue as GaugeStyle? ?? GaugeStyle.Bowl;
 
@@ -605,16 +620,8 @@ public sealed class SettingsWindow : Window
     private StackPanel CreateGeneralPage()
     {
         var page = Page(Strings.SettingsGeneral);
-        page.Children.Add(CreateHeading(Strings.Appearance, true));
         page.Children.Add(Field(Strings.Language, LanguageSelector));
         page.Children.Add(Note(Strings.LanguageApplyNote));
-        page.Children.Add(Field(Strings.Theme, _themeSelector));
-        page.Children.Add(Field(Strings.ChartPalette, _paletteSelector));
-        page.Children.Add(Field(Strings.ResourceGauges, _gaugeSelector));
-        page.Children.Add(new PreviewHost
-        {
-            Child = _gaugePreview, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 4, 0, 4)
-        });
         page.Children.Add(CreateHeading(Strings.SettingsStartupAndTray));
         page.Children.Add(_startupCheckBox);
         page.Children.Add(_minimizeToTrayCheckBox);
@@ -634,6 +641,19 @@ public sealed class SettingsWindow : Window
         statusRow.Children.Add(resetButton);
         statusRow.Children.Add(_shortcutStatus);
         page.Children.Add(statusRow);
+        return page;
+    }
+
+    private StackPanel CreateAppearancePage()
+    {
+        var page = Page(Strings.Appearance);
+        page.Children.Add(Field(Strings.Theme, _themeSelector));
+        page.Children.Add(Field(Strings.ChartPalette, _paletteSelector));
+        page.Children.Add(Field(Strings.ResourceGauges, _gaugeSelector));
+        page.Children.Add(new PreviewHost
+        {
+            Child = _appearancePreview, Margin = new Thickness(0, 8, 0, 4)
+        });
         return page;
     }
 

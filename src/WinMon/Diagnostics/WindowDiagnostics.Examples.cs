@@ -104,6 +104,7 @@ internal sealed partial class WindowDiagnostics
             try
             {
                 settings.Show();
+                settings.ShowSection(SettingsSection.Appearance);
                 await CaptureExampleWindowAsync(settings, Path.Combine(output, "example_settings.png"),
                     cancellationToken);
             }

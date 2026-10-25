@@ -61,7 +61,7 @@ $run.ExitCode
 | `--usage-smoke-output <dir>` | `usage` | Usage tab |
 | `--capture-smoke-output <dir>` | `capture` | Automatic captures and Settings sections in Dark and Light appearances |
 | `--chart-smoke-output <dir>` | `chart` | Chart dropdown, focused resources, hidden-resource selection and capture inspection |
-| `--gauges-smoke-output <dir>` | `gauges` | Every gauge style in dark and light at 1000 and 836 DIPs: shared readout height, unclipped values, network scale, peak legend, unavailable readings, the saved style and the Settings preview (`gauges.json`) |
+| `--gauges-smoke-output <dir>` | `gauges` | Every gauge style in dark and light at 1000 and 836 DIPs: shared readout height, unclipped values, network scale, peak legend, unavailable readings, the saved style and combined Settings appearance previews (`gauges.json`) |
 | `--examples-output <dir>` | — | README screenshots; follow [the example gallery's steps](example/README.md#regenerate) |
 | `--profile-output <dir> [seconds]` | — | Whole-process cost; see [Profile the whole app](#profile-the-whole-app) |
 

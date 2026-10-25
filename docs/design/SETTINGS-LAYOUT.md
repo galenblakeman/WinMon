@@ -12,7 +12,8 @@ The dialog is 780 × 600 DIPs, shorter on small work areas, and does not resize.
 
 | Section | Contents |
 | --- | --- |
-| General | Language, theme and chart palette; start at sign-in and minimize to the notification area; the show/hide shortcut |
+| General | Language; start at sign-in and minimize to the notification area; the show/hide shortcut |
+| Appearance | Theme, chart palette, resource gauge style and its preview |
 | Monitoring | Historical retention; primary and second drive |
 | Automatic captures | An on/off switch in the page header, the rule table, cooldown, reports folder and notifications. The sidebar shows On or Off. |
 | Updates | Installed version, when this session last checked, Check for updates, and automatic checks. Store builds have no Updates section. |
@@ -25,6 +26,10 @@ The dialog is 780 × 600 DIPs, shorter on small work areas, and does not resize.
 - **Keyboard.** Arrow keys move through the sidebar. Ctrl+Tab and Ctrl+Shift+Tab step through sections from anywhere in the dialog, except while the shortcut box is recording a combination.
 - **Selection contrast.** The selected section uses the theme's selected-text color for its label, icon and On/Off state, including in Light and high-contrast appearances.
 - **Diagnostics and tests** reach the dialog through named members (`ShowSection`, `Section`, `LanguageSelector`, the drive selectors, `SaveButton`, `AutoCapture`) instead of its layout. `WinMon.exe --capture-smoke-output <directory>` renders every section.
+
+## 2026-10-25 refinement
+
+Appearance became its own sidebar section as the theme choices expanded. The three appearance selectors and gauge preview moved together; language remains in General. The dialog size, navigation behavior and single Save action remain the same. Layout tests check that the controls belong to the intended sections, and the capture smoke renders the new page in Dark and Light.
 
 ## Departures from the mockup
 

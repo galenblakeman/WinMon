@@ -1575,4 +1575,8 @@ Windows 健康状态：{2}</value>
   <data name="GaugeLeftBar" xml:space="preserve"><value>左侧条</value></data>
   <data name="GaugeBottomBar" xml:space="preserve"><value>底部条</value></data>
   <data name="GaugeSegmentedBar" xml:space="preserve"><value>分段条</value></data>
+<data name="ThemeBrushedSteel" xml:space="preserve"><value>拉丝钢</value></data>
+<data name="ThemeCopper" xml:space="preserve"><value>铜</value></data>
+<data name="ThemeGunmetal" xml:space="preserve"><value>枪灰色金属</value></data>
+<data name="ThemeBrushedNickel" xml:space="preserve"><value>拉丝镍</value></data>
 </root>

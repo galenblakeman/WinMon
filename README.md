@@ -123,11 +123,11 @@ Click a marker, or choose a capture from **Automatic captures** in the chart hea
 
 ## Make it yours
 
-Choose **Light**, **Dark** or **System** appearance, then pick a chart palette independently. Options include Classic, Ocean, Colorblind, high-contrast, **Neon**, **Arcade** and **Tropical** palettes. Settings includes swatches and descriptions to help you choose. Colors stay consistent across resource readings, chart traces and process sparklines.
+Choose **Light**, **Dark**, **System**, **Brushed steel**, **Copper**, **Gunmetal**, or **Brushed nickel** appearance, then pick a chart palette independently. The four metal appearances add a fine brushed grain to the window surfaces and across the title bar while keeping the same layout and resource gauge style. Brushed steel and brushed nickel also use a light matte metal chart background. Options include Classic, Ocean, Colorblind, high-contrast, **Neon**, **Arcade** and **Tropical** palettes. Settings includes swatches and descriptions to help you choose. Colors stay consistent across resource readings, chart traces and process sparklines.
 
 The selected Settings section uses light text and icons against its blue highlight in Light appearance.
 
-Choose how the resource gauges look under **Resource gauges** in Settings: **Bowl** (the default), **Needle**, **Segmented arc**, **Left bar**, **Bottom bar**, **Segmented bar** or **None**. A preview beside the choice shows the style before you save. Every style keeps the same height, so the chart doesn't move when you switch. **Bowl** and **Segmented arc** hold the reading inside a nearly round arc, with the detail line below. **Needle** draws a half-circle dial with the reading underneath; its detail line, such as clock speed or memory in use, appears when you hover the tile. **None** hides the gauges and their legend.
+Choose how the resource gauges look under **Resource gauges** in Settings: **Bowl** (the default), **Needle**, **Segmented arc**, **Left bar**, **Bottom bar**, **Segmented bar** or **None**. A sample on the Appearance page combines the selected theme, chart palette and gauge style before you save. Every style keeps the same height, so the chart doesn't move when you switch. **Bowl** and **Segmented arc** hold the reading inside a nearly round arc, with the detail line below. **Needle** draws a half-circle dial with the reading underneath; its detail line, such as clock speed or memory in use, appears when you hover the tile. **None** hides the gauges and their legend.
 
 See [Light appearance and additional palettes](docs/example/README.md) in the example gallery.
 
@@ -140,15 +140,15 @@ See [Light appearance and additional palettes](docs/example/README.md) in the ex
 
 The three custom palettes keep their supplied colors in both themes. Open an image for the full-size view.
 
-![WinMon Settings with language, theme, Neon palette and resource gauge preview](docs/example/example_settings.png)
+![WinMon Appearance settings with a combined theme, Neon chart palette and resource gauge preview](docs/example/example_settings.png)
 
 The Settings image above is from the installer/portable configuration. Store builds hide the GitHub update controls and use Store-managed updates:
 
-![WinMon Store Settings with appearance, language and gauge options, without an Updates section](docs/example/example_settings_store.png)
+![WinMon Store Appearance settings with the combined preview and no Updates section](docs/example/example_settings_store.png)
 
 </details>
 
-Settings is organized into **General**, **Monitoring** and **Automatic captures** sections in a sidebar, plus **Updates** in installer and portable builds, with one Save for all of them. Choose disk volumes, history retention, automatic captures, startup at sign-in and notification-area behavior there. The default show/hide shortcut is **Ctrl+Shift+M**.
+Settings is organized into **General**, **Appearance**, **Monitoring** and **Automatic captures** sections in a sidebar, plus **Updates** in installer and portable builds, with one Save for all of them. Appearance holds the theme, chart palette and resource gauge style. General holds language, startup, notification-area behavior and the show/hide shortcut, which defaults to **Ctrl+Shift+M**.
 
 Choose **Windows display language** or select English, Simplified Chinese, Russian, Spanish, Brazilian Portuguese, German, Japanese, French, Polish or Korean in Settings. Language changes apply when you save.
 
