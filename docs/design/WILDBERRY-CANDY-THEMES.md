@@ -11,9 +11,9 @@ Add two recognizable appearances without changing monitoring, chart palette colo
 | Theme | Surface | Chrome | Accent |
 | --- | --- | --- | --- |
 | Wildberry | Matte deep blackberry | Plum | Raspberry |
-| Candy | Warm cream | Vivid pink title and blush section headers | Raspberry with mint selected segments |
+| Candy | Warm cream | Matching blush title and section headers | Raspberry with mint selected segments |
 
-Candy uses white title text over its saturated title bar while keeping dark plum text on the light data surfaces. The chart palette still owns gauge fills and chart traces. Both themes use opaque surfaces and continue to yield to Windows high contrast colors.
+Candy uses dark plum title and body text on its light surfaces. The chart palette still owns gauge fills and chart traces. Both themes use opaque surfaces and continue to yield to Windows high contrast colors.
 
 The Settings selector lists System, Light and Dark first, then sorts custom themes by their translated labels using the current culture. Stored theme identifiers do not depend on list position or translation.
 
@@ -25,4 +25,4 @@ The Settings selector lists System, Light and Dark first, then sorts custom them
 
 ## Departures from the mockups
 
-The mockups showed saturated fills and decorative edge detail beyond WinMon's current controls. The implementation uses the existing WPF layout and brush resources, with bright color concentrated in Candy's title and headers and opaque plots for readability.
+The mockups showed saturated fills and decorative edge detail beyond WinMon's current controls. The implementation uses the existing WPF layout and brush resources, with bright color concentrated in Candy's accents and opaque plots for readability. On 2026-10-25, Candy's title bar was changed to match its blush section headers; title text and native caption controls use dark colors for contrast.

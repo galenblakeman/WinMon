@@ -24,10 +24,9 @@ internal static class ThemeFinishes
 
     internal static Finish For(string name) => name switch
     {
-        "Candy" => new("#FFF8F1", "#FFFFFF", "#D31D6A", "#F7A6C7", "#FFFCF9",
+        "Candy" => new("#FFF8F1", "#FFFFFF", "#F7A6C7", "#F7A6C7", "#FFFCF9",
             "#FFFFFF", "#C71D68", "#FFFFFF", "#A9EFE3", "#2E2134", "#655369",
-            "#D3C6CE", "#D9D2D2", "#FF78AA", true, false, "#BF155D",
-            TitleText: "#FFFFFF"),
+            "#D3C6CE", "#D9D2D2", "#FF78AA", true, false, "#BF155D"),
         "Copper" => new("#574033", "#71503E", "#A67556", "#77513C", "#171D24",
             "#2E2927", "#B77A4D", "#15191E", "#96664B", "#FFF1E6", "#E0BEAA",
             "#956E59", "#A47D68", "#EFC398", false),
