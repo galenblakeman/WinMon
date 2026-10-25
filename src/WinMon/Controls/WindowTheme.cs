@@ -36,7 +36,12 @@ internal static class WindowTheme
 
     private static int ColorValue(Window window, string key)
     {
-        var color = ((SolidColorBrush)window.FindResource(key)).Color;
+        var color = window.FindResource(key) switch
+        {
+            SolidColorBrush solid => solid.Color,
+            LinearGradientBrush gradient => gradient.GradientStops[1].Color,
+            _ => Colors.Black
+        };
         return color.R | (color.G << 8) | (color.B << 16);
     }
 

@@ -7,6 +7,24 @@ namespace WinMon.Tests;
 [TestFixture]
 public sealed class PreferenceStoreTests
 {
+    [TestCaseSource(typeof(MetalThemes), nameof(MetalThemes.Names))]
+    public async Task MetalTheme_RoundTripsWithoutChangingGaugeOrPalette(string theme)
+    {
+        var store = new PreferenceStore(settingsPath);
+        await store.SaveAsync(new MonitorPreferences
+        {
+            Theme = theme, GaugeStyle = GaugeStyle.SegmentedBar, ChartPalette = "Ocean"
+        });
+
+        var loaded = await store.LoadAsync();
+        Assert.Multiple(() =>
+        {
+            Assert.That(loaded.Theme, Is.EqualTo(theme));
+            Assert.That(loaded.GaugeStyle, Is.EqualTo(GaugeStyle.SegmentedBar));
+            Assert.That(loaded.ChartPalette, Is.EqualTo("Ocean"));
+        });
+    }
+
     [Test]
     public async Task ProcessActionsHidden_DefaultsForLegacySettings_AndRoundTripsBothStates()
     {

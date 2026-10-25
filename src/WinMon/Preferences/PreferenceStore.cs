@@ -173,6 +173,10 @@ public sealed class PreferenceStore
         {
             "light" => "Light",
             "system" => "System",
+            "brushedsteel" => "BrushedSteel",
+            "copper" => "Copper",
+            "gunmetal" => "Gunmetal",
+            "brushednickel" => "BrushedNickel",
             _ => "Dark"
         };
     }

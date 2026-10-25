@@ -89,6 +89,18 @@ internal sealed partial class WindowDiagnostics
             }
         }
 
+        // Metal finishes change brushes only, so one full-size bowl capture per finish is sufficient.
+        foreach (var theme in MetalThemes.Names)
+        {
+            fixture.Preferences = fixture.Preferences with { Theme = theme, GaugeStyle = GaugeStyle.Bowl };
+            fixture.ApplyTheme();
+            Draw(1000, 840);
+            if (readouts.Any(readout => Math.Abs(readout.ActualHeight - MetricReadout.LayoutHeight) > 0.001))
+                throw new InvalidOperationException($"{theme} changed the resource strip height.");
+            await CaptureVisualAsync(visual, Path.Combine(output, $"theme-{theme.ToLowerInvariant()}.png"),
+                1, cancellationToken);
+        }
+
         if (heights.Count != 1 || Math.Abs(heights.Single() - MetricReadout.LayoutHeight) > 0.001)
             throw new InvalidOperationException($"Readout heights varied by style: {string.Join(", ", heights)}.");
 
@@ -123,17 +135,18 @@ internal sealed partial class WindowDiagnostics
 
         await File.WriteAllTextAsync(Path.Combine(output, "gauges.json"), JsonSerializer.Serialize(new
         {
-            Styles = Enum.GetNames<GaugeStyle>(), Themes = new[] { "Dark", "Light" }, Widths = new[] { 1000, 836 },
+            Styles = Enum.GetNames<GaugeStyle>(), Themes = new[] { "Dark", "Light" }.Concat(MetalThemes.Names),
+            Widths = new[] { 1000, 836 },
             ReadoutHeight = heights.Single(), NetworkScaleOnArcs = true, PeakLegendFollowsStyle = true,
             UnavailableHidesGauges = true, PreferenceRoundTrip = true, SettingsPreview = true
         }), cancellationToken);
         return;
 
-        void Draw(double width)
+        void Draw(double width, double height = 420)
         {
             fixture.RefreshVisiblePresentation();
-            visual.Measure(new Size(width, 420));
-            visual.Arrange(new Rect(0, 0, width, 420));
+            visual.Measure(new Size(width, height));
+            visual.Arrange(new Rect(0, 0, width, height));
             visual.UpdateLayout();
             // Gauges draw at their arranged size, so refresh once more as a live tick would.
             fixture.RefreshVisiblePresentation();

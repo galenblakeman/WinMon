@@ -1575,4 +1575,8 @@ Se puede perder el trabajo sin guardar. Se finalizarán todos los procesos indic
   <data name="GaugeLeftBar" xml:space="preserve"><value>Barra izquierda</value></data>
   <data name="GaugeBottomBar" xml:space="preserve"><value>Barra inferior</value></data>
   <data name="GaugeSegmentedBar" xml:space="preserve"><value>Barra segmentada</value></data>
+<data name="ThemeBrushedSteel" xml:space="preserve"><value>Acero cepillado</value></data>
+<data name="ThemeCopper" xml:space="preserve"><value>Cobre</value></data>
+<data name="ThemeGunmetal" xml:space="preserve"><value>Acero pavonado</value></data>
+<data name="ThemeBrushedNickel" xml:space="preserve"><value>Níquel cepillado</value></data>
 </root>

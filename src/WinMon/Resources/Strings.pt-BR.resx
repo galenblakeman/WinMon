@@ -1575,4 +1575,8 @@ O trabalho não salvo pode ser perdido. Todos os processos listados abaixo serã
   <data name="GaugeLeftBar" xml:space="preserve"><value>Barra à esquerda</value></data>
   <data name="GaugeBottomBar" xml:space="preserve"><value>Barra inferior</value></data>
   <data name="GaugeSegmentedBar" xml:space="preserve"><value>Barra segmentada</value></data>
+<data name="ThemeBrushedSteel" xml:space="preserve"><value>Aço escovado</value></data>
+<data name="ThemeCopper" xml:space="preserve"><value>Cobre</value></data>
+<data name="ThemeGunmetal" xml:space="preserve"><value>Aço grafite</value></data>
+<data name="ThemeBrushedNickel" xml:space="preserve"><value>Níquel escovado</value></data>
 </root>

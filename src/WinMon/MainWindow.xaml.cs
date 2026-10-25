@@ -745,6 +745,8 @@ public partial class MainWindow
     internal void ApplyTheme()
     {
         var light = _preferences.Theme == "Light" || (_preferences.Theme == "System" && IsSystemLight());
+        var metal = MetalThemes.IsMetal(_preferences.Theme) ? MetalThemes.For(_preferences.Theme) : null;
+        light |= metal?.Light == true;
         ApplyGaugeStyle();
         var app = Application.Current;
         if (app is null) return;
@@ -776,20 +778,28 @@ public partial class MainWindow
         }
         else
         {
-            SetBrush("Surface", light ? "#F0F5FA" : "#15191E");
-            SetBrush("Raised", light ? "#FFFFFF" : "#20262D");
-            SetBrush("TitleBarSurface", light ? "#DCE7F1" : "#30343B");
-            SetBrush("SectionHeaderSurface", light ? "#E5EEF7" : "#252A31");
-            SetBrush("PlotSurface", light ? "#FFFFFF" : "#15191E");
-            SetBrush("SearchSurface", light ? "#FFFFFF" : "#15191E");
-            SetBrush("SelectedSurface", light ? "#1469B5" : "#20262D");
-            SetBrush("SelectedText", light ? "#FFFFFF" : "#EDF2F6");
-            SetBrush("SegmentSelectedSurface", light ? "#1469B5" : "#3D4855");
+            SetBrush("Surface", metal?.Surface ?? (light ? "#F0F5FA" : "#15191E"));
+            SetBrush("Raised", metal?.Raised ?? (light ? "#FFFFFF" : "#20262D"));
+            if (metal is null)
+            {
+                SetBrush("TitleBarSurface", light ? "#DCE7F1" : "#30343B");
+                SetBrush("SectionHeaderSurface", light ? "#E5EEF7" : "#252A31");
+            }
+            else
+            {
+                app.Resources["TitleBarSurface"] = MetalThemes.ChromeBrush(metal, false);
+                app.Resources["SectionHeaderSurface"] = MetalThemes.ChromeBrush(metal, true);
+            }
+            SetBrush("PlotSurface", metal?.Plot ?? (light ? "#FFFFFF" : "#15191E"));
+            SetBrush("SearchSurface", metal?.Search ?? (light ? "#FFFFFF" : "#15191E"));
+            SetBrush("SelectedSurface", metal?.Selected ?? (light ? "#1469B5" : "#20262D"));
+            SetBrush("SelectedText", metal?.SelectedText ?? (light ? "#FFFFFF" : "#EDF2F6"));
+            SetBrush("SegmentSelectedSurface", metal?.SegmentSelected ?? (light ? "#1469B5" : "#3D4855"));
             SetBrush("SnapshotAccentText", "#07171B");
-            SetBrush("Text", light ? "#20334A" : "#EDF2F6");
-            SetBrush("Muted", light ? "#465D78" : "#B3BDC8");
-            SetBrush("Line", light ? "#CCD9E5" : "#35404B");
-            SetBrush("GaugeTrack", light ? "#CCD9E5" : "#35404B");
+            SetBrush("Text", metal?.Text ?? (light ? "#20334A" : "#EDF2F6"));
+            SetBrush("Muted", metal?.Muted ?? (light ? "#465D78" : "#B3BDC8"));
+            SetBrush("Line", metal?.Line ?? (light ? "#CCD9E5" : "#35404B"));
+            SetBrush("GaugeTrack", metal?.GaugeTrack ?? (light ? "#CCD9E5" : "#35404B"));
             var colors = ChartPalettes.Colors(_preferences.ChartPalette, light);
             var keys = new[]
                 { "CpuAccent", "MemoryAccent", "DiskAccent", "NetworkAccent", "GpuAccent", "SecondaryDiskAccent" };

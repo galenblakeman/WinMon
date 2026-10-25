@@ -156,7 +156,11 @@ public sealed class SettingsWindow : Window
         {
             new ThemeChoice("Dark", Strings.ThemeDark),
             new ThemeChoice("Light", Strings.ThemeLight),
-            new ThemeChoice("System", Strings.ThemeSystem)
+            new ThemeChoice("System", Strings.ThemeSystem),
+            new ThemeChoice("BrushedSteel", Strings.ThemeBrushedSteel),
+            new ThemeChoice("Copper", Strings.ThemeCopper),
+            new ThemeChoice("Gunmetal", Strings.ThemeGunmetal),
+            new ThemeChoice("BrushedNickel", Strings.ThemeBrushedNickel)
         };
         _themeSelector.DisplayMemberPath = nameof(ThemeChoice.Label);
         _themeSelector.SelectedValuePath = nameof(ThemeChoice.Name);
@@ -286,7 +290,8 @@ public sealed class SettingsWindow : Window
         void UpdatePalettePreviews()
         {
             var theme = _themeSelector.SelectedValue as string;
-            var light = theme == "Light" || (theme == "System" && MainWindow.IsSystemLight());
+            var light = theme == "Light" || (theme == "System" && MainWindow.IsSystemLight()) ||
+                        theme is "BrushedSteel" or "BrushedNickel";
             foreach (var choice in paletteChoices) choice.UpdateTheme(light);
         }
     }
