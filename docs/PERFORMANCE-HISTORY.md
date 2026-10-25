@@ -6,6 +6,28 @@ Dated measurement and validation records, newest first. Each section describes t
 
 Add a section at the top for each measured change: what changed, the machine and build, before and after results, and where the raw reports are.
 
+## Bug-hunt fixes (October 25, 2026)
+
+Release UI benchmark on the development machine (12 logical processors), comparing `47a9fbb` with the working tree that fixed the capture-rule processor count, local sample times, the update-restart clock offset, the focus crash, heatmap ordering, icon cache eviction, export and history file handling, stalled update downloads and locked settings. Four baseline and four changed runs alternated launch order. With default tiering the first live scenario was bimodal in both builds (3.2–4.1 ms before, 3.9–5.0 ms after) although its render path is unchanged, so four more pairs ran with `DOTNET_TieredCompilation=0`; values below are medians of those run medians.
+
+| Scenario | Before | After | Allocation before/after |
+| --- | ---: | ---: | ---: |
+| Live overlay | 3.54 ms | 3.54 ms | 530.5 KiB |
+| Small multiples | 3.67 ms | 3.70 ms | 510.4 KiB |
+| Heatmap | 3.78 ms | 3.75 ms | 553.4 KiB |
+| Focus | 3.66 ms | 3.62 ms | 523.3 KiB |
+| Historical | 1.44 ms | 1.45 ms | 173.7 KiB |
+| Grouped live | 5.80 ms | 5.82 ms | 551.1 KiB |
+| Services | 6.73 ms | 6.55 ms | 1039.7 KiB |
+| Compact live | 2.21 ms | 2.24 ms | 362.0 KiB |
+| Pinned and selected | 4.43 ms | 4.48 ms | 846.7 KiB |
+| Pinned and selected, grouped | 6.89 ms | 6.57 ms | 717.2 KiB |
+| Same grouped view, CPU tooltip open | 8.95 ms | 8.91 ms | 854.0 KiB |
+
+Allocations were identical and every pixel hash matched. History saves were unchanged (1.23 s before and after with no tiering); the reads were about 5% slower while restoring about 4% more samples from their time-bounded saves.
+
+Four side-by-side 90-second whole-app profiles, swapping launch order, gave median CPU of 25.5 ms/s before and 26.7 ms/s after. The changed build was higher in the first two pairs and lower in the last two, within a spread of 23.8–28.0 ms/s. Private bytes (59.7 and 59.9 MiB), allocation rate (707 and 708 KiB/s), gen0 collections and retained process entries matched. No repeatable regression was measured. Raw reports: `artifacts/perf-bughunt/baseline-*.json`, `changed-*.json`, their `-notier-` counterparts, and `artifacts/perf-bughunt/profile/`.
+
 ## Normal-restart history (October 25, 2026)
 
 Release UI benchmark on the development machine, comparing base commit `27700cb` with the normal-restart-history worktree. The paired run with `DOTNET_TieredCompilation=0` gave these medians; allocations were unchanged to the displayed precision. The default live-frame benchmark calls `MonitorSession.Record` directly, so it does not measure the extra timestamp copies made by live drains after a reboot.
