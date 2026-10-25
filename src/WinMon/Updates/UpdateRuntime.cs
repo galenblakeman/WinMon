@@ -248,7 +248,17 @@ internal static class UpdateRuntime
                 using var commit = EventWaitHandle.OpenExisting(UpdateLauncher.EventName(token, "Commit"));
                 using var cancel = EventWaitHandle.OpenExisting(UpdateLauncher.EventName(token, "Cancel"));
                 ready.Set();
-                if (WaitHandle.WaitAny([commit, cancel], TimeSpan.FromSeconds(60)) != 0) return 1;
+                // The app commits after its exit work, which has no fixed bound: a running service restart defers
+                // its close. Wait while it lives; it signals Commit or Cancel before it exits.
+                var signal = WaitHandle.WaitTimeout;
+                while (signal == WaitHandle.WaitTimeout)
+                {
+                    var exited = parent.HasExited;
+                    signal = WaitHandle.WaitAny([commit, cancel], exited ? 0 : 250);
+                    if (exited && signal == WaitHandle.WaitTimeout) return 1;
+                }
+
+                if (signal != 0) return 1;
                 if (!parent.WaitForExit(60000))
                     throw new IOException("WinMon did not exit in time; the update was cancelled.");
                 if (cancel.WaitOne(0)) return 1;
