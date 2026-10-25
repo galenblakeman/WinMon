@@ -140,6 +140,7 @@ internal static class RestartHistory
     internal static (IReadOnlyList<MonitorSample> Samples, long LiveOffset)? ReadNormal(
         string path, RestartClock clock, DateTimeOffset now, int retentionSeconds)
     {
+        DeleteTemporaries(path);
         try
         {
             using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 1 << 16);
@@ -169,7 +170,29 @@ internal static class RestartHistory
         }
     }
 
-    internal static void DeleteNormal(string path) => TryDelete(path);
+    internal static void DeleteNormal(string path)
+    {
+        DeleteTemporaries(path);
+        TryDelete(path);
+    }
+
+    /// <summary>
+    /// Remove temporary files left when a session-end save outlived its wait and the process ended mid-write.
+    /// Saves run only at exit, and a temporary file still open for writing cannot be deleted.
+    /// </summary>
+    private static void DeleteTemporaries(string path)
+    {
+        try
+        {
+            foreach (var temporary in Directory.EnumerateFiles(Path.GetDirectoryName(path) ?? ".",
+                         $".{Path.GetFileName(path)}.*.tmp"))
+                TryDelete(temporary);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            Trace.TraceWarning("WinMon could not clean up history temporary files: {0}", ex.Message);
+        }
+    }
 
     /// <summary>
     /// Read a restart file within <see cref="Budget"/> and delete it, whatever the outcome. Never throws.
