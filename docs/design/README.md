@@ -25,6 +25,7 @@ These records describe the individual feature increments and their validation at
 - [Translucent appearance themes](TRANSLUCENT-THEMES.md), which add Frost and Sapphire
 - [Glass variants](GLASS-VARIANTS.md), which replace Glass with Crystal, Slate and Prism
 - [Wildberry and Candy themes](WILDBERRY-CANDY-THEMES.md), which add the Bramble and bold Candy concepts
+- [Theme chip contrast](CHIP-CONTRAST.md), which covers time-range and process-grouping text across finishes
 - [Combined appearance preview](APPEARANCE-PREVIEW.md), which shows theme, palette and gauge choices together before Save
 
 Implemented on 2026-10-24; each note ends with what landed and where it departed from the design:

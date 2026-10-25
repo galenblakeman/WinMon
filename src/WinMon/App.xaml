@@ -98,6 +98,8 @@
         <SolidColorBrush x:Key="SelectedSurface" Color="#20262D" />
         <SolidColorBrush x:Key="SelectedText" Color="#EDF2F6" />
         <SolidColorBrush x:Key="SegmentSelectedSurface" Color="#3D4855" />
+        <SolidColorBrush x:Key="ChipText" Color="#EDF2F6" />
+        <SolidColorBrush x:Key="ChipSelectedText" Color="#EDF2F6" />
         <SolidColorBrush x:Key="Text" Color="#EDF2F6" />
         <SolidColorBrush x:Key="TitleText" Color="#EDF2F6" />
         <SolidColorBrush x:Key="TitleMuted" Color="#B3BDC8" />
@@ -518,7 +520,7 @@
         </Style>
         <!--  Segmented range choice: a filled chip marks the selection; themed selection colors also cover Windows high contrast.  -->
         <Style x:Key="RangeChip" TargetType="RadioButton">
-            <Setter Property="Foreground" Value="{DynamicResource Muted}" />
+            <Setter Property="Foreground" Value="{DynamicResource ChipText}" />
             <Setter Property="FontSize" Value="11" />
             <Setter Property="Margin" Value="0,0,4,0" />
             <Setter Property="Cursor" Value="Hand" />
@@ -548,8 +550,8 @@
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
                                 <Setter TargetName="Chip" Property="Background" Value="{DynamicResource SegmentSelectedSurface}" />
-                                <Setter TargetName="Chip" Property="BorderBrush" Value="{DynamicResource SegmentSelectedSurface}" />
-                                <Setter Property="Foreground" Value="{DynamicResource SelectedText}" />
+                                <Setter TargetName="Chip" Property="BorderBrush" Value="{DynamicResource ChipSelectedText}" />
+                                <Setter Property="Foreground" Value="{DynamicResource ChipSelectedText}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>

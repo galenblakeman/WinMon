@@ -14,13 +14,17 @@ internal static class ThemeFinishes
         string Text, string Muted, string Line, string GaugeTrack, string Highlight,
         bool Light, bool Brushed = true, string? UiAccent = null,
         BackdropKind Backdrop = BackdropKind.None, byte PanelOpacity = 255, byte ChromeOpacity = 255,
-        byte HeaderOpacity = 255, bool GlassSheen = false, string? TitleText = null);
+        byte HeaderOpacity = 255, bool GlassSheen = false, string? TitleText = null,
+        string? ChipSelectedText = null);
 
     internal static readonly string[] Names =
         ["Candy", "Copper", "Crystal", "EvergreenInstrument", "FrostedPorcelain", "Gunmetal",
             "MidnightInk", "Porcelain", "Prism", "SmokedSapphire", "Slate", "Wildberry"];
 
     internal static bool IsFinish(string? name) => Names.Contains(name);
+
+    internal static string SelectedChipText(Finish finish) =>
+        finish.ChipSelectedText ?? (finish.Light ? finish.Text : finish.SelectedText);
 
     internal static Finish For(string name) => name switch
     {
@@ -29,7 +33,7 @@ internal static class ThemeFinishes
             "#D3C6CE", "#D9D2D2", "#FF78AA", true, false, "#BF155D"),
         "Copper" => new("#574033", "#71503E", "#A67556", "#77513C", "#171D24",
             "#2E2927", "#B77A4D", "#15191E", "#96664B", "#FFF1E6", "#E0BEAA",
-            "#956E59", "#A47D68", "#EFC398", false),
+            "#956E59", "#A47D68", "#EFC398", false, ChipSelectedText: "#FFFFFF"),
         "Gunmetal" => new("#1D252C", "#2A343D", "#3A454D", "#303B43", "#151D26",
             "#1B252E", "#49687C", "#FFFFFF", "#465B68", "#ECF3F5", "#B6C5CB",
             "#53626B", "#667985", "#849BA6", false),

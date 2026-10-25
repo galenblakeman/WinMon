@@ -769,6 +769,8 @@ public partial class MainWindow
             app.Resources["SelectedSurface"] = SystemColors.HighlightBrush;
             app.Resources["SelectedText"] = SystemColors.HighlightTextBrush;
             app.Resources["SegmentSelectedSurface"] = SystemColors.HighlightBrush;
+            app.Resources["ChipText"] = SystemColors.WindowTextBrush;
+            app.Resources["ChipSelectedText"] = SystemColors.HighlightTextBrush;
             app.Resources["SnapshotAccent"] = SystemColors.HighlightBrush;
             app.Resources["ProcessPinAccent"] = SystemColors.WindowTextBrush;
             app.Resources["SnapshotAccentText"] = SystemColors.HighlightTextBrush;
@@ -816,6 +818,9 @@ public partial class MainWindow
             SetBrush("SelectedSurface", finish?.Selected ?? (light ? "#1469B5" : "#20262D"));
             SetBrush("SelectedText", finish?.SelectedText ?? (light ? "#FFFFFF" : "#EDF2F6"));
             SetBrush("SegmentSelectedSurface", finish?.SegmentSelected ?? (light ? "#1469B5" : "#3D4855"));
+            SetBrush("ChipText", finish?.Text ?? (light ? "#20334A" : "#EDF2F6"));
+            SetBrush("ChipSelectedText", finish is null ? (light ? "#FFFFFF" : "#EDF2F6")
+                : ThemeFinishes.SelectedChipText(finish));
             SetBrush("SnapshotAccentText", "#07171B");
             SetBrush("Text", finish?.Text ?? (light ? "#20334A" : "#EDF2F6"));
             SetBrush("TitleText", finish?.TitleText ?? finish?.Text ?? (light ? "#20334A" : "#EDF2F6"));
