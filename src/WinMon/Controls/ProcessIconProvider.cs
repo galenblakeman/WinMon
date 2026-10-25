@@ -15,6 +15,8 @@ namespace WinMon.Controls;
 internal static class ProcessIconProvider
 {
     private static readonly Dictionary<(int, long), Task<BitmapSource>> Cache = new();
+    // Insertion order for eviction: a dictionary reuses a removed slot, so its first key is often the newest.
+    private static readonly Queue<(int, long)> CacheOrder = new();
     private static readonly SemaphoreSlim Workers = new(2);
     internal static BitmapSource Fallback { get; } = Convert(SystemIcons.Application);
 
@@ -23,7 +25,7 @@ internal static class ProcessIconProvider
     {
         var key = (process.ProcessId, process.CreationTicks);
         if (Cache.TryGetValue(key, out var task)) return task;
-        if (Cache.Count >= 256) Cache.Remove(Cache.Keys.First());
+        if (Cache.Count >= 256) Cache.Remove(CacheOrder.Dequeue());
         task = Task.Run(async () =>
         {
             await Workers.WaitAsync().ConfigureAwait(false);
@@ -37,6 +39,7 @@ internal static class ProcessIconProvider
             }
         });
         Cache.Add(key, task);
+        CacheOrder.Enqueue(key);
         return task;
     }
 
@@ -62,6 +65,7 @@ internal static class ProcessIconProvider
     }
 
     private static readonly Dictionary<string, Task<BitmapSource>> PathCache = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly Queue<string> PathCacheOrder = new();
 
     /// <summary>An executable's icon by path, for apps that may have exited; the fallback when there is no path.</summary>
     /// <remarks>Called on the UI thread, like <see cref="GetAsync"/>.</remarks>
@@ -69,7 +73,7 @@ internal static class ProcessIconProvider
     {
         if (path.Length == 0) return Task.FromResult(Fallback);
         if (PathCache.TryGetValue(path, out var task)) return task;
-        if (PathCache.Count >= 256) PathCache.Remove(PathCache.Keys.First());
+        if (PathCache.Count >= 256) PathCache.Remove(PathCacheOrder.Dequeue());
         task = Task.Run(async () =>
         {
             await Workers.WaitAsync().ConfigureAwait(false);
@@ -90,6 +94,7 @@ internal static class ProcessIconProvider
             }
         });
         PathCache.Add(path, task);
+        PathCacheOrder.Enqueue(path);
         return task;
     }
 
