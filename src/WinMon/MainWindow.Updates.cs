@@ -271,6 +271,7 @@ public partial class MainWindow
         {
             var contents = await Task.Run(() => RestartHistory.Read(source.Path, source.Token, RestartClock.System));
             if (contents is null) return;
+            Session.SetHistoryClockOffset(contents.LiveOffset);
             foreach (var sample in contents.Samples) Session.Record(sample);
             if (contents.Usage is { } usage) Session.Usage.Restore(usage);
         }

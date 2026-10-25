@@ -21,7 +21,12 @@ internal sealed record RestartClock(Func<long> Timestamp, Func<long> TickCount, 
 }
 
 /// <summary>What a restart file restored: compacted samples oldest first, and the usage ledger when it was valid.</summary>
-internal sealed record RestartContents(IReadOnlyList<MonitorSample> Samples, UsageLedgerState? Usage);
+/// <param name="LiveOffset">
+/// Ticks to add to this process's live samples so they follow the restored ones. It is non-zero when the saving
+/// process had itself rebased history after a reboot: its samples then sit ahead of the shared Stopwatch clock.
+/// </param>
+internal sealed record RestartContents(IReadOnlyList<MonitorSample> Samples, UsageLedgerState? Usage,
+    long LiveOffset = 0);
 
 /// <summary>
 /// Saves history across an in-app update restart, in the update's transaction directory, and reads it back.
@@ -225,7 +230,7 @@ internal static class RestartHistory
     {
         var start = clock.Timestamp();
         if (!stream.CanSeek || stream.Length < HeaderMagic.Length + TrailerLength) return null;
-        long headerLength;
+        long headerLength, savedTimestamp;
         using (var reader = new BinaryReader(stream, Encoding.UTF8, true))
         {
             if (!reader.ReadBytes(HeaderMagic.Length).AsSpan().SequenceEqual(HeaderMagic)) return null;
@@ -233,7 +238,7 @@ internal static class RestartHistory
             _ = reader.ReadString();
             if (reader.ReadString() != token) return Reject("another update's token");
             var frequency = reader.ReadInt64();
-            var savedTimestamp = reader.ReadInt64();
+            savedTimestamp = reader.ReadInt64();
             var savedTickCount = reader.ReadInt64();
             if (frequency != clock.Frequency) return Reject("a different timer frequency");
             var timerSeconds = (clock.Timestamp() - savedTimestamp) / (double)frequency;
@@ -284,7 +289,10 @@ internal static class RestartHistory
         }
 
         chunks.Reverse();
-        return new RestartContents([.. chunks.SelectMany(chunk => chunk)], usage);
+        MonitorSample[] restored = [.. chunks.SelectMany(chunk => chunk)];
+        // Same boot, so unshifted samples all predate the save; any lead over it is the saver's history offset.
+        var liveOffset = restored.Length == 0 ? 0 : Math.Max(0, restored[^1].MonotonicTimestamp - savedTimestamp);
+        return new RestartContents(restored, usage, liveOffset);
     }
 
     private static RestartContents? Reject(string reason)

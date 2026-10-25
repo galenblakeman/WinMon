@@ -306,6 +306,28 @@ public sealed class RestartHistoryTests
     }
 
     [Test]
+    public void Read_CarriesTheSaversHistoryOffsetToLiveSamples()
+    {
+        // After a reboot the saving process rebased history ahead of the Stopwatch clock; its newest live sample was
+        // taken one second before the save.
+        const long offset = Frequency * 600;
+        var shift = SavedAt - Frequency * 105 + offset;
+        var shifted = Samples(5).Select(s => s with { MonotonicTimestamp = s.MonotonicTimestamp + shift }).ToArray();
+        var clock = Later(10);
+
+        var restored = RestartHistory.Read(SaveWith(shifted), Token, clock)!;
+        var unshifted = RestartHistory.Read(SaveWith(Samples(5)), Token, clock)!;
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(restored.LiveOffset, Is.EqualTo(offset - Frequency));
+            Assert.That(clock.Timestamp() + restored.LiveOffset,
+                Is.GreaterThan(restored.Samples[^1].MonotonicTimestamp), "Live samples follow restored ones.");
+            Assert.That(unshifted.LiveOffset, Is.Zero);
+        });
+    }
+
+    [Test]
     public void Fixture_FormatVersion1StillReads()
     {
         var path = Path.Combine(_directory, RestartHistory.FileName);
