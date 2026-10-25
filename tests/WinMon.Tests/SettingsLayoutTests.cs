@@ -186,6 +186,32 @@ public sealed class SettingsLayoutTests
         }
     }
 
+    [Test]
+    public void ChoosingThemeWithItsOwnPalette_PreselectsThatPaletteUntilSave()
+    {
+        var window = Settings(new MonitorPreferences { Theme = "Candy", ChartPalette = "Ocean" });
+        try
+        {
+            Assert.That(window.PaletteSelector.SelectedValue, Is.EqualTo("Ocean"),
+                "Opening Settings keeps the saved palette.");
+
+            window.ThemeSelector.SelectedValue = "Wildberry";
+            Assert.That(window.PaletteSelector.SelectedValue, Is.EqualTo("Wildberry"));
+
+            window.PaletteSelector.SelectedValue = "Signal";
+            window.ThemeSelector.SelectedValue = "Porcelain";
+            Assert.That(window.PaletteSelector.SelectedValue, Is.EqualTo("Signal"),
+                "A theme without its own palette leaves the choice alone.");
+
+            window.ThemeSelector.SelectedValue = "Candy";
+            Assert.That(window.PaletteSelector.SelectedValue, Is.EqualTo("Candy"));
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
     [TestCase("Porcelain", "#FFFEFA", "#365F85")]
     [TestCase("MidnightInk", "#0D1724", "#477DAE")]
     [TestCase("EvergreenInstrument", "#111E1B", "#87B782")]

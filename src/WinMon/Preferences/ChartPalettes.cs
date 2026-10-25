@@ -14,7 +14,6 @@ internal static class ChartPalettes
             "High-Contrast & Inclusive" => Strings.PaletteHighContrast,
             "Sophisticated Pastel" => Strings.PalettePastel,
             "Vibrant Monochromatic Shift" => Strings.PaletteMonochromatic,
-            "Cyberpunk / Neon" => Strings.PaletteNeon,
             "Warm Earth Tones" => Strings.PaletteEarth,
             "Cool Tech" => Strings.PaletteTech,
             "Studio" => Strings.PaletteStudio,
@@ -25,6 +24,7 @@ internal static class ChartPalettes
             "Arcade" => Strings.PaletteArcade,
             "Tropical" => Strings.PaletteTropical,
             "Candy" => Strings.PaletteCandy,
+            "Wildberry" => Strings.PaletteWildberry,
             _ => Strings.PaletteClassic
         };
     }
@@ -33,8 +33,8 @@ internal static class ChartPalettes
     [
         "Classic", "Ocean", "Colorblind",
         "High-Contrast & Inclusive", "Sophisticated Pastel", "Vibrant Monochromatic Shift",
-        "Cyberpunk / Neon", "Warm Earth Tones", "Cool Tech",
-        "Studio", "Signal", "Botanical", "Spectrum", "Neon", "Arcade", "Tropical", "Candy"
+        "Warm Earth Tones", "Cool Tech",
+        "Studio", "Signal", "Botanical", "Spectrum", "Neon", "Arcade", "Tropical", "Candy", "Wildberry"
     ];
 
     internal static string Description(string name)
@@ -45,12 +45,18 @@ internal static class ChartPalettes
             "Arcade" => Strings.PaletteArcadeDescription,
             "Tropical" => Strings.PaletteTropicalDescription,
             "Candy" => Strings.PaletteCandyDescription,
+            "Wildberry" => Strings.PaletteWildberryDescription,
             _ => DisplayName(name)
         };
     }
 
+    /// <summary>The palette made for an appearance, which Settings preselects when that appearance is chosen.</summary>
+    internal static string? ForTheme(string? theme) => theme is "Candy" or "Wildberry" ? theme : null;
+
     internal static string Normalize(string? value)
     {
+        // Cyberpunk / Neon used the same six hue families as Neon, so saved settings load as Neon.
+        if (string.Equals(value?.Trim(), "Cyberpunk / Neon", StringComparison.OrdinalIgnoreCase)) return "Neon";
         return Names.FirstOrDefault(n =>
             string.Equals(n, value?.Trim(), StringComparison.OrdinalIgnoreCase)) ?? "Classic";
     }
@@ -65,14 +71,12 @@ internal static class ChartPalettes
             ("Botanical", _) => ["#66A61E", "#7570B3", "#D95F02", "#E7298A", "#1B9E77", "#E6AB02"],
             ("Tropical", _) => ["#FF3D71", "#00B8D9", "#FFAB00", "#6554FF", "#00C896", "#FF5630"],
             // Hand-tuned sets clear every plot in their mode at 3.5:1, so chart traces keep the designed color.
-            ("High-Contrast & Inclusive", false) => ["#00C49A", "#5C7CFF", "#FF5A1F", "#A67FE0", "#87CEFA", "#E6B422"],
-            ("High-Contrast & Inclusive", true) => ["#008A6A", "#0000CD", "#E03C00", "#7851A9", "#0A7FC2", "#8F6A00"],
+            ("High-Contrast & Inclusive", false) => ["#05C49A", "#5C7CFF", "#FC581E", "#A67FE0", "#87CEFA", "#ECB925"],
+            ("High-Contrast & Inclusive", true) => ["#008A6A", "#0000CD", "#EF4B0E", "#663791", "#1280C3", "#744E00"],
             ("Sophisticated Pastel", false) => ["#D5E8A3", "#C5CBEF", "#DFA895", "#C99AA4", "#B4E3D3", "#CDBA96"],
             ("Sophisticated Pastel", true) => ["#6E8C3F", "#6673C2", "#BF6F55", "#A86478", "#3E8F7A", "#957A4E"],
             ("Vibrant Monochromatic Shift", false) => ["#2E9E5E", "#3A9AE0", "#4F8F84", "#4A7FE8", "#8AD6CF", "#B8C9A8"],
             ("Vibrant Monochromatic Shift", true) => ["#014421", "#0072B5", "#2F5F57", "#0047AB", "#1F8F87", "#6B8752"],
-            ("Cyberpunk / Neon", false) => ["#39FF14", "#00E5FF", "#FF007F", "#B000FF", "#FFE600", "#FF9100"],
-            ("Cyberpunk / Neon", true) => ["#2D9A00", "#0090C1", "#F5006F", "#A400F0", "#A48200", "#C23A00"],
             ("Warm Earth Tones", false) => ["#7FB27E", "#E2A03F", "#D9683C", "#A28FB8", "#E3C9A0", "#B3A65E"],
             ("Warm Earth Tones", true) => ["#5B8C5A", "#E2A03F", "#C85A32", "#6C5B7B", "#D4A373", "#9E472A"],
             ("Signal", false) => ["#009E73", "#0072B2", "#D55E00", "#CC79A7", "#56B4E9", "#E69F00"],
@@ -85,10 +89,12 @@ internal static class ChartPalettes
             ("Arcade", true) => ["#F0153F", "#2266F0", "#009C4E", "#B07D00", "#B800D9", "#C24E00"],
             ("Candy", false) => ["#7EE36E", "#5FA8FF", "#FF9C52", "#FF7DB8", "#45E0C6", "#FFD25E"],
             ("Candy", true) => ["#2E7D32", "#1565C0", "#C2410A", "#C2185B", "#00796B", "#7A5200"],
+            ("Wildberry", false) => ["#99D87A", "#80A8FF", "#FF9F5A", "#FF6FA8", "#AA7DD8", "#FFD56C"],
+            ("Wildberry", true) => ["#4D8A2E", "#185BCF", "#B4510C", "#C2195B", "#7436A8", "#724700"],
             ("Ocean", false) => ["#55CFFF", "#B0A0FF", "#FFAE70", "#FF89B5", "#60E0BD", "#E5D66A"],
             ("Ocean", true) => ["#006C96", "#6745A5", "#9E4810", "#A02E62", "#08765C", "#776600"],
-            ("Colorblind", false) => ["#56B4E9", "#E69F00", "#F0E442", "#CC79A7", "#00BFA0", "#FF8054"],
-            ("Colorblind", true) => ["#0072B2", "#925D00", "#756B00", "#974F7C", "#007C5C", "#B04C00"],
+            ("Colorblind", false) => ["#56B4E9", "#E69F00", "#F0E442", "#CC79A7", "#3DCCA2", "#FF8053"],
+            ("Colorblind", true) => ["#0173B3", "#A8733B", "#908000", "#8C356B", "#0A7A59", "#973B00"],
             (_, true) => ["#36751B", "#1469B5", "#B8461B", "#9B4DCA", "#007B83", "#876300"],
             _ => ["#73FF35", "#4285FF", "#FF773D", "#9B4DCA", "#00F0C8", "#FFD044"]
         };
@@ -150,9 +156,13 @@ internal static class ChartPalettes
         Color At(double value)
         {
             var chroma = (1 - Math.Abs(2 * value - 1)) * saturation;
-            var x = chroma * (1 - Math.Abs(hue % 2 - 1));
+            // Darkened yellow reads as olive, so turn yellows toward amber as they darken; limes stay green.
+            var shifted = light && hue is > 0.65 and < 1.1
+                ? hue - (hue - 0.65) * Math.Min(1, (originalLightness - value) / 0.25)
+                : hue;
+            var x = chroma * (1 - Math.Abs(shifted % 2 - 1));
             var offset = value - chroma / 2;
-            var (red, green, blue) = hue switch
+            var (red, green, blue) = shifted switch
             {
                 < 1 => (chroma, x, 0d),
                 < 2 => (x, chroma, 0d),

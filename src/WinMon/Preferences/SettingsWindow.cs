@@ -206,6 +206,9 @@ public sealed class SettingsWindow : Window
         UpdatePalettePreviews();
         _themeSelector.SelectionChanged += (_, _) =>
         {
+            // A theme with its own palette suggests it; the user can still pick another before Save.
+            if (ChartPalettes.ForTheme(_themeSelector.SelectedValue as string) is { } matching)
+                _paletteSelector.SelectedValue = matching;
             UpdatePalettePreviews();
             UpdateAppearancePreview();
         };

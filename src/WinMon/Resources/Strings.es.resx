@@ -1141,9 +1141,6 @@ Estado según Windows: {2}</value>
   <data name="PaletteStudio" xml:space="preserve">
     <value>Estudio</value>
   </data>
-  <data name="PaletteNeon" xml:space="preserve">
-    <value>Ciberpunk</value>
-  </data>
   <data name="NetworkRatePair" xml:space="preserve">
     <value>↓{0} ↑{1} {2}</value>
   </data>
@@ -1252,6 +1249,9 @@ Estado según Windows: {2}</value>
   <data name="PaletteCandy" xml:space="preserve">
     <value>Dulce</value>
   </data>
+  <data name="PaletteWildberry" xml:space="preserve">
+    <value>Zarzamora</value>
+  </data>
   <data name="PaletteNeonVividDescription" xml:space="preserve">
     <value>Personalizada · cian, rosa, lima y violeta vivos</value>
   </data>
@@ -1263,6 +1263,9 @@ Estado según Windows: {2}</value>
   </data>
   <data name="PaletteCandyDescription" xml:space="preserve">
     <value>Personalizada · manzana ácida, frambuesa azul, chicle y caramelo</value>
+  </data>
+  <data name="PaletteWildberryDescription" xml:space="preserve">
+    <value>Personalizada · grosella espinosa, arándano, mora de los pantanos, frambuesa y grosella negra</value>
   </data>
   <data name="AutomaticallyCheckForUpdates" xml:space="preserve">
     <value>Buscar actualizaciones automáticamente</value>

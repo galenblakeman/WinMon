@@ -1141,9 +1141,6 @@ Windows 상태: {2}</value>
   <data name="PaletteStudio" xml:space="preserve">
     <value>스튜디오</value>
   </data>
-  <data name="PaletteNeon" xml:space="preserve">
-    <value>사이버펑크</value>
-  </data>
   <data name="NetworkRatePair" xml:space="preserve">
     <value>↓{0} ↑{1} {2}</value>
   </data>
@@ -1252,6 +1249,9 @@ Windows 상태: {2}</value>
   <data name="PaletteCandy" xml:space="preserve">
     <value>캔디</value>
   </data>
+  <data name="PaletteWildberry" xml:space="preserve">
+    <value>와일드베리</value>
+  </data>
   <data name="PaletteNeonVividDescription" xml:space="preserve">
     <value>사용자 지정 · 선명한 청록색, 분홍색, 라임색, 보라색</value>
   </data>
@@ -1263,6 +1263,9 @@ Windows 상태: {2}</value>
   </data>
   <data name="PaletteCandyDescription" xml:space="preserve">
     <value>사용자 지정 · 사워 애플, 블루 라즈베리, 버블검, 버터스카치</value>
+  </data>
+  <data name="PaletteWildberryDescription" xml:space="preserve">
+    <value>사용자 지정 · 구스베리, 블루베리, 클라우드베리, 라즈베리, 블랙커런트</value>
   </data>
   <data name="AutomaticallyCheckForUpdates" xml:space="preserve">
     <value>업데이트 자동 확인</value>

@@ -1141,9 +1141,6 @@ Fabricant : {1}
   <data name="PaletteStudio" xml:space="preserve">
     <value>Studio</value>
   </data>
-  <data name="PaletteNeon" xml:space="preserve">
-    <value>Cyberpunk</value>
-  </data>
   <data name="NetworkRatePair" xml:space="preserve">
     <value>↓{0} ↑{1} {2}</value>
   </data>
@@ -1252,6 +1249,9 @@ Fabricant : {1}
   <data name="PaletteCandy" xml:space="preserve">
     <value>Bonbon</value>
   </data>
+  <data name="PaletteWildberry" xml:space="preserve">
+    <value>Mûre</value>
+  </data>
   <data name="PaletteNeonVividDescription" xml:space="preserve">
     <value>Personnalisée · cyan, rose, vert citron et violet vifs</value>
   </data>
@@ -1263,6 +1263,9 @@ Fabricant : {1}
   </data>
   <data name="PaletteCandyDescription" xml:space="preserve">
     <value>Personnalisée · pomme acidulée, framboise bleue, chewing-gum et caramel</value>
+  </data>
+  <data name="PaletteWildberryDescription" xml:space="preserve">
+    <value>Personnalisée · groseille à maquereau, myrtille, plaquebière, framboise et cassis</value>
   </data>
   <data name="AutomaticallyCheckForUpdates" xml:space="preserve">
     <value>Rechercher automatiquement les mises à jour</value>

@@ -374,7 +374,6 @@ public static partial class Strings
     public static string PaletteEarth => ResourceManager.GetString(nameof(PaletteEarth), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PaletteHighContrast => ResourceManager.GetString(nameof(PaletteHighContrast), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PaletteMonochromatic => ResourceManager.GetString(nameof(PaletteMonochromatic), Culture ?? CultureInfo.CurrentUICulture)!;
-    public static string PaletteNeon => ResourceManager.GetString(nameof(PaletteNeon), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PaletteNeonVivid => ResourceManager.GetString(nameof(PaletteNeonVivid), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PaletteNeonVividDescription => ResourceManager.GetString(nameof(PaletteNeonVividDescription), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PaletteOcean => ResourceManager.GetString(nameof(PaletteOcean), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -385,6 +384,8 @@ public static partial class Strings
     public static string PaletteTech => ResourceManager.GetString(nameof(PaletteTech), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PaletteTropical => ResourceManager.GetString(nameof(PaletteTropical), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PaletteTropicalDescription => ResourceManager.GetString(nameof(PaletteTropicalDescription), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string PaletteWildberry => ResourceManager.GetString(nameof(PaletteWildberry), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string PaletteWildberryDescription => ResourceManager.GetString(nameof(PaletteWildberryDescription), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PeakLastTwoMinutes => ResourceManager.GetString(nameof(PeakLastTwoMinutes), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PeakLastTwoMinutesExplanation => ResourceManager.GetString(nameof(PeakLastTwoMinutesExplanation), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PercentInteger => ResourceManager.GetString(nameof(PercentInteger), Culture ?? CultureInfo.CurrentUICulture)!;

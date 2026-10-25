@@ -1141,9 +1141,6 @@ GPU {11} · {12}
   <data name="PaletteStudio" xml:space="preserve">
     <value>Студия</value>
   </data>
-  <data name="PaletteNeon" xml:space="preserve">
-    <value>Киберпанк</value>
-  </data>
   <data name="NetworkRatePair" xml:space="preserve">
     <value>↓{0} ↑{1} {2}</value>
   </data>
@@ -1252,6 +1249,9 @@ GPU {11} · {12}
   <data name="PaletteCandy" xml:space="preserve">
     <value>Конфета</value>
   </data>
+  <data name="PaletteWildberry" xml:space="preserve">
+    <value>Ежевика</value>
+  </data>
   <data name="PaletteNeonVividDescription" xml:space="preserve">
     <value>Своя палитра · яркие голубой, розовый, лаймовый и фиолетовый</value>
   </data>
@@ -1263,6 +1263,9 @@ GPU {11} · {12}
   </data>
   <data name="PaletteCandyDescription" xml:space="preserve">
     <value>Своя палитра · кислое яблоко, голубая малина, жвачка и ириска</value>
+  </data>
+  <data name="PaletteWildberryDescription" xml:space="preserve">
+    <value>Своя палитра · крыжовник, черника, морошка, малина и чёрная смородина</value>
   </data>
   <data name="AutomaticallyCheckForUpdates" xml:space="preserve">
     <value>Автоматически проверять обновления</value>

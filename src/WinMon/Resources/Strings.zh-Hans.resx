@@ -1141,9 +1141,6 @@ Windows 健康状态：{2}</value>
   <data name="PaletteStudio" xml:space="preserve">
     <value>工作室</value>
   </data>
-  <data name="PaletteNeon" xml:space="preserve">
-    <value>赛博朋克</value>
-  </data>
   <data name="NetworkRatePair" xml:space="preserve">
     <value>↓{0} ↑{1} {2}</value>
   </data>
@@ -1252,6 +1249,9 @@ Windows 健康状态：{2}</value>
   <data name="PaletteCandy" xml:space="preserve">
     <value>糖果</value>
   </data>
+  <data name="PaletteWildberry" xml:space="preserve">
+    <value>野莓</value>
+  </data>
   <data name="PaletteNeonVividDescription" xml:space="preserve">
     <value>自定义 · 鲜艳的青色、粉色、青柠色和紫色</value>
   </data>
@@ -1263,6 +1263,9 @@ Windows 健康状态：{2}</value>
   </data>
   <data name="PaletteCandyDescription" xml:space="preserve">
     <value>自定义 · 酸苹果、蓝覆盆子、泡泡糖和奶油硬糖</value>
+  </data>
+  <data name="PaletteWildberryDescription" xml:space="preserve">
+    <value>自定义 · 醋栗、蓝莓、云莓、覆盆子和黑加仑</value>
   </data>
   <data name="AutomaticallyCheckForUpdates" xml:space="preserve">
     <value>自动检查更新</value>
