@@ -683,6 +683,29 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                     v.Text.Length == 0 || v.Text == Strings.MissingReading) ||
                 window.SystemCounts.ToolTip is not string counts || !counts.Contains(Strings.Handles))
                 throw new InvalidOperationException("The tab strip did not show process, thread and handle counts.");
+            // A failed live pass must clear live counts, but not the retained moment being inspected.
+            var selected = window.SelectedSample;
+            var error = window.ShownSamplingError;
+            try
+            {
+                var sample = window.Session.History.Latest!;
+                var expected = MainWindow.CompactCount(sample.Resources.ProcessCount);
+                window.SelectedSample = sample;
+                window.ShownSamplingError = SamplingError.ReadingsUnavailable;
+                window.RefreshVisiblePresentation();
+                if (window.ProcessCountValue.Text != expected)
+                    throw new InvalidOperationException("A live sampling failure cleared the inspected sample's counts.");
+                window.SelectedSample = null;
+                window.RefreshVisiblePresentation();
+                if (window.ProcessCountValue.Text != Strings.MissingReading)
+                    throw new InvalidOperationException("A live sampling failure left stale live counts visible.");
+            }
+            finally
+            {
+                window.SelectedSample = selected;
+                window.ShownSamplingError = error;
+                window.RefreshVisiblePresentation();
+            }
             var open = drawer.ActualHeight;
             var bar = window.Processes.ProcessActions;
             var hide = Descendants(bar).OfType<Button>().Single(b => b.Command == ActionDrawer.CollapseCommand);
