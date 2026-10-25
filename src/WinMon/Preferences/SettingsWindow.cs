@@ -19,6 +19,7 @@ namespace WinMon.Preferences;
 internal enum SettingsSection
 {
     General,
+    Appearance,
     Monitoring,
     AutomaticCaptures,
     Updates
@@ -109,6 +110,8 @@ public sealed class SettingsWindow : Window
     private Button? _saveButton;
 
     private static readonly Geometry Monitoring = Geometry.Parse("M 1,9 L 4,9 L 6,3 L 9,13 L 11,7 L 15,7");
+    private static readonly Geometry AppearanceIcon =
+        Geometry.Parse("M 2,2 L 14,2 L 14,12 L 2,12 Z M 8,12 L 8,15 M 5,15 L 11,15 M 4,8 L 7,5 L 9,8 L 12,5");
     private static readonly Geometry Capture = Geometry.Parse("M 2,3 L 14,3 L 8,13 Z");
 
     /// <summary>
@@ -237,6 +240,7 @@ public sealed class SettingsWindow : Window
         SecondaryDriveSelector.SelectionChanged += (_, _) => FollowDrives();
 
         _pages.Add((SettingsSection.General, Strings.SettingsGeneral, ButtonIcon.Settings, CreateGeneralPage()));
+        _pages.Add((SettingsSection.Appearance, Strings.Appearance, AppearanceIcon, CreateAppearancePage()));
         _pages.Add((SettingsSection.Monitoring, Strings.SettingsMonitoring, Monitoring, CreateMonitoringPage()));
         _pages.Add((SettingsSection.AutomaticCaptures, Strings.AutoCaptureHeading, Capture, CreateCapturePage()));
         // Store builds update through the Store, so they have no Updates section.
@@ -302,6 +306,10 @@ public sealed class SettingsWindow : Window
     public MonitorPreferences? Result { get; private set; }
 
     internal ComboBox GaugeSelector => _gaugeSelector;
+
+    internal ComboBox ThemeSelector => _themeSelector;
+
+    internal ComboBox PaletteSelector => _paletteSelector;
 
     internal MetricReadout GaugePreview => _gaugePreview;
 
@@ -610,16 +618,8 @@ public sealed class SettingsWindow : Window
     private StackPanel CreateGeneralPage()
     {
         var page = Page(Strings.SettingsGeneral);
-        page.Children.Add(CreateHeading(Strings.Appearance, true));
         page.Children.Add(Field(Strings.Language, LanguageSelector));
         page.Children.Add(Note(Strings.LanguageApplyNote));
-        page.Children.Add(Field(Strings.Theme, _themeSelector));
-        page.Children.Add(Field(Strings.ChartPalette, _paletteSelector));
-        page.Children.Add(Field(Strings.ResourceGauges, _gaugeSelector));
-        page.Children.Add(new PreviewHost
-        {
-            Child = _gaugePreview, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 4, 0, 4)
-        });
         page.Children.Add(CreateHeading(Strings.SettingsStartupAndTray));
         page.Children.Add(_startupCheckBox);
         page.Children.Add(_minimizeToTrayCheckBox);
@@ -639,6 +639,19 @@ public sealed class SettingsWindow : Window
         statusRow.Children.Add(resetButton);
         statusRow.Children.Add(_shortcutStatus);
         page.Children.Add(statusRow);
+        return page;
+    }
+
+    private StackPanel CreateAppearancePage()
+    {
+        var page = Page(Strings.Appearance);
+        page.Children.Add(Field(Strings.Theme, _themeSelector));
+        page.Children.Add(Field(Strings.ChartPalette, _paletteSelector));
+        page.Children.Add(Field(Strings.ResourceGauges, _gaugeSelector));
+        page.Children.Add(new PreviewHost
+        {
+            Child = _gaugePreview, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 4, 0, 4)
+        });
         return page;
     }
 

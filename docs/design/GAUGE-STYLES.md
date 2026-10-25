@@ -8,7 +8,7 @@ The [wide resource rails](WIDE-RESOURCE-GAUGES.md) sat flush against the next ti
 
 ## Choices
 
-**Resource gauges** in Settings → General → Appearance offers, in this order:
+**Resource gauges** in Settings → Appearance offers, in this order:
 
 | Style | Drawing | Peak mark |
 | --- | --- | --- |

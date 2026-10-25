@@ -19,9 +19,11 @@ public sealed class SettingsLayoutTests
         {
             var opened = window.Section;
             SettingsSection[] expected = UpdatePolicy.GitHubUpdatesEnabled
-                ? [SettingsSection.General, SettingsSection.Monitoring, SettingsSection.AutomaticCaptures,
+                ? [SettingsSection.General, SettingsSection.Appearance, SettingsSection.Monitoring,
+                    SettingsSection.AutomaticCaptures,
                     SettingsSection.Updates]
-                : [SettingsSection.General, SettingsSection.Monitoring, SettingsSection.AutomaticCaptures];
+                : [SettingsSection.General, SettingsSection.Appearance, SettingsSection.Monitoring,
+                    SettingsSection.AutomaticCaptures];
             var shown = expected.Select(section =>
             {
                 window.ShowSection(section);
@@ -33,6 +35,38 @@ public sealed class SettingsLayoutTests
                 Assert.That(opened, Is.EqualTo(SettingsSection.General));
                 Assert.That(shown, Is.EqualTo(expected));
                 Assert.That(window.Height, Is.LessThanOrEqualTo(600), "Every section fits without growing the dialog.");
+            });
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [Test]
+    public void Appearance_ContainsThemePaletteAndGaugeWhileGeneralKeepsLanguage()
+    {
+        var window = Settings(new MonitorPreferences
+            { Theme = "BrushedNickel", ChartPalette = "Ocean", GaugeStyle = GaugeStyle.Needle });
+        try
+        {
+            var general = Descendants(window).ToArray();
+            window.ShowSection(SettingsSection.Appearance);
+            var appearance = Descendants(window).ToArray();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(general, Does.Contain(window.LanguageSelector));
+                Assert.That(general, Does.Not.Contain(window.ThemeSelector));
+                Assert.That(general, Does.Not.Contain(window.PaletteSelector));
+                Assert.That(general, Does.Not.Contain(window.GaugeSelector));
+                Assert.That(appearance, Does.Not.Contain(window.LanguageSelector));
+                Assert.That(appearance, Does.Contain(window.ThemeSelector));
+                Assert.That(appearance, Does.Contain(window.PaletteSelector));
+                Assert.That(appearance, Does.Contain(window.GaugeSelector));
+                Assert.That(window.ThemeSelector.SelectedValue, Is.EqualTo("BrushedNickel"));
+                Assert.That(window.PaletteSelector.SelectedValue, Is.EqualTo("Ocean"));
+                Assert.That(window.GaugeSelector.SelectedValue, Is.EqualTo(GaugeStyle.Needle));
             });
         }
         finally
