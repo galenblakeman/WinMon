@@ -47,6 +47,9 @@ public partial class UsageView
     private bool? _wideActionBar;
     private bool _refreshingRows;
 
+    // The user's choice, kept while its app is out of the list (search, top count, a sort change) so it comes back.
+    private string? _selectedKey;
+
     internal bool ActionsHidden
     {
         get => ActionsDrawer.Collapsed;
@@ -292,7 +295,7 @@ public partial class UsageView
             desired.Add(row);
         }
 
-        var selectedKey = (Rows.SelectedItem as UsageDisplayRow)?.Key;
+        var selectedKey = _selectedKey;
         _refreshingRows = true;
         try
         {
@@ -333,7 +336,9 @@ public partial class UsageView
 
     private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (!_refreshingRows) UpdateActionBar();
+        if (_refreshingRows) return;
+        _selectedKey = (Rows.SelectedItem as UsageDisplayRow)?.Key;
+        UpdateActionBar();
     }
 
     private void UpdateActionBar()

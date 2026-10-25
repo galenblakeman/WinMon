@@ -162,6 +162,15 @@ public sealed class UsageViewTests
         });
         view.ActionsHidden = false;
         Assert.That(view.ActionBar.Visibility, Is.EqualTo(Visibility.Visible));
+
+        // The choice survives refreshes while its app is out of the list, and returns with it.
+        view.Update(new UsageFrame([first, second with { CpuTicks = 400 }], 600, 0, Now, Now, false));
+        view.Search.Text = "";
+        Assert.Multiple(() =>
+        {
+            Assert.That((view.Rows.SelectedItem as UsageDisplayRow)?.Key, Is.EqualTo(first.Key));
+            Assert.That(view.CopyDetails.IsEnabled, Is.True);
+        });
     }
 
     private static AppUsage App(string name, long cpu = 0, double io = 0, double? gpu = null, int lifetimes = 1,
