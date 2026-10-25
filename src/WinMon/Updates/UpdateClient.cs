@@ -13,6 +13,7 @@ namespace WinMon.Updates;
 
 internal sealed class UpdateClient : IDisposable
 {
+    private static readonly TimeSpan DownloadStallTimeout = TimeSpan.FromSeconds(60);
     private readonly HttpClient _http;
     private readonly string _publicKey;
     private readonly string _root;
@@ -138,8 +139,12 @@ internal sealed class UpdateClient : IDisposable
                 var buffer = new byte[81920];
                 long total = 0;
                 int read;
-                while ((read = await input.ReadAsync(buffer, cancellationToken).ConfigureAwait(false)) > 0)
+                // HttpClient.Timeout ends with the headers, so a body read that stalls needs its own deadline.
+                using var stalled = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                stalled.CancelAfter(DownloadStallTimeout);
+                while ((read = await input.ReadAsync(buffer, stalled.Token).ConfigureAwait(false)) > 0)
                 {
+                    stalled.CancelAfter(DownloadStallTimeout);
                     total += read;
                     if (total > asset.Size) throw new InvalidDataException("Download exceeds the expected size.");
                     await output.WriteAsync(buffer.AsMemory(0, read), cancellationToken).ConfigureAwait(false);
