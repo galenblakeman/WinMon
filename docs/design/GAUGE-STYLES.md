@@ -24,7 +24,7 @@ Settings saved before this choice existed load as Bowl, so everyone sees the new
 
 ## Decisions
 
-- **One height.** Every style fits 92 DIPs, so switching styles never moves the chart. That is 7 DIPs taller than the rails' natural height; bottom bars and the bowl needed it.
+- **One height.** Every style fits 98 DIPs, so switching styles never moves the chart. Six DIPs separate radial gauges from the resource name while preserving their size.
 - **Nearly round arcs.** Height, not width, sets the arcs' size.
   - **Bowl and segmented arc.** These keep the value inside the arc and the detail line below it. A perfect circle that tall is too narrow inside for "↓9.52 Mbps", so these arcs may be at most 1.2 times as wide as they are tall (`MetricGauge.BowlWidening`). A test checks that the widest rate's digits clear the inside of the arc.
   - **Needle.** The needle is a true half circle with the value under its hub, close enough to clear a needle lying flat at zero. Its detail line (clock speed, memory in use, upload rate and so on) moves to the tile's tooltip, which already shows it. That gives a radius of about 39 DIPs.
@@ -40,6 +40,7 @@ Settings saved before this choice existed load as Bowl, so everyone sees the new
 - `Preferences/GaugeStyle.cs`, `MonitorPreferences.GaugeStyle` (saved by name), validation in `PreferenceStore`, and the selector and preview in `SettingsWindow`.
 - `Controls/MetricGauge.cs` draws each style, and `ArcBounds` sizes the arcs. `Controls/MetricReadout.cs` places the labels and the gauge in one of five layouts: bowl (also the segmented arc), dial (needle), beside (left bar), under (bars) or none. `ShowGauge` takes an optional scale label.
 - `MainWindow.ApplyGaugeStyle` runs with `ApplyTheme`, and hides the `PeakLegend` for None.
+- Radial gauges later gained a 6-DIP gap below the resource name. The shared readout height and Compact view height grew by 6 DIPs so the arcs keep their size.
 - `WinMon.exe --gauges-smoke-output <dir>` (`Verify.ps1 -Smoke gauges`) renders every style in both themes at 1000 and 836 DIPs. It checks:
   - the shared height;
   - that the arcs are round or nearly round;

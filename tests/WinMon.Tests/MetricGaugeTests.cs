@@ -156,6 +156,30 @@ public sealed class MetricGaugeTests
 
     [Test]
     [Apartment(ApartmentState.STA)]
+    public void RadialGauge_ClearsTheResourceName([Values(GaugeStyle.Needle, GaugeStyle.Bowl,
+        GaugeStyle.SegmentedArc)] GaugeStyle style)
+    {
+        var readout = new MetricReadout { Width = 140, GaugeStyle = style, Label = "CPU" };
+        var window = new Window { Width = 140, Content = readout, SizeToContent = SizeToContent.Height,
+            WindowStyle = WindowStyle.None, ShowInTaskbar = false };
+        try
+        {
+            readout.ShowGauge(50, 80, 100);
+            window.Show();
+            window.UpdateLayout();
+            var nameBottom = readout.Toggle.TranslatePoint(new Point(0, readout.Toggle.ActualHeight), readout).Y;
+            var gaugeTop = readout.Gauge.TranslatePoint(new Point(), readout).Y;
+
+            Assert.That(gaugeTop - nameBottom, Is.GreaterThanOrEqualTo(5.5));
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [Test]
+    [Apartment(ApartmentState.STA)]
     public void ArcsHoldingTheValue_AreNearlyRoundAndHoldTheWidestRate(
         [Values(GaugeStyle.Bowl, GaugeStyle.SegmentedArc)] GaugeStyle style, [Values(120, 150, 210)] int width)
     {

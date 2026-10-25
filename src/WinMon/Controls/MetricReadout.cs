@@ -10,7 +10,9 @@ namespace WinMon.Controls;
 public sealed class MetricReadout : Grid
 {
     /// <summary>Every gauge style fits this height, so changing the style never moves the chart below.</summary>
-    internal const double LayoutHeight = 92;
+    internal const double LayoutHeight = 98;
+
+    private const double ArcHeaderGap = 6;
 
     public CheckBox Toggle { get; } = new() { IsChecked = true, FontSize = 14, Margin = new Thickness(0, 0, 0, 5) };
 
@@ -119,6 +121,7 @@ public sealed class MetricReadout : Grid
         DetailLabel.Margin = new Thickness(0, 3, 4, 3);
         Gauge.Kind = style;
         Gauge.Margin = new Thickness();
+        _bowl.Margin = new Thickness();
         Gauge.Width = Gauge.Height = double.NaN;
         switch (style)
         {
@@ -130,6 +133,7 @@ public sealed class MetricReadout : Grid
                 RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
                 AddNameRow();
                 SetRow(Gauge, 1);
+                Gauge.Margin = new Thickness(0, ArcHeaderGap, 0, 0);
                 Children.Add(Gauge);
                 ValueLabel.HorizontalAlignment = HorizontalAlignment.Center;
                 // Pull the line box up by most of its leading; a needle lying flat at zero still clears the digits.
@@ -146,6 +150,7 @@ public sealed class MetricReadout : Grid
                 ValueLabel.VerticalAlignment = VerticalAlignment.Bottom;
                 _bowl.Children.Add(Gauge);
                 _bowl.Children.Add(ValueLabel);
+                _bowl.Margin = new Thickness(0, ArcHeaderGap, 0, 0);
                 SetRow(_bowl, 1);
                 Children.Add(_bowl);
                 DetailLabel.HorizontalAlignment = HorizontalAlignment.Center;

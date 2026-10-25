@@ -8,7 +8,7 @@
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="120" />
+                <RowDefinition Height="126" />
             </Grid.RowDefinitions>
             <Grid Background="{DynamicResource SectionHeaderSurface}">
                 <Grid.ColumnDefinitions>

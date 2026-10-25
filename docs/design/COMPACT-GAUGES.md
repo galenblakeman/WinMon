@@ -8,7 +8,7 @@ Selected on 2026-10-25: keep Compact view's title bar and show only the configur
 - The secondary disk appears when a drive is configured. Chart-series visibility does not hide readouts in either view.
 - Compact resource names are plain labels. Full-view checkboxes continue to control chart series, and their settings are unchanged by switching views.
 - The title bar retains Live or Unavailable status, Full view, Always on top and window controls. The resource boxes remain keyboard focusable and open the shared detail tooltips.
-- Compact height is 136 DIPs, including the 36-DIP title row. The Full-view dimensions are restored on return.
+- Compact height is 142 DIPs, including the 36-DIP title row. The Full-view dimensions are restored on return.
 
 ## Landed
 

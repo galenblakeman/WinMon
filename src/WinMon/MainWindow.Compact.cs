@@ -9,7 +9,7 @@ namespace WinMon;
 
 public partial class MainWindow
 {
-    internal const double CompactHeight = 136;
+    internal const double CompactHeight = 142;
     private Size _fullViewSize = new(1000, 840);
 
     private readonly List<(MetricReadout Source, Border Box, MetricReadout Readout)> _compactTiles = [];
