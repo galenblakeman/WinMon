@@ -296,7 +296,27 @@ internal static class UpdateRuntime
                 while (!healthy.WaitOne(100))
                     if (child.HasExited || DateTime.UtcNow >= deadline)
                         throw new IOException("The updated app did not become ready.");
-                UpdateFiles.WriteJson(Path.Combine(directory, "state.json"), new UpdateState("succeeded"));
+                // The new version is healthy, so no failure from here may roll it back. Its first poll for the
+                // result notice can briefly hold the state file; if the write never lands, the next launch of this
+                // version records the success itself (CompleteInterruptedTransaction) and removes the backup.
+                for (var attempt = 1;; attempt++)
+                    try
+                    {
+                        UpdateFiles.WriteJson(Path.Combine(directory, "state.json"), new UpdateState("succeeded"));
+                        break;
+                    }
+                    catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                    {
+                        if (attempt < 5)
+                        {
+                            Thread.Sleep(100);
+                            continue;
+                        }
+
+                        Trace.TraceWarning("WinMon updater could not record the healthy update: {0}", ex.Message);
+                        return 0;
+                    }
+
                 TryDelete(UpdateFiles.BackupPath(job));
                 TryDelete(download);
                 TryDelete(Path.Combine(directory, "WinMon.exe"));
