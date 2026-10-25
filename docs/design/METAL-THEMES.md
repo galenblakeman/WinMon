@@ -25,7 +25,7 @@ The satin effect combines a broad reflection with fine horizontal grain in froze
 - The `compact` smoke captures the same finishes at the narrow compact width.
 - Preference tests check theme persistence without changing the selected gauge or chart palette.
 - A later texture refinement added deterministic hairline grain to the metal chrome and resource backgrounds without adding UI elements or work to the sampling loop.
-- The title-bar background extends beneath the Windows caption-button area, while the WPF title actions still stop at the measured button bounds. The underlay does not receive input; Windows keeps the native button visuals and behavior.
+- The WPF title surface stops at the measured Windows caption-button bounds. DWM colors the remaining area to match the finish and paints its native Minimize, Maximize and Close glyphs there. A full-width WPF underlay hid those glyphs despite preserving their hit targets, so it was removed.
 - The selected light alloy chart treatment applies only to brushed steel and brushed nickel. Chart traces, grid geometry, palettes, and interaction stay as before.
 
 ## Departures from the mockups
