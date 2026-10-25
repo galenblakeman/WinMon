@@ -43,7 +43,7 @@ internal static class ThemeFinishes
         _ => throw new ArgumentOutOfRangeException(nameof(name), name, "Unknown appearance finish")
     };
 
-    /// <summary>A broad reflection and fine horizontal grain, drawn once into a frozen brush.</summary>
+    /// <summary>A flat title finish or reflected section header, both with fine horizontal grain.</summary>
     internal static DrawingBrush ChromeBrush(Finish finish, bool header)
     {
         var baseColor = (Color)ColorConverter.ConvertFromString(header ? finish.Header : finish.Chrome);
@@ -53,10 +53,11 @@ internal static class ThemeFinishes
             StartPoint = new Point(0, 0),
             EndPoint = new Point(0, 1)
         };
-        reflection.GradientStops.Add(new GradientStop(highlight, 0));
+        // The native caption-button area has a flat DWM tint; keep the adjacent title's edges flat too.
+        reflection.GradientStops.Add(new GradientStop(header ? highlight : baseColor, 0));
         reflection.GradientStops.Add(new GradientStop(baseColor, 0.16));
         reflection.GradientStops.Add(new GradientStop(baseColor, 0.76));
-        reflection.GradientStops.Add(new GradientStop(highlight, 1));
+        reflection.GradientStops.Add(new GradientStop(header ? highlight : baseColor, 1));
         var drawing = Grain(new Rect(0, 0, 1, 40), reflection, finish.Light, 1, 40);
         var brush = new DrawingBrush(drawing)
         {
