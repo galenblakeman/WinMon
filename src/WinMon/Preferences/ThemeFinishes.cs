@@ -56,16 +56,20 @@ internal static class ThemeFinishes
     {
         var baseColor = (Color)ColorConverter.ConvertFromString(header ? finish.Header : finish.Chrome);
         var highlight = (Color)ColorConverter.ConvertFromString(finish.Highlight);
+        var sheen = Color.FromRgb(
+            (byte)((baseColor.R * 4 + highlight.R) / 5),
+            (byte)((baseColor.G * 4 + highlight.G) / 5),
+            (byte)((baseColor.B * 4 + highlight.B) / 5));
         var reflection = new LinearGradientBrush
         {
             StartPoint = new Point(0, 0),
             EndPoint = new Point(0, 1)
         };
-        // The native caption-button area has a flat DWM tint; keep the adjacent title's edges flat too.
-        reflection.GradientStops.Add(new GradientStop(header ? highlight : baseColor, 0));
-        reflection.GradientStops.Add(new GradientStop(baseColor, 0.16));
-        reflection.GradientStops.Add(new GradientStop(baseColor, 0.76));
-        reflection.GradientStops.Add(new GradientStop(header ? highlight : baseColor, 1));
+        // Keep the edges at the base color so the header's reflection does not resemble a thick border.
+        // The title remains flat to meet the native caption-button area.
+        reflection.GradientStops.Add(new GradientStop(baseColor, 0));
+        reflection.GradientStops.Add(new GradientStop(header ? sheen : baseColor, 0.5));
+        reflection.GradientStops.Add(new GradientStop(baseColor, 1));
         var drawing = Grain(new Rect(0, 0, 1, 40), reflection, finish.Light, 1, 40);
         var brush = new DrawingBrush(drawing)
         {

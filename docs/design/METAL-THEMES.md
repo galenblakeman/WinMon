@@ -24,7 +24,7 @@ The satin effect uses fine horizontal grain in frozen drawing brushes on the tit
 - Preference tests check theme persistence without changing the selected gauge or chart palette.
 - A later texture refinement added deterministic hairline grain to the metal chrome and resource backgrounds without adding UI elements or work to the sampling loop.
 - The WPF title surface stops at the measured Windows caption-button bounds. DWM colors the remaining area to match the finish and paints its native Minimize, Maximize and Close glyphs there. A full-width WPF underlay hid those glyphs despite preserving their hit targets, so it was removed.
-- The title's top and bottom highlight bands were removed so the brushed title surface meets the native button area without an abrupt horizontal border.
+- The title's top and bottom highlight bands were removed so the brushed title surface meets the native button area without an abrupt horizontal border. The section-header reflection was later softened and moved away from its edges so it no longer looks like a thick border.
 - Brushed steel and brushed nickel were later removed. Existing saved selections map to Porcelain to retain a light appearance; the special textured chart plot and their selector labels were removed. Chart traces, grid geometry, palettes, and interaction stay as before.
 
 ## Departures from the mockups
