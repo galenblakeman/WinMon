@@ -112,6 +112,9 @@ public sealed record MonitorPreferences
     /// <summary>Gets the duration, in seconds, retained for historical inspection.</summary>
     public int RetentionSeconds { get; init; } = 600;
 
+    /// <summary>Save retained resource and process samples across ordinary exits.</summary>
+    public bool KeepHistoryAcrossRestarts { get; init; }
+
     /// <summary>Gets a value indicating whether minimizing the monitor hides it in the notification area.</summary>
     public bool MinimizeToTray { get; init; }
 

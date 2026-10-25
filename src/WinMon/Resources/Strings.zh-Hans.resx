@@ -1620,4 +1620,6 @@ Windows 健康状态：{2}</value>
   <data name="ExportNoData" xml:space="preserve"><value>尚无可导出的已记录采样。</value></data>
   <data name="ExportSaved" xml:space="preserve"><value>CSV 已保存到 {0}</value></data>
   <data name="ExportFailed" xml:space="preserve"><value>无法保存 CSV：{0}</value></data>
+  <data name="KeepHistoryAcrossRestarts" xml:space="preserve"><value>重启后保留历史记录</value></data>
+  <data name="KeepHistoryAcrossRestartsNote" xml:space="preserve"><value>在此设备上保存近期的进程名称、路径和测量值。历史记录将在所选保留期后过期。</value></data>
 </root>

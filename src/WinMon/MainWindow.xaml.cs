@@ -164,6 +164,11 @@ public partial class MainWindow
             Topmost = _preferences.AlwaysOnTop;
             Session.History.Resize(_preferences.RetentionSeconds);
             await RestoreRestartHistoryAsync();
+            if (!_diagnosticMode)
+            {
+                if (UpdateRuntime.RestartHistory is null) await RestoreNormalHistoryAsync();
+                else RestartHistory.DeleteNormal(_preferenceStore.NormalHistoryPath);
+            }
             Lifetime.Token.ThrowIfCancellationRequested();
             ApplyTheme();
             if (_preferences.CompactMode) SetCompactView(true);
@@ -714,6 +719,8 @@ public partial class MainWindow
 
         // Choices made in the window while the file was written, such as grouping or a new pin, stay in effect.
         _preferences = PreferenceStore.Validate(SettingsWindow.ApplySettings(_preferences, result));
+        if (!_preferences.KeepHistoryAcrossRestarts)
+            RestartHistory.DeleteNormal(_preferenceStore.NormalHistoryPath);
         SecondaryDiskMetric.Toggle.IsChecked = _preferences.ShowSecondaryDisk;
         ConfigureDiskLayout();
         Session.History.Resize(_preferences.RetentionSeconds);
@@ -1021,7 +1028,10 @@ public partial class MainWindow
             }
 
             if (!_diagnosticMode && !_updateRestartPending)
+            {
                 await _preferenceStore.SaveAsync(ExitPreferences(), CancellationToken.None);
+                await SaveNormalHistoryAsync();
+            }
         }
         catch (Exception ex)
         {
@@ -1075,6 +1085,65 @@ public partial class MainWindow
         catch (AggregateException ex)
         {
             Trace.TraceError("WinMon session-end preference save failed: {0}", ex.InnerException);
+        }
+        if (preferences.KeepHistoryAcrossRestarts)
+        {
+            var samples = Session.History.Samples;
+            try
+            {
+                if (!Task.Run(() => RestartHistory.SaveNormal(_preferenceStore.NormalHistoryPath,
+                        AppInfo.Version, samples, RestartClock.System)).Wait(RestartHistory.Budget))
+                    Trace.TraceWarning("WinMon session-end history was still saving at its deadline.");
+            }
+            catch (AggregateException ex)
+            {
+                Trace.TraceError("WinMon session-end history save failed: {0}", ex.InnerException);
+            }
+        }
+    }
+
+    private async Task SaveNormalHistoryAsync()
+    {
+        if (!_preferences.KeepHistoryAcrossRestarts)
+        {
+            RestartHistory.DeleteNormal(_preferenceStore.NormalHistoryPath);
+            return;
+        }
+        var samples = Session.History.Samples;
+        try
+        {
+            await Task.Run(() => RestartHistory.SaveNormal(_preferenceStore.NormalHistoryPath,
+                AppInfo.Version, samples, RestartClock.System)).WaitAsync(RestartHistory.Budget);
+        }
+        catch (TimeoutException)
+        {
+            Trace.TraceWarning("WinMon normal history was still saving at its deadline.");
+        }
+        catch (Exception ex)
+        {
+            Trace.TraceError("WinMon normal history save failed: {0}", ex);
+        }
+    }
+
+    private async Task RestoreNormalHistoryAsync()
+    {
+        var path = _preferenceStore.NormalHistoryPath;
+        if (!_preferences.KeepHistoryAcrossRestarts)
+        {
+            RestartHistory.DeleteNormal(path);
+            return;
+        }
+        try
+        {
+            var restored = await Task.Run(() => RestartHistory.ReadNormal(path, RestartClock.System,
+                DateTimeOffset.Now, _preferences.RetentionSeconds));
+            if (restored is not { } history) return;
+            Session.SetHistoryClockOffset(history.LiveOffset);
+            foreach (var sample in history.Samples) Session.Record(sample);
+        }
+        catch (Exception ex)
+        {
+            Trace.TraceError("WinMon normal history restore failed: {0}", ex);
         }
     }
 }

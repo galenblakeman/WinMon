@@ -1620,4 +1620,6 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
   <data name="ExportNoData" xml:space="preserve"><value>Nie ma jeszcze zapisanych próbek do wyeksportowania.</value></data>
   <data name="ExportSaved" xml:space="preserve"><value>Zapisano CSV w {0}</value></data>
   <data name="ExportFailed" xml:space="preserve"><value>Nie udało się zapisać CSV: {0}</value></data>
+  <data name="KeepHistoryAcrossRestarts" xml:space="preserve"><value>Zachowaj historię po ponownym uruchomieniu</value></data>
+  <data name="KeepHistoryAcrossRestartsNote" xml:space="preserve"><value>Zapisuje ostatnie nazwy procesów, ścieżki i pomiary na tym urządzeniu. Historia wygasa po wybranym okresie przechowywania.</value></data>
 </root>

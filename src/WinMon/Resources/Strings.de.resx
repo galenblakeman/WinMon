@@ -1620,4 +1620,6 @@ Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse
   <data name="ExportNoData" xml:space="preserve"><value>Es sind noch keine aufgezeichneten Messwerte zum Exportieren verfügbar.</value></data>
   <data name="ExportSaved" xml:space="preserve"><value>CSV gespeichert unter {0}</value></data>
   <data name="ExportFailed" xml:space="preserve"><value>CSV konnte nicht gespeichert werden: {0}</value></data>
+  <data name="KeepHistoryAcrossRestarts" xml:space="preserve"><value>Verlauf über Neustarts hinweg behalten</value></data>
+  <data name="KeepHistoryAcrossRestartsNote" xml:space="preserve"><value>Speichert aktuelle Prozessnamen, Pfade und Messwerte auf diesem Gerät. Der Verlauf läuft nach der gewählten Aufbewahrungsdauer ab.</value></data>
 </root>

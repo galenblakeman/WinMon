@@ -1620,4 +1620,6 @@ GPU {11} · {12}
   <data name="ExportNoData" xml:space="preserve"><value>Пока нет записанных замеров для экспорта.</value></data>
   <data name="ExportSaved" xml:space="preserve"><value>CSV сохранён в {0}</value></data>
   <data name="ExportFailed" xml:space="preserve"><value>Не удалось сохранить CSV: {0}</value></data>
+  <data name="KeepHistoryAcrossRestarts" xml:space="preserve"><value>Сохранять историю после перезапуска</value></data>
+  <data name="KeepHistoryAcrossRestartsNote" xml:space="preserve"><value>Сохраняет недавние имена процессов, пути и измерения на этом устройстве. История удаляется по истечении выбранного срока хранения.</value></data>
 </root>

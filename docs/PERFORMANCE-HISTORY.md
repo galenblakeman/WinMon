@@ -6,6 +6,22 @@ Dated measurement and validation records, newest first. Each section describes t
 
 Add a section at the top for each measured change: what changed, the machine and build, before and after results, and where the raw reports are.
 
+## Normal-restart history (October 25, 2026)
+
+Release UI benchmark on the development machine, comparing base commit `27700cb` with the normal-restart-history worktree. The paired run with `DOTNET_TieredCompilation=0` gave these medians; allocations were unchanged to the displayed precision. The default live-frame benchmark calls `MonitorSession.Record` directly, so it does not measure the extra timestamp copies made by live drains after a reboot.
+
+| Scenario | Before | After | Allocation before/after |
+| --- | ---: | ---: | ---: |
+| Live overlay | 3.76 ms | 3.76 ms | 530.5 KiB |
+| Small multiples | 4.16 ms | 3.87 ms | 510.4 KiB |
+| Heatmap | 3.96 ms | 4.12 ms | 553.4 KiB |
+| Focus | 4.00 ms | 4.00 ms | 523.3 KiB |
+| Grouped live | 6.66 ms | 6.45 ms | 551.1 KiB |
+| Services | 7.30 ms | 7.08 ms | 1039.7 KiB |
+| Compact live | 2.30 ms | 2.37 ms | 362.0 KiB |
+
+At the 500,000-process-entry budget, the new normal snapshot saved and restored all 1,961 samples in a 15.3 MB file with default JIT settings. Median save was 0.95 s and read was 0.63 s across five runs. In the same run, the existing update snapshot took 1.02 s and 0.75 s. The no-tiering run took 1.22 s to save and kept the newest 1,740 samples in a 13.5 MB file; this is the designed time-bound truncation. The paired no-tiering update save was 1.22 s before and 1.24 s after. No repeatable default-path allocation increase was measured. Raw reports: `artifacts/normal-history-before-notier.json`, `normal-history-after-notier.json`, and `normal-history-bench-final.json`.
+
 ## Separate chart and readout palette shades (October 25, 2026)
 
 Release UI-thread benchmark on the development machine, comparing `18c35e0` with the working-tree build that added chart-only resource brushes and direct chart brush lookup. Four baseline and four changed runs alternated. The first live scenario varied widely with default JIT tiering, so four more pairs ran with `DOTNET_TieredCompilation=0` as the developer guide recommends. Values below are medians of those no-tiering run medians. These binaries were built before later concurrent palette edits in the checkout.

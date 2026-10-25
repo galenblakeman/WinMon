@@ -36,6 +36,8 @@ internal sealed record RestartContents(IReadOnlyList<MonitorSample> Samples, Usa
 internal static class RestartHistory
 {
     internal const string FileName = "restart-history.bin";
+    internal const string NormalFileName = "history.bin";
+    private const string NormalToken = "normal-exit";
     internal const int FormatVersion = 1;
     internal const int ChunkSamples = 60;
     internal static readonly TimeSpan Budget = TimeSpan.FromSeconds(1.5);
@@ -63,7 +65,8 @@ internal static class RestartHistory
     /// <param name="createTemporary">Opens the temporary file; tests pass a slow stream.</param>
     /// <returns>Whether the final file now exists.</returns>
     internal static bool Save(string path, string token, string appVersion, IReadOnlyList<MonitorSample> samples,
-        UsageLedgerState? usage, RestartClock clock, Func<string, Stream>? createTemporary = null)
+        UsageLedgerState? usage, RestartClock clock, Func<string, Stream>? createTemporary = null,
+        long maxBytes = long.MaxValue)
     {
         var start = clock.Timestamp();
         var directory = Path.GetDirectoryName(path) ?? ".";
@@ -84,6 +87,7 @@ internal static class RestartHistory
                     var first = Math.Max(0, end - ChunkSamples);
                     var last = end;
                     WriteChunk(stream, buffer, SampleChunk, writer => WriteSamples(writer, samples, first, last));
+                    if (stream.Position > maxBytes) throw new InvalidDataException("History exceeds the file size limit.");
                     chunks++;
                 }
 
@@ -92,6 +96,7 @@ internal static class RestartHistory
                 BinaryPrimitives.WriteInt32LittleEndian(trailer[4..], chunks);
                 BinaryPrimitives.WriteUInt32LittleEndian(trailer[8..], Crc32.Compute(header));
                 stream.Write(trailer);
+                if (stream.Position > maxBytes) throw new InvalidDataException("History exceeds the file size limit.");
                 if (stream is FileStream file) file.Flush(true);
                 else stream.Flush();
             }
@@ -113,6 +118,58 @@ internal static class RestartHistory
             return false;
         }
     }
+
+    /// <summary>Save the current retention window for an ordinary exit, without carrying Usage totals.</summary>
+    internal static bool SaveNormal(string path, string appVersion, IReadOnlyList<MonitorSample> samples,
+        RestartClock clock)
+    {
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(path) ?? ".");
+            return Save(path, NormalToken, appVersion, samples, null, clock, maxBytes: 64L * 1024 * 1024);
+        }
+        catch (Exception ex)
+        {
+            Trace.TraceError("WinMon could not save normal history: {0}", ex);
+            return false;
+        }
+    }
+
+    /// <summary>Restore recent samples onto this process's clock, including after a reboot.</summary>
+    /// <returns>Restored samples and the offset to apply to subsequent live samples.</returns>
+    internal static (IReadOnlyList<MonitorSample> Samples, long LiveOffset)? ReadNormal(
+        string path, RestartClock clock, DateTimeOffset now, int retentionSeconds)
+    {
+        try
+        {
+            using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 1 << 16);
+            if (stream.Length > 64L * 1024 * 1024) return null;
+            var contents = Read(stream, NormalToken, clock, validateRestart: false);
+            if (contents is null || contents.Samples.Count == 0) return null;
+            var newest = contents.Samples[^1];
+            var elapsed = (now - newest.Timestamp).TotalSeconds;
+            if (elapsed < -2 || elapsed >= retentionSeconds || newest.MonotonicTimestamp <= 0) return null;
+            var liveOffset = Math.Max(0L, checked((long)(retentionSeconds + 1) * clock.Frequency - clock.Timestamp()));
+            var targetNewest = checked(clock.Timestamp() + liveOffset - (long)(elapsed * clock.Frequency));
+            var shift = checked(targetNewest - newest.MonotonicTimestamp);
+            var cutoff = now.AddSeconds(-retentionSeconds);
+            var samples = contents.Samples.Where(s => s.Timestamp >= cutoff && s.Timestamp <= now.AddSeconds(2))
+                .Select(s => s with { MonotonicTimestamp = checked(s.MonotonicTimestamp + shift) }).ToArray();
+            if (samples.Length == 0 || samples[0].MonotonicTimestamp <= 0) return null;
+            return (samples, liveOffset);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or OverflowException or ArgumentException)
+        {
+            Trace.TraceWarning("WinMon could not restore normal history: {0}", ex.Message);
+            return null;
+        }
+        finally
+        {
+            TryDelete(path);
+        }
+    }
+
+    internal static void DeleteNormal(string path) => TryDelete(path);
 
     /// <summary>
     /// Read a restart file within <see cref="Budget"/> and delete it, whatever the outcome. Never throws.
@@ -140,7 +197,8 @@ internal static class RestartHistory
         }
     }
 
-    internal static RestartContents? Read(Stream stream, string token, RestartClock clock)
+    internal static RestartContents? Read(Stream stream, string token, RestartClock clock,
+        bool validateRestart = true)
     {
         var start = clock.Timestamp();
         if (!stream.CanSeek || stream.Length < HeaderMagic.Length + TrailerLength) return null;
@@ -157,8 +215,8 @@ internal static class RestartHistory
             if (frequency != clock.Frequency) return Reject("a different timer frequency");
             var timerSeconds = (clock.Timestamp() - savedTimestamp) / (double)frequency;
             var tickSeconds = (clock.TickCount() - savedTickCount) / 1000d;
-            if (timerSeconds is < 0 or > MaxAgeSeconds || tickSeconds is < 0 or > MaxAgeSeconds ||
-                Math.Abs(timerSeconds - tickSeconds) > ClockToleranceSeconds)
+            if (validateRestart && (timerSeconds is < 0 or > MaxAgeSeconds || tickSeconds is < 0 or > MaxAgeSeconds ||
+                Math.Abs(timerSeconds - tickSeconds) > ClockToleranceSeconds))
                 return Reject("monotonic clocks that do not match a recent restart");
             headerLength = stream.Position;
         }

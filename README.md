@@ -119,7 +119,7 @@ Click **Capture** again to select the newest sample. Use **Left / Right** to ste
 
 **Copy capture** always copies the selected moment’s resource summary and displayed top process rows as plain text, preserving their sorting, grouping and filters. Reports include the timestamp and time zone, units, unavailable readings and averaging notes. Copying keeps the capture open; expired samples cannot be copied.
 
-History is kept in memory for the current session, with configurable retention up to 60 minutes. Available history can be shorter on busy systems and is cleared when WinMon exits, except across an in-app update.
+History has configurable retention up to 60 minutes. Available history can be shorter on busy systems. By default it is cleared when WinMon exits, except across an in-app update. Turn on **Keep history across restarts** under Settings → Monitoring to save recent resource and process history on this device after a normal exit, including a Windows sign-out. Reopening WinMon restores only samples still within the selected retention period, even after a reboot. Usage totals and Service history start fresh. History is not guaranteed after a crash or forced shutdown.
 
 ### Automatic captures
 

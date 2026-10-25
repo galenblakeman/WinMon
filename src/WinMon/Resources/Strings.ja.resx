@@ -1620,4 +1620,6 @@ Windows の正常性状態: {2}</value>
   <data name="ExportNoData" xml:space="preserve"><value>エクスポートできる記録済みサンプルはまだありません。</value></data>
   <data name="ExportSaved" xml:space="preserve"><value>CSV を {0} に保存しました</value></data>
   <data name="ExportFailed" xml:space="preserve"><value>CSV を保存できませんでした: {0}</value></data>
+  <data name="KeepHistoryAcrossRestarts" xml:space="preserve"><value>再起動後も履歴を保持する</value></data>
+  <data name="KeepHistoryAcrossRestartsNote" xml:space="preserve"><value>最近のプロセス名、パス、測定値をこのデバイスに保存します。履歴は選択した保持期間が過ぎると失効します。</value></data>
 </root>

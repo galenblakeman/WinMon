@@ -1620,4 +1620,6 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="ExportNoData" xml:space="preserve"><value>No recorded samples are available to export yet.</value></data>
   <data name="ExportSaved" xml:space="preserve"><value>CSV saved to {0}</value></data>
   <data name="ExportFailed" xml:space="preserve"><value>Couldn't save the CSV: {0}</value></data>
+  <data name="KeepHistoryAcrossRestarts" xml:space="preserve"><value>Keep history across restarts</value></data>
+  <data name="KeepHistoryAcrossRestartsNote" xml:space="preserve"><value>Saves recent process names, paths and measurements on this device. History expires after the selected retention period.</value></data>
 </root>

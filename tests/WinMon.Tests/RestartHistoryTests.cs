@@ -53,6 +53,46 @@ public sealed class RestartHistoryTests
     }
 
     [Test]
+    public void NormalRestart_RestoresRecentSamplesAfterClockReset()
+    {
+        var path = Path.Combine(_directory, RestartHistory.NormalFileName);
+        var samples = Samples(5);
+        Assert.That(RestartHistory.SaveNormal(path, "3.3.0", samples, Later(0)), Is.True);
+        var rebooted = new RestartClock(() => Frequency * 10, () => 10_000, Frequency);
+
+        var restored = RestartHistory.ReadNormal(path, rebooted, Anchor.AddSeconds(9), 600);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(restored, Is.Not.Null);
+            Assert.That(restored!.Value.Samples.Select(s => s.Timestamp),
+                Is.EqualTo(samples.Select(s => s.Timestamp)));
+            Assert.That(restored.Value.Samples.Select(s => s.MonotonicTimestamp), Is.Ordered.Ascending);
+            Assert.That(restored.Value.Samples[0].MonotonicTimestamp, Is.GreaterThan(0));
+            Assert.That(restored.Value.Samples[^1].MonotonicTimestamp,
+                Is.EqualTo(rebooted.Timestamp() + restored.Value.LiveOffset - Frequency * 5));
+            Assert.That(File.Exists(path), Is.False);
+        });
+    }
+
+    [Test]
+    public void NormalRestart_TrimsExpiredSamplesAndRejectsClockErrors()
+    {
+        var path = Path.Combine(_directory, RestartHistory.NormalFileName);
+        var clock = Later(0);
+        Assert.That(RestartHistory.SaveNormal(path, "3.3.0", Samples(5), clock), Is.True);
+        var retained = RestartHistory.ReadNormal(path, clock, Anchor.AddSeconds(7), 5);
+        Assert.That(retained!.Value.Samples.Select(s => s.Timestamp),
+            Is.EqualTo(new[] { Anchor.AddSeconds(2), Anchor.AddSeconds(3), Anchor.AddSeconds(4) }));
+
+        Assert.That(RestartHistory.SaveNormal(path, "3.3.0", Samples(5), clock), Is.True);
+        Assert.That(RestartHistory.ReadNormal(path, clock, Anchor.AddHours(1), 600), Is.Null);
+        Assert.That(RestartHistory.SaveNormal(path, "3.3.0", Samples(5), clock), Is.True);
+        Assert.That(RestartHistory.ReadNormal(path, clock, Anchor.AddSeconds(-10), 600), Is.Null);
+        Assert.That(File.Exists(path), Is.False);
+    }
+
+    [Test]
     public void RoundTrip_GuardsEverySettableProperty()
     {
         // Rich() sets every property by reflection; a property the format forgets fails the round trip above.

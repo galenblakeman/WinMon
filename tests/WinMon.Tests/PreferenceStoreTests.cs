@@ -66,6 +66,17 @@ public sealed class PreferenceStoreTests
         Assert.That((await store.LoadAsync()).AppsOnly, Is.True);
     }
 
+    [Test]
+    public async Task NormalHistory_OptsInAndUsesTheSelectedSettingsFolder()
+    {
+        var store = new PreferenceStore(settingsPath);
+        Assert.That((await store.LoadAsync()).KeepHistoryAcrossRestarts, Is.False);
+        Assert.That(store.NormalHistoryPath, Is.EqualTo(Path.Combine(testDirectory, RestartHistory.NormalFileName)));
+
+        await store.SaveAsync(new MonitorPreferences { KeepHistoryAcrossRestarts = true });
+        Assert.That((await store.LoadAsync()).KeepHistoryAcrossRestarts, Is.True);
+    }
+
     private string testDirectory = null!;
     private string settingsPath = null!;
 

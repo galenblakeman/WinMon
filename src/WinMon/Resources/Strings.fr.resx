@@ -1620,4 +1620,6 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
   <data name="ExportNoData" xml:space="preserve"><value>Aucun échantillon enregistré n’est encore disponible à l’exportation.</value></data>
   <data name="ExportSaved" xml:space="preserve"><value>CSV enregistré dans {0}</value></data>
   <data name="ExportFailed" xml:space="preserve"><value>Impossible d’enregistrer le CSV : {0}</value></data>
+  <data name="KeepHistoryAcrossRestarts" xml:space="preserve"><value>Conserver l’historique après le redémarrage</value></data>
+  <data name="KeepHistoryAcrossRestartsNote" xml:space="preserve"><value>Enregistre les noms, chemins et mesures récents des processus sur cet appareil. L’historique expire après la durée de conservation choisie.</value></data>
 </root>

@@ -277,6 +277,8 @@ public static partial class Strings
     public static string IOMBS => ResourceManager.GetString(nameof(IOMBS), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ISCSI => ResourceManager.GetString(nameof(ISCSI), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string Itanium => ResourceManager.GetString(nameof(Itanium), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string KeepHistoryAcrossRestarts => ResourceManager.GetString(nameof(KeepHistoryAcrossRestarts), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string KeepHistoryAcrossRestartsNote => ResourceManager.GetString(nameof(KeepHistoryAcrossRestartsNote), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string KeepOnTopOff => ResourceManager.GetString(nameof(KeepOnTopOff), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string KeepOnTopOn => ResourceManager.GetString(nameof(KeepOnTopOn), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string KeepThisWindowOnTopOfOtherWindows => ResourceManager.GetString(nameof(KeepThisWindowOnTopOfOtherWindows), Culture ?? CultureInfo.CurrentUICulture)!;

@@ -35,6 +35,7 @@ Implemented on 2026-10-24; each note ends with what landed and where it departed
 
 - [Resource chart views](RESOURCE-CHART-VIEWS.md)
 - [Keep history across update restarts](UPDATE-RESTART-HISTORY.md)
+- [Keep history across normal restarts](NORMAL-RESTART-HISTORY.md)
 - [Resource detail tooltips](HOVER-DETAILS.md)
 - [Automatic captures](AUTO-CAPTURE.md)
 - [Usage tab](USAGE-TAB.md)

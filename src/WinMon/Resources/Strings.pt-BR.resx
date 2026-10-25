@@ -1620,4 +1620,6 @@ O trabalho não salvo pode ser perdido. Todos os processos listados abaixo serã
   <data name="ExportNoData" xml:space="preserve"><value>Ainda não há amostras registradas para exportar.</value></data>
   <data name="ExportSaved" xml:space="preserve"><value>CSV salvo em {0}</value></data>
   <data name="ExportFailed" xml:space="preserve"><value>Não foi possível salvar o CSV: {0}</value></data>
+  <data name="KeepHistoryAcrossRestarts" xml:space="preserve"><value>Manter histórico entre reinicializações</value></data>
+  <data name="KeepHistoryAcrossRestartsNote" xml:space="preserve"><value>Salva nomes de processos, caminhos e medições recentes neste dispositivo. O histórico expira após o período de retenção selecionado.</value></data>
 </root>

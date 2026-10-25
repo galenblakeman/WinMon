@@ -52,6 +52,7 @@ internal sealed class MonitorSession(
     private readonly TimeSpan _interval = interval ?? TimeSpan.FromSeconds(1);
     private int _drainScheduled;
     private bool _closed;
+    private long _historyClockOffset;
 
     /// <summary>Compacted samples, oldest first.</summary>
     internal MonitorHistory History { get; } = new();
@@ -99,6 +100,9 @@ internal sealed class MonitorSession(
     {
         _closed = true;
     }
+
+    /// <summary>Align future live samples with history rebased onto this boot's clock.</summary>
+    internal void SetHistoryClockOffset(long offset) => _historyClockOffset = offset;
 
     /// <summary>Record a frame as a drain would, without raising <see cref="Recorded"/>.</summary>
     /// <remarks>
@@ -167,9 +171,14 @@ internal sealed class MonitorSession(
                 Error = pending.Error;
                 if (pending.Sample is not null)
                 {
-                    Record(pending.Sample, pending.Full, pending.Services);
+                    var sample = Shift(pending.Sample);
+                    var full = pending.Full is null ? null : Shift(pending.Full);
+                    var services = pending.Services;
+                    if (services is not null && _historyClockOffset != 0)
+                        services = services with { Sample = Shift(services.Sample) };
+                    Record(sample, full, services);
                     HasLiveSample = true;
-                    if (pending.Full is not null) LiveSampleRecorded?.Invoke(pending.Full);
+                    if (full is not null) LiveSampleRecorded?.Invoke(full);
                 }
 
                 changed = true;
@@ -182,6 +191,10 @@ internal sealed class MonitorSession(
 
         if (changed) Recorded?.Invoke();
     }
+
+    private MonitorSample Shift(MonitorSample sample) => _historyClockOffset == 0 || sample.MonotonicTimestamp <= 0
+        ? sample
+        : sample with { MonotonicTimestamp = checked(sample.MonotonicTimestamp + _historyClockOffset) };
 
     /// <summary>A compacted capture, or a failed pass when <see cref="Sample"/> is null, awaiting the drain.</summary>
     private sealed record Pending(

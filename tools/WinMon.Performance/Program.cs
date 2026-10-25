@@ -222,6 +222,34 @@ internal static class Program
                 ProcessEntries = samples.Sum(sample => sample.Processes.Count), full.WasMemoryLimited,
                 FileBytes = bytes, RestoredSamples = restored, MedianSaveMilliseconds = Median(saves),
                 MedianReadMilliseconds = Median(reads), SaveMilliseconds = saves, ReadMilliseconds = reads });
+
+            path = Path.Combine(directory, RestartHistory.NormalFileName);
+            Directory.CreateDirectory(directory);
+            var normalSaves = new List<double>();
+            var normalReads = new List<double>();
+            try
+            {
+                for (var run = 0; run < 5; run++)
+                {
+                    var start = Stopwatch.GetTimestamp();
+                    var saved = RestartHistory.SaveNormal(path, AppInfo.Version, samples, RestartClock.System);
+                    normalSaves.Add(Stopwatch.GetElapsedTime(start).TotalMilliseconds);
+                    bytes = saved ? new FileInfo(path).Length : 0;
+                    start = Stopwatch.GetTimestamp();
+                    var contents = RestartHistory.ReadNormal(path, RestartClock.System,
+                        samples[^1].Timestamp.AddSeconds(1), 3600);
+                    normalReads.Add(Stopwatch.GetElapsedTime(start).TotalMilliseconds);
+                    restored = contents?.Samples.Count ?? 0;
+                }
+            }
+            finally
+            {
+                Directory.Delete(directory, true);
+            }
+            results.Add(new { Name = "normal-history-60-minutes", Samples = samples.Count,
+                FileBytes = bytes, RestoredSamples = restored, MedianSaveMilliseconds = Median(normalSaves),
+                MedianReadMilliseconds = Median(normalReads), SaveMilliseconds = normalSaves,
+                ReadMilliseconds = normalReads });
         }
 
         void Measure(string name)

@@ -129,7 +129,7 @@ Rules for new code:
 - Collection is sequential within one pass, not an atomic snapshot across Windows APIs.
 - `ProcessRetention.Compact` keeps, in each retained sample, the processes with CPU, I/O or GPU readings, processes that have shown an app window, pinned processes, and the 50 largest working sets, thread counts and handle counts (ties at the cut-off are all kept). Dropped entries are counted in `CompactedProcesses`, and averages treat them as zero.
 - `MonitorHistory` holds up to a 500,000-process-entry budget; the UI reports when that shortens the retention window. Service history keeps up to two minutes under its own bound.
-- History is in memory only. In-app updates save it for the new version to restore; see [the design note](design/UPDATE-RESTART-HISTORY.md).
+- History is in memory by default. In-app updates save it for the new version to restore; see [the design note](design/UPDATE-RESTART-HISTORY.md). The optional normal-restart snapshot saves compacted samples beside settings, then consumes the file on startup before sampling. It rebases historical monotonic timestamps onto the current process clock and shifts live samples by the same offset when needed after a reboot. Usage totals and service frames are not included; see [the normal-restart design](design/NORMAL-RESTART-HISTORY.md).
 
 ## Implementation notes
 
@@ -146,7 +146,7 @@ WinMon samples once a second all day, so its own cost is a feature. Measure stru
 
 ### Benchmark the UI thread
 
-`tools/WinMon.Performance` drives the real window with synthetic 850-process samples while sampling is stopped. Each scenario runs 400 warm-up frames, then seven batches of 60, and reports UI-thread time, allocation and a pixel hash of the rendered window. Scenarios: live, historical, grouped, Services, compact, pinned and selected (individual and grouped), an open CPU tooltip, `UsageLedger.Add`, and a 60-minute restart-history save and read.
+`tools/WinMon.Performance` drives the real window with synthetic 850-process samples while sampling is stopped. Each scenario runs 400 warm-up frames, then seven batches of 60, and reports UI-thread time, allocation and a pixel hash of the rendered window. Scenarios: live, historical, grouped, Services, compact, pinned and selected (individual and grouped), an open CPU tooltip, `UsageLedger.Add`, and 60-minute update and normal-restart history saves and reads.
 
 ```powershell
 dotnet build tools/WinMon.Performance/WinMon.Performance.csproj -c Release -m:1 -p:UseSharedCompilation=false

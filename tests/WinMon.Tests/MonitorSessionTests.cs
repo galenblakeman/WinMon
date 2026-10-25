@@ -164,6 +164,28 @@ public sealed class MonitorSessionTests
     }
 
     [Test]
+    public async Task LiveSamples_UseTheRestoredHistoryClockOffset()
+    {
+        var harness = new Harness(Frame(2));
+        harness.Session.SetHistoryClockOffset(Stopwatch.Frequency * 600);
+        MonitorSample? observed = null;
+        harness.Session.LiveSampleRecorded += sample => observed = sample;
+
+        await harness.RunToEnd();
+        harness.Drain();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(harness.Session.Latest!.MonotonicTimestamp, Is.EqualTo(Stopwatch.Frequency * 602));
+            Assert.That(harness.Session.LatestFull!.MonotonicTimestamp,
+                Is.EqualTo(harness.Session.Latest.MonotonicTimestamp));
+            Assert.That(harness.Session.Services.Frames[0].Sample.MonotonicTimestamp,
+                Is.EqualTo(harness.Session.Latest.MonotonicTimestamp));
+            Assert.That(observed!.MonotonicTimestamp, Is.EqualTo(harness.Session.Latest.MonotonicTimestamp));
+        });
+    }
+
+    [Test]
     public async Task HasLiveSample_StaysFalseWhenTheFirstCaptureFails()
     {
         var harness = new Harness(_ => throw new InvalidOperationException("Native read failed."));

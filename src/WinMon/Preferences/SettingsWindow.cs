@@ -79,6 +79,7 @@ public sealed class SettingsWindow : Window
     private readonly ComboBox _gaugeSelector;
     private readonly AppearancePreview _appearancePreview;
     private readonly ComboBox _retentionSelector;
+    private readonly CheckBox _keepHistoryCheckBox;
     private readonly CheckBox _minimizeToTrayCheckBox;
     private readonly CheckBox _startupCheckBox;
     private readonly StartupAvailability _startupAvailability;
@@ -234,6 +235,8 @@ public sealed class SettingsWindow : Window
         _gaugeSelector.SelectionChanged += (_, _) => UpdateAppearancePreview();
         _retentionSelector = CreateSelector([Strings.Value10Minutes, Strings.Value30Minutes, Strings.Value60Minutes],
             RetentionLabel(preferences.RetentionSeconds));
+        _keepHistoryCheckBox = CreateCheckBox(Strings.KeepHistoryAcrossRestarts,
+            preferences.KeepHistoryAcrossRestarts);
         _minimizeToTrayCheckBox = CreateCheckBox(Strings.MinimizeToTheNotificationArea, preferences.MinimizeToTray);
         _startupCheckBox = CreateCheckBox(Strings.StartWinMonWhenISignIn, preferences.StartWithWindows);
         _automaticUpdateCheckBox =
@@ -352,6 +355,7 @@ public sealed class SettingsWindow : Window
             ChartPalette = settings.ChartPalette,
             GaugeStyle = settings.GaugeStyle,
             RetentionSeconds = settings.RetentionSeconds,
+            KeepHistoryAcrossRestarts = settings.KeepHistoryAcrossRestarts,
             MinimizeToTray = settings.MinimizeToTray,
             StartWithWindows = settings.StartWithWindows,
             AutomaticallyCheckForUpdates = settings.AutomaticallyCheckForUpdates,
@@ -693,6 +697,8 @@ public sealed class SettingsWindow : Window
         page.Children.Add(CreateHeading(Strings.SettingsHistory, true));
         page.Children.Add(Field(Strings.HistoricalRetention, _retentionSelector));
         page.Children.Add(Note(Strings.SettingsRetentionNote));
+        page.Children.Add(_keepHistoryCheckBox);
+        page.Children.Add(Note(Strings.KeepHistoryAcrossRestartsNote));
         page.Children.Add(CreateHeading(Strings.DiskMonitoring));
         page.Children.Add(Note(Strings.ChooseUpTo2Volumes));
         page.Children.Add(Field(Strings.PrimaryDrive, PrimaryDriveSelector));
@@ -938,6 +944,7 @@ public sealed class SettingsWindow : Window
                 var label when label == Strings.Value60Minutes => 3600,
                 _ => 600
             },
+            KeepHistoryAcrossRestarts = _keepHistoryCheckBox.IsChecked == true,
             MinimizeToTray = _minimizeToTrayCheckBox.IsChecked == true,
             StartWithWindows = _startupCheckBox.IsChecked == true,
             AutomaticallyCheckForUpdates = _automaticUpdateCheckBox.IsChecked == true,
