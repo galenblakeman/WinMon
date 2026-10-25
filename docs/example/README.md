@@ -1,6 +1,6 @@
 # WinMon screenshot examples
 
-Most gallery images were refreshed October 25, 2026, using WinMon 3.1.0. The two Settings images were updated for WinMon 3.2.1's combined Appearance preview. The main gallery uses the ordinary installer/portable configuration; the separate Store Settings capture uses `StoreBuild=true`. These examples use illustrative process identities and measurements so the screenshots are consistent and do not expose a user's running processes. They are UI examples, not performance measurements or proof of installed MSIX behavior.
+Gallery images were refreshed October 25, 2026, using WinMon 3.2.2. The main gallery uses the ordinary installer/portable configuration; the separate Store Settings capture uses `StoreBuild=true`. These examples use illustrative process identities and measurements so the screenshots are consistent and do not expose a user's running processes. They are UI examples, not performance measurements or proof of installed MSIX behavior.
 
 | File | View |
 | --- | --- |
@@ -31,7 +31,7 @@ If Windows denies foreground activation, Services diagnostics can save separatel
 
 ## Current UI highlights
 
-- The title bar shows version 3.1.0, the Compact view / Full view toggle, and Always on top with a stacked-window glyph and highlighted enabled state.
+- The title bar shows version 3.2.2, the Compact view / Full view toggle, and Always on top with a stacked-window glyph and highlighted enabled state.
 - Processes, Services and Usage share a divider and a tab strip with heading-sized labels and an accent underline.
 - Process rows include thread and handle counts, App / Background labels, grouping, search and pins. Pin accents follow the theme and chart palette.
 - Capture mode keeps the live readouts visible while showing an earlier interval and its process rankings; Copy capture exports the selected interval.

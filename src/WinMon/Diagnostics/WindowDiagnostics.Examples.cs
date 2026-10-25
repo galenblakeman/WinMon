@@ -156,13 +156,21 @@ internal sealed partial class WindowDiagnostics
 
     private static async Task CaptureExampleWindowAsync(Window window, string path, CancellationToken cancellationToken)
     {
-        window.Activate();
-        window.UpdateLayout();
-        await window.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render, cancellationToken);
-        // Allow Windows to compose the native caption after activation, theme and size changes.
-        await Task.Delay(200, cancellationToken);
         var handle = new WindowInteropHelper(window).Handle;
-        if (GetForegroundWindow() != handle || !GetWindowRect(handle, out var bounds))
+        var foreground = false;
+        for (var attempt = 0; attempt < 5; attempt++)
+        {
+            window.Activate();
+            window.UpdateLayout();
+            await window.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render, cancellationToken);
+            // Allow Windows to compose the native caption after activation, theme and size changes.
+            await Task.Delay(200, cancellationToken);
+            if (GetForegroundWindow() != handle) continue;
+            foreground = true;
+            break;
+        }
+
+        if (!foreground || !GetWindowRect(handle, out var bounds))
             throw new InvalidOperationException("Example window must be foreground to capture its native caption.");
         var screen = Screen.FromHandle(handle).Bounds;
         var rectangle = Rectangle.FromLTRB(bounds.Left, bounds.Top, bounds.Right, bounds.Bottom);
