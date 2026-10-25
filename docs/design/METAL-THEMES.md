@@ -25,6 +25,7 @@ The satin effect combines a broad reflection with fine horizontal grain in froze
 - The `compact` smoke captures the same finishes at the narrow compact width.
 - Preference tests check theme persistence without changing the selected gauge or chart palette.
 - A later texture refinement added deterministic hairline grain to the metal chrome and resource backgrounds without adding UI elements or work to the sampling loop.
+- The title-bar background extends beneath the Windows caption-button area, while the WPF title actions still stop at the measured button bounds. The underlay does not receive input; Windows keeps the native button visuals and behavior.
 
 ## Departures from the mockups
 

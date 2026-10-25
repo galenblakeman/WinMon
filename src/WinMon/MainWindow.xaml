@@ -27,16 +27,18 @@
                 <RowDefinition x:Name="TitleRow" Height="36" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <!--
-                Leave the right caption-button region unpainted so DWM owns its visuals and input.
-                AlignTitleBar replaces these fallbacks with the measured caption-button bounds.
-            -->
+            <!-- The background spans the caption buttons; the action content stops before them. -->
+            <Border
+                Grid.Row="0"
+                Background="{DynamicResource TitleBarSurface}"
+                IsHitTestVisible="False" />
+            <!-- AlignTitleBar replaces this fallback with the measured caption-button bounds. -->
             <Border
                 x:Name="TitleBarArea"
                 Grid.Row="0"
                 Margin="0,0,138,0"
                 Padding="12,0,0,0"
-                Background="{DynamicResource TitleBarSurface}">
+                Background="Transparent">
                 <DockPanel LastChildFill="True">
                     <Button
                         x:Name="PinButton"
