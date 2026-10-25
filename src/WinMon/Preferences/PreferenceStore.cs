@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json;
 using WinMon.Monitoring;
 using WinMon.Shortcuts;
@@ -13,7 +14,8 @@ public sealed class PreferenceStore
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
         WriteIndented = true,
-        PropertyNameCaseInsensitive = true
+        PropertyNameCaseInsensitive = true,
+        Converters = { new LenientEnumConverter() }
     };
 
     private readonly string _settingsPath;
@@ -40,40 +42,68 @@ public sealed class PreferenceStore
     /// <summary>Where automatic capture reports go unless another folder is chosen: beside the settings file.</summary>
     internal string DefaultCaptureFolder => Path.Combine(Path.GetDirectoryName(_settingsPath) ?? ".", "Captures");
 
+    /// <summary>Where an unreadable settings file is copied before defaults replace it on the next save.</summary>
+    internal string InvalidCopyPath => Path.ChangeExtension(_settingsPath, ".invalid.json");
+
     /// <summary>Loads valid persisted preferences, returning defaults when the file is missing or invalid.</summary>
+    /// <remarks>
+    /// The next save overwrites the file, so one that exists but cannot be used is first copied to
+    /// <see cref="InvalidCopyPath"/>. A brief sharing violation, such as a scanner reading it, is retried.
+    /// </remarks>
     /// <param name="cancellationToken">Cancels the asynchronous read.</param>
     /// <returns>Validated monitor preferences.</returns>
     public async Task<MonitorPreferences> LoadAsync(CancellationToken cancellationToken = default)
     {
-        cancellationToken.ThrowIfCancellationRequested();
+        for (var attempt = 1;; attempt++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            try
+            {
+                await using FileStream stream = new(_settingsPath, FileMode.Open, FileAccess.Read, FileShare.Read,
+                    4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
+                var preferences = await JsonSerializer
+                    .DeserializeAsync<MonitorPreferences>(stream, SerializerOptions, cancellationToken)
+                    .ConfigureAwait(false);
+                return Validate(preferences ?? new MonitorPreferences());
+            }
+            catch (FileNotFoundException)
+            {
+                return new MonitorPreferences();
+            }
+            catch (DirectoryNotFoundException)
+            {
+                return new MonitorPreferences();
+            }
+            catch (JsonException)
+            {
+                KeepInvalidCopy();
+                return new MonitorPreferences();
+            }
+            catch (IOException) when (attempt < 5)
+            {
+                await Task.Delay(100, cancellationToken).ConfigureAwait(false);
+            }
+            catch (IOException)
+            {
+                KeepInvalidCopy();
+                return new MonitorPreferences();
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return new MonitorPreferences();
+            }
+        }
+    }
+
+    private void KeepInvalidCopy()
+    {
         try
         {
-            await using FileStream stream = new(_settingsPath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096,
-                FileOptions.Asynchronous | FileOptions.SequentialScan);
-            var preferences = await JsonSerializer
-                .DeserializeAsync<MonitorPreferences>(stream, SerializerOptions, cancellationToken)
-                .ConfigureAwait(false);
-            return Validate(preferences ?? new MonitorPreferences());
+            File.Copy(_settingsPath, InvalidCopyPath, true);
         }
-        catch (FileNotFoundException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            return new MonitorPreferences();
-        }
-        catch (DirectoryNotFoundException)
-        {
-            return new MonitorPreferences();
-        }
-        catch (JsonException)
-        {
-            return new MonitorPreferences();
-        }
-        catch (IOException)
-        {
-            return new MonitorPreferences();
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return new MonitorPreferences();
+            Trace.TraceWarning("WinMon could not keep a copy of its unreadable settings: {0}", ex.Message);
         }
     }
 

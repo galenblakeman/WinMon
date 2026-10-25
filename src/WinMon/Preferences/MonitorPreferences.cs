@@ -47,7 +47,6 @@ public sealed record MonitorPreferences
     public bool UsageAppsOnly { get; init; }
 
     /// <summary>Gets the column that ranks the process rows.</summary>
-    [JsonConverter(typeof(JsonStringEnumConverter<ProcessSort>))]
     public ProcessSort ProcessSort { get; init; }
 
     /// <summary>Gets a value indicating whether processes of the same executable share one row.</summary>
@@ -82,7 +81,6 @@ public sealed record MonitorPreferences
     public int ChartRangeSeconds { get; init; }
 
     /// <summary>Full-view resource history layout.</summary>
-    [JsonConverter(typeof(JsonStringEnumConverter<ResourceChartType>))]
     public ResourceChartType ResourceChartType { get; init; }
 
     /// <summary>Resource enlarged in the focus layout, in chart metric order.</summary>
@@ -109,7 +107,6 @@ public sealed record MonitorPreferences
     public string ChartPalette { get; init; } = "Classic";
 
     /// <summary>Full-view resource gauge drawing; settings saved before the choice existed load as the bowl.</summary>
-    [JsonConverter(typeof(JsonStringEnumConverter<GaugeStyle>))]
     public GaugeStyle GaugeStyle { get; init; }
 
     /// <summary>Gets the duration, in seconds, retained for historical inspection.</summary>

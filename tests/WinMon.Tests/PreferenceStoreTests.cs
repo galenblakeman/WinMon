@@ -156,6 +156,76 @@ public sealed class PreferenceStoreTests
         });
     }
 
+    [TestCase("{")]
+    [TestCase("{\"Width\":null}")]
+    public async Task LoadAsync_UnreadableConfiguration_KeepsACopyBeforeDefaultsReplaceIt(string content)
+    {
+        Directory.CreateDirectory(testDirectory);
+        await File.WriteAllTextAsync(settingsPath, content);
+        var store = new PreferenceStore(settingsPath);
+
+        Assert.That((await store.LoadAsync()).Theme, Is.EqualTo("Dark"));
+        await store.SaveAsync(new MonitorPreferences());
+
+        Assert.That(await File.ReadAllTextAsync(store.InvalidCopyPath), Is.EqualTo(content));
+    }
+
+    [Test]
+    public async Task LoadAsync_ValidConfiguration_KeepsNoCopy()
+    {
+        var store = new PreferenceStore(settingsPath);
+        await store.SaveAsync(new MonitorPreferences { Theme = "Light" });
+
+        Assert.That((await store.LoadAsync()).Theme, Is.EqualTo("Light"));
+        Assert.That(File.Exists(store.InvalidCopyPath), Is.False);
+    }
+
+    [Test]
+    public async Task LoadAsync_EnumNamesFromANewerBuild_ResetOnlyThoseSettings()
+    {
+        // A newer build may add gauge styles, chart types, sorts or capture metrics that this one lacks.
+        Directory.CreateDirectory(testDirectory);
+        await File.WriteAllTextAsync(settingsPath, """
+            { "Theme": "Light", "GaugeStyle": "Hologram", "ResourceChartType": "Radar", "ProcessSort": "Energy",
+              "AutoCapture": { "Enabled": true, "Rules": [ { "Metric": "Battery", "Enabled": true,
+                "Threshold": 50, "Seconds": 10 }, { "Metric": "memory", "Enabled": true, "Threshold": 80,
+                "Seconds": 20 } ] } }
+            """);
+        var store = new PreferenceStore(settingsPath);
+
+        var loaded = await store.LoadAsync();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(loaded.Theme, Is.EqualTo("Light"));
+            Assert.That(loaded.GaugeStyle, Is.EqualTo(GaugeStyle.Bowl));
+            Assert.That(loaded.ResourceChartType, Is.EqualTo(ResourceChartType.Overlay));
+            Assert.That(loaded.ProcessSort, Is.EqualTo(ProcessSort.Cpu));
+            Assert.That(loaded.AutoCapture.Enabled, Is.True);
+            Assert.That(loaded.AutoCapture.Rules.Select(rule => rule.Metric),
+                Is.EqualTo(CaptureRuleSetting.Defaults.Select(rule => rule.Metric)));
+            Assert.That(loaded.AutoCapture.Rules.Single(rule => rule.Metric == CaptureMetric.Memory).Threshold,
+                Is.EqualTo(80));
+            Assert.That(File.Exists(store.InvalidCopyPath), Is.False);
+        });
+    }
+
+    [Test]
+    public async Task SaveAsync_StoresEnumsByName()
+    {
+        var store = new PreferenceStore(settingsPath);
+        await store.SaveAsync(new MonitorPreferences
+            { GaugeStyle = GaugeStyle.SegmentedBar, ProcessSort = ProcessSort.Gpu });
+
+        var json = await File.ReadAllTextAsync(settingsPath);
+        Assert.Multiple(() =>
+        {
+            Assert.That(json, Does.Contain("\"GaugeStyle\": \"SegmentedBar\""));
+            Assert.That(json, Does.Contain("\"ProcessSort\": \"Gpu\""));
+            Assert.That(json, Does.Contain("\"Metric\": \"Cpu\""));
+        });
+    }
+
     [Test]
     public async Task LoadAsync_OutOfRangeConfiguration_NormalizesValues()
     {
