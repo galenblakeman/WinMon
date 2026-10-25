@@ -43,14 +43,17 @@ public partial class MainWindow
                     choice.ChartRange ? _preferences.EffectiveChartRange : null);
             var ledger = Session.Usage;
             var apps = choice.Kind == CsvExportKind.UsageTotals ? ledger.Apps.ToArray() : [];
+            var (since, busyTicks, notAttributedTicks) =
+                (ledger.Since, ledger.MachineBusyTicks, ledger.NotAttributedCpuTicks);
             if (choice.Kind != CsvExportKind.UsageTotals && samples.Count == 0)
             {
                 MessageDialog.ShowNotice(this, Strings.ExportNoData, Strings.ExportCsv);
                 return;
             }
 
-            var write = Task.Run(() => CsvExport.Write(save.FileName, choice.Kind, samples, apps, ledger.Since,
-                ledger.MachineBusyTicks, ledger.NotAttributedCpuTicks));
+            var path = save.FileName;
+            var write = Task.Run(() => CsvExport.Write(path, choice.Kind, samples, apps, since, busyTicks,
+                notAttributedTicks));
             ExportWrites.Add(write);
             try
             {
