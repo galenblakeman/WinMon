@@ -28,6 +28,7 @@ internal class MessageDialog : Window
         if (confirmLabel is not null)
         {
             var confirm = new Button { Content = confirmLabel, MinWidth = 110, Margin = new Thickness(0, 0, 8, 0) };
+            ButtonIcon.SetData(confirm, confirmLabel == Strings.StopService ? ButtonIcon.Stop : ButtonIcon.Live);
             confirm.Click += (_, _) => DialogResult = true;
             buttons.Children.Add(confirm);
         }

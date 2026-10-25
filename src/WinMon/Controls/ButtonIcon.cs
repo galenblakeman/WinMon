@@ -64,6 +64,8 @@ public static class ButtonIcon
     public static Geometry Save { get; } =
         Create("M 2,2 L 12,2 L 14,4 L 14,14 L 2,14 Z M 5,2 L 5,6 L 11,6 L 11,2 M 5,14 L 5,9 L 11,9 L 11,14");
 
+    public static Geometry Download { get; } = Create("M 8,1 L 8,10 M 4,6 L 8,10 L 12,6 M 2,11 L 2,14 L 14,14 L 14,11");
+
     public static Geometry Copy { get; } = Create("M 5,5 L 14,5 L 14,14 L 5,14 Z M 2,11 L 2,2 L 11,2");
     public static Geometry Folder { get; } = Create("M 1,13 L 1,3 L 6,3 L 8,5 L 15,5 L 15,13 Z M 1,7 L 15,7");
     public static Geometry Start { get; } = Create("M 4,2 L 13,8 L 4,14 Z");

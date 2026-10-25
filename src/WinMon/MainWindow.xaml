@@ -261,6 +261,7 @@
                                     </StackPanel>
                                     <Button
                                         x:Name="CapturesButton"
+                                        controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.CaptureFrame}"
                                         Margin="0,0,8,0"
                                         Padding="8,2"
                                         AutomationProperties.Name="{Binding [AutoCaptureHeading], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
@@ -672,6 +673,7 @@
                                 ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
                             <Button
                                 x:Name="ReleaseNotesButton"
+                                controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Info}"
                                 Grid.Column="1"
                                 Margin="8,0,0,0"
                                 Background="Transparent"
@@ -682,6 +684,7 @@
                                 Visibility="Collapsed" />
                             <Button
                                 x:Name="UpdateNowButton"
+                                controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Download}"
                                 Grid.Column="2"
                                 Margin="8,0,0,0"
                                 Click="OnUpdateNow"
@@ -690,6 +693,7 @@
                                 Visibility="Collapsed" />
                             <Button
                                 x:Name="CancelUpdateButton"
+                                controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Cancel}"
                                 Grid.Column="3"
                                 Margin="8,0,0,0"
                                 Click="OnCancelUpdate"

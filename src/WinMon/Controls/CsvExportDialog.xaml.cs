@@ -1,8 +1,6 @@
 using System.Globalization;
 using System.Windows;
-using System.Windows.Media;
 using WinMon.Monitoring;
-using WinMon.Preferences;
 
 namespace WinMon.Controls;
 
@@ -16,13 +14,6 @@ public partial class CsvExportDialog : Window
     {
         InitializeComponent();
         WindowTheme.Attach(this);
-        Loaded += (_, _) =>
-        {
-            if (FindResource("Accent") is not SolidColorBrush accent) return;
-            SaveButton.Foreground = ChartPalettes.ContrastRatio(accent.Color, Colors.White) >=
-                                    ChartPalettes.ContrastRatio(accent.Color, Colors.Black)
-                ? Brushes.White : Brushes.Black;
-        };
         switch (initialKind)
         {
             case CsvExportKind.ResourceHistory: ResourceChoice.IsChecked = true; break;

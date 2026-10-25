@@ -54,6 +54,7 @@ internal sealed class ProcessDumpDialog : Window
         ButtonIcon.SetData(create, ButtonIcon.Save);
         var close = new Button
             { Content = Strings.Close, IsCancel = true, MinWidth = 90, Margin = new Thickness(8, 0, 0, 0) };
+        ButtonIcon.SetData(close, ButtonIcon.Cancel);
         close.Click += (_, _) => Close();
         buttons.Children.Add(create);
         buttons.Children.Add(close);

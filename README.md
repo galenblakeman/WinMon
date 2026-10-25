@@ -38,7 +38,7 @@ Keep the whole picture in view while you work, play or troubleshoot. WinMon puts
 - **Look beyond the latest number.** Switch between 2, 10, 30 and 60-minute chart ranges, subject to your retained history, and inspect earlier samples.
 - **Choose how history looks.** The chart header is labeled **System**. One chart dropdown offers the original overlaid traces, aligned small charts, a heatmap timeline, and Focus choices for each configured resource. The small charts, heatmap and Focus views fit their axis and resource labels into one narrow column beside the plot. Disk choices include their drive letters. Choosing a hidden Focus resource shows it again. WinMon remembers the selection. Chart clicks, Capture mode and automatic capture markers work in every view.
 - **Keep it close.** Enable **Always on top** in the title bar to keep WinMon above other windows, minimize it to the notification area, or bring it forward with a configurable shortcut. Its highlighted background shows when it is enabled.
-- **Use less screen space.** Choose **Compact view** in the title bar for the same live resource gauges, colors, details and two-minute peak marks shown in Full view. Its resource names replace the chart-series checkboxes because the chart is hidden. The selected gauge style, including **None**, applies to both views. **Full view** restores the dashboard and its size. The selected view is remembered when WinMon closes.
+- **Use less screen space.** Choose **Compact view** in the title bar for the same live resource gauges, colors, details and two-minute peak marks shown in Full view. Its resource names replace the chart-series checkboxes because the chart is hidden. The selected gauge style, including **None**, applies to both views. **Full view** restores the dashboard and its size. The selected view is remembered when WinMon closes. Export is shown in the title bar only in Full view.
 
 ![WinMon Compact view with live CPU, memory, two disks, network and GPU gauges](docs/example/example_compact.png)
 
@@ -105,7 +105,9 @@ Select an app for **Properties**, **Copy details** and **Open file location** in
 
 ## Export readings as CSV
 
-Choose **Export** beside Settings in the title bar, including from Compact view. The dialog starts with process samples, resource history or Usage totals according to the view you are in, and lets you choose another dataset. Resource and process exports can use all retained history or the current chart range. Usage totals cover the period since WinMon started or you last pressed Reset; chart range does not apply to them. A normal Windows Save dialog lets you choose the destination.
+In Full view, choose **Export** beside Settings in the title bar. The dialog starts with process samples, resource history or Usage totals according to the view you are in, and lets you choose another dataset. Resource and process exports can use all retained history or the current chart range. Usage totals cover the period since WinMon started or you last pressed Reset; chart range does not apply to them. A normal Windows Save dialog lets you choose the destination.
+
+The export dialog's Save CSV and Cancel actions use the standard button appearance with icons alongside their labels.
 
 CSV columns use stable English identifiers, UTC timestamps, invariant numbers and raw units such as bytes and bytes per second. Blank cells mean a reading was unavailable. Resource history includes gap rows. Process samples contain **retained observations**, not every process in every interval: WinMon omits many idle entries to limit memory, and their I/O includes files, network and devices. Usage totals include exited apps and a Not attributed row. Files are saved locally and may contain process names and executable paths; WinMon never uploads them. Export needs no administrator rights.
 
