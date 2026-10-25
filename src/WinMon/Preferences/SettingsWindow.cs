@@ -46,7 +46,7 @@ public sealed class SettingsWindow : Window
         }
     }
 
-    /// <summary>Hosts the gauge preview, which is an illustration: assistive technology skips it and its checkbox.</summary>
+    /// <summary>Hosts the appearance illustration; assistive technology skips its sample controls.</summary>
     private sealed class PreviewHost : Border
     {
         protected override AutomationPeer OnCreateAutomationPeer()
@@ -77,7 +77,7 @@ public sealed class SettingsWindow : Window
     private readonly ComboBox _themeSelector;
     private readonly ComboBox _paletteSelector;
     private readonly ComboBox _gaugeSelector;
-    private readonly MetricReadout _gaugePreview;
+    private readonly AppearancePreview _appearancePreview;
     private readonly ComboBox _retentionSelector;
     private readonly CheckBox _minimizeToTrayCheckBox;
     private readonly CheckBox _startupCheckBox;
@@ -189,7 +189,11 @@ public sealed class SettingsWindow : Window
                                         ?? throw new InvalidOperationException(
                                             "Palette choice template was not found.");
         UpdatePalettePreviews();
-        _themeSelector.SelectionChanged += (_, _) => UpdatePalettePreviews();
+        _themeSelector.SelectionChanged += (_, _) =>
+        {
+            UpdatePalettePreviews();
+            UpdateAppearancePreview();
+        };
         _paletteSelector.ToolTip = Strings.ResourceColorsCPUMemoryPrimaryDiskNetworkGPUSecondDisk;
         _gaugeSelector = CreateSelector([], "");
         _gaugeSelector.ItemsSource = new[]
@@ -206,15 +210,10 @@ public sealed class SettingsWindow : Window
         _gaugeSelector.SelectedValuePath = nameof(GaugeChoice.Style);
         _gaugeSelector.SelectedValue = preferences.GaugeStyle;
         _gaugeSelector.ToolTip = Strings.PeakLastTwoMinutesExplanation;
-        _gaugePreview = new MetricReadout
-        {
-            Label = Strings.Memory, AccentKey = "MemoryAccent", Width = 210, IsHitTestVisible = false
-        };
-        _gaugePreview.Toggle.Focusable = false;
-        _gaugePreview.ValueLabel.Text = Strings.Format(Strings.PercentOneDecimal, 51.5);
-        _gaugePreview.DetailLabel.Text = Strings.Format(Strings.GiB, 32.2, 62.5);
-        ShowGaugePreview();
-        _gaugeSelector.SelectionChanged += (_, _) => ShowGaugePreview();
+        _appearancePreview = new AppearancePreview();
+        UpdateAppearancePreview();
+        _paletteSelector.SelectionChanged += (_, _) => UpdateAppearancePreview();
+        _gaugeSelector.SelectionChanged += (_, _) => UpdateAppearancePreview();
         _retentionSelector = CreateSelector([Strings.Value10Minutes, Strings.Value30Minutes, Strings.Value60Minutes],
             RetentionLabel(preferences.RetentionSeconds));
         _minimizeToTrayCheckBox = CreateCheckBox(Strings.MinimizeToTheNotificationArea, preferences.MinimizeToTray);
@@ -285,10 +284,11 @@ public sealed class SettingsWindow : Window
         Content = surface;
         return;
 
-        void ShowGaugePreview()
+        void UpdateAppearancePreview()
         {
-            _gaugePreview.GaugeStyle = SelectedGaugeStyle;
-            _gaugePreview.ShowGauge(51.5, 68, 100);
+            if (_appearancePreview is not { } preview) return;
+            preview.Update(_themeSelector.SelectedValue as string ?? "Dark",
+                _paletteSelector.SelectedValue as string ?? "Classic", SelectedGaugeStyle);
         }
 
         void UpdatePalettePreviews()
@@ -311,7 +311,9 @@ public sealed class SettingsWindow : Window
 
     internal ComboBox PaletteSelector => _paletteSelector;
 
-    internal MetricReadout GaugePreview => _gaugePreview;
+    internal MetricReadout GaugePreview => _appearancePreview.GaugePreview;
+
+    internal AppearancePreview CombinedPreview => _appearancePreview;
 
     private GaugeStyle SelectedGaugeStyle => _gaugeSelector.SelectedValue as GaugeStyle? ?? GaugeStyle.Bowl;
 
@@ -650,7 +652,7 @@ public sealed class SettingsWindow : Window
         page.Children.Add(Field(Strings.ResourceGauges, _gaugeSelector));
         page.Children.Add(new PreviewHost
         {
-            Child = _gaugePreview, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 4, 0, 4)
+            Child = _appearancePreview, Margin = new Thickness(0, 8, 0, 4)
         });
         return page;
     }

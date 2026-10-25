@@ -21,6 +21,7 @@ These records describe the individual feature increments and their validation at
 - [Action drawer](ACTION-DRAWER.md), which moved hiding the action bar onto the bar
 - [Activity counts](ACTIVITY-COUNTS.md), which took the old toggle's place in the tab strip
 - [Metal theme prototypes](METAL-THEMES.md), which add four appearance finishes without changing layout
+- [Combined appearance preview](APPEARANCE-PREVIEW.md), which shows theme, palette and gauge choices together before Save
 
 Implemented on 2026-10-24; each note ends with what landed and where it departed from the design:
 

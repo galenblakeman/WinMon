@@ -1,6 +1,6 @@
 # WinMon screenshot examples
 
-Most gallery images were refreshed October 25, 2026, using WinMon 3.1.0. The two Settings images were updated for WinMon 3.2.1's separate Appearance section. The main gallery uses the ordinary installer/portable configuration; the separate Store Settings capture uses `StoreBuild=true`. These examples use illustrative process identities and measurements so the screenshots are consistent and do not expose a user's running processes. They are UI examples, not performance measurements or proof of installed MSIX behavior.
+Most gallery images were refreshed October 25, 2026, using WinMon 3.1.0. The two Settings images were updated for WinMon 3.2.1's combined Appearance preview. The main gallery uses the ordinary installer/portable configuration; the separate Store Settings capture uses `StoreBuild=true`. These examples use illustrative process identities and measurements so the screenshots are consistent and do not expose a user's running processes. They are UI examples, not performance measurements or proof of installed MSIX behavior.
 
 | File | View |
 | --- | --- |
@@ -18,8 +18,8 @@ Most gallery images were refreshed October 25, 2026, using WinMon 3.1.0. The two
 | [example_neon.png](example_neon.png) | Neon palette. |
 | [example_arcade.png](example_arcade.png) | Arcade palette. |
 | [example_tropical.png](example_tropical.png) | Tropical palette. |
-| [example_settings.png](example_settings.png) | Installer/portable Appearance section with Neon swatches, gauge preview and an Updates section in the sidebar. |
-| [example_settings_store.png](example_settings_store.png) | Store Appearance section with the same options and preview, without an Updates section. |
+| [example_settings.png](example_settings.png) | Installer/portable Appearance section with Neon swatches, a combined theme/chart/gauge preview and an Updates section in the sidebar. |
+| [example_settings_store.png](example_settings_store.png) | Store Appearance section with the same combined preview, without an Updates section. |
 
 The process dashboard and compact views use the same illustrative recording. Services and Usage use separate illustrative recordings. Settings uses the real window and controls; its disk choices reflect the capture machine. Screenshots capture the complete Windows-composed window, including native caption buttons, and use the current responsive layout. Generic process icons are used for the illustrative executable paths.
 

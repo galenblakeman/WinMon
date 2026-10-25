@@ -1,4 +1,6 @@
 using System.Windows.Controls;
+using System.Windows;
+using System.Windows.Media;
 using NUnit.Framework;
 using WinMon.Monitoring;
 using WinMon.Preferences;
@@ -93,6 +95,49 @@ public sealed class SettingsLayoutTests
                 Assert.That(choices, Is.EqualTo(Enum.GetValues<GaugeStyle>().Length));
                 Assert.That(window.GaugePreview.GaugeStyle, Is.EqualTo(GaugeStyle.None));
                 Assert.That(window.GaugePreview.IsHitTestVisible, Is.False);
+            });
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [Test]
+    public void AppearancePreview_CombinesUnsavedThemePaletteAndGaugeChoices()
+    {
+        var window = Settings(new MonitorPreferences
+            { Theme = "BrushedNickel", ChartPalette = "Ocean", GaugeStyle = GaugeStyle.Needle });
+        try
+        {
+            var preview = window.CombinedPreview;
+            var appMemoryBrush = Application.Current?.Resources["MemoryAccent"];
+            Assert.That(preview.GaugePreview.GaugeStyle, Is.EqualTo(GaugeStyle.Needle));
+            Assert.That(preview.ChartPreview.ShowGrid, Is.True);
+            if (!SystemParameters.HighContrast)
+            {
+                Assert.That(preview.ChartPreview.TryFindResource("PlotSurface"), Is.TypeOf<DrawingBrush>());
+                Assert.That(((SolidColorBrush)preview.ChartPreview.TryFindResource("MemoryAccent")!).Color,
+                    Is.EqualTo((Color)ColorConverter.ConvertFromString("#6745A5")));
+            }
+
+            window.ThemeSelector.SelectedValue = "Gunmetal";
+            window.PaletteSelector.SelectedValue = "Classic";
+            window.GaugeSelector.SelectedValue = GaugeStyle.BottomBar;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(preview.GaugePreview.GaugeStyle, Is.EqualTo(GaugeStyle.BottomBar));
+                if (Application.Current is not null)
+                    Assert.That(Application.Current.Resources["MemoryAccent"], Is.SameAs(appMemoryBrush),
+                        "The unsaved preview must not recolor the main window.");
+                if (!SystemParameters.HighContrast)
+                {
+                    Assert.That(((SolidColorBrush)preview.ChartPreview.TryFindResource("PlotSurface")!).Color,
+                        Is.EqualTo((Color)ColorConverter.ConvertFromString("#151D26")));
+                    Assert.That(((SolidColorBrush)preview.ChartPreview.TryFindResource("MemoryAccent")!).Color,
+                        Is.EqualTo((Color)ColorConverter.ConvertFromString("#4285FF")));
+                }
             });
         }
         finally

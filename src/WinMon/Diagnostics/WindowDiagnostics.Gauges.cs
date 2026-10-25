@@ -122,11 +122,17 @@ internal sealed partial class WindowDiagnostics
         try
         {
             settings.Show();
+            settings.ShowSection(SettingsSection.Appearance);
             if (settings.GaugePreview.GaugeStyle != GaugeStyle.Bowl ||
                 settings.GaugePreview.Gauge.Visibility != Visibility.Visible)
                 throw new InvalidOperationException("Settings did not preview the saved gauge style.");
             await CaptureVisualAsync((FrameworkElement)settings.Content, Path.Combine(output, "settings-gauges.png"),
                 1, cancellationToken);
+            settings.ThemeSelector.SelectedValue = "BrushedNickel";
+            settings.PaletteSelector.SelectedValue = "Ocean";
+            settings.GaugeSelector.SelectedValue = GaugeStyle.Needle;
+            await CaptureVisualAsync((FrameworkElement)settings.Content,
+                Path.Combine(output, "settings-appearance-nickel.png"), 1, cancellationToken);
         }
         finally
         {

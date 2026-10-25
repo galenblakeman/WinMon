@@ -127,7 +127,7 @@ Choose **Light**, **Dark**, **System**, **Brushed steel**, **Copper**, **Gunmeta
 
 The selected Settings section uses light text and icons against its blue highlight in Light appearance.
 
-Choose how the resource gauges look under **Resource gauges** in Settings: **Bowl** (the default), **Needle**, **Segmented arc**, **Left bar**, **Bottom bar**, **Segmented bar** or **None**. A preview beside the choice shows the style before you save. Every style keeps the same height, so the chart doesn't move when you switch. **Bowl** and **Segmented arc** hold the reading inside a nearly round arc, with the detail line below. **Needle** draws a half-circle dial with the reading underneath; its detail line, such as clock speed or memory in use, appears when you hover the tile. **None** hides the gauges and their legend.
+Choose how the resource gauges look under **Resource gauges** in Settings: **Bowl** (the default), **Needle**, **Segmented arc**, **Left bar**, **Bottom bar**, **Segmented bar** or **None**. A sample on the Appearance page combines the selected theme, chart palette and gauge style before you save. Every style keeps the same height, so the chart doesn't move when you switch. **Bowl** and **Segmented arc** hold the reading inside a nearly round arc, with the detail line below. **Needle** draws a half-circle dial with the reading underneath; its detail line, such as clock speed or memory in use, appears when you hover the tile. **None** hides the gauges and their legend.
 
 See [Light appearance and additional palettes](docs/example/README.md) in the example gallery.
 
@@ -140,11 +140,11 @@ See [Light appearance and additional palettes](docs/example/README.md) in the ex
 
 The three custom palettes keep their supplied colors in both themes. Open an image for the full-size view.
 
-![WinMon Appearance settings with theme, Neon palette and resource gauge preview](docs/example/example_settings.png)
+![WinMon Appearance settings with a combined theme, Neon chart palette and resource gauge preview](docs/example/example_settings.png)
 
 The Settings image above is from the installer/portable configuration. Store builds hide the GitHub update controls and use Store-managed updates:
 
-![WinMon Store Appearance settings with theme, palette and gauge options, without an Updates section](docs/example/example_settings_store.png)
+![WinMon Store Appearance settings with the combined preview and no Updates section](docs/example/example_settings_store.png)
 
 </details>
 
