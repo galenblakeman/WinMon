@@ -896,6 +896,12 @@ GPU 利用率 0–{1:0.0}%</value>
   <data name="StartWinMonWhenISignIn" xml:space="preserve">
     <value>登录时启动 WinMon</value>
   </data>
+  <data name="StartupManagedByPolicy" xml:space="preserve">
+    <value>你的组织管理 WinMon 是否在登录时启动。</value>
+  </data>
+  <data name="StartupTurnedOffInWindows" xml:space="preserve">
+    <value>Windows 已关闭此项。请在 Windows 设置 &gt; 应用 &gt; 启动中重新打开 WinMon。</value>
+  </data>
   <data name="StorageClassMemory" xml:space="preserve">
     <value>存储级内存</value>
   </data>

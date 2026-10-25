@@ -27,6 +27,9 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(StoreBuild)' == 'true'">
     <DefineConstants>$(DefineConstants);WINMON_STORE</DefineConstants>
+    <!-- Packages start at sign-in through the Windows Runtime StartupTask API, which this TFM projects. Its version
+         is the package's MinVersion. Projects that reference WinMon set the same TFM for Store builds. -->
+    <TargetFramework>net10.0-windows10.0.17763.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
     <!-- Workstation GC sizes the gen0 budget from the L3 cache, up to 48 MiB on large-cache CPUs. WinMon allocates

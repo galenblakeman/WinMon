@@ -566,6 +566,8 @@ public static partial class Strings
     public static string SSA => ResourceManager.GetString(nameof(SSA), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string SSD => ResourceManager.GetString(nameof(SSD), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string StartService => ResourceManager.GetString(nameof(StartService), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string StartupManagedByPolicy => ResourceManager.GetString(nameof(StartupManagedByPolicy), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string StartupTurnedOffInWindows => ResourceManager.GetString(nameof(StartupTurnedOffInWindows), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string StartWinMonWhenISignIn => ResourceManager.GetString(nameof(StartWinMonWhenISignIn), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string StopService => ResourceManager.GetString(nameof(StopService), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string StorageClassMemory => ResourceManager.GetString(nameof(StorageClassMemory), Culture ?? CultureInfo.CurrentUICulture)!;

@@ -896,6 +896,12 @@ Aktive Zeit und Lese-/Schreibdurchsatz.</value>
   <data name="StartWinMonWhenISignIn" xml:space="preserve">
     <value>WinMon bei der Anmeldung starten</value>
   </data>
+  <data name="StartupManagedByPolicy" xml:space="preserve">
+    <value>Ihre Organisation legt fest, ob WinMon bei der Anmeldung startet.</value>
+  </data>
+  <data name="StartupTurnedOffInWindows" xml:space="preserve">
+    <value>Windows hat dies ausgeschaltet. Schalten Sie WinMon unter Windows-Einstellungen &gt; Apps &gt; Autostart wieder ein.</value>
+  </data>
   <data name="StorageClassMemory" xml:space="preserve">
     <value>Speicherklassenspeicher</value>
   </data>

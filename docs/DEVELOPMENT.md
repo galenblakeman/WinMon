@@ -22,7 +22,7 @@ dotnet publish src/WinMon/WinMon.csproj -c Release -m:1 -p:UseSharedCompilation=
 
 - Every build, test and release script passes `-m:1 -p:UseSharedCompilation=false`; keep them on manual commands too.
 - `TreatWarningsAsErrors` is on for the app.
-- `-p:StoreBuild=true` builds the Microsoft Store variant, which defines `WINMON_STORE` and drops the GitHub updater. `StoreBuildTests` covers what differs, so run the tests in both variants after touching update or Settings code.
+- `-p:StoreBuild=true` builds the Microsoft Store variant, which defines `WINMON_STORE`, drops the GitHub updater, and targets `net10.0-windows10.0.17763.0` so sign-in startup can use the package's `StartupTask`. The test and benchmark projects switch TFM with it. `StoreBuildTests` covers what differs, so run the tests in both variants after touching update or Settings code.
 - Inside a sandbox the VSTest host can fail to connect. The same command passes outside it.
 - When the NuGet audit endpoint is unreachable, add `-p:NuGetAudit=false` to that command only, and note that the run skipped the vulnerability audit.
 

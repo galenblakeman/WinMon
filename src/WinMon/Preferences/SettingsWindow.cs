@@ -81,6 +81,7 @@ public sealed class SettingsWindow : Window
     private readonly ComboBox _retentionSelector;
     private readonly CheckBox _minimizeToTrayCheckBox;
     private readonly CheckBox _startupCheckBox;
+    private readonly StartupAvailability _startupAvailability;
     private readonly CheckBox _automaticUpdateCheckBox;
     private readonly TextBlock _updateCheckStatus = new() { FontSize = 12, TextWrapping = TextWrapping.Wrap };
     private readonly TextBox _shortcutBox;
@@ -134,10 +135,11 @@ public sealed class SettingsWindow : Window
     internal SettingsWindow(MonitorPreferences preferences, Func<DriveChoice[]> loadDrives,
         Func<HotkeyGesture, bool>? isShortcutAvailable = null, string shortcutStatus = "",
         Func<Task<string>>? checkForUpdates = null, string? captureFolder = null,
-        DateTimeOffset? lastUpdateCheck = null)
+        DateTimeOffset? lastUpdateCheck = null, StartupAvailability? startupAvailability = null)
     {
         ArgumentNullException.ThrowIfNull(preferences);
         _loadDrives = loadDrives;
+        _startupAvailability = startupAvailability ?? StartupRegistration.Availability;
         _initialPreferences = preferences;
         _isShortcutAvailable = isShortcutAvailable ?? (_ => true);
         _shortcut = preferences.ShowGesture;
@@ -637,7 +639,18 @@ public sealed class SettingsWindow : Window
         page.Children.Add(Field(Strings.Language, LanguageSelector));
         page.Children.Add(Note(Strings.LanguageApplyNote));
         page.Children.Add(CreateHeading(Strings.SettingsStartupAndTray));
-        if (StartupRegistration.IsSupported) page.Children.Add(_startupCheckBox);
+        if (_startupAvailability != StartupAvailability.Unavailable) page.Children.Add(_startupCheckBox);
+        // Only Windows can undo these, so the box shows the state without offering to change it.
+        if (_startupAvailability is StartupAvailability.TurnedOffInWindows or StartupAvailability.ManagedByPolicy)
+        {
+            _startupCheckBox.IsEnabled = false;
+            var reason = _startupAvailability == StartupAvailability.TurnedOffInWindows
+                ? Strings.StartupTurnedOffInWindows
+                : Strings.StartupManagedByPolicy;
+            page.Children.Add(Note(reason));
+            AutomationProperties.SetHelpText(_startupCheckBox, reason);
+        }
+
         page.Children.Add(_minimizeToTrayCheckBox);
         page.Children.Add(CreateHeading(Strings.KeyboardShortcut));
         page.Children.Add(Field(Strings.ShowHideWinMon, _shortcutBox));

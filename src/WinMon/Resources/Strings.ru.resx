@@ -896,6 +896,12 @@ GPU {11} · {12}
   <data name="StartWinMonWhenISignIn" xml:space="preserve">
     <value>Запускать WinMon при входе в систему</value>
   </data>
+  <data name="StartupManagedByPolicy" xml:space="preserve">
+    <value>Запуск WinMon при входе в систему определяет ваша организация.</value>
+  </data>
+  <data name="StartupTurnedOffInWindows" xml:space="preserve">
+    <value>Windows отключила этот параметр. Снова включите WinMon в разделе «Параметры Windows &gt; Приложения &gt; Автозагрузка».</value>
+  </data>
   <data name="StorageClassMemory" xml:space="preserve">
     <value>Память класса хранения</value>
   </data>

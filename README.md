@@ -144,7 +144,7 @@ The three custom palettes retain their supplied hues; lightness changes where a 
 
 ![WinMon Appearance settings with a combined theme, Neon chart palette and resource gauge preview](docs/example/example_settings.png)
 
-The Settings image above is from the installer/portable configuration. Store builds hide the GitHub update controls and use Store-managed updates. They also hide **Start WinMon when I sign in**, which a Store package cannot yet set:
+The Settings image above is from the installer/portable configuration. Store builds hide the GitHub update controls and use Store-managed updates. Their **Start WinMon when I sign in** uses the package's startup task, so WinMon also appears in Windows **Settings > Apps > Startup**. If you turn it off there, or a policy decides, WinMon's Settings say so and leave the change to Windows:
 
 ![WinMon Store Appearance settings with the combined preview and no Updates section](docs/example/example_settings_store.png)
 

@@ -896,6 +896,12 @@ Windows からモジュールの詳細を取得できません。</value>
   <data name="StartWinMonWhenISignIn" xml:space="preserve">
     <value>サインイン時に WinMon を起動</value>
   </data>
+  <data name="StartupManagedByPolicy" xml:space="preserve">
+    <value>サインイン時に WinMon を起動するかどうかは組織によって管理されています。</value>
+  </data>
+  <data name="StartupTurnedOffInWindows" xml:space="preserve">
+    <value>Windows でオフになっています。Windows の設定 &gt; アプリ &gt; スタートアップで WinMon をオンに戻してください。</value>
+  </data>
   <data name="StorageClassMemory" xml:space="preserve">
     <value>ストレージクラスメモリ</value>
   </data>

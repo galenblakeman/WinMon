@@ -896,6 +896,12 @@ Active time and read/write throughput.</value>
   <data name="StartWinMonWhenISignIn" xml:space="preserve">
     <value>Start WinMon when I sign in</value>
   </data>
+  <data name="StartupManagedByPolicy" xml:space="preserve">
+    <value>Your organization manages whether WinMon starts when you sign in.</value>
+  </data>
+  <data name="StartupTurnedOffInWindows" xml:space="preserve">
+    <value>Windows has this turned off. Turn WinMon back on in Windows Settings &gt; Apps &gt; Startup.</value>
+  </data>
   <data name="StorageClassMemory" xml:space="preserve">
     <value>Storage-class memory</value>
   </data>

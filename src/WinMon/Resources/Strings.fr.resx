@@ -896,6 +896,12 @@ Temps d’activité et débit de lecture/écriture.</value>
   <data name="StartWinMonWhenISignIn" xml:space="preserve">
     <value>Lancer WinMon à l’ouverture de session</value>
   </data>
+  <data name="StartupManagedByPolicy" xml:space="preserve">
+    <value>Votre organisation détermine si WinMon se lance à l’ouverture de session.</value>
+  </data>
+  <data name="StartupTurnedOffInWindows" xml:space="preserve">
+    <value>Windows a désactivé cette option. Réactivez WinMon dans Paramètres Windows &gt; Applications &gt; Démarrage.</value>
+  </data>
   <data name="StorageClassMemory" xml:space="preserve">
     <value>Mémoire de classe stockage</value>
   </data>

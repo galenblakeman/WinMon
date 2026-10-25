@@ -24,7 +24,7 @@ Version comes from `Directory.Build.props` with a fourth component of zero, chec
 
 ## Update channels
 
-`-p:StoreBuild=true` disables automatic checks, Settings update controls, network checks, downloads, helper handoff/execution, and startup handling of GitHub update state. Microsoft Store services this build. It also hides **Start WinMon when I sign in**: a package's HKCU writes go to a private copy of the registry, so the `Run` value would never reach Explorer. Supporting it needs a `windows.startupTask` extension. Preferences retain the user's automatic-check choice for an ordinary installer/portable build.
+`-p:StoreBuild=true` disables automatic checks, Settings update controls, network checks, downloads, helper handoff/execution, and startup handling of GitHub update state. Microsoft Store services this build. **Start WinMon when I sign in** uses the manifest's `windows.startupTask` extension (TaskId `WinMonStartup`, off by default) instead of the `Run` value, because a package's HKCU writes go to a private copy of the registry that Explorer never reads. The Store build targets `net10.0-windows10.0.17763.0` for the Windows Runtime `StartupTask` API, which adds about 23 MB to the package; see [Store sign-in startup](../../docs/design/STORE-STARTUP.md). Preferences retain the user's automatic-check choice for an ordinary installer/portable build.
 
 Normal builds omit `StoreBuild` and retain the GitHub updater. Keep channel build outputs separate, as the packaging scripts do. An MSIX distributed outside the Store also disables the GitHub updater; use MSIX servicing (for example App Installer) for that channel.
 
@@ -37,7 +37,7 @@ dotnet test tests/WinMon.Tests/WinMon.Tests.csproj -c Release -m:1 -p:UseSharedC
 
 Store tests verify rejection before network/file/process work. Existing updater tests deliberately exercise the enabled channel, so run the complete suite in the ordinary configuration. Add `-p:NuGetAudit=false` to an individual validation command only if needed for an audit endpoint outage.
 
-For installation tests, sign the package with a development certificate matching `Publisher`, trust it on a disposable test machine, then use `Add-AppxPackage -Path <signed.msix>`. Do not distribute certificate private keys. Test Start menu launch, monitoring, tray, global shortcuts, startup registration, settings save/reload, upgrade and uninstall. Test coexistence/migration with the installer: both channels share the single-instance mutex and cannot run side by side. MakeAppx and unpackaged smoke validation do not prove packaged runtime behavior.
+For installation tests, sign the package with a development certificate matching `Publisher`, trust it on a disposable test machine, then use `Add-AppxPackage -Path <signed.msix>`. Do not distribute certificate private keys. Test Start menu launch, monitoring, tray, global shortcuts, startup registration, settings save/reload, upgrade and uninstall. With Developer Mode on, `Add-AppxPackage -Register <payload>\AppxManifest.xml` registers the unsigned staged payload from `artifacts/msix-build/<run>/payload` for quick checks; `Remove-AppxPackage` removes it. Read the startup task's state through `StartupTask.State` from inside the package (`Invoke-CommandInDesktopPackage`); its registry mirror is not kept current. Test coexistence/migration with the installer: both channels share the single-instance mutex and cannot run side by side. MakeAppx and unpackaged smoke validation do not prove packaged runtime behavior.
 
 ## Submit
 

@@ -7,6 +7,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(StoreBuild)' == 'true'">
     <DefineConstants>$(DefineConstants);WINMON_STORE</DefineConstants>
+    <!-- Matches WinMon's Store TFM, which adds the Windows Runtime projection. -->
+    <TargetFramework>net10.0-windows10.0.17763.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />

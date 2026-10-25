@@ -68,6 +68,8 @@ try {
     $manifest.Package.Properties.DisplayName = $DisplayName
     $manifest.Package.Properties.PublisherDisplayName = $PublisherDisplayName
     $manifest.Package.Applications.Application.VisualElements.DisplayName = $DisplayName
+    # Windows lists the startup task by this name in Settings > Apps > Startup and Task Manager.
+    $manifest.Package.Applications.Application.Extensions.Extension.StartupTask.DisplayName = $DisplayName
     $manifest.Save((Join-Path $payload 'AppxManifest.xml'))
 
     # Derive package logos from the existing product artwork, rather than maintaining duplicate sources.

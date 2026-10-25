@@ -896,6 +896,12 @@ Czas aktywności i szybkość odczytu/zapisu.</value>
   <data name="StartWinMonWhenISignIn" xml:space="preserve">
     <value>Uruchamiaj WinMon przy logowaniu</value>
   </data>
+  <data name="StartupManagedByPolicy" xml:space="preserve">
+    <value>Twoja organizacja decyduje, czy WinMon uruchamia się przy logowaniu.</value>
+  </data>
+  <data name="StartupTurnedOffInWindows" xml:space="preserve">
+    <value>System Windows ma tę opcję wyłączoną. Włącz ponownie WinMon w Ustawieniach systemu Windows &gt; Aplikacje &gt; Uruchamianie.</value>
+  </data>
   <data name="StorageClassMemory" xml:space="preserve">
     <value>Pamięć klasy magazynowej</value>
   </data>

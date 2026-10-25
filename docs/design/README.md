@@ -27,6 +27,7 @@ These records describe the individual feature increments and their validation at
 - [Wildberry and Candy themes](WILDBERRY-CANDY-THEMES.md), which add the Bramble and bold Candy concepts
 - [Theme chip contrast](CHIP-CONTRAST.md), which covers time-range and process-grouping text across finishes
 - [Combined appearance preview](APPEARANCE-PREVIEW.md), which shows theme, palette and gauge choices together before Save
+- [Store sign-in startup](STORE-STARTUP.md), which starts the Store build at sign-in through its MSIX startup task
 
 Implemented on 2026-10-24; each note ends with what landed and where it departed from the design:
 

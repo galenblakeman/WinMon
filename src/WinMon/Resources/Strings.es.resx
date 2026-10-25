@@ -896,6 +896,12 @@ Tiempo activo y velocidad de lectura y escritura.</value>
   <data name="StartWinMonWhenISignIn" xml:space="preserve">
     <value>Iniciar WinMon al iniciar sesión</value>
   </data>
+  <data name="StartupManagedByPolicy" xml:space="preserve">
+    <value>Tu organización decide si WinMon se inicia al iniciar sesión.</value>
+  </data>
+  <data name="StartupTurnedOffInWindows" xml:space="preserve">
+    <value>Windows lo tiene desactivado. Vuelve a activar WinMon en Configuración de Windows &gt; Aplicaciones &gt; Inicio.</value>
+  </data>
   <data name="StorageClassMemory" xml:space="preserve">
     <value>Memoria de clase de almacenamiento</value>
   </data>
