@@ -1234,6 +1234,27 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         window.RefreshPresentation();
         if (window.SecondaryDiskMetric.Visibility != Visibility.Collapsed || Math.Abs(window.MinWidth - 836) > 0.001)
             throw new InvalidOperationException("Single-drive layout did not restore.");
+
+        // Without a second drive its hidden toggle can stay checked; hiding every other series must not focus it.
+        window.Preferences = original with
+        {
+            SecondaryDrive = null, ResourceChartType = ResourceChartType.Focus, FocusMetric = 0
+        };
+        window.BuildChartSelectors();
+        MetricReadout[] series =
+        [
+            window.CpuMetric, window.MemoryMetric, window.DiskMetric, window.NetworkMetric, window.GpuMetric,
+            window.SecondaryDiskMetric
+        ];
+        series[5].Toggle.IsChecked = true;
+        foreach (var metric in series[..5]) metric.Toggle.IsChecked = false;
+        if (window.Preferences.FocusMetric == 5)
+            throw new InvalidOperationException("Hiding every series focused the absent second disk.");
+        window.Preferences = original;
+        for (var i = 0; i < series.Length; i++) series[i].Toggle.IsChecked = (original.SeriesMask & (1 << i)) != 0;
+        window.Preferences = original;
+        window.BuildChartSelectors();
+        window.RefreshPresentation();
         window.Width = window.MinWidth;
         foreach (var selection in new[] { second ?? missing, null })
         {

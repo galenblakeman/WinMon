@@ -306,6 +306,8 @@ public partial class MainWindow
         for (var i = 0; i < Metrics.Length; i++)
             if (Metrics[i].Toggle.IsChecked == true)
                 mask |= 1 << i;
+        // The hidden second-disk toggle has no series without a second drive, so it must not become the focus.
+        if (_preferences.SecondaryDrive is null) mask &= ~32;
         var focusMetric = mask != 0 && (mask & (1 << _preferences.FocusMetric)) == 0
             ? Enumerable.Range(0, Metrics.Length).First(i => (mask & (1 << i)) != 0)
             : _preferences.FocusMetric;
@@ -721,7 +723,7 @@ public partial class MainWindow
         _preferences = PreferenceStore.Validate(SettingsWindow.ApplySettings(_preferences, result));
         if (!_preferences.KeepHistoryAcrossRestarts)
             RestartHistory.DeleteNormal(_preferenceStore.NormalHistoryPath);
-        SecondaryDiskMetric.Toggle.IsChecked = _preferences.ShowSecondaryDisk;
+        SecondaryDiskMetric.Toggle.IsChecked = (_preferences.SeriesMask & 32) != 0;
         ConfigureDiskLayout();
         Session.History.Resize(_preferences.RetentionSeconds);
         ApplyTheme();
