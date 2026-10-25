@@ -89,8 +89,8 @@ internal sealed partial class WindowDiagnostics
             }
         }
 
-        // Metal finishes change brushes only, so one full-size bowl capture per finish is sufficient.
-        foreach (var theme in MetalThemes.Names)
+        // Appearance finishes change brushes only, so one full-size bowl capture per finish is sufficient.
+        foreach (var theme in ThemeFinishes.Names)
         {
             fixture.Preferences = fixture.Preferences with { Theme = theme, GaugeStyle = GaugeStyle.Bowl };
             fixture.ApplyTheme();
@@ -141,7 +141,7 @@ internal sealed partial class WindowDiagnostics
 
         await File.WriteAllTextAsync(Path.Combine(output, "gauges.json"), JsonSerializer.Serialize(new
         {
-            Styles = Enum.GetNames<GaugeStyle>(), Themes = new[] { "Dark", "Light" }.Concat(MetalThemes.Names),
+            Styles = Enum.GetNames<GaugeStyle>(), Themes = new[] { "Dark", "Light" }.Concat(ThemeFinishes.Names),
             Widths = new[] { 1000, 836 },
             ReadoutHeight = heights.Single(), NetworkScaleOnArcs = true, PeakLegendFollowsStyle = true,
             UnavailableHidesGauges = true, PreferenceRoundTrip = true, SettingsPreview = true

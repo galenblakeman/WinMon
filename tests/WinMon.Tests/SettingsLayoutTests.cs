@@ -146,6 +146,33 @@ public sealed class SettingsLayoutTests
         }
     }
 
+    [TestCase("Porcelain", "#FFFEFA", "#365F85")]
+    [TestCase("MidnightInk", "#0D1724", "#477DAE")]
+    [TestCase("EvergreenInstrument", "#111E1B", "#87B782")]
+    public void NewThemePreview_UsesFlatSurfaceAndIndependentUiAccent(string theme, string plot, string accent)
+    {
+        var window = Settings(new MonitorPreferences { Theme = theme, ChartPalette = "Ocean" });
+        try
+        {
+            var preview = window.CombinedPreview;
+            Assert.That(window.ThemeSelector.SelectedValue, Is.EqualTo(theme));
+            if (SystemParameters.HighContrast) return;
+            Assert.Multiple(() =>
+            {
+                Assert.That(((SolidColorBrush)preview.ChartPreview.TryFindResource("PlotSurface")!).Color,
+                    Is.EqualTo((Color)ColorConverter.ConvertFromString(plot)));
+                Assert.That(((SolidColorBrush)preview.ChartPreview.TryFindResource("Accent")!).Color,
+                    Is.EqualTo((Color)ColorConverter.ConvertFromString(accent)));
+                Assert.That(((SolidColorBrush)preview.ChartPreview.TryFindResource("MemoryAccent")!).Color,
+                    Is.EqualTo((Color)ColorConverter.ConvertFromString(theme == "Porcelain" ? "#6745A5" : "#B0A0FF")));
+            });
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
     [Test]
     public void CaptureSwitch_ShowsItsStateAndIsWhatSaveReads()
     {

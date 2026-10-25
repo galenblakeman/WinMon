@@ -56,12 +56,12 @@ $run.ExitCode
 | `--feature-smoke-output <dir>` | `feature` | Title bar, hardware Info and its copied report (`hardware.json`, `copied-info.txt`), process actions, the action drawer, palettes, the update footer at full and minimum window heights |
 | `--snapshot-smoke-output <dir>` | `snapshot` | Fixture renders: design reference, App only filtering, two disk volumes, GPU/Memory/I/O ranking and pinned processes (`pins.json`) |
 | `--search-smoke-output <dir>` | `search` | Process search, clearing, thread and handle sorting, live and historical |
-| `--compact-smoke-output <dir>` | `compact` | Compact gauges: live data, every gauge style, view switching, saved dimensions, optional disk, dark/light renders at 836 and 1000 DIPs (`compact.json`) |
+| `--compact-smoke-output <dir>` | `compact` | Compact gauges: live data, every gauge style, view switching, saved dimensions, optional disk, dark/light renders at 836 and 1000 DIPs, plus one render per additional appearance finish (`compact.json`) |
 | `--services-smoke-output <dir>` | `services` | Services tab |
 | `--usage-smoke-output <dir>` | `usage` | Usage tab |
 | `--capture-smoke-output <dir>` | `capture` | Automatic captures and Settings sections in Dark and Light appearances |
 | `--chart-smoke-output <dir>` | `chart` | Chart dropdown, focused resources, hidden-resource selection and capture inspection |
-| `--gauges-smoke-output <dir>` | `gauges` | Every gauge style in dark and light at 1000 and 836 DIPs: shared readout height, unclipped values, network scale, peak legend, unavailable readings, the saved style and combined Settings appearance previews (`gauges.json`) |
+| `--gauges-smoke-output <dir>` | `gauges` | Every gauge style in dark and light at 1000 and 836 DIPs, plus one render per additional appearance finish: shared readout height, unclipped values, network scale, peak legend, unavailable readings, the saved style and combined Settings appearance previews (`gauges.json`) |
 | `--examples-output <dir>` | — | README screenshots; follow [the example gallery's steps](example/README.md#regenerate) |
 | `--profile-output <dir> [seconds]` | — | Whole-process cost; see [Profile the whole app](#profile-the-whole-app) |
 

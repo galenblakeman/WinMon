@@ -123,7 +123,7 @@ Click a marker, or choose a capture from **Automatic captures** in the chart hea
 
 ## Make it yours
 
-Choose **Light**, **Dark**, **System**, **Brushed steel**, **Copper**, **Gunmetal**, or **Brushed nickel** appearance, then pick a chart palette independently. The four metal appearances add a fine brushed grain to the window surfaces and across the title bar while keeping the same layout and resource gauge style. Brushed steel and brushed nickel also use a light matte metal chart background. Options include Classic, Ocean, Colorblind, high-contrast, **Neon**, **Arcade** and **Tropical** palettes. Settings includes swatches and descriptions to help you choose. Colors stay consistent across resource readings, chart traces and process sparklines.
+Choose **Light**, **Dark**, **System**, **Brushed steel**, **Copper**, **Gunmetal**, **Brushed nickel**, **Porcelain**, **Midnight Ink**, or **Evergreen Instrument** appearance, then pick a chart palette independently. Porcelain is warm and light, Midnight Ink is deep navy, and Evergreen Instrument is dark forest green. The four metal appearances add a fine brushed grain to the window surfaces and across the title bar while keeping the same layout and resource gauge style. Brushed steel and brushed nickel also use a light matte metal chart background. Options include Classic, Ocean, Colorblind, high-contrast, **Neon**, **Arcade** and **Tropical** palettes. Settings includes swatches and descriptions to help you choose. Colors stay consistent across resource readings, chart traces and process sparklines.
 
 The selected Settings section uses light text and icons against its blue highlight in Light appearance.
 

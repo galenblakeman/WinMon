@@ -177,6 +177,9 @@ public sealed class PreferenceStore
             "copper" => "Copper",
             "gunmetal" => "Gunmetal",
             "brushednickel" => "BrushedNickel",
+            "porcelain" => "Porcelain",
+            "midnightink" => "MidnightInk",
+            "evergreeninstrument" => "EvergreenInstrument",
             _ => "Dark"
         };
     }

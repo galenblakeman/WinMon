@@ -27,9 +27,9 @@ public sealed partial class AppearancePreview : UserControl
 
     internal void Update(string theme, string palette, GaugeStyle style)
     {
+        var finish = ThemeFinishes.IsFinish(theme) ? ThemeFinishes.For(theme) : null;
         var light = theme == "Light" || (theme == "System" && MainWindow.IsSystemLight()) ||
-                    theme is "BrushedSteel" or "BrushedNickel";
-        var metal = MetalThemes.IsMetal(theme) ? MetalThemes.For(theme) : null;
+                    finish?.Light == true;
         if (SystemParameters.HighContrast)
         {
             Resources["PanelSurface"] = SystemColors.WindowBrush;
@@ -44,20 +44,21 @@ public sealed partial class AppearancePreview : UserControl
         }
         else
         {
-            Resources["PanelSurface"] = metal is null ? Brush(light ? "#F0F5FA" : "#15191E")
-                : MetalThemes.PanelBrush(metal);
-            Resources["SectionHeaderSurface"] = metal is null ? Brush(light ? "#E5EEF7" : "#252A31")
-                : MetalThemes.ChromeBrush(metal, true);
-            Resources["PlotSurface"] = metal is not null && theme is ("BrushedSteel" or "BrushedNickel")
-                ? MetalThemes.PlotBrush(metal)
-                : Brush(metal?.Plot ?? (light ? "#FFFFFF" : "#15191E"));
-            Resources["Text"] = Brush(metal?.Text ?? (light ? "#20334A" : "#EDF2F6"));
-            Resources["Muted"] = Brush(metal?.Muted ?? (light ? "#465D78" : "#B3BDC8"));
-            Resources["Line"] = Brush(metal?.Line ?? (light ? "#CCD9E5" : "#35404B"));
-            Resources["GaugeTrack"] = Brush(metal?.GaugeTrack ?? (light ? "#CCD9E5" : "#35404B"));
+            Resources["PanelSurface"] = finish is { Brushed: true } ? ThemeFinishes.PanelBrush(finish)
+                : Brush(finish?.Surface ?? (light ? "#F0F5FA" : "#15191E"));
+            Resources["SectionHeaderSurface"] = finish is { Brushed: true }
+                ? ThemeFinishes.ChromeBrush(finish, true)
+                : Brush(finish?.Header ?? (light ? "#E5EEF7" : "#252A31"));
+            Resources["PlotSurface"] = finish is { Brushed: true } && theme is ("BrushedSteel" or "BrushedNickel")
+                ? ThemeFinishes.PlotBrush(finish)
+                : Brush(finish?.Plot ?? (light ? "#FFFFFF" : "#15191E"));
+            Resources["Text"] = Brush(finish?.Text ?? (light ? "#20334A" : "#EDF2F6"));
+            Resources["Muted"] = Brush(finish?.Muted ?? (light ? "#465D78" : "#B3BDC8"));
+            Resources["Line"] = Brush(finish?.Line ?? (light ? "#CCD9E5" : "#35404B"));
+            Resources["GaugeTrack"] = Brush(finish?.GaugeTrack ?? (light ? "#CCD9E5" : "#35404B"));
             var colors = ChartPalettes.Colors(palette, light);
             for (var i = 0; i < AccentKeys.Length; i++) Resources[AccentKeys[i]] = Brush(colors[i]);
-            Resources["Accent"] = Brush(light ? "#1469B5" : colors[0]);
+            Resources["Accent"] = Brush(finish?.UiAccent ?? (light ? "#1469B5" : colors[0]));
         }
 
         foreach (var readout in new[] { CpuReadout, MemoryReadout, DiskReadout })

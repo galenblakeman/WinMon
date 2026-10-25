@@ -19,7 +19,7 @@ The satin effect combines a broad reflection with fine horizontal grain in froze
 
 ## Landed
 
-- Four new stored appearance identifiers, localized selector labels, and color resources in `MetalThemes`.
+- Four new stored appearance identifiers, localized selector labels, and color resources in `ThemeFinishes`.
 - Existing chart palettes and gauge styles still determine the resource colors and shapes.
 - The `gauges` smoke captures a full-size resource view in each finish and checks that readout height stays fixed.
 - The `compact` smoke captures the same finishes at the narrow compact width.

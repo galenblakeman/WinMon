@@ -1579,4 +1579,7 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
 <data name="ThemeCopper" xml:space="preserve"><value>Copper</value></data>
 <data name="ThemeGunmetal" xml:space="preserve"><value>Gunmetal</value></data>
 <data name="ThemeBrushedNickel" xml:space="preserve"><value>Brushed nickel</value></data>
+<data name="ThemePorcelain" xml:space="preserve"><value>Porcelain</value></data>
+<data name="ThemeMidnightInk" xml:space="preserve"><value>Midnight Ink</value></data>
+<data name="ThemeEvergreenInstrument" xml:space="preserve"><value>Evergreen Instrument</value></data>
 </root>

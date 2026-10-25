@@ -587,8 +587,11 @@ public static partial class Strings
     public static string ThemeBrushedSteel => ResourceManager.GetString(nameof(ThemeBrushedSteel), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ThemeCopper => ResourceManager.GetString(nameof(ThemeCopper), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ThemeDark => ResourceManager.GetString(nameof(ThemeDark), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ThemeEvergreenInstrument => ResourceManager.GetString(nameof(ThemeEvergreenInstrument), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ThemeGunmetal => ResourceManager.GetString(nameof(ThemeGunmetal), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ThemeLight => ResourceManager.GetString(nameof(ThemeLight), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ThemeMidnightInk => ResourceManager.GetString(nameof(ThemeMidnightInk), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ThemePorcelain => ResourceManager.GetString(nameof(ThemePorcelain), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ThemeSystem => ResourceManager.GetString(nameof(ThemeSystem), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string TheOriginalProcessHasExitedAndItsPIDHasBeen => ResourceManager.GetString(nameof(TheOriginalProcessHasExitedAndItsPIDHasBeen), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string TheProcessCouldNotBeEnded => ResourceManager.GetString(nameof(TheProcessCouldNotBeEnded), Culture ?? CultureInfo.CurrentUICulture)!;

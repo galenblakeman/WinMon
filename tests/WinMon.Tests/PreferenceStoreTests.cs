@@ -7,8 +7,8 @@ namespace WinMon.Tests;
 [TestFixture]
 public sealed class PreferenceStoreTests
 {
-    [TestCaseSource(typeof(MetalThemes), nameof(MetalThemes.Names))]
-    public async Task MetalTheme_RoundTripsWithoutChangingGaugeOrPalette(string theme)
+    [TestCaseSource(typeof(ThemeFinishes), nameof(ThemeFinishes.Names))]
+    public async Task AppearanceFinish_RoundTripsWithoutChangingGaugeOrPalette(string theme)
     {
         var store = new PreferenceStore(settingsPath);
         await store.SaveAsync(new MonitorPreferences

@@ -99,7 +99,7 @@ public sealed record MonitorPreferences
     /// <summary>Gets a value indicating whether the monitor stays above other windows.</summary>
     public bool AlwaysOnTop { get; init; }
 
-    /// <summary>Gets the selected application theme: Dark, Light, or System.</summary>
+    /// <summary>Gets the selected application theme identifier.</summary>
     public string Theme { get; init; } = "Dark";
 
     /// <summary>UI language identifier, or System to follow the Windows display language on startup.</summary>

@@ -1579,4 +1579,7 @@ O trabalho não salvo pode ser perdido. Todos os processos listados abaixo serã
 <data name="ThemeCopper" xml:space="preserve"><value>Cobre</value></data>
 <data name="ThemeGunmetal" xml:space="preserve"><value>Aço grafite</value></data>
 <data name="ThemeBrushedNickel" xml:space="preserve"><value>Níquel escovado</value></data>
+<data name="ThemePorcelain" xml:space="preserve"><value>Porcelana</value></data>
+<data name="ThemeMidnightInk" xml:space="preserve"><value>Tinta da meia-noite</value></data>
+<data name="ThemeEvergreenInstrument" xml:space="preserve"><value>Instrumento verde-floresta</value></data>
 </root>

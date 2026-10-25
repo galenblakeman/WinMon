@@ -1579,4 +1579,7 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
 <data name="ThemeCopper" xml:space="preserve"><value>Miedź</value></data>
 <data name="ThemeGunmetal" xml:space="preserve"><value>Stal oksydowana</value></data>
 <data name="ThemeBrushedNickel" xml:space="preserve"><value>Nikiel szczotkowany</value></data>
+<data name="ThemePorcelain" xml:space="preserve"><value>Porcelana</value></data>
+<data name="ThemeMidnightInk" xml:space="preserve"><value>Atrament północy</value></data>
+<data name="ThemeEvergreenInstrument" xml:space="preserve"><value>Zielony instrument</value></data>
 </root>

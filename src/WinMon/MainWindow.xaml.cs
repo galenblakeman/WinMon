@@ -745,8 +745,8 @@ public partial class MainWindow
     internal void ApplyTheme()
     {
         var light = _preferences.Theme == "Light" || (_preferences.Theme == "System" && IsSystemLight());
-        var metal = MetalThemes.IsMetal(_preferences.Theme) ? MetalThemes.For(_preferences.Theme) : null;
-        light |= metal?.Light == true;
+        var finish = ThemeFinishes.IsFinish(_preferences.Theme) ? ThemeFinishes.For(_preferences.Theme) : null;
+        light |= finish?.Light == true;
         ApplyGaugeStyle();
         var app = Application.Current;
         if (app is null) return;
@@ -779,42 +779,43 @@ public partial class MainWindow
         }
         else
         {
-            SetBrush("Surface", metal?.Surface ?? (light ? "#F0F5FA" : "#15191E"));
-            if (metal is null)
-                SetBrush("PanelSurface", light ? "#F0F5FA" : "#15191E");
+            SetBrush("Surface", finish?.Surface ?? (light ? "#F0F5FA" : "#15191E"));
+            if (finish is null || !finish.Brushed)
+                SetBrush("PanelSurface", finish?.Surface ?? (light ? "#F0F5FA" : "#15191E"));
             else
-                app.Resources["PanelSurface"] = MetalThemes.PanelBrush(metal);
-            SetBrush("Raised", metal?.Raised ?? (light ? "#FFFFFF" : "#20262D"));
-            if (metal is null)
+                app.Resources["PanelSurface"] = ThemeFinishes.PanelBrush(finish);
+            SetBrush("Raised", finish?.Raised ?? (light ? "#FFFFFF" : "#20262D"));
+            if (finish is null || !finish.Brushed)
             {
-                SetBrush("TitleBarSurface", light ? "#DCE7F1" : "#30343B");
-                SetBrush("SectionHeaderSurface", light ? "#E5EEF7" : "#252A31");
+                SetBrush("TitleBarSurface", finish?.Chrome ?? (light ? "#DCE7F1" : "#30343B"));
+                SetBrush("SectionHeaderSurface", finish?.Header ?? (light ? "#E5EEF7" : "#252A31"));
             }
             else
             {
-                app.Resources["TitleBarSurface"] = MetalThemes.ChromeBrush(metal, false);
-                app.Resources["SectionHeaderSurface"] = MetalThemes.ChromeBrush(metal, true);
+                app.Resources["TitleBarSurface"] = ThemeFinishes.ChromeBrush(finish, false);
+                app.Resources["SectionHeaderSurface"] = ThemeFinishes.ChromeBrush(finish, true);
             }
-            if (metal is not null && _preferences.Theme is ("BrushedSteel" or "BrushedNickel"))
-                app.Resources["PlotSurface"] = MetalThemes.PlotBrush(metal);
+            if (finish is { Brushed: true } && _preferences.Theme is ("BrushedSteel" or "BrushedNickel"))
+                app.Resources["PlotSurface"] = ThemeFinishes.PlotBrush(finish);
             else
-                SetBrush("PlotSurface", metal?.Plot ?? (light ? "#FFFFFF" : "#15191E"));
-            SetBrush("SearchSurface", metal?.Search ?? (light ? "#FFFFFF" : "#15191E"));
-            SetBrush("SelectedSurface", metal?.Selected ?? (light ? "#1469B5" : "#20262D"));
-            SetBrush("SelectedText", metal?.SelectedText ?? (light ? "#FFFFFF" : "#EDF2F6"));
-            SetBrush("SegmentSelectedSurface", metal?.SegmentSelected ?? (light ? "#1469B5" : "#3D4855"));
+                SetBrush("PlotSurface", finish?.Plot ?? (light ? "#FFFFFF" : "#15191E"));
+            SetBrush("SearchSurface", finish?.Search ?? (light ? "#FFFFFF" : "#15191E"));
+            SetBrush("SelectedSurface", finish?.Selected ?? (light ? "#1469B5" : "#20262D"));
+            SetBrush("SelectedText", finish?.SelectedText ?? (light ? "#FFFFFF" : "#EDF2F6"));
+            SetBrush("SegmentSelectedSurface", finish?.SegmentSelected ?? (light ? "#1469B5" : "#3D4855"));
             SetBrush("SnapshotAccentText", "#07171B");
-            SetBrush("Text", metal?.Text ?? (light ? "#20334A" : "#EDF2F6"));
-            SetBrush("Muted", metal?.Muted ?? (light ? "#465D78" : "#B3BDC8"));
-            SetBrush("Line", metal?.Line ?? (light ? "#CCD9E5" : "#35404B"));
-            SetBrush("GaugeTrack", metal?.GaugeTrack ?? (light ? "#CCD9E5" : "#35404B"));
+            SetBrush("Text", finish?.Text ?? (light ? "#20334A" : "#EDF2F6"));
+            SetBrush("Muted", finish?.Muted ?? (light ? "#465D78" : "#B3BDC8"));
+            SetBrush("Line", finish?.Line ?? (light ? "#CCD9E5" : "#35404B"));
+            SetBrush("GaugeTrack", finish?.GaugeTrack ?? (light ? "#CCD9E5" : "#35404B"));
             var colors = ChartPalettes.Colors(_preferences.ChartPalette, light);
             var keys = new[]
                 { "CpuAccent", "MemoryAccent", "DiskAccent", "NetworkAccent", "GpuAccent", "SecondaryDiskAccent" };
             for (var i = 0; i < keys.Length; i++) SetBrush(keys[i], colors[i]);
-            SetBrush("Accent", light ? "#1469B5" : colors[0]);
-            SetBrush("SnapshotAccent", light ? "#1469B5" : colors[0]);
-            SetBrush("ProcessPinAccent", light ? "#1469B5" : colors[0]);
+            var uiAccent = finish?.UiAccent ?? (light ? "#1469B5" : colors[0]);
+            SetBrush("Accent", uiAccent);
+            SetBrush("SnapshotAccent", uiAccent);
+            SetBrush("ProcessPinAccent", uiAccent);
         }
 
         foreach (Window window in app.Windows) WindowTheme.Apply(window);

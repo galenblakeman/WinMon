@@ -104,7 +104,7 @@ internal sealed partial class WindowDiagnostics
             }
         }
 
-        foreach (var theme in MetalThemes.Names)
+        foreach (var theme in ThemeFinishes.Names)
         {
             fixture.Preferences = fixture.Preferences with { Theme = theme, GaugeStyle = GaugeStyle.Bowl };
             fixture.ApplyTheme();
@@ -132,7 +132,7 @@ internal sealed partial class WindowDiagnostics
         {
             NativeReadings = true, ButtonRoundTrip = true, PreferenceRoundTrip = true,
             FullSizeRestored = true, ChartTogglePreserved = true, OptionalDisk = true, MissingReadings = true,
-            GapInFixture = true, Themes = new[] { "Dark", "Light" }.Concat(MetalThemes.Names),
+            GapInFixture = true, Themes = new[] { "Dark", "Light" }.Concat(ThemeFinishes.Names),
             RenderScales = new[] { 1, 1.5, 2 }
         }), cancellationToken);
         return;

@@ -3,18 +3,19 @@ using System.Windows.Media;
 
 namespace WinMon.Preferences;
 
-/// <summary>Appearance-only metal finishes; resource colors remain controlled by the chart palette.</summary>
-internal static class MetalThemes
+/// <summary>Appearance finishes; resource colors remain controlled by the chart palette.</summary>
+internal static class ThemeFinishes
 {
     internal sealed record Finish(
         string Surface, string Raised, string Chrome, string Header, string Plot,
         string Search, string Selected, string SelectedText, string SegmentSelected,
         string Text, string Muted, string Line, string GaugeTrack, string Highlight,
-        bool Light);
+        bool Light, bool Brushed = true, string? UiAccent = null);
 
-    internal static readonly string[] Names = ["BrushedSteel", "Copper", "Gunmetal", "BrushedNickel"];
+    internal static readonly string[] Names =
+        ["BrushedSteel", "Copper", "Gunmetal", "BrushedNickel", "Porcelain", "MidnightInk", "EvergreenInstrument"];
 
-    internal static bool IsMetal(string? name) => Names.Contains(name);
+    internal static bool IsFinish(string? name) => Names.Contains(name);
 
     internal static Finish For(string name) => name switch
     {
@@ -30,7 +31,16 @@ internal static class MetalThemes
         "BrushedNickel" => new("#D0D2D1", "#EAEBE9", "#CFD1D0", "#DADBD9", "#C8C9C7",
             "#F2F2EF", "#456B88", "#FFFFFF", "#6B8293", "#202B32", "#50606A",
             "#ABB2B5", "#B4BDC1", "#FFFFFF", true),
-        _ => throw new ArgumentOutOfRangeException(nameof(name), name, "Unknown metal finish")
+        "Porcelain" => new("#F5F2EB", "#FFFEFA", "#E8E2D8", "#EEE9E0", "#FFFEFA",
+            "#FFFEFA", "#365F85", "#FFFFFF", "#D6E4EF", "#242B31", "#59636A",
+            "#CCC5B9", "#D5D0C7", "#FFFEFA", true, false, "#365F85"),
+        "MidnightInk" => new("#101A28", "#1B2A3D", "#23364C", "#1D3045", "#0D1724",
+            "#0D1724", "#315A82", "#FFFFFF", "#294766", "#EAF1F7", "#B9C9D8",
+            "#43566A", "#52677D", "#36536E", false, false, "#477DAE"),
+        "EvergreenInstrument" => new("#172522", "#23352F", "#30463D", "#273C34", "#111E1B",
+            "#111E1B", "#456C4B", "#FFFFFF", "#345540", "#EFF3EA", "#BFCCBE",
+            "#52665A", "#627968", "#78967A", false, false, "#87B782"),
+        _ => throw new ArgumentOutOfRangeException(nameof(name), name, "Unknown appearance finish")
     };
 
     /// <summary>A broad reflection and fine horizontal grain, drawn once into a frozen brush.</summary>

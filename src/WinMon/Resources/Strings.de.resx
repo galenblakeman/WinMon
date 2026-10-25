@@ -1579,4 +1579,7 @@ Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse
 <data name="ThemeCopper" xml:space="preserve"><value>Kupfer</value></data>
 <data name="ThemeGunmetal" xml:space="preserve"><value>Rotguss</value></data>
 <data name="ThemeBrushedNickel" xml:space="preserve"><value>Gebürstetes Nickel</value></data>
+<data name="ThemePorcelain" xml:space="preserve"><value>Porzellan</value></data>
+<data name="ThemeMidnightInk" xml:space="preserve"><value>Mitternachtstinte</value></data>
+<data name="ThemeEvergreenInstrument" xml:space="preserve"><value>Immergrünes Instrument</value></data>
 </root>

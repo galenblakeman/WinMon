@@ -1579,4 +1579,7 @@ Se puede perder el trabajo sin guardar. Se finalizarán todos los procesos indic
 <data name="ThemeCopper" xml:space="preserve"><value>Cobre</value></data>
 <data name="ThemeGunmetal" xml:space="preserve"><value>Acero pavonado</value></data>
 <data name="ThemeBrushedNickel" xml:space="preserve"><value>Níquel cepillado</value></data>
+<data name="ThemePorcelain" xml:space="preserve"><value>Porcelana</value></data>
+<data name="ThemeMidnightInk" xml:space="preserve"><value>Tinta de medianoche</value></data>
+<data name="ThemeEvergreenInstrument" xml:space="preserve"><value>Instrumento verde bosque</value></data>
 </root>
