@@ -8,7 +8,22 @@ namespace WinMon.Controls;
 
 internal sealed class ProcessDumpDialog : Window
 {
+    // Dumps being written, used only on the UI thread.
+    private static readonly HashSet<Task> Writes = [];
+
     private bool _writing;
+
+    /// <summary>Completes once no dump is being written. Never throws; each dialog reports its own failure.</summary>
+    /// <remarks>
+    /// Exiting would end the writing thread inside dbghelp: the dump would be cut short and its temporary file left
+    /// in the user's folder. The tray menu can still exit while this modal dialog is open.
+    /// </remarks>
+    internal static async Task WhenWritesFinishAsync()
+    {
+        while (Writes.Where(write => !write.IsCompleted).ToArray() is { Length: > 0 } running)
+            await Task.WhenAll(running).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing |
+                                                       ConfigureAwaitOptions.ContinueOnCapturedContext);
+    }
 
     internal ProcessDumpDialog(ProcessUsage process, Func<bool> canDump)
     {
@@ -73,9 +88,11 @@ internal sealed class ProcessDumpDialog : Window
             close.IsEnabled = false;
             full.IsEnabled = false;
             status.Text = Strings.ProcessDumpWriting;
+            var write = Task.Run(() => ProcessDumpWriter.Write(process, save.FileName, fullMemory));
+            Writes.Add(write);
             try
             {
-                await Task.Run(() => ProcessDumpWriter.Write(process, save.FileName, fullMemory));
+                await write;
                 status.Text = Strings.Format(Strings.ProcessDumpSaved, save.FileName);
             }
             catch (Exception ex) when (ex is Win32Exception or IOException or UnauthorizedAccessException
@@ -85,6 +102,7 @@ internal sealed class ProcessDumpDialog : Window
             }
             finally
             {
+                Writes.Remove(write);
                 _writing = false;
                 close.IsEnabled = true;
                 full.IsEnabled = true;
