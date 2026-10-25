@@ -38,6 +38,7 @@ public partial class MainWindow
     private Func<ProcessUsage, bool>? _retainPinned;
     private MonitorPreferences _preferences = new();
     private Task _settingsWriteTask = Task.CompletedTask;
+    private SettingsSection _lastSettingsSection = SettingsSection.General;
     private bool _preferencesLoaded;
     internal bool BackdropActive { get; private set; }
     private bool _updatingChartSelectors;
@@ -654,10 +655,13 @@ public partial class MainWindow
                     await CheckForUpdatesAsync(true, Lifetime.Token);
                     return UpdateStatusText.Text;
                 }, _preferenceStore.DefaultCaptureFolder, _lastUpdateCheck) { Owner = this };
+            dialog.ShowSection(_lastSettingsSection);
             // Let the shortcut recorder receive WinMon's own combination; Save or the finally block takes it back.
             _hotkeyRetry?.Stop();
             _hotkey?.Unregister();
-            if (dialog.ShowDialog() != true || dialog.Result is not { } result || IsClosing) return;
+            var saved = dialog.ShowDialog();
+            _lastSettingsSection = dialog.Section;
+            if (saved != true || dialog.Result is not { } result || IsClosing) return;
             SettingsButton.IsEnabled = false;
             Processes.RankingEnabled = false;
             _settingsWriteTask = ApplyPreferencesAsync(result);

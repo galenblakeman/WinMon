@@ -31,6 +31,8 @@ The dialog is 780 × 600 DIPs, shorter on small work areas, and does not resize.
 
 Appearance became its own sidebar section as the theme choices expanded. The three appearance selectors and gauge preview moved together; language remains in General. The dialog size, navigation behavior and single Save action remain the same. Layout tests check that the controls belong to the intended sections, and the capture smoke renders the new page in Dark and Light.
 
+The main window now remembers the last section viewed when Settings closes, whether the user saved, cancelled or dismissed the dialog. Opening Settings again in the same app session selects that section; a new app session starts on General. The dialog still selects General by default when created independently for tests and diagnostics.
+
 ## Departures from the mockup
 
 - The window is 780 DIPs wide rather than 760, and the sidebar 216 rather than 196, so "Automatic captures" and its On/Off state fit without trimming in English.
