@@ -246,6 +246,34 @@ public sealed class MetricGaugeTests
 
     [Test]
     [Apartment(ApartmentState.STA)]
+    public void SegmentedGauge_RedrawsASmallChangeThatLightsAnotherSegment(
+        [Values(GaugeStyle.SegmentedBar, GaugeStyle.SegmentedArc)] GaugeStyle style)
+    {
+        var readout = new MetricReadout { Width = 200, GaugeStyle = style };
+        var window = new Window { Width = 200, Height = 120, Content = readout,
+            WindowStyle = WindowStyle.None, ShowInTaskbar = false };
+        try
+        {
+            window.Show();
+            readout.ShowGauge(44.9, 60, 100);
+            window.UpdateLayout();
+            readout.ShowGauge(44.91, 60, 100);
+            var sameSegments = readout.Gauge.Level;
+            readout.ShowGauge(45.02, 60, 100);
+            Assert.Multiple(() =>
+            {
+                Assert.That(sameSegments, Is.EqualTo(0.449).Within(1e-12));
+                Assert.That(readout.Gauge.Level, Is.EqualTo(0.4502).Within(1e-12), "Four segments become five.");
+            });
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [Test]
+    [Apartment(ApartmentState.STA)]
     public void EveryStyle_KeepsOneHeightAndTheRateUnitAtTheNarrowWidth([Values] GaugeStyle style)
     {
         var readout = new MetricReadout { Width = 120, GaugeStyle = style, Label = "Network" };

@@ -90,7 +90,10 @@ public sealed class MetricGauge : FrameworkElement
         {
             // Changes smaller than half a pixel along the gauge would not change a drawn pixel.
             var step = 0.5 / Math.Max(1, Length());
-            if (Math.Abs(value - _drawnLevel) < step && Math.Abs(peak - _drawnPeak) < step) return;
+            // Segmented styles light whole segments, so a small change can still cross a segment's boundary.
+            if (Math.Abs(value - _drawnLevel) < step && Math.Abs(peak - _drawnPeak) < step &&
+                (_kind is not (GaugeStyle.SegmentedArc or GaugeStyle.SegmentedBar) || Lit(value) == Lit(_drawnLevel)))
+                return;
         }
         else if (_level is null)
         {
@@ -245,11 +248,16 @@ public sealed class MetricGauge : FrameworkElement
     {
         const double gap = 2;
         var width = (size.Width - gap * (Segments - 1)) / Segments;
-        var lit = (int)Math.Round(level * Segments);
+        var lit = Lit(level);
         var top = (size.Height - 6) / 2;
         for (var i = 0; i < Segments; i++)
             dc.DrawRectangle(i < lit ? Fill : Outline, null, new Rect(i * (width + gap), top, width, 6));
         DrawTick(dc, size);
+    }
+
+    private static int Lit(double level)
+    {
+        return (int)Math.Round(level * Segments);
     }
 
     private void DrawTick(DrawingContext dc, Size size)
@@ -264,7 +272,7 @@ public sealed class MetricGauge : FrameworkElement
         var half = Thickness / 2;
         if (_kind == GaugeStyle.SegmentedArc)
         {
-            var lit = (int)Math.Round(level * Segments);
+            var lit = Lit(level);
             for (var i = 0; i < _segments.Length; i++) dc.DrawGeometry(null, i < lit ? _fillPen : _trackPen, _segments[i]);
         }
         else
