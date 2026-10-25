@@ -8,8 +8,8 @@ Let a normal user save WinMon's existing observations for a spreadsheet or analy
 
 ## Interaction
 
-- **Export** sits beside Settings in the title bar, so it is available from Processes, Services, Usage and Compact view.
-- The modal dialog defaults to process samples from Processes, Usage totals from Usage, and resource history from Services or Compact view. Users can choose another dataset.
+- **Export** sits beside Settings in the Full-view title bar, so it is available from Processes, Services and Usage. It is hidden in Compact view.
+- The modal dialog defaults to process samples from Processes, Usage totals from Usage, and resource history from Services. Users can choose another dataset.
 - Resource and process exports offer all retained history or the current chart range. Usage totals are cumulative since start or Reset, so the time controls are hidden for that choice.
 - The dialog proposes a dated file name, then the Windows Save dialog chooses the actual location and confirms overwrite. Save writes a sibling temporary file and replaces the destination only after completion. The UI remains responsive while it writes; exit waits for a write in progress.
 
@@ -28,3 +28,5 @@ Let a normal user save WinMon's existing observations for a spreadsheet or analy
 The concept showed “Current session” as a time choice; the implementation says “All retained history,” because the in-memory history can be shorter than the whole session. The concept's time choice is hidden for Usage totals. The button label is **Export**, as requested.
 
 Save CSV and Cancel use the standard button appearance and vector icon treatment. This replaces the earlier accent and Slate-specific Save CSV fills, which could resemble a disabled button.
+
+Export was later hidden in Compact view to keep its title bar focused on the live gauges. Full view restores the button.

@@ -19,6 +19,7 @@ internal sealed partial class WindowDiagnostics
         await CaptureAsync(Path.Combine(output, "strip-live.png"), 1, cancellationToken);
         if (!window.CompactMode || window.FullView.Visibility != Visibility.Collapsed ||
             window.CompactStrip.Visibility != Visibility.Visible ||
+            window.ExportButton.Visibility != Visibility.Collapsed ||
             Math.Abs(window.Height - MainWindow.CompactHeight) > 0.001 ||
             window.CompactTiles[0].Readout.ValueLabel.Text != window.CpuMetric.ValueLabel.Text)
             throw new InvalidOperationException("Compact mode did not display the native live readings.");
@@ -32,7 +33,8 @@ internal sealed partial class WindowDiagnostics
             throw new InvalidOperationException("Compact preferences overwrote full-view dimensions.");
         window.CompactViewButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
         if (window.CompactMode || window.Width != fullSize.Width || window.Height != fullSize.Height ||
-            window.FullView.Visibility != Visibility.Visible)
+            window.FullView.Visibility != Visibility.Visible ||
+            window.ExportButton.Visibility != Visibility.Visible)
             throw new InvalidOperationException("Full-view restoration failed.");
         // ReSharper restore CompareOfFloatsByEqualityOperator
 

@@ -68,7 +68,8 @@ public partial class MainWindow
         FullView.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
         CompactStrip.Visibility = compact ? Visibility.Visible : Visibility.Collapsed;
         CompactStatus.Visibility = compact ? Visibility.Visible : Visibility.Collapsed;
-        InfoButton.Visibility = SettingsButton.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
+        InfoButton.Visibility = SettingsButton.Visibility = ExportButton.Visibility =
+            compact ? Visibility.Collapsed : Visibility.Visible;
         VersionRun.Text = compact ? "" : $" {AppInfo.Version}";
         MaxHeight = compact ? CompactHeight : double.PositiveInfinity;
         MinHeight = compact ? CompactHeight : 160;
