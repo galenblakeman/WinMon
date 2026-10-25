@@ -42,6 +42,32 @@ public sealed class SettingsLayoutTests
     }
 
     [Test]
+    public void GaugeSelector_OpensOnTheSavedStyleAndPreviewsEachChoice()
+    {
+        var window = Settings(new MonitorPreferences { GaugeStyle = GaugeStyle.SegmentedArc });
+        try
+        {
+            var opened = (window.GaugeSelector.SelectedValue, window.GaugePreview.GaugeStyle);
+            var choices = window.GaugeSelector.Items.Count;
+            window.GaugeSelector.SelectedValue = GaugeStyle.None;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(opened, Is.EqualTo(((object)GaugeStyle.SegmentedArc, GaugeStyle.SegmentedArc)));
+                Assert.That(window.GaugeSelector.Items[0].ToString(), Is.EqualTo(Strings.GaugeBowl),
+                    "The default comes first.");
+                Assert.That(choices, Is.EqualTo(Enum.GetValues<GaugeStyle>().Length));
+                Assert.That(window.GaugePreview.GaugeStyle, Is.EqualTo(GaugeStyle.None));
+                Assert.That(window.GaugePreview.IsHitTestVisible, Is.False);
+            });
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [Test]
     public void CaptureSwitch_ShowsItsStateAndIsWhatSaveReads()
     {
         var window = Settings(new MonitorPreferences());

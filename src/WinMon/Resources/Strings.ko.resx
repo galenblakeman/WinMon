@@ -1568,4 +1568,11 @@ Windows 상태: {2}</value>
   <data name="ChartFocusResourceChoice" xml:space="preserve"><value>집중 보기: {0}</value></data>
   <data name="PeakLastTwoMinutes" xml:space="preserve"><value>최근 2분 최고치</value></data>
   <data name="PeakLastTwoMinutesExplanation" xml:space="preserve"><value>진한 선은 최근 2분 동안의 최고 측정값을 나타냅니다.</value></data>
+  <data name="ResourceGauges" xml:space="preserve"><value>리소스 게이지</value></data>
+  <data name="GaugeNeedle" xml:space="preserve"><value>바늘</value></data>
+  <data name="GaugeBowl" xml:space="preserve"><value>보울</value></data>
+  <data name="GaugeSegmentedArc" xml:space="preserve"><value>분할 호</value></data>
+  <data name="GaugeLeftBar" xml:space="preserve"><value>왼쪽 막대</value></data>
+  <data name="GaugeBottomBar" xml:space="preserve"><value>아래쪽 막대</value></data>
+  <data name="GaugeSegmentedBar" xml:space="preserve"><value>분할 막대</value></data>
 </root>

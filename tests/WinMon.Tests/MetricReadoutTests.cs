@@ -1,6 +1,7 @@
 using System.Windows.Documents;
 using NUnit.Framework;
 using WinMon.Controls;
+using WinMon.Preferences;
 
 namespace WinMon.Tests;
 
@@ -14,7 +15,8 @@ public sealed class MetricReadoutTests
     [Test]
     public void ShowValue_ReusesItsRuns_AndRecoversAfterAMissingReading()
     {
-        var readout = new MetricReadout();
+        // Dials always use the smaller value font; full-width text starts at the larger one.
+        var readout = new MetricReadout { GaugeStyle = GaugeStyle.None };
         readout.ShowValue("12.5", "Mbps");
         var number = readout.ValueLabel.Inlines.FirstInline;
         var unit = readout.ValueLabel.Inlines.LastInline;

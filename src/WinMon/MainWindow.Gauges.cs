@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Windows;
 using WinMon.Controls;
 using WinMon.Monitoring;
 using WinMon.Preferences;
@@ -32,9 +33,16 @@ public partial class MainWindow
         MemoryMetric.ShowGauge(memory, peaks.Memory, 100);
         DiskMetric.ShowGauge(disk, peaks.Disk, 100);
         SecondaryDiskMetric.ShowGauge(secondary, peaks.SecondaryDisk, 100);
-        NetworkMetric.ShowGauge(network, peaks.Network,
-            CpuGraph.NetworkScale(samples.Where(sample => InGaugeWindow(sample, latest))));
+        var networkScale = CpuGraph.NetworkScale(samples.Where(sample => InGaugeWindow(sample, latest)));
+        NetworkMetric.ShowGauge(network, peaks.Network, networkScale, RateText.Short(networkScale));
         GpuMetric.ShowGauge(gpu, peaks.Gpu, 100);
+    }
+
+    /// <summary>Draw every readout's gauge in the chosen style; the peak legend goes with the gauges.</summary>
+    internal void ApplyGaugeStyle()
+    {
+        foreach (var metric in Metrics) metric.GaugeStyle = _preferences.GaugeStyle;
+        PeakLegend.Visibility = _preferences.GaugeStyle == GaugeStyle.None ? Visibility.Collapsed : Visibility.Visible;
     }
 
     internal static (double? Cpu, double? Memory, double? Disk, double? SecondaryDisk, double? Network, double? Gpu)

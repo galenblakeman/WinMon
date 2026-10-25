@@ -39,7 +39,6 @@
     <EmbeddedResource Include="$(UpdatePublicKeyPath)" LogicalName="WinMon.UpdatePublicKey" Condition="Exists('$(UpdatePublicKeyPath)')" />
     <Resource Include="Assets/WinMon.ico" />
     <PackageReference Include="System.Management" Version="10.0.3" />
-    <PackageReference Include="MicroGauge.Wpf" Version="1.0.1.1" />
   </ItemGroup>
   <ItemGroup>
     <AssemblyMetadata Include="RepositoryUrl" Value="$(RepositoryUrl)" />

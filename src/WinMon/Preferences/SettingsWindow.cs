@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Security;
 using System.Windows;
 using System.Windows.Automation;
+using System.Windows.Automation.Peers;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
@@ -36,9 +37,46 @@ public sealed class SettingsWindow : Window
         }
     }
 
+    private sealed record GaugeChoice(GaugeStyle Style, string Label)
+    {
+        public override string ToString()
+        {
+            return Label;
+        }
+    }
+
+    /// <summary>Hosts the gauge preview, which is an illustration: assistive technology skips it and its checkbox.</summary>
+    private sealed class PreviewHost : Border
+    {
+        protected override AutomationPeer OnCreateAutomationPeer()
+        {
+            return new Peer(this);
+        }
+
+        private sealed class Peer(PreviewHost owner) : FrameworkElementAutomationPeer(owner)
+        {
+            protected override List<AutomationPeer>? GetChildrenCore()
+            {
+                return null;
+            }
+
+            protected override bool IsControlElementCore()
+            {
+                return false;
+            }
+
+            protected override bool IsContentElementCore()
+            {
+                return false;
+            }
+        }
+    }
+
     private readonly MonitorPreferences _initialPreferences;
     private readonly ComboBox _themeSelector;
     private readonly ComboBox _paletteSelector;
+    private readonly ComboBox _gaugeSelector;
+    private readonly MetricReadout _gaugePreview;
     private readonly ComboBox _retentionSelector;
     private readonly CheckBox _minimizeToTrayCheckBox;
     private readonly CheckBox _startupCheckBox;
@@ -146,6 +184,30 @@ public sealed class SettingsWindow : Window
         UpdatePalettePreviews();
         _themeSelector.SelectionChanged += (_, _) => UpdatePalettePreviews();
         _paletteSelector.ToolTip = Strings.ResourceColorsCPUMemoryPrimaryDiskNetworkGPUSecondDisk;
+        _gaugeSelector = CreateSelector([], "");
+        _gaugeSelector.ItemsSource = new[]
+        {
+            new GaugeChoice(GaugeStyle.Bowl, Strings.GaugeBowl),
+            new GaugeChoice(GaugeStyle.Needle, Strings.GaugeNeedle),
+            new GaugeChoice(GaugeStyle.SegmentedArc, Strings.GaugeSegmentedArc),
+            new GaugeChoice(GaugeStyle.LeftBar, Strings.GaugeLeftBar),
+            new GaugeChoice(GaugeStyle.BottomBar, Strings.GaugeBottomBar),
+            new GaugeChoice(GaugeStyle.SegmentedBar, Strings.GaugeSegmentedBar),
+            new GaugeChoice(GaugeStyle.None, Strings.None)
+        };
+        _gaugeSelector.DisplayMemberPath = nameof(GaugeChoice.Label);
+        _gaugeSelector.SelectedValuePath = nameof(GaugeChoice.Style);
+        _gaugeSelector.SelectedValue = preferences.GaugeStyle;
+        _gaugeSelector.ToolTip = Strings.PeakLastTwoMinutesExplanation;
+        _gaugePreview = new MetricReadout
+        {
+            Label = Strings.Memory, AccentKey = "MemoryAccent", Width = 210, IsHitTestVisible = false
+        };
+        _gaugePreview.Toggle.Focusable = false;
+        _gaugePreview.ValueLabel.Text = Strings.Format(Strings.PercentOneDecimal, 51.5);
+        _gaugePreview.DetailLabel.Text = Strings.Format(Strings.GiB, 32.2, 62.5);
+        ShowGaugePreview();
+        _gaugeSelector.SelectionChanged += (_, _) => ShowGaugePreview();
         _retentionSelector = CreateSelector([Strings.Value10Minutes, Strings.Value30Minutes, Strings.Value60Minutes],
             RetentionLabel(preferences.RetentionSeconds));
         _minimizeToTrayCheckBox = CreateCheckBox(Strings.MinimizeToTheNotificationArea, preferences.MinimizeToTray);
@@ -215,6 +277,12 @@ public sealed class SettingsWindow : Window
         Content = surface;
         return;
 
+        void ShowGaugePreview()
+        {
+            _gaugePreview.GaugeStyle = SelectedGaugeStyle;
+            _gaugePreview.ShowGauge(51.5, 68, 100);
+        }
+
         void UpdatePalettePreviews()
         {
             var theme = _themeSelector.SelectedValue as string;
@@ -227,6 +295,12 @@ public sealed class SettingsWindow : Window
     /// Gets the edited preferences when the dialog is accepted, or <see langword="null"/> when it is cancelled.
     /// </summary>
     public MonitorPreferences? Result { get; private set; }
+
+    internal ComboBox GaugeSelector => _gaugeSelector;
+
+    internal MetricReadout GaugePreview => _gaugePreview;
+
+    private GaugeStyle SelectedGaugeStyle => _gaugeSelector.SelectedValue as GaugeStyle? ?? GaugeStyle.Bowl;
 
     /// <summary>Copy the preferences this dialog edits from <paramref name="settings"/> onto <paramref name="current"/>.</summary>
     /// <remarks>
@@ -242,6 +316,7 @@ public sealed class SettingsWindow : Window
             Theme = settings.Theme,
             Language = settings.Language,
             ChartPalette = settings.ChartPalette,
+            GaugeStyle = settings.GaugeStyle,
             RetentionSeconds = settings.RetentionSeconds,
             MinimizeToTray = settings.MinimizeToTray,
             StartWithWindows = settings.StartWithWindows,
@@ -524,6 +599,7 @@ public sealed class SettingsWindow : Window
                 item.IsSelected ? "SelectedText" : on ? "Accent" : "Muted");
             AutomationProperties.SetName(item, $"{label}, {_captureState.Text}");
         }
+
     }
 
     private StackPanel CreateGeneralPage()
@@ -534,6 +610,11 @@ public sealed class SettingsWindow : Window
         page.Children.Add(Note(Strings.LanguageApplyNote));
         page.Children.Add(Field(Strings.Theme, _themeSelector));
         page.Children.Add(Field(Strings.ChartPalette, _paletteSelector));
+        page.Children.Add(Field(Strings.ResourceGauges, _gaugeSelector));
+        page.Children.Add(new PreviewHost
+        {
+            Child = _gaugePreview, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 4, 0, 4)
+        });
         page.Children.Add(CreateHeading(Strings.SettingsStartupAndTray));
         page.Children.Add(_startupCheckBox);
         page.Children.Add(_minimizeToTrayCheckBox);
@@ -800,6 +881,7 @@ public sealed class SettingsWindow : Window
             Theme = (_themeSelector.SelectedItem as ThemeChoice)?.Name ?? "Dark",
             Language = LanguageSelector.SelectedValue as string ?? AppLanguages.SystemDefault,
             ChartPalette = _paletteSelector.SelectedValue as string ?? "Classic",
+            GaugeStyle = SelectedGaugeStyle,
             RetentionSeconds = (_retentionSelector.SelectedItem as string) switch
             {
                 var label when label == Strings.Value30Minutes => 1800,

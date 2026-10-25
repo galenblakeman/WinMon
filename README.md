@@ -32,7 +32,7 @@ Developers can also create an [MSIX / Microsoft Store build](packaging/msix/READ
 Keep the whole picture in view while you work, play or troubleshoot. WinMon puts live resource readings above a shared timeline, so you can see how CPU spikes, disk activity and network transfers line up.
 
 - **Watch the resources that matter.** Monitor CPU, physical memory, GPU, network throughput and up to two disk volumes. Hide individual chart traces to focus the view while recording continues.
-- **Compare now with a recent spike.** In Full view, the wide colored rail beside each resource reading shows its current level; the dark line marks its highest reading over the last two minutes. The network rail shows download throughput on an automatically chosen two-minute scale. An unavailable reading leaves its rail empty.
+- **Compare now with a recent spike.** In Full view, a gauge with each resource reading shows its current level; the dark line marks its highest reading over the last two minutes. The network gauge shows download throughput on an automatically chosen two-minute scale, and the arc styles print the top of that scale, such as **100M**. An unavailable reading leaves its gauge empty.
 - **See why a tile changed.** Hover a resource tile, or focus its chart toggle or compact box, for live CPU, memory, disk, network or GPU details.
 - **Find the busiest processes.** Rank by CPU, GPU, memory, I/O, thread count or handle count, with application icons and history sparklines that follow your selected metric.
 - **Look beyond the latest number.** Switch between 2, 10, 30 and 60-minute chart ranges, subject to your retained history, and inspect earlier samples.
@@ -122,6 +122,8 @@ Click a marker, or choose a capture from **Automatic captures** in the chart hea
 Choose **Light**, **Dark** or **System** appearance, then pick a chart palette independently. Options include Classic, Ocean, Colorblind, high-contrast, **Neon**, **Arcade** and **Tropical** palettes. Settings includes swatches and descriptions to help you choose. Colors stay consistent across resource readings, chart traces and process sparklines.
 
 The selected Settings section uses light text and icons against its blue highlight in Light appearance.
+
+Choose how the resource gauges look under **Resource gauges** in Settings: **Bowl** (the default), **Needle**, **Segmented arc**, **Left bar**, **Bottom bar**, **Segmented bar** or **None**. A preview beside the choice shows the style before you save. Every style keeps the same height, so the chart doesn't move when you switch. **Bowl** and **Segmented arc** hold the reading inside a nearly round arc, with the detail line below. **Needle** draws a half-circle dial with the reading underneath; its detail line, such as clock speed or memory in use, appears when you hover the tile. **None** hides the gauges and their legend.
 
 See [Light appearance and additional palettes](docs/example/README.md) in the example gallery.
 

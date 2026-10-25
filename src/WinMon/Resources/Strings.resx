@@ -1568,4 +1568,11 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="ChartFocusResourceChoice" xml:space="preserve"><value>Focus: {0}</value></data>
   <data name="PeakLastTwoMinutes" xml:space="preserve"><value>2m peak</value></data>
   <data name="PeakLastTwoMinutesExplanation" xml:space="preserve"><value>The dark line marks the highest reading in the last two minutes.</value></data>
+  <data name="ResourceGauges" xml:space="preserve"><value>Resource gauges</value></data>
+  <data name="GaugeNeedle" xml:space="preserve"><value>Needle</value></data>
+  <data name="GaugeBowl" xml:space="preserve"><value>Bowl</value></data>
+  <data name="GaugeSegmentedArc" xml:space="preserve"><value>Segmented arc</value></data>
+  <data name="GaugeLeftBar" xml:space="preserve"><value>Left bar</value></data>
+  <data name="GaugeBottomBar" xml:space="preserve"><value>Bottom bar</value></data>
+  <data name="GaugeSegmentedBar" xml:space="preserve"><value>Segmented bar</value></data>
 </root>

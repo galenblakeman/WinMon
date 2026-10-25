@@ -268,6 +268,25 @@ public sealed class PreferenceStoreTests
         });
     }
 
+    [TestCase("{}", GaugeStyle.Bowl)]
+    [TestCase("{\"GaugeStyle\":\"Needle\"}", GaugeStyle.Needle)]
+    [TestCase("{\"GaugeStyle\":\"None\"}", GaugeStyle.None)]
+    [TestCase("{\"GaugeStyle\":42}", GaugeStyle.Bowl)]
+    public async Task GaugeStyle_DefaultsToTheBowl_AndSavesByName(string json, GaugeStyle expected)
+    {
+        Directory.CreateDirectory(testDirectory);
+        await File.WriteAllTextAsync(settingsPath, json);
+        var store = new PreferenceStore(settingsPath);
+        var loaded = await store.LoadAsync();
+        await store.SaveAsync(loaded);
+        var saved = await File.ReadAllTextAsync(settingsPath);
+        Assert.Multiple(() =>
+        {
+            Assert.That(loaded.GaugeStyle, Is.EqualTo(expected));
+            Assert.That(saved, Does.Contain($"\"GaugeStyle\": \"{expected}\""));
+        });
+    }
+
     [TestCase("{\"SortByGpu\":true}", ProcessSort.Gpu)]
     [TestCase("{\"SortByGpu\":false}", ProcessSort.Cpu)]
     [TestCase("{\"ProcessSort\":\"Memory\"}", ProcessSort.Memory)]
@@ -366,7 +385,11 @@ public sealed class PreferenceStoreTests
     public void ApplySettings_TakesOnlyDialogSettings_AndKeepsChoicesMadeInTheWindowMeanwhile()
     {
         var opened = new MonitorPreferences { Theme = "Dark", RetentionSeconds = 600, GroupProcesses = false, CompactMode = false };
-        var confirmed = opened with { Theme = "Light", RetentionSeconds = 1800, MinimizeToTray = !opened.MinimizeToTray };
+        var confirmed = opened with
+        {
+            Theme = "Light", RetentionSeconds = 1800, MinimizeToTray = !opened.MinimizeToTray,
+            GaugeStyle = GaugeStyle.SegmentedBar
+        };
         // While the confirmed settings were being saved, the user grouped processes and pinned one.
         var current = opened with
         {
@@ -381,6 +404,7 @@ public sealed class PreferenceStoreTests
             Assert.That(applied.Theme, Is.EqualTo("Light"));
             Assert.That(applied.RetentionSeconds, Is.EqualTo(1800));
             Assert.That(applied.MinimizeToTray, Is.EqualTo(confirmed.MinimizeToTray));
+            Assert.That(applied.GaugeStyle, Is.EqualTo(GaugeStyle.SegmentedBar));
             Assert.That(applied.GroupProcesses, Is.True);
             Assert.That(applied.CompactMode, Is.True);
             Assert.That(applied.PinnedProcesses.Single().Name, Is.EqualTo("pinned"));

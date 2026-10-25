@@ -1568,4 +1568,11 @@ O trabalho não salvo pode ser perdido. Todos os processos listados abaixo serã
   <data name="ChartFocusResourceChoice" xml:space="preserve"><value>Foco: {0}</value></data>
   <data name="PeakLastTwoMinutes" xml:space="preserve"><value>Pico de 2 min</value></data>
   <data name="PeakLastTwoMinutesExplanation" xml:space="preserve"><value>A linha escura marca a leitura mais alta dos últimos dois minutos.</value></data>
+  <data name="ResourceGauges" xml:space="preserve"><value>Medidores de recursos</value></data>
+  <data name="GaugeNeedle" xml:space="preserve"><value>Ponteiro</value></data>
+  <data name="GaugeBowl" xml:space="preserve"><value>Tigela</value></data>
+  <data name="GaugeSegmentedArc" xml:space="preserve"><value>Arco segmentado</value></data>
+  <data name="GaugeLeftBar" xml:space="preserve"><value>Barra à esquerda</value></data>
+  <data name="GaugeBottomBar" xml:space="preserve"><value>Barra inferior</value></data>
+  <data name="GaugeSegmentedBar" xml:space="preserve"><value>Barra segmentada</value></data>
 </root>

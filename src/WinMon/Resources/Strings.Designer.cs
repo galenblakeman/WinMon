@@ -209,6 +209,12 @@ public static partial class Strings
     public static string FileBackedVirtual => ResourceManager.GetString(nameof(FileBackedVirtual), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string FilterRankedProcessesByNameOrPIDCtrlFEscape => ResourceManager.GetString(nameof(FilterRankedProcessesByNameOrPIDCtrlFEscape), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string FullView => ResourceManager.GetString(nameof(FullView), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string GaugeBottomBar => ResourceManager.GetString(nameof(GaugeBottomBar), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string GaugeBowl => ResourceManager.GetString(nameof(GaugeBowl), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string GaugeLeftBar => ResourceManager.GetString(nameof(GaugeLeftBar), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string GaugeNeedle => ResourceManager.GetString(nameof(GaugeNeedle), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string GaugeSegmentedArc => ResourceManager.GetString(nameof(GaugeSegmentedArc), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string GaugeSegmentedBar => ResourceManager.GetString(nameof(GaugeSegmentedBar), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GHzMHz => ResourceManager.GetString(nameof(GHzMHz), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GiB => ResourceManager.GetString(nameof(GiB), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GiBCapacityGiBAvailable => ResourceManager.GetString(nameof(GiBCapacityGiBAvailable), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -469,6 +475,7 @@ public static partial class Strings
     public static string ResidentWorkingSetIncludingSharedPagesDoesNotSumTo => ResourceManager.GetString(nameof(ResidentWorkingSetIncludingSharedPagesDoesNotSumTo), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ResizeChartAndProcesses => ResourceManager.GetString(nameof(ResizeChartAndProcesses), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ResourceColorsCPUMemoryPrimaryDiskNetworkGPUSecondDisk => ResourceManager.GetString(nameof(ResourceColorsCPUMemoryPrimaryDiskNetworkGPUSecondDisk), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ResourceGauges => ResourceManager.GetString(nameof(ResourceGauges), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string RestartingToUpdate => ResourceManager.GetString(nameof(RestartingToUpdate), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string RestartService => ResourceManager.GetString(nameof(RestartService), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string RestoreTheDefaultShortcut => ResourceManager.GetString(nameof(RestoreTheDefaultShortcut), Culture ?? CultureInfo.CurrentUICulture)!;

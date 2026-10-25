@@ -16,6 +16,7 @@ These records describe the individual feature increments and their validation at
 - [Process count selector](PROCESS-COUNT.md)
 - [Code structure](STRUCTURE.md)
 - [Wide resource gauges](WIDE-RESOURCE-GAUGES.md)
+- [Gauge styles](GAUGE-STYLES.md), which replaced the wide rails with a choice of seven styles
 
 Implemented on 2026-10-24; each note ends with what landed and where it departed from the design:
 

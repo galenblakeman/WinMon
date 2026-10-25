@@ -1568,4 +1568,11 @@ GPU {11} · {12}
   <data name="ChartFocusResourceChoice" xml:space="preserve"><value>Фокус: {0}</value></data>
   <data name="PeakLastTwoMinutes" xml:space="preserve"><value>Пик за 2 мин</value></data>
   <data name="PeakLastTwoMinutesExplanation" xml:space="preserve"><value>Тёмная линия показывает наибольшее значение за последние две минуты.</value></data>
+  <data name="ResourceGauges" xml:space="preserve"><value>Индикаторы ресурсов</value></data>
+  <data name="GaugeNeedle" xml:space="preserve"><value>Стрелка</value></data>
+  <data name="GaugeBowl" xml:space="preserve"><value>Чаша</value></data>
+  <data name="GaugeSegmentedArc" xml:space="preserve"><value>Сегментная дуга</value></data>
+  <data name="GaugeLeftBar" xml:space="preserve"><value>Полоса слева</value></data>
+  <data name="GaugeBottomBar" xml:space="preserve"><value>Полоса снизу</value></data>
+  <data name="GaugeSegmentedBar" xml:space="preserve"><value>Сегментная полоса</value></data>
 </root>

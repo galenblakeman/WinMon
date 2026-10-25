@@ -1568,4 +1568,11 @@ Windows 健康状态：{2}</value>
   <data name="ChartFocusResourceChoice" xml:space="preserve"><value>聚焦：{0}</value></data>
   <data name="PeakLastTwoMinutes" xml:space="preserve"><value>近 2 分钟峰值</value></data>
   <data name="PeakLastTwoMinutesExplanation" xml:space="preserve"><value>深色线标记最近两分钟的最高读数。</value></data>
+  <data name="ResourceGauges" xml:space="preserve"><value>资源仪表</value></data>
+  <data name="GaugeNeedle" xml:space="preserve"><value>指针</value></data>
+  <data name="GaugeBowl" xml:space="preserve"><value>碗形</value></data>
+  <data name="GaugeSegmentedArc" xml:space="preserve"><value>分段弧</value></data>
+  <data name="GaugeLeftBar" xml:space="preserve"><value>左侧条</value></data>
+  <data name="GaugeBottomBar" xml:space="preserve"><value>底部条</value></data>
+  <data name="GaugeSegmentedBar" xml:space="preserve"><value>分段条</value></data>
 </root>

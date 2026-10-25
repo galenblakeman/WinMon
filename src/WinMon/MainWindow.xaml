@@ -227,7 +227,7 @@
                                     HorizontalAlignment="Right"
                                     VerticalAlignment="Center"
                                     Orientation="Horizontal">
-                                    <StackPanel Margin="0,0,10,0" VerticalAlignment="Center" Orientation="Horizontal"
+                                    <StackPanel x:Name="PeakLegend" Margin="0,0,10,0" VerticalAlignment="Center" Orientation="Horizontal"
                                                 ToolTip="{Binding [PeakLastTwoMinutesExplanation], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                                                 AutomationProperties.Name="{Binding [PeakLastTwoMinutes], Source={x:Static resources:Strings.Text}, Mode=OneWay}">
                                         <Border Width="17" Height="2" Margin="0,0,4,0" VerticalAlignment="Center"

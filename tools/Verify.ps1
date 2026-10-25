@@ -12,7 +12,7 @@ mode writes to artifacts/verify/<timestamp>/<mode>. Exits 1 if any step failed.
 #>
 [CmdletBinding()]
 param(
-    [ValidateSet('all', 'full', 'feature', 'snapshot', 'search', 'compact', 'services', 'usage', 'capture', 'chart')]
+    [ValidateSet('all', 'full', 'feature', 'snapshot', 'search', 'compact', 'services', 'usage', 'capture', 'chart', 'gauges')]
     [string[]]$Smoke = @(),
     [switch]$Store,
     [switch]$SkipTests
@@ -29,6 +29,7 @@ $modes = [ordered]@{
     usage = '--usage-smoke-output'
     capture = '--capture-smoke-output'
     chart = '--chart-smoke-output'
+    gauges = '--gauges-smoke-output'
 }
 $Smoke = @(if ($Smoke -contains 'all') { $modes.Keys } else { $Smoke | Select-Object -Unique })
 $build = Join-Path $root "artifacts/verify/$(if ($Store) { 'build-store' } else { 'build' })"

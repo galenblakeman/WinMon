@@ -743,6 +743,7 @@ public partial class MainWindow
     internal void ApplyTheme()
     {
         var light = _preferences.Theme == "Light" || (_preferences.Theme == "System" && IsSystemLight());
+        ApplyGaugeStyle();
         var app = Application.Current;
         if (app is null) return;
         OverallGraph.UseSeriesPatterns = _preferences.ChartPalette == "Colorblind";

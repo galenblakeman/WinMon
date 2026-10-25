@@ -108,6 +108,10 @@ public sealed record MonitorPreferences
     /// <summary>Resource chart colors, independent of the light/dark appearance.</summary>
     public string ChartPalette { get; init; } = "Classic";
 
+    /// <summary>Full-view resource gauge drawing; settings saved before the choice existed load as the bowl.</summary>
+    [JsonConverter(typeof(JsonStringEnumConverter<GaugeStyle>))]
+    public GaugeStyle GaugeStyle { get; init; }
+
     /// <summary>Gets the duration, in seconds, retained for historical inspection.</summary>
     public int RetentionSeconds { get; init; } = 600;
 

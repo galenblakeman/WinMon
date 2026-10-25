@@ -20,6 +20,13 @@ internal static class RateText
         return $"{number} {unit}";
     }
 
+    /// <summary>A scale end short enough for a gauge label, such as "100M"; the unit names are the same in every language.</summary>
+    internal static string Short(double bitsPerSecond)
+    {
+        var (number, unit) = Parts(bitsPerSecond);
+        return number + unit[0];
+    }
+
     /// <summary>Format receive and send rates with the unit of the larger one so the pair fits one line.</summary>
     internal static string Pair(double receiveBits, double sendBits)
     {

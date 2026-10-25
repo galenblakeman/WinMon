@@ -126,6 +126,7 @@ public sealed class PreferenceStore
             Theme = NormalizeTheme(preferences.Theme),
             Language = AppLanguages.Normalize(preferences.Language),
             ChartPalette = ChartPalettes.Normalize(preferences.ChartPalette),
+            GaugeStyle = Enum.IsDefined(preferences.GaugeStyle) ? preferences.GaugeStyle : GaugeStyle.Bowl,
             ResourceChartType = Enum.IsDefined(preferences.ResourceChartType)
                 ? preferences.ResourceChartType : ResourceChartType.Overlay,
             FocusMetric = secondary is null && preferences.FocusMetric == 5

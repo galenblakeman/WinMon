@@ -6,6 +6,20 @@ Dated measurement and validation records, newest first. Each section describes t
 
 Add a section at the top for each measured change: what changed, the machine and build, before and after results, and where the raw reports are.
 
+## Gauge styles (October 25, 2026)
+
+Release UI-thread benchmark on the development machine, before and after replacing the `MicroGauge.Wpf` rails with WinMon's own `MetricGauge` drawing, measured with the default Needle style. Four baseline and four changed runs alternated; each value is the median of the four run medians. Full-view hashes changed as intended; Compact view kept its hash.
+
+| Scenario | Before | After | Allocation before | Allocation after |
+| --- | ---: | ---: | ---: | ---: |
+| Live overlay | 4.54 ms | 4.68 ms | 611.6 KiB | 533.2 KiB |
+| Live small multiples | 3.37 ms | 2.98 ms | 578.4 KiB | 504.4 KiB |
+| Historical | 1.75 ms | 1.39 ms | 249.8 KiB | 175.9 KiB |
+| Grouped live | 6.39 ms | 5.82 ms | 618.9 KiB | 545.6 KiB |
+| Compact live | 1.79 ms | 1.86 ms | 337.8 KiB | 338.2 KiB |
+
+Every Full-view scenario allocates about 74 KiB less per refresh, which recovers most of the 86–92 KiB the rails added. The gauges redraw only when a mark moves by half a pixel and reuse frozen pens and geometry. Time differences are within run-to-run variation. Raw reports: `artifacts/gauge-styles-bench/baseline1.json` through `baseline4.json` and `changed1.json` through `changed4.json`.
+
 ## Shared chart label rail (October 25, 2026)
 
 Release UI-thread benchmark on the development machine, with four baseline and four changed runs alternated. The baseline used the current working tree with only CpuGraph.cs restored from main; the changed build used the measured label rail. Values are medians of the four run medians. The non-overlay charts gained about 50 DIPs of plot width and measure their visible labels to size the rail.

@@ -1568,4 +1568,11 @@ Se puede perder el trabajo sin guardar. Se finalizarán todos los procesos indic
   <data name="ChartFocusResourceChoice" xml:space="preserve"><value>Enfoque: {0}</value></data>
   <data name="PeakLastTwoMinutes" xml:space="preserve"><value>Pico de 2 min</value></data>
   <data name="PeakLastTwoMinutesExplanation" xml:space="preserve"><value>La línea oscura marca la lectura más alta de los últimos dos minutos.</value></data>
+  <data name="ResourceGauges" xml:space="preserve"><value>Indicadores de recursos</value></data>
+  <data name="GaugeNeedle" xml:space="preserve"><value>Aguja</value></data>
+  <data name="GaugeBowl" xml:space="preserve"><value>Cuenco</value></data>
+  <data name="GaugeSegmentedArc" xml:space="preserve"><value>Arco segmentado</value></data>
+  <data name="GaugeLeftBar" xml:space="preserve"><value>Barra izquierda</value></data>
+  <data name="GaugeBottomBar" xml:space="preserve"><value>Barra inferior</value></data>
+  <data name="GaugeSegmentedBar" xml:space="preserve"><value>Barra segmentada</value></data>
 </root>

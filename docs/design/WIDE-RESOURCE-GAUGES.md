@@ -9,3 +9,5 @@ CPU, memory, disk and GPU rails use a 0–100% scale. The Network rail follows t
 ## Landed
 
 `MetricReadout` hosts a vertical `MicroGauge.Wpf` 1.0.1.1 fill and a thin WPF peak marker. `MainWindow.Gauges.cs` derives live and peak levels from `MonitorSession` history. The package version preserves WinMon's current Windows target. The selected mockup placed the peak marker inside the gauge; the implementation draws it as a WPF overlay because the compatible package's marker did not render consistently for the network's large numeric scale. The gauge uses a normalized 0–100 drawing value while retaining the real scale in the calculation.
+
+On 2026-10-25, [Gauge styles](GAUGE-STYLES.md) replaced the package with WinMon's own drawing. The rail remains available as the Left bar style, now on the left of the text.
