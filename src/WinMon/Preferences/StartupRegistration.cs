@@ -31,8 +31,16 @@ public static class StartupRegistration
         {
             if (!IsSupported) return false;
             using var key = Registry.CurrentUser.OpenSubKey(RunKeyPath, false);
-            return key?.GetValue(ValueName) is string value && !string.IsNullOrWhiteSpace(value);
+            return IsRegistration(key?.GetValue(ValueName) as string, Environment.ProcessPath);
         }
+    }
+
+    /// <summary>Whether a Run value starts this executable rather than another copy, such as a moved portable folder.</summary>
+    /// <remarks>Turning the option on then rewrites a stale value; turning it off cannot remove another copy's.</remarks>
+    internal static bool IsRegistration(string? value, string? executablePath)
+    {
+        return !string.IsNullOrWhiteSpace(value) && !string.IsNullOrWhiteSpace(executablePath) &&
+               string.Equals(value.Trim().Trim('"'), executablePath, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>Enables or removes the current-user Windows startup registration.</summary>

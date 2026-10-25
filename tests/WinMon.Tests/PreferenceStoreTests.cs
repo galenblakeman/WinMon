@@ -488,6 +488,16 @@ public sealed class PreferenceStoreTests
         Assert.That(StartupRegistration.CanRegisterExecutablePath(executablePath), Is.EqualTo(expected));
     }
 
+    [TestCase("\"C:\\Tools\\WinMon\\WinMon.exe\"", true)]
+    [TestCase("c:\\tools\\winmon\\WINMON.EXE", true)]
+    [TestCase("\"D:\\Old\\WinMon\\WinMon.exe\"", false)]
+    [TestCase("", false)]
+    [TestCase(null, false)]
+    public void IsRegistration_OnlyThisExecutableCounts(string? value, bool expected)
+    {
+        Assert.That(StartupRegistration.IsRegistration(value, "C:\\Tools\\WinMon\\WinMon.exe"), Is.EqualTo(expected));
+    }
+
     [Test]
     public void ApplySettings_TakesOnlyDialogSettings_AndKeepsChoicesMadeInTheWindowMeanwhile()
     {
