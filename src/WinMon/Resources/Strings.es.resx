@@ -1566,4 +1566,6 @@ Se puede perder el trabajo sin guardar. Se finalizarán todos los procesos indic
   <data name="ChartHeatmap" xml:space="preserve"><value>Mapa de calor</value></data>
   <data name="ChartFocus" xml:space="preserve"><value>Enfoque</value></data>
   <data name="ChartFocusResourceChoice" xml:space="preserve"><value>Enfoque: {0}</value></data>
+  <data name="PeakLastTwoMinutes" xml:space="preserve"><value>Pico de 2 min</value></data>
+  <data name="PeakLastTwoMinutesExplanation" xml:space="preserve"><value>La línea oscura marca la lectura más alta de los últimos dos minutos.</value></data>
 </root>

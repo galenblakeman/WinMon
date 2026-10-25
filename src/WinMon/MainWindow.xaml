@@ -227,6 +227,14 @@
                                     HorizontalAlignment="Right"
                                     VerticalAlignment="Center"
                                     Orientation="Horizontal">
+                                    <StackPanel Margin="0,0,10,0" VerticalAlignment="Center" Orientation="Horizontal"
+                                                ToolTip="{Binding [PeakLastTwoMinutesExplanation], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                                AutomationProperties.Name="{Binding [PeakLastTwoMinutes], Source={x:Static resources:Strings.Text}, Mode=OneWay}">
+                                        <Border Width="17" Height="2" Margin="0,0,4,0" VerticalAlignment="Center"
+                                                Background="{DynamicResource Text}" />
+                                        <TextBlock FontSize="11" Foreground="{DynamicResource Muted}"
+                                                   Text="{Binding [PeakLastTwoMinutes], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                    </StackPanel>
                                     <Button
                                         x:Name="CapturesButton"
                                         Margin="0,0,8,0"
@@ -333,7 +341,7 @@
                                         FontWeight="SemiBold"
                                         Text="{Binding [SystemResources], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                                         TextTrimming="CharacterEllipsis" />
-                                    <ComboBox x:Name="ChartTypeSelector" Width="150" Height="27" Margin="0,0,6,0"
+                                    <ComboBox x:Name="ChartTypeSelector" Width="140" Height="27" Margin="0,0,6,0"
                                               VerticalAlignment="Center" SelectionChanged="OnChartTypeChanged" />
                                 </StackPanel>
                             </Grid>

@@ -15,6 +15,7 @@ These records describe the individual feature increments and their validation at
 - [Multiple disk volumes](MULTIPLE-DISKS.md)
 - [Process count selector](PROCESS-COUNT.md)
 - [Code structure](STRUCTURE.md)
+- [Wide resource gauges](WIDE-RESOURCE-GAUGES.md)
 
 Implemented on 2026-10-24; each note ends with what landed and where it departed from the design:
 

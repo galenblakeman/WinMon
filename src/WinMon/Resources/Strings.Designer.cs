@@ -377,6 +377,8 @@ public static partial class Strings
     public static string PaletteTech => ResourceManager.GetString(nameof(PaletteTech), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PaletteTropical => ResourceManager.GetString(nameof(PaletteTropical), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PaletteTropicalDescription => ResourceManager.GetString(nameof(PaletteTropicalDescription), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string PeakLastTwoMinutes => ResourceManager.GetString(nameof(PeakLastTwoMinutes), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string PeakLastTwoMinutesExplanation => ResourceManager.GetString(nameof(PeakLastTwoMinutesExplanation), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PercentInteger => ResourceManager.GetString(nameof(PercentInteger), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PercentOneDecimal => ResourceManager.GetString(nameof(PercentOneDecimal), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PhysicalCoreCountUnavailable => ResourceManager.GetString(nameof(PhysicalCoreCountUnavailable), Culture ?? CultureInfo.CurrentUICulture)!;

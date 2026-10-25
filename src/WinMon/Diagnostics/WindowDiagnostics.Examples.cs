@@ -86,6 +86,7 @@ internal sealed partial class WindowDiagnostics
             fixture.Processes.GroupedChip.IsChecked = true;
             fixture.Preferences = fixture.Preferences with { Theme = "Light" };
             await Draw("light");
+            await Draw("narrow", 836);
             fixture.Preferences = fixture.Preferences with { Theme = "Dark" };
             foreach (var palette in new[] { "Neon", "Arcade", "Tropical" })
             {

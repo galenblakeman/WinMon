@@ -1566,4 +1566,6 @@ Windows 상태: {2}</value>
   <data name="ChartHeatmap" xml:space="preserve"><value>히트맵</value></data>
   <data name="ChartFocus" xml:space="preserve"><value>집중 보기</value></data>
   <data name="ChartFocusResourceChoice" xml:space="preserve"><value>집중 보기: {0}</value></data>
+  <data name="PeakLastTwoMinutes" xml:space="preserve"><value>최근 2분 최고치</value></data>
+  <data name="PeakLastTwoMinutesExplanation" xml:space="preserve"><value>진한 선은 최근 2분 동안의 최고 측정값을 나타냅니다.</value></data>
 </root>

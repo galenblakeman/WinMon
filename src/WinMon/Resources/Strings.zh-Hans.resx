@@ -1566,4 +1566,6 @@ Windows 健康状态：{2}</value>
   <data name="ChartHeatmap" xml:space="preserve"><value>热力图</value></data>
   <data name="ChartFocus" xml:space="preserve"><value>聚焦</value></data>
   <data name="ChartFocusResourceChoice" xml:space="preserve"><value>聚焦：{0}</value></data>
+  <data name="PeakLastTwoMinutes" xml:space="preserve"><value>近 2 分钟峰值</value></data>
+  <data name="PeakLastTwoMinutesExplanation" xml:space="preserve"><value>深色线标记最近两分钟的最高读数。</value></data>
 </root>

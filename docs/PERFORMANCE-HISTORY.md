@@ -6,6 +6,19 @@ Dated measurement and validation records, newest first. Each section describes t
 
 Add a section at the top for each measured change: what changed, the machine and build, before and after results, and where the raw reports are.
 
+## Wide resource gauges (October 25, 2026)
+
+Release UI-thread benchmark on the development machine, before and after adding five live `MicroGauge.Wpf` rails to the benchmark's Full view. Four baseline and four changed runs alternated; each value below is the median of the four run medians. The Full-view cost is the per-frame gauge refresh and drawing. Compact view skips that work, retains its pixel hash, and has unchanged allocation within run variation. Full-view hashes changed as intended.
+
+| Scenario | Before | After | Allocation before | Allocation after |
+| --- | ---: | ---: | ---: | ---: |
+| Live overlay | 4.53 ms | 5.18 ms | 520.9 KiB | 612.6 KiB |
+| Live small multiples | 2.76 ms | 3.10 ms | 492.5 KiB | 578.6 KiB |
+| Historical | 1.21 ms | 1.60 ms | 163.9 KiB | 249.9 KiB |
+| Compact live | 1.71 ms | 1.56 ms | 337.5 KiB | 337.9 KiB |
+
+The additional Full-view allocation is about 86–92 KiB per refresh, or about 0.09 MiB/s at WinMon's one-second cadence. The measured time cost is below 1 ms per refresh. The source is the added gauge surfaces and peak calculation; no other benchmark scenario or sampling path changed. Raw reports: `artifacts/microgauge-baseline/perf1.json` through `perf4.json` and `artifacts/microgauge-final2/perf1.json` through `perf4.json`.
+
 ## Resource chart views (October 24, 2026)
 
 Release UI-thread benchmark on the development machine, using the same 600-sample, 850-process synthetic

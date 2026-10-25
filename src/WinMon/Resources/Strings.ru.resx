@@ -1566,4 +1566,6 @@ GPU {11} · {12}
   <data name="ChartHeatmap" xml:space="preserve"><value>Тепловая карта</value></data>
   <data name="ChartFocus" xml:space="preserve"><value>Фокус</value></data>
   <data name="ChartFocusResourceChoice" xml:space="preserve"><value>Фокус: {0}</value></data>
+  <data name="PeakLastTwoMinutes" xml:space="preserve"><value>Пик за 2 мин</value></data>
+  <data name="PeakLastTwoMinutesExplanation" xml:space="preserve"><value>Тёмная линия показывает наибольшее значение за последние две минуты.</value></data>
 </root>

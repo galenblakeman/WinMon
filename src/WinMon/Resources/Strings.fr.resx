@@ -1566,4 +1566,6 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
   <data name="ChartHeatmap" xml:space="preserve"><value>Carte thermique</value></data>
   <data name="ChartFocus" xml:space="preserve"><value>Focus</value></data>
   <data name="ChartFocusResourceChoice" xml:space="preserve"><value>Focus : {0}</value></data>
+  <data name="PeakLastTwoMinutes" xml:space="preserve"><value>Pic sur 2 min</value></data>
+  <data name="PeakLastTwoMinutesExplanation" xml:space="preserve"><value>Le trait foncé indique la valeur la plus élevée des deux dernières minutes.</value></data>
 </root>
