@@ -608,7 +608,7 @@ internal static class UsageText
         text.AppendLine(Strings.Format(Strings.ProductVersion, AppInfo.Version));
         text.AppendLine(Strings.Format(Strings.UsageReportSince, frame.Since.ToLocalTime().DateTime));
         text.AppendLine(Strings.Format(Strings.UsageReportBusy, CpuTime(frame.MachineBusyTicks),
-            Environment.ProcessorCount));
+            WindowsCpuClock.LogicalProcessorCount));
         var sort = settings.Sort switch
         {
             UsageSort.Io => Strings.IO, UsageSort.GpuTime => Strings.UsageGpuTime,

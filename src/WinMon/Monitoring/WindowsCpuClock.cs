@@ -9,6 +9,12 @@ internal sealed class WindowsCpuClock
 {
     private ProcessorPowerInformation[] _processors = [];
 
+    /// <summary>
+    /// Logical processors in all groups. Unlike <see cref="Environment.ProcessorCount"/>, this ignores WinMon's own
+    /// affinity and job CPU limits, so it matches the machine-wide CPU percentages the sampler reports.
+    /// </summary>
+    internal static int LogicalProcessorCount => Math.Max(1, (int)GetActiveProcessorCount(0xFFFF));
+
     internal double? ReadMhz()
     {
         var count = GetActiveProcessorCount(0xFFFF); // All processor groups, independent of process affinity.

@@ -70,7 +70,7 @@ public partial class MainWindow
         if (_captureRulesSource is not { } source || source.CooldownMinutes != settings.CooldownMinutes ||
             !source.Rules.SequenceEqual(settings.Rules))
             _captureRules = new CaptureRules(settings.Rules, TimeSpan.FromMinutes(settings.CooldownMinutes),
-                Environment.ProcessorCount);
+                WindowsCpuClock.LogicalProcessorCount);
         _captureRulesSource = settings;
 
         foreach (var fired in _captureRules!.Observe(full)) RecordCapture(fired, settings);
