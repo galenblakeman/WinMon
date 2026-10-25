@@ -636,7 +636,7 @@ public sealed class SettingsWindow : Window
         page.Children.Add(Field(Strings.Language, LanguageSelector));
         page.Children.Add(Note(Strings.LanguageApplyNote));
         page.Children.Add(CreateHeading(Strings.SettingsStartupAndTray));
-        page.Children.Add(_startupCheckBox);
+        if (StartupRegistration.IsSupported) page.Children.Add(_startupCheckBox);
         page.Children.Add(_minimizeToTrayCheckBox);
         page.Children.Add(CreateHeading(Strings.KeyboardShortcut));
         page.Children.Add(Field(Strings.ShowHideWinMon, _shortcutBox));

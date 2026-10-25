@@ -24,7 +24,7 @@ Version comes from `Directory.Build.props` with a fourth component of zero, chec
 
 ## Update channels
 
-`-p:StoreBuild=true` disables automatic checks, Settings update controls, network checks, downloads, helper handoff/execution, and startup handling of GitHub update state. Microsoft Store services this build. Preferences retain the user's automatic-check choice for an ordinary installer/portable build.
+`-p:StoreBuild=true` disables automatic checks, Settings update controls, network checks, downloads, helper handoff/execution, and startup handling of GitHub update state. Microsoft Store services this build. It also hides **Start WinMon when I sign in**: a package's HKCU writes go to a private copy of the registry, so the `Run` value would never reach Explorer. Supporting it needs a `windows.startupTask` extension. Preferences retain the user's automatic-check choice for an ordinary installer/portable build.
 
 Normal builds omit `StoreBuild` and retain the GitHub updater. Keep channel build outputs separate, as the packaging scripts do. An MSIX distributed outside the Store also disables the GitHub updater; use MSIX servicing (for example App Installer) for that channel.
 

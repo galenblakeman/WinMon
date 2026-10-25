@@ -12,11 +12,24 @@ public static class StartupRegistration
     private const string RunKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
     private const string ValueName = "WinMon";
 
+    /// <summary>Whether this build can register itself to start at sign-in.</summary>
+    /// <remarks>
+    /// An MSIX package's HKCU writes go to a private per-app copy of the registry that Explorer never reads, so a
+    /// Store build would show the option as on while nothing starts. Packages start through a StartupTask instead.
+    /// </remarks>
+    internal static bool IsSupported =>
+#if WINMON_STORE
+        false;
+#else
+        true;
+#endif
+
     /// <summary>Gets a value indicating whether WinMon is registered to start with the current user session.</summary>
     public static bool IsEnabled
     {
         get
         {
+            if (!IsSupported) return false;
             using var key = Registry.CurrentUser.OpenSubKey(RunKeyPath, false);
             return key?.GetValue(ValueName) is string value && !string.IsNullOrWhiteSpace(value);
         }
@@ -27,6 +40,7 @@ public static class StartupRegistration
     /// <exception cref="InvalidOperationException">Thrown when running from a development host instead of the application executable.</exception>
     public static void SetEnabled(bool enabled)
     {
+        if (!IsSupported) return;
         using var key = Registry.CurrentUser.CreateSubKey(RunKeyPath, true);
         if (!enabled)
         {

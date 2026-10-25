@@ -144,7 +144,7 @@ The three custom palettes keep their supplied colors in both themes. Open an ima
 
 ![WinMon Appearance settings with a combined theme, Neon chart palette and resource gauge preview](docs/example/example_settings.png)
 
-The Settings image above is from the installer/portable configuration. Store builds hide the GitHub update controls and use Store-managed updates:
+The Settings image above is from the installer/portable configuration. Store builds hide the GitHub update controls and use Store-managed updates. They also hide **Start WinMon when I sign in**, which a Store package cannot yet set:
 
 ![WinMon Store Appearance settings with the combined preview and no Updates section](docs/example/example_settings_store.png)
 
