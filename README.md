@@ -123,7 +123,7 @@ Click a marker, or choose a capture from **Automatic captures** in the chart hea
 
 ## Make it yours
 
-Choose **Light**, **Dark**, **System**, **Brushed steel**, **Copper**, **Gunmetal**, or **Brushed nickel** appearance, then pick a chart palette independently. The four metal appearances change surfaces and chrome while keeping the same layout and resource gauge style. Options include Classic, Ocean, Colorblind, high-contrast, **Neon**, **Arcade** and **Tropical** palettes. Settings includes swatches and descriptions to help you choose. Colors stay consistent across resource readings, chart traces and process sparklines.
+Choose **Light**, **Dark**, **System**, **Brushed steel**, **Copper**, **Gunmetal**, or **Brushed nickel** appearance, then pick a chart palette independently. The four metal appearances add a fine brushed grain to the window surfaces and chrome while keeping the same layout and resource gauge style. Options include Classic, Ocean, Colorblind, high-contrast, **Neon**, **Arcade** and **Tropical** palettes. Settings includes swatches and descriptions to help you choose. Colors stay consistent across resource readings, chart traces and process sparklines.
 
 The selected Settings section uses light text and icons against its blue highlight in Light appearance.
 

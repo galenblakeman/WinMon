@@ -754,6 +754,7 @@ public partial class MainWindow
         if (SystemParameters.HighContrast)
         {
             app.Resources["Surface"] = SystemColors.WindowBrush;
+            app.Resources["PanelSurface"] = SystemColors.WindowBrush;
             app.Resources["Raised"] = SystemColors.ControlBrush;
             app.Resources["TitleBarSurface"] = SystemColors.WindowBrush;
             app.Resources["SectionHeaderSurface"] = SystemColors.WindowBrush;
@@ -779,6 +780,10 @@ public partial class MainWindow
         else
         {
             SetBrush("Surface", metal?.Surface ?? (light ? "#F0F5FA" : "#15191E"));
+            if (metal is null)
+                SetBrush("PanelSurface", light ? "#F0F5FA" : "#15191E");
+            else
+                app.Resources["PanelSurface"] = MetalThemes.PanelBrush(metal);
             SetBrush("Raised", metal?.Raised ?? (light ? "#FFFFFF" : "#20262D"));
             if (metal is null)
             {

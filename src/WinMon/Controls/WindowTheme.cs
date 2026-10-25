@@ -40,6 +40,8 @@ internal static class WindowTheme
         {
             SolidColorBrush solid => solid.Color,
             LinearGradientBrush gradient => gradient.GradientStops[1].Color,
+            DrawingBrush { Drawing: DrawingGroup group } when group.Children[0] is GeometryDrawing
+                { Brush: LinearGradientBrush gradient } => gradient.GradientStops[1].Color,
             _ => Colors.Black
         };
         return color.R | (color.G << 8) | (color.B << 16);

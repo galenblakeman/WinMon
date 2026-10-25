@@ -89,6 +89,7 @@
             </Setter>
         </Style>
         <SolidColorBrush x:Key="Surface" Color="#15191E" />
+        <SolidColorBrush x:Key="PanelSurface" Color="#15191E" />
         <SolidColorBrush x:Key="Raised" Color="#20262D" />
         <SolidColorBrush x:Key="TitleBarSurface" Color="#30343B" />
         <SolidColorBrush x:Key="SectionHeaderSurface" Color="#252A31" />

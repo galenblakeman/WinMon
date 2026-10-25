@@ -15,15 +15,17 @@ Offer alternate material finishes without moving controls or changing monitoring
 | Gunmetal | Dark graphite | Smoked titanium headers, restrained highlights |
 | Brushed nickel | Pale cool silver | Soft satin headers, deep slate plot |
 
-The satin effect is a lightweight vertical gradient on the existing title and section-header brushes. All other surfaces remain solid so text, charts, and tables stay readable. Native Windows caption color uses the gradient's middle color.
+The satin effect combines a broad reflection with fine horizontal grain in frozen drawing brushes on the title and section headers. An absolute 16-DIP grain tile covers the full and compact window backgrounds, so its scale does not change with the window size. Charts and controls keep their solid surfaces for legibility. Native Windows caption color uses the reflection's middle color.
 
 ## Landed
 
 - Four new stored appearance identifiers, localized selector labels, and color resources in `MetalThemes`.
 - Existing chart palettes and gauge styles still determine the resource colors and shapes.
 - The `gauges` smoke captures a full-size resource view in each finish and checks that readout height stays fixed.
+- The `compact` smoke captures the same finishes at the narrow compact width.
 - Preference tests check theme persistence without changing the selected gauge or chart palette.
+- A later texture refinement added deterministic hairline grain to the metal chrome and resource backgrounds without adding UI elements or work to the sampling loop.
 
 ## Departures from the mockups
 
-The mockups showed extra dials and meter tracks. Those would change layout and gauge behavior, so this prototype retains WinMon's existing gauge-style setting and applies only color and surface treatment. The mockups' textured table backgrounds are represented with solid surfaces for text clarity and low rendering cost.
+The mockups showed extra dials and meter tracks. Those would change layout and gauge behavior, so this prototype retains WinMon's existing gauge-style setting and applies only color and surface treatment. The mockups' textured table backgrounds remain solid for text clarity and low rendering cost.

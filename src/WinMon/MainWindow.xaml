@@ -109,12 +109,12 @@
             <Grid
                 x:Name="CompactStrip"
                 Grid.Row="1"
-                Background="{DynamicResource Surface}"
+                Background="{DynamicResource PanelSurface}"
                 Visibility="Collapsed" />
             <Border
                 x:Name="FullView"
                 Grid.Row="1"
-                Background="{DynamicResource Surface}">
+                Background="{DynamicResource PanelSurface}">
                 <!--
                     The update footer overlays the bottom edge instead of taking the last row, so a window shorter
                     than the rows' minimum heights still shows it. The last row reserves its height when there is room.

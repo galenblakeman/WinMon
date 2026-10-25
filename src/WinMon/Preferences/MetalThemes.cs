@@ -1,3 +1,4 @@
+using System.Windows;
 using System.Windows.Media;
 
 namespace WinMon.Preferences;
@@ -32,21 +33,68 @@ internal static class MetalThemes
         _ => throw new ArgumentOutOfRangeException(nameof(name), name, "Unknown metal finish")
     };
 
-    /// <summary>A broad satin reflection gives chrome its material cue without a tiled texture in text areas.</summary>
-    internal static LinearGradientBrush ChromeBrush(Finish finish, bool header)
+    /// <summary>A broad reflection and fine horizontal grain, drawn once into a frozen brush.</summary>
+    internal static DrawingBrush ChromeBrush(Finish finish, bool header)
     {
         var baseColor = (Color)ColorConverter.ConvertFromString(header ? finish.Header : finish.Chrome);
         var highlight = (Color)ColorConverter.ConvertFromString(finish.Highlight);
-        var brush = new LinearGradientBrush
+        var reflection = new LinearGradientBrush
         {
-            StartPoint = new System.Windows.Point(0, 0),
-            EndPoint = new System.Windows.Point(0, 1)
+            StartPoint = new Point(0, 0),
+            EndPoint = new Point(0, 1)
         };
-        brush.GradientStops.Add(new GradientStop(highlight, 0));
-        brush.GradientStops.Add(new GradientStop(baseColor, 0.16));
-        brush.GradientStops.Add(new GradientStop(baseColor, 0.76));
-        brush.GradientStops.Add(new GradientStop(highlight, 1));
+        reflection.GradientStops.Add(new GradientStop(highlight, 0));
+        reflection.GradientStops.Add(new GradientStop(baseColor, 0.16));
+        reflection.GradientStops.Add(new GradientStop(baseColor, 0.76));
+        reflection.GradientStops.Add(new GradientStop(highlight, 1));
+        var drawing = Grain(new Rect(0, 0, 1, 40), reflection, finish.Light, 1, 40);
+        var brush = new DrawingBrush(drawing)
+        {
+            Viewbox = new Rect(0, 0, 1, 40),
+            ViewboxUnits = BrushMappingMode.Absolute,
+            Viewport = new Rect(0, 0, 1, 1),
+            ViewportUnits = BrushMappingMode.RelativeToBoundingBox,
+            Stretch = Stretch.Fill
+        };
         brush.Freeze();
         return brush;
+    }
+
+    /// <summary>Small absolute tiles keep the grain the same size in compact and full views.</summary>
+    internal static DrawingBrush PanelBrush(Finish finish)
+    {
+        const double tile = 16;
+        var color = (Color)ColorConverter.ConvertFromString(finish.Surface);
+        var drawing = Grain(new Rect(0, 0, tile, tile), new SolidColorBrush(color), finish.Light, tile, tile);
+        var brush = new DrawingBrush(drawing)
+        {
+            Viewbox = new Rect(0, 0, tile, tile),
+            ViewboxUnits = BrushMappingMode.Absolute,
+            Viewport = new Rect(0, 0, tile, tile),
+            ViewportUnits = BrushMappingMode.Absolute,
+            TileMode = TileMode.Tile,
+            Stretch = Stretch.Fill
+        };
+        brush.Freeze();
+        return brush;
+    }
+
+    private static DrawingGroup Grain(Rect area, Brush baseBrush, bool light, double width, double height)
+    {
+        var group = new DrawingGroup();
+        group.Children.Add(new GeometryDrawing(baseBrush, null, new RectangleGeometry(area)));
+        for (var index = 0; index < (int)(height / 1.4); index++)
+        {
+            var y = 0.55 + index * 1.4;
+            var bright = index % 3 == 0;
+            var alpha = (byte)(bright ? (light ? 18 : 15) : (light ? 14 : 12));
+            var ink = bright ? Colors.White : Colors.Black;
+            var pen = new Pen(new SolidColorBrush(Color.FromArgb(alpha, ink.R, ink.G, ink.B)),
+                index % 4 == 0 ? 0.4 : 0.25);
+            group.Children.Add(new GeometryDrawing(null, pen,
+                new LineGeometry(new Point(0, y), new Point(width, y))));
+        }
+        group.Freeze();
+        return group;
     }
 }
