@@ -90,7 +90,7 @@ public partial class MainWindow
         InitializeUsage();
         InitializeCaptures();
         InitializeProcesses();
-        UpdateActivityActionsToggle();
+        ApplyActionsHidden();
         VersionRun.Text = $" {AppInfo.Version}";
         WindowTheme.Attach(this);
         foreach (var metric in Metrics)
@@ -137,7 +137,7 @@ public partial class MainWindow
                 : _initialPreferences ?? await _preferenceStore.LoadAsync(Lifetime.Token);
             _preferencesLoaded = true;
             BuildChartSelectors();
-            UpdateActivityActionsToggle();
+            ApplyActionsHidden();
             Processes.Load(ProcessListSettings.From(_preferences), _preferences.PinnedProcesses);
             ServiceView.TopServiceCount = _preferences.TopServiceCount;
             UsageView.Load(UsageSettings(_preferences));
@@ -727,7 +727,7 @@ public partial class MainWindow
         foreach (var metric in Metrics) metric.RefreshLanguage();
         RefreshMetricDetailsLanguage();
         UpdateCompactButton();
-        UpdateActivityActionsToggle();
+        ApplyActionsHidden();
         if (_tray?.ContextMenuStrip is { } menu)
         {
             menu.Items[0].Text = Strings.ShowWinMon;

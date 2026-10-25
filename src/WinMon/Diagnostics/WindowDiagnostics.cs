@@ -637,6 +637,8 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
             window.ApplyTheme();
         }
 
+        await CaptureActionDrawerAsync(output, cancellationToken);
+
         var settings = new SettingsWindow(window.Preferences, checkForUpdates: () => Task.FromResult(Strings.UpToDate))
             { Owner = window };
         try
@@ -658,11 +660,72 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
             {
                 HardwareInfo = true, PaletteRenders = true, ProcessContextMenu = true,
                 HistoricalActionsDisabled = true, GroupTerminationOffered = true, ThemedProcessDialogs = true,
-                LanguageSelection = true,
+                ActionDrawer = true, LanguageSelection = true,
                 LiveLanguageSwitching = true, RecordingStatePreserved = true,
                 Limitation =
                     "No destructive command invoked by the UI smoke; native termination is tested on an owned helper in the test suite."
             }), cancellationToken);
+    }
+
+    // The chevron and Show actions move the action bar on the live window; every tab follows.
+    private async Task CaptureActionDrawerAsync(string output, CancellationToken cancellationToken)
+    {
+        var drawer = window.Processes.ProcessActionDrawer;
+        var original = window.Preferences;
+        if (window.Session.History.Latest?.Processes is not [var process, ..])
+            throw new InvalidOperationException("No sampled process to select for the action drawer.");
+        try
+        {
+            window.Processes.SelectProcess(process, false);
+            window.UpdateLayout();
+            var open = drawer.ActualHeight;
+            var bar = window.Processes.ProcessActions;
+            var hide = Descendants(bar).OfType<Button>().Single(b => b.Command == ActionDrawer.CollapseCommand);
+            var hideBounds = hide.TransformToAncestor(bar).TransformBounds(new Rect(hide.RenderSize));
+            if (!hide.IsEnabled || hideBounds.Right > bar.ActualWidth || hideBounds.Bottom > bar.ActualHeight)
+                throw new InvalidOperationException($"The hide chevron is not usable inside the action bar: {hideBounds}.");
+            await CaptureAsync(Path.Combine(output, "action-drawer-open.png"), 1, cancellationToken);
+            ActionDrawer.CollapseCommand.Execute(null, hide);
+            // The slide and the strip's rise take 240 ms.
+            await Task.Delay(500, cancellationToken);
+            window.UpdateLayout();
+            if (!window.Preferences.ProcessActionsHidden || !window.ServiceView.ActionsHidden ||
+                !window.UsageView.ActionsHidden || drawer.Peek.Visibility != Visibility.Visible ||
+                drawer.PeekTitle != process.Name || drawer.ActualHeight > open - 20)
+                throw new InvalidOperationException(
+                    $"The chevron did not collapse the action bar to its strip: {drawer.ActualHeight} of {open}.");
+            foreach (var theme in new[] { "Dark", "Light" })
+            {
+                window.Preferences = window.Preferences with { Theme = theme };
+                window.ApplyTheme();
+                await CaptureAsync(Path.Combine(output, $"action-drawer-collapsed-{theme.ToLowerInvariant()}.png"), 1,
+                    cancellationToken);
+            }
+
+            drawer.ShowButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+            await Task.Delay(500, cancellationToken);
+            window.UpdateLayout();
+            if (window.Preferences.ProcessActionsHidden || window.ServiceView.ActionsHidden ||
+                drawer.Peek.Visibility == Visibility.Visible || Math.Abs(drawer.ActualHeight - open) > 0.5)
+                throw new InvalidOperationException(
+                    $"Show actions did not restore the action bar: {drawer.ActualHeight} of {open}.");
+        }
+        finally
+        {
+            window.Preferences = original;
+            window.ApplyTheme();
+            window.Processes.ActionsHidden = window.ServiceView.ActionsHidden =
+                window.UsageView.ActionsHidden = original.ProcessActionsHidden;
+        }
+
+        static IEnumerable<DependencyObject> Descendants(DependencyObject parent)
+        {
+            foreach (var child in LogicalTreeHelper.GetChildren(parent).OfType<DependencyObject>())
+            {
+                yield return child;
+                foreach (var nested in Descendants(child)) yield return nested;
+            }
+        }
     }
 
     private async Task CaptureUpdateDiagnosticsAsync(string output, CancellationToken cancellationToken)

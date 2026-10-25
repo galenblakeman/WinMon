@@ -29,18 +29,11 @@ public partial class ServicesView
 
     internal bool ActionsHidden
     {
-        get;
-        set
-        {
-            field = value;
-            UpdateActionBarVisibility();
-        }
+        get => ActionsDrawer.Collapsed;
+        set => ActionsDrawer.SetCollapsed(value);
     }
 
-    private void UpdateActionBarVisibility()
-    {
-        ActionBar.Visibility = ActionsHidden ? Visibility.Collapsed : Visibility.Visible;
-    }
+    internal event Action<bool>? ActionsHiddenChanged;
 
     private sealed record ActionSelection(string? ServiceName, string RowKey);
 
@@ -69,6 +62,7 @@ public partial class ServicesView
     public ServicesView()
     {
         InitializeComponent();
+        ActionsDrawer.CollapsedChanged += hidden => ActionsHiddenChanged?.Invoke(hidden);
         foreach (var header in new[] { CpuHeader, MemoryHeader, IoHeader })
         {
             header.MouseEnter += (_, _) => header.TextDecorations = TextDecorations.Underline;
@@ -112,7 +106,7 @@ public partial class ServicesView
     {
         if (!_ready || ActualWidth <= 0) return;
         ActionControls.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-        var wide = ActualWidth >= ActionControls.DesiredSize.Width + 264;
+        var wide = ActualWidth >= ActionControls.DesiredSize.Width - ActionDrawer.CollapseButtonSpace + 264;
         if (_wideActionBar == wide) return;
         _wideActionBar = wide;
         ActionBarGrid.ColumnDefinitions[1].Width = wide ? GridLength.Auto : new GridLength(0);
@@ -491,7 +485,6 @@ public partial class ServicesView
 
     private void UpdateButtons()
     {
-        UpdateActionBarVisibility();
         var row = _actionRow;
         Properties.IsEnabled = row is not null && _frame?.Available == true;
         CopyDetails.IsEnabled = row is not null;
@@ -503,6 +496,7 @@ public partial class ServicesView
         SelectionDetail.Visibility = row is null ? Visibility.Collapsed : Visibility.Visible;
         SelectionStatus.Text = row?.Status ?? "";
         SelectionStatusBadge.Visibility = SelectionStatus.Text.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
+        ActionsDrawer.Summarize(Summary.Text, SelectionDetail.Text, row is not null);
         var statusBrush = row?.IsRunning == true ? "Accent" : "Muted";
         SelectionStatus.SetResourceReference(TextBlock.ForegroundProperty, statusBrush);
         SelectionStatusDot.SetResourceReference(Shape.FillProperty, statusBrush);

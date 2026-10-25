@@ -383,121 +383,124 @@
             Foreground="{DynamicResource Muted}"
             TextWrapping="Wrap"
             Visibility="Collapsed" />
-        <Border
-            x:Name="ActionBar"
-            Grid.Row="4"
-            MinHeight="54"
-            Background="{DynamicResource SectionHeaderSurface}"
-            BorderBrush="{DynamicResource Line}"
-            BorderThickness="1"
-            CornerRadius="4">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="4" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <Border
-                    x:Name="ActionAccent"
-                    Background="{DynamicResource Accent}"
-                    CornerRadius="3,0,0,3" />
-                <Grid
-                    x:Name="ActionBarGrid"
-                    Grid.Column="1"
-                    Margin="14,6">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
+        <local:ActionDrawer x:Name="ActionsDrawer" Grid.Row="4">
+            <Border
+                x:Name="ActionBar"
+                MinHeight="54"
+                Background="{DynamicResource SectionHeaderSurface}"
+                BorderBrush="{DynamicResource Line}"
+                BorderThickness="1"
+                CornerRadius="4">
+                <Grid>
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="4" />
                         <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <StackPanel
-                        x:Name="SelectionIdentity"
-                        Margin="0,0,14,0"
-                        VerticalAlignment="Center">
-                        <Grid HorizontalAlignment="Left">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
+                    <Border
+                        x:Name="ActionAccent"
+                        Background="{DynamicResource Accent}"
+                        CornerRadius="3,0,0,3" />
+                    <Grid
+                        x:Name="ActionBarGrid"
+                        Grid.Column="1"
+                        Margin="14,6">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel
+                            x:Name="SelectionIdentity"
+                            Margin="0,0,14,0"
+                            VerticalAlignment="Center">
+                            <Grid HorizontalAlignment="Left">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock
+                                    x:Name="Summary"
+                                    VerticalAlignment="Center"
+                                    FontSize="16"
+                                    FontWeight="SemiBold"
+                                    TextTrimming="CharacterEllipsis"
+                                    ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
+                                <Border
+                                    x:Name="SelectionStatusBadge"
+                                    Grid.Column="1"
+                                    Margin="10,0,0,0"
+                                    Padding="7,3"
+                                    VerticalAlignment="Center"
+                                    BorderThickness="1"
+                                    CornerRadius="4"
+                                    Visibility="Collapsed">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Ellipse
+                                            x:Name="SelectionStatusDot"
+                                            Width="7"
+                                            Height="7"
+                                            Margin="0,0,6,0"
+                                            VerticalAlignment="Center" />
+                                        <TextBlock x:Name="SelectionStatus" FontSize="11" />
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
                             <TextBlock
-                                x:Name="Summary"
-                                VerticalAlignment="Center"
-                                FontSize="16"
-                                FontWeight="SemiBold"
+                                x:Name="SelectionDetail"
+                                Margin="0,2,0,0"
+                                FontSize="11"
+                                Foreground="{DynamicResource Muted}"
                                 TextTrimming="CharacterEllipsis"
                                 ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
-                            <Border
-                                x:Name="SelectionStatusBadge"
-                                Grid.Column="1"
-                                Margin="10,0,0,0"
-                                Padding="7,3"
-                                VerticalAlignment="Center"
-                                BorderThickness="1"
-                                CornerRadius="4"
-                                Visibility="Collapsed">
-                                <StackPanel Orientation="Horizontal">
-                                    <Ellipse
-                                        x:Name="SelectionStatusDot"
-                                        Width="7"
-                                        Height="7"
-                                        Margin="0,0,6,0"
-                                        VerticalAlignment="Center" />
-                                    <TextBlock x:Name="SelectionStatus" FontSize="11" />
-                                </StackPanel>
-                            </Border>
-                        </Grid>
-                        <TextBlock
-                            x:Name="SelectionDetail"
-                            Margin="0,2,0,0"
-                            FontSize="11"
-                            Foreground="{DynamicResource Muted}"
-                            TextTrimming="CharacterEllipsis"
-                            ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
-                    </StackPanel>
-                    <WrapPanel
-                        x:Name="ActionControls"
-                        Grid.Row="0"
-                        Grid.Column="1"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Center"
-                        Orientation="Horizontal">
-                        <Button
-                            x:Name="Properties"
-                            local:ButtonIcon.Data="{x:Static local:ButtonIcon.Info}"
-                            Click="OnProperties"
-                            Content="{Binding [Properties], Source={x:Static r:Strings.Text}}"
-                            Style="{DynamicResource ActionBarButton}" />
-                        <Button
-                            x:Name="CopyDetails"
-                            local:ButtonIcon.Data="{x:Static local:ButtonIcon.Copy}"
-                            Click="OnCopyDetails"
-                            Content="{Binding [CopyDetails], Source={x:Static r:Strings.Text}}"
-                            Style="{DynamicResource ActionBarButton}" />
-                        <Border Style="{DynamicResource ActionBarDivider}" />
-                        <Button
-                            x:Name="Start"
-                            local:ButtonIcon.Data="{x:Static local:ButtonIcon.Start}"
-                            Click="OnStart"
-                            Content="{Binding [StartService], Source={x:Static r:Strings.Text}}"
-                            Style="{DynamicResource ActionBarButton}" />
-                        <Button
-                            x:Name="Stop"
-                            local:ButtonIcon.Data="{x:Static local:ButtonIcon.Stop}"
-                            Click="OnStop"
-                            Content="{Binding [StopService], Source={x:Static r:Strings.Text}}"
-                            Style="{DynamicResource ActionBarButton}" />
-                        <Button
-                            x:Name="Restart"
-                            local:ButtonIcon.Data="{x:Static local:ButtonIcon.Live}"
-                            BorderBrush="{DynamicResource Muted}"
-                            Click="OnRestart"
-                            Content="{Binding [RestartService], Source={x:Static r:Strings.Text}}"
-                            Style="{DynamicResource ActionBarLastButton}" />
-                    </WrapPanel>
+                        </StackPanel>
+                        <WrapPanel
+                            x:Name="ActionControls"
+                            Grid.Row="0"
+                            Grid.Column="1"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Orientation="Horizontal">
+                            <Button
+                                x:Name="Properties"
+                                local:ButtonIcon.Data="{x:Static local:ButtonIcon.Info}"
+                                Click="OnProperties"
+                                Content="{Binding [Properties], Source={x:Static r:Strings.Text}}"
+                                Style="{DynamicResource ActionBarButton}" />
+                            <Button
+                                x:Name="CopyDetails"
+                                local:ButtonIcon.Data="{x:Static local:ButtonIcon.Copy}"
+                                Click="OnCopyDetails"
+                                Content="{Binding [CopyDetails], Source={x:Static r:Strings.Text}}"
+                                Style="{DynamicResource ActionBarButton}" />
+                            <Border Style="{DynamicResource ActionBarDivider}" />
+                            <Button
+                                x:Name="Start"
+                                local:ButtonIcon.Data="{x:Static local:ButtonIcon.Start}"
+                                Click="OnStart"
+                                Content="{Binding [StartService], Source={x:Static r:Strings.Text}}"
+                                Style="{DynamicResource ActionBarButton}" />
+                            <Button
+                                x:Name="Stop"
+                                local:ButtonIcon.Data="{x:Static local:ButtonIcon.Stop}"
+                                Click="OnStop"
+                                Content="{Binding [StopService], Source={x:Static r:Strings.Text}}"
+                                Style="{DynamicResource ActionBarButton}" />
+                            <Button
+                                x:Name="Restart"
+                                local:ButtonIcon.Data="{x:Static local:ButtonIcon.Live}"
+                                BorderBrush="{DynamicResource Muted}"
+                                Click="OnRestart"
+                                Content="{Binding [RestartService], Source={x:Static r:Strings.Text}}"
+                                Style="{DynamicResource ActionBarButton}" />
+                            <Border Style="{DynamicResource ActionBarDivider}" />
+                            <Button x:Name="HideActionsButton" Style="{DynamicResource ActionBarCollapseButton}" />
+                        </WrapPanel>
+                    </Grid>
                 </Grid>
-            </Grid>
-        </Border>
+            </Border>
+        </local:ActionDrawer>
     </Grid>
 </UserControl>

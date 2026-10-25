@@ -1,6 +1,5 @@
 using System.Runtime.InteropServices;
 using System.Windows;
-using System.Windows.Automation;
 using WinMon.Controls;
 
 namespace WinMon;
@@ -22,25 +21,24 @@ public partial class MainWindow
         Processes.RetentionChanged += () => Volatile.Write(ref _retainPinned, Processes.Retention);
         Processes.RefreshRequested += RefreshPresentation;
         Processes.CopyRequested += CopyProcessDetails;
+        // One preference hides the action bar on every tab.
+        Processes.ActionsHiddenChanged += OnActionsHiddenChanged;
+        ServiceView.ActionsHiddenChanged += OnActionsHiddenChanged;
+        UsageView.ActionsHiddenChanged += OnActionsHiddenChanged;
     }
 
-    private void OnToggleActivityActions(object sender, RoutedEventArgs e)
+    private void OnActionsHiddenChanged(bool hidden)
     {
-        _preferences = _preferences with { ProcessActionsHidden = !_preferences.ProcessActionsHidden };
-        UpdateActivityActionsToggle();
+        _preferences = _preferences with { ProcessActionsHidden = hidden };
+        ApplyActionsHidden();
     }
 
-    private void UpdateActivityActionsToggle()
+    private void ApplyActionsHidden()
     {
         var hidden = _preferences.ProcessActionsHidden;
         Processes.ActionsHidden = hidden;
         ServiceView.ActionsHidden = hidden;
         UsageView.ActionsHidden = hidden;
-        var label = hidden ? Strings.ShowActions : Strings.HideActions;
-        ActivityActionsToggle.Content = label;
-        ButtonIcon.SetData(ActivityActionsToggle, hidden ? ButtonIcon.ChevronDown : ButtonIcon.ChevronUp);
-        ActivityActionsToggle.ToolTip = label;
-        AutomationProperties.SetName(ActivityActionsToggle, label);
     }
 
     private void CopyProcessDetails(string text)

@@ -63,6 +63,7 @@ public partial class ProcessesView
     {
         InitializeComponent();
         ProcessActions.ActionRequested += OnProcessAction;
+        ProcessActionDrawer.CollapsedChanged += hidden => ActionsHiddenChanged?.Invoke(hidden);
         ProcessActions.EnablePriorityActions(CanSetProcessPriority, process => ProcessPriorityChanger.Read(process),
             SetProcessPriority);
         ProcessCountSelector.ItemsSource = TopCountChoices.Items;
@@ -124,8 +125,11 @@ public partial class ProcessesView
 
     internal bool ActionsHidden
     {
-        set => ProcessActions.ActionsHidden = value;
+        get => ProcessActionDrawer.Collapsed;
+        set => ProcessActionDrawer.SetCollapsed(value);
     }
+
+    internal event Action<bool>? ActionsHiddenChanged;
 
     /// <summary>Block count and sort changes while Settings saves the preferences file.</summary>
     internal bool RankingEnabled
@@ -677,6 +681,7 @@ public partial class ProcessesView
         ProcessActions.Update(snapshot,
             snapshot?.Available == true && CanEndProcess(snapshot.Process),
             snapshot?.Available == true && CanDumpProcess(snapshot.Process));
+        ProcessActionDrawer.Summarize(ProcessActions.Title, ProcessActions.Detail, snapshot is not null);
         foreach (var row in _rows.Concat(_pinnedRows)) row.SetSelected(row.Represents(Selection.Contains));
     }
 

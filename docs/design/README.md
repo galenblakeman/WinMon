@@ -18,6 +18,7 @@ These records describe the individual feature increments and their validation at
 - [Wide resource gauges](WIDE-RESOURCE-GAUGES.md)
 - [Gauge styles](GAUGE-STYLES.md), which replaced the wide rails with a choice of seven styles
 - [Compact gauge view](COMPACT-GAUGES.md)
+- [Action drawer](ACTION-DRAWER.md), which moved hiding the action bar onto the bar
 
 Implemented on 2026-10-24; each note ends with what landed and where it departed from the design:
 

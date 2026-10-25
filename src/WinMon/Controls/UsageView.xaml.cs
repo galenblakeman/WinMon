@@ -49,8 +49,11 @@ public partial class UsageView
 
     internal bool ActionsHidden
     {
-        set => ActionBar.Visibility = value ? Visibility.Collapsed : Visibility.Visible;
+        get => ActionsDrawer.Collapsed;
+        set => ActionsDrawer.SetCollapsed(value);
     }
+
+    internal event Action<bool>? ActionsHiddenChanged;
 
     internal event Action<UsageListSettings>? SettingsChanged;
     internal event Action<string>? CopyRequested;
@@ -64,6 +67,7 @@ public partial class UsageView
     public UsageView()
     {
         InitializeComponent();
+        ActionsDrawer.CollapsedChanged += hidden => ActionsHiddenChanged?.Invoke(hidden);
         foreach (var header in new[] { CpuHeader, IoHeader, GpuHeader, ProcessesHeader, LastActiveHeader })
         {
             header.MouseEnter += (_, _) => header.TextDecorations = TextDecorations.Underline;
@@ -136,7 +140,7 @@ public partial class UsageView
     {
         if (!_ready || ActualWidth <= 0) return;
         ActionControls.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-        var wide = ActualWidth >= ActionControls.DesiredSize.Width + 300;
+        var wide = ActualWidth >= ActionControls.DesiredSize.Width - ActionDrawer.CollapseButtonSpace + 300;
         if (_wideActionBar == wide) return;
         _wideActionBar = wide;
         ActionBarGrid.ColumnDefinitions[1].Width = wide ? GridLength.Auto : new GridLength(0);
@@ -343,6 +347,7 @@ public partial class UsageView
         SelectionIcon.Source = row?.Icon;
         SelectionIcon.Visibility = row is null ? Visibility.Collapsed : Visibility.Visible;
         ActionAccent.SetResourceReference(Border.BackgroundProperty, row is null ? "Line" : "Accent");
+        ActionsDrawer.Summarize(SelectionName.Text, SelectionDetail.Text, row is not null);
         Properties.IsEnabled = app is not null && _frame is not null;
         CopyDetails.IsEnabled = app is not null && _frame is not null;
         OpenFileLocation.IsEnabled = app is { ImagePath.Length: > 0 } && !other;

@@ -331,7 +331,9 @@
                 </Border>
             </StackPanel>
         </ScrollViewer>
-        <controls:ProcessActionBar x:Name="ProcessActions" Grid.Row="3" />
+        <controls:ActionDrawer x:Name="ProcessActionDrawer" Grid.Row="3">
+            <controls:ProcessActionBar x:Name="ProcessActions" />
+        </controls:ActionDrawer>
         <TextBlock
             x:Name="EmptyLabel"
             Grid.Row="2"

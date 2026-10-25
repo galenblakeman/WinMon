@@ -38,16 +38,10 @@ public sealed class ProcessActionBar : Border
         _more = ActionButton(),
         _end = ActionButton();
 
-    internal bool ActionsHidden
-    {
-        get;
-        set
-        {
-            if (field == value) return;
-            field = value;
-            UpdateVisibility();
-        }
-    }
+    /// <summary>What the bar names, for the drawer's collapsed strip.</summary>
+    internal string Title => _name.Text;
+
+    internal string Detail => _detail.Text;
 
     private ProcessDetailsSnapshot? _snapshot;
     private bool _canDump;
@@ -60,7 +54,6 @@ public sealed class ProcessActionBar : Border
     public ProcessActionBar()
     {
         MinHeight = 54;
-        Margin = new Thickness(0, 6, 0, 0);
         BorderThickness = new Thickness(1);
         CornerRadius = new CornerRadius(4);
         SetResourceReference(BackgroundProperty, "SectionHeaderSurface");
@@ -100,11 +93,13 @@ public sealed class ProcessActionBar : Border
         foreach (var text in new[] { _name, _status }) text.SetResourceReference(TextBlock.ForegroundProperty, "Text");
         _detail.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
         foreach (var button in new[] { _properties, _copy, _more }) _buttons.Children.Add(button);
-        var divider = new Border();
-        divider.SetResourceReference(StyleProperty, "ActionBarDivider");
-        _end.SetResourceReference(StyleProperty, "ActionBarLastButton");
-        _buttons.Children.Add(divider);
+        _buttons.Children.Add(Divider());
         _buttons.Children.Add(_end);
+        // The drawer around the bar handles the hide button's command.
+        var hide = new Button();
+        hide.SetResourceReference(StyleProperty, "ActionBarCollapseButton");
+        _buttons.Children.Add(Divider());
+        _buttons.Children.Add(hide);
         ButtonIcon.SetData(_properties, ButtonIcon.Info);
         ButtonIcon.SetData(_copy, ButtonIcon.Copy);
         ButtonIcon.SetData(_more, ButtonIcon.More);
@@ -117,9 +112,11 @@ public sealed class ProcessActionBar : Border
         Update(null, false, false);
     }
 
-    private void UpdateVisibility()
+    private static Border Divider()
     {
-        Visibility = ActionsHidden ? Visibility.Collapsed : Visibility.Visible;
+        var divider = new Border();
+        divider.SetResourceReference(StyleProperty, "ActionBarDivider");
+        return divider;
     }
 
     private static Button ActionButton()
@@ -132,7 +129,7 @@ public sealed class ProcessActionBar : Border
     private void ArrangeButtons()
     {
         _buttons.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-        var wide = ActualWidth >= _buttons.DesiredSize.Width + 300;
+        var wide = ActualWidth >= _buttons.DesiredSize.Width - ActionDrawer.CollapseButtonSpace + 300;
         Grid.SetColumn(_buttons, wide ? 1 : 0);
         Grid.SetRow(_buttons, wide ? 0 : 1);
         _layout.ColumnDefinitions[1].Width = wide ? GridLength.Auto : new GridLength(0);
@@ -143,7 +140,6 @@ public sealed class ProcessActionBar : Border
     {
         _snapshot = snapshot;
         _canDump = canDump;
-        UpdateVisibility();
         var process = snapshot?.Process;
         _accent.SetResourceReference(BackgroundProperty, process is null ? "Line" : "Accent");
         _icon.Visibility = process is null ? Visibility.Collapsed : Visibility.Visible;

@@ -34,7 +34,6 @@ public partial class MainWindow
         Processes.Visibility = ProcessesTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
         ServiceView.Visibility = ServicesTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
         UsageView.Visibility = UsageTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
-        ActivityActionsToggle.Visibility = Visibility.Visible;
         RefreshPresentation();
     }
 
