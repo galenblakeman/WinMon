@@ -210,10 +210,10 @@
                 <ColumnDefinition Width="160" />
                 <ColumnDefinition Width="55" />
                 <ColumnDefinition Width="62" />
-                <ColumnDefinition Width="100" />
-                <ColumnDefinition Width="75" />
-                <ColumnDefinition Width="64" />
-                <ColumnDefinition Width="72" />
+                <ColumnDefinition Width="90" />
+                <ColumnDefinition Width="95" />
+                <ColumnDefinition Width="60" />
+                <ColumnDefinition Width="66" />
             </Grid.ColumnDefinitions>
             <Grid HorizontalAlignment="Left">
                 <Grid.ColumnDefinitions>
@@ -266,7 +266,7 @@
                 HorizontalAlignment="Right"
                 FontSize="12"
                 Foreground="{DynamicResource Muted}"
-                Text="{Binding [CpuColumn], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                Text="{Binding [CPU], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                 ToolTip="{Binding [AverageOverTheLast5SecondsWindowsCountsProcessCPU], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
             <TextBlock
                 x:Name="GpuHeader"
@@ -274,7 +274,7 @@
                 HorizontalAlignment="Right"
                 FontSize="12"
                 Foreground="{DynamicResource Muted}"
-                Text="{Binding [GpuColumn], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                Text="{Binding [GPU], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                 ToolTip="{Binding [BusiestGPUEnginePerProcessAveragedOverReadableIntervalsIn], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
             <TextBlock
                 x:Name="MemoryHeader"
@@ -290,7 +290,7 @@
                 HorizontalAlignment="Right"
                 FontSize="12"
                 Foreground="{DynamicResource Muted}"
-                Text="{Binding [IOMBS], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                Text="{Binding [IO], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                 ToolTip="{Binding [ProcessReadWriteIOIncludesFileNetworkAndDevice], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
             <TextBlock
                 x:Name="ThreadsHeader"

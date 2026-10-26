@@ -83,6 +83,24 @@ public sealed class UsageViewTests
         }
     }
 
+    [Test, Apartment(ApartmentState.STA)]
+    public void Columns_KeepUnitsInTheValues()
+    {
+        var view = new UsageView();
+        view.Update(new UsageFrame([App("example", cpu: 100, io: 4_000_000)],
+            1_000, 0, Now, Now, false));
+        var headers = (Grid)view.FindName("ColumnHeaders");
+        var shareHeader = headers.Children.OfType<TextBlock>().Single(header => Grid.GetColumn(header) == 2);
+        var row = (UsageDisplayRow)view.Rows.Items[0];
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(shareHeader.Text, Is.EqualTo(Strings.UsageShare));
+            Assert.That(row.Share, Does.EndWith("%"));
+            Assert.That(row.Io, Does.EndWith("MB"));
+        });
+    }
+
     [Test]
     public void LastActive_IsNowWithinFiveSecondsOfTheNewestSample()
     {

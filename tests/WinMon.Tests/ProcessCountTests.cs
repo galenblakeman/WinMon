@@ -147,13 +147,18 @@ public sealed class ProcessCountTests
     public void Row_CountsAlignAfterIo_AndClearForRemainder()
     {
         var row = new ProcessRow();
-        row.Update(new ProcessUsage(1, 10, "example", 2) { ThreadCount = 47, HandleCount = 1234 }, [], 120, true, null);
+        row.Update(new ProcessUsage(1, 10, "example", 2, 16UL * 1_048_576, 4_000_000)
+            { ThreadCount = 47, HandleCount = 1234 }, [], 120, true, null);
         row.Measure(new Size(788, 36));
         row.Arrange(new Rect(0, 0, 788, 36));
         var threads = row.Children.OfType<TextBlock>().Single(t => Grid.GetColumn(t) == 6);
         var handles = row.Children.OfType<TextBlock>().Single(t => Grid.GetColumn(t) == 7);
+        var memory = row.Children.OfType<TextBlock>().Single(t => Grid.GetColumn(t) == 4);
+        var io = row.Children.OfType<TextBlock>().Single(t => Grid.GetColumn(t) == 5);
         Assert.Multiple(() =>
         {
+            Assert.That(memory.Text, Is.EqualTo("16.0 MiB"));
+            Assert.That(io.Text, Is.EqualTo("4.0 MB/s"));
             Assert.That(threads.Text, Is.EqualTo("47"));
             Assert.That(handles.Text, Is.EqualTo(1234.ToString("N0")));
             Assert.That(row.ColumnDefinitions[0].ActualWidth, Is.GreaterThanOrEqualTo(200));
@@ -161,6 +166,7 @@ public sealed class ProcessCountTests
         });
         row.ShowRemainder(3, 1, 0);
         Assert.That(new[] { threads.Text, handles.Text }, Is.All.Empty);
+        Assert.That(io.Text, Is.EqualTo("0 B/s"));
         row.Update(new ProcessUsage(1, 10, "example", 2), [], 120, true, null);
         Assert.That(threads.Text, Is.EqualTo(WinMon.Resources.Strings.MissingReading));
         Assert.That(handles.Text, Is.EqualTo(WinMon.Resources.Strings.MissingReading));

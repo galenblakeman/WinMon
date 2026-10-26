@@ -404,9 +404,14 @@ public sealed class ServicesViewTests
         var list = (ListBox)view.FindName("Rows");
         Assert.That(((ServiceDisplayRow)list.Items[0]).Group.Host!.ProcessId, Is.EqualTo(1));
         Assert.That(((ServiceDisplayRow)list.Items[0]).Cpu, Is.EqualTo(WinMon.Resources.Strings.Format(WinMon.Resources.Strings.PercentOneDecimal, 8d)));
+        Assert.That(((TextBlock)view.FindName("MemoryHeader")).Text, Is.EqualTo(WinMon.Resources.Strings.Memory));
+        Assert.That(((TextBlock)view.FindName("IoHeader")).Text, Is.EqualTo(WinMon.Resources.Strings.IO));
+        Assert.That(((ServiceDisplayRow)list.Items[0]).Memory,
+            Is.EqualTo("100 B"));
         ((ComboBox)view.FindName("Sort")).SelectedIndex = 2;
         Assert.That(((ServiceDisplayRow)list.Items[0]).Group.Host!.ProcessId, Is.EqualTo(1));
-        Assert.That(((ServiceDisplayRow)list.Items[0]).Io, Is.EqualTo(4d.ToString("N2")));
+        Assert.That(((ServiceDisplayRow)list.Items[0]).Io,
+            Is.EqualTo("4.0 MB/s"));
     }
 
     private static ServiceFrame Frame()

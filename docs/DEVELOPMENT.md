@@ -130,6 +130,7 @@ Portable lifetime, executable equality and CPU availability contracts are descri
 - Process CPU is a share of total machine CPU capacity, not per core or lifetime. CPU, GPU and I/O columns use a five-second window.
 - The list ranks by CPU, GPU, Memory, I/O, Threads or Handles (`ProcessSort`). Memory, Threads and Handles rank the latest observation of processes in the newest sample.
 - **Memory** is the resident working set, including shared pages. **Grouped** rows instead sum the private bytes of current members, since working sets share pages.
+- Processes and Services keep units in numeric cells: CPU/GPU percentages, memory in adaptive binary B/KiB/MiB/GiB/TiB and read/write I/O rates in adaptive decimal B/KB/MB/GB/TB per second. Scaled memory and I/O values use one decimal place; bytes use whole numbers. Their headers use metric names only; Services labels private-memory totals as Memory. Usage already keeps Share's percent sign and adaptive decimal byte units in its cells.
 - **GPU** per process is its busiest engine per interval, averaged over readable intervals. A missing counter or unverified process lifetime shows a dash. Per-process GPU is not additive, so a group shows its busiest member and the Other processes GPU cell is a dash.
 - **I/O** is interval read/write MB/s and includes file, network and device operations; it is not disk-only.
 - Grouping identifies executables by full path, falling back to the process name when the path cannot be read.

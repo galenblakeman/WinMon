@@ -494,8 +494,8 @@ public partial class ProcessesView
     /// <summary>Mark the column that orders the rows; the others stay muted.</summary>
     private (TextBlock Header, ProcessSort Sort, string Text)[] SortHeaders =>
     [
-        (CpuHeader, ProcessSort.Cpu, Strings.CpuColumn), (GpuHeader, ProcessSort.Gpu, Strings.GpuColumn),
-        (MemoryHeader, ProcessSort.Memory, Strings.Memory), (IoHeader, ProcessSort.Io, Strings.IOMBS),
+        (CpuHeader, ProcessSort.Cpu, Strings.CPU), (GpuHeader, ProcessSort.Gpu, Strings.GPU),
+        (MemoryHeader, ProcessSort.Memory, Strings.Memory), (IoHeader, ProcessSort.Io, Strings.IO),
         (ThreadsHeader, ProcessSort.Threads, Strings.Threads), (HandlesHeader, ProcessSort.Handles, Strings.Handles)
     ];
 
@@ -503,11 +503,8 @@ public partial class ProcessesView
     {
         foreach (var (header, sort, name) in SortHeaders)
         {
-            var text = sort == ProcessSort.Memory
-                ? $"{(_settings.Grouped ? Strings.Private : name)} MiB"
-                : name;
             var active = sort == _settings.Sort;
-            header.Text = active ? $"{text} ▾" : text;
+            header.Text = active ? $"{name} ▾" : name;
             header.FontWeight = active ? FontWeights.SemiBold : FontWeights.Normal;
             // Each new resource reference is resolved again, so set one only when the heading changes state.
             if (header.Tag is bool shown && shown == active) continue;
@@ -523,14 +520,15 @@ public partial class ProcessesView
             var description = sort switch
             {
                 ProcessSort.Gpu => Strings.BusiestGPUEnginePerProcessAveragedOverReadableIntervalsIn,
-                ProcessSort.Memory => Strings.ResidentWorkingSetIncludingSharedPages,
+                ProcessSort.Memory => _settings.Grouped
+                    ? Strings.PrivateBytesSummedAcrossThisExecutableSCurrentProcesses
+                    : Strings.ResidentWorkingSetIncludingSharedPages,
                 ProcessSort.Io => Strings.ProcessReadWriteIOIncludesFileNetworkAndDevice,
                 ProcessSort.Threads => Strings.ProcessThreadsExplanation,
                 ProcessSort.Handles => Strings.ProcessHandlesExplanation,
                 _ => Strings.AverageOverTheLast5SecondsWindowsCountsProcessCPU
             };
-            header.ToolTip = Strings.Format(Strings.ClickToRankProcessesBy, description,
-                text.Replace(" %", "").Replace(" MB/s", ""));
+            header.ToolTip = Strings.Format(Strings.ClickToRankProcessesBy, description, text);
         }
     }
 

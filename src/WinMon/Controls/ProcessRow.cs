@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Globalization;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Automation.Peers;
@@ -238,10 +237,10 @@ public sealed class ProcessRow : Grid
         ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(160) });
         ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(55) });
         ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(62) });
-        ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(100) });
-        ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(75) });
-        ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(64) });
-        ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(72) });
+        ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(90) });
+        ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(95) });
+        ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(60) });
+        ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(66) });
         var stack = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 0) };
         stack.Children.Add(_name);
         stack.Children.Add(_pid);
@@ -354,12 +353,14 @@ public sealed class ProcessRow : Grid
 
         // Working sets share pages, so a group shows summed private bytes instead.
         _memory.Text = (grouped ? usage.PrivateBytes : usage.WorkingSetBytes) is { } bytes
-            ? (bytes / 1_048_576d).ToString("N0", CultureInfo.CurrentCulture)
+            ? TableMetricText.Memory(bytes)
             : Strings.MissingReading;
         _memory.ToolTip = grouped
             ? Strings.PrivateBytesSummedAcrossThisExecutableSCurrentProcesses
             : Strings.ResidentWorkingSetIncludingSharedPagesDoesNotSumTo;
-        _io.Text = usage.IoBytesPerSecond is { } rate ? $"{rate / 1_000_000:0.00}" : Strings.MissingReading;
+        _io.Text = usage.IoBytesPerSecond is { } rate
+            ? TableMetricText.IoRate(rate)
+            : Strings.MissingReading;
         _threads.Text = usage.ThreadCount?.ToString("N0") ?? Strings.MissingReading;
         _handles.Text = usage.HandleCount?.ToString("N0") ?? Strings.MissingReading;
         _threads.ToolTip = Strings.ProcessThreadsExplanation;
@@ -427,7 +428,9 @@ public sealed class ProcessRow : Grid
         _handles.Text = "";
         _gpu.Text = Strings.MissingReading;
         _gpu.ToolTip = Strings.GPUPercentagesRepresentDifferentEnginesAndCannotBeSummed;
-        _io.Text = ioBytesPerSecond is { } rate ? $"{rate / 1_000_000:0.00}" : Strings.MissingReading;
+        _io.Text = ioBytesPerSecond is { } rate
+            ? TableMetricText.IoRate(rate)
+            : Strings.MissingReading;
         ToolTip = Strings.RemainingProcessesInTheCurrentRankingCPUAndIO;
         AutomationProperties.SetName(this,
             Strings.Format(Strings.OtherOfTotalCPUCombinedAveragedOver5Seconds, count,

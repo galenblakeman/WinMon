@@ -161,9 +161,6 @@ Click to rank processes by {1}.</value>
   <data name="CpuTraySuffix" xml:space="preserve">
     <value> CPU</value>
   </data>
-  <data name="CpuColumn" xml:space="preserve">
-    <value>CPU %</value>
-  </data>
   <data name="CPUDetails" xml:space="preserve">
     <value>CPU details</value>
   </data>
@@ -292,9 +289,6 @@ Unsaved work may be lost. Only this process will be ended.</value>
   <data name="GPU" xml:space="preserve">
     <value>GPU</value>
   </data>
-  <data name="GpuColumn" xml:space="preserve">
-    <value>GPU %</value>
-  </data>
   <data name="GPUCountersUnavailableOrCollectingAFreshInterval" xml:space="preserve">
     <value>GPU counters unavailable or collecting a fresh interval.</value>
   </data>
@@ -397,6 +391,12 @@ Click to hold; top readouts stay live</value>
   <data name="IO" xml:space="preserve">
     <value>I/O</value>
   </data>
+  <data name="TableBytes" xml:space="preserve"><value>{0:N0} B</value></data>
+  <data name="TableKiB" xml:space="preserve"><value>{0:N1} KiB</value></data>
+  <data name="TableMiB" xml:space="preserve"><value>{0:N1} MiB</value></data>
+  <data name="TableGiB" xml:space="preserve"><value>{0:N1} GiB</value></data>
+  <data name="TableTiB" xml:space="preserve"><value>{0:N1} TiB</value></data>
+  <data name="TablePerSecond" xml:space="preserve"><value>{0}/s</value></data>
   <data name="IOMBS" xml:space="preserve">
     <value>I/O MB/s</value>
   </data>
@@ -518,7 +518,7 @@ Memory specifications and slot counts reflect firmware reports.</value>
     <value>{0} MHz</value>
   </data>
   <data name="MiB" xml:space="preserve">
-    <value>{0:N0} MiB</value>
+    <value>{0:N1} MiB</value>
   </data>
   <data name="CapacityMiB" xml:space="preserve">
     <value>{0:0.##} MiB</value>
@@ -1404,7 +1404,6 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="ServiceStopped" xml:space="preserve"><value>Stopped</value></data>
   <data name="ServiceName" xml:space="preserve"><value>Name</value></data>
   <data name="ServiceProcess" xml:space="preserve"><value>Service / process</value></data>
-  <data name="ServicePrivateMiB" xml:space="preserve"><value>Private MiB</value></data>
   <data name="ViewServiceProcess" xml:space="preserve"><value>View process</value></data>
   <data name="StartService" xml:space="preserve"><value>Start</value></data>
   <data name="StopService" xml:space="preserve"><value>Stop</value></data>

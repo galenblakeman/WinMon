@@ -195,7 +195,7 @@ public partial class ServicesView
     private void UpdateRankHeaders()
     {
         (TextBlock Header, string Label)[] headers =
-            [(CpuHeader, Strings.CpuColumn), (MemoryHeader, Strings.ServicePrivateMiB), (IoHeader, Strings.IOMBS)];
+            [(CpuHeader, Strings.CPU), (MemoryHeader, Strings.Memory), (IoHeader, Strings.IO)];
         for (var i = 0; i < headers.Length; i++)
         {
             var (header, label) = headers[i];
@@ -542,9 +542,9 @@ public partial class ServicesView
         text.AppendLine(
             $"{Strings.CPU}: {(metrics?.Cpu is { } cpu ? Strings.Format(Strings.PercentOneDecimal, cpu) : Strings.MissingReading)}");
         text.AppendLine(
-            $"{Strings.ServicePrivateMiB}: {(metrics?.PrivateBytes is { } memory ? (memory / 1048576d).ToString("N0", CultureInfo.CurrentCulture) : Strings.MissingReading)}");
+            $"{Strings.Memory}: {(metrics?.PrivateBytes is { } memory ? TableMetricText.Memory(memory) : Strings.MissingReading)}");
         text.AppendLine(
-            $"{Strings.IOMBS}: {(metrics?.Io is { } io ? (io / 1000000d).ToString("N2", CultureInfo.CurrentCulture) : Strings.MissingReading)}");
+            $"{Strings.IO}: {(metrics?.Io is { } io ? TableMetricText.IoRate(io) : Strings.MissingReading)}");
         text.AppendLine($"{Strings.Services}:");
         foreach (var service in row.Service is { } selected ? [selected] : row.Group.Services)
             text.AppendLine($"  {service.DisplayName} ({service.Name}) · {ServiceDisplayRow.StateText(service.State)}");
@@ -718,9 +718,11 @@ internal sealed class ServiceDisplayRow(string key) : INotifyPropertyChanged
             : Visibility.Collapsed;
         Cpu = metrics.Cpu is { } cpu ? Strings.Format(Strings.PercentOneDecimal, cpu) : Strings.MissingReading;
         Memory = metrics.PrivateBytes is { } memory
-            ? (memory / 1048576d).ToString("N0", CultureInfo.CurrentCulture)
+            ? TableMetricText.Memory(memory)
             : Strings.MissingReading;
-        Io = metrics.Io is { } io ? (io / 1000000d).ToString("N2", CultureInfo.CurrentCulture) : Strings.MissingReading;
+        Io = metrics.Io is { } io
+            ? TableMetricText.IoRate(io)
+            : Strings.MissingReading;
         // Most rows are unchanged each second; refreshing every binding would re-lay out their text anyway.
         if (Shown() != shown) PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(string.Empty));
     }

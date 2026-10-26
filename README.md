@@ -58,6 +58,8 @@ Search the ranked list by application name, executable name or PID. Turn on **Ap
 
 Click the **Threads** or **Handles** column heading to rank by that count. Hover over a process name for its publisher metadata and executable path.
 
+Processes, Services and Usage keep units beside the numbers rather than in the column headings. Memory values automatically scale from B through KiB, MiB, GiB and TiB; I/O rates scale from B/s through KB/s, MB/s and larger units. Scaled values use one decimal place. The Services memory heading is **Memory**; its value is private memory. Usage shows **Share** as a percentage and I/O totals in adaptive byte units.
+
 **Pin a process** using the pin beside its name or its row menu. Pinned rows stay above the rankings in pin order and do not count toward the Top N limit. Turn on **Pinned only** to focus on them. Pins and the Pinned only filter are saved when WinMon closes and restored when it reopens.
 
 <details>
@@ -89,7 +91,7 @@ CPU and I/O values and rankings use the same five-second averaging window as Pro
 
 Search by service name, display name, process name or PID, filter by status, and sort by CPU, memory, I/O or name when showing all services. Services sharing a host appear under one host total, with no separate resource attribution to each service. Worker relationships are inferred from observed process ancestry.
 
-The **Top … services by …** toolbar defaults to 20 service/host rows, with choices from 5 to 50 and **All**. Click a CPU, private-memory, I/O or Name column header to change sorting; Name sorting is available with **All**. The dropdown and active-column arrow stay in sync. Search and status filters apply before the limit; expanded workers do not count against it. The search field grows with the window, and controls wrap below the ranking selectors when space is limited.
+The **Top … services by …** toolbar defaults to 20 service/host rows, with choices from 5 to 50 and **All**. Click a CPU, Memory, I/O or Name column header to change sorting; Name sorting is available with **All**. The dropdown and active-column arrow stay in sync. Search and status filters apply before the limit; expanded workers do not count against it. The search field grows with the window, and controls wrap below the ranking selectors when space is limited.
 
 The selected service stays in the action bar when ranking or filters hide its row. Its status and action targets continue to refresh, including after a host restart. Selecting another row changes the target; historical or unavailable data disables service controls.
 

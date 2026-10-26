@@ -1518,7 +1518,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         fixture.Processes.GroupedChip.IsChecked = true;
         fixture.RefreshVisiblePresentation();
         visual.UpdateLayout();
-        if (!fixture.Preferences.GroupProcesses || fixture.Processes.MemoryHeader.Text != $"{Strings.Private} MiB" ||
+        if (!fixture.Preferences.GroupProcesses || fixture.Processes.MemoryHeader.Text != Strings.Memory ||
             AutomationProperties.GetName(fixture.Processes.Rows[0]) is not { } groupedName ||
             !groupedName.StartsWith("chrome", StringComparison.Ordinal) ||
             !groupedName.Contains(Strings.Format(Strings.Processes, 2), StringComparison.Ordinal) ||

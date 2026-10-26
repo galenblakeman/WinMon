@@ -161,9 +161,6 @@ Haz clic para ordenar los procesos por {1}.</value>
   <data name="CpuTraySuffix" xml:space="preserve">
     <value> CPU</value>
   </data>
-  <data name="CpuColumn" xml:space="preserve">
-    <value>CPU %</value>
-  </data>
   <data name="CPUDetails" xml:space="preserve">
     <value>Detalles de CPU</value>
   </data>
@@ -292,9 +289,6 @@ Capacidad: {3:0.#} GiB · Disponible: {4:0.#} GiB</value>
   <data name="GPU" xml:space="preserve">
     <value>GPU</value>
   </data>
-  <data name="GpuColumn" xml:space="preserve">
-    <value>GPU %</value>
-  </data>
   <data name="GPUCountersUnavailableOrCollectingAFreshInterval" xml:space="preserve">
     <value>Contadores de GPU no disponibles o recopilando un nuevo intervalo.</value>
   </data>
@@ -397,6 +391,12 @@ Uso de GPU: 0–{1:0.0}%</value>
   <data name="IO" xml:space="preserve">
     <value>I/O</value>
   </data>
+  <data name="TableBytes" xml:space="preserve"><value>{0:N0} B</value></data>
+  <data name="TableKiB" xml:space="preserve"><value>{0:N1} KiB</value></data>
+  <data name="TableMiB" xml:space="preserve"><value>{0:N1} MiB</value></data>
+  <data name="TableGiB" xml:space="preserve"><value>{0:N1} GiB</value></data>
+  <data name="TableTiB" xml:space="preserve"><value>{0:N1} TiB</value></data>
+  <data name="TablePerSecond" xml:space="preserve"><value>{0}/s</value></data>
   <data name="IOMBS" xml:space="preserve">
     <value>I/O MB/s</value>
   </data>
@@ -518,7 +518,7 @@ Las especificaciones de memoria y el número de ranuras reflejan los datos del f
     <value>{0} MHz (según Windows)</value>
   </data>
   <data name="MiB" xml:space="preserve">
-    <value>{0:N0} MiB</value>
+    <value>{0:N1} MiB</value>
   </data>
   <data name="CapacityMiB" xml:space="preserve">
     <value>{0:0.##} MiB</value>
@@ -1404,7 +1404,6 @@ Se puede perder el trabajo sin guardar. Se finalizarán todos los procesos indic
   <data name="ServiceStopped" xml:space="preserve"><value>Detenido</value></data>
   <data name="ServiceName" xml:space="preserve"><value>Nombre</value></data>
   <data name="ServiceProcess" xml:space="preserve"><value>Servicio / proceso</value></data>
-  <data name="ServicePrivateMiB" xml:space="preserve"><value>MiB privados</value></data>
   <data name="ViewServiceProcess" xml:space="preserve"><value>Ver proceso</value></data>
   <data name="StartService" xml:space="preserve"><value>Iniciar</value></data>
   <data name="StopService" xml:space="preserve"><value>Detener</value></data>

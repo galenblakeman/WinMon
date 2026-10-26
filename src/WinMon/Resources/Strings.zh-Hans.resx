@@ -161,9 +161,6 @@
   <data name="CpuTraySuffix" xml:space="preserve">
     <value> CPU</value>
   </data>
-  <data name="CpuColumn" xml:space="preserve">
-    <value>CPU %</value>
-  </data>
   <data name="CPUDetails" xml:space="preserve">
     <value>CPU 详情</value>
   </data>
@@ -292,9 +289,6 @@
   <data name="GPU" xml:space="preserve">
     <value>GPU</value>
   </data>
-  <data name="GpuColumn" xml:space="preserve">
-    <value>GPU %</value>
-  </data>
   <data name="GPUCountersUnavailableOrCollectingAFreshInterval" xml:space="preserve">
     <value>GPU 计数器不可用，或正在采集新的间隔。</value>
   </data>
@@ -397,6 +391,12 @@ GPU 利用率 0–{1:0.0}%</value>
   <data name="IO" xml:space="preserve">
     <value>I/O</value>
   </data>
+  <data name="TableBytes" xml:space="preserve"><value>{0:N0} B</value></data>
+  <data name="TableKiB" xml:space="preserve"><value>{0:N1} KiB</value></data>
+  <data name="TableMiB" xml:space="preserve"><value>{0:N1} MiB</value></data>
+  <data name="TableGiB" xml:space="preserve"><value>{0:N1} GiB</value></data>
+  <data name="TableTiB" xml:space="preserve"><value>{0:N1} TiB</value></data>
+  <data name="TablePerSecond" xml:space="preserve"><value>{0}/s</value></data>
   <data name="IOMBS" xml:space="preserve">
     <value>I/O MB/s</value>
   </data>
@@ -518,7 +518,7 @@ GPU 利用率 0–{1:0.0}%</value>
     <value>{0} MHz（Windows 报告）</value>
   </data>
   <data name="MiB" xml:space="preserve">
-    <value>{0:N0} MiB</value>
+    <value>{0:N1} MiB</value>
   </data>
   <data name="CapacityMiB" xml:space="preserve">
     <value>{0:0.##} MiB</value>
@@ -1404,7 +1404,6 @@ Windows 健康状态：{2}</value>
   <data name="ServiceStopped" xml:space="preserve"><value>已停止</value></data>
   <data name="ServiceName" xml:space="preserve"><value>名称</value></data>
   <data name="ServiceProcess" xml:space="preserve"><value>服务 / 进程</value></data>
-  <data name="ServicePrivateMiB" xml:space="preserve"><value>专用 MiB</value></data>
   <data name="ViewServiceProcess" xml:space="preserve"><value>查看进程</value></data>
   <data name="StartService" xml:space="preserve"><value>启动</value></data>
   <data name="StopService" xml:space="preserve"><value>停止</value></data>

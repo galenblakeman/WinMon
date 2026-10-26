@@ -47,7 +47,7 @@ internal sealed record ProcessDetailsSnapshot(
         Add(Strings.ProcessWorkingSetLabel, !Grouped && Available ? Bytes(Process.WorkingSetBytes) : null);
         Add(Strings.ProcessPrivateMemoryLabel, Available ? Bytes(Process.PrivateBytes) : null);
         Add(Strings.ProcessIoLabel,
-            Available && Process.IoBytesPerSecond is { } io ? $"{io / 1_000_000:0.00} MB/s" : null);
+            Available && Process.IoBytesPerSecond is { } io ? $"{io / 1_000_000:0.0} MB/s" : null);
         Add(Strings.Threads, Available ? Process.ThreadCount?.ToString() : null);
         Add(Strings.Handles, Available ? Process.HandleCount?.ToString() : null);
         text.AppendLine().Append(Strings.ProcessMetricsNote);

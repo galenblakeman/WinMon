@@ -108,7 +108,7 @@ internal sealed partial class WindowDiagnostics
             !networkText.StartsWith('↓') || !fixture.NetworkMetric.DetailLabel.Text.StartsWith('↑') ||
             fixture.NetworkMetric.DetailLabel.Text.Contains('↓') ||
             fixture.GpuMetric.DetailLabel.Text != $"{2.1:0.0} / {8.0:0.0} GiB" ||
-            fixture.Processes.MemoryHeader.Text != $"{Strings.Memory} MiB")
+            fixture.Processes.MemoryHeader.Text != Strings.Memory)
             throw new InvalidOperationException(
                 $"UI presentation failed: filled={ButtonIcon.GetFilled(filledPin)}, fill={pinPath.Fill}, foreground={filledPin.Foreground}, clock={fixture.CpuMetric.DetailLabel.Text}, network={fixture.NetworkMetric.ValueLabel.Text}, memory={fixture.Processes.MemoryHeader.Text}.");
         if (fixture.Processes.PinnedRows.Count != 3 ||

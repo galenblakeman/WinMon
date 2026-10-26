@@ -132,7 +132,6 @@ public static partial class Strings
     public static string CopySnapshot => ResourceManager.GetString(nameof(CopySnapshot), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CPU => ResourceManager.GetString(nameof(CPU), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CpuClockDescription => ResourceManager.GetString(nameof(CpuClockDescription), Culture ?? CultureInfo.CurrentUICulture)!;
-    public static string CpuColumn => ResourceManager.GetString(nameof(CpuColumn), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CPUDetails => ResourceManager.GetString(nameof(CPUDetails), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CPUHistoryOnOneScaleSharedByEveryRowHover => ResourceManager.GetString(nameof(CPUHistoryOnOneScaleSharedByEveryRowHover), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CPUMemoryConfiguredDisksNetworkAndGPUOverlayHistoryClick => ResourceManager.GetString(nameof(CPUMemoryConfiguredDisksNetworkAndGPUOverlayHistoryClick), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -241,7 +240,6 @@ public static partial class Strings
     public static string GiBCapacityGiBAvailable => ResourceManager.GetString(nameof(GiBCapacityGiBAvailable), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GigabitsPerSecond => ResourceManager.GetString(nameof(GigabitsPerSecond), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GPU => ResourceManager.GetString(nameof(GPU), Culture ?? CultureInfo.CurrentUICulture)!;
-    public static string GpuColumn => ResourceManager.GetString(nameof(GpuColumn), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GPUCountersUnavailableOrCollectingAFreshInterval => ResourceManager.GetString(nameof(GPUCountersUnavailableOrCollectingAFreshInterval), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GPUPercentagesRepresentDifferentEnginesAndCannotBeSummed => ResourceManager.GetString(nameof(GPUPercentagesRepresentDifferentEnginesAndCannotBeSummed), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GPUUtilizationUnavailableForThisProcessNoValidCounterOr => ResourceManager.GetString(nameof(GPUUtilizationUnavailableForThisProcessNoValidCounterOr), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -546,7 +544,6 @@ public static partial class Strings
     public static string ServiceName => ResourceManager.GetString(nameof(ServiceName), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ServicePaused => ResourceManager.GetString(nameof(ServicePaused), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ServicePausing => ResourceManager.GetString(nameof(ServicePausing), Culture ?? CultureInfo.CurrentUICulture)!;
-    public static string ServicePrivateMiB => ResourceManager.GetString(nameof(ServicePrivateMiB), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ServiceProcess => ResourceManager.GetString(nameof(ServiceProcess), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ServiceProcessPid => ResourceManager.GetString(nameof(ServiceProcessPid), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ServiceRunning => ResourceManager.GetString(nameof(ServiceRunning), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -619,6 +616,12 @@ public static partial class Strings
     public static string SystemResources => ResourceManager.GetString(nameof(SystemResources), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string SystemResourcesInspectingSnapshot => ResourceManager.GetString(nameof(SystemResourcesInspectingSnapshot), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string SystemResourcesUnavailable => ResourceManager.GetString(nameof(SystemResourcesUnavailable), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string TableBytes => ResourceManager.GetString(nameof(TableBytes), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string TableGiB => ResourceManager.GetString(nameof(TableGiB), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string TableKiB => ResourceManager.GetString(nameof(TableKiB), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string TableMiB => ResourceManager.GetString(nameof(TableMiB), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string TablePerSecond => ResourceManager.GetString(nameof(TablePerSecond), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string TableTiB => ResourceManager.GetString(nameof(TableTiB), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string Testing => ResourceManager.GetString(nameof(Testing), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string TheClipboardIsUnavailableTryCopyAgain => ResourceManager.GetString(nameof(TheClipboardIsUnavailableTryCopyAgain), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string TheEmbeddedTrayIconIsUnavailable => ResourceManager.GetString(nameof(TheEmbeddedTrayIconIsUnavailable), Culture ?? CultureInfo.CurrentUICulture)!;

@@ -161,9 +161,6 @@
   <data name="CpuTraySuffix" xml:space="preserve">
     <value> CPU</value>
   </data>
-  <data name="CpuColumn" xml:space="preserve">
-    <value>CPU %</value>
-  </data>
   <data name="CPUDetails" xml:space="preserve">
     <value>Сведения о CPU</value>
   </data>
@@ -292,9 +289,6 @@
   <data name="GPU" xml:space="preserve">
     <value>GPU</value>
   </data>
-  <data name="GpuColumn" xml:space="preserve">
-    <value>GPU %</value>
-  </data>
   <data name="GPUCountersUnavailableOrCollectingAFreshInterval" xml:space="preserve">
     <value>Счётчики GPU недоступны либо собирается новый интервал.</value>
   </data>
@@ -397,6 +391,12 @@ GPU {11} · {12}
   <data name="IO" xml:space="preserve">
     <value>I/O</value>
   </data>
+  <data name="TableBytes" xml:space="preserve"><value>{0:N0} B</value></data>
+  <data name="TableKiB" xml:space="preserve"><value>{0:N1} KiB</value></data>
+  <data name="TableMiB" xml:space="preserve"><value>{0:N1} MiB</value></data>
+  <data name="TableGiB" xml:space="preserve"><value>{0:N1} GiB</value></data>
+  <data name="TableTiB" xml:space="preserve"><value>{0:N1} TiB</value></data>
+  <data name="TablePerSecond" xml:space="preserve"><value>{0}/s</value></data>
   <data name="IOMBS" xml:space="preserve">
     <value>I/O MB/s</value>
   </data>
@@ -518,7 +518,7 @@ GPU {11} · {12}
     <value>{0} MHz (по данным Windows)</value>
   </data>
   <data name="MiB" xml:space="preserve">
-    <value>{0:N0} MiB</value>
+    <value>{0:N1} MiB</value>
   </data>
   <data name="CapacityMiB" xml:space="preserve">
     <value>{0:0.##} MiB</value>
@@ -1404,7 +1404,6 @@ GPU {11} · {12}
   <data name="ServiceStopped" xml:space="preserve"><value>Остановлена</value></data>
   <data name="ServiceName" xml:space="preserve"><value>Имя</value></data>
   <data name="ServiceProcess" xml:space="preserve"><value>Служба / процесс</value></data>
-  <data name="ServicePrivateMiB" xml:space="preserve"><value>Частная память, МиБ</value></data>
   <data name="ViewServiceProcess" xml:space="preserve"><value>Показать процесс</value></data>
   <data name="StartService" xml:space="preserve"><value>Запустить</value></data>
   <data name="StopService" xml:space="preserve"><value>Остановить</value></data>

@@ -96,6 +96,15 @@ public sealed class ProcessActionsTests
     }
 
     [Test]
+    [SetCulture("en-US")]
+    public void Details_UseOneDecimalForMemoryAndIo()
+    {
+        var snapshot = new ProcessDetailsSnapshot(Example, false, DateTimeOffset.Now, false, true, "");
+        var text = snapshot.Format();
+        Assert.That(text, Does.Contain("42.0 MiB").And.Contain("0.3 MB/s"));
+    }
+
+    [Test]
     public void Dump_RejectsUnidentifiedGroupedHistoricalAndSelfTargets()
     {
         var p = Example;
