@@ -29,22 +29,40 @@ public partial class MainWindow
         var peaks = TwoMinuteGaugePeaks(samples, latest, _preferences.PrimaryDrive,
             _preferences.SecondaryDrive);
 
-        ShowGaugeInActiveView(CpuMetric, cpu, peaks.Cpu, 100);
-        ShowGaugeInActiveView(MemoryMetric, memory, peaks.Memory, 100);
-        ShowGaugeInActiveView(DiskMetric, disk, peaks.Disk, 100);
-        ShowGaugeInActiveView(SecondaryDiskMetric, secondary, peaks.SecondaryDisk, 100);
+        var showCorners = _preferences.GaugeStyle is GaugeStyle.Bowl or GaugeStyle.Needle or GaugeStyle.SegmentedArc;
+        ShowGaugeInActiveView(CpuMetric, cpu, peaks.Cpu, 100,
+            showCorners ? PeakLabel(peaks.Cpu) : null, showCorners ? ShortPeakLabel(peaks.Cpu) : null);
+        var freeMemory = latestResources is { TotalMemoryBytes: { } total, UsedMemoryBytes: { } used } &&
+                         used <= total ? total - used : (ulong?)null;
+        ShowGaugeInActiveView(MemoryMetric, memory, peaks.Memory, 100,
+            showCorners && freeMemory is { } free
+                ? Strings.Format(Strings.GaugeFreeMemory, free / 1_073_741_824d) : null,
+            showCorners && freeMemory is { } shortFree
+                ? Strings.Format(Strings.GaugeFreeMemoryShort, shortFree / 1_073_741_824d) : null);
+        ShowGaugeInActiveView(DiskMetric, disk, peaks.Disk, 100,
+            showCorners ? PeakLabel(peaks.Disk) : null, showCorners ? ShortPeakLabel(peaks.Disk) : null);
+        ShowGaugeInActiveView(SecondaryDiskMetric, secondary, peaks.SecondaryDisk, 100,
+            showCorners ? PeakLabel(peaks.SecondaryDisk) : null,
+            showCorners ? ShortPeakLabel(peaks.SecondaryDisk) : null);
         var networkScale = CpuGraph.NetworkScale(samples.Where(sample => InGaugeWindow(sample, latest)));
         ShowGaugeInActiveView(NetworkMetric, network, peaks.Network, networkScale, RateText.Short(networkScale));
-        ShowGaugeInActiveView(GpuMetric, gpu, peaks.Gpu, 100);
+        ShowGaugeInActiveView(GpuMetric, gpu, peaks.Gpu, 100,
+            showCorners ? PeakLabel(peaks.Gpu) : null, showCorners ? ShortPeakLabel(peaks.Gpu) : null);
     }
 
+    private static string? PeakLabel(double? peak) => peak is { } value
+        ? Strings.Format(Strings.GaugePeak, Math.Clamp(value, 0, 100)) : null;
+
+    private static string? ShortPeakLabel(double? peak) => peak is { } value
+        ? Strings.Format(Strings.GaugePeakShort, Math.Clamp(value, 0, 100)) : null;
+
     private void ShowGaugeInActiveView(MetricReadout source, double? current, double? peak, double maximum,
-        string? scale = null)
+        string? scale = null, string? shortScale = null)
     {
         if (CompactMode)
-            _compactMetrics[source].ShowGauge(current, peak, maximum, scale);
+            _compactMetrics[source].ShowGauge(current, peak, maximum, scale, shortScale);
         else
-            source.ShowGauge(current, peak, maximum, scale);
+            source.ShowGauge(current, peak, maximum, scale, shortScale);
     }
 
     /// <summary>Draw every readout's gauge in the chosen style; the peak legend goes with the gauges.</summary>

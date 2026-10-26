@@ -43,7 +43,7 @@ public sealed class MetricReadout : Grid
 
     public MetricGauge Gauge { get; } = new() { Visibility = Visibility.Hidden, IsHitTestVisible = false };
 
-    /// <summary>The upper end of an auto scale, shown with arc gauges because a dial's angle reads as absolute.</summary>
+    /// <summary>A compact context label beside the name on arc gauges: peak, free memory, or network scale.</summary>
     public TextBlock ScaleLabel { get; } = new() { FontSize = 11, Visibility = Visibility.Collapsed };
 
     private readonly StackPanel _labels = new();
@@ -53,6 +53,8 @@ public sealed class MetricReadout : Grid
     private readonly Grid _bowl = new();
     private GaugeStyle _style;
     private bool _valid;
+    private string _fullCornerLabel = "";
+    private string _shortCornerLabel = "";
 
     public MetricReadout()
     {
@@ -63,7 +65,7 @@ public sealed class MetricReadout : Grid
         ScaleLabel.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
         DetailLabel.SetResourceReference(TextBlock.ForegroundProperty, "Text");
         Lay(GaugeStyle.Bowl);
-        SizeChanged += (_, _) => Fit();
+        SizeChanged += (_, _) => { Fit(); UpdateCornerLabel(); };
     }
 
     /// <summary>The gauge drawing and the layout around it.</summary>
@@ -81,16 +83,31 @@ public sealed class MetricReadout : Grid
     /// <param name="current">The live reading, or <see langword="null"/> when it is unavailable.</param>
     /// <param name="peak">The highest reading in the last two minutes.</param>
     /// <param name="maximum">The physical value at the top of the scale.</param>
-    /// <param name="scale">The formatted top of an auto scale, shown beside arc gauges.</param>
-    public void ShowGauge(double? current, double? peak, double maximum, string? scale = null)
+    /// <param name="scale">Context beside an arc's resource name; hidden for non-arc styles.</param>
+    /// <param name="shortScale">A shorter version for narrow tiles.</param>
+    public void ShowGauge(double? current, double? peak, double maximum, string? scale = null,
+        string? shortScale = null)
     {
         _valid = current is { } value && peak is { } high && maximum > 0 &&
                  double.IsFinite(value) && double.IsFinite(high) && double.IsFinite(maximum);
-        ScaleLabel.Text = scale ?? "";
+        _fullCornerLabel = scale ?? "";
+        _shortCornerLabel = shortScale ?? _fullCornerLabel;
+        UpdateCornerLabel();
         ShowParts();
         // The gauge always draws fractions of its scale; the caller supplies the physical maximum.
         Gauge.Show(_valid ? Math.Clamp(current!.Value / maximum, 0, 1) : null,
             _valid ? Math.Clamp(peak!.Value / maximum, 0, 1) : 0);
+    }
+
+    private void UpdateCornerLabel()
+    {
+        var label = ActualWidth is > 0 and < 155 ? _shortCornerLabel : _fullCornerLabel;
+        if (ScaleLabel.Text != label) ScaleLabel.Text = label;
+        if (ScaleLabel.ToolTip is not string tooltip || tooltip != _fullCornerLabel)
+        {
+            ScaleLabel.ToolTip = _fullCornerLabel;
+            AutomationProperties.SetName(ScaleLabel, _fullCornerLabel);
+        }
     }
 
     private void ShowParts()
@@ -178,6 +195,7 @@ public sealed class MetricReadout : Grid
                 break;
         }
 
+        UpdateCornerLabel();
         ShowParts();
         Fit();
         return;
@@ -191,7 +209,7 @@ public sealed class MetricReadout : Grid
             return _labels;
         }
 
-        // Arc styles print the network scale at the right of the resource name.
+        // Arc styles print a short metric context at the right of the resource name.
         void AddNameRow()
         {
             Toggle.Margin = new Thickness();

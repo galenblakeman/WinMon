@@ -81,6 +81,27 @@ internal sealed partial class WindowDiagnostics
                 if (arcs.Contains(style) != (scaled.Visibility == Visibility.Visible) ||
                     (arcs.Contains(style) && scaled.Text != "100M"))
                     throw new InvalidOperationException($"{style} showed the network scale wrongly.");
+                (MetricReadout Readout, string Full, string Short)[] corners =
+                [
+                    (fixture.CpuMetric, Strings.Format(Strings.GaugePeak, 78d),
+                        Strings.Format(Strings.GaugePeakShort, 78d)),
+                    (fixture.MemoryMetric, Strings.Format(Strings.GaugeFreeMemory, 31d),
+                        Strings.Format(Strings.GaugeFreeMemoryShort, 31d)),
+                    (fixture.DiskMetric, Strings.Format(Strings.GaugePeak, 62d),
+                        Strings.Format(Strings.GaugePeakShort, 62d)),
+                    (fixture.SecondaryDiskMetric, Strings.Format(Strings.GaugePeak, 99d),
+                        Strings.Format(Strings.GaugePeakShort, 99d)),
+                    (fixture.GpuMetric, Strings.Format(Strings.GaugePeak, 69d),
+                        Strings.Format(Strings.GaugePeakShort, 69d))
+                ];
+                if (corners.Any(corner => corner.Readout.ScaleLabel.Text !=
+                        (arcs.Contains(style)
+                            ? corner.Readout.ActualWidth < 155 ? corner.Short : corner.Full
+                            : "") ||
+                        (arcs.Contains(style) && (corner.Readout.ScaleLabel.ToolTip is not string tooltip ||
+                            tooltip != corner.Full)) ||
+                        (corner.Readout.ScaleLabel.Visibility == Visibility.Visible) != arcs.Contains(style)))
+                    throw new InvalidOperationException($"{style} showed a resource corner label wrongly.");
                 if ((fixture.PeakLegend.Visibility == Visibility.Visible) == (style == GaugeStyle.None))
                     throw new InvalidOperationException($"{style} left the peak legend out of step.");
                 await CaptureVisualAsync(visual,
@@ -137,8 +158,9 @@ internal sealed partial class WindowDiagnostics
 
         fixture.ShownSamplingError = SamplingError.ReadingsUnavailable;
         Draw(836);
-        if (readouts.Any(readout => readout.Gauge.Visibility == Visibility.Visible))
-            throw new InvalidOperationException("Unavailable readings kept their gauges.");
+        if (readouts.Any(readout => readout.Gauge.Visibility == Visibility.Visible ||
+            readout.ScaleLabel.Visibility == Visibility.Visible))
+            throw new InvalidOperationException("Unavailable readings kept their gauges or corner labels.");
         fixture.ShownSamplingError = null;
 
         var store = new PreferenceStore(Path.Combine(output, "gauge-settings.json"));
@@ -174,7 +196,8 @@ internal sealed partial class WindowDiagnostics
         {
             Styles = Enum.GetNames<GaugeStyle>(), Themes = new[] { "Dark", "Light" }.Concat(ThemeFinishes.Names),
             Widths = new[] { 1000, 836 },
-            ReadoutHeight = heights.Single(), NetworkScaleOnArcs = true, PeakLegendFollowsStyle = true,
+            ReadoutHeight = heights.Single(), NetworkScaleOnArcs = true, CornerLabelsOnArcs = true,
+            PeakLegendFollowsStyle = true,
             UnavailableHidesGauges = true, PreferenceRoundTrip = true, SettingsPreview = true
         }), cancellationToken);
         return;

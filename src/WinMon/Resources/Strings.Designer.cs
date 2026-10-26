@@ -228,8 +228,12 @@ public static partial class Strings
     public static string FullView => ResourceManager.GetString(nameof(FullView), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GaugeBottomBar => ResourceManager.GetString(nameof(GaugeBottomBar), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GaugeBowl => ResourceManager.GetString(nameof(GaugeBowl), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string GaugeFreeMemory => ResourceManager.GetString(nameof(GaugeFreeMemory), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string GaugeFreeMemoryShort => ResourceManager.GetString(nameof(GaugeFreeMemoryShort), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GaugeLeftBar => ResourceManager.GetString(nameof(GaugeLeftBar), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GaugeNeedle => ResourceManager.GetString(nameof(GaugeNeedle), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string GaugePeak => ResourceManager.GetString(nameof(GaugePeak), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string GaugePeakShort => ResourceManager.GetString(nameof(GaugePeakShort), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GaugeSegmentedArc => ResourceManager.GetString(nameof(GaugeSegmentedArc), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GaugeSegmentedBar => ResourceManager.GetString(nameof(GaugeSegmentedBar), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GHzMHz => ResourceManager.GetString(nameof(GHzMHz), Culture ?? CultureInfo.CurrentUICulture)!;

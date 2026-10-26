@@ -6,6 +6,19 @@ Dated measurement and validation records, newest first. Each section describes t
 
 Add a section at the top for each measured change: what changed, the machine and build, before and after results, and where the raw reports are.
 
+## Gauge corner labels (October 26, 2026)
+
+Release UI benchmark on the development machine (12 logical processors), comparing `c166839` with the gauge corner-label working tree on .NET 10. Four baseline and four changed runs alternated after the first baseline run; values are medians of each run's seven-batch median, then the median of four runs. The new labels are visible in the benchmark renders, so pixel hashes differ as expected.
+
+| Scenario | Before | After | Allocation before / after |
+| --- | ---: | ---: | ---: |
+| Live overlay | 5.17 ms | 5.06 ms | 535.5 / 536.4 KiB |
+| Small multiples | 3.28 ms | 3.57 ms | 506.7 / 507.4 KiB |
+| Services live | 7.28 ms | 7.46 ms | 949.8 / 950.5 KiB |
+| Compact live | 1.89 ms | 1.83 ms | 361.6 / 362.3 KiB |
+
+Per-run timing ranges overlap; neither Small multiples nor Services increased consistently in the paired runs. The additional 0.7–0.9 KiB per frame is the expected formatting and text update for the corner labels, under 1 KiB per second at the normal 1 Hz refresh. The other UI scenarios likewise showed no consistent time regression. Raw local reports: `artifacts/perf-gauge-corners/baseline-1.json` through `baseline-4.json` and `changed-1.json` through `changed-4.json`.
+
 ## Portable process identity on macOS — October 25, 2026
 
 Measured MonCore 3.4.1 against the portable identity changes on Apple Silicon/macOS 26.6 with .NET SDK 10.0.401. The repeatable harness is in the sibling MacMon checkout at `tools/MonCore.Performance`: 850 processes, six observations, 1,000 ranking warmups, seven batches of 500 operations; medians below. Raw local reports are in MacMon's `artifacts/core-benchmark-before.json` and `artifacts/core-benchmark-after.json`.
