@@ -94,18 +94,18 @@ internal sealed partial class WindowDiagnostics
             if (!Equals(fixture.CapturesButton.Content, Strings.Format(Strings.AutoCaptureShortCount, 2)) ||
                 AutomationProperties.GetName(fixture.CapturesButton) != Strings.Format(Strings.AutoCaptureCount, 2))
                 throw new InvalidOperationException("The captures button needs its count and full description.");
-            var typeRight = fixture.ChartTypeSelector.TranslatePoint(
-                new Point(fixture.ChartTypeSelector.ActualWidth, 0), fixture).X;
+            var captureRight = fixture.ChartModeSwitch.TranslatePoint(
+                new Point(fixture.ChartModeSwitch.ActualWidth, 0), fixture).X;
             var autoLeft = fixture.CapturesButton.TranslatePoint(new Point(), fixture).X;
-            if (Math.Abs(autoLeft - typeRight - 6) > 1.5 || fixture.ChartTypeSelector.ActualWidth != 120)
-                throw new InvalidOperationException("Auto must follow the narrow chart type selector.");
+            if (Math.Abs(autoLeft - captureRight - 8) > 1.5 || fixture.ChartTypeSelector.ActualWidth != 120)
+                throw new InvalidOperationException("Auto must follow Capture while the chart type selector stays narrow.");
             fixture.Width = 836;
             fixture.UpdateLayout();
             var autoRight = fixture.CapturesButton.TranslatePoint(
                 new Point(fixture.CapturesButton.ActualWidth, 0), fixture).X;
-            var modeLeft = fixture.ChartModeSwitch.TranslatePoint(new Point(), fixture).X;
-            if (autoRight + 8 > modeLeft)
-                throw new InvalidOperationException("Auto overlaps the centered chart mode controls at minimum width.");
+            var rangeLeft = fixture.RangeSelector.TranslatePoint(new Point(), fixture).X;
+            if (autoRight + 8 > rangeLeft)
+                throw new InvalidOperationException("Auto overlaps the time range controls at minimum width.");
             await CaptureVisualAsync((FrameworkElement)fixture.Content,
                 Path.Combine(output, "captures-toolbar-narrow.png"), 1, cancellationToken);
             fixture.Width = 1200;

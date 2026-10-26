@@ -325,6 +325,19 @@
                                         </RadioButton>
                                     </StackPanel>
                                 </Border>
+                                <Button
+                                    x:Name="CapturesButton"
+                                    Grid.Row="0"
+                                    Grid.Column="2"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Center"
+                                    controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.CaptureFrame}"
+                                    Padding="8,2"
+                                    AutomationProperties.Name="{Binding [AutoCaptureHeading], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                    Click="OnCapturesMenu"
+                                    FontSize="12"
+                                    Style="{StaticResource TitleActionButton}"
+                                    Visibility="Collapsed" />
                                 <!--  Shown only when sampling fails; normal recording needs no status.  -->
                                 <TextBlock
                                     x:Name="ErrorLabel"
@@ -350,15 +363,6 @@
                                         TextTrimming="CharacterEllipsis" />
                                     <ComboBox x:Name="ChartTypeSelector" Width="120" Height="27" Margin="0,0,6,0"
                                               VerticalAlignment="Center" SelectionChanged="OnChartTypeChanged" />
-                                    <Button
-                                        x:Name="CapturesButton"
-                                        controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.CaptureFrame}"
-                                        Padding="8,2"
-                                        AutomationProperties.Name="{Binding [AutoCaptureHeading], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                        Click="OnCapturesMenu"
-                                        FontSize="12"
-                                        Style="{StaticResource TitleActionButton}"
-                                        Visibility="Collapsed" />
                                 </StackPanel>
                             </Grid>
                         </Border>
