@@ -1573,6 +1573,13 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
   <data name="SettingsGeneral" xml:space="preserve"><value>Ogólne</value></data>
   <data name="SettingsMonitoring" xml:space="preserve"><value>Monitorowanie</value></data>
   <data name="SettingsSections" xml:space="preserve"><value>Sekcje ustawień</value></data>
+  <data name="StartupViewLabel" xml:space="preserve"><value>Widok startowy</value></data>
+  <data name="StartupViewLastUsed" xml:space="preserve"><value>Ostatnio używany</value></data>
+  <data name="NetworkAutomatic" xml:space="preserve"><value>Automatycznie</value></data>
+  <data name="NetworkAutomaticCurrent" xml:space="preserve"><value>Automatycznie — {0}</value></data>
+  <data name="NetworkInterfaceLabel" xml:space="preserve"><value>Interfejs sieciowy</value></data>
+  <data name="NetworkInterfaceUnavailable" xml:space="preserve"><value>Niedostępny interfejs ({0})</value></data>
+  <data name="NetworkSelectionNote" xml:space="preserve"><value>Tryb automatyczny wybiera połączony interfejs Ethernet lub Wi-Fi. Ręcznie wybrany interfejs pozostaje wybrany po rozłączeniu; odczyty będą niedostępne do ponownego połączenia.</value></data>
   <data name="SettingsStartupAndTray" xml:space="preserve"><value>Uruchamianie i zasobnik</value></data>
   <data name="SettingsHistory" xml:space="preserve"><value>Historia</value></data>
   <data name="SettingsRetentionNote" xml:space="preserve"><value>Jak daleko wstecz sięgają wykres, tryb przechwycenia i historia procesów. Dłuższe przechowywanie zużywa więcej pamięci.</value></data>

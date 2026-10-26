@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Net.NetworkInformation;
 using System.Security;
 using System.Windows;
 using System.Windows.Automation;
@@ -46,6 +47,11 @@ public sealed class SettingsWindow : Window
         }
     }
 
+    private sealed record StartupViewChoice(StartupViewMode Mode, string Label)
+    {
+        public override string ToString() => Label;
+    }
+
     /// <summary>Hosts the appearance illustration; assistive technology skips its sample controls.</summary>
     private sealed class PreviewHost : Border
     {
@@ -79,6 +85,10 @@ public sealed class SettingsWindow : Window
     private readonly ComboBox _gaugeSelector;
     private readonly AppearancePreview _appearancePreview;
     private readonly ComboBox _retentionSelector;
+    private readonly ComboBox _startupViewSelector;
+    private readonly Func<NetworkChoice[]> _loadNetworkInterfaces;
+    private readonly string? _currentNetworkName;
+    private Task? _networkLoadTask;
     private readonly CheckBox _keepHistoryCheckBox;
     private readonly CheckBox _minimizeToTrayCheckBox;
     private readonly CheckBox _startupCheckBox;
@@ -129,19 +139,22 @@ public sealed class SettingsWindow : Window
     /// <param name="lastUpdateCheck">When this session last finished an update check, if it has.</param>
     public SettingsWindow(MonitorPreferences preferences, Func<HotkeyGesture, bool>? isShortcutAvailable = null,
         string shortcutStatus = "", Func<Task<string>>? checkForUpdates = null, string? captureFolder = null,
-        DateTimeOffset? lastUpdateCheck = null)
+        DateTimeOffset? lastUpdateCheck = null, string? currentNetworkName = null)
         : this(preferences, DiscoverDrives, isShortcutAvailable, shortcutStatus, checkForUpdates, captureFolder,
-            lastUpdateCheck)
+            lastUpdateCheck, currentNetworkName: currentNetworkName)
     {
     }
 
     internal SettingsWindow(MonitorPreferences preferences, Func<DriveChoice[]> loadDrives,
         Func<HotkeyGesture, bool>? isShortcutAvailable = null, string shortcutStatus = "",
         Func<Task<string>>? checkForUpdates = null, string? captureFolder = null,
-        DateTimeOffset? lastUpdateCheck = null, StartupAvailability? startupAvailability = null)
+        DateTimeOffset? lastUpdateCheck = null, StartupAvailability? startupAvailability = null,
+        Func<NetworkChoice[]>? loadNetworkInterfaces = null, string? currentNetworkName = null)
     {
         ArgumentNullException.ThrowIfNull(preferences);
         _loadDrives = loadDrives;
+        _loadNetworkInterfaces = loadNetworkInterfaces ?? DiscoverNetworkInterfaces;
+        _currentNetworkName = preferences.NetworkInterfaceId is null ? currentNetworkName : null;
         _startupAvailability = startupAvailability ?? StartupRegistration.Availability;
         _initialPreferences = preferences;
         _isShortcutAvailable = isShortcutAvailable ?? (_ => true);
@@ -241,6 +254,16 @@ public sealed class SettingsWindow : Window
         _gaugeSelector.SelectionChanged += (_, _) => UpdateAppearancePreview();
         _retentionSelector = CreateSelector([Strings.Value10Minutes, Strings.Value30Minutes, Strings.Value60Minutes],
             RetentionLabel(preferences.RetentionSeconds));
+        _startupViewSelector = CreateSelector([], "");
+        _startupViewSelector.ItemsSource = new[]
+        {
+            new StartupViewChoice(StartupViewMode.LastUsed, Strings.StartupViewLastUsed),
+            new StartupViewChoice(StartupViewMode.Full, Strings.FullView),
+            new StartupViewChoice(StartupViewMode.Compact, Strings.CompactView)
+        };
+        _startupViewSelector.DisplayMemberPath = nameof(StartupViewChoice.Label);
+        _startupViewSelector.SelectedValuePath = nameof(StartupViewChoice.Mode);
+        _startupViewSelector.SelectedValue = preferences.StartupView;
         _keepHistoryCheckBox = CreateCheckBox(Strings.KeepHistoryAcrossRestarts,
             preferences.KeepHistoryAcrossRestarts);
         _minimizeToTrayCheckBox = CreateCheckBox(Strings.MinimizeToTheNotificationArea, preferences.MinimizeToTray);
@@ -256,10 +279,14 @@ public sealed class SettingsWindow : Window
 
         PrimaryDriveSelector = CreateDriveSelector(preferences.PrimaryDrive, false);
         SecondaryDriveSelector = CreateDriveSelector(preferences.SecondaryDrive, true);
+        NetworkInterfaceSelector = CreateNetworkInterfaceSelector(preferences.NetworkInterfaceId, _currentNetworkName);
+        NetworkInterfaceSelector.SelectionChanged += (_, _) =>
+            NetworkInterfaceSelector.ToolTip = (NetworkInterfaceSelector.SelectedItem as NetworkChoice)?.Label;
         _defaultCaptureFolder = captureFolder ?? new PreferenceStore().DefaultCaptureFolder;
         AutoCapture = new AutoCaptureSection(preferences.AutoCapture, _defaultCaptureFolder, preferences.PrimaryDrive,
             preferences.SecondaryDrive);
         ContentRendered += async (_, _) => await LoadDrivesAsync();
+        ContentRendered += async (_, _) => await LoadNetworkInterfacesAsync();
         Closed += (_, _) => _closed = true;
 
         PrimaryDriveSelector.SelectionChanged += (_, _) => FollowDrives();
@@ -335,6 +362,10 @@ public sealed class SettingsWindow : Window
 
     internal ComboBox GaugeSelector => _gaugeSelector;
 
+    internal ComboBox StartupViewSelector => _startupViewSelector;
+
+    internal ComboBox NetworkInterfaceSelector { get; }
+
     internal ComboBox ThemeSelector => _themeSelector;
 
     internal ComboBox PaletteSelector => _paletteSelector;
@@ -356,6 +387,8 @@ public sealed class SettingsWindow : Window
         {
             PrimaryDrive = settings.PrimaryDrive,
             SecondaryDrive = settings.SecondaryDrive,
+            NetworkInterfaceId = settings.NetworkInterfaceId,
+            StartupView = settings.StartupView,
             Theme = settings.Theme,
             Language = settings.Language,
             ChartPalette = settings.ChartPalette,
@@ -384,6 +417,67 @@ public sealed class SettingsWindow : Window
         SetDriveChoices(selector, [], selected, optional, true);
         selector.Width = 210;
         return selector;
+    }
+
+    internal sealed record NetworkChoice(string? Id, string Label)
+    {
+        public override string ToString() => Label;
+    }
+
+    private static ComboBox CreateNetworkInterfaceSelector(string? selected, string? currentName)
+    {
+        var selector = CreateSelector([], "");
+        selector.Width = 280;
+        SetNetworkChoices(selector, [], selected, currentName);
+        return selector;
+    }
+
+    internal Task LoadNetworkInterfacesAsync() =>
+        _networkLoadTask ??= LoadNetworkInterfacesCoreAsync();
+
+    private async Task LoadNetworkInterfacesCoreAsync()
+    {
+        try
+        {
+            var interfaces = await Task.Run(_loadNetworkInterfaces);
+            if (_closed) return;
+            var selected = (NetworkInterfaceSelector.SelectedItem as NetworkChoice)?.Id;
+            SetNetworkChoices(NetworkInterfaceSelector, interfaces, selected, _currentNetworkName);
+        }
+        catch (Exception ex) when (ex is NetworkInformationException or InvalidOperationException or
+                                   UnauthorizedAccessException)
+        {
+            Trace.TraceWarning("WinMon network interface discovery: {0}", ex);
+        }
+    }
+
+    private static NetworkChoice[] DiscoverNetworkInterfaces() =>
+    [
+        .. NetworkInterface.GetAllNetworkInterfaces()
+            .Where(network => network.NetworkInterfaceType is NetworkInterfaceType.Ethernet or
+                NetworkInterfaceType.Wireless80211)
+            .OrderBy(network => network.Name, StringComparer.CurrentCultureIgnoreCase)
+            .Select(network => new NetworkChoice(network.Id,
+                network.OperationalStatus == OperationalStatus.Up
+                    ? network.Name : $"{network.Name} — {Strings.Unavailable}"))
+    ];
+
+    private static void SetNetworkChoices(ComboBox selector, IReadOnlyList<NetworkChoice> interfaces,
+        string? selected, string? currentName)
+    {
+        var automatic = string.IsNullOrWhiteSpace(currentName)
+            ? Strings.NetworkAutomatic
+            : Strings.Format(Strings.NetworkAutomaticCurrent, currentName);
+        var choices = new List<NetworkChoice> { new(null, automatic) };
+        choices.AddRange(interfaces);
+        if (selected is not null && choices.All(choice =>
+                !string.Equals(choice.Id, selected, StringComparison.OrdinalIgnoreCase)))
+            choices.Add(new NetworkChoice(selected,
+                Strings.Format(Strings.NetworkInterfaceUnavailable, selected)));
+        selector.ItemsSource = choices;
+        selector.SelectedItem = choices.FirstOrDefault(choice =>
+            string.Equals(choice.Id, selected, StringComparison.OrdinalIgnoreCase));
+        selector.ToolTip = (selector.SelectedItem as NetworkChoice)?.Label;
     }
 
     // Start after the dialog's first render; neither construction nor painting waits for a drive.
@@ -670,6 +764,7 @@ public sealed class SettingsWindow : Window
             AutomationProperties.SetHelpText(_startupCheckBox, reason);
         }
 
+        page.Children.Add(Field(Strings.StartupViewLabel, _startupViewSelector));
         page.Children.Add(_minimizeToTrayCheckBox);
         page.Children.Add(CreateHeading(Strings.KeyboardShortcut));
         page.Children.Add(Field(Strings.ShowHideWinMon, _shortcutBox));
@@ -712,6 +807,9 @@ public sealed class SettingsWindow : Window
         page.Children.Add(Note(Strings.SettingsRetentionNote));
         page.Children.Add(_keepHistoryCheckBox);
         page.Children.Add(Note(Strings.KeepHistoryAcrossRestartsNote));
+        page.Children.Add(CreateHeading(Strings.Network));
+        page.Children.Add(Field(Strings.NetworkInterfaceLabel, NetworkInterfaceSelector));
+        page.Children.Add(Note(Strings.NetworkSelectionNote));
         page.Children.Add(CreateHeading(Strings.DiskMonitoring));
         page.Children.Add(Note(Strings.ChooseUpTo2Volumes));
         page.Children.Add(Field(Strings.PrimaryDrive, PrimaryDriveSelector));
@@ -948,6 +1046,8 @@ public sealed class SettingsWindow : Window
         {
             PrimaryDrive = primary,
             SecondaryDrive = secondary,
+            NetworkInterfaceId = (NetworkInterfaceSelector.SelectedItem as NetworkChoice)?.Id,
+            StartupView = _startupViewSelector.SelectedValue as StartupViewMode? ?? StartupViewMode.LastUsed,
             Theme = (_themeSelector.SelectedItem as ThemeChoice)?.Name ?? "Dark",
             Language = LanguageSelector.SelectedValue as string ?? AppLanguages.SystemDefault,
             ChartPalette = _paletteSelector.SelectedValue as string ?? "Classic",

@@ -1573,6 +1573,13 @@ GPU {11} · {12}
   <data name="SettingsGeneral" xml:space="preserve"><value>Общие</value></data>
   <data name="SettingsMonitoring" xml:space="preserve"><value>Мониторинг</value></data>
   <data name="SettingsSections" xml:space="preserve"><value>Разделы параметров</value></data>
+  <data name="StartupViewLabel" xml:space="preserve"><value>Вид при запуске</value></data>
+  <data name="StartupViewLastUsed" xml:space="preserve"><value>Последний использованный</value></data>
+  <data name="NetworkAutomatic" xml:space="preserve"><value>Автоматически</value></data>
+  <data name="NetworkAutomaticCurrent" xml:space="preserve"><value>Автоматически — {0}</value></data>
+  <data name="NetworkInterfaceLabel" xml:space="preserve"><value>Сетевой интерфейс</value></data>
+  <data name="NetworkInterfaceUnavailable" xml:space="preserve"><value>Недоступный интерфейс ({0})</value></data>
+  <data name="NetworkSelectionNote" xml:space="preserve"><value>Автоматический режим выбирает подключённый интерфейс Ethernet или Wi-Fi. Выбранный вручную интерфейс остаётся выбранным при отключении; показания недоступны до его возвращения.</value></data>
   <data name="SettingsStartupAndTray" xml:space="preserve"><value>Запуск и область уведомлений</value></data>
   <data name="SettingsHistory" xml:space="preserve"><value>История</value></data>
   <data name="SettingsRetentionNote" xml:space="preserve"><value>Насколько далеко назад доступны график, режим захвата и история процессов. Более долгое хранение требует больше памяти.</value></data>

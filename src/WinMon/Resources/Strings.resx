@@ -1573,6 +1573,13 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="SettingsGeneral" xml:space="preserve"><value>General</value></data>
   <data name="SettingsMonitoring" xml:space="preserve"><value>Monitoring</value></data>
   <data name="SettingsSections" xml:space="preserve"><value>Settings sections</value></data>
+  <data name="StartupViewLabel" xml:space="preserve"><value>Startup view</value></data>
+  <data name="StartupViewLastUsed" xml:space="preserve"><value>Last used</value></data>
+  <data name="NetworkAutomatic" xml:space="preserve"><value>Automatic</value></data>
+  <data name="NetworkAutomaticCurrent" xml:space="preserve"><value>Automatic — {0}</value></data>
+  <data name="NetworkInterfaceLabel" xml:space="preserve"><value>Network interface</value></data>
+  <data name="NetworkInterfaceUnavailable" xml:space="preserve"><value>Unavailable interface ({0})</value></data>
+  <data name="NetworkSelectionNote" xml:space="preserve"><value>Automatic selects a connected Ethernet or Wi-Fi adapter. A chosen interface stays selected if it disconnects; its readings are unavailable until it returns.</value></data>
   <data name="SettingsStartupAndTray" xml:space="preserve"><value>Startup and tray</value></data>
   <data name="SettingsHistory" xml:space="preserve"><value>History</value></data>
   <data name="SettingsRetentionNote" xml:space="preserve"><value>How far back the chart, Capture mode and process history reach. Longer retention uses more memory.</value></data>

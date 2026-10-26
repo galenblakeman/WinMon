@@ -12,6 +12,16 @@ public sealed record MonitorPreferences
     /// <summary>Open the compact resource gauges while retaining full-view window dimensions.</summary>
     public bool CompactMode { get; init; }
 
+    /// <summary>Choose a fixed startup view or reopen the last view used.</summary>
+    public StartupViewMode StartupView { get; init; }
+
+    internal bool StartCompact => StartupView switch
+    {
+        StartupViewMode.Full => false,
+        StartupViewMode.Compact => true,
+        _ => CompactMode
+    };
+
     /// <summary>Gets the compact window width in device-independent pixels.</summary>
     public double Width { get; init; } = 600;
 
@@ -27,6 +37,9 @@ public sealed record MonitorPreferences
     public string PrimaryDrive { get; init; } = Path.GetPathRoot(Environment.SystemDirectory)!.TrimEnd('\\');
     public string? SecondaryDrive { get; init; }
     public bool ShowSecondaryDisk { get; init; } = true;
+
+    /// <summary>A specific network adapter ID, or null to select one automatically.</summary>
+    public string? NetworkInterfaceId { get; init; }
 
     internal int SeriesMask => VisibleMetrics | (ShowGpu ? 16 : 0) |
                                (SecondaryDrive is not null && ShowSecondaryDisk ? 32 : 0);

@@ -137,6 +137,7 @@ public partial class MainWindow
             _preferences = _diagnosticMode
                 ? new MonitorPreferences()
                 : _initialPreferences ?? await _preferenceStore.LoadAsync(Lifetime.Token);
+            _preferences = _preferences with { CompactMode = _preferences.StartCompact };
             _preferencesLoaded = true;
             BuildChartSelectors();
             ApplyActionsHidden();
@@ -207,7 +208,7 @@ public partial class MainWindow
         var preferences = Volatile.Read(ref _preferences);
         return new SamplingOptions(preferences.PrimaryDrive, preferences.SecondaryDrive,
             Volatile.Read(ref _retainPinned),
-            preferences.TopProcessCount == 0);
+            preferences.TopProcessCount == 0, preferences.NetworkInterfaceId);
     }
 
     private void OnSamplesRecorded()
@@ -662,7 +663,8 @@ public partial class MainWindow
                 {
                     await CheckForUpdatesAsync(true, Lifetime.Token);
                     return UpdateStatusText.Text;
-                }, _preferenceStore.DefaultCaptureFolder, _lastUpdateCheck) { Owner = this };
+                }, _preferenceStore.DefaultCaptureFolder, _lastUpdateCheck,
+                Session.History.Latest?.Resources.NetworkName) { Owner = this };
             dialog.ShowSection(_lastSettingsSection);
             // Let the shortcut recorder receive WinMon's own combination; Save or the finally block takes it back.
             _hotkeyRetry?.Stop();

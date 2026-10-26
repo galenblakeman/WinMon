@@ -1573,6 +1573,13 @@ Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse
   <data name="SettingsGeneral" xml:space="preserve"><value>Allgemein</value></data>
   <data name="SettingsMonitoring" xml:space="preserve"><value>Überwachung</value></data>
   <data name="SettingsSections" xml:space="preserve"><value>Einstellungsbereiche</value></data>
+  <data name="StartupViewLabel" xml:space="preserve"><value>Startansicht</value></data>
+  <data name="StartupViewLastUsed" xml:space="preserve"><value>Zuletzt verwendet</value></data>
+  <data name="NetworkAutomatic" xml:space="preserve"><value>Automatisch</value></data>
+  <data name="NetworkAutomaticCurrent" xml:space="preserve"><value>Automatisch — {0}</value></data>
+  <data name="NetworkInterfaceLabel" xml:space="preserve"><value>Netzwerkschnittstelle</value></data>
+  <data name="NetworkInterfaceUnavailable" xml:space="preserve"><value>Nicht verfügbare Schnittstelle ({0})</value></data>
+  <data name="NetworkSelectionNote" xml:space="preserve"><value>Automatisch wählt eine verbundene Ethernet- oder WLAN-Schnittstelle. Eine manuell gewählte Schnittstelle bleibt bei Trennung ausgewählt; ihre Messwerte sind bis zur Rückkehr nicht verfügbar.</value></data>
   <data name="SettingsStartupAndTray" xml:space="preserve"><value>Start und Infobereich</value></data>
   <data name="SettingsHistory" xml:space="preserve"><value>Verlauf</value></data>
   <data name="SettingsRetentionNote" xml:space="preserve"><value>Wie weit Diagramm, Aufnahmemodus und Prozessverlauf zurückreichen. Eine längere Aufbewahrung braucht mehr Arbeitsspeicher.</value></data>

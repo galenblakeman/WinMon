@@ -6,6 +6,19 @@ Dated measurement and validation records, newest first. Each section describes t
 
 Add a section at the top for each measured change: what changed, the machine and build, before and after results, and where the raw reports are.
 
+## Startup view and network interface settings (October 26, 2026)
+
+Release UI benchmark on the development machine (12 logical processors), comparing `f10437f` with the Settings and network-selection working tree on .NET 10. Four baseline and four changed runs alternated, followed by one reverse-order pair to examine timing variation. Values are medians of each run's seven-batch median, then the median of four runs.
+
+| Scenario | Before | After | Allocation before / after |
+| --- | ---: | ---: | ---: |
+| Live overlay | 3.87 ms | 4.00 ms | 536.2 / 534.7 KiB |
+| Small multiples | 3.05 ms | 3.12 ms | 507.5 / 507.5 KiB |
+| Services live | 6.48 ms | 6.63 ms | 950.6 / 950.6 KiB |
+| Compact live | 1.58 ms | 1.67 ms | 362.4 / 362.4 KiB |
+
+All regular-view pixel hashes match. The open-tooltip hash has two variants across runs, consistent with the known pointer-sensitive capture. Timings varied across both builds (baseline Live overlay 3.63–4.42 ms, changed 3.80–5.10 ms); in the reverse pair, the changed build was faster in Small multiples, Services and Compact but slower in Live and Grouped. Allocation is effectively unchanged and there is no consistent UI regression. This UI benchmark stops real sampling, so it does not measure the adapter-selection code in the Windows sampler. Raw local reports: `artifacts/perf-startup-network/baseline-1.json` through `baseline-4.json`, matching `changed-*` reports, and `baseline-reverse.json` / `changed-reverse.json`.
+
 ## Memory gauge peak label (October 26, 2026)
 
 Release UI benchmark on the development machine (12 logical processors), comparing `5117bba` with the Memory corner-label working tree on .NET 10. Four baseline and four changed runs alternated after the first baseline run. Values are medians of each run's seven-batch median, then the median of four runs. The Memory label visibly changed, so pixel hashes differ as expected.

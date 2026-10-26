@@ -92,6 +92,25 @@ public sealed class ResourceSamplingTests
     }
 
     [Test]
+    public void Network_ManualInterfaceNeverFallsBackAndAutomaticSelectionStaysOnItsConnectedAdapter()
+    {
+        WindowsResourceSampler.NetworkInterfaceChoice[] candidates =
+        [
+            new("ethernet", true, 1_000_000_000),
+            new("wi-fi", false, 2_000_000_000)
+        ];
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(WindowsResourceSampler.SelectNetworkId(candidates, "wi-fi", null), Is.EqualTo("wi-fi"));
+            Assert.That(WindowsResourceSampler.SelectNetworkId(candidates, null, null), Is.EqualTo("ethernet"));
+            Assert.That(WindowsResourceSampler.SelectNetworkId(candidates, "ethernet", "wi-fi"), Is.EqualTo("wi-fi"));
+            Assert.That(WindowsResourceSampler.SelectNetworkId(candidates, null, "WI-FI"), Is.EqualTo("wi-fi"));
+            Assert.That(WindowsResourceSampler.SelectNetworkId(candidates, "ethernet", "missing"), Is.Null);
+        });
+    }
+
+    [Test]
     public void History_RetainsResourceValuesAndProcessMeasurementsForSelectedTimestamp()
     {
         var resource = new ResourceSample { TotalMemoryBytes = 1000, UsedMemoryBytes = 500, DiskActivePercent = 30 };

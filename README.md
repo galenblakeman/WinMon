@@ -42,7 +42,7 @@ Keep the whole picture in view while you work, play or troubleshoot. WinMon puts
 | --- | --- |
 | [![WinMon showing aligned resource charts with their labels beside the plots](docs/example/example_small_multiples.png)](docs/example/example_small_multiples.png) | [![WinMon showing a focused network chart with a throughput scale](docs/example/example_focus_network.png)](docs/example/example_focus_network.png) |
 - **Keep it close.** Enable **Always on top** in the title bar to keep WinMon above other windows, minimize it to the notification area, or bring it forward with a configurable shortcut. Its highlighted background shows when it is enabled.
-- **Use less screen space.** Choose **Compact view** in the title bar for the same live resource gauges, colors, details and two-minute peak marks shown in Full view. Its resource names replace the chart-series checkboxes because the chart is hidden. The selected gauge style, including **None**, applies to both views. **Full view** restores the dashboard and its size. The selected view is remembered when WinMon closes. Export is shown in the title bar only in Full view.
+- **Use less screen space.** Choose **Compact view** in the title bar for the same live resource gauges, colors, details and two-minute peak marks shown in Full view. Its resource names replace the chart-series checkboxes because the chart is hidden. The selected gauge style, including **None**, applies to both views. **Full view** restores the dashboard and its size. Settings → General → **Startup view** can reopen the last used view (the default), or always start in Full or Compact view. You can still switch views during a session. Export is shown in the title bar only in Full view.
 
 ![WinMon Compact view with live CPU, memory, two disks, network and GPU gauges](docs/example/example_compact.png)
 
@@ -165,6 +165,8 @@ The Settings image above is from the installer/portable configuration. Store bui
 </details>
 
 Settings is organized into **General**, **Appearance**, **Monitoring** and **Automatic captures** sections in a sidebar, plus **Updates** in installer and portable builds, with one Save for all of them. Reopening Settings returns to the last section you viewed during this app session, even if you closed it without saving. Appearance holds the theme, chart palette and resource gauge style. General holds language, startup, notification-area behavior and the show/hide shortcut, which defaults to **Ctrl+Shift+M**.
+
+Settings → Monitoring → **Network interface** defaults to Automatic and shows the current adapter. You can choose a specific Ethernet or Wi-Fi interface, including one that is currently disconnected. A manual choice stays selected if that interface disconnects; its readings show as unavailable until it reconnects. Changing the choice starts fresh rate and total measurements.
 
 Choose **Windows display language** or select English, Simplified Chinese, Russian, Spanish, Brazilian Portuguese, German, Japanese, French, Polish or Korean in Settings. Language changes apply when you save.
 

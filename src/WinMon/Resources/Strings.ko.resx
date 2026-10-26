@@ -1573,6 +1573,13 @@ Windows 상태: {2}</value>
   <data name="SettingsGeneral" xml:space="preserve"><value>일반</value></data>
   <data name="SettingsMonitoring" xml:space="preserve"><value>모니터링</value></data>
   <data name="SettingsSections" xml:space="preserve"><value>설정 섹션</value></data>
+  <data name="StartupViewLabel" xml:space="preserve"><value>시작 보기</value></data>
+  <data name="StartupViewLastUsed" xml:space="preserve"><value>마지막 사용 보기</value></data>
+  <data name="NetworkAutomatic" xml:space="preserve"><value>자동</value></data>
+  <data name="NetworkAutomaticCurrent" xml:space="preserve"><value>자동 — {0}</value></data>
+  <data name="NetworkInterfaceLabel" xml:space="preserve"><value>네트워크 인터페이스</value></data>
+  <data name="NetworkInterfaceUnavailable" xml:space="preserve"><value>사용할 수 없는 인터페이스 ({0})</value></data>
+  <data name="NetworkSelectionNote" xml:space="preserve"><value>자동은 연결된 이더넷 또는 Wi-Fi 인터페이스를 선택합니다. 직접 선택한 인터페이스는 연결이 끊겨도 선택이 유지되며 다시 연결될 때까지 측정값을 표시하지 않습니다.</value></data>
   <data name="SettingsStartupAndTray" xml:space="preserve"><value>시작 및 알림 영역</value></data>
   <data name="SettingsHistory" xml:space="preserve"><value>기록</value></data>
   <data name="SettingsRetentionNote" xml:space="preserve"><value>차트, 캡처 모드, 프로세스 기록이 거슬러 올라가는 기간입니다. 오래 보존할수록 메모리를 더 사용합니다.</value></data>

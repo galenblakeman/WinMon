@@ -50,7 +50,8 @@ public sealed class SettingsLayoutTests
     public void Appearance_ContainsThemePaletteAndGaugeWhileGeneralKeepsLanguage()
     {
         var window = Settings(new MonitorPreferences
-            { Theme = "Porcelain", ChartPalette = "Ocean", GaugeStyle = GaugeStyle.Needle });
+            { Theme = "Porcelain", ChartPalette = "Ocean", GaugeStyle = GaugeStyle.Needle,
+                StartupView = StartupViewMode.Compact });
         try
         {
             var general = Descendants(window).ToArray();
@@ -60,10 +61,14 @@ public sealed class SettingsLayoutTests
             Assert.Multiple(() =>
             {
                 Assert.That(general, Does.Contain(window.LanguageSelector));
+                Assert.That(general, Does.Contain(window.StartupViewSelector));
+                Assert.That(window.StartupViewSelector.SelectedValue, Is.EqualTo(StartupViewMode.Compact));
+                Assert.That(window.StartupViewSelector.Items.Count, Is.EqualTo(3));
                 Assert.That(general, Does.Not.Contain(window.ThemeSelector));
                 Assert.That(general, Does.Not.Contain(window.PaletteSelector));
                 Assert.That(general, Does.Not.Contain(window.GaugeSelector));
                 Assert.That(appearance, Does.Not.Contain(window.LanguageSelector));
+                Assert.That(appearance, Does.Not.Contain(window.StartupViewSelector));
                 Assert.That(appearance, Does.Contain(window.ThemeSelector));
                 Assert.That(appearance, Does.Contain(window.PaletteSelector));
                 Assert.That(appearance, Does.Contain(window.GaugeSelector));
@@ -395,6 +400,54 @@ public sealed class SettingsLayoutTests
                 Assert.That(disabled, Is.False);
                 Assert.That(second.IsEnabled, Is.True, "Choosing a second drive enables its rule.");
             });
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [Test]
+    public async Task NetworkInterfaceSelector_ShowsAutomaticAndKeepsAnUnavailableManualChoice()
+    {
+        var window = new SettingsWindow(new MonitorPreferences { NetworkInterfaceId = "missing" }, () => [],
+            loadNetworkInterfaces: () =>
+            [
+                new SettingsWindow.NetworkChoice("ethernet", "Ethernet"),
+                new SettingsWindow.NetworkChoice("wifi", $"Wi-Fi — {Strings.Unavailable}")
+            ], currentNetworkName: "Ethernet");
+        try
+        {
+            window.ShowSection(SettingsSection.Monitoring);
+            Assert.That(Descendants(window), Does.Contain(window.NetworkInterfaceSelector));
+            await window.LoadNetworkInterfacesAsync();
+            Assert.Multiple(() =>
+            {
+                Assert.That(window.NetworkInterfaceSelector.Items.Count, Is.EqualTo(4));
+                Assert.That(((SettingsWindow.NetworkChoice)window.NetworkInterfaceSelector.Items[0]).Label,
+                    Is.EqualTo(Strings.NetworkAutomatic));
+                Assert.That(((SettingsWindow.NetworkChoice)window.NetworkInterfaceSelector.SelectedItem).Id,
+                    Is.EqualTo("missing"));
+            });
+
+            window.NetworkInterfaceSelector.SelectedIndex = 0;
+            Assert.That(((SettingsWindow.NetworkChoice)window.NetworkInterfaceSelector.SelectedItem).Id, Is.Null);
+            Assert.That(window.NetworkInterfaceSelector.ToolTip, Is.EqualTo(Strings.NetworkAutomatic));
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [Test]
+    public void NetworkInterfaceSelector_AutomaticShowsTheCurrentlyMeasuredAdapter()
+    {
+        var window = new SettingsWindow(new MonitorPreferences(), () => [], currentNetworkName: "Ethernet");
+        try
+        {
+            Assert.That(((SettingsWindow.NetworkChoice)window.NetworkInterfaceSelector.SelectedItem).Label,
+                Is.EqualTo(Strings.Format(Strings.NetworkAutomaticCurrent, "Ethernet")));
         }
         finally
         {

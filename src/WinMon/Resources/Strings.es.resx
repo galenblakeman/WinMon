@@ -1573,6 +1573,13 @@ Se puede perder el trabajo sin guardar. Se finalizarán todos los procesos indic
   <data name="SettingsGeneral" xml:space="preserve"><value>General</value></data>
   <data name="SettingsMonitoring" xml:space="preserve"><value>Supervisión</value></data>
   <data name="SettingsSections" xml:space="preserve"><value>Secciones de configuración</value></data>
+  <data name="StartupViewLabel" xml:space="preserve"><value>Vista al iniciar</value></data>
+  <data name="StartupViewLastUsed" xml:space="preserve"><value>Última usada</value></data>
+  <data name="NetworkAutomatic" xml:space="preserve"><value>Automático</value></data>
+  <data name="NetworkAutomaticCurrent" xml:space="preserve"><value>Automático — {0}</value></data>
+  <data name="NetworkInterfaceLabel" xml:space="preserve"><value>Interfaz de red</value></data>
+  <data name="NetworkInterfaceUnavailable" xml:space="preserve"><value>Interfaz no disponible ({0})</value></data>
+  <data name="NetworkSelectionNote" xml:space="preserve"><value>Automático elige una interfaz Ethernet o Wi-Fi conectada. Una interfaz elegida permanece seleccionada si se desconecta; sus lecturas no estarán disponibles hasta que vuelva.</value></data>
   <data name="SettingsStartupAndTray" xml:space="preserve"><value>Inicio y área de notificación</value></data>
   <data name="SettingsHistory" xml:space="preserve"><value>Historial</value></data>
   <data name="SettingsRetentionNote" xml:space="preserve"><value>Hasta dónde llegan el gráfico, el modo Captura y el historial de procesos. Conservar más tiempo usa más memoria.</value></data>

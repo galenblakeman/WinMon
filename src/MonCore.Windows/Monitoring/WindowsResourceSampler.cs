@@ -18,6 +18,7 @@ internal sealed class WindowsResourceSampler : IDisposable
     // refreshed only when Windows reports a network change, or every 30 seconds for speed changes.
     private static readonly long CandidateLifetime = 30 * Stopwatch.Frequency;
     private NetworkInterface[]? _candidates;
+    private NetworkInterfaceChoice[]? _networkChoices;
     private long _candidatesRead;
     private int _networkChanged = 1;
 
@@ -36,8 +37,10 @@ internal sealed class WindowsResourceSampler : IDisposable
     private readonly DiskCounter _secondaryDisk = new();
     private NetworkObservation? _previousNetwork;
     private NetworkObservation? _networkStart;
+    private string? _networkInterfaceId;
 
-    public MonitorSample Sample(MonitorSample cpu, string? primaryDrive = null, string? secondaryDrive = null)
+    public MonitorSample Sample(MonitorSample cpu, string? primaryDrive = null, string? secondaryDrive = null,
+        string? networkInterfaceId = null)
     {
         var reset = cpu.IsGap;
         if (reset) Reset();
@@ -86,7 +89,7 @@ internal sealed class WindowsResourceSampler : IDisposable
         };
         try
         {
-            result = ReadNetwork(result);
+            result = ReadNetwork(result, networkInterfaceId);
         }
         catch (Exception ex) when (ex is NetworkInformationException or InvalidOperationException)
         {
@@ -94,6 +97,7 @@ internal sealed class WindowsResourceSampler : IDisposable
             _previousNetwork = null;
             _networkStart = null;
             _candidates = null;
+            _networkChoices = null;
         }
 
         return _gpu.Sample(cpu with { Resources = result }, reset);
@@ -222,8 +226,15 @@ internal sealed class WindowsResourceSampler : IDisposable
         }
     }
 
-    private ResourceSample ReadNetwork(ResourceSample result)
+    private ResourceSample ReadNetwork(ResourceSample result, string? networkInterfaceId)
     {
+        if (!string.Equals(_networkInterfaceId, networkInterfaceId, StringComparison.OrdinalIgnoreCase))
+        {
+            _networkInterfaceId = networkInterfaceId;
+            _previousNetwork = null;
+            _networkStart = null;
+        }
+
         var now = Stopwatch.GetTimestamp();
         if (_candidates is null || Interlocked.Exchange(ref _networkChanged, 0) != 0 ||
             now - _candidatesRead > CandidateLifetime)
@@ -238,14 +249,17 @@ internal sealed class WindowsResourceSampler : IDisposable
                     })
                     .OrderBy(n => n.Id, StringComparer.Ordinal)
             ];
+            _networkChoices =
+            [
+                .. _candidates.Select(network => new NetworkInterfaceChoice(network.Id,
+                    network.GetIPProperties().GatewayAddresses.Count > 0, network.Speed))
+            ];
             _candidatesRead = now;
         }
 
-        var candidates = _candidates;
-        // Prefer the previously selected link while it remains connected. Never merge interfaces.
-        var network = candidates.FirstOrDefault(n => n.Id == _previousNetwork?.Id) ?? candidates
-            .OrderByDescending(n => n.GetIPProperties().GatewayAddresses.Count > 0)
-            .ThenByDescending(n => n.Speed).FirstOrDefault();
+        var selectedId = SelectNetworkId(_networkChoices ?? [], _previousNetwork?.Id, networkInterfaceId);
+        var network = selectedId is null ? null : _candidates!.FirstOrDefault(candidate =>
+            string.Equals(candidate.Id, selectedId, StringComparison.OrdinalIgnoreCase));
         if (network is null)
         {
             _previousNetwork = null;
@@ -272,6 +286,20 @@ internal sealed class WindowsResourceSampler : IDisposable
             ReceiveBytesPerSecond = NetworkRate(prior, observation, true),
             SendBytesPerSecond = NetworkRate(prior, observation, false)
         };
+    }
+
+    /// <summary>Choose one connected adapter without ever merging interfaces or falling back from a manual choice.</summary>
+    internal static string? SelectNetworkId(IReadOnlyList<NetworkInterfaceChoice> candidates, string? previousId,
+        string? networkInterfaceId)
+    {
+        if (networkInterfaceId is not null)
+            return candidates.FirstOrDefault(candidate =>
+                string.Equals(candidate.Id, networkInterfaceId, StringComparison.OrdinalIgnoreCase))?.Id;
+        if (previousId is not null)
+            return candidates.FirstOrDefault(candidate =>
+                string.Equals(candidate.Id, previousId, StringComparison.OrdinalIgnoreCase))?.Id;
+        return candidates.OrderByDescending(candidate => candidate.HasGateway).ThenByDescending(candidate => candidate.Speed)
+            .Select(candidate => candidate.Id).FirstOrDefault();
     }
 
     public static double? NetworkRate(NetworkObservation? prior, NetworkObservation current, bool receive)
@@ -332,6 +360,8 @@ internal sealed class WindowsResourceSampler : IDisposable
     }
 
     public sealed record NetworkObservation(string Id, long Speed, long Timestamp, long Received, long Sent);
+
+    internal sealed record NetworkInterfaceChoice(string Id, bool HasGateway, long Speed);
 
     // The P/Invoke marshaller constructs this handle for PdhOpenQueryW.
     // ReSharper disable once ClassNeverInstantiated.Local

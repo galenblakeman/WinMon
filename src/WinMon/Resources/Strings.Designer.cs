@@ -347,8 +347,13 @@ public static partial class Strings
     public static string Network => ResourceManager.GetString(nameof(Network), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string NetworkAdapterInventoryUnavailableFromWindows => ResourceManager.GetString(nameof(NetworkAdapterInventoryUnavailableFromWindows), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string NetworkAdapters => ResourceManager.GetString(nameof(NetworkAdapters), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string NetworkAutomatic => ResourceManager.GetString(nameof(NetworkAutomatic), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string NetworkAutomaticCurrent => ResourceManager.GetString(nameof(NetworkAutomaticCurrent), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string NetworkInterfaceLabel => ResourceManager.GetString(nameof(NetworkInterfaceLabel), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string NetworkInterfaceUnavailable => ResourceManager.GetString(nameof(NetworkInterfaceUnavailable), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string NetworkRatePair => ResourceManager.GetString(nameof(NetworkRatePair), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string NetworkScale0 => ResourceManager.GetString(nameof(NetworkScale0), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string NetworkSelectionNote => ResourceManager.GetString(nameof(NetworkSelectionNote), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string No => ResourceManager.GetString(nameof(No), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string NoAppsMatchCurrentView => ResourceManager.GetString(nameof(NoAppsMatchCurrentView), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string NoConnectedEthernetOrWiFiInterfaceAvailable => ResourceManager.GetString(nameof(NoConnectedEthernetOrWiFiInterfaceAvailable), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -597,6 +602,8 @@ public static partial class Strings
     public static string StartService => ResourceManager.GetString(nameof(StartService), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string StartupManagedByPolicy => ResourceManager.GetString(nameof(StartupManagedByPolicy), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string StartupTurnedOffInWindows => ResourceManager.GetString(nameof(StartupTurnedOffInWindows), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string StartupViewLabel => ResourceManager.GetString(nameof(StartupViewLabel), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string StartupViewLastUsed => ResourceManager.GetString(nameof(StartupViewLastUsed), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string StartWinMonWhenISignIn => ResourceManager.GetString(nameof(StartWinMonWhenISignIn), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string StopService => ResourceManager.GetString(nameof(StopService), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string StorageClassMemory => ResourceManager.GetString(nameof(StorageClassMemory), Culture ?? CultureInfo.CurrentUICulture)!;

@@ -531,7 +531,8 @@ public sealed class PreferenceStoreTests
         var confirmed = opened with
         {
             Theme = "Light", RetentionSeconds = 1800, MinimizeToTray = !opened.MinimizeToTray,
-            GaugeStyle = GaugeStyle.SegmentedBar
+            GaugeStyle = GaugeStyle.SegmentedBar, StartupView = StartupViewMode.Full,
+            NetworkInterfaceId = "chosen-adapter"
         };
         // While the confirmed settings were being saved, the user grouped processes and pinned one.
         var current = opened with
@@ -548,9 +549,67 @@ public sealed class PreferenceStoreTests
             Assert.That(applied.RetentionSeconds, Is.EqualTo(1800));
             Assert.That(applied.MinimizeToTray, Is.EqualTo(confirmed.MinimizeToTray));
             Assert.That(applied.GaugeStyle, Is.EqualTo(GaugeStyle.SegmentedBar));
+            Assert.That(applied.StartupView, Is.EqualTo(StartupViewMode.Full));
+            Assert.That(applied.NetworkInterfaceId, Is.EqualTo("chosen-adapter"));
             Assert.That(applied.GroupProcesses, Is.True);
             Assert.That(applied.CompactMode, Is.True);
             Assert.That(applied.PinnedProcesses.Single().Name, Is.EqualTo("pinned"));
         });
+    }
+
+    [TestCase(StartupViewMode.LastUsed, false, false)]
+    [TestCase(StartupViewMode.LastUsed, true, true)]
+    [TestCase(StartupViewMode.Full, true, false)]
+    [TestCase(StartupViewMode.Compact, false, true)]
+    public void StartupView_ResolvesWithoutChangingTheLastUsedChoice(StartupViewMode mode,
+        bool lastUsedCompact, bool expectedCompact)
+    {
+        var preferences = new MonitorPreferences { StartupView = mode, CompactMode = lastUsedCompact };
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(preferences.StartCompact, Is.EqualTo(expectedCompact));
+            Assert.That(preferences.CompactMode, Is.EqualTo(lastUsedCompact));
+        });
+    }
+
+    [Test]
+    public void StartupView_UnknownValueFallsBackToLastUsed()
+    {
+        var validated = PreferenceStore.Validate(new MonitorPreferences
+            { StartupView = (StartupViewMode)99, CompactMode = true });
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(validated.StartupView, Is.EqualTo(StartupViewMode.LastUsed));
+            Assert.That(validated.StartCompact, Is.True);
+        });
+    }
+
+    [Test]
+    public async Task StartupView_RoundTripsAsAChoiceSeparateFromTheLastUsedView()
+    {
+        var store = new PreferenceStore(settingsPath);
+        await store.SaveAsync(new MonitorPreferences
+            { StartupView = StartupViewMode.Full, CompactMode = true });
+
+        var loaded = await store.LoadAsync();
+        Assert.Multiple(() =>
+        {
+            Assert.That(loaded.StartupView, Is.EqualTo(StartupViewMode.Full));
+            Assert.That(loaded.CompactMode, Is.True);
+            Assert.That(loaded.StartCompact, Is.False);
+        });
+    }
+
+    [Test]
+    public async Task NetworkInterfaceId_RoundTripsAndBlankValueResetsToAutomatic()
+    {
+        var store = new PreferenceStore(settingsPath);
+        await store.SaveAsync(new MonitorPreferences { NetworkInterfaceId = " {adapter-guid} " });
+        Assert.That((await store.LoadAsync()).NetworkInterfaceId, Is.EqualTo("{adapter-guid}"));
+
+        await store.SaveAsync(new MonitorPreferences { NetworkInterfaceId = "  " });
+        Assert.That((await store.LoadAsync()).NetworkInterfaceId, Is.Null);
     }
 }

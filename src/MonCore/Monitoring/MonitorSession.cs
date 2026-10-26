@@ -18,14 +18,16 @@ public enum SamplingError
     ProcessesUnavailable
 }
 
-/// <summary>The drives and retention rules one capture uses.</summary>
+/// <summary>The resource targets and retention rules one capture uses.</summary>
 /// <param name="Retain">Processes kept in compacted history even when idle, such as pins and the selection.</param>
 /// <param name="RetainAll">Keep every process, for the All choice of the process count.</param>
+/// <param name="NetworkInterfaceId">The manually selected network adapter, or <see langword="null"/> for automatic selection.</param>
 public sealed record SamplingOptions(
     string? PrimaryDrive = null,
     string? SecondaryDrive = null,
     Func<ProcessUsage, bool>? Retain = null,
-    bool RetainAll = false);
+    bool RetainAll = false,
+    string? NetworkInterfaceId = null);
 
 /// <summary>One complete capture: the full sample, its service frame, and a partial failure if there was one.</summary>
 public sealed record CapturedFrame(MonitorSample Full, ServiceFrame? Services = null, SamplingError? Error = null);

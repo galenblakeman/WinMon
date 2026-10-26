@@ -1573,6 +1573,13 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
   <data name="SettingsGeneral" xml:space="preserve"><value>Général</value></data>
   <data name="SettingsMonitoring" xml:space="preserve"><value>Surveillance</value></data>
   <data name="SettingsSections" xml:space="preserve"><value>Sections des paramètres</value></data>
+  <data name="StartupViewLabel" xml:space="preserve"><value>Vue au démarrage</value></data>
+  <data name="StartupViewLastUsed" xml:space="preserve"><value>Dernière utilisée</value></data>
+  <data name="NetworkAutomatic" xml:space="preserve"><value>Automatique</value></data>
+  <data name="NetworkAutomaticCurrent" xml:space="preserve"><value>Automatique — {0}</value></data>
+  <data name="NetworkInterfaceLabel" xml:space="preserve"><value>Interface réseau</value></data>
+  <data name="NetworkInterfaceUnavailable" xml:space="preserve"><value>Interface indisponible ({0})</value></data>
+  <data name="NetworkSelectionNote" xml:space="preserve"><value>Automatique choisit une interface Ethernet ou Wi-Fi connectée. Une interface choisie reste sélectionnée si elle se déconnecte ; ses mesures sont indisponibles jusqu’à son retour.</value></data>
   <data name="SettingsStartupAndTray" xml:space="preserve"><value>Démarrage et zone de notification</value></data>
   <data name="SettingsHistory" xml:space="preserve"><value>Historique</value></data>
   <data name="SettingsRetentionNote" xml:space="preserve"><value>Jusqu’où remontent le graphique, le mode Capture et l’historique des processus. Une conservation plus longue utilise plus de mémoire.</value></data>

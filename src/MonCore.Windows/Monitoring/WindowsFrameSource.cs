@@ -47,7 +47,8 @@ public sealed class WindowsFrameSource : IFrameSource
             sample = new MonitorSample(DateTimeOffset.Now, null, [], 0, false, Stopwatch.GetTimestamp());
         }
 
-        var full = _resources.Sample(sample, options.PrimaryDrive, options.SecondaryDrive);
+        var full = _resources.Sample(sample, options.PrimaryDrive, options.SecondaryDrive,
+            options.NetworkInterfaceId);
         return new CapturedFrame(full, _serviceTree.Capture(full, catalog), error);
     }
 

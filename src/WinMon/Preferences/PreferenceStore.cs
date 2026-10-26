@@ -165,6 +165,10 @@ public sealed class PreferenceStore
         {
             PrimaryDrive = primary,
             SecondaryDrive = secondary == primary ? null : secondary,
+            NetworkInterfaceId = string.IsNullOrWhiteSpace(preferences.NetworkInterfaceId)
+                ? null : preferences.NetworkInterfaceId.Trim(),
+            StartupView = Enum.IsDefined(preferences.StartupView)
+                ? preferences.StartupView : StartupViewMode.LastUsed,
             Width = ClampFinite(preferences.Width, 600, 600, 2000),
             Height = ClampFinite(preferences.Height, 840, 160, 1500),
             Left = ValidateCoordinate(preferences.Left),

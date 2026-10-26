@@ -1573,6 +1573,13 @@ Windows 健康状态：{2}</value>
   <data name="SettingsGeneral" xml:space="preserve"><value>常规</value></data>
   <data name="SettingsMonitoring" xml:space="preserve"><value>监视</value></data>
   <data name="SettingsSections" xml:space="preserve"><value>设置分区</value></data>
+  <data name="StartupViewLabel" xml:space="preserve"><value>启动视图</value></data>
+  <data name="StartupViewLastUsed" xml:space="preserve"><value>上次使用</value></data>
+  <data name="NetworkAutomatic" xml:space="preserve"><value>自动</value></data>
+  <data name="NetworkAutomaticCurrent" xml:space="preserve"><value>自动 — {0}</value></data>
+  <data name="NetworkInterfaceLabel" xml:space="preserve"><value>网络接口</value></data>
+  <data name="NetworkInterfaceUnavailable" xml:space="preserve"><value>不可用的接口（{0}）</value></data>
+  <data name="NetworkSelectionNote" xml:space="preserve"><value>自动模式选择已连接的以太网或 Wi-Fi 接口。手动选择的接口断开后仍保持选中；重新连接前不会显示其读数。</value></data>
   <data name="SettingsStartupAndTray" xml:space="preserve"><value>启动和通知区域</value></data>
   <data name="SettingsHistory" xml:space="preserve"><value>历史</value></data>
   <data name="SettingsRetentionNote" xml:space="preserve"><value>图表、捕获模式和进程历史可回溯的时长。保留时间越长，占用内存越多。</value></data>

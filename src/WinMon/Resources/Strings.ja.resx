@@ -1573,6 +1573,13 @@ Windows の正常性状態: {2}</value>
   <data name="SettingsGeneral" xml:space="preserve"><value>全般</value></data>
   <data name="SettingsMonitoring" xml:space="preserve"><value>監視</value></data>
   <data name="SettingsSections" xml:space="preserve"><value>設定のセクション</value></data>
+  <data name="StartupViewLabel" xml:space="preserve"><value>起動時の表示</value></data>
+  <data name="StartupViewLastUsed" xml:space="preserve"><value>前回使用した表示</value></data>
+  <data name="NetworkAutomatic" xml:space="preserve"><value>自動</value></data>
+  <data name="NetworkAutomaticCurrent" xml:space="preserve"><value>自動 — {0}</value></data>
+  <data name="NetworkInterfaceLabel" xml:space="preserve"><value>ネットワーク インターフェイス</value></data>
+  <data name="NetworkInterfaceUnavailable" xml:space="preserve"><value>利用できないインターフェイス ({0})</value></data>
+  <data name="NetworkSelectionNote" xml:space="preserve"><value>自動では接続中の Ethernet または Wi-Fi を選びます。手動で選んだインターフェイスは切断後も選択されたままになり、再接続まで測定値を表示しません。</value></data>
   <data name="SettingsStartupAndTray" xml:space="preserve"><value>起動と通知領域</value></data>
   <data name="SettingsHistory" xml:space="preserve"><value>履歴</value></data>
   <data name="SettingsRetentionNote" xml:space="preserve"><value>グラフ、キャプチャ モード、プロセス履歴でさかのぼれる期間です。長く保持するほどメモリを多く使います。</value></data>
