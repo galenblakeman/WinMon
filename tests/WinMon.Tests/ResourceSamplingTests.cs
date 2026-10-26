@@ -111,6 +111,24 @@ public sealed class ResourceSamplingTests
     }
 
     [Test]
+    public void Network_AutomaticSelectionImmediatelyFallsBackWhenPreviousAdapterDisconnects()
+    {
+        WindowsResourceSampler.NetworkInterfaceChoice[] remaining =
+        [
+            new("ethernet", true, 1_000_000_000),
+            new("mobile", false, 100_000_000)
+        ];
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(WindowsResourceSampler.SelectNetworkId(remaining, "wi-fi", null), Is.EqualTo("ethernet"));
+            Assert.That(WindowsResourceSampler.SelectNetworkId(remaining, "wi-fi", "wi-fi"), Is.Null,
+                "A disconnected manual choice must remain unavailable.");
+            Assert.That(WindowsResourceSampler.SelectNetworkId([], "wi-fi", null), Is.Null);
+        });
+    }
+
+    [Test]
     public void History_RetainsResourceValuesAndProcessMeasurementsForSelectedTimestamp()
     {
         var resource = new ResourceSample { TotalMemoryBytes = 1000, UsedMemoryBytes = 500, DiskActivePercent = 30 };

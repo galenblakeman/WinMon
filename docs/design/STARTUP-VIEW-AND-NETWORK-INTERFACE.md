@@ -7,7 +7,7 @@ Let people choose the view WinMon opens in and the network adapter it measures, 
 ## Behavior
 
 - General → Startup view offers Last used, Full and Compact. Last used remains the default. A fixed choice applies when the window loads; the title bar can still switch views, and the last actual view continues to be saved.
-- Monitoring → Network interface offers Automatic and the Ethernet and Wi-Fi adapters Windows reports, including disconnected ones. Automatic shows the adapter name currently being measured when known. Choices are stored by adapter ID so a rename does not change the selection.
+- Monitoring → Network interface offers Automatic and the Ethernet and Wi-Fi adapters Windows reports, including disconnected ones. Automatic shows the adapter name currently being measured when known and selects another connected adapter in the same sample when that one disappears. Choices are stored by adapter ID so a rename does not change the selection.
 - A manually selected adapter never falls back to another. If absent or disconnected, the network metric is unavailable. When the selection changes, rate and since-start totals start with a fresh baseline.
 
 ## Implementation

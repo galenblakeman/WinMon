@@ -295,9 +295,9 @@ internal sealed class WindowsResourceSampler : IDisposable
         if (networkInterfaceId is not null)
             return candidates.FirstOrDefault(candidate =>
                 string.Equals(candidate.Id, networkInterfaceId, StringComparison.OrdinalIgnoreCase))?.Id;
-        if (previousId is not null)
-            return candidates.FirstOrDefault(candidate =>
-                string.Equals(candidate.Id, previousId, StringComparison.OrdinalIgnoreCase))?.Id;
+        if (previousId is not null && candidates.FirstOrDefault(candidate =>
+                string.Equals(candidate.Id, previousId, StringComparison.OrdinalIgnoreCase)) is { } previous)
+            return previous.Id;
         return candidates.OrderByDescending(candidate => candidate.HasGateway).ThenByDescending(candidate => candidate.Speed)
             .Select(candidate => candidate.Id).FirstOrDefault();
     }
