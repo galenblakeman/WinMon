@@ -8,4 +8,9 @@ public sealed record SavedProcessPin(
     string ImagePath = "",
     string AppName = "",
     bool? HasAppWindow = null,
-    bool Grouped = false);
+    bool Grouped = false)
+{
+    public ProcessLifetimeDomain LifetimeDomain { get; init; } = ProcessLifetimeIdentity.WindowsFileTime;
+    public DateTimeOffset? StartedAtUtc { get; init; }
+    public string IdentityPolicyId { get; init; } = ProcessIdentityPolicy.Windows.Id;
+}

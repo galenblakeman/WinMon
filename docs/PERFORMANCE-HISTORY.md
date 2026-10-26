@@ -6,6 +6,17 @@ Dated measurement and validation records, newest first. Each section describes t
 
 Add a section at the top for each measured change: what changed, the machine and build, before and after results, and where the raw reports are.
 
+## Portable process identity on macOS — October 25, 2026
+
+Measured MonCore 3.4.1 against the portable identity changes on Apple Silicon/macOS 26.6 with .NET SDK 10.0.401. The repeatable harness is in the sibling MacMon checkout at `tools/MonCore.Performance`: 850 processes, six observations, 1,000 ranking warmups, seven batches of 500 operations; medians below. Raw local reports are in MacMon's `artifacts/core-benchmark-before.json` and `artifacts/core-benchmark-after.json`.
+
+| Operation | Before | After | Allocation before / after |
+| --- | ---: | ---: | ---: |
+| Grouped ranking | 165.4 µs | 165.8 µs | 32,416 / 35,652 bytes |
+| Usage Add | 13.7 µs | 12.1 µs | 32 / 32 bytes |
+
+The identity retains the old 16-byte key size; in-place dictionary updates offset the extra domain/availability checks. Extra ranking allocation is the portable metadata on cloned result rows, about 3.2 KiB per refresh. The measured ranking difference is under 0.3%; usage time improved. This is a core microbenchmark, not the WPF UI/pixel benchmark. Windows `Verify.ps1`, smoke, Store and full paired UI/performance validation remain outstanding. The package remains a development prerelease until that validation.
+
 ## Shared monitoring assembly extraction (October 25, 2026)
 
 Release UI benchmark on the development machine (12 logical processors), comparing the pre-extraction 3.4.1 build with the MonCore/MonCore.Windows working tree. Four baseline and four changed runs alternated launch order on the same machine. Values are medians of each run's seven-batch median, then the median of four runs. Every rendered pixel hash matched across paired runs.

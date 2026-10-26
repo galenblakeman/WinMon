@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace WinMon.Monitoring;
 
@@ -51,10 +52,12 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
     /// <param name="includeInactive">Include observed processes even without activity or a reading in the sort column, for search.</param>
     /// <returns>The ranking, empty when the last sample is a gap or has no CPU reading.</returns>
     public static ProcessRanking Rank(IReadOnlyList<MonitorSample> history, int windowSeconds = DefaultWindowSeconds,
-        ProcessSort sort = ProcessSort.Cpu, bool grouped = false, bool includeInactive = false)
+        ProcessSort sort = ProcessSort.Cpu, bool grouped = false, bool includeInactive = false,
+        ProcessIdentityPolicy? identityPolicy = null)
     {
         ArgumentNullException.ThrowIfNull(history);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(windowSeconds);
+        var policy = identityPolicy ?? ProcessIdentityPolicy.Windows;
         var window = new List<MonitorSample>(windowSeconds + 1);
         var first = WindowStart(history, windowSeconds);
         for (var i = history.Count - 1; i >= first; i--) window.Add(history[i]);
@@ -64,26 +67,28 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
         // every refresh. Cleared again on exit so they do not keep samples alive.
         var newest = _scratchNewest ??= [];
         var totals = _scratchTotals ??= [];
-        var groups = grouped
-            ? _scratchGroups ??= new Dictionary<string, List<Member>>(StringComparer.OrdinalIgnoreCase)
-            : null;
+        if (grouped && (_scratchGroups is null || !ReferenceEquals(_scratchGroups.Comparer, policy.Comparer)))
+            _scratchGroups = new Dictionary<string, List<Member>>(policy.Comparer);
+        var groups = grouped ? _scratchGroups : null;
         try
         {
             // Memory and counts are point-in-time readings: exclude processes that exited earlier in the window.
-            foreach (var process in window[0].Processes) newest.Add((process.ProcessId, process.CreationTicks));
+            foreach (var process in window[0].Processes) newest.Add(process.Identity);
             // Newest first: the first entry seen for a process carries its latest name and memory.
             foreach (var sample in window)
             foreach (var process in sample.Processes)
             {
-                var key = (process.ProcessId, process.CreationTicks);
-                totals.TryGetValue(key, out var total);
-                totals[key] = new WindowTotals(total.Latest ?? process,
-                    total.Cpu + process.CpuPercent,
+                var key = process.Identity;
+                // Update in place: a second hash lookup per process would magnify the identity checks' cost.
+                ref var total = ref CollectionsMarshal.GetValueRefOrAddDefault(totals, key, out _);
+                total = new WindowTotals(total.Latest ?? process,
+                    total.GpuLatest ?? (process.GpuPercent is not null ? process : null),
+                    total.Cpu + (process.CpuAvailable ? process.CpuPercent : 0),
                     total.Io + (process.IoBytesPerSecond ?? 0),
-                    total.IoCount + (process.IoBytesPerSecond is null ? 0 : 1),
                     total.Gpu + (process.GpuPercent ?? 0),
-                    total.GpuCount + (process.GpuPercent is null ? 0 : 1),
-                    total.GpuLatest ?? (process.GpuPercent is not null ? process : null));
+                    total.CpuUnavailable + (process.CpuAvailable ? 0 : 1),
+                    total.IoCount + (process.IoBytesPerSecond is null ? 0 : 1),
+                    total.GpuCount + (process.GpuPercent is null ? 0 : 1));
             }
 
             var measuredCpu = 0d;
@@ -91,7 +96,8 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
             foreach (var (key, total) in totals)
             {
                 var latest = total.Latest!;
-                var cpu = total.Cpu / window.Count;
+                var cpuCount = window.Count - total.CpuUnavailable;
+                var cpu = cpuCount > 0 ? total.Cpu / cpuCount : 0;
                 measuredCpu += cpu;
                 // Like CPU, intervals without an entry are idle (compacted) and count as zero.
                 double? io = total.IoCount > 0 ? total.Io / window.Count : null;
@@ -99,7 +105,7 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
                 // Groups need every member, but only each group's busiest member becomes a row.
                 if (groups is not null)
                 {
-                    var groupKey = GroupKey(latest);
+                    var groupKey = policy.ExecutableKey(latest);
                     if (!groups.TryGetValue(groupKey, out var members))
                     {
                         members = _spareMembers?.TryPop(out var spare) == true ? spare : [];
@@ -107,16 +113,18 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
                     }
 
                     members.Add(new Member(latest, cpu, io, gpu, total.GpuLatest?.GpuId ?? "",
-                        total.GpuLatest?.GpuEngine ?? "", newest.Contains(key)));
+                        total.GpuLatest?.GpuEngine ?? "", newest.Contains(key), cpuCount > 0));
                     continue;
                 }
 
                 // Individually, skip processes the sort drops before copying them.
+                if (!includeInactive && sort == ProcessSort.Cpu && cpuCount == 0) continue;
                 if (!includeInactive && !Listed(sort, cpu, io, gpu, latest.WorkingSetBytes, newest.Contains(key),
                         latest.ThreadCount, latest.HandleCount)) continue;
                 individual.Add(latest with
                 {
                     CpuPercent = cpu,
+                    CpuAvailable = cpuCount > 0,
                     IoBytesPerSecond = io,
                     GpuPercent = gpu,
                     GpuId = total.GpuLatest?.GpuId ?? "",
@@ -136,11 +144,11 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
                     ProcessSort.Io => p.IoBytesPerSecond ?? 0,
                     ProcessSort.Threads => p.ThreadCount ?? 0,
                     ProcessSort.Handles => p.HandleCount ?? 0,
-                    _ => p.CpuPercent
+                    _ => p.ObservedCpuPercent ?? double.NegativeInfinity
                 })
                 .ThenBy(p => p.ProcessId)
                 .ToArray();
-            return new ProcessRanking(ranked, window.Average(s => s.TotalCpuPercent!.Value), window.Count)
+            return new ProcessRanking(ranked, window.Average(s => s.TotalCpuPercent), window.Count)
                 { MeasuredCpuPercent = measuredCpu };
         }
         finally
@@ -174,7 +182,7 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
         for (var i = history.Count - 1; i >= 0; i--)
         {
             var sample = history[i];
-            if (Moment(sample) < start || sample.IsGap || sample.TotalCpuPercent is null) break;
+            if (Moment(sample) < start || sample.IsGap || (sample.TotalCpuPercent is null && !sample.IndependentProcessReadings)) break;
             if (i < history.Count - 1 && Moment(history[i + 1]) - Moment(sample) > GapSeconds) break;
             first = i;
         }
@@ -182,17 +190,18 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
         return first;
     }
 
-    [ThreadStatic] private static HashSet<(int, long)>? _scratchNewest;
-    [ThreadStatic] private static Dictionary<(int, long), WindowTotals>? _scratchTotals;
+    [ThreadStatic] private static HashSet<ProcessLifetimeIdentity>? _scratchNewest;
+    [ThreadStatic] private static Dictionary<ProcessLifetimeIdentity, WindowTotals>? _scratchTotals;
 
     private record struct WindowTotals(
         ProcessUsage? Latest,
+        ProcessUsage? GpuLatest,
         double Cpu,
         double Io,
-        int IoCount,
         double Gpu,
-        int GpuCount,
-        ProcessUsage? GpuLatest);
+        int CpuUnavailable,
+        int IoCount,
+        int GpuCount);
 
     /// <summary>Whether a process or group has a reading in the sort column; missing readings never become zero.</summary>
     private static bool Listed(ProcessSort sort, double cpu, double? io, double? gpu, ulong? memory, bool current,
@@ -211,9 +220,9 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
 
     /// <summary>Executable identity for grouping: the full path, or the name when the path is unreadable.</summary>
     /// <remarks>A path always contains a backslash and a name never does, so the two kinds cannot collide.</remarks>
-    public static string GroupKey(ProcessUsage process)
+    public static string GroupKey(ProcessUsage process, ProcessIdentityPolicy? identityPolicy = null)
     {
-        return process.ImagePath.Length > 0 ? process.ImagePath : process.Name;
+        return (identityPolicy ?? ProcessIdentityPolicy.Windows).ExecutableKey(process);
     }
 
     [ThreadStatic] private static Dictionary<string, List<Member>>? _scratchGroups;
@@ -227,7 +236,8 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
         double? Gpu,
         string GpuId,
         string GpuEngine,
-        bool Current);
+        bool Current,
+        bool CpuAvailable);
 
     /// <summary>Combine window averages by executable. CPU and I/O add up; GPU members may use different
     /// engines, so a group reports its busiest member; memory sums the private bytes of current members.</summary>
@@ -241,6 +251,7 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
             Member? gpu = null;
             double cpu = 0, io = 0;
             var hasIo = false;
+            var allCpu = true;
             ulong workingSet = 0, privateBytes = 0;
             bool hasWorkingSet = false, hasPrivate = false, allThreads = true, allHandles = true;
             long threads = 0, handles = 0;
@@ -256,6 +267,7 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
                 if (member.Gpu is { } percent && (gpu is null || percent.CompareTo(gpu.Value.Gpu!.Value) > 0))
                     gpu = member;
                 cpu += member.Cpu;
+                allCpu &= member.CpuAvailable;
                 if (member.Io is { } rate)
                 {
                     io += rate;
@@ -293,6 +305,7 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
             rows.Add(busiest.Latest with
             {
                 CpuPercent = cpu,
+                CpuAvailable = allCpu,
                 IoBytesPerSecond = hasIo ? io : null,
                 GpuPercent = gpu?.Gpu,
                 GpuEngine = gpu?.GpuEngine ?? "",

@@ -8,6 +8,8 @@ This folder contains the current layout reference, feature design notes and edit
 
 ## Feature notes
 
+- [Portable process identity](PORTABLE-PROCESS-IDENTITY.md) defines lifetime domains, executable policies and partial observations.
+
 - [Shared monitoring library](SHARED-MONITORING.md) tracks the MonCore extraction for WinMon and future MacMon use.
 
 These records describe the individual feature increments and their validation at the time. Use the [main README](../../README.md) for current user-facing behavior and the [developer guide](../DEVELOPMENT.md) for technical notes.

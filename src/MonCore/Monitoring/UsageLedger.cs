@@ -29,7 +29,10 @@ public sealed record UsageLedgerState(
     double MachineBusyTicks,
     double AttributedTicks,
     IReadOnlyList<UsageAppState> Apps,
-    IReadOnlyList<UsageLifetimeState> Lifetimes);
+    IReadOnlyList<UsageLifetimeState> Lifetimes)
+{
+    public string IdentityPolicyId { get; init; } = ProcessIdentityPolicy.Windows.Id;
+}
 
 /// <summary>One executable's saved totals; see <see cref="AppUsage"/>.</summary>
 public sealed record UsageAppState(
@@ -46,7 +49,10 @@ public sealed record UsageAppState(
     int Lifetimes);
 
 /// <summary>A counted lifetime, its app as an index into <see cref="UsageLedgerState.Apps"/>, and its absences.</summary>
-public readonly record struct UsageLifetimeState(int ProcessId, long CreationTicks, int App, int Absences);
+public readonly record struct UsageLifetimeState(int ProcessId, long CreationTicks, int App, int Absences)
+{
+    public ProcessLifetimeDomain LifetimeDomain { get; init; } = ProcessLifetimeIdentity.WindowsFileTime;
+}
 
 /// <summary>
 /// Totals CPU time, I/O and GPU time per executable from live, uncompacted samples, for the Usage tab.
@@ -57,7 +63,7 @@ public readonly record struct UsageLifetimeState(int ProcessId, long CreationTic
 /// A lifetime is identified by (PID, creation time), which is unique for the boot, and is retired only after
 /// <see cref="RetireAfterAbsences"/> consecutive valid samples without it. Gaps do not advance that count.
 /// </remarks>
-public sealed class UsageLedger(DateTimeOffset since)
+public sealed class UsageLedger(DateTimeOffset since, ProcessIdentityPolicy? identityPolicy = null)
 {
     /// <summary>Consecutive valid samples a lifetime may be missing from before it is forgotten.</summary>
     public const int RetireAfterAbsences = 300;
@@ -68,9 +74,10 @@ public sealed class UsageLedger(DateTimeOffset since)
     /// <summary>The key of the row holding executables beyond <see cref="MaxApps"/>; never a group key.</summary>
     public const string OtherAppsKey = "\0other";
 
-    private readonly Dictionary<string, Entry> _apps = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<(int, long), Lifetime> _lifetimes = [];
-    private readonly List<(int, long)> _retired = [];
+    private readonly ProcessIdentityPolicy _identityPolicy = identityPolicy ?? ProcessIdentityPolicy.Windows;
+    private readonly Dictionary<string, Entry> _apps = new((identityPolicy ?? ProcessIdentityPolicy.Windows).Comparer);
+    private readonly Dictionary<ProcessLifetimeIdentity, Lifetime> _lifetimes = [];
+    private readonly List<ProcessLifetimeIdentity> _retired = [];
     private long _generation;
     private double _machineBusyTicks;
     private double _attributedTicks;
@@ -106,10 +113,10 @@ public sealed class UsageLedger(DateTimeOffset since)
         _generation++;
         _snapshot = null;
         var key = SampleKey.Of(full);
-        _machineBusyTicks += full.TotalCpuPercent!.Value / 100 * full.IntervalCpuTicks;
+        _machineBusyTicks += (full.TotalCpuPercent ?? 0) / 100 * full.IntervalCpuTicks;
         foreach (var process in full.Processes)
         {
-            var id = (process.ProcessId, process.CreationTicks);
+            var id = process.Identity;
             if (!_lifetimes.TryGetValue(id, out var lifetime))
             {
                 // Hash the path once per lifetime, not once per second.
@@ -118,9 +125,19 @@ public sealed class UsageLedger(DateTimeOffset since)
                 lifetime.Entry.Lifetimes++;
             }
 
+            // exec can replace an executable without changing its PID/start identity. Portable policies must
+            // reassign future usage instead of attributing the replacement to the previous executable.
+            if (!ReferenceEquals(_identityPolicy, ProcessIdentityPolicy.Windows) &&
+                !_identityPolicy.Comparer.Equals(lifetime.Entry.Key, _identityPolicy.ExecutableKey(process)))
+            {
+                lifetime = new Lifetime(EntryFor(process));
+                _lifetimes[id] = lifetime;
+                lifetime.Entry.Lifetimes++;
+            }
+
             lifetime.Seen = _generation;
             lifetime.Absences = 0;
-            var cpu = process.CpuPercent / 100 * full.IntervalCpuTicks;
+            var cpu = process.CpuAvailable ? process.CpuPercent / 100 * full.IntervalCpuTicks : 0;
             _attributedTicks += cpu;
             lifetime.Entry.Observe(process, _generation, key, cpu, full.IntervalSeconds);
         }
@@ -153,9 +170,9 @@ public sealed class UsageLedger(DateTimeOffset since)
         return new UsageLedgerState(Since, _machineBusyTicks, _attributedTicks,
             [.. entries.Select(entry => entry.ToState())],
             [
-                .. _lifetimes.Select(pair => new UsageLifetimeState(pair.Key.Item1, pair.Key.Item2,
-                    index[pair.Value.Entry], pair.Value.Absences))
-            ]);
+                .. _lifetimes.Select(pair => new UsageLifetimeState(pair.Key.ProcessId, pair.Key.StartToken,
+                    index[pair.Value.Entry], pair.Value.Absences) { LifetimeDomain = pair.Key.Domain })
+            ]) { IdentityPolicyId = _identityPolicy.Id };
     }
 
     /// <summary>Replace everything with a saved state, so lifetimes still running are not counted again.</summary>
@@ -164,6 +181,8 @@ public sealed class UsageLedger(DateTimeOffset since)
     public void Restore(UsageLedgerState state)
     {
         ArgumentNullException.ThrowIfNull(state);
+        if (state.IdentityPolicyId != _identityPolicy.Id)
+            throw new ArgumentException("Saved usage uses a different executable identity policy.", nameof(state));
         var entries = state.Apps.Select(Entry.FromState).ToArray();
         // Developer-facing argument validation; this message is not displayed in the UI.
         // ReSharper disable once LocalizableElement
@@ -172,7 +191,7 @@ public sealed class UsageLedger(DateTimeOffset since)
         Reset(state.Since);
         foreach (var entry in entries) _apps[entry.Key] = entry;
         foreach (var lifetime in state.Lifetimes)
-            _lifetimes[(lifetime.ProcessId, lifetime.CreationTicks)] =
+            _lifetimes[new ProcessLifetimeIdentity(lifetime.ProcessId, lifetime.CreationTicks, lifetime.LifetimeDomain)] =
                 new Lifetime(entries[lifetime.App]) { Seen = _generation, Absences = lifetime.Absences };
         _machineBusyTicks = state.MachineBusyTicks;
         _attributedTicks = state.AttributedTicks;
@@ -180,7 +199,7 @@ public sealed class UsageLedger(DateTimeOffset since)
 
     private Entry EntryFor(ProcessUsage process)
     {
-        var key = ProcessRanking.GroupKey(process);
+        var key = _identityPolicy.ExecutableKey(process);
         if (_apps.TryGetValue(key, out var entry)) return entry;
         if (_apps.Count - (_apps.ContainsKey(OtherAppsKey) ? 1 : 0) >= MaxApps)
         {

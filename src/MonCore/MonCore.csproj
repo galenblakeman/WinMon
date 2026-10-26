@@ -5,6 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <IsPackable>true</IsPackable>
+    <Version>3.4.1-macos.1</Version>
     <PackageId>MonCore</PackageId>
     <Description>Portable monitoring models, history, ranking and sampling orchestration</Description>
   </PropertyGroup>

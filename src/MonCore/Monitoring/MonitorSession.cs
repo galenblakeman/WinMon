@@ -12,7 +12,10 @@ public enum SamplingError
     ReadingsUnavailable,
 
     /// <summary>Windows cannot report this machine's CPU, such as with more than one processor group.</summary>
-    CpuUnsupported
+    CpuUnsupported,
+
+    /// <summary>Process enumeration failed; system resources remain useful.</summary>
+    ProcessesUnavailable
 }
 
 /// <summary>The drives and retention rules one capture uses.</summary>
@@ -52,7 +55,8 @@ public sealed class MonitorSession(
     Func<IFrameSource> createSource,
     Func<SamplingOptions> options,
     Action<Action> post,
-    TimeSpan? interval = null)
+    TimeSpan? interval = null,
+    ProcessIdentityPolicy? identityPolicy = null)
 {
     private readonly ConcurrentQueue<Pending> _pending = new();
     private readonly TimeSpan _interval = interval ?? TimeSpan.FromSeconds(1);
@@ -67,7 +71,7 @@ public sealed class MonitorSession(
     public ServiceHistory Services { get; } = new();
 
     /// <summary>Per-app totals since WinMon started, from every live full sample.</summary>
-    public UsageLedger Usage { get; } = new(DateTimeOffset.Now);
+    public UsageLedger Usage { get; } = new(DateTimeOffset.Now, identityPolicy);
 
     /// <summary>The newest compacted sample, the same instance history ends with.</summary>
     public MonitorSample? Latest { get; private set; }

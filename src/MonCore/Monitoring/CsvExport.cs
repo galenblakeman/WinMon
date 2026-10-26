@@ -74,17 +74,24 @@ public static class CsvExport
 
     private static void WriteProcesses(TextWriter writer, IReadOnlyList<MonitorSample> samples)
     {
-        Row(writer, "timestamp_utc", "pid", "creation_ticks", "parent_pid", "name", "app_name",
+        var portable = samples.Any(sample => sample.IndependentProcessReadings || sample.Processes.Any(process =>
+            process.LifetimeDomain != ProcessLifetimeIdentity.WindowsFileTime || process.StartedAtUtc is not null));
+        string[] columns = ["timestamp_utc", "pid", "creation_ticks", "parent_pid", "name", "app_name",
             "image_path", "publisher", "cpu_percent", "gpu_percent", "working_set_bytes", "private_bytes",
-            "io_bytes_per_second", "threads", "handles", "has_app_window", "sample_compacted_processes");
+            "io_bytes_per_second", "threads", "handles", "has_app_window", "sample_compacted_processes"];
+        Row(writer, portable ? [.. columns, "lifetime_domain", "started_at_utc"] : columns);
         foreach (var sample in samples)
-            foreach (var process in sample.Processes)
-                Row(writer, Utc(sample.Timestamp), Number(process.ProcessId), Number(process.CreationTicks),
-                    Number(process.ParentProcessId), Safe(process.Name), Safe(process.AppName), Safe(process.ImagePath),
-                    Safe(process.Publisher), Number(process.CpuPercent), Number(process.GpuPercent),
-                    Number(process.WorkingSetBytes), Number(process.PrivateBytes), Number(process.IoBytesPerSecond),
-                    Number(process.ThreadCount), Number(process.HandleCount), Bool(process.HasAppWindow),
-                    Number(sample.CompactedProcesses));
+        foreach (var process in sample.Processes)
+        {
+            string?[] row = [Utc(sample.Timestamp), Number(process.ProcessId), Number(process.CreationTicks),
+                Number(process.ParentProcessId), Safe(process.Name), Safe(process.AppName), Safe(process.ImagePath),
+                Safe(process.Publisher), Number(process.ObservedCpuPercent), Number(process.GpuPercent),
+                Number(process.WorkingSetBytes), Number(process.PrivateBytes), Number(process.IoBytesPerSecond),
+                Number(process.ThreadCount), Number(process.HandleCount), Bool(process.HasAppWindow),
+                Number(sample.CompactedProcesses)];
+            Row(writer, portable ? [.. row, Safe(process.LifetimeDomain.ToString()),
+                process.StartedAtUtc is { } start ? Utc(start) : ""] : row);
+        }
     }
 
     private static void WriteUsage(TextWriter writer, IReadOnlyList<AppUsage> apps, DateTimeOffset since,

@@ -1,15 +1,15 @@
 namespace WinMon.Monitoring;
 
 /// <summary>A selected lifetime (or executable group), independent of the ranked row slots.</summary>
-public sealed class ProcessSelection
+public sealed class ProcessSelection(ProcessIdentityPolicy? identityPolicy = null)
 {
-    private ProcessPins _target = new();
+    private ProcessPins _target = new(identityPolicy);
     public bool Grouped { get; private set; }
     public bool HasSelection => _target.Count(Grouped) > 0;
 
     public void Select(ProcessUsage process, bool grouped)
     {
-        _target = new ProcessPins();
+        _target = new ProcessPins(identityPolicy);
         Grouped = grouped;
         _target.Toggle(process, grouped);
     }
@@ -28,7 +28,7 @@ public sealed class ProcessSelection
         ProcessSort sort)
     {
         return Resolve(samples, grouped, historical,
-            () => ProcessRanking.Rank(samples, sort: sort, grouped: grouped, includeInactive: true));
+            () => ProcessRanking.Rank(samples, sort: sort, grouped: grouped, includeInactive: true, identityPolicy: identityPolicy));
     }
 
     /// <param name="samples">The samples ending at the live or selected moment.</param>
@@ -38,7 +38,7 @@ public sealed class ProcessSelection
     public PinnedProcess? Resolve(IReadOnlyList<MonitorSample> samples, bool grouped, bool historical,
         Func<ProcessRanking> inclusive)
     {
-        if (grouped != Grouped) _target = new ProcessPins();
+        if (grouped != Grouped) _target = new ProcessPins(identityPolicy);
         return HasSelection
             ? _target.Resolve(samples.LastOrDefault(), inclusive().Processes, grouped, historical).Single()
             : null;

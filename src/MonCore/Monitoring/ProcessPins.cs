@@ -11,8 +11,9 @@ public enum PinnedProcessState
 public sealed record PinnedProcess(ProcessUsage Usage, PinnedProcessState State);
 
 /// <summary>Pins in insertion order. Individual pins identify one process lifetime.</summary>
-public sealed class ProcessPins
+public sealed class ProcessPins(ProcessIdentityPolicy? identityPolicy = null)
 {
+    private readonly ProcessIdentityPolicy _identityPolicy = identityPolicy ?? ProcessIdentityPolicy.Windows;
     private sealed record Pin(ProcessUsage Usage, bool Grouped);
 
     private readonly List<Pin> _pins = [];
@@ -33,7 +34,9 @@ public sealed class ProcessPins
         [
             .. _pins.Select(pin => new SavedProcessPin(
                 pin.Usage.ProcessId, pin.Usage.CreationTicks, pin.Usage.Name, pin.Usage.ImagePath,
-                pin.Usage.AppName, pin.Usage.HasAppWindow, pin.Grouped))
+                pin.Usage.AppName, pin.Usage.HasAppWindow, pin.Grouped)
+            { LifetimeDomain = pin.Usage.LifetimeDomain, StartedAtUtc = pin.Usage.StartedAtUtc,
+                IdentityPolicyId = _identityPolicy.Id })
         ];
     }
 
@@ -45,9 +48,11 @@ public sealed class ProcessPins
         foreach (var pin in saved ?? [])
         {
             if (pin is null || pin.ProcessId < 0 || pin.CreationTicks < 0 ||
-                string.IsNullOrWhiteSpace(pin.Name)) continue;
+                string.IsNullOrWhiteSpace(pin.Name) || !Enum.IsDefined(pin.LifetimeDomain) ||
+                pin.Grouped && pin.IdentityPolicyId != _identityPolicy.Id) continue;
             var usage = new ProcessUsage(pin.ProcessId, pin.CreationTicks, pin.Name, 0)
             {
+                LifetimeDomain = pin.LifetimeDomain, StartedAtUtc = pin.StartedAtUtc,
                 ImagePath = pin.ImagePath ?? "", AppName = pin.AppName ?? "", HasAppWindow = pin.HasAppWindow
             };
             if (!Contains(usage, pin.Grouped)) _pins.Add(new Pin(usage, pin.Grouped));
@@ -55,9 +60,9 @@ public sealed class ProcessPins
         // ReSharper restore ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract, NullCoalescingConditionIsAlwaysNotNullAccordingToAPIContract
     }
 
-    public static SavedProcessPin[] Normalize(IEnumerable<SavedProcessPin>? saved)
+    public static SavedProcessPin[] Normalize(IEnumerable<SavedProcessPin>? saved, ProcessIdentityPolicy? identityPolicy = null)
     {
-        var pins = new ProcessPins();
+        var pins = new ProcessPins(identityPolicy);
         pins.Restore(saved);
         return pins.Snapshot();
     }
@@ -94,7 +99,7 @@ public sealed class ProcessPins
         {
             var observed = newest?.Processes.FirstOrDefault(p => Matches(pin, p, grouped));
             var current = observed is null ? null : averages.FirstOrDefault(p => Matches(pin, p, grouped)) ?? observed;
-            var state = newest is null || newest.IsGap || newest.TotalCpuPercent is null
+            var state = newest is null || newest.IsGap || (newest.TotalCpuPercent is null && !newest.IndependentProcessReadings)
                 ? PinnedProcessState.Unavailable
                 : current is not null
                     ? PinnedProcessState.Present
@@ -106,7 +111,7 @@ public sealed class ProcessPins
             // Missing data must never expose the saved pin's stale readings as current measurements.
             var usage = current ?? pin.Usage with
             {
-                CpuPercent = 0, GpuPercent = null, WorkingSetBytes = null, PrivateBytes = null,
+                CpuPercent = 0, CpuAvailable = false, GpuPercent = null, WorkingSetBytes = null, PrivateBytes = null,
                 IoBytesPerSecond = null, ThreadCount = null, HandleCount = null
             };
             result.Add(new PinnedProcess(usage, state));
@@ -115,12 +120,12 @@ public sealed class ProcessPins
         return [.. result];
     }
 
-    private static bool Matches(Pin pin, ProcessUsage process, bool grouped)
+    private bool Matches(Pin pin, ProcessUsage process, bool grouped)
     {
         return pin.Grouped == grouped &&
                (grouped
-                   ? StringComparer.OrdinalIgnoreCase.Equals(ProcessRanking.GroupKey(pin.Usage),
-                       ProcessRanking.GroupKey(process))
-                   : pin.Usage.ProcessId == process.ProcessId && pin.Usage.CreationTicks == process.CreationTicks);
+                   ? _identityPolicy.Comparer.Equals(_identityPolicy.ExecutableKey(pin.Usage),
+                       _identityPolicy.ExecutableKey(process))
+                   : pin.Usage.Identity == process.Identity);
     }
 }

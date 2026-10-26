@@ -76,9 +76,9 @@ public sealed class CaptureRules(IReadOnlyList<CaptureRuleSetting> rules, TimeSp
 {
     private readonly CaptureRuleSetting[] _rules = [.. rules.Where(rule => rule.Enabled).Select(r => r.Normalized())];
     private readonly Dictionary<CaptureMetric, Run> _runs = [];
-    private readonly Dictionary<(int, long), Run> _processRuns = [];
+    private readonly Dictionary<ProcessLifetimeIdentity, Run> _processRuns = [];
     private readonly Dictionary<CaptureMetric, double> _lastFired = [];
-    private readonly List<(int, long)> _absent = [];
+    private readonly List<ProcessLifetimeIdentity> _absent = [];
 
     /// <summary>Feed one live, uncompacted sample; returns the rules it completed.</summary>
     public IReadOnlyList<CaptureFired> Observe(MonitorSample full)
@@ -91,7 +91,7 @@ public sealed class CaptureRules(IReadOnlyList<CaptureRuleSetting> rules, TimeSp
         {
             if (rule.Metric == CaptureMetric.Process)
             {
-                ObserveProcesses(rule, full, valid, moment, ref fired);
+                ObserveProcesses(rule, full, valid || (!full.IsGap && full.IndependentProcessReadings), moment, ref fired);
                 continue;
             }
 
@@ -115,10 +115,10 @@ public sealed class CaptureRules(IReadOnlyList<CaptureRuleSetting> rules, TimeSp
 
         foreach (var process in full.Processes)
         {
-            var key = (process.ProcessId, process.CreationTicks);
+            var key = process.Identity;
             if (!_processRuns.TryGetValue(key, out var run)) _processRuns[key] = run = new Run();
             run.Seen = moment;
-            if (Step(rule, run, process.CpuPercent * logicalProcessors, full, moment) is { } result)
+            if (Step(rule, run, process.ObservedCpuPercent * logicalProcessors, full, moment) is { } result)
                 (fired ??= []).Add(result with { Process = process });
         }
 

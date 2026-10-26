@@ -123,6 +123,8 @@ Rules for new code:
 
 ### Processes
 
+Portable lifetime, executable equality and CPU availability contracts are described in [Portable process identity](design/PORTABLE-PROCESS-IDENTITY.md). Windows defaults and history format 1 remain unchanged; portable consumers use `ObservedCpuPercent` and explicitly select their identity policy.
+
 - Process CPU is a share of total machine CPU capacity, not per core or lifetime. CPU, GPU and I/O columns use a five-second window.
 - The list ranks by CPU, GPU, Memory, I/O, Threads or Handles (`ProcessSort`). Memory, Threads and Handles rank the latest observation of processes in the newest sample.
 - **Memory** is the resident working set, including shared pages. **Grouped** rows instead sum the private bytes of current members, since working sets share pages.

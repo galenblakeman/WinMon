@@ -73,6 +73,14 @@ public static class RestartHistory
         UsageLedgerState? usage, RestartClock clock, Func<string, Stream>? createTemporary = null,
         long maxBytes = long.MaxValue)
     {
+        // Format 1 carries Windows FILETIME identities and cannot preserve portable domains or availability.
+        // Refuse before opening a temporary file; keep existing Windows bytes and files unchanged.
+        if (samples.Any(sample => sample.IndependentProcessReadings || sample.Processes.Any(process =>
+                process.LifetimeDomain != ProcessLifetimeIdentity.WindowsFileTime || !process.CpuAvailable ||
+                process.StartedAtUtc is not null)) ||
+            usage is not null && (usage.IdentityPolicyId != ProcessIdentityPolicy.Windows.Id ||
+                usage.Lifetimes.Any(lifetime => lifetime.LifetimeDomain != ProcessLifetimeIdentity.WindowsFileTime)))
+            return false;
         var start = clock.Timestamp();
         var directory = Path.GetDirectoryName(path) ?? ".";
         var temporary = Path.Combine(directory, $".{Path.GetFileName(path)}.{Guid.NewGuid():N}.tmp");

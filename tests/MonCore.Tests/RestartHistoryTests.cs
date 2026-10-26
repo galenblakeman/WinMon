@@ -463,7 +463,10 @@ public sealed class RestartHistoryTests
     private static IEnumerable<PropertyInfo> Settable(Type type)
     {
         return type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-            .Where(property => property.SetMethod is not null);
+            // Format-1 fixtures cover Windows fields. Portable metadata is deliberately rejected by Save
+            // and covered by PortableIdentityTests rather than silently added to this binary format.
+            .Where(property => property.SetMethod is not null && property.Name is not
+                (nameof(ProcessUsage.LifetimeDomain) or nameof(ProcessUsage.StartedAtUtc) or nameof(ProcessUsage.CpuAvailable)));
     }
 
     private static object? Default(Type type)
