@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using System.Windows;
+using System.Windows.Controls;
 using WinMon.Controls;
 using WinMon.Monitoring;
 using WinMon.Preferences;
@@ -77,6 +78,24 @@ internal sealed partial class WindowDiagnostics
                         $"{style} is not a full-size, nearly round half circle at {width} DIPs: " + string.Join(", ",
                             readouts.Select(readout => readout.Gauge.ArcBounds()).Select(arc =>
                                 $"{arc.RadiusX:0.#}×{arc.RadiusY:0.#}")));
+                if (style == GaugeStyle.Bowl)
+                {
+                    foreach (var readout in readouts)
+                    {
+                        var strip = (Grid)readout.Parent;
+                        var column = Grid.GetColumn(readout);
+                        var columnCenter = strip.ColumnDefinitions.Take(column).Sum(part => part.ActualWidth) +
+                                           strip.ColumnDefinitions[column].ActualWidth / 2;
+                        var gaugeCenter = readout.Gauge.TranslatePoint(readout.Gauge.ArcBounds().Center, strip).X;
+                        var valueCenter = readout.ValueLabel.TranslatePoint(
+                            new Point(readout.ValueLabel.ActualWidth / 2, 0), strip).X;
+                        if (Math.Abs(gaugeCenter - columnCenter) > 0.5 ||
+                            Math.Abs(valueCenter - columnCenter) > 0.5)
+                            throw new InvalidOperationException(
+                                $"{readout.Label} bowl or value is off-center at {width} DIPs: " +
+                                $"column {columnCenter:0.#}, bowl {gaugeCenter:0.#}, value {valueCenter:0.#}.");
+                    }
+                }
                 var scaled = fixture.NetworkMetric.ScaleLabel;
                 if (arcs.Contains(style) != (scaled.Visibility == Visibility.Visible) ||
                     (arcs.Contains(style) && scaled.Text != "100M"))

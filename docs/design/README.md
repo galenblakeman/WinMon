@@ -40,6 +40,7 @@ These records describe the individual feature increments and their validation at
 - [Store sign-in startup](STORE-STARTUP.md), which starts the Store build at sign-in through its MSIX startup task
 - [Startup view and network interface settings](STARTUP-VIEW-AND-NETWORK-INTERFACE.md), which add fixed startup view choices and a persistent adapter choice
 - [Automatic capture button label](AUTO-CAPTURE-BUTTON.md), which shortens the chart toolbar status while keeping its full accessible description
+- [Resource gauge centering](RESOURCE-GAUGE-CENTERING.md), which aligns bowls and values in the full-view columns
 
 Implemented on 2026-10-24; each note ends with what landed and where it departed from the design:
 

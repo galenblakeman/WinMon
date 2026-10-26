@@ -192,13 +192,13 @@
                             <controls:MetricReadout
                                 x:Name="MemoryMetric"
                                 Grid.Column="1"
-                                Margin="10,0,0,0"
+                                Margin="5,0,5,0"
                                 AccentKey="MemoryAccent"
                                 Label="{Binding [Memory], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                             <controls:MetricReadout
                                 x:Name="DiskMetric"
                                 Grid.Column="2"
-                                Margin="10,0,0,0"
+                                Margin="5,0,5,0"
                                 AccentKey="DiskAccent"
                                 Label="{Binding [Disk], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                             <Border
@@ -210,20 +210,20 @@
                             <controls:MetricReadout
                                 x:Name="SecondaryDiskMetric"
                                 Grid.Column="3"
-                                Margin="10,0,0,0"
+                                Margin="5,0,5,0"
                                 AccentKey="SecondaryDiskAccent"
                                 Label="{Binding [Disk], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                                 Visibility="Collapsed" />
                             <controls:MetricReadout
                                 x:Name="NetworkMetric"
                                 Grid.Column="4"
-                                Margin="10,0,0,0"
+                                Margin="5,0,5,0"
                                 AccentKey="NetworkAccent"
                                 Label="{Binding [Network], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                             <controls:MetricReadout
                                 x:Name="GpuMetric"
                                 Grid.Column="5"
-                                Margin="10,0,0,0"
+                                Margin="5,0,5,0"
                                 AccentKey="GpuAccent"
                                 Label="{Binding [GPU], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                         </Grid>
