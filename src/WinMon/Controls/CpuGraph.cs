@@ -41,6 +41,7 @@ public sealed class CpuGraph : FrameworkElement
     private readonly Dictionary<(string, Brush, double), FormattedText> _labels = [];
     private readonly Dictionary<(string, double), double> _labelWidths = [];
     private static readonly Typeface LabelTypeface = new("Segoe UI");
+    private const double LabelSize = 12;
     private static readonly int[] MetricOrder = [0, 1, 2, 5, 3, 4];
 
     internal Rect PlotBounds => Plot();
@@ -249,7 +250,7 @@ public sealed class CpuGraph : FrameworkElement
             // Clamp the timestamp separately so its full text remains inside the chart at both ends.
             var text = $"{_selected.Timestamp:HH:mm:ss}";
             var formatted = new FormattedText(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
-                LabelTypeface, 11, muted, VisualTreeHelper.GetDpi(this).PixelsPerDip);
+                LabelTypeface, LabelSize, muted, VisualTreeHelper.GetDpi(this).PixelsPerDip);
             var x = Math.Clamp(X(_selected, plot) - formatted.Width / 2, plot.Left,
                 Math.Max(plot.Left, plot.Right - formatted.Width));
             drawingContext.DrawRectangle(Resource("Raised", Brushes.Black), CachedPen(line, 1),
@@ -650,7 +651,7 @@ public sealed class CpuGraph : FrameworkElement
         if (_labelWidths.TryGetValue((text, pixelsPerDip), out var width)) return width;
         if (_labelWidths.Count >= 64) _labelWidths.Clear();
         width = new FormattedText(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
-            LabelTypeface, 11, Brushes.Black, pixelsPerDip).Width;
+            LabelTypeface, LabelSize, Brushes.Black, pixelsPerDip).Width;
         _labelWidths[(text, pixelsPerDip)] = width;
         return width;
     }
@@ -689,7 +690,7 @@ public sealed class CpuGraph : FrameworkElement
         {
             if (_labels.Count >= 64) _labels.Clear();
             formatted = new FormattedText(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, LabelTypeface,
-                11, brush, pixelsPerDip);
+                LabelSize, brush, pixelsPerDip);
             _labels[(text, brush, pixelsPerDip)] = formatted;
         }
 

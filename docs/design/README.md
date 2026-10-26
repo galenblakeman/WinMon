@@ -30,6 +30,7 @@ These records describe the individual feature increments and their validation at
 - [Glass variants](GLASS-VARIANTS.md), which replace Glass with Crystal, Slate and Prism
 - [Wildberry and Candy themes](WILDBERRY-CANDY-THEMES.md), which add the Bramble and bold Candy concepts
 - [Theme chip contrast](CHIP-CONTRAST.md), which covers time-range and process-grouping text across finishes
+- [Theme tab and chart readability](THEME-TAB-CHART-READABILITY.md), which improves inactive tab contrast and chart label size
 - [Combined appearance preview](APPEARANCE-PREVIEW.md), which shows theme, palette and gauge choices together before Save
 - [Palette theme variants](PALETTE-THEME-VARIANTS.md), which give nine palettes hand-tuned light or dark sets and add Candy
 - [Palette accessibility and pairing](PALETTE-ACCESSIBILITY.md), which tests color-blind separation, keeps darkened yellows gold, merges the neon palettes and pairs Candy and Wildberry with their palettes

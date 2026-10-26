@@ -105,6 +105,7 @@
         <SolidColorBrush x:Key="TitleMuted" Color="#B3BDC8" />
         <SolidColorBrush x:Key="TitleStatus" Color="#73FF35" />
         <SolidColorBrush x:Key="Muted" Color="#B3BDC8" />
+        <SolidColorBrush x:Key="InactiveTabText" Color="#B3BDC8" />
         <SolidColorBrush x:Key="Line" Color="#35404B" />
         <SolidColorBrush x:Key="GaugeTrack" Color="#35404B" />
         <SolidColorBrush x:Key="Accent" Color="#73FF35" />
@@ -664,7 +665,7 @@
         <Style x:Key="ActivityTab" TargetType="RadioButton">
             <Setter Property="Height" Value="32" />
             <Setter Property="FontSize" Value="14" />
-            <Setter Property="Foreground" Value="{DynamicResource Muted}" />
+            <Setter Property="Foreground" Value="{DynamicResource InactiveTabText}" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="FocusVisualStyle" Value="{StaticResource MetricTileFocusVisual}" />
             <Setter Property="Template">

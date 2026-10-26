@@ -789,6 +789,7 @@ public partial class MainWindow
             app.Resources["TitleMuted"] = SystemColors.WindowTextBrush;
             app.Resources["TitleStatus"] = SystemColors.WindowTextBrush;
             app.Resources["Muted"] = SystemColors.WindowTextBrush;
+            app.Resources["InactiveTabText"] = SystemColors.WindowTextBrush;
             app.Resources["Line"] = SystemColors.WindowTextBrush;
             // Resource colors are all WindowText here, so a gauge's empty part needs a different system color.
             app.Resources["GaugeTrack"] = SystemColors.GrayTextBrush;
@@ -838,6 +839,9 @@ public partial class MainWindow
             SetBrush("TitleText", finish?.TitleText ?? finish?.Text ?? (light ? "#20334A" : "#EDF2F6"));
             SetBrush("TitleMuted", finish?.TitleText ?? finish?.Muted ?? (light ? "#465D78" : "#B3BDC8"));
             SetBrush("Muted", finish?.Muted ?? (light ? "#465D78" : "#B3BDC8"));
+            SetBrush("InactiveTabText", finish is null
+                ? (light ? "#465D78" : "#B3BDC8")
+                : ThemeFinishes.InactiveTabText(_preferences.Theme, finish));
             SetBrush("Line", finish?.Line ?? (light ? "#CCD9E5" : "#35404B"));
             SetBrush("GaugeTrack", finish?.GaugeTrack ?? (light ? "#CCD9E5" : "#35404B"));
             var colors = ChartPalettes.ColorsForTheme(_preferences.ChartPalette, light, finish);

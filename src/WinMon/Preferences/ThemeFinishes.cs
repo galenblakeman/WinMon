@@ -26,6 +26,15 @@ internal static class ThemeFinishes
     internal static string SelectedChipText(Finish finish) =>
         finish.ChipSelectedText ?? (finish.Light ? finish.Text : finish.SelectedText);
 
+    internal static string InactiveTabText(string name, Finish finish) => name switch
+    {
+        "Candy" => "#4E3B51",
+        "Copper" => "#FFF9F4",
+        "Crystal" => "#E0EBF4",
+        "Slate" => "#E6EFF4",
+        _ => finish.Muted
+    };
+
     internal static Finish For(string name) => name switch
     {
         "Candy" => new("#FFF8F1", "#FFFFFF", "#F7A6C7", "#F7A6C7", "#FFFCF9",

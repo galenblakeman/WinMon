@@ -137,6 +137,8 @@ Choose **System**, **Light**, **Dark**, **Candy**, **Copper**, **Crystal**, **Ev
 
 The selected Settings section uses light text and icons against its blue highlight in Light appearance.
 
+The Processes, Services and Usage tabs keep their unselected labels readable across appearances. Chart axis and network-scale labels use a slightly larger type size for easier reading.
+
 Choose how the resource gauges look under **Resource gauges** in Settings: **Bowl** (the default), **Needle**, **Segmented arc**, **Left bar**, **Bottom bar**, **Segmented bar** or **None**. A sample on the Appearance page combines the selected theme, chart palette and gauge style across all six resource colors before you save. Every style keeps the same height, so the chart doesn't move when you switch. **Bowl** and **Segmented arc** hold the reading inside a nearly round arc, with the detail line below. **Needle** draws a half-circle dial with the reading underneath; its detail line, such as clock speed or memory in use, appears when you hover the tile. Radial gauges sit below the resource name for clearer spacing. **None** hides the gauges and their legend.
 
 See [Light appearance and additional palettes](docs/example/README.md) in the example gallery.
