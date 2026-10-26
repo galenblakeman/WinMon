@@ -109,7 +109,7 @@ Select an app for **Properties**, **Copy details** and **Open file location** in
 
 ## Export readings as CSV
 
-In Full view, choose **Export** beside Settings in the title bar. The dialog starts with process samples, resource history or Usage totals according to the view you are in, and lets you choose another dataset. Resource and process exports can use all retained history or the current chart range. Usage totals cover the period since WinMon started or you last pressed Reset; chart range does not apply to them. A normal Windows Save dialog lets you choose the destination.
+In Full view, choose **Export** (the tray-arrow icon) beside Settings in the title bar. The dialog starts with process samples, resource history or Usage totals according to the view you are in, and lets you choose another dataset. Resource and process exports can use all retained history or the current chart range. Usage totals cover the period since WinMon started or you last pressed Reset; chart range does not apply to them. A normal Windows Save dialog lets you choose the destination.
 
 The export dialog's Save CSV and Cancel actions use the standard button appearance with icons alongside their labels.
 

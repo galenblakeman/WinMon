@@ -117,7 +117,7 @@
                         WindowChrome.IsHitTestVisibleInChrome="True" />
                     <Button
                         x:Name="ExportButton"
-                        controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Save}"
+                        controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Download}"
                         AutomationProperties.Name="{Binding [ExportCsv], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                         Click="OnExport"
                         Content="{Binding [Export], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
