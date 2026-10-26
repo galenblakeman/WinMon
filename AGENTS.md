@@ -15,6 +15,7 @@ A change is done when `Verify.ps1` passes and, for anything visible, the smoke m
 - Warnings are errors. Fix the warning in the code.
 - After touching update or Settings code, also run `./tools/Verify.ps1 -Store`, which builds and tests the Microsoft Store variant (`WINMON_STORE`).
 - If the test host fails to connect inside a sandbox, rerun the tests outside it.
+- Run native Services smoke outside a restricted sandbox: SCM enumeration can return Win32 error 5 (Access denied) there even when it succeeds on the same machine outside it.
 
 ## Architecture rules
 

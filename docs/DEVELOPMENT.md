@@ -28,6 +28,7 @@ dotnet pack src/MonCore/MonCore.csproj -c Release -m:1 -p:UseSharedCompilation=f
 - `TreatWarningsAsErrors` is on for the app and both libraries.
 - `-p:StoreBuild=true` builds the Microsoft Store variant, which defines `WINMON_STORE`, drops the GitHub updater, and targets `net10.0-windows10.0.17763.0` so sign-in startup can use the package's `StartupTask`. The test and benchmark projects switch TFM with it. `StoreBuildTests` covers what differs, so run the tests in both variants after touching update or Settings code.
 - Inside a sandbox the VSTest host can fail to connect. The same command passes outside it.
+- Run the native Services smoke outside a restricted sandbox. SCM enumeration returned Win32 error 5 (Access denied) inside the sandbox on the development machine, leaving every service frame unavailable; the same collector and smoke passed outside it.
 - When the NuGet audit endpoint is unreachable, add `-p:NuGetAudit=false` to that command only, and note that the run skipped the vulnerability audit.
 
 `dotnet build` output is at `src/WinMon/bin/Release/net10.0-windows/win-x64/WinMon.exe`, and `dotnet publish` writes the single-file distribution to `…/win-x64/publish/WinMon.exe`. Release builds are self-contained, optimized and embed their debug symbols. Two settings in `WinMon.csproj` are measured choices; the [performance history](PERFORMANCE-HISTORY.md#allocation-gc-and-compression-october-20-2026) has the numbers:
