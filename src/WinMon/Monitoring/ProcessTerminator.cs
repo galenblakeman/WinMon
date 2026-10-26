@@ -1,19 +1,11 @@
 using System.ComponentModel;
-using System.Runtime.InteropServices;
-using Microsoft.Win32.SafeHandles;
 
 namespace WinMon.Monitoring;
 
 /// <summary>Ends only the confirmed process lifetime, using one handle for validation and termination.</summary>
 internal static class ProcessTerminator
 {
-    internal interface ITarget : IDisposable
-    {
-        long CreationTicks { get; }
-        bool HasExited { get; }
-        bool IsCritical { get; }
-        void Terminate();
-    }
+    internal interface ITarget : IProcessTerminationTarget { }
 
     internal static bool IsEligible(ProcessUsage process, bool live, bool grouped)
     {
@@ -55,7 +47,7 @@ internal static class ProcessTerminator
         if (!IsEligible(process, true, false)) return Strings.ThisProcessCannotBeEndedFromWinMon;
         try
         {
-            using var target = (open ?? Open)(process.ProcessId);
+            using var target = (open is null ? WindowsProcessTerminator.Open(process.ProcessId) : open(process.ProcessId));
             if (target.CreationTicks != process.CreationTicks)
                 return Strings.TheOriginalProcessHasExitedAndItsPIDHasBeen;
             if (target.HasExited) return Strings.ThisProcessHasAlreadyExited;
@@ -77,65 +69,4 @@ internal static class ProcessTerminator
         }
     }
 
-    private static ITarget Open(int pid)
-    {
-        return new NativeTarget(pid);
-    }
-
-    private sealed class NativeTarget : ITarget
-    {
-        private readonly SafeProcessHandle _handle;
-
-        internal NativeTarget(int pid)
-        {
-            _handle = OpenProcess(0x1001, false, pid); // QUERY_LIMITED_INFORMATION | TERMINATE
-            if (!_handle.IsInvalid) return;
-            var error = Marshal.GetLastWin32Error();
-            _handle.Dispose();
-            throw new Win32Exception(error);
-        }
-
-        public long CreationTicks => !GetProcessTimes(_handle, out var created, out _, out _, out _)
-            ? throw new Win32Exception()
-            : created;
-
-        public bool HasExited
-        {
-            get
-            {
-                if (!GetProcessTimes(_handle, out _, out var exited, out _, out _)) throw new Win32Exception();
-                return exited != 0;
-            }
-        }
-
-        public bool IsCritical => !IsProcessCritical(_handle, out var critical) ? throw new Win32Exception() : critical;
-
-        public void Terminate()
-        {
-            if (!TerminateProcess(_handle, 1)) throw new Win32Exception();
-        }
-
-        public void Dispose()
-        {
-            _handle.Dispose();
-        }
-    }
-
-    [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern SafeProcessHandle OpenProcess(uint access, [MarshalAs(UnmanagedType.Bool)] bool inherit,
-        int pid);
-
-    [DllImport("kernel32.dll", SetLastError = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool GetProcessTimes(SafeProcessHandle process, out long created, out long exited,
-        out long kernel, out long user);
-
-    [DllImport("kernel32.dll", SetLastError = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool IsProcessCritical(SafeProcessHandle process,
-        [MarshalAs(UnmanagedType.Bool)] out bool critical);
-
-    [DllImport("kernel32.dll", SetLastError = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool TerminateProcess(SafeProcessHandle process, uint exitCode);
 }

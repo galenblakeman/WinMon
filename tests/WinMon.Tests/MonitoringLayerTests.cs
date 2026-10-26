@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.InteropServices;
 using NUnit.Framework;
 using WinMon.Monitoring;
 
@@ -23,6 +24,18 @@ public sealed class MonitoringLayerTests
         .GetFields(BindingFlags.Public | BindingFlags.Static)
         .Select(f => (OpCode)f.GetValue(null)!)
         .ToDictionary(o => o.Value);
+
+    [Test]
+    public void ApplicationMonitoringPresentation_HasNoNativeImports()
+    {
+        var imports = typeof(MainWindow).Assembly.GetTypes()
+            .Where(type => type.Namespace == "WinMon.Monitoring")
+            .SelectMany(type => type.GetMethods(Declared))
+            .Where(method => method.IsDefined(typeof(DllImportAttribute), false) ||
+                             method.IsDefined(typeof(LibraryImportAttribute), false))
+            .Select(method => $"{method.DeclaringType?.FullName}.{method.Name}");
+        Assert.That(imports, Is.Empty);
+    }
 
     [Test]
     public void Monitoring_ReferencesNoUiOrOtherWinMonNamespace()

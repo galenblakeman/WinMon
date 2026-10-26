@@ -52,8 +52,10 @@ try {
     Add-Result 'build benchmark' ($LASTEXITCODE -eq 0) ''
     if ($results.Where({ !$_.Passed }).Count -eq 0) {
         if (!$SkipTests) {
-            dotnet test tests/WinMon.Tests/WinMon.Tests.csproj @options --no-build
-            Add-Result 'tests' ($LASTEXITCODE -eq 0) ''
+            foreach ($project in @('MonCore.Tests', 'MonCore.Windows.Tests', 'WinMon.Tests')) {
+                dotnet test "tests/$project/$project.csproj" @options --no-build
+                Add-Result "$project tests" ($LASTEXITCODE -eq 0) ''
+            }
         }
 
         $exe = Join-Path $build 'bin/WinMon/release_win-x64/WinMon.exe'

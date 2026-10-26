@@ -1,6 +1,6 @@
 # Shared monitoring library for WinMon and MacMon
 
-Status: proposed design; implementation has not started.
+Status: Windows extraction implemented and verified; a macOS MonCore test run is outstanding. Portable sampling, history, ranking, usage, capture rules, CSV and restart persistence now live in MonCore; Windows samplers, service enumeration, WMI queries, native process actions and hardware probes live in MonCore.Windows.
 
 ## Objective
 
@@ -172,6 +172,16 @@ The first milestone is complete when:
 
 A Windows implementation session cannot claim the macOS test run passed without evidence from a Mac. Report that check as outstanding if no Mac execution environment is available.
 
+## Extraction record (October 25, 2026)
+
+- `MonCore` targets `net10.0` and owns the session, samples, histories, ranking, pins, selection, usage, capture rules, CSV and restart-history serializer. It keeps the existing `WinMon.Monitoring` namespace and the serialized history format. `ServiceObservation` and `ServiceCatalog` remain Windows-compatible DTOs beside the existing service aggregation code.
+- `MonCore.Windows` targets `net10.0-windows` (and the Store variant's Windows SDK target). It owns the frame source, CPU/resource/GPU/service samplers, SCM access, WMI queries, hardware probes and native process dump, termination and priority handles. WinMon keeps localized reports, hardware text and process-action error messages.
+- `IFrameSource.Capabilities` advertises supported metrics and actions; `WindowsFrameSource` supplies the Windows set. Per-sample nullable readings and action permission checks are unchanged. `MonitorSession` still queues frames and posts ordered drains without making capture wait for the UI thread.
+- The existing Windows process identity remains PID plus Windows FILETIME creation ticks. Grouping and usage retain case-insensitive executable-path comparisons. Windows measurements and saved-history bytes were not redefined. Mac sampling and persistence require the identity and time compatibility decisions in this design before use.
+- The local package is `MonCore` version 3.4.1, derived from `Directory.Build.props`; `dotnet pack src/MonCore/MonCore.csproj -c Release -o artifacts/local-feed` produces it. A plain `net10.0` consumer restored that pinned package from the local feed, built and ran. External publication is not part of this milestone.
+- Automated Windows verification covers `MonCore.Tests`, `MonCore.Windows.Tests`, `WinMon.Tests` and the Store variant. The `AssemblyBoundaryTests` check references and native imports. A native macOS build and test run remain outstanding.
+- Normal and Store `Verify.ps1` gates passed on Windows. Usage, capture and chart smoke modes passed and representative PNGs were inspected. The Services smoke still fails at live SCM/process mapping on this machine; the identical failure occurred in the pre-extraction baseline. The full smoke likewise failed before extraction because the machine's unavailable `A:` volume disrupted the native resource diagnostic. Four paired UI benchmark runs found matching rendered pixel hashes and no measured regression; see [performance history](../PERFORMANCE-HISTORY.md#shared-monitoring-assembly-extraction-october-25-2026).
+
 Avalonia UI work and macOS collectors begin after this milestone. GPU feature parity, launchd management, a new history format, and a generalized service model are outside the initial extraction.
 
 ## Handoff prompt for Codex on Windows
@@ -184,7 +194,7 @@ Open the local WinMon checkout in Codex, supply this file, and use:
 
 - Developer guide: https://github.com/galenblakeman/WinMon/blob/main/docs/DEVELOPMENT.md
 - Repository instructions: https://github.com/galenblakeman/WinMon/blob/main/AGENTS.md
-- Session and collector contract: https://github.com/galenblakeman/WinMon/blob/main/src/WinMon/Monitoring/MonitorSession.cs
-- Windows frame source: https://github.com/galenblakeman/WinMon/blob/main/src/WinMon/Monitoring/WindowsFrameSource.cs
-- Process ranking: https://github.com/galenblakeman/WinMon/blob/main/src/WinMon/Monitoring/ProcessRanking.cs
-- History persistence: https://github.com/galenblakeman/WinMon/blob/main/src/WinMon/Monitoring/RestartHistory.cs
+- Session and collector contract: https://github.com/galenblakeman/WinMon/blob/main/src/MonCore/Monitoring/MonitorSession.cs
+- Windows frame source: https://github.com/galenblakeman/WinMon/blob/main/src/MonCore.Windows/Monitoring/WindowsFrameSource.cs
+- Process ranking: https://github.com/galenblakeman/WinMon/blob/main/src/MonCore/Monitoring/ProcessRanking.cs
+- History persistence: https://github.com/galenblakeman/WinMon/blob/main/src/MonCore/Monitoring/RestartHistory.cs

@@ -1,6 +1,6 @@
 # WinMon
 
-A WPF resource monitor on .NET 10: one app assembly (`src/WinMon`), NUnit tests (`tests/WinMon.Tests`) and a UI benchmark (`tools/WinMon.Performance`). Run commands from the repository root in PowerShell.
+A WPF resource monitor on .NET 10: the app (`src/WinMon`), portable monitoring library (`src/MonCore`), Windows adapter (`src/MonCore.Windows`), three NUnit test projects and a UI benchmark (`tools/WinMon.Performance`). Run commands from the repository root in PowerShell.
 
 ## Verify
 
@@ -18,7 +18,7 @@ A change is done when `Verify.ps1` passes and, for anything visible, the smoke m
 
 ## Architecture rules
 
-- **`Monitoring` is a leaf.** It references no WPF, Windows Forms, `WinMon.Controls` or `WinMon.Preferences` type. `MonitoringLayerTests` checks the compiled IL, so a violation fails the tests.
+- **`MonCore` is a portable leaf.** It references no WPF, Windows Forms, `WinMon.Controls`, `WinMon.Preferences`, Windows-only dependencies or native imports. `MonitoringLayerTests` and `AssemblyBoundaryTests` enforce the boundary.
 - **`MonitorSession` owns sampling**: the loop, queue and history. It reaches the UI thread through the `post` delegate the window passes in. Tests feed it through a fake `IFrameSource`.
 - **A view is a UserControl updated through one `Update(...)` call.** It raises events when the user changes something; `MainWindow` keeps the settings in `MonitorPreferences` and passes them back in.
 - **XAML for layout and window chrome**; build elements in code only for rows updated every tick.

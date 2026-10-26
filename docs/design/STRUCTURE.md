@@ -1,5 +1,7 @@
 # Code structure
 
+This records the 2026-10-24 single-assembly design. The later [shared monitoring design](SHARED-MONITORING.md) supersedes its assembly decision and describes the current MonCore and MonCore.Windows split.
+
 Agreed on 2026-10-24 after a design review of the 2.0.4 code. Status: done on 2026-10-24; the Sequence records what each step changed, including where it departed from the plan.
 
 ## Why

@@ -6,6 +6,24 @@ Dated measurement and validation records, newest first. Each section describes t
 
 Add a section at the top for each measured change: what changed, the machine and build, before and after results, and where the raw reports are.
 
+## Shared monitoring assembly extraction (October 25, 2026)
+
+Release UI benchmark on the development machine (12 logical processors), comparing the pre-extraction 3.4.1 build with the MonCore/MonCore.Windows working tree. Four baseline and four changed runs alternated launch order on the same machine. Values are medians of each run's seven-batch median, then the median of four runs. Every rendered pixel hash matched across paired runs.
+
+| Scenario | Before | After | Allocation before / after |
+| --- | ---: | ---: | ---: |
+| Live overlay | 5.19 ms | 5.02 ms | 530.6 / 530.6 KiB |
+| Small multiples | 2.49 ms | 2.47 ms | 501.8 / 502.2 KiB |
+| Heatmap | 2.44 ms | 2.33 ms | 544.9 / 544.9 KiB |
+| Focus | 2.57 ms | 2.44 ms | 514.7 / 514.7 KiB |
+| Grouped live | 4.34 ms | 4.05 ms | 542.9 / 542.9 KiB |
+| Services live | 4.85 ms | 4.71 ms | 949.8 / 949.8 KiB |
+| Compact live | 1.59 ms | 1.57 ms | 361.6 / 361.6 KiB |
+| Pinned and selected, grouped | 5.25 ms | 5.21 ms | 708.0 / 708.0 KiB |
+| Grouped with CPU tooltip | 7.09 ms | 7.00 ms | 844.6 / 844.6 KiB |
+
+The other timed UI scenarios also showed no regression. Restart-history save means were 919.0 and 922.3 ms before and after; normal-history saves were 925.8 and 913.1 ms. Read means stayed below 0.7 ms. Both builds produced the same benchmark history outcomes. This benchmark exercises synthetic UI and persistence paths; the live sampler was covered by tests and smoke checks, not by this timing comparison. Raw reports: `artifacts/perf-shared/baseline-1.json` through `baseline-4.json` and `changed-1.json` through `changed-4.json`.
+
 ## Bug-hunt fixes (October 25, 2026)
 
 Release UI benchmark on the development machine (12 logical processors), comparing `47a9fbb` with the working tree that fixed the capture-rule processor count, local sample times, the update-restart clock offset, the focus crash, heatmap ordering, icon cache eviction, export and history file handling, stalled update downloads and locked settings. Four baseline and four changed runs alternated launch order. With default tiering the first live scenario was bimodal in both builds (3.2–4.1 ms before, 3.9–5.0 ms after) although its render path is unchanged, so four more pairs ran with `DOTNET_TieredCompilation=0`; values below are medians of those run medians.

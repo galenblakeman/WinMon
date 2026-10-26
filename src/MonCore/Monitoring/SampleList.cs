@@ -1,0 +1,92 @@
+using System.Collections;
+
+namespace WinMon.Monitoring;
+
+/// <summary>A read-only prefix of a sample list, optionally ending in a replacement sample, without copying it.</summary>
+/// <remarks>Implements <see cref="IList{T}"/> so LINQ takes its indexed paths instead of enumerating.</remarks>
+public sealed class SampleList : IList<MonitorSample>, IReadOnlyList<MonitorSample>
+{
+    private readonly IReadOnlyList<MonitorSample> _source;
+    private readonly MonitorSample? _last;
+
+    /// <param name="source">Samples that do not change while this view is in use.</param>
+    /// <param name="count">Number of leading samples to show.</param>
+    /// <param name="last">Shown instead of the last of those samples, or null to keep it.</param>
+    public SampleList(IReadOnlyList<MonitorSample> source, int count, MonitorSample? last = null)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(count);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(count, source.Count);
+        if (last is not null) ArgumentOutOfRangeException.ThrowIfZero(count);
+        _source = source;
+        Count = count;
+        _last = last;
+    }
+
+    public int Count { get; }
+
+    public bool IsReadOnly => true;
+
+    public MonitorSample this[int index]
+    {
+        get
+        {
+            if ((uint)index >= (uint)Count) throw new ArgumentOutOfRangeException(nameof(index));
+            return _last is not null && index == Count - 1 ? _last : _source[index];
+        }
+        set => throw new NotSupportedException();
+    }
+
+    public int IndexOf(MonitorSample item)
+    {
+        for (var i = 0; i < Count; i++)
+            if (EqualityComparer<MonitorSample>.Default.Equals(this[i], item))
+                return i;
+        return -1;
+    }
+
+    public bool Contains(MonitorSample item)
+    {
+        return IndexOf(item) >= 0;
+    }
+
+    public void CopyTo(MonitorSample[] array, int arrayIndex)
+    {
+        ArgumentNullException.ThrowIfNull(array);
+        for (var i = 0; i < Count; i++) array[arrayIndex + i] = this[i];
+    }
+
+    public IEnumerator<MonitorSample> GetEnumerator()
+    {
+        for (var i = 0; i < Count; i++) yield return this[i];
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+
+    public void Add(MonitorSample item)
+    {
+        throw new NotSupportedException();
+    }
+
+    public void Clear()
+    {
+        throw new NotSupportedException();
+    }
+
+    public void Insert(int index, MonitorSample item)
+    {
+        throw new NotSupportedException();
+    }
+
+    public bool Remove(MonitorSample item)
+    {
+        throw new NotSupportedException();
+    }
+
+    public void RemoveAt(int index)
+    {
+        throw new NotSupportedException();
+    }
+}

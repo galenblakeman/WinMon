@@ -41,10 +41,13 @@
   <ItemGroup>
     <EmbeddedResource Include="$(UpdatePublicKeyPath)" LogicalName="WinMon.UpdatePublicKey" Condition="Exists('$(UpdatePublicKeyPath)')" />
     <Resource Include="Assets/WinMon.ico" />
-    <PackageReference Include="System.Management" Version="10.0.3" />
   </ItemGroup>
   <ItemGroup>
     <AssemblyMetadata Include="RepositoryUrl" Value="$(RepositoryUrl)" />
     <AssemblyMetadata Include="License" Value="$(PackageLicenseExpression)" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../MonCore/MonCore.csproj" />
+    <ProjectReference Include="../MonCore.Windows/MonCore.Windows.csproj" />
   </ItemGroup>
 </Project>

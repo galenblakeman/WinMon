@@ -7,6 +7,7 @@ Technical notes for the current code. The [README](../README.md) describes user-
 ## Requirements
 
 - Windows x64.
+- The portable `MonCore` project and `MonCore.Tests` target plain `net10.0`; they can also build and run on macOS with the .NET 10 SDK. That macOS run is a separate verification step.
 - The .NET SDK pinned in [global.json](../global.json) (10.0.402, latest-patch roll-forward).
 - An interactive desktop session for the smoke modes and the benchmark, which open real windows.
 
@@ -15,13 +16,16 @@ Technical notes for the current code. The [README](../README.md) describes user-
 ```powershell
 dotnet build WinMon.sln -c Release -m:1 -p:UseSharedCompilation=false
 dotnet test tests/WinMon.Tests/WinMon.Tests.csproj -c Release -m:1 -p:UseSharedCompilation=false
+dotnet test tests/MonCore.Tests/MonCore.Tests.csproj -c Release -m:1 -p:UseSharedCompilation=false
+dotnet test tests/MonCore.Windows.Tests/MonCore.Windows.Tests.csproj -c Release -m:1 -p:UseSharedCompilation=false
 dotnet publish src/WinMon/WinMon.csproj -c Release -m:1 -p:UseSharedCompilation=false
+dotnet pack src/MonCore/MonCore.csproj -c Release -m:1 -p:UseSharedCompilation=false -o artifacts/local-feed
 ```
 
-`tools/Verify.ps1` runs the build, the tests and any [smoke modes](#smoke-modes) in one step; see [Verify a change](#verify-a-change).
+`tools/Verify.ps1` builds all six projects in the solution, builds the benchmark, runs all three test projects and any [smoke modes](#smoke-modes) in one step; see [Verify a change](#verify-a-change).
 
 - Every build, test and release script passes `-m:1 -p:UseSharedCompilation=false`; keep them on manual commands too.
-- `TreatWarningsAsErrors` is on for the app.
+- `TreatWarningsAsErrors` is on for the app and both libraries.
 - `-p:StoreBuild=true` builds the Microsoft Store variant, which defines `WINMON_STORE`, drops the GitHub updater, and targets `net10.0-windows10.0.17763.0` so sign-in startup can use the package's `StartupTask`. The test and benchmark projects switch TFM with it. `StoreBuildTests` covers what differs, so run the tests in both variants after touching update or Settings code.
 - Inside a sandbox the VSTest host can fail to connect. The same command passes outside it.
 - When the NuGet audit endpoint is unreachable, add `-p:NuGetAudit=false` to that command only, and note that the run skipped the vulnerability audit.
@@ -74,11 +78,13 @@ Limits:
 
 ## Code structure
 
-The [structure note](design/STRUCTURE.md) records why the code is laid out this way and how it got there.
+The [structure note](design/STRUCTURE.md) records the original WPF separation; the [shared monitoring design](design/SHARED-MONITORING.md) records the cross-platform assembly boundary.
 
 | Area | Where |
 | --- | --- |
-| Sampling, history, ranking, retention, usage ledger, capture rules, Windows samplers | `Monitoring/`. `MonitorSession` runs the capture loop through an `IFrameSource` (`WindowsFrameSource` in the app, fakes in tests) |
+| Portable samples, session, history, ranking, retention, usage, capture rules, CSV and restart serialization | `src/MonCore/Monitoring/` (`net10.0`) |
+| Windows sampling, SCM enumeration, WMI, hardware probes and native process actions | `src/MonCore.Windows/Monitoring/` (`net10.0-windows`); `WindowsFrameSource` implements `IFrameSource` |
+| Localized reports, hardware presentation and process-action messages | `src/WinMon/Monitoring/` |
 | Window shell: title bar, readouts, chart, compact strip, tray, captures, updates | `MainWindow*.cs` |
 | Process, Services and Usage tabs | `Controls/ProcessesView.xaml`, `Controls/ServicesView.xaml`, `Controls/UsageView.xaml` |
 | Settings, persisted preferences, palettes, languages, startup registration | `Preferences/` |
@@ -92,8 +98,10 @@ Appearance finishes live in `Preferences/ThemeFinishes.cs`; Settings lists the b
 
 Rules for new code:
 
-- **`Monitoring` is a leaf.** It never references WPF, Windows Forms, `WinMon.Controls` or `WinMon.Preferences`. `MonitoringLayerTests` checks the compiled IL.
+- **`MonCore` is portable.** It references no WPF, Windows Forms, Avalonia, System.Management or native imports. `AssemblyBoundaryTests` checks assembly references and imports, and `MonitoringLayerTests` checks compiled type use.
+- **The Windows adapter depends on MonCore.** WinMon references both projects. `MonCore.Tests` references only MonCore; `MonCore.Windows.Tests` references the adapter.
 - **Sampling lives outside the window.** `MonitorSession` owns the capture loop, the queue and history. It reaches the UI thread through a `post` delegate the window supplies.
+- **Capabilities and observations are separate.** `IFrameSource.Capabilities` says which system and process metrics and actions an implementation supports. Nullable readings still report per-sample unavailability, and process actions recheck the lifetime and Windows permission at execution.
 - **A view is a UserControl updated through one `Update(...)` call.** It raises events when the user changes something; the window keeps persisted settings in `MonitorPreferences` and passes them back in.
 - **XAML for layout and window chrome; code-built elements only for rows updated every tick.**
 - **Diagnostics and the benchmark use internal members, never reflection on WinMon's private names.** When one needs more, add a named member to `MainWindow.Internal.cs` or the view.
@@ -125,6 +133,9 @@ Rules for new code:
 
 ### Collection and history
 
+- MonCore's `MonitorSession` owns history, latest samples, usage and service frames on the thread selected by the caller's `post` delegate. The collection loop runs on the thread pool, enqueues captures in order and never waits for the UI to drain them. Call session state operations on the dispatch thread; cancellation ends collection and `Close()` discards later drains.
+- `ProcessUsage.CreationTicks` remains Windows FILETIME in the current Windows collector and saved-history format. A portable lifetime/start-time model is required before a macOS collector writes samples or persistence. Group keys currently compare executable paths without case, preserving WinMon behavior.
+- CPU percentages are shares of total machine capacity; I/O rates use bytes per second, GPU is the busiest engine, and unavailable readings stay null. `WorkingSetBytes` is resident memory and `PrivateBytes` is private committed memory; a macOS footprint needs its own measurement contract.
 - All processes come from one `NtQuerySystemInformation(SystemProcessInformation)` call, without opening process handles, so access-restricted processes are measured too. The buffer is pinned and reused, and collection stops at 20,000 processes, counting any beyond.
 - Collection is sequential within one pass, not an atomic snapshot across Windows APIs.
 - `ProcessRetention.Compact` keeps, in each retained sample, the processes with CPU, I/O or GPU readings, processes that have shown an app window, pinned processes, and the 50 largest working sets, thread counts and handle counts (ties at the cut-off are all kept). Dropped entries are counted in `CompactedProcesses`, and averages treat them as zero.
@@ -136,7 +147,7 @@ Rules for new code:
 - **Preferences** are saved atomically to `%LOCALAPPDATA%\WinMon\settings.json`. With an empty `portable.flag` beside `WinMon.exe`, they are loaded and saved beside the executable instead, whatever the working directory, with no fallback if that folder is not writable. Enums are stored by name through `LenientEnumConverter`, which reads a name this build lacks (one a newer build added) as an undefined value for `Validate` to replace, so only that setting resets. A file that still cannot be parsed, or stays locked after five tries, is copied to `settings.invalid.json` before the defaults are used, because the next save overwrites it.
 - **Hardware Info** uses Windows [installed-memory reporting](https://learn.microsoft.com/windows/win32/api/sysinfoapi/nf-sysinfoapi-getphysicallyinstalledsystemmemory) and [DXGI adapter descriptions](https://learn.microsoft.com/windows/win32/api/dxgi/ns-dxgi-dxgi_adapter_desc1). The detailed sections use System.Management with read-only [processor](https://learn.microsoft.com/windows/win32/cimwin32prov/win32-processor), [memory](https://learn.microsoft.com/windows/win32/cimwin32prov/win32-physicalmemory) and [storage](https://learn.microsoft.com/windows-hardware/drivers/storage/msft-disk) queries, finite enumeration waits and explicit disposal. Inventory runs only when Info is opened or refreshed. A drive's media type is associated with an OS disk only when identifiers match unambiguously.
 - **Ending a process** uses [TerminateProcess](https://learn.microsoft.com/windows/win32/api/processthreadsapi/nf-processthreadsapi-terminateprocess) after checking the creation time against the same handle, so a reused PID cannot be targeted, and refuses [critical processes](https://learn.microsoft.com/windows/win32/api/processthreadsapi/nf-processthreadsapi-isprocesscritical). Group termination checks each member separately and collects failures. Historical, system and WinMon rows are disabled, and nothing elevates.
-- **Pins** live in `Monitoring/ProcessPins.cs` and persist as `SavedProcessPin` entries in `MonitorPreferences.PinnedProcesses`. Individual pins use PID plus creation time; grouped pins use the grouping key, with separate lists for each mode. The view publishes immutable retention predicates to the sampling thread so pinned processes survive compaction. Ranked rows exclude pinned identities before applying Top N and the remainder.
+- **Pins** live in `src/MonCore/Monitoring/ProcessPins.cs` and persist as `SavedProcessPin` entries in `MonitorPreferences.PinnedProcesses`. Individual pins use PID plus creation time; grouped pins use the grouping key, with separate lists for each mode. The view publishes immutable retention predicates to the sampling thread so pinned processes survive compaction. Ranked rows exclude pinned identities before applying Top N and the remainder.
 - **Compact view** (`MainWindow.Compact.cs`) is a 142-DIP window with the existing title bar and six `MetricReadout` instances. They copy the full readouts' live text and receive the same gauge values, two-minute peaks and selected style. The second disk is shown only when a drive is configured. Resource names replace chart-series checkboxes; chart visibility preferences remain unchanged. `CompactMode` persists separately from the full-view size, and Ctrl+F restores the full view before focusing process search.
 - **Services**: see [the services implementation note](design/services-implementation.md).
 
