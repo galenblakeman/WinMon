@@ -1594,9 +1594,7 @@ GPU {11} · {12}
   <data name="ChartFocus" xml:space="preserve"><value>Фокус</value></data>
   <data name="ChartFocusResourceChoice" xml:space="preserve"><value>Фокус: {0}</value></data>
   <data name="GaugePeakShort" xml:space="preserve"><value>{0:0}%</value></data>
-  <data name="GaugeFreeMemoryShort" xml:space="preserve"><value>{0:0.#}G</value></data>
   <data name="GaugePeak" xml:space="preserve"><value>Пик {0:0}%</value></data>
-  <data name="GaugeFreeMemory" xml:space="preserve"><value>{0:0.#}G своб.</value></data>
   <data name="PeakLastTwoMinutes" xml:space="preserve"><value>Пик за 2 мин</value></data>
   <data name="PeakLastTwoMinutesExplanation" xml:space="preserve"><value>Тёмная линия показывает наибольшее значение за последние две минуты.</value></data>
   <data name="ResourceGauges" xml:space="preserve"><value>Индикаторы ресурсов</value></data>

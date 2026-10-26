@@ -85,8 +85,8 @@ internal sealed partial class WindowDiagnostics
                 [
                     (fixture.CpuMetric, Strings.Format(Strings.GaugePeak, 78d),
                         Strings.Format(Strings.GaugePeakShort, 78d)),
-                    (fixture.MemoryMetric, Strings.Format(Strings.GaugeFreeMemory, 31d),
-                        Strings.Format(Strings.GaugeFreeMemoryShort, 31d)),
+                    (fixture.MemoryMetric, Strings.Format(Strings.GaugePeak, 52d),
+                        Strings.Format(Strings.GaugePeakShort, 52d)),
                     (fixture.DiskMetric, Strings.Format(Strings.GaugePeak, 62d),
                         Strings.Format(Strings.GaugePeakShort, 62d)),
                     (fixture.SecondaryDiskMetric, Strings.Format(Strings.GaugePeak, 99d),

@@ -6,6 +6,19 @@ Dated measurement and validation records, newest first. Each section describes t
 
 Add a section at the top for each measured change: what changed, the machine and build, before and after results, and where the raw reports are.
 
+## Memory gauge peak label (October 26, 2026)
+
+Release UI benchmark on the development machine (12 logical processors), comparing `5117bba` with the Memory corner-label working tree on .NET 10. Four baseline and four changed runs alternated after the first baseline run. Values are medians of each run's seven-batch median, then the median of four runs. The Memory label visibly changed, so pixel hashes differ as expected.
+
+| Scenario | Before | After | Allocation before / after |
+| --- | ---: | ---: | ---: |
+| Live overlay | 5.50 ms | 5.58 ms | 536.4 / 536.2 KiB |
+| Small multiples | 3.02 ms | 3.04 ms | 507.4 / 507.4 KiB |
+| Services live | 6.12 ms | 6.24 ms | 950.5 / 950.5 KiB |
+| Compact live | 1.65 ms | 1.67 ms | 362.3 / 362.3 KiB |
+
+The timing differences are smaller than the run-to-run spread (Live overlay ranged 4.87–5.77 ms before and 5.00–5.99 ms after). No material allocation or UI-time regression was observed. Raw local reports: `artifacts/perf-memory-peak/baseline-1.json` through `baseline-4.json` and `changed-1.json` through `changed-4.json`.
+
 ## Gauge corner labels (October 26, 2026)
 
 Release UI benchmark on the development machine (12 logical processors), comparing `c166839` with the gauge corner-label working tree on .NET 10. Four baseline and four changed runs alternated after the first baseline run; values are medians of each run's seven-batch median, then the median of four runs. The new labels are visible in the benchmark renders, so pixel hashes differ as expected.

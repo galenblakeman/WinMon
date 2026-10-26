@@ -43,7 +43,7 @@ public sealed class MetricReadout : Grid
 
     public MetricGauge Gauge { get; } = new() { Visibility = Visibility.Hidden, IsHitTestVisible = false };
 
-    /// <summary>A compact context label beside the name on arc gauges: peak, free memory, or network scale.</summary>
+    /// <summary>A compact context label beside the name on arc gauges: peak or network scale.</summary>
     public TextBlock ScaleLabel { get; } = new() { FontSize = 11, Visibility = Visibility.Collapsed };
 
     private readonly StackPanel _labels = new();

@@ -21,7 +21,7 @@ These records describe the individual feature increments and their validation at
 - [Code structure](STRUCTURE.md)
 - [Wide resource gauges](WIDE-RESOURCE-GAUGES.md)
 - [Gauge styles](GAUGE-STYLES.md), which replaced the wide rails with a choice of seven styles
-- [Gauge corner labels](GAUGE-CORNER-LABELS.md), which show recent peaks and free memory above arc gauges
+- [Gauge corner labels](GAUGE-CORNER-LABELS.md), which show recent peaks above arc gauges
 - [Compact gauge view](COMPACT-GAUGES.md)
 - [Action drawer](ACTION-DRAWER.md), which moved hiding the action bar onto the bar
 - [Activity counts](ACTIVITY-COUNTS.md), which took the old toggle's place in the tab strip

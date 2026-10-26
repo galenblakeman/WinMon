@@ -1594,9 +1594,7 @@ Windows 健康状态：{2}</value>
   <data name="ChartFocus" xml:space="preserve"><value>聚焦</value></data>
   <data name="ChartFocusResourceChoice" xml:space="preserve"><value>聚焦：{0}</value></data>
   <data name="GaugePeakShort" xml:space="preserve"><value>{0:0}%</value></data>
-  <data name="GaugeFreeMemoryShort" xml:space="preserve"><value>{0:0.#}G</value></data>
   <data name="GaugePeak" xml:space="preserve"><value>峰值 {0:0}%</value></data>
-  <data name="GaugeFreeMemory" xml:space="preserve"><value>空闲 {0:0.#}G</value></data>
   <data name="PeakLastTwoMinutes" xml:space="preserve"><value>近 2 分钟峰值</value></data>
   <data name="PeakLastTwoMinutesExplanation" xml:space="preserve"><value>深色线标记最近两分钟的最高读数。</value></data>
   <data name="ResourceGauges" xml:space="preserve"><value>资源仪表</value></data>

@@ -1594,9 +1594,7 @@ Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse
   <data name="ChartFocus" xml:space="preserve"><value>Fokus</value></data>
   <data name="ChartFocusResourceChoice" xml:space="preserve"><value>Fokus: {0}</value></data>
   <data name="GaugePeakShort" xml:space="preserve"><value>{0:0}%</value></data>
-  <data name="GaugeFreeMemoryShort" xml:space="preserve"><value>{0:0.#}G</value></data>
   <data name="GaugePeak" xml:space="preserve"><value>Spitze {0:0}%</value></data>
-  <data name="GaugeFreeMemory" xml:space="preserve"><value>{0:0.#}G frei</value></data>
   <data name="PeakLastTwoMinutes" xml:space="preserve"><value>2-Min.-Spitze</value></data>
   <data name="PeakLastTwoMinutesExplanation" xml:space="preserve"><value>Die dunkle Linie zeigt den höchsten Messwert der letzten zwei Minuten.</value></data>
   <data name="ResourceGauges" xml:space="preserve"><value>Ressourcenanzeigen</value></data>

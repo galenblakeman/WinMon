@@ -32,13 +32,9 @@ public partial class MainWindow
         var showCorners = _preferences.GaugeStyle is GaugeStyle.Bowl or GaugeStyle.Needle or GaugeStyle.SegmentedArc;
         ShowGaugeInActiveView(CpuMetric, cpu, peaks.Cpu, 100,
             showCorners ? PeakLabel(peaks.Cpu) : null, showCorners ? ShortPeakLabel(peaks.Cpu) : null);
-        var freeMemory = latestResources is { TotalMemoryBytes: { } total, UsedMemoryBytes: { } used } &&
-                         used <= total ? total - used : (ulong?)null;
         ShowGaugeInActiveView(MemoryMetric, memory, peaks.Memory, 100,
-            showCorners && freeMemory is { } free
-                ? Strings.Format(Strings.GaugeFreeMemory, free / 1_073_741_824d) : null,
-            showCorners && freeMemory is { } shortFree
-                ? Strings.Format(Strings.GaugeFreeMemoryShort, shortFree / 1_073_741_824d) : null);
+            showCorners ? PeakLabel(peaks.Memory) : null,
+            showCorners ? ShortPeakLabel(peaks.Memory) : null);
         ShowGaugeInActiveView(DiskMetric, disk, peaks.Disk, 100,
             showCorners ? PeakLabel(peaks.Disk) : null, showCorners ? ShortPeakLabel(peaks.Disk) : null);
         ShowGaugeInActiveView(SecondaryDiskMetric, secondary, peaks.SecondaryDisk, 100,

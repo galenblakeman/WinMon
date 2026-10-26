@@ -1594,9 +1594,7 @@ Windows の正常性状態: {2}</value>
   <data name="ChartFocus" xml:space="preserve"><value>フォーカス</value></data>
   <data name="ChartFocusResourceChoice" xml:space="preserve"><value>フォーカス: {0}</value></data>
   <data name="GaugePeakShort" xml:space="preserve"><value>{0:0}%</value></data>
-  <data name="GaugeFreeMemoryShort" xml:space="preserve"><value>{0:0.#}G</value></data>
   <data name="GaugePeak" xml:space="preserve"><value>ピーク {0:0}%</value></data>
-  <data name="GaugeFreeMemory" xml:space="preserve"><value>空き {0:0.#}G</value></data>
   <data name="PeakLastTwoMinutes" xml:space="preserve"><value>直近2分のピーク</value></data>
   <data name="PeakLastTwoMinutesExplanation" xml:space="preserve"><value>濃い線は直近2分間の最大値を示します。</value></data>
   <data name="ResourceGauges" xml:space="preserve"><value>リソース ゲージ</value></data>

@@ -1594,9 +1594,7 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
   <data name="ChartFocus" xml:space="preserve"><value>Fokus</value></data>
   <data name="ChartFocusResourceChoice" xml:space="preserve"><value>Fokus: {0}</value></data>
   <data name="GaugePeakShort" xml:space="preserve"><value>{0:0}%</value></data>
-  <data name="GaugeFreeMemoryShort" xml:space="preserve"><value>{0:0.#}G</value></data>
   <data name="GaugePeak" xml:space="preserve"><value>Maks. {0:0}%</value></data>
-  <data name="GaugeFreeMemory" xml:space="preserve"><value>{0:0.#}G wolne</value></data>
   <data name="PeakLastTwoMinutes" xml:space="preserve"><value>Szczyt z 2 min</value></data>
   <data name="PeakLastTwoMinutesExplanation" xml:space="preserve"><value>Ciemna linia wskazuje najwyższy odczyt z ostatnich dwóch minut.</value></data>
   <data name="ResourceGauges" xml:space="preserve"><value>Wskaźniki zasobów</value></data>
