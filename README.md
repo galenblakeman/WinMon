@@ -121,7 +121,7 @@ Choose **Capture** in the centered **Live | Capture** switch above the chart to 
 
 ![WinMon historical capture showing interval resource readings and the process table at the selected time](docs/example/example_snapshot.png)
 
-Click **Capture** again to select the newest sample. Use **Left / Right** to step through samples, **Home** to jump to the oldest visible sample, and **Live**, **End**, **Escape** or **Return to live** to resume the live view.
+Click **Capture** again to select the newest sample. Use **Left / Right** to step through samples, **Home** to jump to the oldest visible sample, and **Live** (the play icon), **End**, **Escape** or **Return to live** to resume the live view. The Return to live button uses the same play icon.
 
 **Copy capture** always copies the selected moment’s resource summary and displayed top process rows as plain text, preserving their sorting, grouping and filters. Reports include the timestamp and time zone, units, unavailable readings and averaging notes. Copying keeps the capture open; expired samples cannot be copied.
 
