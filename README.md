@@ -37,6 +37,10 @@ Keep the whole picture in view while you work, play or troubleshoot. WinMon puts
 - **Find the busiest processes.** Rank by CPU, GPU, memory, I/O, thread count or handle count, with application icons and history sparklines that follow your selected metric.
 - **Look beyond the latest number.** Switch between 2, 10, 30 and 60-minute chart ranges, subject to your retained history, and inspect earlier samples.
 - **Choose how history looks.** The chart header is labeled **System**. One chart dropdown offers the original overlaid traces, aligned small charts, a heatmap timeline, and Focus choices for each configured resource. The small charts, heatmap and Focus views fit their axis and resource labels into one narrow column beside the plot. Disk choices include their drive letters. Choosing a hidden Focus resource shows it again. WinMon remembers the selection. Chart clicks, Capture mode and automatic capture markers work in every view.
+
+| Small multiples | Focus: Network |
+| --- | --- |
+| [![WinMon showing aligned resource charts with their labels beside the plots](docs/example/example_small_multiples.png)](docs/example/example_small_multiples.png) | [![WinMon showing a focused network chart with a throughput scale](docs/example/example_focus_network.png)](docs/example/example_focus_network.png) |
 - **Keep it close.** Enable **Always on top** in the title bar to keep WinMon above other windows, minimize it to the notification area, or bring it forward with a configurable shortcut. Its highlighted background shows when it is enabled.
 - **Use less screen space.** Choose **Compact view** in the title bar for the same live resource gauges, colors, details and two-minute peak marks shown in Full view. Its resource names replace the chart-series checkboxes because the chart is hidden. The selected gauge style, including **None**, applies to both views. **Full view** restores the dashboard and its size. The selected view is remembered when WinMon closes. Export is shown in the title bar only in Full view.
 

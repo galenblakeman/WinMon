@@ -1,10 +1,12 @@
 # WinMon screenshot examples
 
-Gallery images were refreshed October 25, 2026, using WinMon 3.3.0. The main gallery uses the ordinary installer/portable configuration; the separate Store Settings capture uses `StoreBuild=true`. These examples use illustrative process identities and measurements so the screenshots are consistent and do not expose a user's running processes. They are UI examples, not performance measurements or proof of installed MSIX behavior.
+Gallery images were refreshed October 25, 2026, using WinMon 3.4.1. The main gallery uses the ordinary installer/portable configuration; the separate Store Settings capture uses `StoreBuild=true`. These examples use illustrative process identities and measurements so the screenshots are consistent and do not expose a user's running processes. They are UI examples, not performance measurements or proof of installed MSIX behavior.
 
 | File | View |
 | --- | --- |
 | [example_individual.png](example_individual.png) | Dark live dashboard with Processes / Services / Usage tabs, individual process rankings and a selected-process action bar. |
+| [example_small_multiples.png](example_small_multiples.png) | The same dashboard with aligned resource charts and 12-DIP axis and resource labels. |
+| [example_focus_network.png](example_focus_network.png) | Network Focus chart with its own throughput scale and 12-DIP labels. |
 | [example_grouped.png](example_grouped.png) | The same recording grouped by executable, with App / Background labels and private-memory totals. |
 | [example_services.png](example_services.png) | Services view with a Top N toolbar, clickable metric headers, an expanded worker tree, five-second CPU/I/O averages and a selected-service action bar with Properties, Copy details and service controls. |
 | [example_usage.png](example_usage.png) | Usage view with session totals, app rankings, CPU share, the Not attributed row and a selected-app action bar. |
@@ -31,8 +33,9 @@ If Windows denies foreground activation, Services diagnostics can save separatel
 
 ## Current UI highlights
 
-- The title bar shows version 3.3.0, the Compact view / Full view toggle, and Always on top with a stacked-window glyph and highlighted enabled state.
-- Processes, Services and Usage share a divider and a tab strip with heading-sized labels and an accent underline.
+- The title bar shows version 3.4.1, the Compact view / Full view toggle, and Always on top with a stacked-window glyph and highlighted enabled state.
+- Processes, Services and Usage share a divider and a tab strip with heading-sized labels, an accent underline and readable inactive text across finishes.
+- The chart dropdown offers Overlay, Small multiples, Heatmap and Focus per configured resource. Chart labels use 12-DIP text.
 - Process rows include thread and handle counts, App / Background labels, grouping, search and pins. Pin accents follow the theme and chart palette.
 - Capture mode keeps the live readouts visible while showing an earlier interval and its process rankings; Copy capture exports the selected interval.
 - The process action bar offers Properties, Copy details, More and End process/group. More contains file location and eligible memory-dump creation; pinning remains in the row menu.

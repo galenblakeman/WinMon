@@ -64,6 +64,14 @@ internal sealed partial class WindowDiagnostics
             }
 
             await Draw("individual");
+            fixture.Preferences = fixture.Preferences with { ResourceChartType = ResourceChartType.SmallMultiples };
+            fixture.BuildChartSelectors();
+            await Draw("small_multiples");
+            fixture.Preferences = fixture.Preferences with { ResourceChartType = ResourceChartType.Focus, FocusMetric = 3 };
+            fixture.BuildChartSelectors();
+            await Draw("focus_network");
+            fixture.Preferences = fixture.Preferences with { ResourceChartType = ResourceChartType.Overlay };
+            fixture.BuildChartSelectors();
             fixture.Processes.GroupedChip.IsChecked = true;
             await Draw("grouped");
             fixture.Processes.AppsOnlyCheckBox.IsChecked = true;
@@ -139,6 +147,10 @@ internal sealed partial class WindowDiagnostics
             fixture.Processes.Selection.Select(chrome, fixture.Preferences.GroupProcesses);
             fixture.Processes.UpdateRetention();
             fixture.RefreshVisiblePresentation();
+            if (fixture.OverallGraph.ChartType != fixture.Preferences.ResourceChartType ||
+                (fixture.Preferences.ResourceChartType == ResourceChartType.Focus &&
+                 fixture.OverallGraph.FocusMetric != fixture.Preferences.FocusMetric))
+                throw new InvalidOperationException($"The {name} example did not select its chart view.");
             await CaptureExampleWindowAsync(fixture, Path.Combine(output, $"example_{name}.png"), cancellationToken);
         }
 
