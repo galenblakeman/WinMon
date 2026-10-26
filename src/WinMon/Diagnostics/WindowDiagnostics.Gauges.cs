@@ -161,8 +161,20 @@ internal sealed partial class WindowDiagnostics
                     Theme = theme, Active = fixture.BackdropActive,
                     PanelOpacity = ((System.Windows.Media.SolidColorBrush)fixture.FindResource("PanelSurface")).Color.A
                 });
-                await CaptureExampleWindowAsync(fixture,
-                    Path.Combine(output, $"backdrop-{theme.ToLowerInvariant()}.png"), cancellationToken);
+                var path = Path.Combine(output, $"backdrop-{theme.ToLowerInvariant()}.png");
+                try
+                {
+                    await CaptureExampleWindowAsync(fixture, path, cancellationToken);
+                }
+                catch (InvalidOperationException ex) when (ex.Message.Contains("must be foreground", StringComparison.Ordinal))
+                {
+                    // Keep a content-only capture when Windows denies foreground activation, as Services smoke does.
+                    var contentPath = Path.ChangeExtension(path, null) + "-content.png";
+                    await CaptureVisualAsync((FrameworkElement)fixture.Content, contentPath, 1, cancellationToken);
+                    await File.AppendAllTextAsync(Path.Combine(output, "content-capture-notes.txt"),
+                        Path.GetFileName(contentPath) + ": WPF content capture; native caption not verified.\n",
+                        cancellationToken);
+                }
             }
         }
         finally

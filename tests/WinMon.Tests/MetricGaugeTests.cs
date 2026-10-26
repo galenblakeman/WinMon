@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 using NUnit.Framework;
 using WinMon.Controls;
@@ -124,6 +125,35 @@ public sealed class MetricGaugeTests
             // Arcs keep the label's space on percentage readouts, so every arc shares one size.
             Assert.That(readout.ScaleLabel.Visibility, Is.EqualTo(arc ? Visibility.Hidden : Visibility.Collapsed));
         });
+    }
+
+    [TestCase(180, 0)]
+    [TestCase(180, 5)]
+    [TestCase(140, 8)]
+    [Apartment(ApartmentState.STA)]
+    public void ArcCornerLabel_EndsTwelveDipsFromTileEdge(int width, int outerRightMargin)
+    {
+        var host = new Grid { Width = width };
+        var readout = new MetricReadout
+        {
+            GaugeStyle = GaugeStyle.Bowl,
+            Margin = new Thickness(outerRightMargin == 8 ? 10 : 0, 0, outerRightMargin, 0)
+        };
+        host.Children.Add(readout);
+        var window = new Window { Width = width, Content = host, SizeToContent = SizeToContent.Height,
+            WindowStyle = WindowStyle.None, ShowInTaskbar = false };
+        try
+        {
+            readout.ShowGauge(50, 80, 100, "Peak 80%", "80%");
+            window.Show();
+            window.UpdateLayout();
+            var right = readout.ScaleLabel.TranslatePoint(new Point(readout.ScaleLabel.ActualWidth, 0), host).X;
+            Assert.That(host.ActualWidth - right, Is.EqualTo(12).Within(1));
+        }
+        finally
+        {
+            window.Close();
+        }
     }
 
     [Test]

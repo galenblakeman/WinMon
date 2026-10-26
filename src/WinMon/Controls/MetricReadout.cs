@@ -13,6 +13,7 @@ public sealed class MetricReadout : Grid
     internal const double LayoutHeight = 98;
 
     private const double ArcHeaderGap = 6;
+    private const double CornerRightInset = 12;
 
     public CheckBox Toggle { get; } = new() { IsChecked = true, FontSize = 14, Margin = new Thickness(0, 0, 0, 5) };
 
@@ -101,6 +102,11 @@ public sealed class MetricReadout : Grid
 
     private void UpdateCornerLabel()
     {
+        // Full and Compact tiles use different outer margins. Keep the label's right edge the same
+        // distance from the tile edge rather than from the readout's inner edge.
+        var rightMargin = Math.Max(0, CornerRightInset - Margin.Right);
+        if (ScaleLabel.Margin.Right != rightMargin)
+            ScaleLabel.Margin = new Thickness(4, 0, rightMargin, 0);
         var label = ActualWidth is > 0 and < 155 ? _shortCornerLabel : _fullCornerLabel;
         if (ScaleLabel.Text != label) ScaleLabel.Text = label;
         if (ScaleLabel.ToolTip is not string tooltip || tooltip != _fullCornerLabel)
@@ -216,7 +222,7 @@ public sealed class MetricReadout : Grid
             _plainName.Margin = new Thickness();
             DockPanel.SetDock(ScaleLabel, Dock.Right);
             ScaleLabel.VerticalAlignment = VerticalAlignment.Center;
-            ScaleLabel.Margin = new Thickness(4, 0, 8, 0);
+            ScaleLabel.Margin = new Thickness(4, 0, CornerRightInset, 0);
             _toggleRow.Children.Add(ScaleLabel);
             _toggleRow.Children.Add(_showSeriesToggle ? Toggle : _plainName);
             Children.Add(_toggleRow);

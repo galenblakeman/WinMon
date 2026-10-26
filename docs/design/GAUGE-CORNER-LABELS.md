@@ -12,7 +12,7 @@ The network arc already prints its changing scale above the gauge. Give the othe
 
 ## Landed
 
-`MainWindow.Gauges.cs` supplies the five new labels from existing samples. `MetricReadout` places them in the existing arc header slot. The gauge smoke checks their values and visibility at 1000 and 836 DIPs in each style and theme; resource strings cover all supported languages.
+`MainWindow.Gauges.cs` supplies the five new labels from existing samples. `MetricReadout` places them in the existing arc header slot, right aligned 12 DIPs from the tile edge in Full and Compact views. The gauge smoke checks their values and visibility at 1000 and 836 DIPs in each style and theme; resource strings cover all supported languages.
 
 ## Departures
 
