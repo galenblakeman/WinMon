@@ -7,7 +7,7 @@ namespace WinMon.Controls;
 /// <summary>Draws a resource's live level and two-minute peak in one <see cref="GaugeStyle"/>.</summary>
 /// <remarks>
 /// The marks live in a retained drawing that is reopened only when a mark moves by half a pixel or more, so a
-/// steady reading costs no drawing and no layout. The peak is always a dark line, as the window's legend says.
+/// steady reading costs no drawing and no layout. The two-minute peak is drawn as a dark line.
 /// </remarks>
 public sealed class MetricGauge : FrameworkElement
 {

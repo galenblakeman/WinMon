@@ -1603,7 +1603,6 @@ Windows の正常性状態: {2}</value>
   <data name="ChartFocusResourceChoice" xml:space="preserve"><value>フォーカス: {0}</value></data>
   <data name="GaugePeakShort" xml:space="preserve"><value>{0:0}%</value></data>
   <data name="GaugePeak" xml:space="preserve"><value>ピーク {0:0}%</value></data>
-  <data name="PeakLastTwoMinutes" xml:space="preserve"><value>直近2分のピーク</value></data>
   <data name="PeakLastTwoMinutesExplanation" xml:space="preserve"><value>濃い線は直近2分間の最大値を示します。</value></data>
   <data name="ResourceGauges" xml:space="preserve"><value>リソース ゲージ</value></data>
   <data name="GaugeNeedle" xml:space="preserve"><value>針</value></data>

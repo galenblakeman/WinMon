@@ -43,6 +43,7 @@ These records describe the individual feature increments and their validation at
 - [Resource gauge centering](RESOURCE-GAUGE-CENTERING.md), which aligns bowls and values in the full-view columns
 - [Units in table values](TABLE-VALUE-UNITS.md), which moves Processes and Services units into cells and keeps Usage consistent
 - [Settings dropdown width](SETTINGS-DROPDOWN-WIDTH.md), which limits selectors to half the Settings content row
+- [Chart toolbar controls](CHART-TOOLBAR-CONTROLS.md), which moves Auto beside the narrower chart type selector and removes the peak legend
 
 Implemented on 2026-10-24; each note ends with what landed and where it departed from the design:
 

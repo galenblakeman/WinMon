@@ -416,7 +416,6 @@ public static partial class Strings
     public static string PaletteTropicalDescription => ResourceManager.GetString(nameof(PaletteTropicalDescription), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PaletteWildberry => ResourceManager.GetString(nameof(PaletteWildberry), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PaletteWildberryDescription => ResourceManager.GetString(nameof(PaletteWildberryDescription), Culture ?? CultureInfo.CurrentUICulture)!;
-    public static string PeakLastTwoMinutes => ResourceManager.GetString(nameof(PeakLastTwoMinutes), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PeakLastTwoMinutesExplanation => ResourceManager.GetString(nameof(PeakLastTwoMinutesExplanation), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PercentInteger => ResourceManager.GetString(nameof(PercentInteger), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PercentOneDecimal => ResourceManager.GetString(nameof(PercentOneDecimal), Culture ?? CultureInfo.CurrentUICulture)!;

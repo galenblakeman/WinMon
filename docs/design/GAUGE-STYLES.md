@@ -18,7 +18,7 @@ The [wide resource rails](WIDE-RESOURCE-GAUGES.md) sat flush against the next ti
 | Left bar | The former 22-DIP rail, moved to the left of the text so it belongs to its own tile | Dark horizontal line |
 | Bottom bar | A rounded bar under the detail line | Dark vertical tick |
 | Segmented bar | Ten blocks under the detail line | Dark vertical tick |
-| None | No gauge; the peak legend is hidden too | — |
+| None | No gauge | — |
 
 Settings saved before this choice existed load as Bowl, so everyone sees the new default after updating. The style is saved by name, so the list order can change without changing anyone's choice.
 
@@ -29,7 +29,7 @@ Settings saved before this choice existed load as Bowl, so everyone sees the new
   - **Bowl and segmented arc.** These keep the value inside the arc and the detail line below it. A perfect circle that tall is too narrow inside for "↓9.52 Mbps", so these arcs may be at most 1.2 times as wide as they are tall (`MetricGauge.BowlWidening`). A test checks that the widest rate's digits clear the inside of the arc.
   - **Needle.** The needle is a true half circle with the value under its hub, close enough to clear a needle lying flat at zero. Its detail line (clock speed, memory in use, upload rate and so on) moves to the tile's tooltip, which already shows it. That gives a radius of about 39 DIPs.
   - **Font.** All three use the smaller value font at every width.
-- **The peak is always a dark line**, so the existing "2m peak" legend stays true for every style.
+- **The peak is always a dark line.** The chart toolbar's former "2m peak" legend was removed later; the gauge setting still explains the line.
 - **Network scale on arcs.** A dial's angle reads as absolute, so arc styles print the top of the network's two-minute auto scale in a compact form ("100M") at the right of the resource name. Bars don't print it, as before.
 - **Narrow tiles.** At the 836-DIP minimum width, six tiles are about 120 DIPs wide. The widest rate, "↓9.52 Mbps", needs 89 DIPs at the smaller font. Every style except the left bar gives the value the tile's full width. Values elsewhere take the smaller font when their column is under 118 DIPs.
 - **Drawn, not hosted.** `MetricGauge` replaces the `MicroGauge.Wpf` control and package. It keeps its marks in a retained `DrawingGroup` that it reopens only when a mark moves by at least half a pixel. Pens, the track and the arc segments are frozen and rebuilt only when the style, size or a brush changes.
@@ -39,13 +39,13 @@ Settings saved before this choice existed load as Bowl, so everyone sees the new
 
 - `Preferences/GaugeStyle.cs`, `MonitorPreferences.GaugeStyle` (saved by name), validation in `PreferenceStore`, and the selector and preview in `SettingsWindow`.
 - `Controls/MetricGauge.cs` draws each style, and `ArcBounds` sizes the arcs. `Controls/MetricReadout.cs` places the labels and the gauge in one of five layouts: bowl (also the segmented arc), dial (needle), beside (left bar), under (bars) or none. `ShowGauge` takes an optional scale label.
-- `MainWindow.ApplyGaugeStyle` runs with `ApplyTheme`, and hides the `PeakLegend` for None.
+- `MainWindow.ApplyGaugeStyle` runs with `ApplyTheme`.
 - Radial gauges later gained a 6-DIP gap below the resource name. The shared readout height and Compact view height grew by 6 DIPs so the arcs keep their size.
 - `WinMon.exe --gauges-smoke-output <dir>` (`Verify.ps1 -Smoke gauges`) renders every style in both themes at 1000 and 836 DIPs. It checks:
   - the shared height;
   - that the arcs are round or nearly round;
   - that values aren't clipped;
-  - the network scale and the legend;
+  - the network scale;
   - unavailable readings;
   - the saved preference and the Settings preview.
 
@@ -56,3 +56,4 @@ Settings saved before this choice existed load as Bowl, so everyone sees the new
 - For a while the segmented arc shared the needle's layout, with its detail in the tooltip. It now shares the bowl's layout instead, so it keeps its detail line.
 - The mockups' scale label read "100 Mbps", which was wider than a small arc and overlapped the bowl's resource name. It now reads "100M".
 - The empty part of a gauge first used the `Line` brush. High contrast sets `Line` and every resource color to WindowText, so the bowl, segmented arc and both bars drew full whatever the reading. The track now has its own `GaugeTrack` brush: the same color as `Line` in the normal themes, and GrayText in high contrast.
+- The chart toolbar's "2m peak" legend and its tooltip were removed to leave more space for chart controls. The gauge peak marks remain.

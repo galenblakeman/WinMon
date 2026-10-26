@@ -251,24 +251,6 @@
                                     HorizontalAlignment="Right"
                                     VerticalAlignment="Center"
                                     Orientation="Horizontal">
-                                    <StackPanel x:Name="PeakLegend" Margin="0,0,10,0" VerticalAlignment="Center" Orientation="Horizontal"
-                                                ToolTip="{Binding [PeakLastTwoMinutesExplanation], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                                AutomationProperties.Name="{Binding [PeakLastTwoMinutes], Source={x:Static resources:Strings.Text}, Mode=OneWay}">
-                                        <Border Width="17" Height="2" Margin="0,0,4,0" VerticalAlignment="Center"
-                                                Background="{DynamicResource Text}" />
-                                        <TextBlock FontSize="11" Foreground="{DynamicResource Muted}"
-                                                   Text="{Binding [PeakLastTwoMinutes], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
-                                    </StackPanel>
-                                    <Button
-                                        x:Name="CapturesButton"
-                                        controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.CaptureFrame}"
-                                        Margin="0,0,8,0"
-                                        Padding="8,2"
-                                        AutomationProperties.Name="{Binding [AutoCaptureHeading], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                        Click="OnCapturesMenu"
-                                        FontSize="12"
-                                        Style="{StaticResource TitleActionButton}"
-                                        Visibility="Collapsed" />
                                     <StackPanel
                                         x:Name="RangeSelector"
                                         VerticalAlignment="Center"
@@ -366,8 +348,17 @@
                                         FontWeight="SemiBold"
                                         Text="{Binding [SystemResources], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                                         TextTrimming="CharacterEllipsis" />
-                                    <ComboBox x:Name="ChartTypeSelector" Width="140" Height="27" Margin="0,0,6,0"
+                                    <ComboBox x:Name="ChartTypeSelector" Width="120" Height="27" Margin="0,0,6,0"
                                               VerticalAlignment="Center" SelectionChanged="OnChartTypeChanged" />
+                                    <Button
+                                        x:Name="CapturesButton"
+                                        controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.CaptureFrame}"
+                                        Padding="8,2"
+                                        AutomationProperties.Name="{Binding [AutoCaptureHeading], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                        Click="OnCapturesMenu"
+                                        FontSize="12"
+                                        Style="{StaticResource TitleActionButton}"
+                                        Visibility="Collapsed" />
                                 </StackPanel>
                             </Grid>
                         </Border>

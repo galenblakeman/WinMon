@@ -121,8 +121,6 @@ internal sealed partial class WindowDiagnostics
                             tooltip != corner.Full)) ||
                         (corner.Readout.ScaleLabel.Visibility == Visibility.Visible) != arcs.Contains(style)))
                     throw new InvalidOperationException($"{style} showed a resource corner label wrongly.");
-                if ((fixture.PeakLegend.Visibility == Visibility.Visible) == (style == GaugeStyle.None))
-                    throw new InvalidOperationException($"{style} left the peak legend out of step.");
                 await CaptureVisualAsync(visual,
                     Path.Combine(output, $"gauges-{style.ToString().ToLowerInvariant()}-{theme.ToLowerInvariant()}-{width}.png"),
                     1, cancellationToken);
@@ -228,7 +226,6 @@ internal sealed partial class WindowDiagnostics
             Styles = Enum.GetNames<GaugeStyle>(), Themes = new[] { "Dark", "Light" }.Concat(ThemeFinishes.Names),
             Widths = new[] { 1000, 836 },
             ReadoutHeight = heights.Single(), NetworkScaleOnArcs = true, CornerLabelsOnArcs = true,
-            PeakLegendFollowsStyle = true,
             UnavailableHidesGauges = true, PreferenceRoundTrip = true, SettingsPreview = true
         }), cancellationToken);
         return;

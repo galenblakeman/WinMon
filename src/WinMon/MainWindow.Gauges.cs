@@ -61,7 +61,7 @@ public partial class MainWindow
             source.ShowGauge(current, peak, maximum, scale, shortScale);
     }
 
-    /// <summary>Draw every readout's gauge in the chosen style; the peak legend goes with the gauges.</summary>
+    /// <summary>Draw every readout's gauge in the chosen style.</summary>
     internal void ApplyGaugeStyle()
     {
         foreach (var metric in Metrics)
@@ -69,7 +69,6 @@ public partial class MainWindow
             metric.GaugeStyle = _preferences.GaugeStyle;
             _compactMetrics[metric].GaugeStyle = _preferences.GaugeStyle;
         }
-        PeakLegend.Visibility = _preferences.GaugeStyle == GaugeStyle.None ? Visibility.Collapsed : Visibility.Visible;
     }
 
     internal static (double? Cpu, double? Memory, double? Disk, double? SecondaryDisk, double? Network, double? Gpu)
