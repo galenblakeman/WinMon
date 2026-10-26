@@ -4,7 +4,7 @@ namespace WinMon.Monitoring;
 /// Describes CPU consumed by a process during one sampling interval.
 /// </summary>
 /// <param name="ProcessId">Identifies the process for the sampled interval.</param>
-/// <param name="CreationTicks">Identifies this specific lifetime of the process.</param>
+/// <param name="CreationTicks">Legacy name for the opaque lifetime start token; its units are defined by LifetimeDomain.</param>
 /// <param name="Name">Provides the executable name captured during the sample.</param>
 /// <param name="CpuPercent">Provides CPU consumed as a percentage of total machine capacity.</param>
 public sealed record ProcessUsage(
@@ -15,6 +15,19 @@ public sealed record ProcessUsage(
     ulong? WorkingSetBytes = null,
     double? IoBytesPerSecond = null)
 {
+    /// <summary>Clock domain of the opaque start token. Existing Windows constructors preserve FILETIME identity.</summary>
+    public ProcessLifetimeDomain LifetimeDomain { get; init; } = ProcessLifetimeIdentity.WindowsFileTime;
+
+    public ProcessLifetimeIdentity Identity => new(ProcessId, CreationTicks, LifetimeDomain);
+
+    /// <summary>Optional UTC timestamp for display. Never infer time units from an opaque identity token.</summary>
+    public DateTimeOffset? StartedAtUtc { get; init; }
+
+    /// <summary>False when this interval lacks CPU attribution. CpuPercent then holds a legacy placeholder, not zero usage.</summary>
+    public bool CpuAvailable { get; init; } = true;
+
+    public double? ObservedCpuPercent => CpuAvailable ? CpuPercent : null;
+
     /// <summary>Observed parent PID; ancestry must also be checked against process creation times.</summary>
     public int ParentProcessId { get; init; }
 

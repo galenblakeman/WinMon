@@ -17,6 +17,9 @@ public sealed record MonitorSample(
     bool IsGap = false,
     long MonotonicTimestamp = 0)
 {
+    /// <summary>Process observations remain useful when system CPU is unavailable; opt-in preserves Windows semantics.</summary>
+    public bool IndependentProcessReadings { get; init; }
+
     /// <summary>Resource measurements captured in the same collection pass.</summary>
     public ResourceSample Resources { get; init; } = new();
 

@@ -34,7 +34,7 @@ public static class ProcessRetention
         ProcessUsage[] kept =
         [
             .. sample.Processes.Where(p => retain?.Invoke(p) == true || p.HasHadAppWindow || p.HasAppWindow == true ||
-                                           p.CpuPercent > 0 || p.IoBytesPerSecond > 0 || p.GpuPercent is not null ||
+                                           !p.CpuAvailable || p.CpuPercent > 0 || p.IoBytesPerSecond > 0 || p.GpuPercent is not null ||
                                            p.WorkingSetBytes >= threshold || p.ThreadCount >= threadThreshold ||
                                            p.HandleCount >= handleThreshold)
         ];
