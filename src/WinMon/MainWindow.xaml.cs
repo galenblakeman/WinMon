@@ -214,7 +214,7 @@ public partial class MainWindow
     {
         _samplingError = Session.Error;
         // Only a live capture proves the new version healthy: samples restored after an update set Latest too.
-        if (!_diagnosticMode && !_updateReadySignaled && Session is { HasLiveSample: true, Error: null })
+        if (!_diagnosticMode && !_updateReadySignaled && Session.IsHealthy)
         {
             _updateReadySignaled = true;
             UpdateRuntime.SignalReady();
@@ -272,7 +272,8 @@ public partial class MainWindow
             SelectedSample is not null ? Strings.SystemResourcesInspectingSnapshot : LiveCaption.Text;
         ShowError(_samplingError switch
         {
-            SamplingError.CpuUnavailable => Strings.CPUUnavailableOtherResourcesContinueRecording,
+            SamplingError.CpuUnavailable or SamplingError.CpuUnsupported =>
+                Strings.CPUUnavailableOtherResourcesContinueRecording,
             SamplingError.ReadingsUnavailable => Strings.ReadingsUnavailableRetryingEachSecond,
             _ => null
         });

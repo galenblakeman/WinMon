@@ -245,6 +245,34 @@ public sealed class MonitorSessionTests
         });
     }
 
+    // Error names, since the enum is internal and NUnit test methods are public.
+    [TestCase(null, true)]
+    [TestCase(nameof(SamplingError.CpuUnsupported), true)]
+    [TestCase(nameof(SamplingError.CpuUnavailable), false)]
+    public async Task IsHealthy_AcceptsOnlyCpuThatThisMachineCannotReport(string? error, bool healthy)
+    {
+        // Without this, an update to a machine with several processor groups would always roll back.
+        SamplingError? sampled = error is null ? null : Enum.Parse<SamplingError>(error);
+        var harness = new Harness(options => Frame(1)(options) with { Error = sampled });
+
+        await harness.RunToEnd();
+        harness.Drain();
+
+        Assert.That(harness.Session.IsHealthy, Is.EqualTo(healthy));
+    }
+
+    [Test]
+    public async Task IsHealthy_NeedsALiveCapture()
+    {
+        var harness = new Harness(_ => throw new InvalidOperationException("Native read failed."));
+        harness.Session.Record(ProcessRetention.Compact(Frame(1)(new SamplingOptions()).Full));
+
+        await harness.RunToEnd();
+        harness.Drain();
+
+        Assert.That(harness.Session.IsHealthy, Is.False, "Restored history and a failed capture prove nothing.");
+    }
+
     [Test]
     public async Task LiveSampleRecorded_RaisesOncePerDrainedFrameInOrder()
     {

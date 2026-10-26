@@ -110,7 +110,7 @@ Rules for new code:
 - **Network** measures one connected Ethernet or Wi-Fi adapter, preferring one with a gateway, then the fastest, and keeps that choice while it stays connected. Adapters are re-enumerated after a Windows network-change event or every 30 seconds; counters are read every second. The readout shows the busier direction in adaptive decimal Kbps/Mbps/Gbps, and utilization is that direction over the reported link speed. This is link utilization, not Internet bandwidth.
 - **GPU** reports the busiest physical engine across adapters, from the Windows GPU Engine performance counters, without vendor libraries. Process contributions are summed within each engine before the busiest is chosen; independent engines and GPUs are never added. Live VRAM use and temperature are out of scope; Info shows dedicated memory capacity.
 - Interface or speed changes, counter resets, startup and long collection gaps need fresh rate baselines. The received and sent totals restart only when the adapter changes or its counters go backwards. Unavailable metrics show a dash and break the trace. A CPU provider failure does not stop the other resources. A capture that fails, or a sampler that cannot start, shows readings unavailable and is retried each second.
-- Machines with more than one active processor group are unsupported and show unavailable CPU readings rather than partial machine totals.
+- Machines with more than one active processor group are unsupported and show unavailable CPU readings rather than partial machine totals; an update there proves healthy from the other resources.
 
 ### Processes
 

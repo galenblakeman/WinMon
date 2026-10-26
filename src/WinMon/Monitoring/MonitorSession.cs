@@ -9,7 +9,10 @@ namespace WinMon.Monitoring;
 internal enum SamplingError
 {
     CpuUnavailable,
-    ReadingsUnavailable
+    ReadingsUnavailable,
+
+    /// <summary>Windows cannot report this machine's CPU, such as with more than one processor group.</summary>
+    CpuUnsupported
 }
 
 /// <summary>The drives and retention rules one capture uses.</summary>
@@ -75,6 +78,13 @@ internal sealed class MonitorSession(
     /// prove a new version healthy.
     /// </remarks>
     internal bool HasLiveSample { get; private set; }
+
+    /// <summary>Whether a live capture has shown this build sampling as well as this machine allows.</summary>
+    /// <remarks>
+    /// An update's new version must prove this or be rolled back. A machine whose CPU Windows cannot report proves
+    /// it every time, or it could never update; a CPU read that fails for any other reason does not.
+    /// </remarks>
+    internal bool IsHealthy => HasLiveSample && Error is null or SamplingError.CpuUnsupported;
 
     /// <summary>Why the most recent capture is incomplete, or null when it succeeded.</summary>
     internal SamplingError? Error { get; private set; }

@@ -32,7 +32,7 @@ internal sealed class WindowsFrameSource : IFrameSource
         catch (Exception ex) when (ex is Win32Exception or PlatformNotSupportedException)
         {
             _cpu.Reset();
-            error = SamplingError.CpuUnavailable;
+            error = ex is PlatformNotSupportedException ? SamplingError.CpuUnsupported : SamplingError.CpuUnavailable;
             Trace.TraceWarning("CPU sampling unavailable: {0}", ex.Message);
             sample = new MonitorSample(DateTimeOffset.Now, null, [], 0, false, Stopwatch.GetTimestamp());
         }
