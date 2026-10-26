@@ -39,6 +39,7 @@ These records describe the individual feature increments and their validation at
 - [Theme palette pairing](THEME-PALETTE-PAIRING.md), which pairs every appearance with a palette and follows it until the user picks their own
 - [Store sign-in startup](STORE-STARTUP.md), which starts the Store build at sign-in through its MSIX startup task
 - [Startup view and network interface settings](STARTUP-VIEW-AND-NETWORK-INTERFACE.md), which add fixed startup view choices and a persistent adapter choice
+- [Automatic capture button label](AUTO-CAPTURE-BUTTON.md), which shortens the chart toolbar status while keeping its full accessible description
 
 Implemented on 2026-10-24; each note ends with what landed and where it departed from the design:
 

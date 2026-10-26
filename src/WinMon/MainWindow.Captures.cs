@@ -241,9 +241,17 @@ public partial class MainWindow
 
         OverallGraph.Markers = markers;
         CapturesButton.Visibility = enabled || _captureMarkers.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-        CapturesButton.Content = _captureMarkers.Count == 0
+        var capturesLabel = _captureMarkers.Count == 0
+            ? Strings.AutoCaptureShort
+            : Strings.Format(Strings.AutoCaptureShortCount, _captureMarkers.Count);
+        var capturesDescription = _captureMarkers.Count == 0
             ? Strings.AutoCaptureNone
             : Strings.Format(Strings.AutoCaptureCount, _captureMarkers.Count);
+        if (!Equals(CapturesButton.Content, capturesLabel)) CapturesButton.Content = capturesLabel;
+        if (CapturesButton.ToolTip is not string buttonTooltip || buttonTooltip != capturesDescription)
+            CapturesButton.ToolTip = capturesDescription;
+        if (AutomationProperties.GetName(CapturesButton) != capturesDescription)
+            AutomationProperties.SetName(CapturesButton, capturesDescription);
         CaptureBanner.Visibility = selected is null ? Visibility.Collapsed : Visibility.Visible;
         if (selected is null) return;
         CaptureBannerText.Text = Strings.Format(Strings.AutoCaptureBanner, selected.Rule);

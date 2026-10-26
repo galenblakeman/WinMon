@@ -1561,6 +1561,8 @@ Windows の正常性状態: {2}</value>
   <data name="AutoCaptureMarkerTooltip" xml:space="preserve"><value>{0:T} に発生 · ピーク {1} ({2:T})</value></data>
   <data name="AutoCaptureMarkerHint" xml:space="preserve"><value>クリックしてピークを開く · Ctrl+← / Ctrl+→ で他のキャプチャ</value></data>
   <data name="AutoCapturePeakGone" xml:space="preserve"><value>ピークは履歴にありません。クリックして保存済みのレポートを開きます</value></data>
+  <data name="AutoCaptureShort" xml:space="preserve"><value>自動</value></data>
+  <data name="AutoCaptureShortCount" xml:space="preserve"><value>自動 {0}</value></data>
   <data name="AutoCaptureNone" xml:space="preserve"><value>自動キャプチャなし</value></data>
   <data name="AutoCaptureCount" xml:space="preserve"><value>自動キャプチャ: {0}</value></data>
   <data name="AutoCaptureBanner" xml:space="preserve"><value>自動キャプチャ · {0}</value></data>

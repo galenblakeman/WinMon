@@ -1561,6 +1561,8 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="AutoCaptureMarkerTooltip" xml:space="preserve"><value>Fired {0:T} · peak {1} at {2:T}</value></data>
   <data name="AutoCaptureMarkerHint" xml:space="preserve"><value>Click to open the peak · Ctrl+Left / Ctrl+Right for other captures</value></data>
   <data name="AutoCapturePeakGone" xml:space="preserve"><value>Peak no longer in history; click to open the saved report</value></data>
+  <data name="AutoCaptureShort" xml:space="preserve"><value>Auto</value></data>
+  <data name="AutoCaptureShortCount" xml:space="preserve"><value>Auto {0}</value></data>
   <data name="AutoCaptureNone" xml:space="preserve"><value>No automatic captures</value></data>
   <data name="AutoCaptureCount" xml:space="preserve"><value>Automatic captures: {0}</value></data>
   <data name="AutoCaptureBanner" xml:space="preserve"><value>Automatic capture · {0}</value></data>

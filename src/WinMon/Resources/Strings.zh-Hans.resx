@@ -1561,6 +1561,8 @@ Windows 健康状态：{2}</value>
   <data name="AutoCaptureMarkerTooltip" xml:space="preserve"><value>触发于 {0:T} · 峰值 {1}，时间 {2:T}</value></data>
   <data name="AutoCaptureMarkerHint" xml:space="preserve"><value>单击打开峰值 · Ctrl+左 / Ctrl+右 查看其他捕获</value></data>
   <data name="AutoCapturePeakGone" xml:space="preserve"><value>峰值已不在历史中；单击打开已保存的报告</value></data>
+  <data name="AutoCaptureShort" xml:space="preserve"><value>自动</value></data>
+  <data name="AutoCaptureShortCount" xml:space="preserve"><value>自动 {0}</value></data>
   <data name="AutoCaptureNone" xml:space="preserve"><value>无自动捕获</value></data>
   <data name="AutoCaptureCount" xml:space="preserve"><value>自动捕获：{0}</value></data>
   <data name="AutoCaptureBanner" xml:space="preserve"><value>自动捕获 · {0}</value></data>

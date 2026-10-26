@@ -131,6 +131,8 @@ History has configurable retention up to 60 minutes. Available history can be sh
 
 Turn on **Automatic captures** in Settings to catch spikes while you are away. Each resource has a rule, such as **CPU above 90% for 10 s**, plus **Any one process** for a single runaway process, measured in percent of one core. When a rule holds, WinMon marks the moment with a triangle in that resource's color at the top of the chart and saves the Copy capture report for the peak as a text file. A rule waits for its cooldown, and for the value to drop clearly below the threshold, before it captures again.
 
+The chart toolbar shows **Auto** while capture rules are enabled and adds a number when captures are in history, such as **Auto 2**. Hover over the button for the full status and click it to open the captures menu.
+
 Click a marker, or choose a capture from **Automatic captures** in the chart header, to open Capture mode at the peak; **Ctrl+Left** and **Ctrl+Right** step between captures. The capture card names the rule and offers **Open report**. Once a peak leaves history, its marker opens the saved report instead. Reports go to `%LOCALAPPDATA%\WinMon\Captures` (or a `Captures` folder beside a portable copy) unless you choose another folder; WinMon keeps the newest 200 and deletes only its own reports. Disk and network reports list processes by total I/O and say so, because Windows does not break process I/O down by drive or adapter. A notification for each capture is optional.
 
 ## Make it yours

@@ -1561,6 +1561,8 @@ GPU {11} · {12}
   <data name="AutoCaptureMarkerTooltip" xml:space="preserve"><value>Сработало {0:T} · пик {1} в {2:T}</value></data>
   <data name="AutoCaptureMarkerHint" xml:space="preserve"><value>Щёлкните, чтобы открыть пик · Ctrl+Влево / Ctrl+Вправо — другие захваты</value></data>
   <data name="AutoCapturePeakGone" xml:space="preserve"><value>Пика больше нет в истории; щёлкните, чтобы открыть сохранённый отчёт</value></data>
+  <data name="AutoCaptureShort" xml:space="preserve"><value>Авто</value></data>
+  <data name="AutoCaptureShortCount" xml:space="preserve"><value>Авто {0}</value></data>
   <data name="AutoCaptureNone" xml:space="preserve"><value>Нет автоматических захватов</value></data>
   <data name="AutoCaptureCount" xml:space="preserve"><value>Автоматические захваты: {0}</value></data>
   <data name="AutoCaptureBanner" xml:space="preserve"><value>Автоматический захват · {0}</value></data>

@@ -1561,6 +1561,8 @@ Windows 상태: {2}</value>
   <data name="AutoCaptureMarkerTooltip" xml:space="preserve"><value>{0:T}에 발생 · 최고 {1} ({2:T})</value></data>
   <data name="AutoCaptureMarkerHint" xml:space="preserve"><value>클릭하여 최고점 열기 · Ctrl+← / Ctrl+→로 다른 캡처</value></data>
   <data name="AutoCapturePeakGone" xml:space="preserve"><value>최고점이 더 이상 기록에 없습니다. 클릭하여 저장된 보고서 열기</value></data>
+  <data name="AutoCaptureShort" xml:space="preserve"><value>자동</value></data>
+  <data name="AutoCaptureShortCount" xml:space="preserve"><value>자동 {0}</value></data>
   <data name="AutoCaptureNone" xml:space="preserve"><value>자동 캡처 없음</value></data>
   <data name="AutoCaptureCount" xml:space="preserve"><value>자동 캡처: {0}</value></data>
   <data name="AutoCaptureBanner" xml:space="preserve"><value>자동 캡처 · {0}</value></data>

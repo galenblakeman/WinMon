@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using System.Windows;
+using System.Windows.Automation;
 using WinMon.Controls;
 using WinMon.Monitoring;
 using WinMon.Preferences;
@@ -40,6 +41,10 @@ internal sealed partial class WindowDiagnostics
         };
         try
         {
+            fixture.RefreshVisiblePresentation();
+            if (!Equals(fixture.CapturesButton.Content, Strings.AutoCaptureShort) ||
+                AutomationProperties.GetName(fixture.CapturesButton) != Strings.AutoCaptureNone)
+                throw new InvalidOperationException("The empty captures button needs a short label and full description.");
             var anchor = DateTimeOffset.Now.AddSeconds(-120);
             for (var i = 0; i < 120; i++)
             {
@@ -86,6 +91,9 @@ internal sealed partial class WindowDiagnostics
 
             fixture.Show();
             fixture.RefreshVisiblePresentation();
+            if (!Equals(fixture.CapturesButton.Content, Strings.Format(Strings.AutoCaptureShortCount, 2)) ||
+                AutomationProperties.GetName(fixture.CapturesButton) != Strings.Format(Strings.AutoCaptureCount, 2))
+                throw new InvalidOperationException("The captures button needs its count and full description.");
             var graph = fixture.OverallGraph;
             var plot = graph.PlotBounds;
             var end = CpuGraph.Moment(fixture.Session.History.Samples[^1]);

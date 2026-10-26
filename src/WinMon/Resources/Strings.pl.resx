@@ -1561,6 +1561,8 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
   <data name="AutoCaptureMarkerTooltip" xml:space="preserve"><value>Wyzwolono {0:T} · szczyt {1} o {2:T}</value></data>
   <data name="AutoCaptureMarkerHint" xml:space="preserve"><value>Kliknij, aby otworzyć szczyt · Ctrl+Lewo / Ctrl+Prawo dla innych przechwyceń</value></data>
   <data name="AutoCapturePeakGone" xml:space="preserve"><value>Szczytu nie ma już w historii; kliknij, aby otworzyć zapisany raport</value></data>
+  <data name="AutoCaptureShort" xml:space="preserve"><value>Auto</value></data>
+  <data name="AutoCaptureShortCount" xml:space="preserve"><value>Auto {0}</value></data>
   <data name="AutoCaptureNone" xml:space="preserve"><value>Brak automatycznych przechwyceń</value></data>
   <data name="AutoCaptureCount" xml:space="preserve"><value>Automatyczne przechwycenia: {0}</value></data>
   <data name="AutoCaptureBanner" xml:space="preserve"><value>Automatyczne przechwycenie · {0}</value></data>

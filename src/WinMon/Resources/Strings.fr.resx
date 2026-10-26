@@ -1561,6 +1561,8 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
   <data name="AutoCaptureMarkerTooltip" xml:space="preserve"><value>Déclenchée {0:T} · pic {1} à {2:T}</value></data>
   <data name="AutoCaptureMarkerHint" xml:space="preserve"><value>Cliquez pour ouvrir le pic · Ctrl+Gauche / Ctrl+Droite pour les autres captures</value></data>
   <data name="AutoCapturePeakGone" xml:space="preserve"><value>Le pic n’est plus dans l’historique ; cliquez pour ouvrir le rapport enregistré</value></data>
+  <data name="AutoCaptureShort" xml:space="preserve"><value>Auto</value></data>
+  <data name="AutoCaptureShortCount" xml:space="preserve"><value>Auto {0}</value></data>
   <data name="AutoCaptureNone" xml:space="preserve"><value>Aucune capture automatique</value></data>
   <data name="AutoCaptureCount" xml:space="preserve"><value>Captures automatiques : {0}</value></data>
   <data name="AutoCaptureBanner" xml:space="preserve"><value>Capture automatique · {0}</value></data>

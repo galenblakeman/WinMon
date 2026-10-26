@@ -1561,6 +1561,8 @@ Se puede perder el trabajo sin guardar. Se finalizarán todos los procesos indic
   <data name="AutoCaptureMarkerTooltip" xml:space="preserve"><value>Activada {0:T} · pico {1} a las {2:T}</value></data>
   <data name="AutoCaptureMarkerHint" xml:space="preserve"><value>Haga clic para abrir el pico · Ctrl+Izquierda / Ctrl+Derecha para otras capturas</value></data>
   <data name="AutoCapturePeakGone" xml:space="preserve"><value>El pico ya no está en el historial; haga clic para abrir el informe guardado</value></data>
+  <data name="AutoCaptureShort" xml:space="preserve"><value>Auto</value></data>
+  <data name="AutoCaptureShortCount" xml:space="preserve"><value>Auto {0}</value></data>
   <data name="AutoCaptureNone" xml:space="preserve"><value>Sin capturas automáticas</value></data>
   <data name="AutoCaptureCount" xml:space="preserve"><value>Capturas automáticas: {0}</value></data>
   <data name="AutoCaptureBanner" xml:space="preserve"><value>Captura automática · {0}</value></data>

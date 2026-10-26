@@ -76,6 +76,8 @@ public static partial class Strings
     public static string AutoCaptureSecondsFor => ResourceManager.GetString(nameof(AutoCaptureSecondsFor), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string AutoCaptureSecondsUnit => ResourceManager.GetString(nameof(AutoCaptureSecondsUnit), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string AutoCaptureSettings => ResourceManager.GetString(nameof(AutoCaptureSettings), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string AutoCaptureShort => ResourceManager.GetString(nameof(AutoCaptureShort), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string AutoCaptureShortCount => ResourceManager.GetString(nameof(AutoCaptureShortCount), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string AutoCaptureThresholdFor => ResourceManager.GetString(nameof(AutoCaptureThresholdFor), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string AutoCaptureTotalIo => ResourceManager.GetString(nameof(AutoCaptureTotalIo), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string AutoCaptureWaitAfter => ResourceManager.GetString(nameof(AutoCaptureWaitAfter), Culture ?? CultureInfo.CurrentUICulture)!;

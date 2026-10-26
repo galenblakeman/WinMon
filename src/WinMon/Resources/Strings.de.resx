@@ -1561,6 +1561,8 @@ Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse
   <data name="AutoCaptureMarkerTooltip" xml:space="preserve"><value>Ausgelöst {0:T} · Spitze {1} um {2:T}</value></data>
   <data name="AutoCaptureMarkerHint" xml:space="preserve"><value>Klicken, um die Spitze zu öffnen · Strg+Links / Strg+Rechts für andere Aufnahmen</value></data>
   <data name="AutoCapturePeakGone" xml:space="preserve"><value>Spitze nicht mehr im Verlauf; klicken, um den gespeicherten Bericht zu öffnen</value></data>
+  <data name="AutoCaptureShort" xml:space="preserve"><value>Auto</value></data>
+  <data name="AutoCaptureShortCount" xml:space="preserve"><value>Auto {0}</value></data>
   <data name="AutoCaptureNone" xml:space="preserve"><value>Keine automatischen Aufnahmen</value></data>
   <data name="AutoCaptureCount" xml:space="preserve"><value>Automatische Aufnahmen: {0}</value></data>
   <data name="AutoCaptureBanner" xml:space="preserve"><value>Automatische Aufnahme · {0}</value></data>

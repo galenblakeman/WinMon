@@ -1561,6 +1561,8 @@ O trabalho não salvo pode ser perdido. Todos os processos listados abaixo serã
   <data name="AutoCaptureMarkerTooltip" xml:space="preserve"><value>Disparada {0:T} · pico {1} às {2:T}</value></data>
   <data name="AutoCaptureMarkerHint" xml:space="preserve"><value>Clique para abrir o pico · Ctrl+Esquerda / Ctrl+Direita para outras capturas</value></data>
   <data name="AutoCapturePeakGone" xml:space="preserve"><value>O pico não está mais no histórico; clique para abrir o relatório salvo</value></data>
+  <data name="AutoCaptureShort" xml:space="preserve"><value>Auto</value></data>
+  <data name="AutoCaptureShortCount" xml:space="preserve"><value>Auto {0}</value></data>
   <data name="AutoCaptureNone" xml:space="preserve"><value>Nenhuma captura automática</value></data>
   <data name="AutoCaptureCount" xml:space="preserve"><value>Capturas automáticas: {0}</value></data>
   <data name="AutoCaptureBanner" xml:space="preserve"><value>Captura automática · {0}</value></data>
