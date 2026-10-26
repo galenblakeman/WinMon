@@ -415,7 +415,6 @@ public sealed class SettingsWindow : Window
     {
         var selector = CreateSelector([], "");
         SetDriveChoices(selector, [], selected, optional, true);
-        selector.Width = 210;
         return selector;
     }
 
@@ -427,7 +426,6 @@ public sealed class SettingsWindow : Window
     private static ComboBox CreateNetworkInterfaceSelector(string? selected, string? currentName)
     {
         var selector = CreateSelector([], "");
-        selector.Width = 280;
         SetNetworkChoices(selector, [], selected, currentName);
         return selector;
     }
@@ -552,8 +550,7 @@ public sealed class SettingsWindow : Window
         {
             ItemsSource = choices,
             SelectedItem = selectedValue,
-            Width = 210,
-            HorizontalAlignment = HorizontalAlignment.Right
+            HorizontalAlignment = HorizontalAlignment.Stretch
         };
         selector.SetResourceReference(BackgroundProperty, "Raised");
         selector.SetResourceReference(ForegroundProperty, "Text");
@@ -959,11 +956,14 @@ public sealed class SettingsWindow : Window
     {
         Grid field = new() { Margin = new Thickness(0, 3, 0, 3) };
         field.ColumnDefinitions.Add(new ColumnDefinition());
-        field.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        field.ColumnDefinitions.Add(new ColumnDefinition
+            { Width = control is ComboBox ? new GridLength(1, GridUnitType.Star) : GridLength.Auto });
         TextBlock text = new()
         {
             Text = label,
-            VerticalAlignment = VerticalAlignment.Center
+            VerticalAlignment = VerticalAlignment.Center,
+            TextTrimming = control is ComboBox ? TextTrimming.CharacterEllipsis : TextTrimming.None,
+            Margin = control is ComboBox ? new Thickness(0, 0, 8, 0) : new Thickness()
         };
         text.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
         AutomationProperties.SetLabeledBy(control, text);

@@ -83,6 +83,36 @@ public sealed class SettingsLayoutTests
         }
     }
 
+    [TestCase(780)]
+    [TestCase(640)]
+    public void Dropdowns_StayWithinHalfOfTheirField(int width)
+    {
+        var window = Settings(new MonitorPreferences());
+        try
+        {
+            var content = (FrameworkElement)window.Content;
+            foreach (var section in new[]
+                     { SettingsSection.General, SettingsSection.Appearance, SettingsSection.Monitoring })
+            {
+                window.ShowSection(section);
+                content.Measure(new Size(width, 640));
+                content.Arrange(new Rect(0, 0, width, 640));
+                var selectors = Descendants(window).OfType<ComboBox>().ToArray();
+                Assert.That(selectors, Is.Not.Empty, section.ToString());
+                foreach (var selector in selectors)
+                {
+                    var field = (Grid)LogicalTreeHelper.GetParent(selector);
+                    Assert.That(selector.ActualWidth, Is.LessThanOrEqualTo(field.ActualWidth / 2 + 0.5),
+                        section.ToString());
+                }
+            }
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
     [Test]
     public void ThemeSelector_ListsBuiltInModesBeforeAlphabeticalLocalizedFinishes()
     {

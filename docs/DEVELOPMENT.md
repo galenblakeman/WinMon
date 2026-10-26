@@ -99,6 +99,8 @@ Appearance finishes live in `Preferences/ThemeFinishes.cs`; Settings lists the b
 
 Activity tabs use a separate `InactiveTabText` brush so their labels clear each finish's header without changing other muted text. Copper's brushed reflection is included in the contrast test. `CpuGraph` shapes its axis, network-scale and selected-sample labels at 12 DIPs and measures alternate-view label widths at that same size.
 
+`SettingsWindow.Field` gives dropdown rows two equal star columns, so each selector takes half the content width; long selected network names remain available through the selector tooltip. Field labels trim when needed at the minimum window width.
+
 Rules for new code:
 
 - **`MonCore` is portable.** It references no WPF, Windows Forms, Avalonia, System.Management or native imports. `AssemblyBoundaryTests` checks assembly references and imports, and `MonitoringLayerTests` checks compiled type use.

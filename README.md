@@ -170,6 +170,8 @@ The Settings image above is from the installer/portable configuration. Store bui
 
 Settings is organized into **General**, **Appearance**, **Monitoring** and **Automatic captures** sections in a sidebar, plus **Updates** in installer and portable builds, with one Save for all of them. Reopening Settings returns to the last section you viewed during this app session, even if you closed it without saving. Appearance holds the theme, chart palette and resource gauge style. General holds language, startup, notification-area behavior and the show/hide shortcut, which defaults to **Ctrl+Shift+M**.
 
+Settings dropdowns take no more than half the content panel's width, leaving room for their labels.
+
 Settings → Monitoring → **Network interface** defaults to Automatic and shows the current adapter. Automatic switches to another connected adapter on the first sample after WinMon detects that its current one disconnected. You can choose a specific Ethernet or Wi-Fi interface, including one that is currently disconnected. A manual choice stays selected if that interface disconnects; its readings show as unavailable until it reconnects. Changing the choice starts fresh rate and total measurements.
 
 Choose **Windows display language** or select English, Simplified Chinese, Russian, Spanish, Brazilian Portuguese, German, Japanese, French, Polish or Korean in Settings. Language changes apply when you save.

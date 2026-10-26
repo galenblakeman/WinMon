@@ -42,6 +42,7 @@ These records describe the individual feature increments and their validation at
 - [Automatic capture button label](AUTO-CAPTURE-BUTTON.md), which shortens the chart toolbar status while keeping its full accessible description
 - [Resource gauge centering](RESOURCE-GAUGE-CENTERING.md), which aligns bowls and values in the full-view columns
 - [Units in table values](TABLE-VALUE-UNITS.md), which moves Processes and Services units into cells and keeps Usage consistent
+- [Settings dropdown width](SETTINGS-DROPDOWN-WIDTH.md), which limits selectors to half the Settings content row
 
 Implemented on 2026-10-24; each note ends with what landed and where it departed from the design:
 
