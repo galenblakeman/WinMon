@@ -616,7 +616,7 @@
                                             GroupName="ActivityView"
                                             Style="{StaticResource ActivityTab}" />
                                     </StackPanel>
-                                    <!--  Machine totals for the moment the table shows; the tooltip has exact values.  -->
+                                    <!--  Counts for the selected activity tab; tooltips give exact values.  -->
                                     <TextBlock
                                         x:Name="SystemCounts"
                                         Grid.Column="1"
@@ -624,6 +624,22 @@
                                         VerticalAlignment="Center"
                                         FontSize="12"
                                         Foreground="{DynamicResource Muted}"><Run Text="{Binding [ProcessesHeading], Source={x:Static resources:Strings.Text}, Mode=OneWay}" /><Run Text=" " /><Run x:Name="ProcessCountValue" Foreground="{DynamicResource Text}" /><Run Text="  ·  " /><Run Text="{Binding [Threads], Source={x:Static resources:Strings.Text}, Mode=OneWay}" /><Run Text=" " /><Run x:Name="ThreadCountValue" Foreground="{DynamicResource Text}" /><Run Text="  ·  " /><Run Text="{Binding [Handles], Source={x:Static resources:Strings.Text}, Mode=OneWay}" /><Run Text=" " /><Run x:Name="HandleCountValue" Foreground="{DynamicResource Text}" /></TextBlock>
+                                    <TextBlock
+                                        x:Name="ServiceCounts"
+                                        Grid.Column="1"
+                                        Margin="12,0,20,0"
+                                        VerticalAlignment="Center"
+                                        FontSize="12"
+                                        Foreground="{DynamicResource Muted}"
+                                        Visibility="Collapsed"><Run Text="{Binding [ActivityTotal], Source={x:Static resources:Strings.Text}, Mode=OneWay}" /><Run Text=" " /><Run x:Name="ServiceTotalValue" Foreground="{DynamicResource Text}" /><Run Text="  ·  " /><Run Text="{Binding [ServiceRunning], Source={x:Static resources:Strings.Text}, Mode=OneWay}" /><Run Text=" " /><Run x:Name="ServiceRunningValue" Foreground="{DynamicResource Text}" /></TextBlock>
+                                    <TextBlock
+                                        x:Name="UsageCounts"
+                                        Grid.Column="1"
+                                        Margin="12,0,20,0"
+                                        VerticalAlignment="Center"
+                                        FontSize="12"
+                                        Foreground="{DynamicResource Muted}"
+                                        Visibility="Collapsed"><Run Text="{Binding [ActivityTotal], Source={x:Static resources:Strings.Text}, Mode=OneWay}" /><Run Text=" " /><Run x:Name="UsageTotalValue" Foreground="{DynamicResource Text}" /><Run Text="  ·  " /><Run Text="{Binding [ActivityActive], Source={x:Static resources:Strings.Text}, Mode=OneWay}" /><Run Text=" " /><Run x:Name="UsageActiveValue" Foreground="{DynamicResource Text}" /></TextBlock>
                                 </Grid>
                             </Border>
                             <controls:ProcessesView x:Name="Processes" Grid.Row="1" />

@@ -6,6 +6,18 @@ Dated measurement and validation records, newest first. Each section describes t
 
 Add a section at the top for each measured change: what changed, the machine and build, before and after results, and where the raw reports are.
 
+## Activity tab counts (October 26, 2026)
+
+Release UI benchmark on the development machine (12 logical processors), comparing `6e0be78` with the tab-specific count working tree on .NET 10. Four baseline and four changed runs alternated; values are medians of each run's seven-batch median, then the median of four runs.
+
+| Scenario | Before | After | Allocation before / after |
+| --- | ---: | ---: | ---: |
+| Live overlay | 3.68 ms | 3.71 ms | 584.8 / 584.9 KiB |
+| Services live | 4.62 ms | 4.51 ms | 975.2 / 979.0 KiB |
+| Compact live | 1.43 ms | 1.42 ms | 362.4 / 362.4 KiB |
+
+The Services pixel hash changes as expected from the new visible count summary; Live and Compact hashes match. The 3.8 KiB per Services frame allocation increase is the cost of rendering the additional text, under 0.4% of its baseline allocation. Counts and exact tooltips are cached until a value or language changes. UI time did not regress. Raw local reports: `artifacts/perf-activity-counts/baseline-final-1.json` through `baseline-final-4.json` and matching `changed-final-*` reports.
+
 ## Startup view and network interface settings (October 26, 2026)
 
 Release UI benchmark on the development machine (12 logical processors), comparing `f10437f` with the Settings and network-selection working tree on .NET 10. Four baseline and four changed runs alternated, followed by one reverse-order pair to examine timing variation. Values are medians of each run's seven-batch median, then the median of four runs.

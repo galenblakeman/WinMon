@@ -1643,4 +1643,6 @@ Windows 상태: {2}</value>
   <data name="ExportFailed" xml:space="preserve"><value>CSV를 저장할 수 없습니다: {0}</value></data>
   <data name="KeepHistoryAcrossRestarts" xml:space="preserve"><value>다시 시작한 후에도 기록 유지</value></data>
   <data name="KeepHistoryAcrossRestartsNote" xml:space="preserve"><value>최근 프로세스 이름, 경로 및 측정값을 이 장치에 저장합니다. 선택한 보존 기간이 지나면 기록이 만료됩니다.</value></data>
+  <data name="ActivityTotal" xml:space="preserve"><value>전체</value></data>
+  <data name="ActivityActive" xml:space="preserve"><value>활성</value></data>
 </root>

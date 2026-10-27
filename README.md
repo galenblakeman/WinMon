@@ -77,7 +77,7 @@ Select a process row to use the accent action bar: **Properties**, **Copy detail
 
 To make room, click the chevron at the end of the action bar. The bar slides away and leaves a slim strip with the selection's name; click **Show actions** to bring it back. Processes, Services and Usage share the choice, and WinMon remembers it.
 
-Beside the **Processes**, **Services** and **Usage** tabs, WinMon shows the machine's process, thread and handle counts for the moment the table shows, live or captured. Counts of 100,000 or more are shortened, such as **152K**; hover for exact values.
+Beside the activity tabs, the summary changes with the selected view. **Processes** shows the machine's process, thread and handle counts for the moment the table shows, live or captured. **Services** shows total services and how many are running at that moment. **Usage** shows total tracked app groups since the last reset and how many have a process running now. Counts of 100,000 or more are shortened, such as **152K**; hover for exact values. Unavailable service readings show a dash.
 
 ## Follow Windows services and their workers
 

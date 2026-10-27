@@ -17,6 +17,7 @@ These records describe the individual feature increments and their validation at
 - [Global show shortcut](GLOBAL-SHORTCUT.md)
 - [GPU utilization](GPU-UTILIZATION.md)
 - [Multiple disk volumes](MULTIPLE-DISKS.md)
+- [Activity tab counts](ACTIVITY-COUNTS.md)
 - [Process count selector](PROCESS-COUNT.md)
 - [Code structure](STRUCTURE.md)
 - [Wide resource gauges](WIDE-RESOURCE-GAUGES.md)

@@ -34,6 +34,9 @@ public partial class MainWindow
         Processes.Visibility = ProcessesTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
         ServiceView.Visibility = ServicesTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
         UsageView.Visibility = UsageTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+        SystemCounts.Visibility = ProcessesTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+        ServiceCounts.Visibility = ServicesTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+        UsageCounts.Visibility = UsageTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
         RefreshPresentation();
     }
 
@@ -44,6 +47,19 @@ public partial class MainWindow
         var frame = Session.Services.Find(SelectedSample);
         // A failed collection must not leave stale live metrics or actions on screen.
         if (SelectedSample is null && _samplingError is not null) frame = null;
+        var total = 0;
+        var running = 0;
+        if (frame?.Available == true)
+            foreach (var group in frame.Groups)
+                foreach (var service in group.Services)
+                {
+                    total++;
+                    if (service.State == 4) running++;
+                }
+        UpdateActivityPair(ServiceCounts, ServiceTotalValue, ServiceRunningValue,
+            frame?.Available == true ? (uint)total : null,
+            frame?.Available == true ? (uint)running : null,
+            Strings.ActivityTotal, Strings.ServiceRunning, ref _serviceCounts);
         var frames = Session.Services.Frames;
         var count = 0;
         if (frame is not null)

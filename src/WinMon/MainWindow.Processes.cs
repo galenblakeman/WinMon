@@ -10,6 +10,7 @@ public partial class MainWindow
 {
     // Null until first shown, and after a language change, so the next refresh writes every label.
     private (uint? ProcessCount, uint? ThreadCount, uint? HandleCount)? _systemCounts;
+    private (uint? Total, uint? Secondary)? _serviceCounts, _usageCounts;
 
     private void InitializeProcesses()
     {
@@ -52,6 +53,23 @@ public partial class MainWindow
                     $"{Strings.Handles}: {ExactCount(counts.HandleCount)}";
         SystemCounts.ToolTip = exact;
         AutomationProperties.SetName(SystemCounts, exact);
+    }
+
+    private static void UpdateActivityPair(System.Windows.Controls.TextBlock display,
+        System.Windows.Documents.Run totalValue, System.Windows.Documents.Run secondaryValue,
+        uint? total, uint? secondary, string totalLabel, string secondaryLabel,
+        ref (uint? Total, uint? Secondary)? previous)
+    {
+        var counts = (total, secondary);
+        if (previous == counts) return;
+        previous = counts;
+        var compactTotal = CompactCount(total);
+        var compactSecondary = CompactCount(secondary);
+        var exact = $"{totalLabel}: {ExactCount(total)}\n{secondaryLabel}: {ExactCount(secondary)}";
+        totalValue.Text = compactTotal;
+        secondaryValue.Text = compactSecondary;
+        display.ToolTip = exact;
+        AutomationProperties.SetName(display, exact);
     }
 
     private void ApplyActionsHidden()

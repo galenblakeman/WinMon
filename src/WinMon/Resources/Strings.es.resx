@@ -1643,4 +1643,6 @@ Se puede perder el trabajo sin guardar. Se finalizarán todos los procesos indic
   <data name="ExportFailed" xml:space="preserve"><value>No se pudo guardar el CSV: {0}</value></data>
   <data name="KeepHistoryAcrossRestarts" xml:space="preserve"><value>Conservar el historial entre reinicios</value></data>
   <data name="KeepHistoryAcrossRestartsNote" xml:space="preserve"><value>Guarda nombres de procesos, rutas y mediciones recientes en este dispositivo. El historial caduca después del período de conservación seleccionado.</value></data>
+  <data name="ActivityTotal" xml:space="preserve"><value>Total</value></data>
+  <data name="ActivityActive" xml:space="preserve"><value>Activas</value></data>
 </root>

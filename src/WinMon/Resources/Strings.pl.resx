@@ -1643,4 +1643,6 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
   <data name="ExportFailed" xml:space="preserve"><value>Nie udało się zapisać CSV: {0}</value></data>
   <data name="KeepHistoryAcrossRestarts" xml:space="preserve"><value>Zachowaj historię po ponownym uruchomieniu</value></data>
   <data name="KeepHistoryAcrossRestartsNote" xml:space="preserve"><value>Zapisuje ostatnie nazwy procesów, ścieżki i pomiary na tym urządzeniu. Historia wygasa po wybranym okresie przechowywania.</value></data>
+  <data name="ActivityTotal" xml:space="preserve"><value>Łącznie</value></data>
+  <data name="ActivityActive" xml:space="preserve"><value>Aktywne</value></data>
 </root>

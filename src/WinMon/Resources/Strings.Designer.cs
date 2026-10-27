@@ -14,6 +14,8 @@ public static partial class Strings
     public static string AboutWinMonAndHardwareInformation => ResourceManager.GetString(nameof(AboutWinMonAndHardwareInformation), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string AccessDeniedWindowsDidNotAllowWinMonToEndThis => ResourceManager.GetString(nameof(AccessDeniedWindowsDidNotAllowWinMonToEndThis), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string Actions => ResourceManager.GetString(nameof(Actions), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ActivityActive => ResourceManager.GetString(nameof(ActivityActive), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ActivityTotal => ResourceManager.GetString(nameof(ActivityTotal), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string AdapterUtilizationOfTheBusiestEngineAcrossAvailableGPUs => ResourceManager.GetString(nameof(AdapterUtilizationOfTheBusiestEngineAcrossAvailableGPUs), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string AdditionalCPUSpecificationsUnavailableFromWindows => ResourceManager.GetString(nameof(AdditionalCPUSpecificationsUnavailableFromWindows), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string AllEntries => ResourceManager.GetString(nameof(AllEntries), Culture ?? CultureInfo.CurrentUICulture)!;

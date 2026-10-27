@@ -55,6 +55,13 @@ internal sealed partial class WindowDiagnostics
             ServiceActionsExecuted = false
         }, new JsonSerializerOptions { WriteIndented = true }), cancellationToken);
         window.ServicesTab.IsChecked = true;
+        var liveTotal = (uint)live.Groups.Sum(group => group.Services.Count);
+        var liveRunning = (uint)live.Groups.Sum(group => group.Services.Count(service => service.State == 4));
+        if (window.ServiceTotalValue.Text != MainWindow.CompactCount(liveTotal) ||
+            window.ServiceRunningValue.Text != MainWindow.CompactCount(liveRunning) ||
+            window.ServiceCounts.Visibility != Visibility.Visible ||
+            window.SystemCounts.Visibility != Visibility.Collapsed)
+            throw new InvalidOperationException("Services tab did not show total and running service counts.");
         window.Width = 1200;
         window.Height = 950;
         await CaptureServiceWindowAsync(window, Path.Combine(output, "services-live.png"), cancellationToken);
@@ -108,6 +115,8 @@ internal sealed partial class WindowDiagnostics
 
             fixture.Show();
             fixture.ServicesTab.IsChecked = true;
+            if (fixture.ServiceTotalValue.Text != "7" || fixture.ServiceRunningValue.Text != "6")
+                throw new InvalidOperationException("Service totals must count services, not host groups.");
             foreach (var group in fixture.Session.Services.Frames[^1].Groups
                          .Where(g => g.Shared || g.Services[0].Name == "BuildAgent"))
                 fixture.ServiceView.ExpandGroup(group.Key);

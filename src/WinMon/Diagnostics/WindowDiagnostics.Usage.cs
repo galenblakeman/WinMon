@@ -63,6 +63,12 @@ internal sealed partial class WindowDiagnostics
 
             fixture.Show();
             fixture.UsageTab.IsChecked = true;
+            var apps = fixture.Session.Usage.Apps;
+            if (fixture.UsageTotalValue.Text != MainWindow.CompactCount((uint)apps.Count) ||
+                fixture.UsageActiveValue.Text != MainWindow.CompactCount((uint)apps.Count(app => app.Running > 0)) ||
+                fixture.UsageCounts.Visibility != Visibility.Visible ||
+                fixture.SystemCounts.Visibility != Visibility.Collapsed)
+                throw new InvalidOperationException("Usage tab did not show total and active app counts.");
             var view = fixture.UsageView;
             view.Rows.SelectedItem = view.Rows.Items.Cast<UsageDisplayRow>().First();
             var checks = new Dictionary<string, object>();

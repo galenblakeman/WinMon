@@ -1643,4 +1643,6 @@ Windows 健康状态：{2}</value>
   <data name="ExportFailed" xml:space="preserve"><value>无法保存 CSV：{0}</value></data>
   <data name="KeepHistoryAcrossRestarts" xml:space="preserve"><value>重启后保留历史记录</value></data>
   <data name="KeepHistoryAcrossRestartsNote" xml:space="preserve"><value>在此设备上保存近期的进程名称、路径和测量值。历史记录将在所选保留期后过期。</value></data>
+  <data name="ActivityTotal" xml:space="preserve"><value>总计</value></data>
+  <data name="ActivityActive" xml:space="preserve"><value>活跃</value></data>
 </root>

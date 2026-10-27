@@ -1643,4 +1643,6 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="ExportFailed" xml:space="preserve"><value>Couldn't save the CSV: {0}</value></data>
   <data name="KeepHistoryAcrossRestarts" xml:space="preserve"><value>Keep history across restarts</value></data>
   <data name="KeepHistoryAcrossRestartsNote" xml:space="preserve"><value>Saves recent process names, paths and measurements on this device. History expires after the selected retention period.</value></data>
+  <data name="ActivityTotal" xml:space="preserve"><value>Total</value></data>
+  <data name="ActivityActive" xml:space="preserve"><value>Active</value></data>
 </root>

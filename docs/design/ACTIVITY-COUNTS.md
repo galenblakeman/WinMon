@@ -19,3 +19,7 @@ A failed live sampling pass clears the live counts. While inspecting a retained 
 ## Departures
 
 - The `K` and `M` suffixes are not translated, matching the network gauge's scale label.
+
+## Tab-specific update (2026-10-26)
+
+The right summary now switches with the activity tab. Processes retains the three machine counts. Services shows Total and Running from the selected service frame, counting individual services within shared hosts; unavailable frames show dashes. Usage shows Total tracked app groups and Active groups with at least one running process, using the live ledger even while inspecting a capture. Each summary has compact visible values, exact tooltip and accessible name. Service and Usage smoke checks cover the switched summaries.

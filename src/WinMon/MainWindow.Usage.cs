@@ -31,7 +31,11 @@ public partial class MainWindow
         // The compact strip hides the Usage tab as well.
         if (UsageTab.IsChecked != true || CompactMode) return;
         var ledger = Session.Usage;
-        UsageView.Update(new UsageFrame(ledger.Apps, ledger.MachineBusyTicks, ledger.NotAttributedCpuTicks,
+        var apps = ledger.Apps;
+        UpdateActivityPair(UsageCounts, UsageTotalValue, UsageActiveValue,
+            (uint)apps.Count, (uint)apps.Count(app => app.Running > 0),
+            Strings.ActivityTotal, Strings.ActivityActive, ref _usageCounts);
+        UsageView.Update(new UsageFrame(apps, ledger.MachineBusyTicks, ledger.NotAttributedCpuTicks,
             ledger.Since, (Session.LatestFull ?? Session.Latest)?.Timestamp, SelectedSample is not null));
     }
 
