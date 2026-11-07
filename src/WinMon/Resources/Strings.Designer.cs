@@ -462,6 +462,7 @@ public static partial class Strings
     public static string ProcessesTab => ResourceManager.GetString(nameof(ProcessesTab), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ProcessExited => ResourceManager.GetString(nameof(ProcessExited), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ProcessFileMissing => ResourceManager.GetString(nameof(ProcessFileMissing), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ProcessFileVersionLabel => ResourceManager.GetString(nameof(ProcessFileVersionLabel), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ProcessFullDump => ResourceManager.GetString(nameof(ProcessFullDump), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ProcessGrouping => ResourceManager.GetString(nameof(ProcessGrouping), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ProcessHandlesExplanation => ResourceManager.GetString(nameof(ProcessHandlesExplanation), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -482,6 +483,7 @@ public static partial class Strings
     public static string ProcessPriorityUnavailable => ResourceManager.GetString(nameof(ProcessPriorityUnavailable), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ProcessPrivateMemoryLabel => ResourceManager.GetString(nameof(ProcessPrivateMemoryLabel), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ProcessProductLabel => ResourceManager.GetString(nameof(ProcessProductLabel), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ProcessProductVersionLabel => ResourceManager.GetString(nameof(ProcessProductVersionLabel), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ProcessProperties => ResourceManager.GetString(nameof(ProcessProperties), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ProcessPublisherLabel => ResourceManager.GetString(nameof(ProcessPublisherLabel), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ProcessReadWriteIOIncludesFileNetworkAndDevice => ResourceManager.GetString(nameof(ProcessReadWriteIOIncludesFileNetworkAndDevice), Culture ?? CultureInfo.CurrentUICulture)!;

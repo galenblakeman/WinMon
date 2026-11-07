@@ -626,6 +626,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                     100 * 1_048_576, 230_000)
                 {
                     ImagePath = @"C:\Program Files\Example\example.exe", AppName = "Example application",
+                    FileVersion = "1.2.3.4", ProductVersion = "1.2 release",
                     Publisher = "Example publisher", ThreadCount = 12, HandleCount = 240, PrivateBytes = 80 * 1_048_576
                 };
                 var snapshot = new ProcessDetailsSnapshot(example, false, DateTimeOffset.Now, false, true, "");

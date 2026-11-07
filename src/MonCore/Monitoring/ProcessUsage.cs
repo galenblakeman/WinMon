@@ -69,4 +69,10 @@ public sealed record ProcessUsage(
 
     /// <summary>Process IDs a grouped row represents, lowest first; empty for an individual process.</summary>
     public IReadOnlyList<int> MemberIds { get; init; } = [];
+
+    /// <summary>File version from executable metadata, when available.</summary>
+    public string FileVersion { get; init; } = "";
+
+    /// <summary>Product version from executable metadata, when available.</summary>
+    public string ProductVersion { get; init; } = "";
 }

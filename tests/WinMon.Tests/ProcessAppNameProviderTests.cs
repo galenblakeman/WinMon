@@ -44,9 +44,9 @@ public class ProcessAppNameProviderTests
     public void Get_CachesNamesByPathIgnoringCase()
     {
         var reads = 0;
-        var provider = new ProcessAppNameProvider(_ => { reads++; return ("Programmer's Notepad 2", "PN Editor", "Example Publisher"); });
-        Assert.That(provider.Get(@"C:\Apps\pn.exe"), Is.EqualTo(("Programmer's Notepad 2", "PN Editor", "Example Publisher")));
-        Assert.That(provider.Get(@"c:\apps\PN.EXE"), Is.EqualTo(("Programmer's Notepad 2", "PN Editor", "Example Publisher")));
+        var provider = new ProcessAppNameProvider(_ => { reads++; return ("Programmer's Notepad 2", "PN Editor", "Example Publisher", "1.2.3.4", "1.2 release"); });
+        Assert.That(provider.Get(@"C:\Apps\pn.exe"), Is.EqualTo(("Programmer's Notepad 2", "PN Editor", "Example Publisher", "1.2.3.4", "1.2 release")));
+        Assert.That(provider.Get(@"c:\apps\PN.EXE"), Is.EqualTo(("Programmer's Notepad 2", "PN Editor", "Example Publisher", "1.2.3.4", "1.2 release")));
         Assert.That(reads, Is.EqualTo(1));
     }
 
@@ -58,9 +58,9 @@ public class ProcessAppNameProviderTests
         {
             var reads = 0;
             var provider = new ProcessAppNameProvider(_ => { reads++; throw failure; });
-            Assert.That(provider.Get(""), Is.EqualTo(("", "", "")));
-            Assert.That(provider.Get(@"C:\Apps\missing.exe"), Is.EqualTo(("", "", "")));
-            Assert.That(provider.Get(@"C:\Apps\missing.exe"), Is.EqualTo(("", "", "")));
+            Assert.That(provider.Get(""), Is.EqualTo(("", "", "", "", "")));
+            Assert.That(provider.Get(@"C:\Apps\missing.exe"), Is.EqualTo(("", "", "", "", "")));
+            Assert.That(provider.Get(@"C:\Apps\missing.exe"), Is.EqualTo(("", "", "", "", "")));
             Assert.That(reads, Is.EqualTo(1));
         }
     }
@@ -69,7 +69,7 @@ public class ProcessAppNameProviderTests
     public void Get_FullCache_EvictsTheOldestPath()
     {
         var reads = new List<string>();
-        var provider = new ProcessAppNameProvider(path => { reads.Add(path); return (path, "", ""); });
+        var provider = new ProcessAppNameProvider(path => { reads.Add(path); return (path, "", "", "", ""); });
         for (var i = 0; i < 1024; i++) provider.Get($@"C:\Apps\p{i}.exe");
         provider.Get(@"C:\Apps\a.exe");
         provider.Get(@"C:\Apps\b.exe");
@@ -94,6 +94,8 @@ public class ProcessAppNameProviderTests
             Assert.That(names.Description, Is.Not.Empty);
             Assert.That(names.Description, Is.EqualTo(expected.FileDescription?.Trim()));
             Assert.That(names.Product, Is.EqualTo(expected.ProductName?.Trim() ?? ""));
+            Assert.That(names.FileVersion, Is.EqualTo(expected.FileVersion?.Trim() ?? ""));
+            Assert.That(names.ProductVersion, Is.EqualTo(expected.ProductVersion?.Trim() ?? ""));
             Assert.That(names.Publisher, Is.EqualTo(expected.CompanyName?.Trim() ?? ""));
         });
     }

@@ -6,6 +6,31 @@ Dated measurement and validation records, newest first. Each section describes t
 
 Add a section at the top for each measured change: what changed, the machine and build, before and after results, and where the raw reports are.
 
+## Process file versions (November 7, 2026)
+
+Release benchmark on the development machine (12 logical processors), .NET runtime 10.0.14. Compared the clean baseline at `0ed58ae` with the version-field change using preserved binaries. Four alternating pairs use `artifacts/version-baseline-{1,2,4,5}.json` and `artifacts/version-changed-{1,2,3,4}.json`. UI values are medians of the four runs' seven-batch medians; history values use each run's five-save/read medians. Baseline WinMon assembly SHA-256: `EC8BB72FFAA023792054352DE0AB1DA70821887F108361A19ECFCC18F7335622`; changed: `77769A8E410008E4F88D40E0563853AE5AC829AEE0E332F61B87A4ED9BBFFB96`.
+
+| Scenario | Before | After | Allocation before / after |
+| --- | ---: | ---: | ---: |
+| Live overlay | 4.50 ms | 4.11 ms | 584.9 / 583.3 KiB |
+| Small multiples | 3.29 ms | 2.86 ms | 556.4 / 558.3 KiB |
+| Heatmap | 3.21 ms | 2.92 ms | 600.8 / 602.7 KiB |
+| Focused chart | 3.02 ms | 2.86 ms | 570.7 / 572.6 KiB |
+| Historical | 1.21 ms | 0.99 ms | 174.1 / 174.1 KiB |
+| Grouped | 6.57 ms | 6.06 ms | 576.7 / 578.6 KiB |
+| Services | 6.01 ms | 5.94 ms | 979.0 / 979.0 KiB |
+| Compact | 1.66 ms | 1.65 ms | 362.4 / 362.4 KiB |
+| Pinned and selected | 4.18 ms | 3.68 ms | 931.0 / 946.1 KiB |
+| Pinned and selected group | 6.88 ms | 7.08 ms | 749.7 / 753.5 KiB |
+| Group with CPU tooltip | 10.44 ms | 9.99 ms | 892.9 / 898.5 KiB |
+| Usage ledger add | 0.0178 ms | 0.0168 ms | 0.0 / 0.0 KiB |
+
+All scenario pixel hashes matched across these eight reports. The extra two string references explain the added process-copy allocation (roughly 1.9 KiB/frame in ordinary chart modes and 15.2 KiB with pinned/selected processes). Retaining 500,000 process entries adds about 7.6 MiB of object fields, plus cached version strings. This benchmark does not measure native metadata collection; the fields reuse the existing file-version read and path cache.
+
+At the retained 60-minute workload (1,961 samples / 499,896 process entries), update-history median save/read changed from 1,065/792 ms to 1,106/824 ms; normal-history save/read changed from 1,015/628 ms to 1,103/668 ms. Full saves grew from about 15.27 to 15.73 MB (update) and 15.26 to 15.72 MB (normal), as expected from the additional version indices. Both remain within the 1.5-second overall budget on these median measurements. The existing 1.2-second chunk deadline still trims oldest history under load: one changed update report restored 1,680 samples, and one baseline normal report restored 1,200; the other selected reports restored all 1,961. Do not interpret these measurements as a guarantee of full saves on every machine.
+
+Concurrent activity-panel work replaced the shared verification output during the original comparison. The affected third changed report was discarded and rerun from `artifacts/version-changed-frozen`, a preserved copy of the verified version-only build; the fourth changed run also uses that copy. Hashes above were checked for every selected report. Background work means timing differences should not be read as speed improvements. Verification of the version-field build passed 939 tests and feature smoke (68 renders); its dark/light Properties PNGs were inspected.
+
 ## Activity tab counts (October 26, 2026)
 
 Release UI benchmark on the development machine (12 logical processors), comparing `6e0be78` with the tab-specific count working tree on .NET 10. Four baseline and four changed runs alternated; values are medians of each run's seven-batch median, then the median of four runs.

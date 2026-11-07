@@ -77,6 +77,8 @@ Limits:
 - Renders at several scales are layout evidence. They do not prove real DPI changes, mixed-DPI monitor moves, keyboard automation, tray interaction or startup at sign-in, which remain manual checks. Smoke never ends a process or changes a service.
 - Some renders use labelled illustrative data, such as `design-compact*.png`; they compare against the design reference and are not measurements.
 
+Process Properties and Copy details share `ProcessDetailsSnapshot.Format()`. File and product versions come from the existing per-path `ProcessAppNameProvider` cache on the sampling thread; opening details performs no file I/O. Restart-history format 2 preserves both strings and reads format 1 with empty versions. Older WinMon builds cannot restore format-2 history.
+
 ## Code structure
 
 The [structure note](design/STRUCTURE.md) records the original WPF separation; the [shared monitoring design](design/SHARED-MONITORING.md) records the cross-platform assembly boundary.

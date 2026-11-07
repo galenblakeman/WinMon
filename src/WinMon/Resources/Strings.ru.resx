@@ -1645,4 +1645,6 @@ GPU {11} · {12}
   <data name="KeepHistoryAcrossRestartsNote" xml:space="preserve"><value>Сохраняет недавние имена процессов, пути и измерения на этом устройстве. История удаляется по истечении выбранного срока хранения.</value></data>
   <data name="ActivityTotal" xml:space="preserve"><value>Всего</value></data>
   <data name="ActivityActive" xml:space="preserve"><value>Активных</value></data>
+  <data name="ProcessFileVersionLabel" xml:space="preserve"><value>Версия файла</value></data>
+  <data name="ProcessProductVersionLabel" xml:space="preserve"><value>Версия продукта</value></data>
 </root>

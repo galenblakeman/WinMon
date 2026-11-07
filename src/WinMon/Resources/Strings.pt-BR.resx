@@ -1645,4 +1645,6 @@ O trabalho não salvo pode ser perdido. Todos os processos listados abaixo serã
   <data name="KeepHistoryAcrossRestartsNote" xml:space="preserve"><value>Salva nomes de processos, caminhos e medições recentes neste dispositivo. O histórico expira após o período de retenção selecionado.</value></data>
   <data name="ActivityTotal" xml:space="preserve"><value>Total</value></data>
   <data name="ActivityActive" xml:space="preserve"><value>Ativos</value></data>
+  <data name="ProcessFileVersionLabel" xml:space="preserve"><value>Versão do arquivo</value></data>
+  <data name="ProcessProductVersionLabel" xml:space="preserve"><value>Versão do produto</value></data>
 </root>

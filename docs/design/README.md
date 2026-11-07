@@ -8,6 +8,8 @@ This folder contains the current layout reference, feature design notes and edit
 
 ## Feature notes
 
+- [Process file versions](PROCESS-FILE-VERSIONS.md) adds executable versions to Properties and Copy details.
+
 - [Portable process identity](PORTABLE-PROCESS-IDENTITY.md) defines lifetime domains, executable policies and partial observations.
 
 - [Shared monitoring library](SHARED-MONITORING.md) tracks the MonCore extraction for WinMon and future MacMon use.

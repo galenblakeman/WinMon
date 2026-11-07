@@ -150,6 +150,8 @@ public sealed class WindowsCpuSampler : IDisposable
                 AppName = appNames.Description,
                 ProductName = appNames.Product,
                 Publisher = appNames.Publisher,
+                FileVersion = appNames.FileVersion,
+                ProductVersion = appNames.ProductVersion,
                 HasAppWindow = process.HasAppWindow,
                 HasHadAppWindow = process.HasHadAppWindow
             });

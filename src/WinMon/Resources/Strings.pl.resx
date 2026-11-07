@@ -1645,4 +1645,6 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
   <data name="KeepHistoryAcrossRestartsNote" xml:space="preserve"><value>Zapisuje ostatnie nazwy procesów, ścieżki i pomiary na tym urządzeniu. Historia wygasa po wybranym okresie przechowywania.</value></data>
   <data name="ActivityTotal" xml:space="preserve"><value>Łącznie</value></data>
   <data name="ActivityActive" xml:space="preserve"><value>Aktywne</value></data>
+  <data name="ProcessFileVersionLabel" xml:space="preserve"><value>Wersja pliku</value></data>
+  <data name="ProcessProductVersionLabel" xml:space="preserve"><value>Wersja produktu</value></data>
 </root>

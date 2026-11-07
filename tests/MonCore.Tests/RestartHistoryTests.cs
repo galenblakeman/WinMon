@@ -338,7 +338,10 @@ public sealed class RestartHistoryTests
         Assert.Multiple(() =>
         {
             Assert.That(restored, Is.Not.Null);
-            Assert.That(Json(restored!.Samples), Is.EqualTo(Json(Samples(75))));
+            Assert.That(Json(restored!.Samples), Is.EqualTo(Json(Samples(75).Select(sample => sample with
+            {
+                Processes = sample.Processes.Select(process => process with { FileVersion = "", ProductVersion = "" }).ToArray()
+            }))));
             Assert.That(restored.Usage!.Apps.Select(a => a.Key), Is.EquivalentTo(new[] { @"C:\app.exe", "tool" }));
         });
     }
@@ -349,7 +352,7 @@ public sealed class RestartHistoryTests
     {
         var ledger = new UsageLedger(Anchor);
         ledger.Add(Valid(1, [Process(7, 70, "app", 20, @"C:\app.exe"), Process(8, 80, "tool", 10)]));
-        var path = Path.Combine(SourceDirectory(), "Fixtures", FixtureName);
+        var path = Path.Combine(SourceDirectory(), "Fixtures", $"restart-history-v{RestartHistory.FormatVersion}.bin");
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         Assert.That(RestartHistory.Save(path, Token, "fixture", Samples(75), ledger.Export(), Fixed()), Is.True);
     }

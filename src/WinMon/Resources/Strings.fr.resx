@@ -1645,4 +1645,6 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
   <data name="KeepHistoryAcrossRestartsNote" xml:space="preserve"><value>Enregistre les noms, chemins et mesures récents des processus sur cet appareil. L’historique expire après la durée de conservation choisie.</value></data>
   <data name="ActivityTotal" xml:space="preserve"><value>Total</value></data>
   <data name="ActivityActive" xml:space="preserve"><value>Actives</value></data>
+  <data name="ProcessFileVersionLabel" xml:space="preserve"><value>Version du fichier</value></data>
+  <data name="ProcessProductVersionLabel" xml:space="preserve"><value>Version du produit</value></data>
 </root>

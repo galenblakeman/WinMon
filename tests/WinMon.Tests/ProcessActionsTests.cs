@@ -95,6 +95,26 @@ public sealed class ProcessActionsTests
         Assert.That(group.Format(), Does.Contain("12, 24").And.Not.Contain("PID:").And.Not.Contain(Strings.ProcessStartedLabel + ":"));
     }
 
+    [TestCase(false, false)]
+    [TestCase(false, true)]
+    [TestCase(true, false)]
+    [TestCase(true, true)]
+    public void Details_IncludeVersionsOrMissingReadings(bool grouped, bool missing)
+    {
+        var process = Example with
+        {
+            FileVersion = missing ? "" : "1.2.3.4",
+            ProductVersion = missing ? "" : "1.2 release"
+        };
+        var snapshot = new ProcessDetailsSnapshot(process, grouped, DateTimeOffset.Now, true, false, Strings.ProcessExited);
+        var text = snapshot.Format();
+        Assert.Multiple(() =>
+        {
+            Assert.That(text, Does.Contain(Strings.ProcessFileVersionLabel + ": " + (missing ? Strings.MissingReading : process.FileVersion)));
+            Assert.That(text, Does.Contain(Strings.ProcessProductVersionLabel + ": " + (missing ? Strings.MissingReading : process.ProductVersion)));
+        });
+    }
+
     [Test]
     [SetCulture("en-US")]
     public void Details_UseOneDecimalForMemoryAndIo()

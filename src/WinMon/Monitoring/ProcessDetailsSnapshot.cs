@@ -17,6 +17,8 @@ internal sealed record ProcessDetailsSnapshot(
         Add(Strings.ProcessNameLabel, Process.Name);
         Add(Strings.ProcessApplicationLabel, Process.AppName);
         Add(Strings.ProcessProductLabel, Process.ProductName);
+        Add(Strings.ProcessFileVersionLabel, Process.FileVersion);
+        Add(Strings.ProcessProductVersionLabel, Process.ProductVersion);
         Add(Strings.ProcessPublisherLabel, Process.Publisher);
         Add(Strings.ProcessPathLabel, Process.ImagePath);
         Add(Strings.ProcessObservationLabel, Timestamp?.ToLocalTime().ToString("G"));

@@ -43,7 +43,7 @@ public static class RestartHistory
     public const string FileName = "restart-history.bin";
     public const string NormalFileName = "history.bin";
     private const string NormalToken = "normal-exit";
-    public const int FormatVersion = 1;
+    public const int FormatVersion = 2;
     public const int ChunkSamples = 60;
     public static readonly TimeSpan Budget = TimeSpan.FromSeconds(1.5);
     public const double StopChunksAfterSeconds = 1.2;
@@ -239,10 +239,12 @@ public static class RestartHistory
         var start = clock.Timestamp();
         if (!stream.CanSeek || stream.Length < HeaderMagic.Length + TrailerLength) return null;
         long headerLength, savedTimestamp;
+        int version;
         using (var reader = new BinaryReader(stream, Encoding.UTF8, true))
         {
             if (!reader.ReadBytes(HeaderMagic.Length).AsSpan().SequenceEqual(HeaderMagic)) return null;
-            if (reader.ReadInt32() != FormatVersion) return Reject("an unknown format version");
+            version = reader.ReadInt32();
+            if (version is < 1 or > FormatVersion) return Reject("an unknown format version");
             _ = reader.ReadString();
             if (reader.ReadString() != token) return Reject("another update's token");
             var frequency = reader.ReadInt64();
@@ -292,7 +294,7 @@ public static class RestartHistory
                 continue;
             }
 
-            if (kind != SampleChunk || !valid || TryParse(payload, ReadSamples) is not { } samples) break;
+            if (kind != SampleChunk || !valid || TryParse(payload, reader => ReadSamples(reader, version)) is not { } samples) break;
             chunks.Add(samples);
         }
 
@@ -378,6 +380,8 @@ public static class RestartHistory
                 Add(process.AppName);
                 Add(process.ProductName);
                 Add(process.Publisher);
+                Add(process.FileVersion);
+                Add(process.ProductVersion);
                 Add(process.GpuEngine);
                 Add(process.GpuId);
             }
@@ -394,13 +398,13 @@ public static class RestartHistory
         }
     }
 
-    private static List<MonitorSample> ReadSamples(BinaryReader reader)
+    private static List<MonitorSample> ReadSamples(BinaryReader reader, int version)
     {
         var table = new string[Count(reader)];
         for (var i = 0; i < table.Length; i++) table[i] = reader.ReadString();
         var count = Count(reader);
         var samples = new List<MonitorSample>(count);
-        for (var i = 0; i < count; i++) samples.Add(ReadSample(reader, table));
+        for (var i = 0; i < count; i++) samples.Add(ReadSample(reader, table, version));
         return samples;
     }
 
@@ -435,6 +439,8 @@ public static class RestartHistory
             writer.Write(strings[process.AppName]);
             writer.Write(strings[process.ProductName]);
             writer.Write(strings[process.Publisher]);
+            writer.Write(strings[process.FileVersion]);
+            writer.Write(strings[process.ProductVersion]);
             byte hasAppWindow = process.HasAppWindow switch { null => 0, false => 1, true => 2 };
             writer.Write(hasAppWindow);
             writer.Write(process.HasHadAppWindow);
@@ -444,7 +450,7 @@ public static class RestartHistory
         }
     }
 
-    private static MonitorSample ReadSample(BinaryReader reader, string[] table)
+    private static MonitorSample ReadSample(BinaryReader reader, string[] table, int version)
     {
         var timestamp = ReadTime(reader);
         var total = ReadDouble(reader);
@@ -477,6 +483,8 @@ public static class RestartHistory
                 AppName = table[reader.ReadInt32()],
                 ProductName = table[reader.ReadInt32()],
                 Publisher = table[reader.ReadInt32()],
+                FileVersion = version >= 2 ? table[reader.ReadInt32()] : "",
+                ProductVersion = version >= 2 ? table[reader.ReadInt32()] : "",
                 HasAppWindow = reader.ReadByte() switch
                 {
                     0 => null, 1 => false, 2 => true, _ => throw new InvalidDataException("Bad app-window flag.")
