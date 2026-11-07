@@ -15,6 +15,9 @@ namespace WinMon;
 /// </summary>
 public partial class MainWindow
 {
+    internal void RememberWindowPositionForFixture() => RememberWindowPosition();
+    internal void NotifyDisplayChangeForFixture() => OnDisplaySettingsChanged(null, EventArgs.Empty);
+
     /// <summary>The historical sample being inspected, or null for the live view. Set without refreshing.</summary>
     internal MonitorSample? SelectedSample { get; set; }
 

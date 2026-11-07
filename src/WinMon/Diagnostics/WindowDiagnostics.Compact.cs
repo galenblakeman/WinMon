@@ -15,6 +15,7 @@ internal sealed partial class WindowDiagnostics
         if (window.Session.History.Latest?.Resources.TotalMemoryBytes is null)
             throw new InvalidOperationException("Compact diagnostics require native resource samples.");
         var fullSize = new Size(window.Width, window.Height);
+        await CheckWindowPositionRecoveryAsync(output, cancellationToken);
         window.CompactViewButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
         await CaptureAsync(Path.Combine(output, "strip-live.png"), 1, cancellationToken);
         if (!window.CompactMode || window.FullView.Visibility != Visibility.Collapsed ||
@@ -146,5 +147,36 @@ internal sealed partial class WindowDiagnostics
             visual.Arrange(new Rect(0, 0, width, MainWindow.CompactHeight));
             visual.UpdateLayout();
         }
+    }
+
+    private async Task CheckWindowPositionRecoveryAsync(string output, CancellationToken cancellationToken)
+    {
+        var handle = new System.Windows.Interop.WindowInteropHelper(window).Handle;
+        if (!GetWindowRect(handle, out var original)) throw new InvalidOperationException("Window bounds unavailable.");
+        window.RememberWindowPositionForFixture();
+        window.Left += 40;
+        window.NotifyDisplayChangeForFixture();
+        await Task.Delay(500, cancellationToken);
+        if (!GetWindowRect(handle, out var moved) || moved.Left == original.Left)
+            throw new InvalidOperationException("Display recovery moved the window before monitors settled.");
+        window.NotifyDisplayChangeForFixture();
+        await Task.Delay(2700, cancellationToken);
+        if (!GetWindowRect(handle, out var waiting) || waiting.Left != moved.Left)
+            throw new InvalidOperationException("A later display change did not restart the settling delay.");
+        await Task.Delay(600, cancellationToken);
+        if (!GetWindowRect(handle, out var restored) || Math.Abs(restored.Left - original.Left) > 2 ||
+            Math.Abs(restored.Top - original.Top) > 2)
+            throw new InvalidOperationException("Display recovery did not restore the remembered native position.");
+
+        window.Left += 40;
+        SendMessageW(handle, 0x0232, IntPtr.Zero, IntPtr.Zero); // User finishes moving the window.
+        if (!GetWindowRect(handle, out var chosen)) throw new InvalidOperationException("Window bounds unavailable.");
+        window.NotifyDisplayChangeForFixture();
+        await Task.Delay(3300, cancellationToken);
+        if (!GetWindowRect(handle, out var retained) || retained.Left != chosen.Left || retained.Top != chosen.Top)
+            throw new InvalidOperationException("Display recovery overrode the user's new position.");
+        window.Left -= 40;
+        window.RememberWindowPositionForFixture();
+        await CaptureAsync(Path.Combine(output, "position-recovery.png"), 1, cancellationToken);
     }
 }

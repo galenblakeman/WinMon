@@ -175,6 +175,8 @@ Settings is organized into **General**, **Appearance**, **Monitoring** and **Aut
 
 Settings dropdowns take no more than half the content panel's width, leaving room for their labels.
 
+After sleep or a display change, WinMon waits three seconds for monitors to reconnect before recovering its window position. It remembers the monitor chosen by dragging, resizing or Windows-key placement shortcuts during the current run. If that monitor stays disconnected, the window remains accessible on another display and returns when its monitor reconnects. Moving the window yourself chooses a new position.
+
 Settings → Monitoring → **Network interface** defaults to Automatic and shows the current adapter. Automatic switches to another connected adapter on the first sample after WinMon detects that its current one disconnected. You can choose a specific Ethernet or Wi-Fi interface, including one that is currently disconnected. A manual choice stays selected if that interface disconnects; its readings show as unavailable until it reconnects. Changing the choice starts fresh rate and total measurements.
 
 Choose **Windows display language** or select English, Simplified Chinese, Russian, Spanish, Brazilian Portuguese, German, Japanese, French, Polish or Korean in Settings. Language changes apply when you save.

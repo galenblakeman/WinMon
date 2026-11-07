@@ -61,7 +61,7 @@ $run.ExitCode
 | `--feature-smoke-output <dir>` | `feature` | Title bar, CSV export dialog in Dark, Light and Slate (`export-*.png`), hardware Info and its copied report (`hardware.json`, `copied-info.txt`), process actions, the action drawer, activity-panel collapse/restore, resized and persisted splits (`activity-panel-*.png`, `activity-panel-passed.txt`), palettes, the update footer at full and minimum window heights |
 | `--snapshot-smoke-output <dir>` | `snapshot` | Fixture renders: design reference, App only filtering, two disk volumes, GPU/Memory/I/O ranking and pinned processes (`pins.json`) |
 | `--search-smoke-output <dir>` | `search` | Process search, clearing, thread and handle sorting, live and historical |
-| `--compact-smoke-output <dir>` | `compact` | Compact gauges: live data, every gauge style, view switching and Export visibility, saved dimensions, optional disk, dark/light renders at 836 and 1000 DIPs, plus one render per additional appearance finish (`compact.json`) |
+| `--compact-smoke-output <dir>` | `compact` | Window position settling delay, native restoration and a user move (`position-recovery.png`); compact gauges: live data, every gauge style, view switching and Export visibility, saved dimensions, optional disk, dark/light renders at 836 and 1000 DIPs, plus one render per additional appearance finish (`compact.json`) |
 | `--services-smoke-output <dir>` | `services` | Services tab |
 | `--usage-smoke-output <dir>` | `usage` | Usage tab |
 | `--capture-smoke-output <dir>` | `capture` | Automatic captures, the 836-DIP chart toolbar with Auto, and Settings sections in Dark and Light appearances; fails if the Appearance section scrolls at full height, and records each section's overflow in `captures.json` |
@@ -80,6 +80,8 @@ Limits:
 Process Properties and Copy details share `ProcessDetailsSnapshot.Format()`. File and product versions come from the existing per-path `ProcessAppNameProvider` cache on the sampling thread; opening details performs no file I/O. Restart-history format 2 preserves both strings and reads format 1 with empty versions. Older WinMon builds cannot restore format-2 history.
 
 ## Code structure
+
+Window placement recovery lives in `MainWindow.Position.cs` and `WindowPosition.cs`. Native move/resize completion and Windows-key placement record the user's monitor and offset in physical pixels; automatic Windows relocations do not overwrite that target. Display changes and resume restart a three-second dispatcher timer. Recovery preserves focus and size, defers minimized/maximized windows until they return to Normal, and retains a missing monitor's target until the user moves the window. Monitor identity and offsets are session-only; startup continues to use the persisted bounds. Mixed-DPI visibility checks use `GetWindowRect`, matching the physical coordinates from `Screen.WorkingArea`.
 
 The [structure note](design/STRUCTURE.md) records the original WPF separation; the [shared monitoring design](design/SHARED-MONITORING.md) records the cross-platform assembly boundary.
 

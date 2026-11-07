@@ -186,6 +186,7 @@ public partial class MainWindow
 
             SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
             SystemEvents.DisplaySettingsChanged += OnDisplaySettingsChanged;
+            InitializeWindowPosition();
             SamplingTask = Session.Run(Lifetime.Token);
             InitializeUpdates();
         }
@@ -902,9 +903,9 @@ public partial class MainWindow
     private void EnsureVisible()
     {
         // Keep any window that intersects a display; recover disconnected-monitor bounds to the primary work area.
-        var dpi = VisualTreeHelper.GetDpi(this);
-        var bounds = new Rectangle((int)(Left * dpi.DpiScaleX), (int)(Top * dpi.DpiScaleY),
-            (int)(Width * dpi.DpiScaleX), (int)(Height * dpi.DpiScaleY));
+        var handle = new System.Windows.Interop.WindowInteropHelper(this).Handle;
+        if (!GetWindowRect(handle, out var nativeBounds)) return;
+        var bounds = Rectangle.FromLTRB(nativeBounds.Left, nativeBounds.Top, nativeBounds.Right, nativeBounds.Bottom);
         var visible = Forms.Screen.AllScreens.Any(s => Rectangle.Intersect(s.WorkingArea, bounds) is
         {
             Width: >= 100, Height: >= 80
@@ -929,7 +930,7 @@ public partial class MainWindow
 
     private void OnDisplaySettingsChanged(object? sender, EventArgs e)
     {
-        if (!IsClosing) Dispatcher.BeginInvoke(EnsureVisible);
+        QueueWindowPositionRecovery();
     }
 
     private void OnWindowKeyDown(object sender, KeyEventArgs e)
@@ -1024,6 +1025,7 @@ public partial class MainWindow
         IsEnabled = false;
         SystemEvents.UserPreferenceChanged -= OnUserPreferenceChanged;
         SystemEvents.DisplaySettingsChanged -= OnDisplaySettingsChanged;
+        CloseWindowPosition();
         try
         {
             await Lifetime.CancelAsync();
