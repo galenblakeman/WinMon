@@ -22,6 +22,8 @@ The selected mockup adds **Logical processors** to the full-view chart selector,
 
 ## What landed and departures
 
+The processor-count and scale header row was removed on November 7, 2026. Cells use the recovered vertical space; individual processor labels, percentages and the fixed 0–100% scale remain. `Verify.ps1 -Smoke chart` passed (1,005 tests and seven renders); the logical-processor screenshot was visually checked.
+
 The feature landed in the sample/provider/sampler, restart history, `CpuGraph`, the existing selector/preferences, localized resources, diagnostics and benchmark. The production layout uses an adaptive grid rather than a fixed 4×4 layout. Short cells use labeled sparklines; their exact values remain in tooltips and UI Automation instead of taking space from the trace. Larger cells show the current or selected interval's rounded percentage. The selector is 150 DIPs wide so its English label is visible. Existing chart chrome follows the current app, including changes made after the illustrative mockup.
 
 The repository verification workflow passed in isolated output folders (the shared verification output was locked by other work). Standard: 971 tests, chart/snapshot/capture smoke, 85 renders. Store: 973 tests. The temporary verification copy only changed output paths and disabled the unreachable NuGet vulnerability audit. Relevant screenshots under `artifacts/logical-processors/verify/20261107-113547/` were visually inspected. Real high-contrast desktop switching, screen-reader operation and a physical 64-processor machine were not exercised; the 64-processor layout uses synthetic data.

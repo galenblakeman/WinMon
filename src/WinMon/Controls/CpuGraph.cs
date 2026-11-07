@@ -299,9 +299,6 @@ public sealed class CpuGraph : FrameworkElement
             Label(dc, Strings.Unavailable, new Point(plot.Left + plot.Width / 2, plot.Top + plot.Height / 2), muted, 0.5);
             return;
         }
-        Label(dc, Strings.Format(Strings.LogicalProcessorsHeading, count), new Point(plot.Left + 4, plot.Top + 2),
-            Resource("Text", Brushes.White));
-        Label(dc, Strings.LogicalProcessorScale, new Point(plot.Right - 4, plot.Top + 2), muted, 1);
         foreach (var (index, cell) in LogicalProcessorCells(plot, count))
         {
             dc.DrawRectangle(null, CachedPen(line, 0.6), cell);
@@ -421,10 +418,9 @@ public sealed class CpuGraph : FrameworkElement
 
     private IEnumerable<(int Index, Rect Cell)> LogicalProcessorCells(Rect plot, int count)
     {
-        const double headingHeight = 20;
         var columns = LogicalProcessorColumns(count);
         var rows = (int)Math.Ceiling(count / (double)columns);
-        var body = new Rect(plot.Left, plot.Top + headingHeight, plot.Width, Math.Max(0, plot.Height - headingHeight));
+        var body = plot;
         var gap = (body.Height - 3 * (rows - 1)) / rows < 36 ? 0 : 3;
         var width = Math.Max(0, (body.Width - gap * (columns - 1)) / columns);
         var height = Math.Max(0, (body.Height - gap * (rows - 1)) / rows);

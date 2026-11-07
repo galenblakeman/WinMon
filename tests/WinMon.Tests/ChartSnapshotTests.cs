@@ -132,6 +132,7 @@ public sealed class ChartSnapshotTests
         graph.Measure(new Size(600, 240));
         graph.Arrange(new Rect(0, 0, 600, 240));
         graph.SetData([first, latest], 120, null);
+        Assert.That(graph.LogicalProcessorPlotBounds(0)!.Value.Top, Is.EqualTo(graph.PlotBounds.Top + 17));
         MonitorSample? selected = null;
         graph.SampleSelected += (_, sample) => selected = sample;
 
