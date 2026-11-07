@@ -1702,4 +1702,13 @@ Se puede perder el trabajo sin guardar. Se finalizarán todos los procesos indic
   <data name="GuideActivityAnswer" xml:space="preserve"><value>Servicios muestra los servicios locales y sus procesos anfitriones; despliegue un servicio para ver sus trabajadores. Uso suma tiempo de CPU, E/S y tiempo de GPU por ejecutable, incluidas las aplicaciones cerradas. Restablecer reinicia los totales de Uso.</value></data>
   <data name="GuideCompactQuestion" xml:space="preserve"><value>¿Cómo cambio a la vista compacta?</value></data>
   <data name="GuideCompactAnswer" xml:space="preserve"><value>Use Vista compacta en la barra de título para ver indicadores sin el gráfico ni los paneles de actividad. Vista completa restaura el panel. Configuración &gt; General &gt; Vista al iniciar controla la vista al iniciar.</value></data>
+  <data name="ConnectionsAddressPorts" xml:space="preserve"><value>{0} · {1} puertos</value></data>
+  <data name="ConnectionsAddressesPorts" xml:space="preserve"><value>{0} direcciones · {1} puertos</value></data>
+  <data name="ConnectionsAddressesSinglePort" xml:space="preserve"><value>{0} direcciones · 1 puerto</value></data>
+  <data name="ConnectionsProcessCount" xml:space="preserve"><value>{0} procesos</value></data>
+  <data name="ConnectionsStateCount" xml:space="preserve"><value>{0} {1}</value></data>
+  <data name="ConnectionsUnavailableCount" xml:space="preserve"><value>{0} no disponible</value></data>
+  <data name="ConnectionsIndividualHelp" xml:space="preserve"><value>Una fila por punto de conexión</value></data>
+  <data name="ConnectionsGroupedHelp" xml:space="preserve"><value>Agrupar puntos de conexión por ejecutable</value></data>
+  <data name="ConnectionsEndpointProtocol" xml:space="preserve"><value>{0} · {1}</value></data>
 </root>

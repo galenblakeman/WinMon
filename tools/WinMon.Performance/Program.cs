@@ -134,6 +134,9 @@ internal static class Program
         window.ConnectionView.SelectConnectionForFixture(firstConnectionProcess.ProcessId, firstConnectionProcess.CreationTicks);
         Flush();
         Measure("connections-grouped-expanded-live-frame");
+        window.ConnectionView.Grouped = false;
+        Flush();
+        Measure("connections-individual-live-frame");
         var report = new
         {
             Runtime = Environment.Version.ToString(), Samples = 600, ProcessesPerSample = Processes,

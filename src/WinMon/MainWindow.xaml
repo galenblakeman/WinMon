@@ -649,6 +649,9 @@
                                         FontSize="12"
                                         Foreground="{DynamicResource Muted}"
                                         Visibility="Collapsed"><Run Text="{Binding [ActivityTotal], Source={x:Static resources:Strings.Text}, Mode=OneWay}" /><Run Text=" " /><Run x:Name="UsageTotalValue" Foreground="{DynamicResource Text}" /><Run Text="  ·  " /><Run Text="{Binding [ActivityActive], Source={x:Static resources:Strings.Text}, Mode=OneWay}" /><Run Text=" " /><Run x:Name="UsageActiveValue" Foreground="{DynamicResource Text}" /></TextBlock>
+                                    <TextBlock x:Name="ConnectionCounts" Grid.Column="1" Margin="12,0,8,0"
+                                        VerticalAlignment="Center" FontSize="12" Foreground="{DynamicResource Muted}"
+                                        Visibility="Collapsed"><Run Text="TCP " /><Run x:Name="ConnectionTcpValue" Foreground="{DynamicResource Text}" /><Run Text="  ·  UDP " /><Run x:Name="ConnectionUdpValue" Foreground="{DynamicResource Text}" /></TextBlock>
                                     <controls:ActivityPanelButton
                                         x:Name="ActivityPanelToggle"
                                         Grid.Column="2"

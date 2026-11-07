@@ -1702,4 +1702,13 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="GuideActivityAnswer" xml:space="preserve"><value>Services shows local services and their hosting processes; expand a service to see workers. Usage totals CPU time, I/O and GPU time by executable, including exited apps. Reset starts Usage totals again.</value></data>
   <data name="GuideCompactQuestion" xml:space="preserve"><value>How do I switch to Compact view?</value></data>
   <data name="GuideCompactAnswer" xml:space="preserve"><value>Use Compact view in the title bar for gauges without the chart and activity panels. Full view restores the dashboard. Settings &gt; General &gt; Startup view controls which view opens at launch.</value></data>
+  <data name="ConnectionsAddressPorts" xml:space="preserve"><value>{0} · {1} ports</value></data>
+  <data name="ConnectionsAddressesPorts" xml:space="preserve"><value>{0} addresses · {1} ports</value></data>
+  <data name="ConnectionsAddressesSinglePort" xml:space="preserve"><value>{0} addresses · 1 port</value></data>
+  <data name="ConnectionsProcessCount" xml:space="preserve"><value>{0} processes</value></data>
+  <data name="ConnectionsStateCount" xml:space="preserve"><value>{0} {1}</value></data>
+  <data name="ConnectionsUnavailableCount" xml:space="preserve"><value>{0} unavailable</value></data>
+  <data name="ConnectionsIndividualHelp" xml:space="preserve"><value>One row per endpoint</value></data>
+  <data name="ConnectionsGroupedHelp" xml:space="preserve"><value>Group endpoints by executable</value></data>
+  <data name="ConnectionsEndpointProtocol" xml:space="preserve"><value>{0} · {1}</value></data>
 </root>

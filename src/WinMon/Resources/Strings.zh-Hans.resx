@@ -1702,4 +1702,13 @@ Windows 健康状态：{2}</value>
   <data name="GuideActivityAnswer" xml:space="preserve"><value>服务显示本地服务及其宿主进程，展开服务可查看工作进程。使用情况按可执行文件累计 CPU 时间、I/O 和 GPU 时间，包括已退出的应用。重置会重新开始累计使用情况。</value></data>
   <data name="GuideCompactQuestion" xml:space="preserve"><value>如何切换到紧凑视图？</value></data>
   <data name="GuideCompactAnswer" xml:space="preserve"><value>使用标题栏的紧凑视图，仅显示仪表，隐藏图表和活动面板。完整视图可恢复仪表板。设置 &gt; 常规 &gt; 启动视图决定启动时显示的视图。</value></data>
+  <data name="ConnectionsAddressPorts" xml:space="preserve"><value>{0} · {1} 个端口</value></data>
+  <data name="ConnectionsAddressesPorts" xml:space="preserve"><value>{0} 个地址 · {1} 个端口</value></data>
+  <data name="ConnectionsAddressesSinglePort" xml:space="preserve"><value>{0} 个地址 · 1 个端口</value></data>
+  <data name="ConnectionsProcessCount" xml:space="preserve"><value>{0} 个进程</value></data>
+  <data name="ConnectionsStateCount" xml:space="preserve"><value>{0} {1}</value></data>
+  <data name="ConnectionsUnavailableCount" xml:space="preserve"><value>{0} 个不可用</value></data>
+  <data name="ConnectionsIndividualHelp" xml:space="preserve"><value>每个终结点一行</value></data>
+  <data name="ConnectionsGroupedHelp" xml:space="preserve"><value>按可执行文件对终结点分组</value></data>
+  <data name="ConnectionsEndpointProtocol" xml:space="preserve"><value>{0} · {1}</value></data>
 </root>

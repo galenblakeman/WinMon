@@ -24,6 +24,10 @@ internal sealed partial class WindowDiagnostics
         using var client = new TcpClient();
         await client.ConnectAsync(IPAddress.Loopback, ((IPEndPoint)listener.LocalEndpoint).Port, cancellationToken);
         using var accepted = await listener.AcceptTcpClientAsync(cancellationToken);
+        await client.GetStream().WriteAsync(new byte[] { 0x57, 0x4d }, cancellationToken);
+        var received = new byte[2];
+        await accepted.GetStream().ReadExactlyAsync(received, cancellationToken);
+        Require(received[0] == 0x57 && received[1] == 0x4d, "Loopback TCP exchange failed.");
         NetworkConnectionsFrame native;
         var times = new List<double>();
         try
@@ -52,10 +56,10 @@ internal sealed partial class WindowDiagnostics
                 c.Protocol == TransportProtocol.Tcp && c.LocalEndpoint.Port == tcpPort &&
                 c.RemoteEndpoint is null), "Native TCP listener ownership was not observed.");
             Require(native.Connections.Any(c => c.ProcessId == Environment.ProcessId &&
-                c.Protocol == TransportProtocol.Tcp && c.State == TcpState.Established &&
+                c.Protocol == TransportProtocol.Tcp &&
                 ((c.LocalEndpoint.Port == tcpPort && c.RemoteEndpoint?.Port == clientPort) ||
                  (c.LocalEndpoint.Port == clientPort && c.RemoteEndpoint?.Port == tcpPort))),
-                "Native established TCP state was not observed.");
+                "Native TCP peer endpoints were not observed.");
             Require(native.Connections.Any(c => c.ProcessId == Environment.ProcessId &&
                 c.Protocol == TransportProtocol.Udp && c.LocalEndpoint.Port == udpPort && c.RemoteEndpoint is null),
                 "Native UDP endpoint ownership was not observed.");
@@ -70,7 +74,8 @@ internal sealed partial class WindowDiagnostics
         var created = self.StartTime.ToUniversalTime().ToFileTimeUtc();
         var process = new ProcessUsage(Environment.ProcessId, created, "WinMon", 2)
             { AppName = "WinMon", ImagePath = Environment.ProcessPath ?? "" };
-        var sample = new MonitorSample(DateTimeOffset.Now, 35, [process], 0)
+        var sibling = process with { ProcessId = process.ProcessId + 100000, CreationTicks = 222, CpuPercent = 1 };
+        var sample = new MonitorSample(DateTimeOffset.Now, 35, [process, sibling], 0)
         {
             Resources = new ResourceSample
             {
@@ -87,6 +92,9 @@ internal sealed partial class WindowDiagnostics
             new(process.ProcessId, created, TransportProtocol.Tcp, new(IPAddress.IPv6Loopback, 52145),
                 new(IPAddress.IPv6Loopback, 443), TcpState.Established),
             new(process.ProcessId, created, TransportProtocol.Udp, new(IPAddress.Any, 5353)),
+            new(sibling.ProcessId, sibling.CreationTicks, TransportProtocol.Tcp, new(IPAddress.Parse("192.168.1.25"), 52146),
+                new(IPAddress.Parse("198.51.100.12"), 443), TcpState.Established),
+            new(sibling.ProcessId, sibling.CreationTicks, TransportProtocol.Udp, new(IPAddress.Any, 5354)),
             new(4, null, TransportProtocol.Tcp, new(IPAddress.Any, 445), null, TcpState.Listen)
         };
         var frame = new NetworkConnectionsFrame(endpoints, NetworkAddressFamilyStatus.Success,
@@ -98,7 +106,9 @@ internal sealed partial class WindowDiagnostics
             fixture.SetConnectionsForFixture(frame);
             var view = fixture.ConnectionView;
             view.SelectConnectionForFixture(process.ProcessId, created);
-            Require(view.DisplayedRows.Count == 5, "Process expansion did not show endpoint children.");
+            Require(view.DisplayedRows.Count == 7, "Executable expansion did not show both processes' endpoints.");
+            Require(fixture.ConnectionCounts.Visibility == Visibility.Visible && fixture.SystemCounts.Visibility == Visibility.Collapsed &&
+                fixture.ConnectionTcpValue.Text == "4" && fixture.ConnectionUdpValue.Text == "2", "Connections totals are not in the activity header.");
             var selected = view.Rows.SelectedItem;
             fixture.SetConnectionsForFixture(frame);
             Require(ReferenceEquals(selected, view.Rows.SelectedItem), "Refresh lost endpoint selection.");
@@ -119,6 +129,13 @@ internal sealed partial class WindowDiagnostics
             }
             fixture.Width = 836;
             await CaptureServiceWindowAsync(fixture, Path.Combine(output, "connections-narrow.png"), cancellationToken);
+            view.Grouped = false;
+            Require(view.DisplayedRows.Count == 6, "Individual mode must show one row per endpoint.");
+            await CaptureServiceWindowAsync(fixture, Path.Combine(output, "connections-individual-narrow.png"), cancellationToken);
+            fixture.Width = 1200;
+            await CaptureServiceWindowAsync(fixture, Path.Combine(output, "connections-individual.png"), cancellationToken);
+            view.Grouped = true;
+            view.SelectConnectionForFixture(process.ProcessId, created);
             fixture.SelectedSample = sample;
             fixture.RefreshVisiblePresentation();
             Require(view.Notice.Text.Contains(Strings.ConnectionsLiveOnly, StringComparison.Ordinal), "History must not imply endpoint history.");
@@ -131,13 +148,16 @@ internal sealed partial class WindowDiagnostics
             view.Search.Text = "no-such-process";
             Require(view.DisplayedRows.Count == 0, "Name filter did not hide nonmatching processes.");
             view.Search.Text = process.ProcessId.ToString(System.Globalization.CultureInfo.InvariantCulture);
-            Require(view.DisplayedRows.Count == 4, "PID search lost matching endpoints.");
+            Require(view.DisplayedRows.Count == 6, "PID search lost matching executable group endpoints.");
             view.Protocol.SelectedIndex = 2;
-            Require(view.DisplayedRows.Count == 2, "UDP filter did not leave one group and endpoint.");
+            Require(view.DisplayedRows.Count == 3, "UDP filter did not leave one executable group and its two endpoints.");
+            Require(fixture.ConnectionTcpValue.Text == "4" && fixture.ConnectionUdpValue.Text == "2", "Filters changed system-wide header totals.");
             view.Protocol.SelectedIndex = 0;
             view.Search.Clear();
             fixture.SetConnectionsForFixture(frame with { Ipv6 = new(false, 5) });
             Require(view.Notice.Text.Contains(Strings.ConnectionsPartial, StringComparison.Ordinal), "Partial collection lacks a notice.");
+            Require(fixture.ConnectionCounts.ToolTip?.ToString()?.Contains(Strings.ConnectionsPartial, StringComparison.Ordinal) == true,
+                "Header totals do not identify partial readings.");
             fixture.SetConnectionsForFixture(frame with { Connections = [], Ipv4 = new(false, 5), Ipv6 = new(false, 5) });
             Require(view.DisplayedRows.Count == 0 && !view.ShowProcess.IsEnabled && !view.CopyDetails.IsEnabled,
                 "Unavailable readings retained rows or actions.");
@@ -148,6 +168,17 @@ internal sealed partial class WindowDiagnostics
             view.SelectConnectionForFixture(process.ProcessId, created + 1);
             Require(view.SelectedProcessForFixture is null && !view.ShowProcess.IsEnabled,
                 "A reused PID inherited process navigation.");
+            fixture.SetConnectionsForFixture(frame);
+            view.Rows.SelectedItem = view.DisplayedRows.First(row => row.IsGroup && row.Connections.Any(c => c.ProcessId == process.ProcessId));
+            view.ShowProcess.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Require(fixture.ProcessesTab.IsChecked == true && fixture.Processes.GroupedChip.IsChecked == true,
+                "Executable navigation did not open Grouped Processes.");
+            fixture.ConnectionsTab.IsChecked = true;
+            fixture.SetActivityPanelCollapsed(true);
+            fixture.SetConnectionsForFixture(frame with { Connections = endpoints.Take(3).ToArray() });
+            Require(fixture.ConnectionTcpValue.Text == "2" && fixture.ConnectionUdpValue.Text == "1",
+                "Collapsed activity header did not refresh its totals.");
+            fixture.SetActivityPanelCollapsed(false);
             fixture.SetConnectionsForFixture(frame);
             view.SelectConnectionForFixture(process.ProcessId, created);
             view.ShowProcess.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));

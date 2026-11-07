@@ -780,6 +780,7 @@ public partial class MainWindow
         _systemCounts = null;
         _serviceCounts = null;
         _usageCounts = null;
+        _connectionCounts = null;
         if (_tray?.ContextMenuStrip is { } menu)
         {
             menu.Items[0].Text = Strings.ShowWinMon;

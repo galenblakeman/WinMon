@@ -1702,4 +1702,13 @@ Windows の正常性状態: {2}</value>
   <data name="GuideActivityAnswer" xml:space="preserve"><value>サービスはローカルサービスとホストプロセスを表示し、展開するとワーカープロセスを確認できます。使用状況は終了したアプリも含め、実行ファイル別に CPU 時間、I/O、GPU 時間を集計します。リセットで集計をやり直します。</value></data>
   <data name="GuideCompactQuestion" xml:space="preserve"><value>コンパクト表示に切り替えるには？</value></data>
   <data name="GuideCompactAnswer" xml:space="preserve"><value>タイトルバーのコンパクト表示でグラフとアクティビティパネルを隠し、ゲージのみ表示します。全体表示で元に戻ります。設定 &gt; 全般 &gt; 起動時の表示で起動時の表示を選べます。</value></data>
+  <data name="ConnectionsAddressPorts" xml:space="preserve"><value>{0} · {1} ポート</value></data>
+  <data name="ConnectionsAddressesPorts" xml:space="preserve"><value>{0} 個のアドレス · {1} ポート</value></data>
+  <data name="ConnectionsAddressesSinglePort" xml:space="preserve"><value>{0} 個のアドレス · 1 ポート</value></data>
+  <data name="ConnectionsProcessCount" xml:space="preserve"><value>{0} 個のプロセス</value></data>
+  <data name="ConnectionsStateCount" xml:space="preserve"><value>{0} {1}</value></data>
+  <data name="ConnectionsUnavailableCount" xml:space="preserve"><value>{0} 件は利用できません</value></data>
+  <data name="ConnectionsIndividualHelp" xml:space="preserve"><value>エンドポイントごとに 1 行</value></data>
+  <data name="ConnectionsGroupedHelp" xml:space="preserve"><value>実行可能ファイルごとにエンドポイントをグループ化</value></data>
+  <data name="ConnectionsEndpointProtocol" xml:space="preserve"><value>{0} · {1}</value></data>
 </root>

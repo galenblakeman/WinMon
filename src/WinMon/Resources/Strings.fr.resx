@@ -1702,4 +1702,13 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
   <data name="GuideActivityAnswer" xml:space="preserve"><value>Services affiche les services locaux et leurs processus hôtes ; développez un service pour voir ses processus de travail. Utilisation totalise le temps CPU, les E/S et le temps GPU par exécutable, y compris les applications fermées. Réinitialiser recommence les totaux.</value></data>
   <data name="GuideCompactQuestion" xml:space="preserve"><value>Comment passer en vue compacte ?</value></data>
   <data name="GuideCompactAnswer" xml:space="preserve"><value>Utilisez Vue compacte dans la barre de titre pour afficher les jauges sans graphique ni panneaux d’activité. Vue complète rétablit le tableau de bord. Paramètres &gt; Général &gt; Vue au démarrage définit la vue de lancement.</value></data>
+  <data name="ConnectionsAddressPorts" xml:space="preserve"><value>{0} · {1} ports</value></data>
+  <data name="ConnectionsAddressesPorts" xml:space="preserve"><value>{0} adresses · {1} ports</value></data>
+  <data name="ConnectionsAddressesSinglePort" xml:space="preserve"><value>{0} adresses · 1 port</value></data>
+  <data name="ConnectionsProcessCount" xml:space="preserve"><value>{0} processus</value></data>
+  <data name="ConnectionsStateCount" xml:space="preserve"><value>{0} {1}</value></data>
+  <data name="ConnectionsUnavailableCount" xml:space="preserve"><value>{0} indisponible</value></data>
+  <data name="ConnectionsIndividualHelp" xml:space="preserve"><value>Une ligne par point de terminaison</value></data>
+  <data name="ConnectionsGroupedHelp" xml:space="preserve"><value>Regrouper les points de terminaison par exécutable</value></data>
+  <data name="ConnectionsEndpointProtocol" xml:space="preserve"><value>{0} · {1}</value></data>
 </root>

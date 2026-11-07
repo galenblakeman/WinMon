@@ -42,6 +42,7 @@ public partial class MainWindow
         SystemCounts.Visibility = ProcessesTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
         ServiceCounts.Visibility = ServicesTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
         UsageCounts.Visibility = UsageTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+        ConnectionCounts.Visibility = ConnectionsTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
         RefreshPresentation();
     }
 

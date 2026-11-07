@@ -1702,4 +1702,13 @@ GPU {11} · {12}
   <data name="GuideActivityAnswer" xml:space="preserve"><value>Службы показывает локальные службы и их процессы-хосты; разверните службу для просмотра рабочих процессов. Использование суммирует время CPU, ввод-вывод и время GPU по исполняемому файлу, включая завершённые приложения. Сброс начинает подсчёт заново.</value></data>
   <data name="GuideCompactQuestion" xml:space="preserve"><value>Как перейти в компактный вид?</value></data>
   <data name="GuideCompactAnswer" xml:space="preserve"><value>Компактный вид в заголовке показывает индикаторы без графика и панелей активности. Полный вид возвращает панель. Настройки &gt; Общие &gt; Вид при запуске задаёт начальный вид.</value></data>
+  <data name="ConnectionsAddressPorts" xml:space="preserve"><value>{0} · {1} портов</value></data>
+  <data name="ConnectionsAddressesPorts" xml:space="preserve"><value>{0} адресов · {1} портов</value></data>
+  <data name="ConnectionsAddressesSinglePort" xml:space="preserve"><value>{0} адресов · 1 порт</value></data>
+  <data name="ConnectionsProcessCount" xml:space="preserve"><value>{0} процессов</value></data>
+  <data name="ConnectionsStateCount" xml:space="preserve"><value>{0} {1}</value></data>
+  <data name="ConnectionsUnavailableCount" xml:space="preserve"><value>{0} недоступно</value></data>
+  <data name="ConnectionsIndividualHelp" xml:space="preserve"><value>Одна строка на конечную точку</value></data>
+  <data name="ConnectionsGroupedHelp" xml:space="preserve"><value>Группировать конечные точки по исполняемому файлу</value></data>
+  <data name="ConnectionsEndpointProtocol" xml:space="preserve"><value>{0} · {1}</value></data>
 </root>

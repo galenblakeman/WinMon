@@ -1702,4 +1702,13 @@ O trabalho não salvo pode ser perdido. Todos os processos listados abaixo serã
   <data name="GuideActivityAnswer" xml:space="preserve"><value>Serviços mostra serviços locais e seus processos hospedeiros; expanda um serviço para ver os processos de trabalho. Uso soma tempo de CPU, E/S e tempo de GPU por executável, incluindo aplicativos encerrados. Redefinir reinicia os totais de Uso.</value></data>
   <data name="GuideCompactQuestion" xml:space="preserve"><value>Como mudar para a visualização compacta?</value></data>
   <data name="GuideCompactAnswer" xml:space="preserve"><value>Use Vista compacta na barra de título para ver medidores sem gráfico nem painéis de atividade. Vista completa restaura o painel. Configurações &gt; Geral &gt; Exibição inicial controla a visualização ao iniciar.</value></data>
+  <data name="ConnectionsAddressPorts" xml:space="preserve"><value>{0} · {1} portas</value></data>
+  <data name="ConnectionsAddressesPorts" xml:space="preserve"><value>{0} endereços · {1} portas</value></data>
+  <data name="ConnectionsAddressesSinglePort" xml:space="preserve"><value>{0} endereços · 1 porta</value></data>
+  <data name="ConnectionsProcessCount" xml:space="preserve"><value>{0} processos</value></data>
+  <data name="ConnectionsStateCount" xml:space="preserve"><value>{0} {1}</value></data>
+  <data name="ConnectionsUnavailableCount" xml:space="preserve"><value>{0} indisponível</value></data>
+  <data name="ConnectionsIndividualHelp" xml:space="preserve"><value>Uma linha por ponto de extremidade</value></data>
+  <data name="ConnectionsGroupedHelp" xml:space="preserve"><value>Agrupar pontos de extremidade por executável</value></data>
+  <data name="ConnectionsEndpointProtocol" xml:space="preserve"><value>{0} · {1}</value></data>
 </root>

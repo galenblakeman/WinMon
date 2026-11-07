@@ -1702,4 +1702,13 @@ Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse
   <data name="GuideActivityAnswer" xml:space="preserve"><value>Dienste zeigt lokale Dienste und ihre Hostprozesse; klappen Sie einen Dienst für seine Arbeitsprozesse auf. Nutzung summiert CPU-Zeit, E/A und GPU-Zeit je Programmdatei, auch für beendete Apps. Zurücksetzen beginnt die Nutzungssummen neu.</value></data>
   <data name="GuideCompactQuestion" xml:space="preserve"><value>Wie wechsle ich zur Kompaktansicht?</value></data>
   <data name="GuideCompactAnswer" xml:space="preserve"><value>Kompaktansicht in der Titelleiste zeigt Anzeigen ohne Diagramm und Aktivitätsbereiche. Vollansicht stellt das Dashboard wieder her. Einstellungen &gt; Allgemein &gt; Startansicht bestimmt die Ansicht beim Start.</value></data>
+  <data name="ConnectionsAddressPorts" xml:space="preserve"><value>{0} · {1} Ports</value></data>
+  <data name="ConnectionsAddressesPorts" xml:space="preserve"><value>{0} Adressen · {1} Ports</value></data>
+  <data name="ConnectionsAddressesSinglePort" xml:space="preserve"><value>{0} Adressen · 1 Port</value></data>
+  <data name="ConnectionsProcessCount" xml:space="preserve"><value>{0} Prozesse</value></data>
+  <data name="ConnectionsStateCount" xml:space="preserve"><value>{0} {1}</value></data>
+  <data name="ConnectionsUnavailableCount" xml:space="preserve"><value>{0} nicht verfügbar</value></data>
+  <data name="ConnectionsIndividualHelp" xml:space="preserve"><value>Eine Zeile pro Endpunkt</value></data>
+  <data name="ConnectionsGroupedHelp" xml:space="preserve"><value>Endpunkte nach ausführbarer Datei gruppieren</value></data>
+  <data name="ConnectionsEndpointProtocol" xml:space="preserve"><value>{0} · {1}</value></data>
 </root>

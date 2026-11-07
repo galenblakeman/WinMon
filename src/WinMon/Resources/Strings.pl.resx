@@ -1702,4 +1702,13 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
   <data name="GuideActivityAnswer" xml:space="preserve"><value>Usługi pokazują lokalne usługi i ich procesy hosta; rozwiń usługę, aby zobaczyć procesy robocze. Użycie sumuje czas CPU, we/wy i czas GPU według pliku wykonywalnego, także dla zamkniętych aplikacji. Resetuj rozpoczyna sumowanie od nowa.</value></data>
   <data name="GuideCompactQuestion" xml:space="preserve"><value>Jak przełączyć na widok kompaktowy?</value></data>
   <data name="GuideCompactAnswer" xml:space="preserve"><value>Widok kompaktowy na pasku tytułu pokazuje wskaźniki bez wykresu i paneli aktywności. Pełny widok przywraca pulpit. Ustawienia &gt; Ogólne &gt; Widok startowy określa widok po uruchomieniu.</value></data>
+  <data name="ConnectionsAddressPorts" xml:space="preserve"><value>{0} · {1} portów</value></data>
+  <data name="ConnectionsAddressesPorts" xml:space="preserve"><value>{0} adresów · {1} portów</value></data>
+  <data name="ConnectionsAddressesSinglePort" xml:space="preserve"><value>{0} adresów · 1 port</value></data>
+  <data name="ConnectionsProcessCount" xml:space="preserve"><value>{0} procesów</value></data>
+  <data name="ConnectionsStateCount" xml:space="preserve"><value>{0} {1}</value></data>
+  <data name="ConnectionsUnavailableCount" xml:space="preserve"><value>{0} niedostępne</value></data>
+  <data name="ConnectionsIndividualHelp" xml:space="preserve"><value>Jeden wiersz na punkt końcowy</value></data>
+  <data name="ConnectionsGroupedHelp" xml:space="preserve"><value>Grupuj punkty końcowe według pliku wykonywalnego</value></data>
+  <data name="ConnectionsEndpointProtocol" xml:space="preserve"><value>{0} · {1}</value></data>
 </root>

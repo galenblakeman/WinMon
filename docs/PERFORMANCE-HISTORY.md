@@ -4,6 +4,28 @@
 
 Dated measurement and validation records, newest first. Each section describes the build and machine it was measured on, and some name code that has since changed or moved. For how to measure today and the decisions still in force, see [Performance](DEVELOPMENT.md#performance) in the developer guide. The raw data named under `artifacts/` is local and not in the repository.
 
+## Connections display modes and summaries (November 7, 2026)
+
+Release UI benchmark on .NET 10.0.14, SDK 10.0.403. Four alternating baseline/changed pairs used frozen binaries, with only the intended benchmark observed running. Values are medians of the four runs' seven-batch medians. Both builds include the integrated Info changes; the baseline predates this Connections layout/grouping increment. Native collection is disabled during measurement.
+
+| Scenario | Before | After | Allocation before / after |
+| --- | ---: | ---: | ---: |
+| Live overlay | 3.96 ms | 4.09 ms | 586.75 / 586.77 KiB |
+| Historical | 1.05 ms | 0.99 ms | 174.12 / 174.12 KiB |
+| Services live | 4.83 ms | 4.74 ms | 980.19 / 980.19 KiB |
+| Compact live | 1.48 ms | 1.49 ms | 362.43 / 362.43 KiB |
+| Logical processors, pinned/selected | 5.83 ms | 5.32 ms | 1125.33 / 1133.30 KiB |
+| Connections grouped, 60 processes / 480 endpoints, one expanded group | 2.34 ms | 2.77 ms | 829.74 / 1468.95 KiB |
+| Connections Individual, all 480 endpoints | — | 2.80 ms | — / 1789.91 KiB |
+
+The richer grouped view adds 0.43 ms (18.5%) and 639.22 KiB per complete refresh in this fixture. It now builds executable membership, distinct address/port and TCP-state summaries, and protocol-tagged endpoint tooltips instead of blank group endpoint/state cells. Individual mode materializes all 480 endpoint rows. Both scenarios retain the logical-processor chart and include the complete UI refresh. Grouped runs ranged 2.28–2.51 ms before and 2.69–2.84 ms after; Individual ranged 2.78–3.23 ms. This is a measured feature cost, not a claim of unchanged performance.
+
+An initial implementation allocated 1,918,096.8 bytes per grouped refresh and 2,466,104.27 bytes in Individual mode. Reusing executable keys within each refresh and keeping endpoint keys independent of executable paths reduced those figures to 1,504,208.8 and 1,832,864.27 bytes. The simpler keys also preserve Individual selection when executable metadata arrives late. Other existing scenarios changed by −8.8% to +3.3% in median timing, with allocations unchanged or up by at most 8 KiB. Live overlay ranged 3.74–4.25 ms before and 3.65–4.40 ms after; timing reductions elsewhere should not be read as feature-caused speedups.
+
+All eight runs produced the same earlier dashboard pixel hash. Connections Dark/Light, grouped/Individual and narrow renders were inspected separately. The isolated integrated snapshot passed 1,005 tests and the Connections smoke with zero build warnings/errors. Feature, search, usage and compact smoke modes passed immediately before the final internal key-allocation change (1,004 tests); the final unit tests also cover selection after metadata changes. Native TCP byte exchange and TCP/UDP owner/peer checks passed with `Elevated: false`; OS-reported TCP states remain evidence rather than a smoke-test assumption.
+
+Raw reports: `artifacts/connections-layout/{baseline,changed}-{1..4}.json`, `comparison.json`, `initial-results/`, and `source/artifacts/verify/20261107-135958/connections/`. The five-mode verification is under `source/artifacts/verify/20261107-135004/`. Baseline assembly SHA-256: `8DFF131032FCF7C34D66687871CF667BD947261ADDB323758442956B125C849A`; changed: `276B8F5FDD3560804C9956B3E4A01462B38316FFF3BDFDA4E6AD1A48F916BF97`. UI measurements exclude native collection and the WPF render thread. Long-running real-world usage was not measured.
+
 ## Connections activity tab (November 7, 2026)
 
 Release UI benchmark on .NET 10.0.14, SDK 10.0.403. Four alternating baseline/Connections pairs used preserved binaries. Values below are medians of each run's seven-batch medians. The new tab collects no endpoints while another tab is selected; the benchmark disables native collection throughout.

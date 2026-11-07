@@ -107,9 +107,11 @@ The service action bar offers **Properties**, **Copy details**, **Start**, **Sto
 
 ## See which apps have network connections
 
-Choose **Connections** to see local TCP connections and UDP endpoints grouped by process. Expand a process for its protocol, local endpoint, remote endpoint and TCP state. Process icons use the same executable icons as Processes, with a generic fallback when unavailable. Search by process name or PID and filter by **All**, **TCP** or **UDP**.
+Choose **Connections** to see local TCP connections and UDP endpoints with process icons, names and PIDs. **Individual** shows one row per endpoint. **Grouped** combines instances of the same executable; expand a group to see each endpoint with its owning PID and protocol. Processes whose executable path is unavailable stay separate. Search by process name or PID and filter by **All**, **TCP** or **UDP**. The display mode and filters last for this app session.
 
-Select a process or endpoint for **Copy details** or **Show in Processes**. Navigation is available only when the process lifetime still matches a live observation. Connections stays live while the resource chart shows a historical capture. Recording of endpoint history is outside this view.
+Grouped **Local** and **Remote** cells show an exact endpoint when there is one distinct value; otherwise they summarize distinct addresses and ports. **State** counts the reported TCP states; UDP contributes no TCP state or remote endpoint. Hover a summary for its complete values. The **TCP · UDP** totals beside the activity tabs always describe the current system-wide readings, independently of filters and display mode; they keep refreshing when the activity body is collapsed.
+
+Select a group or endpoint for **Copy details** or **Show in Processes**. A known executable group opens Grouped Processes; an individual endpoint opens its owning PID. Navigation is available only when the process lifetime still matches a live observation. Connections stays live while the resource chart shows a historical capture. Recording of endpoint history is outside this view.
 
 No administrator rights, background service or driver are required. UDP shows local endpoints only; TCP listeners have no remote peer. Counts describe endpoints, not traffic volume: per-process upload/download rates are unavailable. If Windows denies a table read, the view reports unavailable or partial readings rather than treating the failure as zero connections.
 

@@ -15,17 +15,12 @@
         </Grid.RowDefinitions>
         <Border Grid.ColumnSpan="3" Margin="0,0,0,8" Padding="20,5" Background="{DynamicResource SectionHeaderSurface}">
             <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <TextBlock Margin="0,0,0,6" FontSize="14" FontWeight="SemiBold" Text="{Binding [ConnectionsLive], Source={x:Static r:Strings.Text}}" />
-                <TextBlock x:Name="Summary" Grid.Column="1" Margin="0,0,0,6" HorizontalAlignment="Right" Foreground="{DynamicResource Muted}" />
-                <Border x:Name="SearchBorder" Grid.Row="1" MinWidth="180" Margin="0,0,12,0" Background="{DynamicResource SearchSurface}" BorderBrush="{DynamicResource Line}" BorderThickness="1" CornerRadius="4">
+                <Border x:Name="SearchBorder" MinWidth="180" Margin="0,0,12,0" Background="{DynamicResource SearchSurface}" BorderBrush="{DynamicResource Line}" BorderThickness="1" CornerRadius="4">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="28" />
@@ -47,18 +42,26 @@
                         </TextBlock>
                     </Grid>
                 </Border>
-                <StackPanel Grid.Column="1" Grid.Row="1" Orientation="Horizontal">
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <TextBlock Margin="0,0,6,0" VerticalAlignment="Center" FontSize="12" FontWeight="SemiBold" Text="{Binding [ConnectionsProtocol], Source={x:Static r:Strings.Text}}" />
                     <ComboBox x:Name="Protocol" Width="90" MinHeight="28" AutomationProperties.Name="{Binding [ConnectionsProtocol], Source={x:Static r:Strings.Text}}" FontSize="12" SelectionChanged="OnProtocolChanged" />
                 </StackPanel>
+                <StackPanel Grid.Column="2" Margin="12,0,0,0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <RadioButton x:Name="IndividualChip" GroupName="ConnectionGrouping" Style="{DynamicResource RangeChip}"
+                                 Content="{Binding [Individual], Source={x:Static r:Strings.Text}}"
+                                 ToolTip="{Binding [ConnectionsIndividualHelp], Source={x:Static r:Strings.Text}}" Checked="OnGroupingChanged" />
+                    <RadioButton x:Name="GroupedChip" GroupName="ConnectionGrouping" Style="{DynamicResource RangeChip}"
+                                 IsChecked="True" Content="{Binding [Grouped], Source={x:Static r:Strings.Text}}"
+                                 ToolTip="{Binding [ConnectionsGroupedHelp], Source={x:Static r:Strings.Text}}" Checked="OnGroupingChanged" />
+                </StackPanel>
             </Grid>
         </Border>
-        <Grid Grid.Column="1" Grid.Row="1" Margin="0,0,18,4" MinWidth="650">
+        <Grid Grid.Column="1" Grid.Row="1" Margin="0,0,18,4" MinWidth="740">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="150" />
                 <ColumnDefinition Width="150" />
-                <ColumnDefinition Width="100" />
+                <ColumnDefinition Width="190" />
                 <ColumnDefinition Width="52" />
                 <ColumnDefinition Width="52" />
             </Grid.ColumnDefinitions>
@@ -98,13 +101,13 @@
             </ListBox.ItemContainerStyle>
             <ListBox.ItemTemplate>
                 <DataTemplate DataType="{x:Type local:ConnectionDisplayRow}">
-                    <Border Width="{Binding ViewportWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}}" MinWidth="668">
+                    <Border Width="{Binding ViewportWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}}" MinWidth="758">
                         <Grid MinHeight="{Binding MinimumHeight}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="150" />
                                 <ColumnDefinition Width="150" />
-                                <ColumnDefinition Width="100" />
+                                <ColumnDefinition Width="190" />
                                 <ColumnDefinition Width="52" />
                                 <ColumnDefinition Width="52" />
                             </Grid.ColumnDefinitions>
@@ -116,9 +119,9 @@
                                     <TextBlock FontSize="10" Foreground="{DynamicResource Muted}" Text="{Binding Detail}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Detail}" />
                                 </StackPanel>
                             </DockPanel>
-                            <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="12" Text="{Binding Local}" ToolTip="{Binding Local}" TextTrimming="CharacterEllipsis" />
-                            <TextBlock Grid.Column="2" VerticalAlignment="Center" FontSize="12" Text="{Binding Remote}" ToolTip="{Binding Remote}" TextTrimming="CharacterEllipsis" />
-                            <TextBlock Grid.Column="3" VerticalAlignment="Center" FontSize="12" Text="{Binding State}" ToolTip="{Binding State}" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="12" Text="{Binding Local}" ToolTip="{Binding LocalToolTip}" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Grid.Column="2" VerticalAlignment="Center" FontSize="12" Text="{Binding Remote}" ToolTip="{Binding RemoteToolTip}" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Grid.Column="3" VerticalAlignment="Center" FontSize="12" Text="{Binding State}" ToolTip="{Binding StateToolTip}" TextTrimming="CharacterEllipsis" />
                             <TextBlock Grid.Column="4" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12" Text="{Binding Tcp}" />
                             <TextBlock Grid.Column="5" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12" Text="{Binding Udp}" />
                         </Grid>
