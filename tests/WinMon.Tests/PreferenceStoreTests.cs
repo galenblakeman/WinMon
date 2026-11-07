@@ -491,6 +491,25 @@ public sealed class PreferenceStoreTests
         });
     }
 
+    [TestCase("{}", 120)]
+    [TestCase("{\"GaugePeakDisplay\":\"NativeValue\",\"GaugePeakWindowSeconds\":300}", 300)]
+    [TestCase("{\"GaugePeakDisplay\":42,\"GaugePeakWindowSeconds\":42}", 120)]
+    public async Task GaugePeakWindow_DefaultsAndRejectsUnsupportedValues(string json, int seconds)
+    {
+        Directory.CreateDirectory(testDirectory);
+        await File.WriteAllTextAsync(settingsPath, json);
+        var store = new PreferenceStore(settingsPath);
+        var loaded = await store.LoadAsync();
+        await store.SaveAsync(loaded);
+        var saved = await File.ReadAllTextAsync(settingsPath);
+        Assert.Multiple(() =>
+        {
+            Assert.That(loaded.GaugePeakWindowSeconds, Is.EqualTo(seconds));
+            Assert.That(saved, Does.Contain($"\"GaugePeakWindowSeconds\": {seconds}"));
+            Assert.That(saved, Does.Not.Contain("\"GaugePeakDisplay\""));
+        });
+    }
+
     [TestCase("{\"SortByGpu\":true}", ProcessSort.Gpu)]
     [TestCase("{\"SortByGpu\":false}", ProcessSort.Cpu)]
     [TestCase("{\"ProcessSort\":\"Memory\"}", ProcessSort.Memory)]
@@ -603,7 +622,7 @@ public sealed class PreferenceStoreTests
         {
             Theme = "Light", RetentionSeconds = 1800, MinimizeToTray = !opened.MinimizeToTray,
             GaugeStyle = GaugeStyle.SegmentedBar, StartupView = StartupViewMode.Full,
-            NetworkInterfaceId = "chosen-adapter"
+            NetworkInterfaceId = "chosen-adapter", GaugePeakWindowSeconds = 300
         };
         // While the confirmed settings were being saved, the user grouped processes and pinned one.
         var current = opened with
@@ -620,6 +639,7 @@ public sealed class PreferenceStoreTests
             Assert.That(applied.RetentionSeconds, Is.EqualTo(1800));
             Assert.That(applied.MinimizeToTray, Is.EqualTo(confirmed.MinimizeToTray));
             Assert.That(applied.GaugeStyle, Is.EqualTo(GaugeStyle.SegmentedBar));
+            Assert.That(applied.GaugePeakWindowSeconds, Is.EqualTo(300));
             Assert.That(applied.StartupView, Is.EqualTo(StartupViewMode.Full));
             Assert.That(applied.NetworkInterfaceId, Is.EqualTo("chosen-adapter"));
             Assert.That(applied.GroupProcesses, Is.True);

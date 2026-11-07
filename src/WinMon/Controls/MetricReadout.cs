@@ -2,7 +2,9 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Shapes;
 using WinMon.Preferences;
+using Path = System.Windows.Shapes.Path;
 
 namespace WinMon.Controls;
 
@@ -45,25 +47,39 @@ public sealed class MetricReadout : Grid
     public MetricGauge Gauge { get; } = new() { Visibility = Visibility.Hidden, IsHitTestVisible = false };
 
     /// <summary>A compact context label beside the name on arc gauges: peak or network scale.</summary>
-    public TextBlock ScaleLabel { get; } = new() { FontSize = 11, Visibility = Visibility.Collapsed };
+    public TextBlock ScaleLabel { get; } = new()
+        { FontSize = 11, Visibility = Visibility.Collapsed, TextTrimming = TextTrimming.CharacterEllipsis };
 
     private readonly StackPanel _labels = new();
     private readonly StackPanel _gaugeColumn = new()
         { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 0) };
     private readonly DockPanel _toggleRow = new() { LastChildFill = true };
+    private readonly DockPanel _corner = new() { LastChildFill = true };
+    private readonly Path _peakIcon = new()
+    {
+        Data = ButtonIcon.Peak, Width = 10, Height = 9, StrokeThickness = 1.2,
+        Stretch = System.Windows.Media.Stretch.Uniform, VerticalAlignment = VerticalAlignment.Center,
+        Visibility = Visibility.Collapsed, Margin = new Thickness(4, 0, 0, 0), IsHitTestVisible = false
+    };
+    internal bool PeakIconVisible => _peakIcon.Visibility == Visibility.Visible;
     private readonly Grid _bowl = new();
     private GaugeStyle _style;
     private bool _valid;
+    private bool _peakLabel;
     private string _fullCornerLabel = "";
     private string _shortCornerLabel = "";
 
     public MetricReadout()
     {
         Height = LayoutHeight;
+        Background = System.Windows.Media.Brushes.Transparent;
         Gauge.SetResourceReference(MetricGauge.TrackProperty, "SectionHeaderSurface");
         Gauge.SetResourceReference(MetricGauge.OutlineProperty, "GaugeTrack");
         Gauge.SetResourceReference(MetricGauge.MarkProperty, "Text");
         ScaleLabel.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
+        _peakIcon.SetResourceReference(Shape.StrokeProperty, "Muted");
+        _corner.Children.Add(_peakIcon);
+        _corner.Children.Add(ScaleLabel);
         DetailLabel.SetResourceReference(TextBlock.ForegroundProperty, "Text");
         Lay(GaugeStyle.Bowl);
         SizeChanged += (_, _) => { Fit(); UpdateCornerLabel(); };
@@ -82,13 +98,14 @@ public sealed class MetricReadout : Grid
     private bool IsArc => _style is GaugeStyle.Needle or GaugeStyle.Bowl or GaugeStyle.SegmentedArc;
 
     /// <param name="current">The live reading, or <see langword="null"/> when it is unavailable.</param>
-    /// <param name="peak">The highest reading in the last two minutes.</param>
+    /// <param name="peak">The highest reading in the configured peak window.</param>
     /// <param name="maximum">The physical value at the top of the scale.</param>
     /// <param name="scale">Context beside an arc's resource name; hidden for non-arc styles.</param>
     /// <param name="shortScale">A shorter version for narrow tiles.</param>
     public void ShowGauge(double? current, double? peak, double maximum, string? scale = null,
-        string? shortScale = null)
+        string? shortScale = null, bool peakLabel = false)
     {
+        _peakLabel = peakLabel;
         _valid = current is { } value && peak is { } high && maximum > 0 &&
                  double.IsFinite(value) && double.IsFinite(high) && double.IsFinite(maximum);
         _fullCornerLabel = scale ?? "";
@@ -107,13 +124,17 @@ public sealed class MetricReadout : Grid
         var rightMargin = Math.Max(0, CornerRightInset - Margin.Right);
         if (ScaleLabel.Margin.Right != rightMargin)
             ScaleLabel.Margin = new Thickness(4, 0, rightMargin, 0);
-        var label = ActualWidth is > 0 and < 155 ? _shortCornerLabel : _fullCornerLabel;
+        var label = _peakLabel || ActualWidth is > 0 and < 155 ? _shortCornerLabel : _fullCornerLabel;
+        // Keep the resource identity readable; a long native value remains complete in the tooltip.
+        var maxWidth = ActualWidth > 0 ? Math.Max(0, ActualWidth - (_showSeriesToggle ? 75 : 55) -
+            (_peakLabel ? 14 : 0) - ScaleLabel.Margin.Left - ScaleLabel.Margin.Right)
+            : double.PositiveInfinity;
+        if (ScaleLabel.MaxWidth != maxWidth) ScaleLabel.MaxWidth = maxWidth;
         if (ScaleLabel.Text != label) ScaleLabel.Text = label;
-        if (ScaleLabel.ToolTip is not string tooltip || tooltip != _fullCornerLabel)
-        {
+        if (ScaleLabel.ToolTip is null || ScaleLabel.ToolTip is string tooltip && tooltip != _fullCornerLabel)
             ScaleLabel.ToolTip = _fullCornerLabel;
+        if (AutomationProperties.GetName(ScaleLabel) != _fullCornerLabel)
             AutomationProperties.SetName(ScaleLabel, _fullCornerLabel);
-        }
     }
 
     private void ShowParts()
@@ -122,6 +143,9 @@ public sealed class MetricReadout : Grid
         // Arcs keep the label's space on every readout so all arcs share one size and position.
         ScaleLabel.Visibility = !IsArc ? Visibility.Collapsed
             : _valid && ScaleLabel.Text.Length > 0 ? Visibility.Visible : Visibility.Hidden;
+        _corner.Visibility = ScaleLabel.Visibility;
+        _peakIcon.Visibility = _peakLabel && ScaleLabel.Visibility == Visibility.Visible
+            ? Visibility.Visible : Visibility.Collapsed;
     }
 
     /// <summary>Place the labels and gauge for <paramref name="style"/>.</summary>
@@ -220,10 +244,10 @@ public sealed class MetricReadout : Grid
         {
             Toggle.Margin = new Thickness();
             _plainName.Margin = new Thickness();
-            DockPanel.SetDock(ScaleLabel, Dock.Right);
+            DockPanel.SetDock(_corner, Dock.Right);
             ScaleLabel.VerticalAlignment = VerticalAlignment.Center;
             ScaleLabel.Margin = new Thickness(4, 0, CornerRightInset, 0);
-            _toggleRow.Children.Add(ScaleLabel);
+            _toggleRow.Children.Add(_corner);
             _toggleRow.Children.Add(_showSeriesToggle ? Toggle : _plainName);
             Children.Add(_toggleRow);
         }

@@ -232,6 +232,7 @@ public partial class MainWindow
     {
         if (!IsVisible || WindowState == WindowState.Minimized)
         {
+            _gaugePeaks = default; // Do not retain old samples after hidden history evicts them.
             UpdateTrayText();
             return;
         }

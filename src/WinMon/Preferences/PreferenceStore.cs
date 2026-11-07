@@ -178,6 +178,8 @@ public sealed class PreferenceStore
             Language = AppLanguages.Normalize(preferences.Language),
             ChartPalette = ChartPalettes.Normalize(preferences.ChartPalette),
             GaugeStyle = Enum.IsDefined(preferences.GaugeStyle) ? preferences.GaugeStyle : GaugeStyle.Bowl,
+            GaugePeakWindowSeconds = preferences.GaugePeakWindowSeconds is 60 or 120 or 300 or 600
+                ? preferences.GaugePeakWindowSeconds : MonitorPreferences.ShortRangeSeconds,
             ResourceChartType = Enum.IsDefined(preferences.ResourceChartType)
                 ? preferences.ResourceChartType : ResourceChartType.Overlay,
             FocusMetric = secondary is null && preferences.FocusMetric == 5

@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Controls.Primitives;
+using WinMon.Controls;
 using WinMon.Monitoring;
 using WinMon.Preferences;
 
@@ -56,8 +57,10 @@ internal sealed partial class WindowDiagnostics
                 {
                     TotalMemoryBytes = 32UL * 1_073_741_824, UsedMemoryBytes = 23_056_165_683,
                     DiskName = "C:", DiskActivePercent = 6.4 + 62 * pulse + wobble,
+                    DiskBytesPerSecond = Math.Abs(i - 94) <= 5 ? 200_000 : 900_000,
                     SecondaryDiskName = "D:", SecondaryDiskActivePercent = 3.5 + 44 * pulse + wobble,
                     GpuPercent = 10.5 + 60 * pulse + wobble,
+                    GpuMemoryUsedBytes = Math.Abs(i - 94) <= 5 ? null : 4UL * 1_073_741_824,
                     NetworkId = "fixture", NetworkName = "Ethernet", LinkBitsPerSecond = 1_000_000_000,
                     ReceiveBytesPerSecond = 955_000 + 8_000_000 * pulse, SendBytesPerSecond = 150_000
                 }
@@ -116,7 +119,33 @@ internal sealed partial class WindowDiagnostics
                 1, cancellationToken);
         }
 
-        fixture.Preferences = fixture.Preferences with { SecondaryDrive = null };
+        foreach (var theme in new[] { "Dark", "Light" })
+        foreach (var width in new[] { 1000d, 836d })
+        {
+            fixture.Preferences = fixture.Preferences with
+                { Theme = theme, GaugeStyle = GaugeStyle.Bowl };
+            fixture.ApplyTheme();
+            Draw(width);
+            var memory = fixture.CompactTiles.Single(tile => tile.Source == fixture.MemoryMetric).Readout;
+            var disk = fixture.CompactTiles.Single(tile => tile.Source == fixture.DiskMetric).Readout;
+            var gpu = fixture.CompactTiles.Single(tile => tile.Source == fixture.GpuMetric).Readout;
+            var secondary = fixture.CompactTiles.Single(tile => tile.Source == fixture.SecondaryDiskMetric).Readout;
+            var network = fixture.CompactTiles.Single(tile => tile.Source == fixture.NetworkMetric).Readout;
+            var expectedDisk = TableMetricText.IoRate(200_000);
+            if (memory.ScaleLabel.Text != TableMetricText.Memory(23_056_165_683) ||
+                disk.ScaleLabel.Text != expectedDisk ||
+                !gpu.ScaleLabel.Text.Contains('%') ||
+                !secondary.ScaleLabel.Text.Contains('%') ||
+                network.ScaleLabel.Text != RateText.Short(71_640_000) ||
+                !memory.PeakIconVisible || !disk.PeakIconVisible || !gpu.PeakIconVisible || !network.PeakIconVisible ||
+                !ReferenceEquals(memory.ScaleLabel.ToolTip, fixture.MemoryMetric.ToolTip))
+                throw new InvalidOperationException("Compact native peak label did not share Full-view details.");
+            await CaptureVisualAsync(visual,
+                Path.Combine(output, $"gauges-native-{theme.ToLowerInvariant()}-{width}.png"), 1, cancellationToken);
+        }
+
+        fixture.Preferences = fixture.Preferences with
+            { SecondaryDrive = null };
         Draw(836);
         if (fixture.CompactTiles[3].Box.Visibility != Visibility.Collapsed ||
             fixture.CompactStrip.ColumnDefinitions[3].Width.Value != 0)
@@ -135,7 +164,8 @@ internal sealed partial class WindowDiagnostics
         {
             NativeReadings = true, ButtonRoundTrip = true, PreferenceRoundTrip = true,
             FullSizeRestored = true, ChartTogglePreserved = true, OptionalDisk = true, MissingReadings = true,
-            GapInFixture = true, Themes = new[] { "Dark", "Light" }.Concat(ThemeFinishes.Names),
+            GapInFixture = true, AlwaysNativePeakLabelsAndTooltips = true,
+            Themes = new[] { "Dark", "Light" }.Concat(ThemeFinishes.Names),
             RenderScales = new[] { 1, 1.5, 2 }
         }), cancellationToken);
         return;

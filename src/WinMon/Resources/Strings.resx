@@ -1603,6 +1603,17 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="ChartFocusResourceChoice" xml:space="preserve"><value>Focus: {0}</value></data>
   <data name="GaugePeakShort" xml:space="preserve"><value>{0:0}%</value></data>
   <data name="GaugePeak" xml:space="preserve"><value>Peak {0:0}%</value></data>
+  <data name="GaugePeakValue" xml:space="preserve"><value>Peak {0}</value></data>
+  <data name="GaugePeakWindow" xml:space="preserve"><value>Peak window</value></data>
+  <data name="GaugePeakWindowMinutes" xml:space="preserve"><value>{0} min</value></data>
+  <data name="GaugePeakOverWindow" xml:space="preserve"><value>Peak · last {0} min</value></data>
+  <data name="GaugePeakAtTime" xml:space="preserve"><value>At {0:T} · {1} seconds ago</value></data>
+  <data name="GaugePeakNativeAtPeak" xml:space="preserve"><value>{0} at utilization peak: {1}</value></data>
+  <data name="GaugePeakDownload" xml:space="preserve"><value>Download</value></data>
+  <data name="GaugePeakDiskThroughput" xml:space="preserve"><value>Disk throughput</value></data>
+  <data name="GaugePeakRamUsed" xml:space="preserve"><value>RAM used</value></data>
+  <data name="GaugePeakGpuMemoryUsed" xml:space="preserve"><value>GPU memory used</value></data>
+  <data name="GaugePeakWindowExplanation" xml:space="preserve"><value>The dark line marks the highest utilization reading in the peak window.</value></data>
   <data name="PeakLastTwoMinutesExplanation" xml:space="preserve"><value>The dark line marks the highest reading in the last two minutes.</value></data>
   <data name="ResourceGauges" xml:space="preserve"><value>Resource gauges</value></data>
   <data name="GaugeNeedle" xml:space="preserve"><value>Needle</value></data>

@@ -131,6 +131,9 @@ public sealed record MonitorPreferences
     /// <summary>Full-view resource gauge drawing; settings saved before the choice existed load as the bowl.</summary>
     public GaugeStyle GaugeStyle { get; init; }
 
+    /// <summary>The elapsed window, in seconds, from which resource-gauge peaks are selected.</summary>
+    public int GaugePeakWindowSeconds { get; init; } = ShortRangeSeconds;
+
     /// <summary>Gets the duration, in seconds, retained for historical inspection.</summary>
     public int RetentionSeconds { get; init; } = 1800;
 

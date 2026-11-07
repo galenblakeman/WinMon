@@ -10,6 +10,8 @@ This folder contains the current layout reference, feature design notes and edit
 
 - [Default history retention](DEFAULT-HISTORY-RETENTION.md) sets new installations to 30 minutes while preserving saved choices.
 
+- [Gauge peak settings](GAUGE-PEAK-SETTINGS.md) adds native-value labels, configurable peak windows and timestamped tooltip details in Full and Compact views.
+
 - [Activity tab tooltips](ACTIVITY-TAB-TOOLTIPS.md) gives a quick overview when hovering Processes, Services, Usage or Connections.
 
 - [Collapsible chart section](CHART-COLLAPSE.md), which keeps chart controls visible while giving the plot's space to the activity panel

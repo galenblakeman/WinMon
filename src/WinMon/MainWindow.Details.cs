@@ -26,6 +26,7 @@ public partial class MainWindow
             for (var i = 0; i < count; i++) details.Rows.Add(new DetailRow { Value = Strings.MissingReading });
             metric.ToolTip = details;
             metric.Toggle.ToolTip = details;
+            metric.ScaleLabel.ToolTip = details;
             ToolTipService.SetShowsToolTipOnKeyboardFocus(metric.Toggle, true);
             metric.ToolTipOpening += (_, _) => OpenDetails(metric);
             metric.Toggle.ToolTipOpening += (_, _) => OpenDetails(metric);
@@ -99,6 +100,8 @@ public partial class MainWindow
         var details = _metricDetails[metric];
         details.Title = metric.Label;
         details.Accent = metric.ValueLabel.Foreground;
+        details.Peak = GaugePeakTooltip(metric, latest);
+        AutomationProperties.SetHelpText(metric.Toggle, details.Definition + "\n" + details.Peak);
         var rows = details.Rows;
         if (metric == CpuMetric)
         {

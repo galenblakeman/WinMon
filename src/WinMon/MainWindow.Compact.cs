@@ -28,6 +28,7 @@ public partial class MainWindow
             CompactStrip.ColumnDefinitions.Add(new ColumnDefinition());
             var readout = new MetricReadout { ShowSeriesToggle = false, Margin = new Thickness(10, 4, 8, 4) };
             readout.AccentKey = accent;
+            readout.ScaleLabel.ToolTip = source.ToolTip;
             var box = new Border
             {
                 BorderThickness = new Thickness(0, 0, 1, 0), Child = readout,
@@ -108,7 +109,8 @@ public partial class MainWindow
             var value = new TextRange(readout.ValueLabel.ContentStart, readout.ValueLabel.ContentEnd).Text;
             var name = $"{readout.Label} {value}";
             if (AutomationProperties.GetName(box) != name) AutomationProperties.SetName(box, name);
-            var definition = _metricDetails[source].Definition;
+            var details = _metricDetails[source];
+            var definition = details.Definition + "\n" + details.Peak;
             if (AutomationProperties.GetHelpText(box) != definition)
                 AutomationProperties.SetHelpText(box, definition);
         }

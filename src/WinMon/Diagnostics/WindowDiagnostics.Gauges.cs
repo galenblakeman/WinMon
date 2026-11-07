@@ -28,10 +28,14 @@ internal sealed partial class WindowDiagnostics
                 Resources = new ResourceSample
                 {
                     TotalMemoryBytes = 64UL * 1_073_741_824, UsedMemoryBytes = 35_433_480_192,
-                    DiskName = "C:", DiskActivePercent = 0.1 + 62 * pulse, DiskBytesPerSecond = 200_000,
+                    DiskName = "C:", DiskActivePercent = 0.1 + 62 * pulse,
+                    DiskBytesPerSecond = i == 94 ? 200_000 : 900_000,
                     SecondaryDiskName = "D:", SecondaryDiskActivePercent = 97 + 2 * pulse,
                     SecondaryDiskBytesPerSecond = 300_000,
-                    GpuEngine = "3D", GpuPercent = 9 + 60 * pulse, CpuClockMhz = 4300,
+                    GpuEngine = "3D", GpuPercent = 9 + 60 * pulse,
+                    // The utilization peak has no memory reading, so the native setting must fall back to percent.
+                    GpuMemoryUsedBytes = i == 94 ? null : 4UL * 1_073_741_824,
+                    CpuClockMhz = 4300,
                     NetworkId = "fixture", NetworkName = "Ethernet", LinkBitsPerSecond = 1_000_000_000,
                     ReceiveBytesPerSecond = 1_190 + 8_000_000 * pulse, SendBytesPerSecond = 2_100
                 }
@@ -98,33 +102,62 @@ internal sealed partial class WindowDiagnostics
                 }
                 var scaled = fixture.NetworkMetric.ScaleLabel;
                 if (arcs.Contains(style) != (scaled.Visibility == Visibility.Visible) ||
-                    (arcs.Contains(style) && scaled.Text != "100M"))
-                    throw new InvalidOperationException($"{style} showed the network scale wrongly.");
-                (MetricReadout Readout, string Full, string Short)[] corners =
+                    (arcs.Contains(style) && scaled.Text != RateText.Short(64_009_520)) ||
+                    (arcs.Contains(style) && scaled.Text == "100M"))
+                    throw new InvalidOperationException($"{style} showed the network peak wrongly.");
+                (MetricReadout Readout, string Text)[] corners =
                 [
-                    (fixture.CpuMetric, Strings.Format(Strings.GaugePeak, 78d),
-                        Strings.Format(Strings.GaugePeakShort, 78d)),
-                    (fixture.MemoryMetric, Strings.Format(Strings.GaugePeak, 52d),
-                        Strings.Format(Strings.GaugePeakShort, 52d)),
-                    (fixture.DiskMetric, Strings.Format(Strings.GaugePeak, 62d),
-                        Strings.Format(Strings.GaugePeakShort, 62d)),
-                    (fixture.SecondaryDiskMetric, Strings.Format(Strings.GaugePeak, 99d),
-                        Strings.Format(Strings.GaugePeakShort, 99d)),
-                    (fixture.GpuMetric, Strings.Format(Strings.GaugePeak, 69d),
-                        Strings.Format(Strings.GaugePeakShort, 69d))
+                    (fixture.CpuMetric, Strings.Format(Strings.GaugePeakShort, 78d)),
+                    (fixture.MemoryMetric, TableMetricText.Memory(35_433_480_192)),
+                    (fixture.DiskMetric, TableMetricText.IoRate(200_000)),
+                    (fixture.SecondaryDiskMetric, TableMetricText.IoRate(300_000)),
+                    (fixture.GpuMetric, Strings.Format(Strings.GaugePeakShort, 69d))
                 ];
                 if (corners.Any(corner => corner.Readout.ScaleLabel.Text !=
-                        (arcs.Contains(style)
-                            ? corner.Readout.ActualWidth < 155 ? corner.Short : corner.Full
-                            : "") ||
-                        (arcs.Contains(style) && (corner.Readout.ScaleLabel.ToolTip is not string tooltip ||
-                            tooltip != corner.Full)) ||
-                        (corner.Readout.ScaleLabel.Visibility == Visibility.Visible) != arcs.Contains(style)))
+                        (arcs.Contains(style) ? corner.Text : "") ||
+                        (arcs.Contains(style) && !ReferenceEquals(corner.Readout.ScaleLabel.ToolTip,
+                            corner.Readout.ToolTip)) ||
+                        (corner.Readout.ScaleLabel.Visibility == Visibility.Visible) != arcs.Contains(style) ||
+                        corner.Readout.PeakIconVisible != arcs.Contains(style)))
                     throw new InvalidOperationException($"{style} showed a resource corner label wrongly.");
+                if (fixture.NetworkMetric.PeakIconVisible != arcs.Contains(style))
+                    throw new InvalidOperationException($"{style} showed the network peak icon wrongly.");
                 await CaptureVisualAsync(visual,
                     Path.Combine(output, $"gauges-{style.ToString().ToLowerInvariant()}-{theme.ToLowerInvariant()}-{width}.png"),
                     1, cancellationToken);
             }
+        }
+
+        // Labels reuse the utilization peak sample; RAM and disk examples have deliberately different
+        // native values from their latest samples, so the smoke catches accidental independent native peaks.
+        foreach (var theme in new[] { "Dark", "Light" })
+        foreach (var width in new[] { 1000d, 836d })
+        {
+            fixture.Preferences = fixture.Preferences with
+                { Theme = theme, GaugeStyle = GaugeStyle.Bowl };
+            fixture.ApplyTheme();
+            Draw(width);
+            fixture.OpenDetails(fixture.MemoryMetric);
+            var details = (MetricDetails)fixture.MemoryMetric.ToolTip;
+            if (!details.Peak.Contains(Strings.GaugePeakRamUsed, StringComparison.Ordinal) ||
+                !details.Peak.Contains(Strings.GaugePeakAtTime[..2], StringComparison.Ordinal) ||
+                !ReferenceEquals(fixture.MemoryMetric.ScaleLabel.ToolTip, details))
+                throw new InvalidOperationException("Native peak labels or tooltip details were unavailable.");
+            fixture.CloseDetails(fixture.MemoryMetric);
+            fixture.OpenDetails(fixture.NetworkMetric);
+            var networkDetails = (MetricDetails)fixture.NetworkMetric.ToolTip;
+            if (!networkDetails.Peak.Contains(Strings.Format(Strings.NetworkScale0, RateText.Format(100_000_000)),
+                    StringComparison.Ordinal))
+                throw new InvalidOperationException("Network peak tooltip did not retain its gauge scale.");
+            fixture.CloseDetails(fixture.NetworkMetric);
+            var disk = fixture.DiskMetric.ScaleLabel.Text;
+            var expectedDisk = TableMetricText.IoRate(200_000);
+            var expectedGpu = Strings.Format(Strings.GaugePeakShort, 69d);
+            if (disk != expectedDisk || fixture.GpuMetric.ScaleLabel.Text != expectedGpu)
+                throw new InvalidOperationException("Native labels did not use the utilization peak sample or fallback: " +
+                    $"disk '{disk}' expected '{expectedDisk}', GPU '{fixture.GpuMetric.ScaleLabel.Text}' expected '{expectedGpu}'.");
+            await CaptureVisualAsync(visual,
+                Path.Combine(output, $"gauges-native-{theme.ToLowerInvariant()}-{width}.png"), 1, cancellationToken);
         }
 
         // Appearance finishes change brushes only, so one full-size bowl capture per finish is sufficient.
@@ -197,7 +230,8 @@ internal sealed partial class WindowDiagnostics
         if ((await store.LoadAsync(cancellationToken)).GaugeStyle != GaugeStyle.SegmentedArc)
             throw new InvalidOperationException("The gauge style did not survive a save and load.");
 
-        fixture.Preferences = fixture.Preferences with { Theme = "Dark", GaugeStyle = GaugeStyle.Bowl };
+        fixture.Preferences = fixture.Preferences with
+            { Theme = "Dark", GaugeStyle = GaugeStyle.Bowl };
         fixture.ApplyTheme();
         var settings = new SettingsWindow(fixture.Preferences, () => [],
             captureFolder: Path.Combine(output, "Captures")) { Left = 40, Top = 40 };
@@ -225,8 +259,9 @@ internal sealed partial class WindowDiagnostics
         {
             Styles = Enum.GetNames<GaugeStyle>(), Themes = new[] { "Dark", "Light" }.Concat(ThemeFinishes.Names),
             Widths = new[] { 1000, 836 },
-            ReadoutHeight = heights.Single(), NetworkScaleOnArcs = true, CornerLabelsOnArcs = true,
-            UnavailableHidesGauges = true, PreferenceRoundTrip = true, SettingsPreview = true
+            ReadoutHeight = heights.Single(), NetworkPeakOnArcs = true, CornerLabelsOnArcs = true,
+            UnavailableHidesGauges = true, PreferenceRoundTrip = true, SettingsPreview = true,
+            AlwaysNativePeakLabelsAndTooltips = true
         }), cancellationToken);
         return;
 

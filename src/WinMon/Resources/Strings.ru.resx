@@ -1603,6 +1603,17 @@ GPU {11} · {12}
   <data name="ChartFocusResourceChoice" xml:space="preserve"><value>Фокус: {0}</value></data>
   <data name="GaugePeakShort" xml:space="preserve"><value>{0:0}%</value></data>
   <data name="GaugePeak" xml:space="preserve"><value>Пик {0:0}%</value></data>
+  <data name="GaugePeakValue" xml:space="preserve"><value>Пик {0}</value></data>
+  <data name="GaugePeakWindow" xml:space="preserve"><value>Окно пика</value></data>
+  <data name="GaugePeakWindowMinutes" xml:space="preserve"><value>{0} мин</value></data>
+  <data name="GaugePeakOverWindow" xml:space="preserve"><value>Пик · последние {0} мин.</value></data>
+  <data name="GaugePeakAtTime" xml:space="preserve"><value>В {0:T} · {1} с назад</value></data>
+  <data name="GaugePeakNativeAtPeak" xml:space="preserve"><value>{0} при пиковой загрузке: {1}</value></data>
+  <data name="GaugePeakDownload" xml:space="preserve"><value>Загрузка</value></data>
+  <data name="GaugePeakDiskThroughput" xml:space="preserve"><value>Пропускная способность диска</value></data>
+  <data name="GaugePeakRamUsed" xml:space="preserve"><value>Используемая ОЗУ</value></data>
+  <data name="GaugePeakGpuMemoryUsed" xml:space="preserve"><value>Используемая память GPU</value></data>
+  <data name="GaugePeakWindowExplanation" xml:space="preserve"><value>Тёмная линия отмечает наибольшую загрузку в окне пика.</value></data>
   <data name="PeakLastTwoMinutesExplanation" xml:space="preserve"><value>Тёмная линия показывает наибольшее значение за последние две минуты.</value></data>
   <data name="ResourceGauges" xml:space="preserve"><value>Индикаторы ресурсов</value></data>
   <data name="GaugeNeedle" xml:space="preserve"><value>Стрелка</value></data>

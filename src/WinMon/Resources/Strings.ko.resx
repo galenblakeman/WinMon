@@ -1603,6 +1603,17 @@ Windows 상태: {2}</value>
   <data name="ChartFocusResourceChoice" xml:space="preserve"><value>집중 보기: {0}</value></data>
   <data name="GaugePeakShort" xml:space="preserve"><value>{0:0}%</value></data>
   <data name="GaugePeak" xml:space="preserve"><value>최고 {0:0}%</value></data>
+  <data name="GaugePeakValue" xml:space="preserve"><value>최고 {0}</value></data>
+  <data name="GaugePeakWindow" xml:space="preserve"><value>최고 기간</value></data>
+  <data name="GaugePeakWindowMinutes" xml:space="preserve"><value>{0}분</value></data>
+  <data name="GaugePeakOverWindow" xml:space="preserve"><value>최고 · 지난 {0}분</value></data>
+  <data name="GaugePeakAtTime" xml:space="preserve"><value>{0:T} · {1}초 전</value></data>
+  <data name="GaugePeakNativeAtPeak" xml:space="preserve"><value>사용률 최고 시 {0}: {1}</value></data>
+  <data name="GaugePeakDownload" xml:space="preserve"><value>다운로드</value></data>
+  <data name="GaugePeakDiskThroughput" xml:space="preserve"><value>디스크 처리량</value></data>
+  <data name="GaugePeakRamUsed" xml:space="preserve"><value>사용 중인 RAM</value></data>
+  <data name="GaugePeakGpuMemoryUsed" xml:space="preserve"><value>사용 중인 GPU 메모리</value></data>
+  <data name="GaugePeakWindowExplanation" xml:space="preserve"><value>어두운 선은 최고 기간 내 가장 높은 사용률을 표시합니다.</value></data>
   <data name="PeakLastTwoMinutesExplanation" xml:space="preserve"><value>진한 선은 최근 2분 동안의 최고 측정값을 나타냅니다.</value></data>
   <data name="ResourceGauges" xml:space="preserve"><value>리소스 게이지</value></data>
   <data name="GaugeNeedle" xml:space="preserve"><value>바늘</value></data>

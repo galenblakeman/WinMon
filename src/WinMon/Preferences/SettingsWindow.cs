@@ -83,6 +83,7 @@ public sealed class SettingsWindow : Window
     private readonly ComboBox _themeSelector;
     private readonly ComboBox _paletteSelector;
     private readonly ComboBox _gaugeSelector;
+    private readonly ComboBox _gaugePeakWindowSelector;
     private readonly AppearancePreview _appearancePreview;
     private readonly ComboBox _retentionSelector;
     private readonly ComboBox _startupViewSelector;
@@ -247,7 +248,10 @@ public sealed class SettingsWindow : Window
         _gaugeSelector.DisplayMemberPath = nameof(GaugeChoice.Label);
         _gaugeSelector.SelectedValuePath = nameof(GaugeChoice.Style);
         _gaugeSelector.SelectedValue = preferences.GaugeStyle;
-        _gaugeSelector.ToolTip = Strings.PeakLastTwoMinutesExplanation;
+        _gaugeSelector.ToolTip = Strings.GaugePeakWindowExplanation;
+        _gaugePeakWindowSelector = CreateSelector(new[] { 60, 120, 300, 600 }.Select(seconds =>
+            Strings.Format(Strings.GaugePeakWindowMinutes, seconds / 60)).ToArray(),
+            Strings.Format(Strings.GaugePeakWindowMinutes, preferences.GaugePeakWindowSeconds / 60));
         _appearancePreview = new AppearancePreview();
         UpdateAppearancePreview();
         _paletteSelector.SelectionChanged += (_, _) => UpdateAppearancePreview();
@@ -362,6 +366,8 @@ public sealed class SettingsWindow : Window
 
     internal ComboBox GaugeSelector => _gaugeSelector;
 
+    internal ComboBox GaugePeakWindowSelector => _gaugePeakWindowSelector;
+
     internal ComboBox StartupViewSelector => _startupViewSelector;
 
     internal ComboBox NetworkInterfaceSelector { get; }
@@ -393,6 +399,7 @@ public sealed class SettingsWindow : Window
             Language = settings.Language,
             ChartPalette = settings.ChartPalette,
             GaugeStyle = settings.GaugeStyle,
+            GaugePeakWindowSeconds = settings.GaugePeakWindowSeconds,
             RetentionSeconds = settings.RetentionSeconds,
             KeepHistoryAcrossRestarts = settings.KeepHistoryAcrossRestarts,
             MinimizeToTray = settings.MinimizeToTray,
@@ -804,6 +811,8 @@ public sealed class SettingsWindow : Window
         page.Children.Add(Note(Strings.SettingsRetentionNote));
         page.Children.Add(_keepHistoryCheckBox);
         page.Children.Add(Note(Strings.KeepHistoryAcrossRestartsNote));
+        page.Children.Add(CreateHeading(Strings.ResourceGauges));
+        page.Children.Add(Field(Strings.GaugePeakWindow, _gaugePeakWindowSelector));
         page.Children.Add(CreateHeading(Strings.Network));
         page.Children.Add(Field(Strings.NetworkInterfaceLabel, NetworkInterfaceSelector));
         page.Children.Add(Note(Strings.NetworkSelectionNote));
@@ -1052,6 +1061,13 @@ public sealed class SettingsWindow : Window
             Language = LanguageSelector.SelectedValue as string ?? AppLanguages.SystemDefault,
             ChartPalette = _paletteSelector.SelectedValue as string ?? "Classic",
             GaugeStyle = SelectedGaugeStyle,
+            GaugePeakWindowSeconds = (_gaugePeakWindowSelector.SelectedItem as string) switch
+            {
+                var label when label == Strings.Format(Strings.GaugePeakWindowMinutes, 1) => 60,
+                var label when label == Strings.Format(Strings.GaugePeakWindowMinutes, 5) => 300,
+                var label when label == Strings.Format(Strings.GaugePeakWindowMinutes, 10) => 600,
+                _ => MonitorPreferences.ShortRangeSeconds
+            },
             RetentionSeconds = (_retentionSelector.SelectedItem as string) switch
             {
                 var label when label == Strings.Value30Minutes => 1800,

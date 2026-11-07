@@ -47,7 +47,7 @@ public sealed class SettingsLayoutTests
     }
 
     [Test]
-    public void Appearance_ContainsThemePaletteAndGaugeWhileGeneralKeepsLanguage()
+    public void Appearance_ContainsThemePaletteAndGaugeWhileMonitoringContainsPeakWindow()
     {
         var window = Settings(new MonitorPreferences
             { Theme = "Porcelain", ChartPalette = "Ocean", GaugeStyle = GaugeStyle.Needle,
@@ -57,6 +57,8 @@ public sealed class SettingsLayoutTests
             var general = Descendants(window).ToArray();
             window.ShowSection(SettingsSection.Appearance);
             var appearance = Descendants(window).ToArray();
+            window.ShowSection(SettingsSection.Monitoring);
+            var monitoring = Descendants(window).ToArray();
 
             Assert.Multiple(() =>
             {
@@ -67,11 +69,14 @@ public sealed class SettingsLayoutTests
                 Assert.That(general, Does.Not.Contain(window.ThemeSelector));
                 Assert.That(general, Does.Not.Contain(window.PaletteSelector));
                 Assert.That(general, Does.Not.Contain(window.GaugeSelector));
+                Assert.That(general, Does.Not.Contain(window.GaugePeakWindowSelector));
                 Assert.That(appearance, Does.Not.Contain(window.LanguageSelector));
                 Assert.That(appearance, Does.Not.Contain(window.StartupViewSelector));
                 Assert.That(appearance, Does.Contain(window.ThemeSelector));
                 Assert.That(appearance, Does.Contain(window.PaletteSelector));
                 Assert.That(appearance, Does.Contain(window.GaugeSelector));
+                Assert.That(appearance, Does.Not.Contain(window.GaugePeakWindowSelector));
+                Assert.That(monitoring, Does.Contain(window.GaugePeakWindowSelector));
                 Assert.That(window.ThemeSelector.SelectedValue, Is.EqualTo("Porcelain"));
                 Assert.That(window.PaletteSelector.SelectedValue, Is.EqualTo("Ocean"));
                 Assert.That(window.GaugeSelector.SelectedValue, Is.EqualTo(GaugeStyle.Needle));

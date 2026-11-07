@@ -13,6 +13,7 @@ public sealed class MetricDetails : INotifyPropertyChanged
     private string _title = "";
     private string _definition = "";
     private string _live = "";
+    private string _peak = "";
     private Brush? _accent;
 
     public string Title
@@ -31,6 +32,12 @@ public sealed class MetricDetails : INotifyPropertyChanged
     {
         get => _live;
         set => Set(ref _live, value);
+    }
+
+    public string Peak
+    {
+        get => _peak;
+        set => Set(ref _peak, value);
     }
 
     public Brush? Accent

@@ -1,12 +1,14 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Media;
 using NUnit.Framework;
 using WinMon.Controls;
 using WinMon.Monitoring;
 using WinMon.Preferences;
+using WinMon.Resources;
 
 namespace WinMon.Tests;
 
@@ -14,7 +16,7 @@ namespace WinMon.Tests;
 public sealed class MetricGaugeTests
 {
     [Test]
-    public void Peaks_UseLastTwoMinutesAndMatchingDrives()
+    public void Peaks_UseConfiguredWindowAndMatchingDrives()
     {
         var now = DateTimeOffset.UnixEpoch.AddMinutes(5);
         MonitorSample Sample(int secondsAgo, double cpu, string disk, bool gap = false) =>
@@ -36,16 +38,17 @@ public sealed class MetricGaugeTests
             Sample(20, 40, "C:"), Sample(0, 20, "C:")
         };
 
-        var peaks = MainWindow.TwoMinuteGaugePeaks(samples, samples[^1], "C:", "D:");
+        var peaks = MainWindow.GaugePeaks(samples, samples[^1], "C:", "D:");
 
         Assert.Multiple(() =>
         {
-            Assert.That(peaks.Cpu, Is.EqualTo(80));
-            Assert.That(peaks.Memory, Is.EqualTo(80));
-            Assert.That(peaks.Disk, Is.EqualTo(40));
-            Assert.That(peaks.SecondaryDisk, Is.EqualTo(81));
-            Assert.That(peaks.Network, Is.EqualTo(640_000));
-            Assert.That(peaks.Gpu, Is.EqualTo(80));
+            Assert.That(peaks.Cpu.Value, Is.EqualTo(80));
+            Assert.That(peaks.Memory.Value, Is.EqualTo(80));
+            Assert.That(peaks.Disk.Value, Is.EqualTo(40));
+            Assert.That(peaks.SecondaryDisk.Value, Is.EqualTo(81));
+            Assert.That(peaks.Network.Value, Is.EqualTo(640_000));
+            Assert.That(peaks.Gpu.Value, Is.EqualTo(80));
+            Assert.That(peaks.Cpu.Sample, Is.SameAs(samples[1]));
         });
     }
 
@@ -57,9 +60,53 @@ public sealed class MetricGaugeTests
         var latest = new MonitorSample(DateTimeOffset.UnixEpoch.AddHours(1), 20, [], 0,
             MonotonicTimestamp: Stopwatch.Frequency * 101);
 
-        var peaks = MainWindow.TwoMinuteGaugePeaks([earlier, latest], latest, "C:", null);
+        var peaks = MainWindow.GaugePeaks([earlier, latest], latest, "C:", null);
 
-        Assert.That(peaks.Cpu, Is.EqualTo(70));
+        Assert.That(peaks.Cpu.Value, Is.EqualTo(70));
+    }
+
+    [Test]
+    public void Peaks_UseRequestedWindowAndKeepTheNewestEqualPeak()
+    {
+        var now = DateTimeOffset.UnixEpoch.AddMinutes(20);
+        MonitorSample Sample(int secondsAgo, double cpu) => new(now.AddSeconds(-secondsAgo), cpu, [], 0)
+        {
+            Resources = new ResourceSample { TotalMemoryBytes = 100, UsedMemoryBytes = (ulong)cpu,
+                DiskName = "C:", DiskActivePercent = cpu, NetworkId = "current",
+                ReceiveBytesPerSecond = cpu, GpuPercent = cpu }
+        };
+        var old = Sample(121, 95);
+        var peak = Sample(60, 80);
+        var newestTie = Sample(20, 80);
+        var latest = Sample(0, 20);
+
+        var shortWindow = MainWindow.GaugePeaks([old, peak, newestTie, latest], latest, "C:", null, 60);
+        var longWindow = MainWindow.GaugePeaks([old, peak, newestTie, latest], latest, "C:", null, 300);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(shortWindow.Cpu.Value, Is.EqualTo(80));
+            Assert.That(shortWindow.Cpu.Sample, Is.SameAs(newestTie));
+            Assert.That(longWindow.Cpu.Value, Is.EqualTo(95));
+            Assert.That(longWindow.Cpu.Sample, Is.SameAs(old));
+        });
+    }
+
+    [Test]
+    public void Peaks_IgnoreOtherNetworkAdapters()
+    {
+        var now = DateTimeOffset.UnixEpoch;
+        MonitorSample Sample(int secondsAgo, string id, double receive) => new(now.AddSeconds(-secondsAgo), 10, [], 0)
+        {
+            Resources = new ResourceSample { NetworkId = id, ReceiveBytesPerSecond = receive }
+        };
+        var other = Sample(10, "other", 99);
+        var current = Sample(0, "current", 10);
+
+        var peaks = MainWindow.GaugePeaks([other, current], current, "C:", null);
+
+        Assert.That(peaks.Network.Value, Is.EqualTo(80));
+        Assert.That(peaks.Network.Sample, Is.SameAs(current));
     }
 
     [Test]
@@ -124,6 +171,43 @@ public sealed class MetricGaugeTests
             Assert.That(withScale, Is.EqualTo(arc ? Visibility.Visible : Visibility.Collapsed));
             // Arcs keep the label's space on percentage readouts, so every arc shares one size.
             Assert.That(readout.ScaleLabel.Visibility, Is.EqualTo(arc ? Visibility.Hidden : Visibility.Collapsed));
+        });
+    }
+
+    [TestCase(GaugeStyle.Bowl, 120, true)]
+    [TestCase(GaugeStyle.Bowl, 200, true)]
+    [TestCase(GaugeStyle.BottomBar, 120, false)]
+    [TestCase(GaugeStyle.BottomBar, 200, false)]
+    [Apartment(ApartmentState.STA)]
+    public void PeakHeader_UsesShortValueAndAnIconOnlyOnValidArcs(GaugeStyle style, int width, bool arc)
+    {
+        var readout = new MetricReadout { Width = width, GaugeStyle = style };
+        readout.ShowGauge(50, 80, 100, "Peak 80%", "80%", peakLabel: true);
+        Assert.Multiple(() =>
+        {
+            Assert.That(readout.ScaleLabel.Text, Is.EqualTo("80%"));
+            Assert.That(AutomationProperties.GetName(readout.ScaleLabel), Is.EqualTo("Peak 80%"));
+            Assert.That(readout.PeakIconVisible, Is.EqualTo(arc));
+        });
+
+        readout.ShowGauge(null, 80, 100, "Peak 80%", "80%", peakLabel: true);
+        Assert.That(readout.PeakIconVisible, Is.False);
+    }
+
+    [Test]
+    [Apartment(ApartmentState.STA)]
+    public void NetworkPeakHeader_ShowsThePeakInsteadOfTheGaugeScale()
+    {
+        var readout = new MetricReadout { GaugeStyle = GaugeStyle.Bowl };
+        readout.ShowGauge(40_000_000, 64_009_520, 100_000_000,
+            Strings.Format(Strings.GaugePeakValue, RateText.Format(64_009_520)), RateText.Short(64_009_520),
+            peakLabel: true);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(readout.ScaleLabel.Text, Is.EqualTo("64M"));
+            Assert.That(readout.ScaleLabel.Text, Is.Not.EqualTo("100M"));
+            Assert.That(readout.PeakIconVisible, Is.True);
         });
     }
 

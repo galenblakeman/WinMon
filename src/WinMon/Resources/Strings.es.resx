@@ -1603,6 +1603,17 @@ Se puede perder el trabajo sin guardar. Se finalizarán todos los procesos indic
   <data name="ChartFocusResourceChoice" xml:space="preserve"><value>Enfoque: {0}</value></data>
   <data name="GaugePeakShort" xml:space="preserve"><value>{0:0}%</value></data>
   <data name="GaugePeak" xml:space="preserve"><value>Pico {0:0}%</value></data>
+  <data name="GaugePeakValue" xml:space="preserve"><value>Pico {0}</value></data>
+  <data name="GaugePeakWindow" xml:space="preserve"><value>Intervalo de pico</value></data>
+  <data name="GaugePeakWindowMinutes" xml:space="preserve"><value>{0} min</value></data>
+  <data name="GaugePeakOverWindow" xml:space="preserve"><value>Pico · últimos {0} min</value></data>
+  <data name="GaugePeakAtTime" xml:space="preserve"><value>A las {0:T} · hace {1} segundos</value></data>
+  <data name="GaugePeakNativeAtPeak" xml:space="preserve"><value>{0} en el pico de utilización: {1}</value></data>
+  <data name="GaugePeakDownload" xml:space="preserve"><value>Descarga</value></data>
+  <data name="GaugePeakDiskThroughput" xml:space="preserve"><value>Rendimiento de disco</value></data>
+  <data name="GaugePeakRamUsed" xml:space="preserve"><value>RAM usada</value></data>
+  <data name="GaugePeakGpuMemoryUsed" xml:space="preserve"><value>Memoria de GPU usada</value></data>
+  <data name="GaugePeakWindowExplanation" xml:space="preserve"><value>La línea oscura marca la lectura de utilización más alta en el intervalo de pico.</value></data>
   <data name="PeakLastTwoMinutesExplanation" xml:space="preserve"><value>La línea oscura marca la lectura más alta de los últimos dos minutos.</value></data>
   <data name="ResourceGauges" xml:space="preserve"><value>Indicadores de recursos</value></data>
   <data name="GaugeNeedle" xml:space="preserve"><value>Aguja</value></data>

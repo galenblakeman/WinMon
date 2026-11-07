@@ -4,6 +4,27 @@
 
 Dated measurement and validation records, newest first. Each section describes the build and machine it was measured on, and some name code that has since changed or moved. For how to measure today and the decisions still in force, see [Performance](DEVELOPMENT.md#performance) in the developer guide. The raw data named under `artifacts/` is local and not in the repository.
 
+## Configurable native gauge peaks (November 7, 2026)
+
+UI-thread benchmark on .NET 10.0.14 / SDK 10.0.403. Four alternating pairs (four baseline runs and four changed runs) used the same `WinMon.Performance` driver (SHA-256 `3E82936F…`) with 850 synthetic processes, 400 warm-up frames and seven 60-frame batches. The baseline `WinMon.dll` was `2BBF6681…`; the final always-native peak-label build was `03B9CC2D…`. Raw results are `artifacts/peak-before-{1..4}.json`, `peak-after-{1..4}.json` and `peak-benchmark-summary.json`.
+
+| Scenario | Baseline median | Changed median | Allocation change |
+| --- | ---: | ---: | ---: |
+| Live frame | 4.869 ms | 4.596 ms | +1.3% (600,927 → 608,871 B/frame) |
+| Small multiples | 2.816 ms | 2.814 ms | +0.2% |
+| Heatmap | 2.962 ms | 3.047 ms | +0.1% |
+| Focus | 2.943 ms | 3.125 ms | +1.4% |
+| Historical | 1.173 ms | 1.240 ms | +0.7% |
+| Grouped live | 5.229 ms | 5.823 ms | +0.2% |
+| Services live | 5.282 ms | 5.838 ms | +0.1% |
+| Compact | 1.633 ms | 1.698 ms | +2.5% |
+| Open metric tooltip | 8.910 ms | 9.319 ms | +4.4% |
+| Logical-processors grid | 5.713 ms | 6.331 ms | +0.9% |
+| Connections, grouped | 2.965 ms | 4.661 ms | +250.0% (1,493,183 → 5,225,615 B/frame) |
+| Connections, individual | 3.138 ms | 3.104 ms | +0.7% |
+
+Live-frame time improved, while grouped (+11.4%), Services (+10.5%) and the logical-processor grid (+10.8%) were slower with substantial per-run variation. Grouped Connections was consistently slower (+57.2%) and allocated much more. This working tree also changed network integration between the baseline and final `WinMon.dll`, so these results establish the combined-build effect and do not attribute those regressions solely to gauge peaks. The peak change retains source samples; formatting and UI updates, rather than that retained value type itself, are the plausible allocation sources. Pixel hashes differ intentionally because the new peak icons and native values replace the previous percentage/scale headers. The hidden/minimized cache-release cleanup is included in the final build but is outside this visible benchmark path.
+
 ## Chart collapse and aligned disclosure buttons (November 7, 2026)
 
 Release UI benchmark on .NET 10.0.14, SDK 10.0.403. Four alternating pre-change/changed pairs exercised the existing expanded-layout scenarios. Values are medians of the four runs' seven-batch medians. The baseline preserves the workspace from before this change, including the logical-processor work already present. Native collection is disabled during measurement.
