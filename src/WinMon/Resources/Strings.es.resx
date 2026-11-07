@@ -939,13 +939,13 @@ Tiempo activo y velocidad de lectura y escritura.</value>
     <value></value>
   </data>
   <data name="SystemResources" xml:space="preserve">
-    <value>Sistema</value>
+    <value>Gráfico</value>
   </data>
   <data name="SystemResourcesInspectingSnapshot" xml:space="preserve">
-    <value>Sistema · inspeccionando captura</value>
+    <value>Gráfico · inspeccionando captura</value>
   </data>
   <data name="SystemResourcesUnavailable" xml:space="preserve">
-    <value>Sistema · no disponible</value>
+    <value>Gráfico · no disponible</value>
   </data>
   <data name="Testing" xml:space="preserve">
     <value>En pruebas</value>

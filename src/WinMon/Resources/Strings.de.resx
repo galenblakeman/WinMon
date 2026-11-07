@@ -939,13 +939,13 @@ Aktive Zeit und Lese-/Schreibdurchsatz.</value>
     <value></value>
   </data>
   <data name="SystemResources" xml:space="preserve">
-    <value>System</value>
+    <value>Diagramm</value>
   </data>
   <data name="SystemResourcesInspectingSnapshot" xml:space="preserve">
-    <value>System · Aufnahme prüfen</value>
+    <value>Diagramm · Aufnahme prüfen</value>
   </data>
   <data name="SystemResourcesUnavailable" xml:space="preserve">
-    <value>System · nicht verfügbar</value>
+    <value>Diagramm · nicht verfügbar</value>
   </data>
   <data name="Testing" xml:space="preserve">
     <value>Testbetrieb</value>

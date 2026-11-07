@@ -939,13 +939,13 @@ Windows からモジュールの詳細を取得できません。</value>
     <value></value>
   </data>
   <data name="SystemResources" xml:space="preserve">
-    <value>システム</value>
+    <value>チャート</value>
   </data>
   <data name="SystemResourcesInspectingSnapshot" xml:space="preserve">
-    <value>システム · キャプチャ確認中</value>
+    <value>チャート · キャプチャ確認中</value>
   </data>
   <data name="SystemResourcesUnavailable" xml:space="preserve">
-    <value>システム · 利用不可</value>
+    <value>チャート · 利用不可</value>
   </data>
   <data name="Testing" xml:space="preserve">
     <value>テスト中</value>

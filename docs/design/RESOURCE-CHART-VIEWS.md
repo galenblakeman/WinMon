@@ -15,3 +15,5 @@ The Focus disk choices take their drive letters from preferences when the menu i
 The non-overlay views now share a measured left label column. Axis ticks and lane labels end at the same inset from the plot, so the chart can use the space previously reserved by the fixed 105-pixel gutter while still fitting longer localized names.
 
 On 2026-10-25, the chart header label was shortened from "System resources" to "System" in every language. The unavailable header and capture-inspection tooltip use the same short name with their status suffixes. No chart behavior or layout changed.
+
+On 2026-11-07, the header was renamed to "Chart" to identify the visualization and its display controls more clearly. The label, unavailable status and capture-inspection tooltip use the same term in every language. The change landed in the existing localized resource values; chart behavior, layout and resource identifiers did not change.

@@ -939,13 +939,13 @@ Active time and read/write throughput.</value>
     <value></value>
   </data>
   <data name="SystemResources" xml:space="preserve">
-    <value>System</value>
+    <value>Chart</value>
   </data>
   <data name="SystemResourcesInspectingSnapshot" xml:space="preserve">
-    <value>System · inspecting capture</value>
+    <value>Chart · inspecting capture</value>
   </data>
   <data name="SystemResourcesUnavailable" xml:space="preserve">
-    <value>System · unavailable</value>
+    <value>Chart · unavailable</value>
   </data>
   <data name="Testing" xml:space="preserve">
     <value>Testing</value>
