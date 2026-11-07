@@ -4,6 +4,25 @@
 
 Dated measurement and validation records, newest first. Each section describes the build and machine it was measured on, and some name code that has since changed or moved. For how to measure today and the decisions still in force, see [Performance](DEVELOPMENT.md#performance) in the developer guide. The raw data named under `artifacts/` is local and not in the repository.
 
+## Collapsible activity panel (November 7, 2026)
+
+Release UI benchmark on .NET 10.0.14, built with SDK 10.0.403. Four baseline/final pairs alternated after verification completed. The baseline is a saved artifact of the pre-feature working tree, including the existing unrelated edits, so the comparison isolates this feature. Each value is the median of four runs' seven-batch medians.
+
+| Scenario | Before | After | Allocation before / after |
+| --- | ---: | ---: | ---: |
+| Live overlay | 3.82 ms | 3.96 ms | 586.58 / 586.71 KiB |
+| Small multiples | 2.53 ms | 2.57 ms | 558.31 / 558.34 KiB |
+| Focus | 2.60 ms | 2.76 ms | 572.61 / 572.64 KiB |
+| Historical | 1.01 ms | 1.02 ms | 174.06 / 174.09 KiB |
+| Services live | 5.49 ms | 5.11 ms | 979.01 / 979.01 KiB |
+| Compact live | 1.58 ms | 1.53 ms | 362.39 / 362.39 KiB |
+
+Live and Focus aggregate times increased by about 0.15 ms with the additional disclosure button/body layout. Timing variation is larger than that difference: Live ranged 3.73–4.16 ms before and 3.38–4.45 ms after; Focus ranged 2.48–2.78 ms before and 2.55–3.12 ms after. Live was faster in the first two changed runs and slower in the last two. Other paths were stable or faster in aggregate, so these runs do not establish a consistent material UI-time regression. Typical expanded paths add approximately 32 bytes per refresh; the Live median difference was 0.13 KiB, and Services/Compact allocation stayed unchanged.
+
+Each build produced one consistent pixel hash across all four runs. Before/after hashes differ as expected because the tab strip gains a button and four DIPs of height. This benchmark measures UI-thread refresh/layout/render submission in the expanded view and existing scenarios; it does not measure native sampling, the WPF render thread or a dedicated collapsed-panel workload. The collapsed layout was checked separately by the feature smoke.
+
+Raw reports: `artifacts/perf-activity-panel/baseline-quiet-{1..4}.json`, `verified-quiet-{1..4}.json` and `comparison.json`. Baseline assembly SHA-256: `77769A8E410008E4F88D40E0563853AE5AC829AEE0E332F61B87A4ED9BBFFB96`; final: `8ACA48A49FA167FFCA55D85894F6D62A72A6CB3B2B05705C70B3FDF7742E47B0`.
+
 Add a section at the top for each measured change: what changed, the machine and build, before and after results, and where the raw reports are.
 
 ## Process file versions (November 7, 2026)

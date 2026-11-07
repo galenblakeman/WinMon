@@ -146,6 +146,7 @@ public partial class MainWindow
             UsageView.Load(UsageSettings(_preferences));
             Width = Math.Max(MinWidth, _preferences.Width);
             Height = Math.Max(MinHeight, _preferences.Height);
+            ApplyActivityPanel();
             var visibleMask = _preferences.SeriesMask;
             _restoringSeries = true;
             for (var i = 0; i < Metrics.Length; i++) Metrics[i].Toggle.IsChecked = (visibleMask & (1 << i)) != 0;
@@ -746,6 +747,7 @@ public partial class MainWindow
         RefreshMetricDetailsLanguage();
         UpdateCompactButton();
         ApplyActionsHidden();
+        UpdateActivityPanelButton();
         _systemCounts = null;
         _serviceCounts = null;
         _usageCounts = null;
@@ -935,6 +937,7 @@ public partial class MainWindow
         if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control)
         {
             if (CompactMode) SetCompactView(false);
+            SetActivityPanelCollapsed(false);
             if (ServicesTab.IsChecked == true)
             {
                 ServiceView.FocusSearch();
@@ -1075,6 +1078,7 @@ public partial class MainWindow
     /// <summary>The preferences to persist on exit, including the window's bounds and keep-on-top state.</summary>
     private MonitorPreferences ExitPreferences()
     {
+        RememberActivityPanelSize();
         var bounds = WindowState == WindowState.Normal ? new Rect(Left, Top, Width, Height) : RestoreBounds;
         var size = SavedFullViewSize(bounds);
         return _preferences with

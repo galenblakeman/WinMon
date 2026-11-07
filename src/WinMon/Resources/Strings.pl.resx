@@ -1647,4 +1647,6 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
   <data name="ActivityActive" xml:space="preserve"><value>Aktywne</value></data>
   <data name="ProcessFileVersionLabel" xml:space="preserve"><value>Wersja pliku</value></data>
   <data name="ProcessProductVersionLabel" xml:space="preserve"><value>Wersja produktu</value></data>
+  <data name="CollapseActivityPanel" xml:space="preserve"><value>Zwiń panel aktywności</value></data>
+  <data name="ExpandActivityPanel" xml:space="preserve"><value>Rozwiń panel aktywności</value></data>
 </root>

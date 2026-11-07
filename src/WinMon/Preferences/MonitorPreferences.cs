@@ -77,6 +77,12 @@ public sealed record MonitorPreferences
     /// <summary>Keep both process and service action bars collapsed between launches. Retains the original JSON key.</summary>
     public bool ProcessActionsHidden { get; init; }
 
+    /// <summary>Keep the activity tabs visible while hiding their content.</summary>
+    public bool ActivityPanelCollapsed { get; init; }
+
+    /// <summary>Expanded activity height relative to the chart, preserving the resizable split.</summary>
+    public double ActivityPanelRatio { get; init; } = 1.25;
+
     /// <summary>Legacy GPU-ranking flag, read once and migrated to <see cref="ProcessSort"/>.</summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool SortByGpu { get; init; }

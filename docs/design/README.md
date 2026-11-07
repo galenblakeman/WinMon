@@ -8,6 +8,8 @@ This folder contains the current layout reference, feature design notes and edit
 
 ## Feature notes
 
+- [Collapsible activity panel](ACTIVITY-PANEL-COLLAPSE.md), which keeps the activity tabs and counts visible while giving their content's space to the chart
+
 - [Process file versions](PROCESS-FILE-VERSIONS.md) adds executable versions to Properties and Copy details.
 
 - [Portable process identity](PORTABLE-PROCESS-IDENTITY.md) defines lifetime domains, executable policies and partial observations.

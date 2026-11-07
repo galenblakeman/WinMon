@@ -1647,4 +1647,6 @@ Windows 健康状态：{2}</value>
   <data name="ActivityActive" xml:space="preserve"><value>活跃</value></data>
   <data name="ProcessFileVersionLabel" xml:space="preserve"><value>文件版本</value></data>
   <data name="ProcessProductVersionLabel" xml:space="preserve"><value>产品版本</value></data>
+  <data name="CollapseActivityPanel" xml:space="preserve"><value>折叠活动面板</value></data>
+  <data name="ExpandActivityPanel" xml:space="preserve"><value>展开活动面板</value></data>
 </root>

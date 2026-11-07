@@ -1647,4 +1647,6 @@ Windows の正常性状態: {2}</value>
   <data name="ActivityActive" xml:space="preserve"><value>稼働中</value></data>
   <data name="ProcessFileVersionLabel" xml:space="preserve"><value>ファイル バージョン</value></data>
   <data name="ProcessProductVersionLabel" xml:space="preserve"><value>製品バージョン</value></data>
+  <data name="CollapseActivityPanel" xml:space="preserve"><value>アクティビティパネルを折りたたむ</value></data>
+  <data name="ExpandActivityPanel" xml:space="preserve"><value>アクティビティパネルを展開</value></data>
 </root>

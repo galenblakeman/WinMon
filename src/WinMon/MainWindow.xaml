@@ -582,7 +582,7 @@
                                 </ControlTemplate>
                             </GridSplitter.Template>
                         </GridSplitter>
-                        <Grid Grid.Row="4">
+                        <Grid x:Name="ActivityPanel" Grid.Row="4">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="*" />
@@ -596,6 +596,7 @@
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
                                     <StackPanel KeyboardNavigation.TabNavigation="Once" Orientation="Horizontal">
@@ -620,14 +621,14 @@
                                     <TextBlock
                                         x:Name="SystemCounts"
                                         Grid.Column="1"
-                                        Margin="12,0,20,0"
+                                        Margin="12,0,8,0"
                                         VerticalAlignment="Center"
                                         FontSize="12"
                                         Foreground="{DynamicResource Muted}"><Run Text="{Binding [ProcessesHeading], Source={x:Static resources:Strings.Text}, Mode=OneWay}" /><Run Text=" " /><Run x:Name="ProcessCountValue" Foreground="{DynamicResource Text}" /><Run Text="  ·  " /><Run Text="{Binding [Threads], Source={x:Static resources:Strings.Text}, Mode=OneWay}" /><Run Text=" " /><Run x:Name="ThreadCountValue" Foreground="{DynamicResource Text}" /><Run Text="  ·  " /><Run Text="{Binding [Handles], Source={x:Static resources:Strings.Text}, Mode=OneWay}" /><Run Text=" " /><Run x:Name="HandleCountValue" Foreground="{DynamicResource Text}" /></TextBlock>
                                     <TextBlock
                                         x:Name="ServiceCounts"
                                         Grid.Column="1"
-                                        Margin="12,0,20,0"
+                                        Margin="12,0,8,0"
                                         VerticalAlignment="Center"
                                         FontSize="12"
                                         Foreground="{DynamicResource Muted}"
@@ -635,22 +636,27 @@
                                     <TextBlock
                                         x:Name="UsageCounts"
                                         Grid.Column="1"
-                                        Margin="12,0,20,0"
+                                        Margin="12,0,8,0"
                                         VerticalAlignment="Center"
                                         FontSize="12"
                                         Foreground="{DynamicResource Muted}"
                                         Visibility="Collapsed"><Run Text="{Binding [ActivityTotal], Source={x:Static resources:Strings.Text}, Mode=OneWay}" /><Run Text=" " /><Run x:Name="UsageTotalValue" Foreground="{DynamicResource Text}" /><Run Text="  ·  " /><Run Text="{Binding [ActivityActive], Source={x:Static resources:Strings.Text}, Mode=OneWay}" /><Run Text=" " /><Run x:Name="UsageActiveValue" Foreground="{DynamicResource Text}" /></TextBlock>
+                                    <controls:ActivityPanelButton
+                                        x:Name="ActivityPanelToggle"
+                                        Grid.Column="2"
+                                        Margin="0,4,8,4"
+                                        Click="OnToggleActivityPanel"
+                                        Command="{x:Null}"
+                                        Style="{StaticResource ActionBarCollapseButton}"
+                                        ToolTip="{Binding [CollapseActivityPanel], Source={x:Static resources:Strings.Text}}"
+                                        AutomationProperties.Name="{Binding [CollapseActivityPanel], Source={x:Static resources:Strings.Text}}" />
                                 </Grid>
                             </Border>
-                            <controls:ProcessesView x:Name="Processes" Grid.Row="1" />
-                            <controls:ServicesView
-                                x:Name="ServiceView"
-                                Grid.Row="1"
-                                Visibility="Collapsed" />
-                            <controls:UsageView
-                                x:Name="UsageView"
-                                Grid.Row="1"
-                                Visibility="Collapsed" />
+                            <Grid x:Name="ActivityBody" Grid.Row="1">
+                                <controls:ProcessesView x:Name="Processes" />
+                                <controls:ServicesView x:Name="ServiceView" Visibility="Collapsed" />
+                                <controls:UsageView x:Name="UsageView" Visibility="Collapsed" />
+                            </Grid>
                         </Grid>
                         <Border
                             Grid.Row="5"

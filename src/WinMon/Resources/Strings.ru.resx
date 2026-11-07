@@ -1647,4 +1647,6 @@ GPU {11} · {12}
   <data name="ActivityActive" xml:space="preserve"><value>Активных</value></data>
   <data name="ProcessFileVersionLabel" xml:space="preserve"><value>Версия файла</value></data>
   <data name="ProcessProductVersionLabel" xml:space="preserve"><value>Версия продукта</value></data>
+  <data name="CollapseActivityPanel" xml:space="preserve"><value>Свернуть панель активности</value></data>
+  <data name="ExpandActivityPanel" xml:space="preserve"><value>Развернуть панель активности</value></data>
 </root>

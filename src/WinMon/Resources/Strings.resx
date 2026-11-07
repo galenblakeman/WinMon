@@ -1647,4 +1647,6 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="ActivityActive" xml:space="preserve"><value>Active</value></data>
   <data name="ProcessFileVersionLabel" xml:space="preserve"><value>File version</value></data>
   <data name="ProcessProductVersionLabel" xml:space="preserve"><value>Product version</value></data>
+  <data name="CollapseActivityPanel" xml:space="preserve"><value>Collapse activity panel</value></data>
+  <data name="ExpandActivityPanel" xml:space="preserve"><value>Expand activity panel</value></data>
 </root>

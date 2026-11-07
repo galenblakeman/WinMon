@@ -118,6 +118,7 @@ public static partial class Strings
     public static string ClickHereThenPressTheCombinationAtLeastTwoOf => ResourceManager.GetString(nameof(ClickHereThenPressTheCombinationAtLeastTwoOf), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ClickToRankProcessesBy => ResourceManager.GetString(nameof(ClickToRankProcessesBy), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string Close => ResourceManager.GetString(nameof(Close), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string CollapseActivityPanel => ResourceManager.GetString(nameof(CollapseActivityPanel), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string Collecting => ResourceManager.GetString(nameof(Collecting), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CollectingABaselineOrRecoveringAfterARecordingGap => ResourceManager.GetString(nameof(CollectingABaselineOrRecoveringAfterARecordingGap), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CollectingDisconnected => ResourceManager.GetString(nameof(CollectingDisconnected), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -206,6 +207,7 @@ public static partial class Strings
     public static string ExecutablePathUnavailable => ResourceManager.GetString(nameof(ExecutablePathUnavailable), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string Executables => ResourceManager.GetString(nameof(Executables), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string Exit => ResourceManager.GetString(nameof(Exit), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ExpandActivityPanel => ResourceManager.GetString(nameof(ExpandActivityPanel), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ExpandService => ResourceManager.GetString(nameof(ExpandService), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string Export => ResourceManager.GetString(nameof(Export), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ExportChartRange => ResourceManager.GetString(nameof(ExportChartRange), Culture ?? CultureInfo.CurrentUICulture)!;

@@ -1647,4 +1647,6 @@ Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse
   <data name="ActivityActive" xml:space="preserve"><value>Aktiv</value></data>
   <data name="ProcessFileVersionLabel" xml:space="preserve"><value>Dateiversion</value></data>
   <data name="ProcessProductVersionLabel" xml:space="preserve"><value>Produktversion</value></data>
+  <data name="CollapseActivityPanel" xml:space="preserve"><value>Aktivitätsbereich einklappen</value></data>
+  <data name="ExpandActivityPanel" xml:space="preserve"><value>Aktivitätsbereich ausklappen</value></data>
 </root>

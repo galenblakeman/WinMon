@@ -17,6 +17,8 @@ public partial class MainWindow
         ProcessesTab.Checked += (_, _) => SelectActivityView();
         ServicesTab.Checked += (_, _) => SelectActivityView();
         UsageTab.Checked += (_, _) => SelectActivityView();
+        foreach (var tab in new[] { ProcessesTab, ServicesTab, UsageTab })
+            tab.Click += (_, _) => SetActivityPanelCollapsed(false);
         ServiceView.ProcessRequested += process =>
         {
             // Use the existing process view for the selected PID, preserving the selected historical instant.
@@ -31,6 +33,7 @@ public partial class MainWindow
 
     private void SelectActivityView()
     {
+        SetActivityPanelCollapsed(false);
         Processes.Visibility = ProcessesTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
         ServiceView.Visibility = ServicesTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
         UsageView.Visibility = UsageTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;

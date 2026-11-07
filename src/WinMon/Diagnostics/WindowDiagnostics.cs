@@ -681,6 +681,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         }
 
         await CaptureActionDrawerAsync(output, cancellationToken);
+        await CaptureActivityPanelAsync(output, cancellationToken);
 
         var settings = new SettingsWindow(window.Preferences, checkForUpdates: () => Task.FromResult(Strings.UpToDate))
             { Owner = window };

@@ -1647,4 +1647,6 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
   <data name="ActivityActive" xml:space="preserve"><value>Actives</value></data>
   <data name="ProcessFileVersionLabel" xml:space="preserve"><value>Version du fichier</value></data>
   <data name="ProcessProductVersionLabel" xml:space="preserve"><value>Version du produit</value></data>
+  <data name="CollapseActivityPanel" xml:space="preserve"><value>Réduire le panneau d’activité</value></data>
+  <data name="ExpandActivityPanel" xml:space="preserve"><value>Développer le panneau d’activité</value></data>
 </root>

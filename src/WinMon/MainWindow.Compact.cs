@@ -58,6 +58,7 @@ public partial class MainWindow
         if (compact == CompactMode) return;
         if (compact)
         {
+            RememberActivityPanelSize();
             var bounds = WindowState == WindowState.Normal ? new Rect(Left, Top, Width, Height) : RestoreBounds;
             _fullViewSize = bounds.Size;
             WindowState = WindowState.Normal;

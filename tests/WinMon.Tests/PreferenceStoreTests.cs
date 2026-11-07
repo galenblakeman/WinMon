@@ -57,6 +57,37 @@ public sealed class PreferenceStoreTests
         }
     }
 
+    [TestCase(true)]
+    [TestCase(false)]
+    public async Task ActivityPanel_RestoresCollapsedStateAndSplitWithoutChangingOtherPreferences(bool collapsed)
+    {
+        Directory.CreateDirectory(testDirectory);
+        await File.WriteAllTextAsync(settingsPath, "{\"TopProcessCount\":10}");
+        var store = new PreferenceStore(settingsPath);
+        var legacy = await store.LoadAsync();
+        Assert.That(legacy.ActivityPanelCollapsed, Is.False);
+        Assert.That(legacy.ActivityPanelRatio, Is.EqualTo(1.25));
+        await store.SaveAsync(legacy with { ActivityPanelCollapsed = collapsed, ActivityPanelRatio = 2.4 });
+        var restored = await new PreferenceStore(settingsPath).LoadAsync();
+        Assert.Multiple(() =>
+        {
+            Assert.That(restored.ActivityPanelCollapsed, Is.EqualTo(collapsed));
+            Assert.That(restored.ActivityPanelRatio, Is.EqualTo(2.4));
+            Assert.That(restored.TopProcessCount, Is.EqualTo(10));
+        });
+    }
+
+    [TestCase(double.NaN, 1.25)]
+    [TestCase(double.PositiveInfinity, 1.25)]
+    [TestCase(-1, 0.05)]
+    [TestCase(0, 0.05)]
+    [TestCase(100, 20)]
+    public void ActivityPanel_ValidatesSavedSplit(double ratio, double expected)
+    {
+        Assert.That(PreferenceStore.Validate(new MonitorPreferences { ActivityPanelRatio = ratio }).ActivityPanelRatio,
+            Is.EqualTo(expected));
+    }
+
     [Test]
     public async Task AppsOnly_DefaultsToAllProcesses_AndRoundTrips()
     {

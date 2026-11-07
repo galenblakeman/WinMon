@@ -171,6 +171,7 @@ public sealed class PreferenceStore
                 ? preferences.StartupView : StartupViewMode.LastUsed,
             Width = ClampFinite(preferences.Width, 600, 600, 2000),
             Height = ClampFinite(preferences.Height, 840, 160, 1500),
+            ActivityPanelRatio = ClampFinite(preferences.ActivityPanelRatio, 1.25, 0.05, 20),
             Left = ValidateCoordinate(preferences.Left),
             Top = ValidateCoordinate(preferences.Top),
             Theme = NormalizeTheme(preferences.Theme),

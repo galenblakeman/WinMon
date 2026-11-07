@@ -1647,4 +1647,6 @@ Se puede perder el trabajo sin guardar. Se finalizarán todos los procesos indic
   <data name="ActivityActive" xml:space="preserve"><value>Activas</value></data>
   <data name="ProcessFileVersionLabel" xml:space="preserve"><value>Versión del archivo</value></data>
   <data name="ProcessProductVersionLabel" xml:space="preserve"><value>Versión del producto</value></data>
+  <data name="CollapseActivityPanel" xml:space="preserve"><value>Contraer el panel de actividad</value></data>
+  <data name="ExpandActivityPanel" xml:space="preserve"><value>Expandir el panel de actividad</value></data>
 </root>
