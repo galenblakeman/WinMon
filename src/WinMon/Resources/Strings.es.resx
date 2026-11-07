@@ -1711,4 +1711,10 @@ Se puede perder el trabajo sin guardar. Se finalizarán todos los procesos indic
   <data name="ConnectionsIndividualHelp" xml:space="preserve"><value>Una fila por punto de conexión</value></data>
   <data name="ConnectionsGroupedHelp" xml:space="preserve"><value>Agrupar puntos de conexión por ejecutable</value></data>
   <data name="ConnectionsEndpointProtocol" xml:space="preserve"><value>{0} · {1}</value></data>
+  <data name="CollapseChartPanel" xml:space="preserve">
+    <value>Contraer la sección del gráfico</value>
+  </data>
+  <data name="ExpandChartPanel" xml:space="preserve">
+    <value>Expandir la sección del gráfico</value>
+  </data>
 </root>

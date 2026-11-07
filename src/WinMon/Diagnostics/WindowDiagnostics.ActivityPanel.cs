@@ -30,6 +30,10 @@ internal sealed partial class WindowDiagnostics
                     window.UpdateLayout();
                     CheckHeader(window.ResourceHeader);
                     CheckHeader(window.ActivityHeader);
+                    var chartRight = window.ChartPanelToggle.TranslatePoint(new Point(window.ChartPanelToggle.ActualWidth, 0), window.FullView).X;
+                    var activityRight = window.ActivityPanelToggle.TranslatePoint(new Point(window.ActivityPanelToggle.ActualWidth, 0), window.FullView).X;
+                    if (Math.Abs(chartRight - activityRight) > 0.5)
+                        throw new InvalidOperationException("Chart and activity chevrons have different right margins.");
                     CheckHeader(tab == window.ProcessesTab ? window.Processes.ProcessHeader :
                         tab == window.ServicesTab ? window.ServiceView.ToolbarHeader : window.UsageView.ToolbarHeader);
                     await CaptureAsync(Path.Combine(output, $"headers-{tab.Name}-{height}.png"), 1, cancellationToken);
@@ -62,6 +66,60 @@ internal sealed partial class WindowDiagnostics
                 AutomationProperties.GetName(window.ActivityPanelToggle) != Strings.ExpandActivityPanel)
                 throw new InvalidOperationException("Activity collapse did not reclaim space, preserve the header, or restore focus.");
             var savedRatio = window.Preferences.ActivityPanelRatio;
+            window.SetActivityPanelCollapsed(false);
+            window.UpdateLayout();
+            window.OverallGraph.Focus();
+            Click(window.ChartPanelToggle);
+            window.UpdateLayout();
+            if (!window.Preferences.ChartPanelCollapsed || window.ChartBody.IsVisible ||
+                window.ChartProcessDivider.IsVisible || window.ChartAreaRow.ActualHeight > 0.5 ||
+                !window.ChartPanelToggle.IsKeyboardFocused ||
+                window.ProcessesAreaRow.ActualHeight < chartHeight + panelHeight - 1 ||
+                AutomationProperties.GetName(window.ChartPanelToggle) != Strings.ExpandChartPanel)
+                throw new InvalidOperationException("Chart collapse did not reclaim space or restore focus.");
+            await CaptureAsync(Path.Combine(output, "chart-panel-collapsed-dark.png"), 1, cancellationToken);
+            window.SetActivityPanelCollapsed(true);
+            window.UpdateLayout();
+            if (window.ChartBody.IsVisible || window.ActivityBody.IsVisible || !window.ChartPanelToggle.IsVisible ||
+                !window.ActivityPanelToggle.IsVisible)
+                throw new InvalidOperationException("Both collapsed panels must retain their restore buttons.");
+            await CaptureAsync(Path.Combine(output, "chart-panel-both-collapsed.png"), 1, cancellationToken);
+            window.SetCompactView(true);
+            window.SetCompactView(false);
+            window.SetActivityPanelCollapsed(false);
+            if (!window.Preferences.ChartPanelCollapsed || window.Preferences.ActivityPanelRatio != savedRatio)
+                throw new InvalidOperationException("Collapsing both panels or Compact view changed the saved split.");
+            window.Preferences = window.Preferences with { Theme = "Light" };
+            window.ApplyTheme();
+            window.Width = window.MinWidth;
+            window.Height = 600;
+            window.UpdateLayout();
+            await CaptureAsync(Path.Combine(output, "chart-panel-collapsed-light-minimum.png"), 1.5, cancellationToken);
+            var chartStore = new PreferenceStore(Path.Combine(output, "chart-panel-settings.json"));
+            await chartStore.SaveAsync(window.Preferences, cancellationToken);
+            var chartRestored = new MainWindow(true) { Preferences = await chartStore.LoadAsync(cancellationToken) };
+            try
+            {
+                chartRestored.ApplyActivityPanel();
+                if (chartRestored.ChartBody.Visibility != Visibility.Collapsed)
+                    throw new InvalidOperationException("Saved chart collapse did not restore in a new window.");
+                chartRestored.SetChartPanelCollapsed(false);
+                if (Math.Abs(chartRestored.ProcessesAreaRow.Height.Value / chartRestored.ChartAreaRow.Height.Value - savedRatio) > 0.001)
+                    throw new InvalidOperationException("Chart expansion did not restore the saved split.");
+            }
+            finally
+            {
+                chartRestored.CloseForFixture();
+            }
+            Click(window.ChartPanelToggle);
+            window.Width = 1000;
+            window.Height = 1000;
+            window.UpdateLayout();
+            if (!window.ChartBody.IsVisible || Math.Abs(window.ChartAreaRow.ActualHeight - chartHeight) > 1)
+                throw new InvalidOperationException("Chart expansion did not restore its previous size.");
+            window.SetActivityPanelCollapsed(true);
+            window.Preferences = window.Preferences with { Theme = original.Theme };
+            window.ApplyTheme();
             await CaptureAsync(Path.Combine(output, "activity-panel-collapsed-dark.png"), 1, cancellationToken);
             window.Preferences = window.Preferences with { Theme = "Light" };
             window.ApplyTheme();

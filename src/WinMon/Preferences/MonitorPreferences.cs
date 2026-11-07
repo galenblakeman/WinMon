@@ -80,6 +80,9 @@ public sealed record MonitorPreferences
     /// <summary>Keep the activity tabs visible while hiding their content.</summary>
     public bool ActivityPanelCollapsed { get; init; }
 
+    /// <summary>Keep the chart header visible while hiding the plot and snapshot.</summary>
+    public bool ChartPanelCollapsed { get; init; }
+
     /// <summary>Expanded activity height relative to the chart, preserving the resizable split.</summary>
     public double ActivityPanelRatio { get; init; } = 1.25;
 

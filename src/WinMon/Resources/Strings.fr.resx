@@ -1711,4 +1711,10 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
   <data name="ConnectionsIndividualHelp" xml:space="preserve"><value>Une ligne par point de terminaison</value></data>
   <data name="ConnectionsGroupedHelp" xml:space="preserve"><value>Regrouper les points de terminaison par exécutable</value></data>
   <data name="ConnectionsEndpointProtocol" xml:space="preserve"><value>{0} · {1}</value></data>
+  <data name="CollapseChartPanel" xml:space="preserve">
+    <value>Réduire la section du graphique</value>
+  </data>
+  <data name="ExpandChartPanel" xml:space="preserve">
+    <value>Développer la section du graphique</value>
+  </data>
 </root>

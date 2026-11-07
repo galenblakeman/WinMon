@@ -66,12 +66,14 @@ public sealed class PreferenceStoreTests
         var store = new PreferenceStore(settingsPath);
         var legacy = await store.LoadAsync();
         Assert.That(legacy.ActivityPanelCollapsed, Is.False);
+        Assert.That(legacy.ChartPanelCollapsed, Is.False);
         Assert.That(legacy.ActivityPanelRatio, Is.EqualTo(1.25));
-        await store.SaveAsync(legacy with { ActivityPanelCollapsed = collapsed, ActivityPanelRatio = 2.4 });
+        await store.SaveAsync(legacy with { ActivityPanelCollapsed = collapsed, ChartPanelCollapsed = collapsed, ActivityPanelRatio = 2.4 });
         var restored = await new PreferenceStore(settingsPath).LoadAsync();
         Assert.Multiple(() =>
         {
             Assert.That(restored.ActivityPanelCollapsed, Is.EqualTo(collapsed));
+            Assert.That(restored.ChartPanelCollapsed, Is.EqualTo(collapsed));
             Assert.That(restored.ActivityPanelRatio, Is.EqualTo(2.4));
             Assert.That(restored.TopProcessCount, Is.EqualTo(10));
         });

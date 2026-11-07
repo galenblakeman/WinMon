@@ -1711,4 +1711,10 @@ Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse
   <data name="ConnectionsIndividualHelp" xml:space="preserve"><value>Eine Zeile pro Endpunkt</value></data>
   <data name="ConnectionsGroupedHelp" xml:space="preserve"><value>Endpunkte nach ausführbarer Datei gruppieren</value></data>
   <data name="ConnectionsEndpointProtocol" xml:space="preserve"><value>{0} · {1}</value></data>
+  <data name="CollapseChartPanel" xml:space="preserve">
+    <value>Diagrammbereich einklappen</value>
+  </data>
+  <data name="ExpandChartPanel" xml:space="preserve">
+    <value>Diagrammbereich ausklappen</value>
+  </data>
 </root>

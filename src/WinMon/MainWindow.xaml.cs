@@ -777,6 +777,7 @@ public partial class MainWindow
         UpdateCompactButton();
         ApplyActionsHidden();
         UpdateActivityPanelButton();
+        UpdateChartPanelButton();
         _systemCounts = null;
         _serviceCounts = null;
         _usageCounts = null;

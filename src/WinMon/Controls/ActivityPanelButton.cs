@@ -5,7 +5,7 @@ using System.Windows.Controls;
 
 namespace WinMon.Controls;
 
-/// <summary>A normal button that also exposes the activity panel's disclosure state to UI Automation.</summary>
+/// <summary>A normal button that also exposes a panel's disclosure state to UI Automation.</summary>
 public sealed class ActivityPanelButton : Button
 {
     private bool _expanded = true;

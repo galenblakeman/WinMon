@@ -1711,4 +1711,10 @@ O trabalho não salvo pode ser perdido. Todos os processos listados abaixo serã
   <data name="ConnectionsIndividualHelp" xml:space="preserve"><value>Uma linha por ponto de extremidade</value></data>
   <data name="ConnectionsGroupedHelp" xml:space="preserve"><value>Agrupar pontos de extremidade por executável</value></data>
   <data name="ConnectionsEndpointProtocol" xml:space="preserve"><value>{0} · {1}</value></data>
+  <data name="CollapseChartPanel" xml:space="preserve">
+    <value>Recolher a seção do gráfico</value>
+  </data>
+  <data name="ExpandChartPanel" xml:space="preserve">
+    <value>Expandir a seção do gráfico</value>
+  </data>
 </root>

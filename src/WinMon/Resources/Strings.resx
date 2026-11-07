@@ -1711,4 +1711,10 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="ConnectionsIndividualHelp" xml:space="preserve"><value>One row per endpoint</value></data>
   <data name="ConnectionsGroupedHelp" xml:space="preserve"><value>Group endpoints by executable</value></data>
   <data name="ConnectionsEndpointProtocol" xml:space="preserve"><value>{0} · {1}</value></data>
+  <data name="CollapseChartPanel" xml:space="preserve">
+    <value>Collapse chart section</value>
+  </data>
+  <data name="ExpandChartPanel" xml:space="preserve">
+    <value>Expand chart section</value>
+  </data>
 </root>

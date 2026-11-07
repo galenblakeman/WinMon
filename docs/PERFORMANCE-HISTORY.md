@@ -4,6 +4,29 @@
 
 Dated measurement and validation records, newest first. Each section describes the build and machine it was measured on, and some name code that has since changed or moved. For how to measure today and the decisions still in force, see [Performance](DEVELOPMENT.md#performance) in the developer guide. The raw data named under `artifacts/` is local and not in the repository.
 
+## Chart collapse and aligned disclosure buttons (November 7, 2026)
+
+Release UI benchmark on .NET 10.0.14, SDK 10.0.403. Four alternating pre-change/changed pairs exercised the existing expanded-layout scenarios. Values are medians of the four runs' seven-batch medians. The baseline preserves the workspace from before this change, including the logical-processor work already present. Native collection is disabled during measurement.
+
+| Scenario | Before | After | Allocation before / after |
+| --- | ---: | ---: | ---: |
+| Live overlay | 4.35 ms | 4.34 ms | 586.73 / 586.81 KiB |
+| Historical | 1.19 ms | 1.14 ms | 174.07 / 174.06 KiB |
+| Services live | 5.34 ms | 5.35 ms | 980.14 / 980.16 KiB |
+| Compact live | 1.64 ms | 1.60 ms | 362.33 / 362.38 KiB |
+| Pinned/selected processes | 3.67 ms | 3.84 ms | 946.15 / 946.12 KiB |
+| Logical processors, pinned/selected | 6.94 ms | 6.67 ms | 1114.05 / 1114.02 KiB |
+| Connections grouped | 3.20 ms | 3.29 ms | 1457.74 / 1457.76 KiB |
+| Connections Individual | 3.40 ms | 3.34 ms | 1778.63 / 1778.69 KiB |
+
+No broad timing or allocation increase appeared. The pinned/selected median rose 4.6%, with overlapping run ranges (baseline 3.54–3.84 ms; changed 3.48–3.98 ms); grouped Connections rose 3.1%, also within overlapping ranges. These observations do not establish a feature-caused speedup or slowdown.
+
+**Measurement limitation:** another verification rebuilt the shared changed-output directory between changed runs two and three. The baseline assembly stayed fixed; the changed runs span two assembly hashes, and concurrent work means the machine was not demonstrably quiet. Every rendered scenario nevertheless produced the same pixel hash across all four changed runs; Compact pixels also match the baseline. Full-view pixels intentionally differ from the baseline because of the new chevron and header spacing. This is an observational comparison, not a certified four-pair comparison against one frozen final assembly.
+
+Raw results and renders: `artifacts/chart-collapse-performance/{baseline,changed}-{1,2,3,4}.{json,png}`, with all scenario medians in `summary.json`. Baseline assembly SHA-256: `5DB4065E7A17A098C6E2F75BAC5CA044E1E95702B69249F852927B5F18DA11E7`; changed runs 1–2: `216817DD5F80204845E2CBA495045F3134D8129FC968EA05AF3E00C29389F578`; changed runs 3–4: `9375D5C545C0DE43943FD5D3B48B2584AF37975F1231969B74481ECD8EBA8D00`.
+
+Functional validation passed: `Verify.ps1 -Smoke feature,compact,snapshot` (1,005 tests and 272 renders), plus `Verify.ps1 -Store` (1,007 tests), with warning-free builds. Relevant Dark/Light, minimum-width, expanded, collapsed and snapshot screenshots were inspected. The feature smoke checks the two chevrons' right-edge alignment, focus recovery, independent panel states, saved split, Compact view and persisted restart behavior. Long-running usage and whole-app/native sampling overhead were not measured.
+
 ## Connections display modes and summaries (November 7, 2026)
 
 Release UI benchmark on .NET 10.0.14, SDK 10.0.403. Four alternating baseline/changed pairs used frozen binaries, with only the intended benchmark observed running. Values are medians of the four runs' seven-batch medians. Both builds include the integrated Info changes; the baseline predates this Connections layout/grouping increment. Native collection is disabled during measurement.

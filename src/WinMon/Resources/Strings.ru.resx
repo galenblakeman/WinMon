@@ -1711,4 +1711,10 @@ GPU {11} · {12}
   <data name="ConnectionsIndividualHelp" xml:space="preserve"><value>Одна строка на конечную точку</value></data>
   <data name="ConnectionsGroupedHelp" xml:space="preserve"><value>Группировать конечные точки по исполняемому файлу</value></data>
   <data name="ConnectionsEndpointProtocol" xml:space="preserve"><value>{0} · {1}</value></data>
+  <data name="CollapseChartPanel" xml:space="preserve">
+    <value>Свернуть раздел графика</value>
+  </data>
+  <data name="ExpandChartPanel" xml:space="preserve">
+    <value>Развернуть раздел графика</value>
+  </data>
 </root>

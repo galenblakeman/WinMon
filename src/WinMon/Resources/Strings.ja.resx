@@ -1711,4 +1711,10 @@ Windows の正常性状態: {2}</value>
   <data name="ConnectionsIndividualHelp" xml:space="preserve"><value>エンドポイントごとに 1 行</value></data>
   <data name="ConnectionsGroupedHelp" xml:space="preserve"><value>実行可能ファイルごとにエンドポイントをグループ化</value></data>
   <data name="ConnectionsEndpointProtocol" xml:space="preserve"><value>{0} · {1}</value></data>
+  <data name="CollapseChartPanel" xml:space="preserve">
+    <value>グラフセクションを折りたたむ</value>
+  </data>
+  <data name="ExpandChartPanel" xml:space="preserve">
+    <value>グラフセクションを展開する</value>
+  </data>
 </root>

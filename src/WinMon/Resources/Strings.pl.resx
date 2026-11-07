@@ -1711,4 +1711,10 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
   <data name="ConnectionsIndividualHelp" xml:space="preserve"><value>Jeden wiersz na punkt końcowy</value></data>
   <data name="ConnectionsGroupedHelp" xml:space="preserve"><value>Grupuj punkty końcowe według pliku wykonywalnego</value></data>
   <data name="ConnectionsEndpointProtocol" xml:space="preserve"><value>{0} · {1}</value></data>
+  <data name="CollapseChartPanel" xml:space="preserve">
+    <value>Zwiń sekcję wykresu</value>
+  </data>
+  <data name="ExpandChartPanel" xml:space="preserve">
+    <value>Rozwiń sekcję wykresu</value>
+  </data>
 </root>
