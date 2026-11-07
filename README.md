@@ -81,7 +81,7 @@ See [grouped, filtered and pinned process views](docs/example/README.md) in the 
 
 Select a process row to use the accent action bar: **Properties**, **Copy details**, **More**, and **End process** (or **End group**). **More** includes **Open file location** and memory-dump creation for eligible live processes; exiting WinMon waits for a dump in progress to finish. The same actions, plus pinning, remain available by right-clicking a row. Selection follows the process lifetime even when it falls out of the rankings or is filtered out; a reused PID cannot take over the selection. Group selections follow the executable, and switching between Individual and Grouped clears selection. Process termination retains its confirmation. Available actions depend on the selected process, Windows permissions, and whether you are inspecting history.
 
-To make room, click the chevron at the end of the action bar. The bar slides away and leaves a slim strip with the selection's name; click **Show actions** to bring it back. Processes, Services and Usage share the choice, and WinMon remembers it.
+To make room, click the chevron at the end of the action bar. The bar slides away and leaves a slim strip with the selection's name; click **Show actions** to bring it back. Processes, Services, Usage and Connections share the choice, and WinMon remembers it.
 
 Beside the activity tabs, the summary changes with the selected view. **Processes** shows the machine's process, thread and handle counts for the moment the table shows, live or captured. **Services** shows total services and how many are running at that moment. **Usage** shows total tracked app groups since the last reset and how many have a process running now. Counts of 100,000 or more are shortened, such as **152K**; hover for exact values. Unavailable service readings show a dash.
 
@@ -104,6 +104,14 @@ The selected service stays in the action bar when ranking or filters hide its ro
 The service action bar offers **Properties**, **Copy details**, **Start**, **Stop** and **Restart**. Properties opens a read-only detail window. Right-click a service or process row for **View process**, **Copy details**, **Start**, **Stop** and **Restart**. Right-click selects the row; the menu keeps its captured target if the rankings change. Shared-host and process rows disable individual service controls. Service controls use the same availability checks and confirmations as the action bar.
 
 **View process** opens the corresponding PID in the process view. **Copy details** copies the selected service or process identity, status, observation time, resource metrics, and associated services/processes, including while inspecting history. Start, Stop and Restart operate on the selected service; Stop and Restart require confirmation, and Windows requests elevation when needed. Service controls are disabled while inspecting history. Service history retains up to two minutes, subject to a separate memory bound; older service captures are unavailable. Driver services are outside this view.
+
+## See which apps have network connections
+
+Choose **Connections** to see local TCP connections and UDP endpoints grouped by process. Expand a process for its protocol, local endpoint, remote endpoint and TCP state. Process icons use the same executable icons as Processes, with a generic fallback when unavailable. Search by process name or PID and filter by **All**, **TCP** or **UDP**.
+
+Select a process or endpoint for **Copy details** or **Show in Processes**. Navigation is available only when the process lifetime still matches a live observation. Connections stays live while the resource chart shows a historical capture. Recording of endpoint history is outside this view.
+
+No administrator rights, background service or driver are required. UDP shows local endpoints only; TCP listeners have no remote peer. Counts describe endpoints, not traffic volume: per-process upload/download rates are unavailable. If Windows denies a table read, the view reports unavailable or partial readings rather than treating the failure as zero connections.
 
 ## See what used your PC this session
 

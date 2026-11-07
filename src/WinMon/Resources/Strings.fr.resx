@@ -1654,4 +1654,36 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
   <data name="LogicalProcessorsHeading" xml:space="preserve"><value>CPU · {0} processeurs logiques</value></data>
   <data name="LogicalProcessorScale" xml:space="preserve"><value>Chaque graphique : 0–100%</value></data>
   <data name="LogicalProcessorHistoryHelp" xml:space="preserve"><value>Historique CPU par processeur logique. Cliquez pour examiner ; les flèches déplacent, Fin revient au direct.</value></data>
+  <data name="ConnectionsTab" xml:space="preserve"><value>Connexions</value></data>
+  <data name="ConnectionsLive" xml:space="preserve"><value>Connexions actives</value></data>
+  <data name="ConnectionsSearch" xml:space="preserve"><value>Rechercher un nom de processus ou un PID</value></data>
+  <data name="ConnectionsProtocol" xml:space="preserve"><value>Protocole</value></data>
+  <data name="ConnectionsLocalEndpoint" xml:space="preserve"><value>Point de terminaison local</value></data>
+  <data name="ConnectionsRemoteEndpoint" xml:space="preserve"><value>Point de terminaison distant</value></data>
+  <data name="ConnectionsState" xml:space="preserve"><value>État</value></data>
+  <data name="ConnectionsNote" xml:space="preserve"><value>UDP affiche uniquement les points de terminaison locaux. Le nombre de connexions n’indique pas le volume de trafic.</value></data>
+  <data name="ConnectionsUnavailable" xml:space="preserve"><value>Les données de connexion ne sont pas disponibles.</value></data>
+  <data name="ConnectionsPartial" xml:space="preserve"><value>Certaines données de connexion ne sont pas disponibles.</value></data>
+  <data name="ConnectionsEmpty" xml:space="preserve"><value>Aucune connexion correspondante.</value></data>
+  <data name="ConnectionsLoading" xml:space="preserve"><value>Lecture des connexions…</value></data>
+  <data name="ConnectionsShowProcess" xml:space="preserve"><value>Afficher dans Processus</value></data>
+  <data name="ConnectionsExpand" xml:space="preserve"><value>Développer les connexions de {0}</value></data>
+  <data name="ConnectionsCollapse" xml:space="preserve"><value>Réduire les connexions de {0}</value></data>
+  <data name="ConnectionsProcess" xml:space="preserve"><value>Processus / PID</value></data>
+  <data name="ConnectionsUnknownProcess" xml:space="preserve"><value>Processus inconnu</value></data>
+  <data name="ConnectionsLiveOnly" xml:space="preserve"><value>Les connexions restent actives tandis que le graphique de ressources affiche l’historique.</value></data>
+  <data name="ConnectionsTcpStateClosed" xml:space="preserve"><value>Fermée</value></data>
+  <data name="ConnectionsTcpStateListen" xml:space="preserve"><value>En écoute</value></data>
+  <data name="ConnectionsTcpStateSynSent" xml:space="preserve"><value>SYN envoyé</value></data>
+  <data name="ConnectionsTcpStateSynReceived" xml:space="preserve"><value>SYN reçu</value></data>
+  <data name="ConnectionsTcpStateEstablished" xml:space="preserve"><value>Établie</value></data>
+  <data name="ConnectionsTcpStateFinWait1" xml:space="preserve"><value>Attente FIN 1</value></data>
+  <data name="ConnectionsTcpStateFinWait2" xml:space="preserve"><value>Attente FIN 2</value></data>
+  <data name="ConnectionsTcpStateCloseWait" xml:space="preserve"><value>Attente de fermeture</value></data>
+  <data name="ConnectionsTcpStateClosing" xml:space="preserve"><value>Fermeture</value></data>
+  <data name="ConnectionsTcpStateLastAck" xml:space="preserve"><value>Dernier ACK</value></data>
+  <data name="ConnectionsTcpStateTimeWait" xml:space="preserve"><value>Attente de temporisation</value></data>
+  <data name="ConnectionsTcpStateDeleteTcb" xml:space="preserve"><value>Suppression</value></data>
+  <data name="ConnectionsDetails" xml:space="preserve"><value>Détails de la connexion</value></data>
+  <data name="ConnectionsCounts" xml:space="preserve"><value>{0} TCP · {1} UDP</value></data>
 </root>

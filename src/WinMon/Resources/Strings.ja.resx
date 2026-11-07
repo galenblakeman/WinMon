@@ -1654,4 +1654,36 @@ Windows の正常性状態: {2}</value>
   <data name="LogicalProcessorsHeading" xml:space="preserve"><value>CPU · {0} 個の論理プロセッサ</value></data>
   <data name="LogicalProcessorScale" xml:space="preserve"><value>各グラフ: 0–100%</value></data>
   <data name="LogicalProcessorHistoryHelp" xml:space="preserve"><value>論理プロセッサごとの CPU 履歴。クリックで確認、矢印キーで移動、End キーでライブ表示に戻ります。</value></data>
+  <data name="ConnectionsTab" xml:space="preserve"><value>接続</value></data>
+  <data name="ConnectionsLive" xml:space="preserve"><value>ライブ接続</value></data>
+  <data name="ConnectionsSearch" xml:space="preserve"><value>プロセス名または PID を検索</value></data>
+  <data name="ConnectionsProtocol" xml:space="preserve"><value>プロトコル</value></data>
+  <data name="ConnectionsLocalEndpoint" xml:space="preserve"><value>ローカル エンドポイント</value></data>
+  <data name="ConnectionsRemoteEndpoint" xml:space="preserve"><value>リモート エンドポイント</value></data>
+  <data name="ConnectionsState" xml:space="preserve"><value>状態</value></data>
+  <data name="ConnectionsNote" xml:space="preserve"><value>UDP にはローカル エンドポイントのみ表示されます。接続数はトラフィック量ではありません。</value></data>
+  <data name="ConnectionsUnavailable" xml:space="preserve"><value>接続の読み取りを利用できません。</value></data>
+  <data name="ConnectionsPartial" xml:space="preserve"><value>一部の接続の読み取りを利用できません。</value></data>
+  <data name="ConnectionsEmpty" xml:space="preserve"><value>一致する接続はありません。</value></data>
+  <data name="ConnectionsLoading" xml:space="preserve"><value>接続を読み取っています…</value></data>
+  <data name="ConnectionsShowProcess" xml:space="preserve"><value>プロセスに表示</value></data>
+  <data name="ConnectionsExpand" xml:space="preserve"><value>{0} の接続を展開</value></data>
+  <data name="ConnectionsCollapse" xml:space="preserve"><value>{0} の接続を折りたたむ</value></data>
+  <data name="ConnectionsProcess" xml:space="preserve"><value>プロセス / PID</value></data>
+  <data name="ConnectionsUnknownProcess" xml:space="preserve"><value>不明なプロセス</value></data>
+  <data name="ConnectionsLiveOnly" xml:space="preserve"><value>リソース グラフで履歴を表示している間も、接続はライブのままです。</value></data>
+  <data name="ConnectionsTcpStateClosed" xml:space="preserve"><value>切断済み</value></data>
+  <data name="ConnectionsTcpStateListen" xml:space="preserve"><value>待機中</value></data>
+  <data name="ConnectionsTcpStateSynSent" xml:space="preserve"><value>SYN 送信済み</value></data>
+  <data name="ConnectionsTcpStateSynReceived" xml:space="preserve"><value>SYN 受信済み</value></data>
+  <data name="ConnectionsTcpStateEstablished" xml:space="preserve"><value>確立済み</value></data>
+  <data name="ConnectionsTcpStateFinWait1" xml:space="preserve"><value>FIN 待機 1</value></data>
+  <data name="ConnectionsTcpStateFinWait2" xml:space="preserve"><value>FIN 待機 2</value></data>
+  <data name="ConnectionsTcpStateCloseWait" xml:space="preserve"><value>切断待機</value></data>
+  <data name="ConnectionsTcpStateClosing" xml:space="preserve"><value>切断中</value></data>
+  <data name="ConnectionsTcpStateLastAck" xml:space="preserve"><value>最終 ACK</value></data>
+  <data name="ConnectionsTcpStateTimeWait" xml:space="preserve"><value>時間待機</value></data>
+  <data name="ConnectionsTcpStateDeleteTcb" xml:space="preserve"><value>削除中</value></data>
+  <data name="ConnectionsDetails" xml:space="preserve"><value>接続の詳細</value></data>
+  <data name="ConnectionsCounts" xml:space="preserve"><value>TCP {0} · UDP {1}</value></data>
 </root>

@@ -31,6 +31,7 @@ public partial class MainWindow
         Processes.ActionsHiddenChanged += OnActionsHiddenChanged;
         ServiceView.ActionsHiddenChanged += OnActionsHiddenChanged;
         UsageView.ActionsHiddenChanged += OnActionsHiddenChanged;
+        ConnectionView.ActionsHiddenChanged += OnActionsHiddenChanged;
     }
 
     private void OnActionsHiddenChanged(bool hidden)
@@ -78,6 +79,7 @@ public partial class MainWindow
         Processes.ActionsHidden = hidden;
         ServiceView.ActionsHidden = hidden;
         UsageView.ActionsHidden = hidden;
+        ConnectionView.ActionsHidden = hidden;
     }
 
     private void CopyProcessDetails(string text)

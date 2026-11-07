@@ -15,6 +15,12 @@ namespace WinMon;
 /// </summary>
 public partial class MainWindow
 {
+    internal void SetConnectionsForFixture(NetworkConnectionsFrame frame)
+    {
+        _connections = frame;
+        RefreshConnections();
+    }
+
     internal void RememberWindowPositionForFixture() => RememberWindowPosition();
     internal void NotifyDisplayChangeForFixture() => OnDisplaySettingsChanged(null, EventArgs.Empty);
 

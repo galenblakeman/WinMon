@@ -4,6 +4,27 @@
 
 Dated measurement and validation records, newest first. Each section describes the build and machine it was measured on, and some name code that has since changed or moved. For how to measure today and the decisions still in force, see [Performance](DEVELOPMENT.md#performance) in the developer guide. The raw data named under `artifacts/` is local and not in the repository.
 
+## Connections activity tab (November 7, 2026)
+
+Release UI benchmark on .NET 10.0.14, SDK 10.0.403. Four alternating baseline/Connections pairs used preserved binaries. Values below are medians of each run's seven-batch medians. The new tab collects no endpoints while another tab is selected; the benchmark disables native collection throughout.
+
+| Scenario | Before | After | Allocation before / after |
+| --- | ---: | ---: | ---: |
+| Live overlay | 4.51 ms | 4.15 ms | 582.93 / 586.79 KiB |
+| Historical | 1.24 ms | 1.11 ms | 174.12 / 174.12 KiB |
+| Services live | 6.28 ms | 6.48 ms | 979.04 / 980.19 KiB |
+| Compact live | 1.86 ms | 1.63 ms | 362.43 / 362.43 KiB |
+| Logical processors, pinned/selected | 6.58 ms | 5.93 ms | 1121.28 / 1129.14 KiB |
+| Connections, 60 processes / 480 endpoints, one expanded group | — | 2.44 ms | — / 829.71 KiB |
+
+There is no material timing regression across the existing scenarios. Services' 3.2% median increase is smaller than its changed-run variation (6.10–7.94 ms); lower timings elsewhere should not be read as a feature-caused speedup. Allocations rose by roughly 1–8 KiB in several rendered scenarios with the additional tab/view, while Historical and Compact allocations stayed unchanged. The new Connections scenario keeps the 12-logical-processor chart active and measures the complete UI refresh, not just endpoint row updates.
+
+The separate native smoke read 646 endpoints across both IP families with `Elevated: false`. Its cold capture took 8.85 ms; five subsequent captures had a 2.59 ms median and a 6.05 ms maximum. This is wall time for IP Helper reads plus lifetime probes, not whole-app CPU or a guarantee for other hardware/process counts.
+
+Each build produced one stable pixel hash across its four runs. The hashes differ between builds, as the activity header now contains Connections. Dark/Light/narrow Connections renders were inspected separately. The isolated feature snapshot passed 982 tests and five smoke modes. Concurrent Info/updater edits were excluded from the snapshot. Subsequent Escape-key handling, native-smoke assertions and preservation of nonzero peer addresses do not alter the measured UI refresh paths; they were verified separately in the integrated checkout (990 tests and five smoke modes).
+
+Raw reports: `artifacts/connections/{baseline,changed}-{1..4}.json`, `comparison.json`, and `source/artifacts/verify/20261107-123049/connections/`. Baseline assembly SHA-256: `3CA0A8108452181E4F9F8766BE56D4D6E25C7A2BCBD43A23DE7A7782C115C3BC`; measured Connections assembly: `C9A607B4400555B35BDADCC7C4DE42C6D5459B07577AD25B43B16D620594C725`. UI measurements exclude native collection and the WPF render thread.
+
 ## Full-width section headers (November 7, 2026)
 
 Release UI benchmark on .NET 10.0.14, SDK 10.0.403. Four alternating baseline/header-fix pairs used preserved binaries. Values are medians of the four runs' seven-batch medians. The patch replaces negative-margin header overflow with a full-width main grid and activity-view gutter columns.

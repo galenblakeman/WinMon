@@ -8,6 +8,8 @@ This folder contains the current layout reference, feature design notes and edit
 
 ## Feature notes
 
+- [Connections](CONNECTIONS.md), an ordinary-user, live-only endpoint view grouped by process with executable icons
+
 - [Logical processor charts](LOGICAL-PROCESSORS.md) adds a CPU history grid to the chart selector.
 
 - [Full-width headers](FULL-WIDTH-HEADERS.md) preserves section header edges when the window is shorter than its content.

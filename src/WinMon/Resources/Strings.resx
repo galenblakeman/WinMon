@@ -1654,4 +1654,36 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="LogicalProcessorsHeading" xml:space="preserve"><value>CPU · {0} logical processors</value></data>
   <data name="LogicalProcessorScale" xml:space="preserve"><value>Each graph: 0–100%</value></data>
   <data name="LogicalProcessorHistoryHelp" xml:space="preserve"><value>Logical processor CPU history. Click to inspect; arrow keys move, End returns to live.</value></data>
+  <data name="ConnectionsTab" xml:space="preserve"><value>Connections</value></data>
+  <data name="ConnectionsLive" xml:space="preserve"><value>Live connections</value></data>
+  <data name="ConnectionsSearch" xml:space="preserve"><value>Search process name or PID</value></data>
+  <data name="ConnectionsProtocol" xml:space="preserve"><value>Protocol</value></data>
+  <data name="ConnectionsLocalEndpoint" xml:space="preserve"><value>Local endpoint</value></data>
+  <data name="ConnectionsRemoteEndpoint" xml:space="preserve"><value>Remote endpoint</value></data>
+  <data name="ConnectionsState" xml:space="preserve"><value>State</value></data>
+  <data name="ConnectionsNote" xml:space="preserve"><value>UDP shows local endpoints only. Connection counts are not traffic volume.</value></data>
+  <data name="ConnectionsUnavailable" xml:space="preserve"><value>Connection readings unavailable.</value></data>
+  <data name="ConnectionsPartial" xml:space="preserve"><value>Some connection readings are unavailable.</value></data>
+  <data name="ConnectionsEmpty" xml:space="preserve"><value>No matching connections.</value></data>
+  <data name="ConnectionsLoading" xml:space="preserve"><value>Reading connections…</value></data>
+  <data name="ConnectionsShowProcess" xml:space="preserve"><value>Show in Processes</value></data>
+  <data name="ConnectionsExpand" xml:space="preserve"><value>Expand connections for {0}</value></data>
+  <data name="ConnectionsCollapse" xml:space="preserve"><value>Collapse connections for {0}</value></data>
+  <data name="ConnectionsProcess" xml:space="preserve"><value>Process / PID</value></data>
+  <data name="ConnectionsUnknownProcess" xml:space="preserve"><value>Unknown process</value></data>
+  <data name="ConnectionsLiveOnly" xml:space="preserve"><value>Connections remain live while the resource chart shows history.</value></data>
+  <data name="ConnectionsTcpStateClosed" xml:space="preserve"><value>Closed</value></data>
+  <data name="ConnectionsTcpStateListen" xml:space="preserve"><value>Listening</value></data>
+  <data name="ConnectionsTcpStateSynSent" xml:space="preserve"><value>SYN sent</value></data>
+  <data name="ConnectionsTcpStateSynReceived" xml:space="preserve"><value>SYN received</value></data>
+  <data name="ConnectionsTcpStateEstablished" xml:space="preserve"><value>Established</value></data>
+  <data name="ConnectionsTcpStateFinWait1" xml:space="preserve"><value>FIN wait 1</value></data>
+  <data name="ConnectionsTcpStateFinWait2" xml:space="preserve"><value>FIN wait 2</value></data>
+  <data name="ConnectionsTcpStateCloseWait" xml:space="preserve"><value>Close wait</value></data>
+  <data name="ConnectionsTcpStateClosing" xml:space="preserve"><value>Closing</value></data>
+  <data name="ConnectionsTcpStateLastAck" xml:space="preserve"><value>Last ACK</value></data>
+  <data name="ConnectionsTcpStateTimeWait" xml:space="preserve"><value>Time wait</value></data>
+  <data name="ConnectionsTcpStateDeleteTcb" xml:space="preserve"><value>Deleting</value></data>
+  <data name="ConnectionsDetails" xml:space="preserve"><value>Connection details</value></data>
+  <data name="ConnectionsCounts" xml:space="preserve"><value>{0} TCP · {1} UDP</value></data>
 </root>

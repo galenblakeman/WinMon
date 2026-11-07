@@ -17,7 +17,8 @@ public partial class MainWindow
         ProcessesTab.Checked += (_, _) => SelectActivityView();
         ServicesTab.Checked += (_, _) => SelectActivityView();
         UsageTab.Checked += (_, _) => SelectActivityView();
-        foreach (var tab in new[] { ProcessesTab, ServicesTab, UsageTab })
+        ConnectionsTab.Checked += (_, _) => SelectActivityView();
+        foreach (var tab in new[] { ProcessesTab, ServicesTab, UsageTab, ConnectionsTab })
             tab.Click += (_, _) => SetActivityPanelCollapsed(false);
         ServiceView.ProcessRequested += process =>
         {
@@ -37,6 +38,7 @@ public partial class MainWindow
         Processes.Visibility = ProcessesTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
         ServiceView.Visibility = ServicesTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
         UsageView.Visibility = UsageTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+        ConnectionView.Visibility = ConnectionsTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
         SystemCounts.Visibility = ProcessesTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
         ServiceCounts.Visibility = ServicesTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
         UsageCounts.Visibility = UsageTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;

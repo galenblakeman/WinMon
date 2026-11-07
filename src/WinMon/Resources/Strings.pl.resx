@@ -1654,4 +1654,36 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
   <data name="LogicalProcessorsHeading" xml:space="preserve"><value>CPU · {0} procesorów logicznych</value></data>
   <data name="LogicalProcessorScale" xml:space="preserve"><value>Każdy wykres: 0–100%</value></data>
   <data name="LogicalProcessorHistoryHelp" xml:space="preserve"><value>Historia CPU procesorów logicznych. Kliknij, aby sprawdzić; strzałki przesuwają, End przywraca widok na żywo.</value></data>
+  <data name="ConnectionsTab" xml:space="preserve"><value>Połączenia</value></data>
+  <data name="ConnectionsLive" xml:space="preserve"><value>Połączenia na żywo</value></data>
+  <data name="ConnectionsSearch" xml:space="preserve"><value>Wyszukaj nazwę procesu lub PID</value></data>
+  <data name="ConnectionsProtocol" xml:space="preserve"><value>Protokół</value></data>
+  <data name="ConnectionsLocalEndpoint" xml:space="preserve"><value>Lokalny punkt końcowy</value></data>
+  <data name="ConnectionsRemoteEndpoint" xml:space="preserve"><value>Zdalny punkt końcowy</value></data>
+  <data name="ConnectionsState" xml:space="preserve"><value>Stan</value></data>
+  <data name="ConnectionsNote" xml:space="preserve"><value>UDP pokazuje tylko lokalne punkty końcowe. Liczba połączeń nie jest wielkością ruchu.</value></data>
+  <data name="ConnectionsUnavailable" xml:space="preserve"><value>Odczyty połączeń są niedostępne.</value></data>
+  <data name="ConnectionsPartial" xml:space="preserve"><value>Niektóre odczyty połączeń są niedostępne.</value></data>
+  <data name="ConnectionsEmpty" xml:space="preserve"><value>Brak pasujących połączeń.</value></data>
+  <data name="ConnectionsLoading" xml:space="preserve"><value>Odczytywanie połączeń…</value></data>
+  <data name="ConnectionsShowProcess" xml:space="preserve"><value>Pokaż w procesach</value></data>
+  <data name="ConnectionsExpand" xml:space="preserve"><value>Rozwiń połączenia dla {0}</value></data>
+  <data name="ConnectionsCollapse" xml:space="preserve"><value>Zwiń połączenia dla {0}</value></data>
+  <data name="ConnectionsProcess" xml:space="preserve"><value>Proces / PID</value></data>
+  <data name="ConnectionsUnknownProcess" xml:space="preserve"><value>Nieznany proces</value></data>
+  <data name="ConnectionsLiveOnly" xml:space="preserve"><value>Połączenia pozostają na żywo, gdy wykres zasobów pokazuje historię.</value></data>
+  <data name="ConnectionsTcpStateClosed" xml:space="preserve"><value>Zamknięte</value></data>
+  <data name="ConnectionsTcpStateListen" xml:space="preserve"><value>Nasłuchiwanie</value></data>
+  <data name="ConnectionsTcpStateSynSent" xml:space="preserve"><value>Wysłano SYN</value></data>
+  <data name="ConnectionsTcpStateSynReceived" xml:space="preserve"><value>Odebrano SYN</value></data>
+  <data name="ConnectionsTcpStateEstablished" xml:space="preserve"><value>Ustanowione</value></data>
+  <data name="ConnectionsTcpStateFinWait1" xml:space="preserve"><value>Oczekiwanie FIN 1</value></data>
+  <data name="ConnectionsTcpStateFinWait2" xml:space="preserve"><value>Oczekiwanie FIN 2</value></data>
+  <data name="ConnectionsTcpStateCloseWait" xml:space="preserve"><value>Oczekiwanie na zamknięcie</value></data>
+  <data name="ConnectionsTcpStateClosing" xml:space="preserve"><value>Zamykanie</value></data>
+  <data name="ConnectionsTcpStateLastAck" xml:space="preserve"><value>Ostatnie ACK</value></data>
+  <data name="ConnectionsTcpStateTimeWait" xml:space="preserve"><value>Oczekiwanie czasu</value></data>
+  <data name="ConnectionsTcpStateDeleteTcb" xml:space="preserve"><value>Usuwanie</value></data>
+  <data name="ConnectionsDetails" xml:space="preserve"><value>Szczegóły połączenia</value></data>
+  <data name="ConnectionsCounts" xml:space="preserve"><value>TCP {0} · UDP {1}</value></data>
 </root>

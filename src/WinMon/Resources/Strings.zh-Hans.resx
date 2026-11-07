@@ -1654,4 +1654,36 @@ Windows 健康状态：{2}</value>
   <data name="LogicalProcessorsHeading" xml:space="preserve"><value>CPU · {0} 个逻辑处理器</value></data>
   <data name="LogicalProcessorScale" xml:space="preserve"><value>每个图表：0–100%</value></data>
   <data name="LogicalProcessorHistoryHelp" xml:space="preserve"><value>各逻辑处理器的 CPU 历史记录。单击查看，方向键移动，End 返回实时视图。</value></data>
+  <data name="ConnectionsTab" xml:space="preserve"><value>连接</value></data>
+  <data name="ConnectionsLive" xml:space="preserve"><value>实时连接</value></data>
+  <data name="ConnectionsSearch" xml:space="preserve"><value>搜索进程名称或 PID</value></data>
+  <data name="ConnectionsProtocol" xml:space="preserve"><value>协议</value></data>
+  <data name="ConnectionsLocalEndpoint" xml:space="preserve"><value>本地终结点</value></data>
+  <data name="ConnectionsRemoteEndpoint" xml:space="preserve"><value>远程终结点</value></data>
+  <data name="ConnectionsState" xml:space="preserve"><value>状态</value></data>
+  <data name="ConnectionsNote" xml:space="preserve"><value>UDP 仅显示本地终结点。连接数不表示流量。</value></data>
+  <data name="ConnectionsUnavailable" xml:space="preserve"><value>连接读数不可用。</value></data>
+  <data name="ConnectionsPartial" xml:space="preserve"><value>部分连接读数不可用。</value></data>
+  <data name="ConnectionsEmpty" xml:space="preserve"><value>没有匹配的连接。</value></data>
+  <data name="ConnectionsLoading" xml:space="preserve"><value>正在读取连接…</value></data>
+  <data name="ConnectionsShowProcess" xml:space="preserve"><value>在进程中显示</value></data>
+  <data name="ConnectionsExpand" xml:space="preserve"><value>展开 {0} 的连接</value></data>
+  <data name="ConnectionsCollapse" xml:space="preserve"><value>折叠 {0} 的连接</value></data>
+  <data name="ConnectionsProcess" xml:space="preserve"><value>进程 / PID</value></data>
+  <data name="ConnectionsUnknownProcess" xml:space="preserve"><value>未知进程</value></data>
+  <data name="ConnectionsLiveOnly" xml:space="preserve"><value>资源图表显示历史记录时，连接仍保持实时状态。</value></data>
+  <data name="ConnectionsTcpStateClosed" xml:space="preserve"><value>已关闭</value></data>
+  <data name="ConnectionsTcpStateListen" xml:space="preserve"><value>正在侦听</value></data>
+  <data name="ConnectionsTcpStateSynSent" xml:space="preserve"><value>已发送 SYN</value></data>
+  <data name="ConnectionsTcpStateSynReceived" xml:space="preserve"><value>已收到 SYN</value></data>
+  <data name="ConnectionsTcpStateEstablished" xml:space="preserve"><value>已建立</value></data>
+  <data name="ConnectionsTcpStateFinWait1" xml:space="preserve"><value>FIN 等待 1</value></data>
+  <data name="ConnectionsTcpStateFinWait2" xml:space="preserve"><value>FIN 等待 2</value></data>
+  <data name="ConnectionsTcpStateCloseWait" xml:space="preserve"><value>等待关闭</value></data>
+  <data name="ConnectionsTcpStateClosing" xml:space="preserve"><value>正在关闭</value></data>
+  <data name="ConnectionsTcpStateLastAck" xml:space="preserve"><value>最后一个 ACK</value></data>
+  <data name="ConnectionsTcpStateTimeWait" xml:space="preserve"><value>时间等待</value></data>
+  <data name="ConnectionsTcpStateDeleteTcb" xml:space="preserve"><value>正在删除</value></data>
+  <data name="ConnectionsDetails" xml:space="preserve"><value>连接详细信息</value></data>
+  <data name="ConnectionsCounts" xml:space="preserve"><value>TCP {0} · UDP {1}</value></data>
 </root>

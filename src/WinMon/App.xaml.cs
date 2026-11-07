@@ -66,7 +66,8 @@ public partial class App
 
         if (e.Args is
             [
-                "--services-smoke-output" or "--usage-smoke-output" or "--capture-smoke-output", var servicesOutput
+                "--services-smoke-output" or "--usage-smoke-output" or "--capture-smoke-output" or
+                "--connections-smoke-output", var servicesOutput
             ])
         {
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
@@ -262,6 +263,7 @@ public partial class App
             await (mode switch
             {
                 "--usage-smoke-output" => WindowDiagnostics.CaptureUsageDiagnosticsAsync(output, timeout.Token),
+                "--connections-smoke-output" => WindowDiagnostics.CaptureConnectionsDiagnosticsAsync(output, timeout.Token),
                 "--capture-smoke-output" => WindowDiagnostics.CaptureAutoCaptureDiagnosticsAsync(output, timeout.Token),
                 _ => diagnostics.CaptureServicesDiagnosticsAsync(output, timeout.Token)
             });

@@ -619,6 +619,11 @@
                                             Content="{Binding [UsageTab], Source={x:Static resources:Strings.Text}}"
                                             GroupName="ActivityView"
                                             Style="{StaticResource ActivityTab}" />
+                                        <RadioButton
+                                            x:Name="ConnectionsTab"
+                                            Content="{Binding [ConnectionsTab], Source={x:Static resources:Strings.Text}}"
+                                            GroupName="ActivityView"
+                                            Style="{StaticResource ActivityTab}" />
                                     </StackPanel>
                                     <!--  Counts for the selected activity tab; tooltips give exact values.  -->
                                     <TextBlock
@@ -659,6 +664,7 @@
                                 <controls:ProcessesView x:Name="Processes" />
                                 <controls:ServicesView x:Name="ServiceView" Visibility="Collapsed" />
                                 <controls:UsageView x:Name="UsageView" Visibility="Collapsed" />
+                                <controls:ConnectionsView x:Name="ConnectionView" Visibility="Collapsed" />
                             </Grid>
                         </Grid>
                         <Border

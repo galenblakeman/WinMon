@@ -12,7 +12,7 @@ mode writes to artifacts/verify/<timestamp>/<mode>. Exits 1 if any step failed.
 #>
 [CmdletBinding()]
 param(
-    [ValidateSet('all', 'full', 'feature', 'snapshot', 'search', 'compact', 'services', 'usage', 'capture', 'chart', 'gauges')]
+    [ValidateSet('all', 'full', 'feature', 'snapshot', 'search', 'compact', 'services', 'usage', 'connections', 'capture', 'chart', 'gauges')]
     [string[]]$Smoke = @(),
     [switch]$Store,
     [switch]$SkipTests
@@ -27,6 +27,7 @@ $modes = [ordered]@{
     compact = '--compact-smoke-output'
     services = '--services-smoke-output'
     usage = '--usage-smoke-output'
+    connections = '--connections-smoke-output'
     capture = '--capture-smoke-output'
     chart = '--chart-smoke-output'
     gauges = '--gauges-smoke-output'

@@ -90,6 +90,7 @@ public partial class MainWindow
         InitializeCompactView();
         InitializeServices();
         InitializeUsage();
+        InitializeConnections();
         InitializeCaptures();
         InitializeProcesses();
         ApplyActionsHidden();
@@ -269,6 +270,7 @@ public partial class MainWindow
         RefreshCompactView();
         RefreshServices();
         RefreshUsage();
+        RefreshConnections();
         RefreshCaptures(samples);
         UpdateSnapshot(SelectedSample is null ? null : visible);
         // A hidden live process list is refreshed when its tab is selected. Historical capture
@@ -964,12 +966,20 @@ public partial class MainWindow
                 return;
             }
 
+            if (ConnectionsTab.IsChecked == true)
+            {
+                ConnectionView.FocusSearch();
+                e.Handled = true;
+                return;
+            }
+
             Processes.FocusSearch();
             e.Handled = true;
             return;
         }
 
         if ((e.Key == Key.Escape && ServicesTab.IsChecked == true && ServiceView.ClearSearch()) ||
+            (e.Key == Key.Escape && ConnectionsTab.IsChecked == true && ConnectionView.ClearSearch()) ||
             (e.Key == Key.Escape && UsageTab.IsChecked == true && UsageView.ClearSearch()) ||
             (e.Key == Key.Escape && Processes.ClearFocusedSearch()))
         {
@@ -977,7 +987,8 @@ public partial class MainWindow
             return;
         }
 
-        if (e.Key != Key.Escape || SelectedSample is null || Processes.HasOpenDropDown) return;
+        if (e.Key != Key.Escape || SelectedSample is null || Processes.HasOpenDropDown ||
+            (ConnectionsTab.IsChecked == true && ConnectionView.HasOpenDropDown)) return;
         ReturnToLive();
         e.Handled = true;
     }

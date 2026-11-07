@@ -121,6 +121,19 @@ internal static class Program
         window.RefreshPresentation();
         Flush();
         Measure("logical-processors-pinned-selected-live-frame");
+        var connectionProcesses = session.LatestFull!.Processes.Take(60).ToArray();
+        var endpoints = connectionProcesses.SelectMany(process => Enumerable.Range(0, 8).Select(index =>
+            new NetworkConnection(process.ProcessId, process.CreationTicks, TransportProtocol.Tcp,
+                new System.Net.IPEndPoint(System.Net.IPAddress.Loopback, 50000 + index),
+                new System.Net.IPEndPoint(System.Net.IPAddress.Parse("203.0.113.24"), 443),
+                System.Net.NetworkInformation.TcpState.Established))).ToArray();
+        window.SetConnectionsForFixture(new NetworkConnectionsFrame(endpoints,
+            NetworkAddressFamilyStatus.Success, NetworkAddressFamilyStatus.Success));
+        window.ConnectionsTab.IsChecked = true;
+        var firstConnectionProcess = connectionProcesses[0];
+        window.ConnectionView.SelectConnectionForFixture(firstConnectionProcess.ProcessId, firstConnectionProcess.CreationTicks);
+        Flush();
+        Measure("connections-grouped-expanded-live-frame");
         var report = new
         {
             Runtime = Environment.Version.ToString(), Samples = 600, ProcessesPerSample = Processes,

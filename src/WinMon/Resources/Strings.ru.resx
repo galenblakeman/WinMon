@@ -1654,4 +1654,36 @@ GPU {11} · {12}
   <data name="LogicalProcessorsHeading" xml:space="preserve"><value>ЦП · {0} логических процессоров</value></data>
   <data name="LogicalProcessorScale" xml:space="preserve"><value>Каждый график: 0–100%</value></data>
   <data name="LogicalProcessorHistoryHelp" xml:space="preserve"><value>История ЦП по логическим процессорам. Нажмите для просмотра; стрелки перемещают, End возвращает к текущим данным.</value></data>
+  <data name="ConnectionsTab" xml:space="preserve"><value>Подключения</value></data>
+  <data name="ConnectionsLive" xml:space="preserve"><value>Текущие подключения</value></data>
+  <data name="ConnectionsSearch" xml:space="preserve"><value>Поиск по имени процесса или PID</value></data>
+  <data name="ConnectionsProtocol" xml:space="preserve"><value>Протокол</value></data>
+  <data name="ConnectionsLocalEndpoint" xml:space="preserve"><value>Локальная конечная точка</value></data>
+  <data name="ConnectionsRemoteEndpoint" xml:space="preserve"><value>Удаленная конечная точка</value></data>
+  <data name="ConnectionsState" xml:space="preserve"><value>Состояние</value></data>
+  <data name="ConnectionsNote" xml:space="preserve"><value>UDP показывает только локальные конечные точки. Количество подключений не является объемом трафика.</value></data>
+  <data name="ConnectionsUnavailable" xml:space="preserve"><value>Данные о подключениях недоступны.</value></data>
+  <data name="ConnectionsPartial" xml:space="preserve"><value>Некоторые данные о подключениях недоступны.</value></data>
+  <data name="ConnectionsEmpty" xml:space="preserve"><value>Нет подходящих подключений.</value></data>
+  <data name="ConnectionsLoading" xml:space="preserve"><value>Чтение подключений…</value></data>
+  <data name="ConnectionsShowProcess" xml:space="preserve"><value>Показать в процессах</value></data>
+  <data name="ConnectionsExpand" xml:space="preserve"><value>Развернуть подключения для {0}</value></data>
+  <data name="ConnectionsCollapse" xml:space="preserve"><value>Свернуть подключения для {0}</value></data>
+  <data name="ConnectionsProcess" xml:space="preserve"><value>Процесс / PID</value></data>
+  <data name="ConnectionsUnknownProcess" xml:space="preserve"><value>Неизвестный процесс</value></data>
+  <data name="ConnectionsLiveOnly" xml:space="preserve"><value>Подключения остаются текущими, пока диаграмма ресурсов показывает журнал.</value></data>
+  <data name="ConnectionsTcpStateClosed" xml:space="preserve"><value>Закрыто</value></data>
+  <data name="ConnectionsTcpStateListen" xml:space="preserve"><value>Прослушивание</value></data>
+  <data name="ConnectionsTcpStateSynSent" xml:space="preserve"><value>SYN отправлен</value></data>
+  <data name="ConnectionsTcpStateSynReceived" xml:space="preserve"><value>SYN получен</value></data>
+  <data name="ConnectionsTcpStateEstablished" xml:space="preserve"><value>Установлено</value></data>
+  <data name="ConnectionsTcpStateFinWait1" xml:space="preserve"><value>Ожидание FIN 1</value></data>
+  <data name="ConnectionsTcpStateFinWait2" xml:space="preserve"><value>Ожидание FIN 2</value></data>
+  <data name="ConnectionsTcpStateCloseWait" xml:space="preserve"><value>Ожидание закрытия</value></data>
+  <data name="ConnectionsTcpStateClosing" xml:space="preserve"><value>Закрытие</value></data>
+  <data name="ConnectionsTcpStateLastAck" xml:space="preserve"><value>Последнее ACK</value></data>
+  <data name="ConnectionsTcpStateTimeWait" xml:space="preserve"><value>Ожидание времени</value></data>
+  <data name="ConnectionsTcpStateDeleteTcb" xml:space="preserve"><value>Удаление</value></data>
+  <data name="ConnectionsDetails" xml:space="preserve"><value>Сведения о подключении</value></data>
+  <data name="ConnectionsCounts" xml:space="preserve"><value>TCP {0} · UDP {1}</value></data>
 </root>
