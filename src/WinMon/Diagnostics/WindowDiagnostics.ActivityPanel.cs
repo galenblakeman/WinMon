@@ -21,6 +21,23 @@ internal sealed partial class WindowDiagnostics
             window.ProcessesTab.IsChecked = true;
             window.SetActivityPanelCollapsed(false);
             window.UpdateLayout();
+            foreach (var height in new[] { 900, 720, 600 })
+            {
+                window.Height = height;
+                foreach (var tab in new[] { window.ProcessesTab, window.ServicesTab, window.UsageTab })
+                {
+                    tab.IsChecked = true;
+                    window.UpdateLayout();
+                    CheckHeader(window.ResourceHeader);
+                    CheckHeader(window.ActivityHeader);
+                    CheckHeader(tab == window.ProcessesTab ? window.Processes.ProcessHeader :
+                        tab == window.ServicesTab ? window.ServiceView.ToolbarHeader : window.UsageView.ToolbarHeader);
+                    await CaptureAsync(Path.Combine(output, $"headers-{tab.Name}-{height}.png"), 1, cancellationToken);
+                }
+            }
+            window.ProcessesTab.IsChecked = true;
+            window.Height = 1000;
+            window.UpdateLayout();
             window.ChartProcessDivider.RaiseEvent(new DragStartedEventArgs(0, 0) { RoutedEvent = Thumb.DragStartedEvent });
             window.ChartProcessDivider.RaiseEvent(new DragDeltaEventArgs(0, -35) { RoutedEvent = Thumb.DragDeltaEvent });
             window.ChartProcessDivider.RaiseEvent(new DragCompletedEventArgs(0, -35, false) { RoutedEvent = Thumb.DragCompletedEvent });
@@ -108,5 +125,22 @@ internal sealed partial class WindowDiagnostics
         }
 
         static void Click(ButtonBase button) => button.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+
+        void CheckHeader(FrameworkElement header)
+        {
+            var bounds = header.TransformToAncestor(window.FullView).TransformBounds(new Rect(header.RenderSize));
+            if (Math.Abs(bounds.Left) > 0.5 || Math.Abs(bounds.Right - window.FullView.ActualWidth) > 0.5)
+                throw new InvalidOperationException($"Header {header.Name} does not span the full view at height {window.Height}: {bounds}.");
+            // Layout clipping can occur without ClipToBounds when row minimums exceed the available height.
+            for (var parent = System.Windows.Media.VisualTreeHelper.GetParent(header); parent is FrameworkElement element;
+                 parent = System.Windows.Media.VisualTreeHelper.GetParent(parent))
+            {
+                var clip = LayoutInformation.GetLayoutClip(element);
+                if (clip is null) continue;
+                var local = header.TransformToAncestor(element).TransformBounds(new Rect(header.RenderSize));
+                if (local.Left < clip.Bounds.Left - 0.5 || local.Right > clip.Bounds.Right + 0.5)
+                    throw new InvalidOperationException($"Header {header.Name} is clipped horizontally at height {window.Height} by {element.GetType().Name}.");
+            }
+        }
     }
 }

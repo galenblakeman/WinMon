@@ -4,6 +4,25 @@
 
 Dated measurement and validation records, newest first. Each section describes the build and machine it was measured on, and some name code that has since changed or moved. For how to measure today and the decisions still in force, see [Performance](DEVELOPMENT.md#performance) in the developer guide. The raw data named under `artifacts/` is local and not in the repository.
 
+## Full-width section headers (November 7, 2026)
+
+Release UI benchmark on .NET 10.0.14, SDK 10.0.403. Four alternating baseline/header-fix pairs used preserved binaries. Values are medians of the four runs' seven-batch medians. The patch replaces negative-margin header overflow with a full-width main grid and activity-view gutter columns.
+
+| Scenario | Before | After | Allocation before / after |
+| --- | ---: | ---: | ---: |
+| Live overlay | 4.15 ms | 4.36 ms | 586.66 / 584.98 KiB |
+| Small multiples | 3.14 ms | 3.00 ms | 558.31 / 558.31 KiB |
+| Focus | 3.24 ms | 3.10 ms | 572.61 / 572.61 KiB |
+| Historical | 1.19 ms | 1.25 ms | 174.06 / 174.06 KiB |
+| Services live | 6.09 ms | 7.59 ms | 979.01 / 979.01 KiB |
+| Compact live | 1.75 ms | 2.19 ms | 375.89 / 375.89 KiB |
+
+Timing is **inconclusive under concurrent activity**, rather than evidence of a change-specific regression. Another WinMon build/benchmark was observed running from `artifacts/logical-processors/baseline/` while the later measurements completed. Services ranged 5.52–17.79 ms before and 5.91–13.01 ms after; Compact, whose layout this patch does not change, ranged 1.70–3.46 ms before and 1.68–3.36 ms after. The first two pairs' Compact times were 1.75/1.80 and 1.70/1.68 ms. A quiet-machine timing conclusion remains unverified.
+
+All eight runs produced the same pixel hash, and allocations were unchanged or slightly lower. The saved header-fix build passed `Verify.ps1 -Smoke feature,search,services,usage,compact`: 952 tests and all five smoke modes passed, with zero build warnings/errors. Header captures at 900, 720 and 600 DIPs high across all three tabs, plus representative narrow, translated and collapsed captures, were visually inspected. Unrelated source edits appeared during performance measurement, so these checks certify the saved header-fix build, not the subsequent combined working tree.
+
+Raw reports: `artifacts/perf-headers/{baseline,changed}-{1..4}.json` and `comparison.json`. Baseline assembly SHA-256: `84392602F3073A45EEAFCC462B3AF49F1BD033AA3B139374874233C1994309D6`; header fix: `612FBA8A8E89F25F29BCBCAF733A4683D2F7FEA7F932ACED0951CD3480C5C4E7`. This benchmark measures UI-thread work and excludes native collection and the WPF render thread.
+
 ## Collapsible activity panel (November 7, 2026)
 
 Release UI benchmark on .NET 10.0.14, built with SDK 10.0.403. Four baseline/final pairs alternated after verification completed. The baseline is a saved artifact of the pre-feature working tree, including the existing unrelated edits, so the comparison isolates this feature. Each value is the median of four runs' seven-batch medians.

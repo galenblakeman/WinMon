@@ -5,16 +5,21 @@
     xmlns:controls="clr-namespace:WinMon.Controls"
     xmlns:resources="clr-namespace:WinMon.Resources">
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="20" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="20" />
+        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" MinHeight="108" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <Border
+        <Border Grid.ColumnSpan="3"
             x:Name="ProcessHeader"
             Grid.Row="0"
-            Margin="-20,0,-20,8"
+            Margin="0,0,0,8"
             Padding="20,5"
             Background="{DynamicResource SectionHeaderSurface}"
             BorderBrush="{DynamicResource Line}"
@@ -200,7 +205,7 @@
                     Visibility="Collapsed" />
             </StackPanel>
         </Border>
-        <Grid
+        <Grid Grid.Column="1"
             Grid.Row="1"
             Width="{Binding ViewportWidth, ElementName=ProcessScroll}"
             Margin="0,0,0,5"
@@ -309,7 +314,7 @@
                 Text="{Binding [Handles], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                 ToolTip="{Binding [ProcessHandlesExplanation], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
         </Grid>
-        <ScrollViewer
+        <ScrollViewer Grid.Column="1"
             x:Name="ProcessScroll"
             Grid.Row="2"
             Padding="0,0,0,0"
@@ -331,10 +336,10 @@
                 </Border>
             </StackPanel>
         </ScrollViewer>
-        <controls:ActionDrawer x:Name="ProcessActionDrawer" Grid.Row="3">
+        <controls:ActionDrawer Grid.Column="1" x:Name="ProcessActionDrawer" Grid.Row="3">
             <controls:ProcessActionBar x:Name="ProcessActions" />
         </controls:ActionDrawer>
-        <TextBlock
+        <TextBlock Grid.Column="1"
             x:Name="EmptyLabel"
             Grid.Row="2"
             Margin="0,8"

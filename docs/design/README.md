@@ -8,6 +8,8 @@ This folder contains the current layout reference, feature design notes and edit
 
 ## Feature notes
 
+- [Full-width headers](FULL-WIDTH-HEADERS.md) preserves section header edges when the window is shorter than its content.
+
 - [Monitor position recovery](MONITOR-POSITION-RECOVERY.md), which preserves the chosen monitor across sleep and display reconnection
 
 - [Collapsible activity panel](ACTIVITY-PANEL-COLLAPSE.md), which keeps the activity tabs and counts visible while giving their content's space to the chart

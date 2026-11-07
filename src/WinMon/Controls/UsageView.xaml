@@ -6,6 +6,11 @@
     xmlns:r="clr-namespace:WinMon.Resources"
     Foreground="{DynamicResource Text}">
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="20" />
+            <ColumnDefinition x:Name="ContentColumn" Width="*" />
+            <ColumnDefinition Width="20" />
+        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -14,8 +19,9 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <Border
-            Margin="-20,0,-20,8"
+        <Border Grid.ColumnSpan="3"
+            x:Name="ToolbarHeader"
+            Margin="0,0,0,8"
             Padding="20,5"
             Background="{DynamicResource SectionHeaderSurface}">
         <Grid>
@@ -180,7 +186,7 @@
             </StackPanel>
         </Grid>
         </Border>
-        <ScrollViewer
+        <ScrollViewer Grid.Column="1"
             x:Name="HeaderScroll"
             Grid.Row="1"
             HorizontalAlignment="Left"
@@ -242,7 +248,7 @@
                     MouseLeftButtonUp="OnRankHeader" />
             </Grid>
         </ScrollViewer>
-        <ListBox
+        <ListBox Grid.Column="1"
             x:Name="Rows"
             Grid.Row="2"
             Padding="0"
@@ -368,7 +374,7 @@
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
-        <Grid
+        <Grid Grid.Column="1"
             x:Name="NotAttributedRow"
             Grid.Row="3"
             MinWidth="560"
@@ -405,7 +411,7 @@
                 FontSize="12"
                 Foreground="{DynamicResource Muted}" />
         </Grid>
-        <TextBlock
+        <TextBlock Grid.Column="1"
             x:Name="Notice"
             Grid.Row="4"
             Margin="0,6,0,4"
@@ -413,7 +419,7 @@
             Foreground="{DynamicResource Muted}"
             TextWrapping="Wrap"
             Visibility="Collapsed" />
-        <local:ActionDrawer x:Name="ActionsDrawer" Grid.Row="5">
+        <local:ActionDrawer Grid.Column="1" x:Name="ActionsDrawer" Grid.Row="5">
             <Border
                 x:Name="ActionBar"
                 MinHeight="54"

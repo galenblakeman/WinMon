@@ -104,9 +104,9 @@ public partial class ServicesView
 
     private void ArrangeActionBar()
     {
-        if (!_ready || ActualWidth <= 0) return;
+        if (!_ready || ContentColumn.ActualWidth <= 0) return;
         ActionControls.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-        var wide = ActualWidth >= ActionControls.DesiredSize.Width - ActionDrawer.CollapseButtonSpace + 264;
+        var wide = ContentColumn.ActualWidth >= ActionControls.DesiredSize.Width - ActionDrawer.CollapseButtonSpace + 264;
         if (_wideActionBar == wide) return;
         _wideActionBar = wide;
         ActionBarGrid.ColumnDefinitions[1].Width = wide ? GridLength.Auto : new GridLength(0);
@@ -117,10 +117,10 @@ public partial class ServicesView
 
     private void ArrangeToolbar()
     {
-        if (!_ready || ActualWidth <= 0) return;
+        if (!_ready || ContentColumn.ActualWidth <= 0) return;
         RankingControls.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
         ServiceFilters.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-        var wide = ActualWidth >= RankingControls.DesiredSize.Width + ServiceFilters.DesiredSize.Width + 224;
+        var wide = ContentColumn.ActualWidth >= RankingControls.DesiredSize.Width + ServiceFilters.DesiredSize.Width + 224;
         if (_wideToolbar == wide) return;
         _wideToolbar = wide;
         Grid.SetColumnSpan(RankingControls, wide ? 1 : 3);

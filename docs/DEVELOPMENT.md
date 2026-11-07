@@ -171,6 +171,8 @@ Portable lifetime, executable equality and CPU availability contracts are descri
 
 ## Performance
 
+Full-view section headers occupy the full-width layout grid. Gauges and the chart keep 20-DIP side margins; activity views use 20-DIP gutter columns and span their toolbar backgrounds across all three columns. Keep header backgrounds inside their parent bounds: negative margins are clipped horizontally when short windows force WPF to clip overflowing row minimums. The feature smoke checks header width and ancestor layout clips at 900, 720 and 600 DIPs high for all three activity tabs.
+
 WinMon samples once a second all day, so its own cost is a feature. Measure structural or hot-path changes before and after, and add the results to the top of the [performance history](PERFORMANCE-HISTORY.md).
 
 ### Benchmark the UI thread

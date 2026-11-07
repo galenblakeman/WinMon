@@ -144,7 +144,7 @@
                     than the rows' minimum heights still shows it. The last row reserves its height when there is room.
                 -->
                 <Grid>
-                    <Grid Margin="20,12,20,8">
+                    <Grid Margin="0,12,0,8">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -159,7 +159,7 @@
                                 MinHeight="344" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <Grid Grid.Row="0" Margin="0,0,0,16">
+                        <Grid Grid.Row="0" Margin="20,0,20,16">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition />
                                 <ColumnDefinition />
@@ -231,7 +231,7 @@
                         <Border
                             x:Name="ResourceHeader"
                             Grid.Row="1"
-                            Margin="-20,0,-20,8"
+                            Margin="0,0,0,8"
                             Padding="20,5"
                             Background="{DynamicResource SectionHeaderSurface}"
                             BorderBrush="{DynamicResource Line}"
@@ -368,6 +368,7 @@
                         </Border>
                         <controls:CpuGraph
                             x:Name="OverallGraph"
+                            Margin="20,0"
                             Grid.Row="2"
                             AutomationProperties.Name="{Binding [CPUMemoryConfiguredDisksNetworkAndGPUOverlayHistoryClick], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                             Focusable="True"
@@ -375,6 +376,7 @@
                             SizeChanged="OnSnapshotChartSizeChanged" />
                         <Canvas
                             x:Name="SnapshotLayer"
+                            Margin="20,0"
                             Grid.Row="2"
                             ClipToBounds="True"
                             Visibility="Collapsed">
@@ -543,7 +545,7 @@
                             x:Name="ChartProcessDivider"
                             Grid.Row="3"
                             Height="8"
-                            Margin="-20,2,-20,2"
+                            Margin="0,2,0,2"
                             HorizontalAlignment="Stretch"
                             VerticalAlignment="Center"
                             AutomationProperties.Name="{Binding [ResizeChartAndProcesses], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
@@ -588,7 +590,8 @@
                                 <RowDefinition Height="*" />
                             </Grid.RowDefinitions>
                             <Border
-                                Margin="-20,0,-20,0"
+                                x:Name="ActivityHeader"
+                                Margin="0"
                                 Padding="8,0,0,0"
                                 Background="{DynamicResource SectionHeaderSurface}"
                                 BorderBrush="{DynamicResource Line}"
