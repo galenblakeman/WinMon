@@ -553,7 +553,22 @@ public partial class MainWindow
 
     private void OnHardwareInfo(object sender, RoutedEventArgs e)
     {
-        if (!IsClosing) new HardwareInfoWindow { Owner = this }.ShowDialog();
+        if (IsClosing) return;
+        var dialog = new HardwareInfoWindow { Owner = this };
+        void RefreshInfoUpdate() => dialog.SetUpdateState(
+            _updateDownloading ? UpdateStatusText.Text : _updateChecksPending > 0 ? Strings.UpdateChecking :
+                Strings.Format(Strings.Text[_updateCheckStatusKey], _updateOffer?.Version),
+            _updateOffer is not null, _updateDownloading || _updateChecksPending > 0);
+        RefreshInfoUpdate();
+        UpdateCheckChanged += RefreshInfoUpdate;
+        dialog.CheckForUpdatesRequested += async () =>
+        {
+            await CheckForUpdatesAsync(true, Lifetime.Token);
+            RefreshInfoUpdate();
+        };
+        dialog.UpdateRequested += () => OnUpdateNow(this, new RoutedEventArgs());
+        try { dialog.ShowDialog(); }
+        finally { UpdateCheckChanged -= RefreshInfoUpdate; }
     }
 
 

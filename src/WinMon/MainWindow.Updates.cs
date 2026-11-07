@@ -19,6 +19,9 @@ public partial class MainWindow
     private bool _updateRestartPending;
     private DateTimeOffset? _lastUpdateCheck;
     private bool _updateDownloading;
+    private int _updateChecksPending;
+    private string _updateCheckStatusKey = nameof(Strings.SettingsNotChecked);
+    private event Action? UpdateCheckChanged;
 
     // Where this exit saves history for the new version: the update's transaction directory and token.
     private (string Path, string Token)? _restartHistoryTarget;
@@ -56,6 +59,8 @@ public partial class MainWindow
     private async Task CheckForUpdatesAsync(bool requestedByUser, CancellationToken cancellationToken = default)
     {
         if (_updateClient is null || IsClosing || _updateDownloading) return;
+        _updateChecksPending++;
+        UpdateCheckChanged?.Invoke();
         if (requestedByUser)
         {
             _updateDismissed = false;
@@ -72,6 +77,7 @@ public partial class MainWindow
             if (IsClosing) return;
             var changedOffer = offer?.Version != _updateOffer?.Version;
             _updateOffer = offer;
+            _updateCheckStatusKey = offer is null ? nameof(Strings.UpToDate) : nameof(Strings.UpdateAvailable);
             if (changedOffer) _updateDismissed = false;
             if (offer is null)
             {
@@ -91,11 +97,14 @@ public partial class MainWindow
         catch (Exception ex)
         {
             Trace.TraceWarning("WinMon update check failed: {0}", ex.Message);
-            if (requestedByUser) ShowUpdateFailure(Strings.UpdateFailed);
+            _updateCheckStatusKey = nameof(Strings.UpdateFailed);
+            if (requestedByUser) ShowUpdateFailure(nameof(Strings.UpdateFailed));
         }
         finally
         {
             if (gateHeld) _updateGate.Release();
+            _updateChecksPending--;
+            UpdateCheckChanged?.Invoke();
         }
     }
 
@@ -107,6 +116,7 @@ public partial class MainWindow
         UpdateNowButton.Visibility = Visibility.Collapsed;
         DismissUpdateButton.Visibility = dismissible ? Visibility.Visible : Visibility.Collapsed;
         CancelUpdateButton.Visibility = Visibility.Collapsed;
+        UpdateCheckChanged?.Invoke();
     }
 
     /// <summary>Offer <paramref name="offer"/>, under <paramref name="text"/> or its availability line.</summary>
@@ -117,9 +127,11 @@ public partial class MainWindow
         UpdateNowButton.Visibility = Visibility.Visible;
     }
 
-    /// <summary>Show <paramref name="text"/>, keeping a pending offer's buttons so it can be retried at once.</summary>
-    private void ShowUpdateFailure(string text)
+    /// <summary>Keep a pending offer's buttons so a failed or cancelled update can be retried.</summary>
+    private void ShowUpdateFailure(string resourceKey)
     {
+        _updateCheckStatusKey = resourceKey;
+        var text = Strings.Text[resourceKey];
         if (_updateOffer is { } offer && !_updateDismissed) ShowUpdateOffer(offer, text);
         else ShowUpdateStatus(text, true);
     }
@@ -152,7 +164,8 @@ public partial class MainWindow
     // ReSharper disable once AsyncVoidEventHandlerMethod
     private async void OnUpdateNow(object sender, RoutedEventArgs e)
     {
-        if (_updateClient is null || _updateOffer is null || IsClosing) return;
+        if (_updateClient is null || _updateOffer is null || IsClosing ||
+            _updateDownloadTask is { IsCompleted: false }) return;
         UpdateNowButton.IsEnabled = false;
         ReleaseNotesButton.IsEnabled = false;
         DismissUpdateButton.IsEnabled = false;
@@ -181,7 +194,11 @@ public partial class MainWindow
 
             var progress = new Progress<int>(percent =>
             {
-                if (_updateDownloading) UpdateStatusText.Text = Strings.Format(Strings.DownloadingUpdate, percent);
+                if (_updateDownloading)
+                {
+                    UpdateStatusText.Text = Strings.Format(Strings.DownloadingUpdate, percent);
+                    UpdateCheckChanged?.Invoke();
+                }
             });
             UpdateStatusText.Text = Strings.Format(Strings.DownloadingUpdate, 0);
             var prepared = await _updateClient.DownloadAsync(offer, progress, _updateDownload.Token);
@@ -193,12 +210,12 @@ public partial class MainWindow
         }
         catch (OperationCanceledException) when (_updateDownload?.IsCancellationRequested == true)
         {
-            ShowUpdateFailure(Strings.UpdateCancelled);
+            ShowUpdateFailure(nameof(Strings.UpdateCancelled));
         }
         catch (Exception ex)
         {
             Trace.TraceError("WinMon update download or handoff failed: {0}", ex);
-            ShowUpdateFailure(Strings.UpdateFailed);
+            ShowUpdateFailure(nameof(Strings.UpdateFailed));
         }
         finally
         {
@@ -211,6 +228,7 @@ public partial class MainWindow
                 UpdateNowButton.IsEnabled = true;
                 ReleaseNotesButton.IsEnabled = true;
                 DismissUpdateButton.IsEnabled = true;
+                UpdateCheckChanged?.Invoke();
             }
         }
     }
@@ -227,6 +245,7 @@ public partial class MainWindow
             var latest = await client.CheckAsync(AppInfo.Version, cancellationToken);
             _lastUpdateCheck = DateTimeOffset.Now;
             _updateOffer = latest;
+            _updateCheckStatusKey = latest is null ? nameof(Strings.UpToDate) : nameof(Strings.UpdateAvailable);
             return latest;
         }
         catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)

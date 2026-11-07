@@ -499,9 +499,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
             info.Show();
             await info.Ready.WaitAsync(cancellationToken);
             info.UpdateLayout();
-            var copyLayout = (DockPanel)((Border)info.Content).Child;
-            var copyButton = copyLayout.Children.OfType<DockPanel>().Single().Children
-                .OfType<Button>().Single(b => AutomationProperties.GetName(b) == Strings.CopyAllInformation);
+            var copyButton = info.CopyButton;
             if (!copyButton.IsEnabled)
                 throw new InvalidOperationException("Copy did not become available after loading information.");
             copyButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
@@ -513,9 +511,9 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
             await File.WriteAllTextAsync(Path.Combine(output, "copied-info.txt"), copiedInfo, cancellationToken);
             await CaptureVisualAsync((FrameworkElement)info.Content, Path.Combine(output, "hardware-info.png"), 1,
                 cancellationToken);
-            var hardwareLayout = (DockPanel)((Border)info.Content).Child;
-            var hardwareScroll = hardwareLayout.Children.OfType<ScrollViewer>().Single();
-            var sections = (StackPanel)hardwareScroll.Content;
+            var hardwareScroll = info.HardwareScroll;
+            var sections = info.Sections;
+            var sectionIndex = 0;
             foreach (var expander in sections.Children.OfType<Expander>())
             {
                 expander.IsExpanded = true;
@@ -523,10 +521,53 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                 hardwareScroll.ScrollToVerticalOffset(expander.TransformToAncestor(sections).Transform(new Point()).Y -
                                                       24);
                 await CaptureVisualAsync((FrameworkElement)info.Content, Path.Combine(output,
-                    expander.Header.ToString()!.StartsWith("CPU", StringComparison.Ordinal) ? "cpu-details.png" :
-                    expander.Header.ToString()!.StartsWith("Module", StringComparison.Ordinal) ? "memory-details.png" :
-                    "physical-drive-details.png"), 1, cancellationToken);
+                    $"hardware-section-{sectionIndex++}.png"), 1, cancellationToken);
                 expander.IsExpanded = false;
+            }
+
+            var infoPreferences = window.Preferences;
+            try
+            {
+                foreach (var theme in new[] { "Dark", "Light" })
+                {
+                    window.Preferences = infoPreferences with { Theme = theme };
+                    window.ApplyTheme();
+                    WindowTheme.Apply(info);
+                    for (var tab = 0; tab < info.Tabs.Items.Count; tab++)
+                    {
+                        info.Tabs.SelectedIndex = tab;
+                        info.SetUpdateState(Strings.Format(Strings.UpdateAvailable, "99.0.0"), true);
+                        info.UpdateLayout();
+                        await CaptureVisualAsync((FrameworkElement)info.Content,
+                            Path.Combine(output, $"info-{theme.ToLowerInvariant()}-{tab}.png"), 1, cancellationToken);
+                    }
+                    info.Tabs.SelectedIndex = 1;
+                    var topicIndex = 0;
+                    var topics = info.GuideTopics.Children.OfType<Expander>().ToArray();
+                    foreach (var topic in topics)
+                    {
+                        foreach (var other in topics) other.IsExpanded = other == topic;
+                        info.GuideScroll.ScrollToTop();
+                        info.UpdateLayout();
+                        await CaptureVisualAsync((FrameworkElement)info.Content,
+                            Path.Combine(output, $"guide-{theme.ToLowerInvariant()}-{topicIndex++}.png"), 1, cancellationToken);
+                    }
+                    foreach (var topic in topics) topic.IsExpanded = topic == topics[0];
+                }
+                info.Width = info.MinWidth;
+                info.Height = info.MinHeight;
+                for (var tab = 0; tab < info.Tabs.Items.Count; tab++)
+                {
+                    info.Tabs.SelectedIndex = tab;
+                    info.UpdateLayout();
+                    await CaptureVisualAsync((FrameworkElement)info.Content,
+                        Path.Combine(output, $"info-minimum-{tab}.png"), 1, cancellationToken);
+                }
+            }
+            finally
+            {
+                window.Preferences = infoPreferences;
+                window.ApplyTheme();
             }
         }
         finally

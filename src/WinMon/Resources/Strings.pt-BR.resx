@@ -16,7 +16,7 @@
     <value>Sobre o WinMon</value>
   </data>
   <data name="AboutWinMonAndHardwareInformation" xml:space="preserve">
-    <value>Sobre o WinMon e informações de hardware</value>
+    <value>Informações de hardware, guia de funções, versão e atualizações</value>
   </data>
   <data name="AccessDeniedWindowsDidNotAllowWinMonToEndThis" xml:space="preserve">
     <value>Acesso negado. O Windows não permitiu encerrar o processo ou ele já foi encerrado.</value>
@@ -1041,7 +1041,7 @@ A CPU não atribuída é o total menos todos os processos medidos: tempo de kern
     <value>60 minutos</value>
   </data>
   <data name="VersionPlusCPUMemoryGraphicsVolumesAndNetworkHardware" xml:space="preserve">
-    <value>Versão, CPU, memória, gráficos, volumes e hardware de rede</value>
+    <value>Informações de hardware, guia de funções, versão e atualizações</value>
   </data>
   <data name="Virtual" xml:space="preserve">
     <value> · Virtual</value>
@@ -1686,4 +1686,20 @@ O trabalho não salvo pode ser perdido. Todos os processos listados abaixo serã
   <data name="ConnectionsTcpStateDeleteTcb" xml:space="preserve"><value>Excluindo</value></data>
   <data name="ConnectionsDetails" xml:space="preserve"><value>Detalhes da conexão</value></data>
   <data name="ConnectionsCounts" xml:space="preserve"><value>TCP {0} · UDP {1}</value></data>
+  <data name="InfoHardware" xml:space="preserve"><value>Hardware</value></data>
+  <data name="InfoGuide" xml:space="preserve"><value>Guia</value></data>
+  <data name="InfoAbout" xml:space="preserve"><value>Sobre</value></data>
+  <data name="InfoGuideTitle" xml:space="preserve"><value>Como usar o WinMon</value></data>
+  <data name="InfoGuideIntro" xml:space="preserve"><value>Expanda um tópico para conhecer as principais funções.</value></data>
+  <data name="InfoStoreUpdates" xml:space="preserve"><value>As atualizações são gerenciadas pela Microsoft Store.</value></data>
+  <data name="GuideHistoryQuestion" xml:space="preserve"><value>Como investigar um pico de atividade?</value></data>
+  <data name="GuideHistoryAnswer" xml:space="preserve"><value>Os medidores mostram leituras atuais e picos de dois minutos. Clique no gráfico ou escolha Captura para inspecionar um intervalo gravado; a lista de processos o acompanha. Escolha Ao vivo para voltar. O monitoramento continua durante a inspeção.</value></data>
+  <data name="GuideProcessesQuestion" xml:space="preserve"><value>Como encontrar e fixar um processo?</value></data>
+  <data name="GuideProcessesAnswer" xml:space="preserve"><value>Pesquise por nome ou PID. Agrupados combina processos do mesmo executável. Use o alfinete ao lado do processo ou o menu da linha para mantê-lo acima da classificação. A pesquisa e Somente aplicativos também filtram linhas fixadas.</value></data>
+  <data name="GuideExportQuestion" xml:space="preserve"><value>Como capturar e exportar?</value></data>
+  <data name="GuideExportAnswer" xml:space="preserve"><value>Em Captura, Copiar captura copia o momento selecionado. Na visualização completa, Exportar salva o histórico de recursos, amostras de processos retidas ou totais de Uso como CSV. Configurações &gt; Capturas automáticas pode salvar relatórios ao atingir os limites configurados.</value></data>
+  <data name="GuideActivityQuestion" xml:space="preserve"><value>O que Serviços e Uso mostram?</value></data>
+  <data name="GuideActivityAnswer" xml:space="preserve"><value>Serviços mostra serviços locais e seus processos hospedeiros; expanda um serviço para ver os processos de trabalho. Uso soma tempo de CPU, E/S e tempo de GPU por executável, incluindo aplicativos encerrados. Redefinir reinicia os totais de Uso.</value></data>
+  <data name="GuideCompactQuestion" xml:space="preserve"><value>Como mudar para a visualização compacta?</value></data>
+  <data name="GuideCompactAnswer" xml:space="preserve"><value>Use Vista compacta na barra de título para ver medidores sem gráfico nem painéis de atividade. Vista completa restaura o painel. Configurações &gt; Geral &gt; Exibição inicial controla a visualização ao iniciar.</value></data>
 </root>

@@ -16,7 +16,7 @@
     <value>À propos de WinMon</value>
   </data>
   <data name="AboutWinMonAndHardwareInformation" xml:space="preserve">
-    <value>À propos de WinMon et du matériel</value>
+    <value>Informations matérielles, guide des fonctions, version et mises à jour</value>
   </data>
   <data name="AccessDeniedWindowsDidNotAllowWinMonToEndThis" xml:space="preserve">
     <value>Accès refusé. Windows n’a pas autorisé l’arrêt du processus, ou celui-ci est déjà terminé.</value>
@@ -1041,7 +1041,7 @@ Le CPU non attribué est le total moins les processus mesurés : temps du noyau 
     <value>60 minutes</value>
   </data>
   <data name="VersionPlusCPUMemoryGraphicsVolumesAndNetworkHardware" xml:space="preserve">
-    <value>Version, CPU, mémoire, graphisme, volumes et matériel réseau</value>
+    <value>Informations matérielles, guide des fonctions, version et mises à jour</value>
   </data>
   <data name="Virtual" xml:space="preserve">
     <value> · Virtuel</value>
@@ -1686,4 +1686,20 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
   <data name="ConnectionsTcpStateDeleteTcb" xml:space="preserve"><value>Suppression</value></data>
   <data name="ConnectionsDetails" xml:space="preserve"><value>Détails de la connexion</value></data>
   <data name="ConnectionsCounts" xml:space="preserve"><value>{0} TCP · {1} UDP</value></data>
+  <data name="InfoHardware" xml:space="preserve"><value>Matériel</value></data>
+  <data name="InfoGuide" xml:space="preserve"><value>Guide</value></data>
+  <data name="InfoAbout" xml:space="preserve"><value>À propos</value></data>
+  <data name="InfoGuideTitle" xml:space="preserve"><value>Utiliser WinMon</value></data>
+  <data name="InfoGuideIntro" xml:space="preserve"><value>Développez un sujet pour découvrir les principales fonctions.</value></data>
+  <data name="InfoStoreUpdates" xml:space="preserve"><value>Les mises à jour sont gérées par Microsoft Store.</value></data>
+  <data name="GuideHistoryQuestion" xml:space="preserve"><value>Comment examiner un pic d’activité ?</value></data>
+  <data name="GuideHistoryAnswer" xml:space="preserve"><value>Les jauges affichent les valeurs actuelles et les pics sur deux minutes. Cliquez sur le graphique ou choisissez Capture pour examiner un intervalle enregistré ; la liste des processus le suit. Choisissez Direct pour revenir. La surveillance continue pendant l’examen.</value></data>
+  <data name="GuideProcessesQuestion" xml:space="preserve"><value>Comment trouver et épingler un processus ?</value></data>
+  <data name="GuideProcessesAnswer" xml:space="preserve"><value>Recherchez par nom ou PID. Groupés rassemble les processus du même exécutable. Utilisez l’épingle du processus ou son menu de ligne pour le garder en tête du classement. La recherche et Applications uniquement filtrent aussi les lignes épinglées.</value></data>
+  <data name="GuideExportQuestion" xml:space="preserve"><value>Comment capturer et exporter ?</value></data>
+  <data name="GuideExportAnswer" xml:space="preserve"><value>Dans Capture, Copier la capture copie l’instant sélectionné. En vue complète, Exporter enregistre l’historique des ressources, les échantillons de processus conservés ou les totaux d’Utilisation en CSV. Paramètres &gt; Captures automatiques peut enregistrer des rapports aux seuils configurés.</value></data>
+  <data name="GuideActivityQuestion" xml:space="preserve"><value>Que montrent Services et Utilisation ?</value></data>
+  <data name="GuideActivityAnswer" xml:space="preserve"><value>Services affiche les services locaux et leurs processus hôtes ; développez un service pour voir ses processus de travail. Utilisation totalise le temps CPU, les E/S et le temps GPU par exécutable, y compris les applications fermées. Réinitialiser recommence les totaux.</value></data>
+  <data name="GuideCompactQuestion" xml:space="preserve"><value>Comment passer en vue compacte ?</value></data>
+  <data name="GuideCompactAnswer" xml:space="preserve"><value>Utilisez Vue compacte dans la barre de titre pour afficher les jauges sans graphique ni panneaux d’activité. Vue complète rétablit le tableau de bord. Paramètres &gt; Général &gt; Vue au démarrage définit la vue de lancement.</value></data>
 </root>

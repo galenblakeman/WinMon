@@ -9,140 +9,116 @@ using WinMon.Monitoring;
 
 namespace WinMon.Controls;
 
-/// <summary>Shows the version and a hardware snapshot without interrupting live recording.</summary>
-internal sealed class HardwareInfoWindow : Window
+/// <summary>Hardware snapshot, task guide and product/update information.</summary>
+internal sealed partial class HardwareInfoWindow : Window
 {
-    private readonly StackPanel _sections = new();
-    private readonly Button _refresh = new() { Content = Strings.Refresh, MinWidth = 90 };
-
-    private readonly Button _copy = new()
-    {
-        Content = Strings.Copy, MinWidth = 90, Margin = new Thickness(8, 0, 0, 0), IsEnabled = false,
-        ToolTip = Strings.CopyAllInformationAsPlainText
-    };
-
     private readonly Action<string> _copyToClipboard;
-
-    private readonly TextBlock _note = new()
-    {
-        Text = Strings.SnapshotTakenWhenOpenedOrRefreshed, TextWrapping = TextWrapping.Wrap,
-        VerticalAlignment = VerticalAlignment.Center
-    };
-
     private string _snapshotText = "";
     private bool _closed;
+    private bool _checking;
+    private bool _updateBusy;
     private readonly TaskCompletionSource _ready = new(TaskCreationOptions.RunContinuationsAsynchronously);
     internal Task Ready => _ready.Task;
+    internal event Func<Task>? CheckForUpdatesRequested;
+    internal event Action? UpdateRequested;
 
     internal HardwareInfoWindow(Action<string>? copyToClipboard = null)
     {
+        InitializeComponent();
         _copyToClipboard = copyToClipboard ??
                            (text => Clipboard.SetDataObject(new DataObject(DataFormats.UnicodeText, text), true));
-        Title = Strings.AboutWinMon;
-        Width = 600;
-        Height = 650;
-        MinWidth = 420;
-        MinHeight = 350;
-        WindowStartupLocation = WindowStartupLocation.CenterOwner;
         WindowTheme.Attach(this);
-        SetResourceReference(BackgroundProperty, "Surface");
-        SetResourceReference(ForegroundProperty, "Text");
-        var layout = new DockPanel { Margin = new Thickness(24) };
-        var footer = new DockPanel { Margin = new Thickness(0, 16, 0, 0) };
-        var close = new Button
-            { Content = Strings.Close, IsCancel = true, MinWidth = 90, Margin = new Thickness(8, 0, 0, 0) };
-        ButtonIcon.SetData(close, ButtonIcon.Cancel);
-        ButtonIcon.SetData(_refresh, ButtonIcon.Live);
-        ButtonIcon.SetData(_copy, ButtonIcon.Copy);
-        close.Click += (_, _) => Close();
-        DockPanel.SetDock(close, Dock.Right);
-        footer.Children.Add(close);
-        DockPanel.SetDock(_copy, Dock.Right);
-        footer.Children.Add(_copy);
-        DockPanel.SetDock(_refresh, Dock.Right);
-        footer.Children.Add(_refresh);
-        _note.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
-        footer.Children.Add(_note);
-        AutomationProperties.SetName(_copy, Strings.CopyAllInformation);
-        _copy.Click += (_, _) => CopyInformation();
-        DockPanel.SetDock(footer, Dock.Bottom);
-        layout.Children.Add(footer);
-        var about = CreateAbout();
-        DockPanel.SetDock(about, Dock.Top);
-        layout.Children.Add(about);
-        layout.Children.Add(new ScrollViewer
-            { Content = _sections, VerticalScrollBarVisibility = ScrollBarVisibility.Auto });
-        var surface = new Border { Child = layout };
-        surface.SetResourceReference(Border.BackgroundProperty, "Surface");
-        Content = surface;
+        VersionText.Text = Strings.Format(Strings.ProductVersion, AppInfo.Version);
+        DescriptionText.Text = AppInfo.Description;
+        LicenseText.Text = Strings.Format(Strings.License, AppInfo.Copyright, AppInfo.License);
+        if (Uri.TryCreate(AppInfo.RepositoryUrl, UriKind.Absolute, out var repository))
+        {
+            RepositoryLink.NavigateUri = repository;
+            RepositoryLink.Inlines.Add(new Run(repository.ToString()));
+        }
+        if (!Updates.UpdatePolicy.GitHubUpdatesEnabled) CheckButton.Visibility = Visibility.Collapsed;
+        SetUpdateState(Strings.SettingsNotChecked, false);
         Loaded += async (_, _) => await RefreshAsync();
-        _refresh.Click += async (_, _) => await RefreshAsync();
         Closed += (_, _) => _closed = true;
     }
 
-    /// <summary>Version, copyright, license and source link, above the hardware sections.</summary>
-    private static StackPanel CreateAbout()
+    internal void SetUpdateState(string status, bool available, bool busy = false)
     {
-        var about = new StackPanel { Margin = new Thickness(0, 0, 0, 20) };
-        var heading = new TextBlock
-        {
-            Text = Strings.Format(Strings.ProductVersion, AppInfo.Version), FontSize = 16,
-            FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 6)
-        };
-        heading.SetResourceReference(TextBlock.ForegroundProperty, "Accent");
-        about.Children.Add(heading);
-        about.Children.Add(new TextBlock { Text = AppInfo.Description, TextWrapping = TextWrapping.Wrap });
-        var notice = new TextBlock
-        {
-            Text = Strings.Format(Strings.License, AppInfo.Copyright, AppInfo.License), TextWrapping = TextWrapping.Wrap
-        };
-        notice.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
-        about.Children.Add(notice);
-        if (!Uri.TryCreate(AppInfo.RepositoryUrl, UriKind.Absolute, out var repository)) return about;
-        var link = new Hyperlink(new Run(repository.ToString())) { NavigateUri = repository };
-        link.SetResourceReference(TextElement.ForegroundProperty, "Accent");
-        AutomationProperties.SetName(link, Strings.WinMonSourceCodeOnGitHub);
-        link.RequestNavigate += (_, e) =>
-        {
-            try
-            {
-                Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
-            }
-            catch (Exception ex) when (ex is Win32Exception or InvalidOperationException)
-            {
-                Trace.TraceWarning("Could not open {0}: {1}", e.Uri, ex.Message);
-            }
+        if (_closed) return;
+        UpdateStatusText.Text = Updates.UpdatePolicy.GitHubUpdatesEnabled ? status : Strings.InfoStoreUpdates;
+        UpdateButton.Visibility = available && Updates.UpdatePolicy.GitHubUpdatesEnabled
+            ? Visibility.Visible : Visibility.Collapsed;
+        _updateBusy = busy;
+        CheckButton.IsEnabled = !_checking && !busy;
+        UpdateButton.IsEnabled = !_checking && !busy;
+    }
 
-            e.Handled = true;
-        };
-        about.Children.Add(new TextBlock(link) { Margin = new Thickness(0, 2, 0, 0) });
-        return about;
+    private async void OnCheckForUpdates(object sender, RoutedEventArgs e) => await CheckForUpdatesAsync();
+
+    internal async Task CheckForUpdatesAsync()
+    {
+        if (!CheckButton.IsEnabled || !Updates.UpdatePolicy.GitHubUpdatesEnabled) return;
+        _checking = true;
+        CheckButton.IsEnabled = false;
+        UpdateButton.IsEnabled = false;
+        UpdateStatusText.Text = Strings.UpdateChecking;
+        try
+        {
+            if (CheckForUpdatesRequested is { } check) await check();
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex)
+        {
+            Trace.TraceWarning("WinMon Info update check: {0}", ex.Message);
+            if (!_closed) UpdateStatusText.Text = Strings.UpdateFailed;
+        }
+        finally
+        {
+            _checking = false;
+            CheckButton.IsEnabled = !_updateBusy;
+            UpdateButton.IsEnabled = !_updateBusy;
+        }
+    }
+
+    private void OnUpdate(object sender, RoutedEventArgs e)
+    {
+        if (!UpdateButton.IsEnabled || !Updates.UpdatePolicy.GitHubUpdatesEnabled) return;
+        Close();
+        UpdateRequested?.Invoke();
+    }
+
+    private void OnClose(object sender, RoutedEventArgs e) => Close();
+    private async void OnRefresh(object sender, RoutedEventArgs e) => await RefreshAsync();
+    private void OnCopy(object sender, RoutedEventArgs e) => CopyInformation();
+
+    private void OnRepositoryNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
+    {
+        try { Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true }); }
+        catch (Exception ex) when (ex is Win32Exception or InvalidOperationException)
+        {
+            Trace.TraceWarning("Could not open {0}: {1}", e.Uri, ex.Message);
+        }
+        e.Handled = true;
     }
 
     private async Task RefreshAsync()
     {
-        if (!_refresh.IsEnabled) return;
-        _refresh.IsEnabled = false;
-        _copy.IsEnabled = false;
-        _copy.Content = Strings.Copy;
+        if (!RefreshButton.IsEnabled) return;
+        RefreshButton.IsEnabled = false;
+        CopyButton.IsEnabled = false;
+        CopyButton.Content = Strings.Copy;
         _snapshotText = "";
-        _note.Text = Strings.ReadingHardwareInformation;
-        _sections.Children.Clear();
-        _sections.Children.Add(new TextBlock { Text = Strings.ReadingHardwareInformation });
+        SnapshotNote.Text = Strings.ReadingHardwareInformation;
+        Sections.Children.Clear();
+        Sections.Children.Add(new TextBlock { Text = Strings.ReadingHardwareInformation });
         try
         {
             var sections = await Task.Run(WindowsHardwareInfo.Read);
             var capturedAt = DateTimeOffset.Now;
             if (_closed) return;
-            _sections.Children.Clear();
+            Sections.Children.Clear();
             foreach (var section in sections)
             {
-                var heading = new TextBlock
-                {
-                    Text = section.Name, FontSize = 16, FontWeight = FontWeights.SemiBold,
-                    Margin = new Thickness(0, 0, 0, 6)
-                };
-                heading.SetResourceReference(TextBlock.ForegroundProperty, "Accent");
                 var details = new TextBox
                 {
                     Text = section.Details, IsReadOnly = true, TextWrapping = TextWrapping.Wrap,
@@ -151,8 +127,15 @@ internal sealed class HardwareInfoWindow : Window
                 details.SetResourceReference(BackgroundProperty, "Surface");
                 details.SetResourceReference(ForegroundProperty, "Text");
                 AutomationProperties.SetName(details, section.Name);
-                _sections.Children.Add(heading);
-                _sections.Children.Add(details);
+                var content = new StackPanel();
+                content.Children.Add(details);
+                var expander = new Expander
+                {
+                    Header = section.Name, Tag = section.Summary, Content = content,
+                    IsExpanded = section == sections[0]
+                };
+                AutomationProperties.SetHelpText(expander, section.Summary);
+                Sections.Children.Add(expander);
                 if (section.Items is not { Count: > 0 }) continue;
                 details.Margin = new Thickness(0, 0, 0, 8);
                 var items = new StackPanel { Margin = new Thickness(0, 0, 0, 20) };
@@ -173,43 +156,43 @@ internal sealed class HardwareInfoWindow : Window
                     items.Children.Add(text);
                 }
 
-                _sections.Children.Add(items);
+                content.Children.Add(items);
             }
 
             _snapshotText = HardwareInfoText.Format(sections, capturedAt);
-            _note.Text = Strings.Format(Strings.HardwareSnapshotTime, capturedAt);
-            _copy.IsEnabled = true;
+            SnapshotNote.Text = Strings.Format(Strings.HardwareSnapshotTime, capturedAt);
+            CopyButton.IsEnabled = true;
         }
         catch (Exception ex)
         {
             Trace.TraceError("Hardware information failed: {0}", ex);
             if (!_closed)
             {
-                _sections.Children.Clear();
-                _note.Text = Strings.SnapshotUnavailableTryRefresh;
-                _sections.Children.Add(new TextBlock
+                Sections.Children.Clear();
+                SnapshotNote.Text = Strings.SnapshotUnavailableTryRefresh;
+                Sections.Children.Add(new TextBlock
                     { Text = Strings.HardwareInformationCouldNotBeReadTryRefresh, TextWrapping = TextWrapping.Wrap });
             }
         }
         finally
         {
-            _refresh.IsEnabled = true;
+            RefreshButton.IsEnabled = true;
             _ready.TrySetResult();
         }
     }
 
     private void CopyInformation()
     {
-        if (!_copy.IsEnabled || _snapshotText.Length == 0) return;
+        if (!CopyButton.IsEnabled || _snapshotText.Length == 0) return;
         try
         {
             _copyToClipboard(_snapshotText);
-            _copy.Content = Strings.Copied;
+            CopyButton.Content = Strings.Copied;
         }
         catch (ExternalException ex)
         {
             Trace.TraceWarning("Could not copy hardware information: {0}", ex.Message);
-            _copy.Content = Strings.Copy;
+            CopyButton.Content = Strings.Copy;
             MessageDialog.ShowNotice(this, Strings.TheClipboardIsUnavailableTryCopyAgain, Strings.CopyInformation);
         }
     }

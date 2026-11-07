@@ -192,7 +192,9 @@ Settings → Monitoring → **Network interface** defaults to Automatic and show
 
 Choose **Windows display language** or select English, Simplified Chinese, Russian, Spanish, Brazilian Portuguese, German, Japanese, French, Polish or Korean in Settings. Language changes apply when you save.
 
-Need a hardware overview? **Info** brings together CPU, RAM, graphics adapters, physical drives, local volumes and network adapters. Expand the details or copy the report to share when troubleshooting.
+**Info** has three tabs: **Hardware**, **Guide**, and **About**. Hardware brings together CPU, motherboard, RAM, graphics adapters, physical drives, local volumes and network adapters in expandable sections. Collapsed headers show a short summary on the right; expand them for the full details. Refresh the snapshot or copy the complete report, including collapsed details, for troubleshooting. Guide provides expandable help for inspecting history, finding and pinning processes, captures and CSV export, Services and Usage, and Compact view. Monitoring continues while Info is open.
+
+About shows the installed version, copyright, MIT license and GitHub source link. Keyboard focus stays in Info while process rankings refresh, including when the source link is focused. Installer and portable builds share the existing update checker: **Check for updates** reports the result here, and **Update now** appears when an update is available. Updating closes Info and uses the main window’s existing download, cancel and restart flow. Microsoft Store builds show that updates are Store-managed and offer no GitHub update actions.
 
 ## Light on your system
 

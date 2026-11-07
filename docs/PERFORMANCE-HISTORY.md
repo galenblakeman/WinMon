@@ -25,6 +25,27 @@ Each build produced one stable pixel hash across its four runs. The hashes diffe
 
 Raw reports: `artifacts/connections/{baseline,changed}-{1..4}.json`, `comparison.json`, and `source/artifacts/verify/20261107-123049/connections/`. Baseline assembly SHA-256: `3CA0A8108452181E4F9F8766BE56D4D6E25C7A2BCBD43A23DE7A7782C115C3BC`; measured Connections assembly: `C9A607B4400555B35BDADCC7C4DE42C6D5459B07577AD25B43B16D620594C725`. UI measurements exclude native collection and the WPF render thread.
 
+## Tabbed Info (November 7, 2026)
+
+Release UI benchmark on .NET 10.0.14, SDK 10.0.403. Four alternating baseline/changed pairs used preserved binaries. Values below are medians of the four reports' seven-batch medians. The baseline preserves the pending working tree before the Info changes, rather than a clean `main`. Info remains closed during these dashboard scenarios; its hardware collection and expandable rows are on demand, outside sampling.
+
+| Scenario | Before | After | Allocation before / after |
+| --- | ---: | ---: | ---: |
+| Live overlay | 4.16 ms | 4.06 ms | 586.74 / 586.75 KiB |
+| Small multiples | 2.76 ms | 2.83 ms | 558.35 / 558.35 KiB |
+| Focus | 2.92 ms | 2.83 ms | 572.65 / 572.65 KiB |
+| Historical | 1.02 ms | 1.01 ms | 174.10 / 174.10 KiB |
+| Services live | 6.00 ms | 5.77 ms | 980.19 / 980.24 KiB |
+| Compact live | 1.64 ms | 1.51 ms | 362.38 / 362.38 KiB |
+
+Core allocations are unchanged or nearly identical. Ten of thirteen rendered scenarios produced one pixel hash across all eight runs. Compact and logical-processors scenarios each had two baseline variants; their single changed-build hash also appeared in the baseline. The Connections scenario had different changed-build pixels and 680.73 / 829.71 KiB allocated per frame. Connections source and fixtures were being edited independently between the preserved builds, so that comparison does not isolate the Info change and cannot establish its cause.
+
+Timing is **inconclusive under concurrent activity**: a separate benchmark was observed running from `artifacts/connections/source/artifacts/verify/build/` during the early pairs. The Info change does not add work to sampling or frame refresh. A quiet-machine timing conclusion and an isolated Connections comparison remain unverified.
+
+The final saved standard build passed `Verify.ps1 -Smoke feature` (989 tests); the Store build passed `Verify.ps1 -Store -Smoke feature` (991 tests). Both produced 106 feature renders, with zero build warnings/errors. Info tabs, all five Guide topics, expanded hardware details, Dark/Light styling, minimum-size scrolling and the Store-managed About state were visually inspected. Update actions were exercised with callbacks; a real signed download/restart was not performed.
+
+Raw reports: `artifacts/info-perf/{baseline,changed}-{1..4}.json`, `comparison.json` and `Compare.ps1`. Baseline assembly SHA-256: `657B1D00A86BA1697A4E475B0C41765F14AF86231893AA22CEEA549DABEB9527`; changed: `0F302E5AF7B00738D74E5A2BDCC4B6502403A456D53BE6D027DA06C7486B7E52`. These checks certify the saved binaries; unrelated pending edits were preserved.
+
 ## Full-width section headers (November 7, 2026)
 
 Release UI benchmark on .NET 10.0.14, SDK 10.0.403. Four alternating baseline/header-fix pairs used preserved binaries. Values are medians of the four runs' seven-batch medians. The patch replaces negative-margin header overflow with a full-width main grid and activity-view gutter columns.

@@ -16,7 +16,7 @@
     <value>关于 WinMon</value>
   </data>
   <data name="AboutWinMonAndHardwareInformation" xml:space="preserve">
-    <value>关于 WinMon 和硬件信息</value>
+    <value>硬件信息、功能指南、版本和更新</value>
   </data>
   <data name="AccessDeniedWindowsDidNotAllowWinMonToEndThis" xml:space="preserve">
     <value>访问被拒绝。Windows 不允许 WinMon 结束此进程，或进程已退出。</value>
@@ -1041,7 +1041,7 @@ GPU 利用率 0–{1:0.0}%</value>
     <value>60 分钟</value>
   </data>
   <data name="VersionPlusCPUMemoryGraphicsVolumesAndNetworkHardware" xml:space="preserve">
-    <value>版本及 CPU、内存、图形、卷和网络硬件</value>
+    <value>硬件信息、功能指南、版本和更新</value>
   </data>
   <data name="Virtual" xml:space="preserve">
     <value> · 虚拟</value>
@@ -1686,4 +1686,20 @@ Windows 健康状态：{2}</value>
   <data name="ConnectionsTcpStateDeleteTcb" xml:space="preserve"><value>正在删除</value></data>
   <data name="ConnectionsDetails" xml:space="preserve"><value>连接详细信息</value></data>
   <data name="ConnectionsCounts" xml:space="preserve"><value>TCP {0} · UDP {1}</value></data>
+  <data name="InfoHardware" xml:space="preserve"><value>硬件</value></data>
+  <data name="InfoGuide" xml:space="preserve"><value>指南</value></data>
+  <data name="InfoAbout" xml:space="preserve"><value>关于</value></data>
+  <data name="InfoGuideTitle" xml:space="preserve"><value>使用 WinMon</value></data>
+  <data name="InfoGuideIntro" xml:space="preserve"><value>展开主题，了解主要功能的用法。</value></data>
+  <data name="InfoStoreUpdates" xml:space="preserve"><value>更新由 Microsoft Store 管理。</value></data>
+  <data name="GuideHistoryQuestion" xml:space="preserve"><value>如何调查使用量峰值？</value></data>
+  <data name="GuideHistoryAnswer" xml:space="preserve"><value>仪表显示当前读数和最近两分钟的峰值。点击图表或选择捕获以检查已记录的时间段，进程列表会跟随该时间段。选择实时即可返回。检查期间监控会继续运行。</value></data>
+  <data name="GuideProcessesQuestion" xml:space="preserve"><value>如何查找并固定进程？</value></data>
+  <data name="GuideProcessesAnswer" xml:space="preserve"><value>按名称或 PID 搜索。分组会合并同一可执行文件的进程。使用进程旁的固定按钮或行菜单将其置于排名上方。搜索和仅应用筛选也会作用于固定行。</value></data>
+  <data name="GuideExportQuestion" xml:space="preserve"><value>如何捕获和导出？</value></data>
+  <data name="GuideExportAnswer" xml:space="preserve"><value>在捕获模式下，复制捕获会复制所选时刻。在完整视图中，导出可将资源历史、保留的进程样本或使用情况总计保存为 CSV。设置 &gt; 自动捕获可在达到配置的阈值时保存报告。</value></data>
+  <data name="GuideActivityQuestion" xml:space="preserve"><value>服务和使用情况显示什么？</value></data>
+  <data name="GuideActivityAnswer" xml:space="preserve"><value>服务显示本地服务及其宿主进程，展开服务可查看工作进程。使用情况按可执行文件累计 CPU 时间、I/O 和 GPU 时间，包括已退出的应用。重置会重新开始累计使用情况。</value></data>
+  <data name="GuideCompactQuestion" xml:space="preserve"><value>如何切换到紧凑视图？</value></data>
+  <data name="GuideCompactAnswer" xml:space="preserve"><value>使用标题栏的紧凑视图，仅显示仪表，隐藏图表和活动面板。完整视图可恢复仪表板。设置 &gt; 常规 &gt; 启动视图决定启动时显示的视图。</value></data>
 </root>

@@ -16,7 +16,7 @@
     <value>Acerca de WinMon</value>
   </data>
   <data name="AboutWinMonAndHardwareInformation" xml:space="preserve">
-    <value>Acerca de WinMon e información del hardware</value>
+    <value>Información de hardware, guía de funciones, versión y actualizaciones</value>
   </data>
   <data name="AccessDeniedWindowsDidNotAllowWinMonToEndThis" xml:space="preserve">
     <value>Acceso denegado. Windows no ha permitido finalizar el proceso o este ya ha terminado.</value>
@@ -1041,7 +1041,7 @@ La CPU sin atribuir es el total menos todos los procesos medidos: tiempo de núc
     <value>60 minutos</value>
   </data>
   <data name="VersionPlusCPUMemoryGraphicsVolumesAndNetworkHardware" xml:space="preserve">
-    <value>Versión, CPU, memoria, gráficos, volúmenes y hardware de red</value>
+    <value>Información de hardware, guía de funciones, versión y actualizaciones</value>
   </data>
   <data name="Virtual" xml:space="preserve">
     <value> · Virtual</value>
@@ -1686,4 +1686,20 @@ Se puede perder el trabajo sin guardar. Se finalizarán todos los procesos indic
   <data name="ConnectionsTcpStateDeleteTcb" xml:space="preserve"><value>Eliminando</value></data>
   <data name="ConnectionsDetails" xml:space="preserve"><value>Detalles de conexión</value></data>
   <data name="ConnectionsCounts" xml:space="preserve"><value>{0} TCP · {1} UDP</value></data>
+  <data name="InfoHardware" xml:space="preserve"><value>Hardware</value></data>
+  <data name="InfoGuide" xml:space="preserve"><value>Guía</value></data>
+  <data name="InfoAbout" xml:space="preserve"><value>Acerca de</value></data>
+  <data name="InfoGuideTitle" xml:space="preserve"><value>Uso de WinMon</value></data>
+  <data name="InfoGuideIntro" xml:space="preserve"><value>Despliegue un tema para conocer las funciones principales.</value></data>
+  <data name="InfoStoreUpdates" xml:space="preserve"><value>Microsoft Store administra las actualizaciones.</value></data>
+  <data name="GuideHistoryQuestion" xml:space="preserve"><value>¿Cómo investigo un pico de actividad?</value></data>
+  <data name="GuideHistoryAnswer" xml:space="preserve"><value>Los indicadores muestran lecturas actuales y máximos de dos minutos. Haga clic en el gráfico o elija Captura para inspeccionar un intervalo grabado; la lista de procesos lo seguirá. Elija En vivo para volver. La supervisión continúa durante la inspección.</value></data>
+  <data name="GuideProcessesQuestion" xml:space="preserve"><value>¿Cómo encuentro y fijo un proceso?</value></data>
+  <data name="GuideProcessesAnswer" xml:space="preserve"><value>Busque por nombre o PID. Agrupados combina procesos del mismo ejecutable. Use la chincheta junto al proceso o su menú de fila para mantenerlo sobre la clasificación. La búsqueda y Solo aplicaciones también filtran las filas fijadas.</value></data>
+  <data name="GuideExportQuestion" xml:space="preserve"><value>¿Cómo capturo y exporto?</value></data>
+  <data name="GuideExportAnswer" xml:space="preserve"><value>En Captura, Copiar captura copia el momento seleccionado. En la vista completa, Exportar guarda el historial de recursos, las muestras de procesos conservadas o los totales de Uso como CSV. Configuración &gt; Capturas automáticas puede guardar informes al alcanzar los umbrales configurados.</value></data>
+  <data name="GuideActivityQuestion" xml:space="preserve"><value>¿Qué muestran Servicios y Uso?</value></data>
+  <data name="GuideActivityAnswer" xml:space="preserve"><value>Servicios muestra los servicios locales y sus procesos anfitriones; despliegue un servicio para ver sus trabajadores. Uso suma tiempo de CPU, E/S y tiempo de GPU por ejecutable, incluidas las aplicaciones cerradas. Restablecer reinicia los totales de Uso.</value></data>
+  <data name="GuideCompactQuestion" xml:space="preserve"><value>¿Cómo cambio a la vista compacta?</value></data>
+  <data name="GuideCompactAnswer" xml:space="preserve"><value>Use Vista compacta en la barra de título para ver indicadores sin el gráfico ni los paneles de actividad. Vista completa restaura el panel. Configuración &gt; General &gt; Vista al iniciar controla la vista al iniciar.</value></data>
 </root>

@@ -16,7 +16,7 @@
     <value>Über WinMon</value>
   </data>
   <data name="AboutWinMonAndHardwareInformation" xml:space="preserve">
-    <value>Über WinMon und Hardwareinformationen</value>
+    <value>Hardwareinformationen, Funktionsanleitung, Version und Updates</value>
   </data>
   <data name="AccessDeniedWindowsDidNotAllowWinMonToEndThis" xml:space="preserve">
     <value>Zugriff verweigert. Windows erlaubt das Beenden nicht, oder der Prozess wurde bereits beendet.</value>
@@ -1041,7 +1041,7 @@ Nicht zugeordnete CPU ist die Gesamt-CPU abzüglich aller gemessenen Prozesse: K
     <value>60 Minuten</value>
   </data>
   <data name="VersionPlusCPUMemoryGraphicsVolumesAndNetworkHardware" xml:space="preserve">
-    <value>Version sowie CPU, Speicher, Grafik, Volumes und Netzwerkhardware</value>
+    <value>Hardwareinformationen, Funktionsanleitung, Version und Updates</value>
   </data>
   <data name="Virtual" xml:space="preserve">
     <value> · Virtuell</value>
@@ -1686,4 +1686,20 @@ Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse
   <data name="ConnectionsTcpStateDeleteTcb" xml:space="preserve"><value>Wird gelöscht</value></data>
   <data name="ConnectionsDetails" xml:space="preserve"><value>Verbindungsdetails</value></data>
   <data name="ConnectionsCounts" xml:space="preserve"><value>{0} TCP · {1} UDP</value></data>
+  <data name="InfoHardware" xml:space="preserve"><value>Hardware</value></data>
+  <data name="InfoGuide" xml:space="preserve"><value>Anleitung</value></data>
+  <data name="InfoAbout" xml:space="preserve"><value>Über</value></data>
+  <data name="InfoGuideTitle" xml:space="preserve"><value>WinMon verwenden</value></data>
+  <data name="InfoGuideIntro" xml:space="preserve"><value>Klappen Sie ein Thema auf, um die Hauptfunktionen kennenzulernen.</value></data>
+  <data name="InfoStoreUpdates" xml:space="preserve"><value>Updates werden vom Microsoft Store verwaltet.</value></data>
+  <data name="GuideHistoryQuestion" xml:space="preserve"><value>Wie untersuche ich eine Lastspitze?</value></data>
+  <data name="GuideHistoryAnswer" xml:space="preserve"><value>Anzeigen zeigen aktuelle Werte und Spitzen der letzten zwei Minuten. Klicken Sie auf das Diagramm oder wählen Sie Aufnahme, um ein aufgezeichnetes Intervall zu prüfen; die Prozessliste folgt ihm. Live kehrt zur Echtzeitansicht zurück. Die Überwachung läuft weiter.</value></data>
+  <data name="GuideProcessesQuestion" xml:space="preserve"><value>Wie finde und fixiere ich einen Prozess?</value></data>
+  <data name="GuideProcessesAnswer" xml:space="preserve"><value>Suchen Sie nach Name oder PID. Gruppiert fasst Prozesse derselben Programmdatei zusammen. Fixieren Sie Prozesse über das Stecknadelsymbol oder das Zeilenmenü über der Rangliste. Suche und Nur Apps filtern auch fixierte Zeilen.</value></data>
+  <data name="GuideExportQuestion" xml:space="preserve"><value>Wie erfasse und exportiere ich Daten?</value></data>
+  <data name="GuideExportAnswer" xml:space="preserve"><value>In der Aufnahme kopiert Aufnahme kopieren den gewählten Zeitpunkt. In der Vollansicht speichert Exportieren Ressourcenverlauf, gespeicherte Prozessmesswerte oder Nutzungssummen als CSV. Einstellungen &gt; Automatische Aufnahmen kann bei konfigurierten Schwellenwerten Berichte speichern.</value></data>
+  <data name="GuideActivityQuestion" xml:space="preserve"><value>Was zeigen Dienste und Nutzung?</value></data>
+  <data name="GuideActivityAnswer" xml:space="preserve"><value>Dienste zeigt lokale Dienste und ihre Hostprozesse; klappen Sie einen Dienst für seine Arbeitsprozesse auf. Nutzung summiert CPU-Zeit, E/A und GPU-Zeit je Programmdatei, auch für beendete Apps. Zurücksetzen beginnt die Nutzungssummen neu.</value></data>
+  <data name="GuideCompactQuestion" xml:space="preserve"><value>Wie wechsle ich zur Kompaktansicht?</value></data>
+  <data name="GuideCompactAnswer" xml:space="preserve"><value>Kompaktansicht in der Titelleiste zeigt Anzeigen ohne Diagramm und Aktivitätsbereiche. Vollansicht stellt das Dashboard wieder her. Einstellungen &gt; Allgemein &gt; Startansicht bestimmt die Ansicht beim Start.</value></data>
 </root>

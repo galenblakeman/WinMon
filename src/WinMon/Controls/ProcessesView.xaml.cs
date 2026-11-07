@@ -646,13 +646,13 @@ public partial class ProcessesView
         var current = new Dictionary<ProcessRow, int>(_rows.Count);
         for (var i = 0; i < _rows.Count; i++) current[_rows[i]] = i;
         var staying = LongestIncreasingRun([.. order.Select(row => current[row])]);
-        var focused = Keyboard.FocusedElement as DependencyObject;
+        var focused = Keyboard.FocusedElement;
         IInputElement? refocus = null;
         for (var i = 0; i < order.Length; i++)
         {
             if (staying[i]) continue;
-            if (focused is not null && (order[i] == focused || order[i].IsAncestorOf(focused)))
-                refocus = focused as IInputElement;
+            if (order[i].IsKeyboardFocusWithin)
+                refocus = focused;
             ProcessRows.Children.Remove(order[i]);
         }
 

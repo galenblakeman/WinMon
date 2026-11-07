@@ -16,7 +16,7 @@
     <value>About WinMon</value>
   </data>
   <data name="AboutWinMonAndHardwareInformation" xml:space="preserve">
-    <value>About WinMon and hardware information</value>
+    <value>Hardware information, functionality guide, version and updates</value>
   </data>
   <data name="AccessDeniedWindowsDidNotAllowWinMonToEndThis" xml:space="preserve">
     <value>Access denied. Windows did not allow WinMon to end this process, or it has already exited.</value>
@@ -1041,7 +1041,7 @@ Unattributed CPU is total CPU minus all measured processes: kernel and interrupt
     <value>60 minutes</value>
   </data>
   <data name="VersionPlusCPUMemoryGraphicsVolumesAndNetworkHardware" xml:space="preserve">
-    <value>Version, plus CPU, memory, graphics, volumes and network hardware</value>
+    <value>Hardware information, functionality guide, version and updates</value>
   </data>
   <data name="Virtual" xml:space="preserve">
     <value> · Virtual</value>
@@ -1686,4 +1686,20 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="ConnectionsTcpStateDeleteTcb" xml:space="preserve"><value>Deleting</value></data>
   <data name="ConnectionsDetails" xml:space="preserve"><value>Connection details</value></data>
   <data name="ConnectionsCounts" xml:space="preserve"><value>{0} TCP · {1} UDP</value></data>
+  <data name="InfoHardware" xml:space="preserve"><value>Hardware</value></data>
+  <data name="InfoGuide" xml:space="preserve"><value>Guide</value></data>
+  <data name="InfoAbout" xml:space="preserve"><value>About</value></data>
+  <data name="InfoGuideTitle" xml:space="preserve"><value>Using WinMon</value></data>
+  <data name="InfoGuideIntro" xml:space="preserve"><value>Expand a topic to learn how to use the main features.</value></data>
+  <data name="InfoStoreUpdates" xml:space="preserve"><value>Updates are managed by Microsoft Store.</value></data>
+  <data name="GuideHistoryQuestion" xml:space="preserve"><value>How do I investigate a spike?</value></data>
+  <data name="GuideHistoryAnswer" xml:space="preserve"><value>Gauges show current readings and two-minute peaks. Click the chart or choose Capture to inspect a recorded interval; the process list follows it. Choose Live to return. Monitoring continues during inspection.</value></data>
+  <data name="GuideProcessesQuestion" xml:space="preserve"><value>How do I find and pin a process?</value></data>
+  <data name="GuideProcessesAnswer" xml:space="preserve"><value>Search by name or PID. Grouped combines processes from the same executable. Use the pin beside a process or its row menu to keep it above the rankings. Search and App only still filter pinned rows.</value></data>
+  <data name="GuideExportQuestion" xml:space="preserve"><value>How do I capture and export?</value></data>
+  <data name="GuideExportAnswer" xml:space="preserve"><value>In Capture, Copy capture copies the selected moment. In Full view, Export saves resource history, retained process samples or Usage totals as CSV. Settings &gt; Automatic captures can save reports when configured thresholds are reached.</value></data>
+  <data name="GuideActivityQuestion" xml:space="preserve"><value>What do Services and Usage show?</value></data>
+  <data name="GuideActivityAnswer" xml:space="preserve"><value>Services shows local services and their hosting processes; expand a service to see workers. Usage totals CPU time, I/O and GPU time by executable, including exited apps. Reset starts Usage totals again.</value></data>
+  <data name="GuideCompactQuestion" xml:space="preserve"><value>How do I switch to Compact view?</value></data>
+  <data name="GuideCompactAnswer" xml:space="preserve"><value>Use Compact view in the title bar for gauges without the chart and activity panels. Full view restores the dashboard. Settings &gt; General &gt; Startup view controls which view opens at launch.</value></data>
 </root>

@@ -7,6 +7,15 @@ namespace WinMon.Tests;
 [TestFixture]
 public sealed class HardwareInfoTextTests
 {
+    [TestCase("CPU model\nMore details", "CPU model")]
+    [TestCase("\r\n Installed: 32 GiB \r\nTwo modules", "Installed: 32 GiB")]
+    [TestCase("Unavailable", "Unavailable")]
+    [TestCase("", "")]
+    public void SectionSummary_UsesFirstNonemptySnapshotLine(string details, string expected)
+    {
+        Assert.That(new WindowsHardwareInfo.Section("Hardware", details).Summary, Is.EqualTo(expected));
+    }
+
     [Test]
     public void Format_IncludesProductSnapshotAndAllHardwareDetails()
     {

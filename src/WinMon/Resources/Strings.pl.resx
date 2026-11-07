@@ -16,7 +16,7 @@
     <value>O WinMon</value>
   </data>
   <data name="AboutWinMonAndHardwareInformation" xml:space="preserve">
-    <value>O WinMon i informacje o sprzęcie</value>
+    <value>Informacje o sprzęcie, poradnik funkcji, wersja i aktualizacje</value>
   </data>
   <data name="AccessDeniedWindowsDidNotAllowWinMonToEndThis" xml:space="preserve">
     <value>Odmowa dostępu. Windows nie zezwolił na zakończenie procesu lub proces już się zakończył.</value>
@@ -1041,7 +1041,7 @@ Nieprzypisane CPU to całość minus zmierzone procesy: czas jądra i przerwań,
     <value>60 minut</value>
   </data>
   <data name="VersionPlusCPUMemoryGraphicsVolumesAndNetworkHardware" xml:space="preserve">
-    <value>Wersja, CPU, pamięć, grafika, woluminy i sprzęt sieciowy</value>
+    <value>Informacje o sprzęcie, poradnik funkcji, wersja i aktualizacje</value>
   </data>
   <data name="Virtual" xml:space="preserve">
     <value> · Wirtualny</value>
@@ -1686,4 +1686,20 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
   <data name="ConnectionsTcpStateDeleteTcb" xml:space="preserve"><value>Usuwanie</value></data>
   <data name="ConnectionsDetails" xml:space="preserve"><value>Szczegóły połączenia</value></data>
   <data name="ConnectionsCounts" xml:space="preserve"><value>TCP {0} · UDP {1}</value></data>
+  <data name="InfoHardware" xml:space="preserve"><value>Sprzęt</value></data>
+  <data name="InfoGuide" xml:space="preserve"><value>Poradnik</value></data>
+  <data name="InfoAbout" xml:space="preserve"><value>O programie</value></data>
+  <data name="InfoGuideTitle" xml:space="preserve"><value>Korzystanie z WinMon</value></data>
+  <data name="InfoGuideIntro" xml:space="preserve"><value>Rozwiń temat, aby poznać główne funkcje.</value></data>
+  <data name="InfoStoreUpdates" xml:space="preserve"><value>Aktualizacjami zarządza Microsoft Store.</value></data>
+  <data name="GuideHistoryQuestion" xml:space="preserve"><value>Jak zbadać skok obciążenia?</value></data>
+  <data name="GuideHistoryAnswer" xml:space="preserve"><value>Wskaźniki pokazują bieżące wartości i szczyty z dwóch minut. Kliknij wykres lub wybierz Przechwycenie, aby sprawdzić zapisany przedział; lista procesów podąża za nim. Wybierz Na żywo, aby wrócić. Monitorowanie trwa podczas przeglądania.</value></data>
+  <data name="GuideProcessesQuestion" xml:space="preserve"><value>Jak znaleźć i przypiąć proces?</value></data>
+  <data name="GuideProcessesAnswer" xml:space="preserve"><value>Szukaj według nazwy lub PID. Grupowanie łączy procesy tego samego pliku wykonywalnego. Użyj pinezki obok procesu lub menu wiersza, aby zachować go nad rankingiem. Wyszukiwanie i Tylko aplikacje filtrują także przypięte wiersze.</value></data>
+  <data name="GuideExportQuestion" xml:space="preserve"><value>Jak przechwytywać i eksportować?</value></data>
+  <data name="GuideExportAnswer" xml:space="preserve"><value>W trybie Przechwycenie opcja Kopiuj przechwycenie kopiuje wybraną chwilę. W pełnym widoku Eksport zapisuje historię zasobów, zachowane próbki procesów lub sumy Użycia jako CSV. Ustawienia &gt; Automatyczne przechwycenia pozwala zapisywać raporty po osiągnięciu ustawionych progów.</value></data>
+  <data name="GuideActivityQuestion" xml:space="preserve"><value>Co pokazują Usługi i Użycie?</value></data>
+  <data name="GuideActivityAnswer" xml:space="preserve"><value>Usługi pokazują lokalne usługi i ich procesy hosta; rozwiń usługę, aby zobaczyć procesy robocze. Użycie sumuje czas CPU, we/wy i czas GPU według pliku wykonywalnego, także dla zamkniętych aplikacji. Resetuj rozpoczyna sumowanie od nowa.</value></data>
+  <data name="GuideCompactQuestion" xml:space="preserve"><value>Jak przełączyć na widok kompaktowy?</value></data>
+  <data name="GuideCompactAnswer" xml:space="preserve"><value>Widok kompaktowy na pasku tytułu pokazuje wskaźniki bez wykresu i paneli aktywności. Pełny widok przywraca pulpit. Ustawienia &gt; Ogólne &gt; Widok startowy określa widok po uruchomieniu.</value></data>
 </root>

@@ -16,7 +16,7 @@
     <value>О WinMon</value>
   </data>
   <data name="AboutWinMonAndHardwareInformation" xml:space="preserve">
-    <value>О WinMon и сведения об оборудовании</value>
+    <value>Сведения об оборудовании, руководство по функциям, версия и обновления</value>
   </data>
   <data name="AccessDeniedWindowsDidNotAllowWinMonToEndThis" xml:space="preserve">
     <value>Доступ запрещён. Windows не разрешила WinMon завершить процесс, либо он уже завершён.</value>
@@ -1041,7 +1041,7 @@ GPU {11} · {12}
     <value>60 минут</value>
   </data>
   <data name="VersionPlusCPUMemoryGraphicsVolumesAndNetworkHardware" xml:space="preserve">
-    <value>Версия, CPU, память, графика, тома и сетевое оборудование</value>
+    <value>Сведения об оборудовании, руководство по функциям, версия и обновления</value>
   </data>
   <data name="Virtual" xml:space="preserve">
     <value> · Виртуальный</value>
@@ -1686,4 +1686,20 @@ GPU {11} · {12}
   <data name="ConnectionsTcpStateDeleteTcb" xml:space="preserve"><value>Удаление</value></data>
   <data name="ConnectionsDetails" xml:space="preserve"><value>Сведения о подключении</value></data>
   <data name="ConnectionsCounts" xml:space="preserve"><value>TCP {0} · UDP {1}</value></data>
+  <data name="InfoHardware" xml:space="preserve"><value>Оборудование</value></data>
+  <data name="InfoGuide" xml:space="preserve"><value>Руководство</value></data>
+  <data name="InfoAbout" xml:space="preserve"><value>О программе</value></data>
+  <data name="InfoGuideTitle" xml:space="preserve"><value>Использование WinMon</value></data>
+  <data name="InfoGuideIntro" xml:space="preserve"><value>Разверните тему, чтобы узнать об основных функциях.</value></data>
+  <data name="InfoStoreUpdates" xml:space="preserve"><value>Обновлениями управляет Microsoft Store.</value></data>
+  <data name="GuideHistoryQuestion" xml:space="preserve"><value>Как исследовать скачок нагрузки?</value></data>
+  <data name="GuideHistoryAnswer" xml:space="preserve"><value>Индикаторы показывают текущие значения и пики за две минуты. Щёлкните график или выберите Захват для просмотра записанного интервала; список процессов следует за ним. Выберите Онлайн для возврата. Мониторинг продолжается во время просмотра.</value></data>
+  <data name="GuideProcessesQuestion" xml:space="preserve"><value>Как найти и закрепить процесс?</value></data>
+  <data name="GuideProcessesAnswer" xml:space="preserve"><value>Ищите по имени или PID. Группировка объединяет процессы одного исполняемого файла. Кнопка закрепления у процесса или меню строки оставляет его над рейтингом. Поиск и Только приложения фильтруют и закреплённые строки.</value></data>
+  <data name="GuideExportQuestion" xml:space="preserve"><value>Как делать снимки и экспортировать данные?</value></data>
+  <data name="GuideExportAnswer" xml:space="preserve"><value>В режиме Захват команда Копировать захват копирует выбранный момент. В полном виде Экспорт сохраняет историю ресурсов, сохранённые образцы процессов или итоги Использования в CSV. Настройки &gt; Автоматические захваты позволяет сохранять отчёты при достижении заданных порогов.</value></data>
+  <data name="GuideActivityQuestion" xml:space="preserve"><value>Что показывают Службы и Использование?</value></data>
+  <data name="GuideActivityAnswer" xml:space="preserve"><value>Службы показывает локальные службы и их процессы-хосты; разверните службу для просмотра рабочих процессов. Использование суммирует время CPU, ввод-вывод и время GPU по исполняемому файлу, включая завершённые приложения. Сброс начинает подсчёт заново.</value></data>
+  <data name="GuideCompactQuestion" xml:space="preserve"><value>Как перейти в компактный вид?</value></data>
+  <data name="GuideCompactAnswer" xml:space="preserve"><value>Компактный вид в заголовке показывает индикаторы без графика и панелей активности. Полный вид возвращает панель. Настройки &gt; Общие &gt; Вид при запуске задаёт начальный вид.</value></data>
 </root>

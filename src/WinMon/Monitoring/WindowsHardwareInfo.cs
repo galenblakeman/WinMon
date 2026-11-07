@@ -11,6 +11,9 @@ internal static class WindowsHardwareInfo
 
     internal sealed record Section(string Name, string Details, IReadOnlyList<Detail>? Items, string DetailHeading)
     {
+        internal string Summary => Details.Split(['\r', '\n'],
+            StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "";
+
         public Section(string Name, string Details, IReadOnlyList<Detail>? Items = null)
             : this(Name, Details, Items, Strings.Details)
         {
