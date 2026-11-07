@@ -35,7 +35,7 @@ public static class ButtonIcon
     public static Geometry Compact { get; } = Create("M 2,3 L 14,3 L 14,13 L 2,13 Z M 2,7 L 14,7");
     public static Geometry ChevronUp { get; } = Create("M 3,10 L 8,5 L 13,10");
     public static Geometry ChevronDown { get; } = Create("M 3,6 L 8,11 L 13,6");
-    public static Geometry Peak { get; } = Create("M 2,12 L 8,5 L 14,12 M 4,3 L 12,3");
+    public static Geometry Peak { get; } = Create("M 2,13 A 6,6 0 0 1 14,13 M 9.25,10.83 L 11.75,6.5");
 
     public static Geometry Expand { get; } =
         Create("M 2,6 L 2,2 L 6,2 M 10,2 L 14,2 L 14,6 M 14,10 L 14,14 L 10,14 M 6,14 L 2,14 L 2,10");

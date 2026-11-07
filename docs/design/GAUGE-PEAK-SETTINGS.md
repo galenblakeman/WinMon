@@ -11,7 +11,7 @@ Make recent gauge peaks easier to interpret without changing live values or incr
 - Network shows its download peak with the same icon, in compact rate notation. The tooltip includes the full download rate and automatic scale. The scale and peak use the configured window and current adapter.
 - Append peak details to the existing resource tooltip: window, utilization, named native value when available, local timestamp and elapsed seconds relative to the latest sample. The whole tile and corner expose it; existing keyboard focus paths remain available in both views.
 - Invalid/gap samples and other configured disk volumes do not contribute. Elapsed windows and peak ages use monotonic time when available. Only retained history is available, so memory-limited retention can shorten a requested window. Unavailable current readings hide marks and labels and report a missing peak.
-- Keep the 98-DIP readout height. Arc headers show the selected capped-peak icon (option A) and value at every width, with no visible Peak prefix. The icon is decorative; the full accessibility name and tooltip identify the peak. Long native values can trim to preserve room for the resource name; the tooltip retains the complete measurement.
+- Keep the 98-DIP readout height. Arc headers show the arc-tick peak icon (a small arc with its peak mark, option F) and value at every width, with no visible Peak prefix. The icon is decorative; the full accessibility name and tooltip identify the peak. Long native values can trim to preserve room for the resource name; the tooltip retains the complete measurement.
 
 ## Requirements and verification
 
