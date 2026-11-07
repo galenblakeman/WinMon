@@ -83,7 +83,7 @@ public sealed class PreferenceStore
             }
             catch (JsonException)
             {
-                KeepInvalidCopy();
+                _keepCopyBeforeReplace = !KeepInvalidCopy();
                 return new MonitorPreferences();
             }
             catch (IOException) when (attempt < 5)

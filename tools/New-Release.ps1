@@ -57,7 +57,7 @@ $assets = Join-Path $work 'assets'
 New-Item -ItemType Directory -Path $assets -Force | Out-Null
 Push-Location $root
 try {
-    dotnet test tests/WinMon.Tests/WinMon.Tests.csproj -c Release -m:1 -p:UseSharedCompilation=false --artifacts-path "$work/build" --logger "trx;LogFileName=release.trx" --results-directory "$work/test-results"
+    dotnet test WinMon.sln -c Release -m:1 -p:UseSharedCompilation=false --artifacts-path "$work/build" --logger 'trx;LogFilePrefix=release' --results-directory "$work/test-results"
     if ($LASTEXITCODE -ne 0) { throw 'Release tests failed.' }
     dotnet publish src/WinMon/WinMon.csproj -c Release -r win-x64 -m:1 -p:UseSharedCompilation=false --artifacts-path "$work/build" -o $publish
     if ($LASTEXITCODE -ne 0) { throw 'Release publish failed.' }

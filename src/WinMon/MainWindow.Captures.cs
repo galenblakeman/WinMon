@@ -40,6 +40,14 @@ public partial class MainWindow
     private CaptureMarker? _notifiedMarker;
     private bool _balloonHooked;
     private bool _captureWriteErrorShown;
+    private readonly HashSet<Task> _captureWrites = [];
+
+    private async Task WhenCapturesFinishAsync()
+    {
+        while (_captureWrites.Where(write => !write.IsCompleted).ToArray() is { Length: > 0 } running)
+            await Task.WhenAll(running).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing |
+                                                       ConfigureAwaitOptions.ContinueOnCapturedContext);
+    }
 
     /// <summary>Captures still on the chart, oldest first.</summary>
     internal IReadOnlyList<CaptureMarker> CaptureMarkers => _captureMarkers;
@@ -86,20 +94,21 @@ public partial class MainWindow
         var snapshot = CaptureReportText.Snapshot(fired, history);
         var text = CaptureReportText.Report(fired, marker.ReportId, snapshot);
         var folder = settings.Folder ?? _preferenceStore.DefaultCaptureFolder;
-        _ = WriteCaptureAsync(marker, folder, text);
+        _ = WriteCaptureAsync(marker, folder, Task.Run(() =>
+        {
+            var path = CaptureReports.Write(folder, marker.Fired.Fired.Timestamp, marker.Fired.Rule.Metric, text);
+            CaptureReports.Prune(folder);
+            return path;
+        }));
         if (settings.Notify) NotifyCapture(marker, CaptureReportText.Notification(fired, snapshot));
     }
 
-    private async Task WriteCaptureAsync(CaptureMarker marker, string folder, string text)
+    private async Task WriteCaptureAsync(CaptureMarker marker, string folder, Task<string> write)
     {
+        _captureWrites.Add(write);
         try
         {
-            marker.ReportPath = await Task.Run(() =>
-            {
-                var path = CaptureReports.Write(folder, marker.Fired.Fired.Timestamp, marker.Fired.Rule.Metric, text);
-                CaptureReports.Prune(folder);
-                return path;
-            });
+            marker.ReportPath = await write;
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException or
                                        NotSupportedException)
@@ -112,6 +121,10 @@ public partial class MainWindow
                 _captureWriteErrorShown = true;
                 ShowCaptureNotice(Strings.Format(Strings.AutoCaptureWriteFailed, folder));
             }
+        }
+        finally
+        {
+            _captureWrites.Remove(write);
         }
 
         if (!IsClosing) RefreshPresentation();

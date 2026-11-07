@@ -213,6 +213,24 @@ public sealed class PreferenceStoreTests
     }
 
     [Test]
+    public async Task LoadAsync_FailedInvalidCopy_BlocksReplacementUntilTheOriginalCanBePreserved()
+    {
+        const string content = "{\"Theme\":\"Light\", broken";
+        Directory.CreateDirectory(testDirectory);
+        await File.WriteAllTextAsync(settingsPath, content);
+        var store = new PreferenceStore(settingsPath);
+        Directory.CreateDirectory(store.InvalidCopyPath);
+
+        var defaults = await store.LoadAsync();
+        Assert.That(async () => await store.SaveAsync(defaults), Throws.TypeOf<IOException>());
+        Assert.That(await File.ReadAllTextAsync(settingsPath), Is.EqualTo(content));
+
+        Directory.Delete(store.InvalidCopyPath);
+        await store.SaveAsync(defaults);
+        Assert.That(await File.ReadAllTextAsync(store.InvalidCopyPath), Is.EqualTo(content));
+    }
+
+    [Test]
     public async Task LoadAsync_LockedConfiguration_IsCopiedBeforeTheNextSaveReplacesIt()
     {
         var store = new PreferenceStore(settingsPath);

@@ -128,6 +128,10 @@ Rules for new code:
 - Interface or speed changes, counter resets, startup and long collection gaps need fresh rate baselines. The received and sent totals restart only when the adapter changes or its counters go backwards. Unavailable metrics show a dash and break the trace. A CPU provider failure does not stop the other resources. A capture that fails, or a sampler that cannot start, shows readings unavailable and is retried each second.
 - Machines with more than one active processor group are unsupported and show unavailable CPU readings rather than partial machine totals; an update there proves healthy from the other resources.
 
+Automatic capture report writes are tracked on the UI thread. Normal close and in-app update restart wait for them, like CSV exports and process dumps, before closing the window or committing the update. The capture smoke includes a delayed-write shutdown check in `captures.json`. A stalled report destination can delay exit; forced termination and Windows session shutdown do not provide this asynchronous wait.
+
+Invalid JSON settings whose backup fails remain protected: subsequent saves retry the backup and fail without replacing the original until it succeeds.
+
 ### Processes
 
 Portable lifetime, executable equality and CPU availability contracts are described in [Portable process identity](design/PORTABLE-PROCESS-IDENTITY.md). Windows defaults and history format 1 remain unchanged; portable consumers use `ObservedCpuPercent` and explicitly select their identity policy.
@@ -204,6 +208,8 @@ As of October 2026 (see the [history](PERFORMANCE-HISTORY.md#chart-drawing-and-r
 | Retain only active, app, pinned and largest processes | About 87% fewer retained process entries at 10 minutes |
 
 ## Release packaging
+
+Release packaging tests `WinMon.sln`, covering all three test projects, and writes separately named TRX results per test run.
 
 See the [release guide](../packaging/RELEASING.md) for the portable ZIP, per-user Inno Setup installer, GitHub Releases workflow and WinGet manifests, and the [MSIX guide](../packaging/msix/README.md) for Store packages. Build all release assets with `./tools/New-Release.ps1` after bootstrapping the compiler with `./tools/Install-InnoSetup.ps1`.
 

@@ -171,11 +171,32 @@ internal sealed partial class WindowDiagnostics
                 }
             }
 
+            var closed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            fixture.Closed += (_, _) => closed.TrySetResult();
+            var delayed = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var write = fixture.WriteCaptureForFixtureAsync(markers[0], delayed.Task);
+            try
+            {
+                fixture.Close();
+                await System.Windows.Threading.Dispatcher.Yield(
+                    System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+                if (closed.Task.IsCompleted)
+                    throw new InvalidOperationException("Shutdown must wait for an automatic capture report write.");
+                delayed.SetResult(markers[0].ReportPath!);
+                await write.WaitAsync(cancellationToken);
+                await closed.Task.WaitAsync(cancellationToken);
+            }
+            finally
+            {
+                delayed.TrySetResult(markers[0].ReportPath!);
+            }
+
             await File.WriteAllTextAsync(Path.Combine(output, "captures.json"), JsonSerializer.Serialize(new
             {
                 Markers = markers.Select(m => new { m.Rule, m.ReportPath, Peak = m.Peak.Timestamp }),
                 Reports = files.Select(Path.GetFileName),
-                SettingsOverflow = overflow
+                SettingsOverflow = overflow,
+                ShutdownWaitedForReport = true
             }, new JsonSerializerOptions { WriteIndented = true }), cancellationToken);
         }
         finally

@@ -42,6 +42,10 @@ public partial class MainWindow
 
     internal bool IsClosing { get; set; }
 
+    /// <summary>Supply a delayed report write so diagnostics can check shutdown waits for it.</summary>
+    internal Task WriteCaptureForFixtureAsync(CaptureMarker marker, Task<string> write) =>
+        WriteCaptureAsync(marker, "", write);
+
     internal bool CompactMode { get; set; }
 
     internal bool InlinePinToolbar { get; set; }

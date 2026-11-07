@@ -1038,6 +1038,7 @@ public partial class MainWindow
             }
             await ProcessDumpDialog.WhenWritesFinishAsync();
             await WhenExportsFinishAsync();
+            await WhenCapturesFinishAsync();
             // History no longer changes, and the helper waits for Commit below before replacing the executable.
             if (_updateRestartPending) await SaveRestartHistoryAsync();
             try
