@@ -196,8 +196,27 @@ public sealed class PreferenceStoreTests
             Assert.That(preferences.Width, Is.EqualTo(600));
             Assert.That(preferences.Height, Is.EqualTo(840));
             Assert.That(preferences.Theme, Is.EqualTo("Dark"));
-            Assert.That(preferences.RetentionSeconds, Is.EqualTo(600));
+            Assert.That(preferences.RetentionSeconds, Is.EqualTo(1800));
         });
+    }
+
+    [TestCase(null, 1800)]
+    [TestCase("{\"RetentionSeconds\":600}", 600)]
+    [TestCase("{\"RetentionSeconds\":1800}", 1800)]
+    [TestCase("{\"RetentionSeconds\":3600}", 3600)]
+    public async Task Retention_DefaultsToThirtyMinutes_AndPreservesSavedChoices(string? content, int expected)
+    {
+        if (content is not null)
+        {
+            Directory.CreateDirectory(testDirectory);
+            await File.WriteAllTextAsync(settingsPath, content);
+        }
+
+        var store = new PreferenceStore(settingsPath);
+        var preferences = await store.LoadAsync();
+        Assert.That(preferences.RetentionSeconds, Is.EqualTo(expected));
+        await store.SaveAsync(preferences);
+        Assert.That((await store.LoadAsync()).RetentionSeconds, Is.EqualTo(expected));
     }
 
     [TestCase("{")]
