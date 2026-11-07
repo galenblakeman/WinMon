@@ -1,6 +1,6 @@
 # Resource chart views
 
-The Full view resource chart has one dropdown in its header: Overlay, Small multiples, Heatmap, then Focus choices for each configured resource. Overlay preserves the existing chart. The other three follow the concepts selected in chat on 2026-10-24. The chart type and focused resource remain saved in the same window preferences. Compact tiles and process sparklines keep their existing presentation.
+The Full view resource chart has one dropdown in its header: Overlay, Small multiples, Heatmap, Logical processors, then Focus choices for each configured resource. Overlay preserves the existing chart. Small multiples, Heatmap and Focus follow the concepts selected in chat on 2026-10-24; [Logical processors](LOGICAL-PROCESSORS.md) was added on 2026-11-07. The chart type and focused resource remain saved in the same window preferences. Compact tiles and process sparklines keep their existing presentation.
 
 The views share the same samples, time range, series visibility, gap handling, selected sample, Capture panel and automatic capture markers. Small multiples gives each enabled resource its own aligned lane and scale cue. Heatmap uses resource-colored intensity over time; it does not stack unrelated percentages or rates. Focus gives one enabled resource a large chart and places the other enabled resources in narrow context lanes. The network resource always uses the chart's rounded throughput scale.
 

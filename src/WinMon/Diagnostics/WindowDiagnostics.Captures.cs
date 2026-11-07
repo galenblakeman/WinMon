@@ -97,7 +97,7 @@ internal sealed partial class WindowDiagnostics
             var captureRight = fixture.ChartModeSwitch.TranslatePoint(
                 new Point(fixture.ChartModeSwitch.ActualWidth, 0), fixture).X;
             var autoLeft = fixture.CapturesButton.TranslatePoint(new Point(), fixture).X;
-            if (Math.Abs(autoLeft - captureRight - 8) > 1.5 || fixture.ChartTypeSelector.ActualWidth != 120)
+            if (Math.Abs(autoLeft - captureRight - 8) > 1.5 || fixture.ChartTypeSelector.ActualWidth != 150)
                 throw new InvalidOperationException("Auto must follow Capture while the chart type selector stays narrow.");
             fixture.Width = 836;
             fixture.UpdateLayout();

@@ -420,13 +420,14 @@ public sealed class PreferenceStoreTests
         });
     }
 
-    [Test]
-    public async Task ResourceChartChoice_RoundTrips_AndRejectsInvalidValues()
+    [TestCase(ResourceChartType.Focus)]
+    [TestCase(ResourceChartType.LogicalProcessors)]
+    public async Task ResourceChartChoice_RoundTrips_AndRejectsInvalidValues(ResourceChartType type)
     {
         var store = new PreferenceStore(settingsPath);
         await store.SaveAsync(new MonitorPreferences
         {
-            ResourceChartType = ResourceChartType.Focus,
+            ResourceChartType = type,
             FocusMetric = 5,
             SecondaryDrive = "D:"
         });
@@ -440,8 +441,8 @@ public sealed class PreferenceStoreTests
         });
         Assert.Multiple(() =>
         {
-            Assert.That(loaded.ResourceChartType, Is.EqualTo(ResourceChartType.Focus));
-            Assert.That(saved, Does.Contain("\"ResourceChartType\": \"Focus\""));
+            Assert.That(loaded.ResourceChartType, Is.EqualTo(type));
+            Assert.That(saved, Does.Contain($"\"ResourceChartType\": \"{type}\""));
             Assert.That(loaded.FocusMetric, Is.EqualTo(5));
             Assert.That(invalid.ResourceChartType, Is.EqualTo(ResourceChartType.Overlay));
             Assert.That(invalid.FocusMetric, Is.EqualTo(5));

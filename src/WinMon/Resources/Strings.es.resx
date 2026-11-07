@@ -1649,4 +1649,9 @@ Se puede perder el trabajo sin guardar. Se finalizarán todos los procesos indic
   <data name="ProcessProductVersionLabel" xml:space="preserve"><value>Versión del producto</value></data>
   <data name="CollapseActivityPanel" xml:space="preserve"><value>Contraer el panel de actividad</value></data>
   <data name="ExpandActivityPanel" xml:space="preserve"><value>Expandir el panel de actividad</value></data>
+  <data name="ChartLogicalProcessors" xml:space="preserve"><value>Procesadores lógicos</value></data>
+  <data name="LogicalProcessorLabel" xml:space="preserve"><value>CPU {0}</value></data>
+  <data name="LogicalProcessorsHeading" xml:space="preserve"><value>CPU · {0} procesadores lógicos</value></data>
+  <data name="LogicalProcessorScale" xml:space="preserve"><value>Cada gráfico: 0–100%</value></data>
+  <data name="LogicalProcessorHistoryHelp" xml:space="preserve"><value>Historial de CPU por procesador lógico. Haga clic para inspeccionar; las flechas desplazan y Fin vuelve a la vista en vivo.</value></data>
 </root>

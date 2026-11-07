@@ -1649,4 +1649,9 @@ GPU {11} · {12}
   <data name="ProcessProductVersionLabel" xml:space="preserve"><value>Версия продукта</value></data>
   <data name="CollapseActivityPanel" xml:space="preserve"><value>Свернуть панель активности</value></data>
   <data name="ExpandActivityPanel" xml:space="preserve"><value>Развернуть панель активности</value></data>
+  <data name="ChartLogicalProcessors" xml:space="preserve"><value>Логические процессоры</value></data>
+  <data name="LogicalProcessorLabel" xml:space="preserve"><value>ЦП {0}</value></data>
+  <data name="LogicalProcessorsHeading" xml:space="preserve"><value>ЦП · {0} логических процессоров</value></data>
+  <data name="LogicalProcessorScale" xml:space="preserve"><value>Каждый график: 0–100%</value></data>
+  <data name="LogicalProcessorHistoryHelp" xml:space="preserve"><value>История ЦП по логическим процессорам. Нажмите для просмотра; стрелки перемещают, End возвращает к текущим данным.</value></data>
 </root>

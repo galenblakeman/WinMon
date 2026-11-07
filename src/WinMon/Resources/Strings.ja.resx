@@ -1649,4 +1649,9 @@ Windows の正常性状態: {2}</value>
   <data name="ProcessProductVersionLabel" xml:space="preserve"><value>製品バージョン</value></data>
   <data name="CollapseActivityPanel" xml:space="preserve"><value>アクティビティパネルを折りたたむ</value></data>
   <data name="ExpandActivityPanel" xml:space="preserve"><value>アクティビティパネルを展開</value></data>
+  <data name="ChartLogicalProcessors" xml:space="preserve"><value>論理プロセッサ</value></data>
+  <data name="LogicalProcessorLabel" xml:space="preserve"><value>CPU {0}</value></data>
+  <data name="LogicalProcessorsHeading" xml:space="preserve"><value>CPU · {0} 個の論理プロセッサ</value></data>
+  <data name="LogicalProcessorScale" xml:space="preserve"><value>各グラフ: 0–100%</value></data>
+  <data name="LogicalProcessorHistoryHelp" xml:space="preserve"><value>論理プロセッサごとの CPU 履歴。クリックで確認、矢印キーで移動、End キーでライブ表示に戻ります。</value></data>
 </root>

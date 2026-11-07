@@ -258,6 +258,14 @@ public partial class MainWindow
         OverallGraph.FocusMetric = _preferences.FocusMetric;
         OverallGraph.MetricLabels = Metrics.Select(metric => metric.Label).ToArray();
         OverallGraph.SetData(samples, range, SelectedSample);
+        AutomationProperties.SetName(OverallGraph,
+            _preferences.ResourceChartType == ResourceChartType.LogicalProcessors
+                ? Strings.LogicalProcessorHistoryHelp + " " +
+                  string.Join(", ", (visible?.LogicalProcessorPercents ?? []).Select((value, index) =>
+                      Strings.Format(Strings.LogicalProcessorLabel, index) + " " +
+                      (value is { } percent && visible?.IsGap != true
+                          ? Strings.Format(Strings.PercentInteger, Math.Round(percent)) : Strings.MissingReading)))
+                : Strings.CPUMemoryConfiguredDisksNetworkAndGPUOverlayHistoryClick);
         RefreshCompactView();
         RefreshServices();
         RefreshUsage();
@@ -477,7 +485,8 @@ public partial class MainWindow
                      {
                          (ResourceChartType.Overlay, Strings.ChartOverlay),
                          (ResourceChartType.SmallMultiples, Strings.ChartSmallMultiples),
-                         (ResourceChartType.Heatmap, Strings.ChartHeatmap)
+                         (ResourceChartType.Heatmap, Strings.ChartHeatmap),
+                         (ResourceChartType.LogicalProcessors, Strings.ChartLogicalProcessors)
                      })
                 ChartTypeSelector.Items.Add(new ComboBoxItem
                 {
@@ -521,6 +530,8 @@ public partial class MainWindow
             FocusMetric = choice.Metric ?? _preferences.FocusMetric
         };
         ChartTypeSelector.ToolTip = item.Content;
+        if (choice.Type == ResourceChartType.LogicalProcessors && Metrics[0].Toggle.IsChecked != true)
+            Metrics[0].Toggle.IsChecked = true;
         if (choice.Metric is { } metric && Metrics[metric].Toggle.IsChecked != true)
             Metrics[metric].Toggle.IsChecked = true;
         RefreshPresentation();

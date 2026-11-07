@@ -1649,4 +1649,9 @@ Windows 상태: {2}</value>
   <data name="ProcessProductVersionLabel" xml:space="preserve"><value>제품 버전</value></data>
   <data name="CollapseActivityPanel" xml:space="preserve"><value>활동 패널 접기</value></data>
   <data name="ExpandActivityPanel" xml:space="preserve"><value>활동 패널 펼치기</value></data>
+  <data name="ChartLogicalProcessors" xml:space="preserve"><value>논리 프로세서</value></data>
+  <data name="LogicalProcessorLabel" xml:space="preserve"><value>CPU {0}</value></data>
+  <data name="LogicalProcessorsHeading" xml:space="preserve"><value>CPU · 논리 프로세서 {0}개</value></data>
+  <data name="LogicalProcessorScale" xml:space="preserve"><value>각 그래프: 0–100%</value></data>
+  <data name="LogicalProcessorHistoryHelp" xml:space="preserve"><value>논리 프로세서별 CPU 기록. 클릭하여 확인하고 화살표 키로 이동하며 End 키로 실시간 보기로 돌아갑니다.</value></data>
 </root>

@@ -1649,4 +1649,9 @@ Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse
   <data name="ProcessProductVersionLabel" xml:space="preserve"><value>Produktversion</value></data>
   <data name="CollapseActivityPanel" xml:space="preserve"><value>Aktivitätsbereich einklappen</value></data>
   <data name="ExpandActivityPanel" xml:space="preserve"><value>Aktivitätsbereich ausklappen</value></data>
+  <data name="ChartLogicalProcessors" xml:space="preserve"><value>Logische Prozessoren</value></data>
+  <data name="LogicalProcessorLabel" xml:space="preserve"><value>CPU {0}</value></data>
+  <data name="LogicalProcessorsHeading" xml:space="preserve"><value>CPU · {0} logische Prozessoren</value></data>
+  <data name="LogicalProcessorScale" xml:space="preserve"><value>Jedes Diagramm: 0–100%</value></data>
+  <data name="LogicalProcessorHistoryHelp" xml:space="preserve"><value>CPU-Verlauf der logischen Prozessoren. Zum Prüfen klicken; Pfeiltasten bewegen, Ende kehrt zur Live-Ansicht zurück.</value></data>
 </root>

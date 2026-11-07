@@ -117,6 +117,10 @@ internal static class Program
         MeasureUsageLedger();
         MeasureRestartHistory();
         var pixels = Pixels(args.Length > 1 ? args[1] : null);
+        window.Preferences = window.Preferences with { ResourceChartType = ResourceChartType.LogicalProcessors };
+        window.RefreshPresentation();
+        Flush();
+        Measure("logical-processors-pinned-selected-live-frame");
         var report = new
         {
             Runtime = Environment.Version.ToString(), Samples = 600, ProcessesPerSample = Processes,
@@ -357,6 +361,8 @@ internal static class Program
         {
             IntervalSeconds = 1,
             IntervalCpuTicks = 12 * TimeSpan.TicksPerSecond,
+            LogicalProcessorPercents = Enumerable.Range(0, 12)
+                .Select(processor => (double?)((second * (processor + 3) + processor * 11) % 100)).ToArray(),
             Resources = new ResourceSample
             {
                 TotalMemoryBytes = 32_000_000_000, UsedMemoryBytes = (ulong)(16_000_000_000 + second * 1_000_000L % 4_000_000_000),

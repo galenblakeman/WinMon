@@ -1649,4 +1649,9 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="ProcessProductVersionLabel" xml:space="preserve"><value>Product version</value></data>
   <data name="CollapseActivityPanel" xml:space="preserve"><value>Collapse activity panel</value></data>
   <data name="ExpandActivityPanel" xml:space="preserve"><value>Expand activity panel</value></data>
+  <data name="ChartLogicalProcessors" xml:space="preserve"><value>Logical processors</value></data>
+  <data name="LogicalProcessorLabel" xml:space="preserve"><value>CPU {0}</value></data>
+  <data name="LogicalProcessorsHeading" xml:space="preserve"><value>CPU · {0} logical processors</value></data>
+  <data name="LogicalProcessorScale" xml:space="preserve"><value>Each graph: 0–100%</value></data>
+  <data name="LogicalProcessorHistoryHelp" xml:space="preserve"><value>Logical processor CPU history. Click to inspect; arrow keys move, End returns to live.</value></data>
 </root>

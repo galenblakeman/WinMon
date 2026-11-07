@@ -43,8 +43,9 @@ public static class RestartHistory
     public const string FileName = "restart-history.bin";
     public const string NormalFileName = "history.bin";
     private const string NormalToken = "normal-exit";
-    public const int FormatVersion = 2;
+    public const int FormatVersion = 3;
     public const int ChunkSamples = 60;
+    private const int MaximumLogicalProcessors = 64;
     public static readonly TimeSpan Budget = TimeSpan.FromSeconds(1.5);
     public const double StopChunksAfterSeconds = 1.2;
     public const double MaxAgeSeconds = 300;
@@ -418,6 +419,12 @@ public static class RestartHistory
         writer.Write(sample.CompactedProcesses);
         writer.Write(sample.IntervalSeconds);
         writer.Write(sample.IntervalCpuTicks);
+        writer.Write(sample.LogicalProcessorPercents is not null);
+        if (sample.LogicalProcessorPercents is { } logicalProcessorPercents)
+        {
+            writer.Write(logicalProcessorPercents.Count);
+            foreach (var percent in logicalProcessorPercents) Write(writer, percent);
+        }
         WriteResources(writer, sample.Resources);
         writer.Write(sample.Processes.Count);
         foreach (var process in sample.Processes)
@@ -460,6 +467,15 @@ public static class RestartHistory
         var compacted = reader.ReadInt32();
         var intervalSeconds = reader.ReadDouble();
         var intervalCpuTicks = reader.ReadInt64();
+        IReadOnlyList<double?>? logicalProcessorPercents = null;
+        if (version >= 3 && reader.ReadBoolean())
+        {
+            var count = Count(reader);
+            if (count > MaximumLogicalProcessors) throw new InvalidDataException("Too many logical processors.");
+            var values = new double?[count];
+            for (var i = 0; i < values.Length; i++) values[i] = ReadDouble(reader);
+            logicalProcessorPercents = values;
+        }
         var resources = ReadResources(reader);
         var processes = new ProcessUsage[Count(reader)];
         for (var i = 0; i < processes.Length; i++)
@@ -500,7 +516,8 @@ public static class RestartHistory
             Resources = resources,
             CompactedProcesses = compacted,
             IntervalSeconds = intervalSeconds,
-            IntervalCpuTicks = intervalCpuTicks
+            IntervalCpuTicks = intervalCpuTicks,
+            LogicalProcessorPercents = logicalProcessorPercents
         };
     }
 

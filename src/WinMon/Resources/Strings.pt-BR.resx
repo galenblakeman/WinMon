@@ -1649,4 +1649,9 @@ O trabalho não salvo pode ser perdido. Todos os processos listados abaixo serã
   <data name="ProcessProductVersionLabel" xml:space="preserve"><value>Versão do produto</value></data>
   <data name="CollapseActivityPanel" xml:space="preserve"><value>Recolher painel de atividade</value></data>
   <data name="ExpandActivityPanel" xml:space="preserve"><value>Expandir painel de atividade</value></data>
+  <data name="ChartLogicalProcessors" xml:space="preserve"><value>Processadores lógicos</value></data>
+  <data name="LogicalProcessorLabel" xml:space="preserve"><value>CPU {0}</value></data>
+  <data name="LogicalProcessorsHeading" xml:space="preserve"><value>CPU · {0} processadores lógicos</value></data>
+  <data name="LogicalProcessorScale" xml:space="preserve"><value>Cada gráfico: 0–100%</value></data>
+  <data name="LogicalProcessorHistoryHelp" xml:space="preserve"><value>Histórico de CPU por processador lógico. Clique para inspecionar; as setas movem e End retorna à exibição ao vivo.</value></data>
 </root>

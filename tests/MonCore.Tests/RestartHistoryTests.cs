@@ -346,6 +346,31 @@ public sealed class RestartHistoryTests
         });
     }
 
+    [Test]
+    public void Fixture_FormatVersion2StillReadsWithoutLogicalProcessorPercents()
+    {
+        var path = Path.Combine(_directory, RestartHistory.FileName);
+        File.Copy(Path.Combine(TestContext.CurrentContext.TestDirectory, "Fixtures", "restart-history-v2.bin"), path);
+
+        var restored = RestartHistory.Read(path, Token, Later(10));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(restored, Is.Not.Null);
+            Assert.That(Json(restored!.Samples), Is.EqualTo(Json(Samples(75))));
+            Assert.That(restored.Samples.All(sample => sample.LogicalProcessorPercents is null), Is.True);
+        });
+    }
+
+    [Test]
+    public void Read_RestoresLogicalProcessorPercents()
+    {
+        var sample = Valid(1, []) with { LogicalProcessorPercents = new double?[] { 12.5, null, 87.5 } };
+        var restored = RestartHistory.Read(SaveWith([sample]), Token, Later(10));
+
+        Assert.That(restored!.Samples.Single().LogicalProcessorPercents, Is.EqualTo(sample.LogicalProcessorPercents));
+    }
+
     // Regenerates the checked-in fixture. Run it only when deliberately introducing a new format version.
     [Test, Explicit("Writes the format fixture into the source tree.")]
     public void Fixture_Write()

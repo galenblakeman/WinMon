@@ -80,7 +80,8 @@ public sealed class WindowsCpuSampler : IDisposable
                 CpuKernelPercent = kernelDelta >= 0 && kernelDelta <= busyDelta
                     ? 100d * kernelDelta / totalDelta
                     : null
-            }
+            },
+            LogicalProcessorPercents = LogicalProcessorPercents(prior.LogicalProcessorTimes, current.LogicalProcessorTimes)
         };
     }
 
@@ -116,6 +117,25 @@ public sealed class WindowsCpuSampler : IDisposable
         var elapsed = (currentSnapshot.MonotonicTimestamp - previousSnapshot.MonotonicTimestamp) /
                       (double)Stopwatch.Frequency;
         return elapsed is <= 0 or > GapThresholdSeconds;
+    }
+
+    private static IReadOnlyList<double?>? LogicalProcessorPercents(
+        IReadOnlyList<SystemCpuTimes>? previous, IReadOnlyList<SystemCpuTimes>? current)
+    {
+        if (previous is null || current is null) return null;
+
+        var values = new double?[current.Count];
+        if (previous.Count != current.Count) return values;
+        for (var index = 0; index < values.Length; index++)
+        {
+            var total = current[index].TotalTicks - previous[index].TotalTicks;
+            var idle = current[index].IdleTicks - previous[index].IdleTicks;
+            var busy = total - idle;
+            if (total > 0 && idle >= 0 && busy >= 0 && busy <= total)
+                values[index] = Math.Clamp(100d * busy / total, 0d, 100d);
+        }
+
+        return values;
     }
 
     private IReadOnlyList<ProcessUsage> CreateProcessUsages(

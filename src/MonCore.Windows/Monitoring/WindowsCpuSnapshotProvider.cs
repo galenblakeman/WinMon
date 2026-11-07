@@ -14,6 +14,8 @@ namespace WinMon.Monitoring;
 internal sealed class WindowsCpuSnapshotProvider : ICpuSnapshotProvider
 {
     private const int SystemProcessInformation = 5;
+    private const int SystemProcessorPerformanceInformation = 8;
+    private const int MaximumLogicalProcessors = 64;
     private const uint StatusInfoLengthMismatch = 0xC0000004;
     private const int MaximumProcesses = 20_000;
     private const int MaximumBufferBytes = 64 * 1024 * 1024;
@@ -60,6 +62,7 @@ internal sealed class WindowsCpuSnapshotProvider : ICpuSnapshotProvider
 
         if (!NativeMethods.GetSystemTimes(out var idleTime, out var kernelTime, out var userTime))
             throw new Win32Exception(Marshal.GetLastPInvokeError(), "GetSystemTimes failed.");
+        var logicalProcessorTimes = TryQueryLogicalProcessorTimes();
 
         var length = Query();
         (_processes, _spareProcesses) = (_spareProcesses, _processes);
@@ -89,7 +92,8 @@ internal sealed class WindowsCpuSnapshotProvider : ICpuSnapshotProvider
                 NativeMethods.ToLong(kernelTime),
                 NativeMethods.ToLong(userTime)),
             available,
-            unavailable);
+            unavailable,
+            logicalProcessorTimes);
     }
 
     /// <summary>Walk a SystemProcessInformation buffer, skipping the Idle process.</summary>
@@ -178,6 +182,19 @@ internal sealed class WindowsCpuSnapshotProvider : ICpuSnapshotProvider
         }
     }
 
+    private static SystemCpuTimes[]? TryQueryLogicalProcessorTimes()
+    {
+        var count = checked((int)NativeMethods.GetActiveProcessorCount(0));
+        if (count is <= 0 or > MaximumLogicalProcessors) return null;
+        var values = new ProcessorPerformanceInformation[count];
+        var length = checked(values.Length * Marshal.SizeOf<ProcessorPerformanceInformation>());
+        var status = NativeMethods.NtQuerySystemInformation(SystemProcessorPerformanceInformation, values, length,
+            out var returned);
+        if (status != 0 || returned != length) return null;
+
+        return values.Select(value => new SystemCpuTimes(value.IdleTime, value.KernelTime, value.UserTime)).ToArray();
+    }
+
     private static class NativeMethods
     {
         [DllImport("kernel32.dll", SetLastError = true)]
@@ -188,14 +205,32 @@ internal sealed class WindowsCpuSnapshotProvider : ICpuSnapshotProvider
         [DllImport("kernel32.dll")]
         public static extern ushort GetActiveProcessorGroupCount();
 
+        [DllImport("kernel32.dll")]
+        public static extern uint GetActiveProcessorCount(ushort groupNumber);
+
         [DllImport("ntdll.dll")]
         public static extern uint NtQuerySystemInformation(int informationClass, nint information, int length,
             out int returnLength);
+
+        [DllImport("ntdll.dll")]
+        public static extern uint NtQuerySystemInformation(int informationClass,
+            [Out] ProcessorPerformanceInformation[] information, int length, out int returnLength);
 
         public static long ToLong(FileTime fileTime)
         {
             return ((long)fileTime.HighDateTime << 32) | fileTime.LowDateTime;
         }
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct ProcessorPerformanceInformation
+    {
+        public long IdleTime;
+        public long KernelTime;
+        public long UserTime;
+        public long Reserved1;
+        public long Reserved2;
+        public uint Reserved3;
     }
 
     [StructLayout(LayoutKind.Sequential)]

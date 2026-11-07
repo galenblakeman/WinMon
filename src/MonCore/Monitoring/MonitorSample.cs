@@ -37,4 +37,10 @@ public sealed record MonitorSample(
     /// fixtures. A process's interval CPU time is <c>CpuPercent / 100 * IntervalCpuTicks</c>.
     /// </summary>
     public long IntervalCpuTicks { get; init; }
+
+    /// <summary>
+    /// CPU use for each logical processor, in processor-number order. Null means no valid interval was available;
+    /// an individual null entry means that processor's counters could not form a reliable interval.
+    /// </summary>
+    public IReadOnlyList<double?>? LogicalProcessorPercents { get; init; }
 }

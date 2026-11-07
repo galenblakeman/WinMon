@@ -106,6 +106,7 @@ public static partial class Strings
     public static string ChartFocus => ResourceManager.GetString(nameof(ChartFocus), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartFocusResourceChoice => ResourceManager.GetString(nameof(ChartFocusResourceChoice), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartHeatmap => ResourceManager.GetString(nameof(ChartHeatmap), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ChartLogicalProcessors => ResourceManager.GetString(nameof(ChartLogicalProcessors), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartOverlay => ResourceManager.GetString(nameof(ChartOverlay), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartPalette => ResourceManager.GetString(nameof(ChartPalette), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartSmallMultiples => ResourceManager.GetString(nameof(ChartSmallMultiples), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -312,7 +313,11 @@ public static partial class Strings
     public static string LinkSpeedUnavailableLabel => ResourceManager.GetString(nameof(LinkSpeedUnavailableLabel), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string LiveMode => ResourceManager.GetString(nameof(LiveMode), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string LocalVolumes => ResourceManager.GetString(nameof(LocalVolumes), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string LogicalProcessorHistoryHelp => ResourceManager.GetString(nameof(LogicalProcessorHistoryHelp), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string LogicalProcessorLabel => ResourceManager.GetString(nameof(LogicalProcessorLabel), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string LogicalProcessors => ResourceManager.GetString(nameof(LogicalProcessors), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string LogicalProcessorScale => ResourceManager.GetString(nameof(LogicalProcessorScale), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string LogicalProcessorsHeading => ResourceManager.GetString(nameof(LogicalProcessorsHeading), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string LowerLayerDown => ResourceManager.GetString(nameof(LowerLayerDown), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string LPDDR => ResourceManager.GetString(nameof(LPDDR), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string LPDDR2 => ResourceManager.GetString(nameof(LPDDR2), Culture ?? CultureInfo.CurrentUICulture)!;

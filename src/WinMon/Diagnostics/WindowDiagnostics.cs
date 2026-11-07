@@ -153,7 +153,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         Directory.CreateDirectory(outputDirectory);
         if (window.Session.History.Samples.Count < 3)
             throw new InvalidOperationException("Native chart samples did not arrive.");
-        if (window.ChartTypeSelector.Items.OfType<ComboBoxItem>().Count() != 8 ||
+        if (window.ChartTypeSelector.Items.OfType<ComboBoxItem>().Count() != 9 ||
             window.ChartTypeSelector.Items.OfType<Separator>().Count() != 1)
             throw new InvalidOperationException("The combined chart menu has the wrong choices.");
         window.ChartTypeSelector.IsDropDownOpen = true;
@@ -181,6 +181,18 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                         ChartChoiceItem(window, ResourceChartType.Focus, 1)))
                     throw new InvalidOperationException("Hiding the focused resource did not choose a visible one.");
                 window.CpuMetric.Toggle.IsChecked = true;
+            }
+            if (chartType == ResourceChartType.LogicalProcessors)
+            {
+                if (window.Session.History.Latest?.LogicalProcessorPercents is not { Count: > 0 } processors ||
+                    processors.Count > 64 || !processors.Any(value => value is not null) ||
+                    processors.Any(value => value is < 0 or > 100))
+                    throw new InvalidOperationException("Native logical-processor readings did not arrive.");
+                window.CpuMetric.Toggle.IsChecked = false;
+                window.ChartTypeSelector.SelectedItem = ChartChoiceItem(window, ResourceChartType.Overlay);
+                window.ChartTypeSelector.SelectedItem = ChartChoiceItem(window, chartType);
+                if (window.CpuMetric.Toggle.IsChecked != true)
+                    throw new InvalidOperationException("Selecting logical processors did not restore the CPU series.");
             }
             window.OverallGraph.SelectLatest();
             if (window.SelectedSample is null || window.SnapshotLayer.Visibility != Visibility.Visible)
@@ -1307,6 +1319,9 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                     { HasAppWindow = false, GpuPercent = 65, GpuEngine = "Compute", GpuId = "fixture" }
             ], 0, false, Stopwatch.Frequency * (i + 1))
             {
+                LogicalProcessorPercents = Enumerable.Range(0, 16).Select(processor => (double?)Math.Clamp(
+                    10 + processor * 2 + 12 * Math.Sin(i * 0.19 + processor) +
+                    35 * Math.Exp(-Math.Pow((i - 25 - processor * 5) / 7d, 2)), 0, 100)).ToArray(),
                 Resources = new ResourceSample
                 {
                     TotalMemoryBytes = 32UL * 1_073_741_824,
@@ -1345,6 +1360,38 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
             await CaptureVisualAsync(visual, Path.Combine(outputDirectory,
                 $"chart-design-{chartType.ToString().ToLowerInvariant()}.png"), 1, cancellationToken);
         }
+        fixture.Preferences = fixture.Preferences with { ResourceChartType = ResourceChartType.LogicalProcessors };
+        fixture.BuildChartSelectors();
+        fixture.SelectedSample = fixture.Session.History.Samples[92];
+        fixture.RefreshVisiblePresentation();
+        visual.UpdateLayout();
+        await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "chart-design-logicalprocessors-capture.png"),
+            1, cancellationToken);
+        fixture.SelectedSample = null;
+        fixture.Preferences = fixture.Preferences with { Theme = "Light" };
+        fixture.ApplyTheme();
+        fixture.RefreshVisiblePresentation();
+        visual.Measure(new Size(836, 820));
+        visual.Arrange(new Rect(0, 0, 836, 820));
+        visual.UpdateLayout();
+        await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "chart-design-logicalprocessors-light-narrow.png"),
+            1, cancellationToken);
+        fixture.Preferences = fixture.Preferences with { Theme = "Dark" };
+        fixture.ApplyTheme();
+        fixture.RefreshVisiblePresentation();
+        var manyProcessors = fixture.Session.History.Samples.Select((sample, second) => sample with
+        {
+            LogicalProcessorPercents = Enumerable.Range(0, 64)
+                .Select(processor => (double?)((second * (processor + 3) + processor * 11) % 100)).ToArray()
+        }).ToArray();
+        fixture.OverallGraph.SetData(manyProcessors, 120, null);
+        visual.UpdateLayout();
+        await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "chart-design-logicalprocessors-64-narrow.png"),
+            1, cancellationToken);
+        fixture.OverallGraph.SetData([manyProcessors[^1] with { LogicalProcessorPercents = null }], 120, null);
+        visual.UpdateLayout();
+        await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "chart-design-logicalprocessors-unavailable.png"),
+            1, cancellationToken);
         fixture.Preferences = fixture.Preferences with { ResourceChartType = ResourceChartType.Focus, FocusMetric = 3 };
         fixture.BuildChartSelectors();
         fixture.RefreshVisiblePresentation();

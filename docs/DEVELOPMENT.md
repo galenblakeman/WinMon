@@ -77,7 +77,7 @@ Limits:
 - Renders at several scales are layout evidence. They do not prove real DPI changes, mixed-DPI monitor moves, keyboard automation, tray interaction or startup at sign-in, which remain manual checks. Smoke never ends a process or changes a service.
 - Some renders use labelled illustrative data, such as `design-compact*.png`; they compare against the design reference and are not measurements.
 
-Process Properties and Copy details share `ProcessDetailsSnapshot.Format()`. File and product versions come from the existing per-path `ProcessAppNameProvider` cache on the sampling thread; opening details performs no file I/O. Restart-history format 2 preserves both strings and reads format 1 with empty versions. Older WinMon builds cannot restore format-2 history.
+Process Properties and Copy details share `ProcessDetailsSnapshot.Format()`. File and product versions come from the existing per-path `ProcessAppNameProvider` cache on the sampling thread; opening details performs no file I/O. Restart-history formats 2 and 3 preserve both strings; format 1 loads with empty versions. The current format 3 also preserves logical-processor readings. Older WinMon builds cannot restore format-3 history.
 
 ## Code structure
 
@@ -120,8 +120,9 @@ Rules for new code:
 
 ### Resources
 
+- **Logical processors** adds a CPU-only grid to the existing chart dropdown. Each processor's utilization is `(kernel + user − idle) / (kernel + user)` over successive Windows [SystemProcessorPerformanceInformation](https://learn.microsoft.com/windows/win32/api/winternl/nf-winternl-ntquerysysteminformation#parameters) readings, on its own 0–100% scale. Kernel includes idle. The machine and process percentages keep their existing total-capacity denominator. A missing or invalid processor reading breaks that processor's trace; an optional per-processor query failure leaves total/process CPU sampling intact. Grid cells share the selected chart range and historical interval. Processor count changes require a fresh baseline. Short cells use labeled sparklines, with values in tooltips and UI Automation; larger cells also display a percentage and grid guides.
 - CPU, memory, disk and GPU traces use a fixed 0–100% scale; network throughput uses its own visible-peak scale.
-- The chart toolbar keeps Auto immediately after the centered Live/Capture switch, without shifting that switch; the 120-DIP chart type selector stays on the left and time ranges stay on the right. The former "2m peak" legend and tooltip are absent. The gauge setting still explains the dark two-minute peak mark.
+- The chart toolbar keeps Auto immediately after the centered Live/Capture switch, without shifting that switch; the 150-DIP chart type selector stays on the left and time ranges stay on the right. Its width accommodates Logical processors; longer translations remain available in the tooltip. The former "2m peak" legend and tooltip are absent. The gauge setting still explains the dark two-minute peak mark.
 - Resource gauges in Full and Compact views are drawn by `MetricGauge` in the `GaugeStyle` chosen in Settings (default Bowl). Each gauge shows the live level and a dark two-minute peak line. Peaks come from retained non-gap samples in the last 120 elapsed seconds, matching the configured disk volumes. Full-view tiles use symmetric horizontal margins so each bowl and value share the center of their column. Arc styles put the peak percentage beside CPU, memory, disk and GPU names; `MetricReadout` accounts for each tile's outer margin to place the corner label 12 DIPs from its right edge. The network gauge uses received bits per second on its own two-minute auto scale, which matches the chart when the chart is set to two minutes; arc styles print the top of that scale (`RateText.Short`, such as "100M"). Percentages use 0–100. An unavailable current reading hides its gauge and corner label. Every style fits `MetricReadout.LayoutHeight`; see [Gauge styles](design/GAUGE-STYLES.md) for the layouts.
 - **Memory** is used over total OS-visible physical RAM, with GiB readouts.
 - **Disk** is active time (`100 − % Idle Time`) on each configured volume, with read/write throughput in decimal MB/s. It is not space used. Drive letters identify logical volumes, which may share a physical disk, so disk percentages are never added together.
@@ -150,6 +151,7 @@ Portable lifetime, executable equality and CPU availability contracts are descri
 
 ### Collection and history
 
+- Restart-history format 3 includes nullable per-logical-processor readings. Formats 1 and 2 still load, with those readings unavailable; older builds cannot restore format-3 history. Normal restarts and update restarts use the same versioned sample encoding.
 - MonCore's `MonitorSession` owns history, latest samples, usage and service frames on the thread selected by the caller's `post` delegate. The collection loop runs on the thread pool, enqueues captures in order and never waits for the UI to drain them. Call session state operations on the dispatch thread; cancellation ends collection and `Close()` discards later drains.
 - `ProcessUsage.CreationTicks` remains Windows FILETIME in the current Windows collector and saved-history format. A portable lifetime/start-time model is required before a macOS collector writes samples or persistence. Group keys currently compare executable paths without case, preserving WinMon behavior.
 - CPU percentages are shares of total machine capacity; I/O rates use bytes per second, GPU is the busiest engine, and unavailable readings stay null. `WorkingSetBytes` is resident memory and `PrivateBytes` is private committed memory; a macOS footprint needs its own measurement contract.
@@ -177,7 +179,7 @@ WinMon samples once a second all day, so its own cost is a feature. Measure stru
 
 ### Benchmark the UI thread
 
-`tools/WinMon.Performance` drives the real window with synthetic 850-process samples while sampling is stopped. Each scenario runs 400 warm-up frames, then seven batches of 60, and reports UI-thread time, allocation and a pixel hash of the rendered window. Scenarios: live, historical, grouped, Services, compact, pinned and selected (individual and grouped), an open CPU tooltip, `UsageLedger.Add`, and 60-minute update and normal-restart history saves and reads.
+`tools/WinMon.Performance` drives the real window with synthetic 850-process samples while sampling is stopped. Each scenario runs 400 warm-up frames, then seven batches of 60, and reports UI-thread time, allocation and a pixel hash of the rendered window. Scenarios: live, historical, grouped, Services, compact, pinned and selected (individual and grouped), an open CPU tooltip, `UsageLedger.Add`, and 60-minute update and normal-restart history saves and reads. A 12-logical-processor grid with pinned/selected processes runs last, after the existing pixel capture, so it does not shift the earlier scenarios' synthetic sample sequence. Synthetic samples also carry per-processor readings into the history-save workload.
 
 ```powershell
 dotnet build tools/WinMon.Performance/WinMon.Performance.csproj -c Release -m:1 -p:UseSharedCompilation=false

@@ -6,5 +6,6 @@ public enum ResourceChartType
     Overlay,
     SmallMultiples,
     Heatmap,
-    Focus
+    Focus,
+    LogicalProcessors
 }

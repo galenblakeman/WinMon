@@ -23,6 +23,30 @@ All eight runs produced the same pixel hash, and allocations were unchanged or s
 
 Raw reports: `artifacts/perf-headers/{baseline,changed}-{1..4}.json` and `comparison.json`. Baseline assembly SHA-256: `84392602F3073A45EEAFCC462B3AF49F1BD033AA3B139374874233C1994309D6`; header fix: `612FBA8A8E89F25F29BCBCAF733A4683D2F7FEA7F932ACED0951CD3480C5C4E7`. This benchmark measures UI-thread work and excludes native collection and the WPF render thread.
 
+## Logical processor charts (November 7, 2026)
+
+Release builds on the development machine (12 logical processors), SDK 10.0.403 and runtime 10.0.14. Four baseline/final UI benchmark pairs ran alternately from preserved output folders. Values below are medians of the four runs' seven-batch medians; for four values, the middle two are averaged. The baseline captured the pre-feature working tree while other chart/header work was underway, and the final includes that work's completed changes, so visual differences are expected and the comparison is not a perfectly isolated patch measurement.
+
+| Scenario | Before | After | Allocation before / after |
+| --- | ---: | ---: | ---: |
+| Live overlay | 4.00 ms | 4.26 ms | 586.72 / 586.74 KiB |
+| Small multiples | 2.88 ms | 2.84 ms | 558.34 / 558.34 KiB |
+| Heatmap | 3.11 ms | 2.93 ms | 602.66 / 602.66 KiB |
+| Focus | 2.88 ms | 2.96 ms | 572.64 / 572.64 KiB |
+| Historical | 1.16 ms | 1.16 ms | 174.09 / 174.09 KiB |
+| Services live | 5.38 ms | 5.43 ms | 979.01 / 979.04 KiB |
+| Compact | 1.85 ms | 1.69 ms | 375.89 / 375.92 KiB |
+| Pinned and selected | 3.84 ms | 3.69 ms | 968.22 / 968.22 KiB |
+| Logical processors, pinned and selected (12 CPUs) | — | 6.03 ms | — / 1,142.94 KiB |
+
+The first live scenario increased by 0.26 ms with normal tiering. A diagnostic baseline/final pair with `DOTNET_TieredCompilation=0` did not reproduce it: live was 4.77/4.72 ms and Focus was 4.71/4.72 ms. This points to the documented JIT/timing sensitivity rather than a reproducible existing-view regression. Allocation is effectively unchanged in existing paths. The new grid adds about 2.34 ms and 174.72 KiB to the pinned/selected workload compared with its ordinary overlay. WinMon refreshes once per second. Each build produced one consistent pixel hash across its four ordinary runs; baseline and final hashes differ with the chart selector/layout changes.
+
+The 60-minute history workload retained 1,961 samples / 499,896 process entries in every run. Update save/read medians were 1,102/783 ms before and 1,102/767 ms after; normal save/read were 1,092/675 ms before and 1,103/680 ms after. Format 3 adds 12 nullable processor readings per synthetic sample: the update file grew from 15,730,541 to 15,845,107 bytes and normal history from 15,718,939 to 15,833,505 bytes. These runs restored all samples within the existing save budget.
+
+Whole-process profiles used the default Overlay view and normal tiering, measuring 60 seconds after 20 seconds of warm-up. Baseline and final ran together; the second pair reversed launch order. CPU milliseconds per second were baseline/final 39.13/43.77 in pair one and 39.71/38.41 in pair two. Private memory averages were 65.16/66.02 MiB and 67.87/67.75 MiB; allocation was 926.23/920.18 KiB/s and 932.40/937.65 KiB/s. The CPU differences changed direction and memory/allocation stayed close, so these short runs do not establish a consistent collector regression. They do not certify long-running memory behavior or physical 64-processor collection; the 64-processor grid was checked with synthetic rendering data.
+
+Raw evidence: `artifacts/logical-processors/performance/baseline-{1..4}.json`, `final-{1..4}.json`, `baseline-tiered-off.json`, `final-tiered-off.json`, `parent-comparison.json` and `profile-pair{1,2}-{baseline,final}/profile.json`. Baseline assembly SHA-256: `CFC7BAFF069052CC598DEFD71947C5A4387D3EFE8E54698602740016AE087A67`; final: `810C59FC20C219F73995E299010A352CCF616A0A7065EA3D200938287E792800`.
+
 ## Collapsible activity panel (November 7, 2026)
 
 Release UI benchmark on .NET 10.0.14, built with SDK 10.0.403. Four baseline/final pairs alternated after verification completed. The baseline is a saved artifact of the pre-feature working tree, including the existing unrelated edits, so the comparison isolates this feature. Each value is the median of four runs' seven-batch medians.

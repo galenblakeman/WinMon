@@ -1649,4 +1649,9 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
   <data name="ProcessProductVersionLabel" xml:space="preserve"><value>Version du produit</value></data>
   <data name="CollapseActivityPanel" xml:space="preserve"><value>Réduire le panneau d’activité</value></data>
   <data name="ExpandActivityPanel" xml:space="preserve"><value>Développer le panneau d’activité</value></data>
+  <data name="ChartLogicalProcessors" xml:space="preserve"><value>Processeurs logiques</value></data>
+  <data name="LogicalProcessorLabel" xml:space="preserve"><value>CPU {0}</value></data>
+  <data name="LogicalProcessorsHeading" xml:space="preserve"><value>CPU · {0} processeurs logiques</value></data>
+  <data name="LogicalProcessorScale" xml:space="preserve"><value>Chaque graphique : 0–100%</value></data>
+  <data name="LogicalProcessorHistoryHelp" xml:space="preserve"><value>Historique CPU par processeur logique. Cliquez pour examiner ; les flèches déplacent, Fin revient au direct.</value></data>
 </root>

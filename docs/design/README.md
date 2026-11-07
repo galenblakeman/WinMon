@@ -8,6 +8,8 @@ This folder contains the current layout reference, feature design notes and edit
 
 ## Feature notes
 
+- [Logical processor charts](LOGICAL-PROCESSORS.md) adds a CPU history grid to the chart selector.
+
 - [Full-width headers](FULL-WIDTH-HEADERS.md) preserves section header edges when the window is shorter than its content.
 
 - [Monitor position recovery](MONITOR-POSITION-RECOVERY.md), which preserves the chosen monitor across sleep and display reconnection

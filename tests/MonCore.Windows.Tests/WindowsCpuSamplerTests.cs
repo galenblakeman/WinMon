@@ -9,6 +9,15 @@ namespace WinMon.Tests;
 public sealed class WindowsCpuSamplerTests
 {
     [Test]
+    public void Provider_CapturesLogicalProcessorCounters()
+    {
+        var snapshot = new WindowsCpuSnapshotProvider().Capture();
+
+        Assert.That(snapshot.LogicalProcessorTimes, Is.Not.Null.And.Not.Empty);
+        Assert.That(snapshot.LogicalProcessorTimes!.All(times => times.TotalTicks >= times.IdleTicks), Is.True);
+    }
+
+    [Test]
     public void Sample_RecordsWindowClassificationChangesWithoutChangingEarlierSamples()
     {
         var process = new ProcessCpuTimes(10, 100, "app", 50) { HasAppWindow = true, HasHadAppWindow = true };
@@ -110,6 +119,63 @@ public sealed class WindowsCpuSamplerTests
             Assert.That(sample.Processes, Has.Count.EqualTo(1));
             Assert.That(sample.Processes[0], Is.EqualTo(new ProcessUsage(10, 100, "alpha", 25d)));
         });
+    }
+
+    [Test]
+    public void Sample_RecordsEachLogicalProcessorOnTheSameFixedScale()
+    {
+        var first = Snapshot(1, 1_000, 100, []) with
+        {
+            LogicalProcessorTimes = [new SystemCpuTimes(20, 500, 0), new SystemCpuTimes(60, 500, 0)]
+        };
+        var second = Snapshot(2, 2_000, 200, []) with
+        {
+            LogicalProcessorTimes = [new SystemCpuTimes(40, 1_000, 0), new SystemCpuTimes(260, 1_000, 0)]
+        };
+        using var sampler = new WindowsCpuSampler(new SequenceSnapshotProvider(first, second));
+
+        _ = sampler.Sample();
+        var sample = sampler.Sample();
+
+        Assert.That(sample.LogicalProcessorPercents, Is.EqualTo(new double?[] { 96, 60 }));
+    }
+
+    [Test]
+    public void Sample_LeavesOnlyTheInvalidLogicalProcessorBlank()
+    {
+        var first = Snapshot(1, 1_000, 100, []) with
+        {
+            LogicalProcessorTimes = [new SystemCpuTimes(20, 500, 0), new SystemCpuTimes(60, 500, 0)]
+        };
+        var second = Snapshot(2, 2_000, 200, []) with
+        {
+            LogicalProcessorTimes = [new SystemCpuTimes(40, 1_000, 0), new SystemCpuTimes(40, 1_000, 0)]
+        };
+        using var sampler = new WindowsCpuSampler(new SequenceSnapshotProvider(first, second));
+
+        _ = sampler.Sample();
+        var sample = sampler.Sample();
+
+        Assert.That(sample.LogicalProcessorPercents, Is.EqualTo(new double?[] { 96, null }));
+    }
+
+    [Test]
+    public void Sample_LogicalProcessorTopologyChange_RebaselinesEveryProcessor()
+    {
+        var first = Snapshot(1, 1_000, 100, []) with
+        {
+            LogicalProcessorTimes = [new SystemCpuTimes(20, 500, 0)]
+        };
+        var second = Snapshot(2, 2_000, 200, []) with
+        {
+            LogicalProcessorTimes = [new SystemCpuTimes(40, 1_000, 0), new SystemCpuTimes(200, 1_000, 0)]
+        };
+        using var sampler = new WindowsCpuSampler(new SequenceSnapshotProvider(first, second));
+
+        _ = sampler.Sample();
+        var sample = sampler.Sample();
+
+        Assert.That(sample.LogicalProcessorPercents, Is.EqualTo(new double?[] { null, null }));
     }
 
     [Test]

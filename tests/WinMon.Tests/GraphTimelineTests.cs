@@ -62,4 +62,17 @@ public sealed class GraphTimelineTests
 
         Assert.That(CpuGraph.Moment(next) - CpuGraph.Moment(first), Is.EqualTo(1).Within(0.000001));
     }
+
+    [TestCase(1, 1)]
+    [TestCase(4, 2)]
+    [TestCase(5, 4)]
+    [TestCase(16, 4)]
+    [TestCase(17, 6)]
+    [TestCase(36, 6)]
+    [TestCase(37, 8)]
+    [TestCase(64, 8)]
+    public void LogicalProcessorColumns_UsesCompactFullGrid(int processors, int expectedColumns)
+    {
+        Assert.That(CpuGraph.LogicalProcessorColumns(processors), Is.EqualTo(expectedColumns));
+    }
 }

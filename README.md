@@ -38,6 +38,8 @@ Keep the whole picture in view while you work, play or troubleshoot. WinMon puts
 - **Look beyond the latest number.** Switch between 2, 10, 30 and 60-minute chart ranges, subject to your retained history, and inspect earlier samples.
 - **Choose how history looks.** The chart header is labeled **Chart**. One chart dropdown offers the original overlaid traces, aligned small charts, a heatmap timeline, and Focus choices for each configured resource. The small charts, heatmap and Focus views fit their axis and resource labels into one narrow column beside the plot. Disk choices include their drive letters. Choosing a hidden Focus resource shows it again. WinMon remembers the selection. Chart clicks, Capture mode and automatic capture markers work in every view.
 
+- **Inspect each logical processor.** Choose **Logical processors** in the chart dropdown for a CPU history graph per logical processor, each on its own 0–100% scale. The CPU gauge and process percentages still measure the whole machine. Click any graph to inspect an interval; arrow keys and Capture work as usual. Selecting this view restores CPU if hidden. Short cells use compact sparklines, with exact values in their tooltips.
+
 | Small multiples | Focus: Network |
 | --- | --- |
 | [![WinMon showing aligned resource charts with their labels beside the plots](docs/example/example_small_multiples.png)](docs/example/example_small_multiples.png) | [![WinMon showing a focused network chart with a throughput scale](docs/example/example_focus_network.png)](docs/example/example_focus_network.png) |

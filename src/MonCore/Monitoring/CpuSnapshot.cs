@@ -11,4 +11,5 @@ internal sealed record CpuSnapshot(
     long MonotonicTimestamp,
     SystemCpuTimes SystemTimes,
     IReadOnlyList<ProcessCpuTimes> Processes,
-    int UnavailableProcesses);
+    int UnavailableProcesses,
+    IReadOnlyList<SystemCpuTimes>? LogicalProcessorTimes = null);
