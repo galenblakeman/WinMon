@@ -1717,4 +1717,14 @@ Windows の正常性状態: {2}</value>
   <data name="ExpandChartPanel" xml:space="preserve">
     <value>グラフセクションを展開する</value>
   </data>
+  <data name="ChartTypes" xml:space="preserve"><value>グラフの種類</value></data>
+  <data name="ChartOverlayHelp" xml:space="preserve"><value>1つのグラフでリソースの使用状況を比較します。</value></data>
+  <data name="ChartSmallMultiplesHelp" xml:space="preserve"><value>表示中の各リソースを時間軸の揃った個別のグラフで表示します。</value></data>
+  <data name="ChartHeatmapHelp" xml:space="preserve"><value>色が濃いほど使用量が多く、負荷の高い時間帯がわかります。</value></data>
+  <data name="ChartLogicalProcessorsHelp" xml:space="preserve"><value>論理プロセッサごとにCPUグラフを表示します（0～100%）。</value></data>
+  <data name="ChartFocusHelp" xml:space="preserve"><value>1つのリソースを拡大し、他のリソースを小さなグラフで表示します。</value></data>
+  <data name="ProcessesTabHelp" xml:space="preserve"><value>実行中のプロセスをCPU、メモリ、GPU、I/Oで比較します。検索、グループ化、ピン留めで負荷の高いプロセスを追跡できます。</value></data>
+  <data name="ServicesTabHelp" xml:space="preserve"><value>Windowsサービスの状態と、ホストおよびワーカープロセスを含むリソース使用量を確認します。操作可能な現在のサービスを開始、停止、再起動できます。</value></data>
+  <data name="UsageTabHelp" xml:space="preserve"><value>WinMonの起動時または集計のリセット時からのCPU時間、GPU時間、I/Oの合計をアプリ別に比較します。終了したアプリも含まれます。</value></data>
+  <data name="ConnectionsTabHelp" xml:space="preserve"><value>TCP接続とUDPエンドポイントを所有するアプリを、アドレス、ポート、接続状態とともに表示します。キャプチャ表示中も最新の情報を表示します。</value></data>
 </root>

@@ -1717,4 +1717,14 @@ Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse
   <data name="ExpandChartPanel" xml:space="preserve">
     <value>Diagrammbereich ausklappen</value>
   </data>
+  <data name="ChartTypes" xml:space="preserve"><value>Diagrammtypen</value></data>
+  <data name="ChartOverlayHelp" xml:space="preserve"><value>Ressourcenaktivität in einem Diagramm vergleichen.</value></data>
+  <data name="ChartSmallMultiplesHelp" xml:space="preserve"><value>Jede sichtbare Ressource erhält ein eigenes, zeitlich ausgerichtetes Diagramm.</value></data>
+  <data name="ChartHeatmapHelp" xml:space="preserve"><value>Starke Farben zeigen Zeiträume mit höherer Aktivität.</value></data>
+  <data name="ChartLogicalProcessorsHelp" xml:space="preserve"><value>Ein eigenes CPU-Diagramm für jeden logischen Prozessor (0–100 %).</value></data>
+  <data name="ChartFocusHelp" xml:space="preserve"><value>Eine Ressource vergrößern und die anderen in kleineren Kontextdiagrammen behalten.</value></data>
+  <data name="ProcessesTabHelp" xml:space="preserve"><value>Laufende Prozesse nach CPU, Arbeitsspeicher, GPU und E/A vergleichen. Prozesse suchen, gruppieren oder anheften, um hohe Auslastung zu verfolgen.</value></data>
+  <data name="ServicesTabHelp" xml:space="preserve"><value>Status und Ressourcennutzung von Windows-Diensten samt Host- und Arbeitsprozessen prüfen. Verfügbare aktuelle Dienste starten, beenden oder neu starten.</value></data>
+  <data name="UsageTabHelp" xml:space="preserve"><value>Gesamte CPU-Zeit, GPU-Zeit und E/A je App seit dem Start von WinMon oder dem Zurücksetzen vergleichen, auch für bereits beendete Apps.</value></data>
+  <data name="ConnectionsTabHelp" xml:space="preserve"><value>Apps mit TCP-Verbindungen und UDP-Endpunkten samt Adressen, Ports und Verbindungsstatus anzeigen. Diese Ansicht bleibt bei Aufnahmen live.</value></data>
 </root>

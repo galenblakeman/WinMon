@@ -1717,4 +1717,14 @@ Se puede perder el trabajo sin guardar. Se finalizarán todos los procesos indic
   <data name="ExpandChartPanel" xml:space="preserve">
     <value>Expandir la sección del gráfico</value>
   </data>
+  <data name="ChartTypes" xml:space="preserve"><value>Tipos de gráfico</value></data>
+  <data name="ChartOverlayHelp" xml:space="preserve"><value>Compara la actividad de los recursos en un solo gráfico.</value></data>
+  <data name="ChartSmallMultiplesHelp" xml:space="preserve"><value>Muestra un gráfico alineado para cada recurso visible.</value></data>
+  <data name="ChartHeatmapHelp" xml:space="preserve"><value>Detecta períodos de mayor actividad por la intensidad del color.</value></data>
+  <data name="ChartLogicalProcessorsHelp" xml:space="preserve"><value>Muestra un gráfico de CPU por procesador lógico (0–100 %).</value></data>
+  <data name="ChartFocusHelp" xml:space="preserve"><value>Amplía un recurso y mantiene los demás en gráficos más pequeños como contexto.</value></data>
+  <data name="ProcessesTabHelp" xml:space="preserve"><value>Compara procesos en ejecución por CPU, memoria, GPU y E/S. Busca, agrupa o fija procesos para seguir su actividad.</value></data>
+  <data name="ServicesTabHelp" xml:space="preserve"><value>Consulta el estado y uso de recursos de los servicios de Windows, incluidos sus procesos anfitriones y de trabajo. Inicia, detén o reinicia servicios actuales cuando esté permitido.</value></data>
+  <data name="UsageTabHelp" xml:space="preserve"><value>Compara el tiempo total de CPU, GPU y E/S por aplicación desde el inicio de WinMon o el último reinicio de los totales, incluidas aplicaciones que ya terminaron.</value></data>
+  <data name="ConnectionsTabHelp" xml:space="preserve"><value>Consulta qué aplicaciones tienen conexiones TCP y puntos de conexión UDP, con direcciones, puertos y estados. Esta vista sigue en vivo durante las capturas.</value></data>
 </root>

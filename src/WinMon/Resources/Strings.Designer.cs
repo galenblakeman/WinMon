@@ -104,13 +104,19 @@ public static partial class Strings
     public static string CaptureLatestSnapshot => ResourceManager.GetString(nameof(CaptureLatestSnapshot), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartDisplay => ResourceManager.GetString(nameof(ChartDisplay), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartFocus => ResourceManager.GetString(nameof(ChartFocus), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ChartFocusHelp => ResourceManager.GetString(nameof(ChartFocusHelp), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartFocusResourceChoice => ResourceManager.GetString(nameof(ChartFocusResourceChoice), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartHeatmap => ResourceManager.GetString(nameof(ChartHeatmap), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ChartHeatmapHelp => ResourceManager.GetString(nameof(ChartHeatmapHelp), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartLogicalProcessors => ResourceManager.GetString(nameof(ChartLogicalProcessors), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ChartLogicalProcessorsHelp => ResourceManager.GetString(nameof(ChartLogicalProcessorsHelp), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartOverlay => ResourceManager.GetString(nameof(ChartOverlay), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ChartOverlayHelp => ResourceManager.GetString(nameof(ChartOverlayHelp), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartPalette => ResourceManager.GetString(nameof(ChartPalette), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartSmallMultiples => ResourceManager.GetString(nameof(ChartSmallMultiples), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ChartSmallMultiplesHelp => ResourceManager.GetString(nameof(ChartSmallMultiplesHelp), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartTimeRange => ResourceManager.GetString(nameof(ChartTimeRange), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ChartTypes => ResourceManager.GetString(nameof(ChartTypes), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CheckForUpdates => ResourceManager.GetString(nameof(CheckForUpdates), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChooseAPrimaryVolumeAndADifferentSecondVolumeOr => ResourceManager.GetString(nameof(ChooseAPrimaryVolumeAndADifferentSecondVolumeOr), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChooseUpTo2Volumes => ResourceManager.GetString(nameof(ChooseUpTo2Volumes), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -154,6 +160,7 @@ public static partial class Strings
     public static string ConnectionsState => ResourceManager.GetString(nameof(ConnectionsState), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConnectionsStateCount => ResourceManager.GetString(nameof(ConnectionsStateCount), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConnectionsTab => ResourceManager.GetString(nameof(ConnectionsTab), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ConnectionsTabHelp => ResourceManager.GetString(nameof(ConnectionsTabHelp), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConnectionsTcpStateClosed => ResourceManager.GetString(nameof(ConnectionsTcpStateClosed), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConnectionsTcpStateCloseWait => ResourceManager.GetString(nameof(ConnectionsTcpStateCloseWait), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConnectionsTcpStateClosing => ResourceManager.GetString(nameof(ConnectionsTcpStateClosing), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -526,6 +533,7 @@ public static partial class Strings
     public static string ProcessesLowercase => ResourceManager.GetString(nameof(ProcessesLowercase), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ProcessesNeedAdministratorAccess => ResourceManager.GetString(nameof(ProcessesNeedAdministratorAccess), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ProcessesTab => ResourceManager.GetString(nameof(ProcessesTab), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ProcessesTabHelp => ResourceManager.GetString(nameof(ProcessesTabHelp), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ProcessExited => ResourceManager.GetString(nameof(ProcessExited), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ProcessFileMissing => ResourceManager.GetString(nameof(ProcessFileMissing), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ProcessFileVersionLabel => ResourceManager.GetString(nameof(ProcessFileVersionLabel), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -620,6 +628,7 @@ public static partial class Strings
     public static string ServicesBy => ResourceManager.GetString(nameof(ServicesBy), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ServicesCollecting => ResourceManager.GetString(nameof(ServicesCollecting), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ServiceSort => ResourceManager.GetString(nameof(ServiceSort), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ServicesTabHelp => ResourceManager.GetString(nameof(ServicesTabHelp), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ServiceStarting => ResourceManager.GetString(nameof(ServiceStarting), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ServiceStatus => ResourceManager.GetString(nameof(ServiceStatus), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ServiceStopped => ResourceManager.GetString(nameof(ServiceStopped), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -774,6 +783,7 @@ public static partial class Strings
     public static string UsageSort => ResourceManager.GetString(nameof(UsageSort), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string UsageSummary => ResourceManager.GetString(nameof(UsageSummary), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string UsageTab => ResourceManager.GetString(nameof(UsageTab), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string UsageTabHelp => ResourceManager.GetString(nameof(UsageTabHelp), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string USB => ResourceManager.GetString(nameof(USB), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string UseALetterDigitFunctionOrNavigationKey => ResourceManager.GetString(nameof(UseALetterDigitFunctionOrNavigationKey), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string UseAtLeastTwoOfCtrlAltAndShiftIncluding => ResourceManager.GetString(nameof(UseAtLeastTwoOfCtrlAltAndShiftIncluding), Culture ?? CultureInfo.CurrentUICulture)!;

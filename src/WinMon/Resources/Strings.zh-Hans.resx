@@ -1717,4 +1717,14 @@ Windows 健康状态：{2}</value>
   <data name="ExpandChartPanel" xml:space="preserve">
     <value>展开图表区域</value>
   </data>
+  <data name="ChartTypes" xml:space="preserve"><value>图表类型</value></data>
+  <data name="ChartOverlayHelp" xml:space="preserve"><value>在同一张图中比较资源活动。</value></data>
+  <data name="ChartSmallMultiplesHelp" xml:space="preserve"><value>为每个可见资源显示时间轴对齐的独立图表。</value></data>
+  <data name="ChartHeatmapHelp" xml:space="preserve"><value>通过颜色强度找出繁忙时段；颜色越浓，活动越多。</value></data>
+  <data name="ChartLogicalProcessorsHelp" xml:space="preserve"><value>为每个逻辑处理器显示独立的 CPU 图表（0–100%）。</value></data>
+  <data name="ChartFocusHelp" xml:space="preserve"><value>放大一个资源，同时用较小的图表显示其他资源作为参考。</value></data>
+  <data name="ProcessesTabHelp" xml:space="preserve"><value>按 CPU、内存、GPU 和 I/O 比较正在运行的进程。搜索、分组或固定进程以跟踪繁忙的进程。</value></data>
+  <data name="ServicesTabHelp" xml:space="preserve"><value>查看 Windows 服务的状态和资源使用情况，包括宿主进程和工作进程。在允许时启动、停止或重启当前服务。</value></data>
+  <data name="UsageTabHelp" xml:space="preserve"><value>按应用比较自 WinMon 启动或重置统计以来的 CPU 时间、GPU 时间和 I/O 总量，包括已退出的应用。</value></data>
+  <data name="ConnectionsTabHelp" xml:space="preserve"><value>查看哪些应用拥有 TCP 连接和 UDP 端点，以及地址、端口和连接状态。查看捕获时，此视图仍保持实时更新。</value></data>
 </root>

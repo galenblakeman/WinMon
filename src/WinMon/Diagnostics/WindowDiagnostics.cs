@@ -156,6 +156,50 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         if (window.ChartTypeSelector.Items.OfType<ComboBoxItem>().Count() != 9 ||
             window.ChartTypeSelector.Items.OfType<Separator>().Count() != 1)
             throw new InvalidOperationException("The combined chart menu has the wrong choices.");
+        var helpPreferences = window.Preferences;
+        try
+        {
+            foreach (var theme in new[] { "Dark", "Light" })
+            {
+                window.Preferences = helpPreferences with { Theme = theme };
+                window.ApplyTheme();
+                foreach (var (target, name) in new FrameworkElement[] { window.LiveCaption, window.ChartTypeSelector }
+                             .Select((target, index) => (target, index == 0 ? "header" : "selector")))
+                {
+                    if (target.ToolTip is not ToolTip { Content: StackPanel panel } tooltip ||
+                        panel.Children.OfType<ContentControl>().Single().Content is not StackPanel help)
+                        throw new InvalidOperationException("Chart controls did not explain the chart types.");
+                    var text = help.Children.OfType<Border>().SelectMany(border =>
+                        ((StackPanel)border.Child).Children.OfType<TextBlock>()).Select(block => block.Text);
+                    if (!text.SequenceEqual(new[]
+                        {
+                            Strings.ChartOverlay, Strings.ChartOverlayHelp,
+                            Strings.ChartSmallMultiples, Strings.ChartSmallMultiplesHelp,
+                            Strings.ChartHeatmap, Strings.ChartHeatmapHelp,
+                            Strings.ChartLogicalProcessors, Strings.ChartLogicalProcessorsHelp,
+                            Strings.ChartFocus, Strings.ChartFocusHelp
+                        }))
+                        throw new InvalidOperationException("Chart help did not contain five separate labeled descriptions.");
+                    tooltip.PlacementTarget = target;
+                    tooltip.Placement = PlacementMode.Bottom;
+                    try
+                    {
+                        tooltip.IsOpen = true;
+                        await window.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render, cancellationToken);
+                        tooltip.UpdateLayout();
+                        await CaptureVisualAsync(tooltip,
+                            Path.Combine(outputDirectory, $"chart-help-{name}-{theme.ToLowerInvariant()}.png"),
+                            1, cancellationToken);
+                    }
+                    finally { tooltip.IsOpen = false; }
+                }
+            }
+        }
+        finally
+        {
+            window.Preferences = helpPreferences;
+            window.ApplyTheme();
+        }
         window.ChartTypeSelector.IsDropDownOpen = true;
         try
         {
@@ -428,6 +472,26 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
     internal async Task CaptureFeatureDiagnosticsAsync(string output, CancellationToken cancellationToken)
     {
         Directory.CreateDirectory(output);
+        foreach (var (tab, help, name) in new[]
+                 {
+                     (window.ProcessesTab, Strings.ProcessesTabHelp, "processes"),
+                     (window.ServicesTab, Strings.ServicesTabHelp, "services"),
+                     (window.UsageTab, Strings.UsageTabHelp, "usage"),
+                     (window.ConnectionsTab, Strings.ConnectionsTabHelp, "connections")
+                 })
+        {
+            if (tab.ToolTip is not string text || text != help)
+                throw new InvalidOperationException($"The {name} tab did not explain its view.");
+            var tooltip = new ToolTip { Content = text, PlacementTarget = tab, Placement = PlacementMode.Bottom };
+            try
+            {
+                tooltip.IsOpen = true;
+                await window.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render, cancellationToken);
+                tooltip.UpdateLayout();
+                await CaptureVisualAsync(tooltip, Path.Combine(output, $"tab-help-{name}.png"), 1, cancellationToken);
+            }
+            finally { tooltip.IsOpen = false; }
+        }
         if (window.Session.History.Samples.Count == 0) await Task.Delay(TimeSpan.FromSeconds(4), cancellationToken);
         // Check the compact process toolbar at the minimum and wider supported window sizes.
         var headerWidth = window.Width;

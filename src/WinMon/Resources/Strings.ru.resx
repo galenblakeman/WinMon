@@ -1717,4 +1717,14 @@ GPU {11} · {12}
   <data name="ExpandChartPanel" xml:space="preserve">
     <value>Развернуть раздел графика</value>
   </data>
+  <data name="ChartTypes" xml:space="preserve"><value>Типы графиков</value></data>
+  <data name="ChartOverlayHelp" xml:space="preserve"><value>Сравнивайте активность ресурсов на одном графике.</value></data>
+  <data name="ChartSmallMultiplesHelp" xml:space="preserve"><value>Каждый видимый ресурс показан на отдельном графике с общей шкалой времени.</value></data>
+  <data name="ChartHeatmapHelp" xml:space="preserve"><value>Более насыщенный цвет означает более высокую активность.</value></data>
+  <data name="ChartLogicalProcessorsHelp" xml:space="preserve"><value>Отдельный график CPU для каждого логического процессора (0–100%).</value></data>
+  <data name="ChartFocusHelp" xml:space="preserve"><value>Увеличьте один ресурс, сохранив остальные на небольших графиках для сравнения.</value></data>
+  <data name="ProcessesTabHelp" xml:space="preserve"><value>Сравнивайте запущенные процессы по CPU, памяти, GPU и вводу-выводу. Ищите, группируйте или закрепляйте процессы для отслеживания нагрузки.</value></data>
+  <data name="ServicesTabHelp" xml:space="preserve"><value>Проверяйте состояние и ресурсы служб Windows, включая хост-процессы и рабочие процессы. Запускайте, останавливайте или перезапускайте текущие службы, когда это разрешено.</value></data>
+  <data name="UsageTabHelp" xml:space="preserve"><value>Сравнивайте суммарное время CPU, GPU и ввод-вывод приложений с запуска WinMon или сброса итогов, включая уже завершённые приложения.</value></data>
+  <data name="ConnectionsTabHelp" xml:space="preserve"><value>Просматривайте приложения с TCP-соединениями и конечными точками UDP, их адреса, порты и состояния. Этот вид остаётся в реальном времени при просмотре снимков.</value></data>
 </root>

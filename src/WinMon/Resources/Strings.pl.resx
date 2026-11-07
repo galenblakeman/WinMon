@@ -1717,4 +1717,14 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
   <data name="ExpandChartPanel" xml:space="preserve">
     <value>Rozwiń sekcję wykresu</value>
   </data>
+  <data name="ChartTypes" xml:space="preserve"><value>Typy wykresów</value></data>
+  <data name="ChartOverlayHelp" xml:space="preserve"><value>Porównuj aktywność zasobów na jednym wykresie.</value></data>
+  <data name="ChartSmallMultiplesHelp" xml:space="preserve"><value>Każdy widoczny zasób ma własny wykres ze wspólną osią czasu.</value></data>
+  <data name="ChartHeatmapHelp" xml:space="preserve"><value>Intensywniejszy kolor wskazuje okresy większej aktywności.</value></data>
+  <data name="ChartLogicalProcessorsHelp" xml:space="preserve"><value>Osobny wykres CPU dla każdego procesora logicznego (0–100%).</value></data>
+  <data name="ChartFocusHelp" xml:space="preserve"><value>Powiększ jeden zasób, zachowując pozostałe na mniejszych wykresach.</value></data>
+  <data name="ProcessesTabHelp" xml:space="preserve"><value>Porównuj uruchomione procesy według CPU, pamięci, GPU i operacji we/wy. Wyszukuj, grupuj lub przypinaj procesy, aby śledzić ich aktywność.</value></data>
+  <data name="ServicesTabHelp" xml:space="preserve"><value>Sprawdzaj stan i zużycie zasobów usług Windows wraz z procesami hosta i roboczymi. Uruchamiaj, zatrzymuj lub restartuj bieżące usługi, gdy jest to dozwolone.</value></data>
+  <data name="UsageTabHelp" xml:space="preserve"><value>Porównuj łączny czas CPU, czas GPU i operacje we/wy aplikacji od uruchomienia WinMon lub wyzerowania sum, również dla zamkniętych aplikacji.</value></data>
+  <data name="ConnectionsTabHelp" xml:space="preserve"><value>Sprawdzaj aplikacje posiadające połączenia TCP i punkty końcowe UDP wraz z adresami, portami i stanami. Ten widok pozostaje na żywo podczas przeglądania przechwyceń.</value></data>
 </root>

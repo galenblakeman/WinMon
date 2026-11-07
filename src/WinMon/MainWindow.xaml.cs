@@ -281,8 +281,9 @@ public partial class MainWindow
                 ProcessListSettings.From(_preferences))) is { } report)
             _snapshotReport = report;
         LiveCaption.Text = allUnavailable ? Strings.SystemResourcesUnavailable : Strings.SystemResources;
-        LiveCaption.ToolTip =
-            SelectedSample is not null ? Strings.SystemResourcesInspectingSnapshot : LiveCaption.Text;
+        ChartTooltipStatus.Text =
+            SelectedSample is not null ? Strings.SystemResourcesInspectingSnapshot :
+            allUnavailable ? Strings.SystemResourcesUnavailable : Strings.ChartTypes;
         ShowError(_samplingError switch
         {
             SamplingError.CpuUnavailable or SamplingError.CpuUnsupported =>
@@ -516,7 +517,6 @@ public partial class MainWindow
                 item.Tag is ResourceChartChoice choice && choice.Type == _preferences.ResourceChartType &&
                 (choice.Type != ResourceChartType.Focus || choice.Metric == _preferences.FocusMetric));
             ChartTypeSelector.SelectedItem = selected;
-            ChartTypeSelector.ToolTip = selected.Content;
             AutomationProperties.SetName(ChartTypeSelector, Strings.ChartDisplay);
         }
         finally { _updatingChartSelectors = false; }
@@ -525,13 +525,12 @@ public partial class MainWindow
     private void OnChartTypeChanged(object sender, SelectionChangedEventArgs e)
     {
         if (_updatingChartSelectors || !_preferencesLoaded || IsClosing ||
-            ChartTypeSelector.SelectedItem is not ComboBoxItem { Tag: ResourceChartChoice choice } item) return;
+            ChartTypeSelector.SelectedItem is not ComboBoxItem { Tag: ResourceChartChoice choice }) return;
         _preferences = _preferences with
         {
             ResourceChartType = choice.Type,
             FocusMetric = choice.Metric ?? _preferences.FocusMetric
         };
-        ChartTypeSelector.ToolTip = item.Content;
         if (choice.Type == ResourceChartType.LogicalProcessors && Metrics[0].Toggle.IsChecked != true)
             Metrics[0].Toggle.IsChecked = true;
         if (choice.Metric is { } metric && Metrics[metric].Toggle.IsChecked != true)

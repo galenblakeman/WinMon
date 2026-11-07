@@ -1717,4 +1717,14 @@ Windows 상태: {2}</value>
   <data name="ExpandChartPanel" xml:space="preserve">
     <value>차트 섹션 펼치기</value>
   </data>
+  <data name="ChartTypes" xml:space="preserve"><value>차트 유형</value></data>
+  <data name="ChartOverlayHelp" xml:space="preserve"><value>하나의 그래프에서 리소스 사용량을 비교합니다.</value></data>
+  <data name="ChartSmallMultiplesHelp" xml:space="preserve"><value>표시된 각 리소스를 시간축이 정렬된 개별 그래프로 표시합니다.</value></data>
+  <data name="ChartHeatmapHelp" xml:space="preserve"><value>색이 진할수록 사용량이 많아 부하가 높은 시간대를 찾을 수 있습니다.</value></data>
+  <data name="ChartLogicalProcessorsHelp" xml:space="preserve"><value>논리 프로세서마다 별도의 CPU 그래프를 표시합니다(0~100%).</value></data>
+  <data name="ChartFocusHelp" xml:space="preserve"><value>한 리소스를 확대하고 나머지는 작은 그래프로 표시합니다.</value></data>
+  <data name="ProcessesTabHelp" xml:space="preserve"><value>실행 중인 프로세스를 CPU, 메모리, GPU, I/O별로 비교합니다. 검색, 그룹화, 고정으로 사용량이 많은 프로세스를 추적합니다.</value></data>
+  <data name="ServicesTabHelp" xml:space="preserve"><value>호스트 및 작업 프로세스를 포함한 Windows 서비스의 상태와 리소스 사용량을 확인합니다. 조작 가능한 현재 서비스를 시작, 중지 또는 다시 시작합니다.</value></data>
+  <data name="UsageTabHelp" xml:space="preserve"><value>WinMon 시작 또는 합계 초기화 이후의 CPU 시간, GPU 시간, I/O 합계를 앱별로 비교합니다. 종료된 앱도 포함됩니다.</value></data>
+  <data name="ConnectionsTabHelp" xml:space="preserve"><value>TCP 연결과 UDP 엔드포인트를 소유한 앱을 주소, 포트, 연결 상태와 함께 확인합니다. 캡처 중에도 실시간 정보를 표시합니다.</value></data>
 </root>

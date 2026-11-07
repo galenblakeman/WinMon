@@ -8,6 +8,8 @@ This folder contains the current layout reference, feature design notes and edit
 
 ## Feature notes
 
+- [Activity tab tooltips](ACTIVITY-TAB-TOOLTIPS.md) gives a quick overview when hovering Processes, Services, Usage or Connections.
+
 - [Collapsible chart section](CHART-COLLAPSE.md), which keeps chart controls visible while giving the plot's space to the activity panel
 
 - [Connections display modes](CONNECTIONS-DISPLAY-MODES.md) adds executable grouping, endpoint summaries and activity-header totals.

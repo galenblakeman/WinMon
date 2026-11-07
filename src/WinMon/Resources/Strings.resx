@@ -1717,4 +1717,14 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="ExpandChartPanel" xml:space="preserve">
     <value>Expand chart section</value>
   </data>
+  <data name="ChartTypes" xml:space="preserve"><value>Chart types</value></data>
+  <data name="ChartOverlayHelp" xml:space="preserve"><value>Compare resource activity on one graph.</value></data>
+  <data name="ChartSmallMultiplesHelp" xml:space="preserve"><value>Give each visible resource its own aligned graph.</value></data>
+  <data name="ChartHeatmapHelp" xml:space="preserve"><value>Spot busy periods by color intensity; stronger color means more activity.</value></data>
+  <data name="ChartLogicalProcessorsHelp" xml:space="preserve"><value>See a separate CPU graph for each logical processor (0–100%).</value></data>
+  <data name="ChartFocusHelp" xml:space="preserve"><value>Enlarge one resource and keep the others in smaller context graphs.</value></data>
+  <data name="ProcessesTabHelp" xml:space="preserve"><value>Compare running processes by CPU, memory, GPU and I/O. Search, group or pin processes to track what is busy.</value></data>
+  <data name="ServicesTabHelp" xml:space="preserve"><value>Check Windows service status and resource use, including hosting and worker processes. Start, stop or restart eligible live services.</value></data>
+  <data name="UsageTabHelp" xml:space="preserve"><value>Compare total CPU time, GPU time and I/O by app since WinMon started or totals were reset, including apps that have exited.</value></data>
+  <data name="ConnectionsTabHelp" xml:space="preserve"><value>See which apps own TCP connections and UDP endpoints, with addresses, ports and connection states. This view stays live during captures.</value></data>
 </root>

@@ -1717,4 +1717,14 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
   <data name="ExpandChartPanel" xml:space="preserve">
     <value>Développer la section du graphique</value>
   </data>
+  <data name="ChartTypes" xml:space="preserve"><value>Types de graphiques</value></data>
+  <data name="ChartOverlayHelp" xml:space="preserve"><value>Comparez l’activité des ressources sur un même graphique.</value></data>
+  <data name="ChartSmallMultiplesHelp" xml:space="preserve"><value>Affichez un graphique aligné pour chaque ressource visible.</value></data>
+  <data name="ChartHeatmapHelp" xml:space="preserve"><value>Repérez les périodes chargées grâce à des couleurs plus intenses.</value></data>
+  <data name="ChartLogicalProcessorsHelp" xml:space="preserve"><value>Affichez un graphique CPU par processeur logique (0–100 %).</value></data>
+  <data name="ChartFocusHelp" xml:space="preserve"><value>Agrandissez une ressource en gardant les autres dans de petits graphiques de contexte.</value></data>
+  <data name="ProcessesTabHelp" xml:space="preserve"><value>Comparez les processus actifs par CPU, mémoire, GPU et E/S. Recherchez, regroupez ou épinglez des processus pour suivre leur activité.</value></data>
+  <data name="ServicesTabHelp" xml:space="preserve"><value>Consultez l’état et les ressources des services Windows, avec leurs processus hôtes et de travail. Démarrez, arrêtez ou redémarrez les services actuels lorsque cela est autorisé.</value></data>
+  <data name="UsageTabHelp" xml:space="preserve"><value>Comparez le temps CPU, le temps GPU et les E/S cumulés par application depuis le lancement de WinMon ou la remise à zéro, même pour les applications fermées.</value></data>
+  <data name="ConnectionsTabHelp" xml:space="preserve"><value>Identifiez les applications ayant des connexions TCP et des points de terminaison UDP, avec adresses, ports et états. Cette vue reste en direct pendant les captures.</value></data>
 </root>
