@@ -154,20 +154,32 @@
                         <StackPanel x:Name="GuideTopics">
                             <TextBlock FontSize="22" FontWeight="SemiBold" Text="{Binding [InfoGuideTitle], Source={x:Static r:Strings.Text}}" />
                             <TextBlock Style="{StaticResource Body}" Foreground="{DynamicResource Muted}" Text="{Binding [InfoGuideIntro], Source={x:Static r:Strings.Text}}" />
-                            <Expander IsExpanded="True" Header="{Binding [GuideHistoryQuestion], Source={x:Static r:Strings.Text}}">
-                                <TextBlock Style="{StaticResource Body}" Text="{Binding [GuideHistoryAnswer], Source={x:Static r:Strings.Text}}" />
+                            <Expander IsExpanded="True" Header="{Binding [GuideChartsTitle], Source={x:Static r:Strings.Text}}">
+                                <TextBlock Style="{StaticResource Body}" Text="{Binding [GuideChartsBody], Source={x:Static r:Strings.Text}}" />
                             </Expander>
-                            <Expander Header="{Binding [GuideProcessesQuestion], Source={x:Static r:Strings.Text}}">
-                                <TextBlock Style="{StaticResource Body}" Text="{Binding [GuideProcessesAnswer], Source={x:Static r:Strings.Text}}" />
+                            <Expander Header="{Binding [GuideProcessesTitle], Source={x:Static r:Strings.Text}}">
+                                <TextBlock Style="{StaticResource Body}" Text="{Binding [GuideProcessesBody], Source={x:Static r:Strings.Text}}" />
                             </Expander>
-                            <Expander Header="{Binding [GuideExportQuestion], Source={x:Static r:Strings.Text}}">
-                                <TextBlock Style="{StaticResource Body}" Text="{Binding [GuideExportAnswer], Source={x:Static r:Strings.Text}}" />
+                            <Expander Header="{Binding [GuideServicesTitle], Source={x:Static r:Strings.Text}}">
+                                <TextBlock Style="{StaticResource Body}" Text="{Binding [GuideServicesBody], Source={x:Static r:Strings.Text}}" />
                             </Expander>
-                            <Expander Header="{Binding [GuideActivityQuestion], Source={x:Static r:Strings.Text}}">
-                                <TextBlock Style="{StaticResource Body}" Text="{Binding [GuideActivityAnswer], Source={x:Static r:Strings.Text}}" />
+                            <Expander Header="{Binding [GuideUsageTitle], Source={x:Static r:Strings.Text}}">
+                                <TextBlock Style="{StaticResource Body}" Text="{Binding [GuideUsageBody], Source={x:Static r:Strings.Text}}" />
                             </Expander>
-                            <Expander Header="{Binding [GuideCompactQuestion], Source={x:Static r:Strings.Text}}">
-                                <TextBlock Style="{StaticResource Body}" Text="{Binding [GuideCompactAnswer], Source={x:Static r:Strings.Text}}" />
+                            <Expander Header="{Binding [GuideConnectionsTitle], Source={x:Static r:Strings.Text}}">
+                                <TextBlock Style="{StaticResource Body}" Text="{Binding [GuideConnectionsBody], Source={x:Static r:Strings.Text}}" />
+                            </Expander>
+                            <Expander Header="{Binding [GuideExportTitle], Source={x:Static r:Strings.Text}}">
+                                <TextBlock Style="{StaticResource Body}" Text="{Binding [GuideExportBody], Source={x:Static r:Strings.Text}}" />
+                            </Expander>
+                            <Expander Header="{Binding [GuideAutomaticTitle], Source={x:Static r:Strings.Text}}">
+                                <TextBlock Style="{StaticResource Body}" Text="{Binding [GuideAutomaticBody], Source={x:Static r:Strings.Text}}" />
+                            </Expander>
+                            <Expander Header="{Binding [GuideCompactTitle], Source={x:Static r:Strings.Text}}">
+                                <TextBlock Style="{StaticResource Body}" Text="{Binding [GuideCompactBody], Source={x:Static r:Strings.Text}}" />
+                            </Expander>
+                            <Expander Header="{Binding [GuideWalkthroughTitle], Source={x:Static r:Strings.Text}}">
+                                <TextBlock Style="{StaticResource Body}" Text="{Binding [GuideWalkthroughBody], Source={x:Static r:Strings.Text}}" />
                             </Expander>
                         </StackPanel>
                     </ScrollViewer>

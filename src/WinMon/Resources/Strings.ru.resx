@@ -1721,18 +1721,8 @@ GPU {11} · {12}
   <data name="InfoGuide" xml:space="preserve"><value>Руководство</value></data>
   <data name="InfoAbout" xml:space="preserve"><value>О программе</value></data>
   <data name="InfoGuideTitle" xml:space="preserve"><value>Использование WinMon</value></data>
-  <data name="InfoGuideIntro" xml:space="preserve"><value>Разверните тему, чтобы узнать об основных функциях.</value></data>
+  <data name="InfoGuideIntro" xml:space="preserve"><value>Выберите функцию, чтобы узнать её назначение и первые шаги.</value></data>
   <data name="InfoStoreUpdates" xml:space="preserve"><value>Обновлениями управляет Microsoft Store.</value></data>
-  <data name="GuideHistoryQuestion" xml:space="preserve"><value>Как исследовать скачок нагрузки?</value></data>
-  <data name="GuideHistoryAnswer" xml:space="preserve"><value>Индикаторы показывают текущие значения и пики за две минуты. Щёлкните график или выберите Захват для просмотра записанного интервала; список процессов следует за ним. Выберите Онлайн для возврата. Мониторинг продолжается во время просмотра.</value></data>
-  <data name="GuideProcessesQuestion" xml:space="preserve"><value>Как найти и закрепить процесс?</value></data>
-  <data name="GuideProcessesAnswer" xml:space="preserve"><value>Ищите по имени или PID. Группировка объединяет процессы одного исполняемого файла. Кнопка закрепления у процесса или меню строки оставляет его над рейтингом. Поиск и Только приложения фильтруют и закреплённые строки.</value></data>
-  <data name="GuideExportQuestion" xml:space="preserve"><value>Как делать снимки и экспортировать данные?</value></data>
-  <data name="GuideExportAnswer" xml:space="preserve"><value>В режиме Захват команда Копировать захват копирует выбранный момент. В полном виде Экспорт сохраняет историю ресурсов, сохранённые образцы процессов или итоги Использования в CSV. Настройки &gt; Автоматические захваты позволяет сохранять отчёты при достижении заданных порогов.</value></data>
-  <data name="GuideActivityQuestion" xml:space="preserve"><value>Что показывают Службы и Использование?</value></data>
-  <data name="GuideActivityAnswer" xml:space="preserve"><value>Службы показывает локальные службы и их процессы-хосты; разверните службу для просмотра рабочих процессов. Использование суммирует время CPU, ввод-вывод и время GPU по исполняемому файлу, включая завершённые приложения. Сброс начинает подсчёт заново.</value></data>
-  <data name="GuideCompactQuestion" xml:space="preserve"><value>Как перейти в компактный вид?</value></data>
-  <data name="GuideCompactAnswer" xml:space="preserve"><value>Компактный вид в заголовке показывает индикаторы без графика и панелей активности. Полный вид возвращает панель. Настройки &gt; Общие &gt; Вид при запуске задаёт начальный вид.</value></data>
   <data name="ConnectionsAddressPorts" xml:space="preserve"><value>{0} · {1} портов</value></data>
   <data name="ConnectionsAddressesPorts" xml:space="preserve"><value>{0} адресов · {1} портов</value></data>
   <data name="ConnectionsAddressesSinglePort" xml:space="preserve"><value>{0} адресов · 1 порт</value></data>
@@ -1821,4 +1811,40 @@ GPU {11} · {12}
   <data name="ResetChartPreferences" xml:space="preserve">
     <value>Сбросить настройки графиков</value>
   </data>
+  <data name="GuideChartsTitle" xml:space="preserve"><value>Графики и история</value></data>
+  <data name="GuideChartsBody" xml:space="preserve"><value>Сравнивайте ресурсы во времени.
+1. Выберите тип графика и период, включая Фокус или Логические процессоры.
+2. Выберите момент на графике для просмотра; вернитесь кнопкой Онлайн. Запись продолжается.</value></data>
+  <data name="GuideProcessesTitle" xml:space="preserve"><value>Процессы и закрепление</value></data>
+  <data name="GuideProcessesBody" xml:space="preserve"><value>Находите активные приложения и держите важные процессы на виду.
+1. Сортируйте по ресурсу, ищите по имени или PID либо выберите Группы.
+2. Закрепите строку или включите Только закреплённые. Поиск и Только приложения действуют и здесь. Выберите строку для действий с процессом.</value></data>
+  <data name="GuideServicesTitle" xml:space="preserve"><value>Службы</value></data>
+  <data name="GuideServicesBody" xml:space="preserve"><value>Изучайте службы Windows и их рабочие процессы.
+1. Откройте Службы, отфильтруйте по состоянию и разверните службу, чтобы увидеть процессы.
+2. Включите рабочие процессы для учёта их ресурсов. Выберите службу для свойств или управления в реальном времени; общие хосты не показывают расход отдельной службы.</value></data>
+  <data name="GuideUsageTitle" xml:space="preserve"><value>Использование</value></data>
+  <data name="GuideUsageBody" xml:space="preserve"><value>Смотрите накопленный расход ресурсов приложений, включая завершённые.
+1. Откройте Использование и сортируйте приложения по времени ЦП, вводу-выводу или времени GPU.
+2. Нажмите Сбросить для нового отсчёта. Это суммы с запуска или сброса, а не текущие скорости.</value></data>
+  <data name="GuideConnectionsTitle" xml:space="preserve"><value>Подключения</value></data>
+  <data name="GuideConnectionsBody" xml:space="preserve"><value>Смотрите приложения с подключениями TCP и конечными точками UDP.
+1. Откройте Подключения, найдите приложение или конечную точку и выберите Свойства для подробностей.
+2. Закрепляйте нужные приложения. Скорости требуют дополнительного мониторинга сети, недоступного в сборках Store; списки конечных точек работают без него.</value></data>
+  <data name="GuideExportTitle" xml:space="preserve"><value>Снимки и экспорт</value></data>
+  <data name="GuideExportBody" xml:space="preserve"><value>Копируйте записанный момент или сохраняйте измерения.
+1. В режиме Захват выберите Копировать захват для выбранного момента и отображаемых строк процессов.
+2. В полном виде выберите Экспорт для сохранения CSV. Использование охватывает суммы с запуска или сброса; другие экспорты используют сохранённую историю.</value></data>
+  <data name="GuideAutomaticTitle" xml:space="preserve"><value>Автоматические захваты</value></data>
+  <data name="GuideAutomaticBody" xml:space="preserve"><value>Сохраняйте отчёты о пиках в ваше отсутствие.
+1. В Настройки → Автоматические захваты включите правила, задайте пороги и длительность, затем сохраните.
+2. Используйте Авто на панели графика для просмотра снимков. Сработавшие правила сохраняют локальные текстовые отчёты; пауза предотвращает повторные снимки.</value></data>
+  <data name="GuideCompactTitle" xml:space="preserve"><value>Компактный вид и сочетания клавиш</value></data>
+  <data name="GuideCompactBody" xml:space="preserve"><value>Держите мониторинг под рукой.
+1. Выберите Компактный вид в заголовке окна для индикаторов; Полный вид восстанавливает панель.
+2. Используйте Всегда поверх окон или настройте сочетание показа/скрытия и вид при запуске в Настройки → Общие.</value></data>
+  <data name="GuideWalkthroughTitle" xml:space="preserve"><value>Попробуйте: исследуйте пик ЦП</value></data>
+  <data name="GuideWalkthroughBody" xml:space="preserve"><value>Проследите пик от графика до вызвавшего его приложения.
+1. Выберите пик на графике, откройте Процессы и сортируйте по ЦП.
+2. Изучите записанные строки и выберите Копировать захват для сохранения данных. Вернитесь в режим Онлайн; отсутствующие наблюдения недоступны.</value></data>
 </root>

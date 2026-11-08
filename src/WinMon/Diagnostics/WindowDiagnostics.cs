@@ -706,6 +706,8 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                         foreach (var other in topics) other.IsExpanded = other == topic;
                         info.GuideScroll.ScrollToTop();
                         info.UpdateLayout();
+                        topic.BringIntoView();
+                        info.UpdateLayout();
                         await CaptureVisualAsync((FrameworkElement)info.Content,
                             Path.Combine(output, $"guide-{theme.ToLowerInvariant()}-{topicIndex++}.png"), 1,
                             cancellationToken);

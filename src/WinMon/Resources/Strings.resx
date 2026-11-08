@@ -1721,18 +1721,8 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="InfoGuide" xml:space="preserve"><value>Guide</value></data>
   <data name="InfoAbout" xml:space="preserve"><value>About</value></data>
   <data name="InfoGuideTitle" xml:space="preserve"><value>Using WinMon</value></data>
-  <data name="InfoGuideIntro" xml:space="preserve"><value>Expand a topic to learn how to use the main features.</value></data>
+  <data name="InfoGuideIntro" xml:space="preserve"><value>Explore a feature below for its purpose and a few steps to get started.</value></data>
   <data name="InfoStoreUpdates" xml:space="preserve"><value>Updates are managed by Microsoft Store.</value></data>
-  <data name="GuideHistoryQuestion" xml:space="preserve"><value>How do I investigate a spike?</value></data>
-  <data name="GuideHistoryAnswer" xml:space="preserve"><value>Gauges show current readings and two-minute peaks. Click the chart or choose Capture to inspect a recorded interval; the process list follows it. Choose Live to return. Monitoring continues during inspection.</value></data>
-  <data name="GuideProcessesQuestion" xml:space="preserve"><value>How do I find and pin a process?</value></data>
-  <data name="GuideProcessesAnswer" xml:space="preserve"><value>Search by name or PID. Grouped combines processes from the same executable. Use the pin beside a process or its row menu to keep it above the rankings. Search and App only still filter pinned rows.</value></data>
-  <data name="GuideExportQuestion" xml:space="preserve"><value>How do I capture and export?</value></data>
-  <data name="GuideExportAnswer" xml:space="preserve"><value>In Capture, Copy capture copies the selected moment. In Full view, Export saves resource history, retained process samples or Usage totals as CSV. Settings &gt; Automatic captures can save reports when configured thresholds are reached.</value></data>
-  <data name="GuideActivityQuestion" xml:space="preserve"><value>What do Services and Usage show?</value></data>
-  <data name="GuideActivityAnswer" xml:space="preserve"><value>Services shows local services and their hosting processes; expand a service to see workers. Usage totals CPU time, I/O and GPU time by executable, including exited apps. Reset starts Usage totals again.</value></data>
-  <data name="GuideCompactQuestion" xml:space="preserve"><value>How do I switch to Compact view?</value></data>
-  <data name="GuideCompactAnswer" xml:space="preserve"><value>Use Compact view in the title bar for gauges without the chart and activity panels. Full view restores the dashboard. Settings &gt; General &gt; Startup view controls which view opens at launch.</value></data>
   <data name="ConnectionsAddressPorts" xml:space="preserve"><value>{0} · {1} ports</value></data>
   <data name="ConnectionsAddressesPorts" xml:space="preserve"><value>{0} addresses · {1} ports</value></data>
   <data name="ConnectionsAddressesSinglePort" xml:space="preserve"><value>{0} addresses · 1 port</value></data>
@@ -1821,4 +1811,40 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="ResetChartPreferences" xml:space="preserve">
     <value>Reset chart preferences</value>
   </data>
+  <data name="GuideChartsTitle" xml:space="preserve"><value>Charts and history</value></data>
+  <data name="GuideChartsBody" xml:space="preserve"><value>Compare resources over time.
+1. Choose a chart type and time range, including Focus or Logical processors.
+2. Select a chart moment to inspect it; choose Live to return. Recording continues.</value></data>
+  <data name="GuideProcessesTitle" xml:space="preserve"><value>Processes and pins</value></data>
+  <data name="GuideProcessesBody" xml:space="preserve"><value>Find busy apps and keep important processes visible.
+1. Sort by a resource, search by name or PID, or choose Grouped.
+2. Pin a row or use Pinned only. Search and App only still apply. Select a row for process actions.</value></data>
+  <data name="GuideServicesTitle" xml:space="preserve"><value>Services</value></data>
+  <data name="GuideServicesBody" xml:space="preserve"><value>Inspect Windows services and their workers.
+1. Open Services, filter by status and expand a service to see its processes.
+2. Use Workers to include worker resources. Select a service for Properties or live controls; shared hosts do not show individual service usage.</value></data>
+  <data name="GuideUsageTitle" xml:space="preserve"><value>Usage</value></data>
+  <data name="GuideUsageBody" xml:space="preserve"><value>See accumulated app resource use, including exited apps.
+1. Open Usage and rank apps by CPU time, I/O or GPU time.
+2. Use Reset to start totals again. These are totals since startup or reset, not current rates.</value></data>
+  <data name="GuideConnectionsTitle" xml:space="preserve"><value>Connections</value></data>
+  <data name="GuideConnectionsBody" xml:space="preserve"><value>See which apps have TCP connections and UDP endpoints.
+1. Open Connections, search for an app or endpoint, then select Properties for endpoint details.
+2. Pin apps to follow them. Traffic rates require optional network monitoring, unavailable in Store builds; endpoint lists work without it.</value></data>
+  <data name="GuideExportTitle" xml:space="preserve"><value>Captures and export</value></data>
+  <data name="GuideExportBody" xml:space="preserve"><value>Copy a recorded moment or save measurements.
+1. In Capture, choose Copy capture for the selected moment and displayed process rows.
+2. In Full view, choose Export to save CSV. Usage covers totals since startup or reset; other exports use retained history.</value></data>
+  <data name="GuideAutomaticTitle" xml:space="preserve"><value>Automatic captures</value></data>
+  <data name="GuideAutomaticBody" xml:space="preserve"><value>Save a spike report while you are away.
+1. In Settings → Automatic captures, enable rules and set thresholds and durations, then save.
+2. Use Auto on the chart toolbar to review captures. Matching rules save local text reports; cooldown prevents repeated captures.</value></data>
+  <data name="GuideCompactTitle" xml:space="preserve"><value>Compact view and shortcuts</value></data>
+  <data name="GuideCompactBody" xml:space="preserve"><value>Keep monitoring within reach.
+1. Choose Compact view in the title bar for gauges; choose Full view to restore the dashboard.
+2. Use Always on top or configure the show/hide shortcut and Startup view in Settings → General.</value></data>
+  <data name="GuideWalkthroughTitle" xml:space="preserve"><value>Try it: investigate a CPU spike</value></data>
+  <data name="GuideWalkthroughBody" xml:space="preserve"><value>Follow a spike from the chart to the app behind it.
+1. Select the spike on the chart, then open Processes and sort by CPU.
+2. Inspect the recorded rows and choose Copy capture to keep the evidence. Choose Live to resume; missing observations are unavailable.</value></data>
 </root>

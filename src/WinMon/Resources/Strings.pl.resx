@@ -1721,18 +1721,8 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
   <data name="InfoGuide" xml:space="preserve"><value>Poradnik</value></data>
   <data name="InfoAbout" xml:space="preserve"><value>O programie</value></data>
   <data name="InfoGuideTitle" xml:space="preserve"><value>Korzystanie z WinMon</value></data>
-  <data name="InfoGuideIntro" xml:space="preserve"><value>Rozwiń temat, aby poznać główne funkcje.</value></data>
+  <data name="InfoGuideIntro" xml:space="preserve"><value>Wybierz funkcję, aby poznać jej cel i pierwsze kroki.</value></data>
   <data name="InfoStoreUpdates" xml:space="preserve"><value>Aktualizacjami zarządza Microsoft Store.</value></data>
-  <data name="GuideHistoryQuestion" xml:space="preserve"><value>Jak zbadać skok obciążenia?</value></data>
-  <data name="GuideHistoryAnswer" xml:space="preserve"><value>Wskaźniki pokazują bieżące wartości i szczyty z dwóch minut. Kliknij wykres lub wybierz Przechwycenie, aby sprawdzić zapisany przedział; lista procesów podąża za nim. Wybierz Na żywo, aby wrócić. Monitorowanie trwa podczas przeglądania.</value></data>
-  <data name="GuideProcessesQuestion" xml:space="preserve"><value>Jak znaleźć i przypiąć proces?</value></data>
-  <data name="GuideProcessesAnswer" xml:space="preserve"><value>Szukaj według nazwy lub PID. Grupowanie łączy procesy tego samego pliku wykonywalnego. Użyj pinezki obok procesu lub menu wiersza, aby zachować go nad rankingiem. Wyszukiwanie i Tylko aplikacje filtrują także przypięte wiersze.</value></data>
-  <data name="GuideExportQuestion" xml:space="preserve"><value>Jak przechwytywać i eksportować?</value></data>
-  <data name="GuideExportAnswer" xml:space="preserve"><value>W trybie Przechwycenie opcja Kopiuj przechwycenie kopiuje wybraną chwilę. W pełnym widoku Eksport zapisuje historię zasobów, zachowane próbki procesów lub sumy Użycia jako CSV. Ustawienia &gt; Automatyczne przechwycenia pozwala zapisywać raporty po osiągnięciu ustawionych progów.</value></data>
-  <data name="GuideActivityQuestion" xml:space="preserve"><value>Co pokazują Usługi i Użycie?</value></data>
-  <data name="GuideActivityAnswer" xml:space="preserve"><value>Usługi pokazują lokalne usługi i ich procesy hosta; rozwiń usługę, aby zobaczyć procesy robocze. Użycie sumuje czas CPU, we/wy i czas GPU według pliku wykonywalnego, także dla zamkniętych aplikacji. Resetuj rozpoczyna sumowanie od nowa.</value></data>
-  <data name="GuideCompactQuestion" xml:space="preserve"><value>Jak przełączyć na widok kompaktowy?</value></data>
-  <data name="GuideCompactAnswer" xml:space="preserve"><value>Widok kompaktowy na pasku tytułu pokazuje wskaźniki bez wykresu i paneli aktywności. Pełny widok przywraca pulpit. Ustawienia &gt; Ogólne &gt; Widok startowy określa widok po uruchomieniu.</value></data>
   <data name="ConnectionsAddressPorts" xml:space="preserve"><value>{0} · {1} portów</value></data>
   <data name="ConnectionsAddressesPorts" xml:space="preserve"><value>{0} adresów · {1} portów</value></data>
   <data name="ConnectionsAddressesSinglePort" xml:space="preserve"><value>{0} adresów · 1 port</value></data>
@@ -1821,4 +1811,40 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
   <data name="ResetChartPreferences" xml:space="preserve">
     <value>Resetuj preferencje wykresów</value>
   </data>
+  <data name="GuideChartsTitle" xml:space="preserve"><value>Wykresy i historia</value></data>
+  <data name="GuideChartsBody" xml:space="preserve"><value>Porównuj zasoby w czasie.
+1. Wybierz typ wykresu i zakres czasu, w tym Fokus lub Procesory logiczne.
+2. Wybierz chwilę na wykresie, aby ją sprawdzić; wybierz Na żywo, aby wrócić. Rejestrowanie trwa dalej.</value></data>
+  <data name="GuideProcessesTitle" xml:space="preserve"><value>Procesy i przypięcia</value></data>
+  <data name="GuideProcessesBody" xml:space="preserve"><value>Znajdź obciążające aplikacje i zachowaj ważne procesy na widoku.
+1. Sortuj według zasobu, szukaj po nazwie lub PID albo wybierz Grupowane.
+2. Przypnij wiersz lub użyj Tylko przypięte. Wyszukiwanie i Tylko aplikacje nadal obowiązują. Wybierz wiersz, aby zobaczyć działania procesu.</value></data>
+  <data name="GuideServicesTitle" xml:space="preserve"><value>Usługi</value></data>
+  <data name="GuideServicesBody" xml:space="preserve"><value>Sprawdzaj usługi Windows i ich procesy robocze.
+1. Otwórz Usługi, filtruj według stanu i rozwiń usługę, aby zobaczyć jej procesy.
+2. Uwzględnij zasoby procesów roboczych odpowiednią opcją. Wybierz usługę, aby otworzyć Właściwości lub sterowanie na żywo; wspólne hosty nie pokazują zużycia poszczególnych usług.</value></data>
+  <data name="GuideUsageTitle" xml:space="preserve"><value>Użycie</value></data>
+  <data name="GuideUsageBody" xml:space="preserve"><value>Sprawdzaj łączne zużycie zasobów aplikacji, także zakończonych.
+1. Otwórz Użycie i sortuj aplikacje według czasu CPU, we/wy lub czasu GPU.
+2. Użyj Resetuj, aby rozpocząć liczenie od nowa. To sumy od uruchomienia lub resetu, a nie bieżące szybkości.</value></data>
+  <data name="GuideConnectionsTitle" xml:space="preserve"><value>Połączenia</value></data>
+  <data name="GuideConnectionsBody" xml:space="preserve"><value>Zobacz aplikacje z połączeniami TCP i punktami końcowymi UDP.
+1. Otwórz Połączenia, wyszukaj aplikację lub punkt końcowy i wybierz Właściwości, aby sprawdzić szczegóły.
+2. Przypnij obserwowane aplikacje. Szybkości wymagają opcjonalnego monitorowania sieci, niedostępnego w wersjach Store; listy punktów końcowych działają bez niego.</value></data>
+  <data name="GuideExportTitle" xml:space="preserve"><value>Przechwytywanie i eksport</value></data>
+  <data name="GuideExportBody" xml:space="preserve"><value>Kopiuj zarejestrowaną chwilę lub zapisuj pomiary.
+1. W trybie Przechwytywanie wybierz Kopiuj przechwycenie dla wybranej chwili i widocznych wierszy procesów.
+2. W pełnym widoku wybierz Eksport, aby zapisać CSV. Użycie obejmuje sumy od startu lub resetu; inne eksporty korzystają z zachowanej historii.</value></data>
+  <data name="GuideAutomaticTitle" xml:space="preserve"><value>Automatyczne przechwytywanie</value></data>
+  <data name="GuideAutomaticBody" xml:space="preserve"><value>Zapisuj raporty skoków podczas nieobecności.
+1. W Ustawienia → Automatyczne przechwytywanie włącz reguły, ustaw progi i czasy, a następnie zapisz.
+2. Użyj Auto na pasku wykresu, aby przeglądać przechwycenia. Spełnione reguły zapisują lokalne raporty tekstowe; czas oczekiwania zapobiega powtórzeniom.</value></data>
+  <data name="GuideCompactTitle" xml:space="preserve"><value>Widok kompaktowy i skróty</value></data>
+  <data name="GuideCompactBody" xml:space="preserve"><value>Miej monitorowanie pod ręką.
+1. Wybierz Widok kompaktowy na pasku tytułu dla wskaźników; Pełny widok przywraca pulpit.
+2. Użyj Zawsze na wierzchu lub ustaw skrót pokaż/ukryj i widok początkowy w Ustawienia → Ogólne.</value></data>
+  <data name="GuideWalkthroughTitle" xml:space="preserve"><value>Wypróbuj: zbadaj skok CPU</value></data>
+  <data name="GuideWalkthroughBody" xml:space="preserve"><value>Prześledź skok od wykresu do odpowiedzialnej aplikacji.
+1. Wybierz skok na wykresie, otwórz Procesy i sortuj według CPU.
+2. Sprawdź zarejestrowane wiersze i wybierz Kopiuj przechwycenie, aby zachować dane. Wróć przez Na żywo; brakujące obserwacje są niedostępne.</value></data>
 </root>

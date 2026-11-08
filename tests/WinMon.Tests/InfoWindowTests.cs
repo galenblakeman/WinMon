@@ -66,7 +66,14 @@ public sealed class InfoWindowTests
             Assert.That(Descendants(hardware).Contains(window.CopyButton), Is.True);
             Assert.That(Descendants(hardware).Contains(window.CheckButton), Is.False);
             var topics = Descendants((TabItem)window.Tabs.Items[1]).OfType<Expander>().ToArray();
-            Assert.That(topics, Has.Length.EqualTo(5));
+            Assert.That(topics.Select(t => t.Header), Is.EqualTo(new[]
+            {
+                Strings.GuideChartsTitle, Strings.GuideProcessesTitle, Strings.GuideServicesTitle,
+                Strings.GuideUsageTitle, Strings.GuideConnectionsTitle, Strings.GuideExportTitle,
+                Strings.GuideAutomaticTitle, Strings.GuideCompactTitle, Strings.GuideWalkthroughTitle
+            }));
+            foreach (var topic in topics)
+                Assert.That(((TextBlock)topic.Content).Text, Does.Match(@"\A[^\r\n]+\r?\n1\. [^\r\n]+\r?\n2\. [^\r\n]+\z"));
             Assert.That(topics.Count(t => t.IsExpanded), Is.EqualTo(1));
             Assert.That(window.VersionText.Text, Does.Contain(AppInfo.Version));
             Assert.That(Descendants((TabItem)window.Tabs.Items[2]).Contains(window.OpenLogsButton), Is.True);

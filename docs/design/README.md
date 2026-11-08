@@ -10,6 +10,8 @@ This folder contains the current layout reference, feature design notes and edit
 
 ## Feature notes
 
+- [Feature-oriented Guide](FEATURE-GUIDE.md) organizes in-app help by feature with short instructions and a CPU-spike walkthrough.
+
 - [Installer network monitoring](INSTALLER-NETWORK-MONITORING.md) adds optional signed service setup during desktop installation.
 
 - [Network reliability diagnostics](NETWORK-RELIABILITY-DIAGNOSTICS.md) fixes premature polling and false/stuck incomplete readings, with bounded coverage and pipe diagnostics.

@@ -1721,18 +1721,8 @@ O trabalho não salvo pode ser perdido. Todos os processos listados abaixo serã
   <data name="InfoGuide" xml:space="preserve"><value>Guia</value></data>
   <data name="InfoAbout" xml:space="preserve"><value>Sobre</value></data>
   <data name="InfoGuideTitle" xml:space="preserve"><value>Como usar o WinMon</value></data>
-  <data name="InfoGuideIntro" xml:space="preserve"><value>Expanda um tópico para conhecer as principais funções.</value></data>
+  <data name="InfoGuideIntro" xml:space="preserve"><value>Explore um recurso para conhecer sua finalidade e os primeiros passos.</value></data>
   <data name="InfoStoreUpdates" xml:space="preserve"><value>As atualizações são gerenciadas pela Microsoft Store.</value></data>
-  <data name="GuideHistoryQuestion" xml:space="preserve"><value>Como investigar um pico de atividade?</value></data>
-  <data name="GuideHistoryAnswer" xml:space="preserve"><value>Os medidores mostram leituras atuais e picos de dois minutos. Clique no gráfico ou escolha Captura para inspecionar um intervalo gravado; a lista de processos o acompanha. Escolha Ao vivo para voltar. O monitoramento continua durante a inspeção.</value></data>
-  <data name="GuideProcessesQuestion" xml:space="preserve"><value>Como encontrar e fixar um processo?</value></data>
-  <data name="GuideProcessesAnswer" xml:space="preserve"><value>Pesquise por nome ou PID. Agrupados combina processos do mesmo executável. Use o alfinete ao lado do processo ou o menu da linha para mantê-lo acima da classificação. A pesquisa e Somente aplicativos também filtram linhas fixadas.</value></data>
-  <data name="GuideExportQuestion" xml:space="preserve"><value>Como capturar e exportar?</value></data>
-  <data name="GuideExportAnswer" xml:space="preserve"><value>Em Captura, Copiar captura copia o momento selecionado. Na visualização completa, Exportar salva o histórico de recursos, amostras de processos retidas ou totais de Uso como CSV. Configurações &gt; Capturas automáticas pode salvar relatórios ao atingir os limites configurados.</value></data>
-  <data name="GuideActivityQuestion" xml:space="preserve"><value>O que Serviços e Uso mostram?</value></data>
-  <data name="GuideActivityAnswer" xml:space="preserve"><value>Serviços mostra serviços locais e seus processos hospedeiros; expanda um serviço para ver os processos de trabalho. Uso soma tempo de CPU, E/S e tempo de GPU por executável, incluindo aplicativos encerrados. Redefinir reinicia os totais de Uso.</value></data>
-  <data name="GuideCompactQuestion" xml:space="preserve"><value>Como mudar para a visualização compacta?</value></data>
-  <data name="GuideCompactAnswer" xml:space="preserve"><value>Use Vista compacta na barra de título para ver medidores sem gráfico nem painéis de atividade. Vista completa restaura o painel. Configurações &gt; Geral &gt; Exibição inicial controla a visualização ao iniciar.</value></data>
   <data name="ConnectionsAddressPorts" xml:space="preserve"><value>{0} · {1} portas</value></data>
   <data name="ConnectionsAddressesPorts" xml:space="preserve"><value>{0} endereços · {1} portas</value></data>
   <data name="ConnectionsAddressesSinglePort" xml:space="preserve"><value>{0} endereços · 1 porta</value></data>
@@ -1821,4 +1811,40 @@ O trabalho não salvo pode ser perdido. Todos os processos listados abaixo serã
   <data name="ResetChartPreferences" xml:space="preserve">
     <value>Redefinir preferências dos gráficos</value>
   </data>
+  <data name="GuideChartsTitle" xml:space="preserve"><value>Gráficos e histórico</value></data>
+  <data name="GuideChartsBody" xml:space="preserve"><value>Compare recursos ao longo do tempo.
+1. Escolha um tipo de gráfico e um período, incluindo Foco ou Processadores lógicos.
+2. Selecione um momento no gráfico para inspecioná-lo; escolha Ao vivo para voltar. A gravação continua.</value></data>
+  <data name="GuideProcessesTitle" xml:space="preserve"><value>Processos e itens fixados</value></data>
+  <data name="GuideProcessesBody" xml:space="preserve"><value>Encontre apps ativos e mantenha processos importantes visíveis.
+1. Ordene por recurso, pesquise por nome ou PID ou escolha Agrupados.
+2. Fixe uma linha ou use Somente fixados. A pesquisa e Só aplicativos continuam valendo. Selecione uma linha para ações do processo.</value></data>
+  <data name="GuideServicesTitle" xml:space="preserve"><value>Serviços</value></data>
+  <data name="GuideServicesBody" xml:space="preserve"><value>Inspecione serviços do Windows e seus processos de trabalho.
+1. Abra Serviços, filtre por status e expanda um serviço para ver seus processos.
+2. Use Processos auxiliares para incluir seus recursos. Selecione um serviço para Propriedades ou controles ao vivo; hosts compartilhados não mostram uso individual por serviço.</value></data>
+  <data name="GuideUsageTitle" xml:space="preserve"><value>Uso</value></data>
+  <data name="GuideUsageBody" xml:space="preserve"><value>Veja o consumo acumulado dos apps, incluindo os encerrados.
+1. Abra Uso e classifique apps por tempo de CPU, E/S ou tempo de GPU.
+2. Use Redefinir para reiniciar os totais. São totais desde a inicialização ou redefinição, não taxas atuais.</value></data>
+  <data name="GuideConnectionsTitle" xml:space="preserve"><value>Conexões</value></data>
+  <data name="GuideConnectionsBody" xml:space="preserve"><value>Veja quais apps têm conexões TCP e pontos de extremidade UDP.
+1. Abra Conexões, pesquise um app ou ponto de extremidade e selecione Propriedades para ver os detalhes.
+2. Fixe apps para acompanhá-los. As taxas exigem monitoramento de rede opcional, indisponível nas versões Store; listas de pontos de extremidade funcionam sem ele.</value></data>
+  <data name="GuideExportTitle" xml:space="preserve"><value>Capturas e exportação</value></data>
+  <data name="GuideExportBody" xml:space="preserve"><value>Copie um momento gravado ou salve medições.
+1. Em Captura, escolha Copiar captura para o momento selecionado e as linhas de processos exibidas.
+2. Na Vista completa, escolha Exportar para salvar CSV. Uso abrange totais desde a inicialização ou redefinição; outras exportações usam o histórico mantido.</value></data>
+  <data name="GuideAutomaticTitle" xml:space="preserve"><value>Capturas automáticas</value></data>
+  <data name="GuideAutomaticBody" xml:space="preserve"><value>Salve relatórios de picos durante sua ausência.
+1. Em Configurações → Capturas automáticas, ative regras, defina limites e durações e salve.
+2. Use Auto na barra do gráfico para revisar capturas. As regras acionadas salvam relatórios de texto locais; o intervalo evita capturas repetidas.</value></data>
+  <data name="GuideCompactTitle" xml:space="preserve"><value>Vista compacta e atalhos</value></data>
+  <data name="GuideCompactBody" xml:space="preserve"><value>Mantenha o monitoramento ao alcance.
+1. Escolha Vista compacta na barra de título para os medidores; Vista completa restaura o painel.
+2. Use Sempre visível ou configure o atalho de mostrar/ocultar e a visualização inicial em Configurações → Geral.</value></data>
+  <data name="GuideWalkthroughTitle" xml:space="preserve"><value>Experimente: investigar um pico de CPU</value></data>
+  <data name="GuideWalkthroughBody" xml:space="preserve"><value>Siga um pico do gráfico até o app responsável.
+1. Selecione o pico no gráfico, abra Processos e ordene por CPU.
+2. Inspecione as linhas gravadas e escolha Copiar captura para guardar os dados. Escolha Ao vivo para voltar; observações ausentes ficam indisponíveis.</value></data>
 </root>

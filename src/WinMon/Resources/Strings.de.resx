@@ -1721,18 +1721,8 @@ Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse
   <data name="InfoGuide" xml:space="preserve"><value>Anleitung</value></data>
   <data name="InfoAbout" xml:space="preserve"><value>Über</value></data>
   <data name="InfoGuideTitle" xml:space="preserve"><value>WinMon verwenden</value></data>
-  <data name="InfoGuideIntro" xml:space="preserve"><value>Klappen Sie ein Thema auf, um die Hauptfunktionen kennenzulernen.</value></data>
+  <data name="InfoGuideIntro" xml:space="preserve"><value>Wählen Sie eine Funktion für ihren Zweck und die ersten Schritte.</value></data>
   <data name="InfoStoreUpdates" xml:space="preserve"><value>Updates werden vom Microsoft Store verwaltet.</value></data>
-  <data name="GuideHistoryQuestion" xml:space="preserve"><value>Wie untersuche ich eine Lastspitze?</value></data>
-  <data name="GuideHistoryAnswer" xml:space="preserve"><value>Anzeigen zeigen aktuelle Werte und Spitzen der letzten zwei Minuten. Klicken Sie auf das Diagramm oder wählen Sie Aufnahme, um ein aufgezeichnetes Intervall zu prüfen; die Prozessliste folgt ihm. Live kehrt zur Echtzeitansicht zurück. Die Überwachung läuft weiter.</value></data>
-  <data name="GuideProcessesQuestion" xml:space="preserve"><value>Wie finde und fixiere ich einen Prozess?</value></data>
-  <data name="GuideProcessesAnswer" xml:space="preserve"><value>Suchen Sie nach Name oder PID. Gruppiert fasst Prozesse derselben Programmdatei zusammen. Fixieren Sie Prozesse über das Stecknadelsymbol oder das Zeilenmenü über der Rangliste. Suche und Nur Apps filtern auch fixierte Zeilen.</value></data>
-  <data name="GuideExportQuestion" xml:space="preserve"><value>Wie erfasse und exportiere ich Daten?</value></data>
-  <data name="GuideExportAnswer" xml:space="preserve"><value>In der Aufnahme kopiert Aufnahme kopieren den gewählten Zeitpunkt. In der Vollansicht speichert Exportieren Ressourcenverlauf, gespeicherte Prozessmesswerte oder Nutzungssummen als CSV. Einstellungen &gt; Automatische Aufnahmen kann bei konfigurierten Schwellenwerten Berichte speichern.</value></data>
-  <data name="GuideActivityQuestion" xml:space="preserve"><value>Was zeigen Dienste und Nutzung?</value></data>
-  <data name="GuideActivityAnswer" xml:space="preserve"><value>Dienste zeigt lokale Dienste und ihre Hostprozesse; klappen Sie einen Dienst für seine Arbeitsprozesse auf. Nutzung summiert CPU-Zeit, E/A und GPU-Zeit je Programmdatei, auch für beendete Apps. Zurücksetzen beginnt die Nutzungssummen neu.</value></data>
-  <data name="GuideCompactQuestion" xml:space="preserve"><value>Wie wechsle ich zur Kompaktansicht?</value></data>
-  <data name="GuideCompactAnswer" xml:space="preserve"><value>Kompaktansicht in der Titelleiste zeigt Anzeigen ohne Diagramm und Aktivitätsbereiche. Vollansicht stellt das Dashboard wieder her. Einstellungen &gt; Allgemein &gt; Startansicht bestimmt die Ansicht beim Start.</value></data>
   <data name="ConnectionsAddressPorts" xml:space="preserve"><value>{0} · {1} Ports</value></data>
   <data name="ConnectionsAddressesPorts" xml:space="preserve"><value>{0} Adressen · {1} Ports</value></data>
   <data name="ConnectionsAddressesSinglePort" xml:space="preserve"><value>{0} Adressen · 1 Port</value></data>
@@ -1821,4 +1811,40 @@ Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse
   <data name="ResetChartPreferences" xml:space="preserve">
     <value>Diagrammeinstellungen zurücksetzen</value>
   </data>
+  <data name="GuideChartsTitle" xml:space="preserve"><value>Diagramme und Verlauf</value></data>
+  <data name="GuideChartsBody" xml:space="preserve"><value>Vergleichen Sie Ressourcen im Zeitverlauf.
+1. Wählen Sie Diagrammtyp und Zeitraum, etwa Fokus oder Logische Prozessoren.
+2. Wählen Sie einen Zeitpunkt im Diagramm zum Prüfen; mit Live kehren Sie zurück. Die Aufzeichnung läuft weiter.</value></data>
+  <data name="GuideProcessesTitle" xml:space="preserve"><value>Prozesse und angeheftete Einträge</value></data>
+  <data name="GuideProcessesBody" xml:space="preserve"><value>Finden Sie aktive Apps und behalten Sie wichtige Prozesse im Blick.
+1. Sortieren Sie nach einer Ressource, suchen Sie nach Name oder PID oder wählen Sie Gruppiert.
+2. Heften Sie eine Zeile an oder nutzen Sie Nur angeheftete. Suche und Nur Apps gelten weiterhin. Wählen Sie eine Zeile für Prozessaktionen.</value></data>
+  <data name="GuideServicesTitle" xml:space="preserve"><value>Dienste</value></data>
+  <data name="GuideServicesBody" xml:space="preserve"><value>Prüfen Sie Windows-Dienste und ihre Worker.
+1. Öffnen Sie Dienste, filtern Sie nach Status und erweitern Sie einen Dienst, um seine Prozesse zu sehen.
+2. Beziehen Sie mit Worker deren Ressourcen ein. Wählen Sie einen Dienst für Eigenschaften oder Live-Steuerung; gemeinsame Hosts zeigen keinen Verbrauch je Dienst.</value></data>
+  <data name="GuideUsageTitle" xml:space="preserve"><value>Nutzung</value></data>
+  <data name="GuideUsageBody" xml:space="preserve"><value>Sehen Sie den gesamten Ressourcenverbrauch von Apps, auch beendeten.
+1. Öffnen Sie Nutzung und sortieren Sie Apps nach CPU-Zeit, E/A oder GPU-Zeit.
+2. Mit Zurücksetzen beginnen die Summen neu. Es sind Summen seit Start oder Zurücksetzen, keine aktuellen Raten.</value></data>
+  <data name="GuideConnectionsTitle" xml:space="preserve"><value>Verbindungen</value></data>
+  <data name="GuideConnectionsBody" xml:space="preserve"><value>Sehen Sie Apps mit TCP-Verbindungen und UDP-Endpunkten.
+1. Öffnen Sie Verbindungen, suchen Sie eine App oder einen Endpunkt und wählen Sie Eigenschaften für Endpunktdetails.
+2. Heften Sie Apps an. Datenraten erfordern die optionale Netzwerküberwachung, die in Store-Versionen fehlt; Endpunktlisten funktionieren ohne sie.</value></data>
+  <data name="GuideExportTitle" xml:space="preserve"><value>Aufnahmen und Export</value></data>
+  <data name="GuideExportBody" xml:space="preserve"><value>Kopieren Sie einen aufgezeichneten Zeitpunkt oder speichern Sie Messwerte.
+1. Wählen Sie in Aufnahme die Aktion Aufnahme kopieren für den gewählten Zeitpunkt und die angezeigten Prozesszeilen.
+2. Wählen Sie in der Vollansicht Export für CSV. Nutzung umfasst Summen seit Start oder Zurücksetzen; andere Exporte verwenden gespeicherten Verlauf.</value></data>
+  <data name="GuideAutomaticTitle" xml:space="preserve"><value>Automatische Aufnahmen</value></data>
+  <data name="GuideAutomaticBody" xml:space="preserve"><value>Speichern Sie Spitzenberichte auch bei Abwesenheit.
+1. Aktivieren Sie unter Einstellungen → Automatische Aufnahmen Regeln, legen Sie Schwellenwerte und Dauer fest und speichern Sie.
+2. Prüfen Sie Aufnahmen über Auto in der Diagrammleiste. Passende Regeln speichern lokale Textberichte; die Abklingzeit verhindert wiederholte Aufnahmen.</value></data>
+  <data name="GuideCompactTitle" xml:space="preserve"><value>Kompaktansicht und Tastenkürzel</value></data>
+  <data name="GuideCompactBody" xml:space="preserve"><value>Halten Sie die Überwachung griffbereit.
+1. Wählen Sie Kompaktansicht in der Titelleiste für Anzeigen; Vollansicht stellt das Dashboard wieder her.
+2. Nutzen Sie Immer im Vordergrund oder legen Sie Tastenkürzel zum Ein-/Ausblenden und Startansicht unter Einstellungen → Allgemein fest.</value></data>
+  <data name="GuideWalkthroughTitle" xml:space="preserve"><value>Ausprobieren: CPU-Spitze untersuchen</value></data>
+  <data name="GuideWalkthroughBody" xml:space="preserve"><value>Verfolgen Sie eine Spitze vom Diagramm bis zur verursachenden App.
+1. Wählen Sie die Spitze im Diagramm, öffnen Sie Prozesse und sortieren Sie nach CPU.
+2. Prüfen Sie die aufgezeichneten Zeilen und wählen Sie Aufnahme kopieren zur Sicherung. Live kehrt zurück; fehlende Beobachtungen sind nicht verfügbar.</value></data>
 </root>
