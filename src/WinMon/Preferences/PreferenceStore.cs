@@ -202,6 +202,11 @@ public sealed class PreferenceStore
             TopServiceCount = TopCountChoices.IsSupported(preferences.TopServiceCount)
                 ? preferences.TopServiceCount
                 : 20,
+            ServiceSortColumn = preferences.ServiceSortColumn is >= 0 and <= 2 ||
+                (preferences.ServiceSortColumn == 3 && preferences.TopServiceCount == 0)
+                ? preferences.ServiceSortColumn : 0,
+            ServiceStatusFilter = preferences.ServiceStatusFilter is >= 0 and <= 2
+                ? preferences.ServiceStatusFilter : 0,
             TopUsageCount = TopCountChoices.IsSupported(preferences.TopUsageCount) ? preferences.TopUsageCount : 20,
             UsageSortColumn = preferences.UsageSortColumn is >= 0 and <= 4 ? preferences.UsageSortColumn : 0,
             TopConnectionCount = TopCountChoices.IsSupported(preferences.TopConnectionCount) ? preferences.TopConnectionCount : 10,

@@ -1,5 +1,7 @@
 # WinMon developer guide
 
+Services persists `ServiceSortColumn` (CPU=0, memory=1, I/O=2, name=3), `ServiceStatusFilter` (all=0, running=1, stopped=2) and `ServiceIncludeWorkers`. Missing keys retain CPU/all/workers enabled. Name sort is valid only with Top set to All (0). Startup restores these controls after Top, suppressing change events while restoring; user filter changes update the immutable preferences saved through the normal exit path.
+
 [Back to WinMon](../README.md)
 
 Technical notes for the current code. The [README](../README.md) describes user-facing behaviour, the [performance history](PERFORMANCE-HISTORY.md) keeps dated measurements, and [design notes](design/README.md) record how each feature was planned and what landed. Commands assume the repository root as the working directory, in PowerShell 7.4 or later.

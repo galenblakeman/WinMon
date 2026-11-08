@@ -14,6 +14,12 @@ public partial class MainWindow
     private void InitializeServices()
     {
         ServiceView.TopServiceCountChanged += count => _preferences = _preferences with { TopServiceCount = count };
+        ServiceView.FiltersChanged += () => _preferences = _preferences with
+        {
+            ServiceSortColumn = ServiceView.SortColumn,
+            ServiceStatusFilter = ServiceView.StatusFilterIndex,
+            ServiceIncludeWorkers = ServiceView.IncludeWorkers
+        };
         ServiceView.PinsChanged += () => _preferences = _preferences with { PinnedServices = ServiceView.SavedPins };
         ServiceView.PinnedOnlyChanged += value => _preferences = _preferences with { ServicePinnedOnly = value };
         ProcessesTab.Checked += (_, _) => SelectActivityView();

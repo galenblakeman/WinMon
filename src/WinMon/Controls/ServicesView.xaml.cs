@@ -42,6 +42,22 @@ public partial class ServicesView
     internal event Action<string, string>? PropertiesRequested;
     internal event Action<string>? CopyRequested;
     internal event Action<int>? TopServiceCountChanged;
+    internal event Action? FiltersChanged;
+
+    internal int SortColumn => Sort.SelectedIndex;
+    internal int StatusFilterIndex => StatusFilter.SelectedIndex;
+    internal bool IncludeWorkers => Workers.IsChecked == true;
+
+    internal void RestoreFilters(int sort, int status, bool workers)
+    {
+        _ready = false;
+        Sort.SelectedIndex = sort >= 0 && sort < Sort.Items.Count ? sort : 0;
+        StatusFilter.SelectedIndex = status is >= 0 and <= 2 ? status : 0;
+        Workers.IsChecked = workers;
+        _ready = true;
+        RefreshRows();
+        ArrangeToolbar();
+    }
     internal event Action? PinsChanged;
     internal event Action<bool>? PinnedOnlyChanged;
 
@@ -109,8 +125,10 @@ public partial class ServicesView
     private void OnTopCountChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!_ready) return;
+        var sort = SortColumn;
         RefreshSortChoices();
         TopServiceCountChanged?.Invoke(TopServiceCount);
+        if (sort != SortColumn) FiltersChanged?.Invoke();
         RefreshRows();
         ArrangeToolbar();
     }
@@ -241,6 +259,7 @@ public partial class ServicesView
     private void OnFilterChanged(object sender, RoutedEventArgs e)
     {
         if (!_ready) return;
+        FiltersChanged?.Invoke();
         RefreshRows();
         ArrangeToolbar();
     }

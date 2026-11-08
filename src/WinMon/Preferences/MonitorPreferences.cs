@@ -50,6 +50,12 @@ public sealed record MonitorPreferences
     /// <summary>Maximum ranked service groups to display; zero shows all matching groups.</summary>
     public int TopServiceCount { get; init; } = 20;
 
+    /// <summary>Services ranking: CPU, memory, I/O, or name (when showing all).</summary>
+    public int ServiceSortColumn { get; init; }
+    /// <summary>Services status filter: all, running, or stopped.</summary>
+    public int ServiceStatusFilter { get; init; }
+    public bool ServiceIncludeWorkers { get; init; } = true;
+
     /// <summary>SCM service names pinned independently of their current host process.</summary>
     public string[] PinnedServices { get; init; } = [];
     public bool ServicePinnedOnly { get; init; }

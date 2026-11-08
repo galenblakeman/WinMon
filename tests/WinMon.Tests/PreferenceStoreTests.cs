@@ -7,6 +7,43 @@ namespace WinMon.Tests;
 [TestFixture]
 public sealed class PreferenceStoreTests
 {
+    [TestCase(20, 0, 0, true)]
+    [TestCase(5, 1, 1, false)]
+    [TestCase(10, 2, 2, true)]
+    [TestCase(0, 3, 2, false)]
+    [TestCase(20, 3, 99, false)]
+    [TestCase(20, -1, -1, true)]
+    public async Task ServiceFiltersRoundTripWithSupportedSortAndStatus(int count, int sort, int status, bool workers)
+    {
+        var store = new PreferenceStore(settingsPath);
+        await store.SaveAsync(new MonitorPreferences
+        {
+            TopServiceCount = count, ServiceSortColumn = sort,
+            ServiceStatusFilter = status, ServiceIncludeWorkers = workers
+        });
+        var loaded = await new PreferenceStore(settingsPath).LoadAsync();
+        Assert.Multiple(() =>
+        {
+            Assert.That(loaded.ServiceSortColumn, Is.EqualTo(sort is >= 0 and <= 2 || count == 0 && sort == 3 ? sort : 0));
+            Assert.That(loaded.ServiceStatusFilter, Is.EqualTo(status is >= 0 and <= 2 ? status : 0));
+            Assert.That(loaded.ServiceIncludeWorkers, Is.EqualTo(workers));
+        });
+    }
+
+    [Test]
+    public async Task LegacyServiceFiltersKeepExistingDefaults()
+    {
+        Directory.CreateDirectory(testDirectory);
+        await File.WriteAllTextAsync(settingsPath, "{}");
+        var loaded = await new PreferenceStore(settingsPath).LoadAsync();
+        Assert.Multiple(() =>
+        {
+            Assert.That(loaded.ServiceSortColumn, Is.Zero);
+            Assert.That(loaded.ServiceStatusFilter, Is.Zero);
+            Assert.That(loaded.ServiceIncludeWorkers, Is.True);
+        });
+    }
+
     [Test]
     public async Task ServicePinsRoundTripAndNormalizeNullsBlanksAndCaseDuplicates()
     {

@@ -144,6 +144,8 @@ public partial class MainWindow
             ApplyActionsHidden();
             Processes.Load(ProcessListSettings.From(_preferences), _preferences.PinnedProcesses);
             ServiceView.TopServiceCount = _preferences.TopServiceCount;
+            ServiceView.RestoreFilters(_preferences.ServiceSortColumn, _preferences.ServiceStatusFilter,
+                _preferences.ServiceIncludeWorkers);
             ServiceView.RestorePins(_preferences.PinnedServices);
             ServiceView.PinnedOnly = _preferences.ServicePinnedOnly;
             UsageView.Load(UsageSettings(_preferences));

@@ -10,6 +10,8 @@ This folder contains the current layout reference, feature design notes and edit
 
 ## Feature notes
 
+- [Services filter persistence](SERVICE-FILTER-PERSISTENCE.md) remembers sorting, status and Workers between launches.
+
 - [Connections header pin count](CONNECTIONS-HEADER-PINS.md) moves the saved-pin count beside Process / PID and removes the two informational footer lines.
 
 - [Automatic network recovery](NETWORK-RECOVERY.md) reconnects interrupted process-network monitoring without elevation and preserves session totals.

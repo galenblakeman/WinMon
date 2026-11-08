@@ -14,6 +14,32 @@ namespace WinMon.Tests;
 public sealed class ServicesViewTests
 {
     [Test]
+    public void ServiceFiltersRestoreWithoutEventsAndNotifyUserChangesIncludingSortFallback()
+    {
+        var view = new ServicesView { TopServiceCount = 0 };
+        var changes = 0;
+        view.FiltersChanged += () => changes++;
+        view.RestoreFilters(3, 2, false);
+        Assert.Multiple(() =>
+        {
+            Assert.That(view.SortColumn, Is.EqualTo(3));
+            Assert.That(view.StatusFilterIndex, Is.EqualTo(2));
+            Assert.That(view.IncludeWorkers, Is.False);
+            Assert.That(changes, Is.Zero);
+        });
+        view.TopServiceCount = 5;
+        Assert.That(view.SortColumn, Is.Zero, "Name sorting is only available with All.");
+        Assert.That(changes, Is.EqualTo(1));
+        ((ComboBox)view.FindName("Sort")).SelectedIndex = 1;
+        ((ComboBox)view.FindName("StatusFilter")).SelectedIndex = 1;
+        ((CheckBox)view.FindName("Workers")).IsChecked = true;
+        Assert.That(changes, Is.EqualTo(4));
+        view.TopServiceCount = 10;
+        Assert.That(changes, Is.EqualTo(4), "Rebuilding sort labels must not emit transient selections.");
+        Assert.That(view.SortColumn, Is.EqualTo(1));
+    }
+
+    [Test]
     public void MetricTicksNotifyChangedCellsWithoutRefreshingPinBindings()
     {
         var view = new ServicesView();
