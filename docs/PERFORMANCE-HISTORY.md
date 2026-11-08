@@ -2,6 +2,19 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## Network service ledger and event loop (November 8, 2026)
+
+SDK 10.0.403 / .NET 10.0.14, tiered compilation off. An isolated console probe compiled against HEAD and the changed `WinMon.NetworkService`: 850 registered lifetimes (the startup seed), 64 of the owner's talking at 200,000 events per simulated second for 40 seconds, 25 short-lived process starts per second and one owner snapshot per second. Each run repeats the workload seven times and reports medians of the last six; four before/after pairs alternated.
+
+| Measurement | Before | After |
+| --- | ---: | ---: |
+| Seed of 850 registrations | 13.2 ms, 52.7 MiB allocated | 0.38 ms, 383 KiB allocated |
+| Per process start (Register + End) | 54 µs | 1.9 µs |
+| Snapshot (64 rows) | 0.13 ms, 378 KiB allocated | 0.023 ms, 7.9 KiB allocated |
+| `Add` per event | 16.6 ns | 16.6 ns |
+
+`Register` pruned every lifetime's buckets with a LINQ copy on each call, so seeding was quadratic in allocation. Buckets are now pruned only when the retention second advances, without allocating, and snapshots skip rate calculation for lifetimes with no traffic. The collector also drops a write-only per-packet cache update, drains its queue in batches of 4,096 events per lock hold, and reuses its one-second idle timer instead of creating one per queue wake. Those collector changes are outside this probe and were not measured; the native ETW test was not run.
+
 ## Network reliability diagnostics (November 8, 2026)
 
 SDK 10.0.403 / .NET 10.0.14. An isolated console probe compared the HEAD ledger/snapshot source with the changed source: 512 process lifetimes, six event-time buckets each, then snapshot construction plus JSON serialization. Each process warmed up 300 iterations and measured 2,000; four before/after pairs alternated with no verification builds running. Tiered compilation was disabled in both payloads to remove the unstable tier-transition effect observed in the initial concurrent run.

@@ -19,6 +19,7 @@ internal sealed class NetworkTrafficLedger
     private long _sequence;
     private long _startedQpc;
     private long _lastSnapshotQpc = long.MinValue;
+    private long _prunedBucket = -1;
     private long _lastEventsLost;
     private long _eventsLost;
     private long _lateEvents;
@@ -165,9 +166,9 @@ internal sealed class NetworkTrafficLedger
         if (_capacityExceeded) quality |= ProcessNetworkQuality.CapacityExceeded;
         if (_discontinuity) quality |= ProcessNetworkQuality.Discontinuity;
 
-        var rows = _lifetimes.Where(lifetime => string.Equals(lifetime.OwnerSid, ownerSid, StringComparison.Ordinal))
+        var rows = _lifetimes.Where(lifetime => (lifetime.ReceivedBytes != 0 || lifetime.SentBytes != 0) &&
+                string.Equals(lifetime.OwnerSid, ownerSid, StringComparison.Ordinal))
             .Select(lifetime => lifetime.Snapshot(windowStart, windowEnd, ratesAvailable, _frequency))
-            .Where(row => row.ReceivedBytes != 0 || row.SentBytes != 0)
             .OrderBy(row => row.ProcessId).ThenBy(row => row.CreationTicks).ToArray();
         return new ProcessNetworkSnapshot(_generation, checked(++_sequence), nowQpc, _frequency, windowStart, windowEnd,
             quality, _eventsLost, _lateEvents, rows) { IncompleteReasons = _incompleteReasons };
@@ -186,10 +187,13 @@ internal sealed class NetworkTrafficLedger
     {
         if (nowQpc < _startedQpc) return;
         var oldestBucket = Math.Max(0, nowQpc / _frequency - RetentionSeconds);
+        // Buckets only expire when the retention second advances; Register calls this per process start.
+        var pruneBuckets = oldestBucket > _prunedBucket;
+        if (pruneBuckets) _prunedBucket = oldestBucket;
         for (var index = _lifetimes.Count - 1; index >= 0; index--)
         {
             var lifetime = _lifetimes[index];
-            lifetime.PruneBuckets(oldestBucket);
+            if (pruneBuckets) lifetime.PruneBuckets(oldestBucket);
             if (lifetime.EndedQpc is { } ended && nowQpc - ended > RetentionTicks)
             {
                 _lifetimes.RemoveAt(index);
@@ -228,6 +232,7 @@ internal sealed class NetworkTrafficLedger
         _eventsLost = 0;
         _lateEvents = 0;
         _ratesUnavailableUntilQpc = nowQpc;
+        _prunedBucket = -1;
     }
 
     private long HoldbackTicks => checked(DeliveryHoldbackSeconds * _frequency);
@@ -268,7 +273,9 @@ internal sealed class NetworkTrafficLedger
 
         internal void PruneBuckets(long oldestSecond)
         {
-            foreach (var second in _buckets.Keys.Where(second => second < oldestSecond).ToArray()) _buckets.Remove(second);
+            // Dictionary allows Remove during enumeration since .NET Core 3.0.
+            foreach (var second in _buckets.Keys)
+                if (second < oldestSecond) _buckets.Remove(second);
         }
 
         internal ProcessNetworkReading Snapshot(long windowStartQpc, long windowEndQpc, bool ratesAvailable, long frequency)
@@ -279,8 +286,9 @@ internal sealed class NetworkTrafficLedger
             {
                 var startSecond = windowStartQpc / frequency;
                 var endSecond = windowEndQpc / frequency;
-                foreach (var pair in _buckets.Where(pair => pair.Key >= startSecond && pair.Key < endSecond))
+                foreach (var pair in _buckets)
                 {
+                    if (pair.Key < startSecond || pair.Key >= endSecond) continue;
                     received = checked(received + pair.Value.Received);
                     sent = checked(sent + pair.Value.Sent);
                 }

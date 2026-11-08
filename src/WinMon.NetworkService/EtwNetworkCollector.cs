@@ -13,6 +13,8 @@ internal sealed class EtwNetworkCollector : INetworkCollector
     // A 16 MiB ETW flush can arrive as a burst; bound its compact event queue to about 6 MiB.
     private const int MaximumEvents = 262_144;
     private const int MaximumOwners = 8_192;
+    // Events processed per lock hold, so a burst cannot delay a snapshot request for long.
+    private const int BatchSize = 4_096;
     private readonly object _gate = new();
     private readonly HashSet<string> _allowedSids;
     private readonly Channel<CollectorEvent> _events = Channel.CreateBounded<CollectorEvent>(new BoundedChannelOptions(MaximumEvents)
@@ -148,16 +150,19 @@ internal sealed class EtwNetworkCollector : INetworkCollector
         {
             var nextReconcile = Stopwatch.GetTimestamp();
             Task<bool>? ready = null;
+            Task? timeout = null;
             while (!_stop.IsCancellationRequested)
             {
                 ready ??= _events.Reader.WaitToReadAsync(_stop.Token).AsTask();
-                var timeout = Task.Delay(TimeSpan.FromSeconds(1), _stop.Token);
+                // Reuse the pending timer: a fresh one per wake piles up timers under heavy traffic.
+                timeout ??= Task.Delay(TimeSpan.FromSeconds(1), _stop.Token);
                 var completed = await Task.WhenAny(ready, timeout).ConfigureAwait(false);
-                if (completed == ready)
+                if (completed == timeout) timeout = null;
+                else
                 {
                     if (!await ready.ConfigureAwait(false)) break;
                     ready = null;
-                    while (_events.Reader.TryRead(out var item)) Process(item);
+                    while (ProcessBatch()) { }
                 }
                 var now = Stopwatch.GetTimestamp();
                 if (now >= nextReconcile) { Reconcile(); nextReconcile = checked(Stopwatch.GetTimestamp() + Stopwatch.Frequency); }
@@ -167,30 +172,41 @@ internal sealed class EtwNetworkCollector : INetworkCollector
         catch { SignalFailure(ProcessNetworkFailure.EventConsumer); }
     }
 
-    private void Process(CollectorEvent item)
+    /// <summary>Processes up to one batch under a single lock hold; returns whether the queue may hold more.</summary>
+    private bool ProcessBatch()
     {
         lock (_gate)
         {
-            if (_ledger is null) return;
-            DrainPendingQuality(Stopwatch.GetTimestamp());
-            switch (item.Kind)
+            if (_ledger is not { } ledger) return false;
+            for (var count = 0; count < BatchSize; count++)
             {
-                case CollectorEventKind.Start:
-                    ResolveAndRegister(item.ProcessId, item.EventQpc, Stopwatch.GetTimestamp(), observedTraffic: false);
-                    break;
-                case CollectorEventKind.Stop:
-                    if (_owners.TryGetValue(item.ProcessId, out var current) && item.EventQpc > current.StartedQpc)
-                    {
-                        _ledger.End(item.ProcessId, item.EventQpc);
-                        _owners.Remove(item.ProcessId);
-                    }
-                    break;
-                case CollectorEventKind.Network:
-                    var verifiedQpc = Stopwatch.GetTimestamp(); // taken before native ownership I/O
-                    if (EnsureKnown(item.ProcessId, item.EventQpc, verifiedQpc))
-                        _ledger.Add(item.ProcessId, item.EventQpc, verifiedQpc, item.Send, item.Bytes);
-                    break;
+                if (!_events.Reader.TryRead(out var item)) return false;
+                Process(item, ledger);
             }
+            return true;
+        }
+    }
+
+    private void Process(CollectorEvent item, NetworkTrafficLedger ledger)
+    {
+        DrainPendingQuality(Stopwatch.GetTimestamp());
+        switch (item.Kind)
+        {
+            case CollectorEventKind.Start:
+                ResolveAndRegister(item.ProcessId, item.EventQpc, Stopwatch.GetTimestamp(), observedTraffic: false);
+                break;
+            case CollectorEventKind.Stop:
+                if (_owners.TryGetValue(item.ProcessId, out var current) && item.EventQpc > current.StartedQpc)
+                {
+                    ledger.End(item.ProcessId, item.EventQpc);
+                    _owners.Remove(item.ProcessId);
+                }
+                break;
+            case CollectorEventKind.Network:
+                var verifiedQpc = Stopwatch.GetTimestamp(); // taken before native ownership I/O
+                if (EnsureKnown(item.ProcessId, item.EventQpc, verifiedQpc))
+                    ledger.Add(item.ProcessId, item.EventQpc, verifiedQpc, item.Send, item.Bytes);
+                break;
         }
     }
 
@@ -200,7 +216,6 @@ internal sealed class EtwNetworkCollector : INetworkCollector
         if (_ledger!.HasExitedLifetime(processId, eventQpc)) return true;
         if (_owners.TryGetValue(processId, out var cached) && eventQpc > cached.StartedQpc && eventQpc <= cached.ValidThroughQpc)
         {
-            _owners[processId] = cached with { LastSeenQpc = verifiedQpc };
             return true;
         }
         if (_rejectedUntil.TryGetValue(processId, out var rejected) && verifiedQpc <= rejected.UntilQpc)
@@ -231,7 +246,7 @@ internal sealed class EtwNetworkCollector : INetworkCollector
         {
             if (previous.CreationTicks == owner.CreationTicks)
             {
-                _owners[processId] = previous with { ValidThroughQpc = verifiedQpc, LastSeenQpc = verifiedQpc };
+                _owners[processId] = previous with { ValidThroughQpc = verifiedQpc };
                 return true;
             }
             _ledger.End(processId, createdQpc);
@@ -245,7 +260,7 @@ internal sealed class EtwNetworkCollector : INetworkCollector
             return _ledger.HasExitedLifetime(processId, eventQpc);
         }
         if (!_ledger.Register(processId, owner.CreationTicks, owner.Sid, createdQpc)) return _ledger.HasExitedLifetime(processId, eventQpc);
-        _owners[processId] = new(owner.CreationTicks, createdQpc, verifiedQpc, verifiedQpc);
+        _owners[processId] = new(owner.CreationTicks, createdQpc, verifiedQpc);
         _rejectedUntil.Remove(processId);
         return eventQpc > createdQpc;
     }
@@ -284,7 +299,7 @@ internal sealed class EtwNetworkCollector : INetworkCollector
                 var createdQpc = ToSessionQpc(DateTime.FromFileTimeUtc(creationTicks));
                 if (_owners[processId].CreationTicks == creationTicks)
                 {
-                    _owners[processId] = _owners[processId] with { ValidThroughQpc = nowQpc, LastSeenQpc = nowQpc };
+                    _owners[processId] = _owners[processId] with { ValidThroughQpc = nowQpc };
                     continue;
                 }
                 _ledger.End(processId, createdQpc);
@@ -357,6 +372,6 @@ internal sealed class EtwNetworkCollector : INetworkCollector
     private static Task AwaitBounded(Task? task) => task is null ? Task.CompletedTask : task.WaitAsync(TimeSpan.FromSeconds(10));
     private enum CollectorEventKind { Start, Stop, Network }
     private readonly record struct CollectorEvent(CollectorEventKind Kind, int ProcessId, long EventQpc, int Bytes, bool Send);
-    private readonly record struct OwnerCache(long CreationTicks, long StartedQpc, long ValidThroughQpc, long LastSeenQpc);
+    private readonly record struct OwnerCache(long CreationTicks, long StartedQpc, long ValidThroughQpc);
     private readonly record struct RejectedOwner(long UntilQpc, bool Unknown);
 }
