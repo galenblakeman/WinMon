@@ -28,6 +28,9 @@ internal static class Program
     [STAThread]
     private static void Main(string[] args)
     {
+        using var diagnosticLog = args.Contains("--without-logging") ? null : new WinMon.Diagnostics.DiagnosticLog(
+            Path.Combine(Path.GetDirectoryName(Path.GetFullPath(args[0]))!, "Logs"), "App");
+        if (diagnosticLog is not null) Trace.Listeners.Add(diagnosticLog);
         System.Windows.Input.Keyboard.DefaultRestoreFocusMode = System.Windows.Input.RestoreFocusMode.None;
         var app = new App();
         app.InitializeComponent();
@@ -65,6 +68,18 @@ internal static class Program
         var cyclesPerMs = CyclesPerMillisecond(thread);
         var results = new List<object>();
         Measure("live-frame");
+        if (args.Contains("--live-only"))
+        {
+            File.WriteAllText(args[0], JsonSerializer.Serialize(new
+            {
+                LoggingEnabled = diagnosticLog is not null, Runtime = Environment.Version.ToString(),
+                WarmupFrames, Batches, FramesPerBatch, Results = results
+            }, new JsonSerializerOptions { WriteIndented = true }));
+            Pixels(args.Length > 1 ? args[1] : null);
+            window.CloseForFixture();
+            app.Shutdown();
+            return;
+        }
         foreach (var (type, name) in new[]
                  {
                      (ResourceChartType.SmallMultiples, "small-multiples-live-frame"),
@@ -162,6 +177,7 @@ internal static class Program
         RequireNetworkColumnVisible();
         var report = new
         {
+            LoggingEnabled = diagnosticLog is not null,
             Runtime = Environment.Version.ToString(), Samples = 600, ProcessesPerSample = Processes,
             WarmupFrames, Batches, FramesPerBatch,
             AssemblySha256 = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(typeof(MainWindow).Assembly.Location))),

@@ -1768,4 +1768,7 @@ GPU {11} · {12}
   <data name="ConnectionsHistoryNote" xml:space="preserve"><value>Соединения при выбранном замере. Скорости — средние за пять секунд, обычно заканчивающихся за три секунды до сбора.</value></data>
   <data name="ConnectionsEnableTrafficMonitoring" xml:space="preserve"><value>Включить мониторинг трафика…</value></data>
   <data name="ConnectionsTrafficRankingUnavailable" xml:space="preserve"><value>Включите мониторинг трафика процессов для сортировки по скорости приёма или отправки.</value></data>
+  <data name="OpenLogsFolder" xml:space="preserve"><value>Открыть папку журналов</value></data>
+  <data name="OpenLogsFolderHelp" xml:space="preserve"><value>Открыть папку с диагностическими журналами WinMon.</value></data>
+  <data name="OpenLogsFolderFailed" xml:space="preserve"><value>Не удалось открыть папку журналов. Запись журналов может быть недоступна или папка больше не существует.</value></data>
 </root>

@@ -1768,4 +1768,7 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="ConnectionsHistoryNote" xml:space="preserve"><value>Connections observed at the selected sample. Rates are delayed five-second averages, normally ending three seconds before collection.</value></data>
   <data name="ConnectionsEnableTrafficMonitoring" xml:space="preserve"><value>Enable traffic monitoring…</value></data>
   <data name="ConnectionsTrafficRankingUnavailable" xml:space="preserve"><value>Enable per-process traffic monitoring to rank by receive/send rate.</value></data>
+  <data name="OpenLogsFolder" xml:space="preserve"><value>Open logs folder</value></data>
+  <data name="OpenLogsFolderHelp" xml:space="preserve"><value>Open the folder containing WinMon diagnostic logs.</value></data>
+  <data name="OpenLogsFolderFailed" xml:space="preserve"><value>The logs folder could not be opened. Logging may be unavailable or the folder may no longer exist.</value></data>
 </root>

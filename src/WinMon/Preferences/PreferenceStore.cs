@@ -75,14 +75,17 @@ public sealed class PreferenceStore
             }
             catch (FileNotFoundException)
             {
+                Trace.TraceInformation("Preferences.DefaultsMissingFile");
                 return new MonitorPreferences();
             }
             catch (DirectoryNotFoundException)
             {
+                Trace.TraceInformation("Preferences.DefaultsMissingDirectory");
                 return new MonitorPreferences();
             }
-            catch (JsonException)
+            catch (JsonException exception)
             {
+                Trace.TraceWarning("Preferences.InvalidFile: {0}", exception);
                 _keepCopyBeforeReplace = !KeepInvalidCopy();
                 return new MonitorPreferences();
             }
@@ -90,14 +93,16 @@ public sealed class PreferenceStore
             {
                 await Task.Delay(100, cancellationToken).ConfigureAwait(false);
             }
-            catch (IOException)
+            catch (IOException exception)
             {
+                Trace.TraceWarning("Preferences.ReadFailed: {0}", exception);
                 // A file locked by another program may be valid: never replace it until a copy is kept.
                 _keepCopyBeforeReplace = !KeepInvalidCopy();
                 return new MonitorPreferences();
             }
-            catch (UnauthorizedAccessException)
+            catch (UnauthorizedAccessException exception)
             {
+                Trace.TraceWarning("Preferences.AccessDenied: {0}", exception);
                 return new MonitorPreferences();
             }
         }

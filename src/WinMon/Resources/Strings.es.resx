@@ -1768,4 +1768,7 @@ Se puede perder el trabajo sin guardar. Se finalizarán todos los procesos indic
   <data name="ConnectionsHistoryNote" xml:space="preserve"><value>Conexiones observadas en la muestra seleccionada. Las tasas son promedios de cinco segundos, normalmente hasta tres segundos antes de la recopilación.</value></data>
   <data name="ConnectionsEnableTrafficMonitoring" xml:space="preserve"><value>Activar supervisión del tráfico…</value></data>
   <data name="ConnectionsTrafficRankingUnavailable" xml:space="preserve"><value>Active la supervisión del tráfico por proceso para ordenar por tasa de recepción o envío.</value></data>
+  <data name="OpenLogsFolder" xml:space="preserve"><value>Abrir carpeta de registros</value></data>
+  <data name="OpenLogsFolderHelp" xml:space="preserve"><value>Abrir la carpeta de registros de diagnóstico de WinMon.</value></data>
+  <data name="OpenLogsFolderFailed" xml:space="preserve"><value>No se pudo abrir la carpeta de registros. Puede que el registro no esté disponible o que la carpeta ya no exista.</value></data>
 </root>

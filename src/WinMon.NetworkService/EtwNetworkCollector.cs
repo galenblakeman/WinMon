@@ -330,7 +330,8 @@ internal sealed class EtwNetworkCollector : INetworkCollector
     internal void SignalFailure(ProcessNetworkFailure failure)
     {
         if (failure == ProcessNetworkFailure.None || !Enum.IsDefined(failure)) throw new ArgumentOutOfRangeException(nameof(failure));
-        Interlocked.CompareExchange(ref _failure, (int)failure, 0);
+        if (Interlocked.CompareExchange(ref _failure, (int)failure, 0) == 0)
+            Trace.TraceError("Network.CollectorFailed reason={0}", failure);
         SignalIncomplete(rateGap: true);
     }
     private ProcessNetworkSnapshot Unavailable() => new(Guid.Empty, 0, 0, Stopwatch.Frequency, 0, 0, ProcessNetworkQuality.Unavailable, 0, 0, []) { Failure = Failure };

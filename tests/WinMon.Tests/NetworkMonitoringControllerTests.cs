@@ -7,6 +7,33 @@ namespace WinMon.Tests;
 public sealed class NetworkMonitoringControllerTests
 {
     [Test]
+    [NonParallelizable]
+    public async Task ConnectionRecovery_LogsFailureStateAndOutageSummary()
+    {
+        var folder = Path.Combine(Path.GetTempPath(), "WinMon.NetworkLogTests." + Guid.NewGuid().ToString("N"));
+        try
+        {
+            using (var log = new WinMon.Diagnostics.DiagnosticLog(folder, "App"))
+            {
+                System.Diagnostics.Trace.Listeners.Add(log);
+                var available = false;
+                await using var controller = new NetworkMonitoringController(_ => available
+                        ? Task.FromResult<INetworkMonitoringConnection>(new FakeConnection()) : throw new IOException("private endpoint"),
+                    (_, _, _) => throw new AssertionException("No setup needed"), () => true);
+                await controller.RestoreAsync(true, default);
+                available = true;
+                await controller.ChangeAsync(true, default);
+            }
+            var text = File.ReadAllText(Path.Combine(folder, "winmon.log"));
+            Assert.That(text, Does.Contain("Network.ConnectionFailed: IOException"));
+            Assert.That(text, Does.Contain("Network.State from=Enabling to=Unavailable"));
+            Assert.That(text, Does.Contain("Network.Connected attempts=1 outageMs="));
+            Assert.That(text, Does.Not.Contain("private endpoint"));
+        }
+        finally { if (Directory.Exists(folder)) Directory.Delete(folder, true); }
+    }
+
+    [Test]
     public async Task LogicalSessionSurvivesRepairAndOnlyExplicitDisableStartsOver()
     {
         var available = false;

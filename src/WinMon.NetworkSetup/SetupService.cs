@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Security.AccessControl;
 using System.Security.Principal;
+using WinMon.Diagnostics;
 using WinMon.Monitoring;
 
 namespace WinMon.NetworkSetup;
@@ -127,6 +128,12 @@ internal static class SetupService
             swapped = true;
             serviceChanged = true;
             SetupFailure.At("service", () => NativeService.CreateOrUpdateOwned(users));
+            try { LogDirectories.Provision(sid); }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or System.Security.SecurityException)
+            {
+                // Logging must not block service installation; the app retains its per-user fallback.
+                Trace.TraceWarning("Logging.SharedProvisionFailed: {0}", exception);
+            }
             SetupFailure.At("service", () => NativeService.StartAndVerify(token));
             SetupFailure.At("registration", SetupRegistration.Write);
         }, Rollback, () => { if (backup is not null) DeleteTree(backup); }, lease);

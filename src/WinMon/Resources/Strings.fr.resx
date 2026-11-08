@@ -1768,4 +1768,7 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
   <data name="ConnectionsHistoryNote" xml:space="preserve"><value>Connexions observées à l’échantillon sélectionné. Les débits sont des moyennes sur cinq secondes, se terminant normalement trois secondes avant la collecte.</value></data>
   <data name="ConnectionsEnableTrafficMonitoring" xml:space="preserve"><value>Activer le suivi du trafic…</value></data>
   <data name="ConnectionsTrafficRankingUnavailable" xml:space="preserve"><value>Activez le suivi du trafic par processus pour classer par débit de réception ou émission.</value></data>
+  <data name="OpenLogsFolder" xml:space="preserve"><value>Ouvrir le dossier des journaux</value></data>
+  <data name="OpenLogsFolderHelp" xml:space="preserve"><value>Ouvrir le dossier des journaux de diagnostic de WinMon.</value></data>
+  <data name="OpenLogsFolderFailed" xml:space="preserve"><value>Impossible d’ouvrir le dossier des journaux. La journalisation est peut-être indisponible ou le dossier n’existe plus.</value></data>
 </root>

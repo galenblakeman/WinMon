@@ -199,6 +199,10 @@
                                     </WrapPanel>
                                 </StackPanel>
                             </Border>
+                            <Button x:Name="OpenLogsButton" HorizontalAlignment="Left" Margin="0,20,0,0"
+                                    Click="OnOpenLogs"
+                                    ToolTip="{Binding [OpenLogsFolderHelp], Source={x:Static r:Strings.Text}}"
+                                    Content="{Binding [OpenLogsFolder], Source={x:Static r:Strings.Text}}" />
                         </StackPanel>
                     </ScrollViewer>
                 </TabItem>

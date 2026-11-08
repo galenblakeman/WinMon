@@ -1,5 +1,7 @@
 # WinMon design assets
 
+- [Diagnostic file logging](DIAGNOSTIC-LOGGING.md) records startup, errors and network-service recovery in bounded local logs.
+
 This folder contains the current layout reference, feature design notes and editable application icon sources. Superseded concept images and early CPU-only design records have been removed.
 
 ## Current visual reference

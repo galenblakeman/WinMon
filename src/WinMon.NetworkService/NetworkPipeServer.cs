@@ -70,7 +70,7 @@ internal sealed class NetworkPipeServer(IReadOnlyCollection<string> allowedSids,
         }
         catch (OperationCanceledException) when (stopping.IsCancellationRequested) { }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or OperationCanceledException or InvalidDataException) { }
-        catch (Exception ex) { Trace.TraceError("Network pipe request failed: {0}", ex.GetType().Name); }
+        catch (Exception ex) { Trace.TraceError("Network pipe request failed: {0}", ex); }
         finally { pipe.Dispose(); _clients.Release(); }
     }
 

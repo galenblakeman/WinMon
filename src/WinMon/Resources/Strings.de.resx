@@ -1768,4 +1768,7 @@ Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse
   <data name="ConnectionsHistoryNote" xml:space="preserve"><value>Verbindungen zum ausgewählten Messzeitpunkt. Raten sind verzögerte Fünf-Sekunden-Mittelwerte und enden normalerweise drei Sekunden vor der Erfassung.</value></data>
   <data name="ConnectionsEnableTrafficMonitoring" xml:space="preserve"><value>Datenverkehrsüberwachung aktivieren…</value></data>
   <data name="ConnectionsTrafficRankingUnavailable" xml:space="preserve"><value>Aktivieren Sie die Datenverkehrsüberwachung pro Prozess, um nach Empfangs-/Senderate zu sortieren.</value></data>
+  <data name="OpenLogsFolder" xml:space="preserve"><value>Protokollordner öffnen</value></data>
+  <data name="OpenLogsFolderHelp" xml:space="preserve"><value>Den Ordner mit den Diagnoseprotokollen von WinMon öffnen.</value></data>
+  <data name="OpenLogsFolderFailed" xml:space="preserve"><value>Der Protokollordner konnte nicht geöffnet werden. Die Protokollierung ist möglicherweise nicht verfügbar oder der Ordner existiert nicht mehr.</value></data>
 </root>

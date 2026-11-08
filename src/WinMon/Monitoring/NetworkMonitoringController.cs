@@ -23,6 +23,8 @@ internal sealed class NetworkMonitoringController : IAsyncDisposable
     private Task? _poll;
     private INetworkMonitoringConnection? _connection;
     private bool _enabled;
+    private int _connectionFailures;
+    private long _outageStarted;
     private NetworkMonitoringSample _sample = new(Guid.Empty, null);
 
     internal NetworkMonitoringController() : this(ConnectAsync, new NetworkSetupBroker().RunAsync,
@@ -60,6 +62,8 @@ internal sealed class NetworkMonitoringController : IAsyncDisposable
             if (!enabled)
             {
                 _enabled = false;
+                _connectionFailures = 0;
+                _outageStarted = 0;
                 Volatile.Write(ref _sample, new NetworkMonitoringSample(Guid.Empty, null));
                 return Result(true, NetworkMonitoringState.Disabled);
             }
@@ -79,6 +83,7 @@ internal sealed class NetworkMonitoringController : IAsyncDisposable
                 }
                 catch (Exception exception) when (exception is not OperationCanceledException || !linked.IsCancellationRequested)
                 {
+                    ReportConnectionFailure(exception);
                     if (!allowSetup) return Result(false, NetworkMonitoringState.Unavailable);
                     if (!_canSetup()) return Result(false, NetworkMonitoringState.SetupUnavailable);
                     await _setup("install", OpenAsync, linked.Token).ConfigureAwait(false);
@@ -128,6 +133,8 @@ internal sealed class NetworkMonitoringController : IAsyncDisposable
                 SetState(NetworkMonitoringState.Enabling);
                 await _setup("remove", _ => Task.CompletedTask, linked.Token).ConfigureAwait(false);
                 _enabled = false;
+                _connectionFailures = 0;
+                _outageStarted = 0;
                 Volatile.Write(ref _sample, new NetworkMonitoringSample(Guid.Empty, null));
                 return Result(true, NetworkMonitoringState.Disabled);
             }
@@ -153,6 +160,10 @@ internal sealed class NetworkMonitoringController : IAsyncDisposable
             _connection = connection;
             PublishSnapshot(snapshot);
             SetState(ToState(snapshot));
+            Trace.TraceInformation("Network.Connected attempts={0} outageMs={1}", _connectionFailures,
+                _outageStarted == 0 ? 0 : (long)Stopwatch.GetElapsedTime(_outageStarted).TotalMilliseconds);
+            _connectionFailures = 0;
+            _outageStarted = 0;
         }
         catch { await connection.DisposeAsync().ConfigureAwait(false); throw; }
     }
@@ -172,7 +183,7 @@ internal sealed class NetworkMonitoringController : IAsyncDisposable
         catch (OperationCanceledException) when (token.IsCancellationRequested) { }
         catch (Exception exception)
         {
-            Trace.TraceError("WinMon network service connection ended: {0}", exception);
+            ReportConnectionFailure(exception);
             PublishSnapshot(null);
             SetState(exception is NetworkServiceProtocolMismatchException
                 ? NetworkMonitoringState.UpdateRequired : NetworkMonitoringState.Unavailable);
@@ -207,8 +218,15 @@ internal sealed class NetworkMonitoringController : IAsyncDisposable
     private void SetState(NetworkMonitoringState state)
     {
         if (State == state) return;
+        Trace.TraceInformation("Network.State from={0} to={1}", State, state);
         State = state;
         StateChanged?.Invoke(state);
+    }
+
+    private void ReportConnectionFailure(Exception exception)
+    {
+        if (_connectionFailures++ == 0) _outageStarted = Stopwatch.GetTimestamp();
+        Trace.TraceWarning("Network.ConnectionFailed: {0}", exception);
     }
 
     internal static NetworkMonitoringState ToState(ProcessNetworkSnapshot snapshot) =>

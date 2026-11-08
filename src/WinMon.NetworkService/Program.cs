@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Security.Principal;
 using System.ServiceProcess;
 using WinMon.Monitoring;
+using WinMon.Diagnostics;
 
 namespace WinMon.NetworkService;
 
@@ -15,6 +16,9 @@ internal static class Program
             Console.Error.WriteLine("This executable must be started by SCM as the provisioned LocalSystem network service.");
             return 1;
         }
+        using var log = DiagnosticLog.StartService();
+        Trace.TraceInformation("Service.ProcessStart version={0} runtime={1} windows={2}",
+            typeof(Program).Assembly.GetName().Version!, Environment.Version, Environment.OSVersion.Version);
         using var service = new NetworkMonitoringService();
         ServiceBase.Run(service);
         return service.ExitCode;
@@ -39,12 +43,22 @@ internal sealed class NetworkMonitoringService : ServiceBase
 
     protected override void OnStart(string[] args)
     {
-        var users = ServicePolicy.Load();
-        ServiceProcessSecurity.Apply(users);
-        _lifetime = new CancellationTokenSource();
-        _collectors = new NetworkCollectorManager(users, () => new EtwNetworkCollector(users));
-        var server = new NetworkPipeServer(users, _collectors.SubscribeAsync, _collectors.Snapshot);
-        _run = RunAsync(server, _lifetime.Token);
+        Trace.TraceInformation("Service.Starting");
+        try
+        {
+            var users = ServicePolicy.Load();
+            ServiceProcessSecurity.Apply(users);
+            _lifetime = new CancellationTokenSource();
+            _collectors = new NetworkCollectorManager(users, () => new EtwNetworkCollector(users));
+            var server = new NetworkPipeServer(users, _collectors.SubscribeAsync, _collectors.Snapshot);
+            _run = RunAsync(server, _lifetime.Token);
+            Trace.TraceInformation("Service.ListenerStarted");
+        }
+        catch (Exception exception)
+        {
+            Trace.TraceError("Service.StartFailed: {0}", exception);
+            throw;
+        }
     }
 
     private async Task RunAsync(NetworkPipeServer server, CancellationToken token)
@@ -56,7 +70,7 @@ internal sealed class NetworkMonitoringService : ServiceBase
         catch (OperationCanceledException) when (token.IsCancellationRequested) { }
         catch (Exception ex)
         {
-            Trace.TraceError("Network service listener failed: {0}", ex.GetType().Name);
+            Trace.TraceError("Network service listener failed: {0}", ex);
             ExitCode = 1;
             // Do not call OnStop while it is waiting for this task.
             _ = Task.Run(Stop);
@@ -65,6 +79,7 @@ internal sealed class NetworkMonitoringService : ServiceBase
 
     protected override bool OnPowerEvent(PowerBroadcastStatus powerStatus)
     {
+        Trace.TraceInformation("Service.Power state={0}", powerStatus);
         NetworkCollectorManager? collectors;
         CancellationToken token;
         lock (_state)
@@ -84,7 +99,7 @@ internal sealed class NetworkMonitoringService : ServiceBase
         try { await collectors.SetSuspendedAsync(suspended, token).ConfigureAwait(false); }
         catch (OperationCanceledException) when (token.IsCancellationRequested) { }
         catch (ObjectDisposedException) { }
-        catch (Exception ex) { Trace.TraceError("Network collector power transition failed: {0}", ex.GetType().Name); }
+        catch (Exception ex) { Trace.TraceError("Network collector power transition failed: {0}", ex); }
     }
 
     protected override void OnShutdown() => OnStop();
@@ -104,6 +119,7 @@ internal sealed class NetworkMonitoringService : ServiceBase
             _collectors = null;
         }
         if (lifetime is null) return;
+        Trace.TraceInformation("Service.Stopping");
         lifetime.Cancel();
         try
         {
@@ -114,8 +130,12 @@ internal sealed class NetworkMonitoringService : ServiceBase
         catch (Exception ex)
         {
             ExitCode = 1;
-            Trace.TraceError("Network service shutdown failed: {0}", ex.GetType().Name);
+            Trace.TraceError("Network service shutdown failed: {0}", ex);
         }
-        finally { lifetime.Dispose(); }
+        finally
+        {
+            lifetime.Dispose();
+            Trace.TraceInformation("Service.Stopped code={0}", ExitCode);
+        }
     }
 }

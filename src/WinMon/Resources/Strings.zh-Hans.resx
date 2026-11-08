@@ -1768,4 +1768,7 @@ Windows 健康状态：{2}</value>
   <data name="ConnectionsHistoryNote" xml:space="preserve"><value>所选采样时观测到的连接。速率为延迟的五秒平均值，通常截至采集前三秒。</value></data>
   <data name="ConnectionsEnableTrafficMonitoring" xml:space="preserve"><value>启用流量监控…</value></data>
   <data name="ConnectionsTrafficRankingUnavailable" xml:space="preserve"><value>启用进程流量监控以按接收/发送速率排序。</value></data>
+  <data name="OpenLogsFolder" xml:space="preserve"><value>打开日志文件夹</value></data>
+  <data name="OpenLogsFolderHelp" xml:space="preserve"><value>打开包含 WinMon 诊断日志的文件夹。</value></data>
+  <data name="OpenLogsFolderFailed" xml:space="preserve"><value>无法打开日志文件夹。日志记录可能不可用，或者文件夹已不存在。</value></data>
 </root>

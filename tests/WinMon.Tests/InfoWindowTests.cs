@@ -66,6 +66,9 @@ public sealed class InfoWindowTests
             Assert.That(topics, Has.Length.EqualTo(5));
             Assert.That(topics.Count(t => t.IsExpanded), Is.EqualTo(1));
             Assert.That(window.VersionText.Text, Does.Contain(AppInfo.Version));
+            Assert.That(Descendants((TabItem)window.Tabs.Items[2]).Contains(window.OpenLogsButton), Is.True);
+            Assert.That(window.OpenLogsButton.Content, Is.EqualTo(Strings.OpenLogsFolder));
+            Assert.That(window.OpenLogsButton.ToolTip, Is.EqualTo(Strings.OpenLogsFolderHelp));
             Assert.That(window.LicenseText.Text, Does.Contain(AppInfo.Copyright).And.Contain(AppInfo.License));
             Assert.That(window.RepositoryLink.NavigateUri.AbsoluteUri, Is.EqualTo(AppInfo.RepositoryUrl));
         }

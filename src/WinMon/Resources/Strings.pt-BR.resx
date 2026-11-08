@@ -1768,4 +1768,7 @@ O trabalho não salvo pode ser perdido. Todos os processos listados abaixo serã
   <data name="ConnectionsHistoryNote" xml:space="preserve"><value>Conexões observadas na amostra selecionada. As taxas são médias de cinco segundos, normalmente até três segundos antes da coleta.</value></data>
   <data name="ConnectionsEnableTrafficMonitoring" xml:space="preserve"><value>Ativar monitoramento de tráfego…</value></data>
   <data name="ConnectionsTrafficRankingUnavailable" xml:space="preserve"><value>Ative o monitoramento de tráfego por processo para classificar pela taxa de recebimento ou envio.</value></data>
+  <data name="OpenLogsFolder" xml:space="preserve"><value>Abrir pasta de logs</value></data>
+  <data name="OpenLogsFolderHelp" xml:space="preserve"><value>Abrir a pasta que contém os logs de diagnóstico do WinMon.</value></data>
+  <data name="OpenLogsFolderFailed" xml:space="preserve"><value>Não foi possível abrir a pasta de logs. O registro pode estar indisponível ou a pasta pode não existir mais.</value></data>
 </root>

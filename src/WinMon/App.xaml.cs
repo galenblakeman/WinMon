@@ -19,12 +19,19 @@ public partial class App
     private Mutex? _instance;
     private bool _ownsInstance;
     private IDisposable? _activation;
+    private DiagnosticLog? _log;
+    private readonly Stopwatch _startupTime = Stopwatch.StartNew();
 
     /// <inheritdoc/>
     // WPF requires a void startup override; awaiting preferences preserves the UI synchronization context.
     // ReSharper disable once AsyncVoidEventHandlerMethod
     protected override async void OnStartup(StartupEventArgs e)
     {
+        _log = DiagnosticLog.StartApp();
+        DispatcherUnhandledException += (_, failure) => _log?.Fatal(failure.Exception);
+        Trace.TraceInformation("App.Start version={0} runtime={1} windows={2} store={3}",
+            new Version(AppInfo.Version), Environment.Version, Environment.OSVersion.Version,
+            !UpdatePolicy.GitHubUpdatesEnabled);
         if (e.Args is ["--service-action", var action, var service, var pidText, var createdText])
         {
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
@@ -117,10 +124,12 @@ public partial class App
         // Read once before any localized windows are created.
         var preferenceStore = new PreferenceStore();
         var preferences = await preferenceStore.LoadAsync();
+        Trace.TraceInformation("Startup.PreferencesLoaded elapsedMs={0}", _startupTime.ElapsedMilliseconds);
         AppLanguages.Apply(preferences.Language);
         UpdateRuntime.AcceptResultArguments(e.Args);
         if (UpdateRuntime.IsUpdating() && !UpdateRuntime.IsExpectedRestart)
         {
+            Trace.TraceInformation("Startup.UpdateInProgress");
             Shutdown();
             return;
         }
@@ -128,6 +137,7 @@ public partial class App
         _instance = new Mutex(true, @"Local\WinMon.CpuMonitor", out _ownsInstance);
         if (!_ownsInstance)
         {
+            Trace.TraceInformation("Startup.AlreadyRunning");
             if (!InstanceActivation.SignalRunningInstance())
                 MessageDialog.ShowNotice(null, Strings.WinMonIsAlreadyRunningRestoreItFromTheNotificationArea,
                     Strings.WinMon);
@@ -140,6 +150,7 @@ public partial class App
         base.OnStartup(e);
         MainWindow = new MainWindow(false, preferences, preferenceStore);
         MainWindow.Show();
+        Trace.TraceInformation("Startup.WindowShown elapsedMs={0}", _startupTime.ElapsedMilliseconds);
     }
 
     private async Task RunDiagnosticsAsync(MainWindow window, string output, bool featuresOnly,
@@ -244,11 +255,16 @@ public partial class App
     /// <inheritdoc/>
     protected override void OnExit(ExitEventArgs e)
     {
-        _activation?.Dispose();
-        UpdateLauncher.Dispose();
-        if (_ownsInstance) _instance?.ReleaseMutex();
-        _instance?.Dispose();
-        base.OnExit(e);
+        try
+        {
+            _activation?.Dispose();
+            UpdateLauncher.Dispose();
+            if (_ownsInstance) _instance?.ReleaseMutex();
+            _instance?.Dispose();
+            base.OnExit(e);
+            Trace.TraceInformation("App.Exit code={0}", e.ApplicationExitCode);
+        }
+        finally { _log?.Dispose(); }
     }
 
     private async Task RunServicesDiagnosticsAsync(MainWindow window, string output, string mode)

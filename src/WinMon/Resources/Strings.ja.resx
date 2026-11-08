@@ -1768,4 +1768,7 @@ Windows の正常性状態: {2}</value>
   <data name="ConnectionsHistoryNote" xml:space="preserve"><value>選択したサンプルで観測された接続です。速度は5秒間の平均で、通常は収集の3秒前までの値です。</value></data>
   <data name="ConnectionsEnableTrafficMonitoring" xml:space="preserve"><value>通信量の監視を有効にする…</value></data>
   <data name="ConnectionsTrafficRankingUnavailable" xml:space="preserve"><value>受信・送信速度で並べ替えるには、プロセスごとの通信監視を有効にしてください。</value></data>
+  <data name="OpenLogsFolder" xml:space="preserve"><value>ログフォルダーを開く</value></data>
+  <data name="OpenLogsFolderHelp" xml:space="preserve"><value>WinMon の診断ログが保存されているフォルダーを開きます。</value></data>
+  <data name="OpenLogsFolderFailed" xml:space="preserve"><value>ログフォルダーを開けませんでした。ログ記録が利用できないか、フォルダーが存在しない可能性があります。</value></data>
 </root>

@@ -1768,4 +1768,7 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
   <data name="ConnectionsHistoryNote" xml:space="preserve"><value>Połączenia zaobserwowane w wybranej próbce. Szybkości to opóźnione średnie z pięciu sekund, zwykle do trzech sekund przed zebraniem danych.</value></data>
   <data name="ConnectionsEnableTrafficMonitoring" xml:space="preserve"><value>Włącz monitorowanie ruchu…</value></data>
   <data name="ConnectionsTrafficRankingUnavailable" xml:space="preserve"><value>Włącz monitorowanie ruchu procesów, aby sortować według szybkości odbioru lub wysyłania.</value></data>
+  <data name="OpenLogsFolder" xml:space="preserve"><value>Otwórz folder dzienników</value></data>
+  <data name="OpenLogsFolderHelp" xml:space="preserve"><value>Otwórz folder zawierający dzienniki diagnostyczne WinMon.</value></data>
+  <data name="OpenLogsFolderFailed" xml:space="preserve"><value>Nie można otworzyć folderu dzienników. Rejestrowanie może być niedostępne lub folder już nie istnieje.</value></data>
 </root>

@@ -502,6 +502,9 @@ public static partial class Strings
     public static string OneRowPerExecutableCPUAndIOSummedGPU => ResourceManager.GetString(nameof(OneRowPerExecutableCPUAndIOSummedGPU), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string OneRowPerProcess => ResourceManager.GetString(nameof(OneRowPerProcess), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string OpenFileLocation => ResourceManager.GetString(nameof(OpenFileLocation), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string OpenLogsFolder => ResourceManager.GetString(nameof(OpenLogsFolder), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string OpenLogsFolderFailed => ResourceManager.GetString(nameof(OpenLogsFolderFailed), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string OpenLogsFolderHelp => ResourceManager.GetString(nameof(OpenLogsFolderHelp), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string OtherExecutables => ResourceManager.GetString(nameof(OtherExecutables), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string OtherOfTotalCPUCombinedAveragedOver5Seconds => ResourceManager.GetString(nameof(OtherOfTotalCPUCombinedAveragedOver5Seconds), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string OtherProcesses => ResourceManager.GetString(nameof(OtherProcesses), Culture ?? CultureInfo.CurrentUICulture)!;

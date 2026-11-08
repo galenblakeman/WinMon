@@ -51,6 +51,16 @@ The standalone [ETW network prototype](../tools/WinMon.NetworkProbe/README.md) a
 
 The script builds into `artifacts/verify/build` (or `build-store`), so it leaves your normal `bin` folders alone. Each smoke mode writes to its own folder under `artifacts/verify/<timestamp>/`. The script prints a pass or fail line per step, shows the start of `failure.txt` for any failed mode, and exits non-zero if anything failed. Open the PNGs it lists to check the renders; a passing exit code checks behaviour, not appearance. `-SkipTests` goes straight to the smoke modes after building.
 
+### Diagnostic log collection
+
+For a focused logger comparison, `--live-only` runs the existing live-frame workload (400 warm-up frames and seven batches of 60) and writes its JSON/PNG without the unrelated UI/history scenarios. Alternate four runs each with and without `--without-logging`. The benchmark uses a `Logs` directory beside its JSON output, fails if the writer cannot be created, and records `LoggingEnabled` for checking the comparison.
+
+Elevated app/helper launches use administrator/System-protected `%PROGRAMDATA%\WinMon\Logs\Elevated\<SID>` logs instead of ordinary user-writable folders. The same 10 MiB active app-set budget applies. The benchmark initializes app logging by default; pass `--without-logging` after its output and screenshot paths to isolate the logger's UI cost without changing other code.
+
+`MonCore.Windows/Diagnostics/DiagnosticLog` installs a bounded rolling `TraceListener` in each app/service process. App startup attaches it before preferences are read; the service attaches before its SCM startup callback. Network setup provisions protected ProgramData folders and per-account permissions. The app falls back to LocalAppData if its ProgramData folder is unavailable, including Store/portable launches. See [the logging design](design/DIAGNOSTIC-LOGGING.md) for paths, limits, permissions and failure behavior.
+
+Use constant, code-owned Trace templates. String values and exception messages are omitted; pass exception objects to preserve types, HRESULT/native codes and method stacks. Never interpolate process names, paths, account names, endpoints or secrets into the template itself. Repeated warning/error templates are summarized once per minute. A 512-entry queue, five 2 MiB files per set and bounded shutdown keep logging off the sampling/rendering disk path. `DiagnosticLogTests`, `LogDirectoriesTests` and the Info tests cover the writer, fallback, permissions and action layout; the `feature` smoke renders Info/About.
+
 ### Smoke modes
 
 The shipped executable checks itself against live samples. Each mode opens an isolated window that bypasses the user's preferences, startup registration and single-instance lock, writes its evidence to the output directory, and exits 0 on success. On failure it exits 1 and writes the exception to `failure.txt`. Because `WinMon.exe` is a WinExe, PowerShell returns before it exits; wait for it to get the exit code:

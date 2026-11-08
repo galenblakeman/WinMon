@@ -190,6 +190,7 @@ public partial class MainWindow
             SystemEvents.DisplaySettingsChanged += OnDisplaySettingsChanged;
             InitializeWindowPosition();
             SamplingTask = Session.Run(Lifetime.Token);
+            Trace.TraceInformation("Startup.SamplingStarted");
             InitializeUpdates();
             InitializeNetworkMonitoring();
         }
@@ -229,6 +230,7 @@ public partial class MainWindow
         if (!_diagnosticMode && !_updateReadySignaled && Session.IsHealthy)
         {
             _updateReadySignaled = true;
+            Trace.TraceInformation("Startup.FirstHealthySample");
             UpdateRuntime.SignalReady();
             ShowCompletedUpdateNotice();
         }

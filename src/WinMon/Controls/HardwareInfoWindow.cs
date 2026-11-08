@@ -6,6 +6,7 @@ using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using WinMon.Monitoring;
+using WinMon.Diagnostics;
 
 namespace WinMon.Controls;
 
@@ -88,6 +89,20 @@ internal sealed partial class HardwareInfoWindow : Window
     }
 
     private void OnClose(object sender, RoutedEventArgs e) => Close();
+    private void OnOpenLogs(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var folder = DiagnosticLog.AppFolder;
+            if (folder is null) throw new InvalidOperationException("Logging is unavailable.");
+            Process.Start(new ProcessStartInfo(folder) { UseShellExecute = true });
+        }
+        catch (Exception ex) when (ex is Win32Exception or InvalidOperationException or IOException or UnauthorizedAccessException)
+        {
+            Trace.TraceWarning("Logging.OpenFolderFailed: {0}", ex);
+            MessageDialog.ShowNotice(this, Strings.OpenLogsFolderFailed, Strings.OpenLogsFolder);
+        }
+    }
     private async void OnRefresh(object sender, RoutedEventArgs e) => await RefreshAsync();
     private void OnCopy(object sender, RoutedEventArgs e) => CopyInformation();
 

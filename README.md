@@ -245,6 +245,8 @@ The published app is at `src/WinMon/bin/Release/net10.0-windows/win-x64/publish/
 
 ## A few useful details
 
+- Diagnostic logging is always on. App logs use `%PROGRAMDATA%\WinMon\Logs\App\<Windows SID>` when provisioned, with `%LOCALAPPDATA%\WinMon\Logs` as a fallback; service logs use `%PROGRAMDATA%\WinMon\Logs\Service`. Each active app set and the shared service set retain up to 10 MiB each. Open the current app folder from **Info → About → Open logs folder**. Logs record errors, startup and connectivity changes without monitored process names or network endpoints, and are never uploaded automatically.
+
 - Disk percentages show **active time**, rather than storage space used. Network throughput measures activity on the selected Ethernet/Wi-Fi adapter.
 - GPU utilization reflects the busiest engine. Live GPU temperature and VRAM usage are outside this view.
 - Unavailable readings appear as a dash and leave gaps in the chart. Very short-lived processes can exit between samples; process totals may not account for all system activity.

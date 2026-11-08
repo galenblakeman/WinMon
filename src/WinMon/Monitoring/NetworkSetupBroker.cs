@@ -39,6 +39,7 @@ internal sealed class NetworkSetupBroker
     {
         if (!IsAvailable) throw new InvalidOperationException("Signed network setup is unavailable.");
         if (operation is not ("install" or "remove")) throw new ArgumentException("Invalid setup operation.", nameof(operation));
+        Trace.TraceInformation("Network.SetupStart operation=" + operation);
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(token);
         timeout.CancelAfter(TimeSpan.FromSeconds(90));
         var root = Path.Combine(Path.GetTempPath(), "WinMon.NetworkSetup." + Guid.NewGuid().ToString("N"));
@@ -89,6 +90,19 @@ internal sealed class NetworkSetupBroker
             await ExpectAsync(pipe, "complete", timeout.Token).ConfigureAwait(false);
             await process.WaitForExitAsync(timeout.Token).ConfigureAwait(false);
             if (process.ExitCode != 0) throw new InvalidOperationException("Network setup failed.");
+            Trace.TraceInformation("Network.SetupComplete operation=" + operation);
+            if (operation == "install")
+            {
+                try
+                {
+                    Diagnostics.LogDirectories.ValidateAppPath();
+                    Diagnostics.LogDirectories.ValidateServicePath();
+                }
+                catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or System.Security.SecurityException)
+                {
+                    Trace.TraceWarning("Logging.SharedProvisionUnavailable: {0}", exception);
+                }
+            }
         }
         catch
         {
@@ -116,7 +130,11 @@ internal sealed class NetworkSetupBroker
         var reply = await NetworkSetupWire.ReadAsync(pipe, NetworkSetupWireJsonContext.Default.NetworkSetupReply, token).ConfigureAwait(false);
         if (reply.Version != NetworkSetupWire.Version) throw new InvalidDataException("Unexpected network setup response.");
         if (reply.Phase == "failed" && IsFailurePhase(reply.FailurePhase) && reply.ErrorCode != 0)
+        {
+            // Only these protocol-defined phases may enter the log template.
+            System.Diagnostics.Trace.TraceError("Network.SetupFailed phase=" + reply.FailurePhase + " code={0}", reply.ErrorCode);
             throw new NetworkSetupFailedException(reply.FailurePhase!, reply.ErrorCode);
+        }
         if (reply.Phase != phase || reply.FailurePhase is not null || reply.ErrorCode != 0) throw new InvalidDataException("Unexpected network setup response.");
     }
 

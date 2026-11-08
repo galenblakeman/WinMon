@@ -94,8 +94,15 @@ internal sealed class NetworkCollectorManager : IAsyncDisposable
     {
         var candidate = _create();
         try { await candidate.StartAsync(token).ConfigureAwait(false); }
-        catch { await candidate.DisposeAsync().ConfigureAwait(false); throw; }
+        catch (Exception exception)
+        {
+            if (exception is not OperationCanceledException || !token.IsCancellationRequested)
+                Trace.TraceError("Network.CollectorStartFailed: {0}", exception);
+            await candidate.DisposeAsync().ConfigureAwait(false);
+            throw;
+        }
         _collector = candidate;
+        Trace.TraceInformation("Network.CollectorStarted");
     }
 
     private async ValueTask ReleaseAsync()
@@ -133,7 +140,7 @@ internal sealed class NetworkCollectorManager : IAsyncDisposable
         catch (Exception ex)
         {
             // A failed stop must be visible without logging traffic or process metadata.
-            Trace.TraceError("Network collector idle shutdown failed: {0}", ex.GetType().Name);
+            Trace.TraceError("Network collector idle shutdown failed: {0}", ex);
         }
     }
 

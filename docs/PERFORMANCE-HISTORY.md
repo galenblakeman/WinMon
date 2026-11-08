@@ -2,6 +2,21 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## 2026-11-08 — Diagnostic file logging
+
+Four alternating logging-disabled/enabled pairs used the existing 850-process live-frame workload, 400 warm-up frames and seven batches of 60 on .NET 10.0.14 with `DOTNET_TieredCompilation=0`. Both modes use the same assembly, preserving the existing working-tree changes and isolating the background log writer; benchmark logs are under the result directory rather than the running app's log folder. Raw JSON/PNGs and runner: `artifacts/logging-performance/{without,with}-{1..4}.{json,png}` and `Measure.ps1`; summary: `comparison.json`. An initial full pre-logging worktree result remains at `artifacts/logging-baseline.json` but is not mixed into this controlled comparison.
+
+| Pair | Logging off ms/frame | Logging on ms/frame | Difference ms/frame |
+| --- | ---: | ---: | ---: |
+| 1 | 5.152 | 5.325 | +0.173 |
+| 2 | 5.099 | 4.950 | -0.149 |
+| 3 | 5.276 | 6.329 | +1.053 |
+| 4 | 8.662 | 7.502 | -1.160 |
+
+Every run allocated **608,512 B/frame** and produced the same live pixel hash, `6D33EC906EEFFC4EE706362BFFD37F25A3641BDFDA47B2C1F4EB71A903F3DC87`. The median paired difference was +0.012 ms/frame. Aggregate mode medians were 5.214 ms off and 5.827 ms on (+11.8%), but run-to-run ranges were 5.099–8.662 ms off and 4.950–7.502 ms on, with two pairs faster and two slower. Timing is **inconclusive**, not proof of a regression or of zero overhead; repeat on a quiet machine for a release timing gate. This measures healthy UI-thread work with an active writer, not native service collection, a sustained error storm, disk-full hardware behavior or whole-process CPU/memory. Queue/rotation bounds and failure recovery have focused NUnit coverage. A preliminary comparison using the app's normal log directory was discarded after a live app launch prevented the fourth writer from opening; the isolated run verifies `LoggingEnabled` in every report.
+
+Dated measurement and validation records, newest first. Each section describes the build and machine it was measured on, and some name code that has since changed or moved. For how to measure today and the decisions still in force, see [Performance](DEVELOPMENT.md#performance) in the developer guide. The raw data named under `artifacts/` is local and not in the repository.
+
 Dated measurement and validation records, newest first. Each section describes the build and machine it was measured on, and some name code that has since changed or moved. For how to measure today and the decisions still in force, see [Performance](DEVELOPMENT.md#performance) in the developer guide. The raw data named under `artifacts/` is local and not in the repository.
 
 ## Connections single-row toolbar (November 7, 2026)
