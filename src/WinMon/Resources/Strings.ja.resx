@@ -1812,39 +1812,41 @@ Windows の正常性状態: {2}</value>
     <value>グラフの設定をリセット</value>
   </data>
   <data name="GuideChartsTitle" xml:space="preserve"><value>グラフと履歴</value></data>
-  <data name="GuideChartsBody" xml:space="preserve"><value>リソースの変化を時系列で比較します。
-1. フォーカスや論理プロセッサを含むグラフの種類と期間を選びます。
-2. グラフの時点を選んで確認し、ライブで戻ります。記録は続きます。</value></data>
+  <data name="GuideChartsIntro" xml:space="preserve"><value>リソースの変化を時系列で比較します。</value></data>
+  <data name="GuideChartsStep1" xml:space="preserve"><value>フォーカスや論理プロセッサを含むグラフの種類と期間を選びます。</value></data>
+  <data name="GuideChartsStep2" xml:space="preserve"><value>グラフの時点を選んで確認し、ライブで戻ります。記録は続きます。</value></data>
   <data name="GuideProcessesTitle" xml:space="preserve"><value>プロセスとピン留め</value></data>
-  <data name="GuideProcessesBody" xml:space="preserve"><value>負荷の高いアプリを探し、重要なプロセスを表示し続けます。
-1. リソースで並べ替え、名前や PID で検索するか、集約を選びます。
-2. 行をピン留めするか、固定のみを使います。検索とアプリのみも適用されます。行を選ぶとプロセス操作が表示されます。</value></data>
+  <data name="GuideProcessesIntro" xml:space="preserve"><value>負荷の高いアプリを探し、重要なプロセスを表示し続けます。</value></data>
+  <data name="GuideProcessesStep1" xml:space="preserve"><value>リソースで並べ替え、名前や PID で検索するか、集約を選びます。</value></data>
+  <data name="GuideProcessesStep2" xml:space="preserve"><value>行をピン留めするか、固定のみを使います。検索とアプリのみも適用されます。行を選ぶとプロセス操作が表示されます。</value></data>
   <data name="GuideServicesTitle" xml:space="preserve"><value>サービス</value></data>
-  <data name="GuideServicesBody" xml:space="preserve"><value>Windows サービスとワーカープロセスを確認します。
-1. サービスを開き、状態で絞り込み、サービスを展開してプロセスを確認します。
-2. ワーカーを有効にしてリソースを含めます。サービスを選んでプロパティやライブ操作を使います。共有ホストではサービス別の使用量は表示されません。</value></data>
+  <data name="GuideServicesIntro" xml:space="preserve"><value>Windows サービスとワーカープロセスを確認します。</value></data>
+  <data name="GuideServicesStep1" xml:space="preserve"><value>サービスを開き、状態で絞り込み、サービスを展開してプロセスを確認します。</value></data>
+  <data name="GuideServicesStep2" xml:space="preserve"><value>ワーカーを有効にしてリソースを含めます。サービスを選んでプロパティやライブ操作を使います。共有ホストではサービス別の使用量は表示されません。</value></data>
   <data name="GuideUsageTitle" xml:space="preserve"><value>使用状況</value></data>
-  <data name="GuideUsageBody" xml:space="preserve"><value>終了したアプリも含め、リソースの累積使用量を確認します。
-1. 使用状況を開き、CPU 時間、I/O、GPU 時間でアプリを並べ替えます。
-2. リセットで集計をやり直します。起動またはリセット以降の合計であり、現在の速度ではありません。</value></data>
+  <data name="GuideUsageIntro" xml:space="preserve"><value>終了したアプリも含め、リソースの累積使用量を確認します。</value></data>
+  <data name="GuideUsageStep1" xml:space="preserve"><value>使用状況を開き、CPU 時間、I/O、GPU 時間でアプリを並べ替えます。</value></data>
+  <data name="GuideUsageStep2" xml:space="preserve"><value>リセットで集計をやり直します。起動またはリセット以降の合計であり、現在の速度ではありません。</value></data>
   <data name="GuideConnectionsTitle" xml:space="preserve"><value>接続</value></data>
-  <data name="GuideConnectionsBody" xml:space="preserve"><value>TCP 接続や UDP エンドポイントを持つアプリを確認します。
-1. 接続を開き、アプリやエンドポイントを検索し、プロパティで詳細を確認します。
-2. 追跡するアプリをピン留めします。通信速度にはオプションのネットワーク監視が必要です。Store 版では利用できませんが、エンドポイント一覧は監視なしで使えます。</value></data>
+  <data name="GuideConnectionsIntro" xml:space="preserve"><value>TCP 接続や UDP エンドポイントを持つアプリを確認します。</value></data>
+  <data name="GuideConnectionsStep1" xml:space="preserve"><value>接続を開き、アプリやエンドポイントを検索し、プロパティで詳細を確認します。</value></data>
+  <data name="GuideConnectionsStep2" xml:space="preserve"><value>追跡するアプリをピン留めします。通信速度にはオプションのネットワーク監視が必要です。Store 版では利用できませんが、エンドポイント一覧は監視なしで使えます。</value></data>
   <data name="GuideExportTitle" xml:space="preserve"><value>キャプチャとエクスポート</value></data>
-  <data name="GuideExportBody" xml:space="preserve"><value>記録した時点をコピーしたり、測定値を保存したりします。
-1. キャプチャでキャプチャをコピーを選ぶと、選択した時点と表示中のプロセス行をコピーできます。
-2. 全体表示でエクスポートを選ぶと CSV を保存できます。使用状況は起動またはリセット以降の合計、その他は保持された履歴が対象です。</value></data>
+  <data name="GuideExportIntro" xml:space="preserve"><value>記録した時点をコピーしたり、測定値を保存したりします。</value></data>
+  <data name="GuideExportStep1" xml:space="preserve"><value>キャプチャでキャプチャをコピーを選ぶと、選択した時点と表示中のプロセス行をコピーできます。</value></data>
+  <data name="GuideExportStep2" xml:space="preserve"><value>全体表示でエクスポートを選ぶと CSV を保存できます。使用状況は起動またはリセット以降の合計、その他は保持された履歴が対象です。</value></data>
   <data name="GuideAutomaticTitle" xml:space="preserve"><value>自動キャプチャ</value></data>
-  <data name="GuideAutomaticBody" xml:space="preserve"><value>離席中のスパイクレポートを保存します。
-1. 設定 → 自動キャプチャでルールを有効にし、しきい値と継続時間を設定して保存します。
-2. グラフのツールバーの自動からキャプチャを確認します。条件を満たすとローカルにテキストレポートを保存し、クールダウンで連続キャプチャを防ぎます。</value></data>
+  <data name="GuideAutomaticIntro" xml:space="preserve"><value>離席中のスパイクレポートを保存します。</value></data>
+  <data name="GuideAutomaticStep1" xml:space="preserve"><value>設定 → 自動キャプチャでルールを有効にし、しきい値と継続時間を設定して保存します。</value></data>
+  <data name="GuideAutomaticStep2" xml:space="preserve"><value>グラフのツールバーの自動からキャプチャを確認します。条件を満たすとローカルにテキストレポートを保存し、クールダウンで連続キャプチャを防ぎます。</value></data>
   <data name="GuideCompactTitle" xml:space="preserve"><value>コンパクト表示とショートカット</value></data>
-  <data name="GuideCompactBody" xml:space="preserve"><value>監視画面をすぐ使える状態にします。
-1. タイトルバーでコンパクト表示を選ぶとゲージを表示し、全体表示でダッシュボードに戻ります。
-2. 常に最前面を使うか、設定 → 全般で表示・非表示のショートカットと起動時の表示を設定します。</value></data>
+  <data name="GuideCompactIntro" xml:space="preserve"><value>監視画面をすぐ使える状態にします。</value></data>
+  <data name="GuideCompactStep1" xml:space="preserve"><value>タイトルバーでコンパクト表示を選ぶとゲージを表示し、全体表示でダッシュボードに戻ります。</value></data>
+  <data name="GuideCompactStep2" xml:space="preserve"><value>常に最前面を使うか、設定 → 全般で表示・非表示のショートカットと起動時の表示を設定します。</value></data>
   <data name="GuideWalkthroughTitle" xml:space="preserve"><value>試してみる：CPU スパイクの調査</value></data>
-  <data name="GuideWalkthroughBody" xml:space="preserve"><value>グラフのスパイクから原因のアプリをたどります。
-1. グラフのスパイクを選び、プロセスを開いて CPU 順に並べ替えます。
-2. 記録された行を確認し、キャプチャをコピーで情報を残します。ライブで戻ります。記録のない観測値は利用不可と表示されます。</value></data>
+  <data name="GuideWalkthroughIntro" xml:space="preserve"><value>グラフのスパイクから原因のアプリをたどります。</value></data>
+  <data name="GuideWalkthroughStep1" xml:space="preserve"><value>グラフのスパイクを選び、プロセスを開いて CPU 順に並べ替えます。</value></data>
+  <data name="GuideWalkthroughStep2" xml:space="preserve"><value>記録された行を確認し、キャプチャをコピーで情報を残します。ライブで戻ります。記録のない観測値は利用不可と表示されます。</value></data>
+  <data name="GuideShowMe" xml:space="preserve"><value>表示する</value></data>
+  <data name="GuideShowMeHelp" xml:space="preserve"><value>情報を閉じて、メイン ウィンドウでこの機能を示します。</value></data>
 </root>

@@ -1812,39 +1812,41 @@ GPU {11} · {12}
     <value>Сбросить настройки графиков</value>
   </data>
   <data name="GuideChartsTitle" xml:space="preserve"><value>Графики и история</value></data>
-  <data name="GuideChartsBody" xml:space="preserve"><value>Сравнивайте ресурсы во времени.
-1. Выберите тип графика и период, включая Фокус или Логические процессоры.
-2. Выберите момент на графике для просмотра; вернитесь кнопкой Онлайн. Запись продолжается.</value></data>
+  <data name="GuideChartsIntro" xml:space="preserve"><value>Сравнивайте ресурсы во времени.</value></data>
+  <data name="GuideChartsStep1" xml:space="preserve"><value>Выберите тип графика и период, включая Фокус или Логические процессоры.</value></data>
+  <data name="GuideChartsStep2" xml:space="preserve"><value>Выберите момент на графике для просмотра; вернитесь кнопкой Онлайн. Запись продолжается.</value></data>
   <data name="GuideProcessesTitle" xml:space="preserve"><value>Процессы и закрепление</value></data>
-  <data name="GuideProcessesBody" xml:space="preserve"><value>Находите активные приложения и держите важные процессы на виду.
-1. Сортируйте по ресурсу, ищите по имени или PID либо выберите Группы.
-2. Закрепите строку или включите Только закреплённые. Поиск и Только приложения действуют и здесь. Выберите строку для действий с процессом.</value></data>
+  <data name="GuideProcessesIntro" xml:space="preserve"><value>Находите активные приложения и держите важные процессы на виду.</value></data>
+  <data name="GuideProcessesStep1" xml:space="preserve"><value>Сортируйте по ресурсу, ищите по имени или PID либо выберите Группы.</value></data>
+  <data name="GuideProcessesStep2" xml:space="preserve"><value>Закрепите строку или включите Только закреплённые. Поиск и Только приложения действуют и здесь. Выберите строку для действий с процессом.</value></data>
   <data name="GuideServicesTitle" xml:space="preserve"><value>Службы</value></data>
-  <data name="GuideServicesBody" xml:space="preserve"><value>Изучайте службы Windows и их рабочие процессы.
-1. Откройте Службы, отфильтруйте по состоянию и разверните службу, чтобы увидеть процессы.
-2. Включите рабочие процессы для учёта их ресурсов. Выберите службу для свойств или управления в реальном времени; общие хосты не показывают расход отдельной службы.</value></data>
+  <data name="GuideServicesIntro" xml:space="preserve"><value>Изучайте службы Windows и их рабочие процессы.</value></data>
+  <data name="GuideServicesStep1" xml:space="preserve"><value>Откройте Службы, отфильтруйте по состоянию и разверните службу, чтобы увидеть процессы.</value></data>
+  <data name="GuideServicesStep2" xml:space="preserve"><value>Включите рабочие процессы для учёта их ресурсов. Выберите службу для свойств или управления в реальном времени; общие хосты не показывают расход отдельной службы.</value></data>
   <data name="GuideUsageTitle" xml:space="preserve"><value>Использование</value></data>
-  <data name="GuideUsageBody" xml:space="preserve"><value>Смотрите накопленный расход ресурсов приложений, включая завершённые.
-1. Откройте Использование и сортируйте приложения по времени ЦП, вводу-выводу или времени GPU.
-2. Нажмите Сбросить для нового отсчёта. Это суммы с запуска или сброса, а не текущие скорости.</value></data>
+  <data name="GuideUsageIntro" xml:space="preserve"><value>Смотрите накопленный расход ресурсов приложений, включая завершённые.</value></data>
+  <data name="GuideUsageStep1" xml:space="preserve"><value>Откройте Использование и сортируйте приложения по времени ЦП, вводу-выводу или времени GPU.</value></data>
+  <data name="GuideUsageStep2" xml:space="preserve"><value>Нажмите Сбросить для нового отсчёта. Это суммы с запуска или сброса, а не текущие скорости.</value></data>
   <data name="GuideConnectionsTitle" xml:space="preserve"><value>Подключения</value></data>
-  <data name="GuideConnectionsBody" xml:space="preserve"><value>Смотрите приложения с подключениями TCP и конечными точками UDP.
-1. Откройте Подключения, найдите приложение или конечную точку и выберите Свойства для подробностей.
-2. Закрепляйте нужные приложения. Скорости требуют дополнительного мониторинга сети, недоступного в сборках Store; списки конечных точек работают без него.</value></data>
+  <data name="GuideConnectionsIntro" xml:space="preserve"><value>Смотрите приложения с подключениями TCP и конечными точками UDP.</value></data>
+  <data name="GuideConnectionsStep1" xml:space="preserve"><value>Откройте Подключения, найдите приложение или конечную точку и выберите Свойства для подробностей.</value></data>
+  <data name="GuideConnectionsStep2" xml:space="preserve"><value>Закрепляйте нужные приложения. Скорости требуют дополнительного мониторинга сети, недоступного в сборках Store; списки конечных точек работают без него.</value></data>
   <data name="GuideExportTitle" xml:space="preserve"><value>Снимки и экспорт</value></data>
-  <data name="GuideExportBody" xml:space="preserve"><value>Копируйте записанный момент или сохраняйте измерения.
-1. В режиме Захват выберите Копировать захват для выбранного момента и отображаемых строк процессов.
-2. В полном виде выберите Экспорт для сохранения CSV. Использование охватывает суммы с запуска или сброса; другие экспорты используют сохранённую историю.</value></data>
+  <data name="GuideExportIntro" xml:space="preserve"><value>Копируйте записанный момент или сохраняйте измерения.</value></data>
+  <data name="GuideExportStep1" xml:space="preserve"><value>В режиме Захват выберите Копировать захват для выбранного момента и отображаемых строк процессов.</value></data>
+  <data name="GuideExportStep2" xml:space="preserve"><value>В полном виде выберите Экспорт для сохранения CSV. Использование охватывает суммы с запуска или сброса; другие экспорты используют сохранённую историю.</value></data>
   <data name="GuideAutomaticTitle" xml:space="preserve"><value>Автоматические захваты</value></data>
-  <data name="GuideAutomaticBody" xml:space="preserve"><value>Сохраняйте отчёты о пиках в ваше отсутствие.
-1. В Настройки → Автоматические захваты включите правила, задайте пороги и длительность, затем сохраните.
-2. Используйте Авто на панели графика для просмотра снимков. Сработавшие правила сохраняют локальные текстовые отчёты; пауза предотвращает повторные снимки.</value></data>
+  <data name="GuideAutomaticIntro" xml:space="preserve"><value>Сохраняйте отчёты о пиках в ваше отсутствие.</value></data>
+  <data name="GuideAutomaticStep1" xml:space="preserve"><value>В Настройки → Автоматические захваты включите правила, задайте пороги и длительность, затем сохраните.</value></data>
+  <data name="GuideAutomaticStep2" xml:space="preserve"><value>Используйте Авто на панели графика для просмотра снимков. Сработавшие правила сохраняют локальные текстовые отчёты; пауза предотвращает повторные снимки.</value></data>
   <data name="GuideCompactTitle" xml:space="preserve"><value>Компактный вид и сочетания клавиш</value></data>
-  <data name="GuideCompactBody" xml:space="preserve"><value>Держите мониторинг под рукой.
-1. Выберите Компактный вид в заголовке окна для индикаторов; Полный вид восстанавливает панель.
-2. Используйте Всегда поверх окон или настройте сочетание показа/скрытия и вид при запуске в Настройки → Общие.</value></data>
+  <data name="GuideCompactIntro" xml:space="preserve"><value>Держите мониторинг под рукой.</value></data>
+  <data name="GuideCompactStep1" xml:space="preserve"><value>Выберите Компактный вид в заголовке окна для индикаторов; Полный вид восстанавливает панель.</value></data>
+  <data name="GuideCompactStep2" xml:space="preserve"><value>Используйте Всегда поверх окон или настройте сочетание показа/скрытия и вид при запуске в Настройки → Общие.</value></data>
   <data name="GuideWalkthroughTitle" xml:space="preserve"><value>Попробуйте: исследуйте пик ЦП</value></data>
-  <data name="GuideWalkthroughBody" xml:space="preserve"><value>Проследите пик от графика до вызвавшего его приложения.
-1. Выберите пик на графике, откройте Процессы и сортируйте по ЦП.
-2. Изучите записанные строки и выберите Копировать захват для сохранения данных. Вернитесь в режим Онлайн; отсутствующие наблюдения недоступны.</value></data>
+  <data name="GuideWalkthroughIntro" xml:space="preserve"><value>Проследите пик от графика до вызвавшего его приложения.</value></data>
+  <data name="GuideWalkthroughStep1" xml:space="preserve"><value>Выберите пик на графике, откройте Процессы и сортируйте по ЦП.</value></data>
+  <data name="GuideWalkthroughStep2" xml:space="preserve"><value>Изучите записанные строки и выберите Копировать захват для сохранения данных. Вернитесь в режим Онлайн; отсутствующие наблюдения недоступны.</value></data>
+  <data name="GuideShowMe" xml:space="preserve"><value>Показать</value></data>
+  <data name="GuideShowMeHelp" xml:space="preserve"><value>Закрыть окно сведений и показать эту функцию в главном окне.</value></data>
 </root>

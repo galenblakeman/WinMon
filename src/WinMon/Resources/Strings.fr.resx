@@ -1812,39 +1812,41 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
     <value>Réinitialiser les préférences des graphiques</value>
   </data>
   <data name="GuideChartsTitle" xml:space="preserve"><value>Graphiques et historique</value></data>
-  <data name="GuideChartsBody" xml:space="preserve"><value>Comparez les ressources au fil du temps.
-1. Choisissez un type de graphique et une période, y compris Focus ou Processeurs logiques.
-2. Sélectionnez un instant du graphique pour l’examiner ; choisissez Direct pour revenir. L’enregistrement continue.</value></data>
+  <data name="GuideChartsIntro" xml:space="preserve"><value>Comparez les ressources au fil du temps.</value></data>
+  <data name="GuideChartsStep1" xml:space="preserve"><value>Choisissez un type de graphique et une période, y compris Focus ou Processeurs logiques.</value></data>
+  <data name="GuideChartsStep2" xml:space="preserve"><value>Sélectionnez un instant du graphique pour l’examiner ; choisissez Direct pour revenir. L’enregistrement continue.</value></data>
   <data name="GuideProcessesTitle" xml:space="preserve"><value>Processus et épingles</value></data>
-  <data name="GuideProcessesBody" xml:space="preserve"><value>Repérez les apps actives et gardez les processus importants visibles.
-1. Triez par ressource, recherchez par nom ou PID, ou choisissez Groupés.
-2. Épinglez une ligne ou utilisez Épinglés uniquement. La recherche et Applications seules restent actifs. Sélectionnez une ligne pour les actions du processus.</value></data>
+  <data name="GuideProcessesIntro" xml:space="preserve"><value>Repérez les apps actives et gardez les processus importants visibles.</value></data>
+  <data name="GuideProcessesStep1" xml:space="preserve"><value>Triez par ressource, recherchez par nom ou PID, ou choisissez Groupés.</value></data>
+  <data name="GuideProcessesStep2" xml:space="preserve"><value>Épinglez une ligne ou utilisez Épinglés uniquement. La recherche et Applications seules restent actifs. Sélectionnez une ligne pour les actions du processus.</value></data>
   <data name="GuideServicesTitle" xml:space="preserve"><value>Services</value></data>
-  <data name="GuideServicesBody" xml:space="preserve"><value>Examinez les services Windows et leurs processus de travail.
-1. Ouvrez Services, filtrez par état et développez un service pour voir ses processus.
-2. Utilisez Processus auxiliaires pour inclure leurs ressources. Sélectionnez un service pour Propriétés ou les commandes en direct ; les hôtes partagés ne détaillent pas l’usage par service.</value></data>
+  <data name="GuideServicesIntro" xml:space="preserve"><value>Examinez les services Windows et leurs processus de travail.</value></data>
+  <data name="GuideServicesStep1" xml:space="preserve"><value>Ouvrez Services, filtrez par état et développez un service pour voir ses processus.</value></data>
+  <data name="GuideServicesStep2" xml:space="preserve"><value>Utilisez Processus auxiliaires pour inclure leurs ressources. Sélectionnez un service pour Propriétés ou les commandes en direct ; les hôtes partagés ne détaillent pas l’usage par service.</value></data>
   <data name="GuideUsageTitle" xml:space="preserve"><value>Utilisation</value></data>
-  <data name="GuideUsageBody" xml:space="preserve"><value>Consultez les ressources cumulées des apps, même fermées.
-1. Ouvrez Utilisation et classez les apps par temps CPU, E/S ou temps GPU.
-2. Utilisez Réinitialiser pour repartir de zéro. Ces totaux couvrent la période depuis le démarrage ou la réinitialisation, pas les débits actuels.</value></data>
+  <data name="GuideUsageIntro" xml:space="preserve"><value>Consultez les ressources cumulées des apps, même fermées.</value></data>
+  <data name="GuideUsageStep1" xml:space="preserve"><value>Ouvrez Utilisation et classez les apps par temps CPU, E/S ou temps GPU.</value></data>
+  <data name="GuideUsageStep2" xml:space="preserve"><value>Utilisez Réinitialiser pour repartir de zéro. Ces totaux couvrent la période depuis le démarrage ou la réinitialisation, pas les débits actuels.</value></data>
   <data name="GuideConnectionsTitle" xml:space="preserve"><value>Connexions</value></data>
-  <data name="GuideConnectionsBody" xml:space="preserve"><value>Voyez les apps possédant des connexions TCP et des points de terminaison UDP.
-1. Ouvrez Connexions, recherchez une app ou un point de terminaison, puis sélectionnez Propriétés pour les détails.
-2. Épinglez les apps à suivre. Les débits nécessitent la surveillance réseau facultative, absente des versions Store ; les listes de points de terminaison fonctionnent sans elle.</value></data>
+  <data name="GuideConnectionsIntro" xml:space="preserve"><value>Voyez les apps possédant des connexions TCP et des points de terminaison UDP.</value></data>
+  <data name="GuideConnectionsStep1" xml:space="preserve"><value>Ouvrez Connexions, recherchez une app ou un point de terminaison, puis sélectionnez Propriétés pour les détails.</value></data>
+  <data name="GuideConnectionsStep2" xml:space="preserve"><value>Épinglez les apps à suivre. Les débits nécessitent la surveillance réseau facultative, absente des versions Store ; les listes de points de terminaison fonctionnent sans elle.</value></data>
   <data name="GuideExportTitle" xml:space="preserve"><value>Captures et exportation</value></data>
-  <data name="GuideExportBody" xml:space="preserve"><value>Copiez un instant enregistré ou sauvegardez des mesures.
-1. En mode Capture, choisissez Copier la capture pour l’instant sélectionné et les lignes de processus affichées.
-2. En Vue complète, choisissez Exporter pour enregistrer un CSV. Utilisation couvre les totaux depuis le démarrage ou la réinitialisation ; les autres exports utilisent l’historique conservé.</value></data>
+  <data name="GuideExportIntro" xml:space="preserve"><value>Copiez un instant enregistré ou sauvegardez des mesures.</value></data>
+  <data name="GuideExportStep1" xml:space="preserve"><value>En mode Capture, choisissez Copier la capture pour l’instant sélectionné et les lignes de processus affichées.</value></data>
+  <data name="GuideExportStep2" xml:space="preserve"><value>En Vue complète, choisissez Exporter pour enregistrer un CSV. Utilisation couvre les totaux depuis le démarrage ou la réinitialisation ; les autres exports utilisent l’historique conservé.</value></data>
   <data name="GuideAutomaticTitle" xml:space="preserve"><value>Captures automatiques</value></data>
-  <data name="GuideAutomaticBody" xml:space="preserve"><value>Enregistrez les pics pendant votre absence.
-1. Dans Paramètres → Captures automatiques, activez les règles, réglez les seuils et durées, puis enregistrez.
-2. Utilisez Auto dans la barre du graphique pour consulter les captures. Les règles déclenchées sauvegardent des rapports texte locaux ; le délai évite les captures répétées.</value></data>
+  <data name="GuideAutomaticIntro" xml:space="preserve"><value>Enregistrez les pics pendant votre absence.</value></data>
+  <data name="GuideAutomaticStep1" xml:space="preserve"><value>Dans Paramètres → Captures automatiques, activez les règles, réglez les seuils et durées, puis enregistrez.</value></data>
+  <data name="GuideAutomaticStep2" xml:space="preserve"><value>Utilisez Auto dans la barre du graphique pour consulter les captures. Les règles déclenchées sauvegardent des rapports texte locaux ; le délai évite les captures répétées.</value></data>
   <data name="GuideCompactTitle" xml:space="preserve"><value>Vue compacte et raccourcis</value></data>
-  <data name="GuideCompactBody" xml:space="preserve"><value>Gardez la surveillance à portée de main.
-1. Choisissez Vue compacte dans la barre de titre pour les jauges ; Vue complète rétablit le tableau de bord.
-2. Utilisez Toujours au premier plan ou configurez le raccourci afficher/masquer et la vue au démarrage dans Paramètres → Général.</value></data>
+  <data name="GuideCompactIntro" xml:space="preserve"><value>Gardez la surveillance à portée de main.</value></data>
+  <data name="GuideCompactStep1" xml:space="preserve"><value>Choisissez Vue compacte dans la barre de titre pour les jauges ; Vue complète rétablit le tableau de bord.</value></data>
+  <data name="GuideCompactStep2" xml:space="preserve"><value>Utilisez Toujours au premier plan ou configurez le raccourci afficher/masquer et la vue au démarrage dans Paramètres → Général.</value></data>
   <data name="GuideWalkthroughTitle" xml:space="preserve"><value>À essayer : examiner un pic CPU</value></data>
-  <data name="GuideWalkthroughBody" xml:space="preserve"><value>Remontez du pic dans le graphique à l’app concernée.
-1. Sélectionnez le pic dans le graphique, ouvrez Processus et triez par CPU.
-2. Examinez les lignes enregistrées et choisissez Copier la capture pour conserver les données. Direct permet de revenir ; les observations manquantes sont indisponibles.</value></data>
+  <data name="GuideWalkthroughIntro" xml:space="preserve"><value>Remontez du pic dans le graphique à l’app concernée.</value></data>
+  <data name="GuideWalkthroughStep1" xml:space="preserve"><value>Sélectionnez le pic dans le graphique, ouvrez Processus et triez par CPU.</value></data>
+  <data name="GuideWalkthroughStep2" xml:space="preserve"><value>Examinez les lignes enregistrées et choisissez Copier la capture pour conserver les données. Direct permet de revenir ; les observations manquantes sont indisponibles.</value></data>
+  <data name="GuideShowMe" xml:space="preserve"><value>Montrer</value></data>
+  <data name="GuideShowMeHelp" xml:space="preserve"><value>Fermer Infos et signaler cette fonction dans la fenêtre principale.</value></data>
 </root>

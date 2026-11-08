@@ -702,6 +702,10 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                     var topicIndex = 0;
                     var topics = info.GuideTopics.Children.OfType<Expander>().ToArray();
                     foreach (var topic in topics)
+                        if (((StackPanel)topic.Content).Children[^1] is not Button { Tag: string showMe } ||
+                            window.GuideTarget(showMe) is null)
+                            throw new InvalidOperationException($"Guide topic {topic.Header} has no Show me target.");
+                    foreach (var topic in topics)
                     {
                         foreach (var other in topics) other.IsExpanded = other == topic;
                         info.GuideScroll.ScrollToTop();

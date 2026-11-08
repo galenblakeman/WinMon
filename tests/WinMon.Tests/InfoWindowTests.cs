@@ -73,7 +73,18 @@ public sealed class InfoWindowTests
                 Strings.GuideAutomaticTitle, Strings.GuideCompactTitle, Strings.GuideWalkthroughTitle
             }));
             foreach (var topic in topics)
-                Assert.That(((TextBlock)topic.Content).Text, Does.Match(@"\A[^\r\n]+\r?\n1\. [^\r\n]+\r?\n2\. [^\r\n]+\z"));
+            {
+                var parts = ((StackPanel)topic.Content).Children;
+                Assert.That(((TextBlock)parts[0]).Text, Is.Not.Empty.And.Not.Contains("\n"));
+                var steps = parts.OfType<HeaderedContentControl>().ToArray();
+                Assert.That(steps.Select(s => s.Header), Is.EqualTo(new[] { "1", "2" }));
+                Assert.That(steps.Select(s => (string)s.Content), Has.All.Not.Empty.And.All.Not.Contains("\n"));
+                Assert.That(((Button)parts[^1]).Content, Is.EqualTo(Strings.GuideShowMe));
+            }
+
+            Assert.That(topics.Select(t => ((Button)((StackPanel)t.Content).Children[^1]).Tag), Is.EqualTo(new[]
+                { "Charts", "Processes", "Services", "Usage", "Connections", "Export", "Automatic", "Compact", "Walkthrough" }));
+            Assert.That(Descendants(topics[0]).Contains(window.ChartsDiagram), Is.True);
             Assert.That(topics.Count(t => t.IsExpanded), Is.EqualTo(1));
             Assert.That(window.VersionText.Text, Does.Contain(AppInfo.Version));
             Assert.That(Descendants((TabItem)window.Tabs.Items[2]).Contains(window.OpenLogsButton), Is.True);
@@ -86,6 +97,18 @@ public sealed class InfoWindowTests
         {
             window.Close();
         }
+    }
+
+    [Test]
+    public void ShowMe_ClosesWindowAndReportsTopic()
+    {
+        var window = new HardwareInfoWindow();
+        var closed = false;
+        window.Closed += (_, _) => closed = true;
+        var services = Descendants((TabItem)window.Tabs.Items[1]).OfType<Button>().Single(b => Equals(b.Tag, "Services"));
+        services.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+        Assert.That(closed, Is.True);
+        Assert.That(window.ShowMeTopic, Is.EqualTo("Services"));
     }
 
     [Test]

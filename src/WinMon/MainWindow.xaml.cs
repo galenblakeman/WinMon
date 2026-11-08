@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Shell;
 using System.Windows.Threading;
 using Microsoft.Win32;
@@ -619,6 +620,45 @@ public partial class MainWindow
         {
             UpdateCheckChanged -= RefreshInfoUpdate;
         }
+
+        if (dialog.ShowMeTopic is { } topic && !IsClosing) ShowGuideTarget(topic);
+    }
+
+    /// <summary>The control a Guide topic's Show me points out; topics match the Show me buttons' Tag.</summary>
+    internal FrameworkElement? GuideTarget(string topic) => topic switch
+    {
+        "Charts" => ChartTypeSelector,
+        "Processes" => ProcessesTab,
+        "Services" => ServicesTab,
+        "Usage" => UsageTab,
+        "Connections" => ConnectionsTab,
+        "Export" => SnapshotModeButton,
+        "Automatic" => CapturesButton,
+        "Compact" => CompactViewButton,
+        "Walkthrough" => ChartBody,
+        _ => null
+    };
+
+    internal void ShowGuideTarget(string topic)
+    {
+        if (GuideTarget(topic) is not { } target) return;
+        if (target != CompactViewButton) SetCompactView(false);
+        if (target is RadioButton { GroupName: "ActivityView" } tab)
+        {
+            SetActivityPanelCollapsed(false);
+            tab.IsChecked = true;
+        }
+        else if (target == ChartTypeSelector || target == ChartBody)
+        {
+            SetChartPanelCollapsed(false);
+        }
+
+        UpdateLayout();
+        target.BringIntoView();
+        target.Focus();
+        if (!SystemParameters.ClientAreaAnimation) return;
+        target.BeginAnimation(OpacityProperty, new DoubleAnimation(1, 0.25, TimeSpan.FromMilliseconds(250))
+            { AutoReverse = true, RepeatBehavior = new RepeatBehavior(3), FillBehavior = FillBehavior.Stop });
     }
 
 

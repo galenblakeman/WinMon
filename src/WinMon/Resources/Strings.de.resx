@@ -1812,39 +1812,41 @@ Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse
     <value>Diagrammeinstellungen zurücksetzen</value>
   </data>
   <data name="GuideChartsTitle" xml:space="preserve"><value>Diagramme und Verlauf</value></data>
-  <data name="GuideChartsBody" xml:space="preserve"><value>Vergleichen Sie Ressourcen im Zeitverlauf.
-1. Wählen Sie Diagrammtyp und Zeitraum, etwa Fokus oder Logische Prozessoren.
-2. Wählen Sie einen Zeitpunkt im Diagramm zum Prüfen; mit Live kehren Sie zurück. Die Aufzeichnung läuft weiter.</value></data>
+  <data name="GuideChartsIntro" xml:space="preserve"><value>Vergleichen Sie Ressourcen im Zeitverlauf.</value></data>
+  <data name="GuideChartsStep1" xml:space="preserve"><value>Wählen Sie Diagrammtyp und Zeitraum, etwa Fokus oder Logische Prozessoren.</value></data>
+  <data name="GuideChartsStep2" xml:space="preserve"><value>Wählen Sie einen Zeitpunkt im Diagramm zum Prüfen; mit Live kehren Sie zurück. Die Aufzeichnung läuft weiter.</value></data>
   <data name="GuideProcessesTitle" xml:space="preserve"><value>Prozesse und angeheftete Einträge</value></data>
-  <data name="GuideProcessesBody" xml:space="preserve"><value>Finden Sie aktive Apps und behalten Sie wichtige Prozesse im Blick.
-1. Sortieren Sie nach einer Ressource, suchen Sie nach Name oder PID oder wählen Sie Gruppiert.
-2. Heften Sie eine Zeile an oder nutzen Sie Nur angeheftete. Suche und Nur Apps gelten weiterhin. Wählen Sie eine Zeile für Prozessaktionen.</value></data>
+  <data name="GuideProcessesIntro" xml:space="preserve"><value>Finden Sie aktive Apps und behalten Sie wichtige Prozesse im Blick.</value></data>
+  <data name="GuideProcessesStep1" xml:space="preserve"><value>Sortieren Sie nach einer Ressource, suchen Sie nach Name oder PID oder wählen Sie Gruppiert.</value></data>
+  <data name="GuideProcessesStep2" xml:space="preserve"><value>Heften Sie eine Zeile an oder nutzen Sie Nur angeheftete. Suche und Nur Apps gelten weiterhin. Wählen Sie eine Zeile für Prozessaktionen.</value></data>
   <data name="GuideServicesTitle" xml:space="preserve"><value>Dienste</value></data>
-  <data name="GuideServicesBody" xml:space="preserve"><value>Prüfen Sie Windows-Dienste und ihre Worker.
-1. Öffnen Sie Dienste, filtern Sie nach Status und erweitern Sie einen Dienst, um seine Prozesse zu sehen.
-2. Beziehen Sie mit Worker deren Ressourcen ein. Wählen Sie einen Dienst für Eigenschaften oder Live-Steuerung; gemeinsame Hosts zeigen keinen Verbrauch je Dienst.</value></data>
+  <data name="GuideServicesIntro" xml:space="preserve"><value>Prüfen Sie Windows-Dienste und ihre Worker.</value></data>
+  <data name="GuideServicesStep1" xml:space="preserve"><value>Öffnen Sie Dienste, filtern Sie nach Status und erweitern Sie einen Dienst, um seine Prozesse zu sehen.</value></data>
+  <data name="GuideServicesStep2" xml:space="preserve"><value>Beziehen Sie mit Worker deren Ressourcen ein. Wählen Sie einen Dienst für Eigenschaften oder Live-Steuerung; gemeinsame Hosts zeigen keinen Verbrauch je Dienst.</value></data>
   <data name="GuideUsageTitle" xml:space="preserve"><value>Nutzung</value></data>
-  <data name="GuideUsageBody" xml:space="preserve"><value>Sehen Sie den gesamten Ressourcenverbrauch von Apps, auch beendeten.
-1. Öffnen Sie Nutzung und sortieren Sie Apps nach CPU-Zeit, E/A oder GPU-Zeit.
-2. Mit Zurücksetzen beginnen die Summen neu. Es sind Summen seit Start oder Zurücksetzen, keine aktuellen Raten.</value></data>
+  <data name="GuideUsageIntro" xml:space="preserve"><value>Sehen Sie den gesamten Ressourcenverbrauch von Apps, auch beendeten.</value></data>
+  <data name="GuideUsageStep1" xml:space="preserve"><value>Öffnen Sie Nutzung und sortieren Sie Apps nach CPU-Zeit, E/A oder GPU-Zeit.</value></data>
+  <data name="GuideUsageStep2" xml:space="preserve"><value>Mit Zurücksetzen beginnen die Summen neu. Es sind Summen seit Start oder Zurücksetzen, keine aktuellen Raten.</value></data>
   <data name="GuideConnectionsTitle" xml:space="preserve"><value>Verbindungen</value></data>
-  <data name="GuideConnectionsBody" xml:space="preserve"><value>Sehen Sie Apps mit TCP-Verbindungen und UDP-Endpunkten.
-1. Öffnen Sie Verbindungen, suchen Sie eine App oder einen Endpunkt und wählen Sie Eigenschaften für Endpunktdetails.
-2. Heften Sie Apps an. Datenraten erfordern die optionale Netzwerküberwachung, die in Store-Versionen fehlt; Endpunktlisten funktionieren ohne sie.</value></data>
+  <data name="GuideConnectionsIntro" xml:space="preserve"><value>Sehen Sie Apps mit TCP-Verbindungen und UDP-Endpunkten.</value></data>
+  <data name="GuideConnectionsStep1" xml:space="preserve"><value>Öffnen Sie Verbindungen, suchen Sie eine App oder einen Endpunkt und wählen Sie Eigenschaften für Endpunktdetails.</value></data>
+  <data name="GuideConnectionsStep2" xml:space="preserve"><value>Heften Sie Apps an. Datenraten erfordern die optionale Netzwerküberwachung, die in Store-Versionen fehlt; Endpunktlisten funktionieren ohne sie.</value></data>
   <data name="GuideExportTitle" xml:space="preserve"><value>Aufnahmen und Export</value></data>
-  <data name="GuideExportBody" xml:space="preserve"><value>Kopieren Sie einen aufgezeichneten Zeitpunkt oder speichern Sie Messwerte.
-1. Wählen Sie in Aufnahme die Aktion Aufnahme kopieren für den gewählten Zeitpunkt und die angezeigten Prozesszeilen.
-2. Wählen Sie in der Vollansicht Export für CSV. Nutzung umfasst Summen seit Start oder Zurücksetzen; andere Exporte verwenden gespeicherten Verlauf.</value></data>
+  <data name="GuideExportIntro" xml:space="preserve"><value>Kopieren Sie einen aufgezeichneten Zeitpunkt oder speichern Sie Messwerte.</value></data>
+  <data name="GuideExportStep1" xml:space="preserve"><value>Wählen Sie in Aufnahme die Aktion Aufnahme kopieren für den gewählten Zeitpunkt und die angezeigten Prozesszeilen.</value></data>
+  <data name="GuideExportStep2" xml:space="preserve"><value>Wählen Sie in der Vollansicht Export für CSV. Nutzung umfasst Summen seit Start oder Zurücksetzen; andere Exporte verwenden gespeicherten Verlauf.</value></data>
   <data name="GuideAutomaticTitle" xml:space="preserve"><value>Automatische Aufnahmen</value></data>
-  <data name="GuideAutomaticBody" xml:space="preserve"><value>Speichern Sie Spitzenberichte auch bei Abwesenheit.
-1. Aktivieren Sie unter Einstellungen → Automatische Aufnahmen Regeln, legen Sie Schwellenwerte und Dauer fest und speichern Sie.
-2. Prüfen Sie Aufnahmen über Auto in der Diagrammleiste. Passende Regeln speichern lokale Textberichte; die Abklingzeit verhindert wiederholte Aufnahmen.</value></data>
+  <data name="GuideAutomaticIntro" xml:space="preserve"><value>Speichern Sie Spitzenberichte auch bei Abwesenheit.</value></data>
+  <data name="GuideAutomaticStep1" xml:space="preserve"><value>Aktivieren Sie unter Einstellungen → Automatische Aufnahmen Regeln, legen Sie Schwellenwerte und Dauer fest und speichern Sie.</value></data>
+  <data name="GuideAutomaticStep2" xml:space="preserve"><value>Prüfen Sie Aufnahmen über Auto in der Diagrammleiste. Passende Regeln speichern lokale Textberichte; die Abklingzeit verhindert wiederholte Aufnahmen.</value></data>
   <data name="GuideCompactTitle" xml:space="preserve"><value>Kompaktansicht und Tastenkürzel</value></data>
-  <data name="GuideCompactBody" xml:space="preserve"><value>Halten Sie die Überwachung griffbereit.
-1. Wählen Sie Kompaktansicht in der Titelleiste für Anzeigen; Vollansicht stellt das Dashboard wieder her.
-2. Nutzen Sie Immer im Vordergrund oder legen Sie Tastenkürzel zum Ein-/Ausblenden und Startansicht unter Einstellungen → Allgemein fest.</value></data>
+  <data name="GuideCompactIntro" xml:space="preserve"><value>Halten Sie die Überwachung griffbereit.</value></data>
+  <data name="GuideCompactStep1" xml:space="preserve"><value>Wählen Sie Kompaktansicht in der Titelleiste für Anzeigen; Vollansicht stellt das Dashboard wieder her.</value></data>
+  <data name="GuideCompactStep2" xml:space="preserve"><value>Nutzen Sie Immer im Vordergrund oder legen Sie Tastenkürzel zum Ein-/Ausblenden und Startansicht unter Einstellungen → Allgemein fest.</value></data>
   <data name="GuideWalkthroughTitle" xml:space="preserve"><value>Ausprobieren: CPU-Spitze untersuchen</value></data>
-  <data name="GuideWalkthroughBody" xml:space="preserve"><value>Verfolgen Sie eine Spitze vom Diagramm bis zur verursachenden App.
-1. Wählen Sie die Spitze im Diagramm, öffnen Sie Prozesse und sortieren Sie nach CPU.
-2. Prüfen Sie die aufgezeichneten Zeilen und wählen Sie Aufnahme kopieren zur Sicherung. Live kehrt zurück; fehlende Beobachtungen sind nicht verfügbar.</value></data>
+  <data name="GuideWalkthroughIntro" xml:space="preserve"><value>Verfolgen Sie eine Spitze vom Diagramm bis zur verursachenden App.</value></data>
+  <data name="GuideWalkthroughStep1" xml:space="preserve"><value>Wählen Sie die Spitze im Diagramm, öffnen Sie Prozesse und sortieren Sie nach CPU.</value></data>
+  <data name="GuideWalkthroughStep2" xml:space="preserve"><value>Prüfen Sie die aufgezeichneten Zeilen und wählen Sie Aufnahme kopieren zur Sicherung. Live kehrt zurück; fehlende Beobachtungen sind nicht verfügbar.</value></data>
+  <data name="GuideShowMe" xml:space="preserve"><value>Zeigen</value></data>
+  <data name="GuideShowMeHelp" xml:space="preserve"><value>Info schließen und diese Funktion im Hauptfenster hervorheben.</value></data>
 </root>

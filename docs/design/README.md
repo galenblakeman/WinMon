@@ -11,6 +11,7 @@ This folder contains the current layout reference, feature design notes and edit
 ## Feature notes
 
 - [Feature-oriented Guide](FEATURE-GUIDE.md) organizes in-app help by feature with short instructions and a CPU-spike walkthrough.
+- [Guide visuals and Show me](GUIDE-VISUALS.md) adds step badges, button icons, a Charts diagram and links from each topic to its feature.
 
 - [Installer network monitoring](INSTALLER-NETWORK-MONITORING.md) adds optional signed service setup during desktop installation.
 

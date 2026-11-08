@@ -1812,39 +1812,41 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
     <value>Resetuj preferencje wykresów</value>
   </data>
   <data name="GuideChartsTitle" xml:space="preserve"><value>Wykresy i historia</value></data>
-  <data name="GuideChartsBody" xml:space="preserve"><value>Porównuj zasoby w czasie.
-1. Wybierz typ wykresu i zakres czasu, w tym Fokus lub Procesory logiczne.
-2. Wybierz chwilę na wykresie, aby ją sprawdzić; wybierz Na żywo, aby wrócić. Rejestrowanie trwa dalej.</value></data>
+  <data name="GuideChartsIntro" xml:space="preserve"><value>Porównuj zasoby w czasie.</value></data>
+  <data name="GuideChartsStep1" xml:space="preserve"><value>Wybierz typ wykresu i zakres czasu, w tym Fokus lub Procesory logiczne.</value></data>
+  <data name="GuideChartsStep2" xml:space="preserve"><value>Wybierz chwilę na wykresie, aby ją sprawdzić; wybierz Na żywo, aby wrócić. Rejestrowanie trwa dalej.</value></data>
   <data name="GuideProcessesTitle" xml:space="preserve"><value>Procesy i przypięcia</value></data>
-  <data name="GuideProcessesBody" xml:space="preserve"><value>Znajdź obciążające aplikacje i zachowaj ważne procesy na widoku.
-1. Sortuj według zasobu, szukaj po nazwie lub PID albo wybierz Grupowane.
-2. Przypnij wiersz lub użyj Tylko przypięte. Wyszukiwanie i Tylko aplikacje nadal obowiązują. Wybierz wiersz, aby zobaczyć działania procesu.</value></data>
+  <data name="GuideProcessesIntro" xml:space="preserve"><value>Znajdź obciążające aplikacje i zachowaj ważne procesy na widoku.</value></data>
+  <data name="GuideProcessesStep1" xml:space="preserve"><value>Sortuj według zasobu, szukaj po nazwie lub PID albo wybierz Grupowane.</value></data>
+  <data name="GuideProcessesStep2" xml:space="preserve"><value>Przypnij wiersz lub użyj Tylko przypięte. Wyszukiwanie i Tylko aplikacje nadal obowiązują. Wybierz wiersz, aby zobaczyć działania procesu.</value></data>
   <data name="GuideServicesTitle" xml:space="preserve"><value>Usługi</value></data>
-  <data name="GuideServicesBody" xml:space="preserve"><value>Sprawdzaj usługi Windows i ich procesy robocze.
-1. Otwórz Usługi, filtruj według stanu i rozwiń usługę, aby zobaczyć jej procesy.
-2. Uwzględnij zasoby procesów roboczych odpowiednią opcją. Wybierz usługę, aby otworzyć Właściwości lub sterowanie na żywo; wspólne hosty nie pokazują zużycia poszczególnych usług.</value></data>
+  <data name="GuideServicesIntro" xml:space="preserve"><value>Sprawdzaj usługi Windows i ich procesy robocze.</value></data>
+  <data name="GuideServicesStep1" xml:space="preserve"><value>Otwórz Usługi, filtruj według stanu i rozwiń usługę, aby zobaczyć jej procesy.</value></data>
+  <data name="GuideServicesStep2" xml:space="preserve"><value>Uwzględnij zasoby procesów roboczych odpowiednią opcją. Wybierz usługę, aby otworzyć Właściwości lub sterowanie na żywo; wspólne hosty nie pokazują zużycia poszczególnych usług.</value></data>
   <data name="GuideUsageTitle" xml:space="preserve"><value>Użycie</value></data>
-  <data name="GuideUsageBody" xml:space="preserve"><value>Sprawdzaj łączne zużycie zasobów aplikacji, także zakończonych.
-1. Otwórz Użycie i sortuj aplikacje według czasu CPU, we/wy lub czasu GPU.
-2. Użyj Resetuj, aby rozpocząć liczenie od nowa. To sumy od uruchomienia lub resetu, a nie bieżące szybkości.</value></data>
+  <data name="GuideUsageIntro" xml:space="preserve"><value>Sprawdzaj łączne zużycie zasobów aplikacji, także zakończonych.</value></data>
+  <data name="GuideUsageStep1" xml:space="preserve"><value>Otwórz Użycie i sortuj aplikacje według czasu CPU, we/wy lub czasu GPU.</value></data>
+  <data name="GuideUsageStep2" xml:space="preserve"><value>Użyj Resetuj, aby rozpocząć liczenie od nowa. To sumy od uruchomienia lub resetu, a nie bieżące szybkości.</value></data>
   <data name="GuideConnectionsTitle" xml:space="preserve"><value>Połączenia</value></data>
-  <data name="GuideConnectionsBody" xml:space="preserve"><value>Zobacz aplikacje z połączeniami TCP i punktami końcowymi UDP.
-1. Otwórz Połączenia, wyszukaj aplikację lub punkt końcowy i wybierz Właściwości, aby sprawdzić szczegóły.
-2. Przypnij obserwowane aplikacje. Szybkości wymagają opcjonalnego monitorowania sieci, niedostępnego w wersjach Store; listy punktów końcowych działają bez niego.</value></data>
+  <data name="GuideConnectionsIntro" xml:space="preserve"><value>Zobacz aplikacje z połączeniami TCP i punktami końcowymi UDP.</value></data>
+  <data name="GuideConnectionsStep1" xml:space="preserve"><value>Otwórz Połączenia, wyszukaj aplikację lub punkt końcowy i wybierz Właściwości, aby sprawdzić szczegóły.</value></data>
+  <data name="GuideConnectionsStep2" xml:space="preserve"><value>Przypnij obserwowane aplikacje. Szybkości wymagają opcjonalnego monitorowania sieci, niedostępnego w wersjach Store; listy punktów końcowych działają bez niego.</value></data>
   <data name="GuideExportTitle" xml:space="preserve"><value>Przechwytywanie i eksport</value></data>
-  <data name="GuideExportBody" xml:space="preserve"><value>Kopiuj zarejestrowaną chwilę lub zapisuj pomiary.
-1. W trybie Przechwytywanie wybierz Kopiuj przechwycenie dla wybranej chwili i widocznych wierszy procesów.
-2. W pełnym widoku wybierz Eksport, aby zapisać CSV. Użycie obejmuje sumy od startu lub resetu; inne eksporty korzystają z zachowanej historii.</value></data>
+  <data name="GuideExportIntro" xml:space="preserve"><value>Kopiuj zarejestrowaną chwilę lub zapisuj pomiary.</value></data>
+  <data name="GuideExportStep1" xml:space="preserve"><value>W trybie Przechwytywanie wybierz Kopiuj przechwycenie dla wybranej chwili i widocznych wierszy procesów.</value></data>
+  <data name="GuideExportStep2" xml:space="preserve"><value>W pełnym widoku wybierz Eksport, aby zapisać CSV. Użycie obejmuje sumy od startu lub resetu; inne eksporty korzystają z zachowanej historii.</value></data>
   <data name="GuideAutomaticTitle" xml:space="preserve"><value>Automatyczne przechwytywanie</value></data>
-  <data name="GuideAutomaticBody" xml:space="preserve"><value>Zapisuj raporty skoków podczas nieobecności.
-1. W Ustawienia → Automatyczne przechwytywanie włącz reguły, ustaw progi i czasy, a następnie zapisz.
-2. Użyj Auto na pasku wykresu, aby przeglądać przechwycenia. Spełnione reguły zapisują lokalne raporty tekstowe; czas oczekiwania zapobiega powtórzeniom.</value></data>
+  <data name="GuideAutomaticIntro" xml:space="preserve"><value>Zapisuj raporty skoków podczas nieobecności.</value></data>
+  <data name="GuideAutomaticStep1" xml:space="preserve"><value>W Ustawienia → Automatyczne przechwytywanie włącz reguły, ustaw progi i czasy, a następnie zapisz.</value></data>
+  <data name="GuideAutomaticStep2" xml:space="preserve"><value>Użyj Auto na pasku wykresu, aby przeglądać przechwycenia. Spełnione reguły zapisują lokalne raporty tekstowe; czas oczekiwania zapobiega powtórzeniom.</value></data>
   <data name="GuideCompactTitle" xml:space="preserve"><value>Widok kompaktowy i skróty</value></data>
-  <data name="GuideCompactBody" xml:space="preserve"><value>Miej monitorowanie pod ręką.
-1. Wybierz Widok kompaktowy na pasku tytułu dla wskaźników; Pełny widok przywraca pulpit.
-2. Użyj Zawsze na wierzchu lub ustaw skrót pokaż/ukryj i widok początkowy w Ustawienia → Ogólne.</value></data>
+  <data name="GuideCompactIntro" xml:space="preserve"><value>Miej monitorowanie pod ręką.</value></data>
+  <data name="GuideCompactStep1" xml:space="preserve"><value>Wybierz Widok kompaktowy na pasku tytułu dla wskaźników; Pełny widok przywraca pulpit.</value></data>
+  <data name="GuideCompactStep2" xml:space="preserve"><value>Użyj Zawsze na wierzchu lub ustaw skrót pokaż/ukryj i widok początkowy w Ustawienia → Ogólne.</value></data>
   <data name="GuideWalkthroughTitle" xml:space="preserve"><value>Wypróbuj: zbadaj skok CPU</value></data>
-  <data name="GuideWalkthroughBody" xml:space="preserve"><value>Prześledź skok od wykresu do odpowiedzialnej aplikacji.
-1. Wybierz skok na wykresie, otwórz Procesy i sortuj według CPU.
-2. Sprawdź zarejestrowane wiersze i wybierz Kopiuj przechwycenie, aby zachować dane. Wróć przez Na żywo; brakujące obserwacje są niedostępne.</value></data>
+  <data name="GuideWalkthroughIntro" xml:space="preserve"><value>Prześledź skok od wykresu do odpowiedzialnej aplikacji.</value></data>
+  <data name="GuideWalkthroughStep1" xml:space="preserve"><value>Wybierz skok na wykresie, otwórz Procesy i sortuj według CPU.</value></data>
+  <data name="GuideWalkthroughStep2" xml:space="preserve"><value>Sprawdź zarejestrowane wiersze i wybierz Kopiuj przechwycenie, aby zachować dane. Wróć przez Na żywo; brakujące obserwacje są niedostępne.</value></data>
+  <data name="GuideShowMe" xml:space="preserve"><value>Pokaż</value></data>
+  <data name="GuideShowMeHelp" xml:space="preserve"><value>Zamknij Informacje i wskaż tę funkcję w oknie głównym.</value></data>
 </root>

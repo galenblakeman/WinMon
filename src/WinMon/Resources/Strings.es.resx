@@ -1812,39 +1812,41 @@ Se puede perder el trabajo sin guardar. Se finalizarán todos los procesos indic
     <value>Restablecer preferencias de gráficos</value>
   </data>
   <data name="GuideChartsTitle" xml:space="preserve"><value>Gráficos e historial</value></data>
-  <data name="GuideChartsBody" xml:space="preserve"><value>Compare los recursos a lo largo del tiempo.
-1. Elija un tipo de gráfico y un intervalo, incluidos Enfoque o Procesadores lógicos.
-2. Seleccione un momento del gráfico para inspeccionarlo; elija En vivo para volver. La grabación continúa.</value></data>
+  <data name="GuideChartsIntro" xml:space="preserve"><value>Compare los recursos a lo largo del tiempo.</value></data>
+  <data name="GuideChartsStep1" xml:space="preserve"><value>Elija un tipo de gráfico y un intervalo, incluidos Enfoque o Procesadores lógicos.</value></data>
+  <data name="GuideChartsStep2" xml:space="preserve"><value>Seleccione un momento del gráfico para inspeccionarlo; elija En vivo para volver. La grabación continúa.</value></data>
   <data name="GuideProcessesTitle" xml:space="preserve"><value>Procesos y elementos fijados</value></data>
-  <data name="GuideProcessesBody" xml:space="preserve"><value>Encuentre apps activas y mantenga visibles los procesos importantes.
-1. Ordene por recurso, busque por nombre o PID, o elija Agrupados.
-2. Fije una fila o use Solo fijados. La búsqueda y Solo aplicaciones siguen aplicándose. Seleccione una fila para ver acciones del proceso.</value></data>
+  <data name="GuideProcessesIntro" xml:space="preserve"><value>Encuentre apps activas y mantenga visibles los procesos importantes.</value></data>
+  <data name="GuideProcessesStep1" xml:space="preserve"><value>Ordene por recurso, busque por nombre o PID, o elija Agrupados.</value></data>
+  <data name="GuideProcessesStep2" xml:space="preserve"><value>Fije una fila o use Solo fijados. La búsqueda y Solo aplicaciones siguen aplicándose. Seleccione una fila para ver acciones del proceso.</value></data>
   <data name="GuideServicesTitle" xml:space="preserve"><value>Servicios</value></data>
-  <data name="GuideServicesBody" xml:space="preserve"><value>Inspeccione los servicios de Windows y sus procesos de trabajo.
-1. Abra Servicios, filtre por estado y expanda un servicio para ver sus procesos.
-2. Use Procesos auxiliares para incluir sus recursos. Seleccione un servicio para Propiedades o controles en vivo; los hosts compartidos no muestran uso por servicio.</value></data>
+  <data name="GuideServicesIntro" xml:space="preserve"><value>Inspeccione los servicios de Windows y sus procesos de trabajo.</value></data>
+  <data name="GuideServicesStep1" xml:space="preserve"><value>Abra Servicios, filtre por estado y expanda un servicio para ver sus procesos.</value></data>
+  <data name="GuideServicesStep2" xml:space="preserve"><value>Use Procesos auxiliares para incluir sus recursos. Seleccione un servicio para Propiedades o controles en vivo; los hosts compartidos no muestran uso por servicio.</value></data>
   <data name="GuideUsageTitle" xml:space="preserve"><value>Uso</value></data>
-  <data name="GuideUsageBody" xml:space="preserve"><value>Vea el consumo acumulado de las apps, incluidas las cerradas.
-1. Abra Uso y ordene las apps por tiempo de CPU, E/S o tiempo de GPU.
-2. Use Restablecer para reiniciar los totales. Son totales desde el inicio o restablecimiento, no tasas actuales.</value></data>
+  <data name="GuideUsageIntro" xml:space="preserve"><value>Vea el consumo acumulado de las apps, incluidas las cerradas.</value></data>
+  <data name="GuideUsageStep1" xml:space="preserve"><value>Abra Uso y ordene las apps por tiempo de CPU, E/S o tiempo de GPU.</value></data>
+  <data name="GuideUsageStep2" xml:space="preserve"><value>Use Restablecer para reiniciar los totales. Son totales desde el inicio o restablecimiento, no tasas actuales.</value></data>
   <data name="GuideConnectionsTitle" xml:space="preserve"><value>Conexiones</value></data>
-  <data name="GuideConnectionsBody" xml:space="preserve"><value>Vea qué apps tienen conexiones TCP y puntos de conexión UDP.
-1. Abra Conexiones, busque una app o un punto de conexión y seleccione Propiedades para ver sus detalles.
-2. Fije apps para seguirlas. Las tasas requieren supervisión de red opcional, no disponible en versiones de Store; las listas de puntos de conexión funcionan sin ella.</value></data>
+  <data name="GuideConnectionsIntro" xml:space="preserve"><value>Vea qué apps tienen conexiones TCP y puntos de conexión UDP.</value></data>
+  <data name="GuideConnectionsStep1" xml:space="preserve"><value>Abra Conexiones, busque una app o un punto de conexión y seleccione Propiedades para ver sus detalles.</value></data>
+  <data name="GuideConnectionsStep2" xml:space="preserve"><value>Fije apps para seguirlas. Las tasas requieren supervisión de red opcional, no disponible en versiones de Store; las listas de puntos de conexión funcionan sin ella.</value></data>
   <data name="GuideExportTitle" xml:space="preserve"><value>Capturas y exportación</value></data>
-  <data name="GuideExportBody" xml:space="preserve"><value>Copie un momento grabado o guarde mediciones.
-1. En Captura, elija Copiar captura para el momento seleccionado y las filas de procesos mostradas.
-2. En Vista completa, elija Exportar para guardar CSV. Uso abarca totales desde el inicio o restablecimiento; las demás exportaciones usan el historial conservado.</value></data>
+  <data name="GuideExportIntro" xml:space="preserve"><value>Copie un momento grabado o guarde mediciones.</value></data>
+  <data name="GuideExportStep1" xml:space="preserve"><value>En Captura, elija Copiar captura para el momento seleccionado y las filas de procesos mostradas.</value></data>
+  <data name="GuideExportStep2" xml:space="preserve"><value>En Vista completa, elija Exportar para guardar CSV. Uso abarca totales desde el inicio o restablecimiento; las demás exportaciones usan el historial conservado.</value></data>
   <data name="GuideAutomaticTitle" xml:space="preserve"><value>Capturas automáticas</value></data>
-  <data name="GuideAutomaticBody" xml:space="preserve"><value>Guarde informes de picos mientras está ausente.
-1. En Ajustes → Capturas automáticas, active reglas, configure umbrales y duraciones y guarde.
-2. Use Auto en la barra del gráfico para revisar capturas. Las reglas coincidentes guardan informes de texto locales; el tiempo de espera evita capturas repetidas.</value></data>
+  <data name="GuideAutomaticIntro" xml:space="preserve"><value>Guarde informes de picos mientras está ausente.</value></data>
+  <data name="GuideAutomaticStep1" xml:space="preserve"><value>En Ajustes → Capturas automáticas, active reglas, configure umbrales y duraciones y guarde.</value></data>
+  <data name="GuideAutomaticStep2" xml:space="preserve"><value>Use Auto en la barra del gráfico para revisar capturas. Las reglas coincidentes guardan informes de texto locales; el tiempo de espera evita capturas repetidas.</value></data>
   <data name="GuideCompactTitle" xml:space="preserve"><value>Vista compacta y atajos</value></data>
-  <data name="GuideCompactBody" xml:space="preserve"><value>Mantenga la supervisión a mano.
-1. Elija Vista compacta en la barra de título para ver indicadores; Vista completa restaura el panel.
-2. Use Siempre visible o configure el atajo para mostrar/ocultar y la vista inicial en Ajustes → General.</value></data>
+  <data name="GuideCompactIntro" xml:space="preserve"><value>Mantenga la supervisión a mano.</value></data>
+  <data name="GuideCompactStep1" xml:space="preserve"><value>Elija Vista compacta en la barra de título para ver indicadores; Vista completa restaura el panel.</value></data>
+  <data name="GuideCompactStep2" xml:space="preserve"><value>Use Siempre visible o configure el atajo para mostrar/ocultar y la vista inicial en Ajustes → General.</value></data>
   <data name="GuideWalkthroughTitle" xml:space="preserve"><value>Pruébelo: investigar un pico de CPU</value></data>
-  <data name="GuideWalkthroughBody" xml:space="preserve"><value>Siga un pico desde el gráfico hasta la app responsable.
-1. Seleccione el pico en el gráfico, abra Procesos y ordene por CPU.
-2. Inspeccione las filas grabadas y elija Copiar captura para conservar la información. Elija En vivo para volver; las observaciones ausentes no están disponibles.</value></data>
+  <data name="GuideWalkthroughIntro" xml:space="preserve"><value>Siga un pico desde el gráfico hasta la app responsable.</value></data>
+  <data name="GuideWalkthroughStep1" xml:space="preserve"><value>Seleccione el pico en el gráfico, abra Procesos y ordene por CPU.</value></data>
+  <data name="GuideWalkthroughStep2" xml:space="preserve"><value>Inspeccione las filas grabadas y elija Copiar captura para conservar la información. Elija En vivo para volver; las observaciones ausentes no están disponibles.</value></data>
+  <data name="GuideShowMe" xml:space="preserve"><value>Mostrar</value></data>
+  <data name="GuideShowMeHelp" xml:space="preserve"><value>Cierra Información y señala esta función en la ventana principal.</value></data>
 </root>

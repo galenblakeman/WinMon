@@ -1812,39 +1812,41 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
     <value>Reset chart preferences</value>
   </data>
   <data name="GuideChartsTitle" xml:space="preserve"><value>Charts and history</value></data>
-  <data name="GuideChartsBody" xml:space="preserve"><value>Compare resources over time.
-1. Choose a chart type and time range, including Focus or Logical processors.
-2. Select a chart moment to inspect it; choose Live to return. Recording continues.</value></data>
+  <data name="GuideChartsIntro" xml:space="preserve"><value>Compare resources over time.</value></data>
+  <data name="GuideChartsStep1" xml:space="preserve"><value>Choose a chart type and time range, including Focus or Logical processors.</value></data>
+  <data name="GuideChartsStep2" xml:space="preserve"><value>Select a chart moment to inspect it; choose Live to return. Recording continues.</value></data>
   <data name="GuideProcessesTitle" xml:space="preserve"><value>Processes and pins</value></data>
-  <data name="GuideProcessesBody" xml:space="preserve"><value>Find busy apps and keep important processes visible.
-1. Sort by a resource, search by name or PID, or choose Grouped.
-2. Pin a row or use Pinned only. Search and App only still apply. Select a row for process actions.</value></data>
+  <data name="GuideProcessesIntro" xml:space="preserve"><value>Find busy apps and keep important processes visible.</value></data>
+  <data name="GuideProcessesStep1" xml:space="preserve"><value>Sort by a resource, search by name or PID, or choose Grouped.</value></data>
+  <data name="GuideProcessesStep2" xml:space="preserve"><value>Pin a row or use Pinned only. Search and App only still apply. Select a row for process actions.</value></data>
   <data name="GuideServicesTitle" xml:space="preserve"><value>Services</value></data>
-  <data name="GuideServicesBody" xml:space="preserve"><value>Inspect Windows services and their workers.
-1. Open Services, filter by status and expand a service to see its processes.
-2. Use Workers to include worker resources. Select a service for Properties or live controls; shared hosts do not show individual service usage.</value></data>
+  <data name="GuideServicesIntro" xml:space="preserve"><value>Inspect Windows services and their workers.</value></data>
+  <data name="GuideServicesStep1" xml:space="preserve"><value>Open Services, filter by status and expand a service to see its processes.</value></data>
+  <data name="GuideServicesStep2" xml:space="preserve"><value>Use Workers to include worker resources. Select a service for Properties or live controls; shared hosts do not show individual service usage.</value></data>
   <data name="GuideUsageTitle" xml:space="preserve"><value>Usage</value></data>
-  <data name="GuideUsageBody" xml:space="preserve"><value>See accumulated app resource use, including exited apps.
-1. Open Usage and rank apps by CPU time, I/O or GPU time.
-2. Use Reset to start totals again. These are totals since startup or reset, not current rates.</value></data>
+  <data name="GuideUsageIntro" xml:space="preserve"><value>See accumulated app resource use, including exited apps.</value></data>
+  <data name="GuideUsageStep1" xml:space="preserve"><value>Open Usage and rank apps by CPU time, I/O or GPU time.</value></data>
+  <data name="GuideUsageStep2" xml:space="preserve"><value>Use Reset to start totals again. These are totals since startup or reset, not current rates.</value></data>
   <data name="GuideConnectionsTitle" xml:space="preserve"><value>Connections</value></data>
-  <data name="GuideConnectionsBody" xml:space="preserve"><value>See which apps have TCP connections and UDP endpoints.
-1. Open Connections, search for an app or endpoint, then select Properties for endpoint details.
-2. Pin apps to follow them. Traffic rates require optional network monitoring, unavailable in Store builds; endpoint lists work without it.</value></data>
+  <data name="GuideConnectionsIntro" xml:space="preserve"><value>See which apps have TCP connections and UDP endpoints.</value></data>
+  <data name="GuideConnectionsStep1" xml:space="preserve"><value>Open Connections, search for an app or endpoint, then select Properties for endpoint details.</value></data>
+  <data name="GuideConnectionsStep2" xml:space="preserve"><value>Pin apps to follow them. Traffic rates require optional network monitoring, unavailable in Store builds; endpoint lists work without it.</value></data>
   <data name="GuideExportTitle" xml:space="preserve"><value>Captures and export</value></data>
-  <data name="GuideExportBody" xml:space="preserve"><value>Copy a recorded moment or save measurements.
-1. In Capture, choose Copy capture for the selected moment and displayed process rows.
-2. In Full view, choose Export to save CSV. Usage covers totals since startup or reset; other exports use retained history.</value></data>
+  <data name="GuideExportIntro" xml:space="preserve"><value>Copy a recorded moment or save measurements.</value></data>
+  <data name="GuideExportStep1" xml:space="preserve"><value>In Capture, choose Copy capture for the selected moment and displayed process rows.</value></data>
+  <data name="GuideExportStep2" xml:space="preserve"><value>In Full view, choose Export to save CSV. Usage covers totals since startup or reset; other exports use retained history.</value></data>
   <data name="GuideAutomaticTitle" xml:space="preserve"><value>Automatic captures</value></data>
-  <data name="GuideAutomaticBody" xml:space="preserve"><value>Save a spike report while you are away.
-1. In Settings → Automatic captures, enable rules and set thresholds and durations, then save.
-2. Use Auto on the chart toolbar to review captures. Matching rules save local text reports; cooldown prevents repeated captures.</value></data>
+  <data name="GuideAutomaticIntro" xml:space="preserve"><value>Save a spike report while you are away.</value></data>
+  <data name="GuideAutomaticStep1" xml:space="preserve"><value>In Settings → Automatic captures, enable rules and set thresholds and durations, then save.</value></data>
+  <data name="GuideAutomaticStep2" xml:space="preserve"><value>Use Auto on the chart toolbar to review captures. Matching rules save local text reports; cooldown prevents repeated captures.</value></data>
   <data name="GuideCompactTitle" xml:space="preserve"><value>Compact view and shortcuts</value></data>
-  <data name="GuideCompactBody" xml:space="preserve"><value>Keep monitoring within reach.
-1. Choose Compact view in the title bar for gauges; choose Full view to restore the dashboard.
-2. Use Always on top or configure the show/hide shortcut and Startup view in Settings → General.</value></data>
+  <data name="GuideCompactIntro" xml:space="preserve"><value>Keep monitoring within reach.</value></data>
+  <data name="GuideCompactStep1" xml:space="preserve"><value>Choose Compact view in the title bar for gauges; choose Full view to restore the dashboard.</value></data>
+  <data name="GuideCompactStep2" xml:space="preserve"><value>Use Always on top or configure the show/hide shortcut and Startup view in Settings → General.</value></data>
   <data name="GuideWalkthroughTitle" xml:space="preserve"><value>Try it: investigate a CPU spike</value></data>
-  <data name="GuideWalkthroughBody" xml:space="preserve"><value>Follow a spike from the chart to the app behind it.
-1. Select the spike on the chart, then open Processes and sort by CPU.
-2. Inspect the recorded rows and choose Copy capture to keep the evidence. Choose Live to resume; missing observations are unavailable.</value></data>
+  <data name="GuideWalkthroughIntro" xml:space="preserve"><value>Follow a spike from the chart to the app behind it.</value></data>
+  <data name="GuideWalkthroughStep1" xml:space="preserve"><value>Select the spike on the chart, then open Processes and sort by CPU.</value></data>
+  <data name="GuideWalkthroughStep2" xml:space="preserve"><value>Inspect the recorded rows and choose Copy capture to keep the evidence. Choose Live to resume; missing observations are unavailable.</value></data>
+  <data name="GuideShowMe" xml:space="preserve"><value>Show me</value></data>
+  <data name="GuideShowMeHelp" xml:space="preserve"><value>Close Info and point out this feature in the main window.</value></data>
 </root>

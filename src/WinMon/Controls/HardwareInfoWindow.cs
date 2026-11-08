@@ -97,6 +97,15 @@ internal sealed partial class HardwareInfoWindow : Window
         UpdateRequested?.Invoke();
     }
 
+    /// <summary>The Guide topic whose Show me closed the window, for the owner to point out.</summary>
+    internal string? ShowMeTopic { get; private set; }
+
+    private void OnShowMe(object sender, RoutedEventArgs e)
+    {
+        ShowMeTopic = (string)((FrameworkElement)sender).Tag;
+        Close();
+    }
+
     private void OnClose(object sender, RoutedEventArgs e)
     {
         Close();

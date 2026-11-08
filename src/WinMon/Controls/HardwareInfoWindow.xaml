@@ -12,6 +12,47 @@
             <Setter Property="TextWrapping" Value="Wrap" />
             <Setter Property="Margin" Value="0,8,0,16" />
         </Style>
+        <!-- Header is the step number; ButtonIcon.Data is the icon of the button the step names. -->
+        <Style x:Key="GuideStep" TargetType="HeaderedContentControl">
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Margin" Value="0,0,0,10" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="HeaderedContentControl">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Border Width="22" Height="22" CornerRadius="11" VerticalAlignment="Top"
+                                    BorderBrush="{DynamicResource Accent}" BorderThickness="1.5">
+                                <TextBlock Text="{Binding Header, RelativeSource={RelativeSource TemplatedParent}}"
+                                           FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Text}"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <Path x:Name="Icon" Grid.Column="1" Width="16" Height="16" Margin="10,3,0,0" VerticalAlignment="Top"
+                                  Data="{Binding (local:ButtonIcon.Data), RelativeSource={RelativeSource TemplatedParent}}"
+                                  Stretch="Uniform" Stroke="{DynamicResource Text}" StrokeThickness="1.5"
+                                  StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                            <TextBlock Grid.Column="2" Margin="10,2,0,0" TextWrapping="Wrap"
+                                       Text="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}" />
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="GuideShowMe" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="Margin" Value="58,4,0,4" />
+            <Setter Property="local:ButtonIcon.Data" Value="{x:Static local:ButtonIcon.Locate}" />
+            <Setter Property="Content" Value="{Binding [GuideShowMe], Source={x:Static r:Strings.Text}}" />
+            <Setter Property="ToolTip" Value="{Binding [GuideShowMeHelp], Source={x:Static r:Strings.Text}}" />
+            <EventSetter Event="Click" Handler="OnShowMe" />
+        </Style>
+        <Style x:Key="GuideIntro" TargetType="TextBlock" BasedOn="{StaticResource Body}">
+            <Setter Property="Margin" Value="0,8,0,12" />
+        </Style>
         <Style TargetType="TabItem">
             <Setter Property="Foreground" Value="{DynamicResource Text}" />
             <Setter Property="Template">
@@ -155,31 +196,131 @@
                             <TextBlock FontSize="22" FontWeight="SemiBold" Text="{Binding [InfoGuideTitle], Source={x:Static r:Strings.Text}}" />
                             <TextBlock Style="{StaticResource Body}" Foreground="{DynamicResource Muted}" Text="{Binding [InfoGuideIntro], Source={x:Static r:Strings.Text}}" />
                             <Expander IsExpanded="True" Header="{Binding [GuideChartsTitle], Source={x:Static r:Strings.Text}}">
-                                <TextBlock Style="{StaticResource Body}" Text="{Binding [GuideChartsBody], Source={x:Static r:Strings.Text}}" />
+                                <StackPanel>
+                                    <TextBlock Style="{StaticResource GuideIntro}" Text="{Binding [GuideChartsIntro], Source={x:Static r:Strings.Text}}" />
+                                    <Viewbox x:Name="ChartsDiagram" Stretch="Uniform" MaxHeight="150" HorizontalAlignment="Left" Margin="0,0,0,14">
+                                        <Canvas Width="400" Height="150">
+                                            <Canvas.Resources>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Width" Value="20" />
+                                                    <Setter Property="Height" Value="20" />
+                                                    <Setter Property="CornerRadius" Value="10" />
+                                                    <Setter Property="Background" Value="{DynamicResource Surface}" />
+                                                    <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+                                                    <Setter Property="BorderThickness" Value="1.5" />
+                                                </Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="FontSize" Value="11" />
+                                                    <Setter Property="FontWeight" Value="SemiBold" />
+                                                    <Setter Property="Foreground" Value="{DynamicResource Text}" />
+                                                    <Setter Property="HorizontalAlignment" Value="Center" />
+                                                    <Setter Property="VerticalAlignment" Value="Center" />
+                                                </Style>
+                                            </Canvas.Resources>
+                                            <Rectangle Width="400" Height="150" RadiusX="6" RadiusY="6" Fill="{DynamicResource Raised}" Stroke="{DynamicResource Line}" />
+                                            <Rectangle Canvas.Left="12" Canvas.Top="12" Width="84" Height="22" RadiusX="3" RadiusY="3" Stroke="{DynamicResource Line}" />
+                                            <Path Canvas.Left="76" Canvas.Top="17" Width="12" Height="12" Data="{x:Static local:ButtonIcon.ChevronDown}" Stretch="Uniform" Stroke="{DynamicResource Muted}" StrokeThickness="1.5" />
+                                            <Rectangle Canvas.Left="104" Canvas.Top="12" Width="34" Height="22" RadiusX="3" RadiusY="3" Fill="{DynamicResource Line}" />
+                                            <Rectangle Canvas.Left="142" Canvas.Top="12" Width="34" Height="22" RadiusX="3" RadiusY="3" Stroke="{DynamicResource Line}" />
+                                            <Rectangle Canvas.Left="180" Canvas.Top="12" Width="34" Height="22" RadiusX="3" RadiusY="3" Stroke="{DynamicResource Line}" />
+                                            <Rectangle Canvas.Left="320" Canvas.Top="12" Width="68" Height="22" RadiusX="3" RadiusY="3" Stroke="{DynamicResource Accent}" StrokeThickness="1.5" />
+                                            <Path Canvas.Left="347" Canvas.Top="16" Width="14" Height="14" Data="{x:Static local:ButtonIcon.Start}" Stretch="Uniform" Stroke="{DynamicResource Text}" StrokeThickness="1.5" StrokeLineJoin="Round" />
+                                            <Line X1="12" Y1="136" X2="388" Y2="136" Stroke="{DynamicResource Line}" />
+                                            <Polyline Points="12,120 50,116 86,118 122,110 158,114 194,108 230,112 262,66 280,52 298,62 322,104 352,110 388,106" Stroke="{DynamicResource Accent}" StrokeThickness="2" StrokeLineJoin="Round" />
+                                            <Polyline Points="12,128 70,126 130,127 190,124 250,126 310,121 360,125 388,124" Stroke="{DynamicResource Muted}" StrokeThickness="1.5" StrokeLineJoin="Round" />
+                                            <Line X1="280" Y1="44" X2="280" Y2="136" Stroke="{DynamicResource Text}" StrokeDashArray="3 3" />
+                                            <Ellipse Canvas.Left="276" Canvas.Top="48" Width="8" Height="8" Fill="{DynamicResource Text}" />
+                                            <Border Canvas.Left="220" Canvas.Top="13"><TextBlock Text="1" /></Border>
+                                            <Border Canvas.Left="250" Canvas.Top="34"><TextBlock Text="2" /></Border>
+                                            <Border Canvas.Left="294" Canvas.Top="13"><TextBlock Text="2" /></Border>
+                                        </Canvas>
+                                    </Viewbox>
+                                    <HeaderedContentControl Style="{StaticResource GuideStep}" Header="1"
+                                                            Content="{Binding [GuideChartsStep1], Source={x:Static r:Strings.Text}}" />
+                                    <HeaderedContentControl Style="{StaticResource GuideStep}" Header="2" local:ButtonIcon.Data="{x:Static local:ButtonIcon.Start}"
+                                                            Content="{Binding [GuideChartsStep2], Source={x:Static r:Strings.Text}}" />
+                                    <Button Style="{StaticResource GuideShowMe}" Tag="Charts" />
+                                </StackPanel>
                             </Expander>
                             <Expander Header="{Binding [GuideProcessesTitle], Source={x:Static r:Strings.Text}}">
-                                <TextBlock Style="{StaticResource Body}" Text="{Binding [GuideProcessesBody], Source={x:Static r:Strings.Text}}" />
+                                <StackPanel>
+                                    <TextBlock Style="{StaticResource GuideIntro}" Text="{Binding [GuideProcessesIntro], Source={x:Static r:Strings.Text}}" />
+                                    <HeaderedContentControl Style="{StaticResource GuideStep}" Header="1"
+                                                            Content="{Binding [GuideProcessesStep1], Source={x:Static r:Strings.Text}}" />
+                                    <HeaderedContentControl Style="{StaticResource GuideStep}" Header="2" local:ButtonIcon.Data="{x:Static local:ButtonIcon.Pin}"
+                                                            Content="{Binding [GuideProcessesStep2], Source={x:Static r:Strings.Text}}" />
+                                    <Button Style="{StaticResource GuideShowMe}" Tag="Processes" />
+                                </StackPanel>
                             </Expander>
                             <Expander Header="{Binding [GuideServicesTitle], Source={x:Static r:Strings.Text}}">
-                                <TextBlock Style="{StaticResource Body}" Text="{Binding [GuideServicesBody], Source={x:Static r:Strings.Text}}" />
+                                <StackPanel>
+                                    <TextBlock Style="{StaticResource GuideIntro}" Text="{Binding [GuideServicesIntro], Source={x:Static r:Strings.Text}}" />
+                                    <HeaderedContentControl Style="{StaticResource GuideStep}" Header="1"
+                                                            Content="{Binding [GuideServicesStep1], Source={x:Static r:Strings.Text}}" />
+                                    <HeaderedContentControl Style="{StaticResource GuideStep}" Header="2" local:ButtonIcon.Data="{x:Static local:ButtonIcon.Info}"
+                                                            Content="{Binding [GuideServicesStep2], Source={x:Static r:Strings.Text}}" />
+                                    <Button Style="{StaticResource GuideShowMe}" Tag="Services" />
+                                </StackPanel>
                             </Expander>
                             <Expander Header="{Binding [GuideUsageTitle], Source={x:Static r:Strings.Text}}">
-                                <TextBlock Style="{StaticResource Body}" Text="{Binding [GuideUsageBody], Source={x:Static r:Strings.Text}}" />
+                                <StackPanel>
+                                    <TextBlock Style="{StaticResource GuideIntro}" Text="{Binding [GuideUsageIntro], Source={x:Static r:Strings.Text}}" />
+                                    <HeaderedContentControl Style="{StaticResource GuideStep}" Header="1"
+                                                            Content="{Binding [GuideUsageStep1], Source={x:Static r:Strings.Text}}" />
+                                    <HeaderedContentControl Style="{StaticResource GuideStep}" Header="2" local:ButtonIcon.Data="{x:Static local:ButtonIcon.Live}"
+                                                            Content="{Binding [GuideUsageStep2], Source={x:Static r:Strings.Text}}" />
+                                    <Button Style="{StaticResource GuideShowMe}" Tag="Usage" />
+                                </StackPanel>
                             </Expander>
                             <Expander Header="{Binding [GuideConnectionsTitle], Source={x:Static r:Strings.Text}}">
-                                <TextBlock Style="{StaticResource Body}" Text="{Binding [GuideConnectionsBody], Source={x:Static r:Strings.Text}}" />
+                                <StackPanel>
+                                    <TextBlock Style="{StaticResource GuideIntro}" Text="{Binding [GuideConnectionsIntro], Source={x:Static r:Strings.Text}}" />
+                                    <HeaderedContentControl Style="{StaticResource GuideStep}" Header="1" local:ButtonIcon.Data="{x:Static local:ButtonIcon.Info}"
+                                                            Content="{Binding [GuideConnectionsStep1], Source={x:Static r:Strings.Text}}" />
+                                    <HeaderedContentControl Style="{StaticResource GuideStep}" Header="2" local:ButtonIcon.Data="{x:Static local:ButtonIcon.Pin}"
+                                                            Content="{Binding [GuideConnectionsStep2], Source={x:Static r:Strings.Text}}" />
+                                    <Button Style="{StaticResource GuideShowMe}" Tag="Connections" />
+                                </StackPanel>
                             </Expander>
                             <Expander Header="{Binding [GuideExportTitle], Source={x:Static r:Strings.Text}}">
-                                <TextBlock Style="{StaticResource Body}" Text="{Binding [GuideExportBody], Source={x:Static r:Strings.Text}}" />
+                                <StackPanel>
+                                    <TextBlock Style="{StaticResource GuideIntro}" Text="{Binding [GuideExportIntro], Source={x:Static r:Strings.Text}}" />
+                                    <HeaderedContentControl Style="{StaticResource GuideStep}" Header="1" local:ButtonIcon.Data="{x:Static local:ButtonIcon.Copy}"
+                                                            Content="{Binding [GuideExportStep1], Source={x:Static r:Strings.Text}}" />
+                                    <HeaderedContentControl Style="{StaticResource GuideStep}" Header="2" local:ButtonIcon.Data="{x:Static local:ButtonIcon.Download}"
+                                                            Content="{Binding [GuideExportStep2], Source={x:Static r:Strings.Text}}" />
+                                    <Button Style="{StaticResource GuideShowMe}" Tag="Export" />
+                                </StackPanel>
                             </Expander>
                             <Expander Header="{Binding [GuideAutomaticTitle], Source={x:Static r:Strings.Text}}">
-                                <TextBlock Style="{StaticResource Body}" Text="{Binding [GuideAutomaticBody], Source={x:Static r:Strings.Text}}" />
+                                <StackPanel>
+                                    <TextBlock Style="{StaticResource GuideIntro}" Text="{Binding [GuideAutomaticIntro], Source={x:Static r:Strings.Text}}" />
+                                    <HeaderedContentControl Style="{StaticResource GuideStep}" Header="1" local:ButtonIcon.Data="{x:Static local:ButtonIcon.Settings}"
+                                                            Content="{Binding [GuideAutomaticStep1], Source={x:Static r:Strings.Text}}" />
+                                    <HeaderedContentControl Style="{StaticResource GuideStep}" Header="2" local:ButtonIcon.Data="{x:Static local:ButtonIcon.CaptureFrame}"
+                                                            Content="{Binding [GuideAutomaticStep2], Source={x:Static r:Strings.Text}}" />
+                                    <Button Style="{StaticResource GuideShowMe}" Tag="Automatic" />
+                                </StackPanel>
                             </Expander>
                             <Expander Header="{Binding [GuideCompactTitle], Source={x:Static r:Strings.Text}}">
-                                <TextBlock Style="{StaticResource Body}" Text="{Binding [GuideCompactBody], Source={x:Static r:Strings.Text}}" />
+                                <StackPanel>
+                                    <TextBlock Style="{StaticResource GuideIntro}" Text="{Binding [GuideCompactIntro], Source={x:Static r:Strings.Text}}" />
+                                    <HeaderedContentControl Style="{StaticResource GuideStep}" Header="1" local:ButtonIcon.Data="{x:Static local:ButtonIcon.Compact}"
+                                                            Content="{Binding [GuideCompactStep1], Source={x:Static r:Strings.Text}}" />
+                                    <HeaderedContentControl Style="{StaticResource GuideStep}" Header="2" local:ButtonIcon.Data="{x:Static local:ButtonIcon.AlwaysOnTop}"
+                                                            Content="{Binding [GuideCompactStep2], Source={x:Static r:Strings.Text}}" />
+                                    <Button Style="{StaticResource GuideShowMe}" Tag="Compact" />
+                                </StackPanel>
                             </Expander>
                             <Expander Header="{Binding [GuideWalkthroughTitle], Source={x:Static r:Strings.Text}}">
-                                <TextBlock Style="{StaticResource Body}" Text="{Binding [GuideWalkthroughBody], Source={x:Static r:Strings.Text}}" />
+                                <StackPanel>
+                                    <TextBlock Style="{StaticResource GuideIntro}" Text="{Binding [GuideWalkthroughIntro], Source={x:Static r:Strings.Text}}" />
+                                    <HeaderedContentControl Style="{StaticResource GuideStep}" Header="1"
+                                                            Content="{Binding [GuideWalkthroughStep1], Source={x:Static r:Strings.Text}}" />
+                                    <HeaderedContentControl Style="{StaticResource GuideStep}" Header="2" local:ButtonIcon.Data="{x:Static local:ButtonIcon.Copy}"
+                                                            Content="{Binding [GuideWalkthroughStep2], Source={x:Static r:Strings.Text}}" />
+                                    <Button Style="{StaticResource GuideShowMe}" Tag="Walkthrough" />
+                                </StackPanel>
                             </Expander>
                         </StackPanel>
                     </ScrollViewer>

@@ -1812,39 +1812,41 @@ Windows 상태: {2}</value>
     <value>차트 기본 설정 초기화</value>
   </data>
   <data name="GuideChartsTitle" xml:space="preserve"><value>차트와 기록</value></data>
-  <data name="GuideChartsBody" xml:space="preserve"><value>시간에 따른 리소스 사용량을 비교합니다.
-1. 포커스 또는 논리 프로세서를 포함한 차트 유형과 기간을 선택합니다.
-2. 차트의 시점을 선택하여 확인하고 실시간을 선택하여 돌아갑니다. 기록은 계속됩니다.</value></data>
+  <data name="GuideChartsIntro" xml:space="preserve"><value>시간에 따른 리소스 사용량을 비교합니다.</value></data>
+  <data name="GuideChartsStep1" xml:space="preserve"><value>포커스 또는 논리 프로세서를 포함한 차트 유형과 기간을 선택합니다.</value></data>
+  <data name="GuideChartsStep2" xml:space="preserve"><value>차트의 시점을 선택하여 확인하고 실시간을 선택하여 돌아갑니다. 기록은 계속됩니다.</value></data>
   <data name="GuideProcessesTitle" xml:space="preserve"><value>프로세스와 고정</value></data>
-  <data name="GuideProcessesBody" xml:space="preserve"><value>사용량이 많은 앱을 찾고 중요한 프로세스를 계속 표시합니다.
-1. 리소스별로 정렬하거나 이름 또는 PID로 검색하거나 그룹을 선택합니다.
-2. 행을 고정하거나 고정 항목만을 사용합니다. 검색과 앱만 필터도 계속 적용됩니다. 행을 선택하면 프로세스 작업이 표시됩니다.</value></data>
+  <data name="GuideProcessesIntro" xml:space="preserve"><value>사용량이 많은 앱을 찾고 중요한 프로세스를 계속 표시합니다.</value></data>
+  <data name="GuideProcessesStep1" xml:space="preserve"><value>리소스별로 정렬하거나 이름 또는 PID로 검색하거나 그룹을 선택합니다.</value></data>
+  <data name="GuideProcessesStep2" xml:space="preserve"><value>행을 고정하거나 고정 항목만을 사용합니다. 검색과 앱만 필터도 계속 적용됩니다. 행을 선택하면 프로세스 작업이 표시됩니다.</value></data>
   <data name="GuideServicesTitle" xml:space="preserve"><value>서비스</value></data>
-  <data name="GuideServicesBody" xml:space="preserve"><value>Windows 서비스와 작업자 프로세스를 확인합니다.
-1. 서비스를 열고 상태로 필터링한 다음 서비스를 펼쳐 프로세스를 확인합니다.
-2. 작업 프로세스를 사용하여 해당 리소스를 포함합니다. 서비스를 선택하여 속성이나 실시간 제어를 사용합니다. 공유 호스트는 개별 서비스 사용량을 표시하지 않습니다.</value></data>
+  <data name="GuideServicesIntro" xml:space="preserve"><value>Windows 서비스와 작업자 프로세스를 확인합니다.</value></data>
+  <data name="GuideServicesStep1" xml:space="preserve"><value>서비스를 열고 상태로 필터링한 다음 서비스를 펼쳐 프로세스를 확인합니다.</value></data>
+  <data name="GuideServicesStep2" xml:space="preserve"><value>작업 프로세스를 사용하여 해당 리소스를 포함합니다. 서비스를 선택하여 속성이나 실시간 제어를 사용합니다. 공유 호스트는 개별 서비스 사용량을 표시하지 않습니다.</value></data>
   <data name="GuideUsageTitle" xml:space="preserve"><value>사용량</value></data>
-  <data name="GuideUsageBody" xml:space="preserve"><value>종료된 앱을 포함하여 누적 리소스 사용량을 확인합니다.
-1. 사용량을 열고 CPU 시간, I/O 또는 GPU 시간으로 앱을 정렬합니다.
-2. 초기화로 합계를 다시 집계합니다. 현재 속도가 아닌 시작 또는 초기화 이후의 합계입니다.</value></data>
+  <data name="GuideUsageIntro" xml:space="preserve"><value>종료된 앱을 포함하여 누적 리소스 사용량을 확인합니다.</value></data>
+  <data name="GuideUsageStep1" xml:space="preserve"><value>사용량을 열고 CPU 시간, I/O 또는 GPU 시간으로 앱을 정렬합니다.</value></data>
+  <data name="GuideUsageStep2" xml:space="preserve"><value>초기화로 합계를 다시 집계합니다. 현재 속도가 아닌 시작 또는 초기화 이후의 합계입니다.</value></data>
   <data name="GuideConnectionsTitle" xml:space="preserve"><value>연결</value></data>
-  <data name="GuideConnectionsBody" xml:space="preserve"><value>TCP 연결과 UDP 엔드포인트가 있는 앱을 확인합니다.
-1. 연결을 열고 앱이나 엔드포인트를 검색한 다음 속성을 선택하여 엔드포인트 세부 정보를 확인합니다.
-2. 추적할 앱을 고정합니다. 트래픽 속도에는 선택적 네트워크 모니터링이 필요하며 Store 빌드에서는 지원되지 않습니다. 엔드포인트 목록은 모니터링 없이 사용할 수 있습니다.</value></data>
+  <data name="GuideConnectionsIntro" xml:space="preserve"><value>TCP 연결과 UDP 엔드포인트가 있는 앱을 확인합니다.</value></data>
+  <data name="GuideConnectionsStep1" xml:space="preserve"><value>연결을 열고 앱이나 엔드포인트를 검색한 다음 속성을 선택하여 엔드포인트 세부 정보를 확인합니다.</value></data>
+  <data name="GuideConnectionsStep2" xml:space="preserve"><value>추적할 앱을 고정합니다. 트래픽 속도에는 선택적 네트워크 모니터링이 필요하며 Store 빌드에서는 지원되지 않습니다. 엔드포인트 목록은 모니터링 없이 사용할 수 있습니다.</value></data>
   <data name="GuideExportTitle" xml:space="preserve"><value>캡처와 내보내기</value></data>
-  <data name="GuideExportBody" xml:space="preserve"><value>기록된 시점을 복사하거나 측정값을 저장합니다.
-1. 캡처에서 캡처 복사를 선택하면 선택한 시점과 표시된 프로세스 행을 복사합니다.
-2. 전체 보기에서 내보내기를 선택하여 CSV를 저장합니다. 사용량은 시작 또는 초기화 이후의 합계이며 다른 내보내기는 보관된 기록을 사용합니다.</value></data>
+  <data name="GuideExportIntro" xml:space="preserve"><value>기록된 시점을 복사하거나 측정값을 저장합니다.</value></data>
+  <data name="GuideExportStep1" xml:space="preserve"><value>캡처에서 캡처 복사를 선택하면 선택한 시점과 표시된 프로세스 행을 복사합니다.</value></data>
+  <data name="GuideExportStep2" xml:space="preserve"><value>전체 보기에서 내보내기를 선택하여 CSV를 저장합니다. 사용량은 시작 또는 초기화 이후의 합계이며 다른 내보내기는 보관된 기록을 사용합니다.</value></data>
   <data name="GuideAutomaticTitle" xml:space="preserve"><value>자동 캡처</value></data>
-  <data name="GuideAutomaticBody" xml:space="preserve"><value>자리를 비운 동안 급증 보고서를 저장합니다.
-1. 설정 → 자동 캡처에서 규칙을 켜고 임계값과 지속 시간을 설정한 다음 저장합니다.
-2. 차트 도구 모음의 자동으로 캡처를 검토합니다. 조건을 충족한 규칙은 로컬 텍스트 보고서를 저장하며 대기 시간이 반복 캡처를 방지합니다.</value></data>
+  <data name="GuideAutomaticIntro" xml:space="preserve"><value>자리를 비운 동안 급증 보고서를 저장합니다.</value></data>
+  <data name="GuideAutomaticStep1" xml:space="preserve"><value>설정 → 자동 캡처에서 규칙을 켜고 임계값과 지속 시간을 설정한 다음 저장합니다.</value></data>
+  <data name="GuideAutomaticStep2" xml:space="preserve"><value>차트 도구 모음의 자동으로 캡처를 검토합니다. 조건을 충족한 규칙은 로컬 텍스트 보고서를 저장하며 대기 시간이 반복 캡처를 방지합니다.</value></data>
   <data name="GuideCompactTitle" xml:space="preserve"><value>간략 보기와 바로 가기</value></data>
-  <data name="GuideCompactBody" xml:space="preserve"><value>모니터링을 가까이 두고 사용합니다.
-1. 제목 표시줄에서 간략 보기를 선택하면 게이지를 표시하고 전체 보기를 선택하면 대시보드로 돌아갑니다.
-2. 항상 위에 표시를 사용하거나 설정 → 일반에서 표시/숨기기 바로 가기와 시작 보기를 구성합니다.</value></data>
+  <data name="GuideCompactIntro" xml:space="preserve"><value>모니터링을 가까이 두고 사용합니다.</value></data>
+  <data name="GuideCompactStep1" xml:space="preserve"><value>제목 표시줄에서 간략 보기를 선택하면 게이지를 표시하고 전체 보기를 선택하면 대시보드로 돌아갑니다.</value></data>
+  <data name="GuideCompactStep2" xml:space="preserve"><value>항상 위에 표시를 사용하거나 설정 → 일반에서 표시/숨기기 바로 가기와 시작 보기를 구성합니다.</value></data>
   <data name="GuideWalkthroughTitle" xml:space="preserve"><value>직접 해 보기: CPU 급증 조사</value></data>
-  <data name="GuideWalkthroughBody" xml:space="preserve"><value>차트의 급증에서 원인 앱까지 추적합니다.
-1. 차트에서 급증 시점을 선택하고 프로세스를 연 다음 CPU별로 정렬합니다.
-2. 기록된 행을 확인하고 캡처 복사로 정보를 보관합니다. 실시간으로 돌아갈 수 있으며 누락된 관측값은 사용 불가로 표시됩니다.</value></data>
+  <data name="GuideWalkthroughIntro" xml:space="preserve"><value>차트의 급증에서 원인 앱까지 추적합니다.</value></data>
+  <data name="GuideWalkthroughStep1" xml:space="preserve"><value>차트에서 급증 시점을 선택하고 프로세스를 연 다음 CPU별로 정렬합니다.</value></data>
+  <data name="GuideWalkthroughStep2" xml:space="preserve"><value>기록된 행을 확인하고 캡처 복사로 정보를 보관합니다. 실시간으로 돌아갈 수 있으며 누락된 관측값은 사용 불가로 표시됩니다.</value></data>
+  <data name="GuideShowMe" xml:space="preserve"><value>보기</value></data>
+  <data name="GuideShowMeHelp" xml:space="preserve"><value>정보를 닫고 기본 창에서 이 기능을 표시합니다.</value></data>
 </root>
