@@ -1046,10 +1046,10 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
             // With room, the footer has a row of its own; shorter than the rows' minimums, it overlays their bottom.
             var content = (Grid)window.ActivityPanel.Parent;
             var rowsHeight = content.RowDefinitions.Sum(row => row.ActualHeight);
-            if (rowsHeight <= content.ActualHeight + 0.5 &&
+            if (rowsHeight <= window.FullView.ActualHeight - content.Margin.Top - content.Margin.Bottom + 0.5 &&
                 Bounds(window.Processes).Bottom > Bounds(window.UpdateFooter).Top + 0.5)
                 throw new InvalidOperationException(
-                    "The update footer covers the process list in a full-height window.");
+                    $"The update footer covers the process list: rows={rowsHeight}, visible={window.FullView.ActualHeight}, processes={Bounds(window.Processes)}, footer={Bounds(window.UpdateFooter)}.");
             foreach (var height in new[] { 300, window.MinHeight })
             {
                 window.Height = height;
