@@ -1757,7 +1757,7 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="ProcessesTabHelp" xml:space="preserve"><value>Compare running processes by CPU, memory, GPU and I/O. Search, group or pin processes to track what is busy.</value></data>
   <data name="ServicesTabHelp" xml:space="preserve"><value>Check Windows service status and resource use, including hosting and worker processes. Start, stop or restart eligible live services.</value></data>
   <data name="UsageTabHelp" xml:space="preserve"><value>Compare total CPU time, GPU time and I/O by app since WinMon started or totals were reset, including apps that have exited.</value></data>
-  <data name="ConnectionsTabHelp" xml:space="preserve"><value>Compare apps by receive/send rate and TCP/UDP counts. Expand endpoints or open Properties for addresses and states. Capture follows the selected sample.</value></data>
+  <data name="ConnectionsTabHelp" xml:space="preserve"><value>Compare apps by receive/send rate and TCP/UDP counts. Pin apps above the ranked rows. Open Properties for addresses and states. Capture follows the selected sample.</value></data>
   <data name="ConnectionsTop" xml:space="preserve"><value>Number of top apps</value></data>
   <data name="ConnectionsRankBy" xml:space="preserve"><value>Rank apps by</value></data>
   <data name="ConnectionsReceiveRate" xml:space="preserve"><value>Receive/s</value></data>
@@ -1768,6 +1768,14 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="ConnectionsHistoryNote" xml:space="preserve"><value>Connections observed at the selected sample. Rates are delayed five-second averages, normally ending three seconds before collection.</value></data>
   <data name="ConnectionsEnableTrafficMonitoring" xml:space="preserve"><value>Enable traffic monitoring…</value></data>
   <data name="ConnectionsTrafficRankingUnavailable" xml:space="preserve"><value>Enable per-process traffic monitoring to rank by receive/send rate.</value></data>
+  <data name="ConnectionsHistoryHelp" xml:space="preserve"><value>Receive + send traffic over the last two minutes, on one scale shared by every row. Gaps mean unavailable readings. Traffic belongs to the process or executable, not an individual connection.</value></data>
+  <data name="ConnectionsNoObservedEndpoints" xml:space="preserve"><value>No connections observed</value></data>
+  <data name="PinService" xml:space="preserve"><value>Pin service</value></data>
+  <data name="UnpinService" xml:space="preserve"><value>Unpin service</value></data>
+  <data name="PinServiceHost" xml:space="preserve"><value>Pin services in this host</value></data>
+  <data name="UnpinServiceHost" xml:space="preserve"><value>Unpin services in this host</value></data>
+  <data name="PinnedServiceCount" xml:space="preserve"><value>{0} pinned</value></data>
+  <data name="NoPinnedServicesMatch" xml:space="preserve"><value>No pinned services match. Pin a service using its pin button.</value></data>
   <data name="OpenLogsFolder" xml:space="preserve"><value>Open logs folder</value></data>
   <data name="OpenLogsFolderHelp" xml:space="preserve"><value>Open the folder containing WinMon diagnostic logs.</value></data>
   <data name="OpenLogsFolderFailed" xml:space="preserve"><value>The logs folder could not be opened. Logging may be unavailable or the folder may no longer exist.</value></data>

@@ -1757,7 +1757,7 @@ Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse
   <data name="ProcessesTabHelp" xml:space="preserve"><value>Laufende Prozesse nach CPU, Arbeitsspeicher, GPU und E/A vergleichen. Prozesse suchen, gruppieren oder anheften, um hohe Auslastung zu verfolgen.</value></data>
   <data name="ServicesTabHelp" xml:space="preserve"><value>Status und Ressourcennutzung von Windows-Diensten samt Host- und Arbeitsprozessen prüfen. Verfügbare aktuelle Dienste starten, beenden oder neu starten.</value></data>
   <data name="UsageTabHelp" xml:space="preserve"><value>Gesamte CPU-Zeit, GPU-Zeit und E/A je App seit dem Start von WinMon oder dem Zurücksetzen vergleichen, auch für bereits beendete Apps.</value></data>
-  <data name="ConnectionsTabHelp" xml:space="preserve"><value>Apps nach Empfangs-/Senderate und TCP-/UDP-Anzahl vergleichen. Endpunkte aufklappen oder Eigenschaften für Adressen und Zustände öffnen. Capture folgt dem ausgewählten Messpunkt.</value></data>
+  <data name="ConnectionsTabHelp" xml:space="preserve"><value>Apps nach Empfangs-/Senderate und TCP-/UDP-Anzahl vergleichen. Apps über den Ranglisten anheften. Eigenschaften zeigt Adressen und Zustände. Die Aufnahme folgt der ausgewählten Messung.</value></data>
   <data name="ConnectionsTop" xml:space="preserve"><value>Anzahl der führenden Apps</value></data>
   <data name="ConnectionsRankBy" xml:space="preserve"><value>Apps sortieren nach</value></data>
   <data name="ConnectionsReceiveRate" xml:space="preserve"><value>Empfang/s</value></data>
@@ -1768,6 +1768,14 @@ Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse
   <data name="ConnectionsHistoryNote" xml:space="preserve"><value>Verbindungen zum ausgewählten Messzeitpunkt. Raten sind verzögerte Fünf-Sekunden-Mittelwerte und enden normalerweise drei Sekunden vor der Erfassung.</value></data>
   <data name="ConnectionsEnableTrafficMonitoring" xml:space="preserve"><value>Datenverkehrsüberwachung aktivieren…</value></data>
   <data name="ConnectionsTrafficRankingUnavailable" xml:space="preserve"><value>Aktivieren Sie die Datenverkehrsüberwachung pro Prozess, um nach Empfangs-/Senderate zu sortieren.</value></data>
+  <data name="ConnectionsHistoryHelp" xml:space="preserve"><value>Empfangener und gesendeter Datenverkehr der letzten zwei Minuten, mit derselben Skala für alle Zeilen. Lücken bedeuten fehlende Messwerte. Der Datenverkehr gehört zum Prozess oder Programm, nicht zu einer einzelnen Verbindung.</value></data>
+  <data name="ConnectionsNoObservedEndpoints" xml:space="preserve"><value>Keine Verbindungen beobachtet</value></data>
+  <data name="PinService" xml:space="preserve"><value>Dienst anheften</value></data>
+  <data name="UnpinService" xml:space="preserve"><value>Dienst lösen</value></data>
+  <data name="PinServiceHost" xml:space="preserve"><value>Dienste dieses Hosts anheften</value></data>
+  <data name="UnpinServiceHost" xml:space="preserve"><value>Dienste dieses Hosts lösen</value></data>
+  <data name="PinnedServiceCount" xml:space="preserve"><value>{0} angeheftet</value></data>
+  <data name="NoPinnedServicesMatch" xml:space="preserve"><value>Keine angehefteten Dienste entsprechen den Filtern. Heften Sie einen Dienst über seine Anheften-Schaltfläche an.</value></data>
   <data name="OpenLogsFolder" xml:space="preserve"><value>Protokollordner öffnen</value></data>
   <data name="OpenLogsFolderHelp" xml:space="preserve"><value>Den Ordner mit den Diagnoseprotokollen von WinMon öffnen.</value></data>
   <data name="OpenLogsFolderFailed" xml:space="preserve"><value>Der Protokollordner konnte nicht geöffnet werden. Die Protokollierung ist möglicherweise nicht verfügbar oder der Ordner existiert nicht mehr.</value></data>

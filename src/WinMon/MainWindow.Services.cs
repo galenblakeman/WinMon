@@ -14,6 +14,8 @@ public partial class MainWindow
     private void InitializeServices()
     {
         ServiceView.TopServiceCountChanged += count => _preferences = _preferences with { TopServiceCount = count };
+        ServiceView.PinsChanged += () => _preferences = _preferences with { PinnedServices = ServiceView.SavedPins };
+        ServiceView.PinnedOnlyChanged += value => _preferences = _preferences with { ServicePinnedOnly = value };
         ProcessesTab.Checked += (_, _) => SelectActivityView();
         ServicesTab.Checked += (_, _) => SelectActivityView();
         UsageTab.Checked += (_, _) => SelectActivityView();

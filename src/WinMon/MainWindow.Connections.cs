@@ -12,7 +12,7 @@ public partial class MainWindow
 
     private static ConnectionListSettings ConnectionSettings(MonitorPreferences preferences) =>
         new(preferences.TopConnectionCount, (ConnectionSort)preferences.ConnectionSortColumn,
-            preferences.ConnectionAppsOnly);
+            preferences.ConnectionAppsOnly, preferences.ConnectionPinnedOnly);
 
     private void InitializeConnections()
     {
@@ -26,20 +26,12 @@ public partial class MainWindow
         ConnectionView.SettingsChanged += settings => _preferences = _preferences with
         {
             TopConnectionCount = settings.TopCount, ConnectionSortColumn = (int)settings.Sort,
-            ConnectionAppsOnly = settings.AppsOnly
+            ConnectionAppsOnly = settings.AppsOnly, ConnectionPinnedOnly = settings.PinnedOnly
         };
         ConnectionView.CopyRequested += details => CopyProcessDetails(ConnectionDetailsAtMoment(details));
         ConnectionView.PropertiesRequested += (name, details) =>
             new ServicePropertiesWindow(name, ConnectionDetailsAtMoment(details), CopyProcessDetails) { Owner = this }.ShowDialog();
-        ConnectionView.ProcessRequested += process =>
-        {
-            var current = (SelectedSample ?? Session.LatestFull)?.Processes.FirstOrDefault(p => p.Identity == process.Identity);
-            if (current is null) return;
-            Processes.ShowProcess(current);
-            ProcessesTab.IsChecked = true;
-            RefreshPresentation();
-            Processes.SelectProcess(current, false);
-        };
+        ConnectionView.PinsChanged += () => _preferences = _preferences with { PinnedConnections = ConnectionView.SavedPins };
         ConnectionView.GroupRequested += members =>
         {
             var owner = (SelectedSample ?? Session.LatestFull)?.Processes.FirstOrDefault(p => members.Any(member => member.Identity == p.Identity));
@@ -91,6 +83,9 @@ public partial class MainWindow
         ConnectionCounts.ToolTip = details;
         System.Windows.Automation.AutomationProperties.SetName(ConnectionCounts, details);
         if (!_preferences.ActivityPanelCollapsed)
-            ConnectionView.Update(frame, owners, SelectedSample is not null, network, networkEnabled);
+            ConnectionView.Update(frame, owners, SelectedSample is not null, network, networkEnabled,
+                networkEnabled ? Session.Connections.Captures.Where(past => capture is not null &&
+                    CpuGraph.Moment(past.Sample) <= CpuGraph.Moment(capture.Sample) &&
+                    CpuGraph.Moment(past.Sample) >= CpuGraph.Moment(capture.Sample) - MonitorPreferences.ShortRangeSeconds).ToArray() : null);
     }
 }

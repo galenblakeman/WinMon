@@ -11,7 +11,6 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Border Grid.ColumnSpan="3" Margin="0,0,0,8" Padding="8,5" Background="{DynamicResource SectionHeaderSurface}">
             <Grid>
@@ -32,6 +31,7 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="28" />
                             <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="{DynamicResource Muted}" IsHitTestVisible="False" Text="{Binding [SearchGlyph], Source={x:Static r:Strings.Text}}" />
                         <TextBox x:Name="Search" Grid.Column="1" MinHeight="26" Padding="0,3" VerticalContentAlignment="Center" AutomationProperties.Name="{Binding [ConnectionsSearch], Source={x:Static r:Strings.Text}}" Background="{DynamicResource SearchSurface}" BorderThickness="0" CaretBrush="{DynamicResource Text}" FontSize="12" Foreground="{DynamicResource Text}" TextChanged="OnSearchChanged" ToolTip="{Binding [ConnectionsSearch], Source={x:Static r:Strings.Text}}" />
@@ -47,33 +47,35 @@
                                 </Style>
                             </TextBlock.Style>
                         </TextBlock>
+                        <Button x:Name="ClearConnectionSearchButton" Grid.Column="2" Width="28" MinHeight="26" Margin="0" Padding="0" HorizontalAlignment="Right" local:ButtonIcon.Data="{x:Static local:ButtonIcon.Cancel}" AutomationProperties.Name="{Binding [ClearSearch], Source={x:Static r:Strings.Text}}" Background="Transparent" BorderThickness="0" Click="OnClearSearch" ToolTip="{Binding [ClearSearch], Source={x:Static r:Strings.Text}}" Visibility="Collapsed" />
                     </Grid>
                 </Border>
-                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                    <RadioButton x:Name="IndividualChip" GroupName="ConnectionGrouping" Style="{DynamicResource RangeChip}"
-                                 Content="{Binding [Individual], Source={x:Static r:Strings.Text}}"
-                                 ToolTip="{Binding [ConnectionsIndividualHelp], Source={x:Static r:Strings.Text}}" Checked="OnGroupingChanged" />
-                    <RadioButton x:Name="GroupedChip" GroupName="ConnectionGrouping" Style="{DynamicResource RangeChip}"
-                                 IsChecked="True" Content="{Binding [Grouped], Source={x:Static r:Strings.Text}}"
-                                 ToolTip="{Binding [ConnectionsGroupedHelp], Source={x:Static r:Strings.Text}}" Checked="OnGroupingChanged" />
-                </StackPanel>
-                <CheckBox x:Name="AppsOnly" Grid.Column="3" Margin="12,0,0,0" VerticalAlignment="Center" Content="{Binding [AppOnly], Source={x:Static r:Strings.Text}}" AutomationProperties.Name="{Binding [AppOnly], Source={x:Static r:Strings.Text}}" Checked="OnSettingsChanged" Unchecked="OnSettingsChanged" />
+                <CheckBox x:Name="AppsOnly" Grid.Column="2" Margin="0,0,12,0" FontSize="12" Foreground="{DynamicResource Text}" ToolTip="{Binding [ProcessKindExplanation], Source={x:Static r:Strings.Text}}" VerticalAlignment="Center" Content="{Binding [AppOnly], Source={x:Static r:Strings.Text}}" AutomationProperties.Name="{Binding [AppOnly], Source={x:Static r:Strings.Text}}" Checked="OnSettingsChanged" Unchecked="OnSettingsChanged" />
+                <CheckBox x:Name="PinnedOnly" Grid.Column="3" VerticalAlignment="Center" FontSize="12" Foreground="{DynamicResource Text}" Content="{Binding [PinnedOnly], Source={x:Static r:Strings.Text}}" Checked="OnSettingsChanged" Unchecked="OnSettingsChanged" />
             </Grid>
         </Border>
         <ScrollViewer x:Name="HeaderScroller" Grid.Column="1" Grid.Row="1" Margin="0,0,18,4" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch">
-        <Grid x:Name="ConnectionHeaders" MinWidth="650">
+        <Grid x:Name="ConnectionHeaders" MinWidth="650" ToolTip="{Binding Text, ElementName=Notice}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="145" />
                 <ColumnDefinition x:Name="ReceiveHeaderColumn" Width="0" />
                 <ColumnDefinition x:Name="SendHeaderColumn" Width="0" />
                 <ColumnDefinition Width="52" />
                 <ColumnDefinition Width="52" />
             </Grid.ColumnDefinitions>
-            <TextBlock Foreground="{DynamicResource Muted}" Text="{Binding [ConnectionsProcess], Source={x:Static r:Strings.Text}}" />
-            <TextBlock x:Name="ReceiveHeader" Grid.Column="1" HorizontalAlignment="Right" Foreground="{DynamicResource Muted}" Text="{Binding [ConnectionsReceiveRate], Source={x:Static r:Strings.Text}}" Visibility="Collapsed" />
-            <TextBlock x:Name="SendHeader" Grid.Column="2" HorizontalAlignment="Right" Foreground="{DynamicResource Muted}" Text="{Binding [ConnectionsSendRate], Source={x:Static r:Strings.Text}}" Visibility="Collapsed" />
-            <TextBlock Grid.Column="3" HorizontalAlignment="Right" Foreground="{DynamicResource Muted}" Text="TCP" />
-            <TextBlock Grid.Column="4" HorizontalAlignment="Right" Foreground="{DynamicResource Muted}" Text="UDP" />
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Foreground="{DynamicResource Muted}" Text="{Binding [ConnectionsProcess], Source={x:Static r:Strings.Text}}" />
+                <StackPanel x:Name="PinSummary" Margin="10,0,0,0" VerticalAlignment="Center" Orientation="Horizontal" Visibility="Collapsed">
+                    <TextBlock Margin="2,0,6,0" FontSize="11" Foreground="{DynamicResource Muted}" Text="·" />
+                    <TextBlock x:Name="PinnedCountLabel" VerticalAlignment="Center" FontSize="11" Foreground="{DynamicResource ProcessPinAccent}" ToolTip="{Binding [PinnedProcessesExplanation], Source={x:Static r:Strings.Text}}" />
+                </StackPanel>
+            </StackPanel>
+            <TextBlock Grid.Column="1" HorizontalAlignment="Center" Foreground="{DynamicResource Muted}" Text="{Binding [History], Source={x:Static r:Strings.Text}}" ToolTip="{Binding [ConnectionsHistoryHelp], Source={x:Static r:Strings.Text}}" />
+            <TextBlock x:Name="ReceiveHeader" Grid.Column="2" HorizontalAlignment="Right" Foreground="{DynamicResource Muted}" Text="{Binding [ConnectionsReceiveRate], Source={x:Static r:Strings.Text}}" Visibility="Collapsed" />
+            <TextBlock x:Name="SendHeader" Grid.Column="3" HorizontalAlignment="Right" Foreground="{DynamicResource Muted}" Text="{Binding [ConnectionsSendRate], Source={x:Static r:Strings.Text}}" Visibility="Collapsed" />
+            <TextBlock Grid.Column="4" HorizontalAlignment="Right" Foreground="{DynamicResource Muted}" Text="TCP" />
+            <TextBlock Grid.Column="5" HorizontalAlignment="Right" Foreground="{DynamicResource Muted}" Text="UDP" />
         </Grid>
         </ScrollViewer>
         <ListBox x:Name="Rows" Grid.Column="1" Grid.Row="2" Padding="0" HorizontalContentAlignment="Stretch" AutomationProperties.Name="{Binding [ConnectionsTab], Source={x:Static r:Strings.Text}}" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource Text}" SelectionChanged="OnSelectionChanged" MouseDoubleClick="OnProperties" ScrollViewer.ScrollChanged="OnRowsScrollChanged" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling">
@@ -83,19 +85,23 @@
                     <Setter Property="Padding" Value="0" />
                     <Setter Property="Foreground" Value="{DynamicResource Text}" />
                     <Setter Property="AutomationProperties.Name" Value="{Binding AccessibleName}" />
+                    <Setter Property="AutomationProperties.HelpText" Value="{Binding RankedLabel}" />
                     <Setter Property="Template">
                         <Setter.Value>
                             <ControlTemplate TargetType="ListBoxItem">
-                                <Border x:Name="Selection" Background="Transparent" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1">
-                                    <ContentPresenter />
-                                </Border>
+                                <Grid>
+                                    <Border x:Name="Selection" Background="Transparent" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1">
+                                        <ContentPresenter />
+                                    </Border>
+                                    <Border x:Name="FocusOutline" BorderBrush="{DynamicResource Accent}" BorderThickness="1" IsHitTestVisible="False" Visibility="Collapsed" />
+                                </Grid>
                                 <ControlTemplate.Triggers>
                                     <Trigger Property="IsSelected" Value="True">
                                         <Setter TargetName="Selection" Property="Background" Value="{DynamicResource Raised}" />
                                         <Setter TargetName="Selection" Property="BorderBrush" Value="{DynamicResource Accent}" />
                                     </Trigger>
                                     <Trigger Property="IsKeyboardFocusWithin" Value="True">
-                                        <Setter TargetName="Selection" Property="BorderThickness" Value="1" />
+                                        <Setter TargetName="FocusOutline" Property="Visibility" Value="Visible" />
                                     </Trigger>
                                 </ControlTemplate.Triggers>
                             </ControlTemplate>
@@ -106,26 +112,39 @@
             <ListBox.ItemTemplate>
                 <DataTemplate DataType="{x:Type local:ConnectionDisplayRow}">
                     <Border Width="{Binding ViewportWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}}" MinWidth="{Binding ConnectionRowMinWidth, RelativeSource={RelativeSource AncestorType={x:Type local:ConnectionsView}}}">
-                        <Grid MinHeight="{Binding MinimumHeight}">
+                        <Grid MinHeight="46">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" MinHeight="46" />
+                            </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="145" />
                                 <ColumnDefinition Width="{Binding ReceiveColumnWidth}" />
                                 <ColumnDefinition Width="{Binding SendColumnWidth}" />
                                 <ColumnDefinition Width="52" />
                                 <ColumnDefinition Width="52" />
                             </Grid.ColumnDefinitions>
-                            <DockPanel Margin="{Binding Indent}" VerticalAlignment="Center">
-                                <Button Width="26" MinHeight="26" Margin="0,0,4,0" Padding="0" AutomationProperties.Name="{Binding ExpandLabel}" Background="Transparent" BorderThickness="0" Click="OnExpand" Content="{Binding ExpandGlyph}" Visibility="{Binding ExpandVisibility}" />
-                                <Image Width="20" Height="20" Margin="0,0,8,0" VerticalAlignment="Center" Source="{Binding Icon}" Visibility="{Binding IconVisibility}" />
+                            <Border Grid.ColumnSpan="6" Padding="0,5" BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0" Visibility="{Binding RankedVisibility}">
+                                <TextBlock FontSize="11" Foreground="{DynamicResource Muted}" Text="{Binding RankedLabel}" />
+                            </Border>
+                            <DockPanel Grid.Row="1" Margin="0,4,8,4" VerticalAlignment="Center">
+                                <Button Width="26" MinHeight="26" Margin="0,0,4,0" Padding="0" AutomationProperties.Name="{Binding PinAccessibleName}" ToolTip="{Binding PinLabel}" IsEnabled="{Binding CanPin}" Background="Transparent" BorderThickness="0" Click="OnPin">
+                                    <Path Width="12" Height="12" Stretch="Uniform" Data="{Binding PinIcon}">
+                                        <Path.Style><Style TargetType="Path"><Setter Property="Fill" Value="{DynamicResource Muted}" /><Style.Triggers><DataTrigger Binding="{Binding Pinned}" Value="True"><Setter Property="Fill" Value="{DynamicResource ProcessPinAccent}" /></DataTrigger></Style.Triggers></Style></Path.Style>
+                                    </Path>
+                                </Button>
+                                <Image Width="20" Height="20" Margin="0,0,8,0" VerticalAlignment="Center" Source="{Binding Icon}" />
                                 <StackPanel>
                                     <TextBlock FontSize="13" Text="{Binding Name}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Name}" />
                                     <TextBlock FontSize="10" Foreground="{DynamicResource Muted}" Text="{Binding Detail}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Detail}" />
                                 </StackPanel>
                             </DockPanel>
-                            <TextBlock Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12" Text="{Binding Receive}" ToolTip="{Binding NetworkToolTip}" Visibility="{Binding NetworkVisibility}" />
-                            <TextBlock Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12" Text="{Binding Send}" ToolTip="{Binding NetworkToolTip}" Visibility="{Binding NetworkVisibility}" />
-                            <TextBlock Grid.Column="3" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12" Text="{Binding Tcp}" />
-                            <TextBlock Grid.Column="4" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12" Text="{Binding Udp}" />
+                            <ContentControl Grid.Row="1" Grid.Column="1" Margin="12,0" VerticalAlignment="Center" Content="{Binding Graph}" ToolTip="{Binding [ConnectionsHistoryHelp], Source={x:Static r:Strings.Text}}" AutomationProperties.Name="{Binding [ConnectionsHistoryHelp], Source={x:Static r:Strings.Text}}" />
+                            <TextBlock Grid.Row="1" Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12" Text="{Binding Receive}" ToolTip="{Binding NetworkToolTip}" Visibility="{Binding NetworkVisibility}" />
+                            <TextBlock Grid.Row="1" Grid.Column="3" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12" Text="{Binding Send}" ToolTip="{Binding NetworkToolTip}" Visibility="{Binding NetworkVisibility}" />
+                            <TextBlock Grid.Row="1" Grid.Column="4" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12" Text="{Binding Tcp}" />
+                            <TextBlock Grid.Row="1" Grid.Column="5" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12" Text="{Binding Udp}" />
                         </Grid>
                     </Border>
                 </DataTemplate>
@@ -137,9 +156,8 @@
                 <Hyperlink x:Name="EnableTrafficMonitoring" Foreground="{DynamicResource Accent}" Click="OnTrafficSettings"><Run Text="{Binding [ConnectionsEnableTrafficMonitoring], Source={x:Static r:Strings.Text}, Mode=OneWay}" /></Hyperlink>
             </TextBlock>
         </StackPanel>
-        <TextBlock Grid.Column="1" Grid.Row="4" Margin="0,4,0,6" FontSize="11" Foreground="{DynamicResource Muted}" TextWrapping="Wrap" Text="{Binding [ConnectionsNote], Source={x:Static r:Strings.Text}}" />
-        <local:ActionDrawer x:Name="ActionsDrawer" Grid.Column="1" Grid.Row="5">
-            <Border MinHeight="54" Background="{DynamicResource SectionHeaderSurface}" BorderBrush="{DynamicResource Line}" BorderThickness="1" CornerRadius="4">
+        <local:ActionDrawer x:Name="ActionsDrawer" Grid.Column="1" Grid.Row="4">
+            <Border x:Name="ActionBar" MinHeight="54" Background="{DynamicResource SectionHeaderSurface}" BorderBrush="{DynamicResource Line}" BorderThickness="1" CornerRadius="4">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="4" />
@@ -149,10 +167,9 @@
                     <Border Background="{DynamicResource Accent}" CornerRadius="3,0,0,3" />
                     <DockPanel Grid.Column="1" Margin="14,6">
                         <Image x:Name="SelectionIcon" Width="28" Height="28" Margin="0,0,12,0" VerticalAlignment="Center" Visibility="Collapsed" />
-                        <StackPanel>
+                        <StackPanel VerticalAlignment="Center">
                             <TextBlock x:Name="SelectionName" FontSize="16" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
-                            <TextBlock x:Name="SelectionDetail" Margin="0,2,0,0" FontSize="11" Foreground="{DynamicResource Muted}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
-                            <TextBlock x:Name="SelectionNetwork" Margin="0,2,0,0" FontSize="11" Foreground="{DynamicResource Muted}" TextWrapping="Wrap" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" Visibility="Collapsed" />
+                            <TextBlock x:Name="SelectionDetail" Margin="0,2,0,0" FontSize="11" Foreground="{DynamicResource Muted}" TextTrimming="CharacterEllipsis" />
                         </StackPanel>
                     </DockPanel>
                     <StackPanel Grid.Column="2" Margin="0,6,14,6" VerticalAlignment="Center" Orientation="Horizontal">

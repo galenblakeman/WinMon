@@ -1757,7 +1757,7 @@ GPU {11} · {12}
   <data name="ProcessesTabHelp" xml:space="preserve"><value>Сравнивайте запущенные процессы по CPU, памяти, GPU и вводу-выводу. Ищите, группируйте или закрепляйте процессы для отслеживания нагрузки.</value></data>
   <data name="ServicesTabHelp" xml:space="preserve"><value>Проверяйте состояние и ресурсы служб Windows, включая хост-процессы и рабочие процессы. Запускайте, останавливайте или перезапускайте текущие службы, когда это разрешено.</value></data>
   <data name="UsageTabHelp" xml:space="preserve"><value>Сравнивайте суммарное время CPU, GPU и ввод-вывод приложений с запуска WinMon или сброса итогов, включая уже завершённые приложения.</value></data>
-  <data name="ConnectionsTabHelp" xml:space="preserve"><value>Сравнивайте приложения по скоростям приёма/отправки и числу TCP/UDP. Разверните конечные точки или откройте Свойства для адресов и состояний. Захват следует выбранному замеру.</value></data>
+  <data name="ConnectionsTabHelp" xml:space="preserve"><value>Сравнивайте приложения по скорости приёма/отправки и числу TCP/UDP. Закрепляйте приложения над списком. Адреса и состояния доступны в свойствах. Захват соответствует выбранному образцу.</value></data>
   <data name="ConnectionsTop" xml:space="preserve"><value>Количество ведущих приложений</value></data>
   <data name="ConnectionsRankBy" xml:space="preserve"><value>Сортировать приложения по</value></data>
   <data name="ConnectionsReceiveRate" xml:space="preserve"><value>Приём/с</value></data>
@@ -1768,6 +1768,14 @@ GPU {11} · {12}
   <data name="ConnectionsHistoryNote" xml:space="preserve"><value>Соединения при выбранном замере. Скорости — средние за пять секунд, обычно заканчивающихся за три секунды до сбора.</value></data>
   <data name="ConnectionsEnableTrafficMonitoring" xml:space="preserve"><value>Включить мониторинг трафика…</value></data>
   <data name="ConnectionsTrafficRankingUnavailable" xml:space="preserve"><value>Включите мониторинг трафика процессов для сортировки по скорости приёма или отправки.</value></data>
+  <data name="ConnectionsHistoryHelp" xml:space="preserve"><value>Входящий и исходящий трафик за последние две минуты в едином масштабе для всех строк. Пробелы означают недоступные показания. Трафик относится к процессу или исполняемому файлу, а не к отдельному соединению.</value></data>
+  <data name="ConnectionsNoObservedEndpoints" xml:space="preserve"><value>Соединения не обнаружены</value></data>
+  <data name="PinService" xml:space="preserve"><value>Закрепить службу</value></data>
+  <data name="UnpinService" xml:space="preserve"><value>Открепить службу</value></data>
+  <data name="PinServiceHost" xml:space="preserve"><value>Закрепить службы этого хоста</value></data>
+  <data name="UnpinServiceHost" xml:space="preserve"><value>Открепить службы этого хоста</value></data>
+  <data name="PinnedServiceCount" xml:space="preserve"><value>Закреплено: {0}</value></data>
+  <data name="NoPinnedServicesMatch" xml:space="preserve"><value>Нет подходящих закреплённых служб. Закрепите службу с помощью кнопки закрепления.</value></data>
   <data name="OpenLogsFolder" xml:space="preserve"><value>Открыть папку журналов</value></data>
   <data name="OpenLogsFolderHelp" xml:space="preserve"><value>Открыть папку с диагностическими журналами WinMon.</value></data>
   <data name="OpenLogsFolderFailed" xml:space="preserve"><value>Не удалось открыть папку журналов. Запись журналов может быть недоступна или папка больше не существует.</value></data>

@@ -1757,7 +1757,7 @@ Windows 健康状态：{2}</value>
   <data name="ProcessesTabHelp" xml:space="preserve"><value>按 CPU、内存、GPU 和 I/O 比较正在运行的进程。搜索、分组或固定进程以跟踪繁忙的进程。</value></data>
   <data name="ServicesTabHelp" xml:space="preserve"><value>查看 Windows 服务的状态和资源使用情况，包括宿主进程和工作进程。在允许时启动、停止或重启当前服务。</value></data>
   <data name="UsageTabHelp" xml:space="preserve"><value>按应用比较自 WinMon 启动或重置统计以来的 CPU 时间、GPU 时间和 I/O 总量，包括已退出的应用。</value></data>
-  <data name="ConnectionsTabHelp" xml:space="preserve"><value>按接收/发送速率和 TCP/UDP 数量比较应用。展开端点或打开属性查看地址和状态。捕获显示所选采样。</value></data>
+  <data name="ConnectionsTabHelp" xml:space="preserve"><value>按接收/发送速率和 TCP/UDP 数量比较应用。将应用固定在排名列表上方。在属性中查看地址和状态。捕获内容对应所选样本。</value></data>
   <data name="ConnectionsTop" xml:space="preserve"><value>排名靠前的应用数量</value></data>
   <data name="ConnectionsRankBy" xml:space="preserve"><value>应用排序依据</value></data>
   <data name="ConnectionsReceiveRate" xml:space="preserve"><value>接收/秒</value></data>
@@ -1768,6 +1768,14 @@ Windows 健康状态：{2}</value>
   <data name="ConnectionsHistoryNote" xml:space="preserve"><value>所选采样时观测到的连接。速率为延迟的五秒平均值，通常截至采集前三秒。</value></data>
   <data name="ConnectionsEnableTrafficMonitoring" xml:space="preserve"><value>启用流量监控…</value></data>
   <data name="ConnectionsTrafficRankingUnavailable" xml:space="preserve"><value>启用进程流量监控以按接收/发送速率排序。</value></data>
+  <data name="ConnectionsHistoryHelp" xml:space="preserve"><value>过去两分钟的接收与发送流量之和，所有行使用同一刻度。空缺表示读数不可用。流量属于进程或可执行文件，而非单个连接。</value></data>
+  <data name="ConnectionsNoObservedEndpoints" xml:space="preserve"><value>未观测到连接</value></data>
+  <data name="PinService" xml:space="preserve"><value>固定服务</value></data>
+  <data name="UnpinService" xml:space="preserve"><value>取消固定服务</value></data>
+  <data name="PinServiceHost" xml:space="preserve"><value>固定此主机中的服务</value></data>
+  <data name="UnpinServiceHost" xml:space="preserve"><value>取消固定此主机中的服务</value></data>
+  <data name="PinnedServiceCount" xml:space="preserve"><value>已固定 {0} 项</value></data>
+  <data name="NoPinnedServicesMatch" xml:space="preserve"><value>没有匹配的已固定服务。请使用固定按钮固定服务。</value></data>
   <data name="OpenLogsFolder" xml:space="preserve"><value>打开日志文件夹</value></data>
   <data name="OpenLogsFolderHelp" xml:space="preserve"><value>打开包含 WinMon 诊断日志的文件夹。</value></data>
   <data name="OpenLogsFolderFailed" xml:space="preserve"><value>无法打开日志文件夹。日志记录可能不可用，或者文件夹已不存在。</value></data>

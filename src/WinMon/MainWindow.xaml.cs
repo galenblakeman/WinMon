@@ -144,7 +144,10 @@ public partial class MainWindow
             ApplyActionsHidden();
             Processes.Load(ProcessListSettings.From(_preferences), _preferences.PinnedProcesses);
             ServiceView.TopServiceCount = _preferences.TopServiceCount;
+            ServiceView.RestorePins(_preferences.PinnedServices);
+            ServiceView.PinnedOnly = _preferences.ServicePinnedOnly;
             UsageView.Load(UsageSettings(_preferences));
+            ConnectionView.RestorePins(_preferences.PinnedConnections);
             ConnectionView.Load(ConnectionSettings(_preferences));
             Width = Math.Max(MinWidth, _preferences.Width);
             Height = Math.Max(MinHeight, _preferences.Height);

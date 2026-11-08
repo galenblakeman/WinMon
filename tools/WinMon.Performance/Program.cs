@@ -43,6 +43,7 @@ internal static class Program
         var catalog = Catalog();
         var anchor = DateTimeOffset.Parse("2026-10-19T12:00:00Z");
         var second = 0;
+        var fixedConnectionHistory = false;
         void AddSample()
         {
             second++;
@@ -150,31 +151,37 @@ internal static class Program
         var firstConnectionProcess = connectionProcesses[0];
         window.ConnectionView.SelectConnectionForFixture(firstConnectionProcess.ProcessId, firstConnectionProcess.CreationTicks);
         Flush();
-        Measure("connections-grouped-expanded-live-frame");
-        window.ConnectionView.Grouped = false;
-        Flush();
-        Measure("connections-individual-live-frame");
+        Measure("connections-executable-live-frame");
         window.Width = 1200;
         Flush();
         var networkStamp = Stopwatch.GetTimestamp();
-        window.SetProcessNetworkForFixture(new ProcessNetworkFrame(networkStamp, Stopwatch.Frequency,
+        var connectionTraffic = new ProcessNetworkFrame(networkStamp, Stopwatch.Frequency,
             ProcessNetworkQuality.Provisional, session.LatestFull!.Processes.Select(process =>
                 new ProcessNetworkReading(process.ProcessId, process.CreationTicks, 12_000_000, 3_000_000,
-                    2_000_000, 500_000)).ToArray()));
-        window.ConnectionView.Grouped = true;
+                    2_000_000, 500_000)).ToArray());
+        window.SetProcessNetworkForFixture(connectionTraffic);
         window.ConnectionView.SelectConnectionForFixture(firstConnectionProcess.ProcessId, firstConnectionProcess.CreationTicks);
         Flush();
         RequireNetworkColumnVisible();
-        if (!window.ConnectionView.DisplayedRows.Any(row => row.IsGroup && row.NetworkSummary.ReceiveRate is > 0))
+        if (!window.ConnectionView.DisplayedRows.Any(row => row.NetworkSummary.ReceiveRate is > 0))
             throw new InvalidOperationException("Network benchmark requires healthy owner rates.");
-        Measure("connections-network-grouped-expanded-live-frame");
-        window.ConnectionView.Grouped = false;
-        Flush();
-        RequireNetworkColumnVisible();
-        if (window.ConnectionView.DisplayedRows.Any(row => row.Network.Length != 0))
-            throw new InvalidOperationException("Endpoint rows must not show process throughput.");
-        Measure("connections-network-individual-live-frame");
-        RequireNetworkColumnVisible();
+        Measure("connections-network-executable-live-frame");
+        var historyEnd = session.LatestFull!;
+        var connectionFrame = new NetworkConnectionsFrame(endpoints,
+            NetworkAddressFamilyStatus.Success, NetworkAddressFamilyStatus.Success);
+        for (var i = 1; i <= 121; i++)
+        {
+            var past = historyEnd with { Timestamp = historyEnd.Timestamp.AddSeconds(i),
+                MonotonicTimestamp = historyEnd.MonotonicTimestamp > 0
+                    ? historyEnd.MonotonicTimestamp + i * Stopwatch.Frequency : 0 };
+            session.Record(past, past, connections: connectionFrame, network: connectionTraffic);
+        }
+        fixedConnectionHistory = true;
+        Measure("connections-network-history-executable-frame");
+        if (!window.ConnectionView.DisplayedRows.Any(row => row.Graph.ScaleMaximum > 1))
+            throw new InvalidOperationException("Traffic history benchmark must render recorded owner rates.");
+        foreach (var owner in connectionProcesses.Take(5)) window.ConnectionView.TogglePin(owner);
+        Measure("connections-network-history-pinned-frame");
         var report = new
         {
             LoggingEnabled = diagnosticLog is not null,
@@ -195,7 +202,7 @@ internal static class Program
         // Only the refresh and the dispatcher work it causes are measured, not building the synthetic sample.
         (ulong Cycles, long Bytes) Frame()
         {
-            AddSample();
+            if (!fixedConnectionHistory) AddSample();
             var allocated = GC.GetAllocatedBytesForCurrentThread();
             QueryThreadCycleTime(thread, out var before);
             window.RefreshPresentation();

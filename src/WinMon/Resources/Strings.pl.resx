@@ -1757,7 +1757,7 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
   <data name="ProcessesTabHelp" xml:space="preserve"><value>Porównuj uruchomione procesy według CPU, pamięci, GPU i operacji we/wy. Wyszukuj, grupuj lub przypinaj procesy, aby śledzić ich aktywność.</value></data>
   <data name="ServicesTabHelp" xml:space="preserve"><value>Sprawdzaj stan i zużycie zasobów usług Windows wraz z procesami hosta i roboczymi. Uruchamiaj, zatrzymuj lub restartuj bieżące usługi, gdy jest to dozwolone.</value></data>
   <data name="UsageTabHelp" xml:space="preserve"><value>Porównuj łączny czas CPU, czas GPU i operacje we/wy aplikacji od uruchomienia WinMon lub wyzerowania sum, również dla zamkniętych aplikacji.</value></data>
-  <data name="ConnectionsTabHelp" xml:space="preserve"><value>Porównuj aplikacje według szybkości odbioru/wysyłania i liczby TCP/UDP. Rozwiń punkty końcowe lub otwórz Właściwości, aby zobaczyć adresy i stany. Przechwytywanie pokazuje wybraną próbkę.</value></data>
+  <data name="ConnectionsTabHelp" xml:space="preserve"><value>Porównuj aplikacje według szybkości odbierania/wysyłania i liczby TCP/UDP. Przypinaj aplikacje nad rankingiem. Otwórz Właściwości, aby zobaczyć adresy i stany. Przechwytywanie dotyczy wybranej próbki.</value></data>
   <data name="ConnectionsTop" xml:space="preserve"><value>Liczba czołowych aplikacji</value></data>
   <data name="ConnectionsRankBy" xml:space="preserve"><value>Sortuj aplikacje według</value></data>
   <data name="ConnectionsReceiveRate" xml:space="preserve"><value>Odbiór/s</value></data>
@@ -1768,6 +1768,14 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
   <data name="ConnectionsHistoryNote" xml:space="preserve"><value>Połączenia zaobserwowane w wybranej próbce. Szybkości to opóźnione średnie z pięciu sekund, zwykle do trzech sekund przed zebraniem danych.</value></data>
   <data name="ConnectionsEnableTrafficMonitoring" xml:space="preserve"><value>Włącz monitorowanie ruchu…</value></data>
   <data name="ConnectionsTrafficRankingUnavailable" xml:space="preserve"><value>Włącz monitorowanie ruchu procesów, aby sortować według szybkości odbioru lub wysyłania.</value></data>
+  <data name="ConnectionsHistoryHelp" xml:space="preserve"><value>Ruch odbierany i wysyłany z ostatnich dwóch minut, na wspólnej skali dla wszystkich wierszy. Przerwy oznaczają niedostępne odczyty. Ruch dotyczy procesu lub pliku wykonywalnego, a nie pojedynczego połączenia.</value></data>
+  <data name="ConnectionsNoObservedEndpoints" xml:space="preserve"><value>Nie zaobserwowano połączeń</value></data>
+  <data name="PinService" xml:space="preserve"><value>Przypnij usługę</value></data>
+  <data name="UnpinService" xml:space="preserve"><value>Odepnij usługę</value></data>
+  <data name="PinServiceHost" xml:space="preserve"><value>Przypnij usługi tego hosta</value></data>
+  <data name="UnpinServiceHost" xml:space="preserve"><value>Odepnij usługi tego hosta</value></data>
+  <data name="PinnedServiceCount" xml:space="preserve"><value>Przypięte: {0}</value></data>
+  <data name="NoPinnedServicesMatch" xml:space="preserve"><value>Brak pasujących przypiętych usług. Przypnij usługę za pomocą jej przycisku przypinania.</value></data>
   <data name="OpenLogsFolder" xml:space="preserve"><value>Otwórz folder dzienników</value></data>
   <data name="OpenLogsFolderHelp" xml:space="preserve"><value>Otwórz folder zawierający dzienniki diagnostyczne WinMon.</value></data>
   <data name="OpenLogsFolderFailed" xml:space="preserve"><value>Nie można otworzyć folderu dzienników. Rejestrowanie może być niedostępne lub folder już nie istnieje.</value></data>

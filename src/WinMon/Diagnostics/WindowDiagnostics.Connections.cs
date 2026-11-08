@@ -102,6 +102,16 @@ internal sealed partial class WindowDiagnostics
             ProcessNetworkQuality.Provisional,
             [new ProcessNetworkReading(process.ProcessId, created, 18_000_000, 2_500_000, 2_000_000, 250_000),
                 new ProcessNetworkReading(sibling.ProcessId, sibling.CreationTicks, 4_000_000, 750_000, 500_000, 100_000)]);
+        for (var i = 120; i > 0; i--)
+        {
+            var past = sample with { Timestamp = sample.Timestamp.AddSeconds(-i) };
+            var pastTraffic = traffic with { Processes = traffic.Processes.Select(reading => reading with
+            {
+                ReceiveBytesPerSecond = reading.ReceiveBytesPerSecond * (0.3 + i % 17 / 17d),
+                SendBytesPerSecond = reading.SendBytesPerSecond * (0.2 + i % 11 / 11d)
+            }).ToArray() };
+            fixture.Session.Record(past, past, connections: frame, network: i == 50 ? null : pastTraffic);
+        }
         fixture.Session.Record(sample, sample, connections: frame, network: traffic);
         try
         {
@@ -109,6 +119,9 @@ internal sealed partial class WindowDiagnostics
             fixture.ConnectionsTab.IsChecked = true;
             fixture.SetConnectionsForFixture(frame);
             var view = fixture.ConnectionView;
+            var tabs = (StackPanel)fixture.ConnectionsTab.Parent;
+            Require(tabs.Children.IndexOf(fixture.ConnectionsTab) + 1 == tabs.Children.IndexOf(fixture.UsageTab),
+                "Connections must appear immediately before Usage.");
             Require(view.Rank.SelectedIndex == (int)ConnectionSort.Tcp &&
                 !((ComboBoxItem)view.Rank.Items[0]).IsEnabled && !((ComboBoxItem)view.Rank.Items[1]).IsEnabled,
                 "Disabled monitoring must use TCP ranking and disable throughput choices.");
@@ -118,7 +131,7 @@ internal sealed partial class WindowDiagnostics
             await CaptureServiceWindowAsync(fixture, Path.Combine(output, "connections-disabled-ranking.png"), cancellationToken);
             view.Rank.IsDropDownOpen = false;
             view.SelectConnectionForFixture(process.ProcessId, created);
-            Require(view.DisplayedRows.Count == 7, "Executable expansion did not show endpoint rows.");
+            Require(view.DisplayedRows.Count == 2, "Connections must show only two executable/process rows.");
             Require(fixture.ConnectionCounts.Visibility == Visibility.Visible && fixture.SystemCounts.Visibility == Visibility.Collapsed &&
                 fixture.ConnectionTcpValue.Text == "4" && fixture.ConnectionUdpValue.Text == "2", "Connections totals are not in the activity header.");
             var selected = view.Rows.SelectedItem;
@@ -141,16 +154,11 @@ internal sealed partial class WindowDiagnostics
             }
             fixture.Width = 836;
             await CaptureServiceWindowAsync(fixture, Path.Combine(output, "connections-narrow.png"), cancellationToken);
-            view.Grouped = false;
-            Require(view.DisplayedRows.Count == 6, "Individual mode must show one row per endpoint.");
-            await CaptureServiceWindowAsync(fixture, Path.Combine(output, "connections-individual-narrow.png"), cancellationToken);
             fixture.Width = 1200;
-            await CaptureServiceWindowAsync(fixture, Path.Combine(output, "connections-individual.png"), cancellationToken);
-            view.Grouped = true;
             view.SelectConnectionForFixture(process.ProcessId, created);
             fixture.SelectedSample = sample;
             fixture.RefreshVisiblePresentation();
-            Require(view.Notice.Text.Contains(Strings.ConnectionsHistoryNote, StringComparison.Ordinal) && view.DisplayedRows.Count == 7,
+            Require(view.Notice.Text.Contains(Strings.ConnectionsHistoryNote, StringComparison.Ordinal) && view.DisplayedRows.Count == 2,
                 "Capture did not show its recorded endpoint observation.");
             Require(view.SelectedDetailsForFixture?.Contains("203.0.113.24:443", StringComparison.Ordinal) == true &&
                 view.SelectedDetailsForFixture.Contains(Strings.DetailReceivedSent, StringComparison.Ordinal),
@@ -178,14 +186,20 @@ internal sealed partial class WindowDiagnostics
             view.Search.Text = "no-such-process";
             Require(view.DisplayedRows.Count == 0, "Name filter did not hide nonmatching processes.");
             view.Search.Text = process.ProcessId.ToString(System.Globalization.CultureInfo.InvariantCulture);
-            Require(view.DisplayedRows.Count == 6, "PID search lost matching executable group endpoints.");
+            Require(view.DisplayedRows.Count == 1, "PID search lost matching executable group endpoints.");
             Require(fixture.ConnectionTcpValue.Text == "4" && fixture.ConnectionUdpValue.Text == "2", "Filters changed system-wide header totals.");
-            view.Search.Clear();
+            Require(view.ClearConnectionSearchButton.Visibility == Visibility.Visible, "Search clear button is missing.");
+            await CaptureServiceWindowAsync(fixture, Path.Combine(output, "connections-search.png"), cancellationToken);
+            view.ClearConnectionSearchButton.Focus();
+            view.ClearConnectionSearchButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Require(view.Search.Text.Length == 0 && view.Search.IsKeyboardFocused &&
+                view.ClearConnectionSearchButton.Visibility == Visibility.Collapsed,
+                "Search clear button did not clear, hide and return focus to search.");
             view.Rank.SelectedIndex = (int)ConnectionSort.Tcp;
-            Require(view.DisplayedRows.First().IsGroup && view.DisplayedRows.First().Connections.Count(c => c.Protocol == TransportProtocol.Tcp) == 3,
+            Require(view.DisplayedRows.First().Connections.Count(c => c.Protocol == TransportProtocol.Tcp) == 3,
                 "TCP ranking did not put the most connected app first.");
             view.AppsOnly.IsChecked = true;
-            Require(view.DisplayedRows.All(row => row.Process?.HasAppWindow == true || row.IsGroup && row.Members.Any(m => m.HasAppWindow == true)),
+            Require(view.DisplayedRows.All(row => row.Process?.HasAppWindow == true || row.Members.Any(m => m.HasAppWindow == true)),
                 "App only retained a background connection group.");
             view.AppsOnly.IsChecked = false;
             fixture.SetConnectionsForFixture(frame with { Ipv6 = new(false, 5) });
@@ -203,7 +217,7 @@ internal sealed partial class WindowDiagnostics
             Require(view.SelectedProcessForFixture is null && !view.ShowProcess.IsEnabled,
                 "A reused PID inherited process navigation.");
             fixture.SetConnectionsForFixture(frame);
-            view.Rows.SelectedItem = view.DisplayedRows.First(row => row.IsGroup && row.Connections.Any(c => c.ProcessId == process.ProcessId));
+            view.Rows.SelectedItem = view.DisplayedRows.First(row => row.Connections.Any(c => c.ProcessId == process.ProcessId));
             view.ShowProcess.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             Require(fixture.ProcessesTab.IsChecked == true && fixture.Processes.GroupedChip.IsChecked == true,
                 "Executable navigation did not open Grouped Processes.");
@@ -220,12 +234,11 @@ internal sealed partial class WindowDiagnostics
                 "Show in Processes did not navigate to the live process.");
             fixture.ConnectionsTab.IsChecked = true;
             fixture.SetProcessNetworkForFixture(traffic);
-            view.Grouped = true;
-            view.Rows.SelectedItem = view.DisplayedRows.First(row => row.IsGroup && row.Connections.Any(c => c.ProcessId == process.ProcessId));
+            view.Rows.SelectedItem = view.DisplayedRows.First(row => row.Connections.Any(c => c.ProcessId == process.ProcessId));
             Require(view.SelectedDetailsForFixture?.Contains(Strings.DetailReceivedSent, StringComparison.Ordinal) == true,
                 "Observed network totals are missing from executable details.");
-            Require(view.SelectionNetwork.Visibility == Visibility.Visible &&
-                view.SelectionNetwork.Text.Contains(Strings.DetailReceivedSent, StringComparison.Ordinal),
+            Require(view.SelectionDetail.Text.Contains(Strings.DetailReceivedSent, StringComparison.Ordinal) &&
+                !view.SelectionDetail.Text.Contains('\n') && !view.SelectionDetail.Text.Contains('↓') && !view.SelectionDetail.Text.Contains('↑'),
                 "Selected executable traffic must be visible, not only copied.");
             foreach (var theme in new[] { "Dark", "Light" })
             {
@@ -234,9 +247,15 @@ internal sealed partial class WindowDiagnostics
                 fixture.ApplyTheme();
                 fixture.RefreshVisiblePresentation();
                 await CaptureServiceWindowAsync(fixture, Path.Combine(output, $"connections-network-{theme.ToLowerInvariant()}.png"), cancellationToken);
+                Require(Math.Abs(view.ActionBar.ActualHeight - view.ActionBar.MinHeight) < 1 &&
+                    view.ActionBar.MinHeight == fixture.Processes.ProcessActions.MinHeight &&
+                    view.ActionBar.MinHeight == fixture.ServiceView.ActionBar.MinHeight,
+                    "Connections actions must use the same compact height as Processes and Services.");
             }
             fixture.Width = 836;
             await CaptureServiceWindowAsync(fixture, Path.Combine(output, "connections-network-narrow.png"), cancellationToken);
+            Require(Math.Abs(view.ActionBar.ActualHeight - view.ActionBar.MinHeight) < 1,
+                "The narrow Connections action bar must keep its two-line height.");
             CheckToolbarLayout();
             var scroller = FindScroller(view.Rows) ?? throw new InvalidOperationException("Connections scroller was not realized.");
             scroller.ScrollToHorizontalOffset(scroller.ScrollableWidth);
@@ -244,20 +263,15 @@ internal sealed partial class WindowDiagnostics
             Require(Math.Abs(view.HeaderScroller.HorizontalOffset - Math.Min(scroller.HorizontalOffset, view.HeaderScroller.ScrollableWidth)) < 1,
                 $"Network header must follow horizontal scrolling: rows {scroller.HorizontalOffset}/{scroller.ExtentWidth}/{scroller.ViewportWidth}, header {view.HeaderScroller.HorizontalOffset}/{view.HeaderScroller.ExtentWidth}/{view.HeaderScroller.ViewportWidth}.");
             scroller.ScrollToHorizontalOffset(0);
-            view.Grouped = false;
-            view.SelectConnectionForFixture(process.ProcessId, created);
-            Require(view.DisplayedRows.All(row => row.Network.Length == 0), "Endpoint rows must not repeat owner rates.");
-            Require(view.SelectionNetwork.Visibility == Visibility.Visible &&
-                view.SelectionNetwork.Text.Contains(Strings.ConnectionsNetworkOwnerTotals, StringComparison.Ordinal),
-                "Individual mode must display the selected owner's traffic summary.");
-            await CaptureServiceWindowAsync(fixture, Path.Combine(output, "connections-network-individual-narrow.png"), cancellationToken);
             fixture.Width = 1200;
             fixture.SetProcessNetworkForFixture(traffic with { Quality = ProcessNetworkQuality.Unavailable | ProcessNetworkQuality.Incomplete });
             await CaptureServiceWindowAsync(fixture, Path.Combine(output, "connections-network-unavailable.png"), cancellationToken);
             Require(view.Notice.Text.Contains(Strings.NetworkProcessMonitoringUnavailable, StringComparison.Ordinal),
                 "Failed network collection must remain distinct from readable endpoints.");
+            Require(view.Notice.Visibility == Visibility.Collapsed &&
+                view.ConnectionHeaders.ToolTip?.ToString()?.Contains(Strings.NetworkProcessMonitoringUnavailable, StringComparison.Ordinal) == true,
+                "Network status must use the header tooltip without a footer row.");
             fixture.SetProcessNetworkForFixture(null);
-            view.Grouped = true;
             fixture.SetProcessNetworkForFixture(traffic);
             view.SelectConnectionForFixture(process.ProcessId, created);
             var details = view.SelectedDetailsForFixture ?? throw new InvalidOperationException("Properties fixture has no selection.");
@@ -268,6 +282,30 @@ internal sealed partial class WindowDiagnostics
                 await CaptureServiceWindowAsync(properties, Path.Combine(output, "connections-properties.png"), cancellationToken);
             }
             finally { properties.Close(); }
+            var pinButton = FindPinButton(view.Rows) ?? throw new InvalidOperationException("Pin button was not realized.");
+            pinButton.Focus();
+            pinButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Require(view.DisplayedRows.First().Pinned && fixture.Preferences.PinnedConnections.Length == 1,
+                "Connection pin did not reach the preferences or pinned-first list.");
+            Require(view.DisplayedRows.Count(row => row.RankedLabel.Length > 0) == 1 &&
+                view.DisplayedRows.First(row => !row.Pinned).RankedLabel ==
+                    Strings.Format(Strings.RankedByMetric, ((ComboBoxItem)view.Rank.SelectedItem).Content),
+                "Ranked connections must have one separator after the pinned rows.");
+            await CaptureServiceWindowAsync(fixture, Path.Combine(output, "connections-pinned-ranked.png"), cancellationToken);
+            view.PinnedOnly.IsChecked = true;
+            Require(view.DisplayedRows.Count == 1, "Pinned only must hide unpinned executable rows.");
+            Require(view.DisplayedRows.All(row => row.RankedLabel.Length == 0), "Pinned only must hide the ranking separator.");
+            await CaptureServiceWindowAsync(fixture, Path.Combine(output, "connections-pinned.png"), cancellationToken);
+            CheckToolbarLayout();
+            Require(FindScroller(view.Rows)?.ScrollableWidth <= 1,
+                "A focused pin must not widen its row and introduce horizontal overflow.");
+            fixture.SetConnectionsForFixture(frame with { Connections = [] });
+            Require(view.DisplayedRows.Count == 1 && view.DisplayedRows[0].Connections.Count == 0 &&
+                view.DisplayedRows[0].Detail == Strings.ConnectionsNoObservedEndpoints,
+                "A disconnected pin must remain without stale endpoints.");
+            await CaptureServiceWindowAsync(fixture, Path.Combine(output, "connections-pinned-disconnected.png"), cancellationToken);
+            fixture.SetConnectionsForFixture(frame);
+            view.PinnedOnly.IsChecked = false;
             var previousCulture = Strings.Culture;
             try
             {
@@ -298,7 +336,7 @@ internal sealed partial class WindowDiagnostics
         {
             var view = fixture.ConnectionView;
             FrameworkElement[] controls = [view.TopCount, view.Rank, view.SearchBorder,
-                view.IndividualChip, view.GroupedChip, view.AppsOnly];
+                view.AppsOnly, view.PinnedOnly];
             var bounds = controls.Select(control => control.TransformToAncestor(view)
                 .TransformBounds(new Rect(control.RenderSize))).ToArray();
             var center = bounds[0].Top + bounds[0].Height / 2;
@@ -306,6 +344,16 @@ internal sealed partial class WindowDiagnostics
                 Math.Abs(rect.Top + rect.Height / 2 - center) < 1),
                 "Connections controls must fit on a single row at minimum width.");
             Require(!fixture.ConnectionTrafficValue.Text.Contains('\n'), "Activity totals must stay on one line.");
+            Require(bounds[3].Right <= bounds[4].Left && view.AppsOnly.FontSize == 12,
+                "App only must precede Pinned only and match the Processes filter style.");
+            if (view.PinSummary.Visibility == Visibility.Visible)
+            {
+                var pins = view.PinSummary.TransformToAncestor(view.ConnectionHeaders)
+                    .TransformBounds(new Rect(view.PinSummary.RenderSize));
+                Require(pins.Left > 0 && pins.Right <= view.ConnectionHeaders.ColumnDefinitions[0].ActualWidth &&
+                    pins.Top >= 0 && pins.Bottom <= view.ConnectionHeaders.ActualHeight,
+                    "Pinned count must fit beside Process / PID in the first column header.");
+            }
         }
 
         static ScrollViewer? FindScroller(DependencyObject parent)
@@ -313,6 +361,15 @@ internal sealed partial class WindowDiagnostics
             if (parent is ScrollViewer scroller) return scroller;
             for (var index = 0; index < System.Windows.Media.VisualTreeHelper.GetChildrenCount(parent); index++)
                 if (FindScroller(System.Windows.Media.VisualTreeHelper.GetChild(parent, index)) is { } child) return child;
+            return null;
+        }
+
+        Button? FindPinButton(DependencyObject parent)
+        {
+            if (parent is Button { DataContext: ConnectionDisplayRow { Process: { } owner } } button &&
+                owner.Identity == process.Identity) return button;
+            for (var i = 0; i < System.Windows.Media.VisualTreeHelper.GetChildrenCount(parent); i++)
+                if (FindPinButton(System.Windows.Media.VisualTreeHelper.GetChild(parent, i)) is { } found) return found;
             return null;
         }
     }

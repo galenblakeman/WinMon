@@ -17,6 +17,7 @@ public partial class ServicesView
     private readonly ObservableCollection<ServiceDisplayRow> _rows = [];
     private readonly Dictionary<string, ServiceDisplayRow> _spareRows = [];
     private readonly HashSet<string> _expanded = [];
+    private readonly Dictionary<string, int> _pins = new(StringComparer.OrdinalIgnoreCase);
     private ServiceFrame? _frame;
     private IReadOnlyList<ServiceFrame> _history = [];
     private bool _historical, _busy, _ready, _refreshing;
@@ -41,6 +42,63 @@ public partial class ServicesView
     internal event Action<string, string>? PropertiesRequested;
     internal event Action<string>? CopyRequested;
     internal event Action<int>? TopServiceCountChanged;
+    internal event Action? PinsChanged;
+    internal event Action<bool>? PinnedOnlyChanged;
+
+    internal string[] SavedPins => _pins.OrderBy(pin => pin.Value).Select(pin => pin.Key).ToArray();
+
+    internal bool PinnedOnly
+    {
+        get => PinnedOnlyCheckBox.IsChecked == true;
+        set => PinnedOnlyCheckBox.IsChecked = value;
+    }
+
+    internal void RestorePins(IEnumerable<string>? names)
+    {
+        _pins.Clear();
+        foreach (var name in PreferenceStore.NormalizeServicePins(names)) _pins.Add(name, _pins.Count);
+        RefreshRows();
+    }
+
+    private int PinOrder(ServiceGroup group)
+    {
+        if (_pins.Count == 0) return int.MaxValue;
+        var order = int.MaxValue;
+        foreach (var service in group.Services)
+            if (_pins.TryGetValue(service.Name, out var index)) order = Math.Min(order, index);
+        return order;
+    }
+
+    internal void TogglePin(ServiceDisplayRow row)
+    {
+        if (!_rows.Contains(row) || !row.CanPin) return;
+        var names = row.Service is { } service ? new[] { service.Name } : row.Group.Services.Select(s => s.Name);
+        var remove = row.Pinned;
+        var order = _pins.Count == 0 ? 0 : _pins.Values.Max() + 1;
+        foreach (var name in names)
+            if (remove) _pins.Remove(name);
+            else _pins.TryAdd(name, order++);
+        RefreshRows();
+        PinsChanged?.Invoke();
+    }
+
+    private void OnPin(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button { DataContext: ServiceDisplayRow row } button)
+        {
+            var focused = button.IsKeyboardFocusWithin;
+            TogglePin(row);
+            if (focused && !_rows.Contains(row)) PinnedOnlyCheckBox.Focus();
+        }
+        e.Handled = true;
+    }
+
+    private void OnPinnedOnlyChanged(object sender, RoutedEventArgs e)
+    {
+        if (!_ready) return;
+        RefreshRows();
+        PinnedOnlyChanged?.Invoke(PinnedOnly);
+    }
 
     internal int TopServiceCount
     {
@@ -98,6 +156,7 @@ public partial class ServicesView
     {
         RefreshLabels();
         RefreshRows();
+        foreach (var row in _rows) row.RefreshPinLabels();
         ArrangeToolbar();
         ArrangeActionBar();
     }
@@ -310,9 +369,12 @@ public partial class ServicesView
                 if (past.Index.PeakCpu(workers) is var busiest && busiest > peak)
                     peak = busiest;
             var scale = Math.Max(1, peak * 1.1);
-            foreach (var group in TopCountChoices.Limit(
-                         ordered.ThenBy(g => g.Services[0].DisplayName, StringComparer.CurrentCultureIgnoreCase),
-                         TopServiceCount))
+            var sorted = ordered.ThenBy(g => g.Services[0].DisplayName, StringComparer.CurrentCultureIgnoreCase);
+            var pinned = _pins.Count == 0 ? [] : filtered.Where(g => PinOrder(g) != int.MaxValue)
+                .OrderBy(PinOrder).ToArray();
+            var ranked = PinnedOnly ? [] : TopCountChoices.Limit(
+                _pins.Count == 0 ? sorted : sorted.Where(g => PinOrder(g) == int.MaxValue), TopServiceCount).ToArray();
+            foreach (var group in pinned.Concat(ranked))
             {
                 Add(group.Key, group, null, null, false, true);
                 if (!_expanded.Contains(group.Key)) continue;
@@ -361,8 +423,10 @@ public partial class ServicesView
             Notice.Text = _error ?? (_busy ? Strings.ServiceActionInProgress :
                 _frame is null ? _historical ? Strings.ServiceHistoryExpired : Strings.ServicesCollecting :
                 !_frame.Available ? Strings.ServicesUnavailable :
-                _rows.Count == 0 ? Strings.NoServicesMatch : string.Empty);
+                _rows.Count == 0 ? PinnedOnly ? Strings.NoPinnedServicesMatch : Strings.NoServicesMatch : string.Empty);
             Notice.Visibility = Notice.Text.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
+            PinSummary.Text = _pins.Count == 0 ? "" : Strings.Format(Strings.PinnedServiceCount, _pins.Count);
+            PinSummary.Visibility = _pins.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
 
             ServiceMetrics RankedMetrics(ServiceGroup group)
             {
@@ -387,6 +451,11 @@ public partial class ServicesView
                     ranking.Processes.GetValueOrDefault((process.ProcessId, process.CreationTicks)) ??
                     ServiceMetrics.None;
                 row.Update(group, process, service, child, header, _expanded.Contains(group.Key), workers, metrics);
+                var isPinned = process is null && (service is not null
+                    ? _pins.ContainsKey(service.Name) : PinOrder(group) != int.MaxValue);
+                row.UpdatePin(process is null, isPinned, header && isPinned,
+                    header && pinned.Length > 0 && ranked.Length > 0 && ReferenceEquals(group, ranked[0])
+                        ? Strings.Format(Strings.RankedByMetric, Sort.SelectedItem) : "");
                 if (service is null && (process is not null || group.Host is not null))
                 {
                     var values = row.GraphValues(_history.Count);
@@ -679,6 +748,18 @@ internal sealed class ServiceDisplayRow(string key) : INotifyPropertyChanged
     public string Memory { get; private set; } = "";
     public string Io { get; private set; } = "";
     public string Icon { get; private set; } = "";
+    public bool CanPin { get; private set; }
+    public bool Pinned { get; private set; }
+    public bool PinnedHeader { get; private set; }
+    public Geometry PinIcon => Pinned ? ButtonIcon.PinFilled : ButtonIcon.Pin;
+    public string PinLabel => Group.Shared && Service is null
+        ? Pinned ? Strings.UnpinServiceHost : Strings.PinServiceHost
+        : Pinned ? Strings.UnpinService : Strings.PinService;
+    public string PinAccessibleName => PinLabel + ": " + Name;
+    public string RankedLabel { get; private set; } = "";
+    public Visibility RankedVisibility => RankedLabel.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
+    public Visibility PinVisibility => CanPin ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility IconVisibility => CanPin ? Visibility.Collapsed : Visibility.Visible;
     public string ExpandGlyph { get; private set; } = "";
     public string ExpandLabel { get; private set; } = "";
     public Visibility ExpandVisibility { get; private set; }
@@ -689,10 +770,29 @@ internal sealed class ServiceDisplayRow(string key) : INotifyPropertyChanged
     internal ProcessUsage? Process { get; private set; }
     public event PropertyChangedEventHandler? PropertyChanged;
 
+    private void Changed(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+    internal void RefreshPinLabels()
+    {
+        Changed(nameof(PinLabel));
+        Changed(nameof(PinAccessibleName));
+    }
+
+    internal void UpdatePin(bool canPin, bool pinned, bool header, string rankedLabel)
+    {
+        if ((CanPin, Pinned, PinnedHeader, RankedLabel) == (canPin, pinned, header, rankedLabel)) return;
+        CanPin = canPin;
+        Pinned = pinned;
+        PinnedHeader = header;
+        RankedLabel = rankedLabel;
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(string.Empty));
+    }
+
     internal void Update(ServiceGroup group, ProcessUsage? process, ServiceObservation? service, bool child,
         bool header, bool expanded, bool workers, ServiceMetrics metrics)
     {
         var shown = Shown();
+        var wasShared = Group?.Shared;
         Group = group;
         Service = service ?? (header && !group.Shared ? group.Services[0] : null);
         Process = process ?? group.Host;
@@ -713,9 +813,8 @@ internal sealed class ServiceDisplayRow(string key) : INotifyPropertyChanged
         Icon = process is not null ? "\uE8A5" : "\uE713";
         Indent = new Thickness(child ? 30 : 0, 4, 8, 4);
         ExpandGlyph = expanded ? "⌄" : "›";
-        ExpandVisibility = header && (group.Host is not null || group.Shared)
-            ? Visibility.Visible
-            : Visibility.Collapsed;
+        ExpandVisibility = !header ? Visibility.Collapsed : group.Host is not null || group.Shared
+            ? Visibility.Visible : Visibility.Hidden;
         Cpu = metrics.Cpu is { } cpu ? Strings.Format(Strings.PercentOneDecimal, cpu) : Strings.MissingReading;
         Memory = metrics.PrivateBytes is { } memory
             ? TableMetricText.Memory(memory)
@@ -723,8 +822,20 @@ internal sealed class ServiceDisplayRow(string key) : INotifyPropertyChanged
         Io = metrics.Io is { } io
             ? TableMetricText.IoRate(io)
             : Strings.MissingReading;
-        // Most rows are unchanged each second; refreshing every binding would re-lay out their text anyway.
-        if (Shown() != shown) PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(string.Empty));
+        // Metric ticks must not refresh unchanged pin, identity and expansion bindings.
+        if (Name != shown.Name) Changed(nameof(Name));
+        if (Name != shown.Name || wasShared != group.Shared) RefreshPinLabels();
+        if (Detail != shown.Detail) Changed(nameof(Detail));
+        if (Status != shown.Status) Changed(nameof(Status));
+        if (IsRunning != shown.IsRunning) Changed(nameof(IsRunning));
+        if (Cpu != shown.Cpu) Changed(nameof(Cpu));
+        if (Memory != shown.Memory) Changed(nameof(Memory));
+        if (Io != shown.Io) Changed(nameof(Io));
+        if (Icon != shown.Icon) Changed(nameof(Icon));
+        if (ExpandGlyph != shown.ExpandGlyph) Changed(nameof(ExpandGlyph));
+        if (ExpandLabel != shown.ExpandLabel) Changed(nameof(ExpandLabel));
+        if (ExpandVisibility != shown.ExpandVisibility) Changed(nameof(ExpandVisibility));
+        if (Indent != shown.Indent) Changed(nameof(Indent));
     }
 
     // The graph keeps this array only to draw it, and the row replaces its data before the next redraw.
@@ -735,8 +846,8 @@ internal sealed class ServiceDisplayRow(string key) : INotifyPropertyChanged
         return _graphValues.Length == length ? _graphValues : _graphValues = new double?[length];
     }
 
-    // Every bound value; ExpandLabel also follows the UI language.
-    private (string, string, string, bool, string, string, string, string, string, string, Visibility, Thickness)
+    private (string Name, string Detail, string Status, bool IsRunning, string Cpu, string Memory, string Io,
+        string Icon, string ExpandGlyph, string ExpandLabel, Visibility ExpandVisibility, Thickness Indent)
         Shown()
     {
         return (Name, Detail, Status, IsRunning, Cpu, Memory, Io, Icon, ExpandGlyph, ExpandLabel, ExpandVisibility,

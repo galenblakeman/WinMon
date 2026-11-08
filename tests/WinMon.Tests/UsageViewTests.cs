@@ -12,6 +12,15 @@ namespace WinMon.Tests;
 [TestFixture]
 public sealed class UsageViewTests
 {
+    private UsageView? _view;
+
+    [TearDown]
+    public void UnloadView()
+    {
+        _view?.RaiseEvent(new RoutedEventArgs(FrameworkElement.UnloadedEvent));
+        _view = null;
+    }
+
     private static readonly DateTimeOffset Now = DateTimeOffset.Parse("2026-10-24T14:00:00Z");
 
     [Test]
@@ -86,7 +95,7 @@ public sealed class UsageViewTests
     [Test, Apartment(ApartmentState.STA)]
     public void Columns_KeepUnitsInTheValues()
     {
-        var view = new UsageView();
+        var view = _view = new UsageView();
         view.Update(new UsageFrame([App("example", cpu: 100, io: 4_000_000)],
             1_000, 0, Now, Now, false));
         var headers = (Grid)view.FindName("ColumnHeaders");
@@ -137,7 +146,7 @@ public sealed class UsageViewTests
     [Test, Apartment(ApartmentState.STA)]
     public void ActionBarTracksSelectedAppAcrossRefreshAndFilter()
     {
-        var view = new UsageView { CanShowInProcesses = _ => true };
+        var view = _view = new UsageView { CanShowInProcesses = _ => true };
         var first = App("first", cpu: 200) with { ImagePath = @"C:\Apps\first.exe" };
         var second = App("second", cpu: 100) with { ImagePath = @"C:\Apps\second.exe" };
         view.Update(new UsageFrame([first, second], 300, 0, Now, Now, false));

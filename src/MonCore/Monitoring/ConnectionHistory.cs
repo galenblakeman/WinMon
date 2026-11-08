@@ -25,6 +25,7 @@ public sealed class ConnectionHistory
     public int Capacity { get; private set; }
     public bool WasMemoryLimited { get; private set; }
     public ConnectionCapture? Latest { get; private set; }
+    public IReadOnlyList<ConnectionCapture> Captures => _captures.ToArray();
 
     /// <summary>Returns only an exactly aligned capture; callers must not substitute current live readings.</summary>
     public ConnectionCapture? Find(long monotonicTimestamp) => monotonicTimestamp <= 0 ? null : _captures.FirstOrDefault(capture =>

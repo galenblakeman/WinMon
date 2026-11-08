@@ -145,6 +145,7 @@ public static partial class Strings
     public static string ConnectionsEndpointProtocol => ResourceManager.GetString(nameof(ConnectionsEndpointProtocol), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConnectionsExpand => ResourceManager.GetString(nameof(ConnectionsExpand), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConnectionsGroupedHelp => ResourceManager.GetString(nameof(ConnectionsGroupedHelp), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ConnectionsHistoryHelp => ResourceManager.GetString(nameof(ConnectionsHistoryHelp), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConnectionsHistoryNote => ResourceManager.GetString(nameof(ConnectionsHistoryNote), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConnectionsHistoryUnavailable => ResourceManager.GetString(nameof(ConnectionsHistoryUnavailable), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConnectionsIndividualHelp => ResourceManager.GetString(nameof(ConnectionsIndividualHelp), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -154,6 +155,7 @@ public static partial class Strings
     public static string ConnectionsLocalEndpoint => ResourceManager.GetString(nameof(ConnectionsLocalEndpoint), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConnectionsNetworkOwnerTotals => ResourceManager.GetString(nameof(ConnectionsNetworkOwnerTotals), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConnectionsNetworkProvisional => ResourceManager.GetString(nameof(ConnectionsNetworkProvisional), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ConnectionsNoObservedEndpoints => ResourceManager.GetString(nameof(ConnectionsNoObservedEndpoints), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConnectionsNote => ResourceManager.GetString(nameof(ConnectionsNote), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConnectionsPartial => ResourceManager.GetString(nameof(ConnectionsPartial), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConnectionsProcess => ResourceManager.GetString(nameof(ConnectionsProcess), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -482,6 +484,7 @@ public static partial class Strings
     public static string NoMemoryReadingsAmongAccessibleProcesses => ResourceManager.GetString(nameof(NoMemoryReadingsAmongAccessibleProcesses), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string None => ResourceManager.GetString(nameof(None), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string NoPinnedProcessesMatch => ResourceManager.GetString(nameof(NoPinnedProcessesMatch), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string NoPinnedServicesMatch => ResourceManager.GetString(nameof(NoPinnedServicesMatch), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string NoPresentNetworkAdaptersReported => ResourceManager.GetString(nameof(NoPresentNetworkAdaptersReported), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string NoProcessCountReadings => ResourceManager.GetString(nameof(NoProcessCountReadings), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string NoRankedProcessesMatchYourSearch => ResourceManager.GetString(nameof(NoRankedProcessesMatchYourSearch), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -550,7 +553,10 @@ public static partial class Strings
     public static string PinnedOnly => ResourceManager.GetString(nameof(PinnedOnly), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PinnedProcessCount => ResourceManager.GetString(nameof(PinnedProcessCount), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PinnedProcessesExplanation => ResourceManager.GetString(nameof(PinnedProcessesExplanation), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string PinnedServiceCount => ResourceManager.GetString(nameof(PinnedServiceCount), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PinProcess => ResourceManager.GetString(nameof(PinProcess), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string PinService => ResourceManager.GetString(nameof(PinService), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string PinServiceHost => ResourceManager.GetString(nameof(PinServiceHost), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PopulatedCoresPerSocketReportedMaximum => ResourceManager.GetString(nameof(PopulatedCoresPerSocketReportedMaximum), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PowerPC => ResourceManager.GetString(nameof(PowerPC), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PrimaryDrive => ResourceManager.GetString(nameof(PrimaryDrive), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -785,6 +791,8 @@ public static partial class Strings
     public static string Unknown => ResourceManager.GetString(nameof(Unknown), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string UnknownDiskNumber => ResourceManager.GetString(nameof(UnknownDiskNumber), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string UnpinProcess => ResourceManager.GetString(nameof(UnpinProcess), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string UnpinService => ResourceManager.GetString(nameof(UnpinService), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string UnpinServiceHost => ResourceManager.GetString(nameof(UnpinServiceHost), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string Up => ResourceManager.GetString(nameof(Up), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string UpdateAvailable => ResourceManager.GetString(nameof(UpdateAvailable), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string UpdateCancelled => ResourceManager.GetString(nameof(UpdateCancelled), Culture ?? CultureInfo.CurrentUICulture)!;

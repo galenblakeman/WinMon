@@ -2,6 +2,19 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## Connections header count and ranked separator (November 8, 2026)
+
+SDK 10.0.403 / .NET 10.0.14. Four alternating before/after pairs used frozen app payloads and the existing UI benchmark's traffic-history workload: 850 synthetic processes, 60 connection owners, 480 endpoints, 400 warm-up frames and seven batches of 60. A task-local copy of the benchmark skips unrelated measurements and uses one pin so the new ranking separator is visible. Logging is disabled in both payloads. The baseline already includes the header pin-count move and removed footer lines; this comparison measures the additional ranked separator. The final template reuses the existing row grid rather than wrapping every row in another panel.
+
+| Scenario | Before ms/frame | After ms/frame | Before allocated B/frame | After allocated B/frame |
+| --- | ---: | ---: | ---: | ---: |
+| Traffic history, no pins | 4.834 | 4.494 | 3,244,556 | 3,240,650 |
+| Traffic history, one pin and ranked rows | 3.336 | 3.225 | 3,185,836 | 3,185,912 |
+
+Timing ranges overlap, so these results establish no slowdown rather than a speed improvement. The pinned case adds 76 allocated bytes per frame, including the localized ranking-label formatting (about 76 B/s at the normal 1 Hz refresh). Pixel hashes are stable within each build; they differ across builds with the revised row template and visible ranking separator. English/German pinned/ranked, Pinned only, healthy/unavailable network and narrow/scrolled smoke renders were inspected. No builds or tests ran alongside the final benchmark pairs. Native collection and the WPF render thread are outside this measurement.
+
+Raw results, frozen payloads, focused driver and runner: `artifacts/connections-header-performance/{before,after}-{1..4}.json`, `comparison.json`, `{before,after}/`, `driver/` and `Measure.ps1`. App SHA-256: before `CCC7BBD7D3D3B7919EB0CCC0B50B77CF851E29972530A5A7141C4859AE288D8A`; after `42E1DE9533BC2F52CA69EEC88F21D2E98E4DB25C8E027115CC0A3F536CED8351`. The exploratory wrapper/five-pin run remains under `initial-*.json` and is excluded from this comparison. The focused driver build needed execution outside the sandbox for restore; its cached NU1900 audit warnings reflect unavailable vulnerability endpoints, with no dependency changes. Final `tools/Verify.ps1 -Smoke connections` passed the app and benchmark builds without warnings, all 1,234 tests and 16 smoke renders. One preceding run hit an unrelated diagnostic-log test failure; isolated and final full reruns passed.
+
 ## 2026-11-08 — Diagnostic file logging
 
 Four alternating logging-disabled/enabled pairs used the existing 850-process live-frame workload, 400 warm-up frames and seven batches of 60 on .NET 10.0.14 with `DOTNET_TieredCompilation=0`. Both modes use the same assembly, preserving the existing working-tree changes and isolating the background log writer; benchmark logs are under the result directory rather than the running app's log folder. Raw JSON/PNGs and runner: `artifacts/logging-performance/{without,with}-{1..4}.{json,png}` and `Measure.ps1`; summary: `comparison.json`. An initial full pre-logging worktree result remains at `artifacts/logging-baseline.json` but is not mixed into this controlled comparison.
@@ -17,7 +30,59 @@ Every run allocated **608,512 B/frame** and produced the same live pixel hash, `
 
 Dated measurement and validation records, newest first. Each section describes the build and machine it was measured on, and some name code that has since changed or moved. For how to measure today and the decisions still in force, see [Performance](DEVELOPMENT.md#performance) in the developer guide. The raw data named under `artifacts/` is local and not in the repository.
 
-Dated measurement and validation records, newest first. Each section describes the build and machine it was measured on, and some name code that has since changed or moved. For how to measure today and the decisions still in force, see [Performance](DEVELOPMENT.md#performance) in the developer guide. The raw data named under `artifacts/` is local and not in the repository.
+## Automatic network recovery (November 8, 2026)
+
+SDK 10.0.403 / .NET 10.0.14. The UI benchmark disables `NetworkMonitoringController`, so a task-local console harness compiled the unchanged controller from HEAD and the changed source against the same fake healthy connection. Four alternating before/after pairs retained real one-second delays, discarded the first two intervals and measured six subsequent intervals per process. No builds or tests ran alongside the final pairs. The harness excludes native collection, IPC and UI work; it measures the healthy polling path only. Sources, runner and raw results: `artifacts/network-recovery-perf/{Before.cs,After.cs,Program.cs,RecoveryPerf.csproj,Measure.ps1,before-1.json,after-1.json,...,comparison.json}`.
+
+Median managed allocation was **433.33 bytes per poll in both builds**, including harness overhead. Median intervals were 1,008.62 ms before and 1,008.32 ms after, dominated by the fixed delay and timer scheduling rather than processing time. Process CPU medians were 0 and 2.60 ms per poll; these short runs have coarse CPU-time granularity (two changed runs also reported zero), so they do not establish a CPU cost or improvement. An exploratory run found approximately 48 extra bytes per poll from the added `HasFlag` check; the final polling path uses a bitmask comparison and removes that increase. Exploratory data is retained as `initial-*.json` and excluded from the final comparison.
+
+Recovery adds no healthy-path service requests and uses one tracked task, with a five-second delay between failed connection attempts. The regression tests cover repeated failures and cancellation; sustained native failure/recovery CPU cost and real sleep/resume were not measured. Final standard and Store verification passed 1,222 and 1,224 tests. Connections and capture/Settings smoke checks passed with 15 and 22 renders; representative network states were inspected. The initial standard run hit an unrelated setup rollback test failure; isolated and subsequent full reruns passed.
+
+## Service pins and toolbar order (November 7, 2026)
+
+SDK 10.0.403 / .NET 10.0.14. Four alternating before/after pairs used frozen application assemblies and the existing expanded Services fixture: 850 synthetic processes, 300 services, 60 hosts, 400 warm-up frames and seven batches of 60. The task-local driver copies the existing benchmark source, skips measurement of other scenarios and exits after Services; both payloads use the identical driver. Baseline is the working tree before the service-pin changes, including the pre-existing Connections work. WinMon.dll SHA-256: before `404F0C3CB7D8A0E689C33E2B03386E9CC570350FBEA47F05E2A4E635194B74F6`; after `54CB8E976A5991736CE40A3838D5309D7CB5DE0F2656A1EF811840BF17673C73`. Raw results: `artifacts/services-pins/{before,after}-{1..4}.json`; medians: `artifacts/services-pins/comparison.json`; driver and runner: `artifacts/services-pins/driver/Program.cs` and `Measure.ps1`.
+
+| Services scenario | Before ms/frame | After ms/frame | Before allocated B/frame | After allocated B/frame |
+| --- | ---: | ---: | ---: | ---: |
+| Expanded, no saved pins | 7.254 | 7.338 | 1,043,006 | 1,113,438 |
+
+The 0.084 ms (1.2%) median timing difference is inside the observed run-to-run spread: before 6.840–7.523 ms, after 7.211–7.619 ms. The additional interactive pin buttons, bindings and pinned/ranked section visuals carry a measured allocation cost of about 70.4 KB/frame (6.8%, approximately 70 KB/s at the normal 1 Hz refresh). No sampling or native collection work was added. The first implementation allocated about 77.6 KB/frame above baseline; notifying only changed cells reduced that overhead by about 7 KB/frame and avoids refreshing pin labels on metric ticks. Its raw comparison is retained as `initial-comparison.json` and `initial-{before,after}-{1..4}.json` in the same directory.
+
+Each build produced one stable Services pixel hash across all four runs. The changed hash also matches the initial implementation, confirming that the notification optimization preserved this rendered fixture. Hashes differ between baseline and changed as intended for the toolbar and pin icons. The initial overlapping full-benchmark attempt was stopped and excluded; both focused comparisons ran after the separate Connections benchmark finished, with no builds or tests running alongside them. These results cover UI refresh/layout/render submission with no saved service pins; pinned ordering, shared hosts and filters are covered by tests and smoke checks rather than a separate performance scenario. Native sampling and the render thread are outside this measurement.
+
+Standard verification passed all 1,213 tests and the 21-render Services smoke; Store verification passed all 1,215 tests. Dark/light pinned overviews, Pinned only, narrow/wrapped and German renders were inspected. Smoke checks exercise actual pin clicks, focus after row moves, and focus recovery when unpinning removes a row. An earlier run hit a shared build-folder lock, so an unchanged copy of `tools/Verify.ps1` redirected its root/output paths to the task-owned verification directory. One unrelated Network Setup rollback test failed once and passed on subsequent full runs. NuGet vulnerability auditing was disabled for these commands because its endpoints were unreachable.
+
+## Connections executable rows and pins (November 7, 2026)
+
+SDK 10.0.403 / .NET 10.0.14. Four sequential before/after pairs used frozen builds, 400 warm-up frames and seven batches of 60. Baseline WinMon.dll SHA-256: `C47BF358A1D2128FCE64AAF1F6B1F1F30168BCA76DB2D7F4752A33268FC12F1D`; changed: `77A51DB553FEDA2969CE327EB7AE806EEB1E1A2F215A4BC442D8DAFDC70FBE35`. Raw results: `artifacts/connections-pins-{before,after}-{1..4}.json`; medians: `artifacts/connections-pins-comparison.json`.
+
+| Connections scenario | Before ms/frame | After ms/frame | Before allocated B/frame | After allocated B/frame |
+| --- | ---: | ---: | ---: | ---: |
+| Executable rows, monitoring disabled | 2.198 | 1.989 | 920,788 | 554,217 |
+| Executable rows, monitoring enabled | 3.265 | 2.709 | 1,477,647 | 1,107,987 |
+| Retained traffic history | 3.513 | 3.176 | 3,567,884 | 3,207,664 |
+| Retained traffic history, five pins | — | 3.184 | — | 3,210,624 |
+
+The previous expanded-group workloads are compared with the new executable-only rows, with the same endpoint fixture. Removing endpoint children and their unused formatting/identifiers accounts for the lower cost. The five-pin case adds about 0.008 ms and 2,960 bytes per refresh relative to the new unpinned history case. It uses the same retained captures and row population; pins change ordering rather than duplicating ranked rows. Compact pixel hashes match in all four pairs. Connections hashes intentionally change with the removed selector, pin controls and executable-only layout.
+
+The changed snapshot also includes concurrent Services pin work from the shared checkout. These are Connections-specific measurements, not an isolated Services or whole-app comparison; concurrent development also limits timing attribution. Both builds measure UI-thread refresh/layout/render submission, excluding native collection and the render thread. Desktop and Store verification passed; Connections and feature smokes passed with 14 and 113 renders. Pin persistence, executable restart, late path discovery/deduplication, PID reuse, disconnected/unrecorded states and Top/filter behavior are covered. The focused pin smoke checks that the focus outline does not widen a row or introduce horizontal overflow.
+
+## Connections traffic history (November 7, 2026)
+
+SDK 10.0.403 / .NET 10.0.14. Four sequential before/after pairs used frozen builds and the existing 400 warm-up frames, seven batches of 60. No builds or tests ran alongside the measured pairs. Baseline WinMon.dll SHA-256: `5F7A35600672D3D489617A457EE31641B6557CE64237CCAF51B0B546C687C0E7`; changed: `C47BF358A1D2128FCE64AAF1F6B1F1F30168BCA76DB2D7F4752A33268FC12F1D`. Raw results: `artifacts/connections-history-{before,after}-{8..11}.json`; medians: `artifacts/connections-history-comparison.json`. Earlier runs 1–5 used intermediate builds or overlapped verification and are excluded.
+
+| Connections scenario | Before ms/frame | After ms/frame | Before allocated B/frame | After allocated B/frame |
+| --- | ---: | ---: | ---: | ---: |
+| Grouped, expanded; monitoring disabled | 2.197 | 2.188 | 920,756 | 920,788 |
+| Individual; monitoring disabled | 2.273 | 2.277 | 962,309 | 962,341 |
+| Grouped, expanded; monitoring enabled | 3.123 | 3.256 | 1,297,777 | 1,477,647 |
+| Individual; monitoring enabled | 2.852 | 3.268 | 1,200,024 | 1,451,189 |
+| Grouped; retained traffic history | — | 3.480 | — | 3,567,884 |
+| Individual; retained traffic history | — | 3.482 | — | 3,017,657 |
+
+Monitoring-disabled refresh cost is effectively unchanged. Enabled rows add the history controls, data arrays and localized help bindings; the small time/allocation increase in the existing enabled cases is the cost of that new column. The additional history cases seed 121 captures with 480 endpoints, 60 endpoint owners and 850 traffic readings per capture. The existing 100,000-entry capture budget retains the last 71 captures; these cases freeze the recorded samples during measurement so warm-up cannot evict the traffic data. They assert that an actual traffic trace is rendered. They measure new work, so there is no baseline history trace to compare.
+
+The first history implementation allocated about 7.5 MB/frame grouped and 7.0 MB/frame individual. Restricting owner/rate lookup tables to the displayed executable paths or lifetimes reduced those workloads to about 3.6 MB and 3.0 MB, without caching another copy of retained captures. Full-view pixel hashes intentionally change with the tab order and history column; Compact hashes match in all four pairs. Measurements cover UI refresh/layout/render submission, excluding native collection and the render thread. Verification passed all 1,215 tests, the 15-render Connections smoke and the feature smoke; dark/light, minimum-width, scrolling, Capture, unavailable and German renders were inspected.
 
 ## Connections single-row toolbar (November 7, 2026)
 

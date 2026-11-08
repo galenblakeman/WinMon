@@ -24,6 +24,7 @@ public sealed class CpuGraph : FrameworkElement
     private IReadOnlyList<MonitorSample> _samples = [];
     private ProcessUsage? _process;
     private ProcessSort _processSort;
+    internal string? SparklineAccentKey { get; init; }
     private double?[]? _processValues;
     private MonitorSample? _selected;
     private double _end;
@@ -217,7 +218,7 @@ public sealed class CpuGraph : FrameworkElement
                 ProcessSort.Gpu => "GpuChartAccent", ProcessSort.Memory => "MemoryChartAccent",
                 ProcessSort.Io => "DiskChartAccent", _ => "CpuChartAccent"
             };
-            DrawSeries(drawingContext, plot, Resource(key, accent), 0);
+            DrawSeries(drawingContext, plot, Resource(SparklineAccentKey ?? key, accent), 0);
         }
         else if (alternative)
         {

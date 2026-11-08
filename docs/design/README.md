@@ -10,6 +10,14 @@ This folder contains the current layout reference, feature design notes and edit
 
 ## Feature notes
 
+- [Connections header pin count](CONNECTIONS-HEADER-PINS.md) moves the saved-pin count beside Process / PID and removes the two informational footer lines.
+
+- [Automatic network recovery](NETWORK-RECOVERY.md) reconnects interrupted process-network monitoring without elevation and preserves session totals.
+
+- [Connections search clear button](CONNECTIONS-SEARCH-CLEAR.md) matches the Processes and Services search controls.
+
+- [Service pins](SERVICE-PINS.md) moves Workers after search and adds saved service pins above ranked groups.
+
 - [Separate Network settings](NETWORK-SETTINGS.md) gives adapter selection and process-network service controls their own sidebar page, shortening Monitoring.
 
 - [Default history retention](DEFAULT-HISTORY-RETENTION.md) sets new installations to 30 minutes while preserving saved choices.
@@ -89,6 +97,8 @@ Implemented on 2026-10-24; each note ends with what landed and where it departed
 - [Settings sidebar](SETTINGS-LAYOUT.md)
 - [CSV export](CSV-EXPORT.md)
 - [Action button icons](ACTION-BUTTON-ICONS.md)
+
+- [Connections traffic history](CONNECTIONS-TRAFFIC-HISTORY.md)
 
 ## Application icon
 

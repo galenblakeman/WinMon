@@ -1757,7 +1757,7 @@ O trabalho não salvo pode ser perdido. Todos os processos listados abaixo serã
   <data name="ProcessesTabHelp" xml:space="preserve"><value>Compare processos em execução por CPU, memória, GPU e E/S. Pesquise, agrupe ou fixe processos para acompanhar sua atividade.</value></data>
   <data name="ServicesTabHelp" xml:space="preserve"><value>Confira o estado e uso de recursos dos serviços do Windows, incluindo processos hospedeiros e de trabalho. Inicie, pare ou reinicie serviços atuais quando permitido.</value></data>
   <data name="UsageTabHelp" xml:space="preserve"><value>Compare o tempo total de CPU, GPU e E/S por aplicativo desde o início do WinMon ou a redefinição dos totais, incluindo aplicativos já encerrados.</value></data>
-  <data name="ConnectionsTabHelp" xml:space="preserve"><value>Compare aplicativos por taxas de recebimento/envio e contagens TCP/UDP. Expanda os pontos de extremidade ou abra Propriedades para ver endereços e estados. Captura acompanha a amostra selecionada.</value></data>
+  <data name="ConnectionsTabHelp" xml:space="preserve"><value>Compare aplicativos por taxa de recebimento/envio e contagens TCP/UDP. Fixe aplicativos acima da classificação. Abra Propriedades para ver endereços e estados. A captura segue a amostra selecionada.</value></data>
   <data name="ConnectionsTop" xml:space="preserve"><value>Número de aplicativos principais</value></data>
   <data name="ConnectionsRankBy" xml:space="preserve"><value>Classificar aplicativos por</value></data>
   <data name="ConnectionsReceiveRate" xml:space="preserve"><value>Recebimento/s</value></data>
@@ -1768,6 +1768,14 @@ O trabalho não salvo pode ser perdido. Todos os processos listados abaixo serã
   <data name="ConnectionsHistoryNote" xml:space="preserve"><value>Conexões observadas na amostra selecionada. As taxas são médias de cinco segundos, normalmente até três segundos antes da coleta.</value></data>
   <data name="ConnectionsEnableTrafficMonitoring" xml:space="preserve"><value>Ativar monitoramento de tráfego…</value></data>
   <data name="ConnectionsTrafficRankingUnavailable" xml:space="preserve"><value>Ative o monitoramento de tráfego por processo para classificar pela taxa de recebimento ou envio.</value></data>
+  <data name="ConnectionsHistoryHelp" xml:space="preserve"><value>Tráfego recebido e enviado nos últimos dois minutos, com a mesma escala para todas as linhas. Lacunas indicam leituras indisponíveis. O tráfego pertence ao processo ou executável, não a uma conexão individual.</value></data>
+  <data name="ConnectionsNoObservedEndpoints" xml:space="preserve"><value>Nenhuma conexão observada</value></data>
+  <data name="PinService" xml:space="preserve"><value>Fixar serviço</value></data>
+  <data name="UnpinService" xml:space="preserve"><value>Desafixar serviço</value></data>
+  <data name="PinServiceHost" xml:space="preserve"><value>Fixar os serviços deste host</value></data>
+  <data name="UnpinServiceHost" xml:space="preserve"><value>Desafixar os serviços deste host</value></data>
+  <data name="PinnedServiceCount" xml:space="preserve"><value>{0} fixados</value></data>
+  <data name="NoPinnedServicesMatch" xml:space="preserve"><value>Nenhum serviço fixado corresponde. Fixe um serviço usando o botão de fixação.</value></data>
   <data name="OpenLogsFolder" xml:space="preserve"><value>Abrir pasta de logs</value></data>
   <data name="OpenLogsFolderHelp" xml:space="preserve"><value>Abrir a pasta que contém os logs de diagnóstico do WinMon.</value></data>
   <data name="OpenLogsFolderFailed" xml:space="preserve"><value>Não foi possível abrir a pasta de logs. O registro pode estar indisponível ou a pasta pode não existir mais.</value></data>

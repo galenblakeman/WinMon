@@ -16,7 +16,7 @@ namespace WinMon.Controls;
 internal enum ConnectionSort { Receive, Send, Tcp, Udp }
 
 internal sealed record ConnectionListSettings(int TopCount = 10, ConnectionSort Sort = ConnectionSort.Receive,
-    bool AppsOnly = false);
+    bool AppsOnly = false, bool PinnedOnly = false);
 
 public partial class ConnectionsView
 {
@@ -24,7 +24,9 @@ public partial class ConnectionsView
         nameof(ConnectionRowMinWidth), typeof(double), typeof(ConnectionsView), new PropertyMetadata(758d));
     private readonly ObservableCollection<ConnectionDisplayRow> _rows = [];
     private readonly Dictionary<string, ConnectionDisplayRow> _cache = new(StringComparer.Ordinal);
-    private readonly HashSet<string> _expanded = [];
+    internal ProcessPins Pins { get; } = new();
+    internal event Action? PinsChanged;
+    internal SavedProcessPin[] SavedPins => Pins.Snapshot();
     private NetworkConnectionsFrame? _frame;
     private IReadOnlyList<ProcessUsage> _processes = [];
     private ProcessNetworkFrame? _network;
@@ -33,30 +35,19 @@ public partial class ConnectionsView
         new(ProcessIdentityPolicy.Windows.Comparer);
     private readonly Dictionary<ProcessLifetimeIdentity, ProcessNetworkReading> _networkReadings = [];
     private bool _historical;
+    private IReadOnlyList<ConnectionCapture> _history = [];
     private bool _refreshing;
     private bool _loadingSettings;
     private string? _selectedKey;
     private ConnectionListSettings _settings = new();
 
     internal event Action<string>? CopyRequested;
-    internal event Action<ProcessUsage>? ProcessRequested;
     internal event Action<IReadOnlyList<ProcessUsage>>? GroupRequested;
-    internal event Action<bool>? GroupedChanged;
     internal event Action<bool>? ActionsHiddenChanged;
     internal event Action<ConnectionListSettings>? SettingsChanged;
     internal event Action<string, string>? PropertiesRequested;
     internal event Action? TrafficSettingsRequested;
     internal Func<ProcessUsage, bool>? CanShowInProcesses { get; set; }
-    internal bool Grouped
-    {
-        get => GroupedChip.IsChecked == true;
-        set
-        {
-            if (Grouped == value) return;
-            if (value) GroupedChip.IsChecked = true;
-            else IndividualChip.IsChecked = true;
-        }
-    }
     internal bool ActionsHidden
     {
         get => ActionsDrawer.Collapsed;
@@ -94,11 +85,13 @@ public partial class ConnectionsView
     }
 
     internal void Update(NetworkConnectionsFrame? frame, IReadOnlyList<ProcessUsage> processes, bool historical,
-        ProcessNetworkFrame? network = null, bool networkEnabled = false)
+        ProcessNetworkFrame? network = null, bool networkEnabled = false,
+        IReadOnlyList<ConnectionCapture>? history = null)
     {
         _frame = frame;
         _processes = processes;
         _historical = historical;
+        _history = history ?? [];
         _network = network;
         var availabilityChanged = _networkEnabled != networkEnabled;
         _networkEnabled = networkEnabled;
@@ -110,8 +103,14 @@ public partial class ConnectionsView
         SendHeaderColumn.Width = networkEnabled ? new GridLength(100) : new GridLength(0);
         ReceiveHeader.Visibility = networkEnabled ? Visibility.Visible : Visibility.Collapsed;
         SendHeader.Visibility = networkEnabled ? Visibility.Visible : Visibility.Collapsed;
-        ConnectionHeaders.MinWidth = networkEnabled ? 650 : 450;
-        ConnectionRowMinWidth = networkEnabled ? 668 : 468;
+        ConnectionHeaders.MinWidth = networkEnabled ? 795 : 595;
+        ConnectionRowMinWidth = networkEnabled ? 813 : 613;
+        RefreshRows();
+    }
+
+    internal void RestorePins(IEnumerable<SavedProcessPin> pins)
+    {
+        Pins.Restore(pins);
         RefreshRows();
     }
 
@@ -135,6 +134,7 @@ public partial class ConnectionsView
             Rank.ToolTip = _networkEnabled ? null : help;
             Rank.SelectedIndex = (int)EffectiveSort;
             AppsOnly.IsChecked = settings.AppsOnly;
+            PinnedOnly.IsChecked = settings.PinnedOnly;
         }
         finally { _loadingSettings = false; }
         RefreshRows();
@@ -153,16 +153,12 @@ public partial class ConnectionsView
         Search.Clear();
         return true;
     }
-    internal void SelectConnectionForFixture(int processId, long creationTicks, int connectionIndex = 0)
+    internal void SelectConnectionForFixture(int processId, long creationTicks)
     {
         var entry = Entries().FirstOrDefault(entry => entry.Connection.ProcessId == processId &&
             entry.Connection.ProcessCreationTicks == creationTicks);
         if (entry is null) return;
-        _expanded.Add(GroupKey(entry));
-        RefreshRows();
-        Rows.SelectedItem = _rows.Where(row => row.Connection is { } connection &&
-                connection.ProcessId == processId && connection.ProcessCreationTicks == creationTicks)
-            .ElementAtOrDefault(connectionIndex);
+        Rows.SelectedItem = _rows.FirstOrDefault(row => row.Key == entry.GroupKey);
     }
 
     private void OnLanguageChanged(object? sender, PropertyChangedEventArgs e)
@@ -175,14 +171,17 @@ public partial class ConnectionsView
         finally { _loadingSettings = false; }
         Load(_settings);
     }
-    private void OnGroupingChanged(object sender, RoutedEventArgs e)
+    private void OnSearchChanged(object sender, TextChangedEventArgs e)
     {
-        if (Rows is null) return;
-        _selectedKey = null;
-        GroupedChanged?.Invoke(Grouped);
+        ClearConnectionSearchButton.Visibility = Search.Text.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
         RefreshRows();
     }
-    private void OnSearchChanged(object sender, TextChangedEventArgs e) => RefreshRows();
+
+    private void OnClearSearch(object sender, RoutedEventArgs e)
+    {
+        Search.Clear();
+        Search.Focus();
+    }
 
     private void OnSettingsChanged(object sender, RoutedEventArgs e)
     {
@@ -193,7 +192,7 @@ public partial class ConnectionsView
             return;
         }
         _settings = new ConnectionListSettings(top, ReferenceEquals(sender, Rank) ? (ConnectionSort)Rank.SelectedIndex : _settings.Sort,
-            AppsOnly.IsChecked == true);
+            AppsOnly.IsChecked == true, PinnedOnly.IsChecked == true);
         SettingsChanged?.Invoke(_settings);
         RefreshRows();
     }
@@ -213,38 +212,79 @@ public partial class ConnectionsView
         var frame = _frame;
         var entries = frame?.Available == true ? Entries() : [];
         var desired = new List<ConnectionDisplayRow>();
-        if (frame?.Available == true)
+        var query = Search.Text.Trim();
+        var groups = entries.GroupBy(GroupKey, StringComparer.OrdinalIgnoreCase)
+            .Select(group => ConnectionGroup.Create(group.Key, group)).ToArray();
+        var pinnedKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var pins = Pins.Snapshot();
+        if (pins.Any(pin => !pin.Grouped))
         {
-            var query = Search.Text.Trim();
-            var groups = entries
-                .Where(entry => Grouped || Matches(entry, query))
-                .GroupBy(GroupKey, StringComparer.OrdinalIgnoreCase)
-                .Select(group => ConnectionGroup.Create(group.Key, group))
-                .Where(group => Matches(group, query))
-                .Where(group => !_settings.AppsOnly || group.Members.Any(process => process.HasHadAppWindow || process.HasAppWindow == true))
+            var resolved = pins.Select(pin =>
+            {
+                var owner = !pin.Grouped ? _processes.FirstOrDefault(process =>
+                    process.Identity == new ProcessLifetimeIdentity(pin.ProcessId, pin.CreationTicks, pin.LifetimeDomain) &&
+                    process.ImagePath.Length > 0) : null;
+                return owner is null ? pin : pin with { Grouped = true, ImagePath = owner.ImagePath,
+                    Name = owner.Name, AppName = owner.AppName, HasAppWindow = owner.HasAppWindow };
+            }).ToArray();
+            if (!pins.SequenceEqual(resolved))
+            {
+                Pins.Restore(resolved);
+                pins = Pins.Snapshot();
+                PinsChanged?.Invoke();
+            }
+        }
+        foreach (var pin in pins)
+        {
+            var saved = new ProcessUsage(pin.ProcessId, pin.CreationTicks, pin.Name, 0)
+            { ImagePath = pin.ImagePath, AppName = pin.AppName, HasAppWindow = pin.HasAppWindow,
+                LifetimeDomain = pin.LifetimeDomain };
+            var key = OwnerKey(saved);
+            pinnedKeys.Add(key);
+            var group = groups.FirstOrDefault(group => group.Key == key) ?? new ConnectionGroup(key, [], [], saved);
+            if (group.Process is null) group = group with { Process = saved };
+            if (!Visible(group, query)) continue;
+            Add(group, true);
+        }
+        if (!_settings.PinnedOnly && frame?.Available == true)
+            foreach (var item in groups.Where(group => !pinnedKeys.Contains(group.Key) && Visible(group, query))
                 .Select(group => (Group: group, Network: _networkEnabled ? CollectNetworkSummary(NetworkMembers(group)) : NetworkSummary.Disabled))
                 .OrderByDescending(item => SortValue(item.Group, item.Network))
                 .ThenBy(item => DisplayName(item.Group.Process), StringComparer.CurrentCultureIgnoreCase)
                 .ThenBy(item => item.Group.Key, StringComparer.Ordinal)
-                .Take(_settings.TopCount == 0 ? int.MaxValue : _settings.TopCount);
-            foreach (var item in groups)
-            {
-                var group = item.Group;
-                var expanded = _expanded.Contains(group.Key);
-                if (Grouped)
-                {
-                    var parent = Row(group.Key);
-                    parent.UpdateGroup(group, expanded, item.Network);
-                    desired.Add(parent);
-                    if (!expanded) continue;
-                }
-                foreach (var entry in Ordered(group.Entries))
-                {
-                    var child = Row(entry.Key);
-                    child.UpdateConnection(entry, !Grouped, OwnerNetworkSummary(entry.Process));
-                    desired.Add(child);
-                }
-            }
+                .Take(_settings.TopCount == 0 ? int.MaxValue : _settings.TopCount))
+                Add(item.Group, false, item.Network);
+        PinnedCountLabel.Text = Strings.Format(Strings.PinnedProcessCount, pins.Length);
+        PinSummary.Visibility = pins.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
+
+        bool Visible(ConnectionGroup group, string text) =>
+            (Matches(group, text) || group.Entries.Count == 0 && (text.Length == 0 ||
+                DisplayName(group.Process).Contains(text, StringComparison.CurrentCultureIgnoreCase) ||
+                group.Process!.ProcessId.ToString(CultureInfo.InvariantCulture).Contains(text, StringComparison.Ordinal))) &&
+            (!_settings.AppsOnly || group.Members.Append(group.Process).Any(process =>
+                process is not null && (process.HasHadAppWindow || process.HasAppWindow == true)));
+
+        void Add(ConnectionGroup group, bool pinned, NetworkSummary? summary = null)
+        {
+            var row = Row(group.Key);
+            var status = group.Entries.Count > 0 ? null : frame?.Available != true ? Strings.Unavailable :
+                _historical ? Strings.ProcessNotRecorded : Strings.ConnectionsNoObservedEndpoints;
+            row.UpdateGroup(group, pinned, summary ?? (_networkEnabled
+                ? CollectNetworkSummary(NetworkMembers(group)) : NetworkSummary.Disabled), status);
+            desired.Add(row);
+        }
+        var graphs = _networkEnabled
+            ? ConnectionGraphData.Build(_history, desired) : null;
+        var firstRanked = desired.Any(row => row.Pinned) ? desired.FirstOrDefault(row => !row.Pinned) : null;
+        foreach (var row in desired)
+        {
+            row.SetRankedLabel(ReferenceEquals(row, firstRanked)
+                ? Strings.Format(Strings.RankedByMetric, ((ComboBoxItem)Rank.SelectedItem).Content) : "");
+            row.Graph.Visibility = _networkEnabled && row.Process is not null
+                ? Visibility.Visible : Visibility.Hidden;
+            if (row.Graph.Visibility != Visibility.Visible) continue;
+            row.Graph.SetProcessData(graphs![ConnectionGraphData.Key(row.Process!)],
+                MonitorPreferences.ShortRangeSeconds, row.Process!);
         }
         _refreshing = true;
         try
@@ -265,21 +305,15 @@ public partial class ConnectionsView
         }
         if (frame is not null)
         {
-            var valid = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var entry in entries)
-            {
-                valid.Add(entry.GroupKey);
-                valid.Add(entry.Key);
-            }
+            var valid = entries.Select(entry => entry.GroupKey).Concat(pinnedKeys).ToHashSet(StringComparer.Ordinal);
             foreach (var key in _cache.Keys.Where(key => !valid.Contains(key)).ToArray()) _cache.Remove(key);
-            _expanded.RemoveWhere(key => !valid.Contains(key));
         }
         Notice.Text = frame is null ? (_historical ? Strings.ConnectionsHistoryUnavailable : Strings.ConnectionsLoading) :
             !frame.Available ? Strings.ConnectionsUnavailable :
             frame.PartiallyAvailable ? Strings.ConnectionsPartial :
             _historical ? Strings.ConnectionsHistoryNote :
             _rows.Count == 0 ? Strings.ConnectionsEmpty : NetworkStateText();
-        Notice.Visibility = Notice.Text.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
+        Notice.Visibility = _rows.Count == 0 && Notice.Text.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
         if (_historical && frame?.Available == true)
             Notice.Text = string.Join(Environment.NewLine, new[] { Strings.ConnectionsHistoryNote,
                 frame.PartiallyAvailable ? Strings.ConnectionsPartial : "", NetworkStateText() }
@@ -335,23 +369,10 @@ public partial class ConnectionsView
     private static bool ValidRate(double? rate) => rate is null || (double.IsFinite(rate.Value) && rate.Value >= 0);
     private static long SaturatingAdd(long total, long value) => value > long.MaxValue - total ? long.MaxValue : total + value;
 
-    private NetworkSummary OwnerNetworkSummary(ProcessUsage? owner)
-    {
-        if (!_networkEnabled) return NetworkSummary.Disabled;
-        if (owner is null || _network is null ||
-            !_networkReadings.TryGetValue(owner.Identity, out var reading) || reading.ReceivedBytes < 0 || reading.SentBytes < 0)
-            return NetworkSummary.Unavailable;
-        var current = _network.CurrentLifetimes is null || _network.CurrentLifetimes.Contains(owner.Identity);
-        var rates = !_network.Quality.HasFlag(ProcessNetworkQuality.Unavailable) && current && ValidRate(reading.ReceiveBytesPerSecond) && ValidRate(reading.SendBytesPerSecond) &&
-            reading.ReceiveBytesPerSecond is not null && reading.SendBytesPerSecond is not null;
-        return new NetworkSummary(reading.ReceivedBytes, reading.SentBytes,
-            rates ? reading.ReceiveBytesPerSecond : null, rates ? reading.SendBytesPerSecond : null,
-            _network.Quality, true, true);
-    }
-
     private IReadOnlyList<ProcessUsage> NetworkMembers(ConnectionGroup group)
     {
-        var path = group.Members.Select(NetworkOwner).FirstOrDefault(process => process?.ImagePath.Length > 0)?.ImagePath;
+        var path = group.Members.Append(group.Process).OfType<ProcessUsage>().Select(NetworkOwner)
+            .FirstOrDefault(process => process?.ImagePath.Length > 0)?.ImagePath;
         return path is not null && _networkMembersByPath.TryGetValue(path, out var members) ? members : group.Members;
     }
 
@@ -419,19 +440,7 @@ public partial class ConnectionsView
                 }
             }
             else groupKey = LifetimeKey(connection.ProcessId, connection.ProcessCreationTicks);
-            entries[index] = new ConnectionEntry(connection, owner, groupKey, Endpoint(connection.LocalEndpoint));
-        }
-        // Duplicate identities share one owner, so global numbering matches the former per-group numbering.
-        var counts = new Dictionary<string, int>(StringComparer.Ordinal);
-        foreach (var entry in Ordered(entries))
-        {
-            var connection = entry.Connection;
-            var identity = string.Create(CultureInfo.InvariantCulture,
-                $"lifetime:{connection.ProcessId}:{connection.ProcessCreationTicks?.ToString(CultureInfo.InvariantCulture) ?? "?"}/" +
-                $"{connection.Protocol}:{entry.LocalText}:{(connection.RemoteEndpoint is { } remote ? Endpoint(remote) : "-")}:{connection.State}");
-            counts.TryGetValue(identity, out var occurrence);
-            counts[identity] = occurrence + 1;
-            entry.Key = identity + "/" + occurrence.ToString(CultureInfo.InvariantCulture);
+            entries[index] = new ConnectionEntry(connection, owner, groupKey);
         }
         return entries;
     }
@@ -447,13 +456,12 @@ public partial class ConnectionsView
     private static string DisplayName(ProcessUsage? process) => process?.AppName is { Length: > 0 } name ? name :
         process?.Name is { Length: > 0 } executable ? executable : Strings.ConnectionsUnknownProcess;
     private static string GroupKey(ConnectionEntry entry) => entry.GroupKey;
+    private static string OwnerKey(ProcessUsage owner) => owner.ImagePath.Length > 0
+        ? "image:" + ProcessRanking.GroupKey(owner).ToUpperInvariant() : LifetimeKey(owner.ProcessId, owner.CreationTicks);
 
     private static string LifetimeKey(int pid, long? ticks) => string.Create(CultureInfo.InvariantCulture,
         $"lifetime:{pid}:{ticks?.ToString(CultureInfo.InvariantCulture) ?? "?"}");
 
-    private static IEnumerable<ConnectionEntry> Ordered(IEnumerable<ConnectionEntry> entries) => entries
-        .OrderBy(entry => entry.Connection.Protocol)
-        .ThenBy(entry => entry.LocalText, StringComparer.Ordinal);
     private ConnectionDisplayRow Row(string key)
     {
         if (_cache.TryGetValue(key, out var row)) return row;
@@ -467,25 +475,29 @@ public partial class ConnectionsView
     }
     private void OnRowKeyDown(object sender, KeyEventArgs e)
     {
+        if (e.OriginalSource is Button) return;
         if (e.Key == Key.Enter && Rows.SelectedItem is ConnectionDisplayRow { Connections.Count: > 0 } selected)
         {
             PropertiesRequested?.Invoke(selected.Name, Details(selected));
             e.Handled = true;
             return;
         }
-        if (Rows.SelectedItem is not ConnectionDisplayRow { IsGroup: true } row ||
-            e.Key is not (Key.Left or Key.Right)) return;
-        if (e.Key == Key.Right) _expanded.Add(row.Key);
-        else _expanded.Remove(row.Key);
-        RefreshRows();
+    }
+
+    private void OnPin(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.DataContext is not ConnectionDisplayRow { Process: { } process }) return;
+        TogglePin(process);
         e.Handled = true;
     }
-    private void OnExpand(object sender, RoutedEventArgs e)
+
+    internal void TogglePin(ProcessUsage process)
     {
-        if ((sender as FrameworkElement)?.DataContext is not ConnectionDisplayRow { IsGroup: true } row) return;
-        if (!_expanded.Add(row.Key)) _expanded.Remove(row.Key);
+        Pins.Toggle(process, process.ImagePath.Length > 0);
+        PinsChanged?.Invoke();
         RefreshRows();
     }
+
     private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (_refreshing) return;
@@ -500,22 +512,19 @@ public partial class ConnectionsView
     private void UpdateActionBar()
     {
         var row = Rows.SelectedItem as ConnectionDisplayRow;
-        SelectionName.Text = row?.Connection is not null ? DisplayName(row.Process) : row?.Name ?? Strings.ConnectionsTab;
-        SelectionDetail.Text = row?.Detail ?? "";
+        SelectionName.Text = row?.Name ?? Strings.ConnectionsTab;
         SelectionIcon.Source = row?.Icon;
         SelectionIcon.Visibility = row?.Icon is null ? Visibility.Collapsed : Visibility.Visible;
-        var networkDetails = NetworkDetails(row?.NetworkSummary ?? NetworkSummary.Disabled);
-        SelectionNetwork.Text = string.Join(Environment.NewLine,
-            networkDetails.Split(Environment.NewLine).Take(3));
-        SelectionNetwork.ToolTip = networkDetails;
-        SelectionNetwork.Visibility = SelectionNetwork.Text.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
-        ActionsDrawer.Summarize(SelectionName.Text, string.Join(Environment.NewLine,
-            new[] { SelectionDetail.Text, SelectionNetwork.Text }.Where(text => text.Length > 0)), row is not null);
+        var network = row?.NetworkSummary ?? NetworkSummary.Disabled;
+        SelectionDetail.Text = string.Join(" · ", new[] { row?.Detail ?? "", network.Enabled ? NetworkTotals(network) : "" }
+            .Where(text => text.Length > 0));
+        var details = string.Join(Environment.NewLine,
+            new[] { row?.Detail ?? "", NetworkDetails(network) }.Where(text => text.Length > 0));
+        SelectionDetail.ToolTip = details;
+        ActionsDrawer.Summarize(SelectionName.Text, SelectionDetail.Text, row is not null);
         CopyDetails.IsEnabled = row is { Connections.Count: > 0 } && _frame?.Available == true;
         Properties.IsEnabled = CopyDetails.IsEnabled;
-        ShowProcess.IsEnabled = row?.Connection is not null
-            ? row.Process is { } process && (CanShowInProcesses?.Invoke(process) ?? true)
-            : row?.Members.Any(member => CanShowInProcesses?.Invoke(member) ?? true) == true;
+        ShowProcess.IsEnabled = row?.Members.Any(member => CanShowInProcesses?.Invoke(member) ?? true) == true;
     }
     private void OnProperties(object sender, RoutedEventArgs e)
     {
@@ -531,14 +540,11 @@ public partial class ConnectionsView
     {
         if (!ShowProcess.IsEnabled) return;
         if (Rows.SelectedItem is not ConnectionDisplayRow row) return;
-        if (row.Connection is not null && row.Process is { } process)
-            ProcessRequested?.Invoke(process);
-        else if (row.IsGroup && row.Members.Count > 0)
+        if (row.Members.Count > 0)
             GroupRequested?.Invoke(row.Members);
     }
     private static string Details(ConnectionDisplayRow row)
     {
-        if (row.Connection is { } selectedConnection) return Details(selectedConnection, row.Process, row.NetworkSummary);
         var text = new StringBuilder();
         text.AppendLine(row.Name);
         text.AppendLine($"PID: {string.Join(", ", row.Connections.Select(connection => connection.ProcessId).Distinct())}");
@@ -550,14 +556,6 @@ public partial class ConnectionsView
                 $"{(endpoint.RemoteEndpoint is { } remote ? Endpoint(remote) : Strings.MissingReading)}\t" +
                 StateText(endpoint.State));
         AppendNetworkDetails(text, row.NetworkSummary);
-        return text.ToString();
-    }
-    private static string Details(NetworkConnection c, ProcessUsage? process, NetworkSummary network)
-    {
-        var text = new StringBuilder(string.Join(Environment.NewLine, [DisplayName(process), $"PID: {c.ProcessId.ToString(CultureInfo.InvariantCulture)}", $"{Strings.ConnectionsProtocol}: {ProtocolText(c.Protocol)}", $"{Strings.ConnectionsLocalEndpoint}: {Endpoint(c.LocalEndpoint)}", $"{Strings.ConnectionsRemoteEndpoint}: {(c.RemoteEndpoint is { } remote ? Endpoint(remote) : Strings.MissingReading)}", $"{Strings.ConnectionsState}: {StateText(c.State)}"]));
-        text.AppendLine();
-        AppendProcessPath(text, process);
-        AppendNetworkDetails(text, network);
         return text.ToString();
     }
     private static void AppendProcessPath(StringBuilder text, ProcessUsage? process) =>
@@ -581,18 +579,18 @@ public partial class ConnectionsView
         {
             Strings.ConnectionsNetworkOwnerTotals,
             $"↓ {NetworkRate(network.RatesAvailable ? network.ReceiveRate : null)}  ↑ {NetworkRate(network.RatesAvailable ? network.SendRate : null)}",
-            $"{Strings.DetailReceivedSent}: {(network.HasTotals ? $"{UsageText.Bytes(network.ReceivedBytes)} / {UsageText.Bytes(network.SentBytes)}" : Strings.MissingReading)}",
+            NetworkTotals(network),
             quality
         }.Where(text => text.Length > 0));
     }
+    private static string NetworkTotals(NetworkSummary network) =>
+        $"{Strings.DetailReceivedSent}: {(network.HasTotals ? $"{UsageText.Bytes(network.ReceivedBytes)} / {UsageText.Bytes(network.SentBytes)}" : Strings.MissingReading)}";
     internal static string NetworkRate(double? value) => value is { } rate ? TableMetricText.IoRate(rate) : Strings.MissingReading;
     internal static string Endpoint(IPEndPoint endpoint) => endpoint.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6 ? $"[{endpoint.Address}]:{endpoint.Port.ToString(CultureInfo.InvariantCulture)}" : $"{endpoint.Address}:{endpoint.Port.ToString(CultureInfo.InvariantCulture)}";
     internal static string ProtocolText(TransportProtocol protocol) => protocol == TransportProtocol.Tcp ? "TCP" : "UDP";
     internal static string StateText(TcpState? state) => state switch { TcpState.Closed => Strings.ConnectionsTcpStateClosed, TcpState.Listen => Strings.ConnectionsTcpStateListen, TcpState.SynSent => Strings.ConnectionsTcpStateSynSent, TcpState.SynReceived => Strings.ConnectionsTcpStateSynReceived, TcpState.Established => Strings.ConnectionsTcpStateEstablished, TcpState.FinWait1 => Strings.ConnectionsTcpStateFinWait1, TcpState.FinWait2 => Strings.ConnectionsTcpStateFinWait2, TcpState.CloseWait => Strings.ConnectionsTcpStateCloseWait, TcpState.Closing => Strings.ConnectionsTcpStateClosing, TcpState.LastAck => Strings.ConnectionsTcpStateLastAck, TcpState.TimeWait => Strings.ConnectionsTcpStateTimeWait, TcpState.DeleteTcb => Strings.ConnectionsTcpStateDeleteTcb, _ => Strings.MissingReading };
-    internal sealed record ConnectionEntry(NetworkConnection Connection, ProcessUsage? Process, string GroupKey, string LocalText)
-    {
-        internal string Key { get; set; } = "";
-    }
+    internal sealed record ConnectionEntry(NetworkConnection Connection, ProcessUsage? Process, string GroupKey)
+;
     internal readonly record struct NetworkSummary(long ReceivedBytes, long SentBytes, double? ReceiveRate,
         double? SendRate, ProcessNetworkQuality Quality, bool Enabled, bool HasTotals)
     {
@@ -613,18 +611,20 @@ public partial class ConnectionsView
 
 internal sealed class ConnectionDisplayRow(string key) : INotifyPropertyChanged
 {
+    public CpuGraph Graph { get; } = new() { Height = 24, ShowGrid = false, SparklineAccentKey = "NetworkChartAccent" };
+    public bool Pinned { get; private set; }
+    public string PinLabel { get; private set; } = "";
+    public string PinAccessibleName => $"{PinLabel}: {Name}";
+    public System.Windows.Media.Geometry PinIcon { get; private set; } = ButtonIcon.Pin;
+    public bool CanPin => Process is not null;
     public string Key { get; } = key;
     public string Name { get; private set; } = "";
     public string Detail { get; private set; } = "";
-    public string Local { get; private set; } = "";
-    public string LocalToolTip { get; private set; } = "";
-    public string Remote { get; private set; } = "";
-    public string RemoteToolTip { get; private set; } = "";
-    public string State { get; private set; } = "";
-    public string StateToolTip { get; private set; } = "";
     public string AccessibleName { get; private set; } = "";
     public string Tcp { get; private set; } = "";
     public string Udp { get; private set; } = "";
+    public string RankedLabel { get; private set; } = "";
+    public Visibility RankedVisibility => RankedLabel.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
     public string Network { get; private set; } = "";
     public string Receive { get; private set; } = "";
     public string Send { get; private set; } = "";
@@ -633,70 +633,41 @@ internal sealed class ConnectionDisplayRow(string key) : INotifyPropertyChanged
     public GridLength ReceiveColumnWidth { get; private set; }
     public GridLength SendColumnWidth { get; private set; }
     public Visibility NetworkVisibility { get; private set; } = Visibility.Collapsed;
-    public string ExpandGlyph { get; private set; } = "";
-    public string ExpandLabel { get; private set; } = "";
-    public Visibility ExpandVisibility { get; private set; }
-    public Visibility IconVisibility { get; private set; }
-    public Thickness Indent { get; private set; }
-    public double MinimumHeight { get; private set; }
     public BitmapSource? Icon { get; private set; }
-    internal bool IsGroup { get; private set; }
     internal ProcessUsage? Process { get; private set; }
-    internal NetworkConnection? Connection { get; private set; }
     internal IReadOnlyList<NetworkConnection> Connections { get; private set; } = [];
     internal IReadOnlyList<ProcessUsage> Members { get; private set; } = [];
     internal ConnectionsView.NetworkSummary NetworkSummary { get; private set; }
     public event PropertyChangedEventHandler? PropertyChanged;
-    internal void UpdateGroup(ConnectionsView.ConnectionGroup group, bool expanded, ConnectionsView.NetworkSummary network)
+    internal void SetRankedLabel(string label)
+    {
+        if (RankedLabel == label) return;
+        RankedLabel = label;
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(string.Empty));
+    }
+    internal void UpdateGroup(ConnectionsView.ConnectionGroup group, bool pinned, ConnectionsView.NetworkSummary network, string? status = null)
     {
         var shown = Shown();
-        IsGroup = true;
+        var wasPinned = Pinned;
         Process = group.Process;
-        Connection = null;
+        Pinned = pinned;
         Connections = group.Entries.Select(entry => entry.Connection).ToArray();
         Members = group.Members;
         NetworkSummary = network;
         Name = DisplayName(Process);
-        Detail = Members.Count > 1
+        Detail = status ?? (Members.Count > 1
             ? Strings.Format(Strings.ConnectionsProcessCount, Members.Count)
-            : $"PID {group.Entries[0].Connection.ProcessId.ToString(CultureInfo.InvariantCulture)}";
-        Local = LocalToolTip = Remote = RemoteToolTip = State = StateToolTip = "";
-        Tcp = Connections.Count(connection => connection.Protocol == TransportProtocol.Tcp).ToString(CultureInfo.CurrentCulture);
-        Udp = Connections.Count(connection => connection.Protocol == TransportProtocol.Udp).ToString(CultureInfo.CurrentCulture);
+            : $"PID {(group.Entries.Count > 0 ? group.Entries[0].Connection.ProcessId : Process!.ProcessId).ToString(CultureInfo.InvariantCulture)}");
+        var countsAvailable = status is null || status == Strings.ConnectionsNoObservedEndpoints;
+        Tcp = countsAvailable ? Connections.Count(connection => connection.Protocol == TransportProtocol.Tcp).ToString(CultureInfo.CurrentCulture) : Strings.MissingReading;
+        Udp = countsAvailable ? Connections.Count(connection => connection.Protocol == TransportProtocol.Udp).ToString(CultureInfo.CurrentCulture) : Strings.MissingReading;
         SetNetwork(network, true);
         AccessibleName = $"{Name}, {Detail}, {Tcp} TCP, {Udp} UDP" +
             (network.Enabled ? $", {Strings.ConnectionsNetworkOwnerTotals}, {Network}" : "");
-        ExpandGlyph = expanded ? "⌄" : "›";
-        ExpandLabel = Strings.Format(expanded ? Strings.ConnectionsCollapse : Strings.ConnectionsExpand, Name);
-        ExpandVisibility = Visibility.Visible;
-        IconVisibility = Visibility.Visible;
-        Indent = new Thickness(0, 4, 8, 4);
-        MinimumHeight = 46;
+        PinLabel = pinned ? Strings.UnpinProcess : Strings.PinProcess;
+        PinIcon = pinned ? ButtonIcon.PinFilled : ButtonIcon.Pin;
         EnsureIcon();
-        if (Shown() != shown) PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(string.Empty));
-    }
-    internal void UpdateConnection(ConnectionsView.ConnectionEntry entry, bool individual, ConnectionsView.NetworkSummary network)
-    {
-        // The row key fixes every endpoint field, so only the owner name, layout, traffic and language change the text.
-        if (!IsGroup && Connection is not null && _individual == individual && NetworkSummary == network &&
-            ReferenceEquals(_textCulture, Strings.Culture) && ReferenceEquals(_formatCulture, CultureInfo.CurrentCulture) &&
-            Name == DisplayName(entry.Process))
-        {
-            if (!ReferenceEquals(Process, entry.Process))
-            {
-                Process = entry.Process;
-                Members = entry.Process is null ? [] : [entry.Process];
-                EnsureIcon();
-            }
-            if (!ReferenceEquals(Connection, entry.Connection)) { Connection = entry.Connection; Connections = [entry.Connection]; }
-            return;
-        }
-        _individual = individual; _textCulture = Strings.Culture; _formatCulture = CultureInfo.CurrentCulture;
-        var shown = Shown(); IsGroup = false; Process = entry.Process; Connection = entry.Connection; Connections = [entry.Connection]; Members = entry.Process is null ? [] : [entry.Process]; NetworkSummary = network;
-        Name = DisplayName(Process); Detail = Strings.Format(Strings.ConnectionsEndpointProtocol, $"PID {entry.Connection.ProcessId.ToString(CultureInfo.InvariantCulture)}", ConnectionsView.ProtocolText(entry.Connection.Protocol)) +
-            $"  ·  {(entry.Connection.RemoteEndpoint is { } endpoint ? ConnectionsView.Endpoint(endpoint) : Strings.MissingReading)}  ·  {ConnectionsView.StateText(entry.Connection.State)}";
-        Local = LocalToolTip = ConnectionsView.Endpoint(entry.Connection.LocalEndpoint); Remote = RemoteToolTip = entry.Connection.RemoteEndpoint is { } remote ? ConnectionsView.Endpoint(remote) : Strings.MissingReading; State = StateToolTip = ConnectionsView.StateText(entry.Connection.State);
-        AccessibleName = $"{Name}, {Detail}, {Remote}, {State}"; Tcp = Udp = ""; SetNetwork(network, false); ExpandGlyph = ExpandLabel = ""; ExpandVisibility = Visibility.Collapsed; IconVisibility = Visibility.Visible; Indent = new Thickness(individual ? 0 : 30, 3, 8, 3); MinimumHeight = 32; EnsureIcon(); if (Shown() != shown) PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(string.Empty));
+        if (Shown() != shown || pinned != wasPinned) PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(string.Empty));
     }
     private void SetNetwork(ConnectionsView.NetworkSummary network, bool summary)
     {
@@ -709,37 +680,6 @@ internal sealed class ConnectionDisplayRow(string key) : INotifyPropertyChanged
         Send = summary && network.Enabled ? ConnectionsView.NetworkRate(network.RatesAvailable ? network.SendRate : null) : "";
         NetworkToolTip = summary && network.Enabled ? ConnectionsView.NetworkDetails(network) : "";
     }
-    private static (string Text, string ToolTip) EndpointSummary(
-        IEnumerable<(TransportProtocol Protocol, IPEndPoint Endpoint)> source)
-    {
-        var all = source.Distinct().ToArray();
-        if (all.Length == 0) return (Strings.MissingReading, Strings.MissingReading);
-        var tooltip = string.Join(Environment.NewLine,
-            all.Select(item => $"{ConnectionsView.ProtocolText(item.Protocol)} {ConnectionsView.Endpoint(item.Endpoint)}"));
-        var endpoints = all.Select(item => item.Endpoint).Distinct().ToArray();
-        if (endpoints.Length == 1) return (ConnectionsView.Endpoint(endpoints[0]), tooltip);
-        var addresses = endpoints.Select(endpoint => endpoint.Address).Distinct().ToArray();
-        var ports = endpoints.Select(endpoint => endpoint.Port).Distinct().Count();
-        return addresses.Length == 1
-            ? (Strings.Format(Strings.ConnectionsAddressPorts, addresses[0], ports), tooltip)
-            : ports == 1
-                ? (Strings.Format(Strings.ConnectionsAddressesSinglePort, addresses.Length), tooltip)
-                : (Strings.Format(Strings.ConnectionsAddressesPorts, addresses.Length, ports), tooltip);
-    }
-    private static (string Text, string ToolTip) StateSummary(IEnumerable<NetworkConnection> source)
-    {
-        var groups = source.GroupBy(connection => connection.State)
-            .OrderByDescending(group => group.Count())
-            .ThenBy(group => group.Key)
-            .ToArray();
-        if (groups.Length == 0) return (Strings.MissingReading, Strings.MissingReading);
-        var parts = groups.Select(group => group.Key is null
-            ? Strings.Format(Strings.ConnectionsUnavailableCount, group.Count())
-            : Strings.Format(Strings.ConnectionsStateCount, group.Count(), ConnectionsView.StateText(group.Key)))
-            .ToArray();
-        return (string.Join(" · ", parts), string.Join(Environment.NewLine, parts));
-    }
-
     private static string DisplayName(ProcessUsage? process) => process?.AppName is { Length: > 0 } name ? name :
         process?.Name is { Length: > 0 } executable ? executable : Strings.ConnectionsUnknownProcess;
 
@@ -752,8 +692,6 @@ internal sealed class ConnectionDisplayRow(string key) : INotifyPropertyChanged
     }
 
     private ProcessLifetimeIdentity? _iconIdentity;
-    private bool _individual;
-    private CultureInfo? _textCulture, _formatCulture;
     private void EnsureIcon()
     {
         if (Icon is not null && _iconIdentity == Process?.Identity) return;
@@ -762,9 +700,7 @@ internal sealed class ConnectionDisplayRow(string key) : INotifyPropertyChanged
         if (Process is not null) _ = LoadIconAsync(Process);
     }
 
-    private (string, string, string, string, string, string, string, string, string, string, string,
-        string, string, Visibility, Visibility, Thickness, double, string, string, string, string, GridLength, GridLength, GridLength, Visibility) Shown() =>
-        (Name, Detail, Local, LocalToolTip, Remote, RemoteToolTip, State, StateToolTip, AccessibleName,
-            Tcp, Udp, ExpandGlyph, ExpandLabel, ExpandVisibility, IconVisibility, Indent, MinimumHeight,
-            Network, NetworkToolTip, Receive, Send, NetworkColumnWidth, ReceiveColumnWidth, SendColumnWidth, NetworkVisibility);
+    private (string, string, string, string, string, string, string, string, string, string, GridLength, GridLength, GridLength, Visibility) Shown() =>
+        (Name, Detail, AccessibleName, Tcp, Udp, PinLabel, Network, NetworkToolTip, Receive, Send,
+            NetworkColumnWidth, ReceiveColumnWidth, SendColumnWidth, NetworkVisibility);
 }

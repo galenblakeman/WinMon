@@ -32,6 +32,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
@@ -164,16 +165,9 @@
                 Grid.Column="2"
                 VerticalAlignment="Center"
                 Orientation="Horizontal">
-                <ComboBox
-                    x:Name="StatusFilter"
-                    Width="130"
-                    MinHeight="28"
-                    Margin="0,0,12,0"
-                    AutomationProperties.Name="{Binding [ServiceStatus], Source={x:Static r:Strings.Text}}"
-                    FontSize="12"
-                    SelectionChanged="OnFilterChanged" />
                 <CheckBox
                     x:Name="Workers"
+                    Margin="0,0,12,0"
                     VerticalAlignment="Center"
                     AutomationProperties.Name="{Binding [IncludeWorkerProcesses], Source={x:Static r:Strings.Text}}"
                     Checked="OnFilterChanged"
@@ -183,6 +177,18 @@
                     IsChecked="True"
                     ToolTip="{Binding [IncludeWorkerProcesses], Source={x:Static r:Strings.Text}}"
                     Unchecked="OnFilterChanged" />
+                <CheckBox x:Name="PinnedOnlyCheckBox" VerticalAlignment="Center" FontSize="12" Margin="0,0,12,0"
+                    Foreground="{DynamicResource Text}"
+                    Content="{Binding [PinnedOnly], Source={x:Static r:Strings.Text}}"
+                    AutomationProperties.Name="{Binding [PinnedOnly], Source={x:Static r:Strings.Text}}"
+                    Checked="OnPinnedOnlyChanged" Unchecked="OnPinnedOnlyChanged" />
+                <ComboBox
+                    x:Name="StatusFilter"
+                    Width="130"
+                    MinHeight="28"
+                    AutomationProperties.Name="{Binding [ServiceStatus], Source={x:Static r:Strings.Text}}"
+                    FontSize="12"
+                    SelectionChanged="OnFilterChanged" />
             </StackPanel>
         </Grid>
         </Border>
@@ -193,23 +199,32 @@
             Focusable="False"
             HorizontalScrollBarVisibility="Hidden"
             VerticalScrollBarVisibility="Disabled">
-            <!--  Only the fixed metric columns set a minimum; names absorb narrower viewports like Processes.  -->
+            <!--  Names absorb narrower viewports until the pin and name reach their readable minimum.  -->
             <Grid
                 x:Name="ColumnHeaders"
-                MinWidth="507"
+                MinWidth="687"
                 Margin="0,0,18,4">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" MinWidth="180" />
                     <ColumnDefinition Width="145" />
                     <ColumnDefinition Width="100" />
                     <ColumnDefinition Width="72" />
                     <ColumnDefinition Width="95" />
                     <ColumnDefinition Width="95" />
                 </Grid.ColumnDefinitions>
-                <TextBlock
-                    Foreground="{DynamicResource Muted}"
-                    Text="{Binding [ServiceProcess], Source={x:Static r:Strings.Text}}"
-                    TextTrimming="CharacterEllipsis" />
+                <Grid HorizontalAlignment="Left">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock
+                        Foreground="{DynamicResource Muted}"
+                        Text="{Binding [ServiceProcess], Source={x:Static r:Strings.Text}}"
+                        TextTrimming="CharacterEllipsis" />
+                    <TextBlock x:Name="PinSummary" Grid.Column="1" Margin="8,0,0,0"
+                        VerticalAlignment="Center" FontSize="11"
+                        Foreground="{DynamicResource ProcessPinAccent}" Visibility="Collapsed" />
+                </Grid>
                 <TextBlock
                     Grid.Column="1"
                     HorizontalAlignment="Center"
@@ -290,11 +305,21 @@
             </ListBox.ItemContainerStyle>
             <ListBox.ItemTemplate>
                 <DataTemplate DataType="{x:Type local:ServiceDisplayRow}">
-                    <!--  Constrain star sizing to the viewport despite the horizontally scrollable list (507 + 18 gutter).  -->
-                    <Border Width="{Binding ViewportWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}}" MinWidth="525">
+                    <!--  Preserve the pin and service name before scrolling fixed metric columns (687 + 18 gutter).  -->
+                    <Border Width="{Binding ViewportWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}}" MinWidth="705">
+                        <StackPanel>
+                        <TextBlock Text="{Binding RankedLabel}" Visibility="{Binding RankedVisibility}"
+                            Margin="0,5,0,5" FontSize="11" Foreground="{DynamicResource Muted}" />
                         <Grid MinHeight="46" Margin="0,0,18,0">
+                            <Grid.Style>
+                                <Style TargetType="Grid"><Style.Triggers>
+                                    <DataTrigger Binding="{Binding PinnedHeader}" Value="True">
+                                        <Setter Property="Background" Value="{DynamicResource SectionHeaderSurface}" />
+                                    </DataTrigger>
+                                </Style.Triggers></Style>
+                            </Grid.Style>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" MinWidth="180" />
                                 <ColumnDefinition Width="145" />
                                 <ColumnDefinition Width="100" />
                                 <ColumnDefinition Width="72" />
@@ -316,11 +341,26 @@
                                     Click="OnExpand"
                                     Content="{Binding ExpandGlyph}"
                                     Visibility="{Binding ExpandVisibility}" />
+                                <Button x:Name="ServicePin" Width="24" Height="28" MinHeight="0" Padding="4"
+                                    VerticalAlignment="Center" Visibility="{Binding PinVisibility}"
+                                    local:ButtonIcon.Data="{Binding PinIcon}" local:ButtonIcon.Filled="{Binding Pinned}"
+                                    ToolTip="{Binding PinLabel}" AutomationProperties.Name="{Binding PinAccessibleName}"
+                                    Click="OnPin">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource CaptionButton}">
+                                            <Setter Property="Foreground" Value="{DynamicResource Muted}" />
+                                            <Style.Triggers><DataTrigger Binding="{Binding Pinned}" Value="True">
+                                                <Setter Property="Foreground" Value="{DynamicResource ProcessPinAccent}" />
+                                            </DataTrigger></Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
                                 <TextBlock
                                     Width="24"
                                     VerticalAlignment="Center"
                                     FontFamily="Segoe MDL2 Assets"
                                     Foreground="{DynamicResource Muted}"
+                                    Visibility="{Binding IconVisibility}"
                                     Text="{Binding Icon}" />
                                 <StackPanel>
                                     <TextBlock
@@ -376,7 +416,17 @@
                                 VerticalAlignment="Center"
                                 FontSize="12"
                                 Text="{Binding Io}" />
+                            <Border Grid.ColumnSpan="6" BorderThickness="3,0,0,0"
+                                BorderBrush="{DynamicResource ProcessPinAccent}" IsHitTestVisible="False">
+                                <Border.Style><Style TargetType="Border">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers><DataTrigger Binding="{Binding PinnedHeader}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger></Style.Triggers>
+                                </Style></Border.Style>
+                            </Border>
                         </Grid>
+                        </StackPanel>
                     </Border>
                 </DataTemplate>
             </ListBox.ItemTemplate>

@@ -161,6 +161,12 @@ public sealed class PreferenceStore
         }
     }
 
+    internal static string[] NormalizeServicePins(IEnumerable<string>? names)
+    {
+        return (names ?? []).Where(name => !string.IsNullOrWhiteSpace(name))
+            .Select(name => name.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+    }
+
     internal static MonitorPreferences Validate(MonitorPreferences preferences)
     {
         ArgumentNullException.ThrowIfNull(preferences);
@@ -204,6 +210,10 @@ public sealed class PreferenceStore
             : Enum.IsDefined(preferences.ProcessSort) ? preferences.ProcessSort : ProcessSort.Cpu,
             SortByGpu = false,
             PinnedProcesses = ProcessPins.Normalize(preferences.PinnedProcesses),
+            PinnedServices = NormalizeServicePins(preferences.PinnedServices),
+            PinnedConnections = ProcessPins.Normalize(preferences.PinnedConnections)
+                .Where(pin => pin.LifetimeDomain == ProcessLifetimeIdentity.WindowsFileTime &&
+                    pin.Grouped == (pin.ImagePath.Length > 0)).ToArray(),
             // Persisted JSON can contain an explicit null despite the non-nullable declaration.
             // ReSharper disable once NullCoalescingConditionIsAlwaysNotNullAccordingToAPIContract
             AutoCapture = (preferences.AutoCapture ?? new AutoCapturePreferences()).Normalized(),

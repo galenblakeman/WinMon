@@ -14,6 +14,110 @@ namespace WinMon.Tests;
 public sealed class ServicesViewTests
 {
     [Test]
+    public void MetricTicksNotifyChangedCellsWithoutRefreshingPinBindings()
+    {
+        var view = new ServicesView();
+        var frame = SelectionFrame(1, 80);
+        view.Update(frame, [frame], false);
+        var row = ((ListBox)view.FindName("Rows")).Items.Cast<ServiceDisplayRow>()
+            .Single(r => r.Service?.Name == "agent");
+        var changed = new List<string?>();
+        row.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+        frame = SelectionFrame(2, 70);
+        view.Update(frame, [frame], false);
+        Assert.That(changed, Does.Contain(nameof(ServiceDisplayRow.Cpu)));
+        Assert.That(changed, Does.Not.Contain(string.Empty).And.Not.Contain(nameof(ServiceDisplayRow.PinIcon))
+            .And.Not.Contain(nameof(ServiceDisplayRow.PinAccessibleName)));
+        changed.Clear();
+        row.RefreshPinLabels();
+        Assert.That(changed, Is.EqualTo(new[] { nameof(ServiceDisplayRow.PinLabel), nameof(ServiceDisplayRow.PinAccessibleName) }));
+    }
+
+    [Test]
+    public void PinsPrecedeRankingWithoutDuplicatesAndRespectFilters()
+    {
+        var frame = SelectionFrame(1, 80);
+        var view = new ServicesView { TopServiceCount = 5 };
+        view.Update(frame, [frame], false);
+        view.RestorePins(["other24"]);
+        var rows = (ListBox)view.FindName("Rows");
+        ServiceDisplayRow[] Shown() => rows.Items.Cast<ServiceDisplayRow>().ToArray();
+        Assert.That(Shown(), Has.Length.EqualTo(6), "Pins do not consume the ranked limit.");
+        Assert.That(Shown()[0].Service!.Name, Is.EqualTo("other24"));
+        Assert.That(Shown()[1].RankedLabel, Is.Not.Empty);
+        Assert.That(Shown().Select(r => r.Key).Distinct().Count(), Is.EqualTo(6));
+        var changed = 0;
+        view.PinsChanged += () => changed++;
+        view.TogglePin(Shown().Single(r => r.Service?.Name == "agent"));
+        Assert.That(view.SavedPins, Is.EqualTo(new[] { "other24", "agent" }));
+        view.PinnedOnly = true;
+        Assert.That(Shown().Select(r => r.Service!.Name), Is.EqualTo(view.SavedPins));
+        Assert.That(Shown().All(r => r.Pinned && r.RankedLabel.Length == 0), Is.True);
+        ((TextBox)view.FindName("Search")).Text = "Build";
+        Assert.That(Shown().Single().Service!.Name, Is.EqualTo("agent"));
+        ((ComboBox)view.FindName("StatusFilter")).SelectedIndex = 2;
+        Assert.That(Shown(), Is.Empty);
+        Assert.That(((TextBlock)view.FindName("Notice")).Text, Is.EqualTo(WinMon.Resources.Strings.NoPinnedServicesMatch));
+        ((ComboBox)view.FindName("StatusFilter")).SelectedIndex = 0;
+        view.TogglePin(Shown().Single());
+        Assert.That(Shown(), Is.Empty);
+        Assert.That(changed, Is.EqualTo(2));
+    }
+
+    [Test]
+    public void PinsFollowServiceNamesAcrossStopRestartAndHistoricalFrames()
+    {
+        var view = new ServicesView { PinnedOnly = true };
+        view.RestorePins(["AGENT"]);
+        var rows = (ListBox)view.FindName("Rows");
+        foreach (var frame in new[] { SelectionFrame(1, 80), SelectionFrame(2, 0, state: 1),
+                     SelectionFrame(3, 10, pid: 99, created: 999), SelectionFrame(1, 80) })
+        {
+            view.Update(frame, [frame], true);
+            var row = rows.Items.Cast<ServiceDisplayRow>().Single();
+            Assert.That(row.Service!.Name, Is.EqualTo("agent"));
+            Assert.That(row.Pinned, Is.True);
+            Assert.That(row.PinIcon, Is.SameAs(ButtonIcon.PinFilled));
+        }
+        view.Update(null, [], false);
+        Assert.That(rows.Items, Is.Empty);
+        Assert.That(view.SavedPins, Is.EqualTo(new[] { "AGENT" }), "Missing data must not remove saved pins.");
+    }
+
+    [Test]
+    public void SharedServicePinsPromoteOneHostAndWorkersKeepTheirProcessIcons()
+    {
+        var frame = SelectionFrame(1, 80);
+        var group = frame.Groups[0] with
+        {
+            Services = [frame.Groups[0].Services[0], new("shared", "Shared service", 4, 10, 1)],
+            Processes = [frame.Groups[0].Host!, ServiceRankingTests.P(99, 999, 1, 10, 10)]
+        };
+        frame = frame with { Groups = [group, .. frame.Groups.Skip(1)] };
+        var view = new ServicesView();
+        view.Update(frame, [frame], false);
+        view.ExpandGroup(group.Key);
+        var rows = (ListBox)view.FindName("Rows");
+        var child = rows.Items.Cast<ServiceDisplayRow>().Single(r => r.Service?.Name == "shared");
+        Assert.That(child.CanPin, Is.True);
+        view.TogglePin(child);
+        var header = rows.Items.Cast<ServiceDisplayRow>().First();
+        Assert.That(header.Group, Is.SameAs(group));
+        Assert.That(header.Pinned, Is.True);
+        Assert.That(header.PinLabel, Is.EqualTo(WinMon.Resources.Strings.UnpinServiceHost));
+        Assert.That(rows.Items.Cast<ServiceDisplayRow>().Count(r => r.Key == group.Key), Is.EqualTo(1));
+        view.TogglePin(header);
+        Assert.That(view.SavedPins, Is.Empty);
+        view.TogglePin(header);
+        Assert.That(view.SavedPins, Is.EqualTo(new[] { "agent", "shared" }));
+        var worker = rows.Items.Cast<ServiceDisplayRow>().First(r => !r.CanPin);
+        Assert.That(worker.IconVisibility, Is.EqualTo(Visibility.Visible));
+        Assert.That(worker.PinVisibility, Is.EqualTo(Visibility.Collapsed));
+        view.TogglePin(worker);
+        Assert.That(view.SavedPins, Has.Length.EqualTo(2));
+    }
+
+    [Test]
     public void AllShowsMoreThanFiftyGroupsAndKeepsFiltersAndCountEvents()
     {
         var groups = Enumerable.Range(1, 75).Select(i =>

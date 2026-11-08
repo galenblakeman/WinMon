@@ -1757,7 +1757,7 @@ Windows の正常性状態: {2}</value>
   <data name="ProcessesTabHelp" xml:space="preserve"><value>実行中のプロセスをCPU、メモリ、GPU、I/Oで比較します。検索、グループ化、ピン留めで負荷の高いプロセスを追跡できます。</value></data>
   <data name="ServicesTabHelp" xml:space="preserve"><value>Windowsサービスの状態と、ホストおよびワーカープロセスを含むリソース使用量を確認します。操作可能な現在のサービスを開始、停止、再起動できます。</value></data>
   <data name="UsageTabHelp" xml:space="preserve"><value>WinMonの起動時または集計のリセット時からのCPU時間、GPU時間、I/Oの合計をアプリ別に比較します。終了したアプリも含まれます。</value></data>
-  <data name="ConnectionsTabHelp" xml:space="preserve"><value>受信・送信速度とTCP・UDP数でアプリを比較します。展開またはプロパティでアドレスと状態を確認できます。キャプチャは選択したサンプルを表示します。</value></data>
+  <data name="ConnectionsTabHelp" xml:space="preserve"><value>アプリの受信・送信速度とTCP/UDP数を比較します。アプリをピン留めするとランキングの上に表示されます。アドレスと状態はプロパティで確認できます。キャプチャは選択したサンプルに対応します。</value></data>
   <data name="ConnectionsTop" xml:space="preserve"><value>上位アプリの数</value></data>
   <data name="ConnectionsRankBy" xml:space="preserve"><value>アプリの並べ替え基準</value></data>
   <data name="ConnectionsReceiveRate" xml:space="preserve"><value>受信/秒</value></data>
@@ -1768,6 +1768,14 @@ Windows の正常性状態: {2}</value>
   <data name="ConnectionsHistoryNote" xml:space="preserve"><value>選択したサンプルで観測された接続です。速度は5秒間の平均で、通常は収集の3秒前までの値です。</value></data>
   <data name="ConnectionsEnableTrafficMonitoring" xml:space="preserve"><value>通信量の監視を有効にする…</value></data>
   <data name="ConnectionsTrafficRankingUnavailable" xml:space="preserve"><value>受信・送信速度で並べ替えるには、プロセスごとの通信監視を有効にしてください。</value></data>
+  <data name="ConnectionsHistoryHelp" xml:space="preserve"><value>過去2分間の受信と送信の合計です。すべての行で同じスケールを使用します。途切れた部分は測定値が取得できなかったことを示します。通信量は個々の接続ではなく、プロセスまたは実行ファイル全体の値です。</value></data>
+  <data name="ConnectionsNoObservedEndpoints" xml:space="preserve"><value>接続は観測されていません</value></data>
+  <data name="PinService" xml:space="preserve"><value>サービスをピン留め</value></data>
+  <data name="UnpinService" xml:space="preserve"><value>サービスのピン留めを解除</value></data>
+  <data name="PinServiceHost" xml:space="preserve"><value>このホストのサービスをピン留め</value></data>
+  <data name="UnpinServiceHost" xml:space="preserve"><value>このホストのサービスのピン留めを解除</value></data>
+  <data name="PinnedServiceCount" xml:space="preserve"><value>{0} 件をピン留め</value></data>
+  <data name="NoPinnedServicesMatch" xml:space="preserve"><value>一致するピン留め済みサービスがありません。ピンボタンでサービスをピン留めしてください。</value></data>
   <data name="OpenLogsFolder" xml:space="preserve"><value>ログフォルダーを開く</value></data>
   <data name="OpenLogsFolderHelp" xml:space="preserve"><value>WinMon の診断ログが保存されているフォルダーを開きます。</value></data>
   <data name="OpenLogsFolderFailed" xml:space="preserve"><value>ログフォルダーを開けませんでした。ログ記録が利用できないか、フォルダーが存在しない可能性があります。</value></data>

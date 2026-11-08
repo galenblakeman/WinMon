@@ -692,15 +692,15 @@
                                             GroupName="ActivityView"
                                             Style="{StaticResource ActivityTab}" />
                                         <RadioButton
-                                            x:Name="UsageTab"
-                                            ToolTip="{Binding [UsageTabHelp], Source={x:Static resources:Strings.Text}}"
-                                            Content="{Binding [UsageTab], Source={x:Static resources:Strings.Text}}"
-                                            GroupName="ActivityView"
-                                            Style="{StaticResource ActivityTab}" />
-                                        <RadioButton
                                             x:Name="ConnectionsTab"
                                             ToolTip="{Binding [ConnectionsTabHelp], Source={x:Static resources:Strings.Text}}"
                                             Content="{Binding [ConnectionsTab], Source={x:Static resources:Strings.Text}}"
+                                            GroupName="ActivityView"
+                                            Style="{StaticResource ActivityTab}" />
+                                        <RadioButton
+                                            x:Name="UsageTab"
+                                            ToolTip="{Binding [UsageTabHelp], Source={x:Static resources:Strings.Text}}"
+                                            Content="{Binding [UsageTab], Source={x:Static resources:Strings.Text}}"
                                             GroupName="ActivityView"
                                             Style="{StaticResource ActivityTab}" />
                                     </StackPanel>

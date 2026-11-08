@@ -50,6 +50,10 @@ public sealed record MonitorPreferences
     /// <summary>Maximum ranked service groups to display; zero shows all matching groups.</summary>
     public int TopServiceCount { get; init; } = 20;
 
+    /// <summary>SCM service names pinned independently of their current host process.</summary>
+    public string[] PinnedServices { get; init; } = [];
+    public bool ServicePinnedOnly { get; init; }
+
     /// <summary>Maximum apps the Usage tab lists; zero shows all matching apps.</summary>
     public int TopUsageCount { get; init; } = 20;
 
@@ -67,6 +71,9 @@ public sealed record MonitorPreferences
 
     /// <summary>Limit Connections to owners observed with an application window.</summary>
     public bool ConnectionAppsOnly { get; init; }
+
+    public SavedProcessPin[] PinnedConnections { get; init; } = [];
+    public bool ConnectionPinnedOnly { get; init; }
 
     /// <summary>Gets the column that ranks the process rows.</summary>
     public ProcessSort ProcessSort { get; init; }
