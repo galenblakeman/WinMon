@@ -72,7 +72,7 @@ try {
         & (Join-Path $PSScriptRoot 'Sign-ReleaseFile.ps1') -Path (Join-Path $publish 'WinMon.exe') @signingParameters |
             ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $work 'application-signature.json') -Encoding utf8NoBOM
     }
-    & $InnoCompiler "/DAppVersion=$version" "/DPublishDirectory=$publish" "/DReleaseDirectory=$assets" (Join-Path $root 'packaging/WinMon.iss')
+    & $InnoCompiler "/DAppVersion=$version" "/DPublishDirectory=$publish" "/DReleaseDirectory=$assets" "/DNetworkServiceSetup=$([int][bool]$CodeSign)" (Join-Path $root 'packaging/WinMon.iss')
     if ($LASTEXITCODE -ne 0) { throw 'Installer compilation failed.' }
     $installer = Join-Path $assets "WinMon-$version-Setup-x64.exe"
     if ($CodeSign) {

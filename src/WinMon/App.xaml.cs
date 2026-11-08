@@ -131,7 +131,7 @@ public partial class App
         if (UpdateRuntime.IsUpdating() && !UpdateRuntime.IsExpectedRestart)
         {
             Trace.TraceInformation("Startup.UpdateInProgress");
-            Shutdown();
+            Shutdown(e.Args is ["--install-network-service"] ? 1618 : 0);
             return;
         }
 
@@ -139,10 +139,34 @@ public partial class App
         if (!_ownsInstance)
         {
             Trace.TraceInformation("Startup.AlreadyRunning");
+            if (e.Args is ["--install-network-service"])
+            {
+                Shutdown(1618);
+                return;
+            }
+
             if (!InstanceActivation.SignalRunningInstance())
                 MessageDialog.ShowNotice(null, Strings.WinMonIsAlreadyRunningRestoreItFromTheNotificationArea,
                     Strings.WinMon);
             Shutdown();
+            return;
+        }
+
+        if (e.Args is ["--install-network-service"])
+        {
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            var result = 1;
+            try
+            {
+                await using var controller = new NetworkMonitoringController();
+                result = await InstallNetworkServiceAsync(controller, preferenceStore);
+            }
+            catch (Exception exception)
+            {
+                Trace.TraceError("Network.InstallerSetupFailed: {0}", exception);
+            }
+
+            Shutdown(result);
             return;
         }
 
@@ -152,6 +176,16 @@ public partial class App
         MainWindow = new MainWindow(false, preferences, preferenceStore);
         MainWindow.Show();
         Trace.TraceInformation("Startup.WindowShown elapsedMs={0}", _startupTime.ElapsedMilliseconds);
+    }
+
+    internal static async Task<int> InstallNetworkServiceAsync(NetworkMonitoringController controller,
+        PreferenceStore preferenceStore)
+    {
+        var result = await controller.ChangeAsync(true, CancellationToken.None);
+        if (!result.Success) return 1;
+        var preferences = await preferenceStore.LoadAsync();
+        await preferenceStore.SaveAsync(preferences with { ProcessNetworkMonitoringEnabled = true });
+        return 0;
     }
 
     private async Task RunDiagnosticsAsync(MainWindow window, string output, bool featuresOnly,

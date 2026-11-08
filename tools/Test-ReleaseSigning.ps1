@@ -31,6 +31,9 @@ foreach ($argument in $args) {
     if ($argument -match '^/D([^=]+)=(.*)$') { $options[$Matches[1]] = $Matches[2] }
 }
 $payload = Get-Content -LiteralPath (Join-Path $options.PublishDirectory 'WinMon.exe') -Raw
+if ($options.NetworkServiceSetup -cne $(if ($testState.Mode -eq 'unsigned') { '0' } else { '1' })) {
+    throw 'Installer network-service option must be present only in signed packages.'
+}
 if ($testState.Mode -ne 'unsigned' -and $payload -notmatch 'SIGNED') { throw 'Installer received an unsigned application.' }
 [IO.File]::WriteAllText((Join-Path $options.ReleaseDirectory 'WinMon-9.8.7-Setup-x64.exe'), "INSTALLER:$payload")
 $global:LASTEXITCODE = 0

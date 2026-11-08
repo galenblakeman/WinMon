@@ -276,6 +276,8 @@ Release packaging tests `WinMon.sln`, covering all five test projects, and write
 
 See the [release guide](../packaging/RELEASING.md) for the portable ZIP, per-user Inno Setup installer, GitHub Releases workflow and WinGet manifests, and the [MSIX guide](../packaging/msix/README.md) for Store packages. Build all release assets with `./tools/New-Release.ps1` after bootstrapping the compiler with `./tools/Install-InnoSetup.ps1`.
 
+Signed desktop packaging passes `NetworkServiceSetup=1` to Inno Setup 6.7.3; unsigned packaging passes `0`. The unchecked `networkservice` task invokes `--install-network-service` after files are installed, before the optional app launch. This command shares the normal single-instance lock, reuses `NetworkMonitoringController` and its signed broker, saves the enabled preference only after successful setup, and exits without a main window. Exit 0 means monitoring was enabled; nonzero means setup failed, was cancelled, or another instance/update prevented setup. Run `tools/Test-ReleaseSigning.ps1` to check signed/unsigned packaging gates. Installer acceptance must also cover the task unchecked/selected, UAC approval/cancellation, compatible service reuse, setup failure, and separate service removal.
+
 ## Version and license
 
 Product details (version, copyright, license, repository) live in [Directory.Build.props](../Directory.Build.props) and are stamped into the executable; the Info window's About section shows them. To release, change `Version` there and the matching `assemblyIdentity version` in `src/WinMon/app.manifest`; `AppInfoTests` fails if they differ.

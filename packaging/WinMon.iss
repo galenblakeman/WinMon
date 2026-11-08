@@ -9,6 +9,9 @@
   #error ReleaseDirectory must be supplied
 #endif
 #define Repository "https://github.com/galenblakeman/WinMon"
+#ifndef NetworkServiceSetup
+  #define NetworkServiceSetup "0"
+#endif
 
 [Setup]
 AppId={{D736D24F-6A1E-4FD4-AC66-790F93DC61B4}
@@ -38,6 +41,12 @@ WizardStyle=modern
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a desktop shortcut"; Flags: unchecked
+#if NetworkServiceSetup == "1"
+Name: "networkservice"; Description: "Install and enable per-process network monitoring (requires administrator approval)"; Flags: unchecked checkedonce
+
+[CustomMessages]
+NetworkServiceSetupFailed=WinMon was installed, but network monitoring could not be enabled. You can try again in Settings > Network.
+#endif
 
 [Files]
 Source: "{#PublishDirectory}\WinMon.exe"; DestDir: "{app}"
@@ -52,6 +61,30 @@ Name: "{userdesktop}\WinMon"; Filename: "{app}\WinMon.exe"; WorkingDir: "{app}";
 Filename: "{app}\WinMon.exe"; Description: "Launch WinMon"; Flags: nowait postinstall skipifsilent
 
 [Code]
+#if NetworkServiceSetup == "1"
+procedure CurStepChanged(CurStep: TSetupStep);
+var
+  ResultCode: Integer;
+  Succeeded: Boolean;
+begin
+  if (CurStep <> ssPostInstall) or not WizardIsTaskSelected('networkservice') then Exit;
+  Succeeded := False;
+  try
+    if ExecAsOriginalUser(ExpandConstant('{app}\WinMon.exe'), '--install-network-service',
+      ExpandConstant('{app}'), SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+      Succeeded := ResultCode = 0;
+  except
+    Log(GetExceptionMessage);
+  end;
+  if not Succeeded then
+  begin
+    Log(CustomMessage('NetworkServiceSetupFailed'));
+    if not WizardSilent then
+      SuppressibleMsgBox(CustomMessage('NetworkServiceSetupFailed'), mbError, MB_OK, IDOK);
+  end;
+end;
+#endif
+
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 var
   Command, Executable, Shortcut: String;

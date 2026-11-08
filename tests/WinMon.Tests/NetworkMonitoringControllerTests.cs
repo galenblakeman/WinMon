@@ -2,12 +2,49 @@ using System.Diagnostics;
 using NUnit.Framework;
 using WinMon.Diagnostics;
 using WinMon.Monitoring;
+using WinMon.Preferences;
 
 namespace WinMon.Tests;
 
 [TestFixture]
 public sealed class NetworkMonitoringControllerTests
 {
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task InstallerEnablesPreferenceOnlyAfterSuccessfulSetup(bool cancel)
+    {
+        var folder = Path.Combine(Path.GetTempPath(), "WinMon.InstallerTests." + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var store = new PreferenceStore(Path.Combine(folder, "settings.json"));
+            await store.SaveAsync(new MonitorPreferences { TopProcessCount = 20 });
+            var installed = false;
+            await using var controller = new NetworkMonitoringController(_ => installed
+                    ? Task.FromResult<INetworkMonitoringConnection>(new FakeConnection())
+                    : throw new IOException("Service not installed"),
+                async (operation, verify, token) =>
+                {
+                    Assert.That(operation, Is.EqualTo("install"));
+                    if (cancel) throw new System.ComponentModel.Win32Exception(1223);
+                    installed = true;
+                    await verify(token);
+                }, () => true, supported: true);
+
+            var result = await App.InstallNetworkServiceAsync(controller, store);
+            var saved = await store.LoadAsync();
+            Assert.Multiple(() =>
+            {
+                Assert.That(result, Is.EqualTo(cancel ? 1 : 0));
+                Assert.That(saved.ProcessNetworkMonitoringEnabled, Is.EqualTo(!cancel));
+                Assert.That(saved.TopProcessCount, Is.EqualTo(20));
+            });
+        }
+        finally
+        {
+            if (Directory.Exists(folder)) Directory.Delete(folder, true);
+        }
+    }
+
     [Test]
     [NonParallelizable]
     public async Task ConnectionRecovery_LogsFailureStateAndOutageSummary()
