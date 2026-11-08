@@ -10,4 +10,6 @@ The visible button reads **Auto** with no captures and **Auto {count}** when cap
 
 ## Landed result and departures
 
+The menu's **Automatic capture settings…** action opens the Automatic captures section directly, overriding the previously viewed section. Capture smoke exercises the menu action and checks the opened section.
+
 Implemented in `MainWindow.Captures.cs` and localized resources. Capture smoke checks both the visible label and accessible status for zero and two captures. The result follows the intended behavior.

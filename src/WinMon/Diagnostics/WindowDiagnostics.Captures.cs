@@ -146,6 +146,18 @@ internal sealed partial class WindowDiagnostics
                     "The captures menu needs header, 2 captures, separator and 2 links.");
 
             var overflow = new Dictionary<string, double>();
+            SettingsSection? openedSection = null;
+            _ = fixture.Dispatcher.BeginInvoke(() =>
+            {
+                var dialog = fixture.OwnedWindows.OfType<SettingsWindow>().Single();
+                openedSection = dialog.Section;
+                dialog.Close();
+            });
+            ((System.Windows.Controls.MenuItem)menu.Items[menu.Items.Count - 1]).RaiseEvent(
+                new RoutedEventArgs(System.Windows.Controls.MenuItem.ClickEvent));
+            if (openedSection != SettingsSection.AutomaticCaptures)
+                throw new InvalidOperationException("The captures menu must open Automatic captures settings.");
+
             foreach (var theme in new[] { "Dark", "Light" })
             {
                 fixture.Preferences = fixture.Preferences with { Theme = theme };

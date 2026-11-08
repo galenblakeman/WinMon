@@ -346,7 +346,11 @@ public partial class MainWindow
         };
         menu.Items.Add(open);
         var settingsItem = ProcessRow.ActionItem(Strings.AutoCaptureSettings, ButtonIcon.Settings);
-        settingsItem.Click += (_, _) => OnSettings(this, new RoutedEventArgs());
+        settingsItem.Click += (_, _) =>
+        {
+            _lastSettingsSection = SettingsSection.AutomaticCaptures;
+            OnSettings(this, new RoutedEventArgs());
+        };
         menu.Items.Add(settingsItem);
         return menu;
     }

@@ -163,6 +163,8 @@ History defaults to 30 minutes for new installations, with configurable retentio
 
 ### Automatic captures
 
+Choose **Automatic capture settings…** from the **Auto** menu to open Settings directly on **Automatic captures**.
+
 Turn on **Automatic captures** in Settings to catch spikes while you are away. Each resource has a rule, such as **CPU above 90% for 10 s**, plus **Any one process** for a single runaway process, measured in percent of one core. When a rule holds, WinMon marks the moment with a triangle in that resource's color at the top of the chart and saves the Copy capture report for the peak as a text file. A rule waits for its cooldown, and for the value to drop clearly below the threshold, before it captures again.
 
 The chart toolbar shows **Auto** immediately after the centered Capture control while capture rules are enabled and adds a number when captures are in history, such as **Auto 2**. Hover over the button for the full status and click it to open the captures menu.
