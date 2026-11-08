@@ -9,6 +9,7 @@ namespace WinMon.Tests;
 public sealed class ProcessIconProviderTests
 {
     [Test]
+    [Category("Integration")]
     public async Task GetAsync_CurrentProcess_LoadsFrozenIconAndReusesCache()
     {
         using var process = Process.GetCurrentProcess();
@@ -26,6 +27,7 @@ public sealed class ProcessIconProviderTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task GetAsync_ReusedPidOrExitedProcess_ReturnsFallback()
     {
         using var process = Process.GetCurrentProcess();

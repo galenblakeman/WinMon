@@ -1,11 +1,13 @@
 # WinMon
 
-A WPF resource monitor on .NET 10: the app (`src/WinMon`), portable monitoring library (`src/MonCore`), Windows adapter (`src/MonCore.Windows`), three NUnit test projects and a UI benchmark (`tools/WinMon.Performance`). Run commands from the repository root in PowerShell.
+A WPF resource monitor on .NET 10: the app (`src/WinMon`), portable monitoring library (`src/MonCore`), Windows adapter (`src/MonCore.Windows`), six NUnit test projects and a UI benchmark (`tools/WinMon.Performance`). Run commands from the repository root in PowerShell.
 
 ## Verify
 
 ```powershell
 ./tools/Verify.ps1                          # build the app, tests and benchmark, then run the tests
+./tools/Verify.ps1 -TestScope Unit          # deterministic tests, excluding Integration and Elevated categories
+./tools/Verify.ps1 -TestScope Integration   # Windows and filesystem integration tests
 ./tools/Verify.ps1 -Smoke compact, search   # also run those smoke modes
 ```
 

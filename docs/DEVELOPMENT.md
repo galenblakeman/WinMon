@@ -27,13 +27,14 @@ dotnet test tests/MonCore.Windows.Tests/MonCore.Windows.Tests.csproj -c Release 
 
 dotnet test tests/WinMon.NetworkService.Tests/WinMon.NetworkService.Tests.csproj -c Release -m:1 -p:UseSharedCompilation=false
 dotnet test tests/WinMon.NetworkSetup.Tests/WinMon.NetworkSetup.Tests.csproj -c Release -m:1 -p:UseSharedCompilation=false
+dotnet test tests/WinMon.NetworkProbe.Tests/WinMon.NetworkProbe.Tests.csproj -c Release -m:1 -p:UseSharedCompilation=false
 dotnet publish src/WinMon/WinMon.csproj -c Release -m:1 -p:UseSharedCompilation=false
 dotnet pack src/MonCore/MonCore.csproj -c Release -m:1 -p:UseSharedCompilation=false -o artifacts/local-feed
 ```
 
-`tools/Verify.ps1` builds all ten projects in the solution, builds the benchmark, runs all five test projects and any [smoke modes](#smoke-modes) in one step; see [Verify a change](#verify-a-change).
+`tools/Verify.ps1` builds all projects in the solution, builds the benchmark, runs all six test projects and any [smoke modes](#smoke-modes) in one step; see [Verify a change](#verify-a-change).
 
-The standalone [ETW network prototype](../tools/WinMon.NetworkProbe/README.md) and its `WinMon.NetworkProbe.Tests` project are outside the solution and `Verify.ps1`. Build/test them separately using that README. Native collection requires an elevated approved Windows test environment; it installs no service and is not part of the shipping app.
+The [ETW network prototype](../tools/WinMon.NetworkProbe/README.md) and its `WinMon.NetworkProbe.Tests` project build and run as part of `Verify.ps1`. Its native collection experiment is `[Explicit]`, so it remains opt-in and requires an elevated approved Windows test environment; it installs no service and is not part of the shipping app. `Verify.ps1` passes `NUnit.ExplicitMode=None` to the NUnit3TestAdapter 5.2.0, so even a narrow filter cannot run an explicit fixture. To opt in manually, run `dotnet test` directly with a positive filter for the approved fixture; see [NUnit's Explicit documentation](https://docs.nunit.org/articles/nunit/writing-tests/attributes/explicit.html).
 
 - Every build, test and release script passes `-m:1 -p:UseSharedCompilation=false`; keep them on manual commands too.
 - `TreatWarningsAsErrors` is on for the app and both libraries.
@@ -51,11 +52,13 @@ The standalone [ETW network prototype](../tools/WinMon.NetworkProbe/README.md) a
 
 ```powershell
 ./tools/Verify.ps1                                # build (app, tests, benchmark) and run the tests
+./tools/Verify.ps1 -TestScope Unit                 # tests without Integration or Elevated categories
+./tools/Verify.ps1 -TestScope Integration          # only Integration-category tests
 ./tools/Verify.ps1 -Smoke feature, services       # also run those smoke modes
 ./tools/Verify.ps1 -Smoke all -Store              # every smoke mode, against the Store variant
 ```
 
-The script builds into `artifacts/verify/build` (or `build-store`), so it leaves your normal `bin` folders alone. Each smoke mode writes to its own folder under `artifacts/verify/<timestamp>/`. The script prints a pass or fail line per step, shows the start of `failure.txt` for any failed mode, and exits non-zero if anything failed. Open the PNGs it lists to check the renders; a passing exit code checks behaviour, not appearance. `-SkipTests` goes straight to the smoke modes after building.
+The script builds into `artifacts/verify/build` (or `build-store`), so it leaves your normal `bin` folders alone. Each run has a unique desktop/store timestamp folder under `artifacts/verify/`; it contains one TRX result per test project. Each test result line reports the TRX passed, failed and not-executed totals, and a missing TRX fails verification. `-TestFilter` accepts a normal `dotnet test --filter` expression and combines it with `-TestScope`; all scopes force `NUnit.ExplicitMode=None`. The script prints a pass or fail line per step, shows the start of `failure.txt` for any failed mode, and exits non-zero if anything failed. Open the PNGs it lists to check the renders; a passing exit code checks behaviour, not appearance. `-SkipTests` goes straight to the smoke modes after building.
 
 ### Diagnostic log collection
 
@@ -65,7 +68,7 @@ Elevated app/helper launches use administrator/System-protected `%PROGRAMDATA%\W
 
 `MonCore.Windows/Diagnostics/DiagnosticLog` installs a bounded rolling `TraceListener` in each app/service process. App startup attaches it before preferences are read; the service attaches before its SCM startup callback. Network setup provisions protected ProgramData folders and per-account permissions. The app falls back to LocalAppData if its ProgramData folder is unavailable, including Store/portable launches. See [the logging design](design/DIAGNOSTIC-LOGGING.md) for paths, limits, permissions and failure behavior.
 
-Use constant, code-owned Trace templates. String values and exception messages are omitted; pass exception objects to preserve types, HRESULT/native codes and method stacks. Never interpolate process names, paths, account names, endpoints or secrets into the template itself. Repeated warning/error templates are summarized once per minute. A 512-entry queue, five 2 MiB files per set and bounded shutdown keep logging off the sampling/rendering disk path. `DiagnosticLogTests`, `LogDirectoriesTests` and the Info tests cover the writer, fallback, permissions and action layout; the `feature` smoke renders Info/About.
+Use constant, code-owned Trace templates. String values and exception messages are omitted; pass exception objects to preserve types, HRESULT/native codes and method stacks. Never interpolate process names, paths, account names, endpoints or secrets into the template itself. Repeated warning/error templates are summarized once per minute and during bounded shutdown. The writer performs a final summary and drain before releasing its file lease, including when it observes shutdown before the caller queues the summaries. A 512-entry queue, five 2 MiB files per set and bounded shutdown keep logging off the sampling/rendering disk path. `DiagnosticLogTests`, `LogDirectoriesTests` and the Info tests cover the writer, fallback, permissions and action layout; the `feature` smoke renders Info/About.
 
 ### Smoke modes
 
@@ -274,7 +277,7 @@ As of October 2026 (see the [history](PERFORMANCE-HISTORY.md#chart-drawing-and-r
 
 ## Release packaging
 
-Release packaging tests `WinMon.sln`, covering all five test projects, and writes separately named TRX results per test run.
+Release packaging tests `WinMon.sln`, covering all six test projects, and writes separately named TRX results per test run.
 
 See the [release guide](../packaging/RELEASING.md) for the portable ZIP, per-user Inno Setup installer, GitHub Releases workflow and WinGet manifests, and the [MSIX guide](../packaging/msix/README.md) for Store packages. Build all release assets with `./tools/New-Release.ps1` after bootstrapping the compiler with `./tools/Install-InnoSetup.ps1`.
 

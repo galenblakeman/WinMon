@@ -119,6 +119,7 @@ public sealed class ProcessTerminatorTests
     }
 
     [Test]
+    [NUnit.Framework.Category("Integration")]
     public void Native_EndRejectsWrongLifetimeThenEndsOnlyOwnedHelper()
     {
         using var helper = System.Diagnostics.Process.Start(new ProcessStartInfo

@@ -34,6 +34,7 @@ public sealed class GpuMemoryTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task NativeMemory_ReadsCapacityAndUsageForTheUtilizationAdapter()
     {
         foreach (var (id, bytes) in WindowsGpuMemory.ReadCapacities())

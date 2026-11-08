@@ -5,6 +5,7 @@ using WinMon.Diagnostics;
 namespace WinMon.Tests;
 
 [TestFixture]
+[Category("Integration")]
 public sealed class DiagnosticLogTests
 {
     private string _folder = null!;
@@ -150,15 +151,25 @@ public sealed class DiagnosticLogTests
             Directory.CreateDirectory(blockedArchive);
             for (var index = 0; index < 20; index++)
                 log.TraceEvent(null, "source", TraceEventType.Information, 0, "Writer.Item number={0}", index);
-            await Task.Delay(1200);
+            await WaitUntil(() => log.DroppedEntries > 0);
             Directory.Delete(blockedArchive);
             log.TraceEvent(null, "source", TraceEventType.Information, 0, "Writer.Recovered");
-            await Task.Delay(1200);
         }
 
         var text = string.Join("", Directory.GetFiles(_folder, "*.log").Select(File.ReadAllText));
         Assert.That(text, Does.Contain("Writer.Recovered"));
         Assert.That(text, Does.Contain("Logging.Dropped"));
+    }
+
+    private static async Task WaitUntil(Func<bool> condition)
+    {
+        var started = Stopwatch.GetTimestamp();
+        while (!condition())
+        {
+            Assert.That(Stopwatch.GetElapsedTime(started), Is.LessThan(TimeSpan.FromSeconds(5)),
+                "The log writer did not reach the expected state.");
+            await Task.Delay(10);
+        }
     }
 
     [Test]

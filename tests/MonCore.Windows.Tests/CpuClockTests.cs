@@ -21,6 +21,7 @@ public sealed class CpuClockTests
     }
 
     [Test]
+    [Category("Integration")]
     public void NativeClock_ReadsWindowsWithoutInvalidValues()
     {
         var mhz = new WindowsCpuClock().ReadMhz();

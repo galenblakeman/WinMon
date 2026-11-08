@@ -15,7 +15,10 @@ param(
     [ValidateSet('all', 'full', 'feature', 'snapshot', 'search', 'compact', 'services', 'usage', 'connections', 'capture', 'chart', 'gauges')]
     [string[]]$Smoke = @(),
     [switch]$Store,
-    [switch]$SkipTests
+    [switch]$SkipTests,
+    [ValidateSet('All', 'Unit', 'Integration')]
+    [string]$TestScope = 'All',
+    [string]$TestFilter
 )
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
@@ -34,14 +37,39 @@ $modes = [ordered]@{
 }
 $Smoke = @(if ($Smoke -contains 'all') { $modes.Keys } else { $Smoke | Select-Object -Unique })
 $build = Join-Path $root "artifacts/verify/$(if ($Store) { 'build-store' } else { 'build' })"
-$run = Join-Path $root "artifacts/verify/$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+$variant = if ($Store) { 'store' } else { 'desktop' }
+$timestamp = Get-Date -Format 'yyyyMMdd-HHmmss-fff'
+$run = Join-Path $root "artifacts/verify/$timestamp-$variant"
+$testResults = Join-Path $run 'tests'
 $options = @('-c', 'Release', '-m:1', '-p:UseSharedCompilation=false', '--artifacts-path', $build)
 if ($Store) { $options += '-p:StoreBuild=true' }
+$scopeFilter = switch ($TestScope) {
+    'Unit' { 'TestCategory!=Integration&TestCategory!=Elevated' }
+    'Integration' { 'TestCategory=Integration' }
+    default { $null }
+}
+$effectiveTestFilter = if ($scopeFilter -and $TestFilter) { "($scopeFilter)&($TestFilter)" }
+    elseif ($scopeFilter) { $scopeFilter }
+    else { $TestFilter }
 $results = [Collections.Generic.List[object]]::new()
 
 function Add-Result([string]$Step, [bool]$Passed, [string]$Detail) {
     $results.Add([pscustomobject]@{ Step = $Step; Passed = $Passed; Detail = $Detail })
     Write-Host "$(if ($Passed) { 'PASS' } else { 'FAIL' }) $Step$(if ($Detail) { ": $Detail" })" -ForegroundColor ($Passed ? 'Green' : 'Red')
+}
+
+function Get-TestSummary([string]$Path) {
+    if (!(Test-Path -LiteralPath $Path)) { return $null }
+    [xml]$report = Get-Content -LiteralPath $Path -Raw
+    $counters = $report.TestRun.ResultSummary.Counters
+    if ($null -eq $counters) { return $null }
+    $notExecuted = @($report.TestRun.Results.UnitTestResult | Where-Object { $_.outcome -eq 'NotExecuted' })
+    $reasons = @($notExecuted | ForEach-Object {
+        $reason = $_.Output.ErrorInfo.Message
+        if (!$reason) { $reason = $_.Output.StdOut }
+        if ($reason) { "$($_.testName): $($reason -replace '\s+', ' ')" } else { $_.testName }
+    }) -join ' | '
+    return "passed=$($counters.passed) failed=$($counters.failed) not-executed=$($notExecuted.Count)$(if ($reasons) { "; $reasons" })"
 }
 
 Push-Location $root
@@ -53,9 +81,14 @@ try {
     Add-Result 'build benchmark' ($LASTEXITCODE -eq 0) ''
     if ($results.Where({ !$_.Passed }).Count -eq 0) {
         if (!$SkipTests) {
-            foreach ($project in @('MonCore.Tests', 'MonCore.Windows.Tests', 'WinMon.Tests', 'WinMon.NetworkService.Tests', 'WinMon.NetworkSetup.Tests')) {
-                dotnet test "tests/$project/$project.csproj" @options --no-build
-                Add-Result "$project tests" ($LASTEXITCODE -eq 0) ''
+            foreach ($project in @('MonCore.Tests', 'MonCore.Windows.Tests', 'WinMon.Tests', 'WinMon.NetworkService.Tests', 'WinMon.NetworkSetup.Tests', 'WinMon.NetworkProbe.Tests')) {
+                $testOptions = @($options + '--no-build' + '--logger' + "trx;LogFileName=$project.trx" + '--results-directory' + $testResults)
+                if ($effectiveTestFilter) { $testOptions += @('--filter', $effectiveTestFilter) }
+                $testOptions += @('--', 'NUnit.ExplicitMode=None')
+                dotnet test "tests/$project/$project.csproj" @testOptions
+                $summary = Get-TestSummary (Join-Path $testResults "$project.trx")
+                $detail = @($summary, $effectiveTestFilter).Where({ $_ }) -join '; '
+                Add-Result "$project tests" ($LASTEXITCODE -eq 0 -and $null -ne $summary) $detail
             }
         }
 

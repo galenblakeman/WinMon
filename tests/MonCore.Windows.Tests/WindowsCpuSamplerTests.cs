@@ -9,6 +9,7 @@ namespace WinMon.Tests;
 public sealed class WindowsCpuSamplerTests
 {
     [Test]
+    [NUnit.Framework.Category("Integration")]
     public void Provider_CapturesLogicalProcessorCounters()
     {
         var snapshot = new WindowsCpuSnapshotProvider().Capture();

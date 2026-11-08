@@ -314,6 +314,47 @@ public sealed class MonitorSessionTests
         });
     }
 
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task CancellationDuringCapture_DisposesSourceAndCloseDiscardsTheLateFrame(bool close)
+    {
+        using var cancellation = new CancellationTokenSource();
+        using var release = new ManualResetEventSlim();
+        var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var posted = new ConcurrentQueue<Action>();
+        var source = new FakeSource([options =>
+        {
+            entered.SetResult();
+            if (!release.Wait(TimeSpan.FromSeconds(5))) throw new TimeoutException("Capture was not released.");
+            return Frame(1)(options);
+        }], cancellation);
+        var session = new MonitorSession(() => source, () => new SamplingOptions(), posted.Enqueue);
+        var recorded = 0;
+        session.Recorded += () => recorded++;
+        var run = session.Run(cancellation.Token);
+        try
+        {
+            await entered.Task.WaitAsync(TimeSpan.FromSeconds(3));
+            if (close) session.Close();
+            cancellation.Cancel();
+        }
+        finally
+        {
+            cancellation.Cancel();
+            release.Set();
+            await run.WaitAsync(TimeSpan.FromSeconds(3));
+        }
+
+        while (posted.TryDequeue(out var drain)) drain();
+        Assert.Multiple(() =>
+        {
+            Assert.That(source.Disposed, Is.True);
+            Assert.That(session.History.Samples, Has.Count.EqualTo(close ? 0 : 1));
+            Assert.That(recorded, Is.EqualTo(close ? 0 : 1));
+            Assert.That(session.Error, Is.Null);
+        });
+    }
+
     [Test]
     public async Task Options_AreReadForEachCaptureAndApplied()
     {

@@ -323,17 +323,19 @@ public sealed class NetworkMonitoringControllerTests
     [Test]
     public async Task PollProtocolMismatchClearsMetricsAndShowsUpdateRequired()
     {
+        var delay = new PollDelay();
         var connection = new FakeConnection
             { FailureAfterInitialRead = new NetworkServiceProtocolMismatchException(2, 1) };
         var updateRequired = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         await using var controller = new NetworkMonitoringController(
             _ => Task.FromResult<INetworkMonitoringConnection>(connection),
-            (_, _, _) => Task.CompletedTask, () => true);
+            (_, _, _) => Task.CompletedTask, () => true, delay: delay.Wait);
         controller.StateChanged += state =>
         {
             if (state == NetworkMonitoringState.UpdateRequired) updateRequired.TrySetResult();
         };
         Assert.That((await controller.ChangeAsync(true, default)).Success, Is.True);
+        (await delay.Next()).Complete();
         await updateRequired.Task.WaitAsync(TimeSpan.FromSeconds(3));
         Assert.Multiple(() =>
         {
@@ -358,6 +360,7 @@ public sealed class NetworkMonitoringControllerTests
     [TestCase(typeof(OperationCanceledException))]
     public async Task InterruptedMonitoringReconnectsWithoutSetupAndPreservesSession(Type? failureType)
     {
+        var delay = new PollDelay();
         var failed = new FakeConnection
         {
             QualityAfterInitialRead = ProcessNetworkQuality.Unavailable,
@@ -373,7 +376,7 @@ public sealed class NetworkMonitoringControllerTests
                 return Task.FromResult<INetworkMonitoringConnection>(failed);
             Assert.That(failed.Disposed, Is.True);
             return Task.FromResult<INetworkMonitoringConnection>(healthy);
-        }, (_, _, _) => throw new AssertionException("Recovery must not run setup"), () => true);
+        }, (_, _, _) => throw new AssertionException("Recovery must not run setup"), () => true, delay: delay.Wait);
         controller.StateChanged += state =>
         {
             if (state == NetworkMonitoringState.Unavailable) unavailable.TrySetResult();
@@ -381,8 +384,10 @@ public sealed class NetworkMonitoringControllerTests
         };
         await controller.ChangeAsync(true, default);
         var session = controller.Sample.SessionId;
+        (await delay.Next()).Complete();
         await unavailable.Task.WaitAsync(TimeSpan.FromSeconds(4));
         Assert.That(controller.LatestSnapshot, Is.Null);
+        (await delay.Next()).Complete();
         await recovered.Task.WaitAsync(TimeSpan.FromSeconds(9));
         Assert.Multiple(() =>
         {
@@ -396,18 +401,21 @@ public sealed class NetworkMonitoringControllerTests
     [Test]
     public async Task StartupRecoveryKeepsRetryingUntilServiceReturns()
     {
+        var delay = new PollDelay();
         var attempts = 0;
         var recovered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         await using var controller = new NetworkMonitoringController(_ => Interlocked.Increment(ref attempts) < 3
                 ? throw new IOException()
                 : Task.FromResult<INetworkMonitoringConnection>(new FakeConnection()),
-            (_, _, _) => throw new AssertionException("Recovery must not run setup"), () => true);
+            (_, _, _) => throw new AssertionException("Recovery must not run setup"), () => true, delay: delay.Wait);
         controller.StateChanged += state =>
         {
             if (state == NetworkMonitoringState.WarmingUp) recovered.TrySetResult();
         };
         await controller.RestoreAsync(true, default);
         var session = controller.Sample.SessionId;
+        (await delay.Next()).Complete();
+        (await delay.Next()).Complete();
         await recovered.Task.WaitAsync(TimeSpan.FromSeconds(15));
         Assert.That(controller.Sample.SessionId, Is.EqualTo(session));
         Assert.That(attempts, Is.EqualTo(3));
@@ -417,6 +425,7 @@ public sealed class NetworkMonitoringControllerTests
     [TestCase(true)]
     public async Task DisableOrShutdownCancelsAnInFlightRecovery(bool shutdown)
     {
+        var delay = new PollDelay();
         var attempts = 0;
         var reconnecting = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var cancelled = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -435,10 +444,11 @@ public sealed class NetworkMonitoringControllerTests
             }
 
             throw new AssertionException("Recovery must be cancelled");
-        }, (_, _, _) => throw new AssertionException("No setup"), () => true);
+        }, (_, _, _) => throw new AssertionException("No setup"), () => true, delay: delay.Wait);
         try
         {
             await controller.RestoreAsync(true, default);
+            (await delay.Next()).Complete();
             await reconnecting.Task.WaitAsync(TimeSpan.FromSeconds(9));
             if (shutdown)
             {
@@ -460,19 +470,148 @@ public sealed class NetworkMonitoringControllerTests
         }
     }
 
-    [Test]
-    public async Task DisableCancelsPendingRetry()
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task DisableOrShutdownCancelsPendingRetry(bool shutdown)
     {
+        var delay = new PollDelay();
         var attempts = 0;
-        await using var controller = new NetworkMonitoringController(_ =>
+        var controller = new NetworkMonitoringController(_ =>
         {
             Interlocked.Increment(ref attempts);
             throw new IOException();
-        }, (_, _, _) => throw new AssertionException("No setup"), () => true);
+        }, (_, _, _) => throw new AssertionException("No setup"), () => true, delay: delay.Wait);
+        try
+        {
+            await controller.RestoreAsync(true, default);
+            var retry = await delay.Next();
+            Assert.That(retry.Interval, Is.EqualTo(TimeSpan.FromSeconds(5)));
+            if (shutdown)
+                await controller.DisposeAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(3));
+            else
+                await controller.ChangeAsync(false, default).WaitAsync(TimeSpan.FromSeconds(3));
+            Assert.Multiple(() =>
+            {
+                Assert.That(retry.Token.IsCancellationRequested, Is.True);
+                Assert.That(attempts, Is.EqualTo(1));
+                Assert.That(controller.LatestSnapshot, Is.Null);
+            });
+        }
+        finally
+        {
+            if (!shutdown) await controller.DisposeAsync();
+        }
+    }
+
+    [Test]
+    public async Task RepeatedOutagesDisposeEachConnectionAndKeepTheLogicalSession()
+    {
+        var delay = new PollDelay();
+        var connections = new[]
+        {
+            new FakeConnection { FailureAfterInitialRead = new IOException() },
+            new FakeConnection { QualityAfterInitialRead = ProcessNetworkQuality.Unavailable },
+            new FakeConnection { Quality = ProcessNetworkQuality.None }
+        };
+        var opened = 0;
+        await using var controller = new NetworkMonitoringController(
+            _ => Task.FromResult<INetworkMonitoringConnection>(connections[opened++]),
+            (_, _, _) => throw new AssertionException("Recovery must not run setup"), () => true, delay: delay.Wait);
         await controller.RestoreAsync(true, default);
+        var session = controller.Sample.SessionId;
+        for (var index = 0; index < 2; index++)
+        {
+            var poll = await delay.Next();
+            Assert.That(poll.Interval, Is.EqualTo(TimeSpan.FromSeconds(1)));
+            poll.Complete();
+            var retry = await delay.Next();
+            Assert.Multiple(() =>
+            {
+                Assert.That(retry.Interval, Is.EqualTo(TimeSpan.FromSeconds(5)));
+                Assert.That(controller.State, Is.EqualTo(NetworkMonitoringState.Unavailable));
+                Assert.That(controller.LatestSnapshot, Is.Null);
+                Assert.That(connections[index].Disposed, Is.True);
+            });
+            retry.Complete();
+        }
+
+        await delay.Next();
+        Assert.Multiple(() =>
+        {
+            Assert.That(controller.State, Is.EqualTo(NetworkMonitoringState.Active));
+            Assert.That(controller.Sample.SessionId, Is.EqualTo(session));
+            Assert.That(opened, Is.EqualTo(3));
+        });
         await controller.ChangeAsync(false, default);
-        await Task.Delay(TimeSpan.FromSeconds(6));
-        Assert.That(attempts, Is.EqualTo(1));
+        Assert.That(connections[2].Disposed, Is.True);
+    }
+
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task LateRecoveryConnectionIsDisposedAfterDisableOrShutdown(bool shutdown)
+    {
+        var delay = new PollDelay();
+        var reconnecting = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var cancelled = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var late = new TaskCompletionSource<INetworkMonitoringConnection>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var connection = new FakeConnection();
+        var attempts = 0;
+        var controller = new NetworkMonitoringController(async token =>
+        {
+            if (++attempts == 1) throw new IOException();
+            using var registration = token.Register(() => cancelled.TrySetResult());
+            reconnecting.SetResult();
+            return await late.Task;
+        }, (_, _, _) => throw new AssertionException("No setup"), () => true, delay: delay.Wait);
+        Task? stop = null;
+        try
+        {
+            await controller.RestoreAsync(true, default);
+            (await delay.Next()).Complete();
+            await reconnecting.Task.WaitAsync(TimeSpan.FromSeconds(3));
+            stop = shutdown ? controller.DisposeAsync().AsTask() : controller.ChangeAsync(false, default);
+            await cancelled.Task.WaitAsync(TimeSpan.FromSeconds(3));
+            late.SetResult(connection);
+            await stop.WaitAsync(TimeSpan.FromSeconds(3));
+            Assert.Multiple(() =>
+            {
+                Assert.That(connection.Disposed, Is.True);
+                Assert.That(controller.LatestSnapshot, Is.Null);
+                Assert.That(attempts, Is.EqualTo(2));
+                if (!shutdown)
+                {
+                    Assert.That(controller.State, Is.EqualTo(NetworkMonitoringState.Disabled));
+                    Assert.That(controller.Sample.SessionId, Is.EqualTo(Guid.Empty));
+                }
+            });
+        }
+        finally
+        {
+            late.TrySetResult(connection);
+            if (shutdown && stop is not null) await stop.WaitAsync(TimeSpan.FromSeconds(3));
+            else await controller.DisposeAsync();
+        }
+    }
+
+    private sealed class PollDelay
+    {
+        private readonly System.Threading.Channels.Channel<Step> _steps =
+            System.Threading.Channels.Channel.CreateUnbounded<Step>();
+
+        internal Task Wait(TimeSpan interval, CancellationToken token)
+        {
+            var step = new Step(interval, token);
+            _steps.Writer.TryWrite(step);
+            return step.Completion.Task.WaitAsync(token);
+        }
+
+        internal Task<Step> Next() => _steps.Reader.ReadAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(3));
+
+        internal sealed record Step(TimeSpan Interval, CancellationToken Token)
+        {
+            internal TaskCompletionSource Completion { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            internal void Complete() => Completion.SetResult();
+        }
     }
 
     [TestCase(ProcessNetworkQuality.None, NetworkMonitoringState.Active)]

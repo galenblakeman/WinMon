@@ -11,6 +11,7 @@ public sealed partial class NetworkPipeTests
 {
     [TestCase(ProcessNetworkFailure.None)]
     [TestCase(ProcessNetworkFailure.ClockDiscontinuity)]
+    [Category("Integration")]
     public async Task SubscribedClient_ReceivesOnlyItsSnapshotAndDisposesLease(ProcessNetworkFailure failure)
     {
         using var stop = new CancellationTokenSource();
@@ -85,6 +86,7 @@ public sealed partial class NetworkPipeTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task EachSubscriptionHasItsOwnSequenceRegardlessOfOtherClients()
     {
         using var stop = new CancellationTokenSource();

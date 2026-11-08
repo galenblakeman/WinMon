@@ -13,6 +13,8 @@ namespace WinMon.Tests;
 public sealed class NativeNetworkCollectorTests
 {
     [Test]
+    [Category("Integration")]
+    [Category("Elevated")]
     [Explicit("Runs a bounded elevated ETW experiment on an approved Windows test machine")]
     public async Task Collector_AccountsForControlledWorkerAndStopsItsSession()
     {

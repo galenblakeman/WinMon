@@ -8,6 +8,7 @@ namespace MonCore.Windows.Tests;
 public sealed class NetworkSetupPipeTests
 {
     [Test]
+    [NUnit.Framework.Category("Integration")]
     public async Task LocalDataOnlyClientIsIdentifiedAndPipeNameCannotBeReclaimed()
     {
         var name = "WinMon.NetworkSetup." + Guid.NewGuid().ToString("N");

@@ -8,6 +8,7 @@ namespace WinMon.Tests;
 public sealed class ProcessOwnerProbeTests
 {
     [Test]
+    [Category("Integration")]
     public void TryRead_ReturnsCurrentProcessLifetimeAndUserSid()
     {
         using var process = Process.GetCurrentProcess();

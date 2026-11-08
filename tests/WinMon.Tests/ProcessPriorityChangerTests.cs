@@ -62,6 +62,7 @@ public sealed class ProcessPriorityChangerTests
     }
 
     [Test]
+    [NUnit.Framework.Category("Integration")]
     public void Native_ChangesOnlyTheOwnedHelperProcess()
     {
         using var helper = System.Diagnostics.Process.Start(new ProcessStartInfo

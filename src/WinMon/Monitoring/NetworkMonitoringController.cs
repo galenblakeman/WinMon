@@ -17,6 +17,7 @@ internal sealed class NetworkMonitoringController : IAsyncDisposable
     private readonly Func<string, Func<CancellationToken, Task>, CancellationToken, Task> _setup;
     private readonly Func<bool> _canSetup;
     private readonly bool _supported;
+    private readonly Func<TimeSpan, CancellationToken, Task> _delay;
     private readonly SemaphoreSlim _gate = new(1, 1);
     private readonly CancellationTokenSource _lifetime = new();
     private CancellationTokenSource? _pollCancellation;
@@ -36,12 +37,13 @@ internal sealed class NetworkMonitoringController : IAsyncDisposable
 
     internal NetworkMonitoringController(Func<CancellationToken, Task<INetworkMonitoringConnection>> connect,
         Func<string, Func<CancellationToken, Task>, CancellationToken, Task> setup, Func<bool> canSetup,
-        bool supported = true)
+        bool supported = true, Func<TimeSpan, CancellationToken, Task>? delay = null)
     {
         _connect = connect;
         _setup = setup;
         _canSetup = canSetup;
         _supported = supported;
+        _delay = delay ?? Task.Delay;
         State = supported ? NetworkMonitoringState.Disabled : NetworkMonitoringState.StoreUnavailable;
     }
 
@@ -239,7 +241,7 @@ internal sealed class NetworkMonitoringController : IAsyncDisposable
         {
             while (true)
             {
-                await Task.Delay(TimeSpan.FromSeconds(_connection is null ? 5 : 1), token).ConfigureAwait(false);
+                await _delay(TimeSpan.FromSeconds(_connection is null ? 5 : 1), token).ConfigureAwait(false);
                 try
                 {
                     if (_connection is null)

@@ -87,6 +87,8 @@ public sealed class SetupTransactionTests
     }
 
     [Test]
+    [NUnit.Framework.Category("Integration")]
+    [NUnit.Framework.Category("Elevated")]
     [Explicit("Requires elevation to assign the protected Administrators owner.")]
     public void ElevatedSecureFactories_ProtectNewStagingChildrenAndLockImmediately()
     {

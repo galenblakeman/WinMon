@@ -6,6 +6,7 @@ using WinMon.Diagnostics;
 namespace MonCore.Windows.Tests;
 
 [TestFixture]
+[Category("Integration")]
 public sealed class LogDirectoriesTests
 {
     [Test]

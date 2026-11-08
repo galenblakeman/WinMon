@@ -117,6 +117,7 @@ public sealed class ProcessImagePathProviderTests
     }
 
     [Test]
+    [Category("Integration")]
     public void ReadByProcessId_CurrentProcessMatchesExecutablePath()
     {
         Assert.That(new ProcessImagePathProvider().ReadByProcessId(Environment.ProcessId),
@@ -124,12 +125,14 @@ public sealed class ProcessImagePathProviderTests
     }
 
     [Test]
+    [Category("Integration")]
     public void ReadByProcessId_NonexistentProcessFailsGracefully()
     {
         Assert.That(new ProcessImagePathProvider().ReadByProcessId(-1), Is.Empty);
     }
 
     [Test]
+    [Category("Integration")]
     public void Capture_NativeFallbackProvidesFriendlyNameAfterLifetimeConfirmation()
     {
         using var process = System.Diagnostics.Process.GetCurrentProcess();
@@ -145,6 +148,7 @@ public sealed class ProcessImagePathProviderTests
     }
 
     [Test]
+    [Category("Integration")]
     public void Capture_NativeCurrentProcessPathPreservesDirectLifetimeCheck()
     {
         using var process = System.Diagnostics.Process.GetCurrentProcess();

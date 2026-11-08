@@ -35,6 +35,8 @@ public sealed class DiagnosticLog : TraceListener
     /// <summary>The actual writable folder, including a fallback when necessary.</summary>
     public string Folder { get; }
 
+    internal long DroppedEntries => Interlocked.Read(ref _lost);
+
     /// <summary>The folder receiving this process's app logs, or null when logging could not start.</summary>
     public static string? AppFolder { get; private set; }
 
@@ -265,7 +267,13 @@ public sealed class DiagnosticLog : TraceListener
                 }
 
                 Drain();
-                if (Volatile.Read(ref _stopped) != 0) break;
+                if (Volatile.Read(ref _stopped) != 0)
+                {
+                    // Stop may still be waiting for the gate when the writer observes shutdown.
+                    lock (_gate) Summarize(DateTimeOffset.UtcNow, true);
+                    Drain();
+                    break;
+                }
                 if (_queue.Reader.Completion.IsCompleted) break;
             } while (await timer.WaitForNextTickAsync().ConfigureAwait(false));
         }

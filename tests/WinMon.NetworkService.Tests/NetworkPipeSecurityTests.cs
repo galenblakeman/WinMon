@@ -20,6 +20,7 @@ public sealed partial class NetworkPipeTests
     }
 
     [Test]
+    [NUnit.Framework.Category("Integration")]
     public async Task UnprovisionedToken_CannotSubscribeEvenWhenItCanOpenTestServer()
     {
         var subscribed = false;
@@ -37,6 +38,7 @@ public sealed partial class NetworkPipeTests
 
     [TestCase(1, "terminate")]
     [TestCase(1, "snapshot")]
+    [NUnit.Framework.Category("Integration")]
     public async Task InvalidRequest_ClosesOnlyThatConnection(int version, string operation)
     {
         await using var server = new ServerScope([CurrentSid()]);
@@ -56,6 +58,7 @@ public sealed partial class NetworkPipeTests
     }
 
     [Test]
+    [NUnit.Framework.Category("Integration")]
     public async Task IncompatibleVersion_ReportsServerVersionThenClosesWithoutSubscribing()
     {
         var subscribed = false;
@@ -87,6 +90,7 @@ public sealed partial class NetworkPipeTests
     }
 
     [Test]
+    [NUnit.Framework.Category("Integration")]
     public async Task AbandonedClient_ReleasesLeaseWithoutUnsubscribe()
     {
         var released = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -102,6 +106,7 @@ public sealed partial class NetworkPipeTests
     }
 
     [Test]
+    [NUnit.Framework.Category("Integration")]
     public async Task OversizedRequest_IsRejectedBeforeWaitingForItsPayload()
     {
         await using var server = new ServerScope([CurrentSid()]);
@@ -113,6 +118,7 @@ public sealed partial class NetworkPipeTests
     }
 
     [Test]
+    [NUnit.Framework.Category("Integration")]
     public async Task ExistingPipeName_IsNotTakenOverAndSpoofServerIsRejected()
     {
         await using var first = new ServerScope([CurrentSid()]);
@@ -127,6 +133,7 @@ public sealed partial class NetworkPipeTests
     }
 
     [Test]
+    [NUnit.Framework.Category("Integration")]
     public async Task ClaimedSid_CannotReplaceAuthenticatedToken()
     {
         string? actualSid = null;
@@ -145,6 +152,7 @@ public sealed partial class NetworkPipeTests
     }
 
     [Test]
+    [NUnit.Framework.Category("Integration")]
     public async Task RestrictedPipeAcl_DeniesServerCreationAndAllowsDataOnlyConnector()
     {
         var name = $"WinMon-NetworkAclTest-{Guid.NewGuid():N}";
@@ -235,6 +243,7 @@ public sealed partial class NetworkPipeTests
 
     [Test]
     [NonParallelizable]
+    [NUnit.Framework.Category("Integration")]
     public async Task RapidSnapshotRequests_LogRateLimitAndKeepListenerHealthy()
     {
         var folder = Path.Combine(TestContext.CurrentContext.WorkDirectory,
@@ -264,6 +273,7 @@ public sealed partial class NetworkPipeTests
 
     [Test]
     [NonParallelizable]
+    [NUnit.Framework.Category("Integration")]
     public async Task ClientPolling_RespectsServerSnapshotIntervalWithoutDisconnecting()
     {
         var folder = Path.Combine(TestContext.CurrentContext.WorkDirectory,

@@ -382,10 +382,16 @@ public sealed class UpdateTests
     }
 
     [Test]
-    public void AvailableFreeSpace_ReadsLocalDirectoriesAndNetworkShares()
+    public void AvailableFreeSpace_ReadsLocalDirectory()
     {
         Directory.CreateDirectory(_directory);
         Assert.That(UpdateClient.AvailableFreeSpace(_directory), Is.GreaterThan(0));
+    }
+
+    [Test]
+    [Category("Integration")]
+    public void AvailableFreeSpace_ReadsNetworkShareWhenAvailable()
+    {
         var root = Path.GetPathRoot(Path.GetFullPath(_directory))!;
         // An administrative share stands in for a network share where one is available.
         var share = $@"\\localhost\{root[0]}$";

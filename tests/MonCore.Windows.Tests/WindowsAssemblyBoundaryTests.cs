@@ -19,6 +19,7 @@ public sealed class WindowsAssemblyBoundaryTests
     }
 
     [Test]
+    [Category("Integration")]
     public void WindowsFrameSource_AdvertisesActionsAndPerSampleAvailabilityRemainsSeparate()
     {
         using IFrameSource source = new WindowsFrameSource();

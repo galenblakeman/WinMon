@@ -70,6 +70,56 @@ public sealed class ConnectionHistoryTests
         });
     }
 
+    [TestCase(false, -1, true)]
+    [TestCase(false, 0, false)]
+    [TestCase(false, 1, false)]
+    [TestCase(true, -1, true)]
+    [TestCase(true, 0, false)]
+    [TestCase(true, 1, false)]
+    public void Add_ExpiresExactlyAtRetentionBoundaryUsingTheAvailableClock(bool monotonic, int offset,
+        bool retained)
+    {
+        var history = new ConnectionHistory(10);
+        var first = Sample(1) with { MonotonicTimestamp = monotonic ? Stopwatch.Frequency : 0 };
+        var latest = first with
+        {
+            Timestamp = monotonic ? first.Timestamp.AddHours(-1) : first.Timestamp.AddSeconds(10).AddTicks(offset),
+            MonotonicTimestamp = monotonic ? first.MonotonicTimestamp + 10 * Stopwatch.Frequency + offset : 0
+        };
+        history.Add(first, Endpoints(1), [], null);
+        history.Add(latest, Endpoints(1), [], null);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(history.Find(first) is not null, Is.EqualTo(retained));
+            Assert.That(history.Find(latest), Is.SameAs(history.Latest));
+            Assert.That(history.WasMemoryLimited, Is.False);
+        });
+    }
+
+    [Test]
+    public void Add_UsesTheFullEntryBudgetAndResizeReleasesEvictedEntries()
+    {
+        var history = new ConnectionHistory(10, entryBudget: 2);
+        var first = Sample(1);
+        var second = Sample(2);
+        history.Add(first, Endpoints(1), [], null);
+        history.Add(second, Endpoints(1), [], null);
+        Assert.That(history.Captures, Has.Count.EqualTo(2));
+        Assert.That(history.WasMemoryLimited, Is.False);
+
+        history.Resize(1);
+        history.Resize(10);
+        history.Add(Sample(3), Endpoints(1), [], null);
+        Assert.Multiple(() =>
+        {
+            Assert.That(history.Find(first), Is.Null);
+            Assert.That(history.Find(second), Is.Not.Null);
+            Assert.That(history.Captures, Has.Count.EqualTo(2));
+            Assert.That(history.WasMemoryLimited, Is.False, "Resizing must release the evicted entries' budget.");
+        });
+    }
+
     [Test]
     public void Add_OversizedObservationIsUnavailableWithoutEvictingUsefulHistory()
     {

@@ -1,6 +1,7 @@
 # WinMon design assets
 
 - [Diagnostic file logging](DIAGNOSTIC-LOGGING.md) records startup, errors and network-service recovery in bounded local logs.
+- [Unit-test verification](UNIT-TEST-IMPROVEMENTS.md) brings every test project into normal verification and separates deterministic and integration runs.
 
 This folder contains the current layout reference, feature design notes and editable application icon sources. Superseded concept images and early CPU-only design records have been removed.
 

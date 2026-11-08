@@ -73,6 +73,7 @@ public sealed class NetworkSetupPackageTests
     }
 
     [Test]
+    [Category("Integration")]
     public void VerifyPublisher_RejectsUnsignedFile()
     {
         var file = Path.Combine(Path.GetTempPath(), $"WinMon-{Guid.NewGuid():N}.exe");
@@ -89,6 +90,7 @@ public sealed class NetworkSetupPackageTests
 
     [Test]
     [Repeat(3)]
+    [Category("Integration")]
     public void VerifyPublisher_RejectsRealUnsignedExecutableWithoutCrashingNativeCleanup()
     {
         Assert.Throws<InvalidDataException>(() =>
@@ -96,6 +98,7 @@ public sealed class NetworkSetupPackageTests
     }
 
     [Test]
+    [Category("Integration")]
     public void VerifyPublisher_ExtractsAuthenticodeCertificateBeforeRejectingAnotherPublisher()
     {
         var host = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "dotnet",
