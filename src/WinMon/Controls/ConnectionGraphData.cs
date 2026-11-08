@@ -33,13 +33,20 @@ internal static class ConnectionGraphData
 
         var moments = history.Select(capture => capture.Sample).ToArray();
         var peak = 0d;
+        // Reused across captures: the traffic window holds hundreds of captures and this runs every refresh.
+        var owners = new Dictionary<ProcessLifetimeIdentity, ProcessUsage>();
+        var readings = new Dictionary<ProcessLifetimeIdentity, ProcessNetworkReading>();
+        var totals = new Dictionary<string, double?>(StringComparer.Ordinal);
+        var imageKeys = new Dictionary<string, string>(StringComparer.Ordinal);
         for (var i = 0; i < history.Count; i++)
         {
             var capture = history[i];
             if (capture.Sample.IsGap || capture.Network is not { } network ||
                 (network.Quality & (ProcessNetworkQuality.Unavailable | ProcessNetworkQuality.WarmingUp)) !=
                 0) continue;
-            var owners = new Dictionary<ProcessLifetimeIdentity, ProcessUsage>();
+            owners.Clear();
+            readings.Clear();
+            totals.Clear();
             foreach (var owner in network.Owners)
                 if (Needed(owner))
                     owners[owner.Identity] = owner;
@@ -50,7 +57,6 @@ internal static class ConnectionGraphData
                     else owners.Remove(owner.Identity);
                 }
 
-            var readings = new Dictionary<ProcessLifetimeIdentity, ProcessNetworkReading>();
             foreach (var reading in network.Processes)
             {
                 var identity = new ProcessLifetimeIdentity(reading.ProcessId, reading.CreationTicks,
@@ -58,12 +64,13 @@ internal static class ConnectionGraphData
                 if (owners.ContainsKey(identity)) readings.TryAdd(identity, reading);
             }
 
-            var totals = new Dictionary<string, double?>(StringComparer.Ordinal);
             foreach (var owner in owners.Values)
             {
                 if (network.CurrentLifetimes is not null &&
                     !network.CurrentLifetimes.Contains(owner.Identity)) continue;
-                var key = Key(owner);
+                var key = owner.ImagePath.Length == 0 ? Key(owner)
+                    : imageKeys.TryGetValue(owner.ImagePath, out var cached) ? cached
+                    : imageKeys[owner.ImagePath] = Key(owner);
                 if (!values.ContainsKey(key)) continue;
                 var valid = readings.TryGetValue(owner.Identity, out var reading) &&
                             reading.ReceiveBytesPerSecond is { } receive && double.IsFinite(receive) && receive >= 0 &&

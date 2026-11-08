@@ -2,6 +2,18 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## Connections traffic-graph data (November 8, 2026)
+
+SDK 10.0.403 / .NET 10.0.14. `ConnectionGraphData.Build` runs on every Connections refresh and walks every capture in the traffic window (300 seconds by default). It created three dictionaries per capture and an upper-cased image key per owner per capture; it now reuses the dictionaries across captures and caches image keys by path. The existing UI benchmark ran HEAD against the changed build:
+
+| Scenario | Before allocated B/frame | After allocated B/frame |
+| --- | ---: | ---: |
+| Live network rates | 1,376,543 | 1,376,863 |
+| Recorded traffic history (121 captures) | 3,488,648 | 1,350,712 |
+| Recorded traffic history with pins | 3,491,704 | 1,353,768 |
+
+Allocation is deterministic per build. The live case pays 320 bytes for dictionaries created up front. Timing is inconclusive: other builds and smoke runs shared the machine, and the unchanged live Connections scenario itself moved from 2.49 to 3.20 ms, so no speedup is claimed. Pixel hashes and a quiet-machine timing pass were not compared before commit.
+
 ## Network service ownership probes and GC budget (November 8, 2026)
 
 SDK 10.0.403 / .NET 10.0.14, unelevated, so no LocalSystem service or ETW session ran; each figure comes from an isolated console probe against the service source.
