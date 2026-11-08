@@ -66,7 +66,7 @@ try {
             $process = Start-Process -FilePath $exe -ArgumentList $modes[$name], "`"$output`"" -PassThru
             # Reading Handle keeps it open, so ExitCode is still available after the process exits.
             $null = $process.Handle
-            # Each mode stops itself after 60 seconds; this only catches a hang.
+            # Modes stop themselves after at most 90 seconds; this only catches a hang.
             if (!$process.WaitForExit(120000)) {
                 $process.Kill()
                 Add-Result "$name smoke" $false "did not exit within 120 s; output in $output"

@@ -18,7 +18,7 @@ $installDirectory = Join-Path $testDirectory 'app'
 New-Item -ItemType Directory -Path $testDirectory -Force | Out-Null
 function Invoke-CheckedProcess([string]$File, [string[]]$Arguments, [switch]$ExpectFailure) {
     $process = Start-Process -FilePath $File -ArgumentList $Arguments -WindowStyle Hidden -PassThru
-    if (!$process.WaitForExit(90000)) {
+    if (!$process.WaitForExit(120000)) {
         $process.Kill()
         throw "Timed out: $File"
     }

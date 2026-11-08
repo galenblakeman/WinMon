@@ -193,7 +193,7 @@ public partial class App
         bool chartsOnly = false, bool gaugesOnly = false)
     {
         var exitCode = 0;
-        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(90));
         try
         {
             if (gaugesOnly)

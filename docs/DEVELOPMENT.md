@@ -94,7 +94,7 @@ $run.ExitCode
 
 Limits:
 
-- Each mode except the profile times out after 60 seconds. The full smoke's measured phase takes about 50 seconds on a quiet machine, so it can time out under load; rerun it on a quiet machine before treating that as a failure.
+- General UI diagnostics time out after 90 seconds; the remaining non-profile modes use 60 seconds. The full smoke includes a 15-second quiet observation as well as feature and fixture renders, so its budget allows slower CI desktops to finish. Verification and installer validation wait at most 120 seconds for smoke completion.
 - Use a new output directory for each run.
 - Renders at several scales are layout evidence. They do not prove real DPI changes, mixed-DPI monitor moves, keyboard automation, tray interaction or startup at sign-in, which remain manual checks. Smoke never ends a process or changes a service.
 - Some renders use labelled illustrative data, such as `design-compact*.png`; they compare against the design reference and are not measurements.
