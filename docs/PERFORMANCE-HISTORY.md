@@ -2,6 +2,20 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## Per-tick network and connection owners (November 8, 2026)
+
+SDK 10.0.403 / .NET 10.0.14, tiered compilation off. An isolated console probe compiled against the HEAD and changed `MonCore.dll`: 850 processes with image paths, 480 TCP endpoints across 60 of them, network readings for every process, CPU changing every tick. It calls `AttachNetworkOwners` (through reflection) and `Record` per tick, warms up 300 ticks and measures 1,200. Four before/after pairs alternated; allocation was identical across runs of each build, and times are medians of the four runs.
+
+| Per tick | Before | After |
+| --- | ---: | ---: |
+| `Record` allocated (connection owners) | 412,023 B | 6,951 B |
+| `Record` time | 0.270 ms | 0.124 ms |
+| `AttachNetworkOwners` allocated | 55,624 B | 6,888 B |
+| `AttachNetworkOwners` time | 0.110 ms | 0.074 ms |
+| Retained heap, connection history at its entry budget (45 captures) | 12.6 MiB | 2.9 MiB |
+
+`ConnectionOwners` copied every owner into a new `ProcessUsage` each tick, so the connection history held one copy per process per capture. It now reuses the previous tick's copy when the copied metadata is unchanged, which accounts for most of the saving and the retained heap. Both methods also replace LINQ with loops over reused sets; output order and first-observation choice are unchanged. The UI benchmark does not drive these per-tick paths, and whole-app profiling was not run.
+
 ## Connections traffic-graph data (November 8, 2026)
 
 SDK 10.0.403 / .NET 10.0.14. `ConnectionGraphData.Build` runs on every Connections refresh and walks every capture in the traffic window (300 seconds by default). It created three dictionaries per capture and an upper-cased image key per owner per capture; it now reuses the dictionaries across captures and caches image keys by path. The existing UI benchmark ran HEAD against the changed build:

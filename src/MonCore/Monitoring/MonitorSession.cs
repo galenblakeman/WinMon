@@ -82,6 +82,11 @@ public sealed class MonitorSession(
     private long _historyClockOffset;
     private readonly ProcessNetworkSession _network = new();
     private readonly Dictionary<ProcessLifetimeIdentity, (ProcessUsage Process, long SeenAt)> _networkOwners = [];
+    // Per-tick scratch for the drain thread, plus last tick's connection owners to reuse when unchanged.
+    private readonly HashSet<ProcessLifetimeIdentity> _retainedNetworkLifetimes = [];
+    private readonly HashSet<ProcessLifetimeIdentity> _connectionOwnerLifetimes = [];
+    private Dictionary<ProcessLifetimeIdentity, ProcessUsage> _connectionOwners = [];
+    private Dictionary<ProcessLifetimeIdentity, ProcessUsage> _nextConnectionOwners = [];
     private Guid _networkSessionId;
 
     /// <summary>Live client-session traffic; never persisted or rebased with resource history.</summary>
@@ -321,52 +326,94 @@ public sealed class MonitorSession(
     private ProcessNetworkFrame AttachNetworkOwners(ProcessNetworkFrame frame, MonitorSample? full)
     {
         var now = Stopwatch.GetTimestamp();
-        var retained = frame.Processes.Select(reading => new ProcessLifetimeIdentity(reading.ProcessId,
-            reading.CreationTicks, ProcessLifetimeIdentity.WindowsFileTime)).ToHashSet();
+        var retained = _retainedNetworkLifetimes;
+        retained.Clear();
+        var readings = frame.Processes;
+        for (var i = 0; i < readings.Count; i++)
+            retained.Add(new ProcessLifetimeIdentity(readings[i].ProcessId, readings[i].CreationTicks,
+                ProcessLifetimeIdentity.WindowsFileTime));
         // Keep brief metadata for late ETW arrivals; lifetimes with observed totals retain their known path.
-        foreach (var pair in _networkOwners.Where(pair => !retained.Contains(pair.Key) &&
-                                                          Stopwatch.GetElapsedTime(pair.Value.SeenAt, now)
-                                                              .TotalSeconds > 30).ToArray())
-            _networkOwners.Remove(pair.Key);
+        // Dictionary allows Remove during enumeration since .NET Core 3.0.
+        foreach (var pair in _networkOwners)
+            if (!retained.Contains(pair.Key) && Stopwatch.GetElapsedTime(pair.Value.SeenAt, now).TotalSeconds > 30)
+                _networkOwners.Remove(pair.Key);
         var capacityExceeded = false;
-        foreach (var process in full?.Processes ?? [])
+        var processes = full?.Processes ?? [];
+        for (var i = 0; i < processes.Count; i++)
         {
+            var process = processes[i];
             if (process.LifetimeDomain != ProcessLifetimeIdentity.WindowsFileTime) continue;
-            if (!_networkOwners.ContainsKey(process.Identity) && _networkOwners.Count >= 8192)
+            var known = _networkOwners.TryGetValue(process.Identity, out var previous);
+            if (!known && _networkOwners.Count >= 8192)
             {
                 capacityExceeded = true;
                 continue;
             }
 
-            var metadata = process;
-            if (metadata.ImagePath.Length == 0 && _networkOwners.TryGetValue(process.Identity, out var previous) &&
-                previous.Process.ImagePath.Length > 0)
-                metadata = previous.Process;
+            var metadata = process.ImagePath.Length == 0 && known && previous.Process.ImagePath.Length > 0
+                ? previous.Process
+                : process;
             _networkOwners[process.Identity] = (metadata, now);
         }
 
+        var owners = new ProcessUsage[retained.Count];
+        var count = 0;
+        foreach (var identity in retained)
+            if (_networkOwners.TryGetValue(identity, out var owner))
+                owners[count++] = owner.Process;
+        if (count < owners.Length) Array.Resize(ref owners, count);
         return frame with
         {
-            Owners = retained.Where(_networkOwners.ContainsKey).Select(identity => _networkOwners[identity].Process)
-                .ToArray(),
+            Owners = owners,
             Quality = frame.Quality | (capacityExceeded
                 ? ProcessNetworkQuality.CapacityExceeded | ProcessNetworkQuality.Incomplete
                 : 0)
         };
     }
 
-    private static IReadOnlyList<ProcessUsage> ConnectionOwners(NetworkConnectionsFrame? connections,
-        MonitorSample? full,
+    private IReadOnlyList<ProcessUsage> ConnectionOwners(NetworkConnectionsFrame? connections, MonitorSample? full,
         ProcessNetworkFrame? network)
     {
-        var identities = connections?.Connections.Where(connection => connection.ProcessCreationTicks is not null)
-            .Select(connection => new ProcessLifetimeIdentity(connection.ProcessId,
-                connection.ProcessCreationTicks!.Value,
-                ProcessLifetimeIdentity.WindowsFileTime)).ToHashSet() ?? [];
-        foreach (var owner in network?.Owners ?? []) identities.Add(owner.Identity);
-        return (full?.Processes ?? []).Where(process => identities.Contains(process.Identity))
-            .Concat(network?.Owners ?? []).GroupBy(process => process.Identity)
-            .Select(group => ConnectionOwner(group.First())).ToArray();
+        var identities = _connectionOwnerLifetimes;
+        identities.Clear();
+        var endpoints = connections?.Connections ?? [];
+        for (var i = 0; i < endpoints.Count; i++)
+            if (endpoints[i].ProcessCreationTicks is { } ticks)
+                identities.Add(new ProcessLifetimeIdentity(endpoints[i].ProcessId, ticks,
+                    ProcessLifetimeIdentity.WindowsFileTime));
+        var networkOwners = network?.Owners ?? [];
+        for (var i = 0; i < networkOwners.Count; i++) identities.Add(networkOwners[i].Identity);
+        _nextConnectionOwners.Clear();
+        if (identities.Count == 0)
+        {
+            (_connectionOwners, _nextConnectionOwners) = (_nextConnectionOwners, _connectionOwners);
+            return [];
+        }
+
+        var owners = new ProcessUsage[identities.Count];
+        var count = 0;
+        // Removing each lifetime as it is emitted keeps its first observation, sampled processes first.
+        var processes = full?.Processes ?? [];
+        for (var i = 0; i < processes.Count; i++)
+            if (identities.Remove(processes[i].Identity))
+                Add(processes[i]);
+        for (var i = 0; i < networkOwners.Count; i++)
+            if (identities.Remove(networkOwners[i].Identity))
+                Add(networkOwners[i]);
+        (_connectionOwners, _nextConnectionOwners) = (_nextConnectionOwners, _connectionOwners);
+        if (count < owners.Length) Array.Resize(ref owners, count);
+        return owners;
+
+        void Add(ProcessUsage process)
+        {
+            // Reuse last tick's copy so retained captures share one owner per unchanged lifetime.
+            var owner = _connectionOwners.TryGetValue(process.Identity, out var previous) &&
+                        SameConnectionOwner(previous, process)
+                ? previous
+                : ConnectionOwner(process);
+            _nextConnectionOwners[owner.Identity] = owner;
+            owners[count++] = owner;
+        }
     }
 
     private static ProcessUsage ConnectionOwner(ProcessUsage process)
@@ -378,6 +425,15 @@ public sealed class MonitorSession(
             AppName = process.AppName, ProductName = process.ProductName, Publisher = process.Publisher,
             HasAppWindow = process.HasAppWindow, HasHadAppWindow = process.HasHadAppWindow
         };
+    }
+
+    /// <summary>Compares the fields <see cref="ConnectionOwner"/> copies; keep the two in step.</summary>
+    private static bool SameConnectionOwner(ProcessUsage owner, ProcessUsage process)
+    {
+        return owner.Identity == process.Identity && owner.Name == process.Name &&
+               owner.ImagePath == process.ImagePath && owner.AppName == process.AppName &&
+               owner.ProductName == process.ProductName && owner.Publisher == process.Publisher &&
+               owner.HasAppWindow == process.HasAppWindow && owner.HasHadAppWindow == process.HasHadAppWindow;
     }
 
     /// <summary>A compacted capture, or a failed pass when <see cref="Sample"/> is null, awaiting the drain.</summary>

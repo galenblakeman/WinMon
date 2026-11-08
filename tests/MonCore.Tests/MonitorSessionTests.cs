@@ -344,6 +344,41 @@ public sealed class MonitorSessionTests
     }
 
     [Test]
+    public void Record_ReusesUnchangedConnectionOwnersAcrossCaptures()
+    {
+        var harness = new Harness();
+        var owner = new ProcessUsage(42, 100, "browser", 5) { ImagePath = @"C:\Appsrowser.exe" };
+        var endpoint = new NetworkConnection(42, 100, TransportProtocol.Tcp,
+            new IPEndPoint(IPAddress.Loopback, 4200), new IPEndPoint(IPAddress.Loopback, 443));
+        var connections = new NetworkConnectionsFrame([endpoint],
+            NetworkAddressFamilyStatus.Success, NetworkAddressFamilyStatus.Success);
+        var full = Frame(1)(new SamplingOptions()).Full;
+
+        foreach (var (second, process) in new[]
+                 {
+                     (1, owner), (2, owner with { CpuPercent = 9 }), (3, owner with { AppName = "Browser" })
+                 })
+        {
+            var sample = full with
+            {
+                Processes = [process], Timestamp = full.Timestamp.AddSeconds(second),
+                MonotonicTimestamp = Stopwatch.Frequency * second
+            };
+            harness.Session.Record(sample, sample, connections: connections);
+        }
+
+        var owners = harness.Session.Connections.Captures.Select(capture => capture.Owners.Single()).ToArray();
+        Assert.Multiple(() =>
+        {
+            Assert.That(owners, Has.Length.EqualTo(3));
+            Assert.That(owners[0].CpuPercent, Is.Zero);
+            Assert.That(owners[1], Is.SameAs(owners[0]));
+            Assert.That(owners[2], Is.Not.SameAs(owners[1]));
+            Assert.That(owners[2].AppName, Is.EqualTo("Browser"));
+        });
+    }
+
+    [Test]
     public void Record_AddsAFrameWithoutRaisingRecorded()
     {
         var harness = new Harness();
