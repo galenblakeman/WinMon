@@ -5,6 +5,7 @@
     xmlns:local="clr-namespace:WinMon.Controls"
     xmlns:r="clr-namespace:WinMon.Resources"
     Foreground="{DynamicResource Text}">
+    <!--  ReSharper disable UnusedMember.Global  -->
     <UserControl.Resources>
         <!--  Looked up from code for the Stop button outline.  -->
         <!--  ReSharper disable once Xaml.RedundantResource  -->
@@ -23,181 +24,190 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <Border Grid.ColumnSpan="3"
+        <Border
             x:Name="ToolbarHeader"
+            Grid.ColumnSpan="3"
             Margin="0,0,0,8"
             Padding="8,5"
             Background="{DynamicResource SectionHeaderSurface}">
-        <Grid x:Name="ToolbarGrid">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <StackPanel
-                x:Name="RankingControls"
-                VerticalAlignment="Center"
-                Orientation="Horizontal">
-                <TextBlock
+            <Grid x:Name="ToolbarGrid">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel
+                    x:Name="RankingControls"
                     VerticalAlignment="Center"
-                    FontSize="13"
-                    FontWeight="SemiBold"
-                    Text="{Binding [Top], Source={x:Static r:Strings.Text}}" />
-                <ComboBox
-                    x:Name="TopCount"
-                    MinWidth="60"
-                    MinHeight="28"
-                    Margin="6,0"
-                    Padding="6,3,24,3"
-                    AutomationProperties.Name="{Binding [NumberOfTopServices], Source={x:Static r:Strings.Text}}"
-                    FontSize="13"
-                    FontWeight="SemiBold"
-                    SelectionChanged="OnTopCountChanged"
-                    ToolTip="{Binding [NumberOfTopServices], Source={x:Static r:Strings.Text}}" />
-                <TextBlock
-                    VerticalAlignment="Center"
-                    FontSize="13"
-                    FontWeight="SemiBold"
-                    Text="{Binding [ServicesBy], Source={x:Static r:Strings.Text}}" />
-                <ComboBox
-                    x:Name="Sort"
-                    ToolTip="{Binding [ServiceRankingHelp], Source={x:Static r:Strings.Text}}"
-                    AutomationProperties.HelpText="{Binding [ServiceRankingHelp], Source={x:Static r:Strings.Text}}"
-                    MinWidth="90"
-                    MinHeight="28"
-                    Margin="6,0,0,0"
-                    Padding="8,3,26,3"
-                    AutomationProperties.Name="{Binding [ServiceSort], Source={x:Static r:Strings.Text}}"
-                    FontSize="13"
-                    FontWeight="SemiBold"
-                    SelectionChanged="OnFilterChanged" />
-            </StackPanel>
-            <Border
-                x:Name="SearchBorder"
-                Grid.Row="0"
-                Grid.Column="1"
-                MinWidth="160"
-                Margin="12,0"
-                Background="{DynamicResource SearchSurface}"
-                BorderThickness="1"
-                CornerRadius="4">
-                <Border.Style>
-                    <Style TargetType="Border">
-                        <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
-                        <Style.Triggers>
-                            <Trigger Property="IsKeyboardFocusWithin" Value="True">
-                                <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </Border.Style>
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="28" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
+                    Orientation="Horizontal">
                     <TextBlock
-                        HorizontalAlignment="Center"
                         VerticalAlignment="Center"
-                        FontFamily="Segoe MDL2 Assets"
-                        FontSize="14"
-                        Foreground="{DynamicResource Muted}"
-                        IsHitTestVisible="False"
-                        Text="{Binding [SearchGlyph], Source={x:Static r:Strings.Text}}" />
-                    <TextBox
-                        x:Name="Search"
-                        Grid.Column="1"
-                        MinHeight="26"
-                        Padding="0,3"
-                        VerticalContentAlignment="Center"
-                        AutomationProperties.Name="{Binding [SearchServices], Source={x:Static r:Strings.Text}}"
-                        Background="{DynamicResource SearchSurface}"
-                        BorderBrush="{DynamicResource Line}"
-                        BorderThickness="0"
-                        CaretBrush="{DynamicResource Text}"
+                        FontSize="13"
+                        FontWeight="SemiBold"
+                        Text="{Binding [Top], Source={x:Static r:Strings.Text}}" />
+                    <ComboBox
+                        x:Name="TopCount"
+                        MinWidth="60"
+                        MinHeight="28"
+                        Margin="6,0"
+                        Padding="6,3,24,3"
+                        AutomationProperties.Name="{Binding [NumberOfTopServices], Source={x:Static r:Strings.Text}}"
+                        FontSize="13"
+                        FontWeight="SemiBold"
+                        SelectionChanged="OnTopCountChanged"
+                        ToolTip="{Binding [NumberOfTopServices], Source={x:Static r:Strings.Text}}" />
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        FontSize="13"
+                        FontWeight="SemiBold"
+                        Text="{Binding [ServicesBy], Source={x:Static r:Strings.Text}}" />
+                    <ComboBox
+                        x:Name="Sort"
+                        MinWidth="90"
+                        MinHeight="28"
+                        Margin="6,0,0,0"
+                        Padding="8,3,26,3"
+                        AutomationProperties.HelpText="{Binding [ServiceRankingHelp], Source={x:Static r:Strings.Text}}"
+                        AutomationProperties.Name="{Binding [ServiceSort], Source={x:Static r:Strings.Text}}"
+                        FontSize="13"
+                        FontWeight="SemiBold"
+                        SelectionChanged="OnFilterChanged"
+                        ToolTip="{Binding [ServiceRankingHelp], Source={x:Static r:Strings.Text}}" />
+                </StackPanel>
+                <Border
+                    x:Name="SearchBorder"
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    MinWidth="160"
+                    Margin="12,0"
+                    Background="{DynamicResource SearchSurface}"
+                    BorderThickness="1"
+                    CornerRadius="4">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+                            <Style.Triggers>
+                                <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                    <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="28" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            FontFamily="Segoe MDL2 Assets"
+                            FontSize="14"
+                            Foreground="{DynamicResource Muted}"
+                            IsHitTestVisible="False"
+                            Text="{Binding [SearchGlyph], Source={x:Static r:Strings.Text}}" />
+                        <TextBox
+                            x:Name="Search"
+                            Grid.Column="1"
+                            MinHeight="26"
+                            Padding="0,3"
+                            VerticalContentAlignment="Center"
+                            AutomationProperties.Name="{Binding [SearchServices], Source={x:Static r:Strings.Text}}"
+                            Background="{DynamicResource SearchSurface}"
+                            BorderBrush="{DynamicResource Line}"
+                            BorderThickness="0"
+                            CaretBrush="{DynamicResource Text}"
+                            FontSize="12"
+                            Foreground="{DynamicResource Text}"
+                            TextChanged="OnSearchChanged"
+                            ToolTip="{Binding [SearchServices], Source={x:Static r:Strings.Text}}" />
+                        <TextBlock
+                            Grid.Column="1"
+                            VerticalAlignment="Center"
+                            FontSize="12"
+                            Foreground="{DynamicResource Muted}"
+                            IsHitTestVisible="False"
+                            Text="{Binding [SearchServices], Source={x:Static r:Strings.Text}}"
+                            TextTrimming="CharacterEllipsis">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Text, ElementName=Search}" Value="">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <Button
+                            x:Name="ClearServiceSearchButton"
+                            Grid.Column="2"
+                            Width="28"
+                            MinHeight="26"
+                            Margin="0"
+                            Padding="0"
+                            HorizontalAlignment="Right"
+                            local:ButtonIcon.Data="{x:Static local:ButtonIcon.Cancel}"
+                            AutomationProperties.Name="{Binding [ClearSearch], Source={x:Static r:Strings.Text}}"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Click="OnClearSearch"
+                            ToolTip="{Binding [ClearSearch], Source={x:Static r:Strings.Text}}"
+                            Visibility="Collapsed" />
+                    </Grid>
+                </Border>
+                <StackPanel
+                    x:Name="ServiceFilters"
+                    Grid.Row="0"
+                    Grid.Column="2"
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal">
+                    <CheckBox
+                        x:Name="Workers"
+                        Margin="0,0,12,0"
+                        VerticalAlignment="Center"
+                        AutomationProperties.HelpText="{Binding [ServiceWorkersHelp], Source={x:Static r:Strings.Text}}"
+                        AutomationProperties.Name="{Binding [IncludeWorkerProcesses], Source={x:Static r:Strings.Text}}"
+                        Checked="OnFilterChanged"
+                        Content="{Binding [ServiceWorkers], Source={x:Static r:Strings.Text}}"
                         FontSize="12"
                         Foreground="{DynamicResource Text}"
-                        TextChanged="OnSearchChanged"
-                        ToolTip="{Binding [SearchServices], Source={x:Static r:Strings.Text}}" />
-                    <TextBlock
-                        Grid.Column="1"
+                        IsChecked="True"
+                        ToolTip="{Binding [ServiceWorkersHelp], Source={x:Static r:Strings.Text}}"
+                        Unchecked="OnFilterChanged" />
+                    <CheckBox
+                        x:Name="PinnedOnlyCheckBox"
+                        Margin="0,0,12,0"
                         VerticalAlignment="Center"
+                        AutomationProperties.HelpText="{Binding [PinnedOnlyHelp], Source={x:Static r:Strings.Text}}"
+                        AutomationProperties.Name="{Binding [PinnedOnly], Source={x:Static r:Strings.Text}}"
+                        Checked="OnPinnedOnlyChanged"
+                        Content="{Binding [PinnedOnly], Source={x:Static r:Strings.Text}}"
                         FontSize="12"
-                        Foreground="{DynamicResource Muted}"
-                        IsHitTestVisible="False"
-                        Text="{Binding [SearchServices], Source={x:Static r:Strings.Text}}"
-                        TextTrimming="CharacterEllipsis">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Visibility" Value="Collapsed" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Text, ElementName=Search}" Value="">
-                                        <Setter Property="Visibility" Value="Visible" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
-                    <Button
-                        x:Name="ClearServiceSearchButton"
-                        Grid.Column="2"
-                        Width="28"
-                        MinHeight="26"
-                        Margin="0"
-                        Padding="0"
-                        HorizontalAlignment="Right"
-                        local:ButtonIcon.Data="{x:Static local:ButtonIcon.Cancel}"
-                        AutomationProperties.Name="{Binding [ClearSearch], Source={x:Static r:Strings.Text}}"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        Click="OnClearSearch"
-                        ToolTip="{Binding [ClearSearch], Source={x:Static r:Strings.Text}}"
-                        Visibility="Collapsed" />
-                </Grid>
-            </Border>
-            <StackPanel
-                x:Name="ServiceFilters"
-                Grid.Row="0"
-                Grid.Column="2"
-                VerticalAlignment="Center"
-                Orientation="Horizontal">
-                <CheckBox
-                    x:Name="Workers"
-                    Margin="0,0,12,0"
-                    VerticalAlignment="Center"
-                    AutomationProperties.Name="{Binding [IncludeWorkerProcesses], Source={x:Static r:Strings.Text}}"
-                    Checked="OnFilterChanged"
-                    Content="{Binding [ServiceWorkers], Source={x:Static r:Strings.Text}}"
-                    FontSize="12"
-                    Foreground="{DynamicResource Text}"
-                    IsChecked="True"
-                    ToolTip="{Binding [ServiceWorkersHelp], Source={x:Static r:Strings.Text}}"
-                    AutomationProperties.HelpText="{Binding [ServiceWorkersHelp], Source={x:Static r:Strings.Text}}"
-                    Unchecked="OnFilterChanged" />
-                <CheckBox x:Name="PinnedOnlyCheckBox" ToolTip="{Binding [PinnedOnlyHelp], Source={x:Static r:Strings.Text}}" AutomationProperties.HelpText="{Binding [PinnedOnlyHelp], Source={x:Static r:Strings.Text}}" VerticalAlignment="Center" FontSize="12" Margin="0,0,12,0"
-                    Foreground="{DynamicResource Text}"
-                    Content="{Binding [PinnedOnly], Source={x:Static r:Strings.Text}}"
-                    AutomationProperties.Name="{Binding [PinnedOnly], Source={x:Static r:Strings.Text}}"
-                    Checked="OnPinnedOnlyChanged" Unchecked="OnPinnedOnlyChanged" />
-                <ComboBox
-                    x:Name="StatusFilter"
-                    Width="130"
-                    MinHeight="28"
-                    AutomationProperties.Name="{Binding [ServiceStatus], Source={x:Static r:Strings.Text}}"
-                    FontSize="12"
-                    SelectionChanged="OnFilterChanged" />
-            </StackPanel>
-        </Grid>
+                        Foreground="{DynamicResource Text}"
+                        ToolTip="{Binding [PinnedOnlyHelp], Source={x:Static r:Strings.Text}}"
+                        Unchecked="OnPinnedOnlyChanged" />
+                    <ComboBox
+                        x:Name="StatusFilter"
+                        Width="130"
+                        MinHeight="28"
+                        AutomationProperties.Name="{Binding [ServiceStatus], Source={x:Static r:Strings.Text}}"
+                        FontSize="12"
+                        SelectionChanged="OnFilterChanged" />
+                </StackPanel>
+            </Grid>
         </Border>
-        <ScrollViewer Grid.Column="1"
+        <ScrollViewer
             x:Name="HeaderScroll"
             Grid.Row="1"
+            Grid.Column="1"
             HorizontalAlignment="Left"
             Focusable="False"
             HorizontalScrollBarVisibility="Hidden"
@@ -224,9 +234,14 @@
                         Foreground="{DynamicResource Muted}"
                         Text="{Binding [ServiceProcess], Source={x:Static r:Strings.Text}}"
                         TextTrimming="CharacterEllipsis" />
-                    <TextBlock x:Name="PinSummary" Grid.Column="1" Margin="8,0,0,0"
-                        VerticalAlignment="Center" FontSize="11"
-                        Foreground="{DynamicResource ProcessPinAccent}" Visibility="Collapsed" />
+                    <TextBlock
+                        x:Name="PinSummary"
+                        Grid.Column="1"
+                        Margin="8,0,0,0"
+                        VerticalAlignment="Center"
+                        FontSize="11"
+                        Foreground="{DynamicResource ProcessPinAccent}"
+                        Visibility="Collapsed" />
                 </Grid>
                 <TextBlock
                     Grid.Column="1"
@@ -260,9 +275,10 @@
                     MouseLeftButtonUp="OnRankHeader" />
             </Grid>
         </ScrollViewer>
-        <ListBox Grid.Column="1"
+        <ListBox
             x:Name="Rows"
             Grid.Row="2"
+            Grid.Column="1"
             Padding="0"
             HorizontalContentAlignment="Stretch"
             AutomationProperties.Name="{Binding [Services], Source={x:Static r:Strings.Text}}"
@@ -311,138 +327,166 @@
                     <!--  Preserve the pin and service name before scrolling fixed metric columns (687 + 18 gutter).  -->
                     <Border Width="{Binding ViewportWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}}" MinWidth="705">
                         <StackPanel>
-                        <TextBlock Text="{Binding RankedLabel}" Visibility="{Binding RankedVisibility}"
-                            Margin="0,5,0,5" FontSize="11" Foreground="{DynamicResource Muted}" />
-                        <Grid MinHeight="46" Margin="0,0,18,0">
-                            <Grid.Style>
-                                <Style TargetType="Grid"><Style.Triggers>
-                                    <DataTrigger Binding="{Binding PinnedHeader}" Value="True">
-                                        <Setter Property="Background" Value="{DynamicResource SectionHeaderSurface}" />
-                                    </DataTrigger>
-                                </Style.Triggers></Style>
-                            </Grid.Style>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" MinWidth="180" />
-                                <ColumnDefinition Width="145" />
-                                <ColumnDefinition Width="100" />
-                                <ColumnDefinition Width="72" />
-                                <ColumnDefinition Width="95" />
-                                <ColumnDefinition Width="95" />
-                            </Grid.ColumnDefinitions>
-                            <DockPanel
-                                Margin="{Binding Indent}"
-                                VerticalAlignment="Center"
-                                ClipToBounds="True">
-                                <Button
-                                    Width="26"
-                                    MinHeight="26"
-                                    Margin="0,0,4,0"
-                                    Padding="0"
-                                    AutomationProperties.Name="{Binding ExpandLabel}"
-                                    Background="Transparent"
-                                    BorderThickness="0"
-                                    Click="OnExpand"
-                                    Content="{Binding ExpandGlyph}"
-                                    Visibility="{Binding ExpandVisibility}" />
-                                <Button x:Name="ServicePin" Width="24" Height="28" MinHeight="0" Padding="4"
-                                    VerticalAlignment="Center" Visibility="{Binding PinVisibility}"
-                                    local:ButtonIcon.Data="{Binding PinIcon}" local:ButtonIcon.Filled="{Binding Pinned}"
-                                    ToolTip="{Binding PinLabel}" AutomationProperties.Name="{Binding PinAccessibleName}"
-                                    Click="OnPin">
-                                    <Button.Style>
-                                        <Style TargetType="Button" BasedOn="{StaticResource CaptionButton}">
-                                            <Setter Property="Foreground" Value="{DynamicResource Muted}" />
-                                            <Style.Triggers><DataTrigger Binding="{Binding Pinned}" Value="True">
-                                                <Setter Property="Foreground" Value="{DynamicResource ProcessPinAccent}" />
-                                            </DataTrigger></Style.Triggers>
-                                        </Style>
-                                    </Button.Style>
-                                </Button>
-                                <TextBlock
-                                    Width="24"
-                                    VerticalAlignment="Center"
-                                    FontFamily="Segoe MDL2 Assets"
-                                    Foreground="{DynamicResource Muted}"
-                                    Visibility="{Binding IconVisibility}"
-                                    Text="{Binding Icon}" />
-                                <StackPanel>
-                                    <TextBlock
-                                        FontSize="13"
-                                        Text="{Binding Name}"
-                                        TextTrimming="CharacterEllipsis"
-                                        ToolTip="{Binding Name}" />
-                                    <TextBlock
-                                        FontSize="10"
-                                        Foreground="{DynamicResource Muted}"
-                                        Text="{Binding Detail}"
-                                        TextTrimming="CharacterEllipsis"
-                                        ToolTip="{Binding Detail}" />
-                                </StackPanel>
-                            </DockPanel>
-                            <ContentControl
-                                Grid.Column="1"
-                                Margin="12,0,12,0"
-                                VerticalAlignment="Center"
-                                Content="{Binding Graph}"
-                                IsHitTestVisible="False" />
                             <TextBlock
-                                Grid.Column="2"
-                                VerticalAlignment="Center"
-                                FontSize="12"
-                                Text="{Binding Status}">
-                                <TextBlock.Style>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="Foreground" Value="{DynamicResource Muted}" />
+                                Margin="0,5,0,5"
+                                FontSize="11"
+                                Foreground="{DynamicResource Muted}"
+                                Text="{Binding RankedLabel}"
+                                Visibility="{Binding RankedVisibility}" />
+                            <Grid MinHeight="46" Margin="0,0,18,0">
+                                <Grid.Style>
+                                    <Style TargetType="Grid">
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsRunning}" Value="True">
-                                                <Setter Property="Foreground" Value="{DynamicResource Accent}" />
+                                            <DataTrigger Binding="{Binding PinnedHeader}" Value="True">
+                                                <Setter Property="Background" Value="{DynamicResource SectionHeaderSurface}" />
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
-                                </TextBlock.Style>
-                            </TextBlock>
-                            <TextBlock
-                                Grid.Column="3"
-                                HorizontalAlignment="Right"
-                                VerticalAlignment="Center"
-                                FontSize="12"
-                                Text="{Binding Cpu}" />
-                            <TextBlock
-                                Grid.Column="4"
-                                HorizontalAlignment="Right"
-                                VerticalAlignment="Center"
-                                FontSize="12"
-                                Text="{Binding Memory}" />
-                            <TextBlock
-                                Grid.Column="5"
-                                HorizontalAlignment="Right"
-                                VerticalAlignment="Center"
-                                FontSize="12"
-                                Text="{Binding Io}" />
-                            <Border Grid.ColumnSpan="6" BorderThickness="3,0,0,0"
-                                BorderBrush="{DynamicResource ProcessPinAccent}" IsHitTestVisible="False">
-                                <Border.Style><Style TargetType="Border">
-                                    <Setter Property="Visibility" Value="Collapsed" />
-                                    <Style.Triggers><DataTrigger Binding="{Binding PinnedHeader}" Value="True">
-                                        <Setter Property="Visibility" Value="Visible" />
-                                    </DataTrigger></Style.Triggers>
-                                </Style></Border.Style>
-                            </Border>
-                        </Grid>
+                                </Grid.Style>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" MinWidth="180" />
+                                    <ColumnDefinition Width="145" />
+                                    <ColumnDefinition Width="100" />
+                                    <ColumnDefinition Width="72" />
+                                    <ColumnDefinition Width="95" />
+                                    <ColumnDefinition Width="95" />
+                                </Grid.ColumnDefinitions>
+                                <DockPanel
+                                    Margin="{Binding Indent}"
+                                    VerticalAlignment="Center"
+                                    ClipToBounds="True">
+                                    <Button
+                                        Width="26"
+                                        MinHeight="26"
+                                        Margin="0,0,4,0"
+                                        Padding="0"
+                                        AutomationProperties.Name="{Binding ExpandLabel}"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Click="OnExpand"
+                                        Content="{Binding ExpandGlyph}"
+                                        Visibility="{Binding ExpandVisibility}" />
+                                    <Button
+                                        x:Name="ServicePin"
+                                        Width="24"
+                                        Height="28"
+                                        MinHeight="0"
+                                        Padding="4"
+                                        VerticalAlignment="Center"
+                                        local:ButtonIcon.Data="{Binding PinIcon}"
+                                        local:ButtonIcon.Filled="{Binding Pinned}"
+                                        AutomationProperties.Name="{Binding PinAccessibleName}"
+                                        Click="OnPin"
+                                        ToolTip="{Binding PinLabel}"
+                                        Visibility="{Binding PinVisibility}">
+                                        <Button.Style>
+                                            <Style BasedOn="{StaticResource CaptionButton}" TargetType="Button">
+                                                <Setter Property="Foreground" Value="{DynamicResource Muted}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Pinned}" Value="True">
+                                                        <Setter Property="Foreground" Value="{DynamicResource ProcessPinAccent}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+                                    <TextBlock
+                                        Width="24"
+                                        VerticalAlignment="Center"
+                                        FontFamily="Segoe MDL2 Assets"
+                                        Foreground="{DynamicResource Muted}"
+                                        Text="{Binding Icon}"
+                                        Visibility="{Binding IconVisibility}" />
+                                    <StackPanel>
+                                        <TextBlock
+                                            FontSize="13"
+                                            Text="{Binding Name}"
+                                            TextTrimming="CharacterEllipsis"
+                                            ToolTip="{Binding Name}" />
+                                        <TextBlock
+                                            FontSize="10"
+                                            Foreground="{DynamicResource Muted}"
+                                            Text="{Binding Detail}"
+                                            TextTrimming="CharacterEllipsis"
+                                            ToolTip="{Binding Detail}" />
+                                    </StackPanel>
+                                </DockPanel>
+                                <ContentControl
+                                    Grid.Column="1"
+                                    Margin="12,0,12,0"
+                                    VerticalAlignment="Center"
+                                    Content="{Binding Graph}"
+                                    IsHitTestVisible="False" />
+                                <TextBlock
+                                    Grid.Column="2"
+                                    VerticalAlignment="Center"
+                                    FontSize="12"
+                                    Text="{Binding Status}">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="{DynamicResource Muted}" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                                                    <Setter Property="Foreground" Value="{DynamicResource Accent}" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <TextBlock
+                                    Grid.Column="3"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center"
+                                    FontSize="12"
+                                    Text="{Binding Cpu}" />
+                                <TextBlock
+                                    Grid.Column="4"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center"
+                                    FontSize="12"
+                                    Text="{Binding Memory}" />
+                                <TextBlock
+                                    Grid.Column="5"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center"
+                                    FontSize="12"
+                                    Text="{Binding Io}" />
+                                <Border
+                                    Grid.Column="0"
+                                    Grid.ColumnSpan="6"
+                                    BorderBrush="{DynamicResource ProcessPinAccent}"
+                                    BorderThickness="3,0,0,0"
+                                    IsHitTestVisible="False">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding PinnedHeader}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                </Border>
+                            </Grid>
                         </StackPanel>
                     </Border>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
-        <TextBlock Grid.Column="1"
+        <TextBlock
             x:Name="Notice"
             Grid.Row="3"
+            Grid.Column="1"
             Margin="0,6,0,4"
             FontSize="11"
             Foreground="{DynamicResource Muted}"
             TextWrapping="Wrap"
             Visibility="Collapsed" />
-        <local:ActionDrawer Grid.Column="1" x:Name="ActionsDrawer" Grid.Row="4">
+        <local:ActionDrawer
+            x:Name="ActionsDrawer"
+            Grid.Row="4"
+            Grid.Column="1">
             <Border
                 x:Name="ActionBar"
                 MinHeight="54"
@@ -555,6 +599,8 @@
                                 Content="{Binding [RestartService], Source={x:Static r:Strings.Text}}"
                                 Style="{DynamicResource ActionBarButton}" />
                             <Border Style="{DynamicResource ActionBarDivider}" />
+                            <!--  Named part retained for bindings and diagnostic inspection.  -->
+                            <!--  ReSharper disable once UnusedMember.Global  -->
                             <Button x:Name="HideActionsButton" Style="{DynamicResource ActionBarCollapseButton}" />
                         </WrapPanel>
                     </Grid>

@@ -1,5 +1,7 @@
 # WinMon developer guide
 
+ReSharper uses the shared `WinMon.sln.DotSettings` syntax policy and dictionary. Keep correctness inspections enabled and explain intentional exceptions beside the source. The [inspection review](INSPECTION-REVIEW.md) records the disposition of the November 8, 2026 report.
+
 `SelectedActivityTab` persists the last activity tab (Processes=0, Services=1, Usage=2, Connections=3). Missing or invalid values select Processes. Startup restores the tab after loading view preferences, suppressing the usual tab-selection expansion so the saved collapsed state is preserved. Tab changes use the existing exit-save path.
 
 Services persists `ServiceSortColumn` (CPU=0, memory=1, I/O=2, name=3), `ServiceStatusFilter` (all=0, running=1, stopped=2) and `ServiceIncludeWorkers`. Missing keys retain CPU/all/workers enabled. Name sort is valid only with Top set to All (0). Startup restores these controls after Top, suppressing change events while restoring; user filter changes update the immutable preferences saved through the normal exit path.

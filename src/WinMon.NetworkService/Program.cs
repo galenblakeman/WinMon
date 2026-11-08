@@ -1,8 +1,11 @@
+// These tasks must start even during cancellation; the worker or bounded shutdown owns cancellation.
+// ReSharper disable MethodSupportsCancellation
+
 using System.Diagnostics;
 using System.Security.Principal;
 using System.ServiceProcess;
-using WinMon.Monitoring;
 using WinMon.Diagnostics;
+using WinMon.Monitoring;
 
 namespace WinMon.NetworkService;
 
@@ -13,9 +16,11 @@ internal static class Program
         using var identity = WindowsIdentity.GetCurrent();
         if (args.Length != 0 || identity.User?.IsWellKnown(WellKnownSidType.LocalSystemSid) != true)
         {
-            Console.Error.WriteLine("This executable must be started by SCM as the provisioned LocalSystem network service.");
+            Console.Error.WriteLine(
+                "This executable must be started by SCM as the provisioned LocalSystem network service.");
             return 1;
         }
+
         using var log = DiagnosticLog.StartService();
         Trace.TraceInformation("Service.ProcessStart version={0} runtime={1} windows={2}",
             typeof(Program).Assembly.GetName().Version!, Environment.Version, Environment.OSVersion.Version);
@@ -67,7 +72,9 @@ internal sealed class NetworkMonitoringService : ServiceBase
         {
             await server.RunAsync(token).ConfigureAwait(false);
         }
-        catch (OperationCanceledException) when (token.IsCancellationRequested) { }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+        }
         catch (Exception ex)
         {
             Trace.TraceError("Network service listener failed: {0}", ex);
@@ -88,21 +95,36 @@ internal sealed class NetworkMonitoringService : ServiceBase
             if (collectors is null || _lifetime is null) return true;
             token = _lifetime.Token;
         }
-        if (powerStatus == PowerBroadcastStatus.Suspend ||
-            powerStatus is PowerBroadcastStatus.ResumeAutomatic or PowerBroadcastStatus.ResumeSuspend)
+
+        if (powerStatus is PowerBroadcastStatus.Suspend or PowerBroadcastStatus.ResumeAutomatic
+            or PowerBroadcastStatus.ResumeSuspend)
             _ = ApplyPowerStateAsync(collectors, powerStatus == PowerBroadcastStatus.Suspend, token);
         return true;
     }
 
-    private static async Task ApplyPowerStateAsync(NetworkCollectorManager collectors, bool suspended, CancellationToken token)
+    private static async Task ApplyPowerStateAsync(NetworkCollectorManager collectors, bool suspended,
+        CancellationToken token)
     {
-        try { await collectors.SetSuspendedAsync(suspended, token).ConfigureAwait(false); }
-        catch (OperationCanceledException) when (token.IsCancellationRequested) { }
-        catch (ObjectDisposedException) { }
-        catch (Exception ex) { Trace.TraceError("Network collector power transition failed: {0}", ex); }
+        try
+        {
+            await collectors.SetSuspendedAsync(suspended, token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+        }
+        catch (ObjectDisposedException)
+        {
+        }
+        catch (Exception ex)
+        {
+            Trace.TraceError("Network collector power transition failed: {0}", ex);
+        }
     }
 
-    protected override void OnShutdown() => OnStop();
+    protected override void OnShutdown()
+    {
+        OnStop();
+    }
 
     protected override void OnStop()
     {
@@ -118,14 +140,14 @@ internal sealed class NetworkMonitoringService : ServiceBase
             _run = null;
             _collectors = null;
         }
+
         if (lifetime is null) return;
         Trace.TraceInformation("Service.Stopping");
         lifetime.Cancel();
         try
         {
             if (run is not null && !run.Wait(TimeSpan.FromSeconds(15))) ExitCode = 1;
-            if (collectors is not null)
-                collectors.DisposeAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(15)).GetAwaiter().GetResult();
+            collectors?.DisposeAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(15)).GetAwaiter().GetResult();
         }
         catch (Exception ex)
         {

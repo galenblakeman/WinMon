@@ -45,8 +45,9 @@ public partial class MainWindow
     {
         _preferences = _preferences with
         {
-            SelectedActivityTab = ServicesTab.IsChecked == true ? 1 : UsageTab.IsChecked == true ? 2 :
-                ConnectionsTab.IsChecked == true ? 3 : 0
+            SelectedActivityTab = ServicesTab.IsChecked == true ? 1 :
+            UsageTab.IsChecked == true ? 2 :
+            ConnectionsTab.IsChecked == true ? 3 : 0
         };
         if (!_restoringActivityTab) SetActivityPanelCollapsed(false);
         Processes.Visibility = ProcessesTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
@@ -91,11 +92,12 @@ public partial class MainWindow
         var running = 0;
         if (frame?.Available == true)
             foreach (var group in frame.Groups)
-                foreach (var service in group.Services)
-                {
-                    total++;
-                    if (service.State == 4) running++;
-                }
+            foreach (var service in group.Services)
+            {
+                total++;
+                if (service.State == 4) running++;
+            }
+
         UpdateActivityPair(ServiceCounts, ServiceTotalValue, ServiceRunningValue,
             frame?.Available == true ? (uint)total : null,
             frame?.Available == true ? (uint)running : null,

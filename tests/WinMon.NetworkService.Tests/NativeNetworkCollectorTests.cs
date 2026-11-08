@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Text.Json;
 using Microsoft.Diagnostics.Tracing.Session;
@@ -11,15 +12,18 @@ namespace WinMon.Tests;
 [TestFixture]
 public sealed class NativeNetworkCollectorTests
 {
-    [Test, Explicit("Runs a bounded elevated ETW experiment on an approved Windows test machine")]
+    [Test]
+    [Explicit("Runs a bounded elevated ETW experiment on an approved Windows test machine")]
     public async Task Collector_AccountsForControlledWorkerAndStopsItsSession()
     {
         using var identity = WindowsIdentity.GetCurrent();
-        Assert.That(new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator), Is.True, "Run this explicit test elevated.");
+        Assert.That(new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator), Is.True,
+            "Run this explicit test elevated.");
         var root = new DirectoryInfo(AppContext.BaseDirectory);
         while (root is not null && !File.Exists(Path.Combine(root.FullName, "WinMon.sln"))) root = root.Parent;
         Assert.That(root, Is.Not.Null);
-        var probe = Path.Combine(root!.FullName, "artifacts/network-probe/bin/WinMon.NetworkProbe/release/WinMon.NetworkProbe.exe");
+        var probe = Path.Combine(root!.FullName,
+            "artifacts/network-probe/bin/WinMon.NetworkProbe/release/WinMon.NetworkProbe.exe");
         Assert.That(File.Exists(probe), Is.True, "Build the network prototype into artifacts/network-probe first.");
         var start = new ProcessStartInfo(probe)
         {
@@ -53,8 +57,11 @@ public sealed class NativeNetworkCollectorTests
             idleCpu = current.TotalProcessorTime;
             await Task.Delay(TimeSpan.FromSeconds(2), limit.Token);
             idleWithTraceCpu = (current.TotalProcessorTime - idleCpu).TotalMilliseconds;
-            foreach (var scenario in new[] { "tcp4-existing", "tcp6-existing", "tcp4-short", "tcp6-short", "udp4", "udp6",
-                         "tcp4-load", "tcp6-load", "udp4-load", "udp6-load" })
+            foreach (var scenario in new[]
+                     {
+                         "tcp4-existing", "tcp6-existing", "tcp4-short", "tcp6-short", "udp4", "udp6",
+                         "tcp4-load", "tcp6-load", "udp4-load", "udp6-load"
+                     })
             {
                 await worker.StandardInput.WriteLineAsync(scenario);
                 var line = await worker.StandardOutput.ReadLineAsync(limit.Token);
@@ -72,9 +79,11 @@ public sealed class NativeNetworkCollectorTests
                     row = snapshot.Processes.SingleOrDefault(p => p.ProcessId == worker.Id);
                     if (row?.SentBytes >= expectedSent && row.ReceivedBytes >= expectedReceived) break;
                 } while (Stopwatch.GetElapsedTime(deadline).TotalSeconds < 12);
+
                 Assert.That(collector.Failed, Is.False, scenario);
                 Assert.That(row, Is.Not.Null, scenario);
-                TestContext.Progress.WriteLine($"{scenario}: expected {expectedSent}/{expectedReceived}, observed {row!.SentBytes}/{row.ReceivedBytes}; ETW lost {snapshot.EventsLost}, queue dropped {snapshot.DroppedEvents}, quality {snapshot.Quality}");
+                TestContext.Progress.WriteLine(
+                    $"{scenario}: expected {expectedSent}/{expectedReceived}, observed {row!.SentBytes}/{row.ReceivedBytes}; ETW lost {snapshot.EventsLost}, queue dropped {snapshot.DroppedEvents}, quality {snapshot.Quality}");
                 Assert.Multiple(() =>
                 {
                     Assert.That(row!.SentBytes, Is.EqualTo(expectedSent), scenario);
@@ -84,29 +93,45 @@ public sealed class NativeNetworkCollectorTests
                 });
                 if (scenario == "udp6-load")
                 {
-                    Assert.That(row!.ReceiveBytesPerSecond, Is.Not.Null, "Known traffic rates must recover after startup uncertainty.");
+                    Assert.That(row!.ReceiveBytesPerSecond, Is.Not.Null,
+                        "Known traffic rates must recover after startup uncertainty.");
                     Assert.That(row.SendBytesPerSecond, Is.Not.Null);
                 }
-                results.Add(new { Scenario = scenario, Sent = row!.SentBytes, Received = row.ReceivedBytes,
+
+                results.Add(new
+                {
+                    Scenario = scenario, Sent = row!.SentBytes, Received = row.ReceivedBytes,
                     row.ReceiveBytesPerSecond, row.SendBytesPerSecond, snapshot.WindowStartQpc, snapshot.WindowEndQpc,
-                    snapshot.Quality, snapshot.LateEvents });
+                    snapshot.Quality, snapshot.LateEvents
+                });
             }
+
             await worker.StandardInput.WriteLineAsync("stop");
             await worker.WaitForExitAsync(limit.Token);
             Assert.That(worker.ExitCode, Is.Zero);
             using (var ownedSession = TraceEventSession.GetActiveSession(collector.SessionName!))
+            {
                 ownedSession.Stop();
+            }
+
             var stoppedAt = Stopwatch.GetTimestamp();
             while (!collector.Failed && Stopwatch.GetElapsedTime(stoppedAt).TotalSeconds < 3)
                 await Task.Delay(50, limit.Token);
-            Assert.That(collector.Failed, Is.True, "An externally stopped session must not become idle-looking live data.");
+            Assert.That(collector.Failed, Is.True,
+                "An externally stopped session must not become idle-looking live data.");
             Assert.That(collector.Snapshot(sid).Quality.HasFlag(ProcessNetworkQuality.Unavailable), Is.True);
         }
         finally
         {
-            if (!worker.HasExited) { worker.Kill(true); await worker.WaitForExitAsync(); }
+            if (!worker.HasExited)
+            {
+                worker.Kill(true);
+                await worker.WaitForExitAsync();
+            }
+
             await collector.DisposeAsync();
         }
+
         Assert.That(TraceEventSession.GetActiveSessionNames(), Does.Not.Contain(collector.SessionName));
         current.Refresh();
         var directory = Path.Combine(root.FullName, "artifacts/network-service");
@@ -114,7 +139,7 @@ public sealed class NativeNetworkCollectorTests
         var report = Path.Combine(directory, $"native-collector-{Guid.NewGuid():N}.json");
         File.WriteAllText(report, JsonSerializer.Serialize(new
         {
-            Runtime = System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription,
+            Runtime = RuntimeInformation.FrameworkDescription,
             Windows = Environment.OSVersion.VersionString,
             Results = results,
             IdleIntervalSeconds = 2,

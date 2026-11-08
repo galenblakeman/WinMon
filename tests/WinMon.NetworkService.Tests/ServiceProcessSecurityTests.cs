@@ -1,6 +1,6 @@
-using NUnit.Framework;
 using System.Security.AccessControl;
 using System.Security.Principal;
+using NUnit.Framework;
 using WinMon.NetworkService;
 
 namespace WinMon.Tests;

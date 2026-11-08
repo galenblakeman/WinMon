@@ -41,12 +41,25 @@ public enum ProcessNetworkIncompleteReason
 }
 
 /// <summary>Cumulative observed bytes and event-time rates for one Windows process lifetime.</summary>
-public sealed record ProcessNetworkReading(int ProcessId, long CreationTicks, long ReceivedBytes, long SentBytes,
-    double? ReceiveBytesPerSecond, double? SendBytesPerSecond);
+public sealed record ProcessNetworkReading(
+    int ProcessId,
+    long CreationTicks,
+    long ReceivedBytes,
+    long SentBytes,
+    double? ReceiveBytesPerSecond,
+    double? SendBytesPerSecond);
 
 /// <summary>A delayed, provisional event-time window. QPC timestamps use <see cref="Frequency"/> ticks per second.</summary>
-public sealed record ProcessNetworkSnapshot(Guid Generation, long Sequence, long TimestampQpc, long Frequency,
-    long WindowStartQpc, long WindowEndQpc, ProcessNetworkQuality Quality, long EventsLost, long LateEvents,
+public sealed record ProcessNetworkSnapshot(
+    Guid Generation,
+    long Sequence,
+    long TimestampQpc,
+    long Frequency,
+    long WindowStartQpc,
+    long WindowEndQpc,
+    ProcessNetworkQuality Quality,
+    long EventsLost,
+    long LateEvents,
     IReadOnlyList<ProcessNetworkReading> Processes)
 {
     /// <summary>Events rejected by the service's bounded queue, separate from native ETW loss.</summary>

@@ -143,7 +143,8 @@ public partial class UsageView
     {
         if (!_ready || ContentColumn.ActualWidth <= 0) return;
         ActionControls.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-        var wide = ContentColumn.ActualWidth >= ActionControls.DesiredSize.Width - ActionDrawer.CollapseButtonSpace + 300;
+        var wide = ContentColumn.ActualWidth >=
+                   ActionControls.DesiredSize.Width - ActionDrawer.CollapseButtonSpace + 300;
         if (_wideActionBar == wide) return;
         _wideActionBar = wide;
         ActionBarGrid.ColumnDefinitions[1].Width = wide ? GridLength.Auto : new GridLength(0);

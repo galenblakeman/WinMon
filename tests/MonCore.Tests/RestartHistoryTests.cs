@@ -130,7 +130,8 @@ public sealed class RestartHistoryTests
             Assert.That(copy.Since, Is.EqualTo(Anchor));
             Assert.That(restoredApps, Is.EquivalentTo(savedApps.Select(a => a with { Running = 0 })),
                 "Running waits for the first sample after the restart.");
-            Assert.That(copy.Apps, Is.EquivalentTo(ledger.Apps), "A process running through the restart is not counted again.");
+            Assert.That(copy.Apps, Is.EquivalentTo(ledger.Apps),
+                "A process running through the restart is not counted again.");
             Assert.That(copy.MachineBusyTicks, Is.EqualTo(ledger.MachineBusyTicks));
             Assert.That(copy.RememberedLifetimes, Is.EqualTo(ledger.RememberedLifetimes));
         });
@@ -207,7 +208,8 @@ public sealed class RestartHistoryTests
 
         var restored = RestartHistory.Read(path, Token, Later(10))!;
 
-        Assert.That(Json(restored.Samples), Is.EqualTo(Json(samples.TakeLast(RestartHistory.ChunkSamples * 2).ToArray())));
+        Assert.That(Json(restored.Samples),
+            Is.EqualTo(Json(samples.TakeLast(RestartHistory.ChunkSamples * 2).ToArray())));
     }
 
     [Test]
@@ -340,7 +342,8 @@ public sealed class RestartHistoryTests
             Assert.That(restored, Is.Not.Null);
             Assert.That(Json(restored!.Samples), Is.EqualTo(Json(Samples(75).Select(sample => sample with
             {
-                Processes = sample.Processes.Select(process => process with { FileVersion = "", ProductVersion = "" }).ToArray()
+                Processes = sample.Processes.Select(process => process with { FileVersion = "", ProductVersion = "" })
+                    .ToArray()
             }))));
             Assert.That(restored.Usage!.Apps.Select(a => a.Key), Is.EquivalentTo(new[] { @"C:\app.exe", "tool" }));
         });
@@ -372,7 +375,8 @@ public sealed class RestartHistoryTests
     }
 
     // Regenerates the checked-in fixture. Run it only when deliberately introducing a new format version.
-    [Test, Explicit("Writes the format fixture into the source tree.")]
+    [Test]
+    [Explicit("Writes the format fixture into the source tree.")]
     public void Fixture_Write()
     {
         var ledger = new UsageLedger(Anchor);
@@ -453,7 +457,8 @@ public sealed class RestartHistoryTests
     {
         var resources = new ResourceSample();
         var n = 0;
-        foreach (var property in Settable(typeof(ResourceSample))) property.SetValue(resources, Value(property, i, ++n));
+        foreach (var property in Settable(typeof(ResourceSample)))
+            property.SetValue(resources, Value(property, i, ++n));
         ProcessUsage[] processes =
         [
             .. Enumerable.Range(0, 3).Select(p =>
@@ -494,14 +499,17 @@ public sealed class RestartHistoryTests
             // Format-1 fixtures cover Windows fields. Portable metadata is deliberately rejected by Save
             // and covered by PortableIdentityTests rather than silently added to this binary format.
             .Where(property => property.SetMethod is not null && property.Name is not
-                (nameof(ProcessUsage.LifetimeDomain) or nameof(ProcessUsage.StartedAtUtc) or nameof(ProcessUsage.CpuAvailable)));
+                (nameof(ProcessUsage.LifetimeDomain) or nameof(ProcessUsage.StartedAtUtc)
+                or nameof(ProcessUsage.CpuAvailable)));
     }
 
     private static object? Default(Type type)
     {
-        return type == typeof(string) ? "" : type.IsValueType && Nullable.GetUnderlyingType(type) is null
-            ? Activator.CreateInstance(type)
-            : null;
+        return type == typeof(string)
+            ? ""
+            : type.IsValueType && Nullable.GetUnderlyingType(type) is null
+                ? Activator.CreateInstance(type)
+                : null;
     }
 
     private static ProcessUsage Process(int id, long creation, string name, double cpu, string path = "")
@@ -529,13 +537,42 @@ public sealed class RestartHistoryTests
         public override bool CanSeek => false;
         public override bool CanWrite => true;
         public override long Length => inner.Length;
-        public override long Position { get => inner.Position; set => throw new NotSupportedException(); }
-        public override void Flush() => inner.Flush();
-        public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
-        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
-        public override void SetLength(long value) => throw new NotSupportedException();
-        public override void Write(byte[] buffer, int offset, int count) => throw new IOException("Disk failed.");
-        public override void Write(ReadOnlySpan<byte> buffer) => throw new IOException("Disk failed.");
+
+        public override long Position
+        {
+            get => inner.Position;
+            set => throw new NotSupportedException();
+        }
+
+        public override void Flush()
+        {
+            inner.Flush();
+        }
+
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override long Seek(long offset, SeekOrigin origin)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override void SetLength(long value)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override void Write(byte[] buffer, int offset, int count)
+        {
+            throw new IOException("Disk failed.");
+        }
+
+        public override void Write(ReadOnlySpan<byte> buffer)
+        {
+            throw new IOException("Disk failed.");
+        }
 
         protected override void Dispose(bool disposing)
         {

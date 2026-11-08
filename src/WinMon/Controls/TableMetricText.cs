@@ -31,6 +31,8 @@ internal static class TableMetricText
         return Strings.Format(format, value);
     }
 
-    internal static string IoRate(double bytesPerSecond) =>
-        Strings.Format(Strings.TablePerSecond, UsageText.Bytes(bytesPerSecond));
+    internal static string IoRate(double bytesPerSecond)
+    {
+        return Strings.Format(Strings.TablePerSecond, UsageText.Bytes(bytesPerSecond));
+    }
 }

@@ -24,7 +24,8 @@ public sealed class PreferenceStoreTests
         var loaded = await new PreferenceStore(settingsPath).LoadAsync();
         Assert.Multiple(() =>
         {
-            Assert.That(loaded.ServiceSortColumn, Is.EqualTo(sort is >= 0 and <= 2 || count == 0 && sort == 3 ? sort : 0));
+            Assert.That(loaded.ServiceSortColumn,
+                Is.EqualTo(sort is >= 0 and <= 2 || (count == 0 && sort == 3) ? sort : 0));
             Assert.That(loaded.ServiceStatusFilter, Is.EqualTo(status is >= 0 and <= 2 ? status : 0));
             Assert.That(loaded.ServiceIncludeWorkers, Is.EqualTo(workers));
         });
@@ -67,12 +68,12 @@ public sealed class PreferenceStoreTests
         var store = new PreferenceStore(settingsPath);
         await store.SaveAsync(new MonitorPreferences());
         await File.WriteAllTextAsync(settingsPath, """
-            {"PinnedConnections":[null,{},
-              {"ProcessId":42,"CreationTicks":123,"Name":"sample","ImagePath":"C:\\sample.exe","Grouped":true},
-              {"ProcessId":43,"CreationTicks":456,"Name":"sample","ImagePath":"c:\\SAMPLE.exe","Grouped":true},
-              {"ProcessId":44,"CreationTicks":789,"Name":"no path","Grouped":true},
-              {"ProcessId":45,"CreationTicks":789,"Name":"foreign","LifetimeDomain":1}]}
-            """);
+                                                   {"PinnedConnections":[null,{},
+                                                     {"ProcessId":42,"CreationTicks":123,"Name":"sample","ImagePath":"C:\\sample.exe","Grouped":true},
+                                                     {"ProcessId":43,"CreationTicks":456,"Name":"sample","ImagePath":"c:\\SAMPLE.exe","Grouped":true},
+                                                     {"ProcessId":44,"CreationTicks":789,"Name":"no path","Grouped":true},
+                                                     {"ProcessId":45,"CreationTicks":789,"Name":"foreign","LifetimeDomain":1}]}
+                                                   """);
         Assert.That((await store.LoadAsync()).PinnedConnections, Has.Length.EqualTo(1));
     }
 
@@ -172,7 +173,10 @@ public sealed class PreferenceStoreTests
         Assert.That(legacy.ActivityPanelCollapsed, Is.False);
         Assert.That(legacy.ChartPanelCollapsed, Is.False);
         Assert.That(legacy.ActivityPanelRatio, Is.EqualTo(1.25));
-        await store.SaveAsync(legacy with { ActivityPanelCollapsed = collapsed, ChartPanelCollapsed = collapsed, ActivityPanelRatio = 2.4 });
+        await store.SaveAsync(legacy with
+        {
+            ActivityPanelCollapsed = collapsed, ChartPanelCollapsed = collapsed, ActivityPanelRatio = 2.4
+        });
         var restored = await new PreferenceStore(settingsPath).LoadAsync();
         Assert.Multiple(() =>
         {
@@ -227,10 +231,7 @@ public sealed class PreferenceStoreTests
     [TearDown]
     public void TearDown()
     {
-        if (Directory.Exists(testDirectory))
-        {
-            Directory.Delete(testDirectory, recursive: true);
-        }
+        if (Directory.Exists(testDirectory)) Directory.Delete(testDirectory, true);
     }
 
     [Test]
@@ -238,17 +239,14 @@ public sealed class PreferenceStoreTests
     [TestCase(true)]
     public async Task StorageMode_LoadsAndSavesOnlySelectedProfile(bool portable)
     {
-        string applicationDirectory = Path.Combine(testDirectory, "app");
-        string localDirectory = Path.Combine(testDirectory, "local");
-        string portablePath = Path.Combine(applicationDirectory, "settings.json");
-        string installedPath = Path.Combine(localDirectory, "WinMon", "settings.json");
+        var applicationDirectory = Path.Combine(testDirectory, "app");
+        var localDirectory = Path.Combine(testDirectory, "local");
+        var portablePath = Path.Combine(applicationDirectory, "settings.json");
+        var installedPath = Path.Combine(localDirectory, "WinMon", "settings.json");
         Directory.CreateDirectory(applicationDirectory);
         await new PreferenceStore(portablePath).SaveAsync(new MonitorPreferences { Theme = "Light" });
         await new PreferenceStore(installedPath).SaveAsync(new MonitorPreferences { Theme = "Dark" });
-        if (portable)
-        {
-            await File.WriteAllTextAsync(Path.Combine(applicationDirectory, "portable.flag"), "");
-        }
+        if (portable) await File.WriteAllTextAsync(Path.Combine(applicationDirectory, "portable.flag"), "");
 
         var store = new PreferenceStore(applicationDirectory, localDirectory);
         Assert.That((await store.LoadAsync()).Theme, Is.EqualTo(portable ? "Light" : "Dark"));
@@ -267,11 +265,11 @@ public sealed class PreferenceStoreTests
     [Test]
     public async Task PortableMode_MissingSettingsUsesDefaults_AndKeepsPathUntilRestart()
     {
-        string applicationDirectory = Path.Combine(testDirectory, "app");
-        string localDirectory = Path.Combine(testDirectory, "local");
-        string installedPath = Path.Combine(localDirectory, "WinMon", "settings.json");
+        var applicationDirectory = Path.Combine(testDirectory, "app");
+        var localDirectory = Path.Combine(testDirectory, "local");
+        var installedPath = Path.Combine(localDirectory, "WinMon", "settings.json");
         Directory.CreateDirectory(applicationDirectory);
-        string markerPath = Path.Combine(applicationDirectory, "portable.flag");
+        var markerPath = Path.Combine(applicationDirectory, "portable.flag");
         await File.WriteAllTextAsync(markerPath, "");
         await new PreferenceStore(installedPath).SaveAsync(new MonitorPreferences { Theme = "Light" });
         var store = new PreferenceStore(applicationDirectory, localDirectory);
@@ -280,8 +278,10 @@ public sealed class PreferenceStoreTests
         File.Delete(markerPath);
         await store.SaveAsync(new MonitorPreferences { Theme = "System" });
 
-        Assert.That((await new PreferenceStore(Path.Combine(applicationDirectory, "settings.json")).LoadAsync()).Theme, Is.EqualTo("System"));
-        Assert.That((await new PreferenceStore(applicationDirectory, localDirectory).LoadAsync()).Theme, Is.EqualTo("Light"));
+        Assert.That((await new PreferenceStore(Path.Combine(applicationDirectory, "settings.json")).LoadAsync()).Theme,
+            Is.EqualTo("System"));
+        Assert.That((await new PreferenceStore(applicationDirectory, localDirectory).LoadAsync()).Theme,
+            Is.EqualTo("Light"));
     }
 
     [Test]
@@ -293,7 +293,7 @@ public sealed class PreferenceStoreTests
         await File.WriteAllTextAsync(settingsPath, content);
         PreferenceStore store = new(settingsPath);
 
-        MonitorPreferences preferences = await store.LoadAsync();
+        var preferences = await store.LoadAsync();
 
         Assert.Multiple(() =>
         {
@@ -363,7 +363,10 @@ public sealed class PreferenceStoreTests
         var saved = await File.ReadAllTextAsync(settingsPath);
 
         await using (new FileStream(settingsPath, FileMode.Open, FileAccess.Read, FileShare.None))
+        {
             Assert.That((await store.LoadAsync()).Theme, Is.EqualTo("Dark"));
+        }
+
         Assert.That(File.Exists(store.InvalidCopyPath), Is.False, "The lock also blocked the copy.");
         await store.SaveAsync(new MonitorPreferences());
 
@@ -386,11 +389,11 @@ public sealed class PreferenceStoreTests
         // A newer build may add gauge styles, chart types, sorts or capture metrics that this one lacks.
         Directory.CreateDirectory(testDirectory);
         await File.WriteAllTextAsync(settingsPath, """
-            { "Theme": "Light", "GaugeStyle": "Hologram", "ResourceChartType": "Radar", "ProcessSort": "Energy",
-              "AutoCapture": { "Enabled": true, "Rules": [ { "Metric": "Battery", "Enabled": true,
-                "Threshold": 50, "Seconds": 10 }, { "Metric": "memory", "Enabled": true, "Threshold": 80,
-                "Seconds": 20 } ] } }
-            """);
+                                                   { "Theme": "Light", "GaugeStyle": "Hologram", "ResourceChartType": "Radar", "ProcessSort": "Energy",
+                                                     "AutoCapture": { "Enabled": true, "Rules": [ { "Metric": "Battery", "Enabled": true,
+                                                       "Threshold": 50, "Seconds": 10 }, { "Metric": "memory", "Enabled": true, "Threshold": 80,
+                                                       "Seconds": 20 } ] } }
+                                                   """);
         var store = new PreferenceStore(settingsPath);
 
         var loaded = await store.LoadAsync();
@@ -431,12 +434,12 @@ public sealed class PreferenceStoreTests
     {
         Directory.CreateDirectory(testDirectory);
         await File.WriteAllTextAsync(settingsPath, """
-            { "Width": -1, "Height": 9000, "Theme": "unsupported", "RetentionSeconds": 9999,
-              "TopUsageCount": 7, "UsageSortColumn": 9 }
-            """);
+                                                   { "Width": -1, "Height": 9000, "Theme": "unsupported", "RetentionSeconds": 9999,
+                                                     "TopUsageCount": 7, "UsageSortColumn": 9 }
+                                                   """);
         PreferenceStore store = new(settingsPath);
 
-        MonitorPreferences preferences = await store.LoadAsync();
+        var preferences = await store.LoadAsync();
 
         Assert.Multiple(() =>
         {
@@ -460,11 +463,11 @@ public sealed class PreferenceStoreTests
             Height = 100,
             Theme = "system",
             RetentionSeconds = 1,
-            MinimizeToTray = true,
+            MinimizeToTray = true
         };
 
         await store.SaveAsync(supplied);
-        MonitorPreferences loaded = await store.LoadAsync();
+        var loaded = await store.LoadAsync();
 
         Assert.Multiple(() =>
         {
@@ -532,7 +535,8 @@ public sealed class PreferenceStoreTests
     public async Task ChartRange_RoundTrips_AndLegacyExpandedSettingStillLoads()
     {
         Directory.CreateDirectory(testDirectory);
-        await File.WriteAllTextAsync(settingsPath, "{\"Expanded\":true,\"RetentionSeconds\":1800,\"TopProcessCount\":10}");
+        await File.WriteAllTextAsync(settingsPath,
+            "{\"Expanded\":true,\"RetentionSeconds\":1800,\"TopProcessCount\":10}");
         var store = new PreferenceStore(settingsPath);
         var legacy = await store.LoadAsync();
         await store.SaveAsync(legacy with { ChartRangeSeconds = 1800 });
@@ -644,7 +648,8 @@ public sealed class PreferenceStoreTests
         using CancellationTokenSource cancellationSource = new();
         cancellationSource.Cancel();
 
-        Assert.That(async () => await store.SaveAsync(new MonitorPreferences(), cancellationSource.Token), Throws.InstanceOf<OperationCanceledException>());
+        Assert.That(async () => await store.SaveAsync(new MonitorPreferences(), cancellationSource.Token),
+            Throws.InstanceOf<OperationCanceledException>());
         Assert.That(File.Exists(settingsPath), Is.False);
     }
 
@@ -721,7 +726,8 @@ public sealed class PreferenceStoreTests
     [Test]
     public void ApplySettings_TakesOnlyDialogSettings_AndKeepsChoicesMadeInTheWindowMeanwhile()
     {
-        var opened = new MonitorPreferences { Theme = "Dark", RetentionSeconds = 600, GroupProcesses = false, CompactMode = false };
+        var opened = new MonitorPreferences
+            { Theme = "Dark", RetentionSeconds = 600, GroupProcesses = false, CompactMode = false };
         var confirmed = opened with
         {
             Theme = "Light", RetentionSeconds = 1800, MinimizeToTray = !opened.MinimizeToTray,

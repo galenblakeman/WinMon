@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Shell;
 using System.Windows.Threading;
@@ -177,6 +178,7 @@ public partial class MainWindow
                 if (UpdateRuntime.RestartHistory is null) await RestoreNormalHistoryAsync();
                 else RestartHistory.DeleteNormal(_preferenceStore.NormalHistoryPath);
             }
+
             Lifetime.Token.ThrowIfCancellationRequested();
             ApplyTheme();
             if (_preferences.CompactMode) SetCompactView(true);
@@ -217,7 +219,8 @@ public partial class MainWindow
     {
         var preferences = Volatile.Read(ref _preferences);
         var network = preferences.ProcessNetworkMonitoringEnabled && NetworkSetupBroker.Supported
-            ? _networkMonitoring?.Sample : null;
+            ? _networkMonitoring?.Sample
+            : null;
         return new SamplingOptions(preferences.PrimaryDrive, preferences.SecondaryDrive,
             Volatile.Read(ref _retainPinned),
             preferences.TopProcessCount == 0, preferences.NetworkInterfaceId)
@@ -281,7 +284,8 @@ public partial class MainWindow
                   string.Join(", ", (visible?.LogicalProcessorPercents ?? []).Select((value, index) =>
                       Strings.Format(Strings.LogicalProcessorLabel, index) + " " +
                       (value is { } percent && visible?.IsGap != true
-                          ? Strings.Format(Strings.PercentInteger, Math.Round(percent)) : Strings.MissingReading)))
+                          ? Strings.Format(Strings.PercentInteger, Math.Round(percent))
+                          : Strings.MissingReading)))
                 : Strings.CPUMemoryConfiguredDisksNetworkAndGPUOverlayHistoryClick);
         RefreshCompactView();
         RefreshServices();
@@ -537,7 +541,10 @@ public partial class MainWindow
             ChartTypeSelector.SelectedItem = selected;
             AutomationProperties.SetName(ChartTypeSelector, Strings.ChartDisplay);
         }
-        finally { _updatingChartSelectors = false; }
+        finally
+        {
+            _updatingChartSelectors = false;
+        }
     }
 
     private void OnChartTypeChanged(object sender, SelectionChangedEventArgs e)
@@ -561,7 +568,11 @@ public partial class MainWindow
             for (var i = 0; i < Metrics.Length; i++) Metrics[i].Toggle.IsChecked = (mask & (1 << i)) != 0;
             OverallGraph.VisibleMetrics = mask;
         }
-        finally { _restoringSeries = false; }
+        finally
+        {
+            _restoringSeries = false;
+        }
+
         UpdateChartLegend();
     }
 
@@ -582,10 +593,16 @@ public partial class MainWindow
     {
         if (IsClosing) return;
         var dialog = new HardwareInfoWindow { Owner = this };
-        void RefreshInfoUpdate() => dialog.SetUpdateState(
-            _updateDownloading ? UpdateStatusText.Text : _updateChecksPending > 0 ? Strings.UpdateChecking :
+
+        void RefreshInfoUpdate()
+        {
+            dialog.SetUpdateState(
+                _updateDownloading ? UpdateStatusText.Text :
+                _updateChecksPending > 0 ? Strings.UpdateChecking :
                 Strings.Format(Strings.Text[_updateCheckStatusKey], _updateOffer?.Version),
-            _updateOffer is not null, _updateDownloading || _updateChecksPending > 0);
+                _updateOffer is not null, _updateDownloading || _updateChecksPending > 0);
+        }
+
         RefreshInfoUpdate();
         UpdateCheckChanged += RefreshInfoUpdate;
         dialog.CheckForUpdatesRequested += async () =>
@@ -594,8 +611,14 @@ public partial class MainWindow
             RefreshInfoUpdate();
         };
         dialog.UpdateRequested += () => OnUpdateNow(this, new RoutedEventArgs());
-        try { dialog.ShowDialog(); }
-        finally { UpdateCheckChanged -= RefreshInfoUpdate; }
+        try
+        {
+            dialog.ShowDialog();
+        }
+        finally
+        {
+            UpdateCheckChanged -= RefreshInfoUpdate;
+        }
     }
 
 
@@ -722,9 +745,11 @@ public partial class MainWindow
                     return UpdateStatusText.Text;
                 }, _preferenceStore.DefaultCaptureFolder, _lastUpdateCheck,
                 Session.History.Latest?.Resources.NetworkName,
-                changeNetworkMonitoring: ChangeNetworkMonitoringAsync,
-                removeNetworkService: RemoveNetworkMonitoringAsync,
-                networkMonitoringState: _networkMonitoring?.State ?? (NetworkSetupBroker.Supported ? NetworkMonitoringState.Disabled : NetworkMonitoringState.StoreUnavailable)) { Owner = this };
+                ChangeNetworkMonitoringAsync,
+                RemoveNetworkMonitoringAsync,
+                _networkMonitoring?.State ?? (NetworkSetupBroker.Supported
+                    ? NetworkMonitoringState.Disabled
+                    : NetworkMonitoringState.StoreUnavailable)) { Owner = this };
             ObserveNetworkMonitoring(dialog);
             dialog.ShowSection(_lastSettingsSection);
             // Let the shortcut recorder receive WinMon's own combination; Save or the finally block takes it back.
@@ -785,7 +810,8 @@ public partial class MainWindow
         }
 
         // Choices made in the window while the file was written, such as grouping or a new pin, stay in effect.
-        _preferences = PreferenceStore.Validate(SettingsWindow.ApplySettings(_preferences, result, resetChartPreferences));
+        _preferences =
+            PreferenceStore.Validate(SettingsWindow.ApplySettings(_preferences, result, resetChartPreferences));
         if (!_preferences.KeepHistoryAcrossRestarts)
             RestartHistory.DeleteNormal(_preferenceStore.NormalHistoryPath);
         RestoreChartControls();
@@ -897,13 +923,15 @@ public partial class MainWindow
                 app.Resources["TitleBarSurface"] = ThemeFinishes.ChromeBrush(finish, false);
                 app.Resources["SectionHeaderSurface"] = ThemeFinishes.ChromeBrush(finish, true);
             }
+
             SetBrush("PlotSurface", finish?.Plot ?? (light ? "#FFFFFF" : "#15191E"));
             SetBrush("SearchSurface", finish?.Search ?? (light ? "#FFFFFF" : "#15191E"));
             SetBrush("SelectedSurface", finish?.Selected ?? (light ? "#1469B5" : "#20262D"));
             SetBrush("SelectedText", finish?.SelectedText ?? (light ? "#FFFFFF" : "#EDF2F6"));
             SetBrush("SegmentSelectedSurface", finish?.SegmentSelected ?? (light ? "#1469B5" : "#3D4855"));
             SetBrush("ChipText", finish?.Text ?? (light ? "#20334A" : "#EDF2F6"));
-            SetBrush("ChipSelectedText", finish is null ? (light ? "#FFFFFF" : "#EDF2F6")
+            SetBrush("ChipSelectedText", finish is null
+                ? light ? "#FFFFFF" : "#EDF2F6"
                 : ThemeFinishes.SelectedChipText(finish));
             SetBrush("SnapshotAccentText", "#07171B");
             SetBrush("Text", finish?.Text ?? (light ? "#20334A" : "#EDF2F6"));
@@ -911,7 +939,7 @@ public partial class MainWindow
             SetBrush("TitleMuted", finish?.TitleText ?? finish?.Muted ?? (light ? "#465D78" : "#B3BDC8"));
             SetBrush("Muted", finish?.Muted ?? (light ? "#465D78" : "#B3BDC8"));
             SetBrush("InactiveTabText", finish is null
-                ? (light ? "#465D78" : "#B3BDC8")
+                ? light ? "#465D78" : "#B3BDC8"
                 : ThemeFinishes.InactiveTabText(_preferences.Theme, finish));
             SetBrush("Line", finish?.Line ?? (light ? "#CCD9E5" : "#35404B"));
             SetBrush("GaugeTrack", finish?.GaugeTrack ?? (light ? "#CCD9E5" : "#35404B"));
@@ -924,10 +952,13 @@ public partial class MainWindow
                 SetBrush(keys[i], colors[i]);
                 SetBrush(keys[i].Replace("Accent", "ChartAccent", StringComparison.Ordinal), chartColors[i]);
             }
+
             var uiAccent = finish?.UiAccent ?? (light ? "#1469B5" : colors[0]);
             SetBrush("Accent", uiAccent);
             SetBrush("AccentButtonText", ChartPalettes.ContrastRatio(
-                (Color)ColorConverter.ConvertFromString(uiAccent), Colors.Black) >= 4.5 ? "#000000" : "#FFFFFF");
+                (Color)ColorConverter.ConvertFromString(uiAccent), Colors.Black) >= 4.5
+                ? "#000000"
+                : "#FFFFFF");
             SetBrush("SnapshotAccent", uiAccent);
             SetBrush("ProcessPinAccent", uiAccent);
             SetBrush("TitleStatus", finish?.TitleText ?? uiAccent);
@@ -969,7 +1000,7 @@ public partial class MainWindow
     private void EnsureVisible()
     {
         // Keep any window that intersects a display; recover disconnected-monitor bounds to the primary work area.
-        var handle = new System.Windows.Interop.WindowInteropHelper(this).Handle;
+        var handle = new WindowInteropHelper(this).Handle;
         if (!GetWindowRect(handle, out var nativeBounds)) return;
         var bounds = Rectangle.FromLTRB(nativeBounds.Left, nativeBounds.Top, nativeBounds.Right, nativeBounds.Bottom);
         var visible = Forms.Screen.AllScreens.Any(s => Rectangle.Intersect(s.WorkingArea, bounds) is
@@ -1114,6 +1145,7 @@ public partial class MainWindow
                 // Sampling has stopped either way; a fault must not skip the saves below.
                 Trace.TraceError("WinMon sampling ended with an error: {0}", samplingError);
             }
+
             await ProcessDumpDialog.WhenWritesFinishAsync();
             await WhenExportsFinishAsync();
             await WhenCapturesFinishAsync();
@@ -1188,6 +1220,7 @@ public partial class MainWindow
         {
             Trace.TraceError("WinMon session-end preference save failed: {0}", ex.InnerException);
         }
+
         if (preferences.KeepHistoryAcrossRestarts)
         {
             var samples = Session.History.Samples;
@@ -1211,6 +1244,7 @@ public partial class MainWindow
             RestartHistory.DeleteNormal(_preferenceStore.NormalHistoryPath);
             return;
         }
+
         var samples = Session.History.Samples;
         try
         {
@@ -1235,6 +1269,7 @@ public partial class MainWindow
             RestartHistory.DeleteNormal(path);
             return;
         }
+
         try
         {
             var restored = await Task.Run(() => RestartHistory.ReadNormal(path, RestartClock.System,

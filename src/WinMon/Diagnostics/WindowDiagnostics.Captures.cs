@@ -1,7 +1,11 @@
+// Exact stored layout values and channels returned by Max require exact comparison.
+// ReSharper disable CompareOfFloatsByEqualityOperator
+
 using System.Diagnostics;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Automation;
+using System.Windows.Threading;
 using WinMon.Controls;
 using WinMon.Monitoring;
 using WinMon.Preferences;
@@ -44,7 +48,8 @@ internal sealed partial class WindowDiagnostics
             fixture.RefreshVisiblePresentation();
             if (!Equals(fixture.CapturesButton.Content, Strings.AutoCaptureShort) ||
                 AutomationProperties.GetName(fixture.CapturesButton) != Strings.AutoCaptureNone)
-                throw new InvalidOperationException("The empty captures button needs a short label and full description.");
+                throw new InvalidOperationException(
+                    "The empty captures button needs a short label and full description.");
             var anchor = DateTimeOffset.Now.AddSeconds(-120);
             for (var i = 0; i < 120; i++)
             {
@@ -98,7 +103,8 @@ internal sealed partial class WindowDiagnostics
                 new Point(fixture.ChartModeSwitch.ActualWidth, 0), fixture).X;
             var autoLeft = fixture.CapturesButton.TranslatePoint(new Point(), fixture).X;
             if (Math.Abs(autoLeft - captureRight - 8) > 1.5 || fixture.ChartTypeSelector.ActualWidth != 150)
-                throw new InvalidOperationException("Auto must follow Capture while the chart type selector stays narrow.");
+                throw new InvalidOperationException(
+                    "Auto must follow Capture while the chart type selector stays narrow.");
             fixture.Width = 836;
             fixture.UpdateLayout();
             var autoRight = fixture.CapturesButton.TranslatePoint(
@@ -160,49 +166,62 @@ internal sealed partial class WindowDiagnostics
                         settings.UpdateLayout();
                         overflow[$"{theme} {section}"] = Math.Round(settings.PageOverflow, 1);
                         // These sections must show every setting without scrolling at full height.
-                        if (section is SettingsSection.Appearance or SettingsSection.Monitoring or SettingsSection.Network && settings.PageOverflow > 0.5 &&
+                        if (section is SettingsSection.Appearance or SettingsSection.Monitoring
+                                or SettingsSection.Network && settings.PageOverflow > 0.5 &&
                             !settings.HeightLimitedByWorkArea)
                             throw new InvalidOperationException(
                                 $"Settings {section} scrolls by {settings.PageOverflow:F0} DIPs in {theme}.");
-                        var name = theme == "Dark" ? $"settings-{section.ToString().ToLowerInvariant()}.png"
+                        var name = theme == "Dark"
+                            ? $"settings-{section.ToString().ToLowerInvariant()}.png"
                             : $"settings-light-{section.ToString().ToLowerInvariant()}.png";
                         await CaptureServiceWindowAsync(settings, Path.Combine(output, name), cancellationToken);
                         if (section == SettingsSection.Network)
                         {
                             settings.RemoveNetworkMonitoringServiceButton.BringIntoView();
                             settings.UpdateLayout();
-                            var networkMonitoringName = theme == "Dark" ? "settings-network-monitoring.png"
+                            var networkMonitoringName = theme == "Dark"
+                                ? "settings-network-monitoring.png"
                                 : "settings-light-network-monitoring.png";
                             await CaptureServiceWindowAsync(settings, Path.Combine(output, networkMonitoringName),
                                 cancellationToken);
                             if (NetworkSetupBroker.Supported)
                             {
                                 settings.RefreshNetworkMonitoringState(NetworkMonitoringState.UpdateRequired);
-                                if (settings.ProcessNetworkMonitoringStatus.Text != Strings.NetworkProcessMonitoringUpdateRequired)
-                                    throw new InvalidOperationException("Incompatible service needs the localized update-required state.");
+                                if (settings.ProcessNetworkMonitoringStatus.Text !=
+                                    Strings.NetworkProcessMonitoringUpdateRequired)
+                                    throw new InvalidOperationException(
+                                        "Incompatible service needs the localized update-required state.");
                                 await CaptureServiceWindowAsync(settings, Path.Combine(output,
-                                    theme == "Dark" ? "settings-network-update-required.png" : "settings-light-network-update-required.png"),
+                                        theme == "Dark"
+                                            ? "settings-network-update-required.png"
+                                            : "settings-light-network-update-required.png"),
                                     cancellationToken);
                                 settings.RefreshNetworkMonitoringState(NetworkMonitoringState.Disabled);
                                 settings.ProcessNetworkMonitoringCheckBox.IsChecked = true;
                                 networkSave = settings.SaveAsync();
-                                await System.Windows.Threading.Dispatcher.Yield(
-                                    System.Windows.Threading.DispatcherPriority.Background);
+                                await Dispatcher.Yield(
+                                    DispatcherPriority.Background);
                                 if (settings.Navigation.IsEnabled || settings.SaveButton.IsEnabled)
-                                    throw new InvalidOperationException("Setup must disable navigation and repeated saves.");
+                                    throw new InvalidOperationException(
+                                        "Setup must disable navigation and repeated saves.");
                                 await CaptureServiceWindowAsync(settings, Path.Combine(output,
-                                    theme == "Dark" ? "settings-network-busy.png" : "settings-light-network-busy.png"),
+                                        theme == "Dark"
+                                            ? "settings-network-busy.png"
+                                            : "settings-light-network-busy.png"),
                                     cancellationToken);
-                                networkChange.TrySetResult(new NetworkMonitoringChangeResult(false, NetworkMonitoringState.Cancelled));
+                                networkChange.TrySetResult(
+                                    new NetworkMonitoringChangeResult(false, NetworkMonitoringState.Cancelled));
                                 await networkSave;
                             }
+
                             settings.ScrollSettingsPageToTop();
                         }
                     }
                 }
                 finally
                 {
-                    networkChange.TrySetResult(new NetworkMonitoringChangeResult(false, NetworkMonitoringState.Cancelled));
+                    networkChange.TrySetResult(
+                        new NetworkMonitoringChangeResult(false, NetworkMonitoringState.Cancelled));
                     if (networkSave is not null) await networkSave;
                     settings.Close();
                 }
@@ -215,8 +234,8 @@ internal sealed partial class WindowDiagnostics
             try
             {
                 fixture.Close();
-                await System.Windows.Threading.Dispatcher.Yield(
-                    System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+                await Dispatcher.Yield(
+                    DispatcherPriority.ApplicationIdle);
                 if (closed.Task.IsCompleted)
                     throw new InvalidOperationException("Shutdown must wait for an automatic capture report write.");
                 delayed.SetResult(markers[0].ReportPath!);

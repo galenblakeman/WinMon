@@ -1,11 +1,11 @@
 using System.Buffers.Binary;
 using System.Diagnostics;
-using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using NUnit.Framework;
 using WinMon.Controls;
 using WinMon.Monitoring;
+using WinMon.Resources;
 
 namespace WinMon.Tests;
 
@@ -25,12 +25,19 @@ public sealed class ProcessCountTests
         var missing = new ProcessUsage(5, 50, "missing", 10);
         var tie = a with { ProcessId = 6, Name = "tie" };
         var zero = a with { ProcessId = 7, Name = "zero", ThreadCount = 0, HandleCount = 0 };
-        MonitorSample[] history = [Sample(1, a, b with { ThreadCount = 100, HandleCount = 100 }, c, exited), Sample(2, a, b, c, missing, tie, zero)];
+        MonitorSample[] history =
+        [
+            Sample(1, a, b with { ThreadCount = 100, HandleCount = 100 }, c, exited),
+            Sample(2, a, b, c, missing, tie, zero)
+        ];
         var ranking = ProcessRanking.Rank(history, sort: sort, grouped: grouped);
         Assert.Multiple(() =>
         {
-            Assert.That(ranking.Processes.Select(p => p.ProcessId), Is.EqualTo(grouped ? new[] { 2, 1, 6, 7 } : new[] { 2, 3, 1, 6, 7 }));
-            Assert.That(sort == ProcessSort.Threads ? ranking.Processes[0].ThreadCount : ranking.Processes[0].HandleCount, Is.EqualTo(grouped ? 9 : 5));
+            Assert.That(ranking.Processes.Select(p => p.ProcessId),
+                Is.EqualTo(grouped ? new[] { 2, 1, 6, 7 } : new[] { 2, 3, 1, 6, 7 }));
+            Assert.That(
+                sort == ProcessSort.Threads ? ranking.Processes[0].ThreadCount : ranking.Processes[0].HandleCount,
+                Is.EqualTo(grouped ? 9 : 5));
             var historical = ProcessRanking.Rank([history[0]], sort: sort, grouped: grouped);
             Assert.That(historical.Processes.First().ProcessId, Is.EqualTo(4));
         });
@@ -42,7 +49,7 @@ public sealed class ProcessCountTests
     {
         var a = new ProcessUsage(1, 10, "group", 0) { ThreadCount = 5, HandleCount = 5 };
         var missing = a with { ProcessId = 2, ThreadCount = null, HandleCount = null };
-        var data = ProcessGraphData.Build([Sample(1, a, missing)], 120, [a], grouped: true, sort: sort);
+        var data = ProcessGraphData.Build([Sample(1, a, missing)], 120, [a], true, sort);
         Assert.That(data[0].Values, Is.EqualTo(new double?[] { null }));
     }
 
@@ -54,11 +61,12 @@ public sealed class ProcessCountTests
             ThreadCount = id,
             HandleCount = id is 38 or 39 ? 1000 : 1
         }).ToArray();
-        var compacted = ProcessRetention.Compact(Sample(1, processes), largestByMemory: 2);
+        var compacted = ProcessRetention.Compact(Sample(1, processes), 2);
         Assert.That(compacted.Processes.Select(p => p.ProcessId), Is.EqualTo(new[] { 1, 2, 38, 39, 40 }));
         foreach (var sort in new[] { ProcessSort.Threads, ProcessSort.Handles })
             Assert.That(ProcessRanking.Rank([compacted], sort: sort).Processes.Take(2).Select(p => p.ProcessId),
-                Is.EqualTo(ProcessRanking.Rank([Sample(1, processes)], sort: sort).Processes.Take(2).Select(p => p.ProcessId)));
+                Is.EqualTo(ProcessRanking.Rank([Sample(1, processes)], sort: sort).Processes.Take(2)
+                    .Select(p => p.ProcessId)));
     }
 
     [Test]
@@ -80,7 +88,8 @@ public sealed class ProcessCountTests
     [Test]
     public void NativeCapture_ReadsCountsForThisProcess()
     {
-        var process = new WindowsCpuSnapshotProvider().Capture().Processes.Single(p => p.ProcessId == Environment.ProcessId);
+        var process = new WindowsCpuSnapshotProvider().Capture().Processes
+            .Single(p => p.ProcessId == Environment.ProcessId);
         Assert.Multiple(() =>
         {
             Assert.That(process.ThreadCount, Is.GreaterThan(0));
@@ -168,20 +177,29 @@ public sealed class ProcessCountTests
         Assert.That(new[] { threads.Text, handles.Text }, Is.All.Empty);
         Assert.That(io.Text, Is.EqualTo("0 B/s"));
         row.Update(new ProcessUsage(1, 10, "example", 2), [], 120, true, null);
-        Assert.That(threads.Text, Is.EqualTo(WinMon.Resources.Strings.MissingReading));
-        Assert.That(handles.Text, Is.EqualTo(WinMon.Resources.Strings.MissingReading));
+        Assert.That(threads.Text, Is.EqualTo(Strings.MissingReading));
+        Assert.That(handles.Text, Is.EqualTo(Strings.MissingReading));
     }
 
-    private static MonitorSample Sample(int second, params ProcessUsage[] processes) =>
-        new(DateTimeOffset.UnixEpoch.AddSeconds(second), 10, processes, 0, false, second * Stopwatch.Frequency);
+    private static MonitorSample Sample(int second, params ProcessUsage[] processes)
+    {
+        return new MonitorSample(DateTimeOffset.UnixEpoch.AddSeconds(second), 10, processes, 0, false,
+            second * Stopwatch.Frequency);
+    }
 
-    private static CpuSnapshot Snapshot(int second, ProcessCpuTimes process) =>
-        new(DateTimeOffset.UnixEpoch.AddSeconds(second), second * Stopwatch.Frequency,
+    private static CpuSnapshot Snapshot(int second, ProcessCpuTimes process)
+    {
+        return new CpuSnapshot(DateTimeOffset.UnixEpoch.AddSeconds(second), second * Stopwatch.Frequency,
             new SystemCpuTimes(second * 100, second * 500, second * 500), [process], 0);
+    }
 
     private sealed class Snapshots(params CpuSnapshot[] snapshots) : ICpuSnapshotProvider
     {
         private readonly Queue<CpuSnapshot> _snapshots = new(snapshots);
-        public CpuSnapshot Capture() => _snapshots.Dequeue();
+
+        public CpuSnapshot Capture()
+        {
+            return _snapshots.Dequeue();
+        }
     }
 }

@@ -146,7 +146,7 @@ public sealed class NetworkTrafficLedgerTests
     [Test]
     public void Register_CapacityFailureDoesNotReplaceExistingLifetime()
     {
-        var ledger = new NetworkTrafficLedger(Frequency, 0, maximumLifetimes: 1);
+        var ledger = new NetworkTrafficLedger(Frequency, 0, 1);
         Assert.That(ledger.Register(42, 100, Owner, 0), Is.True);
         ledger.End(42, 10);
         Assert.That(ledger.Register(43, 200, Owner, 20), Is.False);
@@ -198,7 +198,10 @@ public sealed class NetworkTrafficLedgerTests
         Assert.That(ledger.HasLifetime(42, 30), Is.False);
     }
 
-    private static NetworkTrafficLedger NewLedger() => new(Frequency, 0);
+    private static NetworkTrafficLedger NewLedger()
+    {
+        return new NetworkTrafficLedger(Frequency, 0);
+    }
 
     [Test]
     public void DuplicateRegistration_RecoversRatesAfterFreshWindowButKeepsCoverageReason()

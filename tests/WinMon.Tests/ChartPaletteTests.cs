@@ -1,5 +1,5 @@
-using NUnit.Framework;
 using System.Windows.Media;
+using NUnit.Framework;
 using WinMon.Preferences;
 
 namespace WinMon.Tests;
@@ -21,17 +21,26 @@ public sealed class ChartPaletteTests
     [TestCase("Cyberpunk / Neon", "Neon")]
     public void Validate_NormalizesPalette(string? input, string expected)
     {
-        Assert.That(PreferenceStore.Validate(new MonitorPreferences { ChartPalette = input! }).ChartPalette, Is.EqualTo(expected));
+        Assert.That(PreferenceStore.Validate(new MonitorPreferences { ChartPalette = input! }).ChartPalette,
+            Is.EqualTo(expected));
     }
 
-    [TestCase("Neon", "#00E5FF,#FF1493,#B6FF00,#FF6D00,#A100FF,#FFE600", "#0090C1,#F0127F,#4E9700,#E55900,#9A00F0,#B07D00")]
-    [TestCase("Arcade", "#FF1744,#2979FF,#00E676,#FFEA00,#D500F9,#FF9100", "#F0153F,#2266F0,#009C4E,#B07D00,#B800D9,#C24E00")]
-    [TestCase("Tropical", "#FF3D71,#00B8D9,#FFAB00,#6554FF,#00C896,#FF5630", "#FF3D71,#00B8D9,#FFAB00,#6554FF,#00C896,#FF5630")]
-    [TestCase("Candy", "#7EE36E,#5FA8FF,#FF9C52,#FF7DB8,#45E0C6,#FFD25E", "#1F6A2D,#1265C0,#C2430A,#910B43,#0E7A6C,#694100")]
-    [TestCase("Wildberry", "#9BD87B,#81A8FF,#FD9E5A,#FF5BA0,#AA7BD6,#FFD56C", "#4D8A2E,#185BCF,#B4510C,#C2195B,#7436A8,#724700")]
-    [TestCase("Copper", "#77DC95,#AFC0E5,#F3D447,#FD9CB6,#97F4F0,#C9A9FF", "#206B31,#2F60C6,#8A6A00,#B52162,#1A7B87,#602994")]
-    [TestCase("Gunmetal", "#5CE47F,#6BB7FA,#FFAF21,#F05FCE,#9A86FD,#FF6B4A", "#297F3B,#2B60B7,#B66400,#B0257F,#443BBA,#B32F21")]
-    public void CustomPalette_PreservesRequestedResourceOrderInEachTheme(string palette, string darkColors, string lightColors)
+    [TestCase("Neon", "#00E5FF,#FF1493,#B6FF00,#FF6D00,#A100FF,#FFE600",
+        "#0090C1,#F0127F,#4E9700,#E55900,#9A00F0,#B07D00")]
+    [TestCase("Arcade", "#FF1744,#2979FF,#00E676,#FFEA00,#D500F9,#FF9100",
+        "#F0153F,#2266F0,#009C4E,#B07D00,#B800D9,#C24E00")]
+    [TestCase("Tropical", "#FF3D71,#00B8D9,#FFAB00,#6554FF,#00C896,#FF5630",
+        "#FF3D71,#00B8D9,#FFAB00,#6554FF,#00C896,#FF5630")]
+    [TestCase("Candy", "#7EE36E,#5FA8FF,#FF9C52,#FF7DB8,#45E0C6,#FFD25E",
+        "#1F6A2D,#1265C0,#C2430A,#910B43,#0E7A6C,#694100")]
+    [TestCase("Wildberry", "#9BD87B,#81A8FF,#FD9E5A,#FF5BA0,#AA7BD6,#FFD56C",
+        "#4D8A2E,#185BCF,#B4510C,#C2195B,#7436A8,#724700")]
+    [TestCase("Copper", "#77DC95,#AFC0E5,#F3D447,#FD9CB6,#97F4F0,#C9A9FF",
+        "#206B31,#2F60C6,#8A6A00,#B52162,#1A7B87,#602994")]
+    [TestCase("Gunmetal", "#5CE47F,#6BB7FA,#FFAF21,#F05FCE,#9A86FD,#FF6B4A",
+        "#297F3B,#2B60B7,#B66400,#B0257F,#443BBA,#B32F21")]
+    public void CustomPalette_PreservesRequestedResourceOrderInEachTheme(string palette, string darkColors,
+        string lightColors)
     {
         Assert.Multiple(() =>
         {
@@ -99,9 +108,21 @@ public sealed class ChartPaletteTests
     // Machado, Oliveira and Fernandes (2009) full-severity simulations, applied in linear sRGB.
     private static readonly (string Name, double Minimum, double[,] Matrix)[] ColorVision =
     [
-        ("Deuteranopia", 15, new[,] { { 0.367322, 0.860646, -0.227968 }, { 0.280085, 0.672501, 0.047413 }, { -0.011820, 0.042940, 0.968881 } }),
-        ("Protanopia", 15, new[,] { { 0.152286, 1.052583, -0.204868 }, { 0.114503, 0.786281, 0.099216 }, { -0.003882, -0.048116, 1.051998 } }),
-        ("Tritanopia", 10, new[,] { { 1.255528, -0.076749, -0.178779 }, { -0.078411, 0.930809, 0.147602 }, { 0.004733, 0.691367, 0.303900 } })
+        ("Deuteranopia", 15,
+            new[,]
+            {
+                { 0.367322, 0.860646, -0.227968 }, { 0.280085, 0.672501, 0.047413 }, { -0.011820, 0.042940, 0.968881 }
+            }),
+        ("Protanopia", 15,
+            new[,]
+            {
+                { 0.152286, 1.052583, -0.204868 }, { 0.114503, 0.786281, 0.099216 }, { -0.003882, -0.048116, 1.051998 }
+            }),
+        ("Tritanopia", 10,
+            new[,]
+            {
+                { 1.255528, -0.076749, -0.178779 }, { -0.078411, 0.930809, 0.147602 }, { 0.004733, 0.691367, 0.303900 }
+            })
     ];
 
     [TestCase("Colorblind")]
@@ -120,9 +141,9 @@ public sealed class ChartPaletteTests
             {
                 var lab = colors.Select(color => Lab(color, matrix)).ToArray();
                 for (var i = 0; i < lab.Length; i++)
-                    for (var j = i + 1; j < lab.Length; j++)
-                        Assert.That(Distance(lab[i], lab[j]), Is.GreaterThanOrEqualTo(minimum),
-                            $"{name}: {theme} / {palette} / resources {i} and {j}");
+                for (var j = i + 1; j < lab.Length; j++)
+                    Assert.That(Distance(lab[i], lab[j]), Is.GreaterThanOrEqualTo(minimum),
+                        $"{name}: {theme} / {palette} / resources {i} and {j}");
             }
         }
     }
@@ -139,16 +160,25 @@ public sealed class ChartPaletteTests
         double[] rgb = [Linear(color.R), Linear(color.G), Linear(color.B)];
         var simulated = new double[3];
         for (var row = 0; row < 3; row++)
-            simulated[row] = Math.Clamp(matrix[row, 0] * rgb[0] + matrix[row, 1] * rgb[1] + matrix[row, 2] * rgb[2], 0, 1);
+            simulated[row] = Math.Clamp(matrix[row, 0] * rgb[0] + matrix[row, 1] * rgb[1] + matrix[row, 2] * rgb[2], 0,
+                1);
         var x = (0.4124 * simulated[0] + 0.3576 * simulated[1] + 0.1805 * simulated[2]) / 0.95047;
         var y = 0.2126 * simulated[0] + 0.7152 * simulated[1] + 0.0722 * simulated[2];
         var z = (0.0193 * simulated[0] + 0.1192 * simulated[1] + 0.9505 * simulated[2]) / 1.08883;
-        static double F(double t) => t > 0.008856 ? Math.Cbrt(t) : 7.787 * t + 16d / 116;
+
+        static double F(double t)
+        {
+            return t > 0.008856 ? Math.Cbrt(t) : 7.787 * t + 16d / 116;
+        }
+
         return (116 * F(y) - 16, 500 * (F(x) - F(y)), 200 * (F(y) - F(z)));
     }
 
-    private static double Distance((double L, double A, double B) first, (double L, double A, double B) second) =>
-        Math.Sqrt(Math.Pow(first.L - second.L, 2) + Math.Pow(first.A - second.A, 2) + Math.Pow(first.B - second.B, 2));
+    private static double Distance((double L, double A, double B) first, (double L, double A, double B) second)
+    {
+        return Math.Sqrt(Math.Pow(first.L - second.L, 2) + Math.Pow(first.A - second.A, 2) +
+                         Math.Pow(first.B - second.B, 2));
+    }
 
     [Test]
     public void ChartColors_ClearPlotContrastWithoutApplyingGaugeTextThreshold()
@@ -159,9 +189,9 @@ public sealed class ChartPaletteTests
             var light = theme == "Light" || finish?.Light == true;
             var plot = ColorOf(finish?.Plot ?? (light ? "#FFFFFF" : "#15191E"));
             foreach (var palette in ChartPalettes.Names)
-                foreach (var color in ChartPalettes.ChartColorsForTheme(palette, light, finish))
-                    Assert.That(ChartPalettes.ContrastRatio(ColorOf(color), plot), Is.GreaterThanOrEqualTo(3.0),
-                        $"Chart trace: {theme} / {palette} / {color}");
+            foreach (var color in ChartPalettes.ChartColorsForTheme(palette, light, finish))
+                Assert.That(ChartPalettes.ContrastRatio(ColorOf(color), plot), Is.GreaterThanOrEqualTo(3.0),
+                    $"Chart trace: {theme} / {palette} / {color}");
         }
 
         var candy = ThemeFinishes.For("Candy");
@@ -206,7 +236,10 @@ public sealed class ChartPaletteTests
         Assert.That(choice.Colors, Is.Not.EqualTo(ChartPalettes.Colors(choice.Name, candy.Light)));
     }
 
-    private static Color ColorOf(string hex) => (Color)ColorConverter.ConvertFromString(hex);
+    private static Color ColorOf(string hex)
+    {
+        return (Color)ColorConverter.ConvertFromString(hex);
+    }
 
     [TestCaseSource(typeof(ChartPalettes), nameof(ChartPalettes.Names))]
     public async Task Palette_RoundTripsWithoutChangingThemeOrDiskSelection(string palette)
@@ -215,7 +248,8 @@ public sealed class ChartPaletteTests
         try
         {
             var store = new PreferenceStore(Path.Combine(directory, "settings.json"));
-            await store.SaveAsync(new MonitorPreferences { ChartPalette = palette, Theme = "Light", PrimaryDrive = "D:", SecondaryDrive = "E:" });
+            await store.SaveAsync(new MonitorPreferences
+                { ChartPalette = palette, Theme = "Light", PrimaryDrive = "D:", SecondaryDrive = "E:" });
             var loaded = await store.LoadAsync();
             Assert.Multiple(() =>
             {
@@ -225,6 +259,9 @@ public sealed class ChartPaletteTests
                 Assert.That(loaded.SecondaryDrive, Is.EqualTo("E:"));
             });
         }
-        finally { if (Directory.Exists(directory)) Directory.Delete(directory, true); }
+        finally
+        {
+            if (Directory.Exists(directory)) Directory.Delete(directory, true);
+        }
     }
 }

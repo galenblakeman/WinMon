@@ -20,12 +20,17 @@ internal sealed record SetupArguments(string? PipeName, byte[]? Token, bool Unin
         return new SetupArguments(args[1], Convert.FromHexString(tokenText), false, null);
     }
 
-    internal bool MatchesToken(string token) => Token is { Length: 32 } && token.Length == 64 &&
-        token.All(Uri.IsHexDigit) && CryptographicOperations.FixedTimeEquals(Token, Convert.FromHexString(token));
+    internal bool MatchesToken(string token)
+    {
+        return Token is { Length: 32 } && token.Length == 64 &&
+               token.All(Uri.IsHexDigit) &&
+               CryptographicOperations.FixedTimeEquals(Token, Convert.FromHexString(token));
+    }
 
     private static bool IsPipeName(string value)
     {
-        if (value.Length != "WinMon.NetworkSetup.".Length + 32 || !value.StartsWith("WinMon.NetworkSetup.", StringComparison.Ordinal)) return false;
+        if (value.Length != "WinMon.NetworkSetup.".Length + 32 ||
+            !value.StartsWith("WinMon.NetworkSetup.", StringComparison.Ordinal)) return false;
         return value.AsSpan("WinMon.NetworkSetup.".Length).ToString().All(Uri.IsHexDigit);
     }
 }

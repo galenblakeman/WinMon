@@ -81,7 +81,8 @@ public sealed class WindowsCpuSampler : IDisposable
                     ? 100d * kernelDelta / totalDelta
                     : null
             },
-            LogicalProcessorPercents = LogicalProcessorPercents(prior.LogicalProcessorTimes, current.LogicalProcessorTimes)
+            LogicalProcessorPercents =
+                LogicalProcessorPercents(prior.LogicalProcessorTimes, current.LogicalProcessorTimes)
         };
     }
 

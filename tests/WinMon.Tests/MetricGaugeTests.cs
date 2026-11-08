@@ -19,8 +19,10 @@ public sealed class MetricGaugeTests
     public void Peaks_UseConfiguredWindowAndMatchingDrives()
     {
         var now = DateTimeOffset.UnixEpoch.AddMinutes(5);
-        MonitorSample Sample(int secondsAgo, double cpu, string disk, bool gap = false) =>
-            new(now.AddSeconds(-secondsAgo), cpu, [], 0, gap)
+
+        MonitorSample Sample(int secondsAgo, double cpu, string disk, bool gap = false)
+        {
+            return new MonitorSample(now.AddSeconds(-secondsAgo), cpu, [], 0, gap)
             {
                 Resources = new ResourceSample
                 {
@@ -32,6 +34,8 @@ public sealed class MetricGaugeTests
                     GpuPercent = cpu
                 }
             };
+        }
+
         var samples = new[]
         {
             Sample(121, 95, "C:"), Sample(90, 80, "E:"), Sample(60, 99, "C:", true),
@@ -69,12 +73,20 @@ public sealed class MetricGaugeTests
     public void Peaks_UseRequestedWindowAndKeepTheNewestEqualPeak()
     {
         var now = DateTimeOffset.UnixEpoch.AddMinutes(20);
-        MonitorSample Sample(int secondsAgo, double cpu) => new(now.AddSeconds(-secondsAgo), cpu, [], 0)
+
+        MonitorSample Sample(int secondsAgo, double cpu)
         {
-            Resources = new ResourceSample { TotalMemoryBytes = 100, UsedMemoryBytes = (ulong)cpu,
-                DiskName = "C:", DiskActivePercent = cpu, NetworkId = "current",
-                ReceiveBytesPerSecond = cpu, GpuPercent = cpu }
-        };
+            return new MonitorSample(now.AddSeconds(-secondsAgo), cpu, [], 0)
+            {
+                Resources = new ResourceSample
+                {
+                    TotalMemoryBytes = 100, UsedMemoryBytes = (ulong)cpu,
+                    DiskName = "C:", DiskActivePercent = cpu, NetworkId = "current",
+                    ReceiveBytesPerSecond = cpu, GpuPercent = cpu
+                }
+            };
+        }
+
         var old = Sample(121, 95);
         var peak = Sample(60, 80);
         var newestTie = Sample(20, 80);
@@ -96,10 +108,15 @@ public sealed class MetricGaugeTests
     public void Peaks_IgnoreOtherNetworkAdapters()
     {
         var now = DateTimeOffset.UnixEpoch;
-        MonitorSample Sample(int secondsAgo, string id, double receive) => new(now.AddSeconds(-secondsAgo), 10, [], 0)
+
+        MonitorSample Sample(int secondsAgo, string id, double receive)
         {
-            Resources = new ResourceSample { NetworkId = id, ReceiveBytesPerSecond = receive }
-        };
+            return new MonitorSample(now.AddSeconds(-secondsAgo), 10, [], 0)
+            {
+                Resources = new ResourceSample { NetworkId = id, ReceiveBytesPerSecond = receive }
+            };
+        }
+
         var other = Sample(10, "other", 99);
         var current = Sample(0, "current", 10);
 
@@ -182,7 +199,7 @@ public sealed class MetricGaugeTests
     public void PeakHeader_UsesShortValueAndAnIconOnlyOnValidArcs(GaugeStyle style, int width, bool arc)
     {
         var readout = new MetricReadout { Width = width, GaugeStyle = style };
-        readout.ShowGauge(50, 80, 100, "Peak 80%", "80%", peakLabel: true);
+        readout.ShowGauge(50, 80, 100, "Peak 80%", "80%", true);
         Assert.Multiple(() =>
         {
             Assert.That(readout.ScaleLabel.Text, Is.EqualTo("80%"));
@@ -190,7 +207,7 @@ public sealed class MetricGaugeTests
             Assert.That(readout.PeakIconVisible, Is.EqualTo(arc));
         });
 
-        readout.ShowGauge(null, 80, 100, "Peak 80%", "80%", peakLabel: true);
+        readout.ShowGauge(null, 80, 100, "Peak 80%", "80%", true);
         Assert.That(readout.PeakIconVisible, Is.False);
     }
 
@@ -201,7 +218,7 @@ public sealed class MetricGaugeTests
         var readout = new MetricReadout { GaugeStyle = GaugeStyle.Bowl };
         readout.ShowGauge(40_000_000, 64_009_520, 100_000_000,
             Strings.Format(Strings.GaugePeakValue, RateText.Format(64_009_520)), RateText.Short(64_009_520),
-            peakLabel: true);
+            true);
 
         Assert.Multiple(() =>
         {
@@ -224,8 +241,11 @@ public sealed class MetricGaugeTests
             Margin = new Thickness(outerRightMargin == 8 ? 10 : 0, 0, outerRightMargin, 0)
         };
         host.Children.Add(readout);
-        var window = new Window { Width = width, Content = host, SizeToContent = SizeToContent.Height,
-            WindowStyle = WindowStyle.None, ShowInTaskbar = false };
+        var window = new Window
+        {
+            Width = width, Content = host, SizeToContent = SizeToContent.Height,
+            WindowStyle = WindowStyle.None, ShowInTaskbar = false
+        };
         try
         {
             readout.ShowGauge(50, 80, 100, "Peak 80%", "80%");
@@ -245,8 +265,11 @@ public sealed class MetricGaugeTests
     public void Needle_IsTheLargestHalfCircleThatFits([Values(120, 140)] int width)
     {
         var readout = new MetricReadout { Width = width, GaugeStyle = GaugeStyle.Needle };
-        var window = new Window { Width = width, Content = readout, SizeToContent = SizeToContent.Height,
-            WindowStyle = WindowStyle.None, ShowInTaskbar = false };
+        var window = new Window
+        {
+            Width = width, Content = readout, SizeToContent = SizeToContent.Height,
+            WindowStyle = WindowStyle.None, ShowInTaskbar = false
+        };
         try
         {
             readout.ShowGauge(50, 80, 100);
@@ -271,11 +294,15 @@ public sealed class MetricGaugeTests
     [Test]
     [Apartment(ApartmentState.STA)]
     public void RadialGauge_ClearsTheResourceName([Values(GaugeStyle.Needle, GaugeStyle.Bowl,
-        GaugeStyle.SegmentedArc)] GaugeStyle style)
+            GaugeStyle.SegmentedArc)]
+        GaugeStyle style)
     {
         var readout = new MetricReadout { Width = 140, GaugeStyle = style, Label = "CPU" };
-        var window = new Window { Width = 140, Content = readout, SizeToContent = SizeToContent.Height,
-            WindowStyle = WindowStyle.None, ShowInTaskbar = false };
+        var window = new Window
+        {
+            Width = 140, Content = readout, SizeToContent = SizeToContent.Height,
+            WindowStyle = WindowStyle.None, ShowInTaskbar = false
+        };
         try
         {
             readout.ShowGauge(50, 80, 100);
@@ -295,11 +322,15 @@ public sealed class MetricGaugeTests
     [Test]
     [Apartment(ApartmentState.STA)]
     public void ArcsHoldingTheValue_AreNearlyRoundAndHoldTheWidestRate(
-        [Values(GaugeStyle.Bowl, GaugeStyle.SegmentedArc)] GaugeStyle style, [Values(120, 150, 210)] int width)
+        [Values(GaugeStyle.Bowl, GaugeStyle.SegmentedArc)]
+        GaugeStyle style, [Values(120, 150, 210)] int width)
     {
         var readout = new MetricReadout { Width = width, GaugeStyle = style };
-        var window = new Window { Width = width, Content = readout, SizeToContent = SizeToContent.Height,
-            WindowStyle = WindowStyle.None, ShowInTaskbar = false };
+        var window = new Window
+        {
+            Width = width, Content = readout, SizeToContent = SizeToContent.Height,
+            WindowStyle = WindowStyle.None, ShowInTaskbar = false
+        };
         try
         {
             readout.ShowValue("↓9.52", "Mbps");
@@ -335,8 +366,11 @@ public sealed class MetricGaugeTests
     public void Gauge_SkipsChangesSmallerThanHalfAPixel()
     {
         var readout = new MetricReadout { Width = 200, GaugeStyle = GaugeStyle.BottomBar };
-        var window = new Window { Width = 200, Height = 120, Content = readout,
-            WindowStyle = WindowStyle.None, ShowInTaskbar = false };
+        var window = new Window
+        {
+            Width = 200, Height = 120, Content = readout,
+            WindowStyle = WindowStyle.None, ShowInTaskbar = false
+        };
         try
         {
             window.Show();
@@ -361,11 +395,15 @@ public sealed class MetricGaugeTests
     [Test]
     [Apartment(ApartmentState.STA)]
     public void SegmentedGauge_RedrawsASmallChangeThatLightsAnotherSegment(
-        [Values(GaugeStyle.SegmentedBar, GaugeStyle.SegmentedArc)] GaugeStyle style)
+        [Values(GaugeStyle.SegmentedBar, GaugeStyle.SegmentedArc)]
+        GaugeStyle style)
     {
         var readout = new MetricReadout { Width = 200, GaugeStyle = style };
-        var window = new Window { Width = 200, Height = 120, Content = readout,
-            WindowStyle = WindowStyle.None, ShowInTaskbar = false };
+        var window = new Window
+        {
+            Width = 200, Height = 120, Content = readout,
+            WindowStyle = WindowStyle.None, ShowInTaskbar = false
+        };
         try
         {
             window.Show();
@@ -391,8 +429,11 @@ public sealed class MetricGaugeTests
     public void EveryStyle_KeepsOneHeightAndTheRateUnitAtTheNarrowWidth([Values] GaugeStyle style)
     {
         var readout = new MetricReadout { Width = 120, GaugeStyle = style, Label = "Network" };
-        var window = new Window { Width = 120, Content = readout, SizeToContent = SizeToContent.Height,
-            WindowStyle = WindowStyle.None, ShowInTaskbar = false };
+        var window = new Window
+        {
+            Width = 120, Content = readout, SizeToContent = SizeToContent.Height,
+            WindowStyle = WindowStyle.None, ShowInTaskbar = false
+        };
         try
         {
             // The widest rate a readout shows, in a tile as narrow as the minimum window gives six resources.

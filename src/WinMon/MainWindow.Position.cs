@@ -6,6 +6,7 @@ using System.Windows.Threading;
 using Microsoft.Win32;
 using Forms = System.Windows.Forms;
 using Point = System.Drawing.Point;
+using Size = System.Drawing.Size;
 
 namespace WinMon;
 
@@ -91,7 +92,7 @@ public partial class MainWindow
         _positionRecoveryPending = false;
         if (_windowPosition is not null && GetWindowRect(_positionSource.Handle, out var bounds) &&
             _windowPosition.Resolve(Forms.Screen.AllScreens.Select(s => (s.DeviceName, s.WorkingArea)),
-                new System.Drawing.Size(bounds.Right - bounds.Left, bounds.Bottom - bounds.Top)) is { } location)
+                new Size(bounds.Right - bounds.Left, bounds.Bottom - bounds.Top)) is { } location)
         {
             const uint swpNoSize = 0x0001, swpNoZOrder = 0x0004, swpNoActivate = 0x0010;
             if (SetWindowPos(_positionSource.Handle, IntPtr.Zero, location.X, location.Y, 0, 0,

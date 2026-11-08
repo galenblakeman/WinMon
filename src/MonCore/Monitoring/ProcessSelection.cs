@@ -28,7 +28,8 @@ public sealed class ProcessSelection(ProcessIdentityPolicy? identityPolicy = nul
         ProcessSort sort)
     {
         return Resolve(samples, grouped, historical,
-            () => ProcessRanking.Rank(samples, sort: sort, grouped: grouped, includeInactive: true, identityPolicy: identityPolicy));
+            () => ProcessRanking.Rank(samples, sort: sort, grouped: grouped, includeInactive: true,
+                identityPolicy: identityPolicy));
     }
 
     /// <param name="samples">The samples ending at the live or selected moment.</param>

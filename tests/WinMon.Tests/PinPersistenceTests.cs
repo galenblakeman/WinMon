@@ -10,12 +10,15 @@ public sealed class PinPersistenceTests
     private string _directory = null!;
 
     [SetUp]
-    public void SetUp() => _directory = Path.Combine(Path.GetTempPath(), "WinMon.Tests", Guid.NewGuid().ToString("N"));
+    public void SetUp()
+    {
+        _directory = Path.Combine(Path.GetTempPath(), "WinMon.Tests", Guid.NewGuid().ToString("N"));
+    }
 
     [TearDown]
     public void TearDown()
     {
-        if (Directory.Exists(_directory)) Directory.Delete(_directory, recursive: true);
+        if (Directory.Exists(_directory)) Directory.Delete(_directory, true);
     }
 
     [TestCase(false)]
@@ -47,18 +50,28 @@ public sealed class PinPersistenceTests
             Assert.That(reopened.Count(false), Is.EqualTo(2));
             Assert.That(reopened.Count(true), Is.EqualTo(1));
             Assert.That(reopened.RetentionSnapshot()!(individual), Is.True);
-            Assert.That(reopened.Contains(group with { ProcessId = 300, CreationTicks = 999, ImagePath = @"c:\apps\BROWSER.exe" }, true), Is.True);
+            Assert.That(
+                reopened.Contains(
+                    group with { ProcessId = 300, CreationTicks = 999, ImagePath = @"c:\apps\BROWSER.exe" }, true),
+                Is.True);
         });
         reopened.Toggle(individual, false);
-        await new PreferenceStore(application, localData).SaveAsync(loaded with { PinnedProcesses = reopened.Snapshot() });
-        Assert.That((await new PreferenceStore(application, localData).LoadAsync()).PinnedProcesses.Select(p => p.ProcessId),
+        await new PreferenceStore(application, localData).SaveAsync(loaded with
+        {
+            PinnedProcesses = reopened.Snapshot()
+        });
+        Assert.That(
+            (await new PreferenceStore(application, localData).LoadAsync()).PinnedProcesses.Select(p => p.ProcessId),
             Is.EqualTo(new[] { 30, 40 }));
     }
 
     [Test]
     public void RestoredIndividual_DoesNotFollowReusedPidOrRestoreStaleReadings()
     {
-        var original = Process(20, 100, "editor") with { CpuPercent = 99, GpuPercent = 88, WorkingSetBytes = 12345, ThreadCount = 10 };
+        var original = Process(20, 100, "editor") with
+        {
+            CpuPercent = 99, GpuPercent = 88, WorkingSetBytes = 12345, ThreadCount = 10
+        };
         var first = new ProcessPins();
         first.Toggle(original, false);
         var reopened = new ProcessPins();
@@ -75,7 +88,8 @@ public sealed class PinPersistenceTests
             Assert.That(missing.Usage.GpuPercent, Is.Null);
             Assert.That(missing.Usage.WorkingSetBytes, Is.Null);
             Assert.That(missing.Usage.ThreadCount, Is.Null);
-            Assert.That(reopened.Resolve(sample, [reused], false, true).Single().State, Is.EqualTo(PinnedProcessState.NotRecorded));
+            Assert.That(reopened.Resolve(sample, [reused], false, true).Single().State,
+                Is.EqualTo(PinnedProcessState.NotRecorded));
         });
     }
 
@@ -85,11 +99,11 @@ public sealed class PinPersistenceTests
         Directory.CreateDirectory(_directory);
         var path = Path.Combine(_directory, "settings.json");
         await File.WriteAllTextAsync(path, """
-            {"Theme":"Light","PinnedOnly":true,"PinnedProcesses":[null,{},
-              {"ProcessId":-1,"CreationTicks":1,"Name":"invalid"},
-              {"ProcessId":20,"CreationTicks":100,"Name":"editor","ImagePath":null,"AppName":null},
-              {"ProcessId":20,"CreationTicks":100,"Name":"duplicate"}]}
-            """);
+                                           {"Theme":"Light","PinnedOnly":true,"PinnedProcesses":[null,{},
+                                             {"ProcessId":-1,"CreationTicks":1,"Name":"invalid"},
+                                             {"ProcessId":20,"CreationTicks":100,"Name":"editor","ImagePath":null,"AppName":null},
+                                             {"ProcessId":20,"CreationTicks":100,"Name":"duplicate"}]}
+                                           """);
         var loaded = await new PreferenceStore(path).LoadAsync();
         Assert.Multiple(() =>
         {
@@ -116,8 +130,11 @@ public sealed class PinPersistenceTests
         });
     }
 
-    private static ProcessUsage Process(int pid, long creation, string name) => new(pid, creation, name, 1)
+    private static ProcessUsage Process(int pid, long creation, string name)
     {
-        AppName = name, HasAppWindow = true
-    };
+        return new ProcessUsage(pid, creation, name, 1)
+        {
+            AppName = name, HasAppWindow = true
+        };
+    }
 }

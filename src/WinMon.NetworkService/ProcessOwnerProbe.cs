@@ -1,6 +1,6 @@
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Security.Principal;
 using Microsoft.Win32.SafeHandles;
 
 namespace WinMon.NetworkService;
@@ -16,7 +16,8 @@ internal static class ProcessOwnerProbe
         creationTicks = 0;
         if (processId <= 0) return false;
         using var process = OpenProcess(ProcessQueryLimitedInformation, false, processId);
-        return !process.IsInvalid && GetProcessTimes(process, out creationTicks, out var exit, out _, out _) && exit == 0;
+        return !process.IsInvalid && GetProcessTimes(process, out creationTicks, out var exit, out _, out _) &&
+               exit == 0;
     }
 
     internal static bool TryRead(int processId, out ProcessOwner owner)
@@ -30,7 +31,7 @@ internal static class ProcessOwnerProbe
             if (!GetProcessTimes(process, out var creation, out var exit, out _, out _) || exit != 0) return false;
             if (!OpenProcessToken(process, TokenQuery, out var token) || token.IsInvalid) return false;
             using (token)
-            using (var identity = new System.Security.Principal.WindowsIdentity(token.DangerousGetHandle()))
+            using (var identity = new WindowsIdentity(token.DangerousGetHandle()))
             {
                 var sid = identity.User?.Value;
                 if (string.IsNullOrWhiteSpace(sid)) return false;
@@ -45,15 +46,18 @@ internal static class ProcessOwnerProbe
     }
 
     [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern SafeProcessHandle OpenProcess(uint access, [MarshalAs(UnmanagedType.Bool)] bool inherit, int processId);
+    private static extern SafeProcessHandle OpenProcess(uint access, [MarshalAs(UnmanagedType.Bool)] bool inherit,
+        int processId);
 
     [DllImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool GetProcessTimes(SafeProcessHandle process, out long creation, out long exit, out long kernel, out long user);
+    private static extern bool GetProcessTimes(SafeProcessHandle process, out long creation, out long exit,
+        out long kernel, out long user);
 
     [DllImport("advapi32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool OpenProcessToken(SafeProcessHandle process, uint access, out SafeAccessTokenHandle token);
+    private static extern bool
+        OpenProcessToken(SafeProcessHandle process, uint access, out SafeAccessTokenHandle token);
 }
 
 internal sealed record ProcessOwner(int ProcessId, long CreationTicks, string Sid);

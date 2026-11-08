@@ -59,6 +59,7 @@ public sealed class WindowsFrameSource : IFrameSource
         {
             Trace.TraceWarning("Connection enumeration unavailable: {0}", ex.Message);
         }
+
         return new CapturedFrame(full, _serviceTree.Capture(full, catalog), error) { Connections = connections };
     }
 

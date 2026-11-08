@@ -191,7 +191,8 @@ public sealed class UsageLedger(DateTimeOffset since, ProcessIdentityPolicy? ide
         Reset(state.Since);
         foreach (var entry in entries) _apps[entry.Key] = entry;
         foreach (var lifetime in state.Lifetimes)
-            _lifetimes[new ProcessLifetimeIdentity(lifetime.ProcessId, lifetime.CreationTicks, lifetime.LifetimeDomain)] =
+            _lifetimes[
+                    new ProcessLifetimeIdentity(lifetime.ProcessId, lifetime.CreationTicks, lifetime.LifetimeDomain)] =
                 new Lifetime(entries[lifetime.App]) { Seen = _generation, Absences = lifetime.Absences };
         _machineBusyTicks = state.MachineBusyTicks;
         _attributedTicks = state.AttributedTicks;

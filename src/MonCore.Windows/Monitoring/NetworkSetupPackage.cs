@@ -1,4 +1,3 @@
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -9,7 +8,7 @@ using System.Text.Json.Serialization;
 namespace WinMon.Monitoring;
 
 /// <summary>Verifies and locks the signed payload consumed by the elevated setup helper.</summary>
-public sealed partial class NetworkSetupPackage : IDisposable
+public sealed class NetworkSetupPackage : IDisposable
 {
     private const int SchemaVersion = 1;
     private const string Runtime = "win-x64";
@@ -34,7 +33,8 @@ public sealed partial class NetworkSetupPackage : IDisposable
 
     public static NetworkSetupPackage Open(string directory, string expectedVersion)
     {
-        if (string.IsNullOrWhiteSpace(directory)) throw new ArgumentException("A package directory is required.", nameof(directory));
+        if (string.IsNullOrWhiteSpace(directory))
+            throw new ArgumentException("A package directory is required.", nameof(directory));
         var root = Path.GetFullPath(directory);
         if (!Directory.Exists(root)) throw new InvalidDataException("Network setup package directory is missing.");
 
@@ -63,34 +63,62 @@ public sealed partial class NetworkSetupPackage : IDisposable
         }
     }
 
-    public static NetworkSetupManifest VerifyManifest(byte[] manifestBytes, string signature, string expectedVersion) =>
-        VerifyManifest(manifestBytes, signature, expectedVersion, ReadEmbeddedPublicKey());
-
-    internal static NetworkSetupManifest VerifyManifest(byte[] manifestBytes, string signature, string expectedVersion, string publicKeyPem)
+    public static NetworkSetupManifest VerifyManifest(byte[] manifestBytes, string signature, string expectedVersion)
     {
-        if (manifestBytes is null || manifestBytes.Length is <= 0 or > 64 * 1024) throw new InvalidDataException("Network setup manifest size is invalid.");
-        if (string.IsNullOrWhiteSpace(signature)) throw new InvalidDataException("Network setup manifest signature is missing.");
-        if (string.IsNullOrWhiteSpace(expectedVersion)) throw new ArgumentException("An expected version is required.", nameof(expectedVersion));
-        if (string.IsNullOrWhiteSpace(publicKeyPem)) throw new ArgumentException("A public key is required.", nameof(publicKeyPem));
+        return VerifyManifest(manifestBytes, signature, expectedVersion, ReadEmbeddedPublicKey());
+    }
+
+    internal static NetworkSetupManifest VerifyManifest(byte[] manifestBytes, string signature, string expectedVersion,
+        string publicKeyPem)
+    {
+        if (manifestBytes is null || manifestBytes.Length is <= 0 or > 64 * 1024)
+            throw new InvalidDataException("Network setup manifest size is invalid.");
+        if (string.IsNullOrWhiteSpace(signature))
+            throw new InvalidDataException("Network setup manifest signature is missing.");
+        if (string.IsNullOrWhiteSpace(expectedVersion))
+            throw new ArgumentException("An expected version is required.", nameof(expectedVersion));
+        if (string.IsNullOrWhiteSpace(publicKeyPem))
+            throw new ArgumentException("A public key is required.", nameof(publicKeyPem));
 
         byte[] signatureBytes;
-        try { signatureBytes = Convert.FromBase64String(signature); }
-        catch (FormatException exception) { throw new InvalidDataException("Network setup manifest signature is invalid.", exception); }
+        try
+        {
+            signatureBytes = Convert.FromBase64String(signature);
+        }
+        catch (FormatException exception)
+        {
+            throw new InvalidDataException("Network setup manifest signature is invalid.", exception);
+        }
 
         using var rsa = RSA.Create();
-        try { rsa.ImportFromPem(publicKeyPem); }
-        catch (CryptographicException exception) { throw new InvalidDataException("Network setup public key is invalid.", exception); }
-        if (!rsa.VerifyData(manifestBytes, signatureBytes, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1)) {
-            throw new InvalidDataException("Network setup manifest signature is invalid.");
+        try
+        {
+            rsa.ImportFromPem(publicKeyPem);
         }
+        catch (CryptographicException exception)
+        {
+            throw new InvalidDataException("Network setup public key is invalid.", exception);
+        }
+
+        if (!rsa.VerifyData(manifestBytes, signatureBytes, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1))
+            throw new InvalidDataException("Network setup manifest signature is invalid.");
 
         NetworkSetupManifest manifest;
-        try { manifest = JsonSerializer.Deserialize(manifestBytes, NetworkSetupManifestJsonContext.Default.NetworkSetupManifest) ?? throw new InvalidDataException("Network setup manifest is invalid."); }
-        catch (JsonException exception) { throw new InvalidDataException("Network setup manifest is invalid.", exception); }
-
-        if (manifest.SchemaVersion != SchemaVersion || manifest.Version != expectedVersion || manifest.Runtime != Runtime || manifest.Protocol != NetworkSetupWire.Version) {
-            throw new InvalidDataException("Network setup manifest is not compatible with this application.");
+        try
+        {
+            manifest =
+                JsonSerializer.Deserialize(manifestBytes,
+                    NetworkSetupManifestJsonContext.Default.NetworkSetupManifest) ??
+                throw new InvalidDataException("Network setup manifest is invalid.");
         }
+        catch (JsonException exception)
+        {
+            throw new InvalidDataException("Network setup manifest is invalid.", exception);
+        }
+
+        if (manifest.SchemaVersion != SchemaVersion || manifest.Version != expectedVersion ||
+            manifest.Runtime != Runtime || manifest.Protocol != NetworkSetupWire.Version)
+            throw new InvalidDataException("Network setup manifest is not compatible with this application.");
         ValidateAsset(manifest.Helper, HelperFileName, MaximumHelperBytes);
         ValidateAsset(manifest.ServiceArchive, ArchiveFileName, MaximumArchiveBytes);
         return manifest;
@@ -99,8 +127,10 @@ public sealed partial class NetworkSetupPackage : IDisposable
     /// <summary>Checks Windows Authenticode trust and pins the release publisher.</summary>
     public static void VerifyPublisher(string path)
     {
-        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path)) throw new InvalidDataException("Network setup helper is missing.");
-        if (!OperatingSystem.IsWindows()) throw new PlatformNotSupportedException("Network setup verification requires Windows.");
+        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+            throw new InvalidDataException("Network setup helper is missing.");
+        if (!OperatingSystem.IsWindows())
+            throw new PlatformNotSupportedException("Network setup verification requires Windows.");
         using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
         Span<byte> header = stackalloc byte[2];
         if (stream.Read(header) != header.Length || header[0] != (byte)'M' || header[1] != (byte)'Z')
@@ -117,43 +147,58 @@ public sealed partial class NetworkSetupPackage : IDisposable
     private static FileStream OpenAsset(string root, NetworkSetupAsset asset)
     {
         var path = Path.Combine(root, asset.Name);
-        if (!string.Equals(Path.GetDirectoryName(Path.GetFullPath(path)), root, StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("Network setup asset path is invalid.");
-        return new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 64 * 1024, FileOptions.SequentialScan);
+        if (!string.Equals(Path.GetDirectoryName(Path.GetFullPath(path)), root, StringComparison.OrdinalIgnoreCase))
+            throw new InvalidDataException("Network setup asset path is invalid.");
+        return new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 64 * 1024,
+            FileOptions.SequentialScan);
     }
 
     private static byte[] ReadSmallFile(string root, string name, int maximumLength)
     {
-        using var stream = new FileStream(Path.Combine(root, name), FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.SequentialScan);
-        if (stream.Length <= 0 || stream.Length > maximumLength) throw new InvalidDataException("Network setup package metadata size is invalid.");
+        using var stream = new FileStream(Path.Combine(root, name), FileMode.Open, FileAccess.Read, FileShare.Read,
+            4096, FileOptions.SequentialScan);
+        if (stream.Length <= 0 || stream.Length > maximumLength)
+            throw new InvalidDataException("Network setup package metadata size is invalid.");
         var bytes = GC.AllocateUninitializedArray<byte>(checked((int)stream.Length));
         stream.ReadExactly(bytes);
         return bytes;
     }
 
+    // The size bound is required validation of a signed package asset.
+    // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Global
     internal static void VerifyAsset(FileStream stream, NetworkSetupAsset asset, long maximumBytes)
     {
-        if (stream.Length != asset.Size || stream.Length <= 0 || stream.Length > maximumBytes) throw new InvalidDataException("Network setup asset size is invalid.");
+        if (stream.Length != asset.Size || stream.Length <= 0 || stream.Length > maximumBytes)
+            throw new InvalidDataException("Network setup asset size is invalid.");
         byte[] expectedHash;
-        try { expectedHash = Convert.FromHexString(asset.Sha256); }
-        catch (FormatException exception) { throw new InvalidDataException("Network setup asset hash is invalid.", exception); }
-        if (!CryptographicOperations.FixedTimeEquals(SHA256.HashData(stream), expectedHash)) {
-            throw new InvalidDataException("Network setup asset hash is invalid.");
+        try
+        {
+            expectedHash = Convert.FromHexString(asset.Sha256);
         }
+        catch (FormatException exception)
+        {
+            throw new InvalidDataException("Network setup asset hash is invalid.", exception);
+        }
+
+        if (!CryptographicOperations.FixedTimeEquals(SHA256.HashData(stream), expectedHash))
+            throw new InvalidDataException("Network setup asset hash is invalid.");
     }
 
-    private static void ValidateAsset(NetworkSetupAsset asset, string expectedName, long maximumBytes)
+    private static void ValidateAsset(NetworkSetupAsset? asset, string expectedName, long maximumBytes)
     {
-        if (asset is null || string.IsNullOrEmpty(asset.Name) || string.IsNullOrEmpty(asset.Sha256) || asset.Name != expectedName || Path.GetFileName(asset.Name) != asset.Name || asset.Size <= 0 || asset.Size > maximumBytes ||
-            asset.Sha256.Length != 64 || !asset.Sha256.All(static character => Uri.IsHexDigit(character))) {
+        if (asset is null || string.IsNullOrEmpty(asset.Name) || string.IsNullOrEmpty(asset.Sha256) ||
+            asset.Name != expectedName || Path.GetFileName(asset.Name) != asset.Name || asset.Size <= 0 ||
+            asset.Size > maximumBytes ||
+            asset.Sha256.Length != 64 || !asset.Sha256.All(static character => Uri.IsHexDigit(character)))
             throw new InvalidDataException("Network setup manifest asset is invalid.");
-        }
     }
 
     private static string ReadEmbeddedPublicKey()
     {
-        using var stream = typeof(NetworkSetupPackage).Assembly.GetManifestResourceStream("WinMon.NetworkSetupPublicKey")
+        using var stream =
+            typeof(NetworkSetupPackage).Assembly.GetManifestResourceStream("WinMon.NetworkSetupPublicKey")
             ?? throw new InvalidOperationException("Network setup trust key is missing.");
-        using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
+        using var reader = new StreamReader(stream, Encoding.UTF8, true);
         return reader.ReadToEnd();
     }
 
@@ -170,15 +215,19 @@ public sealed partial class NetworkSetupPackage : IDisposable
             var provider = WTHelperProvDataFromStateData(data.StateData);
             var signer = provider == IntPtr.Zero ? IntPtr.Zero : WTHelperGetProvSignerFromChain(provider, 0, false, 0);
             var providerCertificate = signer == IntPtr.Zero ? IntPtr.Zero : WTHelperGetProvCertFromChain(signer, 0);
-            if (providerCertificate == IntPtr.Zero) throw new InvalidDataException("Missing verified signing certificate.");
+            if (providerCertificate == IntPtr.Zero)
+                throw new InvalidDataException("Missing verified signing certificate.");
             var certificatePointer = Marshal.PtrToStructure<ProviderCertificateHeader>(providerCertificate).Certificate;
-            if (certificatePointer == IntPtr.Zero) throw new InvalidDataException("Missing verified signing certificate.");
+            if (certificatePointer == IntPtr.Zero)
+                throw new InvalidDataException("Missing verified signing certificate.");
             var context = Marshal.PtrToStructure<CertificateContextHeader>(certificatePointer);
-            if (context.Encoded == IntPtr.Zero || context.Length is 0 or > 64 * 1024) throw new InvalidDataException("Invalid verified signing certificate.");
+            if (context.Encoded == IntPtr.Zero || context.Length is 0 or > 64 * 1024)
+                throw new InvalidDataException("Invalid verified signing certificate.");
             var bytes = new byte[context.Length];
             Marshal.Copy(context.Encoded, bytes, 0, bytes.Length);
             using var certificate = X509CertificateLoader.LoadCertificate(bytes);
-            if (!string.Equals(certificate.GetNameInfo(X509NameType.SimpleName, false), ExpectedPublisher, StringComparison.Ordinal))
+            if (!string.Equals(certificate.GetNameInfo(X509NameType.SimpleName, false), ExpectedPublisher,
+                    StringComparison.Ordinal))
                 throw new InvalidDataException("Network setup helper publisher is not trusted.");
         }
         finally
@@ -198,14 +247,32 @@ public sealed partial class NetworkSetupPackage : IDisposable
     private static extern int WinVerifyTrustNative(IntPtr windowHandle, ref Guid action, ref WinTrustData data);
 
     [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
-    [DllImport("wintrust.dll", ExactSpelling = true)] private static extern IntPtr WTHelperProvDataFromStateData(IntPtr state);
-    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
-    [DllImport("wintrust.dll", ExactSpelling = true)] private static extern IntPtr WTHelperGetProvSignerFromChain(IntPtr provider, uint signer, [MarshalAs(UnmanagedType.Bool)] bool counterSigner, uint counterSignerIndex);
-    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
-    [DllImport("wintrust.dll", ExactSpelling = true)] private static extern IntPtr WTHelperGetProvCertFromChain(IntPtr signer, uint certificate);
+    [DllImport("wintrust.dll", ExactSpelling = true)]
+    private static extern IntPtr WTHelperProvDataFromStateData(IntPtr state);
 
-    [StructLayout(LayoutKind.Sequential)] private struct ProviderCertificateHeader { public uint Size; public IntPtr Certificate; }
-    [StructLayout(LayoutKind.Sequential)] private struct CertificateContextHeader { public uint Encoding; public IntPtr Encoded; public uint Length; }
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    [DllImport("wintrust.dll", ExactSpelling = true)]
+    private static extern IntPtr WTHelperGetProvSignerFromChain(IntPtr provider, uint signer,
+        [MarshalAs(UnmanagedType.Bool)] bool counterSigner, uint counterSignerIndex);
+
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    [DllImport("wintrust.dll", ExactSpelling = true)]
+    private static extern IntPtr WTHelperGetProvCertFromChain(IntPtr signer, uint certificate);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct ProviderCertificateHeader
+    {
+        public uint Size;
+        public IntPtr Certificate;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct CertificateContextHeader
+    {
+        public uint Encoding;
+        public IntPtr Encoded;
+        public uint Length;
+    }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     private struct NativeWinTrustFileInfo
@@ -220,7 +287,8 @@ public sealed partial class NetworkSetupPackage : IDisposable
     {
         public WinTrustFileInfoHandle(string path)
         {
-            var info = new NativeWinTrustFileInfo {
+            var info = new NativeWinTrustFileInfo
+            {
                 StructSize = checked((uint)Marshal.SizeOf<NativeWinTrustFileInfo>()),
                 FilePath = Marshal.StringToHGlobalUni(path),
                 FileHandle = IntPtr.Zero,
@@ -277,7 +345,14 @@ public sealed partial class NetworkSetupPackage : IDisposable
     }
 }
 
-public sealed record NetworkSetupManifest(int SchemaVersion, string Version, string Runtime, int Protocol, NetworkSetupAsset Helper, NetworkSetupAsset ServiceArchive);
+public sealed record NetworkSetupManifest(
+    int SchemaVersion,
+    string Version,
+    string Runtime,
+    int Protocol,
+    NetworkSetupAsset Helper,
+    NetworkSetupAsset ServiceArchive);
+
 public sealed record NetworkSetupAsset(string Name, string Sha256, long Size);
 
 [JsonSerializable(typeof(NetworkSetupManifest))]

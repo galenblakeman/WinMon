@@ -14,7 +14,8 @@ internal static class ServicePolicy
     {
         var executable = Environment.ProcessPath ?? throw new InvalidOperationException("Missing service executable.");
         if (!string.Equals(Path.GetDirectoryName(executable), InstallDirectory, StringComparison.OrdinalIgnoreCase))
-            throw new UnauthorizedAccessException("Network service must run from its protected installation directory.");
+            throw new UnauthorizedAccessException(
+                "Network service must run from its protected installation directory.");
         var directory = new DirectoryInfo(InstallDirectory);
         var programFiles = Path.GetFullPath(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles));
         for (var current = directory; current is not null; current = current.Parent)
@@ -22,6 +23,7 @@ internal static class ServicePolicy
             CheckProtected(current);
             if (string.Equals(current.FullName, programFiles, StringComparison.OrdinalIgnoreCase)) break;
         }
+
         var pending = new Stack<DirectoryInfo>();
         pending.Push(directory);
         var entries = 0;
@@ -32,10 +34,12 @@ internal static class ServicePolicy
                 CheckProtected(entry);
                 if (entry is DirectoryInfo child) pending.Push(child);
             }
+
         var path = Path.Combine(InstallDirectory, "allowed-users.json");
         using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
         if (stream.Length is <= 0 or > 8192) throw new InvalidDataException("Invalid authorization policy size.");
-        var users = JsonSerializer.Deserialize<string[]>(stream) ?? throw new InvalidDataException("Missing authorization policy.");
+        var users = JsonSerializer.Deserialize<string[]>(stream) ??
+                    throw new InvalidDataException("Missing authorization policy.");
         return ValidateUsers(users);
     }
 
@@ -45,13 +49,16 @@ internal static class ServicePolicy
         var result = new HashSet<string>(StringComparer.Ordinal);
         foreach (var user in users)
         {
-            if (string.IsNullOrEmpty(user) || user.Length > 184) throw new InvalidDataException("Invalid provisioned SID.");
+            if (string.IsNullOrEmpty(user) || user.Length > 184)
+                throw new InvalidDataException("Invalid provisioned SID.");
             var sid = new SecurityIdentifier(user);
             if (sid.Value != user || sid.IsWellKnown(WellKnownSidType.WorldSid) ||
-                sid.IsWellKnown(WellKnownSidType.AnonymousSid) || sid.IsWellKnown(WellKnownSidType.AuthenticatedUserSid))
+                sid.IsWellKnown(WellKnownSidType.AnonymousSid) ||
+                sid.IsWellKnown(WellKnownSidType.AuthenticatedUserSid))
                 throw new InvalidDataException("Authorization requires explicit account SIDs.");
             result.Add(sid.Value);
         }
+
         return result;
     }
 
@@ -59,11 +66,14 @@ internal static class ServicePolicy
     {
         if ((item.Attributes & FileAttributes.ReparsePoint) != 0)
             throw new UnauthorizedAccessException("Service installation cannot contain reparse points.");
-        var security = item is DirectoryInfo directory ? (FileSystemSecurity)directory.GetAccessControl() : ((FileInfo)item).GetAccessControl();
+        var security = item is DirectoryInfo directory
+            ? (FileSystemSecurity)directory.GetAccessControl()
+            : ((FileInfo)item).GetAccessControl();
         if (!TrustedWriter((SecurityIdentifier)security.GetOwner(typeof(SecurityIdentifier))!))
             throw new UnauthorizedAccessException("Service installation has an untrusted owner.");
-        const FileSystemRights write = FileSystemRights.Write | FileSystemRights.Delete | FileSystemRights.DeleteSubdirectoriesAndFiles |
-                                      FileSystemRights.ChangePermissions | FileSystemRights.TakeOwnership;
+        const FileSystemRights write = FileSystemRights.Write | FileSystemRights.Delete |
+                                       FileSystemRights.DeleteSubdirectoriesAndFiles |
+                                       FileSystemRights.ChangePermissions | FileSystemRights.TakeOwnership;
         foreach (FileSystemAccessRule rule in security.GetAccessRules(true, true, typeof(SecurityIdentifier)))
             if ((rule.PropagationFlags & PropagationFlags.InheritOnly) == 0 &&
                 rule.AccessControlType == AccessControlType.Allow && (rule.FileSystemRights & write) != 0 &&
@@ -71,7 +81,11 @@ internal static class ServicePolicy
                 throw new UnauthorizedAccessException("Service installation is writable by an untrusted account.");
     }
 
-    private static bool TrustedWriter(SecurityIdentifier sid) => sid.IsWellKnown(WellKnownSidType.LocalSystemSid) ||
-        sid.IsWellKnown(WellKnownSidType.BuiltinAdministratorsSid) ||
-        sid.Value == "S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464"; // TrustedInstaller
+    private static bool TrustedWriter(SecurityIdentifier sid)
+    {
+        return sid.IsWellKnown(WellKnownSidType.LocalSystemSid) ||
+               sid.IsWellKnown(WellKnownSidType.BuiltinAdministratorsSid) ||
+               sid.Value == "S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464";
+        // TrustedInstaller
+    }
 }

@@ -1,7 +1,11 @@
+// Exact stored layout values and channels returned by Max require exact comparison.
+// ReSharper disable CompareOfFloatsByEqualityOperator
+
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Media;
 using System.Windows.Shapes;
 using WinMon.Preferences;
 using Path = System.Windows.Shapes.Path;
@@ -51,16 +55,20 @@ public sealed class MetricReadout : Grid
         { FontSize = 11, Visibility = Visibility.Collapsed, TextTrimming = TextTrimming.CharacterEllipsis };
 
     private readonly StackPanel _labels = new();
+
     private readonly StackPanel _gaugeColumn = new()
         { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 0) };
+
     private readonly DockPanel _toggleRow = new() { LastChildFill = true };
     private readonly DockPanel _corner = new() { LastChildFill = true };
+
     private readonly Path _peakIcon = new()
     {
         Data = ButtonIcon.Peak, Width = 12, Height = 7, StrokeThickness = 1.3,
-        Stretch = System.Windows.Media.Stretch.Uniform, VerticalAlignment = VerticalAlignment.Center,
+        Stretch = Stretch.Uniform, VerticalAlignment = VerticalAlignment.Center,
         Visibility = Visibility.Collapsed, Margin = new Thickness(2, 0, 0, 0), IsHitTestVisible = false
     };
+
     internal bool PeakIconVisible => _peakIcon.Visibility == Visibility.Visible;
     private readonly Grid _bowl = new();
     private GaugeStyle _style;
@@ -72,7 +80,7 @@ public sealed class MetricReadout : Grid
     public MetricReadout()
     {
         Height = LayoutHeight;
-        Background = System.Windows.Media.Brushes.Transparent;
+        Background = Brushes.Transparent;
         Gauge.SetResourceReference(MetricGauge.TrackProperty, "SectionHeaderSurface");
         Gauge.SetResourceReference(MetricGauge.OutlineProperty, "GaugeTrack");
         Gauge.SetResourceReference(MetricGauge.MarkProperty, "Text");
@@ -82,10 +90,14 @@ public sealed class MetricReadout : Grid
         _corner.Children.Add(ScaleLabel);
         DetailLabel.SetResourceReference(TextBlock.ForegroundProperty, "Text");
         Lay(GaugeStyle.Bowl);
-        SizeChanged += (_, _) => { Fit(); UpdateCornerLabel(); };
+        SizeChanged += (_, _) =>
+        {
+            Fit();
+            UpdateCornerLabel();
+        };
     }
 
-    /// <summary>The gauge drawing and the layout around it.</summary>
+    /// <summary>Gauge appearance and surrounding layout.</summary>
     public GaugeStyle GaugeStyle
     {
         get => _style;
@@ -102,6 +114,7 @@ public sealed class MetricReadout : Grid
     /// <param name="maximum">The physical value at the top of the scale.</param>
     /// <param name="scale">Context beside an arc's resource name; hidden for non-arc styles.</param>
     /// <param name="shortScale">A shorter version for narrow tiles.</param>
+    /// <param name="peakLabel">Show the peak indicator with the corner label.</param>
     public void ShowGauge(double? current, double? peak, double maximum, string? scale = null,
         string? shortScale = null, bool peakLabel = false)
     {
@@ -126,12 +139,14 @@ public sealed class MetricReadout : Grid
             ScaleLabel.Margin = new Thickness(4, 0, rightMargin, 0);
         var label = _peakLabel || ActualWidth is > 0 and < 155 ? _shortCornerLabel : _fullCornerLabel;
         // Keep the resource identity readable; a long native value remains complete in the tooltip.
-        var maxWidth = ActualWidth > 0 ? Math.Max(0, ActualWidth - (_showSeriesToggle ? 75 : 55) -
-            (_peakLabel ? _peakIcon.Width + _peakIcon.Margin.Left : 0) - ScaleLabel.Margin.Left - ScaleLabel.Margin.Right)
+        var maxWidth = ActualWidth > 0
+            ? Math.Max(0, ActualWidth - (_showSeriesToggle ? 75 : 55) -
+                          (_peakLabel ? _peakIcon.Width + _peakIcon.Margin.Left : 0) - ScaleLabel.Margin.Left -
+                          ScaleLabel.Margin.Right)
             : double.PositiveInfinity;
         if (ScaleLabel.MaxWidth != maxWidth) ScaleLabel.MaxWidth = maxWidth;
         if (ScaleLabel.Text != label) ScaleLabel.Text = label;
-        if (ScaleLabel.ToolTip is null || ScaleLabel.ToolTip is string tooltip && tooltip != _fullCornerLabel)
+        if (ScaleLabel.ToolTip is null || (ScaleLabel.ToolTip is string tooltip && tooltip != _fullCornerLabel))
             ScaleLabel.ToolTip = _fullCornerLabel;
         if (AutomationProperties.GetName(ScaleLabel) != _fullCornerLabel)
             AutomationProperties.SetName(ScaleLabel, _fullCornerLabel);
@@ -145,7 +160,8 @@ public sealed class MetricReadout : Grid
             : _valid && ScaleLabel.Text.Length > 0 ? Visibility.Visible : Visibility.Hidden;
         _corner.Visibility = ScaleLabel.Visibility;
         _peakIcon.Visibility = _peakLabel && ScaleLabel.Visibility == Visibility.Visible
-            ? Visibility.Visible : Visibility.Collapsed;
+            ? Visibility.Visible
+            : Visibility.Collapsed;
     }
 
     /// <summary>Place the labels and gauge for <paramref name="style"/>.</summary>
@@ -257,7 +273,7 @@ public sealed class MetricReadout : Grid
     private void Fit()
     {
         // Six resources can share the minimum-width window. The value takes the smaller font whenever its column
-        // is too narrow for a rate and its unit at the larger one. Arcs always take it: the needle leaves its half
+        // cannot fit the rate and unit in the larger font. Arcs use the smaller font: the needle leaves the half
         // circle the most height that way, and a bowl's value fits inside a nearly round arc.
         // Before the first layout there is no width to fit; the larger sizes stand until then.
         var width = ActualWidth > 0 ? ActualWidth : double.PositiveInfinity;

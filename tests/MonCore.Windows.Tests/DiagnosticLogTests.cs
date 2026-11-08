@@ -10,7 +10,10 @@ public sealed class DiagnosticLogTests
     private string _folder = null!;
 
     [SetUp]
-    public void SetUp() => _folder = Path.Combine(Path.GetTempPath(), "WinMon.LogTests." + Guid.NewGuid().ToString("N"));
+    public void SetUp()
+    {
+        _folder = Path.Combine(Path.GetTempPath(), "WinMon.LogTests." + Guid.NewGuid().ToString("N"));
+    }
 
     [TearDown]
     public void TearDown()
@@ -24,12 +27,20 @@ public sealed class DiagnosticLogTests
         using (var log = new DiagnosticLog(_folder, "App"))
         {
             Exception failure;
-            try { throw new InvalidOperationException("secret endpoint 192.0.2.1 user=private"); }
-            catch (Exception exception) { failure = exception; }
+            try
+            {
+                throw new InvalidOperationException("secret endpoint 192.0.2.1 user=private");
+            }
+            catch (Exception exception)
+            {
+                failure = exception;
+            }
+
             log.TraceEvent(null, "source", TraceEventType.Error, 0, "Capture.Failed path={0} error={1}",
                 @"C:\Users\private\process.exe", failure);
             log.TraceEvent(null, "source", TraceEventType.Information, 0, "Startup.Ready durationMs={0}", 42);
         }
+
         var text = File.ReadAllText(Path.Combine(_folder, "winmon.log"));
         Assert.Multiple(() =>
         {
@@ -50,8 +61,10 @@ public sealed class DiagnosticLogTests
                 log.TraceEvent(null, "source", TraceEventType.Warning, 0, "Network.ConnectionFailed");
             log.TraceEvent(null, "source", TraceEventType.Information, 0, "Network.Reconnected");
         }
+
         var lines = File.ReadAllLines(Path.Combine(_folder, "winmon.log"));
-        Assert.That(lines.Count(line => line.Contains("Network.ConnectionFailed") && !line.Contains("Repeated")), Is.EqualTo(1));
+        Assert.That(lines.Count(line => line.Contains("Network.ConnectionFailed") && !line.Contains("Repeated")),
+            Is.EqualTo(1));
         Assert.That(lines.Any(line => line.Contains("Repeated count=99")), Is.True);
         Assert.That(lines.Any(line => line.Contains("Network.Reconnected")), Is.True);
     }
@@ -60,8 +73,11 @@ public sealed class DiagnosticLogTests
     public void Rotation_KeepsFiveSizeLimitedFilesAndRetainsTheNewestEntry()
     {
         using (var log = new DiagnosticLog(_folder, "App", 1024))
+        {
             for (var index = 0; index < 100; index++)
                 log.TraceEvent(null, "source", TraceEventType.Information, 0, "Startup.Milestone number={0}", index);
+        }
+
         var files = Directory.GetFiles(_folder, "*.log").Select(path => new FileInfo(path)).ToArray();
         Assert.That(files, Has.Length.EqualTo(5));
         Assert.That(files.All(file => file.Length <= 1024), Is.True);
@@ -73,8 +89,11 @@ public sealed class DiagnosticLogTests
     public void ConcurrentProducers_WriteWholeLinesWithoutExceedingTheQueue()
     {
         using (var log = new DiagnosticLog(_folder, "App"))
+        {
             Parallel.For(0, 10000, index =>
                 log.TraceEvent(null, "source", TraceEventType.Information, 0, "Producer.Item number={0}", index));
+        }
+
         var lines = File.ReadAllLines(Path.Combine(_folder, "winmon.log"));
         Assert.That(lines.Length, Is.GreaterThan(0));
         Assert.That(lines.All(line => line.Contains("session=") && !line.Contains('\r')), Is.True);
@@ -85,8 +104,14 @@ public sealed class DiagnosticLogTests
     public void FolderLease_PreventsCompetingWritersAndReleasesAtShutdown()
     {
         using (var first = new DiagnosticLog(_folder, "App"))
+        {
             Assert.Throws<IOException>(() => new DiagnosticLog(_folder, "App"));
-        Assert.DoesNotThrow(() => { using var next = new DiagnosticLog(_folder, "App"); });
+        }
+
+        Assert.DoesNotThrow(() =>
+        {
+            using var next = new DiagnosticLog(_folder, "App");
+        });
     }
 
     [Test]
@@ -99,6 +124,7 @@ public sealed class DiagnosticLogTests
             Assert.That(log, Is.Not.Null);
             Assert.That(log!.Folder, Is.EqualTo(local));
         }
+
         var occupied = Path.Combine(_folder, "occupied");
         File.WriteAllText(occupied, "keep");
         Assert.That(DiagnosticLog.CreateApp(occupied, occupied, () => { }), Is.Null);
@@ -129,6 +155,7 @@ public sealed class DiagnosticLogTests
             log.TraceEvent(null, "source", TraceEventType.Information, 0, "Writer.Recovered");
             await Task.Delay(1200);
         }
+
         var text = string.Join("", Directory.GetFiles(_folder, "*.log").Select(File.ReadAllText));
         Assert.That(text, Does.Contain("Writer.Recovered"));
         Assert.That(text, Does.Contain("Logging.Dropped"));

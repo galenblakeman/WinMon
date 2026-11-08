@@ -1,4 +1,3 @@
-using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -54,6 +53,7 @@ public sealed class MessageDialogTests
         if (root is T match) yield return match;
         if (root is not DependencyObject parent) yield break;
         foreach (var child in LogicalTreeHelper.GetChildren(parent).OfType<DependencyObject>())
-            foreach (var result in Descendants<T>(child)) yield return result;
+        foreach (var result in Descendants<T>(child))
+            yield return result;
     }
 }

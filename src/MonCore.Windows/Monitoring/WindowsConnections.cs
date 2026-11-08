@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
@@ -88,14 +89,18 @@ public static class WindowsConnections
             {
                 var supplied = size;
                 result = read(handle.AddrOfPinnedObject(), ref supplied);
-                if (result == ErrorSuccess && supplied is >= HeaderSize and <= MaxTableBytes && supplied <= buffer.Length)
+                if (result == ErrorSuccess && supplied is >= HeaderSize and <= MaxTableBytes &&
+                    supplied <= buffer.Length)
                     return new TableResult(buffer[..supplied], null);
                 if (result == ErrorSuccess) return new TableResult(null, ErrorInvalidData);
                 if (result != ErrorInsufficientBuffer || supplied is < HeaderSize or > MaxTableBytes)
                     return new TableResult(null, (int)result);
                 size = supplied;
             }
-            finally { handle.Free(); }
+            finally
+            {
+                handle.Free();
+            }
         }
 
         return new TableResult(null, ErrorInsufficientBuffer);
@@ -147,22 +152,48 @@ public static class WindowsConnections
         for (var index = 0; index < rows; index++) yield return HeaderSize + checked((int)index * rowSize);
     }
 
-    internal static bool IsWellFormed(byte[] table, int rowSize) => table.Length >= HeaderSize &&
-        ReadUInt32(table, 0) <= (uint)((table.Length - HeaderSize) / rowSize);
+    internal static bool IsWellFormed(byte[] table, int rowSize)
+    {
+        return table.Length >= HeaderSize &&
+               ReadUInt32(table, 0) <= (uint)((table.Length - HeaderSize) / rowSize);
+    }
 
-    private static TcpState? TcpStateFromTable(uint state) => state is >= 1 and <= 12 ? (TcpState)state : null;
-    private static bool IsUnspecified(IPEndPoint endpoint) => endpoint.Port == 0 &&
-        (endpoint.Address.Equals(IPAddress.Any) || endpoint.Address.Equals(IPAddress.IPv6Any));
+    private static TcpState? TcpStateFromTable(uint state)
+    {
+        return state is >= 1 and <= 12 ? (TcpState)state : null;
+    }
 
-    private static IPEndPoint Ipv4Endpoint(byte[] row, int offset) =>
-        new(new IPAddress(row.AsSpan(offset, 4)), Port(ReadUInt32(row, offset + 4)));
+    private static bool IsUnspecified(IPEndPoint endpoint)
+    {
+        return endpoint.Port == 0 &&
+               (endpoint.Address.Equals(IPAddress.Any) || endpoint.Address.Equals(IPAddress.IPv6Any));
+    }
 
-    private static IPEndPoint Ipv6Endpoint(byte[] row, int addressOffset, int scopeOffset, int portOffset) =>
-        new(new IPAddress(row.AsSpan(addressOffset, 16), ReadUInt32(row, scopeOffset)), Port(ReadUInt32(row, portOffset)));
+    private static IPEndPoint Ipv4Endpoint(byte[] row, int offset)
+    {
+        return new IPEndPoint(new IPAddress(row.AsSpan(offset, 4)), Port(ReadUInt32(row, offset + 4)));
+    }
 
-    private static int Port(uint networkOrder) => (ushort)IPAddress.NetworkToHostOrder(unchecked((short)networkOrder));
-    private static uint ReadUInt32(byte[] bytes, int offset) => MemoryMarshal.Read<uint>(bytes.AsSpan(offset, sizeof(uint)));
-    private sealed record TableResult(byte[]? Buffer, int? ErrorCode) { public bool Success => Buffer is not null; }
+    private static IPEndPoint Ipv6Endpoint(byte[] row, int addressOffset, int scopeOffset, int portOffset)
+    {
+        return new IPEndPoint(new IPAddress(row.AsSpan(addressOffset, 16), ReadUInt32(row, scopeOffset)),
+            Port(ReadUInt32(row, portOffset)));
+    }
+
+    private static int Port(uint networkOrder)
+    {
+        return (ushort)IPAddress.NetworkToHostOrder(unchecked((short)networkOrder));
+    }
+
+    private static uint ReadUInt32(byte[] bytes, int offset)
+    {
+        return MemoryMarshal.Read<uint>(bytes.AsSpan(offset, sizeof(uint)));
+    }
+
+    private sealed record TableResult(byte[]? Buffer, int? ErrorCode)
+    {
+        public bool Success => Buffer is not null;
+    }
 
     private static class ProcessCreationTimes
     {
@@ -172,30 +203,36 @@ public static class WindowsConnections
         {
             var result = new Dictionary<int, long>();
             foreach (var processId in processIds.Distinct())
-            {
                 try
                 {
                     using var handle = OpenProcess(ProcessQueryLimitedInformation, false, processId);
                     if (!handle.IsInvalid && GetProcessTimes(handle, out var creation, out _, out _, out _))
                         result[processId] = creation;
                 }
-                catch (Exception ex) when (ex is ArgumentException or System.ComponentModel.Win32Exception) { }
-            }
+                catch (Exception ex) when (ex is ArgumentException or Win32Exception)
+                {
+                }
 
             return result;
         }
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        private static extern SafeProcessHandle OpenProcess(uint access, [MarshalAs(UnmanagedType.Bool)] bool inherit, int processId);
+        private static extern SafeProcessHandle OpenProcess(uint access, [MarshalAs(UnmanagedType.Bool)] bool inherit,
+            int processId);
+
         [DllImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool GetProcessTimes(SafeProcessHandle process, out long creation, out long exit, out long kernel, out long user);
+        private static extern bool GetProcessTimes(SafeProcessHandle process, out long creation, out long exit,
+            out long kernel, out long user);
     }
 
     [DllImport("iphlpapi.dll", ExactSpelling = true)]
-    private static extern uint GetExtendedTcpTable(IntPtr table, ref int size, [MarshalAs(UnmanagedType.Bool)] bool order,
+    private static extern uint GetExtendedTcpTable(IntPtr table, ref int size,
+        [MarshalAs(UnmanagedType.Bool)] bool order,
         int addressFamily, int tableClass, uint reserved);
+
     [DllImport("iphlpapi.dll", ExactSpelling = true)]
-    private static extern uint GetExtendedUdpTable(IntPtr table, ref int size, [MarshalAs(UnmanagedType.Bool)] bool order,
+    private static extern uint GetExtendedUdpTable(IntPtr table, ref int size,
+        [MarshalAs(UnmanagedType.Bool)] bool order,
         int addressFamily, int tableClass, uint reserved);
 }

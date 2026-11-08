@@ -1,7 +1,11 @@
+// Exact stored layout values and channels returned by Max require exact comparison.
+// ReSharper disable CompareOfFloatsByEqualityOperator
+
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Media;
 using WinMon.Preferences;
 
 namespace WinMon.Diagnostics;
@@ -24,7 +28,8 @@ internal sealed partial class WindowDiagnostics
             {
                 tabs[selected].IsChecked = true;
                 if (window.Preferences.SelectedActivityTab != selected)
-                    throw new InvalidOperationException("Selecting an activity tab did not update its saved preference.");
+                    throw new InvalidOperationException(
+                        "Selecting an activity tab did not update its saved preference.");
                 window.SetActivityPanelCollapsed(true);
                 await tabStore.SaveAsync(window.Preferences, cancellationToken);
                 var tabRestored = new MainWindow(true) { Preferences = await tabStore.LoadAsync(cancellationToken) };
@@ -32,18 +37,27 @@ internal sealed partial class WindowDiagnostics
                 {
                     tabRestored.RestoreActivityTab();
                     tabRestored.ApplyActivityPanel();
-                    var restoredTabs = new[] { tabRestored.ProcessesTab, tabRestored.ServicesTab,
-                        tabRestored.UsageTab, tabRestored.ConnectionsTab };
+                    var restoredTabs = new[]
+                    {
+                        tabRestored.ProcessesTab, tabRestored.ServicesTab,
+                        tabRestored.UsageTab, tabRestored.ConnectionsTab
+                    };
                     if (restoredTabs[selected].IsChecked != true || !tabRestored.Preferences.ActivityPanelCollapsed ||
                         tabRestored.ActivityBody.Visibility != Visibility.Collapsed)
-                        throw new InvalidOperationException("The saved activity tab did not restore with its collapsed panel.");
+                        throw new InvalidOperationException(
+                            "The saved activity tab did not restore with its collapsed panel.");
                     restoredTabs[(selected + 1) % tabs.Length].IsChecked = true;
                     if (tabRestored.Preferences.ActivityPanelCollapsed ||
                         tabRestored.Preferences.SelectedActivityTab != (selected + 1) % tabs.Length)
-                        throw new InvalidOperationException("Changing a restored activity tab did not expand and remember it.");
+                        throw new InvalidOperationException(
+                            "Changing a restored activity tab did not expand and remember it.");
                 }
-                finally { tabRestored.CloseForFixture(); }
+                finally
+                {
+                    tabRestored.CloseForFixture();
+                }
             }
+
             window.Width = 1000;
             window.Height = 1000;
             window.ProcessesTab.IsChecked = true;
@@ -58,28 +72,36 @@ internal sealed partial class WindowDiagnostics
                     window.UpdateLayout();
                     CheckHeader(window.ResourceHeader);
                     CheckHeader(window.ActivityHeader);
-                    var chartRight = window.ChartPanelToggle.TranslatePoint(new Point(window.ChartPanelToggle.ActualWidth, 0), window.FullView).X;
-                    var activityRight = window.ActivityPanelToggle.TranslatePoint(new Point(window.ActivityPanelToggle.ActualWidth, 0), window.FullView).X;
+                    var chartRight = window.ChartPanelToggle
+                        .TranslatePoint(new Point(window.ChartPanelToggle.ActualWidth, 0), window.FullView).X;
+                    var activityRight = window.ActivityPanelToggle
+                        .TranslatePoint(new Point(window.ActivityPanelToggle.ActualWidth, 0), window.FullView).X;
                     if (Math.Abs(chartRight - activityRight) > 0.5)
-                        throw new InvalidOperationException("Chart and activity chevrons have different right margins.");
+                        throw new InvalidOperationException(
+                            "Chart and activity chevrons have different right margins.");
                     CheckHeader(tab == window.ProcessesTab ? window.Processes.ProcessHeader :
                         tab == window.ServicesTab ? window.ServiceView.ToolbarHeader : window.UsageView.ToolbarHeader);
                     await CaptureAsync(Path.Combine(output, $"headers-{tab.Name}-{height}.png"), 1, cancellationToken);
                 }
             }
+
             window.ProcessesTab.IsChecked = true;
             window.Height = 1000;
             window.UpdateLayout();
-            window.ChartProcessDivider.RaiseEvent(new DragStartedEventArgs(0, 0) { RoutedEvent = Thumb.DragStartedEvent });
-            window.ChartProcessDivider.RaiseEvent(new DragDeltaEventArgs(0, -35) { RoutedEvent = Thumb.DragDeltaEvent });
-            window.ChartProcessDivider.RaiseEvent(new DragCompletedEventArgs(0, -35, false) { RoutedEvent = Thumb.DragCompletedEvent });
+            window.ChartProcessDivider.RaiseEvent(new DragStartedEventArgs(0, 0)
+                { RoutedEvent = Thumb.DragStartedEvent });
+            window.ChartProcessDivider.RaiseEvent(new DragDeltaEventArgs(0, -35)
+                { RoutedEvent = Thumb.DragDeltaEvent });
+            window.ChartProcessDivider.RaiseEvent(new DragCompletedEventArgs(0, -35, false)
+                { RoutedEvent = Thumb.DragCompletedEvent });
             window.UpdateLayout();
             var panelHeight = window.ProcessesAreaRow.ActualHeight;
             var chartHeight = window.ChartAreaRow.ActualHeight;
             var resizedRatio = window.ProcessesAreaRow.Height.Value / window.ChartAreaRow.Height.Value;
             window.SetCompactView(true);
             if (Math.Abs(window.Preferences.ActivityPanelRatio - resizedRatio) > 0.001)
-                throw new InvalidOperationException("Entering Compact view did not retain the resized split for a later restart.");
+                throw new InvalidOperationException(
+                    "Entering Compact view did not retain the resized split for a later restart.");
             window.SetCompactView(false);
             window.UpdateLayout();
             var search = window.Processes.ProcessSearchBox.Text;
@@ -92,7 +114,8 @@ internal sealed partial class WindowDiagnostics
                 window.ChartAreaRow.ActualHeight < chartHeight + panelHeight - 45 ||
                 !window.ActivityPanelToggle.IsKeyboardFocused ||
                 AutomationProperties.GetName(window.ActivityPanelToggle) != Strings.ExpandActivityPanel)
-                throw new InvalidOperationException("Activity collapse did not reclaim space, preserve the header, or restore focus.");
+                throw new InvalidOperationException(
+                    "Activity collapse did not reclaim space, preserve the header, or restore focus.");
             var savedRatio = window.Preferences.ActivityPanelRatio;
             window.SetActivityPanelCollapsed(false);
             window.UpdateLayout();
@@ -132,13 +155,15 @@ internal sealed partial class WindowDiagnostics
                 if (chartRestored.ChartBody.Visibility != Visibility.Collapsed)
                     throw new InvalidOperationException("Saved chart collapse did not restore in a new window.");
                 chartRestored.SetChartPanelCollapsed(false);
-                if (Math.Abs(chartRestored.ProcessesAreaRow.Height.Value / chartRestored.ChartAreaRow.Height.Value - savedRatio) > 0.001)
+                if (Math.Abs(chartRestored.ProcessesAreaRow.Height.Value / chartRestored.ChartAreaRow.Height.Value -
+                             savedRatio) > 0.001)
                     throw new InvalidOperationException("Chart expansion did not restore the saved split.");
             }
             finally
             {
                 chartRestored.CloseForFixture();
             }
+
             Click(window.ChartPanelToggle);
             window.Width = 1000;
             window.Height = 1000;
@@ -152,8 +177,10 @@ internal sealed partial class WindowDiagnostics
                 throw new InvalidOperationException("Rebuilding chart selectors expanded the chart.");
             foreach (var change in new Action[]
                      {
-                         () => window.ChartTypeSelector.SelectedIndex = window.ChartTypeSelector.SelectedIndex == 0 ? 1 : 0,
-                         () => window.RangeSelector.Children.OfType<RadioButton>().First(chip => chip.IsChecked != true).IsChecked = true,
+                         () => window.ChartTypeSelector.SelectedIndex =
+                             window.ChartTypeSelector.SelectedIndex == 0 ? 1 : 0,
+                         () => window.RangeSelector.Children.OfType<RadioButton>().First(chip => chip.IsChecked != true)
+                             .IsChecked = true,
                          () => Click(window.SnapshotModeButton),
                          () => Click(window.LiveModeButton)
                      })
@@ -163,8 +190,10 @@ internal sealed partial class WindowDiagnostics
                 window.UpdateLayout();
                 if (window.Preferences.ChartPanelCollapsed || !window.ChartBody.IsVisible ||
                     window.Preferences.ActivityPanelRatio != savedRatio)
-                    throw new InvalidOperationException("Changing a chart selector did not expand the chart with its saved split.");
+                    throw new InvalidOperationException(
+                        "Changing a chart selector did not expand the chart with its saved split.");
             }
+
             await CaptureAsync(Path.Combine(output, "chart-panel-selector-expanded.png"), 1, cancellationToken);
             window.SetActivityPanelCollapsed(true);
             window.Preferences = window.Preferences with { Theme = original.Theme };
@@ -174,7 +203,8 @@ internal sealed partial class WindowDiagnostics
             window.ApplyTheme();
             window.Width = window.MinWidth;
             window.UpdateLayout();
-            await CaptureAsync(Path.Combine(output, "activity-panel-collapsed-light-minimum.png"), 1.5, cancellationToken);
+            await CaptureAsync(Path.Combine(output, "activity-panel-collapsed-light-minimum.png"), 1.5,
+                cancellationToken);
             window.Height = 800;
             window.SetCompactView(true);
             window.SetCompactView(false);
@@ -199,6 +229,7 @@ internal sealed partial class WindowDiagnostics
                 if (window.Preferences.ActivityPanelCollapsed || window.ActivityBody.Visibility != Visibility.Visible)
                     throw new InvalidOperationException("Clicking an activity tab did not expand the panel.");
             }
+
             // Recreate the layout from persisted settings, as startup does, without touching the user's store.
             window.SetActivityPanelCollapsed(true);
             var store = new PreferenceStore(Path.Combine(output, "activity-panel-settings.json"));
@@ -207,18 +238,22 @@ internal sealed partial class WindowDiagnostics
             try
             {
                 restored.ApplyActivityPanel();
-                if (restored.ActivityBody.Visibility != Visibility.Collapsed || restored.Preferences.ActivityPanelRatio != savedRatio)
+                if (restored.ActivityBody.Visibility != Visibility.Collapsed ||
+                    restored.Preferences.ActivityPanelRatio != savedRatio)
                     throw new InvalidOperationException("Saved activity-panel state did not restore in a new window.");
                 restored.SetActivityPanelCollapsed(false);
-                if (Math.Abs(restored.ProcessesAreaRow.Height.Value / restored.ChartAreaRow.Height.Value - savedRatio) > 0.001)
+                if (Math.Abs(restored.ProcessesAreaRow.Height.Value / restored.ChartAreaRow.Height.Value - savedRatio) >
+                    0.001)
                     throw new InvalidOperationException("A restarted window did not restore the saved split.");
             }
             finally
             {
                 restored.CloseForFixture();
             }
+
             await File.WriteAllTextAsync(Path.Combine(output, "activity-panel-passed.txt"),
-                "Collapse, restore, resized split, all tabs, focus, Compact view and persisted restart checks passed.", cancellationToken);
+                "Collapse, restore, resized split, all tabs, focus, Compact view and persisted restart checks passed.",
+                cancellationToken);
         }
         finally
         {
@@ -231,22 +266,28 @@ internal sealed partial class WindowDiagnostics
             window.RefreshPresentation();
         }
 
-        static void Click(ButtonBase button) => button.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+        static void Click(ButtonBase button)
+        {
+            button.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+        }
 
         void CheckHeader(FrameworkElement header)
         {
             var bounds = header.TransformToAncestor(window.FullView).TransformBounds(new Rect(header.RenderSize));
             if (Math.Abs(bounds.Left) > 0.5 || Math.Abs(bounds.Right - window.FullView.ActualWidth) > 0.5)
-                throw new InvalidOperationException($"Header {header.Name} does not span the full view at height {window.Height}: {bounds}.");
+                throw new InvalidOperationException(
+                    $"Header {header.Name} does not span the full view at height {window.Height}: {bounds}.");
             // Layout clipping can occur without ClipToBounds when row minimums exceed the available height.
-            for (var parent = System.Windows.Media.VisualTreeHelper.GetParent(header); parent is FrameworkElement element;
-                 parent = System.Windows.Media.VisualTreeHelper.GetParent(parent))
+            for (var parent = VisualTreeHelper.GetParent(header);
+                 parent is FrameworkElement element;
+                 parent = VisualTreeHelper.GetParent(parent))
             {
                 var clip = LayoutInformation.GetLayoutClip(element);
                 if (clip is null) continue;
                 var local = header.TransformToAncestor(element).TransformBounds(new Rect(header.RenderSize));
                 if (local.Left < clip.Bounds.Left - 0.5 || local.Right > clip.Bounds.Right + 0.5)
-                    throw new InvalidOperationException($"Header {header.Name} is clipped horizontally at height {window.Height} by {element.GetType().Name}.");
+                    throw new InvalidOperationException(
+                        $"Header {header.Name} is clipped horizontally at height {window.Height} by {element.GetType().Name}.");
             }
         }
     }

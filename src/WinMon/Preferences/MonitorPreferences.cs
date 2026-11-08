@@ -52,12 +52,15 @@ public sealed record MonitorPreferences
 
     /// <summary>Services ranking: CPU, memory, I/O, or name (when showing all).</summary>
     public int ServiceSortColumn { get; init; }
+
     /// <summary>Services status filter: all, running, or stopped.</summary>
     public int ServiceStatusFilter { get; init; }
+
     public bool ServiceIncludeWorkers { get; init; } = true;
 
     /// <summary>SCM service names pinned independently of their current host process.</summary>
     public string[] PinnedServices { get; init; } = [];
+
     public bool ServicePinnedOnly { get; init; }
 
     /// <summary>Maximum apps the Usage tab lists; zero shows all matching apps.</summary>
@@ -150,6 +153,8 @@ public sealed record MonitorPreferences
             ControlsCollapsed = ChartResourcesCollapsed,
             FocusMetric = FocusMetric
         }.Normalized();
+        // Saved settings may contain a null array or null entries despite their annotations.
+        // ReSharper disable ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
         return this with
         {
             ChartConfigurations = Enum.GetValues<ResourceChartType>().Select(type => type == ResourceChartType
@@ -157,6 +162,7 @@ public sealed record MonitorPreferences
                 : (ChartConfigurations?.FirstOrDefault(item => item?.Type == type)
                    ?? current with { Type = type, ControlsCollapsed = true }).Normalized()).ToArray()
         };
+        // ReSharper restore ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
     }
 
     internal MonitorPreferences SelectChart(ResourceChartType type, int? focusMetric = null)
@@ -176,12 +182,15 @@ public sealed record MonitorPreferences
         };
     }
 
-    internal MonitorPreferences ResetChartPreferences() => (this with
+    internal MonitorPreferences ResetChartPreferences()
     {
-        ResourceChartType = ResourceChartType.Overlay, VisibleMetrics = 15, ShowGpu = true,
-        ShowSecondaryDisk = true, ChartRangeSeconds = ShortRangeSeconds, ChartResourcesCollapsed = true,
-        FocusMetric = 0, ChartConfigurations = []
-    }).RememberChartConfiguration();
+        return (this with
+        {
+            ResourceChartType = ResourceChartType.Overlay, VisibleMetrics = 15, ShowGpu = true,
+            ShowSecondaryDisk = true, ChartRangeSeconds = ShortRangeSeconds, ChartResourcesCollapsed = true,
+            FocusMetric = 0, ChartConfigurations = []
+        }).RememberChartConfiguration();
+    }
 
     /// <summary>Chart range choices: 2, 10, 30 and 60 minutes, up to the retained history.</summary>
     internal int[] ChartRanges =>

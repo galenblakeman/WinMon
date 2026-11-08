@@ -21,9 +21,12 @@ internal static class RateText
         return $"{number} {unit}";
     }
 
-    internal static string LinkSpeed(double bitsPerSecond) => bitsPerSecond >= 1e9
-        ? $"{Number(bitsPerSecond / 1e9)} {Strings.GigabitsPerSecond}"
-        : $"{Number(bitsPerSecond / 1e6)} {Strings.MegabitsPerSecond}";
+    internal static string LinkSpeed(double bitsPerSecond)
+    {
+        return bitsPerSecond >= 1e9
+            ? $"{Number(bitsPerSecond / 1e9)} {Strings.GigabitsPerSecond}"
+            : $"{Number(bitsPerSecond / 1e6)} {Strings.MegabitsPerSecond}";
+    }
 
     /// <summary>A compact gauge label that retains the byte-rate unit, such as "8MB/s".</summary>
     internal static string Short(double bitsPerSecond)
@@ -40,6 +43,8 @@ internal static class RateText
         return Strings.Format(Strings.NetworkRatePair, Number(receiveBits / divisor), Number(sendBits / divisor), unit);
     }
 
-    private static string Number(double value) =>
-        value switch { < 10 => $"{value:0.##}", < 100 => $"{value:0.#}", _ => $"{value:0}" };
+    private static string Number(double value)
+    {
+        return value switch { < 10 => $"{value:0.##}", < 100 => $"{value:0.#}", _ => $"{value:0}" };
+    }
 }

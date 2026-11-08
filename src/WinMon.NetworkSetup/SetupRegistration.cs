@@ -1,13 +1,15 @@
-using Microsoft.Win32;
 using System.Security.AccessControl;
 using System.Security.Principal;
+using Microsoft.Win32;
 
 namespace WinMon.NetworkSetup;
 
 internal static class SetupRegistration
 {
     private const string KeyName = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\WinMonNetworkMonitor";
-    private static readonly string[] Names = ["DisplayName", "DisplayVersion", "Publisher", "InstallLocation", "UninstallString", "NoModify", "NoRepair"];
+
+    private static readonly string[] Names =
+        ["DisplayName", "DisplayVersion", "Publisher", "InstallLocation", "UninstallString", "NoModify", "NoRepair"];
 
     internal static Dictionary<string, object>? Capture()
     {
@@ -17,7 +19,8 @@ internal static class SetupRegistration
         if (!Equals(key.GetValue("InstallLocation"), SetupPaths.InstallDirectory) ||
             !Equals(key.GetValue("UninstallString"), $"\"{SetupPaths.InstalledSetupExecutable}\" --uninstall"))
             throw new UnauthorizedAccessException("Unrelated uninstall registration.");
-        return Names.Where(name => key.GetValue(name) is not null).ToDictionary(name => name, name => key.GetValue(name)!);
+        return Names.Where(name => key.GetValue(name) is not null)
+            .ToDictionary(name => name, name => key.GetValue(name)!);
     }
 
     internal static void Write()
@@ -34,10 +37,11 @@ internal static class SetupRegistration
 
     internal static void Restore(Dictionary<string, object>? values)
     {
-        Registry.LocalMachine.DeleteSubKeyTree(KeyName, throwOnMissingSubKey: false);
+        Registry.LocalMachine.DeleteSubKeyTree(KeyName, false);
         if (values is null) return;
         using var key = CreateKey();
-        foreach (var (name, value) in values) key.SetValue(name, value, value is int ? RegistryValueKind.DWord : RegistryValueKind.String);
+        foreach (var (name, value) in values)
+            key.SetValue(name, value, value is int ? RegistryValueKind.DWord : RegistryValueKind.String);
     }
 
     internal static RegistrySecurity Security()
@@ -46,29 +50,39 @@ internal static class SetupRegistration
         security.SetOwner(new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null));
         security.SetAccessRuleProtection(true, false);
         foreach (var (sid, rights) in new[]
-        {
-            (WellKnownSidType.LocalSystemSid, RegistryRights.FullControl),
-            (WellKnownSidType.BuiltinAdministratorsSid, RegistryRights.FullControl),
-            (WellKnownSidType.BuiltinUsersSid, RegistryRights.ReadKey)
-        })
-            security.AddAccessRule(new RegistryAccessRule(new SecurityIdentifier(sid, null), rights, AccessControlType.Allow));
+                 {
+                     (WellKnownSidType.LocalSystemSid, RegistryRights.FullControl),
+                     (WellKnownSidType.BuiltinAdministratorsSid, RegistryRights.FullControl),
+                     (WellKnownSidType.BuiltinUsersSid, RegistryRights.ReadKey)
+                 })
+            security.AddAccessRule(new RegistryAccessRule(new SecurityIdentifier(sid, null), rights,
+                AccessControlType.Allow));
         return security;
     }
 
     internal static void ValidateSecurity(RegistrySecurity security)
     {
-        if (!Trusted((SecurityIdentifier)security.GetOwner(typeof(SecurityIdentifier))!)) throw new UnauthorizedAccessException("Untrusted uninstall registration owner.");
-        const RegistryRights write = RegistryRights.SetValue | RegistryRights.CreateSubKey | RegistryRights.CreateLink | RegistryRights.Delete |
-            RegistryRights.ChangePermissions | RegistryRights.TakeOwnership;
+        if (!Trusted((SecurityIdentifier)security.GetOwner(typeof(SecurityIdentifier))!))
+            throw new UnauthorizedAccessException("Untrusted uninstall registration owner.");
+        const RegistryRights write = RegistryRights.SetValue | RegistryRights.CreateSubKey | RegistryRights.CreateLink |
+                                     RegistryRights.Delete |
+                                     RegistryRights.ChangePermissions | RegistryRights.TakeOwnership;
         foreach (RegistryAccessRule rule in security.GetAccessRules(true, true, typeof(SecurityIdentifier)))
-            if ((rule.PropagationFlags & PropagationFlags.InheritOnly) == 0 && rule.AccessControlType == AccessControlType.Allow &&
+            if ((rule.PropagationFlags & PropagationFlags.InheritOnly) == 0 &&
+                rule.AccessControlType == AccessControlType.Allow &&
                 (rule.RegistryRights & write) != 0 && !Trusted((SecurityIdentifier)rule.IdentityReference))
                 throw new UnauthorizedAccessException("Untrusted uninstall registration writer.");
     }
 
-    private static RegistryKey CreateKey() => Registry.LocalMachine.CreateSubKey(KeyName, RegistryKeyPermissionCheck.ReadWriteSubTree,
-        RegistryOptions.None, Security());
+    private static RegistryKey CreateKey()
+    {
+        return Registry.LocalMachine.CreateSubKey(KeyName, RegistryKeyPermissionCheck.ReadWriteSubTree,
+            RegistryOptions.None, Security());
+    }
 
-    private static bool Trusted(SecurityIdentifier sid) => sid.IsWellKnown(WellKnownSidType.LocalSystemSid) ||
-        sid.IsWellKnown(WellKnownSidType.BuiltinAdministratorsSid);
+    private static bool Trusted(SecurityIdentifier sid)
+    {
+        return sid.IsWellKnown(WellKnownSidType.LocalSystemSid) ||
+               sid.IsWellKnown(WellKnownSidType.BuiltinAdministratorsSid);
+    }
 }

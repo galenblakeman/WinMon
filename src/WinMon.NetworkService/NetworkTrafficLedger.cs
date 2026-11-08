@@ -51,12 +51,14 @@ internal sealed class NetworkTrafficLedger
             MarkIncomplete(startedQpc, ProcessNetworkIncompleteReason.AmbiguousLifetime);
             return false;
         }
+
         if (_lifetimes.Count >= _maximumLifetimes)
         {
             _capacityExceeded = true;
             MarkIncomplete(startedQpc, ProcessNetworkIncompleteReason.CapacityExceeded);
             return false;
         }
+
         if (_active.TryGetValue(processId, out var active))
         {
             if (startedQpc <= active.StartedQpc || creationTicks == active.CreationTicks)
@@ -64,10 +66,12 @@ internal sealed class NetworkTrafficLedger
                 MarkIncomplete(startedQpc, ProcessNetworkIncompleteReason.AmbiguousLifetime);
                 return false;
             }
+
             active.EndedQpc = startedQpc;
             _active.Remove(processId);
             RecordTombstone(processId, startedQpc, active.CreationTicks);
         }
+
         var lifetime = new Lifetime(processId, creationTicks, ownerSid, startedQpc);
         _active.Add(processId, lifetime);
         _lifetimes.Add(lifetime);
@@ -76,6 +80,7 @@ internal sealed class NetworkTrafficLedger
             processLifetimes = [];
             _lifetimesByProcess.Add(processId, processLifetimes);
         }
+
         processLifetimes.Add(lifetime);
         RecordTombstone(processId, startedQpc, creationTicks);
         return true;
@@ -83,12 +88,14 @@ internal sealed class NetworkTrafficLedger
 
     internal void End(int processId, long eventQpc)
     {
-        if (processId <= 0 || eventQpc < 0) throw new ArgumentOutOfRangeException(processId <= 0 ? nameof(processId) : nameof(eventQpc));
+        if (processId <= 0 || eventQpc < 0)
+            throw new ArgumentOutOfRangeException(processId <= 0 ? nameof(processId) : nameof(eventQpc));
         if (!_active.TryGetValue(processId, out var lifetime) || eventQpc <= lifetime.StartedQpc)
         {
             MarkIncomplete(eventQpc);
             return;
         }
+
         _active.Remove(processId);
         lifetime.EndedQpc = eventQpc;
         RecordTombstone(processId, eventQpc, lifetime.CreationTicks);
@@ -101,11 +108,13 @@ internal sealed class NetworkTrafficLedger
             MarkIncomplete(Math.Max(0, arrivalQpc), ProcessNetworkIncompleteReason.InvalidEvent);
             return false;
         }
+
         if (eventQpc > arrivalQpc || arrivalQpc - eventQpc > RetentionTicks)
         {
             MarkIncomplete(arrivalQpc, ProcessNetworkIncompleteReason.EventTimestamp);
             return false;
         }
+
         if (arrivalQpc - eventQpc > HoldbackTicks) _lateEvents++;
         var lifetime = Resolve(processId, eventQpc);
         if (lifetime is null)
@@ -113,13 +122,17 @@ internal sealed class NetworkTrafficLedger
             MarkIncomplete(arrivalQpc);
             return false;
         }
+
         lifetime.Add(eventQpc / _frequency, send, bytes);
         return true;
     }
 
     internal void ReportLoss(long cumulativeEventsLost, long observedAtQpc)
     {
-        if (cumulativeEventsLost < 0 || observedAtQpc < 0) throw new ArgumentOutOfRangeException(cumulativeEventsLost < 0 ? nameof(cumulativeEventsLost) : nameof(observedAtQpc));
+        if (cumulativeEventsLost < 0 || observedAtQpc < 0)
+            throw new ArgumentOutOfRangeException(cumulativeEventsLost < 0
+                ? nameof(cumulativeEventsLost)
+                : nameof(observedAtQpc));
         if (cumulativeEventsLost < _lastEventsLost)
         {
             Discontinue(observedAtQpc, ProcessNetworkIncompleteReason.NativeLoss);
@@ -127,6 +140,7 @@ internal sealed class NetworkTrafficLedger
             _eventsLost = cumulativeEventsLost;
             return;
         }
+
         if (cumulativeEventsLost == _lastEventsLost) return;
         _eventsLost = cumulativeEventsLost;
         _lastEventsLost = cumulativeEventsLost;
@@ -134,7 +148,8 @@ internal sealed class NetworkTrafficLedger
         _ratesUnavailableUntilQpc = Math.Max(_ratesUnavailableUntilQpc, observedAtQpc);
     }
 
-    internal void MarkIncomplete(long observedAtQpc, ProcessNetworkIncompleteReason reason = ProcessNetworkIncompleteReason.AmbiguousLifetime)
+    internal void MarkIncomplete(long observedAtQpc,
+        ProcessNetworkIncompleteReason reason = ProcessNetworkIncompleteReason.AmbiguousLifetime)
     {
         if (observedAtQpc < 0) throw new ArgumentOutOfRangeException(nameof(observedAtQpc));
         _incomplete = true;
@@ -143,11 +158,17 @@ internal sealed class NetworkTrafficLedger
     }
 
     /// <summary>Checks an event-time lifetime without treating a late event as a current live PID.</summary>
-    internal bool HasLifetime(int processId, long eventQpc) => processId > 0 && eventQpc >= 0 && Resolve(processId, eventQpc) is not null;
+    internal bool HasLifetime(int processId, long eventQpc)
+    {
+        return processId > 0 && eventQpc >= 0 && Resolve(processId, eventQpc) is not null;
+    }
 
     /// <summary>Checks whether an event belongs to a retained, ended lifetime rather than the current PID.</summary>
-    internal bool HasExitedLifetime(int processId, long eventQpc) => processId > 0 && eventQpc >= 0 &&
-        Resolve(processId, eventQpc)?.EndedQpc is not null;
+    internal bool HasExitedLifetime(int processId, long eventQpc)
+    {
+        return processId > 0 && eventQpc >= 0 &&
+               Resolve(processId, eventQpc)?.EndedQpc is not null;
+    }
 
     internal ProcessNetworkSnapshot Snapshot(string ownerSid, long nowQpc)
     {
@@ -167,7 +188,7 @@ internal sealed class NetworkTrafficLedger
         if (_discontinuity) quality |= ProcessNetworkQuality.Discontinuity;
 
         var rows = _lifetimes.Where(lifetime => (lifetime.ReceivedBytes != 0 || lifetime.SentBytes != 0) &&
-                string.Equals(lifetime.OwnerSid, ownerSid, StringComparison.Ordinal))
+                                                string.Equals(lifetime.OwnerSid, ownerSid, StringComparison.Ordinal))
             .Select(lifetime => lifetime.Snapshot(windowStart, windowEnd, ratesAvailable, _frequency))
             .OrderBy(row => row.ProcessId).ThenBy(row => row.CreationTicks).ToArray();
         return new ProcessNetworkSnapshot(_generation, checked(++_sequence), nowQpc, _frequency, windowStart, windowEnd,
@@ -179,7 +200,8 @@ internal sealed class NetworkTrafficLedger
         if (_active.TryGetValue(processId, out var active) && active.Contains(eventQpc)) return active;
         if (!_lifetimesByProcess.TryGetValue(processId, out var lifetimes)) return null;
         foreach (var lifetime in lifetimes)
-            if (lifetime.Contains(eventQpc)) return lifetime;
+            if (lifetime.Contains(eventQpc))
+                return lifetime;
         return null;
     }
 
@@ -213,11 +235,13 @@ internal sealed class NetworkTrafficLedger
             _capacityExceeded = true;
             MarkIncomplete(timestampQpc, ProcessNetworkIncompleteReason.CapacityExceeded);
         }
+
         if (!_tombstones.TryGetValue(processId, out var existing) || timestampQpc >= existing.TimestampQpc)
             _tombstones[processId] = new Tombstone(timestampQpc, creationTicks);
     }
 
-    private void Discontinue(long nowQpc, ProcessNetworkIncompleteReason reason = ProcessNetworkIncompleteReason.ClockDiscontinuity)
+    private void Discontinue(long nowQpc,
+        ProcessNetworkIncompleteReason reason = ProcessNetworkIncompleteReason.ClockDiscontinuity)
     {
         _generation = Guid.NewGuid();
         _discontinuity = true;
@@ -258,7 +282,10 @@ internal sealed class NetworkTrafficLedger
         internal long ReceivedBytes { get; private set; }
         internal long SentBytes { get; private set; }
 
-        internal bool Contains(long eventQpc) => eventQpc > StartedQpc && (EndedQpc is null || eventQpc < EndedQpc);
+        internal bool Contains(long eventQpc)
+        {
+            return eventQpc > StartedQpc && (EndedQpc is null || eventQpc < EndedQpc);
+        }
 
         internal void Add(long second, bool send, int bytes)
         {
@@ -267,18 +294,29 @@ internal sealed class NetworkTrafficLedger
                 bucket = new Bytes();
                 _buckets.Add(second, bucket);
             }
-            if (send) { SentBytes = checked(SentBytes + bytes); bucket.Sent = checked(bucket.Sent + bytes); }
-            else { ReceivedBytes = checked(ReceivedBytes + bytes); bucket.Received = checked(bucket.Received + bytes); }
+
+            if (send)
+            {
+                SentBytes = checked(SentBytes + bytes);
+                bucket.Sent = checked(bucket.Sent + bytes);
+            }
+            else
+            {
+                ReceivedBytes = checked(ReceivedBytes + bytes);
+                bucket.Received = checked(bucket.Received + bytes);
+            }
         }
 
         internal void PruneBuckets(long oldestSecond)
         {
             // Dictionary allows Remove during enumeration since .NET Core 3.0.
             foreach (var second in _buckets.Keys)
-                if (second < oldestSecond) _buckets.Remove(second);
+                if (second < oldestSecond)
+                    _buckets.Remove(second);
         }
 
-        internal ProcessNetworkReading Snapshot(long windowStartQpc, long windowEndQpc, bool ratesAvailable, long frequency)
+        internal ProcessNetworkReading Snapshot(long windowStartQpc, long windowEndQpc, bool ratesAvailable,
+            long frequency)
         {
             long received = 0;
             long sent = 0;
@@ -293,6 +331,7 @@ internal sealed class NetworkTrafficLedger
                     sent = checked(sent + pair.Value.Sent);
                 }
             }
+
             const double windowSeconds = RateWindowSeconds;
             return new ProcessNetworkReading(ProcessId, CreationTicks, ReceivedBytes, SentBytes,
                 ratesAvailable ? received / windowSeconds : null, ratesAvailable ? sent / windowSeconds : null);

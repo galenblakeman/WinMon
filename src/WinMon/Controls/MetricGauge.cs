@@ -62,6 +62,8 @@ public sealed class MetricGauge : FrameworkElement
 
     public GaugeStyle Kind
     {
+        // Keep the public gauge setting readable for control consumers.
+        // ReSharper disable once UnusedMember.Global
         get => _kind;
         set
         {
@@ -273,7 +275,8 @@ public sealed class MetricGauge : FrameworkElement
         if (_kind == GaugeStyle.SegmentedArc)
         {
             var lit = Lit(level);
-            for (var i = 0; i < _segments.Length; i++) dc.DrawGeometry(null, i < lit ? _fillPen : _trackPen, _segments[i]);
+            for (var i = 0; i < _segments.Length; i++)
+                dc.DrawGeometry(null, i < lit ? _fillPen : _trackPen, _segments[i]);
         }
         else
         {

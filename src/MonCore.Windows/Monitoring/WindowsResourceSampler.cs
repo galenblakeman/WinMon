@@ -258,8 +258,10 @@ internal sealed class WindowsResourceSampler : IDisposable
         }
 
         var selectedId = SelectNetworkId(_networkChoices ?? [], _previousNetwork?.Id, networkInterfaceId);
-        var network = selectedId is null ? null : _candidates!.FirstOrDefault(candidate =>
-            string.Equals(candidate.Id, selectedId, StringComparison.OrdinalIgnoreCase));
+        var network = selectedId is null
+            ? null
+            : _candidates!.FirstOrDefault(candidate =>
+                string.Equals(candidate.Id, selectedId, StringComparison.OrdinalIgnoreCase));
         if (network is null)
         {
             _previousNetwork = null;
@@ -298,7 +300,8 @@ internal sealed class WindowsResourceSampler : IDisposable
         if (previousId is not null && candidates.FirstOrDefault(candidate =>
                 string.Equals(candidate.Id, previousId, StringComparison.OrdinalIgnoreCase)) is { } previous)
             return previous.Id;
-        return candidates.OrderByDescending(candidate => candidate.HasGateway).ThenByDescending(candidate => candidate.Speed)
+        return candidates.OrderByDescending(candidate => candidate.HasGateway)
+            .ThenByDescending(candidate => candidate.Speed)
             .Select(candidate => candidate.Id).FirstOrDefault();
     }
 

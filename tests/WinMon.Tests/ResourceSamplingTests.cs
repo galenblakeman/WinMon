@@ -14,7 +14,8 @@ public sealed class ResourceSamplingTests
     {
         Assert.Multiple(() =>
         {
-            Assert.That(new ResourceSample { TotalMemoryBytes = 1000, UsedMemoryBytes = 620 }.MemoryPercent, Is.EqualTo(62));
+            Assert.That(new ResourceSample { TotalMemoryBytes = 1000, UsedMemoryBytes = 620 }.MemoryPercent,
+                Is.EqualTo(62));
             Assert.That(new ResourceSample { TotalMemoryBytes = 1000, UsedMemoryBytes = 0 }.MemoryPercent, Is.Zero);
             Assert.That(new ResourceSample().MemoryPercent, Is.Null);
             Assert.That(new ResourceSample { TotalMemoryBytes = 0, UsedMemoryBytes = 0 }.MemoryPercent, Is.Null);
@@ -26,8 +27,10 @@ public sealed class ResourceSamplingTests
     [TestCase(0, null)]
     [TestCase(-1, null)]
     [TestCase(6, null)]
-    public void Rates_UseElapsedSeconds_AndRejectGaps(double seconds, double? expected) =>
+    public void Rates_UseElapsedSeconds_AndRejectGaps(double seconds, double? expected)
+    {
         Assert.That(ResourceRates.PerSecond(100, 200, seconds), Is.EqualTo(expected));
+    }
 
     [Test]
     public void Rates_RejectMissingOrRegressingCounters()
@@ -43,7 +46,8 @@ public sealed class ResourceSamplingTests
     [Test]
     public void Network_NormalizesBusierDirection_WithoutAddingFullDuplexDirections()
     {
-        var resource = new ResourceSample { LinkBitsPerSecond = 1_000_000_000, ReceiveBytesPerSecond = 75_000_000, SendBytesPerSecond = 50_000_000 };
+        var resource = new ResourceSample
+            { LinkBitsPerSecond = 1_000_000_000, ReceiveBytesPerSecond = 75_000_000, SendBytesPerSecond = 50_000_000 };
         Assert.Multiple(() =>
         {
             Assert.That(resource.NetworkPercent, Is.EqualTo(60));
@@ -132,10 +136,14 @@ public sealed class ResourceSamplingTests
     public void History_RetainsResourceValuesAndProcessMeasurementsForSelectedTimestamp()
     {
         var resource = new ResourceSample { TotalMemoryBytes = 1000, UsedMemoryBytes = 500, DiskActivePercent = 30 };
-        var first = new MonitorSample(DateTimeOffset.UnixEpoch, 10, [new ProcessUsage(1, 1, "a", 5, 200, 300)], 0) { Resources = resource };
+        var first = new MonitorSample(DateTimeOffset.UnixEpoch, 10, [new ProcessUsage(1, 1, "a", 5, 200, 300)], 0)
+            { Resources = resource };
         var history = new MonitorHistory();
         history.Add(first);
-        history.Add(first with { Timestamp = first.Timestamp.AddSeconds(1), Resources = resource with { UsedMemoryBytes = 800 } });
+        history.Add(first with
+        {
+            Timestamp = first.Timestamp.AddSeconds(1), Resources = resource with { UsedMemoryBytes = 800 }
+        });
         Assert.Multiple(() =>
         {
             Assert.That(history.Samples[0].Resources.MemoryPercent, Is.EqualTo(50));
@@ -149,8 +157,11 @@ public sealed class ResourceSamplingTests
     [TestCase(0, 0)]
     [TestCase(5, 5)]
     [TestCase(31, 15)]
-    public void Preferences_SeriesMaskAllowsAllHiddenAndRejectsUnknownBits(int value, int expected) =>
-        Assert.That(PreferenceStore.Validate(new MonitorPreferences { VisibleMetrics = value }).VisibleMetrics, Is.EqualTo(expected));
+    public void Preferences_SeriesMaskAllowsAllHiddenAndRejectsUnknownBits(int value, int expected)
+    {
+        Assert.That(PreferenceStore.Validate(new MonitorPreferences { VisibleMetrics = value }).VisibleMetrics,
+            Is.EqualTo(expected));
+    }
 
     [Test]
     public void ProcessIo_UsesMonotonicElapsedAndLifetimeIdentity()
@@ -173,6 +184,7 @@ public sealed class ResourceSamplingTests
     private sealed class SequenceProvider(params ProcessCpuTimes[] processes) : ICpuSnapshotProvider
     {
         private int index;
+
         public CpuSnapshot Capture()
         {
             var process = processes[index++];

@@ -42,7 +42,9 @@ public sealed class SetupArgumentsTests
     {
         var parsed = SetupArguments.Parse(["--revoke-user", "S-1-5-21-1-2-3-4"]);
         Assert.That(parsed.RevokeUser, Is.EqualTo("S-1-5-21-1-2-3-4"));
-        Assert.That(() => SetupArguments.Parse(["--revoke-user", "S-1-1-0"]), Throws.InstanceOf<InvalidDataException>());
-        Assert.That(() => SetupArguments.Parse(["--revoke-user", "S-1-5-21-1-2-3-4", "--uninstall"]), Throws.InstanceOf<ArgumentException>());
+        Assert.That(() => SetupArguments.Parse(["--revoke-user", "S-1-1-0"]),
+            Throws.InstanceOf<InvalidDataException>());
+        Assert.That(() => SetupArguments.Parse(["--revoke-user", "S-1-5-21-1-2-3-4", "--uninstall"]),
+            Throws.InstanceOf<ArgumentException>());
     }
 }

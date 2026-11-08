@@ -1,6 +1,10 @@
+// Close handles and cancel callbacks synchronously before releasing ownership or continuing shutdown.
+// ReSharper disable MethodHasAsyncOverload
+
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
+using System.Security;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Channels;
@@ -13,8 +17,10 @@ public sealed class DiagnosticLog : TraceListener
     private const int FileLimit = 2 * 1024 * 1024;
     private const int FileCount = 5;
     private const int EntryLimit = 16 * 1024;
+
     private readonly Channel<string> _queue = Channel.CreateBounded<string>(new BoundedChannelOptions(512)
         { SingleReader = true, FullMode = BoundedChannelFullMode.Wait });
+
     private readonly Dictionary<string, Repetition> _repetitions = new();
     private readonly object _gate = new();
     private readonly FileStream _lease;
@@ -28,8 +34,10 @@ public sealed class DiagnosticLog : TraceListener
 
     /// <summary>The actual writable folder, including a fallback when necessary.</summary>
     public string Folder { get; }
+
     /// <summary>The folder receiving this process's app logs, or null when logging could not start.</summary>
     public static string? AppFolder { get; private set; }
+
     /// <inheritdoc/>
     public override bool IsThreadSafe => true;
 
@@ -41,16 +49,30 @@ public sealed class DiagnosticLog : TraceListener
         Directory.CreateDirectory(folder);
         _lease = new FileStream(Path.Combine(folder, "writer.lock"), FileMode.OpenOrCreate,
             FileAccess.Write, FileShare.Read);
-        try { Open(); }
-        catch { _lease.Dispose(); throw; }
+        try
+        {
+            Open();
+        }
+        catch
+        {
+            _lease.Dispose();
+            throw;
+        }
+
         _writer = Task.Run(WriteAsync);
     }
 
     /// <summary>Collect app errors from before preferences load; prefer provisioned ProgramData.</summary>
     public static DiagnosticLog? StartApp()
     {
-        try { return StartAppCore(); }
-        catch (Exception ex) when (IsStorageFailure(ex)) { return null; }
+        try
+        {
+            return StartAppCore();
+        }
+        catch (Exception ex) when (IsStorageFailure(ex))
+        {
+            return null;
+        }
     }
 
     private static DiagnosticLog? StartAppCore()
@@ -61,6 +83,7 @@ public sealed class DiagnosticLog : TraceListener
             AppFolder = elevated.Folder;
             return elevated;
         }
+
         var log = CreateApp(LogDirectories.AppPath, LogDirectories.LocalPath, LogDirectories.ValidateAppPath);
         if (log is null) return null;
         Attach(log);
@@ -78,14 +101,22 @@ public sealed class DiagnosticLog : TraceListener
             validateShared();
             return new DiagnosticLog(shared, "App");
         }
-        catch (Exception ex) when (IsStorageFailure(ex)) { sharedFailure = ex; }
+        catch (Exception ex) when (IsStorageFailure(ex))
+        {
+            sharedFailure = ex;
+        }
+
         try
         {
             var log = new DiagnosticLog(local, "App");
-            log.TraceEvent(null, "App", TraceEventType.Warning, 0, "Logging.SharedDestinationUnavailable: {0}", sharedFailure);
+            log.TraceEvent(null, "App", TraceEventType.Warning, 0, "Logging.SharedDestinationUnavailable: {0}",
+                sharedFailure);
             return log;
         }
-        catch (Exception ex) when (IsStorageFailure(ex)) { return null; }
+        catch (Exception ex) when (IsStorageFailure(ex))
+        {
+            return null;
+        }
     }
 
     /// <summary>Never let a privileged service write to an untrusted or user-writable folder.</summary>
@@ -96,7 +127,10 @@ public sealed class DiagnosticLog : TraceListener
             LogDirectories.ValidateServicePath();
             return Attach(new DiagnosticLog(LogDirectories.ServicePath, "Service"));
         }
-        catch (Exception ex) when (IsStorageFailure(ex)) { return null; }
+        catch (Exception ex) when (IsStorageFailure(ex))
+        {
+            return null;
+        }
     }
 
     private static DiagnosticLog Attach(DiagnosticLog log)
@@ -107,9 +141,15 @@ public sealed class DiagnosticLog : TraceListener
         return log;
     }
 
-    private void OnUnhandled(object sender, UnhandledExceptionEventArgs e) => Fatal(e.ExceptionObject as Exception);
-    private void OnUnobserved(object? sender, UnobservedTaskExceptionEventArgs e) =>
+    private void OnUnhandled(object sender, UnhandledExceptionEventArgs e)
+    {
+        Fatal(e.ExceptionObject as Exception);
+    }
+
+    private void OnUnobserved(object? sender, UnobservedTaskExceptionEventArgs e)
+    {
         Trace.TraceError("Task.Unobserved: {0}", e.Exception);
+    }
 
     /// <summary>Record a fatal failure without changing the application's exception policy.</summary>
     public void Fatal(Exception? exception)
@@ -120,7 +160,10 @@ public sealed class DiagnosticLog : TraceListener
 
     /// <inheritdoc/>
     public override void TraceEvent(TraceEventCache? eventCache, string source, TraceEventType eventType,
-        int id, string? message) => Record(eventType, message ?? "Trace", "");
+        int id, string? message)
+    {
+        Record(eventType, message ?? "Trace", "");
+    }
 
     /// <inheritdoc/>
     public override void TraceEvent(TraceEventCache? eventCache, string source, TraceEventType eventType,
@@ -134,32 +177,37 @@ public sealed class DiagnosticLog : TraceListener
         Record(eventType, template, rendered);
     }
 
-    private static string SafeValue(object? value) => value switch
+    private static string SafeValue(object? value)
     {
-        Exception exception => ExceptionDetails(exception),
-        Enum enumeration => enumeration.ToString(),
-        bool boolean => boolean.ToString(),
-        Version version => version.ToString(),
-        byte or short or int or long or uint or ulong or float or double or decimal =>
-            Convert.ToString(value, CultureInfo.InvariantCulture) ?? "",
-        _ => "[omitted]"
-    };
+        return value switch
+        {
+            Exception exception => ExceptionDetails(exception),
+            Enum enumeration => enumeration.ToString(),
+            bool boolean => boolean.ToString(),
+            Version version => version.ToString(),
+            byte or short or int or long or uint or ulong or float or double or decimal =>
+                Convert.ToString(value, CultureInfo.InvariantCulture) ?? "",
+            _ => "[omitted]"
+        };
+    }
 
-    private static string ExceptionDetails(Exception exception)
+    private static string ExceptionDetails(Exception? exception)
     {
         var text = new StringBuilder();
-        for (var depth = 0; exception is not null && depth < 8; depth++, exception = exception.InnerException!)
+        for (var depth = 0; exception is not null && depth < 8; depth++, exception = exception.InnerException)
         {
             text.Append(exception.GetType().Name).Append(" hresult=").Append(exception.HResult);
             if (exception is Win32Exception native) text.Append(" win32=").Append(native.NativeErrorCode);
             // Method names retain useful call sites without source paths or exception-controlled text.
-            foreach (var frame in (new StackTrace(exception, false).GetFrames() ?? []).Take(24))
+            foreach (var frame in new StackTrace(exception, false).GetFrames().Take(24))
             {
                 var method = frame.GetMethod();
                 text.Append(" at ").Append(method?.DeclaringType?.FullName).Append('.').Append(method?.Name);
             }
+
             text.Append("; ");
         }
+
         return text.ToString();
     }
 
@@ -176,9 +224,11 @@ public sealed class DiagnosticLog : TraceListener
                     repetition.Count++;
                     return;
                 }
+
                 if (_repetitions.Count == 128) Summarize(now, true);
                 _repetitions[template] = new Repetition(now);
             }
+
             Enqueue(now, level, details.Length == 0 ? template : details);
         }
     }
@@ -209,7 +259,11 @@ public sealed class DiagnosticLog : TraceListener
         {
             do
             {
-                lock (_gate) Summarize(DateTimeOffset.UtcNow);
+                lock (_gate)
+                {
+                    Summarize(DateTimeOffset.UtcNow);
+                }
+
                 Drain();
                 if (Volatile.Read(ref _stopped) != 0) break;
                 if (_queue.Reader.Completion.IsCompleted) break;
@@ -227,12 +281,20 @@ public sealed class DiagnosticLog : TraceListener
         var lost = Interlocked.Exchange(ref _lost, 0);
         try
         {
-            if (lost > 0) WriteEntry($"{DateTimeOffset.UtcNow:O} Warning {_component} session={_session} Logging.Dropped count={lost}\n");
+            if (lost > 0)
+                WriteEntry(
+                    $"{DateTimeOffset.UtcNow:O} Warning {_component} session={_session} Logging.Dropped count={lost}\n");
             for (var count = 0; count < 512 && _queue.Reader.TryRead(out var line); count++)
-            {
-                try { WriteEntry(line); }
-                catch (Exception ex) when (IsStorageFailure(ex)) { Interlocked.Increment(ref _lost); throw; }
-            }
+                try
+                {
+                    WriteEntry(line);
+                }
+                catch (Exception ex) when (IsStorageFailure(ex))
+                {
+                    Interlocked.Increment(ref _lost);
+                    throw;
+                }
+
             _file?.Flush();
         }
         catch (Exception ex) when (IsStorageFailure(ex))
@@ -253,19 +315,34 @@ public sealed class DiagnosticLog : TraceListener
             _file = null;
             File.Delete(FileName(FileCount - 1));
             for (var index = FileCount - 2; index >= 0; index--)
-                if (File.Exists(FileName(index))) File.Move(FileName(index), FileName(index + 1), true);
+                if (File.Exists(FileName(index)))
+                    File.Move(FileName(index), FileName(index + 1), true);
             Open();
         }
+
         _file!.Write(bytes);
     }
 
-    private string FileName(int index) => Path.Combine(Folder, index == 0 ? "winmon.log" : $"winmon.{index}.log");
+    private string FileName(int index)
+    {
+        return Path.Combine(Folder, index == 0 ? "winmon.log" : $"winmon.{index}.log");
+    }
+
     private void CloseFile()
     {
-        try { _file?.Dispose(); }
-        catch (Exception ex) when (IsStorageFailure(ex)) { }
-        finally { _file = null; }
+        try
+        {
+            _file?.Dispose();
+        }
+        catch (Exception ex) when (IsStorageFailure(ex))
+        {
+        }
+        finally
+        {
+            _file = null;
+        }
     }
+
     private void Open()
     {
         // A protected service directory prevents links being planted by an unelevated user.
@@ -283,10 +360,19 @@ public sealed class DiagnosticLog : TraceListener
         Trace.Listeners.Remove(this);
         AppDomain.CurrentDomain.UnhandledException -= OnUnhandled;
         TaskScheduler.UnobservedTaskException -= OnUnobserved;
-        lock (_gate) Summarize(DateTimeOffset.UtcNow, true);
+        lock (_gate)
+        {
+            Summarize(DateTimeOffset.UtcNow, true);
+        }
+
         _queue.Writer.TryComplete();
-        try { _writer.Wait(TimeSpan.FromSeconds(2)); }
-        catch (AggregateException) { }
+        try
+        {
+            _writer.Wait(TimeSpan.FromSeconds(2));
+        }
+        catch (AggregateException)
+        {
+        }
     }
 
     /// <inheritdoc/>
@@ -297,12 +383,22 @@ public sealed class DiagnosticLog : TraceListener
     }
 
     /// <inheritdoc/>
-    public override void Write(string? message) => Record(TraceEventType.Information, "Trace.Write [omitted]", "");
-    /// <inheritdoc/>
-    public override void WriteLine(string? message) => Write(message);
+    public override void Write(string? message)
+    {
+        Record(TraceEventType.Information, "Trace.Write [omitted]", "");
+    }
 
-    private static bool IsStorageFailure(Exception ex) => ex is IOException or UnauthorizedAccessException or
-        System.Security.SecurityException or ArgumentException or NotSupportedException;
+    /// <inheritdoc/>
+    public override void WriteLine(string? message)
+    {
+        Write(message);
+    }
+
+    private static bool IsStorageFailure(Exception ex)
+    {
+        return ex is IOException or UnauthorizedAccessException or
+            SecurityException or ArgumentException or NotSupportedException;
+    }
 
     private sealed class Repetition(DateTimeOffset since)
     {

@@ -5,8 +5,10 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Documents;
-using WinMon.Monitoring;
+using System.Windows.Navigation;
 using WinMon.Diagnostics;
+using WinMon.Monitoring;
+using WinMon.Updates;
 
 namespace WinMon.Controls;
 
@@ -37,7 +39,8 @@ internal sealed partial class HardwareInfoWindow : Window
             RepositoryLink.NavigateUri = repository;
             RepositoryLink.Inlines.Add(new Run(repository.ToString()));
         }
-        if (!Updates.UpdatePolicy.GitHubUpdatesEnabled) CheckButton.Visibility = Visibility.Collapsed;
+
+        if (!UpdatePolicy.GitHubUpdatesEnabled) CheckButton.Visibility = Visibility.Collapsed;
         SetUpdateState(Strings.SettingsNotChecked, false);
         Loaded += async (_, _) => await RefreshAsync();
         Closed += (_, _) => _closed = true;
@@ -46,19 +49,23 @@ internal sealed partial class HardwareInfoWindow : Window
     internal void SetUpdateState(string status, bool available, bool busy = false)
     {
         if (_closed) return;
-        UpdateStatusText.Text = Updates.UpdatePolicy.GitHubUpdatesEnabled ? status : Strings.InfoStoreUpdates;
-        UpdateButton.Visibility = available && Updates.UpdatePolicy.GitHubUpdatesEnabled
-            ? Visibility.Visible : Visibility.Collapsed;
+        UpdateStatusText.Text = UpdatePolicy.GitHubUpdatesEnabled ? status : Strings.InfoStoreUpdates;
+        UpdateButton.Visibility = available && UpdatePolicy.GitHubUpdatesEnabled
+            ? Visibility.Visible
+            : Visibility.Collapsed;
         _updateBusy = busy;
         CheckButton.IsEnabled = !_checking && !busy;
         UpdateButton.IsEnabled = !_checking && !busy;
     }
 
-    private async void OnCheckForUpdates(object sender, RoutedEventArgs e) => await CheckForUpdatesAsync();
+    private async void OnCheckForUpdates(object sender, RoutedEventArgs e)
+    {
+        await CheckForUpdatesAsync();
+    }
 
     internal async Task CheckForUpdatesAsync()
     {
-        if (!CheckButton.IsEnabled || !Updates.UpdatePolicy.GitHubUpdatesEnabled) return;
+        if (!CheckButton.IsEnabled || !UpdatePolicy.GitHubUpdatesEnabled) return;
         _checking = true;
         CheckButton.IsEnabled = false;
         UpdateButton.IsEnabled = false;
@@ -67,7 +74,9 @@ internal sealed partial class HardwareInfoWindow : Window
         {
             if (CheckForUpdatesRequested is { } check) await check();
         }
-        catch (OperationCanceledException) { }
+        catch (OperationCanceledException)
+        {
+        }
         catch (Exception ex)
         {
             Trace.TraceWarning("WinMon Info update check: {0}", ex.Message);
@@ -83,12 +92,16 @@ internal sealed partial class HardwareInfoWindow : Window
 
     private void OnUpdate(object sender, RoutedEventArgs e)
     {
-        if (!UpdateButton.IsEnabled || !Updates.UpdatePolicy.GitHubUpdatesEnabled) return;
+        if (!UpdateButton.IsEnabled || !UpdatePolicy.GitHubUpdatesEnabled) return;
         Close();
         UpdateRequested?.Invoke();
     }
 
-    private void OnClose(object sender, RoutedEventArgs e) => Close();
+    private void OnClose(object sender, RoutedEventArgs e)
+    {
+        Close();
+    }
+
     private void OnOpenLogs(object sender, RoutedEventArgs e)
     {
         try
@@ -97,22 +110,35 @@ internal sealed partial class HardwareInfoWindow : Window
             if (folder is null) throw new InvalidOperationException("Logging is unavailable.");
             Process.Start(new ProcessStartInfo(folder) { UseShellExecute = true });
         }
-        catch (Exception ex) when (ex is Win32Exception or InvalidOperationException or IOException or UnauthorizedAccessException)
+        catch (Exception ex) when (ex is Win32Exception or InvalidOperationException or IOException
+                                       or UnauthorizedAccessException)
         {
             Trace.TraceWarning("Logging.OpenFolderFailed: {0}", ex);
             MessageDialog.ShowNotice(this, Strings.OpenLogsFolderFailed, Strings.OpenLogsFolder);
         }
     }
-    private async void OnRefresh(object sender, RoutedEventArgs e) => await RefreshAsync();
-    private void OnCopy(object sender, RoutedEventArgs e) => CopyInformation();
 
-    private void OnRepositoryNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
+    private async void OnRefresh(object sender, RoutedEventArgs e)
     {
-        try { Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true }); }
+        await RefreshAsync();
+    }
+
+    private void OnCopy(object sender, RoutedEventArgs e)
+    {
+        CopyInformation();
+    }
+
+    private void OnRepositoryNavigate(object sender, RequestNavigateEventArgs e)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
+        }
         catch (Exception ex) when (ex is Win32Exception or InvalidOperationException)
         {
             Trace.TraceWarning("Could not open {0}: {1}", e.Uri, ex.Message);
         }
+
         e.Handled = true;
     }
 

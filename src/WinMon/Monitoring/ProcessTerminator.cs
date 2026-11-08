@@ -5,7 +5,9 @@ namespace WinMon.Monitoring;
 /// <summary>Ends only the confirmed process lifetime, using one handle for validation and termination.</summary>
 internal static class ProcessTerminator
 {
-    internal interface ITarget : IProcessTerminationTarget { }
+    internal interface ITarget : IProcessTerminationTarget
+    {
+    }
 
     internal static bool IsEligible(ProcessUsage process, bool live, bool grouped)
     {
@@ -47,7 +49,8 @@ internal static class ProcessTerminator
         if (!IsEligible(process, true, false)) return Strings.ThisProcessCannotBeEndedFromWinMon;
         try
         {
-            using var target = (open is null ? WindowsProcessTerminator.Open(process.ProcessId) : open(process.ProcessId));
+            using var target =
+                open is null ? WindowsProcessTerminator.Open(process.ProcessId) : open(process.ProcessId);
             if (target.CreationTicks != process.CreationTicks)
                 return Strings.TheOriginalProcessHasExitedAndItsPIDHasBeen;
             if (target.HasExited) return Strings.ThisProcessHasAlreadyExited;
@@ -68,5 +71,4 @@ internal static class ProcessTerminator
             return Strings.Format(Strings.TheProcessCouldNotBeEnded, ex.Message);
         }
     }
-
 }

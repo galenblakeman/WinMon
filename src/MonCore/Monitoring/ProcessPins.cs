@@ -14,6 +14,7 @@ public sealed record PinnedProcess(ProcessUsage Usage, PinnedProcessState State)
 public sealed class ProcessPins(ProcessIdentityPolicy? identityPolicy = null)
 {
     private readonly ProcessIdentityPolicy _identityPolicy = identityPolicy ?? ProcessIdentityPolicy.Windows;
+
     private sealed record Pin(ProcessUsage Usage, bool Grouped);
 
     private readonly List<Pin> _pins = [];
@@ -35,8 +36,10 @@ public sealed class ProcessPins(ProcessIdentityPolicy? identityPolicy = null)
             .. _pins.Select(pin => new SavedProcessPin(
                 pin.Usage.ProcessId, pin.Usage.CreationTicks, pin.Usage.Name, pin.Usage.ImagePath,
                 pin.Usage.AppName, pin.Usage.HasAppWindow, pin.Grouped)
-            { LifetimeDomain = pin.Usage.LifetimeDomain, StartedAtUtc = pin.Usage.StartedAtUtc,
-                IdentityPolicyId = _identityPolicy.Id })
+            {
+                LifetimeDomain = pin.Usage.LifetimeDomain, StartedAtUtc = pin.Usage.StartedAtUtc,
+                IdentityPolicyId = _identityPolicy.Id
+            })
         ];
     }
 
@@ -49,7 +52,7 @@ public sealed class ProcessPins(ProcessIdentityPolicy? identityPolicy = null)
         {
             if (pin is null || pin.ProcessId < 0 || pin.CreationTicks < 0 ||
                 string.IsNullOrWhiteSpace(pin.Name) || !Enum.IsDefined(pin.LifetimeDomain) ||
-                pin.Grouped && pin.IdentityPolicyId != _identityPolicy.Id) continue;
+                (pin.Grouped && pin.IdentityPolicyId != _identityPolicy.Id)) continue;
             var usage = new ProcessUsage(pin.ProcessId, pin.CreationTicks, pin.Name, 0)
             {
                 LifetimeDomain = pin.LifetimeDomain, StartedAtUtc = pin.StartedAtUtc,
@@ -60,7 +63,8 @@ public sealed class ProcessPins(ProcessIdentityPolicy? identityPolicy = null)
         // ReSharper restore ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract, NullCoalescingConditionIsAlwaysNotNullAccordingToAPIContract
     }
 
-    public static SavedProcessPin[] Normalize(IEnumerable<SavedProcessPin>? saved, ProcessIdentityPolicy? identityPolicy = null)
+    public static SavedProcessPin[] Normalize(IEnumerable<SavedProcessPin>? saved,
+        ProcessIdentityPolicy? identityPolicy = null)
     {
         var pins = new ProcessPins(identityPolicy);
         pins.Restore(saved);
@@ -99,7 +103,8 @@ public sealed class ProcessPins(ProcessIdentityPolicy? identityPolicy = null)
         {
             var observed = newest?.Processes.FirstOrDefault(p => Matches(pin, p, grouped));
             var current = observed is null ? null : averages.FirstOrDefault(p => Matches(pin, p, grouped)) ?? observed;
-            var state = newest is null || newest.IsGap || (newest.TotalCpuPercent is null && !newest.IndependentProcessReadings)
+            var state = newest is null || newest.IsGap ||
+                        (newest.TotalCpuPercent is null && !newest.IndependentProcessReadings)
                 ? PinnedProcessState.Unavailable
                 : current is not null
                     ? PinnedProcessState.Present

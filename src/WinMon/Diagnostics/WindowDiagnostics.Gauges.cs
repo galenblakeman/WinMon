@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using WinMon.Controls;
 using WinMon.Monitoring;
 using WinMon.Preferences;
@@ -83,7 +84,6 @@ internal sealed partial class WindowDiagnostics
                             readouts.Select(readout => readout.Gauge.ArcBounds()).Select(arc =>
                                 $"{arc.RadiusX:0.#}×{arc.RadiusY:0.#}")));
                 if (style == GaugeStyle.Bowl)
-                {
                     foreach (var readout in readouts)
                     {
                         var strip = (Grid)readout.Parent;
@@ -99,7 +99,7 @@ internal sealed partial class WindowDiagnostics
                                 $"{readout.Label} bowl or value is off-center at {width} DIPs: " +
                                 $"column {columnCenter:0.#}, bowl {gaugeCenter:0.#}, value {valueCenter:0.#}.");
                     }
-                }
+
                 var scaled = fixture.NetworkMetric.ScaleLabel;
                 if (arcs.Contains(style) != (scaled.Visibility == Visibility.Visible) ||
                     (arcs.Contains(style) && scaled.Text != RateText.Short(64_009_520)) ||
@@ -114,16 +114,18 @@ internal sealed partial class WindowDiagnostics
                     (fixture.GpuMetric, Strings.Format(Strings.GaugePeakShort, 69d))
                 ];
                 if (corners.Any(corner => corner.Readout.ScaleLabel.Text !=
-                        (arcs.Contains(style) ? corner.Text : "") ||
-                        (arcs.Contains(style) && !ReferenceEquals(corner.Readout.ScaleLabel.ToolTip,
-                            corner.Readout.ToolTip)) ||
-                        (corner.Readout.ScaleLabel.Visibility == Visibility.Visible) != arcs.Contains(style) ||
-                        corner.Readout.PeakIconVisible != arcs.Contains(style)))
+                                          (arcs.Contains(style) ? corner.Text : "") ||
+                                          (arcs.Contains(style) && !ReferenceEquals(corner.Readout.ScaleLabel.ToolTip,
+                                              corner.Readout.ToolTip)) ||
+                                          corner.Readout.ScaleLabel.Visibility == Visibility.Visible !=
+                                          arcs.Contains(style) ||
+                                          corner.Readout.PeakIconVisible != arcs.Contains(style)))
                     throw new InvalidOperationException($"{style} showed a resource corner label wrongly.");
                 if (fixture.NetworkMetric.PeakIconVisible != arcs.Contains(style))
                     throw new InvalidOperationException($"{style} showed the network peak icon wrongly.");
                 await CaptureVisualAsync(visual,
-                    Path.Combine(output, $"gauges-{style.ToString().ToLowerInvariant()}-{theme.ToLowerInvariant()}-{width}.png"),
+                    Path.Combine(output,
+                        $"gauges-{style.ToString().ToLowerInvariant()}-{theme.ToLowerInvariant()}-{width}.png"),
                     1, cancellationToken);
             }
         }
@@ -134,7 +136,9 @@ internal sealed partial class WindowDiagnostics
         foreach (var width in new[] { 1000d, 836d })
         {
             fixture.Preferences = fixture.Preferences with
-                { Theme = theme, GaugeStyle = GaugeStyle.Bowl };
+            {
+                Theme = theme, GaugeStyle = GaugeStyle.Bowl
+            };
             fixture.ApplyTheme();
             Draw(width);
             fixture.OpenDetails(fixture.MemoryMetric);
@@ -154,7 +158,8 @@ internal sealed partial class WindowDiagnostics
             var expectedDisk = TableMetricText.IoRate(200_000);
             var expectedGpu = Strings.Format(Strings.GaugePeakShort, 69d);
             if (disk != expectedDisk || fixture.GpuMetric.ScaleLabel.Text != expectedGpu)
-                throw new InvalidOperationException("Native labels did not use the utilization peak sample or fallback: " +
+                throw new InvalidOperationException(
+                    "Native labels did not use the utilization peak sample or fallback: " +
                     $"disk '{disk}' expected '{expectedDisk}', GPU '{fixture.GpuMetric.ScaleLabel.Text}' expected '{expectedGpu}'.");
             await CaptureVisualAsync(visual,
                 Path.Combine(output, $"gauges-native-{theme.ToLowerInvariant()}-{width}.png"), 1, cancellationToken);
@@ -196,14 +201,15 @@ internal sealed partial class WindowDiagnostics
                 backdropResults.Add(new
                 {
                     Theme = theme, Active = fixture.BackdropActive,
-                    PanelOpacity = ((System.Windows.Media.SolidColorBrush)fixture.FindResource("PanelSurface")).Color.A
+                    PanelOpacity = ((SolidColorBrush)fixture.FindResource("PanelSurface")).Color.A
                 });
                 var path = Path.Combine(output, $"backdrop-{theme.ToLowerInvariant()}.png");
                 try
                 {
                     await CaptureExampleWindowAsync(fixture, path, cancellationToken);
                 }
-                catch (InvalidOperationException ex) when (ex.Message.Contains("must be foreground", StringComparison.Ordinal))
+                catch (InvalidOperationException ex) when (ex.Message.Contains("must be foreground",
+                                                               StringComparison.Ordinal))
                 {
                     // Keep a content-only capture when Windows denies foreground activation, as Services smoke does.
                     var contentPath = Path.ChangeExtension(path, null) + "-content.png";
@@ -218,6 +224,7 @@ internal sealed partial class WindowDiagnostics
         {
             fixture.Hide();
         }
+
         await File.WriteAllTextAsync(Path.Combine(output, "backdrops.json"),
             JsonSerializer.Serialize(backdropResults), cancellationToken);
 
@@ -227,7 +234,7 @@ internal sealed partial class WindowDiagnostics
         fixture.ShownSamplingError = SamplingError.ReadingsUnavailable;
         Draw(836);
         if (readouts.Any(readout => readout.Gauge.Visibility == Visibility.Visible ||
-            readout.ScaleLabel.Visibility == Visibility.Visible))
+                                    readout.ScaleLabel.Visibility == Visibility.Visible))
             throw new InvalidOperationException("Unavailable readings kept their gauges or corner labels.");
         fixture.ShownSamplingError = null;
 
@@ -237,7 +244,9 @@ internal sealed partial class WindowDiagnostics
             throw new InvalidOperationException("The gauge style did not survive a save and load.");
 
         fixture.Preferences = fixture.Preferences with
-            { Theme = "Dark", GaugeStyle = GaugeStyle.Bowl };
+        {
+            Theme = "Dark", GaugeStyle = GaugeStyle.Bowl
+        };
         fixture.ApplyTheme();
         var settings = new SettingsWindow(fixture.Preferences, () => [],
             captureFolder: Path.Combine(output, "Captures")) { Left = 40, Top = 40 };

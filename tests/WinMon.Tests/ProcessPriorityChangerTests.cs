@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using NUnit.Framework;
@@ -10,7 +9,8 @@ using WinMon.Resources;
 
 namespace WinMon.Tests;
 
-[TestFixture, SetUICulture("en")]
+[TestFixture]
+[SetUICulture("en")]
 public sealed class ProcessPriorityChangerTests
 {
     private static ProcessUsage Process => new(123456, 700, "example", 1);
@@ -28,9 +28,13 @@ public sealed class ProcessPriorityChangerTests
             Assert.That(target.SetTo, Is.Null);
             Assert.That(target.Disposed, Is.True);
         }
-        Assert.That(ProcessPriorityChanger.Set(Process, ProcessPriorityClass.High, _ => throw new AssertionException("opened")),
+
+        Assert.That(
+            ProcessPriorityChanger.Set(Process, ProcessPriorityClass.High, _ => throw new AssertionException("opened")),
             Is.EqualTo(Strings.ProcessPriorityUnavailable));
-        Assert.That(ProcessPriorityChanger.Set(Process, ProcessPriorityClass.RealTime, _ => throw new AssertionException("opened")),
+        Assert.That(
+            ProcessPriorityChanger.Set(Process, ProcessPriorityClass.RealTime,
+                _ => throw new AssertionException("opened")),
             Is.EqualTo(Strings.ProcessPriorityUnavailable));
     }
 
@@ -52,7 +56,8 @@ public sealed class ProcessPriorityChangerTests
         Assert.That(ProcessPriorityChanger.IsEligible(Process, false, false), Is.False);
         Assert.That(ProcessPriorityChanger.IsEligible(Process, true, true), Is.False);
         Assert.That(ProcessPriorityChanger.IsEligible(Process with { CreationTicks = 0 }, true, false), Is.False);
-        Assert.That(ProcessPriorityChanger.IsEligible(Process with { ProcessId = Environment.ProcessId }, true, false), Is.False);
+        Assert.That(ProcessPriorityChanger.IsEligible(Process with { ProcessId = Environment.ProcessId }, true, false),
+            Is.False);
         Assert.That(ProcessPriorityChanger.IsEligible(Process with { MemberIds = [123456] }, true, false), Is.False);
     }
 
@@ -77,7 +82,11 @@ public sealed class ProcessPriorityChangerTests
         }
         finally
         {
-            if (!helper.HasExited) { helper.Kill(); helper.WaitForExit(5000); }
+            if (!helper.HasExited)
+            {
+                helper.Kill();
+                helper.WaitForExit(5000);
+            }
         }
     }
 
@@ -89,7 +98,11 @@ public sealed class ProcessPriorityChangerTests
         ProcessUsage? changed = null;
         ProcessPriorityClass? requested = null;
         var menu = ProcessPriorityMenu.Create(selected, true, _ => ProcessPriorityClass.Normal,
-            (process, priority) => { changed = process; requested = priority; });
+            (process, priority) =>
+            {
+                changed = process;
+                requested = priority;
+            });
         var choices = menu.Items.OfType<MenuItem>().ToArray();
         Assert.That(menu.Header, Is.EqualTo(Strings.SetPriority));
         Assert.That(choices.Select(i => i.Header), Is.EqualTo(new[]
@@ -112,7 +125,15 @@ public sealed class ProcessPriorityChangerTests
         public ProcessPriorityClass PriorityClass => ProcessPriorityClass.Normal;
         public ProcessPriorityClass? SetTo { get; private set; }
         public bool Disposed { get; private set; }
-        public void SetPriorityClass(ProcessPriorityClass priority) => SetTo = priority;
-        public void Dispose() => Disposed = true;
+
+        public void SetPriorityClass(ProcessPriorityClass priority)
+        {
+            SetTo = priority;
+        }
+
+        public void Dispose()
+        {
+            Disposed = true;
+        }
     }
 }

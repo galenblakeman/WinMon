@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using NUnit.Framework;
 using WinMon.Controls;
 using WinMon.Monitoring;
@@ -33,15 +34,21 @@ public sealed class GpuSamplingTests
         Assert.That(aggregation.Busiest([]), Is.Null);
     }
 
-    private static WindowsGpuSampler.EngineCounter Counter(int pid, string adapter, int engine, double value, uint status = 0,
-        string kind = "3D") => new($"pid_{pid}_luid_0x00000000_0x{adapter}_phys_0_eng_{engine}_engtype_{kind}", value, status);
+    private static WindowsGpuSampler.EngineCounter Counter(int pid, string adapter, int engine, double value,
+        uint status = 0,
+        string kind = "3D")
+    {
+        return new WindowsGpuSampler.EngineCounter(
+            $"pid_{pid}_luid_0x00000000_0x{adapter}_phys_0_eng_{engine}_engtype_{kind}", value, status);
+    }
 
     [Test]
     public void Usage_SumsProcessesWithinPhysicalEngine_ThenSelectsBusiestAcrossAdapters()
     {
         var result = WindowsGpuSampler.Aggregate([
             Counter(1, "1234", 0, 30), Counter(2, "1234", 0, 40),
-            Counter(1, "1234", 1, 60), Counter(3, "5678", 0, 65)]);
+            Counter(1, "1234", 1, 60), Counter(3, "5678", 0, 65)
+        ]);
         Assert.Multiple(() =>
         {
             Assert.That(result!.Percent, Is.EqualTo(70));
@@ -54,7 +61,8 @@ public sealed class GpuSamplingTests
     {
         var result = WindowsGpuSampler.Aggregate([
             Counter(1, "1234", 0, 40), Counter(1, "1234", 1, 45),
-            new WindowsGpuSampler.EngineCounter("pid_1_luid_0x00000000_0x1234_phys_1_eng_0_engtype_Compute", 60)]);
+            new WindowsGpuSampler.EngineCounter("pid_1_luid_0x00000000_0x1234_phys_1_eng_0_engtype_Compute", 60)
+        ]);
         Assert.Multiple(() =>
         {
             Assert.That(result!.Percent, Is.EqualTo(60));
@@ -69,7 +77,8 @@ public sealed class GpuSamplingTests
         var result = WindowsGpuSampler.Aggregate([
             Counter(1, "1234", 0, 90), Counter(2, "1234", 0, 10, 0xC0000BC6),
             Counter(3, "1234", 1, 25, kind: "VideoDecode"),
-            Counter(4, "5678", 0, double.NaN), new WindowsGpuSampler.EngineCounter("unknown", 99)]);
+            Counter(4, "5678", 0, double.NaN), new WindowsGpuSampler.EngineCounter("unknown", 99)
+        ]);
         Assert.Multiple(() =>
         {
             Assert.That(result!.Percent, Is.EqualTo(25));
@@ -94,7 +103,8 @@ public sealed class GpuSamplingTests
     {
         var result = WindowsGpuSampler.AggregateProcesses([
             Counter(1, "1234", 0, 30), Counter(1, "1234", 1, 50),
-            Counter(2, "1234", 0, 60), Counter(1, "5678", 0, 45)]);
+            Counter(2, "1234", 0, 60), Counter(1, "5678", 0, 45)
+        ]);
         Assert.Multiple(() =>
         {
             Assert.That(result[1]!.Percent, Is.EqualTo(50));
@@ -119,18 +129,20 @@ public sealed class GpuSamplingTests
     public void InstanceParsing_MatchesTheInstanceNamePattern(string name)
     {
         // The pattern the parser replaced; named groups number after unnamed ones.
-        var match = System.Text.RegularExpressions.Regex.Match(name,
+        var match = Regex.Match(name,
             @"^pid_(?<pid>\d+)_luid_(0x[0-9a-f]+_0x[0-9a-f]+)_phys_(\d+)_eng_(\d+)_engtype_(.+)$",
-            System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
         var parsed = WindowsGpuSampler.ParseInstance(name);
         if (!match.Success)
         {
             Assert.That(parsed, Is.Null);
             return;
         }
+
         Assert.That(parsed, Is.EqualTo(new WindowsGpuSampler.EngineInstance(
             int.TryParse(match.Groups["pid"].Value, out var pid) ? pid : null,
-            match.Groups[1].Value.ToLowerInvariant() + "/" + match.Groups[2].Value, match.Groups[3].Value, match.Groups[4].Value)));
+            match.Groups[1].Value.ToLowerInvariant() + "/" + match.Groups[2].Value, match.Groups[3].Value,
+            match.Groups[4].Value)));
     }
 
     [Test]
@@ -138,9 +150,13 @@ public sealed class GpuSamplingTests
     {
         var previous = new Dictionary<string, WindowsGpuSampler.EngineInstance?>();
         var next = new Dictionary<string, WindowsGpuSampler.EngineInstance?>();
-        var first = WindowsGpuSampler.Parse([Counter(1, "1234", 0, 10), Counter(2, "1234", 0, 20), new WindowsGpuSampler.EngineCounter("unknown", 5)], previous, next);
+        var first = WindowsGpuSampler.Parse(
+            [Counter(1, "1234", 0, 10), Counter(2, "1234", 0, 20), new WindowsGpuSampler.EngineCounter("unknown", 5)],
+            previous, next);
         (previous, next) = (next, previous);
-        var second = WindowsGpuSampler.Parse([Counter(1, "1234", 0, 30), new WindowsGpuSampler.EngineCounter("unknown", 5)], previous, next);
+        var second =
+            WindowsGpuSampler.Parse([Counter(1, "1234", 0, 30), new WindowsGpuSampler.EngineCounter("unknown", 5)],
+                previous, next);
         Assert.Multiple(() =>
         {
             Assert.That(first.Select(r => r.Value), Is.EqualTo([10d, 20d]), "Unparsed names carry no reading.");
@@ -153,8 +169,10 @@ public sealed class GpuSamplingTests
     [Test]
     public void ProcessCounters_KeepAProcessWithOnlyInvalidEngines_AsUnreadable()
     {
-        var result = WindowsGpuSampler.AggregateProcesses([Counter(1, "1234", 0, 10, 0xC0000BC6), Counter(2, "1234", 0, 5),
-            new WindowsGpuSampler.EngineCounter("pid_99999999999_luid_0x0_0x1_phys_0_eng_0_engtype_3D", 80)]);
+        var result = WindowsGpuSampler.AggregateProcesses([
+            Counter(1, "1234", 0, 10, 0xC0000BC6), Counter(2, "1234", 0, 5),
+            new WindowsGpuSampler.EngineCounter("pid_99999999999_luid_0x0_0x1_phys_0_eng_0_engtype_3D", 80)
+        ]);
         Assert.Multiple(() =>
         {
             Assert.That(result.Keys, Is.EquivalentTo([1, 2]), "An out-of-range PID is not attributed to any process.");
@@ -168,10 +186,14 @@ public sealed class GpuSamplingTests
     {
         Assert.Multiple(() =>
         {
-            Assert.That(WindowsGpuSampler.Aggregate([Counter(1, "5678", 0, 40, kind: "Compute"), Counter(1, "1234", 1, 40, kind: "Copy"),
-                    Counter(1, "1234", 0, 40)]),
+            Assert.That(WindowsGpuSampler.Aggregate([
+                    Counter(1, "5678", 0, 40, kind: "Compute"), Counter(1, "1234", 1, 40, kind: "Copy"),
+                    Counter(1, "1234", 0, 40)
+                ]),
                 Is.EqualTo(new WindowsGpuSampler.GpuUsage("0x00000000_0x1234/0", "3D", 40)));
-            Assert.That(WindowsGpuSampler.Aggregate([Counter(1, "1234", 0, 110), Counter(1, "5678", 0, 120, kind: "Compute")])!.Engine,
+            Assert.That(
+                WindowsGpuSampler.Aggregate([Counter(1, "1234", 0, 110), Counter(1, "5678", 0, 120, kind: "Compute")])!
+                    .Engine,
                 Is.EqualTo("Compute"));
         });
     }
@@ -179,8 +201,11 @@ public sealed class GpuSamplingTests
     [Test]
     public void ProcessAttribution_RequiresMatchingLifetimeAcrossBaselineAndCollection()
     {
-        ProcessUsage[] processes = [new(1, 10, "stable", 1), new(2, 20, "reused", 1),
-            new(3, 110, "new", 1), new(4, 40, "gone", 1), new(5, 50, "no counter", 1)];
+        ProcessUsage[] processes =
+        [
+            new(1, 10, "stable", 1), new(2, 20, "reused", 1),
+            new(3, 110, "new", 1), new(4, 40, "gone", 1), new(5, 50, "no counter", 1)
+        ];
         var readings = Enumerable.Range(1, 4).ToDictionary(i => i,
             i => (WindowsGpuSampler.GpuUsage?)new WindowsGpuSampler.GpuUsage("adapter", "3D", i * 10));
         var result = WindowsGpuSampler.AttachProcesses(processes, readings, 100,

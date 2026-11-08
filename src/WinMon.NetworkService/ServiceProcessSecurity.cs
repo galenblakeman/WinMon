@@ -18,7 +18,10 @@ internal static class ServiceProcessSecurity
             if (!SetKernelObjectSecurity(GetCurrentProcess(), DaclSecurityInformation, descriptor))
                 throw new Win32Exception(Marshal.GetLastWin32Error(), "Cannot secure network service process.");
         }
-        finally { _ = LocalFree(descriptor); }
+        finally
+        {
+            _ = LocalFree(descriptor);
+        }
     }
 
     internal static string BuildSddl(IReadOnlyCollection<string> users)
@@ -34,11 +37,15 @@ internal static class ServiceProcessSecurity
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool ConvertStringSecurityDescriptorToSecurityDescriptor(string sddl, uint revision,
         out IntPtr securityDescriptor, out uint securityDescriptorSize);
+
     [DllImport("advapi32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool SetKernelObjectSecurity(IntPtr handle, uint securityInformation, IntPtr securityDescriptor);
+    private static extern bool SetKernelObjectSecurity(IntPtr handle, uint securityInformation,
+        IntPtr securityDescriptor);
+
     [DllImport("kernel32.dll")]
     private static extern IntPtr GetCurrentProcess();
+
     [DllImport("kernel32.dll")]
     private static extern IntPtr LocalFree(IntPtr memory);
 }

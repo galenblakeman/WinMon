@@ -1,4 +1,3 @@
-using System.Windows;
 using WinMon.Monitoring;
 using WinMon.Preferences;
 
@@ -18,9 +17,15 @@ public partial class MainWindow
             _networkRestore = _networkMonitoring.RestoreAsync(true, Lifetime.Token);
     }
 
-    private Task<NetworkMonitoringChangeResult> ChangeNetworkMonitoringAsync(bool enabled, CancellationToken token) =>
-        _networkMonitoring is { } controller ? controller.ChangeAsync(enabled, token) :
-        Task.FromResult(new NetworkMonitoringChangeResult(false, NetworkSetupBroker.Supported ? NetworkMonitoringState.SetupUnavailable : NetworkMonitoringState.StoreUnavailable));
+    private Task<NetworkMonitoringChangeResult> ChangeNetworkMonitoringAsync(bool enabled, CancellationToken token)
+    {
+        return _networkMonitoring is { } controller
+            ? controller.ChangeAsync(enabled, token)
+            : Task.FromResult(new NetworkMonitoringChangeResult(false,
+                NetworkSetupBroker.Supported
+                    ? NetworkMonitoringState.SetupUnavailable
+                    : NetworkMonitoringState.StoreUnavailable));
+    }
 
     private async Task<NetworkMonitoringChangeResult> RemoveNetworkMonitoringAsync(CancellationToken token)
     {
@@ -34,17 +39,23 @@ public partial class MainWindow
             await _preferenceStore.SaveAsync(preferences, Lifetime.Token);
             _preferences = _preferences with { ProcessNetworkMonitoringEnabled = false };
         }
+
         return result;
     }
 
     private void ObserveNetworkMonitoring(SettingsWindow dialog)
     {
         if (_networkMonitoring is not { } controller) return;
+
         void Changed(NetworkMonitoringState state)
         {
             if (!Dispatcher.HasShutdownStarted)
-                Dispatcher.BeginInvoke(() => { if (dialog.IsVisible) dialog.RefreshNetworkMonitoringState(state); });
+                Dispatcher.BeginInvoke(() =>
+                {
+                    if (dialog.IsVisible) dialog.RefreshNetworkMonitoringState(state);
+                });
         }
+
         controller.StateChanged += Changed;
         dialog.Closed += (_, _) => controller.StateChanged -= Changed;
     }

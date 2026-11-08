@@ -38,7 +38,10 @@ public sealed class InfoWindowTests
                 Assert.That(((SolidColorBrush)label.Foreground).Color, Is.EqualTo(brush.Color));
             }
         }
-        finally { window.Close(); }
+        finally
+        {
+            window.Close();
+        }
     }
 
     private static IEnumerable<DependencyObject> VisualDescendants(DependencyObject parent)
@@ -72,7 +75,10 @@ public sealed class InfoWindowTests
             Assert.That(window.LicenseText.Text, Does.Contain(AppInfo.Copyright).And.Contain(AppInfo.License));
             Assert.That(window.RepositoryLink.NavigateUri.AbsoluteUri, Is.EqualTo(AppInfo.RepositoryUrl));
         }
-        finally { window.Close(); }
+        finally
+        {
+            window.Close();
+        }
     }
 
     [Test]
@@ -81,18 +87,23 @@ public sealed class InfoWindowTests
         var window = new HardwareInfoWindow();
         try
         {
-            window.SetUpdateState("new release", true, busy: true);
+            window.SetUpdateState("new release", true, true);
             Assert.That(window.CheckButton.IsEnabled, Is.False);
             Assert.That(window.UpdateButton.IsEnabled, Is.False);
             window.SetUpdateState("new release", true);
-            Assert.That(window.CheckButton.Visibility == Visibility.Visible, Is.EqualTo(UpdatePolicy.GitHubUpdatesEnabled));
-            Assert.That(window.UpdateButton.Visibility == Visibility.Visible, Is.EqualTo(UpdatePolicy.GitHubUpdatesEnabled));
+            Assert.That(window.CheckButton.Visibility == Visibility.Visible,
+                Is.EqualTo(UpdatePolicy.GitHubUpdatesEnabled));
+            Assert.That(window.UpdateButton.Visibility == Visibility.Visible,
+                Is.EqualTo(UpdatePolicy.GitHubUpdatesEnabled));
             Assert.That(window.UpdateStatusText.Text,
                 Is.EqualTo(UpdatePolicy.GitHubUpdatesEnabled ? "new release" : Strings.InfoStoreUpdates));
             window.SetUpdateState(Strings.UpToDate, false);
             Assert.That(window.UpdateButton.Visibility, Is.EqualTo(Visibility.Collapsed));
         }
-        finally { window.Close(); }
+        finally
+        {
+            window.Close();
+        }
     }
 
     [Test]
@@ -119,9 +130,13 @@ public sealed class InfoWindowTests
             Assert.That(window.UpdateStatusText.Text, Is.EqualTo(Strings.UpdateFailed));
             Assert.That(window.CheckButton.IsEnabled, Is.True);
             Assert.That(window.UpdateButton.IsEnabled, Is.True);
-            Assert.That(window.UpdateButton.Visibility, Is.EqualTo(Visibility.Visible), "A known offer survives a failed recheck");
+            Assert.That(window.UpdateButton.Visibility, Is.EqualTo(Visibility.Visible),
+                "A known offer survives a failed recheck");
         }
-        finally { window.Close(); }
+        finally
+        {
+            window.Close();
+        }
     }
 
     [Test]
@@ -142,7 +157,10 @@ public sealed class InfoWindowTests
             window.UpdateButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
             Assert.That(updates, Is.EqualTo(UpdatePolicy.GitHubUpdatesEnabled ? 1 : 0));
         }
-        finally { if (!closed) window.Close(); }
+        finally
+        {
+            if (!closed) window.Close();
+        }
     }
 
     [Test]
@@ -177,7 +195,11 @@ public sealed class InfoWindowTests
             SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext());
             check = window.CheckForUpdatesAsync();
         }
-        finally { SynchronizationContext.SetSynchronizationContext(previous); }
+        finally
+        {
+            SynchronizationContext.SetSynchronizationContext(previous);
+        }
+
         try
         {
             Assert.That(check.IsCompleted, Is.False);
@@ -189,13 +211,24 @@ public sealed class InfoWindowTests
             var frame = new DispatcherFrame();
             var deadline = DateTime.UtcNow.AddSeconds(10);
             var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(10) };
-            timer.Tick += (_, _) => { if (check.IsCompleted || DateTime.UtcNow > deadline) frame.Continue = false; };
+            timer.Tick += (_, _) =>
+            {
+                if (check.IsCompleted || DateTime.UtcNow > deadline) frame.Continue = false;
+            };
             timer.Start();
-            try { Dispatcher.PushFrame(frame); }
-            finally { timer.Stop(); }
+            try
+            {
+                Dispatcher.PushFrame(frame);
+            }
+            finally
+            {
+                timer.Stop();
+            }
+
             Assert.That(check.IsCompletedSuccessfully, Is.True);
             Assert.That(window.UpdateStatusText.Text, Is.EqualTo(closeEarly ? Strings.UpdateChecking : "new version"));
-            Assert.That(window.UpdateButton.Visibility, Is.EqualTo(closeEarly ? Visibility.Collapsed : Visibility.Visible));
+            Assert.That(window.UpdateButton.Visibility,
+                Is.EqualTo(closeEarly ? Visibility.Collapsed : Visibility.Visible));
         }
         finally
         {

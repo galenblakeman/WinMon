@@ -696,6 +696,8 @@
                                 </ControlTemplate>
                             </GridSplitter.Template>
                         </GridSplitter>
+                        <!-- Named part retained for bindings and diagnostic inspection. -->
+                        <!-- ReSharper disable once UnusedMember.Global -->
                         <Grid x:Name="ActivityPanel" Grid.Row="4">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />

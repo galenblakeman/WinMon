@@ -78,12 +78,13 @@ internal sealed class AutoCaptureSection : StackPanel
             var seconds = Number(setting.Seconds);
             var unit = setting.Metric switch
             {
-                CaptureMetric.Network => Strings.MegabytesPerSecond, CaptureMetric.Process => Strings.AutoCapturePercentOfCore,
+                CaptureMetric.Network => Strings.MegabytesPerSecond,
+                CaptureMetric.Process => Strings.AutoCapturePercentOfCore,
                 CaptureMetric.PrimaryDisk or CaptureMetric.SecondaryDisk => Strings.AutoCapturePercentActive,
                 _ => "%"
             };
             threshold.ToolTip = Strings.Format(Strings.CaptureThresholdHelp, unit) +
-                (setting.Metric == CaptureMetric.Process ? " " + Strings.AutoCaptureProcessHelp : "");
+                                (setting.Metric == CaptureMetric.Process ? " " + Strings.AutoCaptureProcessHelp : "");
             AutomationProperties.SetHelpText(threshold, (string)threshold.ToolTip);
             seconds.ToolTip = Strings.CaptureDurationHelp;
             AutomationProperties.SetHelpText(seconds, Strings.CaptureDurationHelp);
@@ -209,7 +210,8 @@ internal sealed class AutoCaptureSection : StackPanel
         foreach (var rule in _rules)
         {
             var minimum = rule.Metric == CaptureMetric.Network ? 0.1 / 8 : 1;
-            var maximum = CaptureRuleSetting.MaximumThreshold(rule.Metric) / (rule.Metric == CaptureMetric.Network ? 8 : 1);
+            var maximum = CaptureRuleSetting.MaximumThreshold(rule.Metric) /
+                          (rule.Metric == CaptureMetric.Network ? 8 : 1);
             if (!double.TryParse(rule.Threshold.Text, NumberStyles.Float, CultureInfo.CurrentCulture,
                     out var threshold) || !double.IsFinite(threshold) || threshold < minimum || threshold > maximum)
             {

@@ -91,7 +91,8 @@ public sealed class CaptureRules(IReadOnlyList<CaptureRuleSetting> rules, TimeSp
         {
             if (rule.Metric == CaptureMetric.Process)
             {
-                ObserveProcesses(rule, full, valid || (!full.IsGap && full.IndependentProcessReadings), moment, ref fired);
+                ObserveProcesses(rule, full, valid || (!full.IsGap && full.IndependentProcessReadings), moment,
+                    ref fired);
                 continue;
             }
 

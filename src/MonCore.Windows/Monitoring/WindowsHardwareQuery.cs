@@ -15,14 +15,24 @@ public interface IHardwareQuery
 
 public sealed class HardwareRow : Dictionary<string, object?>
 {
-    public HardwareRow() : base(StringComparer.OrdinalIgnoreCase) { }
+    public HardwareRow() : base(StringComparer.OrdinalIgnoreCase)
+    {
+    }
 
-    public string Text(string key) => TryGetValue(key, out var value)
-        ? Convert.ToString(value, CultureInfo.InvariantCulture)?.Trim() ?? ""
-        : "";
+    public string Text(string key)
+    {
+        return TryGetValue(key, out var value)
+            ? Convert.ToString(value, CultureInfo.InvariantCulture)?.Trim() ?? ""
+            : "";
+    }
 
-    public ulong? Number(string key) => ulong.TryParse(Text(key), NumberStyles.Integer,
-        CultureInfo.InvariantCulture, out var number) ? number : null;
+    public ulong? Number(string key)
+    {
+        return ulong.TryParse(Text(key), NumberStyles.Integer,
+            CultureInfo.InvariantCulture, out var number)
+            ? number
+            : null;
+    }
 }
 
 public sealed class WmiHardwareQuery : IHardwareQuery

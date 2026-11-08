@@ -1,4 +1,6 @@
 using System.Globalization;
+using System.Net;
+using System.Net.NetworkInformation;
 using System.Text;
 using NUnit.Framework;
 using WinMon.Monitoring;
@@ -19,7 +21,10 @@ public sealed class CsvExportTests
     }
 
     [TearDown]
-    public void TearDown() => Directory.Delete(_directory, true);
+    public void TearDown()
+    {
+        Directory.Delete(_directory, true);
+    }
 
     [Test]
     public void ResourceHistory_UsesInvariantRawValuesAndPreservesUnavailableGaps()
@@ -124,11 +129,17 @@ public sealed class CsvExportTests
         var sample = new MonitorSample(Start, 12.5, [], 0);
         var running = new ServiceObservation("=service", "Shared, service", 4, 42, 1);
         var stopped = new ServiceObservation("stopped", "Stopped", 1, 0, 0);
-        ServiceFrame[] frames = [new(sample,
-            [new("shared", [running, running with { Name = "second" }], host, [host]),
-             new("stopped", [stopped], null, [])]), new(sample, [], false), new(sample, [])];
+        ServiceFrame[] frames =
+        [
+            new(sample,
+            [
+                new("shared", [running, running with { Name = "second" }], host, [host]),
+                new("stopped", [stopped], null, [])
+            ]),
+            new(sample, [], false), new(sample, [])
+        ];
         var path = Path.Combine(_directory, "services.csv");
-        CsvExport.Write(path, CsvExportKind.Services, [], [], Start, 0, 0, services: frames);
+        CsvExport.Write(path, CsvExportKind.Services, [], [], Start, 0, 0, frames);
         var rows = File.ReadAllLines(path);
         Assert.Multiple(() =>
         {
@@ -146,20 +157,24 @@ public sealed class CsvExportTests
     {
         var sample = new MonitorSample(Start, 1, [], 0);
         var tcp = new NetworkConnection(42, 123, TransportProtocol.Tcp,
-            new(System.Net.IPAddress.IPv6Loopback, 80), new(System.Net.IPAddress.IPv6Loopback, 1234),
-            System.Net.NetworkInformation.TcpState.Established);
-        var udp = new NetworkConnection(42, 999, TransportProtocol.Udp, new(System.Net.IPAddress.Any, 53));
+            new(IPAddress.IPv6Loopback, 80), new(IPAddress.IPv6Loopback, 1234),
+            TcpState.Established);
+        var udp = new NetworkConnection(42, 999, TransportProtocol.Udp, new(IPAddress.Any, 53));
         var frame = new NetworkConnectionsFrame([tcp, udp], new(false, 5), new(true));
         var owner = new ProcessUsage(42, 123, "@owner", 0) { ImagePath = "C:\\app.exe" };
-        ConnectionCapture[] captures = [new(sample, frame, [owner], null), new(sample, null, [], null),
-            new(sample, new([], new(true), new(true)), [], null)];
+        ConnectionCapture[] captures =
+        [
+            new(sample, frame, [owner], null), new(sample, null, [], null),
+            new(sample, new([], new(true), new(true)), [], null)
+        ];
         var path = Path.Combine(_directory, "connections.csv");
         CsvExport.Write(path, CsvExportKind.Connections, [], [], Start, 0, 0, connections: captures);
         var rows = File.ReadAllLines(path);
         Assert.Multiple(() =>
         {
             Assert.That(rows, Has.Length.EqualTo(5));
-            Assert.That(rows[1], Does.EndWith(",false,true,42,123,'@owner,C:\\app.exe,Tcp,::1,80,::1,1234,Established"));
+            Assert.That(rows[1],
+                Does.EndWith(",false,true,42,123,'@owner,C:\\app.exe,Tcp,::1,80,::1,1234,Established"));
             Assert.That(rows[2], Does.EndWith(",false,true,42,999,,,Udp,0.0.0.0,53,,,"));
             Assert.That(rows[3], Does.EndWith(",false,false,,,,,,,,,,"));
             Assert.That(rows[4], Does.EndWith(",true,true,,,,,,,,,,"));

@@ -1,13 +1,18 @@
 using System.Net;
 using System.Net.NetworkInformation;
-using System.Threading;
+using System.Windows;
+using System.Windows.Automation;
+using System.Windows.Controls;
 using NUnit.Framework;
 using WinMon.Controls;
 using WinMon.Monitoring;
+using WinMon.Resources;
 
 namespace WinMon.Tests;
 
-[TestFixture, Apartment(ApartmentState.STA), SetUICulture("en")]
+[TestFixture]
+[Apartment(ApartmentState.STA)]
+[SetUICulture("en")]
 public sealed class ConnectionsViewTests
 {
     [Test]
@@ -21,10 +26,10 @@ public sealed class ConnectionsViewTests
         view.TogglePin(Owner);
         Assert.That(view.DisplayedRows.First().RankedLabel, Is.Empty);
         Assert.That(view.DisplayedRows.Last().RankedLabel,
-            Is.EqualTo(WinMon.Resources.Strings.Format(WinMon.Resources.Strings.RankedByMetric, WinMon.Resources.Strings.ConnectionsTcpCount)));
+            Is.EqualTo(Strings.Format(Strings.RankedByMetric, Strings.ConnectionsTcpCount)));
         view.Load(new ConnectionListSettings(10, ConnectionSort.Udp));
         Assert.That(view.DisplayedRows.Last().RankedLabel,
-            Is.EqualTo(WinMon.Resources.Strings.Format(WinMon.Resources.Strings.RankedByMetric, WinMon.Resources.Strings.ConnectionsUdpCount)));
+            Is.EqualTo(Strings.Format(Strings.RankedByMetric, Strings.ConnectionsUdpCount)));
         view.PinnedOnly.IsChecked = true;
         Assert.That(view.DisplayedRows.All(row => row.RankedLabel.Length == 0), Is.True);
         view.PinnedOnly.IsChecked = false;
@@ -33,7 +38,7 @@ public sealed class ConnectionsViewTests
         view.Search.Clear();
         view.TogglePin(Owner);
         Assert.That(view.DisplayedRows.All(row => row.RankedLabel.Length == 0), Is.True);
-        Assert.That(view.PinSummary.Visibility, Is.EqualTo(System.Windows.Visibility.Collapsed));
+        Assert.That(view.PinSummary.Visibility, Is.EqualTo(Visibility.Collapsed));
     }
 
     [Test]
@@ -41,15 +46,15 @@ public sealed class ConnectionsViewTests
     {
         var view = new ConnectionsView();
         view.Update(Frame(Tcp), [Owner], false);
-        Assert.That(view.ClearConnectionSearchButton.Visibility, Is.EqualTo(System.Windows.Visibility.Collapsed));
+        Assert.That(view.ClearConnectionSearchButton.Visibility, Is.EqualTo(Visibility.Collapsed));
         view.Search.Text = "no-such-process";
         Assert.That(view.DisplayedRows, Is.Empty);
-        Assert.That(view.ClearConnectionSearchButton.Visibility, Is.EqualTo(System.Windows.Visibility.Visible));
-        view.ClearConnectionSearchButton.RaiseEvent(new System.Windows.RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
+        Assert.That(view.ClearConnectionSearchButton.Visibility, Is.EqualTo(Visibility.Visible));
+        view.ClearConnectionSearchButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         Assert.Multiple(() =>
         {
             Assert.That(view.Search.Text, Is.Empty);
-            Assert.That(view.ClearConnectionSearchButton.Visibility, Is.EqualTo(System.Windows.Visibility.Collapsed));
+            Assert.That(view.ClearConnectionSearchButton.Visibility, Is.EqualTo(Visibility.Collapsed));
             Assert.That(view.DisplayedRows, Has.Count.EqualTo(1));
         });
     }
@@ -107,14 +112,16 @@ public sealed class ConnectionsViewTests
         view.TogglePin(first);
         Assert.That(view.DisplayedRows.First().Process, Is.EqualTo(first));
         Assert.That(view.DisplayedRows.First().Pinned, Is.True);
-        Assert.That(view.PinnedCountLabel.Text, Is.EqualTo(WinMon.Resources.Strings.Format(WinMon.Resources.Strings.PinnedProcessCount, 1)));
-        Assert.That(view.PinSummary.Visibility, Is.EqualTo(System.Windows.Visibility.Visible));
+        Assert.That(view.PinnedCountLabel.Text, Is.EqualTo(Strings.Format(Strings.PinnedProcessCount, 1)));
+        Assert.That(view.PinSummary.Visibility, Is.EqualTo(Visibility.Visible));
         view.PinnedOnly.IsChecked = true;
         Assert.That(view.DisplayedRows, Has.Count.EqualTo(1));
         var restored = new ConnectionsView();
         restored.RestorePins(view.SavedPins);
         var relaunched = first with { ProcessId = 100, CreationTicks = 987 };
-        restored.Update(Frame(Tcp with { ProcessId = relaunched.ProcessId, ProcessCreationTicks = relaunched.CreationTicks }), [relaunched], false);
+        restored.Update(
+            Frame(Tcp with { ProcessId = relaunched.ProcessId, ProcessCreationTicks = relaunched.CreationTicks }),
+            [relaunched], false);
         Assert.That(restored.DisplayedRows.Single().Pinned, Is.True);
         Assert.That(restored.DisplayedRows.Single().Process, Is.EqualTo(relaunched));
         restored.Update(Frame(), [], false);
@@ -123,13 +130,13 @@ public sealed class ConnectionsViewTests
         {
             Assert.That(missing.Pinned, Is.True);
             Assert.That(missing.Connections, Is.Empty);
-            Assert.That(missing.Detail, Is.EqualTo(WinMon.Resources.Strings.ConnectionsNoObservedEndpoints));
-            Assert.That(missing.Graph.Visibility, Is.EqualTo(System.Windows.Visibility.Hidden));
+            Assert.That(missing.Detail, Is.EqualTo(Strings.ConnectionsNoObservedEndpoints));
+            Assert.That(missing.Graph.Visibility, Is.EqualTo(Visibility.Hidden));
         });
         restored.Update(null, [], true);
-        Assert.That(restored.DisplayedRows.Single().Detail, Is.EqualTo(WinMon.Resources.Strings.Unavailable));
+        Assert.That(restored.DisplayedRows.Single().Detail, Is.EqualTo(Strings.Unavailable));
         restored.Update(Frame(), [], true);
-        Assert.That(restored.DisplayedRows.Single().Detail, Is.EqualTo(WinMon.Resources.Strings.ProcessNotRecorded));
+        Assert.That(restored.DisplayedRows.Single().Detail, Is.EqualTo(Strings.ProcessNotRecorded));
         restored.TogglePin(first);
         Assert.That(restored.DisplayedRows, Is.Empty);
         view.TogglePin(first);
@@ -146,7 +153,9 @@ public sealed class ConnectionsViewTests
         view.Update(Frame(endpoints), owners, false);
         view.TogglePin(owners[6]);
         Assert.That(view.DisplayedRows, Has.Count.EqualTo(6));
-        view.Update(Frame(endpoints.Select(endpoint => endpoint with { ProcessCreationTicks = Owner.CreationTicks + 1 }).ToArray()),
+        view.Update(
+            Frame(endpoints.Select(endpoint => endpoint with { ProcessCreationTicks = Owner.CreationTicks + 1 })
+                .ToArray()),
             owners.Select(owner => owner with { CreationTicks = owner.CreationTicks + 1 }).ToArray(), false);
         Assert.That(view.DisplayedRows.First().Connections, Is.Empty);
         Assert.That(view.DisplayedRows.First().Pinned, Is.True);
@@ -182,12 +191,20 @@ public sealed class ConnectionsViewTests
         var sibling = owner with { ProcessId = 99, CreationTicks = 456 };
         var other = owner with { ProcessId = 100, ImagePath = @"C:\other.exe" };
         var traffic = Network(new(owner.ProcessId, owner.CreationTicks, 1, 2, 100, 50),
-            new(sibling.ProcessId, sibling.CreationTicks, 1, 2, 200, 75), new(other.ProcessId, other.CreationTicks, 1, 2, 9999, 9999));
+            new(sibling.ProcessId, sibling.CreationTicks, 1, 2, 200, 75),
+            new(other.ProcessId, other.CreationTicks, 1, 2, 9999, 9999));
         var sample = new MonitorSample(DateTimeOffset.Now, 0, [owner, sibling, other], 0);
         var capture = new ConnectionCapture(sample, Frame(Tcp), [owner, sibling, other], traffic);
-        ConnectionCapture[] history = [capture, capture with { Network = null },
+        ConnectionCapture[] history =
+        [
+            capture, capture with { Network = null },
             capture with { Network = traffic with { Quality = ProcessNetworkQuality.WarmingUp } },
-            capture with { Network = Network(new ProcessNetworkReading(owner.ProcessId, owner.CreationTicks + 1, 0, 0, 999, 999)) }];
+            capture with
+            {
+                Network = Network(new ProcessNetworkReading(owner.ProcessId, owner.CreationTicks + 1, 0, 0, 999,
+                    999))
+            }
+        ];
         var view = new ConnectionsView();
         view.Update(Frame(Tcp), [owner], false, traffic, true, history);
         var data = ConnectionGraphData.Build(history, view.DisplayedRows)[ConnectionGraphData.Key(owner)];
@@ -196,14 +213,23 @@ public sealed class ConnectionsViewTests
     }
 
     private static readonly ProcessUsage Owner = new(424242, 123, "sample", 1) { AppName = "Sample app" };
+
     private static readonly NetworkConnection Tcp = new(Owner.ProcessId, Owner.CreationTicks, TransportProtocol.Tcp,
         new(IPAddress.Parse("192.168.1.25"), 50000), new(IPAddress.Parse("203.0.113.24"), 443), TcpState.Established);
+
     private static readonly NetworkConnection Udp = new(Owner.ProcessId, Owner.CreationTicks, TransportProtocol.Udp,
         new(IPAddress.IPv6Any, 5353));
-    private static NetworkConnectionsFrame Frame(params NetworkConnection[] connections) =>
-        new(connections, NetworkAddressFamilyStatus.Success, NetworkAddressFamilyStatus.Success);
-    private static ProcessNetworkFrame Network(params ProcessNetworkReading[] readings) =>
-        new(10, 1, ProcessNetworkQuality.None, readings);
+
+    private static NetworkConnectionsFrame Frame(params NetworkConnection[] connections)
+    {
+        return new NetworkConnectionsFrame(connections, NetworkAddressFamilyStatus.Success,
+            NetworkAddressFamilyStatus.Success);
+    }
+
+    private static ProcessNetworkFrame Network(params ProcessNetworkReading[] readings)
+    {
+        return new ProcessNetworkFrame(10, 1, ProcessNetworkQuality.None, readings);
+    }
 
     [Test]
     public void DisabledMonitoringUsesTcpRankingAndPreservesSavedThroughputChoice()
@@ -213,23 +239,24 @@ public sealed class ConnectionsViewTests
         var changes = 0;
         view.SettingsChanged += _ => changes++;
         view.Update(Frame(Tcp), [Owner], false);
-        var receive = (System.Windows.Controls.ComboBoxItem)view.Rank.Items[0];
+        var receive = (ComboBoxItem)view.Rank.Items[0];
         Assert.Multiple(() =>
         {
             Assert.That(view.Rank.SelectedIndex, Is.EqualTo((int)ConnectionSort.Tcp));
             Assert.That(view.Settings.Sort, Is.EqualTo(ConnectionSort.Send));
             Assert.That(receive.IsEnabled, Is.False);
-            Assert.That(((System.Windows.Controls.ComboBoxItem)view.Rank.Items[1]).IsEnabled, Is.False);
+            Assert.That(((ComboBoxItem)view.Rank.Items[1]).IsEnabled, Is.False);
             Assert.That(receive.ToolTip, Is.Not.Null);
-            Assert.That(view.NetworkHeader.Visibility, Is.EqualTo(System.Windows.Visibility.Collapsed));
+            Assert.That(view.NetworkHeader.Visibility, Is.EqualTo(Visibility.Collapsed));
             Assert.That(view.DisplayedRows, Has.Count.EqualTo(1));
         });
-        view.Update(Frame(Tcp), [Owner], false, Network(new ProcessNetworkReading(Owner.ProcessId, Owner.CreationTicks, 1, 2, 3, 4)), true);
+        view.Update(Frame(Tcp), [Owner], false,
+            Network(new ProcessNetworkReading(Owner.ProcessId, Owner.CreationTicks, 1, 2, 3, 4)), true);
         Assert.Multiple(() =>
         {
             Assert.That(view.Rank.SelectedIndex, Is.EqualTo((int)ConnectionSort.Send));
-            Assert.That(((System.Windows.Controls.ComboBoxItem)view.Rank.Items[0]).IsEnabled, Is.True);
-            Assert.That(view.TrafficPrompt.Visibility, Is.EqualTo(System.Windows.Visibility.Collapsed));
+            Assert.That(((ComboBoxItem)view.Rank.Items[0]).IsEnabled, Is.True);
+            Assert.That(view.TrafficPrompt.Visibility, Is.EqualTo(Visibility.Collapsed));
             Assert.That(changes, Is.Zero);
         });
         view.Update(Frame(Tcp), [Owner], false);
@@ -247,13 +274,14 @@ public sealed class ConnectionsViewTests
         var view = new ConnectionsView();
         view.Update(Frame(Tcp), [Owner], false);
         Assert.That(view.TrafficPrompt.Visibility, Is.EqualTo(NetworkSetupBroker.Supported
-            ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed));
+            ? Visibility.Visible
+            : Visibility.Collapsed));
         var requested = false;
         view.TrafficSettingsRequested += () => requested = true;
-        view.EnableTrafficMonitoring.RaiseEvent(new System.Windows.RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
+        view.EnableTrafficMonitoring.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         Assert.That(requested, Is.True);
         view.Update(Frame(Tcp), [Owner], true);
-        Assert.That(view.TrafficPrompt.Visibility, Is.EqualTo(System.Windows.Visibility.Collapsed));
+        Assert.That(view.TrafficPrompt.Visibility, Is.EqualTo(Visibility.Collapsed));
     }
 
     [TestCase(800, 0)]
@@ -262,26 +290,27 @@ public sealed class ConnectionsViewTests
     {
         var view = new ConnectionsView();
         view.Update(Frame(Tcp), [Owner], false);
-        view.TrafficPrompt.Visibility = System.Windows.Visibility.Visible;
+        view.TrafficPrompt.Visibility = Visibility.Visible;
         foreach (var currentWidth in new[] { 800d, width, 800d, width })
         {
-            view.Measure(new System.Windows.Size(currentWidth, 600));
-            view.Arrange(new System.Windows.Rect(0, 0, currentWidth, 600));
+            view.Measure(new Size(currentWidth, 600));
+            view.Arrange(new Rect(0, 0, currentWidth, 600));
             view.UpdateLayout();
         }
+
         var button = view.EnableTrafficMonitoring;
-        var origin = button.TranslatePoint(new System.Windows.Point(), view.TrafficPrompt);
+        var origin = button.TranslatePoint(new Point(), view.TrafficPrompt);
         Assert.Multiple(() =>
         {
-            Assert.That(System.Windows.Controls.Grid.GetRow(button), Is.EqualTo(buttonRow));
+            Assert.That(Grid.GetRow(button), Is.EqualTo(buttonRow));
             Assert.That(origin.X, Is.GreaterThanOrEqualTo(0));
             Assert.That(origin.Y, Is.GreaterThanOrEqualTo(0));
             Assert.That(origin.X + button.ActualWidth, Is.LessThanOrEqualTo(view.TrafficPrompt.ActualWidth));
             Assert.That(origin.Y + button.ActualHeight, Is.LessThanOrEqualTo(view.TrafficPrompt.ActualHeight));
-            Assert.That(System.Windows.Controls.Grid.GetRow(view.TrafficPrompt),
-                Is.LessThan(System.Windows.Controls.Grid.GetRow(view.HeaderScroller)));
-            Assert.That(System.Windows.Automation.AutomationProperties.GetName(button),
-                Is.EqualTo(WinMon.Resources.Strings.ConnectionsEnableTrafficMonitoring));
+            Assert.That(Grid.GetRow(view.TrafficPrompt),
+                Is.LessThan(Grid.GetRow(view.HeaderScroller)));
+            Assert.That(AutomationProperties.GetName(button),
+                Is.EqualTo(Strings.ConnectionsEnableTrafficMonitoring));
         });
     }
 
@@ -290,8 +319,8 @@ public sealed class ConnectionsViewTests
     {
         var view = new ConnectionsView();
         view.Update(Frame(Tcp), [Owner], false);
-        Assert.That(view.Notice.Text, Is.EqualTo(WinMon.Resources.Strings.NetworkProcessMonitoringDisabled));
-        Assert.That(view.Notice.Visibility, Is.EqualTo(System.Windows.Visibility.Collapsed));
+        Assert.That(view.Notice.Text, Is.EqualTo(Strings.NetworkProcessMonitoringDisabled));
+        Assert.That(view.Notice.Visibility, Is.EqualTo(Visibility.Collapsed));
         view.Load(new ConnectionListSettings(10, ConnectionSort.Tcp));
         Assert.That(view.Notice.Text, Is.Empty);
     }
@@ -352,13 +381,13 @@ public sealed class ConnectionsViewTests
         view.Rows.SelectedIndex = 0;
         string? report = null;
         view.CopyRequested += text => report = text;
-        view.CopyDetails.RaiseEvent(new System.Windows.RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
+        view.CopyDetails.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         Assert.Multiple(() =>
         {
             Assert.That(report, Does.Contain("Sample app").And.Contain("203.0.113.24:443").And.Contain("[::]:5353"));
             Assert.That(view.Notice.Text, Does.Contain("selected sample"));
             Assert.That(view.DisplayedRows[0].Icon, Is.Not.Null);
-            Assert.That(ConnectionsView.StateText(null), Is.EqualTo(WinMon.Resources.Strings.MissingReading));
+            Assert.That(ConnectionsView.StateText(null), Is.EqualTo(Strings.MissingReading));
         });
     }
 
@@ -375,13 +404,14 @@ public sealed class ConnectionsViewTests
     {
         var other = Owner with { ProcessId = 99, CreationTicks = 234, AppName = Owner.AppName };
         var view = new ConnectionsView();
-        view.Update(Frame(Tcp, Tcp with { ProcessId = other.ProcessId, ProcessCreationTicks = other.CreationTicks }), [Owner, other], false);
+        view.Update(Frame(Tcp, Tcp with { ProcessId = other.ProcessId, ProcessCreationTicks = other.CreationTicks }),
+            [Owner, other], false);
         Assert.That(view.DisplayedRows.Count, Is.EqualTo(2));
 
         IReadOnlyList<ProcessUsage>? requested = null;
         view.GroupRequested += members => requested = members;
         view.Rows.SelectedItem = view.DisplayedRows.First();
-        view.ShowProcess.RaiseEvent(new System.Windows.RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
+        view.ShowProcess.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         Assert.That(requested, Is.Not.Null.And.Count.EqualTo(1));
     }
 
@@ -392,8 +422,11 @@ public sealed class ConnectionsViewTests
         var owner = Owner with { ImagePath = @"c:\apps\SAMPLE.exe" };
         var view = new ConnectionsView();
         var network = Network(
-            new ProcessNetworkReading(owner.ProcessId, owner.CreationTicks, 100, 200, 10, 20),
-            new ProcessNetworkReading(sibling.ProcessId, sibling.CreationTicks, 300, 400, 30, 40)) with { Owners = [sibling] };
+                new ProcessNetworkReading(owner.ProcessId, owner.CreationTicks, 100, 200, 10, 20),
+                new ProcessNetworkReading(sibling.ProcessId, sibling.CreationTicks, 300, 400, 30, 40)) with
+            {
+                Owners = [sibling]
+            };
         view.Update(Frame(Tcp), [owner], false, network, true);
 
         var group = view.DisplayedRows.Single();
@@ -413,7 +446,7 @@ public sealed class ConnectionsViewTests
         Assert.Multiple(() =>
         {
             Assert.That(view.NetworkHeaderColumn.Width.Value, Is.Zero);
-            Assert.That(view.NetworkHeader.Visibility, Is.EqualTo(System.Windows.Visibility.Collapsed));
+            Assert.That(view.NetworkHeader.Visibility, Is.EqualTo(Visibility.Collapsed));
             Assert.That(view.DisplayedRows.Single().NetworkColumnWidth.Value, Is.Zero);
         });
     }
@@ -424,12 +457,12 @@ public sealed class ConnectionsViewTests
         var owner = Owner with { ImagePath = @"C:\Apps\sample.exe" };
         var exited = owner with { ProcessId = 99, CreationTicks = 234 };
         var network = Network(
-            new ProcessNetworkReading(owner.ProcessId, owner.CreationTicks, 100, 200, 10, 20),
-            new ProcessNetworkReading(exited.ProcessId, exited.CreationTicks, 300, 400, null, null)) with
-        {
-            Owners = [exited],
-            CurrentLifetimes = new HashSet<ProcessLifetimeIdentity> { owner.Identity }
-        };
+                new ProcessNetworkReading(owner.ProcessId, owner.CreationTicks, 100, 200, 10, 20),
+                new ProcessNetworkReading(exited.ProcessId, exited.CreationTicks, 300, 400, null, null)) with
+            {
+                Owners = [exited],
+                CurrentLifetimes = new HashSet<ProcessLifetimeIdentity> { owner.Identity }
+            };
         var view = new ConnectionsView();
         view.Update(Frame(Tcp), [owner], false, network, true);
 
@@ -446,13 +479,15 @@ public sealed class ConnectionsViewTests
     {
         var view = new ConnectionsView();
         var network = Network(new ProcessNetworkReading(Owner.ProcessId, Owner.CreationTicks, 100, 200, 10, 20)) with
-        { Quality = ProcessNetworkQuality.Unavailable };
+        {
+            Quality = ProcessNetworkQuality.Unavailable
+        };
         view.Update(Frame(Tcp), [Owner], false, network, true);
 
         var group = view.DisplayedRows.Single();
         Assert.Multiple(() =>
         {
-            Assert.That(group.Network, Does.Contain(WinMon.Resources.Strings.MissingReading));
+            Assert.That(group.Network, Does.Contain(Strings.MissingReading));
             Assert.That(group.NetworkToolTip, Does.Contain("100 B / 200 B"));
         });
     }
@@ -461,7 +496,10 @@ public sealed class ConnectionsViewTests
     public void LoopbackEndpointsAreIncluded()
     {
         var view = new ConnectionsView();
-        var local = Tcp with { LocalEndpoint = new(IPAddress.Loopback, 50000), RemoteEndpoint = new(IPAddress.Loopback, 443) };
+        var local = Tcp with
+        {
+            LocalEndpoint = new(IPAddress.Loopback, 50000), RemoteEndpoint = new(IPAddress.Loopback, 443)
+        };
         view.Update(Frame(Tcp, local, Udp), [Owner], false);
         Assert.That(view.DisplayedRows.Single().Connections, Has.Count.EqualTo(3));
     }
@@ -471,9 +509,13 @@ public sealed class ConnectionsViewTests
     {
         var view = new ConnectionsView();
         var first = new ConnectionCapture(new MonitorSample(DateTimeOffset.UnixEpoch.AddSeconds(1), 0, [], 0),
-            Frame(Tcp), [Owner], Network(new ProcessNetworkReading(Owner.ProcessId, Owner.CreationTicks, 100, 200, 10, 20)));
-        var last = first with { Sample = first.Sample with { Timestamp = first.Sample.Timestamp.AddSeconds(60) },
-            Network = Network(new ProcessNetworkReading(Owner.ProcessId, Owner.CreationTicks, 400, 700, 10, 20)) };
+            Frame(Tcp), [Owner],
+            Network(new ProcessNetworkReading(Owner.ProcessId, Owner.CreationTicks, 100, 200, 10, 20)));
+        var last = first with
+        {
+            Sample = first.Sample with { Timestamp = first.Sample.Timestamp.AddSeconds(60) },
+            Network = Network(new ProcessNetworkReading(Owner.ProcessId, Owner.CreationTicks, 400, 700, 10, 20))
+        };
         var totals = ConnectionTrafficTotals.Build([first, last], last, 300);
         view.Update(Frame(Tcp), [Owner], false, last.Network, true, [first, last], last, totals);
         var row = view.DisplayedRows.Single();
@@ -493,16 +535,22 @@ public sealed class ConnectionsViewTests
     {
         var firstOwner = Owner with { ImagePath = @"C:\first.exe" };
         var secondOwner = Owner with { ProcessId = 99, CreationTicks = 456, ImagePath = @"C:\second.exe" };
-        var missingOwner = Owner with { ProcessId = 98, CreationTicks = 789, ImagePath = @"C:\missing.exe", AppName = "AAA" };
+        var missingOwner = Owner with
+        {
+            ProcessId = 98, CreationTicks = 789, ImagePath = @"C:\missing.exe", AppName = "AAA"
+        };
         var frame = Frame(Tcp, Tcp with { ProcessId = 99, ProcessCreationTicks = 456 },
             Tcp with { ProcessId = 98, ProcessCreationTicks = 789 });
         var first = new ConnectionCapture(new MonitorSample(DateTimeOffset.UnixEpoch.AddSeconds(1), 0, [], 0),
             frame, [firstOwner, secondOwner, missingOwner], Network(
                 new(firstOwner.ProcessId, firstOwner.CreationTicks, 1000, 100, 20, 10),
                 new(secondOwner.ProcessId, secondOwner.CreationTicks, 100, 1000, 10, 20)));
-        var last = first with { Sample = first.Sample with { Timestamp = first.Sample.Timestamp.AddSeconds(60) },
+        var last = first with
+        {
+            Sample = first.Sample with { Timestamp = first.Sample.Timestamp.AddSeconds(60) },
             Network = Network(new(firstOwner.ProcessId, firstOwner.CreationTicks, 1300, 600, 20, 10),
-                new(secondOwner.ProcessId, secondOwner.CreationTicks, 600, 1300, 10, 20)) };
+                new(secondOwner.ProcessId, secondOwner.CreationTicks, 600, 1300, 10, 20))
+        };
         var view = new ConnectionsView();
         view.Load(new ConnectionListSettings(10, (ConnectionSort)sort));
         view.Update(frame, first.Owners, false, last.Network, true, [first, last], last,
@@ -516,7 +564,7 @@ public sealed class ConnectionsViewTests
         view.Update(frame, first.Owners, false);
         Assert.That(view.Rank.SelectedIndex, Is.EqualTo((int)ConnectionSort.Tcp));
         Assert.That(view.Settings.Sort, Is.EqualTo((ConnectionSort)sort));
-        Assert.That(((System.Windows.Controls.ComboBoxItem)view.Rank.Items[sort]).IsEnabled, Is.False);
+        Assert.That(((ComboBoxItem)view.Rank.Items[sort]).IsEnabled, Is.False);
         view.Update(frame, first.Owners, false, last.Network, true, [first, last], last,
             ConnectionTrafficTotals.Build([first, last], last, 0));
         Assert.That(view.Rank.SelectedIndex, Is.EqualTo(sort));
@@ -532,8 +580,9 @@ public sealed class ConnectionsViewTests
         view.Rows.SelectedIndex = 0;
         (string? Name, string? Details) properties = default;
         view.PropertiesRequested += (name, details) => properties = (name, details);
-        view.Properties.RaiseEvent(new System.Windows.RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
-        Assert.That(properties.Details, Does.Contain("192.168.1.25:50000").And.Contain("203.0.113.24:443").And.Contain(owner.ImagePath));
-        Assert.That(properties.Details, Does.Contain(Environment.NewLine + WinMon.Resources.Strings.ProcessPathLabel));
+        view.Properties.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Assert.That(properties.Details,
+            Does.Contain("192.168.1.25:50000").And.Contain("203.0.113.24:443").And.Contain(owner.ImagePath));
+        Assert.That(properties.Details, Does.Contain(Environment.NewLine + Strings.ProcessPathLabel));
     }
 }

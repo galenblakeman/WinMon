@@ -14,7 +14,7 @@ public partial class MainWindow
     {
         while (ExportWrites.Where(write => !write.IsCompleted).ToArray() is { Length: > 0 } running)
             await Task.WhenAll(running).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing |
-                                                   ConfigureAwaitOptions.ContinueOnCapturedContext);
+                                                       ConfigureAwaitOptions.ContinueOnCapturedContext);
     }
 
     // WPF requires a void event handler; file errors are shown in the dialog below.
@@ -41,8 +41,8 @@ public partial class MainWindow
 
             // Capture immutable snapshots on the UI thread, then write without blocking sampling or painting.
             var samples = choice.Kind is not (CsvExportKind.ResourceHistory or CsvExportKind.ProcessSamples)
-                ? Array.Empty<MonitorSample>() :
-                CsvExport.SelectSamples(Session.History.Samples,
+                ? Array.Empty<MonitorSample>()
+                : CsvExport.SelectSamples(Session.History.Samples,
                     choice.ChartRange ? _preferences.EffectiveChartRange : null);
             var ledger = Session.Usage;
             var apps = choice.Kind == CsvExportKind.UsageTotals ? ledger.Apps.ToArray() : [];
@@ -52,9 +52,11 @@ public partial class MainWindow
                 ? Session.History.Samples[^1].Timestamp - TimeSpan.FromSeconds(_preferences.EffectiveChartRange)
                 : DateTimeOffset.MinValue;
             var services = choice.Kind == CsvExportKind.Services
-                ? Session.Services.Frames.Where(frame => frame.Sample.Timestamp >= start).ToArray() : [];
+                ? Session.Services.Frames.Where(frame => frame.Sample.Timestamp >= start).ToArray()
+                : [];
             var connections = choice.Kind == CsvExportKind.Connections
-                ? Session.Connections.Captures.Where(capture => capture.Sample.Timestamp >= start).ToArray() : [];
+                ? Session.Connections.Captures.Where(capture => capture.Sample.Timestamp >= start).ToArray()
+                : [];
             var hasData = choice.Kind switch
             {
                 CsvExportKind.Services => services.Length > 0,
@@ -75,8 +77,9 @@ public partial class MainWindow
             try
             {
                 await write;
-                if (!IsClosing) MessageDialog.ShowNotice(this, Strings.Format(Strings.ExportSaved, save.FileName),
-                    Strings.ExportCsv);
+                if (!IsClosing)
+                    MessageDialog.ShowNotice(this, Strings.Format(Strings.ExportSaved, save.FileName),
+                        Strings.ExportCsv);
             }
             finally
             {
@@ -84,10 +87,11 @@ public partial class MainWindow
             }
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException or
-                                   NotSupportedException or SecurityException)
+                                       NotSupportedException or SecurityException)
         {
-            if (!IsClosing) MessageDialog.ShowNotice(this, Strings.Format(Strings.ExportFailed, ex.Message),
-                Strings.ExportCsv);
+            if (!IsClosing)
+                MessageDialog.ShowNotice(this, Strings.Format(Strings.ExportFailed, ex.Message),
+                    Strings.ExportCsv);
         }
     }
 }

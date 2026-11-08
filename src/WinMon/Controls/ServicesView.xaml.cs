@@ -1,3 +1,6 @@
+// Pinned and ranked rows deliberately enumerate an in-memory, repeatable group query separately.
+// ReSharper disable PossibleMultipleEnumeration
+
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
@@ -58,6 +61,7 @@ public partial class ServicesView
         RefreshRows();
         ArrangeToolbar();
     }
+
     internal event Action? PinsChanged;
     internal event Action<bool>? PinnedOnlyChanged;
 
@@ -81,7 +85,8 @@ public partial class ServicesView
         if (_pins.Count == 0) return int.MaxValue;
         var order = int.MaxValue;
         foreach (var service in group.Services)
-            if (_pins.TryGetValue(service.Name, out var index)) order = Math.Min(order, index);
+            if (_pins.TryGetValue(service.Name, out var index))
+                order = Math.Min(order, index);
         return order;
     }
 
@@ -106,6 +111,7 @@ public partial class ServicesView
             TogglePin(row);
             if (focused && !_rows.Contains(row)) PinnedOnlyCheckBox.Focus();
         }
+
         e.Handled = true;
     }
 
@@ -183,7 +189,8 @@ public partial class ServicesView
     {
         if (!_ready || ContentColumn.ActualWidth <= 0) return;
         ActionControls.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-        var wide = ContentColumn.ActualWidth >= ActionControls.DesiredSize.Width - ActionDrawer.CollapseButtonSpace + 264;
+        var wide = ContentColumn.ActualWidth >=
+                   ActionControls.DesiredSize.Width - ActionDrawer.CollapseButtonSpace + 264;
         if (_wideActionBar == wide) return;
         _wideActionBar = wide;
         ActionBarGrid.ColumnDefinitions[1].Width = wide ? GridLength.Auto : new GridLength(0);
@@ -197,7 +204,8 @@ public partial class ServicesView
         if (!_ready || ContentColumn.ActualWidth <= 0) return;
         RankingControls.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
         ServiceFilters.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-        var wide = ContentColumn.ActualWidth >= RankingControls.DesiredSize.Width + ServiceFilters.DesiredSize.Width + 224;
+        var wide = ContentColumn.ActualWidth >=
+                   RankingControls.DesiredSize.Width + ServiceFilters.DesiredSize.Width + 224;
         if (_wideToolbar == wide) return;
         _wideToolbar = wide;
         Grid.SetColumnSpan(RankingControls, wide ? 1 : 3);
@@ -389,10 +397,15 @@ public partial class ServicesView
                     peak = busiest;
             var scale = Math.Max(1, peak * 1.1);
             var sorted = ordered.ThenBy(g => g.Services[0].DisplayName, StringComparer.CurrentCultureIgnoreCase);
-            var pinned = _pins.Count == 0 ? [] : filtered.Where(g => PinOrder(g) != int.MaxValue)
-                .OrderBy(PinOrder).ToArray();
-            var ranked = PinnedOnly ? [] : TopCountChoices.Limit(
-                _pins.Count == 0 ? sorted : sorted.Where(g => PinOrder(g) == int.MaxValue), TopServiceCount).ToArray();
+            var pinned = _pins.Count == 0
+                ? []
+                : filtered.Where(g => PinOrder(g) != int.MaxValue)
+                    .OrderBy(PinOrder).ToArray();
+            var ranked = PinnedOnly
+                ? []
+                : TopCountChoices.Limit(
+                        _pins.Count == 0 ? sorted : sorted.Where(g => PinOrder(g) == int.MaxValue), TopServiceCount)
+                    .ToArray();
             foreach (var group in pinned.Concat(ranked))
             {
                 Add(group.Key, group, null, null, false, true);
@@ -471,10 +484,12 @@ public partial class ServicesView
                     ServiceMetrics.None;
                 row.Update(group, process, service, child, header, _expanded.Contains(group.Key), workers, metrics);
                 var isPinned = process is null && (service is not null
-                    ? _pins.ContainsKey(service.Name) : PinOrder(group) != int.MaxValue);
+                    ? _pins.ContainsKey(service.Name)
+                    : PinOrder(group) != int.MaxValue);
                 row.UpdatePin(process is null, isPinned, header && isPinned,
                     header && pinned.Length > 0 && ranked.Length > 0 && ReferenceEquals(group, ranked[0])
-                        ? Strings.Format(Strings.RankedByMetric, Sort.SelectedItem) : "");
+                        ? Strings.Format(Strings.RankedByMetric, Sort.SelectedItem)
+                        : "");
                 if (service is null && (process is not null || group.Host is not null))
                 {
                     var values = row.GraphValues(_history.Count);
@@ -771,9 +786,13 @@ internal sealed class ServiceDisplayRow(string key) : INotifyPropertyChanged
     public bool Pinned { get; private set; }
     public bool PinnedHeader { get; private set; }
     public Geometry PinIcon => Pinned ? ButtonIcon.PinFilled : ButtonIcon.Pin;
+
     public string PinLabel => Group.Shared && Service is null
         ? Pinned ? Strings.UnpinServiceHost : Strings.PinServiceHost
-        : Pinned ? Strings.UnpinService : Strings.PinService;
+        : Pinned
+            ? Strings.UnpinService
+            : Strings.PinService;
+
     public string PinAccessibleName => PinLabel + ": " + Name;
     public string RankedLabel { get; private set; } = "";
     public Visibility RankedVisibility => RankedLabel.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
@@ -789,7 +808,10 @@ internal sealed class ServiceDisplayRow(string key) : INotifyPropertyChanged
     internal ProcessUsage? Process { get; private set; }
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private void Changed(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+    private void Changed(string name)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+    }
 
     internal void RefreshPinLabels()
     {
@@ -811,6 +833,8 @@ internal sealed class ServiceDisplayRow(string key) : INotifyPropertyChanged
         bool header, bool expanded, bool workers, ServiceMetrics metrics)
     {
         var shown = Shown();
+        // Group is null until the first Update initializes this row.
+        // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
         var wasShared = Group?.Shared;
         Group = group;
         Service = service ?? (header && !group.Shared ? group.Services[0] : null);
@@ -832,8 +856,11 @@ internal sealed class ServiceDisplayRow(string key) : INotifyPropertyChanged
         Icon = process is not null ? "\uE8A5" : "\uE713";
         Indent = new Thickness(child ? 30 : 0, 4, 8, 4);
         ExpandGlyph = expanded ? "⌄" : "›";
-        ExpandVisibility = !header ? Visibility.Collapsed : group.Host is not null || group.Shared
-            ? Visibility.Visible : Visibility.Hidden;
+        ExpandVisibility = !header
+            ? Visibility.Collapsed
+            : group.Host is not null || group.Shared
+                ? Visibility.Visible
+                : Visibility.Hidden;
         Cpu = metrics.Cpu is { } cpu ? Strings.Format(Strings.PercentOneDecimal, cpu) : Strings.MissingReading;
         Memory = metrics.PrivateBytes is { } memory
             ? TableMetricText.Memory(memory)

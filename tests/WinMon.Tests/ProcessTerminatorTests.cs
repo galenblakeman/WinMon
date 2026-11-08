@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Diagnostics;
 using NUnit.Framework;
 using WinMon.Monitoring;
 
@@ -48,7 +49,11 @@ public sealed class ProcessTerminatorTests
     public void End_UsesValidatedTargetAndDisposesIt()
     {
         var target = new Target();
-        Assert.That(ProcessTerminator.End(Process, pid => { Assert.That(pid, Is.EqualTo(Process.ProcessId)); return target; }), Is.Null);
+        Assert.That(ProcessTerminator.End(Process, pid =>
+        {
+            Assert.That(pid, Is.EqualTo(Process.ProcessId));
+            return target;
+        }), Is.Null);
         Assert.That(target.Terminated, Is.True);
         Assert.That(target.Disposed, Is.True);
     }
@@ -60,7 +65,8 @@ public sealed class ProcessTerminatorTests
         Assert.That(ProcessTerminator.IsEligible(Process, true, true), Is.False);
         Assert.That(ProcessTerminator.IsEligible(Process with { MemberCount = 2 }, true, false), Is.False);
         Assert.That(ProcessTerminator.IsEligible(Process with { CreationTicks = 0 }, true, false), Is.False);
-        Assert.That(ProcessTerminator.IsEligible(Process with { ProcessId = Environment.ProcessId }, true, false), Is.False);
+        Assert.That(ProcessTerminator.IsEligible(Process with { ProcessId = Environment.ProcessId }, true, false),
+            Is.False);
         Assert.That(ProcessTerminator.IsEligible(Process with { ProcessId = 4 }, true, false), Is.False);
         Assert.That(ProcessTerminator.IsEligible(Process, true, false), Is.True);
     }
@@ -81,8 +87,11 @@ public sealed class ProcessTerminatorTests
     [Test]
     public void GroupTargets_RejectWholeGroupWithProtectedOrUnknownMember()
     {
-        foreach (var member in new[] { Process with { CreationTicks = 0 },
-                     Process with { ProcessId = 4 }, Process with { ProcessId = Environment.ProcessId } })
+        foreach (var member in new[]
+                 {
+                     Process with { CreationTicks = 0 },
+                     Process with { ProcessId = 4 }, Process with { ProcessId = Environment.ProcessId }
+                 })
             Assert.That(ProcessTerminator.CaptureTargets(Process, true, true, [Process, member]), Is.Empty);
         Assert.That(ProcessTerminator.CaptureTargets(Process, true, true, [Process]), Has.Length.EqualTo(1));
     }
@@ -112,23 +121,30 @@ public sealed class ProcessTerminatorTests
     [Test]
     public void Native_EndRejectsWrongLifetimeThenEndsOnlyOwnedHelper()
     {
-        using var helper = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+        using var helper = System.Diagnostics.Process.Start(new ProcessStartInfo
         {
-            FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), @"WindowsPowerShell\v1.0\powershell.exe"),
+            FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System),
+                @"WindowsPowerShell\v1.0\powershell.exe"),
             Arguments = "-NoProfile -NonInteractive -Command Start-Sleep -Seconds 60",
-            UseShellExecute = false, CreateNoWindow = true, WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden
+            UseShellExecute = false, CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden
         })!;
         try
         {
-            var usage = new ProcessUsage(helper.Id, helper.StartTime.ToUniversalTime().ToFileTimeUtc(), "WinMon test helper", 0);
-            Assert.That(ProcessTerminator.End(usage with { CreationTicks = usage.CreationTicks + 1 }), Does.Contain("reused"));
+            var usage = new ProcessUsage(helper.Id, helper.StartTime.ToUniversalTime().ToFileTimeUtc(),
+                "WinMon test helper", 0);
+            Assert.That(ProcessTerminator.End(usage with { CreationTicks = usage.CreationTicks + 1 }),
+                Does.Contain("reused"));
             Assert.That(helper.HasExited, Is.False);
             Assert.That(ProcessTerminator.End(usage), Is.Null);
             Assert.That(helper.WaitForExit(5000), Is.True);
         }
         finally
         {
-            if (!helper.HasExited) { helper.Kill(); helper.WaitForExit(5000); }
+            if (!helper.HasExited)
+            {
+                helper.Kill();
+                helper.WaitForExit(5000);
+            }
         }
     }
 
@@ -138,10 +154,24 @@ public sealed class ProcessTerminatorTests
         public bool HasExited { get; init; }
         public Exception? CriticalError { get; init; }
         private readonly bool _critical;
-        public bool IsCritical { get => CriticalError is null ? _critical : throw CriticalError; init => _critical = value; }
+
+        public bool IsCritical
+        {
+            get => CriticalError is null ? _critical : throw CriticalError;
+            init => _critical = value;
+        }
+
         public bool Terminated { get; private set; }
         public bool Disposed { get; private set; }
-        public void Terminate() => Terminated = true;
-        public void Dispose() => Disposed = true;
+
+        public void Terminate()
+        {
+            Terminated = true;
+        }
+
+        public void Dispose()
+        {
+            Disposed = true;
+        }
     }
 }

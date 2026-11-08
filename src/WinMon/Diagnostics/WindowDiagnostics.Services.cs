@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 using System.Windows.Media;
 using WinMon.Controls;
 using WinMon.Monitoring;
@@ -127,13 +128,13 @@ internal sealed partial class WindowDiagnostics
                 .Single(row => row.Service?.Name == "BuildAgent");
             var agentPin = ServicePinButtons(fixture.ServiceView).Single(button => button.DataContext == agentRow);
             agentPin.Focus();
-            agentPin.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            agentPin.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
             fixture.ServiceView.UpdateLayout();
-            if (System.Windows.Input.Keyboard.FocusedElement is not Button { DataContext: ServiceDisplayRow focused } ||
+            if (Keyboard.FocusedElement is not Button { DataContext: ServiceDisplayRow focused } ||
                 focused != agentRow || agentRow.Pinned)
                 throw new InvalidOperationException("Service pin focus must follow its row when ranking moves it.");
             ServicePinButtons(fixture.ServiceView).Single(button => button.DataContext == agentRow)
-                .RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                .RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
             fixture.ServiceView.RestorePins(["BuildAgent", "Spooler"]);
             var pinnedHeaders = fixture.ServiceView.Rows.Items.Cast<ServiceDisplayRow>()
                 .Where(row => row.Key == row.Group.Key).Take(2).ToArray();
@@ -141,7 +142,8 @@ internal sealed partial class WindowDiagnostics
                 !pinnedHeaders.All(row => row.PinnedHeader) ||
                 fixture.ServiceView.Rows.Items.Cast<ServiceDisplayRow>().Select(row => row.Key).Distinct().Count() !=
                 fixture.ServiceView.Rows.Items.Count)
-                throw new InvalidOperationException("Pinned service hosts must precede ranked hosts without duplicates.");
+                throw new InvalidOperationException(
+                    "Pinned service hosts must precede ranked hosts without duplicates.");
             foreach (var theme in new[] { "Dark", "Light" })
             {
                 fixture.Preferences = fixture.Preferences with { Theme = theme };
@@ -206,15 +208,17 @@ internal sealed partial class WindowDiagnostics
             await CaptureServiceWindowAsync(fixture, Path.Combine(output, "services-narrow.png"), cancellationToken);
             VerifyToolbar(fixture.ServiceView);
             fixture.ServiceView.PinnedOnly = true;
-            await CaptureServiceWindowAsync(fixture, Path.Combine(output, "services-pinned-only.png"), cancellationToken);
+            await CaptureServiceWindowAsync(fixture, Path.Combine(output, "services-pinned-only.png"),
+                cancellationToken);
             if (fixture.ServiceView.Rows.Items.Cast<ServiceDisplayRow>().Any(row =>
                     !row.Group.Services.Any(service => fixture.ServiceView.SavedPins.Contains(service.Name))))
                 throw new InvalidOperationException("Pinned-only services must hide unpinned hosts.");
             var filteredPin = ServicePinButtons(fixture.ServiceView).Single(button => button.DataContext == agentRow);
             filteredPin.Focus();
-            filteredPin.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            filteredPin.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
             if (!fixture.ServiceView.PinnedOnlyCheckBox.IsKeyboardFocusWithin)
-                throw new InvalidOperationException("Unpinning a hidden row must return focus to the pinned-only filter.");
+                throw new InvalidOperationException(
+                    "Unpinning a hidden row must return focus to the pinned-only filter.");
             fixture.ServiceView.RestorePins(["BuildAgent", "Spooler"]);
             fixture.ServiceView.PinnedOnly = false;
             fixture.ServiceView.Search.Text = "Build";
@@ -312,12 +316,14 @@ internal sealed partial class WindowDiagnostics
             var bounds = parts.Select(p => p.TransformToAncestor(view).TransformBounds(new Rect(p.RenderSize)))
                 .ToArray();
             var worker = view.Workers.TransformToAncestor(view).TransformBounds(new Rect(view.Workers.RenderSize));
-            var status = view.StatusFilter.TransformToAncestor(view).TransformBounds(new Rect(view.StatusFilter.RenderSize));
+            var status = view.StatusFilter.TransformToAncestor(view)
+                .TransformBounds(new Rect(view.StatusFilter.RenderSize));
             var pinnedOnly = view.PinnedOnlyCheckBox.TransformToAncestor(view)
                 .TransformBounds(new Rect(view.PinnedOnlyCheckBox.RenderSize));
             if (worker.Left < bounds[1].Right - 1 || pinnedOnly.Left < worker.Right - 1 ||
                 status.Left < pinnedOnly.Right - 1)
-                throw new InvalidOperationException("Service filters must follow Search, Workers, Pinned only, Status order.");
+                throw new InvalidOperationException(
+                    "Service filters must follow Search, Workers, Pinned only, Status order.");
             var firstPin = ServicePinButtons(view).First(button => button.IsVisible);
             var pinBounds = firstPin.TransformToAncestor(view).TransformBounds(new Rect(firstPin.RenderSize));
             if (pinBounds.Width < 20 || pinBounds.Left < 0 || pinBounds.Right > view.ActualWidth)

@@ -60,6 +60,8 @@
         <Border x:Name="TrafficPrompt" Grid.Column="1" Grid.Row="1" Margin="0,0,0,8" MinHeight="64" Background="{DynamicResource SectionHeaderSurface}" CornerRadius="4" Visibility="Collapsed" SizeChanged="OnTrafficPromptSizeChanged">
             <Grid>
                 <Border Width="3" HorizontalAlignment="Left" Background="{DynamicResource Accent}" CornerRadius="4,0,0,4" />
+                <!-- Named part retained for bindings and diagnostic inspection. -->
+                <!-- ReSharper disable once UnusedMember.Global -->
                 <Grid x:Name="TrafficPromptLayout" Margin="17,10,14,10">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -73,7 +75,7 @@
                         <TextBlock FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap" Text="{Binding [ConnectionsTrafficMonitoringOff], Source={x:Static r:Strings.Text}}" />
                         <TextBlock Margin="0,3,0,0" FontSize="12" Foreground="{DynamicResource Muted}" TextWrapping="Wrap" Text="{Binding [ConnectionsTrafficMonitoringBenefit], Source={x:Static r:Strings.Text}}" />
                     </StackPanel>
-                    <Button x:Name="EnableTrafficMonitoring" Grid.Column="1" MinHeight="36" Margin="0" Padding="14,6" VerticalAlignment="Center" Background="{DynamicResource Accent}" Foreground="{DynamicResource AccentButtonText}" FontSize="13" FontWeight="SemiBold" Click="OnTrafficSettings" AutomationProperties.Name="{Binding [ConnectionsEnableTrafficMonitoring], Source={x:Static r:Strings.Text}}" AutomationProperties.HelpText="{Binding [ConnectionsTrafficMonitoringBenefit], Source={x:Static r:Strings.Text}}">
+                    <Button x:Name="EnableTrafficMonitoring" Grid.Row="0" Grid.Column="1" MinHeight="36" Margin="0" Padding="14,6" VerticalAlignment="Center" Background="{DynamicResource Accent}" Foreground="{DynamicResource AccentButtonText}" FontSize="13" FontWeight="SemiBold" Click="OnTrafficSettings" AutomationProperties.Name="{Binding [ConnectionsEnableTrafficMonitoring], Source={x:Static r:Strings.Text}}" AutomationProperties.HelpText="{Binding [ConnectionsTrafficMonitoringBenefit], Source={x:Static r:Strings.Text}}">
                         <Button.Style>
                             <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
                                 <Setter Property="FocusVisualStyle">
@@ -176,7 +178,7 @@
                             <Border Grid.ColumnSpan="8" Padding="0,5" BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0" Visibility="{Binding RankedVisibility}">
                                 <TextBlock FontSize="11" Foreground="{DynamicResource Muted}" Text="{Binding RankedLabel}" />
                             </Border>
-                            <DockPanel Grid.Row="1" Margin="0,4,8,4" VerticalAlignment="Center">
+                            <DockPanel Grid.Row="1" Grid.Column="0" Margin="0,4,8,4" VerticalAlignment="Center">
                                 <Button Width="26" MinHeight="26" Margin="0,0,4,0" Padding="0" AutomationProperties.Name="{Binding PinAccessibleName}" ToolTip="{Binding PinLabel}" IsEnabled="{Binding CanPin}" Background="Transparent" BorderThickness="0" Click="OnPin">
                                     <Path Width="12" Height="12" Stretch="Uniform" Data="{Binding PinIcon}">
                                         <Path.Style><Style TargetType="Path"><Setter Property="Fill" Value="{DynamicResource Muted}" /><Style.Triggers><DataTrigger Binding="{Binding Pinned}" Value="True"><Setter Property="Fill" Value="{DynamicResource ProcessPinAccent}" /></DataTrigger></Style.Triggers></Style></Path.Style>

@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Net;
 using NUnit.Framework;
 using WinMon.Monitoring;
 
@@ -8,12 +7,17 @@ namespace WinMon.Tests;
 [TestFixture]
 public sealed class ConnectionTrafficTotalsTests
 {
-    private static ConnectionCapture Capture(int second, params ProcessNetworkReading[] readings) =>
-        new(new(DateTimeOffset.UnixEpoch.AddSeconds(second), 0, [], 0, false, second * Stopwatch.Frequency),
+    private static ConnectionCapture Capture(int second, params ProcessNetworkReading[] readings)
+    {
+        return new ConnectionCapture(
+            new(DateTimeOffset.UnixEpoch.AddSeconds(second), 0, [], 0, false, second * Stopwatch.Frequency),
             null, [], new(second, 1, ProcessNetworkQuality.None, readings));
+    }
 
-    private static ProcessNetworkReading Reading(long received, long sent, long created = 1) =>
-        new(42, created, received, sent, 100, 50);
+    private static ProcessNetworkReading Reading(long received, long sent, long created = 1)
+    {
+        return new ProcessNetworkReading(42, created, received, sent, 100, 50);
+    }
 
     [Test]
     public void IntervalUsesCounterDifferencesAndIgnoresFutureCapturesAndDuplicateLifetimes()
@@ -57,5 +61,4 @@ public sealed class ConnectionTrafficTotalsTests
         var totals = ConnectionTrafficTotals.Build([], end, 0);
         Assert.That(totals.Sum(), Is.EqualTo((long.MaxValue, 500L)));
     }
-
 }

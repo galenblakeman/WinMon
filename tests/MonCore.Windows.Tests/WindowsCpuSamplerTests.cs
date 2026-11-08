@@ -1,6 +1,6 @@
-using NUnit.Framework;
 using System.ComponentModel;
 using System.Diagnostics;
+using NUnit.Framework;
 using WinMon.Monitoring;
 
 namespace WinMon.Tests;
@@ -182,9 +182,13 @@ public sealed class WindowsCpuSamplerTests
     public void Sample_KernelBusyExcludesIdleAndComplementsUserTime()
     {
         var first = Snapshot(1, 1_000, 200, []) with
-            { SystemTimes = new SystemCpuTimes(200, 700, 300) };
+        {
+            SystemTimes = new SystemCpuTimes(200, 700, 300)
+        };
         var second = Snapshot(2, 2_000, 300, []) with
-            { SystemTimes = new SystemCpuTimes(300, 1_300, 700) };
+        {
+            SystemTimes = new SystemCpuTimes(300, 1_300, 700)
+        };
         using var sampler = new WindowsCpuSampler(new SequenceSnapshotProvider(first, second));
         _ = sampler.Sample();
         var sample = sampler.Sample();
@@ -276,13 +280,13 @@ public sealed class WindowsCpuSamplerTests
             [
                 new ProcessCpuTimes(2, 1, "Beta", 100),
                 new ProcessCpuTimes(1, 1, "alpha", 100),
-                new ProcessCpuTimes(3, 1, "alpha", 100),
+                new ProcessCpuTimes(3, 1, "alpha", 100)
             ]),
             Snapshot(2, 2_000, 200,
             [
                 new ProcessCpuTimes(2, 1, "Beta", 300),
                 new ProcessCpuTimes(1, 1, "alpha", 300),
-                new ProcessCpuTimes(3, 1, "alpha", 300),
+                new ProcessCpuTimes(3, 1, "alpha", 300)
             ])));
 
         _ = sampler.Sample();
@@ -294,7 +298,7 @@ public sealed class WindowsCpuSamplerTests
     [Test]
     public void Sample_ObservesUnavailableProcessCount()
     {
-        using var sampler = new WindowsCpuSampler(new SequenceSnapshotProvider(Snapshot(1, 1_000, 100, [], unavailableProcesses: 4)));
+        using var sampler = new WindowsCpuSampler(new SequenceSnapshotProvider(Snapshot(1, 1_000, 100, [], 4)));
 
         var sample = sampler.Sample();
 
@@ -365,15 +369,17 @@ public sealed class WindowsCpuSamplerTests
     {
         private readonly Queue<CpuSnapshot> snapshots = new(snapshots);
 
-        public CpuSnapshot Capture() => snapshots.Dequeue();
+        public CpuSnapshot Capture()
+        {
+            return snapshots.Dequeue();
+        }
     }
 
     private sealed class ThrowingSnapshotProvider : ICpuSnapshotProvider
     {
-        public CpuSnapshot Capture() => throw new Win32Exception();
+        public CpuSnapshot Capture()
+        {
+            throw new Win32Exception();
+        }
     }
 }
-
-
-
-

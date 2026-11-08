@@ -5,8 +5,10 @@ namespace WinMon;
 /// <summary>A user-chosen position in physical pixels, relative to its monitor's work area.</summary>
 internal sealed record WindowPosition(string Monitor, Point Offset)
 {
-    internal static WindowPosition Capture(string monitor, Rectangle workArea, Point location) =>
-        new(monitor, new Point(location.X - workArea.Left, location.Y - workArea.Top));
+    internal static WindowPosition Capture(string monitor, Rectangle workArea, Point location)
+    {
+        return new WindowPosition(monitor, new Point(location.X - workArea.Left, location.Y - workArea.Top));
+    }
 
     internal Point? Resolve(IEnumerable<(string Monitor, Rectangle WorkArea)> screens, Size windowSize)
     {

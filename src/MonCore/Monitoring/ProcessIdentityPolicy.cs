@@ -17,11 +17,18 @@ public readonly record struct ProcessLifetimeIdentity
     public const ProcessLifetimeDomain WindowsFileTime = ProcessLifetimeDomain.WindowsFileTime;
     public const ProcessLifetimeDomain UnixMicroseconds = ProcessLifetimeDomain.UnixMicroseconds;
 
-    public bool Equals(ProcessLifetimeIdentity other) => ProcessId == other.ProcessId &&
-        StartToken == other.StartToken && Domain == other.Domain;
+    public bool Equals(ProcessLifetimeIdentity other)
+    {
+        return ProcessId == other.ProcessId &&
+               StartToken == other.StartToken && Domain == other.Domain;
+    }
 
-    public override int GetHashCode() => Domain == WindowsFileTime
-        ? HashCode.Combine(ProcessId, StartToken) : HashCode.Combine(ProcessId, StartToken, Domain);
+    public override int GetHashCode()
+    {
+        return Domain == WindowsFileTime
+            ? HashCode.Combine(ProcessId, StartToken)
+            : HashCode.Combine(ProcessId, StartToken, Domain);
+    }
 }
 
 /// <summary>Explicit interpretation of an adapter's opaque lifetime token; never compare tokens across domains.</summary>
@@ -57,6 +64,7 @@ public sealed class ProcessIdentityPolicy
     /// Adapters may instead supply canonical file identities for volumes where aliases should merge.
     /// </summary>
     public static ProcessIdentityPolicy ExactPaths { get; } = new("exact-paths", StringComparer.Ordinal,
-        process => process.ImagePath.Length > 0 ? "path:" + process.ImagePath :
-            $"lifetime:{process.LifetimeDomain}:{process.ProcessId}:{process.CreationTicks}");
+        process => process.ImagePath.Length > 0
+            ? "path:" + process.ImagePath
+            : $"lifetime:{process.LifetimeDomain}:{process.ProcessId}:{process.CreationTicks}");
 }

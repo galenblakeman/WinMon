@@ -35,7 +35,8 @@ public sealed class ActivityTabTests
     [TestCase(4)]
     public void InvalidTabFallsBackToProcesses(int selected)
     {
-        Assert.That(PreferenceStore.Validate(new MonitorPreferences { SelectedActivityTab = selected }).SelectedActivityTab,
+        Assert.That(
+            PreferenceStore.Validate(new MonitorPreferences { SelectedActivityTab = selected }).SelectedActivityTab,
             Is.Zero);
     }
 }

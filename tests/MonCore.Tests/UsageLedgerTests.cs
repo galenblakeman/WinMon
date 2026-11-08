@@ -14,11 +14,11 @@ public sealed class UsageLedgerTests
     {
         var ledger = new UsageLedger(Start);
         ledger.Add(Valid(1, [
-            Process(1, 10, "chrome", 20, io: 1_000, gpu: 50, path: @"C:\Apps\chrome.exe"),
-            Process(2, 20, "chrome", 10, io: 500, path: @"c:\apps\CHROME.EXE"),
+            Process(1, 10, "chrome", 20, 1_000, 50, @"C:\Apps\chrome.exe"),
+            Process(2, 20, "chrome", 10, 500, path: @"c:\apps\CHROME.EXE"),
             Process(4, 40, "System", 5)
         ]));
-        ledger.Add(Valid(2, [Process(1, 10, "chrome", 30, io: 2_000, gpu: 25, path: @"C:\Apps\chrome.exe")],
+        ledger.Add(Valid(2, [Process(1, 10, "chrome", 30, 2_000, 25, @"C:\Apps\chrome.exe")],
             seconds: 2));
 
         var chrome = App(ledger, @"C:\Apps\chrome.exe");
@@ -121,7 +121,7 @@ public sealed class UsageLedgerTests
     public void Shares_UseMachineBusyTimeForEveryRow()
     {
         var ledger = new UsageLedger(Start);
-        ledger.Add(Valid(1, [Process(1, 10, "a", 30), Process(2, 20, "b", 20)], totalCpu: 80));
+        ledger.Add(Valid(1, [Process(1, 10, "a", 30), Process(2, 20, "b", 20)], 80));
 
         var attributed = ledger.Apps.Sum(app => app.CpuTicks);
         Assert.Multiple(() =>
@@ -137,7 +137,7 @@ public sealed class UsageLedgerTests
     public void NotAttributed_IsNeverNegative()
     {
         var ledger = new UsageLedger(Start);
-        ledger.Add(Valid(1, [Process(1, 10, "a", 60)], totalCpu: 50));
+        ledger.Add(Valid(1, [Process(1, 10, "a", 60)], 50));
 
         Assert.That(ledger.NotAttributedCpuTicks, Is.Zero);
     }

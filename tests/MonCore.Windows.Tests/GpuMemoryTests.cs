@@ -12,8 +12,10 @@ public sealed class GpuMemoryTests
     public void Usage_MatchesTheSelectedAdapterAndPhysicalGpu()
     {
         WindowsGpuSampler.EngineCounter[] counters =
-        [new("luid_0x00000000_0x00005678_phys_0", 700), new(Instance, 200),
-            new("luid_0x00000000_0x00001234_phys_1", 900)];
+        [
+            new("luid_0x00000000_0x00005678_phys_0", 700), new(Instance, 200),
+            new("luid_0x00000000_0x00001234_phys_1", 900)
+        ];
         Assert.That(WindowsGpuMemory.SelectUsage(counters, Adapter), Is.EqualTo(200));
     }
 
@@ -41,7 +43,8 @@ public sealed class GpuMemoryTests
         sampler.Sample(sample, false);
         await Task.Delay(1100);
         var resources = sampler.Sample(sample, false).Resources;
-        TestContext.Out.WriteLine($"GPU {resources.GpuId}: {resources.GpuMemoryUsedBytes?.ToString() ?? "unavailable"} / {resources.GpuMemoryTotalBytes?.ToString() ?? "unavailable"} bytes");
+        TestContext.Out.WriteLine(
+            $"GPU {resources.GpuId}: {resources.GpuMemoryUsedBytes?.ToString() ?? "unavailable"} / {resources.GpuMemoryTotalBytes?.ToString() ?? "unavailable"} bytes");
         Assert.That(resources.GpuMemoryUsedBytes.HasValue, Is.EqualTo(resources.GpuMemoryTotalBytes.HasValue));
         if (resources.GpuMemoryTotalBytes is { } total)
         {

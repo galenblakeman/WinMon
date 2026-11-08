@@ -30,10 +30,13 @@ internal sealed class NetworkMonitoringController : IAsyncDisposable
     private NetworkMonitoringSample _sample = new(Guid.Empty, null);
 
     internal NetworkMonitoringController() : this(ConnectAsync, new NetworkSetupBroker().RunAsync,
-        () => NetworkSetupBroker.IsAvailable, NetworkSetupBroker.Supported) { }
+        () => NetworkSetupBroker.IsAvailable, NetworkSetupBroker.Supported)
+    {
+    }
 
     internal NetworkMonitoringController(Func<CancellationToken, Task<INetworkMonitoringConnection>> connect,
-        Func<string, Func<CancellationToken, Task>, CancellationToken, Task> setup, Func<bool> canSetup, bool supported = true)
+        Func<string, Func<CancellationToken, Task>, CancellationToken, Task> setup, Func<bool> canSetup,
+        bool supported = true)
     {
         _connect = connect;
         _setup = setup;
@@ -47,17 +50,34 @@ internal sealed class NetworkMonitoringController : IAsyncDisposable
     internal ProcessNetworkSnapshot? LatestSnapshot => Sample.Snapshot;
     internal event Action<NetworkMonitoringState>? StateChanged;
 
-    internal Task<NetworkMonitoringChangeResult> RestoreAsync(bool enabled, CancellationToken token) => ChangeAsync(enabled, false, token);
-    internal Task<NetworkMonitoringChangeResult> ChangeAsync(bool enabled, CancellationToken token) => ChangeAsync(enabled, true, token);
+    internal Task<NetworkMonitoringChangeResult> RestoreAsync(bool enabled, CancellationToken token)
+    {
+        return ChangeAsync(enabled, false, token);
+    }
 
-    private async Task<NetworkMonitoringChangeResult> ChangeAsync(bool enabled, bool allowSetup, CancellationToken token)
+    internal Task<NetworkMonitoringChangeResult> ChangeAsync(bool enabled, CancellationToken token)
+    {
+        return ChangeAsync(enabled, true, token);
+    }
+
+    private async Task<NetworkMonitoringChangeResult> ChangeAsync(bool enabled, bool allowSetup,
+        CancellationToken token)
     {
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(token, _lifetime.Token);
-        try { await _gate.WaitAsync(linked.Token).ConfigureAwait(false); }
-        catch (OperationCanceledException) { return new NetworkMonitoringChangeResult(false, NetworkMonitoringState.Cancelled); }
         try
         {
-            if (enabled && _connection is not null && _poll is { IsCompleted: false } && State is NetworkMonitoringState.Active or NetworkMonitoringState.WarmingUp or NetworkMonitoringState.Incomplete)
+            await _gate.WaitAsync(linked.Token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            return new NetworkMonitoringChangeResult(false, NetworkMonitoringState.Cancelled);
+        }
+
+        try
+        {
+            if (enabled && _connection is not null && _poll is { IsCompleted: false } &&
+                State is NetworkMonitoringState.Active or NetworkMonitoringState.WarmingUp
+                    or NetworkMonitoringState.Incomplete)
                 return new NetworkMonitoringChangeResult(true, State);
             await DisconnectAsync().ConfigureAwait(false);
             if (!_supported) return Result(false, NetworkMonitoringState.StoreUnavailable);
@@ -69,21 +89,27 @@ internal sealed class NetworkMonitoringController : IAsyncDisposable
                 Volatile.Write(ref _sample, new NetworkMonitoringSample(Guid.Empty, null));
                 return Result(true, NetworkMonitoringState.Disabled);
             }
+
             if (!_enabled)
             {
                 _enabled = true;
                 Volatile.Write(ref _sample, new NetworkMonitoringSample(Guid.NewGuid(), null));
             }
+
             SetState(NetworkMonitoringState.Enabling);
             try
             {
-                try { await OpenAsync(linked.Token).ConfigureAwait(false); }
+                try
+                {
+                    await OpenAsync(linked.Token).ConfigureAwait(false);
+                }
                 catch (NetworkServiceProtocolMismatchException)
                 {
                     if (!allowSetup || !_canSetup()) return Result(false, NetworkMonitoringState.UpdateRequired);
                     await _setup("install", OpenAsync, linked.Token).ConfigureAwait(false);
                 }
-                catch (Exception exception) when (exception is not OperationCanceledException || !linked.IsCancellationRequested)
+                catch (Exception exception) when (exception is not OperationCanceledException ||
+                                                  !linked.IsCancellationRequested)
                 {
                     ReportConnectionFailure(exception);
                     if (!allowSetup)
@@ -91,9 +117,11 @@ internal sealed class NetworkMonitoringController : IAsyncDisposable
                         StartPolling();
                         return Result(false, NetworkMonitoringState.Unavailable);
                     }
+
                     if (!_canSetup()) return Result(false, NetworkMonitoringState.SetupUnavailable);
                     await _setup("install", OpenAsync, linked.Token).ConfigureAwait(false);
                 }
+
                 linked.Token.ThrowIfCancellationRequested();
                 StartPolling();
                 return new NetworkMonitoringChangeResult(true, State);
@@ -120,14 +148,24 @@ internal sealed class NetworkMonitoringController : IAsyncDisposable
                 return Result(false, NetworkMonitoringState.Failed);
             }
         }
-        finally { _gate.Release(); }
+        finally
+        {
+            _gate.Release();
+        }
     }
 
     internal async Task<NetworkMonitoringChangeResult> RemoveAsync(CancellationToken token)
     {
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(token, _lifetime.Token);
-        try { await _gate.WaitAsync(linked.Token).ConfigureAwait(false); }
-        catch (OperationCanceledException) { return new NetworkMonitoringChangeResult(false, NetworkMonitoringState.Cancelled); }
+        try
+        {
+            await _gate.WaitAsync(linked.Token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            return new NetworkMonitoringChangeResult(false, NetworkMonitoringState.Cancelled);
+        }
+
         try
         {
             if (!_supported) return Result(false, NetworkMonitoringState.StoreUnavailable);
@@ -143,15 +181,24 @@ internal sealed class NetworkMonitoringController : IAsyncDisposable
                 Volatile.Write(ref _sample, new NetworkMonitoringSample(Guid.Empty, null));
                 return Result(true, NetworkMonitoringState.Disabled);
             }
-            catch (OperationCanceledException) when (linked.IsCancellationRequested) { return Result(false, NetworkMonitoringState.Cancelled); }
-            catch (Win32Exception exception) when (exception.NativeErrorCode == 1223) { return Result(false, NetworkMonitoringState.Cancelled); }
+            catch (OperationCanceledException) when (linked.IsCancellationRequested)
+            {
+                return Result(false, NetworkMonitoringState.Cancelled);
+            }
+            catch (Win32Exception exception) when (exception.NativeErrorCode == 1223)
+            {
+                return Result(false, NetworkMonitoringState.Cancelled);
+            }
             catch (Exception exception)
             {
                 Trace.TraceError("WinMon network service removal failed: {0}", exception);
                 return Result(false, NetworkMonitoringState.Failed);
             }
         }
-        finally { _gate.Release(); }
+        finally
+        {
+            _gate.Release();
+        }
     }
 
     private async Task OpenAsync(CancellationToken token)
@@ -162,7 +209,8 @@ internal sealed class NetworkMonitoringController : IAsyncDisposable
             await connection.SubscribeAsync(token).ConfigureAwait(false);
             var snapshot = await connection.SnapshotAsync(token).ConfigureAwait(false);
             ReportSnapshot(snapshot);
-            if (snapshot.Quality.HasFlag(ProcessNetworkQuality.Unavailable)) throw new InvalidOperationException("Network collection is unavailable.");
+            if (snapshot.Quality.HasFlag(ProcessNetworkQuality.Unavailable))
+                throw new InvalidOperationException("Network collection is unavailable.");
             token.ThrowIfCancellationRequested();
             _connection = connection;
             PublishSnapshot(snapshot);
@@ -172,7 +220,11 @@ internal sealed class NetworkMonitoringController : IAsyncDisposable
             _connectionFailures = 0;
             _outageStarted = 0;
         }
-        catch { await connection.DisposeAsync().ConfigureAwait(false); throw; }
+        catch
+        {
+            await connection.DisposeAsync().ConfigureAwait(false);
+            throw;
+        }
     }
 
     private void StartPolling()
@@ -204,23 +256,30 @@ internal sealed class NetworkMonitoringController : IAsyncDisposable
                         SetState(ToState(snapshot));
                     }
                 }
-                catch (OperationCanceledException) when (token.IsCancellationRequested) { throw; }
+                catch (OperationCanceledException) when (token.IsCancellationRequested)
+                {
+                    throw;
+                }
                 catch (Exception exception)
                 {
                     ReportConnectionFailure(exception);
                     PublishSnapshot(null);
                     SetState(exception is NetworkServiceProtocolMismatchException
-                        ? NetworkMonitoringState.UpdateRequired : NetworkMonitoringState.Unavailable);
+                        ? NetworkMonitoringState.UpdateRequired
+                        : NetworkMonitoringState.Unavailable);
                     if (_connection is { } failed)
                     {
                         _connection = null;
                         await failed.DisposeAsync().ConfigureAwait(false);
                     }
+
                     if (exception is NetworkServiceProtocolMismatchException) return;
                 }
             }
         }
-        catch (OperationCanceledException) when (token.IsCancellationRequested) { }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+        }
         finally
         {
             if (_connection is { } connection)
@@ -239,15 +298,21 @@ internal sealed class NetworkMonitoringController : IAsyncDisposable
             if (_poll is { } poll) await poll.ConfigureAwait(false);
             cancellation.Dispose();
         }
-        else if (_connection is { } connection) await connection.DisposeAsync().ConfigureAwait(false);
+        else if (_connection is { } connection)
+        {
+            await connection.DisposeAsync().ConfigureAwait(false);
+        }
+
         _pollCancellation = null;
         _poll = null;
         _connection = null;
         PublishSnapshot(null);
     }
 
-    private void PublishSnapshot(ProcessNetworkSnapshot? snapshot) =>
+    private void PublishSnapshot(ProcessNetworkSnapshot? snapshot)
+    {
         Volatile.Write(ref _sample, new NetworkMonitoringSample(_sample.SessionId, snapshot));
+    }
 
     private NetworkMonitoringChangeResult Result(bool success, NetworkMonitoringState state)
     {
@@ -272,12 +337,14 @@ internal sealed class NetworkMonitoringController : IAsyncDisposable
     private void ReportSnapshot(ProcessNetworkSnapshot snapshot)
     {
         var previous = _lastDiagnosticSnapshot;
-        if (previous is not null && previous.Generation == snapshot.Generation && previous.Quality == snapshot.Quality &&
+        if (previous is not null && previous.Generation == snapshot.Generation &&
+            previous.Quality == snapshot.Quality &&
             previous.IncompleteReasons == snapshot.IncompleteReasons && previous.Failure == snapshot.Failure &&
             Stopwatch.GetElapsedTime(_lastDiagnosticAt) < TimeSpan.FromMinutes(1)) return;
         _lastDiagnosticSnapshot = snapshot;
         _lastDiagnosticAt = Stopwatch.GetTimestamp();
-        Trace.TraceInformation("Network.Snapshot quality={0} reasons={1} failure={2} generationChanged={3} sequence={4} rows={5} rates={6} eventsLost={7} lateEvents={8} droppedEvents={9} windowMs={10} lagMs={11}",
+        Trace.TraceInformation(
+            "Network.Snapshot quality={0} reasons={1} failure={2} generationChanged={3} sequence={4} rows={5} rates={6} eventsLost={7} lateEvents={8} droppedEvents={9} windowMs={10} lagMs={11}",
             snapshot.Quality, snapshot.IncompleteReasons, snapshot.Failure, previous?.Generation != snapshot.Generation,
             snapshot.Sequence, snapshot.Processes.Count,
             snapshot.Processes.Count(row => row.ReceiveBytesPerSecond.HasValue && row.SendBytesPerSecond.HasValue),
@@ -286,25 +353,51 @@ internal sealed class NetworkMonitoringController : IAsyncDisposable
             (snapshot.TimestampQpc - snapshot.WindowEndQpc) * 1000d / snapshot.Frequency);
     }
 
-    internal static NetworkMonitoringState ToState(ProcessNetworkSnapshot snapshot) =>
-        snapshot.Quality.HasFlag(ProcessNetworkQuality.Unavailable) ? NetworkMonitoringState.Unavailable :
-        snapshot.Quality.HasFlag(ProcessNetworkQuality.WarmingUp) ? NetworkMonitoringState.WarmingUp :
-        (snapshot.Quality & (ProcessNetworkQuality.Incomplete | ProcessNetworkQuality.CapacityExceeded | ProcessNetworkQuality.Discontinuity)) != 0 ? NetworkMonitoringState.Incomplete : NetworkMonitoringState.Active;
+    internal static NetworkMonitoringState ToState(ProcessNetworkSnapshot snapshot)
+    {
+        return snapshot.Quality.HasFlag(ProcessNetworkQuality.Unavailable) ? NetworkMonitoringState.Unavailable :
+            snapshot.Quality.HasFlag(ProcessNetworkQuality.WarmingUp) ? NetworkMonitoringState.WarmingUp :
+            (snapshot.Quality & (ProcessNetworkQuality.Incomplete | ProcessNetworkQuality.CapacityExceeded |
+                                 ProcessNetworkQuality.Discontinuity)) != 0 ? NetworkMonitoringState.Incomplete :
+            NetworkMonitoringState.Active;
+    }
 
     public async ValueTask DisposeAsync()
     {
         await _lifetime.CancelAsync().ConfigureAwait(false);
         await _gate.WaitAsync().ConfigureAwait(false);
-        try { await DisconnectAsync().ConfigureAwait(false); }
-        finally { _gate.Release(); }
+        try
+        {
+            await DisconnectAsync().ConfigureAwait(false);
+        }
+        finally
+        {
+            _gate.Release();
+        }
+
         _lifetime.Dispose();
     }
 
-    private static async Task<INetworkMonitoringConnection> ConnectAsync(CancellationToken token) => new Connection(await NetworkServiceClient.ConnectAsync(token).ConfigureAwait(false));
+    private static async Task<INetworkMonitoringConnection> ConnectAsync(CancellationToken token)
+    {
+        return new Connection(await NetworkServiceClient.ConnectAsync(token).ConfigureAwait(false));
+    }
+
     private sealed class Connection(NetworkServiceClient client) : INetworkMonitoringConnection
     {
-        public Task SubscribeAsync(CancellationToken token) => client.SubscribeAsync(token);
-        public Task<ProcessNetworkSnapshot> SnapshotAsync(CancellationToken token) => client.SnapshotAsync(token);
-        public ValueTask DisposeAsync() => client.DisposeAsync();
+        public Task SubscribeAsync(CancellationToken token)
+        {
+            return client.SubscribeAsync(token);
+        }
+
+        public Task<ProcessNetworkSnapshot> SnapshotAsync(CancellationToken token)
+        {
+            return client.SnapshotAsync(token);
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            return client.DisposeAsync();
+        }
     }
 }

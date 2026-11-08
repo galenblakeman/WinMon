@@ -18,6 +18,7 @@ using WinMon.Monitoring;
 using WinMon.Preferences;
 using Button = System.Windows.Controls.Button;
 using ButtonBase = System.Windows.Controls.Primitives.ButtonBase;
+using CheckBox = System.Windows.Controls.CheckBox;
 using MenuItem = System.Windows.Controls.MenuItem;
 using Point = System.Windows.Point;
 using RadioButton = System.Windows.Controls.RadioButton;
@@ -182,7 +183,8 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                             Strings.ChartLogicalProcessors, Strings.ChartLogicalProcessorsHelp,
                             Strings.ChartFocus, Strings.ChartFocusHelp
                         }))
-                        throw new InvalidOperationException("Chart help did not contain five separate labeled descriptions.");
+                        throw new InvalidOperationException(
+                            "Chart help did not contain five separate labeled descriptions.");
                     tooltip.PlacementTarget = target;
                     tooltip.Placement = PlacementMode.Bottom;
                     try
@@ -194,7 +196,10 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                             Path.Combine(outputDirectory, $"chart-help-{name}-{theme.ToLowerInvariant()}.png"),
                             1, cancellationToken);
                     }
-                    finally { tooltip.IsOpen = false; }
+                    finally
+                    {
+                        tooltip.IsOpen = false;
+                    }
                 }
             }
         }
@@ -203,17 +208,24 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
             window.Preferences = helpPreferences;
             window.ApplyTheme();
         }
+
         window.ChartTypeSelector.IsDropDownOpen = true;
         try
         {
             await window.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render, cancellationToken);
             if (window.ChartTypeSelector.Template.FindName("PART_Popup", window.ChartTypeSelector) is not Popup
-                { Child: FrameworkElement menu })
+                {
+                    Child: FrameworkElement menu
+                })
                 throw new InvalidOperationException("The combined chart menu did not open.");
             menu.UpdateLayout();
             await CaptureVisualAsync(menu, Path.Combine(outputDirectory, "chart-menu.png"), 1, cancellationToken);
         }
-        finally { window.ChartTypeSelector.IsDropDownOpen = false; }
+        finally
+        {
+            window.ChartTypeSelector.IsDropDownOpen = false;
+        }
+
         foreach (var chartType in Enum.GetValues<ResourceChartType>())
         {
             window.ChartTypeSelector.SelectedItem = ChartChoiceItem(window, chartType,
@@ -233,16 +245,23 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                 window.RefreshPresentation();
                 if (window.ChartLegend.IsVisible || !window.OverallGraph.IsVisible ||
                     window.Preferences.SeriesMask != selectedResources)
-                    throw new InvalidOperationException("Hiding resource controls changed the plot or selected resources.");
+                    throw new InvalidOperationException(
+                        "Hiding resource controls changed the plot or selected resources.");
                 window.ChartResourcesToggle.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
                 if (!window.ChartLegend.IsVisible || window.Preferences.SeriesMask != selectedResources)
-                    throw new InvalidOperationException("Showing resource controls did not restore the legend and selections.");
+                    throw new InvalidOperationException(
+                        "Showing resource controls did not restore the legend and selections.");
             }
-            foreach (var metric in new[] { window.CpuMetric, window.MemoryMetric, window.DiskMetric,
-                         window.NetworkMetric, window.GpuMetric })
+
+            foreach (var metric in new[]
+                     {
+                         window.CpuMetric, window.MemoryMetric, window.DiskMetric,
+                         window.NetworkMetric, window.GpuMetric
+                     })
                 if (metric.ShowSeriesToggle || !metric.Toggle.IsDescendantOf(window.ChartLegend) ||
                     !metric.Focusable || string.IsNullOrEmpty(AutomationProperties.GetName(metric.Toggle)))
-                    throw new InvalidOperationException("Resource controls must belong to the chart, with accessible gauge details.");
+                    throw new InvalidOperationException(
+                        "Resource controls must belong to the chart, with accessible gauge details.");
             if (chartType == ResourceChartType.Focus)
             {
                 window.CpuMetric.Toggle.IsChecked = false;
@@ -252,6 +271,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                     throw new InvalidOperationException("Hiding the focused resource did not choose a visible one.");
                 window.CpuMetric.Toggle.IsChecked = true;
             }
+
             if (chartType == ResourceChartType.LogicalProcessors)
             {
                 if (window.Session.History.Latest?.LogicalProcessorPercents is not { Count: > 0 } processors ||
@@ -264,6 +284,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                 if (window.CpuMetric.Toggle.IsChecked != true)
                     throw new InvalidOperationException("Selecting logical processors did not restore the CPU series.");
             }
+
             window.OverallGraph.SelectLatest();
             if (window.SelectedSample is null || window.SnapshotLayer.Visibility != Visibility.Visible)
                 throw new InvalidOperationException($"The {chartType} chart did not support capture inspection.");
@@ -271,6 +292,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
             await CaptureAsync(Path.Combine(outputDirectory, $"chart-{chartType.ToString().ToLowerInvariant()}.png"),
                 1, cancellationToken);
         }
+
         window.ChartTypeSelector.SelectedItem = ChartChoiceItem(window, ResourceChartType.Focus, 3);
         if (window.Preferences.FocusMetric != 3 || window.OverallGraph.FocusMetric != 3)
             throw new InvalidOperationException("The focus resource choice did not apply.");
@@ -292,12 +314,15 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
             window.UpdateLayout();
             foreach (var host in window.ChartLegend.Children.OfType<ContentControl>())
             {
-                var toggle = (System.Windows.Controls.CheckBox)host.Content;
-                var bounds = toggle.TransformToAncestor(window.ChartLegend).TransformBounds(new Rect(toggle.RenderSize));
+                var toggle = (CheckBox)host.Content;
+                var bounds = toggle.TransformToAncestor(window.ChartLegend)
+                    .TransformBounds(new Rect(toggle.RenderSize));
                 if (!toggle.IsVisible || bounds.Left < 0 || bounds.Right > window.ChartLegend.ActualWidth + 1 ||
                     bounds.Bottom > window.ChartLegend.ActualHeight + 1)
-                    throw new InvalidOperationException("The narrow German resource legend clipped a configured resource.");
+                    throw new InvalidOperationException(
+                        "The narrow German resource legend clipped a configured resource.");
             }
+
             await CaptureAsync(Path.Combine(outputDirectory, "chart-legend-narrow-german.png"), 1, cancellationToken);
             window.CpuMetric.Toggle.Focus();
             window.SetChartPanelCollapsed(true);
@@ -549,8 +574,12 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                 tooltip.UpdateLayout();
                 await CaptureVisualAsync(tooltip, Path.Combine(output, $"tab-help-{name}.png"), 1, cancellationToken);
             }
-            finally { tooltip.IsOpen = false; }
+            finally
+            {
+                tooltip.IsOpen = false;
+            }
         }
+
         if (window.Session.History.Samples.Count == 0) await Task.Delay(TimeSpan.FromSeconds(4), cancellationToken);
         // Check the compact process toolbar at the minimum and wider supported window sizes.
         var headerWidth = window.Width;
@@ -588,9 +617,11 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                     export.Show();
                     export.UpdateLayout();
                     if (export.TimeChoices.Visibility != (kind == CsvExportKind.UsageTotals
-                            ? Visibility.Collapsed : Visibility.Visible) ||
+                            ? Visibility.Collapsed
+                            : Visibility.Visible) ||
                         export.FileNameBox.Text.Length == 0)
-                        throw new InvalidOperationException("Export dialog showed the wrong time choices or file name.");
+                        throw new InvalidOperationException(
+                            "Export dialog showed the wrong time choices or file name.");
                     if (ButtonIcon.GetData(export.SaveButton) is null ||
                         ButtonIcon.GetData(export.CancelButton) is null ||
                         !export.SaveButton.IsEnabled ||
@@ -613,6 +644,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
             window.Preferences = exportTheme;
             window.ApplyTheme();
         }
+
         var hardware = await Task.Run(WindowsHardwareInfo.Read, cancellationToken);
         await File.WriteAllTextAsync(Path.Combine(output, "hardware.json"),
             JsonSerializer.Serialize(hardware, new JsonSerializerOptions { WriteIndented = true }), cancellationToken);
@@ -665,6 +697,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                         await CaptureVisualAsync((FrameworkElement)info.Content,
                             Path.Combine(output, $"info-{theme.ToLowerInvariant()}-{tab}.png"), 1, cancellationToken);
                     }
+
                     info.Tabs.SelectedIndex = 1;
                     var topicIndex = 0;
                     var topics = info.GuideTopics.Children.OfType<Expander>().ToArray();
@@ -674,10 +707,13 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                         info.GuideScroll.ScrollToTop();
                         info.UpdateLayout();
                         await CaptureVisualAsync((FrameworkElement)info.Content,
-                            Path.Combine(output, $"guide-{theme.ToLowerInvariant()}-{topicIndex++}.png"), 1, cancellationToken);
+                            Path.Combine(output, $"guide-{theme.ToLowerInvariant()}-{topicIndex++}.png"), 1,
+                            cancellationToken);
                     }
+
                     foreach (var topic in topics) topic.IsExpanded = topic == topics[0];
                 }
+
                 info.Width = info.MinWidth;
                 info.Height = info.MinHeight;
                 for (var tab = 0; tab < info.Tabs.Items.Count; tab++)
@@ -915,7 +951,8 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                 window.ShownSamplingError = SamplingError.ReadingsUnavailable;
                 window.RefreshVisiblePresentation();
                 if (window.ProcessCountValue.Text != expected)
-                    throw new InvalidOperationException("A live sampling failure cleared the inspected sample's counts.");
+                    throw new InvalidOperationException(
+                        "A live sampling failure cleared the inspected sample's counts.");
                 window.SelectedSample = null;
                 window.RefreshVisiblePresentation();
                 if (window.ProcessCountValue.Text != Strings.MissingReading)
@@ -927,12 +964,14 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                 window.ShownSamplingError = error;
                 window.RefreshVisiblePresentation();
             }
+
             var open = drawer.ActualHeight;
             var bar = window.Processes.ProcessActions;
             var hide = Descendants(bar).OfType<Button>().Single(b => b.Command == ActionDrawer.CollapseCommand);
             var hideBounds = hide.TransformToAncestor(bar).TransformBounds(new Rect(hide.RenderSize));
             if (!hide.IsEnabled || hideBounds.Right > bar.ActualWidth || hideBounds.Bottom > bar.ActualHeight)
-                throw new InvalidOperationException($"The hide chevron is not usable inside the action bar: {hideBounds}.");
+                throw new InvalidOperationException(
+                    $"The hide chevron is not usable inside the action bar: {hideBounds}.");
             await CaptureAsync(Path.Combine(output, "action-drawer-open.png"), 1, cancellationToken);
             ActionDrawer.CollapseCommand.Execute(null, hide);
             // The slide and the strip's rise take 240 ms.
@@ -1000,7 +1039,8 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
 
             // With room, the footer has a row of its own; shorter than the rows' minimums, it overlays their bottom.
             if (Bounds(window.Processes).Bottom > Bounds(window.UpdateFooter).Top + 0.5)
-                throw new InvalidOperationException("The update footer covers the process list in a full-height window.");
+                throw new InvalidOperationException(
+                    "The update footer covers the process list in a full-height window.");
             foreach (var height in new[] { 300, window.MinHeight })
             {
                 window.Height = height;
@@ -1525,6 +1565,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
             await CaptureVisualAsync(visual, Path.Combine(outputDirectory,
                 $"chart-design-{chartType.ToString().ToLowerInvariant()}.png"), 1, cancellationToken);
         }
+
         fixture.Preferences = fixture.Preferences with { ResourceChartType = ResourceChartType.LogicalProcessors };
         fixture.BuildChartSelectors();
         fixture.SelectedSample = fixture.Session.History.Samples[92];
@@ -1539,7 +1580,8 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         visual.Measure(new Size(836, 820));
         visual.Arrange(new Rect(0, 0, 836, 820));
         visual.UpdateLayout();
-        await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "chart-design-logicalprocessors-light-narrow.png"),
+        await CaptureVisualAsync(visual,
+            Path.Combine(outputDirectory, "chart-design-logicalprocessors-light-narrow.png"),
             1, cancellationToken);
         fixture.Preferences = fixture.Preferences with { Theme = "Dark" };
         fixture.ApplyTheme();
@@ -1555,7 +1597,8 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
             1, cancellationToken);
         fixture.OverallGraph.SetData([manyProcessors[^1] with { LogicalProcessorPercents = null }], 120, null);
         visual.UpdateLayout();
-        await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "chart-design-logicalprocessors-unavailable.png"),
+        await CaptureVisualAsync(visual,
+            Path.Combine(outputDirectory, "chart-design-logicalprocessors-unavailable.png"),
             1, cancellationToken);
         fixture.Preferences = fixture.Preferences with { ResourceChartType = ResourceChartType.Focus, FocusMetric = 3 };
         fixture.BuildChartSelectors();
@@ -1569,8 +1612,11 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "chart-design-focus-capture.png"), 1,
             cancellationToken);
         fixture.SelectedSample = null;
-        fixture.Preferences = fixture.Preferences with { ResourceChartType = ResourceChartType.Overlay,
-            FocusMetric = 0 };
+        fixture.Preferences = fixture.Preferences with
+        {
+            ResourceChartType = ResourceChartType.Overlay,
+            FocusMetric = 0
+        };
         fixture.BuildChartSelectors();
         fixture.RefreshVisiblePresentation();
         visual.Measure(new Size(600, 820));
@@ -1622,7 +1668,9 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         fixture.Preferences = fixture.Preferences with { PrimaryDrive = "C:", SecondaryDrive = "D:" };
 
         fixture.Preferences = fixture.Preferences with
-            { ResourceChartType = ResourceChartType.SmallMultiples, FocusMetric = 5 };
+        {
+            ResourceChartType = ResourceChartType.SmallMultiples, FocusMetric = 5
+        };
         fixture.BuildChartSelectors();
         fixture.RefreshVisiblePresentation();
         visual.Measure(new Size(1000, 820));
@@ -1639,6 +1687,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
             if (!Equals(ChartChoiceItem(fixture, ResourceChartType.Focus, metric).Content, expected))
                 throw new InvalidOperationException($"The {drive} focus choice has the wrong drive label.");
         }
+
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "chart-design-two-disks.png"), 1,
             cancellationToken);
         fixture.Preferences = fixture.Preferences with { ResourceChartType = ResourceChartType.Focus };

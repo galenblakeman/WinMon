@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using NUnit.Framework;
@@ -28,9 +27,9 @@ public sealed class UsageViewTests
     {
         AppUsage[] apps =
         [
-            App("b", cpu: 100, io: 5, gpu: null, lifetimes: 1),
-            App("a", cpu: 100, io: 9, gpu: 2, lifetimes: 3),
-            App("c", cpu: 300, io: 1, gpu: 1, lifetimes: 2)
+            App("b", 100, 5, null, 1),
+            App("a", 100, 9, 2, 3),
+            App("c", 300, 1, 1, 2)
         ];
 
         Assert.Multiple(() =>
@@ -52,10 +51,10 @@ public sealed class UsageViewTests
     {
         AppUsage[] apps =
         [
-            App("tool", cpu: 900) with { ImagePath = @"C:\Tools\tool.exe" },
-            App("chrome", cpu: 500, isApp: true) with { AppName = "Google Chrome" },
-            App("code", cpu: 400, isApp: true) with { ImagePath = @"C:\Apps\code.exe" },
-            App("edge", cpu: 300, isApp: true)
+            App("tool", 900) with { ImagePath = @"C:\Tools\tool.exe" },
+            App("chrome", 500, isApp: true) with { AppName = "Google Chrome" },
+            App("code", 400, isApp: true) with { ImagePath = @"C:\Apps\code.exe" },
+            App("edge", 300, isApp: true)
         ];
 
         Assert.Multiple(() =>
@@ -92,11 +91,12 @@ public sealed class UsageViewTests
         }
     }
 
-    [Test, Apartment(ApartmentState.STA)]
+    [Test]
+    [Apartment(ApartmentState.STA)]
     public void Columns_KeepUnitsInTheValues()
     {
         var view = _view = new UsageView();
-        view.Update(new UsageFrame([App("example", cpu: 100, io: 4_000_000)],
+        view.Update(new UsageFrame([App("example", 100, 4_000_000)],
             1_000, 0, Now, Now, false));
         var headers = (Grid)view.FindName("ColumnHeaders");
         var shareHeader = headers.Children.OfType<TextBlock>().Single(header => Grid.GetColumn(header) == 2);
@@ -116,7 +116,8 @@ public sealed class UsageViewTests
         Assert.Multiple(() =>
         {
             Assert.That(UsageText.LastActive(new SampleKey(1, Now.AddSeconds(-4)), Now), Is.EqualTo(Strings.UsageNow));
-            Assert.That(UsageText.LastActive(new SampleKey(1, Now.AddSeconds(-30)), Now), Is.Not.EqualTo(Strings.UsageNow));
+            Assert.That(UsageText.LastActive(new SampleKey(1, Now.AddSeconds(-30)), Now),
+                Is.Not.EqualTo(Strings.UsageNow));
             Assert.That(UsageText.LastActive(null, Now), Is.EqualTo(Strings.MissingReading));
         });
     }
@@ -124,7 +125,7 @@ public sealed class UsageViewTests
     [Test]
     public void Report_ListsTheVisibleAppsAndNotAttributedTime()
     {
-        var frame = new UsageFrame([App("a", cpu: 600), App("b", cpu: 200)], 1_000, 200, Now.AddHours(-1), Now, false);
+        var frame = new UsageFrame([App("a", 600), App("b", 200)], 1_000, 200, Now.AddHours(-1), Now, false);
 
         var report = UsageText.Report(frame, new UsageListSettings(1, UsageSort.CpuTime, false), "");
 
@@ -143,12 +144,13 @@ public sealed class UsageViewTests
             Is.EqualTo(Strings.UsageOtherApps));
     }
 
-    [Test, Apartment(ApartmentState.STA)]
+    [Test]
+    [Apartment(ApartmentState.STA)]
     public void ActionBarTracksSelectedAppAcrossRefreshAndFilter()
     {
         var view = _view = new UsageView { CanShowInProcesses = _ => true };
-        var first = App("first", cpu: 200) with { ImagePath = @"C:\Apps\first.exe" };
-        var second = App("second", cpu: 100) with { ImagePath = @"C:\Apps\second.exe" };
+        var first = App("first", 200) with { ImagePath = @"C:\Apps\first.exe" };
+        var second = App("second", 100) with { ImagePath = @"C:\Apps\second.exe" };
         view.Update(new UsageFrame([first, second], 300, 0, Now, Now, false));
         Assert.That(view.CopyDetails.IsEnabled, Is.False);
 

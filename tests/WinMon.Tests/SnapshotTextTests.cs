@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using WinMon.Controls;
 using WinMon.Monitoring;
+using WinMon.Resources;
 
 namespace WinMon.Tests;
 
@@ -9,18 +10,26 @@ namespace WinMon.Tests;
 [SetUICulture("en")]
 public sealed class SnapshotTextTests
 {
-    private static SnapshotReport Report(bool grouped = false) => new(
-        new MonitorSample(new DateTimeOffset(2026, 10, 21, 14, 32, 8, TimeSpan.FromHours(-5)), 42.3, [], 1)
-        {
-            Resources = new ResourceSample { UsedMemoryBytes = 8UL << 30, TotalMemoryBytes = 16UL << 30,
-                DiskName = "C:", DiskActivePercent = 0, SecondaryDiskName = "D:", SecondaryDiskActivePercent = 28,
-                ReceiveBytesPerSecond = 1_000_000, SendBytesPerSecond = 0 }
-        },
-        [new ProcessUsage(123, 1, "browser", 18.2, 100UL << 20, 2_000_000)
-        {
-            AppName = "Browser", PrivateBytes = 60UL << 20, MemberCount = grouped ? 2 : 1,
-            MemberIds = grouped ? [123, 456] : [], ThreadCount = 12, HandleCount = 34
-        }], grouped, "CPU", "browser", false, "Coverage note", new SnapshotRemainder(3, 4.2, null));
+    private static SnapshotReport Report(bool grouped = false)
+    {
+        return new SnapshotReport(
+            new MonitorSample(new DateTimeOffset(2026, 10, 21, 14, 32, 8, TimeSpan.FromHours(-5)), 42.3, [], 1)
+            {
+                Resources = new ResourceSample
+                {
+                    UsedMemoryBytes = 8UL << 30, TotalMemoryBytes = 16UL << 30,
+                    DiskName = "C:", DiskActivePercent = 0, SecondaryDiskName = "D:", SecondaryDiskActivePercent = 28,
+                    ReceiveBytesPerSecond = 1_000_000, SendBytesPerSecond = 0
+                }
+            },
+            [
+                new ProcessUsage(123, 1, "browser", 18.2, 100UL << 20, 2_000_000)
+                {
+                    AppName = "Browser", PrivateBytes = 60UL << 20, MemberCount = grouped ? 2 : 1,
+                    MemberIds = grouped ? [123, 456] : [], ThreadCount = 12, HandleCount = 34
+                }
+            ], grouped, "CPU", "browser", false, "Coverage note", new SnapshotRemainder(3, 4.2, null));
+    }
 
     [Test]
     public void Format_AlwaysIncludesHistoricalSummaryAndTopProcesses()
@@ -30,7 +39,7 @@ public sealed class SnapshotTextTests
         {
             Assert.That(text, Does.Contain("2026-10-21 14:32:08 -05:00"));
             Assert.That(text, Does.Contain("Capture:").And.Not.Contain("Snapshot"));
-            Assert.That(WinMon.Resources.Strings.CopySnapshot, Is.EqualTo("Copy capture"));
+            Assert.That(Strings.CopySnapshot, Is.EqualTo("Copy capture"));
             Assert.That(text, Does.Contain("42.3%").And.Contain("8.0 / 16 GiB").And.Contain("50.0%"));
             Assert.That(text, Does.Contain("GPU\t—"));
             Assert.That(text, Does.Contain("Disk (C:)\t0.0%").And.Contain("Disk (D:)\t28.0%"));
@@ -45,7 +54,8 @@ public sealed class SnapshotTextTests
     {
         var report = Report(grouped);
         var text = SnapshotText.Format(report);
-        var row = text.Split(Environment.NewLine).Single(l => l.StartsWith(grouped ? "Browser ×2\t" : "Browser\t")).Split('\t');
+        var row = text.Split(Environment.NewLine).Single(l => l.StartsWith(grouped ? "Browser ×2\t" : "Browser\t"))
+            .Split('\t');
         Assert.Multiple(() =>
         {
             Assert.That(row, Has.Length.EqualTo(8));
@@ -54,7 +64,8 @@ public sealed class SnapshotTextTests
             Assert.That(text, Does.Contain(grouped ? "Private (MiB)" : "Memory (MiB)"));
             Assert.That(text, Does.Contain("five-second averages").And.Contain("browser").And.Contain("Coverage note"));
             Assert.That(text, Does.Contain(grouped ? "Other executables" : "Other processes"));
-            Assert.That(text.IndexOf("Browser", StringComparison.Ordinal), Is.LessThan(text.IndexOf("Other", StringComparison.Ordinal)));
+            Assert.That(text.IndexOf("Browser", StringComparison.Ordinal),
+                Is.LessThan(text.IndexOf("Other", StringComparison.Ordinal)));
         });
     }
 

@@ -1,3 +1,6 @@
+// Close handles and cancel callbacks synchronously before releasing ownership or continuing shutdown.
+// ReSharper disable MethodHasAsyncOverload
+
 using System.Diagnostics;
 using WinMon.Monitoring;
 
@@ -30,8 +33,14 @@ internal sealed class NetworkCollectorManager : IAsyncDisposable
         get
         {
             _gate.Wait();
-            try { return _subscribers > 0; }
-            finally { _gate.Release(); }
+            try
+            {
+                return _subscribers > 0;
+            }
+            finally
+            {
+                _gate.Release();
+            }
         }
     }
 
@@ -49,11 +58,15 @@ internal sealed class NetworkCollectorManager : IAsyncDisposable
                 _collector = null;
                 await failed.DisposeAsync().ConfigureAwait(false);
             }
+
             if (_collector is null && !_suspended) await StartAsync(token).ConfigureAwait(false);
             _subscribers++;
             return new Subscription(this);
         }
-        finally { _gate.Release(); }
+        finally
+        {
+            _gate.Release();
+        }
     }
 
     internal ProcessNetworkSnapshot Snapshot(string sid)
@@ -65,10 +78,13 @@ internal sealed class NetworkCollectorManager : IAsyncDisposable
             ObjectDisposedException.ThrowIf(_disposed, this);
             if (!_suspended && _collector is not null && !_collector.Failed) return _collector.Snapshot(sid);
             return new ProcessNetworkSnapshot(Guid.Empty, 0, Stopwatch.GetTimestamp(), Stopwatch.Frequency, 0, 0,
-                ProcessNetworkQuality.Unavailable | ProcessNetworkQuality.Discontinuity, 0, 0, [])
-            { Failure = _collector?.Failure ?? ProcessNetworkFailure.None };
+                    ProcessNetworkQuality.Unavailable | ProcessNetworkQuality.Discontinuity, 0, 0, [])
+                { Failure = _collector?.Failure ?? ProcessNetworkFailure.None };
         }
-        finally { _gate.Release(); }
+        finally
+        {
+            _gate.Release();
+        }
     }
 
     internal async Task SetSuspendedAsync(bool suspended, CancellationToken token)
@@ -85,15 +101,22 @@ internal sealed class NetworkCollectorManager : IAsyncDisposable
                 _collector = null;
                 await previous.DisposeAsync().ConfigureAwait(false);
             }
+
             if (!suspended && _subscribers > 0) await StartAsync(token).ConfigureAwait(false);
         }
-        finally { _gate.Release(); }
+        finally
+        {
+            _gate.Release();
+        }
     }
 
     private async Task StartAsync(CancellationToken token)
     {
         var candidate = _create();
-        try { await candidate.StartAsync(token).ConfigureAwait(false); }
+        try
+        {
+            await candidate.StartAsync(token).ConfigureAwait(false);
+        }
         catch (Exception exception)
         {
             if (exception is not OperationCanceledException || !token.IsCancellationRequested)
@@ -101,6 +124,7 @@ internal sealed class NetworkCollectorManager : IAsyncDisposable
             await candidate.DisposeAsync().ConfigureAwait(false);
             throw;
         }
+
         _collector = candidate;
         Trace.TraceInformation("Network.CollectorStarted");
     }
@@ -115,7 +139,10 @@ internal sealed class NetworkCollectorManager : IAsyncDisposable
             _idle = new CancellationTokenSource();
             _ = StopAfterIdleAsync(_idle.Token);
         }
-        finally { _gate.Release(); }
+        finally
+        {
+            _gate.Release();
+        }
     }
 
     private async Task StopAfterIdleAsync(CancellationToken token)
@@ -134,9 +161,14 @@ internal sealed class NetworkCollectorManager : IAsyncDisposable
                     await previous.DisposeAsync().ConfigureAwait(false);
                 }
             }
-            finally { _gate.Release(); }
+            finally
+            {
+                _gate.Release();
+            }
         }
-        catch (OperationCanceledException) when (token.IsCancellationRequested) { }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+        }
         catch (Exception ex)
         {
             // A failed stop must be visible without logging traffic or process metadata.
@@ -160,12 +192,19 @@ internal sealed class NetworkCollectorManager : IAsyncDisposable
                 await previous.DisposeAsync().ConfigureAwait(false);
             }
         }
-        finally { _gate.Release(); }
+        finally
+        {
+            _gate.Release();
+        }
     }
 
     private sealed class Subscription(NetworkCollectorManager manager) : IAsyncDisposable
     {
         private NetworkCollectorManager? _manager = manager;
-        public ValueTask DisposeAsync() => Interlocked.Exchange(ref _manager, null)?.ReleaseAsync() ?? ValueTask.CompletedTask;
+
+        public ValueTask DisposeAsync()
+        {
+            return Interlocked.Exchange(ref _manager, null)?.ReleaseAsync() ?? ValueTask.CompletedTask;
+        }
     }
 }

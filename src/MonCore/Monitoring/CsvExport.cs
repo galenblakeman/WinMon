@@ -3,7 +3,14 @@ using System.Text;
 
 namespace WinMon.Monitoring;
 
-public enum CsvExportKind { ResourceHistory, ProcessSamples, UsageTotals, Services, Connections }
+public enum CsvExportKind
+{
+    ResourceHistory,
+    ProcessSamples,
+    UsageTotals,
+    Services,
+    Connections
+}
 
 /// <summary>Write retained observations and session usage in stable, invariant, raw-unit CSV columns.</summary>
 public static class CsvExport
@@ -69,7 +76,8 @@ public static class CsvExport
                 Number(r.UsedMemoryBytes), Number(r.TotalMemoryBytes), Number(r.GpuPercent), Safe(r.GpuEngine),
                 Number(r.GpuMemoryUsedBytes), Number(r.GpuSharedMemoryUsedBytes), Safe(r.DiskName),
                 Number(r.DiskActivePercent), Number(r.DiskReadBytesPerSecond), Number(r.DiskWriteBytesPerSecond),
-                Safe(r.SecondaryDiskName), Number(r.SecondaryDiskActivePercent), Number(r.SecondaryDiskReadBytesPerSecond),
+                Safe(r.SecondaryDiskName), Number(r.SecondaryDiskActivePercent),
+                Number(r.SecondaryDiskReadBytesPerSecond),
                 Number(r.SecondaryDiskWriteBytesPerSecond), Safe(r.NetworkName), Number(r.ReceiveBytesPerSecond),
                 Number(r.SendBytesPerSecond));
         }
@@ -79,21 +87,32 @@ public static class CsvExport
     {
         var portable = samples.Any(sample => sample.IndependentProcessReadings || sample.Processes.Any(process =>
             process.LifetimeDomain != ProcessLifetimeIdentity.WindowsFileTime || process.StartedAtUtc is not null));
-        string[] columns = ["timestamp_utc", "pid", "creation_ticks", "parent_pid", "name", "app_name",
+        string[] columns =
+        [
+            "timestamp_utc", "pid", "creation_ticks", "parent_pid", "name", "app_name",
             "image_path", "publisher", "cpu_percent", "gpu_percent", "working_set_bytes", "private_bytes",
-            "io_bytes_per_second", "threads", "handles", "has_app_window", "sample_compacted_processes"];
+            "io_bytes_per_second", "threads", "handles", "has_app_window", "sample_compacted_processes"
+        ];
         Row(writer, portable ? [.. columns, "lifetime_domain", "started_at_utc"] : columns);
         foreach (var sample in samples)
         foreach (var process in sample.Processes)
         {
-            string?[] row = [Utc(sample.Timestamp), Number(process.ProcessId), Number(process.CreationTicks),
+            string?[] row =
+            [
+                Utc(sample.Timestamp), Number(process.ProcessId), Number(process.CreationTicks),
                 Number(process.ParentProcessId), Safe(process.Name), Safe(process.AppName), Safe(process.ImagePath),
                 Safe(process.Publisher), Number(process.ObservedCpuPercent), Number(process.GpuPercent),
                 Number(process.WorkingSetBytes), Number(process.PrivateBytes), Number(process.IoBytesPerSecond),
                 Number(process.ThreadCount), Number(process.HandleCount), Bool(process.HasAppWindow),
-                Number(sample.CompactedProcesses)];
-            Row(writer, portable ? [.. row, Safe(process.LifetimeDomain.ToString()),
-                process.StartedAtUtc is { } start ? Utc(start) : ""] : row);
+                Number(sample.CompactedProcesses)
+            ];
+            Row(writer, portable
+                ?
+                [
+                    .. row, Safe(process.LifetimeDomain.ToString()),
+                    process.StartedAtUtc is { } start ? Utc(start) : ""
+                ]
+                : row);
         }
     }
 
@@ -129,6 +148,7 @@ public static class CsvExport
                     null, null, null, null, null, null, null, null);
                 continue;
             }
+
             foreach (var group in frame.Groups)
             foreach (var service in group.Services)
             {
@@ -147,21 +167,22 @@ public static class CsvExport
         Row(writer, "timestamp_utc", "ipv4_available", "ipv6_available", "pid", "creation_ticks",
             "name", "image_path", "protocol", "local_address", "local_port", "remote_address", "remote_port",
             "tcp_state");
-        foreach (var capture in captures)
+        foreach (var (monitorSample, frame, readOnlyList, _) in captures)
         {
-            var frame = capture.Connections;
             if (frame is null || !frame.Available || frame.Connections.Count == 0)
             {
-                Row(writer, Utc(capture.Sample.Timestamp), Bool(frame?.Ipv4.Available ?? false),
+                Row(writer, Utc(monitorSample.Timestamp), Bool(frame?.Ipv4.Available ?? false),
                     Bool(frame?.Ipv6.Available ?? false), null, null, null, null, null, null, null, null, null, null);
                 continue;
             }
-            var owners = capture.Owners.ToDictionary(owner => (owner.ProcessId, owner.CreationTicks));
+
+            var owners = readOnlyList.ToDictionary(owner => (owner.ProcessId, owner.CreationTicks));
             foreach (var connection in frame.Connections)
             {
                 var owner = connection.ProcessCreationTicks is { } created
-                    ? owners.GetValueOrDefault((connection.ProcessId, created)) : null;
-                Row(writer, Utc(capture.Sample.Timestamp), Bool(frame.Ipv4.Available), Bool(frame.Ipv6.Available),
+                    ? owners.GetValueOrDefault((connection.ProcessId, created))
+                    : null;
+                Row(writer, Utc(monitorSample.Timestamp), Bool(frame.Ipv4.Available), Bool(frame.Ipv6.Available),
                     Number(connection.ProcessId), Number(connection.ProcessCreationTicks), Safe(owner?.Name ?? ""),
                     Safe(owner?.ImagePath ?? ""), connection.Protocol.ToString(),
                     Safe(connection.LocalEndpoint.Address.ToString()), Number(connection.LocalEndpoint.Port),
@@ -171,19 +192,60 @@ public static class CsvExport
         }
     }
 
-    private static string? Share(long part, long whole) => whole > 0 ? Number(100d * part / whole) : null;
-    private static string Safe(string value) => value.TrimStart().StartsWith('=') ||
-                                                value.TrimStart().StartsWith('+') ||
-                                                value.TrimStart().StartsWith('-') ||
-                                                value.TrimStart().StartsWith('@') ? "'" + value : value;
-    private static string Utc(DateTimeOffset timestamp) => timestamp.UtcDateTime.ToString("O", Invariant);
-    private static string Bool(bool value) => value ? "true" : "false";
-    private static string? Bool(bool? value) => value is { } present ? Bool(present) : null;
-    private static string Number(int value) => value.ToString(Invariant);
-    private static string Number(long value) => value.ToString(Invariant);
-    private static string? Number(long? value) => value?.ToString(Invariant);
-    private static string? Number(ulong? value) => value?.ToString(Invariant);
-    private static string? Number(double? value) => value?.ToString("G17", Invariant);
+    private static string? Share(long part, long whole)
+    {
+        return whole > 0 ? Number(100d * part / whole) : null;
+    }
+
+    private static string Safe(string value)
+    {
+        return value.TrimStart().StartsWith('=') ||
+               value.TrimStart().StartsWith('+') ||
+               value.TrimStart().StartsWith('-') ||
+               value.TrimStart().StartsWith('@')
+            ? "'" + value
+            : value;
+    }
+
+    private static string Utc(DateTimeOffset timestamp)
+    {
+        return timestamp.UtcDateTime.ToString("O", Invariant);
+    }
+
+    private static string Bool(bool value)
+    {
+        return value ? "true" : "false";
+    }
+
+    private static string? Bool(bool? value)
+    {
+        return value is { } present ? Bool(present) : null;
+    }
+
+    private static string Number(int value)
+    {
+        return value.ToString(Invariant);
+    }
+
+    private static string Number(long value)
+    {
+        return value.ToString(Invariant);
+    }
+
+    private static string? Number(long? value)
+    {
+        return value?.ToString(Invariant);
+    }
+
+    private static string? Number(ulong? value)
+    {
+        return value?.ToString(Invariant);
+    }
+
+    private static string? Number(double? value)
+    {
+        return value?.ToString("G17", Invariant);
+    }
 
     private static void Row(TextWriter writer, params string?[] values)
     {
@@ -191,7 +253,10 @@ public static class CsvExport
         {
             if (i > 0) writer.Write(',');
             var value = values[i] ?? "";
-            if (value.IndexOfAny([',', '"', '\r', '\n']) < 0) writer.Write(value);
+            if (value.IndexOfAny([',', '"', '\r', '\n']) < 0)
+            {
+                writer.Write(value);
+            }
             else
             {
                 writer.Write('"');

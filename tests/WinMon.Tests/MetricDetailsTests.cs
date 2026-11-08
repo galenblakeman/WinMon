@@ -1,6 +1,8 @@
+using System.Globalization;
 using NUnit.Framework;
 using WinMon.Controls;
 using WinMon.Monitoring;
+using WinMon.Resources;
 
 namespace WinMon.Tests;
 
@@ -59,12 +61,12 @@ public sealed class MetricDetailsTests
         Assert.Multiple(() =>
         {
             Assert.That(MainWindow.ProcessThreadCounts(sample.Resources),
-                Is.EqualTo(string.Format(System.Globalization.CultureInfo.CurrentCulture, "{0:N0} · {1:N0}", 1247, 18903)));
+                Is.EqualTo(string.Format(CultureInfo.CurrentCulture, "{0:N0} · {1:N0}", 1247, 18903)));
             Assert.That(MainWindow.HandleCountText(sample.Resources),
-                Is.EqualTo(string.Format(System.Globalization.CultureInfo.CurrentCulture, "{0:N0}", 612880)));
+                Is.EqualTo(string.Format(CultureInfo.CurrentCulture, "{0:N0}", 612880)));
             Assert.That(MainWindow.ProcessThreadCounts(system with { ThreadCount = null }),
-                Is.EqualTo(WinMon.Resources.Strings.MissingReading));
-            Assert.That(MainWindow.HandleCountText(null), Is.EqualTo(WinMon.Resources.Strings.MissingReading));
+                Is.EqualTo(Strings.MissingReading));
+            Assert.That(MainWindow.HandleCountText(null), Is.EqualTo(Strings.MissingReading));
         });
     }
 
@@ -82,7 +84,7 @@ public sealed class MetricDetailsTests
         Assert.Multiple(() =>
         {
             Assert.That(MainWindow.CompactCount(value), Is.EqualTo(expected));
-            Assert.That(MainWindow.CompactCount(null), Is.EqualTo(WinMon.Resources.Strings.MissingReading));
+            Assert.That(MainWindow.CompactCount(null), Is.EqualTo(Strings.MissingReading));
             Assert.That(MainWindow.ExactCount(value), Is.EqualTo(value.ToString("N0")));
         });
     }

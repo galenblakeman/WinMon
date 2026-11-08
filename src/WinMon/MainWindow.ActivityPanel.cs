@@ -20,7 +20,9 @@ public partial class MainWindow
         var relevant = _preferences.ResourceChartType != ResourceChartType.LogicalProcessors;
         ChartResourcesToggle.Visibility = relevant ? Visibility.Visible : Visibility.Collapsed;
         ChartResourcesToggle.IsEnabled = !_preferences.ChartPanelCollapsed;
-        ChartLegend.Visibility = relevant && !_preferences.ChartResourcesCollapsed ? Visibility.Visible : Visibility.Collapsed;
+        ChartLegend.Visibility = relevant && !_preferences.ChartResourcesCollapsed
+            ? Visibility.Visible
+            : Visibility.Collapsed;
         var help = _preferences.ChartResourcesCollapsed ? Strings.ShowChartResources : Strings.HideChartResources;
         ChartResourcesToggle.ToolTip = help;
         AutomationProperties.SetHelpText(ChartResourcesToggle, help);
@@ -60,7 +62,8 @@ public partial class MainWindow
 
     private void RememberActivityPanelSize()
     {
-        if (_preferences.ActivityPanelCollapsed || _preferences.ChartPanelCollapsed || CompactMode || !ChartAreaRow.Height.IsStar ||
+        if (_preferences.ActivityPanelCollapsed || _preferences.ChartPanelCollapsed || CompactMode ||
+            !ChartAreaRow.Height.IsStar ||
             !ProcessesAreaRow.Height.IsStar || ChartAreaRow.Height.Value <= 0) return;
         _preferences = _preferences with
         {
@@ -78,7 +81,8 @@ public partial class MainWindow
         UpdateChartLegend();
         ProcessesAreaRow.MinHeight = collapsed ? 0 : 344;
         ChartAreaRow.Height = chartCollapsed ? GridLength.Auto : new GridLength(1, GridUnitType.Star);
-        ProcessesAreaRow.Height = collapsed ? GridLength.Auto : new GridLength(_preferences.ActivityPanelRatio, GridUnitType.Star);
+        ProcessesAreaRow.Height =
+            collapsed ? GridLength.Auto : new GridLength(_preferences.ActivityPanelRatio, GridUnitType.Star);
         UpdateActivityPanelButton();
         UpdateChartPanelButton();
     }
@@ -93,13 +97,19 @@ public partial class MainWindow
         ChartPanelToggle.SetExpanded(!collapsed);
     }
 
-    private void OnChartLegendSizeChanged(object sender, SizeChangedEventArgs e) => UpdateChartMinimumHeight();
+    private void OnChartLegendSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        UpdateChartMinimumHeight();
+    }
 
     private void UpdateChartMinimumHeight()
     {
-        ChartAreaRow.MinHeight = _preferences.ChartPanelCollapsed ? 0 : 160 +
-            (ChartLegend.Visibility == Visibility.Visible
-                ? ChartLegendHost.ActualHeight + ChartLegendHost.Margin.Top + ChartLegendHost.Margin.Bottom : 0);
+        ChartAreaRow.MinHeight = _preferences.ChartPanelCollapsed
+            ? 0
+            : 160 +
+              (ChartLegend.Visibility == Visibility.Visible
+                  ? ChartLegendHost.ActualHeight + ChartLegendHost.Margin.Top + ChartLegendHost.Margin.Bottom
+                  : 0);
     }
 
     private void UpdateActivityPanelButton()

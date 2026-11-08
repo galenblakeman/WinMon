@@ -50,6 +50,7 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
     /// <param name="sort">Ranking column; missing GPU, memory or I/O readings never become zero.</param>
     /// <param name="grouped">Combine processes of the same executable into one row each.</param>
     /// <param name="includeInactive">Include observed processes even without activity or a reading in the sort column, for search.</param>
+    /// <param name="identityPolicy">Executable identity comparison; the Windows policy when omitted.</param>
     /// <returns>The ranking, empty when the last sample is a gap or has no CPU reading.</returns>
     public static ProcessRanking Rank(IReadOnlyList<MonitorSample> history, int windowSeconds = DefaultWindowSeconds,
         ProcessSort sort = ProcessSort.Cpu, bool grouped = false, bool includeInactive = false,
@@ -182,7 +183,8 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
         for (var i = history.Count - 1; i >= 0; i--)
         {
             var sample = history[i];
-            if (Moment(sample) < start || sample.IsGap || (sample.TotalCpuPercent is null && !sample.IndependentProcessReadings)) break;
+            if (Moment(sample) < start || sample.IsGap ||
+                (sample.TotalCpuPercent is null && !sample.IndependentProcessReadings)) break;
             if (i < history.Count - 1 && Moment(history[i + 1]) - Moment(sample) > GapSeconds) break;
             first = i;
         }

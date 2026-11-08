@@ -1,4 +1,3 @@
-using System.Threading;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Automation;
@@ -34,7 +33,10 @@ public sealed class ChartSnapshotTests
     public void SelectLatest_UsesSameRecordedSampleAsChartClick_AndCentersAnchorVertically(bool gap)
     {
         var first = new MonitorSample(DateTimeOffset.UtcNow, 10, [], 0);
-        var latest = first with { Timestamp = first.Timestamp.AddSeconds(1), TotalCpuPercent = gap ? null : 70, IsGap = gap };
+        var latest = first with
+        {
+            Timestamp = first.Timestamp.AddSeconds(1), TotalCpuPercent = gap ? null : 70, IsGap = gap
+        };
         var graph = new CpuGraph { ShowGrid = true };
         graph.Measure(new Size(600, 240));
         graph.Arrange(new Rect(0, 0, 600, 240));
@@ -115,6 +117,7 @@ public sealed class ChartSnapshotTests
             graph.SetData([new MonitorSample(DateTimeOffset.UtcNow, null, [], 0, true)], 120, null);
             graph.SelectLatest();
         }
+
         Assert.That(selections, Is.Zero);
     }
 

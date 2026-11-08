@@ -27,7 +27,7 @@ public partial class MainWindow
         internal Guid ReportId { get; } = reportId;
         internal string Rule { get; } = rule;
 
-        /// <summary>Null until the write succeeds, and when it failed.</summary>
+        /// <summary>The path after a successful write; null before completion or after failure.</summary>
         internal string? ReportPath { get; set; }
 
         internal bool WriteFailed { get; set; }

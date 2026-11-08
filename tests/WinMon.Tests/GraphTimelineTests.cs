@@ -37,8 +37,10 @@ public sealed class GraphTimelineTests
         Assert.That(CpuGraph.ProcessScaleMaximum([], 10, process), Is.EqualTo(0.1));
         return;
 
-        MonitorSample Sample(int second, ProcessUsage usage, bool gap = false) =>
-            new(DateTimeOffset.UtcNow, 80, [usage], 0, gap, Stopwatch.Frequency * second);
+        MonitorSample Sample(int second, ProcessUsage usage, bool gap = false)
+        {
+            return new MonitorSample(DateTimeOffset.UtcNow, 80, [usage], 0, gap, Stopwatch.Frequency * second);
+        }
     }
 
     [Test]
@@ -46,7 +48,10 @@ public sealed class GraphTimelineTests
     {
         var process = new ProcessUsage(42, 100, "example", 0.4);
         var first = new MonitorSample(DateTimeOffset.UtcNow, 20, [process], 0, false, Stopwatch.Frequency);
-        var spike = first with { Processes = [process with { CpuPercent = 50 }], MonotonicTimestamp = Stopwatch.Frequency * 2 };
+        var spike = first with
+        {
+            Processes = [process with { CpuPercent = 50 }], MonotonicTimestamp = Stopwatch.Frequency * 2
+        };
 
         Assert.That(CpuGraph.ProcessScaleMaximum([first], 120, process), Is.EqualTo(0.5));
         Assert.That(CpuGraph.ProcessScaleMaximum([first, spike], 120, process), Is.EqualTo(55));
@@ -58,7 +63,8 @@ public sealed class GraphTimelineTests
     {
         var stamp = DateTimeOffset.Parse("2026-10-19T12:00:00Z");
         var first = new MonitorSample(stamp, 25, [], 0, false, Stopwatch.Frequency * 10);
-        var next = new MonitorSample(stamp.AddSeconds(wallClockJumpSeconds), 50, [], 0, false, Stopwatch.Frequency * 11);
+        var next = new MonitorSample(stamp.AddSeconds(wallClockJumpSeconds), 50, [], 0, false,
+            Stopwatch.Frequency * 11);
 
         Assert.That(CpuGraph.Moment(next) - CpuGraph.Moment(first), Is.EqualTo(1).Within(0.000001));
     }

@@ -70,7 +70,8 @@ public sealed class WindowsConnectionsTests
         Assert.Multiple(() =>
         {
             Assert.That(connections.Single().ProcessId, Is.EqualTo(123));
-            Assert.That(connections.Single().LocalEndpoint, Is.EqualTo(new IPEndPoint(IPAddress.Parse("fe80::1%7"), 80)));
+            Assert.That(connections.Single().LocalEndpoint,
+                Is.EqualTo(new IPEndPoint(IPAddress.Parse("fe80::1%7"), 80)));
             Assert.That(connections.Single().RemoteEndpoint, Is.Null);
             Assert.That(connections.Single().State, Is.EqualTo(TcpState.Listen));
         });

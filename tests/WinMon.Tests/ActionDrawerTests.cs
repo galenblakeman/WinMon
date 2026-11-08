@@ -8,10 +8,14 @@ using WinMon.Resources;
 
 namespace WinMon.Tests;
 
-[TestFixture, Apartment(ApartmentState.STA), SetUICulture("en")]
+[TestFixture]
+[Apartment(ApartmentState.STA)]
+[SetUICulture("en")]
 public sealed class ActionDrawerTests
 {
-    private static ProcessDetailsSnapshot Snapshot => new(new(123, 456, "example.exe", 2) { ImagePath = @"C:\Apps\example.exe" }, false, DateTimeOffset.Now, false, true, "");
+    private static ProcessDetailsSnapshot Snapshot =>
+        new(new(123, 456, "example.exe", 2) { ImagePath = @"C:\Apps\example.exe" }, false, DateTimeOffset.Now, false,
+            true, "");
 
     [Test]
     public void CollapsingLeavesAStripNamingTheSelectionAndRestoresTheSameBar()
@@ -113,9 +117,9 @@ public sealed class ActionDrawerTests
     private static IEnumerable<Button> LogicalButtons(DependencyObject element)
     {
         foreach (var child in LogicalTreeHelper.GetChildren(element).OfType<DependencyObject>())
-        {
             if (child is Button button) yield return button;
-            else foreach (var nested in LogicalButtons(child)) yield return nested;
-        }
+            else
+                foreach (var nested in LogicalButtons(child))
+                    yield return nested;
     }
 }

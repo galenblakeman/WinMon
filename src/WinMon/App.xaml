@@ -178,13 +178,25 @@
                         <ColumnDefinition />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <TextBlock Text="{Binding Title}" Foreground="{Binding Accent}"
-                               FontSize="16" FontWeight="SemiBold" />
-                    <TextBlock Grid.Column="1" Text="{Binding Live}" Foreground="{DynamicResource Muted}" />
+                    <TextBlock
+                        FontSize="16"
+                        FontWeight="SemiBold"
+                        Foreground="{Binding Accent}"
+                        Text="{Binding Title}" />
+                    <TextBlock
+                        Grid.Column="1"
+                        Foreground="{DynamicResource Muted}"
+                        Text="{Binding Live}" />
                 </Grid>
-                <TextBlock Margin="0,5,0,9" Text="{Binding Definition}" TextWrapping="Wrap"
-                           Foreground="{DynamicResource Muted}" />
-                <Border Height="1" Background="{DynamicResource Line}" Margin="0,0,0,6" />
+                <TextBlock
+                    Margin="0,5,0,9"
+                    Foreground="{DynamicResource Muted}"
+                    Text="{Binding Definition}"
+                    TextWrapping="Wrap" />
+                <Border
+                    Height="1"
+                    Margin="0,0,0,6"
+                    Background="{DynamicResource Line}" />
                 <ItemsControl ItemsSource="{Binding Rows}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
@@ -193,15 +205,26 @@
                                     <ColumnDefinition Width="Auto" SharedSizeGroup="DetailLabels" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock MaxWidth="210" Margin="0,0,10,0" Text="{Binding Label}"
-                                           TextTrimming="CharacterEllipsis" Foreground="{DynamicResource Muted}" />
-                                <TextBlock Grid.Column="1" Text="{Binding Value}" TextAlignment="Right"
-                                           FontFamily="Segoe UI" TextTrimming="CharacterEllipsis" />
+                                <TextBlock
+                                    MaxWidth="210"
+                                    Margin="0,0,10,0"
+                                    Foreground="{DynamicResource Muted}"
+                                    Text="{Binding Label}"
+                                    TextTrimming="CharacterEllipsis" />
+                                <TextBlock
+                                    Grid.Column="1"
+                                    FontFamily="Segoe UI"
+                                    Text="{Binding Value}"
+                                    TextAlignment="Right"
+                                    TextTrimming="CharacterEllipsis" />
                             </Grid>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
-                <Border Height="1" Background="{DynamicResource Line}" Margin="0,8,0,6" />
+                <Border
+                    Height="1"
+                    Margin="0,8,0,6"
+                    Background="{DynamicResource Line}" />
                 <TextBlock Text="{Binding Peak}" TextWrapping="Wrap" />
             </StackPanel>
         </DataTemplate>
@@ -209,8 +232,11 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Control">
-                        <Rectangle Margin="2" Stroke="{DynamicResource Text}" StrokeDashArray="2,2"
-                                   StrokeThickness="1" />
+                        <Rectangle
+                            Margin="2"
+                            Stroke="{DynamicResource Text}"
+                            StrokeDashArray="2,2"
+                            StrokeThickness="1" />
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -622,8 +648,10 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        <!-- Keep the Settings sidebar's themed surface and readable item colors while an async Settings action
-             disables navigation. The standard ListBox disabled visual uses a system fallback surface. -->
+        <!--
+            Keep the Settings sidebar's themed surface and readable item colors while an async Settings action
+            disables navigation. The standard ListBox disabled visual uses a system fallback surface.
+        -->
         <Style x:Key="SettingsNavigation" TargetType="ListBox">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
@@ -631,9 +659,11 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="ListBox">
                         <Border x:Name="SidebarSurface" Background="{TemplateBinding Background}">
-                            <ScrollViewer CanContentScroll="True" Focusable="False"
-                                          HorizontalScrollBarVisibility="Disabled"
-                                          VerticalScrollBarVisibility="Auto">
+                            <ScrollViewer
+                                CanContentScroll="True"
+                                Focusable="False"
+                                HorizontalScrollBarVisibility="Disabled"
+                                VerticalScrollBarVisibility="Auto">
                                 <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Cycle" />
                             </ScrollViewer>
                         </Border>

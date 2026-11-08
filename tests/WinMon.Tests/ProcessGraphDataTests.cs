@@ -20,10 +20,13 @@ public sealed class ProcessGraphDataTests
     [TestCase(ProcessSort.Handles, false, 100, 200)]
     [TestCase(ProcessSort.Threads, true, 30, 20)]
     [TestCase(ProcessSort.Handles, true, 300, 200)]
-    public void Build_SelectedMetricUsesMatchingValuesAndSharedScale(ProcessSort sort, bool grouped, double first, double second)
+    public void Build_SelectedMetricUsesMatchingValuesAndSharedScale(ProcessSort sort, bool grouped, double first,
+        double second)
     {
-        var a = new ProcessUsage(1, 100, "a", 2, 2000, 200) { PrivateBytes = 100, GpuPercent = 20, ThreadCount = 10, HandleCount = 100 };
-        var b = new ProcessUsage(2, 200, "a", 3, 4000, 400) { PrivateBytes = 500, GpuPercent = 40, ThreadCount = 20, HandleCount = 200 };
+        var a = new ProcessUsage(1, 100, "a", 2, 2000, 200)
+            { PrivateBytes = 100, GpuPercent = 20, ThreadCount = 10, HandleCount = 100 };
+        var b = new ProcessUsage(2, 200, "a", 3, 4000, 400)
+            { PrivateBytes = 500, GpuPercent = 40, ThreadCount = 20, HandleCount = 200 };
         var c = b with { ProcessId = 3, Name = "c" };
         MonitorSample[] samples = [new(DateTimeOffset.UtcNow, 50, [a, b, c], 0, false, Stopwatch.Frequency)];
 
@@ -87,15 +90,20 @@ public sealed class ProcessGraphDataTests
         for (var row = 0; row < identities.Length; row++)
         {
             var identity = identities[row];
-            var expected = visible.Select(s => s.IsGap ? (double?)null : s.Processes
-                .FirstOrDefault(p => p.ProcessId == identity.ProcessId && p.CreationTicks == identity.CreationTicks)?.CpuPercent).ToArray();
+            var expected = visible.Select(s => s.IsGap
+                ? (double?)null
+                : s.Processes
+                    .FirstOrDefault(p => p.ProcessId == identity.ProcessId && p.CreationTicks == identity.CreationTicks)
+                    ?.CpuPercent).ToArray();
             Assert.Multiple(() =>
             {
                 Assert.That(data[row].Samples, Is.EqualTo(visible));
                 Assert.That(data[row].Values, Is.EqualTo(expected));
-                Assert.That(data[row].ScaleMaximum, Is.EqualTo(Math.Clamp(Math.Ceiling(sharedPeak * 11) / 10, 0.1, 100)));
+                Assert.That(data[row].ScaleMaximum,
+                    Is.EqualTo(Math.Clamp(Math.Ceiling(sharedPeak * 11) / 10, 0.1, 100)));
             });
         }
+
         Assert.That(data[0].Samples, Is.SameAs(data[1].Samples));
     }
 
@@ -116,7 +124,9 @@ public sealed class ProcessGraphDataTests
         });
         return;
 
-        MonitorSample Sample(int second, params ProcessUsage[] processes) =>
-            new(DateTimeOffset.UtcNow, 50, processes, 0, false, Stopwatch.Frequency * second);
+        MonitorSample Sample(int second, params ProcessUsage[] processes)
+        {
+            return new MonitorSample(DateTimeOffset.UtcNow, 50, processes, 0, false, Stopwatch.Frequency * second);
+        }
     }
 }

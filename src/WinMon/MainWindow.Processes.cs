@@ -1,6 +1,8 @@
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Automation;
+using System.Windows.Controls;
+using System.Windows.Documents;
 using WinMon.Controls;
 using WinMon.Monitoring;
 
@@ -56,8 +58,8 @@ public partial class MainWindow
         AutomationProperties.SetName(SystemCounts, exact);
     }
 
-    private static void UpdateActivityPair(System.Windows.Controls.TextBlock display,
-        System.Windows.Documents.Run totalValue, System.Windows.Documents.Run secondaryValue,
+    private static void UpdateActivityPair(TextBlock display,
+        Run totalValue, Run secondaryValue,
         uint? total, uint? secondary, string totalLabel, string secondaryLabel,
         ref (uint? Total, uint? Secondary)? previous)
     {

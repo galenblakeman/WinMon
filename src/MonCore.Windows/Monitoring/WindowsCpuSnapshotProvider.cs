@@ -1,3 +1,6 @@
+// Nested data members retain native or binding names; outer static members are qualified at call sites.
+// ReSharper disable MemberHidesStaticFromOuterClass
+
 using System.Buffers.Binary;
 using System.ComponentModel;
 using System.Diagnostics;

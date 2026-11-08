@@ -1,5 +1,10 @@
-using System.Runtime.InteropServices;
+// Close handles and cancel callbacks synchronously before releasing ownership or continuing shutdown.
+// ReSharper disable MethodHasAsyncOverload
+
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Security;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using WinMon.Diagnostics;
@@ -11,7 +16,8 @@ internal static class SetupService
 {
     internal static bool RestartRequired { get; private set; }
 
-    internal static async Task<SetupTransaction> BeginAsync(string operation, string requesterSid, NetworkSetupPackage package, CancellationToken token)
+    internal static async Task<SetupTransaction> BeginAsync(string operation, string requesterSid,
+        NetworkSetupPackage package, CancellationToken token)
     {
         if (operation is not ("install" or "remove")) throw new InvalidDataException("Unsupported setup operation.");
         ProtectedInstallation.PrepareParent();
@@ -23,11 +29,20 @@ internal static class SetupService
             if (Directory.Exists(SetupPaths.InstallDirectory)) InstalledFiles.Validate(SetupPaths.InstallDirectory);
             else if (state.Exists) throw new UnauthorizedAccessException("Missing owned service installation.");
             var registration = SetupRegistration.Capture();
-            return operation == "install" ? Install(requesterSid, package, state, registration, lease, token) :
-                Remove(lease);
+            return operation == "install"
+                ? Install(requesterSid, package, state, registration, lease, token)
+                : Remove(lease);
         }
-        catch (OperationCanceledException) { lease.Dispose(); throw; }
-        catch (Exception exception) { lease.Dispose(); throw SetupFailure.Wrap("prepare", exception); }
+        catch (OperationCanceledException)
+        {
+            lease.Dispose();
+            throw;
+        }
+        catch (Exception exception)
+        {
+            lease.Dispose();
+            throw SetupFailure.Wrap("prepare", exception);
+        }
     }
 
     internal static async Task RemoveAsync(CancellationToken token)
@@ -38,7 +53,7 @@ internal static class SetupService
         var state = NativeService.CaptureState();
         if (Directory.Exists(SetupPaths.InstallDirectory)) InstalledFiles.Validate(SetupPaths.InstallDirectory);
         else if (state.Exists) throw new UnauthorizedAccessException("Missing owned service installation.");
-        var registration = SetupRegistration.Capture();
+        _ = SetupRegistration.Capture();
         await using var transaction = Remove(null);
         await transaction.CommitAsync(token).ConfigureAwait(false);
     }
@@ -52,7 +67,8 @@ internal static class SetupService
         {
             NativeService.EnsureOwnedOrAbsent();
             var state = NativeService.CaptureState();
-            if (!Directory.Exists(SetupPaths.InstallDirectory) || !state.Exists) throw new UnauthorizedAccessException("Missing owned service installation.");
+            if (!Directory.Exists(SetupPaths.InstallDirectory) || !state.Exists)
+                throw new UnauthorizedAccessException("Missing owned service installation.");
             InstalledFiles.Validate(SetupPaths.InstallDirectory);
             _ = SetupRegistration.Capture();
             var policy = Path.Combine(SetupPaths.InstallDirectory, SetupPaths.PolicyFileName);
@@ -75,7 +91,12 @@ internal static class SetupService
                 () => NativeService.Restore(state, CancellationToken.None),
                 (source, destination) => AuthorizationPolicy.Save(destination, AuthorizationPolicy.Load(source)));
         }
-        finally { lease?.Dispose(); }
+        // Ownership transfer sets lease to null before this finally runs.
+        // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
+        finally
+        {
+            lease?.Dispose();
+        }
     }
 
     private static SetupTransaction Install(string sid, NetworkSetupPackage package, NativeService.ServiceState state,
@@ -83,13 +104,15 @@ internal static class SetupService
     {
         AuthorizationPolicy.ValidateSid(sid);
         if (File.Exists(SetupPaths.ServiceExecutable))
-            ValidateUpgrade(FileVersionInfo.GetVersionInfo(SetupPaths.ServiceExecutable).FileVersion, package.Manifest.Version);
+            ValidateUpgrade(FileVersionInfo.GetVersionInfo(SetupPaths.ServiceExecutable).FileVersion,
+                package.Manifest.Version);
         var stage = StagingPath("staging");
         if (Directory.Exists(stage) || File.Exists(stage)) throw new IOException("Staging path already exists.");
         string? backup = null;
         var swapped = false;
         var stopped = false;
         var serviceChanged = false;
+
         void Rollback()
         {
             if (serviceChanged) NativeService.StopOwnedIfRunning(CancellationToken.None);
@@ -99,6 +122,7 @@ internal static class SetupService
             SetupRegistration.Restore(registration);
             DeleteTree(stage);
         }
+
         return SetupTransaction.Start(() =>
         {
             token.ThrowIfCancellationRequested();
@@ -106,15 +130,24 @@ internal static class SetupService
             package.ArchiveStream.Position = 0;
             SetupFailure.At("archive", () => PackageExtraction.ExtractServiceArchive(package.ArchiveStream, stage));
             package.HelperStream.Position = 0;
-            using (var output = ProtectedInstallation.CreateFile(Path.Combine(stage, SetupPaths.SetupExecutableName), FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            using (var output = ProtectedInstallation.CreateFile(Path.Combine(stage, SetupPaths.SetupExecutableName),
+                       FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                // At invokes its callback synchronously before output leaves the using scope.
+                // ReSharper disable once AccessToDisposedClosure
+            {
                 SetupFailure.At("helper", () => package.HelperStream.CopyTo(output));
+            }
+
             var policy = Path.Combine(SetupPaths.InstallDirectory, SetupPaths.PolicyFileName);
-            var users = AuthorizationPolicy.AddAuthorizedUser(File.Exists(policy) ? AuthorizationPolicy.Load(policy) : [], sid);
-            SetupFailure.At("policy", () => AuthorizationPolicy.Save(Path.Combine(stage, SetupPaths.PolicyFileName), users));
+            var users = AuthorizationPolicy.AddAuthorizedUser(
+                File.Exists(policy) ? AuthorizationPolicy.Load(policy) : [], sid);
+            SetupFailure.At("policy",
+                () => AuthorizationPolicy.Save(Path.Combine(stage, SetupPaths.PolicyFileName), users));
             SetupFailure.At("protect", () => ProtectTree(stage));
             SetupFailure.At("inventory", () => InstalledFiles.Write(stage));
             SetupFailure.At("protect", () => ProtectTree(stage));
-            SetupFailure.At("verify", () => NetworkSetupPackage.VerifyPublisher(Path.Combine(stage, SetupPaths.ServiceExecutableName)));
+            SetupFailure.At("verify",
+                () => NetworkSetupPackage.VerifyPublisher(Path.Combine(stage, SetupPaths.ServiceExecutableName)));
             token.ThrowIfCancellationRequested();
             // Mark before the native call: it can stop successfully and then throw while waiting for status.
             stopped = true;
@@ -124,19 +157,28 @@ internal static class SetupService
                 backup = StagingPath("backup");
                 SetupFailure.At("swap", () => Directory.Move(SetupPaths.InstallDirectory, backup));
             }
+
             SetupFailure.At("swap", () => Directory.Move(stage, SetupPaths.InstallDirectory));
             swapped = true;
             serviceChanged = true;
             SetupFailure.At("service", () => NativeService.CreateOrUpdateOwned(users));
-            try { LogDirectories.Provision(sid); }
-            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or System.Security.SecurityException)
+            try
+            {
+                LogDirectories.Provision(sid);
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException
+                                                  or SecurityException)
             {
                 // Logging must not block service installation; the app retains its per-user fallback.
                 Trace.TraceWarning("Logging.SharedProvisionFailed: {0}", exception);
             }
+
             SetupFailure.At("service", () => NativeService.StartAndVerify(token));
             SetupFailure.At("registration", SetupRegistration.Write);
-        }, Rollback, () => { if (backup is not null) DeleteTree(backup); }, lease);
+        }, Rollback, () =>
+        {
+            if (backup is not null) DeleteTree(backup);
+        }, lease);
     }
 
     private static SetupTransaction Remove(IDisposable? lease)
@@ -150,14 +192,23 @@ internal static class SetupService
         }, lease);
     }
 
-    internal static string StagingPath(string kind) => Path.Combine(ProtectedInstallation.Parent, $".NetworkMonitor-{kind}-{Guid.NewGuid():N}");
+    internal static string StagingPath(string kind)
+    {
+        return Path.Combine(ProtectedInstallation.Parent, $".NetworkMonitor-{kind}-{Guid.NewGuid():N}");
+    }
 
     internal static void ValidateUpgrade(string? installed, string requested)
     {
         if (!Version.TryParse(installed, out var previous) || !Version.TryParse(requested, out var next))
             throw new InvalidDataException("Cannot verify installed service version.");
-        static Version Normalize(Version value) => new(value.Major, value.Minor, Math.Max(0, value.Build), Math.Max(0, value.Revision));
-        if (Normalize(previous) > Normalize(next)) throw new InvalidOperationException("A newer network service is installed; setup cannot downgrade it.");
+
+        static Version Normalize(Version value)
+        {
+            return new Version(value.Major, value.Minor, Math.Max(0, value.Build), Math.Max(0, value.Revision));
+        }
+
+        if (Normalize(previous) > Normalize(next))
+            throw new InvalidOperationException("A newer network service is installed; setup cannot downgrade it.");
     }
 
     private static async Task<FileStream> AcquireLockAsync(CancellationToken token)
@@ -167,8 +218,15 @@ internal static class SetupService
         {
             token.ThrowIfCancellationRequested();
             if (File.Exists(path)) ProtectedInstallation.Check(new FileInfo(path));
-            try { return ProtectedInstallation.CreateFile(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None); }
-            catch (IOException) { await Task.Delay(100, token).ConfigureAwait(false); }
+            try
+            {
+                return ProtectedInstallation.CreateFile(path, FileMode.OpenOrCreate, FileAccess.ReadWrite,
+                    FileShare.None);
+            }
+            catch (IOException)
+            {
+                await Task.Delay(100, token).ConfigureAwait(false);
+            }
         }
     }
 
@@ -182,7 +240,8 @@ internal static class SetupService
         while (pending.TryPop(out var directory))
             foreach (var item in directory.EnumerateFileSystemInfos())
             {
-                if (++count > 4096 || (item.Attributes & FileAttributes.ReparsePoint) != 0) throw new InvalidDataException("Invalid staging tree.");
+                if (++count > 4096 || (item.Attributes & FileAttributes.ReparsePoint) != 0)
+                    throw new InvalidDataException("Invalid staging tree.");
                 if (item is DirectoryInfo child)
                 {
                     child.SetAccessControl(ProtectedInstallation.Security());
@@ -193,9 +252,14 @@ internal static class SetupService
                     var security = new FileSecurity();
                     security.SetOwner(new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null));
                     security.SetAccessRuleProtection(true, false);
-                    foreach (var (sid, rights) in new[] { (WellKnownSidType.LocalSystemSid, FileSystemRights.FullControl),
-                        (WellKnownSidType.BuiltinAdministratorsSid, FileSystemRights.FullControl), (WellKnownSidType.BuiltinUsersSid, FileSystemRights.ReadAndExecute) })
-                        security.AddAccessRule(new FileSystemAccessRule(new SecurityIdentifier(sid, null), rights, AccessControlType.Allow));
+                    foreach (var (sid, rights) in new[]
+                             {
+                                 (WellKnownSidType.LocalSystemSid, FileSystemRights.FullControl),
+                                 (WellKnownSidType.BuiltinAdministratorsSid, FileSystemRights.FullControl),
+                                 (WellKnownSidType.BuiltinUsersSid, FileSystemRights.ReadAndExecute)
+                             })
+                        security.AddAccessRule(new FileSystemAccessRule(new SecurityIdentifier(sid, null), rights,
+                            AccessControlType.Allow));
                     ((FileInfo)item).SetAccessControl(security);
                 }
             }
@@ -205,22 +269,27 @@ internal static class SetupService
     {
         if (!Directory.Exists(path)) return;
         foreach (var item in ProtectedInstallation.Tree(path).OrderByDescending(item => item.FullName.Length))
-            if (item is DirectoryInfo directory) directory.Delete(); else ((FileInfo)item).Delete();
+            if (item is DirectoryInfo directory) directory.Delete();
+            else ((FileInfo)item).Delete();
     }
 
     private static void DeleteInstallation()
     {
         var tree = InstalledFiles.Validate(SetupPaths.InstallDirectory);
         foreach (var item in tree.OrderByDescending(item => item.FullName.Length))
-        {
-            try { if (item is DirectoryInfo directory) directory.Delete(); else ((FileInfo)item).Delete(); }
-            catch (IOException) when (string.Equals(Environment.ProcessPath, SetupPaths.InstalledSetupExecutable, StringComparison.OrdinalIgnoreCase) &&
-                (item is DirectoryInfo || string.Equals(item.FullName, SetupPaths.InstalledSetupExecutable, StringComparison.OrdinalIgnoreCase)))
+            try
             {
-                if (!MoveFileEx(item.FullName, null, 4)) throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
+                if (item is DirectoryInfo directory) directory.Delete();
+                else ((FileInfo)item).Delete();
+            }
+            catch (IOException) when (string.Equals(Environment.ProcessPath, SetupPaths.InstalledSetupExecutable,
+                                          StringComparison.OrdinalIgnoreCase) &&
+                                      (item is DirectoryInfo || string.Equals(item.FullName,
+                                          SetupPaths.InstalledSetupExecutable, StringComparison.OrdinalIgnoreCase)))
+            {
+                if (!MoveFileEx(item.FullName, null, 4)) throw new Win32Exception(Marshal.GetLastWin32Error());
                 RestartRequired = true;
             }
-        }
     }
 
     [DllImport("kernel32.dll", EntryPoint = "MoveFileExW", CharSet = CharSet.Unicode, SetLastError = true)]
@@ -240,9 +309,12 @@ internal static class RevocationTransaction
         var committed = false;
         try
         {
-            stopped = true; stop();
-            File.Replace(replacement, policy, backup); replaced = true;
-            changed = true; update();
+            stopped = true;
+            stop();
+            File.Replace(replacement, policy, backup);
+            replaced = true;
+            changed = true;
+            update();
             if (state.WasRunning) start();
             committed = true;
         }
@@ -256,10 +328,16 @@ internal static class RevocationTransaction
                     copyPolicy(backup, replacement);
                     File.Replace(replacement, policy, null);
                 }
+
                 if (stopped || changed) restore();
                 rolledBack = true;
             }
-            catch (Exception rollbackFailure) { throw new AggregateException("Revocation and rollback failed; recovery policy was retained.", failure, rollbackFailure); }
+            catch (Exception rollbackFailure)
+            {
+                throw new AggregateException("Revocation and rollback failed; recovery policy was retained.", failure,
+                    rollbackFailure);
+            }
+
             throw;
         }
         finally
@@ -277,16 +355,37 @@ internal sealed class SetupTransaction : IAsyncDisposable
     private readonly IDisposable? _lease;
     private bool _committed;
     private bool _disposed;
-    private SetupTransaction(Action rollback, Action commit, IDisposable? lease) { _rollback = rollback; _commit = commit; _lease = lease; }
+
+    private SetupTransaction(Action rollback, Action commit, IDisposable? lease)
+    {
+        _rollback = rollback;
+        _commit = commit;
+        _lease = lease;
+    }
 
     internal static SetupTransaction Start(Action deploy, Action rollback, Action commit, IDisposable? lease = null)
     {
-        try { deploy(); return new SetupTransaction(rollback, commit, lease); }
+        try
+        {
+            deploy();
+            return new SetupTransaction(rollback, commit, lease);
+        }
         catch (Exception failure)
         {
-            try { rollback(); }
-            catch (Exception rollbackFailure) { throw new AggregateException("Setup and rollback failed; protected recovery files were retained.", failure, rollbackFailure); }
-            finally { lease?.Dispose(); }
+            try
+            {
+                rollback();
+            }
+            catch (Exception rollbackFailure)
+            {
+                throw new AggregateException("Setup and rollback failed; protected recovery files were retained.",
+                    failure, rollbackFailure);
+            }
+            finally
+            {
+                lease?.Dispose();
+            }
+
             throw;
         }
     }
@@ -305,30 +404,56 @@ internal sealed class SetupTransaction : IAsyncDisposable
     {
         if (_disposed) return ValueTask.CompletedTask;
         _disposed = true;
-        try { if (!_committed) _rollback(); }
-        finally { _lease?.Dispose(); }
+        try
+        {
+            if (!_committed) _rollback();
+        }
+        finally
+        {
+            _lease?.Dispose();
+        }
+
         return ValueTask.CompletedTask;
     }
 }
 
-internal sealed class SetupFailure(string phase, int errorCode, Exception? innerException = null) : Exception("Network setup failed.", innerException)
+internal sealed class SetupFailure(string phase, int errorCode, Exception? innerException = null)
+    : Exception("Network setup failed.", innerException)
 {
     internal string Phase { get; } = phase;
     internal int ErrorCode { get; } = errorCode == 0 ? unchecked((int)0x80004005) : errorCode;
 
-    internal static SetupFailure Wrap(string phase, Exception exception) => exception is SetupFailure failure ? failure :
-        new SetupFailure(phase, exception is System.ComponentModel.Win32Exception win32 ? win32.NativeErrorCode : exception.HResult, exception);
+    internal static SetupFailure Wrap(string phase, Exception exception)
+    {
+        return exception is SetupFailure failure
+            ? failure
+            : new SetupFailure(phase,
+                exception is Win32Exception win32 ? win32.NativeErrorCode : exception.HResult,
+                exception);
+    }
+
     internal static void At(string phase, Action action)
     {
-        try { action(); }
-        catch (OperationCanceledException) { throw; }
-        catch (Exception exception) { throw Wrap(phase, exception); }
+        try
+        {
+            action();
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            throw Wrap(phase, exception);
+        }
     }
 
     internal static SetupFailure From(Exception exception)
     {
-        if (exception is AggregateException aggregate && aggregate.Flatten().InnerExceptions.OfType<SetupFailure>().FirstOrDefault() is { } staged) return staged;
-        while (exception is AggregateException aggregateFailure && aggregateFailure.InnerExceptions.Count == 1) exception = aggregateFailure.InnerException!;
+        if (exception is AggregateException aggregate &&
+            aggregate.Flatten().InnerExceptions.OfType<SetupFailure>().FirstOrDefault() is { } staged) return staged;
+        while (exception is AggregateException aggregateFailure && aggregateFailure.InnerExceptions.Count == 1)
+            exception = aggregateFailure.InnerException!;
         return exception is SetupFailure failure ? failure : Wrap("unknown", exception);
     }
 }

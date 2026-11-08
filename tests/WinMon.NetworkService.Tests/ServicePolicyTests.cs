@@ -14,6 +14,7 @@ public sealed class ServicePolicyTests
         Assert.Throws<InvalidDataException>(() => ServicePolicy.ValidateUsers(["S-1-1-0"]));
         Assert.Throws<InvalidDataException>(() => ServicePolicy.ValidateUsers(["S-1-5-11"]));
         Assert.That(() => ServicePolicy.ValidateUsers(["not-a-sid"]), Throws.Exception);
-        Assert.Throws<InvalidDataException>(() => ServicePolicy.ValidateUsers(Enumerable.Repeat("S-1-5-21-1-2-3-1001", 65).ToArray()));
+        Assert.Throws<InvalidDataException>(() =>
+            ServicePolicy.ValidateUsers(Enumerable.Repeat("S-1-5-21-1-2-3-1001", 65).ToArray()));
     }
 }

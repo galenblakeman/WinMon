@@ -25,7 +25,10 @@ public sealed class HotkeyGestureTests
     [TestCase("Ctrl+Alt+Escape")]
     [TestCase("Hyper+W")]
     [TestCase("Ctrl+Alt+F25")]
-    public void TryParse_RejectsUnknownText(string text) => Assert.That(HotkeyGesture.TryParse(text, out _), Is.False);
+    public void TryParse_RejectsUnknownText(string text)
+    {
+        Assert.That(HotkeyGesture.TryParse(text, out _), Is.False);
+    }
 
     [Test]
     public void TryParse_NoneTurnsTheShortcutOff()
@@ -39,7 +42,8 @@ public sealed class HotkeyGestureTests
     {
         Assert.Multiple(() =>
         {
-            Assert.That(HotkeyGesture.Default, Is.EqualTo(new HotkeyGesture(HotkeyModifiers.Control | HotkeyModifiers.Shift, 'M')));
+            Assert.That(HotkeyGesture.Default,
+                Is.EqualTo(new HotkeyGesture(HotkeyModifiers.Control | HotkeyModifiers.Shift, 'M')));
             Assert.That(HotkeyGesture.Default.DisplayText, Is.EqualTo("Ctrl + Shift + M"));
             Assert.That(HotkeyGesture.Default.Problem, Is.Null);
             Assert.That(new MonitorPreferences().ShowGesture, Is.EqualTo(HotkeyGesture.Default));
@@ -63,16 +67,21 @@ public sealed class HotkeyGestureTests
     }
 
     [Test]
-    public void Problem_RejectsUnsupportedKeys() =>
+    public void Problem_RejectsUnsupportedKeys()
+    {
         Assert.That(new HotkeyGesture(CtrlAltShift, 0x1B).Problem, Is.Not.Null);
+    }
 
     [TestCase(null, "Ctrl+Shift+M")]
     [TestCase("garbage", "Ctrl+Shift+M")]
     [TestCase("Ctrl+W", "Ctrl+Shift+M")]
     [TestCase("NONE", "None")]
     [TestCase("alt+ctrl+m", "Ctrl+Alt+M")]
-    public void Validate_NormalizesShortcut(string? stored, string expected) =>
-        Assert.That(PreferenceStore.Validate(new MonitorPreferences { ShowShortcut = stored! }).ShowShortcut, Is.EqualTo(expected));
+    public void Validate_NormalizesShortcut(string? stored, string expected)
+    {
+        Assert.That(PreferenceStore.Validate(new MonitorPreferences { ShowShortcut = stored! }).ShowShortcut,
+            Is.EqualTo(expected));
+    }
 
     [Test]
     public async Task LegacyLaunchOption_IsIgnored_AndRemovedOnSave()
@@ -82,7 +91,8 @@ public sealed class HotkeyGestureTests
         var path = Path.Combine(directory, "settings.json");
         try
         {
-            await File.WriteAllTextAsync(path, """{"LaunchWithShortcut":true,"ShowShortcut":"Ctrl+Shift+F12","StartWithWindows":true}""");
+            await File.WriteAllTextAsync(path,
+                """{"LaunchWithShortcut":true,"ShowShortcut":"Ctrl+Shift+F12","StartWithWindows":true}""");
             var store = new PreferenceStore(path);
             var loaded = await store.LoadAsync();
             Assert.That(loaded.ShowShortcut, Is.EqualTo("Ctrl+Shift+F12"));
@@ -90,7 +100,10 @@ public sealed class HotkeyGestureTests
             await store.SaveAsync(loaded);
             Assert.That(await File.ReadAllTextAsync(path), Does.Not.Contain("LaunchWithShortcut"));
         }
-        finally { Directory.Delete(directory, true); }
+        finally
+        {
+            Directory.Delete(directory, true);
+        }
     }
 
     [Test]
@@ -102,8 +115,12 @@ public sealed class HotkeyGestureTests
             var store = new PreferenceStore(Path.Combine(directory, "settings.json"));
             await store.SaveAsync(new MonitorPreferences { ShowShortcut = "Ctrl+Shift+F12" });
             var loaded = await store.LoadAsync();
-            Assert.That(loaded.ShowGesture, Is.EqualTo(new HotkeyGesture(HotkeyModifiers.Control | HotkeyModifiers.Shift, 0x7B)));
+            Assert.That(loaded.ShowGesture,
+                Is.EqualTo(new HotkeyGesture(HotkeyModifiers.Control | HotkeyModifiers.Shift, 0x7B)));
         }
-        finally { if (Directory.Exists(directory)) Directory.Delete(directory, true); }
+        finally
+        {
+            if (Directory.Exists(directory)) Directory.Delete(directory, true);
+        }
     }
 }

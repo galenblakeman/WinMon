@@ -7,11 +7,18 @@ namespace WinMon.Tests;
 public sealed class PortableIdentityTests
 {
     private static readonly ProcessIdentityPolicy Exact = ProcessIdentityPolicy.ExactPaths;
-    private static ProcessUsage Mac(int pid, long token, string path, double cpu = 2) =>
-        new(pid, token, "app", cpu, 100) { LifetimeDomain = ProcessLifetimeIdentity.UnixMicroseconds, ImagePath = path };
-    private static MonitorSample Sample(params ProcessUsage[] processes) =>
-        new(DateTimeOffset.UnixEpoch, 50, processes, 0)
-        { IntervalSeconds = 1, IntervalCpuTicks = 80_000_000, IndependentProcessReadings = true };
+
+    private static ProcessUsage Mac(int pid, long token, string path, double cpu = 2)
+    {
+        return new ProcessUsage(pid, token, "app", cpu, 100)
+            { LifetimeDomain = ProcessLifetimeIdentity.UnixMicroseconds, ImagePath = path };
+    }
+
+    private static MonitorSample Sample(params ProcessUsage[] processes)
+    {
+        return new MonitorSample(DateTimeOffset.UnixEpoch, 50, processes, 0)
+            { IntervalSeconds = 1, IntervalCpuTicks = 80_000_000, IndependentProcessReadings = true };
+    }
 
     [Test]
     public void WindowsDefaultsStillGroupPathsIgnoringCase()
@@ -49,7 +56,8 @@ public sealed class PortableIdentityTests
     {
         var sample = Sample(Mac(1, 1, "/App"), Mac(2, 2, "/app"));
         Assert.That(ProcessRanking.Rank([sample], grouped: true).Processes, Has.Count.EqualTo(1));
-        Assert.That(ProcessRanking.Rank([sample], grouped: true, identityPolicy: Exact).Processes, Has.Count.EqualTo(2));
+        Assert.That(ProcessRanking.Rank([sample], grouped: true, identityPolicy: Exact).Processes,
+            Has.Count.EqualTo(2));
         Assert.That(ProcessRanking.Rank([sample], grouped: true).Processes, Has.Count.EqualTo(1));
     }
 
@@ -123,7 +131,9 @@ public sealed class PortableIdentityTests
         var rank = ProcessRanking.Rank([sample], sort: ProcessSort.Memory, includeInactive: true);
         Assert.That(rank.Processes[0].ObservedCpuPercent, Is.Null);
         var valid = Sample(missing with { CpuAvailable = true, CpuPercent = 10 }) with
-        { Timestamp = sample.Timestamp.AddSeconds(1) };
+        {
+            Timestamp = sample.Timestamp.AddSeconds(1)
+        };
         Assert.That(ProcessRanking.Rank([sample, valid], includeInactive: true).Processes[0].ObservedCpuPercent,
             Is.EqualTo(10));
         var compact = ProcessRetention.Compact(Sample(Enumerable.Range(1, 60)
@@ -148,11 +158,17 @@ public sealed class PortableIdentityTests
         var process = Mac(1, 100, "/app");
         Assert.That(rules.Observe(Sample(process)), Is.Empty);
         Assert.That(rules.Observe(Sample(process with { CpuAvailable = false }) with
-            { Timestamp = DateTimeOffset.UnixEpoch.AddSeconds(1) }), Is.Empty);
+        {
+            Timestamp = DateTimeOffset.UnixEpoch.AddSeconds(1)
+        }), Is.Empty);
         Assert.That(rules.Observe(Sample(process) with
-            { Timestamp = DateTimeOffset.UnixEpoch.AddSeconds(2) }), Is.Empty);
+        {
+            Timestamp = DateTimeOffset.UnixEpoch.AddSeconds(2)
+        }), Is.Empty);
         Assert.That(rules.Observe(Sample(process with { LifetimeDomain = ProcessLifetimeIdentity.WindowsFileTime }) with
-            { Timestamp = DateTimeOffset.UnixEpoch.AddSeconds(3) }), Is.Empty);
+        {
+            Timestamp = DateTimeOffset.UnixEpoch.AddSeconds(3)
+        }), Is.Empty);
     }
 
     [Test]
@@ -168,7 +184,10 @@ public sealed class PortableIdentityTests
             Assert.That(lines[1].Split(',')[8], Is.Empty);
             Assert.That(lines[1], Does.Contain(ProcessLifetimeIdentity.UnixMicroseconds.ToString()));
         }
-        finally { File.Delete(path); }
+        finally
+        {
+            File.Delete(path);
+        }
     }
 
     [Test]
@@ -182,6 +201,9 @@ public sealed class PortableIdentityTests
                 null, RestartClock.System), Is.False);
             Assert.That(File.ReadAllText(path), Is.EqualTo("existing"));
         }
-        finally { File.Delete(path); }
+        finally
+        {
+            File.Delete(path);
+        }
     }
 }

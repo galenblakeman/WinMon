@@ -73,6 +73,7 @@ internal static class WindowsHardwareInfo
                 Strings.Format(Strings.SharedSystemMemoryLimitGiB,
                     reading.SharedLimitBytes / 1_073_741_824d)));
     }
+
     private static string Volumes()
     {
         var descriptions = new List<string>();
@@ -86,5 +87,4 @@ internal static class WindowsHardwareInfo
 
         return descriptions.Count == 0 ? Strings.NoLocalVolumesReported : string.Join("\n\n", descriptions);
     }
-
 }

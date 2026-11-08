@@ -13,7 +13,11 @@ public sealed record NetworkConnection(
     TcpState? State = null);
 
 /// <summary>The transport protocol represented by a <see cref="NetworkConnection"/>.</summary>
-public enum TransportProtocol { Tcp, Udp }
+public enum TransportProtocol
+{
+    Tcp,
+    Udp
+}
 
 /// <summary>Result for one address family so callers can distinguish an empty table from an unavailable table.</summary>
 public sealed record NetworkAddressFamilyStatus(bool Available, int? ErrorCode = null)

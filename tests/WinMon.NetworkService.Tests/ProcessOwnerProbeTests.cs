@@ -37,12 +37,16 @@ public sealed class ProcessOwnerProbeTests
         var started = new DateTime(2026, 11, 7, 18, 0, 0, DateTimeKind.Utc);
         const long frequency = 10_000;
         const long offset = 100_000;
-        var nowQpc = offset + (3 * frequency);
+        var nowQpc = offset + 3 * frequency;
 
         Assert.Multiple(() =>
         {
-            Assert.That(EtwNetworkCollector.IsClockCalibrationValid(started, offset, frequency, nowQpc, started.AddSeconds(3.5)), Is.True);
-            Assert.That(EtwNetworkCollector.IsClockCalibrationValid(started, offset, frequency, nowQpc, started.AddSeconds(4.1)), Is.False);
+            Assert.That(
+                EtwNetworkCollector.IsClockCalibrationValid(started, offset, frequency, nowQpc,
+                    started.AddSeconds(3.5)), Is.True);
+            Assert.That(
+                EtwNetworkCollector.IsClockCalibrationValid(started, offset, frequency, nowQpc,
+                    started.AddSeconds(4.1)), Is.False);
         });
     }
 
@@ -50,7 +54,8 @@ public sealed class ProcessOwnerProbeTests
     [TestCase(9.1, 7, false)]
     [TestCase(1.9, 7, false)]
     [TestCase(3.0, 2, false)]
-    public void ClockCalibrationGuard_AllowsSamplingDelayButRejectsDriftOutsideBracket(double utcSeconds, int afterSeconds, bool valid)
+    public void ClockCalibrationGuard_AllowsSamplingDelayButRejectsDriftOutsideBracket(double utcSeconds,
+        int afterSeconds, bool valid)
     {
         var started = new DateTime(2026, 11, 7, 18, 0, 0, DateTimeKind.Utc);
         const long frequency = 10_000;

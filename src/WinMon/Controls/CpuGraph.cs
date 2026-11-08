@@ -48,12 +48,16 @@ public sealed class CpuGraph : FrameworkElement
 
     internal Rect PlotBounds => Plot();
 
-    protected override AutomationPeer OnCreateAutomationPeer() => new FrameworkElementAutomationPeer(this);
+    protected override AutomationPeer OnCreateAutomationPeer()
+    {
+        return new FrameworkElementAutomationPeer(this);
+    }
 
     internal Rect? LogicalProcessorPlotBounds(int processor)
     {
         foreach (var (index, cell) in LogicalProcessorCells(Plot(), LogicalProcessorCount()))
-            if (index == processor) return LogicalProcessorGraph(cell);
+            if (index == processor)
+                return LogicalProcessorGraph(cell);
         return null;
     }
 
@@ -170,24 +174,25 @@ public sealed class CpuGraph : FrameworkElement
             DrawSelectedTimestamp(drawingContext, plot, line, muted);
             return;
         }
+
         var alternative = ShowGrid && _process is null && TileMetric is null && ChartType != ResourceChartType.Overlay;
         if (ShowGrid)
         {
             drawingContext.DrawRectangle(Resource("PlotSurface", Brushes.Transparent), null, plot);
             if (!alternative || ChartType == ResourceChartType.Focus)
                 for (var i = 0; i <= 4; i++)
-            {
-                var height = alternative ? plot.Height * 0.55 : plot.Height;
-                var y = plot.Top + height * i / 4;
-                drawingContext.DrawLine(CachedPen(line, 0.7), new Point(plot.Left, y), new Point(plot.Right, y));
-                var focusNetwork = alternative && ChartType == ResourceChartType.Focus && FocusMetric == 3 &&
-                                   (VisibleMetrics & 8) != 0;
-                Label(drawingContext, focusNetwork
-                        ? RateText.Format(_networkScale * (4 - i) / 4)
-                        : Strings.Format(Strings.PercentInteger, 100 - i * 25),
-                    new Point(alternative ? plot.Left - 8 : 0, Math.Max(0, y - 7)), muted,
-                    alternative ? 1 : 0);
-            }
+                {
+                    var height = alternative ? plot.Height * 0.55 : plot.Height;
+                    var y = plot.Top + height * i / 4;
+                    drawingContext.DrawLine(CachedPen(line, 0.7), new Point(plot.Left, y), new Point(plot.Right, y));
+                    var focusNetwork = alternative && ChartType == ResourceChartType.Focus && FocusMetric == 3 &&
+                                       (VisibleMetrics & 8) != 0;
+                    Label(drawingContext, focusNetwork
+                            ? RateText.Format(_networkScale * (4 - i) / 4)
+                            : Strings.Format(Strings.PercentInteger, 100 - i * 25),
+                        new Point(alternative ? plot.Left - 8 : 0, Math.Max(0, y - 7)), muted,
+                        alternative ? 1 : 0);
+                }
 
             for (var i = 0; i <= 4; i++)
             {
@@ -201,7 +206,8 @@ public sealed class CpuGraph : FrameworkElement
 
         var network = Resource("NetworkAccent", accent);
         drawingContext.PushClip(new RectangleGeometry(alternative
-            ? new Rect(0, plot.Top, ActualWidth, plot.Height) : plot));
+            ? new Rect(0, plot.Top, ActualWidth, plot.Height)
+            : plot));
         if (TileMetric is { } tileMetric)
         {
             var key = tileMetric switch
@@ -227,8 +233,10 @@ public sealed class CpuGraph : FrameworkElement
         else
         {
             var keys = new[]
-                { "CpuChartAccent", "MemoryChartAccent", "DiskChartAccent", "NetworkChartAccent",
-                    "GpuChartAccent", "SecondaryDiskChartAccent" };
+            {
+                "CpuChartAccent", "MemoryChartAccent", "DiskChartAccent", "NetworkChartAccent",
+                "GpuChartAccent", "SecondaryDiskChartAccent"
+            };
             // Paint every wash first so later series cannot tint an earlier trace.
             if (!SystemParameters.HighContrast)
                 for (var metric = 0; metric < keys.Length; metric++)
@@ -278,7 +286,8 @@ public sealed class CpuGraph : FrameworkElement
 
     private void DrawSelectedTimestamp(DrawingContext dc, Rect plot, Brush line, Brush muted)
     {
-        if (!ShowGrid || _process is not null || _selected is null || !_samples.Any(s => ReferenceEquals(s, _selected)) ||
+        if (!ShowGrid || _process is not null || _selected is null ||
+            !_samples.Any(s => ReferenceEquals(s, _selected)) ||
             Moment(_selected) < _end - _seconds) return;
         // Clamp the timestamp separately so its full text remains inside the chart at both ends.
         var text = $"{_selected.Timestamp:HH:mm:ss}";
@@ -297,22 +306,29 @@ public sealed class CpuGraph : FrameworkElement
         var count = LogicalProcessorCount();
         if (count == 0)
         {
-            Label(dc, Strings.Unavailable, new Point(plot.Left + plot.Width / 2, plot.Top + plot.Height / 2), muted, 0.5);
+            Label(dc, Strings.Unavailable, new Point(plot.Left + plot.Width / 2, plot.Top + plot.Height / 2), muted,
+                0.5);
             return;
         }
+
         foreach (var (index, cell) in LogicalProcessorCells(plot, count))
         {
             dc.DrawRectangle(null, CachedPen(line, 0.6), cell);
             var title = Strings.Format(Strings.LogicalProcessorLabel, index);
             var dense = IsDenseLogicalProcessorCell(cell);
-            Label(dc, title, new Point(cell.Left + 4, dense ? cell.Top + Math.Max(0, (cell.Height - 14) / 2) : cell.Top + 2),
+            Label(dc, title,
+                new Point(cell.Left + 4, dense ? cell.Top + Math.Max(0, (cell.Height - 14) / 2) : cell.Top + 2),
                 Resource("Text", Brushes.White));
             if (!dense)
             {
                 var current = CurrentLogicalProcessorValue(index);
-                Label(dc, current is { } value ? Strings.Format(Strings.PercentInteger, Math.Round(value)) : Strings.MissingReading,
+                Label(dc,
+                    current is { } value
+                        ? Strings.Format(Strings.PercentInteger, Math.Round(value))
+                        : Strings.MissingReading,
                     new Point(cell.Right - 4, cell.Top + 2), Resource("Text", Brushes.White), 1);
             }
+
             var graph = LogicalProcessorGraph(cell);
             if (graph.Width < 2 || graph.Height < 2) continue;
             if (!dense)
@@ -348,7 +364,8 @@ public sealed class CpuGraph : FrameworkElement
             if (graph.Width >= 2 && graph.Height >= 2)
             {
                 var x = X(_selected!, graph);
-                dc.DrawLine(CachedPen(muted, 0.8, DashStyles.Dash), new Point(x, graph.Top), new Point(x, graph.Bottom));
+                dc.DrawLine(CachedPen(muted, 0.8, DashStyles.Dash), new Point(x, graph.Top),
+                    new Point(x, graph.Bottom));
             }
         }
     }
@@ -369,7 +386,8 @@ public sealed class CpuGraph : FrameworkElement
             }
 
             if (value is not null && !sample.IsGap)
-                _segment.Add(new Point(X(sample, plot), plot.Bottom - Math.Clamp(value.Value, 0, 100) / 100 * plot.Height));
+                _segment.Add(new Point(X(sample, plot),
+                    plot.Bottom - Math.Clamp(value.Value, 0, 100) / 100 * plot.Height));
             previous = moment;
         }
 
@@ -408,7 +426,10 @@ public sealed class CpuGraph : FrameworkElement
         return new Rect(cell.Left + 3, cell.Top + 17, Math.Max(0, cell.Width - 6), Math.Max(0, cell.Height - 20));
     }
 
-    private static bool IsDenseLogicalProcessorCell(Rect cell) => cell.Height < 36;
+    private static bool IsDenseLogicalProcessorCell(Rect cell)
+    {
+        return cell.Height < 36;
+    }
 
     private static string DescribeLogicalProcessorSample(MonitorSample sample, int processor)
     {
@@ -429,7 +450,8 @@ public sealed class CpuGraph : FrameworkElement
         {
             var row = index / columns;
             var column = index % columns;
-            yield return (index, new Rect(body.Left + column * (width + gap), body.Top + row * (height + gap), width, height));
+            yield return (index,
+                new Rect(body.Left + column * (width + gap), body.Top + row * (height + gap), width, height));
         }
     }
 
@@ -466,7 +488,6 @@ public sealed class CpuGraph : FrameworkElement
                     ChartType == ResourceChartType.Heatmap);
             }
         }
-
     }
 
     private void DrawAlternativeSelection(DrawingContext dc, Rect plot, double x, MonitorSample sample,
@@ -478,7 +499,8 @@ public sealed class CpuGraph : FrameworkElement
         for (var index = 0; index < metrics.Length; index++)
         {
             var metric = metrics[index];
-            var value = metric == 3 ? NetworkBitsPerSecond(sample.Resources) * 100 / _networkScale
+            var value = metric == 3
+                ? NetworkBitsPerSecond(sample.Resources) * 100 / _networkScale
                 : MetricValue(sample, metric);
             if (value is null) continue;
             Rect lane;
@@ -504,8 +526,7 @@ public sealed class CpuGraph : FrameworkElement
             new Point(lane.Left - 8, lane.Top + Math.Max(2, lane.Height / 2 - (compact ? 7 : 12))),
             MetricTextBrush(metric, accent), 1);
         if (!compact)
-            Label(dc, metric == 3 ? RateText.Format(_networkScale) :
-                Strings.Format(Strings.PercentInteger, 100),
+            Label(dc, metric == 3 ? RateText.Format(_networkScale) : Strings.Format(Strings.PercentInteger, 100),
                 new Point(lane.Left - 8, lane.Top + Math.Max(14, lane.Height / 2 + 2)), muted, 1);
         var inset = new Rect(lane.Left, lane.Top + 3, lane.Width, Math.Max(1, lane.Height - 6));
         if (heatmap) DrawHeatmap(dc, inset, metric, color);
@@ -543,33 +564,50 @@ public sealed class CpuGraph : FrameworkElement
         return new Rect(plot.Left, plot.Top + plot.Height * topFraction + index * height, plot.Width, height);
     }
 
-    private string MetricName(int metric) => metric < MetricLabels.Length ? MetricLabels[metric] : metric switch
+    private string MetricName(int metric)
     {
-        0 => Strings.CPU, 1 => Strings.Memory, 2 or 5 => Strings.Disk,
-        3 => Strings.Network, _ => Strings.GPU
-    };
+        return metric < MetricLabels.Length
+            ? MetricLabels[metric]
+            : metric switch
+            {
+                0 => Strings.CPU, 1 => Strings.Memory, 2 or 5 => Strings.Disk,
+                3 => Strings.Network, _ => Strings.GPU
+            };
+    }
 
-    private static string MetricBrushKey(int metric) => metric switch
+    private static string MetricBrushKey(int metric)
     {
-        0 => "CpuAccent", 1 => "MemoryAccent", 2 => "DiskAccent", 3 => "NetworkAccent",
-        4 => "GpuAccent", _ => "SecondaryDiskAccent"
-    };
+        return metric switch
+        {
+            0 => "CpuAccent", 1 => "MemoryAccent", 2 => "DiskAccent", 3 => "NetworkAccent",
+            4 => "GpuAccent", _ => "SecondaryDiskAccent"
+        };
+    }
 
-    private static string ChartBrushKey(string key) => key switch
+    private static string ChartBrushKey(string key)
     {
-        "CpuAccent" => "CpuChartAccent", "MemoryAccent" => "MemoryChartAccent",
-        "DiskAccent" => "DiskChartAccent", "NetworkAccent" => "NetworkChartAccent",
-        "GpuAccent" => "GpuChartAccent", "SecondaryDiskAccent" => "SecondaryDiskChartAccent",
-        _ => key
-    };
+        return key switch
+        {
+            "CpuAccent" => "CpuChartAccent", "MemoryAccent" => "MemoryChartAccent",
+            "DiskAccent" => "DiskChartAccent", "NetworkAccent" => "NetworkChartAccent",
+            "GpuAccent" => "GpuChartAccent", "SecondaryDiskAccent" => "SecondaryDiskChartAccent",
+            _ => key
+        };
+    }
 
-    private Brush MetricBrush(int metric, Brush fallback) => Resource(metric switch
+    private Brush MetricBrush(int metric, Brush fallback)
     {
-        0 => "CpuChartAccent", 1 => "MemoryChartAccent", 2 => "DiskChartAccent",
-        3 => "NetworkChartAccent", 4 => "GpuChartAccent", _ => "SecondaryDiskChartAccent"
-    }, fallback);
+        return Resource(metric switch
+        {
+            0 => "CpuChartAccent", 1 => "MemoryChartAccent", 2 => "DiskChartAccent",
+            3 => "NetworkChartAccent", 4 => "GpuChartAccent", _ => "SecondaryDiskChartAccent"
+        }, fallback);
+    }
 
-    private Brush MetricTextBrush(int metric, Brush fallback) => Resource(MetricBrushKey(metric), fallback);
+    private Brush MetricTextBrush(int metric, Brush fallback)
+    {
+        return Resource(MetricBrushKey(metric), fallback);
+    }
 
     private void DrawMarkers(DrawingContext drawingContext, Rect plot)
     {
@@ -701,18 +739,22 @@ public sealed class CpuGraph : FrameworkElement
         if (_selected is not null)
         {
             var selectedProcessor = ChartType == ResourceChartType.LogicalProcessors
-                ? LogicalProcessorAt(e.GetPosition(this)) : null;
+                ? LogicalProcessorAt(e.GetPosition(this))
+                : null;
             ToolTip = selectedProcessor is { } selectedIndex
-                ? DescribeLogicalProcessorSample(_selected, selectedIndex) : null;
+                ? DescribeLogicalProcessorSample(_selected, selectedIndex)
+                : null;
             return;
         }
 
         var point = e.GetPosition(this);
         var sample = Nearest(point);
         var processor = ChartType == ResourceChartType.LogicalProcessors ? LogicalProcessorAt(point) : null;
-        ToolTip = sample is null ? Strings.NoSampleInThisInterval : processor is { } index
-            ? DescribeLogicalProcessorSample(sample, index)
-            : DescribeSample(sample);
+        ToolTip = sample is null
+            ? Strings.NoSampleInThisInterval
+            : processor is { } index
+                ? DescribeLogicalProcessorSample(sample, index)
+                : DescribeSample(sample);
     }
 
     internal void RefreshLanguage()
@@ -722,10 +764,13 @@ public sealed class CpuGraph : FrameworkElement
             var point = Mouse.GetPosition(this);
             var sample = IsMouseOver && _selected is null ? Nearest(point) : null;
             var processor = ChartType == ResourceChartType.LogicalProcessors ? LogicalProcessorAt(point) : null;
-            ToolTip = !IsMouseOver || _selected is not null ? null :
-                sample is null ? Strings.NoSampleInThisInterval : processor is { } index
-                    ? DescribeLogicalProcessorSample(sample, index)
-                    : DescribeSample(sample);
+            ToolTip = !IsMouseOver || _selected is not null
+                ? null
+                : sample is null
+                    ? Strings.NoSampleInThisInterval
+                    : processor is { } index
+                        ? DescribeLogicalProcessorSample(sample, index)
+                        : DescribeSample(sample);
         }
 
         _labels.Clear();
@@ -816,7 +861,8 @@ public sealed class CpuGraph : FrameworkElement
     {
         var plot = Plot();
         foreach (var (index, cell) in LogicalProcessorCells(plot, LogicalProcessorCount()))
-            if (LogicalProcessorGraph(cell).Contains(point)) return index;
+            if (LogicalProcessorGraph(cell).Contains(point))
+                return index;
         return null;
     }
 

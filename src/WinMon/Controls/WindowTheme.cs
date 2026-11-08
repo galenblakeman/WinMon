@@ -18,7 +18,8 @@ internal static class WindowTheme
         var handle = new WindowInteropHelper(window).Handle;
         var canSet = OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22621) && handle != IntPtr.Zero;
         var requested = !SystemParameters.HighContrast && SystemParameters.IsGlassEnabled
-            ? backdrop : ThemeFinishes.BackdropKind.None;
+            ? backdrop
+            : ThemeFinishes.BackdropKind.None;
         var kind = requested == ThemeFinishes.BackdropKind.None ? 1 : (int)requested; // DWMSBT_NONE
         var applied = canSet && DwmSetWindowAttribute(handle, 38 /* DWMWA_SYSTEMBACKDROP_TYPE */,
             ref kind, sizeof(int)) == 0;
@@ -49,8 +50,10 @@ internal static class WindowTheme
         if (handle == IntPtr.Zero) return;
         var captionKey = window is MainWindow ? "TitleBarSurface" : "Surface";
         var caption = SystemParameters.HighContrast ? -1 : ColorValue(window, captionKey);
-        var text = SystemParameters.HighContrast ? -1 : ColorValue(window,
-            window is MainWindow ? "TitleText" : "Text");
+        var text = SystemParameters.HighContrast
+            ? -1
+            : ColorValue(window,
+                window is MainWindow ? "TitleText" : "Text");
         var surface = ((SolidColorBrush)window.FindResource("Surface")).Color;
         var dark = !SystemParameters.HighContrast && surface.R * 299 + surface.G * 587 + surface.B * 114 < 128000
             ? 1
@@ -68,7 +71,9 @@ internal static class WindowTheme
             SolidColorBrush solid => solid.Color,
             LinearGradientBrush gradient => gradient.GradientStops[1].Color,
             DrawingBrush { Drawing: DrawingGroup group } when group.Children[0] is GeometryDrawing
-                { Brush: LinearGradientBrush gradient } => gradient.GradientStops[1].Color,
+            {
+                Brush: LinearGradientBrush gradient
+            } => gradient.GradientStops[1].Color,
             _ => Colors.Black
         };
         return color.R | (color.G << 8) | (color.B << 16);

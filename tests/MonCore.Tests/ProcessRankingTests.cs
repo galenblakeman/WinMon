@@ -7,11 +7,16 @@ namespace WinMon.Tests;
 [TestFixture]
 public sealed class ProcessRankingTests
 {
-    private static MonitorSample Sample(double second, double total, params ProcessUsage[] processes) =>
-        new(DateTimeOffset.UtcNow, total, processes, 0, false, (long)(Stopwatch.Frequency * second));
+    private static MonitorSample Sample(double second, double total, params ProcessUsage[] processes)
+    {
+        return new MonitorSample(DateTimeOffset.UtcNow, total, processes, 0, false,
+            (long)(Stopwatch.Frequency * second));
+    }
 
-    private static ProcessUsage Usage(int id, double cpu, ulong? memory = null, double? io = null) =>
-        new(id, id * 10, $"p{id}", cpu, memory, io);
+    private static ProcessUsage Usage(int id, double cpu, ulong? memory = null, double? io = null)
+    {
+        return new ProcessUsage(id, id * 10, $"p{id}", cpu, memory, io);
+    }
 
     [Test]
     public void Rank_KeepsAProcessListedWhileAnyIntervalInTheWindowMeasuredIt()
@@ -23,7 +28,7 @@ public sealed class ProcessRankingTests
             Sample(2, 10, Usage(2, 1)),
             Sample(3, 10, Usage(2, 1)),
             Sample(4, 10, Usage(2, 1)),
-            Sample(5, 10, Usage(1, 0), Usage(2, 0)),
+            Sample(5, 10, Usage(1, 0), Usage(2, 0))
         ];
 
         var ranking = ProcessRanking.Rank(history);
@@ -58,15 +63,22 @@ public sealed class ProcessRankingTests
     public void Rank_StopsAtGapsAndLongIntervals()
     {
         var gap = new MonitorSample(DateTimeOffset.UtcNow, null, [], 0, true, Stopwatch.Frequency * 3);
-        MonitorSample[] afterGap = [Sample(1, 10, Usage(1, 9)), Sample(2, 10, Usage(1, 9)), gap, Sample(4, 10, Usage(2, 2)), Sample(5, 10, Usage(2, 2))];
-        MonitorSample[] afterDelay = [Sample(2, 10, Usage(1, 9)), Sample(4.6, 10, Usage(2, 2)), Sample(5.6, 10, Usage(2, 2))];
+        MonitorSample[] afterGap =
+        [
+            Sample(1, 10, Usage(1, 9)), Sample(2, 10, Usage(1, 9)), gap, Sample(4, 10, Usage(2, 2)),
+            Sample(5, 10, Usage(2, 2))
+        ];
+        MonitorSample[] afterDelay =
+            [Sample(2, 10, Usage(1, 9)), Sample(4.6, 10, Usage(2, 2)), Sample(5.6, 10, Usage(2, 2))];
 
         Assert.Multiple(() =>
         {
             Assert.That(ProcessRanking.Rank(afterGap).Processes.Select(p => p.ProcessId), Is.EqualTo([2]));
             Assert.That(ProcessRanking.Rank(afterGap).IntervalCount, Is.EqualTo(2));
             Assert.That(ProcessRanking.Rank(afterDelay).IntervalCount, Is.EqualTo(2));
-            Assert.That(ProcessRanking.Rank([.. afterGap, gap with { MonotonicTimestamp = Stopwatch.Frequency * 6 }]).Processes, Is.Empty);
+            Assert.That(
+                ProcessRanking.Rank([.. afterGap, gap with { MonotonicTimestamp = Stopwatch.Frequency * 6 }]).Processes,
+                Is.Empty);
             Assert.That(ProcessRanking.Rank([]).TotalCpuPercent, Is.Null);
         });
     }
@@ -76,10 +88,10 @@ public sealed class ProcessRankingTests
     {
         MonitorSample[] history =
         [
-            Sample(1, 10, Usage(1, 2, memory: 100, io: 10)),
-            Sample(2, 10, Usage(1, 2, memory: 200, io: null)),
-            Sample(3, 10, Usage(1, 2, memory: 300, io: 30)),
-            Sample(4, 90, Usage(1, 80, memory: 900, io: 900)),
+            Sample(1, 10, Usage(1, 2, 100, 10)),
+            Sample(2, 10, Usage(1, 2, 200, null)),
+            Sample(3, 10, Usage(1, 2, 300, 30)),
+            Sample(4, 90, Usage(1, 80, 900, 900))
         ];
 
         var selected = ProcessRanking.Rank([.. history.Take(3)]).Processes.Single();
@@ -95,10 +107,12 @@ public sealed class ProcessRankingTests
     [Test]
     public void Rank_GpuUsesReadableIntervalsIncludingZero_AndCanShowCpuIdleProcesses()
     {
-        MonitorSample[] history = [
+        MonitorSample[] history =
+        [
             Sample(1, 10, Usage(1, 0) with { GpuPercent = 60 }, Usage(2, 8) with { GpuPercent = 10 }),
             Sample(2, 10, Usage(1, 0) with { GpuPercent = null }, Usage(2, 8) with { GpuPercent = 10 }),
-            Sample(3, 10, Usage(1, 0) with { GpuPercent = 0 }, Usage(2, 8) with { GpuPercent = 10 })];
+            Sample(3, 10, Usage(1, 0) with { GpuPercent = 0 }, Usage(2, 8) with { GpuPercent = 10 })
+        ];
         var gpu = ProcessRanking.Rank(history, sort: ProcessSort.Gpu);
         Assert.Multiple(() =>
         {
@@ -111,15 +125,18 @@ public sealed class ProcessRankingTests
     [Test]
     public void Rank_GpuSeparatesPidLifetimes_AndHonorsHistoricalEndAndGaps()
     {
-        MonitorSample[] history = [
+        MonitorSample[] history =
+        [
             Sample(1, 10, new ProcessUsage(7, 1, "old", 0) with { GpuPercent = 80 }),
             Sample(2, 10, new ProcessUsage(7, 2, "new", 0) with { GpuPercent = 20 }),
-            Sample(3, 10, new ProcessUsage(7, 2, "new", 0) with { GpuPercent = 100 })];
+            Sample(3, 10, new ProcessUsage(7, 2, "new", 0) with { GpuPercent = 100 })
+        ];
         var selected = ProcessRanking.Rank([.. history.Take(2)], sort: ProcessSort.Gpu);
         Assert.Multiple(() =>
         {
             Assert.That(selected.Processes.Select(p => p.GpuPercent), Is.EqualTo(new double?[] { 80, 20 }));
-            Assert.That(ProcessRanking.Rank([history[2] with { IsGap = true }], sort: ProcessSort.Gpu).Processes, Is.Empty);
+            Assert.That(ProcessRanking.Rank([history[2] with { IsGap = true }], sort: ProcessSort.Gpu).Processes,
+                Is.Empty);
             Assert.That(ProcessRanking.Rank([Sample(1, 10, Usage(1, 10))], sort: ProcessSort.Gpu).Processes, Is.Empty);
         });
     }
@@ -130,7 +147,7 @@ public sealed class ProcessRankingTests
         MonitorSample[] history =
         [
             Sample(1, 10, new ProcessUsage(7, 1, "old", 3)),
-            Sample(2, 10, new ProcessUsage(7, 2, "new", 1)),
+            Sample(2, 10, new ProcessUsage(7, 2, "new", 1))
         ];
 
         var ranking = ProcessRanking.Rank(history);
@@ -145,8 +162,8 @@ public sealed class ProcessRankingTests
         // p1 was largest but exited before the newest sample; p3 has no readable memory.
         MonitorSample[] history =
         [
-            Sample(1, 10, Usage(1, 0, memory: 900), Usage(2, 0, memory: 100), Usage(3, 0)),
-            Sample(2, 10, Usage(2, 0, memory: 300), Usage(3, 0), Usage(4, 0, memory: 200)),
+            Sample(1, 10, Usage(1, 0, 900), Usage(2, 0, 100), Usage(3, 0)),
+            Sample(2, 10, Usage(2, 0, 300), Usage(3, 0), Usage(4, 0, 200))
         ];
 
         var ranking = ProcessRanking.Rank(history, sort: ProcessSort.Memory);
@@ -162,7 +179,7 @@ public sealed class ProcessRankingTests
         [
             Sample(1, 10, Usage(1, 0, io: 1_000), Usage(2, 5, io: 0)),
             Sample(2, 10, Usage(1, 0, io: null), Usage(2, 5, io: 0)),
-            Sample(3, 10, Usage(1, 0, io: 3_000), Usage(2, 5, io: 500)),
+            Sample(3, 10, Usage(1, 0, io: 3_000), Usage(2, 5, io: 500))
         ];
 
         var ranking = ProcessRanking.Rank(history, sort: ProcessSort.Io);
@@ -176,8 +193,8 @@ public sealed class ProcessRankingTests
     {
         MonitorSample[] history =
         [
-            Sample(1, 20, Usage(1, 6, memory: 100), Usage(2, 0, io: 50), Usage(3, 3) with { GpuPercent = 10 }),
-            Sample(2, 20, Usage(1, 2, memory: 100), Usage(2, 4, io: 0), Usage(3, 0) with { GpuPercent = 0 }),
+            Sample(1, 20, Usage(1, 6, 100), Usage(2, 0, io: 50), Usage(3, 3) with { GpuPercent = 10 }),
+            Sample(2, 20, Usage(1, 2, 100), Usage(2, 4, io: 0), Usage(3, 0) with { GpuPercent = 0 })
         ];
         var cpuSum = ProcessRanking.Rank(history).Processes.Sum(p => p.CpuPercent);
 
@@ -186,7 +203,8 @@ public sealed class ProcessRankingTests
             Assert.That(cpuSum, Is.EqualTo(7.5).Within(1e-9));
             foreach (var sort in Enum.GetValues<ProcessSort>())
             foreach (var grouped in new[] { false, true })
-                Assert.That(ProcessRanking.Rank(history, sort: sort, grouped: grouped).MeasuredCpuPercent, Is.EqualTo(cpuSum).Within(1e-9),
+                Assert.That(ProcessRanking.Rank(history, sort: sort, grouped: grouped).MeasuredCpuPercent,
+                    Is.EqualTo(cpuSum).Within(1e-9),
                     $"{sort}, grouped {grouped}");
             Assert.That(ProcessRanking.Rank([]).MeasuredCpuPercent, Is.Zero);
         });

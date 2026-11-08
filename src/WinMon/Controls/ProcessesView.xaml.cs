@@ -125,6 +125,8 @@ public partial class ProcessesView
 
     internal bool ActionsHidden
     {
+        // Keep the same readable drawer state contract as the other activity views.
+        // ReSharper disable once UnusedMember.Global
         get => ProcessActionDrawer.Collapsed;
         set => ProcessActionDrawer.SetCollapsed(value);
     }

@@ -1,3 +1,6 @@
+// Linked compilations, tests and diagnostics use different subsets of this shared logging API.
+// ReSharper disable UnusedMember.Global
+
 using System.Security.AccessControl;
 using System.Security.Principal;
 
@@ -6,7 +9,9 @@ namespace WinMon.Diagnostics;
 /// <summary>Protected shared locations for WinMon diagnostic logs.</summary>
 public static class LogDirectories
 {
-    private static readonly string ProgramData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+    private static readonly string ProgramData =
+        Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+
     private static readonly string Root = Path.Combine(ProgramData, "WinMon");
     private static readonly string Logs = Path.Combine(Root, "Logs");
     private static readonly string Apps = Path.Combine(Logs, "App");
@@ -18,7 +23,8 @@ public static class LogDirectories
     public static string ServicePath => Path.Combine(Logs, "Service");
 
     /// <summary>Per-user fallback directory when protected shared logs are unavailable.</summary>
-    public static string LocalPath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "WinMon", "Logs");
+    public static string LocalPath =>
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "WinMon", "Logs");
 
     internal static bool IsElevated
     {
@@ -35,9 +41,9 @@ public static class LogDirectories
         Ensure(Root, ProtectedSecurity());
         Ensure(Logs, ProtectedSecurity());
         var elevated = Path.Combine(Logs, "Elevated");
-        Ensure(elevated, ProtectedSecurity(allowUsers: false));
+        Ensure(elevated, ProtectedSecurity(false));
         var path = Path.Combine(elevated, CurrentUserSid().Value);
-        Ensure(path, ProtectedSecurity(allowUsers: false));
+        Ensure(path, ProtectedSecurity(false));
         return path;
     }
 
@@ -63,7 +69,9 @@ public static class LogDirectories
 
     /// <summary>Rejects an application log path that another user could modify.</summary>
     public static void ValidateAppPath()
-        => ValidateAppPath(CurrentUserSid());
+    {
+        ValidateAppPath(CurrentUserSid());
+    }
 
     private static void ValidateAppPath(SecurityIdentifier user)
     {
@@ -71,7 +79,10 @@ public static class LogDirectories
         Check(new DirectoryInfo(AppPathFor(user)), user);
     }
 
-    private static string AppPathFor(SecurityIdentifier user) => Path.Combine(Apps, user.Value);
+    private static string AppPathFor(SecurityIdentifier user)
+    {
+        return Path.Combine(Apps, user.Value);
+    }
 
     private static SecurityIdentifier CurrentUserSid()
     {
@@ -95,7 +106,9 @@ public static class LogDirectories
     private static void EnsureService(SecurityIdentifier user)
     {
         if (!Directory.Exists(ServicePath))
+        {
             FileSystemAclExtensions.CreateDirectory(ServiceSecurity(user), ServicePath);
+        }
         else
         {
             Check(new DirectoryInfo(ServicePath), null);
@@ -103,6 +116,7 @@ public static class LogDirectories
             Add(security, user, FileSystemRights.ReadAndExecute | FileSystemRights.Synchronize);
             new DirectoryInfo(ServicePath).SetAccessControl(security);
         }
+
         Check(new DirectoryInfo(ServicePath), null);
     }
 
@@ -130,16 +144,22 @@ public static class LogDirectories
 
     private static DirectorySecurity ServiceSecurity(SecurityIdentifier user)
     {
-        var security = ProtectedSecurity(allowUsers: false);
+        var security = ProtectedSecurity(false);
         Add(security, user, FileSystemRights.ReadAndExecute | FileSystemRights.Synchronize);
         return security;
     }
 
-    private static void Add(DirectorySecurity security, SecurityIdentifier sid, FileSystemRights rights) =>
+    private static void Add(DirectorySecurity security, SecurityIdentifier sid, FileSystemRights rights)
+    {
         security.AddAccessRule(new FileSystemAccessRule(sid, rights,
-            InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None, AccessControlType.Allow));
+            InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None,
+            AccessControlType.Allow));
+    }
 
-    internal static void ValidateDirectory(DirectoryInfo directory, SecurityIdentifier? user) => Check(directory, user);
+    internal static void ValidateDirectory(DirectoryInfo directory, SecurityIdentifier? user)
+    {
+        Check(directory, user);
+    }
 
     private static void Check(DirectoryInfo directory, SecurityIdentifier? user)
     {
@@ -149,18 +169,35 @@ public static class LogDirectories
         var owner = (SecurityIdentifier)security.GetOwner(typeof(SecurityIdentifier))!;
         if (!Trusted(owner) && (user is null || owner != user))
             throw new UnauthorizedAccessException("Untrusted log directory owner.");
-        const FileSystemRights write = FileSystemRights.Write | FileSystemRights.Delete | FileSystemRights.DeleteSubdirectoriesAndFiles |
-                                      FileSystemRights.ChangePermissions | FileSystemRights.TakeOwnership;
+        const FileSystemRights write = FileSystemRights.Write | FileSystemRights.Delete |
+                                       FileSystemRights.DeleteSubdirectoriesAndFiles |
+                                       FileSystemRights.ChangePermissions | FileSystemRights.TakeOwnership;
         foreach (FileSystemAccessRule rule in security.GetAccessRules(true, true, typeof(SecurityIdentifier)))
-            if ((rule.PropagationFlags & PropagationFlags.InheritOnly) == 0 && rule.AccessControlType == AccessControlType.Allow &&
+            if ((rule.PropagationFlags & PropagationFlags.InheritOnly) == 0 &&
+                rule.AccessControlType == AccessControlType.Allow &&
                 (rule.FileSystemRights & write) != 0 && !Trusted((SecurityIdentifier)rule.IdentityReference) &&
                 (user is null || (SecurityIdentifier)rule.IdentityReference != user))
                 throw new UnauthorizedAccessException("Untrusted log directory writer.");
     }
 
-    private static bool Trusted(SecurityIdentifier sid) => sid.IsWellKnown(WellKnownSidType.LocalSystemSid) ||
-        sid.IsWellKnown(WellKnownSidType.BuiltinAdministratorsSid);
-    private static SecurityIdentifier LocalSystem() => new(WellKnownSidType.LocalSystemSid, null);
-    private static SecurityIdentifier Administrators() => new(WellKnownSidType.BuiltinAdministratorsSid, null);
-    private static SecurityIdentifier Users() => new(WellKnownSidType.BuiltinUsersSid, null);
+    private static bool Trusted(SecurityIdentifier sid)
+    {
+        return sid.IsWellKnown(WellKnownSidType.LocalSystemSid) ||
+               sid.IsWellKnown(WellKnownSidType.BuiltinAdministratorsSid);
+    }
+
+    private static SecurityIdentifier LocalSystem()
+    {
+        return new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null);
+    }
+
+    private static SecurityIdentifier Administrators()
+    {
+        return new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null);
+    }
+
+    private static SecurityIdentifier Users()
+    {
+        return new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null);
+    }
 }

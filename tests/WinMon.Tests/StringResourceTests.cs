@@ -1,5 +1,7 @@
+using System.Collections;
 using System.Globalization;
 using System.Reflection;
+using System.Resources;
 using System.Text;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
@@ -70,10 +72,13 @@ public sealed class StringResourceTests
     [TestCase("zh-Hans")]
     public void ThemeLabels_AreSingleWordsInEveryLanguage(string culture)
     {
-        foreach (var key in new[] { "ThemeDark", "ThemeLight", "ThemeSystem", "ThemeCopper",
+        foreach (var key in new[]
+                 {
+                     "ThemeDark", "ThemeLight", "ThemeSystem", "ThemeCopper",
                      "ThemeGunmetal", "ThemePorcelain", "ThemeMidnightInk", "ThemeEvergreenInstrument",
                      "ThemeFrostedPorcelain", "ThemeSmokedSapphire", "ThemeCrystal", "ThemeSlate",
-                     "ThemePrism", "ThemeCandy", "ThemeWildberry" })
+                     "ThemePrism", "ThemeCandy", "ThemeWildberry"
+                 })
         {
             var label = Strings.ResourceManager.GetString(key, CultureInfo.GetCultureInfo(culture));
             Assert.That(label, Is.Not.Null.And.Not.Empty, key);
@@ -101,7 +106,10 @@ public sealed class StringResourceTests
             CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(culture);
             Assert.That(Strings.WinMonSettings, Is.EqualTo(expected));
         }
-        finally { CultureInfo.CurrentUICulture = original; }
+        finally
+        {
+            CultureInfo.CurrentUICulture = original;
+        }
     }
 
     [TestCase("zh-Hans")]
@@ -118,8 +126,8 @@ public sealed class StringResourceTests
         var neutral = Strings.ResourceManager.GetResourceSet(CultureInfo.InvariantCulture, true, false)!;
         var localized = Strings.ResourceManager.GetResourceSet(CultureInfo.GetCultureInfo(culture), true, false);
         Assert.That(localized, Is.Not.Null, "The satellite assembly must be deployed.");
-        var keys = neutral.Cast<System.Collections.DictionaryEntry>().Select(e => (string)e.Key).ToArray();
-        Assert.That(localized!.Cast<System.Collections.DictionaryEntry>().Select(e => (string)e.Key), Is.EquivalentTo(keys));
+        var keys = neutral.Cast<DictionaryEntry>().Select(e => (string)e.Key).ToArray();
+        Assert.That(localized!.Cast<DictionaryEntry>().Select(e => (string)e.Key), Is.EquivalentTo(keys));
         foreach (var key in keys)
         {
             var original = neutral.GetString(key)!;
@@ -132,11 +140,14 @@ public sealed class StringResourceTests
             continue;
 
             // Order can change with grammar; argument numbers, multiplicity, and numeric/date formats cannot.
-            static string[] Placeholders(string text) =>
-            [
-                .. Regex.Matches(text, @"\{\d+(?:,[^}:]+)?(?::[^}]+)?\}")
-                    .Select(m => m.Value).Order()
-            ];
+            static string[] Placeholders(string text)
+            {
+                return
+                [
+                    .. Regex.Matches(text, @"\{\d+(?:,[^}:]+)?(?::[^}]+)?\}")
+                        .Select(m => m.Value).Order()
+                ];
+            }
         }
     }
 
@@ -152,7 +163,7 @@ public sealed class StringResourceTests
     [Test]
     public void FallbackCulture_IsEnglishInTheMainAssembly()
     {
-        Assert.That(typeof(Strings).Assembly.GetCustomAttribute<System.Resources.NeutralResourcesLanguageAttribute>()?.CultureName,
+        Assert.That(typeof(Strings).Assembly.GetCustomAttribute<NeutralResourcesLanguageAttribute>()?.CultureName,
             Is.EqualTo("en"));
     }
 }

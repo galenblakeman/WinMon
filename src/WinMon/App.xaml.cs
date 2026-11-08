@@ -74,7 +74,8 @@ public partial class App
         if (e.Args is
             [
                 "--services-smoke-output" or "--usage-smoke-output" or "--capture-smoke-output" or
-                "--connections-smoke-output", var servicesOutput
+                "--connections-smoke-output",
+                var servicesOutput
             ])
         {
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
@@ -264,7 +265,10 @@ public partial class App
             base.OnExit(e);
             Trace.TraceInformation("App.Exit code={0}", e.ApplicationExitCode);
         }
-        finally { _log?.Dispose(); }
+        finally
+        {
+            _log?.Dispose();
+        }
     }
 
     private async Task RunServicesDiagnosticsAsync(MainWindow window, string output, string mode)
@@ -279,7 +283,8 @@ public partial class App
             await (mode switch
             {
                 "--usage-smoke-output" => WindowDiagnostics.CaptureUsageDiagnosticsAsync(output, timeout.Token),
-                "--connections-smoke-output" => WindowDiagnostics.CaptureConnectionsDiagnosticsAsync(output, timeout.Token),
+                "--connections-smoke-output" => WindowDiagnostics.CaptureConnectionsDiagnosticsAsync(output,
+                    timeout.Token),
                 "--capture-smoke-output" => WindowDiagnostics.CaptureAutoCaptureDiagnosticsAsync(output, timeout.Token),
                 _ => diagnostics.CaptureServicesDiagnosticsAsync(output, timeout.Token)
             });

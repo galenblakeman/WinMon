@@ -8,13 +8,19 @@ namespace WinMon.Tests;
 [TestFixture]
 public sealed class ConnectionHistoryTests
 {
-    private static MonitorSample Sample(int second) =>
-        new(DateTimeOffset.UnixEpoch.AddSeconds(second), 0, [], 0, false, second * Stopwatch.Frequency);
+    private static MonitorSample Sample(int second)
+    {
+        return new MonitorSample(DateTimeOffset.UnixEpoch.AddSeconds(second), 0, [], 0, false,
+            second * Stopwatch.Frequency);
+    }
 
-    private static NetworkConnectionsFrame Endpoints(int count) => new(
-        Enumerable.Range(0, count).Select(index => new NetworkConnection(42, 1, TransportProtocol.Udp,
-            new IPEndPoint(IPAddress.Loopback, 5000 + index))).ToArray(),
-        NetworkAddressFamilyStatus.Success, NetworkAddressFamilyStatus.Success);
+    private static NetworkConnectionsFrame Endpoints(int count)
+    {
+        return new NetworkConnectionsFrame(
+            Enumerable.Range(0, count).Select(index => new NetworkConnection(42, 1, TransportProtocol.Udp,
+                new IPEndPoint(IPAddress.Loopback, 5000 + index))).ToArray(),
+            NetworkAddressFamilyStatus.Success, NetworkAddressFamilyStatus.Success);
+    }
 
     [Test]
     public void Find_RequiresExactRecordedSampleAndKeepsEarlierObservation()

@@ -1,6 +1,6 @@
-using System.Net;
-using System.Net.Http;
 using System.IO.Compression;
+using System.Net;
+using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -16,18 +16,23 @@ public sealed class UpdateTests
     private string _directory = null!;
 
     [SetUp]
-    public void SetUp() => _directory = Path.Combine(Path.GetTempPath(), "WinMon.Tests", Guid.NewGuid().ToString("N"));
+    public void SetUp()
+    {
+        _directory = Path.Combine(Path.GetTempPath(), "WinMon.Tests", Guid.NewGuid().ToString("N"));
+    }
 
     [TearDown]
     public void TearDown()
     {
-        if (Directory.Exists(_directory)) Directory.Delete(_directory, recursive: true);
+        if (Directory.Exists(_directory)) Directory.Delete(_directory, true);
     }
 
     [TestCase("1.0.0")]
     [TestCase("99999.99999.99999")]
-    public void ParseVersion_AcceptsReleaseTriplets(string value) =>
+    public void ParseVersion_AcceptsReleaseTriplets(string value)
+    {
         Assert.That(UpdateManifest.ParseVersion(value).ToString(3), Is.EqualTo(value));
+    }
 
     [TestCase("v1.0.0")]
     [TestCase("1.0")]
@@ -35,8 +40,10 @@ public sealed class UpdateTests
     [TestCase("1.0.0-beta")]
     [TestCase("100000.1.1")]
     [TestCase("1.-1.1")]
-    public void ParseVersion_RejectsAnythingExceptReleaseTriplets(string value) =>
+    public void ParseVersion_RejectsAnythingExceptReleaseTriplets(string value)
+    {
         Assert.That(() => UpdateManifest.ParseVersion(value), Throws.InstanceOf<InvalidDataException>());
+    }
 
     [Test]
     public void Verify_AcceptsExactlySignedExpectedManifest()
@@ -65,10 +72,15 @@ public sealed class UpdateTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(() => UpdateManifest.Verify(tampered, signature, key.ExportSubjectPublicKeyInfoPem(), "1.2.3"), Throws.InstanceOf<InvalidDataException>());
-            Assert.That(() => UpdateManifest.Verify(bytes, signature, wrongKey.ExportSubjectPublicKeyInfoPem(), "1.2.3"), Throws.InstanceOf<InvalidDataException>());
-            Assert.That(() => UpdateManifest.Verify(bytes, signature, key.ExportSubjectPublicKeyInfoPem(), "1.2.4"), Throws.InstanceOf<InvalidDataException>());
-            Assert.That(() => UpdateManifest.Verify(bytes, signature, "", "1.2.3"), Throws.InstanceOf<InvalidDataException>());
+            Assert.That(() => UpdateManifest.Verify(tampered, signature, key.ExportSubjectPublicKeyInfoPem(), "1.2.3"),
+                Throws.InstanceOf<InvalidDataException>());
+            Assert.That(
+                () => UpdateManifest.Verify(bytes, signature, wrongKey.ExportSubjectPublicKeyInfoPem(), "1.2.3"),
+                Throws.InstanceOf<InvalidDataException>());
+            Assert.That(() => UpdateManifest.Verify(bytes, signature, key.ExportSubjectPublicKeyInfoPem(), "1.2.4"),
+                Throws.InstanceOf<InvalidDataException>());
+            Assert.That(() => UpdateManifest.Verify(bytes, signature, "", "1.2.3"),
+                Throws.InstanceOf<InvalidDataException>());
         });
     }
 
@@ -84,9 +96,11 @@ public sealed class UpdateTests
         var document = ManifestDocument("1.2.3");
         Set(document, path, value);
         var bytes = JsonSerializer.SerializeToUtf8Bytes(document);
-        var signature = Convert.ToBase64String(key.SignData(bytes, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1));
+        var signature =
+            Convert.ToBase64String(key.SignData(bytes, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1));
 
-        Assert.That(() => UpdateManifest.Verify(bytes, signature, key.ExportSubjectPublicKeyInfoPem(), "1.2.3"), Throws.InstanceOf<InvalidDataException>());
+        Assert.That(() => UpdateManifest.Verify(bytes, signature, key.ExportSubjectPublicKeyInfoPem(), "1.2.3"),
+            Throws.InstanceOf<InvalidDataException>());
     }
 
     [Test]
@@ -96,11 +110,16 @@ public sealed class UpdateTests
         var path = Path.Combine(_directory, "asset.bin");
         var bytes = Encoding.UTF8.GetBytes("update bytes");
         await File.WriteAllBytesAsync(path, bytes);
-        var asset = new UpdateAsset("asset.bin", Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant(), bytes.Length);
+        var asset = new UpdateAsset("asset.bin", Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant(),
+            bytes.Length);
 
         await UpdateManifest.VerifyFileAsync(path, asset, CancellationToken.None);
-        await Assert.ThatAsync(() => UpdateManifest.VerifyFileAsync(path, asset with { Size = bytes.Length + 1 }, CancellationToken.None), Throws.InstanceOf<InvalidDataException>());
-        await Assert.ThatAsync(() => UpdateManifest.VerifyFileAsync(path, asset with { Sha256 = new string('0', 64) }, CancellationToken.None), Throws.InstanceOf<InvalidDataException>());
+        await Assert.ThatAsync(
+            () => UpdateManifest.VerifyFileAsync(path, asset with { Size = bytes.Length + 1 }, CancellationToken.None),
+            Throws.InstanceOf<InvalidDataException>());
+        await Assert.ThatAsync(
+            () => UpdateManifest.VerifyFileAsync(path, asset with { Sha256 = new string('0', 64) },
+                CancellationToken.None), Throws.InstanceOf<InvalidDataException>());
     }
 
     [Test]
@@ -171,8 +190,10 @@ public sealed class UpdateTests
         var target = Path.Combine(_directory, "WinMon", "WinMon.exe");
         Assert.Multiple(() =>
         {
-            Assert.That(UpdateInstallation.MatchesInstallDirectory(target, Path.Combine(_directory, "WinMon")), Is.True);
-            Assert.That(UpdateInstallation.MatchesInstallDirectory(target, Path.Combine(_directory, "Other")), Is.False);
+            Assert.That(UpdateInstallation.MatchesInstallDirectory(target, Path.Combine(_directory, "WinMon")),
+                Is.True);
+            Assert.That(UpdateInstallation.MatchesInstallDirectory(target, Path.Combine(_directory, "Other")),
+                Is.False);
             Assert.That(UpdateInstallation.MatchesInstallDirectory(target, null), Is.False);
         });
     }
@@ -203,7 +224,9 @@ public sealed class UpdateTests
         var archive = CreateArchive(entryName);
         var destination = Path.Combine(_directory, "output", "WinMon.exe");
 
-        await Assert.ThatAsync(() => UpdateClient.ExtractExecutableAsync(archive, destination, "1.2.3", CancellationToken.None), Throws.InstanceOf<InvalidDataException>());
+        await Assert.ThatAsync(
+            () => UpdateClient.ExtractExecutableAsync(archive, destination, "1.2.3", CancellationToken.None),
+            Throws.InstanceOf<InvalidDataException>());
         Assert.That(File.Exists(destination), Is.False);
     }
 
@@ -213,7 +236,9 @@ public sealed class UpdateTests
         var archive = CreateArchive("WinMon.exe", "WinMon.exe");
         var destination = Path.Combine(_directory, "output", "WinMon.exe");
 
-        await Assert.ThatAsync(() => UpdateClient.ExtractExecutableAsync(archive, destination, "1.2.3", CancellationToken.None), Throws.InstanceOf<InvalidDataException>());
+        await Assert.ThatAsync(
+            () => UpdateClient.ExtractExecutableAsync(archive, destination, "1.2.3", CancellationToken.None),
+            Throws.InstanceOf<InvalidDataException>());
         Assert.That(File.Exists(destination), Is.False);
     }
 
@@ -226,11 +251,12 @@ public sealed class UpdateTests
         File.WriteAllText(backup, "old executable");
         File.WriteAllText(settings, "portable settings");
 
-        UpdateRuntime.CompleteInterruptedTransaction(directory, target, "1.2.3", activeToken: null);
+        UpdateRuntime.CompleteInterruptedTransaction(directory, target, "1.2.3", null);
 
         Assert.Multiple(() =>
         {
-            Assert.That(UpdateFiles.ReadJson<UpdateState>(Path.Combine(directory, "state.json")).Status, Is.EqualTo("succeeded"));
+            Assert.That(UpdateFiles.ReadJson<UpdateState>(Path.Combine(directory, "state.json")).Status,
+                Is.EqualTo("succeeded"));
             Assert.That(File.Exists(backup), Is.False);
             Assert.That(File.ReadAllText(settings), Is.EqualTo("portable settings"));
         });
@@ -245,13 +271,15 @@ public sealed class UpdateTests
         File.WriteAllText(UpdateFiles.BackupPath(oldJob), "old backup");
 
         UpdateRuntime.CompleteInterruptedTransaction(liveDirectory, liveTarget, "1.2.3", liveJob.Token);
-        UpdateRuntime.CompleteInterruptedTransaction(oldDirectory, oldTarget, "1.2.3", activeToken: null);
+        UpdateRuntime.CompleteInterruptedTransaction(oldDirectory, oldTarget, "1.2.3", null);
 
         Assert.Multiple(() =>
         {
-            Assert.That(UpdateFiles.ReadJson<UpdateState>(Path.Combine(liveDirectory, "state.json")).Status, Is.EqualTo("awaiting-ready"));
+            Assert.That(UpdateFiles.ReadJson<UpdateState>(Path.Combine(liveDirectory, "state.json")).Status,
+                Is.EqualTo("awaiting-ready"));
             Assert.That(File.Exists(UpdateFiles.BackupPath(liveJob)), Is.True);
-            Assert.That(UpdateFiles.ReadJson<UpdateState>(Path.Combine(oldDirectory, "state.json")).Status, Is.EqualTo("awaiting-ready"));
+            Assert.That(UpdateFiles.ReadJson<UpdateState>(Path.Combine(oldDirectory, "state.json")).Status,
+                Is.EqualTo("awaiting-ready"));
             Assert.That(File.Exists(UpdateFiles.BackupPath(oldJob)), Is.True);
         });
     }
@@ -271,13 +299,15 @@ public sealed class UpdateTests
         Age(unapplied);
 
         foreach (var directory in new[] { interrupted, unapplied, current })
-            UpdateRuntime.CompleteInterruptedTransaction(directory, target, "1.2.2", activeToken: null, sessionStartUtc: DateTime.UtcNow.AddMinutes(-1));
+            UpdateRuntime.CompleteInterruptedTransaction(directory, target, "1.2.2", null,
+                DateTime.UtcNow.AddMinutes(-1));
 
         Assert.Multiple(() =>
         {
             Assert.That(Directory.Exists(interrupted), Is.False);
             Assert.That(Directory.Exists(unapplied), Is.False);
-            Assert.That(Directory.Exists(current), Is.True, "A download this session may have started must not be removed.");
+            Assert.That(Directory.Exists(current), Is.True,
+                "A download this session may have started must not be removed.");
             Assert.That(File.Exists(target), Is.True);
         });
     }
@@ -295,19 +325,20 @@ public sealed class UpdateTests
         var start = DateTime.UtcNow.AddMinutes(-1);
 
         UpdateRuntime.CompleteInterruptedTransaction(active, activeTarget, "1.2.2", activeJob.Token, start);
-        UpdateRuntime.CompleteInterruptedTransaction(failed, target, "1.2.2", activeToken: null, start);
+        UpdateRuntime.CompleteInterruptedTransaction(failed, target, "1.2.2", null, start);
 
         Assert.Multiple(() =>
         {
             Assert.That(Directory.Exists(active), Is.True);
             Assert.That(File.Exists(Path.Combine(failed, "WinMon.Update.exe")), Is.False);
             Assert.That(File.Exists(Path.Combine(failed, "verified.exe")), Is.False);
-            Assert.That(UpdateFiles.ReadJson<UpdateState>(Path.Combine(failed, "state.json")).Status, Is.EqualTo("rolled-back"),
+            Assert.That(UpdateFiles.ReadJson<UpdateState>(Path.Combine(failed, "state.json")).Status,
+                Is.EqualTo("rolled-back"),
                 "The result notice reads the state, so it stays until the notice has been shown.");
         });
 
         File.WriteAllText(Path.Combine(failed, "notice-shown"), "");
-        UpdateRuntime.CompleteInterruptedTransaction(failed, target, "1.2.2", activeToken: null, start);
+        UpdateRuntime.CompleteInterruptedTransaction(failed, target, "1.2.2", null, start);
 
         Assert.That(Directory.Exists(failed), Is.False);
     }
@@ -321,7 +352,7 @@ public sealed class UpdateTests
         File.WriteAllText(Path.Combine(directory, "notice-shown"), "");
         Age(directory);
 
-        UpdateRuntime.CompleteInterruptedTransaction(directory, target, "1.2.2", activeToken: null, DateTime.UtcNow.AddMinutes(-1));
+        UpdateRuntime.CompleteInterruptedTransaction(directory, target, "1.2.2", null, DateTime.UtcNow.AddMinutes(-1));
 
         Assert.Multiple(() =>
         {
@@ -362,7 +393,10 @@ public sealed class UpdateTests
         Assert.That(UpdateClient.AvailableFreeSpace(share), Is.GreaterThan(0));
     }
 
-    private static void Age(string directory) => Directory.SetCreationTimeUtc(directory, DateTime.UtcNow.AddHours(-1));
+    private static void Age(string directory)
+    {
+        Directory.SetCreationTimeUtc(directory, DateTime.UtcNow.AddHours(-1));
+    }
 
 #if !WINMON_STORE
     // Store builds reject every check before contacting GitHub; StoreBuildTests covers that.
@@ -380,7 +414,8 @@ public sealed class UpdateTests
                     ? JsonResponse(Release("v1.2.3"), "\"release-1\"")
                     : new HttpResponseMessage(HttpStatusCode.NotModified);
             if (request.RequestUri.AbsolutePath.EndsWith("update-manifest.json")) return BytesResponse(manifest);
-            if (request.RequestUri.AbsolutePath.EndsWith("update-manifest.sig")) return BytesResponse(Encoding.UTF8.GetBytes(signature));
+            if (request.RequestUri.AbsolutePath.EndsWith("update-manifest.sig"))
+                return BytesResponse(Encoding.UTF8.GetBytes(signature));
             throw new AssertionException(request.RequestUri.AbsolutePath);
         })), key.ExportSubjectPublicKeyInfoPem(), _directory);
 
@@ -391,7 +426,9 @@ public sealed class UpdateTests
         {
             Assert.That(first?.Version, Is.EqualTo("1.2.3"));
             Assert.That(second?.Version, Is.EqualTo("1.2.3"));
-            Assert.That(calls.Last(r => r.RequestUri!.AbsolutePath.EndsWith("/latest")).Headers.IfNoneMatch.Single().Tag, Is.EqualTo("\"release-1\""));
+            Assert.That(
+                calls.Last(r => r.RequestUri!.AbsolutePath.EndsWith("/latest")).Headers.IfNoneMatch.Single().Tag,
+                Is.EqualTo("\"release-1\""));
         });
     }
 
@@ -399,26 +436,36 @@ public sealed class UpdateTests
     [TestCase(false, true)]
     public async Task CheckAsync_IgnoresDraftAndPrerelease(bool draft, bool prerelease)
     {
-        using var client = new UpdateClient(new HttpClient(new DelegateHandler(_ => JsonResponse(Release("v9.0.0", draft, prerelease)))), "unused", _directory);
+        using var client =
+            new UpdateClient(
+                new HttpClient(new DelegateHandler(_ => JsonResponse(Release("v9.0.0", draft, prerelease)))), "unused",
+                _directory);
         Assert.That(await client.CheckAsync("1.0.2", CancellationToken.None), Is.Null);
     }
 
     [Test]
     public void CheckAsync_RejectsUnsignedAndOversizedReleaseMetadata()
     {
-        using var unsigned = new UpdateClient(new HttpClient(new DelegateHandler(_ => JsonResponse(Release("v1.2.3", assets: [])))), "unused", _directory);
-        Assert.ThatAsync(() => unsigned.CheckAsync("1.0.2", CancellationToken.None), Throws.InstanceOf<InvalidDataException>());
+        using var unsigned =
+            new UpdateClient(new HttpClient(new DelegateHandler(_ => JsonResponse(Release("v1.2.3", assets: [])))),
+                "unused", _directory);
+        Assert.ThatAsync(() => unsigned.CheckAsync("1.0.2", CancellationToken.None),
+            Throws.InstanceOf<InvalidDataException>());
 
         var excessive = new string('x', 1024 * 1024 + 1);
-        using var oversized = new UpdateClient(new HttpClient(new DelegateHandler(_ => BytesResponse(Encoding.UTF8.GetBytes(excessive)))), "unused", _directory);
-        Assert.ThatAsync(() => oversized.CheckAsync("1.0.2", CancellationToken.None), Throws.InstanceOf<InvalidDataException>());
+        using var oversized =
+            new UpdateClient(new HttpClient(new DelegateHandler(_ => BytesResponse(Encoding.UTF8.GetBytes(excessive)))),
+                "unused", _directory);
+        Assert.ThatAsync(() => oversized.CheckAsync("1.0.2", CancellationToken.None),
+            Throws.InstanceOf<InvalidDataException>());
     }
 #endif
 
     private static (byte[] Bytes, string Signature) SignedManifest(RSA key, string version)
     {
         var bytes = JsonSerializer.SerializeToUtf8Bytes(ManifestDocument(version));
-        return (bytes, Convert.ToBase64String(key.SignData(bytes, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1)));
+        return (bytes,
+            Convert.ToBase64String(key.SignData(bytes, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1)));
     }
 
     private string CreateArchive(params string[] names)
@@ -432,6 +479,7 @@ public sealed class UpdateTests
             using var stream = entry.Open();
             stream.WriteByte(1);
         }
+
         return path;
     }
 
@@ -449,16 +497,22 @@ public sealed class UpdateTests
         return (directory, target, job);
     }
 
-    private static Dictionary<string, object> ManifestDocument(string version) => new()
+    private static Dictionary<string, object> ManifestDocument(string version)
     {
-        ["schemaVersion"] = 1,
-        ["version"] = version,
-        ["runtime"] = "win-x64",
-        ["portable"] = Asset($"WinMon-{version}-win-x64.zip"),
-        ["installer"] = Asset($"WinMon-{version}-Setup-x64.exe")
-    };
+        return new Dictionary<string, object>
+        {
+            ["schemaVersion"] = 1,
+            ["version"] = version,
+            ["runtime"] = "win-x64",
+            ["portable"] = Asset($"WinMon-{version}-win-x64.zip"),
+            ["installer"] = Asset($"WinMon-{version}-Setup-x64.exe")
+        };
+    }
 
-    private static Dictionary<string, object> Asset(string name) => new() { ["name"] = name, ["sha256"] = new string('a', 64), ["size"] = 128L };
+    private static Dictionary<string, object> Asset(string name)
+    {
+        return new Dictionary<string, object> { ["name"] = name, ["sha256"] = new string('a', 64), ["size"] = 128L };
+    }
 
     private static void Set(Dictionary<string, object> document, string path, object value)
     {
@@ -467,25 +521,39 @@ public sealed class UpdateTests
         else ((Dictionary<string, object>)document[split[0]])[split[1]] = value;
     }
 
-    private static object Release(string tag, bool draft = false, bool prerelease = false, string[]? assets = null) => new
+    private static object Release(string tag, bool draft = false, bool prerelease = false, string[]? assets = null)
     {
-        draft,
-        prerelease,
-        tag_name = tag,
-        assets = (assets ?? ["update-manifest.json", "update-manifest.sig", $"WinMon-{tag[1..]}-win-x64.zip", $"WinMon-{tag[1..]}-Setup-x64.exe"]).Select(name => new { name })
-    };
+        return new
+        {
+            draft,
+            prerelease,
+            tag_name = tag,
+            assets = (assets ??
+            [
+                "update-manifest.json", "update-manifest.sig", $"WinMon-{tag[1..]}-win-x64.zip",
+                $"WinMon-{tag[1..]}-Setup-x64.exe"
+            ]).Select(name => new { name })
+        };
+    }
 
     private static HttpResponseMessage JsonResponse(object value, string? etag = null)
     {
         var response = BytesResponse(JsonSerializer.SerializeToUtf8Bytes(value));
-        if (etag is not null) response.Headers.ETag = new System.Net.Http.Headers.EntityTagHeaderValue(etag);
+        if (etag is not null) response.Headers.ETag = new EntityTagHeaderValue(etag);
         return response;
     }
 
-    private static HttpResponseMessage BytesResponse(byte[] bytes) => new(HttpStatusCode.OK) { Content = new ByteArrayContent(bytes) };
+    private static HttpResponseMessage BytesResponse(byte[] bytes)
+    {
+        return new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(bytes) };
+    }
 
     private sealed class DelegateHandler(Func<HttpRequestMessage, HttpResponseMessage> response) : HttpMessageHandler
     {
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) => Task.FromResult(response(request));
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            return Task.FromResult(response(request));
+        }
     }
 }

@@ -121,13 +121,24 @@ public sealed class NetworkCollectorManagerTests
         internal readonly TaskCompletionSource Stopped = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public bool Failed { get; set; }
         public ProcessNetworkFailure Failure { get; set; }
+
         public Task StartAsync(CancellationToken cancellationToken)
         {
             Starts++;
             return FailStart ? Task.FromException(new IOException("Test startup failure")) : Task.CompletedTask;
         }
-        public ProcessNetworkSnapshot Snapshot(string ownerSid) => new(_generation, 1, 100, 1, 90, 95,
-            ProcessNetworkQuality.Provisional, 0, 0, []);
-        public ValueTask DisposeAsync() { Disposed = true; Stopped.TrySetResult(); return ValueTask.CompletedTask; }
+
+        public ProcessNetworkSnapshot Snapshot(string ownerSid)
+        {
+            return new ProcessNetworkSnapshot(_generation, 1, 100, 1, 90, 95,
+                ProcessNetworkQuality.Provisional, 0, 0, []);
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            Disposed = true;
+            Stopped.TrySetResult();
+            return ValueTask.CompletedTask;
+        }
     }
 }

@@ -1,3 +1,8 @@
+// These tasks must start even during cancellation; the worker or bounded shutdown owns cancellation.
+// ReSharper disable MethodSupportsCancellation
+// Close handles and cancel callbacks synchronously before releasing ownership or continuing shutdown.
+// ReSharper disable MethodHasAsyncOverload
+
 using System.Diagnostics;
 using System.Threading.Channels;
 using Microsoft.Diagnostics.Tracing;
@@ -12,16 +17,21 @@ internal sealed class EtwNetworkCollector : INetworkCollector
 {
     // A 16 MiB ETW flush can arrive as a burst; bound its compact event queue to about 6 MiB.
     private const int MaximumEvents = 262_144;
+
     private const int MaximumOwners = 8_192;
+
     // Events processed per lock hold, so a burst cannot delay a snapshot request for long.
     private const int BatchSize = 4_096;
     private readonly object _gate = new();
     private readonly HashSet<string> _allowedSids;
-    private readonly Channel<CollectorEvent> _events = Channel.CreateBounded<CollectorEvent>(new BoundedChannelOptions(MaximumEvents)
-    {
-        // With Wait, TryWrite reports the rejected item rather than silently dropping it.
-        FullMode = BoundedChannelFullMode.Wait, SingleReader = true, SingleWriter = false
-    });
+
+    private readonly Channel<CollectorEvent> _events = Channel.CreateBounded<CollectorEvent>(
+        new BoundedChannelOptions(MaximumEvents)
+        {
+            // With Wait, TryWrite reports the rejected item rather than silently dropping it.
+            FullMode = BoundedChannelFullMode.Wait, SingleReader = true, SingleWriter = false
+        });
+
     private readonly Dictionary<int, OwnerCache> _owners = [];
     private readonly Dictionary<int, RejectedOwner> _rejectedUntil = [];
     private readonly CancellationTokenSource _stop = new();
@@ -43,14 +53,18 @@ internal sealed class EtwNetworkCollector : INetworkCollector
     internal EtwNetworkCollector(IReadOnlyCollection<string> allowedSids)
     {
         ArgumentNullException.ThrowIfNull(allowedSids);
-        _allowedSids = new HashSet<string>(allowedSids.Where(sid => !string.IsNullOrWhiteSpace(sid)), StringComparer.Ordinal);
-        if (_allowedSids.Count == 0) throw new ArgumentException("At least one provisioned SID is required.", nameof(allowedSids));
+        _allowedSids = new HashSet<string>(allowedSids.Where(sid => !string.IsNullOrWhiteSpace(sid)),
+            StringComparer.Ordinal);
+        if (_allowedSids.Count == 0)
+            throw new ArgumentException("At least one provisioned SID is required.", nameof(allowedSids));
     }
 
     internal string? SessionName { get; private set; }
     public ProcessNetworkFailure Failure => (ProcessNetworkFailure)Volatile.Read(ref _failure);
     public bool Failed => Failure != ProcessNetworkFailure.None;
-    internal ProcessNetworkIncompleteReason CoverageReasons => (ProcessNetworkIncompleteReason)Volatile.Read(ref _coverageReasons);
+
+    internal ProcessNetworkIncompleteReason CoverageReasons =>
+        (ProcessNetworkIncompleteReason)Volatile.Read(ref _coverageReasons);
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
@@ -61,9 +75,11 @@ internal sealed class EtwNetworkCollector : INetworkCollector
             try
             {
                 SessionName = $"WinMonNetworkMonitor-{Environment.ProcessId}-{Guid.NewGuid():N}";
-                _session = new TraceEventSession(SessionName, TraceEventSessionOptions.Create | TraceEventSessionOptions.NoRestartOnCreate)
-                { StopOnDispose = true, BufferSizeMB = 16 };
-                _session.EnableKernelProvider(KernelTraceEventParser.Keywords.NetworkTCPIP | KernelTraceEventParser.Keywords.Process);
+                _session = new TraceEventSession(SessionName,
+                        TraceEventSessionOptions.Create | TraceEventSessionOptions.NoRestartOnCreate)
+                    { StopOnDispose = true, BufferSizeMB = 16 };
+                _session.EnableKernelProvider(KernelTraceEventParser.Keywords.NetworkTCPIP |
+                                              KernelTraceEventParser.Keywords.Process);
                 _source = _session.Source;
 
                 // TraceEvent's QPC conversion APIs are not public in 3.1.23. Freeze one UTC/QPC
@@ -77,8 +93,15 @@ internal sealed class EtwNetworkCollector : INetworkCollector
                 _worker = Task.Run(ConsumeAsync);
                 _consumer = Task.Run(() =>
                 {
-                    try { _source.Process(); }
-                    catch { SignalFailure(ProcessNetworkFailure.TraceConsumer); throw; }
+                    try
+                    {
+                        _source.Process();
+                    }
+                    catch
+                    {
+                        SignalFailure(ProcessNetworkFailure.TraceConsumer);
+                        throw;
+                    }
                     finally
                     {
                         if (!_stop.IsCancellationRequested) SignalFailure(ProcessNetworkFailure.TraceStopped);
@@ -95,6 +118,7 @@ internal sealed class EtwNetworkCollector : INetworkCollector
                 throw;
             }
         }
+
         return Task.CompletedTask;
     }
 
@@ -107,11 +131,19 @@ internal sealed class EtwNetworkCollector : INetworkCollector
             var now = Stopwatch.GetTimestamp();
             DrainPendingQuality(now);
             _ledger.ReportLoss(_session?.EventsLost ?? 0, now);
-            var snapshot = _ledger.Snapshot(ownerSid, now) with { DroppedEvents = Interlocked.Read(ref _droppedEvents) };
+            var snapshot = _ledger.Snapshot(ownerSid, now) with
+            {
+                DroppedEvents = Interlocked.Read(ref _droppedEvents)
+            };
             if (CoverageReasons != ProcessNetworkIncompleteReason.None)
-                snapshot = snapshot with { Quality = snapshot.Quality | ProcessNetworkQuality.Incomplete,
-                    IncompleteReasons = snapshot.IncompleteReasons | CoverageReasons };
-            return Failed ? snapshot with { Quality = snapshot.Quality | ProcessNetworkQuality.Unavailable, Failure = Failure } : snapshot;
+                snapshot = snapshot with
+                {
+                    Quality = snapshot.Quality | ProcessNetworkQuality.Incomplete,
+                    IncompleteReasons = snapshot.IncompleteReasons | CoverageReasons
+                };
+            return Failed
+                ? snapshot with { Quality = snapshot.Quality | ProcessNetworkQuality.Unavailable, Failure = Failure }
+                : snapshot;
         }
     }
 
@@ -132,7 +164,11 @@ internal sealed class EtwNetworkCollector : INetworkCollector
     private void Enqueue(TraceEvent data, int bytes, bool send)
     {
         if (data.Version < 1 || data.ProcessID <= 0 || bytes < 0)
-        { SignalIncomplete(ProcessNetworkIncompleteReason.InvalidEvent, rateGap: true); return; }
+        {
+            SignalIncomplete(ProcessNetworkIncompleteReason.InvalidEvent, true);
+            return;
+        }
+
         if (bytes == 0) return;
         Enqueue(new(CollectorEventKind.Network, data.ProcessID, EventQpc(data), bytes, send));
     }
@@ -141,7 +177,7 @@ internal sealed class EtwNetworkCollector : INetworkCollector
     {
         if (_events.Writer.TryWrite(item)) return;
         Interlocked.Increment(ref _droppedEvents);
-        SignalIncomplete(ProcessNetworkIncompleteReason.QueueOverflow, rateGap: true);
+        SignalIncomplete(ProcessNetworkIncompleteReason.QueueOverflow, true);
     }
 
     private async Task ConsumeAsync()
@@ -157,19 +193,34 @@ internal sealed class EtwNetworkCollector : INetworkCollector
                 // Reuse the pending timer: a fresh one per wake piles up timers under heavy traffic.
                 timeout ??= Task.Delay(TimeSpan.FromSeconds(1), _stop.Token);
                 var completed = await Task.WhenAny(ready, timeout).ConfigureAwait(false);
-                if (completed == timeout) timeout = null;
+                if (completed == timeout)
+                {
+                    timeout = null;
+                }
                 else
                 {
                     if (!await ready.ConfigureAwait(false)) break;
                     ready = null;
-                    while (ProcessBatch()) { }
+                    while (ProcessBatch())
+                    {
+                    }
                 }
+
                 var now = Stopwatch.GetTimestamp();
-                if (now >= nextReconcile) { Reconcile(); nextReconcile = checked(Stopwatch.GetTimestamp() + Stopwatch.Frequency); }
+                if (now >= nextReconcile)
+                {
+                    Reconcile();
+                    nextReconcile = checked(Stopwatch.GetTimestamp() + Stopwatch.Frequency);
+                }
             }
         }
-        catch (OperationCanceledException) when (_stop.IsCancellationRequested) { }
-        catch { SignalFailure(ProcessNetworkFailure.EventConsumer); }
+        catch (OperationCanceledException) when (_stop.IsCancellationRequested)
+        {
+        }
+        catch
+        {
+            SignalFailure(ProcessNetworkFailure.EventConsumer);
+        }
     }
 
     /// <summary>Processes up to one batch under a single lock hold; returns whether the queue may hold more.</summary>
@@ -183,6 +234,7 @@ internal sealed class EtwNetworkCollector : INetworkCollector
                 if (!_events.Reader.TryRead(out var item)) return false;
                 Process(item, ledger);
             }
+
             return true;
         }
     }
@@ -193,7 +245,7 @@ internal sealed class EtwNetworkCollector : INetworkCollector
         switch (item.Kind)
         {
             case CollectorEventKind.Start:
-                ResolveAndRegister(item.ProcessId, item.EventQpc, Stopwatch.GetTimestamp(), observedTraffic: false);
+                ResolveAndRegister(item.ProcessId, item.EventQpc, Stopwatch.GetTimestamp(), false);
                 break;
             case CollectorEventKind.Stop:
                 if (_owners.TryGetValue(item.ProcessId, out var current) && item.EventQpc > current.StartedQpc)
@@ -201,6 +253,7 @@ internal sealed class EtwNetworkCollector : INetworkCollector
                     ledger.End(item.ProcessId, item.EventQpc);
                     _owners.Remove(item.ProcessId);
                 }
+
                 break;
             case CollectorEventKind.Network:
                 var verifiedQpc = Stopwatch.GetTimestamp(); // taken before native ownership I/O
@@ -214,7 +267,8 @@ internal sealed class EtwNetworkCollector : INetworkCollector
     {
         // A closed lifetime is safe for a delayed packet even when the PID has been reused.
         if (_ledger!.HasExitedLifetime(processId, eventQpc)) return true;
-        if (_owners.TryGetValue(processId, out var cached) && eventQpc > cached.StartedQpc && eventQpc <= cached.ValidThroughQpc)
+        if (_owners.TryGetValue(processId, out var cached) && eventQpc > cached.StartedQpc &&
+            eventQpc <= cached.ValidThroughQpc)
             return true;
         if (_rejectedUntil.TryGetValue(processId, out var rejected))
         {
@@ -223,15 +277,18 @@ internal sealed class EtwNetworkCollector : INetworkCollector
                 if (rejected.Unknown) SignalIncomplete(ProcessNetworkIncompleteReason.OwnershipUnavailable);
                 return false;
             }
+
             // Another account's process keeps its owner, so only PID reuse can change the verdict.
-            if (rejected.OtherOwnerCreationTicks != 0 && ProcessOwnerProbe.TryReadCreation(processId, out var creation) &&
+            if (rejected.OtherOwnerCreationTicks != 0 &&
+                ProcessOwnerProbe.TryReadCreation(processId, out var creation) &&
                 creation == rejected.OtherOwnerCreationTicks)
             {
                 _rejectedUntil[processId] = rejected with { UntilQpc = checked(verifiedQpc + Stopwatch.Frequency) };
                 return false;
             }
         }
-        return ResolveAndRegister(processId, eventQpc, verifiedQpc, observedTraffic: true);
+
+        return ResolveAndRegister(processId, eventQpc, verifiedQpc, true);
     }
 
     internal bool ResolveAndRegister(int processId, long eventQpc, long verifiedQpc, bool observedTraffic)
@@ -243,21 +300,25 @@ internal sealed class EtwNetworkCollector : INetworkCollector
             _owners[processId] = known with { ValidThroughQpc = verifiedQpc };
             return true;
         }
+
         if (_ledger is null || !ProcessOwnerProbe.TryRead(processId, out var owner))
         {
-            Reject(processId, verifiedQpc, unknown: true);
+            Reject(processId, verifiedQpc, true);
             var retained = _ledger?.HasExitedLifetime(processId, eventQpc) == true;
             // A failed startup/process probe is not evidence that any traffic was missed.
             if (observedTraffic && !retained) SignalIncomplete(ProcessNetworkIncompleteReason.OwnershipUnavailable);
             return retained;
         }
+
         var createdQpc = ToSessionQpc(DateTime.FromFileTimeUtc(owner.CreationTicks));
         if (!_allowedSids.Contains(owner.Sid) || eventQpc <= createdQpc)
         {
             // Only an owner verdict is stable for the lifetime; an event before creation says nothing about it.
-            Reject(processId, verifiedQpc, otherOwnerCreationTicks: _allowedSids.Contains(owner.Sid) ? 0 : owner.CreationTicks);
+            Reject(processId, verifiedQpc,
+                otherOwnerCreationTicks: _allowedSids.Contains(owner.Sid) ? 0 : owner.CreationTicks);
             return _ledger.HasExitedLifetime(processId, eventQpc);
         }
+
         if (_owners.TryGetValue(processId, out var previous))
         {
             if (previous.CreationTicks == owner.CreationTicks)
@@ -265,9 +326,11 @@ internal sealed class EtwNetworkCollector : INetworkCollector
                 _owners[processId] = previous with { ValidThroughQpc = verifiedQpc };
                 return true;
             }
+
             _ledger.End(processId, createdQpc);
             _owners.Remove(processId);
         }
+
         if (_owners.Count >= MaximumOwners)
         {
             // Never evict an active ledger lifetime: a later packet would then fail duplicate
@@ -275,7 +338,9 @@ internal sealed class EtwNetworkCollector : INetworkCollector
             SignalIncomplete(ProcessNetworkIncompleteReason.CapacityExceeded);
             return _ledger.HasExitedLifetime(processId, eventQpc);
         }
-        if (!_ledger.Register(processId, owner.CreationTicks, owner.Sid, createdQpc)) return _ledger.HasExitedLifetime(processId, eventQpc);
+
+        if (!_ledger.Register(processId, owner.CreationTicks, owner.Sid, createdQpc))
+            return _ledger.HasExitedLifetime(processId, eventQpc);
         _owners[processId] = new(owner.CreationTicks, createdQpc, verifiedQpc);
         _rejectedUntil.Remove(processId);
         return eventQpc > createdQpc;
@@ -297,11 +362,13 @@ internal sealed class EtwNetworkCollector : INetworkCollector
             var nowQpc = Stopwatch.GetTimestamp();
             var utcNow = DateTime.UtcNow;
             var sampledThroughQpc = Stopwatch.GetTimestamp();
-            if (!IsClockCalibrationValid(_sessionStartedUtc, _qpcOffset, Stopwatch.Frequency, nowQpc, utcNow, sampledThroughQpc))
+            if (!IsClockCalibrationValid(_sessionStartedUtc, _qpcOffset, Stopwatch.Frequency, nowQpc, utcNow,
+                    sampledThroughQpc))
             {
                 SignalFailure(ProcessNetworkFailure.ClockDiscontinuity);
                 return;
             }
+
             DrainPendingQuality(nowQpc);
             _ledger.ReportLoss(_session?.EventsLost ?? 0, nowQpc);
             foreach (var processId in _owners.Keys.ToArray())
@@ -312,15 +379,17 @@ internal sealed class EtwNetworkCollector : INetworkCollector
                     _owners.Remove(processId);
                     continue;
                 }
+
                 var createdQpc = ToSessionQpc(DateTime.FromFileTimeUtc(creationTicks));
                 if (_owners[processId].CreationTicks == creationTicks)
                 {
                     _owners[processId] = _owners[processId] with { ValidThroughQpc = nowQpc };
                     continue;
                 }
+
                 _ledger.End(processId, createdQpc);
                 _owners.Remove(processId);
-                ResolveAndRegister(processId, nowQpc, nowQpc, observedTraffic: false);
+                ResolveAndRegister(processId, nowQpc, nowQpc, false);
             }
         }
     }
@@ -328,15 +397,31 @@ internal sealed class EtwNetworkCollector : INetworkCollector
     private void Seed()
     {
         foreach (var process in System.Diagnostics.Process.GetProcesses())
-        {
-            try { Enqueue(new(CollectorEventKind.Start, process.Id, Stopwatch.GetTimestamp(), 0, false)); }
-            finally { process.Dispose(); }
-        }
+            try
+            {
+                Enqueue(new(CollectorEventKind.Start, process.Id, Stopwatch.GetTimestamp(), 0, false));
+            }
+            finally
+            {
+                process.Dispose();
+            }
     }
 
-    private long EventQpc(TraceEvent data) => checked(_qpcOffset + ToTicks(TimeSpan.FromMilliseconds(data.TimeStampRelativeMSec)));
-    private long ToSessionQpc(DateTime utc) => checked(_qpcOffset + ToTicks(utc.ToUniversalTime() - _sessionStartedUtc));
-    private static long ToTicks(TimeSpan elapsed) => elapsed <= TimeSpan.Zero ? 0 : checked((long)Math.Round(elapsed.TotalSeconds * Stopwatch.Frequency));
+    private long EventQpc(TraceEvent data)
+    {
+        return checked(_qpcOffset + ToTicks(TimeSpan.FromMilliseconds(data.TimeStampRelativeMSec)));
+    }
+
+    private long ToSessionQpc(DateTime utc)
+    {
+        return checked(_qpcOffset + ToTicks(utc.ToUniversalTime() - _sessionStartedUtc));
+    }
+
+    private static long ToTicks(TimeSpan elapsed)
+    {
+        return elapsed <= TimeSpan.Zero ? 0 : checked((long)Math.Round(elapsed.TotalSeconds * Stopwatch.Frequency));
+    }
+
     // A protected or already-exited unrelated PID makes the totals provisional, but does not
     // invalidate a rate window for a process whose complete packet stream was captured.
     private void SignalIncomplete(ProcessNetworkIncompleteReason reason, bool rateGap = false)
@@ -354,7 +439,9 @@ internal sealed class EtwNetworkCollector : INetworkCollector
             _observedDroppedEvents = dropped;
         }
     }
-    internal static bool IsClockCalibrationValid(DateTime sessionStartedUtc, long qpcOffset, long frequency, long nowQpc,
+
+    internal static bool IsClockCalibrationValid(DateTime sessionStartedUtc, long qpcOffset, long frequency,
+        long nowQpc,
         DateTime utcNow, long? sampledThroughQpc = null)
     {
         var after = sampledThroughQpc ?? nowQpc;
@@ -367,12 +454,19 @@ internal sealed class EtwNetworkCollector : INetworkCollector
 
     internal void SignalFailure(ProcessNetworkFailure failure)
     {
-        if (failure == ProcessNetworkFailure.None || !Enum.IsDefined(failure)) throw new ArgumentOutOfRangeException(nameof(failure));
+        if (failure == ProcessNetworkFailure.None || !Enum.IsDefined(failure))
+            throw new ArgumentOutOfRangeException(nameof(failure));
         if (Interlocked.CompareExchange(ref _failure, (int)failure, 0) == 0)
             Trace.TraceError("Network.CollectorFailed reason={0}", failure);
-        SignalIncomplete(ProcessNetworkIncompleteReason.None, rateGap: true);
+        SignalIncomplete(ProcessNetworkIncompleteReason.None, true);
     }
-    private ProcessNetworkSnapshot Unavailable() => new(Guid.Empty, 0, 0, Stopwatch.Frequency, 0, 0, ProcessNetworkQuality.Unavailable, 0, 0, []) { Failure = Failure };
+
+    private ProcessNetworkSnapshot Unavailable()
+    {
+        return new ProcessNetworkSnapshot(Guid.Empty, 0, 0, Stopwatch.Frequency, 0, 0,
+                ProcessNetworkQuality.Unavailable, 0, 0, [])
+            { Failure = Failure };
+    }
 
     public async ValueTask DisposeAsync()
     {
@@ -380,14 +474,42 @@ internal sealed class EtwNetworkCollector : INetworkCollector
         _stop.Cancel();
         _session?.Dispose();
         _events.Writer.TryComplete();
-        try { await AwaitBounded(_consumer).ConfigureAwait(false); await AwaitBounded(_worker).ConfigureAwait(false); }
-        catch { SignalFailure(ProcessNetworkFailure.Shutdown); }
-        finally { _session?.Dispose(); _stop.Dispose(); }
+        try
+        {
+            await AwaitBounded(_consumer).ConfigureAwait(false);
+            await AwaitBounded(_worker).ConfigureAwait(false);
+        }
+        catch
+        {
+            SignalFailure(ProcessNetworkFailure.Shutdown);
+        }
+        finally
+        {
+            _session?.Dispose();
+            _stop.Dispose();
+        }
     }
 
-    private static Task AwaitBounded(Task? task) => task is null ? Task.CompletedTask : task.WaitAsync(TimeSpan.FromSeconds(10));
-    private enum CollectorEventKind { Start, Stop, Network }
-    private readonly record struct CollectorEvent(CollectorEventKind Kind, int ProcessId, long EventQpc, int Bytes, bool Send);
+    private static Task AwaitBounded(Task? task)
+    {
+        return task is null ? Task.CompletedTask : task.WaitAsync(TimeSpan.FromSeconds(10));
+    }
+
+    private enum CollectorEventKind
+    {
+        Start,
+        Stop,
+        Network
+    }
+
+    private readonly record struct CollectorEvent(
+        CollectorEventKind Kind,
+        int ProcessId,
+        long EventQpc,
+        int Bytes,
+        bool Send);
+
     private readonly record struct OwnerCache(long CreationTicks, long StartedQpc, long ValidThroughQpc);
+
     private readonly record struct RejectedOwner(long UntilQpc, bool Unknown, long OtherOwnerCreationTicks);
 }

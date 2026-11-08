@@ -9,20 +9,25 @@ internal sealed class ProcessAppNameProvider
 {
     private const int Capacity = 1024;
 
-    private readonly Dictionary<string, (string Description, string Product, string Publisher, string FileVersion, string ProductVersion)> _cache =
+    private readonly Dictionary<string, (string Description, string Product, string Publisher, string FileVersion,
+        string ProductVersion)> _cache =
         new(StringComparer.OrdinalIgnoreCase);
 
     // Dictionary order is not insertion order once an entry is removed: a removal's slot takes the next insert.
     private readonly Queue<string> _added = new();
 
-    private readonly Func<string, (string Description, string Product, string Publisher, string FileVersion, string ProductVersion)> _read;
+    private readonly Func<string, (string Description, string Product, string Publisher, string FileVersion, string
+        ProductVersion)> _read;
 
-    public ProcessAppNameProvider(Func<string, (string Description, string Product, string Publisher, string FileVersion, string ProductVersion)>? read = null)
+    public ProcessAppNameProvider(
+        Func<string, (string Description, string Product, string Publisher, string FileVersion, string ProductVersion)>?
+            read = null)
     {
         _read = read ?? Read;
     }
 
-    public (string Description, string Product, string Publisher, string FileVersion, string ProductVersion) Get(string path)
+    public (string Description, string Product, string Publisher, string FileVersion, string ProductVersion)
+        Get(string path)
     {
         if (string.IsNullOrWhiteSpace(path)) return ("", "", "", "", "");
         if (_cache.TryGetValue(path, out var names)) return names;
@@ -43,7 +48,8 @@ internal sealed class ProcessAppNameProvider
         return names;
     }
 
-    private static (string Description, string Product, string Publisher, string FileVersion, string ProductVersion) Read(string path)
+    private static (string Description, string Product, string Publisher, string FileVersion, string ProductVersion)
+        Read(string path)
     {
         var info = FileVersionInfo.GetVersionInfo(path);
         return (info.FileDescription?.Trim() ?? "", info.ProductName?.Trim() ?? "", info.CompanyName?.Trim() ?? "",

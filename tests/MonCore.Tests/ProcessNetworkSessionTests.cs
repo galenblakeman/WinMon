@@ -7,10 +7,14 @@ namespace WinMon.Tests;
 public sealed class ProcessNetworkSessionTests
 {
     private static readonly Guid Generation = Guid.Parse("8e9ed9b0-98a0-4bbb-a3ab-079ec745ae5d");
+
     private static ProcessNetworkSnapshot Snapshot(long sequence, long timestamp, long received, long sent,
         Guid? generation = null, ProcessNetworkQuality quality = ProcessNetworkQuality.Provisional,
-        long windowStart = 0, long windowEnd = 0) => new(generation ?? Generation, sequence, timestamp, 10, windowStart,
+        long windowStart = 0, long windowEnd = 0)
+    {
+        return new ProcessNetworkSnapshot(generation ?? Generation, sequence, timestamp, 10, windowStart,
             windowEnd, quality, 0, 0, [new ProcessNetworkReading(42, 100, received, sent, 11, 12)]);
+    }
 
     [Test]
     public void Add_BaselinesInitialAndNewLifetimesWithoutPreEnableTraffic()
@@ -117,12 +121,20 @@ public sealed class ProcessNetworkSessionTests
         var session = new ProcessNetworkSession();
         var firstSubscription = Guid.NewGuid();
         var secondSubscription = Guid.NewGuid();
-        session.Add(Snapshot(1, 100, 100, 100, windowStart: 40, windowEnd: 90) with { SubscriptionId = firstSubscription }, 100);
-        session.Add(Snapshot(2, 110, 120, 130, windowStart: 50, windowEnd: 100) with { SubscriptionId = firstSubscription }, 110);
+        session.Add(
+            Snapshot(1, 100, 100, 100, windowStart: 40, windowEnd: 90) with { SubscriptionId = firstSubscription },
+            100);
+        session.Add(
+            Snapshot(2, 110, 120, 130, windowStart: 50, windowEnd: 100) with { SubscriptionId = firstSubscription },
+            110);
         var reconnected = session.Add(Snapshot(1, 120, 500, 800, windowStart: 60, windowEnd: 110) with
-        { SubscriptionId = secondSubscription }, 120);
+        {
+            SubscriptionId = secondSubscription
+        }, 120);
         var fresh = session.Add(Snapshot(2, 130, 510, 820, windowStart: 120, windowEnd: 125) with
-        { SubscriptionId = secondSubscription }, 130);
+        {
+            SubscriptionId = secondSubscription
+        }, 130);
 
         Assert.Multiple(() =>
         {
@@ -137,7 +149,8 @@ public sealed class ProcessNetworkSessionTests
     public void Add_StickyIncompleteDoesNotSuppressKnownFreshServiceRates()
     {
         var session = new ProcessNetworkSession();
-        session.Add(Snapshot(1, 100, 10, 10, quality: ProcessNetworkQuality.Incomplete, windowStart: 40, windowEnd: 90), 100);
+        session.Add(Snapshot(1, 100, 10, 10, quality: ProcessNetworkQuality.Incomplete, windowStart: 40, windowEnd: 90),
+            100);
         var frame = session.Add(Snapshot(2, 110, 20, 20, quality: ProcessNetworkQuality.Incomplete,
             windowStart: 100, windowEnd: 105), 110);
 
@@ -176,7 +189,8 @@ public sealed class ProcessNetworkSessionTests
         var gap = session.Add(Snapshot(3, 120, 30, 30, windowStart: 100, windowEnd: 115), 120);
         var afterGap = session.Add(Snapshot(4, 130, 40, 40, windowStart: 120, windowEnd: 125), 130);
         var loss = session.Add(Snapshot(5, 140, 50, 50, windowStart: 130, windowEnd: 135) with { EventsLost = 1 }, 140);
-        var afterLoss = session.Add(Snapshot(6, 150, 60, 60, windowStart: 140, windowEnd: 145) with { EventsLost = 1 }, 150);
+        var afterLoss = session.Add(Snapshot(6, 150, 60, 60, windowStart: 140, windowEnd: 145) with { EventsLost = 1 },
+            150);
 
         Assert.Multiple(() =>
         {
@@ -195,7 +209,8 @@ public sealed class ProcessNetworkSessionTests
         var session = new ProcessNetworkSession();
         session.Add(Snapshot(1, 100, 10, 10, windowStart: 40, windowEnd: 90), 100);
         session.Add(Snapshot(2, 110, 30, 30, windowStart: 100, windowEnd: 105), 110);
-        var unavailable = session.Add(Snapshot(3, 120, 40, 40, windowStart: 110, windowEnd: 115) with { Frequency = 0 }, 120);
+        var unavailable = session.Add(Snapshot(3, 120, 40, 40, windowStart: 110, windowEnd: 115) with { Frequency = 0 },
+            120);
 
         Assert.Multiple(() =>
         {
@@ -210,10 +225,14 @@ public sealed class ProcessNetworkSessionTests
     {
         var session = new ProcessNetworkSession();
         var initial = Enumerable.Range(1, 8192).Select(id => new ProcessNetworkReading(id, id, 0, 0, 1, 1)).ToArray();
-        session.Add(new ProcessNetworkSnapshot(Generation, 1, 100, 10, 40, 90, ProcessNetworkQuality.Provisional, 0, 0, initial), 100);
-        session.Add(new ProcessNetworkSnapshot(Generation, 2, 110, 10, 100, 105, ProcessNetworkQuality.Provisional, 0, 0,
+        session.Add(
+            new ProcessNetworkSnapshot(Generation, 1, 100, 10, 40, 90, ProcessNetworkQuality.Provisional, 0, 0,
+                initial), 100);
+        session.Add(new ProcessNetworkSnapshot(Generation, 2, 110, 10, 100, 105, ProcessNetworkQuality.Provisional, 0,
+            0,
             [new ProcessNetworkReading(1, 1, 10, 0, 1, 1)]), 110);
-        var rejected = session.Add(new ProcessNetworkSnapshot(Generation, 3, 120, 10, 110, 115, ProcessNetworkQuality.Provisional, 0, 0,
+        var rejected = session.Add(new ProcessNetworkSnapshot(Generation, 3, 120, 10, 110, 115,
+            ProcessNetworkQuality.Provisional, 0, 0,
             [new ProcessNetworkReading(8193, 8193, 1, 1, 1, 1)]), 120);
         session.Reset();
         var afterReset = session.Add(new ProcessNetworkSnapshot(Generation, 1, 130, 10, 120, 125,

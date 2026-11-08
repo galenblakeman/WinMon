@@ -25,7 +25,9 @@ public sealed record RestartClock(Func<long> Timestamp, Func<long> TickCount, lo
 /// Ticks to add to this process's live samples so they follow the restored ones. It is non-zero when the saving
 /// process had itself rebased history after a reboot: its samples then sit ahead of the shared Stopwatch clock.
 /// </param>
-public sealed record RestartContents(IReadOnlyList<MonitorSample> Samples, UsageLedgerState? Usage,
+public sealed record RestartContents(
+    IReadOnlyList<MonitorSample> Samples,
+    UsageLedgerState? Usage,
     long LiveOffset = 0);
 
 /// <summary>
@@ -69,6 +71,7 @@ public static class RestartHistory
     /// <param name="usage">Usage totals to restore with the samples.</param>
     /// <param name="clock">Clock used to enforce the save deadline.</param>
     /// <param name="createTemporary">Opens the temporary file; tests pass a slow stream.</param>
+    /// <param name="maxBytes">Maximum encoded history size, including its header.</param>
     /// <returns>Whether the final file now exists.</returns>
     public static bool Save(string path, string token, string appVersion, IReadOnlyList<MonitorSample> samples,
         UsageLedgerState? usage, RestartClock clock, Func<string, Stream>? createTemporary = null,
@@ -79,8 +82,9 @@ public static class RestartHistory
         if (samples.Any(sample => sample.IndependentProcessReadings || sample.Processes.Any(process =>
                 process.LifetimeDomain != ProcessLifetimeIdentity.WindowsFileTime || !process.CpuAvailable ||
                 process.StartedAtUtc is not null)) ||
-            usage is not null && (usage.IdentityPolicyId != ProcessIdentityPolicy.Windows.Id ||
-                usage.Lifetimes.Any(lifetime => lifetime.LifetimeDomain != ProcessLifetimeIdentity.WindowsFileTime)))
+            (usage is not null && (usage.IdentityPolicyId != ProcessIdentityPolicy.Windows.Id ||
+                                   usage.Lifetimes.Any(lifetime =>
+                                       lifetime.LifetimeDomain != ProcessLifetimeIdentity.WindowsFileTime))))
             return false;
         var start = clock.Timestamp();
         var directory = Path.GetDirectoryName(path) ?? ".";
@@ -101,7 +105,8 @@ public static class RestartHistory
                     var first = Math.Max(0, end - ChunkSamples);
                     var last = end;
                     WriteChunk(stream, buffer, SampleChunk, writer => WriteSamples(writer, samples, first, last));
-                    if (stream.Position > maxBytes) throw new InvalidDataException("History exceeds the file size limit.");
+                    if (stream.Position > maxBytes)
+                        throw new InvalidDataException("History exceeds the file size limit.");
                     chunks++;
                 }
 
@@ -159,7 +164,7 @@ public static class RestartHistory
         {
             using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 1 << 16);
             if (stream.Length > 64L * 1024 * 1024) return null;
-            var contents = Read(stream, NormalToken, clock, validateRestart: false);
+            var contents = Read(stream, NormalToken, clock, false);
             if (contents is null || contents.Samples.Count == 0) return null;
             var newest = contents.Samples[^1];
             var elapsed = (now - newest.Timestamp).TotalSeconds;
@@ -173,7 +178,8 @@ public static class RestartHistory
             if (samples.Length == 0 || samples[0].MonotonicTimestamp <= 0) return null;
             return (samples, liveOffset);
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or OverflowException or ArgumentException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or OverflowException
+                                       or ArgumentException)
         {
             Trace.TraceWarning("WinMon could not restore normal history: {0}", ex.Message);
             return null;
@@ -255,7 +261,7 @@ public static class RestartHistory
             var timerSeconds = (clock.Timestamp() - savedTimestamp) / (double)frequency;
             var tickSeconds = (clock.TickCount() - savedTickCount) / 1000d;
             if (validateRestart && (timerSeconds is < 0 or > MaxAgeSeconds || tickSeconds is < 0 or > MaxAgeSeconds ||
-                Math.Abs(timerSeconds - tickSeconds) > ClockToleranceSeconds))
+                                    Math.Abs(timerSeconds - tickSeconds) > ClockToleranceSeconds))
                 return Reject("monotonic clocks that do not match a recent restart");
             headerLength = stream.Position;
         }
@@ -295,7 +301,8 @@ public static class RestartHistory
                 continue;
             }
 
-            if (kind != SampleChunk || !valid || TryParse(payload, reader => ReadSamples(reader, version)) is not { } samples) break;
+            if (kind != SampleChunk || !valid || TryParse(payload, reader => ReadSamples(reader, version)) is not
+                    { } samples) break;
             chunks.Add(samples);
         }
 
@@ -425,6 +432,7 @@ public static class RestartHistory
             writer.Write(logicalProcessorPercents.Count);
             foreach (var percent in logicalProcessorPercents) Write(writer, percent);
         }
+
         WriteResources(writer, sample.Resources);
         writer.Write(sample.Processes.Count);
         foreach (var process in sample.Processes)
@@ -476,6 +484,7 @@ public static class RestartHistory
             for (var i = 0; i < values.Length; i++) values[i] = ReadDouble(reader);
             logicalProcessorPercents = values;
         }
+
         var resources = ReadResources(reader);
         var processes = new ProcessUsage[Count(reader)];
         for (var i = 0; i < processes.Length; i++)

@@ -8,11 +8,13 @@ namespace WinMon.Tests;
 [TestFixture]
 public sealed class NetworkScaleTests
 {
-    private static MonitorSample Sample(double? rxBytes, double? txBytes, bool gap = false) =>
-        new(DateTimeOffset.UtcNow, 10, [], 0, gap, Stopwatch.Frequency)
+    private static MonitorSample Sample(double? rxBytes, double? txBytes, bool gap = false)
+    {
+        return new MonitorSample(DateTimeOffset.UtcNow, 10, [], 0, gap, Stopwatch.Frequency)
         {
             Resources = new ResourceSample { ReceiveBytesPerSecond = rxBytes, SendBytesPerSecond = txBytes }
         };
+    }
 
     [TestCase(0, 1_000_000)]
     [TestCase(400_000, 1_000_000)]
@@ -30,7 +32,7 @@ public sealed class NetworkScaleTests
     [Test]
     public void NetworkScale_IgnoresGapsAndUnavailableRates()
     {
-        var history = new[] { Sample(100_000_000, 0, gap: true), Sample(null, 1_000), Sample(250_000, 0) };
+        var history = new[] { Sample(100_000_000, 0, true), Sample(null, 1_000), Sample(250_000, 0) };
         Assert.Multiple(() =>
         {
             Assert.That(CpuGraph.NetworkScale(history), Is.EqualTo(2_000_000).Within(0.001));

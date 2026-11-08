@@ -1,10 +1,13 @@
-using System.Threading;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using NUnit.Framework;
 using WinMon.Controls;
 using WinMon.Monitoring;
 using WinMon.Preferences;
+using WinMon.Resources;
+using Path = System.Windows.Shapes.Path;
 
 namespace WinMon.Tests;
 
@@ -56,7 +59,8 @@ public sealed class ServicesViewTests
             .And.Not.Contain(nameof(ServiceDisplayRow.PinAccessibleName)));
         changed.Clear();
         row.RefreshPinLabels();
-        Assert.That(changed, Is.EqualTo(new[] { nameof(ServiceDisplayRow.PinLabel), nameof(ServiceDisplayRow.PinAccessibleName) }));
+        Assert.That(changed,
+            Is.EqualTo(new[] { nameof(ServiceDisplayRow.PinLabel), nameof(ServiceDisplayRow.PinAccessibleName) }));
     }
 
     [Test]
@@ -67,7 +71,12 @@ public sealed class ServicesViewTests
         view.Update(frame, [frame], false);
         view.RestorePins(["other24"]);
         var rows = (ListBox)view.FindName("Rows");
-        ServiceDisplayRow[] Shown() => rows.Items.Cast<ServiceDisplayRow>().ToArray();
+
+        ServiceDisplayRow[] Shown()
+        {
+            return rows.Items.Cast<ServiceDisplayRow>().ToArray();
+        }
+
         Assert.That(Shown(), Has.Length.EqualTo(6), "Pins do not consume the ranked limit.");
         Assert.That(Shown()[0].Service!.Name, Is.EqualTo("other24"));
         Assert.That(Shown()[1].RankedLabel, Is.Not.Empty);
@@ -83,7 +92,7 @@ public sealed class ServicesViewTests
         Assert.That(Shown().Single().Service!.Name, Is.EqualTo("agent"));
         ((ComboBox)view.FindName("StatusFilter")).SelectedIndex = 2;
         Assert.That(Shown(), Is.Empty);
-        Assert.That(((TextBlock)view.FindName("Notice")).Text, Is.EqualTo(WinMon.Resources.Strings.NoPinnedServicesMatch));
+        Assert.That(((TextBlock)view.FindName("Notice")).Text, Is.EqualTo(Strings.NoPinnedServicesMatch));
         ((ComboBox)view.FindName("StatusFilter")).SelectedIndex = 0;
         view.TogglePin(Shown().Single());
         Assert.That(Shown(), Is.Empty);
@@ -96,8 +105,11 @@ public sealed class ServicesViewTests
         var view = new ServicesView { PinnedOnly = true };
         view.RestorePins(["AGENT"]);
         var rows = (ListBox)view.FindName("Rows");
-        foreach (var frame in new[] { SelectionFrame(1, 80), SelectionFrame(2, 0, state: 1),
-                     SelectionFrame(3, 10, pid: 99, created: 999), SelectionFrame(1, 80) })
+        foreach (var frame in new[]
+                 {
+                     SelectionFrame(1, 80), SelectionFrame(2, 0, 1),
+                     SelectionFrame(3, 10, pid: 99, created: 999), SelectionFrame(1, 80)
+                 })
         {
             view.Update(frame, [frame], true);
             var row = rows.Items.Cast<ServiceDisplayRow>().Single();
@@ -105,6 +117,7 @@ public sealed class ServicesViewTests
             Assert.That(row.Pinned, Is.True);
             Assert.That(row.PinIcon, Is.SameAs(ButtonIcon.PinFilled));
         }
+
         view.Update(null, [], false);
         Assert.That(rows.Items, Is.Empty);
         Assert.That(view.SavedPins, Is.EqualTo(new[] { "AGENT" }), "Missing data must not remove saved pins.");
@@ -130,7 +143,7 @@ public sealed class ServicesViewTests
         var header = rows.Items.Cast<ServiceDisplayRow>().First();
         Assert.That(header.Group, Is.SameAs(group));
         Assert.That(header.Pinned, Is.True);
-        Assert.That(header.PinLabel, Is.EqualTo(WinMon.Resources.Strings.UnpinServiceHost));
+        Assert.That(header.PinLabel, Is.EqualTo(Strings.UnpinServiceHost));
         Assert.That(rows.Items.Cast<ServiceDisplayRow>().Count(r => r.Key == group.Key), Is.EqualTo(1));
         view.TogglePin(header);
         Assert.That(view.SavedPins, Is.Empty);
@@ -217,7 +230,7 @@ public sealed class ServicesViewTests
         {
             Assert.That(bar.Visibility, Is.EqualTo(hidden ? Visibility.Collapsed : Visibility.Visible));
             Assert.That(bar.DesiredSize.Height, hidden ? Is.Zero : Is.GreaterThan(0));
-            Assert.That(((TextBlock)view.FindName("Summary")).Text, Is.EqualTo(WinMon.Resources.Strings.SelectService));
+            Assert.That(((TextBlock)view.FindName("Summary")).Text, Is.EqualTo(Strings.SelectService));
             foreach (var name in new[] { "Properties", "CopyDetails", "Start", "Stop", "Restart" })
                 Assert.That(((Button)view.FindName(name)).IsEnabled, Is.False, name);
         });
@@ -228,24 +241,30 @@ public sealed class ServicesViewTests
     [Test]
     public void RankingHeaders_SwitchOrderAndKeepDropdownAndIndicatorInSync()
     {
-        var groups = new[] {
+        var groups = new[]
+        {
             ServiceRankingTests.Frame(1, ServiceRankingTests.P(1, 100, 90, 1, 1)).Groups[0],
             ServiceRankingTests.Frame(1, ServiceRankingTests.P(2, 200, 1, 2, 900)).Groups[0],
-            ServiceRankingTests.Frame(1, ServiceRankingTests.P(3, 300, 2, 900, 2)).Groups[0] };
+            ServiceRankingTests.Frame(1, ServiceRankingTests.P(3, 300, 2, 900, 2)).Groups[0]
+        };
         var frame = ServiceRankingTests.Frame(1, groups[0].Host!) with { Groups = groups };
-        var view = new ServicesView(); view.Update(frame, [frame], false);
+        var view = new ServicesView();
+        view.Update(frame, [frame], false);
         var rows = (ListBox)view.FindName("Rows");
         var sort = (ComboBox)view.FindName("Sort");
-        var headers = new[] { "CpuHeader", "MemoryHeader", "IoHeader" }.Select(name => (TextBlock)view.FindName(name)).ToArray();
+        var headers = new[] { "CpuHeader", "MemoryHeader", "IoHeader" }.Select(name => (TextBlock)view.FindName(name))
+            .ToArray();
         foreach (var index in new[] { 1, 2, 0 })
         {
-            headers[index].RaiseEvent(new System.Windows.Input.MouseButtonEventArgs(System.Windows.Input.Mouse.PrimaryDevice, 0,
-                System.Windows.Input.MouseButton.Left) { RoutedEvent = UIElement.MouseLeftButtonUpEvent });
+            headers[index].RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, 0,
+                MouseButton.Left) { RoutedEvent = UIElement.MouseLeftButtonUpEvent });
             Assert.That(sort.SelectedIndex, Is.EqualTo(index));
             Assert.That(((ServiceDisplayRow)rows.Items[0]).Group.Host!.ProcessId, Is.EqualTo(index + 1));
-            Assert.That(headers.Select(h => h.Text.EndsWith('▾')), Is.EqualTo(Enumerable.Range(0, 3).Select(i => i == index)));
+            Assert.That(headers.Select(h => h.Text.EndsWith('▾')),
+                Is.EqualTo(Enumerable.Range(0, 3).Select(i => i == index)));
             Assert.That(headers[index].FontWeight, Is.EqualTo(FontWeights.SemiBold));
         }
+
         sort.SelectedIndex = 2;
         Assert.That(headers[2].Text.EndsWith('▾'), Is.True);
         Assert.That(headers.Take(2).Any(h => h.Text.EndsWith('▾')), Is.False);
@@ -268,7 +287,7 @@ public sealed class ServicesViewTests
         var rows = (ListBox)view.FindName("Rows");
         Assert.That(sort.Items.Count, Is.EqualTo(3));
         ((ComboBox)view.FindName("TopCount")).SelectedItem = TopCountChoices.All;
-        Assert.That(sort.Items.Cast<string>().Last(), Is.EqualTo(WinMon.Resources.Strings.ServiceName));
+        Assert.That(sort.Items.Cast<string>().Last(), Is.EqualTo(Strings.ServiceName));
         sort.SelectedIndex = 3;
         Assert.That(rows.Items.Cast<ServiceDisplayRow>().Select(r => r.Service?.Name),
             Is.EqualTo(new[] { "a", "b", "z" }));
@@ -280,19 +299,25 @@ public sealed class ServicesViewTests
     [Test]
     public void ContextMenu_SelectsRowAndCapturesTargetsAcrossSelectionChanges()
     {
-        var view = new ServicesView(); var frame = SelectionFrame(1, 80);
+        var view = new ServicesView();
+        var frame = SelectionFrame(1, 80);
         view.Update(frame, [frame], false);
         var rows = (ListBox)view.FindName("Rows");
         var target = rows.Items.Cast<ServiceDisplayRow>().Single(r => r.Service?.Name == "agent");
         var menu = view.CreateServiceMenu(target)!;
         Assert.That(rows.SelectedItem, Is.SameAs(target));
         var items = menu.Items.OfType<MenuItem>().ToArray();
-        Assert.That(items.Select(i => i.Header), Is.EqualTo(new[] { WinMon.Resources.Strings.ViewServiceProcess,
-            WinMon.Resources.Strings.CopyDetails, WinMon.Resources.Strings.StartService, WinMon.Resources.Strings.StopService, WinMon.Resources.Strings.RestartService }));
-        Assert.That(items.All(i => i.Icon is System.Windows.Shapes.Path), Is.True);
+        Assert.That(items.Select(i => i.Header), Is.EqualTo(new[]
+        {
+            Strings.ViewServiceProcess,
+            Strings.CopyDetails, Strings.StartService, Strings.StopService, Strings.RestartService
+        }));
+        Assert.That(items.All(i => i.Icon is Path), Is.True);
         Assert.That(items.Select(i => i.IsEnabled), Is.EqualTo(new[] { true, true, false, true, true }));
         rows.SelectedIndex = 1;
-        ProcessUsage? process = null; ServiceObservation? service = null; string? copy = null;
+        ProcessUsage? process = null;
+        ServiceObservation? service = null;
+        string? copy = null;
         view.ProcessRequested += p => process = p;
         view.ActionRequested += (s, _, _) => service = s;
         view.CopyRequested += text => copy = text;
@@ -308,8 +333,10 @@ public sealed class ServicesViewTests
     [TestCase(false, true)]
     public void ContextMenu_DisablesServiceControlsForHistoryOrBusy(bool historical, bool busy)
     {
-        var view = new ServicesView(); var frame = SelectionFrame(1, 80);
-        view.Update(frame, [frame], historical); view.SetBusy(busy);
+        var view = new ServicesView();
+        var frame = SelectionFrame(1, 80);
+        view.Update(frame, [frame], historical);
+        view.SetBusy(busy);
         var row = ((ListBox)view.FindName("Rows")).Items.Cast<ServiceDisplayRow>().First();
         var items = view.CreateServiceMenu(row)!.Items.OfType<MenuItem>().ToArray();
         Assert.That(items.Take(2).All(i => i.IsEnabled), Is.True);
@@ -319,11 +346,13 @@ public sealed class ServicesViewTests
     [Test]
     public void ContextMenu_RejectsHostReplacementOrUnavailableDataAfterOpening()
     {
-        var view = new ServicesView(); var frame = SelectionFrame(1, 80);
+        var view = new ServicesView();
+        var frame = SelectionFrame(1, 80);
         view.Update(frame, [frame], false);
         var row = ((ListBox)view.FindName("Rows")).Items.Cast<ServiceDisplayRow>().First();
         var restart = view.CreateServiceMenu(row)!.Items.OfType<MenuItem>().Last();
-        var count = 0; view.ActionRequested += (_, _, _) => count++;
+        var count = 0;
+        view.ActionRequested += (_, _, _) => count++;
         var replacement = SelectionFrame(2, 80, created: 999);
         view.Update(replacement, [replacement], false);
         restart.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
@@ -336,18 +365,21 @@ public sealed class ServicesViewTests
     [Test]
     public void ContextMenu_WorkerAndSharedHostHaveNoServiceControls()
     {
-        var view = new ServicesView(); var frame = SelectionFrame(1, 80);
+        var view = new ServicesView();
+        var frame = SelectionFrame(1, 80);
         var group = frame.Groups[0];
         group = group with { Services = [.. group.Services, new("second", "Second Service", 4, 10, 1)] };
         frame = frame with { Groups = [group] };
-        view.Update(frame, [frame], false); view.ExpandAll();
+        view.Update(frame, [frame], false);
+        view.ExpandAll();
         var rows = (ListBox)view.FindName("Rows");
         var host = rows.Items.Cast<ServiceDisplayRow>().First();
         Assert.That(view.CreateServiceMenu(host)!.Items.OfType<MenuItem>().Skip(2).Any(i => i.IsEnabled), Is.False);
         var service = rows.Items.Cast<ServiceDisplayRow>().Single(r => r.Service?.Name == "agent");
         Assert.That(view.CreateServiceMenu(service)!.Items.OfType<MenuItem>().Last().IsEnabled, Is.True);
         frame = SelectionFrame(2, 80);
-        view.Update(frame, [frame], false); view.ExpandAll();
+        view.Update(frame, [frame], false);
+        view.ExpandAll();
         var worker = rows.Items.Cast<ServiceDisplayRow>().Single(r => r.Key == "process:10:100");
         Assert.That(view.CreateServiceMenu(worker)!.Items.OfType<MenuItem>().Skip(2).Any(i => i.IsEnabled), Is.False);
     }
@@ -373,21 +405,25 @@ public sealed class ServicesViewTests
         Assert.That(copied, Does.Contain($"PID {history[^1].Groups[0].Host!.ProcessId}"));
         ServiceObservation? actedService = null;
         ProcessUsage? actedHost = null;
-        view.ActionRequested += (service, host, _) => { actedService = service; actedHost = host; };
+        view.ActionRequested += (service, host, _) =>
+        {
+            actedService = service;
+            actedHost = host;
+        };
         ((Button)view.FindName("Restart")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         Assert.That(actedService?.Name, Is.EqualTo("agent"));
         Assert.That(actedHost, Is.SameAs(history[^1].Groups[0].Host));
 
-        var stopped = SelectionFrame(8, 0, state: 1);
+        var stopped = SelectionFrame(8, 0, 1);
         view.Update(stopped, [stopped], false);
-        Assert.That(((TextBlock)view.FindName("SelectionStatus")).Text, Is.EqualTo(WinMon.Resources.Strings.ServiceStopped));
+        Assert.That(((TextBlock)view.FindName("SelectionStatus")).Text, Is.EqualTo(Strings.ServiceStopped));
         Assert.That(((Button)view.FindName("Stop")).IsEnabled, Is.False);
         Assert.That(((Button)view.FindName("Start")).IsEnabled, Is.True);
         ((Button)view.FindName("Start")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         Assert.That(actedService?.State, Is.EqualTo(1));
         Assert.That(actedHost, Is.Null);
         ((Button)view.FindName("CopyDetails")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-        Assert.That(copied, Does.Contain(WinMon.Resources.Strings.ServiceStopped));
+        Assert.That(copied, Does.Contain(Strings.ServiceStopped));
 
         var restarted = SelectionFrame(9, 0, pid: 99, created: 900);
         view.Update(restarted, [restarted], false);
@@ -432,7 +468,7 @@ public sealed class ServicesViewTests
         Assert.That(((TextBlock)view.FindName("Summary")).Text, Is.EqualTo("Other 20"));
         view.Update(hidden with { Groups = [] }, [], false);
         Assert.That(((Button)view.FindName("Stop")).IsEnabled, Is.False);
-        Assert.That(((TextBlock)view.FindName("Summary")).Text, Is.EqualTo(WinMon.Resources.Strings.SelectService));
+        Assert.That(((TextBlock)view.FindName("Summary")).Text, Is.EqualTo(Strings.SelectService));
     }
 
     [Test]
@@ -454,10 +490,20 @@ public sealed class ServicesViewTests
         ((Button)view.FindName("Stop")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         Assert.That(target?.Name, Is.EqualTo("peer"));
 
-        static ServiceFrame Shared(ServiceFrame frame) => frame with
+        static ServiceFrame Shared(ServiceFrame frame)
         {
-            Groups = [frame.Groups[0] with { Services = [frame.Groups[0].Services[0], new("peer", "Peer service", 4, 10, 1)] }, .. frame.Groups.Skip(1)]
-        };
+            return frame with
+            {
+                Groups =
+                [
+                    frame.Groups[0] with
+                    {
+                        Services = [frame.Groups[0].Services[0], new("peer", "Peer service", 4, 10, 1)]
+                    },
+                    .. frame.Groups.Skip(1)
+                ]
+            };
+        }
     }
 
     [Test]
@@ -472,7 +518,7 @@ public sealed class ServicesViewTests
         var replacement = SelectionFrame(2, 80, created: 900);
         view.Update(replacement, [replacement], false);
         Assert.That(((Button)view.FindName("Properties")).IsEnabled, Is.False);
-        Assert.That(((TextBlock)view.FindName("Summary")).Text, Is.EqualTo(WinMon.Resources.Strings.SelectService));
+        Assert.That(((TextBlock)view.FindName("Summary")).Text, Is.EqualTo(Strings.SelectService));
     }
 
     private static ServiceFrame SelectionFrame(int second, double cpu, uint state = 4, int pid = 10, long created = 100)
@@ -485,7 +531,10 @@ public sealed class ServicesViewTests
             var process = ServiceRankingTests.P(i, 200, 10, 100, 100);
             return new ServiceGroup($"host:{i}:200", [new($"other{i}", $"Other {i}", 4, i, 1)], process, [process]);
         });
-        return ServiceRankingTests.Frame(second, ServiceRankingTests.P(1, 100, 0, 0, 0)) with { Groups = [agent, .. others] };
+        return ServiceRankingTests.Frame(second, ServiceRankingTests.P(1, 100, 0, 0, 0)) with
+        {
+            Groups = [agent, .. others]
+        };
     }
 
     [Test]
@@ -495,7 +544,8 @@ public sealed class ServicesViewTests
         {
             var host = ServiceRankingTests.P(i, 100, i, i * 1_000_000, (ulong)i);
             var worker = ServiceRankingTests.P(100 + i, 200, i, i * 1_000_000, (ulong)i);
-            return new ServiceGroup($"host:{i}:100", [new($"s{i}", $"Service {i}", i == 1 ? 1u : 4u, i, 1)], host, [host, worker]);
+            return new ServiceGroup($"host:{i}:100", [new($"s{i}", $"Service {i}", i == 1 ? 1u : 4u, i, 1)], host,
+                [host, worker]);
         }).ToArray();
         var frame = ServiceRankingTests.Frame(1, groups[0].Host!) with { Groups = groups };
         var view = new ServicesView();
@@ -525,17 +575,19 @@ public sealed class ServicesViewTests
     {
         var frames = Enumerable.Range(1, 5).Select(i =>
         {
-            var first = ServiceRankingTests.Frame(i, ServiceRankingTests.P(1, 100, i == 5 ? 0 : 10, i == 5 ? 0 : 5_000_000, 100));
-            var second = ServiceRankingTests.Frame(i, ServiceRankingTests.P(2, 200, i == 5 ? 20 : 0, i == 5 ? 10_000_000 : 0, 200));
+            var first = ServiceRankingTests.Frame(i,
+                ServiceRankingTests.P(1, 100, i == 5 ? 0 : 10, i == 5 ? 0 : 5_000_000, 100));
+            var second = ServiceRankingTests.Frame(i,
+                ServiceRankingTests.P(2, 200, i == 5 ? 20 : 0, i == 5 ? 10_000_000 : 0, 200));
             return first with { Groups = [first.Groups[0], second.Groups[0]] };
         }).ToArray();
         var view = new ServicesView();
         view.Update(frames[^1], frames, false);
         var list = (ListBox)view.FindName("Rows");
         Assert.That(((ServiceDisplayRow)list.Items[0]).Group.Host!.ProcessId, Is.EqualTo(1));
-        Assert.That(((ServiceDisplayRow)list.Items[0]).Cpu, Is.EqualTo(WinMon.Resources.Strings.Format(WinMon.Resources.Strings.PercentOneDecimal, 8d)));
-        Assert.That(((TextBlock)view.FindName("MemoryHeader")).Text, Is.EqualTo(WinMon.Resources.Strings.Memory));
-        Assert.That(((TextBlock)view.FindName("IoHeader")).Text, Is.EqualTo(WinMon.Resources.Strings.IO));
+        Assert.That(((ServiceDisplayRow)list.Items[0]).Cpu, Is.EqualTo(Strings.Format(Strings.PercentOneDecimal, 8d)));
+        Assert.That(((TextBlock)view.FindName("MemoryHeader")).Text, Is.EqualTo(Strings.Memory));
+        Assert.That(((TextBlock)view.FindName("IoHeader")).Text, Is.EqualTo(Strings.IO));
         Assert.That(((ServiceDisplayRow)list.Items[0]).Memory,
             Is.EqualTo("100 B"));
         ((ComboBox)view.FindName("Sort")).SelectedIndex = 2;
@@ -547,7 +599,8 @@ public sealed class ServicesViewTests
     private static ServiceFrame Frame()
     {
         var host = new ProcessUsage(10, 100, "host", 2, IoBytesPerSecond: 100) { PrivateBytes = 100 };
-        var worker = new ProcessUsage(11, 200, "worker", 3, IoBytesPerSecond: 200) { PrivateBytes = 200, ParentProcessId = 10 };
+        var worker = new ProcessUsage(11, 200, "worker", 3, IoBytesPerSecond: 200)
+            { PrivateBytes = 200, ParentProcessId = 10 };
         return new ServiceTree().Capture(new MonitorSample(DateTimeOffset.UtcNow, 5, [host, worker], 0),
             new ServiceCatalog(1000, [new("agent", "Build Agent", 4, 10, 1)]));
     }
@@ -585,7 +638,7 @@ public sealed class ServicesViewTests
         view.Update(exited, [frame, exited], false);
 
         var spares = (Dictionary<string, ServiceDisplayRow>)typeof(ServicesView)
-            .GetField("_spareRows", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.GetValue(view)!;
+            .GetField("_spareRows", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(view)!;
         Assert.Multiple(() =>
         {
             Assert.That(((ListBox)view.FindName("Rows")).Items.Cast<ServiceDisplayRow>().Select(r => r.Key),
@@ -645,7 +698,7 @@ public sealed class ServicesViewTests
         Assert.Multiple(() =>
         {
             Assert.That(((Button)view.FindName("Stop")).IsEnabled, Is.True);
-            Assert.That(service.Cpu, Is.EqualTo(WinMon.Resources.Strings.MissingReading));
+            Assert.That(service.Cpu, Is.EqualTo(Strings.MissingReading));
             Assert.That(service.Graph.Visibility, Is.EqualTo(Visibility.Hidden));
         });
     }

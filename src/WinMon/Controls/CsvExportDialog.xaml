@@ -79,6 +79,8 @@
         <StackPanel x:Name="TimeChoices">
             <TextBlock Margin="0,15,0,9" FontWeight="SemiBold"
                        Text="{Binding [ExportTime], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+            <!-- Named part retained for bindings and diagnostic inspection. -->
+            <!-- ReSharper disable once UnusedMember.Global -->
             <RadioButton x:Name="RetainedChoice" GroupName="ExportTime" Margin="8,0,0,9"
                          IsChecked="True"
                          Content="{Binding [ExportRetainedHistory], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />

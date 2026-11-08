@@ -1,3 +1,6 @@
+using System.Windows;
+using System.Windows.Automation;
+using System.Windows.Controls;
 using System.Windows.Documents;
 using NUnit.Framework;
 using WinMon.Controls;
@@ -13,7 +16,7 @@ public sealed class MetricReadoutTests
     public void PlainGauge_KeepsItsCheckboxInTheChartAcrossGaugeStyles()
     {
         var readout = new MetricReadout { ShowSeriesToggle = false, Label = "CPU" };
-        var host = new System.Windows.Controls.ContentControl { Content = readout.Toggle };
+        var host = new ContentControl { Content = readout.Toggle };
         readout.Toggle.IsChecked = false;
         foreach (var style in Enum.GetValues<GaugeStyle>())
         {
@@ -24,14 +27,16 @@ public sealed class MetricReadoutTests
                 Assert.That(readout.Toggle.Parent, Is.SameAs(host));
                 Assert.That(readout.Toggle.IsChecked, Is.False);
                 Assert.That(readout.Toggle.Content, Is.EqualTo("Memory"));
-                Assert.That(readout.Toggle.Margin, Is.EqualTo(new System.Windows.Thickness()));
-                Assert.That(System.Windows.Automation.AutomationProperties.GetName(readout), Is.EqualTo("Memory"));
+                Assert.That(readout.Toggle.Margin, Is.EqualTo(new Thickness()));
+                Assert.That(AutomationProperties.GetName(readout), Is.EqualTo("Memory"));
             });
         }
     }
 
-    private static string Text(MetricReadout readout) =>
-        new TextRange(readout.ValueLabel.ContentStart, readout.ValueLabel.ContentEnd).Text;
+    private static string Text(MetricReadout readout)
+    {
+        return new TextRange(readout.ValueLabel.ContentStart, readout.ValueLabel.ContentEnd).Text;
+    }
 
     [Test]
     public void ShowValue_ReusesItsRuns_AndRecoversAfterAMissingReading()

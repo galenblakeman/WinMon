@@ -15,6 +15,7 @@ namespace WinMon.Controls;
 internal static class ProcessIconProvider
 {
     private static readonly Dictionary<(int, long), Task<BitmapSource>> Cache = new();
+
     // Insertion order for eviction: a dictionary reuses a removed slot, so its first key is often the newest.
     private static readonly Queue<(int, long)> CacheOrder = new();
     private static readonly SemaphoreSlim Workers = new(2);

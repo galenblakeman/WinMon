@@ -17,15 +17,18 @@ public sealed class ChartPreferencesTests
     }
 
     [TearDown]
-    public void TearDown() => Directory.Delete(_directory, true);
+    public void TearDown()
+    {
+        Directory.Delete(_directory, true);
+    }
 
     [Test]
     public async Task LegacyPreferences_SeedEveryChartWithoutChangingSelections()
     {
         await File.WriteAllTextAsync(SettingsPath, """
-            {"VisibleMetrics":5,"ShowGpu":false,"ShowSecondaryDisk":false,
-             "ChartRangeSeconds":600,"ResourceChartType":"Heatmap","FocusMetric":2}
-            """);
+                                                   {"VisibleMetrics":5,"ShowGpu":false,"ShowSecondaryDisk":false,
+                                                    "ChartRangeSeconds":600,"ResourceChartType":"Heatmap","FocusMetric":2}
+                                                   """);
         var preferences = await new PreferenceStore(SettingsPath).LoadAsync();
         Assert.Multiple(() =>
         {
@@ -33,14 +36,16 @@ public sealed class ChartPreferencesTests
             Assert.That(preferences.ChartConfigurations.Select(chart => chart.Type),
                 Is.EqualTo(Enum.GetValues<ResourceChartType>()));
             Assert.That(preferences.ChartConfigurations.All(chart => chart.VisibleMetrics == 5 &&
-                chart.RangeSeconds == 600 && chart.ControlsCollapsed), Is.True);
+                                                                     chart.RangeSeconds == 600 &&
+                                                                     chart.ControlsCollapsed), Is.True);
         });
     }
 
     [Test]
     public async Task SwitchingAndRestart_RestoreIndependentResourcesRangesControlsAndFocus()
     {
-        var preferences = PreferenceStore.Validate(new MonitorPreferences { SecondaryDrive = "D:", RetentionSeconds = 3600 });
+        var preferences = PreferenceStore.Validate(new MonitorPreferences
+            { SecondaryDrive = "D:", RetentionSeconds = 3600 });
         preferences = preferences with
         {
             VisibleMetrics = 3, ShowGpu = false, ShowSecondaryDisk = false,
@@ -83,11 +88,15 @@ public sealed class ChartPreferencesTests
     {
         var preferences = PreferenceStore.Validate(new MonitorPreferences
         {
-            ChartConfigurations = [null!, new ResourceChartPreferences
-            {
-                Type = ResourceChartType.SmallMultiples, VisibleMetrics = 255, RangeSeconds = 17, FocusMetric = 99
-            }, new ResourceChartPreferences { Type = ResourceChartType.SmallMultiples, VisibleMetrics = 0 },
-                new ResourceChartPreferences { Type = (ResourceChartType)99 }]
+            ChartConfigurations =
+            [
+                null!, new ResourceChartPreferences
+                {
+                    Type = ResourceChartType.SmallMultiples, VisibleMetrics = 255, RangeSeconds = 17, FocusMetric = 99
+                },
+                new ResourceChartPreferences { Type = ResourceChartType.SmallMultiples, VisibleMetrics = 0 },
+                new ResourceChartPreferences { Type = (ResourceChartType)99 }
+            ]
         });
         var lanes = preferences.SelectChart(ResourceChartType.SmallMultiples);
         Assert.Multiple(() =>
@@ -105,7 +114,8 @@ public sealed class ChartPreferencesTests
     [Test]
     public void UnconfiguredDisk_KeepsEachChartsSelection_AndLongRangesSurviveShorterRetention()
     {
-        var preferences = PreferenceStore.Validate(new MonitorPreferences { SecondaryDrive = "D:", RetentionSeconds = 3600 });
+        var preferences = PreferenceStore.Validate(new MonitorPreferences
+            { SecondaryDrive = "D:", RetentionSeconds = 3600 });
         preferences = preferences with { ShowSecondaryDisk = false, ChartRangeSeconds = 3600 };
         preferences = preferences.SelectChart(ResourceChartType.Heatmap) with { SecondaryDrive = null };
         preferences = PreferenceStore.Validate(preferences with { RetentionSeconds = 600 });

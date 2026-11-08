@@ -17,7 +17,7 @@ public sealed class StartMenuShortcutTests
         dynamic shell = Activator.CreateInstance(Type.GetTypeFromProgID("WScript.Shell")!)!;
         try
         {
-            dynamic shortcut = shell.CreateShortcut(path);
+            var shortcut = shell.CreateShortcut(path);
             var target = Path.Combine(Environment.SystemDirectory, "notepad.exe");
             try
             {
@@ -28,7 +28,10 @@ public sealed class StartMenuShortcutTests
                 shortcut.Hotkey = "CTRL+SHIFT+M";
                 shortcut.Save();
             }
-            finally { Marshal.FinalReleaseComObject(shortcut); }
+            finally
+            {
+                Marshal.FinalReleaseComObject(shortcut);
+            }
 
             StartMenuShortcut.ClearHotkey(path);
 
@@ -44,7 +47,10 @@ public sealed class StartMenuShortcutTests
                     Assert.That((string)shortcut.Description, Is.EqualTo("Keep the Start menu entry"));
                 });
             }
-            finally { Marshal.FinalReleaseComObject(shortcut); }
+            finally
+            {
+                Marshal.FinalReleaseComObject(shortcut);
+            }
 
             var contents = File.ReadAllBytes(path);
             var saved = File.GetLastWriteTimeUtc(path);

@@ -1,4 +1,3 @@
-using System.Threading;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Automation.Peers;
@@ -13,9 +12,16 @@ namespace WinMon.Tests;
 [TestFixture]
 public sealed class ProcessPinsTests
 {
-    private static ProcessUsage Process(int pid, long created = 10, string path = @"C:\Apps\example.exe") =>
-        new(pid, created, "example", 0, 123, 0) { ImagePath = path, ThreadCount = 4, HandleCount = 8 };
-    private static MonitorSample Sample(params ProcessUsage[] processes) => new(DateTimeOffset.Now, 10, processes, 0);
+    private static ProcessUsage Process(int pid, long created = 10, string path = @"C:\Apps\example.exe")
+    {
+        return new ProcessUsage(pid, created, "example", 0, 123, 0)
+            { ImagePath = path, ThreadCount = 4, HandleCount = 8 };
+    }
+
+    private static MonitorSample Sample(params ProcessUsage[] processes)
+    {
+        return new MonitorSample(DateTimeOffset.Now, 10, processes, 0);
+    }
 
     [Test]
     public void Pins_PreserveInsertionOrderAndNeverFollowReusedPid()
@@ -98,8 +104,11 @@ public sealed class ProcessPinsTests
         pins.Toggle(process, false);
         var snapshot = pins.RetentionSnapshot();
         pins.Toggle(process, false);
-        var all = new[] { process }.Concat(Enumerable.Range(100, ProcessRetention.LargestByMemory + 8).Select(i => Process(i) with
-            { WorkingSetBytes = 1000, ThreadCount = 100, HandleCount = 100 })).ToArray();
+        var all = new[] { process }.Concat(Enumerable.Range(100, ProcessRetention.LargestByMemory + 8).Select(i =>
+            Process(i) with
+            {
+                WorkingSetBytes = 1000, ThreadCount = 100, HandleCount = 100
+            })).ToArray();
         Assert.Multiple(() =>
         {
             Assert.That(ProcessRetention.Compact(Sample(all)).Processes, Does.Not.Contain(process));
@@ -116,7 +125,11 @@ public sealed class ProcessPinsTests
         ProcessUsage? toggled = null;
         bool? grouped = null;
         row.EnableProcessActions(_ => true, _ => { });
-        row.EnablePinning((_, _) => false, (p, g) => { toggled = p; grouped = g; });
+        row.EnablePinning((_, _) => false, (p, g) =>
+        {
+            toggled = p;
+            grouped = g;
+        });
         var first = Process(20);
         row.Update(first, [], 120, true, null);
         Assert.That(row.PrepareProcessMenu(), Is.True);
@@ -171,7 +184,7 @@ public sealed class ProcessPinsTests
         Assert.Multiple(() =>
         {
             Assert.That(row.Identity, Is.EqualTo(ProcessRow.IdentityOf(Process(20) with { CpuPercent = 9 }, false)));
-            Assert.That(row.Identity, Is.Not.EqualTo(ProcessRow.IdentityOf(Process(20, created: 11), false)));
+            Assert.That(row.Identity, Is.Not.EqualTo(ProcessRow.IdentityOf(Process(20, 11), false)));
             Assert.That(ProcessRow.IdentityOf(Process(20), true), Is.EqualTo(ProcessRow.IdentityOf(Process(30), true)));
         });
     }

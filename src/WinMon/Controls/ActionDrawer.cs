@@ -105,8 +105,8 @@ public sealed class ActionDrawer : Grid
         var text = new DockPanel { Margin = new Thickness(10, 0, 10, 0) };
         text.Children.Add(_peekTitle);
         text.Children.Add(_peekDetail);
-        Grid.SetColumn(text, 1);
-        Grid.SetColumn(_show, 2);
+        SetColumn(text, 1);
+        SetColumn(_show, 2);
         peekLayout.Children.Add(_peekAccent);
         peekLayout.Children.Add(text);
         peekLayout.Children.Add(_show);
@@ -158,16 +158,13 @@ public sealed class ActionDrawer : Grid
         }
 
         if (collapsed)
-        {
             Animate(_barShift, bar.RenderSize.Height, Slide, () =>
             {
                 Settle();
                 _peekShift.Y = PeekHeight;
                 Animate(_peekShift, 0, Rise);
             });
-        }
         else
-        {
             Animate(_peekShift, PeekHeight, Rise, () =>
             {
                 Settle();
@@ -175,7 +172,6 @@ public sealed class ActionDrawer : Grid
                 _barShift.Y = bar.DesiredSize.Height;
                 Animate(_barShift, 0, Slide);
             });
-        }
 
         void Animate(TranslateTransform shift, double to, Duration duration, Action? then = null)
         {
@@ -200,7 +196,7 @@ public sealed class ActionDrawer : Grid
             shift.Y = 0;
         }
 
-        if (_bar is not null) _bar.Visibility = Collapsed ? Visibility.Collapsed : Visibility.Visible;
+        _bar?.Visibility = Collapsed ? Visibility.Collapsed : Visibility.Visible;
         _peek.Visibility = Collapsed ? Visibility.Visible : Visibility.Collapsed;
         if (!_refocus) return;
         _refocus = false;

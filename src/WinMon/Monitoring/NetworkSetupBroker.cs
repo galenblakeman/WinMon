@@ -1,12 +1,9 @@
-using System.ComponentModel;
 using System.Diagnostics;
-using System.IO.Pipes;
-using System.Reflection;
-using System.Runtime.InteropServices;
+using System.Security;
 using System.Security.AccessControl;
 using System.Security.Cryptography;
 using System.Security.Principal;
-using Microsoft.Win32.SafeHandles;
+using WinMon.Diagnostics;
 
 namespace WinMon.Monitoring;
 
@@ -38,10 +35,14 @@ internal sealed class NetworkSetupBroker
     internal async Task RunAsync(string operation, Func<CancellationToken, Task> verify, CancellationToken token)
     {
         if (!IsAvailable) throw new InvalidOperationException("Signed network setup is unavailable.");
-        if (operation is not ("install" or "remove")) throw new ArgumentException("Invalid setup operation.", nameof(operation));
+        // Developer contract errors are not display labels; the UI translates operation failures separately.
+        // ReSharper disable once LocalizableElement
+        if (operation is not ("install" or "remove"))
+            throw new ArgumentException("Invalid setup operation.", nameof(operation));
         Trace.TraceInformation("Network.SetupStart operation=" + operation);
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(token);
         timeout.CancelAfter(TimeSpan.FromSeconds(90));
+        var setupToken = timeout.Token;
         var root = Path.Combine(Path.GetTempPath(), "WinMon.NetworkSetup." + Guid.NewGuid().ToString("N"));
         var pipeName = "WinMon.NetworkSetup." + Guid.NewGuid().ToString("N");
         var nonce = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
@@ -50,19 +51,26 @@ internal sealed class NetworkSetupBroker
         var waitForHelper = false;
         try
         {
-            await Task.Run(() => Extract(root, timeout.Token), timeout.Token).ConfigureAwait(false);
+            await Task.Run(() => Extract(root, setupToken), setupToken).ConfigureAwait(false);
             var version = typeof(NetworkSetupBroker).Assembly.GetName().Version!.ToString(3);
-            using var package = await Task.Run(() => NetworkSetupPackage.Open(root, version), timeout.Token).ConfigureAwait(false);
-            var launch = Task.Run(() => Process.Start(new ProcessStartInfo(package.HelperStream.Name)
+            using var package = await Task.Run(() => NetworkSetupPackage.Open(root, version), timeout.Token)
+                .ConfigureAwait(false);
+            var startInfo = new ProcessStartInfo(package.HelperStream.Name)
             {
                 UseShellExecute = true,
                 Verb = "runas",
                 WindowStyle = ProcessWindowStyle.Hidden,
                 Arguments = $"--pipe {pipeName} --token {nonce}",
                 WorkingDirectory = root
-            }) ?? throw new InvalidOperationException("Network setup did not start."), CancellationToken.None);
+            };
+            var launch = Task.Run(() => Process.Start(startInfo)
+                                        ?? throw new InvalidOperationException("Network setup did not start."),
+                CancellationToken.None);
             Process launched;
-            try { launched = await launch.WaitAsync(timeout.Token).ConfigureAwait(false); }
+            try
+            {
+                launched = await launch.WaitAsync(timeout.Token).ConfigureAwait(false);
+            }
             catch
             {
                 // UAC itself cannot be cancelled by an unelevated caller. A late helper finds no pipe and exits.
@@ -73,6 +81,7 @@ internal sealed class NetworkSetupBroker
                 }, TaskScheduler.Default);
                 throw;
             }
+
             process = launched;
             // Hold the process handle across the exchange so a reused PID cannot authenticate a replacement.
             _ = process.Handle;
@@ -92,21 +101,22 @@ internal sealed class NetworkSetupBroker
             if (process.ExitCode != 0) throw new InvalidOperationException("Network setup failed.");
             Trace.TraceInformation("Network.SetupComplete operation=" + operation);
             if (operation == "install")
-            {
                 try
                 {
-                    Diagnostics.LogDirectories.ValidateAppPath();
-                    Diagnostics.LogDirectories.ValidateServicePath();
+                    LogDirectories.ValidateAppPath();
+                    LogDirectories.ValidateServicePath();
                 }
-                catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or System.Security.SecurityException)
+                catch (Exception exception) when (exception is IOException or UnauthorizedAccessException
+                                                      or SecurityException)
                 {
                     Trace.TraceWarning("Logging.SharedProvisionUnavailable: {0}", exception);
                 }
-            }
         }
         catch
         {
             waitForHelper = true;
+            // Close the pipe before waiting for the helper so it can detect failure and roll back.
+            // ReSharper disable once DisposeOnUsingVariable
             await pipe.DisposeAsync().ConfigureAwait(false);
             throw;
         }
@@ -115,30 +125,49 @@ internal sealed class NetworkSetupBroker
             if (waitForHelper && process is not null && !process.HasExited)
             {
                 using var exitTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-                try { await process.WaitForExitAsync(exitTimeout.Token).ConfigureAwait(false); }
-                catch (OperationCanceledException) { }
+                try
+                {
+                    await process.WaitForExitAsync(exitTimeout.Token).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                }
             }
+
             process?.Dispose();
             // Only this generated directory is removed; never accept a helper-supplied cleanup path.
-            try { if (Directory.Exists(root)) Directory.Delete(root, true); }
-            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException) { }
+            try
+            {
+                if (Directory.Exists(root)) Directory.Delete(root, true);
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+            }
         }
     }
 
     internal static async Task ExpectAsync(Stream pipe, string phase, CancellationToken token)
     {
-        var reply = await NetworkSetupWire.ReadAsync(pipe, NetworkSetupWireJsonContext.Default.NetworkSetupReply, token).ConfigureAwait(false);
-        if (reply.Version != NetworkSetupWire.Version) throw new InvalidDataException("Unexpected network setup response.");
+        var reply = await NetworkSetupWire.ReadAsync(pipe, NetworkSetupWireJsonContext.Default.NetworkSetupReply, token)
+            .ConfigureAwait(false);
+        if (reply.Version != NetworkSetupWire.Version)
+            throw new InvalidDataException("Unexpected network setup response.");
         if (reply.Phase == "failed" && IsFailurePhase(reply.FailurePhase) && reply.ErrorCode != 0)
         {
             // Only these protocol-defined phases may enter the log template.
-            System.Diagnostics.Trace.TraceError("Network.SetupFailed phase=" + reply.FailurePhase + " code={0}", reply.ErrorCode);
+            Trace.TraceError("Network.SetupFailed phase=" + reply.FailurePhase + " code={0}", reply.ErrorCode);
             throw new NetworkSetupFailedException(reply.FailurePhase!, reply.ErrorCode);
         }
-        if (reply.Phase != phase || reply.FailurePhase is not null || reply.ErrorCode != 0) throw new InvalidDataException("Unexpected network setup response.");
+
+        if (reply.Phase != phase || reply.FailurePhase is not null || reply.ErrorCode != 0)
+            throw new InvalidDataException("Unexpected network setup response.");
     }
 
-    private static bool IsFailurePhase(string? phase) => phase is "prepare" or "archive" or "helper" or "policy" or "protect" or "inventory" or "verify" or "stop" or "swap" or "service" or "registration" or "unknown";
+    private static bool IsFailurePhase(string? phase)
+    {
+        return phase is "prepare" or "archive" or "helper" or "policy" or "protect" or "inventory" or "verify" or "stop"
+            or "swap" or "service" or "registration" or "unknown";
+    }
 
     private static void Extract(string root, CancellationToken token)
     {
@@ -146,23 +175,29 @@ internal sealed class NetworkSetupBroker
         var sid = identity.User ?? throw new UnauthorizedAccessException("Missing requester identity.");
         var security = new DirectorySecurity();
         security.SetAccessRuleProtection(true, false);
-        foreach (var allowed in new[] { sid, new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null), new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null) })
+        foreach (var allowed in new[]
+                 {
+                     sid, new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null),
+                     new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null)
+                 })
             security.AddAccessRule(new FileSystemAccessRule(allowed, FileSystemRights.FullControl,
-                InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None, AccessControlType.Allow));
+                InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None,
+                AccessControlType.Allow));
         FileSystemAclExtensions.CreateDirectory(security, root);
         foreach (var asset in Assets)
         {
             token.ThrowIfCancellationRequested();
             using var source = typeof(NetworkSetupBroker).Assembly.GetManifestResourceStream(asset.Resource)
-                ?? throw new InvalidDataException("Missing signed network setup asset.");
-            using var destination = new FileStream(Path.Combine(root, asset.File), FileMode.CreateNew, FileAccess.Write, FileShare.None);
+                               ?? throw new InvalidDataException("Missing signed network setup asset.");
+            using var destination = new FileStream(Path.Combine(root, asset.File), FileMode.CreateNew, FileAccess.Write,
+                FileShare.None);
             source.CopyTo(destination);
         }
     }
-
 }
 
-internal sealed class NetworkSetupFailedException(string phase, int errorCode) : InvalidOperationException($"Network setup failed during {phase} ({errorCode}).")
+internal sealed class NetworkSetupFailedException(string phase, int errorCode)
+    : InvalidOperationException($"Network setup failed during {phase} ({errorCode}).")
 {
     internal string Phase { get; } = phase;
     internal int ErrorCode { get; } = errorCode;

@@ -21,18 +21,31 @@ public sealed class ActivityPanelButton : Button
             expanded ? ExpandCollapseState.Expanded : ExpandCollapseState.Collapsed);
     }
 
-    protected override AutomationPeer OnCreateAutomationPeer() => new PanelPeer(this);
+    protected override AutomationPeer OnCreateAutomationPeer()
+    {
+        return new PanelPeer(this);
+    }
 
     private sealed class PanelPeer(ActivityPanelButton button) : ButtonAutomationPeer(button), IExpandCollapseProvider
     {
-        public override object? GetPattern(PatternInterface patternInterface) =>
-            patternInterface == PatternInterface.ExpandCollapse ? this : base.GetPattern(patternInterface);
+        public override object? GetPattern(PatternInterface patternInterface)
+        {
+            return patternInterface == PatternInterface.ExpandCollapse ? this : base.GetPattern(patternInterface);
+        }
 
         public ExpandCollapseState ExpandCollapseState => button._expanded
-            ? ExpandCollapseState.Expanded : ExpandCollapseState.Collapsed;
+            ? ExpandCollapseState.Expanded
+            : ExpandCollapseState.Collapsed;
 
-        public void Expand() => SetExpanded(true);
-        public void Collapse() => SetExpanded(false);
+        public void Expand()
+        {
+            SetExpanded(true);
+        }
+
+        public void Collapse()
+        {
+            SetExpanded(false);
+        }
 
         private void SetExpanded(bool expanded)
         {

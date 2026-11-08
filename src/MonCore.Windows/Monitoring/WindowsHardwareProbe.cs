@@ -1,4 +1,6 @@
 using System.Runtime.InteropServices;
+using System.Security;
+using Microsoft.Win32;
 
 namespace WinMon.Monitoring;
 
@@ -6,13 +8,20 @@ namespace WinMon.Monitoring;
 public static class WindowsHardwareProbe
 {
     public sealed record CpuReading(IReadOnlyList<string> Names, int? PhysicalCores, uint LogicalProcessors);
+
     public sealed record GpuReading(string Name, ulong DedicatedBytes, ulong SharedLimitBytes);
-    public sealed record VolumeReading(string Name, string? Label, string? Format, long? TotalBytes,
-        long? AvailableBytes, bool Error);
+
+    public sealed record VolumeReading(
+        string Name,
+        string? Label,
+        string? Format,
+        long? TotalBytes,
+        long? AvailableBytes,
+        bool Error);
 
     public static CpuReading Cpu()
     {
-        using var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\CentralProcessor");
+        using var key = Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\CentralProcessor");
         var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         if (key is not null)
             foreach (var child in key.GetSubKeyNames())
@@ -79,7 +88,7 @@ public static class WindowsHardwareProbe
                         drive.AvailableFreeSpace, false)
                     : new VolumeReading(drive.Name, null, null, null, null, false));
             }
-            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Security.SecurityException)
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or SecurityException)
             {
                 readings.Add(new VolumeReading(drive.Name, null, null, null, null, true));
             }
@@ -113,8 +122,11 @@ public static class WindowsHardwareProbe
         }
     }
 
-    private static T Method<T>(IntPtr instance, int slot) where T : Delegate =>
-        Marshal.GetDelegateForFunctionPointer<T>(Marshal.ReadIntPtr(Marshal.ReadIntPtr(instance), slot * IntPtr.Size));
+    private static T Method<T>(IntPtr instance, int slot) where T : Delegate
+    {
+        return Marshal.GetDelegateForFunctionPointer<T>(Marshal.ReadIntPtr(Marshal.ReadIntPtr(instance),
+            slot * IntPtr.Size));
+    }
 
     [UnmanagedFunctionPointer(CallingConvention.StdCall)]
     private delegate int EnumAdapters(IntPtr factory, uint index, out IntPtr adapter);
@@ -127,6 +139,7 @@ public static class WindowsHardwareProbe
     {
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
         public string Description;
+
         public uint VendorId, DeviceId, SubSysId, Revision;
         public UIntPtr DedicatedVideoMemory, DedicatedSystemMemory, SharedSystemMemory;
         public uint LuidLow;
@@ -138,8 +151,14 @@ public static class WindowsHardwareProbe
     private struct MemoryStatus
     {
         public uint Length, MemoryLoad;
-        public ulong TotalPhysical, AvailablePhysical, TotalPageFile, AvailablePageFile, TotalVirtual,
-            AvailableVirtual, AvailableExtendedVirtual;
+
+        public ulong TotalPhysical,
+            AvailablePhysical,
+            TotalPageFile,
+            AvailablePageFile,
+            TotalVirtual,
+            AvailableVirtual,
+            AvailableExtendedVirtual;
     }
 
     [DllImport("dxgi.dll", ExactSpelling = true)]

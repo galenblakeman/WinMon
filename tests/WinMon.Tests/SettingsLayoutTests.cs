@@ -1,7 +1,8 @@
 using System.Globalization;
+using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
-using System.Windows;
+using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using NUnit.Framework;
 using WinMon.Monitoring;
@@ -22,7 +23,7 @@ public sealed class SettingsLayoutTests
         var window = Settings(original);
         try
         {
-            window.ResetChartPreferencesButton.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
+            window.ResetChartPreferencesButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
             var live = original.SelectChart(ResourceChartType.Heatmap) with
             {
                 VisibleMetrics = 2, ShowGpu = false, ChartRangeSeconds = 1800, ChartResourcesCollapsed = false
@@ -31,7 +32,8 @@ public sealed class SettingsLayoutTests
             var reset = SettingsWindow.ApplySettings(live, original, window.ResetChartPreferencesRequested);
             Assert.Multiple(() =>
             {
-                Assert.That(original.ChartRangeSeconds, Is.EqualTo(600), "Requesting reset cannot change live preferences.");
+                Assert.That(original.ChartRangeSeconds, Is.EqualTo(600),
+                    "Requesting reset cannot change live preferences.");
                 Assert.That(window.ResetChartPreferencesRequested, Is.True);
                 Assert.That(window.ResetChartPreferencesButton.IsEnabled, Is.False);
                 Assert.That(normal.ResourceChartType, Is.EqualTo(ResourceChartType.Heatmap));
@@ -40,10 +42,14 @@ public sealed class SettingsLayoutTests
                 Assert.That(normal.ChartResourcesCollapsed, Is.False);
                 Assert.That(reset.ResourceChartType, Is.EqualTo(ResourceChartType.Overlay));
                 Assert.That(reset.ChartConfigurations.All(chart => chart.VisibleMetrics == 63 &&
-                    chart.RangeSeconds == 120 && chart.ControlsCollapsed), Is.True);
+                                                                   chart.RangeSeconds == 120 &&
+                                                                   chart.ControlsCollapsed), Is.True);
             });
         }
-        finally { window.Close(); }
+        finally
+        {
+            window.Close();
+        }
     }
 
     [Test]
@@ -54,11 +60,19 @@ public sealed class SettingsLayoutTests
         {
             var opened = window.Section;
             SettingsSection[] expected = UpdatePolicy.GitHubUpdatesEnabled
-                ? [SettingsSection.General, SettingsSection.Appearance, SettingsSection.Monitoring, SettingsSection.Network,
+                ?
+                [
+                    SettingsSection.General, SettingsSection.Appearance, SettingsSection.Monitoring,
+                    SettingsSection.Network,
                     SettingsSection.AutomaticCaptures,
-                    SettingsSection.Updates]
-                : [SettingsSection.General, SettingsSection.Appearance, SettingsSection.Monitoring, SettingsSection.Network,
-                    SettingsSection.AutomaticCaptures];
+                    SettingsSection.Updates
+                ]
+                :
+                [
+                    SettingsSection.General, SettingsSection.Appearance, SettingsSection.Monitoring,
+                    SettingsSection.Network,
+                    SettingsSection.AutomaticCaptures
+                ];
             var shown = expected.Select(section =>
             {
                 window.ShowSection(section);
@@ -82,8 +96,10 @@ public sealed class SettingsLayoutTests
     public void Sections_SeparateAppearanceMonitoringAndNetworkControls()
     {
         var window = Settings(new MonitorPreferences
-            { Theme = "Porcelain", ChartPalette = "Ocean", GaugeStyle = GaugeStyle.Needle,
-                StartupView = StartupViewMode.Compact });
+        {
+            Theme = "Porcelain", ChartPalette = "Ocean", GaugeStyle = GaugeStyle.Needle,
+            StartupView = StartupViewMode.Compact
+        });
         try
         {
             var general = Descendants(window).ToArray();
@@ -149,7 +165,10 @@ public sealed class SettingsLayoutTests
         {
             var content = (FrameworkElement)window.Content;
             foreach (var section in new[]
-                     { SettingsSection.General, SettingsSection.Appearance, SettingsSection.Monitoring, SettingsSection.Network })
+                     {
+                         SettingsSection.General, SettingsSection.Appearance, SettingsSection.Monitoring,
+                         SettingsSection.Network
+                     })
             {
                 window.ShowSection(section);
                 content.Measure(new Size(width, 640));
@@ -361,8 +380,10 @@ public sealed class SettingsLayoutTests
                 Assert.That(((SolidColorBrush)preview.ChartPreview.TryFindResource("Accent")!).Color,
                     Is.EqualTo((Color)ColorConverter.ConvertFromString(accent)));
                 Assert.That(((SolidColorBrush)preview.ChartPreview.TryFindResource("MemoryAccent")!).Color,
-                    Is.EqualTo((Color)ColorConverter.ConvertFromString(theme is "Porcelain" or "FrostedPorcelain" or "Candy"
-                        ? "#6745A5" : "#B0A0FF")));
+                    Is.EqualTo((Color)ColorConverter.ConvertFromString(
+                        theme is "Porcelain" or "FrostedPorcelain" or "Candy"
+                            ? "#6745A5"
+                            : "#B0A0FF")));
             });
         }
         finally
@@ -453,23 +474,32 @@ public sealed class SettingsLayoutTests
             AutoCapture = preferences.AutoCapture with
             {
                 Rules = CaptureRuleSetting.Defaults.Select(rule => rule.Metric == CaptureMetric.Network
-                    ? rule with { Threshold = stored } : rule).ToArray()
+                    ? rule with { Threshold = stored }
+                    : rule).ToArray()
             }
         });
         try
         {
             var box = Descendants(window.AutoCapture).OfType<TextBox>().Single(control =>
-                AutomationProperties.GetName(control) == Strings.Format(Strings.AutoCaptureThresholdFor, Strings.Network));
+                AutomationProperties.GetName(control) ==
+                Strings.Format(Strings.AutoCaptureThresholdFor, Strings.Network));
             Assert.That(double.Parse(box.Text, CultureInfo.CurrentCulture), Is.EqualTo(stored / 8));
-            Assert.That(window.AutoCapture.Read(out _, out _)!.Rules.Single(rule => rule.Metric == CaptureMetric.Network).Threshold,
+            Assert.That(
+                window.AutoCapture.Read(out _, out _)!.Rules.Single(rule => rule.Metric == CaptureMetric.Network)
+                    .Threshold,
                 Is.EqualTo(stored));
             box.Text = 1d.ToString(CultureInfo.CurrentCulture);
-            Assert.That(window.AutoCapture.Read(out _, out _)!.Rules.Single(rule => rule.Metric == CaptureMetric.Network).Threshold,
+            Assert.That(
+                window.AutoCapture.Read(out _, out _)!.Rules.Single(rule => rule.Metric == CaptureMetric.Network)
+                    .Threshold,
                 Is.EqualTo(8));
             box.Text = 12501d.ToString(CultureInfo.CurrentCulture);
             Assert.That(window.AutoCapture.Read(out _, out _), Is.Null);
         }
-        finally { window.Close(); }
+        finally
+        {
+            window.Close();
+        }
     }
 
     [TestCase("250")]
@@ -507,7 +537,8 @@ public sealed class SettingsLayoutTests
         {
             var rows = Descendants(window.AutoCapture).OfType<CheckBox>()
                 .Where(box => box.Content is StackPanel).ToArray();
-            var second = rows[CaptureRuleSetting.Defaults.ToList().FindIndex(r => r.Metric == CaptureMetric.SecondaryDisk)];
+            var second =
+                rows[CaptureRuleSetting.Defaults.ToList().FindIndex(r => r.Metric == CaptureMetric.SecondaryDisk)];
             var disabled = second.IsEnabled;
             window.SecondaryDriveSelector.ItemsSource = new[] { new SettingsWindow.DriveChoice("D:", "D:") };
             window.SecondaryDriveSelector.SelectedIndex = 0;
@@ -678,11 +709,15 @@ public sealed class SettingsLayoutTests
             window.RefreshNetworkMonitoringState(NetworkMonitoringState.UpdateRequired);
             Assert.Multiple(() =>
             {
-                Assert.That(window.ProcessNetworkMonitoringStatus.Text, Is.EqualTo(Strings.NetworkProcessMonitoringUpdateRequired));
+                Assert.That(window.ProcessNetworkMonitoringStatus.Text,
+                    Is.EqualTo(Strings.NetworkProcessMonitoringUpdateRequired));
                 Assert.That(window.RepairNetworkMonitoringButton.Visibility, Is.EqualTo(Visibility.Visible));
             });
         }
-        finally { window.Close(); }
+        finally
+        {
+            window.Close();
+        }
     }
 
     [Test]
@@ -702,13 +737,10 @@ public sealed class SettingsLayoutTests
             }
 
             window.ProcessNetworkMonitoringCheckBox.IsChecked = true;
-            Task saving = window.SaveAsync();
+            var saving = window.SaveAsync();
             await Task.Yield();
 
-            Assert.Multiple(() =>
-            {
-                Assert.That(window.Navigation.IsEnabled, Is.False);
-            });
+            Assert.Multiple(() => { Assert.That(window.Navigation.IsEnabled, Is.False); });
 
             change.SetResult(new NetworkMonitoringChangeResult(false, NetworkMonitoringState.Failed));
             await saving;
@@ -729,10 +761,10 @@ public sealed class SettingsLayoutTests
             captureFolder: Path.Combine(Path.GetTempPath(), "WinMon.SettingsLayoutTests"));
     }
 
-    private static IEnumerable<System.Windows.DependencyObject> Descendants(System.Windows.DependencyObject parent)
+    private static IEnumerable<DependencyObject> Descendants(DependencyObject parent)
     {
-        foreach (var child in System.Windows.LogicalTreeHelper.GetChildren(parent)
-                     .OfType<System.Windows.DependencyObject>())
+        foreach (var child in LogicalTreeHelper.GetChildren(parent)
+                     .OfType<DependencyObject>())
         {
             yield return child;
             foreach (var descendant in Descendants(child)) yield return descendant;

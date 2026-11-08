@@ -6,7 +6,8 @@ using WinMon.Controls;
 
 namespace WinMon.Tests;
 
-[TestFixture, Apartment(ApartmentState.STA)]
+[TestFixture]
+[Apartment(ApartmentState.STA)]
 public sealed class ActivityPanelButtonTests
 {
     [Test]

@@ -1,3 +1,6 @@
+// Exact stored layout values and channels returned by Max require exact comparison.
+// ReSharper disable CompareOfFloatsByEqualityOperator
+
 using System.Windows.Media;
 
 namespace WinMon.Preferences;
@@ -56,18 +59,21 @@ internal static class ChartPalettes
     }
 
     /// <summary>The palette paired with an appearance; Settings follows it until the user picks another palette.</summary>
-    internal static string ForTheme(string? theme) => theme switch
+    internal static string ForTheme(string? theme)
     {
-        "Candy" or "Wildberry" or "Copper" or "Gunmetal" => theme,
-        "Crystal" => "Cool Tech",
-        "EvergreenInstrument" or "Porcelain" => "Warm Earth Tones",
-        "FrostedPorcelain" => "High-Contrast & Inclusive",
-        "MidnightInk" => "Neon",
-        "Prism" => "Arcade",
-        "SmokedSapphire" => "Tropical",
-        "Slate" => "Ocean",
-        _ => "Classic"
-    };
+        return theme switch
+        {
+            "Candy" or "Wildberry" or "Copper" or "Gunmetal" => theme,
+            "Crystal" => "Cool Tech",
+            "EvergreenInstrument" or "Porcelain" => "Warm Earth Tones",
+            "FrostedPorcelain" => "High-Contrast & Inclusive",
+            "MidnightInk" => "Neon",
+            "Prism" => "Arcade",
+            "SmokedSapphire" => "Tropical",
+            "Slate" => "Ocean",
+            _ => "Classic"
+        };
+    }
 
     internal static string Normalize(string? value)
     {
@@ -91,7 +97,8 @@ internal static class ChartPalettes
             ("High-Contrast & Inclusive", true) => ["#008A6A", "#0000CD", "#EF4B0E", "#663791", "#1280C3", "#744E00"],
             ("Sophisticated Pastel", false) => ["#D5E8A3", "#C5CBEF", "#DFA895", "#C99AA4", "#B4E3D3", "#CDBA96"],
             ("Sophisticated Pastel", true) => ["#6E8C3F", "#6673C2", "#BF6F55", "#A86478", "#3E8F7A", "#957A4E"],
-            ("Vibrant Monochromatic Shift", false) => ["#2E9E5E", "#3A9AE0", "#4F8F84", "#4A7FE8", "#8AD6CF", "#B8C9A8"],
+            ("Vibrant Monochromatic Shift", false) =>
+                ["#2E9E5E", "#3A9AE0", "#4F8F84", "#4A7FE8", "#8AD6CF", "#B8C9A8"],
             ("Vibrant Monochromatic Shift", true) => ["#014421", "#0072B5", "#2F5F57", "#0047AB", "#1F8F87", "#6B8752"],
             // The dark CPU green stays clear of Evergreen's accent greens.
             ("Warm Earth Tones", false) => ["#60CA81", "#E29F3D", "#D7673B", "#B7A8E2", "#E7CCA3", "#CAAF60"],
@@ -149,8 +156,10 @@ internal static class ChartPalettes
                 var normalized = value / 255d;
                 return normalized <= 0.04045 ? normalized / 12.92 : Math.Pow((normalized + 0.055) / 1.055, 2.4);
             }
+
             return 0.2126 * Channel(color.R) + 0.7152 * Channel(color.G) + 0.0722 * Channel(color.B);
         }
+
         var a = Luminance(first);
         var b = Luminance(second);
         return (Math.Max(a, b) + 0.05) / (Math.Min(a, b) + 0.05);
@@ -159,8 +168,12 @@ internal static class ChartPalettes
     private static string EnsureContrast(Color color, Color surface, Color plot, bool light,
         double readoutMinimum, double traceMinimum)
     {
-        bool Passes(Color candidate) => ContrastRatio(candidate, surface) >= readoutMinimum &&
-                                        ContrastRatio(candidate, plot) >= traceMinimum;
+        bool Passes(Color candidate)
+        {
+            return ContrastRatio(candidate, surface) >= readoutMinimum &&
+                   ContrastRatio(candidate, plot) >= traceMinimum;
+        }
+
         if (Passes(color)) return $"#{color.R:X2}{color.G:X2}{color.B:X2}";
 
         // Move along the original hue and saturation, changing lightness only.
@@ -172,7 +185,8 @@ internal static class ChartPalettes
         var delta = maximum - minimum;
         var originalLightness = (maximum + minimum) / 2;
         var saturation = delta == 0 ? 0 : delta / (1 - Math.Abs(2 * originalLightness - 1));
-        var hue = delta == 0 ? 0 : maximum == r ? ((g - b) / delta + 6) % 6
+        var hue = delta == 0 ? 0
+            : maximum == r ? ((g - b) / delta + 6) % 6
             : maximum == g ? (b - r) / delta + 2 : (r - g) / delta + 4;
 
         Color At(double value)
@@ -205,6 +219,7 @@ internal static class ChartPalettes
             if (Passes(At(middle)) == light) low = middle;
             else high = middle;
         }
+
         var adjusted = At(light ? low : high);
         return $"#{adjusted.R:X2}{adjusted.G:X2}{adjusted.B:X2}";
     }

@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Net.NetworkInformation;
 using System.Security;
@@ -41,6 +42,8 @@ public sealed class SettingsWindow : Window
         }
     }
 
+    // WPF reads the selected value through SelectedValuePath.
+    // ReSharper disable once NotAccessedPositionalProperty.Local
     private sealed record GaugeChoice(GaugeStyle Style, string Label)
     {
         public override string ToString()
@@ -49,9 +52,14 @@ public sealed class SettingsWindow : Window
         }
     }
 
+    // WPF reads the selected value through SelectedValuePath.
+    // ReSharper disable once NotAccessedPositionalProperty.Local
     private sealed record StartupViewChoice(StartupViewMode Mode, string Label)
     {
-        public override string ToString() => Label;
+        public override string ToString()
+        {
+            return Label;
+        }
     }
 
     /// <summary>Hosts the appearance illustration; assistive technology skips its sample controls.</summary>
@@ -94,7 +102,10 @@ public sealed class SettingsWindow : Window
     private Task? _networkLoadTask;
     private readonly CheckBox _keepHistoryCheckBox;
     private readonly CheckBox _processNetworkMonitoringCheckBox;
-    private readonly TextBlock _processNetworkMonitoringStatus = new() { FontSize = 12, TextWrapping = TextWrapping.Wrap };
+
+    private readonly TextBlock _processNetworkMonitoringStatus =
+        new() { FontSize = 12, TextWrapping = TextWrapping.Wrap };
+
     private readonly Button _repairNetworkMonitoringButton;
     private readonly Button _removeNetworkMonitoringServiceButton;
     private readonly Func<bool, CancellationToken, Task<NetworkMonitoringChangeResult>>? _changeNetworkMonitoring;
@@ -137,10 +148,13 @@ public sealed class SettingsWindow : Window
     private Button? _saveButton;
 
     private static readonly Geometry Monitoring = Geometry.Parse("M 1,9 L 4,9 L 6,3 L 9,13 L 11,7 L 15,7");
+
     private static readonly Geometry NetworkIcon = Geometry.Parse(
         "M 5,1 L 11,1 L 11,5 L 5,5 Z M 8,5 L 8,8 M 3,8 L 13,8 M 3,8 L 3,11 M 13,8 L 13,11 M 1,11 L 5,11 L 5,15 L 1,15 Z M 11,11 L 15,11 L 15,15 L 11,15 Z");
+
     private static readonly Geometry AppearanceIcon =
         Geometry.Parse("M 2,2 L 14,2 L 14,12 L 2,12 Z M 8,12 L 8,15 M 5,15 L 11,15 M 4,8 L 7,5 L 9,8 L 12,5");
+
     private static readonly Geometry Capture = Geometry.Parse("M 2,3 L 14,3 L 8,13 Z");
 
     /// <summary>
@@ -152,6 +166,10 @@ public sealed class SettingsWindow : Window
     /// <param name="checkForUpdates">Checks for an update and describes the result.</param>
     /// <param name="captureFolder">The default automatic capture folder; the installed default when omitted.</param>
     /// <param name="lastUpdateCheck">When this session last finished an update check, if it has.</param>
+    /// <param name="currentNetworkName">Name of the currently selected network adapter.</param>
+    /// <param name="changeNetworkMonitoring">Applies the requested process network monitoring state.</param>
+    /// <param name="removeNetworkService">Removes the shared network monitoring service.</param>
+    /// <param name="networkMonitoringState">Current availability of process network monitoring.</param>
     public SettingsWindow(MonitorPreferences preferences, Func<HotkeyGesture, bool>? isShortcutAvailable = null,
         string shortcutStatus = "", Func<Task<string>>? checkForUpdates = null, string? captureFolder = null,
         DateTimeOffset? lastUpdateCheck = null, string? currentNetworkName = null,
@@ -182,7 +200,9 @@ public sealed class SettingsWindow : Window
         _networkMonitoringEnabledAtOpen = preferences.ProcessNetworkMonitoringEnabled;
         _changeNetworkMonitoring = changeNetworkMonitoring;
         _removeNetworkService = removeNetworkService;
-        _networkMonitoringState = NetworkSetupBroker.Supported ? networkMonitoringState : NetworkMonitoringState.StoreUnavailable;
+        _networkMonitoringState = NetworkSetupBroker.Supported
+            ? networkMonitoringState
+            : NetworkMonitoringState.StoreUnavailable;
         _isShortcutAvailable = isShortcutAvailable ?? (_ => true);
         _shortcut = preferences.ShowGesture;
         WindowTheme.Attach(this);
@@ -202,24 +222,24 @@ public sealed class SettingsWindow : Window
         _themeSelector = CreateSelector([], "");
         ThemeChoice[] standardThemes =
         {
-            new ThemeChoice("System", Strings.ThemeSystem),
-            new ThemeChoice("Light", Strings.ThemeLight),
-            new ThemeChoice("Dark", Strings.ThemeDark)
+            new("System", Strings.ThemeSystem),
+            new("Light", Strings.ThemeLight),
+            new("Dark", Strings.ThemeDark)
         };
         ThemeChoice[] customThemes =
         {
-            new ThemeChoice("Candy", Strings.ThemeCandy),
-            new ThemeChoice("Copper", Strings.ThemeCopper),
-            new ThemeChoice("Crystal", Strings.ThemeCrystal),
-            new ThemeChoice("EvergreenInstrument", Strings.ThemeEvergreenInstrument),
-            new ThemeChoice("FrostedPorcelain", Strings.ThemeFrostedPorcelain),
-            new ThemeChoice("Gunmetal", Strings.ThemeGunmetal),
-            new ThemeChoice("MidnightInk", Strings.ThemeMidnightInk),
-            new ThemeChoice("Porcelain", Strings.ThemePorcelain),
-            new ThemeChoice("Prism", Strings.ThemePrism),
-            new ThemeChoice("SmokedSapphire", Strings.ThemeSmokedSapphire),
-            new ThemeChoice("Slate", Strings.ThemeSlate),
-            new ThemeChoice("Wildberry", Strings.ThemeWildberry)
+            new("Candy", Strings.ThemeCandy),
+            new("Copper", Strings.ThemeCopper),
+            new("Crystal", Strings.ThemeCrystal),
+            new("EvergreenInstrument", Strings.ThemeEvergreenInstrument),
+            new("FrostedPorcelain", Strings.ThemeFrostedPorcelain),
+            new("Gunmetal", Strings.ThemeGunmetal),
+            new("MidnightInk", Strings.ThemeMidnightInk),
+            new("Porcelain", Strings.ThemePorcelain),
+            new("Prism", Strings.ThemePrism),
+            new("SmokedSapphire", Strings.ThemeSmokedSapphire),
+            new("Slate", Strings.ThemeSlate),
+            new("Wildberry", Strings.ThemeWildberry)
         };
         _themeSelector.ItemsSource = standardThemes.Concat(customThemes
             .OrderBy(choice => choice.Label, StringComparer.CurrentCultureIgnoreCase)).ToArray();
@@ -275,7 +295,7 @@ public sealed class SettingsWindow : Window
         _gaugeSelector.SelectedValuePath = nameof(GaugeChoice.Style);
         _gaugeSelector.SelectedValue = preferences.GaugeStyle;
         _gaugePeakWindowSelector = CreateSelector(new[] { 60, 120, 300, 600 }.Select(seconds =>
-            Strings.Format(Strings.GaugePeakWindowMinutes, seconds / 60)).ToArray(),
+                Strings.Format(Strings.GaugePeakWindowMinutes, seconds / 60)).ToArray(),
             Strings.Format(Strings.GaugePeakWindowMinutes, preferences.GaugePeakWindowSeconds / 60));
         _gaugePeakWindowSelector.ToolTip = Strings.GaugePeakWindowExplanation;
         AutomationProperties.SetHelpText(_gaugePeakWindowSelector, Strings.GaugePeakWindowExplanation);
@@ -494,7 +514,10 @@ public sealed class SettingsWindow : Window
 
     internal sealed record NetworkChoice(string? Id, string Label)
     {
-        public override string ToString() => Label;
+        public override string ToString()
+        {
+            return Label;
+        }
     }
 
     private static ComboBox CreateNetworkInterfaceSelector(string? selected, string? currentName)
@@ -504,8 +527,10 @@ public sealed class SettingsWindow : Window
         return selector;
     }
 
-    internal Task LoadNetworkInterfacesAsync() =>
-        _networkLoadTask ??= LoadNetworkInterfacesCoreAsync();
+    internal Task LoadNetworkInterfacesAsync()
+    {
+        return _networkLoadTask ??= LoadNetworkInterfacesCoreAsync();
+    }
 
     private async Task LoadNetworkInterfacesCoreAsync()
     {
@@ -517,22 +542,26 @@ public sealed class SettingsWindow : Window
             SetNetworkChoices(NetworkInterfaceSelector, interfaces, selected, _currentNetworkName);
         }
         catch (Exception ex) when (ex is NetworkInformationException or InvalidOperationException or
-                                   UnauthorizedAccessException)
+                                       UnauthorizedAccessException)
         {
             Trace.TraceWarning("WinMon network interface discovery: {0}", ex);
         }
     }
 
-    private static NetworkChoice[] DiscoverNetworkInterfaces() =>
-    [
-        .. NetworkInterface.GetAllNetworkInterfaces()
-            .Where(network => network.NetworkInterfaceType is NetworkInterfaceType.Ethernet or
-                NetworkInterfaceType.Wireless80211)
-            .OrderBy(network => network.Name, StringComparer.CurrentCultureIgnoreCase)
-            .Select(network => new NetworkChoice(network.Id,
-                network.OperationalStatus == OperationalStatus.Up
-                    ? network.Name : $"{network.Name} — {Strings.Unavailable}"))
-    ];
+    private static NetworkChoice[] DiscoverNetworkInterfaces()
+    {
+        return
+        [
+            .. NetworkInterface.GetAllNetworkInterfaces()
+                .Where(network => network.NetworkInterfaceType is NetworkInterfaceType.Ethernet or
+                    NetworkInterfaceType.Wireless80211)
+                .OrderBy(network => network.Name, StringComparer.CurrentCultureIgnoreCase)
+                .Select(network => new NetworkChoice(network.Id,
+                    network.OperationalStatus == OperationalStatus.Up
+                        ? network.Name
+                        : $"{network.Name} — {Strings.Unavailable}"))
+        ];
+    }
 
     private static void SetNetworkChoices(ComboBox selector, IReadOnlyList<NetworkChoice> interfaces,
         string? selected, string? currentName)
@@ -746,7 +775,10 @@ public sealed class SettingsWindow : Window
     /// <summary>DIPs of the shown section that need scrolling after the last layout pass.</summary>
     internal double PageOverflow => Math.Max(0, _page.ExtentHeight - _page.ViewportHeight);
 
-    internal void ScrollSettingsPageToTop() => _page.ScrollToTop();
+    internal void ScrollSettingsPageToTop()
+    {
+        _page.ScrollToTop();
+    }
 
     /// <summary>Whether the work area left the dialog shorter than its designed height.</summary>
     internal bool HeightLimitedByWorkArea => Height < DesignedHeight;
@@ -789,7 +821,7 @@ public sealed class SettingsWindow : Window
         DockPanel.SetDock(path, Dock.Left);
         content.Children.Add(path);
         var item = new ListBoxItem { Content = content };
-        path.SetBinding(Shape.StrokeProperty, new Binding(nameof(Control.Foreground)) { Source = item });
+        path.SetBinding(Shape.StrokeProperty, new Binding(nameof(Foreground)) { Source = item });
         if (section == SettingsSection.AutomaticCaptures)
         {
             DockPanel.SetDock(_captureState, Dock.Right);
@@ -803,7 +835,7 @@ public sealed class SettingsWindow : Window
         {
             Text = label, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis
         };
-        labelBlock.SetBinding(TextBlock.ForegroundProperty, new Binding(nameof(Control.Foreground)) { Source = item });
+        labelBlock.SetBinding(TextBlock.ForegroundProperty, new Binding(nameof(Foreground)) { Source = item });
         content.Children.Add(labelBlock);
         item.SetResourceReference(StyleProperty, "SettingsNavItem");
         AutomationProperties.SetName(item, label);
@@ -817,7 +849,6 @@ public sealed class SettingsWindow : Window
                 item.IsSelected ? "SelectedText" : on ? "Accent" : "Muted");
             AutomationProperties.SetName(item, $"{label}, {_captureState.Text}");
         }
-
     }
 
     private StackPanel CreateGeneralPage()
@@ -1219,7 +1250,7 @@ public sealed class SettingsWindow : Window
             ShowNetworkMonitoringStatus(result.State);
             // The coordinator verifies authorized collection health; warming up is a successful subscription.
             if (!result.Success || (enabled && result.State is not (NetworkMonitoringState.WarmingUp or
-                NetworkMonitoringState.Active or NetworkMonitoringState.Incomplete)))
+                    NetworkMonitoringState.Active or NetworkMonitoringState.Incomplete)))
             {
                 _processNetworkMonitoringCheckBox.IsChecked = _networkMonitoringEnabledAtOpen;
                 _processNetworkMonitoringCheckBox.Focus();
@@ -1305,11 +1336,12 @@ public sealed class SettingsWindow : Window
         _page.IsEnabled = true;
         _navigation.IsEnabled = true;
         _processNetworkMonitoringCheckBox.IsEnabled = NetworkSetupBroker.Supported;
-        _removeNetworkMonitoringServiceButton.IsEnabled = NetworkSetupBroker.Supported && _removeNetworkService is not null;
+        _removeNetworkMonitoringServiceButton.IsEnabled =
+            NetworkSetupBroker.Supported && _removeNetworkService is not null;
         UpdateRepairButton();
     }
 
-    private void SettingsWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
+    private void SettingsWindow_Closing(object? sender, CancelEventArgs e)
     {
         if (!_networkMonitoringBusy) return;
         _networkMonitoringCancellation?.Cancel();
@@ -1345,10 +1377,14 @@ public sealed class SettingsWindow : Window
     private void UpdateRepairButton()
     {
         _repairNetworkMonitoringButton.Visibility = _networkMonitoringEnabledAtOpen &&
-            _networkMonitoringState is NetworkMonitoringState.Unavailable or NetworkMonitoringState.SetupUnavailable or
-                NetworkMonitoringState.UpdateRequired or NetworkMonitoringState.Failed
-            ? Visibility.Visible : Visibility.Collapsed;
-        _repairNetworkMonitoringButton.IsEnabled = NetworkSetupBroker.Supported && _changeNetworkMonitoring is not null &&
+                                                    _networkMonitoringState is NetworkMonitoringState.Unavailable
+                                                        or NetworkMonitoringState.SetupUnavailable or
+                                                        NetworkMonitoringState.UpdateRequired
+                                                        or NetworkMonitoringState.Failed
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        _repairNetworkMonitoringButton.IsEnabled =
+            NetworkSetupBroker.Supported && _changeNetworkMonitoring is not null &&
             !_networkMonitoringBusy;
     }
 }

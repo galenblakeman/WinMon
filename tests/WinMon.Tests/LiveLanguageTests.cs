@@ -50,7 +50,10 @@ public sealed class LiveLanguageTests
             Assert.That(observed, Is.EqualTo(["Paramètres", "設定"]));
             Assert.That(Strings.Text, Is.SameAs(source));
         }
-        finally { source.PropertyChanged -= Changed; }
+        finally
+        {
+            source.PropertyChanged -= Changed;
+        }
 
         return;
 

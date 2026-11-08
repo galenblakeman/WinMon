@@ -29,7 +29,8 @@ internal static class AuthorizationPolicy
     {
         using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
         if (stream.Length is <= 0 or > 8192) throw new InvalidDataException("Invalid authorization policy.");
-        var users = JsonSerializer.Deserialize(stream, AuthorizationPolicyJsonContext.Default.StringArray) ?? throw new InvalidDataException("Invalid authorization policy.");
+        var users = JsonSerializer.Deserialize(stream, AuthorizationPolicyJsonContext.Default.StringArray) ??
+                    throw new InvalidDataException("Invalid authorization policy.");
         if (users.Length is 0 or > MaximumUsers) throw new InvalidDataException("Invalid authorization policy.");
         var result = new HashSet<string>(StringComparer.Ordinal);
         foreach (var user in users) result.Add(ValidateSid(user));
@@ -38,21 +39,32 @@ internal static class AuthorizationPolicy
 
     internal static void Save(string path, IEnumerable<string> users)
     {
-        var normalized = users.Select(ValidateSid).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
+        var normalized = users.Select(ValidateSid).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)
+            .ToArray();
         if (normalized.Length is 0 or > MaximumUsers) throw new InvalidDataException("Invalid authorization policy.");
         using var stream = ProtectedInstallation.CreateFile(path, FileMode.CreateNew, FileAccess.Write, FileShare.None);
         JsonSerializer.Serialize(stream, normalized, AuthorizationPolicyJsonContext.Default.StringArray);
-        stream.Flush(flushToDisk: true);
+        stream.Flush(true);
     }
 
     internal static string ValidateSid(string sid)
     {
-        if (string.IsNullOrWhiteSpace(sid) || sid.Length > 184) throw new InvalidDataException("Invalid authorization identity.");
+        if (string.IsNullOrWhiteSpace(sid) || sid.Length > 184)
+            throw new InvalidDataException("Invalid authorization identity.");
         SecurityIdentifier parsed;
-        try { parsed = new SecurityIdentifier(sid); }
-        catch (ArgumentException exception) { throw new InvalidDataException("Invalid authorization identity.", exception); }
-        if (!string.Equals(parsed.Value, sid, StringComparison.Ordinal) || parsed.IsWellKnown(WellKnownSidType.WorldSid) ||
-            parsed.IsWellKnown(WellKnownSidType.AnonymousSid) || parsed.IsWellKnown(WellKnownSidType.AuthenticatedUserSid))
+        try
+        {
+            parsed = new SecurityIdentifier(sid);
+        }
+        catch (ArgumentException exception)
+        {
+            throw new InvalidDataException("Invalid authorization identity.", exception);
+        }
+
+        if (!string.Equals(parsed.Value, sid, StringComparison.Ordinal) ||
+            parsed.IsWellKnown(WellKnownSidType.WorldSid) ||
+            parsed.IsWellKnown(WellKnownSidType.AnonymousSid) ||
+            parsed.IsWellKnown(WellKnownSidType.AuthenticatedUserSid))
             throw new InvalidDataException("Invalid authorization identity.");
         return parsed.Value;
     }

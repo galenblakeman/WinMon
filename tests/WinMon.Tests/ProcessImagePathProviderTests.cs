@@ -6,13 +6,20 @@ namespace WinMon.Tests;
 
 public sealed class ProcessImagePathProviderTests
 {
-    private static ProcessCpuTimes Process(long created = 100) => new(42, created, "updater", 0);
+    private static ProcessCpuTimes Process(long created = 100)
+    {
+        return new ProcessCpuTimes(42, created, "updater", 0);
+    }
 
     [Test]
     public void Capture_ReadablePathIsImmediateAndCachedByLifetime()
     {
         var reads = 0;
-        var provider = new ProcessImagePathProvider((_, _) => { reads++; return @"C:\Apps\app.exe"; },
+        var provider = new ProcessImagePathProvider((_, _) =>
+            {
+                reads++;
+                return @"C:\Apps\app.exe";
+            },
             _ => throw new AssertionException("A readable path must not use the fallback."));
         List<ProcessCpuTimes> processes = [Process()];
         provider.Capture(processes);
@@ -28,7 +35,11 @@ public sealed class ProcessImagePathProviderTests
     public void Capture_FallbackWaitsForNextSnapshotOfSameLifetimeThenCaches()
     {
         var reads = 0;
-        var provider = new ProcessImagePathProvider((_, _) => "", _ => { reads++; return @"C:\Dropbox\updater.exe"; });
+        var provider = new ProcessImagePathProvider((_, _) => "", _ =>
+        {
+            reads++;
+            return @"C:\Dropbox\updater.exe";
+        });
         List<ProcessCpuTimes> first = [Process()];
         provider.Capture(first);
         Assert.That(first[0].ImagePath, Is.Empty, "Do not expose a PID-only result before verifying its lifetime.");
@@ -80,7 +91,11 @@ public sealed class ProcessImagePathProviderTests
     public void Capture_FailedFallbackLeavesPathUnavailableWithoutRepeatedLookups()
     {
         var reads = 0;
-        var provider = new ProcessImagePathProvider((_, _) => "", _ => { reads++; return ""; });
+        var provider = new ProcessImagePathProvider((_, _) => "", _ =>
+        {
+            reads++;
+            return "";
+        });
         List<ProcessCpuTimes> processes = [Process()];
         provider.Capture(processes);
         provider.Capture(processes);
@@ -118,14 +133,15 @@ public sealed class ProcessImagePathProviderTests
     public void Capture_NativeFallbackProvidesFriendlyNameAfterLifetimeConfirmation()
     {
         using var process = System.Diagnostics.Process.GetCurrentProcess();
-        var provider = new ProcessImagePathProvider(read: (_, _) => "");
+        var provider = new ProcessImagePathProvider((_, _) => "");
         List<ProcessCpuTimes> processes = [new(process.Id, process.StartTime.ToFileTimeUtc(), "test", 0)];
         provider.Capture(processes);
         Assert.That(processes[0].ImagePath, Is.Empty);
         provider.Capture(processes);
         Assert.That(processes[0].ImagePath, Is.EqualTo(Environment.ProcessPath).IgnoreCase);
         var names = new ProcessAppNameProvider().Get(processes[0].ImagePath!);
-        Assert.That(names.Description, Is.EqualTo(FileVersionInfo.GetVersionInfo(Environment.ProcessPath!).FileDescription?.Trim()));
+        Assert.That(names.Description,
+            Is.EqualTo(FileVersionInfo.GetVersionInfo(Environment.ProcessPath!).FileDescription?.Trim()));
     }
 
     [Test]
@@ -133,7 +149,8 @@ public sealed class ProcessImagePathProviderTests
     {
         using var process = System.Diagnostics.Process.GetCurrentProcess();
         List<ProcessCpuTimes> processes = [new(process.Id, process.StartTime.ToFileTimeUtc(), "test", 0)];
-        new ProcessImagePathProvider(fallback: _ => throw new AssertionException("Expected direct lookup.")).Capture(processes);
+        new ProcessImagePathProvider(fallback: _ => throw new AssertionException("Expected direct lookup."))
+            .Capture(processes);
         Assert.That(processes[0].ImagePath, Is.EqualTo(Environment.ProcessPath).IgnoreCase);
     }
 }

@@ -1,8 +1,9 @@
 using System.Diagnostics;
 using System.Text.Json;
 using System.Windows;
-using System.Windows.Documents;
 using System.Windows.Controls.Primitives;
+using System.Windows.Documents;
+using System.Windows.Interop;
 using WinMon.Controls;
 using WinMon.Monitoring;
 using WinMon.Preferences;
@@ -101,13 +102,16 @@ internal sealed partial class WindowDiagnostics
                             tile.Source.ValueLabel.ContentEnd).Text))
                     throw new InvalidOperationException("Compact readouts did not mirror the Full-view readings.");
                 if (fixture.CompactTiles.Any(tile => tile.Readout.GaugeStyle != style ||
-                    tile.Readout.Toggle.Parent is not null ||
-                    tile.Readout.Gauge.Visibility != (style == GaugeStyle.None
-                        ? Visibility.Hidden : Visibility.Visible)))
+                                                     tile.Readout.Toggle.Parent is not null ||
+                                                     tile.Readout.Gauge.Visibility != (style == GaugeStyle.None
+                                                         ? Visibility.Hidden
+                                                         : Visibility.Visible)))
                     throw new InvalidOperationException($"Compact readouts did not follow {style}.");
                 foreach (var scale in new[] { 1d, 1.5, 2d })
                     await CaptureVisualAsync(visual,
-                        Path.Combine(output, $"gauges-{style.ToString().ToLowerInvariant()}-{theme.ToLowerInvariant()}-{width}-{scale * 100:0}.png"), scale,
+                        Path.Combine(output,
+                            $"gauges-{style.ToString().ToLowerInvariant()}-{theme.ToLowerInvariant()}-{width}-{scale * 100:0}.png"),
+                        scale,
                         cancellationToken);
             }
         }
@@ -125,7 +129,9 @@ internal sealed partial class WindowDiagnostics
         foreach (var width in new[] { 1000d, 836d })
         {
             fixture.Preferences = fixture.Preferences with
-                { Theme = theme, GaugeStyle = GaugeStyle.Bowl };
+            {
+                Theme = theme, GaugeStyle = GaugeStyle.Bowl
+            };
             fixture.ApplyTheme();
             Draw(width);
             var memory = fixture.CompactTiles.Single(tile => tile.Source == fixture.MemoryMetric).Readout;
@@ -147,7 +153,9 @@ internal sealed partial class WindowDiagnostics
         }
 
         fixture.Preferences = fixture.Preferences with
-            { SecondaryDrive = null };
+        {
+            SecondaryDrive = null
+        };
         Draw(836);
         if (fixture.CompactTiles[3].Box.Visibility != Visibility.Collapsed ||
             fixture.CompactStrip.ColumnDefinitions[3].Width.Value != 0)
@@ -183,7 +191,7 @@ internal sealed partial class WindowDiagnostics
 
     private async Task CheckWindowPositionRecoveryAsync(string output, CancellationToken cancellationToken)
     {
-        var handle = new System.Windows.Interop.WindowInteropHelper(window).Handle;
+        var handle = new WindowInteropHelper(window).Handle;
         if (!GetWindowRect(handle, out var original)) throw new InvalidOperationException("Window bounds unavailable.");
         window.RememberWindowPositionForFixture();
         window.Left += 40;

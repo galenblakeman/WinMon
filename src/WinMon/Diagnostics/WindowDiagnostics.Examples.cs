@@ -67,7 +67,10 @@ internal sealed partial class WindowDiagnostics
             fixture.Preferences = fixture.Preferences with { ResourceChartType = ResourceChartType.SmallMultiples };
             fixture.BuildChartSelectors();
             await Draw("small_multiples");
-            fixture.Preferences = fixture.Preferences with { ResourceChartType = ResourceChartType.Focus, FocusMetric = 3 };
+            fixture.Preferences = fixture.Preferences with
+            {
+                ResourceChartType = ResourceChartType.Focus, FocusMetric = 3
+            };
             fixture.BuildChartSelectors();
             await Draw("focus_network");
             fixture.Preferences = fixture.Preferences with { ResourceChartType = ResourceChartType.Overlay };

@@ -1,4 +1,3 @@
-using System.Net.Http;
 using System.Windows;
 using System.Windows.Controls;
 using NUnit.Framework;
@@ -15,7 +14,8 @@ public sealed class StoreBuildTests
     [Apartment(ApartmentState.STA)]
     public void Settings_OnlyOffersGitHubControlsInOrdinaryBuilds()
     {
-        var window = new SettingsWindow(new MonitorPreferences(), () => [], checkForUpdates: () => Task.FromResult("checked"));
+        var window = new SettingsWindow(new MonitorPreferences(), () => [],
+            checkForUpdates: () => Task.FromResult("checked"));
         try
         {
             // Store builds have no Updates section, so this leaves the General section showing.
@@ -27,7 +27,10 @@ public sealed class StoreBuildTests
             Assert.That(elements.OfType<Button>().Any(c => Equals(c.Content, Strings.CheckForUpdates)),
                 Is.EqualTo(UpdatePolicy.GitHubUpdatesEnabled));
         }
-        finally { window.Close(); }
+        finally
+        {
+            window.Close();
+        }
     }
 
     private static IEnumerable<DependencyObject> Descendants(DependencyObject parent)

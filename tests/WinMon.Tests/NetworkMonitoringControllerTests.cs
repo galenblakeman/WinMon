@@ -1,4 +1,6 @@
+using System.Diagnostics;
 using NUnit.Framework;
+using WinMon.Diagnostics;
 using WinMon.Monitoring;
 
 namespace WinMon.Tests;
@@ -13,24 +15,29 @@ public sealed class NetworkMonitoringControllerTests
         var folder = Path.Combine(Path.GetTempPath(), "WinMon.NetworkLogTests." + Guid.NewGuid().ToString("N"));
         try
         {
-            using (var log = new WinMon.Diagnostics.DiagnosticLog(folder, "App"))
+            using (var log = new DiagnosticLog(folder, "App"))
             {
-                System.Diagnostics.Trace.Listeners.Add(log);
+                Trace.Listeners.Add(log);
                 var available = false;
                 await using var controller = new NetworkMonitoringController(_ => available
-                        ? Task.FromResult<INetworkMonitoringConnection>(new FakeConnection()) : throw new IOException("private endpoint"),
+                        ? Task.FromResult<INetworkMonitoringConnection>(new FakeConnection())
+                        : throw new IOException("private endpoint"),
                     (_, _, _) => throw new AssertionException("No setup needed"), () => true);
                 await controller.RestoreAsync(true, default);
                 available = true;
                 await controller.ChangeAsync(true, default);
             }
+
             var text = File.ReadAllText(Path.Combine(folder, "winmon.log"));
             Assert.That(text, Does.Contain("Network.ConnectionFailed: IOException"));
             Assert.That(text, Does.Contain("Network.State from=Enabling to=Unavailable"));
             Assert.That(text, Does.Contain("Network.Connected attempts=1 outageMs="));
             Assert.That(text, Does.Not.Contain("private endpoint"));
         }
-        finally { if (Directory.Exists(folder)) Directory.Delete(folder, true); }
+        finally
+        {
+            if (Directory.Exists(folder)) Directory.Delete(folder, true);
+        }
     }
 
     [Test]
@@ -40,16 +47,18 @@ public sealed class NetworkMonitoringControllerTests
         var folder = Path.Combine(Path.GetTempPath(), "WinMon.NetworkQualityTests." + Guid.NewGuid().ToString("N"));
         try
         {
-            using (var log = new WinMon.Diagnostics.DiagnosticLog(folder, "App"))
+            using (var log = new DiagnosticLog(folder, "App"))
             {
-                System.Diagnostics.Trace.Listeners.Add(log);
+                Trace.Listeners.Add(log);
                 var connection = new DiagnosticConnection { Unavailable = true };
-                await using var controller = new NetworkMonitoringController(_ => Task.FromResult<INetworkMonitoringConnection>(connection),
+                await using var controller = new NetworkMonitoringController(
+                    _ => Task.FromResult<INetworkMonitoringConnection>(connection),
                     (_, _, _) => throw new AssertionException("No setup needed"), () => true);
                 await controller.RestoreAsync(true, default);
                 connection.Unavailable = false;
                 await controller.ChangeAsync(true, default);
             }
+
             var text = File.ReadAllText(Path.Combine(folder, "winmon.log"));
             Assert.That(text, Does.Contain("reasons=NativeLoss"));
             Assert.That(text, Does.Contain("failure=ClockDiscontinuity"));
@@ -57,20 +66,38 @@ public sealed class NetworkMonitoringControllerTests
             Assert.That(text, Does.Contain("windowMs=5000 lagMs=3000"));
             Assert.That(text, Does.Not.Contain("987654"));
         }
-        finally { if (Directory.Exists(folder)) Directory.Delete(folder, true); }
+        finally
+        {
+            if (Directory.Exists(folder)) Directory.Delete(folder, true);
+        }
     }
 
     private sealed class DiagnosticConnection : INetworkMonitoringConnection
     {
         internal bool Unavailable { get; set; }
-        public Task SubscribeAsync(CancellationToken token) => Task.CompletedTask;
-        public Task<ProcessNetworkSnapshot> SnapshotAsync(CancellationToken token) => Task.FromResult(
-            new ProcessNetworkSnapshot(Guid.NewGuid(), 1, 110, 10, 30, 80,
-                ProcessNetworkQuality.Incomplete | (Unavailable ? ProcessNetworkQuality.Unavailable : ProcessNetworkQuality.Provisional),
-                3, 4, [new ProcessNetworkReading(987654, 987654, 123, 456, 10, 20)])
-            { IncompleteReasons = ProcessNetworkIncompleteReason.NativeLoss, DroppedEvents = 5,
-                Failure = Unavailable ? ProcessNetworkFailure.ClockDiscontinuity : ProcessNetworkFailure.None });
-        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+
+        public Task SubscribeAsync(CancellationToken token)
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task<ProcessNetworkSnapshot> SnapshotAsync(CancellationToken token)
+        {
+            return Task.FromResult(
+                new ProcessNetworkSnapshot(Guid.NewGuid(), 1, 110, 10, 30, 80,
+                    ProcessNetworkQuality.Incomplete |
+                    (Unavailable ? ProcessNetworkQuality.Unavailable : ProcessNetworkQuality.Provisional),
+                    3, 4, [new ProcessNetworkReading(987654, 987654, 123, 456, 10, 20)])
+                {
+                    IncompleteReasons = ProcessNetworkIncompleteReason.NativeLoss, DroppedEvents = 5,
+                    Failure = Unavailable ? ProcessNetworkFailure.ClockDiscontinuity : ProcessNetworkFailure.None
+                });
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            return ValueTask.CompletedTask;
+        }
     }
 
     [Test]
@@ -78,7 +105,8 @@ public sealed class NetworkMonitoringControllerTests
     {
         var available = false;
         await using var controller = new NetworkMonitoringController(_ => available
-                ? Task.FromResult<INetworkMonitoringConnection>(new FakeConnection()) : throw new IOException(),
+                ? Task.FromResult<INetworkMonitoringConnection>(new FakeConnection())
+                : throw new IOException(),
             (_, _, _) => throw new AssertionException("No setup needed"), () => true);
         await controller.RestoreAsync(true, default);
         var initial = controller.Sample.SessionId;
@@ -97,8 +125,13 @@ public sealed class NetworkMonitoringControllerTests
     {
         var connection = new FakeConnection();
         var setupCalls = 0;
-        await using var controller = new NetworkMonitoringController(_ => Task.FromResult<INetworkMonitoringConnection>(connection),
-            (_, _, _) => { setupCalls++; return Task.CompletedTask; }, () => true);
+        await using var controller = new NetworkMonitoringController(
+            _ => Task.FromResult<INetworkMonitoringConnection>(connection),
+            (_, _, _) =>
+            {
+                setupCalls++;
+                return Task.CompletedTask;
+            }, () => true);
         Assert.That((await controller.ChangeAsync(true, default)).Success, Is.True);
         Assert.That(connection.Subscribed, Is.True);
         Assert.That(controller.State, Is.EqualTo(NetworkMonitoringState.WarmingUp));
@@ -113,7 +146,11 @@ public sealed class NetworkMonitoringControllerTests
     {
         var setupCalls = 0;
         await using var controller = new NetworkMonitoringController(_ => throw new IOException(),
-            (_, _, _) => { setupCalls++; return Task.CompletedTask; }, () => true);
+            (_, _, _) =>
+            {
+                setupCalls++;
+                return Task.CompletedTask;
+            }, () => true);
         Assert.That((await controller.RestoreAsync(true, default)).Success, Is.False);
         Assert.That(controller.State, Is.EqualTo(NetworkMonitoringState.Unavailable));
         Assert.That(setupCalls, Is.Zero);
@@ -126,7 +163,8 @@ public sealed class NetworkMonitoringControllerTests
         var committed = false;
         var connection = new FakeConnection();
         await using var controller = new NetworkMonitoringController(_ => installed
-                ? Task.FromResult<INetworkMonitoringConnection>(connection) : throw new IOException(),
+                ? Task.FromResult<INetworkMonitoringConnection>(connection)
+                : throw new IOException(),
             async (operation, verify, token) =>
             {
                 Assert.That(operation, Is.EqualTo("install"));
@@ -147,8 +185,14 @@ public sealed class NetworkMonitoringControllerTests
         var committed = false;
         var connection = new FakeConnection { Quality = ProcessNetworkQuality.Unavailable };
         await using var controller = new NetworkMonitoringController(_ => installed
-                ? Task.FromResult<INetworkMonitoringConnection>(connection) : throw new IOException(),
-            async (_, verify, token) => { installed = true; await verify(token); committed = true; }, () => true);
+                ? Task.FromResult<INetworkMonitoringConnection>(connection)
+                : throw new IOException(),
+            async (_, verify, token) =>
+            {
+                installed = true;
+                await verify(token);
+                committed = true;
+            }, () => true);
         Assert.That((await controller.ChangeAsync(true, default)).Success, Is.False);
         Assert.That(committed, Is.False);
         Assert.That(connection.Disposed, Is.True);
@@ -161,8 +205,15 @@ public sealed class NetworkMonitoringControllerTests
         var installed = false;
         var connection = new FakeConnection();
         await using var controller = new NetworkMonitoringController(_ => installed
-                ? Task.FromResult<INetworkMonitoringConnection>(connection) : throw new IOException(),
-            async (_, verify, token) => { installed = true; await verify(token); cancellation.Cancel(); token.ThrowIfCancellationRequested(); }, () => true);
+                ? Task.FromResult<INetworkMonitoringConnection>(connection)
+                : throw new IOException(),
+            async (_, verify, token) =>
+            {
+                installed = true;
+                await verify(token);
+                cancellation.Cancel();
+                token.ThrowIfCancellationRequested();
+            }, () => true);
         var result = await controller.ChangeAsync(true, cancellation.Token);
         Assert.That(result, Is.EqualTo(new NetworkMonitoringChangeResult(false, NetworkMonitoringState.Cancelled)));
         Assert.That(connection.Disposed, Is.True);
@@ -173,24 +224,33 @@ public sealed class NetworkMonitoringControllerTests
     {
         await using var controller = new NetworkMonitoringController(_ => throw new IOException(),
             (_, _, _) => throw new AssertionException("Setup must not run"), () => false);
-        Assert.That((await controller.ChangeAsync(true, default)).State, Is.EqualTo(NetworkMonitoringState.SetupUnavailable));
+        Assert.That((await controller.ChangeAsync(true, default)).State,
+            Is.EqualTo(NetworkMonitoringState.SetupUnavailable));
     }
 
     [Test]
     public async Task ConnectionTimeoutAtStartupShowsUnavailableWithNoSetup()
     {
-        await using var controller = new NetworkMonitoringController(_ => throw new OperationCanceledException("Internal connection timeout"),
+        await using var controller = new NetworkMonitoringController(
+            _ => throw new OperationCanceledException("Internal connection timeout"),
             (_, _, _) => throw new AssertionException("No startup setup"), () => true);
-        Assert.That((await controller.RestoreAsync(true, default)).State, Is.EqualTo(NetworkMonitoringState.Unavailable));
+        Assert.That((await controller.RestoreAsync(true, default)).State,
+            Is.EqualTo(NetworkMonitoringState.Unavailable));
     }
 
     [Test]
     public async Task RestoreProtocolMismatchShowsUpdateRequiredWithoutSetup()
     {
         var setupCalls = 0;
-        await using var controller = new NetworkMonitoringController(_ => throw new NetworkServiceProtocolMismatchException(2, 1),
-            (_, _, _) => { setupCalls++; return Task.CompletedTask; }, () => true);
-        Assert.That((await controller.RestoreAsync(true, default)).State, Is.EqualTo(NetworkMonitoringState.UpdateRequired));
+        await using var controller = new NetworkMonitoringController(
+            _ => throw new NetworkServiceProtocolMismatchException(2, 1),
+            (_, _, _) =>
+            {
+                setupCalls++;
+                return Task.CompletedTask;
+            }, () => true);
+        Assert.That((await controller.RestoreAsync(true, default)).State,
+            Is.EqualTo(NetworkMonitoringState.UpdateRequired));
         Assert.That(setupCalls, Is.Zero);
     }
 
@@ -203,7 +263,12 @@ public sealed class NetworkMonitoringControllerTests
         await using var controller = new NetworkMonitoringController(_ => installed
                 ? Task.FromResult<INetworkMonitoringConnection>(connection)
                 : throw new NetworkServiceProtocolMismatchException(2, 1),
-            async (_, verify, token) => { setupCalls++; installed = true; await verify(token); }, () => true);
+            async (_, verify, token) =>
+            {
+                setupCalls++;
+                installed = true;
+                await verify(token);
+            }, () => true);
         Assert.That((await controller.ChangeAsync(true, default)).Success, Is.True);
         Assert.That(setupCalls, Is.EqualTo(1));
     }
@@ -211,19 +276,26 @@ public sealed class NetworkMonitoringControllerTests
     [Test]
     public async Task ChangeProtocolMismatchWithoutBundleStaysUpdateRequired()
     {
-        await using var controller = new NetworkMonitoringController(_ => throw new NetworkServiceProtocolMismatchException(2, 1),
+        await using var controller = new NetworkMonitoringController(
+            _ => throw new NetworkServiceProtocolMismatchException(2, 1),
             (_, _, _) => throw new AssertionException("Setup must not run"), () => false);
-        Assert.That((await controller.ChangeAsync(true, default)).State, Is.EqualTo(NetworkMonitoringState.UpdateRequired));
+        Assert.That((await controller.ChangeAsync(true, default)).State,
+            Is.EqualTo(NetworkMonitoringState.UpdateRequired));
     }
 
     [Test]
     public async Task PollProtocolMismatchClearsMetricsAndShowsUpdateRequired()
     {
-        var connection = new FakeConnection { FailureAfterInitialRead = new NetworkServiceProtocolMismatchException(2, 1) };
+        var connection = new FakeConnection
+            { FailureAfterInitialRead = new NetworkServiceProtocolMismatchException(2, 1) };
         var updateRequired = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        await using var controller = new NetworkMonitoringController(_ => Task.FromResult<INetworkMonitoringConnection>(connection),
+        await using var controller = new NetworkMonitoringController(
+            _ => Task.FromResult<INetworkMonitoringConnection>(connection),
             (_, _, _) => Task.CompletedTask, () => true);
-        controller.StateChanged += state => { if (state == NetworkMonitoringState.UpdateRequired) updateRequired.TrySetResult(); };
+        controller.StateChanged += state =>
+        {
+            if (state == NetworkMonitoringState.UpdateRequired) updateRequired.TrySetResult();
+        };
         Assert.That((await controller.ChangeAsync(true, default)).Success, Is.True);
         await updateRequired.Task.WaitAsync(TimeSpan.FromSeconds(3));
         Assert.Multiple(() =>
@@ -236,9 +308,11 @@ public sealed class NetworkMonitoringControllerTests
     [Test]
     public async Task StoreDoesNotAccessServiceOrSetup()
     {
-        await using var controller = new NetworkMonitoringController(_ => throw new AssertionException("No service access"),
-            (_, _, _) => throw new AssertionException("No setup access"), () => true, supported: false);
-        Assert.That((await controller.ChangeAsync(true, default)).State, Is.EqualTo(NetworkMonitoringState.StoreUnavailable));
+        await using var controller = new NetworkMonitoringController(
+            _ => throw new AssertionException("No service access"),
+            (_, _, _) => throw new AssertionException("No setup access"), () => true, false);
+        Assert.That((await controller.ChangeAsync(true, default)).State,
+            Is.EqualTo(NetworkMonitoringState.StoreUnavailable));
         Assert.That((await controller.RemoveAsync(default)).State, Is.EqualTo(NetworkMonitoringState.StoreUnavailable));
     }
 
@@ -258,7 +332,8 @@ public sealed class NetworkMonitoringControllerTests
         var recovered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         await using var controller = new NetworkMonitoringController(_ =>
         {
-            if (Interlocked.Increment(ref connections) == 1) return Task.FromResult<INetworkMonitoringConnection>(failed);
+            if (Interlocked.Increment(ref connections) == 1)
+                return Task.FromResult<INetworkMonitoringConnection>(failed);
             Assert.That(failed.Disposed, Is.True);
             return Task.FromResult<INetworkMonitoringConnection>(healthy);
         }, (_, _, _) => throw new AssertionException("Recovery must not run setup"), () => true);
@@ -287,9 +362,13 @@ public sealed class NetworkMonitoringControllerTests
         var attempts = 0;
         var recovered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         await using var controller = new NetworkMonitoringController(_ => Interlocked.Increment(ref attempts) < 3
-                ? throw new IOException() : Task.FromResult<INetworkMonitoringConnection>(new FakeConnection()),
+                ? throw new IOException()
+                : Task.FromResult<INetworkMonitoringConnection>(new FakeConnection()),
             (_, _, _) => throw new AssertionException("Recovery must not run setup"), () => true);
-        controller.StateChanged += state => { if (state == NetworkMonitoringState.WarmingUp) recovered.TrySetResult(); };
+        controller.StateChanged += state =>
+        {
+            if (state == NetworkMonitoringState.WarmingUp) recovered.TrySetResult();
+        };
         await controller.RestoreAsync(true, default);
         var session = controller.Sample.SessionId;
         await recovered.Task.WaitAsync(TimeSpan.FromSeconds(15));
@@ -308,25 +387,40 @@ public sealed class NetworkMonitoringControllerTests
         {
             if (Interlocked.Increment(ref attempts) == 1) throw new IOException();
             reconnecting.TrySetResult();
-            try { await Task.Delay(Timeout.InfiniteTimeSpan, token); }
-            catch (OperationCanceledException) { cancelled.TrySetResult(); throw; }
+            try
+            {
+                await Task.Delay(Timeout.InfiniteTimeSpan, token);
+            }
+            catch (OperationCanceledException)
+            {
+                cancelled.TrySetResult();
+                throw;
+            }
+
             throw new AssertionException("Recovery must be cancelled");
         }, (_, _, _) => throw new AssertionException("No setup"), () => true);
         try
         {
             await controller.RestoreAsync(true, default);
             await reconnecting.Task.WaitAsync(TimeSpan.FromSeconds(9));
-            if (shutdown) await controller.DisposeAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(3));
+            if (shutdown)
+            {
+                await controller.DisposeAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(3));
+            }
             else
             {
                 await controller.ChangeAsync(false, default).WaitAsync(TimeSpan.FromSeconds(3));
                 Assert.That(controller.State, Is.EqualTo(NetworkMonitoringState.Disabled));
                 Assert.That(controller.Sample.SessionId, Is.EqualTo(Guid.Empty));
             }
+
             Assert.That(cancelled.Task.IsCompletedSuccessfully, Is.True);
             Assert.That(controller.LatestSnapshot, Is.Null);
         }
-        finally { if (!shutdown) await controller.DisposeAsync(); }
+        finally
+        {
+            if (!shutdown) await controller.DisposeAsync();
+        }
     }
 
     [Test]
@@ -349,11 +443,15 @@ public sealed class NetworkMonitoringControllerTests
     [TestCase(ProcessNetworkQuality.Incomplete, NetworkMonitoringState.Incomplete)]
     [TestCase(ProcessNetworkQuality.Discontinuity, NetworkMonitoringState.Incomplete)]
     [TestCase(ProcessNetworkQuality.Unavailable, NetworkMonitoringState.Unavailable)]
-    public void QualityIsNotReportedAsIdle(ProcessNetworkQuality quality, NetworkMonitoringState expected) =>
+    public void QualityIsNotReportedAsIdle(ProcessNetworkQuality quality, NetworkMonitoringState expected)
+    {
         Assert.That(NetworkMonitoringController.ToState(Snapshot(quality)), Is.EqualTo(expected));
+    }
 
-    private static ProcessNetworkSnapshot Snapshot(ProcessNetworkQuality quality) =>
-        new(Guid.NewGuid(), 1, 10, 1, 0, 5, quality, 0, 0, []);
+    private static ProcessNetworkSnapshot Snapshot(ProcessNetworkQuality quality)
+    {
+        return new ProcessNetworkSnapshot(Guid.NewGuid(), 1, 10, 1, 0, 5, quality, 0, 0, []);
+    }
 
     private sealed class FakeConnection : INetworkMonitoringConnection
     {
@@ -363,7 +461,13 @@ public sealed class NetworkMonitoringControllerTests
         internal ProcessNetworkQuality Quality = ProcessNetworkQuality.WarmingUp;
         internal ProcessNetworkQuality? QualityAfterInitialRead;
         internal Exception? FailureAfterInitialRead;
-        public Task SubscribeAsync(CancellationToken token) { Subscribed = true; return Task.CompletedTask; }
+
+        public Task SubscribeAsync(CancellationToken token)
+        {
+            Subscribed = true;
+            return Task.CompletedTask;
+        }
+
         public Task<ProcessNetworkSnapshot> SnapshotAsync(CancellationToken token)
         {
             Reads++;
@@ -371,6 +475,11 @@ public sealed class NetworkMonitoringControllerTests
                 ? Task.FromException<ProcessNetworkSnapshot>(exception)
                 : Task.FromResult(Snapshot(Reads > 1 ? QualityAfterInitialRead ?? Quality : Quality));
         }
-        public ValueTask DisposeAsync() { Disposed = true; return ValueTask.CompletedTask; }
+
+        public ValueTask DisposeAsync()
+        {
+            Disposed = true;
+            return ValueTask.CompletedTask;
+        }
     }
 }

@@ -21,10 +21,7 @@ public sealed class MultiDiskTests
     [TearDown]
     public void TearDown()
     {
-        if (Directory.Exists(testDirectory))
-        {
-            Directory.Delete(testDirectory, recursive: true);
-        }
+        if (Directory.Exists(testDirectory)) Directory.Delete(testDirectory, true);
     }
 
     [Test]
@@ -34,7 +31,8 @@ public sealed class MultiDiskTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(preferences.PrimaryDrive, Is.EqualTo(Path.GetPathRoot(Environment.SystemDirectory)!.TrimEnd('\\')));
+            Assert.That(preferences.PrimaryDrive,
+                Is.EqualTo(Path.GetPathRoot(Environment.SystemDirectory)!.TrimEnd('\\')));
             Assert.That(preferences.SecondaryDrive, Is.Null);
             Assert.That(preferences.ShowSecondaryDisk, Is.True);
             Assert.That(preferences.SeriesMask, Is.EqualTo(31));
@@ -44,9 +42,12 @@ public sealed class MultiDiskTests
     [Test]
     public void Validate_NormalizesDriveLetters_AndRejectsInvalidOrDuplicateDrives()
     {
-        var normalized = PreferenceStore.Validate(new MonitorPreferences { PrimaryDrive = " c:\\ ", SecondaryDrive = " e:\\ " });
-        var duplicate = PreferenceStore.Validate(new MonitorPreferences { PrimaryDrive = "c:", SecondaryDrive = " C:\\" });
-        var invalid = PreferenceStore.Validate(new MonitorPreferences { PrimaryDrive = "disk-one", SecondaryDrive = "\\\\server\\share" });
+        var normalized = PreferenceStore.Validate(new MonitorPreferences
+            { PrimaryDrive = " c:\\ ", SecondaryDrive = " e:\\ " });
+        var duplicate = PreferenceStore.Validate(new MonitorPreferences
+            { PrimaryDrive = "c:", SecondaryDrive = " C:\\" });
+        var invalid = PreferenceStore.Validate(new MonitorPreferences
+            { PrimaryDrive = "disk-one", SecondaryDrive = "\\\\server\\share" });
 
         Assert.Multiple(() =>
         {
@@ -62,9 +63,11 @@ public sealed class MultiDiskTests
     [TestCase(null, true, 31)]
     [TestCase("E:", true, 63)]
     [TestCase("E:", false, 31)]
-    public void SeriesMask_IncludesSecondaryTraceOnlyWhenConfiguredAndVisible(string? secondaryDrive, bool showSecondary, int expected)
+    public void SeriesMask_IncludesSecondaryTraceOnlyWhenConfiguredAndVisible(string? secondaryDrive,
+        bool showSecondary, int expected)
     {
-        var preferences = PreferenceStore.Validate(new MonitorPreferences { SecondaryDrive = secondaryDrive, ShowSecondaryDisk = showSecondary });
+        var preferences = PreferenceStore.Validate(new MonitorPreferences
+            { SecondaryDrive = secondaryDrive, ShowSecondaryDisk = showSecondary });
 
         Assert.That(preferences.SeriesMask, Is.EqualTo(expected));
     }
@@ -100,7 +103,8 @@ public sealed class MultiDiskTests
             Assert.That(new ResourceSample().SecondaryDiskBytesPerSecond, Is.Null);
         });
 
-        var resources = new ResourceSample { SecondaryDiskName = "E:", SecondaryDiskActivePercent = 61.5, SecondaryDiskBytesPerSecond = 9_250_000 };
+        var resources = new ResourceSample
+            { SecondaryDiskName = "E:", SecondaryDiskActivePercent = 61.5, SecondaryDiskBytesPerSecond = 9_250_000 };
         var sample = new MonitorSample(DateTimeOffset.UnixEpoch, 10, [], 0) { Resources = resources };
         var history = new MonitorHistory();
         history.Add(sample);

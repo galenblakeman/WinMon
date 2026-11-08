@@ -17,7 +17,8 @@ public sealed class LanguagePreferenceTests
     [TestCase("pt-br", "pt-BR")]
     public void Validate_NormalizesStoredLanguage(string? input, string expected)
     {
-        Assert.That(PreferenceStore.Validate(new MonitorPreferences { Language = input! }).Language, Is.EqualTo(expected));
+        Assert.That(PreferenceStore.Validate(new MonitorPreferences { Language = input! }).Language,
+            Is.EqualTo(expected));
     }
 
     [TestCase("de-DE")]
@@ -34,8 +35,10 @@ public sealed class LanguagePreferenceTests
     [Test]
     public void SystemChoice_IsResolvedAgainForEachLaunch()
     {
-        Assert.That(AppLanguages.ResolveCulture("System", CultureInfo.GetCultureInfo("de-DE")).Name, Is.EqualTo("de-DE"));
-        Assert.That(AppLanguages.ResolveCulture("System", CultureInfo.GetCultureInfo("fr-FR")).Name, Is.EqualTo("fr-FR"));
+        Assert.That(AppLanguages.ResolveCulture("System", CultureInfo.GetCultureInfo("de-DE")).Name,
+            Is.EqualTo("de-DE"));
+        Assert.That(AppLanguages.ResolveCulture("System", CultureInfo.GetCultureInfo("fr-FR")).Name,
+            Is.EqualTo("fr-FR"));
     }
 
     private static IEnumerable<string> Languages => AppLanguages.Choices.Select(choice => choice.Name);
@@ -57,7 +60,10 @@ public sealed class LanguagePreferenceTests
             await store.SaveAsync(saved with { Language = AppLanguages.SystemDefault });
             Assert.That((await store.LoadAsync()).Language, Is.EqualTo(AppLanguages.SystemDefault));
         }
-        finally { if (Directory.Exists(directory)) Directory.Delete(directory, true); }
+        finally
+        {
+            if (Directory.Exists(directory)) Directory.Delete(directory, true);
+        }
     }
 
     [TestCase(null)]
@@ -73,8 +79,12 @@ public sealed class LanguagePreferenceTests
                 Directory.CreateDirectory(directory);
                 await File.WriteAllTextAsync(path, legacySettings);
             }
+
             Assert.That((await new PreferenceStore(path).LoadAsync()).Language, Is.EqualTo(AppLanguages.SystemDefault));
         }
-        finally { if (Directory.Exists(directory)) Directory.Delete(directory, true); }
+        finally
+        {
+            if (Directory.Exists(directory)) Directory.Delete(directory, true);
+        }
     }
 }

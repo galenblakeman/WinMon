@@ -177,14 +177,17 @@ public sealed class PreferenceStore
             PrimaryDrive = primary,
             SecondaryDrive = secondary == primary ? null : secondary,
             NetworkInterfaceId = string.IsNullOrWhiteSpace(preferences.NetworkInterfaceId)
-                ? null : preferences.NetworkInterfaceId.Trim(),
+                ? null
+                : preferences.NetworkInterfaceId.Trim(),
             StartupView = Enum.IsDefined(preferences.StartupView)
-                ? preferences.StartupView : StartupViewMode.LastUsed,
+                ? preferences.StartupView
+                : StartupViewMode.LastUsed,
             Width = ClampFinite(preferences.Width, 600, 600, 2000),
             Height = ClampFinite(preferences.Height, 840, 160, 1500),
             ActivityPanelRatio = ClampFinite(preferences.ActivityPanelRatio, 1.25, 0.05, 20),
             SelectedActivityTab = preferences.SelectedActivityTab is >= 0 and <= 3
-                ? preferences.SelectedActivityTab : 0,
+                ? preferences.SelectedActivityTab
+                : 0,
             Left = ValidateCoordinate(preferences.Left),
             Top = ValidateCoordinate(preferences.Top),
             Theme = NormalizeTheme(preferences.Theme),
@@ -192,11 +195,14 @@ public sealed class PreferenceStore
             ChartPalette = ChartPalettes.Normalize(preferences.ChartPalette),
             GaugeStyle = Enum.IsDefined(preferences.GaugeStyle) ? preferences.GaugeStyle : GaugeStyle.Bowl,
             GaugePeakWindowSeconds = preferences.GaugePeakWindowSeconds is 60 or 120 or 300 or 600
-                ? preferences.GaugePeakWindowSeconds : MonitorPreferences.ShortRangeSeconds,
+                ? preferences.GaugePeakWindowSeconds
+                : MonitorPreferences.ShortRangeSeconds,
             ResourceChartType = Enum.IsDefined(preferences.ResourceChartType)
-                ? preferences.ResourceChartType : ResourceChartType.Overlay,
+                ? preferences.ResourceChartType
+                : ResourceChartType.Overlay,
             FocusMetric = secondary is null && preferences.FocusMetric == 5
-                ? 0 : Math.Clamp(preferences.FocusMetric, 0, 5),
+                ? 0
+                : Math.Clamp(preferences.FocusMetric, 0, 5),
             RetentionSeconds = Math.Clamp(preferences.RetentionSeconds, 600, 3600),
             VisibleMetrics = preferences.VisibleMetrics & 15,
             TopProcessCount =
@@ -205,16 +211,22 @@ public sealed class PreferenceStore
                 ? preferences.TopServiceCount
                 : 20,
             ServiceSortColumn = preferences.ServiceSortColumn is >= 0 and <= 2 ||
-                (preferences.ServiceSortColumn == 3 && preferences.TopServiceCount == 0)
-                ? preferences.ServiceSortColumn : 0,
+                                (preferences.ServiceSortColumn == 3 && preferences.TopServiceCount == 0)
+                ? preferences.ServiceSortColumn
+                : 0,
             ServiceStatusFilter = preferences.ServiceStatusFilter is >= 0 and <= 2
-                ? preferences.ServiceStatusFilter : 0,
+                ? preferences.ServiceStatusFilter
+                : 0,
             TopUsageCount = TopCountChoices.IsSupported(preferences.TopUsageCount) ? preferences.TopUsageCount : 20,
             UsageSortColumn = preferences.UsageSortColumn is >= 0 and <= 4 ? preferences.UsageSortColumn : 0,
-            TopConnectionCount = TopCountChoices.IsSupported(preferences.TopConnectionCount) ? preferences.TopConnectionCount : 10,
-            ConnectionSortColumn = preferences.ConnectionSortColumn is >= 0 and <= 5 ? preferences.ConnectionSortColumn : 0,
+            TopConnectionCount = TopCountChoices.IsSupported(preferences.TopConnectionCount)
+                ? preferences.TopConnectionCount
+                : 10,
+            ConnectionSortColumn =
+            preferences.ConnectionSortColumn is >= 0 and <= 5 ? preferences.ConnectionSortColumn : 0,
             ConnectionTrafficSeconds = preferences.ConnectionTrafficSeconds is 0 or 60 or 300 or 1800
-                ? preferences.ConnectionTrafficSeconds : 300,
+                ? preferences.ConnectionTrafficSeconds
+                : 300,
             ProcessSort = preferences is { SortByGpu: true, ProcessSort: ProcessSort.Cpu } ? ProcessSort.Gpu
             : Enum.IsDefined(preferences.ProcessSort) ? preferences.ProcessSort : ProcessSort.Cpu,
             SortByGpu = false,
@@ -222,7 +234,7 @@ public sealed class PreferenceStore
             PinnedServices = NormalizeServicePins(preferences.PinnedServices),
             PinnedConnections = ProcessPins.Normalize(preferences.PinnedConnections)
                 .Where(pin => pin.LifetimeDomain == ProcessLifetimeIdentity.WindowsFileTime &&
-                    pin.Grouped == (pin.ImagePath.Length > 0)).ToArray(),
+                              pin.Grouped == pin.ImagePath.Length > 0).ToArray(),
             // Persisted JSON can contain an explicit null despite the non-nullable declaration.
             // ReSharper disable once NullCoalescingConditionIsAlwaysNotNullAccordingToAPIContract
             AutoCapture = (preferences.AutoCapture ?? new AutoCapturePreferences()).Normalized(),

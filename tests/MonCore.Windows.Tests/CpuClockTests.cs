@@ -9,7 +9,7 @@ public sealed class CpuClockTests
     public void Clock_UsesCurrentReadingsAcrossProcessors_NotRatedMaximum()
     {
         WindowsCpuClock.ProcessorPowerInformation[] readings =
-        [new() { CurrentMhz = 2100, MaxMhz = 4500 }, new() { CurrentMhz = 3300, MaxMhz = 4500 }];
+            [new() { CurrentMhz = 2100, MaxMhz = 4500 }, new() { CurrentMhz = 3300, MaxMhz = 4500 }];
         Assert.That(WindowsCpuClock.AverageMhz(readings), Is.EqualTo(2700));
     }
 

@@ -23,10 +23,15 @@ public sealed class AppInfoTests
     [Test]
     public void Version_MatchesTheApplicationManifest()
     {
-        var manifest = File.ReadAllText(Path.Combine(Path.GetDirectoryName(SourcePath())!, "..", "..", "src", "WinMon", "app.manifest"));
+        var manifest = File.ReadAllText(Path.Combine(Path.GetDirectoryName(SourcePath())!, "..", "..", "src", "WinMon",
+            "app.manifest"));
         var manifestVersion = Regex.Match(manifest, "assemblyIdentity version=\"([^\"]+)\"").Groups[1].Value;
-        Assert.That(manifestVersion, Is.EqualTo($"{AppInfo.Version}.0"), "Bump app.manifest with Directory.Build.props.");
+        Assert.That(manifestVersion, Is.EqualTo($"{AppInfo.Version}.0"),
+            "Bump app.manifest with Directory.Build.props.");
     }
 
-    private static string SourcePath([CallerFilePath] string path = "") => path;
+    private static string SourcePath([CallerFilePath] string path = "")
+    {
+        return path;
+    }
 }

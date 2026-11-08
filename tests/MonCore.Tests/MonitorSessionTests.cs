@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net;
@@ -18,7 +19,9 @@ public sealed class MonitorSessionTests
         var generation = Guid.NewGuid();
         var raw = new[] { Network(generation, 1, 100), Network(generation, 2, 150) };
         var read = 0;
-        var harness = new Harness(() => new SamplingOptions { ProcessNetwork = read < raw.Length ? raw[read++] : null, ProcessNetworkSessionId = id },
+        var harness = new Harness(
+            () => new SamplingOptions
+                { ProcessNetwork = read < raw.Length ? raw[read++] : null, ProcessNetworkSessionId = id },
             Frame(1), _ => throw new InvalidOperationException("CPU unavailable"), Frame(3));
         await harness.RunToEnd();
         harness.Drain();
@@ -41,8 +44,11 @@ public sealed class MonitorSessionTests
         var harness = new Harness(() =>
         {
             var number = ++read;
-            return new SamplingOptions { ProcessNetwork = Network(generation, number, number * 100),
-                ProcessNetworkSessionId = number < 3 ? oldSession : newSession };
+            return new SamplingOptions
+            {
+                ProcessNetwork = Network(generation, number, number * 100),
+                ProcessNetworkSessionId = number < 3 ? oldSession : newSession
+            };
         }, Frame(1), Frame(2), Frame(3));
         await harness.RunToEnd();
         harness.Drain();
@@ -53,7 +59,9 @@ public sealed class MonitorSessionTests
     public async Task ResourceHistoryClockRebasingDoesNotShiftNetworkClock()
     {
         var snapshot = Network(Guid.NewGuid(), 1, 100);
-        var harness = new Harness(new SamplingOptions { ProcessNetwork = snapshot, ProcessNetworkSessionId = Guid.NewGuid() }, Frame(1));
+        var harness =
+            new Harness(new SamplingOptions { ProcessNetwork = snapshot, ProcessNetworkSessionId = Guid.NewGuid() },
+                Frame(1));
         harness.Session.SetHistoryClockOffset(Stopwatch.Frequency * 100);
         await harness.RunToEnd();
         harness.Drain();
@@ -73,9 +81,13 @@ public sealed class MonitorSessionTests
         var sample = Frame(1)(new SamplingOptions()).Full with { Processes = [owner] };
         var endpoint = new NetworkConnection(42, 100, TransportProtocol.Tcp,
             new IPEndPoint(IPAddress.Loopback, 4200), new IPEndPoint(IPAddress.Loopback, 443));
-        var harness = new Harness(new SamplingOptions { ProcessNetwork = network, ProcessNetworkSessionId = Guid.NewGuid() },
-            _ => new CapturedFrame(sample) { Connections = new NetworkConnectionsFrame([endpoint],
-                NetworkAddressFamilyStatus.Success, NetworkAddressFamilyStatus.Success) });
+        var harness = new Harness(
+            new SamplingOptions { ProcessNetwork = network, ProcessNetworkSessionId = Guid.NewGuid() },
+            _ => new CapturedFrame(sample)
+            {
+                Connections = new NetworkConnectionsFrame([endpoint],
+                    NetworkAddressFamilyStatus.Success, NetworkAddressFamilyStatus.Success)
+            });
         harness.Session.SetHistoryClockOffset(Stopwatch.Frequency * 10);
 
         await harness.RunToEnd();
@@ -109,7 +121,9 @@ public sealed class MonitorSessionTests
         var generation = Guid.NewGuid();
         var id = Guid.NewGuid();
         var reads = 0;
-        var harness = new Harness(() => new SamplingOptions { ProcessNetwork = Network(generation, ++reads, reads * 100), ProcessNetworkSessionId = id },
+        var harness = new Harness(
+            () => new SamplingOptions
+                { ProcessNetwork = Network(generation, ++reads, reads * 100), ProcessNetworkSessionId = id },
             options => new CapturedFrame(Frame(1)(options).Full with { Processes = [owner] }),
             options => new CapturedFrame(Frame(2)(options).Full with { Processes = [] }));
         await harness.RunToEnd();
@@ -146,8 +160,16 @@ public sealed class MonitorSessionTests
     {
         public int Count => throw new InvalidOperationException("Network provider failed.");
         public ProcessNetworkReading this[int index] => throw new InvalidOperationException();
-        public IEnumerator<ProcessNetworkReading> GetEnumerator() => throw new InvalidOperationException();
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public IEnumerator<ProcessNetworkReading> GetEnumerator()
+        {
+            throw new InvalidOperationException();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
     }
 
     private static ProcessNetworkSnapshot Network(Guid generation, long sequence, long total)
@@ -170,11 +192,14 @@ public sealed class MonitorSessionTests
         var session = harness.Session;
         Assert.Multiple(() =>
         {
-            Assert.That(session.History.Samples.Select(s => s.Timestamp.ToUnixTimeSeconds()), Is.EqualTo(new[] { 1, 2, 3 }));
+            Assert.That(session.History.Samples.Select(s => s.Timestamp.ToUnixTimeSeconds()),
+                Is.EqualTo(new[] { 1, 2, 3 }));
             Assert.That(harness.RecordedCount, Is.EqualTo(1));
             Assert.That(session.Latest, Is.SameAs(session.History.Latest));
-            Assert.That(session.LatestFull!.Processes, Has.Count.EqualTo(Processes), "Live ranking uses the full sample.");
-            Assert.That(session.Latest!.Processes, Has.Count.LessThan(Processes), "History keeps the compacted sample.");
+            Assert.That(session.LatestFull!.Processes, Has.Count.EqualTo(Processes),
+                "Live ranking uses the full sample.");
+            Assert.That(session.Latest!.Processes, Has.Count.LessThan(Processes),
+                "History keeps the compacted sample.");
             Assert.That(session.Services.Frames, Has.Count.EqualTo(3));
             Assert.That(session.Error, Is.Null);
             Assert.That(harness.Source.Disposed, Is.True);
@@ -350,7 +375,8 @@ public sealed class MonitorSessionTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(restoredOnly, Is.False, "A restored sample sets Latest but cannot prove a new version healthy.");
+            Assert.That(restoredOnly, Is.False,
+                "A restored sample sets Latest but cannot prove a new version healthy.");
             Assert.That(harness.Session.HasLiveSample, Is.True);
         });
     }
@@ -478,7 +504,8 @@ public sealed class MonitorSessionTests
         {
         }
 
-        internal Harness(SamplingOptions options, params Func<SamplingOptions, CapturedFrame>[] script) : this(() => options, script)
+        internal Harness(SamplingOptions options, params Func<SamplingOptions, CapturedFrame>[] script) : this(
+            () => options, script)
         {
         }
 

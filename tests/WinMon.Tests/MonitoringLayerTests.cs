@@ -18,7 +18,10 @@ public sealed class MonitoringLayerTests
                                           BindingFlags.Static | BindingFlags.DeclaredOnly;
 
     private static readonly string[] UiAssemblies =
-        ["WindowsBase", "PresentationCore", "PresentationFramework", "System.Xaml", "System.Windows.Forms", "UIAutomation"];
+    [
+        "WindowsBase", "PresentationCore", "PresentationFramework", "System.Xaml", "System.Windows.Forms",
+        "UIAutomation"
+    ];
 
     private static readonly Dictionary<short, OpCode> OpCodesByValue = typeof(OpCodes)
         .GetFields(BindingFlags.Public | BindingFlags.Static)
@@ -48,7 +51,8 @@ public sealed class MonitoringLayerTests
         {
             Check(type.BaseType, type.FullName!, violations);
             foreach (var contract in type.GetInterfaces()) Check(contract, type.FullName!, violations);
-            foreach (var field in type.GetFields(Declared)) Check(field.FieldType, $"{type.FullName}.{field.Name}", violations);
+            foreach (var field in type.GetFields(Declared))
+                Check(field.FieldType, $"{type.FullName}.{field.Name}", violations);
             foreach (var method in type.GetMethods(Declared).Cast<MethodBase>().Concat(type.GetConstructors(Declared)))
             {
                 var where = $"{type.FullName}.{method.Name}";
@@ -70,7 +74,8 @@ public sealed class MonitoringLayerTests
             case Type type:
                 if (type.HasElementType) Check(type.GetElementType(), where, violations);
                 if (type.IsGenericType && !type.IsGenericTypeDefinition)
-                    foreach (var argument in type.GetGenericArguments()) Check(argument, where, violations);
+                    foreach (var argument in type.GetGenericArguments())
+                        Check(argument, where, violations);
                 if (type.IsGenericParameter) return;
                 if (Forbidden(type)) violations.Add($"{where} -> {type.FullName}");
                 return;
@@ -105,8 +110,10 @@ public sealed class MonitoringLayerTests
             var opCode = OpCodesByValue[value];
             switch (opCode.OperandType)
             {
-                case OperandType.InlineField or OperandType.InlineMethod or OperandType.InlineType or OperandType.InlineTok:
-                    var resolved = method.Module.ResolveMember(BitConverter.ToInt32(il, offset), typeArguments, methodArguments);
+                case OperandType.InlineField or OperandType.InlineMethod or OperandType.InlineType
+                    or OperandType.InlineTok:
+                    var resolved = method.Module.ResolveMember(BitConverter.ToInt32(il, offset), typeArguments,
+                        methodArguments);
                     if (resolved is not null) yield return resolved;
                     offset += 4;
                     break;

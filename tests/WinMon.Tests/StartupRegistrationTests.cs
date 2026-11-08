@@ -17,7 +17,8 @@ public sealed class StartupRegistrationTests
     [Test]
     public void PackageManifest_DeclaresTheStartupTaskTheCodeUses()
     {
-        var manifest = XDocument.Load(Path.Combine(Path.GetDirectoryName(SourcePath())!, "..", "..", "packaging", "msix",
+        var manifest = XDocument.Load(Path.Combine(Path.GetDirectoryName(SourcePath())!, "..", "..", "packaging",
+            "msix",
             "AppxManifest.xml"));
         var task = manifest.Descendants().Single(e => e.Name.LocalName == "StartupTask");
         var extension = task.Parent!;
@@ -71,9 +72,11 @@ public sealed class StartupRegistrationTests
         try
         {
             var elements = Descendants(window).ToArray();
-            var box = elements.OfType<CheckBox>().SingleOrDefault(c => Equals(c.Content, Strings.StartWinMonWhenISignIn));
+            var box = elements.OfType<CheckBox>()
+                .SingleOrDefault(c => Equals(c.Content, Strings.StartWinMonWhenISignIn));
             string[] reasons = [Strings.StartupTurnedOffInWindows, Strings.StartupManagedByPolicy];
-            var shownReasons = elements.OfType<TextBlock>().Select(t => t.Text).Where(t => reasons.Contains(t)).ToArray();
+            var shownReasons = elements.OfType<TextBlock>().Select(t => t.Text).Where(t => reasons.Contains(t))
+                .ToArray();
             string[] expectedReasons = availability switch
             {
                 StartupAvailability.TurnedOffInWindows => [Strings.StartupTurnedOffInWindows],
@@ -102,5 +105,8 @@ public sealed class StartupRegistrationTests
         }
     }
 
-    private static string SourcePath([CallerFilePath] string path = "") => path;
+    private static string SourcePath([CallerFilePath] string path = "")
+    {
+        return path;
+    }
 }

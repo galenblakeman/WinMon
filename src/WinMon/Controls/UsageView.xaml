@@ -467,6 +467,8 @@
                                     Click="OnOpenFileLocation" Content="{Binding [OpenFileLocation], Source={x:Static r:Strings.Text}}"
                                     Style="{DynamicResource ActionBarButton}" />
                             <Border Style="{DynamicResource ActionBarDivider}" />
+                            <!-- Named part retained for bindings and diagnostic inspection. -->
+                            <!-- ReSharper disable once UnusedMember.Global -->
                             <Button x:Name="HideActionsButton" Style="{DynamicResource ActionBarCollapseButton}" />
                         </WrapPanel>
                     </Grid>

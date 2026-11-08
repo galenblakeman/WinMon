@@ -1,7 +1,13 @@
+// Deserialized payloads can contain null despite non-nullable model annotations.
+// ReSharper disable ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+
 namespace WinMon.Monitoring;
 
 /// <summary>Client-session process-network totals adjusted from service-generation counters.</summary>
-public sealed record ProcessNetworkFrame(long TimestampQpc, long Frequency, ProcessNetworkQuality Quality,
+public sealed record ProcessNetworkFrame(
+    long TimestampQpc,
+    long Frequency,
+    ProcessNetworkQuality Quality,
     IReadOnlyList<ProcessNetworkReading> Processes)
 {
     /// <summary>Latest portable process metadata for current or retained network lifetimes.</summary>
@@ -18,7 +24,10 @@ public sealed record ProcessNetworkFrame(long TimestampQpc, long Frequency, Proc
 public sealed class ProcessNetworkSession
 {
     private const int MaximumLifetimes = 8192;
-    private static readonly IReadOnlySet<ProcessLifetimeIdentity> EmptyLifetimes = new HashSet<ProcessLifetimeIdentity>();
+
+    private static readonly IReadOnlySet<ProcessLifetimeIdentity> EmptyLifetimes =
+        new HashSet<ProcessLifetimeIdentity>();
+
     private readonly Dictionary<ProcessLifetimeIdentity, Lifetime> _lifetimes = [];
     private readonly Dictionary<ProcessLifetimeIdentity, ProcessNetworkReading> _lastReadings = [];
     private Guid _generation;
@@ -49,43 +58,45 @@ public sealed class ProcessNetworkSession
         var olderTimestamp = _hasSnapshot && snapshot.TimestampQpc < _lastTimestampQpc;
         if (olderTimestamp)
             return Frame(snapshot, quality | ProcessNetworkQuality.Incomplete, _lastReadings.Values, nowQpc,
-                forceNoRates: true, currentLifetimes: EmptyLifetimes);
+                true, EmptyLifetimes);
 
         var generationChanged = _hasSnapshot && snapshot.Generation != _generation;
         var reconnected = _hasSnapshot && _subscriptionId != Guid.Empty && snapshot.SubscriptionId != Guid.Empty &&
-            snapshot.SubscriptionId != _subscriptionId;
+                          snapshot.SubscriptionId != _subscriptionId;
         var clockChanged = _hasSnapshot && snapshot.Frequency != _frequency;
         var older = _hasSnapshot && !generationChanged && !reconnected && snapshot.Sequence < _lastSequence;
         var duplicate = _hasSnapshot && !generationChanged && !reconnected && snapshot.Sequence == _lastSequence;
         if (older || duplicate)
-            return Frame(snapshot, quality, _lastReadings.Values, nowQpc, forceNoRates: older,
-                currentLifetimes: older ? EmptyLifetimes : SnapshotIdentities(snapshot));
+            return Frame(snapshot, quality, _lastReadings.Values, nowQpc, older,
+                older ? EmptyLifetimes : SnapshotIdentities(snapshot));
 
         var gap = _hasSnapshot && !generationChanged && !reconnected && snapshot.Sequence != _lastSequence + 1;
-        var qualityIssue = (snapshot.Quality & (ProcessNetworkQuality.Incomplete | ProcessNetworkQuality.CapacityExceeded |
-            ProcessNetworkQuality.Discontinuity)) != 0;
+        var qualityIssue = (snapshot.Quality & (ProcessNetworkQuality.Incomplete |
+                                                ProcessNetworkQuality.CapacityExceeded |
+                                                ProcessNetworkQuality.Discontinuity)) != 0;
         var discontinuityStarted = snapshot.Quality.HasFlag(ProcessNetworkQuality.Discontinuity) &&
-            !_lastQuality.HasFlag(ProcessNetworkQuality.Discontinuity);
+                                   !_lastQuality.HasFlag(ProcessNetworkQuality.Discontinuity);
         var interrupted = generationChanged || reconnected || clockChanged || gap || discontinuityStarted ||
-            snapshot.EventsLost != _lastEventsLost || snapshot.DroppedEvents != _lastDroppedEvents;
+                          snapshot.EventsLost != _lastEventsLost || snapshot.DroppedEvents != _lastDroppedEvents;
         if (interrupted)
         {
             _incomplete = true;
             _ratesBlockedUntilQpc = Math.Max(_ratesBlockedUntilQpc, snapshot.TimestampQpc);
             quality |= ProcessNetworkQuality.Incomplete;
         }
+
         if (qualityIssue)
         {
             _incomplete = true;
             quality |= ProcessNetworkQuality.Incomplete;
         }
+
         if (generationChanged || reconnected || clockChanged)
             quality |= ProcessNetworkQuality.Discontinuity;
 
         if (generationChanged || reconnected)
-        {
-            foreach (var lifetime in _lifetimes.Values) lifetime.ResetGeneration();
-        }
+            foreach (var lifetime in _lifetimes.Values)
+                lifetime.ResetGeneration();
 
         var readings = new List<ProcessNetworkReading>(snapshot.Processes.Count);
         var currentIdentities = new HashSet<ProcessLifetimeIdentity>();
@@ -110,29 +121,38 @@ public sealed class ProcessNetworkSession
                     _incomplete = true;
                     continue;
                 }
+
                 lifetime = new Lifetime();
                 _lifetimes.Add(identity, lifetime);
             }
-            if (lifetime.HasBaseline && (reading.ReceivedBytes < lifetime.LastReceived || reading.SentBytes < lifetime.LastSent))
+
+            if (lifetime.HasBaseline &&
+                (reading.ReceivedBytes < lifetime.LastReceived || reading.SentBytes < lifetime.LastSent))
             {
                 _incomplete = true;
                 quality |= ProcessNetworkQuality.Incomplete;
                 _ratesBlockedUntilQpc = Math.Max(_ratesBlockedUntilQpc, snapshot.TimestampQpc);
                 lifetime.ResetGeneration();
             }
+
             if (lifetime.Add(reading.ReceivedBytes, reading.SentBytes))
             {
                 _incomplete = true;
                 quality |= ProcessNetworkQuality.Incomplete | ProcessNetworkQuality.CapacityExceeded;
             }
+
             var adjusted = new ProcessNetworkReading(reading.ProcessId, reading.CreationTicks,
                 lifetime.Received, lifetime.Sent, reading.ReceiveBytesPerSecond, reading.SendBytesPerSecond);
             _lastReadings[identity] = adjusted;
             readings.Add(adjusted);
         }
+
         foreach (var (identity, reading) in _lastReadings)
-            if (!currentIdentities.Contains(identity)) readings.Add(reading with
-            { ReceiveBytesPerSecond = null, SendBytesPerSecond = null });
+            if (!currentIdentities.Contains(identity))
+                readings.Add(reading with
+                {
+                    ReceiveBytesPerSecond = null, SendBytesPerSecond = null
+                });
 
         if (!_hasSnapshot) _ratesBlockedUntilQpc = Math.Max(_ratesBlockedUntilQpc, snapshot.TimestampQpc);
         _generation = snapshot.Generation;
@@ -144,8 +164,8 @@ public sealed class ProcessNetworkSession
         _lastDroppedEvents = snapshot.DroppedEvents;
         _lastQuality = snapshot.Quality;
         _hasSnapshot = true;
-        return Frame(snapshot, quality, readings, nowQpc, forceNoRates: generationChanged || reconnected || clockChanged,
-            currentLifetimes: currentIdentities, warmingUp: initial);
+        return Frame(snapshot, quality, readings, nowQpc, generationChanged || reconnected || clockChanged,
+            currentIdentities, initial);
     }
 
     /// <summary>Publishes retained session totals while the service has no usable snapshot.</summary>
@@ -158,7 +178,9 @@ public sealed class ProcessNetworkSession
         return new ProcessNetworkFrame(nowQpc, frequency,
             ProcessNetworkQuality.Unavailable | ProcessNetworkQuality.Incomplete,
             _lastReadings.Values.Select(reading => reading with
-            { ReceiveBytesPerSecond = null, SendBytesPerSecond = null }).ToArray()) { CurrentLifetimes = EmptyLifetimes };
+            {
+                ReceiveBytesPerSecond = null, SendBytesPerSecond = null
+            }).ToArray()) { CurrentLifetimes = EmptyLifetimes };
     }
 
     /// <summary>Starts a new client monitoring session without retaining observed traffic.</summary>
@@ -167,7 +189,8 @@ public sealed class ProcessNetworkSession
         _lifetimes.Clear();
         _lastReadings.Clear();
         _generation = _subscriptionId = Guid.Empty;
-        _lastSequence = _lastTimestampQpc = _frequency = _lastEventsLost = _lastDroppedEvents = _ratesBlockedUntilQpc = 0;
+        _lastSequence = _lastTimestampQpc =
+            _frequency = _lastEventsLost = _lastDroppedEvents = _ratesBlockedUntilQpc = 0;
         _lastQuality = ProcessNetworkQuality.None;
         _hasSnapshot = _incomplete = false;
     }
@@ -177,23 +200,32 @@ public sealed class ProcessNetworkSession
         IReadOnlySet<ProcessLifetimeIdentity> currentLifetimes, bool warmingUp = false)
     {
         var stale = nowQpc < snapshot.TimestampQpc || (nowQpc - snapshot.TimestampQpc) / (double)snapshot.Frequency > 3;
-        var freshWindow = snapshot.WindowStartQpc >= _ratesBlockedUntilQpc && snapshot.WindowEndQpc > snapshot.WindowStartQpc;
+        var freshWindow = snapshot.WindowStartQpc >= _ratesBlockedUntilQpc &&
+                          snapshot.WindowEndQpc > snapshot.WindowStartQpc;
         var ratesAvailable = !forceNoRates && !stale && freshWindow &&
-            !quality.HasFlag(ProcessNetworkQuality.Unavailable) && !quality.HasFlag(ProcessNetworkQuality.WarmingUp);
+                             !quality.HasFlag(ProcessNetworkQuality.Unavailable) &&
+                             !quality.HasFlag(ProcessNetworkQuality.WarmingUp);
         if (stale) quality |= ProcessNetworkQuality.Unavailable | ProcessNetworkQuality.Incomplete;
-        else if (!freshWindow) quality |= warmingUp ? ProcessNetworkQuality.WarmingUp : ProcessNetworkQuality.Incomplete;
+        else if (!freshWindow)
+            quality |= warmingUp ? ProcessNetworkQuality.WarmingUp : ProcessNetworkQuality.Incomplete;
         else if (forceNoRates) quality |= ProcessNetworkQuality.Incomplete;
         if (_incomplete) quality |= ProcessNetworkQuality.Incomplete;
         return new ProcessNetworkFrame(snapshot.TimestampQpc, snapshot.Frequency, quality,
             readings.Select(reading => ratesAvailable && currentLifetimes.Contains(new ProcessLifetimeIdentity(
-                reading.ProcessId, reading.CreationTicks, ProcessLifetimeIdentity.WindowsFileTime)) ? reading : reading with
-            { ReceiveBytesPerSecond = null, SendBytesPerSecond = null }).ToArray()) { CurrentLifetimes = currentLifetimes };
+                reading.ProcessId, reading.CreationTicks, ProcessLifetimeIdentity.WindowsFileTime))
+                ? reading
+                : reading with
+                {
+                    ReceiveBytesPerSecond = null, SendBytesPerSecond = null
+                }).ToArray()) { CurrentLifetimes = currentLifetimes };
     }
 
-    private static IReadOnlySet<ProcessLifetimeIdentity> SnapshotIdentities(ProcessNetworkSnapshot snapshot) =>
-        snapshot.Processes.Where(reading => reading is { ProcessId: > 0, CreationTicks: > 0 })
+    private static IReadOnlySet<ProcessLifetimeIdentity> SnapshotIdentities(ProcessNetworkSnapshot snapshot)
+    {
+        return snapshot.Processes.Where(reading => reading is { ProcessId: > 0, CreationTicks: > 0 })
             .Select(reading => new ProcessLifetimeIdentity(reading.ProcessId, reading.CreationTicks,
                 ProcessLifetimeIdentity.WindowsFileTime)).ToHashSet();
+    }
 
     private sealed class Lifetime
     {
@@ -213,15 +245,23 @@ public sealed class ProcessNetworkSession
                 Sent = sentResult.Total;
                 clipped |= sentResult.Clipped;
             }
+
             LastReceived = received;
             LastSent = sent;
             HasBaseline = true;
             return clipped;
         }
 
-        internal void ResetGeneration() => HasBaseline = false;
+        internal void ResetGeneration()
+        {
+            HasBaseline = false;
+        }
 
-        private static (long Total, bool Clipped) SaturatingAdd(long total, long delta) => delta > long.MaxValue - total
-            ? (long.MaxValue, true) : (total + delta, false);
+        private static (long Total, bool Clipped) SaturatingAdd(long total, long delta)
+        {
+            return delta > long.MaxValue - total
+                ? (long.MaxValue, true)
+                : (total + delta, false);
+        }
     }
 }

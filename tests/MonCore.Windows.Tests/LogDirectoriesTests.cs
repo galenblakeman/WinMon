@@ -21,7 +21,8 @@ public sealed class LogDirectoriesTests
             security.SetAccessRuleProtection(true, false);
             Add(security, user, FileSystemRights.FullControl);
             Add(security, new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null), FileSystemRights.FullControl);
-            Add(security, new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null), FileSystemRights.FullControl);
+            Add(security, new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null),
+                FileSystemRights.FullControl);
             FileSystemAclExtensions.CreateDirectory(security, path);
 
             LogDirectories.ValidateDirectory(new DirectoryInfo(path), user);
@@ -39,7 +40,10 @@ public sealed class LogDirectoriesTests
         }
     }
 
-    private static void Add(DirectorySecurity security, SecurityIdentifier sid, FileSystemRights rights) =>
+    private static void Add(DirectorySecurity security, SecurityIdentifier sid, FileSystemRights rights)
+    {
         security.AddAccessRule(new FileSystemAccessRule(sid, rights,
-            InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None, AccessControlType.Allow));
+            InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None,
+            AccessControlType.Allow));
+    }
 }

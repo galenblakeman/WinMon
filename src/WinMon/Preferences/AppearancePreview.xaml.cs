@@ -22,14 +22,18 @@ public sealed partial class AppearancePreview : UserControl
         Configure(CpuReadout, Strings.CPU, "CpuAccent", 32.8, "4.30 GHz");
         Configure(MemoryReadout, Strings.Memory, "MemoryAccent", 51.6,
             Strings.Format(Strings.GiB, 32.2, 62.5));
-        Configure(DiskReadout, Strings.Format(Strings.DiskLabel, "C:"), "DiskAccent", 42.0, Strings.Format(Strings.MBS, 0.2));
+        Configure(DiskReadout, Strings.Format(Strings.DiskLabel, "C:"), "DiskAccent", 42.0,
+            Strings.Format(Strings.MBS, 0.2));
         Configure(NetworkReadout, Strings.Network, "NetworkAccent", 28.0, "↑ " + RateText.Format(9_600_000));
         Configure(GpuReadout, Strings.GPU, "GpuAccent", 9.0, "3D");
         Configure(SecondaryDiskReadout, Strings.Format(Strings.DiskLabel, "D:"), "SecondaryDiskAccent", 24.0,
             Strings.Format(Strings.MBS, 0.1));
         Chart.ShowGrid = true;
-        Chart.MetricLabels = [Strings.CPU, Strings.Memory, Strings.Format(Strings.DiskLabel, "C:"),
-            Strings.Network, Strings.GPU, Strings.Format(Strings.DiskLabel, "D:")];
+        Chart.MetricLabels =
+        [
+            Strings.CPU, Strings.Memory, Strings.Format(Strings.DiskLabel, "C:"),
+            Strings.Network, Strings.GPU, Strings.Format(Strings.DiskLabel, "D:")
+        ];
         Chart.SetData(Samples(), 120, null);
     }
 
@@ -50,13 +54,16 @@ public sealed partial class AppearancePreview : UserControl
             foreach (var key in AccentKeys)
             {
                 Resources[key] = SystemColors.WindowTextBrush;
-                Resources[key.Replace("Accent", "ChartAccent", StringComparison.Ordinal)] = SystemColors.WindowTextBrush;
+                Resources[key.Replace("Accent", "ChartAccent", StringComparison.Ordinal)] =
+                    SystemColors.WindowTextBrush;
             }
+
             Resources["Accent"] = SystemColors.HighlightBrush;
         }
         else
         {
-            Resources["PanelSurface"] = finish is { Brushed: true } ? ThemeFinishes.PanelBrush(finish)
+            Resources["PanelSurface"] = finish is { Brushed: true }
+                ? ThemeFinishes.PanelBrush(finish)
                 : Brush(finish?.Surface ?? (light ? "#F0F5FA" : "#15191E"), finish?.PanelOpacity ?? byte.MaxValue);
             Resources["SectionHeaderSurface"] = finish is { Brushed: true }
                 ? ThemeFinishes.ChromeBrush(finish, true)
@@ -74,8 +81,10 @@ public sealed partial class AppearancePreview : UserControl
             for (var i = 0; i < AccentKeys.Length; i++)
             {
                 Resources[AccentKeys[i]] = Brush(colors[i]);
-                Resources[AccentKeys[i].Replace("Accent", "ChartAccent", StringComparison.Ordinal)] = Brush(chartColors[i]);
+                Resources[AccentKeys[i].Replace("Accent", "ChartAccent", StringComparison.Ordinal)] =
+                    Brush(chartColors[i]);
             }
+
             Resources["Accent"] = Brush(finish?.UiAccent ?? (light ? "#1469B5" : colors[0]));
         }
 

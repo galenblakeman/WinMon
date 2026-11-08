@@ -46,7 +46,8 @@ public sealed class SettingsDriveLoadingTests
                 Assert.That(workerThread, Is.Not.EqualTo(uiThread));
                 Assert.That(Selected(primary), Is.EqualTo("C:"));
                 Assert.That(((SettingsWindow.DriveChoice)primary.SelectedItem).Label, Is.EqualTo("C: — System"));
-                Assert.That(primary.Items.Cast<SettingsWindow.DriveChoice>().Select(d => d.Name), Is.EqualTo(new[] { "C:", "D:" }));
+                Assert.That(primary.Items.Cast<SettingsWindow.DriveChoice>().Select(d => d.Name),
+                    Is.EqualTo(new[] { "C:", "D:" }));
                 Assert.That(Selected(secondary), Is.EqualTo(chooseNone ? null : "Z:"));
             });
         }
@@ -87,7 +88,10 @@ public sealed class SettingsDriveLoadingTests
             Assert.That(Selected(primary), Is.EqualTo("C:"));
             Assert.That(Selected(secondary), Is.EqualTo("Z:"));
         }
-        finally { window.Close(); }
+        finally
+        {
+            window.Close();
+        }
     }
 
     private static Task StartLoading(SettingsWindow window)
@@ -98,7 +102,10 @@ public sealed class SettingsDriveLoadingTests
             SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext());
             return window.LoadDrivesAsync();
         }
-        finally { SynchronizationContext.SetSynchronizationContext(previous); }
+        finally
+        {
+            SynchronizationContext.SetSynchronizationContext(previous);
+        }
     }
 
     private static void Complete(Task task)
@@ -106,15 +113,28 @@ public sealed class SettingsDriveLoadingTests
         var frame = new DispatcherFrame();
         var elapsed = Stopwatch.StartNew();
         var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(10) };
-        timer.Tick += (_, _) => { if (task.IsCompleted || elapsed.Elapsed > TimeSpan.FromSeconds(10)) frame.Continue = false; };
+        timer.Tick += (_, _) =>
+        {
+            if (task.IsCompleted || elapsed.Elapsed > TimeSpan.FromSeconds(10)) frame.Continue = false;
+        };
         timer.Start();
-        try { Dispatcher.PushFrame(frame); }
-        finally { timer.Stop(); }
+        try
+        {
+            Dispatcher.PushFrame(frame);
+        }
+        finally
+        {
+            timer.Stop();
+        }
+
         Assert.That(task.IsCompleted, Is.True, "Drive loading did not complete");
         task.GetAwaiter().GetResult();
     }
 
-    private static string? Selected(ComboBox selector) => (selector.SelectedItem as SettingsWindow.DriveChoice)?.Name;
+    private static string? Selected(ComboBox selector)
+    {
+        return (selector.SelectedItem as SettingsWindow.DriveChoice)?.Name;
+    }
 
     private static (ComboBox Primary, ComboBox Secondary) Selectors(SettingsWindow window)
     {

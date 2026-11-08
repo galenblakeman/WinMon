@@ -9,10 +9,15 @@ public sealed record ResourceChartPreferences
     public bool ControlsCollapsed { get; init; } = true;
     public int FocusMetric { get; init; }
 
-    internal ResourceChartPreferences Normalized() => this with
+    internal ResourceChartPreferences Normalized()
     {
-        VisibleMetrics = VisibleMetrics & 63,
-        RangeSeconds = RangeSeconds is 120 or 600 or 1800 or 3600 ? RangeSeconds : MonitorPreferences.ShortRangeSeconds,
-        FocusMetric = Math.Clamp(FocusMetric, 0, 5)
-    };
+        return this with
+        {
+            VisibleMetrics = VisibleMetrics & 63,
+            RangeSeconds = RangeSeconds is 120 or 600 or 1800 or 3600
+                ? RangeSeconds
+                : MonitorPreferences.ShortRangeSeconds,
+            FocusMetric = Math.Clamp(FocusMetric, 0, 5)
+        };
+    }
 }

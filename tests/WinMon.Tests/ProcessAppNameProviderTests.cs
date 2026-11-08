@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Threading;
 using System.Windows.Controls;
 using NUnit.Framework;
 using WinMon.Controls;
@@ -25,7 +24,8 @@ public class ProcessAppNameProviderTests
         };
         var row = new ProcessRow();
         row.Update(usage, [], 120, true, null, grouped);
-        var labels = row.Children.OfType<Grid>().Single().Children.OfType<StackPanel>().Single().Children.OfType<TextBlock>().ToArray();
+        var labels = row.Children.OfType<Grid>().Single().Children.OfType<StackPanel>().Single().Children
+            .OfType<TextBlock>().ToArray();
         var expected = publisher.Length > 0 ? $"\n{publisher}\n{path}" : $"\n{path}";
         Assert.Multiple(() =>
         {
@@ -44,9 +44,15 @@ public class ProcessAppNameProviderTests
     public void Get_CachesNamesByPathIgnoringCase()
     {
         var reads = 0;
-        var provider = new ProcessAppNameProvider(_ => { reads++; return ("Programmer's Notepad 2", "PN Editor", "Example Publisher", "1.2.3.4", "1.2 release"); });
-        Assert.That(provider.Get(@"C:\Apps\pn.exe"), Is.EqualTo(("Programmer's Notepad 2", "PN Editor", "Example Publisher", "1.2.3.4", "1.2 release")));
-        Assert.That(provider.Get(@"c:\apps\PN.EXE"), Is.EqualTo(("Programmer's Notepad 2", "PN Editor", "Example Publisher", "1.2.3.4", "1.2 release")));
+        var provider = new ProcessAppNameProvider(_ =>
+        {
+            reads++;
+            return ("Programmer's Notepad 2", "PN Editor", "Example Publisher", "1.2.3.4", "1.2 release");
+        });
+        Assert.That(provider.Get(@"C:\Apps\pn.exe"),
+            Is.EqualTo(("Programmer's Notepad 2", "PN Editor", "Example Publisher", "1.2.3.4", "1.2 release")));
+        Assert.That(provider.Get(@"c:\apps\PN.EXE"),
+            Is.EqualTo(("Programmer's Notepad 2", "PN Editor", "Example Publisher", "1.2.3.4", "1.2 release")));
         Assert.That(reads, Is.EqualTo(1));
     }
 
@@ -57,7 +63,11 @@ public class ProcessAppNameProviderTests
         foreach (var failure in failures)
         {
             var reads = 0;
-            var provider = new ProcessAppNameProvider(_ => { reads++; throw failure; });
+            var provider = new ProcessAppNameProvider(_ =>
+            {
+                reads++;
+                throw failure;
+            });
             Assert.That(provider.Get(""), Is.EqualTo(("", "", "", "", "")));
             Assert.That(provider.Get(@"C:\Apps\missing.exe"), Is.EqualTo(("", "", "", "", "")));
             Assert.That(provider.Get(@"C:\Apps\missing.exe"), Is.EqualTo(("", "", "", "", "")));
@@ -69,7 +79,11 @@ public class ProcessAppNameProviderTests
     public void Get_FullCache_EvictsTheOldestPath()
     {
         var reads = new List<string>();
-        var provider = new ProcessAppNameProvider(path => { reads.Add(path); return (path, "", "", "", ""); });
+        var provider = new ProcessAppNameProvider(path =>
+        {
+            reads.Add(path);
+            return (path, "", "", "", "");
+        });
         for (var i = 0; i < 1024; i++) provider.Get($@"C:\Apps\p{i}.exe");
         provider.Get(@"C:\Apps\a.exe");
         provider.Get(@"C:\Apps\b.exe");

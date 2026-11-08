@@ -28,8 +28,15 @@ public partial class MainWindow
         RefreshConnections();
     }
 
-    internal void RememberWindowPositionForFixture() => RememberWindowPosition();
-    internal void NotifyDisplayChangeForFixture() => OnDisplaySettingsChanged(null, EventArgs.Empty);
+    internal void RememberWindowPositionForFixture()
+    {
+        RememberWindowPosition();
+    }
+
+    internal void NotifyDisplayChangeForFixture()
+    {
+        OnDisplaySettingsChanged(null, EventArgs.Empty);
+    }
 
     /// <summary>The historical sample being inspected, or null for the live view. Set without refreshing.</summary>
     internal MonitorSample? SelectedSample { get; set; }
@@ -59,8 +66,10 @@ public partial class MainWindow
     internal bool IsClosing { get; set; }
 
     /// <summary>Supply a delayed report write so diagnostics can check shutdown waits for it.</summary>
-    internal Task WriteCaptureForFixtureAsync(CaptureMarker marker, Task<string> write) =>
-        WriteCaptureAsync(marker, "", write);
+    internal Task WriteCaptureForFixtureAsync(CaptureMarker marker, Task<string> write)
+    {
+        return WriteCaptureAsync(marker, "", write);
+    }
 
     internal bool CompactMode { get; set; }
 

@@ -13,8 +13,14 @@ public sealed class PackageExtractionTests
     {
         using var archive = Archive(("WinMon.NetworkService.exe", "service"), (name, "injected"));
         var root = Path.Combine(TestContext.CurrentContext.WorkDirectory, Guid.NewGuid().ToString("N"));
-        try { Assert.That(() => Extract(archive, root), Throws.TypeOf<InvalidDataException>()); }
-        finally { if (Directory.Exists(root)) Directory.Delete(root, true); }
+        try
+        {
+            Assert.That(() => Extract(archive, root), Throws.TypeOf<InvalidDataException>());
+        }
+        finally
+        {
+            if (Directory.Exists(root)) Directory.Delete(root, true);
+        }
     }
 
     [TestCase("../WinMon.NetworkService.exe")]
@@ -40,7 +46,7 @@ public sealed class PackageExtractionTests
         }
         finally
         {
-            if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
+            if (Directory.Exists(root)) Directory.Delete(root, true);
         }
     }
 
@@ -56,7 +62,7 @@ public sealed class PackageExtractionTests
         }
         finally
         {
-            if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
+            if (Directory.Exists(root)) Directory.Delete(root, true);
         }
     }
 
@@ -70,29 +76,49 @@ public sealed class PackageExtractionTests
         try
         {
             PackageExtraction.ExtractServiceArchive(archive, root,
-                path => { directories.Add(path); Directory.CreateDirectory(path); },
-                path => { files.Add(path); return new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None); });
+                path =>
+                {
+                    directories.Add(path);
+                    Directory.CreateDirectory(path);
+                },
+                path =>
+                {
+                    files.Add(path);
+                    return new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None);
+                });
             Assert.That(directories, Does.Contain(root));
             Assert.That(directories, Does.Contain(Path.Combine(root, "runtime")));
-            Assert.That(files, Is.EquivalentTo(new[] { Path.Combine(root, "WinMon.NetworkService.exe"), Path.Combine(root, "runtime", "dep.dll") }));
+            Assert.That(files,
+                Is.EquivalentTo(new[]
+                    { Path.Combine(root, "WinMon.NetworkService.exe"), Path.Combine(root, "runtime", "dep.dll") }));
         }
-        finally { if (Directory.Exists(root)) Directory.Delete(root, recursive: true); }
+        finally
+        {
+            if (Directory.Exists(root)) Directory.Delete(root, true);
+        }
     }
 
     private static MemoryStream Archive(params (string Name, string Value)[] entries)
     {
         var stream = new MemoryStream();
-        using (var zip = new ZipArchive(stream, ZipArchiveMode.Create, leaveOpen: true))
+        using (var zip = new ZipArchive(stream, ZipArchiveMode.Create, true))
+        {
             foreach (var (name, value) in entries)
             {
                 var entry = zip.CreateEntry(name);
                 using var writer = new StreamWriter(entry.Open());
                 writer.Write(value);
             }
+        }
+
         stream.Position = 0;
         return stream;
     }
 
-    private static void Extract(Stream archive, string root) => PackageExtraction.ExtractServiceArchive(archive, root,
-        path => { Directory.CreateDirectory(path); }, path => new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None));
+    private static void Extract(Stream archive, string root)
+    {
+        PackageExtraction.ExtractServiceArchive(archive, root,
+            path => { Directory.CreateDirectory(path); },
+            path => new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None));
+    }
 }

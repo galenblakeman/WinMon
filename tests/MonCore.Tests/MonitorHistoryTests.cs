@@ -164,11 +164,12 @@ public sealed class MonitorHistoryTests
         });
     }
 
-    private static MonitorSample Sample(int seconds) => new(
-        DateTimeOffset.UnixEpoch.AddSeconds(seconds),
-        seconds,
-        [],
-        0);
+    private static MonitorSample Sample(int seconds)
+    {
+        return new MonitorSample(
+            DateTimeOffset.UnixEpoch.AddSeconds(seconds),
+            seconds,
+            [],
+            0);
+    }
 }
-
-

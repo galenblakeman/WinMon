@@ -8,7 +8,8 @@ using WinMon.Monitoring;
 
 namespace WinMon.Tests;
 
-[TestFixture, Apartment(ApartmentState.STA)]
+[TestFixture]
+[Apartment(ApartmentState.STA)]
 public sealed class ProcessRowFocusTests
 {
     [OneTimeSetUp]
@@ -26,6 +27,7 @@ public sealed class ProcessRowFocusTests
         var window = new Window { Content = view, Width = 1000, Height = 900 };
         var link = new Hyperlink(new Run("About"));
         var dialog = new Window { Content = new TextBlock(link), Width = 300, Height = 200 };
+
         void Update(bool reverse)
         {
             ProcessUsage[] processes =
@@ -46,7 +48,8 @@ public sealed class ProcessRowFocusTests
             window.UpdateLayout();
             var rows = (StackPanel)view.FindName("ProcessRows");
             var first = rows.Children.OfType<ProcessRow>().First();
-            IInputElement target = first.Children.OfType<Panel>().SelectMany(panel => panel.Children.OfType<Button>()).Single();
+            IInputElement target = first.Children.OfType<Panel>().SelectMany(panel => panel.Children.OfType<Button>())
+                .Single();
             if (focusHyperlink)
             {
                 dialog.Owner = window;
@@ -54,6 +57,7 @@ public sealed class ProcessRowFocusTests
                 dialog.Activate();
                 target = link;
             }
+
             Assert.That(Keyboard.Focus(target), Is.SameAs(target), "The regression requires actual keyboard focus");
 
             Assert.DoesNotThrow(() => Update(true));

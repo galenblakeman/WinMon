@@ -265,7 +265,8 @@ public sealed class CaptureRulesTests
         {
             var sample = cpu[i] is { } value
                 ? Sample(start + i, value, [])
-                : new MonitorSample(Anchor.AddSeconds(start + i), null, [], 0, true, Stopwatch.Frequency * (start + i + 1));
+                : new MonitorSample(Anchor.AddSeconds(start + i), null, [], 0, true,
+                    Stopwatch.Frequency * (start + i + 1));
             fired.AddRange(rules.Observe(sample).Select(f => (start + i, f)));
         }
 

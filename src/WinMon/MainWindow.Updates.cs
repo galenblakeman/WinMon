@@ -257,7 +257,7 @@ public partial class MainWindow
 
     /// <summary>Save history for the new version once sampling has stopped. Best effort, and never throws.</summary>
     /// <remarks>
-    /// The wait ends at the restart budget even if a write is blocked, so a stalled disk cannot hold the update;
+    /// Waiting stops when the restart budget expires, even if a disk write remains blocked;
     /// the save then discards its temporary file instead of moving it into place.
     /// </remarks>
     private async Task SaveRestartHistoryAsync()

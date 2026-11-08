@@ -11,6 +11,7 @@ public partial class MainWindow
 
     private (GaugePeak Cpu, GaugePeak Memory, GaugePeak Disk, GaugePeak SecondaryDisk,
         GaugePeak Network, GaugePeak Gpu) _gaugePeaks;
+
     private double _networkGaugeScale;
 
     private void UpdateMetricGauges(IReadOnlyList<MonitorSample> samples, MonitorSample? latest)
@@ -28,9 +29,12 @@ public partial class MainWindow
         ShowGaugeInActiveView(CpuMetric, Valid(latest.TotalCpuPercent), _gaugePeaks.Cpu, 100);
         ShowGaugeInActiveView(MemoryMetric, Valid(resource.MemoryPercent), _gaugePeaks.Memory, 100);
         ShowGaugeInActiveView(DiskMetric, resource.DiskName == _preferences.PrimaryDrive
-            ? Valid(resource.DiskActivePercent) : null, _gaugePeaks.Disk, 100);
+            ? Valid(resource.DiskActivePercent)
+            : null, _gaugePeaks.Disk, 100);
         ShowGaugeInActiveView(SecondaryDiskMetric, _preferences.SecondaryDrive is { } drive &&
-            resource.SecondaryDiskName == drive ? Valid(resource.SecondaryDiskActivePercent) : null,
+                                                   resource.SecondaryDiskName == drive
+                ? Valid(resource.SecondaryDiskActivePercent)
+                : null,
             _gaugePeaks.SecondaryDisk, 100);
         var networkScale = CpuGraph.NetworkScale(samples.Where(sample =>
             InGaugeWindow(sample, latest, _preferences.GaugePeakWindowSeconds) &&
@@ -46,7 +50,6 @@ public partial class MainWindow
         var showCorner = _preferences.GaugeStyle is GaugeStyle.Bowl or GaugeStyle.Needle or GaugeStyle.SegmentedArc;
         string? full = null, shortText = null;
         if (showCorner)
-        {
             if (peak.Value is { } value)
             {
                 if (source == NetworkMetric)
@@ -57,15 +60,15 @@ public partial class MainWindow
                 else
                 {
                     var native = GaugePeakNativeValue(source, peak.Sample?.Resources);
-                    full = native is null ? Strings.Format(Strings.GaugePeak, Math.Clamp(value, 0, 100))
+                    full = native is null
+                        ? Strings.Format(Strings.GaugePeak, Math.Clamp(value, 0, 100))
                         : Strings.Format(Strings.GaugePeakValue, native);
                     shortText = native ?? Strings.Format(Strings.GaugePeakShort, Math.Clamp(value, 0, 100));
                 }
             }
-        }
 
         var target = CompactMode ? _compactMetrics[source] : source;
-        target.ShowGauge(current, peak.Value, maximum, full, shortText, peakLabel: true);
+        target.ShowGauge(current, peak.Value, maximum, full, shortText, true);
     }
 
     private string? GaugePeakNativeValue(MetricReadout metric, ResourceSample? resource)
@@ -80,10 +83,14 @@ public partial class MainWindow
         return Valid(rate) is { } bytes ? TableMetricText.IoRate(bytes) : null;
     }
 
-    private GaugePeak PeakFor(MetricReadout metric) => metric == CpuMetric ? _gaugePeaks.Cpu
-        : metric == MemoryMetric ? _gaugePeaks.Memory : metric == DiskMetric ? _gaugePeaks.Disk
-        : metric == SecondaryDiskMetric ? _gaugePeaks.SecondaryDisk
-        : metric == NetworkMetric ? _gaugePeaks.Network : _gaugePeaks.Gpu;
+    private GaugePeak PeakFor(MetricReadout metric)
+    {
+        return metric == CpuMetric ? _gaugePeaks.Cpu
+            : metric == MemoryMetric ? _gaugePeaks.Memory
+            : metric == DiskMetric ? _gaugePeaks.Disk
+            : metric == SecondaryDiskMetric ? _gaugePeaks.SecondaryDisk
+            : metric == NetworkMetric ? _gaugePeaks.Network : _gaugePeaks.Gpu;
+    }
 
     private string GaugePeakTooltip(MetricReadout metric, MonitorSample? latest)
     {
@@ -104,6 +111,7 @@ public partial class MainWindow
                 : metric == GpuMetric ? Strings.GaugePeakGpuMemoryUsed : Strings.GaugePeakDiskThroughput;
             measurement += "\n" + Strings.Format(Strings.GaugePeakNativeAtPeak, name, native);
         }
+
         var age = Math.Max(0, (int)GaugeSampleAge(sample, latest));
         return heading + "\n" + measurement + "\n" +
                Strings.Format(Strings.GaugePeakAtTime, sample.Timestamp.ToLocalTime(), age);
@@ -123,8 +131,12 @@ public partial class MainWindow
         GaugePeak Network, GaugePeak Gpu) GaugePeaks(IReadOnlyList<MonitorSample> samples, MonitorSample latest,
             string primaryDrive, string? secondaryDrive, int windowSeconds = 120)
     {
-        GaugePeak cpu = default, memory = default, disk = default, secondary = default,
-            network = default, gpu = default;
+        GaugePeak cpu = default,
+            memory = default,
+            disk = default,
+            secondary = default,
+            network = default,
+            gpu = default;
         for (var i = samples.Count - 1; i >= 0; i--)
         {
             var sample = samples[i];
@@ -140,6 +152,7 @@ public partial class MainWindow
                 KeepPeak(ref network, resource.ReceiveBytesPerSecond * 8, sample);
             KeepPeak(ref gpu, resource.GpuPercent, sample);
         }
+
         return (cpu, memory, disk, secondary, network, gpu);
     }
 
@@ -150,13 +163,20 @@ public partial class MainWindow
             peak = new GaugePeak(valid, sample);
     }
 
-    private static double? Valid(double? value) => value is >= 0 && double.IsFinite(value.Value) ? value : null;
+    private static double? Valid(double? value)
+    {
+        return value is >= 0 && double.IsFinite(value.Value) ? value : null;
+    }
 
-    private static double GaugeSampleAge(MonitorSample sample, MonitorSample latest) =>
-        sample.MonotonicTimestamp > 0 && latest.MonotonicTimestamp > 0
+    private static double GaugeSampleAge(MonitorSample sample, MonitorSample latest)
+    {
+        return sample.MonotonicTimestamp > 0 && latest.MonotonicTimestamp > 0
             ? (latest.MonotonicTimestamp - sample.MonotonicTimestamp) / (double)Stopwatch.Frequency
             : (latest.Timestamp - sample.Timestamp).TotalSeconds;
+    }
 
-    private static bool InGaugeWindow(MonitorSample sample, MonitorSample latest, int seconds) =>
-        GaugeSampleAge(sample, latest) is var age && age >= 0 && age <= seconds;
+    private static bool InGaugeWindow(MonitorSample sample, MonitorSample latest, int seconds)
+    {
+        return GaugeSampleAge(sample, latest) is var age && age >= 0 && age <= seconds;
+    }
 }
