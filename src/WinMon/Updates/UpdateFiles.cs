@@ -50,10 +50,10 @@ internal static class UpdateFiles
         return JsonSerializer.Deserialize<T>(stream) ?? throw new InvalidDataException("Invalid update transaction.");
     }
 
-    internal static string ValidateDirectory(string directory)
+    internal static string ValidateDirectory(string directory, string? root = null)
     {
         var full = Path.GetFullPath(directory);
-        if (!string.Equals(Path.GetDirectoryName(full), Path.GetFullPath(UpdateClient.UpdateRoot),
+        if (!string.Equals(Path.GetDirectoryName(full), Path.GetFullPath(root ?? UpdateClient.UpdateRoot),
                 StringComparison.OrdinalIgnoreCase) ||
             !Guid.TryParseExact(Path.GetFileName(full), "N", out _) ||
             (File.GetAttributes(full) & FileAttributes.ReparsePoint) != 0)

@@ -17,6 +17,11 @@ internal sealed class UpdateClient : IDisposable
     private readonly HttpClient _http;
     private readonly string _publicKey;
     private readonly string _root;
+    private readonly Func<string?> _processPath;
+    private readonly Func<string> _applicationBaseDirectory;
+    private readonly Func<string, bool> _isInstalled;
+    private readonly Func<string, long> _availableFreeSpace;
+    private readonly TimeSpan _downloadStallTimeout;
     private string? _etag;
     private UpdateOffer? _cached;
 
@@ -28,7 +33,9 @@ internal sealed class UpdateClient : IDisposable
     {
     }
 
-    internal UpdateClient(HttpClient http, string publicKey, string root)
+    internal UpdateClient(HttpClient http, string publicKey, string root, Func<string?>? processPath = null,
+        Func<string>? applicationBaseDirectory = null, Func<string, bool>? isInstalled = null,
+        Func<string, long>? availableFreeSpace = null, TimeSpan? downloadStallTimeout = null)
     {
         _http = http;
         _http.Timeout = TimeSpan.FromMinutes(15);
@@ -36,6 +43,11 @@ internal sealed class UpdateClient : IDisposable
         _http.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
         _publicKey = publicKey;
         _root = root;
+        _processPath = processPath ?? (() => Environment.ProcessPath);
+        _applicationBaseDirectory = applicationBaseDirectory ?? (() => AppContext.BaseDirectory);
+        _isInstalled = isInstalled ?? UpdateInstallation.IsInstalled;
+        _availableFreeSpace = availableFreeSpace ?? AvailableFreeSpace;
+        _downloadStallTimeout = downloadStallTimeout ?? DownloadStallTimeout;
     }
 
     internal static string ReadPublicKey()
@@ -103,21 +115,21 @@ internal sealed class UpdateClient : IDisposable
         UpdatePolicy.RequireGitHubUpdates();
         // Reverify before using cached metadata to select or execute an asset.
         var manifest = UpdateManifest.Verify(offer.ManifestBytes, offer.Signature, _publicKey, offer.Version);
-        var target = Environment.ProcessPath ??
+        var target = _processPath() ??
                      throw new InvalidOperationException("Cannot find the running executable.");
         if (!Path.GetFileName(target).Equals("WinMon.exe", StringComparison.OrdinalIgnoreCase) ||
-            File.Exists(Path.Combine(AppContext.BaseDirectory, "WinMon.dll")))
+            File.Exists(Path.Combine(_applicationBaseDirectory(), "WinMon.dll")))
             throw new InvalidOperationException("Automatic updates require a published WinMon executable.");
-        var installed = UpdateInstallation.IsInstalled(target);
+        var installed = _isInstalled(target);
         var asset = installed ? manifest.Installer : manifest.Portable;
         var directory = Path.Combine(_root, Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(directory);
         try
         {
-            if (AvailableFreeSpace(Path.GetDirectoryName(Path.GetFullPath(target))!) <
+            if (_availableFreeSpace(Path.GetDirectoryName(Path.GetFullPath(target))!) <
                 asset.Size * 4 + new FileInfo(target).Length)
                 throw new IOException("Not enough disk space to update WinMon.");
-            if (AvailableFreeSpace(directory) < asset.Size * 4 + new FileInfo(target).Length)
+            if (_availableFreeSpace(directory) < asset.Size * 4 + new FileInfo(target).Length)
                 throw new IOException("Not enough staging space to download the update.");
             // Probe the destination before asking the application to exit.
             var probe = Path.Combine(Path.GetDirectoryName(target)!, ".winmon-update-" + Guid.NewGuid().ToString("N"));
@@ -141,10 +153,10 @@ internal sealed class UpdateClient : IDisposable
                 int read;
                 // HttpClient.Timeout ends with the headers, so a body read that stalls needs its own deadline.
                 using var stalled = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                stalled.CancelAfter(DownloadStallTimeout);
+                stalled.CancelAfter(_downloadStallTimeout);
                 while ((read = await input.ReadAsync(buffer, stalled.Token).ConfigureAwait(false)) > 0)
                 {
-                    stalled.CancelAfter(DownloadStallTimeout);
+                    stalled.CancelAfter(_downloadStallTimeout);
                     total += read;
                     if (total > asset.Size) throw new InvalidDataException("Download exceeds the expected size.");
                     await output.WriteAsync(buffer.AsMemory(0, read), cancellationToken).ConfigureAwait(false);
