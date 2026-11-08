@@ -14,7 +14,7 @@ SDK 10.0.403 / .NET 10.0.14, tiered compilation off. An isolated console probe c
 | `AttachNetworkOwners` time | 0.110 ms | 0.074 ms |
 | Retained heap, connection history at its entry budget (45 captures) | 12.6 MiB | 2.9 MiB |
 
-`ConnectionOwners` copied every owner into a new `ProcessUsage` each tick, so the connection history held one copy per process per capture. It now reuses the previous tick's copy when the copied metadata is unchanged, which accounts for most of the saving and the retained heap. Both methods also replace LINQ with loops over reused sets; output order and first-observation choice are unchanged. The UI benchmark does not drive these per-tick paths, and whole-app profiling was not run.
+`ConnectionOwners` copied every owner into a new `ProcessUsage` each tick, so the connection history held one copy per process per capture. It now reuses the previous tick's copy when the copied metadata is unchanged, which accounts for most of the saving and the retained heap. Both methods also replace LINQ with loops over reused sets; output order and first-observation choice are unchanged. With no connections or network frame, `ConnectionOwners` now returns before scanning processes: in a clean full UI benchmark pair, every live scenario that records a sample per frame with network monitoring off allocated about 7.8 KB less per frame (for example, grouped live 602,293 → 594,613 B). Whole-app profiling was not run.
 
 ## Connections traffic-graph data (November 8, 2026)
 
@@ -26,7 +26,7 @@ SDK 10.0.403 / .NET 10.0.14. `ConnectionGraphData.Build` runs on every Connectio
 | Recorded traffic history (121 captures) | 3,488,648 | 1,350,712 |
 | Recorded traffic history with pins | 3,491,704 | 1,353,768 |
 
-Allocation is deterministic per build. The live case pays 320 bytes for dictionaries created up front. Timing is inconclusive: other builds and smoke runs shared the machine, and the unchanged live Connections scenario itself moved from 2.49 to 3.20 ms, so no speedup is claimed. Pixel hashes and a quiet-machine timing pass were not compared before commit.
+Allocation is deterministic per build. The live case pays 320 bytes for dictionaries created up front. Timing is inconclusive: other builds and smoke runs shared the machine, and the unchanged live Connections scenario itself moved from 2.49 to 3.20 ms, so no speedup is claimed. Those four pairs' changed build also carried unrelated uncommitted work, so their pixel hashes differed; a later full pair built from HEAD plus only these changes reproduced the allocation figures within 80 bytes and matched the baseline pixel hash.
 
 ## Network service ownership probes and GC budget (November 8, 2026)
 
