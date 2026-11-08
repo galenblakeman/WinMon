@@ -10,6 +10,16 @@ public sealed class CollectorFailureTests
     private const string User = "S-1-5-21-1-2-3-1001";
 
     [Test]
+    public async Task UnreadableProcessProbe_OnlyMarksIncompleteWhenTrafficWasObserved()
+    {
+        await using var collector = new EtwNetworkCollector([User]);
+        Assert.That(collector.ResolveAndRegister(0, 1, 1, observedTraffic: false), Is.False);
+        Assert.That(collector.CoverageReasons, Is.EqualTo(ProcessNetworkIncompleteReason.None));
+        Assert.That(collector.ResolveAndRegister(0, 1, 1, observedTraffic: true), Is.False);
+        Assert.That(collector.CoverageReasons, Is.EqualTo(ProcessNetworkIncompleteReason.OwnershipUnavailable));
+    }
+
+    [Test]
     public async Task FirstFailureSurvivesSubsequentShutdownAndContainsNoReadings()
     {
         await using var collector = new EtwNetworkCollector([User]);

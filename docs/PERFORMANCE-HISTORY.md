@@ -2,6 +2,23 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## Network reliability diagnostics (November 8, 2026)
+
+SDK 10.0.403 / .NET 10.0.14. An isolated console probe compared the HEAD ledger/snapshot source with the changed source: 512 process lifetimes, six event-time buckets each, then snapshot construction plus JSON serialization. Each process warmed up 300 iterations and measured 2,000; four before/after pairs alternated with no verification builds running. Tiered compilation was disabled in both payloads to remove the unstable tier-transition effect observed in the initial concurrent run.
+
+| Measurement | Before | After |
+| --- | ---: | ---: |
+| Median ms/snapshot | 0.328 | 0.325 |
+| Run range, ms/snapshot | 0.323–0.333 | 0.324–0.337 |
+| Allocated bytes/snapshot | 334,744 | 334,776 |
+| Serialized bytes/snapshot | 63,046 | 63,068 |
+
+Timing overlaps and establishes no observed regression in this workload; no speedup is attributed. The bounded reason field adds 32 allocated bytes and 22 wire bytes per snapshot. The initial tiered/concurrent measurements are retained but excluded from the controlled comparison. This probe excludes ETW callbacks, ownership probes, WPF, IPC scheduling and installed-service/whole-system overhead. It does not replace a native sustained-throughput budget. Evidence and isolated original/changed sources: `artifacts/network-reliability-measure/results-no-tiering.json`; the original ledger's fresh-window regression check returned null while the changed one returned the expected 10 bytes/second.
+
+## Per-chart preferences (November 8, 2026)
+
+Per-chart configuration snapshotting runs on chart selection and existing preference validation/save paths. Resource-control visibility uses the existing presentation update. No sampling-loop work or per-sample preference writes were added. Standard and Store app/test-source compilation passed with zero warnings/errors. Tests, UI smokes and performance measurements were not run because the user requested that checks remain stopped; there is no measured before/after performance result for this change.
+
 ## Connections monitoring setup strip (November 8, 2026)
 
 SDK 10.0.403 / .NET 10.0.14. Four alternating before/after pairs used frozen payloads, 400 warm-up frames and seven batches of 60. A task-local copy of the existing benchmark measures its four Connections scenarios and skips unrelated measurements; sampling, native collection and logging are disabled. Both payloads include the existing traffic-period work. The baseline is the task-start working checkout rather than clean main; concurrent tooltip/export work also appears in the after checkout, so these are checkout comparisons rather than isolated attribution to this strip. No builds or tests ran alongside the final pairs.

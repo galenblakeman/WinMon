@@ -42,6 +42,18 @@ public sealed class NetworkServiceClientTests
     }
 
     [Test]
+    public void ValidateSnapshot_RequiresKnownReasonsOnIncompleteReadings()
+    {
+        var incomplete = Valid() with { Quality = ProcessNetworkQuality.Provisional | ProcessNetworkQuality.Incomplete,
+            IncompleteReasons = ProcessNetworkIncompleteReason.OwnershipUnavailable | ProcessNetworkIncompleteReason.NativeLoss };
+        Assert.DoesNotThrow(() => NetworkServiceClient.ValidateSnapshot(incomplete));
+        Assert.Throws<InvalidDataException>(() => NetworkServiceClient.ValidateSnapshot(incomplete with
+        { IncompleteReasons = (ProcessNetworkIncompleteReason)256 }));
+        Assert.Throws<InvalidDataException>(() => NetworkServiceClient.ValidateSnapshot(incomplete with
+        { Quality = ProcessNetworkQuality.Provisional }));
+    }
+
+    [Test]
     public void ValidateResponse_RejectsProtocolMismatchSeparatelyFromServiceRejection()
     {
         var mismatch = Assert.Throws<NetworkServiceProtocolMismatchException>(() =>

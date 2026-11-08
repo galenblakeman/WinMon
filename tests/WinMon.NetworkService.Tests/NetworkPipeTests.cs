@@ -19,8 +19,8 @@ public sealed partial class NetworkPipeTests
         var subscriptions = 0;
         var releases = 0;
         var snapshot = new ProcessNetworkSnapshot(Guid.NewGuid(), 1, 12, 10, 1, 9,
-            failure == ProcessNetworkFailure.None ? ProcessNetworkQuality.Provisional : ProcessNetworkQuality.Unavailable,
-            0, 0, []) { Failure = failure };
+            (failure == ProcessNetworkFailure.None ? ProcessNetworkQuality.Provisional : ProcessNetworkQuality.Unavailable) | ProcessNetworkQuality.Incomplete,
+            0, 0, []) { Failure = failure, IncompleteReasons = ProcessNetworkIncompleteReason.NativeLoss };
         var pipeName = $"WinMon-NetworkPipeTest-{Guid.NewGuid():N}";
         var server = new NetworkPipeServer(new HashSet<string>(StringComparer.Ordinal) { sid },
             (_, _) =>
@@ -42,6 +42,7 @@ public sealed partial class NetworkPipeTests
             Assert.That(received.Sequence, Is.EqualTo(snapshot.Sequence));
             Assert.That(received.Processes, Is.Empty);
             Assert.That(received.Failure, Is.EqualTo(failure));
+            Assert.That(received.IncompleteReasons, Is.EqualTo(ProcessNetworkIncompleteReason.NativeLoss));
             await NetworkServiceProtocol.WriteAsync(client, new NetworkServiceRequest(NetworkServiceProtocol.Version, "unsubscribe"), requestTimeout.Token);
             Assert.That((await NetworkServiceProtocol.ReadAsync<NetworkServiceResponse>(client, requestTimeout.Token)).Status, Is.EqualTo("ok"));
             Assert.Multiple(() => { Assert.That(subscriptions, Is.EqualTo(1)); Assert.That(releases, Is.EqualTo(1)); });

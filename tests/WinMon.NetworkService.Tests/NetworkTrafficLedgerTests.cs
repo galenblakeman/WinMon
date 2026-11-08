@@ -102,6 +102,7 @@ public sealed class NetworkTrafficLedgerTests
             Assert.That(after.Generation, Is.Not.EqualTo(before.Generation));
             Assert.That((after.Quality & ProcessNetworkQuality.Discontinuity) != 0, Is.True);
             Assert.That(after.EventsLost, Is.EqualTo(1));
+            Assert.That(after.IncompleteReasons, Is.EqualTo(ProcessNetworkIncompleteReason.NativeLoss));
         });
     }
 
@@ -198,4 +199,21 @@ public sealed class NetworkTrafficLedgerTests
     }
 
     private static NetworkTrafficLedger NewLedger() => new(Frequency, 0);
+
+    [Test]
+    public void DuplicateRegistration_RecoversRatesAfterFreshWindowButKeepsCoverageReason()
+    {
+        var ledger = NewLedger();
+        Assert.That(ledger.Register(42, 100, Owner, 0), Is.True);
+        Assert.That(ledger.Register(42, 100, Owner, 10), Is.False);
+        Assert.That(ledger.Add(42, 40, 45, false, 50), Is.True);
+        var snapshot = ledger.Snapshot(Owner, 110);
+        Assert.Multiple(() =>
+        {
+            Assert.That(snapshot.Quality.HasFlag(ProcessNetworkQuality.WarmingUp), Is.False);
+            Assert.That(snapshot.Quality.HasFlag(ProcessNetworkQuality.Incomplete), Is.True);
+            Assert.That(snapshot.IncompleteReasons, Is.EqualTo(ProcessNetworkIncompleteReason.AmbiguousLifetime));
+            Assert.That(snapshot.Processes.Single().ReceiveBytesPerSecond, Is.EqualTo(10));
+        });
+    }
 }

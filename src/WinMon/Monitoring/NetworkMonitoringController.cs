@@ -25,6 +25,8 @@ internal sealed class NetworkMonitoringController : IAsyncDisposable
     private bool _enabled;
     private int _connectionFailures;
     private long _outageStarted;
+    private ProcessNetworkSnapshot? _lastDiagnosticSnapshot;
+    private long _lastDiagnosticAt;
     private NetworkMonitoringSample _sample = new(Guid.Empty, null);
 
     internal NetworkMonitoringController() : this(ConnectAsync, new NetworkSetupBroker().RunAsync,
@@ -159,6 +161,7 @@ internal sealed class NetworkMonitoringController : IAsyncDisposable
         {
             await connection.SubscribeAsync(token).ConfigureAwait(false);
             var snapshot = await connection.SnapshotAsync(token).ConfigureAwait(false);
+            ReportSnapshot(snapshot);
             if (snapshot.Quality.HasFlag(ProcessNetworkQuality.Unavailable)) throw new InvalidOperationException("Network collection is unavailable.");
             token.ThrowIfCancellationRequested();
             _connection = connection;
@@ -194,6 +197,7 @@ internal sealed class NetworkMonitoringController : IAsyncDisposable
                     else
                     {
                         var snapshot = await _connection.SnapshotAsync(token).ConfigureAwait(false);
+                        ReportSnapshot(snapshot);
                         if ((snapshot.Quality & ProcessNetworkQuality.Unavailable) != 0)
                             throw new InvalidOperationException("Network collection is unavailable.");
                         PublishSnapshot(snapshot);
@@ -263,6 +267,23 @@ internal sealed class NetworkMonitoringController : IAsyncDisposable
     {
         if (_connectionFailures++ == 0) _outageStarted = Stopwatch.GetTimestamp();
         Trace.TraceWarning("Network.ConnectionFailed: {0}", exception);
+    }
+
+    private void ReportSnapshot(ProcessNetworkSnapshot snapshot)
+    {
+        var previous = _lastDiagnosticSnapshot;
+        if (previous is not null && previous.Generation == snapshot.Generation && previous.Quality == snapshot.Quality &&
+            previous.IncompleteReasons == snapshot.IncompleteReasons && previous.Failure == snapshot.Failure &&
+            Stopwatch.GetElapsedTime(_lastDiagnosticAt) < TimeSpan.FromMinutes(1)) return;
+        _lastDiagnosticSnapshot = snapshot;
+        _lastDiagnosticAt = Stopwatch.GetTimestamp();
+        Trace.TraceInformation("Network.Snapshot quality={0} reasons={1} failure={2} generationChanged={3} sequence={4} rows={5} rates={6} eventsLost={7} lateEvents={8} droppedEvents={9} windowMs={10} lagMs={11}",
+            snapshot.Quality, snapshot.IncompleteReasons, snapshot.Failure, previous?.Generation != snapshot.Generation,
+            snapshot.Sequence, snapshot.Processes.Count,
+            snapshot.Processes.Count(row => row.ReceiveBytesPerSecond.HasValue && row.SendBytesPerSecond.HasValue),
+            snapshot.EventsLost, snapshot.LateEvents, snapshot.DroppedEvents,
+            (snapshot.WindowEndQpc - snapshot.WindowStartQpc) * 1000d / snapshot.Frequency,
+            (snapshot.TimestampQpc - snapshot.WindowEndQpc) * 1000d / snapshot.Frequency);
     }
 
     internal static NetworkMonitoringState ToState(ProcessNetworkSnapshot snapshot) =>

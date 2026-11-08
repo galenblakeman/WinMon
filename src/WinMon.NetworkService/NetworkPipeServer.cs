@@ -69,7 +69,9 @@ internal sealed class NetworkPipeServer(IReadOnlyCollection<string> allowedSids,
             await ServeAsync(pipe, sid, stopping).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (stopping.IsCancellationRequested) { }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or OperationCanceledException or InvalidDataException) { }
+        catch (EndOfStreamException) { }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or OperationCanceledException or InvalidDataException)
+        { Trace.TraceWarning("Network.PipeConnectionRejected: {0}", ex); }
         catch (Exception ex) { Trace.TraceError("Network pipe request failed: {0}", ex); }
         finally { pipe.Dispose(); _clients.Release(); }
     }
@@ -129,21 +131,37 @@ internal sealed class NetworkPipeServer(IReadOnlyCollection<string> allowedSids,
         var sequence = 0L;
         var requestWindow = Stopwatch.GetTimestamp();
         var requests = 0;
+        var operation = PipeOperation.None;
+        var stage = PipeStage.Read;
+        var started = Stopwatch.GetTimestamp();
         try
         {
             while (!stopping.IsCancellationRequested && pipe.IsConnected)
             {
                 using var timeout = CancellationTokenSource.CreateLinkedTokenSource(stopping);
                 timeout.CancelAfter(TimeSpan.FromSeconds(10));
+                stage = PipeStage.Read;
+                started = Stopwatch.GetTimestamp();
                 var request = await NetworkServiceProtocol.ReadAsync<NetworkServiceRequest>(pipe, timeout.Token,
                     NetworkServiceProtocol.MaximumRequestBytes).ConfigureAwait(false);
+                operation = request.Operation switch
+                {
+                    "status" => PipeOperation.Status, "subscribe" => PipeOperation.Subscribe,
+                    "snapshot" => PipeOperation.Snapshot, "unsubscribe" => PipeOperation.Unsubscribe,
+                    _ => PipeOperation.Unknown
+                };
                 var receivedAt = Stopwatch.GetTimestamp();
                 if (Stopwatch.GetElapsedTime(requestWindow, receivedAt).TotalSeconds >= 1)
                 {
                     requestWindow = receivedAt;
                     requests = 0;
                 }
-                if (++requests > 16) throw new InvalidDataException("Control request rate exceeded.");
+                if (++requests > 16)
+                {
+                    Trace.TraceWarning("Network.PipeControlRateExceeded requests={0}", requests);
+                    throw new InvalidDataException("Control request rate exceeded.");
+                }
+                stage = PipeStage.Write;
                 if (request.Version != NetworkServiceProtocol.Version)
                 {
                     await NetworkServiceProtocol.WriteAsync(pipe,
@@ -156,13 +174,19 @@ internal sealed class NetworkPipeServer(IReadOnlyCollection<string> allowedSids,
                         await NetworkServiceProtocol.WriteAsync(pipe, new NetworkServiceResponse(NetworkServiceProtocol.Version, "ok"), timeout.Token).ConfigureAwait(false);
                         break;
                     case "subscribe" when lease is null:
+                        stage = PipeStage.Subscribe;
                         lease = await subscribe(sid, timeout.Token).ConfigureAwait(false);
+                        stage = PipeStage.Write;
                         await NetworkServiceProtocol.WriteAsync(pipe, new NetworkServiceResponse(NetworkServiceProtocol.Version, "ok"), timeout.Token).ConfigureAwait(false);
                         break;
                     case "snapshot" when lease is not null:
+                        stage = PipeStage.Snapshot;
                         var now = Stopwatch.GetTimestamp();
                         if (lastSnapshot != 0 && Stopwatch.GetElapsedTime(lastSnapshot, now) < TimeSpan.FromSeconds(1))
+                        {
+                            Trace.TraceWarning("Network.PipeSnapshotRateExceeded intervalMs={0}", Stopwatch.GetElapsedTime(lastSnapshot, now).TotalMilliseconds);
                             throw new InvalidDataException("Snapshot request rate exceeded.");
+                        }
                         lastSnapshot = now;
                         var current = snapshot(sid);
                         if (generation != current.Generation)
@@ -171,11 +195,14 @@ internal sealed class NetworkPipeServer(IReadOnlyCollection<string> allowedSids,
                             sequence = 0;
                         }
                         current = current with { SubscriptionId = subscriptionId, Sequence = checked(++sequence) };
+                        stage = PipeStage.Write;
                         await NetworkServiceProtocol.WriteAsync(pipe, new NetworkServiceResponse(NetworkServiceProtocol.Version, "ok", current), timeout.Token).ConfigureAwait(false);
                         break;
                     case "unsubscribe" when lease is not null:
+                        stage = PipeStage.Unsubscribe;
                         await lease.DisposeAsync().ConfigureAwait(false);
                         lease = null;
+                        stage = PipeStage.Write;
                         await NetworkServiceProtocol.WriteAsync(pipe, new NetworkServiceResponse(NetworkServiceProtocol.Version, "ok"), timeout.Token).ConfigureAwait(false);
                         return;
                     default:
@@ -183,6 +210,16 @@ internal sealed class NetworkPipeServer(IReadOnlyCollection<string> allowedSids,
                 }
             }
         }
+        catch (OperationCanceledException) when (stopping.IsCancellationRequested) { }
+        catch (EndOfStreamException) when (stage == PipeStage.Read) { }
+        catch (Exception ex)
+        {
+            Trace.TraceWarning("Network.PipeRequestFailed operation={0} stage={1} subscribed={2} elapsedMs={3}: {4}",
+                operation, stage, lease is not null, Stopwatch.GetElapsedTime(started).TotalMilliseconds, ex);
+        }
         finally { if (lease is not null) await lease.DisposeAsync().ConfigureAwait(false); }
     }
+
+    private enum PipeOperation { None, Status, Subscribe, Snapshot, Unsubscribe, Unknown }
+    private enum PipeStage { Read, Subscribe, Snapshot, Write, Unsubscribe }
 }

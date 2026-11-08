@@ -198,6 +198,58 @@ public sealed partial class NetworkPipeTests
         await NetworkServiceProtocol.WriteAsync(stream, new NetworkServiceRequest(1, operation), token);
         return await NetworkServiceProtocol.ReadAsync<NetworkServiceResponse>(stream, token);
     }
+
+    [Test]
+    [NonParallelizable]
+    public async Task RapidSnapshotRequests_LogRateLimitAndKeepListenerHealthy()
+    {
+        var folder = Path.Combine(TestContext.CurrentContext.WorkDirectory, "network-rate-" + Guid.NewGuid().ToString("N"));
+        using (var log = new WinMon.Diagnostics.DiagnosticLog(folder, "Service"))
+        {
+            System.Diagnostics.Trace.Listeners.Add(log);
+            await using var server = new ServerScope([CurrentSid()]);
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            await using (var client = await server.ConnectAsync())
+            {
+                await ExchangeAsync(client, "subscribe", timeout.Token);
+                await ExchangeAsync(client, "snapshot", timeout.Token);
+                Assert.ThrowsAsync<EndOfStreamException>(async () => await ExchangeAsync(client, "snapshot", timeout.Token));
+            }
+            await using var next = await server.ConnectAsync();
+            Assert.That((await ExchangeAsync(next, "status", timeout.Token)).Status, Is.EqualTo("ok"));
+        }
+        var text = File.ReadAllText(Path.Combine(folder, "winmon.log"));
+        Assert.That(text, Does.Contain("Network.PipeSnapshotRateExceeded intervalMs="));
+        Assert.That(text, Does.Contain("operation=Snapshot stage=Snapshot subscribed=True"));
+        TestContext.AddTestAttachment(Path.Combine(folder, "winmon.log"));
+    }
+
+    [Test]
+    [NonParallelizable]
+    public async Task ClientPolling_RespectsServerSnapshotIntervalWithoutDisconnecting()
+    {
+        var folder = Path.Combine(TestContext.CurrentContext.WorkDirectory, "network-poll-" + Guid.NewGuid().ToString("N"));
+        using var log = new WinMon.Diagnostics.DiagnosticLog(folder, "Service");
+        System.Diagnostics.Trace.Listeners.Add(log);
+        TestContext.AddTestAttachment(Path.Combine(folder, "winmon.log"));
+        await using var server = new ServerScope([CurrentSid()]);
+        await using var client = new NetworkServiceClient(await server.ConnectAsync());
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        await client.SubscribeAsync(timeout.Token);
+        var completed = 0L;
+        for (var index = 0; index < 8; index++)
+        {
+            if (completed != 0)
+            {
+                await Task.Delay(985, timeout.Token);
+                // Leave a fractional millisecond: the old one-shot Task.Delay truncated it to zero.
+                while (System.Diagnostics.Stopwatch.GetElapsedTime(completed).TotalMilliseconds < 999.1)
+                    Thread.SpinWait(32);
+            }
+            Assert.That((await client.SnapshotAsync(timeout.Token)).Sequence, Is.EqualTo(index + 1));
+            completed = System.Diagnostics.Stopwatch.GetTimestamp();
+        }
+    }
     private static ProcessNetworkSnapshot EmptySnapshot() => new(Guid.NewGuid(), 1, 12, 10, 1, 9, ProcessNetworkQuality.Provisional, 0, 0, []);
 
     private sealed class ServerScope : IAsyncDisposable
@@ -208,8 +260,9 @@ public sealed partial class NetworkPipeTests
         internal ServerScope(IReadOnlyCollection<string> users,
             Func<string, CancellationToken, Task<IAsyncDisposable>>? subscribe = null)
         {
+            var snapshot = EmptySnapshot();
             var server = new NetworkPipeServer(users, subscribe ?? ((_, _) => Task.FromResult<IAsyncDisposable>(new CallbackDisposable(() => { }))),
-                _ => EmptySnapshot(), Name);
+                _ => snapshot, Name);
             _running = server.RunAsync(_stop.Token);
         }
         internal async Task<NamedPipeClientStream> ConnectAsync()

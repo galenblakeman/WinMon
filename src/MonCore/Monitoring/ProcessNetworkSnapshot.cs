@@ -25,6 +25,21 @@ public enum ProcessNetworkFailure
     Shutdown = 6
 }
 
+/// <summary>Generation-wide coverage gaps, without process identities or traffic metadata.</summary>
+[Flags]
+public enum ProcessNetworkIncompleteReason
+{
+    None = 0,
+    OwnershipUnavailable = 1,
+    InvalidEvent = 2,
+    QueueOverflow = 4,
+    NativeLoss = 8,
+    AmbiguousLifetime = 16,
+    CapacityExceeded = 32,
+    EventTimestamp = 64,
+    ClockDiscontinuity = 128
+}
+
 /// <summary>Cumulative observed bytes and event-time rates for one Windows process lifetime.</summary>
 public sealed record ProcessNetworkReading(int ProcessId, long CreationTicks, long ReceivedBytes, long SentBytes,
     double? ReceiveBytesPerSecond, double? SendBytesPerSecond);
@@ -42,4 +57,7 @@ public sealed record ProcessNetworkSnapshot(Guid Generation, long Sequence, long
 
     /// <summary>First collector failure, retained until a fresh collector generation starts.</summary>
     public ProcessNetworkFailure Failure { get; init; }
+
+    /// <summary>Sticky coverage reasons; None also supports older protocol-1 services.</summary>
+    public ProcessNetworkIncompleteReason IncompleteReasons { get; init; }
 }

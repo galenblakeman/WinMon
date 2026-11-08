@@ -14,7 +14,7 @@ public sealed class NetworkServiceClient : IAsyncDisposable
     private bool _subscribed;
     private int _disposed;
 
-    private NetworkServiceClient(NamedPipeClientStream pipe) => _pipe = pipe;
+    internal NetworkServiceClient(NamedPipeClientStream pipe) => _pipe = pipe;
 
     public static async Task<NetworkServiceClient> ConnectAsync(CancellationToken token)
     {
@@ -52,11 +52,15 @@ public sealed class NetworkServiceClient : IAsyncDisposable
         {
             ThrowIfDisposed();
             if (!_subscribed) throw new InvalidOperationException("Subscribe before requesting network readings.");
-            var now = Stopwatch.GetTimestamp();
             if (_lastRequest != 0)
             {
-                var wait = TimeSpan.FromSeconds(1) - Stopwatch.GetElapsedTime(_lastRequest, now);
-                if (wait > TimeSpan.Zero) await Task.Delay(wait, token).ConfigureAwait(false);
+                // Timer delays can finish before the monotonic one-second server limit.
+                while (true)
+                {
+                    var wait = TimeSpan.FromSeconds(1) - Stopwatch.GetElapsedTime(_lastRequest);
+                    if (wait <= TimeSpan.Zero) break;
+                    await Task.Delay(TimeSpan.FromMilliseconds(Math.Ceiling(wait.TotalMilliseconds)), token).ConfigureAwait(false);
+                }
             }
             var response = await SendCoreAsync("snapshot", token).ConfigureAwait(false);
             _lastRequest = Stopwatch.GetTimestamp();
@@ -75,7 +79,13 @@ public sealed class NetworkServiceClient : IAsyncDisposable
 
     internal static void ValidateSnapshot(ProcessNetworkSnapshot snapshot)
     {
+        const ProcessNetworkIncompleteReason knownReasons = ProcessNetworkIncompleteReason.OwnershipUnavailable |
+            ProcessNetworkIncompleteReason.InvalidEvent | ProcessNetworkIncompleteReason.QueueOverflow | ProcessNetworkIncompleteReason.NativeLoss |
+            ProcessNetworkIncompleteReason.AmbiguousLifetime | ProcessNetworkIncompleteReason.CapacityExceeded |
+            ProcessNetworkIncompleteReason.EventTimestamp | ProcessNetworkIncompleteReason.ClockDiscontinuity;
         if (snapshot.SubscriptionId == Guid.Empty || snapshot.Frequency <= 0 || snapshot.TimestampQpc < 0 || snapshot.WindowStartQpc < 0 ||
+            (snapshot.IncompleteReasons & ~knownReasons) != 0 ||
+            (snapshot.IncompleteReasons != ProcessNetworkIncompleteReason.None && !snapshot.Quality.HasFlag(ProcessNetworkQuality.Incomplete)) ||
             !Enum.IsDefined(snapshot.Failure) || (snapshot.Failure != ProcessNetworkFailure.None && !snapshot.Quality.HasFlag(ProcessNetworkQuality.Unavailable)) ||
             snapshot.WindowStartQpc > snapshot.WindowEndQpc || snapshot.WindowEndQpc > snapshot.TimestampQpc ||
             snapshot.Sequence < 0 || snapshot.EventsLost < 0 || snapshot.LateEvents < 0 || snapshot.DroppedEvents < 0 ||
@@ -90,6 +100,7 @@ public sealed class NetworkServiceClient : IAsyncDisposable
 
     private async Task<NetworkServiceResponse> SendCoreAsync(string operation, CancellationToken token)
     {
+        var started = Stopwatch.GetTimestamp();
         try
         {
             using var timeout = CancellationTokenSource.CreateLinkedTokenSource(token);
@@ -100,10 +111,15 @@ public sealed class NetworkServiceClient : IAsyncDisposable
             ValidateResponse(response);
             return response;
         }
-        catch
+        catch (Exception exception)
         {
             _subscribed = false;
             _pipe.Dispose(); // A timed out/invalid length-prefixed exchange cannot be safely resumed.
+            if (!token.IsCancellationRequested)
+                Trace.TraceWarning("Network.RequestFailed operation={0} elapsedMs={1}: {2}",
+                    operation switch { "subscribe" => RequestOperation.Subscribe, "snapshot" => RequestOperation.Snapshot,
+                        "unsubscribe" => RequestOperation.Unsubscribe, _ => RequestOperation.Unknown },
+                    Stopwatch.GetElapsedTime(started).TotalMilliseconds, exception);
             throw;
         }
     }
@@ -137,6 +153,8 @@ public sealed class NetworkServiceClient : IAsyncDisposable
     {
         if (Volatile.Read(ref _disposed) != 0) throw new ObjectDisposedException(nameof(NetworkServiceClient));
     }
+
+    private enum RequestOperation { Unknown, Subscribe, Snapshot, Unsubscribe }
 
     // Request data rights explicitly; GENERIC_WRITE can include FILE_CREATE_PIPE_INSTANCE.
     internal static async Task<NamedPipeClientStream> ConnectProtectedPipeAsync(string pipeName, CancellationToken token)

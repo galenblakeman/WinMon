@@ -34,6 +34,46 @@ public sealed class NetworkMonitoringControllerTests
     }
 
     [Test]
+    [NonParallelizable]
+    public async Task SnapshotDiagnostics_RecordCoverageAndCollectorFailureWithoutProcessMetadata()
+    {
+        var folder = Path.Combine(Path.GetTempPath(), "WinMon.NetworkQualityTests." + Guid.NewGuid().ToString("N"));
+        try
+        {
+            using (var log = new WinMon.Diagnostics.DiagnosticLog(folder, "App"))
+            {
+                System.Diagnostics.Trace.Listeners.Add(log);
+                var connection = new DiagnosticConnection { Unavailable = true };
+                await using var controller = new NetworkMonitoringController(_ => Task.FromResult<INetworkMonitoringConnection>(connection),
+                    (_, _, _) => throw new AssertionException("No setup needed"), () => true);
+                await controller.RestoreAsync(true, default);
+                connection.Unavailable = false;
+                await controller.ChangeAsync(true, default);
+            }
+            var text = File.ReadAllText(Path.Combine(folder, "winmon.log"));
+            Assert.That(text, Does.Contain("reasons=NativeLoss"));
+            Assert.That(text, Does.Contain("failure=ClockDiscontinuity"));
+            Assert.That(text, Does.Contain("eventsLost=3 lateEvents=4 droppedEvents=5"));
+            Assert.That(text, Does.Contain("windowMs=5000 lagMs=3000"));
+            Assert.That(text, Does.Not.Contain("987654"));
+        }
+        finally { if (Directory.Exists(folder)) Directory.Delete(folder, true); }
+    }
+
+    private sealed class DiagnosticConnection : INetworkMonitoringConnection
+    {
+        internal bool Unavailable { get; set; }
+        public Task SubscribeAsync(CancellationToken token) => Task.CompletedTask;
+        public Task<ProcessNetworkSnapshot> SnapshotAsync(CancellationToken token) => Task.FromResult(
+            new ProcessNetworkSnapshot(Guid.NewGuid(), 1, 110, 10, 30, 80,
+                ProcessNetworkQuality.Incomplete | (Unavailable ? ProcessNetworkQuality.Unavailable : ProcessNetworkQuality.Provisional),
+                3, 4, [new ProcessNetworkReading(987654, 987654, 123, 456, 10, 20)])
+            { IncompleteReasons = ProcessNetworkIncompleteReason.NativeLoss, DroppedEvents = 5,
+                Failure = Unavailable ? ProcessNetworkFailure.ClockDiscontinuity : ProcessNetworkFailure.None });
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+    }
+
+    [Test]
     public async Task LogicalSessionSurvivesRepairAndOnlyExplicitDisableStartsOver()
     {
         var available = false;
