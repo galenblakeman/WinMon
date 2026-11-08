@@ -12,7 +12,7 @@ From the repository root:
 
 ```powershell
 ./tools/Install-InnoSetup.ps1
-./tools/New-Release.ps1 -ExpectedTag v3.5.0 -CodeSign -UpdateSigningKeyPath C:\secure\winmon-update-private.pem
+./tools/New-Release.ps1 -ExpectedTag v4.0.1 -CodeSign -UpdateSigningKeyPath C:\secure\winmon-update-private.pem
 ```
 
 The compiler bootstrap downloads the pinned vendor release, verifies its SHA-256 and Authenticode signature, and installs it per-user under `artifacts/toolchain`. It also registers the compiler's own uninstaller with Windows. An existing compiler can instead be supplied with `-InnoCompiler path/to/ISCC.exe`; use version 6.7.3.
@@ -42,7 +42,7 @@ Build the additional Store channel with `tools/New-MsixPackage.ps1`. See [MSIX p
 Use a clean Windows user profile or disposable VM/CI runner:
 
 ```powershell
-./tools/Test-Installer.ps1 -InstallerPath ./artifacts/releases/1.0.0/WinMon-1.0.0-Setup-x64.exe
+./tools/Test-Installer.ps1 -InstallerPath ./artifacts/releases/4.0.1/WinMon-4.0.1-Setup-x64.exe
 ```
 
 This refuses to run if a WinMon installer registration, startup entry or app shortcut already exists. It checks the running-app mutex, silent installation, uninstall metadata, shortcut target, the installed executable's native smoke run, same-version repair, portable preference preservation, and cleanup of app-owned startup/hotkey integration. Logs and smoke evidence remain under `artifacts/installer-validation`. This repair test does not replace a real older-to-newer version upgrade test before subsequent releases.
@@ -57,7 +57,7 @@ For each release:
 
 1. Set `Version` in `Directory.Build.props` and its matching four-part `assemblyIdentity version` in `src/WinMon/app.manifest`. Update the README version.
 2. Review and commit the intended source and packaging changes. Test the installation and upgrade on the supported Windows versions you intend to advertise.
-3. Create and push the matching tag (for example `v1.0.0`). This is a separate publishing action; the local scripts never commit, tag or push.
+3. Create and push the matching tag (for example `v4.0.1`). This is a separate publishing action; the local scripts never commit, tag or push.
 4. Review the workflow results, draft release notes, assets, checksums and signing status. Publish the draft when ready.
 
 Once a release is public, keep its assets unchanged: WinGet URLs and hashes refer to those exact bytes. Ship corrections under a new version. If adding signatures later, sign the application before packaging and the installer before generating WinGet manifests/checksums.
@@ -71,7 +71,7 @@ For service-only native acceptance before a release, the manual `Build signed ne
 Generating manifests does not publish a package to WinGet. First publish the GitHub release so the versioned installer URL is publicly downloadable. Then extract `WinMon-<version>-winget.zip` and validate its version directory:
 
 ```powershell
-winget validate --manifest ./manifests/g/GalenBlakeman/WinMon/1.0.0
+winget validate --manifest ./manifests/g/GalenBlakeman/WinMon/4.0.1
 ```
 
 Copy that directory into a fork of [`microsoft/winget-pkgs`](https://github.com/microsoft/winget-pkgs) and submit a pull request. Follow Microsoft's [submission instructions](https://learn.microsoft.com/windows/package-manager/package/repository) and [validation requirements](https://learn.microsoft.com/windows/package-manager/package/winget-validation). Local schema validation does not prove acceptance or a working public download URL. Recheck the downloaded release asset's SHA-256 before submission.
