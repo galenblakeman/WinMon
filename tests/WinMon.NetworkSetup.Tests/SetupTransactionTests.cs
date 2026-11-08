@@ -256,7 +256,7 @@ public sealed class SetupTransactionTests
     [Test]
     public void RevocationTransaction_PreservesRecoveryBackupWhenRollbackFails()
     {
-        var root = Path.Combine(TestContext.CurrentContext.WorkDirectory, Guid.NewGuid().ToString("N"));
+        var root = Path.Combine(Path.GetTempPath(), $"WinMon-revocation-{Guid.NewGuid():N}");
         Directory.CreateDirectory(root);
         var policy = Path.Combine(root, "allowed-users.json");
         var replacement = Path.Combine(root, "replacement.json");
@@ -265,9 +265,11 @@ public sealed class SetupTransactionTests
         File.WriteAllText(replacement, "new");
         try
         {
-            Assert.That(() => RevocationTransaction.Execute(new(true, true, []), replacement, policy, backup,
-                () => { }, () => { }, () => throw new IOException("start"), () => throw new IOException("restore"),
-                File.Copy), Throws.TypeOf<AggregateException>());
+            var failure = Assert.Throws<AggregateException>(() => RevocationTransaction.Execute(new(true, true, []),
+                replacement, policy, backup, () => { }, () => { }, () => throw new IOException("start"),
+                () => throw new IOException("restore"), File.Copy));
+            Assert.That(failure!.InnerExceptions.Select(exception => exception.Message),
+                Is.EqualTo(new[] { "start", "restore" }));
             Assert.That(File.Exists(backup), Is.True);
             Assert.That(File.ReadAllText(policy), Is.EqualTo("old"));
             Assert.That(File.ReadAllText(backup), Is.EqualTo("old"));
