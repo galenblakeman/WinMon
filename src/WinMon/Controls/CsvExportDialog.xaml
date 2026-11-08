@@ -66,9 +66,15 @@
         <RadioButton x:Name="ProcessChoice" GroupName="ExportData" Margin="8,0,0,9"
                      Checked="OnChoiceChanged"
                      Content="{Binding [ExportProcessSamples], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
-        <RadioButton x:Name="UsageChoice" GroupName="ExportData" Margin="8,0,0,0"
+        <RadioButton x:Name="UsageChoice" GroupName="ExportData" Margin="8,0,0,9"
                      Checked="OnChoiceChanged"
                      Content="{Binding [ExportUsageTotals], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+        <RadioButton x:Name="ServiceChoice" GroupName="ExportData" Margin="8,0,0,9"
+                     Checked="OnChoiceChanged"
+                     Content="{Binding [Services], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+        <RadioButton x:Name="ConnectionChoice" GroupName="ExportData" Margin="8,0,0,0"
+                     Checked="OnChoiceChanged"
+                     Content="{Binding [ConnectionsTab], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
         <Separator Margin="0,18,0,0" />
         <StackPanel x:Name="TimeChoices">
             <TextBlock Margin="0,15,0,9" FontWeight="SemiBold"

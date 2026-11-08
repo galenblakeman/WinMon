@@ -141,7 +141,7 @@ internal static class Program
         var connectionProcesses = session.LatestFull!.Processes.Take(60).ToArray();
         var endpoints = connectionProcesses.SelectMany(process => Enumerable.Range(0, 8).Select(index =>
             new NetworkConnection(process.ProcessId, process.CreationTicks, TransportProtocol.Tcp,
-                new System.Net.IPEndPoint(System.Net.IPAddress.Loopback, 50000 + index),
+                new System.Net.IPEndPoint(System.Net.IPAddress.Parse("192.168.1.25"), 50000 + index),
                 new System.Net.IPEndPoint(System.Net.IPAddress.Parse("203.0.113.24"), 443),
                 System.Net.NetworkInformation.TcpState.Established))).ToArray();
         window.ConnectionView.Load(new WinMon.Controls.ConnectionListSettings(0));

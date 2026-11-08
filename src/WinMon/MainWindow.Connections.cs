@@ -12,7 +12,8 @@ public partial class MainWindow
 
     private static ConnectionListSettings ConnectionSettings(MonitorPreferences preferences) =>
         new(preferences.TopConnectionCount, (ConnectionSort)preferences.ConnectionSortColumn,
-            preferences.ConnectionAppsOnly, preferences.ConnectionPinnedOnly);
+            preferences.ConnectionAppsOnly, preferences.ConnectionPinnedOnly,
+            preferences.ConnectionTrafficSeconds);
 
     private void InitializeConnections()
     {
@@ -23,10 +24,15 @@ public partial class MainWindow
         };
         ConnectionView.CanShowInProcesses = process =>
             (SelectedSample ?? Session.LatestFull)?.Processes.Any(current => current.Identity == process.Identity) == true;
-        ConnectionView.SettingsChanged += settings => _preferences = _preferences with
+        ConnectionView.SettingsChanged += settings =>
         {
-            TopConnectionCount = settings.TopCount, ConnectionSortColumn = (int)settings.Sort,
-            ConnectionAppsOnly = settings.AppsOnly, ConnectionPinnedOnly = settings.PinnedOnly
+            _preferences = _preferences with
+            {
+                TopConnectionCount = settings.TopCount, ConnectionSortColumn = (int)settings.Sort,
+                ConnectionAppsOnly = settings.AppsOnly, ConnectionPinnedOnly = settings.PinnedOnly,
+                ConnectionTrafficSeconds = settings.TrafficSeconds
+            };
+            RefreshConnections();
         };
         ConnectionView.CopyRequested += details => CopyProcessDetails(ConnectionDetailsAtMoment(details));
         ConnectionView.PropertiesRequested += (name, details) =>
@@ -64,28 +70,29 @@ public partial class MainWindow
             frame?.Available == true ? (uint)frame.Connections.Count(c => c.Protocol == TransportProtocol.Tcp) : null,
             frame?.Available == true ? (uint)frame.Connections.Count(c => c.Protocol == TransportProtocol.Udp) : null,
             "TCP", "UDP", ref _connectionCounts);
-        var ratesAvailable = network is not null &&
-            (network.Quality & (ProcessNetworkQuality.Unavailable | ProcessNetworkQuality.WarmingUp)) == 0;
-        var readings = network?.Processes.Where(reading => network.CurrentLifetimes is null ||
-            network.CurrentLifetimes.Contains(new ProcessLifetimeIdentity(reading.ProcessId, reading.CreationTicks,
-                ProcessLifetimeIdentity.WindowsFileTime))).ToArray() ?? [];
-        double? receive = ratesAvailable && readings.All(reading => reading.ReceiveBytesPerSecond is >= 0)
-            ? readings.Sum(reading => reading.ReceiveBytesPerSecond!.Value) : null;
-        double? send = ratesAvailable && readings.All(reading => reading.SendBytesPerSecond is >= 0)
-            ? readings.Sum(reading => reading.SendBytesPerSecond!.Value) : null;
-        ConnectionTrafficValue.Text = networkEnabled
-            ? $"  ·  ↓ {ConnectionsView.NetworkRate(receive)}  ↑ {ConnectionsView.NetworkRate(send)}" : "";
+        var end = _diagnosticMode && SelectedSample is null && Session.LatestFull is { } latest
+            ? new ConnectionCapture(latest, frame, owners, network) : capture;
+        var history = networkEnabled ? Session.Connections.Captures.Where(past => end is not null &&
+            CpuGraph.Moment(past.Sample) <= CpuGraph.Moment(end.Sample)).ToArray() : [];
+        var totals = networkEnabled ? ConnectionTrafficTotals.Build(history, end, _preferences.ConnectionTrafficSeconds) : null;
+        var sum = totals?.Sum() ?? (0L, 0L);
+        var prefix = totals?.Incomplete == true ? "≈ " : "";
+        ConnectionVolumeValue.Text = networkEnabled
+            ? $"  ·  {Strings.History}: " +
+                $"↓ {(totals?.Available == true ? prefix + UsageText.Bytes(sum.Item1) : Strings.MissingReading)} | " +
+                $"↑ {(totals?.Available == true ? prefix + UsageText.Bytes(sum.Item2) : Strings.MissingReading)}" : "";
         var details = $"TCP: {ExactCount(_connectionCounts?.Total)}\nUDP: {ExactCount(_connectionCounts?.Secondary)}";
         if (networkEnabled)
-            details += $"\n{Strings.ConnectionsNetworkOwnerTotals}\n{Strings.ConnectionsReceiveRate}: {ConnectionsView.NetworkRate(receive)}\n{Strings.ConnectionsSendRate}: {ConnectionsView.NetworkRate(send)}";
+            details += $"\n{Strings.ConnectionsNetworkOwnerTotals}\n{Strings.ConnectionsRateTiming}";
         if (frame?.PartiallyAvailable == true) details = $"{Strings.ConnectionsPartial}\n{details}";
         if (SelectedSample is not null && frame is null) details = $"{Strings.ConnectionsHistoryUnavailable}\n{details}";
+        if (networkEnabled)
+            details += $"\n{(_preferences.ConnectionTrafficSeconds == 0 ? Strings.ConnectionsSinceStart : Strings.Format(Strings.GaugePeakWindowMinutes, _preferences.ConnectionTrafficSeconds / 60))}" +
+                $"\n{ConnectionVolumeValue.Text.Trim()}\n{ConnectionsView.TrafficDetails(totals)}";
         ConnectionCounts.ToolTip = details;
         System.Windows.Automation.AutomationProperties.SetName(ConnectionCounts, details);
         if (!_preferences.ActivityPanelCollapsed)
             ConnectionView.Update(frame, owners, SelectedSample is not null, network, networkEnabled,
-                networkEnabled ? Session.Connections.Captures.Where(past => capture is not null &&
-                    CpuGraph.Moment(past.Sample) <= CpuGraph.Moment(capture.Sample) &&
-                    CpuGraph.Moment(past.Sample) >= CpuGraph.Moment(capture.Sample) - MonitorPreferences.ShortRangeSeconds).ToArray() : null);
+                history, end, totals);
     }
 }

@@ -1,0 +1,13 @@
+# Chart resource legend
+
+Move resource visibility checkboxes out of the gauge bar and into the top of the chart body. The selected concept is an inside-chart legend shared by Overlay, Small multiples, Heatmap and Focus. Center a compact, wrapping legend in its own row above the plot, retaining the themed background and border. A compact cog button beside the chart selector hides or restores only the legend, reclaiming its row while leaving the graph and selected resources unchanged. Its tooltip and accessible expand/collapse state follow the legend; its accessible name is Resources. The choice lasts for the current window session. Hide both legend and button for Logical processors; disable the button while the chart is collapsed. Gauge labels remain plain in Full and Compact views.
+
+Reuse the existing resource checkboxes, colors, localized labels, accessible names and saved series mask. Include the second disk only when configured and keep drive letters distinct. Unchecked resources stay in the legend so they can be restored. Preserve the existing Focus behavior: hiding the focused resource selects another visible resource; choosing a hidden Focus resource enables it. Gauge readings and collection continue regardless of chart visibility.
+
+Full-view gauges retain keyboard focus, the existing focus outline and detail tooltips. The chart collapse control recovers focus when a legend checkbox is hidden. Chart smoke checks ownership, chart-type visibility, narrow German labels with two disks, collapse focus recovery and expansion; the existing gauge, compact, feature and snapshot smokes cover the surrounding layouts.
+
+## Landed result and departures
+
+Implemented in `MainWindow.xaml`, `MainWindow.xaml.cs`, `MainWindow.ActivityPanel.cs`, `MainWindow.Details.cs` and `MetricReadout.cs`. Native checkboxes use 12-DIP text and tighter spacing in a centered, bordered row within `ChartBody`, above the plot. The graph and snapshot layer share the next row. The chart minimum height includes the legend height to preserve capture actions in short windows. Existing resource state and translations are reused. No new settings or dependencies. Focus retains its existing automatic selection behavior rather than disabling its checkbox.
+
+The Resources disclosure follows selected mockup A. The toolbar’s left group wraps at narrow widths so the button does not cover Live/Capture. Added smoke assertions cover hiding and restoring controls without changing the series mask or hiding the plot. Tests and smokes remain stopped at the user's request; the latest disclosure has not been exercised interactively.

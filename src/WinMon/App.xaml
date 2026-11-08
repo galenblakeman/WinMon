@@ -53,6 +53,7 @@
             </Setter>
         </Style>
         <SolidColorBrush x:Key="SnapshotAccentText" Color="#07171B" />
+        <SolidColorBrush x:Key="AccentButtonText" Color="#000000" />
         <Style x:Key="ChartModeSegment" TargetType="RadioButton">
             <Setter Property="Foreground" Value="{DynamicResource Text}" />
             <Setter Property="FontSize" Value="12" />

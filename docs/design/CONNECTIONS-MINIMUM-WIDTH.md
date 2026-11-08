@@ -1,0 +1,5 @@
+# Connections at minimum width
+
+Keep every Connections column visible at the existing 836-DIP minimum window width. Reduce the enabled-network row minimum from 993 to 798 DIPs and its header minimum from 975 to 780, preserving the existing 18-DIP header allowance. Use 100 DIPs for history, 80 for each rate, 82 for each byte total and 44 for each TCP/UDP count. History graphs retain 8-DIP horizontal insets. The Top and sort dropdowns use the same content-driven sizing as Processes, with minimum widths of 60 and 90 DIPs respectively. The period dropdown follows Loopback at the end of the filter bar and uses abbreviated minute labels. App names take the remaining space and retain their existing ellipsis and full-name tooltip.
+
+Landed as width and spacing changes in ConnectionsView.xaml and its existing row/header width assignments. No columns, counters or interactions were removed. This uses one compact set of widths rather than adding another layout mode. Tests, smoke runs and benchmarks were not run because the user requested that testing stop; translated headers and live minimum-width rendering remain unverified.

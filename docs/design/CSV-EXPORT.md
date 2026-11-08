@@ -9,8 +9,8 @@ Let a normal user save WinMon's existing observations for a spreadsheet or analy
 ## Interaction
 
 - **Export** sits beside Settings in the Full-view title bar, so it is available from Processes, Services and Usage. It is hidden in Compact view.
-- The modal dialog defaults to process samples from Processes, Usage totals from Usage, and resource history from Services. Users can choose another dataset.
-- Resource and process exports offer all retained history or the current chart range. Usage totals are cumulative since start or Reset, so the time controls are hidden for that choice.
+- The modal dialog defaults to process samples from Processes, Usage totals from Usage, and Services observations from Services and Connections observations from Connections. Users can choose another dataset.
+- Resource, process, Services and Connections exports offer all retained history or the current chart range. Usage totals are cumulative since start or Reset, so the time controls are hidden for that choice.
 - The dialog proposes a dated file name, then the Windows Save dialog chooses the actual location and confirms overwrite. Save writes a sibling temporary file and replaces the destination only after completion. The UI remains responsive while it writes; exit waits for a write in progress.
 
 ## Data contract
@@ -30,3 +30,7 @@ The concept showed “Current session” as a time choice; the implementation sa
 Save CSV and Cancel use the standard button appearance and vector icon treatment. This replaces the earlier accent and Slate-specific Save CSV fills, which could resemble a disabled button.
 
 Export was later hidden in Compact view to keep its title bar focused on the live gauges. Full view restores the button.
+
+## Services and Connections extension — 2026-11-08
+
+Landed in the existing dialog, tab-based defaults, CsvExport writer and export tests. Services exports retained service metadata and host-only readings, including stopped services; host readings repeat for shared services and exclude workers. Connections exports retained individual TCP/UDP endpoints with lifetime-matched owner metadata and address-family availability, independent of UI filters/grouping. Traffic counters remain excluded because they describe owners rather than individual sockets. Empty and unavailable frames retain timestamp/availability rows. Both datasets support retained history or chart range and keep their existing in-memory retention limits. Feature smoke covers both new dialog defaults.

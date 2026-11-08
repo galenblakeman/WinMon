@@ -1766,9 +1766,9 @@ Windows 健康状态：{2}</value>
   <data name="ConnectionsUdpCount" xml:space="preserve"><value>UDP 数量</value></data>
   <data name="ConnectionsHistoryUnavailable" xml:space="preserve"><value>此采样的连接历史不可用。</value></data>
   <data name="ConnectionsHistoryNote" xml:space="preserve"><value>所选采样时观测到的连接。速率为延迟的五秒平均值，通常截至采集前三秒。</value></data>
-  <data name="ConnectionsEnableTrafficMonitoring" xml:space="preserve"><value>启用流量监控…</value></data>
-  <data name="ConnectionsTrafficRankingUnavailable" xml:space="preserve"><value>启用进程流量监控以按接收/发送速率排序。</value></data>
-  <data name="ConnectionsHistoryHelp" xml:space="preserve"><value>过去两分钟的接收与发送流量之和，所有行使用同一刻度。空缺表示读数不可用。流量属于进程或可执行文件，而非单个连接。</value></data>
+  <data name="ConnectionsEnableTrafficMonitoring" xml:space="preserve"><value>启用监控…</value></data>
+  <data name="ConnectionsTrafficRankingUnavailable" xml:space="preserve"><value>启用进程流量监控以按流量排序。</value></data>
+  <data name="ConnectionsHistoryHelp" xml:space="preserve"><value>所选时间段内的接收和发送流量，所有行使用同一刻度。空缺表示读数不可用。流量属于进程或可执行文件，而非单个连接。</value></data>
   <data name="ConnectionsNoObservedEndpoints" xml:space="preserve"><value>未观测到连接</value></data>
   <data name="PinService" xml:space="preserve"><value>固定服务</value></data>
   <data name="UnpinService" xml:space="preserve"><value>取消固定服务</value></data>
@@ -1779,4 +1779,37 @@ Windows 健康状态：{2}</value>
   <data name="OpenLogsFolder" xml:space="preserve"><value>打开日志文件夹</value></data>
   <data name="OpenLogsFolderHelp" xml:space="preserve"><value>打开包含 WinMon 诊断日志的文件夹。</value></data>
   <data name="OpenLogsFolderFailed" xml:space="preserve"><value>无法打开日志文件夹。日志记录可能不可用，或者文件夹已不存在。</value></data>
+  <data name="ConnectionsTrafficPeriod" xml:space="preserve"><value>流量时间段</value></data>
+  <data name="ConnectionsLastMinute" xml:space="preserve"><value>最近1分</value></data>
+  <data name="ConnectionsLastFiveMinutes" xml:space="preserve"><value>最近5分</value></data>
+  <data name="ConnectionsLastThirtyMinutes" xml:space="preserve"><value>最近30分</value></data>
+  <data name="ConnectionsSinceStart" xml:space="preserve"><value>监测开始以来</value></data>
+  <data name="ConnectionsReceived" xml:space="preserve"><value>已接收</value></data>
+  <data name="ConnectionsSent" xml:space="preserve"><value>已发送</value></data>
+  <data name="ConnectionsTrafficHelp" xml:space="preserve"><value>所选时间段内观测到的进程流量。选项卡总计包含所有进程，不受筛选或排名限制影响。≈ 表示记录不完整。</value></data>
+  <data name="ConnectionsTrafficCoverage" xml:space="preserve"><value>已记录时间：{0}秒。</value></data>
+  <data name="ExportServiceNote" xml:space="preserve"><value>保留的服务观测记录。共享服务会重复主机指标，请勿求和。不包含工作进程。</value></data>
+  <data name="ExportConnectionNote" xml:space="preserve"><value>保留的 TCP/UDP 端点及所属进程。不包含每个连接的流量计数器。按地址族记录可用性。</value></data>
+  <data name="ConnectionsTrafficMonitoringOff" xml:space="preserve"><value>流量监控已关闭</value></data>
+  <data name="ConnectionsTrafficMonitoringBenefit" xml:space="preserve"><value>查看每个应用的下载和上传速率。</value></data>
+  <data name="CaptureThresholdHelp" xml:space="preserve"><value>当读数超过此值时捕获（{0}）。</value></data>
+  <data name="CaptureDurationHelp" xml:space="preserve"><value>读数连续超过阈值多少秒后才可触发捕获。</value></data>
+  <data name="ServiceWorkersHelp" xml:space="preserve"><value>将工作进程计入服务组的资源总量。</value></data>
+  <data name="ServiceRankingHelp" xml:space="preserve"><value>按五秒平均 CPU 或 I/O、当前专用内存或名称排列服务组。</value></data>
+  <data name="UsageRankingHelp" xml:space="preserve"><value>按自上次重置以来的累计值、进程数或最近活动排列应用。</value></data>
+  <data name="ConnectionsRankingHelp" xml:space="preserve"><value>按接收/发送速率、所选时段的接收/发送字节数或 TCP/UDP 终结点数排序。速率为五秒平均值。</value></data>
+  <data name="PinnedOnlyHelp" xml:space="preserve"><value>仅显示固定的行。其他筛选条件仍然适用。</value></data>
+  <data name="KilobytesPerSecond" xml:space="preserve"><value>KB/s</value></data>
+  <data name="MegabytesPerSecond" xml:space="preserve"><value>MB/s</value></data>
+  <data name="GigabytesPerSecond" xml:space="preserve"><value>GB/s</value></data>
+  <data name="ConnectionsRateTiming" xml:space="preserve"><value>连接速率是一个5秒窗口内的平均值，该窗口通常在当前时间的3秒前结束，以等待网络事件到达。仪表使用适配器的最新采样，因此数值可能不同。</value></data>
+  <data name="ChartResources" xml:space="preserve">
+    <value>资源</value>
+  </data>
+  <data name="ShowChartResources" xml:space="preserve">
+    <value>显示资源控件</value>
+  </data>
+  <data name="HideChartResources" xml:space="preserve">
+    <value>隐藏资源控件</value>
+  </data>
 </root>

@@ -411,6 +411,36 @@ public sealed class SettingsLayoutTests
         }
     }
 
+    [TestCase(0.1)]
+    [TestCase(50)]
+    [TestCase(100_000)]
+    public void NetworkCaptureThreshold_DisplaysBytesAndPreservesStoredMegabits(double stored)
+    {
+        var preferences = new MonitorPreferences();
+        var window = Settings(preferences with
+        {
+            AutoCapture = preferences.AutoCapture with
+            {
+                Rules = CaptureRuleSetting.Defaults.Select(rule => rule.Metric == CaptureMetric.Network
+                    ? rule with { Threshold = stored } : rule).ToArray()
+            }
+        });
+        try
+        {
+            var box = Descendants(window.AutoCapture).OfType<TextBox>().Single(control =>
+                AutomationProperties.GetName(control) == Strings.Format(Strings.AutoCaptureThresholdFor, Strings.Network));
+            Assert.That(double.Parse(box.Text, CultureInfo.CurrentCulture), Is.EqualTo(stored / 8));
+            Assert.That(window.AutoCapture.Read(out _, out _)!.Rules.Single(rule => rule.Metric == CaptureMetric.Network).Threshold,
+                Is.EqualTo(stored));
+            box.Text = 1d.ToString(CultureInfo.CurrentCulture);
+            Assert.That(window.AutoCapture.Read(out _, out _)!.Rules.Single(rule => rule.Metric == CaptureMetric.Network).Threshold,
+                Is.EqualTo(8));
+            box.Text = 12501d.ToString(CultureInfo.CurrentCulture);
+            Assert.That(window.AutoCapture.Read(out _, out _), Is.Null);
+        }
+        finally { window.Close(); }
+    }
+
     [TestCase("250")]
     [TestCase("NaN")]
     public void CaptureRead_NamesTheFieldToFix(string threshold)

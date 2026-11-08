@@ -183,6 +183,8 @@ public sealed class PreferenceStore
             Width = ClampFinite(preferences.Width, 600, 600, 2000),
             Height = ClampFinite(preferences.Height, 840, 160, 1500),
             ActivityPanelRatio = ClampFinite(preferences.ActivityPanelRatio, 1.25, 0.05, 20),
+            SelectedActivityTab = preferences.SelectedActivityTab is >= 0 and <= 3
+                ? preferences.SelectedActivityTab : 0,
             Left = ValidateCoordinate(preferences.Left),
             Top = ValidateCoordinate(preferences.Top),
             Theme = NormalizeTheme(preferences.Theme),
@@ -210,7 +212,9 @@ public sealed class PreferenceStore
             TopUsageCount = TopCountChoices.IsSupported(preferences.TopUsageCount) ? preferences.TopUsageCount : 20,
             UsageSortColumn = preferences.UsageSortColumn is >= 0 and <= 4 ? preferences.UsageSortColumn : 0,
             TopConnectionCount = TopCountChoices.IsSupported(preferences.TopConnectionCount) ? preferences.TopConnectionCount : 10,
-            ConnectionSortColumn = preferences.ConnectionSortColumn is >= 0 and <= 3 ? preferences.ConnectionSortColumn : 0,
+            ConnectionSortColumn = preferences.ConnectionSortColumn is >= 0 and <= 5 ? preferences.ConnectionSortColumn : 0,
+            ConnectionTrafficSeconds = preferences.ConnectionTrafficSeconds is 0 or 60 or 300 or 1800
+                ? preferences.ConnectionTrafficSeconds : 300,
             ProcessSort = preferences is { SortByGpu: true, ProcessSort: ProcessSort.Cpu } ? ProcessSort.Gpu
             : Enum.IsDefined(preferences.ProcessSort) ? preferences.ProcessSort : ProcessSort.Cpu,
             SortByGpu = false,

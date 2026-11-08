@@ -59,6 +59,9 @@ public static class ButtonIcon
         Create(
             "M 2,4 L 5,4 M 9,4 L 14,4 M 2,12 L 9,12 M 13,12 L 14,12 M 5,2 L 9,2 L 9,6 L 5,6 Z M 9,10 L 13,10 L 13,14 L 9,14 Z");
 
+    public static Geometry Cog { get; } = Create(
+        "M 6.5,1 L 9.5,1 L 10,3 L 11.2,3.7 L 13.2,3.1 L 14.7,5.7 L 13.2,7.1 L 13.2,8.9 L 14.7,10.3 L 13.2,12.9 L 11.2,12.3 L 10,13 L 9.5,15 L 6.5,15 L 6,13 L 4.8,12.3 L 2.8,12.9 L 1.3,10.3 L 2.8,8.9 L 2.8,7.1 L 1.3,5.7 L 2.8,3.1 L 4.8,3.7 L 6,3 Z M 8,5.5 A 2.5,2.5 0 1 1 8,10.5 A 2.5,2.5 0 1 1 8,5.5");
+
     public static Geometry Info { get; } = Create("M 8,1 A 7,7 0 1 1 8,15 A 7,7 0 1 1 8,1 M 8,7 L 8,12 M 8,4 L 8,5");
     public static Geometry Cancel { get; } = Create("M 3,3 L 13,13 M 13,3 L 3,13");
 

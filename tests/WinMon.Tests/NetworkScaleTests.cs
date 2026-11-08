@@ -39,19 +39,27 @@ public sealed class NetworkScaleTests
         });
     }
 
-    [TestCase(0, "0 Kbps")]
-    [TestCase(850_000, "850 Kbps")]
-    [TestCase(1_234_000, "1.23 Mbps")]
-    [TestCase(12_340_000, "12.3 Mbps")]
-    [TestCase(2_500_000_000, "2.5 Gbps")]
+    [TestCase(0, "0 KB/s")]
+    [TestCase(952_000, "119 KB/s")]
+    [TestCase(153_300, "19.2 KB/s")]
+    [TestCase(8_000_000, "1 MB/s")]
+    [TestCase(98_720_000, "12.3 MB/s")]
+    [TestCase(20_000_000_000, "2.5 GB/s")]
     public void RateText_UsesThreeSignificantDigitsAndAdaptiveUnit(double bits, string expected)
     {
         Assert.That(RateText.Format(bits), Is.EqualTo(expected));
     }
 
-    [TestCase(36_300_000, 1_000_000, "↓36.3 ↑1 Mbps")]
-    [TestCase(1_010_000, 200_000, "↓1.01 ↑0.2 Mbps")]
-    [TestCase(0, 0, "↓0 ↑0 Kbps")]
+    [TestCase(100_000_000, "100 Mbps")]
+    [TestCase(2_500_000_000, "2.5 Gbps")]
+    public void LinkSpeed_RetainsBitUnits(double bits, string expected)
+    {
+        Assert.That(RateText.LinkSpeed(bits), Is.EqualTo(expected));
+    }
+
+    [TestCase(36_300_000, 1_000_000, "↓4.54 ↑0.13 MB/s")]
+    [TestCase(1_010_000, 200_000, "↓126 ↑25 KB/s")]
+    [TestCase(0, 0, "↓0 ↑0 KB/s")]
     public void RateText_PairSharesTheLargerRatesUnit(double rx, double tx, string expected)
     {
         Assert.That(RateText.Pair(rx, tx), Is.EqualTo(expected));

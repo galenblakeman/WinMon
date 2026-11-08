@@ -217,6 +217,27 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                 chartType == ResourceChartType.Focus ? 0 : null);
             if (window.Preferences.ResourceChartType != chartType || window.OverallGraph.ChartType != chartType)
                 throw new InvalidOperationException($"The {chartType} chart choice did not apply.");
+            if (window.ChartLegend.IsVisible != (chartType != ResourceChartType.LogicalProcessors))
+                throw new InvalidOperationException($"The {chartType} resource legend has the wrong visibility.");
+            if (window.ChartResourcesToggle.IsVisible != (chartType != ResourceChartType.LogicalProcessors))
+                throw new InvalidOperationException($"The {chartType} resource disclosure has the wrong visibility.");
+            if (chartType != ResourceChartType.LogicalProcessors)
+            {
+                var selectedResources = window.Preferences.SeriesMask;
+                window.ChartResourcesToggle.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+                window.RefreshPresentation();
+                if (window.ChartLegend.IsVisible || !window.OverallGraph.IsVisible ||
+                    window.Preferences.SeriesMask != selectedResources)
+                    throw new InvalidOperationException("Hiding resource controls changed the plot or selected resources.");
+                window.ChartResourcesToggle.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+                if (!window.ChartLegend.IsVisible || window.Preferences.SeriesMask != selectedResources)
+                    throw new InvalidOperationException("Showing resource controls did not restore the legend and selections.");
+            }
+            foreach (var metric in new[] { window.CpuMetric, window.MemoryMetric, window.DiskMetric,
+                         window.NetworkMetric, window.GpuMetric })
+                if (metric.ShowSeriesToggle || !metric.Toggle.IsDescendantOf(window.ChartLegend) ||
+                    !metric.Focusable || string.IsNullOrEmpty(AutomationProperties.GetName(metric.Toggle)))
+                    throw new InvalidOperationException("Resource controls must belong to the chart, with accessible gauge details.");
             if (chartType == ResourceChartType.Focus)
             {
                 window.CpuMetric.Toggle.IsChecked = false;
@@ -255,6 +276,39 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
             throw new InvalidOperationException("Selecting a hidden focus resource did not show it again.");
         await CaptureAsync(Path.Combine(outputDirectory, "chart-focus-network.png"), 1, cancellationToken);
         window.ChartTypeSelector.SelectedItem = ChartChoiceItem(window, ResourceChartType.Overlay);
+        var legendPreferences = window.Preferences;
+        var legendWidth = window.Width;
+        try
+        {
+            window.Preferences = legendPreferences with { Language = "de", SecondaryDrive = "D:" };
+            window.ApplyLanguage();
+            window.Width = window.MinWidth;
+            window.RefreshPresentation();
+            window.UpdateLayout();
+            foreach (var host in window.ChartLegend.Children.OfType<ContentControl>())
+            {
+                var toggle = (System.Windows.Controls.CheckBox)host.Content;
+                var bounds = toggle.TransformToAncestor(window.ChartLegend).TransformBounds(new Rect(toggle.RenderSize));
+                if (!toggle.IsVisible || bounds.Left < 0 || bounds.Right > window.ChartLegend.ActualWidth + 1 ||
+                    bounds.Bottom > window.ChartLegend.ActualHeight + 1)
+                    throw new InvalidOperationException("The narrow German resource legend clipped a configured resource.");
+            }
+            await CaptureAsync(Path.Combine(outputDirectory, "chart-legend-narrow-german.png"), 1, cancellationToken);
+            window.CpuMetric.Toggle.Focus();
+            window.SetChartPanelCollapsed(true);
+            if (window.ChartLegend.IsVisible || !window.ChartPanelToggle.IsKeyboardFocused)
+                throw new InvalidOperationException("Collapsing the chart did not hide its legend and recover focus.");
+            window.SetChartPanelCollapsed(false);
+            if (!window.ChartLegend.IsVisible)
+                throw new InvalidOperationException("Expanding the chart did not restore its legend.");
+        }
+        finally
+        {
+            window.Preferences = legendPreferences;
+            window.Width = legendWidth;
+            window.ApplyLanguage();
+            window.RefreshPresentation();
+        }
     }
 
     private static ComboBoxItem ChartChoiceItem(MainWindow target, ResourceChartType type, int? metric = null)
@@ -517,7 +571,8 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
             foreach (var (theme, kind) in new[]
                      {
                          ("Dark", CsvExportKind.UsageTotals), ("Light", CsvExportKind.ResourceHistory),
-                         ("Slate", CsvExportKind.ProcessSamples)
+                         ("Slate", CsvExportKind.ProcessSamples), ("Dark", CsvExportKind.Services),
+                         ("Light", CsvExportKind.Connections)
                      })
             {
                 window.Preferences = exportTheme with { Theme = theme };
@@ -539,7 +594,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                         ChartPalettes.ContrastRatio(saveBackground.Color, saveText.Color) < 4.5)
                         throw new InvalidOperationException("Export Save button lacks readable text contrast.");
                     await CaptureVisualAsync((FrameworkElement)export.Content,
-                        Path.Combine(output, $"export-{theme.ToLowerInvariant()}.png"),
+                        Path.Combine(output, $"export-{theme.ToLowerInvariant()}-{kind}.png"),
                         1, cancellationToken);
                 }
                 finally

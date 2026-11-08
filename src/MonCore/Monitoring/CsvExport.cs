@@ -3,7 +3,7 @@ using System.Text;
 
 namespace WinMon.Monitoring;
 
-public enum CsvExportKind { ResourceHistory, ProcessSamples, UsageTotals }
+public enum CsvExportKind { ResourceHistory, ProcessSamples, UsageTotals, Services, Connections }
 
 /// <summary>Write retained observations and session usage in stable, invariant, raw-unit CSV columns.</summary>
 public static class CsvExport
@@ -19,7 +19,8 @@ public static class CsvExport
 
     /// <summary>Write to a sibling temporary file and replace the chosen file only after a complete export.</summary>
     public static void Write(string path, CsvExportKind kind, IReadOnlyList<MonitorSample> samples,
-        IReadOnlyList<AppUsage> apps, DateTimeOffset usageSince, long machineBusyTicks, long notAttributedTicks)
+        IReadOnlyList<AppUsage> apps, DateTimeOffset usageSince, long machineBusyTicks, long notAttributedTicks,
+        IReadOnlyList<ServiceFrame>? services = null, IReadOnlyList<ConnectionCapture>? connections = null)
     {
         var temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
         try
@@ -33,6 +34,8 @@ public static class CsvExport
                     case CsvExportKind.ProcessSamples: WriteProcesses(writer, samples); break;
                     case CsvExportKind.UsageTotals:
                         WriteUsage(writer, apps, usageSince, machineBusyTicks, notAttributedTicks); break;
+                    case CsvExportKind.Services: WriteServices(writer, services ?? []); break;
+                    case CsvExportKind.Connections: WriteConnections(writer, connections ?? []); break;
                     default: throw new ArgumentOutOfRangeException(nameof(kind));
                 }
 
@@ -111,6 +114,61 @@ public static class CsvExport
         Row(writer, Utc(since), "not_attributed", null, null, null, null,
             Number(notAttributedTicks / (double)TimeSpan.TicksPerSecond),
             Share(notAttributedTicks, machineBusyTicks), null, null, null, null, null, null, "true");
+    }
+
+    private static void WriteServices(TextWriter writer, IReadOnlyList<ServiceFrame> frames)
+    {
+        Row(writer, "timestamp_utc", "available", "service_name", "display_name", "state", "pid",
+            "controls_accepted", "shared_host", "host_creation_ticks", "host_name", "host_image_path",
+            "host_cpu_percent", "host_private_bytes", "host_io_bytes_per_second");
+        foreach (var frame in frames)
+        {
+            if (!frame.Available || frame.Groups.Count == 0)
+            {
+                Row(writer, Utc(frame.Sample.Timestamp), Bool(frame.Available), null, null, null, null,
+                    null, null, null, null, null, null, null, null);
+                continue;
+            }
+            foreach (var group in frame.Groups)
+            foreach (var service in group.Services)
+            {
+                var host = group.Host;
+                Row(writer, Utc(frame.Sample.Timestamp), "true", Safe(service.Name), Safe(service.DisplayName),
+                    Number((long)service.State), Number(service.ProcessId), Number((long)service.ControlsAccepted),
+                    Bool(group.Shared), Number(host?.CreationTicks), Safe(host?.Name ?? ""),
+                    Safe(host?.ImagePath ?? ""), Number(host?.ObservedCpuPercent), Number(host?.PrivateBytes),
+                    Number(host?.IoBytesPerSecond));
+            }
+        }
+    }
+
+    private static void WriteConnections(TextWriter writer, IReadOnlyList<ConnectionCapture> captures)
+    {
+        Row(writer, "timestamp_utc", "ipv4_available", "ipv6_available", "pid", "creation_ticks",
+            "name", "image_path", "protocol", "local_address", "local_port", "remote_address", "remote_port",
+            "tcp_state");
+        foreach (var capture in captures)
+        {
+            var frame = capture.Connections;
+            if (frame is null || !frame.Available || frame.Connections.Count == 0)
+            {
+                Row(writer, Utc(capture.Sample.Timestamp), Bool(frame?.Ipv4.Available ?? false),
+                    Bool(frame?.Ipv6.Available ?? false), null, null, null, null, null, null, null, null, null, null);
+                continue;
+            }
+            var owners = capture.Owners.ToDictionary(owner => (owner.ProcessId, owner.CreationTicks));
+            foreach (var connection in frame.Connections)
+            {
+                var owner = connection.ProcessCreationTicks is { } created
+                    ? owners.GetValueOrDefault((connection.ProcessId, created)) : null;
+                Row(writer, Utc(capture.Sample.Timestamp), Bool(frame.Ipv4.Available), Bool(frame.Ipv6.Available),
+                    Number(connection.ProcessId), Number(connection.ProcessCreationTicks), Safe(owner?.Name ?? ""),
+                    Safe(owner?.ImagePath ?? ""), connection.Protocol.ToString(),
+                    Safe(connection.LocalEndpoint.Address.ToString()), Number(connection.LocalEndpoint.Port),
+                    Safe(connection.RemoteEndpoint?.Address.ToString() ?? ""),
+                    Number(connection.RemoteEndpoint?.Port), connection.State?.ToString());
+            }
+        }
     }
 
     private static string? Share(long part, long whole) => whole > 0 ? Number(100d * part / whole) : null;

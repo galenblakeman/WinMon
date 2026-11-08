@@ -101,7 +101,9 @@ public static partial class Strings
     public static string CapacityGiB => ResourceManager.GetString(nameof(CapacityGiB), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CapacityMiB => ResourceManager.GetString(nameof(CapacityMiB), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CapacityType => ResourceManager.GetString(nameof(CapacityType), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string CaptureDurationHelp => ResourceManager.GetString(nameof(CaptureDurationHelp), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CaptureLatestSnapshot => ResourceManager.GetString(nameof(CaptureLatestSnapshot), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string CaptureThresholdHelp => ResourceManager.GetString(nameof(CaptureThresholdHelp), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartDisplay => ResourceManager.GetString(nameof(ChartDisplay), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartFocus => ResourceManager.GetString(nameof(ChartFocus), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartFocusHelp => ResourceManager.GetString(nameof(ChartFocusHelp), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -113,6 +115,7 @@ public static partial class Strings
     public static string ChartOverlay => ResourceManager.GetString(nameof(ChartOverlay), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartOverlayHelp => ResourceManager.GetString(nameof(ChartOverlayHelp), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartPalette => ResourceManager.GetString(nameof(ChartPalette), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ChartResources => ResourceManager.GetString(nameof(ChartResources), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartSmallMultiples => ResourceManager.GetString(nameof(ChartSmallMultiples), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartSmallMultiplesHelp => ResourceManager.GetString(nameof(ChartSmallMultiplesHelp), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartTimeRange => ResourceManager.GetString(nameof(ChartTimeRange), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -149,6 +152,9 @@ public static partial class Strings
     public static string ConnectionsHistoryNote => ResourceManager.GetString(nameof(ConnectionsHistoryNote), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConnectionsHistoryUnavailable => ResourceManager.GetString(nameof(ConnectionsHistoryUnavailable), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConnectionsIndividualHelp => ResourceManager.GetString(nameof(ConnectionsIndividualHelp), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ConnectionsLastFiveMinutes => ResourceManager.GetString(nameof(ConnectionsLastFiveMinutes), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ConnectionsLastMinute => ResourceManager.GetString(nameof(ConnectionsLastMinute), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ConnectionsLastThirtyMinutes => ResourceManager.GetString(nameof(ConnectionsLastThirtyMinutes), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConnectionsLive => ResourceManager.GetString(nameof(ConnectionsLive), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConnectionsLiveOnly => ResourceManager.GetString(nameof(ConnectionsLiveOnly), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConnectionsLoading => ResourceManager.GetString(nameof(ConnectionsLoading), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -162,11 +168,16 @@ public static partial class Strings
     public static string ConnectionsProcessCount => ResourceManager.GetString(nameof(ConnectionsProcessCount), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConnectionsProtocol => ResourceManager.GetString(nameof(ConnectionsProtocol), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConnectionsRankBy => ResourceManager.GetString(nameof(ConnectionsRankBy), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ConnectionsRankingHelp => ResourceManager.GetString(nameof(ConnectionsRankingHelp), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ConnectionsRateTiming => ResourceManager.GetString(nameof(ConnectionsRateTiming), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ConnectionsReceived => ResourceManager.GetString(nameof(ConnectionsReceived), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConnectionsReceiveRate => ResourceManager.GetString(nameof(ConnectionsReceiveRate), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConnectionsRemoteEndpoint => ResourceManager.GetString(nameof(ConnectionsRemoteEndpoint), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConnectionsSearch => ResourceManager.GetString(nameof(ConnectionsSearch), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConnectionsSendRate => ResourceManager.GetString(nameof(ConnectionsSendRate), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ConnectionsSent => ResourceManager.GetString(nameof(ConnectionsSent), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConnectionsShowProcess => ResourceManager.GetString(nameof(ConnectionsShowProcess), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ConnectionsSinceStart => ResourceManager.GetString(nameof(ConnectionsSinceStart), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConnectionsState => ResourceManager.GetString(nameof(ConnectionsState), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConnectionsStateCount => ResourceManager.GetString(nameof(ConnectionsStateCount), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConnectionsTab => ResourceManager.GetString(nameof(ConnectionsTab), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -185,6 +196,11 @@ public static partial class Strings
     public static string ConnectionsTcpStateSynSent => ResourceManager.GetString(nameof(ConnectionsTcpStateSynSent), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConnectionsTcpStateTimeWait => ResourceManager.GetString(nameof(ConnectionsTcpStateTimeWait), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConnectionsTop => ResourceManager.GetString(nameof(ConnectionsTop), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ConnectionsTrafficCoverage => ResourceManager.GetString(nameof(ConnectionsTrafficCoverage), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ConnectionsTrafficHelp => ResourceManager.GetString(nameof(ConnectionsTrafficHelp), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ConnectionsTrafficMonitoringBenefit => ResourceManager.GetString(nameof(ConnectionsTrafficMonitoringBenefit), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ConnectionsTrafficMonitoringOff => ResourceManager.GetString(nameof(ConnectionsTrafficMonitoringOff), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ConnectionsTrafficPeriod => ResourceManager.GetString(nameof(ConnectionsTrafficPeriod), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConnectionsTrafficRankingUnavailable => ResourceManager.GetString(nameof(ConnectionsTrafficRankingUnavailable), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConnectionsUdpCount => ResourceManager.GetString(nameof(ConnectionsUdpCount), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConnectionsUnavailable => ResourceManager.GetString(nameof(ConnectionsUnavailable), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -276,6 +292,7 @@ public static partial class Strings
     public static string ExpandService => ResourceManager.GetString(nameof(ExpandService), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string Export => ResourceManager.GetString(nameof(Export), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ExportChartRange => ResourceManager.GetString(nameof(ExportChartRange), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ExportConnectionNote => ResourceManager.GetString(nameof(ExportConnectionNote), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ExportCsv => ResourceManager.GetString(nameof(ExportCsv), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ExportCsvFilter => ResourceManager.GetString(nameof(ExportCsvFilter), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ExportData => ResourceManager.GetString(nameof(ExportData), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -288,6 +305,7 @@ public static partial class Strings
     public static string ExportResourceNote => ResourceManager.GetString(nameof(ExportResourceNote), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ExportRetainedHistory => ResourceManager.GetString(nameof(ExportRetainedHistory), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ExportSaved => ResourceManager.GetString(nameof(ExportSaved), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ExportServiceNote => ResourceManager.GetString(nameof(ExportServiceNote), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ExportSnapshotTime => ResourceManager.GetString(nameof(ExportSnapshotTime), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ExportTime => ResourceManager.GetString(nameof(ExportTime), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ExportUsageNote => ResourceManager.GetString(nameof(ExportUsageNote), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -319,6 +337,7 @@ public static partial class Strings
     public static string GiB => ResourceManager.GetString(nameof(GiB), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GiBCapacityGiBAvailable => ResourceManager.GetString(nameof(GiBCapacityGiBAvailable), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GigabitsPerSecond => ResourceManager.GetString(nameof(GigabitsPerSecond), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string GigabytesPerSecond => ResourceManager.GetString(nameof(GigabytesPerSecond), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GPU => ResourceManager.GetString(nameof(GPU), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GPUCountersUnavailableOrCollectingAFreshInterval => ResourceManager.GetString(nameof(GPUCountersUnavailableOrCollectingAFreshInterval), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GPUPercentagesRepresentDifferentEnginesAndCannotBeSummed => ResourceManager.GetString(nameof(GPUPercentagesRepresentDifferentEnginesAndCannotBeSummed), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -342,6 +361,7 @@ public static partial class Strings
     public static string HealthIsAProviderReportNotAFullSMARTDiagnostic => ResourceManager.GetString(nameof(HealthIsAProviderReportNotAFullSMARTDiagnostic), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string Healthy => ResourceManager.GetString(nameof(Healthy), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string HideActions => ResourceManager.GetString(nameof(HideActions), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string HideChartResources => ResourceManager.GetString(nameof(HideChartResources), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string HistoricalIntervalCPUMemoryDiskNetworkOfLinkGPUClick => ResourceManager.GetString(nameof(HistoricalIntervalCPUMemoryDiskNetworkOfLinkGPUClick), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string HistoricalRetention => ResourceManager.GetString(nameof(HistoricalRetention), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string History => ResourceManager.GetString(nameof(History), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -383,6 +403,7 @@ public static partial class Strings
     public static string KeptOnTopOfOtherWindowsClickToStop => ResourceManager.GetString(nameof(KeptOnTopOfOtherWindowsClickToStop), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string KeyboardShortcut => ResourceManager.GetString(nameof(KeyboardShortcut), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string KilobitsPerSecond => ResourceManager.GetString(nameof(KilobitsPerSecond), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string KilobytesPerSecond => ResourceManager.GetString(nameof(KilobytesPerSecond), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string L2CacheReportedL3CacheReported => ResourceManager.GetString(nameof(L2CacheReportedL3CacheReported), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string Language => ResourceManager.GetString(nameof(Language), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string LanguageApplyNote => ResourceManager.GetString(nameof(LanguageApplyNote), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -424,6 +445,7 @@ public static partial class Strings
     public static string MBS => ResourceManager.GetString(nameof(MBS), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string MediaConnectionCapacity => ResourceManager.GetString(nameof(MediaConnectionCapacity), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string MegabitsPerSecond => ResourceManager.GetString(nameof(MegabitsPerSecond), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string MegabytesPerSecond => ResourceManager.GetString(nameof(MegabytesPerSecond), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string Memory => ResourceManager.GetString(nameof(Memory), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string MemoryLowercase => ResourceManager.GetString(nameof(MemoryLowercase), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string MemoryModules => ResourceManager.GetString(nameof(MemoryModules), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -551,6 +573,7 @@ public static partial class Strings
     public static string PIDs => ResourceManager.GetString(nameof(PIDs), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PIDsMore => ResourceManager.GetString(nameof(PIDsMore), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PinnedOnly => ResourceManager.GetString(nameof(PinnedOnly), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string PinnedOnlyHelp => ResourceManager.GetString(nameof(PinnedOnlyHelp), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PinnedProcessCount => ResourceManager.GetString(nameof(PinnedProcessCount), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PinnedProcessesExplanation => ResourceManager.GetString(nameof(PinnedProcessesExplanation), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string PinnedServiceCount => ResourceManager.GetString(nameof(PinnedServiceCount), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -673,6 +696,7 @@ public static partial class Strings
     public static string ServicePausing => ResourceManager.GetString(nameof(ServicePausing), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ServiceProcess => ResourceManager.GetString(nameof(ServiceProcess), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ServiceProcessPid => ResourceManager.GetString(nameof(ServiceProcessPid), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ServiceRankingHelp => ResourceManager.GetString(nameof(ServiceRankingHelp), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ServiceRunning => ResourceManager.GetString(nameof(ServiceRunning), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string Services => ResourceManager.GetString(nameof(Services), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ServicesBy => ResourceManager.GetString(nameof(ServicesBy), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -686,6 +710,7 @@ public static partial class Strings
     public static string ServicesUnavailable => ResourceManager.GetString(nameof(ServicesUnavailable), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ServiceWorkerExplanation => ResourceManager.GetString(nameof(ServiceWorkerExplanation), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ServiceWorkers => ResourceManager.GetString(nameof(ServiceWorkers), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ServiceWorkersHelp => ResourceManager.GetString(nameof(ServiceWorkersHelp), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ServiceWorkersIncluded => ResourceManager.GetString(nameof(ServiceWorkersIncluded), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string SetPriority => ResourceManager.GetString(nameof(SetPriority), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string Settings => ResourceManager.GetString(nameof(Settings), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -710,6 +735,7 @@ public static partial class Strings
     public static string Shift => ResourceManager.GetString(nameof(Shift), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ShortcutUnavailable => ResourceManager.GetString(nameof(ShortcutUnavailable), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ShowActions => ResourceManager.GetString(nameof(ShowActions), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ShowChartResources => ResourceManager.GetString(nameof(ShowChartResources), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ShowHideWinMon => ResourceManager.GetString(nameof(ShowHideWinMon), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ShowOnChart => ResourceManager.GetString(nameof(ShowOnChart), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ShowTheLastMinutes => ResourceManager.GetString(nameof(ShowTheLastMinutes), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -823,6 +849,7 @@ public static partial class Strings
     public static string UsageNumberOfApps => ResourceManager.GetString(nameof(UsageNumberOfApps), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string UsageOtherApps => ResourceManager.GetString(nameof(UsageOtherApps), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string UsageProcessesHelp => ResourceManager.GetString(nameof(UsageProcessesHelp), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string UsageRankingHelp => ResourceManager.GetString(nameof(UsageRankingHelp), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string UsageReportBusy => ResourceManager.GetString(nameof(UsageReportBusy), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string UsageReportSince => ResourceManager.GetString(nameof(UsageReportSince), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string UsageReportView => ResourceManager.GetString(nameof(UsageReportView), Culture ?? CultureInfo.CurrentUICulture)!;

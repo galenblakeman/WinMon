@@ -76,23 +76,26 @@ public sealed class PreferenceStoreTests
         Assert.That((await store.LoadAsync()).PinnedConnections, Has.Length.EqualTo(1));
     }
 
-    [Test]
-    public async Task ConnectionsRanking_RoundTripsAndNormalizesInvalidChoices()
+    [TestCase(3)]
+    [TestCase(4)]
+    [TestCase(5)]
+    public async Task ConnectionsRanking_RoundTripsAndNormalizesInvalidChoices(int sort)
     {
         var store = new PreferenceStore(settingsPath);
         await store.SaveAsync(new MonitorPreferences
         {
-            TopConnectionCount = 20, ConnectionSortColumn = 3, ConnectionAppsOnly = true,
-            ConnectionPinnedOnly = true,
+            TopConnectionCount = 20, ConnectionSortColumn = sort, ConnectionAppsOnly = true,
+            ConnectionPinnedOnly = true, ConnectionTrafficSeconds = 60,
             PinnedConnections = [new SavedProcessPin(42, 123, "sample", @"C:\sample.exe", Grouped: true)]
         });
         var loaded = await store.LoadAsync();
         Assert.Multiple(() =>
         {
             Assert.That(loaded.TopConnectionCount, Is.EqualTo(20));
-            Assert.That(loaded.ConnectionSortColumn, Is.EqualTo(3));
+            Assert.That(loaded.ConnectionSortColumn, Is.EqualTo(sort));
             Assert.That(loaded.ConnectionAppsOnly, Is.True);
             Assert.That(loaded.ConnectionPinnedOnly, Is.True);
+            Assert.That(loaded.ConnectionTrafficSeconds, Is.EqualTo(60));
             Assert.That(loaded.PinnedConnections.Single().ImagePath, Is.EqualTo(@"C:\sample.exe"));
         });
         await File.WriteAllTextAsync(settingsPath, "{\"TopConnectionCount\":-1,\"ConnectionSortColumn\":99}");
@@ -103,6 +106,7 @@ public sealed class PreferenceStoreTests
             Assert.That(loaded.ConnectionSortColumn, Is.Zero);
             Assert.That(loaded.ConnectionAppsOnly, Is.False);
             Assert.That(loaded.ConnectionPinnedOnly, Is.False);
+            Assert.That(loaded.ConnectionTrafficSeconds, Is.EqualTo(300));
             Assert.That(loaded.PinnedConnections, Is.Empty);
         });
     }

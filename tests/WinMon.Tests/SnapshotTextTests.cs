@@ -34,7 +34,7 @@ public sealed class SnapshotTextTests
             Assert.That(text, Does.Contain("42.3%").And.Contain("8.0 / 16 GiB").And.Contain("50.0%"));
             Assert.That(text, Does.Contain("GPU\t—"));
             Assert.That(text, Does.Contain("Disk (C:)\t0.0%").And.Contain("Disk (D:)\t28.0%"));
-            Assert.That(text, Does.Contain("↓ 8 Mbps").And.Contain("↑ 0 Kbps"));
+            Assert.That(text, Does.Contain("↓ 1 MB/s").And.Contain("↑ 0 KB/s"));
             Assert.That(text, Does.Contain("Browser").And.Contain("five-second averages"));
         });
     }

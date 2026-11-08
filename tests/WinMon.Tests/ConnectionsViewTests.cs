@@ -197,7 +197,7 @@ public sealed class ConnectionsViewTests
 
     private static readonly ProcessUsage Owner = new(424242, 123, "sample", 1) { AppName = "Sample app" };
     private static readonly NetworkConnection Tcp = new(Owner.ProcessId, Owner.CreationTicks, TransportProtocol.Tcp,
-        new(IPAddress.Loopback, 50000), new(IPAddress.Parse("203.0.113.24"), 443), TcpState.Established);
+        new(IPAddress.Parse("192.168.1.25"), 50000), new(IPAddress.Parse("203.0.113.24"), 443), TcpState.Established);
     private static readonly NetworkConnection Udp = new(Owner.ProcessId, Owner.CreationTicks, TransportProtocol.Udp,
         new(IPAddress.IPv6Any, 5353));
     private static NetworkConnectionsFrame Frame(params NetworkConnection[] connections) =>
@@ -242,7 +242,7 @@ public sealed class ConnectionsViewTests
     }
 
     [Test]
-    public void EnableTrafficLinkOnlyOffersLiveSupportedSettingsAndRaisesRequest()
+    public void EnableTrafficButtonOnlyOffersLiveSupportedSettingsAndRaisesRequest()
     {
         var view = new ConnectionsView();
         view.Update(Frame(Tcp), [Owner], false);
@@ -250,10 +250,39 @@ public sealed class ConnectionsViewTests
             ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed));
         var requested = false;
         view.TrafficSettingsRequested += () => requested = true;
-        view.EnableTrafficMonitoring.RaiseEvent(new System.Windows.RoutedEventArgs(System.Windows.Documents.Hyperlink.ClickEvent));
+        view.EnableTrafficMonitoring.RaiseEvent(new System.Windows.RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
         Assert.That(requested, Is.True);
         view.Update(Frame(Tcp), [Owner], true);
         Assert.That(view.TrafficPrompt.Visibility, Is.EqualTo(System.Windows.Visibility.Collapsed));
+    }
+
+    [TestCase(800, 0)]
+    [TestCase(480, 1)]
+    public void TrafficSetupStripKeepsButtonWithinBoundsAndReflows(double width, int buttonRow)
+    {
+        var view = new ConnectionsView();
+        view.Update(Frame(Tcp), [Owner], false);
+        view.TrafficPrompt.Visibility = System.Windows.Visibility.Visible;
+        foreach (var currentWidth in new[] { 800d, width, 800d, width })
+        {
+            view.Measure(new System.Windows.Size(currentWidth, 600));
+            view.Arrange(new System.Windows.Rect(0, 0, currentWidth, 600));
+            view.UpdateLayout();
+        }
+        var button = view.EnableTrafficMonitoring;
+        var origin = button.TranslatePoint(new System.Windows.Point(), view.TrafficPrompt);
+        Assert.Multiple(() =>
+        {
+            Assert.That(System.Windows.Controls.Grid.GetRow(button), Is.EqualTo(buttonRow));
+            Assert.That(origin.X, Is.GreaterThanOrEqualTo(0));
+            Assert.That(origin.Y, Is.GreaterThanOrEqualTo(0));
+            Assert.That(origin.X + button.ActualWidth, Is.LessThanOrEqualTo(view.TrafficPrompt.ActualWidth));
+            Assert.That(origin.Y + button.ActualHeight, Is.LessThanOrEqualTo(view.TrafficPrompt.ActualHeight));
+            Assert.That(System.Windows.Controls.Grid.GetRow(view.TrafficPrompt),
+                Is.LessThan(System.Windows.Controls.Grid.GetRow(view.HeaderScroller)));
+            Assert.That(System.Windows.Automation.AutomationProperties.GetName(button),
+                Is.EqualTo(WinMon.Resources.Strings.ConnectionsEnableTrafficMonitoring));
+        });
     }
 
     [Test]
@@ -429,6 +458,72 @@ public sealed class ConnectionsViewTests
     }
 
     [Test]
+    public void LoopbackEndpointsAreIncluded()
+    {
+        var view = new ConnectionsView();
+        var local = Tcp with { LocalEndpoint = new(IPAddress.Loopback, 50000), RemoteEndpoint = new(IPAddress.Loopback, 443) };
+        view.Update(Frame(Tcp, local, Udp), [Owner], false);
+        Assert.That(view.DisplayedRows.Single().Connections, Has.Count.EqualTo(3));
+    }
+
+    [Test]
+    public void IntervalColumnsUseSelectedPeriodAndKeepLiveRates()
+    {
+        var view = new ConnectionsView();
+        var first = new ConnectionCapture(new MonitorSample(DateTimeOffset.UnixEpoch.AddSeconds(1), 0, [], 0),
+            Frame(Tcp), [Owner], Network(new ProcessNetworkReading(Owner.ProcessId, Owner.CreationTicks, 100, 200, 10, 20)));
+        var last = first with { Sample = first.Sample with { Timestamp = first.Sample.Timestamp.AddSeconds(60) },
+            Network = Network(new ProcessNetworkReading(Owner.ProcessId, Owner.CreationTicks, 400, 700, 10, 20)) };
+        var totals = ConnectionTrafficTotals.Build([first, last], last, 300);
+        view.Update(Frame(Tcp), [Owner], false, last.Network, true, [first, last], last, totals);
+        var row = view.DisplayedRows.Single();
+        Assert.That(row.Received, Does.Contain("300 B"));
+        Assert.That(row.Sent, Does.Contain("500 B"));
+        Assert.That(row.Receive, Does.Contain("10 B/s"));
+        Assert.That(row.TrafficToolTip, Does.Contain("60 seconds"));
+        view.TrafficPeriod.SelectedIndex = 3;
+        Assert.That(view.Settings.TrafficSeconds, Is.Zero);
+        Assert.That(row.Received, Does.Contain("400 B"));
+        Assert.That(row.Sent, Does.Contain("700 B"));
+    }
+
+    [TestCase(4)]
+    [TestCase(5)]
+    public void ByteRankingFollowsPeriodAndPreservesChoiceWhenMonitoringIsDisabled(int sort)
+    {
+        var firstOwner = Owner with { ImagePath = @"C:\first.exe" };
+        var secondOwner = Owner with { ProcessId = 99, CreationTicks = 456, ImagePath = @"C:\second.exe" };
+        var missingOwner = Owner with { ProcessId = 98, CreationTicks = 789, ImagePath = @"C:\missing.exe", AppName = "AAA" };
+        var frame = Frame(Tcp, Tcp with { ProcessId = 99, ProcessCreationTicks = 456 },
+            Tcp with { ProcessId = 98, ProcessCreationTicks = 789 });
+        var first = new ConnectionCapture(new MonitorSample(DateTimeOffset.UnixEpoch.AddSeconds(1), 0, [], 0),
+            frame, [firstOwner, secondOwner, missingOwner], Network(
+                new(firstOwner.ProcessId, firstOwner.CreationTicks, 1000, 100, 20, 10),
+                new(secondOwner.ProcessId, secondOwner.CreationTicks, 100, 1000, 10, 20)));
+        var last = first with { Sample = first.Sample with { Timestamp = first.Sample.Timestamp.AddSeconds(60) },
+            Network = Network(new(firstOwner.ProcessId, firstOwner.CreationTicks, 1300, 600, 20, 10),
+                new(secondOwner.ProcessId, secondOwner.CreationTicks, 600, 1300, 10, 20)) };
+        var view = new ConnectionsView();
+        view.Load(new ConnectionListSettings(10, (ConnectionSort)sort));
+        view.Update(frame, first.Owners, false, last.Network, true, [first, last], last,
+            ConnectionTrafficTotals.Build([first, last], last, 300));
+        var intervalWinner = sort == (int)ConnectionSort.Received ? secondOwner : firstOwner;
+        var sessionWinner = sort == (int)ConnectionSort.Received ? firstOwner : secondOwner;
+        Assert.That(view.DisplayedRows.First().Process, Is.EqualTo(intervalWinner));
+        Assert.That(view.DisplayedRows.Last().Process, Is.EqualTo(missingOwner));
+        view.TrafficPeriod.SelectedIndex = 3;
+        Assert.That(view.DisplayedRows.First().Process, Is.EqualTo(sessionWinner));
+        view.Update(frame, first.Owners, false);
+        Assert.That(view.Rank.SelectedIndex, Is.EqualTo((int)ConnectionSort.Tcp));
+        Assert.That(view.Settings.Sort, Is.EqualTo((ConnectionSort)sort));
+        Assert.That(((System.Windows.Controls.ComboBoxItem)view.Rank.Items[sort]).IsEnabled, Is.False);
+        view.Update(frame, first.Owners, false, last.Network, true, [first, last], last,
+            ConnectionTrafficTotals.Build([first, last], last, 0));
+        Assert.That(view.Rank.SelectedIndex, Is.EqualTo(sort));
+        Assert.That(view.DisplayedRows.First().Process, Is.EqualTo(sessionWinner));
+    }
+
+    [Test]
     public void PropertiesUseCompleteEndpointDetails()
     {
         var owner = Owner with { ImagePath = @"C:\Apps\sample.exe" };
@@ -438,7 +533,7 @@ public sealed class ConnectionsViewTests
         (string? Name, string? Details) properties = default;
         view.PropertiesRequested += (name, details) => properties = (name, details);
         view.Properties.RaiseEvent(new System.Windows.RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
-        Assert.That(properties.Details, Does.Contain("127.0.0.1:50000").And.Contain("203.0.113.24:443").And.Contain(owner.ImagePath));
+        Assert.That(properties.Details, Does.Contain("192.168.1.25:50000").And.Contain("203.0.113.24:443").And.Contain(owner.ImagePath));
         Assert.That(properties.Details, Does.Contain(Environment.NewLine + WinMon.Resources.Strings.ProcessPathLabel));
     }
 }

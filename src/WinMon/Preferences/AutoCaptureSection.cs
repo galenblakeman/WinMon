@@ -72,14 +72,21 @@ internal sealed class AutoCaptureSection : StackPanel
                 { Content = content, IsChecked = setting.Enabled, VerticalAlignment = VerticalAlignment.Center };
             enabled.SetResourceReference(Control.ForegroundProperty, "Text");
             if (setting.Metric == CaptureMetric.Process) enabled.ToolTip = Strings.AutoCaptureProcessHelp;
-            var threshold = Number(setting.Threshold);
+            var threshold = Number(setting.Metric == CaptureMetric.Network ? setting.Threshold / 8 : setting.Threshold);
+            if (setting.Metric == CaptureMetric.Network)
+                threshold.Text = (setting.Threshold / 8).ToString(CultureInfo.CurrentCulture);
             var seconds = Number(setting.Seconds);
             var unit = setting.Metric switch
             {
-                CaptureMetric.Network => "Mbps", CaptureMetric.Process => Strings.AutoCapturePercentOfCore,
+                CaptureMetric.Network => Strings.MegabytesPerSecond, CaptureMetric.Process => Strings.AutoCapturePercentOfCore,
                 CaptureMetric.PrimaryDisk or CaptureMetric.SecondaryDisk => Strings.AutoCapturePercentActive,
                 _ => "%"
             };
+            threshold.ToolTip = Strings.Format(Strings.CaptureThresholdHelp, unit) +
+                (setting.Metric == CaptureMetric.Process ? " " + Strings.AutoCaptureProcessHelp : "");
+            AutomationProperties.SetHelpText(threshold, (string)threshold.ToolTip);
+            seconds.ToolTip = Strings.CaptureDurationHelp;
+            AutomationProperties.SetHelpText(seconds, Strings.CaptureDurationHelp);
             Place(enabled, row, 0);
             Place(threshold, row, 1);
             Place(Muted(unit), row, 2);
@@ -102,6 +109,8 @@ internal sealed class AutoCaptureSection : StackPanel
 
         _cooldown = Number(preferences.CooldownMinutes);
         AutomationProperties.SetName(_cooldown, Strings.AutoCaptureCooldown);
+        _cooldown.ToolTip = Strings.AutoCaptureCooldown;
+        AutomationProperties.SetHelpText(_cooldown, Strings.AutoCaptureCooldown);
         _cooldown.Margin = new Thickness(0, 0, 6, 0);
         var cooldown = new WrapPanel { Margin = new Thickness(0, 0, 0, 10) };
         cooldown.Children.Add(Text(Strings.AutoCaptureWaitBefore));
@@ -199,8 +208,8 @@ internal sealed class AutoCaptureSection : StackPanel
         var rules = new List<CaptureRuleSetting>();
         foreach (var rule in _rules)
         {
-            var minimum = rule.Metric == CaptureMetric.Network ? 0.1 : 1;
-            var maximum = CaptureRuleSetting.MaximumThreshold(rule.Metric);
+            var minimum = rule.Metric == CaptureMetric.Network ? 0.1 / 8 : 1;
+            var maximum = CaptureRuleSetting.MaximumThreshold(rule.Metric) / (rule.Metric == CaptureMetric.Network ? 8 : 1);
             if (!double.TryParse(rule.Threshold.Text, NumberStyles.Float, CultureInfo.CurrentCulture,
                     out var threshold) || !double.IsFinite(threshold) || threshold < minimum || threshold > maximum)
             {
@@ -217,7 +226,9 @@ internal sealed class AutoCaptureSection : StackPanel
                 return null;
             }
 
-            rules.Add(new CaptureRuleSetting(rule.Metric, rule.Enabled.IsChecked == true, threshold, seconds));
+            // Stored network thresholds remain Mbps so existing capture rules keep their meaning.
+            rules.Add(new CaptureRuleSetting(rule.Metric, rule.Enabled.IsChecked == true,
+                rule.Metric == CaptureMetric.Network ? threshold * 8 : threshold, seconds));
         }
 
         if (!int.TryParse(_cooldown.Text, NumberStyles.Integer, CultureInfo.CurrentCulture, out var cooldown) ||

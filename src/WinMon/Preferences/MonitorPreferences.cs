@@ -80,6 +80,7 @@ public sealed record MonitorPreferences
 
     public SavedProcessPin[] PinnedConnections { get; init; } = [];
     public bool ConnectionPinnedOnly { get; init; }
+    public int ConnectionTrafficSeconds { get; init; } = 300;
 
     /// <summary>Gets the column that ranks the process rows.</summary>
     public ProcessSort ProcessSort { get; init; }
@@ -101,6 +102,9 @@ public sealed record MonitorPreferences
 
     /// <summary>Keep the activity tabs visible while hiding their content.</summary>
     public bool ActivityPanelCollapsed { get; init; }
+
+    /// <summary>Activity tab: Processes=0, Services=1, Usage=2, Connections=3.</summary>
+    public int SelectedActivityTab { get; init; }
 
     /// <summary>Keep the chart header visible while hiding the plot and snapshot.</summary>
     public bool ChartPanelCollapsed { get; init; }

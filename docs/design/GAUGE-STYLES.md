@@ -37,6 +37,7 @@ Settings saved before this choice existed load as Bowl, so everyone sees the new
 
 ## Landed
 
+- The full-view gauge row has no outer margin; each tile matches Compact view's 10-DIP left, 8-DIP right and 4-DIP top/bottom margins. The former 12-DIP space above the row and 16-DIP space below it were removed.
 - `Preferences/GaugeStyle.cs`, `MonitorPreferences.GaugeStyle` (saved by name), validation in `PreferenceStore`, and the selector and preview in `SettingsWindow`.
 - `Controls/MetricGauge.cs` draws each style, and `ArcBounds` sizes the arcs. `Controls/MetricReadout.cs` places the labels and the gauge in one of five layouts: bowl (also the segmented arc), dial (needle), beside (left bar), under (bars) or none. `ShowGauge` takes an optional scale label.
 - `MainWindow.ApplyGaugeStyle` runs with `ApplyTheme`.

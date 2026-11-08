@@ -947,7 +947,7 @@ public sealed class CpuGraph : FrameworkElement
                     : "")
             : "";
         var networkRate = r is { ReceiveBytesPerSecond: { } rx, SendBytesPerSecond: { } tx }
-            ? Strings.Format(Strings.RxTxMbps, rx * 8 / 1_000_000, tx * 8 / 1_000_000)
+            ? "\n" + RateText.Pair(rx * 8, tx * 8)
             : "";
         var network = NetworkBitsPerSecond(r) is { } bits ? RateText.Format(bits) : Strings.UnavailableLowercase;
         return Strings.Format(Strings.HistoricalIntervalCPUMemoryDiskNetworkOfLinkGPUClick, sample.Timestamp,

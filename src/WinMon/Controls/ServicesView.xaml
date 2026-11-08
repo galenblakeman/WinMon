@@ -66,6 +66,8 @@
                     Text="{Binding [ServicesBy], Source={x:Static r:Strings.Text}}" />
                 <ComboBox
                     x:Name="Sort"
+                    ToolTip="{Binding [ServiceRankingHelp], Source={x:Static r:Strings.Text}}"
+                    AutomationProperties.HelpText="{Binding [ServiceRankingHelp], Source={x:Static r:Strings.Text}}"
                     MinWidth="90"
                     MinHeight="28"
                     Margin="6,0,0,0"
@@ -175,9 +177,10 @@
                     FontSize="12"
                     Foreground="{DynamicResource Text}"
                     IsChecked="True"
-                    ToolTip="{Binding [IncludeWorkerProcesses], Source={x:Static r:Strings.Text}}"
+                    ToolTip="{Binding [ServiceWorkersHelp], Source={x:Static r:Strings.Text}}"
+                    AutomationProperties.HelpText="{Binding [ServiceWorkersHelp], Source={x:Static r:Strings.Text}}"
                     Unchecked="OnFilterChanged" />
-                <CheckBox x:Name="PinnedOnlyCheckBox" VerticalAlignment="Center" FontSize="12" Margin="0,0,12,0"
+                <CheckBox x:Name="PinnedOnlyCheckBox" ToolTip="{Binding [PinnedOnlyHelp], Source={x:Static r:Strings.Text}}" AutomationProperties.HelpText="{Binding [PinnedOnlyHelp], Source={x:Static r:Strings.Text}}" VerticalAlignment="Center" FontSize="12" Margin="0,0,12,0"
                     Foreground="{DynamicResource Text}"
                     Content="{Binding [PinnedOnly], Source={x:Static r:Strings.Text}}"
                     AutomationProperties.Name="{Binding [PinnedOnly], Source={x:Static r:Strings.Text}}"

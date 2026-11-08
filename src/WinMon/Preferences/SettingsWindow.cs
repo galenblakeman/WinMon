@@ -274,10 +274,11 @@ public sealed class SettingsWindow : Window
         _gaugeSelector.DisplayMemberPath = nameof(GaugeChoice.Label);
         _gaugeSelector.SelectedValuePath = nameof(GaugeChoice.Style);
         _gaugeSelector.SelectedValue = preferences.GaugeStyle;
-        _gaugeSelector.ToolTip = Strings.GaugePeakWindowExplanation;
         _gaugePeakWindowSelector = CreateSelector(new[] { 60, 120, 300, 600 }.Select(seconds =>
             Strings.Format(Strings.GaugePeakWindowMinutes, seconds / 60)).ToArray(),
             Strings.Format(Strings.GaugePeakWindowMinutes, preferences.GaugePeakWindowSeconds / 60));
+        _gaugePeakWindowSelector.ToolTip = Strings.GaugePeakWindowExplanation;
+        AutomationProperties.SetHelpText(_gaugePeakWindowSelector, Strings.GaugePeakWindowExplanation);
         _appearancePreview = new AppearancePreview();
         UpdateAppearancePreview();
         _paletteSelector.SelectionChanged += (_, _) => UpdateAppearancePreview();

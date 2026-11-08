@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using WinMon.Controls;
 using WinMon.Monitoring;
+using WinMon.Preferences;
 
 namespace WinMon.Diagnostics;
 
@@ -119,6 +120,7 @@ internal sealed partial class WindowDiagnostics
             fixture.ConnectionsTab.IsChecked = true;
             fixture.SetConnectionsForFixture(frame);
             var view = fixture.ConnectionView;
+            Require(view.DisplayedRows.Sum(row => row.Connections.Count) == 6, "All fixture endpoints, including loopback, must be included.");
             var tabs = (StackPanel)fixture.ConnectionsTab.Parent;
             Require(tabs.Children.IndexOf(fixture.ConnectionsTab) + 1 == tabs.Children.IndexOf(fixture.UsageTab),
                 "Connections must appear immediately before Usage.");
@@ -126,7 +128,41 @@ internal sealed partial class WindowDiagnostics
                 !((ComboBoxItem)view.Rank.Items[0]).IsEnabled && !((ComboBoxItem)view.Rank.Items[1]).IsEnabled,
                 "Disabled monitoring must use TCP ranking and disable throughput choices.");
             Require(view.TrafficPrompt.Visibility == (NetworkSetupBroker.Supported ? Visibility.Visible : Visibility.Collapsed),
-                "The enable link must follow desktop service support.");
+                "The setup strip must follow desktop service support.");
+            foreach (var theme in new[] { "Dark", "Light", "SmokedSapphire" })
+            {
+                fixture.Preferences = fixture.Preferences with { Theme = theme };
+                fixture.ApplyTheme();
+                await CaptureServiceWindowAsync(fixture, Path.Combine(output, $"connections-setup-{theme.ToLowerInvariant()}.png"), cancellationToken);
+                if (!NetworkSetupBroker.Supported) continue;
+                var button = view.EnableTrafficMonitoring;
+                Require(ChartPalettes.ContrastRatio(((System.Windows.Media.SolidColorBrush)button.Background).Color,
+                    ((System.Windows.Media.SolidColorBrush)view.TrafficMonitoringLabel.Foreground).Color) >= 4.5,
+                    "Setup button text must have readable contrast.");
+                var top = view.TrafficPrompt.TranslatePoint(new Point(), view).Y;
+                Require(top + view.TrafficPrompt.ActualHeight <= view.HeaderScroller.TranslatePoint(new Point(), view).Y,
+                    "Setup strip must appear above the table header.");
+            }
+            var setupCulture = Strings.Culture;
+            try
+            {
+                Strings.SetCulture(System.Globalization.CultureInfo.GetCultureInfo("de"));
+                fixture.Width = 836;
+                await CaptureServiceWindowAsync(fixture, Path.Combine(output, "connections-setup-german-narrow.png"), cancellationToken);
+                if (NetworkSetupBroker.Supported)
+                {
+                    var button = view.EnableTrafficMonitoring;
+                    var origin = button.TranslatePoint(new Point(), view.TrafficPrompt);
+                    Require(origin.X >= 0 && origin.X + button.ActualWidth <= view.TrafficPrompt.ActualWidth &&
+                        origin.Y + button.ActualHeight <= view.TrafficPrompt.ActualHeight,
+                        "Translated setup button must fit the minimum-width window.");
+                    Require(button.Focus() && button.IsKeyboardFocused, "Setup button must accept keyboard focus.");
+                }
+            }
+            finally { Strings.SetCulture(setupCulture); }
+            fixture.Width = 1200;
+            fixture.Preferences = fixture.Preferences with { Theme = "Dark" };
+            fixture.ApplyTheme();
             view.Rank.IsDropDownOpen = true;
             await CaptureServiceWindowAsync(fixture, Path.Combine(output, "connections-disabled-ranking.png"), cancellationToken);
             view.Rank.IsDropDownOpen = false;
@@ -234,6 +270,9 @@ internal sealed partial class WindowDiagnostics
                 "Show in Processes did not navigate to the live process.");
             fixture.ConnectionsTab.IsChecked = true;
             fixture.SetProcessNetworkForFixture(traffic);
+            Require(fixture.ConnectionCounts.ToolTip?.ToString()?.Contains(Strings.ConnectionsRateTiming, StringComparison.Ordinal) == true &&
+                System.Windows.Automation.AutomationProperties.GetName(fixture.ConnectionCounts).Contains(Strings.ConnectionsRateTiming, StringComparison.Ordinal),
+                "Connections totals must explain their averaging window and delay to pointer and screen-reader users.");
             view.Rows.SelectedItem = view.DisplayedRows.First(row => row.Connections.Any(c => c.ProcessId == process.ProcessId));
             Require(view.SelectedDetailsForFixture?.Contains(Strings.DetailReceivedSent, StringComparison.Ordinal) == true,
                 "Observed network totals are missing from executable details.");
@@ -247,6 +286,19 @@ internal sealed partial class WindowDiagnostics
                 fixture.ApplyTheme();
                 fixture.RefreshVisiblePresentation();
                 await CaptureServiceWindowAsync(fixture, Path.Combine(output, $"connections-network-{theme.ToLowerInvariant()}.png"), cancellationToken);
+                var timingHelp = new System.Windows.Controls.ToolTip
+                {
+                    Content = fixture.ConnectionCounts.ToolTip,
+                    PlacementTarget = fixture.ConnectionCounts
+                };
+                try
+                {
+                    timingHelp.IsOpen = true;
+                    await fixture.Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.Render, cancellationToken);
+                    timingHelp.UpdateLayout();
+                    await CaptureVisualAsync(timingHelp, Path.Combine(output, $"connections-rate-help-{theme.ToLowerInvariant()}.png"), 1, cancellationToken);
+                }
+                finally { timingHelp.IsOpen = false; }
                 Require(Math.Abs(view.ActionBar.ActualHeight - view.ActionBar.MinHeight) < 1 &&
                     view.ActionBar.MinHeight == fixture.Processes.ProcessActions.MinHeight &&
                     view.ActionBar.MinHeight == fixture.ServiceView.ActionBar.MinHeight,
@@ -336,16 +388,16 @@ internal sealed partial class WindowDiagnostics
         {
             var view = fixture.ConnectionView;
             FrameworkElement[] controls = [view.TopCount, view.Rank, view.SearchBorder,
-                view.AppsOnly, view.PinnedOnly];
+                view.AppsOnly, view.PinnedOnly, view.TrafficPeriod];
             var bounds = controls.Select(control => control.TransformToAncestor(view)
                 .TransformBounds(new Rect(control.RenderSize))).ToArray();
             var center = bounds[0].Top + bounds[0].Height / 2;
             Require(bounds.All(rect => rect.Width > 0 && rect.Left >= 0 && rect.Right <= view.ActualWidth &&
                 Math.Abs(rect.Top + rect.Height / 2 - center) < 1),
                 "Connections controls must fit on a single row at minimum width.");
-            Require(!fixture.ConnectionTrafficValue.Text.Contains('\n'), "Activity totals must stay on one line.");
-            Require(bounds[3].Right <= bounds[4].Left && view.AppsOnly.FontSize == 12,
-                "App only must precede Pinned only and match the Processes filter style.");
+            Require(!fixture.ConnectionVolumeValue.Text.Contains('\n'), "Activity totals must stay on one line.");
+            Require(bounds[3].Right <= bounds[4].Left && bounds[4].Right <= bounds[5].Left && view.AppsOnly.FontSize == 12,
+                "App only and Pinned only must precede the period selector and match the Processes filter style.");
             if (view.PinSummary.Visibility == Visibility.Visible)
             {
                 var pins = view.PinSummary.TransformToAncestor(view.ConnectionHeaders)

@@ -1766,9 +1766,9 @@ Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse
   <data name="ConnectionsUdpCount" xml:space="preserve"><value>UDP-Anzahl</value></data>
   <data name="ConnectionsHistoryUnavailable" xml:space="preserve"><value>Für diese Messung ist kein Verbindungsverlauf verfügbar.</value></data>
   <data name="ConnectionsHistoryNote" xml:space="preserve"><value>Verbindungen zum ausgewählten Messzeitpunkt. Raten sind verzögerte Fünf-Sekunden-Mittelwerte und enden normalerweise drei Sekunden vor der Erfassung.</value></data>
-  <data name="ConnectionsEnableTrafficMonitoring" xml:space="preserve"><value>Datenverkehrsüberwachung aktivieren…</value></data>
-  <data name="ConnectionsTrafficRankingUnavailable" xml:space="preserve"><value>Aktivieren Sie die Datenverkehrsüberwachung pro Prozess, um nach Empfangs-/Senderate zu sortieren.</value></data>
-  <data name="ConnectionsHistoryHelp" xml:space="preserve"><value>Empfangener und gesendeter Datenverkehr der letzten zwei Minuten, mit derselben Skala für alle Zeilen. Lücken bedeuten fehlende Messwerte. Der Datenverkehr gehört zum Prozess oder Programm, nicht zu einer einzelnen Verbindung.</value></data>
+  <data name="ConnectionsEnableTrafficMonitoring" xml:space="preserve"><value>Überwachung aktivieren…</value></data>
+  <data name="ConnectionsTrafficRankingUnavailable" xml:space="preserve"><value>Aktivieren Sie die Datenverkehrsüberwachung pro Prozess, um nach Datenverkehr zu sortieren.</value></data>
+  <data name="ConnectionsHistoryHelp" xml:space="preserve"><value>Empfangener und gesendeter Verkehr im gewählten Zeitraum, mit gemeinsamer Skala für alle Zeilen. Lücken bedeuten fehlende Messwerte. Der Verkehr gehört zum Prozess oder Programm, nicht zu einer einzelnen Verbindung.</value></data>
   <data name="ConnectionsNoObservedEndpoints" xml:space="preserve"><value>Keine Verbindungen beobachtet</value></data>
   <data name="PinService" xml:space="preserve"><value>Dienst anheften</value></data>
   <data name="UnpinService" xml:space="preserve"><value>Dienst lösen</value></data>
@@ -1779,4 +1779,37 @@ Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse
   <data name="OpenLogsFolder" xml:space="preserve"><value>Protokollordner öffnen</value></data>
   <data name="OpenLogsFolderHelp" xml:space="preserve"><value>Den Ordner mit den Diagnoseprotokollen von WinMon öffnen.</value></data>
   <data name="OpenLogsFolderFailed" xml:space="preserve"><value>Der Protokollordner konnte nicht geöffnet werden. Die Protokollierung ist möglicherweise nicht verfügbar oder der Ordner existiert nicht mehr.</value></data>
+  <data name="ConnectionsTrafficPeriod" xml:space="preserve"><value>Verkehrszeitraum</value></data>
+  <data name="ConnectionsLastMinute" xml:space="preserve"><value>Letzte 1 Min.</value></data>
+  <data name="ConnectionsLastFiveMinutes" xml:space="preserve"><value>Letzte 5 Min.</value></data>
+  <data name="ConnectionsLastThirtyMinutes" xml:space="preserve"><value>Letzte 30 Min.</value></data>
+  <data name="ConnectionsSinceStart" xml:space="preserve"><value>Seit Start</value></data>
+  <data name="ConnectionsReceived" xml:space="preserve"><value>Empfangen</value></data>
+  <data name="ConnectionsSent" xml:space="preserve"><value>Gesendet</value></data>
+  <data name="ConnectionsTrafficHelp" xml:space="preserve"><value>Beobachteter Prozessverkehr im gewählten Zeitraum. Tabsummen umfassen alle Prozesse unabhängig von Filtern oder Top. ≈ kennzeichnet unvollständige Abdeckung.</value></data>
+  <data name="ConnectionsTrafficCoverage" xml:space="preserve"><value>Aufgezeichneter Zeitraum: {0} Sekunden.</value></data>
+  <data name="ExportServiceNote" xml:space="preserve"><value>Gespeicherte Dienstbeobachtungen. Gemeinsame Dienste wiederholen Host-Messwerte; nicht summieren. Arbeitsprozesse sind ausgeschlossen.</value></data>
+  <data name="ExportConnectionNote" xml:space="preserve"><value>Gespeicherte TCP/UDP-Endpunkte und Besitzer. Keine Verkehrszähler pro Verbindung. Verfügbarkeit wird je Adressfamilie erfasst.</value></data>
+  <data name="ConnectionsTrafficMonitoringOff" xml:space="preserve"><value>Die Datenverkehrsüberwachung ist aus</value></data>
+  <data name="ConnectionsTrafficMonitoringBenefit" xml:space="preserve"><value>Sehen Sie die Download- und Uploadraten jeder App.</value></data>
+  <data name="CaptureThresholdHelp" xml:space="preserve"><value>Aufzeichnen, wenn der Messwert diesen Wert überschreitet ({0}).</value></data>
+  <data name="CaptureDurationHelp" xml:space="preserve"><value>Aufeinanderfolgende Sekunden über dem Schwellenwert vor einer möglichen Aufzeichnung.</value></data>
+  <data name="ServiceWorkersHelp" xml:space="preserve"><value>Workerprozesse in die Ressourcensummen der Dienstgruppe einbeziehen.</value></data>
+  <data name="ServiceRankingHelp" xml:space="preserve"><value>Dienstgruppen nach dem Fünf-Sekunden-Mittel von CPU oder E/A, aktuellem privatem Speicher oder Namen sortieren.</value></data>
+  <data name="UsageRankingHelp" xml:space="preserve"><value>Apps nach Summen seit dem letzten Zurücksetzen, Prozessanzahl oder letzter Aktivität sortieren.</value></data>
+  <data name="ConnectionsRankingHelp" xml:space="preserve"><value>Nach Empfangs-/Senderate, empfangenen/gesendeten Bytes im gewählten Zeitraum oder TCP-/UDP-Endpunktanzahl sortieren. Raten sind Fünf-Sekunden-Mittelwerte.</value></data>
+  <data name="PinnedOnlyHelp" xml:space="preserve"><value>Nur angeheftete Zeilen anzeigen. Andere Filter gelten weiterhin.</value></data>
+  <data name="KilobytesPerSecond" xml:space="preserve"><value>KB/s</value></data>
+  <data name="MegabytesPerSecond" xml:space="preserve"><value>MB/s</value></data>
+  <data name="GigabytesPerSecond" xml:space="preserve"><value>GB/s</value></data>
+  <data name="ConnectionsRateTiming" xml:space="preserve"><value>Die Verbindungsraten mitteln ein 5-Sekunden-Fenster, das normalerweise 3 Sekunden hinter der aktuellen Zeit endet, damit Netzwerkereignisse eintreffen können. Die Anzeige verwendet den neuesten Adaptermesswert; daher können die Werte abweichen.</value></data>
+  <data name="ChartResources" xml:space="preserve">
+    <value>Ressourcen</value>
+  </data>
+  <data name="ShowChartResources" xml:space="preserve">
+    <value>Ressourcen-Steuerelemente anzeigen</value>
+  </data>
+  <data name="HideChartResources" xml:space="preserve">
+    <value>Ressourcen-Steuerelemente ausblenden</value>
+  </data>
 </root>

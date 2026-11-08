@@ -1766,9 +1766,9 @@ Windows の正常性状態: {2}</value>
   <data name="ConnectionsUdpCount" xml:space="preserve"><value>UDP数</value></data>
   <data name="ConnectionsHistoryUnavailable" xml:space="preserve"><value>このサンプルの接続履歴はありません。</value></data>
   <data name="ConnectionsHistoryNote" xml:space="preserve"><value>選択したサンプルで観測された接続です。速度は5秒間の平均で、通常は収集の3秒前までの値です。</value></data>
-  <data name="ConnectionsEnableTrafficMonitoring" xml:space="preserve"><value>通信量の監視を有効にする…</value></data>
-  <data name="ConnectionsTrafficRankingUnavailable" xml:space="preserve"><value>受信・送信速度で並べ替えるには、プロセスごとの通信監視を有効にしてください。</value></data>
-  <data name="ConnectionsHistoryHelp" xml:space="preserve"><value>過去2分間の受信と送信の合計です。すべての行で同じスケールを使用します。途切れた部分は測定値が取得できなかったことを示します。通信量は個々の接続ではなく、プロセスまたは実行ファイル全体の値です。</value></data>
+  <data name="ConnectionsEnableTrafficMonitoring" xml:space="preserve"><value>監視を有効にする…</value></data>
+  <data name="ConnectionsTrafficRankingUnavailable" xml:space="preserve"><value>通信量で並べ替えるには、プロセスごとの通信監視を有効にしてください。</value></data>
+  <data name="ConnectionsHistoryHelp" xml:space="preserve"><value>選択した期間の受信と送信の合計を全行共通のスケールで表示します。空白は測定値が取得できない区間です。通信量は個別の接続ではなくプロセスまたは実行ファイルに属します。</value></data>
   <data name="ConnectionsNoObservedEndpoints" xml:space="preserve"><value>接続は観測されていません</value></data>
   <data name="PinService" xml:space="preserve"><value>サービスをピン留め</value></data>
   <data name="UnpinService" xml:space="preserve"><value>サービスのピン留めを解除</value></data>
@@ -1779,4 +1779,37 @@ Windows の正常性状態: {2}</value>
   <data name="OpenLogsFolder" xml:space="preserve"><value>ログフォルダーを開く</value></data>
   <data name="OpenLogsFolderHelp" xml:space="preserve"><value>WinMon の診断ログが保存されているフォルダーを開きます。</value></data>
   <data name="OpenLogsFolderFailed" xml:space="preserve"><value>ログフォルダーを開けませんでした。ログ記録が利用できないか、フォルダーが存在しない可能性があります。</value></data>
+  <data name="ConnectionsTrafficPeriod" xml:space="preserve"><value>通信量の期間</value></data>
+  <data name="ConnectionsLastMinute" xml:space="preserve"><value>過去1分</value></data>
+  <data name="ConnectionsLastFiveMinutes" xml:space="preserve"><value>過去5分</value></data>
+  <data name="ConnectionsLastThirtyMinutes" xml:space="preserve"><value>過去30分</value></data>
+  <data name="ConnectionsSinceStart" xml:space="preserve"><value>監視開始以降</value></data>
+  <data name="ConnectionsReceived" xml:space="preserve"><value>受信量</value></data>
+  <data name="ConnectionsSent" xml:space="preserve"><value>送信量</value></data>
+  <data name="ConnectionsTrafficHelp" xml:space="preserve"><value>選択期間中に観測されたプロセスの通信量です。タブの合計はフィルターや上位件数に関係なく全プロセスを含みます。≈ は記録が不完全であることを示します。</value></data>
+  <data name="ConnectionsTrafficCoverage" xml:space="preserve"><value>記録された期間：{0}秒。</value></data>
+  <data name="ExportServiceNote" xml:space="preserve"><value>保持されたサービスの観測。共有サービスではホストの測定値が重複するため、合計しないでください。ワーカープロセスは含まれません。</value></data>
+  <data name="ExportConnectionNote" xml:space="preserve"><value>保持されたTCP/UDPエンドポイントと所有プロセス。接続単位の通信量は含まれません。アドレスファミリごとの可用性を記録します。</value></data>
+  <data name="ConnectionsTrafficMonitoringOff" xml:space="preserve"><value>通信量の監視はオフです</value></data>
+  <data name="ConnectionsTrafficMonitoringBenefit" xml:space="preserve"><value>アプリごとのダウンロード速度とアップロード速度を表示します。</value></data>
+  <data name="CaptureThresholdHelp" xml:space="preserve"><value>測定値がこの値を超えるとキャプチャします（{0}）。</value></data>
+  <data name="CaptureDurationHelp" xml:space="preserve"><value>キャプチャが可能になるまで、しきい値を連続して超える秒数。</value></data>
+  <data name="ServiceWorkersHelp" xml:space="preserve"><value>サービスグループのリソース合計にワーカープロセスを含めます。</value></data>
+  <data name="ServiceRankingHelp" xml:space="preserve"><value>サービスグループを CPU または I/O の5秒平均、現在のプライベートメモリ、または名前で並べ替えます。</value></data>
+  <data name="UsageRankingHelp" xml:space="preserve"><value>アプリを前回のリセット以降の合計、プロセス数、または最終アクティビティで並べ替えます。</value></data>
+  <data name="ConnectionsRankingHelp" xml:space="preserve"><value>受信・送信速度、選択期間の受信・送信バイト数、または TCP/UDP エンドポイント数で並べ替えます。速度は5秒平均です。</value></data>
+  <data name="PinnedOnlyHelp" xml:space="preserve"><value>ピン留めした行のみ表示します。他のフィルターも適用されます。</value></data>
+  <data name="KilobytesPerSecond" xml:space="preserve"><value>KB/s</value></data>
+  <data name="MegabytesPerSecond" xml:space="preserve"><value>MB/s</value></data>
+  <data name="GigabytesPerSecond" xml:space="preserve"><value>GB/s</value></data>
+  <data name="ConnectionsRateTiming" xml:space="preserve"><value>接続の通信速度は、ネットワークイベントの到着を待つため、通常は現在時刻の3秒前に終わる5秒間の平均です。ゲージはアダプターの最新サンプルを使用するため、値が異なる場合があります。</value></data>
+  <data name="ChartResources" xml:space="preserve">
+    <value>リソース</value>
+  </data>
+  <data name="ShowChartResources" xml:space="preserve">
+    <value>リソースのコントロールを表示</value>
+  </data>
+  <data name="HideChartResources" xml:space="preserve">
+    <value>リソースのコントロールを非表示</value>
+  </data>
 </root>

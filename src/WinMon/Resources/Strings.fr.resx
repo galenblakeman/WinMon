@@ -1766,9 +1766,9 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
   <data name="ConnectionsUdpCount" xml:space="preserve"><value>Nombre UDP</value></data>
   <data name="ConnectionsHistoryUnavailable" xml:space="preserve"><value>L’historique des connexions est indisponible pour cet échantillon.</value></data>
   <data name="ConnectionsHistoryNote" xml:space="preserve"><value>Connexions observées à l’échantillon sélectionné. Les débits sont des moyennes sur cinq secondes, se terminant normalement trois secondes avant la collecte.</value></data>
-  <data name="ConnectionsEnableTrafficMonitoring" xml:space="preserve"><value>Activer le suivi du trafic…</value></data>
-  <data name="ConnectionsTrafficRankingUnavailable" xml:space="preserve"><value>Activez le suivi du trafic par processus pour classer par débit de réception ou émission.</value></data>
-  <data name="ConnectionsHistoryHelp" xml:space="preserve"><value>Trafic reçu et envoyé sur les deux dernières minutes, avec une échelle commune à toutes les lignes. Les interruptions indiquent des mesures indisponibles. Le trafic correspond au processus ou à l’exécutable, pas à une connexion individuelle.</value></data>
+  <data name="ConnectionsEnableTrafficMonitoring" xml:space="preserve"><value>Activer le suivi…</value></data>
+  <data name="ConnectionsTrafficRankingUnavailable" xml:space="preserve"><value>Activez le suivi du trafic par processus pour classer par trafic.</value></data>
+  <data name="ConnectionsHistoryHelp" xml:space="preserve"><value>Trafic reçu et envoyé sur la période choisie, avec une échelle commune à toutes les lignes. Les interruptions indiquent des mesures indisponibles. Le trafic appartient au processus ou à l’exécutable, pas à une connexion individuelle.</value></data>
   <data name="ConnectionsNoObservedEndpoints" xml:space="preserve"><value>Aucune connexion observée</value></data>
   <data name="PinService" xml:space="preserve"><value>Épingler le service</value></data>
   <data name="UnpinService" xml:space="preserve"><value>Désépingler le service</value></data>
@@ -1779,4 +1779,37 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
   <data name="OpenLogsFolder" xml:space="preserve"><value>Ouvrir le dossier des journaux</value></data>
   <data name="OpenLogsFolderHelp" xml:space="preserve"><value>Ouvrir le dossier des journaux de diagnostic de WinMon.</value></data>
   <data name="OpenLogsFolderFailed" xml:space="preserve"><value>Impossible d’ouvrir le dossier des journaux. La journalisation est peut-être indisponible ou le dossier n’existe plus.</value></data>
+  <data name="ConnectionsTrafficPeriod" xml:space="preserve"><value>Période du trafic</value></data>
+  <data name="ConnectionsLastMinute" xml:space="preserve"><value>Dernière min</value></data>
+  <data name="ConnectionsLastFiveMinutes" xml:space="preserve"><value>5 dernières min</value></data>
+  <data name="ConnectionsLastThirtyMinutes" xml:space="preserve"><value>30 dernières min</value></data>
+  <data name="ConnectionsSinceStart" xml:space="preserve"><value>Depuis le début</value></data>
+  <data name="ConnectionsReceived" xml:space="preserve"><value>Reçu</value></data>
+  <data name="ConnectionsSent" xml:space="preserve"><value>Envoyé</value></data>
+  <data name="ConnectionsTrafficHelp" xml:space="preserve"><value>Trafic observé par processus sur la période choisie. Les totaux incluent tous les processus, sans filtres ni limite Top. ≈ indique une couverture incomplète.</value></data>
+  <data name="ConnectionsTrafficCoverage" xml:space="preserve"><value>Durée enregistrée : {0} secondes.</value></data>
+  <data name="ExportServiceNote" xml:space="preserve"><value>Observations de services conservées. Les services partagés répètent les mesures de l’hôte ; ne pas les additionner. Les processus auxiliaires sont exclus.</value></data>
+  <data name="ExportConnectionNote" xml:space="preserve"><value>Points de terminaison TCP/UDP et propriétaires conservés. Aucun compteur de trafic par connexion. Disponibilité indiquée par famille d’adresses.</value></data>
+  <data name="ConnectionsTrafficMonitoringOff" xml:space="preserve"><value>Le suivi du trafic est désactivé</value></data>
+  <data name="ConnectionsTrafficMonitoringBenefit" xml:space="preserve"><value>Consultez les débits de téléchargement et d’envoi de chaque application.</value></data>
+  <data name="CaptureThresholdHelp" xml:space="preserve"><value>Capturer lorsque la mesure dépasse cette valeur ({0}).</value></data>
+  <data name="CaptureDurationHelp" xml:space="preserve"><value>Secondes consécutives au-dessus du seuil avant de pouvoir déclencher une capture.</value></data>
+  <data name="ServiceWorkersHelp" xml:space="preserve"><value>Inclure les processus de travail dans les totaux de ressources du groupe de services.</value></data>
+  <data name="ServiceRankingHelp" xml:space="preserve"><value>Classer les groupes de services par CPU ou E/S moyens sur cinq secondes, mémoire privée actuelle ou nom.</value></data>
+  <data name="UsageRankingHelp" xml:space="preserve"><value>Classer les applications par totaux depuis la dernière remise à zéro, nombre de processus ou dernière activité.</value></data>
+  <data name="ConnectionsRankingHelp" xml:space="preserve"><value>Classer par débit reçu/envoyé, octets reçus/envoyés sur la période sélectionnée ou nombre de points de terminaison TCP/UDP. Les débits sont des moyennes sur cinq secondes.</value></data>
+  <data name="PinnedOnlyHelp" xml:space="preserve"><value>Afficher uniquement les lignes épinglées. Les autres filtres restent actifs.</value></data>
+  <data name="KilobytesPerSecond" xml:space="preserve"><value>KB/s</value></data>
+  <data name="MegabytesPerSecond" xml:space="preserve"><value>MB/s</value></data>
+  <data name="GigabytesPerSecond" xml:space="preserve"><value>GB/s</value></data>
+  <data name="ConnectionsRateTiming" xml:space="preserve"><value>Les débits de Connexions sont calculés sur une fenêtre de 5 secondes se terminant normalement 3 secondes avant le moment présent, pour laisser arriver les événements réseau. La jauge utilise la dernière mesure de la carte réseau ; les valeurs peuvent donc différer.</value></data>
+  <data name="ChartResources" xml:space="preserve">
+    <value>Ressources</value>
+  </data>
+  <data name="ShowChartResources" xml:space="preserve">
+    <value>Afficher les commandes des ressources</value>
+  </data>
+  <data name="HideChartResources" xml:space="preserve">
+    <value>Masquer les commandes des ressources</value>
+  </data>
 </root>

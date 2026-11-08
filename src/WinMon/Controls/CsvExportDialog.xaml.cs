@@ -18,28 +18,36 @@ public partial class CsvExportDialog : Window
         {
             case CsvExportKind.ResourceHistory: ResourceChoice.IsChecked = true; break;
             case CsvExportKind.ProcessSamples: ProcessChoice.IsChecked = true; break;
+            case CsvExportKind.Services: ServiceChoice.IsChecked = true; break;
+            case CsvExportKind.Connections: ConnectionChoice.IsChecked = true; break;
             default: UsageChoice.IsChecked = true; break;
         }
     }
 
     private CsvExportKind Kind => UsageChoice.IsChecked == true ? CsvExportKind.UsageTotals :
+        ServiceChoice.IsChecked == true ? CsvExportKind.Services :
+        ConnectionChoice.IsChecked == true ? CsvExportKind.Connections :
         ProcessChoice.IsChecked == true ? CsvExportKind.ProcessSamples : CsvExportKind.ResourceHistory;
 
     private void OnChoiceChanged(object sender, RoutedEventArgs e)
     {
         if (DataNote is null || TimeChoices is null || FileNameBox is null) return;
         TimeChoices.Visibility = Kind == CsvExportKind.UsageTotals ? Visibility.Collapsed : Visibility.Visible;
-        MinHeight = Kind == CsvExportKind.UsageTotals ? 430 : 560;
+        MinHeight = Kind == CsvExportKind.UsageTotals ? 500 : 630;
         DataNote.Text = Kind switch
         {
             CsvExportKind.ResourceHistory => Strings.ExportResourceNote,
             CsvExportKind.ProcessSamples => Strings.ExportProcessNote,
+            CsvExportKind.Services => Strings.ExportServiceNote,
+            CsvExportKind.Connections => Strings.ExportConnectionNote,
             _ => Strings.ExportUsageNote
         };
         var type = Kind switch
         {
             CsvExportKind.ResourceHistory => "resources",
             CsvExportKind.ProcessSamples => "processes",
+            CsvExportKind.Services => "services",
+            CsvExportKind.Connections => "connections",
             _ => "usage"
         };
         FileNameBox.Text = $"winmon-{type}-{DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}.csv";

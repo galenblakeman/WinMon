@@ -1766,9 +1766,9 @@ O trabalho não salvo pode ser perdido. Todos os processos listados abaixo serã
   <data name="ConnectionsUdpCount" xml:space="preserve"><value>Contagem UDP</value></data>
   <data name="ConnectionsHistoryUnavailable" xml:space="preserve"><value>O histórico de conexões não está disponível para esta amostra.</value></data>
   <data name="ConnectionsHistoryNote" xml:space="preserve"><value>Conexões observadas na amostra selecionada. As taxas são médias de cinco segundos, normalmente até três segundos antes da coleta.</value></data>
-  <data name="ConnectionsEnableTrafficMonitoring" xml:space="preserve"><value>Ativar monitoramento de tráfego…</value></data>
-  <data name="ConnectionsTrafficRankingUnavailable" xml:space="preserve"><value>Ative o monitoramento de tráfego por processo para classificar pela taxa de recebimento ou envio.</value></data>
-  <data name="ConnectionsHistoryHelp" xml:space="preserve"><value>Tráfego recebido e enviado nos últimos dois minutos, com a mesma escala para todas as linhas. Lacunas indicam leituras indisponíveis. O tráfego pertence ao processo ou executável, não a uma conexão individual.</value></data>
+  <data name="ConnectionsEnableTrafficMonitoring" xml:space="preserve"><value>Ativar monitoramento…</value></data>
+  <data name="ConnectionsTrafficRankingUnavailable" xml:space="preserve"><value>Ative o monitoramento de tráfego por processo para classificar por tráfego.</value></data>
+  <data name="ConnectionsHistoryHelp" xml:space="preserve"><value>Tráfego recebido e enviado no período selecionado, com uma escala comum a todas as linhas. Lacunas indicam leituras indisponíveis. O tráfego pertence ao processo ou executável, não a uma conexão individual.</value></data>
   <data name="ConnectionsNoObservedEndpoints" xml:space="preserve"><value>Nenhuma conexão observada</value></data>
   <data name="PinService" xml:space="preserve"><value>Fixar serviço</value></data>
   <data name="UnpinService" xml:space="preserve"><value>Desafixar serviço</value></data>
@@ -1779,4 +1779,37 @@ O trabalho não salvo pode ser perdido. Todos os processos listados abaixo serã
   <data name="OpenLogsFolder" xml:space="preserve"><value>Abrir pasta de logs</value></data>
   <data name="OpenLogsFolderHelp" xml:space="preserve"><value>Abrir a pasta que contém os logs de diagnóstico do WinMon.</value></data>
   <data name="OpenLogsFolderFailed" xml:space="preserve"><value>Não foi possível abrir a pasta de logs. O registro pode estar indisponível ou a pasta pode não existir mais.</value></data>
+  <data name="ConnectionsTrafficPeriod" xml:space="preserve"><value>Período de tráfego</value></data>
+  <data name="ConnectionsLastMinute" xml:space="preserve"><value>Último 1 min</value></data>
+  <data name="ConnectionsLastFiveMinutes" xml:space="preserve"><value>Últimos 5 min</value></data>
+  <data name="ConnectionsLastThirtyMinutes" xml:space="preserve"><value>Últimos 30 min</value></data>
+  <data name="ConnectionsSinceStart" xml:space="preserve"><value>Desde o início</value></data>
+  <data name="ConnectionsReceived" xml:space="preserve"><value>Recebido</value></data>
+  <data name="ConnectionsSent" xml:space="preserve"><value>Enviado</value></data>
+  <data name="ConnectionsTrafficHelp" xml:space="preserve"><value>Tráfego observado por processo no período selecionado. Os totais incluem todos os processos, sem filtros ou limite Top. ≈ indica cobertura incompleta.</value></data>
+  <data name="ConnectionsTrafficCoverage" xml:space="preserve"><value>Cobertura registrada: {0} segundos.</value></data>
+  <data name="ExportServiceNote" xml:space="preserve"><value>Observações de serviços retidas. Serviços compartilhados repetem as métricas do host; não as some. Processos auxiliares são excluídos.</value></data>
+  <data name="ExportConnectionNote" xml:space="preserve"><value>Pontos de extremidade TCP/UDP e proprietários retidos. Sem contadores de tráfego por conexão. A disponibilidade é registrada por família de endereços.</value></data>
+  <data name="ConnectionsTrafficMonitoringOff" xml:space="preserve"><value>O monitoramento de tráfego está desativado</value></data>
+  <data name="ConnectionsTrafficMonitoringBenefit" xml:space="preserve"><value>Veja as taxas de download e upload de cada aplicativo.</value></data>
+  <data name="CaptureThresholdHelp" xml:space="preserve"><value>Capturar quando a leitura exceder este valor ({0}).</value></data>
+  <data name="CaptureDurationHelp" xml:space="preserve"><value>Segundos consecutivos acima do limite antes que uma captura possa ser acionada.</value></data>
+  <data name="ServiceWorkersHelp" xml:space="preserve"><value>Incluir processos de trabalho nos totais de recursos do grupo de serviços.</value></data>
+  <data name="ServiceRankingHelp" xml:space="preserve"><value>Classificar grupos de serviços pela média de CPU ou E/S de cinco segundos, memória privada atual ou nome.</value></data>
+  <data name="UsageRankingHelp" xml:space="preserve"><value>Classificar aplicativos pelos totais desde a última redefinição, número de processos ou última atividade.</value></data>
+  <data name="ConnectionsRankingHelp" xml:space="preserve"><value>Classificar pela taxa de recebimento/envio, bytes recebidos/enviados no período selecionado ou contagem de pontos de extremidade TCP/UDP. As taxas são médias de cinco segundos.</value></data>
+  <data name="PinnedOnlyHelp" xml:space="preserve"><value>Mostrar apenas as linhas fixadas. Os outros filtros continuam sendo aplicados.</value></data>
+  <data name="KilobytesPerSecond" xml:space="preserve"><value>KB/s</value></data>
+  <data name="MegabytesPerSecond" xml:space="preserve"><value>MB/s</value></data>
+  <data name="GigabytesPerSecond" xml:space="preserve"><value>GB/s</value></data>
+  <data name="ConnectionsRateTiming" xml:space="preserve"><value>As taxas de Conexões são médias de uma janela de 5 segundos que normalmente termina 3 segundos antes do momento atual, para dar tempo à chegada dos eventos de rede. O medidor usa a amostra mais recente do adaptador, então os valores podem diferir.</value></data>
+  <data name="ChartResources" xml:space="preserve">
+    <value>Recursos</value>
+  </data>
+  <data name="ShowChartResources" xml:space="preserve">
+    <value>Mostrar controles de recursos</value>
+  </data>
+  <data name="HideChartResources" xml:space="preserve">
+    <value>Ocultar controles de recursos</value>
+  </data>
 </root>

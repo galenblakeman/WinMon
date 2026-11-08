@@ -1766,9 +1766,9 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="ConnectionsUdpCount" xml:space="preserve"><value>UDP count</value></data>
   <data name="ConnectionsHistoryUnavailable" xml:space="preserve"><value>Connection history is unavailable for this sample.</value></data>
   <data name="ConnectionsHistoryNote" xml:space="preserve"><value>Connections observed at the selected sample. Rates are delayed five-second averages, normally ending three seconds before collection.</value></data>
-  <data name="ConnectionsEnableTrafficMonitoring" xml:space="preserve"><value>Enable traffic monitoring…</value></data>
-  <data name="ConnectionsTrafficRankingUnavailable" xml:space="preserve"><value>Enable per-process traffic monitoring to rank by receive/send rate.</value></data>
-  <data name="ConnectionsHistoryHelp" xml:space="preserve"><value>Receive + send traffic over the last two minutes, on one scale shared by every row. Gaps mean unavailable readings. Traffic belongs to the process or executable, not an individual connection.</value></data>
+  <data name="ConnectionsEnableTrafficMonitoring" xml:space="preserve"><value>Enable monitoring…</value></data>
+  <data name="ConnectionsTrafficRankingUnavailable" xml:space="preserve"><value>Enable per-process traffic monitoring to rank by traffic.</value></data>
+  <data name="ConnectionsHistoryHelp" xml:space="preserve"><value>Receive + send traffic over the selected traffic period, on one scale shared by every row. Gaps mean unavailable readings. Traffic belongs to the process or executable, not an individual connection.</value></data>
   <data name="ConnectionsNoObservedEndpoints" xml:space="preserve"><value>No connections observed</value></data>
   <data name="PinService" xml:space="preserve"><value>Pin service</value></data>
   <data name="UnpinService" xml:space="preserve"><value>Unpin service</value></data>
@@ -1779,4 +1779,37 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="OpenLogsFolder" xml:space="preserve"><value>Open logs folder</value></data>
   <data name="OpenLogsFolderHelp" xml:space="preserve"><value>Open the folder containing WinMon diagnostic logs.</value></data>
   <data name="OpenLogsFolderFailed" xml:space="preserve"><value>The logs folder could not be opened. Logging may be unavailable or the folder may no longer exist.</value></data>
+  <data name="ConnectionsTrafficPeriod" xml:space="preserve"><value>Traffic period</value></data>
+  <data name="ConnectionsLastMinute" xml:space="preserve"><value>Last 1 min</value></data>
+  <data name="ConnectionsLastFiveMinutes" xml:space="preserve"><value>Last 5 min</value></data>
+  <data name="ConnectionsLastThirtyMinutes" xml:space="preserve"><value>Last 30 min</value></data>
+  <data name="ConnectionsSinceStart" xml:space="preserve"><value>Since start</value></data>
+  <data name="ConnectionsReceived" xml:space="preserve"><value>Received</value></data>
+  <data name="ConnectionsSent" xml:space="preserve"><value>Sent</value></data>
+  <data name="ConnectionsTrafficHelp" xml:space="preserve"><value>Observed process traffic for the selected period. Tab totals include all processes regardless of filters or Top. ≈ indicates incomplete coverage.</value></data>
+  <data name="ConnectionsTrafficCoverage" xml:space="preserve"><value>Recorded coverage: {0} seconds.</value></data>
+  <data name="ExportServiceNote" xml:space="preserve"><value>Retained service observations. Shared services repeat host metrics; do not sum them. Workers are excluded.</value></data>
+  <data name="ExportConnectionNote" xml:space="preserve"><value>Retained TCP/UDP endpoints and owners. No per-connection traffic counters. Availability is recorded per address family.</value></data>
+  <data name="ConnectionsTrafficMonitoringOff" xml:space="preserve"><value>Traffic monitoring is off</value></data>
+  <data name="ConnectionsTrafficMonitoringBenefit" xml:space="preserve"><value>See download and upload rates for each app.</value></data>
+  <data name="CaptureThresholdHelp" xml:space="preserve"><value>Capture when the reading exceeds this value ({0}).</value></data>
+  <data name="CaptureDurationHelp" xml:space="preserve"><value>Consecutive seconds above the threshold before a capture can fire.</value></data>
+  <data name="ServiceWorkersHelp" xml:space="preserve"><value>Include worker processes in the service group’s resource totals.</value></data>
+  <data name="ServiceRankingHelp" xml:space="preserve"><value>Rank service groups by five-second average CPU or I/O, current private memory, or name.</value></data>
+  <data name="UsageRankingHelp" xml:space="preserve"><value>Rank apps by totals since the last reset, process count, or last activity.</value></data>
+  <data name="ConnectionsRankingHelp" xml:space="preserve"><value>Rank by receive/send rate, received/sent bytes for the selected period, or TCP/UDP endpoint count. Rates are five-second averages.</value></data>
+  <data name="PinnedOnlyHelp" xml:space="preserve"><value>Show only pinned rows. Other filters still apply.</value></data>
+  <data name="KilobytesPerSecond" xml:space="preserve"><value>KB/s</value></data>
+  <data name="MegabytesPerSecond" xml:space="preserve"><value>MB/s</value></data>
+  <data name="GigabytesPerSecond" xml:space="preserve"><value>GB/s</value></data>
+  <data name="ConnectionsRateTiming" xml:space="preserve"><value>Connections rates average a 5-second window that normally ends 3 seconds behind the current time, allowing network events to arrive. The gauge uses the latest adapter sample, so values can differ.</value></data>
+  <data name="ChartResources" xml:space="preserve">
+    <value>Resources</value>
+  </data>
+  <data name="ShowChartResources" xml:space="preserve">
+    <value>Show resource controls</value>
+  </data>
+  <data name="HideChartResources" xml:space="preserve">
+    <value>Hide resource controls</value>
+  </data>
 </root>

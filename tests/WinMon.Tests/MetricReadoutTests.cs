@@ -9,6 +9,27 @@ namespace WinMon.Tests;
 [Apartment(ApartmentState.STA)]
 public sealed class MetricReadoutTests
 {
+    [Test]
+    public void PlainGauge_KeepsItsCheckboxInTheChartAcrossGaugeStyles()
+    {
+        var readout = new MetricReadout { ShowSeriesToggle = false, Label = "CPU" };
+        var host = new System.Windows.Controls.ContentControl { Content = readout.Toggle };
+        readout.Toggle.IsChecked = false;
+        foreach (var style in Enum.GetValues<GaugeStyle>())
+        {
+            readout.GaugeStyle = style;
+            readout.Label = "Memory";
+            Assert.Multiple(() =>
+            {
+                Assert.That(readout.Toggle.Parent, Is.SameAs(host));
+                Assert.That(readout.Toggle.IsChecked, Is.False);
+                Assert.That(readout.Toggle.Content, Is.EqualTo("Memory"));
+                Assert.That(readout.Toggle.Margin, Is.EqualTo(new System.Windows.Thickness()));
+                Assert.That(System.Windows.Automation.AutomationProperties.GetName(readout), Is.EqualTo("Memory"));
+            });
+        }
+    }
+
     private static string Text(MetricReadout readout) =>
         new TextRange(readout.ValueLabel.ContentStart, readout.ValueLabel.ContentEnd).Text;
 

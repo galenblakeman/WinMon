@@ -10,6 +10,7 @@ namespace WinMon;
 public partial class MainWindow
 {
     private bool _serviceActionBusy;
+    private bool _restoringActivityTab;
 
     private void InitializeServices()
     {
@@ -42,7 +43,12 @@ public partial class MainWindow
 
     private void SelectActivityView()
     {
-        SetActivityPanelCollapsed(false);
+        _preferences = _preferences with
+        {
+            SelectedActivityTab = ServicesTab.IsChecked == true ? 1 : UsageTab.IsChecked == true ? 2 :
+                ConnectionsTab.IsChecked == true ? 3 : 0
+        };
+        if (!_restoringActivityTab) SetActivityPanelCollapsed(false);
         Processes.Visibility = ProcessesTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
         ServiceView.Visibility = ServicesTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
         UsageView.Visibility = UsageTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
@@ -52,6 +58,26 @@ public partial class MainWindow
         UsageCounts.Visibility = UsageTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
         ConnectionCounts.Visibility = ConnectionsTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
         RefreshPresentation();
+    }
+
+    internal void RestoreActivityTab()
+    {
+        _restoringActivityTab = true;
+        try
+        {
+            var tab = _preferences.SelectedActivityTab switch
+            {
+                1 => ServicesTab,
+                2 => UsageTab,
+                3 => ConnectionsTab,
+                _ => ProcessesTab
+            };
+            tab.IsChecked = true;
+        }
+        finally
+        {
+            _restoringActivityTab = false;
+        }
     }
 
     private void RefreshServices()

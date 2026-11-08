@@ -10,6 +10,18 @@ This folder contains the current layout reference, feature design notes and edit
 
 ## Feature notes
 
+- [Remembered activity tab](ACTIVITY-TAB-PERSISTENCE.md) reopens the last selected tab while preserving the collapsed panel state.
+
+- [Chart resource legend](CHART-RESOURCE-LEGEND.md) moves resource visibility controls from the gauges into a shared, wrapping legend inside the chart.
+
+- [Network traffic units](NETWORK-RATE-UNITS.md) unifies traffic rates as bytes per second while preserving link-speed units and explaining Connections averaging.
+
+- [Connections at minimum width](CONNECTIONS-MINIMUM-WIDTH.md) keeps traffic, history and endpoint counts within the existing minimum window width.
+
+- [Connections monitoring setup strip](CONNECTIONS-MONITORING-SETUP.md) promotes optional traffic monitoring above the connection list.
+
+- [Connections traffic periods](CONNECTIONS-TRAFFIC-PERIODS.md) adds interval bytes beside live rates and overall totals in the activity tab bar.
+
 - [Services filter persistence](SERVICE-FILTER-PERSISTENCE.md) remembers sorting, status and Workers between launches.
 
 - [Connections header pin count](CONNECTIONS-HEADER-PINS.md) moves the saved-pin count beside Process / PID and removes the two informational footer lines.
@@ -107,3 +119,5 @@ Implemented on 2026-10-24; each note ends with what landed and where it departed
 [Icon source and generation instructions](icon/README.md) explain how to regenerate the executable and notification-area icon.
 
 The [visual QA record](../design-qa.md) retains dated implementation checks. References there to removed mockups identify historical review inputs.
+
+- [Helpful tooltips](HELPFUL-TOOLTIPS.md) explains Settings and activity filter choices.

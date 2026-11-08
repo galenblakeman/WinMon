@@ -1766,9 +1766,9 @@ GPU {11} · {12}
   <data name="ConnectionsUdpCount" xml:space="preserve"><value>Число UDP</value></data>
   <data name="ConnectionsHistoryUnavailable" xml:space="preserve"><value>История соединений недоступна для этого замера.</value></data>
   <data name="ConnectionsHistoryNote" xml:space="preserve"><value>Соединения при выбранном замере. Скорости — средние за пять секунд, обычно заканчивающихся за три секунды до сбора.</value></data>
-  <data name="ConnectionsEnableTrafficMonitoring" xml:space="preserve"><value>Включить мониторинг трафика…</value></data>
-  <data name="ConnectionsTrafficRankingUnavailable" xml:space="preserve"><value>Включите мониторинг трафика процессов для сортировки по скорости приёма или отправки.</value></data>
-  <data name="ConnectionsHistoryHelp" xml:space="preserve"><value>Входящий и исходящий трафик за последние две минуты в едином масштабе для всех строк. Пробелы означают недоступные показания. Трафик относится к процессу или исполняемому файлу, а не к отдельному соединению.</value></data>
+  <data name="ConnectionsEnableTrafficMonitoring" xml:space="preserve"><value>Включить мониторинг…</value></data>
+  <data name="ConnectionsTrafficRankingUnavailable" xml:space="preserve"><value>Включите мониторинг трафика процессов для сортировки по трафику.</value></data>
+  <data name="ConnectionsHistoryHelp" xml:space="preserve"><value>Принятый и отправленный трафик за выбранный период с общей шкалой для всех строк. Пропуски означают отсутствие показаний. Трафик относится к процессу или исполняемому файлу, а не к отдельному соединению.</value></data>
   <data name="ConnectionsNoObservedEndpoints" xml:space="preserve"><value>Соединения не обнаружены</value></data>
   <data name="PinService" xml:space="preserve"><value>Закрепить службу</value></data>
   <data name="UnpinService" xml:space="preserve"><value>Открепить службу</value></data>
@@ -1779,4 +1779,37 @@ GPU {11} · {12}
   <data name="OpenLogsFolder" xml:space="preserve"><value>Открыть папку журналов</value></data>
   <data name="OpenLogsFolderHelp" xml:space="preserve"><value>Открыть папку с диагностическими журналами WinMon.</value></data>
   <data name="OpenLogsFolderFailed" xml:space="preserve"><value>Не удалось открыть папку журналов. Запись журналов может быть недоступна или папка больше не существует.</value></data>
+  <data name="ConnectionsTrafficPeriod" xml:space="preserve"><value>Период трафика</value></data>
+  <data name="ConnectionsLastMinute" xml:space="preserve"><value>За 1 мин</value></data>
+  <data name="ConnectionsLastFiveMinutes" xml:space="preserve"><value>За 5 мин</value></data>
+  <data name="ConnectionsLastThirtyMinutes" xml:space="preserve"><value>За 30 мин</value></data>
+  <data name="ConnectionsSinceStart" xml:space="preserve"><value>С начала</value></data>
+  <data name="ConnectionsReceived" xml:space="preserve"><value>Получено</value></data>
+  <data name="ConnectionsSent" xml:space="preserve"><value>Отправлено</value></data>
+  <data name="ConnectionsTrafficHelp" xml:space="preserve"><value>Наблюдаемый трафик процессов за выбранный период. Итоги вкладки включают все процессы независимо от фильтров и лимита Top. ≈ означает неполные данные.</value></data>
+  <data name="ConnectionsTrafficCoverage" xml:space="preserve"><value>Записано: {0} секунд.</value></data>
+  <data name="ExportServiceNote" xml:space="preserve"><value>Сохранённые наблюдения служб. Общие службы повторяют показатели хоста; не суммируйте их. Рабочие процессы исключены.</value></data>
+  <data name="ExportConnectionNote" xml:space="preserve"><value>Сохранённые конечные точки TCP/UDP и владельцы. Без счётчиков трафика отдельных соединений. Доступность записывается для каждого семейства адресов.</value></data>
+  <data name="ConnectionsTrafficMonitoringOff" xml:space="preserve"><value>Мониторинг трафика отключён</value></data>
+  <data name="ConnectionsTrafficMonitoringBenefit" xml:space="preserve"><value>Просматривайте скорость загрузки и отправки для каждого приложения.</value></data>
+  <data name="CaptureThresholdHelp" xml:space="preserve"><value>Создавать снимок, когда показание превышает это значение ({0}).</value></data>
+  <data name="CaptureDurationHelp" xml:space="preserve"><value>Число последовательных секунд выше порога, после которых может сработать снимок.</value></data>
+  <data name="ServiceWorkersHelp" xml:space="preserve"><value>Включать рабочие процессы в суммарное использование ресурсов группы служб.</value></data>
+  <data name="ServiceRankingHelp" xml:space="preserve"><value>Сортировать группы служб по средним ЦП или вводу-выводу за пять секунд, текущей частной памяти или имени.</value></data>
+  <data name="UsageRankingHelp" xml:space="preserve"><value>Сортировать приложения по итогам с последнего сброса, числу процессов или последней активности.</value></data>
+  <data name="ConnectionsRankingHelp" xml:space="preserve"><value>Сортировать по скорости приёма/передачи, полученным/отправленным байтам за выбранный период или числу конечных точек TCP/UDP. Скорости усреднены за пять секунд.</value></data>
+  <data name="PinnedOnlyHelp" xml:space="preserve"><value>Показывать только закреплённые строки. Остальные фильтры также действуют.</value></data>
+  <data name="KilobytesPerSecond" xml:space="preserve"><value>KB/s</value></data>
+  <data name="MegabytesPerSecond" xml:space="preserve"><value>MB/s</value></data>
+  <data name="GigabytesPerSecond" xml:space="preserve"><value>GB/s</value></data>
+  <data name="ConnectionsRateTiming" xml:space="preserve"><value>Скорости в разделе «Подключения» усредняются за 5 секунд; окно обычно заканчивается за 3 секунды до текущего момента, чтобы успели поступить сетевые события. Индикатор использует последнее измерение адаптера, поэтому значения могут различаться.</value></data>
+  <data name="ChartResources" xml:space="preserve">
+    <value>Ресурсы</value>
+  </data>
+  <data name="ShowChartResources" xml:space="preserve">
+    <value>Показать элементы управления ресурсами</value>
+  </data>
+  <data name="HideChartResources" xml:space="preserve">
+    <value>Скрыть элементы управления ресурсами</value>
+  </data>
 </root>

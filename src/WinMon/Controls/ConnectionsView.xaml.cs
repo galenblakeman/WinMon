@@ -13,10 +13,10 @@ using WinMon.Preferences;
 
 namespace WinMon.Controls;
 
-internal enum ConnectionSort { Receive, Send, Tcp, Udp }
+internal enum ConnectionSort { Receive, Send, Tcp, Udp, Received, Sent }
 
 internal sealed record ConnectionListSettings(int TopCount = 10, ConnectionSort Sort = ConnectionSort.Receive,
-    bool AppsOnly = false, bool PinnedOnly = false);
+    bool AppsOnly = false, bool PinnedOnly = false, int TrafficSeconds = 300);
 
 public partial class ConnectionsView
 {
@@ -36,6 +36,8 @@ public partial class ConnectionsView
     private readonly Dictionary<ProcessLifetimeIdentity, ProcessNetworkReading> _networkReadings = [];
     private bool _historical;
     private IReadOnlyList<ConnectionCapture> _history = [];
+    private ConnectionTrafficTotals? _trafficTotals;
+    private ConnectionCapture? _capture;
     private bool _refreshing;
     private bool _loadingSettings;
     private string? _selectedKey;
@@ -86,12 +88,15 @@ public partial class ConnectionsView
 
     internal void Update(NetworkConnectionsFrame? frame, IReadOnlyList<ProcessUsage> processes, bool historical,
         ProcessNetworkFrame? network = null, bool networkEnabled = false,
-        IReadOnlyList<ConnectionCapture>? history = null)
+        IReadOnlyList<ConnectionCapture>? history = null, ConnectionCapture? capture = null,
+        ConnectionTrafficTotals? trafficTotals = null)
     {
         _frame = frame;
         _processes = processes;
         _historical = historical;
         _history = history ?? [];
+        _capture = capture;
+        _trafficTotals = trafficTotals;
         _network = network;
         var availabilityChanged = _networkEnabled != networkEnabled;
         _networkEnabled = networkEnabled;
@@ -99,12 +104,14 @@ public partial class ConnectionsView
         TrafficPrompt.Visibility = !networkEnabled && !historical && NetworkSetupBroker.Supported
             ? Visibility.Visible : Visibility.Collapsed;
         BuildNetworkMembers();
-        ReceiveHeaderColumn.Width = networkEnabled ? new GridLength(100) : new GridLength(0);
-        SendHeaderColumn.Width = networkEnabled ? new GridLength(100) : new GridLength(0);
+        ReceiveHeaderColumn.Width = networkEnabled ? new GridLength(80) : new GridLength(0);
+        SendHeaderColumn.Width = networkEnabled ? new GridLength(80) : new GridLength(0);
+        ReceivedHeaderColumn.Width = SentHeaderColumn.Width = networkEnabled ? new GridLength(82) : new GridLength(0);
+        ReceivedHeader.Visibility = SentHeader.Visibility = networkEnabled ? Visibility.Visible : Visibility.Collapsed;
         ReceiveHeader.Visibility = networkEnabled ? Visibility.Visible : Visibility.Collapsed;
         SendHeader.Visibility = networkEnabled ? Visibility.Visible : Visibility.Collapsed;
-        ConnectionHeaders.MinWidth = networkEnabled ? 795 : 595;
-        ConnectionRowMinWidth = networkEnabled ? 813 : 613;
+        ConnectionHeaders.MinWidth = networkEnabled ? 780 : 595;
+        ConnectionRowMinWidth = networkEnabled ? 798 : 613;
         RefreshRows();
     }
 
@@ -124,17 +131,22 @@ public partial class ConnectionsView
             var help = NetworkSetupBroker.Supported ? Strings.ConnectionsTrafficRankingUnavailable :
                 Strings.NetworkProcessMonitoringStoreUnavailable;
             Rank.ItemsSource = new[] { Strings.ConnectionsReceiveRate, Strings.ConnectionsSendRate,
-                Strings.ConnectionsTcpCount, Strings.ConnectionsUdpCount }.Select((label, index) =>
+                Strings.ConnectionsTcpCount, Strings.ConnectionsUdpCount,
+                Strings.ConnectionsReceived, Strings.ConnectionsSent }.Select((label, index) =>
             {
-                var item = new ComboBoxItem { Content = label, IsEnabled = _networkEnabled || index >= 2,
-                    ToolTip = !_networkEnabled && index < 2 ? help : null };
+                var item = new ComboBoxItem { Content = label, IsEnabled = _networkEnabled || !IsTrafficSort((ConnectionSort)index),
+                    ToolTip = !_networkEnabled && IsTrafficSort((ConnectionSort)index) ? help : null };
                 ToolTipService.SetShowOnDisabled(item, true);
                 return item;
             }).ToArray();
-            Rank.ToolTip = _networkEnabled ? null : help;
+            Rank.ToolTip = _networkEnabled ? Strings.ConnectionsRankingHelp : help;
+            System.Windows.Automation.AutomationProperties.SetHelpText(Rank, (string)Rank.ToolTip);
             Rank.SelectedIndex = (int)EffectiveSort;
             AppsOnly.IsChecked = settings.AppsOnly;
             PinnedOnly.IsChecked = settings.PinnedOnly;
+            TrafficPeriod.ItemsSource = new[] { Strings.ConnectionsLastMinute, Strings.ConnectionsLastFiveMinutes,
+                Strings.ConnectionsLastThirtyMinutes, Strings.ConnectionsSinceStart };
+            TrafficPeriod.SelectedIndex = settings.TrafficSeconds switch { 60 => 0, 1800 => 2, 0 => 3, _ => 1 };
         }
         finally { _loadingSettings = false; }
         RefreshRows();
@@ -146,7 +158,7 @@ public partial class ConnectionsView
         Search.SelectAll();
     }
 
-    internal bool HasOpenDropDown => TopCount.IsDropDownOpen || Rank.IsDropDownOpen;
+    internal bool HasOpenDropDown => TopCount.IsDropDownOpen || Rank.IsDropDownOpen || TrafficPeriod.IsDropDownOpen;
     internal bool ClearSearch()
     {
         if (!Search.IsKeyboardFocusWithin || Search.Text.Length == 0) return false;
@@ -186,13 +198,15 @@ public partial class ConnectionsView
     private void OnSettingsChanged(object sender, RoutedEventArgs e)
     {
         if (_loadingSettings || !TopCountChoices.TryGetCount(TopCount.SelectedItem, out var top) || Rank.SelectedIndex < 0) return;
-        if (!_networkEnabled && Rank.SelectedIndex < 2)
+        if (!_networkEnabled && IsTrafficSort((ConnectionSort)Rank.SelectedIndex))
         {
             Load(_settings);
             return;
         }
         _settings = new ConnectionListSettings(top, ReferenceEquals(sender, Rank) ? (ConnectionSort)Rank.SelectedIndex : _settings.Sort,
-            AppsOnly.IsChecked == true, PinnedOnly.IsChecked == true);
+            AppsOnly.IsChecked == true, PinnedOnly.IsChecked == true,
+            TrafficPeriod.SelectedIndex switch { 0 => 60, 2 => 1800, 3 => 0, _ => 300 });
+        _trafficTotals = _networkEnabled ? ConnectionTrafficTotals.Build(_history, _capture, _settings.TrafficSeconds) : null;
         SettingsChanged?.Invoke(_settings);
         RefreshRows();
     }
@@ -204,7 +218,20 @@ public partial class ConnectionsView
 
     private void OnTrafficSettings(object sender, RoutedEventArgs e) => TrafficSettingsRequested?.Invoke();
 
-    private ConnectionSort EffectiveSort => !_networkEnabled && _settings.Sort is ConnectionSort.Receive or ConnectionSort.Send
+    private void OnTrafficPromptSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        var narrow = e.NewSize.Width < 640;
+        Grid.SetColumnSpan(TrafficPromptText, narrow ? 2 : 1);
+        Grid.SetRow(EnableTrafficMonitoring, narrow ? 1 : 0);
+        Grid.SetColumn(EnableTrafficMonitoring, narrow ? 0 : 1);
+        EnableTrafficMonitoring.HorizontalAlignment = narrow ? HorizontalAlignment.Left : HorizontalAlignment.Right;
+        EnableTrafficMonitoring.Margin = narrow ? new Thickness(0, 8, 0, 0) : new Thickness(0);
+    }
+
+    private static bool IsTrafficSort(ConnectionSort sort) =>
+        sort is ConnectionSort.Receive or ConnectionSort.Send or ConnectionSort.Received or ConnectionSort.Sent;
+
+    private ConnectionSort EffectiveSort => !_networkEnabled && IsTrafficSort(_settings.Sort)
         ? ConnectionSort.Tcp : _settings.Sort;
 
     private void RefreshRows()
@@ -273,18 +300,22 @@ public partial class ConnectionsView
                 ? CollectNetworkSummary(NetworkMembers(group)) : NetworkSummary.Disabled), status);
             desired.Add(row);
         }
+        var graphHistory = _history.Where(capture => _capture is null || _settings.TrafficSeconds == 0 ||
+            CpuGraph.Moment(capture.Sample) >= CpuGraph.Moment(_capture.Sample) - _settings.TrafficSeconds).ToArray();
         var graphs = _networkEnabled
-            ? ConnectionGraphData.Build(_history, desired) : null;
+            ? ConnectionGraphData.Build(graphHistory, desired) : null;
         var firstRanked = desired.Any(row => row.Pinned) ? desired.FirstOrDefault(row => !row.Pinned) : null;
         foreach (var row in desired)
         {
+            row.UpdateTraffic(_trafficTotals, NetworkMembersForRow(row));
             row.SetRankedLabel(ReferenceEquals(row, firstRanked)
                 ? Strings.Format(Strings.RankedByMetric, ((ComboBoxItem)Rank.SelectedItem).Content) : "");
             row.Graph.Visibility = _networkEnabled && row.Process is not null
                 ? Visibility.Visible : Visibility.Hidden;
             if (row.Graph.Visibility != Visibility.Visible) continue;
             row.Graph.SetProcessData(graphs![ConnectionGraphData.Key(row.Process!)],
-                MonitorPreferences.ShortRangeSeconds, row.Process!);
+                _settings.TrafficSeconds == 0 ? (int)Math.Max(1, _trafficTotals?.CoveredSeconds ?? MonitorPreferences.ShortRangeSeconds)
+                    : _settings.TrafficSeconds, row.Process!);
         }
         _refreshing = true;
         try
@@ -321,14 +352,29 @@ public partial class ConnectionsView
         UpdateActionBar();
     }
 
+    private IReadOnlyList<ProcessUsage> NetworkMembersForRow(ConnectionDisplayRow row) =>
+        row.Process?.ImagePath is { Length: > 0 } path && _networkMembersByPath.TryGetValue(path, out var members)
+            ? members : row.Members;
+
     private double SortValue(ConnectionGroup group, NetworkSummary network) => EffectiveSort switch
     {
         ConnectionSort.Receive => network.ReceiveRate ?? double.NegativeInfinity,
         ConnectionSort.Send => network.SendRate ?? double.NegativeInfinity,
         ConnectionSort.Tcp => group.Entries.Count(entry => entry.Connection.Protocol == TransportProtocol.Tcp),
         ConnectionSort.Udp => group.Entries.Count(entry => entry.Connection.Protocol == TransportProtocol.Udp),
+        ConnectionSort.Received or ConnectionSort.Sent => TrafficSortValue(group),
         _ => double.NegativeInfinity
     };
+
+    private double TrafficSortValue(ConnectionGroup group)
+    {
+        if (_trafficTotals?.Available != true) return double.NegativeInfinity;
+        var identities = NetworkMembers(group).Select(member => member.Identity).ToArray();
+        if (!identities.Any(identity => _trafficTotals.Processes.ContainsKey(identity)))
+            return double.NegativeInfinity;
+        var totals = _trafficTotals.Sum(identities);
+        return EffectiveSort == ConnectionSort.Received ? totals.Received : totals.Sent;
+    }
 
     private NetworkSummary CollectNetworkSummary(IReadOnlyList<ProcessUsage> members)
     {
@@ -404,7 +450,7 @@ public partial class ConnectionsView
 
     private string NetworkStateText()
     {
-        if (!_networkEnabled) return _settings.Sort is ConnectionSort.Receive or ConnectionSort.Send
+        if (!_networkEnabled) return IsTrafficSort(_settings.Sort)
             ? Strings.NetworkProcessMonitoringDisabled : "";
         var quality = _network?.Quality ?? ProcessNetworkQuality.WarmingUp;
         return quality.HasFlag(ProcessNetworkQuality.Unavailable) ? Strings.NetworkProcessMonitoringUnavailable :
@@ -422,10 +468,11 @@ public partial class ConnectionsView
         foreach (var process in _processes) owners[process.Identity] = process;
         var executableKeys = new Dictionary<string, string>(ProcessIdentityPolicy.Windows.Comparer);
 
-        var entries = new ConnectionEntry[_frame.Connections.Count];
+        var connections = _frame.Connections;
+        var entries = new ConnectionEntry[connections.Count];
         for (var index = 0; index < entries.Length; index++)
         {
-            var connection = _frame.Connections[index];
+            var connection = connections[index];
             ProcessUsage? owner = null;
             if (connection.ProcessCreationTicks is { } created)
                 owners.TryGetValue(new ProcessLifetimeIdentity(connection.ProcessId, created,
@@ -580,12 +627,23 @@ public partial class ConnectionsView
             Strings.ConnectionsNetworkOwnerTotals,
             $"↓ {NetworkRate(network.RatesAvailable ? network.ReceiveRate : null)}  ↑ {NetworkRate(network.RatesAvailable ? network.SendRate : null)}",
             NetworkTotals(network),
+            Strings.ConnectionsRateTiming,
             quality
         }.Where(text => text.Length > 0));
     }
     private static string NetworkTotals(NetworkSummary network) =>
         $"{Strings.DetailReceivedSent}: {(network.HasTotals ? $"{UsageText.Bytes(network.ReceivedBytes)} / {UsageText.Bytes(network.SentBytes)}" : Strings.MissingReading)}";
     internal static string NetworkRate(double? value) => value is { } rate ? TableMetricText.IoRate(rate) : Strings.MissingReading;
+    internal static string TrafficPeriodLabel(int seconds) => seconds switch
+    {
+        60 => Strings.ConnectionsLastMinute, 1800 => Strings.ConnectionsLastThirtyMinutes,
+        0 => Strings.ConnectionsSinceStart, _ => Strings.ConnectionsLastFiveMinutes
+    };
+    internal static string TrafficDetails(ConnectionTrafficTotals? totals) =>
+        Strings.ConnectionsTrafficHelp + Environment.NewLine + (totals?.Available == true
+            ? Strings.Format(Strings.ConnectionsTrafficCoverage, (int)totals.CoveredSeconds) +
+                (totals.Incomplete ? Environment.NewLine + Strings.NetworkProcessMonitoringIncomplete : "")
+            : Strings.NetworkProcessMonitoringUnavailable);
     internal static string Endpoint(IPEndPoint endpoint) => endpoint.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6 ? $"[{endpoint.Address}]:{endpoint.Port.ToString(CultureInfo.InvariantCulture)}" : $"{endpoint.Address}:{endpoint.Port.ToString(CultureInfo.InvariantCulture)}";
     internal static string ProtocolText(TransportProtocol protocol) => protocol == TransportProtocol.Tcp ? "TCP" : "UDP";
     internal static string StateText(TcpState? state) => state switch { TcpState.Closed => Strings.ConnectionsTcpStateClosed, TcpState.Listen => Strings.ConnectionsTcpStateListen, TcpState.SynSent => Strings.ConnectionsTcpStateSynSent, TcpState.SynReceived => Strings.ConnectionsTcpStateSynReceived, TcpState.Established => Strings.ConnectionsTcpStateEstablished, TcpState.FinWait1 => Strings.ConnectionsTcpStateFinWait1, TcpState.FinWait2 => Strings.ConnectionsTcpStateFinWait2, TcpState.CloseWait => Strings.ConnectionsTcpStateCloseWait, TcpState.Closing => Strings.ConnectionsTcpStateClosing, TcpState.LastAck => Strings.ConnectionsTcpStateLastAck, TcpState.TimeWait => Strings.ConnectionsTcpStateTimeWait, TcpState.DeleteTcb => Strings.ConnectionsTcpStateDeleteTcb, _ => Strings.MissingReading };
@@ -628,6 +686,11 @@ internal sealed class ConnectionDisplayRow(string key) : INotifyPropertyChanged
     public string Network { get; private set; } = "";
     public string Receive { get; private set; } = "";
     public string Send { get; private set; } = "";
+    public string Received { get; private set; } = "";
+    public string Sent { get; private set; } = "";
+    public string TrafficToolTip { get; private set; } = "";
+    public string TrafficAccessibleName => $"{Strings.ConnectionsReceived}: {Received}, {Strings.ConnectionsSent}: {Sent}";
+    public GridLength TotalColumnWidth => NetworkVisibility == Visibility.Visible ? new(82) : new(0);
     public string NetworkToolTip { get; private set; } = "";
     public GridLength NetworkColumnWidth { get; private set; }
     public GridLength ReceiveColumnWidth { get; private set; }
@@ -639,6 +702,19 @@ internal sealed class ConnectionDisplayRow(string key) : INotifyPropertyChanged
     internal IReadOnlyList<ProcessUsage> Members { get; private set; } = [];
     internal ConnectionsView.NetworkSummary NetworkSummary { get; private set; }
     public event PropertyChangedEventHandler? PropertyChanged;
+    internal void UpdateTraffic(ConnectionTrafficTotals? totals, IReadOnlyList<ProcessUsage> members)
+    {
+        var identities = members.Select(member => member.Identity).Distinct().ToArray();
+        var available = totals?.Available == true && identities.Any(identity => totals.Processes.ContainsKey(identity));
+        var sum = totals?.Sum(identities) ?? (0L, 0L);
+        var received = available ? UsageText.Bytes(sum.Item1) : Strings.MissingReading;
+        var sent = available ? UsageText.Bytes(sum.Item2) : Strings.MissingReading;
+        if (available && totals!.Incomplete) { received = "≈ " + received; sent = "≈ " + sent; }
+        var help = ConnectionsView.TrafficDetails(totals);
+        if ((Received, Sent, TrafficToolTip) == (received, sent, help)) return;
+        (Received, Sent, TrafficToolTip) = (received, sent, help);
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(string.Empty));
+    }
     internal void SetRankedLabel(string label)
     {
         if (RankedLabel == label) return;
@@ -663,7 +739,7 @@ internal sealed class ConnectionDisplayRow(string key) : INotifyPropertyChanged
         Udp = countsAvailable ? Connections.Count(connection => connection.Protocol == TransportProtocol.Udp).ToString(CultureInfo.CurrentCulture) : Strings.MissingReading;
         SetNetwork(network, true);
         AccessibleName = $"{Name}, {Detail}, {Tcp} TCP, {Udp} UDP" +
-            (network.Enabled ? $", {Strings.ConnectionsNetworkOwnerTotals}, {Network}" : "");
+            (network.Enabled ? $", {Strings.ConnectionsNetworkOwnerTotals}, {Network}, {TrafficAccessibleName}" : "");
         PinLabel = pinned ? Strings.UnpinProcess : Strings.PinProcess;
         PinIcon = pinned ? ButtonIcon.PinFilled : ButtonIcon.Pin;
         EnsureIcon();
@@ -672,8 +748,8 @@ internal sealed class ConnectionDisplayRow(string key) : INotifyPropertyChanged
     private void SetNetwork(ConnectionsView.NetworkSummary network, bool summary)
     {
         NetworkColumnWidth = network.Enabled ? new GridLength(172) : new GridLength(0);
-        ReceiveColumnWidth = network.Enabled ? new GridLength(100) : new GridLength(0);
-        SendColumnWidth = network.Enabled ? new GridLength(100) : new GridLength(0);
+        ReceiveColumnWidth = network.Enabled ? new GridLength(80) : new GridLength(0);
+        SendColumnWidth = network.Enabled ? new GridLength(80) : new GridLength(0);
         NetworkVisibility = NetworkColumnWidth.Value == 0 ? Visibility.Collapsed : Visibility.Visible;
         Network = summary && network.Enabled ? $"↓ {ConnectionsView.NetworkRate(network.RatesAvailable ? network.ReceiveRate : null)}  ↑ {ConnectionsView.NetworkRate(network.RatesAvailable ? network.SendRate : null)}" : "";
         Receive = summary && network.Enabled ? ConnectionsView.NetworkRate(network.RatesAvailable ? network.ReceiveRate : null) : "";

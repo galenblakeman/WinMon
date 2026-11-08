@@ -44,7 +44,7 @@ internal static class CaptureReportText
     {
         return metric switch
         {
-            CaptureMetric.Network => string.Create(CultureInfo.CurrentCulture, $"{value:0.0} Mbps"),
+            CaptureMetric.Network => RateText.Format(value * 1_000_000),
             CaptureMetric.Process => Strings.Format(Strings.AutoCapturePercentOfCoreValue, value),
             _ => Strings.Format(Strings.PercentOneDecimal, value)
         };

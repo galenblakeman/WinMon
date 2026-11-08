@@ -2,6 +2,23 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## Connections monitoring setup strip (November 8, 2026)
+
+SDK 10.0.403 / .NET 10.0.14. Four alternating before/after pairs used frozen payloads, 400 warm-up frames and seven batches of 60. A task-local copy of the existing benchmark measures its four Connections scenarios and skips unrelated measurements; sampling, native collection and logging are disabled. Both payloads include the existing traffic-period work. The baseline is the task-start working checkout rather than clean main; concurrent tooltip/export work also appears in the after checkout, so these are checkout comparisons rather than isolated attribution to this strip. No builds or tests ran alongside the final pairs.
+
+| Scenario | Before ms/frame | After ms/frame | Before allocated B/frame | After allocated B/frame |
+| --- | ---: | ---: | ---: | ---: |
+| Monitoring disabled, setup strip visible after change | 4.474 | 4.448 | 629,774 | 629,596 |
+| Live network rates, strip collapsed | 3.440 | 3.696 | 1,414,024 | 1,413,574 |
+| Recorded traffic history, strip collapsed | 3.885 | 3.851 | 3,526,712 | 3,526,128 |
+| Recorded traffic history with pins, strip collapsed | 3.847 | 3.807 | 3,529,760 | 3,529,176 |
+
+Allocation is effectively unchanged. Timing is inconclusive: the live network scenario's aggregate median rises 7.4%, but its run medians span 3.288–4.244 ms before and 3.299–4.012 ms after, with the fourth pair substantially faster after. Other scenario medians stay close. This does not establish a speed improvement or a sustained regression. Pixel hashes are stable within each payload, change as expected for the visible strip, and match across payloads for all three enabled-network cases. This measures UI-thread refresh/layout/render submission, excluding the WPF render thread and native collection.
+
+Final sequential `tools/Verify.ps1 -Smoke connections` and `tools/Verify.ps1 -Store` passed without build warnings: 1,257 standard tests, 1,259 Store tests and 20 Connections renders. Dark, Light, Smoked Sapphire, German minimum-width and enabled-network renders were inspected; the setup button's rendered text contrast, placement and focus are smoke assertions. The screenshots use WPF content capture; native window captions were not verified. Native service installation and real Windows high-contrast mode were not exercised. Earlier concurrent translation builds and unrelated setup rollback/native dump tests failed transiently; isolated reruns and both final verification runs passed.
+
+Raw results, focused driver, frozen payloads and runner are under `artifacts/network-prompt/`: `{before,after}-{1..4}.json`, `comparison.json`, `driver/`, `{before,after}/` and `Measure.ps1`. App SHA-256: before `996A6374951931C4C77F24A323DB87BFB908546EB7B6B23340CC7E943334AE3B`; after `EFF82D1A42817894A86786A2677A4F9671513EA10FB5E4D657FAC00820D25790`. The initial full benchmark remains in `baseline-initial.json` and is excluded from the comparison. The first baseline restore hit unavailable NuGet audit endpoints; the final app and benchmark verification builds completed without warnings.
+
 ## Connections header count and ranked separator (November 8, 2026)
 
 SDK 10.0.403 / .NET 10.0.14. Four alternating before/after pairs used frozen app payloads and the existing UI benchmark's traffic-history workload: 850 synthetic processes, 60 connection owners, 480 endpoints, 400 warm-up frames and seven batches of 60. A task-local copy of the benchmark skips unrelated measurements and uses one pin so the new ranking separator is visible. Logging is disabled in both payloads. The baseline already includes the header pin-count move and removed footer lines; this comparison measures the additional ranked separator. The final template reuses the existing row grid rather than wrapping every row in another panel.

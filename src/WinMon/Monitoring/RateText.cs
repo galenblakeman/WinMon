@@ -1,17 +1,18 @@
 namespace WinMon.Monitoring;
 
-/// <summary>Format network rates with three significant digits and an adaptive bit unit.</summary>
+/// <summary>Format bit-based network samples as decimal byte rates; link speeds retain bit units.</summary>
 internal static class RateText
 {
     internal static (string Number, string Unit) Parts(double bitsPerSecond)
     {
-        var (value, unit) = bitsPerSecond switch
+        var bytesPerSecond = bitsPerSecond / 8;
+        var (value, unit) = bytesPerSecond switch
         {
-            >= 1e9 => (bitsPerSecond / 1e9, Strings.GigabitsPerSecond),
-            >= 1e6 => (bitsPerSecond / 1e6, Strings.MegabitsPerSecond),
-            _ => (bitsPerSecond / 1e3, Strings.KilobitsPerSecond)
+            >= 1e9 => (bytesPerSecond / 1e9, Strings.GigabytesPerSecond),
+            >= 1e6 => (bytesPerSecond / 1e6, Strings.MegabytesPerSecond),
+            _ => (bytesPerSecond / 1e3, Strings.KilobytesPerSecond)
         };
-        return (value switch { < 10 => $"{value:0.##}", < 100 => $"{value:0.#}", _ => $"{value:0}" }, unit);
+        return (Number(value), unit);
     }
 
     internal static string Format(double bitsPerSecond)
@@ -20,23 +21,25 @@ internal static class RateText
         return $"{number} {unit}";
     }
 
-    /// <summary>A scale end short enough for a gauge label, such as "100M"; the unit names are the same in every language.</summary>
+    internal static string LinkSpeed(double bitsPerSecond) => bitsPerSecond >= 1e9
+        ? $"{Number(bitsPerSecond / 1e9)} {Strings.GigabitsPerSecond}"
+        : $"{Number(bitsPerSecond / 1e6)} {Strings.MegabitsPerSecond}";
+
+    /// <summary>A compact gauge label that retains the byte-rate unit, such as "8MB/s".</summary>
     internal static string Short(double bitsPerSecond)
     {
         var (number, unit) = Parts(bitsPerSecond);
-        return number + unit[0];
+        return number + unit;
     }
 
     /// <summary>Format receive and send rates with the unit of the larger one so the pair fits one line.</summary>
     internal static string Pair(double receiveBits, double sendBits)
     {
         var unit = Parts(Math.Max(receiveBits, sendBits)).Unit;
-        var divisor = Math.Max(receiveBits, sendBits) switch { >= 1e9 => 1e9, >= 1e6 => 1e6, _ => 1e3 };
+        var divisor = (Math.Max(receiveBits, sendBits) / 8) switch { >= 1e9 => 8e9, >= 1e6 => 8e6, _ => 8e3 };
         return Strings.Format(Strings.NetworkRatePair, Number(receiveBits / divisor), Number(sendBits / divisor), unit);
-
-        static string Number(double value)
-        {
-            return value switch { 0 => "0", < 10 => $"{value:0.##}", < 100 => $"{value:0.#}", _ => $"{value:0}" };
-        }
     }
+
+    private static string Number(double value) =>
+        value switch { < 10 => $"{value:0.##}", < 100 => $"{value:0.#}", _ => $"{value:0}" };
 }

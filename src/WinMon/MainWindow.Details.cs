@@ -25,6 +25,9 @@ public partial class MainWindow
             var count = metric == NetworkMetric || metric == GpuMetric ? 5 : 6;
             for (var i = 0; i < count; i++) details.Rows.Add(new DetailRow { Value = Strings.MissingReading });
             metric.ToolTip = details;
+            metric.Focusable = true;
+            metric.SetResourceReference(FocusVisualStyleProperty, "MetricTileFocusVisual");
+            ToolTipService.SetShowsToolTipOnKeyboardFocus(metric, true);
             metric.Toggle.ToolTip = details;
             metric.ScaleLabel.ToolTip = details;
             ToolTipService.SetShowsToolTipOnKeyboardFocus(metric.Toggle, true);
@@ -89,6 +92,7 @@ public partial class MainWindow
                             ];
             for (var i = 0; i < keys.Length; i++) details.Rows[i].Label = DetailText(keys[i]);
             AutomationProperties.SetHelpText(metric.Toggle, details.Definition);
+            AutomationProperties.SetHelpText(metric, details.Definition);
         }
     }
 
@@ -102,6 +106,7 @@ public partial class MainWindow
         details.Accent = metric.ValueLabel.Foreground;
         details.Peak = GaugePeakTooltip(metric, latest);
         AutomationProperties.SetHelpText(metric.Toggle, details.Definition + "\n" + details.Peak);
+        AutomationProperties.SetHelpText(metric, details.Definition + "\n" + details.Peak);
         var rows = details.Rows;
         if (metric == CpuMetric)
         {
@@ -151,7 +156,7 @@ public partial class MainWindow
         else if (metric == NetworkMetric)
         {
             rows[0].Value = string.IsNullOrEmpty(resource?.NetworkName) ? Dash : resource.NetworkName;
-            rows[1].Value = resource?.LinkBitsPerSecond is { } speed ? RateText.Format(speed) : Dash;
+            rows[1].Value = resource?.LinkBitsPerSecond is { } speed ? RateText.LinkSpeed(speed) : Dash;
             rows[2].Value = Percent(resource?.NetworkPercent);
             rows[3].Value = resource is { ReceiveBytesPerSecond: { } rx, SendBytesPerSecond: { } tx }
                 ? F("↓{0} / ↑{1}", RateText.Format(rx * 8), RateText.Format(tx * 8))

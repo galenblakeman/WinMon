@@ -14,6 +14,12 @@ public sealed class CaptureReportsTests
     private static readonly DateTimeOffset Fired = new(2026, 10, 24, 14, 3, 12, TimeSpan.Zero);
     private string _folder = "";
 
+    [Test]
+    public void NetworkValues_DisplayByteRatesForStoredMegabitValues()
+    {
+        Assert.That(CaptureReportText.Value(CaptureMetric.Network, 8), Is.EqualTo("1 MB/s"));
+    }
+
     [SetUp]
     public void CreateFolder()
     {

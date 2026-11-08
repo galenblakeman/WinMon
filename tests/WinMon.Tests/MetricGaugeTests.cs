@@ -144,9 +144,9 @@ public sealed class MetricGaugeTests
         });
     }
 
-    [TestCase(640e3, "640K")]
-    [TestCase(100e6, "100M")]
-    [TestCase(2.5e9, "2.5G")]
+    [TestCase(640e3, "80KB/s")]
+    [TestCase(100e6, "12.5MB/s")]
+    [TestCase(20e9, "2.5GB/s")]
     public void ScaleLabel_IsShortEnoughToSitUnderASmallArc(double bitsPerSecond, string expected)
     {
         Assert.That(RateText.Short(bitsPerSecond), Is.EqualTo(expected));
@@ -205,7 +205,7 @@ public sealed class MetricGaugeTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(readout.ScaleLabel.Text, Is.EqualTo("64M"));
+            Assert.That(readout.ScaleLabel.Text, Is.EqualTo("8MB/s"));
             Assert.That(readout.ScaleLabel.Text, Is.Not.EqualTo("100M"));
             Assert.That(readout.PeakIconVisible, Is.True);
         });

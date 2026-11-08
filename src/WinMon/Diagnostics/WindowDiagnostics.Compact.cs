@@ -77,7 +77,9 @@ internal sealed partial class WindowDiagnostics
         var networkValue = new TextRange(
             fixture.CompactTiles[4].Readout.ValueLabel.ContentStart,
             fixture.CompactTiles[4].Readout.ValueLabel.ContentEnd).Text;
-        if (networkValue == Strings.MissingReading || !networkValue.Contains("Mbps", StringComparison.Ordinal))
+        var fullNetworkValue = new TextRange(fixture.NetworkMetric.ValueLabel.ContentStart,
+            fixture.NetworkMetric.ValueLabel.ContentEnd).Text;
+        if (networkValue == Strings.MissingReading || networkValue != fullNetworkValue)
             throw new InvalidOperationException($"The compact gauges lost the formatted network rate: {networkValue}.");
         var visual = (FrameworkElement)fixture.Content;
         foreach (var theme in new[] { "Dark", "Light" })

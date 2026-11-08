@@ -159,7 +159,7 @@ public sealed class MetricReadout : Grid
         _bowl.Children.Clear();
         RowDefinitions.Clear();
         ColumnDefinitions.Clear();
-        Toggle.Margin = new Thickness(0, 0, 0, 5);
+        Toggle.Margin = _showSeriesToggle ? new Thickness(0, 0, 0, 5) : new Thickness();
         _plainName.Margin = new Thickness(0, 0, 0, 5);
         ValueLabel.HorizontalAlignment = HorizontalAlignment.Left;
         ValueLabel.VerticalAlignment = VerticalAlignment.Top;
@@ -283,6 +283,7 @@ public sealed class MetricReadout : Grid
             var readout = (MetricReadout)sender;
             readout.Toggle.Content = args.NewValue;
             readout._plainName.Text = (string)args.NewValue;
+            AutomationProperties.SetName(readout, (string)args.NewValue);
             AutomationProperties.SetName(readout.Toggle, Strings.Format(Strings.ShowOnChart, args.NewValue));
         }));
 

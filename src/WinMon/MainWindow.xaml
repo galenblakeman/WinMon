@@ -194,7 +194,7 @@
                     than the rows' minimum heights still shows it. The last row reserves its height when there is room.
                 -->
                 <Grid>
-                    <Grid Margin="0,12,0,8">
+                    <Grid Margin="0,0,0,8">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -209,7 +209,7 @@
                                 MinHeight="344" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <Grid Grid.Row="0" Margin="20,0,20,16">
+                        <Grid Grid.Row="0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition />
                                 <ColumnDefinition />
@@ -236,19 +236,23 @@
                                 BorderThickness="0,0,1,0" />
                             <controls:MetricReadout
                                 x:Name="CpuMetric"
+                                ShowSeriesToggle="False"
                                 Grid.Column="0"
+                                Margin="10,4,8,4"
                                 AccentKey="CpuAccent"
                                 Label="{Binding [CPU], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                             <controls:MetricReadout
                                 x:Name="MemoryMetric"
+                                ShowSeriesToggle="False"
                                 Grid.Column="1"
-                                Margin="5,0,5,0"
+                                Margin="10,4,8,4"
                                 AccentKey="MemoryAccent"
                                 Label="{Binding [Memory], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                             <controls:MetricReadout
                                 x:Name="DiskMetric"
+                                ShowSeriesToggle="False"
                                 Grid.Column="2"
-                                Margin="5,0,5,0"
+                                Margin="10,4,8,4"
                                 AccentKey="DiskAccent"
                                 Label="{Binding [Disk], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                             <Border
@@ -259,21 +263,24 @@
                                 Visibility="Collapsed" />
                             <controls:MetricReadout
                                 x:Name="SecondaryDiskMetric"
+                                ShowSeriesToggle="False"
                                 Grid.Column="3"
-                                Margin="5,0,5,0"
+                                Margin="10,4,8,4"
                                 AccentKey="SecondaryDiskAccent"
                                 Label="{Binding [Disk], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                                 Visibility="Collapsed" />
                             <controls:MetricReadout
                                 x:Name="NetworkMetric"
+                                ShowSeriesToggle="False"
                                 Grid.Column="4"
-                                Margin="5,0,5,0"
+                                Margin="10,4,8,4"
                                 AccentKey="NetworkAccent"
                                 Label="{Binding [Network], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                             <controls:MetricReadout
                                 x:Name="GpuMetric"
+                                ShowSeriesToggle="False"
                                 Grid.Column="5"
-                                Margin="5,0,5,0"
+                                Margin="10,4,8,4"
                                 AccentKey="GpuAccent"
                                 Label="{Binding [GPU], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                         </Grid>
@@ -408,7 +415,7 @@
                                     TextAlignment="Right"
                                     TextWrapping="Wrap"
                                     Visibility="Collapsed" />
-                                <StackPanel Grid.Row="0" Grid.Column="0" Margin="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                <WrapPanel Grid.Row="0" Grid.Column="0" Margin="0" Orientation="Horizontal" VerticalAlignment="Center">
                                     <TextBlock
                                         x:Name="LiveCaption"
                                         Margin="0,0,10,0"
@@ -437,12 +444,42 @@
                                             </ToolTip>
                                         </ComboBox.ToolTip>
                                     </ComboBox>
-                                </StackPanel>
+                                    <controls:ActivityPanelButton x:Name="ChartResourcesToggle" Width="27" Height="27" Margin="0"
+                                                                  Click="OnToggleChartResources" Command="{x:Null}"
+                                                                  Style="{StaticResource ActionBarCollapseButton}"
+                                                                  controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Cog}"
+                                                                  AutomationProperties.Name="{Binding [ChartResources], Source={x:Static resources:Strings.Text}}" />
+                                </WrapPanel>
                             </Grid>
                         </Border>
                         <Grid x:Name="ChartBody" Grid.Row="2">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Border x:Name="ChartLegendHost" HorizontalAlignment="Center" VerticalAlignment="Top"
+                                    Margin="48,4,48,4" Padding="6,3" CornerRadius="5" SizeChanged="OnChartLegendSizeChanged"
+                                    Background="{DynamicResource Surface}" BorderBrush="{DynamicResource Line}" BorderThickness="1"
+                                    Visibility="{Binding Visibility, ElementName=ChartLegend}">
+                                <WrapPanel x:Name="ChartLegend">
+                                    <WrapPanel.Resources>
+                                        <Style TargetType="ContentControl">
+                                            <Setter Property="Margin" Value="6,1,6,1" />
+                                            <Setter Property="VerticalAlignment" Value="Center" />
+                                        </Style>
+                                    </WrapPanel.Resources>
+                                    <ContentControl Content="{Binding Toggle, ElementName=CpuMetric}" />
+                                    <ContentControl Content="{Binding Toggle, ElementName=MemoryMetric}" />
+                                    <ContentControl Content="{Binding Toggle, ElementName=DiskMetric}" />
+                                    <ContentControl Content="{Binding Toggle, ElementName=SecondaryDiskMetric}"
+                                                    Visibility="{Binding Visibility, ElementName=SecondaryDiskMetric}" />
+                                    <ContentControl Content="{Binding Toggle, ElementName=NetworkMetric}" />
+                                    <ContentControl Content="{Binding Toggle, ElementName=GpuMetric}" />
+                                </WrapPanel>
+                            </Border>
                             <controls:CpuGraph
                                 x:Name="OverallGraph"
+                                Grid.Row="1"
                                 Margin="8,0"
                                 AutomationProperties.Name="{Binding [CPUMemoryConfiguredDisksNetworkAndGPUOverlayHistoryClick], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                                 Focusable="True"
@@ -450,6 +487,7 @@
                                 SizeChanged="OnSnapshotChartSizeChanged" />
                             <Canvas
                                 x:Name="SnapshotLayer"
+                                Grid.Row="1"
                                 Margin="8,0"
                                 ClipToBounds="True"
                                 Visibility="Collapsed">
@@ -730,7 +768,7 @@
                                         Visibility="Collapsed"><Run Text="{Binding [ActivityTotal], Source={x:Static resources:Strings.Text}, Mode=OneWay}" /><Run Text=" " /><Run x:Name="UsageTotalValue" Foreground="{DynamicResource Text}" /><Run Text="  ·  " /><Run Text="{Binding [ActivityActive], Source={x:Static resources:Strings.Text}, Mode=OneWay}" /><Run Text=" " /><Run x:Name="UsageActiveValue" Foreground="{DynamicResource Text}" /></TextBlock>
                                     <TextBlock x:Name="ConnectionCounts" Grid.Column="1" Margin="12,0,8,0"
                                         VerticalAlignment="Center" FontSize="12" Foreground="{DynamicResource Muted}"
-                                        Visibility="Collapsed"><Run Text="TCP " /><Run x:Name="ConnectionTcpValue" Foreground="{DynamicResource Text}" /><Run Text="  ·  UDP " /><Run x:Name="ConnectionUdpValue" Foreground="{DynamicResource Text}" /><Run x:Name="ConnectionTrafficValue" Foreground="{DynamicResource Text}" /></TextBlock>
+                                        Visibility="Collapsed"><Run Text="TCP " /><Run x:Name="ConnectionTcpValue" Foreground="{DynamicResource Text}" /><Run Text="  ·  UDP " /><Run x:Name="ConnectionUdpValue" Foreground="{DynamicResource Text}" /><Run x:Name="ConnectionVolumeValue" Foreground="{DynamicResource Text}" /></TextBlock>
                                     <controls:ActivityPanelButton
                                         x:Name="ActivityPanelToggle"
                                         Grid.Column="2"

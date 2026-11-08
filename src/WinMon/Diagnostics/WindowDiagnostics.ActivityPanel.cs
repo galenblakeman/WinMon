@@ -13,9 +13,36 @@ internal sealed partial class WindowDiagnostics
         var originalWidth = window.Width;
         var originalHeight = window.Height;
         var originalTab = window.ServicesTab.IsChecked == true ? window.ServicesTab :
-            window.UsageTab.IsChecked == true ? window.UsageTab : window.ProcessesTab;
+            window.UsageTab.IsChecked == true ? window.UsageTab :
+            window.ConnectionsTab.IsChecked == true ? window.ConnectionsTab : window.ProcessesTab;
         try
         {
+            var tabs = new[] { window.ProcessesTab, window.ServicesTab, window.UsageTab, window.ConnectionsTab };
+            var tabStore = new PreferenceStore(Path.Combine(output, "activity-tab-settings.json"));
+            for (var selected = 0; selected < tabs.Length; selected++)
+            {
+                tabs[selected].IsChecked = true;
+                if (window.Preferences.SelectedActivityTab != selected)
+                    throw new InvalidOperationException("Selecting an activity tab did not update its saved preference.");
+                window.SetActivityPanelCollapsed(true);
+                await tabStore.SaveAsync(window.Preferences, cancellationToken);
+                var tabRestored = new MainWindow(true) { Preferences = await tabStore.LoadAsync(cancellationToken) };
+                try
+                {
+                    tabRestored.RestoreActivityTab();
+                    tabRestored.ApplyActivityPanel();
+                    var restoredTabs = new[] { tabRestored.ProcessesTab, tabRestored.ServicesTab,
+                        tabRestored.UsageTab, tabRestored.ConnectionsTab };
+                    if (restoredTabs[selected].IsChecked != true || !tabRestored.Preferences.ActivityPanelCollapsed ||
+                        tabRestored.ActivityBody.Visibility != Visibility.Collapsed)
+                        throw new InvalidOperationException("The saved activity tab did not restore with its collapsed panel.");
+                    restoredTabs[(selected + 1) % tabs.Length].IsChecked = true;
+                    if (tabRestored.Preferences.ActivityPanelCollapsed ||
+                        tabRestored.Preferences.SelectedActivityTab != (selected + 1) % tabs.Length)
+                        throw new InvalidOperationException("Changing a restored activity tab did not expand and remember it.");
+                }
+                finally { tabRestored.CloseForFixture(); }
+            }
             window.Width = 1000;
             window.Height = 1000;
             window.ProcessesTab.IsChecked = true;

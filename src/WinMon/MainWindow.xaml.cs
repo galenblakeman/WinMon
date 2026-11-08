@@ -98,6 +98,7 @@ public partial class MainWindow
         WindowTheme.Attach(this);
         foreach (var metric in Metrics)
         {
+            metric.Toggle.FontSize = 12;
             metric.Toggle.Checked += OnSeriesChanged;
             metric.Toggle.Unchecked += OnSeriesChanged;
         }
@@ -151,6 +152,7 @@ public partial class MainWindow
             UsageView.Load(UsageSettings(_preferences));
             ConnectionView.RestorePins(_preferences.PinnedConnections);
             ConnectionView.Load(ConnectionSettings(_preferences));
+            RestoreActivityTab();
             Width = Math.Max(MinWidth, _preferences.Width);
             Height = Math.Max(MinHeight, _preferences.Height);
             ApplyActivityPanel();
@@ -272,6 +274,7 @@ public partial class MainWindow
         UpdateSystemCounts(allUnavailable && SelectedSample is null ? null : visible?.Resources);
         UpdateMetricGauges(samples, latest);
         OverallGraph.ChartType = _preferences.ResourceChartType;
+        UpdateChartLegend();
         OverallGraph.FocusMetric = _preferences.FocusMetric;
         OverallGraph.MetricLabels = Metrics.Select(metric => metric.Label).ToArray();
         OverallGraph.SetData(samples, range, SelectedSample);
@@ -800,6 +803,7 @@ public partial class MainWindow
         ApplyActionsHidden();
         UpdateActivityPanelButton();
         UpdateChartPanelButton();
+        UpdateChartLegend();
         _systemCounts = null;
         _serviceCounts = null;
         _usageCounts = null;
@@ -853,6 +857,7 @@ public partial class MainWindow
             // Resource colors are all WindowText here, so a gauge's empty part needs a different system color.
             app.Resources["GaugeTrack"] = SystemColors.GrayTextBrush;
             app.Resources["Accent"] = SystemColors.HighlightBrush;
+            app.Resources["AccentButtonText"] = SystemColors.HighlightTextBrush;
             foreach (var key in new[]
                      {
                          "CpuAccent", "MemoryAccent", "DiskAccent", "NetworkAccent", "GpuAccent", "SecondaryDiskAccent",
@@ -914,6 +919,8 @@ public partial class MainWindow
             }
             var uiAccent = finish?.UiAccent ?? (light ? "#1469B5" : colors[0]);
             SetBrush("Accent", uiAccent);
+            SetBrush("AccentButtonText", ChartPalettes.ContrastRatio(
+                (Color)ColorConverter.ConvertFromString(uiAccent), Colors.Black) >= 4.5 ? "#000000" : "#FFFFFF");
             SetBrush("SnapshotAccent", uiAccent);
             SetBrush("ProcessPinAccent", uiAccent);
             SetBrush("TitleStatus", finish?.TitleText ?? uiAccent);

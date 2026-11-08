@@ -234,7 +234,7 @@ internal static class HardwareInventory
                 : "";
             var speed = adapter.Number("ReceiveLinkSpeed");
             var speedText = speed is > 0 and <= long.MaxValue
-                ? RateText.Format((long)speed.Value)
+                ? RateText.LinkSpeed((long)speed.Value)
                 : Strings.LinkSpeedUnavailableLabel;
             descriptions.Add(
                 $"{adapter.Label("Name")} · {status}{virtualLabel}\n{adapter.Label("InterfaceDescription")}\n{speedText}");
