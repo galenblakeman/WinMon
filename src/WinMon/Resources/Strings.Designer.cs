@@ -115,6 +115,8 @@ public static partial class Strings
     public static string ChartOverlay => ResourceManager.GetString(nameof(ChartOverlay), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartOverlayHelp => ResourceManager.GetString(nameof(ChartOverlayHelp), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartPalette => ResourceManager.GetString(nameof(ChartPalette), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ChartPreferences => ResourceManager.GetString(nameof(ChartPreferences), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ChartPreferencesNote => ResourceManager.GetString(nameof(ChartPreferencesNote), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartResources => ResourceManager.GetString(nameof(ChartResources), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartSmallMultiples => ResourceManager.GetString(nameof(ChartSmallMultiples), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartSmallMultiplesHelp => ResourceManager.GetString(nameof(ChartSmallMultiplesHelp), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -653,6 +655,7 @@ public static partial class Strings
     public static string Refresh => ResourceManager.GetString(nameof(Refresh), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string RemainingProcessesInTheCurrentRankingCPUAndIO => ResourceManager.GetString(nameof(RemainingProcessesInTheCurrentRankingCPUAndIO), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ReportedMaximumClock => ResourceManager.GetString(nameof(ReportedMaximumClock), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ResetChartPreferences => ResourceManager.GetString(nameof(ResetChartPreferences), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ResidentMemory => ResourceManager.GetString(nameof(ResidentMemory), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ResidentWorkingSetIncludingSharedPages => ResourceManager.GetString(nameof(ResidentWorkingSetIncludingSharedPages), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ResidentWorkingSetIncludingSharedPagesDoesNotSumTo => ResourceManager.GetString(nameof(ResidentWorkingSetIncludingSharedPagesDoesNotSumTo), Culture ?? CultureInfo.CurrentUICulture)!;

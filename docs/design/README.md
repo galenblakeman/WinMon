@@ -12,6 +12,8 @@ This folder contains the current layout reference, feature design notes and edit
 
 - [Network reliability diagnostics](NETWORK-RELIABILITY-DIAGNOSTICS.md) fixes premature polling and false/stuck incomplete readings, with bounded coverage and pipe diagnostics.
 
+- [Per-chart preferences](CHART-PREFERENCES.md) remembers resources, time range and control visibility by chart type and adds a Settings reset.
+
 - [Remembered activity tab](ACTIVITY-TAB-PERSISTENCE.md) reopens the last selected tab while preserving the collapsed panel state.
 
 - [Chart resource legend](CHART-RESOURCE-LEGEND.md) moves resource visibility controls from the gauges into a shared, wrapping legend inside the chart.

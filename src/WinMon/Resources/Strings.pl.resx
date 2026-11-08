@@ -1812,4 +1812,13 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
   <data name="HideChartResources" xml:space="preserve">
     <value>Ukryj kontrolki zasobów</value>
   </data>
+  <data name="ChartPreferences" xml:space="preserve">
+    <value>Preferencje wykresów</value>
+  </data>
+  <data name="ChartPreferencesNote" xml:space="preserve">
+    <value>Każdy typ wykresu zapamiętuje zasoby, zakres czasu i kontrolki zasobów. Resetowanie następuje po zapisaniu ustawień.</value>
+  </data>
+  <data name="ResetChartPreferences" xml:space="preserve">
+    <value>Resetuj preferencje wykresów</value>
+  </data>
 </root>

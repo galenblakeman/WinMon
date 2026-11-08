@@ -151,6 +151,9 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
     internal async Task CaptureChartDiagnosticsAsync(string outputDirectory, CancellationToken cancellationToken)
     {
         Directory.CreateDirectory(outputDirectory);
+        if (window.ChartLegend.IsVisible || window.ChartResourcesToggle.ToolTip as string != Strings.ShowChartResources)
+            throw new InvalidOperationException("Resource controls must start collapsed with a show-controls tooltip.");
+        window.ChartResourcesToggle.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
         if (window.Session.History.Samples.Count < 3)
             throw new InvalidOperationException("Native chart samples did not arrive.");
         if (window.ChartTypeSelector.Items.OfType<ComboBoxItem>().Count() != 9 ||
@@ -217,6 +220,8 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                 chartType == ResourceChartType.Focus ? 0 : null);
             if (window.Preferences.ResourceChartType != chartType || window.OverallGraph.ChartType != chartType)
                 throw new InvalidOperationException($"The {chartType} chart choice did not apply.");
+            if (chartType != ResourceChartType.LogicalProcessors && window.Preferences.ChartResourcesCollapsed)
+                window.ChartResourcesToggle.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
             if (window.ChartLegend.IsVisible != (chartType != ResourceChartType.LogicalProcessors))
                 throw new InvalidOperationException($"The {chartType} resource legend has the wrong visibility.");
             if (window.ChartResourcesToggle.IsVisible != (chartType != ResourceChartType.LogicalProcessors))

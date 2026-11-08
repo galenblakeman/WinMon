@@ -16,6 +16,37 @@ namespace WinMon.Tests;
 public sealed class SettingsLayoutTests
 {
     [Test]
+    public void ChartReset_IsDeferredUntilSave_AndOrdinarySettingsKeepChartChanges()
+    {
+        var original = PreferenceStore.Validate(new MonitorPreferences { ChartRangeSeconds = 600 });
+        var window = Settings(original);
+        try
+        {
+            window.ResetChartPreferencesButton.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
+            var live = original.SelectChart(ResourceChartType.Heatmap) with
+            {
+                VisibleMetrics = 2, ShowGpu = false, ChartRangeSeconds = 1800, ChartResourcesCollapsed = false
+            };
+            var normal = SettingsWindow.ApplySettings(live, original);
+            var reset = SettingsWindow.ApplySettings(live, original, window.ResetChartPreferencesRequested);
+            Assert.Multiple(() =>
+            {
+                Assert.That(original.ChartRangeSeconds, Is.EqualTo(600), "Requesting reset cannot change live preferences.");
+                Assert.That(window.ResetChartPreferencesRequested, Is.True);
+                Assert.That(window.ResetChartPreferencesButton.IsEnabled, Is.False);
+                Assert.That(normal.ResourceChartType, Is.EqualTo(ResourceChartType.Heatmap));
+                Assert.That(normal.VisibleMetrics, Is.EqualTo(2));
+                Assert.That(normal.ChartRangeSeconds, Is.EqualTo(1800));
+                Assert.That(normal.ChartResourcesCollapsed, Is.False);
+                Assert.That(reset.ResourceChartType, Is.EqualTo(ResourceChartType.Overlay));
+                Assert.That(reset.ChartConfigurations.All(chart => chart.VisibleMetrics == 63 &&
+                    chart.RangeSeconds == 120 && chart.ControlsCollapsed), Is.True);
+            });
+        }
+        finally { window.Close(); }
+    }
+
+    [Test]
     public void Sections_OpenOnGeneralAndFollowTheSidebar()
     {
         var window = Settings(new MonitorPreferences());

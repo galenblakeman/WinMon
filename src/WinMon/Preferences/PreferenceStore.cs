@@ -172,7 +172,7 @@ public sealed class PreferenceStore
         ArgumentNullException.ThrowIfNull(preferences);
         var primary = NormalizeDrive(preferences.PrimaryDrive) ?? new MonitorPreferences().PrimaryDrive;
         var secondary = NormalizeDrive(preferences.SecondaryDrive);
-        return preferences with
+        var normalized = preferences with
         {
             PrimaryDrive = primary,
             SecondaryDrive = secondary == primary ? null : secondary,
@@ -228,6 +228,7 @@ public sealed class PreferenceStore
             AutoCapture = (preferences.AutoCapture ?? new AutoCapturePreferences()).Normalized(),
             ShowShortcut = HotkeyGesture.Normalize(preferences.ShowShortcut)
         };
+        return normalized.RememberChartConfiguration();
     }
 
     internal static string? NormalizeDrive(string? drive)

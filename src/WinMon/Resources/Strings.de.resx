@@ -1812,4 +1812,13 @@ Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse
   <data name="HideChartResources" xml:space="preserve">
     <value>Ressourcen-Steuerelemente ausblenden</value>
   </data>
+  <data name="ChartPreferences" xml:space="preserve">
+    <value>Diagrammeinstellungen</value>
+  </data>
+  <data name="ChartPreferencesNote" xml:space="preserve">
+    <value>Jeder Diagrammtyp merkt sich Ressourcen, Zeitraum und Ressourcen-Steuerelemente. Das Zurücksetzen wird beim Speichern der Einstellungen wirksam.</value>
+  </data>
+  <data name="ResetChartPreferences" xml:space="preserve">
+    <value>Diagrammeinstellungen zurücksetzen</value>
+  </data>
 </root>

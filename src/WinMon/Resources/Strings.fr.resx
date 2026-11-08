@@ -1812,4 +1812,13 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
   <data name="HideChartResources" xml:space="preserve">
     <value>Masquer les commandes des ressources</value>
   </data>
+  <data name="ChartPreferences" xml:space="preserve">
+    <value>Préférences des graphiques</value>
+  </data>
+  <data name="ChartPreferencesNote" xml:space="preserve">
+    <value>Chaque type de graphique mémorise ses ressources, sa période et ses commandes de ressources. La réinitialisation prend effet lors de la sauvegarde des paramètres.</value>
+  </data>
+  <data name="ResetChartPreferences" xml:space="preserve">
+    <value>Réinitialiser les préférences des graphiques</value>
+  </data>
 </root>

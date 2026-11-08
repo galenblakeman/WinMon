@@ -6,4 +6,6 @@ Reuse `ActivityPanelButton` for keyboard operation and UI Automation expand/coll
 
 ## Landed
 
+Changing the chart type or period, or clicking Live/Capture, expands a collapsed chart using the saved split. Rebuilding selectors preserves the collapsed state. The feature smoke checks each trigger.
+
 Implemented in `MainWindow.xaml`, `MainWindow.ActivityPanel.cs` and `MonitorPreferences`. Labels are localized in all supported languages. Preference tests and the feature smoke cover persistence, focus, reclaimed space, independent states, Compact view and split restoration. No departures from the design.

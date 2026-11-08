@@ -1812,4 +1812,13 @@ Windows の正常性状態: {2}</value>
   <data name="HideChartResources" xml:space="preserve">
     <value>リソースのコントロールを非表示</value>
   </data>
+  <data name="ChartPreferences" xml:space="preserve">
+    <value>グラフの設定</value>
+  </data>
+  <data name="ChartPreferencesNote" xml:space="preserve">
+    <value>グラフの種類ごとにリソース、時間範囲、リソースコントロールを記憶します。リセットは設定の保存時に適用されます。</value>
+  </data>
+  <data name="ResetChartPreferences" xml:space="preserve">
+    <value>グラフの設定をリセット</value>
+  </data>
 </root>

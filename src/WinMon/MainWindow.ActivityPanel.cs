@@ -7,14 +7,12 @@ namespace WinMon;
 
 public partial class MainWindow
 {
-    private bool _chartLegendCollapsed;
-
     private void OnToggleChartResources(object sender, RoutedEventArgs e)
     {
         var moveFocus = ChartLegend.IsKeyboardFocusWithin;
-        _chartLegendCollapsed = !_chartLegendCollapsed;
+        _preferences = _preferences with { ChartResourcesCollapsed = !_preferences.ChartResourcesCollapsed };
         UpdateChartLegend();
-        if (moveFocus && _chartLegendCollapsed) ChartResourcesToggle.Focus();
+        if (moveFocus && _preferences.ChartResourcesCollapsed) ChartResourcesToggle.Focus();
     }
 
     private void UpdateChartLegend()
@@ -22,11 +20,11 @@ public partial class MainWindow
         var relevant = _preferences.ResourceChartType != ResourceChartType.LogicalProcessors;
         ChartResourcesToggle.Visibility = relevant ? Visibility.Visible : Visibility.Collapsed;
         ChartResourcesToggle.IsEnabled = !_preferences.ChartPanelCollapsed;
-        ChartLegend.Visibility = relevant && !_chartLegendCollapsed ? Visibility.Visible : Visibility.Collapsed;
-        var help = _chartLegendCollapsed ? Strings.ShowChartResources : Strings.HideChartResources;
+        ChartLegend.Visibility = relevant && !_preferences.ChartResourcesCollapsed ? Visibility.Visible : Visibility.Collapsed;
+        var help = _preferences.ChartResourcesCollapsed ? Strings.ShowChartResources : Strings.HideChartResources;
         ChartResourcesToggle.ToolTip = help;
         AutomationProperties.SetHelpText(ChartResourcesToggle, help);
-        ChartResourcesToggle.SetExpanded(!_chartLegendCollapsed);
+        ChartResourcesToggle.SetExpanded(!_preferences.ChartResourcesCollapsed);
         UpdateChartMinimumHeight();
     }
 

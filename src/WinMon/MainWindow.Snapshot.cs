@@ -57,11 +57,13 @@ public partial class MainWindow
 
     private void OnLiveModeClick(object sender, RoutedEventArgs e)
     {
+        SetChartPanelCollapsed(false);
         ReturnToLive();
     }
 
     private void OnSnapshotModeClick(object sender, RoutedEventArgs e)
     {
+        SetChartPanelCollapsed(false);
         OverallGraph.SelectLatest();
     }
 

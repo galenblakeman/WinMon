@@ -134,6 +134,55 @@ public sealed record MonitorPreferences
     /// <summary>Resource enlarged in the focus layout, in chart metric order.</summary>
     public int FocusMetric { get; init; }
 
+    public bool ChartResourcesCollapsed { get; init; } = true;
+
+    public ResourceChartPreferences[] ChartConfigurations { get; init; } = [];
+
+    /// <summary>Snapshot the active chart, seeding missing types from the legacy shared settings.</summary>
+    internal MonitorPreferences RememberChartConfiguration()
+    {
+        var current = new ResourceChartPreferences
+        {
+            Type = ResourceChartType,
+            // Preserve the second disk's selection even while that disk is not configured.
+            VisibleMetrics = VisibleMetrics | (ShowGpu ? 16 : 0) | (ShowSecondaryDisk ? 32 : 0),
+            RangeSeconds = ChartRangeSeconds,
+            ControlsCollapsed = ChartResourcesCollapsed,
+            FocusMetric = FocusMetric
+        }.Normalized();
+        return this with
+        {
+            ChartConfigurations = Enum.GetValues<ResourceChartType>().Select(type => type == ResourceChartType
+                ? current
+                : (ChartConfigurations?.FirstOrDefault(item => item?.Type == type)
+                   ?? current with { Type = type, ControlsCollapsed = true }).Normalized()).ToArray()
+        };
+    }
+
+    internal MonitorPreferences SelectChart(ResourceChartType type, int? focusMetric = null)
+    {
+        var remembered = RememberChartConfiguration();
+        var chart = remembered.ChartConfigurations.Single(item => item.Type == type);
+        var mask = chart.VisibleMetrics;
+        var focus = focusMetric ?? chart.FocusMetric;
+        if (type == ResourceChartType.LogicalProcessors) mask |= 1;
+        if (type == ResourceChartType.Focus && focusMetric is not null) mask |= 1 << focus;
+        return remembered with
+        {
+            ResourceChartType = type, VisibleMetrics = mask & 15,
+            ShowGpu = (mask & 16) != 0, ShowSecondaryDisk = (mask & 32) != 0,
+            ChartRangeSeconds = chart.RangeSeconds, ChartResourcesCollapsed = chart.ControlsCollapsed,
+            FocusMetric = SecondaryDrive is null && focus == 5 ? 0 : focus
+        };
+    }
+
+    internal MonitorPreferences ResetChartPreferences() => (this with
+    {
+        ResourceChartType = ResourceChartType.Overlay, VisibleMetrics = 15, ShowGpu = true,
+        ShowSecondaryDisk = true, ChartRangeSeconds = ShortRangeSeconds, ChartResourcesCollapsed = true,
+        FocusMetric = 0, ChartConfigurations = []
+    }).RememberChartConfiguration();
+
     /// <summary>Chart range choices: 2, 10, 30 and 60 minutes, up to the retained history.</summary>
     internal int[] ChartRanges =>
     [

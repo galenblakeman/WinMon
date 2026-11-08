@@ -1812,4 +1812,13 @@ Se puede perder el trabajo sin guardar. Se finalizarán todos los procesos indic
   <data name="HideChartResources" xml:space="preserve">
     <value>Ocultar controles de recursos</value>
   </data>
+  <data name="ChartPreferences" xml:space="preserve">
+    <value>Preferencias de gráficos</value>
+  </data>
+  <data name="ChartPreferencesNote" xml:space="preserve">
+    <value>Cada tipo de gráfico recuerda sus recursos, intervalo de tiempo y controles de recursos. El restablecimiento se aplica al guardar la configuración.</value>
+  </data>
+  <data name="ResetChartPreferences" xml:space="preserve">
+    <value>Restablecer preferencias de gráficos</value>
+  </data>
 </root>

@@ -1812,4 +1812,13 @@ Windows 상태: {2}</value>
   <data name="HideChartResources" xml:space="preserve">
     <value>리소스 컨트롤 숨기기</value>
   </data>
+  <data name="ChartPreferences" xml:space="preserve">
+    <value>차트 기본 설정</value>
+  </data>
+  <data name="ChartPreferencesNote" xml:space="preserve">
+    <value>차트 유형마다 리소스, 시간 범위 및 리소스 컨트롤을 기억합니다. 초기화는 설정을 저장할 때 적용됩니다.</value>
+  </data>
+  <data name="ResetChartPreferences" xml:space="preserve">
+    <value>차트 기본 설정 초기화</value>
+  </data>
 </root>

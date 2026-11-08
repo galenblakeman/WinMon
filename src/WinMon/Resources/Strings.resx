@@ -1812,4 +1812,13 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="HideChartResources" xml:space="preserve">
     <value>Hide resource controls</value>
   </data>
+  <data name="ChartPreferences" xml:space="preserve">
+    <value>Chart preferences</value>
+  </data>
+  <data name="ChartPreferencesNote" xml:space="preserve">
+    <value>Each chart type remembers its resources, time range and resource controls. Reset takes effect when you save Settings.</value>
+  </data>
+  <data name="ResetChartPreferences" xml:space="preserve">
+    <value>Reset chart preferences</value>
+  </data>
 </root>

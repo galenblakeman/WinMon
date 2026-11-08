@@ -139,7 +139,7 @@ public partial class MainWindow
             _preferences = _diagnosticMode
                 ? new MonitorPreferences()
                 : _initialPreferences ?? await _preferenceStore.LoadAsync(Lifetime.Token);
-            _preferences = _preferences with { CompactMode = _preferences.StartCompact };
+            _preferences = PreferenceStore.Validate(_preferences with { CompactMode = _preferences.StartCompact });
             _preferencesLoaded = true;
             BuildChartSelectors();
             ApplyActionsHidden();
@@ -156,10 +156,7 @@ public partial class MainWindow
             Width = Math.Max(MinWidth, _preferences.Width);
             Height = Math.Max(MinHeight, _preferences.Height);
             ApplyActivityPanel();
-            var visibleMask = _preferences.SeriesMask;
-            _restoringSeries = true;
-            for (var i = 0; i < Metrics.Length; i++) Metrics[i].Toggle.IsChecked = (visibleMask & (1 << i)) != 0;
-            _restoringSeries = false;
+            RestoreChartControls();
             if (_preferences is { Left: { } left, Top: { } top })
             {
                 Left = left;
@@ -547,21 +544,31 @@ public partial class MainWindow
     {
         if (_updatingChartSelectors || !_preferencesLoaded || IsClosing ||
             ChartTypeSelector.SelectedItem is not ComboBoxItem { Tag: ResourceChartChoice choice }) return;
-        _preferences = _preferences with
-        {
-            ResourceChartType = choice.Type,
-            FocusMetric = choice.Metric ?? _preferences.FocusMetric
-        };
-        if (choice.Type == ResourceChartType.LogicalProcessors && Metrics[0].Toggle.IsChecked != true)
-            Metrics[0].Toggle.IsChecked = true;
-        if (choice.Metric is { } metric && Metrics[metric].Toggle.IsChecked != true)
-            Metrics[metric].Toggle.IsChecked = true;
+        _preferences = _preferences.SelectChart(choice.Type, choice.Metric);
+        SetChartPanelCollapsed(false);
+        RestoreChartControls();
+        BuildRangeChips();
+        BuildChartSelectors();
         RefreshPresentation();
+    }
+
+    private void RestoreChartControls()
+    {
+        _restoringSeries = true;
+        try
+        {
+            var mask = _preferences.SeriesMask;
+            for (var i = 0; i < Metrics.Length; i++) Metrics[i].Toggle.IsChecked = (mask & (1 << i)) != 0;
+            OverallGraph.VisibleMetrics = mask;
+        }
+        finally { _restoringSeries = false; }
+        UpdateChartLegend();
     }
 
     private void OnRangeChecked(object sender, RoutedEventArgs e)
     {
         if (sender is not RadioButton { Tag: int seconds } || IsClosing) return;
+        if (seconds != _preferences.EffectiveChartRange) SetChartPanelCollapsed(false);
         _preferences = _preferences with { ChartRangeSeconds = seconds };
         RefreshPresentation();
     }
@@ -728,7 +735,7 @@ public partial class MainWindow
             if (saved != true || dialog.Result is not { } result || IsClosing) return;
             SettingsButton.IsEnabled = false;
             Processes.RankingEnabled = false;
-            _settingsWriteTask = ApplyPreferencesAsync(result);
+            _settingsWriteTask = ApplyPreferencesAsync(result, dialog.ResetChartPreferencesRequested);
             await _settingsWriteTask;
         }
         catch (OperationCanceledException) when (Lifetime.IsCancellationRequested)
@@ -753,7 +760,7 @@ public partial class MainWindow
         }
     }
 
-    internal async Task ApplyPreferencesAsync(MonitorPreferences result)
+    internal async Task ApplyPreferencesAsync(MonitorPreferences result, bool resetChartPreferences = false)
     {
         var wasEnabled = !_diagnosticMode && StartupRegistration.IsEnabled;
         var startupChanged = !_diagnosticMode && wasEnabled != result.StartWithWindows;
@@ -778,10 +785,10 @@ public partial class MainWindow
         }
 
         // Choices made in the window while the file was written, such as grouping or a new pin, stay in effect.
-        _preferences = PreferenceStore.Validate(SettingsWindow.ApplySettings(_preferences, result));
+        _preferences = PreferenceStore.Validate(SettingsWindow.ApplySettings(_preferences, result, resetChartPreferences));
         if (!_preferences.KeepHistoryAcrossRestarts)
             RestartHistory.DeleteNormal(_preferenceStore.NormalHistoryPath);
-        SecondaryDiskMetric.Toggle.IsChecked = (_preferences.SeriesMask & 32) != 0;
+        RestoreChartControls();
         ConfigureDiskLayout();
         Session.History.Resize(_preferences.RetentionSeconds);
         ApplyTheme();

@@ -416,6 +416,10 @@ public sealed class SettingsWindow : Window
     /// </summary>
     public MonitorPreferences? Result { get; private set; }
 
+    internal bool ResetChartPreferencesRequested { get; private set; }
+
+    internal Button ResetChartPreferencesButton { get; } = new();
+
     internal ComboBox GaugeSelector => _gaugeSelector;
 
     internal ComboBox GaugePeakWindowSelector => _gaugePeakWindowSelector;
@@ -447,9 +451,10 @@ public sealed class SettingsWindow : Window
     /// Everything else, such as grouping, pins and compact mode, belongs to the main window and may change while
     /// a confirmed result is being saved, so applying a result must not restore the values the dialog opened with.
     /// </remarks>
-    internal static MonitorPreferences ApplySettings(MonitorPreferences current, MonitorPreferences settings)
+    internal static MonitorPreferences ApplySettings(MonitorPreferences current, MonitorPreferences settings,
+        bool resetChartPreferences = false)
     {
-        return current with
+        var result = current with
         {
             PrimaryDrive = settings.PrimaryDrive,
             SecondaryDrive = settings.SecondaryDrive,
@@ -469,6 +474,7 @@ public sealed class SettingsWindow : Window
             ShowShortcut = settings.ShowShortcut,
             AutoCapture = settings.AutoCapture
         };
+        return resetChartPreferences ? result.ResetChartPreferences() : result;
     }
 
     internal sealed record DriveChoice(string? Name, string Label)
@@ -875,6 +881,18 @@ public sealed class SettingsWindow : Window
         page.Children.Add(Note(Strings.SettingsRetentionNote));
         page.Children.Add(_keepHistoryCheckBox);
         page.Children.Add(Note(Strings.KeepHistoryAcrossRestartsNote));
+        page.Children.Add(CreateHeading(Strings.ChartPreferences));
+        page.Children.Add(Note(Strings.ChartPreferencesNote));
+        ResetChartPreferencesButton.Content = Strings.ResetChartPreferences;
+        ResetChartPreferencesButton.HorizontalAlignment = HorizontalAlignment.Left;
+        ResetChartPreferencesButton.ToolTip = Strings.ChartPreferencesNote;
+        AutomationProperties.SetHelpText(ResetChartPreferencesButton, Strings.ChartPreferencesNote);
+        ResetChartPreferencesButton.Click += (_, _) =>
+        {
+            ResetChartPreferencesRequested = true;
+            ResetChartPreferencesButton.IsEnabled = false;
+        };
+        page.Children.Add(ResetChartPreferencesButton);
         page.Children.Add(CreateHeading(Strings.ResourceGauges));
         page.Children.Add(Field(Strings.GaugePeakWindow, _gaugePeakWindowSelector));
         page.Children.Add(CreateHeading(Strings.DiskMonitoring));
@@ -1163,7 +1181,7 @@ public sealed class SettingsWindow : Window
             AutomaticallyCheckForUpdates = _automaticUpdateCheckBox.IsChecked == true,
             ShowShortcut = _shortcut?.ToString() ?? HotkeyGesture.NoneText,
             AutoCapture = autoCapture
-        });
+        }, ResetChartPreferencesRequested);
         DialogResult = true;
     }
 

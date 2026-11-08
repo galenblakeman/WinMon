@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Automation;
+using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using WinMon.Preferences;
 
@@ -144,6 +145,27 @@ internal sealed partial class WindowDiagnostics
             window.UpdateLayout();
             if (!window.ChartBody.IsVisible || Math.Abs(window.ChartAreaRow.ActualHeight - chartHeight) > 1)
                 throw new InvalidOperationException("Chart expansion did not restore its previous size.");
+            window.SetChartPanelCollapsed(true);
+            window.BuildRangeChips();
+            window.BuildChartSelectors();
+            if (!window.Preferences.ChartPanelCollapsed)
+                throw new InvalidOperationException("Rebuilding chart selectors expanded the chart.");
+            foreach (var change in new Action[]
+                     {
+                         () => window.ChartTypeSelector.SelectedIndex = window.ChartTypeSelector.SelectedIndex == 0 ? 1 : 0,
+                         () => window.RangeSelector.Children.OfType<RadioButton>().First(chip => chip.IsChecked != true).IsChecked = true,
+                         () => Click(window.SnapshotModeButton),
+                         () => Click(window.LiveModeButton)
+                     })
+            {
+                window.SetChartPanelCollapsed(true);
+                change();
+                window.UpdateLayout();
+                if (window.Preferences.ChartPanelCollapsed || !window.ChartBody.IsVisible ||
+                    window.Preferences.ActivityPanelRatio != savedRatio)
+                    throw new InvalidOperationException("Changing a chart selector did not expand the chart with its saved split.");
+            }
+            await CaptureAsync(Path.Combine(output, "chart-panel-selector-expanded.png"), 1, cancellationToken);
             window.SetActivityPanelCollapsed(true);
             window.Preferences = window.Preferences with { Theme = original.Theme };
             window.ApplyTheme();

@@ -1812,4 +1812,13 @@ GPU {11} · {12}
   <data name="HideChartResources" xml:space="preserve">
     <value>Скрыть элементы управления ресурсами</value>
   </data>
+  <data name="ChartPreferences" xml:space="preserve">
+    <value>Настройки графиков</value>
+  </data>
+  <data name="ChartPreferencesNote" xml:space="preserve">
+    <value>Каждый тип графика запоминает ресурсы, временной диапазон и элементы управления ресурсами. Сброс применяется при сохранении настроек.</value>
+  </data>
+  <data name="ResetChartPreferences" xml:space="preserve">
+    <value>Сбросить настройки графиков</value>
+  </data>
 </root>
