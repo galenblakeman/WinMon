@@ -84,13 +84,16 @@ internal sealed class NetworkMonitoringController : IAsyncDisposable
                 catch (Exception exception) when (exception is not OperationCanceledException || !linked.IsCancellationRequested)
                 {
                     ReportConnectionFailure(exception);
-                    if (!allowSetup) return Result(false, NetworkMonitoringState.Unavailable);
+                    if (!allowSetup)
+                    {
+                        StartPolling();
+                        return Result(false, NetworkMonitoringState.Unavailable);
+                    }
                     if (!_canSetup()) return Result(false, NetworkMonitoringState.SetupUnavailable);
                     await _setup("install", OpenAsync, linked.Token).ConfigureAwait(false);
                 }
                 linked.Token.ThrowIfCancellationRequested();
-                _pollCancellation = CancellationTokenSource.CreateLinkedTokenSource(_lifetime.Token);
-                _poll = PollAsync(_connection!, _pollCancellation.Token);
+                StartPolling();
                 return new NetworkMonitoringChangeResult(true, State);
             }
             catch (OperationCanceledException) when (linked.IsCancellationRequested)
@@ -157,6 +160,7 @@ internal sealed class NetworkMonitoringController : IAsyncDisposable
             await connection.SubscribeAsync(token).ConfigureAwait(false);
             var snapshot = await connection.SnapshotAsync(token).ConfigureAwait(false);
             if (snapshot.Quality.HasFlag(ProcessNetworkQuality.Unavailable)) throw new InvalidOperationException("Network collection is unavailable.");
+            token.ThrowIfCancellationRequested();
             _connection = connection;
             PublishSnapshot(snapshot);
             SetState(ToState(snapshot));
@@ -168,27 +172,59 @@ internal sealed class NetworkMonitoringController : IAsyncDisposable
         catch { await connection.DisposeAsync().ConfigureAwait(false); throw; }
     }
 
-    private async Task PollAsync(INetworkMonitoringConnection connection, CancellationToken token)
+    private void StartPolling()
+    {
+        _pollCancellation = CancellationTokenSource.CreateLinkedTokenSource(_lifetime.Token);
+        _poll = PollAsync(_pollCancellation.Token);
+    }
+
+    private async Task PollAsync(CancellationToken token)
     {
         try
         {
             while (true)
             {
-                await Task.Delay(TimeSpan.FromSeconds(1), token).ConfigureAwait(false);
-                var snapshot = await connection.SnapshotAsync(token).ConfigureAwait(false);
-                PublishSnapshot(snapshot);
-                SetState(ToState(snapshot));
+                await Task.Delay(TimeSpan.FromSeconds(_connection is null ? 5 : 1), token).ConfigureAwait(false);
+                try
+                {
+                    if (_connection is null)
+                    {
+                        await OpenAsync(token).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        var snapshot = await _connection.SnapshotAsync(token).ConfigureAwait(false);
+                        if ((snapshot.Quality & ProcessNetworkQuality.Unavailable) != 0)
+                            throw new InvalidOperationException("Network collection is unavailable.");
+                        PublishSnapshot(snapshot);
+                        SetState(ToState(snapshot));
+                    }
+                }
+                catch (OperationCanceledException) when (token.IsCancellationRequested) { throw; }
+                catch (Exception exception)
+                {
+                    ReportConnectionFailure(exception);
+                    PublishSnapshot(null);
+                    SetState(exception is NetworkServiceProtocolMismatchException
+                        ? NetworkMonitoringState.UpdateRequired : NetworkMonitoringState.Unavailable);
+                    if (_connection is { } failed)
+                    {
+                        _connection = null;
+                        await failed.DisposeAsync().ConfigureAwait(false);
+                    }
+                    if (exception is NetworkServiceProtocolMismatchException) return;
+                }
             }
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested) { }
-        catch (Exception exception)
+        finally
         {
-            ReportConnectionFailure(exception);
-            PublishSnapshot(null);
-            SetState(exception is NetworkServiceProtocolMismatchException
-                ? NetworkMonitoringState.UpdateRequired : NetworkMonitoringState.Unavailable);
+            if (_connection is { } connection)
+            {
+                _connection = null;
+                await connection.DisposeAsync().ConfigureAwait(false);
+            }
         }
-        finally { await connection.DisposeAsync().ConfigureAwait(false); }
     }
 
     private async Task DisconnectAsync()

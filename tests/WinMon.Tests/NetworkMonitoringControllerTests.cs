@@ -202,6 +202,108 @@ public sealed class NetworkMonitoringControllerTests
         Assert.That((await controller.RemoveAsync(default)).State, Is.EqualTo(NetworkMonitoringState.StoreUnavailable));
     }
 
+    [TestCase(null)]
+    [TestCase(typeof(IOException))]
+    [TestCase(typeof(OperationCanceledException))]
+    public async Task InterruptedMonitoringReconnectsWithoutSetupAndPreservesSession(Type? failureType)
+    {
+        var failed = new FakeConnection
+        {
+            QualityAfterInitialRead = ProcessNetworkQuality.Unavailable,
+            FailureAfterInitialRead = failureType is null ? null : (Exception)Activator.CreateInstance(failureType)!
+        };
+        var healthy = new FakeConnection { Quality = ProcessNetworkQuality.None };
+        var connections = 0;
+        var unavailable = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var recovered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        await using var controller = new NetworkMonitoringController(_ =>
+        {
+            if (Interlocked.Increment(ref connections) == 1) return Task.FromResult<INetworkMonitoringConnection>(failed);
+            Assert.That(failed.Disposed, Is.True);
+            return Task.FromResult<INetworkMonitoringConnection>(healthy);
+        }, (_, _, _) => throw new AssertionException("Recovery must not run setup"), () => true);
+        controller.StateChanged += state =>
+        {
+            if (state == NetworkMonitoringState.Unavailable) unavailable.TrySetResult();
+            if (state == NetworkMonitoringState.Active) recovered.TrySetResult();
+        };
+        await controller.ChangeAsync(true, default);
+        var session = controller.Sample.SessionId;
+        await unavailable.Task.WaitAsync(TimeSpan.FromSeconds(4));
+        Assert.That(controller.LatestSnapshot, Is.Null);
+        await recovered.Task.WaitAsync(TimeSpan.FromSeconds(9));
+        Assert.Multiple(() =>
+        {
+            Assert.That(controller.Sample.SessionId, Is.EqualTo(session));
+            Assert.That(controller.LatestSnapshot, Is.Not.Null);
+            Assert.That(healthy.Subscribed, Is.True);
+            Assert.That(connections, Is.EqualTo(2));
+        });
+    }
+
+    [Test]
+    public async Task StartupRecoveryKeepsRetryingUntilServiceReturns()
+    {
+        var attempts = 0;
+        var recovered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        await using var controller = new NetworkMonitoringController(_ => Interlocked.Increment(ref attempts) < 3
+                ? throw new IOException() : Task.FromResult<INetworkMonitoringConnection>(new FakeConnection()),
+            (_, _, _) => throw new AssertionException("Recovery must not run setup"), () => true);
+        controller.StateChanged += state => { if (state == NetworkMonitoringState.WarmingUp) recovered.TrySetResult(); };
+        await controller.RestoreAsync(true, default);
+        var session = controller.Sample.SessionId;
+        await recovered.Task.WaitAsync(TimeSpan.FromSeconds(15));
+        Assert.That(controller.Sample.SessionId, Is.EqualTo(session));
+        Assert.That(attempts, Is.EqualTo(3));
+    }
+
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task DisableOrShutdownCancelsAnInFlightRecovery(bool shutdown)
+    {
+        var attempts = 0;
+        var reconnecting = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var cancelled = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var controller = new NetworkMonitoringController(async token =>
+        {
+            if (Interlocked.Increment(ref attempts) == 1) throw new IOException();
+            reconnecting.TrySetResult();
+            try { await Task.Delay(Timeout.InfiniteTimeSpan, token); }
+            catch (OperationCanceledException) { cancelled.TrySetResult(); throw; }
+            throw new AssertionException("Recovery must be cancelled");
+        }, (_, _, _) => throw new AssertionException("No setup"), () => true);
+        try
+        {
+            await controller.RestoreAsync(true, default);
+            await reconnecting.Task.WaitAsync(TimeSpan.FromSeconds(9));
+            if (shutdown) await controller.DisposeAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(3));
+            else
+            {
+                await controller.ChangeAsync(false, default).WaitAsync(TimeSpan.FromSeconds(3));
+                Assert.That(controller.State, Is.EqualTo(NetworkMonitoringState.Disabled));
+                Assert.That(controller.Sample.SessionId, Is.EqualTo(Guid.Empty));
+            }
+            Assert.That(cancelled.Task.IsCompletedSuccessfully, Is.True);
+            Assert.That(controller.LatestSnapshot, Is.Null);
+        }
+        finally { if (!shutdown) await controller.DisposeAsync(); }
+    }
+
+    [Test]
+    public async Task DisableCancelsPendingRetry()
+    {
+        var attempts = 0;
+        await using var controller = new NetworkMonitoringController(_ =>
+        {
+            Interlocked.Increment(ref attempts);
+            throw new IOException();
+        }, (_, _, _) => throw new AssertionException("No setup"), () => true);
+        await controller.RestoreAsync(true, default);
+        await controller.ChangeAsync(false, default);
+        await Task.Delay(TimeSpan.FromSeconds(6));
+        Assert.That(attempts, Is.EqualTo(1));
+    }
+
     [TestCase(ProcessNetworkQuality.None, NetworkMonitoringState.Active)]
     [TestCase(ProcessNetworkQuality.WarmingUp, NetworkMonitoringState.WarmingUp)]
     [TestCase(ProcessNetworkQuality.Incomplete, NetworkMonitoringState.Incomplete)]
@@ -219,13 +321,15 @@ public sealed class NetworkMonitoringControllerTests
         internal bool Disposed;
         internal int Reads;
         internal ProcessNetworkQuality Quality = ProcessNetworkQuality.WarmingUp;
+        internal ProcessNetworkQuality? QualityAfterInitialRead;
         internal Exception? FailureAfterInitialRead;
         public Task SubscribeAsync(CancellationToken token) { Subscribed = true; return Task.CompletedTask; }
         public Task<ProcessNetworkSnapshot> SnapshotAsync(CancellationToken token)
         {
             Reads++;
             return Reads > 1 && FailureAfterInitialRead is { } exception
-                ? Task.FromException<ProcessNetworkSnapshot>(exception) : Task.FromResult(Snapshot(Quality));
+                ? Task.FromException<ProcessNetworkSnapshot>(exception)
+                : Task.FromResult(Snapshot(Reads > 1 ? QualityAfterInitialRead ?? Quality : Quality));
         }
         public ValueTask DisposeAsync() { Disposed = true; return ValueTask.CompletedTask; }
     }
