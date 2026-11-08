@@ -232,6 +232,8 @@ Connections places its localized saved-pin count in the first column header, usi
 
 Full-view section headers occupy the full-width layout grid. Gauges keep 20-DIP side margins and the chart 8-DIP margins; activity views use 8-DIP gutter columns and span their toolbar backgrounds across all three columns. Keep header backgrounds inside their parent bounds: negative margins are clipped horizontally when short windows force WPF to clip overflowing row minimums. The feature smoke checks header width and ancestor layout clips at 900, 720 and 600 DIPs high for all three activity tabs.
 
+The update-footer smoke checks that the footer avoids the process list when the layout rows fit the available height. On smaller desktops, row minimums can overflow even at the initial window size; the footer intentionally overlays the bottom there. Footer visibility is also checked at 300 DIPs and the minimum window height.
+
 WinMon samples once a second all day, so its own cost is a feature. Measure structural or hot-path changes before and after, and add the results to the top of the [performance history](PERFORMANCE-HISTORY.md).
 
 ### Benchmark the UI thread
