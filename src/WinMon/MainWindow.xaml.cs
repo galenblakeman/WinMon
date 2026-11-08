@@ -145,6 +145,7 @@ public partial class MainWindow
             Processes.Load(ProcessListSettings.From(_preferences), _preferences.PinnedProcesses);
             ServiceView.TopServiceCount = _preferences.TopServiceCount;
             UsageView.Load(UsageSettings(_preferences));
+            ConnectionView.Load(ConnectionSettings(_preferences));
             Width = Math.Max(MinWidth, _preferences.Width);
             Height = Math.Max(MinHeight, _preferences.Height);
             ApplyActivityPanel();
@@ -190,6 +191,7 @@ public partial class MainWindow
             InitializeWindowPosition();
             SamplingTask = Session.Run(Lifetime.Token);
             InitializeUpdates();
+            InitializeNetworkMonitoring();
         }
         catch (OperationCanceledException) when (Lifetime.IsCancellationRequested)
         {
@@ -209,9 +211,15 @@ public partial class MainWindow
     internal SamplingOptions CurrentSamplingOptions()
     {
         var preferences = Volatile.Read(ref _preferences);
+        var network = preferences.ProcessNetworkMonitoringEnabled && NetworkSetupBroker.Supported
+            ? _networkMonitoring?.Sample : null;
         return new SamplingOptions(preferences.PrimaryDrive, preferences.SecondaryDrive,
             Volatile.Read(ref _retainPinned),
-            preferences.TopProcessCount == 0, preferences.NetworkInterfaceId);
+            preferences.TopProcessCount == 0, preferences.NetworkInterfaceId)
+        {
+            ProcessNetwork = network?.Snapshot,
+            ProcessNetworkSessionId = network?.SessionId ?? Guid.Empty
+        };
     }
 
     private void OnSamplesRecorded()
@@ -694,7 +702,11 @@ public partial class MainWindow
                     await CheckForUpdatesAsync(true, Lifetime.Token);
                     return UpdateStatusText.Text;
                 }, _preferenceStore.DefaultCaptureFolder, _lastUpdateCheck,
-                Session.History.Latest?.Resources.NetworkName) { Owner = this };
+                Session.History.Latest?.Resources.NetworkName,
+                changeNetworkMonitoring: ChangeNetworkMonitoringAsync,
+                removeNetworkService: RemoveNetworkMonitoringAsync,
+                networkMonitoringState: _networkMonitoring?.State ?? (NetworkSetupBroker.Supported ? NetworkMonitoringState.Disabled : NetworkMonitoringState.StoreUnavailable)) { Owner = this };
+            ObserveNetworkMonitoring(dialog);
             dialog.ShowSection(_lastSettingsSection);
             // Let the shortcut recorder receive WinMon's own combination; Save or the finally block takes it back.
             _hotkeyRetry?.Stop();
@@ -721,6 +733,7 @@ public partial class MainWindow
         {
             if (!IsClosing)
             {
+                await RestoreNetworkMonitoringPreferenceAsync();
                 SettingsButton.IsEnabled = true;
                 Processes.RankingEnabled = true;
                 if (_hotkey is { Current: null }) ApplyShortcut();
@@ -1068,6 +1081,7 @@ public partial class MainWindow
         try
         {
             await Lifetime.CancelAsync();
+            await ShutdownNetworkMonitoringAsync();
             try
             {
                 if (SamplingTask is not null) await SamplingTask;

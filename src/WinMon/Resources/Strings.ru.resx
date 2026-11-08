@@ -1581,6 +1581,24 @@ GPU {11} · {12}
   <data name="NetworkInterfaceLabel" xml:space="preserve"><value>Сетевой интерфейс</value></data>
   <data name="NetworkInterfaceUnavailable" xml:space="preserve"><value>Недоступный интерфейс ({0})</value></data>
   <data name="NetworkSelectionNote" xml:space="preserve"><value>Автоматический режим выбирает подключённый интерфейс Ethernet или Wi-Fi. Выбранный вручную интерфейс остаётся выбранным при отключении; показания недоступны до его возвращения.</value></data>
+  <data name="NetworkProcessMonitoringHeading" xml:space="preserve"><value>Мониторинг сети по процессам</value></data>
+  <data name="NetworkProcessMonitoringEnabled" xml:space="preserve"><value>Отслеживать сетевой трафик по процессам</value></data>
+  <data name="NetworkProcessMonitoringNote" xml:space="preserve"><value>Собирает текущую активность отправки и получения ваших процессов. При первой настройке устанавливается привилегированная служба Windows и требуется одобрение администратора. При следующих запусках не требуется. Отключение прекращает сбор данных этим приложением и сохраняет установленную общую службу.</value></data>
+  <data name="NetworkProcessMonitoringDisabled" xml:space="preserve"><value>Мониторинг сети по процессам выключен.</value></data>
+  <data name="NetworkProcessMonitoringEnabling" xml:space="preserve"><value>Применение настройки мониторинга сети по процессам…</value></data>
+  <data name="NetworkProcessMonitoringWarmingUp" xml:space="preserve"><value>Мониторинг сети по процессам подготавливается.</value></data>
+  <data name="NetworkProcessMonitoringActive" xml:space="preserve"><value>Мониторинг сети по процессам активен.</value></data>
+  <data name="NetworkProcessMonitoringIncomplete" xml:space="preserve"><value>В мониторинге сети по процессам есть неполные показания.</value></data>
+  <data name="NetworkProcessMonitoringUnavailable" xml:space="preserve"><value>Мониторинг сети по процессам недоступен.</value></data>
+  <data name="NetworkProcessMonitoringUpdateRequired" xml:space="preserve"><value>Требуется обновление сетевой службы.</value></data>
+  <data name="NetworkProcessMonitoringSetupUnavailable" xml:space="preserve"><value>Подписанная настройка мониторинга сети недоступна.</value></data>
+  <data name="NetworkProcessMonitoringCancelled" xml:space="preserve"><value>Мониторинг сети по процессам не был включён.</value></data>
+  <data name="NetworkProcessMonitoringFailed" xml:space="preserve"><value>Не удалось включить мониторинг сети по процессам.</value></data>
+  <data name="NetworkProcessMonitoringStoreUnavailable" xml:space="preserve"><value>Мониторинг сети по процессам недоступен в версии Microsoft Store.</value></data>
+  <data name="NetworkProcessMonitoringRemove" xml:space="preserve"><value>Удалить службу мониторинга сети…</value></data>
+  <data name="NetworkProcessMonitoringRepair" xml:space="preserve"><value>Восстановить мониторинг сети</value></data>
+  <data name="NetworkProcessMonitoringRemoveTitle" xml:space="preserve"><value>Удалить службу мониторинга сети</value></data>
+  <data name="NetworkProcessMonitoringRemoveConfirm" xml:space="preserve"><value>Удалить службу мониторинга сети для всех пользователей Windows на этом компьютере? Требуется одобрение администратора. Мониторинг остановится для всех пользователей.</value></data>
   <data name="SettingsStartupAndTray" xml:space="preserve"><value>Запуск и область уведомлений</value></data>
   <data name="SettingsHistory" xml:space="preserve"><value>История</value></data>
   <data name="SettingsRetentionNote" xml:space="preserve"><value>Насколько далеко назад доступны график, режим захвата и история процессов. Более долгое хранение требует больше памяти.</value></data>
@@ -1673,6 +1691,8 @@ GPU {11} · {12}
   <data name="ConnectionsRemoteEndpoint" xml:space="preserve"><value>Удаленная конечная точка</value></data>
   <data name="ConnectionsState" xml:space="preserve"><value>Состояние</value></data>
   <data name="ConnectionsNote" xml:space="preserve"><value>UDP показывает только локальные конечные точки. Количество подключений не является объемом трафика.</value></data>
+  <data name="ConnectionsNetworkProvisional" xml:space="preserve"><value>Скорости сети по процессам используют отложенное предварительное окно времени событий.</value></data>
+  <data name="ConnectionsNetworkOwnerTotals" xml:space="preserve"><value>Итоги процесса/исполняемого файла (все протоколы)</value></data>
   <data name="ConnectionsUnavailable" xml:space="preserve"><value>Данные о подключениях недоступны.</value></data>
   <data name="ConnectionsPartial" xml:space="preserve"><value>Некоторые данные о подключениях недоступны.</value></data>
   <data name="ConnectionsEmpty" xml:space="preserve"><value>Нет подходящих подключений.</value></data>
@@ -1737,5 +1757,15 @@ GPU {11} · {12}
   <data name="ProcessesTabHelp" xml:space="preserve"><value>Сравнивайте запущенные процессы по CPU, памяти, GPU и вводу-выводу. Ищите, группируйте или закрепляйте процессы для отслеживания нагрузки.</value></data>
   <data name="ServicesTabHelp" xml:space="preserve"><value>Проверяйте состояние и ресурсы служб Windows, включая хост-процессы и рабочие процессы. Запускайте, останавливайте или перезапускайте текущие службы, когда это разрешено.</value></data>
   <data name="UsageTabHelp" xml:space="preserve"><value>Сравнивайте суммарное время CPU, GPU и ввод-вывод приложений с запуска WinMon или сброса итогов, включая уже завершённые приложения.</value></data>
-  <data name="ConnectionsTabHelp" xml:space="preserve"><value>Просматривайте приложения с TCP-соединениями и конечными точками UDP, их адреса, порты и состояния. Этот вид остаётся в реальном времени при просмотре снимков.</value></data>
+  <data name="ConnectionsTabHelp" xml:space="preserve"><value>Сравнивайте приложения по скоростям приёма/отправки и числу TCP/UDP. Разверните конечные точки или откройте Свойства для адресов и состояний. Захват следует выбранному замеру.</value></data>
+  <data name="ConnectionsTop" xml:space="preserve"><value>Количество ведущих приложений</value></data>
+  <data name="ConnectionsRankBy" xml:space="preserve"><value>Сортировать приложения по</value></data>
+  <data name="ConnectionsReceiveRate" xml:space="preserve"><value>Приём/с</value></data>
+  <data name="ConnectionsSendRate" xml:space="preserve"><value>Отправка/с</value></data>
+  <data name="ConnectionsTcpCount" xml:space="preserve"><value>Число TCP</value></data>
+  <data name="ConnectionsUdpCount" xml:space="preserve"><value>Число UDP</value></data>
+  <data name="ConnectionsHistoryUnavailable" xml:space="preserve"><value>История соединений недоступна для этого замера.</value></data>
+  <data name="ConnectionsHistoryNote" xml:space="preserve"><value>Соединения при выбранном замере. Скорости — средние за пять секунд, обычно заканчивающихся за три секунды до сбора.</value></data>
+  <data name="ConnectionsEnableTrafficMonitoring" xml:space="preserve"><value>Включить мониторинг трафика…</value></data>
+  <data name="ConnectionsTrafficRankingUnavailable" xml:space="preserve"><value>Включите мониторинг трафика процессов для сортировки по скорости приёма или отправки.</value></data>
 </root>

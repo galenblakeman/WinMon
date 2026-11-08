@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Net;
 using NUnit.Framework;
 using WinMon.Monitoring;
 
@@ -9,6 +10,153 @@ namespace WinMon.Tests;
 public sealed class MonitorSessionTests
 {
     private const int Processes = 60;
+
+    [Test]
+    public async Task NetworkTotalsSurviveMissingSnapshotAndCpuCaptureFailure()
+    {
+        var id = Guid.NewGuid();
+        var generation = Guid.NewGuid();
+        var raw = new[] { Network(generation, 1, 100), Network(generation, 2, 150) };
+        var read = 0;
+        var harness = new Harness(() => new SamplingOptions { ProcessNetwork = read < raw.Length ? raw[read++] : null, ProcessNetworkSessionId = id },
+            Frame(1), _ => throw new InvalidOperationException("CPU unavailable"), Frame(3));
+        await harness.RunToEnd();
+        harness.Drain();
+        var network = harness.Session.ProcessNetwork!;
+        Assert.Multiple(() =>
+        {
+            Assert.That(network.Processes.Single().ReceivedBytes, Is.EqualTo(50));
+            Assert.That(network.Processes.Single().ReceiveBytesPerSecond, Is.Null);
+            Assert.That(network.Quality.HasFlag(ProcessNetworkQuality.Unavailable), Is.True);
+        });
+    }
+
+    [Test]
+    public async Task ExplicitNewNetworkSessionStartsFreshTotals()
+    {
+        var oldSession = Guid.NewGuid();
+        var newSession = Guid.NewGuid();
+        var generation = Guid.NewGuid();
+        var read = 0;
+        var harness = new Harness(() =>
+        {
+            var number = ++read;
+            return new SamplingOptions { ProcessNetwork = Network(generation, number, number * 100),
+                ProcessNetworkSessionId = number < 3 ? oldSession : newSession };
+        }, Frame(1), Frame(2), Frame(3));
+        await harness.RunToEnd();
+        harness.Drain();
+        Assert.That(harness.Session.ProcessNetwork!.Processes.Single().ReceivedBytes, Is.Zero);
+    }
+
+    [Test]
+    public async Task ResourceHistoryClockRebasingDoesNotShiftNetworkClock()
+    {
+        var snapshot = Network(Guid.NewGuid(), 1, 100);
+        var harness = new Harness(new SamplingOptions { ProcessNetwork = snapshot, ProcessNetworkSessionId = Guid.NewGuid() }, Frame(1));
+        harness.Session.SetHistoryClockOffset(Stopwatch.Frequency * 100);
+        await harness.RunToEnd();
+        harness.Drain();
+        Assert.Multiple(() =>
+        {
+            Assert.That(harness.Session.ProcessNetwork!.TimestampQpc, Is.EqualTo(snapshot.TimestampQpc));
+            Assert.That(harness.Session.ProcessNetwork.Quality.HasFlag(ProcessNetworkQuality.Unavailable), Is.False);
+            Assert.That(harness.Session.LatestFull!.MonotonicTimestamp, Is.EqualTo(Stopwatch.Frequency * 101));
+        });
+    }
+
+    [Test]
+    public async Task ConnectionsHistoryAlignsWithRebasedResourceSampleAndKeepsAccountedTraffic()
+    {
+        var network = Network(Guid.NewGuid(), 1, 100);
+        var owner = new ProcessUsage(42, 100, "browser", 0) { ImagePath = @"C:\\Apps\\browser.exe" };
+        var sample = Frame(1)(new SamplingOptions()).Full with { Processes = [owner] };
+        var endpoint = new NetworkConnection(42, 100, TransportProtocol.Tcp,
+            new IPEndPoint(IPAddress.Loopback, 4200), new IPEndPoint(IPAddress.Loopback, 443));
+        var harness = new Harness(new SamplingOptions { ProcessNetwork = network, ProcessNetworkSessionId = Guid.NewGuid() },
+            _ => new CapturedFrame(sample) { Connections = new NetworkConnectionsFrame([endpoint],
+                NetworkAddressFamilyStatus.Success, NetworkAddressFamilyStatus.Success) });
+        harness.Session.SetHistoryClockOffset(Stopwatch.Frequency * 10);
+
+        await harness.RunToEnd();
+        harness.Drain();
+
+        var capture = harness.Session.Connections.Find(Stopwatch.Frequency * 11);
+        Assert.Multiple(() =>
+        {
+            Assert.That(capture, Is.Not.Null);
+            Assert.That(capture!.Connections!.Connections, Is.EqualTo(new[] { endpoint }));
+            Assert.That(capture.Owners.Single().Identity, Is.EqualTo(owner.Identity));
+            Assert.That(capture.Network!.TimestampQpc, Is.EqualTo(network.TimestampQpc));
+            Assert.That(harness.Session.Connections.Find(Stopwatch.Frequency), Is.Null);
+        });
+    }
+
+    [Test]
+    public async Task ConnectionsHistoryDoesNotInventAnObservationWhenTheSourceHasNone()
+    {
+        var harness = new Harness(Frame(1));
+        await harness.RunToEnd();
+        harness.Drain();
+        Assert.That(harness.Session.Connections.Find(Stopwatch.Frequency), Is.Not.Null);
+        Assert.That(harness.Session.Connections.Find(Stopwatch.Frequency)!.Available, Is.False);
+    }
+
+    [Test]
+    public async Task NetworkRetainsExitedOwnersMetadataWithoutMakingThemLiveProcesses()
+    {
+        var owner = new ProcessUsage(42, 100, "browser", 0) { ImagePath = @"C:\Apps\browser.exe" };
+        var generation = Guid.NewGuid();
+        var id = Guid.NewGuid();
+        var reads = 0;
+        var harness = new Harness(() => new SamplingOptions { ProcessNetwork = Network(generation, ++reads, reads * 100), ProcessNetworkSessionId = id },
+            options => new CapturedFrame(Frame(1)(options).Full with { Processes = [owner] }),
+            options => new CapturedFrame(Frame(2)(options).Full with { Processes = [] }));
+        await harness.RunToEnd();
+        harness.Drain();
+        Assert.Multiple(() =>
+        {
+            Assert.That(harness.Session.LatestFull!.Processes, Is.Empty);
+            Assert.That(harness.Session.ProcessNetwork!.Owners.Single().Identity, Is.EqualTo(owner.Identity));
+            Assert.That(harness.Session.ProcessNetwork.Owners.Single().ImagePath, Is.EqualTo(owner.ImagePath));
+            Assert.That(harness.Session.ProcessNetwork.Processes.Single().ReceivedBytes, Is.EqualTo(100));
+        });
+    }
+
+    [Test]
+    public async Task OptionalNetworkFailureDoesNotDiscardOrdinaryCapture()
+    {
+        var harness = new Harness(new SamplingOptions
+        {
+            ProcessNetwork = Network(Guid.NewGuid(), 1, 100) with { Processes = new FailingNetworkRows() },
+            ProcessNetworkSessionId = Guid.NewGuid()
+        }, Frame(1));
+        await harness.RunToEnd();
+        harness.Drain();
+        Assert.Multiple(() =>
+        {
+            Assert.That(harness.Session.HasLiveSample, Is.True);
+            Assert.That(harness.Session.Error, Is.Null);
+            Assert.That(harness.Session.History.Samples, Has.Count.EqualTo(1));
+            Assert.That(harness.Session.ProcessNetwork!.Quality.HasFlag(ProcessNetworkQuality.Unavailable), Is.True);
+        });
+    }
+
+    private sealed class FailingNetworkRows : IReadOnlyList<ProcessNetworkReading>
+    {
+        public int Count => throw new InvalidOperationException("Network provider failed.");
+        public ProcessNetworkReading this[int index] => throw new InvalidOperationException();
+        public IEnumerator<ProcessNetworkReading> GetEnumerator() => throw new InvalidOperationException();
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
+    }
+
+    private static ProcessNetworkSnapshot Network(Guid generation, long sequence, long total)
+    {
+        var stamp = Stopwatch.GetTimestamp();
+        return new ProcessNetworkSnapshot(generation, sequence, stamp, Stopwatch.Frequency,
+            stamp - Stopwatch.Frequency * 8, stamp - Stopwatch.Frequency * 3, ProcessNetworkQuality.Provisional,
+            0, 0, [new ProcessNetworkReading(42, 100, total, total * 2, 20, 40)]);
+    }
 
     [Test]
     public async Task Drain_RecordsQueuedCapturesInOrderWithOneCallback()
@@ -330,7 +478,11 @@ public sealed class MonitorSessionTests
         {
         }
 
-        internal Harness(SamplingOptions options, params Func<SamplingOptions, CapturedFrame>[] script)
+        internal Harness(SamplingOptions options, params Func<SamplingOptions, CapturedFrame>[] script) : this(() => options, script)
+        {
+        }
+
+        internal Harness(Func<SamplingOptions> options, params Func<SamplingOptions, CapturedFrame>[] script)
         {
             Source = new FakeSource(script, _cancellation);
             Session = new MonitorSession(() => Interlocked.Increment(ref _creates) <= FailedCreates
@@ -338,7 +490,7 @@ public sealed class MonitorSessionTests
                 : Source, () =>
             {
                 Interlocked.Increment(ref _optionReads);
-                return options;
+                return options();
             }, Posted.Enqueue, TimeSpan.FromMilliseconds(1));
             Session.Recorded += () => RecordedCount++;
         }

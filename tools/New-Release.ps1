@@ -13,6 +13,7 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 if ($CodeSign) { Import-Module ArtifactSigning -RequiredVersion 0.1.20 -ErrorAction Stop }
+if ($CodeSign -and !$UpdateSigningKeyPath) { throw 'Signed releases require the update-signing key for the signed network-service package.' }
 $signingParameters = @{
     Endpoint = $SigningEndpoint
     AccountName = $SigningAccountName
@@ -54,12 +55,18 @@ if (Test-Path -LiteralPath $OutputDirectory) { throw "Output directory already e
 $work = Join-Path $root "artifacts/packaging/$([guid]::NewGuid().ToString('N'))"
 $publish = Join-Path $work 'publish'
 $assets = Join-Path $work 'assets'
+$networkServiceBundle = Join-Path $work 'network-service-bundle'
 New-Item -ItemType Directory -Path $assets -Force | Out-Null
 Push-Location $root
 try {
     dotnet test WinMon.sln -c Release -m:1 -p:UseSharedCompilation=false --artifacts-path "$work/build" --logger 'trx;LogFilePrefix=release' --results-directory "$work/test-results"
     if ($LASTEXITCODE -ne 0) { throw 'Release tests failed.' }
-    dotnet publish src/WinMon/WinMon.csproj -c Release -r win-x64 -m:1 -p:UseSharedCompilation=false --artifacts-path "$work/build" -o $publish
+    if ($CodeSign) {
+        & (Join-Path $PSScriptRoot 'New-NetworkServicePackage.ps1') -Version $version -UpdateSigningKeyPath $UpdateSigningKeyPath -OutputDirectory $networkServiceBundle @signingParameters
+    }
+    $publishArguments = @('publish', 'src/WinMon/WinMon.csproj', '-c', 'Release', '-r', 'win-x64', '-m:1', '-p:UseSharedCompilation=false', "--artifacts-path=$work/build", '-o', $publish)
+    if ($CodeSign) { $publishArguments += "-p:NetworkServiceBundleDirectory=$networkServiceBundle" }
+    dotnet @publishArguments
     if ($LASTEXITCODE -ne 0) { throw 'Release publish failed.' }
     if ($CodeSign) {
         & (Join-Path $PSScriptRoot 'Sign-ReleaseFile.ps1') -Path (Join-Path $publish 'WinMon.exe') @signingParameters |

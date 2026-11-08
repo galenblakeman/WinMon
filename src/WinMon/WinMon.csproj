@@ -42,6 +42,16 @@
     <EmbeddedResource Include="$(UpdatePublicKeyPath)" LogicalName="WinMon.UpdatePublicKey" Condition="Exists('$(UpdatePublicKeyPath)')" />
     <Resource Include="Assets/WinMon.ico" />
   </ItemGroup>
+  <ItemGroup Condition="'$(NetworkServiceBundleDirectory)' != '' And '$(StoreBuild)' != 'true'">
+    <EmbeddedResource Include="$(NetworkServiceBundleDirectory)\WinMon.NetworkSetup.exe" LogicalName="WinMon.NetworkSetup.exe" />
+    <EmbeddedResource Include="$(NetworkServiceBundleDirectory)\network-service.zip" LogicalName="WinMon.NetworkSetup.Service.zip" />
+    <EmbeddedResource Include="$(NetworkServiceBundleDirectory)\network-service-manifest.json" LogicalName="WinMon.NetworkSetup.Manifest.json" />
+    <EmbeddedResource Include="$(NetworkServiceBundleDirectory)\network-service-manifest.sig" LogicalName="WinMon.NetworkSetup.Manifest.sig" />
+  </ItemGroup>
+  <Target Name="ValidateNetworkServiceBundle" BeforeTargets="PrepareResources" Condition="'$(NetworkServiceBundleDirectory)' != ''">
+    <Error Condition="'$(StoreBuild)' == 'true'" Text="Microsoft Store builds cannot include the network service setup bundle." />
+    <Error Condition="!Exists('$(NetworkServiceBundleDirectory)\WinMon.NetworkSetup.exe') Or !Exists('$(NetworkServiceBundleDirectory)\network-service.zip') Or !Exists('$(NetworkServiceBundleDirectory)\network-service-manifest.json') Or !Exists('$(NetworkServiceBundleDirectory)\network-service-manifest.sig')" Text="Network service bundle is incomplete." />
+  </Target>
   <ItemGroup>
     <AssemblyMetadata Include="RepositoryUrl" Value="$(RepositoryUrl)" />
     <AssemblyMetadata Include="License" Value="$(PackageLicenseExpression)" />

@@ -49,7 +49,17 @@ public sealed class WindowsFrameSource : IFrameSource
 
         var full = _resources.Sample(sample, options.PrimaryDrive, options.SecondaryDrive,
             options.NetworkInterfaceId);
-        return new CapturedFrame(full, _serviceTree.Capture(full, catalog), error);
+        NetworkConnectionsFrame? connections = null;
+        try
+        {
+            connections = WindowsConnections.Capture();
+        }
+        // Endpoint history is optional: an unexpected IP Helper failure must not discard the resource sample.
+        catch (Exception ex)
+        {
+            Trace.TraceWarning("Connection enumeration unavailable: {0}", ex.Message);
+        }
+        return new CapturedFrame(full, _serviceTree.Capture(full, catalog), error) { Connections = connections };
     }
 
     public void Reset()

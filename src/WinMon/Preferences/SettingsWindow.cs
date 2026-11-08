@@ -10,6 +10,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using WinMon.Controls;
+using WinMon.Monitoring;
 using WinMon.Shortcuts;
 using WinMon.Updates;
 using Path = System.Windows.Shapes.Path;
@@ -22,6 +23,7 @@ internal enum SettingsSection
     General,
     Appearance,
     Monitoring,
+    Network,
     AutomaticCaptures,
     Updates
 }
@@ -91,6 +93,16 @@ public sealed class SettingsWindow : Window
     private readonly string? _currentNetworkName;
     private Task? _networkLoadTask;
     private readonly CheckBox _keepHistoryCheckBox;
+    private readonly CheckBox _processNetworkMonitoringCheckBox;
+    private readonly TextBlock _processNetworkMonitoringStatus = new() { FontSize = 12, TextWrapping = TextWrapping.Wrap };
+    private readonly Button _repairNetworkMonitoringButton;
+    private readonly Button _removeNetworkMonitoringServiceButton;
+    private readonly Func<bool, CancellationToken, Task<NetworkMonitoringChangeResult>>? _changeNetworkMonitoring;
+    private readonly Func<CancellationToken, Task<NetworkMonitoringChangeResult>>? _removeNetworkService;
+    private NetworkMonitoringState _networkMonitoringState;
+    private CancellationTokenSource? _networkMonitoringCancellation;
+    private bool _networkMonitoringBusy;
+    private bool _networkMonitoringEnabledAtOpen;
     private readonly CheckBox _minimizeToTrayCheckBox;
     private readonly CheckBox _startupCheckBox;
     private readonly StartupAvailability _startupAvailability;
@@ -125,6 +137,8 @@ public sealed class SettingsWindow : Window
     private Button? _saveButton;
 
     private static readonly Geometry Monitoring = Geometry.Parse("M 1,9 L 4,9 L 6,3 L 9,13 L 11,7 L 15,7");
+    private static readonly Geometry NetworkIcon = Geometry.Parse(
+        "M 5,1 L 11,1 L 11,5 L 5,5 Z M 8,5 L 8,8 M 3,8 L 13,8 M 3,8 L 3,11 M 13,8 L 13,11 M 1,11 L 5,11 L 5,15 L 1,15 Z M 11,11 L 15,11 L 15,15 L 11,15 Z");
     private static readonly Geometry AppearanceIcon =
         Geometry.Parse("M 2,2 L 14,2 L 14,12 L 2,12 Z M 8,12 L 8,15 M 5,15 L 11,15 M 4,8 L 7,5 L 9,8 L 12,5");
     private static readonly Geometry Capture = Geometry.Parse("M 2,3 L 14,3 L 8,13 Z");
@@ -140,9 +154,13 @@ public sealed class SettingsWindow : Window
     /// <param name="lastUpdateCheck">When this session last finished an update check, if it has.</param>
     public SettingsWindow(MonitorPreferences preferences, Func<HotkeyGesture, bool>? isShortcutAvailable = null,
         string shortcutStatus = "", Func<Task<string>>? checkForUpdates = null, string? captureFolder = null,
-        DateTimeOffset? lastUpdateCheck = null, string? currentNetworkName = null)
+        DateTimeOffset? lastUpdateCheck = null, string? currentNetworkName = null,
+        Func<bool, CancellationToken, Task<NetworkMonitoringChangeResult>>? changeNetworkMonitoring = null,
+        Func<CancellationToken, Task<NetworkMonitoringChangeResult>>? removeNetworkService = null,
+        NetworkMonitoringState networkMonitoringState = NetworkMonitoringState.Disabled)
         : this(preferences, DiscoverDrives, isShortcutAvailable, shortcutStatus, checkForUpdates, captureFolder,
-            lastUpdateCheck, currentNetworkName: currentNetworkName)
+            lastUpdateCheck, currentNetworkName: currentNetworkName, changeNetworkMonitoring: changeNetworkMonitoring,
+            removeNetworkService: removeNetworkService, networkMonitoringState: networkMonitoringState)
     {
     }
 
@@ -150,7 +168,10 @@ public sealed class SettingsWindow : Window
         Func<HotkeyGesture, bool>? isShortcutAvailable = null, string shortcutStatus = "",
         Func<Task<string>>? checkForUpdates = null, string? captureFolder = null,
         DateTimeOffset? lastUpdateCheck = null, StartupAvailability? startupAvailability = null,
-        Func<NetworkChoice[]>? loadNetworkInterfaces = null, string? currentNetworkName = null)
+        Func<NetworkChoice[]>? loadNetworkInterfaces = null, string? currentNetworkName = null,
+        Func<bool, CancellationToken, Task<NetworkMonitoringChangeResult>>? changeNetworkMonitoring = null,
+        Func<CancellationToken, Task<NetworkMonitoringChangeResult>>? removeNetworkService = null,
+        NetworkMonitoringState networkMonitoringState = NetworkMonitoringState.Disabled)
     {
         ArgumentNullException.ThrowIfNull(preferences);
         _loadDrives = loadDrives;
@@ -158,9 +179,14 @@ public sealed class SettingsWindow : Window
         _currentNetworkName = preferences.NetworkInterfaceId is null ? currentNetworkName : null;
         _startupAvailability = startupAvailability ?? StartupRegistration.Availability;
         _initialPreferences = preferences;
+        _networkMonitoringEnabledAtOpen = preferences.ProcessNetworkMonitoringEnabled;
+        _changeNetworkMonitoring = changeNetworkMonitoring;
+        _removeNetworkService = removeNetworkService;
+        _networkMonitoringState = NetworkSetupBroker.Supported ? networkMonitoringState : NetworkMonitoringState.StoreUnavailable;
         _isShortcutAvailable = isShortcutAvailable ?? (_ => true);
         _shortcut = preferences.ShowGesture;
         WindowTheme.Attach(this);
+        _navigation.SetResourceReference(StyleProperty, "SettingsNavigation");
 
         Title = Strings.WinMonSettings;
         // Every section fits this size; a section that outgrows it scrolls on its own.
@@ -270,6 +296,29 @@ public sealed class SettingsWindow : Window
         _startupViewSelector.SelectedValue = preferences.StartupView;
         _keepHistoryCheckBox = CreateCheckBox(Strings.KeepHistoryAcrossRestarts,
             preferences.KeepHistoryAcrossRestarts);
+        _processNetworkMonitoringCheckBox = CreateCheckBox(Strings.NetworkProcessMonitoringEnabled,
+            preferences.ProcessNetworkMonitoringEnabled);
+        _processNetworkMonitoringCheckBox.IsEnabled = NetworkSetupBroker.Supported;
+        _processNetworkMonitoringStatus.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
+        AutomationProperties.SetLiveSetting(_processNetworkMonitoringStatus, AutomationLiveSetting.Polite);
+        _repairNetworkMonitoringButton = new Button
+        {
+            Content = Strings.NetworkProcessMonitoringRepair,
+            MinWidth = 180,
+            Margin = new Thickness(0, 4, 0, 0)
+        };
+        _repairNetworkMonitoringButton.SetResourceReference(BackgroundProperty, "Raised");
+        _repairNetworkMonitoringButton.Click += RepairNetworkMonitoringButton_Click;
+        _removeNetworkMonitoringServiceButton = new Button
+        {
+            Content = Strings.NetworkProcessMonitoringRemove,
+            MinWidth = 220,
+            Margin = new Thickness(0, 4, 0, 0),
+            IsEnabled = NetworkSetupBroker.Supported && removeNetworkService is not null
+        };
+        _removeNetworkMonitoringServiceButton.SetResourceReference(BackgroundProperty, "Raised");
+        _removeNetworkMonitoringServiceButton.Click += RemoveNetworkMonitoringServiceButton_Click;
+        ShowNetworkMonitoringStatus(_networkMonitoringState);
         _minimizeToTrayCheckBox = CreateCheckBox(Strings.MinimizeToTheNotificationArea, preferences.MinimizeToTray);
         _startupCheckBox = CreateCheckBox(Strings.StartWinMonWhenISignIn, preferences.StartWithWindows);
         _automaticUpdateCheckBox =
@@ -292,6 +341,7 @@ public sealed class SettingsWindow : Window
         ContentRendered += async (_, _) => await LoadDrivesAsync();
         ContentRendered += async (_, _) => await LoadNetworkInterfacesAsync();
         Closed += (_, _) => _closed = true;
+        Closing += SettingsWindow_Closing;
 
         PrimaryDriveSelector.SelectionChanged += (_, _) => FollowDrives();
         SecondaryDriveSelector.SelectionChanged += (_, _) => FollowDrives();
@@ -299,6 +349,7 @@ public sealed class SettingsWindow : Window
         _pages.Add((SettingsSection.General, Strings.SettingsGeneral, ButtonIcon.Settings, CreateGeneralPage()));
         _pages.Add((SettingsSection.Appearance, Strings.Appearance, AppearanceIcon, CreateAppearancePage()));
         _pages.Add((SettingsSection.Monitoring, Strings.SettingsMonitoring, Monitoring, CreateMonitoringPage()));
+        _pages.Add((SettingsSection.Network, Strings.Network, NetworkIcon, CreateNetworkPage()));
         _pages.Add((SettingsSection.AutomaticCaptures, Strings.AutoCaptureHeading, Capture, CreateCapturePage()));
         // Store builds update through the Store, so they have no Updates section.
         if (UpdatePolicy.GitHubUpdatesEnabled)
@@ -372,6 +423,14 @@ public sealed class SettingsWindow : Window
 
     internal ComboBox NetworkInterfaceSelector { get; }
 
+    internal CheckBox ProcessNetworkMonitoringCheckBox => _processNetworkMonitoringCheckBox;
+
+    internal TextBlock ProcessNetworkMonitoringStatus => _processNetworkMonitoringStatus;
+
+    internal Button RepairNetworkMonitoringButton => _repairNetworkMonitoringButton;
+
+    internal Button RemoveNetworkMonitoringServiceButton => _removeNetworkMonitoringServiceButton;
+
     internal ComboBox ThemeSelector => _themeSelector;
 
     internal ComboBox PaletteSelector => _paletteSelector;
@@ -402,6 +461,7 @@ public sealed class SettingsWindow : Window
             GaugePeakWindowSeconds = settings.GaugePeakWindowSeconds,
             RetentionSeconds = settings.RetentionSeconds,
             KeepHistoryAcrossRestarts = settings.KeepHistoryAcrossRestarts,
+            ProcessNetworkMonitoringEnabled = settings.ProcessNetworkMonitoringEnabled,
             MinimizeToTray = settings.MinimizeToTray,
             StartWithWindows = settings.StartWithWindows,
             AutomaticallyCheckForUpdates = settings.AutomaticallyCheckForUpdates,
@@ -679,6 +739,8 @@ public sealed class SettingsWindow : Window
     /// <summary>DIPs of the shown section that need scrolling after the last layout pass.</summary>
     internal double PageOverflow => Math.Max(0, _page.ExtentHeight - _page.ViewportHeight);
 
+    internal void ScrollSettingsPageToTop() => _page.ScrollToTop();
+
     /// <summary>Whether the work area left the dialog shorter than its designed height.</summary>
     internal bool HeightLimitedByWorkArea => Height < DesignedHeight;
 
@@ -689,12 +751,13 @@ public sealed class SettingsWindow : Window
     internal ComboBox SecondaryDriveSelector { get; }
 
     internal Button SaveButton => _saveButton!;
+    internal ListBox Navigation => _navigation;
     internal AutoCaptureSection AutoCapture { get; }
 
     // Ctrl+Tab and Ctrl+Shift+Tab step through the sections, except while the shortcut box records a combination.
     private void OnSectionKeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key != Key.Tab || !Keyboard.Modifiers.HasFlag(ModifierKeys.Control) ||
+        if (_networkMonitoringBusy || e.Key != Key.Tab || !Keyboard.Modifiers.HasFlag(ModifierKeys.Control) ||
             _shortcutBox.IsKeyboardFocusWithin) return;
         var step = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? -1 : 1;
         _navigation.SelectedIndex = (_navigation.SelectedIndex + step + _pages.Count) % _pages.Count;
@@ -813,14 +876,21 @@ public sealed class SettingsWindow : Window
         page.Children.Add(Note(Strings.KeepHistoryAcrossRestartsNote));
         page.Children.Add(CreateHeading(Strings.ResourceGauges));
         page.Children.Add(Field(Strings.GaugePeakWindow, _gaugePeakWindowSelector));
-        page.Children.Add(CreateHeading(Strings.Network));
-        page.Children.Add(Field(Strings.NetworkInterfaceLabel, NetworkInterfaceSelector));
-        page.Children.Add(Note(Strings.NetworkSelectionNote));
         page.Children.Add(CreateHeading(Strings.DiskMonitoring));
         page.Children.Add(Note(Strings.ChooseUpTo2Volumes));
         page.Children.Add(Field(Strings.PrimaryDrive, PrimaryDriveSelector));
         page.Children.Add(Field(Strings.SecondDrive, SecondaryDriveSelector));
         page.Children.Add(Note(Strings.SelectNoneToMonitorOneDriveActiveTimeAndRead));
+        return page;
+    }
+
+    private StackPanel CreateNetworkPage()
+    {
+        var page = Page(Strings.Network);
+        page.Children.Add(Field(Strings.NetworkInterfaceLabel, NetworkInterfaceSelector));
+        page.Children.Add(Note(Strings.NetworkSelectionNote));
+        page.Children.Add(new NetworkMonitoringSettings(_processNetworkMonitoringCheckBox,
+            _processNetworkMonitoringStatus, _repairNetworkMonitoringButton, _removeNetworkMonitoringServiceButton));
         return page;
     }
 
@@ -1026,8 +1096,14 @@ public sealed class SettingsWindow : Window
         field?.Focus();
     }
 
-    private void SaveButton_Click(object sender, RoutedEventArgs e)
+    private async void SaveButton_Click(object sender, RoutedEventArgs e)
     {
+        await SaveAsync();
+    }
+
+    internal async Task SaveAsync()
+    {
+        if (_networkMonitoringBusy) return;
         var primary = (PrimaryDriveSelector.SelectedItem as DriveChoice)?.Name;
         var secondary = (SecondaryDriveSelector.SelectedItem as DriveChoice)?.Name;
         if (primary is null || primary == secondary)
@@ -1050,6 +1126,11 @@ public sealed class SettingsWindow : Window
                 Strings.AutoCaptureHeading);
             return;
         }
+
+        var processNetworkMonitoringEnabled = _processNetworkMonitoringCheckBox.IsChecked == true;
+        if (processNetworkMonitoringEnabled != _networkMonitoringEnabledAtOpen &&
+            !await ChangeNetworkMonitoringAsync(processNetworkMonitoringEnabled))
+            return;
 
         Result = ApplySettings(_initialPreferences, new MonitorPreferences
         {
@@ -1075,6 +1156,7 @@ public sealed class SettingsWindow : Window
                 _ => 600
             },
             KeepHistoryAcrossRestarts = _keepHistoryCheckBox.IsChecked == true,
+            ProcessNetworkMonitoringEnabled = processNetworkMonitoringEnabled,
             MinimizeToTray = _minimizeToTrayCheckBox.IsChecked == true,
             StartWithWindows = _startupCheckBox.IsChecked == true,
             AutomaticallyCheckForUpdates = _automaticUpdateCheckBox.IsChecked == true,
@@ -1082,5 +1164,172 @@ public sealed class SettingsWindow : Window
             AutoCapture = autoCapture
         });
         DialogResult = true;
+    }
+
+    private async Task<bool> ChangeNetworkMonitoringAsync(bool enabled)
+    {
+        ShowSection(SettingsSection.Network);
+        if (!NetworkSetupBroker.Supported || _changeNetworkMonitoring is null)
+        {
+            ShowNetworkMonitoringStatus(NetworkSetupBroker.Supported
+                ? NetworkMonitoringState.SetupUnavailable
+                : NetworkMonitoringState.StoreUnavailable);
+            _processNetworkMonitoringCheckBox.Focus();
+            return false;
+        }
+
+        SetNetworkMonitoringBusy(true);
+        try
+        {
+            NetworkMonitoringChangeResult result;
+            try
+            {
+                result = await _changeNetworkMonitoring(enabled, _networkMonitoringCancellation!.Token);
+                if (_networkMonitoringCancellation!.IsCancellationRequested)
+                    result = new NetworkMonitoringChangeResult(false, NetworkMonitoringState.Cancelled);
+            }
+            catch (OperationCanceledException) when (_networkMonitoringCancellation!.IsCancellationRequested)
+            {
+                result = new NetworkMonitoringChangeResult(false, NetworkMonitoringState.Cancelled);
+            }
+            catch
+            {
+                result = new NetworkMonitoringChangeResult(false, NetworkMonitoringState.Failed);
+            }
+
+            ShowNetworkMonitoringStatus(result.State);
+            // The coordinator verifies authorized collection health; warming up is a successful subscription.
+            if (!result.Success || (enabled && result.State is not (NetworkMonitoringState.WarmingUp or
+                NetworkMonitoringState.Active or NetworkMonitoringState.Incomplete)))
+            {
+                _processNetworkMonitoringCheckBox.IsChecked = _networkMonitoringEnabledAtOpen;
+                _processNetworkMonitoringCheckBox.Focus();
+                return false;
+            }
+
+            _networkMonitoringEnabledAtOpen = enabled;
+            return true;
+        }
+        finally
+        {
+            SetNetworkMonitoringBusy(false);
+        }
+    }
+
+    private async void RemoveNetworkMonitoringServiceButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_removeNetworkService is null || !NetworkSetupBroker.Supported || _networkMonitoringBusy ||
+            !MessageDialog.Confirm(this, Strings.NetworkProcessMonitoringRemoveConfirm,
+                Strings.NetworkProcessMonitoringRemoveTitle, Strings.NetworkProcessMonitoringRemove))
+            return;
+
+        SetNetworkMonitoringBusy(true);
+        try
+        {
+            NetworkMonitoringChangeResult result;
+            try
+            {
+                result = await _removeNetworkService(_networkMonitoringCancellation!.Token);
+                if (_networkMonitoringCancellation!.IsCancellationRequested)
+                    result = new NetworkMonitoringChangeResult(false, NetworkMonitoringState.Cancelled);
+            }
+            catch (OperationCanceledException) when (_networkMonitoringCancellation!.IsCancellationRequested)
+            {
+                result = new NetworkMonitoringChangeResult(false, NetworkMonitoringState.Cancelled);
+            }
+            catch
+            {
+                result = new NetworkMonitoringChangeResult(false, NetworkMonitoringState.Failed);
+            }
+
+            ShowNetworkMonitoringStatus(result.Success ? NetworkMonitoringState.Disabled : result.State);
+            if (result.Success)
+            {
+                _networkMonitoringEnabledAtOpen = false;
+                _processNetworkMonitoringCheckBox.IsChecked = false;
+            }
+            else
+            {
+                _removeNetworkMonitoringServiceButton.Focus();
+            }
+        }
+        finally
+        {
+            SetNetworkMonitoringBusy(false);
+        }
+    }
+
+    private async void RepairNetworkMonitoringButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_networkMonitoringBusy) return;
+        await ChangeNetworkMonitoringAsync(true);
+    }
+
+    private void SetNetworkMonitoringBusy(bool busy)
+    {
+        _networkMonitoringBusy = busy;
+        if (busy)
+        {
+            _networkMonitoringCancellation = new CancellationTokenSource();
+            _saveButton!.IsEnabled = false;
+            _page.IsEnabled = false;
+            _navigation.IsEnabled = false;
+            _processNetworkMonitoringCheckBox.IsEnabled = false;
+            _removeNetworkMonitoringServiceButton.IsEnabled = false;
+            ShowNetworkMonitoringStatus(NetworkMonitoringState.Enabling);
+            return;
+        }
+
+        _networkMonitoringCancellation?.Dispose();
+        _networkMonitoringCancellation = null;
+        _saveButton!.IsEnabled = true;
+        _page.IsEnabled = true;
+        _navigation.IsEnabled = true;
+        _processNetworkMonitoringCheckBox.IsEnabled = NetworkSetupBroker.Supported;
+        _removeNetworkMonitoringServiceButton.IsEnabled = NetworkSetupBroker.Supported && _removeNetworkService is not null;
+        UpdateRepairButton();
+    }
+
+    private void SettingsWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
+    {
+        if (!_networkMonitoringBusy) return;
+        _networkMonitoringCancellation?.Cancel();
+        e.Cancel = true;
+    }
+
+    private void ShowNetworkMonitoringStatus(NetworkMonitoringState state)
+    {
+        _networkMonitoringState = state;
+        _processNetworkMonitoringStatus.Text = state switch
+        {
+            NetworkMonitoringState.Disabled => Strings.NetworkProcessMonitoringDisabled,
+            NetworkMonitoringState.Enabling => Strings.NetworkProcessMonitoringEnabling,
+            NetworkMonitoringState.WarmingUp => Strings.NetworkProcessMonitoringWarmingUp,
+            NetworkMonitoringState.Active => Strings.NetworkProcessMonitoringActive,
+            NetworkMonitoringState.Incomplete => Strings.NetworkProcessMonitoringIncomplete,
+            NetworkMonitoringState.Unavailable => Strings.NetworkProcessMonitoringUnavailable,
+            NetworkMonitoringState.UpdateRequired => Strings.NetworkProcessMonitoringUpdateRequired,
+            NetworkMonitoringState.SetupUnavailable => Strings.NetworkProcessMonitoringSetupUnavailable,
+            NetworkMonitoringState.Cancelled => Strings.NetworkProcessMonitoringCancelled,
+            NetworkMonitoringState.StoreUnavailable => Strings.NetworkProcessMonitoringStoreUnavailable,
+            _ => Strings.NetworkProcessMonitoringFailed
+        };
+        UpdateRepairButton();
+    }
+
+    /// <summary>Updates the displayed service state when the controller changes it while Settings is open.</summary>
+    internal void RefreshNetworkMonitoringState(NetworkMonitoringState state)
+    {
+        if (!_networkMonitoringBusy) ShowNetworkMonitoringStatus(state);
+    }
+
+    private void UpdateRepairButton()
+    {
+        _repairNetworkMonitoringButton.Visibility = _networkMonitoringEnabledAtOpen &&
+            _networkMonitoringState is NetworkMonitoringState.Unavailable or NetworkMonitoringState.SetupUnavailable or
+                NetworkMonitoringState.UpdateRequired or NetworkMonitoringState.Failed
+            ? Visibility.Visible : Visibility.Collapsed;
+        _repairNetworkMonitoringButton.IsEnabled = NetworkSetupBroker.Supported && _changeNetworkMonitoring is not null &&
+            !_networkMonitoringBusy;
     }
 }

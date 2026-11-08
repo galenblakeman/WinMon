@@ -193,6 +193,8 @@ public sealed class PreferenceStore
                 : 20,
             TopUsageCount = TopCountChoices.IsSupported(preferences.TopUsageCount) ? preferences.TopUsageCount : 20,
             UsageSortColumn = preferences.UsageSortColumn is >= 0 and <= 4 ? preferences.UsageSortColumn : 0,
+            TopConnectionCount = TopCountChoices.IsSupported(preferences.TopConnectionCount) ? preferences.TopConnectionCount : 10,
+            ConnectionSortColumn = preferences.ConnectionSortColumn is >= 0 and <= 3 ? preferences.ConnectionSortColumn : 0,
             ProcessSort = preferences is { SortByGpu: true, ProcessSort: ProcessSort.Cpu } ? ProcessSort.Gpu
             : Enum.IsDefined(preferences.ProcessSort) ? preferences.ProcessSort : ProcessSort.Cpu,
             SortByGpu = false,

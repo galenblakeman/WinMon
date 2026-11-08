@@ -8,6 +8,8 @@ This folder contains the current layout reference, feature design notes and edit
 
 ## Feature notes
 
+- [Separate Network settings](NETWORK-SETTINGS.md) gives adapter selection and process-network service controls their own sidebar page, shortening Monitoring.
+
 - [Default history retention](DEFAULT-HISTORY-RETENTION.md) sets new installations to 30 minutes while preserving saved choices.
 
 - [Gauge peak settings](GAUGE-PEAK-SETTINGS.md) adds native-value labels, configurable peak windows and timestamped tooltip details in Full and Compact views.
@@ -16,6 +18,9 @@ This folder contains the current layout reference, feature design notes and edit
 
 - [Collapsible chart section](CHART-COLLAPSE.md), which keeps chart controls visible while giving the plot's space to the activity panel
 
+- [Optional per-process network monitoring](PER-PROCESS-NETWORK.md) proposes ETW collection through a Windows service, with elevation at first enable and ordinary unelevated launches afterward; its [implementation checklist](PER-PROCESS-NETWORK-IMPLEMENTATION.md) records the prototype, service/IPC, signed provisioning, Settings integration and outstanding native acceptance.
+
+- [App-first Connections and Capture](CONNECTIONS-APP-FIRST.md) adds app ranking, separate receive/send columns, Properties and recorded endpoint/traffic history.
 - [Connections display modes](CONNECTIONS-DISPLAY-MODES.md) adds executable grouping, endpoint summaries and activity-header totals.
 
 - [Tabbed Info](TABBED-INFO.md) separates progressive hardware details, a task guide and About/update actions.

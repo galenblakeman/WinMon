@@ -7,6 +7,31 @@ namespace WinMon.Tests;
 [TestFixture]
 public sealed class PreferenceStoreTests
 {
+    [Test]
+    public async Task ConnectionsRanking_RoundTripsAndNormalizesInvalidChoices()
+    {
+        var store = new PreferenceStore(settingsPath);
+        await store.SaveAsync(new MonitorPreferences
+        {
+            TopConnectionCount = 20, ConnectionSortColumn = 3, ConnectionAppsOnly = true
+        });
+        var loaded = await store.LoadAsync();
+        Assert.Multiple(() =>
+        {
+            Assert.That(loaded.TopConnectionCount, Is.EqualTo(20));
+            Assert.That(loaded.ConnectionSortColumn, Is.EqualTo(3));
+            Assert.That(loaded.ConnectionAppsOnly, Is.True);
+        });
+        await File.WriteAllTextAsync(settingsPath, "{\"TopConnectionCount\":-1,\"ConnectionSortColumn\":99}");
+        loaded = await store.LoadAsync();
+        Assert.Multiple(() =>
+        {
+            Assert.That(loaded.TopConnectionCount, Is.EqualTo(10));
+            Assert.That(loaded.ConnectionSortColumn, Is.Zero);
+            Assert.That(loaded.ConnectionAppsOnly, Is.False);
+        });
+    }
+
     [TestCaseSource(typeof(ThemeFinishes), nameof(ThemeFinishes.Names))]
     public async Task AppearanceFinish_RoundTripsWithoutChangingGaugeOrPalette(string theme)
     {
@@ -702,5 +727,16 @@ public sealed class PreferenceStoreTests
 
         await store.SaveAsync(new MonitorPreferences { NetworkInterfaceId = "  " });
         Assert.That((await store.LoadAsync()).NetworkInterfaceId, Is.Null);
+    }
+
+    [Test]
+    public async Task ProcessNetworkMonitoring_DefaultsDisabledAndRoundTrips()
+    {
+        var store = new PreferenceStore(settingsPath);
+
+        Assert.That((await store.LoadAsync()).ProcessNetworkMonitoringEnabled, Is.False);
+        await store.SaveAsync(new MonitorPreferences { ProcessNetworkMonitoringEnabled = true });
+
+        Assert.That((await store.LoadAsync()).ProcessNetworkMonitoringEnabled, Is.True);
     }
 }

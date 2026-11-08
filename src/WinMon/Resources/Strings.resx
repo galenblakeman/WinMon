@@ -1581,6 +1581,24 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="NetworkInterfaceLabel" xml:space="preserve"><value>Network interface</value></data>
   <data name="NetworkInterfaceUnavailable" xml:space="preserve"><value>Unavailable interface ({0})</value></data>
   <data name="NetworkSelectionNote" xml:space="preserve"><value>Automatic selects a connected Ethernet or Wi-Fi adapter. A chosen interface stays selected if it disconnects; its readings are unavailable until it returns.</value></data>
+  <data name="NetworkProcessMonitoringHeading" xml:space="preserve"><value>Per-process network monitoring</value></data>
+  <data name="NetworkProcessMonitoringEnabled" xml:space="preserve"><value>Monitor network traffic by process</value></data>
+  <data name="NetworkProcessMonitoringNote" xml:space="preserve"><value>Collects live send and receive activity for your processes. First-time setup installs a privileged Windows service and needs administrator approval. Future launches do not. Disabling stops this app’s collection and keeps the shared service installed.</value></data>
+  <data name="NetworkProcessMonitoringDisabled" xml:space="preserve"><value>Per-process network monitoring is off.</value></data>
+  <data name="NetworkProcessMonitoringEnabling" xml:space="preserve"><value>Applying per-process network monitoring setting…</value></data>
+  <data name="NetworkProcessMonitoringWarmingUp" xml:space="preserve"><value>Per-process network monitoring is warming up.</value></data>
+  <data name="NetworkProcessMonitoringActive" xml:space="preserve"><value>Per-process network monitoring is active.</value></data>
+  <data name="NetworkProcessMonitoringIncomplete" xml:space="preserve"><value>Per-process network monitoring has incomplete readings.</value></data>
+  <data name="NetworkProcessMonitoringUnavailable" xml:space="preserve"><value>Per-process network monitoring is unavailable.</value></data>
+  <data name="NetworkProcessMonitoringUpdateRequired" xml:space="preserve"><value>Network service update required.</value></data>
+  <data name="NetworkProcessMonitoringSetupUnavailable" xml:space="preserve"><value>Signed network monitoring setup is unavailable.</value></data>
+  <data name="NetworkProcessMonitoringCancelled" xml:space="preserve"><value>Per-process network monitoring was not enabled.</value></data>
+  <data name="NetworkProcessMonitoringFailed" xml:space="preserve"><value>Per-process network monitoring could not be enabled.</value></data>
+  <data name="NetworkProcessMonitoringStoreUnavailable" xml:space="preserve"><value>Per-process network monitoring is unavailable in the Microsoft Store version.</value></data>
+  <data name="NetworkProcessMonitoringRemove" xml:space="preserve"><value>Remove network monitoring service…</value></data>
+  <data name="NetworkProcessMonitoringRepair" xml:space="preserve"><value>Repair network monitoring</value></data>
+  <data name="NetworkProcessMonitoringRemoveTitle" xml:space="preserve"><value>Remove network monitoring service</value></data>
+  <data name="NetworkProcessMonitoringRemoveConfirm" xml:space="preserve"><value>Remove the network monitoring service for every Windows user on this computer? Administrator approval is required. Monitoring will stop for all users.</value></data>
   <data name="SettingsStartupAndTray" xml:space="preserve"><value>Startup and tray</value></data>
   <data name="SettingsHistory" xml:space="preserve"><value>History</value></data>
   <data name="SettingsRetentionNote" xml:space="preserve"><value>How far back the chart, Capture mode and process history reach. Longer retention uses more memory.</value></data>
@@ -1673,6 +1691,8 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="ConnectionsRemoteEndpoint" xml:space="preserve"><value>Remote endpoint</value></data>
   <data name="ConnectionsState" xml:space="preserve"><value>State</value></data>
   <data name="ConnectionsNote" xml:space="preserve"><value>UDP shows local endpoints only. Connection counts are not traffic volume.</value></data>
+  <data name="ConnectionsNetworkProvisional" xml:space="preserve"><value>Per-process network rates use a delayed, provisional event-time window.</value></data>
+  <data name="ConnectionsNetworkOwnerTotals" xml:space="preserve"><value>Process/executable totals (all protocols)</value></data>
   <data name="ConnectionsUnavailable" xml:space="preserve"><value>Connection readings unavailable.</value></data>
   <data name="ConnectionsPartial" xml:space="preserve"><value>Some connection readings are unavailable.</value></data>
   <data name="ConnectionsEmpty" xml:space="preserve"><value>No matching connections.</value></data>
@@ -1737,5 +1757,15 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="ProcessesTabHelp" xml:space="preserve"><value>Compare running processes by CPU, memory, GPU and I/O. Search, group or pin processes to track what is busy.</value></data>
   <data name="ServicesTabHelp" xml:space="preserve"><value>Check Windows service status and resource use, including hosting and worker processes. Start, stop or restart eligible live services.</value></data>
   <data name="UsageTabHelp" xml:space="preserve"><value>Compare total CPU time, GPU time and I/O by app since WinMon started or totals were reset, including apps that have exited.</value></data>
-  <data name="ConnectionsTabHelp" xml:space="preserve"><value>See which apps own TCP connections and UDP endpoints, with addresses, ports and connection states. This view stays live during captures.</value></data>
+  <data name="ConnectionsTabHelp" xml:space="preserve"><value>Compare apps by receive/send rate and TCP/UDP counts. Expand endpoints or open Properties for addresses and states. Capture follows the selected sample.</value></data>
+  <data name="ConnectionsTop" xml:space="preserve"><value>Number of top apps</value></data>
+  <data name="ConnectionsRankBy" xml:space="preserve"><value>Rank apps by</value></data>
+  <data name="ConnectionsReceiveRate" xml:space="preserve"><value>Receive/s</value></data>
+  <data name="ConnectionsSendRate" xml:space="preserve"><value>Send/s</value></data>
+  <data name="ConnectionsTcpCount" xml:space="preserve"><value>TCP count</value></data>
+  <data name="ConnectionsUdpCount" xml:space="preserve"><value>UDP count</value></data>
+  <data name="ConnectionsHistoryUnavailable" xml:space="preserve"><value>Connection history is unavailable for this sample.</value></data>
+  <data name="ConnectionsHistoryNote" xml:space="preserve"><value>Connections observed at the selected sample. Rates are delayed five-second averages, normally ending three seconds before collection.</value></data>
+  <data name="ConnectionsEnableTrafficMonitoring" xml:space="preserve"><value>Enable traffic monitoring…</value></data>
+  <data name="ConnectionsTrafficRankingUnavailable" xml:space="preserve"><value>Enable per-process traffic monitoring to rank by receive/send rate.</value></data>
 </root>

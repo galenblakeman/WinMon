@@ -57,9 +57,9 @@ public sealed class MetricReadout : Grid
     private readonly DockPanel _corner = new() { LastChildFill = true };
     private readonly Path _peakIcon = new()
     {
-        Data = ButtonIcon.Peak, Width = 10, Height = 9, StrokeThickness = 1.2,
+        Data = ButtonIcon.Peak, Width = 12, Height = 7, StrokeThickness = 1.3,
         Stretch = System.Windows.Media.Stretch.Uniform, VerticalAlignment = VerticalAlignment.Center,
-        Visibility = Visibility.Collapsed, Margin = new Thickness(4, 0, 0, 0), IsHitTestVisible = false
+        Visibility = Visibility.Collapsed, Margin = new Thickness(2, 0, 0, 0), IsHitTestVisible = false
     };
     internal bool PeakIconVisible => _peakIcon.Visibility == Visibility.Visible;
     private readonly Grid _bowl = new();
@@ -127,7 +127,7 @@ public sealed class MetricReadout : Grid
         var label = _peakLabel || ActualWidth is > 0 and < 155 ? _shortCornerLabel : _fullCornerLabel;
         // Keep the resource identity readable; a long native value remains complete in the tooltip.
         var maxWidth = ActualWidth > 0 ? Math.Max(0, ActualWidth - (_showSeriesToggle ? 75 : 55) -
-            (_peakLabel ? 14 : 0) - ScaleLabel.Margin.Left - ScaleLabel.Margin.Right)
+            (_peakLabel ? _peakIcon.Width + _peakIcon.Margin.Left : 0) - ScaleLabel.Margin.Left - ScaleLabel.Margin.Right)
             : double.PositiveInfinity;
         if (ScaleLabel.MaxWidth != maxWidth) ScaleLabel.MaxWidth = maxWidth;
         if (ScaleLabel.Text != label) ScaleLabel.Text = label;
@@ -209,7 +209,7 @@ public sealed class MetricReadout : Grid
                 RowDefinitions.Add(new RowDefinition());
                 RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
                 AddLabels();
-                Gauge.Margin = new Thickness(0, 0, 4, 2);
+                Gauge.Margin = new Thickness(0, 0, 0, 2);
                 SetRow(Gauge, 1);
                 Children.Add(Gauge);
                 break;

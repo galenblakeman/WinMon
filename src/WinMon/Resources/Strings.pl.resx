@@ -1581,6 +1581,24 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
   <data name="NetworkInterfaceLabel" xml:space="preserve"><value>Interfejs sieciowy</value></data>
   <data name="NetworkInterfaceUnavailable" xml:space="preserve"><value>Niedostępny interfejs ({0})</value></data>
   <data name="NetworkSelectionNote" xml:space="preserve"><value>Tryb automatyczny wybiera połączony interfejs Ethernet lub Wi-Fi. Ręcznie wybrany interfejs pozostaje wybrany po rozłączeniu; odczyty będą niedostępne do ponownego połączenia.</value></data>
+  <data name="NetworkProcessMonitoringHeading" xml:space="preserve"><value>Monitorowanie sieci według procesu</value></data>
+  <data name="NetworkProcessMonitoringEnabled" xml:space="preserve"><value>Monitoruj ruch sieciowy według procesu</value></data>
+  <data name="NetworkProcessMonitoringNote" xml:space="preserve"><value>Zbiera bieżącą aktywność wysyłania i odbierania procesów. Pierwsza konfiguracja instaluje uprzywilejowaną usługę Windows i wymaga zgody administratora. Kolejne uruchomienia nie. Wyłączenie zatrzymuje zbieranie danych przez tę aplikację i pozostawia zainstalowaną usługę współdzieloną.</value></data>
+  <data name="NetworkProcessMonitoringDisabled" xml:space="preserve"><value>Monitorowanie sieci według procesu jest wyłączone.</value></data>
+  <data name="NetworkProcessMonitoringEnabling" xml:space="preserve"><value>Stosowanie ustawienia monitorowania sieci według procesu…</value></data>
+  <data name="NetworkProcessMonitoringWarmingUp" xml:space="preserve"><value>Monitorowanie sieci według procesu jest przygotowywane.</value></data>
+  <data name="NetworkProcessMonitoringActive" xml:space="preserve"><value>Monitorowanie sieci według procesu jest aktywne.</value></data>
+  <data name="NetworkProcessMonitoringIncomplete" xml:space="preserve"><value>Monitorowanie sieci według procesu ma niepełne odczyty.</value></data>
+  <data name="NetworkProcessMonitoringUnavailable" xml:space="preserve"><value>Monitorowanie sieci według procesu jest niedostępne.</value></data>
+  <data name="NetworkProcessMonitoringUpdateRequired" xml:space="preserve"><value>Wymagana jest aktualizacja usługi sieciowej.</value></data>
+  <data name="NetworkProcessMonitoringSetupUnavailable" xml:space="preserve"><value>Podpisana konfiguracja monitorowania sieci jest niedostępna.</value></data>
+  <data name="NetworkProcessMonitoringCancelled" xml:space="preserve"><value>Monitorowanie sieci według procesu nie zostało włączone.</value></data>
+  <data name="NetworkProcessMonitoringFailed" xml:space="preserve"><value>Nie można było włączyć monitorowania sieci według procesu.</value></data>
+  <data name="NetworkProcessMonitoringStoreUnavailable" xml:space="preserve"><value>Monitorowanie sieci według procesu jest niedostępne w wersji Microsoft Store.</value></data>
+  <data name="NetworkProcessMonitoringRemove" xml:space="preserve"><value>Usuń usługę monitorowania sieci…</value></data>
+  <data name="NetworkProcessMonitoringRepair" xml:space="preserve"><value>Napraw monitorowanie sieci</value></data>
+  <data name="NetworkProcessMonitoringRemoveTitle" xml:space="preserve"><value>Usuń usługę monitorowania sieci</value></data>
+  <data name="NetworkProcessMonitoringRemoveConfirm" xml:space="preserve"><value>Usunąć usługę monitorowania sieci dla wszystkich użytkowników Windows na tym komputerze? Wymagana jest zgoda administratora. Monitorowanie zatrzyma się dla wszystkich użytkowników.</value></data>
   <data name="SettingsStartupAndTray" xml:space="preserve"><value>Uruchamianie i zasobnik</value></data>
   <data name="SettingsHistory" xml:space="preserve"><value>Historia</value></data>
   <data name="SettingsRetentionNote" xml:space="preserve"><value>Jak daleko wstecz sięgają wykres, tryb przechwycenia i historia procesów. Dłuższe przechowywanie zużywa więcej pamięci.</value></data>
@@ -1673,6 +1691,8 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
   <data name="ConnectionsRemoteEndpoint" xml:space="preserve"><value>Zdalny punkt końcowy</value></data>
   <data name="ConnectionsState" xml:space="preserve"><value>Stan</value></data>
   <data name="ConnectionsNote" xml:space="preserve"><value>UDP pokazuje tylko lokalne punkty końcowe. Liczba połączeń nie jest wielkością ruchu.</value></data>
+  <data name="ConnectionsNetworkProvisional" xml:space="preserve"><value>Szybkości sieci dla procesów używają opóźnionego, tymczasowego okna czasu zdarzeń.</value></data>
+  <data name="ConnectionsNetworkOwnerTotals" xml:space="preserve"><value>Sumy procesu/pliku wykonywalnego (wszystkie protokoły)</value></data>
   <data name="ConnectionsUnavailable" xml:space="preserve"><value>Odczyty połączeń są niedostępne.</value></data>
   <data name="ConnectionsPartial" xml:space="preserve"><value>Niektóre odczyty połączeń są niedostępne.</value></data>
   <data name="ConnectionsEmpty" xml:space="preserve"><value>Brak pasujących połączeń.</value></data>
@@ -1737,5 +1757,15 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
   <data name="ProcessesTabHelp" xml:space="preserve"><value>Porównuj uruchomione procesy według CPU, pamięci, GPU i operacji we/wy. Wyszukuj, grupuj lub przypinaj procesy, aby śledzić ich aktywność.</value></data>
   <data name="ServicesTabHelp" xml:space="preserve"><value>Sprawdzaj stan i zużycie zasobów usług Windows wraz z procesami hosta i roboczymi. Uruchamiaj, zatrzymuj lub restartuj bieżące usługi, gdy jest to dozwolone.</value></data>
   <data name="UsageTabHelp" xml:space="preserve"><value>Porównuj łączny czas CPU, czas GPU i operacje we/wy aplikacji od uruchomienia WinMon lub wyzerowania sum, również dla zamkniętych aplikacji.</value></data>
-  <data name="ConnectionsTabHelp" xml:space="preserve"><value>Sprawdzaj aplikacje posiadające połączenia TCP i punkty końcowe UDP wraz z adresami, portami i stanami. Ten widok pozostaje na żywo podczas przeglądania przechwyceń.</value></data>
+  <data name="ConnectionsTabHelp" xml:space="preserve"><value>Porównuj aplikacje według szybkości odbioru/wysyłania i liczby TCP/UDP. Rozwiń punkty końcowe lub otwórz Właściwości, aby zobaczyć adresy i stany. Przechwytywanie pokazuje wybraną próbkę.</value></data>
+  <data name="ConnectionsTop" xml:space="preserve"><value>Liczba czołowych aplikacji</value></data>
+  <data name="ConnectionsRankBy" xml:space="preserve"><value>Sortuj aplikacje według</value></data>
+  <data name="ConnectionsReceiveRate" xml:space="preserve"><value>Odbiór/s</value></data>
+  <data name="ConnectionsSendRate" xml:space="preserve"><value>Wysyłanie/s</value></data>
+  <data name="ConnectionsTcpCount" xml:space="preserve"><value>Liczba TCP</value></data>
+  <data name="ConnectionsUdpCount" xml:space="preserve"><value>Liczba UDP</value></data>
+  <data name="ConnectionsHistoryUnavailable" xml:space="preserve"><value>Historia połączeń jest niedostępna dla tej próbki.</value></data>
+  <data name="ConnectionsHistoryNote" xml:space="preserve"><value>Połączenia zaobserwowane w wybranej próbce. Szybkości to opóźnione średnie z pięciu sekund, zwykle do trzech sekund przed zebraniem danych.</value></data>
+  <data name="ConnectionsEnableTrafficMonitoring" xml:space="preserve"><value>Włącz monitorowanie ruchu…</value></data>
+  <data name="ConnectionsTrafficRankingUnavailable" xml:space="preserve"><value>Włącz monitorowanie ruchu procesów, aby sortować według szybkości odbioru lub wysyłania.</value></data>
 </root>

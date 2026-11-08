@@ -1581,6 +1581,24 @@ Se puede perder el trabajo sin guardar. Se finalizarán todos los procesos indic
   <data name="NetworkInterfaceLabel" xml:space="preserve"><value>Interfaz de red</value></data>
   <data name="NetworkInterfaceUnavailable" xml:space="preserve"><value>Interfaz no disponible ({0})</value></data>
   <data name="NetworkSelectionNote" xml:space="preserve"><value>Automático elige una interfaz Ethernet o Wi-Fi conectada. Una interfaz elegida permanece seleccionada si se desconecta; sus lecturas no estarán disponibles hasta que vuelva.</value></data>
+  <data name="NetworkProcessMonitoringHeading" xml:space="preserve"><value>Supervisión de red por proceso</value></data>
+  <data name="NetworkProcessMonitoringEnabled" xml:space="preserve"><value>Supervisar el tráfico de red por proceso</value></data>
+  <data name="NetworkProcessMonitoringNote" xml:space="preserve"><value>Recopila la actividad de envío y recepción en vivo de sus procesos. La primera configuración instala un servicio de Windows con privilegios y requiere aprobación de administrador. Los inicios posteriores no. Desactivarla detiene la recopilación de esta aplicación y mantiene instalado el servicio compartido.</value></data>
+  <data name="NetworkProcessMonitoringDisabled" xml:space="preserve"><value>La supervisión de red por proceso está desactivada.</value></data>
+  <data name="NetworkProcessMonitoringEnabling" xml:space="preserve"><value>Aplicando la configuración de supervisión de red por proceso…</value></data>
+  <data name="NetworkProcessMonitoringWarmingUp" xml:space="preserve"><value>La supervisión de red por proceso se está preparando.</value></data>
+  <data name="NetworkProcessMonitoringActive" xml:space="preserve"><value>La supervisión de red por proceso está activa.</value></data>
+  <data name="NetworkProcessMonitoringIncomplete" xml:space="preserve"><value>La supervisión de red por proceso tiene lecturas incompletas.</value></data>
+  <data name="NetworkProcessMonitoringUnavailable" xml:space="preserve"><value>La supervisión de red por proceso no está disponible.</value></data>
+  <data name="NetworkProcessMonitoringUpdateRequired" xml:space="preserve"><value>Se requiere una actualización del servicio de red.</value></data>
+  <data name="NetworkProcessMonitoringSetupUnavailable" xml:space="preserve"><value>La configuración firmada de supervisión de red no está disponible.</value></data>
+  <data name="NetworkProcessMonitoringCancelled" xml:space="preserve"><value>No se activó la supervisión de red por proceso.</value></data>
+  <data name="NetworkProcessMonitoringFailed" xml:space="preserve"><value>No se pudo activar la supervisión de red por proceso.</value></data>
+  <data name="NetworkProcessMonitoringStoreUnavailable" xml:space="preserve"><value>La supervisión de red por proceso no está disponible en la versión de Microsoft Store.</value></data>
+  <data name="NetworkProcessMonitoringRemove" xml:space="preserve"><value>Quitar el servicio de supervisión de red…</value></data>
+  <data name="NetworkProcessMonitoringRepair" xml:space="preserve"><value>Reparar la supervisión de red</value></data>
+  <data name="NetworkProcessMonitoringRemoveTitle" xml:space="preserve"><value>Quitar el servicio de supervisión de red</value></data>
+  <data name="NetworkProcessMonitoringRemoveConfirm" xml:space="preserve"><value>¿Quitar el servicio de supervisión de red para todos los usuarios de Windows de este equipo? Se requiere aprobación de administrador. La supervisión se detendrá para todos los usuarios.</value></data>
   <data name="SettingsStartupAndTray" xml:space="preserve"><value>Inicio y área de notificación</value></data>
   <data name="SettingsHistory" xml:space="preserve"><value>Historial</value></data>
   <data name="SettingsRetentionNote" xml:space="preserve"><value>Hasta dónde llegan el gráfico, el modo Captura y el historial de procesos. Conservar más tiempo usa más memoria.</value></data>
@@ -1673,6 +1691,8 @@ Se puede perder el trabajo sin guardar. Se finalizarán todos los procesos indic
   <data name="ConnectionsRemoteEndpoint" xml:space="preserve"><value>Punto de conexión remoto</value></data>
   <data name="ConnectionsState" xml:space="preserve"><value>Estado</value></data>
   <data name="ConnectionsNote" xml:space="preserve"><value>UDP muestra solo puntos de conexión locales. Los recuentos de conexiones no son volumen de tráfico.</value></data>
+  <data name="ConnectionsNetworkProvisional" xml:space="preserve"><value>Las tasas de red por proceso usan una ventana de tiempo de eventos retrasada y provisional.</value></data>
+  <data name="ConnectionsNetworkOwnerTotals" xml:space="preserve"><value>Totales de proceso/ejecutable (todos los protocolos)</value></data>
   <data name="ConnectionsUnavailable" xml:space="preserve"><value>Las lecturas de conexiones no están disponibles.</value></data>
   <data name="ConnectionsPartial" xml:space="preserve"><value>Algunas lecturas de conexiones no están disponibles.</value></data>
   <data name="ConnectionsEmpty" xml:space="preserve"><value>No hay conexiones coincidentes.</value></data>
@@ -1737,5 +1757,15 @@ Se puede perder el trabajo sin guardar. Se finalizarán todos los procesos indic
   <data name="ProcessesTabHelp" xml:space="preserve"><value>Compara procesos en ejecución por CPU, memoria, GPU y E/S. Busca, agrupa o fija procesos para seguir su actividad.</value></data>
   <data name="ServicesTabHelp" xml:space="preserve"><value>Consulta el estado y uso de recursos de los servicios de Windows, incluidos sus procesos anfitriones y de trabajo. Inicia, detén o reinicia servicios actuales cuando esté permitido.</value></data>
   <data name="UsageTabHelp" xml:space="preserve"><value>Compara el tiempo total de CPU, GPU y E/S por aplicación desde el inicio de WinMon o el último reinicio de los totales, incluidas aplicaciones que ya terminaron.</value></data>
-  <data name="ConnectionsTabHelp" xml:space="preserve"><value>Consulta qué aplicaciones tienen conexiones TCP y puntos de conexión UDP, con direcciones, puertos y estados. Esta vista sigue en vivo durante las capturas.</value></data>
+  <data name="ConnectionsTabHelp" xml:space="preserve"><value>Compare aplicaciones por tasas de recepción y envío y cantidades TCP/UDP. Expanda los extremos o abra Propiedades para ver direcciones y estados. Captura sigue la muestra seleccionada.</value></data>
+  <data name="ConnectionsTop" xml:space="preserve"><value>Número de aplicaciones principales</value></data>
+  <data name="ConnectionsRankBy" xml:space="preserve"><value>Clasificar aplicaciones por</value></data>
+  <data name="ConnectionsReceiveRate" xml:space="preserve"><value>Recepción/s</value></data>
+  <data name="ConnectionsSendRate" xml:space="preserve"><value>Envío/s</value></data>
+  <data name="ConnectionsTcpCount" xml:space="preserve"><value>Cantidad TCP</value></data>
+  <data name="ConnectionsUdpCount" xml:space="preserve"><value>Cantidad UDP</value></data>
+  <data name="ConnectionsHistoryUnavailable" xml:space="preserve"><value>El historial de conexiones no está disponible para esta muestra.</value></data>
+  <data name="ConnectionsHistoryNote" xml:space="preserve"><value>Conexiones observadas en la muestra seleccionada. Las tasas son promedios de cinco segundos, normalmente hasta tres segundos antes de la recopilación.</value></data>
+  <data name="ConnectionsEnableTrafficMonitoring" xml:space="preserve"><value>Activar supervisión del tráfico…</value></data>
+  <data name="ConnectionsTrafficRankingUnavailable" xml:space="preserve"><value>Active la supervisión del tráfico por proceso para ordenar por tasa de recepción o envío.</value></data>
 </root>

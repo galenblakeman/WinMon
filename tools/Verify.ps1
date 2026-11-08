@@ -53,7 +53,7 @@ try {
     Add-Result 'build benchmark' ($LASTEXITCODE -eq 0) ''
     if ($results.Where({ !$_.Passed }).Count -eq 0) {
         if (!$SkipTests) {
-            foreach ($project in @('MonCore.Tests', 'MonCore.Windows.Tests', 'WinMon.Tests')) {
+            foreach ($project in @('MonCore.Tests', 'MonCore.Windows.Tests', 'WinMon.Tests', 'WinMon.NetworkService.Tests', 'WinMon.NetworkSetup.Tests')) {
                 dotnet test "tests/$project/$project.csproj" @options --no-build
                 Add-Result "$project tests" ($LASTEXITCODE -eq 0) ''
             }

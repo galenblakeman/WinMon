@@ -12,9 +12,9 @@
     </UserControl.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="20" />
+            <ColumnDefinition Width="8" />
             <ColumnDefinition x:Name="ContentColumn" Width="*" />
-            <ColumnDefinition Width="20" />
+            <ColumnDefinition Width="8" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -26,7 +26,7 @@
         <Border Grid.ColumnSpan="3"
             x:Name="ToolbarHeader"
             Margin="0,0,0,8"
-            Padding="20,5"
+            Padding="8,5"
             Background="{DynamicResource SectionHeaderSurface}">
         <Grid x:Name="ToolbarGrid">
             <Grid.RowDefinitions>

@@ -27,10 +27,19 @@ public sealed record SamplingOptions(
     string? SecondaryDrive = null,
     Func<ProcessUsage, bool>? Retain = null,
     bool RetainAll = false,
-    string? NetworkInterfaceId = null);
+    string? NetworkInterfaceId = null)
+{
+    /// <summary>Latest nonblocking service observation; captured with these sampling choices.</summary>
+    public ProcessNetworkSnapshot? ProcessNetwork { get; init; }
+    public Guid ProcessNetworkSessionId { get; init; }
+}
 
 /// <summary>One complete capture: the full sample, its service frame, and a partial failure if there was one.</summary>
-public sealed record CapturedFrame(MonitorSample Full, ServiceFrame? Services = null, SamplingError? Error = null);
+public sealed record CapturedFrame(MonitorSample Full, ServiceFrame? Services = null, SamplingError? Error = null)
+{
+    /// <summary>Endpoint observation taken in the same sampling pass, regardless of Connections tab visibility.</summary>
+    public NetworkConnectionsFrame? Connections { get; init; }
+}
 
 /// <summary>Reads one capture each tick on the sampling thread.</summary>
 public interface IFrameSource : IDisposable
@@ -65,12 +74,21 @@ public sealed class MonitorSession(
     private int _drainScheduled;
     private bool _closed;
     private long _historyClockOffset;
+    private readonly ProcessNetworkSession _network = new();
+    private readonly Dictionary<ProcessLifetimeIdentity, (ProcessUsage Process, long SeenAt)> _networkOwners = [];
+    private Guid _networkSessionId;
+
+    /// <summary>Live client-session traffic; never persisted or rebased with resource history.</summary>
+    public ProcessNetworkFrame? ProcessNetwork { get; private set; }
 
     /// <summary>Compacted samples, oldest first.</summary>
     public MonitorHistory History { get; } = new();
 
     /// <summary>Complete service frames for the last two minutes.</summary>
     public ServiceHistory Services { get; } = new();
+
+    /// <summary>Live-only connection observations aligned with resource history for Capture mode.</summary>
+    public ConnectionHistory Connections { get; } = new();
 
     /// <summary>Per-app totals since WinMon started, from every live full sample.</summary>
     public UsageLedger Usage { get; } = new(DateTimeOffset.Now, identityPolicy);
@@ -129,18 +147,25 @@ public sealed class MonitorSession(
     /// Only a frame with its full sample feeds <see cref="Usage"/>: live frames carry one, while samples restored
     /// after an update restart are compacted only and must not be counted twice.
     /// </remarks>
-    public void Record(MonitorSample compacted, MonitorSample? full = null, ServiceFrame? services = null)
+    public void Record(MonitorSample compacted, MonitorSample? full = null, ServiceFrame? services = null,
+        NetworkConnectionsFrame? connections = null, ProcessNetworkFrame? network = null)
     {
         History.Add(compacted);
         Latest = compacted;
         LatestFull = full;
         if (services is not null) Services.Add(services);
         if (full is not null) Usage.Add(full);
+        if (full is not null || connections is not null || network is not null)
+        {
+            Connections.Resize(History.Capacity);
+            Connections.Add(compacted, connections, ConnectionOwners(connections, full, network), network);
+        }
     }
 
     private async Task CollectAsync(CancellationToken cancellationToken)
     {
         IFrameSource? source = null;
+        var current = new SamplingOptions();
         using var timer = new PeriodicTimer(_interval);
         try
         {
@@ -149,14 +174,15 @@ public sealed class MonitorSession(
                 cancellationToken.ThrowIfCancellationRequested();
                 try
                 {
-                    var current = options();
+                    current = options();
                     // Created inside the loop, so a source that cannot start is reported and retried each second
                     // like a failed capture instead of ending sampling unseen.
                     source ??= createSource();
                     var frame = source.Capture(current);
                     Deliver(new Pending(
                         ProcessRetention.Compact(frame.Full, retain: current.Retain, retainAll: current.RetainAll),
-                        frame.Error, frame.Full, frame.Services));
+                        frame.Error, frame.Full, frame.Services, current.ProcessNetwork, current.ProcessNetworkSessionId,
+                        frame.Connections));
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
@@ -172,7 +198,8 @@ public sealed class MonitorSession(
                         source = null;
                     }
 
-                    Deliver(new Pending(null, SamplingError.ReadingsUnavailable));
+                    Deliver(new Pending(null, SamplingError.ReadingsUnavailable,
+                        Network: current.ProcessNetwork, NetworkSessionId: current.ProcessNetworkSessionId));
                 }
             } while (await timer.WaitForNextTickAsync(cancellationToken));
         }
@@ -228,6 +255,27 @@ public sealed class MonitorSession(
             try
             {
                 Error = pending.Error;
+                try
+                {
+                    if (_networkSessionId != pending.NetworkSessionId)
+                    {
+                        _network.Reset();
+                        _networkOwners.Clear();
+                        _networkSessionId = pending.NetworkSessionId;
+                    }
+                    if (_networkSessionId == Guid.Empty) ProcessNetwork = null;
+                    else if (pending.Network is { } network)
+                        ProcessNetwork = _network.Add(network, Stopwatch.GetTimestamp());
+                    else
+                        ProcessNetwork = _network.Unavailable(Stopwatch.GetTimestamp(), Stopwatch.Frequency);
+                    if (ProcessNetwork is { } traffic)
+                        ProcessNetwork = AttachNetworkOwners(traffic, pending.Full);
+                }
+                catch (Exception networkError)
+                {
+                    Trace.TraceError("WinMon network accounting unavailable: {0}", networkError);
+                    ProcessNetwork = _network.Unavailable(Stopwatch.GetTimestamp(), Stopwatch.Frequency);
+                }
                 if (pending.Sample is not null)
                 {
                     var sample = Shift(pending.Sample);
@@ -235,7 +283,7 @@ public sealed class MonitorSession(
                     var services = pending.Services;
                     if (services is not null && _historyClockOffset != 0)
                         services = services with { Sample = Shift(services.Sample) };
-                    Record(sample, full, services);
+                    Record(sample, full, services, pending.Connections, ProcessNetwork);
                     HasLiveSample = true;
                     if (full is not null) LiveSampleRecorded?.Invoke(full);
                 }
@@ -255,10 +303,60 @@ public sealed class MonitorSession(
         ? sample
         : sample with { MonotonicTimestamp = checked(sample.MonotonicTimestamp + _historyClockOffset) };
 
+    private ProcessNetworkFrame AttachNetworkOwners(ProcessNetworkFrame frame, MonitorSample? full)
+    {
+        var now = Stopwatch.GetTimestamp();
+        var retained = frame.Processes.Select(reading => new ProcessLifetimeIdentity(reading.ProcessId,
+            reading.CreationTicks, ProcessLifetimeIdentity.WindowsFileTime)).ToHashSet();
+        // Keep brief metadata for late ETW arrivals; lifetimes with observed totals retain their known path.
+        foreach (var pair in _networkOwners.Where(pair => !retained.Contains(pair.Key) &&
+                     Stopwatch.GetElapsedTime(pair.Value.SeenAt, now).TotalSeconds > 30).ToArray())
+            _networkOwners.Remove(pair.Key);
+        var capacityExceeded = false;
+        foreach (var process in full?.Processes ?? [])
+        {
+            if (process.LifetimeDomain != ProcessLifetimeIdentity.WindowsFileTime) continue;
+            if (!_networkOwners.ContainsKey(process.Identity) && _networkOwners.Count >= 8192)
+            {
+                capacityExceeded = true;
+                continue;
+            }
+            var metadata = process;
+            if (metadata.ImagePath.Length == 0 && _networkOwners.TryGetValue(process.Identity, out var previous) &&
+                previous.Process.ImagePath.Length > 0)
+                metadata = previous.Process;
+            _networkOwners[process.Identity] = (metadata, now);
+        }
+        return frame with
+        {
+            Owners = retained.Where(_networkOwners.ContainsKey).Select(identity => _networkOwners[identity].Process).ToArray(),
+            Quality = frame.Quality | (capacityExceeded ? ProcessNetworkQuality.CapacityExceeded | ProcessNetworkQuality.Incomplete : 0)
+        };
+    }
+
+    private static IReadOnlyList<ProcessUsage> ConnectionOwners(NetworkConnectionsFrame? connections, MonitorSample? full,
+        ProcessNetworkFrame? network)
+    {
+        var identities = connections?.Connections.Where(connection => connection.ProcessCreationTicks is not null)
+            .Select(connection => new ProcessLifetimeIdentity(connection.ProcessId, connection.ProcessCreationTicks!.Value,
+                ProcessLifetimeIdentity.WindowsFileTime)).ToHashSet() ?? [];
+        foreach (var owner in network?.Owners ?? []) identities.Add(owner.Identity);
+        return (full?.Processes ?? []).Where(process => identities.Contains(process.Identity))
+            .Concat(network?.Owners ?? []).GroupBy(process => process.Identity).Select(group => ConnectionOwner(group.First())).ToArray();
+    }
+
+    private static ProcessUsage ConnectionOwner(ProcessUsage process) => new(process.ProcessId, process.CreationTicks,
+        process.Name, 0) { LifetimeDomain = process.LifetimeDomain, ImagePath = process.ImagePath,
+        AppName = process.AppName, ProductName = process.ProductName, Publisher = process.Publisher,
+        HasAppWindow = process.HasAppWindow, HasHadAppWindow = process.HasHadAppWindow };
+
     /// <summary>A compacted capture, or a failed pass when <see cref="Sample"/> is null, awaiting the drain.</summary>
     private sealed record Pending(
         MonitorSample? Sample,
         SamplingError? Error,
         MonitorSample? Full = null,
-        ServiceFrame? Services = null);
+        ServiceFrame? Services = null,
+        ProcessNetworkSnapshot? Network = null,
+        Guid NetworkSessionId = default,
+        NetworkConnectionsFrame? Connections = null);
 }

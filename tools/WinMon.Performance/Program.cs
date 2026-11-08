@@ -28,6 +28,7 @@ internal static class Program
     [STAThread]
     private static void Main(string[] args)
     {
+        System.Windows.Input.Keyboard.DefaultRestoreFocusMode = System.Windows.Input.RestoreFocusMode.None;
         var app = new App();
         app.InitializeComponent();
         app.ShutdownMode = ShutdownMode.OnExplicitShutdown;
@@ -127,6 +128,7 @@ internal static class Program
                 new System.Net.IPEndPoint(System.Net.IPAddress.Loopback, 50000 + index),
                 new System.Net.IPEndPoint(System.Net.IPAddress.Parse("203.0.113.24"), 443),
                 System.Net.NetworkInformation.TcpState.Established))).ToArray();
+        window.ConnectionView.Load(new WinMon.Controls.ConnectionListSettings(0));
         window.SetConnectionsForFixture(new NetworkConnectionsFrame(endpoints,
             NetworkAddressFamilyStatus.Success, NetworkAddressFamilyStatus.Success));
         window.ConnectionsTab.IsChecked = true;
@@ -137,12 +139,35 @@ internal static class Program
         window.ConnectionView.Grouped = false;
         Flush();
         Measure("connections-individual-live-frame");
+        window.Width = 1200;
+        Flush();
+        var networkStamp = Stopwatch.GetTimestamp();
+        window.SetProcessNetworkForFixture(new ProcessNetworkFrame(networkStamp, Stopwatch.Frequency,
+            ProcessNetworkQuality.Provisional, session.LatestFull!.Processes.Select(process =>
+                new ProcessNetworkReading(process.ProcessId, process.CreationTicks, 12_000_000, 3_000_000,
+                    2_000_000, 500_000)).ToArray()));
+        window.ConnectionView.Grouped = true;
+        window.ConnectionView.SelectConnectionForFixture(firstConnectionProcess.ProcessId, firstConnectionProcess.CreationTicks);
+        Flush();
+        RequireNetworkColumnVisible();
+        if (!window.ConnectionView.DisplayedRows.Any(row => row.IsGroup && row.NetworkSummary.ReceiveRate is > 0))
+            throw new InvalidOperationException("Network benchmark requires healthy owner rates.");
+        Measure("connections-network-grouped-expanded-live-frame");
+        window.ConnectionView.Grouped = false;
+        Flush();
+        RequireNetworkColumnVisible();
+        if (window.ConnectionView.DisplayedRows.Any(row => row.Network.Length != 0))
+            throw new InvalidOperationException("Endpoint rows must not show process throughput.");
+        Measure("connections-network-individual-live-frame");
+        RequireNetworkColumnVisible();
         var report = new
         {
             Runtime = Environment.Version.ToString(), Samples = 600, ProcessesPerSample = Processes,
             WarmupFrames, Batches, FramesPerBatch,
             AssemblySha256 = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(typeof(MainWindow).Assembly.Location))),
             Results = results,
+            EnabledNetworkViewportWidth = window.ConnectionView.HeaderScroller.ViewportWidth,
+            EnabledNetworkColumnFullyVisible = true,
             LivePixelsSha256 = pixels,
             Limitation = "UI thread only: refresh, layout, OnRender and channel commit, measured as thread cycles. Excludes native collection and the WPF render thread."
         };
@@ -295,6 +320,15 @@ internal static class Program
                 MillisecondsPerFrame = times, AllocatedBytesPerFrame = allocations, PixelsSha256 = Pixels(null) });
         }
 
+        void RequireNetworkColumnVisible()
+        {
+            var view = window.ConnectionView;
+            var header = view.NetworkHeader;
+            var bounds = header.TransformToAncestor(view.HeaderScroller)
+                .TransformBounds(new Rect(new Point(), header.RenderSize));
+            if (!header.IsVisible || bounds.Left < -0.1 || bounds.Right > view.HeaderScroller.ViewportWidth + 0.1)
+                throw new InvalidOperationException("Network benchmark requires the full column inside the viewport.");
+        }
         void Check(System.Windows.Controls.Primitives.ToggleButton toggle)
         {
             toggle.IsChecked = true;
@@ -312,6 +346,11 @@ internal static class Program
 
         string Pixels(string? path)
         {
+            System.Windows.Input.FocusManager.SetFocusedElement(window, null);
+            System.Windows.Input.Keyboard.ClearFocus();
+            Flush();
+            if (System.Windows.Input.Keyboard.FocusedElement is not null)
+                throw new InvalidOperationException("Benchmark pixel capture requires cleared keyboard focus.");
             var dpi = VisualTreeHelper.GetDpi(window);
             var content = (FrameworkElement)window.Content;
             var bitmap = new RenderTargetBitmap((int)(content.ActualWidth * dpi.DpiScaleX), (int)(content.ActualHeight * dpi.DpiScaleY),

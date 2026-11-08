@@ -4,6 +4,40 @@
 
 Dated measurement and validation records, newest first. Each section describes the build and machine it was measured on, and some name code that has since changed or moved. For how to measure today and the decisions still in force, see [Performance](DEVELOPMENT.md#performance) in the developer guide. The raw data named under `artifacts/` is local and not in the repository.
 
+## Connections app-first Capture history (November 7, 2026)
+
+SDK 10.0.403 / .NET 10.0.14. Four strictly sequential baseline/changed pairs used the `WinMon.Performance` driver with 400 warm-up frames and seven 60-frame batches. The original baseline payload was frozen before this work; the changed payload was rebuilt after final test and smoke validation, then frozen before measurement. Baseline WinMon.dll SHA-256: `9046875701E5C241C707E607AEE0D9ADA574923CDB6554689DB214A21AE8E210`; changed: `989C0F30D61C4CF5BC9F593CCF5398D891DAAD153862770E93A3F982198EA5A3`. The final changed build also contains concurrent Settings work, which these scenarios do not exercise. Raw results: `artifacts/connections-redesign/accepted-{baseline,changed}-{1..4}.json`.
+
+The Connections benchmark uses 60 executable groups and 480 endpoint rows. It explicitly selects **All** rather than the new default Top 10 so the workload stays comparable. Connection images intentionally differ between builds; every visual hash was stable within its own four runs. The other twelve visual scenarios match across builds.
+
+| Scenario | Baseline median | Changed median | Allocation per frame |
+| --- | ---: | ---: | ---: |
+| Connections, grouped and expanded, monitoring off | 2.54 ms | 2.25 ms | 1,495,676 → 1,075,668 B (-420,008 B) |
+| Connections, Individual, monitoring off | 2.90 ms | 2.79 ms | 1,824,317 → 1,983,157 B (+158,840 B) |
+| Connections, grouped and expanded, monitoring on | 3.08 ms | 3.16 ms | 1,807,684 → 1,456,849 B (-350,835 B) |
+| Connections, Individual, monitoring on | 3.06 ms | 3.59 ms | 1,997,880 → 2,225,057 B (+227,177 B) |
+
+The Individual monitoring-on case rose 0.53 ms (17.5%). It formats and retains the owner traffic summary used for the new rate ranking while retaining endpoint detail; the allocation increase is the same visible-mode tradeoff. Grouped app-first refresh is lower in both allocation cases. All non-Connections timed scenarios stayed within 0.04 ms or improved in their aggregate median; their allocations changed by at most 1,197 B/frame. This is a four-pair UI-thread observation, not proof of a universal speedup.
+
+Two 150-second whole-app native profiles measured continuous endpoint capture plus bounded Capture history at about 660 endpoints, with reversed launch order. The changed app averaged +2.60 CPU ms/s, +14.89 MiB private memory and +418.86 KiB/s allocation over the two paired observations. These costs are expected from each-second endpoint collection and retained endpoint/network snapshots. These are app-process figures, not isolated IP Helper or system-wide kernel/service measurements. External traffic variation is uncontrolled, and the signed network service, longer retention and larger endpoint tables were not measured; raw data: `artifacts/connections-redesign/profile-{baseline,changed}{,-reversed}/profile.json`.
+
+## Optional network Connections UI comparison (November 7, 2026)
+
+Four strictly sequential baseline/changed pairs on SDK 10.0.403 / .NET 10.0.14 used 400 warm-up frames and seven 60-frame batches. Both builds came from one frozen source snapshot with the same unrelated gauge edits; the baseline restored only the five Connections/view/benchmark integration files to HEAD. WinMon.dll SHA-256: baseline `7B346CBD…`, changed `2C45BCCF…`. This isolates the UI change: the sampling/session network integration is common to both builds and its disabled-path overhead is not established by this comparison. Raw data: `artifacts/network-connections-performance/accepted-v4-{b,c}{1..4}.json`, process exit records, per-Connections PNGs, and `accepted-v4-summary.json`.
+
+| Scenario | Baseline median | Changed median | Allocation per frame |
+| --- | ---: | ---: | ---: |
+| Connections, grouped/expanded, monitoring off | 2.947 ms | 2.886 ms | 1,494,380 → 1,494,564 B (+184 B) |
+| Connections, individual, monitoring off | 3.174 ms | 2.956 ms | 1,823,021 → 1,823,205 B (+184 B) |
+| Network enabled, grouped/expanded | — | 3.087 ms | 1,747,724 B |
+| Network enabled, individual | — | 3.034 ms | 1,937,921 B |
+
+Values are medians of the four per-run medians. No shared timed scenario had a higher aggregate median in this comparison, but the wide per-run variation prevents attributing the apparent speedups to this change. The disabled Connections allocation increase is about 0.01%; this path now updates the optional column/width state. The new enabled cases measure synthetic network formatting/layout in the existing narrow left viewport, where the new column can be horizontally clipped; they do not establish full visible-column rendering cost. Native collection and the WPF render thread are excluded.
+
+All fourteen shared visual scenarios were deterministic within each build across all four runs. Twelve match exactly between builds. The two disabled Connections cases differ in exactly 917 header pixels, confined to x21–797/y575–586 in an 836×840 image, by at most one level per RGB/alpha channel. This is the explained text-antialiasing effect of the synchronized header viewport; row content and geometry are identical. Individual before/after PNGs were inspected. A null pixel field on the nonvisual usage-ledger scenario initially inflated the runner's displayed visual count; the final assessment counts only actual hashes. The second pair's guard initially rejected the same one-level alpha rounding, which was independently checked before continuing pairs three/four.
+
+This completes the frozen UI comparison, not the full feature performance gate. Disabled sampler/session overhead, visible network-column cost and signed installed-service/client/whole-system budgets remain open. Signed native installation is now available and has passed functional install/IPC/repair/removal tests; earlier local signing/toolchain blockers below are historical, not the current reason these measurements are missing.
+
 ## Configurable native gauge peaks (November 7, 2026)
 
 UI-thread benchmark on .NET 10.0.14 / SDK 10.0.403. Four alternating pairs (four baseline runs and four changed runs) used the same `WinMon.Performance` driver (SHA-256 `3E82936F…`) with 850 synthetic processes, 400 warm-up frames and seven 60-frame batches. The baseline `WinMon.dll` was `2BBF6681…`; the final always-native peak-label build was `03B9CC2D…`. Raw results are `artifacts/peak-before-{1..4}.json`, `peak-after-{1..4}.json` and `peak-benchmark-summary.json`.
@@ -24,6 +58,32 @@ UI-thread benchmark on .NET 10.0.14 / SDK 10.0.403. Four alternating pairs (four
 | Connections, individual | 3.138 ms | 3.104 ms | +0.7% |
 
 Live-frame time improved, while grouped (+11.4%), Services (+10.5%) and the logical-processor grid (+10.8%) were slower with substantial per-run variation. Grouped Connections was consistently slower (+57.2%) and allocated much more. This working tree also changed network integration between the baseline and final `WinMon.dll`, so these results establish the combined-build effect and do not attribute those regressions solely to gauge peaks. The peak change retains source samples; formatting and UI updates, rather than that retained value type itself, are the plausible allocation sources. Pixel hashes differ intentionally because the new peak icons and native values replace the previous percentage/scale headers. The hidden/minimized cache-release cleanup is included in the final build but is outside this visible benchmark path.
+
+## Optional network setup and subscription (November 7, 2026)
+
+Signed setup/Settings increment on SDK 10.0.403 / .NET 10.0.14. The feature defaults off; no service connection or IPC polling starts in the disabled branch. An enabled controller maintains one subscription and requests the existing delayed event-time snapshot about once per second, independently of UI visibility. Setup verification, extraction and UAC launch run off the UI thread; Settings locks edits and supports cancellation. These are code-path observations, not overhead measurements.
+
+Installed-path performance comparison remains **blocked**, rather than accepted without data: Azure signing returned 403, no matching local RSA private-key path is known, and NativeAOT publishing lacks a working C++/Windows SDK environment. No signed service was installed. The previous collector/testhost measurements below still describe that earlier experiment; they do not measure the new LocalSystem/helper/client path. No UI hot-path rate calculation or additional history was added in this increment. Before release, measure disabled versus enabled steady-state app/service CPU, allocation/private memory, startup and tab-hidden/tray operation with the real signed installation, alongside the existing UI benchmark. Concurrent gauge changes prevent attributing whole-app differences from this working checkout to network setup alone.
+
+## Network service and authenticated IPC (November 7, 2026)
+
+Release service/IPC foundation on .NET 10.0.14, SDK 10.0.403, Windows build 26300, TraceEvent 3.1.23. Native tests used an elevated NUnit testhost on the approved development box. No LocalSystem service was installed. The app does not invoke this component, so these are collector observations rather than a changed UI benchmark.
+
+The original bounded 65,536-event queue lost 76,872 events in a UDP stress repeat, while ETW itself reported zero loss (`artifacts/network-service/native-test-65536-queue-loss.log`). This explained the byte shortfall and blocked acceptance of that implementation. The replacement queue is bounded at 262,144 compact records (about 6 MiB, versus about 1.5 MiB); this provides burst headroom for the requested 16 MiB ETW buffer budget. Reconciliation also avoids re-querying token ownership for unchanged process creation identities. Both native and internal queue loss remain explicitly reported.
+
+Final report: `artifacts/network-service/native-collector-44979e68e939492c82f348f6df190ae2.json`. All ten TCP/UDP IPv4/IPv6 existing/short-lived/load scenarios matched exact cumulative worker totals, finishing at 7,794,327,552 bytes in each direction. Native ETW loss and service queue drops were zero; event-time rates became available after warmup. An external stop of the test's own trace correctly produced unavailable readings, and the trace was removed.
+
+| Measurement | Observed |
+| --- | ---: |
+| Idle collector/testhost CPU without tracing, 2 seconds | 46.875 ms |
+| Idle collector/testhost CPU with tracing, 2 seconds | 62.5 ms |
+| Total collector/testhost CPU | 1,234.375 ms |
+| Whole native experiment, including draining/cleanup | 28.59 s |
+| Testhost private memory at completion | 87.18 MiB |
+
+These are single-run, coarse CPU observations including NUnit/testhost/JIT/ownership work; they exclude workload CPU and kernel tracing buffers/provider cost. They do not establish a standalone service memory footprint, a numerical production budget, or an apples-to-apples speed ratio against the earlier prototype. The explicitly bounded queue memory increase is a measured correctness tradeoff. Global coverage is still marked incomplete when unrelated ownership probes fail; known process rates are provisional and are no longer continually suppressed by that uncertainty.
+
+The [implementation record](design/PER-PROCESS-NETWORK-IMPLEMENTATION.md) contains the command results and remaining release gates. Normal and Store verification passed, including the service/native pipe tests; actual LocalSystem SCM, second-account, external-link and older-Windows acceptance remain open. No UI/hardware interaction was changed or validated by this increment.
 
 ## Chart collapse and aligned disclosure buttons (November 7, 2026)
 
@@ -47,6 +107,27 @@ No broad timing or allocation increase appeared. The pinned/selected median rose
 Raw results and renders: `artifacts/chart-collapse-performance/{baseline,changed}-{1,2,3,4}.{json,png}`, with all scenario medians in `summary.json`. Baseline assembly SHA-256: `5DB4065E7A17A098C6E2F75BAC5CA044E1E95702B69249F852927B5F18DA11E7`; changed runs 1–2: `216817DD5F80204845E2CBA495045F3134D8129FC968EA05AF3E00C29389F578`; changed runs 3–4: `9375D5C545C0DE43943FD5D3B48B2584AF37975F1231969B74481ECD8EBA8D00`.
 
 Functional validation passed: `Verify.ps1 -Smoke feature,compact,snapshot` (1,005 tests and 272 renders), plus `Verify.ps1 -Store` (1,007 tests), with warning-free builds. Relevant Dark/Light, minimum-width, expanded, collapsed and snapshot screenshots were inspected. The feature smoke checks the two chevrons' right-edge alignment, focus recovery, independent panel states, saved split, Compact view and persisted restart behavior. Long-running usage and whole-app/native sampling overhead were not measured.
+
+## ETW per-process network prototype (November 7, 2026)
+
+Standalone Release prototype (`tools/WinMon.NetworkProbe`), TraceEvent 3.1.23, .NET 10.0.14, SDK 10.0.403, Windows build 26300. User-authorized native testing ran on the development box with an elevated token. No shipping app code references the prototype, and no Windows service was installed. These are controlled loopback observations, not a UI benchmark or production service acceptance result.
+
+Final report: `artifacts/network-probe/elevated-drain-final.json`. All ten traffic scenarios matched exact worker payload send/receive totals. The session processed 1,788,011 network events with zero reported loss, zero positive-byte worker attribution rejections and zero sampled payload PID mismatches. It checked eight protocol/family/direction payload categories, counted 19,933 zero-byte events separately, and verified its trace session was removed.
+
+| Scenario | Collector CPU | Elapsed, including event drain | Collector private memory |
+| --- | ---: | ---: | ---: |
+| Idle without tracing | 0 ms | 3.01 s | 9.81 MiB |
+| Idle with tracing | 46.875 ms | 3.01 s | 16.34 MiB |
+| TCP IPv4 load, 1,375,731,712 bytes each direction | 15.625 ms | 3.79 s | 15.25 MiB |
+| TCP IPv6 load, 1,291,845,632 bytes each direction | 15.625 ms | 3.79 s | 15.26 MiB |
+| UDP IPv4 load, 426,770,432 bytes each direction | 125 ms | 3.52 s | 15.74 MiB |
+| UDP IPv6 load, 439,353,344 bytes each direction | 140.625 ms | 3.51 s | 15.87 MiB |
+
+CPU/allocation measurements cover the collector process, not the worker or Windows kernel/provider overhead. Timer granularity, JIT warmup and unrelated background traffic affect these single-run readings. Active-phase allocations ranged from 0 to 206,064 bytes using the runtime's approximate process-wide counter. The collector requests a 16 MiB ETW buffer budget; kernel buffer cost is not included in private memory. No production overhead budget or full-system regression claim follows from this table.
+
+A previous repeat (`artifacts/network-probe/elevated-final.json`) caught incomplete phase accounting with a fixed two-second drain: final aggregate bytes were correct, but some events arrived after phase snapshots, with zero reported loss. The final prototype waits against known workload byte targets, bounded at ten seconds. This is a test technique; production rates still need timestamp/delivery-aware quality semantics. Sustained load ran for three seconds per case; elapsed values include flushing/draining and must not be interpreted as link throughput.
+
+Eight isolated ledger tests passed. `Verify.ps1` finished with five checks passed and all 1,005 existing tests passed; the benchmark build retried a DLL copy locked by a concurrent benchmark before succeeding. The [implementation checklist](design/PER-PROCESS-NETWORK-IMPLEMENTATION.md) records earlier failures, corrections and remaining native/release gates. External links, multiple users, old Windows versions, forced loss and privileged service installation were not validated.
 
 ## Connections display modes and summaries (November 7, 2026)
 

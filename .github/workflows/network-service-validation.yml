@@ -1,0 +1,71 @@
+name: Build signed network service test bundle
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  bundle:
+    environment: release
+    runs-on: windows-2025
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          global-json-file: global.json
+          dotnet-version: '8.0.x'
+      - name: Verify service and setup boundaries
+        run: |
+          $ErrorActionPreference = 'Stop'
+          foreach ($project in @('MonCore.Tests', 'MonCore.Windows.Tests', 'WinMon.NetworkService.Tests', 'WinMon.NetworkSetup.Tests')) {
+            dotnet test "tests/$project/$project.csproj" -c Release -m:1 -p:UseSharedCompilation=false --artifacts-path artifacts/network-validation/build --logger 'trx;LogFilePrefix=network' --results-directory artifacts/network-validation/results
+            if ($LASTEXITCODE -ne 0) { throw "$project failed." }
+          }
+      - name: Sign in to Azure using GitHub OIDC
+        uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Install pinned Artifact Signing module
+        run: Install-Module ArtifactSigning -RequiredVersion 0.1.20 -Repository PSGallery -Scope CurrentUser -Force
+      - name: Build and sign the standalone test bundle
+        env:
+          UPDATE_SIGNING_KEY_BASE64: ${{ secrets.WINMON_UPDATE_SIGNING_KEY_BASE64 }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (!$env:UPDATE_SIGNING_KEY_BASE64) { throw 'The existing release RSA key is required.' }
+          [xml]$metadata = Get-Content Directory.Build.props
+          $version = [string]$metadata.Project.PropertyGroup.Version
+          $keyPath = Join-Path $env:RUNNER_TEMP 'winmon-network-validation-key.pem'
+          try {
+            [IO.File]::WriteAllBytes($keyPath, [Convert]::FromBase64String($env:UPDATE_SIGNING_KEY_BASE64))
+            Remove-Item Env:UPDATE_SIGNING_KEY_BASE64
+            ./tools/New-NetworkServicePackage.ps1 -Version $version -UpdateSigningKeyPath $keyPath -OutputDirectory "$PWD/artifacts/network-validation/bundle"
+          }
+          finally {
+            if (Test-Path -LiteralPath $keyPath) { Remove-Item -LiteralPath $keyPath -Force }
+          }
+      - name: Upload signed test bundle
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: network-service-test-bundle-${{ github.run_id }}
+          path: artifacts/network-validation/bundle/*
+          if-no-files-found: error
+      - name: Upload test evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: network-service-test-evidence-${{ github.run_id }}
+          path: |
+            artifacts/network-validation/results/*
+            artifacts/packaging/network-service-*/network-service-signature.json
+            artifacts/packaging/network-service-*/network-setup-signature.json
+          if-no-files-found: warn

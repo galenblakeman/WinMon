@@ -21,6 +21,13 @@ public partial class MainWindow
         RefreshConnections();
     }
 
+    internal void SetProcessNetworkForFixture(ProcessNetworkFrame? frame)
+    {
+        if (!_diagnosticMode) throw new InvalidOperationException("Synthetic traffic requires diagnostic mode.");
+        _networkForFixture = frame;
+        RefreshConnections();
+    }
+
     internal void RememberWindowPositionForFixture() => RememberWindowPosition();
     internal void NotifyDisplayChangeForFixture() => OnDisplaySettingsChanged(null, EventArgs.Empty);
 

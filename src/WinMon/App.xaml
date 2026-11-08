@@ -621,6 +621,25 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <!-- Keep the Settings sidebar's themed surface and readable item colors while an async Settings action
+             disables navigation. The standard ListBox disabled visual uses a system fallback surface. -->
+        <Style x:Key="SettingsNavigation" TargetType="ListBox">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBox">
+                        <Border x:Name="SidebarSurface" Background="{TemplateBinding Background}">
+                            <ScrollViewer CanContentScroll="True" Focusable="False"
+                                          HorizontalScrollBarVisibility="Disabled"
+                                          VerticalScrollBarVisibility="Auto">
+                                <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Cycle" />
+                            </ScrollViewer>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <!--  An on/off switch: the CheckBox content is its state label, drawn before the track.  -->
         <Style x:Key="SettingsSwitch" TargetType="CheckBox">
             <Setter Property="Foreground" Value="{DynamicResource Text}" />
@@ -667,13 +686,14 @@
         <Style x:Key="ActivityTab" TargetType="RadioButton">
             <Setter Property="Height" Value="32" />
             <Setter Property="FontSize" Value="14" />
+            <Setter Property="Padding" Value="12,0" />
             <Setter Property="Foreground" Value="{DynamicResource InactiveTabText}" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="FocusVisualStyle" Value="{StaticResource MetricTileFocusVisual}" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
-                        <Border Padding="12,0" Background="Transparent">
+                        <Border Padding="{TemplateBinding Padding}" Background="Transparent">
                             <Grid>
                                 <ContentPresenter
                                     HorizontalAlignment="Center"

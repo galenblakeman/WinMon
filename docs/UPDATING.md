@@ -53,6 +53,8 @@ The helper waits for the original process to commit and exit, however long its s
 
 Transactions and error logs remain under `%LOCALAPPDATA%\WinMon\Updates`. After an interrupted portable replacement, launching a healthy replacement completes its pending journal; if the helper is still running, it owns readiness and rollback. Large successful downloads/backups are cleaned up after success or on a later launch. A power failure that leaves an executable unable to start may require manually restoring the `.WinMon-<token>.backup.exe` from the application directory or reinstalling. Recovery cannot run when no executable can start.
 
+The optional per-process network service is maintained separately from the app. Signed desktop executables carry a verified setup bundle, but ordinary startup and app updating do not silently install or replace the service. A compatible authorized service is reused; an incompatible protocol shows **Network service update required**. Explicit enable/repair in Settings can request elevation to update the protected service. Disabling monitoring or uninstalling a per-user app leaves the shared service installed; remove it explicitly through Settings or its Windows Installed apps entry. Signed bundle publishing and local verification have passed; installed-service update/rollback acceptance remains pending in the [feature checklist](design/PER-PROCESS-NETWORK-IMPLEMENTATION.md).
+
 Run the isolated end-to-end harness from PowerShell 7.4+ on Windows:
 
 ```powershell

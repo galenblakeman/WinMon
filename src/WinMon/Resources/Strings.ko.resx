@@ -1581,6 +1581,24 @@ Windows 상태: {2}</value>
   <data name="NetworkInterfaceLabel" xml:space="preserve"><value>네트워크 인터페이스</value></data>
   <data name="NetworkInterfaceUnavailable" xml:space="preserve"><value>사용할 수 없는 인터페이스 ({0})</value></data>
   <data name="NetworkSelectionNote" xml:space="preserve"><value>자동은 연결된 이더넷 또는 Wi-Fi 인터페이스를 선택합니다. 직접 선택한 인터페이스는 연결이 끊겨도 선택이 유지되며 다시 연결될 때까지 측정값을 표시하지 않습니다.</value></data>
+  <data name="NetworkProcessMonitoringHeading" xml:space="preserve"><value>프로세스별 네트워크 모니터링</value></data>
+  <data name="NetworkProcessMonitoringEnabled" xml:space="preserve"><value>프로세스별 네트워크 트래픽 모니터링</value></data>
+  <data name="NetworkProcessMonitoringNote" xml:space="preserve"><value>프로세스의 실시간 송수신 활동을 수집합니다. 처음 설정하면 관리자 승인이 필요한 권한 있는 Windows 서비스가 설치됩니다. 이후 시작에는 필요하지 않습니다. 사용하지 않도록 설정하면 이 앱의 수집은 중지되고 공유 서비스는 설치된 상태로 유지됩니다.</value></data>
+  <data name="NetworkProcessMonitoringDisabled" xml:space="preserve"><value>프로세스별 네트워크 모니터링이 꺼져 있습니다.</value></data>
+  <data name="NetworkProcessMonitoringEnabling" xml:space="preserve"><value>프로세스별 네트워크 모니터링 설정을 적용하는 중…</value></data>
+  <data name="NetworkProcessMonitoringWarmingUp" xml:space="preserve"><value>프로세스별 네트워크 모니터링을 준비하는 중입니다.</value></data>
+  <data name="NetworkProcessMonitoringActive" xml:space="preserve"><value>프로세스별 네트워크 모니터링이 활성화되었습니다.</value></data>
+  <data name="NetworkProcessMonitoringIncomplete" xml:space="preserve"><value>프로세스별 네트워크 모니터링에 불완전한 측정값이 있습니다.</value></data>
+  <data name="NetworkProcessMonitoringUnavailable" xml:space="preserve"><value>프로세스별 네트워크 모니터링을 사용할 수 없습니다.</value></data>
+  <data name="NetworkProcessMonitoringUpdateRequired" xml:space="preserve"><value>네트워크 서비스 업데이트가 필요합니다.</value></data>
+  <data name="NetworkProcessMonitoringSetupUnavailable" xml:space="preserve"><value>서명된 네트워크 모니터링 설치를 사용할 수 없습니다.</value></data>
+  <data name="NetworkProcessMonitoringCancelled" xml:space="preserve"><value>프로세스별 네트워크 모니터링을 사용하도록 설정하지 않았습니다.</value></data>
+  <data name="NetworkProcessMonitoringFailed" xml:space="preserve"><value>프로세스별 네트워크 모니터링을 사용하도록 설정할 수 없습니다.</value></data>
+  <data name="NetworkProcessMonitoringStoreUnavailable" xml:space="preserve"><value>Microsoft Store 버전에서는 프로세스별 네트워크 모니터링을 사용할 수 없습니다.</value></data>
+  <data name="NetworkProcessMonitoringRemove" xml:space="preserve"><value>네트워크 모니터링 서비스 제거…</value></data>
+  <data name="NetworkProcessMonitoringRepair" xml:space="preserve"><value>네트워크 모니터링 복구</value></data>
+  <data name="NetworkProcessMonitoringRemoveTitle" xml:space="preserve"><value>네트워크 모니터링 서비스 제거</value></data>
+  <data name="NetworkProcessMonitoringRemoveConfirm" xml:space="preserve"><value>이 컴퓨터의 모든 Windows 사용자에 대한 네트워크 모니터링 서비스를 제거하시겠습니까? 관리자 승인이 필요합니다. 모든 사용자의 모니터링이 중지됩니다.</value></data>
   <data name="SettingsStartupAndTray" xml:space="preserve"><value>시작 및 알림 영역</value></data>
   <data name="SettingsHistory" xml:space="preserve"><value>기록</value></data>
   <data name="SettingsRetentionNote" xml:space="preserve"><value>차트, 캡처 모드, 프로세스 기록이 거슬러 올라가는 기간입니다. 오래 보존할수록 메모리를 더 사용합니다.</value></data>
@@ -1673,6 +1691,8 @@ Windows 상태: {2}</value>
   <data name="ConnectionsRemoteEndpoint" xml:space="preserve"><value>원격 엔드포인트</value></data>
   <data name="ConnectionsState" xml:space="preserve"><value>상태</value></data>
   <data name="ConnectionsNote" xml:space="preserve"><value>UDP는 로컬 엔드포인트만 표시합니다. 연결 수는 트래픽 양이 아닙니다.</value></data>
+  <data name="ConnectionsNetworkProvisional" xml:space="preserve"><value>프로세스별 네트워크 속도는 지연된 잠정 이벤트 시간 창을 사용합니다.</value></data>
+  <data name="ConnectionsNetworkOwnerTotals" xml:space="preserve"><value>프로세스/실행 파일 합계(모든 프로토콜)</value></data>
   <data name="ConnectionsUnavailable" xml:space="preserve"><value>연결 데이터를 사용할 수 없습니다.</value></data>
   <data name="ConnectionsPartial" xml:space="preserve"><value>일부 연결 데이터를 사용할 수 없습니다.</value></data>
   <data name="ConnectionsEmpty" xml:space="preserve"><value>일치하는 연결이 없습니다.</value></data>
@@ -1737,5 +1757,15 @@ Windows 상태: {2}</value>
   <data name="ProcessesTabHelp" xml:space="preserve"><value>실행 중인 프로세스를 CPU, 메모리, GPU, I/O별로 비교합니다. 검색, 그룹화, 고정으로 사용량이 많은 프로세스를 추적합니다.</value></data>
   <data name="ServicesTabHelp" xml:space="preserve"><value>호스트 및 작업 프로세스를 포함한 Windows 서비스의 상태와 리소스 사용량을 확인합니다. 조작 가능한 현재 서비스를 시작, 중지 또는 다시 시작합니다.</value></data>
   <data name="UsageTabHelp" xml:space="preserve"><value>WinMon 시작 또는 합계 초기화 이후의 CPU 시간, GPU 시간, I/O 합계를 앱별로 비교합니다. 종료된 앱도 포함됩니다.</value></data>
-  <data name="ConnectionsTabHelp" xml:space="preserve"><value>TCP 연결과 UDP 엔드포인트를 소유한 앱을 주소, 포트, 연결 상태와 함께 확인합니다. 캡처 중에도 실시간 정보를 표시합니다.</value></data>
+  <data name="ConnectionsTabHelp" xml:space="preserve"><value>수신/송신 속도와 TCP/UDP 수로 앱을 비교합니다. 펼치거나 속성을 열어 주소와 상태를 확인합니다. 캡처는 선택한 샘플을 표시합니다.</value></data>
+  <data name="ConnectionsTop" xml:space="preserve"><value>상위 앱 수</value></data>
+  <data name="ConnectionsRankBy" xml:space="preserve"><value>앱 정렬 기준</value></data>
+  <data name="ConnectionsReceiveRate" xml:space="preserve"><value>수신/초</value></data>
+  <data name="ConnectionsSendRate" xml:space="preserve"><value>송신/초</value></data>
+  <data name="ConnectionsTcpCount" xml:space="preserve"><value>TCP 수</value></data>
+  <data name="ConnectionsUdpCount" xml:space="preserve"><value>UDP 수</value></data>
+  <data name="ConnectionsHistoryUnavailable" xml:space="preserve"><value>이 샘플의 연결 기록을 사용할 수 없습니다.</value></data>
+  <data name="ConnectionsHistoryNote" xml:space="preserve"><value>선택한 샘플에서 관찰된 연결입니다. 속도는 5초 평균이며 일반적으로 수집 3초 전까지의 값입니다.</value></data>
+  <data name="ConnectionsEnableTrafficMonitoring" xml:space="preserve"><value>트래픽 모니터링 켜기…</value></data>
+  <data name="ConnectionsTrafficRankingUnavailable" xml:space="preserve"><value>수신/송신 속도로 정렬하려면 프로세스별 트래픽 모니터링을 켜세요.</value></data>
 </root>

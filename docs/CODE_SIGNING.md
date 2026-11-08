@@ -35,7 +35,7 @@ Issuer: `https://token.actions.githubusercontent.com`; audience: `api://AzureADT
 
 GitHub installs Microsoft's `ArtifactSigning` PowerShell module at version **0.1.20**, supplies its required .NET 8 runtime alongside WinMon's pinned .NET 10 SDK, and always passes `-CodeSign` to `tools/New-Release.ps1`. Using the module inside packaging preserves this order:
 
-1. Run Release tests and publish the self-contained executable.
+1. Run Release tests, publish the service and standalone NativeAOT setup helper, sign and verify both, then create their RSA-signed fixed bundle. Publish the self-contained application with that bundle embedded.
 2. Sign and timestamp `WinMon.exe`, then verify its Authenticode status, publisher (`Galen Blakeman`), and timestamp presence.
 3. Build the Inno Setup installer containing the signed executable, then sign, timestamp, and verify the installer.
 4. Create the portable ZIP, WinGet manifests, RSA update manifest, and checksums from the final bytes.
@@ -49,7 +49,9 @@ The RSA update-manifest signature remains separate from Authenticode. Every work
 
 ## Local use
 
-Unsigned packaging remains available for local testing by omitting `-CodeSign`. To sign locally, install the pinned module, sign in with `az login` as an identity with profile signing access, and run:
+Unsigned packaging remains available for local testing by omitting `-CodeSign`; it omits the privileged provisioning bundle. The unsigned ETW prototype, elevated collector test and native IPC tests exercise collection/transport without service installation. They do not validate the Settings enable/UAC/install path. That path requires the real signatures and existing RSA trust root; there is no unsigned setup switch.
+
+To sign locally, install the pinned module, sign in with `az login` as an identity with profile signing access, and run:
 
 ```powershell
 Install-Module ArtifactSigning -RequiredVersion 0.1.20 -Repository PSGallery -Scope CurrentUser
@@ -59,6 +61,16 @@ Install-Module ArtifactSigning -RequiredVersion 0.1.20 -Repository PSGallery -Sc
 Defaults are `https://eus.codesigning.azure.net/`, `galenwinmonsigning`, `WinMonPublic`, and expected publisher `Galen Blakeman`. Override with `-SigningEndpoint`, `-SigningAccountName`, `-CertificateProfileName`, and `-ExpectedPublisher`.
 
 Run `./tools/Test-ReleaseSigning.ps1` to exercise packaging order, final hashes, updater RSA verification, and signing failure gates using simulated build/signing boundaries. It makes no Azure calls and does not prove live signing. Its private fixture key is written under ignored `artifacts/signing-validation/` and deleted once the signed fixture release completes; it must never be uploaded as a release asset.
+
+## Service validation without a release
+
+The manual-only `.github/workflows/network-service-validation.yml` runs service/setup boundary tests and builds a signed service bundle using the existing `release` environment credentials. It uploads Actions artifacts and test evidence, with repository contents permission limited to read. It creates no release, tag or installer and installs no service. Run it only from a reviewed ref allowed by the environment's deployment restrictions; do not relax those restrictions to make a test run pass.
+
+The v3.5.1 [release run](https://github.com/galenblakeman/WinMon/actions/runs/42393608236) completed Azure OIDC login and signed packaging successfully with the current RSA trust root. This establishes that credentials worked in CI for that run, not that the new service bundle has been signed. Local Azure authorization and local NativeAOT toolchain failures do not establish that CI has the same failures; a completed service workflow and downloaded bundle verification are still required.
+
+To register the new workflow before it is on the default branch, the isolated `codex/network-service-validation` branch temporarily added a bootstrap push trigger restricted to that branch and service-related paths. The initial cleanup was `ce5b48f`; the trigger was temporarily restored for diagnostics and the process-access correction, then removed in `f7afbf4`; a later diagnostics/revocation test cycle removed its temporary trigger in `44ac8d8`. Both the validation branch and production checkout are manual-only. [Validation run 42426234294](https://github.com/galenblakeman/WinMon/actions/runs/42426234294) succeeded from reviewed commit `7b1ad72`: NativeAOT publishing, service/helper signing and the signed manifest completed. The downloaded artifact passed the production verifier locally and both binaries have valid timestamped signatures from Galen Blakeman. Corrected signed revision `f455bc5`, run [42429999830](https://github.com/galenblakeman/WinMon/actions/runs/42429999830), subsequently passed approved native install/normal-user IPC/Settings reuse/repair/removal; remaining acceptance gaps are in the [feature checklist](design/PER-PROCESS-NETWORK-IMPLEMENTATION.md). No release, tag or service installation is part of this bootstrap.
+
+The diagnostics/revocation candidate at `dbdd801` also completed signing in [run 42433461085](https://github.com/galenblakeman/WinMon/actions/runs/42433461085). Its downloaded artifact digest and production bundle/service-publisher checks passed locally; account-revocation and sustained native recovery acceptance remain separate gates.
 
 ## Responsibilities and privacy
 

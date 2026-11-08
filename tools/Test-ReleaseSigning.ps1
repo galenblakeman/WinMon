@@ -7,10 +7,10 @@ Set-StrictMode -Version Latest
 $root = Split-Path $PSScriptRoot -Parent
 $run = Join-Path $root "artifacts/signing-validation/$([guid]::NewGuid().ToString('N'))"
 $fixture = Join-Path $run 'fixture'
-foreach ($directory in @('tools', 'src/WinMon/Updates', 'packaging')) {
+foreach ($directory in @('tools', 'src/WinMon/Updates', 'src/WinMon.NetworkService', 'src/WinMon.NetworkSetup', 'packaging')) {
     New-Item -ItemType Directory -Path (Join-Path $fixture $directory) -Force | Out-Null
 }
-foreach ($name in @('New-Release.ps1', 'Sign-ReleaseFile.ps1', 'New-WinGetManifest.ps1', 'New-UpdateManifest.ps1')) {
+foreach ($name in @('New-Release.ps1', 'New-NetworkServicePackage.ps1', 'Sign-ReleaseFile.ps1', 'New-WinGetManifest.ps1', 'New-UpdateManifest.ps1')) {
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot $name) -Destination (Join-Path $fixture 'tools')
 }
 Copy-Item -LiteralPath (Join-Path $root 'LICENSE') -Destination $fixture
@@ -41,7 +41,15 @@ function dotnet {
     if ($args[0] -eq 'publish') {
         $output = $args[[Array]::IndexOf($args, '-o') + 1]
         New-Item -ItemType Directory -Path $output -Force | Out-Null
-        [IO.File]::WriteAllText((Join-Path $output 'WinMon.exe'), 'APPLICATION')
+        if ($args[1] -like '*WinMon.NetworkService*') {
+            [IO.File]::WriteAllText((Join-Path $output 'WinMon.NetworkService.exe'), 'SERVICE')
+        }
+        elseif ($args[1] -like '*WinMon.NetworkSetup*') {
+            [IO.File]::WriteAllText((Join-Path $output 'WinMon.NetworkSetup.exe'), 'SETUP')
+        }
+        else {
+            [IO.File]::WriteAllText((Join-Path $output 'WinMon.exe'), 'APPLICATION')
+        }
     }
     $global:LASTEXITCODE = 0
 }
@@ -71,7 +79,7 @@ function Get-AuthenticodeSignature {
         $certificate | Add-Member ScriptMethod GetNameInfo { param($Type, $Issuer) 'Other Publisher' } -Force
     }
     [pscustomobject]@{
-        Status = $(if ($testState.Mode -eq 'invalid' -or ($testState.Mode -eq 'installer-invalid' -and $testState.Calls -eq 2)) { 'HashMismatch' } else { 'Valid' })
+        Status = $(if ($testState.Mode -eq 'invalid' -or ($testState.Mode -eq 'installer-invalid' -and $testState.Calls -eq 4)) { 'HashMismatch' } else { 'Valid' })
         StatusMessage = 'Simulated Authenticode result'
         SignerCertificate = $certificate
         TimeStamperCertificate = $(if ($testState.Mode -ne 'no-timestamp') { [pscustomobject]@{ Subject = 'CN=Test TSA' } })
@@ -79,10 +87,8 @@ function Get-AuthenticodeSignature {
 }
 $release = Join-Path $fixture 'tools/New-Release.ps1'
 $output = Join-Path $run 'release'
-try { & $release -CodeSign -InnoCompiler $compiler -OutputDirectory $output -UpdateSigningKeyPath (Join-Path $run 'private.pem') }
-# The fixture key is only needed for the signed release; remove it so no private key outlives the run.
-finally { Remove-Item -LiteralPath (Join-Path $run 'private.pem') -Force -ErrorAction SilentlyContinue }
-if ($testState.Calls -ne 2) { throw 'Expected exactly two signing calls.' }
+& $release -CodeSign -InnoCompiler $compiler -OutputDirectory $output -UpdateSigningKeyPath (Join-Path $run 'private.pem')
+if ($testState.Calls -ne 4) { throw 'Expected exactly four signing calls.' }
 Expand-Archive (Join-Path $output 'WinMon-9.8.7-win-x64.zip') (Join-Path $run 'portable')
 if ((Get-Content (Join-Path $run 'portable/WinMon.exe') -Raw) -cne 'APPLICATION:SIGNED') { throw 'Portable executable was not signed.' }
 $installerHash = (Get-FileHash (Join-Path $output 'WinMon-9.8.7-Setup-x64.exe')).Hash
@@ -122,7 +128,7 @@ foreach ($mode in $expectedErrors.Keys) {
     $testState.Calls = 0
     $failedOutput = Join-Path $run $mode
     $failed = $false
-    try { & $release -CodeSign -InnoCompiler $compiler -OutputDirectory $failedOutput }
+    try { & $release -CodeSign -InnoCompiler $compiler -OutputDirectory $failedOutput -UpdateSigningKeyPath (Join-Path $run 'private.pem') }
     catch {
         if ($_.Exception.Message -notlike "*$($expectedErrors[$mode])*") { throw }
         $failed = $true
@@ -133,4 +139,6 @@ $testState.Mode = 'unsigned'
 $testState.Calls = 0
 & $release -InnoCompiler $compiler -OutputDirectory (Join-Path $run 'unsigned')
 if ($testState.Calls -ne 0) { throw 'Unsigned local build contacted signing provider.' }
+# The fixture key is only needed for this disposable signing-boundary test.
+Remove-Item -LiteralPath (Join-Path $run 'private.pem') -Force -ErrorAction SilentlyContinue
 Write-Host "PASS: signing order, portable payload, final hashes, RSA manifest, five signing failure gates, and unsigned local packaging. Evidence: $run"

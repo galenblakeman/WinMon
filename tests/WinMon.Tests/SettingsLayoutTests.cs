@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows;
 using System.Windows.Media;
@@ -22,10 +23,10 @@ public sealed class SettingsLayoutTests
         {
             var opened = window.Section;
             SettingsSection[] expected = UpdatePolicy.GitHubUpdatesEnabled
-                ? [SettingsSection.General, SettingsSection.Appearance, SettingsSection.Monitoring,
+                ? [SettingsSection.General, SettingsSection.Appearance, SettingsSection.Monitoring, SettingsSection.Network,
                     SettingsSection.AutomaticCaptures,
                     SettingsSection.Updates]
-                : [SettingsSection.General, SettingsSection.Appearance, SettingsSection.Monitoring,
+                : [SettingsSection.General, SettingsSection.Appearance, SettingsSection.Monitoring, SettingsSection.Network,
                     SettingsSection.AutomaticCaptures];
             var shown = expected.Select(section =>
             {
@@ -47,7 +48,7 @@ public sealed class SettingsLayoutTests
     }
 
     [Test]
-    public void Appearance_ContainsThemePaletteAndGaugeWhileMonitoringContainsPeakWindow()
+    public void Sections_SeparateAppearanceMonitoringAndNetworkControls()
     {
         var window = Settings(new MonitorPreferences
             { Theme = "Porcelain", ChartPalette = "Ocean", GaugeStyle = GaugeStyle.Needle,
@@ -58,7 +59,12 @@ public sealed class SettingsLayoutTests
             window.ShowSection(SettingsSection.Appearance);
             var appearance = Descendants(window).ToArray();
             window.ShowSection(SettingsSection.Monitoring);
+            window.GaugePeakWindowSelector.SelectedIndex = 2;
+            var pendingPeakWindow = window.GaugePeakWindowSelector.SelectedItem;
             var monitoring = Descendants(window).ToArray();
+            window.ShowSection(SettingsSection.Network);
+            var network = Descendants(window).ToArray();
+            window.ShowSection(SettingsSection.Monitoring);
 
             Assert.Multiple(() =>
             {
@@ -77,6 +83,21 @@ public sealed class SettingsLayoutTests
                 Assert.That(appearance, Does.Contain(window.GaugeSelector));
                 Assert.That(appearance, Does.Not.Contain(window.GaugePeakWindowSelector));
                 Assert.That(monitoring, Does.Contain(window.GaugePeakWindowSelector));
+                Assert.That(monitoring, Does.Contain(window.PrimaryDriveSelector));
+                Assert.That(monitoring, Does.Contain(window.SecondaryDriveSelector));
+                Assert.That(monitoring, Does.Not.Contain(window.NetworkInterfaceSelector));
+                Assert.That(monitoring.OfType<NetworkMonitoringSettings>(), Is.Empty);
+                Assert.That(network, Does.Contain(window.NetworkInterfaceSelector));
+                Assert.That(network.OfType<NetworkMonitoringSettings>(), Is.Not.Empty);
+                Assert.That(network, Does.Not.Contain(window.GaugePeakWindowSelector));
+                Assert.That(network, Does.Not.Contain(window.PrimaryDriveSelector));
+                Assert.That(network, Does.Not.Contain(window.SecondaryDriveSelector));
+                Assert.That(window.GaugePeakWindowSelector.SelectedItem, Is.EqualTo(pendingPeakWindow),
+                    "Switching pages preserves pending settings.");
+                Assert.That(window.ProcessNetworkMonitoringCheckBox.Content,
+                    Is.EqualTo(Strings.NetworkProcessMonitoringEnabled));
+                Assert.That(AutomationProperties.GetLiveSetting(window.ProcessNetworkMonitoringStatus),
+                    Is.EqualTo(AutomationLiveSetting.Polite));
                 Assert.That(window.ThemeSelector.SelectedValue, Is.EqualTo("Porcelain"));
                 Assert.That(window.PaletteSelector.SelectedValue, Is.EqualTo("Ocean"));
                 Assert.That(window.GaugeSelector.SelectedValue, Is.EqualTo(GaugeStyle.Needle));
@@ -97,7 +118,7 @@ public sealed class SettingsLayoutTests
         {
             var content = (FrameworkElement)window.Content;
             foreach (var section in new[]
-                     { SettingsSection.General, SettingsSection.Appearance, SettingsSection.Monitoring })
+                     { SettingsSection.General, SettingsSection.Appearance, SettingsSection.Monitoring, SettingsSection.Network })
             {
                 window.ShowSection(section);
                 content.Measure(new Size(width, 640));
@@ -453,7 +474,7 @@ public sealed class SettingsLayoutTests
             ], currentNetworkName: "Ethernet");
         try
         {
-            window.ShowSection(SettingsSection.Monitoring);
+            window.ShowSection(SettingsSection.Network);
             Assert.That(Descendants(window), Does.Contain(window.NetworkInterfaceSelector));
             await window.LoadNetworkInterfacesAsync();
             Assert.Multiple(() =>
@@ -486,6 +507,157 @@ public sealed class SettingsLayoutTests
         }
         finally
         {
+            window.Close();
+        }
+    }
+
+    [Test]
+    public async Task ProcessNetworkMonitoring_EnableFailureDoesNotAcceptOrPersistThePreference()
+    {
+        var calls = 0;
+        var window = new SettingsWindow(new MonitorPreferences(), () => [],
+            changeNetworkMonitoring: (enabled, _) =>
+            {
+                calls++;
+                return Task.FromResult(new NetworkMonitoringChangeResult(false,
+                    NetworkMonitoringState.SetupUnavailable));
+            });
+        try
+        {
+            window.ProcessNetworkMonitoringCheckBox.IsChecked = true;
+
+            await window.SaveAsync();
+
+            Assert.That(window.Section, Is.EqualTo(SettingsSection.Network));
+            if (!NetworkSetupBroker.Supported)
+            {
+                Assert.Multiple(() =>
+                {
+                    Assert.That(calls, Is.Zero);
+                    Assert.That(window.Result, Is.Null);
+                    Assert.That(window.ProcessNetworkMonitoringCheckBox.IsEnabled, Is.False);
+                    Assert.That(window.ProcessNetworkMonitoringStatus.Text,
+                        Is.EqualTo(Strings.NetworkProcessMonitoringStoreUnavailable));
+                });
+                return;
+            }
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(calls, Is.EqualTo(1));
+                Assert.That(window.Result, Is.Null);
+                Assert.That(window.ProcessNetworkMonitoringCheckBox.IsChecked, Is.False);
+                Assert.That(window.ProcessNetworkMonitoringStatus.Text,
+                    Is.EqualTo(Strings.NetworkProcessMonitoringSetupUnavailable));
+            });
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [Test]
+    public void ProcessNetworkMonitoring_TogglingThenCancellingDoesNotInvokeSetup()
+    {
+        var calls = 0;
+        var window = new SettingsWindow(new MonitorPreferences(), () => [],
+            changeNetworkMonitoring: (_, _) =>
+            {
+                calls++;
+                return Task.FromResult(new NetworkMonitoringChangeResult(true, NetworkMonitoringState.Active));
+            });
+        try
+        {
+            window.ProcessNetworkMonitoringCheckBox.IsChecked = true;
+            window.Close();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(calls, Is.Zero);
+                Assert.That(window.Result, Is.Null);
+            });
+        }
+        finally
+        {
+            if (window.IsLoaded) window.Close();
+        }
+    }
+
+    [Test]
+    public void ProcessNetworkMonitoring_EnabledPreferenceShowsSuppliedActiveState()
+    {
+        var window = new SettingsWindow(new MonitorPreferences { ProcessNetworkMonitoringEnabled = true }, () => [],
+            networkMonitoringState: NetworkMonitoringState.Active);
+        try
+        {
+            var expectedState = NetworkSetupBroker.Supported
+                ? Strings.NetworkProcessMonitoringActive
+                : Strings.NetworkProcessMonitoringStoreUnavailable;
+            Assert.Multiple(() =>
+            {
+                Assert.That(window.ProcessNetworkMonitoringCheckBox.IsChecked, Is.True);
+                Assert.That(window.ProcessNetworkMonitoringStatus.Text,
+                    Is.EqualTo(expectedState));
+                Assert.That(window.RepairNetworkMonitoringButton.Visibility, Is.EqualTo(Visibility.Collapsed));
+            });
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [Test]
+    public void ProcessNetworkMonitoring_UpdateRequiredShowsLocalizedRepairAction()
+    {
+        var window = new SettingsWindow(new MonitorPreferences { ProcessNetworkMonitoringEnabled = true }, () => []);
+        try
+        {
+            window.RefreshNetworkMonitoringState(NetworkMonitoringState.UpdateRequired);
+            Assert.Multiple(() =>
+            {
+                Assert.That(window.ProcessNetworkMonitoringStatus.Text, Is.EqualTo(Strings.NetworkProcessMonitoringUpdateRequired));
+                Assert.That(window.RepairNetworkMonitoringButton.Visibility, Is.EqualTo(Visibility.Visible));
+            });
+        }
+        finally { window.Close(); }
+    }
+
+    [Test]
+    public async Task ProcessNetworkMonitoring_BusySaveDisablesAndRestoresNavigation()
+    {
+        var change = new TaskCompletionSource<NetworkMonitoringChangeResult>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        var window = new SettingsWindow(new MonitorPreferences(), () => [],
+            changeNetworkMonitoring: (_, _) => change.Task);
+        try
+        {
+            if (!NetworkSetupBroker.Supported)
+            {
+                Assert.That(window.Navigation.IsEnabled, Is.True);
+                Assert.That(window.ProcessNetworkMonitoringCheckBox.IsEnabled, Is.False);
+                return;
+            }
+
+            window.ProcessNetworkMonitoringCheckBox.IsChecked = true;
+            Task saving = window.SaveAsync();
+            await Task.Yield();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(window.Navigation.IsEnabled, Is.False);
+            });
+
+            change.SetResult(new NetworkMonitoringChangeResult(false, NetworkMonitoringState.Failed));
+            await saving;
+
+            Assert.That(window.Navigation.IsEnabled, Is.True);
+        }
+        finally
+        {
+            if (!change.Task.IsCompleted)
+                change.TrySetCanceled();
             window.Close();
         }
     }

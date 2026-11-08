@@ -399,7 +399,7 @@
                                     TextAlignment="Right"
                                     TextWrapping="Wrap"
                                     Visibility="Collapsed" />
-                                <StackPanel Grid.Row="0" Grid.Column="0" Margin="12,0,0,0" Orientation="Horizontal" VerticalAlignment="Center">
+                                <StackPanel Grid.Row="0" Grid.Column="0" Margin="0" Orientation="Horizontal" VerticalAlignment="Center">
                                     <TextBlock
                                         x:Name="LiveCaption"
                                         Margin="0,0,10,0"
@@ -434,14 +434,14 @@
                         <Grid x:Name="ChartBody" Grid.Row="2">
                             <controls:CpuGraph
                                 x:Name="OverallGraph"
-                                Margin="20,0"
+                                Margin="8,0"
                                 AutomationProperties.Name="{Binding [CPUMemoryConfiguredDisksNetworkAndGPUOverlayHistoryClick], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                                 Focusable="True"
                                 ShowGrid="True"
                                 SizeChanged="OnSnapshotChartSizeChanged" />
                             <Canvas
                                 x:Name="SnapshotLayer"
-                                Margin="20,0"
+                                Margin="8,0"
                                 ClipToBounds="True"
                                 Visibility="Collapsed">
                                 <Polygon
@@ -657,7 +657,7 @@
                             <Border
                                 x:Name="ActivityHeader"
                                 Margin="0"
-                                Padding="8,0,0,0"
+                                Padding="0"
                                 Background="{DynamicResource SectionHeaderSurface}"
                                 BorderBrush="{DynamicResource Line}"
                                 BorderThickness="0,0,0,1">
@@ -670,6 +670,7 @@
                                     <StackPanel KeyboardNavigation.TabNavigation="Once" Orientation="Horizontal">
                                         <RadioButton
                                             x:Name="ProcessesTab"
+                                            Padding="8,0,12,0"
                                             ToolTip="{Binding [ProcessesTabHelp], Source={x:Static resources:Strings.Text}}"
                                             Content="{Binding [ProcessesTab], Source={x:Static resources:Strings.Text}}"
                                             GroupName="ActivityView"
@@ -720,7 +721,7 @@
                                         Visibility="Collapsed"><Run Text="{Binding [ActivityTotal], Source={x:Static resources:Strings.Text}, Mode=OneWay}" /><Run Text=" " /><Run x:Name="UsageTotalValue" Foreground="{DynamicResource Text}" /><Run Text="  ·  " /><Run Text="{Binding [ActivityActive], Source={x:Static resources:Strings.Text}, Mode=OneWay}" /><Run Text=" " /><Run x:Name="UsageActiveValue" Foreground="{DynamicResource Text}" /></TextBlock>
                                     <TextBlock x:Name="ConnectionCounts" Grid.Column="1" Margin="12,0,8,0"
                                         VerticalAlignment="Center" FontSize="12" Foreground="{DynamicResource Muted}"
-                                        Visibility="Collapsed"><Run Text="TCP " /><Run x:Name="ConnectionTcpValue" Foreground="{DynamicResource Text}" /><Run Text="  ·  UDP " /><Run x:Name="ConnectionUdpValue" Foreground="{DynamicResource Text}" /></TextBlock>
+                                        Visibility="Collapsed"><Run Text="TCP " /><Run x:Name="ConnectionTcpValue" Foreground="{DynamicResource Text}" /><Run Text="  ·  UDP " /><Run x:Name="ConnectionUdpValue" Foreground="{DynamicResource Text}" /><Run x:Name="ConnectionTrafficValue" Foreground="{DynamicResource Text}" /></TextBlock>
                                     <controls:ActivityPanelButton
                                         x:Name="ActivityPanelToggle"
                                         Grid.Column="2"

@@ -144,8 +144,12 @@ internal sealed partial class WindowDiagnostics
             {
                 fixture.Preferences = fixture.Preferences with { Theme = theme };
                 fixture.ApplyTheme();
+                var networkChange = new TaskCompletionSource<NetworkMonitoringChangeResult>(
+                    TaskCreationOptions.RunContinuationsAsynchronously);
+                Task? networkSave = null;
                 var settings = new SettingsWindow(fixture.Preferences, captureFolder: reports,
-                    checkForUpdates: () => Task.FromResult(Strings.UpToDate)) { Owner = fixture };
+                    checkForUpdates: () => Task.FromResult(Strings.UpToDate),
+                    changeNetworkMonitoring: (_, _) => networkChange.Task) { Owner = fixture };
                 try
                 {
                     settings.Show();
@@ -155,18 +159,51 @@ internal sealed partial class WindowDiagnostics
                         if (settings.Section != section) continue;
                         settings.UpdateLayout();
                         overflow[$"{theme} {section}"] = Math.Round(settings.PageOverflow, 1);
-                        // Appearance shows its preview beside every choice, so it must not scroll at full height.
-                        if (section == SettingsSection.Appearance && settings.PageOverflow > 0.5 &&
+                        // These sections must show every setting without scrolling at full height.
+                        if (section is SettingsSection.Appearance or SettingsSection.Monitoring or SettingsSection.Network && settings.PageOverflow > 0.5 &&
                             !settings.HeightLimitedByWorkArea)
                             throw new InvalidOperationException(
-                                $"Settings Appearance scrolls by {settings.PageOverflow:F0} DIPs in {theme}.");
+                                $"Settings {section} scrolls by {settings.PageOverflow:F0} DIPs in {theme}.");
                         var name = theme == "Dark" ? $"settings-{section.ToString().ToLowerInvariant()}.png"
                             : $"settings-light-{section.ToString().ToLowerInvariant()}.png";
                         await CaptureServiceWindowAsync(settings, Path.Combine(output, name), cancellationToken);
+                        if (section == SettingsSection.Network)
+                        {
+                            settings.RemoveNetworkMonitoringServiceButton.BringIntoView();
+                            settings.UpdateLayout();
+                            var networkMonitoringName = theme == "Dark" ? "settings-network-monitoring.png"
+                                : "settings-light-network-monitoring.png";
+                            await CaptureServiceWindowAsync(settings, Path.Combine(output, networkMonitoringName),
+                                cancellationToken);
+                            if (NetworkSetupBroker.Supported)
+                            {
+                                settings.RefreshNetworkMonitoringState(NetworkMonitoringState.UpdateRequired);
+                                if (settings.ProcessNetworkMonitoringStatus.Text != Strings.NetworkProcessMonitoringUpdateRequired)
+                                    throw new InvalidOperationException("Incompatible service needs the localized update-required state.");
+                                await CaptureServiceWindowAsync(settings, Path.Combine(output,
+                                    theme == "Dark" ? "settings-network-update-required.png" : "settings-light-network-update-required.png"),
+                                    cancellationToken);
+                                settings.RefreshNetworkMonitoringState(NetworkMonitoringState.Disabled);
+                                settings.ProcessNetworkMonitoringCheckBox.IsChecked = true;
+                                networkSave = settings.SaveAsync();
+                                await System.Windows.Threading.Dispatcher.Yield(
+                                    System.Windows.Threading.DispatcherPriority.Background);
+                                if (settings.Navigation.IsEnabled || settings.SaveButton.IsEnabled)
+                                    throw new InvalidOperationException("Setup must disable navigation and repeated saves.");
+                                await CaptureServiceWindowAsync(settings, Path.Combine(output,
+                                    theme == "Dark" ? "settings-network-busy.png" : "settings-light-network-busy.png"),
+                                    cancellationToken);
+                                networkChange.TrySetResult(new NetworkMonitoringChangeResult(false, NetworkMonitoringState.Cancelled));
+                                await networkSave;
+                            }
+                            settings.ScrollSettingsPageToTop();
+                        }
                     }
                 }
                 finally
                 {
+                    networkChange.TrySetResult(new NetworkMonitoringChangeResult(false, NetworkMonitoringState.Cancelled));
+                    if (networkSave is not null) await networkSave;
                     settings.Close();
                 }
             }

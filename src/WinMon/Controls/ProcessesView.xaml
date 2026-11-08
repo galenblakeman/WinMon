@@ -6,9 +6,9 @@
     xmlns:resources="clr-namespace:WinMon.Resources">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="20" />
+            <ColumnDefinition Width="8" />
             <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="20" />
+            <ColumnDefinition Width="8" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -20,7 +20,7 @@
             x:Name="ProcessHeader"
             Grid.Row="0"
             Margin="0,0,0,8"
-            Padding="20,5"
+            Padding="8,5"
             Background="{DynamicResource SectionHeaderSurface}"
             BorderBrush="{DynamicResource Line}"
             BorderThickness="0">

@@ -1581,6 +1581,24 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
   <data name="NetworkInterfaceLabel" xml:space="preserve"><value>Interface réseau</value></data>
   <data name="NetworkInterfaceUnavailable" xml:space="preserve"><value>Interface indisponible ({0})</value></data>
   <data name="NetworkSelectionNote" xml:space="preserve"><value>Automatique choisit une interface Ethernet ou Wi-Fi connectée. Une interface choisie reste sélectionnée si elle se déconnecte ; ses mesures sont indisponibles jusqu’à son retour.</value></data>
+  <data name="NetworkProcessMonitoringHeading" xml:space="preserve"><value>Surveillance réseau par processus</value></data>
+  <data name="NetworkProcessMonitoringEnabled" xml:space="preserve"><value>Surveiller le trafic réseau par processus</value></data>
+  <data name="NetworkProcessMonitoringNote" xml:space="preserve"><value>Collecte l’activité d’envoi et de réception en direct de vos processus. La première configuration installe un service Windows privilégié et demande l’autorisation d’un administrateur. Les lancements suivants ne le font pas. La désactivation arrête la collecte de cette application et laisse le service partagé installé.</value></data>
+  <data name="NetworkProcessMonitoringDisabled" xml:space="preserve"><value>La surveillance réseau par processus est désactivée.</value></data>
+  <data name="NetworkProcessMonitoringEnabling" xml:space="preserve"><value>Application du paramètre de surveillance réseau par processus…</value></data>
+  <data name="NetworkProcessMonitoringWarmingUp" xml:space="preserve"><value>La surveillance réseau par processus se prépare.</value></data>
+  <data name="NetworkProcessMonitoringActive" xml:space="preserve"><value>La surveillance réseau par processus est active.</value></data>
+  <data name="NetworkProcessMonitoringIncomplete" xml:space="preserve"><value>La surveillance réseau par processus a des relevés incomplets.</value></data>
+  <data name="NetworkProcessMonitoringUnavailable" xml:space="preserve"><value>La surveillance réseau par processus est indisponible.</value></data>
+  <data name="NetworkProcessMonitoringUpdateRequired" xml:space="preserve"><value>Une mise à jour du service réseau est requise.</value></data>
+  <data name="NetworkProcessMonitoringSetupUnavailable" xml:space="preserve"><value>La configuration signée de surveillance réseau est indisponible.</value></data>
+  <data name="NetworkProcessMonitoringCancelled" xml:space="preserve"><value>La surveillance réseau par processus n’a pas été activée.</value></data>
+  <data name="NetworkProcessMonitoringFailed" xml:space="preserve"><value>Impossible d’activer la surveillance réseau par processus.</value></data>
+  <data name="NetworkProcessMonitoringStoreUnavailable" xml:space="preserve"><value>La surveillance réseau par processus est indisponible dans la version Microsoft Store.</value></data>
+  <data name="NetworkProcessMonitoringRemove" xml:space="preserve"><value>Supprimer le service de surveillance réseau…</value></data>
+  <data name="NetworkProcessMonitoringRepair" xml:space="preserve"><value>Réparer la surveillance réseau</value></data>
+  <data name="NetworkProcessMonitoringRemoveTitle" xml:space="preserve"><value>Supprimer le service de surveillance réseau</value></data>
+  <data name="NetworkProcessMonitoringRemoveConfirm" xml:space="preserve"><value>Supprimer le service de surveillance réseau pour tous les utilisateurs Windows de cet ordinateur ? L’autorisation d’un administrateur est requise. La surveillance s’arrêtera pour tous les utilisateurs.</value></data>
   <data name="SettingsStartupAndTray" xml:space="preserve"><value>Démarrage et zone de notification</value></data>
   <data name="SettingsHistory" xml:space="preserve"><value>Historique</value></data>
   <data name="SettingsRetentionNote" xml:space="preserve"><value>Jusqu’où remontent le graphique, le mode Capture et l’historique des processus. Une conservation plus longue utilise plus de mémoire.</value></data>
@@ -1673,6 +1691,8 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
   <data name="ConnectionsRemoteEndpoint" xml:space="preserve"><value>Point de terminaison distant</value></data>
   <data name="ConnectionsState" xml:space="preserve"><value>État</value></data>
   <data name="ConnectionsNote" xml:space="preserve"><value>UDP affiche uniquement les points de terminaison locaux. Le nombre de connexions n’indique pas le volume de trafic.</value></data>
+  <data name="ConnectionsNetworkProvisional" xml:space="preserve"><value>Les débits réseau par processus utilisent une fenêtre d’événements différée et provisoire.</value></data>
+  <data name="ConnectionsNetworkOwnerTotals" xml:space="preserve"><value>Totaux du processus/de l’exécutable (tous les protocoles)</value></data>
   <data name="ConnectionsUnavailable" xml:space="preserve"><value>Les données de connexion ne sont pas disponibles.</value></data>
   <data name="ConnectionsPartial" xml:space="preserve"><value>Certaines données de connexion ne sont pas disponibles.</value></data>
   <data name="ConnectionsEmpty" xml:space="preserve"><value>Aucune connexion correspondante.</value></data>
@@ -1737,5 +1757,15 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
   <data name="ProcessesTabHelp" xml:space="preserve"><value>Comparez les processus actifs par CPU, mémoire, GPU et E/S. Recherchez, regroupez ou épinglez des processus pour suivre leur activité.</value></data>
   <data name="ServicesTabHelp" xml:space="preserve"><value>Consultez l’état et les ressources des services Windows, avec leurs processus hôtes et de travail. Démarrez, arrêtez ou redémarrez les services actuels lorsque cela est autorisé.</value></data>
   <data name="UsageTabHelp" xml:space="preserve"><value>Comparez le temps CPU, le temps GPU et les E/S cumulés par application depuis le lancement de WinMon ou la remise à zéro, même pour les applications fermées.</value></data>
-  <data name="ConnectionsTabHelp" xml:space="preserve"><value>Identifiez les applications ayant des connexions TCP et des points de terminaison UDP, avec adresses, ports et états. Cette vue reste en direct pendant les captures.</value></data>
+  <data name="ConnectionsTabHelp" xml:space="preserve"><value>Comparez les applications par débits et nombres TCP/UDP. Développez les points de terminaison ou ouvrez Propriétés pour les adresses et états. Capture suit l’échantillon sélectionné.</value></data>
+  <data name="ConnectionsTop" xml:space="preserve"><value>Nombre des applications principales</value></data>
+  <data name="ConnectionsRankBy" xml:space="preserve"><value>Classer les applications par</value></data>
+  <data name="ConnectionsReceiveRate" xml:space="preserve"><value>Réception/s</value></data>
+  <data name="ConnectionsSendRate" xml:space="preserve"><value>Envoi/s</value></data>
+  <data name="ConnectionsTcpCount" xml:space="preserve"><value>Nombre TCP</value></data>
+  <data name="ConnectionsUdpCount" xml:space="preserve"><value>Nombre UDP</value></data>
+  <data name="ConnectionsHistoryUnavailable" xml:space="preserve"><value>L’historique des connexions est indisponible pour cet échantillon.</value></data>
+  <data name="ConnectionsHistoryNote" xml:space="preserve"><value>Connexions observées à l’échantillon sélectionné. Les débits sont des moyennes sur cinq secondes, se terminant normalement trois secondes avant la collecte.</value></data>
+  <data name="ConnectionsEnableTrafficMonitoring" xml:space="preserve"><value>Activer le suivi du trafic…</value></data>
+  <data name="ConnectionsTrafficRankingUnavailable" xml:space="preserve"><value>Activez le suivi du trafic par processus pour classer par débit de réception ou émission.</value></data>
 </root>

@@ -1,6 +1,6 @@
 # Releasing WinMon
 
-The scripts require Windows x64, PowerShell 7.4 or later, the .NET SDK pinned in `global.json`, and Inno Setup 6.7.3. Official release packaging signs and timestamps the application and installer through Azure Artifact Signing. Its pinned PowerShell module also requires the .NET 8 runtime. Inno Setup's commercial licensing guidance applies to use of its compiler; see its [license information](https://jrsoftware.org/isorder.php).
+The scripts require Windows x64, PowerShell 7.4 or later, the .NET SDK pinned in `global.json`, Inno Setup 6.7.3, and a NativeAOT-capable Visual Studio Desktop C++ workload with the Windows SDK. Official release packaging signs and timestamps the application, service, setup helper and installer through Azure Artifact Signing. Its pinned PowerShell module also requires the .NET 8 runtime. Inno Setup's commercial licensing guidance applies to use of its compiler; see its [license information](https://jrsoftware.org/isorder.php).
 
 ## Code signing policy
 
@@ -28,6 +28,10 @@ The release script checks the product/application manifest versions, runs the co
 Assets are placed in `artifacts/releases/<version>`. Existing output is refused to prevent accidental replacement of a published version. For another local build, specify a fresh `-OutputDirectory`. Build output and TRX results remain under the printed `artifacts/packaging/<run>` directory. These are repeatable build steps, not a guarantee of byte-identical binaries.
 
 The installer supports x64 Windows starting at build 14393; runtime compatibility does not establish Microsoft support for an out-of-support Windows edition. Windows ARM64 and x86 are not included in this release. No separate .NET installation is required.
+
+## Optional service payload
+
+Signed desktop releases first run `tools/New-NetworkServicePackage.ps1`: publish the self-contained service and NativeAOT helper, sign both through Artifact Signing, and sign a bounded version/runtime/protocol/hash/size manifest with the existing RSA release key. The four assets are embedded into the application before it is signed; portable updates still replace only WinMon.exe. `-CodeSign` requires the matching RSA private key. Unsigned local builds omit the bundle and cannot provision a service. Neither path installs a service during packaging. A signed/protected installation acceptance run remains mandatory before release; unit tests and fake signing-boundary tests do not establish UAC, SCM or alternate-account behavior. Microsoft Store builds reject a supplied network setup bundle.
 
 ## MSIX / Microsoft Store
 
@@ -57,6 +61,10 @@ For each release:
 4. Review the workflow results, draft release notes, assets, checksums and signing status. Publish the draft when ready.
 
 Once a release is public, keep its assets unchanged: WinGet URLs and hashes refer to those exact bytes. Ship corrections under a new version. If adding signatures later, sign the application before packaging and the installer before generating WinGet manifests/checksums.
+
+## Service validation before release
+
+For service-only native acceptance before a release, the manual `Build signed network service test bundle` workflow builds and signs the helper/service with the existing release environment and uploads Actions artifacts. It creates no release or tag and installs nothing. The isolated validation branch bootstrapped this workflow with a branch-restricted push trigger; run 42426234294 built and signed the bundle successfully, and local package verification passed. Native installation acceptance remains separate. Use an approved reviewed ref and verify the downloaded bundle before installing it. See [code signing](../docs/CODE_SIGNING.md#service-validation-without-a-release). Unsigned local packages omit provisioning and cannot validate the first-enable installation path.
 
 ## WinGet submission
 

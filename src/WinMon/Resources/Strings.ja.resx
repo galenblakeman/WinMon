@@ -1581,6 +1581,24 @@ Windows の正常性状態: {2}</value>
   <data name="NetworkInterfaceLabel" xml:space="preserve"><value>ネットワーク インターフェイス</value></data>
   <data name="NetworkInterfaceUnavailable" xml:space="preserve"><value>利用できないインターフェイス ({0})</value></data>
   <data name="NetworkSelectionNote" xml:space="preserve"><value>自動では接続中の Ethernet または Wi-Fi を選びます。手動で選んだインターフェイスは切断後も選択されたままになり、再接続まで測定値を表示しません。</value></data>
+  <data name="NetworkProcessMonitoringHeading" xml:space="preserve"><value>プロセスごとのネットワーク監視</value></data>
+  <data name="NetworkProcessMonitoringEnabled" xml:space="preserve"><value>プロセスごとにネットワーク トラフィックを監視する</value></data>
+  <data name="NetworkProcessMonitoringNote" xml:space="preserve"><value>プロセスのリアルタイムの送受信アクティビティを収集します。初回セットアップでは特権 Windows サービスをインストールするため、管理者の承認が必要です。以後の起動では不要です。無効にするとこのアプリの収集は停止しますが、共有サービスはインストールされたままです。</value></data>
+  <data name="NetworkProcessMonitoringDisabled" xml:space="preserve"><value>プロセスごとのネットワーク監視はオフです。</value></data>
+  <data name="NetworkProcessMonitoringEnabling" xml:space="preserve"><value>プロセスごとのネットワーク監視設定を適用しています…</value></data>
+  <data name="NetworkProcessMonitoringWarmingUp" xml:space="preserve"><value>プロセスごとのネットワーク監視を準備しています。</value></data>
+  <data name="NetworkProcessMonitoringActive" xml:space="preserve"><value>プロセスごとのネットワーク監視は有効です。</value></data>
+  <data name="NetworkProcessMonitoringIncomplete" xml:space="preserve"><value>プロセスごとのネットワーク監視に不完全な読み取りがあります。</value></data>
+  <data name="NetworkProcessMonitoringUnavailable" xml:space="preserve"><value>プロセスごとのネットワーク監視は利用できません。</value></data>
+  <data name="NetworkProcessMonitoringUpdateRequired" xml:space="preserve"><value>ネットワーク サービスの更新が必要です。</value></data>
+  <data name="NetworkProcessMonitoringSetupUnavailable" xml:space="preserve"><value>署名済みネットワーク監視セットアップは利用できません。</value></data>
+  <data name="NetworkProcessMonitoringCancelled" xml:space="preserve"><value>プロセスごとのネットワーク監視は有効になりませんでした。</value></data>
+  <data name="NetworkProcessMonitoringFailed" xml:space="preserve"><value>プロセスごとのネットワーク監視を有効にできませんでした。</value></data>
+  <data name="NetworkProcessMonitoringStoreUnavailable" xml:space="preserve"><value>プロセスごとのネットワーク監視は Microsoft Store 版では利用できません。</value></data>
+  <data name="NetworkProcessMonitoringRemove" xml:space="preserve"><value>ネットワーク監視サービスを削除…</value></data>
+  <data name="NetworkProcessMonitoringRepair" xml:space="preserve"><value>ネットワーク監視を修復</value></data>
+  <data name="NetworkProcessMonitoringRemoveTitle" xml:space="preserve"><value>ネットワーク監視サービスを削除</value></data>
+  <data name="NetworkProcessMonitoringRemoveConfirm" xml:space="preserve"><value>このコンピューターのすべての Windows ユーザー用にネットワーク監視サービスを削除しますか？ 管理者の承認が必要です。すべてのユーザーの監視が停止します。</value></data>
   <data name="SettingsStartupAndTray" xml:space="preserve"><value>起動と通知領域</value></data>
   <data name="SettingsHistory" xml:space="preserve"><value>履歴</value></data>
   <data name="SettingsRetentionNote" xml:space="preserve"><value>グラフ、キャプチャ モード、プロセス履歴でさかのぼれる期間です。長く保持するほどメモリを多く使います。</value></data>
@@ -1673,6 +1691,8 @@ Windows の正常性状態: {2}</value>
   <data name="ConnectionsRemoteEndpoint" xml:space="preserve"><value>リモート エンドポイント</value></data>
   <data name="ConnectionsState" xml:space="preserve"><value>状態</value></data>
   <data name="ConnectionsNote" xml:space="preserve"><value>UDP にはローカル エンドポイントのみ表示されます。接続数はトラフィック量ではありません。</value></data>
+  <data name="ConnectionsNetworkProvisional" xml:space="preserve"><value>プロセスごとのネットワーク レートは、遅延した暫定的なイベント時間ウィンドウを使用します。</value></data>
+  <data name="ConnectionsNetworkOwnerTotals" xml:space="preserve"><value>プロセス/実行可能ファイルの合計（すべてのプロトコル）</value></data>
   <data name="ConnectionsUnavailable" xml:space="preserve"><value>接続の読み取りを利用できません。</value></data>
   <data name="ConnectionsPartial" xml:space="preserve"><value>一部の接続の読み取りを利用できません。</value></data>
   <data name="ConnectionsEmpty" xml:space="preserve"><value>一致する接続はありません。</value></data>
@@ -1737,5 +1757,15 @@ Windows の正常性状態: {2}</value>
   <data name="ProcessesTabHelp" xml:space="preserve"><value>実行中のプロセスをCPU、メモリ、GPU、I/Oで比較します。検索、グループ化、ピン留めで負荷の高いプロセスを追跡できます。</value></data>
   <data name="ServicesTabHelp" xml:space="preserve"><value>Windowsサービスの状態と、ホストおよびワーカープロセスを含むリソース使用量を確認します。操作可能な現在のサービスを開始、停止、再起動できます。</value></data>
   <data name="UsageTabHelp" xml:space="preserve"><value>WinMonの起動時または集計のリセット時からのCPU時間、GPU時間、I/Oの合計をアプリ別に比較します。終了したアプリも含まれます。</value></data>
-  <data name="ConnectionsTabHelp" xml:space="preserve"><value>TCP接続とUDPエンドポイントを所有するアプリを、アドレス、ポート、接続状態とともに表示します。キャプチャ表示中も最新の情報を表示します。</value></data>
+  <data name="ConnectionsTabHelp" xml:space="preserve"><value>受信・送信速度とTCP・UDP数でアプリを比較します。展開またはプロパティでアドレスと状態を確認できます。キャプチャは選択したサンプルを表示します。</value></data>
+  <data name="ConnectionsTop" xml:space="preserve"><value>上位アプリの数</value></data>
+  <data name="ConnectionsRankBy" xml:space="preserve"><value>アプリの並べ替え基準</value></data>
+  <data name="ConnectionsReceiveRate" xml:space="preserve"><value>受信/秒</value></data>
+  <data name="ConnectionsSendRate" xml:space="preserve"><value>送信/秒</value></data>
+  <data name="ConnectionsTcpCount" xml:space="preserve"><value>TCP数</value></data>
+  <data name="ConnectionsUdpCount" xml:space="preserve"><value>UDP数</value></data>
+  <data name="ConnectionsHistoryUnavailable" xml:space="preserve"><value>このサンプルの接続履歴はありません。</value></data>
+  <data name="ConnectionsHistoryNote" xml:space="preserve"><value>選択したサンプルで観測された接続です。速度は5秒間の平均で、通常は収集の3秒前までの値です。</value></data>
+  <data name="ConnectionsEnableTrafficMonitoring" xml:space="preserve"><value>通信量の監視を有効にする…</value></data>
+  <data name="ConnectionsTrafficRankingUnavailable" xml:space="preserve"><value>受信・送信速度で並べ替えるには、プロセスごとの通信監視を有効にしてください。</value></data>
 </root>

@@ -59,6 +59,15 @@ public sealed record MonitorPreferences
     /// <summary>Gets a value indicating whether the Usage tab lists only apps observed with a window.</summary>
     public bool UsageAppsOnly { get; init; }
 
+    /// <summary>Maximum executable groups ranked in Connections; zero shows all.</summary>
+    public int TopConnectionCount { get; init; } = 10;
+
+    /// <summary>Connections ranking: receive rate, send rate, TCP count or UDP count.</summary>
+    public int ConnectionSortColumn { get; init; }
+
+    /// <summary>Limit Connections to owners observed with an application window.</summary>
+    public bool ConnectionAppsOnly { get; init; }
+
     /// <summary>Gets the column that ranks the process rows.</summary>
     public ProcessSort ProcessSort { get; init; }
 
@@ -139,6 +148,9 @@ public sealed record MonitorPreferences
 
     /// <summary>Save retained resource and process samples across ordinary exits.</summary>
     public bool KeepHistoryAcrossRestarts { get; init; }
+
+    /// <summary>Collect network send and receive throughput for individual processes when the optional service is active.</summary>
+    public bool ProcessNetworkMonitoringEnabled { get; init; }
 
     /// <summary>Gets a value indicating whether minimizing the monitor hides it in the notification area.</summary>
     public bool MinimizeToTray { get; init; }
