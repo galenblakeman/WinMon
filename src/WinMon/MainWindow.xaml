@@ -69,6 +69,15 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <!-- DWM paints the native caption buttons in the unpainted right edge. -->
+            <!-- Fill below the native buttons without painting over them. -->
+            <Border
+                x:Name="CaptionButtonFiller"
+                Grid.Row="0"
+                Height="0"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Bottom"
+                Background="{DynamicResource TitleBarSurface}"
+                IsHitTestVisible="False" />
             <!-- AlignTitleBar replaces this fallback with the measured caption-button bounds. -->
             <Border
                 x:Name="TitleBarArea"

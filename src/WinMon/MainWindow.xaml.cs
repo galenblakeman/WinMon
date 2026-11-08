@@ -452,6 +452,8 @@ public partial class MainWindow
         var height = Math.Max(36, buttons.Bottom);
         TitleRow.Height = new GridLength(height);
         TitleBarArea.Margin = new Thickness(0, 0, Math.Max(0, ActualWidth - buttons.Left), 0);
+        CaptionButtonFiller.Width = TitleBarArea.Margin.Right;
+        CaptionButtonFiller.Height = height - buttons.Bottom;
         PinButton.Height = buttons.Height;
         PinButton.Margin = new Thickness(0, buttons.Top, 0, 0);
         if (WindowChrome.GetWindowChrome(this) is not { } chrome ||

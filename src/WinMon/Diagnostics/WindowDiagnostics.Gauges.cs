@@ -187,6 +187,12 @@ internal sealed partial class WindowDiagnostics
                 fixture.Preferences = fixture.Preferences with { Theme = theme, GaugeStyle = GaugeStyle.Bowl };
                 fixture.ApplyTheme();
                 Draw(1000, 840);
+                // The title row may be taller than the native buttons at the current DPI.
+                if (WindowTheme.CaptionButtonBounds(fixture) is { } buttons &&
+                    (Math.Abs(fixture.CaptionButtonFiller.ActualWidth - fixture.TitleBarArea.Margin.Right) > 0.5 ||
+                     Math.Abs(fixture.CaptionButtonFiller.ActualHeight -
+                              Math.Max(0, fixture.TitleRow.ActualHeight - buttons.Bottom)) > 0.5))
+                    throw new InvalidOperationException($"{theme} left a gap below the native caption buttons.");
                 backdropResults.Add(new
                 {
                     Theme = theme, Active = fixture.BackdropActive,
