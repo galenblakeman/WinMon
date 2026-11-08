@@ -81,8 +81,6 @@ public partial class ConnectionsView
         Rows.ItemsSource = _rows;
         Rows.PreviewKeyDown += OnRowKeyDown;
         ActionsDrawer.CollapsedChanged += hidden => ActionsHiddenChanged?.Invoke(hidden);
-        Protocol.ItemsSource = new[] { Strings.AllEntries, "TCP", "UDP" };
-        Protocol.SelectedIndex = 0;
         TopCount.ItemsSource = TopCountChoices.Items;
         Load(_settings);
         Strings.Text.PropertyChanged += OnLanguageChanged;
@@ -148,7 +146,7 @@ public partial class ConnectionsView
         Search.SelectAll();
     }
 
-    internal bool HasOpenDropDown => Protocol.IsDropDownOpen || TopCount.IsDropDownOpen || Rank.IsDropDownOpen;
+    internal bool HasOpenDropDown => TopCount.IsDropDownOpen || Rank.IsDropDownOpen;
     internal bool ClearSearch()
     {
         if (!Search.IsKeyboardFocusWithin || Search.Text.Length == 0) return false;
@@ -169,9 +167,6 @@ public partial class ConnectionsView
 
     private void OnLanguageChanged(object? sender, PropertyChangedEventArgs e)
     {
-        var selected = Protocol.SelectedIndex;
-        Protocol.ItemsSource = new[] { Strings.AllEntries, "TCP", "UDP" };
-        Protocol.SelectedIndex = Math.Max(0, selected);
         _loadingSettings = true;
         try
         {
@@ -188,8 +183,6 @@ public partial class ConnectionsView
         RefreshRows();
     }
     private void OnSearchChanged(object sender, TextChangedEventArgs e) => RefreshRows();
-
-    private void OnProtocolChanged(object sender, SelectionChangedEventArgs e) => RefreshRows();
 
     private void OnSettingsChanged(object sender, RoutedEventArgs e)
     {
@@ -223,11 +216,7 @@ public partial class ConnectionsView
         if (frame?.Available == true)
         {
             var query = Search.Text.Trim();
-            var protocol = Protocol.SelectedIndex;
             var groups = entries
-                .Where(entry => protocol == 0 ||
-                    (protocol == 1 && entry.Connection.Protocol == TransportProtocol.Tcp) ||
-                    (protocol == 2 && entry.Connection.Protocol == TransportProtocol.Udp))
                 .Where(entry => Grouped || Matches(entry, query))
                 .GroupBy(GroupKey, StringComparer.OrdinalIgnoreCase)
                 .Select(group => ConnectionGroup.Create(group.Key, group))
@@ -249,9 +238,9 @@ public partial class ConnectionsView
                     desired.Add(parent);
                     if (!expanded) continue;
                 }
-                foreach (var (entry, key) in KeyedEntries(group.Entries))
+                foreach (var entry in Ordered(group.Entries))
                 {
-                    var child = Row(key);
+                    var child = Row(entry.Key);
                     child.UpdateConnection(entry, !Grouped, OwnerNetworkSummary(entry.Process));
                     desired.Add(child);
                 }
@@ -277,9 +266,11 @@ public partial class ConnectionsView
         if (frame is not null)
         {
             var valid = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var group in entries.GroupBy(GroupKey, StringComparer.OrdinalIgnoreCase))
-                valid.Add(group.Key);
-            foreach (var (_, key) in KeyedEntries(entries)) valid.Add(key);
+            foreach (var entry in entries)
+            {
+                valid.Add(entry.GroupKey);
+                valid.Add(entry.Key);
+            }
             foreach (var key in _cache.Keys.Where(key => !valid.Contains(key)).ToArray()) _cache.Remove(key);
             _expanded.RemoveWhere(key => !valid.Contains(key));
         }
@@ -428,7 +419,19 @@ public partial class ConnectionsView
                 }
             }
             else groupKey = LifetimeKey(connection.ProcessId, connection.ProcessCreationTicks);
-            entries[index] = new ConnectionEntry(connection, owner, groupKey);
+            entries[index] = new ConnectionEntry(connection, owner, groupKey, Endpoint(connection.LocalEndpoint));
+        }
+        // Duplicate identities share one owner, so global numbering matches the former per-group numbering.
+        var counts = new Dictionary<string, int>(StringComparer.Ordinal);
+        foreach (var entry in Ordered(entries))
+        {
+            var connection = entry.Connection;
+            var identity = string.Create(CultureInfo.InvariantCulture,
+                $"lifetime:{connection.ProcessId}:{connection.ProcessCreationTicks?.ToString(CultureInfo.InvariantCulture) ?? "?"}/" +
+                $"{connection.Protocol}:{entry.LocalText}:{(connection.RemoteEndpoint is { } remote ? Endpoint(remote) : "-")}:{connection.State}");
+            counts.TryGetValue(identity, out var occurrence);
+            counts[identity] = occurrence + 1;
+            entry.Key = identity + "/" + occurrence.ToString(CultureInfo.InvariantCulture);
         }
         return entries;
     }
@@ -448,23 +451,9 @@ public partial class ConnectionsView
     private static string LifetimeKey(int pid, long? ticks) => string.Create(CultureInfo.InvariantCulture,
         $"lifetime:{pid}:{ticks?.ToString(CultureInfo.InvariantCulture) ?? "?"}");
 
-    private static string ConnectionKey(NetworkConnection connection) => string.Create(CultureInfo.InvariantCulture,
-        $"{connection.Protocol}:{Endpoint(connection.LocalEndpoint)}:" +
-        $"{(connection.RemoteEndpoint is { } remote ? Endpoint(remote) : "-")}:{connection.State}");
-    private static IEnumerable<(ConnectionEntry Entry, string Key)> KeyedEntries(IEnumerable<ConnectionEntry> entries)
-    {
-        var counts = new Dictionary<string, int>(StringComparer.Ordinal);
-        foreach (var entry in entries
-                     .OrderBy(entry => entry.Connection.Protocol)
-                     .ThenBy(entry => Endpoint(entry.Connection.LocalEndpoint), StringComparer.Ordinal))
-        {
-            var identity = LifetimeKey(entry.Connection.ProcessId, entry.Connection.ProcessCreationTicks) + "/" +
-                ConnectionKey(entry.Connection);
-            counts.TryGetValue(identity, out var occurrence);
-            counts[identity] = occurrence + 1;
-            yield return (entry, identity + "/" + occurrence.ToString(CultureInfo.InvariantCulture));
-        }
-    }
+    private static IEnumerable<ConnectionEntry> Ordered(IEnumerable<ConnectionEntry> entries) => entries
+        .OrderBy(entry => entry.Connection.Protocol)
+        .ThenBy(entry => entry.LocalText, StringComparer.Ordinal);
     private ConnectionDisplayRow Row(string key)
     {
         if (_cache.TryGetValue(key, out var row)) return row;
@@ -600,7 +589,10 @@ public partial class ConnectionsView
     internal static string Endpoint(IPEndPoint endpoint) => endpoint.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6 ? $"[{endpoint.Address}]:{endpoint.Port.ToString(CultureInfo.InvariantCulture)}" : $"{endpoint.Address}:{endpoint.Port.ToString(CultureInfo.InvariantCulture)}";
     internal static string ProtocolText(TransportProtocol protocol) => protocol == TransportProtocol.Tcp ? "TCP" : "UDP";
     internal static string StateText(TcpState? state) => state switch { TcpState.Closed => Strings.ConnectionsTcpStateClosed, TcpState.Listen => Strings.ConnectionsTcpStateListen, TcpState.SynSent => Strings.ConnectionsTcpStateSynSent, TcpState.SynReceived => Strings.ConnectionsTcpStateSynReceived, TcpState.Established => Strings.ConnectionsTcpStateEstablished, TcpState.FinWait1 => Strings.ConnectionsTcpStateFinWait1, TcpState.FinWait2 => Strings.ConnectionsTcpStateFinWait2, TcpState.CloseWait => Strings.ConnectionsTcpStateCloseWait, TcpState.Closing => Strings.ConnectionsTcpStateClosing, TcpState.LastAck => Strings.ConnectionsTcpStateLastAck, TcpState.TimeWait => Strings.ConnectionsTcpStateTimeWait, TcpState.DeleteTcb => Strings.ConnectionsTcpStateDeleteTcb, _ => Strings.MissingReading };
-    internal sealed record ConnectionEntry(NetworkConnection Connection, ProcessUsage? Process, string GroupKey);
+    internal sealed record ConnectionEntry(NetworkConnection Connection, ProcessUsage? Process, string GroupKey, string LocalText)
+    {
+        internal string Key { get; set; } = "";
+    }
     internal readonly record struct NetworkSummary(long ReceivedBytes, long SentBytes, double? ReceiveRate,
         double? SendRate, ProcessNetworkQuality Quality, bool Enabled, bool HasTotals)
     {
@@ -685,6 +677,21 @@ internal sealed class ConnectionDisplayRow(string key) : INotifyPropertyChanged
     }
     internal void UpdateConnection(ConnectionsView.ConnectionEntry entry, bool individual, ConnectionsView.NetworkSummary network)
     {
+        // The row key fixes every endpoint field, so only the owner name, layout, traffic and language change the text.
+        if (!IsGroup && Connection is not null && _individual == individual && NetworkSummary == network &&
+            ReferenceEquals(_textCulture, Strings.Culture) && ReferenceEquals(_formatCulture, CultureInfo.CurrentCulture) &&
+            Name == DisplayName(entry.Process))
+        {
+            if (!ReferenceEquals(Process, entry.Process))
+            {
+                Process = entry.Process;
+                Members = entry.Process is null ? [] : [entry.Process];
+                EnsureIcon();
+            }
+            if (!ReferenceEquals(Connection, entry.Connection)) { Connection = entry.Connection; Connections = [entry.Connection]; }
+            return;
+        }
+        _individual = individual; _textCulture = Strings.Culture; _formatCulture = CultureInfo.CurrentCulture;
         var shown = Shown(); IsGroup = false; Process = entry.Process; Connection = entry.Connection; Connections = [entry.Connection]; Members = entry.Process is null ? [] : [entry.Process]; NetworkSummary = network;
         Name = DisplayName(Process); Detail = Strings.Format(Strings.ConnectionsEndpointProtocol, $"PID {entry.Connection.ProcessId.ToString(CultureInfo.InvariantCulture)}", ConnectionsView.ProtocolText(entry.Connection.Protocol)) +
             $"  ·  {(entry.Connection.RemoteEndpoint is { } endpoint ? ConnectionsView.Endpoint(endpoint) : Strings.MissingReading)}  ·  {ConnectionsView.StateText(entry.Connection.State)}";
@@ -745,6 +752,8 @@ internal sealed class ConnectionDisplayRow(string key) : INotifyPropertyChanged
     }
 
     private ProcessLifetimeIdentity? _iconIdentity;
+    private bool _individual;
+    private CultureInfo? _textCulture, _formatCulture;
     private void EnsureIcon()
     {
         if (Icon is not null && _iconIdentity == Process?.Identity) return;

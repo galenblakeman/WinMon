@@ -22,6 +22,7 @@ This folder contains the current layout reference, feature design notes and edit
 
 - [App-first Connections and Capture](CONNECTIONS-APP-FIRST.md) adds app ranking, separate receive/send columns, Properties and recorded endpoint/traffic history.
 - [Connections display modes](CONNECTIONS-DISPLAY-MODES.md) adds executable grouping, endpoint summaries and activity-header totals.
+- [Connections toolbar](CONNECTIONS-TOOLBAR.md) aligns filters with Processes and keeps activity totals on one line.
 
 - [Tabbed Info](TABBED-INFO.md) separates progressive hardware details, a task guide and About/update actions.
 

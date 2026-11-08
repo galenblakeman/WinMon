@@ -134,8 +134,6 @@ public sealed class ConnectionsViewTests
         Assert.That(view.DisplayedRows, Is.Empty);
         view.Search.Clear();
         Assert.That(view.DisplayedRows, Has.Count.EqualTo(3));
-        view.Protocol.SelectedIndex = 2;
-        Assert.That(view.DisplayedRows.Select(r => r.Connection?.Protocol), Is.EqualTo(new TransportProtocol?[] { null, TransportProtocol.Udp }));
     }
 
     [Test]
@@ -153,6 +151,31 @@ public sealed class ConnectionsViewTests
             Assert.That(view.DisplayedRows.Distinct().Count(), Is.EqualTo(3));
             Assert.That(view.Rows.SelectedItem, Is.SameAs(selected));
         });
+    }
+
+    [Test]
+    public void UnchangedEndpointRowsStillFollowOwnerNameAndLanguage()
+    {
+        var view = new ConnectionsView { Grouped = false };
+        view.Update(Frame(Tcp), [Owner], false);
+        var row = view.DisplayedRows.Single();
+        var renamed = Owner with { AppName = "Renamed app" };
+        view.Update(Frame(Tcp), [renamed], false);
+        Assert.Multiple(() =>
+        {
+            Assert.That(view.DisplayedRows.Single(), Is.SameAs(row));
+            Assert.That(row.Name, Is.EqualTo("Renamed app"));
+            Assert.That(row.Process, Is.SameAs(renamed));
+            Assert.That(row.State, Is.EqualTo("Established"));
+        });
+        var culture = WinMon.Resources.Strings.Culture;
+        try
+        {
+            WinMon.Resources.Strings.SetCulture(new System.Globalization.CultureInfo("de"));
+            view.Update(Frame(Tcp), [renamed], false);
+            Assert.That(row.State, Is.EqualTo("Hergestellt"));
+        }
+        finally { WinMon.Resources.Strings.SetCulture(culture); }
     }
 
     [Test]
@@ -294,11 +317,6 @@ public sealed class ConnectionsViewTests
             Assert.That(row.LocalToolTip, Is.Empty);
             Assert.That(row.State, Is.Empty);
         });
-        view.Protocol.SelectedIndex = 2;
-        row = view.DisplayedRows.Single();
-        Assert.That(row.Local, Is.Empty);
-        Assert.That(row.Remote, Is.Empty);
-        Assert.That(row.State, Is.Empty);
     }
 
     [Test]
@@ -361,18 +379,12 @@ public sealed class ConnectionsViewTests
     }
 
     [Test]
-    public void ProtocolFilterDoesNotChangeExecutableNetworkSummaryOrRepeatItOnEndpoints()
+    public void IndividualModeDoesNotRepeatExecutableNetworkSummaryOnEndpoints()
     {
         var view = new ConnectionsView();
         var network = Network(new ProcessNetworkReading(Owner.ProcessId, Owner.CreationTicks, 100, 200, 10, 20));
         view.Update(Frame(Tcp, Udp), [Owner], false, network, true);
-        var grouped = view.DisplayedRows.Single();
-        view.Protocol.SelectedIndex = 2;
-        Assert.Multiple(() =>
-        {
-        Assert.That(view.DisplayedRows.Single().Network, Is.EqualTo(grouped.Network));
-            Assert.That(view.DisplayedRows.Single().NetworkColumnWidth.Value, Is.EqualTo(172));
-        });
+        Assert.That(view.DisplayedRows.Single().NetworkColumnWidth.Value, Is.EqualTo(172));
         view.IndividualChip.IsChecked = true;
         Assert.That(view.DisplayedRows.All(row => row.NetworkColumnWidth.Value == 172 && row.Network.Length == 0), Is.True);
     }

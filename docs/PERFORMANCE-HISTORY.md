@@ -4,6 +4,36 @@
 
 Dated measurement and validation records, newest first. Each section describes the build and machine it was measured on, and some name code that has since changed or moved. For how to measure today and the decisions still in force, see [Performance](DEVELOPMENT.md#performance) in the developer guide. The raw data named under `artifacts/` is local and not in the repository.
 
+## Connections single-row toolbar (November 7, 2026)
+
+SDK 10.0.403 / .NET 10.0.14. Four sequential before/after pairs used the existing UI benchmark (400 warm-up frames, seven batches of 60). Both payloads include the pre-existing, uncommitted Connections optimizations; this comparison isolates the toolbar/protocol-filter change rather than comparing with `main`. Frozen WinMon.dll hashes: before `CAA1278519B1BD691F9B86F1739B0314793370F89C13A62324CBE8052A2ACA75`, after `4B4ACB0A658DBD695555AF3626C85E41AC8CF8F8225502EFB14E2659D079517C`. The final build subsequently added smoke assertions only. Raw results: `artifacts/connections-layout/{before,after}-{1..4}.json`; medians: `artifacts/connections-layout/row-comparison.json`.
+
+| Connections scenario | Before ms/frame | After ms/frame | Before allocated B/frame | After allocated B/frame |
+| --- | ---: | ---: | ---: | ---: |
+| Grouped, expanded | 2.668 | 2.435 | 920,972 | 920,780 |
+| Individual | 2.921 | 2.900 | 962,525 | 962,333 |
+| Network grouped, expanded | 3.946 | 4.059 | 1,302,153 | 1,297,801 |
+| Network individual | 3.441 | 3.334 | 1,204,400 | 1,200,048 |
+
+Allocations decreased in all four scenarios. Each Connections scenario had a stable pixel hash within each build; differences between builds are intentional. Timing evidence is limited: another independently running `artifacts/perf-tuning/changed/WinMon.Performance.exe` overlapped these runs, and verification overlapped the first changed run. The network-grouped median increased by 0.113 ms (2.9%), smaller than its observed run-to-run spread. These timings do not establish a speed improvement or isolate a regression; an idle-machine comparison remains unverified.
+
+`tools/Verify.ps1 -Smoke connections` passed both builds, five test suites (1,213 tests), and fifteen inspected renders. English/German minimum-width smoke assertions verify that the toolbar controls fit on one row and that the traffic summary contains no line break.
+
+## Connections row keys computed once (November 7, 2026)
+
+SDK 10.0.403 / .NET 10.0.14. Seven alternating baseline/changed pairs (pairs 5–7 launched the changed build first) used the `WinMon.Performance` driver with 400 warm-up frames and seven 60-frame batches. Baseline WinMon.dll `8F2C597D…` (commit `8d5165c`); changed `5C435211…`. Raw results: `artifacts/perf-tuning/{baseline,changed}-{1..7}.json`.
+
+`ConnectionsView` now builds each endpoint's row key and local-endpoint text once per refresh, in `Entries()`, instead of rebuilding them for each displayed group and again for the stale-row pass. Endpoint rows whose key, owner name, layout, traffic summary and language are unchanged skip rebuilding their text.
+
+| Scenario | Baseline median | Changed median | Allocation per frame |
+| --- | ---: | ---: | ---: |
+| Connections, grouped and expanded, monitoring off | 2.57 ms | 2.49 ms | 1,076,196 → 921,020 B (-14%) |
+| Connections, Individual, monitoring off | 3.11 ms | 2.44 ms | 1,983,685 → 962,573 B (-51%) |
+| Connections, grouped and expanded, monitoring on | 3.39 ms | 3.43 ms | 1,457,377 → 1,302,201 B (-11%) |
+| Connections, Individual, monitoring on | 3.92 ms | 3.15 ms | 2,225,585 → 1,204,448 B (-46%) |
+
+Every pixel hash matches the baseline. Allocation in the other scenarios is unchanged (within 4 KB/frame). Their timings were bimodal on this machine during the runs: pinned-selected, for example, alternated between about 3.1 and 4.1 ms in both builds while other work ran on the machine. The grouped cases are within that noise; the Individual improvement held in all but one of seven changed runs.
+
 ## Connections app-first Capture history (November 7, 2026)
 
 SDK 10.0.403 / .NET 10.0.14. Four strictly sequential baseline/changed pairs used the `WinMon.Performance` driver with 400 warm-up frames and seven 60-frame batches. The original baseline payload was frozen before this work; the changed payload was rebuilt after final test and smoke validation, then frozen before measurement. Baseline WinMon.dll SHA-256: `9046875701E5C241C707E607AEE0D9ADA574923CDB6554689DB214A21AE8E210`; changed: `989C0F30D61C4CF5BC9F593CCF5398D891DAAD153862770E93A3F982198EA5A3`. The final changed build also contains concurrent Settings work, which these scenarios do not exercise. Raw results: `artifacts/connections-redesign/accepted-{baseline,changed}-{1..4}.json`.

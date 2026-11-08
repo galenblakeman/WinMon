@@ -167,22 +167,19 @@ internal sealed partial class WindowDiagnostics
                 "Missing endpoint history must not substitute live rows.");
             fixture.SelectedSample = sample;
             fixture.RefreshVisiblePresentation();
-            view.Protocol.Focus();
-            view.Protocol.IsDropDownOpen = true;
+            view.Rank.Focus();
+            view.Rank.IsDropDownOpen = true;
             fixture.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(fixture)!, 0, Key.Escape)
                 { RoutedEvent = Keyboard.PreviewKeyDownEvent });
-            Require(ReferenceEquals(fixture.SelectedSample, sample), "Escape from the protocol menu changed the historical chart.");
-            view.Protocol.IsDropDownOpen = false;
+            Require(ReferenceEquals(fixture.SelectedSample, sample), "Escape from the ranking menu changed the historical chart.");
+            view.Rank.IsDropDownOpen = false;
             fixture.SelectedSample = null;
             fixture.RefreshVisiblePresentation();
             view.Search.Text = "no-such-process";
             Require(view.DisplayedRows.Count == 0, "Name filter did not hide nonmatching processes.");
             view.Search.Text = process.ProcessId.ToString(System.Globalization.CultureInfo.InvariantCulture);
             Require(view.DisplayedRows.Count == 6, "PID search lost matching executable group endpoints.");
-            view.Protocol.SelectedIndex = 2;
-            Require(view.DisplayedRows.Count == 3, "UDP filter did not leave one executable group and its two endpoints.");
             Require(fixture.ConnectionTcpValue.Text == "4" && fixture.ConnectionUdpValue.Text == "2", "Filters changed system-wide header totals.");
-            view.Protocol.SelectedIndex = 0;
             view.Search.Clear();
             view.Rank.SelectedIndex = (int)ConnectionSort.Tcp;
             Require(view.DisplayedRows.First().IsGroup && view.DisplayedRows.First().Connections.Count(c => c.Protocol == TransportProtocol.Tcp) == 3,
@@ -240,6 +237,7 @@ internal sealed partial class WindowDiagnostics
             }
             fixture.Width = 836;
             await CaptureServiceWindowAsync(fixture, Path.Combine(output, "connections-network-narrow.png"), cancellationToken);
+            CheckToolbarLayout();
             var scroller = FindScroller(view.Rows) ?? throw new InvalidOperationException("Connections scroller was not realized.");
             scroller.ScrollToHorizontalOffset(scroller.ScrollableWidth);
             await CaptureServiceWindowAsync(fixture, Path.Combine(output, "connections-network-narrow-scrolled.png"), cancellationToken);
@@ -276,6 +274,7 @@ internal sealed partial class WindowDiagnostics
                 Strings.SetCulture(System.Globalization.CultureInfo.GetCultureInfo("de"));
                 fixture.Width = 836;
                 await CaptureServiceWindowAsync(fixture, Path.Combine(output, "connections-german-narrow.png"), cancellationToken);
+                CheckToolbarLayout();
             }
             finally
             {
@@ -293,6 +292,20 @@ internal sealed partial class WindowDiagnostics
         static void Require(bool condition, string message)
         {
             if (!condition) throw new InvalidOperationException(message);
+        }
+
+        void CheckToolbarLayout()
+        {
+            var view = fixture.ConnectionView;
+            FrameworkElement[] controls = [view.TopCount, view.Rank, view.SearchBorder,
+                view.IndividualChip, view.GroupedChip, view.AppsOnly];
+            var bounds = controls.Select(control => control.TransformToAncestor(view)
+                .TransformBounds(new Rect(control.RenderSize))).ToArray();
+            var center = bounds[0].Top + bounds[0].Height / 2;
+            Require(bounds.All(rect => rect.Width > 0 && rect.Left >= 0 && rect.Right <= view.ActualWidth &&
+                Math.Abs(rect.Top + rect.Height / 2 - center) < 1),
+                "Connections controls must fit on a single row at minimum width.");
+            Require(!fixture.ConnectionTrafficValue.Text.Contains('\n'), "Activity totals must stay on one line.");
         }
 
         static ScrollViewer? FindScroller(DependencyObject parent)

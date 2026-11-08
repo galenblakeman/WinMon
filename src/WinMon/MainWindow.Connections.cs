@@ -82,7 +82,7 @@ public partial class MainWindow
         double? send = ratesAvailable && readings.All(reading => reading.SendBytesPerSecond is >= 0)
             ? readings.Sum(reading => reading.SendBytesPerSecond!.Value) : null;
         ConnectionTrafficValue.Text = networkEnabled
-            ? $"\n↓ {ConnectionsView.NetworkRate(receive)}  ↑ {ConnectionsView.NetworkRate(send)}" : "";
+            ? $"  ·  ↓ {ConnectionsView.NetworkRate(receive)}  ↑ {ConnectionsView.NetworkRate(send)}" : "";
         var details = $"TCP: {ExactCount(_connectionCounts?.Total)}\nUDP: {ExactCount(_connectionCounts?.Secondary)}";
         if (networkEnabled)
             details += $"\n{Strings.ConnectionsNetworkOwnerTotals}\n{Strings.ConnectionsReceiveRate}: {ConnectionsView.NetworkRate(receive)}\n{Strings.ConnectionsSendRate}: {ConnectionsView.NetworkRate(send)}";
