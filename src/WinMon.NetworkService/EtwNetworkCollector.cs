@@ -215,19 +215,34 @@ internal sealed class EtwNetworkCollector : INetworkCollector
         // A closed lifetime is safe for a delayed packet even when the PID has been reused.
         if (_ledger!.HasExitedLifetime(processId, eventQpc)) return true;
         if (_owners.TryGetValue(processId, out var cached) && eventQpc > cached.StartedQpc && eventQpc <= cached.ValidThroughQpc)
-        {
             return true;
-        }
-        if (_rejectedUntil.TryGetValue(processId, out var rejected) && verifiedQpc <= rejected.UntilQpc)
+        if (_rejectedUntil.TryGetValue(processId, out var rejected))
         {
-            if (rejected.Unknown) SignalIncomplete(ProcessNetworkIncompleteReason.OwnershipUnavailable);
-            return false;
+            if (verifiedQpc <= rejected.UntilQpc)
+            {
+                if (rejected.Unknown) SignalIncomplete(ProcessNetworkIncompleteReason.OwnershipUnavailable);
+                return false;
+            }
+            // Another account's process keeps its owner, so only PID reuse can change the verdict.
+            if (rejected.OtherOwnerCreationTicks != 0 && ProcessOwnerProbe.TryReadCreation(processId, out var creation) &&
+                creation == rejected.OtherOwnerCreationTicks)
+            {
+                _rejectedUntil[processId] = rejected with { UntilQpc = checked(verifiedQpc + Stopwatch.Frequency) };
+                return false;
+            }
         }
         return ResolveAndRegister(processId, eventQpc, verifiedQpc, observedTraffic: true);
     }
 
     internal bool ResolveAndRegister(int processId, long eventQpc, long verifiedQpc, bool observedTraffic)
     {
+        // A process's token user never changes, so a known lifetime only needs its creation time rechecked.
+        if (_ledger is not null && _owners.TryGetValue(processId, out var known) && eventQpc > known.StartedQpc &&
+            ProcessOwnerProbe.TryReadCreation(processId, out var knownCreation) && knownCreation == known.CreationTicks)
+        {
+            _owners[processId] = known with { ValidThroughQpc = verifiedQpc };
+            return true;
+        }
         if (_ledger is null || !ProcessOwnerProbe.TryRead(processId, out var owner))
         {
             Reject(processId, verifiedQpc, unknown: true);
@@ -239,7 +254,8 @@ internal sealed class EtwNetworkCollector : INetworkCollector
         var createdQpc = ToSessionQpc(DateTime.FromFileTimeUtc(owner.CreationTicks));
         if (!_allowedSids.Contains(owner.Sid) || eventQpc <= createdQpc)
         {
-            Reject(processId, verifiedQpc);
+            // Only an owner verdict is stable for the lifetime; an event before creation says nothing about it.
+            Reject(processId, verifiedQpc, otherOwnerCreationTicks: _allowedSids.Contains(owner.Sid) ? 0 : owner.CreationTicks);
             return _ledger.HasExitedLifetime(processId, eventQpc);
         }
         if (_owners.TryGetValue(processId, out var previous))
@@ -265,11 +281,11 @@ internal sealed class EtwNetworkCollector : INetworkCollector
         return eventQpc > createdQpc;
     }
 
-    private void Reject(int processId, long verifiedQpc, bool unknown = false)
+    private void Reject(int processId, long verifiedQpc, bool unknown = false, long otherOwnerCreationTicks = 0)
     {
         if (_rejectedUntil.Count >= MaximumOwners && !_rejectedUntil.ContainsKey(processId))
             _rejectedUntil.Remove(_rejectedUntil.MinBy(pair => pair.Value.UntilQpc).Key);
-        _rejectedUntil[processId] = new(checked(verifiedQpc + Stopwatch.Frequency), unknown);
+        _rejectedUntil[processId] = new(checked(verifiedQpc + Stopwatch.Frequency), unknown, otherOwnerCreationTicks);
     }
 
     private void Reconcile()
@@ -373,5 +389,5 @@ internal sealed class EtwNetworkCollector : INetworkCollector
     private enum CollectorEventKind { Start, Stop, Network }
     private readonly record struct CollectorEvent(CollectorEventKind Kind, int ProcessId, long EventQpc, int Bytes, bool Send);
     private readonly record struct OwnerCache(long CreationTicks, long StartedQpc, long ValidThroughQpc);
-    private readonly record struct RejectedOwner(long UntilQpc, bool Unknown);
+    private readonly record struct RejectedOwner(long UntilQpc, bool Unknown, long OtherOwnerCreationTicks);
 }

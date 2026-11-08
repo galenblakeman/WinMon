@@ -14,5 +14,8 @@
     <PackageReference Include="System.ServiceProcess.ServiceController" Version="10.0.14" />
     <ProjectReference Include="../MonCore.Windows/MonCore.Windows.csproj" />
     <InternalsVisibleTo Include="WinMon.NetworkService.Tests" />
+    <!-- Same measured cap as WinMon.exe: at the service's low allocation rate the default L3-sized gen0 budget
+         went uncollected for minutes and stayed committed. Confirm with GC.GetConfigurationVariables after upgrades. -->
+    <RuntimeHostConfigurationOption Include="System.GC.Gen0MaxBudget" Value="6291456" />
   </ItemGroup>
 </Project>

@@ -2,6 +2,24 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## Network service ownership probes and GC budget (November 8, 2026)
+
+SDK 10.0.403 / .NET 10.0.14, unelevated, so no LocalSystem service or ETW session ran; each figure comes from an isolated console probe against the service source.
+
+**Ownership probes.** Over 20 passes of the 339 processes readable from this account, a full owner probe (process times, token, SID) took 5.4–5.7 µs and allocated 784 bytes, and a creation-time-only probe took 2.0–2.5 µs and 32 bytes. A packet newer than a known process's last verification previously took the full probe; it now rechecks only the creation time, because a process's token user cannot change. Rejections of another account's processes previously expired after one second and repeated the full probe; they now renew with the creation-time probe until the PID is reused. Rejections for an unknown owner or an event before process creation keep the old one-second expiry. Savings scale with the number of talking processes per second and were not measured end to end.
+
+**GC budget.** A service stand-in (850 lifetimes, 20,000 events and one serialized snapshot per tick, 600 ticks at 20 per second, about 13 MiB allocated) ran twice under each setting:
+
+| Setting | Peak private | Peak working set | Gen0 collections |
+| --- | ---: | ---: | ---: |
+| Default | 20.7 MiB | 46.6–47.1 MiB | 0 |
+| `System.GC.Gen0MaxBudget` 6 MiB | 16.0–16.9 MiB | 41.7–42.8 MiB | 2 |
+| 6 MiB, background GC off | 15.8–16.3 MiB | 41.6 MiB | 2 |
+
+With the default budget nothing was collected, so the gap grows with uptime up to the machine's L3-sized budget. The service now uses the app's 6 MiB cap; turning background GC off made no measurable further difference and was not adopted.
+
+**Not adopted: source-generated protocol JSON.** Write plus read of a 512-row snapshot response measured 47.6–49.3 ms cold and 0.271–0.279 ms warm with reflection, against 40.2–44.8 ms cold and 0.265–0.275 ms warm with a `JsonSerializerContext`. Wire bytes were identical. A few milliseconds once per process did not justify the extra code.
+
 ## Network service ledger and event loop (November 8, 2026)
 
 SDK 10.0.403 / .NET 10.0.14, tiered compilation off. An isolated console probe compiled against HEAD and the changed `WinMon.NetworkService`: 850 registered lifetimes (the startup seed), 64 of the owner's talking at 200,000 events per simulated second for 40 seconds, 25 short-lived process starts per second and one owner snapshot per second. Each run repeats the workload seven times and reports medians of the last six; four before/after pairs alternated.
