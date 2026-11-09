@@ -2,6 +2,17 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## Expired network process history (November 9, 2026)
+
+SDK 10.0.403 / .NET 10.0.14, tiered compilation off. An isolated console probe compiled the before/after ledger and snapshot sources. With a 128-entry history limit and one continuously tracked process, it registered and ended 10,000 distinct processes spaced 40 simulated seconds apart, added traffic to the continuous process and took one snapshot per registration. Each process warmed up 1,000 iterations; four before/after pairs alternated, with no verification build running.
+
+| Per registration, exit, traffic event and snapshot | Before | After |
+| --- | ---: | ---: |
+| Median time | 1.600 µs | 1.597 µs |
+| Allocated | 1,137 B | 1,137 B |
+
+Expired tombstone eviction now skips the false coverage-gap flags and rate-suppression deadline. Allocation is unchanged and timing is within run-to-run noise; no performance improvement is claimed. This isolates collector logic; it does not measure native ETW or UI performance. Probe sources and raw results are under `artifacts/capacity-check/`.
+
 ## Per-tick network and connection owners (November 8, 2026)
 
 SDK 10.0.403 / .NET 10.0.14, tiered compilation off. An isolated console probe compiled against the HEAD and changed `MonCore.dll`: 850 processes with image paths, 480 TCP endpoints across 60 of them, network readings for every process, CPU changing every tick. It calls `AttachNetworkOwners` (through reflection) and `Record` per tick, warms up 300 ticks and measures 1,200. Four before/after pairs alternated; allocation was identical across runs of each build, and times are medians of the four runs.

@@ -144,6 +144,36 @@ public sealed class NetworkTrafficLedgerTests
     }
 
     [Test]
+    public void Register_ExpiredProcessHistoryRolloverKeepsLiveTrafficRatesAvailable()
+    {
+        var ledger = new NetworkTrafficLedger(Frequency, 0, 2);
+        Assert.That(ledger.Register(42, 100, Owner, 0), Is.True);
+        Assert.That(ledger.Register(43, 200, Owner, 1), Is.True);
+        ledger.End(43, 2);
+        var generation = ledger.Snapshot(Owner, 100).Generation;
+
+        for (var index = 1; index <= 8; index++)
+        {
+            var now = index * 400L;
+            var processId = 43 + index;
+            Assert.That(ledger.Register(processId, 200 + index, Owner, now), Is.True);
+            ledger.End(processId, now + 1);
+            Assert.That(ledger.Add(42, now - 40, now, false, 500), Is.True);
+            Assert.That(ledger.Add(42, now - 40, now, true, 200), Is.True);
+
+            var snapshot = ledger.Snapshot(Owner, now + 1);
+            Assert.Multiple(() =>
+            {
+                Assert.That(snapshot.Generation, Is.EqualTo(generation));
+                Assert.That(snapshot.Quality, Is.EqualTo(ProcessNetworkQuality.Provisional));
+                Assert.That(snapshot.IncompleteReasons, Is.EqualTo(ProcessNetworkIncompleteReason.None));
+                Assert.That(snapshot.Processes.Single(), Is.EqualTo(new ProcessNetworkReading(
+                    42, 100, index * 500, index * 200, 100, 40)));
+            });
+        }
+    }
+
+    [Test]
     public void Register_CapacityFailureDoesNotReplaceExistingLifetime()
     {
         var ledger = new NetworkTrafficLedger(Frequency, 0, 1);
@@ -152,12 +182,15 @@ public sealed class NetworkTrafficLedgerTests
         Assert.That(ledger.Register(43, 200, Owner, 20), Is.False);
         Assert.That(ledger.Add(42, 5, 30, false, 20), Is.True);
 
-        var snapshot = ledger.Snapshot(Owner, 100);
+        var snapshot = ledger.Snapshot(Owner, 90);
         Assert.Multiple(() =>
         {
             Assert.That((snapshot.Quality & ProcessNetworkQuality.CapacityExceeded) != 0, Is.True);
             Assert.That((snapshot.Quality & ProcessNetworkQuality.Incomplete) != 0, Is.True);
+            Assert.That(snapshot.Quality.HasFlag(ProcessNetworkQuality.WarmingUp), Is.True);
+            Assert.That(snapshot.IncompleteReasons, Is.EqualTo(ProcessNetworkIncompleteReason.CapacityExceeded));
             Assert.That(snapshot.Processes.Single().ProcessId, Is.EqualTo(42));
+            Assert.That(snapshot.Processes.Single().ReceiveBytesPerSecond, Is.Null);
         });
     }
 

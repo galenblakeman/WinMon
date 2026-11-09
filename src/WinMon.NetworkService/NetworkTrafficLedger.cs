@@ -230,10 +230,14 @@ internal sealed class NetworkTrafficLedger
     {
         if (!_tombstones.ContainsKey(processId) && _tombstones.Count >= _maximumLifetimes)
         {
-            var oldest = _tombstones.MinBy(entry => entry.Value.TimestampQpc).Key;
-            _tombstones.Remove(oldest);
-            _capacityExceeded = true;
-            MarkIncomplete(timestampQpc, ProcessNetworkIncompleteReason.CapacityExceeded);
+            var oldest = _tombstones.MinBy(entry => entry.Value.TimestampQpc);
+            _tombstones.Remove(oldest.Key);
+            // Expired PID history cannot affect the retained traffic window.
+            if (timestampQpc - oldest.Value.TimestampQpc <= RetentionTicks)
+            {
+                _capacityExceeded = true;
+                MarkIncomplete(timestampQpc, ProcessNetworkIncompleteReason.CapacityExceeded);
+            }
         }
 
         if (!_tombstones.TryGetValue(processId, out var existing) || timestampQpc >= existing.TimestampQpc)

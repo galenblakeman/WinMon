@@ -23,4 +23,12 @@ Full `Verify.ps1 -Smoke connections` was canceled at the user's request; no full
 
 ## Result
 
+### November 9: expired process-history capacity
+
+Local logs showed repeated `WarmingUp, Incomplete, CapacityExceeded` snapshots with every process rate unavailable, alternating with populated rates on the same generation and subscription. `RecordTombstone` marked a fresh global coverage gap whenever the bounded PID history evicted its oldest entry, even when that entry was already outside the 30-second retained event window.
+
+Expired entries now roll over without changing coverage or the rate deadline. The comparison is strict: evicting history within the retention window still marks capacity/incomplete and suppresses affected rates, as does failure to retain a new process lifetime. Bounds, attribution, loss handling, protocol and UI are unchanged. The regression forces eight successive rollovers with a two-entry limit and checks both live rates, cumulative bytes, generation and clean coverage; the real-capacity regression also checks rate suppression. The new rollover test failed against the original source before passing with the fix. Collector probe results are in the performance history.
+
+`Verify.ps1 -Smoke connections` passed: solution and benchmark builds had no warnings/errors; all six test projects passed (1,355 tests, with three explicit/elevated checks not executed). Connections smoke passed 22 WPF content renders, inspected visually; native window captions were not captured. The installed service was not replaced, and native ETW/long-uptime acceptance remains open.
+
 Landed in `NetworkServiceClient`, `NetworkPipeServer`, `EtwNetworkCollector`, `NetworkTrafficLedger`, the portable snapshot and `NetworkMonitoringController`, with focused test coverage. There is no new setting, dependency or protocol-major change. Real gaps remain incomplete; this does not reconstruct missed traffic or promise complete accounting for protected/short-lived processes. No installed service or running application was replaced. A signed service upgrade and updated app launch are still needed for live acceptance of all changes.
