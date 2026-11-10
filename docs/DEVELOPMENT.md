@@ -363,3 +363,5 @@ The CLI entry point maps an empty argument list to `watch`. Explicit commands, r
 Press **B** in any watch tab to enable or disable network traffic monitoring. The change is saved unless `--no-save` is active. Disabling releases only this CLI subscription; enabling connects to the installed service without installing or repairing it. Search-filter editing treats B as text.
 
 Fresh CLI settings (including after `settings reset`) default to Top 10 on all four watch tabs. Existing saved row limits, including All (`0`), are preserved; `--top` overrides the active tab for one launch.
+
+The CLI compact summary (at least 24 terminal rows, below the 120-column/32-row panel threshold) uses five aligned ten-cell gauges in CPU, Memory, Disk, Network, GPU order, with inline supporting values. CPU includes clock speed and GPU includes used/total video memory or 3D. Network keeps download and upload rates ahead of the adapter name. Terminals below 24 rows retain the three-line numeric summary.

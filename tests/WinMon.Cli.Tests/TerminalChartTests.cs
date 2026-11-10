@@ -58,12 +58,43 @@ public sealed class TerminalChartTests
             Assert.That(memory, Is.GreaterThan(cpu));
             Assert.That(network, Is.GreaterThan(memory));
             Assert.That(gpu, Is.GreaterThan(network));
-            if (width >= 120 && height >= 32)
+            if (height >= 24)
             {
                 Assert.That(disk, Is.GreaterThan(memory));
                 Assert.That(network, Is.GreaterThan(disk));
             }
             else Assert.That(disk, Is.GreaterThan(gpu));
+        });
+    }
+
+    [TestCase(true)]
+    [TestCase(false)]
+    [SetCulture("en-US")]
+    public void CompactSummaryKeepsFiveGaugesWithTheirDetails(bool unicode)
+    {
+        var sample = Sample(60) with { Resources = Sample(60).Resources with
+        {
+            GpuMemoryUsedBytes = 2UL * 1024 * 1024 * 1024,
+            GpuMemoryTotalBytes = 8UL * 1024 * 1024 * 1024,
+            DiskReadBytesPerSecond = 279_400, DiskWriteBytesPerSecond = 998_500,
+            NetworkName = new string('N', 100)
+        } };
+        var state = new InteractiveState(ProcessSort.Cpu, "");
+        state.Observe(sample, null);
+        var lines = Render(state, 80, 24, unicode).Split('\n').Skip(2).Take(5)
+            .Select(line => line.TrimEnd('\r')).ToArray();
+        Assert.Multiple(() =>
+        {
+            Assert.That(lines[0], Does.StartWith(Strings.CPU).And.Contain("4.30 GHz"));
+            Assert.That(lines[1], Does.StartWith(Strings.Memory).And.Contain("50.0%").And.Contain("16.0 / 32 GiB"));
+            Assert.That(lines[2], Does.StartWith(Strings.Disk).And.Contain(SnapshotReport.Rate(279_400))
+                .And.Contain(SnapshotReport.Rate(998_500)));
+            Assert.That(lines[3], Does.StartWith(Strings.Network).And.Contain("12.5 MB/s").And.Contain("1 MB/s"));
+            Assert.That(lines[4], Does.StartWith(Strings.GPU).And.Contain("76.0%")
+                .And.Contain(WinMon.Controls.GaugeReadoutText.GpuMemory(sample.Resources.GpuMemoryUsedBytes, sample.Resources.GpuMemoryTotalBytes)));
+            Assert.That(lines.All(line => Regex.IsMatch(line, unicode ? @"\[[█░]{10}\]" : @"\[[#-]{10}\]")), Is.True);
+            Assert.That(lines.Select(line => line.IndexOf('[')).Distinct().Count(), Is.EqualTo(1));
+            Assert.That(lines.All(line => new Segment(line).CellCount() <= 80), Is.True);
         });
     }
 

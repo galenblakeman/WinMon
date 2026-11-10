@@ -77,13 +77,21 @@ internal static class TerminalCharts
         var networkLevel = DownloadLevel(r.ReceiveBytesPerSecond, networkScale);
         if (!Wide(width, height))
         {
-            var half = (width - 3) / 2;
-            string Cell(string label, double? value, string? display = null) =>
-                TerminalText.Fit($"{label} {display ?? Percent(value)} {Gauge(value, 12, unicode)}", half);
+            var diskLabel = $"{Strings.Disk} {SafeText(r.DiskName)}";
+            var labelWidth = Math.Min(16, new[] { Strings.CPU, Strings.Memory, diskLabel, Strings.Network, Strings.GPU }
+                .Max(label => new Segment(label).CellCount()));
+            IRenderable Row(string label, double? value, string details, Style style, string? display = null) =>
+                Line(width, ($"{Pad(label, labelWidth)} [{Gauge(value, 10, unicode)}] " +
+                    $"{display ?? Pad(Percent(value), 6)} {details}", style));
             return new Rows(
-                Line(width, (Pad(Cell(Strings.CPU, sample.TotalCpuPercent), half), TerminalChrome.Cpu), (separator, null), (Cell(Strings.Memory, r.MemoryPercent), TerminalChrome.Memory)),
-                Line(width, (Pad(Cell(Strings.Network, networkLevel, download), half), TerminalChrome.Network), (separator, null), (Cell(Strings.GPU, r.GpuPercent), TerminalChrome.Gpu)),
-                Line(width, (memory, TerminalChrome.Memory)), Line(width, (disk, TerminalChrome.Disk)), Line(width, (network, TerminalChrome.Network)));
+                Row(Strings.CPU, sample.TotalCpuPercent, GaugeReadoutText.CpuClock(r.CpuClockMhz), TerminalChrome.Cpu),
+                Row(Strings.Memory, r.MemoryPercent, GaugeReadoutText.Memory(r.UsedMemoryBytes, r.TotalMemoryBytes), TerminalChrome.Memory),
+                Row(diskLabel, r.DiskActivePercent,
+                    $"{Strings.ReadWriteIO} {Rate(r.DiskReadBytesPerSecond)} / {Rate(r.DiskWriteBytesPerSecond)}", TerminalChrome.Disk),
+                Row(Strings.Network, networkLevel,
+                    $"{DirectionRate(r.SendBytesPerSecond, unicode ? "↑" : "TX ")} {SafeText(r.NetworkName)}",
+                    TerminalChrome.Network, download),
+                Row(Strings.GPU, r.GpuPercent, GaugeReadoutText.GpuMemory(r.GpuMemoryUsedBytes, r.GpuMemoryTotalBytes), TerminalChrome.Gpu));
         }
 
         // Memory barely moves on a 0-100 scale, so its history zooms to the range it covered.
