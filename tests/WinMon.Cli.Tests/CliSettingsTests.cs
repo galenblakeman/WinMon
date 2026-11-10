@@ -253,6 +253,34 @@ public sealed class CliSettingsTests
     }
 
     [Test]
+    public async Task RetriesTransientLockWhenReplacingSettings()
+    {
+        _store.Update(saved => saved.Network = false);
+        var locked = new FileStream(_store.Path, FileMode.Open, FileAccess.Read, FileShare.Read);
+        var release = Task.Run(() =>
+        {
+            Thread.Sleep(75);
+            locked.Dispose();
+        });
+        try { _store.Update(saved => saved.Network = true); }
+        finally { await release; }
+        Assert.That(_store.Load().Network, Is.True);
+        Assert.That(Directory.GetFiles(_directory, "*.tmp"), Is.Empty);
+    }
+
+    [Test]
+    public void PersistentReplacementLockPreservesSettingsAndCleansUp()
+    {
+        _store.Update(saved => saved.Network = false);
+        using (var locked = new FileStream(_store.Path, FileMode.Open, FileAccess.Read, FileShare.Read))
+        {
+            Assert.Throws<UnauthorizedAccessException>(() => _store.Update(saved => saved.Network = true));
+        }
+        Assert.That(_store.Load().Network, Is.False);
+        Assert.That(Directory.GetFiles(_directory, "*.tmp"), Is.Empty);
+    }
+
+    [Test]
     public void CorruptJsonIsBackedUpBeforeSavingAndUnknownVersionsAreNotOverwritten()
     {
         Directory.CreateDirectory(_directory);

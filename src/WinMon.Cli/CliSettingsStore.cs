@@ -70,13 +70,30 @@ public sealed class CliSettingsStore(string? path = null)
                 if (stream.Length > MaximumFileBytes) throw new InvalidDataException("CLI settings are too large.");
                 stream.Flush(true);
             }
-            File.Move(temporary, Path, true);
+            MoveIntoPlace(temporary, Path);
         }
         finally
         {
             if (temporary is not null)
                 try { File.Delete(temporary); } catch (IOException) { } catch (UnauthorizedAccessException) { }
             if (acquired) mutex.ReleaseMutex();
+        }
+    }
+
+    private static void MoveIntoPlace(string source, string destination)
+    {
+        for (var attempt = 0; ; attempt++)
+        {
+            try
+            {
+                File.Move(source, destination, true);
+                return;
+            }
+            // A short-lived reader can briefly hold the replaced settings file open.
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException && attempt < 4)
+            {
+                Thread.Sleep(25 << attempt);
+            }
         }
     }
 
