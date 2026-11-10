@@ -22,7 +22,7 @@ public sealed class ConnectionsTabTests
         state.Handle(new ConsoleKeyInfo('\r', ConsoleKey.Enter, false, false, false), 5);
         using var output = new StringWriter();
         var console = AnsiConsole.Create(new AnsiConsoleSettings
-        { Out = new AnsiConsoleOutput(output), Ansi = AnsiSupport.No });
+        { Enrichment = new() { UseDefaultEnrichers = false }, Out = new AnsiConsoleOutput(output), Ansi = AnsiSupport.No });
         console.Profile.Width = 120;
         console.Write(InteractiveMonitor.BuildView(state, 0, 5, 120, 24));
         Assert.That(output.ToString(), Does.Contain("PID  Protocol  Local endpoint  Remote endpoint  State")

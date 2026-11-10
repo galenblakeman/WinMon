@@ -69,7 +69,7 @@ public sealed class TerminalColorTests
         };
         using var output = new StringWriter();
         var console = AnsiConsole.Create(new AnsiConsoleSettings
-        { Out = new AnsiConsoleOutput(output), Ansi = AnsiSupport.Yes, ColorSystem = colors });
+        { Enrichment = new() { UseDefaultEnrichers = false }, Out = new AnsiConsoleOutput(output), Ansi = AnsiSupport.Yes, ColorSystem = colors });
         console.Profile.Width = width;
         console.Write(TerminalCharts.Summary(sample, [sample], width, height, true));
         return output.ToString();
@@ -144,7 +144,7 @@ public sealed class TerminalColorTests
         var state = new InteractiveState(ProcessSort.Cpu, "");
         state.Handle(new ConsoleKeyInfo('?', ConsoleKey.Oem2, true, false, false), 5);
         using var output = new StringWriter();
-        var console = AnsiConsole.Create(new AnsiConsoleSettings { Out = new AnsiConsoleOutput(output), Ansi = AnsiSupport.No });
+        var console = AnsiConsole.Create(new AnsiConsoleSettings { Enrichment = new() { UseDefaultEnrichers = false }, Out = new AnsiConsoleOutput(output), Ansi = AnsiSupport.No });
         console.Profile.Width = 100;
         console.Write(InteractiveMonitor.BuildView(state, 0, 5, 100, 24));
         Assert.That(output.ToString().Split('\n').Length, Is.GreaterThan(8));
@@ -168,7 +168,7 @@ public sealed class TerminalColorTests
             [new ProcessUsage(42, 1, "[red]literal", 10, 1024)], 0), null);
         using var output = new StringWriter();
         var console = AnsiConsole.Create(new AnsiConsoleSettings
-        { Out = new AnsiConsoleOutput(output), Ansi = AnsiSupport.Yes, ColorSystem = colors });
+        { Enrichment = new() { UseDefaultEnrichers = false }, Out = new AnsiConsoleOutput(output), Ansi = AnsiSupport.Yes, ColorSystem = colors });
         console.Profile.Width = 140;
         console.Write(InteractiveMonitor.BuildView(state, 0, 5, 140, 24));
         return output.ToString();

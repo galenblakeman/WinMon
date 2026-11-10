@@ -34,7 +34,7 @@ public sealed class TerminalChartTests
     private static string Render(InteractiveState state, int width, int height, bool unicode = true)
     {
         using var output = new StringWriter(CultureInfo.InvariantCulture);
-        var console = AnsiConsole.Create(new AnsiConsoleSettings { Out = new AnsiConsoleOutput(output),
+        var console = AnsiConsole.Create(new AnsiConsoleSettings { Enrichment = new() { UseDefaultEnrichers = false }, Out = new AnsiConsoleOutput(output),
             Ansi = AnsiSupport.No, ColorSystem = ColorSystemSupport.NoColors });
         console.Profile.Width = width;
         console.Write(InteractiveMonitor.BuildView(state, 0, 100, width, height, unicode));
@@ -390,7 +390,7 @@ public sealed class TerminalChartTests
         var state = State();
         state.NetworkEnabled = true;
         using var output = new StringWriter();
-        var console = AnsiConsole.Create(new AnsiConsoleSettings { Out = new AnsiConsoleOutput(output),
+        var console = AnsiConsole.Create(new AnsiConsoleSettings { Enrichment = new() { UseDefaultEnrichers = false }, Out = new AnsiConsoleOutput(output),
             Ansi = AnsiSupport.Yes, ColorSystem = ColorSystemSupport.TrueColor });
         console.Profile.Width = 120;
         console.Write(InteractiveMonitor.BuildView(state, 0, 100, 120, 36));

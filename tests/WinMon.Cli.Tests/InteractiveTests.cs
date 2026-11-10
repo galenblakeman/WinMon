@@ -108,7 +108,7 @@ public sealed class InteractiveTests
         var state = new InteractiveState(ProcessSort.Cpu, "");
         using var output = new StringWriter(CultureInfo.InvariantCulture);
         var console = AnsiConsole.Create(new AnsiConsoleSettings
-        {
+        { Enrichment = new() { UseDefaultEnrichers = false },
             Out = new AnsiConsoleOutput(output), Ansi = AnsiSupport.No,
             ColorSystem = ColorSystemSupport.NoColors
         });

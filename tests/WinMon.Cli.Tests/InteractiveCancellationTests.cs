@@ -13,7 +13,7 @@ public sealed class InteractiveCancellationTests
     {
         using var output = new StringWriter();
         var console = AnsiConsole.Create(new AnsiConsoleSettings
-        {
+        { Enrichment = new() { UseDefaultEnrichers = false },
             Out = new AnsiConsoleOutput(output), Ansi = AnsiSupport.Yes,
             Interactive = InteractionSupport.Yes
         });

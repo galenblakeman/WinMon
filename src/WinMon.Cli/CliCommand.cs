@@ -41,12 +41,14 @@ public static class CliCommand
                 else
                 {
                     var redirected = Console.IsOutputRedirected || !ReferenceEquals(output, Console.Out);
+                    var suppressColors = result.GetValue(noColor) || redirected ||
+                                         Environment.GetEnvironmentVariable("NO_COLOR") is not null;
                     var console = AnsiConsole.Create(new AnsiConsoleSettings
                     {
                         Out = new AnsiConsoleOutput(output),
                         Ansi = redirected ? AnsiSupport.No : AnsiSupport.Detect,
-                        ColorSystem = result.GetValue(noColor) || redirected || Environment.GetEnvironmentVariable("NO_COLOR") is not null
-                            ? ColorSystemSupport.NoColors : ColorSystemSupport.Detect,
+                        ColorSystem = suppressColors ? ColorSystemSupport.NoColors : ColorSystemSupport.Detect,
+                        Enrichment = new() { UseDefaultEnrichers = !suppressColors },
                         Interactive = InteractionSupport.No
                     });
                     report.Render(console);
@@ -93,11 +95,12 @@ public static class CliCommand
         {
             // Return the task before entering the input loop so the invoker can install cancellation handling.
             await Task.Yield();
+            var suppressColors = result.GetValue(watchNoColor) || Environment.GetEnvironmentVariable("NO_COLOR") is not null;
             var console = AnsiConsole.Create(new AnsiConsoleSettings
             {
                 Out = new AnsiConsoleOutput(output),
-                ColorSystem = result.GetValue(watchNoColor) || Environment.GetEnvironmentVariable("NO_COLOR") is not null
-                    ? ColorSystemSupport.NoColors : ColorSystemSupport.Detect
+                ColorSystem = suppressColors ? ColorSystemSupport.NoColors : ColorSystemSupport.Detect,
+                Enrichment = new() { UseDefaultEnrichers = !suppressColors }
             });
             if (runWatch is null && (Console.IsInputRedirected || Console.IsOutputRedirected || !ReferenceEquals(output, Console.Out) ||
                 !console.Profile.Capabilities.Ansi))

@@ -216,7 +216,7 @@ public sealed class FullInteractiveTests
         var state = new InteractiveState(ProcessSort.Cpu, "");
         state.ObserveSession(session);
         using var output = new StringWriter();
-        var console = AnsiConsole.Create(new AnsiConsoleSettings { Out = new AnsiConsoleOutput(output), Ansi = AnsiSupport.No });
+        var console = AnsiConsole.Create(new AnsiConsoleSettings { Enrichment = new() { UseDefaultEnrichers = false }, Out = new AnsiConsoleOutput(output), Ansi = AnsiSupport.No });
         console.Profile.Width = width;
         foreach (var key in new[] { ConsoleKey.F1, ConsoleKey.F2, ConsoleKey.F3, ConsoleKey.F4 })
         {
@@ -237,7 +237,7 @@ public sealed class FullInteractiveTests
         state.Configure(0, false, false, TerminalTab.Connections);
         state.ObserveSession(session);
         using var output = new StringWriter();
-        var console = AnsiConsole.Create(new AnsiConsoleSettings { Out = new AnsiConsoleOutput(output), Ansi = AnsiSupport.No });
+        var console = AnsiConsole.Create(new AnsiConsoleSettings { Enrichment = new() { UseDefaultEnrichers = false }, Out = new AnsiConsoleOutput(output), Ansi = AnsiSupport.No });
         console.Profile.Width = 120;
         console.Write(InteractiveMonitor.BuildView(state, 0, 3, 120, 24));
         var label = WinMon.Resources.Strings.NetworkProcessMonitoringDisabled;
@@ -253,7 +253,7 @@ public sealed class FullInteractiveTests
         state.NetworkEnabled = true;
         state.NetworkStatus = NetworkTrafficState.Unavailable;
         using var output = new StringWriter();
-        var console = AnsiConsole.Create(new AnsiConsoleSettings { Out = new AnsiConsoleOutput(output), Ansi = AnsiSupport.No });
+        var console = AnsiConsole.Create(new AnsiConsoleSettings { Enrichment = new() { UseDefaultEnrichers = false }, Out = new AnsiConsoleOutput(output), Ansi = AnsiSupport.No });
         console.Profile.Width = 80;
         console.Write(InteractiveMonitor.BuildView(state, 0, 3, 80, 24));
         Assert.That(output.ToString(), Does.Contain("WinMon.Cli network start").And.Contain("WinMon.Cli network install"));
@@ -268,7 +268,7 @@ public sealed class FullInteractiveTests
         var sample = Sample(processes);
         state.Observe(sample, null, [sample]);
         using var output = new StringWriter();
-        var console = AnsiConsole.Create(new AnsiConsoleSettings { Out = new AnsiConsoleOutput(output), Ansi = AnsiSupport.No });
+        var console = AnsiConsole.Create(new AnsiConsoleSettings { Enrichment = new() { UseDefaultEnrichers = false }, Out = new AnsiConsoleOutput(output), Ansi = AnsiSupport.No });
         console.Profile.Width = 80;
         console.Write(InteractiveMonitor.BuildView(state, 0, 7, 80, 24));
         var lines = output.ToString().Split('\n');

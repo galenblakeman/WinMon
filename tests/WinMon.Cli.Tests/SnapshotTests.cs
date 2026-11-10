@@ -119,6 +119,31 @@ public sealed class SnapshotTests
         });
     }
 
+    [TestCase(false)]
+    [TestCase(true)]
+    [NonParallelizable]
+    public async Task RedirectedTablesStayPlainUnderGitHubActions(bool noColor)
+    {
+        var previous = Environment.GetEnvironmentVariable("GITHUB_ACTIONS");
+        var previousCi = Environment.GetEnvironmentVariable("CI");
+        try
+        {
+            Environment.SetEnvironmentVariable("GITHUB_ACTIONS", "true");
+            Environment.SetEnvironmentVariable("CI", "true");
+            using var output = new StringWriter();
+            var command = CliCommand.Create(() => new FakeSource(), output);
+            var exit = await command.Parse(noColor ? ["snapshot", "--no-color"] : ["snapshot"]).InvokeAsync();
+            Assert.That(exit, Is.Zero);
+            Assert.That(output.ToString(), Does.Contain("PID"));
+            Assert.That(output.ToString().Contains('\u001b'), Is.False);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("GITHUB_ACTIONS", previous);
+            Environment.SetEnvironmentVariable("CI", previousCi);
+        }
+    }
+
     [Test]
     public void TranslatedHelpResourcesAreAvailableWithoutWpf()
     {
