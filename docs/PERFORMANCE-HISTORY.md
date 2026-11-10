@@ -2,6 +2,21 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## Recorded-period Usage (November 10, 2026)
+
+WinMon 4.0.6, .NET 10.0.14 Windows x64 Release, SDK 10.0.403. The desktop records uncompacted usage intervals independently of chart compaction; CLI sessions leave this disabled. Immutable owner metadata is shared between consecutive samples. Intervals have a 500,000-observation budget (about 19.1 MiB for the 40-byte interval values, plus owners/queues), and results retain the existing 4,096-app cap plus Other apps.
+
+Four quiet alternating live-frame runs used the existing 850-process benchmark, 400 warm-ups and seven batches of 60. Mean of the two run medians:
+
+| Metric | Before period recording | Shared-metadata recording |
+| --- | ---: | ---: |
+| UI refresh | 4.155 ms | 4.175 ms |
+| Allocated bytes per refresh | 603,257 | 603,231 |
+
+The 0.020 ms difference is small relative to run variation (before 3.99–4.32 ms, after 3.83–4.52 ms). Recording is outside this UI timing. A focused 850-process/120-executable core workload separately measured ledger plus interval recording at 0.135 ms and 34,136 allocated bytes per sample (median of seven 60-sample batches). Nine cold 120–128-second queries had a 5.87 ms median; repeated cached queries averaged 0.000041 ms. Managed heap after filling the observation budget was about 20.9 MB. These are synthetic timings, not native-collection or whole-process measurements.
+
+An initial flat-metadata layout allocated 81,736 bytes per sample; sharing owners reduced that by 58%. Raw runs/harnesses remain in artifacts/goal-before.json, goal-item3-after.json (initial full pass), goal-shared-quiet-*.json, and goal-usage-cost.json. The repository benchmark now includes usage-ledger-and-history-add alongside usage-ledger-add for future full comparisons. Tests cover boundaries, missing/restored observations, gaps, metadata changes, budget eviction, overflow rows and lifetime identity; Usage smoke verifies period/live navigation and the visible partial-coverage note.
+
 ## Remove CLI process histories (November 10, 2026)
 
 WinMon CLI 4.0.6, .NET 10 Windows Release, SDK 10.0.403. Removed the wide process History column, scale footer and CLI ProcessGraphData source link. Resource histories remain. The same 61-sample, 850-process, Top 1,000 true-color null-output workload rendered six process rows at 120x36. Four alternating runs per version used 400 warm-ups and seven batches of 60 renders, without concurrent tests/builds or agent-owned live CLI.

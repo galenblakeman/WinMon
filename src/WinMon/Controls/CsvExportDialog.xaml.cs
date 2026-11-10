@@ -8,10 +8,12 @@ internal sealed record CsvExportChoice(CsvExportKind Kind, bool ChartRange, stri
 
 public partial class CsvExportDialog : Window
 {
+    private readonly string? _usageNote;
     internal CsvExportChoice? Choice { get; private set; }
 
-    internal CsvExportDialog(CsvExportKind initialKind)
+    internal CsvExportDialog(CsvExportKind initialKind, string? usageNote = null)
     {
+        _usageNote = usageNote;
         InitializeComponent();
         WindowTheme.Attach(this);
         switch (initialKind)
@@ -43,7 +45,7 @@ public partial class CsvExportDialog : Window
             CsvExportKind.Services => Strings.ExportServiceNote,
             CsvExportKind.Connections => Strings.ExportConnectionNote,
             CsvExportKind.NetworkTraffic => Strings.ExportTrafficNote,
-            _ => Strings.ExportUsageNote
+            _ => _usageNote ?? Strings.ExportUsageNote
         };
         var type = Kind switch
         {

@@ -132,6 +132,7 @@ internal static class Program
         window.RefreshPresentation();
         Flush();
         MeasureUsageLedger();
+        MeasureUsageLedger(true);
         MeasureRestartHistory();
         var pixels = Pixels(args.Length > 1 ? args[1] : null);
         window.Preferences = window.Preferences with { ResourceChartType = ResourceChartType.LogicalProcessors };
@@ -213,9 +214,10 @@ internal static class Program
 
         // The usage ledger runs inside Record, which the refresh scenarios leave out, so it is timed on its own:
         // one Add per synthetic 850-process sample, excluding building the sample.
-        void MeasureUsageLedger()
+        void MeasureUsageLedger(bool includeHistory = false)
         {
             var ledger = new UsageLedger(anchor);
+            var usageHistory = includeHistory ? new UsageHistory() : null;
             var ledgerSecond = 0;
             (ulong Cycles, long Bytes) Add()
             {
@@ -223,6 +225,7 @@ internal static class Program
                 var allocated = GC.GetAllocatedBytesForCurrentThread();
                 QueryThreadCycleTime(thread, out var before);
                 ledger.Add(sample);
+                usageHistory?.Add(sample);
                 QueryThreadCycleTime(thread, out var after);
                 return (after - before, GC.GetAllocatedBytesForCurrentThread() - allocated);
             }
@@ -244,7 +247,7 @@ internal static class Program
                 allocations.Add(bytes / (double)FramesPerBatch);
                 times.Add(cycles / cyclesPerMs / FramesPerBatch);
             }
-            results.Add(new { Name = "usage-ledger-add", MedianMilliseconds = Median(times),
+            results.Add(new { Name = includeHistory ? "usage-ledger-and-history-add" : "usage-ledger-add", MedianMilliseconds = Median(times),
                 MedianAllocatedBytes = Median(allocations), MillisecondsPerFrame = times,
                 AllocatedBytesPerFrame = allocations, PixelsSha256 = (string?)null });
         }

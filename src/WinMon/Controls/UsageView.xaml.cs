@@ -33,7 +33,9 @@ internal sealed record UsageFrame(
     long NotAttributedTicks,
     DateTimeOffset Since,
     DateTimeOffset? Latest,
-    bool Capturing);
+    bool Capturing,
+    bool Complete = true,
+    bool Available = true);
 
 /// <summary>Per-app CPU time, I/O and GPU time since WinMon started; see docs/design/USAGE-TAB.md.</summary>
 public partial class UsageView
@@ -301,12 +303,13 @@ public partial class UsageView
             foreach (var key in _rowsByKey.Keys.Where(key => !keys.Contains(key)).ToArray()) _rowsByKey.Remove(key);
         }
 
-        NotAttributedCpu.Text = frame is null ? Strings.MissingReading : UsageText.CpuTime(frame.NotAttributedTicks);
+        NotAttributedCpu.Text = frame?.Available != true ? Strings.MissingReading : UsageText.CpuTime(frame.NotAttributedTicks);
         NotAttributedShare.Text =
-            frame is null ? Strings.MissingReading : UsageText.Share(frame.NotAttributedTicks, frame.MachineBusyTicks);
-        CopyUsage.IsEnabled = ResetUsage.IsEnabled = frame is not null;
+            frame?.Available != true ? Strings.MissingReading : UsageText.Share(frame.NotAttributedTicks, frame.MachineBusyTicks);
+        CopyUsage.IsEnabled = frame?.Available == true;
+        ResetUsage.IsEnabled = frame is { Available: true, Capturing: false };
         Notice.Text = frame is null ? "" :
-            frame.Capturing ? Strings.UsageLiveNote :
+            frame.Capturing ? UsageText.PeriodNote(frame) :
             _rows.Count == 0 ? Strings.UsageNoAppsMatch : "";
         Notice.Visibility = Notice.Text.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
         UpdateActionBar();
@@ -554,6 +557,7 @@ internal static partial class UsageText
         if (app.Publisher.Length > 0) text.AppendLine(app.Publisher);
         text.AppendLine(app.IsApp ? Strings.ProcessKindApp : Strings.ProcessKindBackground);
         text.AppendLine(Strings.Format(Strings.UsageReportSince, frame.Since.ToLocalTime().DateTime));
+        if (frame.Capturing) text.AppendLine(PeriodNote(frame));
         text.AppendLine(
             $"{Strings.UsageCpuTime}: {CpuTime(app.CpuTicks)} ({Share(app.CpuTicks, frame.MachineBusyTicks)})");
         text.AppendLine($"{Strings.IO}: {Bytes(app.IoBytes)}");
@@ -569,6 +573,7 @@ internal static partial class UsageText
         var text = new StringBuilder();
         text.AppendLine(Strings.Format(Strings.ProductVersion, AppInfo.Version));
         text.AppendLine(Strings.Format(Strings.UsageReportSince, frame.Since.ToLocalTime().DateTime));
+        if (frame.Capturing) text.AppendLine(PeriodNote(frame));
         text.AppendLine(Strings.Format(Strings.UsageReportBusy, CpuTime(frame.MachineBusyTicks),
             WindowsCpuClock.LogicalProcessorCount));
         var sort = settings.Sort switch
@@ -594,5 +599,13 @@ internal static partial class UsageText
         text.AppendLine(string.Join('\t', Strings.UsageNotAttributed, CpuTime(frame.NotAttributedTicks),
             Share(frame.NotAttributedTicks, frame.MachineBusyTicks)));
         return text.ToString();
+    }
+
+    internal static string PeriodNote(UsageFrame frame)
+    {
+        return !frame.Available ? Strings.UsagePeriodUnavailable :
+            Strings.Format(Strings.UsagePeriodNote, frame.Since.ToLocalTime().DateTime,
+                frame.Latest?.ToLocalTime().DateTime) +
+            (frame.Complete ? "" : " " + Strings.UsagePeriodPartial);
     }
 }

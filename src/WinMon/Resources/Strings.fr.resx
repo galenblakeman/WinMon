@@ -1912,4 +1912,7 @@ Q quitte. Ctrl+C annule. Les programmes et services épinglés restent enregistr
 <data name="ExportTraffic" xml:space="preserve"><value>Trafic réseau des processus</value></data>
 <data name="ExportTrafficNote" xml:space="preserve"><value>Octets et débits différés par durée de vie du processus. Totaux cumulatifs ; ne pas additionner les échantillons. Les indicateurs signalent une couverture incomplète.</value></data>
 <data name="AutoCaptureNetworkScope" xml:space="preserve"><value>Le déclencheur mesure la carte sélectionnée ; les débits des applications incluent toutes les cartes et tous les protocoles et peuvent différer.</value></data>
+<data name="UsagePeriodNote" xml:space="preserve"><value>Période enregistrée : {0:G} – {1:G}. Durée du graphique, jusqu&apos;à la capture.</value></data>
+<data name="UsagePeriodPartial" xml:space="preserve"><value>Couverture partielle : des intervalles manquent ou dépassent l&apos;historique conservé.</value></data>
+<data name="UsagePeriodUnavailable" xml:space="preserve"><value>L&apos;utilisation n&apos;a pas été enregistrée pour cette capture. Les périodes repartent à zéro après un redémarrage.</value></data>
 </root>

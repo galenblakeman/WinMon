@@ -1912,4 +1912,7 @@ Q sale. Ctrl+C cancela. Los programas y servicios fijados se conservan entre ses
 <data name="ExportTraffic" xml:space="preserve"><value>Tráfico de red por proceso</value></data>
 <data name="ExportTrafficNote" xml:space="preserve"><value>Bytes y tasas retrasadas por vida del proceso. Totales acumulativos; no sume muestras. Los indicadores señalan cobertura incompleta.</value></data>
 <data name="AutoCaptureNetworkScope" xml:space="preserve"><value>El disparador mide el adaptador seleccionado; las tasas de las aplicaciones incluyen todos los adaptadores y protocolos y pueden diferir.</value></data>
+<data name="UsagePeriodNote" xml:space="preserve"><value>Periodo registrado: {0:G} – {1:G}. Duración del gráfico, hasta la captura.</value></data>
+<data name="UsagePeriodPartial" xml:space="preserve"><value>Cobertura parcial: faltan intervalos o están fuera del historial retenido.</value></data>
+<data name="UsagePeriodUnavailable" xml:space="preserve"><value>No se registró uso para esta captura. El uso por periodo empieza de nuevo tras reiniciar.</value></data>
 </root>

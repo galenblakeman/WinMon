@@ -73,7 +73,8 @@ public sealed class MonitorSession(
     Func<SamplingOptions> options,
     Action<Action> post,
     TimeSpan? interval = null,
-    ProcessIdentityPolicy? identityPolicy = null)
+    ProcessIdentityPolicy? identityPolicy = null,
+    bool retainUsageHistory = false)
 {
     private readonly ConcurrentQueue<Pending> _pending = new();
     private readonly TimeSpan _interval = interval ?? TimeSpan.FromSeconds(1);
@@ -103,6 +104,8 @@ public sealed class MonitorSession(
 
     /// <summary>Per-app totals since WinMon started, from every live full sample.</summary>
     public UsageLedger Usage { get; } = new(DateTimeOffset.Now, identityPolicy);
+
+    public UsageHistory UsageHistory { get; } = new(identityPolicy: identityPolicy);
 
     /// <summary>The newest compacted sample, the same instance history ends with.</summary>
     public MonitorSample? Latest { get; private set; }
@@ -168,7 +171,12 @@ public sealed class MonitorSession(
         Latest = compacted;
         LatestFull = full;
         if (services is not null) Services.Add(services);
-        if (full is not null) Usage.Add(full);
+        if (retainUsageHistory) UsageHistory.Resize(History.Capacity);
+        if (full is not null)
+        {
+            Usage.Add(full);
+            if (retainUsageHistory) UsageHistory.Add(full);
+        }
         if (full is not null || connections is not null || network is not null)
         {
             Connections.Resize(History.Capacity);

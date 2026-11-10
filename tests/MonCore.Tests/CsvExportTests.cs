@@ -208,6 +208,22 @@ public sealed class CsvExportTests
     }
 
     [Test]
+    public void UsagePeriod_ExportsSelectedTotalsWithEndAndCoverage()
+    {
+        var app = new AppUsage("app", "App", "", "", "", 10_000_000, 20, null, 1, 0, true, null);
+        var period = new UsagePeriod([app], 20_000_000, 10_000_000, Start, Start.AddSeconds(2), false);
+        var path = Path.Combine(_directory, "period.csv");
+        CsvExport.Write(path, CsvExportKind.UsageTotals, [], [], Start, 0, 0, usagePeriod: period);
+        var rows = File.ReadAllLines(path);
+        Assert.Multiple(() =>
+        {
+            Assert.That(rows[0], Does.EndWith(",until_utc,coverage_complete"));
+            Assert.That(rows[1], Does.Contain(",1,50,20,"));
+            Assert.That(rows[1], Does.EndWith(",2026-10-25T20:30:02.0000000Z,false"));
+        });
+    }
+
+    [Test]
     public void FailedWrite_PreservesExistingFileAndRemovesTemporaryFile()
     {
         var path = Path.Combine(_directory, "existing.csv");

@@ -138,6 +138,29 @@ public sealed class UsageViewTests
     }
 
     [Test]
+    [Apartment(ApartmentState.STA)]
+    public void CaptureUsageExplainsPeriodAndPartialCoverageAndDisablesReset()
+    {
+        var view = _view = new UsageView();
+        var frame = new UsageFrame([App("a", 600)], 1000, 400, Now.AddMinutes(-2), Now, true, false);
+        view.Update(frame);
+        Assert.Multiple(() =>
+        {
+            Assert.That(view.ResetUsage.IsEnabled, Is.False);
+            Assert.That(view.CopyUsage.IsEnabled, Is.True);
+            Assert.That(view.Notice.Text, Does.Contain(Strings.UsagePeriodPartial));
+            Assert.That(UsageText.Report(frame, new(0, UsageSort.CpuTime, false), ""), Does.Contain(view.Notice.Text));
+        });
+        view.Update(frame with { Apps = [], Available = false });
+        Assert.Multiple(() =>
+        {
+            Assert.That(view.Notice.Text, Is.EqualTo(Strings.UsagePeriodUnavailable));
+            Assert.That(view.CopyUsage.IsEnabled, Is.False);
+            Assert.That(view.NotAttributedCpu.Text, Is.EqualTo(Strings.MissingReading));
+        });
+    }
+
+    [Test]
     public void DisplayName_LabelsTheSharedRow()
     {
         Assert.That(UsageText.DisplayName(App(UsageLedger.OtherAppsKey) with { Name = "" }),

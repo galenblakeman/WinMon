@@ -930,6 +930,9 @@ public static partial class Strings
     public static string UsageNow => ResourceManager.GetString(nameof(UsageNow), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string UsageNumberOfApps => ResourceManager.GetString(nameof(UsageNumberOfApps), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string UsageOtherApps => ResourceManager.GetString(nameof(UsageOtherApps), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string UsagePeriodNote => ResourceManager.GetString(nameof(UsagePeriodNote), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string UsagePeriodPartial => ResourceManager.GetString(nameof(UsagePeriodPartial), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string UsagePeriodUnavailable => ResourceManager.GetString(nameof(UsagePeriodUnavailable), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string UsageProcessesHelp => ResourceManager.GetString(nameof(UsageProcessesHelp), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string UsageRankingHelp => ResourceManager.GetString(nameof(UsageRankingHelp), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string UsageReportBusy => ResourceManager.GetString(nameof(UsageReportBusy), Culture ?? CultureInfo.CurrentUICulture)!;

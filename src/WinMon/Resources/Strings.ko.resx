@@ -1912,4 +1912,7 @@ Q 종료. Ctrl+C 취소. 실행 파일과 서비스 고정은 다음 실행에�
 <data name="ExportTraffic" xml:space="preserve"><value>프로세스 네트워크 트래픽</value></data>
 <data name="ExportTrafficNote" xml:space="preserve"><value>프로세스 수명별 바이트와 지연된 속도입니다. 합계는 누적값이므로 샘플 간에 더하지 마세요. 품질 플래그는 불완전한 수집을 나타냅니다.</value></data>
 <data name="AutoCaptureNetworkScope" xml:space="preserve"><value>트리거는 선택한 어댑터를 측정합니다. 앱 속도에는 모든 어댑터와 프로토콜이 포함되어 합계가 다를 수 있습니다.</value></data>
+<data name="UsagePeriodNote" xml:space="preserve"><value>기록 구간: {0:G} – {1:G}. 차트 범위의 기간을 사용하며 캡처 시점에 끝납니다.</value></data>
+<data name="UsagePeriodPartial" xml:space="preserve"><value>일부 구간이 누락되었거나 보관 기록 범위를 벗어나 데이터가 불완전합니다.</value></data>
+<data name="UsagePeriodUnavailable" xml:space="preserve"><value>이 캡처의 사용량이 기록되지 않았습니다. 구간별 사용량은 다시 시작하면 초기화됩니다.</value></data>
 </root>

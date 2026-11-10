@@ -1912,4 +1912,7 @@ Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。<
 <data name="ExportTraffic" xml:space="preserve"><value>进程网络流量</value></data>
 <data name="ExportTrafficNote" xml:space="preserve"><value>按进程生命周期记录的字节数和延迟速率。总量为累计值，请勿跨样本相加。质量标志表示覆盖不完整。</value></data>
 <data name="AutoCaptureNetworkScope" xml:space="preserve"><value>触发器测量所选适配器；应用速率包含所有适配器和协议，因此总和可能不同。</value></data>
+<data name="UsagePeriodNote" xml:space="preserve"><value>记录时段：{0:G} – {1:G}。时长由图表范围决定，结束于捕获时刻。</value></data>
+<data name="UsagePeriodPartial" xml:space="preserve"><value>覆盖不完整：部分区间缺失或超出保留历史范围。</value></data>
+<data name="UsagePeriodUnavailable" xml:space="preserve"><value>未记录此捕获的使用量。重启后时段使用量将重新开始记录。</value></data>
 </root>

@@ -538,6 +538,23 @@ public sealed class MonitorSessionTests
     }
 
     [Test]
+    public void Record_UsagePeriodsUseFullSamplesAndNeverInventRestoredObservations()
+    {
+        var session = new MonitorSession(() => throw new InvalidOperationException(), () => new(),
+            action => action(), retainUsageHistory: true);
+        var first = Frame(1)(new SamplingOptions()).Full;
+        var second = Frame(2)(new SamplingOptions()).Full;
+        session.Record(ProcessRetention.Compact(first));
+        session.Record(ProcessRetention.Compact(second), second);
+        Assert.Multiple(() =>
+        {
+            Assert.That(session.UsageHistory.Query(first, 120), Is.Null);
+            Assert.That(session.UsageHistory.Query(second, 120)!.Apps.Sum(app => app.Running), Is.EqualTo(Processes));
+            Assert.That(session.UsageHistory.Query(second, 120)!.Complete, Is.False);
+        });
+    }
+
+    [Test]
     public void Record_FeedsUsageOnlyFromAFullSample()
     {
         var harness = new Harness();

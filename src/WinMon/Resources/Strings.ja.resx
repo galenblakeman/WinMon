@@ -1912,4 +1912,7 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
 <data name="ExportTraffic" xml:space="preserve"><value>プロセス別ネットワーク通信量</value></data>
 <data name="ExportTrafficNote" xml:space="preserve"><value>プロセスの存続期間ごとのバイト数と遅延速度です。合計は累積値のためサンプル間で加算しないでください。品質フラグは不完全な収集を示します。</value></data>
 <data name="AutoCaptureNetworkScope" xml:space="preserve"><value>トリガーは選択したアダプターを測定します。アプリの速度はすべてのアダプターとプロトコルを含むため、一致しない場合があります。</value></data>
+<data name="UsagePeriodNote" xml:space="preserve"><value>記録期間: {0:G} – {1:G}。グラフの期間を使用し、キャプチャ時点で終了します。</value></data>
+<data name="UsagePeriodPartial" xml:space="preserve"><value>収集は不完全です。一部の区間が欠落しているか、保持履歴の範囲外です。</value></data>
+<data name="UsagePeriodUnavailable" xml:space="preserve"><value>このキャプチャの使用状況は記録されていません。期間別の使用状況は再起動後に新しく開始します。</value></data>
 </root>

@@ -85,7 +85,7 @@ public partial class MainWindow
         _initialPreferences = initialPreferences;
         _preferenceStore = preferenceStore ?? new PreferenceStore();
         Session = new MonitorSession(() => new WindowsFrameSource(), CurrentSamplingOptions,
-            drain => Dispatcher.BeginInvoke(drain, DispatcherPriority.Background));
+            drain => Dispatcher.BeginInvoke(drain, DispatcherPriority.Background), retainUsageHistory: true);
         Session.Recorded += OnSamplesRecorded;
         InitializeComponent();
         InitializeMetricDetails();

@@ -1912,4 +1912,7 @@ Q quits. Ctrl+C cancels. Executable/service pins persist between sessions.</valu
 <data name="ExportTraffic" xml:space="preserve"><value>Process network traffic</value></data>
 <data name="ExportTrafficNote" xml:space="preserve"><value>Process-lifetime bytes and delayed rates. Totals are cumulative; do not sum samples. Quality flags indicate incomplete coverage.</value></data>
 <data name="AutoCaptureNetworkScope" xml:space="preserve"><value>The trigger measures the selected adapter; app rates include all adapters and protocols and may not add up to it.</value></data>
+<data name="UsagePeriodNote" xml:space="preserve"><value>Recorded period: {0:G} – {1:G}. Duration follows the chart range, ending at Capture.</value></data>
+<data name="UsagePeriodPartial" xml:space="preserve"><value>Partial coverage: some intervals are missing or outside retained history.</value></data>
+<data name="UsagePeriodUnavailable" xml:space="preserve"><value>Usage was not recorded for this capture. Period usage starts fresh after restart.</value></data>
 </root>

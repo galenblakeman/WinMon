@@ -27,7 +27,8 @@ public partial class MainWindow
             ServicesTab.IsChecked == true ? CsvExportKind.Services :
             ConnectionsTab.IsChecked == true ? CsvExportKind.Connections :
             ProcessesTab.IsChecked == true ? CsvExportKind.ProcessSamples : CsvExportKind.ResourceHistory;
-        var dialog = new CsvExportDialog(initial) { Owner = this };
+        var dialog = new CsvExportDialog(initial,
+            SelectedSample is null ? null : UsageText.PeriodNote(CurrentUsageFrame())) { Owner = this };
         if (dialog.ShowDialog() != true || dialog.Choice is not { } choice || IsClosing) return;
 
         try
@@ -45,6 +46,9 @@ public partial class MainWindow
                 : CsvExport.SelectSamples(Session.History.Samples,
                     choice.ChartRange ? _preferences.EffectiveChartRange : null);
             var ledger = Session.Usage;
+            var period = choice.Kind == CsvExportKind.UsageTotals && SelectedSample is { } selected &&
+                         Session.History.Samples.Contains(selected)
+                ? Session.UsageHistory.Query(selected, _preferences.EffectiveChartRange) : null;
             var apps = choice.Kind == CsvExportKind.UsageTotals ? ledger.Apps.ToArray() : [];
             var (since, busyTicks, notAttributedTicks) =
                 (ledger.Since, ledger.MachineBusyTicks, ledger.NotAttributedCpuTicks);
@@ -62,7 +66,7 @@ public partial class MainWindow
                 CsvExportKind.Services => services.Length > 0,
                 CsvExportKind.Connections => connections.Length > 0,
                 CsvExportKind.NetworkTraffic => connections.Length > 0,
-                CsvExportKind.UsageTotals => true,
+                CsvExportKind.UsageTotals => SelectedSample is null || period is not null,
                 _ => samples.Count > 0
             };
             if (!hasData)
@@ -73,7 +77,7 @@ public partial class MainWindow
 
             var path = save.FileName;
             var write = Task.Run(() => CsvExport.Write(path, choice.Kind, samples, apps, since, busyTicks,
-                notAttributedTicks, services, connections));
+                notAttributedTicks, services, connections, period));
             ExportWrites.Add(write);
             try
             {

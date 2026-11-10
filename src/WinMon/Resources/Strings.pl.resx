@@ -1912,4 +1912,7 @@ Q kończy. Ctrl+C anuluje. Przypięte programy i usługi są zachowywane między
 <data name="ExportTraffic" xml:space="preserve"><value>Ruch sieciowy procesów</value></data>
 <data name="ExportTrafficNote" xml:space="preserve"><value>Bajty i opóźnione szybkości dla czasu życia procesu. Sumy są narastające; nie dodawaj próbek. Flagi oznaczają niepełne dane.</value></data>
 <data name="AutoCaptureNetworkScope" xml:space="preserve"><value>Wyzwalacz mierzy wybrany adapter; szybkości aplikacji obejmują wszystkie adaptery i protokoły i mogą się różnić.</value></data>
+<data name="UsagePeriodNote" xml:space="preserve"><value>Zapisany okres: {0:G} – {1:G}. Długość według wykresu, do chwili przechwycenia.</value></data>
+<data name="UsagePeriodPartial" xml:space="preserve"><value>Niepełne dane: brakuje przedziałów lub wykraczają poza zachowaną historię.</value></data>
+<data name="UsagePeriodUnavailable" xml:space="preserve"><value>Nie zapisano użycia dla tego przechwycenia. Użycie okresowe zaczyna się od nowa po restarcie.</value></data>
 </root>

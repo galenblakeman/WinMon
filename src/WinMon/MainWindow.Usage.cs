@@ -30,17 +30,35 @@ public partial class MainWindow
     {
         // The compact strip hides the Usage tab as well.
         if (UsageTab.IsChecked != true || CompactMode) return;
-        var ledger = Session.Usage;
-        var apps = ledger.Apps;
+        var frame = CurrentUsageFrame();
+        var apps = frame.Apps;
         UpdateActivityPair(UsageCounts, UsageTotalValue, UsageActiveValue,
-            (uint)apps.Count, (uint)apps.Count(app => app.Running > 0),
+            frame.Available ? (uint)apps.Count : null,
+            frame.Available ? (uint)apps.Count(app => app.Running > 0) : null,
             Strings.ActivityTotal, Strings.ActivityActive, ref _usageCounts);
-        UsageView.Update(new UsageFrame(apps, ledger.MachineBusyTicks, ledger.NotAttributedCpuTicks,
-            ledger.Since, (Session.LatestFull ?? Session.Latest)?.Timestamp, SelectedSample is not null));
+        UsageView.Update(frame);
+    }
+
+    internal UsageFrame CurrentUsageFrame()
+    {
+        if (SelectedSample is { } selected)
+        {
+            var period = Session.History.Samples.Contains(selected)
+                ? Session.UsageHistory.Query(selected, _preferences.EffectiveChartRange) : null;
+            return period is null
+                ? new UsageFrame([], 0, 0, selected.Timestamp, selected.Timestamp, true, false, false)
+                : new UsageFrame(period.Apps, period.MachineBusyTicks, period.NotAttributedTicks,
+                    period.Since, period.Latest, true, period.Complete);
+        }
+
+        var ledger = Session.Usage;
+        return new UsageFrame(ledger.Apps, ledger.MachineBusyTicks, ledger.NotAttributedCpuTicks,
+            ledger.Since, (Session.LatestFull ?? Session.Latest)?.Timestamp, false);
     }
 
     private void ResetUsage()
     {
+        if (SelectedSample is not null) return;
         if (!MessageDialog.Confirm(this, Strings.UsageResetConfirm, Strings.UsageTab, Strings.UsageReset)) return;
         Session.Usage.Reset(DateTimeOffset.Now);
         RefreshPresentation();
@@ -63,7 +81,7 @@ public partial class MainWindow
     /// </summary>
     internal void ShowUsageInProcesses(AppUsage app)
     {
-        var moment = app.Running > 0 ? null : LastActiveSample(app);
+        var moment = app.Running > 0 ? SelectedSample : LastActiveSample(app);
         if (app.Running == 0 && moment is null)
         {
             // The sample can expire between opening the menu and choosing the item.

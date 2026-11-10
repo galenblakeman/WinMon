@@ -111,9 +111,30 @@ internal sealed partial class WindowDiagnostics
             await CaptureServiceWindowAsync(fixture, Path.Combine(output, "usage-show-exited.png"), cancellationToken);
 
             var chrome = fixture.Session.Usage.Apps.Single(a => a.AppName == "Google Chrome");
+            fixture.SelectedSample = null;
             fixture.ShowUsageInProcesses(chrome);
             if (fixture.SelectedSample is not null)
                 throw new InvalidOperationException("Show in Processes must stay live for a running app.");
+
+            fixture.SelectedSample = fixture.Session.History.Samples[59];
+            fixture.UsageTab.IsChecked = true;
+            fixture.RefreshVisiblePresentation();
+            var period = fixture.CurrentUsageFrame();
+            if (!period.Capturing || period.Apps.Single(app => app.Name == "setup").Running != 1 ||
+                period.Latest != fixture.SelectedSample.Timestamp || view.ResetUsage.IsEnabled ||
+                period.Apps.Sum(app => app.CpuTicks) >= fixture.Session.Usage.Apps.Sum(app => app.CpuTicks))
+                throw new InvalidOperationException("Capture Usage must show recorded period totals, not live totals.");
+            checks["PeriodReport"] = UsageText.Report(period, view.Settings, "");
+            await CaptureServiceWindowAsync(fixture, Path.Combine(output, "usage-recorded-period.png"), cancellationToken);
+            var selected = fixture.SelectedSample;
+            fixture.ShowUsageInProcesses(period.Apps.Single(app => app.AppName == "Google Chrome"));
+            if (!ReferenceEquals(fixture.SelectedSample, selected))
+                throw new InvalidOperationException("Navigating from period Usage must preserve the captured moment.");
+            fixture.SelectedSample = null;
+            fixture.UsageTab.IsChecked = true;
+            fixture.RefreshVisiblePresentation();
+            if (fixture.CurrentUsageFrame().Capturing || !view.ResetUsage.IsEnabled)
+                throw new InvalidOperationException("Live Usage must restore session totals and Reset.");
             await File.WriteAllTextAsync(Path.Combine(output, "usage.json"),
                 JsonSerializer.Serialize(checks, new JsonSerializerOptions { WriteIndented = true }),
                 cancellationToken);

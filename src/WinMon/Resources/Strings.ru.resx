@@ -1912,4 +1912,7 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
 <data name="ExportTraffic" xml:space="preserve"><value>Сетевой трафик процессов</value></data>
 <data name="ExportTrafficNote" xml:space="preserve"><value>Байты и скорости с задержкой за время жизни процесса. Итоги накопительные; не суммируйте отсчёты. Флаги отмечают неполное покрытие.</value></data>
 <data name="AutoCaptureNetworkScope" xml:space="preserve"><value>Триггер измеряет выбранный адаптер; скорости приложений охватывают все адаптеры и протоколы и могут отличаться.</value></data>
+<data name="UsagePeriodNote" xml:space="preserve"><value>Записанный период: {0:G} – {1:G}. Длительность по графику, до момента снимка.</value></data>
+<data name="UsagePeriodPartial" xml:space="preserve"><value>Неполное покрытие: интервалы отсутствуют или вне сохранённой истории.</value></data>
+<data name="UsagePeriodUnavailable" xml:space="preserve"><value>Для этого снимка использование не записано. Учёт по периодам начинается заново после перезапуска.</value></data>
 </root>

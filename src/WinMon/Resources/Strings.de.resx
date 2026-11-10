@@ -1912,4 +1912,7 @@ Q beendet. Ctrl+C bricht ab. Programm- und Dienst-Pins bleiben gespeichert.</val
 <data name="ExportTraffic" xml:space="preserve"><value>Prozess-Netzwerkverkehr</value></data>
 <data name="ExportTrafficNote" xml:space="preserve"><value>Bytes und verzögerte Raten je Prozesslaufzeit. Summen sind kumulativ; Messpunkte nicht addieren. Qualitätsflags zeigen unvollständige Erfassung.</value></data>
 <data name="AutoCaptureNetworkScope" xml:space="preserve"><value>Der Auslöser misst den gewählten Adapter; App-Raten umfassen alle Adapter und Protokolle und können abweichen.</value></data>
+<data name="UsagePeriodNote" xml:space="preserve"><value>Aufgezeichneter Zeitraum: {0:G} – {1:G}. Dauer gemäß Diagramm, Ende bei der Aufnahme.</value></data>
+<data name="UsagePeriodPartial" xml:space="preserve"><value>Unvollständige Erfassung: Intervalle fehlen oder liegen außerhalb des Verlaufs.</value></data>
+<data name="UsagePeriodUnavailable" xml:space="preserve"><value>Für diese Aufnahme wurde keine Nutzung erfasst. Zeitraumnutzung beginnt nach einem Neustart neu.</value></data>
 </root>

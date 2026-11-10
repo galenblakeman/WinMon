@@ -28,7 +28,8 @@ public static class CsvExport
     /// <summary>Write to a sibling temporary file and replace the chosen file only after a complete export.</summary>
     public static void Write(string path, CsvExportKind kind, IReadOnlyList<MonitorSample> samples,
         IReadOnlyList<AppUsage> apps, DateTimeOffset usageSince, long machineBusyTicks, long notAttributedTicks,
-        IReadOnlyList<ServiceFrame>? services = null, IReadOnlyList<ConnectionCapture>? connections = null)
+        IReadOnlyList<ServiceFrame>? services = null, IReadOnlyList<ConnectionCapture>? connections = null,
+        UsagePeriod? usagePeriod = null)
     {
         var temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
         try
@@ -41,7 +42,9 @@ public static class CsvExport
                     case CsvExportKind.ResourceHistory: WriteResources(writer, samples); break;
                     case CsvExportKind.ProcessSamples: WriteProcesses(writer, samples); break;
                     case CsvExportKind.UsageTotals:
-                        WriteUsage(writer, apps, usageSince, machineBusyTicks, notAttributedTicks); break;
+                        WriteUsage(writer, usagePeriod?.Apps ?? apps, usagePeriod?.Since ?? usageSince,
+                            usagePeriod?.MachineBusyTicks ?? machineBusyTicks,
+                            usagePeriod?.NotAttributedTicks ?? notAttributedTicks, usagePeriod); break;
                     case CsvExportKind.Services: WriteServices(writer, services ?? []); break;
                     case CsvExportKind.Connections: WriteConnections(writer, connections ?? []); break;
                     case CsvExportKind.NetworkTraffic: WriteNetworkTraffic(writer, connections ?? []); break;
@@ -119,22 +122,26 @@ public static class CsvExport
     }
 
     private static void WriteUsage(TextWriter writer, IReadOnlyList<AppUsage> apps, DateTimeOffset since,
-        long machineBusyTicks, long notAttributedTicks)
+        long machineBusyTicks, long notAttributedTicks, UsagePeriod? period)
     {
-        Row(writer, "since_utc", "key", "name", "app_name", "image_path", "publisher", "cpu_seconds",
+        string[] columns = ["since_utc", "key", "name", "app_name", "image_path", "publisher", "cpu_seconds",
             "share_percent", "io_bytes", "gpu_seconds", "process_lifetimes", "running_processes", "is_app",
-            "last_active_utc", "is_not_attributed");
+            "last_active_utc", "is_not_attributed"];
+        Row(writer, period is null ? columns : [.. columns, "until_utc", "coverage_complete"]);
         foreach (var app in apps.OrderByDescending(app => app.CpuTicks))
-            Row(writer, Utc(since), app.Key == UsageLedger.OtherAppsKey ? "other_apps" : Safe(app.Key),
+            UsageRow(Utc(since), app.Key == UsageLedger.OtherAppsKey ? "other_apps" : Safe(app.Key),
                 app.Key == UsageLedger.OtherAppsKey ? "Other apps" : Safe(app.Name),
                 Safe(app.AppName), Safe(app.ImagePath),
                 Safe(app.Publisher),
                 Number(app.CpuTicks / (double)TimeSpan.TicksPerSecond), Share(app.CpuTicks, machineBusyTicks),
                 Number(app.IoBytes), Number(app.GpuSeconds), Number(app.Lifetimes), Number(app.Running),
                 Bool(app.IsApp), app.LastActive is { } active ? Utc(active.Timestamp) : null, "false");
-        Row(writer, Utc(since), "not_attributed", null, null, null, null,
+        UsageRow(Utc(since), "not_attributed", null, null, null, null,
             Number(notAttributedTicks / (double)TimeSpan.TicksPerSecond),
             Share(notAttributedTicks, machineBusyTicks), null, null, null, null, null, null, "true");
+
+        void UsageRow(params string?[] values) =>
+            Row(writer, period is null ? values : [.. values, Utc(period.Latest), Bool(period.Complete)]);
     }
 
     private static void WriteServices(TextWriter writer, IReadOnlyList<ServiceFrame> frames)
