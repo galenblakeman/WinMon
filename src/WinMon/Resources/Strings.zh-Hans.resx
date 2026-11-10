@@ -1909,4 +1909,6 @@ Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。<
   <data name="CliSettingsSaveFailed" xml:space="preserve"><value>无法保存CLI设置。</value></data>
   <data name="CliNoSave" xml:space="preserve"><value>不保存交互式更改。</value></data>
   <data name="CliSettingsUpdated" xml:space="preserve"><value>CLI设置已保存。</value></data>
+<data name="ExportTraffic" xml:space="preserve"><value>进程网络流量</value></data>
+<data name="ExportTrafficNote" xml:space="preserve"><value>按进程生命周期记录的字节数和延迟速率。总量为累计值，请勿跨样本相加。质量标志表示覆盖不完整。</value></data>
 </root>

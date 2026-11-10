@@ -9,7 +9,8 @@ public enum CsvExportKind
     ProcessSamples,
     UsageTotals,
     Services,
-    Connections
+    Connections,
+    NetworkTraffic
 }
 
 /// <summary>Write retained observations and session usage in stable, invariant, raw-unit CSV columns.</summary>
@@ -43,6 +44,7 @@ public static class CsvExport
                         WriteUsage(writer, apps, usageSince, machineBusyTicks, notAttributedTicks); break;
                     case CsvExportKind.Services: WriteServices(writer, services ?? []); break;
                     case CsvExportKind.Connections: WriteConnections(writer, connections ?? []); break;
+                    case CsvExportKind.NetworkTraffic: WriteNetworkTraffic(writer, connections ?? []); break;
                     default: throw new ArgumentOutOfRangeException(nameof(kind));
                 }
 
@@ -188,6 +190,36 @@ public static class CsvExport
                     Safe(connection.LocalEndpoint.Address.ToString()), Number(connection.LocalEndpoint.Port),
                     Safe(connection.RemoteEndpoint?.Address.ToString() ?? ""),
                     Number(connection.RemoteEndpoint?.Port), connection.State?.ToString());
+            }
+        }
+    }
+
+    private static void WriteNetworkTraffic(TextWriter writer, IReadOnlyList<ConnectionCapture> captures)
+    {
+        Row(writer, "timestamp_utc", "quality_flags", "pid", "creation_ticks", "name", "image_path",
+            "received_bytes", "sent_bytes", "receive_bytes_per_second", "send_bytes_per_second");
+        foreach (var capture in captures)
+        {
+            var network = capture.Network;
+            var quality = Number((long)(network?.Quality ?? ProcessNetworkQuality.Unavailable));
+            if (network is null || network.Processes.Count == 0)
+            {
+                Row(writer, Utc(capture.Sample.Timestamp), quality, null, null, null, null, null, null, null, null);
+                continue;
+            }
+
+            var owners = capture.Owners.Concat(network.Owners).DistinctBy(owner => owner.Identity)
+                .ToDictionary(owner => owner.Identity);
+            foreach (var reading in network.Processes)
+            {
+                var owner = owners.GetValueOrDefault(new ProcessLifetimeIdentity(reading.ProcessId,
+                    reading.CreationTicks, ProcessLifetimeIdentity.WindowsFileTime));
+                var unavailable = network.Quality.HasFlag(ProcessNetworkQuality.Unavailable);
+                Row(writer, Utc(capture.Sample.Timestamp), quality, Number(reading.ProcessId),
+                    Number(reading.CreationTicks), Safe(owner?.Name ?? ""), Safe(owner?.ImagePath ?? ""),
+                    Number(reading.ReceivedBytes), Number(reading.SentBytes),
+                    Number(unavailable ? null : reading.ReceiveBytesPerSecond),
+                    Number(unavailable ? null : reading.SendBytesPerSecond));
             }
         }
     }

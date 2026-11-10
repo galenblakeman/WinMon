@@ -1909,4 +1909,6 @@ Q kończy. Ctrl+C anuluje. Przypięte programy i usługi są zachowywane między
   <data name="CliSettingsSaveFailed" xml:space="preserve"><value>Nie udało się zapisać ustawień CLI.</value></data>
   <data name="CliNoSave" xml:space="preserve"><value>Nie zapisuj zmian interaktywnych.</value></data>
   <data name="CliSettingsUpdated" xml:space="preserve"><value>Ustawienia CLI zapisane.</value></data>
+<data name="ExportTraffic" xml:space="preserve"><value>Ruch sieciowy procesów</value></data>
+<data name="ExportTrafficNote" xml:space="preserve"><value>Bajty i opóźnione szybkości dla czasu życia procesu. Sumy są narastające; nie dodawaj próbek. Flagi oznaczają niepełne dane.</value></data>
 </root>

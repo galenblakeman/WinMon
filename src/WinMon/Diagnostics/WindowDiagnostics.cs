@@ -606,7 +606,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                      {
                          ("Dark", CsvExportKind.UsageTotals), ("Light", CsvExportKind.ResourceHistory),
                          ("Slate", CsvExportKind.ProcessSamples), ("Dark", CsvExportKind.Services),
-                         ("Light", CsvExportKind.Connections)
+                         ("Light", CsvExportKind.Connections), ("Dark", CsvExportKind.NetworkTraffic)
                      })
             {
                 window.Preferences = exportTheme with { Theme = theme };

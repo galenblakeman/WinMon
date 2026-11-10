@@ -183,6 +183,31 @@ public sealed class CsvExportTests
     }
 
     [Test]
+    public void NetworkTraffic_PreservesQualityAndLifetimesWithoutDuplicatingEndpoints()
+    {
+        var sample = new MonitorSample(Start, 1, [], 0);
+        var owner = new ProcessUsage(42, 123, "@owner", 0) { ImagePath = "C:\\app.exe" };
+        var network = new ProcessNetworkFrame(100, 10, ProcessNetworkQuality.Incomplete,
+            [new(42, 123, 1024, 512, 10.5, null), new(42, 999, 0, 0, null, null)]) { Owners = [owner] };
+        var path = Path.Combine(_directory, "traffic.csv");
+        CsvExport.Write(path, CsvExportKind.NetworkTraffic, [], [], Start, 0, 0, connections:
+        [
+            new(sample, null, [], network), new(sample, null, [], null),
+            new(sample, null, [], network with { Quality = ProcessNetworkQuality.Unavailable })
+        ]);
+        var rows = File.ReadAllLines(path);
+        Assert.Multiple(() =>
+        {
+            Assert.That(rows, Has.Length.EqualTo(6));
+            Assert.That(rows[1], Does.EndWith(",4,42,123,'@owner,C:\\app.exe,1024,512,10.5,"));
+            Assert.That(rows[2], Does.EndWith(",4,42,999,,,0,0,,"));
+            Assert.That(rows[3], Does.EndWith(",16,,,,,,,,"));
+            Assert.That(rows[4], Does.EndWith(",16,42,123,'@owner,C:\\app.exe,1024,512,,"));
+            Assert.That(rows.All(row => row.Split(',').Length == 10), Is.True);
+        });
+    }
+
+    [Test]
     public void FailedWrite_PreservesExistingFileAndRemovesTemporaryFile()
     {
         var path = Path.Combine(_directory, "existing.csv");

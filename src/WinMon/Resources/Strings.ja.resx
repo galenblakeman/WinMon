@@ -1909,4 +1909,6 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
   <data name="CliSettingsSaveFailed" xml:space="preserve"><value>CLI設定を保存できませんでした。</value></data>
   <data name="CliNoSave" xml:space="preserve"><value>対話モードの変更を保存しません。</value></data>
   <data name="CliSettingsUpdated" xml:space="preserve"><value>CLI設定を保存しました。</value></data>
+<data name="ExportTraffic" xml:space="preserve"><value>プロセス別ネットワーク通信量</value></data>
+<data name="ExportTrafficNote" xml:space="preserve"><value>プロセスの存続期間ごとのバイト数と遅延速度です。合計は累積値のためサンプル間で加算しないでください。品質フラグは不完全な収集を示します。</value></data>
 </root>

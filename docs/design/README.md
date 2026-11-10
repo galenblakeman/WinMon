@@ -1,5 +1,7 @@
 # WinMon design assets
 
+- [Complete existing investigation workflows](FEATURE-COMPLETENESS.md) tracks traffic export, network capture attribution, period Usage, history coverage and app navigation.
+
 - [Terminal CLI preview](TERMINAL-CLI.md) adds snapshot reports and four interactive read-only monitoring tabs with Spectre.Console and System.CommandLine, including adaptive resource gauges and shared-scale process history sparklines.
 
 - [Diagnostic file logging](DIAGNOSTIC-LOGGING.md) records startup, errors and network-service recovery in bounded local logs.

@@ -1909,4 +1909,6 @@ Q quits. Ctrl+C cancels. Executable/service pins persist between sessions.</valu
   <data name="CliSettingsSaveFailed" xml:space="preserve"><value>Could not save CLI settings.</value></data>
   <data name="CliNoSave" xml:space="preserve"><value>Do not save interactive changes.</value></data>
   <data name="CliSettingsUpdated" xml:space="preserve"><value>CLI settings saved.</value></data>
+<data name="ExportTraffic" xml:space="preserve"><value>Process network traffic</value></data>
+<data name="ExportTrafficNote" xml:space="preserve"><value>Process-lifetime bytes and delayed rates. Totals are cumulative; do not sum samples. Quality flags indicate incomplete coverage.</value></data>
 </root>

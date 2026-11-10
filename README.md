@@ -46,7 +46,7 @@ History defaults to **30 minutes**, with retention configurable up to **60 minut
 | **Services** | Follow Windows services, their hosts and observed workers. Inspect resource use or start, stop and restart eligible services with confirmation and elevation where required. |
 | **Connections** | See apps with TCP connections and UDP endpoints. Optional per-app traffic monitoring adds receive/send rates, history and observed byte totals. |
 | **Usage** | Find which apps consumed CPU time, I/O and GPU time during the session, including apps that have exited. |
-| **CSV export** | Save retained resource, process, service and connection observations, or session usage totals, for analysis. Connection exports contain endpoints and owners, not traffic counters. |
+| **CSV export** | Save retained resource, process, service and connection observations, or session usage totals, for analysis. Separate connection and process-traffic exports preserve endpoints, owners, observed bytes, rates and coverage flags. |
 | **Hardware and help** | Open Info for hardware details, feature instructions and a walkthrough that points out controls in the dashboard. |
 
 [See feature examples](docs/example/README.md#investigate) · [Read the user guide](docs/USER-GUIDE.md)

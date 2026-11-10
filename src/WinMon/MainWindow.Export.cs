@@ -54,13 +54,14 @@ public partial class MainWindow
             var services = choice.Kind == CsvExportKind.Services
                 ? Session.Services.Frames.Where(frame => frame.Sample.Timestamp >= start).ToArray()
                 : [];
-            var connections = choice.Kind == CsvExportKind.Connections
+            var connections = choice.Kind is CsvExportKind.Connections or CsvExportKind.NetworkTraffic
                 ? Session.Connections.Captures.Where(capture => capture.Sample.Timestamp >= start).ToArray()
                 : [];
             var hasData = choice.Kind switch
             {
                 CsvExportKind.Services => services.Length > 0,
                 CsvExportKind.Connections => connections.Length > 0,
+                CsvExportKind.NetworkTraffic => connections.Length > 0,
                 CsvExportKind.UsageTotals => true,
                 _ => samples.Count > 0
             };

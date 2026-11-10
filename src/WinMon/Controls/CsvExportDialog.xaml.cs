@@ -20,6 +20,7 @@ public partial class CsvExportDialog : Window
             case CsvExportKind.ProcessSamples: ProcessChoice.IsChecked = true; break;
             case CsvExportKind.Services: ServiceChoice.IsChecked = true; break;
             case CsvExportKind.Connections: ConnectionChoice.IsChecked = true; break;
+            case CsvExportKind.NetworkTraffic: TrafficChoice.IsChecked = true; break;
             default: UsageChoice.IsChecked = true; break;
         }
     }
@@ -27,6 +28,7 @@ public partial class CsvExportDialog : Window
     private CsvExportKind Kind => UsageChoice.IsChecked == true ? CsvExportKind.UsageTotals :
         ServiceChoice.IsChecked == true ? CsvExportKind.Services :
         ConnectionChoice.IsChecked == true ? CsvExportKind.Connections :
+        TrafficChoice.IsChecked == true ? CsvExportKind.NetworkTraffic :
         ProcessChoice.IsChecked == true ? CsvExportKind.ProcessSamples : CsvExportKind.ResourceHistory;
 
     private void OnChoiceChanged(object sender, RoutedEventArgs e)
@@ -40,6 +42,7 @@ public partial class CsvExportDialog : Window
             CsvExportKind.ProcessSamples => Strings.ExportProcessNote,
             CsvExportKind.Services => Strings.ExportServiceNote,
             CsvExportKind.Connections => Strings.ExportConnectionNote,
+            CsvExportKind.NetworkTraffic => Strings.ExportTrafficNote,
             _ => Strings.ExportUsageNote
         };
         var type = Kind switch
@@ -48,6 +51,7 @@ public partial class CsvExportDialog : Window
             CsvExportKind.ProcessSamples => "processes",
             CsvExportKind.Services => "services",
             CsvExportKind.Connections => "connections",
+            CsvExportKind.NetworkTraffic => "traffic",
             _ => "usage"
         };
         FileNameBox.Text = $"winmon-{type}-{DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}.csv";

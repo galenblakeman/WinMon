@@ -1909,4 +1909,6 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
   <data name="CliSettingsSaveFailed" xml:space="preserve"><value>Не удалось сохранить настройки CLI.</value></data>
   <data name="CliNoSave" xml:space="preserve"><value>Не сохранять интерактивные изменения.</value></data>
   <data name="CliSettingsUpdated" xml:space="preserve"><value>Настройки CLI сохранены.</value></data>
+<data name="ExportTraffic" xml:space="preserve"><value>Сетевой трафик процессов</value></data>
+<data name="ExportTrafficNote" xml:space="preserve"><value>Байты и скорости с задержкой за время жизни процесса. Итоги накопительные; не суммируйте отсчёты. Флаги отмечают неполное покрытие.</value></data>
 </root>

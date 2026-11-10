@@ -1909,4 +1909,6 @@ Q sai. Ctrl+C cancela. Programas e serviços fixados persistem entre sessões.</
   <data name="CliSettingsSaveFailed" xml:space="preserve"><value>Não foi possível salvar as configurações da CLI.</value></data>
   <data name="CliNoSave" xml:space="preserve"><value>Não salvar alterações interativas.</value></data>
   <data name="CliSettingsUpdated" xml:space="preserve"><value>Configurações da CLI salvas.</value></data>
+<data name="ExportTraffic" xml:space="preserve"><value>Tráfego de rede por processo</value></data>
+<data name="ExportTrafficNote" xml:space="preserve"><value>Bytes e taxas atrasadas por vida do processo. Totais cumulativos; não some amostras. Os indicadores sinalizam cobertura incompleta.</value></data>
 </root>

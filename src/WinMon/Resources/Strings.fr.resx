@@ -1909,4 +1909,6 @@ Q quitte. Ctrl+C annule. Les programmes et services épinglés restent enregistr
   <data name="CliSettingsSaveFailed" xml:space="preserve"><value>Enregistrement des paramètres CLI impossible.</value></data>
   <data name="CliNoSave" xml:space="preserve"><value>Ne pas enregistrer les modifications interactives.</value></data>
   <data name="CliSettingsUpdated" xml:space="preserve"><value>Paramètres CLI enregistrés.</value></data>
+<data name="ExportTraffic" xml:space="preserve"><value>Trafic réseau des processus</value></data>
+<data name="ExportTrafficNote" xml:space="preserve"><value>Octets et débits différés par durée de vie du processus. Totaux cumulatifs ; ne pas additionner les échantillons. Les indicateurs signalent une couverture incomplète.</value></data>
 </root>

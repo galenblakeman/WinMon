@@ -1909,4 +1909,6 @@ Q beendet. Ctrl+C bricht ab. Programm- und Dienst-Pins bleiben gespeichert.</val
   <data name="CliSettingsSaveFailed" xml:space="preserve"><value>CLI-Einstellungen konnten nicht gespeichert werden.</value></data>
   <data name="CliNoSave" xml:space="preserve"><value>Interaktive Änderungen nicht speichern.</value></data>
   <data name="CliSettingsUpdated" xml:space="preserve"><value>CLI-Einstellungen gespeichert.</value></data>
+<data name="ExportTraffic" xml:space="preserve"><value>Prozess-Netzwerkverkehr</value></data>
+<data name="ExportTrafficNote" xml:space="preserve"><value>Bytes und verzögerte Raten je Prozesslaufzeit. Summen sind kumulativ; Messpunkte nicht addieren. Qualitätsflags zeigen unvollständige Erfassung.</value></data>
 </root>

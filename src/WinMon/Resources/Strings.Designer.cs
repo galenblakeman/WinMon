@@ -355,6 +355,8 @@ public static partial class Strings
     public static string ExportServiceNote => ResourceManager.GetString(nameof(ExportServiceNote), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ExportSnapshotTime => ResourceManager.GetString(nameof(ExportSnapshotTime), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ExportTime => ResourceManager.GetString(nameof(ExportTime), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ExportTraffic => ResourceManager.GetString(nameof(ExportTraffic), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ExportTrafficNote => ResourceManager.GetString(nameof(ExportTrafficNote), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ExportUsageNote => ResourceManager.GetString(nameof(ExportUsageNote), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ExportUsageTotals => ResourceManager.GetString(nameof(ExportUsageTotals), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string FibreChannel => ResourceManager.GetString(nameof(FibreChannel), Culture ?? CultureInfo.CurrentUICulture)!;
