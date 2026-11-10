@@ -50,6 +50,8 @@ Only the download cleanup handler for `UnauthorizedAccessException` remains unco
 
 ## Result and departures
 
+November 10, 2026: startup cleanup now reclaims abandoned/terminal staging directories from removed app copies after seven days without directory changes. It requires the original application directory to be absent and its parent process to have exited, and acquires the update mutex before deleting staging files. Active tokens, existing application directories, recent transactions and pending recovery states are preserved. `UpdateTests` covers these conditions and competing helper ownership. Cleanup does not follow the job into another application directory or remove recovery backups there.
+
 Landed `UpdateDownloadTests`, `UpdateHelperTests` and the internal seams in `UpdateClient`, `UpdateFiles`, `UpdateHelperHost` and `UpdateRuntime`. Coverage includes signed-metadata selection despite a forged cached manifest object, malformed/tampered signatures before HTTP, size/hash failures, allowed/disallowed/excessive redirects, cancellation, low space, stalled reads, portable extraction, parent identity, guard ownership, handoff abort, installed and portable readiness, rollback, and healthy-update journal failure.
 
 No user setting, command-line override, public API, dependency, sampling path or visible UI change was added. Platform seams are internal and supplied per instance/call; the installed trust key and production timeouts remain the defaults. The change preserves the lifecycle algorithm rather than redesigning the updater. Test coverage is evidence for transaction behavior, not a replacement for signed installed-update acceptance.

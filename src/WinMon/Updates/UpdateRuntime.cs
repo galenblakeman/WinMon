@@ -109,7 +109,36 @@ internal static class UpdateRuntime
         // The live helper owns this transaction until it has committed readiness and removed its backup.
         if (job.Token == activeToken) return;
         var statePath = Path.Combine(directory, "state.json");
-        if (!SamePath(job.Target, target) || !Guid.TryParseExact(job.Token, "N", out _)) return;
+        if (!Guid.TryParseExact(job.Token, "N", out _)) return;
+        if (!SamePath(job.Target, target))
+        {
+            // Removed portable/test copies cannot return to clean their own staging folders.
+            if (sessionStartUtc is not { } sessionStart ||
+                Directory.GetLastWriteTimeUtc(directory) >= sessionStart.AddDays(-7) ||
+                Directory.Exists(Path.GetDirectoryName(job.Target)) ||
+                IsProcessRunning(job.ParentId, job.ParentStartTicks)) return;
+            using var mutex = new Mutex(false, UpdateMutexName);
+            try
+            {
+                if (!mutex.WaitOne(0)) return;
+            }
+            catch (AbandonedMutexException)
+            {
+            }
+
+            try
+            {
+                if (!File.Exists(statePath) || UpdateFiles.ReadJson<UpdateState>(statePath).Status is
+                    "succeeded" or "failed" or "rolled-back")
+                    TryDeleteDirectory(directory);
+            }
+            finally
+            {
+                mutex.ReleaseMutex();
+            }
+
+            return;
+        }
         if (!File.Exists(statePath))
         {
             // Prepared but never applied: the helper writes a state before it changes anything outside this directory.

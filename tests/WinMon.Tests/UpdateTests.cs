@@ -399,6 +399,80 @@ public sealed class UpdateTests
         Assert.That(UpdateClient.AvailableFreeSpace(share), Is.GreaterThan(0));
     }
 
+    [TestCase(null, true)]
+    [TestCase("succeeded", true)]
+    [TestCase("failed", true)]
+    [TestCase("rolled-back", true)]
+    [TestCase("replacing", false)]
+    [TestCase("awaiting-ready", false)]
+    public void CompleteInterruptedTransaction_RemovesOnlyAbandonedOrFinishedOrphans(string? status, bool removed)
+    {
+        var (directory, target, _) = PrepareRecovery("1.2.3", status ?? "unused");
+        if (status is null) File.Delete(Path.Combine(directory, "state.json"));
+        Directory.Delete(Path.GetDirectoryName(target)!, true);
+        Directory.SetLastWriteTimeUtc(directory, DateTime.UtcNow.AddDays(-8));
+
+        UpdateRuntime.CompleteInterruptedTransaction(directory, Environment.ProcessPath!, "4.0.6", null,
+            DateTime.UtcNow);
+
+        Assert.That(Directory.Exists(directory), Is.EqualTo(!removed));
+    }
+
+    [TestCase("recent")]
+    [TestCase("existing-app")]
+    [TestCase("live-parent")]
+    [TestCase("active-token")]
+    public void CompleteInterruptedTransaction_PreservesPotentiallyActiveForeignJobs(string reason)
+    {
+        var (directory, target, job) = PrepareRecovery("1.2.3", "succeeded");
+        if (reason != "existing-app") Directory.Delete(Path.GetDirectoryName(target)!, true);
+        if (reason == "live-parent")
+        {
+            using var current = System.Diagnostics.Process.GetCurrentProcess();
+            job = job with { ParentId = current.Id, ParentStartTicks = current.StartTime.ToUniversalTime().Ticks };
+            UpdateFiles.WriteJson(Path.Combine(directory, "job.json"), job);
+        }
+
+        Directory.SetLastWriteTimeUtc(directory, DateTime.UtcNow.AddDays(reason == "recent" ? -1 : -8));
+        UpdateRuntime.CompleteInterruptedTransaction(directory, Environment.ProcessPath!, "4.0.6",
+            reason == "active-token" ? job.Token : null, DateTime.UtcNow);
+
+        Assert.That(Directory.Exists(directory), Is.True);
+    }
+
+    [Test]
+    public void CompleteInterruptedTransaction_PreservesOrphansWhileAnotherHelperOwnsTheGuard()
+    {
+        var (directory, target, _) = PrepareRecovery("1.2.3", "succeeded");
+        Directory.Delete(Path.GetDirectoryName(target)!, true);
+        Directory.SetLastWriteTimeUtc(directory, DateTime.UtcNow.AddDays(-8));
+        using var acquired = new ManualResetEventSlim();
+        using var release = new ManualResetEventSlim();
+        var helper = Task.Run(() =>
+        {
+            using var mutex = new Mutex(false, UpdateRuntime.UpdateMutexName);
+            mutex.WaitOne();
+            try
+            {
+                acquired.Set();
+                release.Wait();
+            }
+            finally { mutex.ReleaseMutex(); }
+        });
+        try
+        {
+            Assert.That(acquired.Wait(TimeSpan.FromSeconds(5)), Is.True);
+            UpdateRuntime.CompleteInterruptedTransaction(directory, Environment.ProcessPath!, "4.0.6", null,
+                DateTime.UtcNow);
+            Assert.That(Directory.Exists(directory), Is.True);
+        }
+        finally
+        {
+            release.Set();
+            helper.GetAwaiter().GetResult();
+        }
+    }
+
     private static void Age(string directory)
     {
         Directory.SetCreationTimeUtc(directory, DateTime.UtcNow.AddHours(-1));
