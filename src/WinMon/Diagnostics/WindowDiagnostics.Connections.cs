@@ -284,6 +284,8 @@ internal sealed partial class WindowDiagnostics
             var missingSample = sample with { Timestamp = sample.Timestamp.AddSeconds(-1), MonotonicTimestamp = 0 };
             fixture.SelectedSample = missingSample;
             fixture.RefreshVisiblePresentation();
+            Require(fixture.CaptureCoverage.Text.Contains(Strings.HistorySelectedUnavailable, StringComparison.Ordinal),
+                "Missing endpoint history needs an explicit coverage notice.");
             Require(
                 view.DisplayedRows.Count == 0 &&
                 view.Notice.Text.Contains(Strings.ConnectionsHistoryUnavailable, StringComparison.Ordinal),

@@ -1915,4 +1915,9 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
 <data name="UsagePeriodNote" xml:space="preserve"><value>記録期間: {0:G} – {1:G}。グラフの期間を使用し、キャプチャ時点で終了します。</value></data>
 <data name="UsagePeriodPartial" xml:space="preserve"><value>収集は不完全です。一部の区間が欠落しているか、保持履歴の範囲外です。</value></data>
 <data name="UsagePeriodUnavailable" xml:space="preserve"><value>このキャプチャの使用状況は記録されていません。期間別の使用状況は再起動後に新しく開始します。</value></data>
+<data name="HistoryCoverageLine" xml:space="preserve"><value>{0}: 保持期間 {1} · {2}</value></data>
+<data name="HistoryCoverageBounds" xml:space="preserve"><value>{0:G} – {1:G}</value></data>
+<data name="HistorySelectedAvailable" xml:space="preserve"><value>選択時点の記録あり</value></data>
+<data name="HistorySelectedUnavailable" xml:space="preserve"><value>選択時点の記録なし</value></data>
+<data name="HistoryCoverageHelp" xml:space="preserve"><value>設定されたリソース・プロセス履歴: {0}、サービス: 最大 {1}。保持期間内でも記録の欠落があり、各ビューには独立したメモリ上限があります。サービス、接続、期間別使用状況は再起動後に新しく開始します。復元できるのはリソース・プロセス履歴のみです。</value></data>
 </root>

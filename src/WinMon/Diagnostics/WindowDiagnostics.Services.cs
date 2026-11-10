@@ -251,6 +251,18 @@ internal sealed partial class WindowDiagnostics
                 fixture.ServiceView.Start.IsEnabled)
                 throw new InvalidOperationException("Historical service actions must be disabled.");
             await CaptureServiceWindowAsync(fixture, Path.Combine(output, "services-snapshot.png"), cancellationToken);
+            var lastRecorded = fixture.Session.History.Samples[^1];
+            var withoutServices = lastRecorded with
+            {
+                Timestamp = lastRecorded.Timestamp.AddSeconds(1),
+                MonotonicTimestamp = lastRecorded.MonotonicTimestamp + Stopwatch.Frequency
+            };
+            fixture.Session.Record(withoutServices);
+            fixture.SelectedSample = withoutServices;
+            fixture.RefreshVisiblePresentation();
+            if (!fixture.CaptureCoverage.Text.Contains(Strings.HistorySelectedUnavailable, StringComparison.Ordinal))
+                throw new InvalidOperationException("Missing service observations need an explicit coverage notice.");
+            await CaptureServiceWindowAsync(fixture, Path.Combine(output, "services-history-unavailable.png"), cancellationToken);
             foreach (var theme in new[] { "Dark", "Light" })
             {
                 fixture.Preferences = fixture.Preferences with { Theme = theme };

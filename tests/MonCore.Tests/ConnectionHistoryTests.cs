@@ -49,6 +49,7 @@ public sealed class ConnectionHistoryTests
         history.Add(Sample(12), Endpoints(1), [], null);
         history.Resize(1);
         Assert.That(history.Find(latest), Is.Null);
+        Assert.That(history.Oldest, Is.SameAs(history.Latest));
     }
 
     [Test]

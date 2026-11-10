@@ -125,6 +125,9 @@ internal sealed partial class WindowDiagnostics
                 period.Apps.Sum(app => app.CpuTicks) >= fixture.Session.Usage.Apps.Sum(app => app.CpuTicks))
                 throw new InvalidOperationException("Capture Usage must show recorded period totals, not live totals.");
             checks["PeriodReport"] = UsageText.Report(period, view.Settings, "");
+            if (!fixture.CaptureCoverage.Text.Contains(Strings.HistorySelectedAvailable, StringComparison.Ordinal) ||
+                !fixture.HistoryCoverageDetails().Contains(Strings.Services, StringComparison.Ordinal))
+                throw new InvalidOperationException("Capture coverage must describe the active period and other views.");
             await CaptureServiceWindowAsync(fixture, Path.Combine(output, "usage-recorded-period.png"), cancellationToken);
             var selected = fixture.SelectedSample;
             fixture.ShowUsageInProcesses(period.Apps.Single(app => app.AppName == "Google Chrome"));
@@ -135,6 +138,8 @@ internal sealed partial class WindowDiagnostics
             fixture.RefreshVisiblePresentation();
             if (fixture.CurrentUsageFrame().Capturing || !view.ResetUsage.IsEnabled)
                 throw new InvalidOperationException("Live Usage must restore session totals and Reset.");
+            if (fixture.CaptureCoverage.Visibility != Visibility.Collapsed)
+                throw new InvalidOperationException("Live view must hide Capture coverage.");
             await File.WriteAllTextAsync(Path.Combine(output, "usage.json"),
                 JsonSerializer.Serialize(checks, new JsonSerializerOptions { WriteIndented = true }),
                 cancellationToken);

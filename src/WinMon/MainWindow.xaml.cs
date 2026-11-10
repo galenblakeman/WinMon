@@ -292,6 +292,7 @@ public partial class MainWindow
         RefreshServices();
         RefreshUsage();
         RefreshConnections();
+        RefreshHistoryCoverage();
         RefreshCaptures(samples);
         UpdateSnapshot(SelectedSample is null ? null : visible);
         // A hidden live process list is refreshed when its tab is selected. Historical capture

@@ -1915,4 +1915,9 @@ Q quits. Ctrl+C cancels. Executable/service pins persist between sessions.</valu
 <data name="UsagePeriodNote" xml:space="preserve"><value>Recorded period: {0:G} – {1:G}. Duration follows the chart range, ending at Capture.</value></data>
 <data name="UsagePeriodPartial" xml:space="preserve"><value>Partial coverage: some intervals are missing or outside retained history.</value></data>
 <data name="UsagePeriodUnavailable" xml:space="preserve"><value>Usage was not recorded for this capture. Period usage starts fresh after restart.</value></data>
+<data name="HistoryCoverageLine" xml:space="preserve"><value>{0}: retained span {1} · {2}</value></data>
+<data name="HistoryCoverageBounds" xml:space="preserve"><value>{0:G} – {1:G}</value></data>
+<data name="HistorySelectedAvailable" xml:space="preserve"><value>Selected moment recorded</value></data>
+<data name="HistorySelectedUnavailable" xml:space="preserve"><value>Selected moment unavailable</value></data>
+<data name="HistoryCoverageHelp" xml:space="preserve"><value>Configured resource/process history: {0}; Services: up to {1}. Retained spans can contain gaps and each view has its own memory budget. Services, Connections and period Usage start fresh after restart; only resource/process history can be restored.</value></data>
 </root>

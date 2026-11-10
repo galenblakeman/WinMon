@@ -1915,4 +1915,9 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
 <data name="UsagePeriodNote" xml:space="preserve"><value>Записанный период: {0:G} – {1:G}. Длительность по графику, до момента снимка.</value></data>
 <data name="UsagePeriodPartial" xml:space="preserve"><value>Неполное покрытие: интервалы отсутствуют или вне сохранённой истории.</value></data>
 <data name="UsagePeriodUnavailable" xml:space="preserve"><value>Для этого снимка использование не записано. Учёт по периодам начинается заново после перезапуска.</value></data>
+<data name="HistoryCoverageLine" xml:space="preserve"><value>{0}: сохранённый интервал {1} · {2}</value></data>
+<data name="HistoryCoverageBounds" xml:space="preserve"><value>{0:G} – {1:G}</value></data>
+<data name="HistorySelectedAvailable" xml:space="preserve"><value>Выбранный момент записан</value></data>
+<data name="HistorySelectedUnavailable" xml:space="preserve"><value>Выбранный момент недоступен</value></data>
+<data name="HistoryCoverageHelp" xml:space="preserve"><value>Заданная история ресурсов/процессов: {0}; Службы: до {1}. Интервалы могут содержать пропуски; у каждого вида свой лимит памяти. Службы, Соединения и учёт по периодам начинаются заново после перезапуска; восстанавливается только история ресурсов/процессов.</value></data>
 </root>

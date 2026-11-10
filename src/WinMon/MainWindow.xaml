@@ -783,10 +783,18 @@
                                 </Grid>
                             </Border>
                             <Grid x:Name="ActivityBody" Grid.Row="1">
-                                <controls:ProcessesView x:Name="Processes" />
-                                <controls:ServicesView x:Name="ServiceView" Visibility="Collapsed" />
-                                <controls:UsageView x:Name="UsageView" Visibility="Collapsed" />
-                                <controls:ConnectionsView x:Name="ConnectionView" Visibility="Collapsed" />
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+                                <TextBlock x:Name="CaptureCoverage" Margin="8,4" FontSize="11"
+                                           Foreground="{DynamicResource Muted}" TextTrimming="CharacterEllipsis"
+                                           ToolTip="{Binding [HistoryCoverageHelp], Source={x:Static resources:Strings.Text}}"
+                                           ToolTipOpening="OnHistoryCoverageToolTipOpening" Visibility="Collapsed" />
+                                <controls:ProcessesView x:Name="Processes" Grid.Row="1" />
+                                <controls:ServicesView x:Name="ServiceView" Grid.Row="1" Visibility="Collapsed" />
+                                <controls:UsageView x:Name="UsageView" Grid.Row="1" Visibility="Collapsed" />
+                                <controls:ConnectionsView x:Name="ConnectionView" Grid.Row="1" Visibility="Collapsed" />
                             </Grid>
                         </Grid>
                         <Border

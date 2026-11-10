@@ -1915,4 +1915,9 @@ Q sai. Ctrl+C cancela. Programas e serviços fixados persistem entre sessões.</
 <data name="UsagePeriodNote" xml:space="preserve"><value>Período registrado: {0:G} – {1:G}. Duração do gráfico, terminando na captura.</value></data>
 <data name="UsagePeriodPartial" xml:space="preserve"><value>Cobertura parcial: faltam intervalos ou estão fora do histórico retido.</value></data>
 <data name="UsagePeriodUnavailable" xml:space="preserve"><value>O uso não foi registrado para esta captura. O uso por período recomeça após reiniciar.</value></data>
+<data name="HistoryCoverageLine" xml:space="preserve"><value>{0}: intervalo retido {1} · {2}</value></data>
+<data name="HistoryCoverageBounds" xml:space="preserve"><value>{0:G} – {1:G}</value></data>
+<data name="HistorySelectedAvailable" xml:space="preserve"><value>Momento selecionado registrado</value></data>
+<data name="HistorySelectedUnavailable" xml:space="preserve"><value>Momento selecionado indisponível</value></data>
+<data name="HistoryCoverageHelp" xml:space="preserve"><value>Histórico configurado de recursos/processos: {0}; Serviços: até {1}. Os intervalos podem conter lacunas; cada visualização tem seu limite de memória. Serviços, Conexões e uso por período recomeçam após reiniciar; apenas o histórico de recursos/processos pode ser restaurado.</value></data>
 </root>

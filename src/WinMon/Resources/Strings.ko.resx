@@ -1915,4 +1915,9 @@ Q 종료. Ctrl+C 취소. 실행 파일과 서비스 고정은 다음 실행에�
 <data name="UsagePeriodNote" xml:space="preserve"><value>기록 구간: {0:G} – {1:G}. 차트 범위의 기간을 사용하며 캡처 시점에 끝납니다.</value></data>
 <data name="UsagePeriodPartial" xml:space="preserve"><value>일부 구간이 누락되었거나 보관 기록 범위를 벗어나 데이터가 불완전합니다.</value></data>
 <data name="UsagePeriodUnavailable" xml:space="preserve"><value>이 캡처의 사용량이 기록되지 않았습니다. 구간별 사용량은 다시 시작하면 초기화됩니다.</value></data>
+<data name="HistoryCoverageLine" xml:space="preserve"><value>{0}: 보관 구간 {1} · {2}</value></data>
+<data name="HistoryCoverageBounds" xml:space="preserve"><value>{0:G} – {1:G}</value></data>
+<data name="HistorySelectedAvailable" xml:space="preserve"><value>선택 시점 기록됨</value></data>
+<data name="HistorySelectedUnavailable" xml:space="preserve"><value>선택 시점 데이터 없음</value></data>
+<data name="HistoryCoverageHelp" xml:space="preserve"><value>설정된 리소스/프로세스 기록: {0}; 서비스: 최대 {1}. 보관 구간에 누락이 있을 수 있으며 각 보기에는 별도의 메모리 한도가 있습니다. 서비스, 연결 및 구간별 사용량은 다시 시작하면 초기화되며 리소스/프로세스 기록만 복원할 수 있습니다.</value></data>
 </root>

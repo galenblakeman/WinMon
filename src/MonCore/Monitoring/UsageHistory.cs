@@ -40,6 +40,17 @@ public sealed class UsageHistory
     /// <summary>Whether the entry budget shortened the available recording.</summary>
     public bool WasMemoryLimited { get; private set; }
 
+    public DateTimeOffset? OldestTimestamp => _frames.TryPeek(out var frame)
+        ? frame.Key.Timestamp - TimeSpan.FromSeconds(frame.IntervalSeconds) : null;
+    public DateTimeOffset? LatestTimestamp => _frames.LastOrDefault()?.Key.Timestamp;
+
+    public bool IsAvailableAt(MonitorSample sample)
+    {
+        ArgumentNullException.ThrowIfNull(sample);
+        var key = SampleKey.Of(sample);
+        return _frames.Any(frame => frame.Valid && frame.Key.Equals(key));
+    }
+
     /// <summary>Record one uncompacted live sample, including gaps so period coverage remains honest.</summary>
     public void Add(MonitorSample sample)
     {

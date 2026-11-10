@@ -1915,4 +1915,9 @@ Q beendet. Ctrl+C bricht ab. Programm- und Dienst-Pins bleiben gespeichert.</val
 <data name="UsagePeriodNote" xml:space="preserve"><value>Aufgezeichneter Zeitraum: {0:G} – {1:G}. Dauer gemäß Diagramm, Ende bei der Aufnahme.</value></data>
 <data name="UsagePeriodPartial" xml:space="preserve"><value>Unvollständige Erfassung: Intervalle fehlen oder liegen außerhalb des Verlaufs.</value></data>
 <data name="UsagePeriodUnavailable" xml:space="preserve"><value>Für diese Aufnahme wurde keine Nutzung erfasst. Zeitraumnutzung beginnt nach einem Neustart neu.</value></data>
+<data name="HistoryCoverageLine" xml:space="preserve"><value>{0}: gespeicherte Zeitspanne {1} · {2}</value></data>
+<data name="HistoryCoverageBounds" xml:space="preserve"><value>{0:G} – {1:G}</value></data>
+<data name="HistorySelectedAvailable" xml:space="preserve"><value>Ausgewählter Zeitpunkt aufgezeichnet</value></data>
+<data name="HistorySelectedUnavailable" xml:space="preserve"><value>Ausgewählter Zeitpunkt nicht verfügbar</value></data>
+<data name="HistoryCoverageHelp" xml:space="preserve"><value>Konfigurierter Ressourcen-/Prozessverlauf: {0}; Dienste: bis {1}. Gespeicherte Zeitspannen können Lücken enthalten; jede Ansicht hat ein eigenes Speicherlimit. Dienste, Verbindungen und Zeitraumnutzung beginnen nach Neustart neu; nur Ressourcen-/Prozessverlauf kann wiederhergestellt werden.</value></data>
 </root>

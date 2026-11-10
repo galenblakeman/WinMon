@@ -7,7 +7,7 @@ Implement and verify these independent increments in order, with one commit each
 | 1. Export retained process network bytes, rates and quality | Verified |
 | 2. Include actual network leaders in automatic network reports | Verified |
 | 3. Show Usage for a recorded period ending at the selected capture | Verified |
-| 4. Explain actual retained history across activity views | Not started |
+| 4. Explain actual retained history across activity views | Verified |
 | 5. Navigate from Processes to the same app in Connections and Usage | Not started |
 
 Traffic exports are separate from endpoint exports: per-process counters must not be repeated for every socket. Preserve existing endpoint columns and export raw units, UTC timestamps and coverage flags.
@@ -27,3 +27,5 @@ Item 1 landed as a separate Process network traffic CSV, preserving the endpoint
 Item 2 appends grouped receive/send leaders from the exact peak, preserving unavailable/incomplete status and adapter scope. All build/test steps passed with the same CLI baseline exclusion (991 WPF tests). Capture card Dark/Light PNGs were inspected. The capture smoke stops later at Settings Monitoring overflow (47 DIPs); the pre-change 10:54 app binary reproduced the identical failure in artifacts/goal-baseline-capture. No Settings code changed.
 
 Item 3 records bounded uncompacted intervals only for desktop sessions. Capture Usage, copied details and CSV share actual period bounds and coverage; Live restores session totals. Final core (222), WPF (1003) and Usage smoke passed with the standing CLI exclusion. An unchanged network-setup file-replacement failure passed on a complete 60-test retry. Quiet before/after UI and focused recording/query measurements are recorded in PERFORMANCE-HISTORY.md. Whole-process profiling is not part of these synthetic measurements.
+
+Item 4 landed as a Capture-only line shared across activity views, with lazily formatted all-source bounds and budget/restart help. Retention and persistence stay unchanged. Verify passed (standing CLI exclusion), including Services, Usage and Connections smoke modes (48 renders); all four views and unavailable service coverage were visually inspected. Live benchmark cost stayed within the preceding measured range.

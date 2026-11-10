@@ -152,6 +152,24 @@ public sealed class UsageHistoryTests
     }
 
     [Test]
+    public void CoverageBoundsAndAvailabilityFollowExactRetainedIntervals()
+    {
+        var history = new UsageHistory(capacity: 2);
+        Assert.That(history.OldestTimestamp, Is.Null);
+        var first = Sample(1, 50, Process(1, 10, "alpha", 10));
+        var last = Sample(3, 50, Process(1, 10, "alpha", 10));
+        history.Add(first);
+        history.Add(last);
+        Assert.Multiple(() =>
+        {
+            Assert.That(history.OldestTimestamp, Is.EqualTo(Start.AddSeconds(2)));
+            Assert.That(history.LatestTimestamp, Is.EqualTo(last.Timestamp));
+            Assert.That(history.IsAvailableAt(first), Is.False);
+            Assert.That(history.IsAvailableAt(last), Is.True);
+        });
+    }
+
+    [Test]
     public void Query_PreservesEarlierMetadataAfterTheLiveOwnerChanges()
     {
         var history = new UsageHistory();

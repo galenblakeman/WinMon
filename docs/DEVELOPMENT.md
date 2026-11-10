@@ -226,6 +226,8 @@ Invalid JSON settings whose backup fails remain protected: subsequent saves retr
 
 The desktop opts into MonitorSession's bounded UsageHistory, recorded from uncompacted samples independently of ranking retention. It stores interval CPU/I/O/GPU deltas and lifetime metadata, with the configured resource-history duration and a separate 500,000-observation budget. Oversized samples become unavailable coverage; restored compacted samples never feed it. Query aggregates whole intervals, detects gaps and caches the selected endpoint/range until eviction. It is not persisted across restart or update. The CLI leaves period retention disabled. The benchmark includes usage-ledger-and-history-add alongside the unchanged usage-ledger-add case.
 
+Capture mode adds one shared coverage line above the activity body. It separates actual retained span from exact selected-observation availability, exposes memory limits and explains independent budgets/restart resets. Its tooltip computes all source bounds only when opened; normal refreshes do not aggregate a hidden Usage period or copy connection history for this line. Live mode hides it. A retained span does not imply gap-free data.
+
 Portable lifetime, executable equality and CPU availability contracts are described in [Portable process identity](design/PORTABLE-PROCESS-IDENTITY.md). Windows defaults and history format 1 remain unchanged; portable consumers use `ObservedCpuPercent` and explicitly select their identity policy.
 
 - Process CPU is a share of total machine CPU capacity, not per core or lifetime. CPU, GPU and I/O columns use a five-second window.

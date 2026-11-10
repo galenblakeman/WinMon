@@ -451,9 +451,14 @@ public static partial class Strings
     public static string History0MiB => ResourceManager.GetString(nameof(History0MiB), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string History0OfTotalMachineCPU => ResourceManager.GetString(nameof(History0OfTotalMachineCPU), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string HistoryCount => ResourceManager.GetString(nameof(HistoryCount), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string HistoryCoverageBounds => ResourceManager.GetString(nameof(HistoryCoverageBounds), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string HistoryCoverageHelp => ResourceManager.GetString(nameof(HistoryCoverageHelp), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string HistoryCoverageLine => ResourceManager.GetString(nameof(HistoryCoverageLine), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string HistoryExpiredThisSampleHasLeftTheRecordingWindow => ResourceManager.GetString(nameof(HistoryExpiredThisSampleHasLeftTheRecordingWindow), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string HistoryExpiredThisSampleHasLeftTheRecordingWindowReturn => ResourceManager.GetString(nameof(HistoryExpiredThisSampleHasLeftTheRecordingWindowReturn), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string HistoryOnOneScaleSharedByEveryRowHoverA => ResourceManager.GetString(nameof(HistoryOnOneScaleSharedByEveryRowHoverA), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string HistorySelectedAvailable => ResourceManager.GetString(nameof(HistorySelectedAvailable), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string HistorySelectedUnavailable => ResourceManager.GetString(nameof(HistorySelectedUnavailable), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string HistoryShortenedByMemoryLimit => ResourceManager.GetString(nameof(HistoryShortenedByMemoryLimit), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string IdleGroupMembersMayBeOmitted => ResourceManager.GetString(nameof(IdleGroupMembersMayBeOmitted), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string IEEE1394 => ResourceManager.GetString(nameof(IEEE1394), Culture ?? CultureInfo.CurrentUICulture)!;

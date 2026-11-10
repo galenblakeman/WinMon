@@ -2,6 +2,26 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## Shared Capture coverage line (November 10, 2026)
+
+The coverage layout adds one collapsed row in Live and one text line in Capture. Full source bounds are formatted only when its tooltip opens; it does not query hidden period totals or copy endpoint history on refresh. The same Release 850-process live benchmark measured 4.499 ms and 603,253 bytes per refresh, within the preceding shared-history run range (3.83–4.52 ms, about 603,231 bytes). This single post-change run does not establish a speed improvement. Source-specific visible behavior is covered by Services (22), Usage (4) and Connections (22) smoke renders; the available and unavailable selected-moment images were inspected. Raw live results: artifacts/goal-item4-live.json.
+
+## CLI whole-process profile and gen0 cap (November 10, 2026)
+
+WinMon CLI 4.0.6, .NET 10.0.14 framework-dependent Release build, SDK 10.0.403, 12 logical processors. `winmon-cli watch --no-save --network=false` ran in a minimized conhost window with saved Top 10 on the Processes tab. It warmed up for 20 seconds, then was measured for 60 seconds. Four alternating runs per build. User applications remained open, with no builds or tests running at the same time.
+
+| Median across four runs | Before | Gen0 cap 6 MiB |
+| --- | ---: | ---: |
+| Process CPU | 40.0 ms/s | 40.5 ms/s |
+| Private bytes (average of 12 readings) | 79.5 MiB | 52.4 MiB |
+| Working set at the end | 129.8 MiB | 100.2 MiB |
+
+The CLI now sets the same `System.GC.Gen0MaxBudget` as the desktop app. `watch` allocates about 1.5 MB/s: about 0.9 MB/s from native sampling (half of it the connection table) and about 0.6 MB/s from rendering. With the default L3-sized budget, the gen0 heap filled with garbage between rare collections. CPU did not change measurably.
+
+Where `watch` CPU goes, from per-thread OS times in a 40-second baseline run (31–33 ms/s in total): the thread-pool thread running MonitorSession sampling used about 19 ms/s, and the terminal loop about 5 ms/s, covering rendering once a second and polling input and size 20 times a second. Sampling is the shared MonCore/MonCore.Windows code that the desktop app also runs. A thread-time trace showed the 20 Hz console size reads as most of the loop's wall time. Limiting them to four a second did not change CLI CPU, and conhost stayed at 2–4 ms/s either way. The reads block on the console host rather than spend CPU, so that change was dropped.
+
+`snapshot` takes about 1.7 s wall and 550–720 ms CPU. Most of that is the one-second measurement interval, cold JIT and the first PDH disk counter query (about 0.3 s). `DOTNET_TieredPGO=0` and the OSR settings did not change its CPU measurably. ReadyToRun applies only to published builds, and the CLI is not published yet. Raw results, traces and scripts: `artifacts/cli-perf/watch-results.json`, `host-results.json`, `watch.nettrace`, `alloc.nettrace`, `measure.ps1`, `measure-host.ps1` and `threads.ps1`.
+
 ## Recorded-period Usage (November 10, 2026)
 
 WinMon 4.0.6, .NET 10.0.14 Windows x64 Release, SDK 10.0.403. The desktop records uncompacted usage intervals independently of chart compaction; CLI sessions leave this disabled. Immutable owner metadata is shared between consecutive samples. Intervals have a 500,000-observation budget (about 19.1 MiB for the 40-byte interval values, plus owners/queues), and results retain the existing 4,096-app cap plus Other apps.
