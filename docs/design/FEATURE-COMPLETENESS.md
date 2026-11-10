@@ -8,7 +8,7 @@ Implement and verify these independent increments in order, with one commit each
 | 2. Include actual network leaders in automatic network reports | Verified |
 | 3. Show Usage for a recorded period ending at the selected capture | Verified |
 | 4. Explain actual retained history across activity views | Verified |
-| 5. Navigate from Processes to the same app in Connections and Usage | Not started |
+| 5. Navigate from Processes to the same app in Connections and Usage | Verified |
 
 Traffic exports are separate from endpoint exports: per-process counters must not be repeated for every socket. Preserve existing endpoint columns and export raw units, UTC timestamps and coverage flags.
 
@@ -29,3 +29,5 @@ Item 2 appends grouped receive/send leaders from the exact peak, preserving unav
 Item 3 records bounded uncompacted intervals only for desktop sessions. Capture Usage, copied details and CSV share actual period bounds and coverage; Live restores session totals. Final core (222), WPF (1003) and Usage smoke passed with the standing CLI exclusion. An unchanged network-setup file-replacement failure passed on a complete 60-test retry. Quiet before/after UI and focused recording/query measurements are recorded in PERFORMANCE-HISTORY.md. Whole-process profiling is not part of these synthetic measurements.
 
 Item 4 landed as a Capture-only line shared across activity views, with lazily formatted all-source bounds and budget/restart help. Retention and persistence stay unchanged. Verify passed (standing CLI exclusion), including Services, Usage and Connections smoke modes (48 renders); all four views and unavailable service coverage were visually inspected. Live benchmark cost stayed within the preceding measured range.
+
+Item 5 adds both destinations to More and row menus. It preserves exact captured sample identity, rejects stale/reused targets, reveals the executable despite filters/Top and supports Usage before its first visit. Filter/Top adjustments persist through existing view settings. Final Verify passed with the standing CLI exclusion; feature (125), Usage (5) and Connections (23) smoke renders passed and their new images were inspected. Full final benchmark results are in PERFORMANCE-HISTORY.md. All five requirements landed; item 4 explains independent coverage without changing retention, and reopenable incident bundles remain outside this work.

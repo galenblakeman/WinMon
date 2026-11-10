@@ -168,8 +168,12 @@ public sealed class UsageHistory
             var overBudget = _entries > _entryBudget;
             if (_frames.Count <= Capacity && age < Capacity && !overBudget) break;
             WasMemoryLimited |= overBudget;
-            _entries -= _frames.Dequeue().Observations.Length;
+            var removed = _frames.Dequeue();
+            _entries -= removed.Observations.Length;
             _trimGeneration++;
+            if (_rangeCache is { } cache && cache.TrimGeneration == _trimGeneration - 1 &&
+                removed.Key.Moment <= cache.End.Moment - cache.RangeSeconds)
+                _rangeCache = (cache.End, cache.RangeSeconds, _trimGeneration, cache.Period);
         }
     }
 

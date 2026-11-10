@@ -228,6 +228,8 @@ The desktop opts into MonitorSession's bounded UsageHistory, recorded from uncom
 
 Capture mode adds one shared coverage line above the activity body. It separates actual retained span from exact selected-observation availability, exposes memory limits and explains independent budgets/restart resets. Its tooltip computes all source bounds only when opened; normal refreshes do not aggregate a hidden Usage period or copy connection history for this line. Live mode hides it. A retained span does not imply gap-free data.
 
+Process More/row menus route to Connections and Usage through captured ProcessDetailsSnapshot targets, including an exact SampleKey in Capture mode. Stale moments and reused process identities cannot silently retarget a command. Connections requires observed endpoints and matches executable paths or PID/start tokens; Usage uses its existing executable policy. Navigation clears restrictive filters and changes Top to All only if the target is otherwise outside the ranked rows (the changed view preference is saved normally). Live Usage eligibility uses the ledger's key lookup without materializing its app snapshot. A cached period survives evictions outside its requested interval; evicting an included interval still recomputes partial totals.
+
 Portable lifetime, executable equality and CPU availability contracts are described in [Portable process identity](design/PORTABLE-PROCESS-IDENTITY.md). Windows defaults and history format 1 remain unchanged; portable consumers use `ObservedCpuPercent` and explicitly select their identity policy.
 
 - Process CPU is a share of total machine CPU capacity, not per core or lifetime. CPU, GPU and I/O columns use a five-second window.

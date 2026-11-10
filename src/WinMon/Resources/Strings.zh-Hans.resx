@@ -1920,4 +1920,6 @@ Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。<
 <data name="HistorySelectedAvailable" xml:space="preserve"><value>已记录所选时刻</value></data>
 <data name="HistorySelectedUnavailable" xml:space="preserve"><value>所选时刻不可用</value></data>
 <data name="HistoryCoverageHelp" xml:space="preserve"><value>配置的资源/进程历史：{0}；服务：最长 {1}。保留时段可能存在缺失，各视图有独立内存上限。服务、连接和时段使用量在重启后重新记录；仅资源/进程历史可恢复。</value></data>
+<data name="ShowInConnections" xml:space="preserve"><value>在连接中显示</value></data>
+<data name="ShowInUsage" xml:space="preserve"><value>在使用量中显示</value></data>
 </root>

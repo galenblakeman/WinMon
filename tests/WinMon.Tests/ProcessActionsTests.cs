@@ -18,6 +18,29 @@ public sealed class ProcessActionsTests
 
     [Test]
     [Apartment(ApartmentState.STA)]
+    public void NavigationMenuCapturesTheRowBeforeTheNextRefresh()
+    {
+        var process = Example;
+        var time = DateTimeOffset.Now;
+        var row = new ProcessRow();
+        row.EnableProcessActions(_ => false, _ => { });
+        string? target = null;
+        ProcessDetailsSnapshot? captured = null;
+        row.EnableInspectionActions(_ => { }, _ => { }, _ => { }, _ => { }, _ => false, () => false,
+            (action, snapshot) => { target = action; captured = snapshot; }, (action, _) => action == "usage");
+        row.Update(process, [new MonitorSample(time, 1, [process], 0)], 120, false, null);
+        row.PrepareProcessMenu();
+        var usage = row.ContextMenu!.Items.OfType<MenuItem>().Single(item => Equals(item.Header, Strings.ShowInUsage));
+        var connections = row.ContextMenu.Items.OfType<MenuItem>().Single(item => Equals(item.Header, Strings.ShowInConnections));
+        Assert.That(connections.IsEnabled, Is.False);
+        row.Update(process with { ProcessId = 999 }, [], 120, false, null);
+        usage.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+        Assert.That(target, Is.EqualTo("usage"));
+        Assert.That(captured!.Process, Is.EqualTo(process));
+    }
+
+    [Test]
+    [Apartment(ApartmentState.STA)]
     public void Menu_CapturesOriginalRowAndDisplaysEveryIcon()
     {
         var process = Example;
@@ -46,6 +69,7 @@ public sealed class ProcessActionsTests
             items[index].RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
             Assert.That(captured!.Process, Is.EqualTo(process));
             Assert.That(captured.Timestamp, Is.EqualTo(time));
+            Assert.That(captured.Sample?.Timestamp, Is.EqualTo(time));
             Assert.That(captured.Historical, Is.True);
         }
 

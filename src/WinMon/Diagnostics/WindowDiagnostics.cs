@@ -770,7 +770,10 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         var items = menu.Items.OfType<MenuItem>().ToArray();
         var item = items.Last();
         var priority = items.SingleOrDefault(i => Equals(i.Header, Strings.SetPriority));
-        if (items.Length != 7 || priority?.Items.Count != ProcessPriorityChanger.Choices.Length ||
+        var requiredActions = new[] { Strings.ProcessProperties + "…", Strings.CopyDetails,
+            Strings.ShowInConnections, Strings.ShowInUsage };
+        if (requiredActions.Any(label => items.Count(i => Equals(i.Header, label)) != 1) ||
+            priority?.Items.Count != ProcessPriorityChanger.Choices.Length ||
             items.Where(i => i != priority).Any(i => i.Icon is null) ||
             item.ToolTip as string != Strings.AvailableForLiveProcesses)
             throw new InvalidOperationException("Process context menu did not capture its target.");

@@ -824,6 +824,8 @@ public static partial class Strings
     public static string ShowActions => ResourceManager.GetString(nameof(ShowActions), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ShowChartResources => ResourceManager.GetString(nameof(ShowChartResources), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ShowHideWinMon => ResourceManager.GetString(nameof(ShowHideWinMon), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ShowInConnections => ResourceManager.GetString(nameof(ShowInConnections), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ShowInUsage => ResourceManager.GetString(nameof(ShowInUsage), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ShowOnChart => ResourceManager.GetString(nameof(ShowOnChart), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ShowTheLastMinutes => ResourceManager.GetString(nameof(ShowTheLastMinutes), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ShowWinMon => ResourceManager.GetString(nameof(ShowWinMon), Culture ?? CultureInfo.CurrentUICulture)!;

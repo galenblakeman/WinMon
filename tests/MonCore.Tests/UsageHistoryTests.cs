@@ -152,6 +152,25 @@ public sealed class UsageHistoryTests
     }
 
     [Test]
+    public void Query_KeepsCacheUntilEvictionActuallyChangesTheSelectedPeriod()
+    {
+        var history = new UsageHistory(capacity: 10);
+        MonitorSample? selected = null;
+        for (var second = 1; second <= 10; second++)
+        {
+            selected = Sample(second, 50, Process(1, 10, "alpha", 10));
+            history.Add(selected);
+        }
+        var period = history.Query(selected!, 2)!;
+        for (var second = 11; second <= 18; second++)
+            history.Add(Sample(second, 50, Process(1, 10, "alpha", 10)));
+        Assert.That(history.Query(selected!, 2), Is.SameAs(period));
+        history.Add(Sample(19, 50, Process(1, 10, "alpha", 10)));
+        Assert.That(history.Query(selected!, 2)!.Complete, Is.False);
+        Assert.That(history.Query(selected!, 2)!.Apps.Single().CpuTicks, Is.EqualTo(100));
+    }
+
+    [Test]
     public void CoverageBoundsAndAvailabilityFollowExactRetainedIntervals()
     {
         var history = new UsageHistory(capacity: 2);

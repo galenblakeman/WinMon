@@ -121,6 +121,33 @@ public partial class UsageView
         RefreshRows();
     }
 
+    internal bool ShowApp(ProcessUsage process)
+    {
+        var app = Find(process);
+        if (app is null) return false;
+        AppsOnly.IsChecked = false;
+        Search.Clear();
+        RefreshRows();
+        var row = _rows.FirstOrDefault(row => ProcessIdentityPolicy.Windows.Comparer.Equals(row.Key, app.Key));
+        if (row is null)
+        {
+            TopCount.SelectedItem = TopCountChoices.Selection(0);
+            RefreshRows();
+            row = _rows.FirstOrDefault(row => ProcessIdentityPolicy.Windows.Comparer.Equals(row.Key, app.Key));
+        }
+        if (row is null) return false;
+        Rows.SelectedItem = row;
+        Rows.ScrollIntoView(row);
+        return true;
+    }
+
+    private AppUsage? Find(ProcessUsage process)
+    {
+        var key = ProcessIdentityPolicy.Windows.ExecutableKey(process);
+        return _frame?.Apps.FirstOrDefault(app => app.Key != UsageLedger.OtherAppsKey &&
+            ProcessIdentityPolicy.Windows.Comparer.Equals(app.Key, key));
+    }
+
     internal void FocusSearch()
     {
         Search.Focus();

@@ -280,6 +280,14 @@ internal sealed partial class WindowDiagnostics
             view.ShowProcess.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
             Require(ReferenceEquals(fixture.SelectedSample, sample) && fixture.ProcessesTab.IsChecked == true,
                 "Historical process navigation must preserve the selected sample.");
+            var connectionLink = fixture.Processes.ProcessActions.CreateMoreMenu()!.Items.OfType<MenuItem>()
+                .Single(item => Equals(item.Header, Strings.ShowInConnections));
+            Require(connectionLink.IsEnabled, "Recorded process navigation must find its endpoint capture.");
+            connectionLink.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+            Require(fixture.ConnectionsTab.IsChecked == true && ReferenceEquals(fixture.SelectedSample, sample) &&
+                    view.Rows.SelectedItem is ConnectionDisplayRow,
+                "Show in Connections must select the app and preserve the captured moment.");
+            await CaptureServiceWindowAsync(fixture, Path.Combine(output, "connections-from-processes.png"), cancellationToken);
             fixture.ConnectionsTab.IsChecked = true;
             var missingSample = sample with { Timestamp = sample.Timestamp.AddSeconds(-1), MonotonicTimestamp = 0 };
             fixture.SelectedSample = missingSample;

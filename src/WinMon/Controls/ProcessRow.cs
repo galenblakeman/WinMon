@@ -53,6 +53,7 @@ public sealed class ProcessRow : Grid
     private bool _grouped;
     private bool _unavailable;
     private DateTimeOffset? _sampleAt;
+    private SampleKey? _sampleKey;
     private string _state = "";
     private Action<ProcessDetailsSnapshot>? _properties;
     private Action<ProcessDetailsSnapshot>? _copyDetails;
@@ -60,6 +61,8 @@ public sealed class ProcessRow : Grid
     private Action<ProcessUsage>? _dump;
     private Func<ProcessUsage, bool>? _canDump;
     private Func<bool>? _historical;
+    private Action<string, ProcessDetailsSnapshot>? _navigate;
+    private Func<string, ProcessDetailsSnapshot, bool>? _canNavigate;
     private string? _pinForeground;
     private string? _background;
     private string? _nameForeground = "Text";
@@ -126,7 +129,8 @@ public sealed class ProcessRow : Grid
     internal void EnableInspectionActions(Action<ProcessDetailsSnapshot> properties,
         Action<ProcessDetailsSnapshot> copy,
         Action<ProcessUsage> location, Action<ProcessUsage> dump, Func<ProcessUsage, bool> canDump,
-        Func<bool> historical)
+        Func<bool> historical, Action<string, ProcessDetailsSnapshot>? navigate = null,
+        Func<string, ProcessDetailsSnapshot, bool>? canNavigate = null)
     {
         _properties = properties;
         _copyDetails = copy;
@@ -134,6 +138,8 @@ public sealed class ProcessRow : Grid
         _dump = dump;
         _canDump = canDump;
         _historical = historical;
+        _navigate = navigate;
+        _canNavigate = canNavigate;
     }
 
     internal static MenuItem ActionItem(string header, Geometry geometry)
@@ -166,7 +172,7 @@ public sealed class ProcessRow : Grid
         if (_properties is not null && _copyDetails is not null && _openLocation is not null && _dump is not null)
         {
             var snapshot = new ProcessDetailsSnapshot(target, _grouped, _sampleAt, _historical?.Invoke() == true,
-                !_unavailable, _state);
+                !_unavailable, _state, _sampleKey);
             var properties = ActionItem(Strings.ProcessProperties + "…", ButtonIcon.Info);
             properties.Click += (_, _) => _properties(snapshot);
             ContextMenu.Items.Add(properties);
@@ -177,6 +183,15 @@ public sealed class ProcessRow : Grid
             var copy = ActionItem(Strings.CopyDetails, ButtonIcon.Copy);
             copy.Click += (_, _) => _copyDetails(snapshot);
             ContextMenu.Items.Add(copy);
+            if (_navigate is not null)
+                foreach (var (label, action) in new[]
+                         { (Strings.ShowInConnections, "connections"), (Strings.ShowInUsage, "usage") })
+                {
+                    var navigate = ActionItem(label, ButtonIcon.Process);
+                    navigate.IsEnabled = _canNavigate?.Invoke(action, snapshot) == true;
+                    navigate.Click += (_, _) => _navigate(action, snapshot);
+                    ContextMenu.Items.Add(navigate);
+                }
             ContextMenu.Items.Add(new Separator());
         }
 
@@ -284,6 +299,7 @@ public sealed class ProcessRow : Grid
         _grouped = grouped;
         _unavailable = state != PinnedProcessState.Present;
         _sampleAt = samples.LastOrDefault()?.Timestamp;
+        _sampleKey = samples.LastOrDefault() is { } observed ? SampleKey.Of(observed) : null;
         _state = StateText(state);
         var pinned = _isPinned?.Invoke(usage, grouped) == true;
         ButtonIcon.SetData(_pin, pinned ? ButtonIcon.PinFilled : ButtonIcon.Pin);

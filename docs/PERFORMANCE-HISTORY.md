@@ -2,6 +2,23 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## Process navigation and final workflow verification (November 10, 2026)
+
+Final Windows x64 Release benchmark after traffic export, capture attribution, period Usage, coverage and navigation. Same 850-process workload, 400 warm-ups and seven batches of 60; original full baseline is artifacts/goal-before.json and final results are artifacts/goal-final-bench.json. The selected/tooltip cases exercise navigation eligibility. Connections cases use 60 processes/480 endpoints; extreme endpoint counts were not load-tested.
+
+| UI scenario | Original full run | Final full run | Final allocated bytes/frame |
+| --- | ---: | ---: | ---: |
+| Live | 5.364 ms | 4.615 ms | 603,189 |
+| Historical | 1.376 ms | 1.348 ms | 180,777 |
+| Pinned/selected individual | 5.051 ms | 4.083 ms | 971,860 |
+| Pinned/selected grouped | 9.561 ms | 7.738 ms | 778,488 |
+| Selected grouped, tooltip open | 12.559 ms | 10.810 ms | 971,856 |
+| Connections, retained traffic | 4.191 ms | 3.627 ms | 1,350,328 |
+
+No measured UI timing regression appeared; these single full passes varied with machine conditions and do not establish a general speed improvement. Selected-frame allocations grew by roughly 480 bytes, including captured sample identity and destination checks. Ledger-only recording was 0.0167 ms/32 bytes, and ledger plus bounded Usage history was 0.0452 ms/34,136 bytes per sample. Both 60-minute resource/process persistence cases restored all 1,961 retained samples within their existing budget/deadline. Period Usage remains memory-only.
+
+Final desktop Verify passed with the independently reproduced CLI settings file-access test excluded. Feature (125), Usage (5) and Connections (23) smoke renders passed; new process-menu and both destination screenshots were inspected. Services/coverage smoke passed in the prior increment. Capture smoke's unchanged Settings Monitoring overflow was reproduced in the pre-change binary and remains separate. Store/elevated acceptance and whole-process/native profiling were not rerun for these increments.
+
 ## Shared Capture coverage line (November 10, 2026)
 
 The coverage layout adds one collapsed row in Live and one text line in Capture. Full source bounds are formatted only when its tooltip opens; it does not query hidden period totals or copy endpoint history on refresh. The same Release 850-process live benchmark measured 4.499 ms and 603,253 bytes per refresh, within the preceding shared-history run range (3.83–4.52 ms, about 603,231 bytes). This single post-change run does not establish a speed improvement. Source-specific visible behavior is covered by Services (22), Usage (4) and Connections (22) smoke renders; the available and unavailable selected-moment images were inspected. Raw live results: artifacts/goal-item4-live.json.

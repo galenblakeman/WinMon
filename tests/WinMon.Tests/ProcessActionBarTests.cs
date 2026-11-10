@@ -17,6 +17,26 @@ public sealed class ProcessActionBarTests
             true, "");
 
     [Test]
+    public void MoreMenuExposesNavigationAndKeepsItsCapturedTarget()
+    {
+        var bar = new ProcessActionBar();
+        var original = Snapshot;
+        bar.Update(original, true, true, true, false);
+        var menu = bar.CreateMoreMenu()!;
+        var connections = menu.Items.OfType<MenuItem>().Single(item => Equals(item.Header, Strings.ShowInConnections));
+        var usage = menu.Items.OfType<MenuItem>().Single(item => Equals(item.Header, Strings.ShowInUsage));
+        Assert.That(connections.IsEnabled, Is.True);
+        Assert.That(usage.IsEnabled, Is.False);
+        bar.Update(original with { Process = original.Process with { ProcessId = 999 } }, true, true);
+        ProcessDetailsSnapshot? captured = null;
+        string? target = null;
+        bar.ActionRequested += (action, snapshot) => { target = action; captured = snapshot; };
+        connections.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+        Assert.That(captured, Is.SameAs(original));
+        Assert.That(target, Is.EqualTo("connections"));
+    }
+
+    [Test]
     public void MoreMenuKeepsCapturedTargetWhenSelectionChanges()
     {
         var bar = new ProcessActionBar();

@@ -218,6 +218,29 @@ public partial class ConnectionsView
         Rows.SelectedItem = _rows.FirstOrDefault(row => row.Key == entry.GroupKey);
     }
 
+    internal bool ShowApp(ProcessUsage process)
+    {
+        var entry = Entries().FirstOrDefault(entry => entry.Process is { ImagePath.Length: > 0 } owner &&
+                process.ImagePath.Length > 0 && ProcessIdentityPolicy.Windows.Comparer.Equals(owner.ImagePath, process.ImagePath) ||
+            entry.Connection.ProcessId == process.ProcessId && entry.Connection.ProcessCreationTicks == process.CreationTicks);
+        if (entry is null) return false;
+        AppsOnly.IsChecked = false;
+        PinnedOnly.IsChecked = false;
+        Search.Clear();
+        RefreshRows();
+        var row = _rows.FirstOrDefault(row => row.Key == entry.GroupKey);
+        if (row is null)
+        {
+            TopCount.SelectedItem = TopCountChoices.Selection(0);
+            RefreshRows();
+            row = _rows.FirstOrDefault(row => row.Key == entry.GroupKey);
+        }
+        if (row is null) return false;
+        Rows.SelectedItem = row;
+        Rows.ScrollIntoView(row);
+        return true;
+    }
+
     private void OnLanguageChanged(object? sender, PropertyChangedEventArgs e)
     {
         _loadingSettings = true;

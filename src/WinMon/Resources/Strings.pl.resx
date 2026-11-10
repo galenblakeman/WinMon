@@ -1920,4 +1920,6 @@ Q kończy. Ctrl+C anuluje. Przypięte programy i usługi są zachowywane między
 <data name="HistorySelectedAvailable" xml:space="preserve"><value>Wybrana chwila zapisana</value></data>
 <data name="HistorySelectedUnavailable" xml:space="preserve"><value>Wybrana chwila niedostępna</value></data>
 <data name="HistoryCoverageHelp" xml:space="preserve"><value>Skonfigurowana historia zasobów/procesów: {0}; Usługi: do {1}. Okresy mogą mieć luki; każdy widok ma własny limit pamięci. Usługi, Połączenia i użycie okresowe zaczynają się od nowa po restarcie; przywracana jest tylko historia zasobów/procesów.</value></data>
+<data name="ShowInConnections" xml:space="preserve"><value>Pokaż w Połączeniach</value></data>
+<data name="ShowInUsage" xml:space="preserve"><value>Pokaż w Użyciu</value></data>
 </root>

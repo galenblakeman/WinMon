@@ -161,6 +161,22 @@ public sealed class UsageViewTests
     }
 
     [Test]
+    [Apartment(ApartmentState.STA)]
+    public void ProcessNavigationRevealsUsageBelowTheLimitAndFilters()
+    {
+        var view = _view = new UsageView();
+        var apps = Enumerable.Range(1, 6).Select(i => App("app" + i, 100 - i) with
+            { Key = "C:\\app" + i + ".exe", ImagePath = "C:\\app" + i + ".exe" }).ToArray();
+        view.Load(new(5, UsageSort.CpuTime, true));
+        view.Update(new UsageFrame(apps, 1000, 0, Now, Now, false));
+        view.Search.Text = "not-found";
+        Assert.That(view.ShowApp(new(6, 6, "app6", 0) { ImagePath = "c:\\APP6.exe" }), Is.True);
+        Assert.That((view.Rows.SelectedItem as UsageDisplayRow)?.Key, Is.EqualTo(apps[^1].Key));
+        Assert.That(view.Settings.TopCount, Is.Zero);
+        Assert.That(view.ShowApp(new(6, 99, "other", 0) { ImagePath = "C:\\other.exe" }), Is.False);
+    }
+
+    [Test]
     public void DisplayName_LabelsTheSharedRow()
     {
         Assert.That(UsageText.DisplayName(App(UsageLedger.OtherAppsKey) with { Name = "" }),

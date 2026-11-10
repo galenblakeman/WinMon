@@ -10,6 +10,17 @@ public sealed class UsageLedgerTests
     private static readonly DateTimeOffset Start = DateTimeOffset.Parse("2026-10-24T09:00:00Z");
 
     [Test]
+    public void ContainsExecutableUsesTheAppKeyWithoutNeedingAViewSnapshot()
+    {
+        var ledger = new UsageLedger(Start);
+        ledger.Add(Valid(1, [Process(1, 10, "app", 1, path: @"C:\app.exe")]));
+        Assert.That(ledger.ContainsExecutable(Process(999, 20, "app", 0, path: @"c:\APP.exe")), Is.True);
+        Assert.That(ledger.ContainsExecutable(Process(1, 99, "other", 0, path: @"C:\other.exe")), Is.False);
+        ledger.Reset(Start);
+        Assert.That(ledger.ContainsExecutable(Process(1, 10, "app", 0, path: @"C:\app.exe")), Is.False);
+    }
+
+    [Test]
     public void Add_TotalsCpuIoAndGpuPerExecutable()
     {
         var ledger = new UsageLedger(Start);

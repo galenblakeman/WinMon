@@ -1920,4 +1920,6 @@ Q beendet. Ctrl+C bricht ab. Programm- und Dienst-Pins bleiben gespeichert.</val
 <data name="HistorySelectedAvailable" xml:space="preserve"><value>Ausgewählter Zeitpunkt aufgezeichnet</value></data>
 <data name="HistorySelectedUnavailable" xml:space="preserve"><value>Ausgewählter Zeitpunkt nicht verfügbar</value></data>
 <data name="HistoryCoverageHelp" xml:space="preserve"><value>Konfigurierter Ressourcen-/Prozessverlauf: {0}; Dienste: bis {1}. Gespeicherte Zeitspannen können Lücken enthalten; jede Ansicht hat ein eigenes Speicherlimit. Dienste, Verbindungen und Zeitraumnutzung beginnen nach Neustart neu; nur Ressourcen-/Prozessverlauf kann wiederhergestellt werden.</value></data>
+<data name="ShowInConnections" xml:space="preserve"><value>In Verbindungen anzeigen</value></data>
+<data name="ShowInUsage" xml:space="preserve"><value>In Nutzung anzeigen</value></data>
 </root>

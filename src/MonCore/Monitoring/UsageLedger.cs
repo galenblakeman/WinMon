@@ -99,6 +99,12 @@ public sealed class UsageLedger(DateTimeOffset since, ProcessIdentityPolicy? ide
     public IReadOnlyList<AppUsage> Apps =>
         _snapshot ??= [.. _apps.Values.Select(entry => entry.ToUsage(_generation))];
 
+    public bool ContainsExecutable(ProcessUsage process)
+    {
+        ArgumentNullException.ThrowIfNull(process);
+        return _apps.ContainsKey(_identityPolicy.ExecutableKey(process));
+    }
+
     /// <summary>Whether a sample's process list describes the machine, rather than a baseline or gap.</summary>
     public static bool IsValid(MonitorSample sample)
     {

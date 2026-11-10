@@ -29,11 +29,55 @@ public partial class MainWindow
         Processes.RetentionChanged += () => Volatile.Write(ref _retainPinned, Processes.Retention);
         Processes.RefreshRequested += RefreshPresentation;
         Processes.CopyRequested += CopyProcessDetails;
+        Processes.CanNavigate = CanNavigateProcess;
+        Processes.NavigationRequested += NavigateProcess;
         // One preference hides the action bar on every tab.
         Processes.ActionsHiddenChanged += OnActionsHiddenChanged;
         ServiceView.ActionsHiddenChanged += OnActionsHiddenChanged;
         UsageView.ActionsHiddenChanged += OnActionsHiddenChanged;
         ConnectionView.ActionsHiddenChanged += OnActionsHiddenChanged;
+    }
+
+    private bool CanNavigateProcess(string target, ProcessDetailsSnapshot snapshot)
+    {
+        if (snapshot.Historical != (SelectedSample is not null) ||
+            snapshot.Historical && (snapshot.Sample is not { } key || SelectedSample is null || !key.Matches(SelectedSample)) ||
+            SelectedSample is { } past && !Session.History.Samples.Contains(past)) return false;
+        var process = snapshot.Process;
+        if (target == "usage")
+            return SelectedSample is null ? Session.Usage.ContainsExecutable(process) :
+                CurrentUsageFrame().Apps.Any(app => ProcessIdentityPolicy.Windows.Comparer.Equals(app.Key,
+                    ProcessIdentityPolicy.Windows.ExecutableKey(process)));
+        if (target != "connections" || snapshot.Grouped && process.ImagePath.Length == 0) return false;
+        var capture = SelectedSample is { } selected ? Session.Connections.Find(selected) : Session.Connections.Latest;
+        var frame = _diagnosticMode && SelectedSample is null ? _connections : capture?.Connections;
+        if (frame?.Available != true) return false;
+        var owners = _diagnosticMode && SelectedSample is null
+            ? Session.LatestFull?.Processes ?? [] : capture?.Owners ?? [];
+        var identities = owners.Where(owner => process.ImagePath.Length > 0 && owner.ImagePath.Length > 0 &&
+                ProcessIdentityPolicy.Windows.Comparer.Equals(owner.ImagePath, process.ImagePath))
+            .Select(owner => owner.Identity).ToHashSet();
+        identities.Add(process.Identity);
+        return frame.Connections.Any(connection => connection.ProcessCreationTicks is { } ticks &&
+            identities.Contains(new ProcessLifetimeIdentity(connection.ProcessId, ticks,
+                ProcessLifetimeIdentity.WindowsFileTime)));
+    }
+
+    private void NavigateProcess(string target, ProcessDetailsSnapshot snapshot)
+    {
+        if (!CanNavigateProcess(target, snapshot)) return;
+        if (target == "connections")
+        {
+            ConnectionsTab.IsChecked = true;
+            RefreshPresentation();
+            ConnectionView.ShowApp(snapshot.Process);
+        }
+        else if (target == "usage")
+        {
+            UsageTab.IsChecked = true;
+            RefreshPresentation();
+            UsageView.ShowApp(snapshot.Process);
+        }
     }
 
     private void OnActionsHiddenChanged(bool hidden)

@@ -44,7 +44,7 @@ public sealed class ProcessActionBar : Border
     internal string Detail => _detail.Text;
 
     private ProcessDetailsSnapshot? _snapshot;
-    private bool _canDump;
+    private bool _canDump, _canShowConnections, _canShowUsage;
     private Func<ProcessUsage, bool>? _canSetPriority;
     private Func<ProcessUsage, ProcessPriorityClass?>? _readPriority;
     private Action<ProcessUsage, ProcessPriorityClass>? _setPriority;
@@ -136,10 +136,13 @@ public sealed class ProcessActionBar : Border
         _buttons.Margin = wide ? new Thickness(0) : new Thickness(0, 6, 0, 0);
     }
 
-    internal void Update(ProcessDetailsSnapshot? snapshot, bool canEnd, bool canDump)
+    internal void Update(ProcessDetailsSnapshot? snapshot, bool canEnd, bool canDump,
+        bool canShowConnections = false, bool canShowUsage = false)
     {
         _snapshot = snapshot;
         _canDump = canDump;
+        _canShowConnections = canShowConnections;
+        _canShowUsage = canShowUsage;
         var process = snapshot?.Process;
         _accent.SetResourceReference(BackgroundProperty, process is null ? "Line" : "Accent");
         _icon.Visibility = process is null ? Visibility.Collapsed : Visibility.Visible;
@@ -216,6 +219,18 @@ public sealed class ProcessActionBar : Border
             menu.Items.Add(item);
         }
 
+        menu.Items.Add(new Separator());
+        foreach (var (label, action, enabled) in new[]
+                 {
+                     (Strings.ShowInConnections, "connections", _canShowConnections),
+                     (Strings.ShowInUsage, "usage", _canShowUsage)
+                 })
+        {
+            var item = ProcessRow.ActionItem(label, ButtonIcon.Process);
+            item.IsEnabled = enabled;
+            item.Click += (_, _) => ActionRequested?.Invoke(action, snapshot);
+            menu.Items.Add(item);
+        }
         if (_canSetPriority is null || _readPriority is null || _setPriority is null) return menu;
         menu.Items.Add(new Separator());
         menu.Items.Add(ProcessPriorityMenu.Create(snapshot.Process,

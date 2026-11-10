@@ -1920,4 +1920,6 @@ Q sale. Ctrl+C cancela. Los programas y servicios fijados se conservan entre ses
 <data name="HistorySelectedAvailable" xml:space="preserve"><value>Momento seleccionado registrado</value></data>
 <data name="HistorySelectedUnavailable" xml:space="preserve"><value>Momento seleccionado no disponible</value></data>
 <data name="HistoryCoverageHelp" xml:space="preserve"><value>Historial configurado de recursos/procesos: {0}; Servicios: hasta {1}. Los intervalos pueden tener huecos y cada vista tiene su propio límite de memoria. Servicios, Conexiones y uso por periodo empiezan de nuevo tras reiniciar; solo se restaura el historial de recursos/procesos.</value></data>
+<data name="ShowInConnections" xml:space="preserve"><value>Mostrar en Conexiones</value></data>
+<data name="ShowInUsage" xml:space="preserve"><value>Mostrar en Uso</value></data>
 </root>

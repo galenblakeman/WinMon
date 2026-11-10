@@ -110,6 +110,8 @@ public partial class ProcessesView
     internal event Action? RefreshRequested;
 
     internal event Action<string>? CopyRequested;
+    internal event Action<string, ProcessDetailsSnapshot>? NavigationRequested;
+    internal Func<string, ProcessDetailsSnapshot, bool>? CanNavigate { get; set; }
 
     /// <summary>Pinned and selected processes that compacted history keeps even while idle.</summary>
     internal Func<ProcessUsage, bool>? Retention { get; private set; }
@@ -588,7 +590,9 @@ public partial class ProcessesView
             snapshot => Copy(snapshot.Format()), OpenProcessLocation,
             process => new ProcessDumpDialog(process, () => CanDumpProcess(process)) { Owner = Window.GetWindow(this) }
                 .ShowDialog(),
-            CanDumpProcess, () => _frame?.Selected is not null);
+            CanDumpProcess, () => _frame?.Selected is not null,
+            (action, snapshot) => NavigationRequested?.Invoke(action, snapshot),
+            (action, snapshot) => CanNavigate?.Invoke(action, snapshot) == true);
         row.EnablePinning(Pins.Contains, ToggleProcessPin);
     }
 
@@ -677,10 +681,13 @@ public partial class ProcessesView
             ? null
             : new ProcessDetailsSnapshot(target.Usage, grouped, samples.LastOrDefault()?.Timestamp,
                 historical, target.State == PinnedProcessState.Present && error is null,
-                error is not null ? Strings.Unavailable : ProcessRow.StateText(target.State));
+                error is not null ? Strings.Unavailable : ProcessRow.StateText(target.State),
+                samples.LastOrDefault() is { } observed ? SampleKey.Of(observed) : null);
         ProcessActions.Update(snapshot,
             snapshot?.Available == true && CanEndProcess(snapshot.Process),
-            snapshot?.Available == true && CanDumpProcess(snapshot.Process));
+            snapshot?.Available == true && CanDumpProcess(snapshot.Process),
+            snapshot is not null && CanNavigate?.Invoke("connections", snapshot) == true,
+            snapshot is not null && CanNavigate?.Invoke("usage", snapshot) == true);
         ProcessActionDrawer.Summarize(ProcessActions.Title, ProcessActions.Detail, snapshot is not null);
         foreach (var row in _rows.Concat(_pinnedRows)) row.SetSelected(row.Represents(Selection.Contains));
     }
@@ -703,6 +710,7 @@ public partial class ProcessesView
                 new ProcessDumpDialog(process, () => CanDumpProcess(process)) { Owner = Window.GetWindow(this) }
                     .ShowDialog();
                 break;
+            case "connections" or "usage": NavigationRequested?.Invoke(action, snapshot); break;
         }
     }
 

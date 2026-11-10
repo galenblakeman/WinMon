@@ -1920,4 +1920,6 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
 <data name="HistorySelectedAvailable" xml:space="preserve"><value>選択時点の記録あり</value></data>
 <data name="HistorySelectedUnavailable" xml:space="preserve"><value>選択時点の記録なし</value></data>
 <data name="HistoryCoverageHelp" xml:space="preserve"><value>設定されたリソース・プロセス履歴: {0}、サービス: 最大 {1}。保持期間内でも記録の欠落があり、各ビューには独立したメモリ上限があります。サービス、接続、期間別使用状況は再起動後に新しく開始します。復元できるのはリソース・プロセス履歴のみです。</value></data>
+<data name="ShowInConnections" xml:space="preserve"><value>接続で表示</value></data>
+<data name="ShowInUsage" xml:space="preserve"><value>使用状況で表示</value></data>
 </root>

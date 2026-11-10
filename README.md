@@ -28,7 +28,7 @@ Ordinary resource monitoring and connection lists run without administrator righ
 ## Investigate a spike
 
 1. **Click a spike in the chart** to inspect that recorded moment. WinMon keeps recording while you look back.
-2. **Inspect the process rankings** to see which apps were busy. Group related processes, search, or pin an app to follow it.
+2. **Inspect the process rankings** to see which apps were busy. Group related processes, search, or pin an app to follow it. Use the process More menu to open its Connections or Usage.
 3. **Choose Copy capture** to share the timestamp, resource readings and displayed process rows as plain text.
 
 ![Capture mode showing an earlier CPU spike and Chrome's increased CPU activity](docs/example/example_snapshot.png)

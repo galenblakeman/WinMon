@@ -1920,4 +1920,6 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
 <data name="HistorySelectedAvailable" xml:space="preserve"><value>Выбранный момент записан</value></data>
 <data name="HistorySelectedUnavailable" xml:space="preserve"><value>Выбранный момент недоступен</value></data>
 <data name="HistoryCoverageHelp" xml:space="preserve"><value>Заданная история ресурсов/процессов: {0}; Службы: до {1}. Интервалы могут содержать пропуски; у каждого вида свой лимит памяти. Службы, Соединения и учёт по периодам начинаются заново после перезапуска; восстанавливается только история ресурсов/процессов.</value></data>
+<data name="ShowInConnections" xml:space="preserve"><value>Показать в Соединениях</value></data>
+<data name="ShowInUsage" xml:space="preserve"><value>Показать в Использовании</value></data>
 </root>

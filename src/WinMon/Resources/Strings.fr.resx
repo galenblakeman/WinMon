@@ -1920,4 +1920,6 @@ Q quitte. Ctrl+C annule. Les programmes et services épinglés restent enregistr
 <data name="HistorySelectedAvailable" xml:space="preserve"><value>Instant sélectionné enregistré</value></data>
 <data name="HistorySelectedUnavailable" xml:space="preserve"><value>Instant sélectionné indisponible</value></data>
 <data name="HistoryCoverageHelp" xml:space="preserve"><value>Historique ressources/processus configuré : {0} ; Services : jusqu&apos;à {1}. Les périodes peuvent contenir des lacunes ; chaque vue a son propre budget mémoire. Services, Connexions et utilisation par période repartent à zéro après redémarrage ; seul l&apos;historique ressources/processus peut être restauré.</value></data>
+<data name="ShowInConnections" xml:space="preserve"><value>Afficher dans Connexions</value></data>
+<data name="ShowInUsage" xml:space="preserve"><value>Afficher dans Utilisation</value></data>
 </root>

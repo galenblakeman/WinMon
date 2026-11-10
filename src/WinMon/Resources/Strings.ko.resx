@@ -1920,4 +1920,6 @@ Q 종료. Ctrl+C 취소. 실행 파일과 서비스 고정은 다음 실행에�
 <data name="HistorySelectedAvailable" xml:space="preserve"><value>선택 시점 기록됨</value></data>
 <data name="HistorySelectedUnavailable" xml:space="preserve"><value>선택 시점 데이터 없음</value></data>
 <data name="HistoryCoverageHelp" xml:space="preserve"><value>설정된 리소스/프로세스 기록: {0}; 서비스: 최대 {1}. 보관 구간에 누락이 있을 수 있으며 각 보기에는 별도의 메모리 한도가 있습니다. 서비스, 연결 및 구간별 사용량은 다시 시작하면 초기화되며 리소스/프로세스 기록만 복원할 수 있습니다.</value></data>
+<data name="ShowInConnections" xml:space="preserve"><value>연결에서 보기</value></data>
+<data name="ShowInUsage" xml:space="preserve"><value>사용량에서 보기</value></data>
 </root>

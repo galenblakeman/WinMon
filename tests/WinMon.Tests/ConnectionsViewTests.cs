@@ -16,6 +16,28 @@ namespace WinMon.Tests;
 public sealed class ConnectionsViewTests
 {
     [Test]
+    public void ProcessNavigationRevealsTheExactExecutableBelowTopAndRestrictiveFilters()
+    {
+        var owners = Enumerable.Range(1, 6).Select(i => Owner with
+        {
+            ProcessId = 100 + i, CreationTicks = i, Name = "owner" + i,
+            AppName = "Owner " + i, ImagePath = "C:\\owner" + i + ".exe", HasAppWindow = false
+        }).ToArray();
+        var endpoints = owners.Select(owner => Tcp with
+            { ProcessId = owner.ProcessId, ProcessCreationTicks = owner.CreationTicks }).ToArray();
+        var view = new ConnectionsView();
+        view.Load(new ConnectionListSettings(5, ConnectionSort.Tcp, true, true));
+        view.Update(Frame(endpoints), owners, false);
+        view.Search.Text = "not-found";
+        Assert.That(view.ShowApp(owners[^1] with { ImagePath = owners[^1].ImagePath.ToUpperInvariant() }), Is.True);
+        Assert.That(view.Rows.SelectedItem, Is.SameAs(view.DisplayedRows.Single(row => row.Process?.ProcessId == owners[^1].ProcessId)));
+        Assert.That(view.Settings.TopCount, Is.Zero);
+        var selected = view.Rows.SelectedItem;
+        Assert.That(view.ShowApp(owners[^1] with { ImagePath = "", CreationTicks = 9999 }), Is.False);
+        Assert.That(view.Rows.SelectedItem, Is.SameAs(selected), "A reused PID cannot retarget navigation.");
+    }
+
+    [Test]
     public void RankedSeparatorFollowsVisiblePinsAndSelectedRanking()
     {
         var other = Owner with { ProcessId = 99, CreationTicks = 456, ImagePath = @"C:\other.exe", AppName = "Other" };

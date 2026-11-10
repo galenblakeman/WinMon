@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using WinMon.Controls;
 using WinMon.Monitoring;
@@ -65,6 +66,18 @@ internal sealed partial class WindowDiagnostics
             }
 
             fixture.Show();
+            var processTarget = fixture.Session.LatestFull!.Processes.First(process => process.AppName == "Google Chrome");
+            fixture.Processes.ShowGroup(processTarget);
+            fixture.RefreshVisiblePresentation();
+            var usageLink = fixture.Processes.ProcessActions.CreateMoreMenu()!.Items.OfType<MenuItem>()
+                .Single(item => Equals(item.Header, Strings.ShowInUsage));
+            if (!usageLink.IsEnabled)
+                throw new InvalidOperationException("Process navigation must work before Usage has ever been opened.");
+            usageLink.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+            if (fixture.UsageTab.IsChecked != true || fixture.UsageView.Rows.SelectedItem is not UsageDisplayRow
+                { App.ImagePath: var targetPath } || targetPath != processTarget.ImagePath)
+                throw new InvalidOperationException("Process navigation must reveal the same executable in Usage.");
+            await CaptureServiceWindowAsync(fixture, Path.Combine(output, "usage-from-processes.png"), cancellationToken);
             fixture.UsageTab.IsChecked = true;
             var apps = fixture.Session.Usage.Apps;
             if (fixture.UsageTotalValue.Text != MainWindow.CompactCount((uint)apps.Count) ||

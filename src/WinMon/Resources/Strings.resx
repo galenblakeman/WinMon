@@ -1920,4 +1920,6 @@ Q quits. Ctrl+C cancels. Executable/service pins persist between sessions.</valu
 <data name="HistorySelectedAvailable" xml:space="preserve"><value>Selected moment recorded</value></data>
 <data name="HistorySelectedUnavailable" xml:space="preserve"><value>Selected moment unavailable</value></data>
 <data name="HistoryCoverageHelp" xml:space="preserve"><value>Configured resource/process history: {0}; Services: up to {1}. Retained spans can contain gaps and each view has its own memory budget. Services, Connections and period Usage start fresh after restart; only resource/process history can be restored.</value></data>
+<data name="ShowInConnections" xml:space="preserve"><value>Show in Connections</value></data>
+<data name="ShowInUsage" xml:space="preserve"><value>Show in Usage</value></data>
 </root>

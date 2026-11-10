@@ -9,7 +9,8 @@ internal sealed record ProcessDetailsSnapshot(
     DateTimeOffset? Timestamp,
     bool Historical,
     bool Available,
-    string State)
+    string State,
+    SampleKey? Sample = null)
 {
     internal string Format()
     {
