@@ -18,8 +18,9 @@ WinMon brings CPU, memory, disk, network and GPU activity into one Windows dashb
 
 | Download | Get started |
 | --- | --- |
-| **Installer** | Install for your Windows account, then launch from the Start menu. |
-| **Portable ZIP** | Extract into a writable folder and run `WinMon.exe`. Preferences stay beside the app. |
+| **Installer** | Install for your Windows account, then launch from the Start menu. It includes `WinMon.Cli.exe`; its unchecked setup option adds that command to your user PATH. |
+| **Portable ZIP** | Extract into a writable folder and run `WinMon.exe` or `WinMon.Cli.exe`. Preferences stay beside the desktop app. |
+| **CLI ZIP** | Extract `WinMon-Cli-<version>-win-x64.zip` and run `WinMon.Cli.exe` from a terminal. |
 
 WinMon ships as a self-contained **Windows x64** app, so you do not need to install .NET separately. The desktop installer accepts Windows 10 version 1607 (build 14393) or later. This packaging minimum is not a compatibility test: use a Windows edition and version supported by [.NET 10](https://github.com/dotnet/core/blob/main/release-notes/10.0/supported-os.md). Older-Windows acceptance has not been verified for this build. See [platform details](docs/USER-GUIDE.md#platform-requirements) for distribution limits and the environment used for this refresh.
 
@@ -51,9 +52,11 @@ History defaults to **30 minutes**, with retention configurable up to **60 minut
 
 [See feature examples](docs/example/README.md#investigate) · [Read the user guide](docs/USER-GUIDE.md)
 
-## Command-line preview
+## Command line
 
-The source tree includes a separate Windows terminal app, `WinMon.Cli`, using Spectre.Console and System.CommandLine. Publish it with the .NET 10 SDK; it is not yet included in release downloads:
+WinMon releases include the Windows terminal app, `WinMon.Cli`, using Spectre.Console and System.CommandLine. It is bundled with the installer and desktop portable ZIP, and is also available as a CLI-only ZIP. The Microsoft Store package does not include it.
+
+The installer offers an unchecked **Add WinMon.Cli to PATH for this user** option. Open a new terminal afterward and run `WinMon.Cli`; for ZIP downloads, run `.\WinMon.Cli.exe` from the extracted folder. To build from source:
 
 ```powershell
 dotnet publish src/WinMon.Cli/WinMon.Cli.csproj -c Release -m:1 -p:UseSharedCompilation=false

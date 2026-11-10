@@ -1922,4 +1922,6 @@ Q sale. Ctrl+C cancela. Los programas y servicios fijados se conservan entre ses
 <data name="HistoryCoverageHelp" xml:space="preserve"><value>Historial configurado de recursos/procesos: {0}; Servicios: hasta {1}. Los intervalos pueden tener huecos y cada vista tiene su propio límite de memoria. Servicios, Conexiones y uso por periodo empiezan de nuevo tras reiniciar; solo se restaura el historial de recursos/procesos.</value></data>
 <data name="ShowInConnections" xml:space="preserve"><value>Mostrar en Conexiones</value></data>
 <data name="ShowInUsage" xml:space="preserve"><value>Mostrar en Uso</value></data>
+  <data name="InstallerCliPathTask" xml:space="preserve"><value>Agregar WinMon.Cli a PATH para este usuario</value></data>
+  <data name="InstallerCliPathFailed" xml:space="preserve"><value>No se pudo actualizar PATH del usuario para WinMon.Cli.</value></data>
 </root>

@@ -27,6 +27,10 @@ if ($version -notmatch '^\d+\.\d+\.\d+$') { throw 'Release Version must have the
 if ($ExpectedTag -and $ExpectedTag -cne "v$version") { throw "Tag $ExpectedTag does not match Version $version." }
 [xml]$manifest = Get-Content -LiteralPath (Join-Path $root 'src/WinMon/app.manifest') -Raw
 if ($manifest.assembly.assemblyIdentity.version -ne "$version.0") { throw 'Application manifest version does not match Version.' }
+[xml]$strings = Get-Content -LiteralPath (Join-Path $root 'src/WinMon/Resources/Strings.resx') -Raw
+$cliPathTask = [string](($strings.root.data | Where-Object name -ceq 'InstallerCliPathTask').value)
+$cliPathFailed = [string](($strings.root.data | Where-Object name -ceq 'InstallerCliPathFailed').value)
+if (!$cliPathTask -or !$cliPathFailed) { throw 'Installer CLI PATH resources are missing.' }
 if ($UpdateSigningKeyPath) {
     $publicKeyPath = Join-Path $root 'src/WinMon/Updates/update-public-key.pem'
     if (!(Test-Path -LiteralPath $publicKeyPath -PathType Leaf)) {
@@ -54,6 +58,7 @@ $OutputDirectory = [IO.Path]::GetFullPath($OutputDirectory)
 if (Test-Path -LiteralPath $OutputDirectory) { throw "Output directory already exists. Choose a new -OutputDirectory: $OutputDirectory" }
 $work = Join-Path $root "artifacts/packaging/$([guid]::NewGuid().ToString('N'))"
 $publish = Join-Path $work 'publish'
+$cliPublish = Join-Path $work 'cli-publish'
 $assets = Join-Path $work 'assets'
 $networkServiceBundle = Join-Path $work 'network-service-bundle'
 New-Item -ItemType Directory -Path $assets -Force | Out-Null
@@ -68,11 +73,17 @@ try {
     if ($CodeSign) { $publishArguments += "-p:NetworkServiceBundleDirectory=$networkServiceBundle" }
     dotnet @publishArguments
     if ($LASTEXITCODE -ne 0) { throw 'Release publish failed.' }
+    $cliPublishArguments = @('publish', 'src/WinMon.Cli/WinMon.Cli.csproj', '-c', 'Release', '-r', 'win-x64', '-m:1', '-p:UseSharedCompilation=false', "--artifacts-path=$work/build", '-o', $cliPublish)
+    if ($CodeSign) { $cliPublishArguments += "-p:NetworkServiceBundleDirectory=$networkServiceBundle" }
+    dotnet @cliPublishArguments
+    if ($LASTEXITCODE -ne 0) { throw 'CLI release publish failed.' }
     if ($CodeSign) {
         & (Join-Path $PSScriptRoot 'Sign-ReleaseFile.ps1') -Path (Join-Path $publish 'WinMon.exe') @signingParameters |
             ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $work 'application-signature.json') -Encoding utf8NoBOM
+        & (Join-Path $PSScriptRoot 'Sign-ReleaseFile.ps1') -Path (Join-Path $cliPublish 'WinMon.Cli.exe') @signingParameters |
+            ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $work 'cli-signature.json') -Encoding utf8NoBOM
     }
-    & $InnoCompiler "/DAppVersion=$version" "/DPublishDirectory=$publish" "/DReleaseDirectory=$assets" "/DNetworkServiceSetup=$([int][bool]$CodeSign)" (Join-Path $root 'packaging/WinMon.iss')
+    & $InnoCompiler "/DAppVersion=$version" "/DPublishDirectory=$publish" "/DCliPublishDirectory=$cliPublish" "/DCliPathTask=$cliPathTask" "/DCliPathFailed=$cliPathFailed" "/DReleaseDirectory=$assets" "/DNetworkServiceSetup=$([int][bool]$CodeSign)" (Join-Path $root 'packaging/WinMon.iss')
     if ($LASTEXITCODE -ne 0) { throw 'Installer compilation failed.' }
     $installer = Join-Path $assets "WinMon-$version-Setup-x64.exe"
     if ($CodeSign) {
@@ -84,16 +95,24 @@ try {
     }
     $portable = Join-Path $work 'portable'
     New-Item -ItemType Directory -Path $portable | Out-Null
-    Copy-Item -LiteralPath (Join-Path $publish 'WinMon.exe'), (Join-Path $root 'LICENSE') -Destination $portable
+    Copy-Item -LiteralPath (Join-Path $publish 'WinMon.exe'), (Join-Path $cliPublish 'WinMon.Cli.exe'), (Join-Path $root 'LICENSE') -Destination $portable
     New-Item -ItemType File -Path (Join-Path $portable 'portable.flag') | Out-Null
     @'
-Extract all files to a writable folder, then run WinMon.exe. No .NET installation is required.
+Extract all files to a writable folder, then run WinMon.exe or WinMon.Cli.exe. No .NET installation is required.
 portable.flag keeps settings.json beside the executable. Preserve both files when updating.
 Remove portable.flag and restart to use %LOCALAPPDATA%\WinMon\settings.json instead.
 Startup registration and launch shortcuts are machine-specific; disable them before moving the app.
 '@ | Set-Content -LiteralPath (Join-Path $portable 'PORTABLE.txt') -Encoding utf8NoBOM
     $zip = Join-Path $assets "WinMon-$version-win-x64.zip"
     Compress-Archive -Path "$portable/*" -DestinationPath $zip
+    $cliPortable = Join-Path $work 'cli-portable'
+    New-Item -ItemType Directory -Path $cliPortable | Out-Null
+    Copy-Item -LiteralPath (Join-Path $cliPublish 'WinMon.Cli.exe'), (Join-Path $root 'LICENSE') -Destination $cliPortable
+    @'
+Run WinMon.Cli.exe from a terminal. No .NET installation is required.
+The optional network install command requires this signed release build and administrator approval.
+'@ | Set-Content -LiteralPath (Join-Path $cliPortable 'README.txt') -Encoding utf8NoBOM
+    Compress-Archive -Path "$cliPortable/*" -DestinationPath (Join-Path $assets "WinMon-Cli-$version-win-x64.zip")
     $winget = Join-Path $work 'winget'
     & (Join-Path $PSScriptRoot 'New-WinGetManifest.ps1') -Version $version -InstallerPath $installer -OutputDirectory $winget | Out-Host
     Compress-Archive -Path (Join-Path $winget 'manifests') -DestinationPath (Join-Path $assets "WinMon-$version-winget.zip")

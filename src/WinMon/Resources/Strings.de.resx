@@ -1922,4 +1922,6 @@ Q beendet. Ctrl+C bricht ab. Programm- und Dienst-Pins bleiben gespeichert.</val
 <data name="HistoryCoverageHelp" xml:space="preserve"><value>Konfigurierter Ressourcen-/Prozessverlauf: {0}; Dienste: bis {1}. Gespeicherte Zeitspannen können Lücken enthalten; jede Ansicht hat ein eigenes Speicherlimit. Dienste, Verbindungen und Zeitraumnutzung beginnen nach Neustart neu; nur Ressourcen-/Prozessverlauf kann wiederhergestellt werden.</value></data>
 <data name="ShowInConnections" xml:space="preserve"><value>In Verbindungen anzeigen</value></data>
 <data name="ShowInUsage" xml:space="preserve"><value>In Nutzung anzeigen</value></data>
+  <data name="InstallerCliPathTask" xml:space="preserve"><value>WinMon.Cli für diesen Benutzer zu PATH hinzufügen</value></data>
+  <data name="InstallerCliPathFailed" xml:space="preserve"><value>Der Benutzer-PATH für WinMon.Cli konnte nicht aktualisiert werden.</value></data>
 </root>

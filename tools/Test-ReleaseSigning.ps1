@@ -7,7 +7,7 @@ Set-StrictMode -Version Latest
 $root = Split-Path $PSScriptRoot -Parent
 $run = Join-Path $root "artifacts/signing-validation/$([guid]::NewGuid().ToString('N'))"
 $fixture = Join-Path $run 'fixture'
-foreach ($directory in @('tools', 'src/WinMon/Updates', 'src/WinMon.NetworkService', 'src/WinMon.NetworkSetup', 'packaging')) {
+foreach ($directory in @('tools', 'src/WinMon/Updates', 'src/WinMon/Resources', 'src/WinMon.NetworkService', 'src/WinMon.NetworkSetup', 'packaging')) {
     New-Item -ItemType Directory -Path (Join-Path $fixture $directory) -Force | Out-Null
 }
 foreach ($name in @('New-Release.ps1', 'New-NetworkServicePackage.ps1', 'Sign-ReleaseFile.ps1', 'New-WinGetManifest.ps1', 'New-UpdateManifest.ps1')) {
@@ -18,6 +18,12 @@ Copy-Item -LiteralPath (Join-Path $root 'LICENSE') -Destination $fixture
     Set-Content (Join-Path $fixture 'Directory.Build.props')
 '<assembly><assemblyIdentity version="9.8.7.0" /></assembly>' |
     Set-Content (Join-Path $fixture 'src/WinMon/app.manifest')
+@'
+<root>
+  <data name="InstallerCliPathTask"><value>Add WinMon.Cli to PATH for this user</value></data>
+  <data name="InstallerCliPathFailed"><value>Could not update the user PATH for WinMon.Cli.</value></data>
+</root>
+'@ | Set-Content (Join-Path $fixture 'src/WinMon/Resources/Strings.resx')
 $key = [Security.Cryptography.RSA]::Create(2048)
 try {
     [IO.File]::WriteAllText((Join-Path $run 'private.pem'), $key.ExportPkcs8PrivateKeyPem())
@@ -31,11 +37,13 @@ foreach ($argument in $args) {
     if ($argument -match '^/D([^=]+)=(.*)$') { $options[$Matches[1]] = $Matches[2] }
 }
 $payload = Get-Content -LiteralPath (Join-Path $options.PublishDirectory 'WinMon.exe') -Raw
+$cliPayload = Get-Content -LiteralPath (Join-Path $options.CliPublishDirectory 'WinMon.Cli.exe') -Raw
 if ($options.NetworkServiceSetup -cne $(if ($testState.Mode -eq 'unsigned') { '0' } else { '1' })) {
     throw 'Installer network-service option must be present only in signed packages.'
 }
 if ($testState.Mode -ne 'unsigned' -and $payload -notmatch 'SIGNED') { throw 'Installer received an unsigned application.' }
-[IO.File]::WriteAllText((Join-Path $options.ReleaseDirectory 'WinMon-9.8.7-Setup-x64.exe'), "INSTALLER:$payload")
+if ($testState.Mode -ne 'unsigned' -and $cliPayload -notmatch 'SIGNED') { throw 'Installer received an unsigned CLI.' }
+[IO.File]::WriteAllText((Join-Path $options.ReleaseDirectory 'WinMon-9.8.7-Setup-x64.exe'), "INSTALLER:${payload}:${cliPayload}")
 $global:LASTEXITCODE = 0
 '@ | Set-Content -LiteralPath $compiler
 $testState = @{ Mode = 'valid'; Calls = 0 }
@@ -49,6 +57,9 @@ function dotnet {
         }
         elseif ($args[1] -like '*WinMon.NetworkSetup*') {
             [IO.File]::WriteAllText((Join-Path $output 'WinMon.NetworkSetup.exe'), 'SETUP')
+        }
+        elseif ($args[1] -like '*WinMon.Cli*') {
+            [IO.File]::WriteAllText((Join-Path $output 'WinMon.Cli.exe'), 'CLI')
         }
         else {
             [IO.File]::WriteAllText((Join-Path $output 'WinMon.exe'), 'APPLICATION')
@@ -82,7 +93,7 @@ function Get-AuthenticodeSignature {
         $certificate | Add-Member ScriptMethod GetNameInfo { param($Type, $Issuer) 'Other Publisher' } -Force
     }
     [pscustomobject]@{
-        Status = $(if ($testState.Mode -eq 'invalid' -or ($testState.Mode -eq 'installer-invalid' -and $testState.Calls -eq 4)) { 'HashMismatch' } else { 'Valid' })
+        Status = $(if ($testState.Mode -eq 'invalid' -or ($testState.Mode -eq 'installer-invalid' -and $testState.Calls -eq 5)) { 'HashMismatch' } else { 'Valid' })
         StatusMessage = 'Simulated Authenticode result'
         SignerCertificate = $certificate
         TimeStamperCertificate = $(if ($testState.Mode -ne 'no-timestamp') { [pscustomobject]@{ Subject = 'CN=Test TSA' } })
@@ -91,9 +102,12 @@ function Get-AuthenticodeSignature {
 $release = Join-Path $fixture 'tools/New-Release.ps1'
 $output = Join-Path $run 'release'
 & $release -CodeSign -InnoCompiler $compiler -OutputDirectory $output -UpdateSigningKeyPath (Join-Path $run 'private.pem')
-if ($testState.Calls -ne 4) { throw 'Expected exactly four signing calls.' }
+if ($testState.Calls -ne 5) { throw 'Expected exactly five signing calls.' }
 Expand-Archive (Join-Path $output 'WinMon-9.8.7-win-x64.zip') (Join-Path $run 'portable')
 if ((Get-Content (Join-Path $run 'portable/WinMon.exe') -Raw) -cne 'APPLICATION:SIGNED') { throw 'Portable executable was not signed.' }
+if ((Get-Content (Join-Path $run 'portable/WinMon.Cli.exe') -Raw) -cne 'CLI:SIGNED') { throw 'Bundled CLI executable was not signed.' }
+Expand-Archive (Join-Path $output 'WinMon-Cli-9.8.7-win-x64.zip') (Join-Path $run 'cli-portable')
+if ((Get-Content (Join-Path $run 'cli-portable/WinMon.Cli.exe') -Raw) -cne 'CLI:SIGNED') { throw 'CLI-only executable was not signed.' }
 $installerHash = (Get-FileHash (Join-Path $output 'WinMon-9.8.7-Setup-x64.exe')).Hash
 foreach ($line in Get-Content (Join-Path $output 'SHA256SUMS.txt')) {
     $parts = $line -split '  ', 2
@@ -144,4 +158,4 @@ $testState.Calls = 0
 if ($testState.Calls -ne 0) { throw 'Unsigned local build contacted signing provider.' }
 # The fixture key is only needed for this disposable signing-boundary test.
 Remove-Item -LiteralPath (Join-Path $run 'private.pem') -Force -ErrorAction SilentlyContinue
-Write-Host "PASS: signing order, portable payload, final hashes, RSA manifest, five signing failure gates, and unsigned local packaging. Evidence: $run"
+Write-Host "PASS: signing order, desktop and CLI payloads, final hashes, RSA manifest, five signing failure gates, and unsigned local packaging. Evidence: $run"

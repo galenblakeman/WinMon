@@ -243,6 +243,45 @@ public sealed class UpdateTests
     }
 
     [Test]
+    public async Task ExtractExecutableAsync_ValidatesTheOptionalCliAndRejectsDuplicates()
+    {
+        var archive = CreateArchive("WinMon.exe");
+        var destination = Path.Combine(_directory, "cli.exe");
+        Assert.That(await UpdateClient.ExtractExecutableAsync(archive, destination, AppInfo.Version,
+            CancellationToken.None, "WinMon.Cli.exe", required: false), Is.False);
+        await Assert.ThatAsync(() => UpdateClient.ExtractExecutableAsync(archive, destination, AppInfo.Version,
+            CancellationToken.None, "WinMon.Cli.exe"), Throws.TypeOf<InvalidDataException>());
+
+        File.Delete(archive);
+        archive = CreateArchive("WinMon.Cli.exe", "WinMon.Cli.exe");
+        await Assert.ThatAsync(() => UpdateClient.ExtractExecutableAsync(archive, destination, AppInfo.Version,
+            CancellationToken.None, "WinMon.Cli.exe", required: false), Throws.TypeOf<InvalidDataException>());
+        Assert.That(File.Exists(destination), Is.False);
+    }
+
+    [TestCase(false)]
+    [TestCase(true)]
+    public void CompleteInterruptedTransaction_RestoresCliWhenDesktopReplacementNeverCompleted(bool existed)
+    {
+        var (directory, target, job) = PrepareRecovery("1.2.3", "replacing");
+        job = job with { CliExisted = existed };
+        UpdateFiles.WriteJson(Path.Combine(directory, "job.json"), job);
+        var cliJob = UpdateFiles.CliJob(job);
+        File.WriteAllText(cliJob.Target, "new CLI");
+        if (existed) File.WriteAllText(UpdateFiles.BackupPath(cliJob), "old CLI");
+        Age(directory);
+
+        UpdateRuntime.CompleteInterruptedTransaction(directory, target, "1.2.2", null,
+            DateTime.UtcNow.AddMinutes(-1));
+
+        Assert.That(UpdateFiles.ReadJson<UpdateState>(Path.Combine(directory, "state.json")).Status,
+            Is.EqualTo("rolled-back"));
+        if (existed) Assert.That(File.ReadAllText(cliJob.Target), Is.EqualTo("old CLI"));
+        else Assert.That(File.Exists(cliJob.Target), Is.False);
+        Assert.That(File.Exists(target), Is.True);
+    }
+
+    [Test]
     public void CompleteInterruptedTransaction_FinalizesOnlyMatchingInactiveHealthyReplacement()
     {
         var (directory, target, job) = PrepareRecovery("1.2.3", "awaiting-ready");

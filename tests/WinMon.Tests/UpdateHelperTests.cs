@@ -160,6 +160,70 @@ public sealed class UpdateHelperTests
 
     [TestCase(false)]
     [TestCase(true)]
+    public void BundledPortableUpdateCommitsBothOrRestoresBoth(bool existingCli)
+    {
+        foreach (var healthy in new[] { true, false })
+        {
+            using var fixture = new Fixture(includeCli: true, existingCli: existingCli);
+            fixture.Host.Healthy = healthy;
+            fixture.Host.Child.HasExited = !healthy;
+            var cliJob = UpdateFiles.CliJob(fixture.Job);
+
+            Assert.That(fixture.Run(), Is.EqualTo(healthy ? 0 : 1));
+            Assert.Multiple(() =>
+            {
+                Assert.That(fixture.State.Status, Is.EqualTo(healthy ? "succeeded" : "rolled-back"));
+                if (healthy)
+                {
+                    Assert.That(File.ReadAllBytes(fixture.Target), Is.EqualTo(fixture.Executable));
+                    Assert.That(File.ReadAllBytes(cliJob.Target), Is.EqualTo(fixture.Executable));
+                }
+                else
+                {
+                    Assert.That(File.ReadAllText(fixture.Target), Is.EqualTo("old executable"));
+                    if (existingCli) Assert.That(File.ReadAllText(cliJob.Target), Is.EqualTo("old CLI"));
+                    else Assert.That(File.Exists(cliJob.Target), Is.False);
+                }
+                Assert.That(File.Exists(UpdateFiles.BackupPath(cliJob)), Is.False);
+                Assert.That(File.Exists(UpdateFiles.StagedPath(cliJob)), Is.False);
+            });
+        }
+    }
+
+    [TestCase("WinMon.Cli.exe")]
+    [TestCase("WinMon.exe")]
+    [Category("Integration")]
+    public void LockedBundleMemberDoesNotLeaveEitherExecutableUpdated(string lockedName)
+    {
+        using var fixture = new Fixture(includeCli: true, existingCli: true);
+        using var locked = new FileStream(Path.Combine(fixture.Application, lockedName),
+            FileMode.Open, FileAccess.Read, FileShare.Read);
+
+        Assert.That(fixture.Run(), Is.EqualTo(1));
+        Assert.Multiple(() =>
+        {
+            Assert.That(File.ReadAllText(fixture.Target), Is.EqualTo("old executable"));
+            Assert.That(File.ReadAllText(UpdateFiles.CliJob(fixture.Job).Target), Is.EqualTo("old CLI"));
+            Assert.That(fixture.State.Status, Is.EqualTo("failed"));
+        });
+    }
+
+    [Test]
+    public void DesktopOnlyArchiveCannotLeaveAnExistingCliAtAnOlderVersion()
+    {
+        using var fixture = new Fixture(existingCli: true);
+
+        Assert.That(fixture.Run(), Is.EqualTo(1));
+        Assert.Multiple(() =>
+        {
+            Assert.That(File.ReadAllText(fixture.Target), Is.EqualTo("old executable"));
+            Assert.That(File.ReadAllText(UpdateFiles.CliJob(fixture.Job).Target), Is.EqualTo("old CLI"));
+            Assert.That(fixture.State.Status, Is.EqualTo("failed"));
+        });
+    }
+
+    [TestCase(false)]
+    [TestCase(true)]
     public void UpdateGuardRejectsAnotherOwnerAndRecoversAnAbandonedOwner(bool abandoned)
     {
         using var fixture = new Fixture();
@@ -326,7 +390,7 @@ public sealed class UpdateHelperTests
     private sealed class Fixture : IDisposable
     {
         private readonly string _root = Path.Combine(Path.GetTempPath(), "WinMon.HelperTests", Guid.NewGuid().ToString("N"));
-        internal Fixture(bool installed = false)
+        internal Fixture(bool installed = false, bool includeCli = false, bool existingCli = false)
         {
             Application = Path.Combine(_root, "app");
             Target = Path.Combine(Application, "WinMon.exe");
@@ -336,12 +400,17 @@ public sealed class UpdateHelperTests
             File.WriteAllText(Target, "old executable");
             Executable = File.ReadAllBytes(typeof(UpdateRuntime).Assembly.Location);
             Job = new UpdateJob(Target, 42, 123, AppInfo.Version, installed, Guid.NewGuid().ToString("N"));
+            if (existingCli) File.WriteAllText(UpdateFiles.CliJob(Job).Target, "old CLI");
             Token = Job.Token;
             byte[] portable;
             using (var memory = new MemoryStream())
             {
                 using (var archive = new ZipArchive(memory, ZipArchiveMode.Create, leaveOpen: true))
-                using (var entry = archive.CreateEntry("WinMon.exe").Open()) entry.Write(Executable);
+                {
+                    using (var entry = archive.CreateEntry("WinMon.exe").Open()) entry.Write(Executable);
+                    if (includeCli)
+                        using (var entry = archive.CreateEntry("WinMon.Cli.exe").Open()) entry.Write(Executable);
+                }
                 portable = memory.ToArray();
             }
             var manifest = new UpdateManifest(1, Job.Version, "win-x64",
@@ -442,7 +511,11 @@ public sealed class UpdateHelperTests
             if (Path.GetFileName(start.FileName).EndsWith("-Setup-x64.exe", StringComparison.Ordinal))
             {
                 if (FailInstallerStart) return null;
-                if (Setup.ExitCode == 0) File.WriteAllBytes(Target, Executable);
+                if (Setup.ExitCode == 0)
+                {
+                    File.WriteAllBytes(Target, Executable);
+                    File.WriteAllBytes(Path.Combine(Path.GetDirectoryName(Target)!, "WinMon.Cli.exe"), Executable);
+                }
                 return Setup;
             }
             if (FailFirstLaunch && Starts.Count == 1) return null;

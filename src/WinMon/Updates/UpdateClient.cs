@@ -170,8 +170,13 @@ internal sealed class UpdateClient : IDisposable
             await File.WriteAllTextAsync(Path.Combine(directory, "update-manifest.sig"), offer.Signature,
                 cancellationToken).ConfigureAwait(false);
             if (!installed)
+            {
                 await ExtractExecutableAsync(download, Path.Combine(directory, "WinMon.exe"), offer.Version,
                     cancellationToken).ConfigureAwait(false);
+                await ExtractExecutableAsync(download, Path.Combine(directory, "WinMon.Cli.exe"), offer.Version,
+                    cancellationToken, "WinMon.Cli.exe",
+                    File.Exists(Path.Combine(Path.GetDirectoryName(target)!, "WinMon.Cli.exe"))).ConfigureAwait(false);
+            }
             using var process = Process.GetCurrentProcess();
             var job = new UpdateJob(target, process.Id, process.StartTime.ToUniversalTime().Ticks, offer.Version,
                 installed, Guid.NewGuid().ToString("N"));
@@ -195,13 +200,16 @@ internal sealed class UpdateClient : IDisposable
         }
     }
 
-    internal static async Task ExtractExecutableAsync(string archivePath, string destination, string version,
-        CancellationToken cancellationToken)
+    internal static async Task<bool> ExtractExecutableAsync(string archivePath, string destination, string version,
+        CancellationToken cancellationToken, string executableName = "WinMon.exe", bool required = true)
     {
+        if (executableName is not ("WinMon.exe" or "WinMon.Cli.exe"))
+            throw new ArgumentException("Unsupported update executable.", nameof(executableName));
         await using var archive = await ZipFile.OpenReadAsync(archivePath, cancellationToken);
-        var entries = archive.Entries.Where(e => e.FullName == "WinMon.exe").ToArray();
+        var entries = archive.Entries.Where(e => e.FullName == executableName).ToArray();
+        if (!required && entries.Length == 0) return false;
         if (entries.Length != 1 || entries[0].Length <= 0 || entries[0].Length > UpdateManifest.MaximumAssetBytes)
-            throw new InvalidDataException("The portable archive must contain exactly one WinMon.exe.");
+            throw new InvalidDataException($"The portable archive must contain exactly one {executableName}.");
         await using (var input = await entries[0].OpenAsync(cancellationToken))
         await using (var output = new FileStream(destination, FileMode.CreateNew, FileAccess.Write))
         {
@@ -209,6 +217,7 @@ internal sealed class UpdateClient : IDisposable
         }
 
         ValidateExecutableVersion(destination, version);
+        return true;
     }
 
     internal static void ValidateExecutableVersion(string path, string version)

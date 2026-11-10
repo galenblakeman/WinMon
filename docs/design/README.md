@@ -3,6 +3,7 @@
 - [Complete existing investigation workflows](FEATURE-COMPLETENESS.md) tracks traffic export, network capture attribution, period Usage, history coverage and app navigation.
 
 - [Terminal CLI preview](TERMINAL-CLI.md) adds snapshot reports and four interactive read-only monitoring tabs with Spectre.Console and System.CommandLine, including adaptive resource gauges and shared-scale process history sparklines.
+- [CLI distribution](CLI-DISTRIBUTION.md) covers bundled and standalone downloads, installer PATH integration and desktop/CLI update recovery.
 
 - [Diagnostic file logging](DIAGNOSTIC-LOGGING.md) records startup, errors and network-service recovery in bounded local logs.
 - [Unit-test verification](UNIT-TEST-IMPROVEMENTS.md) brings every test project into normal verification and separates deterministic and integration runs.

@@ -1922,4 +1922,6 @@ Q quits. Ctrl+C cancels. Executable/service pins persist between sessions.</valu
 <data name="HistoryCoverageHelp" xml:space="preserve"><value>Configured resource/process history: {0}; Services: up to {1}. Retained spans can contain gaps and each view has its own memory budget. Services, Connections and period Usage start fresh after restart; only resource/process history can be restored.</value></data>
 <data name="ShowInConnections" xml:space="preserve"><value>Show in Connections</value></data>
 <data name="ShowInUsage" xml:space="preserve"><value>Show in Usage</value></data>
+  <data name="InstallerCliPathTask" xml:space="preserve"><value>Add WinMon.Cli to PATH for this user</value></data>
+  <data name="InstallerCliPathFailed" xml:space="preserve"><value>Could not update the user PATH for WinMon.Cli.</value></data>
 </root>

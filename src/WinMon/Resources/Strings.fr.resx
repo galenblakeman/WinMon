@@ -1922,4 +1922,6 @@ Q quitte. Ctrl+C annule. Les programmes et services épinglés restent enregistr
 <data name="HistoryCoverageHelp" xml:space="preserve"><value>Historique ressources/processus configuré : {0} ; Services : jusqu&apos;à {1}. Les périodes peuvent contenir des lacunes ; chaque vue a son propre budget mémoire. Services, Connexions et utilisation par période repartent à zéro après redémarrage ; seul l&apos;historique ressources/processus peut être restauré.</value></data>
 <data name="ShowInConnections" xml:space="preserve"><value>Afficher dans Connexions</value></data>
 <data name="ShowInUsage" xml:space="preserve"><value>Afficher dans Utilisation</value></data>
+  <data name="InstallerCliPathTask" xml:space="preserve"><value>Ajouter WinMon.Cli à PATH pour cet utilisateur</value></data>
+  <data name="InstallerCliPathFailed" xml:space="preserve"><value>Impossible de mettre à jour le PATH utilisateur pour WinMon.Cli.</value></data>
 </root>

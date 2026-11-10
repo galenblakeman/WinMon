@@ -35,15 +35,15 @@ Issuer: `https://token.actions.githubusercontent.com`; audience: `api://AzureADT
 
 GitHub installs Microsoft's `ArtifactSigning` PowerShell module at version **0.1.20**, supplies its required .NET 8 runtime alongside WinMon's pinned .NET 10 SDK, and always passes `-CodeSign` to `tools/New-Release.ps1`. Using the module inside packaging preserves this order:
 
-1. Run Release tests, publish the service and standalone NativeAOT setup helper, sign and verify both, then create their RSA-signed fixed bundle. Publish the self-contained application with that bundle embedded.
-2. Sign and timestamp `WinMon.exe`, then verify its Authenticode status, publisher (`Galen Blakeman`), and timestamp presence.
-3. Build the Inno Setup installer containing the signed executable, then sign, timestamp, and verify the installer.
+1. Run Release tests, publish the service and standalone NativeAOT setup helper, sign and verify both, then create their RSA-signed fixed bundle. Publish the self-contained desktop and CLI applications with that bundle embedded in both.
+2. Sign and timestamp `WinMon.exe` and `WinMon.Cli.exe`, then verify each executable's Authenticode status, publisher (`Galen Blakeman`), and timestamp presence.
+3. Build the Inno Setup installer containing both signed executables, then sign, timestamp, and verify the installer.
 4. Create the portable ZIP, WinGet manifests, RSA update manifest, and checksums from the final bytes.
 5. Validate installer lifecycle/startup and WinGet manifests, then create a draft release for a version tag.
 
 Signing uses SHA-256 and RFC 3161 timestamping at `http://timestamp.acs.microsoft.com`. Authentication uses only the Azure CLI session established by GitHub OIDC. Provider errors, invalid signatures, unexpected publishers, and absent timestamps fail packaging. The Windows signature check establishes trust on the build machine; it does not guarantee immediate SmartScreen acceptance on every customer's machine.
 
-Application and installer signature evidence is written under `artifacts/packaging/<run>/` as `application-signature.json` and `installer-signature.json`, and uploaded with validation evidence. It contains final hashes and certificate details. Upstream dependencies are not individually re-signed as WinMon code. The generated Inno uninstaller is not separately signed by this integration.
+Desktop, CLI and installer signature evidence is written under `artifacts/packaging/<run>/` as `application-signature.json`, `cli-signature.json` and `installer-signature.json`, and uploaded with validation evidence. It contains final hashes and certificate details. Upstream dependencies are not individually re-signed as WinMon code. The generated Inno uninstaller is not separately signed by this integration.
 
 The RSA update-manifest signature remains separate from Authenticode. Every workflow run requires `WINMON_UPDATE_SIGNING_KEY_BASE64` from the `release` environment; Azure signing does not replace it. WinMon 1.0.3 introduces the permanent embedded update public key. Earlier copies without that trust key need a manual update to establish it. See [Updating WinMon](UPDATING.md).
 

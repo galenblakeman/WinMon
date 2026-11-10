@@ -166,6 +166,7 @@ public sealed class UpdateDownloadTests
             Assert.That(File.ReadAllBytes(Path.Combine(prepared.TransactionDirectory, offer.Manifest.Portable.Name)),
                 Is.EqualTo(archive));
             Assert.That(File.ReadAllBytes(Path.Combine(prepared.TransactionDirectory, "WinMon.exe")), Is.EqualTo(executable));
+            Assert.That(File.ReadAllBytes(Path.Combine(prepared.TransactionDirectory, "WinMon.Cli.exe")), Is.EqualTo(executable));
             Assert.That(job.Installed, Is.False);
             Assert.That(job.Target, Is.EqualTo(_target));
             Assert.That(progress, Does.Contain(100));
@@ -377,8 +378,10 @@ public sealed class UpdateDownloadTests
     {
         using var output = new MemoryStream();
         using (var archive = new ZipArchive(output, ZipArchiveMode.Create, true))
-        using (var entry = archive.CreateEntry("WinMon.exe").Open())
-            entry.Write(executable);
+        {
+            using (var entry = archive.CreateEntry("WinMon.exe").Open()) entry.Write(executable);
+            using (var entry = archive.CreateEntry("WinMon.Cli.exe").Open()) entry.Write(executable);
+        }
         return output.ToArray();
     }
 

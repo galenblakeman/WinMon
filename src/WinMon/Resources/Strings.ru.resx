@@ -1922,4 +1922,6 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
 <data name="HistoryCoverageHelp" xml:space="preserve"><value>Заданная история ресурсов/процессов: {0}; Службы: до {1}. Интервалы могут содержать пропуски; у каждого вида свой лимит памяти. Службы, Соединения и учёт по периодам начинаются заново после перезапуска; восстанавливается только история ресурсов/процессов.</value></data>
 <data name="ShowInConnections" xml:space="preserve"><value>Показать в Соединениях</value></data>
 <data name="ShowInUsage" xml:space="preserve"><value>Показать в Использовании</value></data>
+  <data name="InstallerCliPathTask" xml:space="preserve"><value>Добавить WinMon.Cli в PATH для этого пользователя</value></data>
+  <data name="InstallerCliPathFailed" xml:space="preserve"><value>Не удалось обновить пользовательскую переменную PATH для WinMon.Cli.</value></data>
 </root>

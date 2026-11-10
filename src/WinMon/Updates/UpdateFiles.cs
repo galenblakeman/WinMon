@@ -9,7 +9,8 @@ internal sealed record UpdateJob(
     long ParentStartTicks,
     string Version,
     bool Installed,
-    string Token);
+    string Token,
+    bool? CliExisted = null);
 
 internal sealed record UpdateState(string Status, string? Error = null);
 
@@ -63,13 +64,18 @@ internal static class UpdateFiles
 
     internal static string BackupPath(UpdateJob job)
     {
-        return Path.Combine(Path.GetDirectoryName(job.Target)!, ".WinMon-" + job.Token + ".backup.exe");
+        return Path.Combine(Path.GetDirectoryName(job.Target)!,
+            "." + Path.GetFileNameWithoutExtension(job.Target) + "-" + job.Token + ".backup.exe");
     }
 
     internal static string StagedPath(UpdateJob job)
     {
-        return Path.Combine(Path.GetDirectoryName(job.Target)!, ".WinMon-" + job.Token + ".new.exe");
+        return Path.Combine(Path.GetDirectoryName(job.Target)!,
+            "." + Path.GetFileNameWithoutExtension(job.Target) + "-" + job.Token + ".new.exe");
     }
+
+    internal static UpdateJob CliJob(UpdateJob job) =>
+        job with { Target = Path.Combine(Path.GetDirectoryName(job.Target)!, "WinMon.Cli.exe") };
 }
 
 internal static class UpdateInstallation

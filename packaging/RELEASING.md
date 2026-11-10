@@ -17,13 +17,14 @@ From the repository root:
 
 The compiler bootstrap downloads the pinned vendor release, verifies its SHA-256 and Authenticode signature, and installs it per-user under `artifacts/toolchain`. It also registers the compiler's own uninstaller with Windows. An existing compiler can instead be supplied with `-InnoCompiler path/to/ISCC.exe`; use version 6.7.3.
 
-The release script checks the product/application manifest versions, runs the complete Release test suite, publishes the self-contained Windows x64 executable into isolated build output, compiles the installer, and generates:
+The release script checks the product/application manifest versions, runs the complete Release test suite, publishes the self-contained Windows x64 desktop and CLI executables into isolated build output, signs both for official releases, compiles the installer, and generates:
 
-- `WinMon-<version>-win-x64.zip`: executable, MIT license, portable instructions and `portable.flag`. Extract into a writable folder; preserve `settings.json` when upgrading.
-- `WinMon-<version>-Setup-x64.exe`: per-user installer, normally targeting `%LOCALAPPDATA%\Programs\WinMon`. It adds a Start menu entry, an optional desktop shortcut, and an Apps & Features uninstall entry. It requires WinMon to be closed. Silent installations do not launch the app.
+- `WinMon-<version>-win-x64.zip`: desktop and CLI executables, MIT license, portable instructions and `portable.flag`. Extract into a writable folder; preserve `settings.json` when upgrading.
+- `WinMon-Cli-<version>-win-x64.zip`: `WinMon.Cli.exe`, MIT license and terminal instructions. It has no desktop settings or updater.
+- `WinMon-<version>-Setup-x64.exe`: per-user installer, normally targeting `%LOCALAPPDATA%\Programs\WinMon`. It installs both executables, adds a Start menu entry, an optional desktop shortcut, an unchecked user-PATH task for `WinMon.Cli`, and an Apps & Features uninstall entry. It requires WinMon to be closed. Silent installations do not launch the app.
 - `WinMon-<version>-winget.zip`: three WinGet schema 1.12.0 manifests under the community repository's directory structure. The installer hash is calculated from the final signed installer.
 - `update-manifest.json` and `update-manifest.sig`: emitted only when `-UpdateSigningKeyPath` is supplied. The first is a compact signed record of the portable ZIP and installer name, size and SHA-256; the second is its base64 RSA SHA-256 PKCS#1 v1.5 detached signature.
-- `SHA256SUMS.txt`: checksums for all three assets above.
+- `SHA256SUMS.txt`: checksums for every release asset above.
 
 Assets are placed in `artifacts/releases/<version>`. Existing output is refused to prevent accidental replacement of a published version. For another local build, specify a fresh `-OutputDirectory`. Build output and TRX results remain under the printed `artifacts/packaging/<run>` directory. These are repeatable build steps, not a guarantee of byte-identical binaries.
 
@@ -31,7 +32,7 @@ The installer supports x64 Windows starting at build 14393; runtime compatibilit
 
 ## Optional service payload
 
-Signed desktop releases first run `tools/New-NetworkServicePackage.ps1`: publish the self-contained service and NativeAOT helper, sign both through Artifact Signing, and sign a bounded version/runtime/protocol/hash/size manifest with the existing RSA release key. The four assets are embedded into the application before it is signed; portable updates still replace only WinMon.exe. `-CodeSign` requires the matching RSA private key. Unsigned local builds omit the bundle and cannot provision a service. Neither path installs a service during packaging. Signed installers expose an unchecked `networkservice` task that runs `WinMon.exe --install-network-service` as the original installer user after file installation and enables that user's monitoring preference only on success. The task is not preselected again on upgrades. Unsigned installers omit it. Cancellation or failure leaves WinMon installed and reports that Settings → Network can retry; silent installers log the failure without a dialog. The service retains its independent removal lifecycle. A signed/protected installation acceptance run remains mandatory before release; unit tests and fake signing-boundary tests do not establish UAC, SCM or alternate-account behavior. Microsoft Store builds reject a supplied network setup bundle.
+Signed desktop releases first run `tools/New-NetworkServicePackage.ps1`: publish the self-contained service and NativeAOT helper, sign both through Artifact Signing, and sign a bounded version/runtime/protocol/hash/size manifest with the existing RSA release key. The four assets are embedded into both the desktop and CLI executables before they are signed. Portable updates replace both executables and retain both originals until desktop startup succeeds; see [CLI distribution](../docs/design/CLI-DISTRIBUTION.md) for recovery and older-portable migration. `-CodeSign` requires the matching RSA private key. Unsigned local builds omit the bundle and cannot provision a service. Neither path installs a service during packaging. Signed installers expose an unchecked `networkservice` task that runs `WinMon.exe --install-network-service` as the original installer user after file installation and enables that user's monitoring preference only on success. The task is not preselected again on upgrades. Unsigned installers omit it. Cancellation or failure leaves WinMon installed and reports that Settings → Network can retry; silent installers log the failure without a dialog. The service retains its independent removal lifecycle. A signed/protected installation acceptance run remains mandatory before release; unit tests and fake signing-boundary tests do not establish UAC, SCM or alternate-account behavior. Microsoft Store builds reject a supplied network setup bundle.
 
 ## MSIX / Microsoft Store
 
@@ -47,7 +48,7 @@ Use a clean Windows user profile or disposable VM/CI runner:
 
 This refuses to run if a WinMon installer registration, startup entry or app shortcut already exists. It checks the running-app mutex, silent installation, uninstall metadata, shortcut target, the installed executable's native smoke run, same-version repair, portable preference preservation, and cleanup of app-owned startup/hotkey integration. Logs and smoke evidence remain under `artifacts/installer-validation`. This repair test does not replace a real older-to-newer version upgrade test before subsequent releases.
 
-Uninstall preserves preferences. It removes the startup registry value and the app's optional root-level launch-hotkey shortcut only when they target the executable being uninstalled. The installer's `Programs\WinMon\WinMon.lnk` is separate from the app-managed `Programs\WinMon.lnk`, so installing does not turn on launch hotkeys.
+Uninstall preserves preferences. It removes the startup registry value, the app's optional root-level launch-hotkey shortcut, and an installer-owned PATH entry only when they target the executable or installation being uninstalled. The installer's `Programs\WinMon\WinMon.lnk` is separate from the app-managed `Programs\WinMon.lnk`, so installing does not turn on launch hotkeys.
 
 ## GitHub Releases
 

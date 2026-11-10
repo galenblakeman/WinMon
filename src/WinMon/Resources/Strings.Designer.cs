@@ -476,6 +476,8 @@ public static partial class Strings
     public static string InitializationFailedCloseAndRestartWinMon => ResourceManager.GetString(nameof(InitializationFailedCloseAndRestartWinMon), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string InstalledMemory => ResourceManager.GetString(nameof(InstalledMemory), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string InstalledOSUsable => ResourceManager.GetString(nameof(InstalledOSUsable), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string InstallerCliPathFailed => ResourceManager.GetString(nameof(InstallerCliPathFailed), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string InstallerCliPathTask => ResourceManager.GetString(nameof(InstallerCliPathTask), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string IntervalReadingsTopReadoutsStayLive => ResourceManager.GetString(nameof(IntervalReadingsTopReadoutsStayLive), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string IO => ResourceManager.GetString(nameof(IO), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string IOMBS => ResourceManager.GetString(nameof(IOMBS), Culture ?? CultureInfo.CurrentUICulture)!;
