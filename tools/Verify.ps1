@@ -81,7 +81,7 @@ try {
     Add-Result 'build benchmark' ($LASTEXITCODE -eq 0) ''
     if ($results.Where({ !$_.Passed }).Count -eq 0) {
         if (!$SkipTests) {
-            foreach ($project in @('MonCore.Tests', 'MonCore.Windows.Tests', 'WinMon.Tests', 'WinMon.NetworkService.Tests', 'WinMon.NetworkSetup.Tests', 'WinMon.NetworkProbe.Tests')) {
+            foreach ($project in @('MonCore.Tests', 'MonCore.Windows.Tests', 'WinMon.Tests', 'WinMon.NetworkService.Tests', 'WinMon.NetworkSetup.Tests', 'WinMon.NetworkProbe.Tests', 'WinMon.Cli.Tests')) {
                 $testOptions = @($options + '--no-build' + '--logger' + "trx;LogFileName=$project.trx" + '--results-directory' + $testResults)
                 if ($effectiveTestFilter) { $testOptions += @('--filter', $effectiveTestFilter) }
                 $testOptions += @('--', 'NUnit.ExplicitMode=None')

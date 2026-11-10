@@ -129,4 +129,45 @@ public sealed class ProcessGraphDataTests
             return new MonitorSample(DateTimeOffset.UtcNow, 50, processes, 0, false, Stopwatch.Frequency * second);
         }
     }
+
+    [Test]
+    public void Build_PreservesUnavailableCpuAndDoesNotCrossLifetimeDomainsDuringCompaction()
+    {
+        var at = DateTimeOffset.UtcNow;
+        var windows = new ProcessUsage(42, at.AddMinutes(-1).ToFileTime(), "windows", 1) { CpuAvailable = false };
+        var unix = windows with { Name = "unix", CpuPercent = 7, CpuAvailable = true,
+            LifetimeDomain = ProcessLifetimeDomain.UnixMicroseconds };
+        MonitorSample[] history =
+        [
+            new(at, 50, [windows, unix], 0, false, Stopwatch.Frequency),
+            new(at.AddSeconds(1), 50, [], 0, false, Stopwatch.Frequency * 2) { CompactedProcesses = 1 }
+        ];
+
+        var data = ProcessGraphData.Build(history, 60, [windows, unix]);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(data[0].Values, Is.EqualTo(new double?[] { null, 0 }));
+            Assert.That(data[1].Values, Is.EqualTo(new double?[] { 7, null }));
+        });
+    }
+
+    [Test]
+    public void Build_GroupedPreservesUnavailableCpuAndCountReadings()
+    {
+        var at = DateTimeOffset.UtcNow;
+        var available = new ProcessUsage(1, at.AddMinutes(-1).ToFileTime(), "app", 3)
+            { ImagePath = "C:\\app.exe", ThreadCount = 4 };
+        var unavailable = available with { ProcessId = 2, CpuAvailable = false, ThreadCount = null };
+        var history = new[] { new MonitorSample(at, 50, [available, unavailable], 0, false, Stopwatch.Frequency) };
+
+        var cpu = ProcessGraphData.Build(history, 60, [available], grouped: true, ProcessSort.Cpu)[0];
+        var threads = ProcessGraphData.Build(history, 60, [available], grouped: true, ProcessSort.Threads)[0];
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(cpu.Values, Is.EqualTo(new double?[] { null }));
+            Assert.That(threads.Values, Is.EqualTo(new double?[] { null }));
+        });
+    }
 }

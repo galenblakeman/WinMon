@@ -1,5 +1,7 @@
 # WinMon design assets
 
+- [Terminal CLI preview](TERMINAL-CLI.md) adds snapshot reports and four interactive read-only monitoring tabs with Spectre.Console and System.CommandLine, including adaptive resource gauges and shared-scale process history sparklines.
+
 - [Diagnostic file logging](DIAGNOSTIC-LOGGING.md) records startup, errors and network-service recovery in bounded local logs.
 - [Unit-test verification](UNIT-TEST-IMPROVEMENTS.md) brings every test project into normal verification and separates deterministic and integration runs.
 - [Update lifecycle coverage](UPDATE-LIFECYCLE-TESTS.md) exercises downloads, helper handoff, readiness and rollback through controlled OS boundaries.

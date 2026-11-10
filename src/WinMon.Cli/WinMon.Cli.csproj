@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <AssemblyName>winmon-cli</AssemblyName>
+    <RootNamespace>WinMon.Cli</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(StoreBuild)' == 'true'">
+    <TargetFramework>net10.0-windows10.0.17763.0</TargetFramework>
+    <DefineConstants>$(DefineConstants);WINMON_STORE</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Spectre.Console" Version="0.54.0" />
+    <PackageReference Include="System.CommandLine" Version="2.0.14" />
+    <ProjectReference Include="../MonCore.Windows/MonCore.Windows.csproj" />
+    <Compile Include="../WinMon/Resources/Strings.Designer.cs" Link="Resources/Strings.Designer.cs" />
+    <Compile Include="../WinMon/Monitoring/NetworkSetupBroker.cs" Link="Monitoring/NetworkSetupBroker.cs" />
+    <Compile Include="../WinMon/Monitoring/RateText.cs" Link="Monitoring/RateText.cs" />
+    <Compile Include="../WinMon/Controls/TableMetricText.cs" Link="Formatting/TableMetricText.cs" />
+    <Compile Include="../WinMon/Controls/GaugeReadoutText.cs" Link="Formatting/GaugeReadoutText.cs" />
+    <Compile Include="../WinMon/Controls/UsageText.Bytes.cs" Link="Formatting/UsageText.Bytes.cs" />
+    <EmbeddedResource Include="../WinMon/Resources/Strings*.resx" Link="Resources/%(Filename)%(Extension)">
+      <LogicalName>WinMon.Resources.%(Filename).resources</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="WinMon.Cli.Tests" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(NetworkServiceBundleDirectory)' != '' And '$(StoreBuild)' != 'true'">
+    <EmbeddedResource Include="$(NetworkServiceBundleDirectory)/WinMon.NetworkSetup.exe" LogicalName="WinMon.NetworkSetup.exe" />
+    <EmbeddedResource Include="$(NetworkServiceBundleDirectory)/network-service.zip" LogicalName="WinMon.NetworkSetup.Service.zip" />
+    <EmbeddedResource Include="$(NetworkServiceBundleDirectory)/network-service-manifest.json" LogicalName="WinMon.NetworkSetup.Manifest.json" />
+    <EmbeddedResource Include="$(NetworkServiceBundleDirectory)/network-service-manifest.sig" LogicalName="WinMon.NetworkSetup.Manifest.sig" />
+  </ItemGroup>
+  <Target Name="ValidateNetworkServiceBundle" BeforeTargets="PrepareResources" Condition="'$(NetworkServiceBundleDirectory)' != ''">
+    <Error Condition="'$(StoreBuild)' == 'true'" Text="Microsoft Store builds cannot include the network service setup bundle." />
+    <Error Condition="!Exists('$(NetworkServiceBundleDirectory)/WinMon.NetworkSetup.exe') Or !Exists('$(NetworkServiceBundleDirectory)/network-service.zip') Or !Exists('$(NetworkServiceBundleDirectory)/network-service-manifest.json') Or !Exists('$(NetworkServiceBundleDirectory)/network-service-manifest.sig')" Text="Network service bundle is incomplete." />
+  </Target>
+</Project>

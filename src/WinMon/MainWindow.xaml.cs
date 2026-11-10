@@ -367,16 +367,12 @@ public partial class MainWindow
     {
         var resource = latest?.Resources;
         GpuMetric.ValueLabel.Text = Percent(resource?.GpuPercent);
-        GpuMetric.DetailLabel.Text = resource is { GpuMemoryUsedBytes: { } gpuUsed, GpuMemoryTotalBytes: > 0 }
-            ? $"{gpuUsed / 1_073_741_824d:0.0} / {resource.GpuMemoryTotalBytes.Value / 1_073_741_824d:0.0} GiB"
-            : "3D";
-        CpuMetric.DetailLabel.Text = resource?.CpuClockMhz is > 0
-            ? $"{resource.CpuClockMhz.Value / 1000d:0.00} GHz"
-            : Strings.Unavailable;
+        GpuMetric.DetailLabel.Text = GaugeReadoutText.GpuMemory(
+            resource?.GpuMemoryUsedBytes, resource?.GpuMemoryTotalBytes);
+        CpuMetric.DetailLabel.Text = GaugeReadoutText.CpuClock(resource?.CpuClockMhz);
         MemoryMetric.ValueLabel.Text = Percent(resource?.MemoryPercent);
-        MemoryMetric.DetailLabel.Text = resource is { UsedMemoryBytes: { } used, TotalMemoryBytes: { } total }
-            ? Strings.Format(Strings.GiB, used / 1_073_741_824d, total / 1_073_741_824d)
-            : Strings.Unavailable;
+        MemoryMetric.DetailLabel.Text = GaugeReadoutText.Memory(
+            resource?.UsedMemoryBytes, resource?.TotalMemoryBytes);
         ConfigureDiskLayout();
         UpdateDiskMetric(DiskMetric, _preferences.PrimaryDrive,
             resource?.DiskName == _preferences.PrimaryDrive ? resource.DiskActivePercent : null,
@@ -417,8 +413,7 @@ public partial class MainWindow
     {
         metric.Label = Strings.Format(Strings.DiskLabel, name);
         metric.ValueLabel.Text = Percent(active);
-        metric.DetailLabel.Text =
-            bytes is { } rate ? Strings.Format(Strings.MBS, rate / 1_000_000) : Strings.Unavailable;
+        metric.DetailLabel.Text = GaugeReadoutText.DiskRate(bytes);
     }
 
     internal static string Percent(double? value)

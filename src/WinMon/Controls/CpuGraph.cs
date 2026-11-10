@@ -654,18 +654,13 @@ public sealed class CpuGraph : FrameworkElement
     /// <summary>Busier-direction network throughput in bits per second.</summary>
     internal static double? NetworkBitsPerSecond(ResourceSample resources)
     {
-        return resources is { ReceiveBytesPerSecond: { } rx, SendBytesPerSecond: { } tx } ? Math.Max(rx, tx) * 8 : null;
+        return NetworkChartScale.BitsPerSecond(resources);
     }
 
     /// <summary>Round the visible network peak up to a 1-2-5 step, at least 1 Mbps so idle traffic stays low.</summary>
     internal static double NetworkScale(IEnumerable<MonitorSample> visible)
     {
-        var peak = visible.Where(s => !s.IsGap).Select(s => NetworkBitsPerSecond(s.Resources) ?? 0).DefaultIfEmpty()
-            .Max();
-        var target = Math.Max(peak, 1_000_000);
-        var magnitude = Math.Pow(10, Math.Floor(Math.Log10(target)));
-        var step = target / magnitude;
-        return (step <= 1 ? 1 : step <= 2 ? 2 : step <= 5 ? 5 : 10) * magnitude;
+        return NetworkChartScale.Maximum(visible);
     }
 
     private void DrawSeries(DrawingContext drawingContext, Rect plot, Brush accent, int metric, bool fillOnly = false)

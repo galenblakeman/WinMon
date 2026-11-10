@@ -273,6 +273,9 @@ Windows が認識するデバイスを表示します。RAID や仮想ディス�
   <data name="FilterRankedProcessesByNameOrPIDCtrlFEscape" xml:space="preserve">
     <value>名前または PID でプロセスを絞り込みます (Ctrl+F)。Esc で検索をクリアします。</value>
   </data>
+  <data name="GaugeCpuClockGHz" xml:space="preserve"><value>{0:0.00} GHz</value></data>
+  <data name="GaugeGpuMemoryPair" xml:space="preserve"><value>{0:0.0} / {1:0.0} GiB</value></data>
+  <data name="GaugeGpuEngine3D" xml:space="preserve"><value>3D</value></data>
   <data name="GHzMHz" xml:space="preserve">
     <value>{0:0.###} GHz ({1} MHz)</value>
   </data>
@@ -1849,4 +1852,61 @@ Windows の正常性状態: {2}</value>
   <data name="GuideWalkthroughStep2" xml:space="preserve"><value>記録された行を確認し、キャプチャをコピーで情報を残します。ライブで戻ります。記録のない観測値は利用不可と表示されます。</value></data>
   <data name="GuideShowMe" xml:space="preserve"><value>表示する</value></data>
   <data name="GuideShowMeHelp" xml:space="preserve"><value>情報を閉じて、メイン ウィンドウでこの機能を示します。</value></data>
+  <data name="CliSnapshot" xml:space="preserve"><value>1秒間の測定後にWindowsのリソースとプロセスを表示します。</value></data>
+  <data name="CliTop" xml:space="preserve"><value>プロセスの最大行数（0 = すべて、1-1000）。</value></data>
+  <data name="CliTopRange" xml:space="preserve"><value>--topは0から1000の範囲で指定してください。</value></data>
+  <data name="CliSort" xml:space="preserve"><value>選択した指標でプロセスを並べ替えます。</value></data>
+  <data name="CliFilter" xml:space="preserve"><value>プロセス名、アプリまたはPIDで検索します。</value></data>
+  <data name="CliFormat" xml:space="preserve"><value>出力形式はtableまたはjsonです。</value></data>
+  <data name="CliNoColor" xml:space="preserve"><value>色付き出力を無効にします。</value></data>
+  <data name="CliFailed" xml:space="preserve"><value>レポートを収集できませんでした: {0}</value></data>
+  <data name="CliNoMatches" xml:space="preserve"><value>一致するプロセスがありません。</value></data>
+  <data name="CliMetrics" xml:space="preserve"><value>CPU: マシン全体の容量に対する割合。メモリ: ワーキングセット。I/O: ファイル、ネットワーク、デバイス。</value></data>
+  <data name="CliIncomplete" xml:space="preserve"><value>不完全な測定値: {0}、アクセスできないプロセス: {1}。</value></data>
+  <data name="CliDescription" xml:space="preserve"><value>Windowsのリソースとプロセスを監視します。</value></data>
+  <data name="CliWatch" xml:space="preserve"><value>リソースとプロセスを対話的に監視します。</value></data>
+  <data name="CliTerminalRequired" xml:space="preserve"><value>watchには対話型ANSI端末が必要です。リダイレクトにはsnapshotを使用してください。</value></data>
+  <data name="CliWarmingUp" xml:space="preserve"><value>準備中: 測定サンプルを待っています。</value></data>
+  <data name="CliPaused" xml:space="preserve"><value>一時停止</value></data>
+  <data name="CliLive" xml:space="preserve"><value>ライブ</value></data>
+  <data name="CliWatchKeys" xml:space="preserve"><value>1 CPU  2 メモリ  3 GPU  4 I/O  5 スレッド  6 ハンドル
+/ フィルター  Esc 解除  Space 一時停止  Q 終了
+上下 スクロール  PgUp/PgDn ページ  Home 先頭</value></data>
+  <data name="CliFilterEditing" xml:space="preserve"><value>フィルター: {0}_ · Enter 適用 · Esc キャンセル</value></data>
+  <data name="CliWatchFilter" xml:space="preserve"><value>フィルター: {0}</value></data>
+  <data name="CliWatchRows" xml:space="preserve"><value>{2}行中 {0}-{1}行</value></data>
+  <data name="CliHistorySummary" xml:space="preserve"><value>{0} · {1} 秒 · 0～{2} · 古い → 新しい</value></data>
+  <data name="CliRateHistory" xml:space="preserve"><value>{0}s · 0–{1}</value></data>
+  <data name="CliResourceHistory" xml:space="preserve"><value>{0} 秒 · 0～100%</value></data>
+  <data name="CliScaledHistory" xml:space="preserve"><value>{0} 秒 · {1}～{2}%</value></data>
+  <data name="CliTerminalSmall" xml:space="preserve"><value>端末を80列20行以上に拡大してください。</value></data>
+  <data name="CliTabs" xml:space="preserve"><value>F1 プロセス  F2 サービス  F3 接続  F4 使用量</value></data>
+  <data name="CliColumnsHint" xml:space="preserve"><value>Left/Right: 列</value></data>
+  <data name="CliNavigation" xml:space="preserve"><value>1-6 並べ替え  / フィルター  Enter 詳細  Space 一時停止  ? ヘルプ  Q 終了</value></data>
+  <data name="CliFullHelp" xml:space="preserve"><value>B: ネットワーク通信の監視を切り替えます。
+F1-F4: タブ切替。設定は各タブで保持します。
+1-6: 並べ替え。左右: 列を移動。
+/: フィルター編集。Enter 適用、Esc 取消・解除。
+上下、PageUp/PageDown、Home/End: 行選択。
+Enter: 詳細。P: ピン切替。N: ピンのみ。
+G: グループ化。A: アプリのみ。T: 上位/すべて。
+サービス: S 状態、W ワーカー。
+接続: R 期間（0 = 開始から）。
+Space: 表示停止。収集は継続します。
+Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピンは次回も保持されます。</value></data>
+  <data name="CliDetailsKeys" xml:space="preserve"><value>矢印/Page スクロール  左右 移動  Esc 戻る  Q 終了</value></data>
+  <data name="CliNetworkStart" xml:space="preserve"><value>インストール済みネットワークサービスを起動して確認します。</value></data>
+  <data name="CliNetworkInstall" xml:space="preserve"><value>ネットワーク監視をインストールまたは修復して起動します（管理者の承認が必要）。</value></data>
+  <data name="CliNetworkBundleRequired" xml:space="preserve"><value>署名済みセットアップがありません。署名済みサービスを含むCLIビルドを使用するか、先にデスクトップ版WinMonでネットワーク監視を有効にしてください。</value></data>
+  <data name="CliNetworkReady" xml:space="preserve"><value>ネットワークサービスに接続できました。実行: winmon-cli watch --network --tab connections</value></data>
+  <data name="CliNetworkSetupHint" xml:space="preserve"><value>実行: winmon-cli network start / winmon-cli network install</value></data>
+  <data name="CliSettingsHeading" xml:space="preserve"><value>CLI設定</value></data>
+  <data name="CliSettingsShow" xml:space="preserve"><value>保存されたCLI設定を表示します。</value></data>
+  <data name="CliSettingsReset" xml:space="preserve"><value>保存されたCLI設定をリセットします。</value></data>
+  <data name="CliSettingsResetDone" xml:space="preserve"><value>CLI設定をリセットしました。</value></data>
+  <data name="CliSettingsSet" xml:space="preserve"><value>保存されたCLI設定を変更します。</value></data>
+  <data name="CliSettingsLoadFailed" xml:space="preserve"><value>CLI設定を読み込めませんでした。既定値を使用します。</value></data>
+  <data name="CliSettingsSaveFailed" xml:space="preserve"><value>CLI設定を保存できませんでした。</value></data>
+  <data name="CliNoSave" xml:space="preserve"><value>対話モードの変更を保存しません。</value></data>
+  <data name="CliSettingsUpdated" xml:space="preserve"><value>CLI設定を保存しました。</value></data>
 </root>

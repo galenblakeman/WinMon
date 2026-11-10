@@ -15,22 +15,25 @@ internal sealed record ProcessGraphData(
     {
         if (grouped) return BuildGrouped(history, seconds, identities, sort);
         if (identities.Count == 0) return [];
-        var end = history.Count > 0 ? CpuGraph.Moment(history[^1]) : 0;
-        var visible = history.Where(s => CpuGraph.Moment(s) >= end - seconds).ToArray();
-        var indices = identities.Select((p, i) => (Key: (p.ProcessId, p.CreationTicks), Index: i))
+        var end = history.Count > 0 ? ProcessRanking.Moment(history[^1]) : 0;
+        var visible = history.Where(s => ProcessRanking.Moment(s) >= end - seconds).ToArray();
+        var indices = identities.Select((p, i) => (Key: p.Identity, Index: i))
             .ToDictionary(p => p.Key, p => p.Index);
         var values = identities.Select(_ => new double?[visible.Length]).ToArray();
+        var observed = new bool[identities.Count];
         var peaks = new double[identities.Count];
         for (var sampleIndex = 0; sampleIndex < visible.Length; sampleIndex++)
         {
             var sample = visible[sampleIndex];
             if (sample.IsGap) continue;
+            Array.Clear(observed);
             var remaining = identities.Count;
             foreach (var process in sample.Processes)
             {
-                if (!indices.TryGetValue((process.ProcessId, process.CreationTicks), out var index)) continue;
-                // Match the former FirstOrDefault behavior even for duplicate imported entries.
-                if (values[index][sampleIndex].HasValue) continue;
+                if (!indices.TryGetValue(process.Identity, out var index)) continue;
+                // Keep the first imported entry, including an explicitly unavailable reading.
+                if (observed[index]) continue;
+                observed[index] = true;
                 values[index][sampleIndex] = Value(process, sort, false);
                 if (values[index][sampleIndex] is { } value)
                     peaks[index] = Math.Max(peaks[index], value);
@@ -41,7 +44,9 @@ internal sealed record ProcessGraphData(
             if (sample.CompactedProcesses == 0 || sort is not (ProcessSort.Cpu or ProcessSort.Io)) continue;
             var sampleTime = FileTime(sample);
             for (var index = 0; index < identities.Count; index++)
-                if (values[index][sampleIndex] is null && identities[index].CreationTicks <= sampleTime)
+                if (!observed[index] && values[index][sampleIndex] is null &&
+                    identities[index].LifetimeDomain == ProcessLifetimeIdentity.WindowsFileTime &&
+                    identities[index].CreationTicks <= sampleTime)
                     values[index][sampleIndex] = 0;
         }
 
@@ -55,20 +60,24 @@ internal sealed record ProcessGraphData(
         IReadOnlyList<ProcessUsage> groups, ProcessSort sort)
     {
         if (groups.Count == 0) return [];
-        var end = history.Count > 0 ? CpuGraph.Moment(history[^1]) : 0;
-        var visible = history.Where(s => CpuGraph.Moment(s) >= end - seconds).ToArray();
+        var end = history.Count > 0 ? ProcessRanking.Moment(history[^1]) : 0;
+        var visible = history.Where(s => ProcessRanking.Moment(s) >= end - seconds).ToArray();
         var indices = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         for (var i = 0; i < groups.Count; i++) indices.TryAdd(ProcessRanking.GroupKey(groups[i]), i);
         var values = groups.Select(_ => new double?[visible.Length]).ToArray();
+        var observed = new bool[groups.Count];
         var peaks = new double[groups.Count];
         for (var sampleIndex = 0; sampleIndex < visible.Length; sampleIndex++)
         {
             var sample = visible[sampleIndex];
             if (sample.IsGap) continue;
-            var missingCounts = sort is ProcessSort.Threads or ProcessSort.Handles ? new bool[groups.Count] : null;
+            Array.Clear(observed);
+            var missingCounts = sort is ProcessSort.Cpu or ProcessSort.Threads or ProcessSort.Handles
+                ? new bool[groups.Count] : null;
             foreach (var process in sample.Processes)
             {
                 if (!indices.TryGetValue(ProcessRanking.GroupKey(process), out var index)) continue;
+                observed[index] = true;
                 if (Value(process, sort, true) is not { } value)
                 {
                     missingCounts?[index] = true;
@@ -85,7 +94,9 @@ internal sealed record ProcessGraphData(
             {
                 if (missingCounts?[index] == true) values[index][sampleIndex] = null;
                 if (values[index][sampleIndex] is { } total) peaks[index] = Math.Max(peaks[index], total);
-                else if (sort is ProcessSort.Cpu or ProcessSort.Io && sample.CompactedProcesses > 0 &&
+                else if (!observed[index] && sort is ProcessSort.Cpu or ProcessSort.Io &&
+                         sample.CompactedProcesses > 0 &&
+                         groups[index].LifetimeDomain == ProcessLifetimeIdentity.WindowsFileTime &&
                          groups[index].CreationTicks <= sampleTime) values[index][sampleIndex] = 0;
             }
         }
@@ -112,7 +123,7 @@ internal sealed record ProcessGraphData(
             ProcessSort.Io => process.IoBytesPerSecond,
             ProcessSort.Threads => process.ThreadCount,
             ProcessSort.Handles => process.HandleCount,
-            _ => process.CpuPercent
+            _ => process.ObservedCpuPercent
         };
         return value is { } measured && double.IsFinite(measured) ? Math.Max(0, measured) : null;
     }

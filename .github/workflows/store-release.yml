@@ -1,0 +1,73 @@
+name: Submit Microsoft Store update
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+# Partner Center allows only one pending submission for this product.
+concurrency:
+  group: microsoft-store-9p6gppwhzx15
+  cancel-in-progress: false
+
+jobs:
+  submit:
+    if: github.event.release.prerelease == false
+    environment: store
+    runs-on: windows-2025
+    timeout-minutes: 50
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      STORE_PRODUCT_ID: 9P6GPPWHZX15
+      STORE_PACKAGE_NAME: ${{ vars.STORE_PACKAGE_NAME }}
+      STORE_PUBLISHER: ${{ vars.STORE_PUBLISHER }}
+      STORE_PUBLISHER_DISPLAY_NAME: ${{ vars.STORE_PUBLISHER_DISPLAY_NAME }}
+      STORE_DISPLAY_NAME: ${{ vars.STORE_DISPLAY_NAME }}
+      RELEASE_TAG: ${{ github.event.release.tag_name }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          persist-credentials: false
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          global-json-file: global.json
+      - name: Validate release version and Store configuration
+        run: |
+          foreach ($name in @('STORE_PACKAGE_NAME', 'STORE_PUBLISHER', 'STORE_PUBLISHER_DISPLAY_NAME', 'STORE_DISPLAY_NAME')) {
+            if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($name))) { throw "Missing store environment variable: $name" }
+          }
+          [xml]$props = Get-Content Directory.Build.props -Raw
+          if ($env:RELEASE_TAG -cne "v$($props.Project.PropertyGroup.Version)") { throw 'Published release tag must match Directory.Build.props.' }
+      - name: Test submission safeguards without network access
+        run: ./tools/Test-StoreSubmission.ps1
+      - name: Test standard build
+        run: |
+          dotnet test tests/WinMon.Tests/WinMon.Tests.csproj -c Release -m:1 -p:UseSharedCompilation=false --artifacts-path artifacts/store-validation/standard
+          if ($LASTEXITCODE -ne 0) { throw 'Standard tests failed.' }
+      - name: Test Store update isolation
+        run: |
+          dotnet test tests/WinMon.Tests/WinMon.Tests.csproj -c Release -m:1 -p:UseSharedCompilation=false -p:StoreBuild=true --filter FullyQualifiedName~StoreBuildTests --artifacts-path artifacts/store-validation/store
+          if ($LASTEXITCODE -ne 0) { throw 'Store tests failed.' }
+      - name: Build and validate MSIX
+        run: |
+          ./tools/New-MsixPackage.ps1 -PackageName $env:STORE_PACKAGE_NAME -Publisher $env:STORE_PUBLISHER -PublisherDisplayName $env:STORE_PUBLISHER_DISPLAY_NAME -DisplayName $env:STORE_DISPLAY_NAME -OutputDirectory artifacts/store-release
+      - name: Preserve MSIX and checksums
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: winmon-store-${{ github.event.release.tag_name }}
+          path: artifacts/store-release/*
+          if-no-files-found: error
+      - name: Upload and submit for certification
+        env:
+          STORE_TENANT_ID: ${{ secrets.STORE_TENANT_ID }}
+          STORE_CLIENT_ID: ${{ secrets.STORE_CLIENT_ID }}
+          STORE_CLIENT_SECRET: ${{ secrets.STORE_CLIENT_SECRET }}
+        run: |
+          $packages = @(Get-ChildItem artifacts/store-release -Filter '*.msix' -File)
+          if ($packages.Count -ne 1) { throw 'Expected exactly one MSIX.' }
+          ./tools/Submit-StoreUpdate.ps1 -PackagePath $packages[0].FullName -ProductId $env:STORE_PRODUCT_ID -ExpectedTag $env:RELEASE_TAG

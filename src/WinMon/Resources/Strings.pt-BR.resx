@@ -273,6 +273,9 @@ O trabalho não salvo pode ser perdido. Apenas este processo será encerrado.</v
   <data name="FilterRankedProcessesByNameOrPIDCtrlFEscape" xml:space="preserve">
     <value>Filtre os processos ordenados por nome ou PID (Ctrl+F). Esc limpa a busca.</value>
   </data>
+  <data name="GaugeCpuClockGHz" xml:space="preserve"><value>{0:0.00} GHz</value></data>
+  <data name="GaugeGpuMemoryPair" xml:space="preserve"><value>{0:0.0} / {1:0.0} GiB</value></data>
+  <data name="GaugeGpuEngine3D" xml:space="preserve"><value>3D</value></data>
   <data name="GHzMHz" xml:space="preserve">
     <value>{0:0.###} GHz ({1} MHz)</value>
   </data>
@@ -1849,4 +1852,61 @@ O trabalho não salvo pode ser perdido. Todos os processos listados abaixo serã
   <data name="GuideWalkthroughStep2" xml:space="preserve"><value>Inspecione as linhas gravadas e escolha Copiar captura para guardar os dados. Escolha Ao vivo para voltar; observações ausentes ficam indisponíveis.</value></data>
   <data name="GuideShowMe" xml:space="preserve"><value>Mostrar</value></data>
   <data name="GuideShowMeHelp" xml:space="preserve"><value>Fecha Informações e destaca este recurso na janela principal.</value></data>
+  <data name="CliSnapshot" xml:space="preserve"><value>Mostrar recursos e processos do Windows após um segundo de medição.</value></data>
+  <data name="CliTop" xml:space="preserve"><value>Máximo de linhas de processos (0 = Todos; 1-1000).</value></data>
+  <data name="CliTopRange" xml:space="preserve"><value>--top deve estar entre 0 e 1000.</value></data>
+  <data name="CliSort" xml:space="preserve"><value>Ordenar processos pela métrica selecionada.</value></data>
+  <data name="CliFilter" xml:space="preserve"><value>Buscar por nome, aplicativo ou PID.</value></data>
+  <data name="CliFormat" xml:space="preserve"><value>Saída table ou json.</value></data>
+  <data name="CliNoColor" xml:space="preserve"><value>Desativar cores na saída.</value></data>
+  <data name="CliFailed" xml:space="preserve"><value>Não foi possível coletar o relatório: {0}</value></data>
+  <data name="CliNoMatches" xml:space="preserve"><value>Nenhum processo correspondente.</value></data>
+  <data name="CliMetrics" xml:space="preserve"><value>CPU: parcela da capacidade total. Memória: conjunto de trabalho. E/S: arquivos, rede e dispositivos.</value></data>
+  <data name="CliIncomplete" xml:space="preserve"><value>Leituras incompletas: {0}; processos inacessíveis: {1}.</value></data>
+  <data name="CliDescription" xml:space="preserve"><value>Monitorar recursos e processos do Windows.</value></data>
+  <data name="CliWatch" xml:space="preserve"><value>Monitorar recursos e processos de forma interativa.</value></data>
+  <data name="CliTerminalRequired" xml:space="preserve"><value>watch requer um terminal ANSI interativo. Use snapshot para redirecionar a saída.</value></data>
+  <data name="CliWarmingUp" xml:space="preserve"><value>Preparando: aguardando uma amostra medida.</value></data>
+  <data name="CliPaused" xml:space="preserve"><value>PAUSADO</value></data>
+  <data name="CliLive" xml:space="preserve"><value>AO VIVO</value></data>
+  <data name="CliWatchKeys" xml:space="preserve"><value>1 CPU  2 Memória  3 GPU  4 E/S  5 Threads  6 Identificadores
+/ Filtrar  Esc Limpar  Espaço Pausar  Q Sair
+Cima/Baixo Rolar  PgUp/PgDn Página  Home Início</value></data>
+  <data name="CliFilterEditing" xml:space="preserve"><value>Filtro: {0}_ · Enter Aplicar · Esc Cancelar</value></data>
+  <data name="CliWatchFilter" xml:space="preserve"><value>Filtro: {0}</value></data>
+  <data name="CliWatchRows" xml:space="preserve"><value>Linhas {0}-{1} de {2}</value></data>
+  <data name="CliHistorySummary" xml:space="preserve"><value>{0} · {1} s · 0–{2} · mais antigo → mais recente</value></data>
+  <data name="CliRateHistory" xml:space="preserve"><value>{0}s · 0–{1}</value></data>
+  <data name="CliResourceHistory" xml:space="preserve"><value>{0} s · 0–100%</value></data>
+  <data name="CliScaledHistory" xml:space="preserve"><value>{0} s · {1}–{2}%</value></data>
+  <data name="CliTerminalSmall" xml:space="preserve"><value>Amplie o terminal para pelo menos 80 colunas e 20 linhas.</value></data>
+  <data name="CliTabs" xml:space="preserve"><value>F1 Processos  F2 Serviços  F3 Conexões  F4 Uso</value></data>
+  <data name="CliColumnsHint" xml:space="preserve"><value>Left/Right: colunas</value></data>
+  <data name="CliNavigation" xml:space="preserve"><value>1-6 Ordenar  / Filtro  Enter Detalhes  Espaço Pausa  ? Ajuda  Q Sair</value></data>
+  <data name="CliFullHelp" xml:space="preserve"><value>B: ativar ou desativar o monitoramento de tráfego de rede.
+F1-F4: trocar aba; cada aba mantém seus controles.
+1-6: ordenação. Esquerda/Direita: colunas.
+/: editar filtro. Enter aplica; Esc cancela ou limpa.
+Setas, PageUp/PageDown, Home/End: selecionar linha.
+Enter: detalhes. P: fixar/desafixar. N: somente fixados.
+G: agrupar processos. A: só apps. T: Top/Todos.
+Serviços: S estado; W processos de trabalho.
+Conexões: R período (0 = desde o início).
+Espaço pausa a exibição; a coleta continua.
+Q sai. Ctrl+C cancela. Programas e serviços fixados persistem entre sessões.</value></data>
+  <data name="CliDetailsKeys" xml:space="preserve"><value>Setas/Page rolam  Esquerda/Direita movem  Esc Voltar  Q Sair</value></data>
+  <data name="CliNetworkStart" xml:space="preserve"><value>Iniciar e verificar o serviço de rede instalado.</value></data>
+  <data name="CliNetworkInstall" xml:space="preserve"><value>Instalar ou reparar e iniciar o monitoramento de rede (exige aprovação de administrador).</value></data>
+  <data name="CliNetworkBundleRequired" xml:space="preserve"><value>Pacote assinado ausente. Use uma versão CLI com o pacote assinado ou ative primeiro o monitoramento de rede no WinMon para desktop.</value></data>
+  <data name="CliNetworkReady" xml:space="preserve"><value>Serviço de rede acessível. Execute: winmon-cli watch --network --tab connections</value></data>
+  <data name="CliNetworkSetupHint" xml:space="preserve"><value>Execute: winmon-cli network start / winmon-cli network install</value></data>
+  <data name="CliSettingsHeading" xml:space="preserve"><value>Configurações da CLI</value></data>
+  <data name="CliSettingsShow" xml:space="preserve"><value>Mostrar as configurações salvas da CLI.</value></data>
+  <data name="CliSettingsReset" xml:space="preserve"><value>Redefinir as configurações salvas da CLI.</value></data>
+  <data name="CliSettingsResetDone" xml:space="preserve"><value>Configurações da CLI redefinidas.</value></data>
+  <data name="CliSettingsSet" xml:space="preserve"><value>Alterar as configurações salvas da CLI.</value></data>
+  <data name="CliSettingsLoadFailed" xml:space="preserve"><value>Não foi possível carregar as configurações da CLI. Usando os padrões.</value></data>
+  <data name="CliSettingsSaveFailed" xml:space="preserve"><value>Não foi possível salvar as configurações da CLI.</value></data>
+  <data name="CliNoSave" xml:space="preserve"><value>Não salvar alterações interativas.</value></data>
+  <data name="CliSettingsUpdated" xml:space="preserve"><value>Configurações da CLI salvas.</value></data>
 </root>

@@ -250,31 +250,8 @@ public partial class UsageView
     internal static IReadOnlyList<AppUsage> Visible(IReadOnlyList<AppUsage> apps, UsageListSettings settings,
         string query)
     {
-        query = query.Trim();
-        var filtered = apps.Where(app => (!settings.AppsOnly || app.IsApp) && Matches(app, query));
-        var ordered = settings.Sort switch
-        {
-            UsageSort.Io => filtered.OrderByDescending(app => app.IoBytes),
-            UsageSort.GpuTime => filtered.OrderByDescending(app => app.GpuSeconds ?? -1),
-            UsageSort.Processes => filtered.OrderByDescending(app => app.Lifetimes)
-                .ThenByDescending(app => app.Running),
-            UsageSort.LastActive => filtered.OrderByDescending(app =>
-                app.LastActive?.Timestamp ?? DateTimeOffset.MinValue),
-            _ => filtered.OrderByDescending(app => app.CpuTicks)
-        };
-        return
-        [
-            .. TopCountChoices.Limit(ordered.ThenBy(UsageText.DisplayName, StringComparer.CurrentCultureIgnoreCase),
-                settings.TopCount)
-        ];
-    }
-
-    private static bool Matches(AppUsage app, string query)
-    {
-        return query.Length == 0 ||
-               UsageText.DisplayName(app).Contains(query, StringComparison.CurrentCultureIgnoreCase) ||
-               app.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-               app.ImagePath.Contains(query, StringComparison.OrdinalIgnoreCase);
+        return UsageQuery.Select(apps, (int)settings.Sort, query, settings.AppsOnly, settings.TopCount,
+            UsageText.DisplayName);
     }
 
     private void RefreshRows()
@@ -527,7 +504,7 @@ internal sealed class UsageDisplayRow(string key) : INotifyPropertyChanged
 }
 
 /// <summary>Text for the Usage tab and its copied reports.</summary>
-internal static class UsageText
+internal static partial class UsageText
 {
     internal static string DisplayName(AppUsage app)
     {
@@ -551,22 +528,6 @@ internal static class UsageText
     internal static string Share(long part, long whole)
     {
         return whole > 0 ? Strings.Format(Strings.PercentOneDecimal, 100d * part / whole) : Strings.MissingReading;
-    }
-
-    /// <summary>Decimal units, matching the MB/s used for rates elsewhere.</summary>
-    internal static string Bytes(double bytes)
-    {
-        string[] units = ["B", "KB", "MB", "GB", "TB"];
-        var unit = 0;
-        while (bytes >= 1000 && unit < units.Length - 1)
-        {
-            bytes /= 1000;
-            unit++;
-        }
-
-        return (unit == 0
-            ? bytes.ToString("N0", CultureInfo.CurrentCulture)
-            : bytes.ToString("N1", CultureInfo.CurrentCulture)) + " " + units[unit];
     }
 
     internal static string Processes(AppUsage app)

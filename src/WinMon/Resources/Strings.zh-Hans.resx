@@ -273,6 +273,9 @@
   <data name="FilterRankedProcessesByNameOrPIDCtrlFEscape" xml:space="preserve">
     <value>按名称或 PID 筛选已排序进程 (Ctrl+F)。Esc 清除搜索。</value>
   </data>
+  <data name="GaugeCpuClockGHz" xml:space="preserve"><value>{0:0.00} GHz</value></data>
+  <data name="GaugeGpuMemoryPair" xml:space="preserve"><value>{0:0.0} / {1:0.0} GiB</value></data>
+  <data name="GaugeGpuEngine3D" xml:space="preserve"><value>3D</value></data>
   <data name="GHzMHz" xml:space="preserve">
     <value>{0:0.###} GHz ({1} MHz)</value>
   </data>
@@ -1849,4 +1852,61 @@ Windows 健康状态：{2}</value>
   <data name="GuideWalkthroughStep2" xml:space="preserve"><value>检查记录的行，选择复制捕获以保留证据。选择实时以返回；缺失的观测数据会显示为不可用。</value></data>
   <data name="GuideShowMe" xml:space="preserve"><value>显示位置</value></data>
   <data name="GuideShowMeHelp" xml:space="preserve"><value>关闭信息并在主窗口中指出此功能。</value></data>
+  <data name="CliSnapshot" xml:space="preserve"><value>测量一秒后显示 Windows 资源和进程。</value></data>
+  <data name="CliTop" xml:space="preserve"><value>最大进程行数（0 = 全部，1-1000）。</value></data>
+  <data name="CliTopRange" xml:space="preserve"><value>--top 必须介于 0 和 1000 之间。</value></data>
+  <data name="CliSort" xml:space="preserve"><value>按所选指标对进程排序。</value></data>
+  <data name="CliFilter" xml:space="preserve"><value>按进程名、应用或 PID 筛选。</value></data>
+  <data name="CliFormat" xml:space="preserve"><value>输出格式为 table 或 json。</value></data>
+  <data name="CliNoColor" xml:space="preserve"><value>禁用彩色输出。</value></data>
+  <data name="CliFailed" xml:space="preserve"><value>无法采集报告：{0}</value></data>
+  <data name="CliNoMatches" xml:space="preserve"><value>没有匹配的进程。</value></data>
+  <data name="CliMetrics" xml:space="preserve"><value>CPU：占整机总容量的比例。内存：工作集。I/O：文件、网络和设备。</value></data>
+  <data name="CliIncomplete" xml:space="preserve"><value>读数不完整：{0}；无法访问的进程：{1}。</value></data>
+  <data name="CliDescription" xml:space="preserve"><value>监视 Windows 资源和进程。</value></data>
+  <data name="CliWatch" xml:space="preserve"><value>以交互方式监视资源和进程。</value></data>
+  <data name="CliTerminalRequired" xml:space="preserve"><value>watch 需要交互式 ANSI 终端。重定向输出请使用 snapshot。</value></data>
+  <data name="CliWarmingUp" xml:space="preserve"><value>准备中：正在等待测量样本。</value></data>
+  <data name="CliPaused" xml:space="preserve"><value>已暂停</value></data>
+  <data name="CliLive" xml:space="preserve"><value>实时</value></data>
+  <data name="CliWatchKeys" xml:space="preserve"><value>1 CPU  2 内存  3 GPU  4 I/O  5 线程  6 句柄
+/ 筛选  Esc 清除  Space 暂停  Q 退出
+上/下 滚动  PgUp/PgDn 翻页  Home 首行</value></data>
+  <data name="CliFilterEditing" xml:space="preserve"><value>筛选：{0}_ · Enter 应用 · Esc 取消</value></data>
+  <data name="CliWatchFilter" xml:space="preserve"><value>筛选：{0}</value></data>
+  <data name="CliWatchRows" xml:space="preserve"><value>共 {2} 行，第 {0}-{1} 行</value></data>
+  <data name="CliHistorySummary" xml:space="preserve"><value>{0} · {1} 秒 · 0–{2} · 旧 → 新</value></data>
+  <data name="CliRateHistory" xml:space="preserve"><value>{0}s · 0–{1}</value></data>
+  <data name="CliResourceHistory" xml:space="preserve"><value>{0} 秒 · 0–100%</value></data>
+  <data name="CliScaledHistory" xml:space="preserve"><value>{0} 秒 · {1}–{2}%</value></data>
+  <data name="CliTerminalSmall" xml:space="preserve"><value>请将终端调整为至少 80 列、20 行。</value></data>
+  <data name="CliTabs" xml:space="preserve"><value>F1 进程  F2 服务  F3 连接  F4 使用量</value></data>
+  <data name="CliColumnsHint" xml:space="preserve"><value>Left/Right: 列</value></data>
+  <data name="CliNavigation" xml:space="preserve"><value>1-6 排序  / 筛选  Enter 详细信息  Space 暂停  ? 帮助  Q 退出</value></data>
+  <data name="CliFullHelp" xml:space="preserve"><value>B：开启或关闭网络流量监控。
+F1-F4：切换选项卡，各自保留设置。
+1-6：排序。左右：移动列。
+/：编辑筛选。Enter 应用，Esc 取消或清除。
+上下、PageUp/PageDown、Home/End：选择行。
+Enter：详细信息。P：固定切换。N：仅固定项。
+G：进程分组。A：仅应用。T：前几项/全部。
+服务：S 状态，W 工作进程。
+连接：R 时间段（0 = 自启动以来）。
+Space 暂停显示，采集继续。
+Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。</value></data>
+  <data name="CliDetailsKeys" xml:space="preserve"><value>方向键/Page 滚动  左右 移动  Esc 返回  Q 退出</value></data>
+  <data name="CliNetworkStart" xml:space="preserve"><value>启动并检查已安装的网络服务。</value></data>
+  <data name="CliNetworkInstall" xml:space="preserve"><value>安装或修复并启动网络监控（需要管理员批准）。</value></data>
+  <data name="CliNetworkBundleRequired" xml:space="preserve"><value>缺少签名安装包。请使用包含签名服务包的CLI版本，或先在桌面版WinMon中启用网络监控。</value></data>
+  <data name="CliNetworkReady" xml:space="preserve"><value>网络服务可访问。运行: winmon-cli watch --network --tab connections</value></data>
+  <data name="CliNetworkSetupHint" xml:space="preserve"><value>运行: winmon-cli network start / winmon-cli network install</value></data>
+  <data name="CliSettingsHeading" xml:space="preserve"><value>CLI设置</value></data>
+  <data name="CliSettingsShow" xml:space="preserve"><value>显示已保存的CLI设置。</value></data>
+  <data name="CliSettingsReset" xml:space="preserve"><value>重置已保存的CLI设置。</value></data>
+  <data name="CliSettingsResetDone" xml:space="preserve"><value>CLI设置已重置。</value></data>
+  <data name="CliSettingsSet" xml:space="preserve"><value>更改已保存的CLI设置。</value></data>
+  <data name="CliSettingsLoadFailed" xml:space="preserve"><value>无法加载CLI设置。正在使用默认值。</value></data>
+  <data name="CliSettingsSaveFailed" xml:space="preserve"><value>无法保存CLI设置。</value></data>
+  <data name="CliNoSave" xml:space="preserve"><value>不保存交互式更改。</value></data>
+  <data name="CliSettingsUpdated" xml:space="preserve"><value>CLI设置已保存。</value></data>
 </root>

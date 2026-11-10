@@ -273,6 +273,9 @@ Le travail non enregistré peut être perdu. Seul ce processus sera arrêté.</v
   <data name="FilterRankedProcessesByNameOrPIDCtrlFEscape" xml:space="preserve">
     <value>Filtrez les processus classés par nom ou PID (Ctrl+F). Échap efface la recherche.</value>
   </data>
+  <data name="GaugeCpuClockGHz" xml:space="preserve"><value>{0:0.00} GHz</value></data>
+  <data name="GaugeGpuMemoryPair" xml:space="preserve"><value>{0:0.0} / {1:0.0} GiB</value></data>
+  <data name="GaugeGpuEngine3D" xml:space="preserve"><value>3D</value></data>
   <data name="GHzMHz" xml:space="preserve">
     <value>{0:0.###} GHz ({1} MHz)</value>
   </data>
@@ -1849,4 +1852,61 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
   <data name="GuideWalkthroughStep2" xml:space="preserve"><value>Examinez les lignes enregistrées et choisissez Copier la capture pour conserver les données. Direct permet de revenir ; les observations manquantes sont indisponibles.</value></data>
   <data name="GuideShowMe" xml:space="preserve"><value>Montrer</value></data>
   <data name="GuideShowMeHelp" xml:space="preserve"><value>Fermer Infos et signaler cette fonction dans la fenêtre principale.</value></data>
+  <data name="CliSnapshot" xml:space="preserve"><value>Afficher les ressources et processus Windows après une seconde de mesure.</value></data>
+  <data name="CliTop" xml:space="preserve"><value>Nombre maximal de processus (0 = Tous ; 1-1000).</value></data>
+  <data name="CliTopRange" xml:space="preserve"><value>--top doit être compris entre 0 et 1000.</value></data>
+  <data name="CliSort" xml:space="preserve"><value>Trier les processus selon la mesure choisie.</value></data>
+  <data name="CliFilter" xml:space="preserve"><value>Rechercher par nom, application ou PID.</value></data>
+  <data name="CliFormat" xml:space="preserve"><value>Sortie table ou json.</value></data>
+  <data name="CliNoColor" xml:space="preserve"><value>Désactiver les couleurs.</value></data>
+  <data name="CliFailed" xml:space="preserve"><value>Impossible de recueillir le rapport : {0}</value></data>
+  <data name="CliNoMatches" xml:space="preserve"><value>Aucun processus correspondant.</value></data>
+  <data name="CliMetrics" xml:space="preserve"><value>CPU : part de la capacité totale. Mémoire : jeu de travail. E/S : fichiers, réseau et périphériques.</value></data>
+  <data name="CliIncomplete" xml:space="preserve"><value>Mesures incomplètes : {0} ; processus inaccessibles : {1}.</value></data>
+  <data name="CliDescription" xml:space="preserve"><value>Surveiller les ressources et processus Windows.</value></data>
+  <data name="CliWatch" xml:space="preserve"><value>Surveiller les ressources et processus de manière interactive.</value></data>
+  <data name="CliTerminalRequired" xml:space="preserve"><value>watch nécessite un terminal ANSI interactif. Utilisez snapshot pour rediriger la sortie.</value></data>
+  <data name="CliWarmingUp" xml:space="preserve"><value>Initialisation : attente de la première mesure.</value></data>
+  <data name="CliPaused" xml:space="preserve"><value>EN PAUSE</value></data>
+  <data name="CliLive" xml:space="preserve"><value>EN DIRECT</value></data>
+  <data name="CliWatchKeys" xml:space="preserve"><value>1 CPU  2 Mémoire  3 GPU  4 E/S  5 Threads  6 Handles
+/ Filtre  Esc Effacer  Espace Pause  Q Quitter
+Haut/Bas Défiler  PgPréc/PgSuiv Page  Début Première</value></data>
+  <data name="CliFilterEditing" xml:space="preserve"><value>Filtre : {0}_ · Enter Appliquer · Esc Annuler</value></data>
+  <data name="CliWatchFilter" xml:space="preserve"><value>Filtre : {0}</value></data>
+  <data name="CliWatchRows" xml:space="preserve"><value>Lignes {0}-{1} sur {2}</value></data>
+  <data name="CliHistorySummary" xml:space="preserve"><value>{0} · {1} s · 0–{2} · du plus ancien au plus récent</value></data>
+  <data name="CliRateHistory" xml:space="preserve"><value>{0}s · 0–{1}</value></data>
+  <data name="CliResourceHistory" xml:space="preserve"><value>{0} s · 0–100 %</value></data>
+  <data name="CliScaledHistory" xml:space="preserve"><value>{0} s · {1}–{2} %</value></data>
+  <data name="CliTerminalSmall" xml:space="preserve"><value>Agrandissez le terminal à au moins 80 colonnes et 20 lignes.</value></data>
+  <data name="CliTabs" xml:space="preserve"><value>F1 Processus  F2 Services  F3 Connexions  F4 Utilisation</value></data>
+  <data name="CliColumnsHint" xml:space="preserve"><value>Left/Right: colonnes</value></data>
+  <data name="CliNavigation" xml:space="preserve"><value>1-6 Tri  / Filtre  Enter Détails  Espace Pause  ? Aide  Q Quitter</value></data>
+  <data name="CliFullHelp" xml:space="preserve"><value>B : activer ou désactiver la surveillance du trafic réseau.
+F1-F4 : changer de rubrique; les réglages sont conservés.
+1-6 : tri. Gauche/Droite : colonnes.
+/ : filtre. Enter applique; Esc annule ou efface.
+Flèches, Page haut/bas, Début/Fin : sélectionner une ligne.
+Enter : détails. P : épingler/retirer. N : épinglés seuls.
+G : grouper les processus. A : applications seules. T : Top/Tous.
+Services : S état; W processus enfants.
+Connexions : R période (0 = depuis le début).
+Espace fige la vue; la collecte continue.
+Q quitte. Ctrl+C annule. Les programmes et services épinglés restent enregistrés.</value></data>
+  <data name="CliDetailsKeys" xml:space="preserve"><value>Flèches/Pages défilent  Gauche/Droite déplacent  Esc Retour  Q Quitter</value></data>
+  <data name="CliNetworkStart" xml:space="preserve"><value>Démarrer et vérifier le service réseau installé.</value></data>
+  <data name="CliNetworkInstall" xml:space="preserve"><value>Installer ou réparer et démarrer la surveillance réseau (approbation administrateur requise).</value></data>
+  <data name="CliNetworkBundleRequired" xml:space="preserve"><value>Le paquet signé est absent. Utilisez une version CLI avec le paquet signé ou activez la surveillance réseau dans WinMon pour bureau.</value></data>
+  <data name="CliNetworkReady" xml:space="preserve"><value>Service réseau accessible. Exécutez : winmon-cli watch --network --tab connections</value></data>
+  <data name="CliNetworkSetupHint" xml:space="preserve"><value>Exécutez : winmon-cli network start / winmon-cli network install</value></data>
+  <data name="CliSettingsHeading" xml:space="preserve"><value>Paramètres CLI</value></data>
+  <data name="CliSettingsShow" xml:space="preserve"><value>Afficher les paramètres CLI enregistrés.</value></data>
+  <data name="CliSettingsReset" xml:space="preserve"><value>Réinitialiser les paramètres CLI enregistrés.</value></data>
+  <data name="CliSettingsResetDone" xml:space="preserve"><value>Paramètres CLI réinitialisés.</value></data>
+  <data name="CliSettingsSet" xml:space="preserve"><value>Modifier les paramètres CLI enregistrés.</value></data>
+  <data name="CliSettingsLoadFailed" xml:space="preserve"><value>Impossible de charger les paramètres CLI. Valeurs par défaut utilisées.</value></data>
+  <data name="CliSettingsSaveFailed" xml:space="preserve"><value>Enregistrement des paramètres CLI impossible.</value></data>
+  <data name="CliNoSave" xml:space="preserve"><value>Ne pas enregistrer les modifications interactives.</value></data>
+  <data name="CliSettingsUpdated" xml:space="preserve"><value>Paramètres CLI enregistrés.</value></data>
 </root>

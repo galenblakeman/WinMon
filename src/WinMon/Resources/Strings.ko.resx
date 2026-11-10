@@ -273,6 +273,9 @@ Windows에서 추가 CPU 사양을 가져올 수 없습니다.</value>
   <data name="FilterRankedProcessesByNameOrPIDCtrlFEscape" xml:space="preserve">
     <value>이름 또는 PID로 정렬된 프로세스를 필터링합니다(Ctrl+F). Esc로 검색을 지웁니다.</value>
   </data>
+  <data name="GaugeCpuClockGHz" xml:space="preserve"><value>{0:0.00} GHz</value></data>
+  <data name="GaugeGpuMemoryPair" xml:space="preserve"><value>{0:0.0} / {1:0.0} GiB</value></data>
+  <data name="GaugeGpuEngine3D" xml:space="preserve"><value>3D</value></data>
   <data name="GHzMHz" xml:space="preserve">
     <value>{0:0.###} GHz ({1} MHz)</value>
   </data>
@@ -1849,4 +1852,61 @@ Windows 상태: {2}</value>
   <data name="GuideWalkthroughStep2" xml:space="preserve"><value>기록된 행을 확인하고 캡처 복사로 정보를 보관합니다. 실시간으로 돌아갈 수 있으며 누락된 관측값은 사용 불가로 표시됩니다.</value></data>
   <data name="GuideShowMe" xml:space="preserve"><value>보기</value></data>
   <data name="GuideShowMeHelp" xml:space="preserve"><value>정보를 닫고 기본 창에서 이 기능을 표시합니다.</value></data>
+  <data name="CliSnapshot" xml:space="preserve"><value>1초 측정 후 Windows 리소스와 프로세스를 표시합니다.</value></data>
+  <data name="CliTop" xml:space="preserve"><value>최대 프로세스 행 수(0 = 전체, 1-1000).</value></data>
+  <data name="CliTopRange" xml:space="preserve"><value>--top은 0에서 1000 사이여야 합니다.</value></data>
+  <data name="CliSort" xml:space="preserve"><value>선택한 지표로 프로세스를 정렬합니다.</value></data>
+  <data name="CliFilter" xml:space="preserve"><value>프로세스 이름, 앱 또는 PID로 검색합니다.</value></data>
+  <data name="CliFormat" xml:space="preserve"><value>출력 형식: table 또는 json.</value></data>
+  <data name="CliNoColor" xml:space="preserve"><value>색상 출력을 끕니다.</value></data>
+  <data name="CliFailed" xml:space="preserve"><value>보고서를 수집하지 못했습니다: {0}</value></data>
+  <data name="CliNoMatches" xml:space="preserve"><value>일치하는 프로세스가 없습니다.</value></data>
+  <data name="CliMetrics" xml:space="preserve"><value>CPU: 전체 시스템 용량의 비율. 메모리: 작업 집합. I/O: 파일, 네트워크 및 장치.</value></data>
+  <data name="CliIncomplete" xml:space="preserve"><value>불완전한 측정값: {0}; 접근할 수 없는 프로세스: {1}.</value></data>
+  <data name="CliDescription" xml:space="preserve"><value>Windows 리소스와 프로세스를 모니터링합니다.</value></data>
+  <data name="CliWatch" xml:space="preserve"><value>리소스와 프로세스를 대화형으로 모니터링합니다.</value></data>
+  <data name="CliTerminalRequired" xml:space="preserve"><value>watch에는 대화형 ANSI 터미널이 필요합니다. 출력 리디렉션에는 snapshot을 사용하세요.</value></data>
+  <data name="CliWarmingUp" xml:space="preserve"><value>준비 중: 측정된 샘플을 기다리는 중입니다.</value></data>
+  <data name="CliPaused" xml:space="preserve"><value>일시 정지</value></data>
+  <data name="CliLive" xml:space="preserve"><value>실시간</value></data>
+  <data name="CliWatchKeys" xml:space="preserve"><value>1 CPU  2 메모리  3 GPU  4 I/O  5 스레드  6 핸들
+/ 필터  Esc 지우기  Space 일시 정지  Q 종료
+위/아래 스크롤  PgUp/PgDn 페이지  Home 처음</value></data>
+  <data name="CliFilterEditing" xml:space="preserve"><value>필터: {0}_ · Enter 적용 · Esc 취소</value></data>
+  <data name="CliWatchFilter" xml:space="preserve"><value>필터: {0}</value></data>
+  <data name="CliWatchRows" xml:space="preserve"><value>전체 {2}행 중 {0}-{1}행</value></data>
+  <data name="CliHistorySummary" xml:space="preserve"><value>{0} · {1}초 · 0–{2} · 이전 → 최신</value></data>
+  <data name="CliRateHistory" xml:space="preserve"><value>{0}s · 0–{1}</value></data>
+  <data name="CliResourceHistory" xml:space="preserve"><value>{0}초 · 0–100%</value></data>
+  <data name="CliScaledHistory" xml:space="preserve"><value>{0}초 · {1}–{2}%</value></data>
+  <data name="CliTerminalSmall" xml:space="preserve"><value>터미널을 최소 80열 20행으로 확대하세요.</value></data>
+  <data name="CliTabs" xml:space="preserve"><value>F1 프로세스  F2 서비스  F3 연결  F4 사용량</value></data>
+  <data name="CliColumnsHint" xml:space="preserve"><value>Left/Right: 열</value></data>
+  <data name="CliNavigation" xml:space="preserve"><value>1-6 정렬  / 필터  Enter 상세  Space 일시 정지  ? 도움말  Q 종료</value></data>
+  <data name="CliFullHelp" xml:space="preserve"><value>B: 네트워크 트래픽 모니터링을 켜거나 끕니다.
+F1-F4: 탭 전환. 탭별 설정을 유지합니다.
+1-6: 정렬. 좌우: 열 이동.
+/: 필터 편집. Enter 적용, Esc 취소/지우기.
+위아래, PageUp/PageDown, Home/End: 행 선택.
+Enter: 상세. P: 고정 전환. N: 고정만 표시.
+G: 프로세스 그룹. A: 앱만. T: 상위/전체.
+서비스: S 상태, W 작업 프로세스.
+연결: R 기간(0 = 시작부터).
+Space: 화면 정지. 수집은 계속됩니다.
+Q 종료. Ctrl+C 취소. 실행 파일과 서비스 고정은 다음 실행에도 유지됩니다.</value></data>
+  <data name="CliDetailsKeys" xml:space="preserve"><value>화살표/Page 스크롤  좌우 이동  Esc 뒤로  Q 종료</value></data>
+  <data name="CliNetworkStart" xml:space="preserve"><value>설치된 네트워크 서비스를 시작하고 확인합니다.</value></data>
+  <data name="CliNetworkInstall" xml:space="preserve"><value>네트워크 모니터링을 설치 또는 복구하고 시작합니다(관리자 승인 필요).</value></data>
+  <data name="CliNetworkBundleRequired" xml:space="preserve"><value>서명된 설치 패키지가 없습니다. 서명된 서비스가 포함된 CLI 빌드를 사용하거나 먼저 데스크톱 WinMon에서 네트워크 모니터링을 켜세요.</value></data>
+  <data name="CliNetworkReady" xml:space="preserve"><value>네트워크 서비스에 연결했습니다. 실행: winmon-cli watch --network --tab connections</value></data>
+  <data name="CliNetworkSetupHint" xml:space="preserve"><value>실행: winmon-cli network start / winmon-cli network install</value></data>
+  <data name="CliSettingsHeading" xml:space="preserve"><value>CLI 설정</value></data>
+  <data name="CliSettingsShow" xml:space="preserve"><value>저장된 CLI 설정을 표시합니다.</value></data>
+  <data name="CliSettingsReset" xml:space="preserve"><value>저장된 CLI 설정을 초기화합니다.</value></data>
+  <data name="CliSettingsResetDone" xml:space="preserve"><value>CLI 설정을 초기화했습니다.</value></data>
+  <data name="CliSettingsSet" xml:space="preserve"><value>저장된 CLI 설정을 변경합니다.</value></data>
+  <data name="CliSettingsLoadFailed" xml:space="preserve"><value>CLI 설정을 불러오지 못했습니다. 기본값을 사용합니다.</value></data>
+  <data name="CliSettingsSaveFailed" xml:space="preserve"><value>CLI 설정을 저장하지 못했습니다.</value></data>
+  <data name="CliNoSave" xml:space="preserve"><value>대화형 변경 사항을 저장하지 않습니다.</value></data>
+  <data name="CliSettingsUpdated" xml:space="preserve"><value>CLI 설정을 저장했습니다.</value></data>
 </root>

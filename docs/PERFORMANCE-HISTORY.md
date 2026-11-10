@@ -2,6 +2,168 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## Remove CLI process histories (November 10, 2026)
+
+WinMon CLI 4.0.6, .NET 10 Windows Release, SDK 10.0.403. Removed the wide process History column, scale footer and CLI ProcessGraphData source link. Resource histories remain. The same 61-sample, 850-process, Top 1,000 true-color null-output workload rendered six process rows at 120x36. Four alternating runs per version used 400 warm-ups and seven batches of 60 renders, without concurrent tests/builds or agent-owned live CLI.
+
+| Median across four run medians | Before | Without process history |
+| --- | ---: | ---: |
+| Time per update | 1.987 ms | 1.955 ms |
+| Allocated bytes | 2,321,724 | 1,470,774 |
+
+Removing shared process-series construction reduces allocation by about 0.85 MB per update in this workload; render time is similar. Actual terminal I/O and native collection are excluded. Paging can display one additional row, and numeric columns reclaim the former chart width. Compact rendering is unchanged and was not remeasured. Harness: artifacts/cli-desktop-parity/smoke; baseline and raw measurements: artifacts/cli-no-process-history.
+
+## CLI desktop-style gauge readouts (November 10, 2026)
+
+WinMon CLI 4.0.6, .NET 10 Windows Release, SDK 10.0.403. Compared the saved five-panel summary with colored titles, desktop-style primary/secondary readouts, download-rate network scaling and removal of the two wide detail rows. The synthetic workload used 61 samples, 850 processes, Top 1,000, true-color null output, four process rows at 80x24 and six at 120x36. Four alternating runs per version/layout used 400 warm-ups and seven batches of 60 renders, without concurrent builds, tests or agent-owned live CLI; user applications remained open.
+
+| Median across four run medians | Before | Desktop-style readouts |
+| --- | ---: | ---: |
+| Compact: time per update | 2.046 ms | 2.191 ms |
+| Compact: allocated bytes | 1,122,998 | 1,078,163 |
+| Wide: time per update | 2.337 ms | 2.185 ms |
+| Wide: allocated bytes | 2,330,521 | 2,318,346 |
+
+Compact rendering now calculates the adapter-specific history scale, adding about 0.145 ms (7%) per update in this sample; the absolute cost is small at the once-per-second refresh rate. Wide timing varied downward; this does not establish a general improvement. Both allocation medians decreased. Shared desktop scale calculations preserve the existing 1-2-5 rule; supporting text uses the same formatter in both frontends. Native collection and actual terminal I/O are excluded. The wide summary is seven rows, freeing two process rows. Harness, baseline and raw results are under `artifacts/cli-desktop-parity`.
+
+## Five CLI resource panels at 120 columns (November 10, 2026)
+
+WinMon CLI 4.0.6, .NET 10 Windows Release, SDK 10.0.403. Compared the four-panel CPU/Memory/Network/GPU summary with five CPU/Memory/Disk/Network/GPU panels, using the existing 61-sample, 850-process, Top 1,000 true-color null-output harness with a 1 Gbit/s link. Both builds rendered four process rows at 80×24 and six at 120×36. Four alternating runs per version used 400 warm-ups and seven batches of 60 renders. No builds, tests or agent-owned live CLI ran during measurement; user applications remained open.
+
+| Median across four run medians | Four panels | Five wide panels |
+| --- | ---: | ---: |
+| Compact: time per update | 1.550 ms | 1.404 ms |
+| Compact: allocated bytes | 1,199,635 | 1,085,539 |
+| Wide: time per update | 2.017 ms | 1.987 ms |
+| Wide: allocated bytes | 2,292,420 | 2,330,264 |
+
+No material render-time regression was observed. Compact rendering is unchanged; timing/allocation variation does not establish an improvement. The additional wide panel adds about 38 KB per render in this workload. Five 23-column panels and four gaps still occupy 119 cells; resource bars/histories use 19 cells while process-history width and summary height stay unchanged. Native sampling and real terminal I/O are excluded. Results are `artifacts/cli-five-gauges/render-results.json`; the existing harness is under `artifacts/cli-network-gauge/smoke`, with the prior four-panel build under `artifacts/cli-network-gauge/build/bin/WinMon.Cli/release`.
+
+## CLI network gauge and resource order (November 10, 2026)
+
+WinMon CLI 4.0.6, .NET 10 Windows Release, SDK 10.0.403. Compared the colored disk-gauge summary with CPU/Memory/Network/GPU order using the same 61 synthetic one-second samples, 850 processes, Top 1,000 and a 1 Gbit/s network link. Both versions rendered four process rows at 80×24 and six at 120×36 to a true-color ANSI null-output console. Four alternating runs per version used 400 warm-ups and seven batches of 60 renders, without concurrent builds, tests or agent-owned live CLI; user applications remained open.
+
+| Median across four run medians | Disk gauge | Network gauge |
+| --- | ---: | ---: |
+| Compact: time per update | 1.569 ms | 1.585 ms |
+| Compact: allocated bytes | 1,193,438 | 1,182,012 |
+| Wide: time per update | 1.979 ms | 1.847 ms |
+| Wide: allocated bytes | 2,293,321 | 2,293,248 |
+
+No material regression was observed; timing/allocation differences do not establish a general improvement. The replacement uses the existing derived network percentage and filters history to the displayed adapter. Native sampling and actual terminal I/O are excluded. The harness is under `artifacts/cli-network-gauge/smoke` and results are `artifacts/cli-network-gauge/render-results.json`; comparison assemblies are the prior colored build under `artifacts/cli-colors/build/bin/WinMon.Cli/release` and the verified network-gauge build.
+
+## CLI summary resource colors (November 10, 2026)
+
+WinMon CLI 4.0.6, .NET 10 Windows Release, SDK 10.0.403. Compared the saved spaced-gauge frontend with resource-colored summary spans using 61 synthetic one-second samples, 850 processes and Top 1,000. Both versions received a six-row request: the 80×24 compact layout rendered four process rows, and 120×36 rendered six. The console used true-color ANSI with null output. Four alternating runs per version used 400 warm-ups and seven batches of 60 renders; no builds, tests or agent-owned live CLI ran during measurement. Existing user applications remained open.
+
+| Median across four run medians | Before | Resource colors |
+| --- | ---: | ---: |
+| Compact: time per update | 1.634 ms | 1.656 ms |
+| Compact: allocated bytes | 1,096,088 | 1,102,436 |
+| Wide: time per update | 2.163 ms | 2.089 ms |
+| Wide: allocated bytes | 2,215,269 | 2,292,945 |
+
+No material render-time regression was observed; timing differences are within ordinary run variability and do not establish a speed improvement. Styled summary spans add about 6 KB per compact render and 78 KB per wide render in this workload. Measurement excludes native sampling and actual terminal I/O. Raw results, the true-color harness and the saved baseline are under `artifacts/cli-colors/render-results.json`, `artifacts/cli-colors/benchmark` and `artifacts/cli-colors/baseline`.
+
+## CLI resource gauges and process history (November 10, 2026)
+
+WinMon CLI 4.0.6, .NET 10 Windows Release, SDK 10.0.403. Compared the saved pre-chart CLI with resource gauges and sort-driven process history using 61 synthetic one-second samples, 850 processes, Top 1,000 and six requested process rows. At 80×24 (compact), the baseline rendered six rows while the gauge layout reserved more summary space and rendered four; at 120×36 (wide), both rendered six. Output went to a non-ANSI null-output console. Four alternating runs per version used 400 warm-ups and seven batches of 60 renders. No verification builds/tests or agent-owned live CLI ran during measurement; existing user applications remained open.
+
+| Median across four run medians | Before | With charts |
+| --- | ---: | ---: |
+| Compact: time per update | 1.600 ms | 1.806 ms |
+| Compact: allocated bytes | 1,102,280 | 1,166,636 |
+| Wide: time per update | 1.579 ms | 2.136 ms |
+| Wide: allocated bytes | 1,134,096 | 2,178,041 |
+
+The additional compact formatting costs about 0.21 ms; wide charts cost about 0.56 ms and 1.04 MB per update in this workload. Wide process history builds one shared scale over every filtered/Top row, keeping it stable across pages, and formats sparklines only for the current page. Its 60-second per-row values explain most of the extra allocation. This is an explicit cost of the added history at the normal once-per-second cadence, not a claim of zero regression. Values vary with runtime tiering and background activity; these measurements exclude native collection, real terminal I/O and WPF refresh. Raw measurements, the harness and saved baseline are under `artifacts/cli-charts/render-results.json`, `artifacts/cli-charts/benchmark` and `artifacts/cli-charts/baseline`.
+
+## Saved CLI controls and executable pins (November 10, 2026)
+
+WinMon CLI 4.0.6, .NET 10 Windows Release, SDK 10.0.403. Compared the saved adaptive-unit frontend with the settings frontend using five chronological samples, 850 CPU-active synthetic processes with distinct executable paths, Top 1,000, six visible rows and an 80-column non-ANSI null-output console. Both builds were tested without pins and with one process pinned through the P key. Four alternating runs per version/scenario used 400 warm-ups and seven batches of 60 renders, without builds/tests or an agent-owned CLI running alongside. User applications and existing user CLI sessions remained open.
+
+| Median across the four run medians | Before | Saved controls/pins |
+| --- | ---: | ---: |
+| No pins: time per update | 1.561 ms | 1.644 ms |
+| No pins: allocated bytes | about 1,114,718 | 1,180,067 |
+| One pin: time per update | 1.504 ms | 2.550 ms |
+| One pin: allocated bytes | about 1,375,994 | 1,339,934 |
+
+The additional persistent-identity matching, restored-pin inclusion and current-lifetime checks add about 1.05 ms in the pinned scenario. That expanded work is accepted at the once-per-second cadence; this is not a claim of no regression. Individual timings/allocations varied substantially with runtime tiering and background activity. An initial implementation allocated prefixed path identities and built a full current-process hash set on every render; using existing path strings and checking matching lifetimes reduced median pinned allocation from about 1.51 MB to 1.34 MB. Settings capture/serialization runs after keys, not normal sample deliveries; this benchmark excludes settings I/O, native sampling and actual terminal I/O. Raw initial/final measurements are `artifacts/cli-settings/initial-render-results.json` and `artifacts/cli-settings/render-results.json`, with the harness and saved baseline beside them. The final service-host identity guard affects only a changed/missing service-group case outside these scenarios.
+
+## CLI adaptive desktop units (November 10, 2026)
+
+WinMon CLI 4.0.6, .NET 10 Windows Release, SDK 10.0.403. Compared the saved fixed-unit GitHub Dark frontend with adaptive desktop formatting using the same five-sample, 850-process harness, Top 1,000, six visible rows and an 80-column non-ANSI null-output console. Four alternating runs per version used 400 warm-ups and seven batches of 60 renders. No builds/tests or agent-owned CLI ran concurrently; user applications and the user's existing CLI remained open.
+
+| Median across the four run medians | Fixed units | Adaptive units |
+| --- | ---: | ---: |
+| Time per update | 1.775 ms | 1.524 ms |
+| Allocated bytes per update | 1,165,923 | 1,152,233 |
+
+No material regression was observed. Individual runs varied with runtime tiering and background applications; these values do not establish a general speed improvement. The benchmark excludes native collection and real terminal I/O. Shared desktop formatters add value-specific unit labels and decimal rate formatting without changing query, ranking or retention behavior. Raw results, harness and saved baseline are under `artifacts/cli-adaptive/render-results.json`, `artifacts/cli-adaptive/benchmark` and `artifacts/cli-adaptive/baseline`.
+
+## Interactive CLI control colors (November 10, 2026)
+
+WinMon CLI 4.0.6, .NET 10 Windows Release, SDK 10.0.403. Compared the saved pre-styling frontend with the styled frontend using the existing five-sample, 850-process render harness, Top 1,000, six visible rows and an 80-column non-ANSI null-output console. Both versions received the same six-row viewport. Four alternating runs per version used 400 warm-ups and seven batches of 60 updates; no verification builds/tests or agent-owned live CLI ran during measurement. User applications, including the user's existing CLI, remained open.
+
+| Median across the four run medians | Before | Styled controls |
+| --- | ---: | ---: |
+| Time per update | 1.405 ms | 1.555 ms |
+| Allocated bytes per update | about 1,112,871 | about 1,145,880 |
+
+The extra approximately 0.15 ms and 33 KiB per update are accepted for literal styled segments, key caps, active-tab/selection presentation and the additional numbered sort-guide row at the normal once-per-second cadence. This measures frontend formatting without actual terminal I/O or native collection, and does not establish light-theme contrast or screen-reader behavior. Raw results and the harness are in `artifacts/cli-color/render-results.json` and `artifacts/cli-color/benchmark`; the saved baseline is `artifacts/cli-color/baseline`.
+
+## Full interactive CLI (November 9, 2026)
+
+WinMon CLI **4.0.6**, .NET 10 Windows Release, SDK **10.0.403**, 12 logical processors. The completed frontend adds four tab queries, stable selection/pins, six-metric process rows, details, horizontal columns and optional authenticated service traffic. Cell/detail text is generated only when needed and cached for its immutable row observation; paused live capture does not repeatedly repaint frozen rows.
+
+The saved rolling-average preview and complete frontend were compared with five chronological one-second frames, 850 CPU-active synthetic processes per frame, Top 1,000, an eight-row viewport and an 80-column non-ANSI null-output console. Both builds were asserted to receive five samples. Each run used 400 warm-ups and seven batches of 60 renders; four alternating runs per build, without verification builds/tests or another CLI running alongside, produced:
+
+| Ranking and process-tab formatting | Averaged preview | Full frontend |
+| --- | ---: | ---: |
+| Median time per update | 0.695 ms | 1.517 ms |
+| Median allocated bytes per update | 593,281 | about 1,140,155 |
+
+The added roughly 0.82 ms and 547 KiB per update are accepted for constructing complete row models, selection/pin presentation and additional metric fields at the normal once-per-second sample cadence. This is an expanded workload rather than a claim of no regression. An initial implementation eagerly formatted all details and allocated about 1.90 MB per update; deferred cell/detail formatting reduced that measured allocation by about 40%. Per-run timing varies with runtime tiering and other user applications. No native sampling or actual terminal I/O is included in this microbenchmark. Source, saved baseline and raw results are under `artifacts/cli-full/benchmark`, `artifacts/cli-full/baseline`, `artifacts/cli-full/render-results.json` and `artifacts/cli-full/eager-render-results.json`.
+
+A separate final Release run used the real collector in an 80-column PTY, Processes Top 10, ungrouped, no color, traffic off. After startup, a 20.33-second observation with no builds/tests or other CLI alongside measured **0.186% average total-machine CPU**, **85.0 MiB average working set**, **96.3 MiB maximum working set** and **49.6 MiB average private memory**. User desktop applications remained running. These short-run numbers do not establish full-history memory behavior, default All-mode cost, optional traffic overhead or SSH latency. All mode intentionally retains more process observations, within the existing sample/entry budgets. Raw output: `artifacts/cli-full/live-profile.json`.
+
+The only WPF runtime change delegates Usage filtering/order to the same portable UsageQuery; existing UsageView tests and native Usage smoke passed, and its three dark/light/show-exited PNGs were inspected. No WPF sampling or layout path changed. Native CLI smoke covered all tabs, app/group/filter controls, pins/details, automatic Handles-column reveal, disabled-traffic TCP fallback, Q and Ctrl+C restoration with a live network-service subscription. Active traffic-rate acceptance remains limited by the installed service's observed warm/incomplete/capacity state, documented separately in the CLI checklist.
+
+
+## CLI desktop ranking averages (November 9, 2026)
+
+The interactive process table now ranks the same five-second window as the desktop, using compacted history with the newest full sample substituted. Pause preserves only that averaging window and its full selected frame. Snapshot commands retain their original one-interval behavior. No portable ranking implementation or desktop path changed.
+
+A .NET 10 Release harness compared the saved pre-fix interactive build with the changed build on the same Windows x64 machine (SDK 10.0.403). It rendered an 80-column, eight-row interactive page into a non-ANSI null-output console, with Top 1,000 and 850 synthetic processes per sample. The baseline used its latest sample; the changed build used five chronological one-second samples. Each run used 400 warm-ups and seven measured batches of 60 renders. Four alternating runs per build, with no verification builds/tests or live CLI running alongside them, gave:
+
+| Ranking and interactive formatting | Before: one interval | After: five intervals |
+| --- | ---: | ---: |
+| Median time per update | 0.472 ms | 0.950 ms |
+| Per-run median range | 0.461–0.495 ms | 0.668–0.996 ms |
+| Median allocated bytes per update | 592,249 | about 591,663 |
+
+The roughly 0.48 ms increase is explained by ranking five sets of process observations instead of one. It is accepted to match desktop measurement semantics; the measured update remained below 1 ms at the normal once-per-second sample cadence, with essentially unchanged allocations. This is an isolated ranking/formatting comparison, not an end-to-end CPU or terminal-latency guarantee. Local harness/source, saved baseline and raw measurements are in `artifacts/cli-averaging/benchmark`, `artifacts/cli-averaging/baseline` and `artifacts/cli-averaging/render-results.json`.
+
+NUnit coverage compares CLI ordering/values with `ProcessRanking`, checks spike smoothing, readable-only GPU averages, latest memory/count readings, compacted/full replacement, gap boundaries and frozen-window sorting. Native PTY smoke verified the five-second label, paused timestamp stability while changing sort, and clean Q exit with screen restoration.
+
+## Terminal interactive preview (November 9, 2026)
+
+WinMon CLI **4.0.6**, .NET 10 Release builds, SDK **10.0.403**, Windows x64, **12 logical processors**. No desktop or shared monitoring implementation changed. The existing snapshot table was extracted for reuse by the new `watch` view, so its rendering was compared against the saved pre-interactive preview build.
+
+An isolated console harness generated 850 process observations and ranked/rendered the top 10 into an 80-column, non-ANSI null-output console. Each run warmed up for 400 renders, then measured seven batches of 60. Four alternating baseline/changed runs produced these medians of per-run medians:
+
+| Snapshot ranking and rendering | Before | After |
+| --- | ---: | ---: |
+| Time per report | 0.5430 ms | 0.5427 ms |
+| Allocated bytes per report | 514,833 | 514,833 |
+
+The timing difference is below 0.1%, with no measured allocation regression. This isolates formatting and ranking; it excludes native collection and actual terminal output. The baseline was the locally built, uncommitted snapshot preview, not a released CLI. Local harness/source and raw measurements are under `artifacts/cli-interactive/benchmark`, `artifacts/cli-interactive/baseline` and `artifacts/cli-interactive/render-results.json`.
+
+The new interactive path also ran against the real Windows collector in an 80-column PTY, using default CPU sorting, top 1,000, no color and about 500 observed processes. A 20.29-second observation after startup, with no builds/tests or other CLI instance running alongside it, measured **0.135% average total-machine CPU**, **107.7 MiB average working set**, **112.6 MiB maximum working set**, and **71.1 MiB average private memory**. Other user applications remained running. Raw measurements are in `artifacts/cli-interactive/live-profile.json`.
+
+The live numbers establish an initial short-run baseline, not a before/after claim, full-history memory bound or SSH performance result. History was still filling its 60-second window. Native PTY smoke additionally checked sorting, filtering, paused-frame stability, scrolling, Q exit and Ctrl+C screen/cursor restoration. Desktop terminal screenshots were unavailable because the computer-use service blocked launching PowerShell; no claim of desktop/SSH/screen-reader acceptance is made.
+
 ## README refresh profile (November 9, 2026)
 
 WinMon **4.0.6**, self-contained Release build (not single-file published), SDK **10.0.403**, .NET/Windows Desktop **10.0.14**, Windows x64 build **26300.9818**, **12 logical processors**. The existing `--profile-output <dir> 150` diagnostic ran in Full view with isolated default preferences: Top 5 processes, one disk, GPU and adapter monitoring, 30-minute retention, and optional per-process network monitoring off. It warmed up for 20 seconds, then measured 150.45 seconds. No verification builds or tests ran during the profile; the user's existing WinMon instance and other desktop applications remained running.

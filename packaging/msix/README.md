@@ -41,6 +41,45 @@ For installation tests, sign the package with a development certificate matching
 
 ## Submit
 
+### Automatic updates from GitHub releases
+
+The `Submit Microsoft Store update` workflow (`.github/workflows/store-release.yml`) runs when a **stable GitHub release is published**, including publishing a previously created draft. Tags alone, draft creation, release edits and prereleases do not submit updates. The workflow builds the published tag with the SDK in `global.json`; that tag must contain the workflow's scripts and its name must exactly match `v<Version>` from `Directory.Build.props`. Merge these files onto the default branch before publishing a new release. Existing releases are not submitted retroactively.
+
+Create a GitHub environment named **`store`** under **Settings → Environments**. For unattended submission, do not enable required reviewers on that environment; if you restrict deployment branches/tags, allow the release tags (`v*`). Configure these **environment variables** using **Partner Center → WinMon → Product management → Product identity**:
+
+| GitHub variable | Partner Center value |
+| --- | --- |
+| `STORE_PACKAGE_NAME` | Package/Identity/Name, exactly as shown |
+| `STORE_PUBLISHER` | Package/Identity/Publisher, including `CN=` and the full distinguished name |
+| `STORE_PUBLISHER_DISPLAY_NAME` | Package/Properties/PublisherDisplayName |
+| `STORE_DISPLAY_NAME` | The existing reserved product display name used in the package |
+
+The workflow pins the existing Store product ID to **`9P6GPPWHZX15`**. The package identity name is a different value; do not use the product ID or package family name as `STORE_PACKAGE_NAME`.
+
+Associate the Partner Center account with its Microsoft Entra tenant. Under **Account settings → User management/Users**, add an Entra application for release automation and assign the **Manager** role as required by Microsoft's submission API setup. Merely creating an Azure app registration does not grant Partner Center access. Copy its tenant/client IDs and create a client secret. Set these **secrets** in the GitHub `store` environment:
+
+| GitHub secret | Value |
+| --- | --- |
+| `STORE_TENANT_ID` | Entra directory (tenant) ID, a GUID |
+| `STORE_CLIENT_ID` | Automation application's application (client) ID, a GUID |
+| `STORE_CLIENT_SECRET` | Client secret **value**, not its secret ID; rotate before expiry |
+
+These are Partner Center API credentials. The Store job does not require Azure subscription IDs, Artifact Signing credentials, an MSIX signing certificate, or the GitHub updater's RSA key. It uploads an unsigned MSIX for Store signing.
+
+For each stable release, increase the product version and matching executable manifest version above the existing Store x64 package version. Publish the GitHub release normally. The workflow runs standard tests, Store updater-isolation tests, offline submission tests and MakeAppx validation, and preserves the MSIX/checksums as an Actions artifact before contacting Partner Center.
+
+`tools/Submit-StoreUpdate.ps1` uses Microsoft's **v1.0 Store submission API** directly. It verifies the package's tag/version and Store identity, refuses an existing pending submission or an equal/newer published x64 version, then clones the last published submission. It marks existing x64 packages for replacement, retains other supported architectures and the existing listing/screenshots/pricing/certification notes, uploads only the new MSIX in a ZIP, and commits with `targetPublishMode=Immediate` (publish after certification). Bundle-based or unknown architecture configurations stop for manual review.
+
+The Actions summary records the submission ID. Success means the commit was accepted into processing (or a later stage); **it does not mean certification passed or the update is already live**. Monitor subsequent certification/publication in Partner Center. The workflow polls for acceptance for up to 20 minutes and serializes Store jobs. GitHub concurrency is not a release queue: avoid publishing multiple releases while an earlier Store submission is pending.
+
+If upload/commit/status fails or times out, inspect the recorded submission before rerunning. The script never deletes an existing submission or retries mutations automatically. Resolve any pending draft/failed submission first; for an API-created draft, continue through the API or delete it deliberately before retrying. Do not edit an API-created draft in the Partner Center UI and then expect API updates to keep working. A rerun after the version is already published intentionally fails its version check.
+
+Offline verification: `pwsh -NoProfile -File tools/Test-StoreSubmission.ps1`. These tests fake HTTP boundaries and do not contact Microsoft. Workflow checks do not install the MSIX or run Windows App Certification Kit; retain the packaged runtime/upgrade validation below before a release.
+
+References: [API credentials and Manager role](https://learn.microsoft.com/windows/uwp/monetize/create-and-manage-submissions-using-windows-store-services), [submission creation, ZIP upload and commit](https://learn.microsoft.com/windows/uwp/monetize/manage-app-submissions), [app identity and pending submission](https://learn.microsoft.com/windows/uwp/monetize/get-an-app).
+
+### Manual submission
+
 Upload the generated `.msix` to Partner Center. This script does not generate `.msixupload` crash-symbol archives, sign, install, or submit packages. Microsoft signs the Store package after certification; direct MSIX distribution requires a trusted package signature separately from the executable signature.
 
 Run Windows App Certification Kit, complete listing/screenshots/privacy policy/age ratings/pricing/markets, and explain `runFullTrust` for the desktop resource monitor when requested. The MSIX manifest requires Windows 10 version 1809 (build 17763) or later for Store MSIX distribution; the installer and portable channel are unchanged. Test OS compatibility before advertising it. Local validation does not guarantee certification. See [MSIX supported platforms](https://learn.microsoft.com/windows/msix/supported-platforms).

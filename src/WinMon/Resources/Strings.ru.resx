@@ -273,6 +273,9 @@
   <data name="FilterRankedProcessesByNameOrPIDCtrlFEscape" xml:space="preserve">
     <value>Фильтр списка по имени или PID (Ctrl+F). Escape очищает поиск.</value>
   </data>
+  <data name="GaugeCpuClockGHz" xml:space="preserve"><value>{0:0.00} GHz</value></data>
+  <data name="GaugeGpuMemoryPair" xml:space="preserve"><value>{0:0.0} / {1:0.0} GiB</value></data>
+  <data name="GaugeGpuEngine3D" xml:space="preserve"><value>3D</value></data>
   <data name="GHzMHz" xml:space="preserve">
     <value>{0:0.###} GHz ({1} MHz)</value>
   </data>
@@ -1849,4 +1852,61 @@ GPU {11} · {12}
   <data name="GuideWalkthroughStep2" xml:space="preserve"><value>Изучите записанные строки и выберите Копировать захват для сохранения данных. Вернитесь в режим Онлайн; отсутствующие наблюдения недоступны.</value></data>
   <data name="GuideShowMe" xml:space="preserve"><value>Показать</value></data>
   <data name="GuideShowMeHelp" xml:space="preserve"><value>Закрыть окно сведений и показать эту функцию в главном окне.</value></data>
+  <data name="CliSnapshot" xml:space="preserve"><value>Показать ресурсы и процессы Windows после секунды измерения.</value></data>
+  <data name="CliTop" xml:space="preserve"><value>Максимальное число строк (0 = Все; 1-1000).</value></data>
+  <data name="CliTopRange" xml:space="preserve"><value>--top должен быть от 0 до 1000.</value></data>
+  <data name="CliSort" xml:space="preserve"><value>Сортировать процессы по выбранному показателю.</value></data>
+  <data name="CliFilter" xml:space="preserve"><value>Поиск по имени процесса, приложения или PID.</value></data>
+  <data name="CliFormat" xml:space="preserve"><value>Формат вывода: table или json.</value></data>
+  <data name="CliNoColor" xml:space="preserve"><value>Отключить цветной вывод.</value></data>
+  <data name="CliFailed" xml:space="preserve"><value>Не удалось собрать отчёт: {0}</value></data>
+  <data name="CliNoMatches" xml:space="preserve"><value>Подходящие процессы не найдены.</value></data>
+  <data name="CliMetrics" xml:space="preserve"><value>ЦП: доля общей мощности компьютера. Память: рабочий набор. Ввод-вывод: файлы, сеть и устройства.</value></data>
+  <data name="CliIncomplete" xml:space="preserve"><value>Неполные показания: {0}; недоступные процессы: {1}.</value></data>
+  <data name="CliDescription" xml:space="preserve"><value>Мониторинг ресурсов и процессов Windows.</value></data>
+  <data name="CliWatch" xml:space="preserve"><value>Интерактивный мониторинг ресурсов и процессов.</value></data>
+  <data name="CliTerminalRequired" xml:space="preserve"><value>watch требует интерактивный терминал ANSI. Для перенаправления используйте snapshot.</value></data>
+  <data name="CliWarmingUp" xml:space="preserve"><value>Подготовка: ожидание измеренного образца.</value></data>
+  <data name="CliPaused" xml:space="preserve"><value>ПАУЗА</value></data>
+  <data name="CliLive" xml:space="preserve"><value>ОНЛАЙН</value></data>
+  <data name="CliWatchKeys" xml:space="preserve"><value>1 ЦП  2 Память  3 ГП  4 Ввод-вывод  5 Потоки  6 Дескрипторы
+/ Фильтр  Esc Очистить  Пробел Пауза  Q Выход
+Вверх/Вниз Прокрутка  PgUp/PgDn Страница  Home Начало</value></data>
+  <data name="CliFilterEditing" xml:space="preserve"><value>Фильтр: {0}_ · Enter Применить · Esc Отмена</value></data>
+  <data name="CliWatchFilter" xml:space="preserve"><value>Фильтр: {0}</value></data>
+  <data name="CliWatchRows" xml:space="preserve"><value>Строки {0}-{1} из {2}</value></data>
+  <data name="CliHistorySummary" xml:space="preserve"><value>{0} · {1} с · 0–{2} · от старых к новым</value></data>
+  <data name="CliRateHistory" xml:space="preserve"><value>{0}s · 0–{1}</value></data>
+  <data name="CliResourceHistory" xml:space="preserve"><value>{0} с · 0–100%</value></data>
+  <data name="CliScaledHistory" xml:space="preserve"><value>{0} с · {1}–{2}%</value></data>
+  <data name="CliTerminalSmall" xml:space="preserve"><value>Увеличьте терминал минимум до 80 столбцов и 20 строк.</value></data>
+  <data name="CliTabs" xml:space="preserve"><value>F1 Процессы  F2 Службы  F3 Соединения  F4 Использование</value></data>
+  <data name="CliColumnsHint" xml:space="preserve"><value>Left/Right: столбцы</value></data>
+  <data name="CliNavigation" xml:space="preserve"><value>1-6 Сортировка  / Фильтр  Enter Подробности  Пробел Пауза  ? Справка  Q Выход</value></data>
+  <data name="CliFullHelp" xml:space="preserve"><value>B: включить или выключить мониторинг сетевого трафика.
+F1-F4: смена вкладки; настройки сохраняются для каждой.
+1-6: сортировка. Влево/Вправо: столбцы.
+/: фильтр. Enter применяет; Esc отменяет или очищает.
+Стрелки, PageUp/PageDown, Home/End: выбор строки.
+Enter: подробности. P: закрепить/открепить. N: закреплённые.
+G: группы процессов. A: приложения. T: Top/Все.
+Службы: S состояние; W рабочие процессы.
+Соединения: R период (0 = с начала).
+Пробел останавливает экран; сбор продолжается.
+Q — выход. Ctrl+C — отмена. Закреплённые программы и службы сохраняются между сеансами.</value></data>
+  <data name="CliDetailsKeys" xml:space="preserve"><value>Стрелки/Page прокрутка  Влево/Вправо столбцы  Esc Назад  Q Выход</value></data>
+  <data name="CliNetworkStart" xml:space="preserve"><value>Запустить и проверить установленную сетевую службу.</value></data>
+  <data name="CliNetworkInstall" xml:space="preserve"><value>Установить или восстановить и запустить мониторинг сети (требуется разрешение администратора).</value></data>
+  <data name="CliNetworkBundleRequired" xml:space="preserve"><value>Отсутствует подписанный пакет. Используйте сборку CLI с подписанным пакетом службы или сначала включите мониторинг сети в настольном WinMon.</value></data>
+  <data name="CliNetworkReady" xml:space="preserve"><value>Сетевая служба доступна. Выполните: winmon-cli watch --network --tab connections</value></data>
+  <data name="CliNetworkSetupHint" xml:space="preserve"><value>Выполните: winmon-cli network start / winmon-cli network install</value></data>
+  <data name="CliSettingsHeading" xml:space="preserve"><value>Настройки CLI</value></data>
+  <data name="CliSettingsShow" xml:space="preserve"><value>Показать сохранённые настройки CLI.</value></data>
+  <data name="CliSettingsReset" xml:space="preserve"><value>Сбросить сохранённые настройки CLI.</value></data>
+  <data name="CliSettingsResetDone" xml:space="preserve"><value>Настройки CLI сброшены.</value></data>
+  <data name="CliSettingsSet" xml:space="preserve"><value>Изменить сохранённые настройки CLI.</value></data>
+  <data name="CliSettingsLoadFailed" xml:space="preserve"><value>Не удалось загрузить настройки CLI. Используются значения по умолчанию.</value></data>
+  <data name="CliSettingsSaveFailed" xml:space="preserve"><value>Не удалось сохранить настройки CLI.</value></data>
+  <data name="CliNoSave" xml:space="preserve"><value>Не сохранять интерактивные изменения.</value></data>
+  <data name="CliSettingsUpdated" xml:space="preserve"><value>Настройки CLI сохранены.</value></data>
 </root>
