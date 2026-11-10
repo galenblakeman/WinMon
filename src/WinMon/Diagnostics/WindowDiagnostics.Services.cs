@@ -87,7 +87,7 @@ internal sealed partial class WindowDiagnostics
             ];
             for (var i = 0; i < 120; i++)
             {
-                var factor = 0.6 + 0.4 * Math.Abs(Math.Sin(i / 8d));
+                var factor = 0.3 + 0.7 * Math.Exp(-Math.Pow((i - 90) / 14d, 2));
                 ProcessUsage[] processes =
                 [
                     P(6240, 100, 0, "build-agent.exe", 1, 80),
@@ -103,11 +103,12 @@ internal sealed partial class WindowDiagnostics
                 {
                     Resources = new ResourceSample
                     {
+                        CpuClockMhz = 4300,
                         UsedMemoryBytes = 21_000_000_000, TotalMemoryBytes = 32UL * 1073741824,
                         DiskName = "C:", DiskActivePercent = 8 + factor * 4, DiskBytesPerSecond = 54_000_000,
                         NetworkId = "fixture", NetworkName = "Ethernet", LinkBitsPerSecond = 1_000_000_000,
-                        ReceiveBytesPerSecond = 1_200_000, SendBytesPerSecond = 130_000,
-                        GpuPercent = 11, GpuEngine = "3D", GpuId = "illustrative"
+                        ReceiveBytesPerSecond = 200_000 + 1_000_000 * factor, SendBytesPerSecond = 130_000 * factor,
+                        GpuPercent = 5 + 6 * factor, GpuEngine = "3D", GpuId = "illustrative"
                     }
                 };
                 fixture.Session.History.Add(sample);

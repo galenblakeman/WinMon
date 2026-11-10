@@ -2,286 +2,98 @@
 
 **See what your PC is doing. Find what's slowing it down.**
 
-WinMon brings CPU, memory, disk, network and GPU activity into one clear Windows dashboard. Spot a spike, find the busiest processes and services, and look back at what was happening when it occurred—all from the same window.
+WinMon brings CPU, memory, disk, network and GPU activity into one Windows dashboard. Spot a spike, find the busiest processes and services, and look back at what was happening when it occurred.
 
-**Windows x64 · Self-contained app · Portable settings · MIT licensed**
+**Windows x64 · No separate .NET installation · Installer or portable ZIP · MIT licensed**
 
-[**Download latest release**](https://github.com/galenblakeman/WinMon/releases/latest) · [Get started](#get-started) · [Developer guide](docs/DEVELOPMENT.md) · [Privacy](docs/PRIVACY.md) · [Code signing policy](docs/CODE_SIGNING.md)
+[**Download latest release**](https://github.com/galenblakeman/WinMon/releases/latest) · [User guide](docs/USER-GUIDE.md) · [Screenshot gallery](docs/example/README.md) · [Report an issue](https://github.com/galenblakeman/WinMon/issues)
 
-![WinMon live dashboard showing CPU, memory, two disks, network and GPU activity above individual process rankings](docs/example/example_individual.png)
+![WinMon dashboard with live resource gauges, a recent activity spike and individual process rankings](docs/example/example_individual.png)
 
-*Screenshots use illustrative sample data. See the [example gallery](docs/example/README.md) for more views, capture dates and version details.*
+*Actual WinMon UI with illustrative data. [Browse the gallery](docs/example/README.md) for more views and capture details.*
 
-## Get started
+## Download and requirements
 
-[Download the latest release](https://github.com/galenblakeman/WinMon/releases/latest), then choose how to run WinMon:
+[Download the latest release](https://github.com/galenblakeman/WinMon/releases/latest), then choose:
 
-| Option | How it works |
+| Download | Get started |
 | --- | --- |
-| **Installer** | Install for your Windows account, with a Start menu entry and an uninstaller. |
-| **Portable ZIP** | Extract into a writable folder and run `WinMon.exe`. The included `portable.flag` keeps preferences beside the app. |
+| **Installer** | Install for your Windows account, then launch from the Start menu. |
+| **Portable ZIP** | Extract into a writable folder and run `WinMon.exe`. Preferences stay beside the app. |
 
-WinMon targets **Windows x64** and bundles its .NET runtime, so no separate .NET installation is required. Ordinary monitoring runs without administrator rights or a network service.
+WinMon ships as a self-contained **Windows x64** app, so you do not need to install .NET separately. The desktop installer accepts Windows 10 version 1607 (build 14393) or later. This packaging minimum is not a compatibility test: use a Windows edition and version supported by [.NET 10](https://github.com/dotnet/core/blob/main/release-notes/10.0/supported-os.md). Older-Windows acceptance has not been verified for this build. See [platform details](docs/USER-GUIDE.md#platform-requirements) for distribution limits and the environment used for this refresh.
 
-For a standalone executable, create an empty `portable.flag` beside `WinMon.exe` before launching to enable portable settings. Otherwise, preferences are saved in `%LOCALAPPDATA%\WinMon\settings.json`. If that file cannot be read, WinMon starts with default settings and keeps the unreadable file as `settings.invalid.json` beside it. If that backup fails, saving defaults is blocked until the original can be preserved.
+Ordinary resource monitoring and connection lists run without administrator rights. Optional per-app network traffic monitoring requires a separately installed service and administrator approval to install it.
 
-Developers can also create an [MSIX / Microsoft Store build](packaging/msix/README.md) using the packaging tools. Store builds use Store-managed updates instead of the GitHub updater.
+## Investigate a spike
 
-## Your system, at a glance
+1. **Click a spike in the chart** to inspect that recorded moment. WinMon keeps recording while you look back.
+2. **Inspect the process rankings** to see which apps were busy. Group related processes, search, or pin an app to follow it.
+3. **Choose Copy capture** to share the timestamp, resource readings and displayed process rows as plain text.
 
-Keep the whole picture in view while you work, play or troubleshoot. WinMon puts live resource readings above a shared timeline, so you can see how CPU spikes, disk activity and network transfers line up.
+![Capture mode showing an earlier CPU spike and Chrome's increased CPU activity](docs/example/example_snapshot.png)
 
-- **Watch the resources that matter.** Monitor CPU, physical memory, GPU, network throughput and up to two disk volumes. Hide individual chart traces to focus the view while recording continues.
-- **Find network settings directly.** Settings → Network contains adapter selection, per-process monitoring and its service controls. Settings → Monitoring keeps history retention, the peak window and disk selection on a shorter page. Both pages share Save and Cancel.
-- **Compare now with a recent spike.** In Full and Compact views, a gauge with each resource reading shows its current level; the dark line marks its highest reading over the peak window. Settings → Monitoring offers **1, 2, 5 or 10 minutes**, defaulting to **2 minutes**, independently of the chart range. Arc gauges show a small peak-marker icon and value beside the CPU, memory, disk and GPU names. These small labels always use native values: used RAM, disk throughput or GPU memory where available, taken at the moment utilization peaked; otherwise the percentage remains. The large current readings stay the same. Hover a gauge or peak label, or focus a resource with the keyboard, for the peak value, local time and age in the resource tooltip. Network shows its download peak with the same icon, using a compact rate such as **8MB/s**. Its tooltip gives the full rate and automatic gauge scale; both use the peak window. An unavailable reading leaves its gauge and corner label empty.
-- **Choose chart resources.** Each chart type remembers its resource selections, time range and resource-control visibility between launches. Controls start collapsed until you open them for that type. Use the cog beside the chart selector to reveal the compact colored checkboxes centered above the chart and show or hide resources. The cog button beside the chart selector hides or restores these controls without changing the graph or your selections; each chart restores its own controls when you return, including after restart. The same legend serves Overlay, Small multiples, Heatmap and Focus, wraps at narrow widths, and hides with the chart. Logical processors needs no resource legend. Focus shares one configuration across its resource choices. Reset all chart preferences in Settings → Monitoring → Chart preferences; reset applies when you save Settings. Gauges stay live regardless of which chart resources are checked.
-- **See why a tile changed.** Hover a resource tile, or focus its gauge, chart checkbox or compact box, for live CPU, memory, disk, network or GPU details.
-- **Find the busiest processes.** Rank by CPU, GPU, memory, I/O, thread count or handle count, with application icons and history sparklines that follow your selected metric.
-- **Look beyond the latest number.** Switch between 2, 10, 30 and 60-minute chart ranges, subject to your retained history, and inspect earlier samples.
-- **Choose how history looks.** The chart header is labeled **Chart**. Hover the heading or chart dropdown for a guide to all five chart types, with bold headings and dividers separating each description. One chart dropdown offers the original overlaid traces, aligned small charts, a heatmap timeline, and Focus choices for each configured resource. The small charts, heatmap and Focus views fit their axis and resource labels into one narrow column beside the plot. Disk choices include their drive letters. Choosing a hidden Focus resource shows it again. WinMon remembers the selection. Chart clicks, Capture mode and automatic capture markers work in every view.
+*In this illustrative workload, Chrome's CPU activity rises during the selected spike and falls afterward. Resource readings describe the selected interval; process CPU uses a five-second average. The gauges at the top remain live.*
 
-- **Inspect each logical processor.** Choose **Logical processors** in the chart dropdown for a CPU history graph per logical processor, each on its own 0–100% scale. The grid starts directly with the processor cells, without a processor-count or scale header. The CPU gauge and process percentages still measure the whole machine. Click any graph to inspect an interval; arrow keys and Capture work as usual. Selecting this view restores CPU if hidden. Short cells use compact sparklines, with exact values in their tooltips.
+History defaults to **30 minutes**, with retention configurable up to **60 minutes**, subject to memory limits. Optional **Automatic captures** mark threshold events and save text reports while you are away. [Learn about history and captures](docs/USER-GUIDE.md#catch-the-spikeeven-after-it-passes).
 
-| Small multiples | Focus: Network |
+## Explore your system
+
+| Feature | What it helps you do |
 | --- | --- |
-| [![WinMon showing aligned resource charts with their labels beside the plots](docs/example/example_small_multiples.png)](docs/example/example_small_multiples.png) | [![WinMon showing a focused network chart with a throughput scale](docs/example/example_focus_network.png)](docs/example/example_focus_network.png) |
-- **Give either section more room.** Collapse the chart with the chevron at the right of its header, or collapse the activity panel with the chevron beside its tabs. Headers stay visible; use the same chevron to restore a section, change the chart type or period or click Live/Capture to open the chart, or click an activity tab to restore that panel. WinMon remembers both collapsed states and the previous chart/panel split across launches. Monitoring and Usage recording continue while collapsed.
-- **Resize without cropped header edges.** Chart and activity header bars span the full window width even when a short window cannot fit all the content vertically.
-- **Keep it close.** Enable **Always on top** in the title bar to keep WinMon above other windows, minimize it to the notification area, or bring it forward with a configurable shortcut. Its highlighted background shows when it is enabled.
-- **Use less screen space.** Choose **Compact view** in the title bar for the same live resource gauges, colors, details and configured peak marks shown in Full view. Resource names are plain labels in both views; chart-series checkboxes live inside the chart. The selected gauge style, including **None**, applies to both views. **Full view** restores the dashboard and its size. Settings → General → **Startup view** can reopen the last used view (the default), or always start in Full or Compact view. You can still switch views during a session. Export is shown in the title bar only in Full view.
+| **Resource charts** | Compare CPU, memory, disk, network and GPU activity on a shared timeline. Choose overlay, small multiples, heatmap, focused resource or logical processor charts. Each view remembers its preferences. |
+| **Processes** | Rank by CPU, GPU, memory, I/O, threads or handles. Group processes by executable, search, and keep important apps pinned. |
+| **Services** | Follow Windows services, their hosts and observed workers. Inspect resource use or start, stop and restart eligible services with confirmation and elevation where required. |
+| **Connections** | See apps with TCP connections and UDP endpoints. Optional per-app traffic monitoring adds receive/send rates, history and observed byte totals. |
+| **Usage** | Find which apps consumed CPU time, I/O and GPU time during the session, including apps that have exited. |
+| **CSV export** | Save retained resource, process, service and connection observations, or session usage totals, for analysis. Connection exports contain endpoints and owners, not traffic counters. |
+| **Hardware and help** | Open Info for hardware details, feature instructions and a walkthrough that points out controls in the dashboard. |
 
-![WinMon Compact view with live CPU, memory, two disks, network and GPU gauges](docs/example/example_compact.png)
+[See feature examples](docs/example/README.md#investigate) · [Read the user guide](docs/USER-GUIDE.md)
 
-## See the app behind the processes
+## Compact view and customization
 
-Browsers and other applications often spread their work across many processes. Switch to **Grouped** to bring processes from the same executable together and see their combined CPU, memory and I/O activity. Switch back to **Individual** when you need to investigate a specific process.
+Switch to **Compact view** to keep resource readings visible in a slim window. Enable **Always on top**, minimize to the notification area, or show and hide WinMon with a configurable shortcut (**Ctrl+Shift+M** by default).
 
-Grouped GPU shows the busiest member; grouped memory uses private bytes to avoid counting shared working-set pages repeatedly.
+![WinMon Compact view with live CPU, memory, disk, network and GPU readings](docs/example/example_compact.png)
 
-## Find the process you need
+Choose light, dark or additional appearances, independent chart palettes and seven gauge options, including None. Settings previews the combination before you save. A Colorblind palette adds distinct line patterns. The interface is available in ten languages.
 
-Search the ranked list by application name, executable name or PID. Turn on **App only** to focus on processes observed with an application window, and use the **App** / **Background** labels to understand each row. In Grouped mode, an executable is an app when any current member has an app window.
+[Compare appearances and palettes](docs/example/README.md#customize) · [Customize WinMon](docs/USER-GUIDE.md#make-it-yours)
 
-Click the **Threads** or **Handles** column heading to rank by that count. Hover over a process name for its publisher metadata and executable path.
+## Permissions and limitations
 
-Processes, Services and Usage keep units beside the numbers rather than in the column headings. Memory values automatically scale from B through KiB, MiB, GiB and TiB; I/O rates scale from B/s through KB/s, MB/s and larger units. Scaled values use one decimal place. The Services memory heading is **Memory**; its value is private memory. Usage shows **Share** as a percentage and I/O totals in adaptive byte units.
+- **Optional network service:** Signed desktop builds can install per-app traffic monitoring through the installer or Settings → Network. Installation and maintenance can request administrator approval. Microsoft Store builds do not offer this service. Endpoint lists remain available without it.
+- **Measurement limits:** Disk percentages measure active time; process I/O includes files, network and devices. GPU utilization reports the busiest engine. Very short-lived processes and collection gaps can leave activity unattributed or incomplete. Machines with multiple active processor groups are unsupported.
+- **History:** Available history can be shorter on busy systems. Resource and process history can optionally survive normal restarts; service and connection history start fresh. Usage tracks the current session, with continuity across in-app updates.
+- **Local data:** Preferences, captures, exports and diagnostic logs stay on this device unless you share them. Exports can contain process paths, service names and network addresses. See [Privacy](docs/PRIVACY.md).
+- **Process and service actions:** Ending a process can lose unsaved work. Service changes can affect other applications. WinMon confirms destructive actions and respects Windows permissions.
 
-**Pin a process** using the pin beside its name or its row menu. Pinned rows stay above the rankings in pin order and do not count toward the Top N limit. Turn on **Pinned only** to focus on them. Pins and the Pinned only filter are saved when WinMon closes and restored when it reopens.
+WinMon samples once per second and skips drawing while hidden or minimized. A November 9 sample of WinMon 4.0.6 averaged **0.25% CPU** and **162.5 MiB working set** on a 12-thread desktop. This was one 150-second run with history still filling and optional per-app network monitoring off. Overhead varies with hardware, process count, history and enabled features; see the [measurement conditions](docs/PERFORMANCE-HISTORY.md#readme-refresh-profile-november-9-2026) and [profiling method](docs/DEVELOPMENT.md#performance).
 
-<details>
-<summary>How pins behave across restarts and history</summary>
+## Documentation and source build
 
-Individual processes and executable groups have separate pin lists. An individual pin follows one process lifetime, so an exited or restarted process stays marked exited and a reused PID cannot inherit it. Executable-group pins match new instances of the same executable.
+- [User guide](docs/USER-GUIDE.md): settings, measurements, captures, exports and updates.
+- [Screenshot gallery](docs/example/README.md): examples grouped by task and appearance.
+- [Developer guide](docs/DEVELOPMENT.md): architecture, tests, diagnostics and performance.
+- [Updates](docs/UPDATING.md), [code signing](docs/CODE_SIGNING.md) and [release packaging](packaging/RELEASING.md).
 
-Search and App only filter both pinned and ranked rows. Pinned processes do not appear twice. Missing historical observations show “Not recorded at this sample”; gaps or uncertain observations show unavailable values. Thread and handle counts show the latest observation at the selected moment.
-
-</details>
-
-See [grouped, filtered and pinned process views](docs/example/README.md) in the example gallery.
-
-**Properties** and **Copy details** include file and product versions from the executable metadata, or a missing reading when unavailable. Versions are cached by executable path and retained with captured history; they describe the file read on disk and may differ from a running image after an update.
-
-Select a process row to use the accent action bar: **Properties**, **Copy details**, **More**, and **End process** (or **End group**). **More** includes **Open file location** and memory-dump creation for eligible live processes; exiting WinMon waits for a dump in progress to finish. The same actions, plus pinning, remain available by right-clicking a row. Selection follows the process lifetime even when it falls out of the rankings or is filtered out; a reused PID cannot take over the selection. Group selections follow the executable, and switching between Individual and Grouped clears selection. Process termination retains its confirmation. Available actions depend on the selected process, Windows permissions, and whether you are inspecting history.
-
-To make room, click the chevron at the end of the action bar. The bar slides away and leaves a slim strip with the selection's name; click **Show actions** to bring it back. Processes, Services, Usage and Connections share the choice, and WinMon remembers it.
-
-Hover **Processes**, **Services**, **Usage** or **Connections** for a quick overview of that tab. Beside the activity tabs, the summary changes with the selected view. **Processes** shows the machine's process, thread and handle counts for the moment the table shows, live or captured. **Services** shows total services and how many are running at that moment. **Usage** shows total tracked app groups since the last reset and how many have a process running now. Counts of 100,000 or more are shortened, such as **152K**; hover for exact values. Unavailable service readings show a dash.
-
-## Follow Windows services and their workers
-
-Choose **Services** beside **Processes** to inspect local Windows services, including stopped services. Expand a service to see its hosting process and observed workers. CPU, private memory and read/write I/O totals follow the **Include worker processes** toggle; each metric row has a CPU history sparkline.
-
-CPU and I/O values and rankings use the same five-second averaging window as Processes. Private memory uses the latest sample; sparklines show individual recorded intervals.
-
-![Services view with an expanded worker tree and a shared host total](docs/example/example_services.png)
-
-*Illustrative service identities and measurements, captured from the native WinMon window.*
-
-Search by service name, display name, process name or PID, filter by status, and sort by CPU, memory, I/O or name when showing all services. Services sharing a host appear under one host total, with no separate resource attribution to each service. Worker relationships are inferred from observed process ancestry.
-
-**Workers** and **Pinned only** follow the search box, ahead of the status filter. The pinned count appears beside the **Service / process** column heading. Use a service's pin button to keep its host group above the ranked list, without consuming a Top slot or duplicating the group. Pins follow service names through stops and restarts and are saved between launches. **Pinned only** hides unpinned groups; search and status filters still apply. A shared host's pin affects all its current services; expand it to pin or unpin an individual service. Process and worker rows keep their process icons. Pinned names absent from the selected live or captured frame remain saved but do not create placeholder rows.
-
-The **Top … services by …** toolbar defaults to 20 service/host rows, with choices from 5 to 50 and **All**. Click a CPU, Memory, I/O or Name column header to change sorting; Name sorting is available with **All**. The dropdown and active-column arrow stay in sync. Search and status filters apply before the limit; expanded workers do not count against it. The search field grows with the window, and controls wrap below the ranking selectors when space is limited.
-
-WinMon remembers the Services sort, status filter and **Workers** checkbox between launches, along with Top, pins and **Pinned only**. Search and expanded rows last for the current session. Name sorting requires **All**; choosing a Top limit switches it to CPU sorting.
-
-The selected service stays in the action bar when ranking or filters hide its row. Its status and action targets continue to refresh, including after a host restart. Selecting another row changes the target; historical or unavailable data disables service controls.
-
-The service action bar offers **Properties**, **Copy details**, **Start**, **Stop** and **Restart**. Properties opens a read-only detail window. Right-click a service or process row for **View process**, **Copy details**, **Start**, **Stop** and **Restart**. Right-click selects the row; the menu keeps its captured target if the rankings change. Shared-host and process rows disable individual service controls. Service controls use the same availability checks and confirmations as the action bar.
-
-**View process** opens the corresponding PID in the process view. **Copy details** copies the selected service or process identity, status, observation time, resource metrics, and associated services/processes, including while inspecting history. Start, Stop and Restart operate on the selected service; Stop and Restart require confirmation, and Windows requests elevation when needed. Service controls are disabled while inspecting history. Service history retains up to two minutes, subject to a separate memory bound; older service captures are unavailable. Driver services are outside this view.
-
-## See which apps have network connections
-
-WinMon remembers the selected activity tab (Processes, Services, Usage or Connections) between launches, including when the activity panel is collapsed or the app starts in Compact view.
-
-Choose **Connections** for an app-first view of TCP connections and UDP endpoints. Instances of the same executable share one row; processes with unavailable executable paths stay separate. Open **Properties** for the complete endpoint list. Choose **Top** and rank by **Receive/s**, **Send/s**, **TCP count**, **UDP count**, **Received** or **Sent**, or choose **All**. Pin apps to keep them above the ranked rows without using a Top slot. **Pinned only** and **App only** filter the list, and search matches names, PIDs and endpoints. Pins, ranking, Top and filters are remembered; search lasts for the current session. TCP and UDP endpoints are always included.
-
-![WinMon Connections view showing executable rows, receive and send rates, traffic history and endpoint counts](docs/example/example_connections.png)
-
-*Illustrative endpoints and traffic measurements; the example does not require installing the optional monitoring service.*
-
-The main table shows app identity, separate receive/send rates when enabled, and TCP/UDP counts. The Top and sort dropdowns use the same sizing as Processes. The traffic-period dropdown sits at the end of the filter bar, after Pinned only, with abbreviated minute labels. Received and Sent sorts rank by bytes for that period, with unavailable totals last. Compact column widths keep history, rates, received/sent totals and endpoint counts within the minimum window width; long app names are shortened with their full text available on hover. The action bar uses the same compact, two-line height as Processes and Services: app name, then identity and cumulative received/sent totals. Rates stay in the table; full traffic details remain in the summary tooltip, Properties and copied details. Connections remains available when traffic monitoring is off: traffic ranking is disabled with an explanation, and saved throughput choices temporarily display **TCP count** instead. The saved choice returns when monitoring is enabled. When monitoring is off in the live desktop view, a setup strip above the list explains app download/upload rates. Its **Enable monitoring…** button opens Settings → Network without enabling it automatically. The strip disappears when monitoring is enabled or viewing Capture history. Store builds omit it because the optional service is unsupported. Local and remote endpoints and their states are in Properties. The **TCP · UDP** totals beside the activity tabs describe all available endpoints at the displayed live or captured moment, independently of filters and Top. Available traffic summaries cover all observed processes and protocols, rather than the selected adapter or filtered rows. TCP/UDP counts and history byte totals share a single row beside the tabs, without live rates. The live header keeps refreshing when the activity body is collapsed.
-
-Select an app for **Properties**, **Copy details** or **Show in Processes**. Properties includes the local and remote endpoints, executable path, protocols, states and available traffic totals. A known executable group opens Grouped Processes; a row without an executable path opens its owning PID. Navigation preserves the selected live or captured moment and validates the process lifetime.
-
-**Capture** shows the endpoints and app traffic recorded with the selected resource sample. Endpoint collection continues while other tabs are visible. Connection history stays in memory within the chart retention and a combined 100,000-entry budget for endpoints, owner metadata and traffic readings; it can therefore be shorter than resource history on busy systems. It is not saved across restarts. Samples without retained connection data show unavailable history instead of substituting live readings. Traffic rates retain their delayed measurement window; they are not instantaneous rates for the selected point.
-
-Endpoint lists require no administrator rights, background service or driver. UDP shows local endpoints only; TCP listeners have no remote peer. Counts describe endpoints, not traffic volume. If Windows denies a table read, the view reports unavailable or partial readings rather than treating the failure as zero connections.
-
-Optional **per-process network monitoring** adds received/sent rates and traffic-history sparklines to app rows, plus observed byte totals to selection and copied details. App traffic combines TCP and UDP across the executable's processes; rates describe the app rather than individual sockets. Network traffic rates throughout the gauges, charts, snapshots and Connections use decimal **KB/s, MB/s or GB/s**; adapter link speeds retain **Mbps/Gbps**. The tab summary shows **TCP · UDP · History: ↓ received | ↑ sent**, with the selected traffic period in its tooltip. The Connections totals tooltip explains that rates use a delayed, provisional five-second window, normally ending three seconds behind the current time; delivery delay can still make them incomplete. A lifetime's first observation establishes its byte baseline, so totals exclude counters already present at that observation. Known exited members retain their observed totals. Collection gaps keep totals visibly incomplete and suppress affected rates until a fresh window is available. Unavailable readings show dashes. Expired process-ID history rolls over without interrupting current traffic rates. Filtering does not reset totals; disabling/re-enabling or starting a new WinMon run does. Traffic history is retained with connection observations in memory; Connections CSV exports endpoint observations without traffic counters. See Settings below for signed service setup and the [remaining native acceptance gates](docs/design/PER-PROCESS-NETWORK-IMPLEMENTATION.md).
-
-## See what used your PC this session
-
-Choose **Usage** beside **Processes** and **Services** to see each app's total **CPU time**, **I/O** and **GPU time** since WinMon started, including apps that have already exited. Rows group processes by executable, like **Grouped**, and show how many processes each app ran and when it was last active.
-
-**Share** compares an app's CPU time with all the time the machine was busy. **Not attributed** at the bottom holds busy time WinMon could not assign to an app, such as processes that started and exited between samples. Rank by any column, search by name or path, turn on **App only**, and use **Copy usage** for a plain-text report. **Reset** starts the totals again from now.
-
-Select an app for **Properties**, **Copy details** and **Open file location** in the action bar. Properties opens a read-only detail window. Right-click an app for **Show in Processes**: a running app opens live with its group selected, and an exited app opens Capture at the moment it was last active, while that moment is still in history. Totals continue across in-app updates and are cleared when WinMon exits.
-
-![WinMon Usage view showing session CPU time, I/O, GPU time and app rankings](docs/example/example_usage.png)
-
-## Export readings as CSV
-
-In Full view, choose **Export** (the tray-arrow icon) beside Settings in the title bar. The dialog starts with Processes, Services, Connections or Usage according to the active tab, and also offers resource history. Resource, process, service and connection exports can use all retained history or the current chart range. Usage totals cover the period since WinMon started or you last pressed Reset; chart range does not apply to them. A normal Windows Save dialog lets you choose the destination.
-
-The export dialog's Save CSV and Cancel actions use the standard button appearance with icons alongside their labels.
-
-CSV columns use stable English identifiers, UTC timestamps, invariant numbers and raw units such as bytes and bytes per second. Blank cells mean a reading was unavailable. Resource history includes gap rows. Process samples contain **retained observations**, not every process in every interval: WinMon omits many idle entries to limit memory, and their I/O includes files, network and devices. Usage totals include exited apps and a Not attributed row. Services export includes service names, numeric SCM states and host readings; shared services repeat host metrics, so do not sum those rows. Worker processes are excluded. Services history is limited to about two minutes and its observation budget. Connections export includes individual TCP/UDP endpoints and owners, regardless of the displayed grouping or filters, with availability flags for each address family. It excludes traffic counters and uses bounded in-memory history. Empty or unavailable service/connection captures have a timestamp and availability flags with blank observation fields. Files are saved locally and may contain service names, network addresses, process names and executable paths; WinMon never uploads them. Export needs no administrator rights.
-
-## Catch the spike—even after it passes
-
-Choose **Capture** in the centered **Live | Capture** switch above the chart to inspect the newest recorded sample, or click the chart to select an earlier moment. The capture shows resource readings for that interval, and the process table follows your selection so you can investigate what was busy then. Recording and the top readouts stay live while you explore.
-
-![WinMon historical capture showing interval resource readings and the process table at the selected time](docs/example/example_snapshot.png)
-
-Click **Capture** again to select the newest sample. Use **Left / Right** to step through samples, **Home** to jump to the oldest visible sample, and **Live** (the play icon), **End**, **Escape** or **Return to live** to resume the live view. The Return to live button uses the same play icon.
-
-**Copy capture** always copies the selected moment’s resource summary and displayed top process rows as plain text, preserving their sorting, grouping and filters. Reports include the timestamp and time zone, units, unavailable readings and averaging notes. Copying keeps the capture open; expired samples cannot be copied.
-
-History defaults to 30 minutes for new installations, with configurable retention up to 60 minutes. Existing saved retention choices are preserved. Available history can be shorter on busy systems. By default it is cleared when WinMon exits, except across an in-app update. Turn on **Keep history across restarts** under Settings → Monitoring to save recent resource and process history on this device after a normal exit, including a Windows sign-out. Reopening WinMon restores only samples still within the selected retention period, even after a reboot. Usage totals and Service history start fresh. History is not guaranteed after a crash or forced shutdown.
-
-### Automatic captures
-
-Choose **Automatic capture settings…** from the **Auto** menu to open Settings directly on **Automatic captures**.
-
-Turn on **Automatic captures** in Settings to catch spikes while you are away. Each resource has a rule, such as **CPU above 90% for 10 s**, plus **Any one process** for a single runaway process, measured in percent of one core. When a rule holds, WinMon marks the moment with a triangle in that resource's color at the top of the chart and saves the Copy capture report for the peak as a text file. A rule waits for its cooldown, and for the value to drop clearly below the threshold, before it captures again.
-
-The chart toolbar shows **Auto** immediately after the centered Capture control while capture rules are enabled and adds a number when captures are in history, such as **Auto 2**. Hover over the button for the full status and click it to open the captures menu.
-
-Click a marker, or choose a capture from **Automatic captures** in the chart header, to open Capture mode at the peak; **Ctrl+Left** and **Ctrl+Right** step between captures. The capture card names the rule and offers **Open report**. Once a peak leaves history, its marker opens the saved report instead. Reports go to `%LOCALAPPDATA%\WinMon\Captures` (or a `Captures` folder beside a portable copy) unless you choose another folder; WinMon keeps the newest 200 and deletes only its own reports. Closing WinMon or restarting for an in-app update waits for report writes already in progress. Disk and network reports list processes by total I/O and say so, because Windows does not break process I/O down by drive or adapter. A notification for each capture is optional.
-
-## Make it yours
-
-Choose **System**, **Light**, **Dark**, **Candy**, **Copper**, **Crystal**, **Evergreen**, **Frost**, **Gunmetal**, **Midnight**, **Porcelain**, **Prism**, **Sapphire**, **Slate**, or **Wildberry** appearance, then pick a chart palette independently. The built-in modes come first; the other themes are alphabetized in the current language. Candy pairs matching blush title and section headers with vivid pink accents over warm light surfaces, while Wildberry uses deep blackberry and raspberry. Porcelain is warm and light, Midnight is deep navy, and Evergreen is dark forest green. Copper and Gunmetal add a fine brushed grain to the window surfaces and app-owned title area, with a soft reflection within section headers; Windows paints the native caption buttons against a matching tint. Existing Brushed steel and Brushed nickel settings switch to Porcelain, and existing Glass settings switch to Crystal when loaded. Options include Classic, Ocean, Colorblind, high-contrast, **Neon**, **Arcade**, **Tropical**, **Candy**, **Wildberry**, **Copper** and **Gunmetal** palettes. Each appearance has a matching palette: Candy, Copper, Gunmetal and Wildberry have their own; Crystal uses Cool Tech; Evergreen and Porcelain use Warm Earth Tones; Frost uses high-contrast; Midnight uses Neon; Prism uses Arcade; Sapphire uses Tropical; Slate uses Ocean; and System, Light and Dark use Classic. Changing the appearance in Settings switches to its palette while you still have Classic or the previous appearance's palette. Once you pick another palette, it stays through appearance changes. Matching palettes keep their readings clear of the appearance's own accent colors. Colorblind, Signal, high-contrast, Copper and Gunmetal keep every resource distinguishable under simulated red-green and blue-yellow color blindness, and Colorblind also gives each chart line its own dash pattern. Many palettes have hand-tuned colors for light or dark appearances, and yellows darkened for a light background turn gold rather than olive. Existing Cyberpunk / Neon settings switch to Neon, which uses the same colors. Settings includes swatches and descriptions to help you choose. Palette hues adjust as needed against each theme: chart traces, markers and sparklines retain more of the chosen color, while resource readings and chart labels use a shade with stronger text contrast. Swatches show the chart shades. Time-range and process-grouping chips use contrasting text in each theme.
-
-**Frost**, **Sapphire**, **Crystal**, **Slate** and **Prism** add translucent window finishes. Frost is light glass; Sapphire is deep blue glass. The title bar finish also fills the space beneath the native window buttons. Crystal uses bright cool edges, Slate has the strongest frosted panels, and Prism has a subtle blue-violet sheen. Charts and process data keep dark, readable surfaces. On Windows 11 build 22621 or later, WinMon uses the system Acrylic or Mica backdrop when available; elsewhere these themes keep their colors with opaque surfaces. Windows high contrast always uses system colors.
-
-The selected Settings section uses light text and icons against its blue highlight in Light appearance.
-
-The Processes, Services and Usage tabs keep their unselected labels readable across appearances. Chart axis and network-scale labels use a slightly larger type size for easier reading.
-
-Choose how the resource gauges look under **Resource gauges** in Settings: **Bowl** (the default), **Needle**, **Segmented arc**, **Left bar**, **Bottom bar**, **Segmented bar** or **None**. A sample on the Appearance page combines the selected theme, chart palette and gauge style across all six resource colors before you save. Every style keeps the same height, so the chart doesn't move when you switch. **Bowl** and **Segmented arc** hold the reading inside a nearly round arc, with the detail line below. **Needle** draws a half-circle dial with the reading underneath; its detail line, such as clock speed or memory in use, appears when you hover the tile. Radial gauges sit below the resource name for clearer spacing. The full-view gauge row uses the window's full content width, with the same tile margins as Compact view. **None** hides the gauges.
-
-See [Light appearance and additional palettes](docs/example/README.md) in the example gallery.
-
-<details>
-<summary>Compare palettes and view Settings</summary>
-
-| Neon | Arcade | Tropical |
-| --- | --- | --- |
-| [![Neon palette with vivid cyan, pink, lime and violet chart colors](docs/example/example_neon.png)](docs/example/example_neon.png) | [![Arcade palette with saturated primary and secondary chart colors](docs/example/example_arcade.png)](docs/example/example_arcade.png) | [![Tropical palette with warm colors balanced by blue and teal](docs/example/example_tropical.png)](docs/example/example_tropical.png) |
-
-The three custom palettes retain their supplied hues; lightness changes where a theme needs more contrast. Open an image for the full-size view.
-
-![WinMon Appearance settings with a combined theme, Neon chart palette and resource gauge preview](docs/example/example_settings.png)
-
-The Settings image above is from the installer/portable configuration. Store builds hide the GitHub update controls and use Store-managed updates. Their **Start WinMon when I sign in** uses the package's startup task, so WinMon also appears in Windows **Settings > Apps > Startup**. If you turn it off there, or a policy decides, WinMon's Settings say so and leave the change to Windows:
-
-![WinMon Store Appearance settings with the combined preview and no Updates section](docs/example/example_settings_store.png)
-
-</details>
-
-Settings is organized into **General**, **Appearance**, **Monitoring**, **Network** and **Automatic captures** sections in a sidebar, plus **Updates** in installer and portable builds, with one Save for all of them. Reopening Settings returns to the last section you viewed during this app session, even if you closed it without saving. Appearance holds the theme, chart palette and resource gauge style. General holds language, startup, notification-area behavior and the show/hide shortcut, which defaults to **Ctrl+Shift+M**.
-
-Settings dropdowns take no more than half the content panel's width, leaving room for their labels.
-
-After sleep or a display change, WinMon waits three seconds for monitors to reconnect before recovering its window position. It remembers the monitor chosen by dragging, resizing or Windows-key placement shortcuts during the current run. If that monitor stays disconnected, the window remains accessible on another display and returns when its monitor reconnects. Moving the window yourself chooses a new position.
-
-Settings → Network → **Network interface** defaults to Automatic and shows the current adapter. Automatic switches to another connected adapter on the first sample after WinMon detects that its current one disconnected. You can choose a specific Ethernet or Wi-Fi interface, including one that is currently disconnected. A manual choice stays selected if that interface disconnects; its readings show as unavailable until it reconnects. Changing the choice starts fresh rate and total measurements.
-
-Connections shows its saved pinned count beside **Process / PID** and separates pinned apps from ranked results with **Ranked by …**, matching Processes. Collection status is available in the column-header tooltip; the network-status and UDP explanatory footer lines are removed. Empty and unavailable connection-list messages remain visible when no rows can be shown.
-
-Connections appears before Usage and shows one row per executable, with a separate process row when its executable path is unavailable. Open **Properties** for all local and remote endpoints and their states; rows do not expand. Use the pin button to keep an app above the ranked rows, outside the **Top** limit. **Pinned only** shows just pins; search and **App only** apply to both sections. Use the clear button inside the search box to clear the filter and keep typing. Connections pins persist across launches independently of Processes pins. A pin with an unknown path becomes an executable pin when that exact process lifetime’s path is discovered. A disconnected pin remains visible without stale endpoints; an unavailable capture is labeled unavailable. With per-process traffic monitoring enabled, **History** shows receive + send traffic over the selected traffic period on a shared scale. **Received** and **Sent**, beside the live rate columns, show observed bytes for **Last 1 min**, **Last 5 min** (default), **Last 30 min**, or **Since start**. The activity tab bar adds overall byte totals beside TCP/UDP counts; these overall totals include all processes regardless of search, pins or Top. An ≈ prefix marks incomplete coverage; hover for the recorded duration. Localhost endpoints are always included. The traffic period is remembered. Missing readings leave gaps, and Capture ends the trace at the selected moment.
-
-Signed desktop installers offer an unchecked **Install and enable per-process network monitoring** option. Selecting it runs service setup after WinMon is installed and enables monitoring for the installing user. A new service installation requires administrator approval. If approval is cancelled or setup fails, WinMon remains installed and you can retry in Settings → Network. The service remains separately removable.
-
-Settings → Network also offers optional **per-process network monitoring** in signed desktop builds. Save the enabled setting to install an administrator-protected Windows service with one UAC approval. Compatible authorized installations are reused without UAC; later launches never prompt automatically. When startup or live collection is interrupted, WinMon retries the installed service every five seconds after disconnecting, without elevation. Recovery preserves observed session totals, marks gaps incomplete and waits for fresh rate readings; traffic missed during a gap cannot be recovered. An incompatible service version still needs **Repair**. Disabling releases this app's collection without elevation and leaves the shared service installed. **Repair** and **Remove network monitoring service…** are explicit maintenance actions which can require approval. Removal affects every user and is also available in Windows Installed apps as **WinMon Network Monitoring Service**, independently of a portable or per-user WinMon copy. Unsigned development builds cannot install it, and Microsoft Store builds do not offer it. Connections shows live process/executable rates and observed session totals when collection is available; signed native installation acceptance is still pending.
-
-Choose **Windows display language** or select English, Simplified Chinese, Russian, Spanish, Brazilian Portuguese, German, Japanese, French, Polish or Korean in Settings. Language changes apply when you save.
-
-**Info** has three tabs: **Hardware**, **Guide**, and **About**. Hardware brings together CPU, motherboard, RAM, graphics adapters, physical drives, local volumes and network adapters in expandable sections. Collapsed headers show a short summary on the right; expand them for the full details. Refresh the snapshot or copy the complete report, including collapsed details, for troubleshooting. Guide provides expandable feature entries for charts and history, processes and pins, Services, Usage, Connections, captures and CSV export, automatic captures, and Compact view and shortcuts. Each entry explains its purpose with two numbered steps, shows the icon of the button a step names, and offers **Show me**, which closes Info and points out that feature in the main window. Charts and history includes a diagram of the chart toolbar and a selected moment. A CPU-spike walkthrough connects chart inspection, process rankings and Copy capture. Monitoring continues while Info is open.
-
-About shows the installed version, copyright, MIT license and GitHub source link. Keyboard focus stays in Info while process rankings refresh, including when the source link is focused. Installer and portable builds share the existing update checker: **Check for updates** reports the result here, and **Update now** appears when an update is available. Updating closes Info and uses the main window’s existing download, cancel and restart flow. Microsoft Store builds show that updates are Store-managed and offer no GitHub update actions.
-
-## Light on your system
-
-A monitor shouldn't become the thing slowing your PC down. WinMon samples once per second and collects process resource counters in one system query. Executable paths are cached for each process lifetime. When hidden or minimized, it keeps recording but skips drawing.
-
-Example measurements from October 20, 2026, using a published build on a 12-thread desktop with about 1,250 running processes and a full 10-minute history. These results came from one 11-minute run:
-
-| Measurement | Example result |
-| --- | ---: |
-| CPU | about 0.25% of the machine |
-| Memory (working set) | about 146 MiB |
-| Private memory | about 60 MiB |
-
-Separate startup measurements on that machine recorded a median of about **0.6 seconds** for the uncompressed published executable.
-
-These measurements predate the current release. Longer history retention uses more memory, and results vary with process count and hardware. See the [measurement notes](docs/PERFORMANCE-HISTORY.md#allocation-gc-and-compression-october-20-2026) for the benchmark context and the [developer guide](docs/DEVELOPMENT.md#performance) to measure your own system.
-
-## Updates
-
-Installer and portable builds check GitHub for newer stable releases and offer **Update now** in the footer when a verified update is available. The footer stays at the bottom of the window however short it is, and keeps **Update now** after a cancelled or failed download so you can try again. **Update now** checks once more first, so it installs the newest release even if another was published after the offer appeared. The updater downloads the update, saves preferences, exits, and restarts at the same location. History recorded before the update is kept, so the chart and Capture mode continue after the restart; updating from 2.0.4 or earlier starts with empty history, because those versions do not save it. Settings includes a manual check and an option to disable automatic checks. Store builds disable these controls and use Store-managed updates.
-
-In-app updates require a release signed with the update key already trusted by your copy of WinMon. Earlier copies without the updater require a manual upgrade. See [update setup and behavior](docs/UPDATING.md) for publishing and recovery details.
-
-## Build from source
-
-Development uses **.NET 10**, with SDK **10.0.402** pinned in [global.json](global.json).
+Development uses **.NET 10**, with SDK **10.0.402** pinned in [global.json](global.json) and latest-patch roll-forward.
 
 ```powershell
-dotnet run --project src/WinMon/WinMon.csproj -c Release
+dotnet run --project src/WinMon/WinMon.csproj -c Release -m:1 -p:UseSharedCompilation=false
 ```
 
-To produce the self-contained executable:
+To publish a self-contained executable:
 
 ```powershell
 dotnet publish src/WinMon/WinMon.csproj -c Release -m:1 -p:UseSharedCompilation=false
 ```
 
-The published app is at `src/WinMon/bin/Release/net10.0-windows/win-x64/publish/WinMon.exe`. See the [developer guide](docs/DEVELOPMENT.md) for tests, measurement details and diagnostics, or the [release guide](packaging/RELEASING.md) to build installer and portable packages.
+Output: `src/WinMon/bin/Release/net10.0-windows/win-x64/publish/WinMon.exe`.
 
-## A few useful details
+WinMon is built with C# and WPF and released under the [MIT License](LICENSE). Official executable and installer releases use Azure Artifact Signing with publisher Galen Blakeman; see the [code signing policy](docs/CODE_SIGNING.md) for verification.
 
-- Diagnostic logging is always on. App logs use `%PROGRAMDATA%\WinMon\Logs\App\<Windows SID>` when provisioned, with `%LOCALAPPDATA%\WinMon\Logs` as a fallback; service logs use `%PROGRAMDATA%\WinMon\Logs\Service`. Each active app set and the shared service set retain up to 10 MiB each. Open the current app folder from **Info → About → Open logs folder**. Repeated warnings and errors are summarized during operation and shutdown. Logs record errors, startup and connectivity changes without monitored process names or network endpoints, and are never uploaded automatically. Network summaries include coverage reasons and loss counts; service logs distinguish request failures and polling-rate rejections. An unreadable process discovered without observed traffic does not by itself mark traffic incomplete; actual coverage gaps remain flagged even after rates recover.
-
-- Disk percentages show **active time**, rather than storage space used. Network throughput measures activity on the selected Ethernet/Wi-Fi adapter.
-- GPU utilization reflects the busiest engine. Live GPU temperature and VRAM usage are outside this view.
-- Unavailable readings appear as a dash and leave gaps in the chart. Very short-lived processes can exit between samples; process totals may not account for all system activity.
-- Systems with multiple active processor groups are currently unsupported.
-- To end a process, right-click a live **Individual** row and confirm **End process**. In **Grouped** mode, confirm the list to end all current processes in that group, including idle members. Processes started after confirmation opens are not included. Unsaved work can be lost; historical, system and WinMon rows cannot be terminated through this action.
-
-## Open source
-
-WinMon **4.0.6** is built with C# and WPF on .NET 10, and released under the [MIT License](LICENSE).
-
-### Code signing policy
-
-Official executable and installer releases use Azure Artifact Signing with publisher Galen Blakeman and a timestamp. Version 1.0.3 has recorded signature validation for both files. Older assets may be unsigned; check the downloaded file's **Properties → Digital Signatures**. See the [Code signing policy](docs/CODE_SIGNING.md) for verification and release responsibilities and the [privacy policy](docs/PRIVACY.md) for local data handling.
-
-Found a problem or have an idea? [Open an issue](https://github.com/galenblakeman/WinMon/issues).
+[Report a problem or suggest an improvement](https://github.com/galenblakeman/WinMon/issues).
 
 Copyright © 2026 Galen Blakeman.
-
-Settings and activity filters provide tooltips explaining capture thresholds, peak windows, ranking measurements, workers and pinned processes.

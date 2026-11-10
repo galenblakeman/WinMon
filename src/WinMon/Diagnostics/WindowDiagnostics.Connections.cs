@@ -99,8 +99,11 @@ internal sealed partial class WindowDiagnostics
         {
             Resources = new ResourceSample
             {
+                CpuClockMhz = 4300,
                 TotalMemoryBytes = 32UL * 1073741824, UsedMemoryBytes = 16UL * 1073741824,
-                DiskName = "C:", DiskActivePercent = 8, ReceiveBytesPerSecond = 2_000_000,
+                DiskName = "C:", DiskActivePercent = 8, DiskBytesPerSecond = 12_000_000,
+                NetworkId = "fixture", NetworkName = "Ethernet", LinkBitsPerSecond = 1_000_000_000,
+                ReceiveBytesPerSecond = 2_000_000,
                 SendBytesPerSecond = 500_000, GpuPercent = 12
             }
         };
@@ -126,21 +129,47 @@ internal sealed partial class WindowDiagnostics
                 new ProcessNetworkReading(sibling.ProcessId, sibling.CreationTicks, 4_000_000, 750_000, 500_000,
                     100_000)
             ]);
-        for (var i = 120; i > 0; i--)
+        var baseTraffic = traffic;
+        var receivedTotals = new long[traffic.Processes.Count];
+        var sentTotals = new long[traffic.Processes.Count];
+        for (var i = 120; i >= 0; i--)
         {
-            var past = sample with { Timestamp = sample.Timestamp.AddSeconds(-i) };
-            var pastTraffic = traffic with
+            var factor = 0.3 + 0.7 * Math.Exp(-Math.Pow((i - 30) / 14d, 2));
+            traffic = baseTraffic with
             {
-                Processes = traffic.Processes.Select(reading => reading with
+                TimestampQpc = Stopwatch.Frequency * (121 - i),
+                Processes = baseTraffic.Processes.Select((reading, index) =>
                 {
-                    ReceiveBytesPerSecond = reading.ReceiveBytesPerSecond * (0.3 + i % 17 / 17d),
-                    SendBytesPerSecond = reading.SendBytesPerSecond * (0.2 + i % 11 / 11d)
+                    var receive = reading.ReceiveBytesPerSecond!.Value * factor;
+                    var send = reading.SendBytesPerSecond!.Value * factor;
+                    receivedTotals[index] += (long)receive;
+                    sentTotals[index] += (long)send;
+                    return reading with
+                    {
+                        ReceivedBytes = receivedTotals[index], SentBytes = sentTotals[index],
+                        ReceiveBytesPerSecond = receive, SendBytesPerSecond = send
+                    };
                 }).ToArray()
             };
-            fixture.Session.Record(past, past, connections: frame, network: i == 50 ? null : pastTraffic);
+            var past = sample with
+            {
+                Timestamp = sample.Timestamp.AddSeconds(-i), MonotonicTimestamp = traffic.TimestampQpc,
+                TotalCpuPercent = 15 + 20 * factor,
+                Resources = sample.Resources with
+                {
+                    DiskActivePercent = 4 + 12 * factor,
+                    ReceiveBytesPerSecond = traffic.Processes.Sum(reading => reading.ReceiveBytesPerSecond),
+                    SendBytesPerSecond = traffic.Processes.Sum(reading => reading.SendBytesPerSecond)
+                }
+            };
+            fixture.Session.Record(past, past, connections: frame, network: traffic);
+            if (i == 0) sample = past;
         }
 
-        fixture.Session.Record(sample, sample, connections: frame, network: traffic);
+        var exampleTotals = ConnectionTrafficTotals.Build(fixture.Session.Connections.Captures,
+            fixture.Session.Connections.Latest, 300);
+        Require(exampleTotals.Sum().Received > 50_000_000 && exampleTotals.Sum().Sent > 5_000_000,
+            "The traffic example must accumulate nonzero received and sent history.");
         try
         {
             fixture.Show();
@@ -252,7 +281,7 @@ internal sealed partial class WindowDiagnostics
             Require(ReferenceEquals(fixture.SelectedSample, sample) && fixture.ProcessesTab.IsChecked == true,
                 "Historical process navigation must preserve the selected sample.");
             fixture.ConnectionsTab.IsChecked = true;
-            var missingSample = sample with { Timestamp = sample.Timestamp.AddSeconds(-1) };
+            var missingSample = sample with { Timestamp = sample.Timestamp.AddSeconds(-1), MonotonicTimestamp = 0 };
             fixture.SelectedSample = missingSample;
             fixture.RefreshVisiblePresentation();
             Require(

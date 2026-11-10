@@ -42,16 +42,23 @@ internal sealed partial class WindowDiagnostics
                 Process(12004, "Taskmgr", "Task Manager", 2, 195, 22, 560),
                 Process(12010, "OneDrive", "Microsoft OneDrive", 0.8, 175, 36, 740)
             ];
-            var anchor = new DateTimeOffset(2026, 10, 23, 10, 24, 0, TimeSpan.FromHours(-5));
+            var anchor = new DateTimeOffset(2026, 11, 9, 10, 24, 0, TimeSpan.FromHours(-6));
             for (var i = 0; i < 120; i++)
             {
-                var pulse = Math.Exp(-Math.Pow((i - 92) / 3d, 2));
+                var pulse = Math.Exp(-Math.Pow((i - 92) / 9d, 2));
+                var intervalProcesses = processes.Select(process => process.ProcessId == chrome.ProcessId
+                    ? process with { CpuPercent = process.CpuPercent + 48 * pulse,
+                        IoBytesPerSecond = process.IoBytesPerSecond + 40_000_000 * pulse }
+                    : process).ToArray();
                 fixture.Session.History.Add(new MonitorSample(anchor.AddSeconds(i - 119),
-                    32.8 + 40 * pulse + 3 * Math.Sin(i),
-                    processes, 0, MonotonicTimestamp: Stopwatch.Frequency * (i + 1))
+                    intervalProcesses.Sum(process => process.CpuPercent) + 2.5,
+                    intervalProcesses, 0, MonotonicTimestamp: Stopwatch.Frequency * (i + 1))
                 {
                     Resources = new ResourceSample
                     {
+                        CpuClockMhz = 4300, ProcessCount = 7,
+                        ThreadCount = (uint)processes.Sum(process => process.ThreadCount ?? 0),
+                        HandleCount = (uint)processes.Sum(process => process.HandleCount ?? 0),
                         UsedMemoryBytes = 23_056_165_683, TotalMemoryBytes = 32UL * 1_073_741_824,
                         DiskName = "C:", DiskActivePercent = 6.4 + 60 * pulse, DiskBytesPerSecond = 84_000_000,
                         SecondaryDiskName = "D:", SecondaryDiskActivePercent = 3.5 + 18 * pulse,
@@ -62,6 +69,10 @@ internal sealed partial class WindowDiagnostics
                     }
                 });
             }
+
+            if (fixture.Session.History.Samples[92].Processes[0].CpuPercent < 50 ||
+                fixture.Session.History.Samples[^1].Processes[0].CpuPercent > 10)
+                throw new InvalidOperationException("The example must show Chrome's CPU spike followed by recovery.");
 
             await Draw("individual");
             fixture.Preferences = fixture.Preferences with { ResourceChartType = ResourceChartType.SmallMultiples };
@@ -150,6 +161,19 @@ internal sealed partial class WindowDiagnostics
             fixture.Processes.Selection.Select(chrome, fixture.Preferences.GroupProcesses);
             fixture.Processes.UpdateRetention();
             fixture.RefreshVisiblePresentation();
+            foreach (var row in fixture.Processes.Rows.Concat(fixture.Processes.PinnedRows))
+            {
+                var iconPath = row.Identity?.Item1 switch
+                {
+                    12000 or 12001 => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+                        @"Google\Chrome\Application\chrome.exe"),
+                    12003 => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                        @"Programs\Microsoft VS Code\Code.exe"),
+                    12004 => Path.Combine(Environment.SystemDirectory, "Taskmgr.exe"),
+                    _ => ""
+                };
+                if (File.Exists(iconPath)) await row.SetExampleIconAsync(iconPath);
+            }
             if (fixture.OverallGraph.ChartType != fixture.Preferences.ResourceChartType ||
                 (fixture.Preferences.ResourceChartType == ResourceChartType.Focus &&
                  fixture.OverallGraph.FocusMetric != fixture.Preferences.FocusMetric))

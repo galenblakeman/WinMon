@@ -53,6 +53,9 @@ internal sealed partial class WindowDiagnostics
                     IntervalCpuTicks = Environment.ProcessorCount * TimeSpan.TicksPerSecond,
                     Resources = new ResourceSample
                     {
+                        CpuClockMhz = 4300,
+                        NetworkId = "fixture", NetworkName = "Ethernet", LinkBitsPerSecond = 1_000_000_000,
+                        ReceiveBytesPerSecond = 800_000 + 600_000 * factor, SendBytesPerSecond = 130_000 * factor,
                         UsedMemoryBytes = 21_000_000_000, TotalMemoryBytes = 32UL * 1073741824, DiskName = "C:",
                         DiskActivePercent = 8 + factor * 4, DiskBytesPerSecond = 54_000_000, GpuPercent = 11,
                         GpuEngine = "3D", GpuId = "illustrative"

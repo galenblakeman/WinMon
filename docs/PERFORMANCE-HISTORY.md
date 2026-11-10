@@ -2,6 +2,25 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## README refresh profile (November 9, 2026)
+
+WinMon **4.0.6**, self-contained Release build (not single-file published), SDK **10.0.403**, .NET/Windows Desktop **10.0.14**, Windows x64 build **26300.9818**, **12 logical processors**. The existing `--profile-output <dir> 150` diagnostic ran in Full view with isolated default preferences: Top 5 processes, one disk, GPU and adapter monitoring, 30-minute retention, and optional per-process network monitoring off. It warmed up for 20 seconds, then measured 150.45 seconds. No verification builds or tests ran during the profile; the user's existing WinMon instance and other desktop applications remained running.
+
+| Measurement | Result |
+| --- | ---: |
+| Average CPU, share of the whole machine | 0.248% |
+| Average working set | 162.5 MiB |
+| Maximum working set | 181.1 MiB |
+| Average private memory | 76.4 MiB |
+| Maximum private memory | 93.3 MiB |
+| Managed allocation | 1,221.9 KiB/s |
+| Retained samples at the end | 171 |
+| Retained process entries in the latest sample | 129 |
+
+The 129 entries are retained observations, not the machine's total process count. History was still filling, so this run does not establish memory use with a full 30-minute history. These are observations from one short run, not a before/after comparison, a startup measurement or a performance guarantee. It does not measure the optional ETW service. Raw local output is `artifacts/readme-refresh/profile/profile.json`.
+
+Reproduce from a Release build with `WinMon.exe --profile-output <output-directory> 150`; see the [whole-app profiling method](DEVELOPMENT.md#profile-the-whole-app). Run without builds or tests alongside it. The README rounds these results and links here for their conditions; the older October measurements remain below as historical evidence.
+
 ## Expired network process history (November 9, 2026)
 
 SDK 10.0.403 / .NET 10.0.14, tiered compilation off. An isolated console probe compiled the before/after ledger and snapshot sources. With a 128-entry history limit and one continuously tracked process, it registered and ended 10,000 distinct processes spaced 40 simulated seconds apart, added traffic to the continuous process and took one snapshot per registration. Each process warmed up 1,000 iterations; four before/after pairs alternated, with no verification build running.

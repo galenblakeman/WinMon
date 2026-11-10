@@ -1,80 +1,91 @@
-# WinMon screenshot examples
+# WinMon screenshot gallery
 
-Gallery images were refreshed November 8, 2026, using WinMon 4.0.1. The main gallery uses the ordinary installer/portable configuration; the separate Store Settings capture uses `StoreBuild=true`. These examples use illustrative process identities and measurements so the screenshots are consistent and do not expose a user's running processes. They are UI examples, not performance measurements or proof of installed MSIX behavior.
+[Download WinMon](https://github.com/galenblakeman/WinMon/releases/latest) · [Overview](../../README.md) · [User guide](../USER-GUIDE.md)
 
-| File | View |
+Actual WinMon windows with illustrative identities and measurements. These images show features, not performance measurements. Click any preview to open the full-size image.
+
+Captured November 9, 2026, with **WinMon 4.0.6** on Windows build **26300.9818**, x64. The main gallery uses the installer/portable configuration; the separate Store Settings image uses `StoreBuild=true` and does not prove installed MSIX behavior.
+
+## Investigate
+
+| Watch live activity | Look back at a spike |
 | --- | --- |
-| [example_individual.png](example_individual.png) | Dark live dashboard with Processes / Services / Usage / Connections tabs, individual process rankings and a selected-process action bar. |
-| [example_small_multiples.png](example_small_multiples.png) | The same dashboard with aligned resource charts and 12-DIP axis and resource labels. |
-| [example_focus_network.png](example_focus_network.png) | Network Focus chart with its own throughput scale and 12-DIP labels. |
-| [example_grouped.png](example_grouped.png) | The same recording grouped by executable, with App / Background labels and private-memory totals. |
-| [example_services.png](example_services.png) | Services view with a Top N toolbar, clickable metric headers, an expanded worker tree, five-second CPU/I/O averages and a selected-service action bar with Properties, Copy details and service controls. |
-| [example_connections.png](example_connections.png) | Connections view with executable rows, receive/send rates, traffic-history sparklines, byte totals, TCP/UDP counts and a compact app action bar. |
-| [example_usage.png](example_usage.png) | Usage view with session totals, app rankings, CPU share, the Not attributed row and a selected-app action bar. |
-| [example_snapshot.png](example_snapshot.png) | An earlier spike selected in Capture mode, with the bracket-and-dot glyph, Copy capture / Return to live buttons and pinned process rows, while the top readouts remain live. |
-| [example_apps_only.png](example_apps_only.png) | Chrome search with App only enabled in Grouped mode. |
-| [example_pinned.png](example_pinned.png) | Visual Studio Code and Google Chrome pinned in insertion order above the CPU rankings. |
-| [example_pinned_only.png](example_pinned_only.png) | Pinned only enabled, hiding the ranked section. |
-| [example_compact.png](example_compact.png) | Dark Compact view with live resource gauges and two-minute peak marks. |
-| [example_compact_light.png](example_compact_light.png) | The same gauge cluster in Light appearance. |
-| [example_light.png](example_light.png) | Light appearance with the Classic palette. |
-| [example_narrow.png](example_narrow.png) | Light appearance at the minimum dashboard width. |
-| [example_neon.png](example_neon.png) | Neon palette. |
-| [example_arcade.png](example_arcade.png) | Arcade palette. |
-| [example_tropical.png](example_tropical.png) | Tropical palette. |
-| [example_settings.png](example_settings.png) | Installer/portable Appearance section with Neon swatches, a combined theme/chart/gauge preview and an Updates section in the sidebar. |
-| [example_settings_store.png](example_settings_store.png) | Store Appearance section with the same combined preview, without an Updates section. |
+| [![Live dashboard with resource gauges, a recent spike and process rankings](example_individual.png)](example_individual.png) | [![Capture showing Chrome's CPU activity during an earlier spike](example_snapshot.png)](example_snapshot.png) |
+| See current resource use alongside recent history. | Click a spike to inspect its interval and process rankings. Top gauges remain live; process CPU averages five seconds. |
 
-The process dashboard and compact views use the same illustrative recording. Services, Usage and Connections use separate illustrative recordings. Settings uses the real window and controls; its disk choices reflect the capture machine. Screenshots capture the complete Windows-composed window, including native caption buttons, and use the current responsive layout. Generic process icons are used for the illustrative executable paths.
-
-The Services example uses a separate illustrative service recording. Regenerate it with `--services-smoke-output <output-directory>` using the same build. That diagnostic first checks live service discovery without controlling any services, then captures illustrative dark, light, narrow and historical service views. Copy `services-dark.png` to `example_services.png` after inspection. The live diagnostics are machine-specific; only the illustrative capture belongs in this gallery.
-
-The Usage example uses a separate illustrative session ledger. Regenerate it with `--usage-smoke-output <output-directory>` using the ordinary build. Copy `usage-dark.png` to `example_usage.png` after inspection; the diagnostic's other outputs are verification evidence.
-
-The Connections example uses illustrative endpoints and app traffic. Regenerate it with `--connections-smoke-output <output-directory>` using the ordinary build, then copy `connections-network-dark.png` to `example_connections.png` after inspection. This diagnostic also checks native TCP/UDP ownership, but does not install or enable the optional network monitoring service.
-
-If Windows denies foreground activation, Services diagnostics can save separately named `*-content.png` files and `content-capture-notes.txt` for control-layout QA. Those captures omit native caption proof and must not replace the native-composed gallery images.
-
-## Current UI highlights
-
-- The title bar shows version 4.0.1, the Compact view / Full view toggle, and Always on top with a stacked-window glyph and highlighted enabled state.
-- Processes, Services, Usage and Connections share a divider and a tab strip with heading-sized labels, an accent underline and readable inactive text across finishes.
-- The chart dropdown offers Overlay, Small multiples, Heatmap, Focus per configured resource and Logical processors. Chart labels use 12-DIP text; the cog shows or hides resource controls.
-- Process rows include thread and handle counts, App / Background labels, grouping, search and pins. Pin accents follow the theme and chart palette.
-- Capture mode keeps the live readouts visible while showing an earlier interval and its process rankings; Copy capture exports the selected interval.
-- The process action bar offers Properties, Copy details, More and End process/group. More contains file location and eligible memory-dump creation; pinning remains in the row menu.
-- The service action bar offers Properties, Copy details, Start, Stop and Restart; the row menu offers View process, Copy details and service controls. Services and Processes retain the action-bar target when it falls out of rank or is filtered out.
-- Services has persistent pins and a Pinned only filter; Workers and Pinned only follow Search, before Status.
-- Connections groups processes by executable, with persistent pins and Pinned only. Endpoint details open in Properties; the action bar also offers Copy details and Show in Processes.
-- The Usage action bar offers Properties, Copy details and Open file location for the selected app.
-- Action buttons share icon styling, height, padding and spacing, including Copy capture and Return to live.
-- Installer/portable Settings has an Updates section with GitHub controls; Store Settings omits that section.
-- Settings has a dedicated Network section for adapter selection and optional per-process monitoring. Gauge peaks use the configured peak window and show native values where available.
-
-### Settings by distribution channel
-
-| Installer / portable | Microsoft Store |
+| Follow services and their workers | Find apps with network activity |
 | --- | --- |
-| ![Installer and portable Settings with an Updates section in the sidebar](example_settings.png) | ![Store Settings without an Updates section in the sidebar](example_settings_store.png) |
+| [![Services showing Build Agent and its compiler and worker processes](example_services.png)](example_services.png) | [![Connections showing app traffic rates, accumulated byte totals and endpoint counts](example_connections.png)](example_connections.png) |
+| Expand a service to inspect its host and observed workers. | Inspect TCP/UDP endpoints and optional app traffic. This example uses synthetic traffic; no monitoring service is installed by the diagnostic. |
 
-## Regenerate
+[![Usage showing CPU time, I/O, GPU time and exited apps](example_usage.png)](example_usage.png)
 
-From the repository root with the SDK pinned in `global.json`:
+**Account for the session.** Usage retains app totals after processes exit. Here, Example Setup has exited while Chrome remains active. Not attributed shows machine busy time that could not be assigned to an app.
 
-```powershell
-dotnet build src/WinMon/WinMon.csproj -c Release -m:1 -p:UseSharedCompilation=false --artifacts-path artifacts/examples-build
-$capture = Start-Process ./artifacts/examples-build/bin/WinMon/release_win-x64/WinMon.exe -ArgumentList '--examples-output', "`"$PWD/artifacts/readme-examples`"" -Wait -PassThru
-$capture.ExitCode
-```
+## Compare charts
 
-Run in an interactive Windows desktop with enough screen space for the 1000-by-940 dashboard window. The capture windows appear briefly; keep them unobstructed and do not switch applications during capture. Capture fails if its window is not foreground or does not fit on screen. Wait for the app to exit successfully, inspect the `example_*.png` files, then copy them into this directory. A failed capture writes `failure.txt` in the output directory; use a fresh output directory for each run. The diagnostic mode renders in English and does not load or save your normal preferences or copy to the clipboard.
+| Separate resource trends | Focus on one resource |
+| --- | --- |
+| [![Small multiples with a separate chart for each resource](example_small_multiples.png)](example_small_multiples.png) | [![Network Focus chart with a throughput scale and smaller context charts](example_focus_network.png)](example_focus_network.png) |
+| Small multiples make simultaneous trends easier to compare. | Focus gives one resource more room and its own scale. |
 
-To regenerate the separate Store Settings example, use isolated Store output:
+The app also offers Heatmap and Logical processors charts. See the [chart guide](../USER-GUIDE.md#your-system-at-a-glance) for all choices.
 
-```powershell
-dotnet build src/WinMon/WinMon.csproj -c Release -m:1 -p:UseSharedCompilation=false -p:StoreBuild=true --artifacts-path artifacts/examples-store-build
-$capture = Start-Process ./artifacts/examples-store-build/bin/WinMon/release_win-x64/WinMon.exe -ArgumentList '--examples-output', "`"$PWD/artifacts/readme-examples-store`"" -Wait -PassThru
-$capture.ExitCode
-```
+## Find and follow apps
 
-After checking that capture completed successfully, copy only `artifacts/readme-examples-store/example_settings.png` to `docs/example/example_settings_store.png`. Keep the other gallery files from the ordinary build so its update controls remain documented accurately.
+| Combine related processes | Search and filter |
+| --- | --- |
+| [![Processes grouped by executable, combining Chrome instances](example_grouped.png)](example_grouped.png) | [![Chrome search with App only enabled](example_apps_only.png)](example_apps_only.png) |
+| Group by executable to see an app's combined activity. | Search by name or PID; App only focuses on processes observed with application windows. |
+
+| Keep important apps at the top | Show only pinned apps |
+| --- | --- |
+| [![Visual Studio Code and Chrome pinned above the ranked list](example_pinned.png)](example_pinned.png) | [![Pinned only showing Visual Studio Code and Chrome](example_pinned_only.png)](example_pinned_only.png) |
+| Pins stay above rankings without consuming a Top slot. | Pinned only gives your chosen apps the whole list. |
+
+## Customize
+
+| Light appearance | Preview before saving |
+| --- | --- |
+| [![Light appearance with the Classic chart palette](example_light.png)](example_light.png) | [![Appearance settings previewing the Dark theme, Neon palette and Bowl gauges](example_settings.png)](example_settings.png) |
+| Choose an appearance and chart palette independently. | Preview the theme, chart colors and gauges together. |
+
+| Neon palette | Arcade palette | Tropical palette |
+| --- | --- | --- |
+| [![Neon chart colors in Dark appearance](example_neon.png)](example_neon.png) | [![Arcade chart colors in Dark appearance](example_arcade.png)](example_arcade.png) | [![Tropical chart colors in Dark appearance](example_tropical.png)](example_tropical.png) |
+
+These previews compare chart palettes on the same recording. Additional appearances and gauge styles are available in Settings.
+
+<details>
+<summary>Settings in a Store build</summary>
+
+[![Store Appearance settings without the GitHub Updates section](example_settings_store.png)](example_settings_store.png)
+
+Store builds use Store-managed updates and omit the GitHub Updates section. This is a build-variant screenshot, not evidence of Store publication or installation.
+
+</details>
+
+## Save space
+
+[![Dark Compact view showing live resource gauges](example_compact.png)](example_compact.png)
+
+[![Light Compact view showing the same readings](example_compact_light.png)](example_compact_light.png)
+
+**Compact view** keeps live readings and peak marks visible without the chart or activity list.
+
+<details>
+<summary>Dashboard at its minimum width</summary>
+
+[![Light dashboard at minimum width with grouped process rankings](example_narrow.png)](example_narrow.png)
+
+The full dashboard also fits a narrower window. Long process names and peak labels may be shortened; hover in the app for full values.
+
+</details>
+
+## About these examples
+
+The process dashboard, chart, palette and Compact views share one illustrative recording. Chrome becomes busy around the selected spike, then returns to its baseline. Services, Usage and Connections use separate recordings tailored to those features. Settings uses real controls; drive choices reflect the capture machine.
+
+The main examples use installed application icons when available, with generic icons for other illustrative processes. All gallery images capture the complete Windows-composed window, including native caption buttons. Unavailable, partial and other diagnostic states remain separate verification outputs.
+
+[Regenerate and verify the gallery](REGENERATING.md).

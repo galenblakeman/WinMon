@@ -453,6 +453,16 @@ public sealed class ProcessRow : Grid
         if (_identity == requestedIdentity) _icon.Source = source;
     }
 
+    internal async Task SetExampleIconAsync(string path)
+    {
+        if (_usage is not { } usage) return;
+        var identity = _identity;
+        await ProcessIconProvider.GetAsync(usage);
+        var icon = await ProcessIconProvider.GetForPathAsync(path);
+        await Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.ContextIdle);
+        if (_identity == identity) _icon.Source = icon;
+    }
+
     protected override AutomationPeer OnCreateAutomationPeer()
     {
         return new RowAutomationPeer(this);

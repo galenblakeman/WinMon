@@ -8,7 +8,7 @@ Services persists `ServiceSortColumn` (CPU=0, memory=1, I/O=2, name=3), `Service
 
 [Back to WinMon](../README.md)
 
-Technical notes for the current code. The [README](../README.md) describes user-facing behaviour, the [performance history](PERFORMANCE-HISTORY.md) keeps dated measurements, and [design notes](design/README.md) record how each feature was planned and what landed. Commands assume the repository root as the working directory, in PowerShell 7.4 or later.
+Technical notes for the current code. The [README](../README.md) gives the product overview, the [user guide](USER-GUIDE.md) documents user-facing behaviour, the [performance history](PERFORMANCE-HISTORY.md) keeps dated measurements, and [design notes](design/README.md) record how each feature was planned and what landed. Commands assume the repository root as the working directory, in PowerShell 7.4 or later.
 
 ## Requirements
 
@@ -94,7 +94,7 @@ $run.ExitCode
 | `--capture-smoke-output <dir>` | `capture` | Automatic captures, the 836-DIP chart toolbar with Auto, the menu shortcut opening Automatic captures settings, and Settings sections in Dark and Light appearances; fails if Appearance, Monitoring or Network scrolls at full height, and records each section's overflow in `captures.json` |
 | `--chart-smoke-output <dir>` | `chart` | Chart dropdown, sectioned chart-type help on the heading and selector in Dark/Light (`chart-help-*.png`), focused resources, hidden-resource selection and capture inspection |
 | `--gauges-smoke-output <dir>` | `gauges` | Every gauge style in dark and light at 1000 and 836 DIPs, plus one render per additional appearance finish: shared readout height, unclipped values, network scale, unavailable readings, the saved style and combined Settings appearance previews (`gauges.json`). The translucent finishes also get desktop-composed captures (`backdrop-*.png`, `backdrops.json`); if Windows denies foreground activation, WPF content captures are saved as `backdrop-*-content.png` with `content-capture-notes.txt` instead. |
-| `--examples-output <dir>` | — | README screenshots; follow [the example gallery's steps](example/README.md#regenerate) |
+| `--examples-output <dir>` | — | README screenshots; follow [the example gallery's steps](example/REGENERATING.md) |
 | `--profile-output <dir> [seconds]` | — | Whole-process cost; see [Profile the whole app](#profile-the-whole-app) |
 
 Limits:
@@ -311,3 +311,9 @@ The cog button beside the chart selector uses ActivityPanelButton for native exp
 ### Per-chart preferences
 
 ResourceChartPreferences stores the raw six-resource mask, range, control visibility and focus index for each chart type. MonitorPreferences keeps the legacy top-level fields as the active chart state, snapshots them before switching and restores the selected type. PreferenceStore validation seeds missing entries from legacy selections and range, normalizes persisted entries and snapshots the active configuration before save. The raw mask retains the second-disk selection without a configured second drive. Longer saved ranges remain stored when retention is reduced; EffectiveChartRange uses two minutes until that choice is available again. Existing Settings/exit/update/session-end saves persist configurations; no new sample-time writes are introduced. SettingsWindow defers chart reset until Save and merges ordinary settings without overwriting current chart choices. See docs/design/CHART-PREFERENCES.md for requirements and validation limits.
+
+## Screenshot documentation
+
+The [gallery](example/README.md) presents feature examples; its [regeneration guide](example/REGENERATING.md) covers native captures, channel-specific Settings and visual review. Update fixture data in `WindowDiagnostics.Examples.cs` and the Services, Usage and Connections diagnostic files, rather than editing image pixels. Keep changes isolated from live monitoring. The example recording checks its CPU spike/recovery, and Connections checks that period counters accumulate. Native smoke modes keep unavailable states as separate verification outputs.
+
+Screenshot versions and capture dates describe the actual capture build. Do not change their provenance without regenerating and inspecting the images. Installed application icons are optional; the process examples preserve synthetic identities and use generic icons where no suitable local executable is available.
