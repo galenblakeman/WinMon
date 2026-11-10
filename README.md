@@ -35,7 +35,7 @@ Ordinary resource monitoring and connection lists run without administrator righ
 
 *In this illustrative workload, Chrome's CPU activity rises during the selected spike and falls afterward. Resource readings describe the selected interval; process CPU uses a five-second average. The gauges at the top remain live.*
 
-History defaults to **30 minutes**, with retention configurable up to **60 minutes**, subject to memory limits. Optional **Automatic captures** mark threshold events and save text reports while you are away. [Learn about history and captures](docs/USER-GUIDE.md#catch-the-spikeeven-after-it-passes).
+History defaults to **30 minutes**, with retention configurable up to **60 minutes**, subject to memory limits. Optional **Automatic captures** mark threshold events and save text reports while you are away, including app receive/send leaders when network traffic was recorded. [Learn about history and captures](docs/USER-GUIDE.md#catch-the-spikeeven-after-it-passes).
 
 ## Explore your system
 

@@ -1911,4 +1911,5 @@ Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。<
   <data name="CliSettingsUpdated" xml:space="preserve"><value>CLI设置已保存。</value></data>
 <data name="ExportTraffic" xml:space="preserve"><value>进程网络流量</value></data>
 <data name="ExportTrafficNote" xml:space="preserve"><value>按进程生命周期记录的字节数和延迟速率。总量为累计值，请勿跨样本相加。质量标志表示覆盖不完整。</value></data>
+<data name="AutoCaptureNetworkScope" xml:space="preserve"><value>触发器测量所选适配器；应用速率包含所有适配器和协议，因此总和可能不同。</value></data>
 </root>

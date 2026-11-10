@@ -92,7 +92,9 @@ public partial class MainWindow
         var marker = new CaptureMarker(fired, Guid.NewGuid(), CaptureReportText.Rule(fired));
         _captureMarkers.Add(marker);
         var snapshot = CaptureReportText.Snapshot(fired, history);
-        var text = CaptureReportText.Report(fired, marker.ReportId, snapshot);
+        var networkCapture = fired.Rule.Metric == CaptureMetric.Network
+            ? Session.Connections.Captures.FirstOrDefault(capture => marker.Peak.Matches(capture.Sample)) : null;
+        var text = CaptureReportText.Report(fired, marker.ReportId, snapshot, networkCapture);
         var folder = settings.Folder ?? _preferenceStore.DefaultCaptureFolder;
         _ = WriteCaptureAsync(marker, folder, Task.Run(() =>
         {

@@ -1911,4 +1911,5 @@ Q beendet. Ctrl+C bricht ab. Programm- und Dienst-Pins bleiben gespeichert.</val
   <data name="CliSettingsUpdated" xml:space="preserve"><value>CLI-Einstellungen gespeichert.</value></data>
 <data name="ExportTraffic" xml:space="preserve"><value>Prozess-Netzwerkverkehr</value></data>
 <data name="ExportTrafficNote" xml:space="preserve"><value>Bytes und verzögerte Raten je Prozesslaufzeit. Summen sind kumulativ; Messpunkte nicht addieren. Qualitätsflags zeigen unvollständige Erfassung.</value></data>
+<data name="AutoCaptureNetworkScope" xml:space="preserve"><value>Der Auslöser misst den gewählten Adapter; App-Raten umfassen alle Adapter und Protokolle und können abweichen.</value></data>
 </root>

@@ -1911,4 +1911,5 @@ Q sale. Ctrl+C cancela. Los programas y servicios fijados se conservan entre ses
   <data name="CliSettingsUpdated" xml:space="preserve"><value>Configuración de CLI guardada.</value></data>
 <data name="ExportTraffic" xml:space="preserve"><value>Tráfico de red por proceso</value></data>
 <data name="ExportTrafficNote" xml:space="preserve"><value>Bytes y tasas retrasadas por vida del proceso. Totales acumulativos; no sume muestras. Los indicadores señalan cobertura incompleta.</value></data>
+<data name="AutoCaptureNetworkScope" xml:space="preserve"><value>El disparador mide el adaptador seleccionado; las tasas de las aplicaciones incluyen todos los adaptadores y protocolos y pueden diferir.</value></data>
 </root>

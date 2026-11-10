@@ -1911,4 +1911,5 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
   <data name="CliSettingsUpdated" xml:space="preserve"><value>CLI設定を保存しました。</value></data>
 <data name="ExportTraffic" xml:space="preserve"><value>プロセス別ネットワーク通信量</value></data>
 <data name="ExportTrafficNote" xml:space="preserve"><value>プロセスの存続期間ごとのバイト数と遅延速度です。合計は累積値のためサンプル間で加算しないでください。品質フラグは不完全な収集を示します。</value></data>
+<data name="AutoCaptureNetworkScope" xml:space="preserve"><value>トリガーは選択したアダプターを測定します。アプリの速度はすべてのアダプターとプロトコルを含むため、一致しない場合があります。</value></data>
 </root>

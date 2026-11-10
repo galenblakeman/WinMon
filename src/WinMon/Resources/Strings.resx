@@ -1911,4 +1911,5 @@ Q quits. Ctrl+C cancels. Executable/service pins persist between sessions.</valu
   <data name="CliSettingsUpdated" xml:space="preserve"><value>CLI settings saved.</value></data>
 <data name="ExportTraffic" xml:space="preserve"><value>Process network traffic</value></data>
 <data name="ExportTrafficNote" xml:space="preserve"><value>Process-lifetime bytes and delayed rates. Totals are cumulative; do not sum samples. Quality flags indicate incomplete coverage.</value></data>
+<data name="AutoCaptureNetworkScope" xml:space="preserve"><value>The trigger measures the selected adapter; app rates include all adapters and protocols and may not add up to it.</value></data>
 </root>

@@ -184,6 +184,49 @@ public sealed class CaptureReportsTests
     }
 
     [Test]
+    public void NetworkLeaders_GroupRatesAndUseExactLifetimeMetadata()
+    {
+        var sample = Sample(0, 40, 10);
+        ProcessUsage[] owners =
+        [
+            new(1, 1, "slow", 90) { ImagePath = "C:\\slow.exe" },
+            new(2, 2, "fast", 1) { ImagePath = "C:\\fast.exe" },
+            new(3, 3, "fast", 1) { ImagePath = "C:\\fast.exe" }
+        ];
+        var network = new ProcessNetworkFrame(1, 1, ProcessNetworkQuality.Incomplete,
+        [
+            new(1, 1, 0, 0, 1, 1), new(2, 2, 0, 0, 2000, 1000),
+            new(3, 3, 0, 0, 3000, 1000), new(1, 99, 0, 0, null, null)
+        ]);
+        var text = CaptureReportText.NetworkLeaders(new(sample, null, owners, network));
+        Assert.Multiple(() =>
+        {
+            Assert.That(text.IndexOf("fast:", StringComparison.Ordinal), Is.LessThan(text.IndexOf("slow:", StringComparison.Ordinal)));
+            Assert.That(text.Split("fast:"), Has.Length.EqualTo(2));
+            Assert.That(text, Does.Contain("↓ " + ConnectionsView.NetworkRate(5000)));
+            Assert.That(text, Does.Contain(Strings.Format(Strings.PID, 1) + ":"));
+            Assert.That(text, Does.Contain(Strings.NetworkProcessMonitoringIncomplete));
+            Assert.That(text, Does.Contain(Strings.ConnectionsRateTiming));
+            Assert.That(CaptureReportText.NetworkLeaders(null), Does.Contain(Strings.NetworkProcessMonitoringUnavailable));
+        });
+    }
+
+    [Test]
+    public void NetworkReport_UsesPeakTrafficAndPreservesFallbackDisclaimer()
+    {
+        var sample = Sample(0, 40, 10);
+        var fired = new CaptureFired(new CaptureRuleSetting(CaptureMetric.Network, true, 8, 1), sample, sample, 10, [10]);
+        var snapshot = CaptureReportText.Snapshot(fired, [sample]);
+        var capture = new ConnectionCapture(sample, null, sample.Processes,
+            new(1, 1, ProcessNetworkQuality.Provisional, [new(2, 2, 1000, 500, 100, 50)]));
+        var text = CaptureReportText.Report(fired, Guid.NewGuid(), snapshot, capture);
+        Assert.That(text, Does.Contain("quiet: ↓ " + ConnectionsView.NetworkRate(100)));
+        Assert.That(text, Does.Contain(Strings.AutoCaptureIoDisclaimer));
+        var unavailable = capture with { Network = capture.Network! with { Quality = ProcessNetworkQuality.Unavailable } };
+        Assert.That(CaptureReportText.NetworkLeaders(unavailable), Does.Not.Contain("quiet:"));
+    }
+
+    [Test]
     public void Notification_ShowsTheBusiestProcessInTheRulesOwnResource()
     {
         var history = Enumerable.Range(0, 5).Select(i => Sample(i, 40, 10)).ToArray();

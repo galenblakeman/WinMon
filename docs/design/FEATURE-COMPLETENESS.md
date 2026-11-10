@@ -5,7 +5,7 @@ Implement and verify these independent increments in order, with one commit each
 | Requirement | Status |
 | --- | --- |
 | 1. Export retained process network bytes, rates and quality | Verified |
-| 2. Include actual network leaders in automatic network reports | Not started |
+| 2. Include actual network leaders in automatic network reports | Verified |
 | 3. Show Usage for a recorded period ending at the selected capture | Not started |
 | 4. Explain actual retained history across activity views | Not started |
 | 5. Navigate from Processes to the same app in Connections and Usage | Not started |
@@ -23,3 +23,5 @@ Run Verify.ps1 per increment and relevant visible smoke modes; inspect generated
 ## Result and departures
 
 Item 1 landed as a separate Process network traffic CSV, preserving the endpoint schema. Verify passed with the independently reproduced CLI SettingsCommandsShowSetAndResetWithoutSamplingOrInstalling file-access failure excluded; the unfiltered run failed only there. Feature smoke passed (125 renders), including the inspected traffic export dialog. No incident persistence changes are planned.
+
+Item 2 appends grouped receive/send leaders from the exact peak, preserving unavailable/incomplete status and adapter scope. All build/test steps passed with the same CLI baseline exclusion (991 WPF tests). Capture card Dark/Light PNGs were inspected. The capture smoke stops later at Settings Monitoring overflow (47 DIPs); the pre-change 10:54 app binary reproduced the identical failure in artifacts/goal-baseline-capture. No Settings code changed.

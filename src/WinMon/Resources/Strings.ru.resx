@@ -1911,4 +1911,5 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
   <data name="CliSettingsUpdated" xml:space="preserve"><value>Настройки CLI сохранены.</value></data>
 <data name="ExportTraffic" xml:space="preserve"><value>Сетевой трафик процессов</value></data>
 <data name="ExportTrafficNote" xml:space="preserve"><value>Байты и скорости с задержкой за время жизни процесса. Итоги накопительные; не суммируйте отсчёты. Флаги отмечают неполное покрытие.</value></data>
+<data name="AutoCaptureNetworkScope" xml:space="preserve"><value>Триггер измеряет выбранный адаптер; скорости приложений охватывают все адаптеры и протоколы и могут отличаться.</value></data>
 </root>

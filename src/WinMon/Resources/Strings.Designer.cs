@@ -54,6 +54,7 @@ public static partial class Strings
     public static string AutoCaptureMarkerHint => ResourceManager.GetString(nameof(AutoCaptureMarkerHint), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string AutoCaptureMarkerTooltip => ResourceManager.GetString(nameof(AutoCaptureMarkerTooltip), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string AutoCaptureMenuDetail => ResourceManager.GetString(nameof(AutoCaptureMenuDetail), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string AutoCaptureNetworkScope => ResourceManager.GetString(nameof(AutoCaptureNetworkScope), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string AutoCaptureNone => ResourceManager.GetString(nameof(AutoCaptureNone), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string AutoCaptureNoneYet => ResourceManager.GetString(nameof(AutoCaptureNoneYet), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string AutoCaptureNotificationPeak => ResourceManager.GetString(nameof(AutoCaptureNotificationPeak), Culture ?? CultureInfo.CurrentUICulture)!;

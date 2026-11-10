@@ -64,7 +64,8 @@ internal static class CaptureReportText
     /// <param name="fired">The rule trigger and its peak reading.</param>
     /// <param name="id">The capture identifier written into the report header.</param>
     /// <param name="snapshot">The peak's <see cref="Snapshot"/>, shared with <see cref="Notification"/>.</param>
-    internal static string Report(CaptureFired fired, Guid id, SnapshotReport snapshot)
+    internal static string Report(CaptureFired fired, Guid id, SnapshotReport snapshot,
+        ConnectionCapture? networkCapture = null)
     {
         var metric = fired.Rule.Metric;
         var text = new StringBuilder();
@@ -78,7 +79,66 @@ internal static class CaptureReportText
         text.AppendLine();
         text.Append(SnapshotText.Format(snapshot));
         text.AppendLine();
+        if (metric == CaptureMetric.Network) text.Append(NetworkLeaders(networkCapture));
         return text.ToString();
+    }
+
+    internal static string NetworkLeaders(ConnectionCapture? capture)
+    {
+        var text = new StringBuilder();
+        text.AppendLine(Strings.ExportTraffic);
+        text.AppendLine(Strings.ConnectionsNetworkOwnerTotals);
+        text.AppendLine(Strings.ConnectionsRateTiming);
+        text.AppendLine(Strings.AutoCaptureNetworkScope);
+        var network = capture?.Network;
+        if (network is null || network.Quality.HasFlag(ProcessNetworkQuality.Unavailable))
+        {
+            text.AppendLine(Strings.NetworkProcessMonitoringUnavailable);
+            return text.ToString();
+        }
+
+        if ((network.Quality & (ProcessNetworkQuality.Incomplete | ProcessNetworkQuality.Discontinuity |
+                               ProcessNetworkQuality.CapacityExceeded)) != 0)
+            text.AppendLine(Strings.NetworkProcessMonitoringIncomplete);
+        if (network.Quality.HasFlag(ProcessNetworkQuality.WarmingUp))
+            text.AppendLine(Strings.NetworkProcessMonitoringWarmingUp);
+        var owners = capture!.Owners.Concat(network.Owners).DistinctBy(owner => owner.Identity)
+            .ToDictionary(owner => owner.Identity);
+        var groups = network.Processes.Where(reading => network.CurrentLifetimes is null ||
+                network.CurrentLifetimes.Contains(new ProcessLifetimeIdentity(reading.ProcessId, reading.CreationTicks,
+                    ProcessLifetimeIdentity.WindowsFileTime)))
+            .Select(reading => new
+            {
+                Reading = reading,
+                Owner = owners.GetValueOrDefault(new ProcessLifetimeIdentity(reading.ProcessId, reading.CreationTicks,
+                    ProcessLifetimeIdentity.WindowsFileTime))
+            })
+            .GroupBy(row => row.Owner is { ImagePath.Length: > 0 } owner
+                ? owner.ImagePath : $"{row.Reading.ProcessId}:{row.Reading.CreationTicks}", StringComparer.OrdinalIgnoreCase)
+            .Select(group => new
+            {
+                Name = group.First().Owner is { } owner ? DisplayName(owner) :
+                    Strings.Format(Strings.PID, group.First().Reading.ProcessId),
+                Receive = SumRates(group.Select(row => row.Reading.ReceiveBytesPerSecond)),
+                Send = SumRates(group.Select(row => row.Reading.SendBytesPerSecond))
+            })
+            .OrderByDescending(row => row.Receive + row.Send ?? -1).Take(20).ToArray();
+        foreach (var row in groups)
+            text.AppendLine($"{row.Name}: ↓ {ConnectionsView.NetworkRate(row.Receive)}  ↑ {ConnectionsView.NetworkRate(row.Send)}");
+        if (groups.Length == 0) text.AppendLine(Strings.MissingReading);
+        return text.ToString();
+    }
+
+    private static double? SumRates(IEnumerable<double?> rates)
+    {
+        var total = 0d;
+        foreach (var rate in rates)
+        {
+            if (rate is not { } value || !double.IsFinite(value) || value < 0) return null;
+            total += value;
+        }
+
+        return double.IsFinite(total) ? total : null;
     }
 
     /// <summary>The peak as Copy capture would report it: top 20 individual processes, sorted by the rule's resource.</summary>

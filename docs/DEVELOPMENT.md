@@ -218,6 +218,8 @@ Rules for new code:
 
 Automatic capture report writes are tracked on the UI thread. Normal close and in-app update restart wait for them, like CSV exports and process dumps, before closing the window or committing the update. The capture smoke includes a delayed-write shutdown check in `captures.json`. A stalled report destination can delay exit; forced termination and Windows session shutdown do not provide this asynchronous wait.
 
+Network-triggered reports append executable leaders from the exact peak's retained ConnectionCapture.Network, rather than the latest live frame. Process lifetime identity governs metadata; executable instances share a rate row, and unavailable member rates keep that direction unavailable. Reports preserve quality and delayed-window notes and distinguish the selected-adapter trigger from all-adapter app traffic. The total-I/O fallback remains explicitly disclaimed.
+
 Invalid JSON settings whose backup fails remain protected: subsequent saves retry the backup and fail without replacing the original until it succeeds.
 
 ### Processes
