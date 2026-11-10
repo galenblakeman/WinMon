@@ -357,6 +357,7 @@ public sealed class TerminalChartTests
     public void WideChartsKeepTheSameTextInColorAndNoColorAndOfferAsciiGlyphs()
     {
         var state = State();
+        state.NetworkEnabled = true;
         using var output = new StringWriter();
         var console = AnsiConsole.Create(new AnsiConsoleSettings { Out = new AnsiConsoleOutput(output),
             Ansi = AnsiSupport.Yes, ColorSystem = ColorSystemSupport.TrueColor });
@@ -364,8 +365,11 @@ public sealed class TerminalChartTests
         console.Write(InteractiveMonitor.BuildView(state, 0, 100, 120, 36));
         var plain = Regex.Replace(output.ToString(), "\u001b\\[[0-9;]*m", "");
         Assert.That(plain, Is.EqualTo(Render(state, 120, 36)));
+        Assert.That(plain, Does.Contain("[✓]").And.Contain("[ ]").And.Not.Contain("☑").And.Not.Contain("☐"));
+        Assert.That(output.ToString(), Does.Match("\\x1b\\[[0-9;]*38;2;63;185;80[0-9;]*m(?:\\x1b\\[[0-9;]*m)*\\[✓\\]"));
         var ascii = Render(state, 120, 36, false);
-        Assert.That(ascii, Does.Contain("#").And.Not.Contain("░").And.Not.Contain("█").And.Contain("[Q] Quit"));
+        Assert.That(ascii, Does.Contain("#").And.Not.Contain("░").And.Not.Contain("█").And.Contain("[Q] Quit")
+            .And.Contain("[x]").And.Contain("[ ]").And.Not.Contain("✓"));
     }
 
     [TestCase("de")]

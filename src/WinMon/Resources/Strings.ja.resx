@@ -1898,8 +1898,8 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
   <data name="CliNetworkStart" xml:space="preserve"><value>インストール済みネットワークサービスを起動して確認します。</value></data>
   <data name="CliNetworkInstall" xml:space="preserve"><value>ネットワーク監視をインストールまたは修復して起動します（管理者の承認が必要）。</value></data>
   <data name="CliNetworkBundleRequired" xml:space="preserve"><value>署名済みセットアップがありません。署名済みサービスを含むCLIビルドを使用するか、先にデスクトップ版WinMonでネットワーク監視を有効にしてください。</value></data>
-  <data name="CliNetworkReady" xml:space="preserve"><value>ネットワークサービスに接続できました。実行: winmon-cli watch --network --tab connections</value></data>
-  <data name="CliNetworkSetupHint" xml:space="preserve"><value>実行: winmon-cli network start / winmon-cli network install</value></data>
+  <data name="CliNetworkReady" xml:space="preserve"><value>ネットワークサービスに接続できました。実行: WinMon.Cli watch --network --tab connections</value></data>
+  <data name="CliNetworkSetupHint" xml:space="preserve"><value>実行: WinMon.Cli network start / WinMon.Cli network install</value></data>
   <data name="CliSettingsHeading" xml:space="preserve"><value>CLI設定</value></data>
   <data name="CliSettingsShow" xml:space="preserve"><value>保存されたCLI設定を表示します。</value></data>
   <data name="CliSettingsReset" xml:space="preserve"><value>保存されたCLI設定をリセットします。</value></data>

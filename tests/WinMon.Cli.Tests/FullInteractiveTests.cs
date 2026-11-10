@@ -256,7 +256,7 @@ public sealed class FullInteractiveTests
         var console = AnsiConsole.Create(new AnsiConsoleSettings { Out = new AnsiConsoleOutput(output), Ansi = AnsiSupport.No });
         console.Profile.Width = 80;
         console.Write(InteractiveMonitor.BuildView(state, 0, 3, 80, 24));
-        Assert.That(output.ToString(), Does.Contain("winmon-cli network start").And.Contain("winmon-cli network install"));
+        Assert.That(output.ToString(), Does.Contain("WinMon.Cli network start").And.Contain("WinMon.Cli network install"));
     }
 
     [Test]

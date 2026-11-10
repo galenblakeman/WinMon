@@ -53,11 +53,11 @@ History defaults to **30 minutes**, with retention configurable up to **60 minut
 
 ## Command-line preview
 
-The source tree includes a separate Windows terminal app, `winmon-cli`, using Spectre.Console and System.CommandLine. Build it with the .NET 10 SDK; it is not yet included in release downloads:
+The source tree includes a separate Windows terminal app, `WinMon.Cli`, using Spectre.Console and System.CommandLine. Publish it with the .NET 10 SDK; it is not yet included in release downloads:
 
 ```powershell
-dotnet build src/WinMon.Cli/WinMon.Cli.csproj -c Release -m:1 -p:UseSharedCompilation=false
-$cli = './src/WinMon.Cli/bin/Release/net10.0-windows/winmon-cli.exe'
+dotnet publish src/WinMon.Cli/WinMon.Cli.csproj -c Release -m:1 -p:UseSharedCompilation=false
+$cli = './src/WinMon.Cli/bin/Release/net10.0-windows/win-x64/publish/WinMon.Cli.exe'
 & $cli
 & $cli watch --grouped --apps-only --top 20
 & $cli watch --tab services --sort memory
@@ -65,6 +65,8 @@ $cli = './src/WinMon.Cli/bin/Release/net10.0-windows/winmon-cli.exe'
 & $cli snapshot --sort memory --top 15
 & $cli snapshot --filter chrome --format json
 ```
+
+Release publishing defaults to a self-contained Windows x64 single executable, with embedded debug symbols and uncompressed assemblies, matching the desktop app. Only `WinMon.Cli.exe` is needed to run; dependency `.pdb` files in the publish folder are optional debugging symbols. The published app includes the .NET runtime; override the target with `-r` when publishing for another supported Windows architecture.
 
 `watch` is a read-only, keyboard-driven app with four tabs:
 
@@ -85,9 +87,9 @@ At 120 columns and 32 rows, the resource summary shows five panels in CPU, Memor
 
 Interactive output uses UTF-8 so gauges and sparklines render as Unicode even when the shell starts with a legacy Windows code page. The CLI restores the original output encoding on exit; redirected output keeps its inherited encoding. Use a font with Unicode block characters, such as Cascadia Mono or Consolas.
 
-The CLI header includes its build version (for example, `WinMon 4.0.6`). Keyboard shortcut hints use soft cyan (`#7DCFFF`) key names inside grey brackets. Summary accents match the desktop reference: lime CPU, blue memory, yellow disk, purple network and teal GPU. The selected table row is highlighted across its full width. Values, gauge bars and resource histories share the corresponding color in every layout. `--no-color` and `NO_COLOR` keep the same readable text without resource colors.
+The CLI header includes its build version (for example, `WinMon 4.0.6`). Keyboard shortcut hints and their brackets use bright cyan (`#00D8DB`), including sort digits and active-tab keys. Summary accents use orange CPU, blue memory, yellow disk, orchid network and turquoise GPU. The selected table row is highlighted across its full width. Values, gauge bars and resource histories share the corresponding color in every layout. `--no-color` and `NO_COLOR` keep the same readable text without resource colors.
 
-Toggles show their state after the label (`☑`/`☐`, or `[x]`/`[ ]` without Unicode). The Memory history zooms to the range it covered in the last 60 seconds and its caption gives that range. A dark-blue highlight (`#264F78`) with light text marks the active tab and selected row; an arrow marks the active sort column. Enabled/live states are green (`#3FB950`), pins and paused/incomplete states gold (`#D29922`), and failures red (`#FF7B72`). Text labels, brackets, arrows and row markers preserve meaning with `--no-color` or `NO_COLOR`. Normal text/background use the terminal defaults; the accent palette targets dark terminals, and Spectre adapts colors to the terminal's supported color depth.
+Toggles show their state after the label (`[✓]`/`[ ]`, or `[x]`/`[ ]` without Unicode). The Memory history zooms to the range it covered in the last 60 seconds and its caption gives that range. A dark-blue highlight (`#264F78`) with light text marks the active tab and selected row; an arrow marks the active sort column. Enabled/live states are green (`#3FB950`), pins and paused/incomplete states gold (`#D29922`), and failures red (`#FF7B72`). Text labels, brackets, arrows and row markers preserve meaning with `--no-color` or `NO_COLOR`. Normal text/background use the terminal defaults; the accent palette targets dark terminals, and Spectre adapts colors to the terminal's supported color depth.
 
 Interactive settings are saved separately from desktop settings in `%LOCALAPPDATA%\WinMon\cli-settings.json`: the last tab, per-tab sort/Top/App only/Pinned only, process grouping, Services status/Workers, Connections traffic period, network-monitoring preference and executable/service pins. Filters, selection, scrolling, details and pause are temporary. Keyboard changes save after a short debounce and on normal quit/Ctrl+C. Concurrent sessions merge changed controls instead of replacing each other's entire settings.
 
@@ -101,7 +103,7 @@ The terminal requires ANSI support and at least 80 columns by 20 rows. Narrow la
 
 Endpoint lists work without the optional traffic service. Network monitoring is enabled by default unless saved settings disable it. Use `--network=false` to disable it for one launch, or `settings set --network=true` to enable a previously disabled preference. Monitoring subscribes to an already-installed, authenticated local service and can start that installed service; it never installs, repairs or removes it. Outages retry every five seconds and a protocol mismatch requests an update. Missing or incomplete rates are not shown as zero. Without traffic collection, Connections falls back to TCP ordering while retaining the chosen sort preference.
 
-Connections rows group the same executable's processes, matching the desktop. Traffic stays in Connections. Use `winmon-cli network start` to start and check an installed service. If it is missing, incompatible or not authorized for your account, explicitly run `winmon-cli network install` to install/repair, authorize the requesting account, start and verify it through the desktop's signed setup flow and administrator approval. Then run `winmon-cli watch --tab connections`. Setup requires a CLI build containing the signed service bundle; source builds without it explain how to enable monitoring through desktop WinMon. Store builds cannot run these service-management commands. Monitoring never triggers installation automatically, and setup does not save a desktop preference.
+Connections rows group the same executable's processes, matching the desktop. Traffic stays in Connections. Use `WinMon.Cli network start` to start and check an installed service. If it is missing, incompatible or not authorized for your account, explicitly run `WinMon.Cli network install` to install/repair, authorize the requesting account, start and verify it through the desktop's signed setup flow and administrator approval. Then run `WinMon.Cli watch --tab connections`. Setup requires a CLI build containing the signed service bundle; source builds without it explain how to enable monitoring through desktop WinMon. Store builds cannot run these service-management commands. Monitoring never triggers installation automatically, and setup does not save a desktop preference.
 
 `snapshot` takes a baseline, waits one second, then prints a table or JSON and exits. It supports the six process sorts, text/PID filtering and `--top 0` for All; it intentionally reports one measured interval. JSON uses raw bytes/bytes per second, explicit null readings and schema version 1. Use `--no-color` or `NO_COLOR` to suppress colors; redirected tables have no ANSI styling. Redirected `watch` output is rejected; use snapshots for scripts. Exit codes are 0 for a completed report/normal quit, 1 for failure, and 130 for cancellation; invalid arguments return a nonzero code.
 
@@ -154,7 +156,7 @@ WinMon is built with C# and WPF and released under the [MIT License](LICENSE). O
 
 Copyright © 2026 Galen Blakeman.
 
-Running `winmon-cli` without arguments opens the interactive monitor with saved preferences, just like `winmon-cli watch`. Use `winmon-cli --help` for the command list; launch options still follow `watch`.
+Running `WinMon.Cli` without arguments opens the interactive monitor with saved preferences, just like `WinMon.Cli watch`. Use `WinMon.Cli --help` for the command list; launch options still follow `watch`.
 
 Press **B** in any watch tab to enable or disable network traffic monitoring. The change is saved unless `--no-save` is active. Disabling releases only this CLI subscription; enabling connects to the installed service without installing or repairing it. Search-filter editing treats B as text.
 

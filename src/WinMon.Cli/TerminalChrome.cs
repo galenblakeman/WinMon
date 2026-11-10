@@ -16,14 +16,15 @@ internal static partial class TerminalChrome
     internal static readonly Color Selection = new(0x26, 0x4F, 0x78);
     internal static readonly Color Foreground = new(0xE6, 0xED, 0xF3);
     internal static readonly Style Accent = new(Titanium, decoration: Decoration.Bold);
-    internal static readonly Style Key = new(new Color(0x7D, 0xCF, 0xFF));
-    internal static readonly Style KeyBracket = new(Titanium);
+    internal static readonly Style Key = new(new Color(0x00, 0xD8, 0xDB));
+    internal static readonly Style KeyBracket = Key;
     internal static readonly Style Selected = new(Foreground, Selection, Decoration.Bold);
-    internal static readonly Style Cpu = new(new Color(0x73, 0xFF, 0x35));
-    internal static readonly Style Memory = new(new Color(0x44, 0x87, 0xFF));
-    internal static readonly Style Disk = new(new Color(0xFF, 0xD0, 0x44));
-    internal static readonly Style Network = new(new Color(0xB0, 0x71, 0xD5));
-    internal static readonly Style Gpu = new(new Color(0x00, 0xF0, 0xC8));
+    internal static readonly Style SelectedKey = new(Key.Foreground, Selection, Decoration.Bold);
+    internal static readonly Style Cpu = new(new Color(0xFD, 0x6C, 0x0F));
+    internal static readonly Style Memory = new(new Color(0x11, 0x95, 0xFD));
+    internal static readonly Style Disk = new(new Color(0xFC, 0xEA, 0x1D));
+    internal static readonly Style Network = new(new Color(0xDC, 0x77, 0xFB));
+    internal static readonly Style Gpu = new(new Color(0x00, 0xF2, 0xC3));
 
     internal static Paragraph Keys(string value, int width)
     {
@@ -34,7 +35,7 @@ internal static partial class TerminalChrome
         foreach (Match match in KeyCaps().Matches(text))
         {
             result.Append(text[offset..match.Index]);
-            if (match.Value is "[x]" or "☑") result.Append(match.Value, new Style(Green, decoration: Decoration.Bold));
+            if (match.Value is "[x]" or "[✓]") result.Append(match.Value, new Style(Green, decoration: Decoration.Bold));
             else result.Append("[", KeyBracket).Append(match.Value[1..^1], Key).Append("]", KeyBracket);
             offset = match.Index + match.Length;
         }
@@ -44,6 +45,6 @@ internal static partial class TerminalChrome
     [GeneratedRegex(@"(?<![\w\[])(?:F1-F4|F[1-4]|1-6|Enter|Space|Esc|Left/Right|Arrows/Page|[ABGNPQRSTW?/])(?=\s|:|$)")]
     private static partial Regex KeyNames();
 
-    [GeneratedRegex(@"\[(?:F1-F4|F[1-4]|[1-6]|1-6|Enter|Space|Esc|Left/Right|Arrows/Page|[ABGNPQRSTW?x/])\]|☑")]
+    [GeneratedRegex(@"\[(?:F1-F4|F[1-4]|[1-6]|1-6|Enter|Space|Esc|Left/Right|Arrows/Page|[ABGNPQRSTW?x✓/])\]")]
     private static partial Regex KeyCaps();
 }

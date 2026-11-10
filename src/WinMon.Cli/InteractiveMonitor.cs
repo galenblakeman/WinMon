@@ -131,7 +131,7 @@ public static class InteractiveMonitor
     public static IRenderable BuildView(InteractiveState state, int top, int pageSize, int width, int height, bool unicode)
     {
         var separator = unicode ? " · " : " | ";
-        string Mark(bool value) => unicode ? value ? "☑" : "☐" : value ? "[x]" : "[ ]";
+        string Mark(bool value) => value ? unicode ? "[✓]" : "[x]" : "[ ]";
         var header = new Paragraph(TerminalText.Fit($"{TerminalChrome.ProductName}{separator}{SafeText(Environment.MachineName)}{separator}", Math.Max(0, width - 12)), TerminalChrome.Accent)
             .Append(state.Paused ? Strings.CliPaused : Strings.CliLive,
                 new Style(state.Paused ? TerminalChrome.Gold : TerminalChrome.Green, decoration: Decoration.Bold));
@@ -283,7 +283,7 @@ public static class InteractiveMonitor
             var keyEnd = Math.Min(6, fitted.Length);
             // The marker stays for no-colour terminals but sits outside the highlight.
             text.Append(fitted[..keyStart], TerminalChrome.Accent);
-            text.Append(fitted[keyStart..keyEnd], tab == active ? style : TerminalChrome.Key);
+            text.Append(fitted[keyStart..keyEnd], tab == active ? TerminalChrome.SelectedKey : TerminalChrome.Key);
             text.Append(fitted[keyEnd..], style);
             if (tab != TerminalTab.Usage) text.Append("  ");
         }

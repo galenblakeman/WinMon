@@ -2,11 +2,22 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
-    <AssemblyName>winmon-cli</AssemblyName>
+    <AssemblyName>WinMon.Cli</AssemblyName>
+    <AssemblyTitle>WinMon.Cli</AssemblyTitle>
+    <Description>Interactive Windows resource monitor and command-line reports</Description>
     <RootNamespace>WinMon.Cli</RootNamespace>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <EnableCompressionInSingleFile>false</EnableCompressionInSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <Optimize>true</Optimize>
+    <DebugType>embedded</DebugType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(StoreBuild)' == 'true'">
     <TargetFramework>net10.0-windows10.0.17763.0</TargetFramework>
@@ -27,7 +38,11 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <AssemblyMetadata Include="License" Value="$(PackageLicenseExpression)" />
     <InternalsVisibleTo Include="WinMon.Cli.Tests" />
+    <!-- The same gen0 cap as the desktop app (see WinMon.csproj): watch allocates about 1.5 MB/s, and the
+         default L3-sized budget let it commit far more than it keeps. -->
+    <RuntimeHostConfigurationOption Include="System.GC.Gen0MaxBudget" Value="6291456" />
   </ItemGroup>
   <ItemGroup Condition="'$(NetworkServiceBundleDirectory)' != '' And '$(StoreBuild)' != 'true'">
     <EmbeddedResource Include="$(NetworkServiceBundleDirectory)/WinMon.NetworkSetup.exe" LogicalName="WinMon.NetworkSetup.exe" />

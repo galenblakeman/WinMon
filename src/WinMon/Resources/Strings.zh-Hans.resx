@@ -1898,8 +1898,8 @@ Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。<
   <data name="CliNetworkStart" xml:space="preserve"><value>启动并检查已安装的网络服务。</value></data>
   <data name="CliNetworkInstall" xml:space="preserve"><value>安装或修复并启动网络监控（需要管理员批准）。</value></data>
   <data name="CliNetworkBundleRequired" xml:space="preserve"><value>缺少签名安装包。请使用包含签名服务包的CLI版本，或先在桌面版WinMon中启用网络监控。</value></data>
-  <data name="CliNetworkReady" xml:space="preserve"><value>网络服务可访问。运行: winmon-cli watch --network --tab connections</value></data>
-  <data name="CliNetworkSetupHint" xml:space="preserve"><value>运行: winmon-cli network start / winmon-cli network install</value></data>
+  <data name="CliNetworkReady" xml:space="preserve"><value>网络服务可访问。运行: WinMon.Cli watch --network --tab connections</value></data>
+  <data name="CliNetworkSetupHint" xml:space="preserve"><value>运行: WinMon.Cli network start / WinMon.Cli network install</value></data>
   <data name="CliSettingsHeading" xml:space="preserve"><value>CLI设置</value></data>
   <data name="CliSettingsShow" xml:space="preserve"><value>显示已保存的CLI设置。</value></data>
   <data name="CliSettingsReset" xml:space="preserve"><value>重置已保存的CLI设置。</value></data>

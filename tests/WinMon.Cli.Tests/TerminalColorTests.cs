@@ -26,21 +26,21 @@ public sealed class TerminalColorTests
         var plain = RenderSummary(width, height, ColorSystemSupport.NoColors);
         Assert.Multiple(() =>
         {
-            AssertColor("115;255;53", "42.0%");
-            AssertColor("68;135;255", height >= 24 ? "50.0%" : "16.0 / 32 GiB");
-            AssertColor("255;208;68", "10.0%");
-            AssertColor("176;113;213", "12.8 MB/s");
-            AssertColor("0;240;200", "76.0%");
+            AssertColor("253;108;15", "42.0%");
+            AssertColor("17;149;253", height >= 24 ? "50.0%" : "16.0 / 32 GiB");
+            AssertColor("252;234;29", "10.0%");
+            AssertColor("220;119;251", "12.8 MB/s");
+            AssertColor("0;242;195", "76.0%");
             Assert.That(Plain(colored), Is.EqualTo(Plain(plain)));
             Assert.That(plain, Does.Not.Contain("38;"));
             Assert.That(plain, Does.Not.Contain("10.2%"));
             if (width >= 120 && height >= 32)
             {
-                AssertColor("115;255;53", "CPU");
-                AssertColor("68;135;255", "Memory");
-                AssertColor("255;208;68", "Disk (C:)");
-                AssertColor("176;113;213", "Network");
-                AssertColor("0;240;200", "GPU");
+                AssertColor("253;108;15", "CPU");
+                AssertColor("17;149;253", "Memory");
+                AssertColor("252;234;29", "Disk (C:)");
+                AssertColor("220;119;251", "Network");
+                AssertColor("0;242;195", "GPU");
             }
         });
         return;
@@ -85,7 +85,9 @@ public sealed class TerminalColorTests
         Assert.Multiple(() =>
         {
             Assert.That(colored, Does.Contain("38;2;135;149;165"));
-            Assert.That(colored, Does.Contain("38;2;125;207;255"));
+            Assert.That(colored, Does.Contain("38;2;0;216;219"));
+            Assert.That(colored, Does.Contain("\u001b[38;2;0;216;219m[Q]"));
+            Assert.That(colored, Does.Match("\u001b\\[[0-9;]*38;2;0;216;219[0-9;]*m\\[F1\\]"));
             Assert.That(colored, Does.Contain("48;2;38;79;120"));
             Assert.That(colored, Does.Contain("38;2;230;237;243"));
             Assert.That(codes, Does.Contain("1"));

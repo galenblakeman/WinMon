@@ -92,3 +92,9 @@ November 10 layout-review follow-up: the sort strip and the `Sort:` text are gon
 November 10 version-header follow-up: interactive and text-snapshot headers show WinMon followed by the assembly release version from Directory.Build.props metadata. Version metadata is read once; future version bumps flow through without a separate CLI constant.
 
 November 10 keybind-color follow-up: key names now use soft cyan #7DCFFF. Grey brackets, active-tab highlighting and semantic status colors retain their existing styles.
+
+November 10 checkbox follow-up: replaced the single-cell ballot boxes with [✓]/[ ] for clearer toggle states. ASCII terminals retain [x]/[ ], and checked states retain green styling.
+
+November 10 release-output follow-up: renamed the CLI assembly and file title to WinMon.Cli. Release uses the desktop app's default win-x64 self-contained, uncompressed single-file publish settings, native-library self-extraction, optimization and embedded symbols. Debug remains framework-dependent. Command examples and all translated network-setup hints use the new executable name; settings paths and signed service bundle names are unchanged.
+
+November 10 approved-palette follow-up: landed the selected bold mockup palette with cyan #00D8DB key names/brackets/sort digits, orange CPU #FD6C0F, blue memory #1195FD, yellow disk #FCEA1D, orchid network #DC77FB and turquoise GPU #00F2C3. Network uses the requested #DC77FB override; the remaining colors are sampled from the supplied brighter reference. Active-tab keys retain cyan over the existing blue selection background. Existing summary styles apply the colors to every layout. Layout, terminal-default surfaces, semantic status colors and no-color behavior are unchanged; no new theme setting was added.

@@ -1898,8 +1898,8 @@ Q quitte. Ctrl+C annule. Les programmes et services épinglés restent enregistr
   <data name="CliNetworkStart" xml:space="preserve"><value>Démarrer et vérifier le service réseau installé.</value></data>
   <data name="CliNetworkInstall" xml:space="preserve"><value>Installer ou réparer et démarrer la surveillance réseau (approbation administrateur requise).</value></data>
   <data name="CliNetworkBundleRequired" xml:space="preserve"><value>Le paquet signé est absent. Utilisez une version CLI avec le paquet signé ou activez la surveillance réseau dans WinMon pour bureau.</value></data>
-  <data name="CliNetworkReady" xml:space="preserve"><value>Service réseau accessible. Exécutez : winmon-cli watch --network --tab connections</value></data>
-  <data name="CliNetworkSetupHint" xml:space="preserve"><value>Exécutez : winmon-cli network start / winmon-cli network install</value></data>
+  <data name="CliNetworkReady" xml:space="preserve"><value>Service réseau accessible. Exécutez : WinMon.Cli watch --network --tab connections</value></data>
+  <data name="CliNetworkSetupHint" xml:space="preserve"><value>Exécutez : WinMon.Cli network start / WinMon.Cli network install</value></data>
   <data name="CliSettingsHeading" xml:space="preserve"><value>Paramètres CLI</value></data>
   <data name="CliSettingsShow" xml:space="preserve"><value>Afficher les paramètres CLI enregistrés.</value></data>
   <data name="CliSettingsReset" xml:space="preserve"><value>Réinitialiser les paramètres CLI enregistrés.</value></data>

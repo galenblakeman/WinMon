@@ -1898,8 +1898,8 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
   <data name="CliNetworkStart" xml:space="preserve"><value>Запустить и проверить установленную сетевую службу.</value></data>
   <data name="CliNetworkInstall" xml:space="preserve"><value>Установить или восстановить и запустить мониторинг сети (требуется разрешение администратора).</value></data>
   <data name="CliNetworkBundleRequired" xml:space="preserve"><value>Отсутствует подписанный пакет. Используйте сборку CLI с подписанным пакетом службы или сначала включите мониторинг сети в настольном WinMon.</value></data>
-  <data name="CliNetworkReady" xml:space="preserve"><value>Сетевая служба доступна. Выполните: winmon-cli watch --network --tab connections</value></data>
-  <data name="CliNetworkSetupHint" xml:space="preserve"><value>Выполните: winmon-cli network start / winmon-cli network install</value></data>
+  <data name="CliNetworkReady" xml:space="preserve"><value>Сетевая служба доступна. Выполните: WinMon.Cli watch --network --tab connections</value></data>
+  <data name="CliNetworkSetupHint" xml:space="preserve"><value>Выполните: WinMon.Cli network start / WinMon.Cli network install</value></data>
   <data name="CliSettingsHeading" xml:space="preserve"><value>Настройки CLI</value></data>
   <data name="CliSettingsShow" xml:space="preserve"><value>Показать сохранённые настройки CLI.</value></data>
   <data name="CliSettingsReset" xml:space="preserve"><value>Сбросить сохранённые настройки CLI.</value></data>

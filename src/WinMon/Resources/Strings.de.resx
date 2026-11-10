@@ -1898,8 +1898,8 @@ Q beendet. Ctrl+C bricht ab. Programm- und Dienst-Pins bleiben gespeichert.</val
   <data name="CliNetworkStart" xml:space="preserve"><value>Installierten Netzwerkdienst starten und prüfen.</value></data>
   <data name="CliNetworkInstall" xml:space="preserve"><value>Netzwerküberwachung installieren oder reparieren und starten (Administratorbestätigung erforderlich).</value></data>
   <data name="CliNetworkBundleRequired" xml:space="preserve"><value>Signiertes Setup-Paket fehlt. Verwenden Sie einen CLI-Build mit signiertem Dienstpaket oder aktivieren Sie zuerst die Netzwerküberwachung in WinMon.</value></data>
-  <data name="CliNetworkReady" xml:space="preserve"><value>Netzwerkdienst erreichbar. Ausführen: winmon-cli watch --network --tab connections</value></data>
-  <data name="CliNetworkSetupHint" xml:space="preserve"><value>Ausführen: winmon-cli network start / winmon-cli network install</value></data>
+  <data name="CliNetworkReady" xml:space="preserve"><value>Netzwerkdienst erreichbar. Ausführen: WinMon.Cli watch --network --tab connections</value></data>
+  <data name="CliNetworkSetupHint" xml:space="preserve"><value>Ausführen: WinMon.Cli network start / WinMon.Cli network install</value></data>
   <data name="CliSettingsHeading" xml:space="preserve"><value>CLI-Einstellungen</value></data>
   <data name="CliSettingsShow" xml:space="preserve"><value>Gespeicherte CLI-Einstellungen anzeigen.</value></data>
   <data name="CliSettingsReset" xml:space="preserve"><value>Gespeicherte CLI-Einstellungen zurücksetzen.</value></data>

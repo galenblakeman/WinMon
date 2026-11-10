@@ -1898,8 +1898,8 @@ Q sale. Ctrl+C cancela. Los programas y servicios fijados se conservan entre ses
   <data name="CliNetworkStart" xml:space="preserve"><value>Iniciar y comprobar el servicio de red instalado.</value></data>
   <data name="CliNetworkInstall" xml:space="preserve"><value>Instalar o reparar e iniciar la supervisión de red (requiere aprobación de administrador).</value></data>
   <data name="CliNetworkBundleRequired" xml:space="preserve"><value>Falta el paquete firmado. Use una compilación CLI con el paquete firmado o active primero la supervisión de red en WinMon de escritorio.</value></data>
-  <data name="CliNetworkReady" xml:space="preserve"><value>Servicio de red accesible. Ejecute: winmon-cli watch --network --tab connections</value></data>
-  <data name="CliNetworkSetupHint" xml:space="preserve"><value>Ejecute: winmon-cli network start / winmon-cli network install</value></data>
+  <data name="CliNetworkReady" xml:space="preserve"><value>Servicio de red accesible. Ejecute: WinMon.Cli watch --network --tab connections</value></data>
+  <data name="CliNetworkSetupHint" xml:space="preserve"><value>Ejecute: WinMon.Cli network start / WinMon.Cli network install</value></data>
   <data name="CliSettingsHeading" xml:space="preserve"><value>Configuración de CLI</value></data>
   <data name="CliSettingsShow" xml:space="preserve"><value>Mostrar la configuración guardada de CLI.</value></data>
   <data name="CliSettingsReset" xml:space="preserve"><value>Restablecer la configuración guardada de CLI.</value></data>

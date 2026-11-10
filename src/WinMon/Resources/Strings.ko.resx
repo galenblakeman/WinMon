@@ -1898,8 +1898,8 @@ Q 종료. Ctrl+C 취소. 실행 파일과 서비스 고정은 다음 실행에�
   <data name="CliNetworkStart" xml:space="preserve"><value>설치된 네트워크 서비스를 시작하고 확인합니다.</value></data>
   <data name="CliNetworkInstall" xml:space="preserve"><value>네트워크 모니터링을 설치 또는 복구하고 시작합니다(관리자 승인 필요).</value></data>
   <data name="CliNetworkBundleRequired" xml:space="preserve"><value>서명된 설치 패키지가 없습니다. 서명된 서비스가 포함된 CLI 빌드를 사용하거나 먼저 데스크톱 WinMon에서 네트워크 모니터링을 켜세요.</value></data>
-  <data name="CliNetworkReady" xml:space="preserve"><value>네트워크 서비스에 연결했습니다. 실행: winmon-cli watch --network --tab connections</value></data>
-  <data name="CliNetworkSetupHint" xml:space="preserve"><value>실행: winmon-cli network start / winmon-cli network install</value></data>
+  <data name="CliNetworkReady" xml:space="preserve"><value>네트워크 서비스에 연결했습니다. 실행: WinMon.Cli watch --network --tab connections</value></data>
+  <data name="CliNetworkSetupHint" xml:space="preserve"><value>실행: WinMon.Cli network start / WinMon.Cli network install</value></data>
   <data name="CliSettingsHeading" xml:space="preserve"><value>CLI 설정</value></data>
   <data name="CliSettingsShow" xml:space="preserve"><value>저장된 CLI 설정을 표시합니다.</value></data>
   <data name="CliSettingsReset" xml:space="preserve"><value>저장된 CLI 설정을 초기화합니다.</value></data>
