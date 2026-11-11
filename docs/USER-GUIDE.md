@@ -2,9 +2,10 @@
 
 [Overview and download](../README.md) · [Screenshot gallery](example/README.md) · [Developer guide](DEVELOPMENT.md)
 
-Detailed instructions for the installer and portable app. Screenshots use illustrative data; see the gallery for capture version and provenance.
+Detailed instructions for the desktop app and command-line monitor. Screenshots use illustrative data; see the gallery for capture version and provenance.
 
 - [Install and run](#get-started)
+- [Command line](#command-line)
 - [Charts and gauges](#your-system-at-a-glance)
 - [Processes](#see-the-app-behind-the-processes)
 - [Services](#follow-windows-services-and-their-workers)
@@ -36,6 +37,88 @@ WinMon targets **Windows x64** and bundles its .NET runtime, so no separate .NET
 For a standalone executable, create an empty `portable.flag` beside `WinMon.exe` before launching to enable portable settings. Otherwise, preferences are saved in `%LOCALAPPDATA%\WinMon\settings.json`. If that file cannot be read, WinMon starts with default settings and keeps the unreadable file as `settings.invalid.json` beside it. If that backup fails, saving defaults is blocked until the original can be preserved.
 
 Developers can also create an [MSIX / Microsoft Store build](../packaging/msix/README.md) using the packaging tools. Store builds use Store-managed updates instead of the GitHub updater.
+
+## Command line
+
+WinMon releases include the Windows terminal app, `WinMon.Cli`, using Spectre.Console and System.CommandLine. It is bundled with the installer and desktop portable ZIP, and is also available as a CLI-only ZIP. The Microsoft Store package does not include it.
+
+The installer offers an unchecked **Add WinMon.Cli to PATH for this user** option. Open a new terminal afterward and run `WinMon.Cli`; for ZIP downloads, run `.\WinMon.Cli.exe` from the extracted folder.
+
+Running `WinMon.Cli` without arguments opens the interactive monitor with saved preferences, just like `WinMon.Cli watch`. Use `WinMon.Cli --help` for the command list; launch options still follow `watch`.
+
+### Build from source
+
+To build from source:
+
+```powershell
+dotnet publish src/WinMon.Cli/WinMon.Cli.csproj -c Release -m:1 -p:UseSharedCompilation=false
+$cli = './src/WinMon.Cli/bin/Release/net10.0-windows/win-x64/publish/WinMon.Cli.exe'
+& $cli
+& $cli watch --grouped --apps-only --top 20
+& $cli watch --tab services --sort memory
+& $cli watch --tab connections
+& $cli snapshot --sort memory --top 15
+& $cli snapshot --filter chrome --format json
+```
+
+Release publishing defaults to a self-contained Windows x64 single executable, with embedded debug symbols and uncompressed assemblies, matching the desktop app. Only `WinMon.Cli.exe` is needed to run; dependency `.pdb` files in the publish folder are optional debugging symbols. The published app includes the .NET runtime; override the target with `-r` when publishing for another supported Windows architecture.
+
+### Interactive monitor
+
+`watch` is a read-only, keyboard-driven app with four tabs:
+
+| Key | Tab | Sorting and filters |
+| --- | --- | --- |
+| **F1** | **Processes** | CPU, memory, GPU, I/O, threads and handles; executable grouping, text/PID search, App only, session pins and Top/All. Individual memory is working set; grouped memory sums private bytes. |
+| **F2** | **Services** | CPU/private memory/I/O/name; search, all/running/stopped status and host/worker totals. Name sorting requires All. Details identify shared services, hosts and worker processes. |
+| **F3** | **Connections** | Receive/send rates, received/sent totals and TCP/UDP counts; owner/PID/address/port search, App only, pins and traffic periods. Details list endpoint protocols, addresses, ports and TCP states. |
+| **F4** | **Usage** | CPU time, cumulative I/O, GPU time, process lifetimes and last activity; search and App only. Share uses the same total-machine busy-time denominator as the desktop. |
+
+Use **1–6** to sort; each sortable column heading shows its digit. Use **/** to edit the current tab's filter (Enter applies; Esc cancels or clears), **Up/Down/Page/Home/End** to select rows, and **Left/Right** to reveal additional columns. Numeric watch-table columns align to the right. The filter line appears only while a filter is being edited or is set. A column-navigation hint appears on the status line when columns are hidden. The first column takes the spare width, grouped processes show their member count (for example `×12`; Enter lists the PIDs), and the status line and key hints stay at the bottom of the terminal. The active tab has a `>` marker, including without color. The selected sort metric is brought into view automatically. **Enter** opens details; arrows/Page keys scroll, Left/Right pan long lines, and Esc returns. Each tab retains its own controls and selection.
+
+**G** toggles process grouping, **A** App only, **T** cycles Top 5/10/15/20/50/All, **P** pins/unpins the selected application/service and **N** toggles Pinned only. Pins with a known executable path follow that executable across restarts, including its current PIDs in individual view; service pins use service names. Rows without a stable path remain session-only pins. A reused PID belonging to another executable cannot inherit a saved pin. In Services, **S** cycles status and **W** includes/excludes workers. In Connections, **R** cycles traffic periods: since start, 1 minute, 5 minutes and 30 minutes. **?** opens the full key guide.
+
+Press **B** in any watch tab to enable or disable network traffic monitoring. The change is saved unless `--no-save` is active. Disabling releases only this CLI subscription; enabling connects to the installed service without installing or repairing it. Search-filter editing treats B as text.
+
+**Space** freezes the displayed observations, including averaging windows, usage totals and health indicators, while collection continues. Press again to return to live data. Process and service CPU/I/O use the desktop's five-second window; GPU averages readable intervals and memory/counts use current observations. Usage remains cumulative rather than a five-second measurement. Startup, gaps, unavailable counters and partial traffic coverage are preserved. **Q** exits; **Ctrl+C** cancels. Both restore the terminal screen and cursor.
+
+### Terminal layout and appearance
+
+With at least 120 columns and 24 rows, the resource summary shows five panels in CPU, Memory, Disk, Network, GPU order. Titles, values, bars and histories share their resource color. CPU, memory, disk and GPU lead with percentages; Network leads with download speed and automatically scales to recent traffic. Below each bar: CPU clock in GHz, used/total RAM in GiB, disk throughput in MB/s, upload speed, and GPU memory or 3D. Histories cover 60 seconds, preserve gaps, and freeze with Space. The process table shows numeric metrics without a History column. Unavailable table values appear as a dash (—). The five-panel view ends at the boxes, leaving more process rows visible. Compact terminals with at least 24 rows show five lines in the same resource order, each with an aligned mini gauge and inline details: CPU clock, used/total RAM, disk read/write rates, download/upload rates and adapter name, and GPU memory or 3D. The 80x20 minimum keeps a numeric summary. Network uses download-rate units in every layout.
+
+Interactive output uses UTF-8 so gauges and sparklines render as Unicode even when the shell starts with a legacy Windows code page. The CLI restores the original output encoding on exit; redirected output keeps its inherited encoding. Use a font with Unicode block characters, such as Cascadia Mono or Consolas.
+
+The CLI header includes its build version (for example, `WinMon 4.1.0`). Keyboard shortcut hints and their brackets use bright cyan (`#00D8DB`), including sort digits and active-tab keys. Summary accents use orange CPU, blue memory, yellow disk, orchid network and turquoise GPU. The selected table row is highlighted across its full width. Values, gauge bars and resource histories share the corresponding color in every layout. `--no-color` and `NO_COLOR` keep the same readable text without resource colors.
+
+Toggles show their state after the label (`[✓]`/`[ ]`, or `[x]`/`[ ]` without Unicode). The Memory history zooms to the range it covered in the last 60 seconds and its caption gives that range. A dark-blue highlight (`#264F78`) with light text marks the active tab and selected row; an arrow marks the active sort column. Enabled/live states are green (`#3FB950`), pins and paused/incomplete states gold (`#D29922`), and failures red (`#FF7B72`). Text labels, brackets, arrows and row markers preserve meaning with `--no-color` or `NO_COLOR`. Normal text/background use the terminal defaults; the accent palette targets dark terminals, and Spectre adapts colors to the terminal's supported color depth.
+
+### Saved settings
+
+Fresh CLI settings (including after `settings reset`) default to Top 10 on all four watch tabs. Existing saved row limits, including All (`0`), are preserved; `--top` overrides the active tab for one launch.
+
+Interactive settings are saved separately from desktop settings in `%LOCALAPPDATA%\WinMon\cli-settings.json`: the last tab, per-tab sort/Top/App only/Pinned only, process grouping, Services status/Workers, Connections traffic period, network-monitoring preference and executable/service pins. Filters, selection, scrolling, details and pause are temporary. Keyboard changes save after a short debounce and on normal quit/Ctrl+C. Concurrent sessions merge changed controls instead of replacing each other's entire settings.
+
+Explicit arguments override saved settings for that launch without saving those overrides. For example, `watch --tab connections --top 10 --network=false` temporarily changes the selected tab, its row limit and traffic subscription. Boolean options accept `--grouped=false` and `--apps-only=false`. Later keyboard changes save only the controls actually changed. An explicit finite Services limit falls back from a saved Name sort to CPU; explicitly requesting Name still requires All. `watch --no-save` loads preferences but does not save any interactive changes. `snapshot` remains independent of these preferences.
+
+Use `settings show` to inspect saved settings, `settings reset` to restore defaults, and `settings set --network=true` or `--network=false` to change the saved traffic-monitoring preference. Saving this preference does not install or start a service; explicit `network install`/`network start` commands remain separate. Read/write failures show a warning while monitoring continues, and invalid JSON is preserved before replacement.
+
+### Measurements and limits
+
+Displayed memory uses the desktop's adaptive binary units (B, KiB, MiB, GiB, TiB). Table I/O and connection rates/totals use decimal byte units (B, KB, MB, GB, TB), and the network summary uses the desktop's adaptive KB/s–GB/s readout. Units appear beside each value in tables, details and text snapshots; for example, `2,048.0 MiB` becomes `2.0 GiB`, and small rates remain visible as `100 B/s`. JSON retains raw bytes/bytes per second and schema version 1.
+
+The terminal requires ANSI support and at least 80 columns by 20 rows. Narrow layouts truncate rows and pan columns; all values and identities remain available through details. Use `--top 0` for All; finite startup limits may be 1–1000. All retains more process history and uses more memory. Resource/connection history is bounded to at most 30 minutes and the existing entry budgets, so requested traffic periods can have shorter coverage on busy systems. Service observations retain the existing two-minute window.
+
+### Network traffic monitoring
+
+Endpoint lists work without the optional traffic service. Network monitoring is enabled by default unless saved settings disable it. Use `--network=false` to disable it for one launch, or `settings set --network=true` to enable a previously disabled preference. Monitoring subscribes to an already-installed, authenticated local service and can start that installed service; it never installs, repairs or removes it. Outages retry every five seconds and a protocol mismatch requests an update. Missing or incomplete rates are not shown as zero. Without traffic collection, Connections falls back to TCP ordering while retaining the chosen sort preference.
+
+Connections rows group the same executable's processes, matching the desktop. Traffic stays in Connections. Use `WinMon.Cli network start` to start and check an installed service. If it is missing, incompatible or not authorized for your account, explicitly run `WinMon.Cli network install` to install/repair, authorize the requesting account, start and verify it through the desktop's signed setup flow and administrator approval. Then run `WinMon.Cli watch --tab connections`. Setup requires a CLI build containing the signed service bundle; source builds without it explain how to enable monitoring through desktop WinMon. Store builds cannot run these service-management commands. Monitoring never triggers installation automatically, and setup does not save a desktop preference.
+
+### Snapshots and scripting
+
+`snapshot` takes a baseline, waits one second, then prints a table or JSON and exits. It supports the six process sorts, text/PID filtering and `--top 0` for All; it intentionally reports one measured interval. JSON uses raw bytes/bytes per second, explicit null readings and schema version 1. Use `--no-color` or `NO_COLOR` to suppress colors; redirected tables have no ANSI styling. Redirected `watch` output is rejected; use snapshots for scripts. Exit codes are 0 for a completed report/normal quit, 1 for failure, and 130 for cancellation; invalid arguments return a nonzero code.
+
+The monitoring views do not terminate processes, change priority, control arbitrary services or create dumps. The explicit `network` commands manage only WinMon's network service. Process paths, publishers and endpoint details stay local unless you share the output.
 
 ## Your system, at a glance
 
