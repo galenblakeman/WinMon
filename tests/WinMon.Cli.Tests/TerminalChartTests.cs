@@ -123,10 +123,11 @@ public sealed class TerminalChartTests
         Assert.That(lines[start + 1].Split('│')[7].Trim(), Is.EqualTo(Strings.MissingReading));
     }
 
-    [Test]
-    public void FivePanelsFit120ColumnsWithoutAddingHeight()
+    [TestCase(24)]
+    [TestCase(36)]
+    public void FivePanelsFit120ColumnsWithoutAddingHeight(int height)
     {
-        var lines = Render(State(), 120, 36).Split('\n');
+        var lines = Render(State(), 120, height).Split('\n');
         var start = Array.FindIndex(lines, line => line.StartsWith("╭", StringComparison.Ordinal));
         Assert.Multiple(() =>
         {
@@ -136,6 +137,13 @@ public sealed class TerminalChartTests
                 .All(cell => cell.Trim().Length == 19), Is.True);
             Assert.That(lines[start + 7], Does.StartWith("[B]").And.Contain("Network"));
         });
+    }
+
+    [TestCase(119, 24)]
+    [TestCase(120, 23)]
+    public void PanelsRequireBoth120ColumnsAnd24Rows(int width, int height)
+    {
+        Assert.That(Render(State(), width, height), Does.Not.Contain("╭"));
     }
 
     [Test]

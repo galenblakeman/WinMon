@@ -10,9 +10,10 @@ namespace WinMon.Cli;
 internal static class TerminalCharts
 {
     internal const int HistorySeconds = 60;
+    private const int GaugeMinHeight = 24;
 
-    internal static bool Wide(int width, int height) => width >= 120 && height >= 32;
-    internal static int SummaryHeight(int width, int height) => Wide(width, height) ? 7 : height >= 24 ? 5 : 3;
+    internal static bool Wide(int width, int height) => width >= 120 && height >= GaugeMinHeight;
+    internal static int SummaryHeight(int width, int height) => Wide(width, height) ? 7 : height >= GaugeMinHeight ? 5 : 3;
     internal static int PageSize(int width, int height, TerminalTab tab) => Math.Max(1,
         height - 16 - (SummaryHeight(width, height) - 3));
 
@@ -67,7 +68,7 @@ internal static class TerminalCharts
         var network = $"{Strings.Network} {SafeText(r.NetworkName)} RX {NetworkRate(r.ReceiveBytesPerSecond)} / TX {NetworkRate(r.SendBytesPerSecond)}";
         var memory = $"{Strings.Memory} {GaugeReadoutText.Memory(r.UsedMemoryBytes, r.TotalMemoryBytes)}";
         var download = DirectionRate(r.ReceiveBytesPerSecond, unicode ? "↓" : "RX ");
-        if (height < 24)
+        if (height < GaugeMinHeight)
             return new Rows(Line(width, ($"{Strings.CPU} {Percent(sample.TotalCpuPercent)}", TerminalChrome.Cpu),
                 (separator, null), (memory, TerminalChrome.Memory), (separator, null), ($"{Strings.Network} {download}", TerminalChrome.Network),
                 (separator, null), ($"{Strings.GPU} {Percent(r.GpuPercent)}", TerminalChrome.Gpu)),
