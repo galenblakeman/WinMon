@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "winmon": {
+      "command": "${WINMON_MCP_EXE}"
+    }
+  }
+}

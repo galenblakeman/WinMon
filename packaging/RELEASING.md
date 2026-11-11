@@ -17,11 +17,12 @@ From the repository root:
 
 The compiler bootstrap downloads the pinned vendor release, verifies its SHA-256 and Authenticode signature, and installs it per-user under `artifacts/toolchain`. It also registers the compiler's own uninstaller with Windows. An existing compiler can instead be supplied with `-InnoCompiler path/to/ISCC.exe`; use version 6.7.3.
 
-The release script checks the product/application manifest versions, runs the complete Release test suite, publishes the self-contained Windows x64 desktop and CLI executables into isolated build output, signs both for official releases, compiles the installer, and generates:
+The release script checks the product/application manifest versions, runs the complete Release test suite, publishes the self-contained Windows x64 desktop, CLI and MCP executables into isolated build output, signs all three for official releases, compiles the installer, and generates:
 
-- `WinMon-<version>-win-x64.zip`: desktop and CLI executables, MIT license, portable instructions and `portable.flag`. Extract into a writable folder; preserve `settings.json` when upgrading.
+- `WinMon-<version>-win-x64.zip`: desktop, CLI and MCP executables, MIT license, portable instructions and `portable.flag`. Extract into a writable folder; preserve `settings.json` when upgrading.
 - `WinMon-Cli-<version>-win-x64.zip`: `WinMon.Cli.exe`, MIT license and terminal instructions. It has no desktop settings or updater.
-- `WinMon-<version>-Setup-x64.exe`: per-user installer, normally targeting `%LOCALAPPDATA%\Programs\WinMon`. It installs both executables, adds a Start menu entry, an optional desktop shortcut, an unchecked user-PATH task for `WinMon.Cli`, and an Apps & Features uninstall entry. It requires WinMon to be closed. Silent installations do not launch the app.
+- `WinMon-<version>-Setup-x64.exe`: per-user installer, normally targeting `%LOCALAPPDATA%\Programs\WinMon`. It installs all three executables, adds a Start menu entry, an optional desktop shortcut, an unchecked user-PATH task for `WinMon.Cli`, and an Apps & Features uninstall entry. It requires WinMon to be closed. Silent installations do not launch the app.
+- `WinMon-Claude-Code-<version>.zip`: standalone plugin manifest, MCP configuration and performance-diagnostics skill. Extract to a stable folder and configure `WINMON_MCP_EXE`; see [MCP setup](../docs/MCP.md). Packaging does not register agent clients automatically.
 - `WinMon-<version>-winget.zip`: three WinGet schema 1.12.0 manifests under the community repository's directory structure. The installer hash is calculated from the final signed installer.
 - `update-manifest.json` and `update-manifest.sig`: emitted only when `-UpdateSigningKeyPath` is supplied. The first is a compact signed record of the portable ZIP and installer name, size and SHA-256; the second is its base64 RSA SHA-256 PKCS#1 v1.5 detached signature.
 - `SHA256SUMS.txt`: checksums for every release asset above.
@@ -46,7 +47,7 @@ Use a clean Windows user profile or disposable VM/CI runner:
 ./tools/Test-Installer.ps1 -InstallerPath ./artifacts/releases/4.0.1/WinMon-4.0.1-Setup-x64.exe
 ```
 
-This refuses to run if a WinMon installer registration, startup entry or app shortcut already exists. It checks the running-app mutex, silent installation, uninstall metadata, shortcut target, the installed executable's native smoke run, same-version repair, portable preference preservation, and cleanup of app-owned startup/hotkey integration. Logs and smoke evidence remain under `artifacts/installer-validation`. This repair test does not replace a real older-to-newer version upgrade test before subsequent releases.
+This refuses to run if a WinMon installer registration, startup entry or app shortcut already exists. It checks the running-app mutex, silent installation, uninstall metadata, shortcut target, the installed executable's native smoke run, same-version repair, portable preference preservation, and cleanup of app-owned startup/hotkey integration. It also verifies MCP executable identity and invokes `Test-McpStdio.ps1` before and after repair to test the installed server's initialization, read-only tool/schema discovery, snapshot and graceful shutdown. The MCP check requires PowerShell 7.4 but no SDK or agent client. Logs and smoke evidence remain under `artifacts/installer-validation`. This repair test does not replace a real older-to-newer version upgrade test before subsequent releases.
 
 Uninstall preserves preferences. It removes the startup registry value, the app's optional root-level launch-hotkey shortcut, and an installer-owned PATH entry only when they target the executable or installation being uninstalled. The installer's `Programs\WinMon\WinMon.lnk` is separate from the app-managed `Programs\WinMon.lnk`, so installing does not turn on launch hotkeys.
 

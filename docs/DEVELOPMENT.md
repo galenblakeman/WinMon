@@ -19,6 +19,8 @@ Technical notes for the current code. The [README](../README.md) gives the produ
 
 ## Build and test
 
+The solution also includes `src/WinMon.Mcp` and `tests/WinMon.Mcp.Tests`, using ModelContextProtocol 2.3.0 and Microsoft.Extensions.Hosting 10.0.3. Normal verification explicitly runs the MCP suite. The Windows stdio host registers exactly five tools and one singleton `SamplingOwner`; no SDK or hosting dependencies enter MonCore. `MonitorSession` owns native collection at one second, with an inline serialized drain and 120 retained published frames. Requests read immutable frames and never touch collectors. MCP DTOs apply lifetime identity, privacy allowlists, availability, input bounds and a 256 KiB serialized-result limit. See [MCP setup](MCP.md) for commands, units, freshness, weighted aggregation and limits, and [implementation acceptance](design/MCP-IMPLEMENTATION.md) for current evidence.
+
 The solution builds `src/WinMon.Cli` and `tests/WinMon.Cli.Tests`; normal verification includes the CLI suite. The CLI references MonCore.Windows/MonCore, Spectre.Console 0.54.0 and System.CommandLine 2.0.14. No terminal dependencies enter MonCore, and the CLI never references WPF. CLI resources link the existing ten translated `.resx` files and generated properties with a console-only culture accessor. Its project defines the assembly title and description and emits repository/license metadata; version, company, author and copyright come from `Directory.Build.props`.
 
 `WinMon.Cli snapshot` captures a baseline, waits one second with cancellation, then captures a measured frame through `WindowsFrameSource`. It ranks only that interval. JSON has an explicit versioned raw-unit report schema; unavailable readings remain null. Terminal output treats observed strings literally and removes control/format characters. `TerminalText.Fit` uses Spectre cell-width truncation, including CJK/surrogate boundaries; detail tabs become spaces.
@@ -62,7 +64,7 @@ dotnet publish src/WinMon/WinMon.csproj -c Release -m:1 -p:UseSharedCompilation=
 dotnet pack src/MonCore/MonCore.csproj -c Release -m:1 -p:UseSharedCompilation=false -o artifacts/local-feed
 ```
 
-`tools/Verify.ps1` builds all projects in the solution, builds the benchmark, runs all six test projects and any [smoke modes](#smoke-modes) in one step; see [Verify a change](#verify-a-change).
+`tools/Verify.ps1` builds all projects in the solution, builds the benchmark, runs all eight test projects and any [smoke modes](#smoke-modes) in one step; see [Verify a change](#verify-a-change).
 
 The [ETW network prototype](../tools/WinMon.NetworkProbe/README.md) and its `WinMon.NetworkProbe.Tests` project build and run as part of `Verify.ps1`. Its native collection experiment is `[Explicit]`, so it remains opt-in and requires an elevated approved Windows test environment; it installs no service and is not part of the shipping app. `Verify.ps1` passes `NUnit.ExplicitMode=None` to the NUnit3TestAdapter 5.2.0, so even a narrow filter cannot run an explicit fixture. To opt in manually, run `dotnet test` directly with a positive filter for the approved fixture; see [NUnit's Explicit documentation](https://docs.nunit.org/articles/nunit/writing-tests/attributes/explicit.html).
 

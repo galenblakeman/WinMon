@@ -176,6 +176,9 @@ internal sealed class UpdateClient : IDisposable
                 await ExtractExecutableAsync(download, Path.Combine(directory, "WinMon.Cli.exe"), offer.Version,
                     cancellationToken, "WinMon.Cli.exe",
                     File.Exists(Path.Combine(Path.GetDirectoryName(target)!, "WinMon.Cli.exe"))).ConfigureAwait(false);
+                await ExtractExecutableAsync(download, Path.Combine(directory, "WinMon.Mcp.exe"), offer.Version,
+                    cancellationToken, "WinMon.Mcp.exe",
+                    File.Exists(Path.Combine(Path.GetDirectoryName(target)!, "WinMon.Mcp.exe"))).ConfigureAwait(false);
             }
             using var process = Process.GetCurrentProcess();
             var job = new UpdateJob(target, process.Id, process.StartTime.ToUniversalTime().Ticks, offer.Version,
@@ -203,7 +206,7 @@ internal sealed class UpdateClient : IDisposable
     internal static async Task<bool> ExtractExecutableAsync(string archivePath, string destination, string version,
         CancellationToken cancellationToken, string executableName = "WinMon.exe", bool required = true)
     {
-        if (executableName is not ("WinMon.exe" or "WinMon.Cli.exe"))
+        if (executableName is not ("WinMon.exe" or "WinMon.Cli.exe" or "WinMon.Mcp.exe"))
             throw new ArgumentException("Unsupported update executable.", nameof(executableName));
         await using var archive = await ZipFile.OpenReadAsync(archivePath, cancellationToken);
         var entries = archive.Entries.Where(e => e.FullName == executableName).ToArray();

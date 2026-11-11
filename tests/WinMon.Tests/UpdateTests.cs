@@ -259,6 +259,21 @@ public sealed class UpdateTests
         Assert.That(File.Exists(destination), Is.False);
     }
 
+    [Test]
+    public async Task ExtractExecutableAsync_HandlesTheOptionalMcpCompanion()
+    {
+        var archive = CreateArchive("WinMon.exe");
+        var destination = Path.Combine(_directory, "mcp.exe");
+        Assert.That(await UpdateClient.ExtractExecutableAsync(archive, destination, AppInfo.Version,
+            CancellationToken.None, "WinMon.Mcp.exe", required: false), Is.False);
+
+        File.Delete(archive);
+        archive = CreateArchive("WinMon.Mcp.exe", "WinMon.Mcp.exe");
+        await Assert.ThatAsync(() => UpdateClient.ExtractExecutableAsync(archive, destination, AppInfo.Version,
+            CancellationToken.None, "WinMon.Mcp.exe", required: false), Throws.TypeOf<InvalidDataException>());
+        Assert.That(File.Exists(destination), Is.False);
+    }
+
     [TestCase(false)]
     [TestCase(true)]
     public void CompleteInterruptedTransaction_RestoresCliWhenDesktopReplacementNeverCompleted(bool existed)

@@ -10,7 +10,8 @@ internal sealed record UpdateJob(
     string Version,
     bool Installed,
     string Token,
-    bool? CliExisted = null);
+    bool? CliExisted = null,
+    bool? McpExisted = null);
 
 internal sealed record UpdateState(string Status, string? Error = null);
 
@@ -76,6 +77,9 @@ internal static class UpdateFiles
 
     internal static UpdateJob CliJob(UpdateJob job) =>
         job with { Target = Path.Combine(Path.GetDirectoryName(job.Target)!, "WinMon.Cli.exe") };
+
+    internal static UpdateJob McpJob(UpdateJob job) =>
+        job with { Target = Path.Combine(Path.GetDirectoryName(job.Target)!, "WinMon.Mcp.exe") };
 }
 
 internal static class UpdateInstallation

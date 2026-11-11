@@ -8,6 +8,9 @@
 #ifndef CliPublishDirectory
   #error CliPublishDirectory must be supplied
 #endif
+#ifndef McpPublishDirectory
+  #error McpPublishDirectory must be supplied
+#endif
 #ifndef CliPathTask
   #error CliPathTask must be supplied
 #endif
@@ -62,6 +65,7 @@ NetworkServiceSetupFailed=WinMon was installed, but network monitoring could not
 [Files]
 Source: "{#PublishDirectory}\WinMon.exe"; DestDir: "{app}"
 Source: "{#CliPublishDirectory}\WinMon.Cli.exe"; DestDir: "{app}"
+Source: "{#McpPublishDirectory}\WinMon.Mcp.exe"; DestDir: "{app}"
 Source: "..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]

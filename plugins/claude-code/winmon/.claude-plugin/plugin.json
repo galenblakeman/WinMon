@@ -1,0 +1,12 @@
+{
+  "name": "winmon",
+  "version": "4.1.0",
+  "description": "Read-only local WinMon performance diagnostics",
+  "author": {
+    "name": "Galen Blakeman",
+    "url": "https://github.com/galenblakeman"
+  },
+  "repository": "https://github.com/galenblakeman/WinMon",
+  "license": "MIT",
+  "keywords": ["performance", "monitoring", "windows"]
+}

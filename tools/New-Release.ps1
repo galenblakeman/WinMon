@@ -59,6 +59,7 @@ if (Test-Path -LiteralPath $OutputDirectory) { throw "Output directory already e
 $work = Join-Path $root "artifacts/packaging/$([guid]::NewGuid().ToString('N'))"
 $publish = Join-Path $work 'publish'
 $cliPublish = Join-Path $work 'cli-publish'
+$mcpPublish = Join-Path $work 'mcp-publish'
 $assets = Join-Path $work 'assets'
 $networkServiceBundle = Join-Path $work 'network-service-bundle'
 New-Item -ItemType Directory -Path $assets -Force | Out-Null
@@ -77,13 +78,18 @@ try {
     if ($CodeSign) { $cliPublishArguments += "-p:NetworkServiceBundleDirectory=$networkServiceBundle" }
     dotnet @cliPublishArguments
     if ($LASTEXITCODE -ne 0) { throw 'CLI release publish failed.' }
+    $mcpPublishArguments = @('publish', 'src/WinMon.Mcp/WinMon.Mcp.csproj', '-c', 'Release', '-r', 'win-x64', '-m:1', '-p:UseSharedCompilation=false', "--artifacts-path=$work/build", '-o', $mcpPublish)
+    dotnet @mcpPublishArguments
+    if ($LASTEXITCODE -ne 0) { throw 'MCP release publish failed.' }
     if ($CodeSign) {
         & (Join-Path $PSScriptRoot 'Sign-ReleaseFile.ps1') -Path (Join-Path $publish 'WinMon.exe') @signingParameters |
             ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $work 'application-signature.json') -Encoding utf8NoBOM
         & (Join-Path $PSScriptRoot 'Sign-ReleaseFile.ps1') -Path (Join-Path $cliPublish 'WinMon.Cli.exe') @signingParameters |
             ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $work 'cli-signature.json') -Encoding utf8NoBOM
+        & (Join-Path $PSScriptRoot 'Sign-ReleaseFile.ps1') -Path (Join-Path $mcpPublish 'WinMon.Mcp.exe') @signingParameters |
+            ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $work 'mcp-signature.json') -Encoding utf8NoBOM
     }
-    & $InnoCompiler "/DAppVersion=$version" "/DPublishDirectory=$publish" "/DCliPublishDirectory=$cliPublish" "/DCliPathTask=$cliPathTask" "/DCliPathFailed=$cliPathFailed" "/DReleaseDirectory=$assets" "/DNetworkServiceSetup=$([int][bool]$CodeSign)" (Join-Path $root 'packaging/WinMon.iss')
+    & $InnoCompiler "/DAppVersion=$version" "/DPublishDirectory=$publish" "/DCliPublishDirectory=$cliPublish" "/DMcpPublishDirectory=$mcpPublish" "/DCliPathTask=$cliPathTask" "/DCliPathFailed=$cliPathFailed" "/DReleaseDirectory=$assets" "/DNetworkServiceSetup=$([int][bool]$CodeSign)" (Join-Path $root 'packaging/WinMon.iss')
     if ($LASTEXITCODE -ne 0) { throw 'Installer compilation failed.' }
     $installer = Join-Path $assets "WinMon-$version-Setup-x64.exe"
     if ($CodeSign) {
@@ -95,10 +101,10 @@ try {
     }
     $portable = Join-Path $work 'portable'
     New-Item -ItemType Directory -Path $portable | Out-Null
-    Copy-Item -LiteralPath (Join-Path $publish 'WinMon.exe'), (Join-Path $cliPublish 'WinMon.Cli.exe'), (Join-Path $root 'LICENSE') -Destination $portable
+    Copy-Item -LiteralPath (Join-Path $publish 'WinMon.exe'), (Join-Path $cliPublish 'WinMon.Cli.exe'), (Join-Path $mcpPublish 'WinMon.Mcp.exe'), (Join-Path $root 'LICENSE') -Destination $portable
     New-Item -ItemType File -Path (Join-Path $portable 'portable.flag') | Out-Null
     @'
-Extract all files to a writable folder, then run WinMon.exe or WinMon.Cli.exe. No .NET installation is required.
+Extract all files to a writable folder, then run WinMon.exe, WinMon.Cli.exe or WinMon.Mcp.exe. No .NET installation is required.
 portable.flag keeps settings.json beside the executable. Preserve both files when updating.
 Remove portable.flag and restart to use %LOCALAPPDATA%\WinMon\settings.json instead.
 Startup registration and launch shortcuts are machine-specific; disable them before moving the app.
@@ -113,6 +119,17 @@ Run WinMon.Cli.exe from a terminal. No .NET installation is required.
 The optional network install command requires this signed release build and administrator approval.
 '@ | Set-Content -LiteralPath (Join-Path $cliPortable 'README.txt') -Encoding utf8NoBOM
     Compress-Archive -Path "$cliPortable/*" -DestinationPath (Join-Path $assets "WinMon-Cli-$version-win-x64.zip")
+    $pluginSource = Join-Path $root 'plugins/claude-code/winmon'
+    if (!(Test-Path -LiteralPath $pluginSource -PathType Container)) { throw "Claude Code plugin is missing: $pluginSource" }
+    $pluginStage = Join-Path $work 'claude-plugin'
+    Copy-Item -LiteralPath $pluginSource -Destination $pluginStage -Recurse
+    $pluginManifest = Join-Path $pluginStage '.claude-plugin/plugin.json'
+    $pluginMetadata = Get-Content -LiteralPath $pluginManifest -Raw | ConvertFrom-Json -AsHashtable
+    $pluginMetadata.version = $version
+    $pluginMetadata | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $pluginManifest -Encoding utf8NoBOM
+    $pluginFiles = @(Get-ChildItem -LiteralPath $pluginStage -Force)
+    if ($pluginFiles.Count -eq 0) { throw 'Claude Code plugin has no files.' }
+    Compress-Archive -LiteralPath $pluginFiles.FullName -DestinationPath (Join-Path $assets "WinMon-Claude-Code-$version.zip")
     $winget = Join-Path $work 'winget'
     & (Join-Path $PSScriptRoot 'New-WinGetManifest.ps1') -Version $version -InstallerPath $installer -OutputDirectory $winget | Out-Host
     Compress-Archive -Path (Join-Path $winget 'manifests') -DestinationPath (Join-Path $assets "WinMon-$version-winget.zip")

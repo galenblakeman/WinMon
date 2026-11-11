@@ -2,6 +2,28 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## MCP server collection and concurrent sampling (November 11, 2026)
+
+Windows x64, .NET SDK 10.0.404/runtime 10.0.15. The explicit `PerformanceMeasurement.MeasurePublishedServer` test launches the self-contained server from a path with spaces, warms up for ten seconds, then measures idle collection, 40 snapshots, four concurrent 60-second samples and retained history. `dotnet-counters` 9.0.661903 records runtime allocation/heap counters; `dotnet-gcdump` 9.0.661903 collects two retained-heap snapshots a minute apart after the 120-frame history fills. Commands are in [MCP setup](MCP.md#build-and-verify). Forced GC diagnostics run outside the CPU/latency scenarios. Source-level publication timestamp and error-summary refinements after this profile do not change the collector or retained-history budgets; final protocol/unit regression tests cover those refinements.
+
+| Scenario | Measured seconds | Server CPU ms per elapsed second | Private memory at end |
+| --- | ---: | ---: | ---: |
+| Idle one-second collection | 20.01 | 20.3 | 39.2 MiB |
+| Forty snapshots | 20.27 | 55.5 | 51.4 MiB |
+| Four concurrent 60-second samples | 60.72 | 16.2 | 95.9 MiB |
+| Following idle retention | 60.01 | 15.4 | 116.7 MiB |
+| Idle minute between heap snapshots | 60.00 | 9.6 | 113.3 MiB |
+
+Snapshot latency was 1.50 ms median and 2.98 ms p95 in this run. All four samples completed with about 99.93% CPU interval coverage. Responses were 207,165–207,821 bytes including structured/text representations; the 256 KiB budget retained 30 trend entries and explicitly marked truncation while preserving each full-window summary. Ordinary collection allocated about 0.8 MB/s; serialization creates a transient allocation burst at simultaneous completion. This is one machine/workload, not a capacity guarantee.
+
+The first uncapped profile finished near 141 MiB private memory with a large uncollected heap. Applying the CLI's existing 6 MiB gen0 budget reduced the capped run's final private memory to about 115 MiB. The final post-GC retained heaps were 49,772,966 and 44,232,778 bytes, with 572,893 and 573,124 objects; process private memory after those collections was 109.7 and 106.2 MiB. Live retained data did not grow across the extra minute under the measured process/connection workload. Large temporary serializer/pool allocations explain why instantaneous GC-heap counters and private memory exceed retained object size; no forced collection was added to production code.
+
+Evidence: `artifacts/mcp-performance` (uncapped), `artifacts/mcp-performance-capped`, and `artifacts/mcp-performance-final` (measurements JSON, timeline, runtime counters and both heap reports/dumps). The explicit measurement passed in 3m53s. History bounds, one shared collector and request cancellation are also exercised deterministically.
+
+The existing WPF 850-process live benchmark ran unchanged before and after integration. Baseline: 4.243 ms and 603,252.8 allocated bytes/frame; final repeat: 4.458 ms and 603,230.9 bytes/frame, with identical pixel hashes. An earlier repeat during concurrent release compilation was 4.864 ms; the repeat after compilation narrowed the timing difference to 0.214 ms. No UI/sampling hot-path source changed, and per-batch timing spreads overlap substantially; these runs establish unchanged rendering/allocation, not a precise timing improvement. Evidence: `artifacts/mcp-baseline-bench.*`, `artifacts/mcp-after-bench.*`, `artifacts/mcp-final-ui-bench.*`.
+
+Seven native CLI `snapshot --format json --top 10` runs compared the first packaging build with the final publish. Median elapsed time was 1,545.1 versus 1,543.5 ms; median process CPU was 500.0 ms in both. All snapshots returned schema version 1. This includes startup and the intentional one-second baseline delay, not an interactive terminal-rendering benchmark. Peak working-set readings after exit were unavailable and are not reported. CLI source and shared collector source were unchanged. Evidence: `artifacts/mcp-cli-snapshot-profile.json`.
+
 ## Process navigation and final workflow verification (November 10, 2026)
 
 Final Windows x64 Release benchmark after traffic export, capture attribution, period Usage, coverage and navigation. Same 850-process workload, 400 warm-ups and seven batches of 60; original full baseline is artifacts/goal-before.json and final results are artifacts/goal-final-bench.json. The selected/tooltip cases exercise navigation eligibility. Connections cases use 60 processes/480 endpoints; extreme endpoint counts were not load-tested.

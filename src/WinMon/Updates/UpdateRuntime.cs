@@ -147,7 +147,7 @@ internal static class UpdateRuntime
         }
 
         var state = UpdateFiles.ReadJson<UpdateState>(statePath);
-        if (!job.Installed && job.CliExisted is not null && earlier &&
+        if (!job.Installed && (job.CliExisted is not null || job.McpExisted is not null) && earlier &&
             UpdateManifest.ParseVersion(job.Version) > UpdateManifest.ParseVersion(currentVersion) &&
             state.Status is "replacing" or "awaiting-ready")
         {
@@ -161,7 +161,7 @@ internal static class UpdateRuntime
             }
             try
             {
-                RestoreCli(job);
+                RestoreCompanions(job);
                 UpdateFiles.WriteJson(statePath, new UpdateState("rolled-back"));
                 state = new UpdateState("rolled-back");
             }
@@ -171,6 +171,8 @@ internal static class UpdateRuntime
         {
             if (job.CliExisted is not null)
                 UpdateClient.ValidateExecutableVersion(UpdateFiles.CliJob(job).Target, job.Version);
+            if (job.McpExisted is not null)
+                UpdateClient.ValidateExecutableVersion(UpdateFiles.McpJob(job).Target, job.Version);
             UpdateFiles.WriteJson(statePath, new UpdateState("succeeded"));
             state = new UpdateState("succeeded");
         }
@@ -182,7 +184,7 @@ internal static class UpdateRuntime
         {
             TryDelete(UpdateFiles.BackupPath(job));
             TryDelete(UpdateFiles.StagedPath(job));
-            CleanupCli(job);
+            CleanupCompanions(job);
             TryDeleteDirectory(directory);
             return;
         }
@@ -190,10 +192,11 @@ internal static class UpdateRuntime
         // A backup is the only copy of WinMon while the target is missing.
         if (File.Exists(job.Target)) TryDelete(UpdateFiles.BackupPath(job));
         TryDelete(UpdateFiles.StagedPath(job));
-        CleanupCli(job);
+        CleanupCompanions(job);
         TryDelete(Path.Combine(directory, "WinMon.Update.exe"));
         TryDelete(Path.Combine(directory, "WinMon.exe"));
         TryDelete(Path.Combine(directory, "WinMon.Cli.exe"));
+        TryDelete(Path.Combine(directory, "WinMon.Mcp.exe"));
         TryDelete(Path.Combine(directory, "verified-cli.exe"));
         TryDelete(Path.Combine(directory, "verified.exe"));
         TryDelete(Path.Combine(directory, $"WinMon-{job.Version}-win-x64.zip"));
@@ -342,6 +345,7 @@ internal static class UpdateRuntime
                         throw new IOException("Update installer failed with exit code " + setup.ExitCode + ".");
                     UpdateClient.ValidateExecutableVersion(job.Target, job.Version);
                     UpdateClient.ValidateExecutableVersion(UpdateFiles.CliJob(job).Target, job.Version);
+                    UpdateClient.ValidateExecutableVersion(UpdateFiles.McpJob(job).Target, job.Version);
                 }
                 else
                 {
@@ -362,6 +366,21 @@ internal static class UpdateRuntime
                             PortableUpdate.Apply(UpdateFiles.StagedPath(cliJob), cliJob.Target, UpdateFiles.BackupPath(cliJob));
                         else
                             File.Move(UpdateFiles.StagedPath(cliJob), cliJob.Target);
+                    }
+                    var mcpJob = UpdateFiles.McpJob(job);
+                    var mcpExtracted = Path.Combine(directory, "verified-mcp.exe");
+                    var mcpExisted = File.Exists(mcpJob.Target);
+                    if (UpdateClient.ExtractExecutableAsync(download, mcpExtracted, job.Version,
+                            CancellationToken.None, "WinMon.Mcp.exe", mcpExisted).GetAwaiter().GetResult())
+                    {
+                        File.Copy(mcpExtracted, UpdateFiles.StagedPath(mcpJob), false);
+                        job = job with { McpExisted = mcpExisted };
+                        UpdateFiles.WriteJson(Path.Combine(directory, "job.json"), job);
+                        // Replace both companions before the desktop, so a locked one cannot leave the app updated.
+                        if (mcpExisted)
+                            PortableUpdate.Apply(UpdateFiles.StagedPath(mcpJob), mcpJob.Target, UpdateFiles.BackupPath(mcpJob));
+                        else
+                            File.Move(UpdateFiles.StagedPath(mcpJob), mcpJob.Target);
                     }
                     File.Copy(extracted, UpdateFiles.StagedPath(job), false);
                     PortableUpdate.Apply(UpdateFiles.StagedPath(job), job.Target, UpdateFiles.BackupPath(job));
@@ -399,10 +418,13 @@ internal static class UpdateRuntime
 
                 TryDelete(UpdateFiles.BackupPath(job));
                 TryDelete(UpdateFiles.BackupPath(UpdateFiles.CliJob(job)));
+                TryDelete(UpdateFiles.BackupPath(UpdateFiles.McpJob(job)));
                 TryDelete(download);
                 TryDelete(Path.Combine(directory, "WinMon.exe"));
                 TryDelete(Path.Combine(directory, "WinMon.Cli.exe"));
+                TryDelete(Path.Combine(directory, "WinMon.Mcp.exe"));
                 TryDelete(Path.Combine(directory, "verified-cli.exe"));
+                TryDelete(Path.Combine(directory, "verified-mcp.exe"));
                 TryDelete(Path.Combine(directory, "verified.exe"));
                 return 0;
             }
@@ -456,7 +478,7 @@ internal static class UpdateRuntime
                         PortableUpdate.RecoverIncompleteReplace(job.Target, UpdateFiles.BackupPath(job));
                     }
 
-                    if (!job.Installed) RestoreCli(job);
+                    if (!job.Installed) RestoreCompanions(job);
 
                     host.WriteState(directory,
                         new UpdateState(replaced ? "rolled-back" : "failed", ex.Message));
@@ -494,21 +516,32 @@ internal static class UpdateRuntime
         }
     }
 
-    private static void RestoreCli(UpdateJob job)
+    private static void RestoreCompanions(UpdateJob job)
     {
-        if (job.CliExisted is null) return;
-        var cliJob = UpdateFiles.CliJob(job);
-        if (File.Exists(UpdateFiles.BackupPath(cliJob)))
-            PortableUpdate.Restore(cliJob.Target, UpdateFiles.BackupPath(cliJob));
-        else if (job.CliExisted == false && !File.Exists(UpdateFiles.StagedPath(cliJob)))
-            File.Delete(cliJob.Target);
+        RestoreCompanion(UpdateFiles.CliJob(job), job.CliExisted);
+        RestoreCompanion(UpdateFiles.McpJob(job), job.McpExisted);
     }
 
-    private static void CleanupCli(UpdateJob job)
+    private static void RestoreCompanion(UpdateJob companion, bool? existed)
     {
-        var cliJob = UpdateFiles.CliJob(job);
-        if (File.Exists(cliJob.Target)) TryDelete(UpdateFiles.BackupPath(cliJob));
-        TryDelete(UpdateFiles.StagedPath(cliJob));
+        if (existed is null) return;
+        if (File.Exists(UpdateFiles.BackupPath(companion)))
+            PortableUpdate.Restore(companion.Target, UpdateFiles.BackupPath(companion));
+        else if (existed == false && !File.Exists(UpdateFiles.StagedPath(companion)))
+            File.Delete(companion.Target);
+    }
+
+    private static void CleanupCompanions(UpdateJob job)
+    {
+        CleanupCompanion(UpdateFiles.CliJob(job), job.CliExisted);
+        CleanupCompanion(UpdateFiles.McpJob(job), job.McpExisted);
+    }
+
+    private static void CleanupCompanion(UpdateJob companion, bool? existed)
+    {
+        if (existed is null) return;
+        if (File.Exists(companion.Target)) TryDelete(UpdateFiles.BackupPath(companion));
+        TryDelete(UpdateFiles.StagedPath(companion));
     }
 
     private static IUpdateHelperProcess Launch(UpdateJob job, string directory, UpdateHelperHost host)

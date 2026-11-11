@@ -190,6 +190,38 @@ public sealed class UpdateHelperTests
         }
     }
 
+    [TestCase(false)]
+    [TestCase(true)]
+    public void BundledPortableUpdateCommitsOrRestoresMcpWithTheDesktop(bool existingMcp)
+    {
+        foreach (var healthy in new[] { true, false })
+        {
+            using var fixture = new Fixture(includeMcp: true, existingMcp: existingMcp);
+            fixture.Host.Healthy = healthy;
+            fixture.Host.Child.HasExited = !healthy;
+            var mcpJob = UpdateFiles.McpJob(fixture.Job);
+
+            Assert.That(fixture.Run(), Is.EqualTo(healthy ? 0 : 1));
+            Assert.Multiple(() =>
+            {
+                Assert.That(fixture.State.Status, Is.EqualTo(healthy ? "succeeded" : "rolled-back"));
+                if (healthy)
+                {
+                    Assert.That(File.ReadAllBytes(fixture.Target), Is.EqualTo(fixture.Executable));
+                    Assert.That(File.ReadAllBytes(mcpJob.Target), Is.EqualTo(fixture.Executable));
+                }
+                else
+                {
+                    Assert.That(File.ReadAllText(fixture.Target), Is.EqualTo("old executable"));
+                    if (existingMcp) Assert.That(File.ReadAllText(mcpJob.Target), Is.EqualTo("old MCP"));
+                    else Assert.That(File.Exists(mcpJob.Target), Is.False);
+                }
+                Assert.That(File.Exists(UpdateFiles.BackupPath(mcpJob)), Is.False);
+                Assert.That(File.Exists(UpdateFiles.StagedPath(mcpJob)), Is.False);
+            });
+        }
+    }
+
     [TestCase("WinMon.Cli.exe")]
     [TestCase("WinMon.exe")]
     [Category("Integration")]
@@ -390,7 +422,8 @@ public sealed class UpdateHelperTests
     private sealed class Fixture : IDisposable
     {
         private readonly string _root = Path.Combine(Path.GetTempPath(), "WinMon.HelperTests", Guid.NewGuid().ToString("N"));
-        internal Fixture(bool installed = false, bool includeCli = false, bool existingCli = false)
+        internal Fixture(bool installed = false, bool includeCli = false, bool existingCli = false,
+            bool includeMcp = false, bool existingMcp = false)
         {
             Application = Path.Combine(_root, "app");
             Target = Path.Combine(Application, "WinMon.exe");
@@ -401,6 +434,7 @@ public sealed class UpdateHelperTests
             Executable = File.ReadAllBytes(typeof(UpdateRuntime).Assembly.Location);
             Job = new UpdateJob(Target, 42, 123, AppInfo.Version, installed, Guid.NewGuid().ToString("N"));
             if (existingCli) File.WriteAllText(UpdateFiles.CliJob(Job).Target, "old CLI");
+            if (existingMcp) File.WriteAllText(UpdateFiles.McpJob(Job).Target, "old MCP");
             Token = Job.Token;
             byte[] portable;
             using (var memory = new MemoryStream())
@@ -410,6 +444,8 @@ public sealed class UpdateHelperTests
                     using (var entry = archive.CreateEntry("WinMon.exe").Open()) entry.Write(Executable);
                     if (includeCli)
                         using (var entry = archive.CreateEntry("WinMon.Cli.exe").Open()) entry.Write(Executable);
+                    if (includeMcp)
+                        using (var entry = archive.CreateEntry("WinMon.Mcp.exe").Open()) entry.Write(Executable);
                 }
                 portable = memory.ToArray();
             }
@@ -515,6 +551,7 @@ public sealed class UpdateHelperTests
                 {
                     File.WriteAllBytes(Target, Executable);
                     File.WriteAllBytes(Path.Combine(Path.GetDirectoryName(Target)!, "WinMon.Cli.exe"), Executable);
+                    File.WriteAllBytes(Path.Combine(Path.GetDirectoryName(Target)!, "WinMon.Mcp.exe"), Executable);
                 }
                 return Setup;
             }

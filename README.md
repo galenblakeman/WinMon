@@ -63,6 +63,10 @@ Run `WinMon.Cli` for a keyboard-driven monitor with Processes, Services, Connect
 
 See the [CLI user guide](docs/USER-GUIDE.md#command-line) for setup, keyboard shortcuts, saved settings, network monitoring and scripting.
 
+## Coding agent diagnostics
+
+The source tree includes `WinMon.Mcp.exe`, a local read-only MCP server for system snapshots, process details, bounded performance trends and connection observations. Desktop packaging includes it alongside the app; a separate Claude Code plugin adds a diagnostics skill. Command lines and executable paths are excluded, and network addresses/ports require explicit opt-in. See [MCP setup and privacy](docs/MCP.md) for building, supported installation routes and Codex/Claude registration.
+
 ## Compact view and customization
 
 Switch to **Compact view** to keep resource readings visible in a slim window. Enable **Always on top**, minimize to the notification area, or show and hide WinMon with a configurable shortcut (**Ctrl+Shift+M** by default).

@@ -1,4 +1,4 @@
-#requires -Version 7.0
+#requires -Version 7.4
 [CmdletBinding()]
 param([Parameter(Mandatory)][string]$InstallerPath)
 $ErrorActionPreference = 'Stop'
@@ -40,7 +40,8 @@ try {
     $installed = $true
     $executable = Join-Path $installDirectory 'WinMon.exe'
     $cliExecutable = Join-Path $installDirectory 'WinMon.Cli.exe'
-    if (!(Test-Path $executable) -or !(Test-Path $cliExecutable) -or !(Test-Path $installerShortcut) -or !(Test-Path $uninstallKey)) { throw 'Installation is incomplete.' }
+    $mcpExecutable = Join-Path $installDirectory 'WinMon.Mcp.exe'
+    if (!(Test-Path $executable) -or !(Test-Path $cliExecutable) -or !(Test-Path $mcpExecutable) -or !(Test-Path $installerShortcut) -or !(Test-Path $uninstallKey)) { throw 'Installation is incomplete.' }
     if (Test-Path (Join-Path $installDirectory 'portable.flag')) { throw 'Installer unexpectedly enabled portable mode.' }
     if ([string](Get-ItemProperty -Path $environmentKey -Name Path -ErrorAction SilentlyContinue).Path -ne $originalPath -or
         (Get-ItemProperty -Path $cliPathKey -Name CliPathDirectory -ErrorAction SilentlyContinue)) {
@@ -49,15 +50,20 @@ try {
     $registration = Get-ItemProperty $uninstallKey
     $expectedVersion = [string]([xml](Get-Content (Join-Path $root 'Directory.Build.props') -Raw)).Project.PropertyGroup.Version
     if ($registration.DisplayVersion -ne $expectedVersion) { throw 'Uninstall registration has the wrong version.' }
+    $mcpIdentity = [Diagnostics.FileVersionInfo]::GetVersionInfo($mcpExecutable)
+    if ($mcpIdentity.ProductVersion -ne $expectedVersion -or $mcpIdentity.ProductName -ne 'WinMon' -or
+        $mcpIdentity.OriginalFilename -ne 'WinMon.Mcp.dll') { throw 'Installed MCP executable identity is invalid.' }
     $shell = New-Object -ComObject WScript.Shell
     if ($shell.CreateShortcut($installerShortcut).TargetPath -ne $executable) { throw 'Installer shortcut has the wrong target.' }
     Invoke-CheckedProcess $executable @('--smoke-output', "`"$testDirectory/smoke`"")
     Invoke-CheckedProcess $cliExecutable @('snapshot', '--top', '1', '--no-color')
+    & (Join-Path $PSScriptRoot 'Test-McpStdio.ps1') -Executable $mcpExecutable -OutputDirectory (Join-Path $testDirectory 'mcp-installed')
     if (!(Test-Path (Join-Path $testDirectory 'smoke/smoke.json'))) { throw 'Application smoke evidence is missing.' }
     # A same-version repair exercises the CLI PATH task and upgrade preservation without changing the release version.
     Set-Content (Join-Path $installDirectory 'settings.json') '{"Theme":"Light"}'
     New-Item -ItemType File -Path (Join-Path $installDirectory 'portable.flag') | Out-Null
     Invoke-CheckedProcess $InstallerPath ($arguments + '/TASKS="clipath"' + "/LOG=`"$testDirectory/repair.log`"")
+    & (Join-Path $PSScriptRoot 'Test-McpStdio.ps1') -Executable $mcpExecutable -OutputDirectory (Join-Path $testDirectory 'mcp-repaired')
     if ((Get-Content (Join-Path $installDirectory 'settings.json') -Raw).Trim() -ne '{"Theme":"Light"}') { throw 'Repair changed portable preferences.' }
     $pathWithCli = [string](Get-ItemProperty -Path $environmentKey -Name Path -ErrorAction Stop).Path
     if ($pathWithCli -notmatch [regex]::Escape($installDirectory) -or
@@ -71,7 +77,7 @@ try {
     $link.Save()
     Invoke-CheckedProcess (Join-Path $installDirectory 'unins000.exe') @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', "/LOG=`"$testDirectory/uninstall.log`"")
     $installed = $false
-    if ((Test-Path $executable) -or (Test-Path $cliExecutable) -or (Test-Path $uninstallKey) -or (Test-Path $installerShortcut) -or (Test-Path $launchShortcut) -or
+    if ((Test-Path $executable) -or (Test-Path $cliExecutable) -or (Test-Path $mcpExecutable) -or (Test-Path $uninstallKey) -or (Test-Path $installerShortcut) -or (Test-Path $launchShortcut) -or
         (Get-ItemProperty -Path $runKey -Name WinMon -ErrorAction SilentlyContinue)) { throw 'Uninstall left application files or owned registration behind.' }
     if ([string](Get-ItemProperty -Path $environmentKey -Name Path -ErrorAction SilentlyContinue).Path -ne $originalPath -or
         (Get-ItemProperty -Path $cliPathKey -Name CliPathDirectory -ErrorAction SilentlyContinue)) {

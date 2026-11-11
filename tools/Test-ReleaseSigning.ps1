@@ -7,9 +7,10 @@ Set-StrictMode -Version Latest
 $root = Split-Path $PSScriptRoot -Parent
 $run = Join-Path $root "artifacts/signing-validation/$([guid]::NewGuid().ToString('N'))"
 $fixture = Join-Path $run 'fixture'
-foreach ($directory in @('tools', 'src/WinMon/Updates', 'src/WinMon/Resources', 'src/WinMon.NetworkService', 'src/WinMon.NetworkSetup', 'packaging')) {
+foreach ($directory in @('tools', 'src/WinMon/Updates', 'src/WinMon/Resources', 'src/WinMon.NetworkService', 'src/WinMon.NetworkSetup', 'packaging', 'plugins/claude-code')) {
     New-Item -ItemType Directory -Path (Join-Path $fixture $directory) -Force | Out-Null
 }
+Copy-Item -LiteralPath (Join-Path $root 'plugins/claude-code/winmon') -Destination (Join-Path $fixture 'plugins/claude-code') -Recurse
 foreach ($name in @('New-Release.ps1', 'New-NetworkServicePackage.ps1', 'Sign-ReleaseFile.ps1', 'New-WinGetManifest.ps1', 'New-UpdateManifest.ps1')) {
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot $name) -Destination (Join-Path $fixture 'tools')
 }
@@ -38,12 +39,14 @@ foreach ($argument in $args) {
 }
 $payload = Get-Content -LiteralPath (Join-Path $options.PublishDirectory 'WinMon.exe') -Raw
 $cliPayload = Get-Content -LiteralPath (Join-Path $options.CliPublishDirectory 'WinMon.Cli.exe') -Raw
+$mcpPayload = Get-Content -LiteralPath (Join-Path $options.McpPublishDirectory 'WinMon.Mcp.exe') -Raw
 if ($options.NetworkServiceSetup -cne $(if ($testState.Mode -eq 'unsigned') { '0' } else { '1' })) {
     throw 'Installer network-service option must be present only in signed packages.'
 }
 if ($testState.Mode -ne 'unsigned' -and $payload -notmatch 'SIGNED') { throw 'Installer received an unsigned application.' }
 if ($testState.Mode -ne 'unsigned' -and $cliPayload -notmatch 'SIGNED') { throw 'Installer received an unsigned CLI.' }
-[IO.File]::WriteAllText((Join-Path $options.ReleaseDirectory 'WinMon-9.8.7-Setup-x64.exe'), "INSTALLER:${payload}:${cliPayload}")
+if ($testState.Mode -ne 'unsigned' -and $mcpPayload -notmatch 'SIGNED') { throw 'Installer received an unsigned MCP server.' }
+[IO.File]::WriteAllText((Join-Path $options.ReleaseDirectory 'WinMon-9.8.7-Setup-x64.exe'), "INSTALLER:${payload}:${cliPayload}:${mcpPayload}")
 $global:LASTEXITCODE = 0
 '@ | Set-Content -LiteralPath $compiler
 $testState = @{ Mode = 'valid'; Calls = 0 }
@@ -60,6 +63,9 @@ function dotnet {
         }
         elseif ($args[1] -like '*WinMon.Cli*') {
             [IO.File]::WriteAllText((Join-Path $output 'WinMon.Cli.exe'), 'CLI')
+        }
+        elseif ($args[1] -like '*WinMon.Mcp*') {
+            [IO.File]::WriteAllText((Join-Path $output 'WinMon.Mcp.exe'), 'MCP')
         }
         else {
             [IO.File]::WriteAllText((Join-Path $output 'WinMon.exe'), 'APPLICATION')
@@ -93,7 +99,7 @@ function Get-AuthenticodeSignature {
         $certificate | Add-Member ScriptMethod GetNameInfo { param($Type, $Issuer) 'Other Publisher' } -Force
     }
     [pscustomobject]@{
-        Status = $(if ($testState.Mode -eq 'invalid' -or ($testState.Mode -eq 'installer-invalid' -and $testState.Calls -eq 5)) { 'HashMismatch' } else { 'Valid' })
+        Status = $(if ($testState.Mode -eq 'invalid' -or ($testState.Mode -eq 'installer-invalid' -and $testState.Calls -eq 6)) { 'HashMismatch' } else { 'Valid' })
         StatusMessage = 'Simulated Authenticode result'
         SignerCertificate = $certificate
         TimeStamperCertificate = $(if ($testState.Mode -ne 'no-timestamp') { [pscustomobject]@{ Subject = 'CN=Test TSA' } })
@@ -102,12 +108,20 @@ function Get-AuthenticodeSignature {
 $release = Join-Path $fixture 'tools/New-Release.ps1'
 $output = Join-Path $run 'release'
 & $release -CodeSign -InnoCompiler $compiler -OutputDirectory $output -UpdateSigningKeyPath (Join-Path $run 'private.pem')
-if ($testState.Calls -ne 5) { throw 'Expected exactly five signing calls.' }
+if ($testState.Calls -ne 6) { throw 'Expected exactly six signing calls.' }
 Expand-Archive (Join-Path $output 'WinMon-9.8.7-win-x64.zip') (Join-Path $run 'portable')
 if ((Get-Content (Join-Path $run 'portable/WinMon.exe') -Raw) -cne 'APPLICATION:SIGNED') { throw 'Portable executable was not signed.' }
 if ((Get-Content (Join-Path $run 'portable/WinMon.Cli.exe') -Raw) -cne 'CLI:SIGNED') { throw 'Bundled CLI executable was not signed.' }
+if ((Get-Content (Join-Path $run 'portable/WinMon.Mcp.exe') -Raw) -cne 'MCP:SIGNED') { throw 'Bundled MCP executable was not signed.' }
 Expand-Archive (Join-Path $output 'WinMon-Cli-9.8.7-win-x64.zip') (Join-Path $run 'cli-portable')
 if ((Get-Content (Join-Path $run 'cli-portable/WinMon.Cli.exe') -Raw) -cne 'CLI:SIGNED') { throw 'CLI-only executable was not signed.' }
+Expand-Archive (Join-Path $output 'WinMon-Claude-Code-9.8.7.zip') (Join-Path $run 'plugin')
+if (!(Test-Path (Join-Path $run 'plugin/.claude-plugin/plugin.json')) -or !(Test-Path (Join-Path $run 'plugin/.mcp.json'))) {
+    throw 'Claude Code plugin archive is incomplete.'
+}
+if ((Get-Content (Join-Path $run 'plugin/.claude-plugin/plugin.json') -Raw | ConvertFrom-Json).version -cne '9.8.7') {
+    throw 'Claude Code plugin version did not follow the release version.'
+}
 $installerHash = (Get-FileHash (Join-Path $output 'WinMon-9.8.7-Setup-x64.exe')).Hash
 foreach ($line in Get-Content (Join-Path $output 'SHA256SUMS.txt')) {
     $parts = $line -split '  ', 2
@@ -158,4 +172,4 @@ $testState.Calls = 0
 if ($testState.Calls -ne 0) { throw 'Unsigned local build contacted signing provider.' }
 # The fixture key is only needed for this disposable signing-boundary test.
 Remove-Item -LiteralPath (Join-Path $run 'private.pem') -Force -ErrorAction SilentlyContinue
-Write-Host "PASS: signing order, desktop and CLI payloads, final hashes, RSA manifest, five signing failure gates, and unsigned local packaging. Evidence: $run"
+Write-Host "PASS: signing order, desktop, CLI and MCP payloads, plugin archive, final hashes, RSA manifest, signing failure gates, and unsigned local packaging. Evidence: $run"

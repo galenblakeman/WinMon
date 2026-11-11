@@ -1,5 +1,7 @@
 # WinMon design assets
 
+- [MCP server and Claude Code plugin](MCP-SERVER.md) implements five read-only diagnostic tools with shared sampling, lifetime-safe process identity, privacy defaults and packaged-client acceptance; its [checklist](MCP-IMPLEMENTATION.md) records verification and the user-waived .NET-free-machine test.
+
 - [Complete existing investigation workflows](FEATURE-COMPLETENESS.md) tracks traffic export, network capture attribution, period Usage, history coverage and app navigation.
 
 - [Terminal CLI preview](TERMINAL-CLI.md) adds snapshot reports and four interactive read-only monitoring tabs with Spectre.Console and System.CommandLine, including adaptive resource gauges and shared-scale process history sparklines.
