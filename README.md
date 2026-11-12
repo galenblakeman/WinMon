@@ -14,6 +14,8 @@ WinMon brings CPU, memory, disk, network and GPU activity into one Windows dashb
 
 ## Download and requirements
 
+Current version: **4.1.2**.
+
 [Download the latest release](https://github.com/galenblakeman/WinMon/releases/latest), then choose:
 
 | Download | Get started |
