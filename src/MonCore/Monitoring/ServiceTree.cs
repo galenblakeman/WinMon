@@ -295,6 +295,8 @@ public sealed class ServiceHistory
 {
     public const int Seconds = 120;
     public const int MaximumObservations = 120_000;
+    public int Capacity { get; private set; } = Seconds;
+    public bool WasMemoryLimited { get; private set; }
     private readonly List<ServiceFrame> _frames = [];
     private int _observations;
     public IReadOnlyList<ServiceFrame> Frames => _frames;
@@ -303,9 +305,22 @@ public sealed class ServiceHistory
     {
         _frames.Add(frame);
         _observations += Cost(frame);
-        while (_frames.Count > 1 && (Age(_frames[0].Sample, frame.Sample) > Seconds || _frames.Count > Seconds + 1 ||
+        Trim();
+    }
+
+    public void Resize(int capacity)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(capacity, 1);
+        Capacity = capacity;
+        Trim();
+    }
+
+    private void Trim()
+    {
+        while (_frames.Count > 1 && (Age(_frames[0].Sample, _frames[^1].Sample) > Capacity || _frames.Count > Capacity + 1 ||
                                      _observations > MaximumObservations))
         {
+            WasMemoryLimited |= _observations > MaximumObservations;
             _observations -= Cost(_frames[0]);
             _frames.RemoveAt(0);
         }

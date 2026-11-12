@@ -112,7 +112,12 @@ public partial class MainWindow
                     break;
                 }
 
-        var history = frames.Take(count).ToArray();
+        // Retain older incidents without expanding the two-minute row graphs on every refresh.
+        var first = Math.Max(0, count - ServiceHistory.Seconds - 1);
+        if (frame is not null)
+            while (first < count && CpuGraph.Moment(frame.Sample) - CpuGraph.Moment(frames[first].Sample) > ServiceHistory.Seconds)
+                first++;
+        var history = frames.Skip(first).Take(count - first).ToArray();
         ServiceView.Update(frame, history, SelectedSample is not null);
     }
 

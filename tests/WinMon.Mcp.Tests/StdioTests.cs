@@ -29,7 +29,8 @@ public sealed class StdioTests
         var tools = await client.ListToolsAsync(cancellationToken: timeout.Token);
         Assert.That(tools.Select(tool => tool.Name), Is.EquivalentTo(new[]
         {
-            "get_system_snapshot", "list_processes", "get_process_details", "sample_performance", "get_network_connections"
+            "get_system_snapshot", "list_processes", "get_process_details", "sample_performance", "get_network_connections",
+            "get_process_network_traffic"
         }));
         Assert.That(tools.All(tool => tool.ProtocolTool.Annotations?.ReadOnlyHint == true), Is.True);
         Assert.That(tools.All(tool => tool.ProtocolTool.OutputSchema is not null), Is.True);
@@ -45,5 +46,13 @@ public sealed class StdioTests
         });
         var invalid = await client.CallToolAsync("list_processes", new Dictionary<string, object?> { ["limit"] = 0 }, cancellationToken: timeout.Token);
         Assert.That(invalid.IsError, Is.True);
+        var traffic = await client.CallToolAsync("get_process_network_traffic",
+            new Dictionary<string, object?> { ["limit"] = 1 }, cancellationToken: timeout.Token);
+        Assert.Multiple(() =>
+        {
+            Assert.That(traffic.IsError, Is.Not.True);
+            Assert.That(traffic.StructuredContent!.Value.GetProperty("returnedCount").GetInt32(), Is.LessThanOrEqualTo(1));
+            Assert.That(traffic.StructuredContent.Value.GetRawText(), Does.Not.Contain("localEndpoint").And.Not.Contain("imagePath"));
+        });
     }
 }

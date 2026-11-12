@@ -17,6 +17,19 @@ namespace WinMon.Tests;
 public sealed class ServicesViewTests
 {
     [Test]
+    public void CaptureReportUsesDisplayedHistoricalServicesAndReportsUnavailableHistory()
+    {
+        var view = new ServicesView();
+        view.RestoreFilters(0, 0, false);
+        var frame = SelectionFrame(1, 80);
+        view.Update(frame, [frame], true);
+        Assert.That(view.CaptureReport(), Does.Contain("agent").And.Contain(Strings.ProcessHistoricalView)
+            .And.Contain(Strings.ServiceHostOnly));
+        view.Update(null, [], true);
+        Assert.That(view.CaptureReport(), Does.Contain(Strings.HistorySelectedUnavailable).And.Not.Contain("agent"));
+    }
+
+    [Test]
     public void ServiceFiltersRestoreWithoutEventsAndNotifyUserChangesIncludingSortFallback()
     {
         var view = new ServicesView { TopServiceCount = 0 };

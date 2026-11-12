@@ -1412,11 +1412,11 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="StopService" xml:space="preserve"><value>Stop</value></data>
   <data name="RestartService" xml:space="preserve"><value>Restart</value></data>
   <data name="ServiceActionInProgress" xml:space="preserve"><value>Service action in progress…</value></data>
-  <data name="ServiceHistoryExpired" xml:space="preserve"><value>Service history is retained for up to two minutes. Return to live to inspect current services.</value></data>
+  <data name="ServiceHistoryExpired" xml:space="preserve"><value>Service observations are unavailable for this capture. Retention follows Monitoring settings and the service memory budget. Return to live to inspect current services.</value></data>
   <data name="ServicesCollecting" xml:space="preserve"><value>Collecting services and process metrics…</value></data>
   <data name="ServicesUnavailable" xml:space="preserve"><value>Service readings unavailable. Retrying each second.</value></data>
   <data name="NoServicesMatch" xml:space="preserve"><value>No services match this search and status filter.</value></data>
-  <data name="ServiceWorkerExplanation" xml:space="preserve"><value>Worker relationships are inferred from observed process ancestry. Shared services use one host total. History: up to 2 minutes.</value></data>
+  <data name="ServiceWorkerExplanation" xml:space="preserve"><value>Worker relationships are inferred from observed process ancestry. Shared services use one host total. History follows configured retention, subject to memory limits.</value></data>
   <data name="SelectService" xml:space="preserve"><value>Select a service or process</value></data>
   <data name="ExpandService" xml:space="preserve"><value>Expand or collapse {0}</value></data>
   <data name="SharedServiceHost" xml:space="preserve"><value>Shared host · {0} · PID {1}</value></data>
@@ -1674,7 +1674,7 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="ExportSaved" xml:space="preserve"><value>CSV saved to {0}</value></data>
   <data name="ExportFailed" xml:space="preserve"><value>Couldn't save the CSV: {0}</value></data>
   <data name="KeepHistoryAcrossRestarts" xml:space="preserve"><value>Keep history across restarts</value></data>
-  <data name="KeepHistoryAcrossRestartsNote" xml:space="preserve"><value>Saves recent process names, paths and measurements on this device. History expires after the selected retention period.</value></data>
+  <data name="KeepHistoryAcrossRestartsNote" xml:space="preserve"><value>Saves recent process names, paths, service details, network addresses, traffic and period usage on this device. History expires after the selected retention period.</value></data>
   <data name="ActivityTotal" xml:space="preserve"><value>Total</value></data>
   <data name="ActivityActive" xml:space="preserve"><value>Active</value></data>
   <data name="ProcessFileVersionLabel" xml:space="preserve"><value>File version</value></data>
@@ -1914,12 +1914,12 @@ Q quits. Ctrl+C cancels. Executable/service pins persist between sessions.</valu
 <data name="AutoCaptureNetworkScope" xml:space="preserve"><value>The trigger measures the selected adapter; app rates include all adapters and protocols and may not add up to it.</value></data>
 <data name="UsagePeriodNote" xml:space="preserve"><value>Recorded period: {0:G} – {1:G}. Duration follows the chart range, ending at Capture.</value></data>
 <data name="UsagePeriodPartial" xml:space="preserve"><value>Partial coverage: some intervals are missing or outside retained history.</value></data>
-<data name="UsagePeriodUnavailable" xml:space="preserve"><value>Usage was not recorded for this capture. Period usage starts fresh after restart.</value></data>
+<data name="UsagePeriodUnavailable" xml:space="preserve"><value>Usage was not recorded for this capture.</value></data>
 <data name="HistoryCoverageLine" xml:space="preserve"><value>{0}: retained span {1} · {2}</value></data>
 <data name="HistoryCoverageBounds" xml:space="preserve"><value>{0:G} – {1:G}</value></data>
 <data name="HistorySelectedAvailable" xml:space="preserve"><value>Selected moment recorded</value></data>
 <data name="HistorySelectedUnavailable" xml:space="preserve"><value>Selected moment unavailable</value></data>
-<data name="HistoryCoverageHelp" xml:space="preserve"><value>Configured resource/process history: {0}; Services: up to {1}. Retained spans can contain gaps and each view has its own memory budget. Services, Connections and period Usage start fresh after restart; only resource/process history can be restored.</value></data>
+<data name="HistoryCoverageHelp" xml:space="preserve"><value>Configured resource/process history: {0}; Services: up to {1}. Retained spans can contain gaps and each view has its own memory budget. All four views can be restored when history is saved. Live Usage totals start fresh after a normal restart; live traffic starts a new session.</value></data>
 <data name="ShowInConnections" xml:space="preserve"><value>Show in Connections</value></data>
 <data name="ShowInUsage" xml:space="preserve"><value>Show in Usage</value></data>
   <data name="InstallerCliPathTask" xml:space="preserve"><value>Add WinMon.Cli to PATH for this user</value></data>

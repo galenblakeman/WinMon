@@ -11,6 +11,19 @@ namespace WinMon.Tests;
 [TestFixture]
 public sealed class UsageViewTests
 {
+    [Test, Apartment(ApartmentState.STA)]
+    public void CaptureReportUsesPeriodTotalsAndCurrentSearch()
+    {
+        var view = _view = new UsageView();
+        var frame = new UsageFrame([App("included", 100), App("excluded", 900)], 1000, 0,
+            Now.AddMinutes(-2), Now, true, false);
+        view.Update(frame);
+        view.Search.Text = "included";
+        var report = view.CaptureReport(frame);
+        Assert.That(report, Does.Contain("included").And.Not.Contain("excluded")
+            .And.Contain(Strings.UsagePeriodPartial));
+    }
+
     private UsageView? _view;
 
     [TearDown]

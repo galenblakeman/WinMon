@@ -56,8 +56,8 @@ try {
     $process.StandardInput.Flush()
     $tools = Invoke-McpRequest 2 'tools/list' @{}
     $names = @($tools.tools | ForEach-Object name)
-    if ((@($names | Sort-Object) -join ',') -cne 'get_network_connections,get_process_details,get_system_snapshot,list_processes,sample_performance') {
-        throw 'MCP tool discovery did not match the five intended tools.'
+    if ((@($names | Sort-Object) -join ',') -cne 'get_network_connections,get_process_details,get_process_network_traffic,get_system_snapshot,list_processes,sample_performance') {
+        throw 'MCP tool discovery did not match the six intended tools.'
     }
     foreach ($tool in $tools.tools) {
         if ($tool.annotations.readOnlyHint -ne $true -or !$tool.outputSchema) { throw 'MCP tool is missing its read-only annotation or output schema.' }

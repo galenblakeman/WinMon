@@ -268,8 +268,9 @@ public partial class MainWindow
             // Copied on the UI thread: sampling has stopped, but the ledger is not thread-safe.
             var samples = Session.History.Samples;
             var usage = Session.Usage.Export();
+            var investigation = Session.CaptureInvestigation();
             await Task.Run(() => RestartHistory.Save(target.Path, target.Token, AppInfo.Version, samples, usage,
-                RestartClock.System)).WaitAsync(RestartHistory.Budget);
+                RestartClock.System, investigation: investigation)).WaitAsync(RestartHistory.Budget);
         }
         catch (TimeoutException)
         {
@@ -292,6 +293,7 @@ public partial class MainWindow
             if (contents is null) return;
             Session.SetHistoryClockOffset(contents.LiveOffset);
             foreach (var sample in contents.Samples) Session.Record(sample);
+            Session.RestoreInvestigation(contents.Investigation);
             if (contents.Usage is { } usage) Session.Usage.Restore(usage);
         }
         catch (Exception ex)

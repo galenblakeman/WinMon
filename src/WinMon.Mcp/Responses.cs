@@ -101,6 +101,7 @@ internal static class Responses
             {
                 PerformanceResult performance => performance with { Trend = performance.Trend.Take(performance.Trend.Length / 2).ToArray() },
                 ConnectionResult connections => connections with { Connections = connections.Connections.Take(connections.Connections.Length / 2).ToArray() },
+                TrafficResult traffic => traffic with { Processes = traffic.Processes.Take(traffic.Processes.Length / 2).ToArray() },
                 Array entries => entries.Cast<object>().Take(entries.Length / 2).ToArray(),
                 _ => null
             };
@@ -108,6 +109,7 @@ internal static class Responses
             {
                 PerformanceResult performance => performance.Trend.Length,
                 ConnectionResult connections => connections.Connections.Length,
+                TrafficResult traffic => traffic.Processes.Length,
                 Array entries => entries.Length,
                 _ => 0
             };

@@ -185,6 +185,20 @@ public sealed class ServiceTreeTests
         history.Add(latest);
 
         Assert.That(history.Frames, Is.EqualTo([latest]));
+        Assert.That(history.WasMemoryLimited, Is.True);
+    }
+
+    [Test]
+    public void ServiceHistory_ConfiguredRetentionIncludesOlderIncidentsAndShrinksImmediately()
+    {
+        var history = new ServiceHistory();
+        history.Resize(1800);
+        var first = new ServiceFrame(Sample(1), []);
+        history.Add(first);
+        history.Add(new ServiceFrame(Sample(601), []));
+        Assert.That(history.Find(first.Sample), Is.SameAs(first));
+        history.Resize(120);
+        Assert.That(history.Find(first.Sample), Is.Null);
     }
 
     [Test]

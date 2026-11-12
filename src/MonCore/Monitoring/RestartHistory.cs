@@ -2,6 +2,7 @@ using System.Buffers.Binary;
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Text;
+using System.Text.Json;
 
 namespace WinMon.Monitoring;
 
@@ -28,7 +29,10 @@ public sealed record RestartClock(Func<long> Timestamp, Func<long> TickCount, lo
 public sealed record RestartContents(
     IReadOnlyList<MonitorSample> Samples,
     UsageLedgerState? Usage,
-    long LiveOffset = 0);
+    long LiveOffset = 0)
+{
+    public InvestigationHistory? Investigation { get; init; }
+}
 
 /// <summary>
 /// Saves history across an in-app update restart, in the update's transaction directory, and reads it back.
@@ -55,6 +59,7 @@ public static class RestartHistory
 
     private const byte LedgerChunk = 1;
     private const byte SampleChunk = 2;
+    private const byte InvestigationChunk = 3;
     private const int TrailerLength = 12;
     private const int FrameLength = 9;
     private static readonly byte[] HeaderMagic = [.. "WMRH"u8];
@@ -75,7 +80,7 @@ public static class RestartHistory
     /// <returns>Whether the final file now exists.</returns>
     public static bool Save(string path, string token, string appVersion, IReadOnlyList<MonitorSample> samples,
         UsageLedgerState? usage, RestartClock clock, Func<string, Stream>? createTemporary = null,
-        long maxBytes = long.MaxValue)
+        long maxBytes = long.MaxValue, InvestigationHistory? investigation = null)
     {
         // Format 1 carries Windows FILETIME identities and cannot preserve portable domains or availability.
         // Refuse before opening a temporary file; keep existing Windows bytes and files unchanged.
@@ -108,6 +113,18 @@ public static class RestartHistory
                     if (stream.Position > maxBytes)
                         throw new InvalidDataException("History exceeds the file size limit.");
                     chunks++;
+                    if (investigation is not null && clock.SecondsSince(start) < StopChunksAfterSeconds)
+                    {
+                        WriteChunk(stream, buffer, InvestigationChunk, writer =>
+                        {
+                            var frames = samples.Skip(first).Take(last - first).Select(investigation.Find).ToArray();
+                            var bytes = JsonSerializer.SerializeToUtf8Bytes(frames, InvestigationHistory.Json);
+                            writer.Write(bytes.Length);
+                            writer.Write(bytes);
+                        });
+                        if (stream.Position > maxBytes) throw new InvalidDataException("History exceeds the file size limit.");
+                        chunks++;
+                    }
                 }
 
                 Span<byte> trailer = stackalloc byte[TrailerLength];
@@ -140,12 +157,13 @@ public static class RestartHistory
 
     /// <summary>Save the current retention window for an ordinary exit, without carrying Usage totals.</summary>
     public static bool SaveNormal(string path, string appVersion, IReadOnlyList<MonitorSample> samples,
-        RestartClock clock)
+        RestartClock clock, InvestigationHistory? investigation = null)
     {
         try
         {
             Directory.CreateDirectory(Path.GetDirectoryName(path) ?? ".");
-            return Save(path, NormalToken, appVersion, samples, null, clock, maxBytes: 64L * 1024 * 1024);
+            return Save(path, NormalToken, appVersion, samples, null, clock, maxBytes: 64L * 1024 * 1024,
+                investigation: investigation);
         }
         catch (Exception ex)
         {
@@ -156,7 +174,7 @@ public static class RestartHistory
 
     /// <summary>Restore recent samples onto this process's clock, including after a reboot.</summary>
     /// <returns>Restored samples and the offset to apply to subsequent live samples.</returns>
-    public static (IReadOnlyList<MonitorSample> Samples, long LiveOffset)? ReadNormal(
+    public static (IReadOnlyList<MonitorSample> Samples, long LiveOffset, InvestigationHistory? Investigation)? ReadNormal(
         string path, RestartClock clock, DateTimeOffset now, int retentionSeconds)
     {
         DeleteTemporaries(path);
@@ -176,7 +194,7 @@ public static class RestartHistory
             var samples = contents.Samples.Where(s => s.Timestamp >= cutoff && s.Timestamp <= now.AddSeconds(2))
                 .Select(s => s with { MonotonicTimestamp = checked(s.MonotonicTimestamp + shift) }).ToArray();
             if (samples.Length == 0 || samples[0].MonotonicTimestamp <= 0) return null;
-            return (samples, liveOffset);
+            return (samples, liveOffset, contents.Investigation?.Align(samples));
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or OverflowException
                                        or ArgumentException)
@@ -282,6 +300,7 @@ public static class RestartHistory
         stream.Position = headerLength;
         UsageLedgerState? usage = null;
         var chunks = new List<List<MonitorSample>>();
+        var investigation = new List<InvestigationHistory.Frame>();
         Span<byte> frame = stackalloc byte[FrameLength];
         for (var i = 0; i < count && clock.SecondsSince(start) < Budget.TotalSeconds; i++)
         {
@@ -301,6 +320,24 @@ public static class RestartHistory
                 continue;
             }
 
+            if (kind == InvestigationChunk)
+            {
+                if (valid && TryParse(payload, reader =>
+                    {
+                        var jsonLength = reader.ReadInt32();
+                        if (jsonLength is < 0 or > 64 * 1024 * 1024)
+                            throw new InvalidDataException("Investigation chunk exceeds the size limit.");
+                        var decoded = JsonSerializer.Deserialize<InvestigationHistory.Frame?[]>(reader.ReadBytes(jsonLength),
+                            InvestigationHistory.Json);
+                        if (decoded is null || decoded.Length > ChunkSamples ||
+                            decoded.OfType<InvestigationHistory.Frame>().Any(frame => !InvestigationHistory.Valid(frame)))
+                            throw new InvalidDataException("Invalid investigation observations.");
+                        return decoded;
+                    }) is { } frames)
+                    investigation.AddRange(frames.OfType<InvestigationHistory.Frame>());
+                continue;
+            }
+
             if (kind != SampleChunk || !valid || TryParse(payload, reader => ReadSamples(reader, version)) is not
                     { } samples) break;
             chunks.Add(samples);
@@ -310,7 +347,8 @@ public static class RestartHistory
         MonitorSample[] restored = [.. chunks.SelectMany(chunk => chunk)];
         // Same boot, so unshifted samples all predate the save; any lead over it is the saver's history offset.
         var liveOffset = restored.Length == 0 ? 0 : Math.Max(0, restored[^1].MonotonicTimestamp - savedTimestamp);
-        return new RestartContents(restored, usage, liveOffset);
+        return new RestartContents(restored, usage, liveOffset)
+        { Investigation = new InvestigationHistory(investigation) };
     }
 
     private static RestartContents? Reject(string reason)
@@ -368,7 +406,8 @@ public static class RestartHistory
             return read(reader);
         }
         catch (Exception ex) when (ex is IOException or InvalidDataException or ArgumentException or
-                                       FormatException or OverflowException or IndexOutOfRangeException)
+                                       FormatException or OverflowException or IndexOutOfRangeException or JsonException or
+                                       KeyNotFoundException or InvalidOperationException)
         {
             Trace.TraceWarning("WinMon restart history chunk could not be parsed: {0}", ex.Message);
             return null;

@@ -404,6 +404,9 @@ public partial class UsageView
         if (_frame is { } frame) CopyRequested?.Invoke(UsageText.Report(frame, Settings, Search.Text));
     }
 
+    internal string CaptureReport(UsageFrame frame) => Strings.UsageTab + Environment.NewLine +
+        UsageText.Report(frame, Settings, Search.Text);
+
     private void OnReset(object sender, RoutedEventArgs e)
     {
         ResetRequested?.Invoke();

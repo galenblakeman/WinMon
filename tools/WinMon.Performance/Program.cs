@@ -134,6 +134,7 @@ internal static class Program
         MeasureUsageLedger();
         MeasureUsageLedger(true);
         MeasureRestartHistory();
+        MeasureInvestigationHistory();
         var pixels = Pixels(args.Length > 1 ? args[1] : null);
         window.Preferences = window.Preferences with { ResourceChartType = ResourceChartType.LogicalProcessors };
         window.RefreshPresentation();
@@ -321,6 +322,53 @@ internal static class Program
                 FileBytes = bytes, RestoredSamples = restored, MedianSaveMilliseconds = Median(normalSaves),
                 MedianReadMilliseconds = Median(normalReads), SaveMilliseconds = normalSaves,
                 ReadMilliseconds = normalReads });
+        }
+
+        void MeasureInvestigationHistory()
+        {
+            var recording = new MonitorSession(() => throw new InvalidOperationException(),
+                () => new SamplingOptions(), action => action(), retainUsageHistory: true);
+            recording.History.Resize(600);
+            var tree = new ServiceTree();
+            for (var s = 1; s <= 600; s++)
+            {
+                var full = Sample(anchor, s);
+                recording.Record(ProcessRetention.Compact(full), full, tree.Capture(full, catalog));
+            }
+            var state = recording.CaptureInvestigation();
+            var path = Path.Combine(Path.GetTempPath(), "WinMon-investigation-" + Guid.NewGuid() + ".bin");
+            var saves = new List<double>();
+            var reads = new List<double>();
+            var restored = 0;
+            long bytes = 0;
+            try
+            {
+                for (var run = 0; run < 5; run++)
+                {
+                    var start = Stopwatch.GetTimestamp();
+                    var saved = RestartHistory.SaveNormal(path, AppInfo.Version, recording.History.Samples,
+                        RestartClock.System, state);
+                    saves.Add(Stopwatch.GetElapsedTime(start).TotalMilliseconds);
+                    bytes = saved ? new FileInfo(path).Length : 0;
+                    start = Stopwatch.GetTimestamp();
+                    var contents = RestartHistory.ReadNormal(path, RestartClock.System, anchor.AddSeconds(601), 600);
+                    reads.Add(Stopwatch.GetElapsedTime(start).TotalMilliseconds);
+                    var copy = new MonitorSession(() => throw new InvalidOperationException(),
+                        () => new SamplingOptions(), action => action(), retainUsageHistory: true);
+                    if (contents is { } history)
+                    {
+                        foreach (var sample in history.Samples) copy.Record(sample);
+                        copy.RestoreInvestigation(history.Investigation);
+                    }
+                    restored = copy.History.Samples.Count;
+                    if (!saved || restored == 0 || copy.UsageHistory.LatestTimestamp is null)
+                        throw new InvalidOperationException("Investigation history did not survive its save/read budget.");
+                }
+            }
+            finally { File.Delete(path); }
+            results.Add(new { Name = "investigation-history-10-minutes", Samples = recording.History.Samples.Count,
+                RestoredSamples = restored, FileBytes = bytes, MedianSaveMilliseconds = Median(saves),
+                MedianReadMilliseconds = Median(reads), SaveMilliseconds = saves, ReadMilliseconds = reads });
         }
 
         void Measure(string name)

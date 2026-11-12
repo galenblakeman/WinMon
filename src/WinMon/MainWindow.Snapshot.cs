@@ -35,6 +35,10 @@ public partial class MainWindow
                 ConnectionView.CapturePinnedKeys, settings.PinnedOnly,
                 Session.Connections.Captures.Where(past => CpuGraph.Moment(past.Sample) <= CpuGraph.Moment(report.Sample))
                     .ToArray());
+            if (ServicesTab.IsChecked == true)
+                text += Environment.NewLine + ServiceView.CaptureReport();
+            else if (UsageTab.IsChecked == true)
+                text += Environment.NewLine + UsageView.CaptureReport(CurrentUsageFrame());
             if (copyToClipboard is null) Clipboard.SetDataObject(new DataObject(DataFormats.UnicodeText, text), true);
             else copyToClipboard(text);
             SnapshotCopyButton.Content = Strings.Copied;

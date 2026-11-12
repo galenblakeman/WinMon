@@ -138,6 +138,11 @@ internal sealed partial class WindowDiagnostics
                 period.Apps.Sum(app => app.CpuTicks) >= fixture.Session.Usage.Apps.Sum(app => app.CpuTicks))
                 throw new InvalidOperationException("Capture Usage must show recorded period totals, not live totals.");
             checks["PeriodReport"] = UsageText.Report(period, view.Settings, "");
+            string? copiedCapture = null;
+            fixture.CopySnapshot(text => copiedCapture = text);
+            if (copiedCapture is null || !copiedCapture.Contains(view.CaptureReport(period), StringComparison.Ordinal))
+                throw new InvalidOperationException("Copy capture must append the selected period Usage view.");
+            checks["CopiedCapture"] = copiedCapture;
             if (!fixture.CaptureCoverage.Text.Contains(Strings.HistorySelectedAvailable, StringComparison.Ordinal) ||
                 !fixture.HistoryCoverageDetails().Contains(Strings.Services, StringComparison.Ordinal))
                 throw new InvalidOperationException("Capture coverage must describe the active period and other views.");

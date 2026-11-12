@@ -29,7 +29,7 @@ public partial class MainWindow
 
     private string CoverageHelp() => Strings.Format(Strings.HistoryCoverageHelp,
         UsageText.Duration(TimeSpan.FromSeconds(Session.History.Capacity)),
-        UsageText.Duration(TimeSpan.FromSeconds(ServiceHistory.Seconds)));
+        UsageText.Duration(TimeSpan.FromSeconds(Session.Services.Capacity)));
 
     private string DescribeHistory(int source, bool details)
     {
@@ -40,7 +40,7 @@ public partial class MainWindow
         var (label, first, last, available, limited) = source switch
         {
             1 => (Strings.Services, services.FirstOrDefault()?.Sample.Timestamp, services.LastOrDefault()?.Sample.Timestamp,
-                retained && Session.Services.Find(selected)?.Available == true, false),
+                retained && Session.Services.Find(selected)?.Available == true, Session.Services.WasMemoryLimited),
             2 => (Strings.ConnectionsTab, Session.Connections.Oldest?.Sample.Timestamp,
                 Session.Connections.Latest?.Sample.Timestamp,
                 retained && selected is not null && Session.Connections.Find(selected)?.Available == true,

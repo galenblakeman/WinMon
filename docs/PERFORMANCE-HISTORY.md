@@ -2,6 +2,24 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## Investigation continuity (November 11, 2026)
+
+Compared untouched HEAD with the completed changes on this Windows x64 desktop, SDK 10.0.404/runtime 10.0.15, using the existing synthetic UI benchmark (400 warm-up frames and seven batches of 60). Services now retain configured history within their observation cap; presentation still passes only the two-minute row window. An initial implementation scanned the full retained list during refresh and increased Services work; bounded slicing removed that cost before the final run.
+
+| Scenario | Before median ms | After median ms | Before bytes/frame | After bytes/frame |
+| --- | ---: | ---: | ---: | ---: |
+| Live | 4.449 | 4.372 | 603,181 | 603,181 |
+| Historical | 1.020 | 0.970 | 180,729 | 180,793 |
+| Services | 5.253 | 5.049 | 1,061,386 | 1,061,434 |
+| Usage ledger and interval recording | 0.042 | 0.044 | 34,136 | 34,136 |
+| Connections with retained traffic and pins | 3.147 | 3.126 | 1,353,336 | 1,353,336 |
+
+All 16 rendered scenario hashes matched. Other scenarios varied modestly, with unchanged allocations; this is one sequential comparison, not a statistical claim of improvement. Longer service retention can consume more memory within its unchanged 120,000-observation limit. This UI benchmark does not measure native traffic collection or MCP server overhead.
+
+The added investigation workload records 600 synthetic 850-process samples plus services, preserving uncompacted Usage intervals under their own 500,000-entry limit. Across five saves/reads, median normal save was **854 ms**, median read **1,406 ms**, and the compressed file was **24,632,276 bytes**. The final run restored all 600 resource samples; every run passed the nonempty resource and usable period Usage checks. The first read took 1,650 ms: deadlines are checked between chunks, so parsing a chunk can finish after the nominal read budget. Activity sources remain bounded and may cover less than the resource recording. Endpoint/flow round trips and reboot alignment are covered by deterministic tests, not this benchmark fixture.
+
+Evidence: `artifacts/gaps-before.json`, `artifacts/gaps-final.json` and their PNGs. The original 60-minute resource-only workloads still restored all 1,961 retained samples; final median save/read were 1,028/764 ms for update history and 1,024/643 ms for normal history.
+
 ## Capture reports and endpoint-pair accounting (November 11, 2026)
 
 Windows x64, SDK 10.0.404/runtime 10.0.15. Four alternating preserved-baseline/final 850-process live UI runs used the existing 400-frame warm-up and seven batches of 60. Median run medians were 4.123 ms before and 4.265 ms after. One first changed run was an outlier at 12.051 ms. Following the documented tiering check, four more alternating runs with `DOTNET_TieredCompilation=0` measured 5.002 ms before and 4.942 ms after, with exactly 602,812.5 allocated bytes/frame in every run. All pixel hashes matched. The controlled runs show no reproducible UI regression; the small timing difference is not a speed improvement claim. Reports are formatted on demand, and this workload does not measure report-copy latency, CLI query cost or native ETW collection.

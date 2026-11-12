@@ -1412,11 +1412,11 @@ Windows の正常性状態: {2}</value>
   <data name="StopService" xml:space="preserve"><value>停止</value></data>
   <data name="RestartService" xml:space="preserve"><value>再起動</value></data>
   <data name="ServiceActionInProgress" xml:space="preserve"><value>サービス操作を実行しています…</value></data>
-  <data name="ServiceHistoryExpired" xml:space="preserve"><value>サービス履歴は最大 2 分間保持されます。現在のサービスを確認するには、ライブに戻ってください。</value></data>
+  <data name="ServiceHistoryExpired" xml:space="preserve"><value>このキャプチャのサービス観測は利用できません。履歴は保持期間とメモリ上限に制限されます。現在のサービスを確認するにはライブに戻ってください。</value></data>
   <data name="ServicesCollecting" xml:space="preserve"><value>サービスとプロセスのメトリックを収集しています…</value></data>
   <data name="ServicesUnavailable" xml:space="preserve"><value>サービスの測定値を利用できません。毎秒再試行します。</value></data>
   <data name="NoServicesMatch" xml:space="preserve"><value>この検索と状態フィルターに一致するサービスはありません。</value></data>
-  <data name="ServiceWorkerExplanation" xml:space="preserve"><value>ワーカー関係は、観測されたプロセスの系統から推測されます。共有サービスではホスト合計を 1 つ使用します。履歴: 最大 2 分。</value></data>
+  <data name="ServiceWorkerExplanation" xml:space="preserve"><value>ワーカープロセスは観測された親子関係から推定します。共有サービスはホストの合計を使用します。履歴は設定された保持期間とメモリ上限に従います。</value></data>
   <data name="SelectService" xml:space="preserve"><value>サービスまたはプロセスを選択</value></data>
   <data name="ExpandService" xml:space="preserve"><value>{0} を展開または折りたたむ</value></data>
   <data name="SharedServiceHost" xml:space="preserve"><value>共有ホスト · {0} · PID {1}</value></data>
@@ -1674,7 +1674,7 @@ Windows の正常性状態: {2}</value>
   <data name="ExportSaved" xml:space="preserve"><value>CSV を {0} に保存しました</value></data>
   <data name="ExportFailed" xml:space="preserve"><value>CSV を保存できませんでした: {0}</value></data>
   <data name="KeepHistoryAcrossRestarts" xml:space="preserve"><value>再起動後も履歴を保持する</value></data>
-  <data name="KeepHistoryAcrossRestartsNote" xml:space="preserve"><value>最近のプロセス名、パス、測定値をこのデバイスに保存します。履歴は選択した保持期間が過ぎると失効します。</value></data>
+  <data name="KeepHistoryAcrossRestartsNote" xml:space="preserve"><value>最近のプロセス名、パス、サービス詳細、ネットワークアドレス、通信量、期間別使用量をこのデバイスに保存します。選択した保持期間を過ぎると履歴は失効します。</value></data>
   <data name="ActivityTotal" xml:space="preserve"><value>合計</value></data>
   <data name="ActivityActive" xml:space="preserve"><value>稼働中</value></data>
   <data name="ProcessFileVersionLabel" xml:space="preserve"><value>ファイル バージョン</value></data>
@@ -1914,12 +1914,12 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
 <data name="AutoCaptureNetworkScope" xml:space="preserve"><value>トリガーは選択したアダプターを測定します。アプリの速度はすべてのアダプターとプロトコルを含むため、一致しない場合があります。</value></data>
 <data name="UsagePeriodNote" xml:space="preserve"><value>記録期間: {0:G} – {1:G}。グラフの期間を使用し、キャプチャ時点で終了します。</value></data>
 <data name="UsagePeriodPartial" xml:space="preserve"><value>収集は不完全です。一部の区間が欠落しているか、保持履歴の範囲外です。</value></data>
-<data name="UsagePeriodUnavailable" xml:space="preserve"><value>このキャプチャの使用状況は記録されていません。期間別の使用状況は再起動後に新しく開始します。</value></data>
+<data name="UsagePeriodUnavailable" xml:space="preserve"><value>このキャプチャの使用量は記録されていません。</value></data>
 <data name="HistoryCoverageLine" xml:space="preserve"><value>{0}: 保持期間 {1} · {2}</value></data>
 <data name="HistoryCoverageBounds" xml:space="preserve"><value>{0:G} – {1:G}</value></data>
 <data name="HistorySelectedAvailable" xml:space="preserve"><value>選択時点の記録あり</value></data>
 <data name="HistorySelectedUnavailable" xml:space="preserve"><value>選択時点の記録なし</value></data>
-<data name="HistoryCoverageHelp" xml:space="preserve"><value>設定されたリソース・プロセス履歴: {0}、サービス: 最大 {1}。保持期間内でも記録の欠落があり、各ビューには独立したメモリ上限があります。サービス、接続、期間別使用状況は再起動後に新しく開始します。復元できるのはリソース・プロセス履歴のみです。</value></data>
+<data name="HistoryCoverageHelp" xml:space="preserve"><value>設定されたリソース/プロセス履歴: {0}、サービス: 最大 {1}。履歴には欠落があり、各ビューにメモリ上限があります。履歴を保存すると4つのビューを復元できます。通常の再起動後、ライブ使用量の合計はリセットされ、ライブ通信は新しいセッションを開始します。</value></data>
 <data name="ShowInConnections" xml:space="preserve"><value>接続で表示</value></data>
 <data name="ShowInUsage" xml:space="preserve"><value>使用状況で表示</value></data>
   <data name="InstallerCliPathTask" xml:space="preserve"><value>このユーザーの PATH に WinMon.Cli を追加する</value></data>

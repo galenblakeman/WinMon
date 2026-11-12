@@ -96,16 +96,20 @@ public sealed class MonitorSession(
     /// <summary>Compacted samples, oldest first.</summary>
     public MonitorHistory History { get; } = new();
 
-    /// <summary>Complete service frames for the last two minutes.</summary>
+    /// <summary>Complete service frames within configured retention and the observation budget.</summary>
     public ServiceHistory Services { get; } = new();
 
-    /// <summary>Live-only connection observations aligned with resource history for Capture mode.</summary>
+    /// <summary>Connection observations aligned with resource history for Capture mode.</summary>
     public ConnectionHistory Connections { get; } = new();
 
     /// <summary>Per-app totals since WinMon started, from every live full sample.</summary>
     public UsageLedger Usage { get; } = new(DateTimeOffset.Now, identityPolicy);
 
     public UsageHistory UsageHistory { get; } = new(identityPolicy: identityPolicy);
+
+    public InvestigationHistory CaptureInvestigation() => InvestigationHistory.Capture(this);
+
+    public void RestoreInvestigation(InvestigationHistory? history) => history?.Restore(this);
 
     /// <summary>The newest compacted sample, the same instance history ends with.</summary>
     public MonitorSample? Latest { get; private set; }
@@ -170,6 +174,7 @@ public sealed class MonitorSession(
         History.Add(compacted);
         Latest = compacted;
         LatestFull = full;
+        Services.Resize(History.Capacity);
         if (services is not null) Services.Add(services);
         if (retainUsageHistory) UsageHistory.Resize(History.Capacity);
         if (full is not null)

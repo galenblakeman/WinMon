@@ -621,6 +621,10 @@ public partial class ServicesView
         if (_actionRow is { } row && FormatDetails(row) is { } text) CopyRequested?.Invoke(text);
     }
 
+    internal string CaptureReport() => Strings.Services + Environment.NewLine +
+        (_frame?.Available != true ? Strings.HistorySelectedUnavailable :
+            string.Join(Environment.NewLine, _rows.Where(row => row.Key == row.Group.Key).Select(FormatDetails)));
+
     private string? FormatDetails(ServiceDisplayRow row)
     {
         if (_frame?.Available != true) return null;

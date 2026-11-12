@@ -247,6 +247,11 @@ internal sealed partial class WindowDiagnostics
             fixture.RefreshVisiblePresentation();
             if (!ReferenceEquals(fixture.SnapshotReport?.Sample, fixture.SelectedSample))
                 throw new InvalidOperationException("Copy capture must include processes while Services is selected.");
+            string? copiedCapture = null;
+            fixture.CopySnapshot(text => copiedCapture = text);
+            if (copiedCapture is null || !copiedCapture.Contains(fixture.ServiceView.CaptureReport(), StringComparison.Ordinal))
+                throw new InvalidOperationException("Copy capture must append the selected Services view.");
+            await File.WriteAllTextAsync(Path.Combine(output, "services-copied-capture.txt"), copiedCapture, cancellationToken);
             if (fixture.ServiceView.Stop.IsEnabled || fixture.ServiceView.Restart.IsEnabled ||
                 fixture.ServiceView.Start.IsEnabled)
                 throw new InvalidOperationException("Historical service actions must be disabled.");

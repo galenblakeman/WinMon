@@ -4,12 +4,12 @@ namespace WinMon.Monitoring;
 public sealed class UsageHistory
 {
     /// <summary>Per-process observations retained for Capture-mode usage totals.</summary>
-    private sealed record Owner(ProcessLifetimeIdentity Identity, string Key, string Name, string ImagePath,
+    internal sealed record Owner(ProcessLifetimeIdentity Identity, string Key, string Name, string ImagePath,
         string AppName, string Publisher, bool IsApp);
 
-    private readonly record struct Observation(Owner Owner, double CpuTicks, double IoBytes, double? GpuSeconds);
+    internal readonly record struct Observation(Owner Owner, double CpuTicks, double IoBytes, double? GpuSeconds);
 
-    private sealed record Frame(SampleKey Key, double IntervalSeconds, bool Valid, double MachineBusyTicks,
+    internal sealed record Frame(SampleKey Key, double IntervalSeconds, bool Valid, double MachineBusyTicks,
         double AttributedTicks, Observation[] Observations)
     {
         public double StartMoment => Key.Moment - IntervalSeconds;
@@ -36,6 +36,28 @@ public sealed class UsageHistory
 
     /// <summary>Maximum retained elapsed seconds and frame count.</summary>
     public int Capacity { get; private set; }
+
+    internal IReadOnlyList<Frame> Export() => _frames.ToArray();
+
+    internal void Restore(Frame frame)
+    {
+        if (frame.Observations.Length > _entryBudget) return;
+        // Restore the same owner sharing as live recording; one metadata copy per interval would inflate history.
+        _nextOwners.Clear();
+        for (var i = 0; i < frame.Observations.Length; i++)
+        {
+            var observation = frame.Observations[i];
+            if (_owners.TryGetValue(observation.Owner.Identity, out var owner) && owner == observation.Owner)
+                frame.Observations[i] = observation with { Owner = owner };
+            _nextOwners[observation.Owner.Identity] = frame.Observations[i].Owner;
+        }
+        (_owners, _nextOwners) = (_nextOwners, _owners);
+        _nextOwners.Clear();
+        _frames.Enqueue(frame);
+        _entries += frame.Observations.Length;
+        _rangeCache = null;
+        Trim(frame.Key);
+    }
 
     /// <summary>Whether the entry budget shortened the available recording.</summary>
     public bool WasMemoryLimited { get; private set; }

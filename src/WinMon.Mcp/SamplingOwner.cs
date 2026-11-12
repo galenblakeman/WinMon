@@ -3,7 +3,8 @@ using WinMon.Monitoring;
 
 namespace WinMon.Mcp;
 
-internal sealed record PublishedFrame(long Sequence, CapturedFrame Frame, long ObservedAt);
+internal sealed record PublishedFrame(long Sequence, CapturedFrame Frame, long ObservedAt,
+    ProcessNetworkFrame? Network = null);
 
 /// <summary>One MonitorSession owns all native calls; requests read immutable publications.</summary>
 internal sealed class SamplingOwner : IHostedService, IAsyncDisposable
@@ -18,14 +19,24 @@ internal sealed class SamplingOwner : IHostedService, IAsyncDisposable
     private long _sequence;
     private Task? _run;
     private Task? _dispose;
+    private readonly Func<NetworkTrafficClient> _createTraffic;
+    private NetworkTrafficClient? _traffic;
+    private Task? _trafficRun;
 
     public SamplingOwner() : this(() => new WindowsFrameSource(), TimeProvider.System) { }
 
-    internal SamplingOwner(Func<IFrameSource> createSource, TimeProvider clock, TimeSpan? interval = null)
+    internal SamplingOwner(Func<IFrameSource> createSource, TimeProvider clock, TimeSpan? interval = null,
+        Func<NetworkTrafficClient>? createTraffic = null)
     {
         _clock = clock;
+        _createTraffic = createTraffic ?? (() => new NetworkTrafficClient());
         _session = new MonitorSession(() => new PublishingSource(createSource(), frame => _captured = frame),
-            () => new SamplingOptions(), action => action(), interval);
+            () =>
+            {
+                var traffic = Volatile.Read(ref _traffic)?.Sample;
+                return new SamplingOptions { ProcessNetwork = traffic?.Snapshot,
+                    ProcessNetworkSessionId = traffic?.SessionId ?? Guid.Empty };
+            }, action => action(), interval);
         _session.History.Resize(120);
         _session.Recorded += Publish;
     }
@@ -40,6 +51,7 @@ internal sealed class SamplingOwner : IHostedService, IAsyncDisposable
     {
         await _shutdown.CancelAsync();
         if (_run is not null) await _run.WaitAsync(cancellationToken);
+        if (_trafficRun is not null) await _trafficRun.WaitAsync(cancellationToken);
     }
 
     public ValueTask DisposeAsync()
@@ -51,8 +63,23 @@ internal sealed class SamplingOwner : IHostedService, IAsyncDisposable
     {
         await StopAsync(CancellationToken.None);
         _session.Close();
+        if (_traffic is not null) await _traffic.DisposeAsync();
         _shutdown.Dispose();
     }
+
+    internal void EnableTraffic()
+    {
+        lock (_gate)
+        {
+            if (_traffic is not null || _shutdown.IsCancellationRequested) return;
+            var traffic = _createTraffic();
+            _trafficRun = traffic.Run(_shutdown.Token);
+            Volatile.Write(ref _traffic, traffic);
+        }
+    }
+
+    internal string TrafficState => _traffic?.Sample.State.ToString() ?? NetworkTrafficState.NotStarted.ToString();
+    internal Guid TrafficSessionId => _traffic?.Sample.SessionId ?? Guid.Empty;
 
     internal long Now => _clock.GetTimestamp();
     internal TimeProvider Clock => _clock;
@@ -108,7 +135,7 @@ internal sealed class SamplingOwner : IHostedService, IAsyncDisposable
         {
             var observedAt = ReferenceEquals(_clock, TimeProvider.System) && frame.Full.MonotonicTimestamp > 0
                 ? frame.Full.MonotonicTimestamp : Now;
-            _frames.Enqueue(new PublishedFrame(++_sequence, frame, observedAt));
+            _frames.Enqueue(new PublishedFrame(++_sequence, frame, observedAt, _session.ProcessNetwork));
             while (_frames.Count > 120) _frames.Dequeue();
             changed = _changed;
             _changed = NewSignal();

@@ -1262,8 +1262,9 @@ public partial class MainWindow
             var samples = Session.History.Samples;
             try
             {
+                var investigation = Session.CaptureInvestigation();
                 if (!Task.Run(() => RestartHistory.SaveNormal(_preferenceStore.NormalHistoryPath,
-                        AppInfo.Version, samples, RestartClock.System)).Wait(RestartHistory.Budget))
+                        AppInfo.Version, samples, RestartClock.System, investigation)).Wait(RestartHistory.Budget))
                     Trace.TraceWarning("WinMon session-end history was still saving at its deadline.");
             }
             catch (AggregateException ex)
@@ -1284,8 +1285,9 @@ public partial class MainWindow
         var samples = Session.History.Samples;
         try
         {
+            var investigation = Session.CaptureInvestigation();
             await Task.Run(() => RestartHistory.SaveNormal(_preferenceStore.NormalHistoryPath,
-                AppInfo.Version, samples, RestartClock.System)).WaitAsync(RestartHistory.Budget);
+                AppInfo.Version, samples, RestartClock.System, investigation)).WaitAsync(RestartHistory.Budget);
         }
         catch (TimeoutException)
         {
@@ -1313,6 +1315,7 @@ public partial class MainWindow
             if (restored is not { } history) return;
             Session.SetHistoryClockOffset(history.LiveOffset);
             foreach (var sample in history.Samples) Session.Record(sample);
+            Session.RestoreInvestigation(history.Investigation);
         }
         catch (Exception ex)
         {

@@ -32,7 +32,7 @@ Ordinary resource monitoring and connection lists run without administrator righ
 
 1. **Click a spike in the chart** to inspect that recorded moment. WinMon keeps recording while you look back.
 2. **Inspect the process rankings** to see which apps were busy. Group related processes, search, or pin an app to follow it. Use the process More menu to open its Connections or Usage.
-3. **Choose Copy capture** to share the timestamp, resource readings, displayed process rows and recorded connection details as plain text. Reports use the existing Processes and Connections **Top** selections independently.
+3. **Choose Copy capture** to share the timestamp, resource readings, displayed process rows and recorded connection details as plain text. Reports use the existing Processes and Connections **Top** selections independently, and append the active Services or Usage view when selected.
 
 ![Capture mode showing an earlier CPU spike and Chrome's increased CPU activity](docs/example/example_snapshot.png)
 
@@ -67,7 +67,7 @@ See the [CLI user guide](docs/USER-GUIDE.md#command-line) for setup, keyboard sh
 
 ## Coding agent diagnostics
 
-`WinMon.Mcp.exe` is a separately installed local read-only MCP server for system snapshots, process details, bounded performance trends and connection observations. Its installer offers unchecked Codex and Claude Code registration options; a separate Claude Code plugin adds a diagnostics skill. Command lines and executable paths are excluded, and network addresses/ports require explicit opt-in. See [MCP setup and privacy](docs/MCP.md) for downloads and registration.
+`WinMon.Mcp.exe` is a separately installed local read-only MCP server for system snapshots, process details, bounded performance trends, connection observations and per-process traffic from an already-installed network service. Its installer offers unchecked Codex and Claude Code registration options; a separate Claude Code plugin adds a diagnostics skill. Command lines and executable paths are excluded, and network addresses/ports require explicit opt-in. See [MCP setup and privacy](docs/MCP.md) for downloads and registration.
 
 ## Compact view and customization
 
@@ -83,7 +83,7 @@ Choose light, dark or additional appearances, independent chart palettes and sev
 
 - **Optional network service:** Signed desktop builds can install per-app traffic monitoring through the installer or Settings → Network. Installation and maintenance can request administrator approval. Repair can recover a protected installation with missing files, preserving the damaged copy for diagnosis; unexpected files or unsafe permissions still block recovery. Removal moves files aside before cleanup, so interrupted cleanup does not block a later repair. Microsoft Store builds do not offer this service. Endpoint lists remain available without it.
 - **Measurement limits:** Disk percentages measure active time; process I/O includes files, network and devices. GPU utilization reports the busiest engine. Very short-lived processes and collection gaps can leave activity unattributed or incomplete. Machines with multiple active processor groups are unsupported.
-- **History:** Available history can be shorter on busy systems. Resource and process history can optionally survive normal restarts; service and connection history start fresh. Usage tracks the current session, with continuity across in-app updates.
+- **History:** Available history can be shorter on busy systems. Services follow configured retention within their memory budget. Resource, process, service, connection, traffic and period Usage history can optionally survive normal restarts. Live Usage totals track the current session, with continuity across in-app updates; live traffic starts a new session after restart.
 - **Local data:** Preferences, captures, exports and diagnostic logs stay on this device unless you share them. Exports can contain process paths, service names and network addresses. Startup also removes abandoned or finished update staging folders left untouched for seven days by deleted app copies. See [Privacy](docs/PRIVACY.md).
 - **Process and service actions:** Ending a process can lose unsaved work. Service changes can affect other applications. WinMon confirms destructive actions and respects Windows permissions.
 

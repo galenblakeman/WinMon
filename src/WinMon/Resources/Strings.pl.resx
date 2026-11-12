@@ -1412,11 +1412,11 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
   <data name="StopService" xml:space="preserve"><value>Zatrzymaj</value></data>
   <data name="RestartService" xml:space="preserve"><value>Uruchom ponownie</value></data>
   <data name="ServiceActionInProgress" xml:space="preserve"><value>Trwa wykonywanie działania usługi…</value></data>
-  <data name="ServiceHistoryExpired" xml:space="preserve"><value>Historia usługi jest przechowywana maksymalnie przez dwie minuty. Wróć do widoku Na żywo, aby sprawdzić bieżące usługi.</value></data>
+  <data name="ServiceHistoryExpired" xml:space="preserve"><value>Obserwacje usług dla tego przechwycenia są niedostępne. Historię ograniczają czas przechowywania i pamięć. Wróć do widoku na żywo, aby sprawdzić bieżące usługi.</value></data>
   <data name="ServicesCollecting" xml:space="preserve"><value>Zbieranie usług i metryk procesów…</value></data>
   <data name="ServicesUnavailable" xml:space="preserve"><value>Odczyty usług są niedostępne. Ponawianie co sekundę.</value></data>
   <data name="NoServicesMatch" xml:space="preserve"><value>Żadna usługa nie pasuje do tego wyszukiwania i filtru stanu.</value></data>
-  <data name="ServiceWorkerExplanation" xml:space="preserve"><value>Relacje procesów roboczych są wnioskowane z obserwowanego pochodzenia procesów. Usługi współdzielone używają jednego łącznego wyniku hosta. Historia: maksymalnie 2 minuty.</value></data>
+  <data name="ServiceWorkerExplanation" xml:space="preserve"><value>Procesy robocze są ustalane z obserwowanej hierarchii procesów. Usługi współdzielone używają sumy hosta. Historia podlega ustawionej retencji i limitom pamięci.</value></data>
   <data name="SelectService" xml:space="preserve"><value>Wybierz usługę lub proces</value></data>
   <data name="ExpandService" xml:space="preserve"><value>Rozwiń lub zwiń {0}</value></data>
   <data name="SharedServiceHost" xml:space="preserve"><value>Współdzielony host · {0} · PID {1}</value></data>
@@ -1674,7 +1674,7 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
   <data name="ExportSaved" xml:space="preserve"><value>Zapisano CSV w {0}</value></data>
   <data name="ExportFailed" xml:space="preserve"><value>Nie udało się zapisać CSV: {0}</value></data>
   <data name="KeepHistoryAcrossRestarts" xml:space="preserve"><value>Zachowaj historię po ponownym uruchomieniu</value></data>
-  <data name="KeepHistoryAcrossRestartsNote" xml:space="preserve"><value>Zapisuje ostatnie nazwy procesów, ścieżki i pomiary na tym urządzeniu. Historia wygasa po wybranym okresie przechowywania.</value></data>
+  <data name="KeepHistoryAcrossRestartsNote" xml:space="preserve"><value>Zapisuje na tym urządzeniu ostatnie nazwy procesów, ścieżki, szczegóły usług, adresy sieciowe, ruch i użycie w okresie. Historia wygasa po wybranym czasie przechowywania.</value></data>
   <data name="ActivityTotal" xml:space="preserve"><value>Łącznie</value></data>
   <data name="ActivityActive" xml:space="preserve"><value>Aktywne</value></data>
   <data name="ProcessFileVersionLabel" xml:space="preserve"><value>Wersja pliku</value></data>
@@ -1914,12 +1914,12 @@ Q kończy. Ctrl+C anuluje. Przypięte programy i usługi są zachowywane między
 <data name="AutoCaptureNetworkScope" xml:space="preserve"><value>Wyzwalacz mierzy wybrany adapter; szybkości aplikacji obejmują wszystkie adaptery i protokoły i mogą się różnić.</value></data>
 <data name="UsagePeriodNote" xml:space="preserve"><value>Zapisany okres: {0:G} – {1:G}. Długość według wykresu, do chwili przechwycenia.</value></data>
 <data name="UsagePeriodPartial" xml:space="preserve"><value>Niepełne dane: brakuje przedziałów lub wykraczają poza zachowaną historię.</value></data>
-<data name="UsagePeriodUnavailable" xml:space="preserve"><value>Nie zapisano użycia dla tego przechwycenia. Użycie okresowe zaczyna się od nowa po restarcie.</value></data>
+<data name="UsagePeriodUnavailable" xml:space="preserve"><value>Nie zarejestrowano użycia dla tego przechwycenia.</value></data>
 <data name="HistoryCoverageLine" xml:space="preserve"><value>{0}: zachowany okres {1} · {2}</value></data>
 <data name="HistoryCoverageBounds" xml:space="preserve"><value>{0:G} – {1:G}</value></data>
 <data name="HistorySelectedAvailable" xml:space="preserve"><value>Wybrana chwila zapisana</value></data>
 <data name="HistorySelectedUnavailable" xml:space="preserve"><value>Wybrana chwila niedostępna</value></data>
-<data name="HistoryCoverageHelp" xml:space="preserve"><value>Skonfigurowana historia zasobów/procesów: {0}; Usługi: do {1}. Okresy mogą mieć luki; każdy widok ma własny limit pamięci. Usługi, Połączenia i użycie okresowe zaczynają się od nowa po restarcie; przywracana jest tylko historia zasobów/procesów.</value></data>
+<data name="HistoryCoverageHelp" xml:space="preserve"><value>Ustawiona historia zasobów/procesów: {0}; usługi: do {1}. Historia może mieć luki, a każdy widok ma własny limit pamięci. Zapisanie historii pozwala odtworzyć wszystkie cztery widoki. Po zwykłym restarcie sumy użycia na żywo zaczynają się od nowa, a ruch sieciowy rozpoczyna nową sesję.</value></data>
 <data name="ShowInConnections" xml:space="preserve"><value>Pokaż w Połączeniach</value></data>
 <data name="ShowInUsage" xml:space="preserve"><value>Pokaż w Użyciu</value></data>
   <data name="InstallerCliPathTask" xml:space="preserve"><value>Dodaj WinMon.Cli do PATH dla tego użytkownika</value></data>

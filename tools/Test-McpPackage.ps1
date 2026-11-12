@@ -140,7 +140,7 @@ try {
             throw 'Claude Code did not discover and health-check the isolated plugin MCP server.'
         }
     }
-    Write-Host "PASS: published MCP server initialized, discovered five tools and served a tool from '$serverDirectory' without the host DOTNET_ROOT. Evidence: $evidence"
+    Write-Host "PASS: published MCP server initialized, discovered six tools and served a tool from '$serverDirectory' without the host DOTNET_ROOT. Evidence: $evidence"
 }
 finally {
     [Environment]::SetEnvironmentVariable('WINMON_MCP_TEST_EXE', $savedExecutable, 'Process')

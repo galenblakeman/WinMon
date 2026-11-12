@@ -1412,11 +1412,11 @@ GPU {11} · {12}
   <data name="StopService" xml:space="preserve"><value>Остановить</value></data>
   <data name="RestartService" xml:space="preserve"><value>Перезапустить</value></data>
   <data name="ServiceActionInProgress" xml:space="preserve"><value>Выполняется действие со службой…</value></data>
-  <data name="ServiceHistoryExpired" xml:space="preserve"><value>История службы хранится до двух минут. Вернитесь в режим «В реальном времени», чтобы просмотреть текущие службы.</value></data>
+  <data name="ServiceHistoryExpired" xml:space="preserve"><value>Наблюдения служб для этого снимка недоступны. История ограничена сроком хранения и объёмом памяти. Вернитесь к текущим данным для просмотра служб.</value></data>
   <data name="ServicesCollecting" xml:space="preserve"><value>Сбор данных о службах и метрик процессов…</value></data>
   <data name="ServicesUnavailable" xml:space="preserve"><value>Показания служб недоступны. Повторная попытка каждую секунду.</value></data>
   <data name="NoServicesMatch" xml:space="preserve"><value>Нет служб, соответствующих этому поиску и фильтру состояния.</value></data>
-  <data name="ServiceWorkerExplanation" xml:space="preserve"><value>Связи с рабочими процессами выводятся из наблюдаемой родословной процессов. Общие службы используют один итог хоста. История: до 2 минут.</value></data>
+  <data name="ServiceWorkerExplanation" xml:space="preserve"><value>Рабочие процессы определяются по наблюдаемой иерархии. Общие службы используют суммарные данные хоста. История зависит от срока хранения и ограничений памяти.</value></data>
   <data name="SelectService" xml:space="preserve"><value>Выберите службу или процесс</value></data>
   <data name="ExpandService" xml:space="preserve"><value>Развернуть или свернуть {0}</value></data>
   <data name="SharedServiceHost" xml:space="preserve"><value>Общий хост · {0} · PID {1}</value></data>
@@ -1674,7 +1674,7 @@ GPU {11} · {12}
   <data name="ExportSaved" xml:space="preserve"><value>CSV сохранён в {0}</value></data>
   <data name="ExportFailed" xml:space="preserve"><value>Не удалось сохранить CSV: {0}</value></data>
   <data name="KeepHistoryAcrossRestarts" xml:space="preserve"><value>Сохранять историю после перезапуска</value></data>
-  <data name="KeepHistoryAcrossRestartsNote" xml:space="preserve"><value>Сохраняет недавние имена процессов, пути и измерения на этом устройстве. История удаляется по истечении выбранного срока хранения.</value></data>
+  <data name="KeepHistoryAcrossRestartsNote" xml:space="preserve"><value>Сохраняет на этом устройстве недавние имена и пути процессов, сведения о службах, сетевые адреса, трафик и использование за период. История удаляется по истечении выбранного срока хранения.</value></data>
   <data name="ActivityTotal" xml:space="preserve"><value>Всего</value></data>
   <data name="ActivityActive" xml:space="preserve"><value>Активных</value></data>
   <data name="ProcessFileVersionLabel" xml:space="preserve"><value>Версия файла</value></data>
@@ -1914,12 +1914,12 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
 <data name="AutoCaptureNetworkScope" xml:space="preserve"><value>Триггер измеряет выбранный адаптер; скорости приложений охватывают все адаптеры и протоколы и могут отличаться.</value></data>
 <data name="UsagePeriodNote" xml:space="preserve"><value>Записанный период: {0:G} – {1:G}. Длительность по графику, до момента снимка.</value></data>
 <data name="UsagePeriodPartial" xml:space="preserve"><value>Неполное покрытие: интервалы отсутствуют или вне сохранённой истории.</value></data>
-<data name="UsagePeriodUnavailable" xml:space="preserve"><value>Для этого снимка использование не записано. Учёт по периодам начинается заново после перезапуска.</value></data>
+<data name="UsagePeriodUnavailable" xml:space="preserve"><value>Использование для этого снимка не было записано.</value></data>
 <data name="HistoryCoverageLine" xml:space="preserve"><value>{0}: сохранённый интервал {1} · {2}</value></data>
 <data name="HistoryCoverageBounds" xml:space="preserve"><value>{0:G} – {1:G}</value></data>
 <data name="HistorySelectedAvailable" xml:space="preserve"><value>Выбранный момент записан</value></data>
 <data name="HistorySelectedUnavailable" xml:space="preserve"><value>Выбранный момент недоступен</value></data>
-<data name="HistoryCoverageHelp" xml:space="preserve"><value>Заданная история ресурсов/процессов: {0}; Службы: до {1}. Интервалы могут содержать пропуски; у каждого вида свой лимит памяти. Службы, Соединения и учёт по периодам начинаются заново после перезапуска; восстанавливается только история ресурсов/процессов.</value></data>
+<data name="HistoryCoverageHelp" xml:space="preserve"><value>Заданный срок истории ресурсов/процессов: {0}; служб: до {1}. В истории возможны пробелы; у каждого представления свой лимит памяти. При сохранении истории можно восстановить все четыре представления. После обычного перезапуска текущие итоги использования обнуляются; сетевой трафик начинает новый сеанс.</value></data>
 <data name="ShowInConnections" xml:space="preserve"><value>Показать в Соединениях</value></data>
 <data name="ShowInUsage" xml:space="preserve"><value>Показать в Использовании</value></data>
   <data name="InstallerCliPathTask" xml:space="preserve"><value>Добавить WinMon.Cli в PATH для этого пользователя</value></data>

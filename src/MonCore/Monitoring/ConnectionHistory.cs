@@ -12,7 +12,7 @@ public sealed record ConnectionCapture(
     public bool Available => Connections?.Available == true;
 }
 
-/// <summary>Bounded, in-memory connection observations for Capture mode. They are intentionally not restart-persisted.</summary>
+/// <summary>Bounded connection observations for Capture mode, optionally saved with resource history.</summary>
 public sealed class ConnectionHistory
 {
     private readonly Queue<ConnectionCapture> _captures = [];

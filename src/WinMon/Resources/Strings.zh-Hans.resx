@@ -1412,11 +1412,11 @@ Windows 健康状态：{2}</value>
   <data name="StopService" xml:space="preserve"><value>停止</value></data>
   <data name="RestartService" xml:space="preserve"><value>重启</value></data>
   <data name="ServiceActionInProgress" xml:space="preserve"><value>正在执行服务操作…</value></data>
-  <data name="ServiceHistoryExpired" xml:space="preserve"><value>服务历史记录最多保留两分钟。返回实时视图以检查当前服务。</value></data>
+  <data name="ServiceHistoryExpired" xml:space="preserve"><value>此捕获的服务观测不可用。历史记录受保留时间和内存上限限制。返回实时视图以查看当前服务。</value></data>
   <data name="ServicesCollecting" xml:space="preserve"><value>正在收集服务和进程指标…</value></data>
   <data name="ServicesUnavailable" xml:space="preserve"><value>服务读数不可用。每秒重试一次。</value></data>
   <data name="NoServicesMatch" xml:space="preserve"><value>没有服务符合此搜索和状态筛选条件。</value></data>
-  <data name="ServiceWorkerExplanation" xml:space="preserve"><value>工作进程关系根据观察到的进程谱系推断。共享服务使用一个主机总计。历史记录：最多 2 分钟。</value></data>
+  <data name="ServiceWorkerExplanation" xml:space="preserve"><value>工作进程关系根据观测到的进程层级推断。共享服务使用宿主合计。历史记录遵循配置的保留时间，并受内存限制。</value></data>
   <data name="SelectService" xml:space="preserve"><value>选择服务或进程</value></data>
   <data name="ExpandService" xml:space="preserve"><value>展开或折叠 {0}</value></data>
   <data name="SharedServiceHost" xml:space="preserve"><value>共享主机 · {0} · PID {1}</value></data>
@@ -1674,7 +1674,7 @@ Windows 健康状态：{2}</value>
   <data name="ExportSaved" xml:space="preserve"><value>CSV 已保存到 {0}</value></data>
   <data name="ExportFailed" xml:space="preserve"><value>无法保存 CSV：{0}</value></data>
   <data name="KeepHistoryAcrossRestarts" xml:space="preserve"><value>重启后保留历史记录</value></data>
-  <data name="KeepHistoryAcrossRestartsNote" xml:space="preserve"><value>在此设备上保存近期的进程名称、路径和测量值。历史记录将在所选保留期后过期。</value></data>
+  <data name="KeepHistoryAcrossRestartsNote" xml:space="preserve"><value>在此设备上保存近期进程名称、路径、服务详情、网络地址、流量和时段使用情况。历史记录会在所选保留时间后过期。</value></data>
   <data name="ActivityTotal" xml:space="preserve"><value>总计</value></data>
   <data name="ActivityActive" xml:space="preserve"><value>活跃</value></data>
   <data name="ProcessFileVersionLabel" xml:space="preserve"><value>文件版本</value></data>
@@ -1914,12 +1914,12 @@ Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。<
 <data name="AutoCaptureNetworkScope" xml:space="preserve"><value>触发器测量所选适配器；应用速率包含所有适配器和协议，因此总和可能不同。</value></data>
 <data name="UsagePeriodNote" xml:space="preserve"><value>记录时段：{0:G} – {1:G}。时长由图表范围决定，结束于捕获时刻。</value></data>
 <data name="UsagePeriodPartial" xml:space="preserve"><value>覆盖不完整：部分区间缺失或超出保留历史范围。</value></data>
-<data name="UsagePeriodUnavailable" xml:space="preserve"><value>未记录此捕获的使用量。重启后时段使用量将重新开始记录。</value></data>
+<data name="UsagePeriodUnavailable" xml:space="preserve"><value>未记录此捕获的使用情况。</value></data>
 <data name="HistoryCoverageLine" xml:space="preserve"><value>{0}：保留时段 {1} · {2}</value></data>
 <data name="HistoryCoverageBounds" xml:space="preserve"><value>{0:G} – {1:G}</value></data>
 <data name="HistorySelectedAvailable" xml:space="preserve"><value>已记录所选时刻</value></data>
 <data name="HistorySelectedUnavailable" xml:space="preserve"><value>所选时刻不可用</value></data>
-<data name="HistoryCoverageHelp" xml:space="preserve"><value>配置的资源/进程历史：{0}；服务：最长 {1}。保留时段可能存在缺失，各视图有独立内存上限。服务、连接和时段使用量在重启后重新记录；仅资源/进程历史可恢复。</value></data>
+<data name="HistoryCoverageHelp" xml:space="preserve"><value>配置的资源/进程历史记录：{0}；服务：最长 {1}。保留时段可能有缺失，每个视图都有独立的内存上限。保存历史记录后可恢复全部四个视图。正常重启后实时使用量合计重新开始；实时网络流量会开始新会话。</value></data>
 <data name="ShowInConnections" xml:space="preserve"><value>在连接中显示</value></data>
 <data name="ShowInUsage" xml:space="preserve"><value>在使用量中显示</value></data>
   <data name="InstallerCliPathTask" xml:space="preserve"><value>将 WinMon.Cli 添加到此用户的 PATH</value></data>

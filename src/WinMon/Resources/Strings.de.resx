@@ -1412,11 +1412,11 @@ Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse
   <data name="StopService" xml:space="preserve"><value>Beenden</value></data>
   <data name="RestartService" xml:space="preserve"><value>Neu starten</value></data>
   <data name="ServiceActionInProgress" xml:space="preserve"><value>Dienstaktion wird ausgeführt…</value></data>
-  <data name="ServiceHistoryExpired" xml:space="preserve"><value>Der Dienstverlauf wird bis zu zwei Minuten lang aufbewahrt. Wechseln Sie zu Live, um aktuelle Dienste zu überprüfen.</value></data>
+  <data name="ServiceHistoryExpired" xml:space="preserve"><value>Für diese Aufnahme sind keine Dienstbeobachtungen verfügbar. Aufbewahrung und Speicherbudget begrenzen den Verlauf. Wechseln Sie zu Live, um aktuelle Dienste zu prüfen.</value></data>
   <data name="ServicesCollecting" xml:space="preserve"><value>Dienste und Prozessmetriken werden erfasst…</value></data>
   <data name="ServicesUnavailable" xml:space="preserve"><value>Dienstmesswerte nicht verfügbar. Erneuter Versuch jede Sekunde.</value></data>
   <data name="NoServicesMatch" xml:space="preserve"><value>Keine Dienste entsprechen dieser Suche und diesem Statusfilter.</value></data>
-  <data name="ServiceWorkerExplanation" xml:space="preserve"><value>Arbeitsbeziehungen werden aus der beobachteten Prozessabstammung abgeleitet. Gemeinsame Dienste verwenden eine Hostsumme. Verlauf: bis zu 2 Minuten.</value></data>
+  <data name="ServiceWorkerExplanation" xml:space="preserve"><value>Arbeitsprozesse werden aus der beobachteten Prozesshierarchie abgeleitet. Gemeinsame Dienste nutzen einen Hostgesamtwert. Der Verlauf folgt der eingestellten Aufbewahrung und den Speichergrenzen.</value></data>
   <data name="SelectService" xml:space="preserve"><value>Wählen Sie einen Dienst oder Prozess aus</value></data>
   <data name="ExpandService" xml:space="preserve"><value>{0} erweitern oder reduzieren</value></data>
   <data name="SharedServiceHost" xml:space="preserve"><value>Gemeinsamer Host · {0} · PID {1}</value></data>
@@ -1674,7 +1674,7 @@ Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse
   <data name="ExportSaved" xml:space="preserve"><value>CSV gespeichert unter {0}</value></data>
   <data name="ExportFailed" xml:space="preserve"><value>CSV konnte nicht gespeichert werden: {0}</value></data>
   <data name="KeepHistoryAcrossRestarts" xml:space="preserve"><value>Verlauf über Neustarts hinweg behalten</value></data>
-  <data name="KeepHistoryAcrossRestartsNote" xml:space="preserve"><value>Speichert aktuelle Prozessnamen, Pfade und Messwerte auf diesem Gerät. Der Verlauf läuft nach der gewählten Aufbewahrungsdauer ab.</value></data>
+  <data name="KeepHistoryAcrossRestartsNote" xml:space="preserve"><value>Speichert aktuelle Prozessnamen, Pfade, Dienstdetails, Netzwerkadressen, Datenverkehr und Zeitraumverbrauch auf diesem Gerät. Der Verlauf verfällt nach der eingestellten Aufbewahrungsdauer.</value></data>
   <data name="ActivityTotal" xml:space="preserve"><value>Gesamt</value></data>
   <data name="ActivityActive" xml:space="preserve"><value>Aktiv</value></data>
   <data name="ProcessFileVersionLabel" xml:space="preserve"><value>Dateiversion</value></data>
@@ -1914,12 +1914,12 @@ Q beendet. Ctrl+C bricht ab. Programm- und Dienst-Pins bleiben gespeichert.</val
 <data name="AutoCaptureNetworkScope" xml:space="preserve"><value>Der Auslöser misst den gewählten Adapter; App-Raten umfassen alle Adapter und Protokolle und können abweichen.</value></data>
 <data name="UsagePeriodNote" xml:space="preserve"><value>Aufgezeichneter Zeitraum: {0:G} – {1:G}. Dauer gemäß Diagramm, Ende bei der Aufnahme.</value></data>
 <data name="UsagePeriodPartial" xml:space="preserve"><value>Unvollständige Erfassung: Intervalle fehlen oder liegen außerhalb des Verlaufs.</value></data>
-<data name="UsagePeriodUnavailable" xml:space="preserve"><value>Für diese Aufnahme wurde keine Nutzung erfasst. Zeitraumnutzung beginnt nach einem Neustart neu.</value></data>
+<data name="UsagePeriodUnavailable" xml:space="preserve"><value>Für diese Aufnahme wurde kein Verbrauch aufgezeichnet.</value></data>
 <data name="HistoryCoverageLine" xml:space="preserve"><value>{0}: gespeicherte Zeitspanne {1} · {2}</value></data>
 <data name="HistoryCoverageBounds" xml:space="preserve"><value>{0:G} – {1:G}</value></data>
 <data name="HistorySelectedAvailable" xml:space="preserve"><value>Ausgewählter Zeitpunkt aufgezeichnet</value></data>
 <data name="HistorySelectedUnavailable" xml:space="preserve"><value>Ausgewählter Zeitpunkt nicht verfügbar</value></data>
-<data name="HistoryCoverageHelp" xml:space="preserve"><value>Konfigurierter Ressourcen-/Prozessverlauf: {0}; Dienste: bis {1}. Gespeicherte Zeitspannen können Lücken enthalten; jede Ansicht hat ein eigenes Speicherlimit. Dienste, Verbindungen und Zeitraumnutzung beginnen nach Neustart neu; nur Ressourcen-/Prozessverlauf kann wiederhergestellt werden.</value></data>
+<data name="HistoryCoverageHelp" xml:space="preserve"><value>Konfigurierter Ressourcen-/Prozessverlauf: {0}; Dienste: bis zu {1}. Verläufe können Lücken enthalten; jede Ansicht hat ein eigenes Speicherbudget. Alle vier Ansichten können mit gespeichertem Verlauf wiederhergestellt werden. Live-Verbrauch beginnt nach einem normalen Neustart neu; Live-Datenverkehr beginnt eine neue Sitzung.</value></data>
 <data name="ShowInConnections" xml:space="preserve"><value>In Verbindungen anzeigen</value></data>
 <data name="ShowInUsage" xml:space="preserve"><value>In Nutzung anzeigen</value></data>
   <data name="InstallerCliPathTask" xml:space="preserve"><value>WinMon.Cli für diesen Benutzer zu PATH hinzufügen</value></data>
