@@ -128,7 +128,17 @@ internal sealed partial class WindowDiagnostics
                 new ProcessNetworkReading(process.ProcessId, created, 18_000_000, 2_500_000, 2_000_000, 250_000),
                 new ProcessNetworkReading(sibling.ProcessId, sibling.CreationTicks, 4_000_000, 750_000, 500_000,
                     100_000)
-            ]);
+            ])
+        {
+            FlowTrafficSupported = true,
+            Flows =
+            [
+                new(process.ProcessId, created, TransportProtocol.Tcp, "192.168.1.25:52144", "203.0.113.24:443",
+                    18_000_000, 2_500_000, 2_000_000, 250_000),
+                new(process.ProcessId, created, TransportProtocol.Udp, "192.168.1.25:5353", "198.51.100.88:4242",
+                    100_000, 50_000, 1_000, 500)
+            ]
+        };
         var baseTraffic = traffic;
         var receivedTotals = new long[traffic.Processes.Count];
         var sentTotals = new long[traffic.Processes.Count];
@@ -138,6 +148,8 @@ internal sealed partial class WindowDiagnostics
             traffic = baseTraffic with
             {
                 TimestampQpc = Stopwatch.Frequency * (121 - i),
+                WindowStartQpc = Stopwatch.Frequency * Math.Max(0, 113 - i),
+                WindowEndQpc = Stopwatch.Frequency * Math.Max(0, 118 - i),
                 Processes = baseTraffic.Processes.Select((reading, index) =>
                 {
                     var receive = reading.ReceiveBytesPerSecond!.Value * factor;
@@ -272,6 +284,21 @@ internal sealed partial class WindowDiagnostics
                 view.Notice.Text.Contains(Strings.ConnectionsHistoryNote, StringComparison.Ordinal) &&
                 view.DisplayedRows.Count == 2,
                 "Capture did not show its recorded endpoint observation.");
+            string? copiedCapture = null;
+            fixture.CopySnapshot(text => copiedCapture = text);
+            Require(copiedCapture?.Contains("203.0.113.24:443", StringComparison.Ordinal) == true &&
+                    copiedCapture.Contains("198.51.100.88:4242", StringComparison.Ordinal) &&
+                    copiedCapture.Contains("WinMon", StringComparison.Ordinal),
+                "Copy capture must include historical endpoints and observed flows absent from the endpoint table.");
+            await File.WriteAllTextAsync(Path.Combine(output, "capture-report.txt"), copiedCapture!, cancellationToken);
+            fixture.ProcessesTab.IsChecked = true;
+            fixture.RefreshVisiblePresentation();
+            string? processTabCapture = null;
+            fixture.CopySnapshot(text => processTabCapture = text);
+            Require(string.Equals(copiedCapture, processTabCapture, StringComparison.Ordinal),
+                "Changing the active tab must not change the captured report's process or connection sections.");
+            fixture.ConnectionsTab.IsChecked = true;
+            fixture.RefreshVisiblePresentation();
             Require(view.SelectedDetailsForFixture?.Contains("203.0.113.24:443", StringComparison.Ordinal) == true &&
                     view.SelectedDetailsForFixture.Contains(Strings.DetailReceivedSent, StringComparison.Ordinal),
                 "Capture endpoint details or recorded traffic are missing.");

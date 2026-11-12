@@ -16,6 +16,126 @@ public sealed class ProcessNetworkSessionTests
             windowEnd, quality, 0, 0, [new ProcessNetworkReading(42, 100, received, sent, 11, 12)]);
     }
 
+    private static ProcessNetworkFlowReading Flow(long received, long sent, double? receiveRate = 11,
+        double? sendRate = 12, int port = 443)
+    {
+        return new ProcessNetworkFlowReading(42, 100, TransportProtocol.Tcp, "127.0.0.1:5000",
+            $"127.0.0.1:{port}", received, sent, receiveRate, sendRate);
+    }
+
+    [Test]
+    public void Add_FlowBaselinesAcrossReconnectAndPublishesServiceWindow()
+    {
+        var session = new ProcessNetworkSession();
+        var firstSubscription = Guid.NewGuid();
+        var secondSubscription = Guid.NewGuid();
+        var first = session.Add(Snapshot(1, 100, 10, 10, windowStart: 40, windowEnd: 90) with
+        {
+            SubscriptionId = firstSubscription, FlowTrafficSupported = true, Flows = [Flow(100, 200)]
+        }, 100);
+        var second = session.Add(Snapshot(2, 110, 20, 20, windowStart: 100, windowEnd: 105) with
+        {
+            SubscriptionId = firstSubscription, FlowTrafficSupported = true, Flows = [Flow(125, 235)]
+        }, 110);
+        var reconnected = session.Add(Snapshot(1, 120, 30, 30, windowStart: 110, windowEnd: 115) with
+        {
+            SubscriptionId = secondSubscription, FlowTrafficSupported = true, Flows = [Flow(500, 800)]
+        }, 120);
+        var resumed = session.Add(Snapshot(2, 130, 40, 40, windowStart: 120, windowEnd: 125) with
+        {
+            SubscriptionId = secondSubscription, FlowTrafficSupported = true, Flows = [Flow(510, 820)]
+        }, 130);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(first.Flows.Single().ReceivedBytes, Is.Zero);
+            Assert.That(first.Flows.Single().ReceiveBytesPerSecond, Is.Null);
+            Assert.That(second.Flows.Single().ReceivedBytes, Is.EqualTo(25));
+            Assert.That(reconnected.Flows.Single().ReceivedBytes, Is.EqualTo(25));
+            Assert.That(reconnected.Flows.Single().ReceiveBytesPerSecond, Is.Null);
+            Assert.That(resumed.Flows.Single().ReceivedBytes, Is.EqualTo(35));
+            Assert.That(resumed.Flows.Single().ReceiveBytesPerSecond, Is.EqualTo(11));
+            Assert.That(resumed.WindowStartQpc, Is.EqualTo(120));
+            Assert.That(resumed.WindowEndQpc, Is.EqualTo(125));
+        });
+    }
+
+    [Test]
+    public void Add_AbsentFlowRetainsTotalsButClearsItsRate()
+    {
+        var session = new ProcessNetworkSession();
+        session.Add(Snapshot(1, 100, 10, 10, windowStart: 40, windowEnd: 90) with
+        {
+            FlowTrafficSupported = true, Flows = [Flow(10, 20)]
+        }, 100);
+        session.Add(Snapshot(2, 110, 20, 20, windowStart: 100, windowEnd: 105) with
+        {
+            FlowTrafficSupported = true, Flows = [Flow(30, 50)]
+        }, 110);
+        var absent = session.Add(Snapshot(3, 120, 30, 30, windowStart: 110, windowEnd: 115) with
+        {
+            FlowTrafficSupported = true
+        }, 120);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(absent.Flows.Single().ReceivedBytes, Is.EqualTo(20));
+            Assert.That(absent.Flows.Single().ReceiveBytesPerSecond, Is.Null);
+            Assert.That(absent.CurrentFlows, Is.Empty);
+        });
+    }
+
+    [Test]
+    public void Add_OlderServiceDistinguishesUnsupportedFlowsFromAnObservedEmptyWindow()
+    {
+        var session = new ProcessNetworkSession();
+        var unsupported = session.Add(Snapshot(1, 100, 10, 10, windowStart: 40, windowEnd: 90), 100);
+        var supportedEmpty = session.Add(Snapshot(2, 110, 20, 20, windowStart: 100, windowEnd: 105) with
+        {
+            FlowTrafficSupported = true
+        }, 110);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(unsupported.FlowTrafficSupported, Is.False);
+            Assert.That(unsupported.Flows, Is.Empty);
+            Assert.That(supportedEmpty.FlowTrafficSupported, Is.True);
+            Assert.That(supportedEmpty.Flows, Is.Empty);
+        });
+    }
+
+    [Test]
+    public void Add_FlowCapacityAndRetentionDoNotSuppressProcessRatesOrReuseAnExpiredBaseline()
+    {
+        var session = new ProcessNetworkSession();
+        var initial = Enumerable.Range(1, 8192).Select(port => Flow(10, 20, port: port)).ToArray();
+        session.Add(Snapshot(1, 100, 10, 10, windowStart: 40, windowEnd: 90) with
+        {
+            FlowTrafficSupported = true, Flows = initial
+        }, 100);
+        var capacity = session.Add(Snapshot(2, 110, 20, 20, windowStart: 100, windowEnd: 105) with
+        {
+            FlowTrafficSupported = true,
+            Flows = initial.Append(Flow(30, 40, port: 9000)).ToArray()
+        }, 110);
+        session.Add(Snapshot(3, 421, 30, 30, windowStart: 410, windowEnd: 415) with
+        {
+            FlowTrafficSupported = true
+        }, 421);
+        var reappeared = session.Add(Snapshot(4, 430, 40, 40, windowStart: 420, windowEnd: 425) with
+        {
+            FlowTrafficSupported = true, Flows = [Flow(500, 600, port: 443)]
+        }, 430);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(capacity.Processes.Single().ReceiveBytesPerSecond, Is.EqualTo(11));
+            Assert.That(capacity.FlowQuality.HasFlag(ProcessNetworkQuality.CapacityExceeded), Is.True);
+            Assert.That(reappeared.Flows.Single().ReceivedBytes, Is.Zero);
+            Assert.That(reappeared.Flows.Single().ReceiveBytesPerSecond, Is.Null);
+        });
+    }
+
     [Test]
     public void Add_BaselinesInitialAndNewLifetimesWithoutPreEnableTraffic()
     {

@@ -49,6 +49,18 @@ public sealed record ProcessNetworkReading(
     double? ReceiveBytesPerSecond,
     double? SendBytesPerSecond);
 
+/// <summary>Observed traffic for one process lifetime and endpoint pair. Addresses include the port.</summary>
+public sealed record ProcessNetworkFlowReading(
+    int ProcessId,
+    long CreationTicks,
+    TransportProtocol Protocol,
+    string LocalEndpoint,
+    string RemoteEndpoint,
+    long ReceivedBytes,
+    long SentBytes,
+    double? ReceiveBytesPerSecond,
+    double? SendBytesPerSecond);
+
 /// <summary>A delayed, provisional event-time window. QPC timestamps use <see cref="Frequency"/> ticks per second.</summary>
 public sealed record ProcessNetworkSnapshot(
     Guid Generation,
@@ -73,4 +85,13 @@ public sealed record ProcessNetworkSnapshot(
 
     /// <summary>Sticky coverage reasons; None also supports older protocol-1 services.</summary>
     public ProcessNetworkIncompleteReason IncompleteReasons { get; init; }
+
+    /// <summary>Optional endpoint-pair traffic. An empty list is either no observed flow or an older service.</summary>
+    public IReadOnlyList<ProcessNetworkFlowReading> Flows { get; init; } = [];
+
+    /// <summary>True only when the connected service supports endpoint-pair traffic.</summary>
+    public bool FlowTrafficSupported { get; init; }
+
+    /// <summary>Endpoint-pair coverage separate from process traffic coverage.</summary>
+    public ProcessNetworkQuality FlowQuality { get; init; }
 }

@@ -102,8 +102,16 @@ public static partial class Strings
     public static string CapacityGiB => ResourceManager.GetString(nameof(CapacityGiB), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CapacityMiB => ResourceManager.GetString(nameof(CapacityMiB), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CapacityType => ResourceManager.GetString(nameof(CapacityType), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string CaptureConnectionTrafficScope => ResourceManager.GetString(nameof(CaptureConnectionTrafficScope), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string CaptureConnectionTrafficUnavailable => ResourceManager.GetString(nameof(CaptureConnectionTrafficUnavailable), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string CaptureConnectionTrafficWindow => ResourceManager.GetString(nameof(CaptureConnectionTrafficWindow), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CaptureDurationHelp => ResourceManager.GetString(nameof(CaptureDurationHelp), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string CaptureFlowIncomplete => ResourceManager.GetString(nameof(CaptureFlowIncomplete), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CaptureLatestSnapshot => ResourceManager.GetString(nameof(CaptureLatestSnapshot), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string CaptureObservedFlowMissingEndpoint => ResourceManager.GetString(nameof(CaptureObservedFlowMissingEndpoint), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string CaptureReportConnectionCount => ResourceManager.GetString(nameof(CaptureReportConnectionCount), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string CaptureReportExtraTrigger => ResourceManager.GetString(nameof(CaptureReportExtraTrigger), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string CaptureReportProcessCount => ResourceManager.GetString(nameof(CaptureReportProcessCount), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CaptureThresholdHelp => ResourceManager.GetString(nameof(CaptureThresholdHelp), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartDisplay => ResourceManager.GetString(nameof(ChartDisplay), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartFocus => ResourceManager.GetString(nameof(ChartFocus), Culture ?? CultureInfo.CurrentUICulture)!;

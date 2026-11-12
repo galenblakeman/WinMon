@@ -8,6 +8,11 @@ namespace WinMon.Tests;
 [TestFixture]
 public sealed class ConnectionHistoryTests
 {
+    private static ProcessNetworkFlowReading Flow()
+    {
+        return new ProcessNetworkFlowReading(42, 1, TransportProtocol.Tcp, "127.0.0.1:5000", "127.0.0.1:443",
+            10, 20, 1, 2);
+    }
     private static MonitorSample Sample(int second)
     {
         return new MonitorSample(DateTimeOffset.UnixEpoch.AddSeconds(second), 0, [], 0, false,
@@ -67,6 +72,27 @@ public sealed class ConnectionHistoryTests
         {
             Assert.That(history.Find(first), Is.Null);
             Assert.That(history.Find(second)!.Available, Is.True);
+            Assert.That(history.WasMemoryLimited, Is.True);
+        });
+    }
+
+    [Test]
+    public void Add_BudgetIncludesFlowEntries()
+    {
+        var history = new ConnectionHistory(entryBudget: 2);
+        var network = new ProcessNetworkFrame(1, 1, ProcessNetworkQuality.None, []) { Flows = [Flow(), Flow()] };
+        history.Add(Sample(1), null, [], network);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(history.Latest!.Network!.Flows, Has.Count.EqualTo(2));
+            Assert.That(history.WasMemoryLimited, Is.False);
+        });
+
+        history.Add(Sample(2), null, [], network);
+        Assert.Multiple(() =>
+        {
+            Assert.That(history.Captures, Has.Count.EqualTo(1));
             Assert.That(history.WasMemoryLimited, Is.True);
         });
     }

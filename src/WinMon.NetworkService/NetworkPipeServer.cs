@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
+using System.Text.Json;
 using Microsoft.Win32.SafeHandles;
 using WinMon.Monitoring;
 
@@ -251,7 +252,7 @@ internal sealed class NetworkPipeServer(
                             sequence = 0;
                         }
 
-                        current = current with { SubscriptionId = subscriptionId, Sequence = checked(++sequence) };
+                        current = FitSnapshot(current with { SubscriptionId = subscriptionId, Sequence = checked(++sequence) });
                         stage = PipeStage.Write;
                         await NetworkServiceProtocol.WriteAsync(pipe,
                                 new NetworkServiceResponse(NetworkServiceProtocol.Version, "ok", current),
@@ -286,6 +287,42 @@ internal sealed class NetworkPipeServer(
         finally
         {
             if (lease is not null) await lease.DisposeAsync().ConfigureAwait(false);
+        }
+    }
+
+    internal static ProcessNetworkSnapshot FitSnapshot(ProcessNetworkSnapshot snapshot)
+    {
+        if (snapshot.Flows.Count == 0) return snapshot;
+        var empty = snapshot with { Flows = [] };
+        // Empty-array brackets remain; only element bytes and separators consume the remaining budget.
+        var remaining = NetworkServiceProtocol.MaximumMessageBytes -
+                        JsonSerializer.SerializeToUtf8Bytes(new NetworkServiceResponse(NetworkServiceProtocol.Version,
+                            "ok", empty)).Length;
+        var count = 0;
+        foreach (var flow in snapshot.Flows)
+        {
+            var bytes = JsonSerializer.SerializeToUtf8Bytes(flow).Length + (count == 0 ? 0 : 1);
+            if (bytes > remaining) break;
+            remaining -= bytes;
+            count++;
+        }
+
+        if (count == snapshot.Flows.Count) return snapshot;
+
+        var trimmed = snapshot with
+        {
+            Flows = snapshot.Flows.Take(count).ToArray(),
+            FlowQuality = snapshot.FlowQuality | ProcessNetworkQuality.Incomplete |
+                          ProcessNetworkQuality.CapacityExceeded
+        };
+        while (trimmed.Flows.Count > 0 && !Fits(trimmed))
+            trimmed = trimmed with { Flows = trimmed.Flows.Take(trimmed.Flows.Count - 1).ToArray() };
+        return trimmed;
+
+        static bool Fits(ProcessNetworkSnapshot value)
+        {
+            return JsonSerializer.SerializeToUtf8Bytes(new NetworkServiceResponse(NetworkServiceProtocol.Version,
+                "ok", value)).Length <= NetworkServiceProtocol.MaximumMessageBytes;
         }
     }
 

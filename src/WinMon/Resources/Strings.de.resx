@@ -1924,4 +1924,12 @@ Q beendet. Ctrl+C bricht ab. Programm- und Dienst-Pins bleiben gespeichert.</val
 <data name="ShowInUsage" xml:space="preserve"><value>In Nutzung anzeigen</value></data>
   <data name="InstallerCliPathTask" xml:space="preserve"><value>WinMon.Cli für diesen Benutzer zu PATH hinzufügen</value></data>
   <data name="InstallerCliPathFailed" xml:space="preserve"><value>Der Benutzer-PATH für WinMon.Cli konnte nicht aktualisiert werden.</value></data>
+  <data name="CaptureConnectionTrafficScope" xml:space="preserve"><value>Endpunktpaarraten verwenden das beobachtete Ereigniszeitfenster. Gesamtwerte beginnen an der jeweiligen Überwachungsbasis; UDP-Einträge sind Datenflüsse.</value></data>
+  <data name="CaptureConnectionTrafficUnavailable" xml:space="preserve"><value>Der Netzwerküberwachungsdienst stellt keinen Datenverkehr pro Verbindung bereit.</value></data>
+  <data name="CaptureConnectionTrafficWindow" xml:space="preserve"><value>Datenverkehrsfenster: {0:0.0} s; endete {1:0.0} s vor dieser Beobachtung.</value></data>
+  <data name="CaptureFlowIncomplete" xml:space="preserve"><value>Der Endpunktdatenverkehr ist unvollständig; App-Gesamtwerte können weiterhin verfügbar sein.</value></data>
+  <data name="CaptureObservedFlowMissingEndpoint" xml:space="preserve"><value>Beobachteter Datenverkehr; Endpunkt nicht in der abgetasteten Tabelle</value></data>
+  <data name="CaptureReportConnectionCount" xml:space="preserve"><value>Top {0}; {1} von {2} verfügbaren App-/Prozessgruppen enthalten ({3} ausgelassen); {4} Endpunkt-/Datenflusszeilen.</value></data>
+  <data name="CaptureReportExtraTrigger" xml:space="preserve"><value>Der auslösende Prozess ist zusätzlich zu den ausgewählten Top-Zeilen enthalten.</value></data>
+  <data name="CaptureReportProcessCount" xml:space="preserve"><value>Top {0}; {1} Zeilen angezeigt.</value></data>
 </root>

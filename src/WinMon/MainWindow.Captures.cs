@@ -91,10 +91,12 @@ public partial class MainWindow
         PruneCaptureMarkers(history);
         var marker = new CaptureMarker(fired, Guid.NewGuid(), CaptureReportText.Rule(fired));
         _captureMarkers.Add(marker);
-        var snapshot = CaptureReportText.Snapshot(fired, history);
-        var networkCapture = fired.Rule.Metric == CaptureMetric.Network
-            ? Session.Connections.Captures.FirstOrDefault(capture => marker.Peak.Matches(capture.Sample)) : null;
-        var text = CaptureReportText.Report(fired, marker.ReportId, snapshot, networkCapture);
+        var snapshot = CaptureReportText.Snapshot(fired, history, _preferences.TopProcessCount);
+        var networkCapture = Session.Connections.Captures.FirstOrDefault(capture => marker.Peak.Matches(capture.Sample));
+        var text = CaptureReportText.Report(fired, marker.ReportId, snapshot, networkCapture,
+            _preferences.TopConnectionCount,
+            Session.Connections.Captures.Where(capture => CpuGraph.Moment(capture.Sample) <=
+                                                          CpuGraph.Moment(fired.Peak)).ToArray());
         var folder = settings.Folder ?? _preferenceStore.DefaultCaptureFolder;
         _ = WriteCaptureAsync(marker, folder, Task.Run(() =>
         {

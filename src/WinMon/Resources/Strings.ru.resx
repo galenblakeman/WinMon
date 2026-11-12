@@ -1924,4 +1924,12 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
 <data name="ShowInUsage" xml:space="preserve"><value>Показать в Использовании</value></data>
   <data name="InstallerCliPathTask" xml:space="preserve"><value>Добавить WinMon.Cli в PATH для этого пользователя</value></data>
   <data name="InstallerCliPathFailed" xml:space="preserve"><value>Не удалось обновить пользовательскую переменную PATH для WinMon.Cli.</value></data>
+  <data name="CaptureConnectionTrafficScope" xml:space="preserve"><value>Скорости пар конечных точек используют окно наблюдаемых событий. Итоги начинаются с каждой базы мониторинга; записи UDP представляют потоки.</value></data>
+  <data name="CaptureConnectionTrafficUnavailable" xml:space="preserve"><value>Эта служба мониторинга сети не предоставляет трафик для отдельных подключений.</value></data>
+  <data name="CaptureConnectionTrafficWindow" xml:space="preserve"><value>Окно трафика: {0:0.0} с; завершилось за {1:0.0} с до этого наблюдения.</value></data>
+  <data name="CaptureFlowIncomplete" xml:space="preserve"><value>Трафик конечных точек неполон; итоги приложений могут оставаться доступными.</value></data>
+  <data name="CaptureObservedFlowMissingEndpoint" xml:space="preserve"><value>Наблюдаемый трафик; конечная точка отсутствует в выбранной таблице</value></data>
+  <data name="CaptureReportConnectionCount" xml:space="preserve"><value>Первые {0}; включено {1} из {2} доступных групп приложений/процессов (пропущено {3}); строк конечных точек/потоков: {4}.</value></data>
+  <data name="CaptureReportExtraTrigger" xml:space="preserve"><value>Процесс, вызвавший захват, включён дополнительно к выбранным строкам.</value></data>
+  <data name="CaptureReportProcessCount" xml:space="preserve"><value>Первые {0}; показано строк: {1}.</value></data>
 </root>

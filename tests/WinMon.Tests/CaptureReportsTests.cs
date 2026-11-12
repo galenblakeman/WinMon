@@ -273,6 +273,124 @@ public sealed class CaptureReportsTests
     }
 
     [Test]
+    public void Report_UsesTheCurrentTopSelectionsForProcessesAndConnections()
+    {
+        var peak = Sample(10, 90, 10) with
+        {
+            Processes = Enumerable.Range(1, 7).Select(index => new ProcessUsage(index, index, $"p{index}", index))
+                .ToArray()
+        };
+        var fired = new CaptureFired(new CaptureRuleSetting(CaptureMetric.Cpu, true, 80, 1), peak, peak, 90, [90]);
+        var endpoints = Enumerable.Range(1, 7).Select(index => new NetworkConnection(index, index,
+            TransportProtocol.Tcp, new System.Net.IPEndPoint(System.Net.IPAddress.Loopback, 2000 + index),
+            new System.Net.IPEndPoint(System.Net.IPAddress.Loopback, 3000 + index))).ToArray();
+        var network = new ProcessNetworkFrame(1, 1, ProcessNetworkQuality.Provisional,
+            Enumerable.Range(1, 7).Select(index => new ProcessNetworkReading(index, index, 0, 0, index, 0)).ToArray());
+        var capture = new ConnectionCapture(peak,
+            new NetworkConnectionsFrame(endpoints, NetworkAddressFamilyStatus.Success, NetworkAddressFamilyStatus.Success),
+            peak.Processes, network);
+
+        var text = CaptureReportText.Report(fired, Guid.NewGuid(), CaptureReportText.Snapshot(fired, [peak], 5),
+            capture, 5);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(text, Does.Contain("p7").And.Contain("p3"));
+            Assert.That(text, Does.Not.Contain("p2\t2"), "Processes respect Top 5.");
+            Assert.That(text, Does.Contain("127.0.0.1:2007").And.Not.Contain("127.0.0.1:2002"),
+                "Connection groups respect their independent Top 5.");
+        });
+    }
+
+    [TestCase(5)]
+    [TestCase(10)]
+    [TestCase(15)]
+    [TestCase(20)]
+    [TestCase(50)]
+    [TestCase(0)]
+    public void Snapshot_UsesEverySupportedTopChoiceAndKeepsAnOutOfLimitTrigger(int topCount)
+    {
+        var processes = Enumerable.Range(1, 60).Select(index => new ProcessUsage(index, index, $"p{index}", index))
+            .ToArray();
+        var peak = new MonitorSample(Fired, 90, processes, 0);
+        var trigger = processes[0];
+        var fired = new CaptureFired(new CaptureRuleSetting(CaptureMetric.Process, true, 80, 1), peak, peak, 90,
+            [90], trigger);
+
+        var report = CaptureReportText.Snapshot(fired, [peak], topCount);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(report.Processes[0].Identity, Is.EqualTo(trigger.Identity));
+            Assert.That(report.Processes, Has.Count.EqualTo(topCount == 0 ? 60 : topCount + 1),
+                "The trigger remains visible even when it ranks outside Top.");
+            Assert.That(report.Processes.Select(process => process.Identity).Distinct().Count(),
+                Is.EqualTo(report.Processes.Count));
+        });
+    }
+
+    [TestCase(5)]
+    [TestCase(10)]
+    [TestCase(15)]
+    [TestCase(20)]
+    [TestCase(50)]
+    [TestCase(0)]
+    public void ConnectionReport_CountsGroupsIndependentlyOfEndpointRows(int top)
+    {
+        var owners = Enumerable.Range(1, 60).Select(id => new ProcessUsage(id, id, $"p{id}", id)).ToArray();
+        var endpoints = owners.SelectMany(owner => new[]
+        {
+            new NetworkConnection(owner.ProcessId, owner.CreationTicks, TransportProtocol.Udp,
+                new(System.Net.IPAddress.Loopback, 10000 + owner.ProcessId)),
+            new NetworkConnection(owner.ProcessId, owner.CreationTicks, TransportProtocol.Udp,
+                new(System.Net.IPAddress.Loopback, 20000 + owner.ProcessId))
+        }).ToArray();
+        var sample = new MonitorSample(Fired, 90, owners, 0);
+        var capture = new ConnectionCapture(sample,
+            new NetworkConnectionsFrame(endpoints, NetworkAddressFamilyStatus.Success, NetworkAddressFamilyStatus.Success),
+            owners, null);
+        var included = top == 0 ? 60 : top;
+
+        var report = CaptureReportText.ConnectionLeaders(capture, top);
+
+        Assert.That(report, Does.Contain(Strings.Format(Strings.CaptureReportConnectionCount,
+            top == 0 ? Strings.AllEntries : top.ToString(CultureInfo.CurrentCulture), included, 60, 60 - included,
+            included * 2)));
+
+        var pins = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ConnectionQuery.OwnerKey(owners[0]) };
+        var withPins = CaptureReportText.ConnectionLeaders(capture, top, pinnedKeys: pins);
+        var withPinCount = top == 0 ? 60 : top + 1;
+        Assert.That(withPins, Does.Contain(Strings.Format(Strings.CaptureReportConnectionCount,
+            top == 0 ? Strings.AllEntries : top.ToString(CultureInfo.CurrentCulture), withPinCount, 60,
+            60 - withPinCount, withPinCount * 2)));
+        var pinnedOnly = CaptureReportText.ConnectionLeaders(capture, top, pinnedKeys: pins, pinnedOnly: true);
+        Assert.That(pinnedOnly, Does.Contain(Strings.Format(Strings.CaptureReportConnectionCount,
+            top == 0 ? Strings.AllEntries : top.ToString(CultureInfo.CurrentCulture), 1, 1, 0, 2)));
+    }
+
+    [Test]
+    public void ConnectionReport_KeepsUnknownFlowAndWarnsAboutEndpointCoverage()
+    {
+        var sample = new MonitorSample(Fired, 90, [], 0);
+        var network = new ProcessNetworkFrame(100, 10, ProcessNetworkQuality.Provisional, [])
+        {
+            FlowTrafficSupported = true,
+            FlowQuality = ProcessNetworkQuality.Provisional | ProcessNetworkQuality.CapacityExceeded,
+            Flows = [new(42, 100, TransportProtocol.Udp, "127.0.0.1:4000", "127.0.0.1:5000", 123, 456, 10, 20)]
+        };
+
+        var report = CaptureReportText.ConnectionLeaders(new ConnectionCapture(sample, null, [], network), 5);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(report, Does.Contain("127.0.0.1:5000"));
+            Assert.That(report, Does.Contain(Strings.Format(Strings.PID, 42)).And.Not.Contain("lifetime:"));
+            Assert.That(report, Does.Contain(Strings.CaptureFlowIncomplete));
+            Assert.That(report, Does.Contain(Strings.CaptureObservedFlowMissingEndpoint));
+        });
+    }
+
+    [Test]
     public void Preferences_MissingOrInvalidRulesFallBackToDefaults()
     {
         var normalized = new AutoCapturePreferences

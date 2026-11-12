@@ -1924,4 +1924,12 @@ Q quitte. Ctrl+C annule. Les programmes et services épinglés restent enregistr
 <data name="ShowInUsage" xml:space="preserve"><value>Afficher dans Utilisation</value></data>
   <data name="InstallerCliPathTask" xml:space="preserve"><value>Ajouter WinMon.Cli à PATH pour cet utilisateur</value></data>
   <data name="InstallerCliPathFailed" xml:space="preserve"><value>Impossible de mettre à jour le PATH utilisateur pour WinMon.Cli.</value></data>
+  <data name="CaptureConnectionTrafficScope" xml:space="preserve"><value>Les débits par paire de points de terminaison utilisent la fenêtre des événements observés. Les totaux commencent à chaque référence de surveillance ; les entrées UDP sont des flux.</value></data>
+  <data name="CaptureConnectionTrafficUnavailable" xml:space="preserve"><value>Ce service de surveillance réseau ne fournit pas le trafic par connexion.</value></data>
+  <data name="CaptureConnectionTrafficWindow" xml:space="preserve"><value>Fenêtre de trafic : {0:0.0} s ; terminée {1:0.0} s avant cette observation.</value></data>
+  <data name="CaptureFlowIncomplete" xml:space="preserve"><value>Le trafic des points de terminaison est incomplet ; les totaux des applications peuvent rester disponibles.</value></data>
+  <data name="CaptureObservedFlowMissingEndpoint" xml:space="preserve"><value>Trafic observé ; point de terminaison absent de la table échantillonnée</value></data>
+  <data name="CaptureReportConnectionCount" xml:space="preserve"><value>Premiers {0} ; {1} groupes applications/processus sur {2} inclus ({3} omis) ; {4} lignes de points de terminaison/flux.</value></data>
+  <data name="CaptureReportExtraTrigger" xml:space="preserve"><value>Le processus déclencheur est inclus en plus des lignes sélectionnées.</value></data>
+  <data name="CaptureReportProcessCount" xml:space="preserve"><value>Premiers {0} ; {1} lignes affichées.</value></data>
 </root>

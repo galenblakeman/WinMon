@@ -19,6 +19,8 @@ This folder contains the current layout reference, feature design notes and edit
 
 ## Feature notes
 
+- [Capture information](CAPTURE-INFO.md) adds richer automatic reports and Copy capture using the existing Processes and Connections Top selections, with app traffic, endpoint details and optional endpoint-pair counters. Its [implementation record](CAPTURE-INFO-IMPLEMENTATION.md) lists verification and remaining native acceptance.
+
 - [README and screenshot examples](README-EXAMPLES.md) keeps the overview concise, preserves a detailed user guide and documents realistic, reproducible gallery captures.
 
 - [Feature-oriented Guide](FEATURE-GUIDE.md) organizes in-app help by feature with short instructions and a CPU-spike walkthrough.

@@ -50,6 +50,8 @@ Captures keep working while WinMon is hidden, minimized or in Compact view, beca
 
 ### Report
 
+The [capture information update](CAPTURE-INFO.md) supersedes the fixed Top 20 limits below: reports now use the existing Processes and Connections Top selections and include recorded endpoint details and available endpoint-pair traffic. Its [implementation record](CAPTURE-INFO-IMPLEMENTATION.md) lists verification and remaining native acceptance.
+
 The same text `SnapshotText.Format` produces for Copy capture, with fixed list settings so the report does not depend on what the view happened to show:
 
 - the peak sample of the run;

@@ -1924,4 +1924,12 @@ Q 종료. Ctrl+C 취소. 실행 파일과 서비스 고정은 다음 실행에�
 <data name="ShowInUsage" xml:space="preserve"><value>사용량에서 보기</value></data>
   <data name="InstallerCliPathTask" xml:space="preserve"><value>이 사용자의 PATH에 WinMon.Cli 추가</value></data>
   <data name="InstallerCliPathFailed" xml:space="preserve"><value>WinMon.Cli의 사용자 PATH를 업데이트할 수 없습니다.</value></data>
+  <data name="CaptureConnectionTrafficScope" xml:space="preserve"><value>엔드포인트 쌍 속도는 관측된 이벤트 시간 구간을 사용합니다. 합계는 각 모니터링 기준점부터 시작하며 UDP 항목은 흐름입니다.</value></data>
+  <data name="CaptureConnectionTrafficUnavailable" xml:space="preserve"><value>이 네트워크 모니터링 서비스에서는 연결별 트래픽을 사용할 수 없습니다.</value></data>
+  <data name="CaptureConnectionTrafficWindow" xml:space="preserve"><value>트래픽 창: {0:0.0}초, 이 관찰 {1:0.0}초 전에 끝났습니다.</value></data>
+  <data name="CaptureFlowIncomplete" xml:space="preserve"><value>엔드포인트 트래픽이 불완전합니다. 앱 합계는 계속 사용할 수 있습니다.</value></data>
+  <data name="CaptureObservedFlowMissingEndpoint" xml:space="preserve"><value>관찰된 트래픽; 엔드포인트가 샘플링된 테이블에 없습니다</value></data>
+  <data name="CaptureReportConnectionCount" xml:space="preserve"><value>상위 {0}개: 대상 앱/프로세스 그룹 {2}개 중 {1}개 포함({3}개 생략), 엔드포인트/흐름 {4}행.</value></data>
+  <data name="CaptureReportExtraTrigger" xml:space="preserve"><value>선택한 상위 행에 더해 트리거 프로세스를 포함합니다.</value></data>
+  <data name="CaptureReportProcessCount" xml:space="preserve"><value>상위 {0}, 표시된 행 {1}개.</value></data>
 </root>

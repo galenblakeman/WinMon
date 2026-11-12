@@ -93,11 +93,24 @@ public sealed class NativeNetworkCollectorTests
                     Assert.That(snapshot.EventsLost, Is.Zero, scenario);
                     Assert.That(snapshot.Quality.HasFlag(ProcessNetworkQuality.Provisional), Is.True, scenario);
                 });
+                var flows = snapshot.Flows.Where(flow => flow.ProcessId == worker.Id).ToArray();
+                Assert.Multiple(() =>
+                {
+                    Assert.That(snapshot.FlowTrafficSupported, Is.True, scenario);
+                    Assert.That(flows.Sum(flow => flow.SentBytes), Is.EqualTo(row.SentBytes), scenario);
+                    Assert.That(flows.Sum(flow => flow.ReceivedBytes), Is.EqualTo(row.ReceivedBytes), scenario);
+                    Assert.That(flows.Any(flow => flow.Protocol == (scenario.StartsWith("tcp", StringComparison.Ordinal)
+                        ? TransportProtocol.Tcp : TransportProtocol.Udp) &&
+                        flow.LocalEndpoint.Contains(scenario.Contains('6') ? "::1" : "127.0.0.1", StringComparison.Ordinal)),
+                        Is.True, scenario);
+                });
                 if (scenario == "udp6-load")
                 {
                     Assert.That(row!.ReceiveBytesPerSecond, Is.Not.Null,
                         "Known traffic rates must recover after startup uncertainty.");
                     Assert.That(row.SendBytesPerSecond, Is.Not.Null);
+                    Assert.That(flows.Sum(flow => flow.ReceiveBytesPerSecond), Is.EqualTo(row.ReceiveBytesPerSecond));
+                    Assert.That(flows.Sum(flow => flow.SendBytesPerSecond), Is.EqualTo(row.SendBytesPerSecond));
                 }
 
                 results.Add(new

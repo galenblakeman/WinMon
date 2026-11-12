@@ -1924,4 +1924,12 @@ Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。<
 <data name="ShowInUsage" xml:space="preserve"><value>在使用量中显示</value></data>
   <data name="InstallerCliPathTask" xml:space="preserve"><value>将 WinMon.Cli 添加到此用户的 PATH</value></data>
   <data name="InstallerCliPathFailed" xml:space="preserve"><value>无法更新 WinMon.Cli 的用户 PATH。</value></data>
+  <data name="CaptureConnectionTrafficScope" xml:space="preserve"><value>端点对速率使用观测到的事件时间窗口。总量从各监视基准点开始计算；UDP 条目表示流。</value></data>
+  <data name="CaptureConnectionTrafficUnavailable" xml:space="preserve"><value>此网络监视服务不提供逐连接流量。</value></data>
+  <data name="CaptureConnectionTrafficWindow" xml:space="preserve"><value>流量窗口：{0:0.0} 秒；在此观测前 {1:0.0} 秒结束。</value></data>
+  <data name="CaptureFlowIncomplete" xml:space="preserve"><value>端点流量不完整；应用总量可能仍然可用。</value></data>
+  <data name="CaptureObservedFlowMissingEndpoint" xml:space="preserve"><value>已观察到流量；端点不在采样表中</value></data>
+  <data name="CaptureReportConnectionCount" xml:space="preserve"><value>前 {0} 项；已包含 {2} 个符合条件的应用/进程组中的 {1} 个（省略 {3} 个）；共 {4} 行端点/流。</value></data>
+  <data name="CaptureReportExtraTrigger" xml:space="preserve"><value>除所选的排名行外，还包含触发捕获的进程。</value></data>
+  <data name="CaptureReportProcessCount" xml:space="preserve"><value>前 {0} 项；显示 {1} 行。</value></data>
 </root>

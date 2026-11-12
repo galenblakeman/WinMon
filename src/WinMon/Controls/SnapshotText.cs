@@ -16,6 +16,8 @@ internal sealed record SnapshotReport(
     SnapshotRemainder? Remainder)
 {
     internal IReadOnlyList<string>? ProcessStates { get; init; }
+    internal int TopCount { get; init; }
+    internal bool TriggerIncludedOutsideTop { get; init; }
 }
 
 internal sealed record SnapshotRemainder(int Count, double CpuPercent, double? IoBytesPerSecond);
@@ -45,6 +47,10 @@ internal static class SnapshotText
         text.AppendLine(Strings.Format(Strings.SnapshotExportProcesses,
             report.Grouped ? Strings.Grouped : Strings.Individual, report.Sort));
         text.AppendLine(Strings.SnapshotExportAverages);
+        text.AppendLine(Strings.Format(Strings.CaptureReportProcessCount,
+            report.TopCount == 0 ? Strings.AllEntries : report.TopCount.ToString(CultureInfo.CurrentCulture),
+            report.Processes.Count));
+        if (report.TriggerIncludedOutsideTop) text.AppendLine(Strings.CaptureReportExtraTrigger);
         if (report.Grouped) text.AppendLine(Strings.IdleGroupMembersMayBeOmitted);
         if (report.Filter.Length > 0) Row(Strings.SearchNameOrPID, report.Filter);
         if (report.AppsOnly) text.AppendLine(Strings.ProcessKindApp);

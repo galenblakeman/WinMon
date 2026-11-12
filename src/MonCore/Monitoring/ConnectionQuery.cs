@@ -59,6 +59,9 @@ public sealed record ConnectionQueryRow(
     ConnectionNetworkSummary Network,
     ConnectionTrafficSummary Traffic)
 {
+    /// <summary>Endpoint-pair traffic that belongs to this owner group, including flows missed by an endpoint-table poll.</summary>
+    public IReadOnlyList<ProcessNetworkFlowReading> Flows { get; init; } = [];
+
     public int TcpCount => Connections.Count(connection => connection.Protocol == TransportProtocol.Tcp);
     public int UdpCount => Connections.Count(connection => connection.Protocol == TransportProtocol.Udp);
 }
@@ -78,14 +81,19 @@ public static class ConnectionQuery
         ArgumentNullException.ThrowIfNull(history);
         options ??= new ConnectionQueryOptions();
         ArgumentOutOfRangeException.ThrowIfNegative(options.TrafficSeconds);
-        if (frame?.Available != true) return [];
-
-        var groups = Entries(frame, processes)
+        var groups = (frame?.Available == true ? Entries(frame, processes) : Enumerable.Empty<Entry>())
             .GroupBy(entry => entry.Key, StringComparer.OrdinalIgnoreCase)
             .Select(group => Group.Create(group.Key, group))
-            .Where(group => Visible(group, options))
-            .ToArray();
+            .ToDictionary(group => group.Key, StringComparer.OrdinalIgnoreCase);
         var networkMembers = NetworkMembers(processes, network);
+        foreach (var group in FlowOnlyGroups(network, networkMembers, processes))
+            if (groups.TryGetValue(group.Key, out var existing))
+                groups[group.Key] = existing with
+                {
+                    Members = existing.Members.Concat(group.Members).DistinctBy(member => member.Identity).ToArray(),
+                    Flows = existing.Flows.Concat(group.Flows).ToArray()
+                };
+            else groups.Add(group.Key, group);
         var readings = Readings(network);
         var totals = options.NetworkEnabled
             ? ConnectionTrafficTotals.Build(history, capture, options.TrafficSeconds)
@@ -94,7 +102,8 @@ public static class ConnectionQuery
             ? ConnectionSortMetric.Tcp
             : options.Sort;
 
-        return groups.Select(group => CreateRow(group, network, networkMembers, readings, totals, options.NetworkEnabled))
+        return groups.Values.Where(group => Visible(group, options))
+            .Select(group => CreateRow(group, network, networkMembers, readings, totals, options.NetworkEnabled))
             .OrderByDescending(row => SortValue(row, effectiveSort))
             .ThenBy(row => DisplayName(row.Process, options.UnknownProcessName), StringComparer.CurrentCultureIgnoreCase)
             .ThenBy(row => row.Key, StringComparer.Ordinal)
@@ -125,14 +134,15 @@ public static class ConnectionQuery
         ConnectionTrafficTotals? totals, bool networkEnabled)
     {
         var members = MembersFor(group, networkMembers);
-        var networkSummary = CollectNetworkSummary(members, network, readings, networkEnabled);
-        var identities = members.Select(member => member.Identity).Distinct().ToArray();
+        var identities = members.Select(member => member.Identity).Concat(group.Flows.Select(FlowIdentity))
+            .Distinct().ToArray();
+        var networkSummary = CollectNetworkSummary(identities, network, readings, networkEnabled);
         var available = totals?.Available == true && identities.Any(totals.Processes.ContainsKey);
         var traffic = totals?.Sum(identities) ?? (0L, 0L);
-        return new ConnectionQueryRow(group.Key, group.Process, group.Members,
+        return new ConnectionQueryRow(group.Key, group.Process, members,
             group.Entries.Select(entry => entry.Connection).ToArray(), networkSummary,
             new ConnectionTrafficSummary(traffic.Received, traffic.Sent, available,
-                totals?.Incomplete == true, totals?.CoveredSeconds ?? 0));
+                totals?.Incomplete == true, totals?.CoveredSeconds ?? 0)) { Flows = group.Flows };
     }
 
     private static double SortValue(ConnectionQueryRow row, ConnectionSortMetric sort)
@@ -155,12 +165,12 @@ public static class ConnectionQuery
             ConnectionSortMetric.Sent;
     }
 
-    private static ConnectionNetworkSummary CollectNetworkSummary(IReadOnlyList<ProcessUsage> members,
+    private static ConnectionNetworkSummary CollectNetworkSummary(IReadOnlyList<ProcessLifetimeIdentity> identities,
         ProcessNetworkFrame? network, IReadOnlyDictionary<ProcessLifetimeIdentity, ProcessNetworkReading> readings,
         bool networkEnabled)
     {
         if (!networkEnabled) return ConnectionNetworkSummary.Disabled;
-        if (members.Count == 0 || network is null) return ConnectionNetworkSummary.Unavailable;
+        if (identities.Count == 0 || network is null) return ConnectionNetworkSummary.Unavailable;
         var received = 0L;
         var sent = 0L;
         var found = 0;
@@ -168,14 +178,14 @@ public static class ConnectionQuery
         var receiveRate = 0d;
         var sendRate = 0d;
         var ratesAvailable = true;
-        foreach (var member in members)
+        foreach (var identity in identities)
         {
-            if (!readings.TryGetValue(member.Identity, out var reading)) continue;
+            if (!readings.TryGetValue(identity, out var reading)) continue;
             found++;
             if (reading.ReceivedBytes < 0 || reading.SentBytes < 0) return ConnectionNetworkSummary.Unavailable;
             received = SaturatingAdd(received, reading.ReceivedBytes);
             sent = SaturatingAdd(sent, reading.SentBytes);
-            if (network.CurrentLifetimes is not null && !network.CurrentLifetimes.Contains(member.Identity)) continue;
+            if (network.CurrentLifetimes is not null && !network.CurrentLifetimes.Contains(identity)) continue;
             rateCount++;
             if (!ValidRate(reading.ReceiveBytesPerSecond) || !ValidRate(reading.SendBytesPerSecond) ||
                 reading.ReceiveBytesPerSecond is null || reading.SendBytesPerSecond is null)
@@ -193,7 +203,7 @@ public static class ConnectionQuery
         return new ConnectionNetworkSummary(received, sent,
             ratesAvailable && rateCount > 0 ? receiveRate : null,
             ratesAvailable && rateCount > 0 ? sendRate : null,
-            network.Quality | (found == members.Count ? ProcessNetworkQuality.None : ProcessNetworkQuality.Incomplete),
+            network.Quality | (found == identities.Count ? ProcessNetworkQuality.None : ProcessNetworkQuality.Incomplete),
             true, true);
     }
 
@@ -232,6 +242,42 @@ public static class ConnectionQuery
         var path = group.Members.Append(group.Process).OfType<ProcessUsage>()
             .FirstOrDefault(process => process.ImagePath.Length > 0)?.ImagePath;
         return path is not null && networkMembers.TryGetValue(path, out var members) ? members : group.Members;
+    }
+
+    private static IEnumerable<Group> FlowOnlyGroups(ProcessNetworkFrame? network,
+        IReadOnlyDictionary<string, IReadOnlyList<ProcessUsage>> networkMembers, IReadOnlyList<ProcessUsage> processes)
+    {
+        if (network is not { FlowTrafficSupported: true } || network.Flows.Count == 0) yield break;
+        var flowsByIdentity = network.Flows.GroupBy(FlowIdentity).ToDictionary(group => group.Key,
+            group => (IReadOnlyList<ProcessNetworkFlowReading>)group.ToArray());
+        var represented = new HashSet<ProcessLifetimeIdentity>();
+        foreach (var members in networkMembers.Values)
+        {
+            var observed = members.Where(member => flowsByIdentity.ContainsKey(member.Identity)).ToArray();
+            if (observed.Length == 0) continue;
+            foreach (var member in observed) represented.Add(member.Identity);
+            var process = observed.OrderBy(member => DisplayName(member), StringComparer.CurrentCultureIgnoreCase)
+                .ThenBy(member => member.ProcessId).First();
+            yield return new Group(OwnerKey(process), [], observed, process,
+                observed.SelectMany(member => flowsByIdentity[member.Identity]).ToArray());
+        }
+
+        var owners = new Dictionary<ProcessLifetimeIdentity, ProcessUsage>();
+        foreach (var owner in network.Owners.Concat(processes)) owners[owner.Identity] = owner;
+        foreach (var (identity, flows) in flowsByIdentity)
+        {
+            if (represented.Contains(identity)) continue;
+            owners.TryGetValue(identity, out var owner);
+            yield return owner is null
+                ? new Group(LifetimeKey(identity.ProcessId, identity.StartToken), [], [], null, flows)
+                : new Group(OwnerKey(owner), [], [owner], owner, flows);
+        }
+    }
+
+    private static ProcessLifetimeIdentity FlowIdentity(ProcessNetworkFlowReading flow)
+    {
+        return new ProcessLifetimeIdentity(flow.ProcessId, flow.CreationTicks,
+            ProcessLifetimeIdentity.WindowsFileTime);
     }
 
     private static IEnumerable<Entry> Entries(NetworkConnectionsFrame frame, IReadOnlyList<ProcessUsage> processes)
@@ -273,6 +319,14 @@ public static class ConnectionQuery
 
     private static bool Matches(Group group, string query, string unknownProcessName)
     {
+        if (query.Length == 0) return true;
+        if (group.Members.Append(group.Process).OfType<ProcessUsage>().Any(process =>
+                DisplayName(process, unknownProcessName).Contains(query, StringComparison.CurrentCultureIgnoreCase) ||
+                process.ProcessId.ToString(CultureInfo.InvariantCulture).Contains(query, StringComparison.Ordinal)))
+            return true;
+        if (group.Flows.Any(flow => flow.LocalEndpoint.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                                    flow.RemoteEndpoint.Contains(query, StringComparison.OrdinalIgnoreCase)))
+            return true;
         return group.Entries.Any(entry => query.Length == 0 ||
             DisplayName(entry.Process, unknownProcessName).Contains(query, StringComparison.CurrentCultureIgnoreCase) ||
             entry.Connection.ProcessId.ToString(CultureInfo.InvariantCulture).Contains(query, StringComparison.Ordinal) ||
@@ -300,7 +354,7 @@ public static class ConnectionQuery
     private sealed record Entry(NetworkConnection Connection, ProcessUsage? Process, string Key);
 
     private sealed record Group(string Key, IReadOnlyList<Entry> Entries, IReadOnlyList<ProcessUsage> Members,
-        ProcessUsage? Process)
+        ProcessUsage? Process, IReadOnlyList<ProcessNetworkFlowReading> Flows)
     {
         public static Group Create(string key, IEnumerable<Entry> source)
         {
@@ -309,7 +363,7 @@ public static class ConnectionQuery
                 .ToArray();
             var process = members.OrderBy(member => DisplayName(member), StringComparer.CurrentCultureIgnoreCase)
                 .ThenBy(member => member.ProcessId).FirstOrDefault();
-            return new Group(key, entries, members, process);
+            return new Group(key, entries, members, process, []);
         }
     }
 }

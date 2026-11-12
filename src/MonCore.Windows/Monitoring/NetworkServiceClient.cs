@@ -5,6 +5,7 @@
 
 using System.Diagnostics;
 using System.IO.Pipes;
+using System.Net;
 using System.Security.Principal;
 
 namespace WinMon.Monitoring;
@@ -105,25 +106,47 @@ public sealed class NetworkServiceClient : IAsyncDisposable
                                                             ProcessNetworkIncompleteReason.CapacityExceeded |
                                                             ProcessNetworkIncompleteReason.EventTimestamp |
                                                             ProcessNetworkIncompleteReason.ClockDiscontinuity;
+        const ProcessNetworkQuality knownFlowQuality = ProcessNetworkQuality.WarmingUp | ProcessNetworkQuality.Provisional |
+                                                       ProcessNetworkQuality.Incomplete | ProcessNetworkQuality.CapacityExceeded |
+                                                       ProcessNetworkQuality.Unavailable | ProcessNetworkQuality.Discontinuity;
         if (snapshot.SubscriptionId == Guid.Empty || snapshot.Frequency <= 0 || snapshot.TimestampQpc < 0 ||
             snapshot.WindowStartQpc < 0 ||
             (snapshot.IncompleteReasons & ~knownReasons) != 0 ||
             (snapshot.IncompleteReasons != ProcessNetworkIncompleteReason.None &&
              !snapshot.Quality.HasFlag(ProcessNetworkQuality.Incomplete)) ||
-            !Enum.IsDefined(snapshot.Failure) || (snapshot.Failure != ProcessNetworkFailure.None &&
+            !Enum.IsDefined(snapshot.Failure) || (snapshot.FlowQuality & ~knownFlowQuality) != 0 ||
+            (snapshot.Failure != ProcessNetworkFailure.None &&
                                                   !snapshot.Quality.HasFlag(ProcessNetworkQuality.Unavailable)) ||
             snapshot.WindowStartQpc > snapshot.WindowEndQpc || snapshot.WindowEndQpc > snapshot.TimestampQpc ||
             snapshot.Sequence < 0 || snapshot.EventsLost < 0 || snapshot.LateEvents < 0 || snapshot.DroppedEvents < 0 ||
             (!snapshot.Quality.HasFlag(ProcessNetworkQuality.Unavailable) &&
              (snapshot.Generation == Guid.Empty || snapshot.Sequence == 0)) ||
-            snapshot.Processes is null || snapshot.Processes.Count > 8192 ||
+            snapshot.Processes is null || snapshot.Flows is null || snapshot.Processes.Count > 8192 ||
+            snapshot.Flows.Count > 65536 || (!snapshot.FlowTrafficSupported && snapshot.Flows.Count != 0) ||
             snapshot.Processes.Any(reading => reading is null || reading.ProcessId <= 0 || reading.CreationTicks <= 0 ||
                                               reading.ReceivedBytes < 0 || reading.SentBytes < 0 ||
                                               (reading.ReceiveBytesPerSecond is { } receive &&
                                                (!double.IsFinite(receive) || receive < 0)) ||
                                               (reading.SendBytesPerSecond is { } send &&
-                                               (!double.IsFinite(send) || send < 0))))
+                                               (!double.IsFinite(send) || send < 0))) ||
+            snapshot.Flows.Any(flow => flow is null || flow.ProcessId <= 0 || flow.CreationTicks <= 0 ||
+                                       !Enum.IsDefined(flow.Protocol) || !ValidFlowEndpoints(flow) ||
+                                       flow.ReceivedBytes < 0 || flow.SentBytes < 0 ||
+                                       (flow.ReceiveBytesPerSecond is { } receive &&
+                                        (!double.IsFinite(receive) || receive < 0)) ||
+                                       (flow.SendBytesPerSecond is { } send &&
+                                        (!double.IsFinite(send) || send < 0))) ||
+            snapshot.Flows.Where(flow => flow is not null)
+                .Select(flow => (flow.ProcessId, flow.CreationTicks, flow.Protocol, flow.LocalEndpoint, flow.RemoteEndpoint))
+                .Distinct().Count() != snapshot.Flows.Count)
             throw new InvalidDataException("Network service snapshot is invalid.");
+    }
+
+    private static bool ValidFlowEndpoints(ProcessNetworkFlowReading flow)
+    {
+        return IPEndPoint.TryParse(flow.LocalEndpoint, out var local) &&
+               IPEndPoint.TryParse(flow.RemoteEndpoint, out var remote) &&
+               local.AddressFamily == remote.AddressFamily;
     }
 
     private async Task<NetworkServiceResponse> SendCoreAsync(string operation, CancellationToken token)

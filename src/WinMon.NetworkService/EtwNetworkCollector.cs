@@ -4,6 +4,7 @@
 // ReSharper disable MethodHasAsyncOverload
 
 using System.Diagnostics;
+using System.Net;
 using System.Threading.Channels;
 using Microsoft.Diagnostics.Tracing;
 using Microsoft.Diagnostics.Tracing.Parsers;
@@ -15,7 +16,7 @@ namespace WinMon.NetworkService;
 /// <summary>Owns a private kernel ETW session and keeps its callbacks free of native process I/O.</summary>
 internal sealed class EtwNetworkCollector : INetworkCollector
 {
-    // A 16 MiB ETW flush can arrive as a burst; bound its compact event queue to about 6 MiB.
+    // A 16 MiB ETW flush can arrive as a burst; endpoint-aware events are bounded by count.
     private const int MaximumEvents = 262_144;
 
     private const int MaximumOwners = 8_192;
@@ -49,6 +50,7 @@ internal sealed class EtwNetworkCollector : INetworkCollector
     private long _observedDroppedEvents;
     private int _rateGapPending;
     private int _coverageReasons;
+    private int _flowAmbiguous;
 
     internal EtwNetworkCollector(IReadOnlyCollection<string> allowedSids)
     {
@@ -139,8 +141,11 @@ internal sealed class EtwNetworkCollector : INetworkCollector
                 snapshot = snapshot with
                 {
                     Quality = snapshot.Quality | ProcessNetworkQuality.Incomplete,
+                    FlowQuality = snapshot.FlowQuality | ProcessNetworkQuality.Incomplete,
                     IncompleteReasons = snapshot.IncompleteReasons | CoverageReasons
                 };
+            if (Volatile.Read(ref _flowAmbiguous) != 0)
+                snapshot = snapshot with { FlowQuality = snapshot.FlowQuality | ProcessNetworkQuality.Incomplete };
             return Failed
                 ? snapshot with { Quality = snapshot.Quality | ProcessNetworkQuality.Unavailable, Failure = Failure }
                 : snapshot;
@@ -149,14 +154,14 @@ internal sealed class EtwNetworkCollector : INetworkCollector
 
     private void RegisterCallbacks(KernelTraceEventParser kernel)
     {
-        kernel.TcpIpSend += data => Enqueue(data, data.size, true);
-        kernel.TcpIpRecv += data => Enqueue(data, data.size, false);
-        kernel.TcpIpSendIPV6 += data => Enqueue(data, data.size, true);
-        kernel.TcpIpRecvIPV6 += data => Enqueue(data, data.size, false);
-        kernel.UdpIpSend += data => Enqueue(data, data.size, true);
-        kernel.UdpIpRecv += data => Enqueue(data, data.size, false);
-        kernel.UdpIpSendIPV6 += data => Enqueue(data, data.size, true);
-        kernel.UdpIpRecvIPV6 += data => Enqueue(data, data.size, false);
+        kernel.TcpIpSend += data => Enqueue(data, data.size, true, TransportProtocol.Tcp, data.saddr, data.sport, data.daddr, data.dport);
+        kernel.TcpIpRecv += data => Enqueue(data, data.size, false, TransportProtocol.Tcp, data.saddr, data.sport, data.daddr, data.dport);
+        kernel.TcpIpSendIPV6 += data => Enqueue(data, data.size, true, TransportProtocol.Tcp, data.saddr, data.sport, data.daddr, data.dport);
+        kernel.TcpIpRecvIPV6 += data => Enqueue(data, data.size, false, TransportProtocol.Tcp, data.saddr, data.sport, data.daddr, data.dport);
+        kernel.UdpIpSend += data => Enqueue(data, data.size, true, TransportProtocol.Udp, data.saddr, data.sport, data.daddr, data.dport);
+        kernel.UdpIpRecv += data => Enqueue(data, data.size, false, TransportProtocol.Udp, data.saddr, data.sport, data.daddr, data.dport);
+        kernel.UdpIpSendIPV6 += data => Enqueue(data, data.size, true, TransportProtocol.Udp, data.saddr, data.sport, data.daddr, data.dport);
+        kernel.UdpIpRecvIPV6 += data => Enqueue(data, data.size, false, TransportProtocol.Udp, data.saddr, data.sport, data.daddr, data.dport);
         kernel.ProcessStart += data => Enqueue(new(CollectorEventKind.Start, data.ProcessID, EventQpc(data), 0, false));
         kernel.ProcessStop += data => Enqueue(new(CollectorEventKind.Stop, data.ProcessID, EventQpc(data), 0, false));
     }
@@ -171,6 +176,38 @@ internal sealed class EtwNetworkCollector : INetworkCollector
 
         if (bytes == 0) return;
         Enqueue(new(CollectorEventKind.Network, data.ProcessID, EventQpc(data), bytes, send));
+    }
+
+    private void Enqueue(TraceEvent data, int bytes, bool send, TransportProtocol protocol, IPAddress source,
+        int sourcePort, IPAddress destination, int destinationPort)
+    {
+        if (data.Version < 1 || data.ProcessID <= 0 || bytes < 0 || sourcePort is < 0 or > ushort.MaxValue ||
+            destinationPort is < 0 or > ushort.MaxValue)
+        {
+            SignalIncomplete(ProcessNetworkIncompleteReason.InvalidEvent, true);
+            return;
+        }
+
+        if (bytes == 0) return;
+        if ((source.IsIPv6LinkLocal && source.ScopeId == 0) ||
+            (destination.IsIPv6LinkLocal && destination.ScopeId == 0))
+        {
+            // Kernel ETW has no interface scope here, so never merge link-local peers from different interfaces.
+            Interlocked.Exchange(ref _flowAmbiguous, 1);
+            Enqueue(new(CollectorEventKind.Network, data.ProcessID, EventQpc(data), bytes, send));
+            return;
+        }
+        // ETW uses source/destination orientation; normalize every flow as local/remote.
+        Enqueue(new(CollectorEventKind.Network, data.ProcessID, EventQpc(data), bytes, send, protocol,
+            send ? source : destination, send ? sourcePort : destinationPort,
+            send ? destination : source, send ? destinationPort : sourcePort));
+    }
+
+    private static string Endpoint(IPAddress address, int port)
+    {
+        return address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6
+            ? $"[{address}]:{port}"
+            : $"{address}:{port}";
     }
 
     private void Enqueue(CollectorEvent item)
@@ -258,7 +295,9 @@ internal sealed class EtwNetworkCollector : INetworkCollector
             case CollectorEventKind.Network:
                 var verifiedQpc = Stopwatch.GetTimestamp(); // taken before native ownership I/O
                 if (EnsureKnown(item.ProcessId, item.EventQpc, verifiedQpc))
-                    ledger.Add(item.ProcessId, item.EventQpc, verifiedQpc, item.Send, item.Bytes);
+                    ledger.Add(item.ProcessId, item.EventQpc, verifiedQpc, item.Send, item.Bytes, item.Protocol,
+                        item.LocalAddress is { } local ? Endpoint(local, item.LocalPort) : "",
+                        item.RemoteAddress is { } remote ? Endpoint(remote, item.RemotePort) : "");
                 break;
         }
     }
@@ -507,7 +546,12 @@ internal sealed class EtwNetworkCollector : INetworkCollector
         int ProcessId,
         long EventQpc,
         int Bytes,
-        bool Send);
+        bool Send,
+        TransportProtocol? Protocol = null,
+        IPAddress? LocalAddress = null,
+        int LocalPort = 0,
+        IPAddress? RemoteAddress = null,
+        int RemotePort = 0);
 
     private readonly record struct OwnerCache(long CreationTicks, long StartedQpc, long ValidThroughQpc);
 

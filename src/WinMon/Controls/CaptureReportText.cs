@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using WinMon.Monitoring;
+using WinMon.Preferences;
 
 namespace WinMon.Controls;
 
@@ -65,7 +66,8 @@ internal static class CaptureReportText
     /// <param name="id">The capture identifier written into the report header.</param>
     /// <param name="snapshot">The peak's <see cref="Snapshot"/>, shared with <see cref="Notification"/>.</param>
     internal static string Report(CaptureFired fired, Guid id, SnapshotReport snapshot,
-        ConnectionCapture? networkCapture = null)
+        ConnectionCapture? networkCapture = null, int topConnectionCount = 20,
+        IReadOnlyList<ConnectionCapture>? connectionHistory = null)
     {
         var metric = fired.Rule.Metric;
         var text = new StringBuilder();
@@ -79,11 +81,12 @@ internal static class CaptureReportText
         text.AppendLine();
         text.Append(SnapshotText.Format(snapshot));
         text.AppendLine();
-        if (metric == CaptureMetric.Network) text.Append(NetworkLeaders(networkCapture));
+        if (metric == CaptureMetric.Network) text.Append(NetworkLeaders(networkCapture, topConnectionCount));
+        text.Append(ConnectionLeaders(networkCapture, topConnectionCount, history: connectionHistory));
         return text.ToString();
     }
 
-    internal static string NetworkLeaders(ConnectionCapture? capture)
+    internal static string NetworkLeaders(ConnectionCapture? capture, int topCount = 20)
     {
         var text = new StringBuilder();
         text.AppendLine(Strings.ExportTraffic);
@@ -122,11 +125,151 @@ internal static class CaptureReportText
                 Receive = SumRates(group.Select(row => row.Reading.ReceiveBytesPerSecond)),
                 Send = SumRates(group.Select(row => row.Reading.SendBytesPerSecond))
             })
-            .OrderByDescending(row => row.Receive + row.Send ?? -1).Take(20).ToArray();
+            .OrderByDescending(row => row.Receive + row.Send ?? -1)
+            .ThenBy(row => row.Name, StringComparer.CurrentCultureIgnoreCase)
+            .Take(topCount == 0 ? int.MaxValue : topCount).ToArray();
         foreach (var row in groups)
             text.AppendLine($"{row.Name}: ↓ {ConnectionsView.NetworkRate(row.Receive)}  ↑ {ConnectionsView.NetworkRate(row.Send)}");
         if (groups.Length == 0) text.AppendLine(Strings.MissingReading);
         return text.ToString();
+    }
+
+    /// <summary>Traffic groups and their endpoint observations aligned with one captured resource sample.</summary>
+    internal static string ConnectionLeaders(ConnectionCapture? capture, int topCount = 20,
+        ConnectionQueryOptions? options = null, IReadOnlySet<string>? pinnedKeys = null, bool pinnedOnly = false,
+        IReadOnlyList<ConnectionCapture>? history = null)
+    {
+        var text = new StringBuilder();
+        text.AppendLine();
+        text.AppendLine(Strings.ConnectionsDetails);
+        if (capture is null || (capture.Connections?.Available != true &&
+                                capture.Network is not { FlowTrafficSupported: true, Flows.Count: > 0 }))
+        {
+            text.AppendLine(Strings.ConnectionsHistoryUnavailable);
+            return text.ToString();
+        }
+
+        var automatic = options is null;
+        options ??= new ConnectionQueryOptions(ConnectionSortMetric.Receive, NetworkEnabled: capture.Network is not null);
+        var all = ConnectionQuery.Build(capture.Connections, capture.Owners, capture.Network, history ?? [capture], capture,
+            options);
+        var pinned = all.Where(group => pinnedKeys?.Contains(group.Key) == true).ToArray();
+        var unpinned = pinnedOnly ? [] : all.Where(group => pinnedKeys?.Contains(group.Key) != true);
+        var ranked = automatic
+            ? unpinned.OrderByDescending(group => group.Network.ReceiveBytesPerSecond + group.Network.SendBytesPerSecond ?? -1)
+                .ThenBy(group => group.Process is { } owner ? DisplayName(owner) : group.Key,
+                    StringComparer.CurrentCultureIgnoreCase)
+            : unpinned;
+        var groups = pinned.Concat(TopCountChoices.Limit(ranked, topCount)).ToArray();
+        if (capture.Network is not { } network)
+        {
+            text.AppendLine(Strings.NetworkProcessMonitoringUnavailable);
+        }
+        else
+        {
+            if (network.Quality.HasFlag(ProcessNetworkQuality.Unavailable))
+                text.AppendLine(Strings.NetworkProcessMonitoringUnavailable);
+            else if ((network.Quality & (ProcessNetworkQuality.Incomplete | ProcessNetworkQuality.Discontinuity |
+                                         ProcessNetworkQuality.CapacityExceeded)) != 0)
+                text.AppendLine(Strings.NetworkProcessMonitoringIncomplete);
+            else if (network.Quality.HasFlag(ProcessNetworkQuality.WarmingUp))
+                text.AppendLine(Strings.NetworkProcessMonitoringWarmingUp);
+            if (!network.FlowTrafficSupported) text.AppendLine(Strings.CaptureConnectionTrafficUnavailable);
+            else
+            {
+                if ((network.FlowQuality & (ProcessNetworkQuality.Incomplete | ProcessNetworkQuality.Discontinuity |
+                                            ProcessNetworkQuality.CapacityExceeded | ProcessNetworkQuality.Unavailable)) != 0)
+                    text.AppendLine(Strings.CaptureFlowIncomplete);
+                text.AppendLine(TrafficWindow(network));
+            }
+        }
+
+        text.AppendLine(Strings.ConnectionsNetworkOwnerTotals);
+        text.AppendLine(Strings.ConnectionsRateTiming);
+        var endpointRows = 0;
+        foreach (var group in groups)
+        {
+            var processId = group.Connections.FirstOrDefault()?.ProcessId ?? group.Flows.FirstOrDefault()?.ProcessId;
+            var name = group.Process is { } owner ? DisplayName(owner) : processId is { } pid
+                ? Strings.Format(Strings.PID, pid) : Strings.ConnectionsUnknownProcess;
+            text.AppendLine($"{name}: ↓ {ConnectionsView.NetworkRate(group.Network.ReceiveBytesPerSecond)}  ↑ {ConnectionsView.NetworkRate(group.Network.SendBytesPerSecond)}");
+            text.AppendLine($"PID\t{Strings.ConnectionsProtocol}\t{Strings.ConnectionsLocalEndpoint}\t{Strings.ConnectionsRemoteEndpoint}\t{Strings.ConnectionsState}\t{Strings.ConnectionsReceiveRate}\t{Strings.ConnectionsSendRate}\t{Strings.ConnectionsReceived}\t{Strings.ConnectionsSent}");
+            var reportedFlows = new HashSet<ProcessNetworkFlowIdentity>();
+            foreach (var connection in group.Connections.OrderBy(connection => connection.ProcessId)
+                         .ThenBy(connection => connection.Protocol)
+                         .ThenBy(connection => ConnectionQuery.Endpoint(connection.LocalEndpoint), StringComparer.Ordinal))
+            {
+                endpointRows++;
+                var flow = Flow(capture.Network, connection);
+                if (flow is not null) reportedFlows.Add(FlowIdentity(flow));
+                text.AppendLine($"{connection.ProcessId}\t{Protocol(connection.Protocol)}\t" +
+                                $"{ConnectionQuery.Endpoint(connection.LocalEndpoint)}\t" +
+                                $"{(connection.RemoteEndpoint is { } remote ? ConnectionQuery.Endpoint(remote) : Strings.MissingReading)}\t" +
+                                $"{State(connection.State)}\t{ConnectionsView.NetworkRate(flow?.ReceiveBytesPerSecond)}\t" +
+                                $"{ConnectionsView.NetworkRate(flow?.SendBytesPerSecond)}\t" +
+                                $"{Bytes(flow?.ReceivedBytes)}\t{Bytes(flow?.SentBytes)}");
+            }
+            foreach (var flow in group.Flows.Where(flow => !reportedFlows.Contains(FlowIdentity(flow)))
+                         .OrderByDescending(flow => flow.ReceiveBytesPerSecond + flow.SendBytesPerSecond ?? -1)
+                         .ThenBy(flow => flow.LocalEndpoint, StringComparer.Ordinal)
+                         .ThenBy(flow => flow.RemoteEndpoint, StringComparer.Ordinal))
+            {
+                endpointRows++;
+                text.AppendLine($"{flow.ProcessId}\t{Protocol(flow.Protocol)}\t{flow.LocalEndpoint}\t" +
+                                $"{flow.RemoteEndpoint}\t{Strings.CaptureObservedFlowMissingEndpoint}\t" +
+                                $"{ConnectionsView.NetworkRate(flow.ReceiveBytesPerSecond)}\t" +
+                                $"{ConnectionsView.NetworkRate(flow.SendBytesPerSecond)}\t" +
+                                $"{Bytes(flow.ReceivedBytes)}\t{Bytes(flow.SentBytes)}");
+            }
+        }
+
+        var eligibleGroups = pinnedOnly ? pinned.Length : all.Count;
+        text.AppendLine(Strings.Format(Strings.CaptureReportConnectionCount,
+            topCount == 0 ? Strings.AllEntries : topCount.ToString(CultureInfo.CurrentCulture),
+            groups.Length, eligibleGroups, eligibleGroups - groups.Length, endpointRows));
+        if (groups.Length == 0) text.AppendLine(Strings.MissingReading);
+        return text.ToString();
+    }
+
+    private static string Protocol(TransportProtocol protocol)
+    {
+        return protocol == TransportProtocol.Tcp ? "TCP" : "UDP";
+    }
+
+    private static string State(System.Net.NetworkInformation.TcpState? state)
+    {
+        return state?.ToString() ?? Strings.MissingReading;
+    }
+
+    private static ProcessNetworkFlowReading? Flow(ProcessNetworkFrame? network, NetworkConnection connection)
+    {
+        if (network is not { FlowTrafficSupported: true } || connection.ProcessCreationTicks is not { } created ||
+            connection.RemoteEndpoint is not { } remote) return null;
+        var local = ConnectionQuery.Endpoint(connection.LocalEndpoint);
+        var remoteText = ConnectionQuery.Endpoint(remote);
+        return network.Flows.FirstOrDefault(flow => flow.ProcessId == connection.ProcessId &&
+            flow.CreationTicks == created && flow.Protocol == connection.Protocol &&
+            flow.LocalEndpoint == local && flow.RemoteEndpoint == remoteText);
+    }
+
+    private static ProcessNetworkFlowIdentity FlowIdentity(ProcessNetworkFlowReading flow)
+    {
+        return new ProcessNetworkFlowIdentity(flow.ProcessId, flow.CreationTicks, flow.Protocol,
+            flow.LocalEndpoint, flow.RemoteEndpoint);
+    }
+
+    private static string Bytes(long? value)
+    {
+        return value is { } bytes ? UsageText.Bytes(bytes) : Strings.MissingReading;
+    }
+
+    private static string TrafficWindow(ProcessNetworkFrame network)
+    {
+        if (network.Frequency <= 0 || network.WindowEndQpc < network.WindowStartQpc) return Strings.CaptureConnectionTrafficScope;
+        var seconds = (network.WindowEndQpc - network.WindowStartQpc) / (double)network.Frequency;
+        var age = Math.Max(0, network.TimestampQpc - network.WindowEndQpc) / (double)network.Frequency;
+        return Strings.CaptureConnectionTrafficScope + " " +
+               Strings.Format(Strings.CaptureConnectionTrafficWindow, seconds, age);
     }
 
     private static double? SumRates(IEnumerable<double?> rates)
@@ -142,7 +285,7 @@ internal static class CaptureReportText
     }
 
     /// <summary>The peak as Copy capture would report it: top 20 individual processes, sorted by the rule's resource.</summary>
-    internal static SnapshotReport Snapshot(CaptureFired fired, IReadOnlyList<MonitorSample> history)
+    internal static SnapshotReport Snapshot(CaptureFired fired, IReadOnlyList<MonitorSample> history, int topCount = 20)
     {
         var key = SampleKey.Of(fired.Peak);
         var index = -1;
@@ -163,12 +306,14 @@ internal static class CaptureReportText
             CaptureMetric.PrimaryDisk or CaptureMetric.SecondaryDisk or CaptureMetric.Network => ProcessSort.Io,
             _ => ProcessSort.Cpu
         };
-        var processes = ProcessRanking.Rank(window, sort: sort).Processes.Take(20).ToList();
+        var processes = TopCountChoices.Limit(ProcessRanking.Rank(window, sort: sort).Processes, topCount).ToList();
+        var triggerOutsideTop = false;
         if (fired.Process is { } trigger)
         {
             var row = processes.FindIndex(p =>
                 p.ProcessId == trigger.ProcessId && p.CreationTicks == trigger.CreationTicks);
             var first = row >= 0 ? processes[row] : trigger;
+            triggerOutsideTop = row < 0;
             if (row >= 0) processes.RemoveAt(row);
             processes.Insert(0, first);
         }
@@ -180,7 +325,7 @@ internal static class CaptureReportText
             }
             : Strings.AutoCaptureTotalIo;
         return new SnapshotReport(index >= 0 ? history[index] : fired.Peak, processes, false, label, "", false, "",
-            null);
+            null) { TopCount = topCount, TriggerIncludedOutsideTop = triggerOutsideTop };
     }
 
     /// <summary>The notification body: the peak, and the busiest process where the rule can attribute one.</summary>

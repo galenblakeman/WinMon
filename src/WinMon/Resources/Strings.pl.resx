@@ -1924,4 +1924,12 @@ Q kończy. Ctrl+C anuluje. Przypięte programy i usługi są zachowywane między
 <data name="ShowInUsage" xml:space="preserve"><value>Pokaż w Użyciu</value></data>
   <data name="InstallerCliPathTask" xml:space="preserve"><value>Dodaj WinMon.Cli do PATH dla tego użytkownika</value></data>
   <data name="InstallerCliPathFailed" xml:space="preserve"><value>Nie można zaktualizować zmiennej PATH użytkownika dla WinMon.Cli.</value></data>
+  <data name="CaptureConnectionTrafficScope" xml:space="preserve"><value>Szybkości par punktów końcowych używają okna czasu zaobserwowanych zdarzeń. Sumy zaczynają się od każdej bazy monitorowania; wpisy UDP to przepływy.</value></data>
+  <data name="CaptureConnectionTrafficUnavailable" xml:space="preserve"><value>Ta usługa monitorowania sieci nie udostępnia ruchu dla poszczególnych połączeń.</value></data>
+  <data name="CaptureConnectionTrafficWindow" xml:space="preserve"><value>Okno ruchu: {0:0.0} s; zakończone {1:0.0} s przed tą obserwacją.</value></data>
+  <data name="CaptureFlowIncomplete" xml:space="preserve"><value>Ruch punktów końcowych jest niekompletny; sumy aplikacji mogą nadal być dostępne.</value></data>
+  <data name="CaptureObservedFlowMissingEndpoint" xml:space="preserve"><value>Zaobserwowany ruch; punkt końcowy nie występuje w próbkowanej tabeli</value></data>
+  <data name="CaptureReportConnectionCount" xml:space="preserve"><value>Pierwsze {0}; uwzględniono {1} z {2} dostępnych grup aplikacji/procesów (pominięto {3}); {4} wierszy punktów końcowych/przepływów.</value></data>
+  <data name="CaptureReportExtraTrigger" xml:space="preserve"><value>Proces wyzwalający uwzględniono dodatkowo do wybranych wierszy.</value></data>
+  <data name="CaptureReportProcessCount" xml:space="preserve"><value>Najlepsze {0}; wyświetlono {1} wierszy.</value></data>
 </root>

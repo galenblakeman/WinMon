@@ -340,6 +340,10 @@ public sealed class MonitorSession(
         for (var i = 0; i < readings.Count; i++)
             retained.Add(new ProcessLifetimeIdentity(readings[i].ProcessId, readings[i].CreationTicks,
                 ProcessLifetimeIdentity.WindowsFileTime));
+        var flows = frame.Flows;
+        for (var i = 0; i < flows.Count; i++)
+            retained.Add(new ProcessLifetimeIdentity(flows[i].ProcessId, flows[i].CreationTicks,
+                ProcessLifetimeIdentity.WindowsFileTime));
         // Keep brief metadata for late ETW arrivals; lifetimes with observed totals retain their known path.
         // Dictionary allows Remove during enumeration since .NET Core 3.0.
         foreach (var pair in _networkOwners)

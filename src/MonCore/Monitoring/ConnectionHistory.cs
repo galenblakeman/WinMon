@@ -99,6 +99,6 @@ public sealed class ConnectionHistory
         ProcessNetworkFrame? network)
     {
         return checked((connections?.Connections.Count ?? 0) + owners.Count +
-                       (network?.Processes.Count ?? 0));
+                       (network?.Processes.Count ?? 0) + (network?.Flows.Count ?? 0));
     }
 }

@@ -102,6 +102,57 @@ public sealed class ConnectionsTabTests
         Assert.That(table.Rows.Select(row => row.Cells[0]), Is.EqualTo(["alpha (42)", "Unknown process (0)"]));
     }
 
+    [Test]
+    public void BuildIncludesOwnedFlowWhenTheEndpointTableMissedIt()
+    {
+        var owner = Owner(42, 1, "viewer", @"C:\\apps\\viewer.exe");
+        var flow = new ProcessNetworkFlowReading(42, 1, TransportProtocol.Tcp, "[::1]:5000", "[::1]:443",
+            20, 30, 10, 20);
+        var network = new ProcessNetworkFrame(5, 1, ProcessNetworkQuality.None, [])
+        {
+            Owners = [owner], FlowTrafficSupported = true, Flows = [flow],
+            CurrentFlows = new HashSet<ProcessNetworkFlowIdentity>
+            {
+                new(42, 1, TransportProtocol.Tcp, "[::1]:5000", "[::1]:443")
+            }
+        };
+
+        var table = ConnectionsTab.Build(null, [], network, [], null,
+            new ConnectionQueryOptions(ConnectionSortMetric.Receive, NetworkEnabled: true));
+
+        Assert.That(table.Rows.Select(row => row.Key), Is.EqualTo([ConnectionQuery.OwnerKey(owner)]));
+    }
+
+    [Test]
+    public void QueryMergesFlowOnlySiblingAndKeepsUnknownFlowSearchable()
+    {
+        var first = Owner(42, 1, "viewer", @"C:\\apps\\viewer.exe");
+        var sibling = Owner(43, 2, "viewer", @"C:\\apps\\viewer.exe");
+        var siblingFlow = new ProcessNetworkFlowReading(43, 2, TransportProtocol.Tcp, "[::1]:5000", "[::1]:443",
+            20, 30, 10, 20);
+        var unknownFlow = new ProcessNetworkFlowReading(77, 3, TransportProtocol.Udp, "127.0.0.1:5001",
+            "203.0.113.77:53", 40, 50, 20, 10);
+        var network = new ProcessNetworkFrame(5, 1, ProcessNetworkQuality.None, [])
+        {
+            Owners = [first, sibling], FlowTrafficSupported = true, Flows = [siblingFlow, unknownFlow]
+        };
+
+        var rows = ConnectionQuery.Build(Frame(Connection(42, 1, TransportProtocol.Tcp, 443)), [first, sibling],
+            network, [], null, new ConnectionQueryOptions(NetworkEnabled: true));
+        var searched = ConnectionQuery.Build(null, [], network, [], null,
+            new ConnectionQueryOptions(NetworkEnabled: true, Search: "203.0.113.77"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(rows.Single(row => row.Key == ConnectionQuery.OwnerKey(first)).Members.Select(member => member.ProcessId),
+                Is.EqualTo([42, 43]));
+            Assert.That(rows.Single(row => row.Key == ConnectionQuery.OwnerKey(first)).Flows, Is.EqualTo([siblingFlow]));
+            Assert.That(searched.Single().Key, Is.EqualTo("lifetime:77:3"));
+            Assert.That(searched.Single().Process, Is.Null);
+            Assert.That(searched.Single().Flows, Is.EqualTo([unknownFlow]));
+        });
+    }
+
     private static ProcessUsage Owner(int processId, long creationTicks, string name, string imagePath) =>
         new(processId, creationTicks, name, 0) { ImagePath = imagePath };
 

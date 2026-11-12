@@ -303,7 +303,10 @@ public partial class ProcessesView
                         rest.Any(p => p.IoBytesPerSecond is not null)
                             ? rest.Sum(p => p.IoBytesPerSecond ?? 0)
                             : null))
-            { ProcessStates = [.. pinned.Select(p => ProcessRow.StateText(p.State)), .. top.Select(_ => "")] };
+            {
+                ProcessStates = [.. pinned.Select(p => ProcessRow.StateText(p.State)), .. top.Select(_ => "")],
+                TopCount = topCount
+            };
 
         ProcessRanking Inclusive()
         {

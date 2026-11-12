@@ -27,6 +27,14 @@ public partial class MainWindow
         try
         {
             var text = SnapshotText.Format(report);
+            var capture = Session.Connections.Find(report.Sample);
+            var settings = ConnectionView.Settings;
+            text += CaptureReportText.ConnectionLeaders(capture, settings.TopCount,
+                new ConnectionQueryOptions((ConnectionSortMetric)settings.Sort, settings.AppsOnly,
+                    ConnectionView.SearchText, capture?.Network is not null, settings.TrafficSeconds),
+                ConnectionView.CapturePinnedKeys, settings.PinnedOnly,
+                Session.Connections.Captures.Where(past => CpuGraph.Moment(past.Sample) <= CpuGraph.Moment(report.Sample))
+                    .ToArray());
             if (copyToClipboard is null) Clipboard.SetDataObject(new DataObject(DataFormats.UnicodeText, text), true);
             else copyToClipboard(text);
             SnapshotCopyButton.Content = Strings.Copied;

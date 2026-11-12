@@ -114,4 +114,25 @@ public sealed class NetworkServiceClientTests
         var invalid = Valid() with { Processes = [new ProcessNetworkReading(42, 100, 100, 200, rate, null)] };
         Assert.Throws<InvalidDataException>(() => NetworkServiceClient.ValidateSnapshot(invalid));
     }
+
+    [Test]
+    public void ValidateSnapshot_AcceptsEndpointTrafficAndRejectsInvalidOrUnsupportedRows()
+    {
+        var flow = new ProcessNetworkFlowReading(42, 100, TransportProtocol.Tcp, "127.0.0.1:4000",
+            "127.0.0.2:443", 500, 1000, 100, 200);
+        var valid = Valid() with
+        {
+            FlowTrafficSupported = true, FlowQuality = ProcessNetworkQuality.Provisional, Flows = [flow]
+        };
+
+        Assert.DoesNotThrow(() => NetworkServiceClient.ValidateSnapshot(valid));
+        Assert.That(() => NetworkServiceClient.ValidateSnapshot(valid with { FlowTrafficSupported = false }),
+            Throws.TypeOf<InvalidDataException>());
+        Assert.That(() => NetworkServiceClient.ValidateSnapshot(valid with
+            { Flows = [flow, flow] }), Throws.TypeOf<InvalidDataException>());
+        Assert.That(() => NetworkServiceClient.ValidateSnapshot(valid with
+            { Flows = [flow with { LocalEndpoint = "bad\nendpoint" }] }), Throws.TypeOf<InvalidDataException>());
+        Assert.That(() => NetworkServiceClient.ValidateSnapshot(valid with
+            { Flows = [flow with { RemoteEndpoint = "[::1]:443" }] }), Throws.TypeOf<InvalidDataException>());
+    }
 }

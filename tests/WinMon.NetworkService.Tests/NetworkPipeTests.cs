@@ -1,5 +1,6 @@
 using System.IO.Pipes;
 using System.Security.Principal;
+using System.Text.Json;
 using NUnit.Framework;
 using WinMon.Monitoring;
 using WinMon.NetworkService;
@@ -9,6 +10,33 @@ namespace WinMon.Tests;
 [TestFixture]
 public sealed partial class NetworkPipeTests
 {
+    [Test]
+    public void FitSnapshot_TruncatesFlowsDeterministicallyWithinProtocolLimit()
+    {
+        const string endpoint = "[ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff]:65535";
+        var flows = Enumerable.Range(0, 8192).Select(index => new ProcessNetworkFlowReading(42, 100,
+            TransportProtocol.Udp, $"[ffff:ffff:ffff:ffff:ffff:ffff:ffff:fffe]:{index}", endpoint,
+            long.MaxValue, long.MaxValue, 1_000_000, 1_000_000)).ToArray();
+        var snapshot = new ProcessNetworkSnapshot(Guid.NewGuid(), 1, 100, 10, 20, 70,
+            ProcessNetworkQuality.Provisional, 0, 0,
+            Enumerable.Range(1, 8192).Select(id => new ProcessNetworkReading(id, id, 1, 1, 1, 1)).ToArray())
+        {
+            SubscriptionId = Guid.NewGuid(), FlowTrafficSupported = true,
+            FlowQuality = ProcessNetworkQuality.Provisional, Flows = flows
+        };
+
+        var fitted = NetworkPipeServer.FitSnapshot(snapshot);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(fitted.Flows.Count, Is.LessThan(flows.Length));
+            Assert.That(fitted.Flows, Is.EqualTo(flows.Take(fitted.Flows.Count)));
+            Assert.That(fitted.FlowQuality.HasFlag(ProcessNetworkQuality.CapacityExceeded), Is.True);
+            Assert.That(JsonSerializer.SerializeToUtf8Bytes(new NetworkServiceResponse(NetworkServiceProtocol.Version,
+                "ok", fitted)).Length, Is.LessThanOrEqualTo(NetworkServiceProtocol.MaximumMessageBytes));
+        });
+    }
+
     [TestCase(ProcessNetworkFailure.None)]
     [TestCase(ProcessNetworkFailure.ClockDiscontinuity)]
     [Category("Integration")]

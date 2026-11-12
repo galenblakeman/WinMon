@@ -86,6 +86,12 @@ public partial class ConnectionsView
     internal ColumnDefinition NetworkHeaderColumn => ReceiveHeaderColumn;
     internal TextBlock NetworkHeader => ReceiveHeader;
     internal ConnectionListSettings Settings => _settings;
+    internal string SearchText => Search.Text.Trim();
+    internal IReadOnlySet<string> CapturePinnedKeys => Pins.Snapshot().Select(pin =>
+        ConnectionQuery.OwnerKey(new ProcessUsage(pin.ProcessId, pin.CreationTicks, pin.Name, 0)
+        {
+            ImagePath = pin.ImagePath, LifetimeDomain = pin.LifetimeDomain
+        })).ToHashSet(StringComparer.OrdinalIgnoreCase);
     internal ProcessUsage? SelectedProcessForFixture => (Rows.SelectedItem as ConnectionDisplayRow)?.Process;
     internal string? SelectedDetailsForFixture => Rows.SelectedItem is ConnectionDisplayRow row ? Details(row) : null;
 
