@@ -4,7 +4,7 @@ Implements the service/IPC boundary of [optional per-process network monitoring]
 
 ## Build and verification
 
-The service targets .NET 10 on Windows, using TraceEvent 3.1.23 and `System.ServiceProcess.ServiceController` 10.0.14. It references MonCore.Windows for the protocol, not WinMon/WPF. MonCore contains only portable snapshot records and quality flags.
+The service targets .NET 10 on Windows, using TraceEvent 3.2.8 and `System.ServiceProcess.ServiceController` 10.0.15. It references MonCore.Windows for the protocol, not WinMon/WPF. MonCore contains only portable snapshot records and quality flags.
 
 ```powershell
 ./tools/Verify.ps1

@@ -19,8 +19,8 @@
     <DefineConstants>$(DefineConstants);WINMON_STORE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="ModelContextProtocol" Version="2.3.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.3" />
+    <PackageReference Include="ModelContextProtocol" Version="2.4.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.15" />
     <ProjectReference Include="../MonCore/MonCore.csproj" />
     <ProjectReference Include="../MonCore.Windows/MonCore.Windows.csproj" />
     <Compile Include="../WinMon.Cli/Resources.cs" Link="Resources/Strings.cs" />

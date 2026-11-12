@@ -147,7 +147,7 @@ internal static class TerminalCharts
                     continue;
                 }
                 parts.Add((cell[..1], null));
-                parts.Add((cell[1..^1], line is 1 or 2 or 4 ? styles[i] : null));
+                parts.Add((cell[1..^1], line is 1 or 2 or 4 ? styles[i] : (Style?)null));
                 parts.Add((cell[^1..], null));
             }
             lines.Add(Line(width, parts.ToArray()));

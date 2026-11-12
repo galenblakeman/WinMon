@@ -10,7 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../MonCore/MonCore.csproj" />
-    <PackageReference Include="System.Management" Version="10.0.3" />
+    <PackageReference Include="System.Management" Version="10.0.15" />
     <EmbeddedResource Include="../WinMon/Updates/update-public-key.pem" Link="Monitoring/network-setup-public-key.pem" LogicalName="WinMon.NetworkSetupPublicKey" />
   </ItemGroup>
 </Project>
