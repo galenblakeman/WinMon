@@ -60,6 +60,8 @@ The release workflow also extracts the desktop archive and runs `Test-InstallerM
 
 The `Package release` workflow can be run manually to build and validate artifacts without creating a release. Pushing a `v<version>` tag runs the same checks and creates a **draft** GitHub release with the assets and generated release notes. The tag must match `Directory.Build.props` and `app.manifest`. Every run requires the Azure OIDC secrets and `WINMON_UPDATE_SIGNING_KEY_BASE64` in the `release` environment and produces Authenticode-signed artifacts plus a signed update manifest. The workflow uses the SDK from `global.json`, the pinned compiler, and WinGet 1.29.380 on Windows Server 2025. It requires GitHub Actions and a `GITHUB_TOKEN` allowed to write repository contents. See [update publishing](../docs/UPDATING.md) for key provisioning and rotation.
 
+Signed release assets are uploaded as `winmon-signed-release` before installer acceptance starts. Desktop, CLI, MCP and migration validation run as separate steps with six-minute limits, so a stalled check is identified without losing the signed packages. Publication still requires all validation steps to pass.
+
 For each release:
 
 1. Set `Version` in `Directory.Build.props` and its matching four-part `assemblyIdentity version` in `src/WinMon/app.manifest`. Update the README version.
