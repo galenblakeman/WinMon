@@ -7,7 +7,7 @@ using WinMon.Updates;
 
 namespace WinMon.Cli.Tests;
 
-[TestFixture]
+[TestFixture, Category("Integration")]
 public sealed class ToolUpdateTests
 {
     private string _root = null!;

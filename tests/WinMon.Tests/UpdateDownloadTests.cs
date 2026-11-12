@@ -8,7 +8,7 @@ using WinMon.Updates;
 
 namespace WinMon.Tests;
 
-[TestFixture]
+[TestFixture, Category("Integration")]
 public sealed class UpdateDownloadTests
 {
 #if !WINMON_STORE

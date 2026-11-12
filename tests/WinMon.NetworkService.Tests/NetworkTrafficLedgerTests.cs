@@ -129,6 +129,7 @@ public sealed class NetworkTrafficLedgerTests
 
     [Test]
     [Explicit("Records bounded endpoint-flow aggregation overhead for the performance history")]
+    [Category("Integration")]
     public void Benchmark_FlowAggregationWritesComparableMeasurements()
     {
         const int events = 40_000;

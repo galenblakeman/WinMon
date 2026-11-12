@@ -34,6 +34,7 @@ public sealed class CliSettingsTests
     }
 
     [Test]
+    [Category("Integration")]
     public void NetworkShortcutTogglesAndSavesFromEveryTabButNotWhileTypingFilter()
     {
         var state = State(new());
@@ -57,6 +58,7 @@ public sealed class CliSettingsTests
     }
 
     [Test]
+    [Category("Integration")]
     public void MissingFileUsesDefaultsWithoutCreatingAnything()
     {
         Assert.That(_store.Load().Tabs, Has.Length.EqualTo(4));
@@ -67,6 +69,7 @@ public sealed class CliSettingsTests
 
     [TestCase(null, new[] { 10, 10, 10, 10 })]
     [TestCase("{\"tabs\":[{\"top\":0},{\"top\":5},{\"top\":20},{\"top\":50}]}", new[] { 0, 5, 20, 50 })]
+    [Category("Integration")]
     public async Task WatchUsesTopTenOnEveryTabUnlessSaved(string? json, int[] expected)
     {
         if (json is not null)
@@ -89,6 +92,7 @@ public sealed class CliSettingsTests
     [TestCase(null, true)]
     [TestCase("{}", true)]
     [TestCase("{\"network\":false}", false)]
+    [Category("Integration")]
     public async Task WatchUsesDefaultNetworkPreferenceAndPreservesSavedOptOut(string? json, bool expected)
     {
         if (json is not null)
@@ -111,6 +115,7 @@ public sealed class CliSettingsTests
     }
 
     [Test]
+    [Category("Integration")]
     public void RestoresPerTabControlsButNotFilterPauseSelectionOrDetails()
     {
         var state = State(new());
@@ -142,6 +147,7 @@ public sealed class CliSettingsTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task ArgumentsOverrideSavedSettingsWithoutSavingThemOrOtherOverriddenFields()
     {
         _store.Update(settings =>
@@ -188,6 +194,7 @@ public sealed class CliSettingsTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task ExplicitTabUsesThatTabsSavedSettingsAndNoSaveIsPassedThrough()
     {
         _store.Update(settings => { settings.Tabs[1].Top = 0; settings.Tabs[1].Sort = 3; });
@@ -206,6 +213,7 @@ public sealed class CliSettingsTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task SavedTabIsUsedToValidateSortAndNameRequiresAll()
     {
         _store.Update(settings => { settings.ActiveTab = TerminalTab.Services; settings.Tabs[1].Top = 10; });
@@ -216,6 +224,7 @@ public sealed class CliSettingsTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task ExplicitFiniteTopTakesPrecedenceOverSavedServiceNameSort()
     {
         _store.Update(saved => { saved.ActiveTab = TerminalTab.Services; saved.Tabs[1].Top = 0; saved.Tabs[1].Sort = 3; });
@@ -234,6 +243,7 @@ public sealed class CliSettingsTests
     }
 
     [Test]
+    [Category("Integration")]
     public void ConcurrentSessionsMergeOnlyChangedFieldsAndCombinePins()
     {
         var first = State(_store.Load());
@@ -253,6 +263,7 @@ public sealed class CliSettingsTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task RetriesTransientLockWhenReplacingSettings()
     {
         _store.Update(saved => saved.Network = false);
@@ -269,6 +280,7 @@ public sealed class CliSettingsTests
     }
 
     [Test]
+    [Category("Integration")]
     public void PersistentReplacementLockPreservesSettingsAndCleansUp()
     {
         _store.Update(saved => saved.Network = false);
@@ -281,6 +293,7 @@ public sealed class CliSettingsTests
     }
 
     [Test]
+    [Category("Integration")]
     public void CorruptJsonIsBackedUpBeforeSavingAndUnknownVersionsAreNotOverwritten()
     {
         Directory.CreateDirectory(_directory);
@@ -297,6 +310,7 @@ public sealed class CliSettingsTests
     }
 
     [Test]
+    [Category("Integration")]
     public void InvalidStoredControlsAndNullPinsAreNormalized()
     {
         Directory.CreateDirectory(_directory);
@@ -310,6 +324,7 @@ public sealed class CliSettingsTests
     }
 
     [Test]
+    [Category("Integration")]
     public void EarlierExecutablePinPrefixIsNormalizedToThePath()
     {
         _store.Update(saved => saved.Tabs[0].Pins = [new CliPin("exe:C:\\first.exe", "first")]);
@@ -317,6 +332,7 @@ public sealed class CliSettingsTests
     }
 
     [Test]
+    [Category("Integration")]
     public void SaveFailureIsReportedWithoutChangingTheStateOrThrowing()
     {
         Directory.CreateDirectory(_directory);
@@ -331,6 +347,7 @@ public sealed class CliSettingsTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task SettingsCommandsShowSetAndResetWithoutSamplingOrInstalling()
     {
         using var output = new StringWriter();
@@ -354,6 +371,7 @@ public sealed class CliSettingsTests
     }
 
     [Test]
+    [Category("Integration")]
     public void SavedExecutablePinFollowsRestartAndDoesNotFollowPidReuseByAnotherExecutable()
     {
         var first = new ProcessUsage(42, 1, "first", 10, 1024) { ImagePath = "C:\\first.exe" };
@@ -422,20 +440,57 @@ public sealed class CliSettingsTests
     }
 
     [Test]
-    public async Task WritesAreDebouncedAndUnchangedStartupDoesNotWrite()
+    [Category("Integration")]
+    public void WritesAreDebouncedAndUnchangedStartupDoesNotWrite()
     {
+        var clock = new ManualClock();
         var state = State(new());
-        var session = new CliSettingsSession(_store, state, () => Assert.Fail("Unexpected failure"));
+        var session = new CliSettingsSession(_store, state, () => Assert.Fail("Unexpected failure")) { Clock = clock };
         session.Observe(); session.Flush(force: true);
         Assert.That(File.Exists(_store.Path), Is.False);
         Key(state, ConsoleKey.G); session.Observe(); session.Flush();
         Assert.That(File.Exists(_store.Path), Is.False);
-        await Task.Delay(600);
+        clock.Milliseconds = 499;
+        session.Flush();
+        Assert.That(File.Exists(_store.Path), Is.False);
+        clock.Milliseconds = 500;
         session.Flush();
         Assert.That(_store.Load().Tabs[0].Grouped, Is.True);
     }
 
+    [Test, Category("Integration")]
+    public void LaterChangesRestartDebounceAndForceFlushPreservesAllChanges()
+    {
+        var clock = new ManualClock();
+        var state = State(new());
+        var session = new CliSettingsSession(_store, state, () => Assert.Fail("Unexpected failure")) { Clock = clock };
+        Key(state, ConsoleKey.G); session.Observe();
+        clock.Milliseconds = 499;
+        Key(state, ConsoleKey.A); session.Observe();
+        clock.Milliseconds = 500;
+        session.Flush();
+        Assert.That(File.Exists(_store.Path), Is.False, "The most recent change restarts the debounce.");
+        clock.Milliseconds = 998;
+        session.Flush();
+        Assert.That(File.Exists(_store.Path), Is.False);
+        session.Flush(force: true);
+        var saved = _store.Load();
+        Assert.Multiple(() =>
+        {
+            Assert.That(saved.Tabs[0].Grouped, Is.True);
+            Assert.That(saved.Tabs[0].AppsOnly, Is.True);
+        });
+    }
+
+    private sealed class ManualClock : TimeProvider
+    {
+        internal long Milliseconds { get; set; }
+        public override long TimestampFrequency => 1000;
+        public override long GetTimestamp() => Milliseconds;
+    }
+
     [Test]
+    [Category("Integration")]
     public async Task SnapshotsIgnoreInteractivePreferencesAndDoNotModifyThem()
     {
         _store.Update(saved => { saved.ActiveTab = TerminalTab.Usage; saved.Network = true; saved.Tabs[0].PinnedOnly = true; });

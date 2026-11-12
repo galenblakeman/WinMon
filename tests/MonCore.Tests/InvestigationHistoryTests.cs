@@ -6,7 +6,7 @@ using WinMon.Monitoring;
 
 namespace WinMon.Tests;
 
-[TestFixture]
+[TestFixture, Category("Integration")]
 public sealed class InvestigationHistoryTests
 {
     private static MonitorSession Session() => new(() => throw new InvalidOperationException(),

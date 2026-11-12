@@ -7,7 +7,7 @@ using WinMon.Monitoring;
 
 namespace WinMon.Tests;
 
-[TestFixture]
+[TestFixture, Category("Integration")]
 public sealed class CsvExportTests
 {
     private static readonly DateTimeOffset Start = new(2026, 10, 25, 15, 30, 0, TimeSpan.FromHours(-5));

@@ -40,9 +40,10 @@ public sealed class InstallationRecoveryTests
 
     [TestCase(false)]
     [TestCase(true)]
+    [Category("Integration")]
     public void RemovalVacatesCanonicalPathBeforeCleanupEvenWhenInterrupted(bool interrupted)
     {
-        var parent = Path.Combine(TestContext.CurrentContext.WorkDirectory, Guid.NewGuid().ToString("N"));
+        var parent = Path.Combine(Path.GetTempPath(), $"WinMon-network-setup-{Guid.NewGuid():N}");
         var root = Path.Combine(parent, "NetworkMonitor");
         var retired = Path.Combine(parent, "retired");
         Directory.CreateDirectory(root);
@@ -69,9 +70,10 @@ public sealed class InstallationRecoveryTests
     }
 
     [Test]
+    [Category("Integration")]
     public void FailedQuarantinePreservesInstallationAndDoesNotRunCleanup()
     {
-        var parent = Path.Combine(TestContext.CurrentContext.WorkDirectory, Guid.NewGuid().ToString("N"));
+        var parent = Path.Combine(Path.GetTempPath(), $"WinMon-network-setup-{Guid.NewGuid():N}");
         var root = Path.Combine(parent, "NetworkMonitor");
         var retired = Path.Combine(parent, "retired");
         Directory.CreateDirectory(root);

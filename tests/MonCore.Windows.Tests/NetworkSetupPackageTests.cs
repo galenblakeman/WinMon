@@ -109,6 +109,7 @@ public sealed class NetworkSetupPackageTests
     }
 
     [Test]
+    [Category("Integration")]
     public void VerifyAsset_AcceptsLowercaseHashAndRejectsMismatch()
     {
         var file = Path.Combine(Path.GetTempPath(), $"WinMon-{Guid.NewGuid():N}.bin");

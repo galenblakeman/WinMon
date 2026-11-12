@@ -10,6 +10,7 @@ public sealed class ActivityTabTests
     [TestCase(1)]
     [TestCase(2)]
     [TestCase(3)]
+    [Category("Integration")]
     public async Task SelectedTabRoundTripsWithCollapsedPanel(int selected)
     {
         var directory = Path.Combine(Path.GetTempPath(), "WinMon.Tests", Guid.NewGuid().ToString("N"));

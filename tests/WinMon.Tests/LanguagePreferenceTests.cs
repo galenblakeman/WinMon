@@ -44,6 +44,7 @@ public sealed class LanguagePreferenceTests
     private static IEnumerable<string> Languages => AppLanguages.Choices.Select(choice => choice.Name);
 
     [TestCaseSource(nameof(Languages))]
+    [Category("Integration")]
     public async Task LanguageSelection_RoundTripsAndOverridesSystemWhenExplicit(string language)
     {
         var directory = Path.Combine(Path.GetTempPath(), "WinMon.Tests", Guid.NewGuid().ToString("N"));
@@ -68,6 +69,7 @@ public sealed class LanguagePreferenceTests
 
     [TestCase(null)]
     [TestCase("{\"Theme\":\"Light\"}")]
+    [Category("Integration")]
     public async Task MissingOrOlderSettings_DefaultToSystemLanguage(string? legacySettings)
     {
         var directory = Path.Combine(Path.GetTempPath(), "WinMon.Tests", Guid.NewGuid().ToString("N"));

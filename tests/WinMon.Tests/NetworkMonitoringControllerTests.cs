@@ -11,6 +11,7 @@ public sealed class NetworkMonitoringControllerTests
 {
     [TestCase(false)]
     [TestCase(true)]
+    [Category("Integration")]
     public async Task InstallerEnablesPreferenceOnlyAfterSuccessfulSetup(bool cancel)
     {
         var folder = Path.Combine(Path.GetTempPath(), "WinMon.InstallerTests." + Guid.NewGuid().ToString("N"));
@@ -47,6 +48,7 @@ public sealed class NetworkMonitoringControllerTests
 
     [Test]
     [NonParallelizable]
+    [Category("Integration")]
     public async Task ConnectionRecovery_LogsFailureStateAndOutageSummary()
     {
         var folder = Path.Combine(Path.GetTempPath(), "WinMon.NetworkLogTests." + Guid.NewGuid().ToString("N"));
@@ -79,6 +81,7 @@ public sealed class NetworkMonitoringControllerTests
 
     [Test]
     [NonParallelizable]
+    [Category("Integration")]
     public async Task SnapshotDiagnostics_RecordCoverageAndCollectorFailureWithoutProcessMetadata()
     {
         var folder = Path.Combine(Path.GetTempPath(), "WinMon.NetworkQualityTests." + Guid.NewGuid().ToString("N"));

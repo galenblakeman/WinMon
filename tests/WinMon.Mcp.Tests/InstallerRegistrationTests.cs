@@ -4,7 +4,7 @@ using WinMon.Mcp;
 
 namespace WinMon.Tests;
 
-[TestFixture]
+[TestFixture, Category("Integration")]
 [NonParallelizable]
 public sealed class InstallerRegistrationTests
 {

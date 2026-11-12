@@ -1,6 +1,6 @@
 # WinMon
 
-A WPF resource monitor on .NET 10: the app (`src/WinMon`), portable monitoring library (`src/MonCore`), Windows adapter (`src/MonCore.Windows`), six NUnit test projects and a UI benchmark (`tools/WinMon.Performance`). Run commands from the repository root in PowerShell.
+A WPF resource monitor on .NET 10: the app (`src/WinMon`), portable monitoring library (`src/MonCore`), Windows adapter (`src/MonCore.Windows`), eight NUnit test projects and a UI benchmark (`tools/WinMon.Performance`). Run commands from the repository root in PowerShell.
 
 ## Verify
 

@@ -3,7 +3,7 @@ using WinMon.Preferences;
 
 namespace WinMon.Tests;
 
-[TestFixture]
+[TestFixture, Category("Integration")]
 public sealed class ChartPreferencesTests
 {
     private string _directory = null!;

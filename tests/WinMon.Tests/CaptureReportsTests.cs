@@ -8,7 +8,7 @@ using WinMon.Resources;
 
 namespace WinMon.Tests;
 
-[TestFixture]
+[TestFixture, Category("Integration")]
 public sealed class CaptureReportsTests
 {
     private static readonly DateTimeOffset Fired = new(2026, 10, 24, 14, 3, 12, TimeSpan.Zero);

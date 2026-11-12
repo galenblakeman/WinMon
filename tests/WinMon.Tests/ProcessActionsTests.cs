@@ -193,6 +193,7 @@ public sealed class ProcessActionsTests
     [TestCase(true, false)]
     [TestCase(false, true)]
     [TestCase(true, true)]
+    [Category("Integration")]
     public void Native_DumpChecksLifetimeAndWritesOwnedHelper(bool fullMemory, bool grouped)
     {
         using var helper = Process.Start(new ProcessStartInfo

@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using NUnit.Framework;
 using WinMon.Mcp;
 using WinMon.Monitoring;
@@ -11,13 +10,19 @@ public sealed class SamplingOwnerTests
     [Test]
     public async Task CurrentWaitsForWarmupAndConcurrentReadersShareOneSerializedSource()
     {
-        var source = new Source();
+        var source = new Source(blockOn: 2);
         var created = 0;
         await using var owner = new SamplingOwner(() => { Interlocked.Increment(ref created); return source; },
             TimeProvider.System, TimeSpan.FromMilliseconds(5));
-        await owner.StartAsync(default);
-
-        var readers = Enumerable.Range(0, 12).Select(_ => owner.CurrentAsync(default)).ToArray();
+        Task<PublishedFrame?>[] readers;
+        try
+        {
+            await owner.StartAsync(default);
+            await source.Entered.Task.WaitAsync(TimeSpan.FromSeconds(3));
+            readers = Enumerable.Range(0, 12).Select(_ => owner.CurrentAsync(default)).ToArray();
+            Assert.That(readers.Any(reader => reader.IsCompleted), Is.False, "Readers must wait for warmup.");
+        }
+        finally { source.Release.TrySetResult(); }
         var frames = await Task.WhenAll(readers).WaitAsync(TimeSpan.FromSeconds(3));
 
         Assert.Multiple(() =>
@@ -42,13 +47,12 @@ public sealed class SamplingOwnerTests
 
         Assert.That(async () => await wait, Throws.InstanceOf<OperationCanceledException>());
         var current = await owner.CurrentAsync(default).WaitAsync(TimeSpan.FromSeconds(3));
-        var captureCount = source.Captures;
-        await Task.Delay(40);
+        await owner.WaitForChangeAsync(current!.Sequence, default).WaitAsync(TimeSpan.FromSeconds(3));
 
         Assert.Multiple(() =>
         {
             Assert.That(current, Is.Not.Null);
-            Assert.That(source.Captures, Is.GreaterThan(captureCount));
+            Assert.That(owner.ReadAfter(current.Sequence), Is.Not.Empty);
         });
     }
 
@@ -58,7 +62,7 @@ public sealed class SamplingOwnerTests
         var source = new Source();
         await using var owner = new SamplingOwner(() => source, TimeProvider.System, TimeSpan.FromMilliseconds(1));
         await owner.StartAsync(default);
-        await EventuallyAsync(() => source.Captures >= 125);
+        await WaitForFrameAsync(owner, frame => frame.Sequence >= 125);
 
         var frames = owner.ReadAfter(0);
 
@@ -75,9 +79,7 @@ public sealed class SamplingOwnerTests
         var source = new Source(throwOn: 3);
         await using var owner = new SamplingOwner(() => source, TimeProvider.System, TimeSpan.FromMilliseconds(5));
         await owner.StartAsync(default);
-        await EventuallyAsync(() => owner.ReadAfter(0).Any(frame => frame.Frame.Error == SamplingError.ReadingsUnavailable));
-
-        var failed = owner.ReadAfter(0).Single(frame => frame.Frame.Error == SamplingError.ReadingsUnavailable);
+        var failed = await WaitForFrameAsync(owner, frame => frame.Frame.Error == SamplingError.ReadingsUnavailable);
 
         Assert.Multiple(() =>
         {
@@ -87,34 +89,35 @@ public sealed class SamplingOwnerTests
         });
     }
 
-    [Test]
-    public void FreshnessRejectsFramesOlderThanTwoSeconds()
+    [TestCase(-1, false)]
+    [TestCase(0, true)]
+    [TestCase(1999, true)]
+    [TestCase(2000, true)]
+    [TestCase(2001, false)]
+    public async Task FreshnessAcceptsOnlyFramesFromTheLastTwoSeconds(int ageMilliseconds, bool expected)
     {
-        var owner = new SamplingOwner(() => new Source(), TimeProvider.System);
-        var stale = new PublishedFrame(1, Frame(), owner.Now - TimeProvider.System.TimestampFrequency * 3);
+        var clock = new FixedClock();
+        await using var owner = new SamplingOwner(() => new Source(), clock);
+        var frame = new PublishedFrame(1, Frame(), owner.Now - ageMilliseconds);
 
-        try
-        {
-            Assert.That(owner.IsFresh(stale), Is.False);
-        }
-        finally
-        {
-            owner.DisposeAsync().AsTask().GetAwaiter().GetResult();
-        }
+        Assert.That(owner.IsFresh(frame), Is.EqualTo(expected));
     }
 
     [Test]
     public async Task StopAndDisposeReleaseTheSourceExactlyOnceAfterCaptureCompletes()
     {
-        var source = new Source(blockFirstCapture: true);
+        var source = new Source(blockOn: 1);
         await using (var owner = new SamplingOwner(() => source, TimeProvider.System, TimeSpan.FromMilliseconds(5)))
         {
-            await owner.StartAsync(default);
-            await source.Entered.Task.WaitAsync(TimeSpan.FromSeconds(3));
-            var stop = owner.StopAsync(default);
-
-            Assert.That(stop.IsCompleted, Is.False);
-            source.Release.TrySetResult();
+            Task stop;
+            try
+            {
+                await owner.StartAsync(default);
+                await source.Entered.Task.WaitAsync(TimeSpan.FromSeconds(3));
+                stop = owner.StopAsync(default);
+                Assert.That(stop.IsCompleted, Is.False);
+            }
+            finally { source.Release.TrySetResult(); }
             await stop.WaitAsync(TimeSpan.FromSeconds(3));
         }
 
@@ -130,17 +133,28 @@ public sealed class SamplingOwnerTests
         IntervalSeconds = 1
     });
 
-    private static async Task EventuallyAsync(Func<bool> condition)
+    private sealed class FixedClock : TimeProvider
     {
-        var timeout = Stopwatch.StartNew();
-        while (!condition())
+        public override long TimestampFrequency => 1000;
+        public override long GetTimestamp() => 10000;
+    }
+
+    private static async Task<PublishedFrame> WaitForFrameAsync(SamplingOwner owner, Func<PublishedFrame, bool> condition)
+    {
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+        long sequence = 0;
+        while (true)
         {
-            if (timeout.Elapsed > TimeSpan.FromSeconds(3)) Assert.Fail("Condition did not become true.");
-            await Task.Delay(5);
+            foreach (var frame in owner.ReadAfter(sequence))
+            {
+                if (condition(frame)) return frame;
+                sequence = frame.Sequence;
+            }
+            await owner.WaitForChangeAsync(sequence, timeout.Token);
         }
     }
 
-    private sealed class Source(int? throwOn = null, bool blockFirstCapture = false) : IFrameSource
+    private sealed class Source(int? throwOn = null, int? blockOn = null) : IFrameSource
     {
         private int _active;
         public int Captures { get; private set; }
@@ -157,7 +171,7 @@ public sealed class SamplingOwnerTests
             try
             {
                 var capture = ++Captures;
-                if (blockFirstCapture && capture == 1)
+                if (capture == blockOn)
                 {
                     Entered.TrySetResult();
                     Release.Task.GetAwaiter().GetResult();

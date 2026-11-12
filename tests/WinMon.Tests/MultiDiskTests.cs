@@ -73,6 +73,7 @@ public sealed class MultiDiskTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task PreferenceStore_LegacySettingsKeepLegacySeries_AndRoundTripConfiguredDrives()
     {
         Directory.CreateDirectory(testDirectory);

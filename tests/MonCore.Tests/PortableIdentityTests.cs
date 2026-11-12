@@ -172,6 +172,7 @@ public sealed class PortableIdentityTests
     }
 
     [Test]
+    [Category("Integration")]
     public void PortableCsvCarriesIdentityDomainAndLeavesUnknownCpuEmpty()
     {
         var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".csv");
@@ -191,6 +192,7 @@ public sealed class PortableIdentityTests
     }
 
     [Test]
+    [Category("Integration")]
     public void LegacyHistoryRefusesPortableSamplesWithoutOverwritingExistingFile()
     {
         var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".bin");

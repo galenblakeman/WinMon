@@ -22,6 +22,7 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
+. (Join-Path $PSScriptRoot 'TestResults.ps1')
 $modes = [ordered]@{
     full = '--smoke-output'
     feature = '--feature-smoke-output'
@@ -58,22 +59,10 @@ function Add-Result([string]$Step, [bool]$Passed, [string]$Detail) {
     Write-Host "$(if ($Passed) { 'PASS' } else { 'FAIL' }) $Step$(if ($Detail) { ": $Detail" })" -ForegroundColor ($Passed ? 'Green' : 'Red')
 }
 
-function Get-TestSummary([string]$Path) {
-    if (!(Test-Path -LiteralPath $Path)) { return $null }
-    [xml]$report = Get-Content -LiteralPath $Path -Raw
-    $counters = $report.TestRun.ResultSummary.Counters
-    if ($null -eq $counters) { return $null }
-    $notExecuted = @($report.TestRun.Results.UnitTestResult | Where-Object { $_.outcome -eq 'NotExecuted' })
-    $reasons = @($notExecuted | ForEach-Object {
-        $reason = $_.Output.ErrorInfo.Message
-        if (!$reason) { $reason = $_.Output.StdOut }
-        if ($reason) { "$($_.testName): $($reason -replace '\s+', ' ')" } else { $_.testName }
-    }) -join ' | '
-    return "passed=$($counters.passed) failed=$($counters.failed) not-executed=$($notExecuted.Count)$(if ($reasons) { "; $reasons" })"
-}
-
 Push-Location $root
 try {
+    & (Join-Path $PSScriptRoot 'Test-Verification.ps1')
+    $projects = @(Get-VerificationProjects $root)
     dotnet build WinMon.sln @options -v quiet
     Add-Result 'build' ($LASTEXITCODE -eq 0) $(if ($Store) { 'Store variant' })
     # The benchmark is outside the solution; building it catches renamed internal members it uses.
@@ -81,15 +70,22 @@ try {
     Add-Result 'build benchmark' ($LASTEXITCODE -eq 0) ''
     if ($results.Where({ !$_.Passed }).Count -eq 0) {
         if (!$SkipTests) {
-            foreach ($project in @('MonCore.Tests', 'MonCore.Windows.Tests', 'WinMon.Tests', 'WinMon.NetworkService.Tests', 'WinMon.NetworkSetup.Tests', 'WinMon.NetworkProbe.Tests', 'WinMon.Cli.Tests', 'WinMon.Mcp.Tests')) {
+            $executed = 0
+            foreach ($projectFile in $projects) {
+                $project = $projectFile.BaseName
                 $testOptions = @($options + '--no-build' + '--logger' + "trx;LogFileName=$project.trx" + '--results-directory' + $testResults)
                 if ($effectiveTestFilter) { $testOptions += @('--filter', $effectiveTestFilter) }
                 $testOptions += @('--', 'NUnit.ExplicitMode=None')
-                dotnet test "tests/$project/$project.csproj" @testOptions
-                $summary = Get-TestSummary (Join-Path $testResults "$project.trx")
-                $detail = @($summary, $effectiveTestFilter).Where({ $_ }) -join '; '
-                Add-Result "$project tests" ($LASTEXITCODE -eq 0 -and $null -ne $summary) $detail
+                dotnet test $projectFile.FullName @testOptions
+                $testExitCode = $LASTEXITCODE
+                $summary = Get-TestSummary (Join-Path $testResults "$project.trx") ([bool]$Store)
+                $executed += $summary.Executed
+                $allowEmpty = $TestScope -eq 'Integration' -or $TestFilter
+                $detail = @($summary.Detail, $effectiveTestFilter).Where({ $_ }) -join '; '
+                Add-Result "$project tests" ($testExitCode -eq 0 -and $null -ne $summary -and $summary.Passed -and
+                    ($allowEmpty -or $summary.Executed -gt 0)) $detail
             }
+            Add-Result 'test selection' ($executed -gt 0) "$executed tests executed"
         }
 
         $exe = Join-Path $build 'bin/WinMon/release_win-x64/WinMon.exe'

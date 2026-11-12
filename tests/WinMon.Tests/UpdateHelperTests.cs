@@ -53,6 +53,7 @@ public sealed class UpdateHelperTests
     [TestCase("hash", "checksum is invalid")]
     [TestCase("parent-time", "original WinMon process changed")]
     [TestCase("parent-path", "original WinMon process changed")]
+    [Category("Integration")]
     public void InvalidTransactionNeverModifiesTheTargetOrStartsAProcess(string invalid, string error)
     {
         using var fixture = new Fixture();
@@ -93,6 +94,7 @@ public sealed class UpdateHelperTests
     }
 
     [Test]
+    [Category("Integration")]
     public void UnwritableErrorLogDoesNotAllowAnInvalidTransactionToRun()
     {
         using var fixture = new Fixture();
@@ -110,6 +112,7 @@ public sealed class UpdateHelperTests
     [TestCase("cancel")]
     [TestCase("exit-timeout")]
     [TestCase("late-cancel")]
+    [Category("Integration")]
     public void AbortedHandoffLeavesTheOriginalAndDownloadUntouched(string reason)
     {
         using var fixture = new Fixture();
@@ -131,6 +134,7 @@ public sealed class UpdateHelperTests
     }
 
     [Test]
+    [Category("Integration")]
     public void HealthyPortableReplacementCommitsAndDeletesOnlyTransactionFiles()
     {
         using var fixture = new Fixture();
@@ -159,6 +163,7 @@ public sealed class UpdateHelperTests
     }
 
     [Test]
+    [Category("Integration")]
     public void DesktopUpdateLeavesLegacyCompanionExecutablesUntouched()
     {
         using var fixture = new Fixture(existingCli: true, existingMcp: true);
@@ -191,6 +196,7 @@ public sealed class UpdateHelperTests
 
     [TestCase(false)]
     [TestCase(true)]
+    [Category("Integration")]
     public void UpdateGuardRejectsAnotherOwnerAndRecoversAnAbandonedOwner(bool abandoned)
     {
         using var fixture = new Fixture();
@@ -224,6 +230,7 @@ public sealed class UpdateHelperTests
     [TestCase("crash")]
     [TestCase("timeout")]
     [TestCase("launch")]
+    [Category("Integration")]
     public void FailedPortableRestartRestoresTheOriginalAndRecordsRollback(string failure)
     {
         using var fixture = new Fixture();
@@ -280,6 +287,7 @@ public sealed class UpdateHelperTests
     }
 
     [Test]
+    [Category("Integration")]
     public void IncompletePortableReplaceRecoversTheOnlyOriginalBeforeRestarting()
     {
         using var fixture = new Fixture();
@@ -298,6 +306,7 @@ public sealed class UpdateHelperTests
 
     [TestCase(false)]
     [TestCase(true)]
+    [Category("Integration")]
     public void SuccessJournalFailureNeverRollsBackAHealthyReplacement(bool persistent)
     {
         using var fixture = new Fixture();
@@ -322,6 +331,7 @@ public sealed class UpdateHelperTests
     [TestCase("installer-start")]
     [TestCase("slow-child")]
     [TestCase("crashed-child")]
+    [Category("Integration")]
     public void InstalledLifecycleRetainsItsDistinctFailureAndReadinessBehavior(string outcome)
     {
         using var fixture = new Fixture(installed: true);

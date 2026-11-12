@@ -242,6 +242,7 @@ public sealed class ChartPaletteTests
     }
 
     [TestCaseSource(typeof(ChartPalettes), nameof(ChartPalettes.Names))]
+    [Category("Integration")]
     public async Task Palette_RoundTripsWithoutChangingThemeOrDiskSelection(string palette)
     {
         var directory = Path.Combine(Path.GetTempPath(), "WinMon.Tests", Guid.NewGuid().ToString("N"));

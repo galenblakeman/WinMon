@@ -104,6 +104,7 @@ public sealed class UpdateTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task VerifyFileAsync_RequiresExactSizeAndHash()
     {
         Directory.CreateDirectory(_directory);
@@ -123,6 +124,7 @@ public sealed class UpdateTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task AutomaticCheckPreference_DefaultsAndRoundTrips()
     {
         Directory.CreateDirectory(_directory);
@@ -134,6 +136,7 @@ public sealed class UpdateTests
     }
 
     [Test]
+    [Category("Integration")]
     public void PortableUpdate_ApplyAndRestorePreserveAdjacentPortableFiles()
     {
         Directory.CreateDirectory(_directory);
@@ -168,6 +171,7 @@ public sealed class UpdateTests
     }
 
     [Test]
+    [Category("Integration")]
     public void PortableUpdate_RejectsFilesOutsideTheApplicationDirectory()
     {
         var application = Path.Combine(_directory, "app");
@@ -199,6 +203,7 @@ public sealed class UpdateTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task WriteJson_ConcurrentWritersLeaveACompleteReadableDocument()
     {
         Directory.CreateDirectory(_directory);
@@ -219,6 +224,7 @@ public sealed class UpdateTests
 
     [TestCase("Other.exe")]
     [TestCase("../WinMon.exe")]
+    [Category("Integration")]
     public async Task ExtractExecutableAsync_RejectsArchiveWithoutExactExecutable(string entryName)
     {
         var archive = CreateArchive(entryName);
@@ -231,6 +237,7 @@ public sealed class UpdateTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task ExtractExecutableAsync_RejectsDuplicateExactExecutable()
     {
         var archive = CreateArchive("WinMon.exe", "WinMon.exe");
@@ -243,6 +250,7 @@ public sealed class UpdateTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task ExtractExecutableAsync_ValidatesTheOptionalCliAndRejectsDuplicates()
     {
         var archive = CreateArchive("WinMon.exe");
@@ -260,6 +268,7 @@ public sealed class UpdateTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task ExtractExecutableAsync_HandlesTheOptionalMcpCompanion()
     {
         var archive = CreateArchive("WinMon.exe");
@@ -276,6 +285,7 @@ public sealed class UpdateTests
 
     [TestCase(false)]
     [TestCase(true)]
+    [Category("Integration")]
     public void CompleteInterruptedTransaction_RestoresLegacyCompanionsWhenDesktopReplacementNeverCompleted(bool existed)
     {
         var (directory, target, job) = PrepareRecovery("1.2.3", "replacing");
@@ -302,6 +312,7 @@ public sealed class UpdateTests
     }
 
     [Test]
+    [Category("Integration")]
     public void CompleteInterruptedTransaction_FinalizesOnlyMatchingInactiveHealthyReplacement()
     {
         var (directory, target, job) = PrepareRecovery("1.2.3", "awaiting-ready");
@@ -322,6 +333,7 @@ public sealed class UpdateTests
     }
 
     [Test]
+    [Category("Integration")]
     public void CompleteInterruptedTransaction_LeavesLiveHelperAndWrongVersionPending()
     {
         var (liveDirectory, liveTarget, liveJob) = PrepareRecovery("1.2.3", "awaiting-ready");
@@ -344,6 +356,7 @@ public sealed class UpdateTests
     }
 
     [Test]
+    [Category("Integration")]
     public void CompleteInterruptedTransaction_RemovesEarlierSessionsAbandonedDownloadsAndUnappliedJobs()
     {
         var interrupted = Path.Combine(_directory, Guid.NewGuid().ToString("N"));
@@ -372,6 +385,7 @@ public sealed class UpdateTests
     }
 
     [Test]
+    [Category("Integration")]
     public void CompleteInterruptedTransaction_KeepsTheActiveTransactionAndTheResultNoticeOfAFailedOne()
     {
         var (active, activeTarget, activeJob) = PrepareRecovery("1.2.3", "awaiting-ready");
@@ -403,6 +417,7 @@ public sealed class UpdateTests
     }
 
     [Test]
+    [Category("Integration")]
     public void CompleteInterruptedTransaction_KeepsTheBackupWhileTheTargetIsMissing()
     {
         var (directory, target, job) = PrepareRecovery("1.2.3", "failed");
@@ -421,6 +436,7 @@ public sealed class UpdateTests
     }
 
     [Test]
+    [Category("Integration")]
     public void RecoverIncompleteReplace_RestoresTheOriginalOnlyWhenTheTargetIsMissing()
     {
         Directory.CreateDirectory(_directory);
@@ -441,6 +457,7 @@ public sealed class UpdateTests
     }
 
     [Test]
+    [Category("Integration")]
     public void AvailableFreeSpace_ReadsLocalDirectory()
     {
         Directory.CreateDirectory(_directory);
@@ -464,6 +481,7 @@ public sealed class UpdateTests
     [TestCase("rolled-back", true)]
     [TestCase("replacing", false)]
     [TestCase("awaiting-ready", false)]
+    [Category("Integration")]
     public void CompleteInterruptedTransaction_RemovesOnlyAbandonedOrFinishedOrphans(string? status, bool removed)
     {
         var (directory, target, _) = PrepareRecovery("1.2.3", status ?? "unused");
@@ -481,6 +499,7 @@ public sealed class UpdateTests
     [TestCase("existing-app")]
     [TestCase("live-parent")]
     [TestCase("active-token")]
+    [Category("Integration")]
     public void CompleteInterruptedTransaction_PreservesPotentiallyActiveForeignJobs(string reason)
     {
         var (directory, target, job) = PrepareRecovery("1.2.3", "succeeded");
@@ -500,6 +519,7 @@ public sealed class UpdateTests
     }
 
     [Test]
+    [Category("Integration")]
     public void CompleteInterruptedTransaction_PreservesOrphansWhileAnotherHelperOwnsTheGuard()
     {
         var (directory, target, _) = PrepareRecovery("1.2.3", "succeeded");

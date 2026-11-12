@@ -207,9 +207,10 @@ public sealed class SetupTransactionTests
     }
 
     [Test]
+    [NUnit.Framework.Category("Integration")]
     public void RevocationTransaction_RollsBackAfterRestartFailureAndStopsCachedServiceFirst()
     {
-        var root = Path.Combine(TestContext.CurrentContext.WorkDirectory, Guid.NewGuid().ToString("N"));
+        var root = Path.Combine(Path.GetTempPath(), $"WinMon-network-setup-{Guid.NewGuid():N}");
         Directory.CreateDirectory(root);
         var policy = Path.Combine(root, "allowed-users.json");
         var replacement = Path.Combine(root, "replacement.json");
@@ -233,9 +234,10 @@ public sealed class SetupTransactionTests
     }
 
     [Test]
+    [NUnit.Framework.Category("Integration")]
     public void RevocationTransaction_RestoresStateWhenAtomicReplaceFails()
     {
-        var root = Path.Combine(TestContext.CurrentContext.WorkDirectory, Guid.NewGuid().ToString("N"));
+        var root = Path.Combine(Path.GetTempPath(), $"WinMon-network-setup-{Guid.NewGuid():N}");
         Directory.CreateDirectory(root);
         var policy = Path.Combine(root, "allowed-users.json");
         File.WriteAllText(policy, "old");
@@ -256,6 +258,7 @@ public sealed class SetupTransactionTests
     }
 
     [Test]
+    [NUnit.Framework.Category("Integration")]
     public void RevocationTransaction_PreservesRecoveryBackupWhenRollbackFails()
     {
         var root = Path.Combine(Path.GetTempPath(), $"WinMon-revocation-{Guid.NewGuid():N}");
@@ -283,9 +286,10 @@ public sealed class SetupTransactionTests
     }
 
     [Test]
+    [NUnit.Framework.Category("Integration")]
     public void RevocationTransaction_DoesNotStartOriginallyStoppedService()
     {
-        var root = Path.Combine(TestContext.CurrentContext.WorkDirectory, Guid.NewGuid().ToString("N"));
+        var root = Path.Combine(Path.GetTempPath(), $"WinMon-network-setup-{Guid.NewGuid():N}");
         Directory.CreateDirectory(root);
         var policy = Path.Combine(root, "allowed-users.json");
         var replacement = Path.Combine(root, "replacement.json");

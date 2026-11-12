@@ -13,6 +13,7 @@ public sealed class PreferenceStoreTests
     [TestCase(0, 3, 2, false)]
     [TestCase(20, 3, 99, false)]
     [TestCase(20, -1, -1, true)]
+    [Category("Integration")]
     public async Task ServiceFiltersRoundTripWithSupportedSortAndStatus(int count, int sort, int status, bool workers)
     {
         var store = new PreferenceStore(settingsPath);
@@ -32,6 +33,7 @@ public sealed class PreferenceStoreTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task LegacyServiceFiltersKeepExistingDefaults()
     {
         Directory.CreateDirectory(testDirectory);
@@ -46,6 +48,7 @@ public sealed class PreferenceStoreTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task ServicePinsRoundTripAndNormalizeNullsBlanksAndCaseDuplicates()
     {
         var store = new PreferenceStore(settingsPath);
@@ -63,6 +66,7 @@ public sealed class PreferenceStoreTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task ConnectionPins_NormalizeDuplicatesNullsAndInconsistentIdentities()
     {
         var store = new PreferenceStore(settingsPath);
@@ -80,6 +84,7 @@ public sealed class PreferenceStoreTests
     [TestCase(3)]
     [TestCase(4)]
     [TestCase(5)]
+    [Category("Integration")]
     public async Task ConnectionsRanking_RoundTripsAndNormalizesInvalidChoices(int sort)
     {
         var store = new PreferenceStore(settingsPath);
@@ -113,6 +118,7 @@ public sealed class PreferenceStoreTests
     }
 
     [TestCaseSource(typeof(ThemeFinishes), nameof(ThemeFinishes.Names))]
+    [Category("Integration")]
     public async Task AppearanceFinish_RoundTripsWithoutChangingGaugeOrPalette(string theme)
     {
         var store = new PreferenceStore(settingsPath);
@@ -132,6 +138,7 @@ public sealed class PreferenceStoreTests
 
     [TestCase("BrushedSteel")]
     [TestCase("BrushedNickel")]
+    [Category("Integration")]
     public async Task RemovedLightMetalTheme_LoadsAsPorcelain(string theme)
     {
         Directory.CreateDirectory(testDirectory);
@@ -141,6 +148,7 @@ public sealed class PreferenceStoreTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task RemovedGlassTheme_LoadsAsCrystal()
     {
         Directory.CreateDirectory(testDirectory);
@@ -150,6 +158,7 @@ public sealed class PreferenceStoreTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task ProcessActionsHidden_DefaultsForLegacySettings_AndRoundTripsBothStates()
     {
         Directory.CreateDirectory(testDirectory);
@@ -164,6 +173,7 @@ public sealed class PreferenceStoreTests
 
     [TestCase(true)]
     [TestCase(false)]
+    [Category("Integration")]
     public async Task ActivityPanel_RestoresCollapsedStateAndSplitWithoutChangingOtherPreferences(bool collapsed)
     {
         Directory.CreateDirectory(testDirectory);
@@ -199,6 +209,7 @@ public sealed class PreferenceStoreTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task AppsOnly_DefaultsToAllProcesses_AndRoundTrips()
     {
         var store = new PreferenceStore(settingsPath);
@@ -208,6 +219,7 @@ public sealed class PreferenceStoreTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task NormalHistory_OptsInAndUsesTheSelectedSettingsFolder()
     {
         var store = new PreferenceStore(settingsPath);
@@ -237,6 +249,7 @@ public sealed class PreferenceStoreTests
     [Test]
     [TestCase(false)]
     [TestCase(true)]
+    [Category("Integration")]
     public async Task StorageMode_LoadsAndSavesOnlySelectedProfile(bool portable)
     {
         var applicationDirectory = Path.Combine(testDirectory, "app");
@@ -263,6 +276,7 @@ public sealed class PreferenceStoreTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task PortableMode_MissingSettingsUsesDefaults_AndKeepsPathUntilRestart()
     {
         var applicationDirectory = Path.Combine(testDirectory, "app");
@@ -287,6 +301,7 @@ public sealed class PreferenceStoreTests
     [Test]
     [TestCase("{")]
     [TestCase("null")]
+    [Category("Integration")]
     public async Task LoadAsync_CorruptOrNullConfiguration_ReturnsDefaults(string content)
     {
         Directory.CreateDirectory(testDirectory);
@@ -308,6 +323,7 @@ public sealed class PreferenceStoreTests
     [TestCase("{\"RetentionSeconds\":600}", 600)]
     [TestCase("{\"RetentionSeconds\":1800}", 1800)]
     [TestCase("{\"RetentionSeconds\":3600}", 3600)]
+    [Category("Integration")]
     public async Task Retention_DefaultsToThirtyMinutes_AndPreservesSavedChoices(string? content, int expected)
     {
         if (content is not null)
@@ -325,6 +341,7 @@ public sealed class PreferenceStoreTests
 
     [TestCase("{")]
     [TestCase("{\"Width\":null}")]
+    [Category("Integration")]
     public async Task LoadAsync_UnreadableConfiguration_KeepsACopyBeforeDefaultsReplaceIt(string content)
     {
         Directory.CreateDirectory(testDirectory);
@@ -338,6 +355,7 @@ public sealed class PreferenceStoreTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task LoadAsync_FailedInvalidCopy_BlocksReplacementUntilTheOriginalCanBePreserved()
     {
         const string content = "{\"Theme\":\"Light\", broken";
@@ -356,6 +374,7 @@ public sealed class PreferenceStoreTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task LoadAsync_LockedConfiguration_IsCopiedBeforeTheNextSaveReplacesIt()
     {
         var store = new PreferenceStore(settingsPath);
@@ -374,6 +393,7 @@ public sealed class PreferenceStoreTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task LoadAsync_ValidConfiguration_KeepsNoCopy()
     {
         var store = new PreferenceStore(settingsPath);
@@ -384,6 +404,7 @@ public sealed class PreferenceStoreTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task LoadAsync_EnumNamesFromANewerBuild_ResetOnlyThoseSettings()
     {
         // A newer build may add gauge styles, chart types, sorts or capture metrics that this one lacks.
@@ -414,6 +435,7 @@ public sealed class PreferenceStoreTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task SaveAsync_StoresEnumsByName()
     {
         var store = new PreferenceStore(settingsPath);
@@ -430,6 +452,7 @@ public sealed class PreferenceStoreTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task LoadAsync_OutOfRangeConfiguration_NormalizesValues()
     {
         Directory.CreateDirectory(testDirectory);
@@ -454,6 +477,7 @@ public sealed class PreferenceStoreTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task SaveAsync_RoundTripsValidatedPreferencesWithoutTemporaryFiles()
     {
         PreferenceStore store = new(settingsPath);
@@ -481,6 +505,7 @@ public sealed class PreferenceStoreTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task GpuVisibility_OldPreferencesEnableGpu_AndHiddenStateRoundTrips()
     {
         Directory.CreateDirectory(testDirectory);
@@ -498,6 +523,7 @@ public sealed class PreferenceStoreTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task ProcessGpuRanking_DefaultsToCpu_AndRoundTrips()
     {
         var store = new PreferenceStore(settingsPath);
@@ -523,6 +549,7 @@ public sealed class PreferenceStoreTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task GroupProcesses_DefaultsToIndividual_AndRoundTrips()
     {
         var store = new PreferenceStore(settingsPath);
@@ -532,6 +559,7 @@ public sealed class PreferenceStoreTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task ChartRange_RoundTrips_AndLegacyExpandedSettingStillLoads()
     {
         Directory.CreateDirectory(testDirectory);
@@ -551,6 +579,7 @@ public sealed class PreferenceStoreTests
 
     [TestCase(ResourceChartType.Focus)]
     [TestCase(ResourceChartType.LogicalProcessors)]
+    [Category("Integration")]
     public async Task ResourceChartChoice_RoundTrips_AndRejectsInvalidValues(ResourceChartType type)
     {
         var store = new PreferenceStore(settingsPath);
@@ -584,6 +613,7 @@ public sealed class PreferenceStoreTests
     [TestCase("{\"GaugeStyle\":\"Needle\"}", GaugeStyle.Needle)]
     [TestCase("{\"GaugeStyle\":\"None\"}", GaugeStyle.None)]
     [TestCase("{\"GaugeStyle\":42}", GaugeStyle.Bowl)]
+    [Category("Integration")]
     public async Task GaugeStyle_DefaultsToTheBowl_AndSavesByName(string json, GaugeStyle expected)
     {
         Directory.CreateDirectory(testDirectory);
@@ -602,6 +632,7 @@ public sealed class PreferenceStoreTests
     [TestCase("{}", 120)]
     [TestCase("{\"GaugePeakDisplay\":\"NativeValue\",\"GaugePeakWindowSeconds\":300}", 300)]
     [TestCase("{\"GaugePeakDisplay\":42,\"GaugePeakWindowSeconds\":42}", 120)]
+    [Category("Integration")]
     public async Task GaugePeakWindow_DefaultsAndRejectsUnsupportedValues(string json, int seconds)
     {
         Directory.CreateDirectory(testDirectory);
@@ -625,6 +656,7 @@ public sealed class PreferenceStoreTests
     [TestCase("{\"ProcessSort\":\"Handles\"}", ProcessSort.Handles)]
     [TestCase("{\"ProcessSort\":\"Io\",\"SortByGpu\":true}", ProcessSort.Io)]
     [TestCase("{\"ProcessSort\":42}", ProcessSort.Cpu)]
+    [Category("Integration")]
     public async Task ProcessSort_MigratesLegacyGpuFlag_AndRejectsUnknownValues(string json, ProcessSort expected)
     {
         Directory.CreateDirectory(testDirectory);
@@ -642,6 +674,7 @@ public sealed class PreferenceStoreTests
     }
 
     [Test]
+    [Category("Integration")]
     public void SaveAsync_CanceledBeforeWriting_ThrowsWithoutCreatingPreferences()
     {
         PreferenceStore store = new(settingsPath);
@@ -659,6 +692,7 @@ public sealed class PreferenceStoreTests
     [TestCase(20)]
     [TestCase(50)]
     [TestCase(0)]
+    [Category("Integration")]
     public async Task TopProcessCount_RoundTrips(int count)
     {
         PreferenceStore store = new(settingsPath);
@@ -669,6 +703,7 @@ public sealed class PreferenceStoreTests
     [TestCase("{}")]
     [TestCase("{\"TopProcessCount\":7}")]
     [TestCase("{\"TopProcessCount\":1000000}")]
+    [Category("Integration")]
     public async Task TopProcessCount_MissingOrUnsupported_UsesFive(string json)
     {
         Directory.CreateDirectory(testDirectory);
@@ -682,6 +717,7 @@ public sealed class PreferenceStoreTests
     [TestCase(15)]
     [TestCase(20)]
     [TestCase(50)]
+    [Category("Integration")]
     public async Task ServiceAndProcessCountsRoundTripIndependently(int serviceCount)
     {
         var store = new PreferenceStore(settingsPath);
@@ -697,6 +733,7 @@ public sealed class PreferenceStoreTests
     [TestCase("{}")]
     [TestCase("{\"TopServiceCount\":7}")]
     [TestCase("{\"TopServiceCount\":-1}")]
+    [Category("Integration")]
     public async Task ServiceCountMissingOrInvalidDefaultsToTwenty(string json)
     {
         Directory.CreateDirectory(testDirectory);
@@ -788,6 +825,7 @@ public sealed class PreferenceStoreTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task StartupView_RoundTripsAsAChoiceSeparateFromTheLastUsedView()
     {
         var store = new PreferenceStore(settingsPath);
@@ -804,6 +842,7 @@ public sealed class PreferenceStoreTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task NetworkInterfaceId_RoundTripsAndBlankValueResetsToAutomatic()
     {
         var store = new PreferenceStore(settingsPath);
@@ -815,6 +854,7 @@ public sealed class PreferenceStoreTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task ProcessNetworkMonitoring_DefaultsDisabledAndRoundTrips()
     {
         var store = new PreferenceStore(settingsPath);

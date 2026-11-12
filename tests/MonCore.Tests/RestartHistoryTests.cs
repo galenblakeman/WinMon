@@ -8,7 +8,7 @@ using WinMon.Monitoring;
 
 namespace WinMon.Tests;
 
-[TestFixture]
+[TestFixture, Category("Integration")]
 public sealed class RestartHistoryTests
 {
     private const string Token = "0123456789abcdef0123456789abcdef";

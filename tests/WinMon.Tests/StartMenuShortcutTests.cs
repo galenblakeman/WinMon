@@ -4,7 +4,7 @@ using WinMon.Shortcuts;
 
 namespace WinMon.Tests;
 
-[TestFixture]
+[TestFixture, Category("Integration")]
 [Apartment(ApartmentState.STA)]
 public sealed class StartMenuShortcutTests
 {

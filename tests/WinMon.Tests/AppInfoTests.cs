@@ -21,6 +21,7 @@ public sealed class AppInfoTests
     }
 
     [Test]
+    [Category("Integration")]
     public void Version_MatchesTheApplicationManifest()
     {
         var manifest = File.ReadAllText(Path.Combine(Path.GetDirectoryName(SourcePath())!, "..", "..", "src", "WinMon",

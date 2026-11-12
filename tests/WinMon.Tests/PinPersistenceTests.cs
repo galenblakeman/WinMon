@@ -23,6 +23,7 @@ public sealed class PinPersistenceTests
 
     [TestCase(false)]
     [TestCase(true)]
+    [Category("Integration")]
     public async Task ReopeningSettings_RestoresBothPinListsInOrderAndPinnedOnly(bool portable)
     {
         var application = Path.Combine(_directory, "app");
@@ -94,6 +95,7 @@ public sealed class PinPersistenceTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task InvalidAndDuplicateSavedPins_AreIgnoredWithoutDiscardingOtherSettings()
     {
         Directory.CreateDirectory(_directory);
@@ -116,6 +118,7 @@ public sealed class PinPersistenceTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task OlderSettings_DefaultToNoPinsAndNormalRanking()
     {
         Directory.CreateDirectory(_directory);

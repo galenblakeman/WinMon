@@ -9,10 +9,11 @@ public sealed class PackageExtractionTests
     [TestCase("allowed-users.json")]
     [TestCase("WinMon.NetworkSetup.exe")]
     [TestCase("installed-files.json")]
+    [Category("Integration")]
     public void ExtractServiceArchive_RejectsProvisionedState(string name)
     {
         using var archive = Archive(("WinMon.NetworkService.exe", "service"), (name, "injected"));
-        var root = Path.Combine(TestContext.CurrentContext.WorkDirectory, Guid.NewGuid().ToString("N"));
+        var root = Path.Combine(Path.GetTempPath(), $"WinMon-network-setup-{Guid.NewGuid():N}");
         try
         {
             Assert.That(() => Extract(archive, root), Throws.TypeOf<InvalidDataException>());
@@ -36,10 +37,11 @@ public sealed class PackageExtractionTests
     }
 
     [Test]
+    [Category("Integration")]
     public void ExtractServiceArchive_RejectsCaseCollisionsBeforeWritingSecondFile()
     {
         using var archive = Archive(("WinMon.NetworkService.exe", "a"), ("winmon.networkservice.exe", "b"));
-        var root = Path.Combine(TestContext.CurrentContext.WorkDirectory, Guid.NewGuid().ToString("N"));
+        var root = Path.Combine(Path.GetTempPath(), $"WinMon-network-setup-{Guid.NewGuid():N}");
         try
         {
             Assert.That(() => Extract(archive, root), Throws.InstanceOf<InvalidDataException>());
@@ -51,10 +53,11 @@ public sealed class PackageExtractionTests
     }
 
     [Test]
+    [Category("Integration")]
     public void ExtractServiceArchive_ExtractsBoundedRelativeTree()
     {
         using var archive = Archive(("WinMon.NetworkService.exe", "service"), ("runtime/dep.dll", "dependency"));
-        var root = Path.Combine(TestContext.CurrentContext.WorkDirectory, Guid.NewGuid().ToString("N"));
+        var root = Path.Combine(Path.GetTempPath(), $"WinMon-network-setup-{Guid.NewGuid():N}");
         try
         {
             Extract(archive, root);
@@ -67,10 +70,11 @@ public sealed class PackageExtractionTests
     }
 
     [Test]
+    [Category("Integration")]
     public void ExtractServiceArchive_UsesCreationFactoriesForEveryStageChild()
     {
         using var archive = Archive(("WinMon.NetworkService.exe", "service"), ("runtime/dep.dll", "dependency"));
-        var root = Path.Combine(TestContext.CurrentContext.WorkDirectory, Guid.NewGuid().ToString("N"));
+        var root = Path.Combine(Path.GetTempPath(), $"WinMon-network-setup-{Guid.NewGuid():N}");
         var directories = new List<string>();
         var files = new List<string>();
         try

@@ -84,6 +84,7 @@ public sealed class HotkeyGestureTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task LegacyLaunchOption_IsIgnored_AndRemovedOnSave()
     {
         var directory = Path.Combine(Path.GetTempPath(), "WinMon.Tests", Guid.NewGuid().ToString("N"));
@@ -107,6 +108,7 @@ public sealed class HotkeyGestureTests
     }
 
     [Test]
+    [Category("Integration")]
     public async Task Shortcut_RoundTripsThroughTheStore()
     {
         var directory = Path.Combine(Path.GetTempPath(), "WinMon.Tests", Guid.NewGuid().ToString("N"));

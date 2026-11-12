@@ -103,6 +103,7 @@ public sealed class CliSettingsStore(string? path = null)
 
 public sealed class CliSettingsSession(CliSettingsStore store, InteractiveState state, Action warn)
 {
+    internal TimeProvider Clock { get; init; } = TimeProvider.System;
     private CliPreferences _observed = state.CapturePreferences();
     private CliPreferences? _before, _after;
     private long _changedAt;
@@ -114,13 +115,13 @@ public sealed class CliSettingsSession(CliSettingsStore store, InteractiveState 
         if (CliPreferences.Serialize(next) == CliPreferences.Serialize(_observed)) return;
         _before ??= _observed;
         _after = _observed = next;
-        _changedAt = Stopwatch.GetTimestamp();
+        _changedAt = Clock.GetTimestamp();
     }
 
     public void Flush(bool force = false)
     {
         if (Failed || _before is not { } before || _after is not { } after ||
-            !force && Stopwatch.GetElapsedTime(_changedAt) < TimeSpan.FromMilliseconds(500)) return;
+            !force && Clock.GetElapsedTime(_changedAt) < TimeSpan.FromMilliseconds(500)) return;
         try
         {
             store.Update(current => CliPreferences.Merge(before, after, current));
