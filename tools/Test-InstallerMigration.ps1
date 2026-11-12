@@ -52,9 +52,9 @@ try {
     Invoke-Checked $installer @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', "/DIR=`"$installDirectory`"", "/LOG=`"$run/install.log`"")
     $installed = $true
     if (!(Test-Path (Join-Path $installDirectory 'WinMon.exe'))) { throw 'Test desktop installer did not install the desktop executable.' }
-    $pathItems = @($originalPath, $standaloneDirectory, $installDirectory) | Where-Object { $_ }
+    $pathItems = @($originalPath, '%SystemRoot%', $standaloneDirectory, $installDirectory) | Where-Object { $_ }
     $seededPath = $pathItems -join ';'
-    $expectedPath = (@($originalPath, $standaloneDirectory) | Where-Object { $_ }) -join ';'
+    $expectedPath = (@($originalPath, '%SystemRoot%', $standaloneDirectory) | Where-Object { $_ }) -join ';'
     if (!(New-Item -ItemType Directory -Path $standaloneDirectory -Force)) { throw 'Could not create standalone CLI fixture directory.' }
     if (!(Test-Path -LiteralPath $ownershipKey)) { New-Item -Path $ownershipKey | Out-Null }
     $seeded = $true
@@ -63,7 +63,7 @@ try {
     New-ItemProperty -Path $ownershipKey -Name CliStandalonePathDirectory -Value $standaloneDirectory -PropertyType String -Force | Out-Null
     Invoke-Checked (Join-Path $installDirectory 'unins000.exe') @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', "/LOG=`"$run/uninstall.log`"")
     $installed = $false
-    $pathAfter = [string](Get-ItemProperty -Path $environmentKey -Name Path -ErrorAction SilentlyContinue).Path
+    $pathAfter = [string](Get-Item -LiteralPath $environmentKey).GetValue('Path', '', [Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames)
     if ($pathAfter -ne $expectedPath) { throw 'Desktop uninstall did not remove exactly its legacy PATH entry.' }
     if (Get-ItemProperty -Path $ownershipKey -Name CliPathDirectory -ErrorAction SilentlyContinue) { throw 'Desktop uninstall left its legacy CLI PATH ownership record.' }
     if ([string](Get-ItemProperty -Path $ownershipKey -Name CliStandalonePathDirectory -ErrorAction Stop).CliStandalonePathDirectory -ne $standaloneDirectory) { throw 'Desktop uninstall modified standalone CLI ownership.' }
@@ -82,7 +82,7 @@ finally {
         }
         else { Write-Warning 'PATH changed concurrently; preserved it for manual review.' }
         foreach ($entry in @{ CliPathDirectory = $installDirectory; CliStandalonePathDirectory = $standaloneDirectory }.GetEnumerator()) {
-            if ([string](Get-ItemPropertyValue -Path $ownershipKey -Name $entry.Key -ErrorAction SilentlyContinue) -eq $entry.Value) {
+            if ([string](Get-ItemProperty -Path $ownershipKey -Name $entry.Key -ErrorAction SilentlyContinue).($entry.Key) -eq $entry.Value) {
                 Remove-ItemProperty -Path $ownershipKey -Name $entry.Key -ErrorAction SilentlyContinue
             }
         }
