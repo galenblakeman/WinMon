@@ -30,7 +30,18 @@ if ($manifest.assembly.assemblyIdentity.version -ne "$version.0") { throw 'Appli
 [xml]$strings = Get-Content -LiteralPath (Join-Path $root 'src/WinMon/Resources/Strings.resx') -Raw
 $cliPathTask = [string](($strings.root.data | Where-Object name -ceq 'InstallerCliPathTask').value)
 $cliPathFailed = [string](($strings.root.data | Where-Object name -ceq 'InstallerCliPathFailed').value)
-if (!$cliPathTask -or !$cliPathFailed) { throw 'Installer CLI PATH resources are missing.' }
+$cliLegacyPathTask = [string](($strings.root.data | Where-Object name -ceq 'InstallerCliLegacyPathTask').value)
+$cliDirectoryConflict = [string](($strings.root.data | Where-Object name -ceq 'InstallerCliDirectoryConflict').value)
+$mcpCodexTask = [string](($strings.root.data | Where-Object name -ceq 'InstallerMcpCodexTask').value)
+$mcpClaudeTask = [string](($strings.root.data | Where-Object name -ceq 'InstallerMcpClaudeTask').value)
+$mcpRegistrationFailed = [string](($strings.root.data | Where-Object name -ceq 'InstallerMcpRegistrationFailed').value)
+$mcpDirectoryConflict = [string](($strings.root.data | Where-Object name -ceq 'InstallerMcpDirectoryConflict').value)
+$desktopDirectoryConflict = [string](($strings.root.data | Where-Object name -ceq 'InstallerDesktopDirectoryConflict').value)
+$downgradeBlocked = [string](($strings.root.data | Where-Object name -ceq 'InstallerDowngradeBlocked').value)
+$mcpRegistrationHelp = [string](($strings.root.data | Where-Object name -ceq 'InstallerMcpRegistrationHelp').value)
+$mcpCleanupSkipped = [string](($strings.root.data | Where-Object name -ceq 'InstallerMcpCleanupSkipped').value)
+$mcpCleanupSkipped = $mcpCleanupSkipped.Replace("'", "''")
+if (!$cliPathTask -or !$cliPathFailed -or !$cliLegacyPathTask -or !$cliDirectoryConflict -or !$mcpCodexTask -or !$mcpClaudeTask -or !$mcpRegistrationFailed -or !$mcpDirectoryConflict -or !$desktopDirectoryConflict -or !$downgradeBlocked -or !$mcpRegistrationHelp -or !$mcpCleanupSkipped) { throw 'Installer resources are missing.' }
 if ($UpdateSigningKeyPath) {
     $publicKeyPath = Join-Path $root 'src/WinMon/Updates/update-public-key.pem'
     if (!(Test-Path -LiteralPath $publicKeyPath -PathType Leaf)) {
@@ -89,22 +100,32 @@ try {
         & (Join-Path $PSScriptRoot 'Sign-ReleaseFile.ps1') -Path (Join-Path $mcpPublish 'WinMon.Mcp.exe') @signingParameters |
             ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $work 'mcp-signature.json') -Encoding utf8NoBOM
     }
-    & $InnoCompiler "/DAppVersion=$version" "/DPublishDirectory=$publish" "/DCliPublishDirectory=$cliPublish" "/DMcpPublishDirectory=$mcpPublish" "/DCliPathTask=$cliPathTask" "/DCliPathFailed=$cliPathFailed" "/DReleaseDirectory=$assets" "/DNetworkServiceSetup=$([int][bool]$CodeSign)" (Join-Path $root 'packaging/WinMon.iss')
+    & $InnoCompiler "/DAppVersion=$version" "/DPublishDirectory=$publish" "/DDesktopDirectoryConflict=$desktopDirectoryConflict" "/DDowngradeBlocked=$downgradeBlocked" "/DReleaseDirectory=$assets" "/DNetworkServiceSetup=$([int][bool]$CodeSign)" (Join-Path $root 'packaging/WinMon.iss')
     if ($LASTEXITCODE -ne 0) { throw 'Installer compilation failed.' }
     $installer = Join-Path $assets "WinMon-$version-Setup-x64.exe"
+    & $InnoCompiler "/DAppVersion=$version" "/DCliPublishDirectory=$cliPublish" "/DCliPathTask=$cliPathTask" "/DCliPathFailed=$cliPathFailed" "/DCliLegacyPathTask=$cliLegacyPathTask" "/DCliDirectoryConflict=$cliDirectoryConflict" "/DDowngradeBlocked=$downgradeBlocked" "/DReleaseDirectory=$assets" (Join-Path $root 'packaging/WinMon.Cli.iss')
+    if ($LASTEXITCODE -ne 0) { throw 'CLI installer compilation failed.' }
+    $cliInstaller = Join-Path $assets "WinMon-Cli-$version-Setup-x64.exe"
+    & $InnoCompiler "/DAppVersion=$version" "/DMcpPublishDirectory=$mcpPublish" "/DMcpCodexTask=$mcpCodexTask" "/DMcpClaudeTask=$mcpClaudeTask" "/DMcpRegistrationHelp=$mcpRegistrationHelp" "/DMcpRegistrationFailed=$mcpRegistrationFailed" "/DMcpCleanupSkipped=$mcpCleanupSkipped" "/DMcpDirectoryConflict=$mcpDirectoryConflict" "/DDowngradeBlocked=$downgradeBlocked" "/DReleaseDirectory=$assets" (Join-Path $root 'packaging/WinMon.Mcp.iss')
+    if ($LASTEXITCODE -ne 0) { throw 'MCP installer compilation failed.' }
+    $mcpInstaller = Join-Path $assets "WinMon-Mcp-$version-Setup-x64.exe"
     if ($CodeSign) {
         & (Join-Path $PSScriptRoot 'Sign-ReleaseFile.ps1') -Path $installer @signingParameters |
             ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $work 'installer-signature.json') -Encoding utf8NoBOM
+        & (Join-Path $PSScriptRoot 'Sign-ReleaseFile.ps1') -Path $cliInstaller @signingParameters |
+            ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $work 'cli-installer-signature.json') -Encoding utf8NoBOM
+        & (Join-Path $PSScriptRoot 'Sign-ReleaseFile.ps1') -Path $mcpInstaller @signingParameters |
+            ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $work 'mcp-installer-signature.json') -Encoding utf8NoBOM
     }
     else {
         Write-Warning 'Authenticode signing is disabled. This package is for local testing; GitHub release builds require -CodeSign.'
     }
     $portable = Join-Path $work 'portable'
     New-Item -ItemType Directory -Path $portable | Out-Null
-    Copy-Item -LiteralPath (Join-Path $publish 'WinMon.exe'), (Join-Path $cliPublish 'WinMon.Cli.exe'), (Join-Path $mcpPublish 'WinMon.Mcp.exe'), (Join-Path $root 'LICENSE') -Destination $portable
+    Copy-Item -LiteralPath (Join-Path $publish 'WinMon.exe'), (Join-Path $root 'LICENSE') -Destination $portable
     New-Item -ItemType File -Path (Join-Path $portable 'portable.flag') | Out-Null
     @'
-Extract all files to a writable folder, then run WinMon.exe, WinMon.Cli.exe or WinMon.Mcp.exe. No .NET installation is required.
+Extract all files to a writable folder, then run WinMon.exe. No .NET installation is required.
 portable.flag keeps settings.json beside the executable. Preserve both files when updating.
 Remove portable.flag and restart to use %LOCALAPPDATA%\WinMon\settings.json instead.
 Startup registration and launch shortcuts are machine-specific; disable them before moving the app.
@@ -119,6 +140,14 @@ Run WinMon.Cli.exe from a terminal. No .NET installation is required.
 The optional network install command requires this signed release build and administrator approval.
 '@ | Set-Content -LiteralPath (Join-Path $cliPortable 'README.txt') -Encoding utf8NoBOM
     Compress-Archive -Path "$cliPortable/*" -DestinationPath (Join-Path $assets "WinMon-Cli-$version-win-x64.zip")
+    $mcpPortable = Join-Path $work 'mcp-portable'
+    New-Item -ItemType Directory -Path $mcpPortable | Out-Null
+    Copy-Item -LiteralPath (Join-Path $mcpPublish 'WinMon.Mcp.exe'), (Join-Path $root 'LICENSE') -Destination $mcpPortable
+    @'
+Run WinMon.Mcp.exe only through a compatible MCP client. No .NET installation is required.
+Installers can optionally register the server with Codex or Claude Code. Portable copies require manual registration.
+'@ | Set-Content -LiteralPath (Join-Path $mcpPortable 'README.txt') -Encoding utf8NoBOM
+    Compress-Archive -Path "$mcpPortable/*" -DestinationPath (Join-Path $assets "WinMon-Mcp-$version-win-x64.zip")
     $pluginSource = Join-Path $root 'plugins/claude-code/winmon'
     if (!(Test-Path -LiteralPath $pluginSource -PathType Container)) { throw "Claude Code plugin is missing: $pluginSource" }
     $pluginStage = Join-Path $work 'claude-plugin'
@@ -135,6 +164,8 @@ The optional network install command requires this signed release build and admi
     Compress-Archive -Path (Join-Path $winget 'manifests') -DestinationPath (Join-Path $assets "WinMon-$version-winget.zip")
     if ($UpdateSigningKeyPath) {
         & (Join-Path $PSScriptRoot 'New-UpdateManifest.ps1') -Version $version -PortablePath $zip -InstallerPath $installer -SigningKeyPath $UpdateSigningKeyPath -OutputDirectory $assets
+        & (Join-Path $PSScriptRoot 'New-UpdateManifest.ps1') -Product WinMon.Cli -Version $version -PortablePath (Join-Path $assets "WinMon-Cli-$version-win-x64.zip") -InstallerPath $cliInstaller -SigningKeyPath $UpdateSigningKeyPath -OutputDirectory $assets
+        & (Join-Path $PSScriptRoot 'New-UpdateManifest.ps1') -Product WinMon.Mcp -Version $version -PortablePath (Join-Path $assets "WinMon-Mcp-$version-win-x64.zip") -InstallerPath $mcpInstaller -SigningKeyPath $UpdateSigningKeyPath -OutputDirectory $assets
     }
     else {
         Write-Warning 'No update-signing key was supplied. This package is not eligible for in-app updates.'

@@ -276,14 +276,17 @@ public sealed class UpdateTests
 
     [TestCase(false)]
     [TestCase(true)]
-    public void CompleteInterruptedTransaction_RestoresCliWhenDesktopReplacementNeverCompleted(bool existed)
+    public void CompleteInterruptedTransaction_RestoresLegacyCompanionsWhenDesktopReplacementNeverCompleted(bool existed)
     {
         var (directory, target, job) = PrepareRecovery("1.2.3", "replacing");
-        job = job with { CliExisted = existed };
+        job = job with { CliExisted = existed, McpExisted = existed };
         UpdateFiles.WriteJson(Path.Combine(directory, "job.json"), job);
         var cliJob = UpdateFiles.CliJob(job);
+        var mcpJob = UpdateFiles.McpJob(job);
         File.WriteAllText(cliJob.Target, "new CLI");
+        File.WriteAllText(mcpJob.Target, "new MCP");
         if (existed) File.WriteAllText(UpdateFiles.BackupPath(cliJob), "old CLI");
+        if (existed) File.WriteAllText(UpdateFiles.BackupPath(mcpJob), "old MCP");
         Age(directory);
 
         UpdateRuntime.CompleteInterruptedTransaction(directory, target, "1.2.2", null,
@@ -293,6 +296,8 @@ public sealed class UpdateTests
             Is.EqualTo("rolled-back"));
         if (existed) Assert.That(File.ReadAllText(cliJob.Target), Is.EqualTo("old CLI"));
         else Assert.That(File.Exists(cliJob.Target), Is.False);
+        if (existed) Assert.That(File.ReadAllText(mcpJob.Target), Is.EqualTo("old MCP"));
+        else Assert.That(File.Exists(mcpJob.Target), Is.False);
         Assert.That(File.Exists(target), Is.True);
     }
 
@@ -547,8 +552,8 @@ public sealed class UpdateTests
                 return calls.Count(r => r.RequestUri!.AbsolutePath.EndsWith("/latest")) == 1
                     ? JsonResponse(Release("v1.2.3"), "\"release-1\"")
                     : new HttpResponseMessage(HttpStatusCode.NotModified);
-            if (request.RequestUri.AbsolutePath.EndsWith("update-manifest.json")) return BytesResponse(manifest);
-            if (request.RequestUri.AbsolutePath.EndsWith("update-manifest.sig"))
+            if (request.RequestUri.AbsolutePath.EndsWith(UpdateClient.DesktopManifestName)) return BytesResponse(manifest);
+            if (request.RequestUri.AbsolutePath.EndsWith(UpdateClient.DesktopSignatureName))
                 return BytesResponse(Encoding.UTF8.GetBytes(signature));
             throw new AssertionException(request.RequestUri.AbsolutePath);
         })), key.ExportSubjectPublicKeyInfoPem(), _directory);
@@ -592,6 +597,23 @@ public sealed class UpdateTests
                 "unused", _directory);
         Assert.ThatAsync(() => oversized.CheckAsync("1.0.2", CancellationToken.None),
             Throws.InstanceOf<InvalidDataException>());
+    }
+
+    [Test]
+    public void CheckAsync_RejectsLegacyManifestAssetsBeforeDownloadingMetadata()
+    {
+        var requests = new List<HttpRequestMessage>();
+        using var client = new UpdateClient(new HttpClient(new DelegateHandler(request =>
+        {
+            requests.Add(request);
+            return JsonResponse(Release("v1.2.3", assets:
+            ["update-manifest.json", "update-manifest.sig", "WinMon-1.2.3-win-x64.zip", "WinMon-1.2.3-Setup-x64.exe"]));
+        })), "unused", _directory);
+
+        Assert.ThatAsync(() => client.CheckAsync("1.0.2", CancellationToken.None),
+            Throws.InstanceOf<InvalidDataException>());
+        Assert.That(requests.Select(request => request.RequestUri!.AbsolutePath),
+            Is.EqualTo(new[] { "/repos/galenblakeman/WinMon/releases/latest" }));
     }
 #endif
 
@@ -664,7 +686,7 @@ public sealed class UpdateTests
             tag_name = tag,
             assets = (assets ??
             [
-                "update-manifest.json", "update-manifest.sig", $"WinMon-{tag[1..]}-win-x64.zip",
+                UpdateClient.DesktopManifestName, UpdateClient.DesktopSignatureName, $"WinMon-{tag[1..]}-win-x64.zip",
                 $"WinMon-{tag[1..]}-Setup-x64.exe"
             ]).Select(name => new { name })
         };

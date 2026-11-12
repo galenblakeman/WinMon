@@ -1932,4 +1932,24 @@ Q quits. Ctrl+C cancels. Executable/service pins persist between sessions.</valu
   <data name="CaptureReportConnectionCount" xml:space="preserve"><value>Top {0}; {1} of {2} eligible app/process groups included ({3} omitted); {4} endpoint/flow rows.</value></data>
   <data name="CaptureReportExtraTrigger" xml:space="preserve"><value>Triggering process included in addition to the selected Top rows.</value></data>
   <data name="CaptureReportProcessCount" xml:space="preserve"><value>Top {0}; {1} rows shown.</value></data>
+  <data name="InstallerMcpCodexTask" xml:space="preserve"><value>Register WinMon MCP with Codex for this user</value></data>
+  <data name="InstallerMcpClaudeTask" xml:space="preserve"><value>Register WinMon MCP with Claude Code for this user</value></data>
+  <data name="InstallerMcpRegistrationFailed" xml:space="preserve"><value>WinMon MCP was installed, but registration with {0} did not complete. See the installer log for manual setup.</value></data>
+  <data name="InstallerCliLegacyPathTask" xml:space="preserve"><value>Remove the legacy installer-owned WinMon CLI PATH entry for this user</value></data>
+  <data name="InstallerCliDirectoryConflict" xml:space="preserve"><value>Choose a directory that is not owned by WinMon desktop or MCP.</value></data>
+  <data name="InstallerMcpDirectoryConflict" xml:space="preserve"><value>Choose a directory that is not owned by WinMon desktop or CLI.</value></data>
+  <data name="InstallerDesktopDirectoryConflict" xml:space="preserve"><value>Choose a directory that is not owned by WinMon CLI or MCP.</value></data>
+  <data name="InstallerDowngradeBlocked" xml:space="preserve"><value>A newer version is installed. Use the same or a newer installer.</value></data>
+  <data name="InstallerMcpRegistrationHelp" xml:space="preserve"><value>Selected clients can launch the read-only server and receive local diagnostic data.</value></data>
+  <data name="InstallerMcpCleanupSkipped" xml:space="preserve"><value>Registration with {0} was left unchanged. Inspect it with '{0} mcp get winmon' and remove any entry pointing to the removed executable.</value></data>
+  <data name="ToolUpdateHelp" xml:space="preserve"><value>Check for and install updates.</value></data>
+  <data name="ToolUpdateCheckHelp" xml:space="preserve"><value>Check for a newer release without changing this installation.</value></data>
+  <data name="ToolUpdateInstallHelp" xml:space="preserve"><value>Download and launch the latest installer for this product.</value></data>
+  <data name="ToolUpdateCurrent" xml:space="preserve"><value>{0} {1} is up to date.</value></data>
+  <data name="ToolUpdateAvailable" xml:space="preserve"><value>{0} {1} is available (installed: {2}).</value></data>
+  <data name="ToolUpdateInstallerStarted" xml:space="preserve"><value>The {0} installer has started. Close other sessions if prompted.</value></data>
+  <data name="ToolUpdatePortableDownloaded" xml:space="preserve"><value>Update archive downloaded to {0}. Close running sessions, then extract it over this portable copy.</value></data>
+  <data name="ToolUpdateFailed" xml:space="preserve"><value>Update failed: {0}</value></data>
+  <data name="ToolUpdateUsage" xml:space="preserve"><value>Usage: {0} update check|install</value></data>
+  <data name="ToolUpdateStore" xml:space="preserve"><value>Updates for this build are managed by Microsoft Store.</value></data>
 </root>

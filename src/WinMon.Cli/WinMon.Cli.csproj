@@ -6,6 +6,7 @@
     <AssemblyTitle>WinMon.Cli</AssemblyTitle>
     <Description>Interactive Windows resource monitor and command-line reports</Description>
     <RootNamespace>WinMon.Cli</RootNamespace>
+    <UpdatePublicKeyPath Condition="'$(UpdatePublicKeyPath)' == ''">../WinMon/Updates/update-public-key.pem</UpdatePublicKeyPath>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -29,6 +30,9 @@
     <ProjectReference Include="../MonCore.Windows/MonCore.Windows.csproj" />
     <Compile Include="../WinMon/Resources/Strings.Designer.cs" Link="Resources/Strings.Designer.cs" />
     <Compile Include="../WinMon/Monitoring/NetworkSetupBroker.cs" Link="Monitoring/NetworkSetupBroker.cs" />
+    <Compile Include="../WinMon/Updates/ToolUpdateCommand.cs" Link="Updates/ToolUpdateCommand.cs" />
+    <Compile Include="../WinMon/Updates/UpdateManifest.cs" Link="Updates/UpdateManifest.cs" />
+    <Compile Include="../WinMon/Updates/UpdatePolicy.cs" Link="Updates/UpdatePolicy.cs" />
     <Compile Include="../WinMon/Monitoring/RateText.cs" Link="Monitoring/RateText.cs" />
     <Compile Include="../WinMon/Controls/TableMetricText.cs" Link="Formatting/TableMetricText.cs" />
     <Compile Include="../WinMon/Controls/GaugeReadoutText.cs" Link="Formatting/GaugeReadoutText.cs" />
@@ -36,6 +40,7 @@
     <EmbeddedResource Include="../WinMon/Resources/Strings*.resx" Link="Resources/%(Filename)%(Extension)">
       <LogicalName>WinMon.Resources.%(Filename).resources</LogicalName>
     </EmbeddedResource>
+    <EmbeddedResource Include="$(UpdatePublicKeyPath)" LogicalName="WinMon.UpdatePublicKey" Condition="Exists('$(UpdatePublicKeyPath)')" />
   </ItemGroup>
   <ItemGroup>
     <AssemblyMetadata Include="License" Value="$(PackageLicenseExpression)" />

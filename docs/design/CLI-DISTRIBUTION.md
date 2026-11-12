@@ -1,5 +1,7 @@
 # CLI distribution
 
+The bundling/update design below is historical. [Separate installers](SEPARATE-INSTALLERS.md) supersedes it: CLI now has its own installer and ZIP, updates manually, and shares no desktop payload ownership. See [migration](../INSTALLER-MIGRATION.md) and [current implementation acceptance](SEPARATE-INSTALLERS-IMPLEMENTATION.md).
+
 Ship the desktop and terminal apps under one release version. Build the CLI once for Windows x64 as a self-contained single executable; sign it and embed the same signed optional network-service setup bundle as the desktop app. Reuse those exact bytes in the desktop installer, desktop portable ZIP and CLI-only ZIP. The CLI retains its separate LocalAppData settings and explicit service-install command.
 
 The installer includes both apps and offers an unchecked per-user PATH task. Uninstall removes a PATH entry only when this installation added it. Microsoft Store distribution remains desktop-only. There is no CLI-specific installer, updater, version schedule or WinGet listing.

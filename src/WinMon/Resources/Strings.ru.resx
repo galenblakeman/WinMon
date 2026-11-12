@@ -1932,4 +1932,24 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
   <data name="CaptureReportConnectionCount" xml:space="preserve"><value>Первые {0}; включено {1} из {2} доступных групп приложений/процессов (пропущено {3}); строк конечных точек/потоков: {4}.</value></data>
   <data name="CaptureReportExtraTrigger" xml:space="preserve"><value>Процесс, вызвавший захват, включён дополнительно к выбранным строкам.</value></data>
   <data name="CaptureReportProcessCount" xml:space="preserve"><value>Первые {0}; показано строк: {1}.</value></data>
+  <data name="InstallerMcpCodexTask" xml:space="preserve"><value>Зарегистрировать WinMon MCP в Codex для этого пользователя</value></data>
+  <data name="InstallerMcpClaudeTask" xml:space="preserve"><value>Зарегистрировать WinMon MCP в Claude Code для этого пользователя</value></data>
+  <data name="InstallerMcpRegistrationFailed" xml:space="preserve"><value>WinMon MCP установлен, но регистрация в {0} не завершена. Инструкции по ручной настройке см. в журнале установщика.</value></data>
+  <data name="InstallerCliLegacyPathTask" xml:space="preserve"><value>Удалить старую запись PATH WinMon CLI, созданную установщиком для этого пользователя</value></data>
+  <data name="InstallerCliDirectoryConflict" xml:space="preserve"><value>Выберите папку, не принадлежащую WinMon для рабочего стола или MCP.</value></data>
+  <data name="InstallerMcpDirectoryConflict" xml:space="preserve"><value>Выберите папку, не принадлежащую WinMon для рабочего стола или CLI.</value></data>
+  <data name="InstallerDesktopDirectoryConflict" xml:space="preserve"><value>Выберите папку, не принадлежащую WinMon CLI или MCP.</value></data>
+  <data name="InstallerDowngradeBlocked" xml:space="preserve"><value>Установлена более новая версия. Используйте установщик той же или более новой версии.</value></data>
+  <data name="InstallerMcpRegistrationHelp" xml:space="preserve"><value>Выбранные клиенты могут запускать сервер только для чтения и получать локальные диагностические данные.</value></data>
+  <data name="InstallerMcpCleanupSkipped" xml:space="preserve"><value>Регистрация в {0} оставлена без изменений. Проверьте её командой «{0} mcp get winmon» и удалите записи, указывающие на удалённый исполняемый файл.</value></data>
+  <data name="ToolUpdateHelp" xml:space="preserve"><value>Проверить и установить обновления.</value></data>
+  <data name="ToolUpdateCheckHelp" xml:space="preserve"><value>Проверить наличие новой версии, не изменяя эту установку.</value></data>
+  <data name="ToolUpdateInstallHelp" xml:space="preserve"><value>Скачать и запустить последний установщик этого продукта.</value></data>
+  <data name="ToolUpdateCurrent" xml:space="preserve"><value>{0} {1} обновлён до последней версии.</value></data>
+  <data name="ToolUpdateAvailable" xml:space="preserve"><value>Доступна версия {0} {1} (установлена: {2}).</value></data>
+  <data name="ToolUpdateInstallerStarted" xml:space="preserve"><value>Установщик {0} запущен. При необходимости закройте другие сеансы.</value></data>
+  <data name="ToolUpdatePortableDownloaded" xml:space="preserve"><value>Архив обновления скачан в {0}. Закройте работающие сеансы и распакуйте его поверх этой переносимой копии.</value></data>
+  <data name="ToolUpdateFailed" xml:space="preserve"><value>Ошибка обновления: {0}</value></data>
+  <data name="ToolUpdateUsage" xml:space="preserve"><value>Использование: {0} update check|install</value></data>
+  <data name="ToolUpdateStore" xml:space="preserve"><value>Обновления этой сборки управляются через Microsoft Store.</value></data>
 </root>

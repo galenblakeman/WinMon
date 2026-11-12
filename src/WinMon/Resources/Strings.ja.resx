@@ -1932,4 +1932,24 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
   <data name="CaptureReportConnectionCount" xml:space="preserve"><value>上位 {0} 件：対象のアプリ/プロセスグループ {2} 件中 {1} 件を含む（{3} 件省略）、エンドポイント/フロー {4} 行。</value></data>
   <data name="CaptureReportExtraTrigger" xml:space="preserve"><value>上位の選択行に加えて、トリガーとなったプロセスを含みます。</value></data>
   <data name="CaptureReportProcessCount" xml:space="preserve"><value>上位 {0}、表示行数 {1}。</value></data>
+  <data name="InstallerMcpCodexTask" xml:space="preserve"><value>このユーザーの Codex に WinMon MCP を登録する</value></data>
+  <data name="InstallerMcpClaudeTask" xml:space="preserve"><value>このユーザーの Claude Code に WinMon MCP を登録する</value></data>
+  <data name="InstallerMcpRegistrationFailed" xml:space="preserve"><value>WinMon MCP はインストールされましたが、{0} への登録は完了しませんでした。手動設定についてはインストーラーログを参照してください。</value></data>
+  <data name="InstallerCliLegacyPathTask" xml:space="preserve"><value>このユーザーの旧インストーラーが管理する WinMon CLI の PATH エントリを削除する</value></data>
+  <data name="InstallerCliDirectoryConflict" xml:space="preserve"><value>WinMon デスクトップまたは MCP が所有していないフォルダーを選択してください。</value></data>
+  <data name="InstallerMcpDirectoryConflict" xml:space="preserve"><value>WinMon デスクトップまたは CLI が所有していないフォルダーを選択してください。</value></data>
+  <data name="InstallerDesktopDirectoryConflict" xml:space="preserve"><value>WinMon CLI または MCP が所有していないフォルダーを選択してください。</value></data>
+  <data name="InstallerDowngradeBlocked" xml:space="preserve"><value>新しいバージョンがインストールされています。同じか新しいバージョンのインストーラーを使用してください。</value></data>
+  <data name="InstallerMcpRegistrationHelp" xml:space="preserve"><value>選択したクライアントは読み取り専用サーバーを起動し、ローカル診断データを受信できます。</value></data>
+  <data name="InstallerMcpCleanupSkipped" xml:space="preserve"><value>{0} の登録は変更されませんでした。「{0} mcp get winmon」で確認し、削除された実行ファイルを指すエントリを削除してください。</value></data>
+  <data name="ToolUpdateHelp" xml:space="preserve"><value>更新を確認してインストールします。</value></data>
+  <data name="ToolUpdateCheckHelp" xml:space="preserve"><value>このインストールを変更せずに新しいリリースを確認します。</value></data>
+  <data name="ToolUpdateInstallHelp" xml:space="preserve"><value>この製品の最新インストーラーをダウンロードして起動します。</value></data>
+  <data name="ToolUpdateCurrent" xml:space="preserve"><value>{0} {1} は最新です。</value></data>
+  <data name="ToolUpdateAvailable" xml:space="preserve"><value>{0} {1} が利用可能です（インストール済み: {2}）。</value></data>
+  <data name="ToolUpdateInstallerStarted" xml:space="preserve"><value>{0} のインストーラーを起動しました。指示があれば他のセッションを閉じてください。</value></data>
+  <data name="ToolUpdatePortableDownloaded" xml:space="preserve"><value>更新アーカイブを {0} にダウンロードしました。実行中のセッションを閉じて、このポータブルコピーに上書き展開してください。</value></data>
+  <data name="ToolUpdateFailed" xml:space="preserve"><value>更新に失敗しました: {0}</value></data>
+  <data name="ToolUpdateUsage" xml:space="preserve"><value>使用方法: {0} update check|install</value></data>
+  <data name="ToolUpdateStore" xml:space="preserve"><value>このビルドの更新は Microsoft Store が管理します。</value></data>
 </root>

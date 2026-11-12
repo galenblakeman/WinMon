@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <UpdatePublicKeyPath Condition="'$(UpdatePublicKeyPath)' == ''">../WinMon/Updates/update-public-key.pem</UpdatePublicKeyPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-x64</RuntimeIdentifier>
@@ -15,12 +16,22 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(StoreBuild)' == 'true'">
     <TargetFramework>net10.0-windows10.0.17763.0</TargetFramework>
+    <DefineConstants>$(DefineConstants);WINMON_STORE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="ModelContextProtocol" Version="2.3.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.3" />
     <ProjectReference Include="../MonCore/MonCore.csproj" />
     <ProjectReference Include="../MonCore.Windows/MonCore.Windows.csproj" />
+    <Compile Include="../WinMon.Cli/Resources.cs" Link="Resources/Strings.cs" />
+    <Compile Include="../WinMon/Resources/Strings.Designer.cs" Link="Resources/Strings.Designer.cs" />
+    <Compile Include="../WinMon/Updates/ToolUpdateCommand.cs" Link="Updates/ToolUpdateCommand.cs" />
+    <Compile Include="../WinMon/Updates/UpdateManifest.cs" Link="Updates/UpdateManifest.cs" />
+    <Compile Include="../WinMon/Updates/UpdatePolicy.cs" Link="Updates/UpdatePolicy.cs" />
+    <EmbeddedResource Include="$(UpdatePublicKeyPath)" LogicalName="WinMon.UpdatePublicKey" Condition="Exists('$(UpdatePublicKeyPath)')" />
+    <EmbeddedResource Include="../WinMon/Resources/Strings*.resx" Link="Resources/%(Filename)%(Extension)">
+      <LogicalName>WinMon.Resources.%(Filename).resources</LogicalName>
+    </EmbeddedResource>
     <InternalsVisibleTo Include="WinMon.Mcp.Tests" />
     <!-- Match the CLI's gen0 budget so one-second collection does not accumulate an L3-sized heap. -->
     <RuntimeHostConfigurationOption Include="System.GC.Gen0MaxBudget" Value="6291456" />

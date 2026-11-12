@@ -1,5 +1,9 @@
 # WinMon design assets
 
+- [On-demand CLI and MCP updates](TOOL-UPDATES.md) extends separate installers with explicit update commands, per-product signed metadata and portable download guidance.
+
+- [Separate desktop, CLI and MCP installers](SEPARATE-INSTALLERS.md) defines independent product ownership, manual tool updates, optional Codex/Claude Code registration and migration from bundled installations; its [implementation checklist](SEPARATE-INSTALLERS-IMPLEMENTATION.md) tracks verification and remaining native acceptance.
+
 - [MCP server and Claude Code plugin](MCP-SERVER.md) implements five read-only diagnostic tools with shared sampling, lifetime-safe process identity, privacy defaults and packaged-client acceptance; its [checklist](MCP-IMPLEMENTATION.md) records verification and the user-waived .NET-free-machine test.
 
 - [Complete existing investigation workflows](FEATURE-COMPLETENESS.md) tracks traffic export, network capture attribution, period Usage, history coverage and app navigation.

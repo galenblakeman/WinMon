@@ -100,9 +100,7 @@ function Find-OwnedProcess([string]$target, [int]$seconds) {
 function New-Installer([string]$compiler, [string]$version, [string]$publish, [string]$output) {
     New-Item -ItemType Directory -Path $output -Force | Out-Null
     [xml]$strings = Get-Content -LiteralPath (Join-Path $root 'src/WinMon/Resources/Strings.resx') -Raw
-    $cliPathTask = [string](($strings.root.data | Where-Object name -ceq 'InstallerCliPathTask').value)
-    $cliPathFailed = [string](($strings.root.data | Where-Object name -ceq 'InstallerCliPathFailed').value)
-    & $compiler "/DAppVersion=$version" "/DPublishDirectory=$publish" "/DCliPublishDirectory=$publish" "/DCliPathTask=$cliPathTask" "/DCliPathFailed=$cliPathFailed" "/DReleaseDirectory=$output" (Join-Path $root 'packaging/WinMon.iss') | Out-Host
+    & $compiler "/DAppVersion=$version" "/DPublishDirectory=$publish" "/DDesktopDirectoryConflict=Desktop installer test fixture requires an empty directory." "/DDowngradeBlocked=Downgrade blocked." "/DReleaseDirectory=$output" (Join-Path $root 'packaging/WinMon.iss') | Out-Host
     if ($LASTEXITCODE -ne 0) { throw "Building $version installer fixture failed." }
     $installer = Join-Path $output "WinMon-$version-Setup-x64.exe"
     if (!(Test-Path -LiteralPath $installer -PathType Leaf)) { throw "Installer fixture was not created: $installer" }
@@ -147,10 +145,6 @@ try {
         if ($LASTEXITCODE -ne 0) { throw 'Publishing the current portable fixture failed.' }
         dotnet publish src/WinMon/WinMon.csproj -c Release -r win-x64 -m:1 -p:UseSharedCompilation=false -p:NuGetAudit=false -p:Version=$UpdateVersion -p:UpdatePublicKeyPath=$publicKey --artifacts-path $build -o $newPublish
         if ($LASTEXITCODE -ne 0) { throw 'Publishing the updated portable fixture failed.' }
-        dotnet publish src/WinMon.Cli/WinMon.Cli.csproj -c Release -r win-x64 -m:1 -p:UseSharedCompilation=false -p:NuGetAudit=false -p:Version=$CurrentVersion --artifacts-path $build -o $oldPublish
-        if ($LASTEXITCODE -ne 0) { throw 'Publishing the current CLI fixture failed.' }
-        dotnet publish src/WinMon.Cli/WinMon.Cli.csproj -c Release -r win-x64 -m:1 -p:UseSharedCompilation=false -p:NuGetAudit=false -p:Version=$UpdateVersion --artifacts-path $build -o $newPublish
-        if ($LASTEXITCODE -ne 0) { throw 'Publishing the updated CLI fixture failed.' }
     }
     finally { Pop-Location }
 
@@ -158,15 +152,12 @@ try {
     New-Item -ItemType Directory -Path $portable -Force | Out-Null
     $target = Join-Path $portable 'WinMon.exe'
     Copy-Item -LiteralPath (Join-Path $oldPublish 'WinMon.exe') -Destination $target
-    $cliTarget = Join-Path $portable 'WinMon.Cli.exe'
-    Copy-Item -LiteralPath (Join-Path $oldPublish 'WinMon.Cli.exe') -Destination $cliTarget
     New-Item -ItemType File -Path (Join-Path $portable 'portable.flag') | Out-Null
     $settings = '{"AutomaticallyCheckForUpdates":false,"StartWithWindows":false,"LaunchWithShortcut":false,"ShowShortcut":"None","MinimizeToTray":false}'
     [IO.File]::WriteAllText((Join-Path $portable 'settings.json'), $settings, [Text.UTF8Encoding]::new($false))
     $payload = Join-Path $run 'payload'
     New-Item -ItemType Directory -Path $payload -Force | Out-Null
     Copy-Item -LiteralPath (Join-Path $newPublish 'WinMon.exe') -Destination (Join-Path $payload 'WinMon.exe')
-    Copy-Item -LiteralPath (Join-Path $newPublish 'WinMon.Cli.exe') -Destination (Join-Path $payload 'WinMon.Cli.exe')
     New-Item -ItemType File -Path (Join-Path $payload 'portable.flag') | Out-Null
     $archive = Join-Path $run "WinMon-$UpdateVersion-win-x64.zip"
     Compress-Archive -Path (Join-Path $payload '*') -DestinationPath $archive
@@ -178,9 +169,8 @@ try {
     Start-Sleep -Seconds 2
     Assert-OwnProcess $parent $target
     $oldHash = (Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash
-    $oldCliHash = (Get-FileHash -LiteralPath $cliTarget -Algorithm SHA256).Hash
 
-    $cancel = New-Transaction $parent $target $archive (Join-Path $run 'update-manifest.json') (Join-Path $run 'update-manifest.sig') $UpdateVersion
+    $cancel = New-Transaction $parent $target $archive (Join-Path $run 'desktop-update-manifest.json') (Join-Path $run 'desktop-update-manifest.sig') $UpdateVersion
     $ready = Open-Event $cancel.Token 'Ready'; $commit = Open-Event $cancel.Token 'Commit'; $cancelEvent = Open-Event $cancel.Token 'Cancel'
     $cancelHelper = Start-Helper $cancel
     Wait-ForEvent $ready 30 'cancel updater readiness'
@@ -188,10 +178,9 @@ try {
     Wait-ForExit $cancelHelper 30 'cancel updater'
     Assert-OwnProcess $parent $target
     if ((Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash -ne $oldHash) { throw 'Cancellation changed the portable executable.' }
-    if ((Get-FileHash -LiteralPath $cliTarget -Algorithm SHA256).Hash -ne $oldCliHash) { throw 'Cancellation changed the CLI.' }
     $evidence.checks.cancel = 'passed'
 
-    $tampered = New-Transaction $parent $target $archive (Join-Path $run 'update-manifest.json') (Join-Path $run 'update-manifest.sig') $UpdateVersion -Tamper
+    $tampered = New-Transaction $parent $target $archive (Join-Path $run 'desktop-update-manifest.json') (Join-Path $run 'desktop-update-manifest.sig') $UpdateVersion -Tamper
     $tamperReady = Open-Event $tampered.Token 'Ready'; $tamperHelper = Start-Helper $tampered
     Wait-ForExit $tamperHelper 30 'tampered updater rejection'
     if ($tamperReady.WaitOne(0)) { throw 'Tampered signature reached updater readiness.' }
@@ -214,14 +203,13 @@ try {
         $rollbackPayload = Join-Path $rollbackAssets 'payload'
         New-Item -ItemType Directory -Path $rollbackPayload -Force | Out-Null
         Copy-Item -LiteralPath (Join-Path $rollbackPublish 'WinMon.exe') -Destination (Join-Path $rollbackPayload 'WinMon.exe')
-        Copy-Item -LiteralPath (Join-Path $newPublish 'WinMon.Cli.exe') -Destination (Join-Path $rollbackPayload 'WinMon.Cli.exe')
         New-Item -ItemType File -Path (Join-Path $rollbackPayload 'portable.flag') | Out-Null
         $rollbackArchive = Join-Path $rollbackAssets "WinMon-$UpdateVersion-win-x64.zip"
         Compress-Archive -Path (Join-Path $rollbackPayload '*') -DestinationPath $rollbackArchive
         $rollbackInstaller = Join-Path $rollbackAssets "WinMon-$UpdateVersion-Setup-x64.exe"
         [IO.File]::WriteAllBytes($rollbackInstaller, [byte[]](0,1,2))
         & (Join-Path $root 'tools/New-UpdateManifest.ps1') -Version $UpdateVersion -PortablePath $rollbackArchive -InstallerPath $rollbackInstaller -SigningKeyPath $privateKey -OutputDirectory $rollbackAssets
-        $rollback = New-Transaction $parent $target $rollbackArchive (Join-Path $rollbackAssets 'update-manifest.json') (Join-Path $rollbackAssets 'update-manifest.sig') $UpdateVersion
+        $rollback = New-Transaction $parent $target $rollbackArchive (Join-Path $rollbackAssets 'desktop-update-manifest.json') (Join-Path $rollbackAssets 'desktop-update-manifest.sig') $UpdateVersion
         $rollbackReady = Open-Event $rollback.Token 'Ready'; $rollbackCommit = Open-Event $rollback.Token 'Commit'; [void](Open-Event $rollback.Token 'Cancel')
         $rollbackHelper = Start-Helper $rollback
         Wait-ForEvent $rollbackReady 30 'rollback updater readiness'
@@ -233,12 +221,11 @@ try {
         if ((Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash -ne $oldHash -or [Diagnostics.FileVersionInfo]::GetVersionInfo($target).ProductVersion -ne $CurrentVersion) {
             throw 'Rollback did not restore the current portable executable.'
         }
-        if ((Get-FileHash -LiteralPath $cliTarget -Algorithm SHA256).Hash -ne $oldCliHash) { throw 'Rollback did not restore the current CLI.' }
         $parent = Find-OwnedProcess $target 20
         $evidence.checks.rollback = 'passed'
     }
 
-    $success = New-Transaction $parent $target $archive (Join-Path $run 'update-manifest.json') (Join-Path $run 'update-manifest.sig') $UpdateVersion
+    $success = New-Transaction $parent $target $archive (Join-Path $run 'desktop-update-manifest.json') (Join-Path $run 'desktop-update-manifest.sig') $UpdateVersion
     $successReady = Open-Event $success.Token 'Ready'; $successCommit = Open-Event $success.Token 'Commit'; [void](Open-Event $success.Token 'Cancel')
     $successHelper = Start-Helper $success
     Wait-ForEvent $successReady 30 'successful updater readiness'
@@ -248,7 +235,6 @@ try {
     $state = Get-Content -LiteralPath (Join-Path $success.Directory 'state.json') -Raw | ConvertFrom-Json
     if ($state.Status -ne 'succeeded') { throw "Updater completed with state '$($state.Status)'." }
     if ([Diagnostics.FileVersionInfo]::GetVersionInfo($target).ProductVersion -ne $UpdateVersion) { throw 'Updated executable version did not match the manifest.' }
-    if ([Diagnostics.FileVersionInfo]::GetVersionInfo($cliTarget).ProductVersion -ne $UpdateVersion) { throw 'Updated CLI version did not match the manifest.' }
     $updated = Find-OwnedProcess $target 20
     Assert-OwnProcess $updated $target
     $saved = Get-Content -LiteralPath (Join-Path $portable 'settings.json') -Raw | ConvertFrom-Json
@@ -283,7 +269,7 @@ try {
         Copy-Item -LiteralPath $archive -Destination (Join-Path $installerAssets ([IO.Path]::GetFileName($archive)))
         Copy-Item -LiteralPath $newInstaller -Destination (Join-Path $installerAssets ([IO.Path]::GetFileName($newInstaller)))
         & (Join-Path $root 'tools/New-UpdateManifest.ps1') -Version $UpdateVersion -PortablePath (Join-Path $installerAssets ([IO.Path]::GetFileName($archive))) -InstallerPath (Join-Path $installerAssets ([IO.Path]::GetFileName($newInstaller))) -SigningKeyPath $privateKey -OutputDirectory $installerAssets
-        $installed = New-Transaction $installedParent $installedTarget (Join-Path $installerAssets ([IO.Path]::GetFileName($newInstaller))) (Join-Path $installerAssets 'update-manifest.json') (Join-Path $installerAssets 'update-manifest.sig') $UpdateVersion $true
+        $installed = New-Transaction $installedParent $installedTarget (Join-Path $installerAssets ([IO.Path]::GetFileName($newInstaller))) (Join-Path $installerAssets 'desktop-update-manifest.json') (Join-Path $installerAssets 'desktop-update-manifest.sig') $UpdateVersion $true
         $installedReady = Open-Event $installed.Token 'Ready'; $installedCommit = Open-Event $installed.Token 'Commit'; [void](Open-Event $installed.Token 'Cancel')
         $installedHelper = Start-Helper $installed
         Wait-ForEvent $installedReady 30 'installer updater readiness'
@@ -292,7 +278,6 @@ try {
         Wait-ForExit $installedHelper 330 'installer updater'
         $installedState = Get-Content -LiteralPath (Join-Path $installed.Directory 'state.json') -Raw | ConvertFrom-Json
         if ($installedState.Status -ne 'succeeded' -or [Diagnostics.FileVersionInfo]::GetVersionInfo($installedTarget).ProductVersion -ne $UpdateVersion) { throw 'Installer updater did not install the requested version.' }
-        if ([Diagnostics.FileVersionInfo]::GetVersionInfo((Join-Path $installDirectory 'WinMon.Cli.exe')).ProductVersion -ne $UpdateVersion) { throw 'Installer updater did not update the CLI.' }
         $registration = Get-ItemProperty -LiteralPath $uninstallKey
         if ($registration.DisplayVersion -ne $UpdateVersion) { throw 'Installer registration version was not updated.' }
         $installedChild = Find-OwnedProcess $installedTarget 20

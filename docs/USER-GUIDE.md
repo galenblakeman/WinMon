@@ -40,9 +40,11 @@ Developers can also create an [MSIX / Microsoft Store build](../packaging/msix/R
 
 ## Command line
 
-WinMon releases include the Windows terminal app, `WinMon.Cli`, using Spectre.Console and System.CommandLine. It is bundled with the installer and desktop portable ZIP, and is also available as a CLI-only ZIP. The Microsoft Store package does not include it.
+The Windows terminal app, `WinMon.Cli`, uses Spectre.Console and System.CommandLine and has its own installer and portable ZIP. Neither desktop nor Microsoft Store packages include it. See [migration from bundled releases](INSTALLER-MIGRATION.md).
 
-The installer offers an unchecked **Add WinMon.Cli to PATH for this user** option. Open a new terminal afterward and run `WinMon.Cli`; for ZIP downloads, run `.\WinMon.Cli.exe` from the extracted folder.
+Run `WinMon.Cli update check` to check for a newer stable release. `WinMon.Cli update install` verifies and downloads the matching signed update metadata/payload; an installed copy starts its own installer and exits. Portable copies download a verified ZIP and print its path for extraction after closing sessions. Neither command updates desktop, MCP or the shared network service, and there are no background update checks.
+
+The CLI installer offers an unchecked **Add WinMon.Cli to PATH for this user** option and explicit cleanup of a legacy installer-owned PATH entry. Open a new terminal afterward and run `WinMon.Cli`; for ZIP downloads, run `.\WinMon.Cli.exe` from the extracted folder.
 
 Running `WinMon.Cli` without arguments opens the interactive monitor with saved preferences, just like `WinMon.Cli watch`. Use `WinMon.Cli --help` for the command list; launch options still follow `watch`.
 

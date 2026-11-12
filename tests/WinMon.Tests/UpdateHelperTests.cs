@@ -158,99 +158,34 @@ public sealed class UpdateHelperTests
         });
     }
 
-    [TestCase(false)]
-    [TestCase(true)]
-    public void BundledPortableUpdateCommitsBothOrRestoresBoth(bool existingCli)
+    [Test]
+    public void DesktopUpdateLeavesLegacyCompanionExecutablesUntouched()
     {
-        foreach (var healthy in new[] { true, false })
-        {
-            using var fixture = new Fixture(includeCli: true, existingCli: existingCli);
-            fixture.Host.Healthy = healthy;
-            fixture.Host.Child.HasExited = !healthy;
-            var cliJob = UpdateFiles.CliJob(fixture.Job);
+        using var fixture = new Fixture(existingCli: true, existingMcp: true);
 
-            Assert.That(fixture.Run(), Is.EqualTo(healthy ? 0 : 1));
-            Assert.Multiple(() =>
-            {
-                Assert.That(fixture.State.Status, Is.EqualTo(healthy ? "succeeded" : "rolled-back"));
-                if (healthy)
-                {
-                    Assert.That(File.ReadAllBytes(fixture.Target), Is.EqualTo(fixture.Executable));
-                    Assert.That(File.ReadAllBytes(cliJob.Target), Is.EqualTo(fixture.Executable));
-                }
-                else
-                {
-                    Assert.That(File.ReadAllText(fixture.Target), Is.EqualTo("old executable"));
-                    if (existingCli) Assert.That(File.ReadAllText(cliJob.Target), Is.EqualTo("old CLI"));
-                    else Assert.That(File.Exists(cliJob.Target), Is.False);
-                }
-                Assert.That(File.Exists(UpdateFiles.BackupPath(cliJob)), Is.False);
-                Assert.That(File.Exists(UpdateFiles.StagedPath(cliJob)), Is.False);
-            });
-        }
-    }
-
-    [TestCase(false)]
-    [TestCase(true)]
-    public void BundledPortableUpdateCommitsOrRestoresMcpWithTheDesktop(bool existingMcp)
-    {
-        foreach (var healthy in new[] { true, false })
-        {
-            using var fixture = new Fixture(includeMcp: true, existingMcp: existingMcp);
-            fixture.Host.Healthy = healthy;
-            fixture.Host.Child.HasExited = !healthy;
-            var mcpJob = UpdateFiles.McpJob(fixture.Job);
-
-            Assert.That(fixture.Run(), Is.EqualTo(healthy ? 0 : 1));
-            Assert.Multiple(() =>
-            {
-                Assert.That(fixture.State.Status, Is.EqualTo(healthy ? "succeeded" : "rolled-back"));
-                if (healthy)
-                {
-                    Assert.That(File.ReadAllBytes(fixture.Target), Is.EqualTo(fixture.Executable));
-                    Assert.That(File.ReadAllBytes(mcpJob.Target), Is.EqualTo(fixture.Executable));
-                }
-                else
-                {
-                    Assert.That(File.ReadAllText(fixture.Target), Is.EqualTo("old executable"));
-                    if (existingMcp) Assert.That(File.ReadAllText(mcpJob.Target), Is.EqualTo("old MCP"));
-                    else Assert.That(File.Exists(mcpJob.Target), Is.False);
-                }
-                Assert.That(File.Exists(UpdateFiles.BackupPath(mcpJob)), Is.False);
-                Assert.That(File.Exists(UpdateFiles.StagedPath(mcpJob)), Is.False);
-            });
-        }
-    }
-
-    [TestCase("WinMon.Cli.exe")]
-    [TestCase("WinMon.exe")]
-    [Category("Integration")]
-    public void LockedBundleMemberDoesNotLeaveEitherExecutableUpdated(string lockedName)
-    {
-        using var fixture = new Fixture(includeCli: true, existingCli: true);
-        using var locked = new FileStream(Path.Combine(fixture.Application, lockedName),
-            FileMode.Open, FileAccess.Read, FileShare.Read);
-
-        Assert.That(fixture.Run(), Is.EqualTo(1));
+        Assert.That(fixture.Run(), Is.Zero);
         Assert.Multiple(() =>
         {
-            Assert.That(File.ReadAllText(fixture.Target), Is.EqualTo("old executable"));
+            Assert.That(File.ReadAllBytes(fixture.Target), Is.EqualTo(fixture.Executable));
             Assert.That(File.ReadAllText(UpdateFiles.CliJob(fixture.Job).Target), Is.EqualTo("old CLI"));
-            Assert.That(fixture.State.Status, Is.EqualTo("failed"));
+            Assert.That(File.ReadAllText(UpdateFiles.McpJob(fixture.Job).Target), Is.EqualTo("old MCP"));
         });
     }
 
-    [Test]
-    public void DesktopOnlyArchiveCannotLeaveAnExistingCliAtAnOlderVersion()
+    [TestCase("WinMon.Cli.exe")]
+    [TestCase("WinMon.Mcp.exe")]
+    [Category("Integration")]
+    public void LockedLegacyCompanionDoesNotBlockDesktopUpdate(string lockedName)
     {
-        using var fixture = new Fixture(existingCli: true);
+        using var fixture = new Fixture(existingCli: true, existingMcp: true);
+        using var locked = new FileStream(Path.Combine(fixture.Application, lockedName),
+            FileMode.Open, FileAccess.Read, FileShare.Read);
 
-        Assert.That(fixture.Run(), Is.EqualTo(1));
+        Assert.That(fixture.Run(), Is.Zero);
         Assert.Multiple(() =>
         {
-            Assert.That(File.ReadAllText(fixture.Target), Is.EqualTo("old executable"));
-            Assert.That(File.ReadAllText(UpdateFiles.CliJob(fixture.Job).Target), Is.EqualTo("old CLI"));
-            Assert.That(fixture.State.Status, Is.EqualTo("failed"));
+            Assert.That(File.ReadAllBytes(fixture.Target), Is.EqualTo(fixture.Executable));
+            Assert.That(fixture.State.Status, Is.EqualTo("succeeded"));
         });
     }
 
@@ -422,8 +357,7 @@ public sealed class UpdateHelperTests
     private sealed class Fixture : IDisposable
     {
         private readonly string _root = Path.Combine(Path.GetTempPath(), "WinMon.HelperTests", Guid.NewGuid().ToString("N"));
-        internal Fixture(bool installed = false, bool includeCli = false, bool existingCli = false,
-            bool includeMcp = false, bool existingMcp = false)
+        internal Fixture(bool installed = false, bool existingCli = false, bool existingMcp = false)
         {
             Application = Path.Combine(_root, "app");
             Target = Path.Combine(Application, "WinMon.exe");
@@ -442,10 +376,6 @@ public sealed class UpdateHelperTests
                 using (var archive = new ZipArchive(memory, ZipArchiveMode.Create, leaveOpen: true))
                 {
                     using (var entry = archive.CreateEntry("WinMon.exe").Open()) entry.Write(Executable);
-                    if (includeCli)
-                        using (var entry = archive.CreateEntry("WinMon.Cli.exe").Open()) entry.Write(Executable);
-                    if (includeMcp)
-                        using (var entry = archive.CreateEntry("WinMon.Mcp.exe").Open()) entry.Write(Executable);
                 }
                 portable = memory.ToArray();
             }
@@ -550,8 +480,6 @@ public sealed class UpdateHelperTests
                 if (Setup.ExitCode == 0)
                 {
                     File.WriteAllBytes(Target, Executable);
-                    File.WriteAllBytes(Path.Combine(Path.GetDirectoryName(Target)!, "WinMon.Cli.exe"), Executable);
-                    File.WriteAllBytes(Path.Combine(Path.GetDirectoryName(Target)!, "WinMon.Mcp.exe"), Executable);
                 }
                 return Setup;
             }

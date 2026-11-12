@@ -4,6 +4,7 @@ using System.Text.Json;
 using Spectre.Console;
 using WinMon.Monitoring;
 using WinMon.Resources;
+using WinMon.Updates;
 
 namespace WinMon.Cli;
 
@@ -12,7 +13,8 @@ public static class CliCommand
     public static RootCommand Create(Func<IFrameSource>? createSource = null,
         TextWriter? output = null, TextWriter? error = null,
         Func<string, CancellationToken, Task>? runNetwork = null, CliSettingsStore? settingsStore = null,
-        Func<InteractiveState, bool, int>? runWatch = null)
+        Func<InteractiveState, bool, int>? runWatch = null,
+        Func<string, CancellationToken, Task<int>>? runUpdate = null)
     {
         output ??= Console.Out;
         error ??= Console.Error;
@@ -144,8 +146,25 @@ public static class CliCommand
             }
         });
         return new RootCommand(Strings.CliDescription)
-        { snapshot, watch, NetworkCommands.Create(output, error, runNetwork), SettingsCommands.Create(settingsStore, output, error) };
+        {
+            snapshot, watch, NetworkCommands.Create(output, error, runNetwork), SettingsCommands.Create(settingsStore, output, error),
+            CreateUpdateCommand(output, error, runUpdate)
+        };
     }
+
+    private static Command CreateUpdateCommand(TextWriter output, TextWriter error,
+        Func<string, CancellationToken, Task<int>>? runUpdate)
+    {
+        var check = new Command("check", Strings.ToolUpdateCheckHelp);
+        check.SetAction((_, token) => RunUpdateAsync("check", ToolUpdateAction.Check, output, error, token, runUpdate));
+        var install = new Command("install", Strings.ToolUpdateInstallHelp);
+        install.SetAction((_, token) => RunUpdateAsync("install", ToolUpdateAction.Install, output, error, token, runUpdate));
+        return new Command("update", Strings.ToolUpdateHelp) { check, install };
+    }
+
+    private static Task<int> RunUpdateAsync(string name, ToolUpdateAction action, TextWriter output, TextWriter error,
+        CancellationToken token, Func<string, CancellationToken, Task<int>>? runUpdate) =>
+        runUpdate?.Invoke(name, token) ?? ToolUpdateCommand.RunAsync(ToolUpdateProduct.Cli, action, output, error, token);
 
     private static bool IsExplicit(ParseResult result, Option option) => result.GetResult(option) is { Implicit: false };
 

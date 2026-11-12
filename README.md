@@ -18,9 +18,11 @@ WinMon brings CPU, memory, disk, network and GPU activity into one Windows dashb
 
 | Download | Get started |
 | --- | --- |
-| **Installer** | Install for your Windows account, then launch from the Start menu. It includes `WinMon.Cli.exe`; its unchecked setup option adds that command to your user PATH. |
-| **Portable ZIP** | Extract into a writable folder and run `WinMon.exe` or `WinMon.Cli.exe`. Preferences stay beside the desktop app. |
-| **CLI ZIP** | Extract `WinMon-Cli-<version>-win-x64.zip` and run `WinMon.Cli.exe` from a terminal. |
+| **Desktop installer / ZIP** | Choose `WinMon-<version>-Setup-x64.exe` or `WinMon-<version>-win-x64.zip`. These contain desktop WinMon only. Portable preferences stay beside the app. |
+| **CLI installer / ZIP** | Choose `WinMon-Cli-<version>-Setup-x64.exe` or `WinMon-Cli-<version>-win-x64.zip`. The installer offers optional user PATH integration. Run `WinMon.Cli.exe` from a terminal. |
+| **MCP installer / ZIP** | Choose `WinMon-Mcp-<version>-Setup-x64.exe` or `WinMon-Mcp-<version>-win-x64.zip`. The installer offers optional registration with existing Codex and Claude Code clients. |
+
+CLI and MCP install independently. Run `update check` to check for a newer version or `update install` to download and start that product's installer. Portable copies download a verified ZIP for manual extraction after closing sessions. Desktop retains its in-app updater. For the first upgrade from a bundled release, download desktop manually and follow [migration instructions](docs/INSTALLER-MIGRATION.md) before removing old tool copies or uninstalling desktop.
 
 WinMon ships as a self-contained **Windows x64** app, so you do not need to install .NET separately. The desktop installer accepts Windows 10 version 1607 (build 14393) or later. This packaging minimum is not a compatibility test: use a Windows edition and version supported by [.NET 10](https://github.com/dotnet/core/blob/main/release-notes/10.0/supported-os.md). Older-Windows acceptance has not been verified for this build. See [platform details](docs/USER-GUIDE.md#platform-requirements) for distribution limits and the environment used for this refresh.
 
@@ -54,7 +56,7 @@ History defaults to **30 minutes**, with retention configurable up to **60 minut
 
 ## Command line
 
-Run `WinMon.Cli` for a keyboard-driven monitor with Processes, Services, Connections and Usage tabs, or use `snapshot` for a one-time table or JSON report. The CLI comes with the installer and portable ZIP, plus a CLI-only ZIP; it is not included in the Microsoft Store package.
+Run `WinMon.Cli` for a keyboard-driven monitor with Processes, Services, Connections and Usage tabs, or use `snapshot` for a one-time table or JSON report. The CLI has its own installer and portable ZIP; desktop and Microsoft Store packages do not include it.
 
 ```powershell
 .\WinMon.Cli.exe
@@ -65,7 +67,7 @@ See the [CLI user guide](docs/USER-GUIDE.md#command-line) for setup, keyboard sh
 
 ## Coding agent diagnostics
 
-The source tree includes `WinMon.Mcp.exe`, a local read-only MCP server for system snapshots, process details, bounded performance trends and connection observations. Desktop packaging includes it alongside the app; a separate Claude Code plugin adds a diagnostics skill. Command lines and executable paths are excluded, and network addresses/ports require explicit opt-in. See [MCP setup and privacy](docs/MCP.md) for building, supported installation routes and Codex/Claude registration.
+`WinMon.Mcp.exe` is a separately installed local read-only MCP server for system snapshots, process details, bounded performance trends and connection observations. Its installer offers unchecked Codex and Claude Code registration options; a separate Claude Code plugin adds a diagnostics skill. Command lines and executable paths are excluded, and network addresses/ports require explicit opt-in. See [MCP setup and privacy](docs/MCP.md) for downloads and registration.
 
 ## Compact view and customization
 
@@ -79,7 +81,7 @@ Choose light, dark or additional appearances, independent chart palettes and sev
 
 ## Permissions and limitations
 
-- **Optional network service:** Signed desktop builds can install per-app traffic monitoring through the installer or Settings → Network. Installation and maintenance can request administrator approval. Microsoft Store builds do not offer this service. Endpoint lists remain available without it.
+- **Optional network service:** Signed desktop builds can install per-app traffic monitoring through the installer or Settings → Network. Installation and maintenance can request administrator approval. Repair can recover a protected installation with missing files, preserving the damaged copy for diagnosis; unexpected files or unsafe permissions still block recovery. Removal moves files aside before cleanup, so interrupted cleanup does not block a later repair. Microsoft Store builds do not offer this service. Endpoint lists remain available without it.
 - **Measurement limits:** Disk percentages measure active time; process I/O includes files, network and devices. GPU utilization reports the busiest engine. Very short-lived processes and collection gaps can leave activity unattributed or incomplete. Machines with multiple active processor groups are unsupported.
 - **History:** Available history can be shorter on busy systems. Resource and process history can optionally survive normal restarts; service and connection history start fresh. Usage tracks the current session, with continuity across in-app updates.
 - **Local data:** Preferences, captures, exports and diagnostic logs stay on this device unless you share them. Exports can contain process paths, service names and network addresses. Startup also removes abandoned or finished update staging folders left untouched for seven days by deleted app copies. See [Privacy](docs/PRIVACY.md).

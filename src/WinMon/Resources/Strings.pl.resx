@@ -1932,4 +1932,24 @@ Q kończy. Ctrl+C anuluje. Przypięte programy i usługi są zachowywane między
   <data name="CaptureReportConnectionCount" xml:space="preserve"><value>Pierwsze {0}; uwzględniono {1} z {2} dostępnych grup aplikacji/procesów (pominięto {3}); {4} wierszy punktów końcowych/przepływów.</value></data>
   <data name="CaptureReportExtraTrigger" xml:space="preserve"><value>Proces wyzwalający uwzględniono dodatkowo do wybranych wierszy.</value></data>
   <data name="CaptureReportProcessCount" xml:space="preserve"><value>Najlepsze {0}; wyświetlono {1} wierszy.</value></data>
+  <data name="InstallerMcpCodexTask" xml:space="preserve"><value>Zarejestruj WinMon MCP w Codex dla tego użytkownika</value></data>
+  <data name="InstallerMcpClaudeTask" xml:space="preserve"><value>Zarejestruj WinMon MCP w Claude Code dla tego użytkownika</value></data>
+  <data name="InstallerMcpRegistrationFailed" xml:space="preserve"><value>Zainstalowano WinMon MCP, ale rejestracja w {0} nie została ukończona. Instrukcje ręcznej konfiguracji znajdują się w dzienniku instalatora.</value></data>
+  <data name="InstallerCliLegacyPathTask" xml:space="preserve"><value>Usuń starszy wpis PATH WinMon CLI zarządzany przez instalator dla tego użytkownika</value></data>
+  <data name="InstallerCliDirectoryConflict" xml:space="preserve"><value>Wybierz katalog, który nie należy do WinMon na komputer ani do MCP.</value></data>
+  <data name="InstallerMcpDirectoryConflict" xml:space="preserve"><value>Wybierz katalog, który nie należy do WinMon na komputer ani do CLI.</value></data>
+  <data name="InstallerDesktopDirectoryConflict" xml:space="preserve"><value>Wybierz katalog, który nie należy do WinMon CLI ani do MCP.</value></data>
+  <data name="InstallerDowngradeBlocked" xml:space="preserve"><value>Zainstalowano nowszą wersję. Użyj instalatora tej samej lub nowszej wersji.</value></data>
+  <data name="InstallerMcpRegistrationHelp" xml:space="preserve"><value>Wybrane aplikacje mogą uruchamiać serwer tylko do odczytu i odbierać lokalne dane diagnostyczne.</value></data>
+  <data name="InstallerMcpCleanupSkipped" xml:space="preserve"><value>Rejestracja w {0} pozostała bez zmian. Sprawdź ją poleceniem „{0} mcp get winmon” i usuń wpisy wskazujące usunięty plik wykonywalny.</value></data>
+  <data name="ToolUpdateHelp" xml:space="preserve"><value>Sprawdź i zainstaluj aktualizacje.</value></data>
+  <data name="ToolUpdateCheckHelp" xml:space="preserve"><value>Sprawdź dostępność nowszego wydania bez zmieniania tej instalacji.</value></data>
+  <data name="ToolUpdateInstallHelp" xml:space="preserve"><value>Pobierz i uruchom najnowszy instalator tego produktu.</value></data>
+  <data name="ToolUpdateCurrent" xml:space="preserve"><value>{0} {1} jest aktualny.</value></data>
+  <data name="ToolUpdateAvailable" xml:space="preserve"><value>Dostępna jest wersja {0} {1} (zainstalowano: {2}).</value></data>
+  <data name="ToolUpdateInstallerStarted" xml:space="preserve"><value>Uruchomiono instalator {0}. Zamknij inne sesje, jeśli pojawi się taki monit.</value></data>
+  <data name="ToolUpdatePortableDownloaded" xml:space="preserve"><value>Archiwum aktualizacji pobrano do {0}. Zamknij działające sesje, a następnie rozpakuj je na tę kopię przenośną.</value></data>
+  <data name="ToolUpdateFailed" xml:space="preserve"><value>Aktualizacja nie powiodła się: {0}</value></data>
+  <data name="ToolUpdateUsage" xml:space="preserve"><value>Użycie: {0} update check|install</value></data>
+  <data name="ToolUpdateStore" xml:space="preserve"><value>Aktualizacjami tej kompilacji zarządza Microsoft Store.</value></data>
 </root>

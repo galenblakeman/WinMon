@@ -321,7 +321,9 @@ As of October 2026 (see the [history](PERFORMANCE-HISTORY.md#chart-drawing-and-r
 
 ## Release packaging
 
-Release packaging tests `WinMon.sln`, covering all seven test projects, and writes separately named TRX results per test run. It publishes the desktop and CLI separately, signs both in signed releases, and reuses the CLI executable in the installer, desktop portable ZIP and CLI-only ZIP. See [CLI distribution](design/CLI-DISTRIBUTION.md) for update recovery and the first-upgrade limitation of older portable builds.
+CLI and MCP link the shared `ToolUpdateCommand`, manifest verifier and Store update policy from `src/WinMon/Updates`. They embed the same public trust key, expose explicit terminal update commands, and keep product-specific staging and manifests. The MCP command-line branch runs before host initialization; its five protocol tools remain read-only. See [on-demand tool updates](design/TOOL-UPDATES.md).
+
+Release packaging tests `WinMon.sln`, covering all eight test projects, and writes separately named TRX results per test run. It publishes/signs desktop, CLI and MCP separately and reuses each executable only in that product's installer and portable ZIP. Desktop updates use `desktop-update-manifest.json` and `.sig`; new transactions replace desktop alone while old companion journals retain recovery support. CLI/MCP update manually. See [the installer design](design/SEPARATE-INSTALLERS.md), [implementation acceptance](design/SEPARATE-INSTALLERS-IMPLEMENTATION.md) and [user migration](INSTALLER-MIGRATION.md).
 
 See the [release guide](../packaging/RELEASING.md) for the portable ZIP, per-user Inno Setup installer, GitHub Releases workflow and WinGet manifests, and the [MSIX guide](../packaging/msix/README.md) for Store packages. Build all release assets with `./tools/New-Release.ps1` after bootstrapping the compiler with `./tools/Install-InnoSetup.ps1`.
 

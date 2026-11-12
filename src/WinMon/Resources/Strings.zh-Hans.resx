@@ -1932,4 +1932,24 @@ Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。<
   <data name="CaptureReportConnectionCount" xml:space="preserve"><value>前 {0} 项；已包含 {2} 个符合条件的应用/进程组中的 {1} 个（省略 {3} 个）；共 {4} 行端点/流。</value></data>
   <data name="CaptureReportExtraTrigger" xml:space="preserve"><value>除所选的排名行外，还包含触发捕获的进程。</value></data>
   <data name="CaptureReportProcessCount" xml:space="preserve"><value>前 {0} 项；显示 {1} 行。</value></data>
+  <data name="InstallerMcpCodexTask" xml:space="preserve"><value>为此用户向 Codex 注册 WinMon MCP</value></data>
+  <data name="InstallerMcpClaudeTask" xml:space="preserve"><value>为此用户向 Claude Code 注册 WinMon MCP</value></data>
+  <data name="InstallerMcpRegistrationFailed" xml:space="preserve"><value>WinMon MCP 已安装，但未能完成向 {0} 的注册。请参阅安装程序日志进行手动设置。</value></data>
+  <data name="InstallerCliLegacyPathTask" xml:space="preserve"><value>删除此用户由旧安装程序管理的 WinMon CLI PATH 条目</value></data>
+  <data name="InstallerCliDirectoryConflict" xml:space="preserve"><value>请选择不属于 WinMon 桌面应用或 MCP 的文件夹。</value></data>
+  <data name="InstallerMcpDirectoryConflict" xml:space="preserve"><value>请选择不属于 WinMon 桌面应用或 CLI 的文件夹。</value></data>
+  <data name="InstallerDesktopDirectoryConflict" xml:space="preserve"><value>请选择不属于 WinMon CLI 或 MCP 的文件夹。</value></data>
+  <data name="InstallerDowngradeBlocked" xml:space="preserve"><value>已安装更新的版本。请使用相同或更新版本的安装程序。</value></data>
+  <data name="InstallerMcpRegistrationHelp" xml:space="preserve"><value>所选客户端可以启动只读服务器并接收本地诊断数据。</value></data>
+  <data name="InstallerMcpCleanupSkipped" xml:space="preserve"><value>{0} 中的注册保持不变。请使用“{0} mcp get winmon”检查，并删除指向已移除可执行文件的条目。</value></data>
+  <data name="ToolUpdateHelp" xml:space="preserve"><value>检查并安装更新。</value></data>
+  <data name="ToolUpdateCheckHelp" xml:space="preserve"><value>检查新版本而不更改此安装。</value></data>
+  <data name="ToolUpdateInstallHelp" xml:space="preserve"><value>下载并启动此产品的最新安装程序。</value></data>
+  <data name="ToolUpdateCurrent" xml:space="preserve"><value>{0} {1} 已是最新版本。</value></data>
+  <data name="ToolUpdateAvailable" xml:space="preserve"><value>{0} {1} 可用（已安装：{2}）。</value></data>
+  <data name="ToolUpdateInstallerStarted" xml:space="preserve"><value>{0} 安装程序已启动。如有提示，请关闭其他会话。</value></data>
+  <data name="ToolUpdatePortableDownloaded" xml:space="preserve"><value>更新压缩包已下载到 {0}。请关闭正在运行的会话，然后将其解压覆盖此便携副本。</value></data>
+  <data name="ToolUpdateFailed" xml:space="preserve"><value>更新失败：{0}</value></data>
+  <data name="ToolUpdateUsage" xml:space="preserve"><value>用法：{0} update check|install</value></data>
+  <data name="ToolUpdateStore" xml:space="preserve"><value>此版本的更新由 Microsoft Store 管理。</value></data>
 </root>

@@ -23,7 +23,8 @@ internal sealed record UpdateManifest(
         return version;
     }
 
-    internal static UpdateManifest Verify(byte[] bytes, string signature, string publicKey, string expectedVersion)
+    internal static UpdateManifest Verify(byte[] bytes, string signature, string publicKey, string expectedVersion,
+        string productAssetStem = "WinMon")
     {
         if (bytes.Length > 65536 || signature.Length > 4096 || string.IsNullOrWhiteSpace(publicKey))
             throw new InvalidDataException("Trusted update signing is not configured or the manifest is invalid.");
@@ -37,8 +38,10 @@ internal sealed record UpdateManifest(
         ParseVersion(manifest.Version);
         if (manifest.SchemaVersion != 1 || manifest.Runtime != "win-x64" || manifest.Version != expectedVersion)
             throw new InvalidDataException("The update manifest does not match this release.");
-        ValidateAsset(manifest.Portable, $"WinMon-{manifest.Version}-win-x64.zip");
-        ValidateAsset(manifest.Installer, $"WinMon-{manifest.Version}-Setup-x64.exe");
+        if (productAssetStem is not ("WinMon" or "WinMon-Cli" or "WinMon-Mcp"))
+            throw new ArgumentException("Unsupported update product.", nameof(productAssetStem));
+        ValidateAsset(manifest.Portable, $"{productAssetStem}-{manifest.Version}-win-x64.zip");
+        ValidateAsset(manifest.Installer, $"{productAssetStem}-{manifest.Version}-Setup-x64.exe");
         return manifest;
     }
 

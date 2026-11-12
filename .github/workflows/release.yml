@@ -62,8 +62,12 @@ jobs:
           }
       - name: Validate installer lifecycle and application startup
         run: |
-          $installer = Get-ChildItem artifacts/release/*-Setup-x64.exe
-          ./tools/Test-Installer.ps1 -InstallerPath $installer.FullName
+          ./tools/Test-Installer.ps1 -InstallerPath (Get-Item artifacts/release/WinMon-*-Setup-x64.exe | Where-Object Name -notmatch 'Cli|Mcp').FullName
+          ./tools/Test-CliInstaller.ps1 -InstallerPath (Get-Item artifacts/release/WinMon-Cli-*-Setup-x64.exe).FullName
+          ./tools/Test-McpInstaller.ps1 -InstallerPath (Get-Item artifacts/release/WinMon-Mcp-*-Setup-x64.exe).FullName
+          $migrationPayload = Join-Path $env:RUNNER_TEMP 'winmon-migration-payload'
+          Expand-Archive -LiteralPath (Get-Item artifacts/release/WinMon-[0-9]*-win-x64.zip).FullName -DestinationPath $migrationPayload
+          ./tools/Test-InstallerMigration.ps1 -PublishDirectory $migrationPayload
       - name: Validate WinGet manifests
         run: |
           Install-Module Microsoft.WinGet.Client -RequiredVersion 1.29.380 -Scope CurrentUser -Repository PSGallery -Force
@@ -85,6 +89,7 @@ jobs:
             artifacts/packaging/**/*-signature.json
             artifacts/installer-validation/**/*.log
             artifacts/installer-validation/**/smoke/*
+            artifacts/installer-migration/**/*.log
           if-no-files-found: error
       - name: Create draft GitHub release
         if: github.ref_type == 'tag'

@@ -2,7 +2,9 @@
 
 `WinMon.Mcp.exe` exposes local Windows performance readings to compatible coding agents over stdin/stdout. It runs as your user, requires no separate .NET installation in a published build, and has no process, service, installation or Settings mutation tools.
 
-Use the desktop installer or desktop portable archive that includes `WinMon.Mcp.exe`. The standalone CLI archive and Microsoft Store package do not include the server. This feature is in the source tree; use a release containing the executable or publish it yourself until that release is available.
+Use `WinMon-Mcp-<version>-Setup-x64.exe` or `WinMon-Mcp-<version>-win-x64.zip` from the release page. Desktop, CLI and Microsoft Store packages do not include the server. No desktop installation is required. Run `WinMon.Mcp.exe update check` to check for a newer release and `WinMon.Mcp.exe update install` to verify/download and launch the matching installer. Portable copies receive a verified ZIP for manual extraction after closing sessions. These are terminal commands, separate from the read-only MCP tools; no client session or service is terminated. See [migration from bundled releases](INSTALLER-MIGRATION.md).
+
+The installer offers two unchecked tasks: register with Codex for this user and register with Claude Code for this user. It uses installed clients and an absolute server path, never installs clients, and preserves conflicting entries for manual migration. Registration failures leave MCP installed and report manual recovery. Uninstall removes only unchanged installer-owned registrations; edited or manually created entries remain. Elevated uninstall skips client changes and reports manual cleanup. Custom client homes and project-specific configuration require manual registration. Restart client sessions after upgrades. The Claude plugin is an alternative; avoid enabling a duplicate direct registration.
 
 ## Register with Codex
 
@@ -22,7 +24,7 @@ The command syntax was checked against Codex CLI 0.166.0 and the [official MCP c
 Direct registration is an alternative to the plugin:
 
 ```powershell
-claude mcp add --transport stdio winmon -- "C:\Path\To\WinMon.Mcp.exe"
+claude mcp add --scope user --transport stdio winmon -- "C:\Path\To\WinMon.Mcp.exe"
 claude mcp list
 ```
 
@@ -90,8 +92,8 @@ dotnet test tests/WinMon.Mcp.Tests/WinMon.Mcp.Tests.csproj -c Release -m:1 -p:Us
 
 The explicit test takes about four minutes and measures idle collection, repeated snapshots, four concurrent 60-second samples and post-request retention. It writes per-process CPU/private memory, latency, result sizes, runtime heap/allocation counters and two retained-heap reports a minute apart. Heap collection is a diagnostic-only forced GC; the server does not force GC in normal operation. The test is excluded from ordinary verification.
 
-Release packaging publishes/signs the server alongside desktop/CLI artifacts, adds it to the desktop installer and portable archive, and emits a separate plugin archive. Use [the release procedure](../packaging/RELEASING.md) for signing and release preparation. Packaging does not register agent clients automatically.
+Release packaging publishes/signs the server independently, creates its installer and portable archive, and emits a separate plugin archive. Use [the release procedure](../packaging/RELEASING.md) for signing and release preparation. Packaging itself does not change agent clients; registration is an explicit MCP installer task.
 
-New portable update helpers stage and roll back the MCP executable with the app and CLI. Older helpers can leave companion files on their prior version during the first upgrade; extract the full current desktop portable archive once to obtain/update MCP when migrating from those helpers. Restart connected agent sessions after an upgrade so their already-running server processes use the new version. If Windows prevents replacement of a running server, close those sessions and retry the update.
+Desktop updates leave MCP untouched. Legacy companion transaction recovery remains supported, but existing bundled MCP copies receive no further desktop updates. Migrate registrations to the independent installation before deleting them or uninstalling the old desktop. Restart connected agent sessions after an MCP upgrade so their server processes use the new version. If Windows prevents replacement of a running server, close those sessions and retry.
 
 See [the design](design/MCP-SERVER.md) and [implementation checklist](design/MCP-IMPLEMENTATION.md) for requirements, verification evidence and remaining acceptance work.

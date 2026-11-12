@@ -344,44 +344,12 @@ internal static class UpdateRuntime
                     if (setup.ExitCode != 0)
                         throw new IOException("Update installer failed with exit code " + setup.ExitCode + ".");
                     UpdateClient.ValidateExecutableVersion(job.Target, job.Version);
-                    UpdateClient.ValidateExecutableVersion(UpdateFiles.CliJob(job).Target, job.Version);
-                    UpdateClient.ValidateExecutableVersion(UpdateFiles.McpJob(job).Target, job.Version);
                 }
                 else
                 {
                     var extracted = Path.Combine(directory, "verified.exe");
                     UpdateClient.ExtractExecutableAsync(download, extracted, job.Version, CancellationToken.None)
                         .GetAwaiter().GetResult();
-                    var cliJob = UpdateFiles.CliJob(job);
-                    var cliExtracted = Path.Combine(directory, "verified-cli.exe");
-                    var cliExisted = File.Exists(cliJob.Target);
-                    if (UpdateClient.ExtractExecutableAsync(download, cliExtracted, job.Version,
-                            CancellationToken.None, "WinMon.Cli.exe", cliExisted).GetAwaiter().GetResult())
-                    {
-                        File.Copy(cliExtracted, UpdateFiles.StagedPath(cliJob), false);
-                        job = job with { CliExisted = cliExisted };
-                        UpdateFiles.WriteJson(Path.Combine(directory, "job.json"), job);
-                        // Replace the companion first: a locked CLI cancels before changing the desktop.
-                        if (cliExisted)
-                            PortableUpdate.Apply(UpdateFiles.StagedPath(cliJob), cliJob.Target, UpdateFiles.BackupPath(cliJob));
-                        else
-                            File.Move(UpdateFiles.StagedPath(cliJob), cliJob.Target);
-                    }
-                    var mcpJob = UpdateFiles.McpJob(job);
-                    var mcpExtracted = Path.Combine(directory, "verified-mcp.exe");
-                    var mcpExisted = File.Exists(mcpJob.Target);
-                    if (UpdateClient.ExtractExecutableAsync(download, mcpExtracted, job.Version,
-                            CancellationToken.None, "WinMon.Mcp.exe", mcpExisted).GetAwaiter().GetResult())
-                    {
-                        File.Copy(mcpExtracted, UpdateFiles.StagedPath(mcpJob), false);
-                        job = job with { McpExisted = mcpExisted };
-                        UpdateFiles.WriteJson(Path.Combine(directory, "job.json"), job);
-                        // Replace both companions before the desktop, so a locked one cannot leave the app updated.
-                        if (mcpExisted)
-                            PortableUpdate.Apply(UpdateFiles.StagedPath(mcpJob), mcpJob.Target, UpdateFiles.BackupPath(mcpJob));
-                        else
-                            File.Move(UpdateFiles.StagedPath(mcpJob), mcpJob.Target);
-                    }
                     File.Copy(extracted, UpdateFiles.StagedPath(job), false);
                     PortableUpdate.Apply(UpdateFiles.StagedPath(job), job.Target, UpdateFiles.BackupPath(job));
                     replaced = true;
@@ -417,14 +385,8 @@ internal static class UpdateRuntime
                     }
 
                 TryDelete(UpdateFiles.BackupPath(job));
-                TryDelete(UpdateFiles.BackupPath(UpdateFiles.CliJob(job)));
-                TryDelete(UpdateFiles.BackupPath(UpdateFiles.McpJob(job)));
                 TryDelete(download);
                 TryDelete(Path.Combine(directory, "WinMon.exe"));
-                TryDelete(Path.Combine(directory, "WinMon.Cli.exe"));
-                TryDelete(Path.Combine(directory, "WinMon.Mcp.exe"));
-                TryDelete(Path.Combine(directory, "verified-cli.exe"));
-                TryDelete(Path.Combine(directory, "verified-mcp.exe"));
                 TryDelete(Path.Combine(directory, "verified.exe"));
                 return 0;
             }

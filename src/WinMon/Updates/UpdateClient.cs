@@ -13,6 +13,8 @@ namespace WinMon.Updates;
 
 internal sealed class UpdateClient : IDisposable
 {
+    internal const string DesktopManifestName = "desktop-update-manifest.json";
+    internal const string DesktopSignatureName = "desktop-update-manifest.sig";
     private static readonly TimeSpan DownloadStallTimeout = TimeSpan.FromSeconds(60);
     private readonly HttpClient _http;
     private readonly string _publicKey;
@@ -90,13 +92,13 @@ internal sealed class UpdateClient : IDisposable
         if (UpdateManifest.ParseVersion(version) <= UpdateManifest.ParseVersion(currentVersion)) return null;
         var names = release.GetProperty("assets").EnumerateArray().Select(a => a.GetProperty("name").GetString())
             .ToHashSet(StringComparer.Ordinal);
-        if (!names.Contains("update-manifest.json") || !names.Contains("update-manifest.sig"))
+        if (!names.Contains(DesktopManifestName) || !names.Contains(DesktopSignatureName))
             throw new InvalidDataException("This release is not configured for verified automatic updates.");
         using var manifestResponse =
-            await GetAsync(AssetUrl(version, "update-manifest.json"), timeout.Token).ConfigureAwait(false);
+            await GetAsync(AssetUrl(version, DesktopManifestName), timeout.Token).ConfigureAwait(false);
         var bytes = await ReadBoundedAsync(manifestResponse, 65536, timeout.Token).ConfigureAwait(false);
         using var signatureResponse =
-            await GetAsync(AssetUrl(version, "update-manifest.sig"), timeout.Token).ConfigureAwait(false);
+            await GetAsync(AssetUrl(version, DesktopSignatureName), timeout.Token).ConfigureAwait(false);
         var signature =
             Encoding.UTF8.GetString(
                 await ReadBoundedAsync(signatureResponse, 4096, timeout.Token).ConfigureAwait(false));
@@ -170,16 +172,8 @@ internal sealed class UpdateClient : IDisposable
             await File.WriteAllTextAsync(Path.Combine(directory, "update-manifest.sig"), offer.Signature,
                 cancellationToken).ConfigureAwait(false);
             if (!installed)
-            {
                 await ExtractExecutableAsync(download, Path.Combine(directory, "WinMon.exe"), offer.Version,
                     cancellationToken).ConfigureAwait(false);
-                await ExtractExecutableAsync(download, Path.Combine(directory, "WinMon.Cli.exe"), offer.Version,
-                    cancellationToken, "WinMon.Cli.exe",
-                    File.Exists(Path.Combine(Path.GetDirectoryName(target)!, "WinMon.Cli.exe"))).ConfigureAwait(false);
-                await ExtractExecutableAsync(download, Path.Combine(directory, "WinMon.Mcp.exe"), offer.Version,
-                    cancellationToken, "WinMon.Mcp.exe",
-                    File.Exists(Path.Combine(Path.GetDirectoryName(target)!, "WinMon.Mcp.exe"))).ConfigureAwait(false);
-            }
             using var process = Process.GetCurrentProcess();
             var job = new UpdateJob(target, process.Id, process.StartTime.ToUniversalTime().Ticks, offer.Version,
                 installed, Guid.NewGuid().ToString("N"));
