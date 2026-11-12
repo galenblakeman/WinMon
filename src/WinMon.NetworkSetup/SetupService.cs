@@ -26,11 +26,13 @@ internal static class SetupService
         {
             NativeService.EnsureOwnedOrAbsent();
             var state = NativeService.CaptureState();
-            if (Directory.Exists(SetupPaths.InstallDirectory)) InstalledFiles.Validate(SetupPaths.InstallDirectory);
+            var complete = true;
+            if (Directory.Exists(SetupPaths.InstallDirectory))
+                InstalledFiles.Validate(SetupPaths.InstallDirectory, true, out complete);
             else if (state.Exists) throw new UnauthorizedAccessException("Missing owned service installation.");
             var registration = SetupRegistration.Capture();
             return operation == "install"
-                ? Install(requesterSid, package, state, registration, lease, token)
+                ? Install(requesterSid, package, state, registration, lease, token, !complete)
                 : Remove(lease);
         }
         catch (OperationCanceledException)
@@ -51,7 +53,8 @@ internal static class SetupService
         using var lease = await AcquireLockAsync(token).ConfigureAwait(false);
         NativeService.EnsureOwnedOrAbsent();
         var state = NativeService.CaptureState();
-        if (Directory.Exists(SetupPaths.InstallDirectory)) InstalledFiles.Validate(SetupPaths.InstallDirectory);
+        if (Directory.Exists(SetupPaths.InstallDirectory))
+            InstalledFiles.Validate(SetupPaths.InstallDirectory, true, out _);
         else if (state.Exists) throw new UnauthorizedAccessException("Missing owned service installation.");
         _ = SetupRegistration.Capture();
         await using var transaction = Remove(null);
@@ -100,12 +103,14 @@ internal static class SetupService
     }
 
     private static SetupTransaction Install(string sid, NetworkSetupPackage package, NativeService.ServiceState state,
-        Dictionary<string, object>? registration, IDisposable lease, CancellationToken token)
+        Dictionary<string, object>? registration, IDisposable lease, CancellationToken token, bool preserveBackup)
     {
         AuthorizationPolicy.ValidateSid(sid);
         if (File.Exists(SetupPaths.ServiceExecutable))
             ValidateUpgrade(FileVersionInfo.GetVersionInfo(SetupPaths.ServiceExecutable).FileVersion,
                 package.Manifest.Version);
+        else if (registration?.GetValueOrDefault("DisplayVersion") is string version)
+            ValidateUpgrade(version, package.Manifest.Version);
         var stage = StagingPath("staging");
         if (Directory.Exists(stage) || File.Exists(stage)) throw new IOException("Staging path already exists.");
         string? backup = null;
@@ -154,7 +159,7 @@ internal static class SetupService
             SetupFailure.At("stop", () => NativeService.StopOwnedIfRunning(token));
             if (Directory.Exists(SetupPaths.InstallDirectory))
             {
-                backup = StagingPath("backup");
+                backup = StagingPath(preserveBackup ? "quarantine" : "backup");
                 SetupFailure.At("swap", () => Directory.Move(SetupPaths.InstallDirectory, backup));
             }
 
@@ -177,7 +182,7 @@ internal static class SetupService
             SetupFailure.At("registration", SetupRegistration.Write);
         }, Rollback, () =>
         {
-            if (backup is not null) DeleteTree(backup);
+            if (backup is not null && !preserveBackup) DeleteTree(backup);
         }, lease);
     }
 
@@ -188,7 +193,11 @@ internal static class SetupService
         {
             NativeService.StopAndDeleteOwned(CancellationToken.None);
             SetupRegistration.Restore(null);
-            if (Directory.Exists(SetupPaths.InstallDirectory)) DeleteInstallation();
+            if (Directory.Exists(SetupPaths.InstallDirectory))
+            {
+                InstalledFiles.Validate(SetupPaths.InstallDirectory, true, out _);
+                RetireInstallation(SetupPaths.InstallDirectory, StagingPath("removed"), DeleteInstallation);
+            }
         }, lease);
     }
 
@@ -273,9 +282,23 @@ internal static class SetupService
             else ((FileInfo)item).Delete();
     }
 
-    private static void DeleteInstallation()
+    internal static void RetireInstallation(string root, string retired, Action<string> cleanup)
     {
-        var tree = InstalledFiles.Validate(SetupPaths.InstallDirectory);
+        // Vacate the canonical path before cleanup can leave a partial inventory behind.
+        Directory.Move(root, retired);
+        try
+        {
+            cleanup(retired);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            Trace.TraceWarning("Network.RemovalCleanupDeferred: {0}", exception);
+        }
+    }
+
+    private static void DeleteInstallation(string root)
+    {
+        var tree = InstalledFiles.Validate(root, true, out _);
         foreach (var item in tree.OrderByDescending(item => item.FullName.Length))
             try
             {
@@ -285,7 +308,7 @@ internal static class SetupService
             catch (IOException) when (string.Equals(Environment.ProcessPath, SetupPaths.InstalledSetupExecutable,
                                           StringComparison.OrdinalIgnoreCase) &&
                                       (item is DirectoryInfo || string.Equals(item.FullName,
-                                          SetupPaths.InstalledSetupExecutable, StringComparison.OrdinalIgnoreCase)))
+                                          Path.Combine(root, SetupPaths.SetupExecutableName), StringComparison.OrdinalIgnoreCase)))
             {
                 if (!MoveFileEx(item.FullName, null, 4)) throw new Win32Exception(Marshal.GetLastWin32Error());
                 RestartRequired = true;

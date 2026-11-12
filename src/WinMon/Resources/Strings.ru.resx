@@ -1924,14 +1924,6 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
 <data name="ShowInUsage" xml:space="preserve"><value>Показать в Использовании</value></data>
   <data name="InstallerCliPathTask" xml:space="preserve"><value>Добавить WinMon.Cli в PATH для этого пользователя</value></data>
   <data name="InstallerCliPathFailed" xml:space="preserve"><value>Не удалось обновить пользовательскую переменную PATH для WinMon.Cli.</value></data>
-  <data name="CaptureConnectionTrafficScope" xml:space="preserve"><value>Скорости пар конечных точек используют окно наблюдаемых событий. Итоги начинаются с каждой базы мониторинга; записи UDP представляют потоки.</value></data>
-  <data name="CaptureConnectionTrafficUnavailable" xml:space="preserve"><value>Эта служба мониторинга сети не предоставляет трафик для отдельных подключений.</value></data>
-  <data name="CaptureConnectionTrafficWindow" xml:space="preserve"><value>Окно трафика: {0:0.0} с; завершилось за {1:0.0} с до этого наблюдения.</value></data>
-  <data name="CaptureFlowIncomplete" xml:space="preserve"><value>Трафик конечных точек неполон; итоги приложений могут оставаться доступными.</value></data>
-  <data name="CaptureObservedFlowMissingEndpoint" xml:space="preserve"><value>Наблюдаемый трафик; конечная точка отсутствует в выбранной таблице</value></data>
-  <data name="CaptureReportConnectionCount" xml:space="preserve"><value>Первые {0}; включено {1} из {2} доступных групп приложений/процессов (пропущено {3}); строк конечных точек/потоков: {4}.</value></data>
-  <data name="CaptureReportExtraTrigger" xml:space="preserve"><value>Процесс, вызвавший захват, включён дополнительно к выбранным строкам.</value></data>
-  <data name="CaptureReportProcessCount" xml:space="preserve"><value>Первые {0}; показано строк: {1}.</value></data>
   <data name="InstallerMcpCodexTask" xml:space="preserve"><value>Зарегистрировать WinMon MCP в Codex для этого пользователя</value></data>
   <data name="InstallerMcpClaudeTask" xml:space="preserve"><value>Зарегистрировать WinMon MCP в Claude Code для этого пользователя</value></data>
   <data name="InstallerMcpRegistrationFailed" xml:space="preserve"><value>WinMon MCP установлен, но регистрация в {0} не завершена. Инструкции по ручной настройке см. в журнале установщика.</value></data>
@@ -1941,7 +1933,15 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
   <data name="InstallerDesktopDirectoryConflict" xml:space="preserve"><value>Выберите папку, не принадлежащую WinMon CLI или MCP.</value></data>
   <data name="InstallerDowngradeBlocked" xml:space="preserve"><value>Установлена более новая версия. Используйте установщик той же или более новой версии.</value></data>
   <data name="InstallerMcpRegistrationHelp" xml:space="preserve"><value>Выбранные клиенты могут запускать сервер только для чтения и получать локальные диагностические данные.</value></data>
+  <data name="CaptureConnectionTrafficUnavailable" xml:space="preserve"><value>Эта служба мониторинга сети не предоставляет трафик для отдельных подключений.</value></data>
+  <data name="CaptureConnectionTrafficScope" xml:space="preserve"><value>Скорости пар конечных точек используют окно наблюдаемых событий. Итоги начинаются с каждой базы мониторинга; записи UDP представляют потоки.</value></data>
+  <data name="CaptureConnectionTrafficWindow" xml:space="preserve"><value>Окно трафика: {0:0.0} с; завершилось за {1:0.0} с до этого наблюдения.</value></data>
+  <data name="CaptureObservedFlowMissingEndpoint" xml:space="preserve"><value>Наблюдаемый трафик; конечная точка отсутствует в выбранной таблице</value></data>
+  <data name="CaptureReportProcessCount" xml:space="preserve"><value>Первые {0}; показано строк: {1}.</value></data>
   <data name="InstallerMcpCleanupSkipped" xml:space="preserve"><value>Регистрация в {0} оставлена без изменений. Проверьте её командой «{0} mcp get winmon» и удалите записи, указывающие на удалённый исполняемый файл.</value></data>
+  <data name="CaptureReportConnectionCount" xml:space="preserve"><value>Первые {0}; включено {1} из {2} доступных групп приложений/процессов (пропущено {3}); строк конечных точек/потоков: {4}.</value></data>
+  <data name="CaptureReportExtraTrigger" xml:space="preserve"><value>Процесс, вызвавший захват, включён дополнительно к выбранным строкам.</value></data>
+  <data name="CaptureFlowIncomplete" xml:space="preserve"><value>Трафик конечных точек неполон; итоги приложений могут оставаться доступными.</value></data>
   <data name="ToolUpdateHelp" xml:space="preserve"><value>Проверить и установить обновления.</value></data>
   <data name="ToolUpdateCheckHelp" xml:space="preserve"><value>Проверить наличие новой версии, не изменяя эту установку.</value></data>
   <data name="ToolUpdateInstallHelp" xml:space="preserve"><value>Скачать и запустить последний установщик этого продукта.</value></data>

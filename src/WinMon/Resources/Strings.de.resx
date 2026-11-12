@@ -1924,14 +1924,6 @@ Q beendet. Ctrl+C bricht ab. Programm- und Dienst-Pins bleiben gespeichert.</val
 <data name="ShowInUsage" xml:space="preserve"><value>In Nutzung anzeigen</value></data>
   <data name="InstallerCliPathTask" xml:space="preserve"><value>WinMon.Cli für diesen Benutzer zu PATH hinzufügen</value></data>
   <data name="InstallerCliPathFailed" xml:space="preserve"><value>Der Benutzer-PATH für WinMon.Cli konnte nicht aktualisiert werden.</value></data>
-  <data name="CaptureConnectionTrafficScope" xml:space="preserve"><value>Endpunktpaarraten verwenden das beobachtete Ereigniszeitfenster. Gesamtwerte beginnen an der jeweiligen Überwachungsbasis; UDP-Einträge sind Datenflüsse.</value></data>
-  <data name="CaptureConnectionTrafficUnavailable" xml:space="preserve"><value>Der Netzwerküberwachungsdienst stellt keinen Datenverkehr pro Verbindung bereit.</value></data>
-  <data name="CaptureConnectionTrafficWindow" xml:space="preserve"><value>Datenverkehrsfenster: {0:0.0} s; endete {1:0.0} s vor dieser Beobachtung.</value></data>
-  <data name="CaptureFlowIncomplete" xml:space="preserve"><value>Der Endpunktdatenverkehr ist unvollständig; App-Gesamtwerte können weiterhin verfügbar sein.</value></data>
-  <data name="CaptureObservedFlowMissingEndpoint" xml:space="preserve"><value>Beobachteter Datenverkehr; Endpunkt nicht in der abgetasteten Tabelle</value></data>
-  <data name="CaptureReportConnectionCount" xml:space="preserve"><value>Top {0}; {1} von {2} verfügbaren App-/Prozessgruppen enthalten ({3} ausgelassen); {4} Endpunkt-/Datenflusszeilen.</value></data>
-  <data name="CaptureReportExtraTrigger" xml:space="preserve"><value>Der auslösende Prozess ist zusätzlich zu den ausgewählten Top-Zeilen enthalten.</value></data>
-  <data name="CaptureReportProcessCount" xml:space="preserve"><value>Top {0}; {1} Zeilen angezeigt.</value></data>
   <data name="InstallerMcpCodexTask" xml:space="preserve"><value>WinMon MCP für diesen Benutzer bei Codex registrieren</value></data>
   <data name="InstallerMcpClaudeTask" xml:space="preserve"><value>WinMon MCP für diesen Benutzer bei Claude Code registrieren</value></data>
   <data name="InstallerMcpRegistrationFailed" xml:space="preserve"><value>WinMon MCP wurde installiert, aber die Registrierung bei {0} wurde nicht abgeschlossen. Hinweise zur manuellen Einrichtung finden Sie im Installationsprotokoll.</value></data>
@@ -1941,7 +1933,15 @@ Q beendet. Ctrl+C bricht ab. Programm- und Dienst-Pins bleiben gespeichert.</val
   <data name="InstallerDesktopDirectoryConflict" xml:space="preserve"><value>Wählen Sie ein Verzeichnis, das weder WinMon CLI noch MCP gehört.</value></data>
   <data name="InstallerDowngradeBlocked" xml:space="preserve"><value>Eine neuere Version ist installiert. Verwenden Sie dasselbe oder ein neueres Installationsprogramm.</value></data>
   <data name="InstallerMcpRegistrationHelp" xml:space="preserve"><value>Ausgewählte Clients können den schreibgeschützten Server starten und lokale Diagnosedaten empfangen.</value></data>
+  <data name="CaptureConnectionTrafficUnavailable" xml:space="preserve"><value>Der Netzwerküberwachungsdienst stellt keinen Datenverkehr pro Verbindung bereit.</value></data>
+  <data name="CaptureConnectionTrafficScope" xml:space="preserve"><value>Endpunktpaarraten verwenden das beobachtete Ereigniszeitfenster. Gesamtwerte beginnen an der jeweiligen Überwachungsbasis; UDP-Einträge sind Datenflüsse.</value></data>
+  <data name="CaptureConnectionTrafficWindow" xml:space="preserve"><value>Datenverkehrsfenster: {0:0.0} s; endete {1:0.0} s vor dieser Beobachtung.</value></data>
+  <data name="CaptureObservedFlowMissingEndpoint" xml:space="preserve"><value>Beobachteter Datenverkehr; Endpunkt nicht in der abgetasteten Tabelle</value></data>
+  <data name="CaptureReportProcessCount" xml:space="preserve"><value>Top {0}; {1} Zeilen angezeigt.</value></data>
   <data name="InstallerMcpCleanupSkipped" xml:space="preserve"><value>Die Registrierung bei {0} wurde unverändert belassen. Prüfen Sie sie mit „{0} mcp get winmon“ und entfernen Sie Einträge, die auf die entfernte Programmdatei verweisen.</value></data>
+  <data name="CaptureReportConnectionCount" xml:space="preserve"><value>Top {0}; {1} von {2} verfügbaren App-/Prozessgruppen enthalten ({3} ausgelassen); {4} Endpunkt-/Datenflusszeilen.</value></data>
+  <data name="CaptureReportExtraTrigger" xml:space="preserve"><value>Der auslösende Prozess ist zusätzlich zu den ausgewählten Top-Zeilen enthalten.</value></data>
+  <data name="CaptureFlowIncomplete" xml:space="preserve"><value>Der Endpunktdatenverkehr ist unvollständig; App-Gesamtwerte können weiterhin verfügbar sein.</value></data>
   <data name="ToolUpdateHelp" xml:space="preserve"><value>Nach Updates suchen und sie installieren.</value></data>
   <data name="ToolUpdateCheckHelp" xml:space="preserve"><value>Nach einer neueren Version suchen, ohne diese Installation zu ändern.</value></data>
   <data name="ToolUpdateInstallHelp" xml:space="preserve"><value>Das neueste Installationsprogramm für dieses Produkt herunterladen und starten.</value></data>

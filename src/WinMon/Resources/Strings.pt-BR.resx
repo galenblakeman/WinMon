@@ -1924,14 +1924,6 @@ Q sai. Ctrl+C cancela. Programas e serviços fixados persistem entre sessões.</
 <data name="ShowInUsage" xml:space="preserve"><value>Mostrar em Uso</value></data>
   <data name="InstallerCliPathTask" xml:space="preserve"><value>Adicionar WinMon.Cli ao PATH deste usuário</value></data>
   <data name="InstallerCliPathFailed" xml:space="preserve"><value>Não foi possível atualizar o PATH do usuário para WinMon.Cli.</value></data>
-  <data name="CaptureConnectionTrafficScope" xml:space="preserve"><value>As taxas por par de pontos de extremidade usam a janela dos eventos observados. Os totais começam em cada referência de monitoramento; entradas UDP são fluxos.</value></data>
-  <data name="CaptureConnectionTrafficUnavailable" xml:space="preserve"><value>Este serviço de monitoramento de rede não fornece tráfego por conexão.</value></data>
-  <data name="CaptureConnectionTrafficWindow" xml:space="preserve"><value>Janela de tráfego: {0:0.0} s; terminou {1:0.0} s antes desta observação.</value></data>
-  <data name="CaptureFlowIncomplete" xml:space="preserve"><value>O tráfego por ponto de extremidade está incompleto; os totais dos aplicativos ainda podem estar disponíveis.</value></data>
-  <data name="CaptureObservedFlowMissingEndpoint" xml:space="preserve"><value>Tráfego observado; ponto de extremidade não está na tabela amostrada</value></data>
-  <data name="CaptureReportConnectionCount" xml:space="preserve"><value>Primeiros {0}; incluídos {1} de {2} grupos de aplicativos/processos elegíveis ({3} omitidos); {4} linhas de pontos de extremidade/fluxos.</value></data>
-  <data name="CaptureReportExtraTrigger" xml:space="preserve"><value>O processo que acionou a captura é incluído além das linhas selecionadas.</value></data>
-  <data name="CaptureReportProcessCount" xml:space="preserve"><value>Primeiros {0}; {1} linhas exibidas.</value></data>
   <data name="InstallerMcpCodexTask" xml:space="preserve"><value>Registrar o WinMon MCP no Codex para este usuário</value></data>
   <data name="InstallerMcpClaudeTask" xml:space="preserve"><value>Registrar o WinMon MCP no Claude Code para este usuário</value></data>
   <data name="InstallerMcpRegistrationFailed" xml:space="preserve"><value>O WinMon MCP foi instalado, mas o registro no {0} não foi concluído. Consulte o log do instalador para configurar manualmente.</value></data>
@@ -1941,7 +1933,15 @@ Q sai. Ctrl+C cancela. Programas e serviços fixados persistem entre sessões.</
   <data name="InstallerDesktopDirectoryConflict" xml:space="preserve"><value>Escolha uma pasta que não pertença ao WinMon CLI nem ao MCP.</value></data>
   <data name="InstallerDowngradeBlocked" xml:space="preserve"><value>Uma versão mais recente está instalada. Use o instalador da mesma versão ou de uma versão mais recente.</value></data>
   <data name="InstallerMcpRegistrationHelp" xml:space="preserve"><value>Os clientes selecionados podem iniciar o servidor somente leitura e receber dados de diagnóstico locais.</value></data>
-  <data name="InstallerMcpCleanupSkipped" xml:space="preserve"><value>O registro no {0} não foi alterado. Verifique com '{0} mcp get winmon' e remova entradas que apontem para o executável removido.</value></data>
+  <data name="CaptureConnectionTrafficUnavailable" xml:space="preserve"><value>Este serviço de monitoramento de rede não fornece tráfego por conexão.</value></data>
+  <data name="CaptureConnectionTrafficScope" xml:space="preserve"><value>As taxas por par de pontos de extremidade usam a janela dos eventos observados. Os totais começam em cada referência de monitoramento; entradas UDP são fluxos.</value></data>
+  <data name="CaptureConnectionTrafficWindow" xml:space="preserve"><value>Janela de tráfego: {0:0.0} s; terminou {1:0.0} s antes desta observação.</value></data>
+  <data name="CaptureObservedFlowMissingEndpoint" xml:space="preserve"><value>Tráfego observado; ponto de extremidade não está na tabela amostrada</value></data>
+  <data name="CaptureReportProcessCount" xml:space="preserve"><value>Primeiros {0}; {1} linhas exibidas.</value></data>
+  <data name="InstallerMcpCleanupSkipped" xml:space="preserve"><value>O registro no {0} não foi alterado. Verifique com &apos;{0} mcp get winmon&apos; e remova entradas que apontem para o executável removido.</value></data>
+  <data name="CaptureReportConnectionCount" xml:space="preserve"><value>Primeiros {0}; incluídos {1} de {2} grupos de aplicativos/processos elegíveis ({3} omitidos); {4} linhas de pontos de extremidade/fluxos.</value></data>
+  <data name="CaptureReportExtraTrigger" xml:space="preserve"><value>O processo que acionou a captura é incluído além das linhas selecionadas.</value></data>
+  <data name="CaptureFlowIncomplete" xml:space="preserve"><value>O tráfego por ponto de extremidade está incompleto; os totais dos aplicativos ainda podem estar disponíveis.</value></data>
   <data name="ToolUpdateHelp" xml:space="preserve"><value>Verificar e instalar atualizações.</value></data>
   <data name="ToolUpdateCheckHelp" xml:space="preserve"><value>Verificar uma versão mais recente sem alterar esta instalação.</value></data>
   <data name="ToolUpdateInstallHelp" xml:space="preserve"><value>Baixar e iniciar o instalador mais recente deste produto.</value></data>

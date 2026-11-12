@@ -1924,14 +1924,6 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
 <data name="ShowInUsage" xml:space="preserve"><value>使用状況で表示</value></data>
   <data name="InstallerCliPathTask" xml:space="preserve"><value>このユーザーの PATH に WinMon.Cli を追加する</value></data>
   <data name="InstallerCliPathFailed" xml:space="preserve"><value>WinMon.Cli のユーザー PATH を更新できませんでした。</value></data>
-  <data name="CaptureConnectionTrafficScope" xml:space="preserve"><value>エンドポイントペアのレートは観測されたイベント時間枠を使用します。合計値は各監視の基準時点から始まり、UDP エントリはフローを表します。</value></data>
-  <data name="CaptureConnectionTrafficUnavailable" xml:space="preserve"><value>このネットワーク監視サービスでは接続ごとのトラフィックを利用できません。</value></data>
-  <data name="CaptureConnectionTrafficWindow" xml:space="preserve"><value>トラフィック ウィンドウ: {0:0.0} 秒。この観測の {1:0.0} 秒前に終了しました。</value></data>
-  <data name="CaptureFlowIncomplete" xml:space="preserve"><value>エンドポイントのトラフィックは不完全です。アプリの合計値は利用できる場合があります。</value></data>
-  <data name="CaptureObservedFlowMissingEndpoint" xml:space="preserve"><value>観測されたトラフィック。エンドポイントがサンプリング済みテーブルにありません</value></data>
-  <data name="CaptureReportConnectionCount" xml:space="preserve"><value>上位 {0} 件：対象のアプリ/プロセスグループ {2} 件中 {1} 件を含む（{3} 件省略）、エンドポイント/フロー {4} 行。</value></data>
-  <data name="CaptureReportExtraTrigger" xml:space="preserve"><value>上位の選択行に加えて、トリガーとなったプロセスを含みます。</value></data>
-  <data name="CaptureReportProcessCount" xml:space="preserve"><value>上位 {0}、表示行数 {1}。</value></data>
   <data name="InstallerMcpCodexTask" xml:space="preserve"><value>このユーザーの Codex に WinMon MCP を登録する</value></data>
   <data name="InstallerMcpClaudeTask" xml:space="preserve"><value>このユーザーの Claude Code に WinMon MCP を登録する</value></data>
   <data name="InstallerMcpRegistrationFailed" xml:space="preserve"><value>WinMon MCP はインストールされましたが、{0} への登録は完了しませんでした。手動設定についてはインストーラーログを参照してください。</value></data>
@@ -1941,7 +1933,15 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
   <data name="InstallerDesktopDirectoryConflict" xml:space="preserve"><value>WinMon CLI または MCP が所有していないフォルダーを選択してください。</value></data>
   <data name="InstallerDowngradeBlocked" xml:space="preserve"><value>新しいバージョンがインストールされています。同じか新しいバージョンのインストーラーを使用してください。</value></data>
   <data name="InstallerMcpRegistrationHelp" xml:space="preserve"><value>選択したクライアントは読み取り専用サーバーを起動し、ローカル診断データを受信できます。</value></data>
+  <data name="CaptureConnectionTrafficUnavailable" xml:space="preserve"><value>このネットワーク監視サービスでは接続ごとのトラフィックを利用できません。</value></data>
+  <data name="CaptureConnectionTrafficScope" xml:space="preserve"><value>エンドポイントペアのレートは観測されたイベント時間枠を使用します。合計値は各監視の基準時点から始まり、UDP エントリはフローを表します。</value></data>
+  <data name="CaptureConnectionTrafficWindow" xml:space="preserve"><value>トラフィック ウィンドウ: {0:0.0} 秒。この観測の {1:0.0} 秒前に終了しました。</value></data>
+  <data name="CaptureObservedFlowMissingEndpoint" xml:space="preserve"><value>観測されたトラフィック。エンドポイントがサンプリング済みテーブルにありません</value></data>
+  <data name="CaptureReportProcessCount" xml:space="preserve"><value>上位 {0}、表示行数 {1}。</value></data>
   <data name="InstallerMcpCleanupSkipped" xml:space="preserve"><value>{0} の登録は変更されませんでした。「{0} mcp get winmon」で確認し、削除された実行ファイルを指すエントリを削除してください。</value></data>
+  <data name="CaptureReportConnectionCount" xml:space="preserve"><value>上位 {0} 件：対象のアプリ/プロセスグループ {2} 件中 {1} 件を含む（{3} 件省略）、エンドポイント/フロー {4} 行。</value></data>
+  <data name="CaptureReportExtraTrigger" xml:space="preserve"><value>上位の選択行に加えて、トリガーとなったプロセスを含みます。</value></data>
+  <data name="CaptureFlowIncomplete" xml:space="preserve"><value>エンドポイントのトラフィックは不完全です。アプリの合計値は利用できる場合があります。</value></data>
   <data name="ToolUpdateHelp" xml:space="preserve"><value>更新を確認してインストールします。</value></data>
   <data name="ToolUpdateCheckHelp" xml:space="preserve"><value>このインストールを変更せずに新しいリリースを確認します。</value></data>
   <data name="ToolUpdateInstallHelp" xml:space="preserve"><value>この製品の最新インストーラーをダウンロードして起動します。</value></data>

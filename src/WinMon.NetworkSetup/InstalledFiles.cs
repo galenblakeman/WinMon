@@ -21,16 +21,31 @@ internal static class InstalledFiles
 
     internal static IReadOnlyList<FileSystemInfo> Validate(string root)
     {
+        return Validate(root, false, out _);
+    }
+
+    internal static IReadOnlyList<FileSystemInfo> Validate(string root, bool allowMissing, out bool complete)
+    {
         var tree = ProtectedInstallation.Tree(root);
         var path = Path.Combine(root, FileName);
         using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
         if (stream.Length is <= 0 or > 64 * 1024) throw new InvalidDataException("Invalid installed file list.");
         var manifest = JsonSerializer.Deserialize(stream, InstallationJsonContext.Default.InstalledFileList)
                        ?? throw new InvalidDataException("Missing installed file list.");
+        complete = ValidateContents(manifest,
+            tree.OfType<FileInfo>().Select(file => Path.GetRelativePath(root, file.FullName)),
+            tree.OfType<DirectoryInfo>().Select(directory => Path.GetRelativePath(root, directory.FullName)),
+            allowMissing);
+        return tree;
+    }
+
+    internal static bool ValidateContents(InstalledFileList manifest, IEnumerable<string> files,
+        IEnumerable<string> directoryNames, bool allowMissing)
+    {
         var expected = ValidateList(manifest);
-        var actual = tree.OfType<FileInfo>().Select(file => Path.GetRelativePath(root, file.FullName))
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-        if (!actual.SetEquals(expected))
+        var actual = files.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var complete = actual.SetEquals(expected);
+        if (!actual.Contains(FileName) || !actual.IsSubsetOf(expected) || (!allowMissing && !complete))
             throw new InvalidDataException("Installation contains missing or unrelated files.");
         var directories = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "." };
         foreach (var file in expected)
@@ -38,10 +53,9 @@ internal static class InstalledFiles
                  !string.IsNullOrEmpty(parent);
                  parent = Path.GetDirectoryName(parent))
                 directories.Add(parent);
-        if (tree.OfType<DirectoryInfo>()
-            .Any(directory => !directories.Contains(Path.GetRelativePath(root, directory.FullName))))
+        if (directoryNames.Any(directory => !directories.Contains(directory)))
             throw new InvalidDataException("Installation contains unrelated directories.");
-        return tree;
+        return complete;
     }
 
     internal static HashSet<string> ValidateList(InstalledFileList manifest)

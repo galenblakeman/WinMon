@@ -1924,14 +1924,6 @@ Q quits. Ctrl+C cancels. Executable/service pins persist between sessions.</valu
 <data name="ShowInUsage" xml:space="preserve"><value>Show in Usage</value></data>
   <data name="InstallerCliPathTask" xml:space="preserve"><value>Add WinMon.Cli to PATH for this user</value></data>
   <data name="InstallerCliPathFailed" xml:space="preserve"><value>Could not update the user PATH for WinMon.Cli.</value></data>
-  <data name="CaptureConnectionTrafficScope" xml:space="preserve"><value>Endpoint-pair rates use the observed event-time window. Totals begin at each monitoring baseline; UDP entries are flows.</value></data>
-  <data name="CaptureConnectionTrafficUnavailable" xml:space="preserve"><value>Per-connection traffic is unavailable from this network-monitor service.</value></data>
-  <data name="CaptureConnectionTrafficWindow" xml:space="preserve"><value>Traffic window: {0:0.0} s; ended {1:0.0} s before this observation.</value></data>
-  <data name="CaptureFlowIncomplete" xml:space="preserve"><value>Endpoint traffic is incomplete; app totals may still be available.</value></data>
-  <data name="CaptureObservedFlowMissingEndpoint" xml:space="preserve"><value>Observed traffic; endpoint not in sampled table</value></data>
-  <data name="CaptureReportConnectionCount" xml:space="preserve"><value>Top {0}; {1} of {2} eligible app/process groups included ({3} omitted); {4} endpoint/flow rows.</value></data>
-  <data name="CaptureReportExtraTrigger" xml:space="preserve"><value>Triggering process included in addition to the selected Top rows.</value></data>
-  <data name="CaptureReportProcessCount" xml:space="preserve"><value>Top {0}; {1} rows shown.</value></data>
   <data name="InstallerMcpCodexTask" xml:space="preserve"><value>Register WinMon MCP with Codex for this user</value></data>
   <data name="InstallerMcpClaudeTask" xml:space="preserve"><value>Register WinMon MCP with Claude Code for this user</value></data>
   <data name="InstallerMcpRegistrationFailed" xml:space="preserve"><value>WinMon MCP was installed, but registration with {0} did not complete. See the installer log for manual setup.</value></data>
@@ -1941,7 +1933,15 @@ Q quits. Ctrl+C cancels. Executable/service pins persist between sessions.</valu
   <data name="InstallerDesktopDirectoryConflict" xml:space="preserve"><value>Choose a directory that is not owned by WinMon CLI or MCP.</value></data>
   <data name="InstallerDowngradeBlocked" xml:space="preserve"><value>A newer version is installed. Use the same or a newer installer.</value></data>
   <data name="InstallerMcpRegistrationHelp" xml:space="preserve"><value>Selected clients can launch the read-only server and receive local diagnostic data.</value></data>
-  <data name="InstallerMcpCleanupSkipped" xml:space="preserve"><value>Registration with {0} was left unchanged. Inspect it with '{0} mcp get winmon' and remove any entry pointing to the removed executable.</value></data>
+  <data name="CaptureConnectionTrafficUnavailable" xml:space="preserve"><value>Per-connection traffic is unavailable from this network-monitor service.</value></data>
+  <data name="CaptureConnectionTrafficScope" xml:space="preserve"><value>Endpoint-pair rates use the observed event-time window. Totals begin at each monitoring baseline; UDP entries are flows.</value></data>
+  <data name="CaptureConnectionTrafficWindow" xml:space="preserve"><value>Traffic window: {0:0.0} s; ended {1:0.0} s before this observation.</value></data>
+  <data name="CaptureObservedFlowMissingEndpoint" xml:space="preserve"><value>Observed traffic; endpoint not in sampled table</value></data>
+  <data name="CaptureReportProcessCount" xml:space="preserve"><value>Top {0}; {1} rows shown.</value></data>
+  <data name="InstallerMcpCleanupSkipped" xml:space="preserve"><value>Registration with {0} was left unchanged. Inspect it with &apos;{0} mcp get winmon&apos; and remove any entry pointing to the removed executable.</value></data>
+  <data name="CaptureReportConnectionCount" xml:space="preserve"><value>Top {0}; {1} of {2} eligible app/process groups included ({3} omitted); {4} endpoint/flow rows.</value></data>
+  <data name="CaptureReportExtraTrigger" xml:space="preserve"><value>Triggering process included in addition to the selected Top rows.</value></data>
+  <data name="CaptureFlowIncomplete" xml:space="preserve"><value>Endpoint traffic is incomplete; app totals may still be available.</value></data>
   <data name="ToolUpdateHelp" xml:space="preserve"><value>Check for and install updates.</value></data>
   <data name="ToolUpdateCheckHelp" xml:space="preserve"><value>Check for a newer release without changing this installation.</value></data>
   <data name="ToolUpdateInstallHelp" xml:space="preserve"><value>Download and launch the latest installer for this product.</value></data>
