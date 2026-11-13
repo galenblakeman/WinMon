@@ -150,4 +150,115 @@ public sealed class UsageArchiveTests
         }
         finally { File.Delete(path); }
     }
+
+    [TestCase(0)]
+    [TestCase(-1)]
+    [TestCase(60.001)]
+    [TestCase(double.NaN)]
+    [TestCase(double.PositiveInfinity)]
+    public void InvalidIntervalsDoNotChangeRecordedUsage(double seconds)
+    {
+        var archive = new UsageArchive(TimeZoneInfo.Utc);
+        var end = DateTimeOffset.Parse("2026-11-12T12:00:00Z");
+        archive.Add(Sample(end));
+        var original = System.Text.Json.JsonSerializer.Serialize(archive.Export());
+
+        archive.Add(Sample(end.AddSeconds(1)) with { IntervalSeconds = seconds });
+
+        Assert.That(System.Text.Json.JsonSerializer.Serialize(archive.Export()), Is.EqualTo(original));
+    }
+
+    [TestCase("duplicate days")]
+    [TestCase("too many days")]
+    [TestCase("negative observed time")]
+    [TestCase("infinite observed time")]
+    [TestCase("negative machine ticks")]
+    [TestCase("nonfinite attributed ticks")]
+    [TestCase("duplicate app keys")]
+    [TestCase("foreign identity policy")]
+    [TestCase("invalid lifetime app")]
+    [TestCase("negative lifetime absences")]
+    [TestCase("negative io")]
+    [TestCase("overlong app key")]
+    public async Task InvalidSavedStateCannotReplaceExistingData(string corruption)
+    {
+        var archive = new UsageArchive(TimeZoneInfo.Utc);
+        archive.Add(Sample(DateTimeOffset.Parse("2026-11-12T12:00:00Z")));
+        var state = archive.Export();
+        var day = state.Days.Single();
+        var totals = day.Totals;
+        var app = totals.Apps.Single();
+        var invalid = corruption switch
+        {
+            "duplicate days" => state with { Days = [day, day] },
+            "too many days" => state with { Days = Enumerable.Range(0, UsageArchive.RetainedDays + 1)
+                .Select(i => day with { Day = day.Day.AddDays(-i) }).ToArray() },
+            "negative observed time" => state with { Days = [day with { ObservedSeconds = -1 }] },
+            "infinite observed time" => state with { Days = [day with { ObservedSeconds = double.PositiveInfinity }] },
+            "negative machine ticks" => state with { Days = [day with { Totals = totals with { MachineBusyTicks = -1 } }] },
+            "nonfinite attributed ticks" => state with { Days = [day with { Totals = totals with { AttributedTicks = double.NaN } }] },
+            "duplicate app keys" => state with { Days = [day with { Totals = totals with
+                { Apps = [app, app with { Key = app.Key.ToUpperInvariant() }] } }] },
+            "foreign identity policy" => state with { Days = [day with { Totals = totals with { IdentityPolicyId = "foreign" } }] },
+            "invalid lifetime app" => state with { Days = [day with { Totals = totals with
+                { Lifetimes = [totals.Lifetimes.Single() with { App = totals.Apps.Count }] } }] },
+            "negative lifetime absences" => state with { Days = [day with { Totals = totals with
+                { Lifetimes = [totals.Lifetimes.Single() with { Absences = -1 }] } }] },
+            "negative io" => state with { Days = [day with { Totals = totals with { Apps = [app with { IoBytes = -1 }] } }] },
+            "overlong app key" => state with { Days = [day with { Totals = totals with { Apps = [app with { Key = new string('x', 4097) }] } }] },
+            _ => throw new ArgumentOutOfRangeException(nameof(corruption))
+        };
+        var folder = Path.Combine(TestContext.CurrentContext.WorkDirectory, "usage-invalid-" + Guid.NewGuid().ToString("N"));
+        var path = Path.Combine(folder, "usage.json");
+        try
+        {
+            await UsageArchive.SaveAsync(path, state);
+            var original = await File.ReadAllBytesAsync(path);
+
+            Assert.Throws<InvalidDataException>(() => UsageArchive.Restore(invalid));
+            Assert.ThrowsAsync<InvalidDataException>(async () => await UsageArchive.SaveAsync(path, invalid));
+            Assert.That(await File.ReadAllBytesAsync(path), Is.EqualTo(original));
+            Assert.That(Directory.GetFiles(folder, "*.tmp"), Is.Empty);
+        }
+        finally { if (Directory.Exists(folder)) Directory.Delete(folder, true); }
+    }
+
+    [Test]
+    public async Task CancelledSavePreservesExistingArchiveAndRemovesTemporaryFiles()
+    {
+        var folder = Path.Combine(TestContext.CurrentContext.WorkDirectory, "usage-cancel-" + Guid.NewGuid().ToString("N"));
+        var path = Path.Combine(folder, "usage.json");
+        var archive = new UsageArchive(TimeZoneInfo.Utc);
+        var end = DateTimeOffset.Parse("2026-11-12T12:00:00Z");
+        archive.Add(Sample(end));
+        try
+        {
+            await UsageArchive.SaveAsync(path, archive.Export());
+            var original = await File.ReadAllBytesAsync(path);
+            archive.Add(Sample(end.AddSeconds(2)));
+            using var cancellation = new CancellationTokenSource();
+            cancellation.Cancel();
+
+            Assert.CatchAsync<OperationCanceledException>(async () => await UsageArchive.SaveAsync(path, archive.Export(), cancellation.Token));
+
+            Assert.That(await File.ReadAllBytesAsync(path), Is.EqualTo(original));
+            Assert.That(Directory.GetFiles(folder, "*.tmp"), Is.Empty);
+            Assert.That((await UsageArchive.LoadAsync(path)).Query(new DateOnly(2026, 11, 12), new DateOnly(2026, 11, 12)).ObservedSeconds,
+                Is.EqualTo(2));
+        }
+        finally { if (Directory.Exists(folder)) Directory.Delete(folder, true); }
+    }
+
+    [Test]
+    public async Task LoadRejectsOversizedFilesBeforeDeserialization()
+    {
+        var path = Path.Combine(TestContext.CurrentContext.WorkDirectory, "usage-large-" + Guid.NewGuid().ToString("N") + ".json");
+        try
+        {
+            await using (var stream = File.Create(path)) stream.SetLength(UsageArchive.MaximumFileBytes + 1);
+            Assert.ThrowsAsync<InvalidDataException>(async () => await UsageArchive.LoadAsync(path));
+            Assert.That(new FileInfo(path).Length, Is.EqualTo(UsageArchive.MaximumFileBytes + 1));
+        }
+        finally { File.Delete(path); }
+    }
 }

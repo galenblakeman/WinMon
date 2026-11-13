@@ -47,4 +47,81 @@ public sealed class ScopedCaptureRulesTests
         Assert.That(rules.Observe(sample, network: valid with { Quality = ProcessNetworkQuality.Incomplete }), Is.Empty);
         Assert.That(rules.Observe(sample, network: valid).Single().PeakValue, Is.EqualTo(8));
     }
+
+    [TestCase(CaptureMetric.ApplicationCpu)]
+    [TestCase(CaptureMetric.ApplicationMemory)]
+    public void MissingMemberReadingBreaksTheWholeApplicationRun(CaptureMetric metric)
+    {
+        var rules = new CaptureRules([new CaptureRuleSetting(metric, true, 10, 2) { Target = "worker" }], TimeSpan.Zero, 4);
+        var first = Process(1, 1, "worker");
+        var second = Process(2, 2, "worker");
+        var missing = metric == CaptureMetric.ApplicationCpu
+            ? second with { CpuAvailable = false }
+            : second with { PrivateBytes = null };
+
+        Assert.That(rules.Observe(Frame(1, first, second)), Is.Empty);
+        Assert.That(rules.Observe(Frame(2, first, missing)), Is.Empty);
+        Assert.That(rules.Observe(Frame(3, first, second)), Is.Empty);
+        Assert.That(rules.Observe(Frame(4, first, second)).Single().Run,
+            Is.EqualTo(metric == CaptureMetric.ApplicationCpu ? new[] { 160d, 160d } : new[] { 1200d, 1200d }));
+    }
+
+    [Test]
+    public void FullPathTargetDoesNotIncludeOtherExecutablesWithTheSameName()
+    {
+        var rules = new CaptureRules([new CaptureRuleSetting(CaptureMetric.ApplicationCpu, true, 90, 2)
+            { Target = @"C:\apps\WORKER.exe" }], TimeSpan.Zero, 4);
+        var wanted = Process(1, 1, "worker");
+        var other = Process(2, 2, "worker") with { ImagePath = @"C:\other\worker.exe", CpuPercent = 99 };
+
+        Assert.That(rules.Observe(Frame(1, wanted, other)), Is.Empty);
+        Assert.That(rules.Observe(Frame(2, wanted, other)), Is.Empty, "Only the selected path contributes 80% of one core.");
+        Assert.That(rules.Observe(Frame(3, wanted with { CpuPercent = 25 }, other)), Is.Empty);
+        Assert.That(rules.Observe(Frame(4, wanted with { CpuPercent = 25 }, other)).Single().PeakValue, Is.EqualTo(100));
+    }
+
+    [TestCase(ProcessNetworkQuality.WarmingUp)]
+    [TestCase(ProcessNetworkQuality.Incomplete)]
+    [TestCase(ProcessNetworkQuality.CapacityExceeded)]
+    [TestCase(ProcessNetworkQuality.Unavailable)]
+    [TestCase(ProcessNetworkQuality.Discontinuity)]
+    public void UnreliableTrafficBreaksTheRunAndProvisionalTrafficCanStartAFreshOne(ProcessNetworkQuality quality)
+    {
+        var rules = new CaptureRules([new CaptureRuleSetting(CaptureMetric.ApplicationNetwork, true, 1, 2)
+            { Target = "worker" }], TimeSpan.Zero, 4);
+        var process = Process(1, 1, "worker");
+        var network = new ProcessNetworkFrame(1, 1, ProcessNetworkQuality.Provisional,
+            [new ProcessNetworkReading(1, 1, 0, 0, 1_000_000, 0)]);
+
+        Assert.That(rules.Observe(Frame(1, process), network: network), Is.Empty);
+        Assert.That(rules.Observe(Frame(2, process), network: network with { Quality = quality }), Is.Empty);
+        Assert.That(rules.Observe(Frame(3, process), network: network), Is.Empty);
+        Assert.That(rules.Observe(Frame(4, process), network: network).Single().Run, Is.EqualTo(new[] { 8d, 8d }));
+    }
+
+    [TestCase(null, 1_000_000d)]
+    [TestCase(1_000_000d, null)]
+    public void NetworkRulesRequireBothDirectionsForEveryMatchingMember(double? receive, double? send)
+    {
+        var rules = new CaptureRules([new CaptureRuleSetting(CaptureMetric.ApplicationNetwork, true, 1, 1)
+            { Target = "worker" }], TimeSpan.Zero, 4);
+        var network = new ProcessNetworkFrame(1, 1, ProcessNetworkQuality.None,
+            [new ProcessNetworkReading(1, 1, 0, 0, 1_000_000, 0), new ProcessNetworkReading(2, 2, 0, 0, receive, send)]);
+        Assert.That(rules.Observe(Frame(1, Process(1, 1, "worker"), Process(2, 2, "worker")), network: network), Is.Empty);
+    }
+
+    [Test]
+    public void ServiceNetworkAggregatesHostAndWorkersUsingTheBusierCombinedDirection()
+    {
+        var rules = new CaptureRules([new CaptureRuleSetting(CaptureMetric.ServiceNetwork, true, 10, 1)
+            { Target = "SVC" }], TimeSpan.Zero, 4);
+        var sample = Frame(1, Process(1, 1, "host"), Process(2, 2, "worker"));
+        var services = new ServiceFrame(sample, [new ServiceGroup("host",
+            [new ServiceObservation("svc", "Service", 4, 1, 0)], sample.Processes[0], sample.Processes)]);
+        var network = new ProcessNetworkFrame(1, 1, ProcessNetworkQuality.None,
+            [new ProcessNetworkReading(1, 1, 0, 0, 1_000_000, 0), new ProcessNetworkReading(2, 2, 0, 0, 0, 2_000_000)]);
+
+        Assert.That(rules.Observe(sample, services with { Available = false }, network), Is.Empty);
+        Assert.That(rules.Observe(sample, services, network).Single().PeakValue, Is.EqualTo(16));
+    }
 }

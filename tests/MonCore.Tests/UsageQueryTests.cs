@@ -55,6 +55,37 @@ public sealed class UsageQueryTests
             top, app => app.AppName.Length > 0 ? app.AppName : app.Name).Select(app => app.Name)];
     }
 
+    [Test]
+    public void LifetimeTiesUseRunningCountBeforeDisplayName()
+    {
+        AppUsage[] apps = [App("alpha", lifetimes: 2), App("zulu", lifetimes: 2, running: 1), App("beta", lifetimes: 3)];
+
+        var selected = UsageQuery.Select(apps, 3, "", false, 0, app => app.Name);
+
+        Assert.That(selected.Select(app => app.Name), Is.EqualTo(new[] { "beta", "zulu", "alpha" }));
+    }
+
+    [Test]
+    public void ObservedZeroGpuUsageRanksAboveMissingGpuUsage()
+    {
+        AppUsage[] apps = [App("alpha"), App("zulu", gpu: 0)];
+
+        var selected = UsageQuery.Select(apps, 2, "", false, 0, app => app.Name);
+
+        Assert.That(selected.Select(app => app.Name), Is.EqualTo(new[] { "zulu", "alpha" }));
+    }
+
+    [Test]
+    public void LastActiveSortUsesWallTimeRatherThanRebasedMonotonicTime()
+    {
+        AppUsage[] apps = [App("alpha", lastActive: new SampleKey(1000, Now.AddSeconds(-1))),
+            App("zulu", lastActive: new SampleKey(1, Now)), App("beta")];
+
+        var selected = UsageQuery.Select(apps, 4, "", false, 0, app => app.Name);
+
+        Assert.That(selected.Select(app => app.Name), Is.EqualTo(new[] { "zulu", "alpha", "beta" }));
+    }
+
     private static AppUsage App(string name, long cpu = 0, double io = 0, double? gpu = null, int lifetimes = 1,
         int running = 0, bool isApp = false, SampleKey? lastActive = null)
     {
