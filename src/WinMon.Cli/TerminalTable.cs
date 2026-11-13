@@ -1,6 +1,6 @@
 namespace WinMon.Cli;
 
-public enum TerminalTab { Processes, Services, Connections, Usage }
+public enum TerminalTab { Processes, Services, Connections, Usage, Hardware }
 
 public sealed record TerminalRow
 {

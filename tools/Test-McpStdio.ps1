@@ -56,20 +56,23 @@ try {
     $process.StandardInput.Flush()
     $tools = Invoke-McpRequest 2 'tools/list' @{}
     $names = @($tools.tools | ForEach-Object name)
-    if ((@($names | Sort-Object) -join ',') -cne 'get_network_connections,get_process_details,get_process_network_traffic,get_system_snapshot,list_processes,sample_performance') {
-        throw 'MCP tool discovery did not match the six intended tools.'
+    if ((@($names | Sort-Object) -join ',') -cne 'get_hardware_info,get_network_connections,get_process_details,get_process_network_traffic,get_system_snapshot,list_processes,sample_performance') {
+        throw 'MCP tool discovery did not match the intended read-only tools.'
     }
     foreach ($tool in $tools.tools) {
         if ($tool.annotations.readOnlyHint -ne $true -or !$tool.outputSchema) { throw 'MCP tool is missing its read-only annotation or output schema.' }
     }
     $snapshot = Invoke-McpRequest 3 'tools/call' @{ name = 'get_system_snapshot'; arguments = @{} }
     if ($snapshot.isError -eq $true -or $snapshot.structuredContent.schemaVersion -ne 1) { throw 'MCP snapshot response is invalid.' }
+    $hardware = Invoke-McpRequest 4 'tools/call' @{ name = 'get_hardware_info'; arguments = @{} }
+    if ($hardware.isError -eq $true -or $hardware.structuredContent.schemaVersion -ne 1) { throw 'MCP hardware response is invalid.' }
     $process.StandardInput.Close()
     if (!$process.WaitForExit(10000)) { throw 'MCP server did not exit after stdin closed.' }
     if ($process.ExitCode -ne 0) { throw "MCP server exited with code $($process.ExitCode)." }
     $initialization | ConvertTo-Json -Depth 10 | Set-Content (Join-Path $OutputDirectory 'initialize.json') -Encoding utf8NoBOM
     $tools | ConvertTo-Json -Depth 30 | Set-Content (Join-Path $OutputDirectory 'tools.json') -Encoding utf8NoBOM
     $snapshot | ConvertTo-Json -Depth 20 | Set-Content (Join-Path $OutputDirectory 'snapshot.json') -Encoding utf8NoBOM
+    $hardware | ConvertTo-Json -Depth 30 | Set-Content (Join-Path $OutputDirectory 'hardware.json') -Encoding utf8NoBOM
     $stderr.GetAwaiter().GetResult() | Set-Content (Join-Path $OutputDirectory 'stderr.txt') -Encoding utf8NoBOM
     Write-Host "PASS MCP stdio initialization, discovery, snapshot and shutdown. Evidence: $OutputDirectory"
 }

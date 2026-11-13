@@ -1880,11 +1880,11 @@ Arriba/Abajo Desplazar  RePág/AvPág Página  Inicio Primera</value></data>
   <data name="CliResourceHistory" xml:space="preserve"><value>{0} s · 0–100 %</value></data>
   <data name="CliScaledHistory" xml:space="preserve"><value>{0} s · {1}–{2} %</value></data>
   <data name="CliTerminalSmall" xml:space="preserve"><value>Amplíe el terminal a un mínimo de 80 columnas y 20 filas.</value></data>
-  <data name="CliTabs" xml:space="preserve"><value>F1 Procesos  F2 Servicios  F3 Conexiones  F4 Uso</value></data>
+  <data name="CliTabs" xml:space="preserve"><value>F1 Procesos  F2 Servicios  F3 Conexiones  F4 Uso  F5 Hardware</value></data>
   <data name="CliColumnsHint" xml:space="preserve"><value>Left/Right: columnas</value></data>
   <data name="CliNavigation" xml:space="preserve"><value>1-6 Orden  / Filtro  Enter Detalles  Espacio Pausa  ? Ayuda  Q Salir</value></data>
   <data name="CliFullHelp" xml:space="preserve"><value>B: activar o desactivar la supervisión del tráfico de red.
-F1-F4: cambiar pestaña; conserva sus controles.
+F1-F5: cambiar pestaña; conserva sus controles.
 1-6: orden. Izquierda/Derecha: columnas.
 /: editar filtro. Enter aplica; Esc cancela o limpia.
 Flechas, RePág/AvPág, Inicio/Fin: seleccionar fila.
@@ -1952,4 +1952,13 @@ Q sale. Ctrl+C cancela. Los programas y servicios fijados se conservan entre ses
   <data name="ToolUpdateFailed" xml:space="preserve"><value>Error de actualización: {0}</value></data>
   <data name="ToolUpdateUsage" xml:space="preserve"><value>Uso: {0} update check|install</value></data>
   <data name="ToolUpdateStore" xml:space="preserve"><value>Microsoft Store administra las actualizaciones de esta compilación.</value></data>
+  <data name="CliHardware" xml:space="preserve"><value>Mostrar el inventario de hardware de Windows.</value></data>
+  <data name="CliHardwareIdentifiers" xml:space="preserve"><value>Incluir números de serie de placas, etiquetas de volúmenes y alias de adaptadores.</value></data>
+  <data name="CliHardwareUnavailable" xml:space="preserve"><value>La información de hardware no está disponible.</value></data>
+  <data name="CliHardwareRefresh" xml:space="preserve"><value>Recopilado a las {0:T}. R actualiza este inventario.</value></data>
+  <data name="CliHardwareIdentifiersOmitted" xml:space="preserve"><value>Se omiten los números de serie de placas, las etiquetas de volúmenes y los alias de adaptadores. Use --include-identifiers para incluirlos.</value></data>
+  <data name="CliHardwareHelp" xml:space="preserve"><value>Enter Detalles  R Actualizar  Q Salir
+La actualización del hardware es independiente del historial de recursos en pausa.</value></data>
+  <data name="HardwareCollectionInterval" xml:space="preserve"><value>Recopilación: {0:O} – {1:O}</value></data>
+  <data name="HardwarePartialInformation" xml:space="preserve"><value>No se pudieron leer algunos detalles de hardware o se omitieron.</value></data>
 </root>

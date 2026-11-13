@@ -1880,11 +1880,11 @@ Windows 健康状态：{2}</value>
   <data name="CliResourceHistory" xml:space="preserve"><value>{0} 秒 · 0–100%</value></data>
   <data name="CliScaledHistory" xml:space="preserve"><value>{0} 秒 · {1}–{2}%</value></data>
   <data name="CliTerminalSmall" xml:space="preserve"><value>请将终端调整为至少 80 列、20 行。</value></data>
-  <data name="CliTabs" xml:space="preserve"><value>F1 进程  F2 服务  F3 连接  F4 使用量</value></data>
+  <data name="CliTabs" xml:space="preserve"><value>F1 进程  F2 服务  F3 连接  F4 使用情况  F5 硬件</value></data>
   <data name="CliColumnsHint" xml:space="preserve"><value>Left/Right: 列</value></data>
   <data name="CliNavigation" xml:space="preserve"><value>1-6 排序  / 筛选  Enter 详细信息  Space 暂停  ? 帮助  Q 退出</value></data>
   <data name="CliFullHelp" xml:space="preserve"><value>B：开启或关闭网络流量监控。
-F1-F4：切换选项卡，各自保留设置。
+F1-F5：切换选项卡，各自保留设置。
 1-6：排序。左右：移动列。
 /：编辑筛选。Enter 应用，Esc 取消或清除。
 上下、PageUp/PageDown、Home/End：选择行。
@@ -1952,4 +1952,13 @@ Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。<
   <data name="ToolUpdateFailed" xml:space="preserve"><value>更新失败：{0}</value></data>
   <data name="ToolUpdateUsage" xml:space="preserve"><value>用法：{0} update check|install</value></data>
   <data name="ToolUpdateStore" xml:space="preserve"><value>此版本的更新由 Microsoft Store 管理。</value></data>
+  <data name="CliHardware" xml:space="preserve"><value>显示 Windows 硬件清单。</value></data>
+  <data name="CliHardwareIdentifiers" xml:space="preserve"><value>包含主板序列号、卷标和适配器别名。</value></data>
+  <data name="CliHardwareUnavailable" xml:space="preserve"><value>硬件信息不可用。</value></data>
+  <data name="CliHardwareRefresh" xml:space="preserve"><value>采集时间 {0:T}。按 R 刷新此清单。</value></data>
+  <data name="CliHardwareIdentifiersOmitted" xml:space="preserve"><value>已省略主板序列号、卷标和适配器别名。使用 --include-identifiers 包含这些信息。</value></data>
+  <data name="CliHardwareHelp" xml:space="preserve"><value>Enter 详细信息  R 刷新  Q 退出
+硬件刷新独立于资源历史记录的暂停状态。</value></data>
+  <data name="HardwareCollectionInterval" xml:space="preserve"><value>采集时间段: {0:O} – {1:O}</value></data>
+  <data name="HardwarePartialInformation" xml:space="preserve"><value>部分硬件详细信息无法读取或已省略。</value></data>
 </root>

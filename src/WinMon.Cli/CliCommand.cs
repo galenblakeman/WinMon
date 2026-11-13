@@ -14,7 +14,8 @@ public static class CliCommand
         TextWriter? output = null, TextWriter? error = null,
         Func<string, CancellationToken, Task>? runNetwork = null, CliSettingsStore? settingsStore = null,
         Func<InteractiveState, bool, int>? runWatch = null,
-        Func<string, CancellationToken, Task<int>>? runUpdate = null)
+        Func<string, CancellationToken, Task<int>>? runUpdate = null,
+        Func<bool, CancellationToken, HardwareInventorySnapshot>? readHardware = null)
     {
         output ??= Console.Out;
         error ??= Console.Error;
@@ -65,6 +66,41 @@ public static class CliCommand
                 return 1;
             }
         });
+        var hardwareFormat = new Option<string>("--format") { Description = Strings.CliFormat, DefaultValueFactory = _ => "table" };
+        hardwareFormat.AcceptOnlyFromAmong("table", "json");
+        var hardwareNoColor = new Option<bool>("--no-color") { Description = Strings.CliNoColor };
+        var identifiers = new Option<bool>("--include-identifiers") { Description = Strings.CliHardwareIdentifiers };
+        var hardware = new Command("hardware", Strings.CliHardware) { hardwareFormat, hardwareNoColor, identifiers };
+        hardware.SetAction(async (result, token) =>
+        {
+            try
+            {
+                var reader = readHardware ?? WindowsHardwareInventory.Read;
+                var inventory = await Task.Run(() => reader(result.GetValue(identifiers), token), token);
+                token.ThrowIfCancellationRequested();
+                if (result.GetValue(hardwareFormat) == "json")
+                    await output.WriteLineAsync(JsonSerializer.Serialize(inventory, SnapshotReport.JsonOptions));
+                else
+                {
+                    var console = AnsiConsole.Create(new AnsiConsoleSettings
+                    {
+                        Out = new AnsiConsoleOutput(output),
+                        Ansi = AnsiSupport.No,
+                        ColorSystem = ColorSystemSupport.NoColors,
+                        Enrichment = new() { UseDefaultEnrichers = false }, Interactive = InteractionSupport.No
+                    });
+                    HardwareReport.Render(console, inventory);
+                    if (!inventory.IdentifiersIncluded) await output.WriteLineAsync(Strings.CliHardwareIdentifiersOmitted);
+                }
+                return inventory.Status == "unavailable" ? 1 : 0;
+            }
+            catch (OperationCanceledException) when (token.IsCancellationRequested) { return 130; }
+            catch (Exception ex)
+            {
+                await error.WriteLineAsync(string.Format(CultureInfo.CurrentCulture, Strings.CliFailed, SnapshotReport.SafeText(ex.Message)));
+                return 1;
+            }
+        });
         var watchTop = CreateTopOption(0);
         var watchSort = new Option<string>("--sort") { Description = Strings.CliSort, DefaultValueFactory = _ => "auto" };
         watchSort.AcceptOnlyFromAmong("auto", "cpu", "memory", "gpu", "io", "threads", "handles", "name", "cpu-time",
@@ -76,7 +112,7 @@ public static class CliCommand
         var network = new Option<bool>("--network") { Description = Strings.NetworkProcessMonitoringHeading };
         var noSave = new Option<bool>("--no-save") { Description = Strings.CliNoSave };
         var tab = new Option<string>("--tab") { Description = Strings.CliTabs, DefaultValueFactory = _ => "processes" };
-        tab.AcceptOnlyFromAmong("processes", "services", "usage", "connections");
+        tab.AcceptOnlyFromAmong("processes", "services", "usage", "connections", "hardware");
         var watch = new Command("watch", Strings.CliWatch) { watchTop, watchSort, watchFilter, watchNoColor, grouped, appsOnly, network, tab, noSave };
         watch.Validators.Add(result =>
         {
@@ -127,7 +163,7 @@ public static class CliCommand
                     active.Sort = 0;
                 }
                 if (IsExplicit(result, grouped)) saved.Tabs[0].Grouped = result.GetValue(grouped);
-                if (IsExplicit(result, appsOnly) && saved.ActiveTab != TerminalTab.Services) active.AppsOnly = result.GetValue(appsOnly);
+                if (IsExplicit(result, appsOnly) && saved.ActiveTab is not (TerminalTab.Services or TerminalTab.Hardware)) active.AppsOnly = result.GetValue(appsOnly);
                 if (IsExplicit(result, network)) saved.Network = result.GetValue(network);
                 var state = new InteractiveState(ProcessSort.Cpu, "");
                 state.RestorePreferences(saved);
@@ -147,7 +183,7 @@ public static class CliCommand
         });
         return new RootCommand(Strings.CliDescription)
         {
-            snapshot, watch, NetworkCommands.Create(output, error, runNetwork), SettingsCommands.Create(settingsStore, output, error),
+            snapshot, hardware, watch, NetworkCommands.Create(output, error, runNetwork), SettingsCommands.Create(settingsStore, output, error),
             CreateUpdateCommand(output, error, runUpdate)
         };
     }
@@ -187,6 +223,7 @@ public static class CliCommand
             "services" => new[] { "cpu", "memory", "io", "name" },
             "usage" => ["cpu-time", "io", "gpu-time", "processes", "last-active"],
             "connections" => ["receive", "send", "tcp", "udp", "received", "sent"],
+            "hardware" => [],
             _ => ["cpu", "gpu", "memory", "io", "threads", "handles"]
         };
         return Array.IndexOf(values, sort);

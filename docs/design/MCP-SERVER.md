@@ -1,5 +1,7 @@
 # WinMon MCP Server and Claude Code Plugin Implementation
 
+The later [hardware extension](HARDWARE-CLI-MCP.md) adds `get_hardware_info`, bringing discovery to seven read-only tools. Its inventory response and collection lifetime are independent of sampled performance; see the [implementation record](HARDWARE-IMPLEMENTATION.md).
+
 ## Objective
 
 Extend WinMon with a local, read-only Model Context Protocol (MCP) server for AI coding agents, including Claude Code, OpenAI Codex and compatible GitHub Copilot clients. Reuse the existing .NET 10 monitoring engine, process queries and Windows collectors without changing CLI or WPF behavior.

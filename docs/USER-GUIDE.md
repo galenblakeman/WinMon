@@ -67,7 +67,7 @@ Release publishing defaults to a self-contained Windows x64 single executable, w
 
 ### Interactive monitor
 
-`watch` is a read-only, keyboard-driven app with four tabs:
+`watch` is a read-only, keyboard-driven app with five tabs:
 
 | Key | Tab | Sorting and filters |
 | --- | --- | --- |
@@ -75,6 +75,7 @@ Release publishing defaults to a self-contained Windows x64 single executable, w
 | **F2** | **Services** | CPU/private memory/I/O/name; search, all/running/stopped status and host/worker totals. Name sorting requires All. Details identify shared services, hosts and worker processes. |
 | **F3** | **Connections** | Receive/send rates, received/sent totals and TCP/UDP counts; owner/PID/address/port search, App only, pins and traffic periods. Details list endpoint protocols, addresses, ports and TCP states. |
 | **F4** | **Usage** | CPU time, cumulative I/O, GPU time, process lifetimes and last activity; search and App only. Share uses the same total-machine busy-time denominator as the desktop. |
+| **F5** | **Hardware** | Seven hardware sections with summaries and full device details. R refreshes on demand; no process sorting, filtering, Top or pins. |
 
 Use **1–6** to sort; each sortable column heading shows its digit. Use **/** to edit the current tab's filter (Enter applies; Esc cancels or clears), **Up/Down/Page/Home/End** to select rows, and **Left/Right** to reveal additional columns. Numeric watch-table columns align to the right. The filter line appears only while a filter is being edited or is set. A column-navigation hint appears on the status line when columns are hidden. The first column takes the spare width, grouped processes show their member count (for example `×12`; Enter lists the PIDs), and the status line and key hints stay at the bottom of the terminal. The active tab has a `>` marker, including without color. The selected sort metric is brought into view automatically. **Enter** opens details; arrows/Page keys scroll, Left/Right pan long lines, and Esc returns. Each tab retains its own controls and selection.
 
@@ -117,6 +118,12 @@ Endpoint lists work without the optional traffic service. Network monitoring is 
 Connections rows group the same executable's processes, matching the desktop. Traffic stays in Connections. Use `WinMon.Cli network start` to start and check an installed service. If it is missing, incompatible or not authorized for your account, explicitly run `WinMon.Cli network install` to install/repair, authorize the requesting account, start and verify it through the desktop's signed setup flow and administrator approval. Then run `WinMon.Cli watch --tab connections`. Setup requires a CLI build containing the signed service bundle; source builds without it explain how to enable monitoring through desktop WinMon. Store builds cannot run these service-management commands. Monitoring never triggers installation automatically, and setup does not save a desktop preference.
 
 ### Snapshots and scripting
+
+`WinMon.Cli hardware` prints the seven hardware sections shown in desktop **Info → Hardware**: CPU, motherboard, installed memory/modules, graphics adapters, physical drives, local volumes and network adapters. Use `hardware --format json` for typed schema-version-1 JSON with raw units and per-section availability. Hardware reports do not wait for a performance sampling interval or require the optional network service.
+
+Hardware output omits motherboard serial numbers, volume labels and adapter aliases by default. Use `hardware --include-identifiers` when you want those values in the report. No identifier preference or hardware inventory is saved. Unknown values remain unavailable; firmware specifications and disk health are reports from Windows, not live sensors or full diagnostics. Completed partial hardware reports exit 0; wholly unavailable reports exit 1; cancellation exits 130.
+
+In watch, press **F5** or start with `watch --tab hardware`. Select one of seven section rows and press **Enter** for all device details. **R** refreshes the inventory in the background while keyboard input and resource sampling continue. Switching tabs retains the last report for this watch session. Hardware refresh is independent of paused resource history. The interactive tab omits identifiers; use the explicit command option above for a full report. Existing F1–F4 tab order and saved preferences are preserved.
 
 `snapshot` takes a baseline, waits one second, then prints a table or JSON and exits. It supports the six process sorts, text/PID filtering and `--top 0` for All; it intentionally reports one measured interval. JSON uses raw bytes/bytes per second, explicit null readings and schema version 1. Use `--no-color` or `NO_COLOR` to suppress colors; redirected tables have no ANSI styling. Redirected `watch` output is rejected; use snapshots for scripts. Exit codes are 0 for a completed report/normal quit, 1 for failure, and 130 for cancellation; invalid arguments return a nonzero code.
 

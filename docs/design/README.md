@@ -1,5 +1,7 @@
 # WinMon design assets
 
+- [Hardware inventory in the CLI and MCP](HARDWARE-CLI-MCP.md) adds a shared structured reader for Info hardware, a CLI report and Hardware tab, and one read-only MCP tool; the [implementation record](HARDWARE-IMPLEMENTATION.md) tracks verification and limitations.
+
 - [Investigation continuity](INVESTIGATION-CONTINUITY.md) extends Services retention, copied capture context, restart history and read-only MCP process traffic.
 
 - [On-demand CLI and MCP updates](TOOL-UPDATES.md) extends separate installers with explicit update commands, per-product signed metadata and portable download guidance.

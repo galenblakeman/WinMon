@@ -1880,11 +1880,11 @@ Up/Down Scroll  PgUp/PgDn Page  Home First</value></data>
   <data name="CliResourceHistory" xml:space="preserve"><value>{0}s · 0–100%</value></data>
   <data name="CliScaledHistory" xml:space="preserve"><value>{0}s · {1}–{2}%</value></data>
   <data name="CliTerminalSmall" xml:space="preserve"><value>Resize the terminal to at least 80 columns and 20 rows.</value></data>
-  <data name="CliTabs" xml:space="preserve"><value>F1 Processes  F2 Services  F3 Connections  F4 Usage</value></data>
+  <data name="CliTabs" xml:space="preserve"><value>F1 Processes  F2 Services  F3 Connections  F4 Usage  F5 Hardware</value></data>
   <data name="CliColumnsHint" xml:space="preserve"><value>Left/Right: columns</value></data>
   <data name="CliNavigation" xml:space="preserve"><value>1-6 Sort  / Filter  Enter Details  Space Pause  ? Help  Q Quit</value></data>
   <data name="CliFullHelp" xml:space="preserve"><value>B: toggle network traffic monitoring.
-F1-F4: change tab. Each tab remembers its controls.
+F1-F5: change tab. Each tab remembers its controls.
 1-6: select sorting metric. Left/Right: scroll columns.
 /: edit filter. Enter applies; Esc cancels or clears.
 Up/Down, PageUp/PageDown, Home/End: select a row.
@@ -1952,4 +1952,13 @@ Q quits. Ctrl+C cancels. Executable/service pins persist between sessions.</valu
   <data name="ToolUpdateFailed" xml:space="preserve"><value>Update failed: {0}</value></data>
   <data name="ToolUpdateUsage" xml:space="preserve"><value>Usage: {0} update check|install</value></data>
   <data name="ToolUpdateStore" xml:space="preserve"><value>Updates for this build are managed by Microsoft Store.</value></data>
+  <data name="CliHardware" xml:space="preserve"><value>Report Windows hardware inventory.</value></data>
+  <data name="CliHardwareIdentifiers" xml:space="preserve"><value>Include board serial numbers, volume labels and adapter aliases.</value></data>
+  <data name="CliHardwareUnavailable" xml:space="preserve"><value>Hardware information is unavailable.</value></data>
+  <data name="CliHardwareRefresh" xml:space="preserve"><value>Collected {0:T}. R refreshes this inventory.</value></data>
+  <data name="CliHardwareIdentifiersOmitted" xml:space="preserve"><value>Board serial numbers, volume labels and adapter aliases are omitted. Use --include-identifiers to include them.</value></data>
+  <data name="CliHardwareHelp" xml:space="preserve"><value>Enter Details  R Refresh  Q Quit
+Hardware refresh is independent of paused resource history.</value></data>
+  <data name="HardwareCollectionInterval" xml:space="preserve"><value>Collection: {0:O} – {1:O}</value></data>
+  <data name="HardwarePartialInformation" xml:space="preserve"><value>Some hardware details could not be read or were omitted.</value></data>
 </root>

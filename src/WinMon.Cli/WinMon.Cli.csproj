@@ -34,6 +34,8 @@
     <Compile Include="../WinMon/Updates/UpdateManifest.cs" Link="Updates/UpdateManifest.cs" />
     <Compile Include="../WinMon/Updates/UpdatePolicy.cs" Link="Updates/UpdatePolicy.cs" />
     <Compile Include="../WinMon/Monitoring/RateText.cs" Link="Monitoring/RateText.cs" />
+    <Compile Include="../WinMon/Monitoring/HardwareInventory.cs" Link="Monitoring/HardwareInventory.cs" />
+    <Compile Include="../WinMon/Monitoring/WindowsHardwareInfo.cs" Link="Monitoring/WindowsHardwareInfo.cs" />
     <Compile Include="../WinMon/Controls/TableMetricText.cs" Link="Formatting/TableMetricText.cs" />
     <Compile Include="../WinMon/Controls/GaugeReadoutText.cs" Link="Formatting/GaugeReadoutText.cs" />
     <Compile Include="../WinMon/Controls/UsageText.Bytes.cs" Link="Formatting/UsageText.Bytes.cs" />

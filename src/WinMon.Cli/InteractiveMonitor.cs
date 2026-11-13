@@ -37,6 +37,15 @@ public static class InteractiveMonitor
             { ProcessNetwork = sample?.Snapshot, ProcessNetworkSessionId = sample?.SessionId ?? Guid.Empty };
         }
         var session = new MonitorSession(createSource, Options, deliveries.Enqueue);
+        Task<HardwareInventorySnapshot>? hardwareTask = null;
+        void StartHardwareRead()
+        {
+            if (hardwareTask is not null) return;
+            state.HardwareLoading = true;
+            state.HardwareReadAttempted = true;
+            state.HardwareReadFailed = false;
+            hardwareTask = Task.Run(() => WindowsHardwareInventory.Read(cancellationToken: stop.Token), stop.Token);
+        }
         session.History.Resize(1800);
         session.Recorded += () => state.ObserveSession(session);
         var sampling = session.Run(stop.Token);
@@ -50,6 +59,25 @@ public static class InteractiveMonitor
                     var dirty = true;
                     while (!token.IsCancellationRequested && !state.Quit)
                     {
+                        if (hardwareTask is { IsCompleted: true })
+                        {
+                            try { if (!hardwareTask.IsCanceled && !hardwareTask.IsFaulted) state.Hardware = hardwareTask.Result; }
+                            catch (Exception) { state.HardwareReadFailed = true; }
+                            if (hardwareTask.IsFaulted)
+                            {
+                                _ = hardwareTask.Exception;
+                                state.HardwareReadFailed = true;
+                            }
+                            state.HardwareLoading = false;
+                            hardwareTask = null;
+                            dirty = true;
+                        }
+                        var hardwareRefresh = state.TakeHardwareRefreshRequest();
+                        if (state.Tab == TerminalTab.Hardware && (!state.HardwareReadAttempted || hardwareRefresh))
+                        {
+                            StartHardwareRead();
+                            dirty = true;
+                        }
                         while (deliveries.TryDequeue(out var deliver)) { deliver(); if (!state.Paused) dirty = true; }
                         var currentSize = (console.Profile.Width, console.Profile.Height);
                         if (size != currentSize) { size = currentSize; dirty = true; }
@@ -113,6 +141,7 @@ public static class InteractiveMonitor
         var capture = data.Connections.LastOrDefault();
         return state.Tab switch
         {
+            TerminalTab.Hardware => state.HardwareTable,
             TerminalTab.Services => ServicesTab.Build(data.Services, settings.Sort, state.Query, settings.Status, settings.Workers, 0),
             TerminalTab.Usage => UsageTab.Build(data.Usage, data.UsageSince, data.MachineBusyTicks,
                 state.DisplayedFrame?.Full.Timestamp, settings.Sort, state.Query, settings.AppsOnly, 0),
@@ -141,7 +170,9 @@ public static class InteractiveMonitor
         var settings = state.Active;
         if (state.Help || settings.Details)
         {
-            var contents = state.Help ? Strings.CliFullHelp : state.Selected?.Details ?? Strings.ProcessNotRecorded;
+            var contents = state.Help
+                ? state.Tab == TerminalTab.Hardware ? Strings.CliHardwareHelp + "\n" + Strings.CliHardwareIdentifiersOmitted : Strings.CliFullHelp
+                : state.Selected?.Details ?? Strings.ProcessNotRecorded;
             var lines = contents.Split('\n');
             var count = Math.Max(1, height - 5);
             settings.DetailOffset = Math.Clamp(settings.DetailOffset, 0, Math.Max(0, lines.Length - count));
@@ -150,6 +181,8 @@ public static class InteractiveMonitor
                     .Skip(settings.HorizontalOffset).Select(r => r.ToString()))));
             return new Rows(header, tabs, state.Help ? TerminalChrome.Keys(details, width) : Line(details, width), TerminalChrome.Keys(Strings.CliDetailsKeys, width));
         }
+        if (state.Tab == TerminalTab.Hardware)
+            return BuildHardwareView(state, top, pageSize, width, height, header, tabs, footer);
         if (state.DisplayedFrame is not { } frame)
             return new Rows(header, tabs, new Text(state.Error is null ? Strings.CliWarmingUp : Strings.ReadingsUnavailableRetryingEachSecond,
                 new Style(state.Error is null ? TerminalChrome.Gold : TerminalChrome.Red)), footer);
@@ -198,10 +231,26 @@ public static class InteractiveMonitor
         return new Rows(view);
     }
 
+    private static IRenderable BuildHardwareView(InteractiveState state, int top, int pageSize, int width, int height,
+        IRenderable header, IRenderable tabs, IRenderable footer)
+    {
+        var settings = state.Active;
+        settings.Top = top;
+        var result = state.Present(Query(state), Math.Min(pageSize, PageSize(state, width, height)));
+        var table = BuildTable(state, result, pageSize, width, out _);
+        var note = state.HardwareLoading ? Strings.ReadingHardwareInformation : state.HardwareReadFailed
+            ? Strings.CliHardwareUnavailable : result.Note;
+        if (state.SettingsSaveFailed) note = Strings.CliSettingsSaveFailed + " " + note;
+        return new Rows(header, tabs, table,
+            Line(note, width, state.HardwareLoading ? new Style(TerminalChrome.Gold) : TerminalChrome.Accent),
+            TerminalChrome.Keys(Strings.CliHardwareHelp, width));
+    }
+
     private static bool FilterShown(InteractiveState state) => state.EditingFilter || state.Query.Length > 0;
 
     private static int PageSize(InteractiveState state, int width, int height) =>
-        Math.Max(1, TerminalCharts.PageSize(width, height, state.Tab) - (FilterShown(state) ? 1 : 0));
+        state.Tab == TerminalTab.Hardware ? Math.Max(1, height - 10) :
+            Math.Max(1, TerminalCharts.PageSize(width, height, state.Tab) - (FilterShown(state) ? 1 : 0));
 
     // Lines are composed by hand so the selection fills the whole row and the first column takes the spare width.
     private static IRenderable BuildTable(InteractiveState state, TerminalTable result, int pageSize, int width, out bool columnsHidden)
@@ -221,8 +270,9 @@ public static class InteractiveMonitor
         state.Active.ColumnOffset = Math.Clamp(state.Active.ColumnOffset, 0, Math.Max(0, result.Columns.Length - 1 - slots));
         var indices = Enumerable.Range(1, result.Columns.Length - 1).Skip(state.Active.ColumnOffset).Take(slots).ToArray();
         columnsHidden = indices.Length < result.Columns.Length - 1;
-        var nameWidth = Math.Clamp(width - 3 - 15 * indices.Length, 22, 40);
-        bool Right(int index) => !(state.Tab == TerminalTab.Services && index == 1 || state.Tab == TerminalTab.Usage && index == 6);
+        var nameWidth = state.Tab == TerminalTab.Hardware ? Math.Min(25, width / 3) : Math.Clamp(width - 3 - 15 * indices.Length, 22, 40);
+        var valueWidth = state.Tab == TerminalTab.Hardware ? Math.Max(1, width - nameWidth - 5) : 13;
+        bool Right(int index) => !(state.Tab == TerminalTab.Hardware || state.Tab == TerminalTab.Services && index == 1 || state.Tab == TerminalTab.Usage && index == 6);
         var keys = state.Tab switch { TerminalTab.Services => 4, TerminalTab.Usage => 5, _ => 6 };
         var header = new Paragraph("  ");
         foreach (var index in indices.Prepend(0))
@@ -232,14 +282,14 @@ public static class InteractiveMonitor
                 .Select(k => (k + 1).ToString(CultureInfo.InvariantCulture)).FirstOrDefault("");
             var arrow = index != sortColumn ? "" : index == 0 ? "↑" : "↓";
             var cell = Cell((arrow + key).Length > 0 ? $"{arrow}{key} {result.Columns[index]}" : result.Columns[index],
-                index == 0 ? nameWidth : 13, index != 0 && Right(index));
+                index == 0 ? nameWidth : valueWidth, index != 0 && Right(index));
             var start = cell.Length - cell.TrimStart().Length;
             var style = index == sortColumn ? TerminalChrome.Accent : Style.Plain;
             header.Append((index == 0 ? " " : "  ") + cell[..start]).Append(cell.Substring(start, arrow.Length), style)
                 .Append(cell.Substring(start + arrow.Length, key.Length), TerminalChrome.Key)
                 .Append(cell[(start + arrow.Length + key.Length)..], style);
         }
-        var lines = new List<IRenderable> { new Text(" "), header, new Text(new string('─', 3 + nameWidth + 15 * indices.Length)) };
+        var lines = new List<IRenderable> { new Text(" "), header, new Text(new string('─', 3 + nameWidth + (valueWidth + 2) * indices.Length)) };
         foreach (var row in rows)
         {
             var selected = row.Key == state.Active.SelectedKey;
@@ -251,7 +301,7 @@ public static class InteractiveMonitor
             foreach (var index in indices)
             {
                 var value = row.Cells.ElementAtOrDefault(index);
-                line.Append("  " + Cell(value is null || value == Strings.Unavailable ? Strings.MissingReading : value, 13, Right(index)), style);
+                line.Append("  " + Cell(value is null || value == Strings.Unavailable ? Strings.MissingReading : value, valueWidth, Right(index)), style);
             }
             lines.Add(line);
         }
@@ -269,15 +319,16 @@ public static class InteractiveMonitor
     private static Text Line(string value, int width, Style? style = null) => new(string.Join('\n', value.Split('\n').Select(line => TerminalText.Fit(line, width))), style);
 
     private static string TabName(TerminalTab tab) => tab switch { TerminalTab.Services => Strings.Services,
-        TerminalTab.Usage => Strings.UsageTab, TerminalTab.Connections => Strings.ConnectionsTab, _ => Strings.ProcessesTab };
+        TerminalTab.Usage => Strings.UsageTab, TerminalTab.Connections => Strings.ConnectionsTab,
+        TerminalTab.Hardware => Strings.InfoHardware, _ => Strings.ProcessesTab };
     private static Paragraph Tabs(TerminalTab active, int width)
     {
         var text = new Paragraph();
-        var tabWidth = Math.Max(0, (width - 6) / 4);
+        var tabWidth = Math.Max(0, (width - 8) / 5);
         foreach (var tab in Enum.GetValues<TerminalTab>())
         {
             var label = $"{(tab == active ? "> " : "  ")}[F{(int)tab + 1}] {TabName(tab)}";
-            var fitted = TerminalText.Fit(label, tabWidth);
+            var fitted = TerminalText.Fit(label, tabWidth + (tab == active ? Math.Max(0, width - 8 - tabWidth * 5) : 0));
             var style = tab == active ? TerminalChrome.Selected : TerminalChrome.Accent;
             var keyStart = Math.Min(2, fitted.Length);
             var keyEnd = Math.Min(6, fitted.Length);
@@ -285,7 +336,7 @@ public static class InteractiveMonitor
             text.Append(fitted[..keyStart], TerminalChrome.Accent);
             text.Append(fitted[keyStart..keyEnd], tab == active ? TerminalChrome.SelectedKey : TerminalChrome.Key);
             text.Append(fitted[keyEnd..], style);
-            if (tab != TerminalTab.Usage) text.Append("  ");
+            if (tab != TerminalTab.Hardware) text.Append("  ");
         }
         return text;
     }
@@ -294,6 +345,7 @@ public static class InteractiveMonitor
     {
         TerminalTab.Processes => state.Sort switch { ProcessSort.Cpu => 0, ProcessSort.Memory => 1,
             ProcessSort.Gpu => 2, ProcessSort.Io => 3, ProcessSort.Threads => 4, _ => 5 },
+        TerminalTab.Hardware => -1,
         TerminalTab.Connections when !state.NetworkEnabled && state.Active.Sort is not (2 or 3) => 2,
         _ => state.Active.Sort
     });
@@ -304,6 +356,7 @@ public static class InteractiveMonitor
         TerminalTab.Processes => key + 2,
         TerminalTab.Services => key == 3 ? 0 : key + 2,
         TerminalTab.Usage => key switch { 0 => 1, 1 => 3, 2 => 4, 3 => 5, _ => 6 },
+        TerminalTab.Hardware => -1,
         _ => !state.NetworkEnabled ? key switch { 2 => 1, 3 => 2, _ => -1 } :
             key switch { 0 => 3, 1 => 4, 2 => 1, 3 => 2, 4 => 5, _ => 6 }
     };

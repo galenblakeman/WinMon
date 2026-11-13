@@ -36,6 +36,111 @@ public sealed class DiagnosticToolsTests
 
     private static JsonElement Json(CallToolResult result) => result.StructuredContent!.Value;
 
+    private static HardwareInventorySnapshot Hardware(bool identifiers = true) => new(1, DateTimeOffset.UtcNow,
+        DateTimeOffset.UtcNow, "ok", identifiers, false,
+        new("ok", false, [], new HardwareCpu([], null, 1, [])),
+        new("ok", false, [], new HardwareMotherboards([new("Example", "Board", null, "serial-secret")])),
+        new("ok", false, [], new HardwareMemory(null, null, 0, null, [])),
+        new("ok", false, [], new HardwareGraphics([])), new("ok", false, [], new HardwareDisks([])),
+        new("ok", false, [], new HardwareVolumes([new("C:\\", "volume-secret", "NTFS", null, null, false, false)])),
+        new("ok", false, [], new HardwareNetwork([new("adapter-secret", "Adapter", null, null, null, 1, false, null)])));
+
+    [Test]
+    public async Task HardwareIsIndependentFromSamplingAndOmitsIdentifiersUnlessRequested()
+    {
+        await using var owner = new SamplingOwner(() => new Source(Frame()), TimeProvider.System, TimeSpan.FromHours(1));
+        var tools = new DiagnosticTools(owner, (_, _) => Hardware());
+
+        var privateResult = Json(await tools.GetHardwareInfo());
+        var publicResult = Json(await tools.GetHardwareInfo(includeIdentifiers: true));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(privateResult.GetProperty("status").GetString(), Is.EqualTo("ok"));
+            Assert.That(privateResult.GetRawText(), Does.Not.Contain("secret"));
+            Assert.That(publicResult.GetRawText(), Does.Contain("serial-secret").And.Contain("volume-secret").And.Contain("adapter-secret"));
+        });
+    }
+
+    [Test]
+    public async Task HardwareRejectsConcurrentCollection()
+    {
+        var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        await using var owner = new SamplingOwner(() => new Source(Frame()), TimeProvider.System, TimeSpan.FromHours(1));
+        var tools = new DiagnosticTools(owner, (_, token) => { entered.SetResult(); release.Task.GetAwaiter().GetResult(); token.ThrowIfCancellationRequested(); return Hardware(); });
+        var first = tools.GetHardwareInfo();
+        await entered.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        var second = await tools.GetHardwareInfo();
+        release.SetResult();
+        await first;
+
+        Assert.That(second.IsError, Is.True);
+        Assert.That(Json(second).GetProperty("status").GetString(), Is.EqualTo("busy"));
+    }
+
+    [Test]
+    public async Task HardwareCancellationKeepsTheCollectionSlotUntilWorkerExits()
+    {
+        var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        await using var owner = new SamplingOwner(() => new Source(Frame()), TimeProvider.System, TimeSpan.FromHours(1));
+        var tools = new DiagnosticTools(owner, (_, token) => { entered.SetResult(); release.Task.GetAwaiter().GetResult(); token.ThrowIfCancellationRequested(); return Hardware(); });
+        using var cancellation = new CancellationTokenSource();
+        var first = tools.GetHardwareInfo(cancellationToken: cancellation.Token);
+        await entered.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        cancellation.Cancel();
+        Assert.ThrowsAsync<TaskCanceledException>(async () => await first);
+        Assert.That(Json(await tools.GetHardwareInfo()).GetProperty("status").GetString(), Is.EqualTo("busy"));
+        release.SetResult();
+        await Task.Delay(50);
+        Assert.That((await tools.GetHardwareInfo()).IsError, Is.Not.True);
+    }
+
+    [Test]
+    public async Task HardwareExceptionsAreNotForwarded()
+    {
+        await using var owner = new SamplingOwner(() => new Source(Frame()), TimeProvider.System, TimeSpan.FromHours(1));
+        var tools = new DiagnosticTools(owner, (_, _) => throw new InvalidOperationException("private provider exception"));
+        var response = await tools.GetHardwareInfo();
+        Assert.That(Json(response).GetProperty("status").GetString(), Is.EqualTo("unavailable"));
+        Assert.That(Json(response).GetRawText(), Does.Not.Contain("private provider exception"));
+    }
+
+    [Test]
+    public void HardwareResponseBoundsUnicodeAndNestedLists()
+    {
+        var name = new string('界', 512);
+        var disks = Enumerable.Range(0, 256).Select(i => new HardwareDisk((ulong)i, name, name, null, null, null,
+            null, Enumerable.Repeat("Z:", 256).ToArray())).ToArray();
+        var snapshot = Hardware() with { Disks = new("ok", false, [], new HardwareDisks(disks)) };
+        var result = Responses.HardwareResult(HardwareResponse.From(snapshot, false));
+        Assert.Multiple(() =>
+        {
+            Assert.That(JsonSerializer.SerializeToUtf8Bytes(result, Responses.Json).Length, Is.LessThanOrEqualTo(Responses.MaximumBytes));
+            Assert.That(Json(result).GetProperty("truncated").GetBoolean(), Is.True);
+            Assert.That(Json(result).GetRawText(), Does.Not.Contain("serial-secret"));
+        });
+    }
+
+    [Test]
+    public void HardwareResponseBoundsCpuNamesEvenWithoutDeviceRows()
+    {
+        var snapshot = Hardware() with { Cpu = new("ok", false, [],
+            new HardwareCpu(Enumerable.Repeat(new string('界', 513), 256).ToArray(), null, null, [])) };
+        var result = Responses.HardwareResult(HardwareResponse.From(snapshot, false));
+        var data = Json(result).GetProperty("data");
+        Assert.Multiple(() =>
+        {
+            Assert.That(JsonSerializer.SerializeToUtf8Bytes(result, Responses.Json).Length, Is.LessThanOrEqualTo(Responses.MaximumBytes));
+            Assert.That(data.GetProperty("truncated").GetBoolean(), Is.True);
+            Assert.That(data.GetProperty("status").GetString(), Is.EqualTo("partial"));
+            Assert.That(data.GetProperty("cpu").GetProperty("truncated").GetBoolean(), Is.True);
+            Assert.That(data.GetProperty("cpu").GetProperty("status").GetString(), Is.EqualTo("partial"));
+            Assert.That(data.GetProperty("cpu").GetProperty("data").GetProperty("names").GetArrayLength(), Is.GreaterThan(0));
+        });
+    }
+
     [Test]
     public async Task ListsFilteredSortedBoundedProcessesAndPreservesOpaqueIdentityWithoutSecrets()
     {

@@ -41,7 +41,21 @@ public sealed class InteractiveState
     private TerminalObservations _observations = TerminalObservations.Empty, _frozenObservations = TerminalObservations.Empty;
     private SamplingError? _latestError, _frozenError;
     private NetworkTrafficState _networkStatus, _frozenNetworkStatus;
-    private readonly TerminalTabState[] _tabs = [new(), new(), new(), new()];
+    private readonly TerminalTabState[] _tabs = Enumerable.Range(0, Enum.GetValues<TerminalTab>().Length).Select(_ => new TerminalTabState()).ToArray();
+    private HardwareInventorySnapshot? _hardware;
+    private TerminalTable? _hardwareTable;
+    public HardwareInventorySnapshot? Hardware
+    {
+        get => _hardware;
+        set { _hardware = value; _hardwareTable = null; }
+    }
+    internal TerminalTable HardwareTable => Hardware is { } inventory
+        ? _hardwareTable ??= HardwareReport.Table(inventory, false)
+        : HardwareReport.Table(null, HardwareLoading);
+    public bool HardwareLoading { get; set; }
+    public bool HardwareReadAttempted { get; set; }
+    public bool HardwareReadFailed { get; set; }
+    public bool HardwareRefreshRequested { get; private set; }
     public InteractiveState(ProcessSort sort, string filter)
     {
         _tabs[0].Sort = (int)sort;
@@ -203,9 +217,16 @@ public sealed class InteractiveState
             active.SelectedKey = null;
             return;
         }
-        if (key.Key is >= ConsoleKey.F1 and <= ConsoleKey.F4)
+        if (key.Key is >= ConsoleKey.F1 and <= ConsoleKey.F5)
         {
             Tab = (TerminalTab)(key.Key - ConsoleKey.F1);
+            Help = false;
+            return;
+        }
+        if (key.Key == ConsoleKey.Tab)
+        {
+            var count = _tabs.Length;
+            Tab = (TerminalTab)(((int)Tab + (key.Modifiers.HasFlag(ConsoleModifiers.Shift) ? count - 1 : 1)) % count);
             Help = false;
             return;
         }
@@ -257,7 +278,7 @@ public sealed class InteractiveState
             case ConsoleKey.RightArrow: active.ColumnOffset++; break;
             case ConsoleKey.LeftArrow: active.ColumnOffset = Math.Max(0, active.ColumnOffset - 1); break;
             case ConsoleKey.Enter: active.Details = Selected is not null; active.DetailOffset = 0; break;
-            case ConsoleKey.P:
+            case ConsoleKey.P when Tab != TerminalTab.Hardware:
                 if (Selected is { } row)
                 {
                     if (row.PinIdentity is { } identity)
@@ -275,20 +296,23 @@ public sealed class InteractiveState
                     else if (!active.Pins.Remove(row.Key)) active.Pins[row.Key] = row;
                 }
                 break;
-            case ConsoleKey.N: active.PinnedOnly = !active.PinnedOnly; active.Offset = 0; break;
+            case ConsoleKey.N when Tab != TerminalTab.Hardware: active.PinnedOnly = !active.PinnedOnly; active.Offset = 0; break;
             case ConsoleKey.G when Tab == TerminalTab.Processes: active.Grouped = !active.Grouped; active.SelectedKey = null; active.Offset = 0; break;
-            case ConsoleKey.A when Tab != TerminalTab.Services: active.AppsOnly = !active.AppsOnly; active.SelectedKey = null; active.Offset = 0; break;
+            case ConsoleKey.A when Tab is not (TerminalTab.Services or TerminalTab.Hardware): active.AppsOnly = !active.AppsOnly; active.SelectedKey = null; active.Offset = 0; break;
             case ConsoleKey.W when Tab == TerminalTab.Services: active.Workers = !active.Workers; break;
             case ConsoleKey.S when Tab == TerminalTab.Services: active.Status = (active.Status + 1) % 3; break;
             case ConsoleKey.R when Tab == TerminalTab.Connections:
                 active.TrafficSeconds = active.TrafficSeconds switch { 0 => 60, 60 => 300, 300 => 1800, _ => 0 }; break;
-            case ConsoleKey.T:
+            case ConsoleKey.R when Tab == TerminalTab.Hardware:
+                if (!HardwareLoading) HardwareRefreshRequested = true;
+                break;
+            case ConsoleKey.T when Tab != TerminalTab.Hardware:
                 active.Top = active.Top switch { 5 => 10, 10 => 15, 15 => 20, 20 => 50, 50 => 0, _ => 5 };
                 if (Tab == TerminalTab.Services && active.Top != 0 && active.Sort == 3) active.Sort = 0;
                 active.Offset = 0;
                 break;
             default:
-                if (key.KeyChar == '/') { active.Editing = true; active.Draft = Filter; active.Offset = 0; }
+                if (key.KeyChar == '/' && Tab != TerminalTab.Hardware) { active.Editing = true; active.Draft = Filter; active.Offset = 0; }
                 else if (key.KeyChar is >= '1' and <= '6')
                 {
                     var index = key.KeyChar - '1';
@@ -303,6 +327,13 @@ public sealed class InteractiveState
                 }
                 break;
         }
+    }
+
+    public bool TakeHardwareRefreshRequest()
+    {
+        if (!HardwareRefreshRequested) return false;
+        HardwareRefreshRequested = false;
+        return true;
     }
 
     private void Move(int delta, int pageSize)

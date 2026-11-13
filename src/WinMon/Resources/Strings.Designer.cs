@@ -146,6 +146,12 @@ public static partial class Strings
     public static string CliFilterEditing => ResourceManager.GetString(nameof(CliFilterEditing), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CliFormat => ResourceManager.GetString(nameof(CliFormat), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CliFullHelp => ResourceManager.GetString(nameof(CliFullHelp), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string CliHardware => ResourceManager.GetString(nameof(CliHardware), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string CliHardwareHelp => ResourceManager.GetString(nameof(CliHardwareHelp), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string CliHardwareIdentifiers => ResourceManager.GetString(nameof(CliHardwareIdentifiers), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string CliHardwareIdentifiersOmitted => ResourceManager.GetString(nameof(CliHardwareIdentifiersOmitted), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string CliHardwareRefresh => ResourceManager.GetString(nameof(CliHardwareRefresh), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string CliHardwareUnavailable => ResourceManager.GetString(nameof(CliHardwareUnavailable), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CliHistorySummary => ResourceManager.GetString(nameof(CliHistorySummary), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CliIncomplete => ResourceManager.GetString(nameof(CliIncomplete), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CliLive => ResourceManager.GetString(nameof(CliLive), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -444,7 +450,9 @@ public static partial class Strings
     public static string GuideWalkthroughStep2 => ResourceManager.GetString(nameof(GuideWalkthroughStep2), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GuideWalkthroughTitle => ResourceManager.GetString(nameof(GuideWalkthroughTitle), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string Handles => ResourceManager.GetString(nameof(Handles), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string HardwareCollectionInterval => ResourceManager.GetString(nameof(HardwareCollectionInterval), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string HardwareInformationCouldNotBeReadTryRefresh => ResourceManager.GetString(nameof(HardwareInformationCouldNotBeReadTryRefresh), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string HardwarePartialInformation => ResourceManager.GetString(nameof(HardwarePartialInformation), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string HardwareSnapshotTime => ResourceManager.GetString(nameof(HardwareSnapshotTime), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string HDD => ResourceManager.GetString(nameof(HDD), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string HealthIsAProviderReportNotAFullSMARTDiagnostic => ResourceManager.GetString(nameof(HealthIsAProviderReportNotAFullSMARTDiagnostic), Culture ?? CultureInfo.CurrentUICulture)!;

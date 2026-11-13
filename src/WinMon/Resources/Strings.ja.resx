@@ -1880,11 +1880,11 @@ Windows の正常性状態: {2}</value>
   <data name="CliResourceHistory" xml:space="preserve"><value>{0} 秒 · 0～100%</value></data>
   <data name="CliScaledHistory" xml:space="preserve"><value>{0} 秒 · {1}～{2}%</value></data>
   <data name="CliTerminalSmall" xml:space="preserve"><value>端末を80列20行以上に拡大してください。</value></data>
-  <data name="CliTabs" xml:space="preserve"><value>F1 プロセス  F2 サービス  F3 接続  F4 使用量</value></data>
+  <data name="CliTabs" xml:space="preserve"><value>F1 プロセス  F2 サービス  F3 接続  F4 使用状況  F5 ハードウェア</value></data>
   <data name="CliColumnsHint" xml:space="preserve"><value>Left/Right: 列</value></data>
   <data name="CliNavigation" xml:space="preserve"><value>1-6 並べ替え  / フィルター  Enter 詳細  Space 一時停止  ? ヘルプ  Q 終了</value></data>
   <data name="CliFullHelp" xml:space="preserve"><value>B: ネットワーク通信の監視を切り替えます。
-F1-F4: タブ切替。設定は各タブで保持します。
+F1-F5: タブ切替。設定は各タブで保持します。
 1-6: 並べ替え。左右: 列を移動。
 /: フィルター編集。Enter 適用、Esc 取消・解除。
 上下、PageUp/PageDown、Home/End: 行選択。
@@ -1952,4 +1952,13 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
   <data name="ToolUpdateFailed" xml:space="preserve"><value>更新に失敗しました: {0}</value></data>
   <data name="ToolUpdateUsage" xml:space="preserve"><value>使用方法: {0} update check|install</value></data>
   <data name="ToolUpdateStore" xml:space="preserve"><value>このビルドの更新は Microsoft Store が管理します。</value></data>
+  <data name="CliHardware" xml:space="preserve"><value>Windows のハードウェア構成を表示します。</value></data>
+  <data name="CliHardwareIdentifiers" xml:space="preserve"><value>基板のシリアル番号、ボリュームラベル、アダプターの別名を含めます。</value></data>
+  <data name="CliHardwareUnavailable" xml:space="preserve"><value>ハードウェア情報を取得できません。</value></data>
+  <data name="CliHardwareRefresh" xml:space="preserve"><value>取得時刻 {0:T}。R で構成情報を更新します。</value></data>
+  <data name="CliHardwareIdentifiersOmitted" xml:space="preserve"><value>基板のシリアル番号、ボリュームラベル、アダプターの別名は省略されています。含めるには --include-identifiers を使用します。</value></data>
+  <data name="CliHardwareHelp" xml:space="preserve"><value>Enter 詳細  R 更新  Q 終了
+ハードウェアの更新は、リソース履歴の一時停止とは独立しています。</value></data>
+  <data name="HardwareCollectionInterval" xml:space="preserve"><value>取得期間: {0:O} – {1:O}</value></data>
+  <data name="HardwarePartialInformation" xml:space="preserve"><value>一部のハードウェア詳細を取得できなかったか、省略されました。</value></data>
 </root>

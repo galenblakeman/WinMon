@@ -1,5 +1,7 @@
 # Full interactive terminal CLI
 
+The later [hardware extension](HARDWARE-CLI-MCP.md) adds an on-demand report and F5 Hardware tab; its [implementation record](HARDWARE-IMPLEMENTATION.md) tracks acceptance. The four monitoring tabs and their numeric settings values retain their existing order.
+
 WinMon now has a read-only terminal frontend using Spectre.Console 0.54.0 and System.CommandLine 2.0.14 on .NET 10 Windows. It references the existing monitoring assemblies, never WPF. The original snapshot command remains a one-interval table/JSON report.
 
 ## Requirements and baseline

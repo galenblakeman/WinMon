@@ -132,6 +132,8 @@ public sealed class FullInteractiveTests
         Assert.That(state.Tab, Is.EqualTo(TerminalTab.Connections));
         Key(state, ConsoleKey.F4);
         Assert.That(state.Tab, Is.EqualTo(TerminalTab.Usage));
+        Key(state, ConsoleKey.F5);
+        Assert.That(state.Tab, Is.EqualTo(TerminalTab.Hardware));
     }
 
     [Test]
@@ -218,13 +220,13 @@ public sealed class FullInteractiveTests
         using var output = new StringWriter();
         var console = AnsiConsole.Create(new AnsiConsoleSettings { Enrichment = new() { UseDefaultEnrichers = false }, Out = new AnsiConsoleOutput(output), Ansi = AnsiSupport.No });
         console.Profile.Width = width;
-        foreach (var key in new[] { ConsoleKey.F1, ConsoleKey.F2, ConsoleKey.F3, ConsoleKey.F4 })
+        foreach (var key in new[] { ConsoleKey.F1, ConsoleKey.F2, ConsoleKey.F3, ConsoleKey.F4, ConsoleKey.F5 })
         {
             Key(state, key);
             console.Write(InteractiveMonitor.BuildView(state, 0, 3, width, 24));
         }
         Assert.That(output.ToString().Contains('\u001b'), Is.False);
-        Assert.That(output.ToString(), Does.Contain("F1").And.Contain("F4"));
+        Assert.That(output.ToString(), Does.Contain("F1").And.Contain("F5"));
     }
 
     [Test]

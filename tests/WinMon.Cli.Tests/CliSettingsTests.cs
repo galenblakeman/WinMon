@@ -61,14 +61,24 @@ public sealed class CliSettingsTests
     [Category("Integration")]
     public void MissingFileUsesDefaultsWithoutCreatingAnything()
     {
-        Assert.That(_store.Load().Tabs, Has.Length.EqualTo(4));
+        Assert.That(_store.Load().Tabs, Has.Length.EqualTo(5));
         Assert.That(_store.Load().Network, Is.True);
-        Assert.That(_store.Load().Tabs.Select(tab => tab.Top), Is.EqualTo(new[] { 10, 10, 10, 10 }));
+        Assert.That(_store.Load().Tabs.Select(tab => tab.Top), Is.EqualTo(new[] { 10, 10, 10, 10, 0 }));
         Assert.That(File.Exists(_store.Path), Is.False);
     }
 
-    [TestCase(null, new[] { 10, 10, 10, 10 })]
-    [TestCase("{\"tabs\":[{\"top\":0},{\"top\":5},{\"top\":20},{\"top\":50}]}", new[] { 0, 5, 20, 50 })]
+    [Test]
+    public void FourTabSettingsGainHardwareWithoutChangingExistingEntries()
+    {
+        var preferences = new CliPreferences { Tabs = [new() { Top = 1 }, new() { Top = 2 }, new() { Top = 3 }, new() { Top = 4 }] };
+
+        preferences.Normalize();
+
+        Assert.That(preferences.Tabs.Select(tab => tab.Top), Is.EqualTo(new[] { 1, 2, 3, 4, 0 }));
+    }
+
+    [TestCase(null, new[] { 10, 10, 10, 10, 0 })]
+    [TestCase("{\"tabs\":[{\"top\":0},{\"top\":5},{\"top\":20},{\"top\":50}]}", new[] { 0, 5, 20, 50, 0 })]
     [Category("Integration")]
     public async Task WatchUsesTopTenOnEveryTabUnlessSaved(string? json, int[] expected)
     {
@@ -316,7 +326,7 @@ public sealed class CliSettingsTests
         Directory.CreateDirectory(_directory);
         File.WriteAllText(_store.Path, "{\"activeTab\":99,\"tabs\":[{\"top\":-1,\"sort\":99,\"pins\":[null,{\"identity\":\"process:42\",\"name\":\"old PID\"}]},null]}");
         var saved = _store.Load();
-        Assert.That(saved.Tabs, Has.Length.EqualTo(4));
+        Assert.That(saved.Tabs, Has.Length.EqualTo(5));
         Assert.That(saved.Tabs[0].Top, Is.Zero);
         Assert.That(saved.Tabs[0].Sort, Is.Zero);
         Assert.That(saved.Tabs[0].Pins, Is.Empty);
@@ -365,7 +375,7 @@ public sealed class CliSettingsTests
         _store.Update(saved => saved.Tabs[0].Grouped = true);
         Assert.That(await command.Parse(["settings", "reset"]).InvokeAsync(), Is.Zero, error.ToString());
         Assert.That(_store.Load().Tabs[0].Grouped, Is.False);
-        Assert.That(_store.Load().Tabs.Select(tab => tab.Top), Is.EqualTo(new[] { 10, 10, 10, 10 }));
+        Assert.That(_store.Load().Tabs.Select(tab => tab.Top), Is.EqualTo(new[] { 10, 10, 10, 10, 0 }));
         Assert.That(command.Parse(["settings", "set"]).Errors, Is.Not.Empty);
         Assert.That(error.ToString(), Is.Empty);
     }

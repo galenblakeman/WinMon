@@ -7,6 +7,8 @@ description: Diagnose local Windows performance with WinMon's read-only MCP tool
 
 Start with `get_system_snapshot`. State unavailable or stale metrics rather than treating them as zero.
 
+Use `get_hardware_info` when the investigation needs machine inventory. It runs on demand and reports Windows/provider data, not live sensors. Do not request `includeIdentifiers: true` until the user agrees: it discloses board serials, volume labels and adapter aliases.
+
 Use `list_processes` to identify candidates. When following one process, retain the returned PID and lifetime identity and pass both to `get_process_details` or `sample_performance`; a PID can be reused after a process exits.
 
 Use `sample_performance` for a bounded trend. Explain its requested duration, valid coverage and gaps. The server samples once per second, so it can miss shorter peaks.

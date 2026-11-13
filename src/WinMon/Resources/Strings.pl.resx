@@ -1880,11 +1880,11 @@ Góra/Dół Przewiń  PgUp/PgDn Strona  Home Początek</value></data>
   <data name="CliResourceHistory" xml:space="preserve"><value>{0} s · 0–100%</value></data>
   <data name="CliScaledHistory" xml:space="preserve"><value>{0} s · {1}–{2}%</value></data>
   <data name="CliTerminalSmall" xml:space="preserve"><value>Powiększ terminal do co najmniej 80 kolumn i 20 wierszy.</value></data>
-  <data name="CliTabs" xml:space="preserve"><value>F1 Procesy  F2 Usługi  F3 Połączenia  F4 Użycie</value></data>
+  <data name="CliTabs" xml:space="preserve"><value>F1 Procesy  F2 Usługi  F3 Połączenia  F4 Użycie  F5 Sprzęt</value></data>
   <data name="CliColumnsHint" xml:space="preserve"><value>Left/Right: kolumny</value></data>
   <data name="CliNavigation" xml:space="preserve"><value>1-6 Sortuj  / Filtr  Enter Szczegóły  Spacja Pauza  ? Pomoc  Q Wyjdź</value></data>
   <data name="CliFullHelp" xml:space="preserve"><value>B: włącz lub wyłącz monitorowanie ruchu sieciowego.
-F1-F4: zmiana karty; każda zachowuje ustawienia.
+F1-F5: zmiana karty; każda zachowuje ustawienia.
 1-6: sortowanie. Lewo/Prawo: kolumny.
 /: filtr. Enter stosuje; Esc anuluje lub czyści.
 Strzałki, PageUp/PageDown, Home/End: wybór wiersza.
@@ -1952,4 +1952,13 @@ Q kończy. Ctrl+C anuluje. Przypięte programy i usługi są zachowywane między
   <data name="ToolUpdateFailed" xml:space="preserve"><value>Aktualizacja nie powiodła się: {0}</value></data>
   <data name="ToolUpdateUsage" xml:space="preserve"><value>Użycie: {0} update check|install</value></data>
   <data name="ToolUpdateStore" xml:space="preserve"><value>Aktualizacjami tej kompilacji zarządza Microsoft Store.</value></data>
+  <data name="CliHardware" xml:space="preserve"><value>Wyświetl inwentarz sprzętu systemu Windows.</value></data>
+  <data name="CliHardwareIdentifiers" xml:space="preserve"><value>Uwzględnij numery seryjne płyt, etykiety woluminów i aliasy kart.</value></data>
+  <data name="CliHardwareUnavailable" xml:space="preserve"><value>Informacje o sprzęcie są niedostępne.</value></data>
+  <data name="CliHardwareRefresh" xml:space="preserve"><value>Zebrano o {0:T}. R odświeża ten inwentarz.</value></data>
+  <data name="CliHardwareIdentifiersOmitted" xml:space="preserve"><value>Numery seryjne płyt, etykiety woluminów i aliasy kart są pomijane. Użyj --include-identifiers, aby je uwzględnić.</value></data>
+  <data name="CliHardwareHelp" xml:space="preserve"><value>Enter Szczegóły  R Odśwież  Q Wyjdź
+Odświeżanie sprzętu jest niezależne od wstrzymania historii zasobów.</value></data>
+  <data name="HardwareCollectionInterval" xml:space="preserve"><value>Zbieranie: {0:O} – {1:O}</value></data>
+  <data name="HardwarePartialInformation" xml:space="preserve"><value>Niektórych szczegółów sprzętu nie można odczytać lub zostały pominięte.</value></data>
 </root>

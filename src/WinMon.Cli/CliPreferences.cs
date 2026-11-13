@@ -27,8 +27,15 @@ public sealed record CliTabPreferences
         if (Sort < 0 || Sort > maximum || tab == TerminalTab.Services && Sort == 3 && Top != 0) Sort = 0;
         if (Status is < 0 or > 2) Status = 0;
         if (TrafficSeconds is not (0 or 60 or 300 or 1800)) TrafficSeconds = 300;
-        if (tab == TerminalTab.Services) AppsOnly = false;
+        if (tab is TerminalTab.Services or TerminalTab.Hardware) AppsOnly = false;
         if (tab != TerminalTab.Processes) Grouped = false;
+        if (tab == TerminalTab.Hardware)
+        {
+            Top = 0;
+            Sort = 0;
+            PinnedOnly = false;
+            Pins = [];
+        }
         // Preferences are input, including null array entries and obsolete PID-based identities.
         Pins = (Pins ?? []).Where(pin => pin is not null && pin.Identity is { Length: > 0 and <= 32768 } &&
             pin.Name is { Length: > 0 and <= 256 })
@@ -60,14 +67,15 @@ public sealed record CliPreferences
     public int Version { get; set; } = 1;
     public TerminalTab ActiveTab { get; set; }
     public bool Network { get; set; } = true;
-    public CliTabPreferences[] Tabs { get; set; } = [new(), new(), new(), new()];
+    public CliTabPreferences[] Tabs { get; set; } = [new(), new(), new(), new(), new() { Top = 0 }];
 
     internal void Normalize()
     {
         if (Version != 1) throw new InvalidDataException("Unsupported CLI settings version.");
         if (!Enum.IsDefined(ActiveTab)) ActiveTab = TerminalTab.Processes;
         var tabs = Tabs ?? [];
-        Tabs = Enumerable.Range(0, 4).Select(index => index < tabs.Length ? tabs[index] ?? new() : new CliTabPreferences()).ToArray();
+        Tabs = Enumerable.Range(0, Enum.GetValues<TerminalTab>().Length)
+            .Select(index => index < tabs.Length ? tabs[index] ?? new() : new CliTabPreferences()).ToArray();
         for (var i = 0; i < Tabs.Length; i++) Tabs[i].Normalize((TerminalTab)i);
     }
 
@@ -75,7 +83,7 @@ public sealed record CliPreferences
     {
         if (before.ActiveTab != after.ActiveTab) target.ActiveTab = after.ActiveTab;
         if (before.Network != after.Network) target.Network = after.Network;
-        for (var i = 0; i < 4; i++) CliTabPreferences.Merge(before.Tabs[i], after.Tabs[i], target.Tabs[i]);
+        for (var i = 0; i < target.Tabs.Length; i++) CliTabPreferences.Merge(before.Tabs[i], after.Tabs[i], target.Tabs[i]);
     }
 
     internal static string Serialize(CliPreferences preferences) => JsonSerializer.Serialize(preferences, CliSettingsStore.JsonOptions);

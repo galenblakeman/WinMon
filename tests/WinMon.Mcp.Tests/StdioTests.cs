@@ -30,7 +30,7 @@ public sealed class StdioTests
         Assert.That(tools.Select(tool => tool.Name), Is.EquivalentTo(new[]
         {
             "get_system_snapshot", "list_processes", "get_process_details", "sample_performance", "get_network_connections",
-            "get_process_network_traffic"
+            "get_process_network_traffic", "get_hardware_info"
         }));
         Assert.That(tools.All(tool => tool.ProtocolTool.Annotations?.ReadOnlyHint == true), Is.True);
         Assert.That(tools.All(tool => tool.ProtocolTool.OutputSchema is not null), Is.True);
@@ -46,6 +46,13 @@ public sealed class StdioTests
         });
         var invalid = await client.CallToolAsync("list_processes", new Dictionary<string, object?> { ["limit"] = 0 }, cancellationToken: timeout.Token);
         Assert.That(invalid.IsError, Is.True);
+        var hardware = await client.CallToolAsync("get_hardware_info", cancellationToken: timeout.Token);
+        Assert.Multiple(() =>
+        {
+            Assert.That(hardware.IsError, Is.Not.True);
+            Assert.That(hardware.StructuredContent!.Value.GetProperty("schemaVersion").GetInt32(), Is.EqualTo(1));
+            Assert.That(hardware.StructuredContent.Value.GetProperty("status").GetString(), Is.AnyOf("ok", "partial", "unavailable"));
+        });
         var traffic = await client.CallToolAsync("get_process_network_traffic",
             new Dictionary<string, object?> { ["limit"] = 1 }, cancellationToken: timeout.Token);
         Assert.Multiple(() =>

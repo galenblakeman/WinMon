@@ -58,18 +58,19 @@ History defaults to **30 minutes**, with retention configurable up to **60 minut
 
 ## Command line
 
-Run `WinMon.Cli` for a keyboard-driven monitor with Processes, Services, Connections and Usage tabs, or use `snapshot` for a one-time table or JSON report. The CLI has its own installer and portable ZIP; desktop and Microsoft Store packages do not include it.
+Run `WinMon.Cli` for a keyboard-driven monitor with Processes, Services, Connections, Usage and Hardware tabs. Use `snapshot` for a one-time performance report or `hardware` for the inventory shown in desktop Info. Both commands support table and JSON output. The CLI has its own installer and portable ZIP; desktop and Microsoft Store packages do not include it.
 
 ```powershell
 .\WinMon.Cli.exe
 .\WinMon.Cli.exe snapshot --sort memory --top 15
+.\WinMon.Cli.exe hardware --format json
 ```
 
 See the [CLI user guide](docs/USER-GUIDE.md#command-line) for setup, keyboard shortcuts, saved settings, network monitoring and scripting.
 
 ## Coding agent diagnostics
 
-`WinMon.Mcp.exe` is a separately installed local read-only MCP server for system snapshots, process details, bounded performance trends, connection observations and per-process traffic from an already-installed network service. Its installer offers unchecked Codex and Claude Code registration options; a separate Claude Code plugin adds a diagnostics skill. Command lines and executable paths are excluded, and network addresses/ports require explicit opt-in. See [MCP setup and privacy](docs/MCP.md) for downloads and registration.
+`WinMon.Mcp.exe` is a separately installed local read-only MCP server for hardware inventory, system snapshots, process details, bounded performance trends, connection observations and per-process traffic from an already-installed network service. Its installer offers unchecked Codex and Claude Code registration options; a separate Claude Code plugin adds a diagnostics skill. Command lines and executable paths are excluded. Network addresses/ports and hardware identifiers require explicit opt-in. See [MCP setup and privacy](docs/MCP.md) for downloads and registration.
 
 ## Compact view and customization
 

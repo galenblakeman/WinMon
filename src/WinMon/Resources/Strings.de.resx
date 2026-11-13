@@ -1880,11 +1880,11 @@ Auf/Ab Scrollen  Bild auf/ab Seite  Pos1 Anfang</value></data>
   <data name="CliResourceHistory" xml:space="preserve"><value>{0} s · 0–100 %</value></data>
   <data name="CliScaledHistory" xml:space="preserve"><value>{0} s · {1}–{2} %</value></data>
   <data name="CliTerminalSmall" xml:space="preserve"><value>Terminal auf mindestens 80 Spalten und 20 Zeilen vergrößern.</value></data>
-  <data name="CliTabs" xml:space="preserve"><value>F1 Prozesse  F2 Dienste  F3 Verbindungen  F4 Nutzung</value></data>
+  <data name="CliTabs" xml:space="preserve"><value>F1 Prozesse  F2 Dienste  F3 Verbindungen  F4 Nutzung  F5 Hardware</value></data>
   <data name="CliColumnsHint" xml:space="preserve"><value>Left/Right: Spalten</value></data>
   <data name="CliNavigation" xml:space="preserve"><value>1-6 Sortieren  / Filter  Enter Details  Leertaste Pause  ? Hilfe  Q Ende</value></data>
   <data name="CliFullHelp" xml:space="preserve"><value>B: Netzwerkverkehrsüberwachung ein-/ausschalten.
-F1-F4: Register wechseln. Auswahl bleibt je Register erhalten.
+F1-F5: Register wechseln. Auswahl bleibt je Register erhalten.
 1-6: Sortierung. Links/Rechts: Spalten verschieben.
 /: Filter bearbeiten. Enter anwenden; Esc abbrechen/leeren.
 Auf/Ab, Bild auf/ab, Pos1/Ende: Zeile auswählen.
@@ -1952,4 +1952,13 @@ Q beendet. Ctrl+C bricht ab. Programm- und Dienst-Pins bleiben gespeichert.</val
   <data name="ToolUpdateFailed" xml:space="preserve"><value>Update fehlgeschlagen: {0}</value></data>
   <data name="ToolUpdateUsage" xml:space="preserve"><value>Verwendung: {0} update check|install</value></data>
   <data name="ToolUpdateStore" xml:space="preserve"><value>Updates für diesen Build werden vom Microsoft Store verwaltet.</value></data>
+  <data name="CliHardware" xml:space="preserve"><value>Windows-Hardwareinventar anzeigen.</value></data>
+  <data name="CliHardwareIdentifiers" xml:space="preserve"><value>Platinenseriennummern, Volumebezeichnungen und Adapteraliase einschließen.</value></data>
+  <data name="CliHardwareUnavailable" xml:space="preserve"><value>Hardwareinformationen sind nicht verfügbar.</value></data>
+  <data name="CliHardwareRefresh" xml:space="preserve"><value>Erfasst um {0:T}. R aktualisiert dieses Inventar.</value></data>
+  <data name="CliHardwareIdentifiersOmitted" xml:space="preserve"><value>Platinenseriennummern, Volumebezeichnungen und Adapteraliase werden ausgelassen. Mit --include-identifiers einschließen.</value></data>
+  <data name="CliHardwareHelp" xml:space="preserve"><value>Enter Details  R Aktualisieren  Q Beenden
+Die Hardwareaktualisierung ist unabhängig vom pausierten Ressourcenverlauf.</value></data>
+  <data name="HardwareCollectionInterval" xml:space="preserve"><value>Erfassung: {0:O} – {1:O}</value></data>
+  <data name="HardwarePartialInformation" xml:space="preserve"><value>Einige Hardwaredetails konnten nicht gelesen werden oder wurden ausgelassen.</value></data>
 </root>

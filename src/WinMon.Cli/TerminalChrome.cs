@@ -42,9 +42,9 @@ internal static partial class TerminalChrome
         return result.Append(text[offset..]);
     }
 
-    [GeneratedRegex(@"(?<![\w\[])(?:F1-F4|F[1-4]|1-6|Enter|Space|Esc|Left/Right|Arrows/Page|[ABGNPQRSTW?/])(?=\s|:|$)")]
+    [GeneratedRegex(@"(?<![\w\[])(?:F1-F5|F[1-5]|1-6|Enter|Space|Esc|Left/Right|Arrows/Page|[ABGNPQRSTW?/])(?=\s|:|$)")]
     private static partial Regex KeyNames();
 
-    [GeneratedRegex(@"\[(?:F1-F4|F[1-4]|[1-6]|1-6|Enter|Space|Esc|Left/Right|Arrows/Page|[ABGNPQRSTW?x✓/])\]")]
+    [GeneratedRegex(@"\[(?:F1-F5|F[1-5]|[1-6]|1-6|Enter|Space|Esc|Left/Right|Arrows/Page|[ABGNPQRSTW?x✓/])\]")]
     private static partial Regex KeyCaps();
 }

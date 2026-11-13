@@ -2,6 +2,20 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## Hardware inventory in the CLI and MCP (November 11, 2026)
+
+Hardware collection is on demand and outside `MonitorSession`. The desktop and CLI share typed inventory and localized formatting; the CLI caches unchanged Hardware rows between refreshes. Measurements used this Windows/Hyper-V development machine, SDK 10.0.404/runtime 10.0.15. Local evidence is under `artifacts/hardware-performance`.
+
+The preserved desktop baseline was built before switching Info to the shared reader. One full before/after UI benchmark used the existing 850-process workloads, 400 warm-up frames and seven batches of 60. All **16 rendered scenario hashes matched**. Historical-frame median was 1.335 ms before and after, with 180,857 bytes/frame. Connections with traffic history and pins was 3.869 → 3.896 ms, with unchanged 1,353,336 bytes/frame. Initial live/Services timing increased while other builds/tests were active, without increased allocation; these runs do not establish a performance regression or improvement.
+
+Repeated live-only measurements disabled tiered compilation as the developer guide prescribes. Eight alternating pairs, reversing launch order halfway through, gave median live-frame time **5.004 → 5.069 ms** (+1.3%) and unchanged **602,813 bytes/frame**. Individual run medians overlapped (before 4.862–5.235 ms; after 4.787–5.549 ms). The changing order and spread support ordinary workstation timing variation; no new inventory work runs in the measured refresh path. This is a comparison with observed variance, not a speedup claim.
+
+A separate immutable HEAD source export (`a9f294b`) supplied the CLI baseline. Seven alternating native `snapshot --format json --top 10` runs per build gave median elapsed time **1,576.5 → 1,559.0 ms**, including the required one-second sample interval, and process CPU **562.5 → 531.3 ms**. Live process populations vary, and the changed checkout also contains concurrent investigation commands; this does not isolate a hardware-only improvement. Peak working set was unavailable after these short-lived processes exited and is not reported as zero.
+
+The published MCP server completed **120 sequential hardware reads**: first request **284.3 ms**, subsequent median **102.6 ms**. Server private bytes grew from 25.6 MiB during startup to 39.2 MiB after the series; the final 20 reads ranged 38.8–45.3 MiB with reclamation, rather than a monotonic retained rise. Eight additional hardware requests alongside a five-second performance sample completed successfully. Total server CPU for the run was 4.33 seconds; that excludes Windows provider-process CPU. Default identifier omission and native opt-in were checked separately. Single-worker/cancellation ownership and full 256 KiB wire bounds are covered by deterministic tests.
+
+These short runs do not replace a long-duration cancellation/memory soak, physical-machine or multi-socket acceptance, or provider-specific performance testing. WMI/native calls remain non-interruptible while blocked; observed latency is not a hard deadline.
+
 ## Investigation continuity (November 11, 2026)
 
 Compared untouched HEAD with the completed changes on this Windows x64 desktop, SDK 10.0.404/runtime 10.0.15, using the existing synthetic UI benchmark (400 warm-up frames and seven batches of 60). Services now retain configured history within their observation cap; presentation still passes only the two-minute row window. An initial implementation scanned the full retained list during refresh and increased Services work; bounded slicing removed that cost before the final run.
