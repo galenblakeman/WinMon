@@ -184,7 +184,10 @@ public static class CliCommand
         return new RootCommand(Strings.CliDescription)
         {
             snapshot, hardware, watch, NetworkCommands.Create(output, error, runNetwork), SettingsCommands.Create(settingsStore, output, error),
-            CreateUpdateCommand(output, error, runUpdate)
+            CreateUpdateCommand(output, error, runUpdate),
+            ActivityCommands.Create("services", createSource, output, error),
+            ActivityCommands.Create("connections", createSource, output, error),
+            ActivityCommands.Create("usage", createSource, output, error)
         };
     }
 

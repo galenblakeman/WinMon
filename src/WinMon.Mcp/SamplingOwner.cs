@@ -6,6 +6,9 @@ namespace WinMon.Mcp;
 internal sealed record PublishedFrame(long Sequence, CapturedFrame Frame, long ObservedAt,
     ProcessNetworkFrame? Network = null);
 
+internal sealed record PublishedUsage(PublishedFrame Frame, IReadOnlyList<AppUsage> Apps,
+    DateTimeOffset Since, long MachineBusyTicks);
+
 /// <summary>One MonitorSession owns all native calls; requests read immutable publications.</summary>
 internal sealed class SamplingOwner : IHostedService, IAsyncDisposable
 {
@@ -17,6 +20,7 @@ internal sealed class SamplingOwner : IHostedService, IAsyncDisposable
     private TaskCompletionSource _changed = NewSignal();
     private CapturedFrame? _captured;
     private long _sequence;
+    private PublishedUsage? _usage;
     private Task? _run;
     private Task? _dispose;
     private readonly Func<NetworkTrafficClient> _createTraffic;
@@ -92,6 +96,11 @@ internal sealed class SamplingOwner : IHostedService, IAsyncDisposable
         lock (_gate) return _frames.Where(frame => frame.Sequence > sequence).ToArray();
     }
 
+    internal PublishedUsage? ReadUsage()
+    {
+        lock (_gate) return _usage;
+    }
+
     internal async Task WaitForChangeAsync(long sequence, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -135,7 +144,9 @@ internal sealed class SamplingOwner : IHostedService, IAsyncDisposable
         {
             var observedAt = ReferenceEquals(_clock, TimeProvider.System) && frame.Full.MonotonicTimestamp > 0
                 ? frame.Full.MonotonicTimestamp : Now;
-            _frames.Enqueue(new PublishedFrame(++_sequence, frame, observedAt, _session.ProcessNetwork));
+            var published = new PublishedFrame(++_sequence, frame, observedAt, _session.ProcessNetwork);
+            _frames.Enqueue(published);
+            _usage = new PublishedUsage(published, _session.Usage.Apps, _session.Usage.Since, _session.Usage.MachineBusyTicks);
             while (_frames.Count > 120) _frames.Dequeue();
             changed = _changed;
             _changed = NewSignal();

@@ -30,10 +30,17 @@ public sealed class StdioTests
         Assert.That(tools.Select(tool => tool.Name), Is.EquivalentTo(new[]
         {
             "get_system_snapshot", "list_processes", "get_process_details", "sample_performance", "get_network_connections",
-            "get_process_network_traffic", "get_hardware_info"
+            "get_process_network_traffic", "get_hardware_info", "list_services", "get_usage", "get_performance_history",
+            "list_capture_reports", "read_capture_report"
         }));
         Assert.That(tools.All(tool => tool.ProtocolTool.Annotations?.ReadOnlyHint == true), Is.True);
         Assert.That(tools.All(tool => tool.ProtocolTool.OutputSchema is not null), Is.True);
+        foreach (var name in new[] { "list_services", "get_usage", "get_performance_history" })
+        {
+            var activity = await client.CallToolAsync(name, cancellationToken: timeout.Token);
+            Assert.That(activity.IsError, Is.Not.True, name);
+            Assert.That(activity.StructuredContent!.Value.GetProperty("schemaVersion").GetInt32(), Is.EqualTo(1), name);
+        }
         var result = await client.CallToolAsync("get_system_snapshot", cancellationToken: timeout.Token);
         var json = result.StructuredContent!.Value;
         Assert.Multiple(() =>

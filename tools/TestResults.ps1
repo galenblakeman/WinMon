@@ -26,6 +26,7 @@ function Get-TestSummary([string]$Path, [bool]$Store = $false) {
         'WinMon.NetworkSetup.Tests/ElevatedSecureFactories_ProtectNewStagingChildrenAndLockImmediately' = 'Requires elevation to assign the protected Administrators owner.'
         'WinMon.NetworkSetup.Tests/RecoveryValidatesProtectedTreeBeforeAcceptingMissingFiles' = 'Requires elevation to assign protected owners and permissions.'
         'WinMon.Mcp.Tests/MeasurePublishedServer' = 'Measures a published server for about four minutes; requires dotnet-counters, dotnet-gcdump and WINMON_MCP_TEST_EXE.'
+        'WinMon.Mcp.Tests/MeasureUsagePublication' = 'Focused before/after measurement of publishing immutable Usage totals'
         'WinMon.Tests/AvailableFreeSpace_ReadsNetworkShareWhenAvailable' = 'No administrative share is available to read through UNC.'
         'MonCore.Windows.Tests/VerifyPublisher_ExtractsAuthenticodeCertificateBeforeRejectingAnotherPublisher' = 'The signed .NET host is not installed at the standard path.'
         'WinMon.Cli.Tests/DevelopmentOrStoreBuildCannotLaunchSetupWithoutSignedBundle' = 'Missing-bundle check is only applicable to builds without setup assets.'

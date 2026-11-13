@@ -1961,4 +1961,7 @@ Q kończy. Ctrl+C anuluje. Przypięte programy i usługi są zachowywane między
 Odświeżanie sprzętu jest niezależne od wstrzymania historii zasobów.</value></data>
   <data name="HardwareCollectionInterval" xml:space="preserve"><value>Zbieranie: {0:O} – {1:O}</value></data>
   <data name="HardwarePartialInformation" xml:space="preserve"><value>Niektórych szczegółów sprzętu nie można odczytać lub zostały pominięte.</value></data>
+  <data name="CliCollectionSeconds" xml:space="preserve"><value>Czas zbierania w sekundach (1–60). Sumy dotyczą tylko tego okresu.</value></data>
+  <data name="CliCollectionRange" xml:space="preserve"><value>Użyj --top 0–1000 i --duration 1–60.</value></data>
+  <data name="CliPid" xml:space="preserve"><value>PID</value></data>
 </root>

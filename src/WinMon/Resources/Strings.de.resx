@@ -1961,4 +1961,7 @@ Q beendet. Ctrl+C bricht ab. Programm- und Dienst-Pins bleiben gespeichert.</val
 Die Hardwareaktualisierung ist unabhängig vom pausierten Ressourcenverlauf.</value></data>
   <data name="HardwareCollectionInterval" xml:space="preserve"><value>Erfassung: {0:O} – {1:O}</value></data>
   <data name="HardwarePartialInformation" xml:space="preserve"><value>Einige Hardwaredetails konnten nicht gelesen werden oder wurden ausgelassen.</value></data>
+  <data name="CliCollectionSeconds" xml:space="preserve"><value>Erfassungsdauer in Sekunden (1–60). Nutzungswerte gelten nur für diese Erfassung.</value></data>
+  <data name="CliCollectionRange" xml:space="preserve"><value>--top 0–1000 und --duration 1–60 verwenden.</value></data>
+  <data name="CliPid" xml:space="preserve"><value>PID</value></data>
 </root>

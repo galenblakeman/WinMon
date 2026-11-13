@@ -1961,4 +1961,7 @@ Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。<
 硬件刷新独立于资源历史记录的暂停状态。</value></data>
   <data name="HardwareCollectionInterval" xml:space="preserve"><value>采集时间段: {0:O} – {1:O}</value></data>
   <data name="HardwarePartialInformation" xml:space="preserve"><value>部分硬件详细信息无法读取或已省略。</value></data>
+  <data name="CliCollectionSeconds" xml:space="preserve"><value>采集时长（秒，1–60）。使用量合计仅涵盖本次采集。</value></data>
+  <data name="CliCollectionRange" xml:space="preserve"><value>请使用 --top 0–1000 和 --duration 1–60。</value></data>
+  <data name="CliPid" xml:space="preserve"><value>PID</value></data>
 </root>

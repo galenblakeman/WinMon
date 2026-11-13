@@ -68,9 +68,13 @@ Run `WinMon.Cli` for a keyboard-driven monitor with Processes, Services, Connect
 
 See the [CLI user guide](docs/USER-GUIDE.md#command-line) for setup, keyboard shortcuts, saved settings, network monitoring and scripting.
 
+Use `services`, `connections` or `usage` with `--format json` for scriptable activity reports. `--duration 1–60` collects a bounded window; Usage totals cover that command's collection rather than another running app's session.
+
 ## Coding agent diagnostics
 
 `WinMon.Mcp.exe` is a separately installed local read-only MCP server for hardware inventory, system snapshots, process details, bounded performance trends, connection observations and per-process traffic from an already-installed network service. Its installer offers unchecked Codex and Claude Code registration options; a separate Claude Code plugin adds a diagnostics skill. Command lines and executable paths are excluded. Network addresses/ports and hardware identifiers require explicit opt-in. See [MCP setup and privacy](docs/MCP.md) for downloads and registration.
+
+MCP also provides service groups, session app Usage and the server's last 120 recorded frames for retrospective spike analysis. Saved desktop automatic-capture reports can be listed from an explicit folder and read with explicit consent to disclose their contents. See [the tool reference](docs/MCP.md#available-tools).
 
 ## Compact view and customization
 

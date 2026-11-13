@@ -1961,4 +1961,7 @@ Q sale. Ctrl+C cancela. Los programas y servicios fijados se conservan entre ses
 La actualización del hardware es independiente del historial de recursos en pausa.</value></data>
   <data name="HardwareCollectionInterval" xml:space="preserve"><value>Recopilación: {0:O} – {1:O}</value></data>
   <data name="HardwarePartialInformation" xml:space="preserve"><value>No se pudieron leer algunos detalles de hardware o se omitieron.</value></data>
+  <data name="CliCollectionSeconds" xml:space="preserve"><value>Duración de recopilación en segundos (1–60). El uso corresponde solo a esta recopilación.</value></data>
+  <data name="CliCollectionRange" xml:space="preserve"><value>Use --top 0–1000 y --duration 1–60.</value></data>
+  <data name="CliPid" xml:space="preserve"><value>PID</value></data>
 </root>

@@ -119,6 +119,18 @@ Connections rows group the same executable's processes, matching the desktop. Tr
 
 ### Snapshots and scripting
 
+Services, Connections and Usage also have standalone commands. Each supports `--format table|json`, `--filter`, `--top` (0 for all, otherwise up to 1000), `--duration` (1–60 seconds, default 1) and `--no-color`:
+
+```powershell
+WinMon.Cli services --format json --sort memory --top 10
+WinMon.Cli connections --format json --filter 1234
+WinMon.Cli usage --duration 10 --sort cpu-time --format json
+```
+
+Service sorts are cpu, memory, io and name. Usage sorts are cpu-time, io, gpu-time, processes and last-active. Connection sorts are pid and name; connections are individual endpoints, with raw addresses and ports in JSON. Endpoint observations contain no per-socket traffic counters. IPv4/IPv6 availability is reported independently.
+
+Commands first establish a baseline, then collect once per second. Usage totals describe only this command's collection, including apps that exit during it; they do not read desktop session totals. JSON includes schema version 1, collection start/end, availability, gap/error state, observed valid seconds, truncation/count metadata and numeric entries. Null means unavailable. Services include shared-host groups and observed workers; their CPU/I/O averages use up to five seconds of this command's collection. Cancellation exits with code 130 without writing a partial report. Interactive `watch` and the existing `snapshot` schema are unchanged.
+
 `WinMon.Cli hardware` prints the seven hardware sections shown in desktop **Info → Hardware**: CPU, motherboard, installed memory/modules, graphics adapters, physical drives, local volumes and network adapters. Use `hardware --format json` for typed schema-version-1 JSON with raw units and per-section availability. Hardware reports do not wait for a performance sampling interval or require the optional network service.
 
 Hardware output omits motherboard serial numbers, volume labels and adapter aliases by default. Use `hardware --include-identifiers` when you want those values in the report. No identifier preference or hardware inventory is saved. Unknown values remain unavailable; firmware specifications and disk health are reports from Windows, not live sensors or full diagnostics. Completed partial hardware reports exit 0; wholly unavailable reports exit 1; cancellation exits 130.

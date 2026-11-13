@@ -23,6 +23,7 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.15" />
     <ProjectReference Include="../MonCore/MonCore.csproj" />
     <ProjectReference Include="../MonCore.Windows/MonCore.Windows.csproj" />
+    <Compile Include="../WinMon/Monitoring/CaptureReports.cs" Link="Monitoring/CaptureReports.cs" />
     <Compile Include="../WinMon.Cli/Resources.cs" Link="Resources/Strings.cs" />
     <Compile Include="../WinMon/Resources/Strings.Designer.cs" Link="Resources/Strings.Designer.cs" />
     <Compile Include="../WinMon/Updates/ToolUpdateCommand.cs" Link="Updates/ToolUpdateCommand.cs" />

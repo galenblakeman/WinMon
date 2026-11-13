@@ -2,6 +2,12 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## MCP Usage publication (November 11, 2026)
+
+Focused synthetic before/after measurement on this Windows x64 development machine: 850 distinct executable lifetimes, 400 warm-up additions, then seven batches of 100; median time/allocation per tick. `ActivityToolsTests.MeasureUsagePublication` compares the existing ledger-only operation against ledger plus its immutable Apps snapshot. Baseline: **0.0913 ms and 32 bytes/tick**. With snapshot: **0.1165 ms and 122,616 bytes/tick**, an explained increase of **0.0252 ms and 122,584 bytes** per one-second publication. The server keeps only the latest Usage snapshot, not 120 copies. Native collection, serialization and whole-process memory are outside this focused measurement; desktop/UI hot paths are unchanged.
+
+Reproduce with `dotnet test tests/WinMon.Mcp.Tests/WinMon.Mcp.Tests.csproj -c Release -m:1 -p:UseSharedCompilation=false --filter FullyQualifiedName~MeasureUsagePublication --logger "console;verbosity=normal"`.
+
 ## Hardware inventory in the CLI and MCP (November 11, 2026)
 
 Hardware collection is on demand and outside `MonitorSession`. The desktop and CLI share typed inventory and localized formatting; the CLI caches unchanged Hardware rows between refreshes. Measurements used this Windows/Hyper-V development machine, SDK 10.0.404/runtime 10.0.15. Local evidence is under `artifacts/hardware-performance`.

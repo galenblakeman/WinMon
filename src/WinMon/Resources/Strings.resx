@@ -1961,4 +1961,7 @@ Q quits. Ctrl+C cancels. Executable/service pins persist between sessions.</valu
 Hardware refresh is independent of paused resource history.</value></data>
   <data name="HardwareCollectionInterval" xml:space="preserve"><value>Collection: {0:O} – {1:O}</value></data>
   <data name="HardwarePartialInformation" xml:space="preserve"><value>Some hardware details could not be read or were omitted.</value></data>
+  <data name="CliCollectionSeconds" xml:space="preserve"><value>Collection duration in seconds (1–60). Usage totals cover only this collection.</value></data>
+  <data name="CliCollectionRange" xml:space="preserve"><value>Use --top 0–1000 and --duration 1–60.</value></data>
+  <data name="CliPid" xml:space="preserve"><value>PID</value></data>
 </root>

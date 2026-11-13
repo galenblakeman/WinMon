@@ -1961,4 +1961,7 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
 ハードウェアの更新は、リソース履歴の一時停止とは独立しています。</value></data>
   <data name="HardwareCollectionInterval" xml:space="preserve"><value>取得期間: {0:O} – {1:O}</value></data>
   <data name="HardwarePartialInformation" xml:space="preserve"><value>一部のハードウェア詳細を取得できなかったか、省略されました。</value></data>
+  <data name="CliCollectionSeconds" xml:space="preserve"><value>収集時間（秒、1–60）。使用量の合計はこの収集期間のみです。</value></data>
+  <data name="CliCollectionRange" xml:space="preserve"><value>--top 0–1000 と --duration 1–60 を指定してください。</value></data>
+  <data name="CliPid" xml:space="preserve"><value>PID</value></data>
 </root>

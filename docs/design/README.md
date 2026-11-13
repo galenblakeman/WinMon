@@ -1,5 +1,7 @@
 # WinMon design assets
 
+- [CLI reports and MCP investigations](SCRIPTABLE-INVESTIGATIONS.md) adds structured activity reports, service/Usage tools, retrospective server history and consent-based reading of saved desktop reports.
+
 - [Hardware inventory in the CLI and MCP](HARDWARE-CLI-MCP.md) adds a shared structured reader for Info hardware, a CLI report and Hardware tab, and one read-only MCP tool; the [implementation record](HARDWARE-IMPLEMENTATION.md) tracks verification and limitations.
 
 - [Investigation continuity](INVESTIGATION-CONTINUITY.md) extends Services retention, copied capture context, restart history and read-only MCP process traffic.

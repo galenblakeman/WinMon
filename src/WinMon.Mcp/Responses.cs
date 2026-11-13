@@ -111,6 +111,8 @@ internal static class Responses
             if (JsonSerializer.SerializeToUtf8Bytes(result, Json).Length <= MaximumBytes) return result;
             object? data = response.Data switch
             {
+                UsageResult usage => usage with { Apps = usage.Apps.Take(usage.Apps.Length / 2).ToArray() },
+                HistoryResult history => history with { Points = history.Points.TakeLast(history.Points.Length / 2).ToArray() },
                 PerformanceResult performance => performance with { Trend = performance.Trend.Take(performance.Trend.Length / 2).ToArray() },
                 ConnectionResult connections => connections with { Connections = connections.Connections.Take(connections.Connections.Length / 2).ToArray() },
                 TrafficResult traffic => traffic with { Processes = traffic.Processes.Take(traffic.Processes.Length / 2).ToArray() },
@@ -119,6 +121,8 @@ internal static class Responses
             };
             var count = data switch
             {
+                UsageResult usage => usage.Apps.Length,
+                HistoryResult history => history.Points.Length,
                 PerformanceResult performance => performance.Trend.Length,
                 ConnectionResult connections => connections.Connections.Length,
                 TrafficResult traffic => traffic.Processes.Length,

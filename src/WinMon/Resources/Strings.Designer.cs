@@ -138,6 +138,8 @@ public static partial class Strings
     public static string ClearSearch => ResourceManager.GetString(nameof(ClearSearch), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ClickHereThenPressTheCombinationAtLeastTwoOf => ResourceManager.GetString(nameof(ClickHereThenPressTheCombinationAtLeastTwoOf), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ClickToRankProcessesBy => ResourceManager.GetString(nameof(ClickToRankProcessesBy), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string CliCollectionRange => ResourceManager.GetString(nameof(CliCollectionRange), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string CliCollectionSeconds => ResourceManager.GetString(nameof(CliCollectionSeconds), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CliColumnsHint => ResourceManager.GetString(nameof(CliColumnsHint), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CliDescription => ResourceManager.GetString(nameof(CliDescription), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CliDetailsKeys => ResourceManager.GetString(nameof(CliDetailsKeys), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -166,6 +168,7 @@ public static partial class Strings
     public static string CliNoMatches => ResourceManager.GetString(nameof(CliNoMatches), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CliNoSave => ResourceManager.GetString(nameof(CliNoSave), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CliPaused => ResourceManager.GetString(nameof(CliPaused), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string CliPid => ResourceManager.GetString(nameof(CliPid), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CliRateHistory => ResourceManager.GetString(nameof(CliRateHistory), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CliResourceHistory => ResourceManager.GetString(nameof(CliResourceHistory), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CliScaledHistory => ResourceManager.GetString(nameof(CliScaledHistory), Culture ?? CultureInfo.CurrentUICulture)!;

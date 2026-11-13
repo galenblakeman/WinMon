@@ -1961,4 +1961,7 @@ Q quitte. Ctrl+C annule. Les programmes et services épinglés restent enregistr
 L’actualisation du matériel est indépendante de la mise en pause de l’historique des ressources.</value></data>
   <data name="HardwareCollectionInterval" xml:space="preserve"><value>Collecte : {0:O} – {1:O}</value></data>
   <data name="HardwarePartialInformation" xml:space="preserve"><value>Certains détails matériels sont indisponibles ou ont été omis.</value></data>
+  <data name="CliCollectionSeconds" xml:space="preserve"><value>Durée de collecte en secondes (1–60). Les totaux couvrent uniquement cette collecte.</value></data>
+  <data name="CliCollectionRange" xml:space="preserve"><value>Utilisez --top 0–1000 et --duration 1–60.</value></data>
+  <data name="CliPid" xml:space="preserve"><value>PID</value></data>
 </root>
