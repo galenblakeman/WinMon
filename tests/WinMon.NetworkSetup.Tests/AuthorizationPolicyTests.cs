@@ -6,6 +6,51 @@ namespace WinMon.NetworkSetup.Tests;
 public sealed class AuthorizationPolicyTests
 {
     [Test]
+    public void Save_RejectsEmptyOrExcessiveUsersBeforeCreatingAFile()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "WinMon-invalid-policy-" + Guid.NewGuid().ToString("N"));
+        Assert.Throws<InvalidDataException>(() => AuthorizationPolicy.Save(path, []));
+        Assert.Throws<InvalidDataException>(() => AuthorizationPolicy.Save(path,
+            Enumerable.Range(1, AuthorizationPolicy.MaximumUsers + 1).Select(id => $"S-1-5-21-1-2-3-{id}")));
+        Assert.That(File.Exists(path), Is.False);
+    }
+
+    [TestCase("[\"S-1-5-21-1-2-3-4\",\"S-1-5-21-1-2-3-3\",\"S-1-5-21-1-2-3-4\"]")]
+    [Category("Integration")]
+    public void Load_NormalizesAndDeduplicatesOnDiskPolicy(string json)
+    {
+        var path = Path.GetTempFileName();
+        try
+        {
+            File.WriteAllText(path, json);
+            Assert.That(AuthorizationPolicy.Load(path), Is.EqualTo(new[] { "S-1-5-21-1-2-3-3", "S-1-5-21-1-2-3-4" }));
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [TestCase("")]
+    [TestCase("null")]
+    [TestCase("[]")]
+    [TestCase("[\"S-1-1-0\"]")]
+    [Category("Integration")]
+    public void Load_RejectsMissingOrUntrustedOnDiskPolicy(string json)
+    {
+        var path = Path.GetTempFileName();
+        try
+        {
+            File.WriteAllText(path, json);
+            Assert.Throws<InvalidDataException>(() => AuthorizationPolicy.Load(path));
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Test]
     public void AddAuthorizedUser_NormalizesAndDeduplicates()
     {
         var users = AuthorizationPolicy.AddAuthorizedUser(["S-1-5-21-1-2-3-4"], "S-1-5-21-1-2-3-4");

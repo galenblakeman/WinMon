@@ -44,10 +44,11 @@ internal static class Program
         }
     }
 
-    private static async Task RunHandshakeAsync(SetupArguments invocation)
+    internal static async Task RunHandshakeAsync(SetupArguments invocation,
+        Func<NetworkSetupPackage>? openPackage = null, SetupHost? host = null)
     {
         using var timeout = new CancellationTokenSource(SetupTimeout);
-        using var package = OpenOwnPackage();
+        using var package = (openPackage ?? OpenOwnPackage)();
         await using var pipe = new NamedPipeClientStream(".", invocation.PipeName!,
             PipeAccessRights.ReadData | PipeAccessRights.WriteData | PipeAccessRights.ReadPermissions |
             PipeAccessRights.Synchronize,
@@ -65,7 +66,7 @@ internal static class Program
         try
         {
             await using var transaction = await SetupService
-                .BeginAsync(request.Operation, requester.Sid, package, timeout.Token).ConfigureAwait(false);
+                .BeginAsync(request.Operation, requester.Sid, package, timeout.Token, host).ConfigureAwait(false);
             await NetworkSetupWire.WriteAsync(pipe, new NetworkSetupReply(NetworkSetupWire.Version, "ready"),
                 NetworkSetupWireJsonContext.Default.NetworkSetupReply, timeout.Token).ConfigureAwait(false);
             var commit = await NetworkSetupWire

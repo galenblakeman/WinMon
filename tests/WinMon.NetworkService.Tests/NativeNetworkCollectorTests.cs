@@ -109,8 +109,9 @@ public sealed class NativeNetworkCollectorTests
                     Assert.That(row!.ReceiveBytesPerSecond, Is.Not.Null,
                         "Known traffic rates must recover after startup uncertainty.");
                     Assert.That(row.SendBytesPerSecond, Is.Not.Null);
-                    Assert.That(flows.Sum(flow => flow.ReceiveBytesPerSecond), Is.EqualTo(row.ReceiveBytesPerSecond));
-                    Assert.That(flows.Sum(flow => flow.SendBytesPerSecond), Is.EqualTo(row.SendBytesPerSecond));
+                    // Summing separately divided flow rates accumulates floating-point round-off.
+                    Assert.That(flows.Sum(flow => flow.ReceiveBytesPerSecond), Is.EqualTo(row.ReceiveBytesPerSecond).Within(1e-9).Percent);
+                    Assert.That(flows.Sum(flow => flow.SendBytesPerSecond), Is.EqualTo(row.SendBytesPerSecond).Within(1e-9).Percent);
                 }
 
                 results.Add(new

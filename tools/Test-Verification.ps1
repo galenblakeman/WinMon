@@ -53,6 +53,13 @@ try {
     Assert-Check ((Get-TestSummary $path).Passed) 'Desktop must allow the Store-only test skip.'
     Assert-Check (!(Get-TestSummary $path $true).Passed) 'Store must execute its Store-only test.'
 
+    $path = Join-Path $directory 'WinMon.NetworkSetup.Tests.trx'
+    $skip = '<UnitTestResult testName="Install_CommitsProtectedFilesPolicyAndRegistration" outcome="NotExecuted"><Output><ErrorInfo><Message>OneTimeSetUp: Runs isolated protected-folder setup transactions with simulated OS service boundaries.</Message></ErrorInfo></Output></UnitTestResult>'
+    Write-Report ($pass + $skip) 1 -Skipped 1
+    Assert-Check ((Get-TestSummary $path).Passed) 'Fixture-level Explicit reasons must match the adapter OneTimeSetUp prefix.'
+    Write-Report ($pass + $skip.Replace('OneTimeSetUp: ', '')) 1 -Skipped 1
+    Assert-Check (!(Get-TestSummary $path).Passed) 'Changed fixture skip reasons must still fail.'
+
     New-Item (Join-Path $directory 'tests/First.Tests') -ItemType Directory -Force | Out-Null
     Set-Content (Join-Path $directory 'tests/First.Tests/First.Tests.csproj') '<Project />'
     Set-Content (Join-Path $directory 'WinMon.sln') 'Project("{test}") = "First.Tests", "tests\First.Tests\First.Tests.csproj", "{first}"'

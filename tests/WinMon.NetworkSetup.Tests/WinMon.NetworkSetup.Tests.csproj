@@ -11,5 +11,8 @@
     <PackageReference Include="NUnit" Version="4.6.1" />
     <PackageReference Include="NUnit3TestAdapter" Version="5.2.0" />
     <ProjectReference Include="../../src/WinMon.NetworkSetup/WinMon.NetworkSetup.csproj" />
+    <!-- Exercise the copies compiled into the elevated helper as well as the Windows adapter. -->
+    <Compile Include="../MonCore.Windows.Tests/NetworkSetupPackageTests.cs" Link="NetworkSetupPackageTests.cs" />
+    <Compile Include="../MonCore.Windows.Tests/LogDirectoriesTests.cs" Link="LogDirectoriesTests.cs" />
   </ItemGroup>
 </Project>

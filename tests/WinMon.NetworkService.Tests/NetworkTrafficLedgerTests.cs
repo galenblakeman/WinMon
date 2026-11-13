@@ -14,6 +14,39 @@ public sealed class NetworkTrafficLedgerTests
     private const string Owner = "S-1-5-21-owner";
 
     [Test]
+    public void ManyFractionalFlowRates_AgreeWithExactProcessAccountingWithinRoundOff()
+    {
+        const int count = 1024;
+        const int received = 1_000_001;
+        const int sent = 1_000_003;
+        var ledger = NewLedger();
+        Assert.That(ledger.Register(42, 100, Owner, 0), Is.True);
+        for (var port = 1; port <= count; port++)
+        {
+            Assert.That(ledger.Add(42, 35, 40, false, received, TransportProtocol.Tcp,
+                $"127.0.0.1:{port}", "127.0.0.1:443"), Is.True);
+            Assert.That(ledger.Add(42, 35, 40, true, sent, TransportProtocol.Tcp,
+                $"127.0.0.1:{port}", "127.0.0.1:443"), Is.True);
+        }
+        var snapshot = ledger.Snapshot(Owner, 100);
+        var process = snapshot.Processes.Single();
+        Assert.Multiple(() =>
+        {
+            Assert.That(snapshot.Flows, Has.Count.EqualTo(count));
+            Assert.That(process.ReceivedBytes, Is.EqualTo((long)count * received));
+            Assert.That(process.SentBytes, Is.EqualTo((long)count * sent));
+            Assert.That(snapshot.Flows.Sum(flow => flow.ReceivedBytes), Is.EqualTo(process.ReceivedBytes));
+            Assert.That(snapshot.Flows.Sum(flow => flow.SentBytes), Is.EqualTo(process.SentBytes));
+            Assert.That(process.ReceiveBytesPerSecond, Is.EqualTo(count * (double)received / 5));
+            Assert.That(process.SendBytesPerSecond, Is.EqualTo(count * (double)sent / 5));
+            Assert.That(snapshot.Flows.Sum(flow => flow.ReceiveBytesPerSecond),
+                Is.EqualTo(process.ReceiveBytesPerSecond).Within(1e-9).Percent);
+            Assert.That(snapshot.Flows.Sum(flow => flow.SendBytesPerSecond),
+                Is.EqualTo(process.SendBytesPerSecond).Within(1e-9).Percent);
+        });
+    }
+
+    [Test]
     public void Snapshot_UsesDelayedEventTimeWindowRatherThanArrivalTime()
     {
         var ledger = NewLedger();

@@ -20,6 +20,8 @@ function Get-TestSummary([string]$Path, [bool]$Store = $false) {
         if ($counters.GetAttribute($name) -notmatch '^\d+$') { return $null }
     }
     $expectedSkips = @{
+        'WinMon.NetworkSetup.Tests/ProtectedInventory_RoundTripsNestedFilesAndRejectsMissingPayload' = 'Requires elevation to assign protected owners and permissions.'
+        'WinMon.NetworkProbe.Tests/NonElevatedCapture_ReportsStartupFailureAndStopsItsSession' = 'Requires a non-elevated Windows process to check ETW startup failure.'
         'MonCore.Tests/Fixture_Write' = 'Writes the format fixture into the source tree.'
         'MonCore.Tests/MeasureArchiveOverhead' = 'Measures daily archive and scoped capture overhead'
         'WinMon.NetworkService.Tests/Benchmark_FlowAggregationWritesComparableMeasurements' = 'Records bounded endpoint-flow aggregation overhead for the performance history'
@@ -30,10 +32,29 @@ function Get-TestSummary([string]$Path, [bool]$Store = $false) {
         'WinMon.Mcp.Tests/MeasureUsagePublication' = 'Focused before/after measurement of publishing immutable Usage totals'
         'WinMon.Tests/AvailableFreeSpace_ReadsNetworkShareWhenAvailable' = 'No administrative share is available to read through UNC.'
         'MonCore.Windows.Tests/VerifyPublisher_ExtractsAuthenticodeCertificateBeforeRejectingAnotherPublisher' = 'The signed .NET host is not installed at the standard path.'
+        'WinMon.NetworkSetup.Tests/VerifyPublisher_ExtractsAuthenticodeCertificateBeforeRejectingAnotherPublisher' = 'The signed .NET host is not installed at the standard path.'
         'WinMon.Cli.Tests/DevelopmentOrStoreBuildCannotLaunchSetupWithoutSignedBundle' = 'Missing-bundle check is only applicable to builds without setup assets.'
+    }
+    foreach ($name in @('Handshake_AuthenticatesRequestsCommitsOrRollsBackAndPreservesFailures',
+            'Install_CommitsProtectedFilesPolicyAndRegistration', 'MissingCommit_RestoresPreviousTreeAndServiceState',
+            'InstallFailures_RestorePreviousFilesPolicyRegistrationAndService', 'LoggingFailure_DoesNotRollBackHealthyInstallation',
+            'Removal_LeavesStateUntilAcknowledgedThenRetiresTheOwnedTree',
+            'Revoke_PreservesOtherUsersThenRemovesTheLastUsersInstallation', 'RevokeRestartFailure_RestoresThePolicyAndPreviousService',
+            'ServiceWithoutOwnedInstallation_IsRejectedBeforeMutation', 'CompetingSetup_CanBeCancelledWhileTheFirstHoldsTheLock')) {
+        $expectedSkips["WinMon.NetworkSetup.Tests/$name"] = 'OneTimeSetUp: Runs isolated protected-folder setup transactions with simulated OS service boundaries.'
+    }
+    foreach ($name in @('InstalledServiceAndRegistration_AreInspectedWithoutMutation',
+            'LogSecurityFactories_CreateAndValidateIsolatedProtectedFolders', 'ExistingLogLocations_AreValidatedWithoutProvisioning')) {
+        $expectedSkips["WinMon.NetworkSetup.Tests/$name"] = 'OneTimeSetUp: Requires elevation for read-only service inspection and protected temporary log folders.'
+    }
+    foreach ($project in @('MonCore.Windows.Tests', 'WinMon.NetworkSetup.Tests')) {
+        foreach ($name in @('SignedPackage_VerifiesPinsLocksAndReleasesAssets', 'SignedPackage_FailedAssetVerificationReleasesBothHandles')) {
+            $expectedSkips["$project/$name"] = 'Requires a signed network setup release bundle via WINMON_NETWORK_SETUP_TEST_PACKAGE.'
+        }
     }
     if (!$Store) {
         $expectedSkips['WinMon.Cli.Tests/StoreBuild_RejectsBeforeContactingGitHub'] = 'This assertion only applies to the Store build.'
+        $expectedSkips['WinMon.Mcp.Tests/StoreBuild_RejectsBeforeContactingGitHub'] = 'This assertion only applies to the Store build.'
     }
     else {
         foreach ($name in @('Check_Cancellation_ReturnsFailureWithoutMutation', 'Check_NewSignedCliOffer_ReportsItWithoutWritingFiles',
@@ -42,6 +63,7 @@ function Get-TestSummary([string]$Path, [bool]$Store = $false) {
                 'Install_InstalledCopy_VerifiesAndLaunchesMatchingInstaller', 'Install_OversizedChunkedPayload_DoesNotLaunchOrRetainIt',
                 'Install_PortableCopy_VerifiesMatchingArchiveWithoutLaunchingInstaller', 'Install_StalledPayload_TimesOutWithoutLaunching')) {
             $expectedSkips["WinMon.Cli.Tests/$name"] = 'GitHub updates are disabled for Microsoft Store builds.'
+            $expectedSkips["WinMon.Mcp.Tests/$name"] = 'GitHub updates are disabled for Microsoft Store builds.'
         }
     }
     $project = [IO.Path]::GetFileNameWithoutExtension($Path)

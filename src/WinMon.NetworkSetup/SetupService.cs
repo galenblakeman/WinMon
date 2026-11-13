@@ -7,7 +7,6 @@ using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.AccessControl;
 using System.Security.Principal;
-using WinMon.Diagnostics;
 using WinMon.Monitoring;
 
 namespace WinMon.NetworkSetup;
@@ -17,23 +16,24 @@ internal static class SetupService
     internal static bool RestartRequired { get; private set; }
 
     internal static async Task<SetupTransaction> BeginAsync(string operation, string requesterSid,
-        NetworkSetupPackage package, CancellationToken token)
+        NetworkSetupPackage package, CancellationToken token, SetupHost? host = null)
     {
         if (operation is not ("install" or "remove")) throw new InvalidDataException("Unsupported setup operation.");
-        ProtectedInstallation.PrepareParent();
-        var lease = await AcquireLockAsync(token).ConfigureAwait(false);
+        host ??= new SetupHost();
+        host.PrepareParent();
+        var lease = await AcquireLockAsync(token, host).ConfigureAwait(false);
         try
         {
-            NativeService.EnsureOwnedOrAbsent();
-            var state = NativeService.CaptureState();
+            host.EnsureOwnedOrAbsent();
+            var state = host.CaptureState();
             var complete = true;
-            if (Directory.Exists(SetupPaths.InstallDirectory))
-                InstalledFiles.Validate(SetupPaths.InstallDirectory, true, out complete);
+            if (Directory.Exists(host.InstallDirectory))
+                InstalledFiles.Validate(host.InstallDirectory, true, out complete);
             else if (state.Exists) throw new UnauthorizedAccessException("Missing owned service installation.");
-            var registration = SetupRegistration.Capture();
+            var registration = host.CaptureRegistration();
             return operation == "install"
-                ? Install(requesterSid, package, state, registration, lease, token, !complete)
-                : Remove(lease);
+                ? Install(requesterSid, package, state, registration, lease, token, !complete, host)
+                : Remove(lease, host);
         }
         catch (OperationCanceledException)
         {
@@ -47,51 +47,53 @@ internal static class SetupService
         }
     }
 
-    internal static async Task RemoveAsync(CancellationToken token)
+    internal static async Task RemoveAsync(CancellationToken token, SetupHost? host = null)
     {
-        ProtectedInstallation.PrepareParent();
-        using var lease = await AcquireLockAsync(token).ConfigureAwait(false);
-        NativeService.EnsureOwnedOrAbsent();
-        var state = NativeService.CaptureState();
-        if (Directory.Exists(SetupPaths.InstallDirectory))
-            InstalledFiles.Validate(SetupPaths.InstallDirectory, true, out _);
+        host ??= new SetupHost();
+        host.PrepareParent();
+        using var lease = await AcquireLockAsync(token, host).ConfigureAwait(false);
+        host.EnsureOwnedOrAbsent();
+        var state = host.CaptureState();
+        if (Directory.Exists(host.InstallDirectory))
+            InstalledFiles.Validate(host.InstallDirectory, true, out _);
         else if (state.Exists) throw new UnauthorizedAccessException("Missing owned service installation.");
-        _ = SetupRegistration.Capture();
-        await using var transaction = Remove(null);
+        _ = host.CaptureRegistration();
+        await using var transaction = Remove(null, host);
         await transaction.CommitAsync(token).ConfigureAwait(false);
     }
 
-    internal static async Task RevokeAsync(string sid, CancellationToken token)
+    internal static async Task RevokeAsync(string sid, CancellationToken token, SetupHost? host = null)
     {
         sid = AuthorizationPolicy.ValidateSid(sid);
-        ProtectedInstallation.PrepareParent();
-        var lease = await AcquireLockAsync(token).ConfigureAwait(false);
+        host ??= new SetupHost();
+        host.PrepareParent();
+        var lease = await AcquireLockAsync(token, host).ConfigureAwait(false);
         try
         {
-            NativeService.EnsureOwnedOrAbsent();
-            var state = NativeService.CaptureState();
-            if (!Directory.Exists(SetupPaths.InstallDirectory) || !state.Exists)
+            host.EnsureOwnedOrAbsent();
+            var state = host.CaptureState();
+            if (!Directory.Exists(host.InstallDirectory) || !state.Exists)
                 throw new UnauthorizedAccessException("Missing owned service installation.");
-            InstalledFiles.Validate(SetupPaths.InstallDirectory);
-            _ = SetupRegistration.Capture();
-            var policy = Path.Combine(SetupPaths.InstallDirectory, SetupPaths.PolicyFileName);
+            InstalledFiles.Validate(host.InstallDirectory);
+            _ = host.CaptureRegistration();
+            var policy = Path.Combine(host.InstallDirectory, SetupPaths.PolicyFileName);
             var users = AuthorizationPolicy.RemoveAuthorizedUser(AuthorizationPolicy.Load(policy), sid);
             if (users.Count == 0)
             {
-                await using var remove = Remove(lease);
+                await using var remove = Remove(lease, host);
                 lease = null!;
                 await remove.CommitAsync(token).ConfigureAwait(false);
                 return;
             }
 
-            var replacement = StagingPath("revoke-policy");
-            var backup = StagingPath("revoke-backup");
+            var replacement = StagingPath("revoke-policy", host.InstallDirectory);
+            var backup = StagingPath("revoke-backup", host.InstallDirectory);
             AuthorizationPolicy.Save(replacement, users);
             RevocationTransaction.Execute(state, replacement, policy, backup,
-                () => NativeService.StopOwnedIfRunning(token),
-                () => NativeService.CreateOrUpdateOwned(users),
-                () => NativeService.StartAndVerify(token),
-                () => NativeService.Restore(state, CancellationToken.None),
+                () => host.StopOwnedIfRunning(token),
+                () => host.CreateOrUpdateOwned(users),
+                () => host.StartAndVerify(token),
+                () => host.RestoreService(state, CancellationToken.None),
                 (source, destination) => AuthorizationPolicy.Save(destination, AuthorizationPolicy.Load(source)));
         }
         // Ownership transfer sets lease to null before this finally runs.
@@ -103,15 +105,17 @@ internal static class SetupService
     }
 
     private static SetupTransaction Install(string sid, NetworkSetupPackage package, NativeService.ServiceState state,
-        Dictionary<string, object>? registration, IDisposable lease, CancellationToken token, bool preserveBackup)
+        Dictionary<string, object>? registration, IDisposable lease, CancellationToken token, bool preserveBackup,
+        SetupHost host)
     {
         AuthorizationPolicy.ValidateSid(sid);
-        if (File.Exists(SetupPaths.ServiceExecutable))
-            ValidateUpgrade(FileVersionInfo.GetVersionInfo(SetupPaths.ServiceExecutable).FileVersion,
+        var serviceExecutable = Path.Combine(host.InstallDirectory, SetupPaths.ServiceExecutableName);
+        if (File.Exists(serviceExecutable))
+            ValidateUpgrade(FileVersionInfo.GetVersionInfo(serviceExecutable).FileVersion,
                 package.Manifest.Version);
         else if (registration?.GetValueOrDefault("DisplayVersion") is string version)
             ValidateUpgrade(version, package.Manifest.Version);
-        var stage = StagingPath("staging");
+        var stage = StagingPath("staging", host.InstallDirectory);
         if (Directory.Exists(stage) || File.Exists(stage)) throw new IOException("Staging path already exists.");
         string? backup = null;
         var swapped = false;
@@ -120,11 +124,11 @@ internal static class SetupService
 
         void Rollback()
         {
-            if (serviceChanged) NativeService.StopOwnedIfRunning(CancellationToken.None);
-            if (swapped) DeleteTree(SetupPaths.InstallDirectory);
-            if (backup is not null && Directory.Exists(backup)) Directory.Move(backup, SetupPaths.InstallDirectory);
-            if (stopped || serviceChanged) NativeService.Restore(state, CancellationToken.None);
-            SetupRegistration.Restore(registration);
+            if (serviceChanged) host.StopOwnedIfRunning(CancellationToken.None);
+            if (swapped) DeleteTree(host.InstallDirectory);
+            if (backup is not null && Directory.Exists(backup)) Directory.Move(backup, host.InstallDirectory);
+            if (stopped || serviceChanged) host.RestoreService(state, CancellationToken.None);
+            host.RestoreRegistration(registration);
             DeleteTree(stage);
         }
 
@@ -143,7 +147,7 @@ internal static class SetupService
                 SetupFailure.At("helper", () => package.HelperStream.CopyTo(output));
             }
 
-            var policy = Path.Combine(SetupPaths.InstallDirectory, SetupPaths.PolicyFileName);
+            var policy = Path.Combine(host.InstallDirectory, SetupPaths.PolicyFileName);
             var users = AuthorizationPolicy.AddAuthorizedUser(
                 File.Exists(policy) ? AuthorizationPolicy.Load(policy) : [], sid);
             SetupFailure.At("policy",
@@ -152,24 +156,24 @@ internal static class SetupService
             SetupFailure.At("inventory", () => InstalledFiles.Write(stage));
             SetupFailure.At("protect", () => ProtectTree(stage));
             SetupFailure.At("verify",
-                () => NetworkSetupPackage.VerifyPublisher(Path.Combine(stage, SetupPaths.ServiceExecutableName)));
+                () => host.VerifyPublisher(Path.Combine(stage, SetupPaths.ServiceExecutableName)));
             token.ThrowIfCancellationRequested();
             // Mark before the native call: it can stop successfully and then throw while waiting for status.
             stopped = true;
-            SetupFailure.At("stop", () => NativeService.StopOwnedIfRunning(token));
-            if (Directory.Exists(SetupPaths.InstallDirectory))
+            SetupFailure.At("stop", () => host.StopOwnedIfRunning(token));
+            if (Directory.Exists(host.InstallDirectory))
             {
-                backup = StagingPath(preserveBackup ? "quarantine" : "backup");
-                SetupFailure.At("swap", () => Directory.Move(SetupPaths.InstallDirectory, backup));
+                backup = StagingPath(preserveBackup ? "quarantine" : "backup", host.InstallDirectory);
+                SetupFailure.At("swap", () => Directory.Move(host.InstallDirectory, backup));
             }
 
-            SetupFailure.At("swap", () => Directory.Move(stage, SetupPaths.InstallDirectory));
+            SetupFailure.At("swap", () => Directory.Move(stage, host.InstallDirectory));
             swapped = true;
             serviceChanged = true;
-            SetupFailure.At("service", () => NativeService.CreateOrUpdateOwned(users));
+            SetupFailure.At("service", () => host.CreateOrUpdateOwned(users));
             try
             {
-                LogDirectories.Provision(sid);
+                host.ProvisionLogs(sid);
             }
             catch (Exception exception) when (exception is IOException or UnauthorizedAccessException
                                                   or SecurityException)
@@ -178,32 +182,33 @@ internal static class SetupService
                 Trace.TraceWarning("Logging.SharedProvisionFailed: {0}", exception);
             }
 
-            SetupFailure.At("service", () => NativeService.StartAndVerify(token));
-            SetupFailure.At("registration", SetupRegistration.Write);
+            SetupFailure.At("service", () => host.StartAndVerify(token));
+            SetupFailure.At("registration", host.WriteRegistration);
         }, Rollback, () =>
         {
             if (backup is not null && !preserveBackup) DeleteTree(backup);
         }, lease);
     }
 
-    private static SetupTransaction Remove(IDisposable? lease)
+    private static SetupTransaction Remove(IDisposable? lease, SetupHost host)
     {
         // No mutation until the requesting client acknowledges the all-users removal.
         return SetupTransaction.Start(() => { }, () => { }, () =>
         {
-            NativeService.StopAndDeleteOwned(CancellationToken.None);
-            SetupRegistration.Restore(null);
-            if (Directory.Exists(SetupPaths.InstallDirectory))
+            host.StopAndDeleteOwned(CancellationToken.None);
+            host.RestoreRegistration(null);
+            if (Directory.Exists(host.InstallDirectory))
             {
-                InstalledFiles.Validate(SetupPaths.InstallDirectory, true, out _);
-                RetireInstallation(SetupPaths.InstallDirectory, StagingPath("removed"), DeleteInstallation);
+                InstalledFiles.Validate(host.InstallDirectory, true, out _);
+                RetireInstallation(host.InstallDirectory, StagingPath("removed", host.InstallDirectory), DeleteInstallation);
             }
         }, lease);
     }
 
-    internal static string StagingPath(string kind)
+    internal static string StagingPath(string kind, string? installDirectory = null)
     {
-        return Path.Combine(ProtectedInstallation.Parent, $".NetworkMonitor-{kind}-{Guid.NewGuid():N}");
+        return Path.Combine(Path.GetDirectoryName(installDirectory ?? SetupPaths.InstallDirectory)!,
+            $".NetworkMonitor-{kind}-{Guid.NewGuid():N}");
     }
 
     internal static void ValidateUpgrade(string? installed, string requested)
@@ -220,9 +225,9 @@ internal static class SetupService
             throw new InvalidOperationException("A newer network service is installed; setup cannot downgrade it.");
     }
 
-    private static async Task<FileStream> AcquireLockAsync(CancellationToken token)
+    private static async Task<FileStream> AcquireLockAsync(CancellationToken token, SetupHost host)
     {
-        var path = Path.Combine(ProtectedInstallation.Parent, ".network-setup.lock");
+        var path = Path.Combine(Path.GetDirectoryName(host.InstallDirectory)!, ".network-setup.lock");
         while (true)
         {
             token.ThrowIfCancellationRequested();

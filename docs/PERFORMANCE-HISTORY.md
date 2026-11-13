@@ -2,6 +2,12 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## Setup transaction test boundaries (November 12, 2026)
+
+The setup helper gained per-run OS boundaries and an internal package factory so protected file transactions and named-pipe handshakes can be tested without changing the installed service. No sampling or UI path changed. SHA-256 checks confirmed that `WinMon.Performance.exe`, `WinMon.dll`, `MonCore.dll` and `MonCore.Windows.dll` were identical before and after the final rebuild.
+
+The isolated, uninstrumented `--live-only --without-logging` UI benchmark used SDK 10.0.404/runtime 10.0.15, 850 synthetic processes, 400 warm-up frames and seven batches of 60. Median live-frame time was **3.936 → 4.019 ms** (+2.1%); median allocation was **603,253 → 603,233 bytes/frame**. Both runs show the same falling warm-up pattern, and the measured binaries were identical; this spread does not indicate a code-induced UI regression or speedup. Evidence: `artifacts/coverage-goal/setup-refactor-perf/before-idle.json`, `after.json` and `hash-comparison.json`. The earlier `before.json` overlapped a native workload and was discarded. This checks the unaffected desktop path, not native installation throughput.
+
 ## Scoped captures, CLI history and calendar Usage (November 11, 2026)
 
 Measured on this Windows x64 development machine with SDK 10.0.404/runtime 10.0.15. The full UI benchmark uses the existing 850-process workload, 400 warm-up frames and seven batches of 60. The unchanged baseline assembly was preserved and its SHA-256 checked before the repeat. Evidence: `artifacts/gaps567-before.json`, `gaps567-baseline-recheck.json`, `gaps567-after-lazy.json` and the paired `gaps567-live-baseline.json` / `gaps567-live-after.json`.

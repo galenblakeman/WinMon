@@ -22,6 +22,7 @@
 - [Diagnostic file logging](DIAGNOSTIC-LOGGING.md) records startup, errors and network-service recovery in bounded local logs.
 - [Unit-test verification](UNIT-TEST-IMPROVEMENTS.md) brings every test project into normal verification and separates deterministic and integration runs.
 - [Update lifecycle coverage](UPDATE-LIFECYCLE-TESTS.md) exercises downloads, helper handoff, readiness and rollback through controlled OS boundaries.
+- [Project coverage](PROJECT-COVERAGE.md) defines the 80% line coverage target, repeatable measurement and native verification limits.
 
 This folder contains the current layout reference, feature design notes and editable application icon sources. Superseded concept images and early CPU-only design records have been removed.
 

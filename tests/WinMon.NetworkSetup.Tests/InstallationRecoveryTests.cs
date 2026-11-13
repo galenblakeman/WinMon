@@ -8,6 +8,37 @@ namespace WinMon.NetworkSetup.Tests;
 [TestFixture]
 public sealed class InstallationRecoveryTests
 {
+    [Test, Category("Integration"), Category("Elevated")]
+    [Explicit("Requires elevation to assign protected owners and permissions.")]
+    public void ProtectedInventory_RoundTripsNestedFilesAndRejectsMissingPayload()
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"WinMon-inventory-{Guid.NewGuid():N}");
+        try
+        {
+            ProtectedInstallation.CreateDirectory(root);
+            ProtectedInstallation.CreateDirectory(Path.Combine(root, "runtime"));
+            foreach (var file in Manifest.Files)
+                using (var stream = ProtectedInstallation.CreateFile(Path.Combine(root, file), FileMode.CreateNew,
+                           FileAccess.Write, FileShare.None))
+                    stream.Write([1, 2, 3]);
+            SetupService.ProtectTree(root);
+            InstalledFiles.Write(root);
+            var tree = InstalledFiles.Validate(root);
+            Assert.That(tree.OfType<FileInfo>().Select(file => Path.GetRelativePath(root, file.FullName)),
+                Is.EquivalentTo(Manifest.Files.Append(InstalledFiles.FileName)));
+            Assert.That(tree.OfType<DirectoryInfo>().Count(), Is.EqualTo(2));
+            foreach (var item in tree) Assert.DoesNotThrow(() => ProtectedInstallation.Check(item));
+            File.Delete(Path.Combine(root, SetupPaths.ServiceExecutableName));
+            Assert.Throws<InvalidDataException>(() => InstalledFiles.Validate(root));
+            _ = InstalledFiles.Validate(root, true, out var complete);
+            Assert.That(complete, Is.False);
+        }
+        finally
+        {
+            if (Directory.Exists(root)) Directory.Delete(root, true);
+        }
+    }
+
     private static InstalledFileList Manifest => new("WinMonNetworkMonitor.v1",
         [SetupPaths.ServiceExecutableName, SetupPaths.SetupExecutableName, SetupPaths.PolicyFileName, @"runtime\native.dll"]);
 
