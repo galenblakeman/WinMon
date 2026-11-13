@@ -1959,9 +1959,35 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
   <data name="CliHardwareIdentifiersOmitted" xml:space="preserve"><value>基板のシリアル番号、ボリュームラベル、アダプターの別名は省略されています。含めるには --include-identifiers を使用します。</value></data>
   <data name="CliHardwareHelp" xml:space="preserve"><value>Enter 詳細  R 更新  Q 終了
 ハードウェアの更新は、リソース履歴の一時停止とは独立しています。</value></data>
-  <data name="HardwareCollectionInterval" xml:space="preserve"><value>取得期間: {0:O} – {1:O}</value></data>
-  <data name="HardwarePartialInformation" xml:space="preserve"><value>一部のハードウェア詳細を取得できなかったか、省略されました。</value></data>
   <data name="CliCollectionSeconds" xml:space="preserve"><value>収集時間（秒、1–60）。使用量の合計はこの収集期間のみです。</value></data>
   <data name="CliCollectionRange" xml:space="preserve"><value>--top 0–1000 と --duration 1–60 を指定してください。</value></data>
+  <data name="HardwareCollectionInterval" xml:space="preserve"><value>取得期間: {0:O} – {1:O}</value></data>
+  <data name="HardwarePartialInformation" xml:space="preserve"><value>一部のハードウェア詳細を取得できなかったか、省略されました。</value></data>
   <data name="CliPid" xml:space="preserve"><value>PID</value></data>
+  <data name="CliArchiveEnding" xml:space="preserve"><value>終了日を含む日付 (yyyy-MM-dd)。</value></data>
+  <data name="CaptureTargetRequired" xml:space="preserve"><value>有効なアプリまたはサービス規則の対象を入力してください。</value></data>
+  <data name="CaptureServiceCpu" xml:space="preserve"><value>サービス名 · CPU</value></data>
+  <data name="CaptureServiceTarget" xml:space="preserve"><value>サービス名</value></data>
+  <data name="CliArchiveDays" xml:space="preserve"><value>暦日数: 1 または 7。</value></data>
+  <data name="CaptureAppTarget" xml:space="preserve"><value>実行ファイル</value></data>
+  <data name="CliUsagePeriod" xml:space="preserve"><value>期間 {0}秒: {1:g} – {2:g}。</value></data>
+  <data name="CaptureServiceNetwork" xml:space="preserve"><value>サービス名 · ネットワーク</value></data>
+  <data name="UsageWeekScope" xml:space="preserve"><value>7 日間</value></data>
+  <data name="UsageArchiveScope" xml:space="preserve"><value>使用期間</value></data>
+  <data name="CaptureAppTargetHelp" xml:space="preserve"><value>正確な実行ファイル名または絶対パス。一致する全プロセスを含みます。</value></data>
+  <data name="CaptureAppCpu" xml:space="preserve"><value>実行ファイル · CPU</value></data>
+  <data name="CliArchiveFile" xml:space="preserve"><value>usage-history.json のパス。ポータブル版では settings.json の隣にあります。</value></data>
+  <data name="UsageArchiveDate" xml:space="preserve"><value>期間の終了日</value></data>
+  <data name="CaptureAppMemory" xml:space="preserve"><value>実行ファイル · プライベート</value></data>
+  <data name="UsageArchiveError" xml:space="preserve"><value>日別使用量を保存または読み込めませんでした。既存の履歴は保持されます。</value></data>
+  <data name="UsageArchiveObserved" xml:space="preserve"><value>記録済み {0:N0} 秒。未記録時間は除外され、週のプロセス数は日別観測の合計です。</value></data>
+  <data name="CliHistoryKeys" xml:space="preserve"><value>[ / ] 前 / 次  Space ライブ  U 使用期間  Alt+Left/Right x60</value></data>
+  <data name="UsageDayScope" xml:space="preserve"><value>日</value></data>
+  <data name="CaptureServiceTargetHelp" xml:space="preserve"><value>正確な Windows サービス名。共有ホストは帰属できません。ネットワーク規則にはアプリ別監視が必要です。</value></data>
+  <data name="CaptureAppNetwork" xml:space="preserve"><value>実行ファイル · ネットワーク</value></data>
+  <data name="CliUsageHistory" xml:space="preserve"><value>保存された日別・週別使用量を読み込みます。</value></data>
+  <data name="UsageSessionScope" xml:space="preserve"><value>セッション</value></data>
+  <data name="CaptureServiceMemory" xml:space="preserve"><value>サービス名 · プライベート</value></data>
+  <data name="UsageArchivePeriodNote" xml:space="preserve"><value>暦期間 {0:d} – {1:d}。</value></data>
+  <data name="CapturePrivateMemoryUnit" xml:space="preserve"><value>MiB</value></data>
 </root>

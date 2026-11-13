@@ -30,6 +30,9 @@ public sealed class TerminalTabState
 public sealed record TerminalObservations(IReadOnlyList<ServiceFrame> Services, IReadOnlyList<AppUsage> Usage,
     DateTimeOffset UsageSince, long MachineBusyTicks, IReadOnlyList<ConnectionCapture> Connections, ProcessNetworkFrame? Network)
 {
+    public bool UsageAvailable { get; init; } = true;
+    public bool UsageComplete { get; init; } = true;
+    public bool PeriodUsage { get; init; }
     public static TerminalObservations Empty { get; } = new([], [], DateTimeOffset.Now, 0, [], null);
 }
 
@@ -41,6 +44,8 @@ public sealed class InteractiveState
     private TerminalObservations _observations = TerminalObservations.Empty, _frozenObservations = TerminalObservations.Empty;
     private SamplingError? _latestError, _frozenError;
     private NetworkTrafficState _networkStatus, _frozenNetworkStatus;
+    private MonitorSession? _session;
+    public int UsagePeriodSeconds { get; private set; } = 300;
     private readonly TerminalTabState[] _tabs = Enumerable.Range(0, Enum.GetValues<TerminalTab>().Length).Select(_ => new TerminalTabState()).ToArray();
     private HardwareInventorySnapshot? _hardware;
     private TerminalTable? _hardwareTable;
@@ -105,9 +110,50 @@ public sealed class InteractiveState
 
     public void ObserveSession(MonitorSession session)
     {
+        _session = session;
         Observe(session.LatestFull, session.Error, session.History.Samples);
         _observations = new TerminalObservations(session.Services.Frames.ToArray(), session.Usage.Apps,
             session.Usage.Since, session.Usage.MachineBusyTicks, session.Connections.Captures, session.ProcessNetwork);
+    }
+
+    public void NavigateHistory(int direction)
+    {
+        var samples = _session?.History.Samples ?? _latestSamples;
+        if (samples.Count == 0) return;
+        var moment = DisplayedFrame is { } displayed ? ProcessRanking.Moment(displayed.Full) : double.MaxValue;
+        var index = samples.Count - 1;
+        while (index > 0 && ProcessRanking.Moment(samples[index]) > moment) index--;
+        if (Paused) index = Math.Clamp(index + direction, 0, samples.Count - 1);
+        else if (direction < 0) index = Math.Max(0, index + direction);
+        SelectHistory(samples[index]);
+    }
+
+    private void SelectHistory(MonitorSample sample)
+    {
+        var end = ProcessRanking.Moment(sample);
+        _frozen = new CapturedFrame(sample);
+        _frozenSamples = (_session?.History.Samples ?? _latestSamples).Where(s =>
+            ProcessRanking.Moment(s) <= end && ProcessRanking.Moment(s) >= end - TerminalCharts.HistorySeconds).ToArray();
+        if (_frozenSamples is MonitorSample[] { Length: > 0 } frozen && SampleKey.Of(sample).Matches(frozen[^1])) frozen[^1] = sample;
+        _frozenError = sample.IsGap ? SamplingError.ReadingsUnavailable : null;
+        _frozenNetworkStatus = _networkStatus;
+        if (_session is { } session)
+        {
+            var period = session.UsageHistory.Query(sample, UsagePeriodSeconds);
+            var connections = session.Connections.Captures.Where(c => ProcessRanking.Moment(c.Sample) <= end).ToArray();
+            _frozenObservations = new TerminalObservations(session.Services.Frames.Where(f =>
+                    ProcessRanking.Moment(f.Sample) <= end).ToArray(), period?.Apps ?? [], period?.Since ?? sample.Timestamp,
+                period?.MachineBusyTicks ?? 0, connections, connections.LastOrDefault()?.Network)
+                { PeriodUsage = true, UsageAvailable = period is not null, UsageComplete = period?.Complete == true };
+            var quality = _frozenObservations.Network?.Quality;
+            _frozenNetworkStatus = quality is null || quality.Value.HasFlag(ProcessNetworkQuality.Unavailable)
+                ? NetworkTrafficState.Unavailable : (quality.Value & ~(ProcessNetworkQuality.Provisional)) != 0
+                    ? NetworkTrafficState.Incomplete : NetworkTrafficState.Active;
+            if (_frozenObservations.Services.LastOrDefault() is not { } service || !SampleKey.Of(sample).Matches(service.Sample))
+                _frozenObservations = _frozenObservations with { Services = [.. _frozenObservations.Services, new ServiceFrame(sample, [], false)] };
+        }
+        else _frozenObservations = _observations;
+        Paused = true;
     }
 
     public void RestorePreferences(CliPreferences preferences)
@@ -244,6 +290,11 @@ public sealed class InteractiveState
             else { active.Filter = active.Draft = ""; active.Offset = 0; }
             return;
         }
+        if (key.Modifiers.HasFlag(ConsoleModifiers.Alt) && (key.Key is ConsoleKey.LeftArrow or ConsoleKey.RightArrow) && !active.Details && !Help)
+        {
+            NavigateHistory(key.Key == ConsoleKey.LeftArrow ? -60 : 60);
+            return;
+        }
         if (active.Details || Help)
         {
             if (key.Key == ConsoleKey.RightArrow) active.HorizontalOffset += 16;
@@ -254,9 +305,17 @@ public sealed class InteractiveState
             if (key.Key == ConsoleKey.Home) active.DetailOffset = 0;
             return;
         }
+        if (key.KeyChar is '[' or ']') { NavigateHistory(key.KeyChar == '[' ? -1 : 1); return; }
+        if (key.Key == ConsoleKey.U && Tab == TerminalTab.Usage)
+        {
+            UsagePeriodSeconds = UsagePeriodSeconds switch { 60 => 300, 300 => 1800, _ => 60 };
+            if (Paused && _frozen is { } frame) SelectHistory(frame.Full);
+            return;
+        }
         switch (key.Key)
         {
             case ConsoleKey.Spacebar:
+                if (!Paused && _session is not null && _latest is { } latest) { SelectHistory(latest.Full); break; }
                 if (!Paused)
                 {
                     _frozen = _latest;

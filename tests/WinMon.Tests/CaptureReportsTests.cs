@@ -11,6 +11,20 @@ namespace WinMon.Tests;
 [TestFixture, Category("Integration")]
 public sealed class CaptureReportsTests
 {
+    [Test, Apartment(ApartmentState.STA)]
+    public void ScopedSettingsRoundTripAndRequireAnEnabledTarget()
+    {
+        var preferences = new AutoCapturePreferences { Rules = CaptureRuleSetting.Defaults.Select(r =>
+            r.Metric == CaptureMetric.ApplicationCpu ? r with { Enabled = true, Target = "worker.exe" } : r).ToArray() };
+        var section = new AutoCaptureSection(preferences, _folder, "C:", null);
+        var result = section.Read(out var error, out _);
+        Assert.That(error, Is.Null);
+        Assert.That(result!.Rules.Single(r => r.Metric == CaptureMetric.ApplicationCpu).Target, Is.EqualTo("worker.exe"));
+        var invalid = new AutoCaptureSection(preferences with { Rules = preferences.Rules.Select(r => r with { Target = "" }).ToArray() }, _folder, "C:", null);
+        Assert.That(invalid.Read(out error, out var control), Is.Null);
+        Assert.That(error, Is.EqualTo(Strings.CaptureTargetRequired));
+        Assert.That(control, Is.TypeOf<System.Windows.Controls.TextBox>());
+    }
     private static readonly DateTimeOffset Fired = new(2026, 10, 24, 14, 3, 12, TimeSpan.Zero);
     private string _folder = "";
 

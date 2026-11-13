@@ -28,7 +28,7 @@ public partial class MainWindow
             ConnectionsTab.IsChecked == true ? CsvExportKind.Connections :
             ProcessesTab.IsChecked == true ? CsvExportKind.ProcessSamples : CsvExportKind.ResourceHistory;
         var dialog = new CsvExportDialog(initial,
-            SelectedSample is null ? null : UsageText.PeriodNote(CurrentUsageFrame())) { Owner = this };
+            SelectedSample is null && UsageView.ArchiveDays == 0 ? null : UsageText.PeriodNote(CurrentUsageFrame())) { Owner = this };
         if (dialog.ShowDialog() != true || dialog.Choice is not { } choice || IsClosing) return;
 
         try
@@ -46,9 +46,11 @@ public partial class MainWindow
                 : CsvExport.SelectSamples(Session.History.Samples,
                     choice.ChartRange ? _preferences.EffectiveChartRange : null);
             var ledger = Session.Usage;
-            var period = choice.Kind == CsvExportKind.UsageTotals && SelectedSample is { } selected &&
-                         Session.History.Samples.Contains(selected)
-                ? Session.UsageHistory.Query(selected, _preferences.EffectiveChartRange) : null;
+            var usageFrame = CurrentUsageFrame();
+            var scopedUsage = SelectedSample is not null || UsageView.ArchiveDays > 0;
+            var period = choice.Kind == CsvExportKind.UsageTotals && scopedUsage && usageFrame.Available && usageFrame.Latest is { } latest
+                ? new UsagePeriod(usageFrame.Apps, usageFrame.MachineBusyTicks, usageFrame.NotAttributedTicks,
+                    usageFrame.Since, latest, usageFrame.Complete) { Archived = usageFrame.Archived } : null;
             var apps = choice.Kind == CsvExportKind.UsageTotals ? ledger.Apps.ToArray() : [];
             var (since, busyTicks, notAttributedTicks) =
                 (ledger.Since, ledger.MachineBusyTicks, ledger.NotAttributedCpuTicks);
@@ -66,7 +68,7 @@ public partial class MainWindow
                 CsvExportKind.Services => services.Length > 0,
                 CsvExportKind.Connections => connections.Length > 0,
                 CsvExportKind.NetworkTraffic => connections.Length > 0,
-                CsvExportKind.UsageTotals => SelectedSample is null || period is not null,
+                CsvExportKind.UsageTotals => !scopedUsage || period is not null,
                 _ => samples.Count > 0
             };
             if (!hasData)

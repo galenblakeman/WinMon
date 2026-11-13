@@ -1959,9 +1959,35 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
   <data name="CliHardwareIdentifiersOmitted" xml:space="preserve"><value>Серийные номера плат, метки томов и псевдонимы адаптеров исключены. Чтобы включить их, используйте --include-identifiers.</value></data>
   <data name="CliHardwareHelp" xml:space="preserve"><value>Enter Подробности  R Обновить  Q Выход
 Обновление оборудования не зависит от приостановки истории ресурсов.</value></data>
-  <data name="HardwareCollectionInterval" xml:space="preserve"><value>Сбор: {0:O} – {1:O}</value></data>
-  <data name="HardwarePartialInformation" xml:space="preserve"><value>Некоторые сведения об оборудовании недоступны или были исключены.</value></data>
   <data name="CliCollectionSeconds" xml:space="preserve"><value>Длительность сбора в секундах (1–60). Итоги относятся только к этому периоду.</value></data>
   <data name="CliCollectionRange" xml:space="preserve"><value>Используйте --top 0–1000 и --duration 1–60.</value></data>
+  <data name="HardwareCollectionInterval" xml:space="preserve"><value>Сбор: {0:O} – {1:O}</value></data>
+  <data name="HardwarePartialInformation" xml:space="preserve"><value>Некоторые сведения об оборудовании недоступны или были исключены.</value></data>
   <data name="CliPid" xml:space="preserve"><value>PID</value></data>
+  <data name="CliArchiveEnding" xml:space="preserve"><value>Конечная дата включительно (yyyy-MM-dd).</value></data>
+  <data name="CaptureTargetRequired" xml:space="preserve"><value>Укажите цель для каждого включённого правила приложения или службы.</value></data>
+  <data name="CaptureServiceCpu" xml:space="preserve"><value>Имя службы · CPU</value></data>
+  <data name="CaptureServiceTarget" xml:space="preserve"><value>Имя службы</value></data>
+  <data name="CliArchiveDays" xml:space="preserve"><value>Число календарных дней: 1 или 7.</value></data>
+  <data name="CaptureAppTarget" xml:space="preserve"><value>Исполняемый файл</value></data>
+  <data name="CliUsagePeriod" xml:space="preserve"><value>Период {0}с: {1:g} – {2:g}.</value></data>
+  <data name="CaptureServiceNetwork" xml:space="preserve"><value>Имя службы · Сеть</value></data>
+  <data name="UsageWeekScope" xml:space="preserve"><value>7 дней</value></data>
+  <data name="UsageArchiveScope" xml:space="preserve"><value>Период использования</value></data>
+  <data name="CaptureAppTargetHelp" xml:space="preserve"><value>Точное имя файла или абсолютный путь. Включает все совпадающие процессы.</value></data>
+  <data name="CaptureAppCpu" xml:space="preserve"><value>Исполняемый файл · CPU</value></data>
+  <data name="CliArchiveFile" xml:space="preserve"><value>Путь к usage-history.json; переносные копии хранят его рядом с settings.json.</value></data>
+  <data name="UsageArchiveDate" xml:space="preserve"><value>Конец периода</value></data>
+  <data name="CaptureAppMemory" xml:space="preserve"><value>Исполняемый файл · Частная</value></data>
+  <data name="UsageArchiveError" xml:space="preserve"><value>Не удалось сохранить или загрузить ежедневное использование. Существующая история сохранена.</value></data>
+  <data name="UsageArchiveObserved" xml:space="preserve"><value>Записано {0:N0} с. Пропуски исключены; недельное число процессов суммирует дневные наблюдения.</value></data>
+  <data name="CliHistoryKeys" xml:space="preserve"><value>[ / ] Раньше / позже  Space Сейчас  U Период  Alt+Left/Right x60</value></data>
+  <data name="UsageDayScope" xml:space="preserve"><value>День</value></data>
+  <data name="CaptureServiceTargetHelp" xml:space="preserve"><value>Точное имя службы Windows. Общие хосты не атрибутируются. Сеть требует мониторинга приложений.</value></data>
+  <data name="CaptureAppNetwork" xml:space="preserve"><value>Исполняемый файл · Сеть</value></data>
+  <data name="CliUsageHistory" xml:space="preserve"><value>Читать сохранённое дневное или недельное использование.</value></data>
+  <data name="UsageSessionScope" xml:space="preserve"><value>Сеанс</value></data>
+  <data name="CaptureServiceMemory" xml:space="preserve"><value>Имя службы · Частная</value></data>
+  <data name="UsageArchivePeriodNote" xml:space="preserve"><value>Календарный период {0:d} – {1:d}.</value></data>
+  <data name="CapturePrivateMemoryUnit" xml:space="preserve"><value>MiB</value></data>
 </root>

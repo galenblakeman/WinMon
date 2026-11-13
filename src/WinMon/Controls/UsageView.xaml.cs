@@ -35,7 +35,11 @@ internal sealed record UsageFrame(
     DateTimeOffset? Latest,
     bool Capturing,
     bool Complete = true,
-    bool Available = true);
+    bool Available = true)
+{
+    public string? Notice { get; init; }
+    public bool Archived { get; init; }
+}
 
 /// <summary>Per-app CPU time, I/O and GPU time since WinMon started; see docs/design/USAGE-TAB.md.</summary>
 public partial class UsageView
@@ -64,6 +68,34 @@ public partial class UsageView
     internal event Action<string>? CopyRequested;
     internal event Action<string, string>? PropertiesRequested;
     internal event Action? ResetRequested;
+    internal event Action? PeriodChanged;
+    internal int ArchiveDays => ArchiveScope.SelectedIndex switch { 1 => 1, 2 => 7, _ => 0 };
+    private DateTime? _archiveDate;
+    internal DateTime ArchiveDate => _archiveDate ?? DateTime.Today;
+
+    private void UpdateArchiveDateHost()
+    {
+        ArchiveDateHost.Visibility = ArchiveDays > 0 ? Visibility.Visible : Visibility.Collapsed;
+        ArchiveDateHost.Content = IsVisible && ArchiveDays > 0 ? ArchiveDate : null;
+    }
+
+    private void OnArchiveDateLoaded(object sender, RoutedEventArgs e)
+    {
+        var picker = (DatePicker)sender;
+        picker.DisplayDateStart = DateTime.Today.AddDays(1 - UsageArchive.RetainedDays);
+        picker.DisplayDateEnd = DateTime.Today;
+        if (ArchiveDate < picker.DisplayDateStart) _archiveDate = picker.DisplayDateStart;
+        if (ArchiveDate > DateTime.Today) _archiveDate = DateTime.Today;
+        picker.SelectedDate = ArchiveDate;
+    }
+
+    private void OnArchiveChanged(object sender, RoutedEventArgs e)
+    {
+        if (!_ready) return;
+        if (sender is DatePicker picker) _archiveDate = picker.SelectedDate;
+        UpdateArchiveDateHost();
+        PeriodChanged?.Invoke();
+    }
     internal event Action<AppUsage>? ShowInProcessesRequested;
 
     /// <summary>Whether Show in Processes can find this app now; the window owns history and selection.</summary>
@@ -72,6 +104,7 @@ public partial class UsageView
     public UsageView()
     {
         InitializeComponent();
+        IsVisibleChanged += (_, _) => UpdateArchiveDateHost();
         ActionsDrawer.CollapsedChanged += hidden => ActionsHiddenChanged?.Invoke(hidden);
         foreach (var header in new[] { CpuHeader, IoHeader, GpuHeader, ProcessesHeader, LastActiveHeader })
         {
@@ -298,7 +331,7 @@ public partial class UsageView
                 LoadIcon(row, app.ImagePath);
             }
 
-            row.Update(app, frame!.MachineBusyTicks, frame.Latest);
+            row.Update(app, frame!.MachineBusyTicks, frame.Latest, frame.Archived);
             desired.Add(row);
         }
 
@@ -334,6 +367,8 @@ public partial class UsageView
         NotAttributedShare.Text =
             frame?.Available != true ? Strings.MissingReading : UsageText.Share(frame.NotAttributedTicks, frame.MachineBusyTicks);
         CopyUsage.IsEnabled = frame?.Available == true;
+        ArchiveScope.IsEnabled = frame is not { Capturing: true, Archived: false };
+        ArchiveDateHost.IsEnabled = ArchiveScope.IsEnabled;
         ResetUsage.IsEnabled = frame is { Available: true, Capturing: false };
         Notice.Text = frame is null ? "" :
             frame.Capturing ? UsageText.PeriodNote(frame) :
@@ -505,7 +540,7 @@ internal sealed class UsageDisplayRow(string key) : INotifyPropertyChanged
     internal AppUsage? App { get; private set; }
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    internal void Update(AppUsage app, long machineBusyTicks, DateTimeOffset? latest)
+    internal void Update(AppUsage app, long machineBusyTicks, DateTimeOffset? latest, bool archived = false)
     {
         var shown = Shown();
         App = app;
@@ -518,7 +553,7 @@ internal sealed class UsageDisplayRow(string key) : INotifyPropertyChanged
         Share = UsageText.Share(app.CpuTicks, machineBusyTicks);
         Io = UsageText.Bytes(app.IoBytes);
         GpuTime = app.GpuSeconds is { } gpu ? UsageText.Duration(TimeSpan.FromSeconds(gpu)) : Strings.MissingReading;
-        Processes = UsageText.Processes(app);
+        Processes = UsageText.Processes(app, archived);
         LastActive = UsageText.LastActive(app.LastActive, latest);
         AccessibleName = $"{Name}, {Strings.UsageCpuTime} {CpuTime}, {Strings.UsageShare} {Share}";
         if (Shown() != shown) PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(string.Empty));
@@ -563,9 +598,10 @@ internal static partial class UsageText
         return whole > 0 ? Strings.Format(Strings.PercentOneDecimal, 100d * part / whole) : Strings.MissingReading;
     }
 
-    internal static string Processes(AppUsage app)
+    internal static string Processes(AppUsage app, bool archived = false)
     {
-        return string.Create(CultureInfo.CurrentCulture, $"{app.Lifetimes:N0} ({app.Running:N0})");
+        return archived ? string.Create(CultureInfo.CurrentCulture, $"{app.Lifetimes:N0} ({Strings.MissingReading})") :
+            string.Create(CultureInfo.CurrentCulture, $"{app.Lifetimes:N0} ({app.Running:N0})");
     }
 
     /// <summary>"now" within five seconds of the newest sample, else the local time, with the date if not today.</summary>
@@ -593,7 +629,7 @@ internal static partial class UsageText
         text.AppendLine($"{Strings.IO}: {Bytes(app.IoBytes)}");
         text.AppendLine(
             $"{Strings.UsageGpuTime}: {(app.GpuSeconds is { } gpu ? Duration(TimeSpan.FromSeconds(gpu)) : Strings.MissingReading)}");
-        text.AppendLine($"{Strings.ProcessesTab}: {Processes(app)}");
+        text.AppendLine($"{Strings.ProcessesTab}: {Processes(app, frame.Archived)}");
         text.AppendLine($"{Strings.UsageLastActive}: {LastActive(app.LastActive, frame.Latest)}");
         return text.ToString();
     }
@@ -625,7 +661,7 @@ internal static partial class UsageText
             text.AppendLine(string.Join('\t', DisplayName(app), CpuTime(app.CpuTicks),
                 Share(app.CpuTicks, frame.MachineBusyTicks), Bytes(app.IoBytes),
                 app.GpuSeconds is { } gpu ? Duration(TimeSpan.FromSeconds(gpu)) : Strings.MissingReading,
-                Processes(app), LastActive(app.LastActive, frame.Latest)));
+                Processes(app, frame.Archived), LastActive(app.LastActive, frame.Latest)));
         text.AppendLine(string.Join('\t', Strings.UsageNotAttributed, CpuTime(frame.NotAttributedTicks),
             Share(frame.NotAttributedTicks, frame.MachineBusyTicks)));
         return text.ToString();
@@ -633,9 +669,13 @@ internal static partial class UsageText
 
     internal static string PeriodNote(UsageFrame frame)
     {
-        return !frame.Available ? Strings.UsagePeriodUnavailable :
+        if (frame.Archived) return (frame.Available
+            ? Strings.Format(Strings.UsageArchivePeriodNote, frame.Since.Date, frame.Latest?.AddTicks(-1).Date)
+            : Strings.UsagePeriodUnavailable) + " " + frame.Notice;
+        return (!frame.Available ? Strings.UsagePeriodUnavailable :
             Strings.Format(Strings.UsagePeriodNote, frame.Since.ToLocalTime().DateTime,
                 frame.Latest?.ToLocalTime().DateTime) +
-            (frame.Complete ? "" : " " + Strings.UsagePeriodPartial);
+            (frame.Complete ? "" : " " + Strings.UsagePeriodPartial)) +
+            (frame.Notice is null ? "" : " " + frame.Notice);
     }
 }

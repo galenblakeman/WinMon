@@ -70,6 +70,8 @@ See the [CLI user guide](docs/USER-GUIDE.md#command-line) for setup, keyboard sh
 
 Use `services`, `connections` or `usage` with `--format json` for scriptable activity reports. `--duration 1–60` collects a bounded window; Usage totals cover that command's collection rather than another running app's session.
 
+In interactive mode, `[` / `]` inspect earlier/later retained samples, Alt+Left/Right moves 60 observations, Space returns live, and U changes the historical Usage period. `usage-history --days 7 --format json` reads desktop daily totals without starting another collector.
+
 ## Coding agent diagnostics
 
 `WinMon.Mcp.exe` is a separately installed local read-only MCP server for hardware inventory, system snapshots, process details, bounded performance trends, connection observations and per-process traffic from an already-installed network service. Its installer offers unchecked Codex and Claude Code registration options; a separate Claude Code plugin adds a diagnostics skill. Command lines and executable paths are excluded. Network addresses/ports and hardware identifiers require explicit opt-in. See [MCP setup and privacy](docs/MCP.md) for downloads and registration.
@@ -87,6 +89,10 @@ Choose light, dark or additional appearances, independent chart palettes and sev
 [Compare appearances and palettes](docs/example/README.md#customize) · [Customize WinMon](docs/USER-GUIDE.md#make-it-yours)
 
 ## Permissions and limitations
+
+**Daily and weekly Usage:** choose Session, Day or 7 days in the desktop Usage view, with an ending date. WinMon keeps 35 calendar days of locally recorded CPU, I/O and GPU totals across restarts. Copy and CSV export follow the chosen period. Only time observed while desktop WinMon runs is counted; gaps and time before recording began are excluded. Daily totals are stored beside settings in `usage-history.json`, independently of the recent-history setting.
+
+**Scoped automatic captures:** Settings → Automatic captures can watch an exact executable name/path or Windows service name for CPU, private memory or network-rate thresholds. Each scope/metric has one target. Shared service hosts remain unattributed, and network rules require working per-app monitoring.
 
 - **Optional network service:** Signed desktop builds can install per-app traffic monitoring through the installer or Settings → Network. Installation and maintenance can request administrator approval. Repair can recover a protected installation with missing files, preserving the damaged copy for diagnosis; unexpected files or unsafe permissions still block recovery. Removal moves files aside before cleanup, so interrupted cleanup does not block a later repair. Microsoft Store builds do not offer this service. Endpoint lists remain available without it.
 - **Measurement limits:** Disk percentages measure active time; process I/O includes files, network and devices. GPU utilization reports the busiest engine. Very short-lived processes and collection gaps can leave activity unattributed or incomplete. Machines with multiple active processor groups are unsupported.

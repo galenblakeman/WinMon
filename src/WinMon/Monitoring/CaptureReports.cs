@@ -37,8 +37,8 @@ internal static class CaptureReports
     {
         return metric switch
         {
-            CaptureMetric.Cpu => "cpu", CaptureMetric.Memory => "memory", CaptureMetric.PrimaryDisk => "disk1",
-            CaptureMetric.SecondaryDisk => "disk2", CaptureMetric.Network => "network", CaptureMetric.Gpu => "gpu",
+            CaptureMetric.Cpu => "cpu", CaptureMetric.Memory or CaptureMetric.ApplicationMemory or CaptureMetric.ServiceMemory => "memory", CaptureMetric.PrimaryDisk => "disk1",
+            CaptureMetric.SecondaryDisk => "disk2", CaptureMetric.Network or CaptureMetric.ApplicationNetwork or CaptureMetric.ServiceNetwork => "network", CaptureMetric.Gpu => "gpu",
             _ => "process"
         };
     }

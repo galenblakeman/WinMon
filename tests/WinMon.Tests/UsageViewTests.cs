@@ -12,6 +12,19 @@ namespace WinMon.Tests;
 public sealed class UsageViewTests
 {
     [Test, Apartment(ApartmentState.STA)]
+    public void CalendarUsageHasCalendarLabelsAndUnknownRunningCounts()
+    {
+        var view = _view = new UsageView();
+        view.ArchiveScope.SelectedIndex = 1;
+        var frame = new UsageFrame([App("included", 100)], 1000, 0, Now.Date, Now.Date.AddDays(1), true, false)
+            { Archived = true, Notice = "recorded coverage" };
+        view.Update(frame);
+        Assert.That(view.ResetUsage.IsEnabled, Is.False);
+        Assert.That(view.ArchiveScope.IsEnabled, Is.True);
+        Assert.That(view.Rows.Items.Cast<UsageDisplayRow>().Single().Processes, Does.Contain(Strings.MissingReading));
+        Assert.That(UsageText.PeriodNote(frame), Does.Contain("recorded coverage").And.Not.Contain(Strings.UsagePeriodPartial));
+    }
+    [Test, Apartment(ApartmentState.STA)]
     public void CaptureReportUsesPeriodTotalsAndCurrentSearch()
     {
         var view = _view = new UsageView();

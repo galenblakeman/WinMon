@@ -2,11 +2,24 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
-## MCP Usage publication (November 11, 2026)
+## Scoped captures, CLI history and calendar Usage (November 11, 2026)
 
-Focused synthetic before/after measurement on this Windows x64 development machine: 850 distinct executable lifetimes, 400 warm-up additions, then seven batches of 100; median time/allocation per tick. `ActivityToolsTests.MeasureUsagePublication` compares the existing ledger-only operation against ledger plus its immutable Apps snapshot. Baseline: **0.0913 ms and 32 bytes/tick**. With snapshot: **0.1165 ms and 122,616 bytes/tick**, an explained increase of **0.0252 ms and 122,584 bytes** per one-second publication. The server keeps only the latest Usage snapshot, not 120 copies. Native collection, serialization and whole-process memory are outside this focused measurement; desktop/UI hot paths are unchanged.
+Measured on this Windows x64 development machine with SDK 10.0.404/runtime 10.0.15. The full UI benchmark uses the existing 850-process workload, 400 warm-up frames and seven batches of 60. The unchanged baseline assembly was preserved and its SHA-256 checked before the repeat. Evidence: `artifacts/gaps567-before.json`, `gaps567-baseline-recheck.json`, `gaps567-after-lazy.json` and the paired `gaps567-live-baseline.json` / `gaps567-live-after.json`.
 
-Reproduce with `dotnet test tests/WinMon.Mcp.Tests/WinMon.Mcp.Tests.csproj -c Release -m:1 -p:UseSharedCompilation=false --filter FullyQualifiedName~MeasureUsagePublication --logger "console;verbosity=normal"`.
+An initial implementation constructed the calendar picker even when Usage was hidden. Its full-run Services median rose from 5.516 to 6.519 ms and selected/grouped from 7.271 to 8.101 ms. Deferring that template until calendar Usage is visible, and releasing its content while hidden, removed that increase. Final medians:
+
+| Scenario | Baseline ms/frame | Final ms/frame |
+|---|---:|---:|
+| Services | 5.516 | 5.302 |
+| Selected/grouped | 7.271 | 6.989 |
+| Compact | 1.564 | 1.505 |
+| Live, paired focused check | 4.088 | 4.206 |
+
+The paired live check retained identical median allocation (603,181 bytes/frame). The first live case in the full run varied more (4.165 to 4.730 ms); its batches fell substantially during both runs. The paired repeat was +2.9%, with last-three-batch medians 3.681 and 3.723 ms. This supports warm-up variance as the explanation for the first-case spread, rather than a sustained Services/grouped regression. Other final full-run UI scenarios ranged from -12.4% to +3.6%; pixel hashes of existing views remained unchanged. These are synthetic UI-thread results, not whole-process or native collection measurements.
+
+`UsageArchiveTests.MeasureArchiveOverhead` separately measures the new sampling work: 850 distinct apps, 400 warm-up additions, seven batches of 100. Existing ledger only: **0.0931 ms and 32 bytes/tick**. Ledger plus daily archive and three enabled app rules: **0.3357 ms and 1,112 bytes/tick**. The explained addition is **0.2426 ms and 1,080 bytes per one-second tick**. Span-based executable comparisons removed roughly 219 KiB/tick of avoidable name-string allocation in the initial implementation. Checkpoint serialization is off the UI thread and outside this per-tick measurement. CLI period retention uses the existing measured UsageHistory path; its observation budget can shorten available history.
+
+Reproduce the focused check with `dotnet test tests/MonCore.Tests/MonCore.Tests.csproj -c Release -m:1 -p:UseSharedCompilation=false --filter FullyQualifiedName~MeasureArchiveOverhead --logger "console;verbosity=normal"`. Existing benchmark `--live-only` skips unrelated scenarios for paired live checks.
 
 ## Hardware inventory in the CLI and MCP (November 11, 2026)
 
@@ -21,6 +34,12 @@ A separate immutable HEAD source export (`a9f294b`) supplied the CLI baseline. S
 The published MCP server completed **120 sequential hardware reads**: first request **284.3 ms**, subsequent median **102.6 ms**. Server private bytes grew from 25.6 MiB during startup to 39.2 MiB after the series; the final 20 reads ranged 38.8–45.3 MiB with reclamation, rather than a monotonic retained rise. Eight additional hardware requests alongside a five-second performance sample completed successfully. Total server CPU for the run was 4.33 seconds; that excludes Windows provider-process CPU. Default identifier omission and native opt-in were checked separately. Single-worker/cancellation ownership and full 256 KiB wire bounds are covered by deterministic tests.
 
 These short runs do not replace a long-duration cancellation/memory soak, physical-machine or multi-socket acceptance, or provider-specific performance testing. WMI/native calls remain non-interruptible while blocked; observed latency is not a hard deadline.
+
+## MCP Usage publication (November 11, 2026)
+
+Focused synthetic before/after measurement on this Windows x64 development machine: 850 distinct executable lifetimes, 400 warm-up additions, then seven batches of 100; median time/allocation per tick. `ActivityToolsTests.MeasureUsagePublication` compares the existing ledger-only operation against ledger plus its immutable Apps snapshot. Baseline: **0.0913 ms and 32 bytes/tick**. With snapshot: **0.1165 ms and 122,616 bytes/tick**, an explained increase of **0.0252 ms and 122,584 bytes** per one-second publication. The server keeps only the latest Usage snapshot, not 120 copies. Native collection, serialization and whole-process memory are outside this focused measurement; desktop/UI hot paths are unchanged.
+
+Reproduce with `dotnet test tests/WinMon.Mcp.Tests/WinMon.Mcp.Tests.csproj -c Release -m:1 -p:UseSharedCompilation=false --filter FullyQualifiedName~MeasureUsagePublication --logger "console;verbosity=normal"`.
 
 ## Investigation continuity (November 11, 2026)
 

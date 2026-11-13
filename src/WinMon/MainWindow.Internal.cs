@@ -15,6 +15,7 @@ namespace WinMon;
 /// </summary>
 public partial class MainWindow
 {
+    internal UsageArchive? DailyUsageArchive { get => _usageArchive; set => _usageArchive = value; }
     internal void SetConnectionsForFixture(NetworkConnectionsFrame frame)
     {
         _connections = frame;

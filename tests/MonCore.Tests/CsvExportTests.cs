@@ -224,6 +224,18 @@ public sealed class CsvExportTests
     }
 
     [Test]
+    public void CalendarUsageExportsUnknownRunningCountsAndLabelsDailyObservations()
+    {
+        var app = new AppUsage("app", "App", "", "", "", 10_000_000, 20, null, 2, 0, true, null);
+        var period = new UsagePeriod([app], 20_000_000, 10_000_000, Start, Start.AddDays(7), false) { Archived = true };
+        var path = Path.Combine(_directory, "calendar.csv");
+        CsvExport.Write(path, CsvExportKind.UsageTotals, [], [], Start, 0, 0, usagePeriod: period);
+        var rows = File.ReadAllLines(path);
+        Assert.That(rows[0], Does.Contain("daily_lifetime_observations"));
+        Assert.That(rows[1].Split(',')[11], Is.Empty);
+    }
+
+    [Test]
     public void FailedWrite_PreservesExistingFileAndRemovesTemporaryFile()
     {
         var path = Path.Combine(_directory, "existing.csv");

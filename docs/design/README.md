@@ -1,5 +1,7 @@
 # WinMon design assets
 
+- [Scoped rules, CLI history and calendar Usage](SCOPED-RULES-AND-LONG-TERM-USAGE.md) implements named executable/service thresholds, terminal timeline navigation, and persistent daily/weekly observed totals.
+
 - [CLI reports and MCP investigations](SCRIPTABLE-INVESTIGATIONS.md) adds structured activity reports, service/Usage tools, retrospective server history and consent-based reading of saved desktop reports.
 
 - [Hardware inventory in the CLI and MCP](HARDWARE-CLI-MCP.md) adds a shared structured reader for Info hardware, a CLI report and Hardware tab, and one read-only MCP tool; the [implementation record](HARDWARE-IMPLEMENTATION.md) tracks verification and limitations.

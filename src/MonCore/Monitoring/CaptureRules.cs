@@ -12,7 +12,9 @@ public enum CaptureMetric
     SecondaryDisk,
     Network,
     Gpu,
-    Process
+    Process,
+    ApplicationCpu, ApplicationMemory, ApplicationNetwork,
+    ServiceCpu, ServiceMemory, ServiceNetwork
 }
 
 /// <summary>One automatic capture rule as the user set it.</summary>
@@ -23,29 +25,52 @@ public enum CaptureMetric
 /// <param name="Seconds">Consecutive valid samples the value must stay above the threshold.</param>
 public sealed record CaptureRuleSetting(CaptureMetric Metric, bool Enabled, double Threshold, int Seconds)
 {
+    public string Target { get; init; } = "";
+    [JsonIgnore]
+    public bool IsTargeted => Metric is CaptureMetric.ApplicationCpu or CaptureMetric.ApplicationMemory or CaptureMetric.ApplicationNetwork or
+        CaptureMetric.ServiceCpu or CaptureMetric.ServiceMemory or CaptureMetric.ServiceNetwork;
+    [JsonIgnore]
+    public bool IsService => Metric is CaptureMetric.ServiceCpu or CaptureMetric.ServiceMemory or CaptureMetric.ServiceNetwork;
+    [JsonIgnore]
+    public bool IsMemory => Metric is CaptureMetric.ApplicationMemory or CaptureMetric.ServiceMemory;
+    [JsonIgnore]
+    public bool IsNetwork => Metric is CaptureMetric.Network or CaptureMetric.ApplicationNetwork or CaptureMetric.ServiceNetwork;
+    [JsonIgnore]
+    public bool IsProcessCpu => Metric is CaptureMetric.Process or CaptureMetric.ApplicationCpu or CaptureMetric.ServiceCpu;
     /// <summary>One rule per metric, in display order; CPU is the one enabled when the feature is turned on.</summary>
     public static CaptureRuleSetting[] Defaults =>
     [
         new(CaptureMetric.Cpu, true, 90, 10), new(CaptureMetric.Memory, false, 90, 30),
         new(CaptureMetric.PrimaryDisk, false, 95, 15), new(CaptureMetric.SecondaryDisk, false, 95, 15),
         new(CaptureMetric.Network, false, 50, 10), new(CaptureMetric.Gpu, false, 95, 10),
-        new(CaptureMetric.Process, false, 90, 30)
+        new(CaptureMetric.Process, false, 90, 30),
+        new(CaptureMetric.ApplicationCpu, false, 90, 30), new(CaptureMetric.ApplicationMemory, false, 1024, 30),
+        new(CaptureMetric.ApplicationNetwork, false, 50, 10), new(CaptureMetric.ServiceCpu, false, 90, 30),
+        new(CaptureMetric.ServiceMemory, false, 1024, 30), new(CaptureMetric.ServiceNetwork, false, 50, 10)
     ];
 
     /// <summary>The highest threshold a rule accepts; percent rules stop at 100.</summary>
     public static double MaximumThreshold(CaptureMetric metric)
     {
-        return metric switch { CaptureMetric.Network => 100_000, CaptureMetric.Process => 25_600, _ => 100 };
+        return metric switch
+        {
+            CaptureMetric.Network or CaptureMetric.ApplicationNetwork or CaptureMetric.ServiceNetwork => 100_000,
+            CaptureMetric.Process or CaptureMetric.ApplicationCpu or CaptureMetric.ServiceCpu => 25_600,
+            CaptureMetric.ApplicationMemory or CaptureMetric.ServiceMemory => 1_048_576,
+            _ => 100
+        };
     }
 
     /// <summary>A copy inside the ranges the settings accept.</summary>
     public CaptureRuleSetting Normalized()
     {
         var threshold = double.IsFinite(Threshold) ? Threshold : Defaults.First(d => d.Metric == Metric).Threshold;
+        var target = (Target ?? "").Trim();
         return this with
         {
-            Threshold = Math.Clamp(threshold, Metric == CaptureMetric.Network ? 0.1 : 1, MaximumThreshold(Metric)),
-            Seconds = Math.Clamp(Seconds, 1, 300)
+            Threshold = Math.Clamp(threshold, IsNetwork ? 0.1 : 1, MaximumThreshold(Metric)),
+            Seconds = Math.Clamp(Seconds, 1, 300),
+            Target = target.Length > 512 ? target[..512] : target
         };
     }
 }
@@ -81,7 +106,7 @@ public sealed class CaptureRules(IReadOnlyList<CaptureRuleSetting> rules, TimeSp
     private readonly List<ProcessLifetimeIdentity> _absent = [];
 
     /// <summary>Feed one live, uncompacted sample; returns the rules it completed.</summary>
-    public IReadOnlyList<CaptureFired> Observe(MonitorSample full)
+    public IReadOnlyList<CaptureFired> Observe(MonitorSample full, ServiceFrame? services = null, ProcessNetworkFrame? network = null)
     {
         ArgumentNullException.ThrowIfNull(full);
         List<CaptureFired>? fired = null;
@@ -97,11 +122,46 @@ public sealed class CaptureRules(IReadOnlyList<CaptureRuleSetting> rules, TimeSp
             }
 
             if (!_runs.TryGetValue(rule.Metric, out var run)) _runs[rule.Metric] = run = new Run();
-            if (Step(rule, run, valid ? Value(rule.Metric, full) : null, full, moment) is { } result)
+            var value = rule.IsTargeted ? ScopedValue(rule, full, services, network) : Value(rule.Metric, full);
+            if (rule.IsTargeted && rule.IsProcessCpu) value *= logicalProcessors;
+            if (Step(rule, run, (rule.IsTargeted ? !full.IsGap : valid) ? value : null, full, moment) is { } result)
                 (fired ??= []).Add(result);
         }
 
         return fired ?? (IReadOnlyList<CaptureFired>)[];
+    }
+
+    private static double? ScopedValue(CaptureRuleSetting rule, MonitorSample full, ServiceFrame? services, ProcessNetworkFrame? network)
+    {
+        if (rule.Target.Length == 0) return null;
+        IReadOnlyList<ProcessUsage> processes;
+        if (rule.IsService)
+        {
+            if (services is not { Available: true } || !SampleKey.Of(full).Matches(services.Sample)) return null;
+            var group = services.Groups.FirstOrDefault(g => g.Services.Any(s => string.Equals(s.Name, rule.Target, StringComparison.OrdinalIgnoreCase)));
+            // Shared host counters cannot be assigned to one named service.
+            if (group is null || group.Shared) return null;
+            processes = group.Processes;
+        }
+        else processes = full.Processes.Where(p => Path.IsPathFullyQualified(rule.Target)
+            ? string.Equals(p.ImagePath, rule.Target, StringComparison.OrdinalIgnoreCase)
+            : string.Equals(p.Name, rule.Target, StringComparison.OrdinalIgnoreCase) ||
+              MemoryExtensions.Equals(Path.GetFileName(p.ImagePath.AsSpan()), rule.Target.AsSpan(), StringComparison.OrdinalIgnoreCase) ||
+              MemoryExtensions.Equals(Path.GetFileNameWithoutExtension(p.ImagePath.AsSpan()), rule.Target.AsSpan(), StringComparison.OrdinalIgnoreCase)).ToArray();
+        if (processes.Count == 0) return null;
+        if (rule.IsMemory) return processes.All(p => p.PrivateBytes is not null)
+            ? processes.Sum(p => (double)p.PrivateBytes!.Value) / (1024 * 1024) : null;
+        if (!rule.IsNetwork) return processes.All(p => p.ObservedCpuPercent is not null) ? processes.Sum(p => p.CpuPercent) : null;
+        if (network is null || (network.Quality & ~ProcessNetworkQuality.Provisional) != 0) return null;
+        double receive = 0, send = 0;
+        foreach (var process in processes)
+        {
+            if (process.LifetimeDomain != ProcessLifetimeDomain.WindowsFileTime) return null;
+            var reading = network.Processes.FirstOrDefault(p => p.ProcessId == process.ProcessId && p.CreationTicks == process.CreationTicks);
+            if (reading?.ReceiveBytesPerSecond is not { } rx || reading.SendBytesPerSecond is not { } tx) return null;
+            receive += rx; send += tx;
+        }
+        return Math.Max(receive, send) * 8 / 1_000_000;
     }
 
     private void ObserveProcesses(CaptureRuleSetting rule, MonitorSample full, bool valid, double moment,

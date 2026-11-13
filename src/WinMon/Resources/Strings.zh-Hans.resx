@@ -1959,9 +1959,35 @@ Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。<
   <data name="CliHardwareIdentifiersOmitted" xml:space="preserve"><value>已省略主板序列号、卷标和适配器别名。使用 --include-identifiers 包含这些信息。</value></data>
   <data name="CliHardwareHelp" xml:space="preserve"><value>Enter 详细信息  R 刷新  Q 退出
 硬件刷新独立于资源历史记录的暂停状态。</value></data>
-  <data name="HardwareCollectionInterval" xml:space="preserve"><value>采集时间段: {0:O} – {1:O}</value></data>
-  <data name="HardwarePartialInformation" xml:space="preserve"><value>部分硬件详细信息无法读取或已省略。</value></data>
   <data name="CliCollectionSeconds" xml:space="preserve"><value>采集时长（秒，1–60）。使用量合计仅涵盖本次采集。</value></data>
   <data name="CliCollectionRange" xml:space="preserve"><value>请使用 --top 0–1000 和 --duration 1–60。</value></data>
+  <data name="HardwareCollectionInterval" xml:space="preserve"><value>采集时间段: {0:O} – {1:O}</value></data>
+  <data name="HardwarePartialInformation" xml:space="preserve"><value>部分硬件详细信息无法读取或已省略。</value></data>
   <data name="CliPid" xml:space="preserve"><value>PID</value></data>
+  <data name="CliArchiveEnding" xml:space="preserve"><value>包含在内的截止日期 (yyyy-MM-dd)。</value></data>
+  <data name="CaptureTargetRequired" xml:space="preserve"><value>请为每条已启用的应用或服务规则输入目标。</value></data>
+  <data name="CaptureServiceCpu" xml:space="preserve"><value>服务名称 · CPU</value></data>
+  <data name="CaptureServiceTarget" xml:space="preserve"><value>服务名称</value></data>
+  <data name="CliArchiveDays" xml:space="preserve"><value>日历天数：1 或 7。</value></data>
+  <data name="CaptureAppTarget" xml:space="preserve"><value>可执行文件</value></data>
+  <data name="CliUsagePeriod" xml:space="preserve"><value>时段 {0}秒：{1:g} – {2:g}。</value></data>
+  <data name="CaptureServiceNetwork" xml:space="preserve"><value>服务名称 · 网络</value></data>
+  <data name="UsageWeekScope" xml:space="preserve"><value>7 天</value></data>
+  <data name="UsageArchiveScope" xml:space="preserve"><value>使用时段</value></data>
+  <data name="CaptureAppTargetHelp" xml:space="preserve"><value>准确的可执行文件名称或绝对路径。包含所有匹配进程。</value></data>
+  <data name="CaptureAppCpu" xml:space="preserve"><value>可执行文件 · CPU</value></data>
+  <data name="CliArchiveFile" xml:space="preserve"><value>usage-history.json 路径；便携版使用 settings.json 旁的文件。</value></data>
+  <data name="UsageArchiveDate" xml:space="preserve"><value>时段截止日期</value></data>
+  <data name="CaptureAppMemory" xml:space="preserve"><value>可执行文件 · 专用</value></data>
+  <data name="UsageArchiveError" xml:space="preserve"><value>无法保存或加载每日使用量。现有历史已保留。</value></data>
+  <data name="UsageArchiveObserved" xml:space="preserve"><value>已记录 {0:N0} 秒。缺失时间不计入；每周进程数为每日观测之和。</value></data>
+  <data name="CliHistoryKeys" xml:space="preserve"><value>[ / ] 较早 / 较晚  Space 实时  U 使用时段  Alt+Left/Right x60</value></data>
+  <data name="UsageDayScope" xml:space="preserve"><value>天</value></data>
+  <data name="CaptureServiceTargetHelp" xml:space="preserve"><value>准确的 Windows 服务名称。共享宿主无法归属。网络规则需要按应用监控。</value></data>
+  <data name="CaptureAppNetwork" xml:space="preserve"><value>可执行文件 · 网络</value></data>
+  <data name="CliUsageHistory" xml:space="preserve"><value>读取已保存的每日或每周桌面使用量。</value></data>
+  <data name="UsageSessionScope" xml:space="preserve"><value>会话</value></data>
+  <data name="CaptureServiceMemory" xml:space="preserve"><value>服务名称 · 专用</value></data>
+  <data name="UsageArchivePeriodNote" xml:space="preserve"><value>日历时段 {0:d} – {1:d}。</value></data>
+  <data name="CapturePrivateMemoryUnit" xml:space="preserve"><value>MiB</value></data>
 </root>

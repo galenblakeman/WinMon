@@ -187,6 +187,13 @@ internal sealed partial class WindowDiagnostics
                             ? $"settings-{section.ToString().ToLowerInvariant()}.png"
                             : $"settings-light-{section.ToString().ToLowerInvariant()}.png";
                         await CaptureServiceWindowAsync(settings, Path.Combine(output, name), cancellationToken);
+                        if (section == SettingsSection.AutomaticCaptures)
+                        {
+                            settings.ScrollSettingsPageToBottom();
+                            settings.UpdateLayout();
+                            await CaptureServiceWindowAsync(settings, Path.Combine(output, "settings-scoped-rules-" + theme + ".png"), cancellationToken);
+                            settings.ScrollSettingsPageToTop();
+                        }
                         if (section == SettingsSection.Network)
                         {
                             settings.RemoveNetworkMonitoringServiceButton.BringIntoView();

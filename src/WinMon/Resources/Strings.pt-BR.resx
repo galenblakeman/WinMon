@@ -1959,9 +1959,35 @@ Q sai. Ctrl+C cancela. Programas e serviços fixados persistem entre sessões.</
   <data name="CliHardwareIdentifiersOmitted" xml:space="preserve"><value>Números de série das placas, rótulos de volumes e aliases de adaptadores são omitidos. Use --include-identifiers para incluí-los.</value></data>
   <data name="CliHardwareHelp" xml:space="preserve"><value>Enter Detalhes  R Atualizar  Q Sair
 A atualização de hardware independe da pausa no histórico de recursos.</value></data>
-  <data name="HardwareCollectionInterval" xml:space="preserve"><value>Coleta: {0:O} – {1:O}</value></data>
-  <data name="HardwarePartialInformation" xml:space="preserve"><value>Alguns detalhes de hardware não puderam ser lidos ou foram omitidos.</value></data>
   <data name="CliCollectionSeconds" xml:space="preserve"><value>Duração da coleta em segundos (1–60). Os totais abrangem apenas esta coleta.</value></data>
   <data name="CliCollectionRange" xml:space="preserve"><value>Use --top 0–1000 e --duration 1–60.</value></data>
+  <data name="HardwareCollectionInterval" xml:space="preserve"><value>Coleta: {0:O} – {1:O}</value></data>
+  <data name="HardwarePartialInformation" xml:space="preserve"><value>Alguns detalhes de hardware não puderam ser lidos ou foram omitidos.</value></data>
   <data name="CliPid" xml:space="preserve"><value>PID</value></data>
+  <data name="CliArchiveEnding" xml:space="preserve"><value>Data final inclusiva (yyyy-MM-dd).</value></data>
+  <data name="CaptureTargetRequired" xml:space="preserve"><value>Informe um destino para cada regra ativa.</value></data>
+  <data name="CaptureServiceCpu" xml:space="preserve"><value>Nome do serviço · CPU</value></data>
+  <data name="CaptureServiceTarget" xml:space="preserve"><value>Nome do serviço</value></data>
+  <data name="CliArchiveDays" xml:space="preserve"><value>Dias corridos: 1 ou 7.</value></data>
+  <data name="CaptureAppTarget" xml:space="preserve"><value>Executável</value></data>
+  <data name="CliUsagePeriod" xml:space="preserve"><value>Período {0}s: {1:g} – {2:g}.</value></data>
+  <data name="CaptureServiceNetwork" xml:space="preserve"><value>Nome do serviço · Rede</value></data>
+  <data name="UsageWeekScope" xml:space="preserve"><value>7 dias</value></data>
+  <data name="UsageArchiveScope" xml:space="preserve"><value>Período de uso</value></data>
+  <data name="CaptureAppTargetHelp" xml:space="preserve"><value>Nome exato ou caminho absoluto. Inclui todos os processos correspondentes.</value></data>
+  <data name="CaptureAppCpu" xml:space="preserve"><value>Executável · CPU</value></data>
+  <data name="CliArchiveFile" xml:space="preserve"><value>Caminho de usage-history.json; cópias portáteis usam o arquivo ao lado de settings.json.</value></data>
+  <data name="UsageArchiveDate" xml:space="preserve"><value>Período até</value></data>
+  <data name="CaptureAppMemory" xml:space="preserve"><value>Executável · Privada</value></data>
+  <data name="UsageArchiveError" xml:space="preserve"><value>Não foi possível salvar ou carregar o uso diário. O histórico existente é preservado.</value></data>
+  <data name="UsageArchiveObserved" xml:space="preserve"><value>{0:N0} s registrados. Lacunas são excluídas; processos semanais somam observações diárias.</value></data>
+  <data name="CliHistoryKeys" xml:space="preserve"><value>[ / ] Anterior / posterior  Space Ao vivo  U Período  Alt+Left/Right x60</value></data>
+  <data name="UsageDayScope" xml:space="preserve"><value>Dia</value></data>
+  <data name="CaptureServiceTargetHelp" xml:space="preserve"><value>Nome exato do serviço. Hosts compartilhados não são atribuídos. A rede exige monitoramento por aplicativo.</value></data>
+  <data name="CaptureAppNetwork" xml:space="preserve"><value>Executável · Rede</value></data>
+  <data name="CliUsageHistory" xml:space="preserve"><value>Ler o uso diário ou semanal salvo.</value></data>
+  <data name="UsageSessionScope" xml:space="preserve"><value>Sessão</value></data>
+  <data name="CaptureServiceMemory" xml:space="preserve"><value>Nome do serviço · Privada</value></data>
+  <data name="UsageArchivePeriodNote" xml:space="preserve"><value>Período do calendário {0:d} – {1:d}.</value></data>
+  <data name="CapturePrivateMemoryUnit" xml:space="preserve"><value>MiB</value></data>
 </root>

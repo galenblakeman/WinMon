@@ -44,6 +44,7 @@ public sealed class PreferenceStore
 
     /// <summary>Where automatic capture reports go unless another folder is chosen: beside the settings file.</summary>
     internal string DefaultCaptureFolder => Path.Combine(Path.GetDirectoryName(_settingsPath) ?? ".", "Captures");
+    internal string UsageArchivePath => Path.Combine(Path.GetDirectoryName(_settingsPath) ?? ".", "usage-history.json");
 
     /// <summary>Where the opt-in normal-exit history snapshot is stored.</summary>
     internal string NormalHistoryPath => Path.Combine(Path.GetDirectoryName(_settingsPath) ?? ".",

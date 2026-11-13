@@ -158,6 +158,29 @@ internal sealed partial class WindowDiagnostics
                 throw new InvalidOperationException("Live Usage must restore session totals and Reset.");
             if (fixture.CaptureCoverage.Visibility != Visibility.Collapsed)
                 throw new InvalidOperationException("Live view must hide Capture coverage.");
+            var archive = new UsageArchive();
+            foreach (var sample in fixture.Session.History.Samples) archive.Add(sample);
+            archive.Add(fixture.Session.LatestFull! with { Timestamp = DateTimeOffset.Now.AddDays(-1), MonotonicTimestamp = 0 });
+            fixture.DailyUsageArchive = archive;
+            fixture.SelectedSample = null;
+            fixture.UsageTab.IsChecked = true;
+            foreach (var theme in new[] { "Dark", "Light" })
+            {
+                fixture.Preferences = fixture.Preferences with { Theme = theme };
+                fixture.ApplyTheme();
+                view.ArchiveScope.SelectedIndex = 1;
+                fixture.RefreshVisiblePresentation();
+                var day = fixture.CurrentUsageFrame();
+                if (day.Apps.Count == 0 || view.ResetUsage.IsEnabled || day.Notice is null)
+                    throw new InvalidOperationException("Daily Usage must show saved observations without enabling session reset.");
+                await CaptureServiceWindowAsync(fixture, Path.Combine(output, "usage-day-" + theme + ".png"), cancellationToken);
+                view.ArchiveScope.SelectedIndex = 2;
+                fixture.RefreshVisiblePresentation();
+                if (fixture.CurrentUsageFrame().Apps.Sum(a => a.CpuTicks) <= day.Apps.Sum(a => a.CpuTicks))
+                    throw new InvalidOperationException("Weekly Usage must include the previous day's observations.");
+                await CaptureServiceWindowAsync(fixture, Path.Combine(output, "usage-week-" + theme + ".png"), cancellationToken);
+            }
+            view.ArchiveScope.SelectedIndex = 0;
             await File.WriteAllTextAsync(Path.Combine(output, "usage.json"),
                 JsonSerializer.Serialize(checks, new JsonSerializerOptions { WriteIndented = true }),
                 cancellationToken);

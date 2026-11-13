@@ -21,6 +21,7 @@ function Get-TestSummary([string]$Path, [bool]$Store = $false) {
     }
     $expectedSkips = @{
         'MonCore.Tests/Fixture_Write' = 'Writes the format fixture into the source tree.'
+        'MonCore.Tests/MeasureArchiveOverhead' = 'Measures daily archive and scoped capture overhead'
         'WinMon.NetworkService.Tests/Benchmark_FlowAggregationWritesComparableMeasurements' = 'Records bounded endpoint-flow aggregation overhead for the performance history'
         'WinMon.NetworkService.Tests/Collector_AccountsForControlledWorkerAndStopsItsSession' = 'Runs a bounded elevated ETW experiment on an approved Windows test machine'
         'WinMon.NetworkSetup.Tests/ElevatedSecureFactories_ProtectNewStagingChildrenAndLockImmediately' = 'Requires elevation to assign the protected Administrators owner.'

@@ -241,4 +241,7 @@ public sealed class UsageHistory
 
 /// <summary>Usage totals over a retained Capture-mode period.</summary>
 public sealed record UsagePeriod(IReadOnlyList<AppUsage> Apps, long MachineBusyTicks, long NotAttributedTicks,
-    DateTimeOffset Since, DateTimeOffset Latest, bool Complete);
+    DateTimeOffset Since, DateTimeOffset Latest, bool Complete)
+{
+    public bool Archived { get; init; }
+}

@@ -13,8 +13,8 @@ internal static class CaptureReportText
     {
         return metric switch
         {
-            CaptureMetric.Memory => "MemoryAccent", CaptureMetric.PrimaryDisk => "DiskAccent",
-            CaptureMetric.SecondaryDisk => "SecondaryDiskAccent", CaptureMetric.Network => "NetworkAccent",
+            CaptureMetric.Memory or CaptureMetric.ApplicationMemory or CaptureMetric.ServiceMemory => "MemoryAccent", CaptureMetric.PrimaryDisk => "DiskAccent",
+            CaptureMetric.SecondaryDisk => "SecondaryDiskAccent", CaptureMetric.Network or CaptureMetric.ApplicationNetwork or CaptureMetric.ServiceNetwork => "NetworkAccent",
             CaptureMetric.Gpu => "GpuAccent", _ => "CpuAccent"
         };
     }
@@ -22,7 +22,8 @@ internal static class CaptureReportText
     /// <summary>Disk and network process lists cannot be attributed to that drive or adapter.</summary>
     internal static bool AttributesProcesses(CaptureMetric metric)
     {
-        return metric is not (CaptureMetric.PrimaryDisk or CaptureMetric.SecondaryDisk or CaptureMetric.Network);
+        return metric is not (CaptureMetric.PrimaryDisk or CaptureMetric.SecondaryDisk or CaptureMetric.Network or
+            CaptureMetric.ApplicationNetwork or CaptureMetric.ServiceNetwork);
     }
 
     internal static string MetricName(CaptureMetric metric, ResourceSample resources)
@@ -37,6 +38,9 @@ internal static class CaptureReportText
                 ? Strings.Format(Strings.DiskLabel, resources.SecondaryDiskName)
                 : Strings.SecondDrive,
             CaptureMetric.Network => Strings.Network, CaptureMetric.Gpu => Strings.GPU,
+            CaptureMetric.ApplicationCpu => Strings.CaptureAppCpu, CaptureMetric.ApplicationMemory => Strings.CaptureAppMemory,
+            CaptureMetric.ApplicationNetwork => Strings.CaptureAppNetwork, CaptureMetric.ServiceCpu => Strings.CaptureServiceCpu,
+            CaptureMetric.ServiceMemory => Strings.CaptureServiceMemory, CaptureMetric.ServiceNetwork => Strings.CaptureServiceNetwork,
             _ => Strings.AutoCaptureAnyProcess
         };
     }
@@ -45,8 +49,9 @@ internal static class CaptureReportText
     {
         return metric switch
         {
-            CaptureMetric.Network => RateText.Format(value * 1_000_000),
-            CaptureMetric.Process => Strings.Format(Strings.AutoCapturePercentOfCoreValue, value),
+            CaptureMetric.Network or CaptureMetric.ApplicationNetwork or CaptureMetric.ServiceNetwork => RateText.Format(value * 1_000_000),
+            CaptureMetric.ApplicationMemory or CaptureMetric.ServiceMemory => UsageText.Bytes(value * 1024 * 1024),
+            CaptureMetric.Process or CaptureMetric.ApplicationCpu or CaptureMetric.ServiceCpu => Strings.Format(Strings.AutoCapturePercentOfCoreValue, value),
             _ => Strings.Format(Strings.PercentOneDecimal, value)
         };
     }
@@ -57,6 +62,7 @@ internal static class CaptureReportText
         var name = fired.Process is { } process
             ? DisplayName(process)
             : MetricName(fired.Rule.Metric, fired.Fired.Resources);
+        if (fired.Rule.IsTargeted) name = fired.Rule.Target + " · " + name;
         return Strings.Format(Strings.AutoCaptureRuleText, name, Value(fired.Rule.Metric, fired.Rule.Threshold),
             fired.Rule.Seconds);
     }
@@ -302,8 +308,8 @@ internal static class CaptureReportText
         var metric = fired.Rule.Metric;
         var sort = metric switch
         {
-            CaptureMetric.Memory => ProcessSort.Memory, CaptureMetric.Gpu => ProcessSort.Gpu,
-            CaptureMetric.PrimaryDisk or CaptureMetric.SecondaryDisk or CaptureMetric.Network => ProcessSort.Io,
+            CaptureMetric.Memory or CaptureMetric.ApplicationMemory or CaptureMetric.ServiceMemory => ProcessSort.Memory, CaptureMetric.Gpu => ProcessSort.Gpu,
+            CaptureMetric.PrimaryDisk or CaptureMetric.SecondaryDisk or CaptureMetric.Network or CaptureMetric.ApplicationNetwork or CaptureMetric.ServiceNetwork => ProcessSort.Io,
             _ => ProcessSort.Cpu
         };
         var processes = TopCountChoices.Limit(ProcessRanking.Rank(window, sort: sort).Processes, topCount).ToList();
@@ -336,6 +342,7 @@ internal static class CaptureReportText
         var metric = fired.Rule.Metric;
         var peak = Strings.Format(Strings.AutoCaptureNotificationPeak, Value(metric, fired.PeakValue),
             fired.Peak.Timestamp);
+        if (fired.Rule.IsTargeted) return peak;
         if (!AttributesProcesses(metric) || snapshot.Processes.FirstOrDefault() is not { } busiest) return peak;
         // The process's own share of the resource it was ranked by. A process rule's peak is already that process's.
         var value = metric switch

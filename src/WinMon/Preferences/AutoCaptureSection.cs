@@ -31,7 +31,9 @@ internal sealed class AutoCaptureSection : StackPanel
         CheckBox Enabled,
         TextBlock Label,
         TextBox Threshold,
-        TextBox Seconds);
+        TextBox Seconds,
+        CaptureRuleSetting Setting,
+        TextBox? Target);
 
     internal AutoCaptureSection(AutoCapturePreferences preferences, string defaultFolder, string primaryDrive,
         string? secondaryDrive)
@@ -72,14 +74,15 @@ internal sealed class AutoCaptureSection : StackPanel
                 { Content = content, IsChecked = setting.Enabled, VerticalAlignment = VerticalAlignment.Center };
             enabled.SetResourceReference(Control.ForegroundProperty, "Text");
             if (setting.Metric == CaptureMetric.Process) enabled.ToolTip = Strings.AutoCaptureProcessHelp;
-            var threshold = Number(setting.Metric == CaptureMetric.Network ? setting.Threshold / 8 : setting.Threshold);
-            if (setting.Metric == CaptureMetric.Network)
+            var threshold = Number(setting.IsNetwork ? setting.Threshold / 8 : setting.Threshold);
+            if (setting.IsNetwork)
                 threshold.Text = (setting.Threshold / 8).ToString(CultureInfo.CurrentCulture);
             var seconds = Number(setting.Seconds);
-            var unit = setting.Metric switch
+            var unit = setting.IsMemory ? Strings.CapturePrivateMemoryUnit : setting.IsNetwork ? Strings.MegabytesPerSecond : setting.Metric switch
             {
                 CaptureMetric.Network => Strings.MegabytesPerSecond,
                 CaptureMetric.Process => Strings.AutoCapturePercentOfCore,
+                CaptureMetric.ApplicationCpu or CaptureMetric.ServiceCpu => Strings.AutoCapturePercentOfCore,
                 CaptureMetric.PrimaryDisk or CaptureMetric.SecondaryDisk => Strings.AutoCapturePercentActive,
                 _ => "%"
             };
@@ -93,7 +96,21 @@ internal sealed class AutoCaptureSection : StackPanel
             Place(Muted(unit), row, 2);
             Place(seconds, row, 3);
             Place(Muted(Strings.AutoCaptureSecondsUnit), row, 4);
-            _rules.Add(new Rule(setting.Metric, enabled, label, threshold, seconds));
+            TextBox? target = null;
+            if (setting.IsTargeted)
+            {
+                target = new TextBox { Text = setting.Target, MaxLength = 512, MinWidth = 120, MinHeight = 26,
+                    Margin = new Thickness(18, 0, 0, 4) };
+                target.SetResourceReference(Control.BackgroundProperty, "Raised");
+                target.SetResourceReference(Control.ForegroundProperty, "Text");
+                target.ToolTip = setting.IsService ? Strings.CaptureServiceTargetHelp : Strings.CaptureAppTargetHelp;
+                AutomationProperties.SetName(target, setting.IsService ? Strings.CaptureServiceTarget : Strings.CaptureAppTarget);
+                AutomationProperties.SetLabeledBy(target, label);
+                table.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                Place(target, ++row, 0, 5);
+                target.Margin = new Thickness(18, 0, 0, 6);
+            }
+            _rules.Add(new Rule(setting.Metric, enabled, label, threshold, seconds, setting, target));
             row++;
         }
 
@@ -189,6 +206,12 @@ internal sealed class AutoCaptureSection : StackPanel
                     ? Strings.SecondDrive
                     : Strings.Format(Strings.DiskLabel, secondaryDrive),
                 CaptureMetric.Network => Strings.Network, CaptureMetric.Gpu => Strings.GPU,
+                CaptureMetric.ApplicationCpu => Strings.CaptureAppCpu,
+                CaptureMetric.ApplicationMemory => Strings.CaptureAppMemory,
+                CaptureMetric.ApplicationNetwork => Strings.CaptureAppNetwork,
+                CaptureMetric.ServiceCpu => Strings.CaptureServiceCpu,
+                CaptureMetric.ServiceMemory => Strings.CaptureServiceMemory,
+                CaptureMetric.ServiceNetwork => Strings.CaptureServiceNetwork,
                 _ => Strings.AutoCaptureAnyProcess
             };
             AutomationProperties.SetName(rule.Threshold,
@@ -209,9 +232,9 @@ internal sealed class AutoCaptureSection : StackPanel
         var rules = new List<CaptureRuleSetting>();
         foreach (var rule in _rules)
         {
-            var minimum = rule.Metric == CaptureMetric.Network ? 0.1 / 8 : 1;
+            var minimum = rule.Setting.IsNetwork ? 0.1 / 8 : 1;
             var maximum = CaptureRuleSetting.MaximumThreshold(rule.Metric) /
-                          (rule.Metric == CaptureMetric.Network ? 8 : 1);
+                          (rule.Setting.IsNetwork ? 8 : 1);
             if (!double.TryParse(rule.Threshold.Text, NumberStyles.Float, CultureInfo.CurrentCulture,
                     out var threshold) || !double.IsFinite(threshold) || threshold < minimum || threshold > maximum)
             {
@@ -229,8 +252,14 @@ internal sealed class AutoCaptureSection : StackPanel
             }
 
             // Stored network thresholds remain Mbps so existing capture rules keep their meaning.
+            if (rule.Target is { } target && rule.Enabled.IsChecked == true && string.IsNullOrWhiteSpace(target.Text))
+            {
+                error = Strings.CaptureTargetRequired;
+                invalid = target;
+                return null;
+            }
             rules.Add(new CaptureRuleSetting(rule.Metric, rule.Enabled.IsChecked == true,
-                rule.Metric == CaptureMetric.Network ? threshold * 8 : threshold, seconds));
+                rule.Setting.IsNetwork ? threshold * 8 : threshold, seconds) { Target = rule.Target?.Text.Trim() ?? "" });
         }
 
         if (!int.TryParse(_cooldown.Text, NumberStyles.Integer, CultureInfo.CurrentCulture, out var cooldown) ||

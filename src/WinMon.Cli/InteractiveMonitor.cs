@@ -36,7 +36,7 @@ public static class InteractiveMonitor
             return Volatile.Read(ref retention) with
             { ProcessNetwork = sample?.Snapshot, ProcessNetworkSessionId = sample?.SessionId ?? Guid.Empty };
         }
-        var session = new MonitorSession(createSource, Options, deliveries.Enqueue);
+        var session = new MonitorSession(createSource, Options, deliveries.Enqueue, retainUsageHistory: true);
         Task<HardwareInventorySnapshot>? hardwareTask = null;
         void StartHardwareRead()
         {
@@ -139,12 +139,18 @@ public static class InteractiveMonitor
         var settings = state.Active;
         var data = state.Observations;
         var capture = data.Connections.LastOrDefault();
+        if (state.Paused && state.DisplayedFrame is { } displayed && capture is not null && !SampleKey.Of(displayed.Full).Matches(capture.Sample)) capture = null;
         return state.Tab switch
         {
             TerminalTab.Hardware => state.HardwareTable,
             TerminalTab.Services => ServicesTab.Build(data.Services, settings.Sort, state.Query, settings.Status, settings.Workers, 0),
-            TerminalTab.Usage => UsageTab.Build(data.Usage, data.UsageSince, data.MachineBusyTicks,
-                state.DisplayedFrame?.Full.Timestamp, settings.Sort, state.Query, settings.AppsOnly, 0),
+            TerminalTab.Usage => data.UsageAvailable ? UsageTab.Build(data.Usage, data.UsageSince, data.MachineBusyTicks,
+                state.DisplayedFrame?.Full.Timestamp, settings.Sort, state.Query, settings.AppsOnly, 0) with
+                { Note = data.PeriodUsage ? Strings.Format(Strings.CliUsagePeriod, state.UsagePeriodSeconds,
+                    data.UsageSince.ToLocalTime(), state.DisplayedFrame?.Full.Timestamp.ToLocalTime()) +
+                    (data.UsageComplete ? "" : " " + Strings.UsagePeriodPartial) :
+                    string.Format(System.Globalization.CultureInfo.CurrentCulture, Strings.UsageReportSince, data.UsageSince.LocalDateTime) }
+                : new TerminalTable([], [], Strings.UsagePeriodUnavailable),
             TerminalTab.Connections => ConnectionsTab.Build(capture?.Connections, capture?.Owners ?? [],
                 capture?.Network, data.Connections, capture, new ConnectionQueryOptions((ConnectionSortMetric)settings.Sort,
                     settings.AppsOnly, state.Query, state.NetworkEnabled, settings.TrafficSeconds, Strings.ConnectionsUnknownProcess)),
@@ -171,7 +177,7 @@ public static class InteractiveMonitor
         if (state.Help || settings.Details)
         {
             var contents = state.Help
-                ? state.Tab == TerminalTab.Hardware ? Strings.CliHardwareHelp + "\n" + Strings.CliHardwareIdentifiersOmitted : Strings.CliFullHelp
+                ? state.Tab == TerminalTab.Hardware ? Strings.CliHardwareHelp + "\n" + Strings.CliHardwareIdentifiersOmitted : Strings.CliFullHelp + "\n" + Strings.CliHistoryKeys
                 : state.Selected?.Details ?? Strings.ProcessNotRecorded;
             var lines = contents.Split('\n');
             var count = Math.Max(1, height - 5);
@@ -200,6 +206,7 @@ public static class InteractiveMonitor
                 : $"A {Strings.AppOnly} {Mark(settings.AppsOnly)}") + separator + pins;
         if (state.Tab == TerminalTab.Processes) controls += $"{separator}G {Strings.Grouped} {Mark(settings.Grouped)}";
         if (state.Tab == TerminalTab.Connections) controls += $"{separator}R {settings.TrafficSeconds}s";
+        if (state.Tab == TerminalTab.Usage) controls += $"{separator}U {state.UsagePeriodSeconds}s";
         var table = BuildTable(state, result, pageSize, width, out var columnsHidden);
         var timeLabel = state.Tab == TerminalTab.Processes
             ? string.Format(CultureInfo.CurrentCulture, Strings.ProcessesAtSAverage, frame.Full.Timestamp, ProcessRanking.DefaultWindowSeconds, "")

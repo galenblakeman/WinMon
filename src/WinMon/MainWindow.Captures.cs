@@ -81,7 +81,7 @@ public partial class MainWindow
                 WindowsCpuClock.LogicalProcessorCount);
         _captureRulesSource = settings;
 
-        foreach (var fired in _captureRules!.Observe(full)) RecordCapture(fired, settings);
+        foreach (var fired in _captureRules!.Observe(full, Session.Services.Frames.LastOrDefault(), Session.ProcessNetwork)) RecordCapture(fired, settings);
     }
 
     private void RecordCapture(CaptureFired fired, AutoCapturePreferences settings)

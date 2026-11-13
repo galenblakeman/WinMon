@@ -280,6 +280,27 @@ History defaults to 30 minutes for new installations, with configurable retentio
 
 ### Automatic captures
 
+The executable and service rows add targeted CPU, private-memory and network-rate rules. Enter an exact executable name (with or without `.exe`), absolute executable path, or Windows service name such as `wuauserv`. Name matching ignores case and aggregates all matching executable processes. CPU thresholds use percent of one logical processor; memory uses private MiB. Network thresholds display MB/s and use the busier receive/send direction across matched lifetimes. They require optional per-app monitoring, lifetime-safe rates and usable coverage; unavailable data breaks the run. Service rules include observed workers and skip shared service hosts because their counters cannot be assigned to one service. One target is supported per scope/metric. Existing machine and Any process rules retain their behavior.
+
+### Daily and weekly Usage
+
+In Usage, choose **Day** or **7 days**, then the ending date. Day covers that calendar date; 7 days includes it and the preceding six dates. Select different ending dates to compare periods. **Session** restores the live session view. Inspecting a chart capture still selects the recent recorded period; return Live before changing the calendar scope.
+
+Desktop WinMon records up to 35 calendar days of observed CPU time, process I/O and GPU time in `usage-history.json` beside settings. It records while running, including while hidden, and checkpoints about once a minute plus normal exit, update exit and session end. The archive uses its initial local time-zone ID and accounts for midnight/DST boundaries. It is independent of recent chart retention and **Keep history across restarts**. It cannot recover activity before this feature was enabled by running this build, time while WinMon was closed, collection gaps or data lost after the last checkpoint. The footer states observed seconds and archive time zone. Weekly process counts sum daily lifetime observations; current running counts are unavailable. Session Reset leaves this archive intact. Copy and Usage CSV export use the selected calendar period; calendar CSV labels daily lifetime observations and leaves running-process counts blank.
+
+The archive is local and contains executable paths and app metadata. An unreadable archive is preserved, and its view reports the problem. Close WinMon before copying, backing up or removing `usage-history.json`. Removing it starts fresh recording on the next launch. Portable copies keep it beside `settings.json`. The file has a 32 MiB cap; a failed or oversized checkpoint preserves the prior complete file.
+
+```powershell
+WinMon.Cli usage-history --days 7 --ending 2026-11-11 --format json
+WinMon.Cli usage-history --days 1 --file 'D:\Portable\WinMon\usage-history.json'
+```
+
+The CLI reads the desktop archive without writing it or starting sampling. `--days` accepts 1 or 7; `--ending` is an inclusive `yyyy-MM-dd` date, default today. JSON preserves calendar bounds, time zone, observed seconds and raw app totals. It reports unknown running counts as null. This archive is separate from each CLI/MCP process's own live Usage totals.
+
+### CLI historical navigation
+
+In `watch`, use `[` and `]` to move one retained observation, or Alt+Left/Right to move 60. Sampling continues while you inspect the selected moment. Space returns Live. Historical Processes, Services and Connections follow the selected timestamp and keep missing observations unavailable. Historical Usage comes from uncompacted interval history ending at that timestamp; U cycles 60, 300 and 1,800 seconds. The note shows actual period bounds and partial coverage. Memory budgets may shorten this recording independently of the resource chart. Help (`?`) lists these keys.
+
 Choose **Automatic capture settings…** from the **Auto** menu to open Settings directly on **Automatic captures**.
 
 Turn on **Automatic captures** in Settings to catch spikes while you are away. Each resource has a rule, such as **CPU above 90% for 10 s**, plus **Any one process** for a single runaway process, measured in percent of one core. When a rule holds, WinMon marks the moment with a triangle in that resource's color at the top of the chart and saves the Copy capture report for the peak as a text file. A rule waits for its cooldown, and for the value to drop clearly below the threshold, before it captures again.

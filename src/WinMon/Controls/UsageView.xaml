@@ -28,6 +28,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
@@ -35,6 +36,33 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
+            <WrapPanel Grid.Row="2" Grid.ColumnSpan="4" Margin="0,6,0,0">
+                <TextBlock Text="{Binding [UsageArchiveScope], Source={x:Static r:Strings.Text}}" VerticalAlignment="Center" />
+                <ComboBox x:Name="ArchiveScope" Width="140" MinHeight="28" Margin="6,0" SelectedIndex="0"
+                    AutomationProperties.Name="{Binding [UsageArchiveScope], Source={x:Static r:Strings.Text}}"
+                    SelectionChanged="OnArchiveChanged">
+                    <ComboBoxItem Content="{Binding [UsageSessionScope], Source={x:Static r:Strings.Text}}" />
+                    <ComboBoxItem Content="{Binding [UsageDayScope], Source={x:Static r:Strings.Text}}" />
+                    <ComboBoxItem Content="{Binding [UsageWeekScope], Source={x:Static r:Strings.Text}}" />
+                </ComboBox>
+                <ContentControl x:Name="ArchiveDateHost" Width="140" MinHeight="28" Visibility="Collapsed">
+                    <ContentControl.ContentTemplate>
+                        <DataTemplate>
+                <DatePicker MinHeight="28" Loaded="OnArchiveDateLoaded"
+                    Background="{DynamicResource Raised}" Foreground="{DynamicResource Text}" BorderBrush="{DynamicResource Line}"
+                    AutomationProperties.Name="{Binding [UsageArchiveDate], Source={x:Static r:Strings.Text}}"
+                    SelectedDateChanged="OnArchiveChanged">
+                    <DatePicker.Resources>
+                        <Style TargetType="DatePickerTextBox">
+                            <Setter Property="Background" Value="{DynamicResource Raised}" />
+                            <Setter Property="Foreground" Value="{DynamicResource Text}" />
+                        </Style>
+                    </DatePicker.Resources>
+                </DatePicker>
+                        </DataTemplate>
+                    </ContentControl.ContentTemplate>
+                </ContentControl>
+            </WrapPanel>
             <StackPanel
                 x:Name="RankingControls"
                 VerticalAlignment="Center"

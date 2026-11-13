@@ -779,6 +779,7 @@ public sealed class SettingsWindow : Window
     {
         _page.ScrollToTop();
     }
+    internal void ScrollSettingsPageToBottom() => _page.ScrollToBottom();
 
     /// <summary>Whether the work area left the dialog shorter than its designed height.</summary>
     internal bool HeightLimitedByWorkArea => Height < DesignedHeight;
@@ -931,6 +932,14 @@ public sealed class SettingsWindow : Window
         page.Children.Add(Field(Strings.PrimaryDrive, PrimaryDriveSelector));
         page.Children.Add(Field(Strings.SecondDrive, SecondaryDriveSelector));
         page.Children.Add(Note(Strings.SelectNoneToMonitorOneDriveActiveTimeAndRead));
+        // Longer retention explanations still fit the designed page without hiding controls.
+        page.Margin = new Thickness(26, 10, 26, 10);
+        foreach (var text in page.Children.OfType<TextBlock>())
+        {
+            if (AutomationProperties.GetHeadingLevel(text) == AutomationHeadingLevel.Level2 && text.Margin.Top > 2)
+                text.Margin = new Thickness(0, 8, 0, 4);
+            else if (text.FontSize == 12) text.Margin = new Thickness(0, 2, 0, 2);
+        }
         return page;
     }
 

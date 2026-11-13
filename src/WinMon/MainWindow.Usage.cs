@@ -8,6 +8,8 @@ public partial class MainWindow
 {
     private void InitializeUsage()
     {
+        Session.LiveSampleRecorded += RecordDailyUsage;
+        UsageView.PeriodChanged += RefreshPresentation;
         UsageView.SettingsChanged += settings => _preferences = _preferences with
         {
             TopUsageCount = settings.TopCount, UsageSortColumn = (int)settings.Sort, UsageAppsOnly = settings.AppsOnly
@@ -34,13 +36,23 @@ public partial class MainWindow
         var apps = frame.Apps;
         UpdateActivityPair(UsageCounts, UsageTotalValue, UsageActiveValue,
             frame.Available ? (uint)apps.Count : null,
-            frame.Available ? (uint)apps.Count(app => app.Running > 0) : null,
+            frame.Available && !frame.Archived ? (uint)apps.Count(app => app.Running > 0) : null,
             Strings.ActivityTotal, Strings.ActivityActive, ref _usageCounts);
         UsageView.Update(frame);
     }
 
     internal UsageFrame CurrentUsageFrame()
     {
+        if (SelectedSample is null && UsageView.ArchiveDays > 0)
+        {
+            var last = DateOnly.FromDateTime(UsageView.ArchiveDate);
+            var result = _usageArchive?.Query(last.AddDays(1 - UsageView.ArchiveDays), last);
+            var period = result?.Period;
+            return new UsageFrame(period?.Apps ?? [], period?.MachineBusyTicks ?? 0, period?.NotAttributedTicks ?? 0,
+                period?.Since ?? DateTimeOffset.Now, period?.Latest, true, false, _usageArchive is not null)
+            { Archived = true, Notice = _usageArchiveError || _usageArchiveWrite.IsFaulted ? Strings.UsageArchiveError :
+                Strings.Format(Strings.UsageArchiveObserved, result?.ObservedSeconds ?? 0) + " (" + _usageArchive?.TimeZoneId + ")" };
+        }
         if (SelectedSample is { } selected)
         {
             var period = Session.History.Samples.Contains(selected)
@@ -58,7 +70,7 @@ public partial class MainWindow
 
     private void ResetUsage()
     {
-        if (SelectedSample is not null) return;
+        if (SelectedSample is not null || UsageView.ArchiveDays > 0) return;
         if (!MessageDialog.Confirm(this, Strings.UsageResetConfirm, Strings.UsageTab, Strings.UsageReset)) return;
         Session.Usage.Reset(DateTimeOffset.Now);
         RefreshPresentation();

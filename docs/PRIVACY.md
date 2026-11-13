@@ -30,6 +30,8 @@ When you choose Export, WinMon saves a CSV file in the location you select. Depe
 
 ## Actions you choose
 
+Desktop WinMon also keeps up to 35 calendar days of observed per-app CPU/I/O/GPU totals in `usage-history.json` beside settings, including executable paths, app metadata and process lifetime tokens used for counting. This recording happens only while desktop WinMon runs and is independent of recent-history retention. Checkpoints replace the file atomically about once per minute and on normal shutdown; a lock file prevents concurrent writers. An unreadable archive is preserved. Uninstalling does not remove this history; close WinMon and delete `usage-history.json` to remove it. The CLI can read it through `usage-history`, and copied reports/CSV exports may disclose the selected period's app metadata. Nothing is uploaded by recording it.
+
 The Info window copies hardware information to the Windows clipboard only when you select Copy. The snapshot card copies selected historical resource readings and displayed process names, IDs and measurements and the active Services or Usage context only when you select Copy capture. Windows clipboard history or synchronization, if enabled, is controlled by your Windows settings. Review the report before pasting it into an issue or message.
 
 Connections copies the selected process/executable and endpoint details only when you select Copy details. When optional per-process monitoring is enabled, those details also include the displayed owner/executable rates, observed totals and quality status. Clipboard history and synchronization follow your Windows settings.

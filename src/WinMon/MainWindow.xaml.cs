@@ -196,6 +196,7 @@ public partial class MainWindow
             SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
             SystemEvents.DisplaySettingsChanged += OnDisplaySettingsChanged;
             InitializeWindowPosition();
+            await LoadUsageArchiveAsync();
             SamplingTask = Session.Run(Lifetime.Token);
             Trace.TraceInformation("Startup.SamplingStarted");
             InitializeUpdates();
@@ -1185,6 +1186,7 @@ public partial class MainWindow
             await ProcessDumpDialog.WhenWritesFinishAsync();
             await WhenExportsFinishAsync();
             await WhenCapturesFinishAsync();
+            await SaveUsageArchiveAsync();
             // History no longer changes, and the helper waits for Commit below before replacing the executable.
             if (_updateRestartPending) await SaveRestartHistoryAsync();
             try
@@ -1209,6 +1211,7 @@ public partial class MainWindow
         }
         finally
         {
+            _usageArchiveLock?.Dispose();
             await ShutdownUpdatesAsync();
             _hotkeyRetry?.Stop();
             _hotkey?.Dispose();
@@ -1246,6 +1249,17 @@ public partial class MainWindow
         if (_diagnosticMode || !_preferencesLoaded || IsClosing || _preparingUpdateExit ||
             _updateRestartPending) return;
         var preferences = ExitPreferences();
+        if (_usageArchive is not null && _usageArchiveLock is not null)
+        {
+            var state = _usageArchive.Export();
+            try
+            {
+                if (!Task.Run(async () => { await _usageArchiveWrite.ConfigureAwait(false);
+                        await UsageArchive.SaveAsync(_preferenceStore.UsageArchivePath, state).ConfigureAwait(false); })
+                    .Wait(TimeSpan.FromSeconds(3))) Trace.TraceWarning("Usage archive save reached the session-end deadline.");
+            }
+            catch (AggregateException ex) { Trace.TraceError("Usage archive session-end save failed: {0}", ex.InnerException); }
+        }
         try
         {
             if (!Task.Run(() => _preferenceStore.SaveAsync(preferences, CancellationToken.None))

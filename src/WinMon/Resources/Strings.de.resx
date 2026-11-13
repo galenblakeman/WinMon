@@ -1959,9 +1959,35 @@ Q beendet. Ctrl+C bricht ab. Programm- und Dienst-Pins bleiben gespeichert.</val
   <data name="CliHardwareIdentifiersOmitted" xml:space="preserve"><value>Platinenseriennummern, Volumebezeichnungen und Adapteraliase werden ausgelassen. Mit --include-identifiers einschließen.</value></data>
   <data name="CliHardwareHelp" xml:space="preserve"><value>Enter Details  R Aktualisieren  Q Beenden
 Die Hardwareaktualisierung ist unabhängig vom pausierten Ressourcenverlauf.</value></data>
-  <data name="HardwareCollectionInterval" xml:space="preserve"><value>Erfassung: {0:O} – {1:O}</value></data>
-  <data name="HardwarePartialInformation" xml:space="preserve"><value>Einige Hardwaredetails konnten nicht gelesen werden oder wurden ausgelassen.</value></data>
   <data name="CliCollectionSeconds" xml:space="preserve"><value>Erfassungsdauer in Sekunden (1–60). Nutzungswerte gelten nur für diese Erfassung.</value></data>
   <data name="CliCollectionRange" xml:space="preserve"><value>--top 0–1000 und --duration 1–60 verwenden.</value></data>
+  <data name="HardwareCollectionInterval" xml:space="preserve"><value>Erfassung: {0:O} – {1:O}</value></data>
+  <data name="HardwarePartialInformation" xml:space="preserve"><value>Einige Hardwaredetails konnten nicht gelesen werden oder wurden ausgelassen.</value></data>
   <data name="CliPid" xml:space="preserve"><value>PID</value></data>
+  <data name="CliArchiveEnding" xml:space="preserve"><value>Einschließendes Enddatum (yyyy-MM-dd).</value></data>
+  <data name="CaptureTargetRequired" xml:space="preserve"><value>Für jede aktive App- oder Dienstregel ein Ziel eingeben.</value></data>
+  <data name="CaptureServiceCpu" xml:space="preserve"><value>Dienstname · CPU</value></data>
+  <data name="CaptureServiceTarget" xml:space="preserve"><value>Dienstname</value></data>
+  <data name="CliArchiveDays" xml:space="preserve"><value>Kalendertage: 1 oder 7.</value></data>
+  <data name="CaptureAppTarget" xml:space="preserve"><value>Programmdatei</value></data>
+  <data name="CliUsagePeriod" xml:space="preserve"><value>Zeitraum {0}s: {1:g} – {2:g}.</value></data>
+  <data name="CaptureServiceNetwork" xml:space="preserve"><value>Dienstname · Netzwerk</value></data>
+  <data name="UsageWeekScope" xml:space="preserve"><value>7 Tage</value></data>
+  <data name="UsageArchiveScope" xml:space="preserve"><value>Nutzungszeitraum</value></data>
+  <data name="CaptureAppTargetHelp" xml:space="preserve"><value>Exakter Dateiname oder absoluter Pfad. Alle passenden Prozesse werden erfasst.</value></data>
+  <data name="CaptureAppCpu" xml:space="preserve"><value>Programmdatei · CPU</value></data>
+  <data name="CliArchiveFile" xml:space="preserve"><value>Pfad zu usage-history.json; portable Kopien verwenden die Datei neben settings.json.</value></data>
+  <data name="UsageArchiveDate" xml:space="preserve"><value>Zeitraum endet am</value></data>
+  <data name="CaptureAppMemory" xml:space="preserve"><value>Programmdatei · Privat</value></data>
+  <data name="UsageArchiveError" xml:space="preserve"><value>Tägliche Nutzung konnte nicht gespeichert oder geladen werden. Vorhandener Verlauf bleibt erhalten.</value></data>
+  <data name="UsageArchiveObserved" xml:space="preserve"><value>{0:N0} s erfasst. Fehlende Zeit wird ausgelassen; wöchentliche Prozesszahlen summieren Tagesbeobachtungen.</value></data>
+  <data name="CliHistoryKeys" xml:space="preserve"><value>[ / ] Früher / später  Space Live  U Nutzungszeitraum  Alt+Left/Right x60</value></data>
+  <data name="UsageDayScope" xml:space="preserve"><value>Tag</value></data>
+  <data name="CaptureServiceTargetHelp" xml:space="preserve"><value>Exakter Windows-Dienstname. Gemeinsame Hosts bleiben unzugeordnet. Netzwerkregeln benötigen die App-Überwachung.</value></data>
+  <data name="CaptureAppNetwork" xml:space="preserve"><value>Programmdatei · Netzwerk</value></data>
+  <data name="CliUsageHistory" xml:space="preserve"><value>Gespeicherte tägliche oder wöchentliche Desktop-Nutzung lesen.</value></data>
+  <data name="UsageSessionScope" xml:space="preserve"><value>Sitzung</value></data>
+  <data name="CaptureServiceMemory" xml:space="preserve"><value>Dienstname · Privat</value></data>
+  <data name="UsageArchivePeriodNote" xml:space="preserve"><value>Kalenderzeitraum {0:d} – {1:d}.</value></data>
+  <data name="CapturePrivateMemoryUnit" xml:space="preserve"><value>MiB</value></data>
 </root>

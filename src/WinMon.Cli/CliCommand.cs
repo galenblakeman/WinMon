@@ -187,7 +187,8 @@ public static class CliCommand
             CreateUpdateCommand(output, error, runUpdate),
             ActivityCommands.Create("services", createSource, output, error),
             ActivityCommands.Create("connections", createSource, output, error),
-            ActivityCommands.Create("usage", createSource, output, error)
+            ActivityCommands.Create("usage", createSource, output, error),
+            UsageArchiveCommand.Create(output, error)
         };
     }
 

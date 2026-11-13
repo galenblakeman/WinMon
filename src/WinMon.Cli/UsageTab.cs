@@ -10,15 +10,15 @@ public static class UsageTab
 {
     /// <summary>Builds the filtered and ranked executable-usage table for the terminal.</summary>
     public static TerminalTable Build(IReadOnlyList<AppUsage> apps, DateTimeOffset since, long machineBusyTicks,
-        DateTimeOffset? latest, int sort, string filter, bool appsOnly, int top)
+        DateTimeOffset? latest, int sort, string filter, bool appsOnly, int top, bool archived = false)
     {
         var visible = UsageQuery.Select(apps, sort, filter, appsOnly, top, DisplayName);
         var rows = visible.Select(app => new TerminalRow(app.Key,
             () => [
                 DisplayName(app), CpuTime(app.CpuTicks), Share(app.CpuTicks, machineBusyTicks), Bytes(app.IoBytes),
                 app.GpuSeconds is { } gpu ? Duration(TimeSpan.FromSeconds(gpu)) : Strings.MissingReading,
-                Processes(app), LastActive(app.LastActive, latest)
-            ], () => Details(app, since, machineBusyTicks, latest)) { PinIdentity = CliPin.Executable(app.ImagePath) }).ToArray();
+                Processes(app, archived), LastActive(app.LastActive, latest)
+            ], () => Details(app, since, machineBusyTicks, latest, archived)) { PinIdentity = CliPin.Executable(app.ImagePath) }).ToArray();
         return new TerminalTable(
             [Strings.UsageApp, Strings.UsageCpuTime, Strings.UsageShare, Strings.IO, Strings.UsageGpuTime,
                 Strings.ProcessesTab, Strings.UsageLastActive],
@@ -31,7 +31,7 @@ public static class UsageTab
             app.AppName.Length > 0 ? app.AppName : app.Name;
     }
 
-    private static string Details(AppUsage app, DateTimeOffset since, long machineBusyTicks, DateTimeOffset? latest)
+    private static string Details(AppUsage app, DateTimeOffset since, long machineBusyTicks, DateTimeOffset? latest, bool archived)
     {
         var text = new StringBuilder();
         text.AppendLine(DisplayName(app));
@@ -43,7 +43,7 @@ public static class UsageTab
         text.AppendLine($"{Strings.UsageCpuTime}: {CpuTime(app.CpuTicks)} ({Share(app.CpuTicks, machineBusyTicks)})");
         text.AppendLine($"{Strings.IO}: {Bytes(app.IoBytes)}");
         text.AppendLine($"{Strings.UsageGpuTime}: {(app.GpuSeconds is { } gpu ? Duration(TimeSpan.FromSeconds(gpu)) : Strings.MissingReading)}");
-        text.AppendLine($"{Strings.ProcessesTab}: {Processes(app)}");
+        text.AppendLine($"{Strings.ProcessesTab}: {Processes(app, archived)}");
         text.Append($"{Strings.UsageLastActive}: {LastActive(app.LastActive, latest)}");
         return text.ToString();
     }
@@ -66,9 +66,10 @@ public static class UsageTab
 
     private static string Bytes(double bytes) => Controls.UsageText.Bytes(bytes);
 
-    private static string Processes(AppUsage app)
+    private static string Processes(AppUsage app, bool archived)
     {
-        return string.Create(CultureInfo.CurrentCulture, $"{app.Lifetimes:N0} ({app.Running:N0})");
+        return archived ? string.Create(CultureInfo.CurrentCulture, $"{app.Lifetimes:N0} ({Strings.MissingReading})") :
+            string.Create(CultureInfo.CurrentCulture, $"{app.Lifetimes:N0} ({app.Running:N0})");
     }
 
     private static string LastActive(SampleKey? active, DateTimeOffset? latest)

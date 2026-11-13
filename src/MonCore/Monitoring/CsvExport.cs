@@ -127,6 +127,7 @@ public static class CsvExport
         string[] columns = ["since_utc", "key", "name", "app_name", "image_path", "publisher", "cpu_seconds",
             "share_percent", "io_bytes", "gpu_seconds", "process_lifetimes", "running_processes", "is_app",
             "last_active_utc", "is_not_attributed"];
+        if (period?.Archived == true) columns[10] = "daily_lifetime_observations";
         Row(writer, period is null ? columns : [.. columns, "until_utc", "coverage_complete"]);
         foreach (var app in apps.OrderByDescending(app => app.CpuTicks))
             UsageRow(Utc(since), app.Key == UsageLedger.OtherAppsKey ? "other_apps" : Safe(app.Key),
@@ -134,7 +135,7 @@ public static class CsvExport
                 Safe(app.AppName), Safe(app.ImagePath),
                 Safe(app.Publisher),
                 Number(app.CpuTicks / (double)TimeSpan.TicksPerSecond), Share(app.CpuTicks, machineBusyTicks),
-                Number(app.IoBytes), Number(app.GpuSeconds), Number(app.Lifetimes), Number(app.Running),
+                Number(app.IoBytes), Number(app.GpuSeconds), Number(app.Lifetimes), period?.Archived == true ? null : Number(app.Running),
                 Bool(app.IsApp), app.LastActive is { } active ? Utc(active.Timestamp) : null, "false");
         UsageRow(Utc(since), "not_attributed", null, null, null, null,
             Number(notAttributedTicks / (double)TimeSpan.TicksPerSecond),
