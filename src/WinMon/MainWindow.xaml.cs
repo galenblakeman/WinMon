@@ -301,7 +301,7 @@ public partial class MainWindow
         if (!CompactMode && (ProcessesTab.IsChecked == true || SelectedSample is not null) &&
             Processes.Update(new ProcessListFrame(samples, latest, visible, SelectedSample, Session.LatestFull,
                 Session.Latest, Session.History.WasMemoryLimited, _samplingError, _wide,
-                ProcessListSettings.From(_preferences))) is { } report)
+                ProcessListSettings.From(_preferences), SelectedCapture()?.Fired.Process)) is { } report)
             _snapshotReport = report;
         LiveCaption.Text = allUnavailable ? Strings.SystemResourcesUnavailable : Strings.SystemResources;
         ChartTooltipStatus.Text =

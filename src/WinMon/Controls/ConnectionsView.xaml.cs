@@ -56,6 +56,7 @@ public partial class ConnectionsView
 
     private readonly Dictionary<ProcessLifetimeIdentity, ProcessNetworkReading> _networkReadings = [];
     private bool _historical;
+    private ProcessUsage? _captureTrigger;
     private IReadOnlyList<ConnectionCapture> _history = [];
     private ConnectionTrafficTotals? _trafficTotals;
     private ConnectionCapture? _capture;
@@ -122,18 +123,21 @@ public partial class ConnectionsView
     internal void Update(NetworkConnectionsFrame? frame, IReadOnlyList<ProcessUsage> processes, bool historical,
         ProcessNetworkFrame? network = null, bool networkEnabled = false,
         IReadOnlyList<ConnectionCapture>? history = null, ConnectionCapture? capture = null,
-        ConnectionTrafficTotals? trafficTotals = null)
+        ConnectionTrafficTotals? trafficTotals = null, ProcessUsage? captureTrigger = null)
     {
         _frame = frame;
         _processes = processes;
+        var historicalChanged = _historical != historical;
         _historical = historical;
+        _captureTrigger = captureTrigger;
         _history = history ?? [];
         _capture = capture;
         _trafficTotals = trafficTotals;
         _network = network;
         var availabilityChanged = _networkEnabled != networkEnabled;
         _networkEnabled = networkEnabled;
-        if (availabilityChanged) Load(_settings);
+        if (availabilityChanged || historicalChanged) Load(_settings);
+        TopCount.IsEnabled = PinnedOnly.IsEnabled = !historical;
         TrafficPrompt.Visibility = !networkEnabled && !historical && NetworkSetupBroker.Supported
             ? Visibility.Visible
             : Visibility.Collapsed;
@@ -162,7 +166,7 @@ public partial class ConnectionsView
         {
             _settings = settings;
             TopCount.SelectedItem =
-                TopCountChoices.Selection(TopCountChoices.IsSupported(settings.TopCount) ? settings.TopCount : 10);
+                TopCountChoices.Selection(_historical ? CaptureReportText.AppLimit : TopCountChoices.IsSupported(settings.TopCount) ? settings.TopCount : 10);
             var help = NetworkSetupBroker.Supported
                 ? Strings.ConnectionsTrafficRankingUnavailable
                 : Strings.NetworkProcessMonitoringStoreUnavailable;
@@ -185,7 +189,7 @@ public partial class ConnectionsView
             AutomationProperties.SetHelpText(Rank, (string)Rank.ToolTip);
             Rank.SelectedIndex = (int)EffectiveSort;
             AppsOnly.IsChecked = settings.AppsOnly;
-            PinnedOnly.IsChecked = settings.PinnedOnly;
+            PinnedOnly.IsChecked = !_historical && settings.PinnedOnly;
             TrafficPeriod.ItemsSource = new[]
             {
                 Strings.ConnectionsLastMinute, Strings.ConnectionsLastFiveMinutes,
@@ -284,9 +288,9 @@ public partial class ConnectionsView
             return;
         }
 
-        _settings = new ConnectionListSettings(top,
+        _settings = new ConnectionListSettings(_historical ? _settings.TopCount : top,
             ReferenceEquals(sender, Rank) ? (ConnectionSort)Rank.SelectedIndex : _settings.Sort,
-            AppsOnly.IsChecked == true, PinnedOnly.IsChecked == true,
+            AppsOnly.IsChecked == true, _historical ? _settings.PinnedOnly : PinnedOnly.IsChecked == true,
             TrafficPeriod.SelectedIndex switch { 0 => 60, 2 => 1800, 3 => 0, _ => 300 });
         _trafficTotals = _networkEnabled
             ? ConnectionTrafficTotals.Build(_history, _capture, _settings.TrafficSeconds)
@@ -360,7 +364,7 @@ public partial class ConnectionsView
             }
         }
 
-        foreach (var pin in pins)
+        foreach (var pin in _historical ? [] : pins)
         {
             var saved = new ProcessUsage(pin.ProcessId, pin.CreationTicks, pin.Name, 0)
             {
@@ -375,7 +379,7 @@ public partial class ConnectionsView
             Add(group, true);
         }
 
-        if (!_settings.PinnedOnly && frame?.Available == true)
+        if ((!_settings.PinnedOnly || _historical) && frame?.Available == true)
             foreach (var item in groups.Where(group => !pinnedKeys.Contains(group.Key) && Visible(group, query))
                          .Select(group => (Group: group,
                              Network: _networkEnabled
@@ -384,10 +388,14 @@ public partial class ConnectionsView
                          .OrderByDescending(item => SortValue(item.Group, item.Network))
                          .ThenBy(item => DisplayName(item.Group.Process), StringComparer.CurrentCultureIgnoreCase)
                          .ThenBy(item => item.Group.Key, StringComparer.Ordinal)
-                         .Take(_settings.TopCount == 0 ? int.MaxValue : _settings.TopCount))
+                         .Take(_historical ? CaptureReportText.AppLimit : _settings.TopCount == 0 ? int.MaxValue : _settings.TopCount))
                 Add(item.Group, false, item.Network);
+        if (_historical && _captureTrigger is { } trigger &&
+            groups.FirstOrDefault(group => group.Key == OwnerKey(trigger)) is { } triggering &&
+            desired.All(row => row.Key != triggering.Key))
+            Add(triggering, false);
         PinnedCountLabel.Text = Strings.Format(Strings.PinnedProcessCount, pins.Length);
-        PinSummary.Visibility = pins.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
+        PinSummary.Visibility = !_historical && pins.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
 
         bool Visible(ConnectionGroup group, string text)
         {
@@ -405,13 +413,14 @@ public partial class ConnectionsView
 
         void Add(ConnectionGroup group, bool pinned, NetworkSummary? summary = null)
         {
+            pinned |= _historical && group.Process is { } owner && Pins.Contains(owner, true);
             var row = Row(group.Key);
             var status = group.Entries.Count > 0 ? null :
                 frame?.Available != true ? Strings.Unavailable :
                 _historical ? Strings.ProcessNotRecorded : Strings.ConnectionsNoObservedEndpoints;
             row.UpdateGroup(group, pinned, summary ?? (_networkEnabled
                 ? CollectNetworkSummary(NetworkMembers(group))
-                : NetworkSummary.Disabled), status);
+                : NetworkSummary.Disabled), status, _historical);
             desired.Add(row);
         }
 
@@ -422,7 +431,7 @@ public partial class ConnectionsView
         var graphs = _networkEnabled
             ? ConnectionGraphData.Build(graphHistory, desired)
             : null;
-        var firstRanked = desired.Any(row => row.Pinned) ? desired.FirstOrDefault(row => !row.Pinned) : null;
+        var firstRanked = !_historical && desired.Any(row => row.Pinned) ? desired.FirstOrDefault(row => !row.Pinned) : null;
         foreach (var row in desired)
         {
             row.UpdateTraffic(_trafficTotals, NetworkMembersForRow(row));
@@ -747,10 +756,10 @@ public partial class ConnectionsView
         SelectionIcon.Visibility = row?.Icon is null ? Visibility.Collapsed : Visibility.Visible;
         var network = row?.NetworkSummary ?? NetworkSummary.Disabled;
         SelectionDetail.Text = string.Join(" · ",
-            new[] { row?.Detail ?? "", network.Enabled ? NetworkTotals(network) : "" }
+            new[] { row?.Detail ?? "", _historical ? row?.TrafficAccessibleName ?? "" : network.Enabled ? NetworkTotals(network) : "" }
                 .Where(text => text.Length > 0));
         var details = string.Join(Environment.NewLine,
-            new[] { row?.Detail ?? "", NetworkDetails(network) }.Where(text => text.Length > 0));
+            new[] { row?.Detail ?? "", NetworkDetails(network), _historical ? row?.TrafficToolTip ?? "" : "" }.Where(text => text.Length > 0));
         SelectionDetail.ToolTip = details;
         ActionsDrawer.Summarize(SelectionName.Text, SelectionDetail.Text, row is not null);
         CopyDetails.IsEnabled = row is { Connections.Count: > 0 } && _frame?.Available == true;
@@ -778,8 +787,13 @@ public partial class ConnectionsView
             GroupRequested?.Invoke(row.Members);
     }
 
-    private static string Details(ConnectionDisplayRow row)
+    private string Details(ConnectionDisplayRow row)
     {
+        if (_historical && _capture is not null)
+            return CaptureReportText.ConnectionLeaders(_capture, CaptureReportText.AppLimit,
+                new ConnectionQueryOptions((ConnectionSortMetric)EffectiveSort, NetworkEnabled: _networkEnabled,
+                    TrafficSeconds: _settings.TrafficSeconds), new HashSet<string>(StringComparer.OrdinalIgnoreCase) { row.Key },
+                pinnedOnly: true, history: _history);
         var text = new StringBuilder();
         text.AppendLine(row.Name);
         text.AppendLine(
@@ -991,7 +1005,7 @@ internal sealed class ConnectionDisplayRow(string key) : INotifyPropertyChanged
     }
 
     internal void UpdateGroup(ConnectionsView.ConnectionGroup group, bool pinned,
-        ConnectionsView.NetworkSummary network, string? status = null)
+        ConnectionsView.NetworkSummary network, string? status = null, bool historical = false)
     {
         var shown = Shown();
         var wasPinned = Pinned;
@@ -1005,6 +1019,8 @@ internal sealed class ConnectionDisplayRow(string key) : INotifyPropertyChanged
             ? Strings.Format(Strings.ConnectionsProcessCount, Members.Count)
             : $"PID {(group.Entries.Count > 0 ? group.Entries[0].Connection.ProcessId : Process!.ProcessId).ToString(CultureInfo.InvariantCulture)}");
         var countsAvailable = status is null || status == Strings.ConnectionsNoObservedEndpoints;
+        if (historical)
+            Detail += " · " + (Process?.ImagePath is { Length: > 0 } path ? path : Strings.ExecutablePathUnavailable);
         Tcp = countsAvailable
             ? Connections.Count(connection => connection.Protocol == TransportProtocol.Tcp)
                 .ToString(CultureInfo.CurrentCulture)

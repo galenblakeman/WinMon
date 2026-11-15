@@ -44,7 +44,8 @@ internal sealed record ProcessListFrame(
     bool HistoryMemoryLimited,
     SamplingError? Error,
     bool Wide,
-    ProcessListSettings Settings);
+    ProcessListSettings Settings,
+    ProcessUsage? Trigger = null);
 
 /// <summary>Ranked, pinned and selected processes with their toolbar and action bar.</summary>
 /// <remarks>
@@ -58,6 +59,9 @@ public partial class ProcessesView
     private ProcessListSettings _settings = ProcessListSettings.From(new MonitorPreferences());
     private ProcessListFrame? _frame;
     private bool _closing;
+    private bool _loadingSettings;
+    private ProcessSelection? _liveSelection;
+    internal bool IsHistorical => _frame?.Selected is not null;
 
     public ProcessesView()
     {
@@ -123,7 +127,7 @@ public partial class ProcessesView
 
     internal ProcessPins Pins { get; } = new();
 
-    internal ProcessSelection Selection { get; } = new();
+    internal ProcessSelection Selection { get; private set; } = new();
 
     internal bool ActionsHidden
     {
@@ -148,18 +152,23 @@ public partial class ProcessesView
     /// <summary>Whether a toolbar dropdown is open, so Escape belongs to it.</summary>
     internal bool HasOpenDropDown => ProcessCountSelector.IsDropDownOpen || ProcessSortSelector.IsDropDownOpen;
 
-    /// <summary>Show saved settings and pins. Controls raise their usual change events.</summary>
+    /// <summary>Show settings and pins without saving temporary Capture choices as live preferences.</summary>
     internal void Load(ProcessListSettings settings, IEnumerable<SavedProcessPin> pins)
     {
-        _settings = settings;
-        Pins.Restore(pins);
-        UpdateRetention();
-        PinnedOnlyCheckBox.IsChecked = settings.PinnedOnly;
-        ProcessSortSelector.SelectedIndex = (int)settings.Sort;
-        GroupedChip.IsChecked = settings.Grouped;
-        IndividualChip.IsChecked = !settings.Grouped;
-        AppsOnlyCheckBox.IsChecked = settings.AppsOnly;
-        ProcessCountSelector.SelectedItem = TopCountChoices.Selection(settings.TopCount);
+        _loadingSettings = true;
+        try
+        {
+            _settings = settings;
+            Pins.Restore(pins);
+            UpdateRetention();
+            PinnedOnlyCheckBox.IsChecked = settings.PinnedOnly;
+            ProcessSortSelector.SelectedIndex = (int)settings.Sort;
+            GroupedChip.IsChecked = settings.Grouped;
+            IndividualChip.IsChecked = !settings.Grouped;
+            AppsOnlyCheckBox.IsChecked = settings.AppsOnly;
+            ProcessCountSelector.SelectedItem = TopCountChoices.Selection(settings.TopCount);
+        }
+        finally { _loadingSettings = false; }
     }
 
     /// <summary>Ignore control changes while the window shuts down.</summary>
@@ -192,6 +201,21 @@ public partial class ProcessesView
     /// <summary>Rank and draw the frame. Returns the snapshot report while a retained historical sample is shown.</summary>
     internal SnapshotReport? Update(ProcessListFrame frame)
     {
+        if (frame.Selected is not null && !IsHistorical)
+        {
+            _liveSelection = Selection;
+            Selection = new ProcessSelection();
+        }
+        else if (frame.Selected is null && IsHistorical && _liveSelection is not null)
+        {
+            Selection = _liveSelection;
+            _liveSelection = null;
+            UpdateRetention();
+        }
+        if (frame.Selected is not null)
+            frame = frame with { Settings = frame.Settings with { TopCount = CaptureReportText.AppLimit, Grouped = true, PinnedOnly = false } };
+        if (_settings != frame.Settings) Load(frame.Settings, Pins.Snapshot());
+        ProcessCountSelector.IsEnabled = GroupedChip.IsEnabled = IndividualChip.IsEnabled = PinnedOnlyCheckBox.IsEnabled = frame.Selected is null;
         _frame = frame;
         var (topCount, processSort, grouped, appsOnly, _) = _settings = frame.Settings;
         var (samples, latest, visible, selected) = (frame.Samples, frame.Latest, frame.Visible, frame.Selected);
@@ -234,11 +258,20 @@ public partial class ProcessesView
         var inclusive = query.Length > 0 || topCount == 0 ? ranking : null;
         UpdateSortHeaders();
         var active = ProcessSearch.Filter(ranking.Processes, query, appsOnly).ToArray();
-        var pinned = ResolvePinnedRows(rowSamples, grouped, query, appsOnly, Inclusive);
-        var unpinned = active.Where(p => !Pins.Contains(p, grouped)).ToArray();
+        var pinned = selected is null ? ResolvePinnedRows(rowSamples, grouped, query, appsOnly, Inclusive) : [];
+        var unpinned = selected is not null ? active : active.Where(p => !Pins.Contains(p, grouped)).ToArray();
         var pinnedOnly = PinnedOnlyCheckBox.IsChecked == true;
         var top = pinnedOnly ? [] : TopCountChoices.Limit(unpinned, topCount).ToArray();
-        var rest = pinnedOnly ? [] : unpinned.Skip(top.Length).ToArray();
+        var extraTrigger = false;
+        if (selected is not null && frame.Trigger is { } trigger)
+        {
+            var key = ProcessRanking.GroupKey(trigger);
+            var row = top.FirstOrDefault(p => ProcessIdentityPolicy.Windows.Comparer.Equals(ProcessRanking.GroupKey(p), key));
+            extraTrigger = row is null;
+            row ??= Inclusive().Processes.FirstOrDefault(p => ProcessIdentityPolicy.Windows.Comparer.Equals(ProcessRanking.GroupKey(p), key)) ?? trigger;
+            top = [row, .. top.Where(p => !ProcessIdentityPolicy.Windows.Comparer.Equals(ProcessRanking.GroupKey(p), key))];
+        }
+        var rest = pinnedOnly ? [] : extraTrigger ? unpinned.Where(p => !top.Contains(p)).ToArray() : unpinned.Skip(top.Length).ToArray();
         var displayed = pinned.Select(p => p.Usage).Concat(top).ToArray();
         var processData = ProcessGraphData.Build(rowSamples, MonitorPreferences.ShortRangeSeconds, displayed, grouped,
             processSort);
@@ -305,7 +338,7 @@ public partial class ProcessesView
                             : null))
             {
                 ProcessStates = [.. pinned.Select(p => ProcessRow.StateText(p.State)), .. top.Select(_ => "")],
-                TopCount = topCount
+                TopCount = topCount, TriggerIncludedOutsideTop = extraTrigger
             };
 
         ProcessRanking Inclusive()
@@ -420,9 +453,10 @@ public partial class ProcessesView
     {
         var pins = Pins.RetentionSnapshot();
         var selected = Selection.RetentionSnapshot();
-        Retention = pins is null && selected is null
+        var liveSelected = _liveSelection?.RetentionSnapshot();
+        Retention = pins is null && selected is null && liveSelected is null
             ? null
-            : process => pins?.Invoke(process) == true || selected?.Invoke(process) == true;
+            : process => pins?.Invoke(process) == true || selected?.Invoke(process) == true || liveSelected?.Invoke(process) == true;
         RetentionChanged?.Invoke();
     }
 
@@ -444,6 +478,7 @@ public partial class ProcessesView
 
     private void Change(ProcessListSettings settings)
     {
+        if (_loadingSettings) return;
         _settings = settings;
         SettingsChanged?.Invoke(settings);
     }

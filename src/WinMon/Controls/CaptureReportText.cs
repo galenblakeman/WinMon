@@ -8,6 +8,8 @@ namespace WinMon.Controls;
 /// <summary>Text for automatic captures: rule descriptions, report files and notifications.</summary>
 internal static class CaptureReportText
 {
+    internal const int AppLimit = 10;
+    internal const int ConnectionLimit = 5;
     /// <summary>The resource color of a rule's marker, matching that resource's chart trace.</summary>
     internal static string BrushKey(CaptureMetric metric)
     {
@@ -72,7 +74,7 @@ internal static class CaptureReportText
     /// <param name="id">The capture identifier written into the report header.</param>
     /// <param name="snapshot">The peak's <see cref="Snapshot"/>, shared with <see cref="Notification"/>.</param>
     internal static string Report(CaptureFired fired, Guid id, SnapshotReport snapshot,
-        ConnectionCapture? networkCapture = null, int topConnectionCount = 20,
+        ConnectionCapture? networkCapture = null, int topConnectionCount = AppLimit,
         IReadOnlyList<ConnectionCapture>? connectionHistory = null)
     {
         var metric = fired.Rule.Metric;
@@ -88,7 +90,8 @@ internal static class CaptureReportText
         text.Append(SnapshotText.Format(snapshot));
         text.AppendLine();
         if (metric == CaptureMetric.Network) text.Append(NetworkLeaders(networkCapture, topConnectionCount));
-        text.Append(ConnectionLeaders(networkCapture, topConnectionCount, history: connectionHistory));
+        text.Append(ConnectionLeaders(networkCapture, topConnectionCount, history: connectionHistory,
+            trigger: fired.Process));
         return text.ToString();
     }
 
@@ -141,9 +144,9 @@ internal static class CaptureReportText
     }
 
     /// <summary>Traffic groups and their endpoint observations aligned with one captured resource sample.</summary>
-    internal static string ConnectionLeaders(ConnectionCapture? capture, int topCount = 20,
+    internal static string ConnectionLeaders(ConnectionCapture? capture, int topCount = AppLimit,
         ConnectionQueryOptions? options = null, IReadOnlySet<string>? pinnedKeys = null, bool pinnedOnly = false,
-        IReadOnlyList<ConnectionCapture>? history = null)
+        IReadOnlyList<ConnectionCapture>? history = null, ProcessUsage? trigger = null)
     {
         var text = new StringBuilder();
         text.AppendLine();
@@ -167,6 +170,19 @@ internal static class CaptureReportText
                     StringComparer.CurrentCultureIgnoreCase)
             : unpinned;
         var groups = pinned.Concat(TopCountChoices.Limit(ranked, topCount)).ToArray();
+        var triggering = trigger is null ? null : all.FirstOrDefault(group => group.Key == ConnectionQuery.OwnerKey(trigger));
+        var triggerOutsideFilter = false;
+        if (trigger is not null && triggering is null)
+        {
+            triggering = ConnectionQuery.Build(capture.Connections, capture.Owners, capture.Network, history ?? [capture],
+                capture, options with { Search = "", AppsOnly = false }).FirstOrDefault(group => group.Key == ConnectionQuery.OwnerKey(trigger));
+            triggerOutsideFilter = triggering is not null;
+        }
+        if (triggering is not null && groups.All(group => group.Key != triggering.Key))
+        {
+            groups = [triggering, .. groups];
+            text.AppendLine(Strings.CaptureReportExtraTrigger);
+        }
         if (capture.Network is not { } network)
         {
             text.AppendLine(Strings.NetworkProcessMonitoringUnavailable);
@@ -193,43 +209,50 @@ internal static class CaptureReportText
         text.AppendLine(Strings.ConnectionsNetworkOwnerTotals);
         text.AppendLine(Strings.ConnectionsRateTiming);
         var endpointRows = 0;
+        var totals = ConnectionTrafficTotals.Build(history ?? [capture], capture, options.TrafficSeconds);
+        text.AppendLine($"{Strings.ConnectionsTrafficPeriod}: " + (options.TrafficSeconds == 0
+            ? Strings.ConnectionsSinceStart : Strings.Format(Strings.GaugePeakWindowMinutes, options.TrafficSeconds / 60d)));
+        text.AppendLine(ConnectionsView.TrafficDetails(totals));
         foreach (var group in groups)
         {
             var processId = group.Connections.FirstOrDefault()?.ProcessId ?? group.Flows.FirstOrDefault()?.ProcessId;
             var name = group.Process is { } owner ? DisplayName(owner) : processId is { } pid
                 ? Strings.Format(Strings.PID, pid) : Strings.ConnectionsUnknownProcess;
             text.AppendLine($"{name}: ↓ {ConnectionsView.NetworkRate(group.Network.ReceiveBytesPerSecond)}  ↑ {ConnectionsView.NetworkRate(group.Network.SendBytesPerSecond)}");
+            text.AppendLine($"{Strings.ProcessPathLabel}: {(group.Process?.ImagePath is { Length: > 0 } path ? path : Strings.ExecutablePathUnavailable)}");
+            var prefix = group.Traffic.Incomplete ? "≈ " : "";
+            text.AppendLine($"{Strings.ConnectionsReceived} / {Strings.ConnectionsSent}: " +
+                            (group.Traffic.Available ? $"{prefix}{UsageText.Bytes(group.Traffic.ReceivedBytes)} / {prefix}{UsageText.Bytes(group.Traffic.SentBytes)}" : Strings.MissingReading));
             text.AppendLine($"PID\t{Strings.ConnectionsProtocol}\t{Strings.ConnectionsLocalEndpoint}\t{Strings.ConnectionsRemoteEndpoint}\t{Strings.ConnectionsState}\t{Strings.ConnectionsReceiveRate}\t{Strings.ConnectionsSendRate}\t{Strings.ConnectionsReceived}\t{Strings.ConnectionsSent}");
             var reportedFlows = new HashSet<ProcessNetworkFlowIdentity>();
-            foreach (var connection in group.Connections.OrderBy(connection => connection.ProcessId)
-                         .ThenBy(connection => connection.Protocol)
-                         .ThenBy(connection => ConnectionQuery.Endpoint(connection.LocalEndpoint), StringComparer.Ordinal))
+            var rows = new List<(int Pid, TransportProtocol Protocol, string Local, string Remote, string State, ProcessNetworkFlowReading? Flow)>();
+            foreach (var connection in group.Connections)
             {
-                endpointRows++;
                 var flow = Flow(capture.Network, connection);
                 if (flow is not null) reportedFlows.Add(FlowIdentity(flow));
-                text.AppendLine($"{connection.ProcessId}\t{Protocol(connection.Protocol)}\t" +
-                                $"{ConnectionQuery.Endpoint(connection.LocalEndpoint)}\t" +
-                                $"{(connection.RemoteEndpoint is { } remote ? ConnectionQuery.Endpoint(remote) : Strings.MissingReading)}\t" +
-                                $"{State(connection.State)}\t{ConnectionsView.NetworkRate(flow?.ReceiveBytesPerSecond)}\t" +
-                                $"{ConnectionsView.NetworkRate(flow?.SendBytesPerSecond)}\t" +
-                                $"{Bytes(flow?.ReceivedBytes)}\t{Bytes(flow?.SentBytes)}");
+                rows.Add((connection.ProcessId, connection.Protocol, ConnectionQuery.Endpoint(connection.LocalEndpoint),
+                    connection.RemoteEndpoint is { } remote ? ConnectionQuery.Endpoint(remote) : Strings.MissingReading,
+                    State(connection.State), flow));
             }
-            foreach (var flow in group.Flows.Where(flow => !reportedFlows.Contains(FlowIdentity(flow)))
-                         .OrderByDescending(flow => flow.ReceiveBytesPerSecond + flow.SendBytesPerSecond ?? -1)
-                         .ThenBy(flow => flow.LocalEndpoint, StringComparer.Ordinal)
-                         .ThenBy(flow => flow.RemoteEndpoint, StringComparer.Ordinal))
+            foreach (var flow in group.Flows.Where(flow => !reportedFlows.Contains(FlowIdentity(flow))))
             {
-                endpointRows++;
-                text.AppendLine($"{flow.ProcessId}\t{Protocol(flow.Protocol)}\t{flow.LocalEndpoint}\t" +
-                                $"{flow.RemoteEndpoint}\t{Strings.CaptureObservedFlowMissingEndpoint}\t" +
-                                $"{ConnectionsView.NetworkRate(flow.ReceiveBytesPerSecond)}\t" +
-                                $"{ConnectionsView.NetworkRate(flow.SendBytesPerSecond)}\t" +
-                                $"{Bytes(flow.ReceivedBytes)}\t{Bytes(flow.SentBytes)}");
+                rows.Add((flow.ProcessId, flow.Protocol, flow.LocalEndpoint, flow.RemoteEndpoint,
+                    Strings.CaptureObservedFlowMissingEndpoint, flow));
             }
+            var selectedRows = rows.OrderByDescending(row => row.Flow?.ReceiveBytesPerSecond + row.Flow?.SendBytesPerSecond ?? -1)
+                .ThenBy(row => row.Pid).ThenBy(row => row.Protocol)
+                .ThenBy(row => row.Local, StringComparer.Ordinal).ThenBy(row => row.Remote, StringComparer.Ordinal)
+                .Take(ConnectionLimit).ToArray();
+            foreach (var row in selectedRows)
+                text.AppendLine($"{row.Pid}\t{Protocol(row.Protocol)}\t{row.Local}\t{row.Remote}\t{row.State}\t" +
+                                $"{ConnectionsView.NetworkRate(row.Flow?.ReceiveBytesPerSecond)}\t{ConnectionsView.NetworkRate(row.Flow?.SendBytesPerSecond)}\t" +
+                                $"{Bytes(row.Flow?.ReceivedBytes)}\t{Bytes(row.Flow?.SentBytes)}");
+            endpointRows += selectedRows.Length;
+            text.AppendLine(Strings.Format(Strings.CaptureConnectionLimit, ConnectionLimit, selectedRows.Length, rows.Count - selectedRows.Length));
         }
 
-        var eligibleGroups = pinnedOnly ? pinned.Length : all.Count;
+        var eligibleGroups = (pinnedOnly ? pinned.Length : all.Count) +
+                             (triggering is not null && (triggerOutsideFilter || pinnedOnly && pinned.All(group => group.Key != triggering.Key)) ? 1 : 0);
         text.AppendLine(Strings.Format(Strings.CaptureReportConnectionCount,
             topCount == 0 ? Strings.AllEntries : topCount.ToString(CultureInfo.CurrentCulture),
             groups.Length, eligibleGroups, eligibleGroups - groups.Length, endpointRows));
@@ -290,8 +313,9 @@ internal static class CaptureReportText
         return double.IsFinite(total) ? total : null;
     }
 
-    /// <summary>The peak as Copy capture would report it: top 20 individual processes, sorted by the rule's resource.</summary>
-    internal static SnapshotReport Snapshot(CaptureFired fired, IReadOnlyList<MonitorSample> history, int topCount = 20)
+    /// <summary>The peak ranked by the rule's resource, retaining an out-of-limit triggering app.</summary>
+    internal static SnapshotReport Snapshot(CaptureFired fired, IReadOnlyList<MonitorSample> history, int topCount = AppLimit,
+        bool grouped = false)
     {
         var key = SampleKey.Of(fired.Peak);
         var index = -1;
@@ -312,13 +336,16 @@ internal static class CaptureReportText
             CaptureMetric.PrimaryDisk or CaptureMetric.SecondaryDisk or CaptureMetric.Network or CaptureMetric.ApplicationNetwork or CaptureMetric.ServiceNetwork => ProcessSort.Io,
             _ => ProcessSort.Cpu
         };
-        var processes = TopCountChoices.Limit(ProcessRanking.Rank(window, sort: sort).Processes, topCount).ToList();
+        var rankedProcesses = ProcessRanking.Rank(window, sort: sort, grouped: grouped).Processes;
+        var processes = TopCountChoices.Limit(rankedProcesses, topCount).ToList();
         var triggerOutsideTop = false;
         if (fired.Process is { } trigger)
         {
             var row = processes.FindIndex(p =>
-                p.ProcessId == trigger.ProcessId && p.CreationTicks == trigger.CreationTicks);
-            var first = row >= 0 ? processes[row] : trigger;
+                grouped ? ProcessIdentityPolicy.Windows.Comparer.Equals(ProcessRanking.GroupKey(p), ProcessRanking.GroupKey(trigger)) : p.Identity == trigger.Identity);
+            var first = row >= 0 ? processes[row] : grouped
+                ? rankedProcesses.FirstOrDefault(p => ProcessIdentityPolicy.Windows.Comparer.Equals(ProcessRanking.GroupKey(p), ProcessRanking.GroupKey(trigger))) ?? trigger
+                : trigger;
             triggerOutsideTop = row < 0;
             if (row >= 0) processes.RemoveAt(row);
             processes.Insert(0, first);
@@ -330,7 +357,7 @@ internal static class CaptureReportText
                 ProcessSort.Memory => Strings.Memory, ProcessSort.Gpu => Strings.GPU, _ => Strings.CPU
             }
             : Strings.AutoCaptureTotalIo;
-        return new SnapshotReport(index >= 0 ? history[index] : fired.Peak, processes, false, label, "", false, "",
+        return new SnapshotReport(index >= 0 ? history[index] : fired.Peak, processes, grouped, label, "", false, "",
             null) { TopCount = topCount, TriggerIncludedOutsideTop = triggerOutsideTop };
     }
 
@@ -348,7 +375,7 @@ internal static class CaptureReportText
         var value = metric switch
         {
             CaptureMetric.Process => null,
-            CaptureMetric.Memory => busiest.WorkingSetBytes is { } bytes ? UsageText.Bytes(bytes) : null,
+            CaptureMetric.Memory => (snapshot.Grouped ? busiest.PrivateBytes : busiest.WorkingSetBytes) is { } bytes ? UsageText.Bytes(bytes) : null,
             CaptureMetric.Gpu => busiest.GpuPercent is { } gpu ? Strings.Format(Strings.PercentOneDecimal, gpu) : null,
             _ => Strings.Format(Strings.PercentOneDecimal, busiest.CpuPercent)
         };

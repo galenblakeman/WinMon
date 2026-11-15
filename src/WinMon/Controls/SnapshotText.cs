@@ -57,7 +57,7 @@ internal static class SnapshotText
         if (report.Coverage.Length > 0) text.AppendLine(report.Coverage);
         Row(Strings.ProcessColumn, "PID", $"{Strings.CPU} (%)", $"{Strings.GPU} (%)",
             $"{(report.Grouped ? Strings.Private : Strings.Memory)} (MiB)", Strings.IOMBS, Strings.Threads,
-            Strings.Handles);
+            Strings.Handles, Strings.ProcessPathLabel);
         for (var index = 0; index < report.Processes.Count; index++)
         {
             var p = report.Processes[index];
@@ -69,7 +69,8 @@ internal static class SnapshotText
             {
                 Row($"{name} · {state}", p.ProcessId.ToString(CultureInfo.CurrentCulture),
                     Strings.MissingReading, Strings.MissingReading, Strings.MissingReading, Strings.MissingReading,
-                    Strings.MissingReading, Strings.MissingReading);
+                    Strings.MissingReading, Strings.MissingReading,
+                    p.ImagePath.Length > 0 ? p.ImagePath : Strings.ExecutablePathUnavailable);
                 continue;
             }
 
@@ -79,13 +80,15 @@ internal static class SnapshotText
                     : p.ProcessId.ToString(CultureInfo.CurrentCulture),
                 Number(p.CpuPercent), Number(p.GpuPercent),
                 Number((report.Grouped ? p.PrivateBytes : p.WorkingSetBytes) / 1_048_576d),
-                Number(p.IoBytesPerSecond / 1_000_000d, "0.00"), Count(p.ThreadCount), Count(p.HandleCount));
+                Number(p.IoBytesPerSecond / 1_000_000d, "0.00"), Count(p.ThreadCount), Count(p.HandleCount),
+                p.ImagePath.Length > 0 ? p.ImagePath : Strings.ExecutablePathUnavailable);
         }
 
         if (report.Remainder is { } rest)
             Row(Strings.Format(report.Grouped ? Strings.OtherExecutables : Strings.OtherProcesses, rest.Count), "",
                 Number(rest.CpuPercent), Strings.MissingReading, Strings.MissingReading,
-                Number(rest.IoBytesPerSecond / 1_000_000d, "0.00"), Strings.MissingReading, Strings.MissingReading);
+                Number(rest.IoBytesPerSecond / 1_000_000d, "0.00"), Strings.MissingReading, Strings.MissingReading,
+                Strings.MissingReading);
         return text.ToString().TrimEnd();
 
         void Row(params string[] cells)

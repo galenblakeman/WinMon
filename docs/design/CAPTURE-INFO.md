@@ -1,6 +1,16 @@
 # Improve capture information
 
-Status: implemented with verification limits on 2026-11-11; see the [implementation record](CAPTURE-INFO-IMPLEMENTATION.md). This note supersedes the fixed report-limit proposal in [Automatic captures](AUTO-CAPTURE.md). Native endpoint attribution and sustained collector performance acceptance remain open.
+## Revision agreed on 2026-11-15
+
+Capture mode, copied reports and automatic reports now use top 10 executable groups with up to five connections per app. Preserve the triggering app as an extra group when outside the top 10. Rank endpoint/flow rows by combined receive/send rate, with deterministic endpoint ordering when traffic is unavailable. Report omitted rows explicitly. Pins do not extend these capture limits. Live Top/grouping preferences return when leaving Capture mode.
+
+Include executable paths in process reports and connection summaries. Reuse recorded period traffic totals ending at the selected moment, retaining incomplete/missing coverage and never substituting live readings. Automatic reports use the existing five-minute period default. Per-connection counters retain their observed session scope. Hostnames and first/last-observed timestamps are deferred.
+
+Landed in `CaptureReportText`, `SnapshotText`, `ProcessesView`, `ConnectionsView` and their MainWindow callers; regression coverage is in `CaptureInfoTests` and `SnapshotTextTests`. The screen keeps its existing app table and exposes the bounded connection list through Properties/Copy details. No new collection, preferences or dependencies were added. Verification is recorded in [the implementation record](CAPTURE-INFO-IMPLEMENTATION.md).
+
+## Prior design (superseded by the revision above)
+
+The following records the 2026-11-11 implementation and its original scope. Native endpoint attribution and sustained collector performance acceptance remain open.
 
 ## Agreed scope
 

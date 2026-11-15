@@ -824,6 +824,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                 menu.Items.OfType<MenuItem>().Single(i => (string)i.Header == Strings.CreateDumpFile + "…").IsEnabled)
                 throw new InvalidOperationException("Historical rows allowed process termination.");
             window.SelectedSample = null;
+            window.RefreshPresentation();
             window.Processes.GroupedChip.IsChecked = true;
             window.RefreshPresentation();
             row.PrepareProcessMenu();
@@ -1675,8 +1676,9 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
             throw new InvalidOperationException("App Only did not explain an empty filtered view.");
         fixture.Processes.AppsOnlyCheckBox.IsChecked = false;
         fixture.Processes.ProcessSearchBox.Clear();
-        fixture.Processes.IndividualChip.IsChecked = true;
         fixture.SelectedSample = null;
+        fixture.RefreshVisiblePresentation();
+        fixture.Processes.IndividualChip.IsChecked = true;
         fixture.Preferences = fixture.Preferences with { PrimaryDrive = "C:", SecondaryDrive = "D:" };
 
         fixture.Preferences = fixture.Preferences with
@@ -1767,6 +1769,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
             throw new InvalidOperationException("Historical GPU ranking failed.");
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "gpu-process-sort.png"), 1, cancellationToken);
         fixture.SelectedSample = null;
+        fixture.RefreshVisiblePresentation();
         // Memory ranks by the largest working set (devenv); I/O by the busiest read/write rate (chrome).
         foreach (var (sort, expected) in new[] { (Strings.Memory, "devenv"), (Strings.IO, "chrome") })
         {
@@ -1848,25 +1851,23 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
             Timestamp = anchor.AddSeconds(2), MonotonicTimestamp = Stopwatch.Frequency * 122, Processes = []
         });
         fixture.RefreshVisiblePresentation();
-        if (fixture.Processes.Rows.Count(row => row.Visibility == Visibility.Visible) < 60)
-            throw new InvalidOperationException("All lost processes from the selected historical sample.");
-        fixture.Processes.ProcessCountSelector.SelectedItem = 10;
-        fixture.RefreshVisiblePresentation();
+        if (fixture.Processes.Rows.Count(row => row.Visibility == Visibility.Visible) != 10 ||
+            fixture.Preferences.TopProcessCount != 0 || fixture.Processes.ProcessCountSelector.IsEnabled)
+            throw new InvalidOperationException("Capture must show top 10 apps while preserving the live All preference.");
         ArrangeFixture();
         if (!ReferenceEquals(fixture.SelectedSample, rankedSample) ||
             fixture.Processes.Rows.Count(row => row.Visibility == Visibility.Visible) != 10)
             throw new InvalidOperationException(
-                "Changing the count replaced the historical sample or used live processes.");
+                "Capture replaced the historical sample or used live processes.");
         if (fixture.Processes.ProcessScroll.ActualHeight < 108)
             throw new InvalidOperationException("Historical details left too little room for the process list.");
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "process-count-history.png"), 1,
             cancellationToken);
-        fixture.Processes.ProcessCountSelector.SelectedItem = 5;
-        fixture.RefreshVisiblePresentation();
-        ArrangeFixture();
-
         // Approved compact-header mockup: same wide viewport, dual disks, grouped list, ten-minute range.
         fixture.SelectedSample = null;
+        fixture.RefreshVisiblePresentation();
+        if (!Equals(fixture.Processes.ProcessCountSelector.SelectedItem, TopCountChoices.All))
+            throw new InvalidOperationException("Leaving Capture did not restore the live All choice.");
         fixture.Wide = true;
         fixture.Preferences = fixture.Preferences with
         {

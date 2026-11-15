@@ -153,10 +153,11 @@ internal sealed partial class WindowDiagnostics
         Draw();
         string? copied = null;
         fixture.CopySnapshot(text => copied = text);
-        if (fixture.SnapshotReport?.Processes.Count != 7 || copied is null ||
-            !copied.Contains(Strings.ProcessNotRecorded, StringComparison.Ordinal))
+        if (fixture.SnapshotReport is not { Grouped: true, TopCount: 10 } report ||
+            report.Processes.Count > 10 || copied is null ||
+            copied.Contains(Strings.ProcessNotRecorded, StringComparison.Ordinal))
             throw new InvalidOperationException(
-                "Snapshot copying did not preserve pinned rows and missing-state labels.");
+                "Capture must use top 10 executable groups without extra stale pins.");
         fixture.SelectedSample = null;
         fixture.Preferences = fixture.Preferences with { Theme = "Light" };
         fixture.ApplyTheme();

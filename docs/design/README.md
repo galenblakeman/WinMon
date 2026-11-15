@@ -2,6 +2,8 @@
 
 - [Read-only MCP Usage and lifetime history](MCP-USAGE-AND-LIFETIME-HISTORY.md) adds calendar archive queries, process GPU/thread/handle trends and exact-lifetime retained-history filters.
 
+- [Capture information](CAPTURE-INFO.md) limits capture views and reports to 10 apps and five connections per app, preserving the trigger and adding paths and observed period traffic totals.
+
 - [On-demand MCP sampling](MCP-IDLE-SAMPLING.md) starts collectors for live requests, retains them for a 30-second idle grace period, and releases native sampling and traffic subscriptions afterward.
 
 - [Scoped rules, CLI history and calendar Usage](SCOPED-RULES-AND-LONG-TERM-USAGE.md) implements named executable/service thresholds, terminal timeline navigation, and persistent daily/weekly observed totals.

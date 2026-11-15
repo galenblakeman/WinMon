@@ -58,9 +58,10 @@ public sealed class SnapshotTextTests
             .Split('\t');
         Assert.Multiple(() =>
         {
-            Assert.That(row, Has.Length.EqualTo(8));
+            Assert.That(row, Has.Length.EqualTo(9));
             Assert.That(row[1], Is.EqualTo(grouped ? "123, 456" : "123"));
-            Assert.That(row[2..], Is.EqualTo(new[] { "18.2", "—", memory, "2.00", "12", "34" }));
+            Assert.That(row[2..8], Is.EqualTo(new[] { "18.2", "—", memory, "2.00", "12", "34" }));
+            Assert.That(row[8], Is.EqualTo(Strings.ExecutablePathUnavailable));
             Assert.That(text, Does.Contain(grouped ? "Private (MiB)" : "Memory (MiB)"));
             Assert.That(text, Does.Contain("five-second averages").And.Contain("browser").And.Contain("Coverage note"));
             Assert.That(text, Does.Contain(grouped ? "Other executables" : "Other processes"));
@@ -80,7 +81,7 @@ public sealed class SnapshotTextTests
         var row = text.Split(Environment.NewLine).Single(l => l.StartsWith(name, StringComparison.Ordinal)).Split('\t');
         Assert.Multiple(() =>
         {
-            Assert.That(row, Has.Length.EqualTo(8));
+            Assert.That(row, Has.Length.EqualTo(9));
             Assert.That(row[0], Is.EqualTo(name + " line  next"));
             Assert.That(row[2], Is.EqualTo("0.0"));
             Assert.That(row[4], Is.EqualTo("—"));

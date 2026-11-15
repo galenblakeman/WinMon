@@ -18,6 +18,8 @@ public partial class MainWindow
     {
         Processes.SettingsChanged += settings =>
         {
+            if (SelectedSample is not null || Processes.IsHistorical)
+                settings = settings with { TopCount = _preferences.TopProcessCount, Grouped = _preferences.GroupProcesses, PinnedOnly = _preferences.PinnedOnly };
             _preferences = settings.ApplyTo(_preferences);
             RefreshPresentation();
         };

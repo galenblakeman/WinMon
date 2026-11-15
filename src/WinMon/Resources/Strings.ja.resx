@@ -1990,4 +1990,5 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
   <data name="CaptureServiceMemory" xml:space="preserve"><value>サービス名 · プライベート</value></data>
   <data name="UsageArchivePeriodNote" xml:space="preserve"><value>暦期間 {0:d} – {1:d}。</value></data>
   <data name="CapturePrivateMemoryUnit" xml:space="preserve"><value>MiB</value></data>
+  <data name="CaptureConnectionLimit" xml:space="preserve"><value>アプリごとに受信＋送信レート順で最大 {0} 接続。{1} 件を表示、{2} 件を省略。</value></data>
 </root>

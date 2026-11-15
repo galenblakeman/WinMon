@@ -34,7 +34,7 @@ Ordinary resource monitoring and connection lists run without administrator righ
 
 1. **Click a spike in the chart** to inspect that recorded moment. WinMon keeps recording while you look back.
 2. **Inspect the process rankings** to see which apps were busy. Group related processes, search, or pin an app to follow it. Use the process More menu to open its Connections or Usage.
-3. **Choose Copy capture** to share the timestamp, resource readings, displayed process rows and recorded connection details as plain text. Reports use the existing Processes and Connections **Top** selections independently, and append the active Services or Usage view when selected.
+3. **Choose Copy capture** to share the timestamp, resource readings, top 10 executable groups and recorded connection details as plain text. Captures include up to five connections per app, executable paths and observed traffic totals for the selected period. A triggering app outside the top 10 stays included. Reports append the active Services or Usage view when selected.
 
 ![Capture mode showing an earlier CPU spike and Chrome's increased CPU activity](docs/example/example_snapshot.png)
 

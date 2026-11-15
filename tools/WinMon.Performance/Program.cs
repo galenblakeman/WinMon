@@ -99,6 +99,7 @@ internal static class Program
         window.SelectedSample = history.Samples[^60];
         Measure("historical-frame");
         window.SelectedSample = null;
+        window.RefreshPresentation();
         Check(window.Processes.GroupedChip);
         Measure("grouped-live-frame");
         Check(window.Processes.IndividualChip);

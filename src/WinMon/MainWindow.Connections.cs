@@ -51,9 +51,10 @@ public partial class MainWindow
             var owner = (SelectedSample ?? Session.LatestFull)?.Processes.FirstOrDefault(p =>
                 members.Any(member => member.Identity == p.Identity));
             if (owner is null) return;
+            ProcessesTab.IsChecked = true;
+            RefreshPresentation();
             if (owner.ImagePath.Length > 0) Processes.ShowGroup(owner);
             else Processes.ShowProcess(owner);
-            ProcessesTab.IsChecked = true;
             RefreshPresentation();
         };
     }
@@ -114,6 +115,6 @@ public partial class MainWindow
         AutomationProperties.SetName(ConnectionCounts, details);
         if (!_preferences.ActivityPanelCollapsed)
             ConnectionView.Update(frame, owners, SelectedSample is not null, network, networkEnabled,
-                history, end, totals);
+                history, end, totals, SelectedCapture()?.Fired.Process);
     }
 }

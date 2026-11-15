@@ -156,9 +156,9 @@ public sealed class ConnectionsViewTests
             Assert.That(missing.Graph.Visibility, Is.EqualTo(Visibility.Hidden));
         });
         restored.Update(null, [], true);
-        Assert.That(restored.DisplayedRows.Single().Detail, Is.EqualTo(Strings.Unavailable));
+        Assert.That(restored.DisplayedRows, Is.Empty, "Capture does not add unrecorded pins.");
         restored.Update(Frame(), [], true);
-        Assert.That(restored.DisplayedRows.Single().Detail, Is.EqualTo(Strings.ProcessNotRecorded));
+        Assert.That(restored.DisplayedRows, Is.Empty);
         restored.TogglePin(first);
         Assert.That(restored.DisplayedRows, Is.Empty);
         view.TogglePin(first);

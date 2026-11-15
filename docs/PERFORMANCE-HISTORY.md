@@ -2,6 +2,21 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## Bounded captures and historical connection details (November 15, 2026)
+
+Compared the preserved clean `main` app with the capture changes on Windows x64, .NET 10.0.15. A focused copy of `WinMon.Performance` uses the same synthetic 850-process session, 400 warm-up frames and seven batches of 60 frames. It measures Live, historical Processes, grouped Live and a historical Connections view after 121 traffic captures. Storage/Usage benchmark cases are excluded. Four alternating before/after pairs completed; values below are medians of the four run medians. `artifacts/capture-info/Prepare-FocusedBenchmark.ps1`, `Measure.ps1`, `Summarize.ps1`, `focused-before-*.json`, `focused-after-*.json` and `summary.json` retain the reproduction and raw evidence. Each build's assembly hash and each scenario's pixel hash stayed consistent across all four runs.
+
+| UI refresh scenario | Before ms | After ms | Before bytes | After bytes |
+|---|---:|---:|---:|---:|
+| Live | 4.42 | 4.49 | 603,250 | 603,256 |
+| Historical Processes | 1.25 | 1.20 | 180,934 | 183,840 |
+| Grouped Live | 7.02 | 7.14 | 605,391 | 603,624 |
+| Historical Connections | 4.31 | 5.13 | 1,535,096 | 951,304 |
+
+Live and grouped Live pixel hashes match the baseline. Historical hashes intentionally differ: Capture now displays ten grouped process rows for its copied report, limits connection apps to ten, includes paths and keeps pins within the cap. The historical Connections case therefore measures a changed workload, including the hidden Processes view used by Copy capture. It allocates 38.0% less but costs 0.82 ms more per refresh. Two additional alternating control pairs explicitly give both builds ten grouped process rows, ten connection rows and no extra pins (`--match-capture-shape`); the historical Connections medians are 4.90 ms / 949,456 bytes before and 5.20 ms / 950,760 bytes after. Matching the table shape narrows the timing gap to 0.30 ms. The remaining bounded cost accompanies the additional historical path text and Capture state handling; its individual methods were not profiled. The new historical refresh remains about 5 ms on this machine. The Live timing differences are 1.5% and 1.7%, with essentially unchanged allocation. These observations explain the changed Capture cost rather than treating it as a collector regression.
+
+This measures UI-thread refresh, layout, rendering submission and allocation with native sampling stopped. It does not measure ETW collection, service overhead, the WPF render thread, sustained whole-app CPU or other hardware. Functional validation and screenshot evidence are in [the capture implementation record](design/CAPTURE-INFO-IMPLEMENTATION.md).
+
 ## MCP process trend metrics (November 15, 2026)
 
 Compared the unchanged `HEAD` performance aggregate with the working implementation adding process GPU, thread and handle metrics, compiled together in Release on this Windows x64 development machine. This is an isolated aggregate measurement, not a native-collector, UI or end-to-end server profile. The reproduction helper, generated before/after sources and raw results are under `artifacts/mcp-gap-perf/` (`Measure.ps1`, `results.json`). Each window aggregates 60 synthetic one-second frames and materializes its summary and 60 output buckets. After 400 warm-up windows per variant, seven alternating batches of 1,000 windows measured elapsed time and current-thread allocation.

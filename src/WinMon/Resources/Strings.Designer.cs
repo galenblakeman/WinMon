@@ -107,6 +107,7 @@ public static partial class Strings
     public static string CaptureAppNetwork => ResourceManager.GetString(nameof(CaptureAppNetwork), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CaptureAppTarget => ResourceManager.GetString(nameof(CaptureAppTarget), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CaptureAppTargetHelp => ResourceManager.GetString(nameof(CaptureAppTargetHelp), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string CaptureConnectionLimit => ResourceManager.GetString(nameof(CaptureConnectionLimit), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CaptureConnectionTrafficScope => ResourceManager.GetString(nameof(CaptureConnectionTrafficScope), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CaptureConnectionTrafficUnavailable => ResourceManager.GetString(nameof(CaptureConnectionTrafficUnavailable), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CaptureConnectionTrafficWindow => ResourceManager.GetString(nameof(CaptureConnectionTrafficWindow), Culture ?? CultureInfo.CurrentUICulture)!;

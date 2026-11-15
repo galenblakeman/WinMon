@@ -1990,4 +1990,5 @@ Q 종료. Ctrl+C 취소. 실행 파일과 서비스 고정은 다음 실행에�
   <data name="CaptureServiceMemory" xml:space="preserve"><value>서비스 이름 · 전용</value></data>
   <data name="UsageArchivePeriodNote" xml:space="preserve"><value>달력 기간 {0:d} – {1:d}.</value></data>
   <data name="CapturePrivateMemoryUnit" xml:space="preserve"><value>MiB</value></data>
+  <data name="CaptureConnectionLimit" xml:space="preserve"><value>앱당 수신 + 송신 속도순으로 최대 {0}개 연결: {1}개 포함, {2}개 생략.</value></data>
 </root>

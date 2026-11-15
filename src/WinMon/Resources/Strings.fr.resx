@@ -1990,4 +1990,5 @@ L’actualisation du matériel est indépendante de la mise en pause de l’hist
   <data name="CaptureServiceMemory" xml:space="preserve"><value>Nom du service · Privée</value></data>
   <data name="UsageArchivePeriodNote" xml:space="preserve"><value>Période calendaire {0:d} – {1:d}.</value></data>
   <data name="CapturePrivateMemoryUnit" xml:space="preserve"><value>MiB</value></data>
+  <data name="CaptureConnectionLimit" xml:space="preserve"><value>Jusqu’à {0} connexions par application, classées par débit reçu + envoyé ; {1} incluses, {2} omises.</value></data>
 </root>

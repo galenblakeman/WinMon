@@ -1,5 +1,17 @@
 # Capture information implementation
 
+## November 15, 2026 revision
+
+Implemented the revised scope in [the design](CAPTURE-INFO.md): Capture mode, copied reports and automatic reports use 10 executable groups, with up to five endpoint/flow rows per app and an extra triggering app when needed. Reports and historical connection rows include executable paths; app totals use recorded traffic for the period ending at the capture, including omitted connections. The report labels the period and coverage separately from endpoint session counters. Capture temporarily overrides Top/grouping and suppresses extra pins; leaving it restores live preferences and the live process selection.
+
+Verification: `Verify.ps1 -Smoke snapshot,connections,capture,feature,services,usage` built with zero warnings and passed all 1,970 executed tests. Connections (23 PNGs), capture (24), feature (125), Services (22) and Usage (9) passed under `artifacts/verify/20261115-101250-311-desktop`. Snapshot's old All-rows assertion was then updated for the fixed Capture limit; `Verify.ps1 -SkipTests -Smoke snapshot` passed with 64 PNGs under `artifacts/verify/20261115-101624-589-desktop`. Reviewed Capture light/dark, connection Capture and historical process renders. Focused regression coverage includes merged endpoint/flow limits, trigger inclusion outside filters, group identity, period totals, paths and return-to-Live state.
+
+The final pin-indicator refinement passed 72 focused tests and another zero-warning build plus Connections smoke (23 PNGs) under `artifacts/verify/20261115-102326-671-desktop`. Pinned apps remain marked while counting within the capture cap.
+
+Before/after measurements are recorded at the top of [the performance history](../PERFORMANCE-HISTORY.md). Native elevated ETW acceptance, signed setup acceptance and hostnames/connection timing are outside this revision. No new collector, dependency, preference key or Settings control was added. The screen retains its app table and exposes the bounded endpoint list through Properties/Copy details.
+
+## November 11 implementation (historical)
+
 Tracks [the capture design](CAPTURE-INFO.md). Started November 11, 2026. Existing installer, MCP, update and documentation edits are outside this change and must be preserved.
 
 | Requirement | Status | Evidence / next check |

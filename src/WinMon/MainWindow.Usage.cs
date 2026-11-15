@@ -102,9 +102,10 @@ public partial class MainWindow
         }
 
         SelectedSample = moment;
+        ProcessesTab.IsChecked = true;
+        RefreshPresentation();
         Processes.ShowGroup(new ProcessUsage(0, 0, app.Name, 0)
             { ImagePath = app.ImagePath, AppName = app.AppName, Publisher = app.Publisher });
-        ProcessesTab.IsChecked = true;
         RefreshPresentation();
     }
 }

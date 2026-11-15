@@ -1990,4 +1990,5 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
   <data name="CaptureServiceMemory" xml:space="preserve"><value>Имя службы · Частная</value></data>
   <data name="UsageArchivePeriodNote" xml:space="preserve"><value>Календарный период {0:d} – {1:d}.</value></data>
   <data name="CapturePrivateMemoryUnit" xml:space="preserve"><value>MiB</value></data>
+  <data name="CaptureConnectionLimit" xml:space="preserve"><value>До {0} подключений на приложение, по скорости приёма + отправки; включено: {1}, пропущено: {2}.</value></data>
 </root>

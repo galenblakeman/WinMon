@@ -300,7 +300,7 @@ internal sealed partial class WindowDiagnostics
             fixture.ConnectionsTab.IsChecked = true;
             fixture.RefreshVisiblePresentation();
             Require(view.SelectedDetailsForFixture?.Contains("203.0.113.24:443", StringComparison.Ordinal) == true &&
-                    view.SelectedDetailsForFixture.Contains(Strings.DetailReceivedSent, StringComparison.Ordinal),
+                    view.SelectedDetailsForFixture.Contains($"{Strings.ConnectionsReceived} / {Strings.ConnectionsSent}", StringComparison.Ordinal),
                 "Capture endpoint details or recorded traffic are missing.");
             await CaptureServiceWindowAsync(fixture, Path.Combine(output, "connections-capture.png"),
                 cancellationToken);

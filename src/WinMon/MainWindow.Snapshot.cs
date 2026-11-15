@@ -29,12 +29,12 @@ public partial class MainWindow
             var text = SnapshotText.Format(report);
             var capture = Session.Connections.Find(report.Sample);
             var settings = ConnectionView.Settings;
-            text += CaptureReportText.ConnectionLeaders(capture, settings.TopCount,
+            text += CaptureReportText.ConnectionLeaders(capture, CaptureReportText.AppLimit,
                 new ConnectionQueryOptions((ConnectionSortMetric)settings.Sort, settings.AppsOnly,
                     ConnectionView.SearchText, capture?.Network is not null, settings.TrafficSeconds),
-                ConnectionView.CapturePinnedKeys, settings.PinnedOnly,
+                null, false,
                 Session.Connections.Captures.Where(past => CpuGraph.Moment(past.Sample) <= CpuGraph.Moment(report.Sample))
-                    .ToArray());
+                    .ToArray(), SelectedCapture()?.Fired.Process);
             if (ServicesTab.IsChecked == true)
                 text += Environment.NewLine + ServiceView.CaptureReport();
             else if (UsageTab.IsChecked == true)

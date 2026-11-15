@@ -1990,4 +1990,5 @@ La actualización del hardware es independiente del historial de recursos en pau
   <data name="CaptureServiceMemory" xml:space="preserve"><value>Nombre del servicio · Privada</value></data>
   <data name="UsageArchivePeriodNote" xml:space="preserve"><value>Periodo del calendario {0:d} – {1:d}.</value></data>
   <data name="CapturePrivateMemoryUnit" xml:space="preserve"><value>MiB</value></data>
+  <data name="CaptureConnectionLimit" xml:space="preserve"><value>Hasta {0} conexiones por aplicación, ordenadas por tasa de recepción + envío; {1} incluidas, {2} omitidas.</value></data>
 </root>

@@ -32,8 +32,9 @@ public partial class MainWindow
         ServiceView.ProcessRequested += process =>
         {
             // Use the existing process view for the selected PID, preserving the selected historical instant.
-            Processes.ShowProcess(process);
             ProcessesTab.IsChecked = true;
+            RefreshPresentation();
+            Processes.ShowProcess(process);
         };
         ServiceView.ActionRequested += RunServiceAction;
         ServiceView.CopyRequested += CopyProcessDetails;
