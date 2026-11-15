@@ -27,6 +27,7 @@ internal sealed partial class DiagnosticTools
             (pid is { } id ? !ValidIdentity(id, expectedStartToken, expectedDomain) :
                 expectedStartToken is not null || expectedDomain is not null)) return Invalid();
         cancellationToken.ThrowIfCancellationRequested();
+        await using var request = await owner.AcquireAsync(cancellationToken);
         owner.EnableTraffic();
         var frame = await owner.CurrentAsync(cancellationToken);
         if (frame is null || !owner.IsFresh(frame)) return Responses.Result(Responses.Envelope(owner, frame, null));

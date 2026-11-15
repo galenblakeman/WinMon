@@ -2,6 +2,22 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## On-demand MCP sampling (November 13, 2026)
+
+Compared a preserved unchanged WinMon 4.1.2 MCP build with the changed server on this Windows x64 development machine, using SDK 10.0.404. Both builds initialized a real stdio connection, idled for ten seconds, answered a snapshot, sampled for ten seconds, waited another 25 seconds, measured ten idle seconds, and answered a resumed snapshot. Temporary children exited cleanly when their client input closed. Evidence and the measurement helper are under `artifacts/mcp-idle`: `before.json`, `after.json`, `after-final.json`, and the final runtime build's `after-verified.json`; `before/` preserves the baseline binaries.
+
+| Observation | Before | After (final runtime build) |
+|---|---:|---:|
+| CPU during ten seconds after initialization | 1,078 ms | 94 ms |
+| Private memory at that point | 41.8 MiB | 13.8 MiB |
+| CPU during ten seconds after the idle deadline | 281 ms | 0 ms |
+| First snapshot latency | 40 ms (already sampling) | 1,490 ms (new baseline) |
+| Resumed snapshot latency | 3 ms (already sampling) | 1,140 ms (new baseline) |
+
+Both snapshots returned `ok`. Two earlier changed-build runs also used zero measured CPU after the idle deadline, with resumed snapshots taking 1.09–1.15 seconds. Zero here is the process CPU counter's observation for a short window, not a guarantee of zero future CPU. Idle shutdown releases the native source and optional traffic subscription; it retains bounded frame history and Usage totals and does not force GC. Final post-idle private memory was 56.7 MiB versus the baseline's 63.6 MiB; retained managed memory is not expected to return to the initial process size.
+
+The first active ten-second window used 422 ms CPU before and 750 ms after. These windows have different warm-up histories: the old server had already sampled during the preceding ten idle seconds, while the new server deferred initialization until the request. They do not establish a steady-state collection regression or speedup. The intended latency tradeoff is a fresh baseline on first use and after idle. The sampling loop, one-second cadence and per-frame publication path are unchanged; lifecycle work runs at request/idle boundaries. This is a bounded native idle/resume check, not a long-duration memory soak or a desktop/UI benchmark.
+
 ## Setup transaction test boundaries (November 12, 2026)
 
 The setup helper gained per-run OS boundaries and an internal package factory so protected file transactions and named-pipe handshakes can be tested without changing the installed service. No sampling or UI path changed. SHA-256 checks confirmed that `WinMon.Performance.exe`, `WinMon.dll`, `MonCore.dll` and `MonCore.Windows.dll` were identical before and after the final rebuild.

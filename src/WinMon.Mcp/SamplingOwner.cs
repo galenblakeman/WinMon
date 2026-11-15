@@ -15,6 +15,8 @@ internal sealed class SamplingOwner : IHostedService, IAsyncDisposable
     private readonly object _gate = new();
     private readonly Queue<PublishedFrame> _frames = new();
     private readonly CancellationTokenSource _shutdown = new();
+    private readonly SemaphoreSlim _lifecycle = new(1, 1);
+    private readonly TimeSpan _idleTimeout;
     private readonly MonitorSession _session;
     private readonly TimeProvider _clock;
     private TaskCompletionSource _changed = NewSignal();
@@ -22,7 +24,13 @@ internal sealed class SamplingOwner : IHostedService, IAsyncDisposable
     private long _sequence;
     private PublishedUsage? _usage;
     private Task? _run;
+    private CancellationTokenSource? _sampling;
+    private CancellationTokenSource? _idle;
+    private Task _idleTask = Task.CompletedTask;
+    private int _requests;
+    private long _warmupSequence;
     private Task? _dispose;
+    private Task? _stop;
     private readonly Func<NetworkTrafficClient> _createTraffic;
     private NetworkTrafficClient? _traffic;
     private Task? _trafficRun;
@@ -30,9 +38,10 @@ internal sealed class SamplingOwner : IHostedService, IAsyncDisposable
     public SamplingOwner() : this(() => new WindowsFrameSource(), TimeProvider.System) { }
 
     internal SamplingOwner(Func<IFrameSource> createSource, TimeProvider clock, TimeSpan? interval = null,
-        Func<NetworkTrafficClient>? createTraffic = null)
+        Func<NetworkTrafficClient>? createTraffic = null, TimeSpan? idleTimeout = null)
     {
         _clock = clock;
+        _idleTimeout = idleTimeout ?? TimeSpan.FromSeconds(30);
         _createTraffic = createTraffic ?? (() => new NetworkTrafficClient());
         _session = new MonitorSession(() => new PublishingSource(createSource(), frame => _captured = frame),
             () =>
@@ -47,15 +56,98 @@ internal sealed class SamplingOwner : IHostedService, IAsyncDisposable
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        _run ??= _session.Run(_shutdown.Token);
+        cancellationToken.ThrowIfCancellationRequested();
         return Task.CompletedTask;
+    }
+
+    internal async Task<IAsyncDisposable> AcquireAsync(CancellationToken cancellationToken)
+    {
+        using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _shutdown.Token);
+        await _lifecycle.WaitAsync(linked.Token);
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            _shutdown.Token.ThrowIfCancellationRequested();
+            await CancelIdleAsync();
+            if (_run is null)
+            {
+                _sampling = CancellationTokenSource.CreateLinkedTokenSource(_shutdown.Token);
+                lock (_gate) _warmupSequence = _sequence + 2;
+                _run = _session.Run(_sampling.Token);
+            }
+            _requests++;
+            return new Request(this);
+        }
+        finally { _lifecycle.Release(); }
+    }
+
+    private async ValueTask ReleaseAsync()
+    {
+        if (_shutdown.IsCancellationRequested) return;
+        try { await _lifecycle.WaitAsync(_shutdown.Token); }
+        catch (OperationCanceledException) when (_shutdown.IsCancellationRequested) { return; }
+        try
+        {
+            if (--_requests != 0 || _shutdown.IsCancellationRequested) return;
+            _idle = CancellationTokenSource.CreateLinkedTokenSource(_shutdown.Token);
+            _idleTask = StopWhenIdleAsync(_idle.Token);
+        }
+        finally { _lifecycle.Release(); }
+    }
+
+    private async Task StopWhenIdleAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(_idleTimeout, _clock, cancellationToken);
+            await _lifecycle.WaitAsync(cancellationToken);
+            try { await StopSamplingAsync(); }
+            finally { _lifecycle.Release(); }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
+    }
+
+    private async Task CancelIdleAsync()
+    {
+        if (_idle is null) return;
+        await _idle.CancelAsync();
+        await _idleTask;
+        _idle.Dispose();
+        _idle = null;
+    }
+
+    private async Task StopSamplingAsync()
+    {
+        if (_sampling is null) return;
+        await _sampling.CancelAsync();
+        if (_run is not null) await _run;
+        if (_trafficRun is not null) await _trafficRun;
+        if (_traffic is not null) await _traffic.DisposeAsync();
+        _traffic = null;
+        _trafficRun = null;
+        _run = null;
+        _sampling.Dispose();
+        _sampling = null;
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
+        Task stop;
+        lock (_gate) stop = _stop ??= StopCoreAsync();
+        await stop.WaitAsync(cancellationToken);
+    }
+
+    private async Task StopCoreAsync()
+    {
         await _shutdown.CancelAsync();
-        if (_run is not null) await _run.WaitAsync(cancellationToken);
-        if (_trafficRun is not null) await _trafficRun.WaitAsync(cancellationToken);
+        lock (_gate) _changed.TrySetCanceled(_shutdown.Token);
+        await _lifecycle.WaitAsync();
+        try
+        {
+            await CancelIdleAsync();
+            await StopSamplingAsync();
+        }
+        finally { _lifecycle.Release(); }
     }
 
     public ValueTask DisposeAsync()
@@ -67,7 +159,6 @@ internal sealed class SamplingOwner : IHostedService, IAsyncDisposable
     {
         await StopAsync(CancellationToken.None);
         _session.Close();
-        if (_traffic is not null) await _traffic.DisposeAsync();
         _shutdown.Dispose();
     }
 
@@ -77,7 +168,7 @@ internal sealed class SamplingOwner : IHostedService, IAsyncDisposable
         {
             if (_traffic is not null || _shutdown.IsCancellationRequested) return;
             var traffic = _createTraffic();
-            _trafficRun = traffic.Run(_shutdown.Token);
+            _trafficRun = traffic.Run(_sampling!.Token);
             Volatile.Write(ref _traffic, traffic);
         }
     }
@@ -116,8 +207,9 @@ internal sealed class SamplingOwner : IHostedService, IAsyncDisposable
     internal async Task<PublishedFrame?> CurrentAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        await using var request = await AcquireAsync(cancellationToken);
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5), _clock);
-        using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
+        using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token, _shutdown.Token);
         try
         {
             while (true)
@@ -125,13 +217,14 @@ internal sealed class SamplingOwner : IHostedService, IAsyncDisposable
                 long sequence;
                 lock (_gate)
                 {
-                    if (_frames.TryPeek(out _) && _sequence >= 2) return _frames.Last();
+                    if (_frames.TryPeek(out _) && _sequence >= _warmupSequence)
+                        return _frames.Last();
                     sequence = _sequence;
                 }
                 await WaitForChangeAsync(sequence, linked.Token);
             }
         }
-        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested) { return null; }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && !_shutdown.IsCancellationRequested) { return null; }
     }
 
     private void Publish()
@@ -155,6 +248,12 @@ internal sealed class SamplingOwner : IHostedService, IAsyncDisposable
     }
 
     private static TaskCompletionSource NewSignal() => new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    private sealed class Request(SamplingOwner owner) : IAsyncDisposable
+    {
+        private SamplingOwner? _owner = owner;
+        public ValueTask DisposeAsync() => Interlocked.Exchange(ref _owner, null)?.ReleaseAsync() ?? ValueTask.CompletedTask;
+    }
 
     private sealed class PublishingSource(IFrameSource source, Action<CapturedFrame> captured) : IFrameSource
     {

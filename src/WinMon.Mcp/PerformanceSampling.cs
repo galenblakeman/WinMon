@@ -23,6 +23,7 @@ internal sealed partial class DiagnosticTools
             return Responses.Result(new DiagnosticResponse(1, owner.UtcNow, "busy", "unavailable", 0, true, 0, "busy", null));
         try
         {
+            await using var request = await owner.AcquireAsync(cancellationToken);
             var initial = await owner.CurrentAsync(cancellationToken);
             if (initial is null || !owner.IsFresh(initial)) return Responses.Result(Responses.Envelope(owner, initial, null));
             var process = pid is null ? null : initial.Frame.Full.Processes.FirstOrDefault(p => p.ProcessId == pid);

@@ -78,6 +78,8 @@ In interactive mode, `[` / `]` inspect earlier/later retained samples, Alt+Left/
 
 MCP also provides service groups, session app Usage and the server's last 120 recorded frames for retrospective spike analysis. Saved desktop automatic-capture reports can be listed from an explicit folder and read with explicit consent to disclose their contents. See [the tool reference](docs/MCP.md#available-tools).
 
+MCP sampling starts with a live-metrics request and stops after 30 seconds without an active live request, releasing its collectors and optional network subscription. A later request warms up a new collector. Usage totals and retained history cover observed sampling periods only; idle activity is not recorded. Hardware, saved-report and history reads do not start sampling.
+
 ## Compact view and customization
 
 Switch to **Compact view** to keep resource readings visible in a slim window. Enable **Always on top**, minimize to the notification area, or show and hide WinMon with a configurable shortcut (**Ctrl+Shift+M** by default).

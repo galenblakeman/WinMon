@@ -36,9 +36,37 @@ public sealed class NetworkTrafficToolsTests
     private sealed class Connection : INetworkTrafficConnection
     {
         internal readonly Channel<ProcessNetworkSnapshot> Snapshots = Channel.CreateUnbounded<ProcessNetworkSnapshot>();
+        internal readonly TaskCompletionSource Disposed = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public Task SubscribeAsync(CancellationToken token) => Task.CompletedTask;
         public Task<ProcessNetworkSnapshot> SnapshotAsync(CancellationToken token) => Snapshots.Reader.ReadAsync(token).AsTask();
-        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+        public ValueTask DisposeAsync()
+        {
+            Disposed.TrySetResult();
+            return ValueTask.CompletedTask;
+        }
+    }
+
+    [Test]
+    public async Task IdleReleasesTrafficAndOnlyAnotherTrafficRequestResubscribes()
+    {
+        var connections = new List<Connection>();
+        await using var owner = new SamplingOwner(() => new Source(), TimeProvider.System, TimeSpan.FromMilliseconds(5),
+            () => new NetworkTrafficClient(_ =>
+            {
+                var connection = new Connection();
+                connections.Add(connection);
+                return Task.FromResult<INetworkTrafficConnection>(connection);
+            }), idleTimeout: TimeSpan.FromMilliseconds(40));
+        var tools = new DiagnosticTools(owner);
+        var first = (await tools.GetProcessNetworkTraffic()).StructuredContent!.Value;
+        await connections[0].Disposed.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        await tools.GetSystemSnapshot(default);
+        Assert.That(connections, Has.Count.EqualTo(1));
+        Assert.That(owner.TrafficState, Is.EqualTo("NotStarted"));
+        var second = (await tools.GetProcessNetworkTraffic()).StructuredContent!.Value;
+        Assert.That(connections, Has.Count.EqualTo(2));
+        Assert.That(second.GetProperty("data").GetProperty("sessionId").GetString(),
+            Is.Not.EqualTo(first.GetProperty("data").GetProperty("sessionId").GetString()));
     }
 
     private sealed class Source : IFrameSource

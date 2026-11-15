@@ -19,6 +19,7 @@ internal sealed partial class DiagnosticTools(SamplingOwner owner,
      Description("Read current system CPU, memory, selected disk/adapter and GPU. Null metrics are unavailable; CPU percent uses total machine capacity.")]
     public async Task<CallToolResult> GetSystemSnapshot(CancellationToken cancellationToken)
     {
+        await using var request = await owner.AcquireAsync(cancellationToken);
         var frame = await owner.CurrentAsync(cancellationToken);
         return Responses.Result(Responses.Envelope(owner, frame,
             frame is null ? null : SystemMetrics.From(frame.Frame.Full)));
@@ -36,6 +37,7 @@ internal sealed partial class DiagnosticTools(SamplingOwner owner,
                 ("cpu" or "memory" or "gpu" or "io" or "threads" or "handles") || filter is null ||
             filter.Length > 256 || limit is < 1 or > 200) return Invalid();
         var metric = Enum.Parse<ProcessSort>(sort, true);
+        await using var request = await owner.AcquireAsync(cancellationToken);
         var frame = await owner.CurrentAsync(cancellationToken);
         if (frame is null || !owner.IsFresh(frame)) return Responses.Result(Responses.Envelope(owner, frame, null));
         var ranked = ProcessRanking.Rank([frame.Frame.Full], sort: metric, includeInactive: true);
@@ -51,6 +53,7 @@ internal sealed partial class DiagnosticTools(SamplingOwner owner,
         string? expectedDomain = null, CancellationToken cancellationToken = default)
     {
         if (!ValidIdentity(pid, expectedStartToken, expectedDomain)) return Invalid();
+        await using var request = await owner.AcquireAsync(cancellationToken);
         var frame = await owner.CurrentAsync(cancellationToken);
         var process = frame?.Frame.Full.Processes.FirstOrDefault(p => p.ProcessId == pid);
         var status = IdentityStatus(process, expectedStartToken, expectedDomain);
@@ -66,6 +69,7 @@ internal sealed partial class DiagnosticTools(SamplingOwner owner,
     {
         if (limit is < 1 or > 200 || (pid is { } id ? !ValidIdentity(id, expectedStartToken, expectedDomain)
                 : expectedStartToken is not null || expectedDomain is not null)) return Invalid();
+        await using var request = await owner.AcquireAsync(cancellationToken);
         var frame = await owner.CurrentAsync(cancellationToken);
         if (frame is null || !owner.IsFresh(frame)) return Responses.Result(Responses.Envelope(owner, frame, null));
         ProcessUsage? requestedProcess = null;
