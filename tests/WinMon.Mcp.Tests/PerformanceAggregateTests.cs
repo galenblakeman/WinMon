@@ -203,6 +203,29 @@ public sealed class PerformanceAggregateTests
         });
     }
 
+    [Test]
+    public void ProcessGpuThreadsAndHandlesUseWeightedCoverageAndExcludeMissingAndGapReadings()
+    {
+        var aggregate = new PerformanceAggregate(6, 3);
+        aggregate.Add(Sample(1, 2), new ProcessUsage(42, 100, "example", 1)
+            { GpuPercent = 20, ThreadCount = 4, HandleCount = 10 }, 2, true);
+        aggregate.Add(Sample(1, 1), new ProcessUsage(42, 100, "example", 1)
+            { GpuPercent = 80, ThreadCount = 10, HandleCount = 40 }, 3, true);
+        aggregate.Add(Sample(1, 1), new ProcessUsage(42, 100, "example", 1), 4, true);
+        aggregate.Add(Sample(1, 1, gap: true), new ProcessUsage(42, 100, "example", 1)
+            { GpuPercent = 100, ThreadCount = 100, HandleCount = 100 }, 5, true);
+        aggregate.Add(Sample(1, 1), null, 6, true);
+        foreach (var (name, average) in new[] { ("processGpuPercent", 40d), ("processThreads", 6d), ("processHandles", 20d) })
+        {
+            var metric = aggregate.Summary()[name];
+            Assert.That(metric.Average, Is.EqualTo(average));
+            Assert.That(metric.ValidSeconds, Is.EqualTo(3));
+            Assert.That(metric.Coverage, Is.EqualTo(0.5));
+            Assert.That(aggregate.Trend(6)[0].Metrics[name].Coverage, Is.EqualTo(1));
+            Assert.That(aggregate.Trend(6)[1].Metrics[name].Available, Is.False);
+        }
+    }
+
     private static MonitorSample Sample(double? cpu, double interval, ulong? memory = null, bool gap = false) =>
         new(DateTimeOffset.UtcNow, cpu, [], 0, gap) { IntervalSeconds = interval, Resources = new ResourceSample
         {

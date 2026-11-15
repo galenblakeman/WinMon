@@ -12,10 +12,14 @@ public sealed class ActivityToolsTests
     private sealed class Source : IFrameSource
     {
         internal bool MissingServices;
+        internal bool ReusePid;
+        private int _captures;
         public CapturedFrame Capture(SamplingOptions options)
         {
-            var p = new ProcessUsage(42, 123, "worker", 25, 100) { ImagePath = "C:\\private\\secret.exe", PrivateBytes = 200 };
-            var sample = new MonitorSample(DateTimeOffset.UtcNow, 25, [p], 0) { IntervalSeconds = 1, IntervalCpuTicks = 10_000_000 };
+            var p = new ProcessUsage(42, ReusePid && Interlocked.Increment(ref _captures) % 2 == 0 ? 456 : 123,
+                "worker", 25, 100) { ImagePath = "C:\\private\\secret.exe", PrivateBytes = 200 };
+            var sample = new MonitorSample(DateTimeOffset.UtcNow, 25, [p, new ProcessUsage(43, 999, "busier", 90)], 0)
+                { IntervalSeconds = 1, IntervalCpuTicks = 10_000_000 };
             return new CapturedFrame(sample, MissingServices ? null : new ServiceFrame(sample,
                 [new ServiceGroup("private-key", [new ServiceObservation("worker-service", "Worker service", 4, 42, 0),
                     new ServiceObservation("second", "Second service", 4, 42, 0)], p, [p])]));
@@ -63,6 +67,36 @@ public sealed class ActivityToolsTests
         Assert.That((await tools.GetPerformanceHistory(seconds: 121)).IsError, Is.True);
         Assert.That((await tools.GetPerformanceHistory(endUtc: DateTimeOffset.MinValue)).IsError, Is.True);
         Assert.That((await tools.GetPerformanceHistory(endUtc: new DateTimeOffset(1, 1, 1, 0, 0, 1, TimeSpan.FromHours(-1)))).IsError, Is.Not.True);
+    }
+
+    [Test]
+    public async Task LifetimeHistoryBypassesTopRankingNeverFollowsPidReuseAndPreservesEmptyPoints()
+    {
+        await using var owner = new SamplingOwner(() => new Source { ReusePid = true }, TimeProvider.System, TimeSpan.FromMilliseconds(10));
+        var tools = new DiagnosticTools(owner);
+        await tools.GetSystemSnapshot(default);
+        await owner.StopAsync(default);
+        var frames = owner.ReadAfter(0);
+        Assert.That(frames.SelectMany(f => f.Frame.Full.Processes).Where(p => p.ProcessId == 42)
+            .Select(p => p.CreationTicks).Distinct().Count(), Is.EqualTo(2));
+        var history = (await tools.GetPerformanceHistory(top: 1, pid: 42, expectedStartToken: "123",
+            expectedDomain: "WindowsFileTime")).StructuredContent!.Value;
+        var points = history.GetProperty("data").GetProperty("points").EnumerateArray().ToArray();
+        Assert.That(points.Length, Is.EqualTo(frames.Length));
+        Assert.That(points.Any(p => p.GetProperty("processes").GetArrayLength() == 0), Is.True);
+        var processes = points.SelectMany(p => p.GetProperty("processes").EnumerateArray()).ToArray();
+        Assert.That(processes, Is.Not.Empty);
+        Assert.That(processes.Select(p => p.GetProperty("identity").GetProperty("startToken").GetString()), Is.All.EqualTo("123"));
+        Assert.That(history.GetRawText(), Does.Not.Contain("secret.exe"));
+        var absent = (await tools.GetPerformanceHistory(pid: 42, expectedStartToken: "789",
+            expectedDomain: "WindowsFileTime")).StructuredContent!.Value;
+        Assert.That(absent.GetProperty("status").GetString(), Is.EqualTo("notObserved"));
+        var wrongDomain = (await tools.GetPerformanceHistory(pid: 42, expectedStartToken: "123",
+            expectedDomain: "UnixMicroseconds")).StructuredContent!.Value;
+        Assert.That(wrongDomain.GetProperty("status").GetString(), Is.EqualTo("notObserved"));
+        Assert.That((await tools.GetPerformanceHistory(pid: 42)).IsError, Is.True);
+        Assert.That((await tools.GetPerformanceHistory(expectedStartToken: "123", expectedDomain: "WindowsFileTime")).IsError, Is.True);
+        Assert.That((await tools.GetPerformanceHistory(pid: 42, expectedStartToken: "123")).IsError, Is.True);
     }
 
     [Test]

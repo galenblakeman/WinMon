@@ -8,7 +8,7 @@ namespace WinMon.Mcp;
 internal sealed partial class DiagnosticTools
 {
     [McpServerTool(Name = "sample_performance", ReadOnly = true, Destructive = false, OpenWorld = false, UseStructuredContent = true, OutputSchemaType = typeof(DiagnosticResponse)),
-     Description("Collect bounded system or single-process trends. Internal collection stays at one second. Reports weighted averages and valid coverage; cannot observe sub-second peaks. A process lifetime is pinned and never follows PID reuse.")]
+     Description("Collect bounded system or single-process trends, including process CPU, memory, I/O, GPU, thread and handle counts. Internal collection stays at one second. Reports weighted averages and valid coverage; cannot observe sub-second peaks. A process lifetime is pinned and never follows PID reuse.")]
     public async Task<CallToolResult> SamplePerformance(
         [Description("Integer duration, 1–60 seconds")] int durationSeconds = 10,
         [Description("Output bucket seconds, 1–10; must divide duration")] int outputIntervalSeconds = 1,
@@ -139,7 +139,10 @@ internal sealed class PerformanceAggregate(int duration, int interval)
             ("processCpuPercent", process?.ObservedCpuPercent, "percentOfMachineCapacity"),
             ("processWorkingSetBytes", process?.WorkingSetBytes, "bytes"),
             ("processPrivateBytes", process?.PrivateBytes, "bytes"),
-            ("processIoBytesPerSecond", process?.IoBytesPerSecond, "bytesPerSecond")
+            ("processIoBytesPerSecond", process?.IoBytesPerSecond, "bytesPerSecond"),
+            ("processGpuPercent", process?.GpuPercent, "percentOfBusiestEngine"),
+            ("processThreads", process?.ThreadCount, "count"),
+            ("processHandles", process?.HandleCount, "count")
         ];
         foreach (var (name, value, unit) in values)
         {

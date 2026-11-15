@@ -8,7 +8,8 @@ namespace WinMon.Mcp;
 
 [McpServerToolType]
 internal sealed partial class DiagnosticTools(SamplingOwner owner,
-    Func<bool, CancellationToken, HardwareInventorySnapshot>? readHardware = null)
+    Func<bool, CancellationToken, HardwareInventorySnapshot>? readHardware = null,
+    Func<string, CancellationToken, Task<UsageArchive>>? readUsageArchive = null)
 {
     private readonly SemaphoreSlim _samplingSlots = new(4, 4);
     private readonly SemaphoreSlim _hardwareSlot = new(1, 1);

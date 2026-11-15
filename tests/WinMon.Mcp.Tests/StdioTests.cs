@@ -31,7 +31,7 @@ public sealed class StdioTests
         {
             "get_system_snapshot", "list_processes", "get_process_details", "sample_performance", "get_network_connections",
             "get_process_network_traffic", "get_hardware_info", "list_services", "get_usage", "get_performance_history",
-            "list_capture_reports", "read_capture_report"
+            "list_capture_reports", "read_capture_report", "get_usage_history"
         }));
         Assert.That(tools.All(tool => tool.ProtocolTool.Annotations?.ReadOnlyHint == true), Is.True);
         Assert.That(tools.All(tool => tool.ProtocolTool.OutputSchema is not null), Is.True);
@@ -53,6 +53,18 @@ public sealed class StdioTests
         });
         var invalid = await client.CallToolAsync("list_processes", new Dictionary<string, object?> { ["limit"] = 0 }, cancellationToken: timeout.Token);
         Assert.That(invalid.IsError, Is.True);
+        var archive = await client.CallToolAsync("get_usage_history", new Dictionary<string, object?>
+        {
+            ["startDate"] = "2000-01-01", ["endDate"] = "2000-01-02"
+        }, cancellationToken: timeout.Token);
+        Assert.That(archive.IsError, Is.Not.True);
+        Assert.That(archive.StructuredContent!.Value.GetProperty("freshness").GetString(), Is.EqualTo("historical"));
+        var lifetimeHistory = await client.CallToolAsync("get_performance_history", new Dictionary<string, object?>
+        {
+            ["pid"] = int.MaxValue, ["expectedStartToken"] = "1", ["expectedDomain"] = "WindowsFileTime"
+        }, cancellationToken: timeout.Token);
+        Assert.That(lifetimeHistory.IsError, Is.Not.True);
+        Assert.That(lifetimeHistory.StructuredContent!.Value.GetProperty("status").GetString(), Is.EqualTo("notObserved"));
         var hardware = await client.CallToolAsync("get_hardware_info", cancellationToken: timeout.Token);
         Assert.Multiple(() =>
         {

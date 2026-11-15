@@ -2,6 +2,17 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## MCP process trend metrics (November 15, 2026)
+
+Compared the unchanged `HEAD` performance aggregate with the working implementation adding process GPU, thread and handle metrics, compiled together in Release on this Windows x64 development machine. This is an isolated aggregate measurement, not a native-collector, UI or end-to-end server profile. The reproduction helper, generated before/after sources and raw results are under `artifacts/mcp-gap-perf/` (`Measure.ps1`, `results.json`). Each window aggregates 60 synthetic one-second frames and materializes its summary and 60 output buckets. After 400 warm-up windows per variant, seven alternating batches of 1,000 windows measured elapsed time and current-thread allocation.
+
+| Median observation per 60-frame window | Before | After |
+|---|---:|---:|
+| Elapsed time | 280.09 µs | 337.00 µs |
+| Allocated bytes | 249,760 | 281,968 |
+
+The three extra metric accumulators and their summaries add about 56.91 µs and 32,208 bytes per one-minute request (roughly 0.95 µs and 537 bytes per underlying observation). This explains the relative increase of about 20% in this small aggregate-only workload. Aggregation occurs only during bounded performance requests; no collector, background timer or retained-frame representation changed. Calendar Usage reads and lifetime history filtering also run only on demand. Full native MCP profiling and desktop UI benchmarks were not repeated for these MCP-only changes.
+
 ## On-demand MCP sampling (November 13, 2026)
 
 Compared a preserved unchanged WinMon 4.1.2 MCP build with the changed server on this Windows x64 development machine, using SDK 10.0.404. Both builds initialized a real stdio connection, idled for ten seconds, answered a snapshot, sampled for ten seconds, waited another 25 seconds, measured ten idle seconds, and answered a resumed snapshot. Temporary children exited cleanly when their client input closed. Evidence and the measurement helper are under `artifacts/mcp-idle`: `before.json`, `after.json`, `after-final.json`, and the final runtime build's `after-verified.json`; `before/` preserves the baseline binaries.

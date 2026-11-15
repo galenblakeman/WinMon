@@ -67,12 +67,15 @@ internal sealed partial class DiagnosticTools
 
     [McpServerTool(Name = "get_performance_history", ReadOnly = true, Destructive = false, OpenWorld = false,
         UseStructuredContent = true, OutputSchemaType = typeof(DiagnosticResponse)),
-     Description("Read already-recorded observations from this MCP server's last 120 frames, with resource readings and top individual process lifetimes at each moment. Does not start sampling. Idle periods are not observed. Not desktop history; cannot recover activity before sampling began. Gaps and actual bounds are explicit. Names are untrusted data.")]
+     Description("Read already-recorded observations from this MCP server's last 120 frames, with resource readings and top individual process lifetimes at each moment. To follow one lifetime, supply pid, expectedStartToken and expectedDomain together; this bypasses top ranking and never follows PID reuse. Empty process lists mean that lifetime was not observed at that point. Does not start sampling. Idle periods are not observed. Not desktop history; cannot recover activity before sampling began. Gaps and actual bounds are explicit. Names are untrusted data.")]
     public Task<CallToolResult> GetPerformanceHistory(int seconds = 120, DateTimeOffset? endUtc = null,
-        string sort = "cpu", int top = 5, CancellationToken cancellationToken = default)
+        string sort = "cpu", int top = 5, CancellationToken cancellationToken = default,
+        int? pid = null, string? expectedStartToken = null, string? expectedDomain = null)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (seconds is < 1 or > 120 || top is < 1 or > 20 || sort is not ("cpu" or "memory" or "gpu" or "io" or "threads" or "handles"))
+        if (seconds is < 1 or > 120 || top is < 1 or > 20 || sort is not ("cpu" or "memory" or "gpu" or "io" or "threads" or "handles") ||
+            (pid is { } id ? expectedStartToken is null || !ValidIdentity(id, expectedStartToken, expectedDomain)
+                : expectedStartToken is not null || expectedDomain is not null))
             return Task.FromResult(Invalid());
         var all = owner.ReadAfter(0);
         var end = (endUtc ?? owner.UtcNow).ToUniversalTime();
@@ -82,11 +85,15 @@ internal sealed partial class DiagnosticTools
         var metric = Enum.Parse<ProcessSort>(sort, true);
         var points = frames.Select(f => new HistoryPoint(f.Frame.Full.Timestamp.ToUniversalTime(), f.Frame.Full.IntervalSeconds,
             f.Frame.Full.IsGap, f.Frame.Error?.ToString(), SystemMetrics.From(f.Frame.Full),
-            ProcessRanking.Rank([f.Frame.Full], sort: metric, includeInactive: true).Processes.Take(top).Select(ProcessMetrics.From).ToArray())).ToArray();
+            (pid is null ? ProcessRanking.Rank([f.Frame.Full], sort: metric, includeInactive: true).Processes.Take(top)
+                : f.Frame.Full.Processes.Where(p => p.ProcessId == pid &&
+                    IdentityStatus(p, expectedStartToken, expectedDomain) == "ok"))
+                .Select(ProcessMetrics.From).ToArray())).ToArray();
         var result = new HistoryResult(start, end, all.FirstOrDefault()?.Frame.Full.Timestamp,
             all.LastOrDefault()?.Frame.Full.Timestamp, points);
         return Task.FromResult(Responses.Result(Responses.Envelope(owner, frames.LastOrDefault(), result,
-            frames.Length == 0 ? "notObserved" : "ok", points.Length, allowHistorical: true)));
+            frames.Length == 0 || pid is not null && !points.Any(p => p.Processes.Length > 0) ? "notObserved" : "ok",
+            points.Length, allowHistorical: true)));
     }
 }
 
