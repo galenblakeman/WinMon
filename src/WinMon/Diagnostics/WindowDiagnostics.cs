@@ -445,7 +445,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         if (window.SnapshotLayer.Visibility != Visibility.Visible || window.Processes.SelectionLabel.Text !=
             Strings.Format(
                 Strings.ProcessesAtSAverage,
-                window.SelectedSample.Timestamp, ProcessRanking.DefaultWindowSeconds, "") ||
+                window.SelectedSample.Timestamp, ProcessRanking.DefaultWindowSeconds, Strings.IdleGroupMembersMayBeOmitted) ||
             window.SnapshotMemory.Text.Length == 0)
             throw new InvalidOperationException("Historical selection was not presented.");
         await CaptureAsync(Path.Combine(outputDirectory, "range-wide.png"), 1, cancellationToken);
