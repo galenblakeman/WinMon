@@ -48,3 +48,8 @@ try {
     [IO.File]::WriteAllText((Join-Path $OutputDirectory "$manifestPrefix-update-manifest.sig"), [Convert]::ToBase64String($signature), [Text.UTF8Encoding]::new($false))
 }
 finally { $rsa.Dispose() }
+
+if ($Product -eq 'WinMon') {
+    Copy-Item -LiteralPath $manifestPath -Destination (Join-Path $OutputDirectory 'update-manifest.json')
+    Copy-Item -LiteralPath (Join-Path $OutputDirectory "$manifestPrefix-update-manifest.sig") -Destination (Join-Path $OutputDirectory 'update-manifest.sig')
+}

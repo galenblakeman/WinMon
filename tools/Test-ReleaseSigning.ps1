@@ -50,6 +50,10 @@ foreach ($argument in $args) {
 $script = [IO.Path]::GetFileName($args[-1])
 if ($script -eq 'WinMon.iss') {
     $payload = Get-Content -LiteralPath (Join-Path $options.PublishDirectory 'WinMon.exe') -Raw
+    foreach ($companion in @('WinMon.Cli.exe', 'WinMon.Mcp.exe')) {
+        $tool = Get-Content -LiteralPath (Join-Path $options.PublishDirectory $companion) -Raw
+        if ($testState.Mode -ne 'unsigned' -and $tool -notmatch 'SIGNED') { throw 'Desktop compatibility installer received an unsigned companion.' }
+    }
     if ($options.NetworkServiceSetup -cne $(if ($testState.Mode -eq 'unsigned') { '0' } else { '1' })) { throw 'Installer network-service option must be present only in signed packages.' }
     if ($testState.Mode -ne 'unsigned' -and $payload -notmatch 'SIGNED') { throw 'Installer received an unsigned application.' }
     [IO.File]::WriteAllText((Join-Path $options.ReleaseDirectory 'WinMon-9.8.7-Setup-x64.exe'), "INSTALLER:${payload}")
@@ -129,8 +133,8 @@ $output = Join-Path $run 'release'
 if ($testState.Calls -ne 8) { throw 'Expected exactly eight signing calls.' }
 Expand-Archive (Join-Path $output 'WinMon-9.8.7-win-x64.zip') (Join-Path $run 'portable')
 if ((Get-Content (Join-Path $run 'portable/WinMon.exe') -Raw) -cne 'APPLICATION:SIGNED') { throw 'Portable executable was not signed.' }
-if (Test-Path (Join-Path $run 'portable/WinMon.Cli.exe')) { throw 'Desktop portable archive unexpectedly bundled CLI.' }
-if (Test-Path (Join-Path $run 'portable/WinMon.Mcp.exe')) { throw 'Desktop portable archive unexpectedly bundled MCP.' }
+if ((Get-Content (Join-Path $run 'portable/WinMon.Cli.exe') -Raw) -cne 'CLI:SIGNED') { throw 'Legacy desktop update archive is missing the signed CLI.' }
+if ((Get-Content (Join-Path $run 'portable/WinMon.Mcp.exe') -Raw) -cne 'MCP:SIGNED') { throw 'Legacy desktop update archive is missing the signed MCP.' }
 Expand-Archive (Join-Path $output 'WinMon-Cli-9.8.7-win-x64.zip') (Join-Path $run 'cli-portable')
 if ((Get-Content (Join-Path $run 'cli-portable/WinMon.Cli.exe') -Raw) -cne 'CLI:SIGNED') { throw 'CLI-only executable was not signed.' }
 Expand-Archive (Join-Path $output 'WinMon-Mcp-9.8.7-win-x64.zip') (Join-Path $run 'mcp-portable')
@@ -170,6 +174,12 @@ try {
     }
 }
 finally { $publicKey.Dispose() }
+foreach ($extension in @('json', 'sig')) {
+    if ((Get-FileHash (Join-Path $output "update-manifest.$extension")).Hash -cne
+        (Get-FileHash (Join-Path $output "desktop-update-manifest.$extension")).Hash) {
+        throw 'Legacy desktop metadata must exactly match the signed desktop metadata.'
+    }
+}
 $expectedErrors = @{
     invalid = 'Authenticode verification failed'
     'installer-invalid' = 'Authenticode verification failed'
@@ -193,6 +203,7 @@ $testState.Mode = 'unsigned'
 $testState.Calls = 0
 & $release -InnoCompiler $compiler -OutputDirectory (Join-Path $run 'unsigned')
 if ($testState.Calls -ne 0) { throw 'Unsigned local build contacted signing provider.' }
+if (Test-Path (Join-Path $run 'unsigned/update-manifest.json')) { throw 'Unsigned release emitted legacy update metadata.' }
 # The fixture key is only needed for this disposable signing-boundary test.
 Remove-Item -LiteralPath (Join-Path $run 'private.pem') -Force -ErrorAction SilentlyContinue
 Write-Host "PASS: signing order, desktop, CLI and MCP payloads, plugin archive, final hashes, RSA manifest, signing failure gates, and unsigned local packaging. Evidence: $run"

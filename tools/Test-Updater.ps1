@@ -99,6 +99,9 @@ function Find-OwnedProcess([string]$target, [int]$seconds) {
 
 function New-Installer([string]$compiler, [string]$version, [string]$publish, [string]$output) {
     New-Item -ItemType Directory -Path $output -Force | Out-Null
+    # Fresh desktop fixtures do not install companions, but the compatibility installer must carry them.
+    Copy-Item -LiteralPath (Join-Path $publish 'WinMon.exe') -Destination (Join-Path $publish 'WinMon.Cli.exe')
+    Copy-Item -LiteralPath (Join-Path $publish 'WinMon.exe') -Destination (Join-Path $publish 'WinMon.Mcp.exe')
     [xml]$strings = Get-Content -LiteralPath (Join-Path $root 'src/WinMon/Resources/Strings.resx') -Raw
     & $compiler "/DAppVersion=$version" "/DPublishDirectory=$publish" "/DDesktopDirectoryConflict=Desktop installer test fixture requires an empty directory." "/DDowngradeBlocked=Downgrade blocked." "/DReleaseDirectory=$output" (Join-Path $root 'packaging/WinMon.iss') | Out-Host
     if ($LASTEXITCODE -ne 0) { throw "Building $version installer fixture failed." }

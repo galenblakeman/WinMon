@@ -57,6 +57,9 @@ NetworkServiceSetupFailed=WinMon was installed, but network monitoring could not
 
 [Files]
 Source: "{#PublishDirectory}\WinMon.exe"; DestDir: "{app}"
+; Refresh existing bundled tools for legacy updater validation without installing tools on fresh desktops.
+Source: "{#PublishDirectory}\WinMon.Cli.exe"; DestDir: "{app}"; Flags: onlyifdestfileexists
+Source: "{#PublishDirectory}\WinMon.Mcp.exe"; DestDir: "{app}"; Flags: onlyifdestfileexists
 Source: "..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]

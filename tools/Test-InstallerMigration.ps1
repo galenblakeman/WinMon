@@ -16,19 +16,16 @@ $installDirectory = Join-Path $run 'desktop'
 $scriptDirectory = Join-Path $run 'packaging'
 $script = Join-Path $scriptDirectory 'WinMon.Migration.iss'
 $environmentKey = 'HKCU:\Environment'
-$ownershipKey = 'HKCU:\Software\WinMon'
-if ((Get-ItemProperty -Path $ownershipKey -Name CliPathDirectory -ErrorAction SilentlyContinue) -or
-    (Get-ItemProperty -Path $ownershipKey -Name CliStandalonePathDirectory -ErrorAction SilentlyContinue)) {
-    throw 'Migration validation requires no existing WinMon CLI PATH ownership records.'
-}
+$appId = [guid]::NewGuid().ToString().ToUpperInvariant()
+$ownershipKey = "HKCU:\Software\WinMon.Migration.$appId"
 
 New-Item -ItemType Directory -Path $run, $scriptDirectory, $installerDirectory -Force | Out-Null
 Copy-Item -LiteralPath (Join-Path $root 'LICENSE') -Destination (Join-Path $run 'LICENSE')
 New-Item -ItemType Directory -Path (Join-Path $run 'src/WinMon/Assets') -Force | Out-Null
 Copy-Item -LiteralPath (Join-Path $root 'src/WinMon/Assets/WinMon.ico') -Destination (Join-Path $run 'src/WinMon/Assets/WinMon.ico')
-$appId = [guid]::NewGuid().ToString().ToUpperInvariant()
 $contents = Get-Content -LiteralPath (Join-Path $root 'packaging/WinMon.iss') -Raw
-$contents = $contents.Replace('AppId={{D736D24F-6A1E-4FD4-AC66-790F93DC61B4}', ('AppId={{' + $appId + '}'))
+$contents = $contents.Replace('D736D24F-6A1E-4FD4-AC66-790F93DC61B4', $appId)
+$contents = $contents.Replace("'Software\WinMon'", "'Software\WinMon.Migration.$appId'")
 $contents = $contents.Replace('AppMutex=Local\WinMon.CpuMonitor', "AppMutex=Local\WinMon.Migration.$appId")
 $contents = [regex]::Replace($contents, '(?ms)^\[Icons\].*?^\[Code\]', '[Code]')
 Set-Content -LiteralPath $script -Value $contents -Encoding utf8NoBOM
@@ -52,6 +49,15 @@ try {
     Invoke-Checked $installer @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', "/DIR=`"$installDirectory`"", "/LOG=`"$run/install.log`"")
     $installed = $true
     if (!(Test-Path (Join-Path $installDirectory 'WinMon.exe'))) { throw 'Test desktop installer did not install the desktop executable.' }
+    foreach ($companion in @('WinMon.Cli.exe', 'WinMon.Mcp.exe')) {
+        if (Test-Path (Join-Path $installDirectory $companion)) { throw 'Fresh desktop installed a legacy companion.' }
+        Set-Content -LiteralPath (Join-Path $installDirectory $companion) -Value 'Legacy companion fixture'
+    }
+    Invoke-Checked $installer @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', "/DIR=`"$installDirectory`"", "/LOG=`"$run/upgrade.log`"")
+    foreach ($companion in @('WinMon.Cli.exe', 'WinMon.Mcp.exe')) {
+        if ((Get-FileHash (Join-Path $installDirectory $companion)).Hash -cne
+            (Get-FileHash (Join-Path $PublishDirectory $companion)).Hash) { throw 'Legacy companion was not upgraded.' }
+    }
     $pathItems = @($originalPath, '%SystemRoot%', $standaloneDirectory, $installDirectory) | Where-Object { $_ }
     $seededPath = $pathItems -join ';'
     $expectedPath = (@($originalPath, '%SystemRoot%', $standaloneDirectory) | Where-Object { $_ }) -join ';'
@@ -67,7 +73,7 @@ try {
     if ($pathAfter -ne $expectedPath) { throw 'Desktop uninstall did not remove exactly its legacy PATH entry.' }
     if (Get-ItemProperty -Path $ownershipKey -Name CliPathDirectory -ErrorAction SilentlyContinue) { throw 'Desktop uninstall left its legacy CLI PATH ownership record.' }
     if ([string](Get-ItemProperty -Path $ownershipKey -Name CliStandalonePathDirectory -ErrorAction Stop).CliStandalonePathDirectory -ne $standaloneDirectory) { throw 'Desktop uninstall modified standalone CLI ownership.' }
-    Write-Host "Installer migration PATH validation passed. Evidence: $run"
+    Write-Host "Installer migration companion and PATH validation passed. Evidence: $run"
 }
 finally {
     if ($installed -and (Test-Path (Join-Path $installDirectory 'unins000.exe'))) {
@@ -86,5 +92,6 @@ finally {
                 Remove-ItemProperty -Path $ownershipKey -Name $entry.Key -ErrorAction SilentlyContinue
             }
         }
+        Remove-Item -LiteralPath $ownershipKey -ErrorAction SilentlyContinue
     }
 }

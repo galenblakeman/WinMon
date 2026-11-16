@@ -100,6 +100,8 @@ try {
         & (Join-Path $PSScriptRoot 'Sign-ReleaseFile.ps1') -Path (Join-Path $mcpPublish 'WinMon.Mcp.exe') @signingParameters |
             ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $work 'mcp-signature.json') -Encoding utf8NoBOM
     }
+    # Legacy desktop helpers validate bundled companions after installing or extracting an update.
+    Copy-Item -LiteralPath (Join-Path $cliPublish 'WinMon.Cli.exe'), (Join-Path $mcpPublish 'WinMon.Mcp.exe') -Destination $publish
     & $InnoCompiler "/DAppVersion=$version" "/DPublishDirectory=$publish" "/DDesktopDirectoryConflict=$desktopDirectoryConflict" "/DDowngradeBlocked=$downgradeBlocked" "/DReleaseDirectory=$assets" "/DNetworkServiceSetup=$([int][bool]$CodeSign)" (Join-Path $root 'packaging/WinMon.iss')
     if ($LASTEXITCODE -ne 0) { throw 'Installer compilation failed.' }
     $installer = Join-Path $assets "WinMon-$version-Setup-x64.exe"
@@ -122,7 +124,7 @@ try {
     }
     $portable = Join-Path $work 'portable'
     New-Item -ItemType Directory -Path $portable | Out-Null
-    Copy-Item -LiteralPath (Join-Path $publish 'WinMon.exe'), (Join-Path $root 'LICENSE') -Destination $portable
+    Copy-Item -LiteralPath (Join-Path $publish 'WinMon.exe'), (Join-Path $publish 'WinMon.Cli.exe'), (Join-Path $publish 'WinMon.Mcp.exe'), (Join-Path $root 'LICENSE') -Destination $portable
     New-Item -ItemType File -Path (Join-Path $portable 'portable.flag') | Out-Null
     @'
 Extract all files to a writable folder, then run WinMon.exe. No .NET installation is required.

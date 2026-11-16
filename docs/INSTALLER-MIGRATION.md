@@ -4,7 +4,7 @@ Desktop, CLI and MCP now have separate installers and portable downloads. Deskto
 
 ## Before upgrading
 
-Download the desired products from the [release page](https://github.com/galenblakeman/WinMon/releases/latest). The first desktop upgrade from a bundled version must be manual: old automatic updaters expect companion executables and reject the new release metadata. Do not uninstall desktop first.
+Download the desired products from the [release page](https://github.com/galenblakeman/WinMon/releases/latest). Legacy bundled desktops can update automatically when a release supplies `update-manifest.json` / `.sig` and compatible companion payloads. Releases without these aliases still require a manual desktop upgrade. Close bundled CLI/MCP sessions before updating. Do not uninstall desktop first.
 
 Install CLI and MCP into their separate default directories, `%LOCALAPPDATA%\Programs\WinMon CLI` and `%LOCALAPPDATA%\Programs\WinMon MCP`. Do not select the existing desktop directory. Desktop keeps `%LOCALAPPDATA%\Programs\WinMon` and its existing uninstall identity.
 
@@ -40,7 +40,7 @@ If you use the Claude plugin, update `WINMON_MCP_EXE` to the new absolute path a
 
 ## Upgrade desktop and retire old copies
 
-Run the new desktop installer over the existing installation. It preserves legacy CLI/MCP files for migration, but no longer updates them. For portable desktop, replace from the desktop-only ZIP while preserving `settings.json`, `portable.flag` and other user files; extract standalone tool archives into separate directories.
+Run the new desktop installer over the existing installation. It refreshes existing bundled CLI/MCP files for legacy updater validation, but does not install companions into fresh desktop installations. For portable desktop, preserve `settings.json`, `portable.flag` and other user files when extracting the ZIP, which includes companion executables for legacy updaters. New desktop portable updaters replace only desktop; legacy portable updaters also refresh their bundled companions. Extract standalone tool archives into separate directories.
 
 After verifying all new paths, remove only the known old `WinMon.Cli.exe` and `WinMon.Mcp.exe` files, with their sessions closed, or let the legacy desktop uninstaller clean its recorded files when you eventually remove desktop. Do not delete the whole directory. Desktop uninstall can remove old bundled files and break registrations still pointing there, so migrate registrations first. Standalone product files live outside that ownership.
 

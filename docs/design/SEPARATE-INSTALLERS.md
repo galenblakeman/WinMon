@@ -60,6 +60,8 @@ Sign all official executables and installers through the existing policy; includ
 
 ## Desktop update compatibility
 
+The original manual-cutover decision below is superseded by the legacy compatibility amendment at the end of this note.
+
 Choose an explicit manual cutover rather than continuing large compatibility bundles:
 
 1. Starting with the first split release, publish desktop update metadata as `desktop-update-manifest.json` and `desktop-update-manifest.sig`. New desktop builds use those names with the existing signature, hash, size, version and origin checks. Schema version 1 and desktop asset names can remain unchanged because their meaning is now desktop-only.
@@ -185,3 +187,9 @@ Implemented three independent per-user installers and executable ZIPs, separate 
 MCP registration uses installed native executables or PowerShell npm shims, exact definition inspection, bounded execution and hashed ownership. Existing conflicts always require manual migration rather than an interactive replacement path, preserving custom settings without attempting reconstruction through client CLIs. Custom client homes and command/batch-only launchers also require manual setup. Elevated uninstall deliberately leaves client registrations unchanged and reports cleanup instructions; normal per-user uninstall removes only unchanged installer-owned entries.
 
 The first native MCP uninstall test exposed unsupported `ExecAsOriginalUser` use during uninstall, documented in [Inno Setup's function reference](https://jrsoftware.org/ishelp/topic_isxfunc_execasoriginaluser.htm). Cleanup now uses ordinary unelevated `Exec`, catches failures, and preserves configuration when elevated. Actual CLI/MCP lifecycle checks and isolated real-client protocol/plugin checks pass; signed service, historical installed-upgrade and no-runtime clean-machine acceptance remain separate. See the checklist for the frozen-source verification evidence and unrelated live-checkout failures.
+
+### Legacy compatibility amendment (2026-11-15)
+
+Signed desktop metadata now has byte-identical `update-manifest.json` / `.sig` aliases for old desktop clients. Aliases alone are insufficient: the 4.1.0 portable helper requires an existing bundled CLI in the ZIP, and its installed helper validates the installed CLI version after setup. Desktop ZIPs therefore include the signed CLI/MCP executables. The desktop installer uses `onlyifdestfileexists` to refresh existing companions while keeping fresh installations desktop-only. Standalone tool ownership and registrations remain independent; close bundled tool sessions before updating.
+
+This replaces the original manual cutover and smaller desktop-download tradeoff above. Current portable update transactions still replace only desktop; existing recovery behavior is unchanged. `Test-ReleaseSigning.ps1` checks signed companion inclusion, alias equality and final hashes; `Test-InstallerMigration.ps1` checks fresh-install exclusion and existing companion replacement. Already published desktop-only releases need rebuilt, newly signed payloads before legacy aliases can be published safely. Historical signed updater end-to-end acceptance remains a separate release check.
