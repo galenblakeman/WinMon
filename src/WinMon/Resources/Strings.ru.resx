@@ -1991,4 +1991,50 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
   <data name="UsageArchivePeriodNote" xml:space="preserve"><value>Календарный период {0:d} – {1:d}.</value></data>
   <data name="CapturePrivateMemoryUnit" xml:space="preserve"><value>MiB</value></data>
   <data name="CaptureConnectionLimit" xml:space="preserve"><value>До {0} подключений на приложение, по скорости приёма + отправки; включено: {1}, пропущено: {2}.</value></data>
+  <data name="FlightRecorderAttribution" xml:space="preserve">
+    <value>Процессы по ресурсу (для сети — ЦП). Память — рабочий набор; ввод-вывод включает файлы, сеть и устройства, без привязки к физическому диску.</value>
+  </data>
+  <data name="FlightRecorderChanges" xml:space="preserve">
+    <value>Наблюдаемые изменения процессов</value>
+  </data>
+  <data name="FlightRecorderChangeSummary" xml:space="preserve">
+    <value>Запущены с прошлого наблюдения: {0}
+Завершены с прошлого наблюдения: {1}</value>
+  </data>
+  <data name="FlightRecorderChangesUnavailable" xml:space="preserve">
+    <value>Запуски/завершения недоступны: первое наблюдение, пробел или неполный список. Короткие процессы между замерами не записываются.</value>
+  </data>
+  <data name="FlightRecorderContributors" xml:space="preserve">
+    <value>Записанный вклад процессов</value>
+  </data>
+  <data name="FlightRecorderCoverage" xml:space="preserve">
+    <value>Зафиксировано: {0:G} – {1:G} · наблюдений: {2}. Сбор продолжается; Обновить загружает актуальную запись.</value>
+  </data>
+  <data name="FlightRecorderEmpty" xml:space="preserve">
+    <value>Наблюдений пока нет. Дождитесь сбора данных и нажмите Обновить.</value>
+  </data>
+  <data name="FlightRecorderNext" xml:space="preserve">
+    <value>Далее</value>
+  </data>
+  <data name="FlightRecorderPartial" xml:space="preserve">
+    <value>Неполное наблюдение или пробел · пропущено неактивных: {0} · недоступных: {1}.</value>
+  </data>
+  <data name="FlightRecorderPeak" xml:space="preserve">
+    <value>Найти пик</value>
+  </data>
+  <data name="FlightRecorderPrevious" xml:space="preserve">
+    <value>Назад</value>
+  </data>
+  <data name="FlightRecorderResource" xml:space="preserve">
+    <value>Исследуемый ресурс</value>
+  </data>
+  <data name="FlightRecorderShort" xml:space="preserve">
+    <value>История</value>
+  </data>
+  <data name="FlightRecorderTimeline" xml:space="preserve">
+    <value>История ресурсов. Выберите точку или используйте стрелки.</value>
+  </data>
+  <data name="FlightRecorderTitle" xml:space="preserve">
+    <value>Что только что произошло?</value>
+  </data>
 </root>

@@ -18,6 +18,19 @@ Raw results are `before-load.json`, `after-load.json`, `before-starve.json` and 
 
 The desktop smoke also completed at 100% observed CPU, including hidden/minimized recording and the blocked-dispatcher sampling check. Evidence is `artifacts/sampling-probe/smoke-drained/smoke.json`; generated PNGs were reviewed. Its quiet-observation cost was 0.42% of machine CPU over 18.8 seconds, without a corresponding preserved before run; this is not a sustained overhead comparison. The smoke must drain Background-priority capture callbacks before checking history, since its normal-priority test continuation can otherwise observe a queued frame before it is recorded.
 
+## On-demand incident timeline (November 18, 2026)
+
+Compared the preserved pre-change app against the History/What just happened? implementation on Windows x64, .NET 10.0.15. Four alternating before/after pairs ran the existing `WinMon.Performance --live-only` workload: 850 synthetic processes, 400 warm-up frames and seven batches of 60 frames. Both variants used `DOTNET_TieredCompilation=0`. Values below are medians of the four run medians. Reproduction and raw evidence are `artifacts/Measure-FlightRecorder.ps1`, `flight-{before,after}-quiet-*.json`/PNG and `flight-performance-summary.json`; the preserved baseline is under `artifacts/flight-baseline` and the changed build under `artifacts/verify/build`.
+
+| Live UI refresh | Before | After |
+| --- | ---: | ---: |
+| Median milliseconds per frame | 12.61 | 11.92 |
+| Median allocated bytes per frame | 602,853 | 602,853 |
+
+Timing varied substantially between runs: 7.53–17.51 ms before and 6.66–32.85 ms after. These observations do not establish a speedup or a tight timing bound; allocation was identical in every pair, and the aggregate median did not regress. Each variant produced one consistent pixel hash across its four runs. Hashes intentionally differ between variants because the main title bar now contains History. The new window adds no sampler, timer or analysis to the one-second refresh; its work happens only when opening or navigating the recorder.
+
+The focused on-demand lifecycle analysis separately used 588 retained observations with 850 stable process lifetimes per observation, approaching the existing 500,000-entry Usage budget. After five warm-up calls, seven calls to `IncidentTimeline.CaptureChanges` had a median of 23.76 ms and 377,520 allocated bytes. Reusing two identity sets reduced an initial implementation's measured allocation from 56,886,768 bytes. The harness asserts known empty lifecycle differences for these stable inventories. Source and results are `artifacts/flight-analysis-perf/{Program.cs,FlightAnalysis.csproj,results-final.json}`. This isolates lifecycle analysis; it does not measure full window creation, native collection, sustained whole-app CPU or other hardware. Functional and visual evidence is recorded in [the feature note](design/FLIGHT-RECORDER.md).
+
 ## Bounded captures and historical connection details (November 15, 2026)
 
 Compared the preserved clean `main` app with the capture changes on Windows x64, .NET 10.0.15. A focused copy of `WinMon.Performance` uses the same synthetic 850-process session, 400 warm-up frames and seven batches of 60 frames. It measures Live, historical Processes, grouped Live and a historical Connections view after 121 traffic captures. Storage/Usage benchmark cases are excluded. Four alternating before/after pairs completed; values below are medians of the four run medians. `artifacts/capture-info/Prepare-FocusedBenchmark.ps1`, `Measure.ps1`, `Summarize.ps1`, `focused-before-*.json`, `focused-after-*.json` and `summary.json` retain the reproduction and raw evidence. Each build's assembly hash and each scenario's pixel hash stayed consistent across all four runs.

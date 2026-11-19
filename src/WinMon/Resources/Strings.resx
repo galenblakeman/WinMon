@@ -1991,4 +1991,50 @@ Hardware refresh is independent of paused resource history.</value></data>
   <data name="UsageArchivePeriodNote" xml:space="preserve"><value>Calendar period {0:d} – {1:d}.</value></data>
   <data name="CapturePrivateMemoryUnit" xml:space="preserve"><value>MiB</value></data>
   <data name="CaptureConnectionLimit" xml:space="preserve"><value>Up to {0} connections per app, ranked by receive + send rate; {1} included, {2} omitted.</value></data>
+  <data name="FlightRecorderAttribution" xml:space="preserve">
+    <value>Processes rank by the selected resource (network uses CPU). Memory is working set; process I/O includes file, network and device activity, not physical disk attribution.</value>
+  </data>
+  <data name="FlightRecorderChanges" xml:space="preserve">
+    <value>Observed process changes</value>
+  </data>
+  <data name="FlightRecorderChangeSummary" xml:space="preserve">
+    <value>Started since previous observation: {0}
+Stopped since previous observation: {1}</value>
+  </data>
+  <data name="FlightRecorderChangesUnavailable" xml:space="preserve">
+    <value>Starts/stops unavailable: this is the first observation, a recording gap, or an incomplete process inventory. Short-lived processes between samples are not recorded.</value>
+  </data>
+  <data name="FlightRecorderContributors" xml:space="preserve">
+    <value>Recorded process contributors</value>
+  </data>
+  <data name="FlightRecorderCoverage" xml:space="preserve">
+    <value>Frozen recording: {0:G} – {1:G} · {2} observations. Live sampling continues; Refresh loads the latest recording.</value>
+  </data>
+  <data name="FlightRecorderEmpty" xml:space="preserve">
+    <value>No retained observations yet. Let WinMon collect data, then choose Refresh.</value>
+  </data>
+  <data name="FlightRecorderNext" xml:space="preserve">
+    <value>Next</value>
+  </data>
+  <data name="FlightRecorderPartial" xml:space="preserve">
+    <value>Partial observation or gap · omitted idle processes: {0} · inaccessible processes: {1}.</value>
+  </data>
+  <data name="FlightRecorderPeak" xml:space="preserve">
+    <value>Find peak</value>
+  </data>
+  <data name="FlightRecorderPrevious" xml:space="preserve">
+    <value>Previous</value>
+  </data>
+  <data name="FlightRecorderResource" xml:space="preserve">
+    <value>Resource to investigate</value>
+  </data>
+  <data name="FlightRecorderShort" xml:space="preserve">
+    <value>History</value>
+  </data>
+  <data name="FlightRecorderTimeline" xml:space="preserve">
+    <value>Recorded resource timeline. Select a point or use the arrow keys.</value>
+  </data>
+  <data name="FlightRecorderTitle" xml:space="preserve">
+    <value>What just happened?</value>
+  </data>
 </root>

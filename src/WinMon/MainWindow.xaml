@@ -320,87 +320,93 @@
                                         Command="{x:Null}"
                                         Style="{StaticResource ActionBarCollapseButton}" />
                                 </StackPanel>
-                                <Border
-                                    x:Name="ChartModeSwitch"
-                                    Grid.Row="0"
-                                    Grid.Column="1"
-                                    Margin="8,0"
-                                    Padding="1"
-                                    BorderBrush="{DynamicResource Line}"
-                                    BorderThickness="1"
-                                    CornerRadius="5">
-                                    <StackPanel Orientation="Horizontal">
-                                        <RadioButton
-                                            x:Name="LiveModeButton"
-                                            MinWidth="72"
-                                            AutomationProperties.Name="{Binding [ReturnToLive], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                            Click="OnLiveModeClick"
-                                            GroupName="ChartMode"
-                                            Style="{StaticResource ChartModeSegment}"
-                                            ToolTip="{Binding [ReturnToLive], Source={x:Static resources:Strings.Text}, Mode=OneWay}">
-                                            <StackPanel Orientation="Horizontal">
-                                                <Path
-                                                    Width="14"
-                                                    Height="14"
-                                                    Margin="0,0,6,0"
-                                                    VerticalAlignment="Center"
-                                                    Data="{x:Static controls:ButtonIcon.Start}"
-                                                    Stretch="Uniform"
-                                                    Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
-                                                    StrokeEndLineCap="Round"
-                                                    StrokeLineJoin="Round"
-                                                    StrokeStartLineCap="Round"
-                                                    StrokeThickness="1.5" />
-                                                <TextBlock Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" Text="{Binding [LiveMode], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
-                                            </StackPanel>
-                                        </RadioButton>
-                                        <RadioButton
-                                            x:Name="SnapshotModeButton"
-                                            MinWidth="108"
-                                            AutomationProperties.Name="{Binding [SnapshotMode], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                            Click="OnSnapshotModeClick"
-                                            GroupName="ChartMode"
-                                            Style="{StaticResource ChartModeSegment}"
-                                            ToolTip="{Binding [CaptureLatestSnapshot], Source={x:Static resources:Strings.Text}, Mode=OneWay}">
-                                            <StackPanel Orientation="Horizontal">
-                                                <Grid
-                                                    Width="16"
-                                                    Height="16"
-                                                    Margin="0,0,6,0"
-                                                    VerticalAlignment="Center"
-                                                    IsHitTestVisible="False">
+                                <StackPanel x:Name="ChartInvestigationActions" Grid.Column="1" Margin="4,0"
+                                            Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Border
+                                        x:Name="ChartModeSwitch"
+                                        Padding="1"
+                                        BorderBrush="{DynamicResource Line}"
+                                        BorderThickness="1"
+                                        CornerRadius="5">
+                                        <StackPanel Orientation="Horizontal">
+                                            <RadioButton
+                                                x:Name="LiveModeButton"
+                                                MinWidth="72"
+                                                AutomationProperties.Name="{Binding [ReturnToLive], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                                Click="OnLiveModeClick"
+                                                GroupName="ChartMode"
+                                                Style="{StaticResource ChartModeSegment}"
+                                                ToolTip="{Binding [ReturnToLive], Source={x:Static resources:Strings.Text}, Mode=OneWay}">
+                                                <StackPanel Orientation="Horizontal">
                                                     <Path
-                                                        Data="{x:Static controls:ButtonIcon.CaptureFrame}"
+                                                        Width="14"
+                                                        Height="14"
+                                                        Margin="0,0,6,0"
+                                                        VerticalAlignment="Center"
+                                                        Data="{x:Static controls:ButtonIcon.Start}"
+                                                        Stretch="Uniform"
                                                         Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
                                                         StrokeEndLineCap="Round"
                                                         StrokeLineJoin="Round"
                                                         StrokeStartLineCap="Round"
                                                         StrokeThickness="1.5" />
-                                                    <Ellipse
-                                                        Width="3"
-                                                        Height="3"
-                                                        HorizontalAlignment="Center"
+                                                    <TextBlock Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" Text="{Binding [LiveMode], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                                </StackPanel>
+                                            </RadioButton>
+                                            <RadioButton
+                                                x:Name="SnapshotModeButton"
+                                                MinWidth="108"
+                                                AutomationProperties.Name="{Binding [SnapshotMode], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                                Click="OnSnapshotModeClick"
+                                                GroupName="ChartMode"
+                                                Style="{StaticResource ChartModeSegment}"
+                                                ToolTip="{Binding [CaptureLatestSnapshot], Source={x:Static resources:Strings.Text}, Mode=OneWay}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Grid
+                                                        Width="16"
+                                                        Height="16"
+                                                        Margin="0,0,6,0"
                                                         VerticalAlignment="Center"
-                                                        Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
-                                                </Grid>
-                                                <TextBlock Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" Text="{Binding [SnapshotMode], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
-                                            </StackPanel>
-                                        </RadioButton>
-                                    </StackPanel>
-                                </Border>
-                                <Button
-                                    x:Name="CapturesButton"
-                                    Grid.Row="0"
-                                    Grid.Column="2"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Center"
-                                    controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.CaptureFrame}"
-                                    Padding="8,2"
-                                    AutomationProperties.Name="{Binding [AutoCaptureHeading], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
-                                    Click="OnCapturesMenu"
-                                    FontSize="12"
-                                    Style="{StaticResource TitleActionButton}"
-                                    Visibility="Collapsed" />
+                                                        IsHitTestVisible="False">
+                                                        <Path
+                                                            Data="{x:Static controls:ButtonIcon.CaptureFrame}"
+                                                            Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
+                                                            StrokeEndLineCap="Round"
+                                                            StrokeLineJoin="Round"
+                                                            StrokeStartLineCap="Round"
+                                                            StrokeThickness="1.5" />
+                                                        <Ellipse
+                                                            Width="3"
+                                                            Height="3"
+                                                            HorizontalAlignment="Center"
+                                                            VerticalAlignment="Center"
+                                                            Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                                                    </Grid>
+                                                    <TextBlock Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" Text="{Binding [SnapshotMode], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                                                </StackPanel>
+                                            </RadioButton>
+                                        </StackPanel>
+                                    </Border>
+                                    <Button x:Name="FlightRecorderButton" Margin="8,0,0,0" Padding="6,2"
+                                            VerticalAlignment="Center" FontSize="12"
+                                            Content="{Binding [FlightRecorderShort], Source={x:Static resources:Strings.Text}}"
+                                            AutomationProperties.Name="{Binding [FlightRecorderTitle], Source={x:Static resources:Strings.Text}}"
+                                            ToolTip="{Binding [FlightRecorderTitle], Source={x:Static resources:Strings.Text}}"
+                                            Click="OnFlightRecorder" controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.History}"
+                                            Style="{StaticResource TitleActionButton}" />
+                                    <Button
+                                        x:Name="CapturesButton"
+                                        Margin="8,0,0,0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center"
+                                        controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.CaptureFrame}"
+                                        Padding="8,2"
+                                        AutomationProperties.Name="{Binding [AutoCaptureHeading], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
+                                        Click="OnCapturesMenu"
+                                        FontSize="12"
+                                        Style="{StaticResource TitleActionButton}"
+                                        Visibility="Collapsed" />
+                                </StackPanel>
                                 <!--  Shown only when sampling fails; normal recording needs no status.  -->
                                 <TextBlock
                                     x:Name="ErrorLabel"

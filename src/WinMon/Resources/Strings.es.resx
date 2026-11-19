@@ -1991,4 +1991,50 @@ La actualización del hardware es independiente del historial de recursos en pau
   <data name="UsageArchivePeriodNote" xml:space="preserve"><value>Periodo del calendario {0:d} – {1:d}.</value></data>
   <data name="CapturePrivateMemoryUnit" xml:space="preserve"><value>MiB</value></data>
   <data name="CaptureConnectionLimit" xml:space="preserve"><value>Hasta {0} conexiones por aplicación, ordenadas por tasa de recepción + envío; {1} incluidas, {2} omitidas.</value></data>
+  <data name="FlightRecorderAttribution" xml:space="preserve">
+    <value>Procesos ordenados por recurso (red usa CPU). Memoria es conjunto de trabajo; E/S incluye archivos, red y dispositivos, no atribución al disco físico.</value>
+  </data>
+  <data name="FlightRecorderChanges" xml:space="preserve">
+    <value>Cambios de procesos observados</value>
+  </data>
+  <data name="FlightRecorderChangeSummary" xml:space="preserve">
+    <value>Iniciados desde la observación anterior: {0}
+Finalizados desde la observación anterior: {1}</value>
+  </data>
+  <data name="FlightRecorderChangesUnavailable" xml:space="preserve">
+    <value>Inicios/finalizaciones no disponibles: primera observación, interrupción o inventario incompleto. No se registran procesos breves entre muestras.</value>
+  </data>
+  <data name="FlightRecorderContributors" xml:space="preserve">
+    <value>Contribución de procesos registrada</value>
+  </data>
+  <data name="FlightRecorderCoverage" xml:space="preserve">
+    <value>Registro fijo: {0:G} – {1:G} · {2} observaciones. La captura continúa; Actualizar carga el registro más reciente.</value>
+  </data>
+  <data name="FlightRecorderEmpty" xml:space="preserve">
+    <value>Aún no hay observaciones. Deje que WinMon recopile datos y pulse Actualizar.</value>
+  </data>
+  <data name="FlightRecorderNext" xml:space="preserve">
+    <value>Siguiente</value>
+  </data>
+  <data name="FlightRecorderPartial" xml:space="preserve">
+    <value>Observación parcial o interrupción · procesos inactivos omitidos: {0} · inaccesibles: {1}.</value>
+  </data>
+  <data name="FlightRecorderPeak" xml:space="preserve">
+    <value>Buscar pico</value>
+  </data>
+  <data name="FlightRecorderPrevious" xml:space="preserve">
+    <value>Anterior</value>
+  </data>
+  <data name="FlightRecorderResource" xml:space="preserve">
+    <value>Recurso que investigar</value>
+  </data>
+  <data name="FlightRecorderShort" xml:space="preserve">
+    <value>Historial</value>
+  </data>
+  <data name="FlightRecorderTimeline" xml:space="preserve">
+    <value>Historial de recursos. Seleccione un punto o use las flechas.</value>
+  </data>
+  <data name="FlightRecorderTitle" xml:space="preserve">
+    <value>¿Qué acaba de pasar?</value>
+  </data>
 </root>

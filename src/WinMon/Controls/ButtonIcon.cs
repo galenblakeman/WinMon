@@ -43,6 +43,9 @@ public static class ButtonIcon
     public static Geometry CaptureFrame { get; } =
         Create("M 5,2 L 2,2 L 2,5 M 11,2 L 14,2 L 14,5 M 14,11 L 14,14 L 11,14 M 5,14 L 2,14 L 2,11");
 
+    public static Geometry History { get; } =
+        Create("M 2,6 A 6,6 0 1 1 2.5,11 M 2,2 L 2,6 L 6,6 M 8,4 L 8,8 L 11,10");
+
     public static Geometry Pin { get; } =
         Create("M 5,2 L 11,2 M 6,2 L 6,6 L 3,9 L 3,10 L 13,10 L 13,9 L 10,6 L 10,2 M 8,10 L 8,15");
 

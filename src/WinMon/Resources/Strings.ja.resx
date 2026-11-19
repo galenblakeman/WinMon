@@ -1991,4 +1991,50 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
   <data name="UsageArchivePeriodNote" xml:space="preserve"><value>暦期間 {0:d} – {1:d}。</value></data>
   <data name="CapturePrivateMemoryUnit" xml:space="preserve"><value>MiB</value></data>
   <data name="CaptureConnectionLimit" xml:space="preserve"><value>アプリごとに受信＋送信レート順で最大 {0} 接続。{1} 件を表示、{2} 件を省略。</value></data>
+  <data name="FlightRecorderAttribution" xml:space="preserve">
+    <value>選択したリソース順に表示（ネットワークはCPU順）。メモリはワーキングセットです。I/Oにはファイル、ネットワーク、デバイスが含まれ、物理ディスクへの帰属ではありません。</value>
+  </data>
+  <data name="FlightRecorderChanges" xml:space="preserve">
+    <value>観測されたプロセスの変化</value>
+  </data>
+  <data name="FlightRecorderChangeSummary" xml:space="preserve">
+    <value>前の観測以降に開始: {0}
+前の観測以降に終了: {1}</value>
+  </data>
+  <data name="FlightRecorderChangesUnavailable" xml:space="preserve">
+    <value>開始・終了は不明です。最初の観測、記録の空白、または不完全な一覧です。サンプル間の短時間のプロセスは記録されません。</value>
+  </data>
+  <data name="FlightRecorderContributors" xml:space="preserve">
+    <value>記録されたプロセスの使用量</value>
+  </data>
+  <data name="FlightRecorderCoverage" xml:space="preserve">
+    <value>固定した記録: {0:G} – {1:G} · {2} 件。収集は継続します。「更新」で最新の記録を読み込みます。</value>
+  </data>
+  <data name="FlightRecorderEmpty" xml:space="preserve">
+    <value>記録はまだありません。WinMon がデータを収集してから「更新」を選択してください。</value>
+  </data>
+  <data name="FlightRecorderNext" xml:space="preserve">
+    <value>次へ</value>
+  </data>
+  <data name="FlightRecorderPartial" xml:space="preserve">
+    <value>部分的な観測または空白 · 省略されたアイドルプロセス: {0} · アクセス不可: {1}。</value>
+  </data>
+  <data name="FlightRecorderPeak" xml:space="preserve">
+    <value>ピークを検索</value>
+  </data>
+  <data name="FlightRecorderPrevious" xml:space="preserve">
+    <value>前へ</value>
+  </data>
+  <data name="FlightRecorderResource" xml:space="preserve">
+    <value>調査するリソース</value>
+  </data>
+  <data name="FlightRecorderShort" xml:space="preserve">
+    <value>履歴</value>
+  </data>
+  <data name="FlightRecorderTimeline" xml:space="preserve">
+    <value>リソースの記録。点を選択するか矢印キーを使用します。</value>
+  </data>
+  <data name="FlightRecorderTitle" xml:space="preserve">
+    <value>何が起きた？</value>
+  </data>
 </root>

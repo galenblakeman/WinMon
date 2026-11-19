@@ -1991,4 +1991,50 @@ Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。<
   <data name="UsageArchivePeriodNote" xml:space="preserve"><value>日历时段 {0:d} – {1:d}。</value></data>
   <data name="CapturePrivateMemoryUnit" xml:space="preserve"><value>MiB</value></data>
   <data name="CaptureConnectionLimit" xml:space="preserve"><value>每个应用最多 {0} 个连接，按接收＋发送速率排序；已包含 {1} 个，已省略 {2} 个。</value></data>
+  <data name="FlightRecorderAttribution" xml:space="preserve">
+    <value>进程按所选资源排序（网络按 CPU 排序）。内存为工作集；进程 I/O 包括文件、网络和设备活动，并非物理磁盘归因。</value>
+  </data>
+  <data name="FlightRecorderChanges" xml:space="preserve">
+    <value>观测到的进程变化</value>
+  </data>
+  <data name="FlightRecorderChangeSummary" xml:space="preserve">
+    <value>自上次观测启动：{0}
+自上次观测停止：{1}</value>
+  </data>
+  <data name="FlightRecorderChangesUnavailable" xml:space="preserve">
+    <value>启动/停止信息不可用：这是首次观测、记录有间隔或进程列表不完整。采样间的短暂进程不会被记录。</value>
+  </data>
+  <data name="FlightRecorderContributors" xml:space="preserve">
+    <value>记录的进程贡献</value>
+  </data>
+  <data name="FlightRecorderCoverage" xml:space="preserve">
+    <value>固定记录：{0:G} – {1:G} · {2} 个观测。实时采样继续；点击刷新加载最新记录。</value>
+  </data>
+  <data name="FlightRecorderEmpty" xml:space="preserve">
+    <value>尚无记录。等待 WinMon 收集数据后，点击刷新。</value>
+  </data>
+  <data name="FlightRecorderNext" xml:space="preserve">
+    <value>下一个</value>
+  </data>
+  <data name="FlightRecorderPartial" xml:space="preserve">
+    <value>部分观测或间隔 · 已省略空闲进程：{0} · 无法访问进程：{1}。</value>
+  </data>
+  <data name="FlightRecorderPeak" xml:space="preserve">
+    <value>查找峰值</value>
+  </data>
+  <data name="FlightRecorderPrevious" xml:space="preserve">
+    <value>上一个</value>
+  </data>
+  <data name="FlightRecorderResource" xml:space="preserve">
+    <value>要调查的资源</value>
+  </data>
+  <data name="FlightRecorderShort" xml:space="preserve">
+    <value>历史</value>
+  </data>
+  <data name="FlightRecorderTimeline" xml:space="preserve">
+    <value>资源时间线。选择一个点或使用方向键。</value>
+  </data>
+  <data name="FlightRecorderTitle" xml:space="preserve">
+    <value>刚才发生了什么？</value>
+  </data>
 </root>

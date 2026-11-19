@@ -1925,10 +1925,10 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
             if (fixture.LiveModeButton.IsChecked != true || fixture.SnapshotModeButton.IsChecked == true ||
                 fixture.SelectedSample is not null || fixture.SnapshotLayer.Visibility != Visibility.Collapsed)
                 throw new InvalidOperationException("Live mode did not clear the chart selection.");
-            var switchCenter = fixture.ChartModeSwitch
-                .TranslatePoint(new Point(fixture.ChartModeSwitch.ActualWidth / 2, 0), fixture.ResourceHeader).X;
+            var switchCenter = fixture.ChartInvestigationActions
+                .TranslatePoint(new Point(fixture.ChartInvestigationActions.ActualWidth / 2, 0), fixture.ResourceHeader).X;
             if (Math.Abs(switchCenter - fixture.ResourceHeader.ActualWidth / 2) > 1)
-                throw new InvalidOperationException("The chart mode switch is not centered in the header.");
+                throw new InvalidOperationException("The chart investigation actions are not centered in the header.");
             await CaptureVisualAsync(visual, Path.Combine(outputDirectory, $"chart-mode-live-{width}.png"), 1,
                 cancellationToken);
             fixture.SnapshotModeButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
@@ -2008,7 +2008,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
             JsonSerializer.Serialize(new
             {
                 Corners = 12, ResizedWhileSelected = true, ShortChart = true, LightAndDark = true,
-                Expiry = true, ReturnToLive = true, CenteredChartModeSwitch = true, LatestSampleAction = true,
+                Expiry = true, ReturnToLive = true, CenteredChartInvestigationActions = true, LatestSampleAction = true,
                 SnapshotCopy = true,
                 RenderScales = new[] { 1d, 1.5, 2d }
             }), cancellationToken);

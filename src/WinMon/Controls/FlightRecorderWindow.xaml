@@ -1,0 +1,77 @@
+<Window x:Class="WinMon.Controls.FlightRecorderWindow" x:ClassModifier="internal"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:WinMon.Controls"
+        xmlns:r="clr-namespace:WinMon.Resources"
+        Title="{Binding [FlightRecorderTitle], Source={x:Static r:Strings.Text}}"
+        Width="1000" Height="760" MinWidth="620" MinHeight="540"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False" PreviewKeyDown="OnKeyDown"
+        Background="{DynamicResource Surface}" Foreground="{DynamicResource Text}">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+            <RowDefinition Height="*" MinHeight="100" MaxHeight="220"/><RowDefinition Height="Auto"/>
+            <RowDefinition Height="2*"/><RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <StackPanel>
+            <DockPanel>
+                <Button x:Name="RefreshButton" DockPanel.Dock="Right" Margin="12,0,0,0" VerticalAlignment="Top"
+                        Content="{Binding [Refresh], Source={x:Static r:Strings.Text}}" Click="OnRefresh"
+                        controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Live}"
+                        AutomationProperties.Name="{Binding [Refresh], Source={x:Static r:Strings.Text}}"/>
+                <TextBlock Text="{Binding [FlightRecorderTitle], Source={x:Static r:Strings.Text}}" FontSize="20" FontWeight="SemiBold" TextWrapping="Wrap"/>
+            </DockPanel>
+            <TextBlock x:Name="Coverage" TextWrapping="Wrap" Foreground="{DynamicResource Muted}" Margin="0,6,0,10"/>
+        </StackPanel>
+        <WrapPanel Grid.Row="1" Margin="0,0,0,8">
+            <ComboBox x:Name="Metric" Width="150" Margin="0,0,8,0" SelectionChanged="OnMetricChanged"
+                      AutomationProperties.Name="{Binding [FlightRecorderResource], Source={x:Static r:Strings.Text}}"/>
+            <Button x:Name="PeakButton" Content="{Binding [FlightRecorderPeak], Source={x:Static r:Strings.Text}}" Click="OnPeak" Margin="0,0,8,0"/>
+            <Button x:Name="PreviousButton" Content="{Binding [FlightRecorderPrevious], Source={x:Static r:Strings.Text}}" Click="OnPrevious" Margin="0,0,8,0"/>
+            <Button x:Name="NextButton" Content="{Binding [FlightRecorderNext], Source={x:Static r:Strings.Text}}" Click="OnNext"/>
+        </WrapPanel>
+        <controls:CpuGraph x:Name="Graph" Grid.Row="2" ShowGrid="True" Focusable="True"
+                           AutomationProperties.Name="{Binding [FlightRecorderTimeline], Source={x:Static r:Strings.Text}}"/>
+        <StackPanel Grid.Row="3" Margin="0,8">
+            <TextBlock x:Name="SelectedTime" FontWeight="SemiBold" AutomationProperties.LiveSetting="Polite"/>
+            <TextBlock x:Name="Readings" TextWrapping="Wrap" Margin="0,4"/>
+            <TextBlock Text="{Binding [FlightRecorderAttribution], Source={x:Static r:Strings.Text}}" TextWrapping="Wrap" Foreground="{DynamicResource Muted}"/>
+        </StackPanel>
+        <ListView x:Name="Processes" Grid.Row="4" ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                  Background="{DynamicResource Surface}" Foreground="{DynamicResource Text}"
+                  AutomationProperties.Name="{Binding [FlightRecorderContributors], Source={x:Static r:Strings.Text}}">
+            <ListView.Resources>
+                <Style TargetType="GridViewColumnHeader">
+                    <Setter Property="Foreground" Value="{DynamicResource Muted}"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="GridViewColumnHeader">
+                                <Border Background="{DynamicResource Raised}" BorderBrush="{DynamicResource Line}"
+                                        BorderThickness="0,0,0,1" Padding="6,4">
+                                    <ContentPresenter HorizontalAlignment="Left"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ListView.Resources>
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="{Binding [ProcessColumn], Source={x:Static r:Strings.Text}}" DisplayMemberBinding="{Binding Name}" Width="180"/>
+                    <GridViewColumn Header="{Binding [CliPid], Source={x:Static r:Strings.Text}}" DisplayMemberBinding="{Binding Pid}" Width="70"/>
+                    <GridViewColumn Header="{Binding [CPU], Source={x:Static r:Strings.Text}}" DisplayMemberBinding="{Binding Cpu}" Width="90"/>
+                    <GridViewColumn Header="{Binding [Memory], Source={x:Static r:Strings.Text}}" DisplayMemberBinding="{Binding Memory}" Width="110"/>
+                    <GridViewColumn Header="{Binding [IO], Source={x:Static r:Strings.Text}}" DisplayMemberBinding="{Binding Io}" Width="120"/>
+                    <GridViewColumn Header="{Binding [GPU], Source={x:Static r:Strings.Text}}" DisplayMemberBinding="{Binding Gpu}" Width="90"/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <DockPanel Grid.Row="5" Margin="0,10,0,0">
+            <Button Content="{Binding [Close], Source={x:Static r:Strings.Text}}" IsCancel="True" Click="OnClose" DockPanel.Dock="Right" Margin="12,0,0,0"/>
+            <TextBox x:Name="Changes" IsReadOnly="True" TextWrapping="Wrap" MaxHeight="100"
+                     VerticalScrollBarVisibility="Auto" BorderThickness="0"
+                     Background="{DynamicResource Surface}" Foreground="{DynamicResource Muted}"
+                     AutomationProperties.Name="{Binding [FlightRecorderChanges], Source={x:Static r:Strings.Text}}"/>
+        </DockPanel>
+    </Grid>
+</Window>

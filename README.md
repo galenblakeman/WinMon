@@ -36,6 +36,8 @@ Ordinary resource monitoring and connection lists run without administrator righ
 
 ## Investigate a spike
 
+Click **History** beside **Capture** in the chart toolbar for **What just happened?**: a frozen resource timeline with **Find peak**, keyboard navigation and process contributors for the selected moment. Its clock-with-back-arrow icon distinguishes it from Capture. WinMon keeps sampling while you investigate. Choose CPU, memory, either configured disk, network or GPU; process starts/stops appear only where adjacent inventories are complete. Process I/O includes file, network and device activity and does not identify physical disk traffic. Choose Refresh in the upper-right corner to load the latest recording without leaving History.
+
 1. **Click a spike in the chart** to inspect that recorded moment. WinMon keeps recording while you look back.
 2. **Inspect the process rankings** to see which apps were busy. Group related processes, search, or pin an app to follow it. Use the process More menu to open its Connections or Usage.
 3. **Choose Copy capture** to share the timestamp, resource readings, top 10 executable groups and recorded connection details as plain text. Captures include up to five connections per app, executable paths and observed traffic totals for the selected period. A triggering app outside the top 10 stays included. Reports append the active Services or Usage view when selected.

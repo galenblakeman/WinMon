@@ -1991,4 +1991,50 @@ A atualização de hardware independe da pausa no histórico de recursos.</value
   <data name="UsageArchivePeriodNote" xml:space="preserve"><value>Período do calendário {0:d} – {1:d}.</value></data>
   <data name="CapturePrivateMemoryUnit" xml:space="preserve"><value>MiB</value></data>
   <data name="CaptureConnectionLimit" xml:space="preserve"><value>Até {0} conexões por aplicativo, ordenadas pela taxa de recebimento + envio; {1} incluídas, {2} omitidas.</value></data>
+  <data name="FlightRecorderAttribution" xml:space="preserve">
+    <value>Processos por recurso (rede usa CPU). Memória é conjunto de trabalho; E/S inclui arquivos, rede e dispositivos, sem atribuição ao disco físico.</value>
+  </data>
+  <data name="FlightRecorderChanges" xml:space="preserve">
+    <value>Mudanças de processos observadas</value>
+  </data>
+  <data name="FlightRecorderChangeSummary" xml:space="preserve">
+    <value>Iniciados desde a observação anterior: {0}
+Encerrados desde a observação anterior: {1}</value>
+  </data>
+  <data name="FlightRecorderChangesUnavailable" xml:space="preserve">
+    <value>Inícios/términos indisponíveis: primeira observação, lacuna ou inventário incompleto. Processos breves entre amostras não são registrados.</value>
+  </data>
+  <data name="FlightRecorderContributors" xml:space="preserve">
+    <value>Contribuições dos processos registradas</value>
+  </data>
+  <data name="FlightRecorderCoverage" xml:space="preserve">
+    <value>Registro fixo: {0:G} – {1:G} · {2} observações. A coleta continua; Atualizar carrega o registro mais recente.</value>
+  </data>
+  <data name="FlightRecorderEmpty" xml:space="preserve">
+    <value>Ainda não há observações. Aguarde a coleta de dados e escolha Atualizar.</value>
+  </data>
+  <data name="FlightRecorderNext" xml:space="preserve">
+    <value>Próximo</value>
+  </data>
+  <data name="FlightRecorderPartial" xml:space="preserve">
+    <value>Observação parcial ou lacuna · processos ociosos omitidos: {0} · inacessíveis: {1}.</value>
+  </data>
+  <data name="FlightRecorderPeak" xml:space="preserve">
+    <value>Encontrar pico</value>
+  </data>
+  <data name="FlightRecorderPrevious" xml:space="preserve">
+    <value>Anterior</value>
+  </data>
+  <data name="FlightRecorderResource" xml:space="preserve">
+    <value>Recurso a investigar</value>
+  </data>
+  <data name="FlightRecorderShort" xml:space="preserve">
+    <value>Histórico</value>
+  </data>
+  <data name="FlightRecorderTimeline" xml:space="preserve">
+    <value>Histórico de recursos. Selecione um ponto ou use as setas.</value>
+  </data>
+  <data name="FlightRecorderTitle" xml:space="preserve">
+    <value>O que acabou de acontecer?</value>
+  </data>
 </root>

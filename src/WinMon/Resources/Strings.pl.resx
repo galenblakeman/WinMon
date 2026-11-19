@@ -1991,4 +1991,50 @@ Odświeżanie sprzętu jest niezależne od wstrzymania historii zasobów.</value
   <data name="UsageArchivePeriodNote" xml:space="preserve"><value>Okres kalendarzowy {0:d} – {1:d}.</value></data>
   <data name="CapturePrivateMemoryUnit" xml:space="preserve"><value>MiB</value></data>
   <data name="CaptureConnectionLimit" xml:space="preserve"><value>Do {0} połączeń na aplikację, według szybkości odbierania + wysyłania; uwzględniono {1}, pominięto {2}.</value></data>
+  <data name="FlightRecorderAttribution" xml:space="preserve">
+    <value>Procesy według zasobu (sieć używa CPU). Pamięć to zestaw roboczy; operacje we/wy obejmują pliki, sieć i urządzenia, bez przypisania do dysku fizycznego.</value>
+  </data>
+  <data name="FlightRecorderChanges" xml:space="preserve">
+    <value>Zaobserwowane zmiany procesów</value>
+  </data>
+  <data name="FlightRecorderChangeSummary" xml:space="preserve">
+    <value>Uruchomione od poprzedniej obserwacji: {0}
+Zakończone od poprzedniej obserwacji: {1}</value>
+  </data>
+  <data name="FlightRecorderChangesUnavailable" xml:space="preserve">
+    <value>Brak danych o uruchomieniach/zakończeniach: pierwsza obserwacja, luka lub niepełna lista. Krótkie procesy między próbkami nie są rejestrowane.</value>
+  </data>
+  <data name="FlightRecorderContributors" xml:space="preserve">
+    <value>Zarejestrowany udział procesów</value>
+  </data>
+  <data name="FlightRecorderCoverage" xml:space="preserve">
+    <value>Zamrożony zapis: {0:G} – {1:G} · {2} obserwacji. Zbieranie trwa; Odśwież wczytuje najnowszy zapis.</value>
+  </data>
+  <data name="FlightRecorderEmpty" xml:space="preserve">
+    <value>Brak obserwacji. Poczekaj, aż WinMon zbierze dane, a następnie wybierz Odśwież.</value>
+  </data>
+  <data name="FlightRecorderNext" xml:space="preserve">
+    <value>Następna</value>
+  </data>
+  <data name="FlightRecorderPartial" xml:space="preserve">
+    <value>Częściowa obserwacja lub luka · pominięte bezczynne procesy: {0} · niedostępne: {1}.</value>
+  </data>
+  <data name="FlightRecorderPeak" xml:space="preserve">
+    <value>Znajdź szczyt</value>
+  </data>
+  <data name="FlightRecorderPrevious" xml:space="preserve">
+    <value>Poprzednia</value>
+  </data>
+  <data name="FlightRecorderResource" xml:space="preserve">
+    <value>Badany zasób</value>
+  </data>
+  <data name="FlightRecorderShort" xml:space="preserve">
+    <value>Historia</value>
+  </data>
+  <data name="FlightRecorderTimeline" xml:space="preserve">
+    <value>Historia zasobów. Wybierz punkt lub użyj strzałek.</value>
+  </data>
+  <data name="FlightRecorderTitle" xml:space="preserve">
+    <value>Co się właśnie stało?</value>
+  </data>
 </root>

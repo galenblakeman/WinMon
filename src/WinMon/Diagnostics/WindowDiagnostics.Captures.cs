@@ -101,10 +101,15 @@ internal sealed partial class WindowDiagnostics
                 throw new InvalidOperationException("The captures button needs its count and full description.");
             var captureRight = fixture.ChartModeSwitch.TranslatePoint(
                 new Point(fixture.ChartModeSwitch.ActualWidth, 0), fixture).X;
+            var historyLeft = fixture.FlightRecorderButton.TranslatePoint(new Point(), fixture).X;
+            var historyRight = fixture.FlightRecorderButton.TranslatePoint(
+                new Point(fixture.FlightRecorderButton.ActualWidth, 0), fixture).X;
             var autoLeft = fixture.CapturesButton.TranslatePoint(new Point(), fixture).X;
-            if (Math.Abs(autoLeft - captureRight - 8) > 1.5 || fixture.ChartTypeSelector.ActualWidth != 150)
+            if (Math.Abs(historyLeft - captureRight - 8) > 1.5 || Math.Abs(autoLeft - historyRight - 8) > 1.5 ||
+                fixture.ChartTypeSelector.ActualWidth != 150 ||
+                !ReferenceEquals(ButtonIcon.GetData(fixture.FlightRecorderButton), ButtonIcon.History))
                 throw new InvalidOperationException(
-                    "Auto must follow Capture while the chart type selector stays narrow.");
+                    "History must follow Capture with its clock icon, then Auto, while the chart type selector stays narrow.");
             fixture.Width = 836;
             fixture.UpdateLayout();
             var autoRight = fixture.CapturesButton.TranslatePoint(
@@ -112,8 +117,26 @@ internal sealed partial class WindowDiagnostics
             var rangeLeft = fixture.RangeSelector.TranslatePoint(new Point(), fixture).X;
             if (autoRight + 8 > rangeLeft)
                 throw new InvalidOperationException("Auto overlaps the time range controls at minimum width.");
+            CheckInvestigationToolbar();
+            if (fixture.ResourceHeader.ActualHeight > 44)
+                throw new InvalidOperationException("The English chart toolbar must stay on one row at minimum width.");
             await CaptureVisualAsync((FrameworkElement)fixture.Content,
                 Path.Combine(output, "captures-toolbar-narrow.png"), 1, cancellationToken);
+            var previousCulture = Strings.Culture;
+            try
+            {
+                Strings.SetCulture(System.Globalization.CultureInfo.GetCultureInfo("de"));
+                fixture.RefreshVisiblePresentation();
+                fixture.UpdateLayout();
+                CheckInvestigationToolbar();
+                await CaptureVisualAsync((FrameworkElement)fixture.Content,
+                    Path.Combine(output, "captures-toolbar-german-narrow.png"), 1, cancellationToken);
+            }
+            finally
+            {
+                Strings.SetCulture(previousCulture);
+                fixture.RefreshVisiblePresentation();
+            }
             fixture.Width = 1200;
             fixture.UpdateLayout();
             var graph = fixture.OverallGraph;
@@ -140,6 +163,7 @@ internal sealed partial class WindowDiagnostics
                     Path.Combine(output, $"capture-card-{theme.ToLowerInvariant()}.png"), cancellationToken);
             }
 
+            await CaptureFlightRecorderAsync(fixture, output, cancellationToken);
             var menu = fixture.CreateCapturesMenu();
             if (menu.Items.Count != 6)
                 throw new InvalidOperationException(
@@ -277,6 +301,17 @@ internal sealed partial class WindowDiagnostics
         finally
         {
             fixture.CloseForFixture();
+        }
+
+        void CheckInvestigationToolbar()
+        {
+            Rect Bounds(FrameworkElement element) => element.TransformToAncestor(fixture.ResourceHeader)
+                .TransformBounds(new Rect(new Point(), element.RenderSize));
+            var actions = Bounds(fixture.ChartInvestigationActions);
+            if (actions.Left < 0 || actions.Right > fixture.ResourceHeader.ActualWidth ||
+                actions.IntersectsWith(Bounds(fixture.ChartTypeSelector)) ||
+                actions.IntersectsWith(Bounds(fixture.RangeSelector)))
+                throw new InvalidOperationException("Chart investigation actions overlap or leave the toolbar at minimum width.");
         }
     }
 }

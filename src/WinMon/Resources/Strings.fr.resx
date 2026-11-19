@@ -1991,4 +1991,50 @@ L’actualisation du matériel est indépendante de la mise en pause de l’hist
   <data name="UsageArchivePeriodNote" xml:space="preserve"><value>Période calendaire {0:d} – {1:d}.</value></data>
   <data name="CapturePrivateMemoryUnit" xml:space="preserve"><value>MiB</value></data>
   <data name="CaptureConnectionLimit" xml:space="preserve"><value>Jusqu’à {0} connexions par application, classées par débit reçu + envoyé ; {1} incluses, {2} omises.</value></data>
+  <data name="FlightRecorderAttribution" xml:space="preserve">
+    <value>Processus classés par ressource (réseau : CPU). Mémoire : jeu de travail ; les E/S incluent fichiers, réseau et périphériques, sans attribution au disque physique.</value>
+  </data>
+  <data name="FlightRecorderChanges" xml:space="preserve">
+    <value>Changements de processus observés</value>
+  </data>
+  <data name="FlightRecorderChangeSummary" xml:space="preserve">
+    <value>Démarrés depuis la dernière observation : {0}
+Arrêtés depuis la dernière observation : {1}</value>
+  </data>
+  <data name="FlightRecorderChangesUnavailable" xml:space="preserve">
+    <value>Démarrages/arrêts indisponibles : première observation, interruption ou inventaire incomplet. Les processus brefs entre mesures ne sont pas enregistrés.</value>
+  </data>
+  <data name="FlightRecorderContributors" xml:space="preserve">
+    <value>Contributions des processus enregistrées</value>
+  </data>
+  <data name="FlightRecorderCoverage" xml:space="preserve">
+    <value>Enregistrement figé : {0:G} – {1:G} · {2} observations. La collecte continue ; Actualiser charge le dernier enregistrement.</value>
+  </data>
+  <data name="FlightRecorderEmpty" xml:space="preserve">
+    <value>Aucune observation. Laissez WinMon collecter des données, puis choisissez Actualiser.</value>
+  </data>
+  <data name="FlightRecorderNext" xml:space="preserve">
+    <value>Suivant</value>
+  </data>
+  <data name="FlightRecorderPartial" xml:space="preserve">
+    <value>Observation partielle ou interruption · processus inactifs omis : {0} · inaccessibles : {1}.</value>
+  </data>
+  <data name="FlightRecorderPeak" xml:space="preserve">
+    <value>Trouver le pic</value>
+  </data>
+  <data name="FlightRecorderPrevious" xml:space="preserve">
+    <value>Précédent</value>
+  </data>
+  <data name="FlightRecorderResource" xml:space="preserve">
+    <value>Ressource à examiner</value>
+  </data>
+  <data name="FlightRecorderShort" xml:space="preserve">
+    <value>Historique</value>
+  </data>
+  <data name="FlightRecorderTimeline" xml:space="preserve">
+    <value>Historique des ressources. Sélectionnez un point ou utilisez les flèches.</value>
+  </data>
+  <data name="FlightRecorderTitle" xml:space="preserve">
+    <value>Que vient-il de se passer ?</value>
+  </data>
 </root>

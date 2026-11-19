@@ -13,3 +13,5 @@ Make the chart toolbar easier to scan while keeping Live/Capture centered.
 ## Landed result and departures
 
 Implemented in `MainWindow.xaml` and verified by capture, chart and gauge smoke. Auto originally sat beside the chart type dropdown; it moved after Capture at the user's request.
+
+The History addition now places its clock-with-back-arrow button between Capture and Auto. The Live/Capture, History and Auto action group is centered together, leaving chart presentation on the left and time ranges on the right. History is a separate action, not another Live/Capture mode.
