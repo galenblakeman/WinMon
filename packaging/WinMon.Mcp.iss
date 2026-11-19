@@ -59,6 +59,7 @@ Name: "claude"; Description: "{#McpClaudeTask}"; Flags: unchecked checkedonce
 
 [Files]
 Source: "{#McpPublishDirectory}\WinMon.Mcp.exe"; DestDir: "{app}"
+Source: "{#McpPublishDirectory}\claude-code-plugin\*"; DestDir: "{app}\claude-code-plugin"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 
 [Code]

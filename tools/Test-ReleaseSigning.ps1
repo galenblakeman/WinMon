@@ -65,6 +65,11 @@ elseif ($script -eq 'WinMon.Cli.iss') {
 }
 elseif ($script -eq 'WinMon.Mcp.iss') {
     $payload = Get-Content -LiteralPath (Join-Path $options.McpPublishDirectory 'WinMon.Mcp.exe') -Raw
+    $plugin = Join-Path $options.McpPublishDirectory 'claude-code-plugin'
+    if (!(Test-Path (Join-Path $plugin '.mcp.json')) -or
+        (Get-Content (Join-Path $plugin '.claude-plugin/plugin.json') -Raw | ConvertFrom-Json).version -cne '9.8.7') {
+        throw 'MCP installer did not receive the versioned Claude Code plugin.'
+    }
     if ($testState.Mode -ne 'unsigned' -and $payload -notmatch 'SIGNED') { throw 'Installer received an unsigned MCP server.' }
     [IO.File]::WriteAllText((Join-Path $options.ReleaseDirectory 'WinMon-Mcp-9.8.7-Setup-x64.exe'), "INSTALLER:${payload}")
 }
@@ -139,15 +144,17 @@ Expand-Archive (Join-Path $output 'WinMon-Cli-9.8.7-win-x64.zip') (Join-Path $ru
 if ((Get-Content (Join-Path $run 'cli-portable/WinMon.Cli.exe') -Raw) -cne 'CLI:SIGNED') { throw 'CLI-only executable was not signed.' }
 Expand-Archive (Join-Path $output 'WinMon-Mcp-9.8.7-win-x64.zip') (Join-Path $run 'mcp-portable')
 if ((Get-Content (Join-Path $run 'mcp-portable/WinMon.Mcp.exe') -Raw) -cne 'MCP:SIGNED') { throw 'MCP-only executable was not signed.' }
-Expand-Archive (Join-Path $output 'WinMon-Claude-Code-9.8.7.zip') (Join-Path $run 'plugin')
-if (!(Test-Path (Join-Path $run 'plugin/.claude-plugin/plugin.json')) -or !(Test-Path (Join-Path $run 'plugin/.mcp.json'))) {
-    throw 'Claude Code plugin archive is incomplete.'
+$plugin = Join-Path $run 'mcp-portable/claude-code-plugin'
+foreach ($file in @('.claude-plugin/plugin.json', '.mcp.json', 'skills/diagnose-performance/SKILL.md', 'README.md')) {
+    if (!(Test-Path (Join-Path $plugin $file))) { throw "MCP ZIP plugin is missing $file." }
 }
-if ((Get-Content (Join-Path $run 'plugin/.claude-plugin/plugin.json') -Raw | ConvertFrom-Json).version -cne '9.8.7') {
+if ((Get-Content (Join-Path $plugin '.claude-plugin/plugin.json') -Raw | ConvertFrom-Json).version -cne '9.8.7') {
     throw 'Claude Code plugin version did not follow the release version.'
 }
+if (Get-ChildItem $output -Filter 'WinMon-Claude-Code-*.zip') { throw 'Standalone plugin ZIP must not be emitted.' }
 $installerHash = (Get-FileHash (Join-Path $output 'WinMon-9.8.7-Setup-x64.exe')).Hash
 foreach ($line in Get-Content (Join-Path $output 'SHA256SUMS.txt')) {
+    if ($line -like '*-winget.zip') { throw 'Public checksums must exclude Actions-only WinGet material.' }
     $parts = $line -split '  ', 2
     if ((Get-FileHash (Join-Path $output $parts[1])).Hash -ine $parts[0]) { throw 'Release checksum does not match final artifact.' }
 }
@@ -180,6 +187,39 @@ foreach ($extension in @('json', 'sig')) {
         throw 'Legacy desktop metadata must exactly match the signed desktop metadata.'
     }
 }
+# Run the workflow's publication block with a recording gh boundary; nothing is published.
+Copy-Item (Join-Path $root 'packaging/RELEASE-NOTES.md') (Join-Path $fixture 'packaging')
+New-Item -ItemType Directory -Path (Join-Path $fixture 'artifacts') -Force | Out-Null
+Copy-Item $output (Join-Path $fixture 'artifacts/release') -Recurse
+function gh { $testState.ReleaseArgs = @($args); $global:LASTEXITCODE = 0 }
+$workflow = Get-Content (Join-Path $root '.github/workflows/release.yml') -Raw
+$publication = ($workflow.Substring($workflow.LastIndexOf('        run: |')) -split '\r?\n' | Select-Object -Skip 1) -replace '^          ', ''
+$savedEnvironment = @{}
+foreach ($name in @('RELEASE_TAG', 'RELEASE_REPOSITORY', 'RUNNER_TEMP')) { $savedEnvironment[$name] = [Environment]::GetEnvironmentVariable($name) }
+Push-Location $fixture
+try {
+    $env:RELEASE_TAG = 'v9.8.7'; $env:RELEASE_REPOSITORY = 'example/WinMon'; $env:RUNNER_TEMP = $run
+    & ([scriptblock]::Create($publication -join "`n"))
+    $published = @($testState.ReleaseArgs | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf })
+    # The notes file is an argument, not an uploaded asset.
+    $published = @($published | Where-Object { [IO.Path]::GetExtension($_) -ne '.md' })
+    if ($published.Count -ne 15 -or ($published | Where-Object { $_ -like '*-winget.zip' -or $_ -like '*Claude-Code*' })) { throw 'Expected 15 public release assets without WinGet/plugin ZIPs.' }
+    foreach ($line in Get-Content (Join-Path $output 'SHA256SUMS.txt')) {
+        if (($line -split '  ', 2)[1] -notin @($published | ForEach-Object { Split-Path $_ -Leaf })) { throw 'Checksums refer to an unpublished asset.' }
+    }
+    $notesIndex = [Array]::IndexOf($testState.ReleaseArgs, '--notes-file')
+    if ($notesIndex -lt 0 -or '--generate-notes' -notin $testState.ReleaseArgs) { throw 'Release must include download notes and generated changes.' }
+    $notes = Get-Content -LiteralPath $testState.ReleaseArgs[$notesIndex + 1] -Raw
+    $links = [regex]::Matches($notes, 'https://github.com/example/WinMon/releases/download/v9\.8\.7/([^\)]+)')
+    if ($links.Count -ne 6 -or $notes -match '<version>|<repository>') { throw 'Download table must contain six resolved links.' }
+    foreach ($link in $links) {
+        if ($link.Groups[1].Value -notin @($published | ForEach-Object { Split-Path $_ -Leaf })) { throw 'Download table links to an unpublished asset.' }
+    }
+}
+finally {
+    Pop-Location
+    foreach ($name in $savedEnvironment.Keys) { [Environment]::SetEnvironmentVariable($name, $savedEnvironment[$name]) }
+}
 $expectedErrors = @{
     invalid = 'Authenticode verification failed'
     'installer-invalid' = 'Authenticode verification failed'
@@ -206,4 +246,4 @@ if ($testState.Calls -ne 0) { throw 'Unsigned local build contacted signing prov
 if (Test-Path (Join-Path $run 'unsigned/update-manifest.json')) { throw 'Unsigned release emitted legacy update metadata.' }
 # The fixture key is only needed for this disposable signing-boundary test.
 Remove-Item -LiteralPath (Join-Path $run 'private.pem') -Force -ErrorAction SilentlyContinue
-Write-Host "PASS: signing order, desktop, CLI and MCP payloads, plugin archive, final hashes, RSA manifest, signing failure gates, and unsigned local packaging. Evidence: $run"
+Write-Host "PASS: signing order, desktop, CLI and MCP payloads, bundled plugin, 15 public assets, download table, public checksums, RSA manifest, signing failure gates, and unsigned local packaging. Evidence: $run"

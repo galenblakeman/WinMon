@@ -108,6 +108,14 @@ try {
     & $InnoCompiler "/DAppVersion=$version" "/DCliPublishDirectory=$cliPublish" "/DCliPathTask=$cliPathTask" "/DCliPathFailed=$cliPathFailed" "/DCliLegacyPathTask=$cliLegacyPathTask" "/DCliDirectoryConflict=$cliDirectoryConflict" "/DDowngradeBlocked=$downgradeBlocked" "/DReleaseDirectory=$assets" (Join-Path $root 'packaging/WinMon.Cli.iss')
     if ($LASTEXITCODE -ne 0) { throw 'CLI installer compilation failed.' }
     $cliInstaller = Join-Path $assets "WinMon-Cli-$version-Setup-x64.exe"
+    $pluginSource = Join-Path $root 'plugins/claude-code/winmon'
+    if (!(Test-Path -LiteralPath $pluginSource -PathType Container)) { throw "Claude Code plugin is missing: $pluginSource" }
+    $pluginStage = Join-Path $mcpPublish 'claude-code-plugin'
+    Copy-Item -LiteralPath $pluginSource -Destination $pluginStage -Recurse
+    $pluginManifest = Join-Path $pluginStage '.claude-plugin/plugin.json'
+    $pluginMetadata = Get-Content -LiteralPath $pluginManifest -Raw | ConvertFrom-Json -AsHashtable
+    $pluginMetadata.version = $version
+    $pluginMetadata | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $pluginManifest -Encoding utf8NoBOM
     & $InnoCompiler "/DAppVersion=$version" "/DMcpPublishDirectory=$mcpPublish" "/DMcpCodexTask=$mcpCodexTask" "/DMcpClaudeTask=$mcpClaudeTask" "/DMcpRegistrationHelp=$mcpRegistrationHelp" "/DMcpRegistrationFailed=$mcpRegistrationFailed" "/DMcpCleanupSkipped=$mcpCleanupSkipped" "/DMcpDirectoryConflict=$mcpDirectoryConflict" "/DDowngradeBlocked=$downgradeBlocked" "/DReleaseDirectory=$assets" (Join-Path $root 'packaging/WinMon.Mcp.iss')
     if ($LASTEXITCODE -ne 0) { throw 'MCP installer compilation failed.' }
     $mcpInstaller = Join-Path $assets "WinMon-Mcp-$version-Setup-x64.exe"
@@ -148,19 +156,12 @@ The optional network install command requires this signed release build and admi
     @'
 Run WinMon.Mcp.exe only through a compatible MCP client. No .NET installation is required.
 Installers can optionally register the server with Codex or Claude Code. Portable copies require manual registration.
+The claude-code-plugin folder includes the optional Claude Code plugin and performance-diagnostics skill.
+Set WINMON_MCP_EXE to the absolute server path before launching Claude with --plugin-dir pointing to that folder.
+Do not enable both the plugin and direct registration for the same server.
 '@ | Set-Content -LiteralPath (Join-Path $mcpPortable 'README.txt') -Encoding utf8NoBOM
+    Copy-Item -LiteralPath $pluginStage -Destination $mcpPortable -Recurse
     Compress-Archive -Path "$mcpPortable/*" -DestinationPath (Join-Path $assets "WinMon-Mcp-$version-win-x64.zip")
-    $pluginSource = Join-Path $root 'plugins/claude-code/winmon'
-    if (!(Test-Path -LiteralPath $pluginSource -PathType Container)) { throw "Claude Code plugin is missing: $pluginSource" }
-    $pluginStage = Join-Path $work 'claude-plugin'
-    Copy-Item -LiteralPath $pluginSource -Destination $pluginStage -Recurse
-    $pluginManifest = Join-Path $pluginStage '.claude-plugin/plugin.json'
-    $pluginMetadata = Get-Content -LiteralPath $pluginManifest -Raw | ConvertFrom-Json -AsHashtable
-    $pluginMetadata.version = $version
-    $pluginMetadata | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $pluginManifest -Encoding utf8NoBOM
-    $pluginFiles = @(Get-ChildItem -LiteralPath $pluginStage -Force)
-    if ($pluginFiles.Count -eq 0) { throw 'Claude Code plugin has no files.' }
-    Compress-Archive -LiteralPath $pluginFiles.FullName -DestinationPath (Join-Path $assets "WinMon-Claude-Code-$version.zip")
     $winget = Join-Path $work 'winget'
     & (Join-Path $PSScriptRoot 'New-WinGetManifest.ps1') -Version $version -InstallerPath $installer -OutputDirectory $winget | Out-Host
     Compress-Archive -Path (Join-Path $winget 'manifests') -DestinationPath (Join-Path $assets "WinMon-$version-winget.zip")
@@ -172,7 +173,7 @@ Installers can optionally register the server with Codex or Claude Code. Portabl
     else {
         Write-Warning 'No update-signing key was supplied. This package is not eligible for in-app updates.'
     }
-    Get-ChildItem -LiteralPath $assets -File | Sort-Object Name | ForEach-Object {
+    Get-ChildItem -LiteralPath $assets -File | Where-Object Name -notlike '*-winget.zip' | Sort-Object Name | ForEach-Object {
         '{0}  {1}' -f (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant(), $_.Name
     } | Set-Content -LiteralPath (Join-Path $assets 'SHA256SUMS.txt') -Encoding utf8NoBOM
     New-Item -ItemType Directory -Path $OutputDirectory | Out-Null

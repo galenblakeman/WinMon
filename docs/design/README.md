@@ -1,5 +1,7 @@
 # WinMon design assets
 
+- [Release asset reduction](RELEASE-ASSET-REDUCTION.md) bundles the Claude Code plugin with MCP, keeps WinGet material in Actions artifacts and adds direct release download links.
+
 - [Sampling under CPU load](SAMPLING-UNDER-LOAD.md) isolates collection from thread-pool delays and raises only the sampling worker's Windows priority.
 
 - [Read-only MCP Usage and lifetime history](MCP-USAGE-AND-LIFETIME-HISTORY.md) adds calendar archive queries, process GPU/thread/handle trends and exact-lifetime retained-history filters.

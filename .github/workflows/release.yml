@@ -109,7 +109,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_REPOSITORY: ${{ github.repository }}
         run: |
-          $assets = @(Get-ChildItem artifacts/release -File | ForEach-Object FullName)
-          gh release create $env:RELEASE_TAG @assets --verify-tag --draft --title "WinMon $env:RELEASE_TAG" --generate-notes
+          $assets = @(Get-ChildItem artifacts/release -File | Where-Object Name -notlike '*-winget.zip' | ForEach-Object FullName)
+          $notesPath = Join-Path $env:RUNNER_TEMP 'winmon-release-notes.md'
+          (Get-Content packaging/RELEASE-NOTES.md -Raw).Replace('<repository>', $env:RELEASE_REPOSITORY).Replace('<version>', $env:RELEASE_TAG.Substring(1)) |
+            Set-Content -LiteralPath $notesPath -Encoding utf8NoBOM
+          gh release create $env:RELEASE_TAG @assets --verify-tag --draft --title "WinMon $env:RELEASE_TAG" --generate-notes --notes-file $notesPath
           if ($LASTEXITCODE -ne 0) { throw 'Draft release creation failed.' }

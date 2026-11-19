@@ -133,6 +133,8 @@ Task selections are not automatically replayed on upgrades. Preserve successful 
 
 The Claude plugin remains an alternative registration route, not an additional server to enable by default. Explain duplicate-server risk when users already use it. The installer does not install the plugin, rewrite plugin configuration or set `WINMON_MCP_EXE` automatically; plugin users update that path explicitly.
 
+The later [release asset reduction](RELEASE-ASSET-REDUCTION.md) bundles the plugin files with both MCP downloads. It preserves explicit plugin enablement and `WINMON_MCP_EXE` setup; the original separate-plugin distribution described above is historical.
+
 ### Uninstall and ownership
 
 Track registrations created or explicitly replaced by this installer per client, user/configuration identity, entry name and exact effective server definition. After an explicit replacement, the new definition is installer-owned; retain only minimal rollback metadata during the operation, not client secrets in uninstall records.

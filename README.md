@@ -26,7 +26,7 @@ Current version: **4.1.4**.
 | --- | --- |
 | **Desktop installer / ZIP** | Choose `WinMon-<version>-Setup-x64.exe` or `WinMon-<version>-win-x64.zip`. These contain desktop WinMon only. Portable preferences stay beside the app. |
 | **CLI installer / ZIP** | Choose `WinMon-Cli-<version>-Setup-x64.exe` or `WinMon-Cli-<version>-win-x64.zip`. The installer offers optional user PATH integration. Run `WinMon.Cli.exe` from a terminal. |
-| **MCP installer / ZIP** | Choose `WinMon-Mcp-<version>-Setup-x64.exe` or `WinMon-Mcp-<version>-win-x64.zip`. The installer offers optional registration with existing Codex and Claude Code clients. |
+| **MCP installer / ZIP** | Choose `WinMon-Mcp-<version>-Setup-x64.exe` or `WinMon-Mcp-<version>-win-x64.zip`. Both include the optional Claude Code plugin in `claude-code-plugin` beside the server; see [MCP setup](docs/MCP.md). The installer offers optional registration with existing Codex and Claude Code clients. |
 
 CLI and MCP install independently. Run `update check` to check for a newer version or `update install` to download and start that product's installer. Portable copies download a verified ZIP for manual extraction after closing sessions. Desktop retains its in-app updater, including support for legacy bundled desktops when the release carries legacy signed metadata and companion payloads. The desktop ZIP includes CLI/MCP for those older updaters; its installer refreshes existing bundled tools but does not add them to fresh desktop installations. Follow [migration instructions](docs/INSTALLER-MIGRATION.md) before removing old tool copies or uninstalling desktop.
 

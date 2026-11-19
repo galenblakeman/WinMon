@@ -28,16 +28,16 @@ claude mcp add --scope user --transport stdio winmon -- "C:\Path\To\WinMon.Mcp.e
 claude mcp list
 ```
 
-The separate `WinMon-Claude-Code-<version>.zip` adds the performance-diagnostics skill as well as server configuration. Extract it into a stable directory. Set the executable location in the shell that will launch Claude:
+Both MCP downloads include the optional Claude Code plugin in `claude-code-plugin` beside `WinMon.Mcp.exe`, including the performance-diagnostics skill and server configuration. Keep the extracted MCP ZIP in a stable directory, or use the installed copy under `%LOCALAPPDATA%\Programs\WinMon MCP`. Set the executable location in the shell that will launch Claude:
 
 ```powershell
 $env:WINMON_MCP_EXE = 'C:\Path\To\WinMon.Mcp.exe'
-claude --plugin-dir 'C:\Path\To\Extracted WinMon Plugin'
+claude --plugin-dir 'C:\Path\To\claude-code-plugin'
 ```
 
 For future shells, configure `WINMON_MCP_EXE` through Windows user environment settings and restart the terminal/client. The variable value is a plain absolute path without embedded quote characters. The plugin uses Claude's `${WINMON_MCP_EXE}` expansion; it does not depend on PATH or the current directory. Do not enable both the plugin and direct registration for the same server.
 
-Validate an extracted plugin with `claude plugin validate --strict 'C:\Path\To\Extracted WinMon Plugin'`. Syntax and validation were checked with Claude Code 2.1.318. See the official [plugin reference](https://code.claude.com/docs/en/plugins-reference) and [MCP configuration documentation](https://code.claude.com/docs/en/mcp). A successful manifest check does not prove a live client connection; see the implementation checklist for acceptance evidence. Copilot-specific setup is not yet documented or verified.
+Validate the bundled plugin with `claude plugin validate --strict 'C:\Path\To\claude-code-plugin'`. Syntax and validation were checked with Claude Code 2.1.318. See the official [plugin reference](https://code.claude.com/docs/en/plugins-reference) and [MCP configuration documentation](https://code.claude.com/docs/en/mcp). A successful manifest check does not prove a live client connection; see the implementation checklist for acceptance evidence. Copilot-specific setup is not yet documented or verified.
 
 ## Available tools
 

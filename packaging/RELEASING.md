@@ -24,11 +24,11 @@ The release script checks the product/application manifest versions, runs the co
 - `WinMon-<version>-Setup-x64.exe`: per-user desktop installer targeting `%LOCALAPPDATA%\Programs\WinMon`. It adds a Start menu entry, optional desktop shortcut and desktop Apps & Features entry. Existing bundled tools are refreshed for legacy updater validation; fresh desktop installs omit tools. Close WinMon and bundled tool sessions before upgrading; silent installations do not launch them.
 - `WinMon-Cli-<version>-Setup-x64.exe`: independent per-user CLI installer targeting `%LOCALAPPDATA%\Programs\WinMon CLI`, with optional owned PATH integration and explicit legacy owned-PATH cleanup. CLI updates are manual.
 - `WinMon-Mcp-<version>-Setup-x64.exe` and `WinMon-Mcp-<version>-win-x64.zip`: independent MCP installer and portable archive. The installer targets `%LOCALAPPDATA%\Programs\WinMon MCP` and offers unchecked registration with installed Codex and Claude Code clients. MCP updates are manual; the ZIP requires manual registration.
-- `WinMon-Claude-Code-<version>.zip`: standalone plugin manifest, MCP configuration and performance-diagnostics skill. Extract to a stable folder and configure `WINMON_MCP_EXE`; see [MCP setup](../docs/MCP.md). Packaging does not register agent clients automatically.
-- `WinMon-<version>-winget.zip`: three WinGet schema 1.12.0 manifests under the community repository's directory structure. The installer hash is calculated from the final signed installer.
+- Both MCP downloads include the plugin manifest, MCP configuration and performance-diagnostics skill under `claude-code-plugin` beside the server. Configure `WINMON_MCP_EXE`; see [MCP setup](../docs/MCP.md). Bundling the plugin does not enable it or register agent clients automatically.
+- `WinMon-<version>-winget.zip`: three WinGet schema 1.12.0 manifests under the community repository's directory structure. The installer hash is calculated from the final signed installer. This ZIP is retained in Actions artifacts for submission and excluded from GitHub release assets.
 - `desktop-update-manifest.json` and `desktop-update-manifest.sig`: emitted only when `-UpdateSigningKeyPath` is supplied. The first is a compact signed record of the desktop portable ZIP and installer name, size and SHA-256; the second is its base64 RSA SHA-256 PKCS#1 v1.5 detached signature. `update-manifest.json` and `update-manifest.sig` are exact copies for legacy desktop discovery. Publish these aliases only alongside compatible companion payloads: the desktop ZIP includes the signed CLI/MCP executables and the installer refreshes existing bundled tools. Never add aliases to an older desktop-only release without rebuilding its payloads and signing their new hashes.
 - `cli-update-manifest.json` / `.sig` and `mcp-update-manifest.json` / `.sig`: emitted with the same signing key for each tool's explicit `update check` / `update install` commands. Each manifest binds only that tool's installer and ZIP; unsigned local packages are not eligible. No tool polls for updates in the background.
-- `SHA256SUMS.txt`: checksums for every release asset above.
+- `SHA256SUMS.txt`: checksums for public release assets, excluding the Actions-only WinGet ZIP.
 
 Assets are placed in `artifacts/releases/<version>`. Existing output is refused to prevent accidental replacement of a published version. For another local build, specify a fresh `-OutputDirectory`. Build output and TRX results remain under the printed `artifacts/packaging/<run>` directory. These are repeatable build steps, not a guarantee of byte-identical binaries.
 
@@ -62,6 +62,8 @@ The `Package release` workflow can be run manually to build and validate artifac
 
 Signed release assets are uploaded as `winmon-signed-release` before installer acceptance starts. Desktop, CLI, MCP and migration validation run as separate steps with six-minute limits, so a stalled check is identified without losing the signed packages. Publication still requires all validation steps to pass.
 
+GitHub releases contain 15 uploaded assets. The workflow prepends the versioned desktop/CLI/MCP download table from `packaging/RELEASE-NOTES.md` to generated release notes. WinGet material remains in Actions artifacts; no standalone plugin ZIP is published. All updater metadata, legacy aliases and application download filenames are preserved. Run `tools/Test-ReleaseSigning.ps1` to check packaging, public asset selection and download links without publishing or contacting Azure.
+
 For each release:
 
 1. Set `Version` in `Directory.Build.props` and its matching four-part `assemblyIdentity version` in `src/WinMon/app.manifest`. Update the README version.
@@ -77,7 +79,7 @@ For service-only native acceptance before a release, the manual `Build signed ne
 
 ## WinGet submission
 
-Generating manifests does not publish a package to WinGet. First publish the GitHub release so the versioned installer URL is publicly downloadable. Then extract `WinMon-<version>-winget.zip` and validate its version directory:
+Generating manifests does not publish a package to WinGet. First publish the GitHub release so the versioned installer URL is publicly downloadable. Download the `winmon-signed-release` Actions artifact from the matching workflow run (or use local release output), extract `WinMon-<version>-winget.zip`, and validate its version directory:
 
 ```powershell
 winget validate --manifest ./manifests/g/GalenBlakeman/WinMon/4.0.1

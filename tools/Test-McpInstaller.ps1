@@ -28,6 +28,11 @@ try {
     $executable = Join-Path $directory 'WinMon.Mcp.exe'
     if (!(Test-Path $executable) -or !(Test-Path $uninstallKey)) { throw 'MCP installation is incomplete.' }
     $registeredVersion = [string](Get-ItemProperty -LiteralPath $uninstallKey -Name DisplayVersion).DisplayVersion
+    $pluginFiles = @('.claude-plugin/plugin.json', '.mcp.json', 'skills/diagnose-performance/SKILL.md', 'README.md')
+    foreach ($file in $pluginFiles) {
+        if (!(Test-Path (Join-Path $directory "claude-code-plugin/$file"))) { throw "Installed Claude Code plugin is missing $file." }
+    }
+    if ((Get-Content (Join-Path $directory 'claude-code-plugin/.claude-plugin/plugin.json') -Raw | ConvertFrom-Json).version -cne $registeredVersion) { throw 'Installed plugin version does not match MCP.' }
     $installedHash = (Get-FileHash -LiteralPath $executable).Hash
     try {
         Set-ItemProperty -LiteralPath $uninstallKey -Name DisplayVersion -Value '999.0.0'
@@ -40,6 +45,9 @@ try {
     Invoke-Checked (Join-Path $directory 'unins000.exe') @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART')
     $installed = $false
     if ((Test-Path $executable) -or (Test-Path $uninstallKey)) { throw 'MCP uninstall did not remove its owned files.' }
+    foreach ($file in $pluginFiles) {
+        if (Test-Path (Join-Path $directory "claude-code-plugin/$file")) { throw "MCP uninstall left plugin file $file." }
+    }
     Write-Host "MCP installer validation passed. Evidence: $evidence"
 }
 finally { if ($installed -and (Test-Path (Join-Path $directory 'unins000.exe'))) { Invoke-Checked (Join-Path $directory 'unins000.exe') @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART') } }

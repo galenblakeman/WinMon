@@ -44,6 +44,7 @@ $plugin = Join-Path $run 'plugin'
 if ($PluginArchive) {
     $PluginArchive = (Resolve-Path -LiteralPath $PluginArchive -ErrorAction Stop).Path
     Expand-Archive -LiteralPath $PluginArchive -DestinationPath $plugin
+    if (Test-Path -LiteralPath (Join-Path $plugin 'claude-code-plugin')) { $plugin = Join-Path $plugin 'claude-code-plugin' }
 }
 else {
     New-Item -ItemType Directory -Path $plugin -Force | Out-Null
