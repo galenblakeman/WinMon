@@ -63,13 +63,14 @@ internal sealed partial class DiagnosticTools
                         var gpuChanged = resources.GpuId != initial.Frame.Full.Resources.GpuId;
                         targetsChanged |= diskChanged || networkChanged || gpuChanged;
                         var current = identity is null ? null : sample.Processes.FirstOrDefault(p => p.Identity == identity);
-                        if (identity is not null && current is null && !sample.IsGap && owner.IsFresh(frame))
+                        if (identity is not null && current is null && !sample.IsGap)
                         {
                             status = "notObserved";
                             finished = true;
                             break;
                         }
-                        aggregate.Add(sample, current, elapsed, owner.IsFresh(frame));
+                        // These are recorded observations within this request, even if its consumer fell behind.
+                        aggregate.Add(sample, current, elapsed, true);
                         if (elapsed >= durationSeconds) { finished = true; break; }
                     }
                 }

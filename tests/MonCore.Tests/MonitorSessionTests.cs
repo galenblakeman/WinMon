@@ -257,6 +257,87 @@ public sealed class MonitorSessionTests
     }
 
     [Test]
+    public async Task CapturesStayOnOneDedicatedThreadWithElevatedPriority()
+    {
+        var threads = new List<int>();
+        var poolThreads = new List<bool>();
+        var priorities = new List<ThreadPriority>();
+        CapturedFrame Capture(SamplingOptions options)
+        {
+            threads.Add(Environment.CurrentManagedThreadId);
+            poolThreads.Add(Thread.CurrentThread.IsThreadPoolThread);
+            priorities.Add(Thread.CurrentThread.Priority);
+            return Frame(threads.Count)(options);
+        }
+
+        var harness = new Harness(Capture, Capture, Capture);
+        await harness.RunToEnd();
+        harness.Drain();
+        Assert.Multiple(() =>
+        {
+            Assert.That(threads, Has.Count.EqualTo(3));
+            Assert.That(threads.Distinct().Count(), Is.EqualTo(1));
+            Assert.That(poolThreads, Is.All.False);
+            if (OperatingSystem.IsWindows())
+                Assert.That(priorities, Is.All.EqualTo(ThreadPriority.AboveNormal));
+            Assert.That(harness.Source.Disposed, Is.True);
+            Assert.That(harness.Session.History.Samples, Has.Count.EqualTo(3));
+        });
+    }
+
+    [Test]
+    public async Task CancellationInterruptsTheWaitBetweenCaptures()
+    {
+        using var cancellation = new CancellationTokenSource();
+        using var captured = new ManualResetEventSlim();
+        Thread? worker = null;
+        var source = new FakeSource([options =>
+        {
+            worker = Thread.CurrentThread;
+            captured.Set();
+            return Frame(1)(options);
+        }], cancellation);
+        var session = new MonitorSession(() => source, () => new(), _ => { }, TimeSpan.FromMinutes(1));
+        var run = session.Run(cancellation.Token);
+        try
+        {
+            Assert.That(captured.Wait(TimeSpan.FromSeconds(5)), Is.True);
+            Assert.That(SpinWait.SpinUntil(() =>
+                (worker!.ThreadState & System.Threading.ThreadState.WaitSleepJoin) != 0,
+                TimeSpan.FromSeconds(5)), Is.True, "Sampling did not enter its wait.");
+        }
+        finally
+        {
+            cancellation.Cancel();
+            await run.WaitAsync(TimeSpan.FromSeconds(5));
+        }
+
+        Assert.That(source.Disposed, Is.True);
+        Assert.That(source.Options, Has.Count.EqualTo(1));
+    }
+
+    [Test]
+    public async Task SlowCaptureDoesNotAccumulateCatchUpTicks()
+    {
+        using var cancellation = new CancellationTokenSource();
+        var moments = new List<long>();
+        CapturedFrame Capture(SamplingOptions options)
+        {
+            moments.Add(Stopwatch.GetTimestamp());
+            if (moments.Count == 1) Thread.Sleep(150);
+            return Frame(moments.Count)(options);
+        }
+
+        var source = new FakeSource([Capture, Capture, Capture], cancellation);
+        var session = new MonitorSession(() => source, () => new(), _ => { }, TimeSpan.FromMilliseconds(50));
+        await session.Run(cancellation.Token).WaitAsync(TimeSpan.FromSeconds(5));
+
+        Assert.That(moments, Has.Count.EqualTo(3));
+        Assert.That(Stopwatch.GetElapsedTime(moments[1], moments[2]).TotalMilliseconds,
+            Is.GreaterThanOrEqualTo(40), "Missed deadlines caused a burst of catch-up captures.");
+    }
+
+    [Test]
     public void Run_CancelledBeforeItStarts_CompletesWithoutThrowing()
     {
         var harness = new Harness(Frame(1));

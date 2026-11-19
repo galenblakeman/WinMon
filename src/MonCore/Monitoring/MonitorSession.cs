@@ -60,7 +60,7 @@ public interface IFrameSource : IDisposable
 }
 
 /// <summary>
-/// Captures a frame every second on the thread pool and records it in history on the UI thread.
+/// Captures a frame every second on a dedicated thread and records it in history on the UI thread.
 /// </summary>
 /// <remarks>
 /// Capture never waits for the UI: a stalled dispatcher would otherwise delay the next capture and stretch the
@@ -147,8 +147,9 @@ public sealed class MonitorSession(
     /// <summary>Capture until cancelled. Completes without throwing when cancelled.</summary>
     public Task Run(CancellationToken cancellationToken)
     {
-        // No token for Task.Run: cancelled before it starts, it would return a cancelled task, not complete.
-        return Task.Run(() => CollectAsync(cancellationToken));
+        // The synchronous loop must keep its dedicated thread between ticks, even when the pool is starved.
+        return Task.Factory.StartNew(() => Collect(cancellationToken), CancellationToken.None,
+            TaskCreationOptions.LongRunning | TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
     }
 
     /// <summary>Ignore captures that are still queued or arrive later, while the owner shuts down.</summary>
@@ -189,16 +190,32 @@ public sealed class MonitorSession(
         }
     }
 
-    private async Task CollectAsync(CancellationToken cancellationToken)
+    private void Collect(CancellationToken cancellationToken)
     {
         IFrameSource? source = null;
         var current = new SamplingOptions();
-        using var timer = new PeriodicTimer(_interval);
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(_interval, TimeSpan.Zero);
+        var clock = Stopwatch.StartNew();
+        var next = TimeSpan.Zero;
         try
         {
+            if (OperatingSystem.IsWindows())
+            {
+                try
+                {
+                    Thread.CurrentThread.Priority = ThreadPriority.AboveNormal;
+                }
+                catch (Exception ex) when (ex is ThreadStateException or PlatformNotSupportedException or
+                                              System.Security.SecurityException)
+                {
+                    Trace.TraceWarning("WinMon could not raise sampling priority: {0}", ex);
+                }
+            }
+
             do
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                next += _interval;
                 try
                 {
                     current = options();
@@ -229,7 +246,16 @@ public sealed class MonitorSession(
                     Deliver(new Pending(null, SamplingError.ReadingsUnavailable,
                         Network: current.ProcessNetwork, NetworkSessionId: current.ProcessNetworkSessionId));
                 }
-            } while (await timer.WaitForNextTickAsync(cancellationToken));
+                var remaining = next - clock.Elapsed;
+                if (remaining < TimeSpan.Zero)
+                {
+                    // Skip missed deadlines instead of accumulating a burst of catch-up captures.
+                    next = clock.Elapsed;
+                    remaining = TimeSpan.Zero;
+                }
+
+                if (cancellationToken.WaitHandle.WaitOne(remaining)) break;
+            } while (true);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {

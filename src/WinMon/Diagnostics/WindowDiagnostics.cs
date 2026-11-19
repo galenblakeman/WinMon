@@ -463,9 +463,14 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         var hiddenCount = window.Session.History.Samples.Count;
         window.Hide();
         await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
+        // Capture drains run at Background priority; observe them before the normal-priority test continuation.
+        await window.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ContextIdle, cancellationToken);
         if (window.Session.History.Samples.Count <= hiddenCount ||
             !ReferenceEquals(window.PresentedSample, beforeHidden))
-            throw new InvalidOperationException("Hidden recording stopped or presentation continued updating.");
+            throw new InvalidOperationException(
+                $"Hidden recording stopped or presentation continued updating: samples {hiddenCount} -> " +
+                $"{window.Session.History.Samples.Count}, presentation unchanged " +
+                $"{ReferenceEquals(window.PresentedSample, beforeHidden)}, visible {window.IsVisible}.");
         window.Show();
         if (!ReferenceEquals(window.PresentedSample, window.Session.History.Latest))
             throw new InvalidOperationException("Restoring the window did not refresh the latest sample.");
@@ -473,6 +478,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         var minimizedCount = window.Session.History.Samples.Count;
         window.WindowState = WindowState.Minimized;
         await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
+        await window.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ContextIdle, cancellationToken);
         if (window.Session.History.Samples.Count <= minimizedCount ||
             !ReferenceEquals(window.PresentedSample, beforeMinimized))
             throw new InvalidOperationException("Minimized recording stopped or presentation continued updating.");
@@ -483,6 +489,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         var stallCount = window.Session.History.Samples.Count;
         Thread.Sleep(3500);
         await Task.Delay(1500, cancellationToken);
+        await window.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ContextIdle, cancellationToken);
         var stalled = window.Session.History.Samples.Skip(stallCount - 1).ToArray();
         var longestInterval = stalled
             .Zip(stalled.Skip(1), (a, b) => (b.MonotonicTimestamp - a.MonotonicTimestamp) / (double)Stopwatch.Frequency)

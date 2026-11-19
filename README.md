@@ -4,6 +4,10 @@
 
 WinMon brings CPU, memory, disk, network and GPU activity into one Windows dashboard. Spot a spike, find the busiest processes and services, and look back at what was happening when it occurred.
 
+Sampling uses a dedicated worker with elevated scheduling priority on Windows to keep recording responsive under CPU load. Missing readings and genuine collection delays remain visible as chart gaps.
+
+MCP performance recordings retain valid captured intervals even when report processing falls behind collection.
+
 **Windows x64 · No separate .NET installation · Installer or portable ZIP · MIT licensed**
 
 [**Download latest release**](https://github.com/galenblakeman/WinMon/releases/latest) · [User guide](docs/USER-GUIDE.md) · [Screenshot gallery](docs/example/README.md) · [Report an issue](https://github.com/galenblakeman/WinMon/issues)

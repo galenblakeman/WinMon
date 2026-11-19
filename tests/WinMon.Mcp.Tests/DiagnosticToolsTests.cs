@@ -290,6 +290,70 @@ public sealed class DiagnosticToolsTests
         });
     }
 
+    [TestCase(false, TestName = "DelayedMcpConsumerKeepsRecordedSystemSamples")]
+    [TestCase(true, TestName = "DelayedMcpConsumerRecognizesRecordedProcessExit")]
+    public async Task SamplingUsesQueuedFramesWhenConsumerIsDelayed(bool processExits)
+    {
+        var clock = new AdvancingClock();
+        using var releaseBurst = new ManualResetEventSlim();
+        using var releaseConsumer = new ManualResetEventSlim();
+        using var releaseLastCapture = new ManualResetEventSlim();
+        var captures = 0;
+        var source = new TimedSource(() =>
+        {
+            var count = Interlocked.Increment(ref captures);
+            if (count == 3 && !releaseBurst.Wait(TimeSpan.FromSeconds(10)))
+                throw new TimeoutException("Consumer did not start.");
+            if (count == 13 && !releaseLastCapture.Wait(TimeSpan.FromSeconds(10)))
+                throw new TimeoutException("Consumer did not finish.");
+            clock.Advance();
+            var frame = processExits && count >= 3 ? Frame() : Frame(Process(10, 1, "example", 10));
+            return frame with { Full = frame.Full with { Timestamp = clock.GetUtcNow() } };
+        });
+        await using var owner = new SamplingOwner(() => source, clock, TimeSpan.FromMilliseconds(10));
+        await using var request = await owner.AcquireAsync(default);
+        Assert.That(await owner.CurrentAsync(default), Is.Not.Null);
+        var scheduler = new ConcurrentExclusiveSchedulerPair(TaskScheduler.Default, 1);
+        var sampling = await Task.Factory.StartNew(
+            () => new DiagnosticTools(owner).SamplePerformance(10, 10, processExits ? 10 : null),
+            CancellationToken.None, TaskCreationOptions.None, scheduler.ExclusiveScheduler);
+        var blocked = Task.Factory.StartNew(() =>
+        {
+            releaseBurst.Set();
+            if (!releaseConsumer.Wait(TimeSpan.FromSeconds(10)))
+                throw new TimeoutException("Consumer was not released.");
+        }, CancellationToken.None, TaskCreationOptions.None, scheduler.ExclusiveScheduler);
+        try
+        {
+            Assert.That(SpinWait.SpinUntil(() => owner.ReadAfter(0).Length >= 12, TimeSpan.FromSeconds(5)), Is.True);
+            Assert.That(owner.IsFresh(owner.ReadAfter(0).Single(frame => frame.Sequence == 3)), Is.False);
+            releaseConsumer.Set();
+            var response = Json(await sampling.WaitAsync(TimeSpan.FromSeconds(5)));
+            var data = response.GetProperty("data");
+            if (processExits)
+            {
+                Assert.That(response.GetProperty("status").GetString(), Is.EqualTo("notObserved"));
+                Assert.That(data.GetProperty("actualDurationSeconds").GetDouble(), Is.EqualTo(1));
+                Assert.That(data.GetProperty("identity").GetProperty("startToken").GetString(), Is.EqualTo("1"));
+            }
+            else
+            {
+                var cpu = data.GetProperty("metrics").GetProperty("cpuPercent");
+                Assert.That(response.GetProperty("status").GetString(), Is.EqualTo("ok"));
+                Assert.That(cpu.GetProperty("validSampleCount").GetInt32(), Is.EqualTo(10));
+                Assert.That(cpu.GetProperty("coverage").GetDouble(), Is.EqualTo(1));
+            }
+        }
+        finally
+        {
+            releaseConsumer.Set();
+            releaseLastCapture.Set();
+            await blocked.WaitAsync(TimeSpan.FromSeconds(5));
+            scheduler.Complete();
+            await scheduler.Completion.WaitAsync(TimeSpan.FromSeconds(5));
+        }
+    }
+
     private sealed class AdvancingClock : TimeProvider
     {
         private long _ticks;

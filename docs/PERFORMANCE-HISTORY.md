@@ -2,6 +2,22 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## Dedicated sampling worker (November 19, 2026)
+
+Measured the existing and changed `MonitorSession` with the real `WindowsFrameSource` on Windows x64, SDK 10.0.404, using the probe and preserved binaries under `artifacts/sampling-probe`. Each case ran four ten-second recordings at the default one-second interval. The machine was already CPU-saturated: observed total CPU averaged 99.96–100% across runs. The explicit-load case additionally ran twelve normal-priority spin workers. The starvation case limited the probe process's pool to one worker and queued a four-second blocking item after its third capture. This isolates pool delays without changing native collection or chart thresholds.
+
+| Measurement across four runs | Before | After |
+| --- | ---: | ---: |
+| CPU load: longest interval | 1.071 s | 1.012 s |
+| CPU load: intervals over 2.5 s | 0 | 0 |
+| Pool starvation: longest interval | 4.289 s | 1.181 s |
+| Pool starvation: median of each run's longest interval | 4.025 s | 1.013 s |
+| Pool starvation: intervals over 2.5 s | 4 | 0 |
+
+Raw results are `before-load.json`, `after-load.json`, `before-starve.json` and `after-starve.json`; `Program.cs` and `Probe.csproj` retain the probe. The before measurements preceded the after measurements, rather than alternating quiet-machine runs; verification also ran alongside the after probe. These are scheduling/coverage observations under load, not a throughput or allocation comparison. CPU saturation alone did not reproduce gaps in the baseline; controlled pool starvation did. No synthetic UI benchmark was run because it stops sampling. Blocked native reads, suspend and higher-priority workloads can still create genuine gaps.
+
+The desktop smoke also completed at 100% observed CPU, including hidden/minimized recording and the blocked-dispatcher sampling check. Evidence is `artifacts/sampling-probe/smoke-drained/smoke.json`; generated PNGs were reviewed. Its quiet-observation cost was 0.42% of machine CPU over 18.8 seconds, without a corresponding preserved before run; this is not a sustained overhead comparison. The smoke must drain Background-priority capture callbacks before checking history, since its normal-priority test continuation can otherwise observe a queued frame before it is recorded.
+
 ## Bounded captures and historical connection details (November 15, 2026)
 
 Compared the preserved clean `main` app with the capture changes on Windows x64, .NET 10.0.15. A focused copy of `WinMon.Performance` uses the same synthetic 850-process session, 400 warm-up frames and seven batches of 60 frames. It measures Live, historical Processes, grouped Live and a historical Connections view after 121 traffic captures. Storage/Usage benchmark cases are excluded. Four alternating before/after pairs completed; values below are medians of the four run medians. `artifacts/capture-info/Prepare-FocusedBenchmark.ps1`, `Measure.ps1`, `Summarize.ps1`, `focused-before-*.json`, `focused-after-*.json` and `summary.json` retain the reproduction and raw evidence. Each build's assembly hash and each scenario's pixel hash stayed consistent across all four runs.

@@ -1,5 +1,7 @@
 # WinMon design assets
 
+- [Sampling under CPU load](SAMPLING-UNDER-LOAD.md) isolates collection from thread-pool delays and raises only the sampling worker's Windows priority.
+
 - [Read-only MCP Usage and lifetime history](MCP-USAGE-AND-LIFETIME-HISTORY.md) adds calendar archive queries, process GPU/thread/handle trends and exact-lifetime retained-history filters.
 
 - [Capture information](CAPTURE-INFO.md) limits capture views and reports to 10 apps and five connections per app, preserving the trigger and adding paths and observed period traffic totals.
