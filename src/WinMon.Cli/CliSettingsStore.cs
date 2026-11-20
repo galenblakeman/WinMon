@@ -97,7 +97,7 @@ public sealed class CliSettingsStore(string? path = null)
         }
     }
 
-    internal static bool IsSettingsError(Exception exception) => exception is IOException or UnauthorizedAccessException
+    internal static bool IsSettingsError(Exception exception) => exception is IOException or InvalidDataException or UnauthorizedAccessException
         or JsonException or System.Security.SecurityException or WaitHandleCannotBeOpenedException;
 }
 

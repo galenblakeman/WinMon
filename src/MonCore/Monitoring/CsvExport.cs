@@ -21,8 +21,8 @@ public static class CsvExport
     public static IReadOnlyList<MonitorSample> SelectSamples(IReadOnlyList<MonitorSample> samples, int? rangeSeconds)
     {
         if (rangeSeconds is null || samples.Count == 0) return samples;
-        var start = samples[^1].Timestamp - TimeSpan.FromSeconds(rangeSeconds.Value);
-        return [.. samples.Where(sample => sample.Timestamp >= start)];
+        var start = ProcessRanking.Moment(samples[^1]) - rangeSeconds.Value;
+        return [.. samples.Where(sample => ProcessRanking.Moment(sample) >= start)];
     }
 
     /// <summary>Write to a sibling temporary file and replace the chosen file only after a complete export.</summary>

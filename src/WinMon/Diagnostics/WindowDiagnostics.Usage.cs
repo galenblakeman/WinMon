@@ -18,6 +18,7 @@ internal sealed partial class WindowDiagnostics
     /// </summary>
     internal static async Task CaptureUsageDiagnosticsAsync(string output, CancellationToken cancellationToken)
     {
+        await ValidateArchiveRecoveryAsync(output, cancellationToken);
         var fixture = new MainWindow(true) { Width = 1200, Height = 950 };
         fixture.Loaded -= fixture.OnLoaded;
         fixture.Left = SystemParameters.WorkArea.Left + 20;
@@ -201,5 +202,49 @@ internal sealed partial class WindowDiagnostics
                 HasHadAppWindow = window
             };
         }
+    }
+
+    private static async Task ValidateArchiveRecoveryAsync(string output, CancellationToken cancellationToken)
+    {
+        foreach (var oversized in new[] { false, true })
+        {
+            var folder = Path.Combine(output, oversized ? "oversized-archive" : "invalid-archive");
+            Directory.CreateDirectory(folder);
+            var store = new Preferences.PreferenceStore(Path.Combine(folder, "settings.json"));
+            var original = oversized ? new byte[UsageArchive.MaximumFileBytes + 1] :
+                System.Text.Encoding.UTF8.GetBytes("{\"SchemaVersion\":2,\"TimeZoneId\":\"UTC\",\"Days\":[]}");
+            await File.WriteAllBytesAsync(store.UsageArchivePath, original, cancellationToken);
+            var fixture = new MainWindow(false, preferenceStore: store);
+            try
+            {
+                await fixture.LoadUsageArchiveForFixtureAsync();
+                if (fixture.DailyUsageArchive is not null ||
+                    !(await File.ReadAllBytesAsync(store.UsageArchivePath, cancellationToken)).SequenceEqual(original))
+                    throw new InvalidOperationException("Rejected Usage archives must remain untouched and disabled.");
+                using var writerLock = new FileStream(store.UsageArchivePath + ".lock", FileMode.Open,
+                    FileAccess.ReadWrite, FileShare.None);
+                fixture.Session.Record(new MonitorSample(DateTimeOffset.Now, 10, [], 0));
+                if (fixture.Session.Latest is null)
+                    throw new InvalidOperationException("Rejected Usage archives must not prevent recording.");
+            }
+            finally { fixture.CloseForFixture(); }
+        }
+        var saveStore = new Preferences.PreferenceStore(Path.Combine(output, "rejected-write", "settings.json"));
+        await UsageArchive.SaveAsync(saveStore.UsageArchivePath, new UsageArchive().Export(), cancellationToken);
+        var saved = await File.ReadAllBytesAsync(saveStore.UsageArchivePath, cancellationToken);
+        var saveFixture = new MainWindow(false, preferenceStore: saveStore);
+        try
+        {
+            await saveFixture.LoadUsageArchiveForFixtureAsync();
+            saveFixture.DailyUsageArchive!.Add(new MonitorSample(DateTimeOffset.Now, 10,
+                [new ProcessUsage(100, 100, "invalid-gpu", 10) { GpuPercent = double.PositiveInfinity }], 0)
+                { IntervalSeconds = 1, IntervalCpuTicks = TimeSpan.TicksPerSecond });
+            await saveFixture.SaveUsageArchiveForFixtureAsync();
+            if (!(await File.ReadAllBytesAsync(saveStore.UsageArchivePath, cancellationToken)).SequenceEqual(saved))
+                throw new InvalidOperationException("Rejected archive writes must preserve the saved file.");
+        }
+        finally { saveFixture.CloseForFixture(); }
+        await File.WriteAllTextAsync(Path.Combine(output, "archive-recovery-passed.txt"),
+            "Invalid and oversized archives allowed recording; rejected loads and writes preserved existing files.", cancellationToken);
     }
 }

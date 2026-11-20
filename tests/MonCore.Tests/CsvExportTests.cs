@@ -106,6 +106,22 @@ public sealed class CsvExportTests
         });
     }
 
+    [TestCase(-3600)]
+    [TestCase(3600)]
+    public void SelectSamples_UsesElapsedTimeAcrossClockChanges(int clockChangeSeconds)
+    {
+        var samples = new[]
+        {
+            new MonitorSample(Start, 1, [], 0, MonotonicTimestamp: System.Diagnostics.Stopwatch.Frequency),
+            new MonitorSample(Start.AddSeconds(60), 1, [], 0, MonotonicTimestamp: 61 * System.Diagnostics.Stopwatch.Frequency),
+            new MonitorSample(Start.AddSeconds(61), 1, [], 0, MonotonicTimestamp: 62 * System.Diagnostics.Stopwatch.Frequency),
+            new MonitorSample(Start.AddSeconds(120 + clockChangeSeconds), 1, [], 0,
+                MonotonicTimestamp: 121 * System.Diagnostics.Stopwatch.Frequency)
+        };
+
+        Assert.That(CsvExport.SelectSamples(samples, 60), Is.EqualTo(samples[1..]));
+    }
+
     [Test]
     public void SelectSamples_UsesLatestRetainedTimeAndIncludesBoundary()
     {

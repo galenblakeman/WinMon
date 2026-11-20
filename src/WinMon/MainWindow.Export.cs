@@ -55,13 +55,13 @@ public partial class MainWindow
             var (since, busyTicks, notAttributedTicks) =
                 (ledger.Since, ledger.MachineBusyTicks, ledger.NotAttributedCpuTicks);
             var start = choice.ChartRange && Session.History.Samples.Count > 0
-                ? Session.History.Samples[^1].Timestamp - TimeSpan.FromSeconds(_preferences.EffectiveChartRange)
-                : DateTimeOffset.MinValue;
+                ? ProcessRanking.Moment(Session.History.Samples[^1]) - _preferences.EffectiveChartRange
+                : double.NegativeInfinity;
             var services = choice.Kind == CsvExportKind.Services
-                ? Session.Services.Frames.Where(frame => frame.Sample.Timestamp >= start).ToArray()
+                ? Session.Services.Frames.Where(frame => ProcessRanking.Moment(frame.Sample) >= start).ToArray()
                 : [];
             var connections = choice.Kind is CsvExportKind.Connections or CsvExportKind.NetworkTraffic
-                ? Session.Connections.Captures.Where(capture => capture.Sample.Timestamp >= start).ToArray()
+                ? Session.Connections.Captures.Where(capture => ProcessRanking.Moment(capture.Sample) >= start).ToArray()
                 : [];
             var hasData = choice.Kind switch
             {

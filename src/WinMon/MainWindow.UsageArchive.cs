@@ -22,7 +22,7 @@ public partial class MainWindow
             _usageArchive = await UsageArchive.LoadAsync(_preferenceStore.UsageArchivePath, Lifetime.Token);
         }
         catch (OperationCanceledException) when (Lifetime.IsCancellationRequested) { throw; }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Text.Json.JsonException or
+        catch (Exception ex) when (ex is IOException or InvalidDataException or UnauthorizedAccessException or System.Text.Json.JsonException or
             ArgumentException or TimeZoneNotFoundException or InvalidTimeZoneException)
         {
             _usageArchiveError = true;
@@ -61,7 +61,7 @@ public partial class MainWindow
             CheckpointUsageArchive();
             await _usageArchiveWrite;
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        catch (Exception ex) when (ex is IOException or InvalidDataException or UnauthorizedAccessException)
         {
             _usageArchiveError = true;
             Trace.TraceError("Usage archive save failed: {0}", ex);

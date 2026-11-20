@@ -65,7 +65,7 @@ History defaults to **30 minutes**, with retention configurable up to **60 minut
 | **Services** | Follow Windows services, their hosts and observed workers. Inspect resource use or start, stop and restart eligible services with confirmation and elevation where required. |
 | **Connections** | See apps with TCP connections and UDP endpoints. Optional per-app traffic monitoring adds receive/send rates, history and observed byte totals. |
 | **Usage** | Find which apps consumed CPU time, I/O and GPU time during the session or a recorded period ending at the selected capture, including apps that have exited. |
-| **CSV export** | Save retained resource, process, service and connection observations, or session usage totals, for analysis. Separate connection and process-traffic exports preserve endpoints, owners, observed bytes, rates and coverage flags. |
+| **CSV export** | Save retained resource, process, service and connection observations, or session usage totals, for analysis. Chart-range exports follow elapsed time even if the system clock changes. Separate connection and process-traffic exports preserve endpoints, owners, observed bytes, rates and coverage flags. |
 | **Hardware and help** | Open Info for hardware details, feature instructions and a walkthrough that points out controls in the dashboard. |
 
 [See feature examples](docs/example/README.md#investigate) · [Read the user guide](docs/USER-GUIDE.md)
@@ -84,7 +84,7 @@ See the [CLI user guide](docs/USER-GUIDE.md#command-line) for setup, keyboard sh
 
 Use `services`, `connections` or `usage` with `--format json` for scriptable activity reports. `--duration 1–60` collects a bounded window; Usage totals cover that command's collection rather than another running app's session.
 
-In interactive mode, `[` / `]` inspect earlier/later retained samples, Alt+Left/Right moves 60 observations, Space returns live, and U changes the historical Usage period. `usage-history --days 7 --format json` reads desktop daily totals without starting another collector.
+In interactive mode, `[` / `]` inspect earlier/later retained samples, Alt+Left/Right moves 60 observations, Space returns live, and U changes the historical Usage period. `usage-history --days 7 --format json` reads desktop daily totals without starting another collector. Rejected CLI settings fall back to defaults with a warning; automatic saves preserve the rejected file.
 
 ## Coding agent diagnostics
 
@@ -108,7 +108,7 @@ Choose light, dark or additional appearances, independent chart palettes and sev
 
 ## Permissions and limitations
 
-**Daily and weekly Usage:** choose Session, Day or 7 days in the desktop Usage view, with an ending date. WinMon keeps 35 calendar days of locally recorded CPU, I/O and GPU totals across restarts. Copy and CSV export follow the chosen period. Only time observed while desktop WinMon runs is counted; gaps and time before recording began are excluded. Daily totals are stored beside settings in `usage-history.json`, independently of the recent-history setting.
+**Daily and weekly Usage:** choose Session, Day or 7 days in the desktop Usage view, with an ending date. WinMon keeps 35 calendar days of locally recorded CPU, I/O and GPU totals across restarts. Copy and CSV export follow the chosen period. Only time observed while desktop WinMon runs is counted; gaps and time before recording began are excluded. Daily totals are stored beside settings in `usage-history.json`, independently of the recent-history setting. Invalid or oversized archives are preserved and leave live monitoring available.
 
 **Scoped automatic captures:** Settings → Automatic captures can watch an exact executable name/path or Windows service name for CPU, private memory or network-rate thresholds. Each scope/metric has one target. Shared service hosts remain unattributed, and network rules require working per-app monitoring.
 

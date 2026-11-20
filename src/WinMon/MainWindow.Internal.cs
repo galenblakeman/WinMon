@@ -16,6 +16,8 @@ namespace WinMon;
 public partial class MainWindow
 {
     internal UsageArchive? DailyUsageArchive { get => _usageArchive; set => _usageArchive = value; }
+    internal Task LoadUsageArchiveForFixtureAsync() => LoadUsageArchiveAsync();
+    internal Task SaveUsageArchiveForFixtureAsync() => SaveUsageArchiveAsync();
     internal void SetConnectionsForFixture(NetworkConnectionsFrame frame)
     {
         _connections = frame;
@@ -53,6 +55,7 @@ public partial class MainWindow
     /// <summary>Close without the shutdown sequence, for a fixture that never saved preferences or started updates.</summary>
     internal void CloseForFixture()
     {
+        _usageArchiveLock?.Dispose();
         _allowClose = true;
         Close();
     }

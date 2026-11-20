@@ -304,6 +304,57 @@ public sealed class CliSettingsTests
 
     [Test]
     [Category("Integration")]
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task RejectedSettingsWatchUsesDefaultsAndPreservesFile(bool oversized)
+    {
+        Directory.CreateDirectory(_directory);
+        var original = oversized ? new string(' ', 1024 * 1024 + 1) : "{\"version\":2}";
+        File.WriteAllText(_store.Path, original);
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+        var watched = false;
+        var command = CliCommand.Create(output: output, error: error, settingsStore: _store, runWatch: (state, _) =>
+        {
+            watched = true;
+            Assert.That(state.CapturePreferences().Version, Is.EqualTo(1));
+            Assert.That(state.NetworkEnabled, Is.True);
+            return 0;
+        });
+
+        Assert.That(await command.Parse(["watch"]).InvokeAsync(), Is.Zero);
+        Assert.That(watched, Is.True);
+        Assert.That(error.ToString(), Does.Contain(WinMon.Resources.Strings.CliSettingsLoadFailed));
+        Assert.That(File.ReadAllText(_store.Path), Is.EqualTo(original));
+    }
+
+    [TestCase(false)]
+    [TestCase(true)]
+    [Category("Integration")]
+    public async Task RejectedSettingsSaveReportsFailureAndPreservesFile(bool oversized)
+    {
+        Directory.CreateDirectory(_directory);
+        var original = oversized ? new string(' ', 1024 * 1024 + 1) : "{\"version\":2}";
+        File.WriteAllText(_store.Path, original);
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+        var command = CliCommand.Create(output: output, error: error, settingsStore: _store);
+        Assert.That(await command.Parse(["settings", "set", "--network=true"]).InvokeAsync(), Is.EqualTo(1));
+        Assert.That(error.ToString(), Does.Contain(WinMon.Resources.Strings.CliSettingsSaveFailed));
+
+        var state = State(new());
+        var warnings = 0;
+        var session = new CliSettingsSession(_store, state, () => warnings++);
+        Key(state, ConsoleKey.G);
+        session.Observe();
+        Assert.DoesNotThrow(() => session.Flush(force: true));
+        Assert.That(session.Failed, Is.True);
+        Assert.That(warnings, Is.EqualTo(1));
+        Assert.That(File.ReadAllText(_store.Path), Is.EqualTo(original));
+    }
+
+    [Test]
+    [Category("Integration")]
     public void CorruptJsonIsBackedUpBeforeSavingAndUnknownVersionsAreNotOverwritten()
     {
         Directory.CreateDirectory(_directory);
