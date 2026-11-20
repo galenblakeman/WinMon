@@ -2037,4 +2037,13 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
   <data name="FlightRecorderTitle" xml:space="preserve">
     <value>何が起きた？</value>
   </data>
+  <data name="FlightRecorderCompare" xml:space="preserve"><value>期間を比較</value></data>
+  <data name="FlightRecorderBefore" xml:space="preserve"><value>前</value></data>
+  <data name="FlightRecorderDuring" xml:space="preserve"><value>対象期間</value></data>
+  <data name="FlightRecorderAfter" xml:space="preserve"><value>後</value></data>
+  <data name="FlightRecorderDelta" xml:space="preserve"><value>変化</value></data>
+  <data name="FlightRecorderMoment" xml:space="preserve"><value>選択した時点</value></data>
+  <data name="FlightRecorderObservedMean" xml:space="preserve"><value>{0} ({1})</value></data>
+  <data name="FlightRecorderComparisonHelp" xml:space="preserve"><value>各10秒の3期間：前 −15…−5秒、対象 −5…+5秒、後 +5…+15秒。観測平均（サンプル数）。対象期間−前の変化の絶対値で上位10件。欠測はゼロではありません。</value></data>
+  <data name="FlightRecorderComparisonCaption" xml:space="preserve"><value>10秒間の観測平均（サンプル数）。対象期間−前の変化の絶対値順。</value></data>
 </root>

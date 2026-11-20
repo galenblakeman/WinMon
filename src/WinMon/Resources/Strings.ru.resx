@@ -2037,4 +2037,13 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
   <data name="FlightRecorderTitle" xml:space="preserve">
     <value>Что только что произошло?</value>
   </data>
+  <data name="FlightRecorderCompare" xml:space="preserve"><value>Сравнить периоды</value></data>
+  <data name="FlightRecorderBefore" xml:space="preserve"><value>До</value></data>
+  <data name="FlightRecorderDuring" xml:space="preserve"><value>Во время</value></data>
+  <data name="FlightRecorderAfter" xml:space="preserve"><value>После</value></data>
+  <data name="FlightRecorderDelta" xml:space="preserve"><value>Изменение</value></data>
+  <data name="FlightRecorderMoment" xml:space="preserve"><value>Выбранный момент</value></data>
+  <data name="FlightRecorderObservedMean" xml:space="preserve"><value>{0} ({1})</value></data>
+  <data name="FlightRecorderComparisonHelp" xml:space="preserve"><value>Три окна по 10 с: до −15…−5 с, во время −5…+5 с, после +5…+15 с. Средние наблюдений (число отсчётов). 10 наибольших абсолютных изменений во время − до; отсутствие данных не означает ноль.</value></data>
+  <data name="FlightRecorderComparisonCaption" xml:space="preserve"><value>Средние за 10 с (число отсчётов). По абсолютному изменению Во время − До.</value></data>
 </root>

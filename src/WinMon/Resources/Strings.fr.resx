@@ -2037,4 +2037,13 @@ Arrêtés depuis la dernière observation : {1}</value>
   <data name="FlightRecorderTitle" xml:space="preserve">
     <value>Que vient-il de se passer ?</value>
   </data>
+  <data name="FlightRecorderCompare" xml:space="preserve"><value>Comparer les périodes</value></data>
+  <data name="FlightRecorderBefore" xml:space="preserve"><value>Avant</value></data>
+  <data name="FlightRecorderDuring" xml:space="preserve"><value>Pendant</value></data>
+  <data name="FlightRecorderAfter" xml:space="preserve"><value>Après</value></data>
+  <data name="FlightRecorderDelta" xml:space="preserve"><value>Variation</value></data>
+  <data name="FlightRecorderMoment" xml:space="preserve"><value>Instant sélectionné</value></data>
+  <data name="FlightRecorderObservedMean" xml:space="preserve"><value>{0} ({1})</value></data>
+  <data name="FlightRecorderComparisonHelp" xml:space="preserve"><value>Trois fenêtres de 10 s : avant −15…−5 s, pendant −5…+5 s, après +5…+15 s. Moyennes observées (nombre de mesures). Les 10 plus grandes variations absolues pendant − avant ; les données absentes ne valent pas zéro.</value></data>
+  <data name="FlightRecorderComparisonCaption" xml:space="preserve"><value>Moyennes observées sur 10 s (nombre de mesures). Tri par variation absolue Pendant − Avant.</value></data>
 </root>

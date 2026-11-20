@@ -2,6 +2,17 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## History period comparison analysis (November 19, 2026)
+
+The on-demand History comparison adds three 10-second observed averages and up to 10 process changes when navigating or refreshing the frozen recording. It adds no sampling-loop or per-frame work. A Release .NET 10 probe in `artifacts/history-comparison-probe` used 600 retained one-second samples with 850 process lifetimes each, selecting the midpoint. The baseline executes the unchanged `IncidentTimeline.Contributors`; the changed action executes that same ranking plus `IncidentTimeline.Compare`. Both ran in the same process after 400 warm-up calls each, alternating four baseline/changed runs with seven 60-call batches per run. Results below are medians of the 28 batch means, measured after verification completed.
+
+| Analysis per selection | Before: contributors | After: contributors + comparison |
+| --- | ---: | ---: |
+| Elapsed time | 0.021 ms | 1.154 ms |
+| Thread allocation | 34,561 B | 2,696,905 B |
+
+The extra approximately 1.13 ms and 2.54 MiB are the cost of examining 30 seconds of retained process observations and producing the requested comparison. Raw measurements and the reproducible probe are `artifacts/history-comparison-probe/results.json`, `Program.cs` and `Probe.csproj`. This isolates analysis; it does not include WPF formatting/layout/rendering, a whole-app profile or a full UI benchmark comparison. The capture smoke separately passed 35 renders, including both tabs in light/dark at normal/minimum sizes; those History renders were visually reviewed. No sampling or history-storage format changed.
+
 ## Dedicated sampling worker (November 19, 2026)
 
 Measured the existing and changed `MonitorSession` with the real `WindowsFrameSource` on Windows x64, SDK 10.0.404, using the probe and preserved binaries under `artifacts/sampling-probe`. Each case ran four ten-second recordings at the default one-second interval. The machine was already CPU-saturated: observed total CPU averaged 99.96–100% across runs. The explicit-load case additionally ran twelve normal-priority spin workers. The starvation case limited the probe process's pool to one worker and queued a four-second blocking item after its third capture. This isolates pool delays without changing native collection or chart thresholds.

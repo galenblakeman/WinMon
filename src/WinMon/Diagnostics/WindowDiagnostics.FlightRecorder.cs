@@ -54,6 +54,21 @@ internal sealed partial class WindowDiagnostics
             if (!ReferenceEquals(recorder.Selection, incoming) || recorder.Processes.Items.Count != incoming.Processes.Count ||
                 !recorder.Changes.Text.Contains("refresh-worker", StringComparison.Ordinal))
                 throw new InvalidOperationException("Refreshed peaks, contributors and lifecycle changes must use the latest observations.");
+            if (recorder.ComparisonProcesses.Items.Count == 0 ||
+                !recorder.ComparisonSummary.Text.Contains(Strings.FlightRecorderBefore, StringComparison.Ordinal) ||
+                !recorder.ComparisonSummary.Text.Contains(Strings.FlightRecorderAfter, StringComparison.Ordinal))
+                throw new InvalidOperationException("History comparison must show period averages and retained process changes.");
+            var comparisonSamples = Enumerable.Range(0, 30).Select(second => incoming with
+            {
+                Timestamp = incoming.Timestamp.AddSeconds(second),
+                MonotonicTimestamp = incoming.MonotonicTimestamp + second * System.Diagnostics.Stopwatch.Frequency,
+                TotalCpuPercent = second < 10 ? 10 : second < 20 ? 80 : 20,
+                Resources = incoming.Resources with { DiskActivePercent = second < 10 ? 10 : second < 20 ? 90 : 15 },
+                Processes = [new ProcessUsage(9000, 9000, "comparison-worker", second < 10 ? 5 : second < 20 ? 70 : 10,
+                    100_000_000, second < 10 ? 1_000_000 : second < 20 ? 12_000_000 : 2_000_000)]
+            }).ToArray();
+            recorder.Update(comparisonSamples);
+            recorder.Select(15);
             foreach (var theme in new[] { "Dark", "Light" })
             {
                 fixture.Preferences = fixture.Preferences with { Theme = theme };
@@ -67,13 +82,20 @@ internal sealed partial class WindowDiagnostics
                     var refreshHost = (FrameworkElement)recorder.RefreshButton.Parent;
                     var refreshRight = recorder.RefreshButton.TranslatePoint(
                         new Point(recorder.RefreshButton.ActualWidth, 0), refreshHost).X;
-                    if (recorder.Processes.ActualHeight < 40 || recorder.Graph.ActualHeight < 100 ||
+                    if (recorder.ComparisonProcesses.ActualHeight < 40 || recorder.Graph.ActualHeight < 100 ||
                         recorder.PeakButton.TranslatePoint(new Point(recorder.PeakButton.ActualWidth, 0), recorder).X > recorder.ActualWidth ||
                         Math.Abs(refreshRight - refreshHost.ActualWidth) > 1 ||
                         recorder.RefreshButton.TranslatePoint(new Point(), recorder).Y > 75)
-                        throw new InvalidOperationException("History controls and process list must remain usable at minimum size.");
+                        throw new InvalidOperationException($"History controls and process list must remain usable at minimum size: list={recorder.ComparisonProcesses.ActualHeight}, graph={recorder.Graph.ActualHeight}.");
                     await CaptureServiceWindowAsync(recorder,
                         Path.Combine(output, $"flight-recorder-{theme.ToLowerInvariant()}-{width:0}.png"), cancellationToken);
+                    recorder.Views.SelectedIndex = 1;
+                    recorder.UpdateLayout();
+                    if (recorder.Processes.ActualHeight < 40)
+                        throw new InvalidOperationException("Selected-moment contributors must remain available in their tab.");
+                    await CaptureServiceWindowAsync(recorder,
+                        Path.Combine(output, $"flight-recorder-moment-{theme.ToLowerInvariant()}-{width:0}.png"), cancellationToken);
+                    recorder.Views.SelectedIndex = 0;
                 }
             }
         }
@@ -101,7 +123,8 @@ internal sealed partial class WindowDiagnostics
             refreshSamples = [];
             empty.RefreshButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             if (empty.Selection is not null || empty.Processes.Items.Count != 0 || empty.Readings.Text.Length != 0 ||
-                empty.Changes.Text.Length != 0 || empty.PeakButton.IsEnabled || empty.Coverage.Text != Strings.FlightRecorderEmpty)
+                empty.Changes.Text.Length != 0 || empty.ComparisonSummary.Text.Length != 0 || empty.ComparisonProcesses.Items.Count != 0 ||
+                empty.PeakButton.IsEnabled || empty.Coverage.Text != Strings.FlightRecorderEmpty)
                 throw new InvalidOperationException("Refreshing to empty history must clear previous readings, contributors and changes.");
         }
         finally { empty.Close(); }

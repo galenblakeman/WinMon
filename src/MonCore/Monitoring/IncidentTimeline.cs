@@ -3,6 +3,59 @@ namespace WinMon.Monitoring;
 /// <summary>On-demand analysis of a frozen set of retained observations.</summary>
 public static class IncidentTimeline
 {
+    public sealed record Reading(double? Average, int Observations);
+    public sealed record ProcessComparison(ProcessUsage Process, Reading Before, Reading During, Reading After)
+    {
+        public double? Change => During.Average - Before.Average;
+    }
+    public sealed record Comparison(Reading Before, Reading During, Reading After,
+        IReadOnlyList<ProcessComparison> Processes);
+
+    /// <summary>Observed sample means in adjacent ten-second windows centered on the selected moment.
+    /// Missing processes/readings are never substituted with zero; gaps are excluded, not interpolated.</summary>
+    public static Comparison Compare(IReadOnlyList<MonitorSample> samples, MonitorSample selected, CaptureMetric metric)
+    {
+        var windows = new List<MonitorSample>[] { [], [], [] };
+        foreach (var sample in samples)
+        {
+            if (sample.IsGap) continue;
+            var offset = sample.MonotonicTimestamp > 0 && selected.MonotonicTimestamp > 0
+                ? (sample.MonotonicTimestamp - selected.MonotonicTimestamp) / (double)System.Diagnostics.Stopwatch.Frequency
+                : (sample.Timestamp - selected.Timestamp).TotalSeconds;
+            if (offset is < -15 or >= 15) continue;
+            windows[offset < -5 ? 0 : offset < 5 ? 1 : 2].Add(sample);
+        }
+        var resource = windows.Select(window => Mean(window.Select(sample => CaptureRules.Value(metric, sample)))).ToArray();
+        var processes = windows.Select(window => window.SelectMany(sample => sample.Processes)
+            .Where(process => process.CreationTicks > 0).GroupBy(process => process.Identity)
+            .ToDictionary(group => group.Key, group => (Process: group.Last(), Reading: Mean(group.Select(process => ProcessValue(process, metric)))))).ToArray();
+        var rows = processes.SelectMany(window => window.Keys).Distinct().Select(identity =>
+        {
+            var owner = processes.Last(window => window.ContainsKey(identity))[identity].Process;
+            var readings = processes.Select(window => window.TryGetValue(identity, out var value)
+                ? value.Reading : new Reading(null, 0)).ToArray();
+            return new ProcessComparison(owner, readings[0], readings[1], readings[2]);
+        }).OrderByDescending(row => row.Change.HasValue)
+            .ThenByDescending(row => Math.Abs(row.Change ?? 0))
+            .ThenByDescending(row => row.During.Average)
+            .ThenBy(row => row.Process.ProcessId).Take(10).ToArray();
+        return new(resource[0], resource[1], resource[2], rows);
+    }
+
+    private static Reading Mean(IEnumerable<double?> readings)
+    {
+        var valid = readings.Where(value => value.HasValue && double.IsFinite(value.Value)).Select(value => value!.Value).ToArray();
+        return new(valid.Length == 0 ? null : valid.Average(), valid.Length);
+    }
+
+    private static double? ProcessValue(ProcessUsage process, CaptureMetric metric) => metric switch
+    {
+        CaptureMetric.Memory => process.WorkingSetBytes,
+        CaptureMetric.PrimaryDisk or CaptureMetric.SecondaryDisk => process.IoBytesPerSecond,
+        CaptureMetric.Gpu => process.GpuPercent,
+        _ => process.ObservedCpuPercent
+    };
+
     /// <summary>Find the latest highest valid observation, without bridging recording gaps.</summary>
     public static MonitorSample? Peak(IReadOnlyList<MonitorSample> samples, CaptureMetric metric)
     {

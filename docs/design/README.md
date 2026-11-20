@@ -1,5 +1,7 @@
 # WinMon design assets
 
+- [History period comparison](HISTORY-COMPARISON.md) compares observed resource and process averages before, during and after a selected moment.
+
 - [Release asset reduction](RELEASE-ASSET-REDUCTION.md) bundles the Claude Code plugin with MCP, keeps WinGet material in Actions artifacts and adds direct release download links.
 
 - [Sampling under CPU load](SAMPLING-UNDER-LOAD.md) isolates collection from thread-pool delays and raises only the sampling worker's Windows priority.

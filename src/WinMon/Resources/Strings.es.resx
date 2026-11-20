@@ -2037,4 +2037,13 @@ Finalizados desde la observación anterior: {1}</value>
   <data name="FlightRecorderTitle" xml:space="preserve">
     <value>¿Qué acaba de pasar?</value>
   </data>
+  <data name="FlightRecorderCompare" xml:space="preserve"><value>Comparar períodos</value></data>
+  <data name="FlightRecorderBefore" xml:space="preserve"><value>Antes</value></data>
+  <data name="FlightRecorderDuring" xml:space="preserve"><value>Durante</value></data>
+  <data name="FlightRecorderAfter" xml:space="preserve"><value>Después</value></data>
+  <data name="FlightRecorderDelta" xml:space="preserve"><value>Cambio</value></data>
+  <data name="FlightRecorderMoment" xml:space="preserve"><value>Momento seleccionado</value></data>
+  <data name="FlightRecorderObservedMean" xml:space="preserve"><value>{0} ({1})</value></data>
+  <data name="FlightRecorderComparisonHelp" xml:space="preserve"><value>Tres ventanas de 10 s: antes −15…−5 s, durante −5…+5 s, después +5…+15 s. Promedios observados (número de muestras). Los 10 mayores cambios absolutos durante − antes; los datos ausentes no son cero.</value></data>
+  <data name="FlightRecorderComparisonCaption" xml:space="preserve"><value>Promedios observados de 10 s (número de muestras). Ordenados por cambio absoluto Durante − Antes.</value></data>
 </root>

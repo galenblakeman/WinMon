@@ -38,6 +38,8 @@ Ordinary resource monitoring and connection lists run without administrator righ
 
 Click **History** beside **Capture** in the chart toolbar to open **What just happened?**. It freezes the retained recording and selects the CPU peak, with process contributors for that moment. Choose a resource and use **Find peak**, click the timeline or step through observations with the keyboard. WinMon keeps sampling; **Refresh** loads the latest recording in the same window.
 
+**Compare periods** shows observed averages for three adjacent 10-second windows around the selected moment, with sample counts and the 10 processes with the largest absolute change from before to during. **Selected moment** keeps the original process readings. Missing observations remain unavailable rather than zero; network process comparisons use CPU, and process I/O does not identify a physical disk.
+
 ![History investigation showing the CPU peak and ranked process contributors](docs/example/example_history.png)
 
 Choose CPU, memory, either configured disk, network or GPU. Network currently ranks contributors by CPU; process I/O includes file, network and device activity and does not identify physical disk traffic. Starts/stops appear only where adjacent inventories are complete and collection is continuous.

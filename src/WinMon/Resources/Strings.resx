@@ -2037,4 +2037,13 @@ Stopped since previous observation: {1}</value>
   <data name="FlightRecorderTitle" xml:space="preserve">
     <value>What just happened?</value>
   </data>
+  <data name="FlightRecorderCompare" xml:space="preserve"><value>Compare periods</value></data>
+  <data name="FlightRecorderBefore" xml:space="preserve"><value>Before</value></data>
+  <data name="FlightRecorderDuring" xml:space="preserve"><value>During</value></data>
+  <data name="FlightRecorderAfter" xml:space="preserve"><value>After</value></data>
+  <data name="FlightRecorderDelta" xml:space="preserve"><value>Change</value></data>
+  <data name="FlightRecorderMoment" xml:space="preserve"><value>Selected moment</value></data>
+  <data name="FlightRecorderObservedMean" xml:space="preserve"><value>{0} ({1})</value></data>
+  <data name="FlightRecorderComparisonHelp" xml:space="preserve"><value>Three 10 s windows: before −15…−5 s, during −5…+5 s, after +5…+15 s. Observed averages (sample counts). Top 10 by absolute during − before change; missing data is not zero.</value></data>
+  <data name="FlightRecorderComparisonCaption" xml:space="preserve"><value>10 s observed averages (sample counts). Ranked by absolute During − Before change.</value></data>
 </root>

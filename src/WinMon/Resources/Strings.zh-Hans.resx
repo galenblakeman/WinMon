@@ -2037,4 +2037,13 @@ Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。<
   <data name="FlightRecorderTitle" xml:space="preserve">
     <value>刚才发生了什么？</value>
   </data>
+  <data name="FlightRecorderCompare" xml:space="preserve"><value>比较时段</value></data>
+  <data name="FlightRecorderBefore" xml:space="preserve"><value>之前</value></data>
+  <data name="FlightRecorderDuring" xml:space="preserve"><value>期间</value></data>
+  <data name="FlightRecorderAfter" xml:space="preserve"><value>之后</value></data>
+  <data name="FlightRecorderDelta" xml:space="preserve"><value>变化</value></data>
+  <data name="FlightRecorderMoment" xml:space="preserve"><value>所选时刻</value></data>
+  <data name="FlightRecorderObservedMean" xml:space="preserve"><value>{0} ({1})</value></data>
+  <data name="FlightRecorderComparisonHelp" xml:space="preserve"><value>三个10秒时段：之前 −15…−5秒，期间 −5…+5秒，之后 +5…+15秒。观测平均值（样本数）。按期间−之前的变化绝对值列出前10项；缺失数据不等于零。</value></data>
+  <data name="FlightRecorderComparisonCaption" xml:space="preserve"><value>10秒观测平均值（样本数）。按期间−之前的变化绝对值排序。</value></data>
 </root>

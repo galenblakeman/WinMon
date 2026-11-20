@@ -2037,4 +2037,13 @@ Seit letzter Beobachtung beendet: {1}</value>
   <data name="FlightRecorderTitle" xml:space="preserve">
     <value>Was ist gerade passiert?</value>
   </data>
+  <data name="FlightRecorderCompare" xml:space="preserve"><value>Zeiträume vergleichen</value></data>
+  <data name="FlightRecorderBefore" xml:space="preserve"><value>Vorher</value></data>
+  <data name="FlightRecorderDuring" xml:space="preserve"><value>Während</value></data>
+  <data name="FlightRecorderAfter" xml:space="preserve"><value>Nachher</value></data>
+  <data name="FlightRecorderDelta" xml:space="preserve"><value>Änderung</value></data>
+  <data name="FlightRecorderMoment" xml:space="preserve"><value>Gewählter Zeitpunkt</value></data>
+  <data name="FlightRecorderObservedMean" xml:space="preserve"><value>{0} ({1})</value></data>
+  <data name="FlightRecorderComparisonHelp" xml:space="preserve"><value>Drei 10-s-Fenster: vorher −15…−5 s, während −5…+5 s, nachher +5…+15 s. Beobachtete Mittelwerte (Messanzahl). Top 10 nach absoluter Änderung während − vorher; fehlende Daten sind nicht null.</value></data>
+  <data name="FlightRecorderComparisonCaption" xml:space="preserve"><value>Beobachtete 10-s-Mittelwerte (Messanzahl). Nach absoluter Änderung Während − Vorher sortiert.</value></data>
 </root>

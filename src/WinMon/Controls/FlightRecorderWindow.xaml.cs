@@ -65,12 +65,25 @@ internal partial class FlightRecorderWindow : Window
             Readings.Text = "";
             Processes.ItemsSource = null;
             Changes.Text = "";
+            ComparisonSummary.Text = "";
+            ComparisonProcesses.ItemsSource = null;
             return;
         }
         SelectedTime.Text = sample.Timestamp.ToLocalTime().ToString("G", CultureInfo.CurrentCulture);
         Readings.Text = string.Join("   ·   ", _metrics.Select(metric =>
             CaptureReportText.MetricName(metric, sample.Resources) + " " +
             (CaptureRules.Value(metric, sample) is { } value ? CaptureReportText.Value(metric, value) : "—")));
+        var comparison = IncidentTimeline.Compare(_samples, sample, SelectedMetric);
+        ComparisonSummary.Text = CaptureReportText.MetricName(SelectedMetric, sample.Resources) + ": " +
+            string.Join("   ·   ", new[] { (Strings.FlightRecorderBefore, comparison.Before),
+                (Strings.FlightRecorderDuring, comparison.During), (Strings.FlightRecorderAfter, comparison.After) }
+                .Select(period => period.Item1 + " " + Reading(period.Item2, false)));
+        ComparisonProcesses.ItemsSource = comparison.Processes.Select(row => new
+        {
+            row.Process.Name, Pid = row.Process.ProcessId,
+            Before = Reading(row.Before, true), During = Reading(row.During, true), After = Reading(row.After, true),
+            Change = row.Change is { } delta ? (delta > 0 ? "+" : delta < 0 ? "−" : "") + Value(Math.Abs(delta), true) : "—"
+        }).ToArray();
         Processes.ItemsSource = IncidentTimeline.Contributors(sample, SelectedMetric).Select(p => new
         {
             p.Name, Pid = p.ProcessId, Cpu = Percent(p.ObservedCpuPercent),
@@ -89,6 +102,16 @@ internal partial class FlightRecorderWindow : Window
 
     private static string Percent(double? value) => value is { } number
         ? number.ToString("F1", CultureInfo.CurrentCulture) + "%" : "—";
+
+    private string Reading(IncidentTimeline.Reading reading, bool process) => reading.Average is { } value
+        ? Strings.Format(Strings.FlightRecorderObservedMean, Value(value, process), reading.Observations) : "—";
+
+    private string Value(double value, bool process) => !process ? CaptureReportText.Value(SelectedMetric, value) : SelectedMetric switch
+    {
+        CaptureMetric.Memory => TableMetricText.Memory((ulong)value),
+        CaptureMetric.PrimaryDisk or CaptureMetric.SecondaryDisk => TableMetricText.IoRate(value),
+        _ => Percent(value)
+    };
 
     private static string Names(IReadOnlyList<ProcessUsage> processes) => processes.Count == 0 ? "—" :
         string.Join(", ", processes.Select(p => $"{p.Name} ({p.ProcessId})"));
