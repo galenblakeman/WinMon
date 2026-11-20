@@ -1991,9 +1991,7 @@ Hardware refresh is independent of paused resource history.</value></data>
   <data name="UsageArchivePeriodNote" xml:space="preserve"><value>Calendar period {0:d} – {1:d}.</value></data>
   <data name="CapturePrivateMemoryUnit" xml:space="preserve"><value>MiB</value></data>
   <data name="CaptureConnectionLimit" xml:space="preserve"><value>Up to {0} connections per app, ranked by receive + send rate; {1} included, {2} omitted.</value></data>
-  <data name="FlightRecorderAttribution" xml:space="preserve">
-    <value>Processes rank by the selected resource (network uses CPU). Memory is working set; process I/O includes file, network and device activity, not physical disk attribution.</value>
-  </data>
+  <data name="FlightRecorderAttribution" xml:space="preserve"><value>Processes rank by the selected resource. Network uses delayed receive + send rates across all adapters; provisional rates may change. Missing or incomplete traffic stays unavailable. Memory is working set; process I/O is not physical-disk attribution.</value></data>
   <data name="FlightRecorderChanges" xml:space="preserve">
     <value>Observed process changes</value>
   </data>
@@ -2046,4 +2044,10 @@ Stopped since previous observation: {1}</value>
   <data name="FlightRecorderObservedMean" xml:space="preserve"><value>{0} ({1})</value></data>
   <data name="FlightRecorderComparisonHelp" xml:space="preserve"><value>Three 10 s windows: before −15…−5 s, during −5…+5 s, after +5…+15 s. Observed averages (sample counts). Top 10 by absolute during − before change; missing data is not zero.</value></data>
   <data name="FlightRecorderComparisonCaption" xml:space="preserve"><value>10 s observed averages (sample counts). Ranked by absolute During − Before change.</value></data>
+  <data name="FlightRecorderSave" xml:space="preserve"><value>Save incident…</value></data>
+  <data name="FlightRecorderOpen" xml:space="preserve"><value>Open incident…</value></data>
+  <data name="FlightRecorderFilter" xml:space="preserve"><value>WinMon incident (*.wmincident)|*.wmincident</value></data>
+  <data name="FlightRecorderFileError" xml:space="preserve"><value>Could not save or open the incident: {0}</value></data>
+  <data name="FlightRecorderOpened" xml:space="preserve"><value>Opened incident: {0}. Refresh returns to the current recording.</value></data>
+  <data name="FlightRecorderFileHelp" xml:space="preserve"><value>Saves the frozen timeline, process names, executable paths and app traffic. Review before sharing. Socket endpoints are excluded.</value></data>
 </root>

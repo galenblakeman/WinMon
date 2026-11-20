@@ -15,13 +15,22 @@
         </Grid.RowDefinitions>
         <StackPanel>
             <DockPanel>
-                <Button x:Name="RefreshButton" DockPanel.Dock="Right" Margin="12,0,0,0" VerticalAlignment="Top"
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Top" Margin="12,0,0,0">
+                <Button x:Name="SaveButton" Content="{Binding [FlightRecorderSave], Source={x:Static r:Strings.Text}}"
+                        ToolTip="{Binding [FlightRecorderFileHelp], Source={x:Static r:Strings.Text}}" Click="OnSave" Margin="0,0,8,0"/>
+                <Button x:Name="OpenButton" Content="{Binding [FlightRecorderOpen], Source={x:Static r:Strings.Text}}"
+                        Click="OnOpen" Margin="0,0,8,0"/>
+                <Button x:Name="RefreshButton" VerticalAlignment="Top" Margin="0"
                         Content="{Binding [Refresh], Source={x:Static r:Strings.Text}}" Click="OnRefresh"
                         controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Live}"
                         AutomationProperties.Name="{Binding [Refresh], Source={x:Static r:Strings.Text}}"/>
+                </StackPanel>
                 <TextBlock Text="{Binding [FlightRecorderTitle], Source={x:Static r:Strings.Text}}" FontSize="20" FontWeight="SemiBold" TextWrapping="Wrap"/>
             </DockPanel>
-            <TextBlock x:Name="Coverage" TextWrapping="Wrap" Foreground="{DynamicResource Muted}" Margin="0,6,0,10"/>
+            <TextBlock x:Name="Coverage" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource Muted}" Margin="0,6,0,6"
+                       ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+            <TextBlock x:Name="Source" TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"
+                       Foreground="{DynamicResource Muted}"/>
         </StackPanel>
         <WrapPanel Grid.Row="1" Margin="0,0,0,8">
             <ComboBox x:Name="Metric" Width="150" Margin="0,0,8,0" SelectionChanged="OnMetricChanged"
@@ -34,7 +43,9 @@
                            AutomationProperties.Name="{Binding [FlightRecorderTimeline], Source={x:Static r:Strings.Text}}"/>
         <StackPanel Grid.Row="3" Margin="0,8">
             <TextBlock x:Name="SelectedTime" FontWeight="SemiBold" AutomationProperties.LiveSetting="Polite"/>
-            <TextBlock Text="{Binding [FlightRecorderAttribution], Source={x:Static r:Strings.Text}}" TextWrapping="Wrap" Foreground="{DynamicResource Muted}"/>
+            <TextBlock Text="{Binding [FlightRecorderAttribution], Source={x:Static r:Strings.Text}}" TextWrapping="Wrap"
+                       MaxHeight="34" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource Muted}"
+                       ToolTip="{Binding [FlightRecorderAttribution], Source={x:Static r:Strings.Text}}"/>
         </StackPanel>
         <TabControl x:Name="Views" Grid.Row="4" Background="{DynamicResource Surface}" Foreground="{DynamicResource Text}">
             <TabControl.Resources>
@@ -116,6 +127,7 @@
                                 <GridViewColumn Header="{Binding [Memory], Source={x:Static r:Strings.Text}}" DisplayMemberBinding="{Binding Memory}" Width="110"/>
                                 <GridViewColumn Header="{Binding [IO], Source={x:Static r:Strings.Text}}" DisplayMemberBinding="{Binding Io}" Width="120"/>
                                 <GridViewColumn Header="{Binding [GPU], Source={x:Static r:Strings.Text}}" DisplayMemberBinding="{Binding Gpu}" Width="90"/>
+                                <GridViewColumn Header="{Binding [Network], Source={x:Static r:Strings.Text}}" DisplayMemberBinding="{Binding Network}" Width="120"/>
                             </GridView>
                         </ListView.View>
                     </ListView>

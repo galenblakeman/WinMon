@@ -1991,9 +1991,7 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
   <data name="UsageArchivePeriodNote" xml:space="preserve"><value>Календарный период {0:d} – {1:d}.</value></data>
   <data name="CapturePrivateMemoryUnit" xml:space="preserve"><value>MiB</value></data>
   <data name="CaptureConnectionLimit" xml:space="preserve"><value>До {0} подключений на приложение, по скорости приёма + отправки; включено: {1}, пропущено: {2}.</value></data>
-  <data name="FlightRecorderAttribution" xml:space="preserve">
-    <value>Процессы по ресурсу (для сети — ЦП). Память — рабочий набор; ввод-вывод включает файлы, сеть и устройства, без привязки к физическому диску.</value>
-  </data>
+  <data name="FlightRecorderAttribution" xml:space="preserve"><value>Сортировка по выбранному ресурсу. Сеть использует задержанные суммы скоростей приёма и передачи всех адаптеров; предварительные значения могут меняться. Неполный или отсутствующий трафик недоступен. Память — рабочий набор; ввод-вывод не привязан к физическому диску.</value></data>
   <data name="FlightRecorderChanges" xml:space="preserve">
     <value>Наблюдаемые изменения процессов</value>
   </data>
@@ -2046,4 +2044,10 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
   <data name="FlightRecorderObservedMean" xml:space="preserve"><value>{0} ({1})</value></data>
   <data name="FlightRecorderComparisonHelp" xml:space="preserve"><value>Три окна по 10 с: до −15…−5 с, во время −5…+5 с, после +5…+15 с. Средние наблюдений (число отсчётов). 10 наибольших абсолютных изменений во время − до; отсутствие данных не означает ноль.</value></data>
   <data name="FlightRecorderComparisonCaption" xml:space="preserve"><value>Средние за 10 с (число отсчётов). По абсолютному изменению Во время − До.</value></data>
+  <data name="FlightRecorderSave" xml:space="preserve"><value>Сохранить инцидент…</value></data>
+  <data name="FlightRecorderOpen" xml:space="preserve"><value>Открыть инцидент…</value></data>
+  <data name="FlightRecorderFilter" xml:space="preserve"><value>Инцидент WinMon (*.wmincident)|*.wmincident</value></data>
+  <data name="FlightRecorderFileError" xml:space="preserve"><value>Не удалось сохранить или открыть инцидент: {0}</value></data>
+  <data name="FlightRecorderOpened" xml:space="preserve"><value>Открыт инцидент: {0}. Обновление вернёт текущую запись.</value></data>
+  <data name="FlightRecorderFileHelp" xml:space="preserve"><value>Сохраняет зафиксированную шкалу времени, имена процессов, пути файлов и трафик приложений. Проверьте перед отправкой. Конечные точки сокетов исключены.</value></data>
 </root>

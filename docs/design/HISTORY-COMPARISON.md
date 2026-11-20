@@ -1,5 +1,7 @@
 # History period comparison
 
+Current extension: [network contributors](HISTORY-NETWORK.md) replaces this increment's network CPU fallback with actual retained app traffic. [Incident files](HISTORY-INCIDENTS.md) preserves the compared recording for reopening.
+
 Help explain a selected slowdown using the existing frozen recording. Reuse History navigation, resource selection, refresh and coverage; add no collection, settings or persisted format.
 
 Compare three adjacent 10-second windows centered on selection using monotonic collection time (wall time for fixtures): Before [−15, −5), During [−5, +5), After [+5, +15). Display observed resource averages and observation counts, then the top 10 process lifetimes by absolute During minus Before change. Keep the original instantaneous table in a second tab. Use existing themed headers, keyboard-accessible tabs, horizontal table scrolling and translated resources.

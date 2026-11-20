@@ -1991,9 +1991,7 @@ L’actualisation du matériel est indépendante de la mise en pause de l’hist
   <data name="UsageArchivePeriodNote" xml:space="preserve"><value>Période calendaire {0:d} – {1:d}.</value></data>
   <data name="CapturePrivateMemoryUnit" xml:space="preserve"><value>MiB</value></data>
   <data name="CaptureConnectionLimit" xml:space="preserve"><value>Jusqu’à {0} connexions par application, classées par débit reçu + envoyé ; {1} incluses, {2} omises.</value></data>
-  <data name="FlightRecorderAttribution" xml:space="preserve">
-    <value>Processus classés par ressource (réseau : CPU). Mémoire : jeu de travail ; les E/S incluent fichiers, réseau et périphériques, sans attribution au disque physique.</value>
-  </data>
+  <data name="FlightRecorderAttribution" xml:space="preserve"><value>Classement par ressource choisie. Réseau utilise les débits différés reçus et envoyés de tous les adaptateurs ; les valeurs provisoires peuvent changer. Le trafic absent ou incomplet reste indisponible. Mémoire indique le jeu de travail ; les E/S ne sont pas attribuées à un disque physique.</value></data>
   <data name="FlightRecorderChanges" xml:space="preserve">
     <value>Changements de processus observés</value>
   </data>
@@ -2046,4 +2044,10 @@ Arrêtés depuis la dernière observation : {1}</value>
   <data name="FlightRecorderObservedMean" xml:space="preserve"><value>{0} ({1})</value></data>
   <data name="FlightRecorderComparisonHelp" xml:space="preserve"><value>Trois fenêtres de 10 s : avant −15…−5 s, pendant −5…+5 s, après +5…+15 s. Moyennes observées (nombre de mesures). Les 10 plus grandes variations absolues pendant − avant ; les données absentes ne valent pas zéro.</value></data>
   <data name="FlightRecorderComparisonCaption" xml:space="preserve"><value>Moyennes observées sur 10 s (nombre de mesures). Tri par variation absolue Pendant − Avant.</value></data>
+  <data name="FlightRecorderSave" xml:space="preserve"><value>Enregistrer l’incident…</value></data>
+  <data name="FlightRecorderOpen" xml:space="preserve"><value>Ouvrir un incident…</value></data>
+  <data name="FlightRecorderFilter" xml:space="preserve"><value>Incident WinMon (*.wmincident)|*.wmincident</value></data>
+  <data name="FlightRecorderFileError" xml:space="preserve"><value>Impossible d’enregistrer ou d’ouvrir l’incident : {0}</value></data>
+  <data name="FlightRecorderOpened" xml:space="preserve"><value>Incident ouvert : {0}. Actualiser revient à l’enregistrement actuel.</value></data>
+  <data name="FlightRecorderFileHelp" xml:space="preserve"><value>Enregistre la chronologie figée, les noms des processus, les chemins et le trafic des applications. Vérifiez avant de partager. Les points de terminaison des sockets sont exclus.</value></data>
 </root>

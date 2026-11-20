@@ -63,12 +63,57 @@ internal sealed partial class WindowDiagnostics
                 Timestamp = incoming.Timestamp.AddSeconds(second),
                 MonotonicTimestamp = incoming.MonotonicTimestamp + second * System.Diagnostics.Stopwatch.Frequency,
                 TotalCpuPercent = second < 10 ? 10 : second < 20 ? 80 : 20,
-                Resources = incoming.Resources with { DiskActivePercent = second < 10 ? 10 : second < 20 ? 90 : 15 },
+                Resources = incoming.Resources with { DiskActivePercent = second < 10 ? 10 : second < 20 ? 90 : 15,
+                    LinkBitsPerSecond = 100_000_000, ReceiveBytesPerSecond = second < 10 ? 100_000 : second < 20 ? 800_000 : 120_000,
+                    SendBytesPerSecond = 20_000 },
                 Processes = [new ProcessUsage(9000, 9000, "comparison-worker", second < 10 ? 5 : second < 20 ? 70 : 10,
                     100_000_000, second < 10 ? 1_000_000 : second < 20 ? 12_000_000 : 2_000_000)]
             }).ToArray();
             recorder.Update(comparisonSamples);
             recorder.Select(15);
+            var trafficOwner = new ProcessUsage(9200, 9200, "incident-download", 0)
+                { ImagePath = @"C:\fixture\incident-download.exe" };
+            var traffic = comparisonSamples.Select(sample => new ConnectionCapture(sample, null, [trafficOwner],
+                new ProcessNetworkFrame(sample.MonotonicTimestamp, System.Diagnostics.Stopwatch.Frequency,
+                    ProcessNetworkQuality.Provisional, [new(9200, 9200, 1000, 2000,
+                        sample == comparisonSamples[15] ? 800_000 : 100_000, 20_000)])
+                { Owners = [trafficOwner] })).ToArray();
+            recorder.Update(comparisonSamples, traffic: traffic);
+            recorder.Metric.SelectedIndex = 4;
+            recorder.Select(15);
+            var incidentPath = Path.Combine(output, "history-roundtrip.wmincident");
+            var saveStarted = false;
+            var saveFinished = false;
+            recorder.SaveStarted += _ =>
+            {
+                saveStarted = true;
+                if (recorder.SaveButton.IsEnabled || recorder.OpenButton.IsEnabled || recorder.RefreshButton.IsEnabled)
+                    throw new InvalidOperationException("Incident file controls must be disabled during save.");
+            };
+            recorder.SaveFinished += _ => saveFinished = true;
+            await recorder.SaveRecordingAsync(incidentPath);
+            if (!saveStarted || !saveFinished)
+                throw new InvalidOperationException("Incident saves must participate in the owner's export shutdown tracking.");
+            recorder.Update([]);
+            await recorder.OpenRecordingAsync(incidentPath);
+            if (recorder.Selection?.Timestamp != comparisonSamples[15].Timestamp || recorder.Metric.SelectedIndex != 4 ||
+                !recorder.Source.Text.Contains("history-roundtrip.wmincident", StringComparison.Ordinal) ||
+                recorder.Processes.Items[0].GetType().GetProperty("Name")?.GetValue(recorder.Processes.Items[0]) as string != "incident-download" ||
+                recorder.ComparisonProcesses.Items.Count == 0 || !recorder.SaveButton.IsEnabled)
+                throw new InvalidOperationException("Saved incidents must reopen at the selected network observation with actual traffic leaders and comparison data.");
+            var loadedSelection = recorder.Selection;
+            var loadedSource = recorder.Source.Text;
+            var invalidPath = Path.Combine(output, "invalid.wmincident");
+            File.WriteAllText(invalidPath, "invalid incident");
+            try
+            {
+                await recorder.OpenRecordingAsync(invalidPath);
+                throw new InvalidOperationException("Invalid incident input must be rejected.");
+            }
+            catch (InvalidDataException) { }
+            if (!ReferenceEquals(recorder.Selection, loadedSelection) || recorder.Source.Text != loadedSource ||
+                !recorder.SaveButton.IsEnabled || !recorder.OpenButton.IsEnabled || !recorder.RefreshButton.IsEnabled)
+                throw new InvalidOperationException("A failed open must preserve the displayed incident and restore its controls.");
             foreach (var theme in new[] { "Dark", "Light" })
             {
                 fixture.Preferences = fixture.Preferences with { Theme = theme };
@@ -86,7 +131,7 @@ internal sealed partial class WindowDiagnostics
                         recorder.PeakButton.TranslatePoint(new Point(recorder.PeakButton.ActualWidth, 0), recorder).X > recorder.ActualWidth ||
                         Math.Abs(refreshRight - refreshHost.ActualWidth) > 1 ||
                         recorder.RefreshButton.TranslatePoint(new Point(), recorder).Y > 75)
-                        throw new InvalidOperationException($"History controls and process list must remain usable at minimum size: list={recorder.ComparisonProcesses.ActualHeight}, graph={recorder.Graph.ActualHeight}.");
+                        throw new InvalidOperationException($"History controls and process list must remain usable at minimum size: list={recorder.ComparisonProcesses.ActualHeight}, graph={recorder.Graph.ActualHeight}, refreshRight={refreshRight}/{refreshHost.ActualWidth}, refreshY={recorder.RefreshButton.TranslatePoint(new Point(), recorder).Y}, peakRight={recorder.PeakButton.TranslatePoint(new Point(recorder.PeakButton.ActualWidth, 0), recorder).X}/{recorder.ActualWidth}.");
                     await CaptureServiceWindowAsync(recorder,
                         Path.Combine(output, $"flight-recorder-{theme.ToLowerInvariant()}-{width:0}.png"), cancellationToken);
                     recorder.Views.SelectedIndex = 1;
@@ -98,6 +143,10 @@ internal sealed partial class WindowDiagnostics
                     recorder.Views.SelectedIndex = 0;
                 }
             }
+            recorder.RefreshButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            if (recorder.Source.Text.Length != 0 || recorder.Metric.SelectedIndex != 4 ||
+                !fixture.Session.History.Samples.Any(sample => ReferenceEquals(sample, recorder.Selection)))
+                throw new InvalidOperationException("Refresh must leave the loaded incident and return to retained live history.");
         }
         finally { recorder.Close(); }
 

@@ -1991,9 +1991,7 @@ Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。<
   <data name="UsageArchivePeriodNote" xml:space="preserve"><value>日历时段 {0:d} – {1:d}。</value></data>
   <data name="CapturePrivateMemoryUnit" xml:space="preserve"><value>MiB</value></data>
   <data name="CaptureConnectionLimit" xml:space="preserve"><value>每个应用最多 {0} 个连接，按接收＋发送速率排序；已包含 {1} 个，已省略 {2} 个。</value></data>
-  <data name="FlightRecorderAttribution" xml:space="preserve">
-    <value>进程按所选资源排序（网络按 CPU 排序）。内存为工作集；进程 I/O 包括文件、网络和设备活动，并非物理磁盘归因。</value>
-  </data>
+  <data name="FlightRecorderAttribution" xml:space="preserve"><value>进程按所选资源排序。网络使用所有适配器的延迟接收与发送速率之和；临时速率可能变化。不完整或缺失的流量保持不可用。内存为工作集；进程 I/O 不表示物理磁盘归属。</value></data>
   <data name="FlightRecorderChanges" xml:space="preserve">
     <value>观测到的进程变化</value>
   </data>
@@ -2046,4 +2044,10 @@ Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。<
   <data name="FlightRecorderObservedMean" xml:space="preserve"><value>{0} ({1})</value></data>
   <data name="FlightRecorderComparisonHelp" xml:space="preserve"><value>三个10秒时段：之前 −15…−5秒，期间 −5…+5秒，之后 +5…+15秒。观测平均值（样本数）。按期间−之前的变化绝对值列出前10项；缺失数据不等于零。</value></data>
   <data name="FlightRecorderComparisonCaption" xml:space="preserve"><value>10秒观测平均值（样本数）。按期间−之前的变化绝对值排序。</value></data>
+  <data name="FlightRecorderSave" xml:space="preserve"><value>保存事件…</value></data>
+  <data name="FlightRecorderOpen" xml:space="preserve"><value>打开事件…</value></data>
+  <data name="FlightRecorderFilter" xml:space="preserve"><value>WinMon 事件 (*.wmincident)|*.wmincident</value></data>
+  <data name="FlightRecorderFileError" xml:space="preserve"><value>无法保存或打开事件：{0}</value></data>
+  <data name="FlightRecorderOpened" xml:space="preserve"><value>已打开事件：{0}。刷新将返回当前记录。</value></data>
+  <data name="FlightRecorderFileHelp" xml:space="preserve"><value>保存冻结的时间线、进程名称、可执行文件路径和应用流量。分享前请检查。不包含套接字端点。</value></data>
 </root>

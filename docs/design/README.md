@@ -1,5 +1,8 @@
 # WinMon design assets
 
+- [Network contributors in History](HISTORY-NETWORK.md) ranks and compares actual retained app traffic without CPU fallback.
+- [Save and reopen incidents](HISTORY-INCIDENTS.md) preserves frozen timelines in bounded local files, independently of live monitoring.
+
 - [History period comparison](HISTORY-COMPARISON.md) compares observed resource and process averages before, during and after a selected moment.
 
 - [Release asset reduction](RELEASE-ASSET-REDUCTION.md) bundles the Claude Code plugin with MCP, keeps WinGet material in Actions artifacts and adds direct release download links.

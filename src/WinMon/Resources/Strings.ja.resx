@@ -1991,9 +1991,7 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
   <data name="UsageArchivePeriodNote" xml:space="preserve"><value>暦期間 {0:d} – {1:d}。</value></data>
   <data name="CapturePrivateMemoryUnit" xml:space="preserve"><value>MiB</value></data>
   <data name="CaptureConnectionLimit" xml:space="preserve"><value>アプリごとに受信＋送信レート順で最大 {0} 接続。{1} 件を表示、{2} 件を省略。</value></data>
-  <data name="FlightRecorderAttribution" xml:space="preserve">
-    <value>選択したリソース順に表示（ネットワークはCPU順）。メモリはワーキングセットです。I/Oにはファイル、ネットワーク、デバイスが含まれ、物理ディスクへの帰属ではありません。</value>
-  </data>
+  <data name="FlightRecorderAttribution" xml:space="preserve"><value>選択したリソースで順位付けします。ネットワークは全アダプターの遅延した送受信レートの合計です。暫定値は変動し、不完全または欠測の通信量は利用不可です。メモリはワーキングセットです。プロセス I/O は物理ディスク別ではありません。</value></data>
   <data name="FlightRecorderChanges" xml:space="preserve">
     <value>観測されたプロセスの変化</value>
   </data>
@@ -2046,4 +2044,10 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
   <data name="FlightRecorderObservedMean" xml:space="preserve"><value>{0} ({1})</value></data>
   <data name="FlightRecorderComparisonHelp" xml:space="preserve"><value>各10秒の3期間：前 −15…−5秒、対象 −5…+5秒、後 +5…+15秒。観測平均（サンプル数）。対象期間−前の変化の絶対値で上位10件。欠測はゼロではありません。</value></data>
   <data name="FlightRecorderComparisonCaption" xml:space="preserve"><value>10秒間の観測平均（サンプル数）。対象期間−前の変化の絶対値順。</value></data>
+  <data name="FlightRecorderSave" xml:space="preserve"><value>インシデントを保存…</value></data>
+  <data name="FlightRecorderOpen" xml:space="preserve"><value>インシデントを開く…</value></data>
+  <data name="FlightRecorderFilter" xml:space="preserve"><value>WinMon インシデント (*.wmincident)|*.wmincident</value></data>
+  <data name="FlightRecorderFileError" xml:space="preserve"><value>インシデントを保存または開くことができませんでした: {0}</value></data>
+  <data name="FlightRecorderOpened" xml:space="preserve"><value>開いたインシデント: {0}。更新すると現在の記録に戻ります。</value></data>
+  <data name="FlightRecorderFileHelp" xml:space="preserve"><value>固定したタイムライン、プロセス名、実行ファイルのパス、アプリの通信量を保存します。共有前に確認してください。ソケットのエンドポイントは含みません。</value></data>
 </root>

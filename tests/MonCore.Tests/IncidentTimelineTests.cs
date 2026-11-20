@@ -61,8 +61,7 @@ public sealed class IncidentTimelineTests
     [TestCase(CaptureMetric.PrimaryDisk, 300)]
     [TestCase(CaptureMetric.SecondaryDisk, 300)]
     [TestCase(CaptureMetric.Gpu, 20)]
-    [TestCase(CaptureMetric.Network, 10)]
-    public void Compare_UsesSelectedProcessMetricAndExistingNetworkCpuFallback(CaptureMetric metric, double expected)
+    public void Compare_UsesSelectedProcessMetric(CaptureMetric metric, double expected)
     {
         var selected = Sample(15, new ProcessUsage(1, 1, "app", 10, 500, 300) { GpuPercent = 20 });
         var result = IncidentTimeline.Compare([selected], selected, metric);

@@ -17,11 +17,14 @@ public partial class MainWindow
             return;
         }
         var samples = Session.History.Samples;
-        var recorder = new FlightRecorderWindow(samples, IncidentTimeline.CaptureChanges(samples, Session.UsageHistory)) { Owner = this };
+        var recorder = new FlightRecorderWindow(samples, IncidentTimeline.CaptureChanges(samples, Session.UsageHistory),
+            Session.Connections.Captures) { Owner = this };
+        recorder.SaveStarted += write => ExportWrites.Add(write);
+        recorder.SaveFinished += write => ExportWrites.Remove(write);
         recorder.RefreshRequested += (_, _) =>
         {
             var latest = Session.History.Samples;
-            recorder.Update(latest, IncidentTimeline.CaptureChanges(latest, Session.UsageHistory));
+            recorder.Update(latest, IncidentTimeline.CaptureChanges(latest, Session.UsageHistory), Session.Connections.Captures);
         };
         recorder.Closed += (_, _) => _flightRecorder = null;
         _flightRecorder = recorder;

@@ -2,6 +2,20 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## History traffic and incident files (November 19, 2026)
+
+History traffic joining and incident serialization run only on explicit investigation actions. No collector, timer or sampling-loop work was added. `artifacts/incident-probe` contains a Release .NET 10 probe, the original checked-in CPU comparison/ranking implementation as `BaselineTimeline`, and `final-default.json` / `final-no-tiering.json`. The analysis workload has 600 one-second samples and 850 process lifetimes per sample; the network case adds aligned delayed provisional traffic for every lifetime. After 400 warm-up calls per action, four alternating baseline CPU / changed CPU / changed network runs each use seven batches of 60 calls. Values below are medians of the 28 batch means; allocations use the calling thread.
+
+| Navigation analysis | Before CPU | After CPU | After network |
+| --- | ---: | ---: | ---: |
+| Default tiering, elapsed | 2.01 ms | 2.42 ms | 10.01 ms |
+| Default tiering, allocated | 2,696,905 B | 2,697,273 B | 8,443,617 B |
+| Tiering disabled, elapsed | 3.15 ms | 3.56 ms | 10.33 ms |
+
+The traffic join builds lifetime maps and includes owners omitted by process compaction. CPU analysis retains its original process metrics rather than allocating traffic rows for every CPU observation; its additional dispatch/closure stage costs 368 bytes and about 0.41 ms per navigation in this mixed workload. This is an explicit on-demand cost, not a per-frame or sampling regression. Other verification activity was running on the machine, so absolute times are not quiet-machine latency guarantees. These measurements isolate analysis and exclude WPF formatting, layout, rendering and whole-app resource use.
+
+A separate persistence workload saves 300 observations with 120 process rows each. Four measured saves/loads follow one warm-up round trip. Default-tiered medians were 331 ms save and 414 ms load; the file was 1,286,433 bytes. The tiering-disabled run measured 94 ms save and 200 ms load on the same data, illustrating sensitivity to machine activity and runtime state. These are new-operation costs, with no pre-feature persistence equivalent. File I/O runs off the dispatcher; normal shutdown waits for pending saves through the existing export tracking. File and decompression limits remain enforced independently.
+
 ## History period comparison analysis (November 19, 2026)
 
 The on-demand History comparison adds three 10-second observed averages and up to 10 process changes when navigating or refreshing the frozen recording. It adds no sampling-loop or per-frame work. A Release .NET 10 probe in `artifacts/history-comparison-probe` used 600 retained one-second samples with 850 process lifetimes each, selecting the midpoint. The baseline executes the unchanged `IncidentTimeline.Contributors`; the changed action executes that same ranking plus `IncidentTimeline.Compare`. Both ran in the same process after 400 warm-up calls each, alternating four baseline/changed runs with seven 60-call batches per run. Results below are medians of the 28 batch means, measured after verification completed.

@@ -13,7 +13,11 @@ public static class IncidentTimeline
 
     /// <summary>Observed sample means in adjacent ten-second windows centered on the selected moment.
     /// Missing processes/readings are never substituted with zero; gaps are excluded, not interpolated.</summary>
-    public static Comparison Compare(IReadOnlyList<MonitorSample> samples, MonitorSample selected, CaptureMetric metric)
+    public static Comparison Compare(IReadOnlyList<MonitorSample> samples, MonitorSample selected, CaptureMetric metric) =>
+        Compare(samples, selected, metric, null);
+
+    public static Comparison Compare(IReadOnlyList<MonitorSample> samples, MonitorSample selected, CaptureMetric metric,
+        IReadOnlyDictionary<SampleKey, ConnectionCapture>? traffic)
     {
         var windows = new List<MonitorSample>[] { [], [], [] };
         foreach (var sample in samples)
@@ -26,9 +30,7 @@ public static class IncidentTimeline
             windows[offset < -5 ? 0 : offset < 5 ? 1 : 2].Add(sample);
         }
         var resource = windows.Select(window => Mean(window.Select(sample => CaptureRules.Value(metric, sample)))).ToArray();
-        var processes = windows.Select(window => window.SelectMany(sample => sample.Processes)
-            .Where(process => process.CreationTicks > 0).GroupBy(process => process.Identity)
-            .ToDictionary(group => group.Key, group => (Process: group.Last(), Reading: Mean(group.Select(process => ProcessValue(process, metric)))))).ToArray();
+        var processes = windows.Select(window => ProcessMeans(window, metric, traffic)).ToArray();
         var rows = processes.SelectMany(window => window.Keys).Distinct().Select(identity =>
         {
             var owner = processes.Last(window => window.ContainsKey(identity))[identity].Process;
@@ -40,6 +42,20 @@ public static class IncidentTimeline
             .ThenByDescending(row => row.During.Average)
             .ThenBy(row => row.Process.ProcessId).Take(10).ToArray();
         return new(resource[0], resource[1], resource[2], rows);
+    }
+
+    private static Dictionary<ProcessLifetimeIdentity, (ProcessUsage Process, Reading Reading)> ProcessMeans(
+        IReadOnlyList<MonitorSample> window, CaptureMetric metric, IReadOnlyDictionary<SampleKey, ConnectionCapture>? traffic)
+    {
+        if (metric != CaptureMetric.Network)
+            return window.SelectMany(sample => sample.Processes)
+                .Where(process => process.CreationTicks > 0).GroupBy(process => process.Identity)
+                .ToDictionary(group => group.Key, group => (group.Last(),
+                    Mean(group.Select(process => ProcessValue(process, metric)))));
+        return window.SelectMany(sample => ProcessValues(sample, metric,
+                traffic?.GetValueOrDefault(SampleKey.Of(sample))))
+            .Where(row => row.Process.CreationTicks > 0).GroupBy(row => row.Process.Identity)
+            .ToDictionary(group => group.Key, group => (group.Last().Process, Mean(group.Select(row => row.Value))));
     }
 
     private static Reading Mean(IEnumerable<double?> readings)
@@ -71,18 +87,54 @@ public static class IncidentTimeline
         return peak;
     }
 
-    /// <summary>Rank retained processes by the selected resource; network falls back to CPU.</summary>
-    public static IReadOnlyList<ProcessUsage> Contributors(MonitorSample sample, CaptureMetric metric)
+    public readonly record struct ProcessReading(ProcessUsage Process, double? Value);
+
+    /// <summary>Join only the exact captured observation and Windows lifetime; absent traffic stays unknown.</summary>
+    public static IReadOnlyList<ProcessReading> ProcessReadings(MonitorSample sample, CaptureMetric metric,
+        ConnectionCapture? traffic = null) => ProcessValues(sample, metric, traffic)
+        .OrderByDescending(row => row.Value).ThenBy(row => row.Process.ProcessId).ToArray();
+
+    private static IEnumerable<ProcessReading> ProcessValues(MonitorSample sample, CaptureMetric metric,
+        ConnectionCapture? traffic = null)
     {
-        // shortcut: network ranks CPU until retained process traffic is joined into this view.
-        return sample.Processes.OrderByDescending(process => metric switch
+        if (metric != CaptureMetric.Network)
+            return sample.Processes.Select(process => new ProcessReading(process, ProcessValue(process, metric)));
+        if (traffic is not null && !SampleKey.Of(sample).Matches(traffic.Sample)) traffic = null;
+        var frame = traffic?.Network;
+        var readings = (frame?.Processes ?? []).ToDictionary(reading =>
+            new ProcessLifetimeIdentity(reading.ProcessId, reading.CreationTicks, ProcessLifetimeIdentity.WindowsFileTime));
+        var valid = !sample.IsGap && frame is not null &&
+            (frame.Quality & ~ProcessNetworkQuality.Provisional) == ProcessNetworkQuality.None;
+        var observed = sample.Processes.Concat(traffic?.Owners ?? []).ToArray();
+        var known = observed.Select(process => process.Identity).ToHashSet();
+        return observed.Concat((frame?.Owners ?? []).Where(process => !known.Contains(process.Identity))
+                .Select(process => process with { CpuAvailable = false, WorkingSetBytes = null,
+                    IoBytesPerSecond = null, GpuPercent = null }))
+            .DistinctBy(process => process.Identity).Select(process =>
+        {
+            double? rate = null;
+            if (valid && process.CreationTicks > 0 && readings.TryGetValue(process.Identity, out var reading) &&
+                (frame!.CurrentLifetimes is null || frame.CurrentLifetimes.Contains(process.Identity)) &&
+                reading.ReceiveBytesPerSecond is >= 0 and { } receive &&
+                reading.SendBytesPerSecond is >= 0 and { } send && double.IsFinite(receive + send))
+                rate = receive + send;
+            return new ProcessReading(process, rate);
+        });
+    }
+
+    public static IReadOnlyList<ProcessUsage> Contributors(MonitorSample sample, CaptureMetric metric) =>
+        Contributors(sample, metric, null);
+
+    public static IReadOnlyList<ProcessUsage> Contributors(MonitorSample sample, CaptureMetric metric,
+        ConnectionCapture? traffic) => metric == CaptureMetric.Network
+        ? ProcessReadings(sample, metric, traffic).Select(row => row.Process).ToArray()
+        : sample.Processes.OrderByDescending(process => metric switch
         {
             CaptureMetric.Memory => process.WorkingSetBytes,
             CaptureMetric.PrimaryDisk or CaptureMetric.SecondaryDisk => process.IoBytesPerSecond,
             CaptureMetric.Gpu => process.GpuPercent,
             _ => process.ObservedCpuPercent
         }).ThenBy(process => process.ProcessId).ToArray();
-    }
 
     /// <summary>Compare complete adjacent observations by lifetime; null means changes cannot be inferred.</summary>
     public static (IReadOnlyList<ProcessUsage> Started, IReadOnlyList<ProcessUsage> Stopped)? Changes(

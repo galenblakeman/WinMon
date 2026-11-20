@@ -1,0 +1,15 @@
+# Save and reopen incidents
+
+History offers Save incident and Open incident. Save persists the entire currently frozen recording, selected resource and selected observation. Open replaces the investigation window's data without restoring anything into the sampling session. Refresh returns to current retained history. The source filename remains visible, with its full explanation in a tooltip.
+
+Use the existing monitoring records and serialization converters. `IncidentRecording` stores versioned GZip JSON containing resource/process observations, app traffic and frozen started/stopped lists. It records the source Stopwatch frequency; loading rebases sample offsets to the local frequency without changing wall time. Missing coverage remains missing. Endpoints, service inventories, Usage totals and live collector state are excluded.
+
+Limit files to 64 MiB compressed, 256 MiB decoded, 7,200 observations, two million process/traffic entries and a one-day span. Validate the version, resource, selection, ordering and required nested collections before replacing the displayed recording. Bound decompression independently of the file length. Write a unique sibling temporary file and atomically replace the destination only after serialization, size checks and flushing succeed. Failures display an error and preserve the existing file or displayed incident. File work runs off the dispatcher; controls prevent concurrent file operations.
+
+Files contain process names and executable paths. Save explains this in its tooltip; user documentation asks users to review files before sharing. There is no upload, file association or automatic collection.
+
+## What landed
+
+Implemented `IncidentRecording`, Save/Open in `FlightRecorderWindow`, localized labels and privacy/error text, `IncidentRecordingTests` and a capture-smoke round trip covering loaded state, network comparison and return to live history. Manual frozen snapshots landed as designed; guaranteed pre/post-trigger recording and automatic incident-file creation remain outside this feature.
+
+Validation: isolated repository verification passed 2,041 executed desktop tests, the app/benchmark builds with zero warnings/errors and all 35 capture renders (`artifacts/incident-verify/20261119-222658-166-desktop`). Smoke exercises the actual asynchronous save/open methods, save tracking, invalid-open recovery, selection preservation and Refresh back to live history. Final dark/light normal/minimum and empty-history PNGs were reviewed. Native file-picker interaction and a second physical machine were not exercised; clock-frequency portability is covered by `Load_RebasesForeignClockFrequencyWithoutChangingWallTime`. Existing `Compare(samples, selected, metric)` and `Contributors(sample, metric)` signatures remain available for already-compiled callers.

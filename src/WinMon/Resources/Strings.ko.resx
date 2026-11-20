@@ -1991,9 +1991,7 @@ Q 종료. Ctrl+C 취소. 실행 파일과 서비스 고정은 다음 실행에�
   <data name="UsageArchivePeriodNote" xml:space="preserve"><value>달력 기간 {0:d} – {1:d}.</value></data>
   <data name="CapturePrivateMemoryUnit" xml:space="preserve"><value>MiB</value></data>
   <data name="CaptureConnectionLimit" xml:space="preserve"><value>앱당 수신 + 송신 속도순으로 최대 {0}개 연결: {1}개 포함, {2}개 생략.</value></data>
-  <data name="FlightRecorderAttribution" xml:space="preserve">
-    <value>선택한 리소스 순입니다(네트워크는 CPU 사용). 메모리는 작업 집합이며 프로세스 I/O에는 파일, 네트워크, 장치 활동이 포함되어 물리 디스크 사용량과 다릅니다.</value>
-  </data>
+  <data name="FlightRecorderAttribution" xml:space="preserve"><value>선택한 리소스로 순위를 정합니다. 네트워크는 모든 어댑터의 지연된 수신 및 송신 속도 합계입니다. 잠정 값은 바뀔 수 있으며 불완전하거나 누락된 트래픽은 사용할 수 없습니다. 메모리는 작업 집합이며 프로세스 I/O는 물리 디스크별 수치가 아닙니다.</value></data>
   <data name="FlightRecorderChanges" xml:space="preserve">
     <value>관측된 프로세스 변경</value>
   </data>
@@ -2046,4 +2044,10 @@ Q 종료. Ctrl+C 취소. 실행 파일과 서비스 고정은 다음 실행에�
   <data name="FlightRecorderObservedMean" xml:space="preserve"><value>{0} ({1})</value></data>
   <data name="FlightRecorderComparisonHelp" xml:space="preserve"><value>각 10초의 세 구간: 이전 −15…−5초, 해당 −5…+5초, 이후 +5…+15초. 관측 평균(표본 수). 해당 기간 − 이전 변화의 절댓값 상위 10개. 누락된 데이터는 0이 아닙니다.</value></data>
   <data name="FlightRecorderComparisonCaption" xml:space="preserve"><value>10초 관측 평균(표본 수). 해당 기간 − 이전 변화의 절댓값순.</value></data>
+  <data name="FlightRecorderSave" xml:space="preserve"><value>인시던트 저장…</value></data>
+  <data name="FlightRecorderOpen" xml:space="preserve"><value>인시던트 열기…</value></data>
+  <data name="FlightRecorderFilter" xml:space="preserve"><value>WinMon 인시던트 (*.wmincident)|*.wmincident</value></data>
+  <data name="FlightRecorderFileError" xml:space="preserve"><value>인시던트를 저장하거나 열 수 없습니다: {0}</value></data>
+  <data name="FlightRecorderOpened" xml:space="preserve"><value>열린 인시던트: {0}. 새로 고침은 현재 기록으로 돌아갑니다.</value></data>
+  <data name="FlightRecorderFileHelp" xml:space="preserve"><value>고정된 타임라인, 프로세스 이름, 실행 파일 경로 및 앱 트래픽을 저장합니다. 공유 전에 확인하세요. 소켓 엔드포인트는 제외됩니다.</value></data>
 </root>

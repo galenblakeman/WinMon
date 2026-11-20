@@ -1,5 +1,7 @@
 # What just happened?
 
+Current extensions: [network contributors](HISTORY-NETWORK.md) replaces the initial CPU fallback with retained app traffic, and [incident files](HISTORY-INCIDENTS.md) adds explicit save/reopen support. The implementation record below describes the original increment.
+
 The History button sits beside Capture in the chart toolbar, using a clock-with-back-arrow icon. The centered action group reads Live/Capture, History, Auto. History opens a separate, resizable investigation window. Its graph, readings and process list share one selected observation. Find peak selects the latest highest valid reading for the chosen resource; Previous/Next and the chart's existing arrow-key navigation explore the surrounding samples. The window freezes the retained recording while the main window keeps sampling. Refresh in the upper-right corner loads the latest recording in place, preserving the selected resource and observation when it is still retained; otherwise it selects the current resource peak. Only one recorder may be open, bounding retained references to one recording.
 
 Reuse `MonitorSession.History`, `CpuGraph`, `CaptureRules.Value`, resource labels and table formatters. No new collector, dependency, preference, disk format or background work is needed. The initial selection is the CPU peak. The full retained range is visible, rather than assuming a fixed five-minute recording.
