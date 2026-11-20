@@ -5,8 +5,10 @@ using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Interop;
 using System.Windows.Threading;
+using WinMon.Controls;
 using WinMon.Monitoring;
 using WinMon.Preferences;
+using Button = System.Windows.Controls.Button;
 using Point = System.Drawing.Point;
 
 // ReSharper disable StringLiteralTypo
@@ -42,7 +44,7 @@ internal sealed partial class WindowDiagnostics
                 Process(12004, "Taskmgr", "Task Manager", 2, 195, 22, 560),
                 Process(12010, "OneDrive", "Microsoft OneDrive", 0.8, 175, 36, 740)
             ];
-            var anchor = new DateTimeOffset(2026, 11, 9, 10, 24, 0, TimeSpan.FromHours(-6));
+            var anchor = new DateTimeOffset(2026, 11, 19, 10, 24, 0, TimeSpan.FromHours(-6));
             for (var i = 0; i < 120; i++)
             {
                 var pulse = Math.Exp(-Math.Pow((i - 92) / 9d, 2));
@@ -75,6 +77,16 @@ internal sealed partial class WindowDiagnostics
                 throw new InvalidOperationException("The example must show Chrome's CPU spike followed by recovery.");
 
             await Draw("individual");
+            fixture.FlightRecorderButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            var recorder = fixture.OwnedWindows.OfType<FlightRecorderWindow>().Single();
+            try
+            {
+                await CaptureExampleWindowAsync(recorder, Path.Combine(output, "example_history.png"), cancellationToken);
+            }
+            finally
+            {
+                recorder.Close();
+            }
             fixture.Preferences = fixture.Preferences with { ResourceChartType = ResourceChartType.SmallMultiples };
             fixture.BuildChartSelectors();
             await Draw("small_multiples");

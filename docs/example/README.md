@@ -4,9 +4,13 @@
 
 Actual WinMon windows with illustrative identities and measurements. These images show features, not performance measurements. Click any preview to open the full-size image.
 
-Captured November 9, 2026, with **WinMon 4.0.6** on Windows build **26300.9818**, x64. The main gallery uses the installer/portable configuration; the separate Store Settings image uses `StoreBuild=true` and does not prove installed MSIX behavior.
+Captured November 19, 2026, with **WinMon 4.2.0** on Windows build **26300.9974**, x64. The main gallery uses the installer/portable configuration; the separate Store Settings image uses `StoreBuild=true` and does not prove installed MSIX behavior.
 
 ## Investigate
+
+[![History investigation showing a frozen timeline, CPU peak and process contributors](example_history.png)](example_history.png)
+
+**Find what was busy at a spike.** Choose History beside Capture to open What just happened? It selects the recorded CPU peak. Choose another resource, find its peak or step through observations; Refresh loads the latest recording while monitoring continues. Network uses CPU ranking, and process I/O does not identify physical disk traffic. Observed starts/stops require complete adjacent inventories without collection gaps.
 
 | Watch live activity | Look back at a spike |
 | --- | --- |
@@ -84,7 +88,7 @@ The full dashboard also fits a narrower window. Long process names and peak labe
 
 ## About these examples
 
-The process dashboard, chart, palette and Compact views share one illustrative recording. Chrome becomes busy around the selected spike, then returns to its baseline. Services, Usage and Connections use separate recordings tailored to those features. Settings uses real controls; drive choices reflect the capture machine.
+The process dashboard, History, chart, palette and Compact views share one illustrative recording. Chrome becomes busy around the selected spike, then returns to its baseline. Services, Usage and Connections use separate recordings tailored to those features. Settings uses real controls; drive choices reflect the capture machine.
 
 The main examples use installed application icons when available, with generic icons for other illustrative processes. All gallery images capture the complete Windows-composed window, including native caption buttons. Unavailable, partial and other diagnostic states remain separate verification outputs.
 

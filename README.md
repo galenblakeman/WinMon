@@ -18,7 +18,7 @@ MCP performance recordings retain valid captured intervals even when report proc
 
 ## Download and requirements
 
-Current version: **4.1.4**.
+Current version: **4.2.0**.
 
 [Download the latest release](https://github.com/galenblakeman/WinMon/releases/latest), then choose:
 
@@ -36,7 +36,13 @@ Ordinary resource monitoring and connection lists run without administrator righ
 
 ## Investigate a spike
 
-Click **History** beside **Capture** in the chart toolbar for **What just happened?**: a frozen resource timeline with **Find peak**, keyboard navigation and process contributors for the selected moment. Its clock-with-back-arrow icon distinguishes it from Capture. WinMon keeps sampling while you investigate. Choose CPU, memory, either configured disk, network or GPU; process starts/stops appear only where adjacent inventories are complete. Process I/O includes file, network and device activity and does not identify physical disk traffic. Choose Refresh in the upper-right corner to load the latest recording without leaving History.
+Click **History** beside **Capture** in the chart toolbar to open **What just happened?**. It freezes the retained recording and selects the CPU peak, with process contributors for that moment. Choose a resource and use **Find peak**, click the timeline or step through observations with the keyboard. WinMon keeps sampling; **Refresh** loads the latest recording in the same window.
+
+![History investigation showing the CPU peak and ranked process contributors](docs/example/example_history.png)
+
+Choose CPU, memory, either configured disk, network or GPU. Network currently ranks contributors by CPU; process I/O includes file, network and device activity and does not identify physical disk traffic. Starts/stops appear only where adjacent inventories are complete and collection is continuous.
+
+For an investigation within the dashboard:
 
 1. **Click a spike in the chart** to inspect that recorded moment. WinMon keeps recording while you look back.
 2. **Inspect the process rankings** to see which apps were busy. Group related processes, search, or pin an app to follow it. Use the process More menu to open its Connections or Usage.

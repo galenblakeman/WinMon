@@ -268,6 +268,10 @@ CSV columns use stable English identifiers, UTC timestamps, invariant numbers an
 
 ## Catch the spike—even after it passes
 
+Choose **History** beside **Capture** to open **What just happened?** with a frozen copy of the retained recording, initially at the CPU peak. Choose a resource and **Find peak**, click the timeline or use Left/Right and Home/End to navigate observations. The process table ranks contributors for the selected resource; network uses CPU ranking, and process I/O is not physical-disk attribution. Observed starts/stops require complete adjacent inventories without collection gaps. Monitoring continues while the window stays frozen; **Refresh** in the upper-right loads the latest recording and preserves the selected resource and moment when still retained.
+
+![History investigation at the recorded CPU peak](example/example_history.png)
+
 Choose **Capture** in the centered **Live | Capture** switch above the chart to inspect the newest recorded sample, or click the chart to select an earlier moment. The capture shows resource readings for that interval, and the process table follows your selection so you can investigate what was busy then. Recording and the top readouts stay live while you explore.
 
 ![WinMon historical capture showing interval resource readings and the process table at the selected time](example/example_snapshot.png)

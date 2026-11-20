@@ -56,6 +56,7 @@ Keep live, unavailable, partial, translated and narrow diagnostic captures as ve
 - All windows must be complete and unobstructed, with no failure file or content-only substitute.
 - Inspect every image at full size. Check that version, labels, rates and totals agree with its caption.
 - The main recording shows Chrome's CPU spike followed by recovery; the selected process CPU is a five-second average. Example diagnostics assert that the spike and recovery exist.
+- `example_history.png` opens History through the dashboard button and shows the same recording at its CPU peak. Check the resource selector, Find peak, Refresh, timeline and contributor table; the existing capture smoke covers navigation, refresh and missing-history states.
 - Connections accumulates received/sent counters across its recording and asserts nonzero period totals. Unavailable network collection has a separate diagnostic image.
 - The main examples use installed Chrome, Visual Studio Code and Task Manager icons when available, without changing illustrative identities or paths. Other rows retain generic icons. No application icons are downloaded or bundled.
 - Update the gallery's capture version, date and environment after a successful refresh. A screenshot version is provenance, not a claim that the image always matches the latest release.
