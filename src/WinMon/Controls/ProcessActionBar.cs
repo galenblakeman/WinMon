@@ -48,6 +48,13 @@ public sealed class ProcessActionBar : Border
     private Func<ProcessUsage, bool>? _canSetPriority;
     private Func<ProcessUsage, ProcessPriorityClass?>? _readPriority;
     private Action<ProcessUsage, ProcessPriorityClass>? _setPriority;
+    private Func<ProcessUsage, bool>? _canControl;
+    private Func<ProcessUsage, bool>? _canSuspend;
+    private Func<ProcessUsage, bool>? _suspendedByWinMon;
+    private Func<ProcessUsage, bool?>? _isSuspended;
+    private Func<ProcessUsage, EfficiencyModeState>? _readEfficiency;
+    private (int ProcessId, long CreationTicks)? _observedSuspensionIdentity;
+    private bool? _observedSuspension;
     private (int, long)? _iconIdentity;
     internal event Action<string, ProcessDetailsSnapshot>? ActionRequested;
 
@@ -157,6 +164,9 @@ public sealed class ProcessActionBar : Border
               (string.IsNullOrWhiteSpace(process.AppName) ? "" : " · " + process.AppName);
         _detail.ToolTip = _detail.Text;
         _status.Text = snapshot is null ? Strings.MissingReading :
+            !snapshot.Grouped && !snapshot.Historical && _suspendedByWinMon?.Invoke(process!) == true &&
+            _observedSuspensionIdentity == (process!.ProcessId, process.CreationTicks) &&
+            _observedSuspension == true ? Strings.ProcessSuspendedByWinMon :
             snapshot.State.Length > 0 ? snapshot.State :
             snapshot.Historical ? Strings.ProcessHistoricalView : Strings.LiveMode;
         _properties.Content = Strings.Properties;
@@ -199,6 +209,17 @@ public sealed class ProcessActionBar : Border
         _setPriority = set;
     }
 
+    internal void EnableControlActions(Func<ProcessUsage, bool> canControl, Func<ProcessUsage, bool> canSuspend,
+        Func<ProcessUsage, bool> suspendedByWinMon,
+        Func<ProcessUsage, bool?> isSuspended, Func<ProcessUsage, EfficiencyModeState> readEfficiency)
+    {
+        _canControl = canControl;
+        _canSuspend = canSuspend;
+        _suspendedByWinMon = suspendedByWinMon;
+        _isSuspended = isSuspended;
+        _readEfficiency = readEfficiency;
+    }
+
     internal ContextMenu? CreateMoreMenu()
     {
         if (_snapshot is not { } snapshot) return null;
@@ -237,7 +258,48 @@ public sealed class ProcessActionBar : Border
             snapshot is { Available: true, Historical: false } && _canSetPriority(snapshot.Process),
             _readPriority, _setPriority));
 
+        if (_canControl is not null && _suspendedByWinMon is not null)
+        {
+            menu.Items.Add(new Separator());
+            var enabled = snapshot is { Available: true, Historical: false, Grouped: false } && _canControl(snapshot.Process);
+            var owned = _suspendedByWinMon(snapshot.Process);
+            var observed = enabled ? _isSuspended?.Invoke(snapshot.Process) : null;
+            ObserveSuspension(snapshot.Process, observed);
+            var suspend = ProcessRow.ActionItem(owned ? Strings.ResumeProcess : Strings.SuspendProcess,
+                ButtonIcon.Cancel);
+            suspend.IsEnabled = enabled && (owned || observed != true) && (owned || _canSuspend?.Invoke(snapshot.Process) == true);
+            suspend.ToolTip = observed == true && !owned ? Strings.ProcessStillSuspended : Strings.SuspendProcessUnavailable;
+            suspend.Click += (_, _) => ActionRequested?.Invoke(owned ? "resume" : "suspend", snapshot);
+            menu.Items.Add(suspend);
+            var affinity = ProcessRow.ActionItem(Strings.SetAffinity, ButtonIcon.Process);
+            affinity.IsEnabled = enabled;
+            affinity.Click += (_, _) => ActionRequested?.Invoke("affinity", snapshot);
+            menu.Items.Add(affinity);
+            var efficiency = ProcessRow.ActionItem(Strings.EfficiencyMode, ButtonIcon.Peak);
+            efficiency.IsCheckable = true;
+            efficiency.IsEnabled = enabled;
+            var efficiencyState = enabled ? _readEfficiency?.Invoke(snapshot.Process) ?? EfficiencyModeState.Unavailable :
+                EfficiencyModeState.Unavailable;
+            efficiency.IsChecked = efficiencyState == EfficiencyModeState.On;
+            efficiency.ToolTip = efficiencyState is EfficiencyModeState.Mixed or EfficiencyModeState.Unavailable
+                ? Strings.EfficiencyModeMixed : Strings.EfficiencyModeWindows10Note;
+            efficiency.Click += (_, _) => ActionRequested?.Invoke("efficiency", snapshot);
+            menu.Items.Add(efficiency);
+        }
+
         return menu;
+    }
+
+    internal void ObserveSuspension(ProcessUsage process, bool? observed)
+    {
+        if (_snapshot is not { } snapshot || snapshot.Process.ProcessId != process.ProcessId ||
+            snapshot.Process.CreationTicks != process.CreationTicks) return;
+        _observedSuspensionIdentity = (process.ProcessId, process.CreationTicks);
+        _observedSuspension = observed;
+        _status.Text = !snapshot.Grouped && !snapshot.Historical && observed == true &&
+                       _suspendedByWinMon?.Invoke(process) == true ? Strings.ProcessSuspendedByWinMon :
+            snapshot.State.Length > 0 ? snapshot.State :
+            snapshot.Historical ? Strings.ProcessHistoricalView : Strings.LiveMode;
     }
 
     private void OpenMore()

@@ -19,6 +19,7 @@ public static partial class Strings
     public static string AdapterUtilizationOfTheBusiestEngineAcrossAvailableGPUs => ResourceManager.GetString(nameof(AdapterUtilizationOfTheBusiestEngineAcrossAvailableGPUs), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string AdditionalCPUSpecificationsUnavailableFromWindows => ResourceManager.GetString(nameof(AdditionalCPUSpecificationsUnavailableFromWindows), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string AllEntries => ResourceManager.GetString(nameof(AllEntries), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string AllProcessors => ResourceManager.GetString(nameof(AllProcessors), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string AllServiceStatuses => ResourceManager.GetString(nameof(AllServiceStatuses), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string Alpha => ResourceManager.GetString(nameof(Alpha), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string Alt => ResourceManager.GetString(nameof(Alt), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -98,6 +99,7 @@ public static partial class Strings
     public static string BusiestMemberGPU => ResourceManager.GetString(nameof(BusiestMemberGPU), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string BusiestMemberGpuTitle => ResourceManager.GetString(nameof(BusiestMemberGpuTitle), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string Cancel => ResourceManager.GetString(nameof(Cancel), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string CancelClose => ResourceManager.GetString(nameof(CancelClose), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CanTBeUsed => ResourceManager.GetString(nameof(CanTBeUsed), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CapacityGiB => ResourceManager.GetString(nameof(CapacityGiB), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CapacityMiB => ResourceManager.GetString(nameof(CapacityMiB), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -298,6 +300,9 @@ public static partial class Strings
     public static string CopyInformation => ResourceManager.GetString(nameof(CopyInformation), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CopySnapshot => ResourceManager.GetString(nameof(CopySnapshot), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CPU => ResourceManager.GetString(nameof(CPU), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string CpuAffinityNone => ResourceManager.GetString(nameof(CpuAffinityNone), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string CpuAffinityReadOnly => ResourceManager.GetString(nameof(CpuAffinityReadOnly), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string CpuAffinityUnavailable => ResourceManager.GetString(nameof(CpuAffinityUnavailable), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CpuClockDescription => ResourceManager.GetString(nameof(CpuClockDescription), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CPUDetails => ResourceManager.GetString(nameof(CPUDetails), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CPUHistoryOnOneScaleSharedByEveryRowHover => ResourceManager.GetString(nameof(CPUHistoryOnOneScaleSharedByEveryRowHover), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -362,6 +367,12 @@ public static partial class Strings
     public static string Down => ResourceManager.GetString(nameof(Down), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DownloadingUpdate => ResourceManager.GetString(nameof(DownloadingUpdate), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DrawnAsADashedLineOnTheChart => ResourceManager.GetString(nameof(DrawnAsADashedLineOnTheChart), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string EfficiencyMode => ResourceManager.GetString(nameof(EfficiencyMode), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string EfficiencyModeMixed => ResourceManager.GetString(nameof(EfficiencyModeMixed), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string EfficiencyModePartialFailure => ResourceManager.GetString(nameof(EfficiencyModePartialFailure), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string EfficiencyModeRollbackFailure => ResourceManager.GetString(nameof(EfficiencyModeRollbackFailure), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string EfficiencyModeUnavailable => ResourceManager.GetString(nameof(EfficiencyModeUnavailable), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string EfficiencyModeWindows10Note => ResourceManager.GetString(nameof(EfficiencyModeWindows10Note), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string EndGroupConfirmation => ResourceManager.GetString(nameof(EndGroupConfirmation), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string EndGroupMenu => ResourceManager.GetString(nameof(EndGroupMenu), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string EndPID => ResourceManager.GetString(nameof(EndPID), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -585,6 +596,7 @@ public static partial class Strings
     public static string LanguageSpanish => ResourceManager.GetString(nameof(LanguageSpanish), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string LanguageSystemDefault => ResourceManager.GetString(nameof(LanguageSystemDefault), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string LastMinSameScaleForEveryRow => ResourceManager.GetString(nameof(LastMinSameScaleForEveryRow), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string LeaveSuspended => ResourceManager.GetString(nameof(LeaveSuspended), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string License => ResourceManager.GetString(nameof(License), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string Link => ResourceManager.GetString(nameof(Link), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string LinkSpeedUnavailable => ResourceManager.GetString(nameof(LinkSpeedUnavailable), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -675,6 +687,7 @@ public static partial class Strings
     public static string NoPinnedServicesMatch => ResourceManager.GetString(nameof(NoPinnedServicesMatch), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string NoPresentNetworkAdaptersReported => ResourceManager.GetString(nameof(NoPresentNetworkAdaptersReported), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string NoProcessCountReadings => ResourceManager.GetString(nameof(NoProcessCountReadings), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string NoProcessors => ResourceManager.GetString(nameof(NoProcessors), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string NoRankedProcessesMatchYourSearch => ResourceManager.GetString(nameof(NoRankedProcessesMatchYourSearch), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string NoSampleInThisInterval => ResourceManager.GetString(nameof(NoSampleInThisInterval), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string NoServicesMatch => ResourceManager.GetString(nameof(NoServicesMatch), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -812,6 +825,8 @@ public static partial class Strings
     public static string ProcessSignatureVerified => ResourceManager.GetString(nameof(ProcessSignatureVerified), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ProcessStartedLabel => ResourceManager.GetString(nameof(ProcessStartedLabel), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ProcessStateLabel => ResourceManager.GetString(nameof(ProcessStateLabel), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ProcessStillSuspended => ResourceManager.GetString(nameof(ProcessStillSuspended), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ProcessSuspendedByWinMon => ResourceManager.GetString(nameof(ProcessSuspendedByWinMon), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ProcessThreadsExplanation => ResourceManager.GetString(nameof(ProcessThreadsExplanation), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ProcessUserLabel => ResourceManager.GetString(nameof(ProcessUserLabel), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ProcessViewLabel => ResourceManager.GetString(nameof(ProcessViewLabel), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -840,7 +855,12 @@ public static partial class Strings
     public static string RestartingToUpdate => ResourceManager.GetString(nameof(RestartingToUpdate), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string RestartService => ResourceManager.GetString(nameof(RestartService), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string RestoreTheDefaultShortcut => ResourceManager.GetString(nameof(RestoreTheDefaultShortcut), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ResumeFailedProcesses => ResourceManager.GetString(nameof(ResumeFailedProcesses), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ResumeLiveReadingsAndProcessesEndOrEscape => ResourceManager.GetString(nameof(ResumeLiveReadingsAndProcessesEndOrEscape), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ResumeProcess => ResourceManager.GetString(nameof(ResumeProcess), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ResumeProcessUnavailable => ResourceManager.GetString(nameof(ResumeProcessUnavailable), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ResumeSuspendedProcesses => ResourceManager.GetString(nameof(ResumeSuspendedProcesses), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ResumeSuspendedProcessesPrompt => ResourceManager.GetString(nameof(ResumeSuspendedProcessesPrompt), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ReturnToLive => ResourceManager.GetString(nameof(ReturnToLive), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ReturnToLiveToInspectCurrentActivity => ResourceManager.GetString(nameof(ReturnToLiveToInspectCurrentActivity), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string RxTxMbps => ResourceManager.GetString(nameof(RxTxMbps), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -890,6 +910,7 @@ public static partial class Strings
     public static string ServiceWorkers => ResourceManager.GetString(nameof(ServiceWorkers), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ServiceWorkersHelp => ResourceManager.GetString(nameof(ServiceWorkersHelp), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ServiceWorkersIncluded => ResourceManager.GetString(nameof(ServiceWorkersIncluded), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string SetAffinity => ResourceManager.GetString(nameof(SetAffinity), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string SetPriority => ResourceManager.GetString(nameof(SetPriority), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string Settings => ResourceManager.GetString(nameof(Settings), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string SettingsAutomaticChecks => ResourceManager.GetString(nameof(SettingsAutomaticChecks), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -947,6 +968,9 @@ public static partial class Strings
     public static string SummedPrivateMemory => ResourceManager.GetString(nameof(SummedPrivateMemory), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string SummedPrivateMemoryTitle => ResourceManager.GetString(nameof(SummedPrivateMemoryTitle), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string SummedReadWriteIO => ResourceManager.GetString(nameof(SummedReadWriteIO), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string SuspendProcess => ResourceManager.GetString(nameof(SuspendProcess), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string SuspendProcessConfirmation => ResourceManager.GetString(nameof(SuspendProcessConfirmation), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string SuspendProcessUnavailable => ResourceManager.GetString(nameof(SuspendProcessUnavailable), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string SystemResources => ResourceManager.GetString(nameof(SystemResources), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string SystemResourcesInspectingSnapshot => ResourceManager.GetString(nameof(SystemResourcesInspectingSnapshot), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string SystemResourcesUnavailable => ResourceManager.GetString(nameof(SystemResourcesUnavailable), Culture ?? CultureInfo.CurrentUICulture)!;

@@ -868,6 +868,8 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                 foreach (var dialog in new Window[]
                          {
                              new ProcessPropertiesWindow(snapshot, _ => { }),
+                             new ProcessAffinityDialog(0b0011, 0b1111, false),
+                             new SuspendedProcessCloseDialog(),
                              new ProcessDumpDialog(example, () => false)
                          })
                 {
@@ -876,9 +878,25 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                     {
                         dialog.Show();
                         dialog.UpdateLayout();
+                        var dialogName = dialog switch
+                        {
+                            ProcessPropertiesWindow => "process-properties",
+                            ProcessAffinityDialog => "process-affinity",
+                            SuspendedProcessCloseDialog => "process-suspension-close",
+                            _ => "process-dump"
+                        };
                         await CaptureVisualAsync(dialog, Path.Combine(output,
-                                $"{(dialog is ProcessPropertiesWindow ? "process-properties" : "process-dump")}-{theme.ToLowerInvariant()}.png"),
+                                $"{dialogName}-{theme.ToLowerInvariant()}.png"),
                             1, cancellationToken);
+                        if (dialog is ProcessAffinityDialog)
+                        {
+                            dialog.SizeToContent = SizeToContent.Manual;
+                            dialog.Width = dialog.MinWidth;
+                            dialog.Height = dialog.MinHeight;
+                            dialog.UpdateLayout();
+                            await CaptureVisualAsync(dialog, Path.Combine(output,
+                                $"{dialogName}-{theme.ToLowerInvariant()}-minimum.png"), 1, cancellationToken);
+                        }
                     }
                     finally
                     {

@@ -5,7 +5,7 @@ Four independent increments. Implement and verify them in order, one commit each
 | Increment | Status |
 | --- | --- |
 | 1. Process details: command line, verified signer, user | Verified |
-| 2. Process actions: suspend/resume, CPU affinity, Efficiency mode | Designed |
+| 2. Process actions: suspend/resume, CPU affinity, Efficiency mode | Verified |
 | 3. Memory pressure: paging reads/sec, standby, modified, compression store | Designed |
 | 4. Windows event markers in History | Designed |
 
@@ -142,6 +142,10 @@ Increment 2 also requires `./tools/Verify.ps1 -Store`: its suspension exit guard
 
 Increment 1 landed in `WindowsProcessDetailsReader`, portable `ProcessInspection` records and the existing Properties/Copy flow. Sensitive inspection values are not added to sampled process records or persistence. File trust uses a stable file handle, embedded/catalog verification and a 256-entry identity cache; the signer is explicitly the file on disk. All nine translations are present. Native integration tests read the current process and verify a Windows library through the catalog-only path without launching another application.
 
-Validation: `Verify.ps1 -Smoke feature` passed 2,060 tests and 125 renders; dark/light Properties renders were inspected. Focused native tests passed 8/8, and process UI/localization tests passed 65/65. Protected-process access and online revocation are not claimed. Increments 2–4 remain to be implemented.
+Validation for increment 1: `Verify.ps1 -Smoke feature` passed 2,060 tests and 125 renders; dark/light Properties renders were inspected. Focused native tests passed 8/8, and process UI/localization tests passed 65/65. Protected-process access and online revocation are not claimed.
+
+Increment 2 landed in `ProcessController`, `SuspendedProcessTracker`, the native process-control/suspension/service helpers, the More/row menus, affinity and close dialogs, and `MainWindow.OnClosing`. Cancel and cleanup failure stop shutdown and cancel a pending update. The tracker serializes requests, removes confirmed exited/reused lifetimes without acting on another process, and retains failures for retry. Row labels use cached, observed suspension state. Efficiency mode uses explicit On/Off throttling, preserves unrelated flags and reports rollback failures. Processor-group checks also protect the setter; unsupported multi-group masks are shown read-only.
+
+Validation for increment 2: `Verify.ps1 -Smoke feature` passed 2,099 tests and 131 renders; `Verify.ps1 -Store` passed 2,033 tests. Dark/light minimum-size affinity and close-dialog renders were inspected. `WindowsProcessControlTests.OwnedHelper_ControlsAndRestoresTheSameProcessLifetime` exercised native suspension observation, balanced Resume, affinity and throttling/priority changes on a hidden test-owned helper only. `ProcessControllerTests`, `ProcessControlCloseTests` and `ProcessControlUiTests` cover denied/stale/critical targets, service protection, failed cleanup/retry, explicit dialog choices, mixed settings and rollback. Four alternating UI benchmark pairs showed unchanged pixels and no measurable regression; see `PERFORMANCE-HISTORY.md`. Older Windows builds, multi-group hardware and concurrent control by external tools were not validated on this machine. Increments 3–4 remain to be implemented.
 
 Design correction: memory pressure needs six PDH counters, because standby is the sum of three lists; compression store reuses process data.

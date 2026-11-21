@@ -2061,4 +2061,30 @@ Encerrados desde a observação anterior: {1}</value>
   <data name="ProcessElevated" xml:space="preserve"><value>Elevado</value></data>
   <data name="ProcessNotElevated" xml:space="preserve"><value>Não elevado</value></data>
   <data name="ProcessSession" xml:space="preserve"><value>Sessão {0}</value></data>
+  <data name="SuspendProcess" xml:space="preserve"><value>Suspender</value></data>
+  <data name="ResumeProcess" xml:space="preserve"><value>Retomar</value></data>
+  <data name="SuspendProcessConfirmation" xml:space="preserve"><value>Suspender este processo pode congelá-lo e tudo que espera por ele. O WinMon pode tentar retomá-lo uma vez depois, mas não pode restaurar alterações feitas por outras ferramentas. Suspender {0}?</value></data>
+  <data name="SuspendProcessUnavailable" xml:space="preserve"><value>Este processo não pode ser suspenso pelo WinMon.</value></data>
+  <data name="ResumeProcessUnavailable" xml:space="preserve"><value>Este processo não foi suspenso pelo WinMon.</value></data>
+  <data name="ProcessSuspendedByWinMon" xml:space="preserve"><value>Suspenso pelo WinMon</value></data>
+  <data name="ProcessStillSuspended" xml:space="preserve"><value>O processo continua suspenso por outra origem.</value></data>
+  <data name="SetAffinity" xml:space="preserve"><value>Definir afinidade da CPU</value></data>
+  <data name="CpuAffinityUnavailable" xml:space="preserve"><value>A afinidade da CPU não está disponível para este processo.</value></data>
+  <data name="CpuAffinityReadOnly" xml:space="preserve"><value>A afinidade da CPU não pode ser alterada porque este processo abrange grupos de processadores.</value></data>
+  <data name="CpuAffinityNone" xml:space="preserve"><value>Selecione pelo menos um processador lógico.</value></data>
+  <data name="AllProcessors" xml:space="preserve"><value>Todos</value></data>
+  <data name="NoProcessors" xml:space="preserve"><value>Nenhum</value></data>
+  <data name="EfficiencyMode" xml:space="preserve"><value>Modo de eficiência</value></data>
+  <data name="EfficiencyModeMixed" xml:space="preserve"><value>O modo de eficiência está misto ou indisponível.</value></data>
+  <data name="EfficiencyModeUnavailable" xml:space="preserve"><value>O modo de eficiência não está disponível para este processo.</value></data>
+  <data name="EfficiencyModePartialFailure" xml:space="preserve"><value>Não foi possível alterar completamente o modo de eficiência: {0}</value></data>
+  <data name="EfficiencyModeWindows10Note" xml:space="preserve"><value>O Windows 10 aceita esta configuração, mas o EcoQoS pode ter efeito limitado.</value></data>
+  <data name="ResumeSuspendedProcesses" xml:space="preserve"><value>Retomar processos suspensos</value></data>
+  <data name="ResumeSuspendedProcessesPrompt" xml:space="preserve"><value>O WinMon suspendeu um ou mais processos ativos. Retomá-los antes de fechar?</value></data>
+  <data name="LeaveSuspended" xml:space="preserve"><value>Deixar suspensos</value></data>
+  <data name="ResumeFailedProcesses" xml:space="preserve"><value>O WinMon não conseguiu retomar estes processos:
+{0}</value></data>
+  <data name="CancelClose" xml:space="preserve"><value>Cancelar fechamento</value></data>
+  <data name="EfficiencyModeRollbackFailure" xml:space="preserve"><value>Falha ao alterar a prioridade: {0}
+A restauração da limitação também falhou: {1}</value></data>
 </root>

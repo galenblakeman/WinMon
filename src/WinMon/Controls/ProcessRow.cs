@@ -41,6 +41,14 @@ public sealed class ProcessRow : Grid
     private Func<ProcessUsage, bool>? _canSetPriority;
     private Func<ProcessUsage, ProcessPriorityClass?>? _readPriority;
     private Action<ProcessUsage, ProcessPriorityClass>? _setPriority;
+    private Func<ProcessUsage, bool>? _canControl;
+    private Func<ProcessUsage, bool>? _canSuspend;
+    private Func<ProcessUsage, bool>? _suspendedByWinMon;
+    private Func<ProcessUsage, bool?>? _isSuspended;
+    private Func<ProcessUsage, EfficiencyModeState>? _readEfficiency;
+    private Func<ProcessUsage, bool>? _showSuspendedStatus;
+    private bool _suspensionStatusShown;
+    private Action<string, ProcessDetailsSnapshot>? _control;
 
     private readonly Button _pin = new()
     {
@@ -124,6 +132,19 @@ public sealed class ProcessRow : Grid
         _canSetPriority = canSet;
         _readPriority = read;
         _setPriority = set;
+    }
+    internal void EnableControlActions(Func<ProcessUsage, bool> canControl, Func<ProcessUsage, bool> canSuspend,
+        Func<ProcessUsage, bool> suspendedByWinMon,
+        Func<ProcessUsage, bool?> isSuspended, Func<ProcessUsage, EfficiencyModeState> readEfficiency,
+        Action<string, ProcessDetailsSnapshot> control, Func<ProcessUsage, bool>? showSuspendedStatus = null)
+    {
+        _showSuspendedStatus = showSuspendedStatus;
+        _canControl = canControl;
+        _canSuspend = canSuspend;
+        _suspendedByWinMon = suspendedByWinMon;
+        _isSuspended = isSuspended;
+        _readEfficiency = readEfficiency;
+        _control = control;
     }
 
     internal void EnableInspectionActions(Action<ProcessDetailsSnapshot> properties,
@@ -219,6 +240,33 @@ public sealed class ProcessRow : Grid
             ContextMenu.Items.Add(ProcessPriorityMenu.Create(target,
                 !_unavailable && _canSetPriority(target), _readPriority, _setPriority));
             ContextMenu.Items.Add(new Separator());
+        }
+        if (_canControl is not null && _suspendedByWinMon is not null && _control is not null)
+        {
+            var snapshot = new ProcessDetailsSnapshot(target, _grouped, _sampleAt, _historical?.Invoke() == true,
+                !_unavailable, _state, _sampleKey);
+            var enabled = !_unavailable && !_grouped && _historical?.Invoke() != true && _canControl(target);
+            var owned = _suspendedByWinMon(target);
+            var observed = enabled ? _isSuspended?.Invoke(target) : null;
+            var suspend = ActionItem(owned ? Strings.ResumeProcess : Strings.SuspendProcess, ButtonIcon.Cancel);
+            suspend.IsEnabled = enabled && (owned || observed != true) && (owned || _canSuspend?.Invoke(target) == true);
+            suspend.ToolTip = observed == true && !owned ? Strings.ProcessStillSuspended : Strings.SuspendProcessUnavailable;
+            suspend.Click += (_, _) => _control(owned ? "resume" : "suspend", snapshot);
+            ContextMenu.Items.Add(suspend);
+            var affinity = ActionItem(Strings.SetAffinity, ButtonIcon.Process);
+            affinity.IsEnabled = enabled;
+            affinity.Click += (_, _) => _control("affinity", snapshot);
+            ContextMenu.Items.Add(affinity);
+            var efficiency = ActionItem(Strings.EfficiencyMode, ButtonIcon.Peak);
+            efficiency.IsCheckable = true;
+            efficiency.IsEnabled = enabled;
+            var efficiencyState = enabled ? _readEfficiency?.Invoke(target) ?? EfficiencyModeState.Unavailable :
+                EfficiencyModeState.Unavailable;
+            efficiency.IsChecked = efficiencyState == EfficiencyModeState.On;
+            efficiency.ToolTip = efficiencyState is EfficiencyModeState.Mixed or EfficiencyModeState.Unavailable
+                ? Strings.EfficiencyModeMixed : Strings.EfficiencyModeWindows10Note;
+            efficiency.Click += (_, _) => _control("efficiency", snapshot);
+            ContextMenu.Items.Add(efficiency);
         }
 
         item.IsEnabled &= !_unavailable;
@@ -399,6 +447,27 @@ public sealed class ProcessRow : Grid
         if (_unavailable)
             AutomationProperties.SetName(this,
                 AutomationProperties.GetName(this) + $" · {StateText(state)}");
+        RefreshSuspensionStatus();
+    }
+
+    internal void RefreshSuspensionStatus()
+    {
+        var suspended = !_unavailable && !_grouped && _historical?.Invoke() != true &&
+                        _usage is { } usage && _showSuspendedStatus?.Invoke(usage) == true;
+        if (!suspended && !_suspensionStatusShown) return;
+        var suffix = " · " + Strings.ProcessSuspendedByWinMon;
+        if (suspended && !_pid.Text.EndsWith(suffix, StringComparison.Ordinal))
+        {
+            _pid.Text += suffix;
+            AutomationProperties.SetName(this, AutomationProperties.GetName(this) + suffix);
+        }
+        else if (!suspended && _pid.Text.EndsWith(suffix, StringComparison.Ordinal))
+        {
+            _pid.Text = _pid.Text[..^suffix.Length];
+            var name = AutomationProperties.GetName(this);
+            if (name.EndsWith(suffix, StringComparison.Ordinal)) AutomationProperties.SetName(this, name[..^suffix.Length]);
+        }
+        _suspensionStatusShown = suspended;
     }
 
     // A new resource reference is re-resolved through the element tree, so set one only when the key changes.

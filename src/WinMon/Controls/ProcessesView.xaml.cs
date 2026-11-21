@@ -62,6 +62,8 @@ public partial class ProcessesView
     private bool _closing;
     private bool _loadingSettings;
     private ProcessSelection? _liveSelection;
+    private readonly SuspendedProcessTracker _suspended = new();
+    private readonly Dictionary<(int ProcessId, long CreationTicks), bool?> _observedSuspensions = [];
     internal bool IsHistorical => _frame?.Selected is not null;
 
     public ProcessesView()
@@ -71,6 +73,8 @@ public partial class ProcessesView
         ProcessActionDrawer.CollapsedChanged += hidden => ActionsHiddenChanged?.Invoke(hidden);
         ProcessActions.EnablePriorityActions(CanSetProcessPriority, process => ProcessPriorityChanger.Read(process),
             SetProcessPriority);
+        ProcessActions.EnableControlActions(CanControlProcess, process => ProcessController.CanSuspend(process), _suspended.Contains, IsSuspended,
+            process => ProcessController.ReadEfficiency(process));
         ProcessCountSelector.ItemsSource = TopCountChoices.Items;
         ProcessCountSelector.SelectedItem = TopCountChoices.Selection(_settings.TopCount);
         ProcessCountSelector.SelectionChanged += OnProcessCountChanged;
@@ -127,6 +131,9 @@ public partial class ProcessesView
     internal ProcessRow OtherRow { get; } = new() { Visibility = Visibility.Collapsed };
 
     internal ProcessPins Pins { get; } = new();
+
+    /// <summary>Outstanding one-pair suspensions that close and update shutdown must balance.</summary>
+    internal SuspendedProcessTracker SuspendedProcesses => _suspended;
 
     internal ProcessSelection Selection { get; private set; } = new();
 
@@ -623,6 +630,8 @@ public partial class ProcessesView
         row.EnableProcessActions(CanEndProcess, EndProcess);
         row.EnablePriorityActions(CanSetProcessPriority, process => ProcessPriorityChanger.Read(process),
             SetProcessPriority);
+        row.EnableControlActions(CanControlProcess, process => ProcessController.CanSuspend(process), _suspended.Contains, IsSuspended, process => ProcessController.ReadEfficiency(process),
+            OnProcessAction, ShowSuspendedStatus);
         row.ProcessSelected += SelectProcess;
         row.EnableInspectionActions(
             snapshot => new ProcessPropertiesWindow(snapshot, Copy) { Owner = Window.GetWindow(this) }.ShowDialog(),
@@ -750,6 +759,38 @@ public partial class ProcessesView
                     .ShowDialog();
                 break;
             case "connections" or "usage": NavigationRequested?.Invoke(action, snapshot); break;
+            case "suspend" when snapshot is { Available: true, Historical: false, Grouped: false } && CanControlProcess(process):
+                if (new ProcessActionDialog(Strings.Format(Strings.SuspendProcessConfirmation, process.Name), true)
+                    { Owner = Window.GetWindow(this) }.ShowDialog() != true || !CanControlProcess(process)) break;
+                if (_suspended.Suspend(process) is { } suspendError)
+                    MessageDialog.ShowNotice(Window.GetWindow(this), suspendError, Strings.SuspendProcess);
+                else RefreshSuspensionStatus(process);
+                break;
+            case "resume" when snapshot is { Available: true, Historical: false, Grouped: false } && CanControlProcess(process):
+                if (_suspended.Resume(process) is { } resumeError)
+                    MessageDialog.ShowNotice(Window.GetWindow(this), resumeError, Strings.ResumeProcess);
+                else if (RefreshSuspensionStatus(process) == true)
+                    MessageDialog.ShowNotice(Window.GetWindow(this), Strings.ProcessStillSuspended, Strings.ResumeProcess);
+                break;
+            case "affinity" when snapshot is { Available: true, Historical: false, Grouped: false } && CanControlProcess(process):
+                if (ProcessController.ReadAffinity(process) is not { } affinity)
+                    MessageDialog.ShowNotice(Window.GetWindow(this), Strings.CpuAffinityUnavailable, Strings.SetAffinity);
+                else
+                {
+                    var dialog = new ProcessAffinityDialog(affinity.Process, affinity.System, affinity.Groups != 1)
+                        { Owner = Window.GetWindow(this) };
+                    if (dialog.ShowDialog() == true && CanControlProcess(process) &&
+                        ProcessController.SetAffinity(process, dialog.Result) is { } affinityError)
+                        MessageDialog.ShowNotice(Window.GetWindow(this), affinityError, Strings.SetAffinity);
+                }
+                break;
+            case "efficiency" when snapshot is { Available: true, Historical: false, Grouped: false } && CanControlProcess(process):
+                var state = ProcessController.ReadEfficiency(process);
+                if (state == EfficiencyModeState.Unavailable)
+                    MessageDialog.ShowNotice(Window.GetWindow(this), Strings.EfficiencyModeUnavailable, Strings.EfficiencyMode);
+                else if (ProcessController.SetEfficiency(process, state != EfficiencyModeState.On) is { } efficiencyError)
+                    MessageDialog.ShowNotice(Window.GetWindow(this), efficiencyError, Strings.EfficiencyMode);
+                break;
         }
     }
 
@@ -803,6 +844,33 @@ public partial class ProcessesView
     {
         return ProcessPriorityChanger.IsEligible(process,
             !_closing && _frame?.Selected is null && _frame?.Error is null, _settings.Grouped);
+    }
+
+    private bool CanControlProcess(ProcessUsage process)
+    {
+        return ProcessController.IsEligible(process, !_closing && _frame?.Selected is null && _frame?.Error is null,
+            _settings.Grouped);
+    }
+
+    private bool? IsSuspended(ProcessUsage process)
+    {
+        var observed = WindowsProcessSuspension.IsSuspended(process.ProcessId, process.CreationTicks);
+        var identity = (process.ProcessId, process.CreationTicks);
+        if (_suspended.Contains(process)) _observedSuspensions[identity] = observed;
+        else _observedSuspensions.Remove(identity);
+        return observed;
+    }
+
+    private bool ShowSuspendedStatus(ProcessUsage process) =>
+        _observedSuspensions.TryGetValue((process.ProcessId, process.CreationTicks), out var observed) &&
+        observed == true && _suspended.Contains(process);
+
+    private bool? RefreshSuspensionStatus(ProcessUsage process)
+    {
+        var observed = IsSuspended(process);
+        ProcessActions.ObserveSuspension(process, observed);
+        foreach (var row in _rows.Concat(_pinnedRows)) row.RefreshSuspensionStatus();
+        return observed;
     }
 
     private void SetProcessPriority(ProcessUsage process, ProcessPriorityClass priority)

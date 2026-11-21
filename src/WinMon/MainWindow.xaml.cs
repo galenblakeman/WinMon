@@ -1129,6 +1129,8 @@ public partial class MainWindow
             return;
         }
 
+        if (!ResolveSuspendedProcessesBeforeClose()) return;
+
         if (_updateRestartPending)
         {
             _preparingUpdateExit = true;

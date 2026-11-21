@@ -2061,4 +2061,30 @@ Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。<
   <data name="ProcessElevated" xml:space="preserve"><value>已提升权限</value></data>
   <data name="ProcessNotElevated" xml:space="preserve"><value>未提升权限</value></data>
   <data name="ProcessSession" xml:space="preserve"><value>会话 {0}</value></data>
+  <data name="SuspendProcess" xml:space="preserve"><value>暂停</value></data>
+  <data name="ResumeProcess" xml:space="preserve"><value>恢复</value></data>
+  <data name="SuspendProcessConfirmation" xml:space="preserve"><value>暂停此进程可能会冻结它及等待它的所有内容。WinMon 稍后可以尝试恢复一次，但无法还原其他工具所做的暂停更改。要暂停 {0} 吗？</value></data>
+  <data name="SuspendProcessUnavailable" xml:space="preserve"><value>无法从 WinMon 暂停此进程。</value></data>
+  <data name="ResumeProcessUnavailable" xml:space="preserve"><value>此进程不是由 WinMon 暂停的。</value></data>
+  <data name="ProcessSuspendedByWinMon" xml:space="preserve"><value>已由 WinMon 暂停</value></data>
+  <data name="ProcessStillSuspended" xml:space="preserve"><value>该进程仍由其他来源暂停。</value></data>
+  <data name="SetAffinity" xml:space="preserve"><value>设置 CPU 关联</value></data>
+  <data name="CpuAffinityUnavailable" xml:space="preserve"><value>此进程的 CPU 关联不可用。</value></data>
+  <data name="CpuAffinityReadOnly" xml:space="preserve"><value>无法更改 CPU 关联，因为此进程跨越处理器组。</value></data>
+  <data name="CpuAffinityNone" xml:space="preserve"><value>请选择至少一个逻辑处理器。</value></data>
+  <data name="AllProcessors" xml:space="preserve"><value>全部</value></data>
+  <data name="NoProcessors" xml:space="preserve"><value>无</value></data>
+  <data name="EfficiencyMode" xml:space="preserve"><value>效率模式</value></data>
+  <data name="EfficiencyModeMixed" xml:space="preserve"><value>效率模式处于混合状态或不可用。</value></data>
+  <data name="EfficiencyModeUnavailable" xml:space="preserve"><value>此进程的效率模式不可用。</value></data>
+  <data name="EfficiencyModePartialFailure" xml:space="preserve"><value>无法完全更改效率模式：{0}</value></data>
+  <data name="EfficiencyModeWindows10Note" xml:space="preserve"><value>Windows 10 接受此设置，但 EcoQoS 的效果可能有限。</value></data>
+  <data name="ResumeSuspendedProcesses" xml:space="preserve"><value>恢复已暂停的进程</value></data>
+  <data name="ResumeSuspendedProcessesPrompt" xml:space="preserve"><value>WinMon 暂停了一个或多个活动进程。关闭前恢复它们吗？</value></data>
+  <data name="LeaveSuspended" xml:space="preserve"><value>保持暂停</value></data>
+  <data name="ResumeFailedProcesses" xml:space="preserve"><value>WinMon 无法恢复这些进程：
+{0}</value></data>
+  <data name="CancelClose" xml:space="preserve"><value>取消关闭</value></data>
+  <data name="EfficiencyModeRollbackFailure" xml:space="preserve"><value>更改优先级失败：{0}
+恢复节流设置也失败：{1}</value></data>
 </root>

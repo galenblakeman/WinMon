@@ -10,6 +10,8 @@ MCP performance recordings retain valid captured intervals even when report proc
 
 For a live individual process, **Properties** and **Copy details** read its command line, user/session/elevation and the signer of its executable file on disk. These details are read only on demand; command lines can contain secrets, so review copied text before sharing it.
 
+The process **More** menu offers suspend/resume, CPU affinity and Efficiency mode for eligible live processes. Changes last for that process lifetime. WinMon asks before suspension and offers to resume its outstanding suspensions before closing or updating.
+
 **Windows x64 · No separate .NET installation · Installer or portable ZIP · MIT licensed**
 
 [**Download latest release**](https://github.com/galenblakeman/WinMon/releases/latest) · [User guide](docs/USER-GUIDE.md) · [Screenshot gallery](docs/example/README.md) · [Report an issue](https://github.com/galenblakeman/WinMon/issues)

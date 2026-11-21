@@ -2,6 +2,18 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## Process controls and suspension status (November 20, 2026)
+
+Compared the retained process-details build and the process-controls build with the existing `WinMon.Performance --live-only` workload: 850 synthetic processes, 400 warm-up frames and seven batches of 60. Four alternating pairs swapped launch order each pair, with diagnostic logging enabled. Native collection and control operations are outside this UI-thread measurement.
+
+| Live refresh | Before | After |
+| --- | ---: | ---: |
+| Median of four run medians | 5.642 ms | 5.695 ms |
+| Run median range | 4.957–5.950 ms | 5.193–6.296 ms |
+| Median allocated bytes/frame | 560,457 | 560,430 |
+
+All eight pixel hashes matched. The 0.053 ms difference is within the observed run variation; allocation is effectively unchanged. Suspension labels use cached observations and add no native reads to refresh or sampling. Evidence: `artifacts/process-control-measurements/ui-summary.json`, with individual JSON/PNG files beside it. This is a focused live Processes check, not whole-app profiling or a measurement of native action latency.
+
 ## Chart labels and sparkline reuse (November 20, 2026)
 
 An allocation and thread-time trace of the UI benchmark (`dotnet-trace`, `gc-verbose` plus sampled thread time) showed two avoidable per-refresh costs. `CpuGraph.Label` cached `FormattedText`, but `DrawText` reshapes that text on every call, so each axis label still ran DirectWrite shaping each second. `ProcessGraphData.Build` scanned every process in all 120 visible samples for every refresh: about 11% of the live frame's UI-thread samples, and about half of the grouped Processes refresh. Labels now cache a frozen drawing of their shaped glyphs and draw it under a frozen translation. `ProcessGraphData.Reuse`, held by `ProcessesView`, keeps the previous refresh's rows: a row seen last time copies its values for the samples both windows share (matched by reference, so the substituted newest full sample is recomputed), and only the new samples are scanned. Groups also keep which samples observed them and redo the compaction idle fill each refresh, because a group's representative process, and so its start time, changes under the same key. Two sample loops in `CpuGraph` no longer allocate interface enumerators.

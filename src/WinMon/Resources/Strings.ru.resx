@@ -2061,4 +2061,30 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
   <data name="ProcessElevated" xml:space="preserve"><value>Повышенные права</value></data>
   <data name="ProcessNotElevated" xml:space="preserve"><value>Без повышения прав</value></data>
   <data name="ProcessSession" xml:space="preserve"><value>Сеанс {0}</value></data>
+  <data name="SuspendProcess" xml:space="preserve"><value>Приостановить</value></data>
+  <data name="ResumeProcess" xml:space="preserve"><value>Возобновить</value></data>
+  <data name="SuspendProcessConfirmation" xml:space="preserve"><value>Приостановка этого процесса может остановить его и всё, что его ожидает. WinMon может позже один раз попытаться возобновить его, но не может восстановить изменения других средств. Приостановить {0}?</value></data>
+  <data name="SuspendProcessUnavailable" xml:space="preserve"><value>Этот процесс нельзя приостановить из WinMon.</value></data>
+  <data name="ResumeProcessUnavailable" xml:space="preserve"><value>Этот процесс не был приостановлен WinMon.</value></data>
+  <data name="ProcessSuspendedByWinMon" xml:space="preserve"><value>Приостановлен WinMon</value></data>
+  <data name="ProcessStillSuspended" xml:space="preserve"><value>Процесс остаётся приостановленным другим источником.</value></data>
+  <data name="SetAffinity" xml:space="preserve"><value>Настроить привязку ЦП</value></data>
+  <data name="CpuAffinityUnavailable" xml:space="preserve"><value>Привязка ЦП недоступна для этого процесса.</value></data>
+  <data name="CpuAffinityReadOnly" xml:space="preserve"><value>Привязку ЦП нельзя изменить, так как процесс охватывает группы процессоров.</value></data>
+  <data name="CpuAffinityNone" xml:space="preserve"><value>Выберите хотя бы один логический процессор.</value></data>
+  <data name="AllProcessors" xml:space="preserve"><value>Все</value></data>
+  <data name="NoProcessors" xml:space="preserve"><value>Нет</value></data>
+  <data name="EfficiencyMode" xml:space="preserve"><value>Режим эффективности</value></data>
+  <data name="EfficiencyModeMixed" xml:space="preserve"><value>Режим эффективности смешан или недоступен.</value></data>
+  <data name="EfficiencyModeUnavailable" xml:space="preserve"><value>Режим эффективности недоступен для этого процесса.</value></data>
+  <data name="EfficiencyModePartialFailure" xml:space="preserve"><value>Не удалось полностью изменить режим эффективности: {0}</value></data>
+  <data name="EfficiencyModeWindows10Note" xml:space="preserve"><value>Windows 10 принимает этот параметр, но EcoQoS может иметь ограниченный эффект.</value></data>
+  <data name="ResumeSuspendedProcesses" xml:space="preserve"><value>Возобновить приостановленные процессы</value></data>
+  <data name="ResumeSuspendedProcessesPrompt" xml:space="preserve"><value>WinMon приостановил один или несколько активных процессов. Возобновить их перед закрытием?</value></data>
+  <data name="LeaveSuspended" xml:space="preserve"><value>Оставить приостановленными</value></data>
+  <data name="ResumeFailedProcesses" xml:space="preserve"><value>WinMon не смог возобновить эти процессы:
+{0}</value></data>
+  <data name="CancelClose" xml:space="preserve"><value>Отменить закрытие</value></data>
+  <data name="EfficiencyModeRollbackFailure" xml:space="preserve"><value>Не удалось изменить приоритет: {0}
+Не удалось восстановить ограничение: {1}</value></data>
 </root>

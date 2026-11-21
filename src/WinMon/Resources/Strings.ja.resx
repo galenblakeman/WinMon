@@ -2061,4 +2061,30 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
   <data name="ProcessElevated" xml:space="preserve"><value>昇格済み</value></data>
   <data name="ProcessNotElevated" xml:space="preserve"><value>未昇格</value></data>
   <data name="ProcessSession" xml:space="preserve"><value>セッション {0}</value></data>
+  <data name="SuspendProcess" xml:space="preserve"><value>中断</value></data>
+  <data name="ResumeProcess" xml:space="preserve"><value>再開</value></data>
+  <data name="SuspendProcessConfirmation" xml:space="preserve"><value>このプロセスを中断すると、プロセスと待機中の項目が停止する可能性があります。WinMon は後で一度再開を試みますが、他のツールによる中断の変更は復元できません。{0} を中断しますか?</value></data>
+  <data name="SuspendProcessUnavailable" xml:space="preserve"><value>このプロセスは WinMon から中断できません。</value></data>
+  <data name="ResumeProcessUnavailable" xml:space="preserve"><value>このプロセスは WinMon によって中断されていません。</value></data>
+  <data name="ProcessSuspendedByWinMon" xml:space="preserve"><value>WinMon により中断</value></data>
+  <data name="ProcessStillSuspended" xml:space="preserve"><value>プロセスは別の原因により中断されたままです。</value></data>
+  <data name="SetAffinity" xml:space="preserve"><value>CPU アフィニティを設定</value></data>
+  <data name="CpuAffinityUnavailable" xml:space="preserve"><value>このプロセスでは CPU アフィニティを使用できません。</value></data>
+  <data name="CpuAffinityReadOnly" xml:space="preserve"><value>このプロセスはプロセッサ グループにまたがるため、CPU アフィニティを変更できません。</value></data>
+  <data name="CpuAffinityNone" xml:space="preserve"><value>少なくとも 1 つの論理プロセッサを選択してください。</value></data>
+  <data name="AllProcessors" xml:space="preserve"><value>すべて</value></data>
+  <data name="NoProcessors" xml:space="preserve"><value>なし</value></data>
+  <data name="EfficiencyMode" xml:space="preserve"><value>効率モード</value></data>
+  <data name="EfficiencyModeMixed" xml:space="preserve"><value>効率モードは混在しているか使用できません。</value></data>
+  <data name="EfficiencyModeUnavailable" xml:space="preserve"><value>このプロセスでは効率モードを使用できません。</value></data>
+  <data name="EfficiencyModePartialFailure" xml:space="preserve"><value>効率モードを完全に変更できませんでした: {0}</value></data>
+  <data name="EfficiencyModeWindows10Note" xml:space="preserve"><value>Windows 10 はこの設定を受け入れますが、EcoQoS の効果は限定的な場合があります。</value></data>
+  <data name="ResumeSuspendedProcesses" xml:space="preserve"><value>中断したプロセスを再開</value></data>
+  <data name="ResumeSuspendedProcessesPrompt" xml:space="preserve"><value>WinMon は 1 つ以上の実行中プロセスを中断しました。閉じる前に再開しますか?</value></data>
+  <data name="LeaveSuspended" xml:space="preserve"><value>中断したままにする</value></data>
+  <data name="ResumeFailedProcesses" xml:space="preserve"><value>WinMon は次のプロセスを再開できませんでした:
+{0}</value></data>
+  <data name="CancelClose" xml:space="preserve"><value>閉じるをキャンセル</value></data>
+  <data name="EfficiencyModeRollbackFailure" xml:space="preserve"><value>優先度の変更に失敗しました: {0}
+スロットリングの復元にも失敗しました: {1}</value></data>
 </root>
