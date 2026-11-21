@@ -330,9 +330,11 @@ public static partial class Strings
     public static string DetailCached => ResourceManager.GetString(nameof(DetailCached), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailClockSpeed => ResourceManager.GetString(nameof(DetailClockSpeed), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailCommittedLimit => ResourceManager.GetString(nameof(DetailCommittedLimit), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string DetailCompressionStore => ResourceManager.GetString(nameof(DetailCompressionStore), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailCpuDefinition => ResourceManager.GetString(nameof(DetailCpuDefinition), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailDedicatedMemory => ResourceManager.GetString(nameof(DetailDedicatedMemory), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailDiskDefinition => ResourceManager.GetString(nameof(DetailDiskDefinition), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string DetailFree => ResourceManager.GetString(nameof(DetailFree), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailFreeSpace => ResourceManager.GetString(nameof(DetailFreeSpace), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailGpuDefinition => ResourceManager.GetString(nameof(DetailGpuDefinition), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailHandles => ResourceManager.GetString(nameof(DetailHandles), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -341,8 +343,10 @@ public static partial class Strings
     public static string DetailLinkSpeed => ResourceManager.GetString(nameof(DetailLinkSpeed), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailLive => ResourceManager.GetString(nameof(DetailLive), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailMemoryDefinition => ResourceManager.GetString(nameof(DetailMemoryDefinition), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string DetailModified => ResourceManager.GetString(nameof(DetailModified), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailNetworkDefinition => ResourceManager.GetString(nameof(DetailNetworkDefinition), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailPagedNonPaged => ResourceManager.GetString(nameof(DetailPagedNonPaged), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string DetailPagingReads => ResourceManager.GetString(nameof(DetailPagingReads), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailProcessesThreads => ResourceManager.GetString(nameof(DetailProcessesThreads), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailQueueLength => ResourceManager.GetString(nameof(DetailQueueLength), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailRead => ResourceManager.GetString(nameof(DetailRead), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -350,7 +354,9 @@ public static partial class Strings
     public static string DetailReceiveSend => ResourceManager.GetString(nameof(DetailReceiveSend), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string Details => ResourceManager.GetString(nameof(Details), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailSharedMemory => ResourceManager.GetString(nameof(DetailSharedMemory), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string DetailStandby => ResourceManager.GetString(nameof(DetailStandby), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailsUnavailable => ResourceManager.GetString(nameof(DetailsUnavailable), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string DetailSystemCache => ResourceManager.GetString(nameof(DetailSystemCache), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailUpTime => ResourceManager.GetString(nameof(DetailUpTime), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailUserKernel => ResourceManager.GetString(nameof(DetailUserKernel), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailUtilization => ResourceManager.GetString(nameof(DetailUtilization), Culture ?? CultureInfo.CurrentUICulture)!;

@@ -36,6 +36,12 @@ internal static class SnapshotText
         Row(Strings.Memory, r is { UsedMemoryBytes: { } used, TotalMemoryBytes: { } total }
             ? $"{Strings.Format(Strings.GiB, used / 1_073_741_824d, total / 1_073_741_824d)} ({Percent(r.MemoryPercent)})"
             : Percent(r.MemoryPercent));
+        Row(Strings.DetailSystemCache, Bytes(r.CachedBytes));
+        Row(Strings.DetailPagingReads, PerSecond(r.PagingReadsPerSecond));
+        Row(Strings.DetailStandby, Bytes(r.StandbyBytes));
+        Row(Strings.DetailModified, Bytes(r.ModifiedBytes));
+        Row(Strings.DetailFree, Bytes(r.FreeBytes));
+        Row(Strings.DetailCompressionStore, Bytes(r.CompressionStoreBytes));
         Row(Strings.GPU, Percent(r.GpuPercent));
         Disk(r.DiskName, r.DiskActivePercent, r.DiskBytesPerSecond);
         if (r.SecondaryDiskName.Length > 0)
@@ -121,6 +127,16 @@ internal static class SnapshotText
     private static string Rate(double? bytes)
     {
         return bytes is { } b ? RateText.Format(b * 8) : Strings.MissingReading;
+    }
+
+    private static string Bytes(ulong? bytes)
+    {
+        return bytes is { } value ? UsageText.Bytes(value) : Strings.MissingReading;
+    }
+
+    private static string PerSecond(double? value)
+    {
+        return value is { } rate ? rate.ToString("0.0", CultureInfo.CurrentCulture) + "/s" : Strings.MissingReading;
     }
 
     private static string Clean(string value)

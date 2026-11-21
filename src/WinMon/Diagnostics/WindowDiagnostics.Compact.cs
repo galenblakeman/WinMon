@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Interop;
@@ -57,6 +58,9 @@ internal sealed partial class WindowDiagnostics
                 Resources = new ResourceSample
                 {
                     TotalMemoryBytes = 32UL * 1_073_741_824, UsedMemoryBytes = 23_056_165_683,
+                    CachedBytes = 5UL * 1_073_741_824, PagingReadsPerSecond = 18.5,
+                    StandbyBytes = 3UL * 1_073_741_824, ModifiedBytes = 768UL * 1_048_576,
+                    FreeBytes = 512UL * 1_048_576, CompressionStoreBytes = 1_024UL * 1_048_576,
                     DiskName = "C:", DiskActivePercent = 6.4 + 62 * pulse + wobble,
                     DiskBytesPerSecond = Math.Abs(i - 94) <= 5 ? 200_000 : 900_000,
                     SecondaryDiskName = "D:", SecondaryDiskActivePercent = 3.5 + 44 * pulse + wobble,
@@ -150,6 +154,7 @@ internal sealed partial class WindowDiagnostics
                 throw new InvalidOperationException("Compact native peak label did not share Full-view details.");
             await CaptureVisualAsync(visual,
                 Path.Combine(output, $"gauges-native-{theme.ToLowerInvariant()}-{width}.png"), 1, cancellationToken);
+            if (width == 836) await CaptureMemoryDetails(theme.ToLowerInvariant(), false);
         }
 
         fixture.Preferences = fixture.Preferences with
@@ -166,6 +171,7 @@ internal sealed partial class WindowDiagnostics
                 t.Box.Visibility == Visibility.Visible && t.Readout.ValueLabel.Text != Strings.MissingReading))
             throw new InvalidOperationException("Unavailable readings were presented as live values.");
         await CaptureVisualAsync(visual, Path.Combine(output, "strip-unavailable.png"), 1, cancellationToken);
+        await CaptureMemoryDetails("unavailable-light", true);
         fixture.SetCompactView(false);
         if (Math.Abs(fixture.Height - 840) > 0.001 || Math.Abs(fixture.Width - 1000) > 0.001 ||
             fixture.GpuMetric.Toggle.IsChecked != false)
@@ -174,7 +180,7 @@ internal sealed partial class WindowDiagnostics
         {
             NativeReadings = true, ButtonRoundTrip = true, PreferenceRoundTrip = true,
             FullSizeRestored = true, ChartTogglePreserved = true, OptionalDisk = true, MissingReadings = true,
-            GapInFixture = true, AlwaysNativePeakLabelsAndTooltips = true,
+            GapInFixture = true, AlwaysNativePeakLabelsAndTooltips = true, MemoryPressureDetails = true,
             Themes = new[] { "Dark", "Light" }.Concat(ThemeFinishes.Names),
             RenderScales = new[] { 1, 1.5, 2 }
         }), cancellationToken);
@@ -186,6 +192,31 @@ internal sealed partial class WindowDiagnostics
             visual.Measure(new Size(width, MainWindow.CompactHeight));
             visual.Arrange(new Rect(0, 0, width, MainWindow.CompactHeight));
             visual.UpdateLayout();
+        }
+
+        async Task CaptureMemoryDetails(string name, bool unavailable)
+        {
+            fixture.OpenDetails(fixture.MemoryMetric);
+            try
+            {
+                var details = (MetricDetails)fixture.MemoryMetric.ToolTip;
+                var labels = new[] { Strings.DetailPagingReads, Strings.DetailStandby, Strings.DetailModified,
+                    Strings.DetailFree, Strings.DetailCompressionStore };
+                if (details.Rows.Count != 11 || !details.Rows.Skip(4).Take(5).Select(row => row.Label).SequenceEqual(labels) ||
+                    details.Rows.Skip(4).Take(5).Any(row => (row.Value == Strings.MissingReading) != unavailable))
+                    throw new InvalidOperationException("Memory pressure details lost their labels, values or unavailable state.");
+                var surface = new Border
+                {
+                    Padding = new Thickness(12), Resources = fixture.Resources,
+                    Background = (System.Windows.Media.Brush)fixture.FindResource("Surface"),
+                    Child = new ContentPresenter { Content = details }
+                };
+                TextElement.SetForeground(surface, (System.Windows.Media.Brush)fixture.FindResource("Text"));
+                surface.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+                surface.Arrange(new Rect(surface.DesiredSize));
+                await CaptureVisualAsync(surface, Path.Combine(output, $"memory-pressure-{name}.png"), 1, cancellationToken);
+            }
+            finally { fixture.CloseDetails(fixture.MemoryMetric); }
         }
     }
 

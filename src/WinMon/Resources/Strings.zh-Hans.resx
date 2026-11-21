@@ -2087,4 +2087,10 @@ Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。<
   <data name="CancelClose" xml:space="preserve"><value>取消关闭</value></data>
   <data name="EfficiencyModeRollbackFailure" xml:space="preserve"><value>更改优先级失败：{0}
 恢复节流设置也失败：{1}</value></data>
+  <data name="DetailSystemCache" xml:space="preserve"><value>系统缓存</value></data>
+  <data name="DetailPagingReads" xml:space="preserve"><value>分页读取/秒</value></data>
+  <data name="DetailStandby" xml:space="preserve"><value>待机</value></data>
+  <data name="DetailModified" xml:space="preserve"><value>已修改</value></data>
+  <data name="DetailFree" xml:space="preserve"><value>空闲和零页</value></data>
+  <data name="DetailCompressionStore" xml:space="preserve"><value>压缩存储</value></data>
 </root>

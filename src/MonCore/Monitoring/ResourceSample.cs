@@ -9,6 +9,11 @@ public sealed record ResourceSample
     public ulong? CommittedBytes { get; init; }
     public ulong? CommitLimitBytes { get; init; }
     public ulong? CachedBytes { get; init; }
+    public double? PagingReadsPerSecond { get; init; }
+    public ulong? StandbyBytes { get; init; }
+    public ulong? ModifiedBytes { get; init; }
+    public ulong? FreeBytes { get; init; }
+    public ulong? CompressionStoreBytes { get; init; }
     public ulong? PagedPoolBytes { get; init; }
     public ulong? NonPagedPoolBytes { get; init; }
     public uint? ProcessCount { get; init; }

@@ -340,7 +340,7 @@ public sealed class RestartHistoryTests
         Assert.Multiple(() =>
         {
             Assert.That(restored, Is.Not.Null);
-            Assert.That(Json(restored!.Samples), Is.EqualTo(Json(Samples(75).Select(sample => sample with
+            Assert.That(Json(restored!.Samples), Is.EqualTo(Json(OldSamples(75).Select(sample => sample with
             {
                 Processes = sample.Processes.Select(process => process with { FileVersion = "", ProductVersion = "" })
                     .ToArray()
@@ -360,8 +360,34 @@ public sealed class RestartHistoryTests
         Assert.Multiple(() =>
         {
             Assert.That(restored, Is.Not.Null);
-            Assert.That(Json(restored!.Samples), Is.EqualTo(Json(Samples(75))));
+            Assert.That(Json(restored!.Samples), Is.EqualTo(Json(OldSamples(75))));
             Assert.That(restored.Samples.All(sample => sample.LogicalProcessorPercents is null), Is.True);
+        });
+    }
+
+    [Test]
+    public void Fixture_FormatVersion3StillReadsNewMemoryFieldsAsUnavailable()
+    {
+        // Generated from the retained pre-v4 MonCore with:
+        // & artifacts/restart-history-v3-generator/bin/Release/net10.0-windows/restart-history-v3-generator.exe
+        //     tests/MonCore.Tests/Fixtures/restart-history-v3.bin
+        var path = Path.Combine(_directory, RestartHistory.FileName);
+        var fixture = Path.Combine(TestContext.CurrentContext.TestDirectory, "Fixtures", "restart-history-v3.bin");
+        Assert.That(BitConverter.ToInt32(File.ReadAllBytes(fixture), 4), Is.EqualTo(3));
+        File.Copy(fixture, path);
+
+        var restored = RestartHistory.Read(path, Token, Later(10));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(restored, Is.Not.Null);
+            Assert.That(restored!.Samples.Single().Resources.CachedBytes, Is.EqualTo(100));
+            Assert.That(restored.Samples.Single().LogicalProcessorPercents, Is.EqualTo(new double?[] { 12.5, null }));
+            Assert.That(restored.Samples.Single().Resources.PagingReadsPerSecond, Is.Null);
+            Assert.That(restored.Samples.Single().Resources.StandbyBytes, Is.Null);
+            Assert.That(restored.Samples.Single().Resources.ModifiedBytes, Is.Null);
+            Assert.That(restored.Samples.Single().Resources.FreeBytes, Is.Null);
+            Assert.That(restored.Samples.Single().Resources.CompressionStoreBytes, Is.Null);
         });
     }
 
@@ -372,6 +398,15 @@ public sealed class RestartHistoryTests
         var restored = RestartHistory.Read(SaveWith([sample]), Token, Later(10));
 
         Assert.That(restored!.Samples.Single().LogicalProcessorPercents, Is.EqualTo(sample.LogicalProcessorPercents));
+    }
+
+    [Test]
+    public void Read_RejectsNegativePagingReadRate()
+    {
+        var sample = Valid(1, []) with { Resources = new ResourceSample { PagingReadsPerSecond = -1 } };
+
+        Assert.That(RestartHistory.Read(SaveWith([sample]), Token, Later(10))!.Samples, Is.Empty,
+            "A malformed paging rate must not surface as a reading.");
     }
 
     // Regenerates the checked-in fixture. Run it only when deliberately introducing a new format version.
@@ -446,6 +481,40 @@ public sealed class RestartHistoryTests
     private static MonitorSample[] Samples(int count)
     {
         return [.. Enumerable.Range(0, count).Select(i => i % 7 == 3 ? Gap(i) : Rich(i))];
+    }
+
+    private static MonitorSample[] OldSamples(int count)
+    {
+        return [.. Enumerable.Range(0, count).Select(i => i % 7 == 3 ? Gap(i) : OldRich(i))];
+    }
+
+    private static MonitorSample OldRich(int i)
+    {
+        var resources = new ResourceSample();
+        var n = 0;
+        foreach (var property in Settable(typeof(ResourceSample)).Where(property => property.Name is not
+                     (nameof(ResourceSample.PagingReadsPerSecond) or nameof(ResourceSample.StandbyBytes) or
+                      nameof(ResourceSample.ModifiedBytes) or nameof(ResourceSample.FreeBytes) or
+                      nameof(ResourceSample.CompressionStoreBytes))))
+            property.SetValue(resources, Value(property, i, ++n));
+        ProcessUsage[] processes =
+        [
+            .. Enumerable.Range(0, 3).Select(p =>
+            {
+                var process = new ProcessUsage(p + 1, p + 10, "", 0);
+                var m = 0;
+                foreach (var property in Settable(typeof(ProcessUsage)))
+                    property.SetValue(process, Value(property, i * 10 + p, ++m));
+                return process;
+            })
+        ];
+        return new MonitorSample(Anchor.AddSeconds(i), 12.5 + i, processes, i, false, Frequency * (100 + i))
+        {
+            Resources = resources,
+            CompactedProcesses = 40 + i,
+            IntervalSeconds = 1 + i / 1000d,
+            IntervalCpuTicks = 120_000_000 + i
+        };
     }
 
     private static MonitorSample Gap(int i)

@@ -18,6 +18,8 @@ public sealed class SnapshotTextTests
                 Resources = new ResourceSample
                 {
                     UsedMemoryBytes = 8UL << 30, TotalMemoryBytes = 16UL << 30,
+                    CachedBytes = 1UL << 30, PagingReadsPerSecond = 12.5, StandbyBytes = 2UL << 30,
+                    ModifiedBytes = 3UL << 20, FreeBytes = 4UL << 20, CompressionStoreBytes = 5UL << 20,
                     DiskName = "C:", DiskActivePercent = 0, SecondaryDiskName = "D:", SecondaryDiskActivePercent = 28,
                     ReceiveBytesPerSecond = 1_000_000, SendBytesPerSecond = 0
                 }
@@ -41,11 +43,26 @@ public sealed class SnapshotTextTests
             Assert.That(text, Does.Contain("Capture:").And.Not.Contain("Snapshot"));
             Assert.That(Strings.CopySnapshot, Is.EqualTo("Copy capture"));
             Assert.That(text, Does.Contain("42.3%").And.Contain("8.0 / 16 GiB").And.Contain("50.0%"));
+            Assert.That(text, Does.Contain("System cache\t1.1 GB").And.Contain("Paging reads / sec\t12.5/s")
+                .And.Contain("Standby\t2.1 GB").And.Contain("Compression store\t5.2 MB"));
             Assert.That(text, Does.Contain("GPU\t—"));
             Assert.That(text, Does.Contain("Disk (C:)\t0.0%").And.Contain("Disk (D:)\t28.0%"));
             Assert.That(text, Does.Contain("↓ 1 MB/s").And.Contain("↑ 0 KB/s"));
             Assert.That(text, Does.Contain("Browser").And.Contain("five-second averages"));
         });
+    }
+
+    [Test]
+    public void Format_MarksUnavailableMemoryPressureReadingsAsMissing()
+    {
+        var text = SnapshotText.Format(Report() with
+        {
+            Sample = Report().Sample with { Resources = new ResourceSample() }
+        });
+
+        Assert.That(text, Does.Contain("System cache\t—").And.Contain("Paging reads / sec\t—")
+            .And.Contain("Standby\t—").And.Contain("Modified\t—").And.Contain(Strings.DetailFree + "\t—")
+            .And.Contain("Compression store\t—"));
     }
 
     [TestCase(false, "100.0")]

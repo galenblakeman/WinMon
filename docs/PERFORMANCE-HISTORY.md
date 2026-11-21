@@ -2,6 +2,18 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## Memory pressure counters (November 20, 2026)
+
+Compared retained pre-memory and changed native samplers on Windows x64, .NET 10.0.15, using 850 synthetic process rows, 30 warm-up samples and 200 timed samples per run. Four alternating pairs reversed launch order. Native PDH counters were readable in every changed run; compression store was unavailable because the fixture has no compression process.
+
+| Resource sampler | Before | After |
+| --- | ---: | ---: |
+| Median of four run medians | 1.553 ms | 1.610 ms |
+| Run median range | 1.485–1.570 ms | 1.546–1.642 ms |
+| Allocated bytes/sample | 196,453 | 197,909 |
+
+The 0.057 ms median difference is smaller than the observed run variation, with overlapping ranges. The six-counter query adds 1,456 bytes/sample. The sampler keeps one query and performs no additional process opens. This focused worker measurement does not measure whole-app performance. Evidence: `artifacts/process-control-sampler-results/*-{baseline,changed}.json`; measurements ran outside the sandbox so PDH was accessible.
+
 ## Process controls and suspension status (November 20, 2026)
 
 Compared the retained process-details build and the process-controls build with the existing `WinMon.Performance --live-only` workload: 850 synthetic processes, 400 warm-up frames and seven batches of 60. Four alternating pairs swapped launch order each pair, with diagnostic logging enabled. Native collection and control operations are outside this UI-thread measurement.

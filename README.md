@@ -12,6 +12,8 @@ For a live individual process, **Properties** and **Copy details** read its comm
 
 The process **More** menu offers suspend/resume, CPU affinity and Efficiency mode for eligible live processes. Changes last for that process lifetime. WinMon asks before suspension and offers to resume its outstanding suspensions before closing or updating.
 
+Memory details show paging reads per second, standby, modified, free/zero memory and the compression process working set when Windows exposes it. Capture text and resource CSV exports include these readings; unavailable values remain missing.
+
 **Windows x64 · No separate .NET installation · Installer or portable ZIP · MIT licensed**
 
 [**Download latest release**](https://github.com/galenblakeman/WinMon/releases/latest) · [User guide](docs/USER-GUIDE.md) · [Screenshot gallery](docs/example/README.md) · [Report an issue](https://github.com/galenblakeman/WinMon/issues)

@@ -49,7 +49,7 @@ public static class RestartHistory
     public const string FileName = "restart-history.bin";
     public const string NormalFileName = "history.bin";
     private const string NormalToken = "normal-exit";
-    public const int FormatVersion = 3;
+    public const int FormatVersion = 4;
     public const int ChunkSamples = 60;
     private const int MaximumLogicalProcessors = 64;
     public static readonly TimeSpan Budget = TimeSpan.FromSeconds(1.5);
@@ -524,7 +524,7 @@ public static class RestartHistory
             logicalProcessorPercents = values;
         }
 
-        var resources = ReadResources(reader);
+        var resources = ReadResources(reader, version);
         var processes = new ProcessUsage[Count(reader)];
         for (var i = 0; i < processes.Length; i++)
         {
@@ -585,6 +585,11 @@ public static class RestartHistory
         Write(writer, r.CommittedBytes);
         Write(writer, r.CommitLimitBytes);
         Write(writer, r.CachedBytes);
+        Write(writer, r.PagingReadsPerSecond);
+        Write(writer, r.StandbyBytes);
+        Write(writer, r.ModifiedBytes);
+        Write(writer, r.FreeBytes);
+        Write(writer, r.CompressionStoreBytes);
         Write(writer, r.PagedPoolBytes);
         Write(writer, r.NonPagedPoolBytes);
         Write(writer, r.ProcessCount);
@@ -626,9 +631,9 @@ public static class RestartHistory
         Write(writer, r.SentBytesSinceStart);
     }
 
-    private static ResourceSample ReadResources(BinaryReader reader)
+    private static ResourceSample ReadResources(BinaryReader reader, int version)
     {
-        return new ResourceSample
+        var resources = new ResourceSample
         {
             CpuClockMhz = ReadDouble(reader),
             CpuKernelPercent = ReadDouble(reader),
@@ -636,6 +641,11 @@ public static class RestartHistory
             CommittedBytes = ReadUInt64(reader),
             CommitLimitBytes = ReadUInt64(reader),
             CachedBytes = ReadUInt64(reader),
+            PagingReadsPerSecond = version >= 4 ? ReadDouble(reader) : null,
+            StandbyBytes = version >= 4 ? ReadUInt64(reader) : null,
+            ModifiedBytes = version >= 4 ? ReadUInt64(reader) : null,
+            FreeBytes = version >= 4 ? ReadUInt64(reader) : null,
+            CompressionStoreBytes = version >= 4 ? ReadUInt64(reader) : null,
             PagedPoolBytes = ReadUInt64(reader),
             NonPagedPoolBytes = ReadUInt64(reader),
             ProcessCount = ReadUInt32(reader),
@@ -676,6 +686,9 @@ public static class RestartHistory
             ReceivedBytesSinceStart = ReadUInt64(reader),
             SentBytesSinceStart = ReadUInt64(reader)
         };
+        if (resources.PagingReadsPerSecond is { } rate && (!double.IsFinite(rate) || rate < 0))
+            throw new FormatException("Invalid paging-read rate.");
+        return resources;
     }
 
     private static void WriteUsage(BinaryWriter writer, UsageLedgerState? usage)

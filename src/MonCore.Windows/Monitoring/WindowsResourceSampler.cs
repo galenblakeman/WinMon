@@ -13,6 +13,7 @@ internal sealed class WindowsResourceSampler : IDisposable
     private readonly WindowsGpuSampler _gpu = new();
 
     private readonly WindowsCpuClock _cpuClock = new();
+    private readonly MemoryPressureCounter _memoryPressure = new();
 
     // Enumerating adapters costs far more than reading one adapter's counters, so the candidate list is
     // refreshed only when Windows reports a network change, or every 30 seconds for speed changes.
@@ -69,6 +70,7 @@ internal sealed class WindowsResourceSampler : IDisposable
                 ProcessCount = performance.ProcessCount, ThreadCount = performance.ThreadCount,
                 HandleCount = performance.HandleCount
             };
+        result = ApplyMemoryPressure(result, _memoryPressure.Read(), cpu.Processes);
 
         // PDH failures only make disk unavailable; they never stop memory, network or CPU.
         var primary = _primaryDisk.Read(primaryDrive ?? Path.GetPathRoot(Environment.SystemDirectory)!.TrimEnd('\\'));
@@ -106,10 +108,27 @@ internal sealed class WindowsResourceSampler : IDisposable
     public void Reset()
     {
         _gpu.Reset();
+        _memoryPressure.Reset();
         _primaryDisk.Reset();
         _secondaryDisk.Reset();
         _previousNetwork = null;
         // A gap invalidates rates, not totals: the adapter's counters keep counting through it.
+    }
+
+    internal static ResourceSample ApplyMemoryPressure(ResourceSample result, MemoryPressureReading pressure,
+        IReadOnlyList<ProcessUsage> processes)
+    {
+        var compression = processes.FirstOrDefault(process =>
+            string.Equals(process.Name, "MemCompression", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(process.Name, "Memory Compression", StringComparison.OrdinalIgnoreCase));
+        return result with
+        {
+            PagingReadsPerSecond = pressure.PagingReadsPerSecond,
+            StandbyBytes = pressure.StandbyBytes,
+            ModifiedBytes = pressure.ModifiedBytes,
+            FreeBytes = pressure.FreeBytes,
+            CompressionStoreBytes = compression?.WorkingSetBytes
+        };
     }
 
     // Each volume owns its query and baseline so a missing drive cannot invalidate the other.
@@ -360,6 +379,7 @@ internal sealed class WindowsResourceSampler : IDisposable
         NetworkChange.NetworkAddressChanged -= OnNetworkChanged;
         NetworkChange.NetworkAvailabilityChanged -= OnNetworkChanged;
         Reset();
+        _memoryPressure.Dispose();
     }
 
     public sealed record NetworkObservation(string Id, long Speed, long Timestamp, long Received, long Sent);

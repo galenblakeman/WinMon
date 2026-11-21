@@ -22,7 +22,11 @@ public sealed class IncidentRecordingTests
     {
         var owner = new ProcessUsage(1, 123, "download", 2, 1234, 5678) { ImagePath = @"C:\apps\download.exe" };
         var sample = new MonitorSample(DateTimeOffset.UnixEpoch, 50, [owner], 0,
-            MonotonicTimestamp: 20 * Stopwatch.Frequency) { Resources = new() { ReceiveBytesPerSecond = 10 } };
+            MonotonicTimestamp: 20 * Stopwatch.Frequency) { Resources = new()
+            {
+                ReceiveBytesPerSecond = 10, PagingReadsPerSecond = 12.5, StandbyBytes = 20,
+                ModifiedBytes = 30, FreeBytes = 40, CompressionStoreBytes = 50
+            } };
         var frame = new ProcessNetworkFrame(sample.MonotonicTimestamp, Stopwatch.Frequency, ProcessNetworkQuality.Provisional,
             [new(1, 123, 100, 200, 10, 20)]) { Owners = [owner], CurrentLifetimes = new HashSet<ProcessLifetimeIdentity> { owner.Identity } };
         return new(1, Stopwatch.Frequency,
@@ -43,6 +47,11 @@ public sealed class IncidentRecordingTests
         var first = loaded.Observations[0];
         Assert.That(first.Sample.Processes[0].ImagePath, Is.EqualTo(source.Observations[0].Sample.Processes[0].ImagePath));
         Assert.That(first.Sample.Resources.ReceiveBytesPerSecond, Is.EqualTo(10));
+        Assert.That(first.Sample.Resources.PagingReadsPerSecond, Is.EqualTo(12.5));
+        Assert.That(first.Sample.Resources.StandbyBytes, Is.EqualTo(20));
+        Assert.That(first.Sample.Resources.ModifiedBytes, Is.EqualTo(30));
+        Assert.That(first.Sample.Resources.FreeBytes, Is.EqualTo(40));
+        Assert.That(first.Sample.Resources.CompressionStoreBytes, Is.EqualTo(50));
         Assert.That(first.Network!.Processes.Single(), Is.EqualTo(source.Observations[0].Network!.Processes.Single()));
         Assert.That(first.Network.CurrentLifetimes, Does.Contain(first.Sample.Processes[0].Identity));
         Assert.That(first.Started, Is.Null);
@@ -78,6 +87,7 @@ public sealed class IncidentRecordingTests
     [TestCase("invalid-metric")]
     [TestCase("missing-resource-name")]
     [TestCase("oversized-process-name")]
+    [TestCase("negative-paging-read")]
     public void Load_RejectsInvalidRecording(string kind)
     {
         var source = Recording();
@@ -96,6 +106,8 @@ public sealed class IncidentRecordingTests
                 { Sample = source.Observations[0].Sample with { Resources = new() { DiskName = null! } } }] },
             "oversized-process-name" => source with { SelectedIndex = 0, Observations = [source.Observations[0] with
                 { Sample = source.Observations[0].Sample with { Processes = [new(1, 1, new string('x', 1025), 0)] } }] },
+            "negative-paging-read" => source with { SelectedIndex = 0, Observations = [source.Observations[0] with
+                { Sample = source.Observations[0].Sample with { Resources = new() { PagingReadsPerSecond = -1 } } }] },
             _ => source with { Metric = CaptureMetric.ApplicationCpu }
         };
         // Keep the malformed fixture independent of the writer's validation.

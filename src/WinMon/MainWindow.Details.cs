@@ -22,7 +22,7 @@ public partial class MainWindow
         {
             var details = new MetricDetails { Accent = metric.ValueLabel.Foreground };
             _metricDetails.Add(metric, details);
-            var count = metric == NetworkMetric || metric == GpuMetric ? 5 : 6;
+            var count = metric == MemoryMetric ? 11 : metric == NetworkMetric || metric == GpuMetric ? 5 : 6;
             for (var i = 0; i < count; i++) details.Rows.Add(new DetailRow { Value = Strings.MissingReading });
             metric.ToolTip = details;
             metric.Focusable = true;
@@ -70,8 +70,9 @@ public partial class MainWindow
                 : metric == MemoryMetric
                     ?
                     [
-                        "DetailInUseTotal", "DetailAvailable", "DetailCommittedLimit", "DetailCached",
-                        "DetailPagedNonPaged", "DetailLargestWorkingSet"
+                        "DetailInUseTotal", "DetailAvailable", "DetailCommittedLimit", "DetailSystemCache",
+                        "DetailPagingReads", "DetailStandby", "DetailModified", "DetailFree",
+                        "DetailCompressionStore", "DetailPagedNonPaged", "DetailLargestWorkingSet"
                     ]
                     : metric == NetworkMetric
                         ?
@@ -128,8 +129,13 @@ public partial class MainWindow
             rows[1].Value = Bytes(resource?.AvailableMemoryBytes);
             rows[2].Value = PairBytes(resource?.CommittedBytes, resource?.CommitLimitBytes);
             rows[3].Value = Bytes(resource?.CachedBytes);
-            rows[4].Value = PairBytes(resource?.PagedPoolBytes, resource?.NonPagedPoolBytes);
-            rows[5].Value = Busiest(MemoryMetric, ProcessSort.Memory);
+            rows[4].Value = resource?.PagingReadsPerSecond is { } reads ? F("{0:0.0}/s", reads) : Dash;
+            rows[5].Value = Bytes(resource?.StandbyBytes);
+            rows[6].Value = Bytes(resource?.ModifiedBytes);
+            rows[7].Value = Bytes(resource?.FreeBytes);
+            rows[8].Value = Bytes(resource?.CompressionStoreBytes);
+            rows[9].Value = PairBytes(resource?.PagedPoolBytes, resource?.NonPagedPoolBytes);
+            rows[10].Value = Busiest(MemoryMetric, ProcessSort.Memory);
         }
         else if (metric == DiskMetric)
         {

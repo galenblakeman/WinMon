@@ -82,6 +82,8 @@ public sealed record IncidentRecording(int Version, long Frequency, IncidentObse
                 frame.Owners is null || frame.Started is null != (frame.Stopped is null) ||
                 sample.MonotonicTimestamp < 0 || sample.UnavailableProcesses < 0 || sample.CompactedProcesses < 0 ||
                 !double.IsFinite(sample.IntervalSeconds) || sample.IntervalSeconds < 0 ||
+                sample.Resources.PagingReadsPerSecond is { } pagingReads &&
+                (!double.IsFinite(pagingReads) || pagingReads < 0) ||
                 sample.LogicalProcessorPercents is { Count: > 4096 } ||
                 !InvestigationHistory.Valid(new InvestigationHistory.Frame(SampleKey.Of(sample), null, false,
                     null, sample.Processes, frame.Network, null)) ||

@@ -2087,4 +2087,10 @@ Stopped since previous observation: {1}</value>
   <data name="CancelClose" xml:space="preserve"><value>Cancel</value></data>
   <data name="EfficiencyModeRollbackFailure" xml:space="preserve"><value>Priority change failed: {0}
 Restoring throttling also failed: {1}</value></data>
+  <data name="DetailSystemCache" xml:space="preserve"><value>System cache</value></data>
+  <data name="DetailPagingReads" xml:space="preserve"><value>Paging reads / sec</value></data>
+  <data name="DetailStandby" xml:space="preserve"><value>Standby</value></data>
+  <data name="DetailModified" xml:space="preserve"><value>Modified</value></data>
+  <data name="DetailFree" xml:space="preserve"><value>Free and zero</value></data>
+  <data name="DetailCompressionStore" xml:space="preserve"><value>Compression store</value></data>
 </root>

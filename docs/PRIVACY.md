@@ -28,6 +28,8 @@ When you turn on automatic captures (off by default), WinMon writes capture repo
 
 When you choose Export, WinMon saves a CSV file in the location you select. Depending on the dataset, it can contain resource readings, process names, IDs, executable paths, publishers and Usage totals. The export remains on your PC unless you share it.
 
+Resource readings also include paging-read rates and standby, modified, free/zero and compression-process memory where available. These are local system measurements; capture text, restart history, incident files and resource CSV may retain them with the other readings.
+
 ## Actions you choose
 
 Opening process Properties or selecting Copy details for a live individual process reads its command line, account name, session, elevation and executable signer locally. Command lines can contain credentials, tokens and private paths. These additional details are not persisted in captures, CSV, restart history, incident files or logs, and are not exposed through MCP. Copy details places them on the clipboard only at your request; Windows clipboard history and synchronization follow your Windows settings. Signature verification uses cached certificate information without online revocation retrieval.

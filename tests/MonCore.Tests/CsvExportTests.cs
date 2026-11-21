@@ -35,6 +35,8 @@ public sealed class CsvExportTests
             Resources = new ResourceSample
             {
                 UsedMemoryBytes = 1_048_576, TotalMemoryBytes = 2_097_152,
+                PagingReadsPerSecond = 12.5, StandbyBytes = 3_000, ModifiedBytes = 4_000,
+                FreeBytes = 5_000, CompressionStoreBytes = 6_000,
                 DiskName = "C:", DiskReadBytesPerSecond = 1250.5,
                 NetworkName = "Wi-Fi", ReceiveBytesPerSecond = 10.25
             }
@@ -57,8 +59,10 @@ public sealed class CsvExportTests
         {
             Assert.That(rows, Has.Length.EqualTo(3));
             Assert.That(rows[0], Does.Contain("memory_used_bytes"));
+            Assert.That(rows[0], Does.Contain("paging_reads_per_second,standby_bytes,modified_bytes,free_bytes,compression_store_bytes"));
             Assert.That(rows[1], Does.Contain("2026-10-25T20:30:00.0000000Z,false,1,31.5"));
             Assert.That(rows[1], Does.Contain(",1048576,2097152,"));
+            Assert.That(rows[1], Does.Contain(",12.5,3000,4000,5000,6000,"));
             Assert.That(rows[1], Does.Contain(",1250.5,"));
             Assert.That(rows[2], Does.StartWith("2026-10-25T20:30:01.0000000Z,true,0,,"));
             Assert.That(File.ReadAllBytes(path).Take(3), Is.EqualTo(new byte[] { 0xEF, 0xBB, 0xBF }));

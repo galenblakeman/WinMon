@@ -10,6 +10,107 @@ namespace WinMon.Tests;
 public sealed class ResourceSamplingTests
 {
     [Test]
+    public void MemoryPressure_FirstRateIsUnavailableAndStandbyRequiresEveryList()
+    {
+        var ticks = 0L;
+        using var counter = new MemoryPressureCounter(new FakeMemoryPressurePdh(
+            new(12.5, 10, 20, null, 30, 40),
+            new(18.5, 10, 20, 30, 31, 41)), () => ticks += Stopwatch.Frequency);
+
+        var first = counter.Read();
+        var second = counter.Read();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(first.PagingReadsPerSecond, Is.Null);
+            Assert.That(first.StandbyBytes, Is.Null, "A partial standby list is unavailable, never a partial sum.");
+            Assert.That(first.ModifiedBytes, Is.EqualTo(30));
+            Assert.That(first.FreeBytes, Is.EqualTo(40));
+            Assert.That(second.PagingReadsPerSecond, Is.EqualTo(18.5));
+            Assert.That(second.StandbyBytes, Is.EqualTo(60));
+        });
+    }
+
+    [Test]
+    public void MemoryPressure_RejectsStandbyOverflow()
+    {
+        using var counter = new MemoryPressureCounter(new FakeMemoryPressurePdh(
+            new MemoryPressureRaw(1, ulong.MaxValue, 1, 1, 4, 5)), Stopwatch.GetTimestamp);
+
+        Assert.That(counter.Read().StandbyBytes, Is.Null);
+    }
+
+    [Test]
+    public void MemoryPressure_ResetMakesNextRateUnavailableAndCompressionUsesKnownSampleNamesOnly()
+    {
+        var ticks = 0L;
+        using var counter = new MemoryPressureCounter(new FakeMemoryPressurePdh(
+            new(4, 1, 2, 3, 4, 5), new(6, 1, 2, 3, 4, 5), new(8, 1, 2, 3, 4, 5)),
+            () => ticks += Stopwatch.Frequency);
+        _ = counter.Read();
+        var beforeReset = counter.Read();
+        counter.Reset();
+        var afterReset = counter.Read();
+        var resources = WindowsResourceSampler.ApplyMemoryPressure(new ResourceSample(), beforeReset,
+            [new ProcessUsage(1, 1, "MemCompression", 0, 123), new ProcessUsage(2, 2, "compression helper", 0, 456)]);
+        var displayName = WindowsResourceSampler.ApplyMemoryPressure(new ResourceSample(), beforeReset,
+            [new ProcessUsage(3, 3, "Memory Compression", 0, 789)]);
+        var absent = WindowsResourceSampler.ApplyMemoryPressure(new ResourceSample(), beforeReset,
+            [new ProcessUsage(2, 2, "compression helper", 0, 456)]);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(beforeReset.PagingReadsPerSecond, Is.EqualTo(6));
+            Assert.That(afterReset.PagingReadsPerSecond, Is.Null);
+            Assert.That(resources.CompressionStoreBytes, Is.EqualTo(123));
+            Assert.That(displayName.CompressionStoreBytes, Is.EqualTo(789));
+            Assert.That(absent.CompressionStoreBytes, Is.Null);
+        });
+    }
+
+    [Test]
+    public void MemoryPressure_FailedCollectionAndInvalidRateDoNotCarryABaseline()
+    {
+        var ticks = 0L;
+        using var counter = new MemoryPressureCounter(new FakeMemoryPressurePdh(
+            new(4, 1, 2, 3, 4, 5),
+            new(6, 1, 2, 3, 4, 5),
+            default,
+            new(8, 1, 2, 3, 4, 5),
+            new(10, 1, 2, 3, 4, 5)), () => ticks += Stopwatch.Frequency);
+
+        var warmup = counter.Read();
+        var valid = counter.Read();
+        var failed = counter.Read();
+        var recovered = counter.Read();
+        var resumed = counter.Read();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(warmup.PagingReadsPerSecond, Is.Null);
+            Assert.That(valid.PagingReadsPerSecond, Is.EqualTo(6));
+            Assert.That(failed.PagingReadsPerSecond, Is.Null);
+            Assert.That(recovered.PagingReadsPerSecond, Is.Null, "The query recovery needs a fresh baseline.");
+            Assert.That(resumed.PagingReadsPerSecond, Is.EqualTo(10));
+        });
+    }
+
+    [TestCase(double.NaN)]
+    [TestCase(-1d)]
+    [TestCase(double.PositiveInfinity)]
+    public void MemoryPressure_RejectsInvalidRatesEvenWhenWarm(double invalidRate)
+    {
+        var ticks = 0L;
+        using var counter = new MemoryPressureCounter(new FakeMemoryPressurePdh(
+            new(4, 1, 2, 3, 4, 5), new(6, 1, 2, 3, 4, 5), new(invalidRate, 1, 2, 3, 4, 5)),
+            () => ticks += Stopwatch.Frequency);
+
+        _ = counter.Read();
+        _ = counter.Read();
+
+        Assert.That(counter.Read().PagingReadsPerSecond, Is.Null);
+    }
+    [Test]
     public void Memory_UsesPhysicalUsedOverTotal_AndDistinguishesMissingFromZero()
     {
         Assert.Multiple(() =>
@@ -191,5 +292,13 @@ public sealed class ResourceSamplingTests
             return new CpuSnapshot(DateTimeOffset.UnixEpoch.AddSeconds(index * 2), Stopwatch.Frequency * index * 2,
                 new SystemCpuTimes(index * 100, index * 1000, 0), [process], 0);
         }
+    }
+
+    private sealed class FakeMemoryPressurePdh(params MemoryPressureRaw[] readings) : IMemoryPressurePdh
+    {
+        private int _index;
+        public MemoryPressureRaw Collect() => readings[Math.Min(_index++, readings.Length - 1)];
+        public void Reset() { }
+        public void Dispose() { }
     }
 }

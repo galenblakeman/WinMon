@@ -1261,6 +1261,12 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                 ToolTipService.GetShowsToolTipOnKeyboardFocus(metric.Toggle) is not true ||
                 !ReferenceEquals(metric.Toggle.ToolTip, details))
                 throw new InvalidOperationException("Full resource tooltip does not share its detail model.");
+            if (metric == window.MemoryMetric && (details.Rows.Count != 11 ||
+                details.Rows[3].Label != Strings.DetailSystemCache || details.Rows[4].Label != Strings.DetailPagingReads ||
+                details.Rows[5].Label != Strings.DetailStandby || details.Rows[6].Label != Strings.DetailModified ||
+                details.Rows[7].Label != Strings.DetailFree ||
+                details.Rows[8].Label != Strings.DetailCompressionStore))
+                throw new InvalidOperationException("Memory details did not expose all nullable pressure readings.");
             await CaptureMetric(false, metric);
         }
 
