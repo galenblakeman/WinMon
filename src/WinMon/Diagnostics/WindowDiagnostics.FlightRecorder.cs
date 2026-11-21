@@ -10,11 +10,25 @@ internal sealed partial class WindowDiagnostics
     private static async Task CaptureFlightRecorderAsync(MainWindow fixture, string output,
         CancellationToken cancellationToken)
     {
+        fixture.FlightRecorderEventReader = (start, end, _) => Task.FromResult(new IncidentEventResult(
+            [new IncidentEvent(IncidentTimeline.Peak(fixture.Session.History.Samples, CaptureMetric.Cpu)?.Timestamp ?? start,
+                "fixture-provider", 42, IncidentEventLevel.Warning,
+                "Synthetic diagnostic event"),
+                new IncidentEvent(end.AddSeconds(10), "fixture-provider", 43, IncidentEventLevel.Error,
+                    "Synthetic event between observations")],
+            [new IncidentEventLogCoverage("Application", IncidentEventCoverageStatus.Complete),
+                new IncidentEventLogCoverage("System", IncidentEventCoverageStatus.Unreadable)], true));
         fixture.FlightRecorderButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         var recorder = fixture.OwnedWindows.OfType<FlightRecorderWindow>().Single();
         try
         {
             fixture.FlightRecorderButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            await Task.Yield();
+            if (recorder.Events.Items.Count == 0 || recorder.Graph.Markers.Count == 0 ||
+                !recorder.EventCoverageTextValue.Contains("Application", StringComparison.Ordinal) ||
+                !recorder.EventCoverageTextValue.Contains(Strings.FlightRecorderEventUnreadable, StringComparison.Ordinal) ||
+                !recorder.EventCoverageTextValue.Contains(Strings.Format(Strings.FlightRecorderEventLimit, 2), StringComparison.Ordinal))
+                throw new InvalidOperationException("History events must use the synthetic reader, show coverage, and add timeline markers.");
             if (((GridView)recorder.Processes.View).Columns.Any(column => column.Header is string header && header.Contains('{')))
                 throw new InvalidOperationException("Process column headings must not display unexpanded format placeholders.");
             if (fixture.OwnedWindows.OfType<FlightRecorderWindow>().Count() != 1 ||
@@ -114,6 +128,9 @@ internal sealed partial class WindowDiagnostics
             if (!ReferenceEquals(recorder.Selection, loadedSelection) || recorder.Source.Text != loadedSource ||
                 !recorder.SaveButton.IsEnabled || !recorder.OpenButton.IsEnabled || !recorder.RefreshButton.IsEnabled)
                 throw new InvalidOperationException("A failed open must preserve the displayed incident and restore its controls.");
+            recorder.SelectEventForFixture(recorder.EventMappings.Single(item => item.ObservationIndex is null));
+            if (!recorder.SelectedEvent.Text.Contains(Strings.FlightRecorderEventBetweenObservations, StringComparison.Ordinal))
+                throw new InvalidOperationException("A between-observation event must keep its selected details visible.");
             foreach (var theme in new[] { "Dark", "Light" })
             {
                 fixture.Preferences = fixture.Preferences with { Theme = theme };
@@ -127,11 +144,14 @@ internal sealed partial class WindowDiagnostics
                     var refreshHost = (FrameworkElement)recorder.RefreshButton.Parent;
                     var refreshRight = recorder.RefreshButton.TranslatePoint(
                         new Point(recorder.RefreshButton.ActualWidth, 0), refreshHost).X;
-                    if (recorder.ComparisonProcesses.ActualHeight < 40 || recorder.Graph.ActualHeight < 100 ||
+                    if (recorder.ComparisonProcesses.ActualHeight < 40 || recorder.Events.ActualHeight < 40 || recorder.Graph.ActualHeight < 100 ||
                         recorder.PeakButton.TranslatePoint(new Point(recorder.PeakButton.ActualWidth, 0), recorder).X > recorder.ActualWidth ||
                         Math.Abs(refreshRight - refreshHost.ActualWidth) > 1 ||
                         recorder.RefreshButton.TranslatePoint(new Point(), recorder).Y > 75)
-                        throw new InvalidOperationException($"History controls and process list must remain usable at minimum size: list={recorder.ComparisonProcesses.ActualHeight}, graph={recorder.Graph.ActualHeight}, refreshRight={refreshRight}/{refreshHost.ActualWidth}, refreshY={recorder.RefreshButton.TranslatePoint(new Point(), recorder).Y}, peakRight={recorder.PeakButton.TranslatePoint(new Point(recorder.PeakButton.ActualWidth, 0), recorder).X}/{recorder.ActualWidth}.");
+                    {
+                        await CaptureServiceWindowAsync(recorder, Path.Combine(output, "flight-recorder-layout-failure.png"), cancellationToken);
+                        throw new InvalidOperationException($"History controls and process list must remain usable at minimum size: list={recorder.ComparisonProcesses.ActualHeight}, events={recorder.Events.ActualHeight}, graph={recorder.Graph.ActualHeight}, rows={string.Join(',', ((Grid)recorder.Content).RowDefinitions.Select(row => row.ActualHeight))}.");
+                    }
                     await CaptureServiceWindowAsync(recorder,
                         Path.Combine(output, $"flight-recorder-{theme.ToLowerInvariant()}-{width:0}.png"), cancellationToken);
                     recorder.Views.SelectedIndex = 1;
@@ -148,7 +168,7 @@ internal sealed partial class WindowDiagnostics
                 !fixture.Session.History.Samples.Any(sample => ReferenceEquals(sample, recorder.Selection)))
                 throw new InvalidOperationException("Refresh must leave the loaded incident and return to retained live history.");
         }
-        finally { recorder.Close(); }
+        finally { recorder.Close(); fixture.FlightRecorderEventReader = null; }
 
         var empty = new FlightRecorderWindow([]) { Owner = fixture };
         IReadOnlyList<MonitorSample> refreshSamples = [];

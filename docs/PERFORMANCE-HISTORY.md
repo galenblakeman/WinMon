@@ -2,6 +2,18 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## Final process diagnostics live refresh (November 20, 2026)
+
+Compared the retained process-controls build with the final memory/events build using `WinMon.Performance --live-only`: 850 synthetic processes, 400 warm-up frames, seven batches of 60, and four alternating pairs. Builds, tests and capture smoke were stopped during measurement; native collection was disabled by the benchmark.
+
+| Live refresh | Before | After |
+| --- | ---: | ---: |
+| Median of four run medians | 4.970 ms | 4.918 ms |
+| Run median range | 3.716–5.274 ms | 4.300–6.838 ms |
+| Median allocated bytes/frame | 560,449 | 560,457 |
+
+All eight pixel hashes matched. The 0.052 ms median difference is within observed variation; allocation is effectively unchanged. Event queries and mapping run only for frozen History, with no new reads in live refresh or sampling. Evidence: `artifacts/process-control-events-measurements/ui-summary.json`. A separate real seven-day event query returned 218 bounded events and formatted messages, with complete Application/System coverage, in 906 ms; this is one machine's on-demand latency rather than a cross-machine guarantee. Sampler costs for memory counters are recorded below. Whole-app profiling was not performed.
+
 ## Memory pressure counters (November 20, 2026)
 
 Compared retained pre-memory and changed native samplers on Windows x64, .NET 10.0.15, using 850 synthetic process rows, 30 warm-up samples and 200 timed samples per run. Four alternating pairs reversed launch order. Native PDH counters were readable in every changed run; compression store was unavailable because the fixture has no compression process.

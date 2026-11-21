@@ -16,7 +16,10 @@ namespace WinMon.Controls;
 /// <param name="BrushKey">The resource color, so the marker matches that resource's trace.</param>
 /// <param name="Selected">Whether the selected sample is this capture's peak.</param>
 /// <param name="Tag">The host's own capture record.</param>
-internal sealed record ChartMarker(double Moment, string BrushKey, string Tooltip, bool Selected, object Tag);
+internal enum ChartMarkerPattern { Triangle, Diamond, Square }
+
+internal sealed record ChartMarker(double Moment, string BrushKey, string Tooltip, bool Selected, object Tag,
+    ChartMarkerPattern Pattern = ChartMarkerPattern.Triangle);
 
 /// <summary>Draw time-based resource graphs and auto-scaled process sparklines.</summary>
 public sealed class CpuGraph : FrameworkElement
@@ -618,17 +621,34 @@ public sealed class CpuGraph : FrameworkElement
         foreach (var marker in Markers)
         {
             if (MarkerX(marker, plot) is not { } x) continue;
-            var triangle = new StreamGeometry();
-            using (var context = triangle.Open())
+            var shape = new StreamGeometry();
+            using (var context = shape.Open())
             {
-                context.BeginFigure(new Point(x - 6, 0), true, true);
-                context.LineTo(new Point(x + 6, 0), true, false);
-                context.LineTo(new Point(x, plot.Top + 3), true, false);
+                switch (marker.Pattern)
+                {
+                    case ChartMarkerPattern.Diamond:
+                        context.BeginFigure(new Point(x, 0), true, true);
+                        context.LineTo(new Point(x + 5, 5), true, false);
+                        context.LineTo(new Point(x, plot.Top + 8), true, false);
+                        context.LineTo(new Point(x - 5, 5), true, false);
+                        break;
+                    case ChartMarkerPattern.Square:
+                        context.BeginFigure(new Point(x - 4, 0), true, true);
+                        context.LineTo(new Point(x + 4, 0), true, false);
+                        context.LineTo(new Point(x + 4, plot.Top + 7), true, false);
+                        context.LineTo(new Point(x - 4, plot.Top + 7), true, false);
+                        break;
+                    default:
+                        context.BeginFigure(new Point(x - 6, 0), true, true);
+                        context.LineTo(new Point(x + 6, 0), true, false);
+                        context.LineTo(new Point(x, plot.Top + 3), true, false);
+                        break;
+                }
             }
 
-            triangle.Freeze();
+            shape.Freeze();
             drawingContext.DrawGeometry(Resource(ChartBrushKey(marker.BrushKey), Brushes.LimeGreen),
-                marker.Selected ? CachedPen(text, 2) : CachedPen(surface, 1), triangle);
+                marker.Selected ? CachedPen(text, 2) : CachedPen(surface, 1), shape);
         }
     }
 
@@ -821,11 +841,7 @@ public sealed class CpuGraph : FrameworkElement
 
         if (e.Key is Key.Left or Key.Right && Keyboard.Modifiers == ModifierKeys.Control)
         {
-            // Step between captures; the selected capture's own marker is skipped, since its peak precedes it.
-            var current = _selected is null ? _end + 1 : Moment(_selected);
-            var marker = e.Key == Key.Left
-                ? Markers.LastOrDefault(m => !m.Selected && m.Moment < current)
-                : Markers.FirstOrDefault(m => !m.Selected && m.Moment > current);
+            var marker = AdjacentMarker(e.Key == Key.Left);
             if (marker is not null) MarkerSelected?.Invoke(this, marker);
             e.Handled = true;
             return;
@@ -839,6 +855,15 @@ public sealed class CpuGraph : FrameworkElement
         index = e.Key == Key.Home ? 0 : Math.Clamp(index + (e.Key == Key.Left ? -1 : 1), 0, visible.Length - 1);
         SampleSelected?.Invoke(this, visible[index]);
         e.Handled = true;
+    }
+
+    internal ChartMarker? AdjacentMarker(bool previous)
+    {
+        var current = Markers.FirstOrDefault(marker => marker.Selected)?.Moment ??
+            (_selected is null ? _end + 1 : Moment(_selected));
+        return previous
+            ? Markers.Where(marker => !marker.Selected && marker.Moment < current).MaxBy(marker => marker.Moment)
+            : Markers.Where(marker => !marker.Selected && marker.Moment > current).MinBy(marker => marker.Moment);
     }
 
     private MonitorSample? Nearest(double x)

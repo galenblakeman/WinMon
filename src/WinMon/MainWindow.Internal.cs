@@ -15,6 +15,9 @@ namespace WinMon;
 /// </summary>
 public partial class MainWindow
 {
+    /// <summary>Optional synthetic Windows event source for diagnostics; null uses the Windows reader.</summary>
+    internal Func<DateTimeOffset, DateTimeOffset, CancellationToken, Task<IncidentEventResult>>? FlightRecorderEventReader { get; set; }
+
     internal UsageArchive? DailyUsageArchive { get => _usageArchive; set => _usageArchive = value; }
     internal Task LoadUsageArchiveForFixtureAsync() => LoadUsageArchiveAsync();
     internal Task SaveUsageArchiveForFixtureAsync() => SaveUsageArchiveAsync();

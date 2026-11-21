@@ -2049,7 +2049,7 @@ Stopped since previous observation: {1}</value>
   <data name="FlightRecorderFilter" xml:space="preserve"><value>WinMon incident (*.wmincident)|*.wmincident</value></data>
   <data name="FlightRecorderFileError" xml:space="preserve"><value>Could not save or open the incident: {0}</value></data>
   <data name="FlightRecorderOpened" xml:space="preserve"><value>Opened incident: {0}. Refresh returns to the current recording.</value></data>
-  <data name="FlightRecorderFileHelp" xml:space="preserve"><value>Saves the frozen timeline, process names, executable paths and app traffic. Review before sharing. Socket endpoints are excluded.</value></data>
+  <data name="FlightRecorderFileHelp" xml:space="preserve"><value>Saves the frozen timeline, process names, executable paths, app traffic and Windows event messages. Review before sharing. Socket endpoints are excluded.</value></data>
   <data name="ProcessCommandLineLabel" xml:space="preserve"><value>Command line</value></data>
   <data name="ProcessFileSignedByLabel" xml:space="preserve"><value>File on disk signed by</value></data>
   <data name="ProcessUserLabel" xml:space="preserve"><value>User</value></data>
@@ -2093,4 +2093,19 @@ Restoring throttling also failed: {1}</value></data>
   <data name="DetailModified" xml:space="preserve"><value>Modified</value></data>
   <data name="DetailFree" xml:space="preserve"><value>Free and zero</value></data>
   <data name="DetailCompressionStore" xml:space="preserve"><value>Compression store</value></data>
+  <data name="FlightRecorderEvents" xml:space="preserve"><value>Events</value></data>
+  <data name="FlightRecorderEventCoverage" xml:space="preserve"><value>Windows events: {0}</value></data>
+  <data name="FlightRecorderEventLimit" xml:space="preserve"><value>Event limit reached ({0}).</value></data>
+  <data name="FlightRecorderEventBetweenObservations" xml:space="preserve"><value>Between observations</value></data>
+  <data name="FlightRecorderEventApproximate" xml:space="preserve"><value>Approximate time</value></data>
+  <data name="FlightRecorderEventNoEvents" xml:space="preserve"><value>No matching Windows events in this period.</value></data>
+  <data name="FlightRecorderEventError" xml:space="preserve"><value>Error</value></data>
+  <data name="FlightRecorderEventWarning" xml:space="preserve"><value>Warning</value></data>
+  <data name="FlightRecorderEventInformation" xml:space="preserve"><value>Information</value></data>
+  <data name="FlightRecorderEventUnknownLevel" xml:space="preserve"><value>Unknown</value></data>
+  <data name="FlightRecorderEventLogCoverage" xml:space="preserve"><value>{0}: {1}</value></data>
+  <data name="FlightRecorderEventTimedOut" xml:space="preserve"><value>Timed out</value></data>
+  <data name="FlightRecorderEventUnreadable" xml:space="preserve"><value>Unavailable</value></data>
+  <data name="FlightRecorderEventComplete" xml:space="preserve"><value>Complete</value></data>
+  <data name="FlightRecorderEventReading" xml:space="preserve"><value>Reading…</value></data>
 </root>

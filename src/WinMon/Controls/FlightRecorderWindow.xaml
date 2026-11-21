@@ -41,13 +41,17 @@
         </WrapPanel>
         <controls:CpuGraph x:Name="Graph" Grid.Row="2" ShowGrid="True" Focusable="True"
                            AutomationProperties.Name="{Binding [FlightRecorderTimeline], Source={x:Static r:Strings.Text}}"/>
-        <StackPanel Grid.Row="3" Margin="0,8">
+        <StackPanel Grid.Row="3" Margin="0,4">
             <TextBlock x:Name="SelectedTime" FontWeight="SemiBold" AutomationProperties.LiveSetting="Polite"/>
-            <TextBlock Text="{Binding [FlightRecorderAttribution], Source={x:Static r:Strings.Text}}" TextWrapping="Wrap"
+            <TextBlock Text="{Binding [FlightRecorderAttribution], Source={x:Static r:Strings.Text}}"
                        MaxHeight="34" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource Muted}"
                        ToolTip="{Binding [FlightRecorderAttribution], Source={x:Static r:Strings.Text}}"/>
+            <TextBlock x:Name="SelectedEvent" TextTrimming="CharacterEllipsis" MaxHeight="54" Foreground="{DynamicResource Muted}"
+                       ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
         </StackPanel>
-        <TabControl x:Name="Views" Grid.Row="4" Background="{DynamicResource Surface}" Foreground="{DynamicResource Text}">
+        <Grid Grid.Row="4">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="2*"/><ColumnDefinition Width="*" MinWidth="180"/></Grid.ColumnDefinitions>
+        <TabControl x:Name="Views" Grid.Column="0" Background="{DynamicResource Surface}" Foreground="{DynamicResource Text}">
             <TabControl.Resources>
                 <Style TargetType="TabItem">
                     <Setter Property="Foreground" Value="{DynamicResource Text}" />
@@ -92,9 +96,10 @@
                      AutomationProperties.HelpText="{Binding [FlightRecorderComparisonHelp], Source={x:Static r:Strings.Text}}">
                 <DockPanel Margin="0,6,0,0">
                     <StackPanel DockPanel.Dock="Top" Margin="6,0,6,6">
-                        <TextBlock Text="{Binding [FlightRecorderComparisonCaption], Source={x:Static r:Strings.Text}}" TextWrapping="Wrap" Foreground="{DynamicResource Muted}"
+                        <TextBlock Text="{Binding [FlightRecorderComparisonCaption], Source={x:Static r:Strings.Text}}" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource Muted}"
                                    ToolTip="{Binding [FlightRecorderComparisonHelp], Source={x:Static r:Strings.Text}}"/>
-                        <TextBlock x:Name="ComparisonSummary" TextWrapping="Wrap" Margin="0,4,0,0" AutomationProperties.LiveSetting="Polite"/>
+                        <TextBlock x:Name="ComparisonSummary" TextTrimming="CharacterEllipsis" Margin="0,4,0,0" AutomationProperties.LiveSetting="Polite"
+                                   ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
                     </StackPanel>
                     <ListView x:Name="ComparisonProcesses" Background="{DynamicResource Surface}" Foreground="{DynamicResource Text}"
                               ScrollViewer.HorizontalScrollBarVisibility="Auto"
@@ -114,7 +119,8 @@
             </TabItem>
             <TabItem Header="{Binding [FlightRecorderMoment], Source={x:Static r:Strings.Text}}">
                 <DockPanel>
-                    <TextBlock x:Name="Readings" DockPanel.Dock="Top" TextWrapping="Wrap" Margin="6,4"/>
+                    <TextBlock x:Name="Readings" DockPanel.Dock="Top" TextWrapping="Wrap" MaxHeight="34" TextTrimming="CharacterEllipsis" Margin="6,4"
+                               ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
                     <ListView x:Name="Processes" ScrollViewer.HorizontalScrollBarVisibility="Auto"
                               Background="{DynamicResource Surface}" Foreground="{DynamicResource Text}"
                               AutomationProperties.Name="{Binding [FlightRecorderContributors], Source={x:Static r:Strings.Text}}">
@@ -134,6 +140,25 @@
                 </DockPanel>
             </TabItem>
         </TabControl>
+        <DockPanel Grid.Column="1" Margin="10,6,0,0">
+            <TextBlock DockPanel.Dock="Top" Text="{Binding [FlightRecorderEvents], Source={x:Static r:Strings.Text}}" FontWeight="SemiBold" Margin="6,0,6,6"/>
+            <TextBlock x:Name="EventCoverageText" DockPanel.Dock="Top" TextWrapping="Wrap" Foreground="{DynamicResource Muted}" Margin="6,0,6,6"
+                       ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+            <ListView x:Name="Events" Background="{DynamicResource Surface}" Foreground="{DynamicResource Text}"
+                      SelectionChanged="OnEventSelected"
+                      ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                      AutomationProperties.Name="{Binding [FlightRecorderEvents], Source={x:Static r:Strings.Text}}">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Margin="6,4">
+                            <TextBlock Text="{Binding Summary}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" ToolTip="{Binding Summary}"/>
+                            <TextBlock Text="{Binding Message}" TextWrapping="Wrap" MaxHeight="54" TextTrimming="CharacterEllipsis" ToolTip="{Binding Message}" Foreground="{DynamicResource Muted}"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </DockPanel>
+        </Grid>
         <DockPanel Grid.Row="5" Margin="0,10,0,0">
             <Button Content="{Binding [Close], Source={x:Static r:Strings.Text}}" IsCancel="True" Click="OnClose" DockPanel.Dock="Right" Margin="12,0,0,0"/>
             <TextBox x:Name="Changes" IsReadOnly="True" TextWrapping="Wrap" MaxHeight="100"

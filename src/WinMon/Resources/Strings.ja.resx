@@ -2049,7 +2049,7 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
   <data name="FlightRecorderFilter" xml:space="preserve"><value>WinMon インシデント (*.wmincident)|*.wmincident</value></data>
   <data name="FlightRecorderFileError" xml:space="preserve"><value>インシデントを保存または開くことができませんでした: {0}</value></data>
   <data name="FlightRecorderOpened" xml:space="preserve"><value>開いたインシデント: {0}。更新すると現在の記録に戻ります。</value></data>
-  <data name="FlightRecorderFileHelp" xml:space="preserve"><value>固定したタイムライン、プロセス名、実行ファイルのパス、アプリの通信量を保存します。共有前に確認してください。ソケットのエンドポイントは含みません。</value></data>
+  <data name="FlightRecorderFileHelp" xml:space="preserve"><value>固定されたタイムライン、プロセス名、実行可能ファイルのパス、アプリ トラフィック、Windows イベント メッセージを保存します。共有前に確認してください。ソケット エンドポイントは除外されます。</value></data>
   <data name="ProcessCommandLineLabel" xml:space="preserve"><value>コマンドライン</value></data>
   <data name="ProcessFileSignedByLabel" xml:space="preserve"><value>ディスク上のファイルの署名者</value></data>
   <data name="ProcessUserLabel" xml:space="preserve"><value>ユーザー</value></data>
@@ -2093,4 +2093,19 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
   <data name="DetailModified" xml:space="preserve"><value>変更済み</value></data>
   <data name="DetailFree" xml:space="preserve"><value>空きとゼロ</value></data>
   <data name="DetailCompressionStore" xml:space="preserve"><value>圧縮ストア</value></data>
+  <data name="FlightRecorderEvents" xml:space="preserve"><value>イベント</value></data>
+  <data name="FlightRecorderEventCoverage" xml:space="preserve"><value>Windows イベント: {0}</value></data>
+  <data name="FlightRecorderEventLimit" xml:space="preserve"><value>イベント数の上限に到達（{0}）。</value></data>
+  <data name="FlightRecorderEventBetweenObservations" xml:space="preserve"><value>観測の間</value></data>
+  <data name="FlightRecorderEventApproximate" xml:space="preserve"><value>概算時刻</value></data>
+  <data name="FlightRecorderEventNoEvents" xml:space="preserve"><value>この期間に一致する Windows イベントはありません。</value></data>
+  <data name="FlightRecorderEventError" xml:space="preserve"><value>エラー</value></data>
+  <data name="FlightRecorderEventWarning" xml:space="preserve"><value>警告</value></data>
+  <data name="FlightRecorderEventInformation" xml:space="preserve"><value>情報</value></data>
+  <data name="FlightRecorderEventUnknownLevel" xml:space="preserve"><value>不明</value></data>
+  <data name="FlightRecorderEventLogCoverage" xml:space="preserve"><value>{0}: {1}</value></data>
+  <data name="FlightRecorderEventTimedOut" xml:space="preserve"><value>タイムアウト</value></data>
+  <data name="FlightRecorderEventUnreadable" xml:space="preserve"><value>利用不可</value></data>
+  <data name="FlightRecorderEventComplete" xml:space="preserve"><value>完了</value></data>
+  <data name="FlightRecorderEventReading" xml:space="preserve"><value>読み取り中…</value></data>
 </root>

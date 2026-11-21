@@ -17,8 +17,10 @@ public partial class MainWindow
             return;
         }
         var samples = Session.History.Samples;
+        var eventReader = FlightRecorderEventReader ?? ((DateTimeOffset start, DateTimeOffset end, CancellationToken cancellation) => Task.Run(() =>
+            new WindowsHistoryEventReader().Read(start, end, cancellation), cancellation));
         var recorder = new FlightRecorderWindow(samples, IncidentTimeline.CaptureChanges(samples, Session.UsageHistory),
-            Session.Connections.Captures) { Owner = this };
+            Session.Connections.Captures, eventReader) { Owner = this };
         recorder.SaveStarted += write => ExportWrites.Add(write);
         recorder.SaveFinished += write => ExportWrites.Remove(write);
         recorder.RefreshRequested += (_, _) =>

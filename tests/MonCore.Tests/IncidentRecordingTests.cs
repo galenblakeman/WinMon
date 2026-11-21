@@ -29,7 +29,7 @@ public sealed class IncidentRecordingTests
             } };
         var frame = new ProcessNetworkFrame(sample.MonotonicTimestamp, Stopwatch.Frequency, ProcessNetworkQuality.Provisional,
             [new(1, 123, 100, 200, 10, 20)]) { Owners = [owner], CurrentLifetimes = new HashSet<ProcessLifetimeIdentity> { owner.Identity } };
-        return new(1, Stopwatch.Frequency,
+        return new(IncidentRecording.CurrentVersion, Stopwatch.Frequency,
             [new(sample, frame, [owner], null, null),
                 new(sample with { Timestamp = sample.Timestamp.AddSeconds(1), MonotonicTimestamp = sample.MonotonicTimestamp + Stopwatch.Frequency,
                     IsGap = true }, null, [], [owner], [])], CaptureMetric.Network, 1);
@@ -132,7 +132,7 @@ public sealed class IncidentRecordingTests
         var source = Recording();
         source.Save(FilePath);
         var original = File.ReadAllBytes(FilePath);
-        Assert.Throws<InvalidDataException>(() => (source with { Version = 2 }).Save(FilePath));
+        Assert.Throws<InvalidDataException>(() => (source with { Version = 999 }).Save(FilePath));
         Assert.That(File.ReadAllBytes(FilePath), Is.EqualTo(original));
         Assert.That(Directory.GetFiles(_directory), Has.Length.EqualTo(1));
     }
@@ -164,6 +164,88 @@ public sealed class IncidentRecordingTests
         Assert.Throws<InvalidDataException>(() => oversized.Save(FilePath));
         Assert.That(File.ReadAllBytes(FilePath), Is.EqualTo(original));
         Assert.That(Directory.GetFiles(_directory), Has.Length.EqualTo(1));
+    }
+
+    [Test]
+    public void SaveLoad_PreservesEventsAndCoverageAndUpgradesOldRecordings()
+    {
+        var source = Recording() with { Version = 1, WindowsEvents = Events() };
+        source.Save(FilePath);
+        var loaded = IncidentRecording.Load(FilePath);
+        Assert.That(loaded.Version, Is.EqualTo(2));
+        Assert.That(loaded.WindowsEvents.Events, Is.EqualTo(source.WindowsEvents.Events));
+        Assert.That(loaded.WindowsEvents.Coverage, Is.EqualTo(source.WindowsEvents.Coverage));
+        Assert.That(loaded.WindowsEvents.LimitReached, Is.True);
+    }
+
+    [Test]
+    public void Load_VersionOneWithoutEventsReportsUnknownCoverage()
+    {
+        var json = JsonSerializer.SerializeToNode(WithoutTraffic() with { Version = 1 })!;
+        json.AsObject().Remove("WindowsEvents");
+        WriteJson(json.ToJsonString());
+        var loaded = IncidentRecording.Load(FilePath);
+        Assert.That(loaded.WindowsEvents.Events, Is.Empty);
+        Assert.That(loaded.WindowsEvents.Coverage.Select(item => item.Status),
+            Is.All.EqualTo(IncidentEventCoverageStatus.Unknown));
+        loaded.Save(FilePath);
+        Assert.That(IncidentRecording.Load(FilePath).Version, Is.EqualTo(2));
+    }
+
+    [TestCase("too-many")]
+    [TestCase("null-event")]
+    [TestCase("provider")]
+    [TestCase("message-length")]
+    [TestCase("message-lines")]
+    [TestCase("level")]
+    [TestCase("partial-identity")]
+    [TestCase("invalid-identity")]
+    [TestCase("coverage")]
+    [TestCase("coverage-status")]
+    [TestCase("missing-coverage")]
+    [TestCase("duplicate-log")]
+    [TestCase("null-result")]
+    public void Load_RejectsMalformedEvents(string kind)
+    {
+        var events = Events();
+        var item = events.Events[0];
+        events = kind switch
+        {
+            "too-many" => events with { Events = Enumerable.Repeat(item, 501).ToArray() },
+            "null-event" => events with { Events = [null!] },
+            "provider" => events with { Events = [item with { Provider = new string('x', 257) }] },
+            "message-length" => events with { Events = [item with { Message = new string('x', 301) }] },
+            "message-lines" => events with { Events = [item with { Message = "first\nsecond" }] },
+            "level" => events with { Events = [item with { Level = (IncidentEventLevel)999 }] },
+            "partial-identity" => events with { Events = [item with { CreationTicks = null }] },
+            "invalid-identity" => events with { Events = [item with { ProcessId = -1 }] },
+            "coverage" => events with { Coverage = [new("Security", IncidentEventCoverageStatus.Complete), events.Coverage[1]] },
+            "coverage-status" => events with { Coverage = [new("Application", (IncidentEventCoverageStatus)999), events.Coverage[1]] },
+            "missing-coverage" => events with { Coverage = null! },
+            "duplicate-log" => events with { Coverage = [events.Coverage[0], events.Coverage[0]] },
+            _ => null!
+        };
+        WriteJson(JsonSerializer.Serialize(WithoutTraffic() with { WindowsEvents = events }));
+        Assert.Throws<InvalidDataException>(() => IncidentRecording.Load(FilePath));
+    }
+
+    [Test]
+    public void SaveLoad_AcceptsTheFullEventBudget()
+    {
+        var events = Events();
+        (Recording() with { WindowsEvents = events with
+            { Events = Enumerable.Repeat(events.Events[0], 500).ToArray() } }).Save(FilePath);
+        Assert.That(IncidentRecording.Load(FilePath).WindowsEvents.Events, Has.Count.EqualTo(500));
+    }
+
+    private static IncidentEventResult Events() => new(
+        [new(DateTimeOffset.UnixEpoch, "Application Error", 1000, IncidentEventLevel.Error, "Crash", 1, 123)],
+        [new("Application", IncidentEventCoverageStatus.Complete), new("System", IncidentEventCoverageStatus.TimedOut)], true);
+
+    private static IncidentRecording WithoutTraffic()
+    {
+        var source = Recording();
+        return source with { Observations = source.Observations.Select(frame => frame with { Network = null }).ToArray() };
     }
 
     private void WriteJson(string json)

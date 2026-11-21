@@ -2049,7 +2049,7 @@ Q 종료. Ctrl+C 취소. 실행 파일과 서비스 고정은 다음 실행에�
   <data name="FlightRecorderFilter" xml:space="preserve"><value>WinMon 인시던트 (*.wmincident)|*.wmincident</value></data>
   <data name="FlightRecorderFileError" xml:space="preserve"><value>인시던트를 저장하거나 열 수 없습니다: {0}</value></data>
   <data name="FlightRecorderOpened" xml:space="preserve"><value>열린 인시던트: {0}. 새로 고침은 현재 기록으로 돌아갑니다.</value></data>
-  <data name="FlightRecorderFileHelp" xml:space="preserve"><value>고정된 타임라인, 프로세스 이름, 실행 파일 경로 및 앱 트래픽을 저장합니다. 공유 전에 확인하세요. 소켓 엔드포인트는 제외됩니다.</value></data>
+  <data name="FlightRecorderFileHelp" xml:space="preserve"><value>고정된 타임라인, 프로세스 이름, 실행 파일 경로, 앱 트래픽 및 Windows 이벤트 메시지를 저장합니다. 공유하기 전에 검토하세요. 소켓 끝점은 제외됩니다.</value></data>
   <data name="ProcessCommandLineLabel" xml:space="preserve"><value>명령줄</value></data>
   <data name="ProcessFileSignedByLabel" xml:space="preserve"><value>디스크 파일 서명자</value></data>
   <data name="ProcessUserLabel" xml:space="preserve"><value>사용자</value></data>
@@ -2093,4 +2093,19 @@ Q 종료. Ctrl+C 취소. 실행 파일과 서비스 고정은 다음 실행에�
   <data name="DetailModified" xml:space="preserve"><value>수정됨</value></data>
   <data name="DetailFree" xml:space="preserve"><value>여유 및 0</value></data>
   <data name="DetailCompressionStore" xml:space="preserve"><value>압축 저장소</value></data>
+  <data name="FlightRecorderEvents" xml:space="preserve"><value>이벤트</value></data>
+  <data name="FlightRecorderEventCoverage" xml:space="preserve"><value>Windows 이벤트: {0}</value></data>
+  <data name="FlightRecorderEventLimit" xml:space="preserve"><value>이벤트 한도에 도달했습니다({0}).</value></data>
+  <data name="FlightRecorderEventBetweenObservations" xml:space="preserve"><value>관찰 사이</value></data>
+  <data name="FlightRecorderEventApproximate" xml:space="preserve"><value>대략적인 시간</value></data>
+  <data name="FlightRecorderEventNoEvents" xml:space="preserve"><value>이 기간에 일치하는 Windows 이벤트가 없습니다.</value></data>
+  <data name="FlightRecorderEventError" xml:space="preserve"><value>오류</value></data>
+  <data name="FlightRecorderEventWarning" xml:space="preserve"><value>경고</value></data>
+  <data name="FlightRecorderEventInformation" xml:space="preserve"><value>정보</value></data>
+  <data name="FlightRecorderEventUnknownLevel" xml:space="preserve"><value>알 수 없음</value></data>
+  <data name="FlightRecorderEventLogCoverage" xml:space="preserve"><value>{0}: {1}</value></data>
+  <data name="FlightRecorderEventTimedOut" xml:space="preserve"><value>시간 초과</value></data>
+  <data name="FlightRecorderEventUnreadable" xml:space="preserve"><value>사용할 수 없음</value></data>
+  <data name="FlightRecorderEventComplete" xml:space="preserve"><value>완료</value></data>
+  <data name="FlightRecorderEventReading" xml:space="preserve"><value>읽는 중…</value></data>
 </root>

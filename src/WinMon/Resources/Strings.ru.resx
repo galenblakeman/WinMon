@@ -2049,7 +2049,7 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
   <data name="FlightRecorderFilter" xml:space="preserve"><value>Инцидент WinMon (*.wmincident)|*.wmincident</value></data>
   <data name="FlightRecorderFileError" xml:space="preserve"><value>Не удалось сохранить или открыть инцидент: {0}</value></data>
   <data name="FlightRecorderOpened" xml:space="preserve"><value>Открыт инцидент: {0}. Обновление вернёт текущую запись.</value></data>
-  <data name="FlightRecorderFileHelp" xml:space="preserve"><value>Сохраняет зафиксированную шкалу времени, имена процессов, пути файлов и трафик приложений. Проверьте перед отправкой. Конечные точки сокетов исключены.</value></data>
+  <data name="FlightRecorderFileHelp" xml:space="preserve"><value>Сохраняет зафиксированную шкалу времени, имена процессов, пути исполняемых файлов, трафик приложений и сообщения событий Windows. Проверьте перед отправкой. Конечные точки сокетов исключены.</value></data>
   <data name="ProcessCommandLineLabel" xml:space="preserve"><value>Командная строка</value></data>
   <data name="ProcessFileSignedByLabel" xml:space="preserve"><value>Подписант файла на диске</value></data>
   <data name="ProcessUserLabel" xml:space="preserve"><value>Пользователь</value></data>
@@ -2093,4 +2093,19 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
   <data name="DetailModified" xml:space="preserve"><value>Изменено</value></data>
   <data name="DetailFree" xml:space="preserve"><value>Свободно и ноль</value></data>
   <data name="DetailCompressionStore" xml:space="preserve"><value>Хранилище сжатия</value></data>
+  <data name="FlightRecorderEvents" xml:space="preserve"><value>События</value></data>
+  <data name="FlightRecorderEventCoverage" xml:space="preserve"><value>События Windows: {0}</value></data>
+  <data name="FlightRecorderEventLimit" xml:space="preserve"><value>Достигнут предел событий ({0}).</value></data>
+  <data name="FlightRecorderEventBetweenObservations" xml:space="preserve"><value>Между наблюдениями</value></data>
+  <data name="FlightRecorderEventApproximate" xml:space="preserve"><value>Приблизительное время</value></data>
+  <data name="FlightRecorderEventNoEvents" xml:space="preserve"><value>В этот период нет подходящих событий Windows.</value></data>
+  <data name="FlightRecorderEventError" xml:space="preserve"><value>Ошибка</value></data>
+  <data name="FlightRecorderEventWarning" xml:space="preserve"><value>Предупреждение</value></data>
+  <data name="FlightRecorderEventInformation" xml:space="preserve"><value>Информация</value></data>
+  <data name="FlightRecorderEventUnknownLevel" xml:space="preserve"><value>Неизвестно</value></data>
+  <data name="FlightRecorderEventLogCoverage" xml:space="preserve"><value>{0}: {1}</value></data>
+  <data name="FlightRecorderEventTimedOut" xml:space="preserve"><value>Время ожидания истекло</value></data>
+  <data name="FlightRecorderEventUnreadable" xml:space="preserve"><value>Недоступно</value></data>
+  <data name="FlightRecorderEventComplete" xml:space="preserve"><value>Полное</value></data>
+  <data name="FlightRecorderEventReading" xml:space="preserve"><value>Чтение…</value></data>
 </root>

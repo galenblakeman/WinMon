@@ -14,6 +14,17 @@ internal partial class FlightRecorderWindow : Window
         CaptureMetric.SecondaryDisk, CaptureMetric.Network, CaptureMetric.Gpu];
     private int _index;
     private bool _fileBusy;
+    private readonly Func<DateTimeOffset, DateTimeOffset, CancellationToken, Task<IncidentEventResult>>? _eventReader;
+    private CancellationTokenSource? _eventReadCancellation;
+    private int _eventReadGeneration;
+    private bool _eventReadPending;
+    private bool _openedRecording;
+    private bool _loadingRecording;
+    private bool _closed;
+    private bool _updatingEvents;
+    private IncidentEventResult _events = IncidentEventResult.Unknown;
+    private IReadOnlyList<IncidentEventMapping> _eventMappings = [];
+    private IncidentEventMapping? _selectedEvent;
     private IReadOnlyDictionary<SampleKey, ConnectionCapture> _traffic = new Dictionary<SampleKey, ConnectionCapture>();
     private IReadOnlyDictionary<SampleKey, (IReadOnlyList<ProcessUsage> Started, IReadOnlyList<ProcessUsage> Stopped)>? _changes;
 
@@ -23,15 +34,19 @@ internal partial class FlightRecorderWindow : Window
 
     internal FlightRecorderWindow(IReadOnlyList<MonitorSample> samples,
         IReadOnlyDictionary<SampleKey, (IReadOnlyList<ProcessUsage> Started, IReadOnlyList<ProcessUsage> Stopped)>? changes = null,
-        IReadOnlyList<ConnectionCapture>? traffic = null)
+        IReadOnlyList<ConnectionCapture>? traffic = null,
+        Func<DateTimeOffset, DateTimeOffset, CancellationToken, Task<IncidentEventResult>>? eventReader = null)
     {
         InitializeComponent();
         WindowTheme.Attach(this);
         Closing += (_, args) => args.Cancel = _fileBusy;
+        Closed += (_, _) => { _closed = true; InvalidateEventRead(); };
+        _eventReader = eventReader;
         Graph.VisibleMetrics = 63;
         Graph.MetricLabels = [Strings.CPU, Strings.Memory, Strings.Disk, Strings.Network, Strings.GPU, Strings.Disk];
         Graph.SampleSelected += (_, sample) => Select(Array.IndexOf(_samples, sample));
         Graph.LiveRequested += (_, _) => Select(_samples.Length - 1);
+        Graph.MarkerSelected += (_, marker) => SelectEvent(marker.Tag as IncidentEventMapping);
         Update(samples, changes, traffic);
     }
 
@@ -39,6 +54,8 @@ internal partial class FlightRecorderWindow : Window
         IReadOnlyDictionary<SampleKey, (IReadOnlyList<ProcessUsage> Started, IReadOnlyList<ProcessUsage> Stopped)>? changes = null,
         IReadOnlyList<ConnectionCapture>? traffic = null)
     {
+        _openedRecording = false;
+        InvalidateEventRead();
         var selected = Selection is { } previous ? SampleKey.Of(previous) : (SampleKey?)null;
         var metricIndex = Math.Max(0, Metric.SelectedIndex);
         _samples = samples.ToArray();
@@ -56,6 +73,7 @@ internal partial class FlightRecorderWindow : Window
         var retained = selected is { } key ? Array.FindIndex(_samples, key.Matches) : -1;
         if (retained >= 0) Select(retained);
         else FindPeak();
+        BeginEventRead();
     }
 
     private CaptureMetric SelectedMetric => _metrics[Math.Max(0, Metric.SelectedIndex)];
@@ -81,6 +99,7 @@ internal partial class FlightRecorderWindow : Window
             Changes.Text = "";
             ComparisonSummary.Text = "";
             ComparisonProcesses.ItemsSource = null;
+            UpdateEventPresentation();
             return;
         }
         SelectedTime.Text = sample.Timestamp.ToLocalTime().ToString("G", CultureInfo.CurrentCulture);
@@ -101,13 +120,14 @@ internal partial class FlightRecorderWindow : Window
         var traffic = _traffic.GetValueOrDefault(SampleKey.Of(sample));
         var rates = IncidentTimeline.ProcessReadings(sample, CaptureMetric.Network, traffic)
             .ToDictionary(row => row.Process.Identity, row => row.Value);
-        Processes.ItemsSource = IncidentTimeline.Contributors(sample, SelectedMetric, traffic).Select(p => new
-        {
-            p.Name, Pid = p.ProcessId, Cpu = Percent(p.ObservedCpuPercent),
-            Memory = p.WorkingSetBytes is { } memory ? TableMetricText.Memory(memory) : "—",
-            Io = p.IoBytesPerSecond is { } io ? TableMetricText.IoRate(io) : "—", Gpu = Percent(p.GpuPercent),
-            Network = rates.GetValueOrDefault(p.Identity) is { } rate ? TableMetricText.IoRate(rate) : "—"
-        }).ToArray();
+        var contributors = IncidentTimeline.Contributors(sample, SelectedMetric, traffic).ToList();
+        var contributorRows = contributors.Select(p => new ProcessContributor(p, p.Name, p.ProcessId,
+            Percent(p.ObservedCpuPercent), p.WorkingSetBytes is { } memory ? TableMetricText.Memory(memory) : "—",
+            p.IoBytesPerSecond is { } io ? TableMetricText.IoRate(io) : "—", Percent(p.GpuPercent),
+            rates.GetValueOrDefault(p.Identity) is { } rate ? TableMetricText.IoRate(rate) : "—")).ToList();
+        if (_selectedEvent?.LinkedProcess is { } linked && !contributors.Any(p => p.Identity == linked.Identity))
+            contributorRows.Add(new ProcessContributor(linked, linked.Name, linked.ProcessId, "—", "—", "—", "—", "—"));
+        Processes.ItemsSource = contributorRows;
         var changes = _changes is not null && _changes.TryGetValue(SampleKey.Of(sample), out var fullChanges)
             ? fullChanges : IncidentTimeline.Changes(_index > 0 ? _samples[_index - 1] : null, sample);
         Changes.Text = changes is { } observed
@@ -116,6 +136,7 @@ internal partial class FlightRecorderWindow : Window
         if (sample.IsGap || sample.CompactedProcesses > 0 || sample.UnavailableProcesses > 0)
             Changes.Text += Environment.NewLine + Strings.Format(Strings.FlightRecorderPartial,
                 sample.CompactedProcesses, sample.UnavailableProcesses);
+        UpdateEventPresentation();
     }
 
     private static string Percent(double? value) => value is { } number
@@ -152,18 +173,23 @@ internal partial class FlightRecorderWindow : Window
             return new IncidentObservation(sample, capture?.Network is { } network
                 ? network with { Flows = [], CurrentFlows = null } : null, capture?.Owners ?? [],
                 changes?.Started, changes?.Stopped);
-        }).ToArray(), SelectedMetric, _index);
+        }).ToArray(), SelectedMetric, _index) { WindowsEvents = _eventReadPending ? IncidentEventResult.Unknown : _events };
 
     internal void OpenRecording(IncidentRecording recording, string name)
     {
+        InvalidateEventRead();
+        _loadingRecording = true;
         var observations = recording.Observations;
         var changes = observations.Where(frame => frame.Started is not null && frame.Stopped is not null)
             .ToDictionary(frame => SampleKey.Of(frame.Sample), frame => (frame.Started!, frame.Stopped!));
         Update(observations.Select(frame => frame.Sample).ToArray(), changes,
             observations.Select(frame => new ConnectionCapture(frame.Sample, null, frame.Owners, frame.Network)).ToArray());
+        _loadingRecording = false;
+        _openedRecording = true;
         Metric.SelectedIndex = Array.IndexOf(_metrics, recording.Metric);
         Select(recording.SelectedIndex);
         Source.Text = Strings.Format(Strings.FlightRecorderOpened, name);
+        ApplyEvents(recording.WindowsEvents);
     }
 
     // WPF event handlers await file work so sampling and painting remain responsive.
@@ -238,4 +264,179 @@ internal partial class FlightRecorderWindow : Window
         e.Handled = true;
         Close();
     }
+
+    internal IReadOnlyList<IncidentEventMapping> EventMappings => _eventMappings;
+    internal bool EventReadPending => _eventReadPending;
+    internal string EventCoverageTextValue => EventCoverageText.Text;
+    internal void SelectEventForFixture(IncidentEventMapping item) => SelectEvent(item);
+
+    private void BeginEventRead()
+    {
+        if (_eventReader is null || _openedRecording || _loadingRecording || _samples.Length == 0) { ApplyEvents(IncidentEventResult.Unknown); return; }
+        var start = _samples.Min(sample => sample.Timestamp).ToUniversalTime();
+        var end = _samples.Max(sample => sample.Timestamp).ToUniversalTime();
+        var generation = ++_eventReadGeneration;
+        var cancellation = new CancellationTokenSource();
+        _eventReadCancellation = cancellation;
+        _eventReadPending = true;
+        ApplyEvents(IncidentEventResult.Unknown);
+        _ = ReadEventsAsync(start, end, generation, cancellation);
+    }
+
+    private async Task ReadEventsAsync(DateTimeOffset start, DateTimeOffset end, int generation, CancellationTokenSource cancellation)
+    {
+        Task<IncidentEventResult>? read = null;
+        try
+        {
+            read = _eventReader!(start, end, cancellation.Token);
+            var result = await read.WaitAsync(TimeSpan.FromSeconds(5), cancellation.Token);
+            if (generation != _eventReadGeneration || cancellation.IsCancellationRequested || _openedRecording || _closed) return;
+            _eventReadPending = false;
+            ApplyEvents(result);
+        }
+        catch (TimeoutException)
+        {
+            cancellation.Cancel();
+            if (generation != _eventReadGeneration || _openedRecording || _closed) return;
+            _eventReadPending = false;
+            ApplyEvents(new IncidentEventResult([], [new("Application", IncidentEventCoverageStatus.TimedOut),
+                new("System", IncidentEventCoverageStatus.TimedOut)], false));
+        }
+        catch (OperationCanceledException) when (cancellation.IsCancellationRequested) { }
+        catch
+        {
+            if (generation != _eventReadGeneration || cancellation.IsCancellationRequested || _openedRecording || _closed) return;
+            _eventReadPending = false;
+            ApplyEvents(new IncidentEventResult([], [new("Application", IncidentEventCoverageStatus.Unreadable),
+                new("System", IncidentEventCoverageStatus.Unreadable)], false));
+        }
+        finally
+        {
+            if (ReferenceEquals(_eventReadCancellation, cancellation)) _eventReadCancellation = null;
+            if (read is { IsCompleted: false })
+                _ = read.ContinueWith(completed =>
+                {
+                    _ = completed.Exception;
+                    cancellation.Dispose();
+                }, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+            else cancellation.Dispose();
+        }
+    }
+
+    private void InvalidateEventRead()
+    {
+        ++_eventReadGeneration;
+        _eventReadCancellation?.Cancel();
+        _eventReadCancellation = null;
+        _eventReadPending = false;
+    }
+
+    private void ApplyEvents(IncidentEventResult result)
+    {
+        _events = result;
+        var retained = (_changes?.Values.SelectMany(change => change.Started.Concat(change.Stopped)) ?? Enumerable.Empty<ProcessUsage>())
+            .Concat(_traffic.Values.SelectMany(capture => capture.Owners));
+        _eventMappings = IncidentEventMapper.Map(result, _samples, retained);
+        if (_selectedEvent is { } selected && !_eventMappings.Any(item => item.Event == selected.Event)) _selectedEvent = null;
+        RefreshMarkerSelection();
+        UpdateEventPresentation();
+    }
+
+    private void UpdateEventPresentation()
+    {
+        var selected = Selection;
+        var moment = selected is null ? double.NaN : CpuGraph.Moment(selected);
+        var rows = double.IsNaN(moment) ? Array.Empty<EventRow>() : _eventMappings.Where(item => item.Moment >= moment - 15 && item.Moment < moment + 15)
+            .Select(item => new EventRow(item, EventSummary(item), EventMessage(item.Event))).ToArray();
+        IReadOnlyList<EventRow> displayed = rows.Length == 0 && IsComplete(_events)
+            ? [new EventRow(null, Strings.FlightRecorderEventNoEvents, "")]
+            : rows;
+        _updatingEvents = true;
+        try
+        {
+            Events.ItemsSource = displayed;
+            Events.SelectedItem = _selectedEvent is null ? null :
+                displayed.FirstOrDefault(row => row.Mapping?.Event == _selectedEvent.Event);
+        }
+        finally { _updatingEvents = false; }
+        EventCoverageText.Text = FormatEventCoverage(_events);
+        SelectedEvent.Text = _selectedEvent is null ? "" : EventTooltip(_selectedEvent);
+        if (_selectedEvent?.LinkedProcess is { } linked)
+        {
+            var row = (Processes.ItemsSource as IEnumerable<ProcessContributor>)?.FirstOrDefault(item => item.Process.Identity == linked.Identity);
+            if (row is not null)
+            {
+                Processes.SelectedItem = row;
+                Processes.ScrollIntoView(row);
+            }
+        }
+    }
+
+    private void SelectEvent(IncidentEventMapping? item)
+    {
+        if (item is null) return;
+        _selectedEvent = item;
+        if (item.LinkedProcess is not null) Views.SelectedIndex = 1;
+        if (item.ObservationIndex is { } index) Select(index);
+        else
+        {
+            Select(_index);
+            ApplyEvents(_events);
+        }
+        RefreshMarkerSelection();
+    }
+
+    private void OnEventSelected(object sender, SelectionChangedEventArgs e)
+    {
+        if (!_updatingEvents && Events.SelectedItem is EventRow { Mapping: { } item }) SelectEvent(item);
+    }
+
+    private static ChartMarkerPattern EventPattern(IncidentEventLevel level) => level switch
+    {
+        IncidentEventLevel.Error => ChartMarkerPattern.Diamond,
+        IncidentEventLevel.Warning => ChartMarkerPattern.Triangle,
+        _ => ChartMarkerPattern.Square
+    };
+    private static string EventBrush(IncidentEventLevel level) => level switch
+    {
+        IncidentEventLevel.Error => "DiskAccent", IncidentEventLevel.Warning => "SecondaryDiskAccent", _ => "NetworkAccent"
+    };
+    private static string EventLevel(IncidentEventLevel level) => level switch
+    {
+        IncidentEventLevel.Error => Strings.FlightRecorderEventError, IncidentEventLevel.Warning => Strings.FlightRecorderEventWarning,
+        IncidentEventLevel.Information => Strings.FlightRecorderEventInformation, _ => Strings.FlightRecorderEventUnknownLevel
+    };
+    private static string EventSummary(IncidentEventMapping item) => $"{item.Event.Timestamp.ToLocalTime():G} · {EventLevel(item.Event.Level)} · {item.Event.Provider} ({item.Event.EventId})";
+    private static string EventMessage(IncidentEvent item) => item.Message.Length == 0 ? Strings.MissingReading : item.Message;
+    private static string EventTooltip(IncidentEventMapping item) => EventSummary(item) + Environment.NewLine +
+        (item.ObservationIndex is null || item.Approximate ? string.Join(" · ",
+            new[] { item.ObservationIndex is null ? Strings.FlightRecorderEventBetweenObservations : "",
+                item.Approximate ? Strings.FlightRecorderEventApproximate : "" }.Where(text => text.Length > 0)) + " · " : "") + EventMessage(item.Event);
+    private void RefreshMarkerSelection()
+    {
+        Graph.Markers = _eventMappings.OrderBy(item => item.Moment).Select(item => new ChartMarker(item.Moment, EventBrush(item.Event.Level), EventTooltip(item),
+            item.Event == _selectedEvent?.Event, item, EventPattern(item.Event.Level))).ToArray();
+        Graph.InvalidateVisual();
+    }
+    private string FormatEventCoverage(IncidentEventResult result)
+    {
+        if (_eventReadPending) return Strings.Format(Strings.FlightRecorderEventCoverage, Strings.FlightRecorderEventReading);
+        var detail = string.Join(Environment.NewLine, result.Coverage.Select(item => Strings.Format(Strings.FlightRecorderEventLogCoverage,
+            item.Log, CoverageStatus(item.Status))));
+        if (result.LimitReached) detail += Environment.NewLine + Strings.Format(Strings.FlightRecorderEventLimit, result.Events.Count);
+        return detail;
+    }
+
+    private static bool IsComplete(IncidentEventResult result) => result.Coverage.Count > 0 &&
+        result.Coverage.All(item => item.Status == IncidentEventCoverageStatus.Complete);
+    private static string CoverageStatus(IncidentEventCoverageStatus status) => status switch
+    {
+        IncidentEventCoverageStatus.Complete => Strings.FlightRecorderEventComplete,
+        IncidentEventCoverageStatus.Unreadable => Strings.FlightRecorderEventUnreadable,
+        IncidentEventCoverageStatus.TimedOut => Strings.FlightRecorderEventTimedOut,
+        _ => Strings.Unknown
+    };
+
+    private sealed record ProcessContributor(ProcessUsage Process, string Name, int Pid, string Cpu, string Memory, string Io, string Gpu, string Network);
+    private sealed record EventRow(IncidentEventMapping? Mapping, string Summary, string Message);
 }

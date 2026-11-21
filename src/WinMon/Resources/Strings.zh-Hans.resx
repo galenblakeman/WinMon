@@ -2049,7 +2049,7 @@ Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。<
   <data name="FlightRecorderFilter" xml:space="preserve"><value>WinMon 事件 (*.wmincident)|*.wmincident</value></data>
   <data name="FlightRecorderFileError" xml:space="preserve"><value>无法保存或打开事件：{0}</value></data>
   <data name="FlightRecorderOpened" xml:space="preserve"><value>已打开事件：{0}。刷新将返回当前记录。</value></data>
-  <data name="FlightRecorderFileHelp" xml:space="preserve"><value>保存冻结的时间线、进程名称、可执行文件路径和应用流量。分享前请检查。不包含套接字端点。</value></data>
+  <data name="FlightRecorderFileHelp" xml:space="preserve"><value>保存冻结的时间线、进程名称、可执行文件路径、应用流量和 Windows 事件消息。共享前请检查。已排除套接字端点。</value></data>
   <data name="ProcessCommandLineLabel" xml:space="preserve"><value>命令行</value></data>
   <data name="ProcessFileSignedByLabel" xml:space="preserve"><value>磁盘文件签名者</value></data>
   <data name="ProcessUserLabel" xml:space="preserve"><value>用户</value></data>
@@ -2093,4 +2093,19 @@ Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。<
   <data name="DetailModified" xml:space="preserve"><value>已修改</value></data>
   <data name="DetailFree" xml:space="preserve"><value>空闲和零页</value></data>
   <data name="DetailCompressionStore" xml:space="preserve"><value>压缩存储</value></data>
+  <data name="FlightRecorderEvents" xml:space="preserve"><value>事件</value></data>
+  <data name="FlightRecorderEventCoverage" xml:space="preserve"><value>Windows 事件：{0}</value></data>
+  <data name="FlightRecorderEventLimit" xml:space="preserve"><value>已达到事件数量上限（{0}）。</value></data>
+  <data name="FlightRecorderEventBetweenObservations" xml:space="preserve"><value>观测之间</value></data>
+  <data name="FlightRecorderEventApproximate" xml:space="preserve"><value>大致时间</value></data>
+  <data name="FlightRecorderEventNoEvents" xml:space="preserve"><value>此时间段内没有匹配的 Windows 事件。</value></data>
+  <data name="FlightRecorderEventError" xml:space="preserve"><value>错误</value></data>
+  <data name="FlightRecorderEventWarning" xml:space="preserve"><value>警告</value></data>
+  <data name="FlightRecorderEventInformation" xml:space="preserve"><value>信息</value></data>
+  <data name="FlightRecorderEventUnknownLevel" xml:space="preserve"><value>未知</value></data>
+  <data name="FlightRecorderEventLogCoverage" xml:space="preserve"><value>{0}: {1}</value></data>
+  <data name="FlightRecorderEventTimedOut" xml:space="preserve"><value>已超时</value></data>
+  <data name="FlightRecorderEventUnreadable" xml:space="preserve"><value>不可用</value></data>
+  <data name="FlightRecorderEventComplete" xml:space="preserve"><value>完整</value></data>
+  <data name="FlightRecorderEventReading" xml:space="preserve"><value>正在读取…</value></data>
 </root>

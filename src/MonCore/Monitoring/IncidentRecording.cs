@@ -14,7 +14,8 @@ public sealed record IncidentRecording(int Version, long Frequency, IncidentObse
 {
     public const long MaximumBytes = 64L * 1024 * 1024;
     public const long MaximumDecodedBytes = 256L * 1024 * 1024;
-    public const int CurrentVersion = 1;
+    public const int CurrentVersion = 2;
+    public IncidentEventResult WindowsEvents { get; init; } = IncidentEventResult.Unknown;
 
     public void Save(string path)
     {
@@ -27,7 +28,7 @@ public sealed record IncidentRecording(int Version, long Frequency, IncidentObse
             {
                 using (var compressed = new GZipStream(file, CompressionLevel.Fastest, leaveOpen: true))
                 using (var bounded = new BoundedStream(compressed))
-                    JsonSerializer.Serialize(bounded, this, InvestigationHistory.Json);
+                    JsonSerializer.Serialize(bounded, this with { Version = CurrentVersion }, InvestigationHistory.Json);
                 if (file.Length > MaximumBytes) throw new InvalidDataException("Incident exceeds 64 MiB.");
                 file.Flush(true);
             }
@@ -47,6 +48,8 @@ public sealed record IncidentRecording(int Version, long Frequency, IncidentObse
         using var bounded = new BoundedStream(compressed);
         var recording = JsonSerializer.Deserialize<IncidentRecording>(bounded, InvestigationHistory.Json)
             ?? throw new InvalidDataException("Missing incident recording.");
+        // Version 1 has no event coverage, even if an unrelated extra JSON property uses that name.
+        if (recording.Version == 1) recording = recording with { WindowsEvents = IncidentEventResult.Unknown };
         recording.Validate();
         // Files may be opened on another machine with a different Stopwatch frequency.
         var first = recording.Observations.FirstOrDefault()?.Sample.MonotonicTimestamp ?? 0;
@@ -68,12 +71,13 @@ public sealed record IncidentRecording(int Version, long Frequency, IncidentObse
 
     private void Validate()
     {
-        if (Version != CurrentVersion || Frequency is <= 0 or > 1_000_000_000_000 ||
+        if (Version is < 1 or > CurrentVersion || Frequency is <= 0 or > 1_000_000_000_000 ||
             Metric is < CaptureMetric.Cpu or > CaptureMetric.Gpu ||
             Observations is null || Observations.Length > 7200 ||
             SelectedIndex < -1 || SelectedIndex >= Observations.Length ||
             Observations.Length > 0 && SelectedIndex < 0)
             throw new InvalidDataException("Invalid incident header or unsupported version.");
+        ValidateEvents();
         long entries = 0;
         MonitorSample? previous = null;
         foreach (var frame in Observations)
@@ -120,6 +124,23 @@ public sealed record IncidentRecording(int Version, long Frequency, IncidentObse
                 : (last.Timestamp - first.Timestamp).TotalSeconds;
             if (seconds > 86400) throw new InvalidDataException("Incident span exceeds one day.");
         }
+    }
+
+    private void ValidateEvents()
+    {
+        if (WindowsEvents is not { Events: not null, Coverage: not null } result ||
+            result.Events.Count > 500 || result.Coverage.Count != 2 ||
+            result.Coverage.Select(item => item?.Log).Distinct(StringComparer.Ordinal).Count() != 2 ||
+            result.Coverage.Any(item => item is null || item.Log is not ("Application" or "System") ||
+                !Enum.IsDefined(item.Status)))
+            throw new InvalidDataException("Invalid incident event coverage.");
+        foreach (var item in result.Events)
+            if (item is null || item.Provider is not { Length: > 0 and <= 256 } ||
+                item.Message is not { Length: <= 300 } || item.Message.IndexOfAny(['\r', '\n']) >= 0 ||
+                item.EventId is < 0 or > 65535 || !Enum.IsDefined(item.Level) ||
+                item.ProcessId.HasValue != item.CreationTicks.HasValue ||
+                item.ProcessId is <= 0 || item.CreationTicks is <= 0)
+                throw new InvalidDataException("Invalid incident event.");
     }
 
     // Bound decoded bytes as well as file size so a compressed input cannot exhaust memory.

@@ -2049,7 +2049,7 @@ Arrêtés depuis la dernière observation : {1}</value>
   <data name="FlightRecorderFilter" xml:space="preserve"><value>Incident WinMon (*.wmincident)|*.wmincident</value></data>
   <data name="FlightRecorderFileError" xml:space="preserve"><value>Impossible d’enregistrer ou d’ouvrir l’incident : {0}</value></data>
   <data name="FlightRecorderOpened" xml:space="preserve"><value>Incident ouvert : {0}. Actualiser revient à l’enregistrement actuel.</value></data>
-  <data name="FlightRecorderFileHelp" xml:space="preserve"><value>Enregistre la chronologie figée, les noms des processus, les chemins et le trafic des applications. Vérifiez avant de partager. Les points de terminaison des sockets sont exclus.</value></data>
+  <data name="FlightRecorderFileHelp" xml:space="preserve"><value>Enregistre la chronologie figée, les noms de processus, les chemins exécutables, le trafic des applications et les messages d&apos;événements Windows. Vérifiez avant de partager. Les points de terminaison de socket sont exclus.</value></data>
   <data name="ProcessCommandLineLabel" xml:space="preserve"><value>Ligne de commande</value></data>
   <data name="ProcessFileSignedByLabel" xml:space="preserve"><value>Fichier sur disque signé par</value></data>
   <data name="ProcessUserLabel" xml:space="preserve"><value>Utilisateur</value></data>
@@ -2093,4 +2093,19 @@ La restauration de la limitation a aussi échoué : {1}</value></data>
   <data name="DetailModified" xml:space="preserve"><value>Modifié</value></data>
   <data name="DetailFree" xml:space="preserve"><value>Libre et zéro</value></data>
   <data name="DetailCompressionStore" xml:space="preserve"><value>Magasin de compression</value></data>
+  <data name="FlightRecorderEvents" xml:space="preserve"><value>Événements</value></data>
+  <data name="FlightRecorderEventCoverage" xml:space="preserve"><value>Événements Windows : {0}</value></data>
+  <data name="FlightRecorderEventLimit" xml:space="preserve"><value>Limite des événements atteinte ({0}).</value></data>
+  <data name="FlightRecorderEventBetweenObservations" xml:space="preserve"><value>Entre les observations</value></data>
+  <data name="FlightRecorderEventApproximate" xml:space="preserve"><value>Heure approximative</value></data>
+  <data name="FlightRecorderEventNoEvents" xml:space="preserve"><value>Aucun événement Windows correspondant dans cette période.</value></data>
+  <data name="FlightRecorderEventError" xml:space="preserve"><value>Erreur</value></data>
+  <data name="FlightRecorderEventWarning" xml:space="preserve"><value>Avertissement</value></data>
+  <data name="FlightRecorderEventInformation" xml:space="preserve"><value>Information</value></data>
+  <data name="FlightRecorderEventUnknownLevel" xml:space="preserve"><value>Inconnu</value></data>
+  <data name="FlightRecorderEventLogCoverage" xml:space="preserve"><value>{0}: {1}</value></data>
+  <data name="FlightRecorderEventTimedOut" xml:space="preserve"><value>Délai dépassé</value></data>
+  <data name="FlightRecorderEventUnreadable" xml:space="preserve"><value>Indisponible</value></data>
+  <data name="FlightRecorderEventComplete" xml:space="preserve"><value>Complet</value></data>
+  <data name="FlightRecorderEventReading" xml:space="preserve"><value>Lecture…</value></data>
 </root>

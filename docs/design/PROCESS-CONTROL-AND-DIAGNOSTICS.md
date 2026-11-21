@@ -7,7 +7,7 @@ Four independent increments. Implement and verify them in order, one commit each
 | 1. Process details: command line, verified signer, user | Verified |
 | 2. Process actions: suspend/resume, CPU affinity, Efficiency mode | Verified |
 | 3. Memory pressure: paging reads/sec, standby, modified, compression store | Verified |
-| 4. Windows event markers in History | Designed |
+| 4. Windows event markers in History | Verified |
 
 Shared rules:
 
@@ -101,7 +101,7 @@ Curated events, kept in one table in code:
 | Application | Application Error 1000, Application Hang 1002, .NET Runtime 1026 | App crash, app hang, unhandled .NET exception |
 | System | Service Control Manager 7031, 7034 | Service ended unexpectedly |
 | System | Resource-Exhaustion-Detector 2004 | Low virtual memory |
-| System | disk 7, 51, 153; Ntfs 55, 98; storport 129 | Disk errors, paging errors, retries, resets |
+| System | disk 7, 51, 153; Ntfs 55, 98; System 129 (provider varies) | Disk errors, paging errors, retries, resets |
 | System | Display 4101 | GPU driver stopped responding and recovered |
 | System | WHEA-Logger 17, 18, 19, 47 | Hardware error |
 | System | Kernel-Processor-Power 37 | Firmware is limiting processor speed |
@@ -109,7 +109,7 @@ Curated events, kept in one table in code:
 
 - **Bounds:** at most 500 events per query. Messages are formatted lazily for listed events only, using the first line truncated to 300 characters. If the limit is hit, say so.
 - **Unreadable logs:** if a log cannot be read, the coverage line says which one, rather than implying there were no events.
-- **Timeline:** events become ticks above the History timeline, coloured by level (error or warning) with a pattern as well as colour for accessibility. Clicking a tick selects the nearest observation within 2 seconds. Further away, the event is shown as falling *between observations*.
+- **Timeline:** events become ticks above the History timeline, coloured and shaped by level (error, warning, information or unknown) with a pattern as well as colour for accessibility. Clicking a tick selects the nearest observation within 2 seconds. Further away, the event is shown as falling *between observations*.
 - **Event list:** an *Events* list next to process contributors shows events inside the Compare periods window around the selection.
 - **Time mapping:** events map by wall time to `MonitorSample.Timestamp`. Wall-clock jumps during the recording mark nearby events as approximate.
 - **Process links:** Application Error 1000 carries the faulting PID and start time. When both match a retained lifetime, the event links to that process row. Other events are not linked by name.
@@ -146,10 +146,16 @@ Validation for increment 1: `Verify.ps1 -Smoke feature` passed 2,060 tests and 1
 
 Increment 2 landed in `ProcessController`, `SuspendedProcessTracker`, the native process-control/suspension/service helpers, the More/row menus, affinity and close dialogs, and `MainWindow.OnClosing`. Cancel and cleanup failure stop shutdown and cancel a pending update. The tracker serializes requests, removes confirmed exited/reused lifetimes without acting on another process, and retains failures for retry. Row labels use cached, observed suspension state. Efficiency mode uses explicit On/Off throttling, preserves unrelated flags and reports rollback failures. Processor-group checks also protect the setter; unsupported multi-group masks are shown read-only.
 
-Validation for increment 2: `Verify.ps1 -Smoke feature` passed 2,099 tests and 131 renders; `Verify.ps1 -Store` passed 2,033 tests. Dark/light minimum-size affinity and close-dialog renders were inspected. `WindowsProcessControlTests.OwnedHelper_ControlsAndRestoresTheSameProcessLifetime` exercised native suspension observation, balanced Resume, affinity and throttling/priority changes on a hidden test-owned helper only. `ProcessControllerTests`, `ProcessControlCloseTests` and `ProcessControlUiTests` cover denied/stale/critical targets, service protection, failed cleanup/retry, explicit dialog choices, mixed settings and rollback. Four alternating UI benchmark pairs showed unchanged pixels and no measurable regression; see `PERFORMANCE-HISTORY.md`. Older Windows builds, multi-group hardware and concurrent control by external tools were not validated on this machine. Increment 4 remains to be implemented.
+Validation for increment 2: `Verify.ps1 -Smoke feature` passed 2,099 tests and 131 renders; `Verify.ps1 -Store` passed 2,033 tests. Dark/light minimum-size affinity and close-dialog renders were inspected. `WindowsProcessControlTests.OwnedHelper_ControlsAndRestoresTheSameProcessLifetime` exercised native suspension observation, balanced Resume, affinity and throttling/priority changes on a hidden test-owned helper only. `ProcessControllerTests`, `ProcessControlCloseTests` and `ProcessControlUiTests` cover denied/stale/critical targets, service protection, failed cleanup/retry, explicit dialog choices, mixed settings and rollback. Four alternating UI benchmark pairs showed unchanged pixels and no measurable regression; see `PERFORMANCE-HISTORY.md`. Older Windows builds, multi-group hardware and concurrent control by external tools were not validated on this machine.
 
 Design correction: memory pressure needs six PDH counters, because standby is the sum of three lists; compression store reuses process data.
 
 Increment 3 landed in the Windows resource sampler, nullable resource fields, memory details, reports and CSV. One reusable six-counter PDH query supplies paging reads, standby, modified and free/zero pages; compression reuses an observed compression process working set. Missing or reset rate baselines remain unavailable. Restart history writes format 4 and reads formats 1–3; a retained format-3 fixture verifies compatibility. Optional incident fields preserve version-1 compatibility.
 
 Validation for increment 3: `Verify.ps1 -Smoke compact,snapshot` passed 2,110 tests and 103/64 renders. Additional asserted memory-details fixtures passed a subsequent build and 106/64 renders; populated dark/light and unavailable light rows were inspected. Four alternating native sampler pairs showed a 0.057 ms median difference within observed run variation and 1,456 extra allocated bytes/sample; see `PERFORMANCE-HISTORY.md`. Compression-process availability and older Windows builds were not validated here.
+Increment 4 landed in `WindowsHistoryEventReader`, portable incident event records/mapping, the persistent History Events pane, severity-pattern markers and incident format 2. Native queries run off the dispatcher with thread-owned handles, bounded XML/message buffers, a shared 500-event cap and a five-second budget; UI cancellation and generation fences prevent late reads replacing refreshed or imported recordings. Coverage remains explicit per log. Event-list and marker selection show between-observation details, and exact PID/FILETIME links can select retained process metadata without inventing readings for another moment. Version-1 incident files retain unknown event coverage; imported files never trigger a local event query. All nine translations and privacy/export documentation are updated.
+
+Departures for increment 4: storage-reset event 129 uses a provider-agnostic System selector because Windows storage drivers publish under varying names (including storahci/stornvme/vendor providers); the UI keeps the actual provider and does not assume every System 129 is a storage reset. Structured queries keep each provider selector below Windows XPath complexity limits. A query still pending when Save is chosen records unknown coverage; completed results cannot mutate that frozen saved snapshot. Native calls without their own timeout can finish after the UI deadline, but their late result is ignored and their handles close on the owning worker.
+Validation for increment 4: the final `Verify.ps1 -Smoke capture` run passed 2,150 tests and 35 renders. The focused desktop event suite also passed 8/8. Dark/light normal and minimum History renders, including selected-moment contributors, were inspected. Tests exercise shared cap short-circuit/disposal, per-log failures, cancellation, clock ambiguity/gaps, exact lifetime links, event selection, keyboard navigation, pending-save coverage and late query fences. A real seven-day query read 218 events with 218 formatted messages and complete Application/System coverage in about 906 ms on this machine. This timing is an observation, not a latency guarantee for other event logs or machines.
+
+Final Store verification passed 2,084 tests. Four alternating live-refresh benchmark pairs preserved every pixel hash and showed no measurable regression; the median was 4.970 ms before and 4.918 ms after, within broad run variation. See `PERFORMANCE-HISTORY.md`. Older Windows versions, multi-group hardware, manual screen-reader use and whole-app profiling remain unverified.
