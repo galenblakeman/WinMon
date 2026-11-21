@@ -2,6 +2,29 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## History event mapping (November 20, 2026)
+
+A review of the process details, process controls, memory pressure and Windows events features for UI-thread work found that live refresh and sampling were already measured and unchanged. The largest remaining cost was `IncidentEventMapper.Map`, which runs on the UI thread when History opens (once with no events, then with the read events), when a recording opens, and, before this change, again when an event between observations was selected. For each event it made three passes over every sample: nearest observation, shortest containing interval, then a repeated-interval check. It also built a lookup of every retained process even when no event named one.
+
+`Map` now finds the nearest observation and the containing intervals in one pass, and checks only those intervals for disagreement. Timestamps are still not assumed sorted, so wall-clock jumps behave as before. The process lookup is built only when an event carries a PID and creation time. `FlightRecorderWindow.SelectEvent` no longer remaps every event, since `Select` already refreshes the event list.
+
+The mapper was measured directly: one hour of history (3,600 samples, 139 processes each, at the 500,000-entry budget, with a gap every ten minutes) and evenly spaced events, a third with a process identity. There were 3 warm-up and 15 timed maps per count, over four alternating pairs of the pre-change and changed `MonCore.dll`.
+
+| Events | Before | After | Allocated bytes/map |
+| --- | ---: | ---: | ---: |
+| 0 (History opening, before events arrive) | 6.10 ms | 0.00 ms | 143,837 → 77 |
+| 218 (the earlier seven-day query's count) | 16.50 ms | 9.92 ms | 157,787 → 157,859 |
+| 500 (the reader's limit) | 31.04 ms | 10.56 ms | 175,835 → 175,907 |
+
+Values are medians of the four run medians. Opening History with 218 events drops from about 23 ms to 10 ms of mapping, and selecting an event between observations no longer maps at all. A randomized check, 300 histories with repeated, backward and forward wall-clock steps, gaps and partial process identities, produced byte-identical mappings from both builds. Removing the repeated-interval check fails `IncidentEventMapperTests`.
+
+Also measured and not changed:
+
+- The menu-time suspension snapshot (`WindowsProcessSuspension.IsSuspended`) takes about 4–9 ms and allocates 1.2–2.1 MB per process menu open on this machine (1.17 MB snapshot). Starting from the last needed size measured 4.5 → 4.7 ms (median of four alternating pairs, within noise), because the undersized first query fails quickly, so it was dropped.
+- Memory pressure adds 0.057 ms and 1,456 bytes per sample on the sampling thread, as recorded below.
+
+Limits: these are direct method timings on one machine, not window-level History timings, and whole-app profiling was not run. Evidence: `artifacts/tune-events/` (probe sources).
+
 ## Final process diagnostics live refresh (November 20, 2026)
 
 Compared the retained process-controls build with the final memory/events build using `WinMon.Performance --live-only`: 850 synthetic processes, 400 warm-up frames, seven batches of 60, and four alternating pairs. Builds, tests and capture smoke were stopped during measurement; native collection was disabled by the benchmark.

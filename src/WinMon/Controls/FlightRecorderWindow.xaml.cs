@@ -377,12 +377,8 @@ internal partial class FlightRecorderWindow : Window
         if (item is null) return;
         _selectedEvent = item;
         if (item.LinkedProcess is not null) Views.SelectedIndex = 1;
-        if (item.ObservationIndex is { } index) Select(index);
-        else
-        {
-            Select(_index);
-            ApplyEvents(_events);
-        }
+        // Select refreshes the event list; the mappings themselves are unchanged, so they are not rebuilt.
+        Select(item.ObservationIndex ?? _index);
         RefreshMarkerSelection();
     }
 

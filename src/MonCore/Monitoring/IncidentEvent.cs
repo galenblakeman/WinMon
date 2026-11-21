@@ -65,75 +65,76 @@ public static class IncidentEventMapper
         ArgumentNullException.ThrowIfNull(result);
         ArgumentNullException.ThrowIfNull(samples);
 
-        var retained = new Dictionary<ProcessLifetimeIdentity, ProcessUsage>();
-        foreach (var sample in samples)
-        foreach (var process in sample.Processes)
-            if (process.LifetimeDomain == ProcessLifetimeIdentity.WindowsFileTime) retained.TryAdd(process.Identity, process);
-        if (extraRetained is not null)
-        foreach (var process in extraRetained)
-            if (process.LifetimeDomain == ProcessLifetimeIdentity.WindowsFileTime) retained.TryAdd(process.Identity, process);
+        // Only events that name a process need the lookup, and building it walks every retained process.
+        Dictionary<ProcessLifetimeIdentity, ProcessUsage>? retained = null;
+        if (result.Events.Any(item => item is { ProcessId: not null, CreationTicks: > 0 }))
+        {
+            retained = [];
+            foreach (var sample in samples)
+            foreach (var process in sample.Processes)
+                if (process.LifetimeDomain == ProcessLifetimeIdentity.WindowsFileTime) retained.TryAdd(process.Identity, process);
+            if (extraRetained is not null)
+            foreach (var process in extraRetained)
+                if (process.LifetimeDomain == ProcessLifetimeIdentity.WindowsFileTime) retained.TryAdd(process.Identity, process);
+        }
 
         var mapped = new IncidentEventMapping[result.Events.Count];
+        var containing = new List<int>();
         for (var eventIndex = 0; eventIndex < result.Events.Count; eventIndex++)
         {
             var item = result.Events[eventIndex];
-            var nearest = NearestObservation(item.Timestamp, samples);
-            var (moment, approximate) = Interpolate(item.Timestamp, samples, nearest.Index);
-            int? selected = nearest.Index is { } index && nearest.DistanceSeconds <= SelectionSeconds
-                ? index
-                : null;
+            var (nearest, distance, moment, approximate) = Locate(item.Timestamp, samples, containing);
+            int? selected = nearest is { } index && distance <= SelectionSeconds ? index : null;
             mapped[eventIndex] = new IncidentEventMapping(item, moment, selected, approximate,
-                LinkedProcess(item, retained));
+                retained is null ? null : LinkedProcess(item, retained));
         }
 
         return mapped;
     }
 
-    private static (int? Index, double DistanceSeconds) NearestObservation(DateTimeOffset timestamp,
-        IReadOnlyList<MonitorSample> samples)
+    /// <summary>
+    ///     The nearest non-gap observation and the event's chart moment, in one pass over the samples. Wall clocks can
+    ///     jump back and repeat an interval, so timestamps are not assumed sorted: every interval containing the event
+    ///     is kept, the shortest places it, and any that disagree mark it approximate.
+    /// </summary>
+    private static (int? Nearest, double Distance, double Moment, bool Approximate) Locate(DateTimeOffset timestamp,
+        IReadOnlyList<MonitorSample> samples, List<int> containing)
     {
-        int? index = null;
+        int? nearest = null;
         var distance = double.PositiveInfinity;
-        for (var i = 0; i < samples.Count; i++)
-        {
-            if (samples[i].IsGap) continue;
-            var candidate = Math.Abs((samples[i].Timestamp - timestamp).TotalSeconds);
-            if (candidate < distance)
-            {
-                index = i;
-                distance = candidate;
-            }
-        }
-
-        return (index, distance);
-    }
-
-    private static (double Moment, bool Approximate) Interpolate(DateTimeOffset timestamp,
-        IReadOnlyList<MonitorSample> samples, int? nearest)
-    {
-        if (samples.Count == 0) return (0, true);
-        if (samples.Count == 1) return (ProcessRanking.Moment(samples[0]), true);
-
         var eventTicks = timestamp.UtcTicks;
         var pair = -1;
         var bestSpan = long.MaxValue;
-        for (var i = 0; i < samples.Count - 1; i++)
+        containing.Clear();
+        for (var i = 0; i < samples.Count; i++)
         {
-            var start = samples[i].Timestamp.UtcTicks;
+            var sample = samples[i];
+            if (!sample.IsGap)
+            {
+                var candidate = Math.Abs((sample.Timestamp - timestamp).TotalSeconds);
+                if (candidate < distance)
+                {
+                    nearest = i;
+                    distance = candidate;
+                }
+            }
+
+            if (i == samples.Count - 1) break;
+            var start = sample.Timestamp.UtcTicks;
             var end = samples[i + 1].Timestamp.UtcTicks;
             var low = Math.Min(start, end);
             var high = Math.Max(start, end);
             var span = high - low;
-            if (span == 0 || eventTicks < low || eventTicks > high || span >= bestSpan) continue;
+            if (span == 0 || eventTicks < low || eventTicks > high) continue;
+            containing.Add(i);
+            if (span >= bestSpan) continue;
             pair = i;
             bestSpan = span;
         }
 
-        if (pair < 0)
-        {
-            var index = nearest ?? 0;
-            return (ProcessRanking.Moment(samples[index]), true);
-        }
+        if (samples.Count == 0) return (nearest, distance, 0, true);
+        if (samples.Count == 1) return (nearest, distance, ProcessRanking.Moment(samples[0]), true);
+        if (pair < 0) return (nearest, distance, ProcessRanking.Moment(samples[nearest ?? 0]), true);
 
         var first = samples[pair];
         var second = samples[pair + 1];
@@ -146,18 +147,16 @@ public static class IncidentEventMapper
             Math.Abs(wallSeconds - monotonicSeconds) > ClockDivergenceSeconds;
         var moment = firstMoment + (secondMoment - firstMoment) * ratio;
         var ambiguous = false;
-        for (var i = 0; i < samples.Count - 1; i++)
+        foreach (var i in containing)
         {
             var left = samples[i];
             var right = samples[i + 1];
             var duration = (right.Timestamp - left.Timestamp).TotalSeconds;
-            if (duration == 0 || eventTicks < Math.Min(left.Timestamp.UtcTicks, right.Timestamp.UtcTicks) ||
-                eventTicks > Math.Max(left.Timestamp.UtcTicks, right.Timestamp.UtcTicks)) continue;
             var candidate = ProcessRanking.Moment(left) + (ProcessRanking.Moment(right) - ProcessRanking.Moment(left)) *
                 Math.Clamp((timestamp - left.Timestamp).TotalSeconds / duration, 0, 1);
             if (Math.Abs(candidate - moment) > .001) { ambiguous = true; break; }
         }
-        return (moment, first.IsGap || second.IsGap || clockJump || ambiguous);
+        return (nearest, distance, moment, first.IsGap || second.IsGap || clockJump || ambiguous);
     }
 
     private static ProcessUsage? LinkedProcess(IncidentEvent item,
