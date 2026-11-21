@@ -2,6 +2,35 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## Chart labels and sparkline reuse (November 20, 2026)
+
+An allocation and thread-time trace of the UI benchmark (`dotnet-trace`, `gc-verbose` plus sampled thread time) showed two avoidable per-refresh costs. `CpuGraph.Label` cached `FormattedText`, but `DrawText` reshapes that text on every call, so each axis label still ran DirectWrite shaping each second. `ProcessGraphData.Build` scanned every process in all 120 visible samples for every refresh: about 11% of the live frame's UI-thread samples, and about half of the grouped Processes refresh. Labels now cache a frozen drawing of their shaped glyphs and draw it under a frozen translation. `ProcessGraphData.Reuse`, held by `ProcessesView`, keeps the previous refresh's rows: a row seen last time copies its values for the samples both windows share (matched by reference, so the substituted newest full sample is recomputed), and only the new samples are scanned. Groups also keep which samples observed them and redo the compaction idle fill each refresh, because a group's representative process, and so its start time, changes under the same key. Two sample loops in `CpuGraph` no longer allocate interface enumerators.
+
+Compared preserved `main` (`artifacts/tune-baseline`) and changed (`artifacts/tune-changed`) builds of `WinMon.Performance` on Windows x64, .NET 10.0.15: four alternating pairs with launch order swapped each pair, medians of the four run medians. Every scenario's pixel hash matched `main` in every run.
+
+| UI refresh scenario | Before ms | After ms | Before bytes | After bytes |
+|---|---:|---:|---:|---:|
+| Live | 4.61 | 4.91 | 603,249 | 560,381 |
+| Small multiples | 2.95 | 2.77 | 573,943 | 519,711 |
+| Heatmap | 2.97 | 2.99 | 618,798 | 564,346 |
+| Focus | 3.13 | 2.99 | 592,747 | 538,602 |
+| Historical | 1.27 | 1.09 | 183,849 | 144,798 |
+| Grouped | 6.50 | 6.54 | 597,199 | 551,933 |
+| Services | 6.53 | 6.22 | 1,061,664 | 1,023,988 |
+| Compact | 1.60 | 1.45 | 385,493 | 346,444 |
+| Pinned and selected | 4.20 | 3.55 | 974,204 | 931,184 |
+| Pinned and selected, grouped | 7.91 | 7.82 | 777,270 | 731,504 |
+| Grouped with tooltip open | 10.55 | 10.37 | 975,422 | 930,434 |
+| Logical processors | 6.69 | 6.00 | 1,145,964 | 1,051,757 |
+| Connections | 2.53 | 2.26 | 602,169 | 510,886 |
+| Connections with network | 3.19 | 2.97 | 1,376,582 | 1,285,311 |
+| Connections network history | 3.52 | 3.12 | 1,350,432 | 1,258,936 |
+| Connections network history, pinned | 3.60 | 3.16 | 1,353,488 | 1,261,992 |
+
+Allocation fell 4–16% in every UI scenario; `UsageLedger` and history save/read cases are unchanged. Live is the first, tiering-sensitive scenario: it measured 4.51 → 4.39 ms in an earlier round whose only difference was the first grouped design, which Live does not use, and 4.61 → 4.91 ms here, with run ranges overlapping (4.42–4.69 before, 4.43–5.03 after). Six alternating `--live-only` pairs with `DOTNET_TieredCompilation=0` measured 5.22 → 5.11 ms and 602,853 → 559,749 bytes, so the Live difference is tiering, not extra work. An earlier version reused grouped rows only while their representative process stayed the same; that rarely held, and grouped measured 6.65 → 7.08 ms in all four pairs, which led to the observed-sample design above.
+
+This measures UI-thread refresh, layout and render submission with native sampling stopped; it does not measure the render thread, collection or whole-app CPU. Evidence: `artifacts/tune-Measure.ps1`, `artifacts/tune-run1` (first grouped design), `artifacts/tune-run2` (final, tabled above) and `artifacts/tune-notiering`, each with per-run JSON and PNGs.
+
 ## History traffic and incident files (November 19, 2026)
 
 History traffic joining and incident serialization run only on explicit investigation actions. No collector, timer or sampling-loop work was added. `artifacts/incident-probe` contains a Release .NET 10 probe, the original checked-in CPU comparison/ranking implementation as `BaselineTimeline`, and `final-default.json` / `final-no-tiering.json`. The analysis workload has 600 one-second samples and 850 process lifetimes per sample; the network case adds aligned delayed provisional traffic for every lifetime. After 400 warm-up calls per action, four alternating baseline CPU / changed CPU / changed network runs each use seven batches of 60 calls. Values below are medians of the 28 batch means; allocations use the calling thread.

@@ -107,6 +107,40 @@ public sealed class ProcessGraphDataTests
         Assert.That(data[0].Samples, Is.SameAs(data[1].Samples));
     }
 
+    [TestCase(false, ProcessSort.Cpu)]
+    [TestCase(false, ProcessSort.Memory)]
+    [TestCase(true, ProcessSort.Cpu)]
+    [TestCase(true, ProcessSort.Gpu)]
+    public void Build_ReuseAcrossSlidingWindowsMatchesFreshBuild(bool grouped, ProcessSort sort)
+    {
+        var at = DateTimeOffset.UtcNow;
+        // Whole groups drop out of some samples, and starts span the window, so a changed group representative
+        // changes which of those samples count as idle.
+        var history = Enumerable.Range(1, 200).Select(second => new MonitorSample(at.AddSeconds(second), 50,
+        [
+            .. Enumerable.Range(1, 30).Where(i => (i + second) % 7 != 0 && (i % 6 + second) % 5 != 0).Select(i =>
+                new ProcessUsage(i, at.AddSeconds(150 - i * 5).ToFileTime(), $"p{i % 6}", i * second % 13 / 10d, (ulong)(i * 100))
+                    { ImagePath = $"C:\\p{i % 6}.exe", GpuPercent = second % 5 == 0 ? null : i % 4 })
+        ], 0, second % 23 == 0, Stopwatch.Frequency * second) { CompactedProcesses = second % 3 }).ToArray();
+        var reuse = new ProcessGraphData.Reuse();
+
+        for (var end = 130; end <= history.Length; end++)
+        {
+            // The live view substitutes a full copy of the newest sample, so it is a new reference next time.
+            var window = end % 2 == 0 ? [.. history[..(end - 1)], history[end - 1] with { }] : history[..end];
+            // Rows change membership, order and (for groups) representative as the ranking would.
+            var rows = window[^1].Processes.OrderByDescending(p => p.CpuPercent).Take(5 + end % 4).ToArray();
+            if (grouped) rows = [.. rows.DistinctBy(p => ProcessRanking.GroupKey(p), StringComparer.OrdinalIgnoreCase)];
+            var reused = ProcessGraphData.Build(window, 120, rows, grouped, sort, reuse);
+            var fresh = ProcessGraphData.Build(window, 120, rows, grouped, sort);
+            for (var row = 0; row < rows.Length; row++)
+            {
+                Assert.That(reused[row].Values, Is.EqualTo(fresh[row].Values), $"end {end}, row {row}");
+                Assert.That(reused[row].ScaleMaximum, Is.EqualTo(fresh[row].ScaleMaximum));
+            }
+        }
+    }
+
     [Test]
     public void Build_HistoricalPrefixExcludesFutureSpikeAndPreservesZeroVersusMissing()
     {

@@ -40,7 +40,7 @@ public sealed class CpuGraph : FrameworkElement
     private Point[] _trace = [];
     private readonly Dictionary<(Brush, double), Brush> _fills = [];
     private readonly Dictionary<(Brush, double, DashStyle?), Pen> _pens = [];
-    private readonly Dictionary<(string, Brush, double), FormattedText> _labels = [];
+    private readonly Dictionary<(string, Brush, double), (Drawing Glyphs, double Width)> _labels = [];
     private readonly Dictionary<(string, double), double> _labelWidths = [];
     private static readonly Typeface LabelTypeface = new("Segoe UI");
     private const double LabelSize = 12;
@@ -374,8 +374,9 @@ public sealed class CpuGraph : FrameworkElement
     {
         _segment.Clear();
         double? previous = null;
-        foreach (var sample in _samples)
+        for (var sampleIndex = 0; sampleIndex < _samples.Count; sampleIndex++)
         {
+            var sample = _samples[sampleIndex];
             var moment = Moment(sample);
             if (moment < _end - _seconds) continue;
             var value = LogicalProcessorValue(sample, processor);
@@ -537,8 +538,9 @@ public sealed class CpuGraph : FrameworkElement
     {
         var width = Math.Max(1, lane.Width / _seconds);
         ResourceSample? previousSource = null;
-        foreach (var sample in _samples)
+        for (var sampleIndex = 0; sampleIndex < _samples.Count; sampleIndex++)
         {
+            var sample = _samples[sampleIndex];
             // A sample past the newest one, from out-of-order history, would give a negative cell width.
             if (Moment(sample) is var moment && (moment < _end - _seconds || moment > _end)) continue;
             var value = metric == 3
@@ -942,16 +944,24 @@ public sealed class CpuGraph : FrameworkElement
     private void Label(DrawingContext dc, string text, Point origin, Brush brush, double align = 0)
     {
         var pixelsPerDip = VisualTreeHelper.GetDpi(this).PixelsPerDip;
-        // Axis labels rarely change, and shaping text is the costly part of drawing them.
-        if (!_labels.TryGetValue((text, brush, pixelsPerDip), out var formatted))
+        // Axis labels rarely change, and shaping text is the costly part of drawing them. DrawText reshapes even a
+        // cached FormattedText on every call, so keep the shaped glyphs as a frozen drawing instead.
+        if (!_labels.TryGetValue((text, brush, pixelsPerDip), out var label))
         {
             if (_labels.Count >= (ChartType == ResourceChartType.LogicalProcessors ? 256 : 64)) _labels.Clear();
-            formatted = new FormattedText(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, LabelTypeface,
-                LabelSize, brush, pixelsPerDip);
-            _labels[(text, brush, pixelsPerDip)] = formatted;
+            var formatted = new FormattedText(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
+                LabelTypeface, LabelSize, brush, pixelsPerDip);
+            var glyphs = new DrawingGroup();
+            using (var context = glyphs.Open()) context.DrawText(formatted, default);
+            glyphs.Freeze();
+            label = _labels[(text, brush, pixelsPerDip)] = (glyphs, formatted.Width);
         }
 
-        dc.DrawText(formatted, origin with { X = origin.X - formatted.Width * align });
+        var offset = new TranslateTransform(origin.X - label.Width * align, origin.Y);
+        offset.Freeze();
+        dc.PushTransform(offset);
+        dc.DrawDrawing(label.Glyphs);
+        dc.Pop();
     }
 
     /// <summary>A frozen pen reused across redraws; theme changes replace the brush and so the key.</summary>

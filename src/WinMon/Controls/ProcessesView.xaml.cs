@@ -55,6 +55,7 @@ internal sealed record ProcessListFrame(
 public partial class ProcessesView
 {
     private readonly List<ProcessRow> _rows = [];
+    private readonly ProcessGraphData.Reuse _graphReuse = new();
     private readonly List<ProcessRow> _pinnedRows = [];
     private ProcessListSettings _settings = ProcessListSettings.From(new MonitorPreferences());
     private ProcessListFrame? _frame;
@@ -274,7 +275,7 @@ public partial class ProcessesView
         var rest = pinnedOnly ? [] : extraTrigger ? unpinned.Where(p => !top.Contains(p)).ToArray() : unpinned.Skip(top.Length).ToArray();
         var displayed = pinned.Select(p => p.Usage).Concat(top).ToArray();
         var processData = ProcessGraphData.Build(rowSamples, MonitorPreferences.ShortRangeSeconds, displayed, grouped,
-            processSort);
+            processSort, _graphReuse);
         UpdatePinnedRows(pinned, processData, rowSamples, grouped);
         ArrangeProcessRows(top, grouped);
         for (var i = 0; i < _rows.Count; i++)

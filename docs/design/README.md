@@ -49,11 +49,11 @@ This folder contains the current layout reference, feature design notes and edit
 
 ## Feature notes
 
+- [Audit recovery and export range fixes](AUDIT-RECOVERY-AND-EXPORTS.md) preserves rejected saved state and aligns CSV ranges through clock changes.
+
 - [Capture information](CAPTURE-INFO.md) adds richer automatic reports and Copy capture using the existing Processes and Connections Top selections, with app traffic, endpoint details and optional endpoint-pair counters. Its [implementation record](CAPTURE-INFO-IMPLEMENTATION.md) lists verification and remaining native acceptance.
 
 - [Service installation recovery](NETWORK-INSTALLATION-RECOVERY.md) repairs protected incomplete inventories and isolates interrupted removal cleanup from future setup.
-- [Audit recovery and export range fixes](AUDIT-RECOVERY-AND-EXPORTS.md) preserves rejected saved state and aligns CSV ranges through clock changes.
-
 
 - [README and screenshot examples](README-EXAMPLES.md) keeps the overview concise, preserves a detailed user guide and documents realistic, reproducible gallery captures.
 
