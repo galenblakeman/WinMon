@@ -1371,7 +1371,7 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
   <data name="CreateDumpFile" xml:space="preserve"><value>Utwórz plik zrzutu</value></data>
   <data name="ProcessNameLabel" xml:space="preserve"><value>Executable name</value></data>
   <data name="ProcessProductLabel" xml:space="preserve"><value>Product</value></data>
-  <data name="ProcessPublisherLabel" xml:space="preserve"><value>Publisher (file metadata, not verified)</value></data>
+  <data name="ProcessPublisherLabel" xml:space="preserve"><value>Wydawca (metadane pliku, niezweryfikowany)</value></data>
   <data name="ProcessPathLabel" xml:space="preserve"><value>Executable path</value></data>
   <data name="ProcessObservationLabel" xml:space="preserve"><value>Observation time</value></data>
   <data name="ProcessViewLabel" xml:space="preserve"><value>View</value></data>
@@ -2050,4 +2050,15 @@ Zakończone od poprzedniej obserwacji: {1}</value>
   <data name="FlightRecorderFileError" xml:space="preserve"><value>Nie można zapisać lub otworzyć incydentu: {0}</value></data>
   <data name="FlightRecorderOpened" xml:space="preserve"><value>Otwarty incydent: {0}. Odśwież wraca do bieżącego nagrania.</value></data>
   <data name="FlightRecorderFileHelp" xml:space="preserve"><value>Zapisuje zamrożoną oś czasu, nazwy procesów, ścieżki i ruch aplikacji. Sprawdź przed udostępnieniem. Punkty końcowe gniazd są pomijane.</value></data>
+  <data name="ProcessCommandLineLabel" xml:space="preserve"><value>Wiersz polecenia</value></data>
+  <data name="ProcessFileSignedByLabel" xml:space="preserve"><value>Plik na dysku podpisany przez</value></data>
+  <data name="ProcessUserLabel" xml:space="preserve"><value>Użytkownik</value></data>
+  <data name="ProcessReadingDetails" xml:space="preserve"><value>Odczytywanie szczegółów procesu…</value></data>
+  <data name="ProcessDetailsUnavailableForView" xml:space="preserve"><value>Dodatkowe szczegóły procesu są niedostępne w tym widoku.</value></data>
+  <data name="ProcessSignatureNotSigned" xml:space="preserve"><value>Brak podpisu</value></data>
+  <data name="ProcessSignatureInvalid" xml:space="preserve"><value>Nieprawidłowy podpis</value></data>
+  <data name="ProcessSignatureVerified" xml:space="preserve"><value>Podpisany przez {0}</value></data>
+  <data name="ProcessElevated" xml:space="preserve"><value>Podwyższone uprawnienia</value></data>
+  <data name="ProcessNotElevated" xml:space="preserve"><value>Bez podwyższonych uprawnień</value></data>
+  <data name="ProcessSession" xml:space="preserve"><value>Sesja {0}</value></data>
 </root>

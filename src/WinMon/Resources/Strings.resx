@@ -2050,4 +2050,15 @@ Stopped since previous observation: {1}</value>
   <data name="FlightRecorderFileError" xml:space="preserve"><value>Could not save or open the incident: {0}</value></data>
   <data name="FlightRecorderOpened" xml:space="preserve"><value>Opened incident: {0}. Refresh returns to the current recording.</value></data>
   <data name="FlightRecorderFileHelp" xml:space="preserve"><value>Saves the frozen timeline, process names, executable paths and app traffic. Review before sharing. Socket endpoints are excluded.</value></data>
+  <data name="ProcessCommandLineLabel" xml:space="preserve"><value>Command line</value></data>
+  <data name="ProcessFileSignedByLabel" xml:space="preserve"><value>File on disk signed by</value></data>
+  <data name="ProcessUserLabel" xml:space="preserve"><value>User</value></data>
+  <data name="ProcessReadingDetails" xml:space="preserve"><value>Reading process details…</value></data>
+  <data name="ProcessDetailsUnavailableForView" xml:space="preserve"><value>Additional process details are unavailable for this view.</value></data>
+  <data name="ProcessSignatureNotSigned" xml:space="preserve"><value>Not signed</value></data>
+  <data name="ProcessSignatureInvalid" xml:space="preserve"><value>Signature invalid</value></data>
+  <data name="ProcessSignatureVerified" xml:space="preserve"><value>Signed by {0}</value></data>
+  <data name="ProcessElevated" xml:space="preserve"><value>Elevated</value></data>
+  <data name="ProcessNotElevated" xml:space="preserve"><value>Not elevated</value></data>
+  <data name="ProcessSession" xml:space="preserve"><value>Session {0}</value></data>
 </root>

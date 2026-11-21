@@ -859,7 +859,12 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                     FileVersion = "1.2.3.4", ProductVersion = "1.2 release",
                     Publisher = "Example publisher", ThreadCount = 12, HandleCount = 240, PrivateBytes = 80 * 1_048_576
                 };
-                var snapshot = new ProcessDetailsSnapshot(example, false, DateTimeOffset.Now, false, true, "");
+                var snapshot = new ProcessDetailsSnapshot(example, false, DateTimeOffset.Now, false, true, "")
+                {
+                    Inspection = new ProcessInspection(false, "example.exe --mode smoke",
+                        new ProcessOwner("EXAMPLE\\user", 1, true),
+                        new ProcessSignature(ProcessSignatureStatus.Verified, "Example publisher"))
+                };
                 foreach (var dialog in new Window[]
                          {
                              new ProcessPropertiesWindow(snapshot, _ => { }),

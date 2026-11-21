@@ -1371,7 +1371,7 @@ Windows 상태: {2}</value>
   <data name="CreateDumpFile" xml:space="preserve"><value>덤프 파일 만들기</value></data>
   <data name="ProcessNameLabel" xml:space="preserve"><value>Executable name</value></data>
   <data name="ProcessProductLabel" xml:space="preserve"><value>Product</value></data>
-  <data name="ProcessPublisherLabel" xml:space="preserve"><value>Publisher (file metadata, not verified)</value></data>
+  <data name="ProcessPublisherLabel" xml:space="preserve"><value>게시자 (파일 메타데이터, 확인되지 않음)</value></data>
   <data name="ProcessPathLabel" xml:space="preserve"><value>Executable path</value></data>
   <data name="ProcessObservationLabel" xml:space="preserve"><value>Observation time</value></data>
   <data name="ProcessViewLabel" xml:space="preserve"><value>View</value></data>
@@ -2050,4 +2050,15 @@ Q 종료. Ctrl+C 취소. 실행 파일과 서비스 고정은 다음 실행에�
   <data name="FlightRecorderFileError" xml:space="preserve"><value>인시던트를 저장하거나 열 수 없습니다: {0}</value></data>
   <data name="FlightRecorderOpened" xml:space="preserve"><value>열린 인시던트: {0}. 새로 고침은 현재 기록으로 돌아갑니다.</value></data>
   <data name="FlightRecorderFileHelp" xml:space="preserve"><value>고정된 타임라인, 프로세스 이름, 실행 파일 경로 및 앱 트래픽을 저장합니다. 공유 전에 확인하세요. 소켓 엔드포인트는 제외됩니다.</value></data>
+  <data name="ProcessCommandLineLabel" xml:space="preserve"><value>명령줄</value></data>
+  <data name="ProcessFileSignedByLabel" xml:space="preserve"><value>디스크 파일 서명자</value></data>
+  <data name="ProcessUserLabel" xml:space="preserve"><value>사용자</value></data>
+  <data name="ProcessReadingDetails" xml:space="preserve"><value>프로세스 세부 정보 읽는 중…</value></data>
+  <data name="ProcessDetailsUnavailableForView" xml:space="preserve"><value>이 보기에서는 추가 프로세스 세부 정보를 사용할 수 없습니다.</value></data>
+  <data name="ProcessSignatureNotSigned" xml:space="preserve"><value>서명 없음</value></data>
+  <data name="ProcessSignatureInvalid" xml:space="preserve"><value>잘못된 서명</value></data>
+  <data name="ProcessSignatureVerified" xml:space="preserve"><value>서명자: {0}</value></data>
+  <data name="ProcessElevated" xml:space="preserve"><value>권한 상승됨</value></data>
+  <data name="ProcessNotElevated" xml:space="preserve"><value>권한 상승 안 됨</value></data>
+  <data name="ProcessSession" xml:space="preserve"><value>세션 {0}</value></data>
 </root>

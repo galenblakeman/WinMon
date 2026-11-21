@@ -8,6 +8,8 @@ Sampling uses a dedicated worker with elevated scheduling priority on Windows to
 
 MCP performance recordings retain valid captured intervals even when report processing falls behind collection.
 
+For a live individual process, **Properties** and **Copy details** read its command line, user/session/elevation and the signer of its executable file on disk. These details are read only on demand; command lines can contain secrets, so review copied text before sharing it.
+
 **Windows x64 · No separate .NET installation · Installer or portable ZIP · MIT licensed**
 
 [**Download latest release**](https://github.com/galenblakeman/WinMon/releases/latest) · [User guide](docs/USER-GUIDE.md) · [Screenshot gallery](docs/example/README.md) · [Report an issue](https://github.com/galenblakeman/WinMon/issues)

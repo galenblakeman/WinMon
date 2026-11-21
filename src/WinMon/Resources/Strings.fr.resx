@@ -1371,7 +1371,7 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
   <data name="CreateDumpFile" xml:space="preserve"><value>Créer un fichier de vidage</value></data>
   <data name="ProcessNameLabel" xml:space="preserve"><value>Executable name</value></data>
   <data name="ProcessProductLabel" xml:space="preserve"><value>Product</value></data>
-  <data name="ProcessPublisherLabel" xml:space="preserve"><value>Publisher (file metadata, not verified)</value></data>
+  <data name="ProcessPublisherLabel" xml:space="preserve"><value>Éditeur (métadonnées du fichier, non vérifié)</value></data>
   <data name="ProcessPathLabel" xml:space="preserve"><value>Executable path</value></data>
   <data name="ProcessObservationLabel" xml:space="preserve"><value>Observation time</value></data>
   <data name="ProcessViewLabel" xml:space="preserve"><value>View</value></data>
@@ -2050,4 +2050,15 @@ Arrêtés depuis la dernière observation : {1}</value>
   <data name="FlightRecorderFileError" xml:space="preserve"><value>Impossible d’enregistrer ou d’ouvrir l’incident : {0}</value></data>
   <data name="FlightRecorderOpened" xml:space="preserve"><value>Incident ouvert : {0}. Actualiser revient à l’enregistrement actuel.</value></data>
   <data name="FlightRecorderFileHelp" xml:space="preserve"><value>Enregistre la chronologie figée, les noms des processus, les chemins et le trafic des applications. Vérifiez avant de partager. Les points de terminaison des sockets sont exclus.</value></data>
+  <data name="ProcessCommandLineLabel" xml:space="preserve"><value>Ligne de commande</value></data>
+  <data name="ProcessFileSignedByLabel" xml:space="preserve"><value>Fichier sur disque signé par</value></data>
+  <data name="ProcessUserLabel" xml:space="preserve"><value>Utilisateur</value></data>
+  <data name="ProcessReadingDetails" xml:space="preserve"><value>Lecture des détails du processus…</value></data>
+  <data name="ProcessDetailsUnavailableForView" xml:space="preserve"><value>Les détails supplémentaires du processus ne sont pas disponibles dans cette vue.</value></data>
+  <data name="ProcessSignatureNotSigned" xml:space="preserve"><value>Non signé</value></data>
+  <data name="ProcessSignatureInvalid" xml:space="preserve"><value>Signature non valide</value></data>
+  <data name="ProcessSignatureVerified" xml:space="preserve"><value>Signé par {0}</value></data>
+  <data name="ProcessElevated" xml:space="preserve"><value>Élevé</value></data>
+  <data name="ProcessNotElevated" xml:space="preserve"><value>Non élevé</value></data>
+  <data name="ProcessSession" xml:space="preserve"><value>Session {0}</value></data>
 </root>

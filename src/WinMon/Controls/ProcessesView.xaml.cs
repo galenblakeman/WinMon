@@ -626,7 +626,7 @@ public partial class ProcessesView
         row.ProcessSelected += SelectProcess;
         row.EnableInspectionActions(
             snapshot => new ProcessPropertiesWindow(snapshot, Copy) { Owner = Window.GetWindow(this) }.ShowDialog(),
-            snapshot => Copy(snapshot.Format()), OpenProcessLocation,
+            CopyDetailsAsync, OpenProcessLocation,
             process => new ProcessDumpDialog(process, () => CanDumpProcess(process)) { Owner = Window.GetWindow(this) }
                 .ShowDialog(),
             CanDumpProcess, () => _frame?.Selected is not null,
@@ -739,7 +739,7 @@ public partial class ProcessesView
         {
             case "properties":
                 new ProcessPropertiesWindow(snapshot, Copy) { Owner = Window.GetWindow(this) }.ShowDialog(); break;
-            case "copy": Copy(snapshot.Format()); break;
+            case "copy": CopyDetailsAsync(snapshot); break;
             case "location": OpenProcessLocation(process); break;
             case "end" when snapshot is { Available: true, Historical: false } &&
                             snapshot.Grouped == _settings.Grouped:
@@ -756,6 +756,20 @@ public partial class ProcessesView
     private void Copy(string text)
     {
         CopyRequested?.Invoke(text);
+    }
+
+    private async void CopyDetailsAsync(ProcessDetailsSnapshot snapshot)
+    {
+        if (snapshot is not { Grouped: false, Historical: false, Available: true } ||
+            snapshot.Process.CreationTicks <= 0)
+        {
+            Copy(snapshot.Format());
+            return;
+        }
+
+        var inspection = await Task.Run(() =>
+            WindowsProcessDetailsReader.Read(snapshot.Process.ProcessId, snapshot.Process.CreationTicks));
+        if (!_closing) Copy((snapshot with { Inspection = inspection }).Format());
     }
 
     private ProcessUsage[] CaptureEndTargets(ProcessUsage process)

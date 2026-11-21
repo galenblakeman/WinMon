@@ -1371,7 +1371,7 @@ O trabalho não salvo pode ser perdido. Todos os processos listados abaixo serã
   <data name="CreateDumpFile" xml:space="preserve"><value>Criar arquivo de despejo</value></data>
   <data name="ProcessNameLabel" xml:space="preserve"><value>Executable name</value></data>
   <data name="ProcessProductLabel" xml:space="preserve"><value>Product</value></data>
-  <data name="ProcessPublisherLabel" xml:space="preserve"><value>Publisher (file metadata, not verified)</value></data>
+  <data name="ProcessPublisherLabel" xml:space="preserve"><value>Fornecedor (metadados do arquivo, não verificado)</value></data>
   <data name="ProcessPathLabel" xml:space="preserve"><value>Executable path</value></data>
   <data name="ProcessObservationLabel" xml:space="preserve"><value>Observation time</value></data>
   <data name="ProcessViewLabel" xml:space="preserve"><value>View</value></data>
@@ -2050,4 +2050,15 @@ Encerrados desde a observação anterior: {1}</value>
   <data name="FlightRecorderFileError" xml:space="preserve"><value>Não foi possível salvar ou abrir o incidente: {0}</value></data>
   <data name="FlightRecorderOpened" xml:space="preserve"><value>Incidente aberto: {0}. Atualizar retorna à gravação atual.</value></data>
   <data name="FlightRecorderFileHelp" xml:space="preserve"><value>Salva a linha do tempo congelada, nomes de processos, caminhos e tráfego de aplicativos. Revise antes de compartilhar. Os pontos de extremidade de sockets são excluídos.</value></data>
+  <data name="ProcessCommandLineLabel" xml:space="preserve"><value>Linha de comando</value></data>
+  <data name="ProcessFileSignedByLabel" xml:space="preserve"><value>Arquivo em disco assinado por</value></data>
+  <data name="ProcessUserLabel" xml:space="preserve"><value>Usuário</value></data>
+  <data name="ProcessReadingDetails" xml:space="preserve"><value>Lendo detalhes do processo…</value></data>
+  <data name="ProcessDetailsUnavailableForView" xml:space="preserve"><value>Detalhes adicionais do processo não estão disponíveis nesta exibição.</value></data>
+  <data name="ProcessSignatureNotSigned" xml:space="preserve"><value>Não assinado</value></data>
+  <data name="ProcessSignatureInvalid" xml:space="preserve"><value>Assinatura inválida</value></data>
+  <data name="ProcessSignatureVerified" xml:space="preserve"><value>Assinado por {0}</value></data>
+  <data name="ProcessElevated" xml:space="preserve"><value>Elevado</value></data>
+  <data name="ProcessNotElevated" xml:space="preserve"><value>Não elevado</value></data>
+  <data name="ProcessSession" xml:space="preserve"><value>Sessão {0}</value></data>
 </root>

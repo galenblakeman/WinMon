@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using NUnit.Framework;
 using WinMon.Controls;
 using WinMon.Monitoring;
@@ -166,6 +167,104 @@ public sealed class ProcessActionsTests
         var snapshot = new ProcessDetailsSnapshot(Example, false, DateTimeOffset.Now, false, true, "");
         var text = snapshot.Format();
         Assert.That(text, Does.Contain("42.0 MiB").And.Contain("0.3 MB/s"));
+    }
+
+    [Test]
+    public void Details_FormatsOnDemandInspectionAndNeverAddsItToHistoricalOrGroupedViews()
+    {
+        var inspection = new ProcessInspection(false, "example.exe --token secret", new ProcessOwner("DOMAIN\\user", 1, true),
+            new ProcessSignature(ProcessSignatureStatus.Verified, "Example Corp"));
+        var live = new ProcessDetailsSnapshot(Example, false, DateTimeOffset.Now, false, true, "")
+            { Inspection = inspection }.Format();
+        Assert.Multiple(() =>
+        {
+            Assert.That(live, Does.Contain(Strings.ProcessCommandLineLabel + ": " + inspection.CommandLine));
+            Assert.That(live, Does.Contain(Strings.Format(Strings.ProcessSignatureVerified, inspection.Signature.Signer)));
+            Assert.That(live, Does.Contain("DOMAIN\\user · " + Strings.Format(Strings.ProcessSession, 1) + " · " +
+                Strings.ProcessElevated));
+        });
+
+        foreach (var unavailable in new[]
+                 {
+                     new ProcessDetailsSnapshot(Example, true, DateTimeOffset.Now, false, true, "") { Inspection = inspection },
+                     new ProcessDetailsSnapshot(Example, false, DateTimeOffset.Now, true, true, "") { Inspection = inspection }
+                 })
+            Assert.That(unavailable.Format(), Does.Not.Contain(inspection.CommandLine));
+    }
+
+    [TestCase(ProcessSignatureStatus.Verified, "Example Corp")]
+    [TestCase(ProcessSignatureStatus.NotSigned, null)]
+    [TestCase(ProcessSignatureStatus.Invalid, null)]
+    [TestCase(ProcessSignatureStatus.Unavailable, null)]
+    public void Details_FormatsEverySignatureStatus(ProcessSignatureStatus status, string? signer)
+    {
+        var snapshot = new ProcessDetailsSnapshot(Example, false, DateTimeOffset.Now, false, true, "")
+        {
+            Inspection = new ProcessInspection(false, null, new ProcessOwner(null, null, null),
+                new ProcessSignature(status, signer))
+        };
+        var expected = status switch
+        {
+            ProcessSignatureStatus.Verified => Strings.Format(Strings.ProcessSignatureVerified, signer),
+            ProcessSignatureStatus.NotSigned => Strings.ProcessSignatureNotSigned,
+            ProcessSignatureStatus.Invalid => Strings.ProcessSignatureInvalid,
+            _ => Strings.MissingReading
+        };
+        Assert.That(snapshot.Format(), Does.Contain(Strings.ProcessFileSignedByLabel + ": " + expected));
+    }
+
+    [Test]
+    public void Details_RejectsStaleInspectionAndShowsMissingRowsWithoutAnInspection()
+    {
+        var stale = new ProcessDetailsSnapshot(Example, false, DateTimeOffset.Now, false, true, "")
+        {
+            Inspection = new ProcessInspection(true, "must not appear", new ProcessOwner("DOMAIN\\user", 1, true),
+                new ProcessSignature(ProcessSignatureStatus.Verified, "Example Corp"))
+        }.Format();
+        var pending = new ProcessDetailsSnapshot(Example, false, DateTimeOffset.Now, false, true, "").Format();
+        Assert.Multiple(() =>
+        {
+            Assert.That(stale, Does.Contain(Strings.ProcessExited).And.Not.Contain("must not appear"));
+            Assert.That(stale, Does.Contain(Strings.ProcessCommandLineLabel + ": " + Strings.ProcessDetailsUnavailableForView));
+            Assert.That(pending, Does.Contain(Strings.ProcessCommandLineLabel + ": " + Strings.MissingReading));
+        });
+    }
+
+    [Test]
+    [Apartment(ApartmentState.STA)]
+    public async Task Properties_StartsAfterLoadedAndDiscardsACompletionAfterClose()
+    {
+        var completion = new TaskCompletionSource<ProcessInspection>();
+        var reads = 0;
+        var window = new ProcessPropertiesWindow(new ProcessDetailsSnapshot(Example, false, DateTimeOffset.Now,
+            false, true, ""), _ => { }, _ =>
+        {
+            reads++;
+            return completion.Task;
+        });
+        window.Resources["Surface"] = Brushes.Black;
+        window.Resources["Text"] = Brushes.White;
+        window.Resources["Accent"] = Brushes.Lime;
+        Assert.That(reads, Is.Zero);
+        window.Show();
+        Assert.That(reads, Is.EqualTo(1));
+        Assert.That(Descendants(window).OfType<Button>().Single(button => Equals(button.Content, Strings.CopyDetails)).IsEnabled,
+            Is.False);
+        window.Close();
+        completion.SetResult(new ProcessInspection(false, "must not appear", null,
+            new ProcessSignature(ProcessSignatureStatus.Unavailable, null)));
+        await Task.Yield();
+        Assert.That(window.IsVisible, Is.False);
+    }
+
+    private static IEnumerable<DependencyObject> Descendants(DependencyObject root)
+    {
+        for (var index = 0; index < VisualTreeHelper.GetChildrenCount(root); index++)
+        {
+            var child = VisualTreeHelper.GetChild(root, index);
+            yield return child;
+            foreach (var descendant in Descendants(child)) yield return descendant;
+        }
     }
 
     [Test]

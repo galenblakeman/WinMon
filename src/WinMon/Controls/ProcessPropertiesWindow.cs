@@ -7,7 +7,8 @@ namespace WinMon.Controls;
 
 internal sealed class ProcessPropertiesWindow : Window
 {
-    internal ProcessPropertiesWindow(ProcessDetailsSnapshot snapshot, Action<string> copy)
+    internal ProcessPropertiesWindow(ProcessDetailsSnapshot snapshot, Action<string> copy,
+        Func<ProcessDetailsSnapshot, Task<ProcessInspection>>? read = null)
     {
         Title = $"{Strings.ProcessProperties} — {snapshot.Process.Name}";
         Width = 620;
@@ -36,10 +37,12 @@ internal sealed class ProcessPropertiesWindow : Window
             Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right,
             Margin = new Thickness(0, 16, 0, 0)
         };
-        var text = snapshot.Format();
-        var copyButton = new Button { Content = Strings.CopyDetails, MinWidth = 110 };
+        var current = snapshot;
+        var text = current.Format(NeedsInspection(current));
+        var needsInspection = NeedsInspection(current);
+        var copyButton = new Button { Content = Strings.CopyDetails, MinWidth = 110, IsEnabled = !needsInspection };
         ButtonIcon.SetData(copyButton, ButtonIcon.Copy);
-        copyButton.Click += (_, _) => copy(text);
+        copyButton.Click += (_, _) => copy(current.Format());
         buttons.Children.Add(copyButton);
         var close = new Button
         {
@@ -62,5 +65,26 @@ internal sealed class ProcessPropertiesWindow : Window
         AutomationProperties.SetName(details, Strings.ProcessProperties);
         layout.Children.Add(details);
         Content = layout;
+        Closed += (_, _) => IsClosed = true;
+        if (needsInspection)
+            Loaded += (_, _) => _ = ReadAsync();
+
+        async Task ReadAsync()
+        {
+            var inspection = await (read?.Invoke(snapshot) ?? Task.Run(() =>
+                WindowsProcessDetailsReader.Read(snapshot.Process.ProcessId, snapshot.Process.CreationTicks)));
+            if (!IsLoaded || IsClosed) return;
+            current = snapshot with { Inspection = inspection };
+            details.Text = current.Format();
+            copyButton.IsEnabled = true;
+        }
+    }
+
+    private bool IsClosed { get; set; }
+
+    private static bool NeedsInspection(ProcessDetailsSnapshot snapshot)
+    {
+        return !snapshot.Grouped && !snapshot.Historical && snapshot.Available && snapshot.Inspection is null &&
+               snapshot.Process.CreationTicks > 0;
     }
 }
