@@ -2,7 +2,7 @@
 
 History should answer which app was transferring data at a network spike. Reuse `MonitorSession.Connections.Captures`, joining only an exact `SampleKey` and full Windows process lifetime identity. Freeze those frames when opening or refreshing History. Include retained traffic owners omitted from compacted process samples.
 
-Selected moment ranks by receive + send bytes/second and displays a Network column. Compare periods uses those same rates for process means and deltas; the resource summary still measures the configured adapter. Traffic covers all adapters and the service's delayed provisional window, so it need not coincide with the system chart. Missing, incomplete, warming-up, capacity-limited, discontinuous and unavailable observations stay unknown. No CPU fallback or inferred zero traffic.
+Selected moment ranks by receive + send bytes/second and displays a Network column. Compare periods uses those same rates for process means and deltas; the resource summary still measures the configured adapter. Traffic covers all adapters and the service's delayed provisional window, so it need not coincide with the system chart. Missing, warming-up, capacity-limited, discontinuous and unavailable observations stay unknown. A sticky incomplete-total flag does not suppress recovered non-null rates; see [network rate recovery](NETWORK-RATE-RECOVERY.md). No CPU fallback or inferred zero traffic.
 
 ## What landed
 

@@ -103,8 +103,9 @@ public static class IncidentTimeline
         var frame = traffic?.Network;
         var readings = (frame?.Processes ?? []).ToDictionary(reading =>
             new ProcessLifetimeIdentity(reading.ProcessId, reading.CreationTicks, ProcessLifetimeIdentity.WindowsFileTime));
+        // Incomplete session totals can coexist with recovered, validated window rates.
         var valid = !sample.IsGap && frame is not null &&
-            (frame.Quality & ~ProcessNetworkQuality.Provisional) == ProcessNetworkQuality.None;
+            (frame.Quality & ~(ProcessNetworkQuality.Provisional | ProcessNetworkQuality.Incomplete)) == ProcessNetworkQuality.None;
         var observed = sample.Processes.Concat(traffic?.Owners ?? []).ToArray();
         var known = observed.Select(process => process.Identity).ToHashSet();
         return observed.Concat((frame?.Owners ?? []).Where(process => !known.Contains(process.Identity))

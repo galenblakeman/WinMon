@@ -223,7 +223,7 @@ public sealed class MonitorSession(
                     // like a failed capture instead of ending sampling unseen.
                     source ??= createSource();
                     var frame = source.Capture(current);
-                    Deliver(new Pending(
+                    Deliver(new Pending(Stopwatch.GetTimestamp(),
                         ProcessRetention.Compact(frame.Full, retain: current.Retain, retainAll: current.RetainAll),
                         frame.Error, frame.Full, frame.Services, current.ProcessNetwork,
                         current.ProcessNetworkSessionId,
@@ -243,7 +243,7 @@ public sealed class MonitorSession(
                         source = null;
                     }
 
-                    Deliver(new Pending(null, SamplingError.ReadingsUnavailable,
+                    Deliver(new Pending(Stopwatch.GetTimestamp(), null, SamplingError.ReadingsUnavailable,
                         Network: current.ProcessNetwork, NetworkSessionId: current.ProcessNetworkSessionId));
                 }
                 var remaining = next - clock.Elapsed;
@@ -320,16 +320,17 @@ public sealed class MonitorSession(
 
                     if (_networkSessionId == Guid.Empty) ProcessNetwork = null;
                     else if (pending.Network is { } network)
-                        ProcessNetwork = _network.Add(network, Stopwatch.GetTimestamp());
+                        // Queueing behind the UI does not make a recorded observation stale.
+                        ProcessNetwork = _network.Add(network, pending.ObservedAt);
                     else
-                        ProcessNetwork = _network.Unavailable(Stopwatch.GetTimestamp(), Stopwatch.Frequency);
+                        ProcessNetwork = _network.Unavailable(pending.ObservedAt, Stopwatch.Frequency);
                     if (ProcessNetwork is { } traffic)
                         ProcessNetwork = AttachNetworkOwners(traffic, pending.Full);
                 }
                 catch (Exception networkError)
                 {
                     Trace.TraceError("WinMon network accounting unavailable: {0}", networkError);
-                    ProcessNetwork = _network.Unavailable(Stopwatch.GetTimestamp(), Stopwatch.Frequency);
+                    ProcessNetwork = _network.Unavailable(pending.ObservedAt, Stopwatch.Frequency);
                 }
 
                 if (pending.Sample is not null)
@@ -481,6 +482,7 @@ public sealed class MonitorSession(
 
     /// <summary>A compacted capture, or a failed pass when <see cref="Sample"/> is null, awaiting the drain.</summary>
     private sealed record Pending(
+        long ObservedAt,
         MonitorSample? Sample,
         SamplingError? Error,
         MonitorSample? Full = null,

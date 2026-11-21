@@ -152,7 +152,7 @@ public sealed class CaptureRules(IReadOnlyList<CaptureRuleSetting> rules, TimeSp
         if (rule.IsMemory) return processes.All(p => p.PrivateBytes is not null)
             ? processes.Sum(p => (double)p.PrivateBytes!.Value) / (1024 * 1024) : null;
         if (!rule.IsNetwork) return processes.All(p => p.ObservedCpuPercent is not null) ? processes.Sum(p => p.CpuPercent) : null;
-        if (network is null || (network.Quality & ~ProcessNetworkQuality.Provisional) != 0) return null;
+        if (network is null || (network.Quality & ~(ProcessNetworkQuality.Provisional | ProcessNetworkQuality.Incomplete)) != 0) return null;
         double receive = 0, send = 0;
         foreach (var process in processes)
         {

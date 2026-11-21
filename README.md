@@ -8,6 +8,8 @@ Sampling uses a dedicated worker with elevated scheduling priority on Windows to
 
 MCP performance recordings retain valid captured intervals even when report processing falls behind collection.
 
+Per-app network history retains rates collected while the interface is busy. After a temporary network-monitor disconnect, fresh rates can again contribute to History comparisons and automatic captures; session byte totals keep their incomplete-coverage warning.
+
 For a live individual process, **Properties** and **Copy details** read its command line, user/session/elevation and the signer of its executable file on disk. These details are read only on demand; command lines can contain secrets, so review copied text before sharing it.
 
 The process **More** menu offers suspend/resume, CPU affinity and Efficiency mode for eligible live processes. Changes last for that process lifetime. WinMon asks before suspension and offers to resume its outstanding suspensions before closing or updating.

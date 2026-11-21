@@ -30,7 +30,6 @@ public sealed class IncidentTrafficTests
     }
 
     [TestCase(ProcessNetworkQuality.WarmingUp)]
-    [TestCase(ProcessNetworkQuality.Incomplete)]
     [TestCase(ProcessNetworkQuality.CapacityExceeded)]
     [TestCase(ProcessNetworkQuality.Unavailable)]
     [TestCase(ProcessNetworkQuality.Discontinuity)]
@@ -43,21 +42,44 @@ public sealed class IncidentTrafficTests
     }
 
     [Test]
-    public void Network_RequiresExactObservationLifetimeAndCurrentRate()
+    public void Network_UsesRecoveredRatesWhileSessionTotalsRemainIncomplete()
+    {
+        var session = new ProcessNetworkSession();
+        var generation = Guid.NewGuid();
+        ProcessNetworkSnapshot Snapshot(int sequence, long stamp) => new(generation, sequence, stamp, 10,
+            stamp - 5, stamp, ProcessNetworkQuality.Provisional, 0, 0, [new(1, 1, sequence * 100, 0, 20, 40)]);
+        session.Add(Snapshot(1, 100), 100);
+        session.Unavailable(110, 10);
+        var recovered = session.Add(Snapshot(2, 200), 200);
+        var owner = new ProcessUsage(1, 1, "download", 0);
+        var sample = Sample(0, owner);
+        var capture = new ConnectionCapture(sample, null, [owner], recovered);
+
+        Assert.That(recovered.Quality.HasFlag(ProcessNetworkQuality.Incomplete), Is.True);
+        Assert.That(IncidentTimeline.ProcessReadings(sample, CaptureMetric.Network, capture).Single().Value,
+            Is.EqualTo(60));
+        Assert.That(IncidentTimeline.Compare([sample], sample, CaptureMetric.Network,
+            new Dictionary<SampleKey, ConnectionCapture> { [SampleKey.Of(sample)] = capture })
+            .Processes.Single().During, Is.EqualTo(new IncidentTimeline.Reading(60, 1)));
+    }
+
+    [TestCase(ProcessNetworkQuality.Provisional)]
+    [TestCase(ProcessNetworkQuality.Provisional | ProcessNetworkQuality.Incomplete)]
+    public void Network_RequiresExactObservationLifetimeAndCurrentRate(ProcessNetworkQuality quality)
     {
         var old = new ProcessUsage(1, 1, "old", 0);
         var replacement = old with { CreationTicks = 2, Name = "replacement" };
         var sample = Sample(0, replacement);
-        var capture = Traffic(sample, old, 100);
+        var capture = Traffic(sample, old, 100, quality);
         Assert.That(IncidentTimeline.ProcessReadings(sample, CaptureMetric.Network, capture)
             .Single(row => row.Process == replacement).Value, Is.Null);
         Assert.That(IncidentTimeline.ProcessReadings(sample, CaptureMetric.Network,
             capture with { Sample = Sample(1) }).Select(row => row.Value), Is.EqualTo(new double?[] { null }));
         Assert.That(IncidentTimeline.ProcessReadings(sample, CaptureMetric.Network).Single().Value, Is.Null);
-        capture = Traffic(sample, replacement, 100);
+        capture = Traffic(sample, replacement, 100, quality);
         foreach (var rate in new double?[] { null, -1, double.NaN, double.PositiveInfinity })
             Assert.That(IncidentTimeline.ProcessReadings(sample, CaptureMetric.Network,
-                Traffic(sample, replacement, rate)).Single().Value, Is.Null);
+                Traffic(sample, replacement, rate, quality)).Single().Value, Is.Null);
         Assert.That(IncidentTimeline.ProcessReadings(sample with { IsGap = true }, CaptureMetric.Network, capture)
             .Single().Value, Is.Null);
         Assert.That(IncidentTimeline.ProcessReadings(sample, CaptureMetric.Network, capture with

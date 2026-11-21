@@ -44,7 +44,6 @@ public sealed class ScopedCaptureRulesTests
         var old = new ProcessNetworkFrame(1, 1, ProcessNetworkQuality.None, [new ProcessNetworkReading(1, 1, 0, 0, 1_000_000, 0)]);
         Assert.That(rules.Observe(sample, network: old), Is.Empty);
         var valid = old with { Processes = [new ProcessNetworkReading(1, 2, 0, 0, 1_000_000, 0)] };
-        Assert.That(rules.Observe(sample, network: valid with { Quality = ProcessNetworkQuality.Incomplete }), Is.Empty);
         Assert.That(rules.Observe(sample, network: valid).Single().PeakValue, Is.EqualTo(8));
     }
 
@@ -81,7 +80,6 @@ public sealed class ScopedCaptureRulesTests
     }
 
     [TestCase(ProcessNetworkQuality.WarmingUp)]
-    [TestCase(ProcessNetworkQuality.Incomplete)]
     [TestCase(ProcessNetworkQuality.CapacityExceeded)]
     [TestCase(ProcessNetworkQuality.Unavailable)]
     [TestCase(ProcessNetworkQuality.Discontinuity)]
@@ -99,13 +97,42 @@ public sealed class ScopedCaptureRulesTests
         Assert.That(rules.Observe(Frame(4, process), network: network).Single().Run, Is.EqualTo(new[] { 8d, 8d }));
     }
 
-    [TestCase(null, 1_000_000d)]
-    [TestCase(1_000_000d, null)]
-    public void NetworkRulesRequireBothDirectionsForEveryMatchingMember(double? receive, double? send)
+    [TestCase(CaptureMetric.ApplicationNetwork)]
+    [TestCase(CaptureMetric.ServiceNetwork)]
+    public void NetworkRulesResumeAfterDisconnectWithIncompleteSessionTotals(CaptureMetric metric)
+    {
+        var rules = new CaptureRules([new CaptureRuleSetting(metric, true, 1, 2)
+            { Target = metric == CaptureMetric.ServiceNetwork ? "svc" : "worker" }], TimeSpan.Zero, 4);
+        var session = new ProcessNetworkSession();
+        var generation = Guid.NewGuid();
+        ProcessNetworkSnapshot Snapshot(int sequence, long stamp) => new(generation, sequence, stamp, 10,
+            stamp - 5, stamp, ProcessNetworkQuality.Provisional, 0, 0, [new(1, 1, sequence * 100, 0, 1_000_000, 0)]);
+        IReadOnlyList<CaptureFired> Observe(int second, ProcessNetworkFrame network)
+        {
+            var sample = Frame(second, Process(1, 1, "worker"));
+            var services = new ServiceFrame(sample, [new ServiceGroup("host",
+                [new ServiceObservation("svc", "Service", 4, 1, 0)], sample.Processes[0], sample.Processes)]);
+            return rules.Observe(sample, services, network);
+        }
+        session.Add(Snapshot(1, 100), 100);
+        Assert.That(Observe(1, session.Add(Snapshot(2, 110), 110)), Is.Empty);
+        Assert.That(Observe(2, session.Unavailable(120, 10)), Is.Empty);
+        var recovered = session.Add(Snapshot(3, 200), 200);
+        Assert.That(recovered.Quality.HasFlag(ProcessNetworkQuality.Incomplete), Is.True);
+        Assert.That(Observe(3, recovered), Is.Empty, "The disconnect breaks the prior run.");
+        Assert.That(Observe(4, session.Add(Snapshot(4, 210), 210)).Single().Run, Is.EqualTo(new[] { 8d, 8d }));
+    }
+
+    [TestCase(null, 1_000_000d, ProcessNetworkQuality.None)]
+    [TestCase(1_000_000d, null, ProcessNetworkQuality.None)]
+    [TestCase(null, 1_000_000d, ProcessNetworkQuality.Incomplete)]
+    [TestCase(1_000_000d, null, ProcessNetworkQuality.Incomplete)]
+    public void NetworkRulesRequireBothDirectionsForEveryMatchingMember(double? receive, double? send,
+        ProcessNetworkQuality quality)
     {
         var rules = new CaptureRules([new CaptureRuleSetting(CaptureMetric.ApplicationNetwork, true, 1, 1)
             { Target = "worker" }], TimeSpan.Zero, 4);
-        var network = new ProcessNetworkFrame(1, 1, ProcessNetworkQuality.None,
+        var network = new ProcessNetworkFrame(1, 1, quality,
             [new ProcessNetworkReading(1, 1, 0, 0, 1_000_000, 0), new ProcessNetworkReading(2, 2, 0, 0, receive, send)]);
         Assert.That(rules.Observe(Frame(1, Process(1, 1, "worker"), Process(2, 2, "worker")), network: network), Is.Empty);
     }

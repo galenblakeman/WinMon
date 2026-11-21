@@ -2,6 +2,20 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## Network recording recovery (November 21, 2026)
+
+`MonitorSession.Pending` now retains raw collection QPC so delayed UI processing cannot discard valid captured network rates or move a missing-snapshot recovery boundary. History and scoped capture rules accept recovered non-null rates while cumulative session totals remain marked incomplete.
+
+Measured the shared session pipeline before/after with 100 synthetic processes and 100 traffic readings per capture, 600 retained frames, inline draining and a minimal loop interval. Each process ran one 1,000-frame warm-up session and seven timed 1,000-frame sessions. Four alternating before/after pairs ran after verification/smoke had finished, with tiered compilation disabled for both builds. Values below are medians of the four run medians.
+
+| Session collection and drain | Before | After |
+| --- | ---: | ---: |
+| Time per capture | 33.81 µs | 33.04 µs |
+| Run median range | 32.30–36.24 µs | 32.67–35.68 µs |
+| Allocated bytes per capture | 36,262 | 36,270 |
+
+The timing difference is within observed variation. The additional eight bytes retain the collection timestamp once per capture (normally once per second). No observed slowdown blocks the fix. This is a synthetic shared-session measurement; native collection, WPF rendering, CPU saturation and whole-app profiling were not measured. Probe source, retained baseline and raw results: `artifacts/network-recovery/`.
+
 ## History event mapping (November 20, 2026)
 
 A review of the process details, process controls, memory pressure and Windows events features for UI-thread work found that live refresh and sampling were already measured and unchanged. The largest remaining cost was `IncidentEventMapper.Map`, which runs on the UI thread when History opens (once with no events, then with the read events), when a recording opens, and, before this change, again when an event between observations was selected. For each event it made three passes over every sample: nearest observation, shortest containing interval, then a repeated-interval check. It also built a lookup of every retained process even when no event named one.

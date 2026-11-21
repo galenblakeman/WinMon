@@ -13,6 +13,37 @@ public sealed class MonitorSessionTests
     private const int Processes = 60;
 
     [Test]
+    public async Task QueuedNetworkRatesUseCollectionTimeAndRejectAlreadyStaleSnapshots()
+    {
+        var generation = Guid.NewGuid();
+        var sessionId = Guid.NewGuid();
+        var sequence = 0;
+        var harness = new Harness(() =>
+        {
+            var stamp = Stopwatch.GetTimestamp();
+            var number = ++sequence;
+            if (number == 4) stamp -= Stopwatch.Frequency * 10;
+            return new SamplingOptions
+            {
+                ProcessNetworkSessionId = sessionId,
+                ProcessNetwork = number == 2 ? null : new ProcessNetworkSnapshot(generation, number == 1 ? 1 : number - 1, stamp, Stopwatch.Frequency,
+                    stamp - 1, stamp, ProcessNetworkQuality.Provisional, 0, 0,
+                    [new(42, 100, number * 100, 0, 20, 40)])
+            };
+        }, Frame(1), Frame(2), Frame(3), Frame(4));
+        await harness.RunToEnd();
+        await Task.Delay(TimeSpan.FromSeconds(4));
+        harness.Drain();
+
+        var captures = harness.Session.Connections.Captures;
+        Assert.That(captures[1].Network!.Processes.Single().ReceiveBytesPerSecond, Is.Null);
+        Assert.That(captures[2].Network!.Processes.Single().ReceiveBytesPerSecond, Is.EqualTo(20));
+        Assert.That(captures[2].Network!.Quality.HasFlag(ProcessNetworkQuality.Unavailable), Is.False);
+        Assert.That(captures[3].Network!.Processes.Single().ReceiveBytesPerSecond, Is.Null);
+        Assert.That(captures[3].Network!.Quality.HasFlag(ProcessNetworkQuality.Unavailable), Is.True);
+    }
+
+    [Test]
     public async Task NetworkTotalsSurviveMissingSnapshotAndCpuCaptureFailure()
     {
         var id = Guid.NewGuid();

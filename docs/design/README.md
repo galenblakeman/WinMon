@@ -1,5 +1,7 @@
 # WinMon design assets
 
+- [Network rate recovery](NETWORK-RATE-RECOVERY.md) preserves recorded rates through UI delays and restores History/capture rules after traffic collection recovers.
+
 - [Process control and system diagnostics](PROCESS-CONTROL-AND-DIAGNOSTICS.md) designs process command line/signer/user details, suspend/affinity/Efficiency mode actions, memory-pressure readings and Windows event markers in History.
 
 - [Network contributors in History](HISTORY-NETWORK.md) ranks and compares actual retained app traffic without CPU fallback.
