@@ -101,6 +101,7 @@ public sealed class SettingsWindow : Window
     private readonly string? _currentNetworkName;
     private Task? _networkLoadTask;
     private readonly CheckBox _keepHistoryCheckBox;
+    private readonly CheckBox _keepResourceTrendsCheckBox;
     private readonly CheckBox _processNetworkMonitoringCheckBox;
 
     private readonly TextBlock _processNetworkMonitoringStatus =
@@ -317,6 +318,7 @@ public sealed class SettingsWindow : Window
         _startupViewSelector.SelectedValue = preferences.StartupView;
         _keepHistoryCheckBox = CreateCheckBox(Strings.KeepHistoryAcrossRestarts,
             preferences.KeepHistoryAcrossRestarts);
+        _keepResourceTrendsCheckBox = CreateCheckBox(Strings.KeepResourceTrends, preferences.KeepResourceTrends);
         _processNetworkMonitoringCheckBox = CreateCheckBox(Strings.NetworkProcessMonitoringEnabled,
             preferences.ProcessNetworkMonitoringEnabled);
         _processNetworkMonitoringCheckBox.IsEnabled = NetworkSetupBroker.Supported;
@@ -440,6 +442,13 @@ public sealed class SettingsWindow : Window
 
     internal Button ResetChartPreferencesButton { get; } = new();
 
+    internal Button ClearResourceTrendsButton { get; } = new();
+
+    internal CheckBox KeepResourceTrendsCheckBox => _keepResourceTrendsCheckBox;
+
+    /// <summary>Raised after the user confirms deletion of locally saved resource trends.</summary>
+    internal event Func<Task>? ClearResourceTrendsRequested;
+
     internal ComboBox GaugeSelector => _gaugeSelector;
 
     internal ComboBox GaugePeakWindowSelector => _gaugePeakWindowSelector;
@@ -487,6 +496,7 @@ public sealed class SettingsWindow : Window
             GaugePeakWindowSeconds = settings.GaugePeakWindowSeconds,
             RetentionSeconds = settings.RetentionSeconds,
             KeepHistoryAcrossRestarts = settings.KeepHistoryAcrossRestarts,
+            KeepResourceTrends = settings.KeepResourceTrends,
             ProcessNetworkMonitoringEnabled = settings.ProcessNetworkMonitoringEnabled,
             MinimizeToTray = settings.MinimizeToTray,
             StartWithWindows = settings.StartWithWindows,
@@ -908,13 +918,21 @@ public sealed class SettingsWindow : Window
     private StackPanel CreateMonitoringPage()
     {
         var page = Page(Strings.SettingsMonitoring);
-        page.Children.Add(CreateHeading(Strings.SettingsHistory, true));
         page.Children.Add(Field(Strings.HistoricalRetention, _retentionSelector));
         page.Children.Add(Note(Strings.SettingsRetentionNote));
         page.Children.Add(_keepHistoryCheckBox);
         page.Children.Add(Note(Strings.KeepHistoryAcrossRestartsNote));
-        page.Children.Add(CreateHeading(Strings.ChartPreferences));
-        page.Children.Add(Note(Strings.ChartPreferencesNote));
+        ClearResourceTrendsButton.Content = Strings.ClearResourceTrends;
+        ClearResourceTrendsButton.HorizontalAlignment = HorizontalAlignment.Left;
+        ClearResourceTrendsButton.ToolTip = Strings.KeepResourceTrendsNote;
+        AutomationProperties.SetHelpText(ClearResourceTrendsButton, Strings.KeepResourceTrendsNote);
+        ClearResourceTrendsButton.Click += ClearResourceTrendsButton_Click;
+        var trends = new WrapPanel { Margin = new Thickness(0, 2, 0, 0) };
+        trends.Children.Add(_keepResourceTrendsCheckBox);
+        ClearResourceTrendsButton.Margin = new Thickness(12, 0, 0, 0);
+        trends.Children.Add(ClearResourceTrendsButton);
+        page.Children.Add(trends);
+        page.Children.Add(Note(Strings.KeepResourceTrendsNote));
         ResetChartPreferencesButton.Content = Strings.ResetChartPreferences;
         ResetChartPreferencesButton.HorizontalAlignment = HorizontalAlignment.Left;
         ResetChartPreferencesButton.ToolTip = Strings.ChartPreferencesNote;
@@ -924,16 +942,41 @@ public sealed class SettingsWindow : Window
             ResetChartPreferencesRequested = true;
             ResetChartPreferencesButton.IsEnabled = false;
         };
-        page.Children.Add(ResetChartPreferencesButton);
+        var chartHeading = new DockPanel { Margin = new Thickness(0, 8, 0, 4) };
+        DockPanel.SetDock(ResetChartPreferencesButton, Dock.Right);
+        chartHeading.Children.Add(ResetChartPreferencesButton);
+        var chartTitle = CreateHeading(Strings.ChartPreferences, true);
+        chartTitle.TextWrapping = TextWrapping.Wrap;
+        chartHeading.Children.Add(chartTitle);
+        page.Children.Add(chartHeading);
+        page.Children.Add(Note(Strings.ChartPreferencesNote));
         page.Children.Add(CreateHeading(Strings.ResourceGauges));
         page.Children.Add(Field(Strings.GaugePeakWindow, _gaugePeakWindowSelector));
         page.Children.Add(CreateHeading(Strings.DiskMonitoring));
         page.Children.Add(Note(Strings.ChooseUpTo2Volumes));
-        page.Children.Add(Field(Strings.PrimaryDrive, PrimaryDriveSelector));
-        page.Children.Add(Field(Strings.SecondDrive, SecondaryDriveSelector));
+        var disks = new Grid { Margin = new Thickness(0, 3, 0, 3) };
+        disks.ColumnDefinitions.Add(new ColumnDefinition());
+        disks.ColumnDefinitions.Add(new ColumnDefinition());
+        disks.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        disks.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        foreach (var (label, selector, column) in new[] { (Strings.PrimaryDrive, PrimaryDriveSelector, 0),
+                     (Strings.SecondDrive, SecondaryDriveSelector, 1) })
+        {
+            var text = Note(label);
+            text.Margin = new Thickness(column == 0 ? 0 : 8, 2, column == 0 ? 8 : 0, 4);
+            selector.Margin = new Thickness(column == 0 ? 0 : 8, 0, column == 0 ? 8 : 0, 0);
+            AutomationProperties.SetLabeledBy(selector, text);
+            AutomationProperties.SetName(selector, label);
+            Grid.SetColumn(text, column);
+            Grid.SetColumn(selector, column);
+            Grid.SetRow(selector, 1);
+            disks.Children.Add(text);
+            disks.Children.Add(selector);
+        }
+        page.Children.Add(disks);
         page.Children.Add(Note(Strings.SelectNoneToMonitorOneDriveActiveTimeAndRead));
         // Longer retention explanations still fit the designed page without hiding controls.
-        page.Margin = new Thickness(26, 10, 26, 10);
+        page.Margin = new Thickness(26, 6, 26, 6);
         foreach (var text in page.Children.OfType<TextBlock>())
         {
             if (AutomationProperties.GetHeadingLevel(text) == AutomationHeadingLevel.Level2 && text.Margin.Top > 2)
@@ -1215,6 +1258,7 @@ public sealed class SettingsWindow : Window
                 _ => 600
             },
             KeepHistoryAcrossRestarts = _keepHistoryCheckBox.IsChecked == true,
+            KeepResourceTrends = _keepResourceTrendsCheckBox.IsChecked == true,
             ProcessNetworkMonitoringEnabled = processNetworkMonitoringEnabled,
             MinimizeToTray = _minimizeToTrayCheckBox.IsChecked == true,
             StartWithWindows = _startupCheckBox.IsChecked == true,
@@ -1223,6 +1267,26 @@ public sealed class SettingsWindow : Window
             AutoCapture = autoCapture
         }, ResetChartPreferencesRequested);
         DialogResult = true;
+    }
+
+    private async void ClearResourceTrendsButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (!MessageDialog.Confirm(this, Strings.ClearResourceTrendsConfirm, Strings.ResourceTrends,
+                Strings.ClearResourceTrends)) return;
+        try
+        {
+            ClearResourceTrendsButton.IsEnabled = false;
+            if (ClearResourceTrendsRequested is { } clear)
+                foreach (Func<Task> handler in clear.GetInvocationList()) await handler();
+        }
+        catch (Exception)
+        {
+            MessageDialog.ShowNotice(this, Strings.ResourceTrendsClearError, Strings.ResourceTrends);
+        }
+        finally
+        {
+            if (!_closed) ClearResourceTrendsButton.IsEnabled = true;
+        }
     }
 
     private async Task<bool> ChangeNetworkMonitoringAsync(bool enabled)

@@ -161,7 +161,55 @@ internal sealed partial class WindowDiagnostics
                     await CaptureServiceWindowAsync(recorder,
                         Path.Combine(output, $"flight-recorder-moment-{theme.ToLowerInvariant()}-{width:0}.png"), cancellationToken);
                     recorder.Views.SelectedIndex = 0;
+                    var trendNow = DateTimeOffset.UtcNow;
+                    var trendEnd = new DateTimeOffset(trendNow.UtcDateTime.AddTicks(
+                        -(trendNow.UtcDateTime.Ticks % TimeSpan.TicksPerMinute)));
+                    var trendBuckets = Enumerable.Range(0, ResourceTrendArchive.RetainedMinutes).Select(index =>
+                    {
+                        var value = 20 + index % 55;
+                        return new ResourceTrendBucket(trendEnd.AddMinutes(index - ResourceTrendArchive.RetainedMinutes + 1),
+                            index is 3_600 or 7_200 ? new Dictionary<ResourceTrendMetric, ResourceTrendValue>() :
+                            new Dictionary<ResourceTrendMetric, ResourceTrendValue>
+                            {
+                                [ResourceTrendMetric.Cpu] = new(value * 60, 60, value - 2, value + 2, "", ResourceTrendBreak.None),
+                                [ResourceTrendMetric.MemoryBytes] = new((8 + index / 630d) * 1_073_741_824 * 60, 60,
+                                    0, 32d * 1_073_741_824, "", ResourceTrendBreak.None),
+                                [ResourceTrendMetric.MemoryPercent] = new((25 + index / 201.6) * 60, 60, 0, 100, "", ResourceTrendBreak.None),
+                                [ResourceTrendMetric.Receive] = new(index * 100_000d, 60, index * 1_500, index * 1_800, "Ethernet", ResourceTrendBreak.None),
+                                [ResourceTrendMetric.Send] = new(index * 50_000d, 60, index * 700, index * 900, "Ethernet", ResourceTrendBreak.None)
+                            });
+                    }).ToArray();
+                    var trend = new ResourceTrendArchiveState(1, trendEnd, trendBuckets);
+                    recorder.UpdateTrends(trend);
+                    recorder.HistoryMode.SelectedIndex = 1;
+                    recorder.TrendRange.SelectedIndex = 1;
+                    recorder.UpdateLayout();
+                    recorder.SelectTrendMinuteForFixture(trendEnd.AddMinutes(-1));
+                    if (recorder.TrendGraph.ActualHeight < 100 || recorder.TrendSelection.Text.Length == 0 ||
+                        recorder.TrendSelection.Text.Contains(Strings.FlightRecorderTrendNoReading, StringComparison.Ordinal))
+                        throw new InvalidOperationException("Longer trends must render its selected minute and preserve chart space.");
+                    await CaptureServiceWindowAsync(recorder,
+                        Path.Combine(output, $"flight-recorder-trends-{theme.ToLowerInvariant()}-{width:0}.png"), cancellationToken);
+                    foreach (var metric in new[] { 1, 4 })
+                    {
+                        recorder.TrendMetric.SelectedIndex = metric;
+                        recorder.UpdateLayout();
+                        await CaptureServiceWindowAsync(recorder,
+                            Path.Combine(output, $"flight-recorder-trends-{(metric == 1 ? "memory" : "network")}-{theme.ToLowerInvariant()}-{width:0}.png"), cancellationToken);
+                    }
+                    recorder.TrendMetric.SelectedIndex = 0;
+                    recorder.HistoryMode.SelectedIndex = 0;
                 }
+                recorder.Width = 3000;
+                recorder.Height = 760;
+                recorder.HistoryMode.SelectedIndex = 1;
+                recorder.TrendRange.SelectedIndex = 0;
+                recorder.TrendMetric.SelectedIndex = 1;
+                recorder.UpdateLayout();
+                await CaptureVisualAsync(recorder,
+                    Path.Combine(output, $"flight-recorder-trends-24-hour-wide-{theme.ToLowerInvariant()}-3000-content.png"), 1, cancellationToken);
+                recorder.TrendMetric.SelectedIndex = 0;
+                recorder.HistoryMode.SelectedIndex = 0;
             }
             recorder.RefreshButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             if (recorder.Source.Text.Length != 0 || recorder.Metric.SelectedIndex != 4 ||

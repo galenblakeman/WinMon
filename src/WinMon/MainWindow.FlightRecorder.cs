@@ -21,12 +21,14 @@ public partial class MainWindow
             new WindowsHistoryEventReader().Read(start, end, cancellation), cancellation));
         var recorder = new FlightRecorderWindow(samples, IncidentTimeline.CaptureChanges(samples, Session.UsageHistory),
             Session.Connections.Captures, eventReader) { Owner = this };
+        recorder.UpdateTrends(_resourceTrends.Snapshot(DateTimeOffset.UtcNow), ResourceTrendNotice);
         recorder.SaveStarted += write => ExportWrites.Add(write);
         recorder.SaveFinished += write => ExportWrites.Remove(write);
         recorder.RefreshRequested += (_, _) =>
         {
             var latest = Session.History.Samples;
             recorder.Update(latest, IncidentTimeline.CaptureChanges(latest, Session.UsageHistory), Session.Connections.Captures);
+            RefreshResourceTrends();
         };
         recorder.Closed += (_, _) => _flightRecorder = null;
         _flightRecorder = recorder;

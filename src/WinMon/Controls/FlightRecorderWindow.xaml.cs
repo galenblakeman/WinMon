@@ -27,6 +27,14 @@ internal partial class FlightRecorderWindow : Window
     private IncidentEventMapping? _selectedEvent;
     private IReadOnlyDictionary<SampleKey, ConnectionCapture> _traffic = new Dictionary<SampleKey, ConnectionCapture>();
     private IReadOnlyDictionary<SampleKey, (IReadOnlyList<ProcessUsage> Started, IReadOnlyList<ProcessUsage> Stopped)>? _changes;
+    private ResourceTrendArchiveState? _trends;
+    private ResourceTrendBucket[] _trendBuckets = [];
+    private ResourceTrendBucket? _trendSelection;
+    private string? _trendNotice;
+    private bool _updatingTrends;
+    private readonly ResourceTrendMetric[] _trendMetrics = [ResourceTrendMetric.Cpu, ResourceTrendMetric.MemoryBytes,
+        ResourceTrendMetric.PrimaryDiskActive, ResourceTrendMetric.SecondaryDiskActive, ResourceTrendMetric.Receive,
+        ResourceTrendMetric.Gpu];
 
     internal event EventHandler? RefreshRequested;
     internal event Action<Task>? SaveStarted;
@@ -47,6 +55,8 @@ internal partial class FlightRecorderWindow : Window
         Graph.SampleSelected += (_, sample) => Select(Array.IndexOf(_samples, sample));
         Graph.LiveRequested += (_, _) => Select(_samples.Length - 1);
         Graph.MarkerSelected += (_, marker) => SelectEvent(marker.Tag as IncidentEventMapping);
+        TrendGraph.BucketSelected += (_, bucket) => SelectTrend(bucket);
+        HistoryMode.SelectedIndex = 0;
         Update(samples, changes, traffic);
     }
 
@@ -79,6 +89,30 @@ internal partial class FlightRecorderWindow : Window
     private CaptureMetric SelectedMetric => _metrics[Math.Max(0, Metric.SelectedIndex)];
 
     internal MonitorSample? Selection => _index >= 0 && _index < _samples.Length ? _samples[_index] : null;
+    internal void SelectTrendMinuteForFixture(DateTimeOffset startUtc)
+    {
+        var index = Array.FindIndex(_trendBuckets, bucket => bucket.StartUtc == startUtc);
+        if (index >= 0) TrendGraph.Select(index);
+    }
+
+    /// <summary>Replaces the frozen archive snapshot shown in Longer trends; it never changes detailed history.</summary>
+    internal void UpdateTrends(ResourceTrendArchiveState? trends, string? notice = null)
+    {
+        var selectedStart = _trendSelection?.StartUtc;
+        var rangeIndex = Math.Max(0, TrendRange.SelectedIndex);
+        var metricIndex = Math.Max(0, TrendMetric.SelectedIndex);
+        _trends = trends;
+        _trendNotice = notice;
+        _updatingTrends = true;
+        _trendSelection = selectedStart is { } start ? trends?.Buckets.FirstOrDefault(bucket => bucket.StartUtc == start)
+            ?? new ResourceTrendBucket(start, new Dictionary<ResourceTrendMetric, ResourceTrendValue>()) : null;
+        TrendRange.ItemsSource = new[] { Strings.FlightRecorderTrend24Hours, Strings.FlightRecorderTrend7Days };
+        TrendMetric.ItemsSource = _trendMetrics.Select(TrendMetricName).ToArray();
+        TrendRange.SelectedIndex = rangeIndex;
+        TrendMetric.SelectedIndex = metricIndex;
+        _updatingTrends = false;
+        UpdateTrendPresentation();
+    }
 
     internal void Select(int index)
     {
@@ -163,6 +197,184 @@ internal partial class FlightRecorderWindow : Window
 
     private void OnMetricChanged(object sender, SelectionChangedEventArgs e) => FindPeak();
     private void OnRefresh(object sender, RoutedEventArgs e) => RefreshRequested?.Invoke(this, EventArgs.Empty);
+
+    private void OnHistoryModeChanged(object sender, SelectionChangedEventArgs e)
+    {
+        var trends = HistoryMode.SelectedIndex == 1;
+        DetailTools.Visibility = Graph.Visibility = DetailSelection.Visibility = DetailPanels.Visibility = trends
+            ? Visibility.Collapsed : Visibility.Visible;
+        SaveButton.Visibility = OpenButton.Visibility = Coverage.Visibility = Source.Visibility = Changes.Visibility = trends
+            ? Visibility.Collapsed : Visibility.Visible;
+        TrendSurface.Visibility = trends ? Visibility.Visible : Visibility.Collapsed;
+        if (trends) UpdateTrendPresentation();
+    }
+
+    private ResourceTrendMetric SelectedTrendMetric => _trendMetrics[Math.Max(0, TrendMetric.SelectedIndex)];
+    private TimeSpan SelectedTrendRange => TrendRange.SelectedIndex == 1 ? TimeSpan.FromDays(7) : TimeSpan.FromHours(24);
+
+    private void OnTrendRangeChanged(object sender, SelectionChangedEventArgs e) { if (!_updatingTrends) UpdateTrendPresentation(); }
+    private void OnTrendMetricChanged(object sender, SelectionChangedEventArgs e) { if (!_updatingTrends) UpdateTrendPresentation(); }
+    private void OnTrendPrevious(object sender, RoutedEventArgs e) => MoveTrend(-1);
+    private void OnTrendNext(object sender, RoutedEventArgs e) => MoveTrend(1);
+
+    private void MoveTrend(int direction)
+    {
+        if (_trendBuckets.Length == 0) return;
+        var index = _trendSelection is null ? (direction < 0 ? _trendBuckets.Length - 1 : 0) :
+            Math.Clamp(Array.IndexOf(_trendBuckets, _trendSelection) + direction, 0, _trendBuckets.Length - 1);
+        TrendGraph.Select(index);
+    }
+
+    private void UpdateTrendPresentation()
+    {
+        TrendLegend.Text = SelectedTrendMetric == ResourceTrendMetric.Receive ? Strings.FlightRecorderTrendNetworkLegend : "";
+        if (_trends is null)
+        {
+            TrendCoverage.Text = _trendNotice ?? Strings.FlightRecorderTrendEmpty;
+            TrendSelection.Text = "";
+            TrendPrevious.IsEnabled = TrendNext.IsEnabled = OpenTrendDetail.IsEnabled = false;
+            TrendGraph.SetData([], SelectedTrendMetric, DateTimeOffset.UtcNow - SelectedTrendRange, DateTimeOffset.UtcNow, null);
+            return;
+        }
+        var end = _trends.EndUtc;
+        var start = end - SelectedTrendRange;
+        var retained = _trends.Buckets.Where(bucket => bucket.StartUtc < end && bucket.StartUtc.AddMinutes(1) > start)
+            .ToDictionary(bucket => bucket.StartUtc);
+        if (retained.Count == 0) _trendBuckets = [];
+        else
+        {
+            var first = Minute(start);
+            var last = Minute(end);
+            _trendBuckets = Enumerable.Range(0, (int)(last - first).TotalMinutes + 1).Select(offset =>
+            {
+                var minute = first.AddMinutes(offset);
+                return retained.GetValueOrDefault(minute) ?? new ResourceTrendBucket(minute,
+                    new Dictionary<ResourceTrendMetric, ResourceTrendValue>());
+            }).ToArray();
+        }
+        if (_trendSelection is { } selection)
+            _trendSelection = _trendBuckets.MinBy(bucket => Math.Abs((bucket.StartUtc - selection.StartUtc).Ticks));
+        var observed = _trendBuckets.Where(bucket => bucket.Values.TryGetValue(SelectedTrendMetric, out var value) && value.Average is not null)
+            .Sum(bucket => bucket.Values[SelectedTrendMetric].ObservedSeconds);
+        var coverage = _trendBuckets.Length == 0 ? Strings.FlightRecorderTrendEmpty :
+            Strings.Format(Strings.FlightRecorderTrendCoverage, start.ToLocalTime(), end.ToLocalTime(),
+                "≈" + Math.Min(SelectedTrendRange.TotalMinutes, observed / 60).ToString("N1", CultureInfo.CurrentCulture),
+                SelectedTrendRange.TotalMinutes);
+        TrendCoverage.Text = _trendNotice is { Length: > 0 } ? coverage + Environment.NewLine + _trendNotice : coverage;
+        TrendGraph.SetData(_trendBuckets, SelectedTrendMetric, start, end, _trendSelection);
+        if (_trendSelection is null && _trendBuckets.Length > 0) TrendGraph.Select(_trendBuckets.Length - 1);
+        else UpdateTrendSelection();
+    }
+
+    private void SelectTrend(ResourceTrendBucket bucket)
+    {
+        _trendSelection = bucket;
+        UpdateTrendSelection();
+    }
+
+    private void UpdateTrendSelection()
+    {
+        if (_trendSelection is not { } bucket)
+        {
+            TrendSelection.Text = "";
+            TrendPrevious.IsEnabled = TrendNext.IsEnabled = OpenTrendDetail.IsEnabled = false;
+            return;
+        }
+        var value = bucket.Values.TryGetValue(SelectedTrendMetric, out var known) ? known : null;
+        TrendSelection.Text = value?.Average is { } average
+            ? Strings.Format(Strings.FlightRecorderTrendSelected, TrendMinuteTime(bucket), TrendValue(average), value.ObservedSeconds) +
+              TrendSupplement(bucket) + (value.DeviceLabel.Length > 0 ? " · " + Strings.Format(Strings.FlightRecorderTrendDevice, value.DeviceLabel) : "")
+              + (value.Break != ResourceTrendBreak.None ? " · " + TrendBreakText(value.Break) : "")
+              + (bucket.StartUtc.AddMinutes(1) > _trends?.EndUtc ? " · " + Strings.FlightRecorderTrendInProgress : "")
+            : Strings.Format(Strings.FlightRecorderTrendSelected, TrendMinuteTime(bucket), TrendBreakText(value?.Break), 0);
+        if (SelectedTrendMetric == ResourceTrendMetric.Receive)
+        {
+            var upload = bucket.Values.GetValueOrDefault(ResourceTrendMetric.Send);
+            TrendSelection.Text = Strings.FlightRecorderTrendReceive + ": " + TrendSelection.Text + Environment.NewLine +
+                Strings.FlightRecorderTrendSend + ": " + Strings.Format(Strings.FlightRecorderTrendSelected,
+                    TrendMinuteTime(bucket), upload?.Average is { } rate ? TableMetricText.IoRate(rate) : TrendBreakText(upload?.Break),
+                    upload?.Average is not null ? upload.ObservedSeconds : 0);
+        }
+        var index = Array.IndexOf(_trendBuckets, bucket);
+        TrendPrevious.IsEnabled = index > 0;
+        TrendNext.IsEnabled = index >= 0 && index < _trendBuckets.Length - 1;
+        OpenTrendDetail.IsEnabled = NearestDetailedSample(bucket) is not null;
+    }
+
+    private static string TrendMinuteTime(ResourceTrendBucket bucket) => bucket.StartUtc.ToLocalTime().ToString("G", CultureInfo.CurrentCulture)
+        + " – " + bucket.StartUtc.AddMinutes(1).ToLocalTime().ToString("T", CultureInfo.CurrentCulture)
+        + " (" + bucket.StartUtc.ToLocalTime().ToString("zzz", CultureInfo.CurrentCulture) + ")";
+
+    private void OnOpenTrendDetail(object sender, RoutedEventArgs e)
+    {
+        if (_trendSelection is not { } bucket || NearestDetailedSample(bucket) is not { } sample) return;
+        HistoryMode.SelectedIndex = 0;
+        Select(Array.IndexOf(_samples, sample));
+    }
+
+    private MonitorSample? NearestDetailedSample(ResourceTrendBucket bucket)
+    {
+        var end = bucket.StartUtc.AddMinutes(1);
+        return _openedRecording ? null : _samples.Where(sample => !sample.IsGap && sample.Timestamp.ToUniversalTime() >= bucket.StartUtc && sample.Timestamp.ToUniversalTime() < end &&
+                TrendSampleValue(sample) is not null)
+            .MinBy(sample => Math.Abs((sample.Timestamp.ToUniversalTime() - bucket.StartUtc.AddSeconds(30)).Ticks));
+    }
+
+    private string TrendMetricName(ResourceTrendMetric metric) => metric switch
+    {
+        ResourceTrendMetric.Cpu => Strings.CPU,
+        ResourceTrendMetric.MemoryBytes => Strings.Memory,
+        ResourceTrendMetric.PrimaryDiskActive => Strings.FlightRecorderTrendPrimaryDisk,
+        ResourceTrendMetric.SecondaryDiskActive => Strings.FlightRecorderTrendSecondaryDisk,
+        ResourceTrendMetric.Receive => Strings.Network,
+        ResourceTrendMetric.Gpu => Strings.GPU,
+        _ => Strings.Unavailable
+    };
+
+    private string TrendValue(double value) => SelectedTrendMetric switch
+    {
+        ResourceTrendMetric.MemoryBytes => TableMetricText.Memory((ulong)value),
+        ResourceTrendMetric.Receive or ResourceTrendMetric.Send or ResourceTrendMetric.PrimaryDiskRead or
+            ResourceTrendMetric.PrimaryDiskWrite or ResourceTrendMetric.SecondaryDiskRead or ResourceTrendMetric.SecondaryDiskWrite =>
+            TableMetricText.IoRate(value),
+        _ => value.ToString("F1", CultureInfo.CurrentCulture) + "%"
+    };
+
+    private string TrendBreakText(ResourceTrendBreak? value) => value switch
+    {
+        ResourceTrendBreak.ResourceChanged => Strings.FlightRecorderTrendDeviceChanged,
+        ResourceTrendBreak.ClockChanged => Strings.FlightRecorderTrendClockChanged,
+        ResourceTrendBreak.CollectionRestart => Strings.FlightRecorderTrendRestart,
+        _ => Strings.FlightRecorderTrendNoReading
+    };
+
+    private string TrendSupplement(ResourceTrendBucket bucket)
+    {
+        if (SelectedTrendMetric == ResourceTrendMetric.MemoryBytes && bucket.Values.TryGetValue(ResourceTrendMetric.MemoryPercent, out var memory) &&
+            memory.Average is { } percent) return " · " + percent.ToString("F1", CultureInfo.CurrentCulture) + "%";
+        var reads = SelectedTrendMetric == ResourceTrendMetric.PrimaryDiskActive ? ResourceTrendMetric.PrimaryDiskRead :
+            SelectedTrendMetric == ResourceTrendMetric.SecondaryDiskActive ? ResourceTrendMetric.SecondaryDiskRead : (ResourceTrendMetric?)null;
+        var writes = SelectedTrendMetric == ResourceTrendMetric.PrimaryDiskActive ? ResourceTrendMetric.PrimaryDiskWrite :
+            SelectedTrendMetric == ResourceTrendMetric.SecondaryDiskActive ? ResourceTrendMetric.SecondaryDiskWrite : (ResourceTrendMetric?)null;
+        return reads is { } read && writes is { } write && bucket.Values.GetValueOrDefault(read)?.Average is { } received &&
+               bucket.Values.GetValueOrDefault(write)?.Average is { } writeRate
+            ? " · ↓" + TableMetricText.IoRate(received) + " · ↑" + TableMetricText.IoRate(writeRate) : "";
+    }
+
+    private double? TrendSampleValue(MonitorSample sample) => SelectedTrendMetric switch
+    {
+        ResourceTrendMetric.Cpu => sample.TotalCpuPercent,
+        ResourceTrendMetric.MemoryBytes => sample.Resources.UsedMemoryBytes,
+        ResourceTrendMetric.PrimaryDiskActive => sample.Resources.DiskActivePercent,
+        ResourceTrendMetric.SecondaryDiskActive => sample.Resources.SecondaryDiskActivePercent,
+        ResourceTrendMetric.Receive => sample.Resources.ReceiveBytesPerSecond ?? sample.Resources.SendBytesPerSecond,
+        ResourceTrendMetric.Send => sample.Resources.SendBytesPerSecond,
+        ResourceTrendMetric.Gpu => sample.Resources.GpuPercent,
+        _ => null
+    };
+
+    private static DateTimeOffset Minute(DateTimeOffset value) => new(value.UtcDateTime.AddTicks(
+        -(value.UtcDateTime.Ticks % TimeSpan.TicksPerMinute)));
 
     internal IncidentRecording Recording() => new(IncidentRecording.CurrentVersion, Stopwatch.Frequency,
         _samples.Select((sample, index) =>

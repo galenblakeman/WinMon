@@ -134,6 +134,7 @@ internal static class Program
         Flush();
         MeasureUsageLedger();
         MeasureUsageLedger(true);
+        MeasureResourceTrendArchive();
         MeasureRestartHistory();
         MeasureInvestigationHistory();
         var pixels = Pixels(args.Length > 1 ? args[1] : null);
@@ -252,6 +253,196 @@ internal static class Program
             results.Add(new { Name = includeHistory ? "usage-ledger-and-history-add" : "usage-ledger-add", MedianMilliseconds = Median(times),
                 MedianAllocatedBytes = Median(allocations), MillisecondsPerFrame = times,
                 AllocatedBytesPerFrame = allocations, PixelsSha256 = (string?)null });
+        }
+
+        // Trends run for every live full sample, so measure the fixed-size aggregation independently of WPF refresh.
+        // The archive keeps only resource readings: no process rows are copied into this path.
+        void MeasureResourceTrendArchive()
+        {
+            var archive = new ResourceTrendArchive();
+            var trendSecond = 0;
+            (ulong Cycles, long Bytes) Add()
+            {
+                var sample = Sample(anchor, ++trendSecond) with { MonotonicTimestamp = trendSecond * Stopwatch.Frequency };
+                var allocated = GC.GetAllocatedBytesForCurrentThread();
+                QueryThreadCycleTime(thread, out var before);
+                archive.Add(sample);
+                QueryThreadCycleTime(thread, out var after);
+                return (after - before, GC.GetAllocatedBytesForCurrentThread() - allocated);
+            }
+
+            for (var i = 0; i < WarmupFrames; i++) Add();
+            var times = new List<double>();
+            var allocations = new List<double>();
+            for (var batch = 0; batch < Batches; batch++)
+            {
+                GC.Collect(); GC.WaitForPendingFinalizers(); GC.Collect();
+                ulong cycles = 0;
+                long bytes = 0;
+                for (var i = 0; i < FramesPerBatch; i++)
+                {
+                    var (addCycles, addBytes) = Add();
+                    cycles += addCycles;
+                    bytes += addBytes;
+                }
+                allocations.Add(bytes / (double)FramesPerBatch);
+                times.Add(cycles / cyclesPerMs / FramesPerBatch);
+            }
+
+            // Fill seven days separately so persistence and snapshot timing are not dominated by process fixtures.
+            GC.Collect(); GC.WaitForPendingFinalizers(); GC.Collect();
+            var memoryBefore = GC.GetTotalMemory(true);
+            var full = new ResourceTrendArchive();
+            for (var minute = 1; minute <= ResourceTrendArchive.RetainedMinutes; minute++)
+                full.Add(TrendSample(anchor.AddMinutes(minute)));
+            var retainedBytes = GC.GetTotalMemory(true) - memoryBefore;
+            var end = anchor.AddMinutes(ResourceTrendArchive.RetainedMinutes + 1);
+            var snapshotStart = Stopwatch.GetTimestamp();
+            var state = full.Snapshot(end);
+            var snapshotMilliseconds = Stopwatch.GetElapsedTime(snapshotStart).TotalMilliseconds;
+            var rangeStart = Stopwatch.GetTimestamp();
+            var buckets = full.GetBuckets(end, TimeSpan.FromDays(7));
+            var rangeMilliseconds = Stopwatch.GetElapsedTime(rangeStart).TotalMilliseconds;
+            MeasureResourceTrendView(state, end);
+            MeasureResourceTrendView(state, end, wide: true);
+            var directory = Path.Combine(Path.GetTempPath(), "WinMon.Performance", Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(directory);
+            var path = Path.Combine(directory, "resource-trends.json");
+            var saves = new List<double>();
+            var reads = new List<double>();
+            long fileBytes = 0;
+            var restoredBuckets = 0;
+            try
+            {
+                for (var run = 0; run < 5; run++)
+                {
+                    var start = Stopwatch.GetTimestamp();
+                    ResourceTrendArchive.SaveAsync(path, state).GetAwaiter().GetResult();
+                    saves.Add(Stopwatch.GetElapsedTime(start).TotalMilliseconds);
+                    fileBytes = new FileInfo(path).Length;
+                    start = Stopwatch.GetTimestamp();
+                    var restored = ResourceTrendArchive.LoadAsync(path).GetAwaiter().GetResult();
+                    reads.Add(Stopwatch.GetElapsedTime(start).TotalMilliseconds);
+                    restoredBuckets = restored.GetBuckets(end, TimeSpan.FromDays(7)).Count;
+                }
+            }
+            finally { Directory.Delete(directory, true); }
+
+            results.Add(new
+            {
+                Name = "resource-trend-archive",
+                MedianMilliseconds = Median(times),
+                MedianAllocatedBytes = Median(allocations),
+                MillisecondsPerFrame = times,
+                AllocatedBytesPerFrame = allocations,
+                RetainedBuckets = buckets.Count,
+                RetainedBytes = retainedBytes,
+                SnapshotMilliseconds = snapshotMilliseconds,
+                RangeMilliseconds = rangeMilliseconds,
+                FileBytes = fileBytes,
+                RestoredBuckets = restoredBuckets,
+                MedianSaveMilliseconds = Median(saves),
+                MedianReadMilliseconds = Median(reads),
+                SaveMilliseconds = saves,
+                ReadMilliseconds = reads,
+                PixelsSha256 = (string?)null
+            });
+
+            static MonitorSample TrendSample(DateTimeOffset timestamp) => new(timestamp, 42, [], 0)
+            {
+                IntervalSeconds = 1,
+                Resources = new ResourceSample
+                {
+                    TotalMemoryBytes = 32_000_000_000,
+                    UsedMemoryBytes = 18_000_000_000,
+                    DiskName = "C:",
+                    DiskActivePercent = 32,
+                    DiskReadBytesPerSecond = 1_000_000,
+                    DiskWriteBytesPerSecond = 2_000_000,
+                    SecondaryDiskName = "D:",
+                    SecondaryDiskActivePercent = 12,
+                    SecondaryDiskReadBytesPerSecond = 3_000_000,
+                    SecondaryDiskWriteBytesPerSecond = 4_000_000,
+                    NetworkId = "fixture-network",
+                    NetworkName = "Fixture Ethernet",
+                    ReceiveBytesPerSecond = 5_000_000,
+                    SendBytesPerSecond = 6_000_000,
+                    GpuId = "fixture-gpu",
+                    GpuName = "Fixture GPU",
+                    GpuPercent = 24
+                }
+            };
+
+            // The seven-day chart bins its full archive into screen columns. Measure selecting different minutes
+            // through the real History window so layout, rendering and the selection summary stay in the budget.
+            void MeasureResourceTrendView(ResourceTrendArchiveState trendState, DateTimeOffset trendEnd, bool wide = false)
+            {
+                var trendWindow = new WinMon.Controls.FlightRecorderWindow([])
+                {
+                    Width = wide ? 3000 : 1000,
+                    Height = 760
+                };
+                try
+                {
+                    trendWindow.Show();
+                    trendWindow.UpdateTrends(trendState);
+                    trendWindow.HistoryMode.SelectedIndex = 1;
+                    trendWindow.TrendRange.SelectedIndex = wide ? 0 : 1;
+                    trendWindow.TrendMetric.SelectedIndex = 1;
+                    Flush();
+                    void Render(int offset)
+                    {
+                        trendWindow.SelectTrendMinuteForFixture(trendEnd.AddMinutes(-offset));
+                        trendWindow.UpdateLayout();
+                        Flush();
+                    }
+
+                    for (var i = 0; i < 100; i++) Render(i % (7 * 24 * 60));
+                    var times = new List<double>();
+                    var allocations = new List<double>();
+                    for (var batch = 0; batch < 5; batch++)
+                    {
+                        GC.Collect(); GC.WaitForPendingFinalizers(); GC.Collect();
+                        ulong cycles = 0;
+                        long bytes = 0;
+                        for (var i = 0; i < 20; i++)
+                        {
+                            var allocated = GC.GetAllocatedBytesForCurrentThread();
+                            QueryThreadCycleTime(thread, out var before);
+                            Render(batch * 20 + i);
+                            QueryThreadCycleTime(thread, out var after);
+                            cycles += after - before;
+                            bytes += GC.GetAllocatedBytesForCurrentThread() - allocated;
+                        }
+                        allocations.Add(bytes / 20d);
+                        times.Add(cycles / cyclesPerMs / 20d);
+                    }
+                    results.Add(new
+                    {
+                        Name = wide ? "resource-trend-24-hour-wide-render-selection" : "resource-trend-seven-day-render-selection",
+                        MedianMilliseconds = Median(times),
+                        MedianAllocatedBytes = Median(allocations),
+                        MillisecondsPerFrame = times,
+                        AllocatedBytesPerFrame = allocations,
+                        PixelsSha256 = TrendPixels(trendWindow)
+                    });
+                }
+                finally { trendWindow.Close(); }
+            }
+
+            static string TrendPixels(Window trendWindow)
+            {
+                System.Windows.Input.FocusManager.SetFocusedElement(trendWindow, null);
+                System.Windows.Input.Keyboard.ClearFocus();
+                var content = (FrameworkElement)trendWindow.Content;
+                var dpi = VisualTreeHelper.GetDpi(trendWindow);
+                var bitmap = new RenderTargetBitmap((int)(content.ActualWidth * dpi.DpiScaleX), (int)(content.ActualHeight * dpi.DpiScaleY),
+                    dpi.PixelsPerInchX, dpi.PixelsPerInchY, PixelFormats.Pbgra32);
+                bitmap.Render(content);
+                var bytes = new byte[bitmap.PixelWidth * bitmap.PixelHeight * 4];
+                bitmap.CopyPixels(bytes, bitmap.PixelWidth * 4, 0);
+                return Convert.ToHexString(SHA256.HashData(bytes));
+            }
         }
 
         // A full 60-minute history at the 500,000-entry budget, saved and read as an update restart would, with

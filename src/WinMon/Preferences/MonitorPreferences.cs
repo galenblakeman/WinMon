@@ -224,6 +224,9 @@ public sealed record MonitorPreferences
     /// <summary>Save retained resource and process samples across ordinary exits.</summary>
     public bool KeepHistoryAcrossRestarts { get; init; }
 
+    /// <summary>Keep one-minute machine resource averages while WinMon runs.</summary>
+    public bool KeepResourceTrends { get; init; } = true;
+
     /// <summary>Collect network send and receive throughput for individual processes when the optional service is active.</summary>
     public bool ProcessNetworkMonitoringEnabled { get; init; }
 

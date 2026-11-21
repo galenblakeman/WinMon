@@ -21,6 +21,14 @@ public partial class MainWindow
     internal UsageArchive? DailyUsageArchive { get => _usageArchive; set => _usageArchive = value; }
     internal Task LoadUsageArchiveForFixtureAsync() => LoadUsageArchiveAsync();
     internal Task SaveUsageArchiveForFixtureAsync() => SaveUsageArchiveAsync();
+    internal ResourceTrendArchive ResourceTrendsForFixture => _resourceTrends;
+    internal Func<string, CancellationToken, Task<ResourceTrendArchive>>? ResourceTrendLoaderForFixture { get; set; }
+    internal string? ResourceTrendNoticeForFixture => ResourceTrendNotice;
+    internal Task LoadResourceTrendsForFixtureAsync() => LoadResourceTrendsAsync();
+    internal Task SaveResourceTrendsForFixtureAsync() => SaveResourceTrendsAsync();
+    internal Task ClearResourceTrendsForFixtureAsync() => ClearResourceTrendsAsync();
+    internal void RecordResourceTrendForFixture(MonitorSample sample) => RecordResourceTrend(sample);
+    internal void SetResourceTrendWriteForFixture(Task write) => _resourceTrendWrite = write;
     internal void SetConnectionsForFixture(NetworkConnectionsFrame frame)
     {
         _connections = frame;
@@ -59,6 +67,7 @@ public partial class MainWindow
     internal void CloseForFixture()
     {
         _usageArchiveLock?.Dispose();
+        ReleaseResourceTrendLock();
         _allowClose = true;
         Close();
     }

@@ -1,5 +1,7 @@
 # WinMon design assets
 
+- [Longer resource trends](LONGER-RESOURCE-TRENDS.md) proposes seven days of one-minute resource averages in History, with 24-hour/7-day views, explicit coverage and bounded local persistence.
+
 - [Network rate recovery](NETWORK-RATE-RECOVERY.md) preserves recorded rates through UI delays and restores History/capture rules after traffic collection recovers.
 
 - [Process control and system diagnostics](PROCESS-CONTROL-AND-DIAGNOSTICS.md) designs process command line/signer/user details, suspend/affinity/Efficiency mode actions, memory-pressure readings and Windows event markers in History.

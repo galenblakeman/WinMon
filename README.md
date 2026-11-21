@@ -66,6 +66,8 @@ For an investigation within the dashboard:
 
 History defaults to **30 minutes**, with retention configurable up to **60 minutes**, subject to memory limits. Capture mode reports the retained span and selected-moment availability for each activity view. Optional **Automatic captures** mark threshold events and save text reports while you are away, including app receive/send leaders when network traffic was recorded. [Learn about history and captures](docs/USER-GUIDE.md#catch-the-spikeeven-after-it-passes).
 
+For slowdowns that build over hours, choose **History → Longer trends**. The **Last 24 hours** and **Last 7 days** views show one-minute resource averages saved locally across restarts. Recording uses WinMon's existing sampling while it runs, including in the tray; closed-app time, sleep and unavailable readings remain gaps. Settings → Monitoring can stop recording or clear the resource trend archive. No new service is installed.
+
 ## Explore your system
 
 | Feature | What it helps you do |

@@ -2,6 +2,37 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## Resource trend review fixes (November 21, 2026)
+
+After fixing wall-clock jitter, startup-load/clear ordering and wide-chart continuity, reran `WinMon.Performance` on the interactive desktop after desktop/Store tests and capture smoke had finished. Native collection and logging were disabled. The archive ingestion fixture now supplies positive monotonic timestamps to exercise the real ordering path. Artifacts: `artifacts/trend-review-fixes/before-bench.json` (the original feature measurement) and `artifacts/trend-review-fixes/after-bench.json`.
+
+| Trend operation | Before review fixes | After review fixes |
+| --- | ---: | ---: |
+| Accumulate one full resource sample | 0.0055 ms / 1,085 B | 0.0063 ms / 1,085 B |
+| Seven-day render and selection, 1,000 pixels | 3.76 ms / 800,380 B | 4.33 ms / 800,380 B |
+| 24-hour render and selection, 3,000 pixels | Not measured | 3.63 ms / 1,088,044 B |
+| Retained archive state | 4,106,104 B | 4,106,104 B |
+| Full immutable snapshot | 12.60 ms | 11.75 ms |
+
+Routine ingestion remains well below the 1 ms budget, with unchanged allocation and retained state below 4 MiB. The ingestion inputs differ in monotonic-clock availability, so the timing difference is not a controlled estimate of the fix's cost. Seven-day render batches were 2.77–4.67 ms before and 3.44–4.47 ms after, with identical allocation and pixel hash; the nonalternated median shift is within that observed variation. The wide chart now draws a continuous trace across unused pixel columns; its separate measured cost remains bounded. No unexplained regression blocks these fixes. Save/read medians were 154.4/231.6 ms, with the same 125,011 B file. This is synthetic UI-thread and archive evidence; it excludes native collection, the WPF render thread and whole-app profiling.
+
+## Longer resource trends (November 21, 2026)
+
+Resource trends aggregate the existing live `MonitorSample` into bounded one-minute slots; they add no collector, service or process retention. The archive uses packed fixed metric slots and a shared bounded device table. The History view draws a frozen seven-day snapshot by screen column and changes selection through the real modeless window.
+
+An isolated `HEAD` baseline (`7927b6b`) and the completed build were measured with `WinMon.Performance` on the same interactive desktop, each with 400 warm-up frames and seven 60-frame batches. Native collection was disabled. The runs were not alternated, so the existing-view timing differences below are directional evidence only; there is no regression signal. Artifacts: `C:\tmp\winmon-trends-baseline\artifacts\performance-trends\baseline\bench.json` and `artifacts/performance-trends/after/bench.json`.
+
+| Existing UI refresh | Baseline | With trends |
+| --- | ---: | ---: |
+| Live | 5.44 ms / 553,189 B | 4.70 ms / 560,455 B |
+| Historical | 2.65 ms / 144,582 B | 1.48 ms / 144,658 B |
+| Grouped | 11.17 ms / 551,933 B | 7.34 ms / 551,933 B |
+| Services | 11.26 ms / 1,024,512 B | 6.78 ms / 1,024,512 B |
+| Compact | 3.40 ms / 346,444 B | 1.82 ms / 346,444 B |
+| Connections network history | 6.32 ms / 1,258,936 B | 4.15 ms / 1,258,936 B |
+
+The new ingestion path took a median 0.0055 ms and allocated 1,085 B per full resource sample. A fully populated seven-day archive (10,081 retained minute slots, 12 metrics) retained 4,106,104 B, below the 4 MiB budget; it saved as a 125,011 B compressed file, with median save/read times of 154.2/237.6 ms off the dispatcher. Snapshot and seven-day query were 12.6/9.7 ms. The real seven-day History graph plus minute selection rendered in 3.76 ms and allocated 800,380 B per selection; its pixel hash was `A7DF9D0DC3146AA86ECB305FB23D0B94CAE1E06E4FA0BB7719B37307B9C3FC4B`. This is a synthetic UI-thread benchmark, not native-collection, disk-speed or whole-app profiling.
+
 ## Network recording recovery (November 21, 2026)
 
 `MonitorSession.Pending` now retains raw collection QPC so delayed UI processing cannot discard valid captured network rates or move a missing-snapshot recovery boundary. History and scoped capture rules accept recovered non-null rates while cumulative session totals remain marked incomplete.

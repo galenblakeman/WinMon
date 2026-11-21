@@ -92,6 +92,7 @@ public partial class MainWindow
         InitializeCompactView();
         InitializeServices();
         InitializeUsage();
+        Session.LiveSampleRecorded += RecordResourceTrend;
         InitializeConnections();
         InitializeCaptures();
         InitializeProcesses();
@@ -197,6 +198,7 @@ public partial class MainWindow
             SystemEvents.DisplaySettingsChanged += OnDisplaySettingsChanged;
             InitializeWindowPosition();
             await LoadUsageArchiveAsync();
+            await LoadResourceTrendsAsync();
             SamplingTask = Session.Run(Lifetime.Token);
             Trace.TraceInformation("Startup.SamplingStarted");
             InitializeUpdates();
@@ -788,6 +790,7 @@ public partial class MainWindow
                     ? NetworkMonitoringState.Disabled
                     : NetworkMonitoringState.StoreUnavailable)) { Owner = this };
             ObserveNetworkMonitoring(dialog);
+            dialog.ClearResourceTrendsRequested += ClearResourceTrendsAsync;
             dialog.ShowSection(_lastSettingsSection);
             // Let the shortcut recorder receive WinMon's own combination; Save or the finally block takes it back.
             _hotkeyRetry?.Stop();
@@ -847,8 +850,11 @@ public partial class MainWindow
         }
 
         // Choices made in the window while the file was written, such as grouping or a new pin, stay in effect.
+        var wasKeepingResourceTrends = _preferences.KeepResourceTrends;
         _preferences =
             PreferenceStore.Validate(SettingsWindow.ApplySettings(_preferences, result, resetChartPreferences));
+        if (wasKeepingResourceTrends != _preferences.KeepResourceTrends) _resourceTrends.BreakContinuity();
+        RefreshResourceTrends();
         if (!_preferences.KeepHistoryAcrossRestarts)
             RestartHistory.DeleteNormal(_preferenceStore.NormalHistoryPath);
         RestoreChartControls();
@@ -1189,6 +1195,7 @@ public partial class MainWindow
             await WhenExportsFinishAsync();
             await WhenCapturesFinishAsync();
             await SaveUsageArchiveAsync();
+            await SaveResourceTrendsAsync();
             // History no longer changes, and the helper waits for Commit below before replacing the executable.
             if (_updateRestartPending) await SaveRestartHistoryAsync();
             try
@@ -1214,6 +1221,7 @@ public partial class MainWindow
         finally
         {
             _usageArchiveLock?.Dispose();
+            ReleaseResourceTrendLock();
             await ShutdownUpdatesAsync();
             _hotkeyRetry?.Stop();
             _hotkey?.Dispose();
@@ -1251,6 +1259,7 @@ public partial class MainWindow
         if (_diagnosticMode || !_preferencesLoaded || IsClosing || _preparingUpdateExit ||
             _updateRestartPending) return;
         var preferences = ExitPreferences();
+        SaveResourceTrendsForSessionEnd();
         if (_usageArchive is not null && _usageArchiveLock is not null)
         {
             var state = _usageArchive.Export();

@@ -7,7 +7,33 @@
         Width="1000" Height="760" MinWidth="620" MinHeight="540"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False" PreviewKeyDown="OnKeyDown"
         Background="{DynamicResource Surface}" Foreground="{DynamicResource Text}">
-    <Grid Margin="16">
+    <Window.Resources>
+                <Style TargetType="TabItem">
+                    <Setter Property="Foreground" Value="{DynamicResource Text}" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="TabItem">
+                                <Border x:Name="Tab" Padding="12,4" Background="Transparent"
+                                        BorderBrush="Transparent" BorderThickness="0,0,0,3">
+                                    <ContentPresenter x:Name="HeaderContent" ContentSource="Header" RecognizesAccessKey="True" />
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter TargetName="Tab" Property="Background" Value="{DynamicResource Raised}" />
+                                        <Setter TargetName="Tab" Property="BorderBrush" Value="{DynamicResource Accent}" />
+                                        <Setter TargetName="HeaderContent" Property="TextElement.FontWeight" Value="SemiBold" />
+                                    </Trigger>
+                                    <Trigger Property="IsKeyboardFocused" Value="True">
+                                        <Setter TargetName="Tab" Property="BorderBrush" Value="{DynamicResource Text}" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+
+    </Window.Resources>
+    <Grid Margin="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
             <RowDefinition Height="*" MinHeight="100" MaxHeight="220"/><RowDefinition Height="Auto"/>
@@ -27,12 +53,22 @@
                 </StackPanel>
                 <TextBlock Text="{Binding [FlightRecorderTitle], Source={x:Static r:Strings.Text}}" FontSize="20" FontWeight="SemiBold" TextWrapping="Wrap"/>
             </DockPanel>
-            <TextBlock x:Name="Coverage" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource Muted}" Margin="0,6,0,6"
+            <TextBlock x:Name="Coverage" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource Muted}" Margin="0,2,0,2"
                        ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
             <TextBlock x:Name="Source" TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"
                        Foreground="{DynamicResource Muted}"/>
+            <TabControl x:Name="HistoryMode" SelectionChanged="OnHistoryModeChanged" Margin="0,2,0,2"
+                        AutomationProperties.Name="{Binding [FlightRecorderView], Source={x:Static r:Strings.Text}}">
+                <TabControl.Template>
+                    <ControlTemplate TargetType="TabControl">
+                        <TabPanel IsItemsHost="True" Background="Transparent"/>
+                    </ControlTemplate>
+                </TabControl.Template>
+                <TabItem Header="{Binding [FlightRecorderDetailedHistory], Source={x:Static r:Strings.Text}}"/>
+                <TabItem Header="{Binding [FlightRecorderLongerTrends], Source={x:Static r:Strings.Text}}"/>
+            </TabControl>
         </StackPanel>
-        <WrapPanel Grid.Row="1" Margin="0,0,0,8">
+        <WrapPanel x:Name="DetailTools" Grid.Row="1" Margin="0,0,0,4">
             <ComboBox x:Name="Metric" Width="150" Margin="0,0,8,0" SelectionChanged="OnMetricChanged"
                       AutomationProperties.Name="{Binding [FlightRecorderResource], Source={x:Static r:Strings.Text}}"/>
             <Button x:Name="PeakButton" Content="{Binding [FlightRecorderPeak], Source={x:Static r:Strings.Text}}" Click="OnPeak" Margin="0,0,8,0"/>
@@ -41,7 +77,7 @@
         </WrapPanel>
         <controls:CpuGraph x:Name="Graph" Grid.Row="2" ShowGrid="True" Focusable="True"
                            AutomationProperties.Name="{Binding [FlightRecorderTimeline], Source={x:Static r:Strings.Text}}"/>
-        <StackPanel Grid.Row="3" Margin="0,4">
+        <StackPanel x:Name="DetailSelection" Grid.Row="3" Margin="0,2">
             <TextBlock x:Name="SelectedTime" FontWeight="SemiBold" AutomationProperties.LiveSetting="Polite"/>
             <TextBlock Text="{Binding [FlightRecorderAttribution], Source={x:Static r:Strings.Text}}"
                        MaxHeight="34" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource Muted}"
@@ -49,34 +85,10 @@
             <TextBlock x:Name="SelectedEvent" TextTrimming="CharacterEllipsis" MaxHeight="54" Foreground="{DynamicResource Muted}"
                        ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
         </StackPanel>
-        <Grid Grid.Row="4">
+        <Grid x:Name="DetailPanels" Grid.Row="4">
             <Grid.ColumnDefinitions><ColumnDefinition Width="2*"/><ColumnDefinition Width="*" MinWidth="180"/></Grid.ColumnDefinitions>
         <TabControl x:Name="Views" Grid.Column="0" Background="{DynamicResource Surface}" Foreground="{DynamicResource Text}">
             <TabControl.Resources>
-                <Style TargetType="TabItem">
-                    <Setter Property="Foreground" Value="{DynamicResource Text}" />
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="TabItem">
-                                <Border x:Name="Tab" Padding="12,6" Background="Transparent"
-                                        BorderBrush="Transparent" BorderThickness="0,0,0,3">
-                                    <ContentPresenter x:Name="HeaderContent" ContentSource="Header" RecognizesAccessKey="True" />
-                                </Border>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsSelected" Value="True">
-                                        <Setter TargetName="Tab" Property="Background" Value="{DynamicResource Raised}" />
-                                        <Setter TargetName="Tab" Property="BorderBrush" Value="{DynamicResource Accent}" />
-                                        <Setter TargetName="HeaderContent" Property="TextElement.FontWeight" Value="SemiBold" />
-                                    </Trigger>
-                                    <Trigger Property="IsKeyboardFocused" Value="True">
-                                        <Setter TargetName="Tab" Property="BorderBrush" Value="{DynamicResource Text}" />
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-
                 <Style TargetType="GridViewColumnHeader">
                     <Setter Property="Foreground" Value="{DynamicResource Muted}"/>
                     <Setter Property="Template">
@@ -158,6 +170,34 @@
                 </ListView.ItemTemplate>
             </ListView>
         </DockPanel>
+        </Grid>
+        <Grid x:Name="TrendSurface" Grid.Row="1" Grid.RowSpan="4" Visibility="Collapsed">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                <RowDefinition Height="*" MinHeight="160"/><RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <WrapPanel Margin="0,0,0,8">
+                <ComboBox x:Name="TrendRange" Width="160" Margin="0,0,8,0" SelectionChanged="OnTrendRangeChanged"
+                          AutomationProperties.Name="{Binding [FlightRecorderTrendRange], Source={x:Static r:Strings.Text}}"/>
+                <ComboBox x:Name="TrendMetric" Width="180" SelectionChanged="OnTrendMetricChanged"
+                          AutomationProperties.Name="{Binding [FlightRecorderResource], Source={x:Static r:Strings.Text}}"/>
+            </WrapPanel>
+            <TextBlock x:Name="TrendCoverage" Grid.Row="1" TextWrapping="Wrap" Foreground="{DynamicResource Muted}" Margin="0,0,0,6"
+                       ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+            <Grid Grid.Row="2">
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                <TextBlock x:Name="TrendLegend" Foreground="{DynamicResource Muted}" Margin="0,0,0,4"/>
+                <controls:ResourceTrendGraph x:Name="TrendGraph" Grid.Row="1" Focusable="True"
+                                             AutomationProperties.Name="{Binding [FlightRecorderLongerTrends], Source={x:Static r:Strings.Text}}"/>
+            </Grid>
+            <StackPanel Grid.Row="3" Margin="0,8,0,0">
+                <WrapPanel>
+                    <Button x:Name="TrendPrevious" Content="{Binding [FlightRecorderPrevious], Source={x:Static r:Strings.Text}}" Click="OnTrendPrevious" Margin="0,0,8,0"/>
+                    <Button x:Name="TrendNext" Content="{Binding [FlightRecorderNext], Source={x:Static r:Strings.Text}}" Click="OnTrendNext" Margin="0,0,8,0"/>
+                    <Button x:Name="OpenTrendDetail" Content="{Binding [FlightRecorderOpenDetailed], Source={x:Static r:Strings.Text}}" Click="OnOpenTrendDetail"/>
+                </WrapPanel>
+                <TextBlock x:Name="TrendSelection" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" Margin="0,6,0,0"/>
+            </StackPanel>
         </Grid>
         <DockPanel Grid.Row="5" Margin="0,10,0,0">
             <Button Content="{Binding [Close], Source={x:Static r:Strings.Text}}" IsCancel="True" Click="OnClose" DockPanel.Dock="Right" Margin="12,0,0,0"/>

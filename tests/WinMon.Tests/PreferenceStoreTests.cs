@@ -230,6 +230,22 @@ public sealed class PreferenceStoreTests
         Assert.That((await store.LoadAsync()).KeepHistoryAcrossRestarts, Is.True);
     }
 
+    [Test]
+    [Category("Integration")]
+    public async Task ResourceTrends_DefaultToOnRoundTripAndUseTheSelectedSettingsFolder()
+    {
+        var store = new PreferenceStore(settingsPath);
+        var defaults = await store.LoadAsync();
+        Assert.Multiple(() =>
+        {
+            Assert.That(defaults.KeepResourceTrends, Is.True);
+            Assert.That(store.ResourceTrendArchivePath, Is.EqualTo(Path.Combine(testDirectory, "resource-trends.json.gz")));
+        });
+
+        await store.SaveAsync(new MonitorPreferences { KeepResourceTrends = false });
+        Assert.That((await store.LoadAsync()).KeepResourceTrends, Is.False);
+    }
+
     private string testDirectory = null!;
     private string settingsPath = null!;
 
@@ -769,7 +785,8 @@ public sealed class PreferenceStoreTests
         {
             Theme = "Light", RetentionSeconds = 1800, MinimizeToTray = !opened.MinimizeToTray,
             GaugeStyle = GaugeStyle.SegmentedBar, StartupView = StartupViewMode.Full,
-            NetworkInterfaceId = "chosen-adapter", GaugePeakWindowSeconds = 300
+            NetworkInterfaceId = "chosen-adapter", GaugePeakWindowSeconds = 300,
+            KeepResourceTrends = false
         };
         // While the confirmed settings were being saved, the user grouped processes and pinned one.
         var current = opened with
@@ -789,6 +806,7 @@ public sealed class PreferenceStoreTests
             Assert.That(applied.GaugePeakWindowSeconds, Is.EqualTo(300));
             Assert.That(applied.StartupView, Is.EqualTo(StartupViewMode.Full));
             Assert.That(applied.NetworkInterfaceId, Is.EqualTo("chosen-adapter"));
+            Assert.That(applied.KeepResourceTrends, Is.False);
             Assert.That(applied.GroupProcesses, Is.True);
             Assert.That(applied.CompactMode, Is.True);
             Assert.That(applied.PinnedProcesses.Single().Name, Is.EqualTo("pinned"));
