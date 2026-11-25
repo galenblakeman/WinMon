@@ -4,7 +4,10 @@ using System.Runtime.InteropServices;
 
 namespace MonCore.Windows.Monitoring;
 
-/// <summary>Windows-reported current clock, averaged across logical processors.</summary>
+/// <summary>
+/// Effective clock: rated clock * <c>% Processor Performance</c> / 100, averaged across logical processors.
+/// <c>CurrentMhz</c> is not used because on some CPUs (Ryzen 9000) it stays at the rated clock through idle and boost.
+/// </summary>
 public sealed class WindowsCpuClock
 {
     private ProcessorPowerInformation[] _processors = [];
@@ -15,28 +18,34 @@ public sealed class WindowsCpuClock
     /// </summary>
     public static int LogicalProcessorCount => Math.Max(1, (int)GetActiveProcessorCount(0xFFFF));
 
-    public double? ReadMhz()
+    /// <param name="performancePercent">
+    /// <c>\Processor Information(_Total)\% Processor Performance</c>, null before the rate counter has two samples.
+    /// </param>
+    public double? ReadMhz(double? performancePercent)
     {
+        if (performancePercent is null) return null;
         var count = GetActiveProcessorCount(0xFFFF); // All processor groups, independent of process affinity.
         if (count == 0) return null;
         if (_processors.Length != count) _processors = new ProcessorPowerInformation[count];
-        // ProcessorInformation is read-only. Failure must never substitute the rated maximum clock.
+        // ProcessorInformation is read-only. Neither a failure nor a missing performance reading may report the rated clock.
         var status = CallNtPowerInformation(11, IntPtr.Zero, 0, _processors,
             checked((uint)(_processors.Length * Marshal.SizeOf<ProcessorPowerInformation>())));
-        return status == 0 ? AverageMhz(_processors) : null;
+        return status == 0 ? EffectiveMhz(_processors, performancePercent) : null;
     }
 
-    public static double? AverageMhz(ReadOnlySpan<ProcessorPowerInformation> processors)
+    public static double? EffectiveMhz(ReadOnlySpan<ProcessorPowerInformation> processors, double? performancePercent)
     {
-        if (processors.IsEmpty) return null;
+        if (processors.IsEmpty || performancePercent is not > 0 || !double.IsFinite(performancePercent.Value))
+            return null;
         double total = 0;
         foreach (var processor in processors)
         {
-            if (processor.CurrentMhz == 0) return null;
-            total += processor.CurrentMhz;
+            if (processor.MaxMhz == 0) return null;
+            total += processor.MaxMhz;
         }
 
-        return total / processors.Length;
+        // Not clamped to MaxMhz: boost runs above the rated clock.
+        return total / processors.Length * performancePercent.Value / 100;
     }
 
     // https://learn.microsoft.com/windows/win32/power/processor-power-information-str

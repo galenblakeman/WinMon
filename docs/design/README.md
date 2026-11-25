@@ -1,5 +1,7 @@
 # WinMon design assets
 
+- [Effective CPU clock](EFFECTIVE-CPU-CLOCK.md) derives the CPU clock from the rated clock and Windows processor performance, so it follows boost and idle instead of reporting a fixed rated clock.
+
 - [CPU and GPU temperature](TEMPERATURE.md) proposes unprivileged GPU temperature, CPU throttling and system thermal-zone readings on the gauges and in their tooltips, gated on a hardware spike.
 
 - [Crash summaries](CRASH-SUMMARIES.md) groups the crash and hang events History already reads by signature, shown in History and exposed through a `crashes` CLI command and a `list_crashes` MCP tool.

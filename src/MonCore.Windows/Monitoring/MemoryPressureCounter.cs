@@ -6,10 +6,10 @@ namespace MonCore.Windows.Monitoring;
 
 internal readonly record struct MemoryPressureRaw(double? PagingReadsPerSecond, ulong? StandbyCoreBytes,
     ulong? StandbyNormalBytes, ulong? StandbyReserveBytes, ulong? ModifiedBytes, ulong? FreeBytes,
-    bool Collected = true);
+    double? ProcessorPerformancePercent = null, bool Collected = true);
 
 internal readonly record struct MemoryPressureReading(double? PagingReadsPerSecond, ulong? StandbyBytes,
-    ulong? ModifiedBytes, ulong? FreeBytes);
+    ulong? ModifiedBytes, ulong? FreeBytes, double? ProcessorPerformancePercent = null);
 
 internal interface IMemoryPressurePdh : IDisposable
 {
@@ -17,7 +17,10 @@ internal interface IMemoryPressurePdh : IDisposable
     void Reset();
 }
 
-/// <summary>Turns one PDH memory query into nullable readings without allowing missing optional counters to fail a frame.</summary>
+/// <summary>
+/// Turns one PDH memory query into nullable readings without allowing missing optional counters to fail a frame.
+/// The query also carries the CPU clock's processor-performance rate, so sampling opens no second query.
+/// </summary>
 internal sealed class MemoryPressureCounter(IMemoryPressurePdh? pdh = null, Func<long>? timestamp = null) : IDisposable
 {
     private readonly IMemoryPressurePdh _pdh = pdh ?? new NativeMemoryPressurePdh();
@@ -40,7 +43,8 @@ internal sealed class MemoryPressureCounter(IMemoryPressurePdh? pdh = null, Func
         _hasBaseline = true;
         return new MemoryPressureReading(
             validRate ? ValidRate(raw.PagingReadsPerSecond) : null,
-            Sum(raw.StandbyCoreBytes, raw.StandbyNormalBytes, raw.StandbyReserveBytes), raw.ModifiedBytes, raw.FreeBytes);
+            Sum(raw.StandbyCoreBytes, raw.StandbyNormalBytes, raw.StandbyReserveBytes), raw.ModifiedBytes, raw.FreeBytes,
+            validRate ? ValidRate(raw.ProcessorPerformancePercent) : null);
     }
 
     public void Reset()
@@ -66,7 +70,7 @@ internal sealed class MemoryPressureCounter(IMemoryPressurePdh? pdh = null, Func
     {
         private static readonly long RetryDelay = 30 * Stopwatch.Frequency;
         private SafeMemoryPdhQuery? _query;
-        private IntPtr _pagingReads, _standbyCore, _standbyNormal, _standbyReserve, _modified, _free;
+        private IntPtr _pagingReads, _standbyCore, _standbyNormal, _standbyReserve, _modified, _free, _performance;
         private long _retryAfter;
 
         public MemoryPressureRaw Collect()
@@ -80,14 +84,14 @@ internal sealed class MemoryPressureCounter(IMemoryPressurePdh? pdh = null, Func
             }
 
             return new MemoryPressureRaw(Read(_pagingReads), Bytes(_standbyCore), Bytes(_standbyNormal),
-                Bytes(_standbyReserve), Bytes(_modified), Bytes(_free));
+                Bytes(_standbyReserve), Bytes(_modified), Bytes(_free), Read(_performance));
         }
 
         public void Reset()
         {
             _query?.Dispose();
             _query = null;
-            _pagingReads = _standbyCore = _standbyNormal = _standbyReserve = _modified = _free = IntPtr.Zero;
+            _pagingReads = _standbyCore = _standbyNormal = _standbyReserve = _modified = _free = _performance = IntPtr.Zero;
             _retryAfter = 0;
         }
 
@@ -113,6 +117,8 @@ internal sealed class MemoryPressureCounter(IMemoryPressurePdh? pdh = null, Func
             _standbyReserve = AddOptional(query, @"\Memory\Standby Cache Reserve Bytes");
             _modified = AddOptional(query, @"\Memory\Modified Page List Bytes");
             _free = AddOptional(query, @"\Memory\Free & Zero Page List Bytes");
+            // Can exceed 100 while boosting; Read passes PDH_FMT_NOCAP100 so it is not clipped.
+            _performance = AddOptional(query, @"\Processor Information(_Total)\% Processor Performance");
             return true;
         }
 
@@ -127,7 +133,7 @@ internal sealed class MemoryPressureCounter(IMemoryPressurePdh? pdh = null, Func
         {
             var status = Native.PdhAddEnglishCounterW(query, path, UIntPtr.Zero, out var counter);
             if (status == 0) return counter;
-            Trace.TraceWarning("Optional memory counter unavailable ({0}): 0x{1:X8}", path, status);
+            Trace.TraceWarning("Optional PDH counter unavailable ({0}): 0x{1:X8}", path, status);
             return IntPtr.Zero;
         }
 

@@ -196,6 +196,7 @@ public sealed class MetricDetailsCharacterizationTests
     [TestCase(.001, 40d, 35, "0.00 GHz")]
     [TestCase(3250d, null, 35, "3.25 GHz")]
     [TestCase(3250d, 12.5, null, "3.25 GHz")]
+    [TestCase(5516d, 12.5, 35, "5.52 GHz")]
     public void CpuDetailsPreserveClockAvailabilityAndUserKernelClamping(double? clock, double? kernel,
         double? total, string? expectedClock)
     {

@@ -8,6 +8,7 @@ namespace WinMon.Tests;
 public sealed class GaugeReadoutTextTests
 {
     [TestCase(4300d, "4.30 GHz")]
+    [TestCase(5516d, "5.52 GHz")] // Boost above the rated clock is shown as is.
     [TestCase(1d, "0.00 GHz")]
     public void CpuClock_FormatsPositiveFiniteMegahertz(double megahertz, string expected)
     {
