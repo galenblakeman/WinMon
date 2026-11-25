@@ -45,9 +45,11 @@ internal sealed class WindowsResourceSampler : IDisposable
     {
         var reset = cpu.IsGap;
         if (reset) Reset();
+        var pressure = _memoryPressure.Read();
         var result = new ResourceSample
         {
-            CpuClockMhz = _cpuClock.ReadMhz(), CpuKernelPercent = cpu.Resources.CpuKernelPercent
+            CpuClockMhz = _cpuClock.ReadMhz(pressure.ProcessorPerformancePercent),
+            CpuKernelPercent = cpu.Resources.CpuKernelPercent
         };
         var memory = new MemoryStatus { Length = (uint)Marshal.SizeOf<MemoryStatus>() };
         if (Native.GlobalMemoryStatusEx(ref memory) && memory.TotalPhysical > 0 &&
@@ -70,7 +72,7 @@ internal sealed class WindowsResourceSampler : IDisposable
                 ProcessCount = performance.ProcessCount, ThreadCount = performance.ThreadCount,
                 HandleCount = performance.HandleCount
             };
-        result = ApplyMemoryPressure(result, _memoryPressure.Read(), cpu.Processes);
+        result = ApplyMemoryPressure(result, pressure, cpu.Processes);
 
         // PDH failures only make disk unavailable; they never stop memory, network or CPU.
         var primary = _primaryDisk.Read(primaryDrive ?? Path.GetPathRoot(Environment.SystemDirectory)!.TrimEnd('\\'));

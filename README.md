@@ -8,6 +8,8 @@ Closing WinMon completes shutdown even when its pending work has already finishe
 
 Sampling uses a dedicated worker with elevated scheduling priority on Windows to keep recording responsive under CPU load. Missing readings and genuine collection delays remain visible as chart gaps.
 
+The CPU clock under the CPU gauge is the effective clock averaged across logical processors. It rises above the rated clock while boosting and falls at idle, including on processors where Windows reports only the fixed rated clock.
+
 MCP performance recordings retain valid captured intervals even when report processing falls behind collection.
 
 Per-app network history retains rates collected while the interface is busy. After a temporary network-monitor disconnect, fresh rates can again contribute to History comparisons and automatic captures; session byte totals keep their incomplete-coverage warning.

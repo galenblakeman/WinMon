@@ -1,5 +1,7 @@
 # WinMon design assets
 
+- [Effective CPU clock](EFFECTIVE-CPU-CLOCK.md) derives the CPU clock from the rated clock and Windows processor performance, so it follows boost and idle instead of reporting a fixed rated clock.
+
 - [Crash summaries](CRASH-SUMMARIES.md) groups the crash and hang events History already reads by signature, shown in History and exposed through a `crashes` CLI command and a `list_crashes` MCP tool.
 
 - [Resource gauge centering](GAUGE-CENTERING.md) centers full-size and compact readouts while retaining their content width and the existing diagnostic tolerance.

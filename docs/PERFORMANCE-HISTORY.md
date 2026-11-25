@@ -2,6 +2,19 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## Effective CPU clock (November 25, 2026)
+
+The CPU clock now comes from `\Processor Information(_Total)\% Processor Performance`, added to the existing memory-pressure PDH query, instead of `CurrentMhz` alone. Compared the `HEAD` and changed `MonCore.Windows` Release builds with a focused probe of `WindowsResourceSampler.Sample` (the resource half of each tick). The probe used 850 synthetic process rows, 30 warm-up samples and 200 timed back-to-back samples per run. Six pairs alternated launch order on the Hyper-V development VM (24 logical processors, Ryzen 9 9950X3D host), after verification had finished.
+
+| Resource sampler | Before | After |
+| --- | ---: | ---: |
+| Median of six run medians | 1.392 ms | 1.877 ms |
+| Run median range | 1.336–1.425 ms | 1.687–2.273 ms |
+| Allocated bytes/sample | 178,549 | 178,549 |
+| Clock reported | 4,300 MHz, fixed | null first, then 5,159–5,543 MHz |
+
+The cost is real and explained: to produce `_Total`, the Processor Information provider gathers data for every logical processor. Interleaved collects of the memory query with and without the counter took 0.015 ms and 0.27–0.32 ms in three quiet runs, and up to 1.3 ms in an earlier run while other builds loaded the machine. A single-processor instance costs about 0.01 ms but measures one core, so it was rejected. At one sample per second this is roughly 0.5 ms of sampling-worker time per second, off the UI thread, with no added allocation, query or process open. It scales with logical processor count. Whole-app CPU was not profiled; the change is well below that measurement's noise. Evidence: `artifacts/effective-cpu-clock/results/*.json` and the probes in `artifacts/effective-cpu-clock/probe/` in the main checkout. See [the design note](design/EFFECTIVE-CPU-CLOCK.md).
+
 ## Crash summaries: bounded History loading (November 25, 2026)
 
 Compared the original reader from `HEAD` with the implemented reader in a Release harness, using the same frozen 30-day local event-log range and alternating order across six pairs. Both returned 500 events, reached the existing History cap, and reported Application Complete / System Unknown. Reads and message formatting stayed on the calling worker thread. Median read time was 1,476.6 ms before and 1,461.2 ms after; this small native-I/O difference is not evidence of a speedup. The first grouping call after each current read added a median 7.78 ms. Read allocations rose from 16,144,908 to 16,366,620 bytes; grouping added 85,832 bytes. The additional 307,544 bytes per capped load (about 1.9%) retain structured signatures, version counts and group members. No sampling-path work was added.

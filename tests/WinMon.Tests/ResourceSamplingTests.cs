@@ -95,6 +95,52 @@ public sealed class ResourceSamplingTests
         });
     }
 
+    [Test]
+    public void ProcessorPerformance_IsARateUnavailableOnFirstSampleAfterResetAndFailure()
+    {
+        var ticks = 0L;
+        using var counter = new MemoryPressureCounter(new FakeMemoryPressurePdh(
+            new(4, 1, 2, 3, 4, 5, 120), new(4, 1, 2, 3, 4, 5, 127.5), default, new(4, 1, 2, 3, 4, 5, 90),
+            new(4, 1, 2, 3, 4, 5, 95), new(4, 1, 2, 3, 4, 5, double.NaN)), () => ticks += Stopwatch.Frequency);
+
+        var first = counter.Read();
+        var second = counter.Read();
+        var failed = counter.Read();
+        var recovered = counter.Read();
+        var resumed = counter.Read();
+        var invalid = counter.Read();
+        counter.Reset();
+        var afterReset = counter.Read();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(first.ProcessorPerformancePercent, Is.Null);
+            Assert.That(second.ProcessorPerformancePercent, Is.EqualTo(127.5), "Above 100 while boosting, never capped.");
+            Assert.That(failed.ProcessorPerformancePercent, Is.Null);
+            Assert.That(recovered.ProcessorPerformancePercent, Is.Null);
+            Assert.That(resumed.ProcessorPerformancePercent, Is.EqualTo(95));
+            Assert.That(invalid.ProcessorPerformancePercent, Is.Null);
+            Assert.That(afterReset.ProcessorPerformancePercent, Is.Null);
+        });
+    }
+
+    [Test]
+    [Category("Integration")]
+    public void NativeSampler_ClockIsUnavailableOnFirstSampleThenEffective()
+    {
+        using var sampler = new WindowsResourceSampler();
+        var sample = new MonitorSample(DateTimeOffset.UtcNow, 10, [], 0, false, Stopwatch.GetTimestamp());
+        var first = sampler.Sample(sample).Resources.CpuClockMhz;
+        Thread.Sleep(1000);
+        var second = sampler.Sample(sample).Resources.CpuClockMhz;
+        TestContext.Out.WriteLine($"Effective CPU clock: {second?.ToString() ?? "unavailable"} MHz");
+        Assert.Multiple(() =>
+        {
+            Assert.That(first, Is.Null, "The rate counter has no value yet; the rated clock must not stand in.");
+            Assert.That(second, Is.Null.Or.GreaterThan(0));
+        });
+    }
+
     [TestCase(double.NaN)]
     [TestCase(-1d)]
     [TestCase(double.PositiveInfinity)]
