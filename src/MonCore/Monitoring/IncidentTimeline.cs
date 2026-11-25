@@ -97,8 +97,14 @@ public static class IncidentTimeline
     private static IEnumerable<ProcessReading> ProcessValues(MonitorSample sample, CaptureMetric metric,
         ConnectionCapture? traffic = null)
     {
-        if (metric != CaptureMetric.Network)
-            return sample.Processes.Select(process => new ProcessReading(process, ProcessValue(process, metric)));
+        return metric == CaptureMetric.Network ? NetworkProcessValues(sample, traffic) : ScalarProcessValues(sample, metric);
+    }
+
+    private static IEnumerable<ProcessReading> ScalarProcessValues(MonitorSample sample, CaptureMetric metric) =>
+        sample.Processes.Select(process => new ProcessReading(process, ProcessValue(process, metric)));
+
+    private static IEnumerable<ProcessReading> NetworkProcessValues(MonitorSample sample, ConnectionCapture? traffic)
+    {
         if (traffic is not null && !SampleKey.Of(sample).Matches(traffic.Sample)) traffic = null;
         var frame = traffic?.Network;
         var readings = (frame?.Processes ?? []).ToDictionary(reading =>
@@ -165,12 +171,7 @@ public static class IncidentTimeline
         {
             var before = samples[i - 1];
             var after = samples[i];
-            if (before.IsGap || after.IsGap || before.UnavailableProcesses != 0 || after.UnavailableProcesses != 0 ||
-                !Connected(before, after) ||
-                !frames.TryGetValue(SampleKey.Of(before), out var previous) || !previous.Valid ||
-                !frames.TryGetValue(SampleKey.Of(after), out var current) || !current.Valid ||
-                previous.Observations.Any(p => p.Owner.Identity.StartToken <= 0) ||
-                current.Observations.Any(p => p.Owner.Identity.StartToken <= 0)) continue;
+            if (!TryLifecycleInventories(before, after, frames, out var previous, out var current)) continue;
             oldIds.Clear();
             newIds.Clear();
             foreach (var observation in previous.Observations) oldIds.Add(observation.Owner.Identity);
@@ -180,6 +181,22 @@ public static class IncidentTimeline
                 previous.Observations.Where(p => !newIds.Contains(p.Owner.Identity)).Select(p => Process(p.Owner)).ToArray());
         }
         return changes;
+    }
+
+    private static bool TryLifecycleInventories(MonitorSample before, MonitorSample after,
+        Dictionary<SampleKey, UsageHistory.Frame> frames, out UsageHistory.Frame previous, out UsageHistory.Frame current)
+    {
+        previous = null!;
+        current = null!;
+        if (before.IsGap || after.IsGap || before.UnavailableProcesses != 0 || after.UnavailableProcesses != 0 ||
+            !Connected(before, after) ||
+            !frames.TryGetValue(SampleKey.Of(before), out var previousFrame) || !previousFrame.Valid ||
+            !frames.TryGetValue(SampleKey.Of(after), out var currentFrame) || !currentFrame.Valid ||
+            previousFrame.Observations.Any(p => p.Owner.Identity.StartToken <= 0) ||
+            currentFrame.Observations.Any(p => p.Owner.Identity.StartToken <= 0)) return false;
+        previous = previousFrame;
+        current = currentFrame;
+        return true;
     }
 
     private static ProcessUsage Process(UsageHistory.Owner owner) => new(owner.Identity.ProcessId,

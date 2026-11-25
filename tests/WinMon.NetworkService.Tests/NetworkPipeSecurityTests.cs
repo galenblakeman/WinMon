@@ -313,12 +313,13 @@ public sealed partial class NetworkPipeTests
         internal string Name { get; } = $"WinMon-NetworkPipeTest-{Guid.NewGuid():N}";
 
         internal ServerScope(IReadOnlyCollection<string> users,
-            Func<string, CancellationToken, Task<IAsyncDisposable>>? subscribe = null)
+            Func<string, CancellationToken, Task<IAsyncDisposable>>? subscribe = null,
+            Func<string, ProcessNetworkSnapshot>? read = null)
         {
             var snapshot = EmptySnapshot();
             var server = new NetworkPipeServer(users,
                 subscribe ?? ((_, _) => Task.FromResult<IAsyncDisposable>(new CallbackDisposable(() => { }))),
-                _ => snapshot, Name);
+                read ?? (_ => snapshot), Name);
             _running = server.RunAsync(_stop.Token);
         }
 

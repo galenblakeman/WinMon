@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
 using WinMon.Monitoring;
@@ -34,9 +35,7 @@ internal sealed partial class DiagnosticTools(SamplingOwner owner,
         [Description("Maximum processes, 1–200")] int limit = 20,
         CancellationToken cancellationToken = default)
     {
-        if (sort is null || sort.Length > 7 || sort.ToLowerInvariant() is not
-                ("cpu" or "memory" or "gpu" or "io" or "threads" or "handles") || filter is null ||
-            filter.Length > 256 || limit is < 1 or > 200) return Invalid();
+        if (InvalidRequest(sort, filter, limit)) return Invalid();
         var metric = Enum.Parse<ProcessSort>(sort, true);
         await using var request = await owner.AcquireAsync(cancellationToken);
         var frame = await owner.CurrentAsync(cancellationToken);
@@ -46,6 +45,13 @@ internal sealed partial class DiagnosticTools(SamplingOwner owner,
         var entries = matches.Take(limit).Select(ProcessMetrics.From).ToArray();
         return Responses.BoundedList(Responses.Envelope(owner, frame, null, count: entries.Length,
             truncated: matches.Length > limit), entries);
+
+        // Keep request checks inline, as they were before extraction.
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static bool InvalidRequest(string sort, string filter, int limit) =>
+            sort is null || sort.Length > 7 || sort.ToLowerInvariant() is not
+                ("cpu" or "memory" or "gpu" or "io" or "threads" or "handles") || filter is null ||
+            filter.Length > 256 || limit is < 1 or > 200;
     }
 
     [McpServerTool(Name = "get_process_details", ReadOnly = true, Destructive = false, OpenWorld = false, UseStructuredContent = true, OutputSchemaType = typeof(DiagnosticResponse)),
@@ -68,8 +74,7 @@ internal sealed partial class DiagnosticTools(SamplingOwner owner,
         string? expectedDomain = null, int limit = 50, bool includeEndpoints = false,
         CancellationToken cancellationToken = default)
     {
-        if (limit is < 1 or > 200 || (pid is { } id ? !ValidIdentity(id, expectedStartToken, expectedDomain)
-                : expectedStartToken is not null || expectedDomain is not null)) return Invalid();
+        if (InvalidRequest(pid, expectedStartToken, expectedDomain, limit)) return Invalid();
         await using var request = await owner.AcquireAsync(cancellationToken);
         var frame = await owner.CurrentAsync(cancellationToken);
         if (frame is null || !owner.IsFresh(frame)) return Responses.Result(Responses.Envelope(owner, frame, null));
@@ -103,6 +108,12 @@ internal sealed partial class DiagnosticTools(SamplingOwner owner,
             includeEndpoints, entries.Take(limit).ToArray());
         return Responses.Result(Responses.Envelope(owner, frame, data,
             connections?.Available == true ? "ok" : "unavailable", Math.Min(entries.Length, limit), entries.Length > limit));
+
+        // Keep request checks inline, as they were before extraction.
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static bool InvalidRequest(int? pid, string? expectedStartToken, string? expectedDomain, int limit) =>
+            limit is < 1 or > 200 || (pid is { } id ? !ValidIdentity(id, expectedStartToken, expectedDomain)
+                : expectedStartToken is not null || expectedDomain is not null);
     }
 
     [McpServerTool(Name = "get_hardware_info", ReadOnly = true, Destructive = false, OpenWorld = false,

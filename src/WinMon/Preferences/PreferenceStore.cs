@@ -181,56 +181,41 @@ public sealed class PreferenceStore
             NetworkInterfaceId = string.IsNullOrWhiteSpace(preferences.NetworkInterfaceId)
                 ? null
                 : preferences.NetworkInterfaceId.Trim(),
-            StartupView = Enum.IsDefined(preferences.StartupView)
-                ? preferences.StartupView
-                : StartupViewMode.LastUsed,
+            StartupView = NormalizeEnum(preferences.StartupView, StartupViewMode.LastUsed),
             Width = ClampFinite(preferences.Width, 600, 600, 2000),
             Height = ClampFinite(preferences.Height, 840, 160, 1500),
             ActivityPanelRatio = ClampFinite(preferences.ActivityPanelRatio, 1.25, 0.05, 20),
-            SelectedActivityTab = preferences.SelectedActivityTab is >= 0 and <= 3
-                ? preferences.SelectedActivityTab
-                : 0,
+            SelectedActivityTab = NormalizeColumn(preferences.SelectedActivityTab, 3),
             Left = ValidateCoordinate(preferences.Left),
             Top = ValidateCoordinate(preferences.Top),
             Theme = NormalizeTheme(preferences.Theme),
             Language = AppLanguages.Normalize(preferences.Language),
             ChartPalette = ChartPalettes.Normalize(preferences.ChartPalette),
-            GaugeStyle = Enum.IsDefined(preferences.GaugeStyle) ? preferences.GaugeStyle : GaugeStyle.Bowl,
+            GaugeStyle = NormalizeEnum(preferences.GaugeStyle, GaugeStyle.Bowl),
             GaugePeakWindowSeconds = preferences.GaugePeakWindowSeconds is 60 or 120 or 300 or 600
                 ? preferences.GaugePeakWindowSeconds
                 : MonitorPreferences.ShortRangeSeconds,
-            ResourceChartType = Enum.IsDefined(preferences.ResourceChartType)
-                ? preferences.ResourceChartType
-                : ResourceChartType.Overlay,
+            ResourceChartType = NormalizeEnum(preferences.ResourceChartType, ResourceChartType.Overlay),
             FocusMetric = secondary is null && preferences.FocusMetric == 5
                 ? 0
                 : Math.Clamp(preferences.FocusMetric, 0, 5),
             RetentionSeconds = Math.Clamp(preferences.RetentionSeconds, 600, 3600),
             VisibleMetrics = preferences.VisibleMetrics & 15,
             TopProcessCount =
-            TopCountChoices.IsSupported(preferences.TopProcessCount) ? preferences.TopProcessCount : 5,
-            TopServiceCount = TopCountChoices.IsSupported(preferences.TopServiceCount)
-                ? preferences.TopServiceCount
-                : 20,
-            ServiceSortColumn = preferences.ServiceSortColumn is >= 0 and <= 2 ||
-                                (preferences.ServiceSortColumn == 3 && preferences.TopServiceCount == 0)
-                ? preferences.ServiceSortColumn
-                : 0,
-            ServiceStatusFilter = preferences.ServiceStatusFilter is >= 0 and <= 2
-                ? preferences.ServiceStatusFilter
-                : 0,
-            TopUsageCount = TopCountChoices.IsSupported(preferences.TopUsageCount) ? preferences.TopUsageCount : 20,
-            UsageSortColumn = preferences.UsageSortColumn is >= 0 and <= 4 ? preferences.UsageSortColumn : 0,
-            TopConnectionCount = TopCountChoices.IsSupported(preferences.TopConnectionCount)
-                ? preferences.TopConnectionCount
-                : 10,
+            NormalizeTopCount(preferences.TopProcessCount, 5),
+            TopServiceCount = NormalizeTopCount(preferences.TopServiceCount, 20),
+            ServiceSortColumn = NormalizeServiceSort(preferences.ServiceSortColumn, preferences.TopServiceCount),
+            ServiceStatusFilter = NormalizeColumn(preferences.ServiceStatusFilter, 2),
+            TopUsageCount = NormalizeTopCount(preferences.TopUsageCount, 20),
+            UsageSortColumn = NormalizeColumn(preferences.UsageSortColumn, 4),
+            TopConnectionCount = NormalizeTopCount(preferences.TopConnectionCount, 10),
             ConnectionSortColumn =
-            preferences.ConnectionSortColumn is >= 0 and <= 5 ? preferences.ConnectionSortColumn : 0,
+            NormalizeColumn(preferences.ConnectionSortColumn, 5),
             ConnectionTrafficSeconds = preferences.ConnectionTrafficSeconds is 0 or 60 or 300 or 1800
                 ? preferences.ConnectionTrafficSeconds
                 : 300,
             ProcessSort = preferences is { SortByGpu: true, ProcessSort: ProcessSort.Cpu } ? ProcessSort.Gpu
-            : Enum.IsDefined(preferences.ProcessSort) ? preferences.ProcessSort : ProcessSort.Cpu,
+            : NormalizeEnum(preferences.ProcessSort, ProcessSort.Cpu),
             SortByGpu = false,
             PinnedProcesses = ProcessPins.Normalize(preferences.PinnedProcesses),
             PinnedServices = NormalizeServicePins(preferences.PinnedServices),
@@ -283,5 +268,25 @@ public sealed class PreferenceStore
             "wildberry" => "Wildberry",
             _ => "Dark"
         };
+    }
+
+    private static int NormalizeTopCount(int count, int fallback)
+    {
+        return TopCountChoices.IsSupported(count) ? count : fallback;
+    }
+
+    private static T NormalizeEnum<T>(T value, T fallback) where T : struct, Enum
+    {
+        return Enum.IsDefined(value) ? value : fallback;
+    }
+
+    private static int NormalizeColumn(int column, int maximum)
+    {
+        return column >= 0 && column <= maximum ? column : 0;
+    }
+
+    private static int NormalizeServiceSort(int column, int count)
+    {
+        return column is >= 0 and <= 2 || (column == 3 && count == 0) ? column : 0;
     }
 }

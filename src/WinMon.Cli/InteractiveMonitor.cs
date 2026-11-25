@@ -166,27 +166,13 @@ public static class InteractiveMonitor
     public static IRenderable BuildView(InteractiveState state, int top, int pageSize, int width, int height, bool unicode)
     {
         var separator = unicode ? " · " : " | ";
-        string Mark(bool value) => value ? unicode ? "[✓]" : "[x]" : "[ ]";
-        var header = new Paragraph(TerminalText.Fit($"{TerminalChrome.ProductName}{separator}{SafeText(Environment.MachineName)}{separator}", Math.Max(0, width - 12)), TerminalChrome.Accent)
-            .Append(state.Paused ? Strings.CliPaused : Strings.CliLive,
-                new Style(state.Paused ? TerminalChrome.Gold : TerminalChrome.Green, decoration: Decoration.Bold));
+        var header = BuildHeader(state, width, separator);
         var tabs = Tabs(state.Tab, width);
         var footer = TerminalChrome.Keys(Strings.CliNavigation, width);
         if (width < 80 || height < 20) return new Rows(header, tabs, new Text(Strings.CliTerminalSmall), footer);
         var settings = state.Active;
         if (state.Help || settings.Details)
-        {
-            var contents = state.Help
-                ? state.Tab == TerminalTab.Hardware ? Strings.CliHardwareHelp + "\n" + Strings.CliHardwareIdentifiersOmitted : Strings.CliFullHelp + "\n" + Strings.CliHistoryKeys
-                : state.Selected?.Details ?? Strings.ProcessNotRecorded;
-            var lines = contents.Split('\n');
-            var count = Math.Max(1, height - 5);
-            settings.DetailOffset = Math.Clamp(settings.DetailOffset, 0, Math.Max(0, lines.Length - count));
-            var details = string.Join('\n', lines.Skip(settings.DetailOffset).Take(count)
-                .Select(line => string.Concat(SafeText(line.Replace("\t", "  ", StringComparison.Ordinal)).EnumerateRunes()
-                    .Skip(settings.HorizontalOffset).Select(r => r.ToString()))));
-            return new Rows(header, tabs, state.Help ? TerminalChrome.Keys(details, width) : Line(details, width), TerminalChrome.Keys(Strings.CliDetailsKeys, width));
-        }
+            return BuildDetailsView(state, settings, width, height, header, tabs);
         if (state.Tab == TerminalTab.Hardware)
             return BuildHardwareView(state, top, pageSize, width, height, header, tabs, footer);
         if (state.DisplayedFrame is not { } frame)
@@ -197,33 +183,11 @@ public static class InteractiveMonitor
         settings.Top = top;
         var result = state.Present(Query(state), pageSize);
         var summary = TerminalCharts.Summary(frame.Full, state.DisplayedSamples, width, height, unicode);
-        var pins = $"N {Strings.PinnedOnly} {Mark(settings.PinnedOnly)}{separator}P {Strings.Format(Strings.PinnedProcessCount, settings.Pins.Count)}";
-        var controls = $"B {Strings.Network} {Mark(state.NetworkEnabled)}{separator}" +
-            $"T {Strings.Top} {(settings.Top == 0 ? Strings.AllEntries : settings.Top)}{separator}" +
-            (state.Tab == TerminalTab.Services
-                ? "S " + (settings.Status switch { 1 => Strings.ServiceRunning, 2 => Strings.ServiceStopped, _ => Strings.AllServiceStatuses }) +
-                    $"{separator}W {Strings.ServiceWorkers} {Mark(settings.Workers)}"
-                : $"A {Strings.AppOnly} {Mark(settings.AppsOnly)}") + separator + pins;
-        if (state.Tab == TerminalTab.Processes) controls += $"{separator}G {Strings.Grouped} {Mark(settings.Grouped)}";
-        if (state.Tab == TerminalTab.Connections) controls += $"{separator}R {settings.TrafficSeconds}s";
-        if (state.Tab == TerminalTab.Usage) controls += $"{separator}U {state.UsagePeriodSeconds}s";
+        var controls = BuildControls(state, settings, separator, unicode);
         var table = BuildTable(state, result, pageSize, width, out var columnsHidden);
-        var timeLabel = state.Tab == TerminalTab.Processes
-            ? string.Format(CultureInfo.CurrentCulture, Strings.ProcessesAtSAverage, frame.Full.Timestamp, ProcessRanking.DefaultWindowSeconds, "")
-            : frame.Full.Timestamp.ToString("HH:mm:ss", CultureInfo.CurrentCulture);
-        var status = Line(timeLabel + separator +
-            string.Format(CultureInfo.CurrentCulture, Strings.CliWatchRows, result.Rows.Count == 0 ? 0 : state.Offset + 1,
-                Math.Min(state.Offset + pageSize, result.Rows.Count), result.Rows.Count) +
-            (columnsHidden ? separator + Strings.CliColumnsHint : ""), width);
-        var warning = state.Error is not null ? Strings.ReadingsUnavailableRetryingEachSecond : frame.Full.IsGap ? Strings.CliWarmingUp : result.Note;
-        if (result.Rows.Count == 0 && warning.Length == 0) warning = Strings.CliNoMatches;
-        if (state.Tab == TerminalTab.Connections && state.NetworkEnabled)
-            warning = TrafficNote(state) + (warning.Length > 0 ? " · " + warning : "");
-        if (state.SettingsSaveFailed) warning = Strings.CliSettingsSaveFailed + " " + warning;
-        var healthColor = state.SettingsSaveFailed || state.Error is not null || state.NetworkEnabled && state.Tab == TerminalTab.Connections &&
-            state.NetworkStatus is NetworkTrafficState.Unavailable or NetworkTrafficState.UpdateRequired ? TerminalChrome.Red :
-            state.NetworkEnabled && state.Tab == TerminalTab.Connections && state.NetworkStatus == NetworkTrafficState.Active
-                && warning == TrafficNote(state) ? TerminalChrome.Green : TerminalChrome.Gold;
+        var status = BuildStatusLine(state, frame, result, pageSize, width, columnsHidden, separator);
+        var warning = WarningText(state, frame, result);
+        var healthColor = WarningColor(state, warning);
         var view = new List<IRenderable> { header, tabs, summary, TerminalChrome.Keys(controls, width) };
         if (filterShown)
             view.Add(Line(string.Format(CultureInfo.CurrentCulture,
@@ -237,6 +201,70 @@ public static class InteractiveMonitor
         view.AddRange([status, Line(warning, width, new Style(healthColor)), footer]);
         return new Rows(view);
     }
+
+    private static Paragraph BuildHeader(InteractiveState state, int width, string separator) =>
+        new Paragraph(TerminalText.Fit($"{TerminalChrome.ProductName}{separator}{SafeText(Environment.MachineName)}{separator}", Math.Max(0, width - 12)), TerminalChrome.Accent)
+            .Append(state.Paused ? Strings.CliPaused : Strings.CliLive,
+                new Style(state.Paused ? TerminalChrome.Gold : TerminalChrome.Green, decoration: Decoration.Bold));
+
+    private static IRenderable BuildDetailsView(InteractiveState state, TerminalTabState settings, int width, int height,
+        IRenderable header, IRenderable tabs)
+    {
+        var contents = state.Help
+            ? state.Tab == TerminalTab.Hardware ? Strings.CliHardwareHelp + "\n" + Strings.CliHardwareIdentifiersOmitted : Strings.CliFullHelp + "\n" + Strings.CliHistoryKeys
+            : state.Selected?.Details ?? Strings.ProcessNotRecorded;
+        var lines = contents.Split('\n');
+        var count = Math.Max(1, height - 5);
+        settings.DetailOffset = Math.Clamp(settings.DetailOffset, 0, Math.Max(0, lines.Length - count));
+        var details = string.Join('\n', lines.Skip(settings.DetailOffset).Take(count)
+            .Select(line => string.Concat(SafeText(line.Replace("\t", "  ", StringComparison.Ordinal)).EnumerateRunes()
+                .Skip(settings.HorizontalOffset).Select(r => r.ToString()))));
+        return new Rows(header, tabs, state.Help ? TerminalChrome.Keys(details, width) : Line(details, width), TerminalChrome.Keys(Strings.CliDetailsKeys, width));
+    }
+
+    private static string BuildControls(InteractiveState state, TerminalTabState settings, string separator, bool unicode)
+    {
+        string Mark(bool value) => value ? unicode ? "[✓]" : "[x]" : "[ ]";
+        var pins = $"N {Strings.PinnedOnly} {Mark(settings.PinnedOnly)}{separator}P {Strings.Format(Strings.PinnedProcessCount, settings.Pins.Count)}";
+        var controls = $"B {Strings.Network} {Mark(state.NetworkEnabled)}{separator}" +
+            $"T {Strings.Top} {(settings.Top == 0 ? Strings.AllEntries : settings.Top)}{separator}" +
+            (state.Tab == TerminalTab.Services
+                ? "S " + (settings.Status switch { 1 => Strings.ServiceRunning, 2 => Strings.ServiceStopped, _ => Strings.AllServiceStatuses }) +
+                    $"{separator}W {Strings.ServiceWorkers} {Mark(settings.Workers)}"
+                : $"A {Strings.AppOnly} {Mark(settings.AppsOnly)}") + separator + pins;
+        if (state.Tab == TerminalTab.Processes) controls += $"{separator}G {Strings.Grouped} {Mark(settings.Grouped)}";
+        if (state.Tab == TerminalTab.Connections) controls += $"{separator}R {settings.TrafficSeconds}s";
+        if (state.Tab == TerminalTab.Usage) controls += $"{separator}U {state.UsagePeriodSeconds}s";
+        return controls;
+    }
+
+    private static Text BuildStatusLine(InteractiveState state, CapturedFrame frame, TerminalTable result, int pageSize,
+        int width, bool columnsHidden, string separator)
+    {
+        var timeLabel = state.Tab == TerminalTab.Processes
+            ? string.Format(CultureInfo.CurrentCulture, Strings.ProcessesAtSAverage, frame.Full.Timestamp, ProcessRanking.DefaultWindowSeconds, "")
+            : frame.Full.Timestamp.ToString("HH:mm:ss", CultureInfo.CurrentCulture);
+        return Line(timeLabel + separator +
+            string.Format(CultureInfo.CurrentCulture, Strings.CliWatchRows, result.Rows.Count == 0 ? 0 : state.Offset + 1,
+                Math.Min(state.Offset + pageSize, result.Rows.Count), result.Rows.Count) +
+            (columnsHidden ? separator + Strings.CliColumnsHint : ""), width);
+    }
+
+    private static string WarningText(InteractiveState state, CapturedFrame frame, TerminalTable result)
+    {
+        var warning = state.Error is not null ? Strings.ReadingsUnavailableRetryingEachSecond : frame.Full.IsGap ? Strings.CliWarmingUp : result.Note;
+        if (result.Rows.Count == 0 && warning.Length == 0) warning = Strings.CliNoMatches;
+        if (state.Tab == TerminalTab.Connections && state.NetworkEnabled)
+            warning = TrafficNote(state) + (warning.Length > 0 ? " · " + warning : "");
+        if (state.SettingsSaveFailed) warning = Strings.CliSettingsSaveFailed + " " + warning;
+        return warning;
+    }
+
+    private static Color WarningColor(InteractiveState state, string warning) =>
+        state.SettingsSaveFailed || state.Error is not null || state.NetworkEnabled && state.Tab == TerminalTab.Connections &&
+            state.NetworkStatus is NetworkTrafficState.Unavailable or NetworkTrafficState.UpdateRequired ? TerminalChrome.Red :
+            state.NetworkEnabled && state.Tab == TerminalTab.Connections && state.NetworkStatus == NetworkTrafficState.Active
+                && warning == TrafficNote(state) ? TerminalChrome.Green : TerminalChrome.Gold;
 
     private static IRenderable BuildHardwareView(InteractiveState state, int top, int pageSize, int width, int height,
         IRenderable header, IRenderable tabs, IRenderable footer)

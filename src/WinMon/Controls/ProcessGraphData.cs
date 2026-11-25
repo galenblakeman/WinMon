@@ -49,35 +49,7 @@ internal sealed record ProcessGraphData(
             uncached--;
         }
 
-        var observed = new bool[identities.Count];
-        for (var sampleIndex = uncached == 0 ? shared : 0; sampleIndex < visible.Length; sampleIndex++)
-        {
-            var sample = visible[sampleIndex];
-            if (sample.IsGap) continue;
-            var copied = sampleIndex < shared;
-            Array.Clear(observed);
-            var remaining = copied ? uncached : identities.Count;
-            var processes = sample.Processes;
-            for (var p = 0; p < processes.Count; p++)
-            {
-                var process = processes[p];
-                if (!indices.TryGetValue(process.Identity, out var index) || copied && cached[index]) continue;
-                // Keep the first imported entry, including an explicitly unavailable reading.
-                if (observed[index]) continue;
-                observed[index] = true;
-                values[index][sampleIndex] = Value(process, sort, false);
-                if (--remaining == 0) break;
-            }
-
-            // Compaction establishes idle CPU/I/O, but cannot recover memory or unavailable GPU readings.
-            if (sample.CompactedProcesses == 0 || sort is not (ProcessSort.Cpu or ProcessSort.Io)) continue;
-            var sampleTime = FileTime(sample);
-            for (var index = 0; index < identities.Count; index++)
-                if (!observed[index] && !(copied && cached[index]) && values[index][sampleIndex] is null &&
-                    identities[index].LifetimeDomain == ProcessLifetimeIdentity.WindowsFileTime &&
-                    identities[index].CreationTicks <= sampleTime)
-                    values[index][sampleIndex] = 0;
-        }
+        PopulateIndividualValues(visible, identities, indices, values, cached, uncached, shared, sort);
 
         if (reuse is not null)
         {
@@ -118,49 +90,9 @@ internal sealed record ProcessGraphData(
             uncached--;
         }
 
-        var missingCounts = sort is ProcessSort.Cpu or ProcessSort.Threads or ProcessSort.Handles
-            ? new bool[groups.Count] : null;
-        for (var sampleIndex = uncached == 0 ? shared : 0; sampleIndex < visible.Length; sampleIndex++)
-        {
-            var sample = visible[sampleIndex];
-            if (sample.IsGap) continue;
-            var copied = sampleIndex < shared;
-            if (missingCounts is not null) Array.Clear(missingCounts);
-            var processes = sample.Processes;
-            for (var p = 0; p < processes.Count; p++)
-            {
-                var process = processes[p];
-                if (!indices.TryGetValue(ProcessRanking.GroupKey(process), out var index) ||
-                    copied && cached[index]) continue;
-                observed[index][sampleIndex] = true;
-                if (Value(process, sort, true) is not { } value)
-                {
-                    missingCounts?[index] = true;
-                    continue;
-                }
+        PopulateGroupValues(visible, groups, sort, indices, values, observed, cached, shared, uncached);
 
-                values[index][sampleIndex] = sort == ProcessSort.Gpu
-                    ? Math.Max(values[index][sampleIndex] ?? 0, value)
-                    : (values[index][sampleIndex] ?? 0) + value;
-            }
-
-            if (missingCounts is null) continue;
-            for (var index = 0; index < groups.Count; index++)
-                if (missingCounts[index] && !(copied && cached[index])) values[index][sampleIndex] = null;
-        }
-
-        // Compaction establishes idle CPU/I/O for groups absent from a sample that started before it.
-        if (sort is ProcessSort.Cpu or ProcessSort.Io)
-            for (var sampleIndex = 0; sampleIndex < visible.Length; sampleIndex++)
-            {
-                var sample = visible[sampleIndex];
-                if (sample.IsGap || sample.CompactedProcesses == 0) continue;
-                var sampleTime = FileTime(sample);
-                for (var index = 0; index < groups.Count; index++)
-                    if (!observed[index][sampleIndex] &&
-                        groups[index].LifetimeDomain == ProcessLifetimeIdentity.WindowsFileTime &&
-                        groups[index].CreationTicks <= sampleTime) values[index][sampleIndex] = 0;
-            }
+        FillCompactedGroupIdle(visible, groups, sort, values, observed);
 
         if (reuse is not null)
         {
@@ -232,5 +164,93 @@ internal sealed record ProcessGraphData(
         return sort is ProcessSort.Cpu or ProcessSort.Gpu
             ? Math.Clamp(Math.Ceiling(peak * 11) / 10, 0.1, 100)
             : Math.Max(1, peak * 1.1);
+    }
+
+    private static void PopulateIndividualValues(MonitorSample[] visible, IReadOnlyList<ProcessUsage> identities,
+        Dictionary<ProcessLifetimeIdentity, int> indices, double?[][] values, bool[] cached, int uncached,
+        int shared, ProcessSort sort)
+    {
+        var observed = new bool[identities.Count];
+        for (var sampleIndex = uncached == 0 ? shared : 0; sampleIndex < visible.Length; sampleIndex++)
+        {
+            var sample = visible[sampleIndex];
+            if (sample.IsGap) continue;
+            var copied = sampleIndex < shared;
+            Array.Clear(observed);
+            var remaining = copied ? uncached : identities.Count;
+            var processes = sample.Processes;
+            for (var p = 0; p < processes.Count; p++)
+            {
+                var process = processes[p];
+                if (!indices.TryGetValue(process.Identity, out var index) || copied && cached[index]) continue;
+                // Keep the first imported entry, including an explicitly unavailable reading.
+                if (observed[index]) continue;
+                observed[index] = true;
+                values[index][sampleIndex] = Value(process, sort, false);
+                if (--remaining == 0) break;
+            }
+
+            // Compaction establishes idle CPU/I/O, but cannot recover memory or unavailable GPU readings.
+            if (sample.CompactedProcesses == 0 || sort is not (ProcessSort.Cpu or ProcessSort.Io)) continue;
+            var sampleTime = FileTime(sample);
+            for (var index = 0; index < identities.Count; index++)
+                if (!observed[index] && !(copied && cached[index]) && values[index][sampleIndex] is null &&
+                    identities[index].LifetimeDomain == ProcessLifetimeIdentity.WindowsFileTime &&
+                    identities[index].CreationTicks <= sampleTime)
+                    values[index][sampleIndex] = 0;
+        }
+    }
+
+    private static void PopulateGroupValues(MonitorSample[] visible, IReadOnlyList<ProcessUsage> groups,
+        ProcessSort sort, Dictionary<string, int> indices, double?[][] values, bool[][] observed,
+        bool[] cached, int shared, int uncached)
+    {
+        var missingCounts = sort is ProcessSort.Cpu or ProcessSort.Threads or ProcessSort.Handles
+            ? new bool[groups.Count] : null;
+        for (var sampleIndex = uncached == 0 ? shared : 0; sampleIndex < visible.Length; sampleIndex++)
+        {
+            var sample = visible[sampleIndex];
+            if (sample.IsGap) continue;
+            var copied = sampleIndex < shared;
+            if (missingCounts is not null) Array.Clear(missingCounts);
+            var processes = sample.Processes;
+            for (var p = 0; p < processes.Count; p++)
+            {
+                var process = processes[p];
+                if (!indices.TryGetValue(ProcessRanking.GroupKey(process), out var index) ||
+                    copied && cached[index]) continue;
+                observed[index][sampleIndex] = true;
+                if (Value(process, sort, true) is not { } value)
+                {
+                    missingCounts?[index] = true;
+                    continue;
+                }
+
+                values[index][sampleIndex] = sort == ProcessSort.Gpu
+                    ? Math.Max(values[index][sampleIndex] ?? 0, value)
+                    : (values[index][sampleIndex] ?? 0) + value;
+            }
+
+            if (missingCounts is null) continue;
+            for (var index = 0; index < groups.Count; index++)
+                if (missingCounts[index] && !(copied && cached[index])) values[index][sampleIndex] = null;
+        }
+    }
+
+    private static void FillCompactedGroupIdle(MonitorSample[] visible, IReadOnlyList<ProcessUsage> groups,
+        ProcessSort sort, double?[][] values, bool[][] observed)
+    {
+        // Compaction establishes idle CPU/I/O for groups absent from a sample that started before it.
+        if (sort is ProcessSort.Cpu or ProcessSort.Io)
+            for (var sampleIndex = 0; sampleIndex < visible.Length; sampleIndex++)
+            {
+                var sample = visible[sampleIndex];
+                if (sample.IsGap || sample.CompactedProcesses == 0) continue;
+                var sampleTime = FileTime(sample);
+                for (var index = 0; index < groups.Count; index++)
+                    if (!observed[index][sampleIndex] &&
+                        groups[index].LifetimeDomain == ProcessLifetimeIdentity.WindowsFileTime &&
+                        groups[index].CreationTicks <= sampleTime) values[index][sampleIndex] = 0;
+            }
     }
 }

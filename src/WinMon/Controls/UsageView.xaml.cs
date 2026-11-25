@@ -363,6 +363,12 @@ public partial class UsageView
             foreach (var key in _rowsByKey.Keys.Where(key => !keys.Contains(key)).ToArray()) _rowsByKey.Remove(key);
         }
 
+        UpdateFrameControls(frame);
+        UpdateActionBar();
+    }
+
+    private void UpdateFrameControls(UsageFrame? frame)
+    {
         NotAttributedCpu.Text = frame?.Available != true ? Strings.MissingReading : UsageText.CpuTime(frame.NotAttributedTicks);
         NotAttributedShare.Text =
             frame?.Available != true ? Strings.MissingReading : UsageText.Share(frame.NotAttributedTicks, frame.MachineBusyTicks);
@@ -374,7 +380,6 @@ public partial class UsageView
             frame.Capturing ? UsageText.PeriodNote(frame) :
             _rows.Count == 0 ? Strings.UsageNoAppsMatch : "";
         Notice.Visibility = Notice.Text.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
-        UpdateActionBar();
     }
 
     private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)

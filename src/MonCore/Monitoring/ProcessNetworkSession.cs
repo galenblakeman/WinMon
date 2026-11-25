@@ -1,6 +1,8 @@
 // Deserialized payloads can contain null despite non-nullable model annotations.
 // ReSharper disable ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
 
+using System.Runtime.CompilerServices;
+
 namespace WinMon.Monitoring;
 
 /// <summary>Client-session process-network totals adjusted from service-generation counters.</summary>
@@ -76,39 +78,87 @@ public sealed class ProcessNetworkSession
         if (nowQpc < 0) throw new ArgumentOutOfRangeException(nameof(nowQpc));
 
         var quality = snapshot.Quality;
-        if (snapshot.Frequency <= 0 || snapshot.TimestampQpc < 0 || snapshot.WindowStartQpc < 0 ||
-            snapshot.WindowEndQpc < snapshot.WindowStartQpc || snapshot.WindowEndQpc > snapshot.TimestampQpc ||
-            snapshot.Processes is null)
+        if (!ValidSnapshot(snapshot))
             return Unavailable(nowQpc, snapshot.Frequency > 0 ? snapshot.Frequency : _frequency > 0 ? _frequency : 1);
 
+        if (TryReplay(snapshot, nowQpc, out var replay)) return replay;
         var initial = !_hasSnapshot;
-        var olderTimestamp = _hasSnapshot && snapshot.TimestampQpc < _lastTimestampQpc;
-        if (olderTimestamp)
-            return Frame(snapshot, quality | ProcessNetworkQuality.Incomplete,
+        var discontinuity = ObserveContinuity(snapshot, ref quality);
+        var (readings, currentIdentities) = AddProcesses(snapshot, ref quality);
+        var currentFlows = SnapshotFlowIdentities(snapshot);
+        var flowQuality = snapshot.FlowTrafficSupported ? snapshot.FlowQuality : ProcessNetworkQuality.None;
+        var flows = AddFlows(snapshot, currentFlows, ref flowQuality);
+
+        RememberSnapshot(snapshot);
+        return Frame(snapshot, quality, flowQuality, readings, flows, nowQpc,
+            discontinuity, currentIdentities, currentFlows, initial);
+    }
+
+    private static bool ValidSnapshot(ProcessNetworkSnapshot snapshot) =>
+        !(snapshot.Frequency <= 0 || snapshot.TimestampQpc < 0 || snapshot.WindowStartQpc < 0 ||
+            snapshot.WindowEndQpc < snapshot.WindowStartQpc || snapshot.WindowEndQpc > snapshot.TimestampQpc ||
+            snapshot.Processes is null);
+
+    private bool TryReplay(ProcessNetworkSnapshot snapshot, long nowQpc, out ProcessNetworkFrame replay)
+    {
+        var quality = snapshot.Quality;
+        if (_hasSnapshot && snapshot.TimestampQpc < _lastTimestampQpc)
+        {
+            replay = Frame(snapshot, quality | ProcessNetworkQuality.Incomplete,
                 snapshot.FlowTrafficSupported ? snapshot.FlowQuality | ProcessNetworkQuality.Incomplete :
                 ProcessNetworkQuality.None, _lastReadings.Values, _lastFlows.Values, nowQpc, true,
                 EmptyLifetimes, EmptyFlows);
+            return true;
+        }
 
-        var generationChanged = _hasSnapshot && snapshot.Generation != _generation;
-        var reconnected = _hasSnapshot && _subscriptionId != Guid.Empty && snapshot.SubscriptionId != Guid.Empty &&
-                          snapshot.SubscriptionId != _subscriptionId;
-        var clockChanged = _hasSnapshot && snapshot.Frequency != _frequency;
-        var older = _hasSnapshot && !generationChanged && !reconnected && snapshot.Sequence < _lastSequence;
-        var duplicate = _hasSnapshot && !generationChanged && !reconnected && snapshot.Sequence == _lastSequence;
-        if (older || duplicate)
-            return Frame(snapshot, quality,
+        if (_hasSnapshot && snapshot.Generation == _generation && !Reconnected(snapshot) &&
+            snapshot.Sequence <= _lastSequence)
+        {
+            var older = snapshot.Sequence < _lastSequence;
+            replay = Frame(snapshot, quality,
                 snapshot.FlowTrafficSupported ? snapshot.FlowQuality : ProcessNetworkQuality.None,
                 _lastReadings.Values, _lastFlows.Values, nowQpc, older,
                 older ? EmptyLifetimes : SnapshotIdentities(snapshot),
                 older ? EmptyFlows : SnapshotFlowIdentities(snapshot));
+            return true;
+        }
 
+        replay = null!;
+        return false;
+    }
+
+    private bool Reconnected(ProcessNetworkSnapshot snapshot) =>
+        _hasSnapshot && _subscriptionId != Guid.Empty && snapshot.SubscriptionId != Guid.Empty &&
+        snapshot.SubscriptionId != _subscriptionId;
+
+    private bool ObserveContinuity(ProcessNetworkSnapshot snapshot, ref ProcessNetworkQuality quality)
+    {
+        var generationChanged = _hasSnapshot && snapshot.Generation != _generation;
+        var reconnected = Reconnected(snapshot);
+        var clockChanged = _hasSnapshot && snapshot.Frequency != _frequency;
         var gap = _hasSnapshot && !generationChanged && !reconnected && snapshot.Sequence != _lastSequence + 1;
+        var discontinuity = generationChanged || reconnected || clockChanged;
+        ObserveQuality(snapshot, discontinuity || gap, ref quality);
+
+        if (discontinuity) quality |= ProcessNetworkQuality.Discontinuity;
+        if (generationChanged || reconnected)
+        {
+            foreach (var lifetime in _lifetimes.Values)
+                lifetime.ResetGeneration();
+            foreach (var flow in _flows.Values)
+                flow.Totals.ResetGeneration();
+        }
+        return discontinuity;
+    }
+
+    private void ObserveQuality(ProcessNetworkSnapshot snapshot, bool streamInterrupted, ref ProcessNetworkQuality quality)
+    {
         var qualityIssue = (snapshot.Quality & (ProcessNetworkQuality.Incomplete |
                                                 ProcessNetworkQuality.CapacityExceeded |
                                                 ProcessNetworkQuality.Discontinuity)) != 0;
         var discontinuityStarted = snapshot.Quality.HasFlag(ProcessNetworkQuality.Discontinuity) &&
                                    !_lastQuality.HasFlag(ProcessNetworkQuality.Discontinuity);
-        var interrupted = generationChanged || reconnected || clockChanged || gap || discontinuityStarted ||
+        var interrupted = streamInterrupted || discontinuityStarted ||
                           snapshot.EventsLost != _lastEventsLost || snapshot.DroppedEvents != _lastDroppedEvents;
         if (interrupted)
         {
@@ -122,24 +172,16 @@ public sealed class ProcessNetworkSession
             _incomplete = true;
             quality |= ProcessNetworkQuality.Incomplete;
         }
+    }
 
-        if (generationChanged || reconnected || clockChanged)
-            quality |= ProcessNetworkQuality.Discontinuity;
-
-        if (generationChanged || reconnected)
-        {
-            foreach (var lifetime in _lifetimes.Values)
-                lifetime.ResetGeneration();
-            foreach (var flow in _flows.Values)
-                flow.Totals.ResetGeneration();
-        }
-
+    private (List<ProcessNetworkReading> Readings, HashSet<ProcessLifetimeIdentity> CurrentIdentities)
+        AddProcesses(ProcessNetworkSnapshot snapshot, ref ProcessNetworkQuality quality)
+    {
         var readings = new List<ProcessNetworkReading>(snapshot.Processes.Count);
         var currentIdentities = new HashSet<ProcessLifetimeIdentity>();
         foreach (var reading in snapshot.Processes)
         {
-            if (reading is null || reading.ProcessId <= 0 || reading.CreationTicks <= 0 ||
-                reading.ReceivedBytes < 0 || reading.SentBytes < 0)
+            if (!ValidReading(reading))
             {
                 quality |= ProcessNetworkQuality.Incomplete;
                 _incomplete = true;
@@ -190,10 +232,15 @@ public sealed class ProcessNetworkSession
                     ReceiveBytesPerSecond = null, SendBytesPerSecond = null
                 });
 
-        var currentFlows = SnapshotFlowIdentities(snapshot);
-        var flowQuality = snapshot.FlowTrafficSupported ? snapshot.FlowQuality : ProcessNetworkQuality.None;
-        var flows = AddFlows(snapshot, currentFlows, ref flowQuality);
+        return (readings, currentIdentities);
+    }
 
+    private static bool ValidReading(ProcessNetworkReading reading) =>
+        !(reading is null || reading.ProcessId <= 0 || reading.CreationTicks <= 0 ||
+            reading.ReceivedBytes < 0 || reading.SentBytes < 0);
+
+    private void RememberSnapshot(ProcessNetworkSnapshot snapshot)
+    {
         if (!_hasSnapshot) _ratesBlockedUntilQpc = Math.Max(_ratesBlockedUntilQpc, snapshot.TimestampQpc);
         _generation = snapshot.Generation;
         if (snapshot.SubscriptionId != Guid.Empty) _subscriptionId = snapshot.SubscriptionId;
@@ -205,8 +252,6 @@ public sealed class ProcessNetworkSession
         _lastQuality = snapshot.Quality;
         _hasSnapshot = true;
         _flowTrafficSupported = snapshot.FlowTrafficSupported;
-        return Frame(snapshot, quality, flowQuality, readings, flows, nowQpc,
-            generationChanged || reconnected || clockChanged, currentIdentities, currentFlows, initial);
     }
 
     /// <summary>Publishes retained session totals while the service has no usable snapshot.</summary>
@@ -268,13 +313,7 @@ public sealed class ProcessNetworkSession
             quality |= warmingUp ? ProcessNetworkQuality.WarmingUp : ProcessNetworkQuality.Incomplete;
         else if (forceNoRates) quality |= ProcessNetworkQuality.Incomplete;
         if (_incomplete) quality |= ProcessNetworkQuality.Incomplete;
-        var flowRatesAvailable = ratesAvailable && snapshot.FlowTrafficSupported &&
-                                 snapshot.WindowStartQpc >= _flowRatesBlockedUntilQpc &&
-                                 !flowQuality.HasFlag(ProcessNetworkQuality.Unavailable) &&
-                                 !flowQuality.HasFlag(ProcessNetworkQuality.WarmingUp);
-        if (stale) flowQuality |= ProcessNetworkQuality.Unavailable | ProcessNetworkQuality.Incomplete;
-        else if (!flowRatesAvailable && snapshot.FlowTrafficSupported)
-            flowQuality |= ProcessNetworkQuality.Incomplete;
+        var (flowRatesAvailable, adjustedFlowQuality) = FlowRateState(snapshot, flowQuality, ratesAvailable, stale);
         return new ProcessNetworkFrame(snapshot.TimestampQpc, snapshot.Frequency, quality,
             readings.Select(reading => ratesAvailable && currentLifetimes.Contains(new ProcessLifetimeIdentity(
                 reading.ProcessId, reading.CreationTicks, ProcessLifetimeIdentity.WindowsFileTime))
@@ -292,8 +331,21 @@ public sealed class ProcessNetworkSession
             CurrentLifetimes = currentLifetimes,
             CurrentFlows = currentFlows,
             FlowTrafficSupported = snapshot.FlowTrafficSupported,
-            FlowQuality = snapshot.FlowTrafficSupported ? flowQuality : ProcessNetworkQuality.None
+            FlowQuality = snapshot.FlowTrafficSupported ? adjustedFlowQuality : ProcessNetworkQuality.None
         };
+    }
+
+    private (bool RatesAvailable, ProcessNetworkQuality Quality) FlowRateState(ProcessNetworkSnapshot snapshot,
+        ProcessNetworkQuality quality, bool processRatesAvailable, bool stale)
+    {
+        var available = processRatesAvailable && snapshot.FlowTrafficSupported &&
+                        snapshot.WindowStartQpc >= _flowRatesBlockedUntilQpc &&
+                        !quality.HasFlag(ProcessNetworkQuality.Unavailable) &&
+                        !quality.HasFlag(ProcessNetworkQuality.WarmingUp);
+        if (stale) quality |= ProcessNetworkQuality.Unavailable | ProcessNetworkQuality.Incomplete;
+        else if (!available && snapshot.FlowTrafficSupported)
+            quality |= ProcessNetworkQuality.Incomplete;
+        return (available, quality);
     }
 
     private static IReadOnlySet<ProcessLifetimeIdentity> SnapshotIdentities(ProcessNetworkSnapshot snapshot)
@@ -310,10 +362,7 @@ public sealed class ProcessNetworkSession
         var flows = new List<ProcessNetworkFlowReading>(snapshot.Flows.Count);
         foreach (var reading in snapshot.Flows)
         {
-            if (reading is null || reading.ProcessId <= 0 || reading.CreationTicks <= 0 ||
-                !Enum.IsDefined(reading.Protocol) || reading.LocalEndpoint.Length == 0 ||
-                reading.RemoteEndpoint.Length == 0 ||
-                reading.ReceivedBytes < 0 || reading.SentBytes < 0)
+            if (!ValidFlowReading(reading))
             {
                 flowQuality |= ProcessNetworkQuality.Incomplete;
                 continue;
@@ -359,6 +408,12 @@ public sealed class ProcessNetworkSession
                 flows.Add(reading with { ReceiveBytesPerSecond = null, SendBytesPerSecond = null });
         return flows;
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool ValidFlowReading(ProcessNetworkFlowReading reading) =>
+        !(reading is null || reading.ProcessId <= 0 || reading.CreationTicks <= 0 ||
+            !Enum.IsDefined(reading.Protocol) || reading.LocalEndpoint.Length == 0 ||
+            reading.RemoteEndpoint.Length == 0 || reading.ReceivedBytes < 0 || reading.SentBytes < 0);
 
     private static IReadOnlySet<ProcessNetworkFlowIdentity> SnapshotFlowIdentities(ProcessNetworkSnapshot snapshot)
     {

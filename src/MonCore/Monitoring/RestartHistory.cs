@@ -1,6 +1,7 @@
 using System.Buffers.Binary;
 using System.Diagnostics;
 using System.IO.Compression;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 
@@ -82,15 +83,7 @@ public static class RestartHistory
         UsageLedgerState? usage, RestartClock clock, Func<string, Stream>? createTemporary = null,
         long maxBytes = long.MaxValue, InvestigationHistory? investigation = null)
     {
-        // Format 1 carries Windows FILETIME identities and cannot preserve portable domains or availability.
-        // Refuse before opening a temporary file; keep existing Windows bytes and files unchanged.
-        if (samples.Any(sample => sample.IndependentProcessReadings || sample.Processes.Any(process =>
-                process.LifetimeDomain != ProcessLifetimeIdentity.WindowsFileTime || !process.CpuAvailable ||
-                process.StartedAtUtc is not null)) ||
-            (usage is not null && (usage.IdentityPolicyId != ProcessIdentityPolicy.Windows.Id ||
-                                   usage.Lifetimes.Any(lifetime =>
-                                       lifetime.LifetimeDomain != ProcessLifetimeIdentity.WindowsFileTime))))
-            return false;
+        if (HasUnsupportedMetadata(samples, usage)) return false;
         var start = clock.Timestamp();
         var directory = Path.GetDirectoryName(path) ?? ".";
         var temporary = Path.Combine(directory, $".{Path.GetFileName(path)}.{Guid.NewGuid():N}.tmp");
@@ -154,6 +147,15 @@ public static class RestartHistory
             return false;
         }
     }
+
+    // Restart formats carry Windows FILETIME identities; reject portable metadata before clocks or file creation.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool HasUnsupportedMetadata(IReadOnlyList<MonitorSample> samples, UsageLedgerState? usage) =>
+        samples.Any(sample => sample.IndependentProcessReadings || sample.Processes.Any(process =>
+            process.LifetimeDomain != ProcessLifetimeIdentity.WindowsFileTime || !process.CpuAvailable ||
+            process.StartedAtUtc is not null)) ||
+        (usage is not null && (usage.IdentityPolicyId != ProcessIdentityPolicy.Windows.Id ||
+            usage.Lifetimes.Any(lifetime => lifetime.LifetimeDomain != ProcessLifetimeIdentity.WindowsFileTime)));
 
     /// <summary>Save the current retention window for an ordinary exit, without carrying Usage totals.</summary>
     public static bool SaveNormal(string path, string appVersion, IReadOnlyList<MonitorSample> samples,
@@ -263,39 +265,75 @@ public static class RestartHistory
     {
         var start = clock.Timestamp();
         if (!stream.CanSeek || stream.Length < HeaderMagic.Length + TrailerLength) return null;
-        long headerLength, savedTimestamp;
-        int version;
+        if (!TryReadHeader(stream, token, clock, validateRestart, out var version, out var savedTimestamp, out var headerLength) ||
+            !TryReadTrailer(stream, headerLength, out var count)) return null;
+        return ReadContents(stream, clock, start, headerLength, savedTimestamp, version, count);
+    }
+
+    private static bool TryReadHeader(Stream stream, string token, RestartClock clock, bool validateRestart,
+        out int version, out long savedTimestamp, out long headerLength)
+    {
+        version = 0;
+        savedTimestamp = headerLength = 0;
         using (var reader = new BinaryReader(stream, Encoding.UTF8, true))
         {
-            if (!reader.ReadBytes(HeaderMagic.Length).AsSpan().SequenceEqual(HeaderMagic)) return null;
+            if (!reader.ReadBytes(HeaderMagic.Length).AsSpan().SequenceEqual(HeaderMagic)) return false;
             version = reader.ReadInt32();
-            if (version is < 1 or > FormatVersion) return Reject("an unknown format version");
+            if (version is < 1 or > FormatVersion)
+            {
+                Reject("an unknown format version");
+                return false;
+            }
             _ = reader.ReadString();
-            if (reader.ReadString() != token) return Reject("another update's token");
+            if (reader.ReadString() != token)
+            {
+                Reject("another update's token");
+                return false;
+            }
             var frequency = reader.ReadInt64();
             savedTimestamp = reader.ReadInt64();
             var savedTickCount = reader.ReadInt64();
-            if (frequency != clock.Frequency) return Reject("a different timer frequency");
+            if (frequency != clock.Frequency)
+            {
+                Reject("a different timer frequency");
+                return false;
+            }
             var timerSeconds = (clock.Timestamp() - savedTimestamp) / (double)frequency;
             var tickSeconds = (clock.TickCount() - savedTickCount) / 1000d;
             if (validateRestart && (timerSeconds is < 0 or > MaxAgeSeconds || tickSeconds is < 0 or > MaxAgeSeconds ||
                                     Math.Abs(timerSeconds - tickSeconds) > ClockToleranceSeconds))
-                return Reject("monotonic clocks that do not match a recent restart");
+            {
+                Reject("monotonic clocks that do not match a recent restart");
+                return false;
+            }
             headerLength = stream.Position;
         }
+        return true;
+    }
 
+    private static bool TryReadTrailer(Stream stream, long headerLength, out int count)
+    {
+        count = 0;
         var header = new byte[headerLength];
         stream.Position = 0;
         stream.ReadExactly(header);
-        if (stream.Length < headerLength + TrailerLength) return null;
+        if (stream.Length < headerLength + TrailerLength) return false;
         Span<byte> trailer = stackalloc byte[TrailerLength];
         stream.Position = stream.Length - TrailerLength;
         stream.ReadExactly(trailer);
         if (!trailer[..4].SequenceEqual(TrailerMagic) ||
             BinaryPrimitives.ReadUInt32LittleEndian(trailer[8..]) != Crc32.Compute(header))
-            return Reject("an unfinished save");
-        var count = BinaryPrimitives.ReadInt32LittleEndian(trailer[4..]);
+        {
+            Reject("an unfinished save");
+            return false;
+        }
+        count = BinaryPrimitives.ReadInt32LittleEndian(trailer[4..]);
+        return true;
+    }
 
+    private static RestartContents ReadContents(Stream stream, RestartClock clock, long start, long headerLength,
+        long savedTimestamp, int version, int count)
+    {
         var end = stream.Length - TrailerLength;
         stream.Position = headerLength;
         UsageLedgerState? usage = null;
@@ -313,28 +351,9 @@ public static class RestartHistory
             var payload = new byte[length];
             stream.ReadExactly(payload);
             var valid = Crc32.Compute(payload) == crc;
-            if (kind == LedgerChunk)
+            if (kind is LedgerChunk or InvestigationChunk)
             {
-                // A bad ledger costs only the Usage totals; the samples behind it are still read.
-                if (valid) usage = TryParse(payload, ReadUsage);
-                continue;
-            }
-
-            if (kind == InvestigationChunk)
-            {
-                if (valid && TryParse(payload, reader =>
-                    {
-                        var jsonLength = reader.ReadInt32();
-                        if (jsonLength is < 0 or > 64 * 1024 * 1024)
-                            throw new InvalidDataException("Investigation chunk exceeds the size limit.");
-                        var decoded = JsonSerializer.Deserialize<InvestigationHistory.Frame?[]>(reader.ReadBytes(jsonLength),
-                            InvestigationHistory.Json);
-                        if (decoded is null || decoded.Length > ChunkSamples ||
-                            decoded.OfType<InvestigationHistory.Frame>().Any(frame => !InvestigationHistory.Valid(frame)))
-                            throw new InvalidDataException("Invalid investigation observations.");
-                        return decoded;
-                    }) is { } frames)
-                    investigation.AddRange(frames.OfType<InvestigationHistory.Frame>());
+                ReadOptionalChunk(kind, payload, valid, ref usage, investigation);
                 continue;
             }
 
@@ -349,6 +368,31 @@ public static class RestartHistory
         var liveOffset = restored.Length == 0 ? 0 : Math.Max(0, restored[^1].MonotonicTimestamp - savedTimestamp);
         return new RestartContents(restored, usage, liveOffset)
         { Investigation = new InvestigationHistory(investigation) };
+    }
+
+    private static void ReadOptionalChunk(byte kind, byte[] payload, bool valid, ref UsageLedgerState? usage,
+        List<InvestigationHistory.Frame> investigation)
+    {
+        // Optional metadata failures do not stop the sample chain that follows them.
+        if (kind == LedgerChunk)
+        {
+            if (valid) usage = TryParse(payload, ReadUsage);
+            return;
+        }
+
+        if (valid && TryParse(payload, reader =>
+            {
+                var jsonLength = reader.ReadInt32();
+                if (jsonLength is < 0 or > 64 * 1024 * 1024)
+                    throw new InvalidDataException("Investigation chunk exceeds the size limit.");
+                var decoded = JsonSerializer.Deserialize<InvestigationHistory.Frame?[]>(reader.ReadBytes(jsonLength),
+                    InvestigationHistory.Json);
+                if (decoded is null || decoded.Length > ChunkSamples ||
+                    decoded.OfType<InvestigationHistory.Frame>().Any(frame => !InvestigationHistory.Valid(frame)))
+                    throw new InvalidDataException("Invalid investigation observations.");
+                return decoded;
+            }) is { } frames)
+            investigation.AddRange(frames.OfType<InvestigationHistory.Frame>());
     }
 
     private static RestartContents? Reject(string reason)

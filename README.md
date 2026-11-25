@@ -4,6 +4,8 @@
 
 WinMon brings CPU, memory, disk, network and GPU activity into one Windows dashboard. Spot a spike, find the busiest processes and services, and look back at what was happening when it occurred.
 
+Closing WinMon completes shutdown even when its pending work has already finished.
+
 Sampling uses a dedicated worker with elevated scheduling priority on Windows to keep recording responsive under CPU load. Missing readings and genuine collection delays remain visible as chart gaps.
 
 MCP performance recordings retain valid captured intervals even when report processing falls behind collection.
@@ -115,6 +117,8 @@ Switch to **Compact view** to keep resource readings visible in a slim window. E
 ![WinMon Compact view with live CPU, memory, disk, network and GPU readings](docs/example/example_compact.png)
 
 Choose light, dark or additional appearances, independent chart palettes and seven gauge options, including None. Settings previews the combination before you save. A Colorblind palette adds distinct line patterns. The interface is available in ten languages.
+
+Resource readouts stay centered in their columns in full and compact views.
 
 [Compare appearances and palettes](docs/example/README.md#customize) · [Customize WinMon](docs/USER-GUIDE.md#make-it-yours)
 

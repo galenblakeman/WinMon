@@ -238,21 +238,21 @@
                                 x:Name="CpuMetric"
                                 ShowSeriesToggle="False"
                                 Grid.Column="0"
-                                Margin="10,4,8,4"
+                                Margin="9,4,9,4"
                                 AccentKey="CpuAccent"
                                 Label="{Binding [CPU], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                             <controls:MetricReadout
                                 x:Name="MemoryMetric"
                                 ShowSeriesToggle="False"
                                 Grid.Column="1"
-                                Margin="10,4,8,4"
+                                Margin="9,4,9,4"
                                 AccentKey="MemoryAccent"
                                 Label="{Binding [Memory], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                             <controls:MetricReadout
                                 x:Name="DiskMetric"
                                 ShowSeriesToggle="False"
                                 Grid.Column="2"
-                                Margin="10,4,8,4"
+                                Margin="9,4,9,4"
                                 AccentKey="DiskAccent"
                                 Label="{Binding [Disk], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                             <Border
@@ -265,7 +265,7 @@
                                 x:Name="SecondaryDiskMetric"
                                 ShowSeriesToggle="False"
                                 Grid.Column="3"
-                                Margin="10,4,8,4"
+                                Margin="9,4,9,4"
                                 AccentKey="SecondaryDiskAccent"
                                 Label="{Binding [Disk], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                                 Visibility="Collapsed" />
@@ -273,14 +273,14 @@
                                 x:Name="NetworkMetric"
                                 ShowSeriesToggle="False"
                                 Grid.Column="4"
-                                Margin="10,4,8,4"
+                                Margin="9,4,9,4"
                                 AccentKey="NetworkAccent"
                                 Label="{Binding [Network], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                             <controls:MetricReadout
                                 x:Name="GpuMetric"
                                 ShowSeriesToggle="False"
                                 Grid.Column="5"
-                                Margin="10,4,8,4"
+                                Margin="9,4,9,4"
                                 AccentKey="GpuAccent"
                                 Label="{Binding [GPU], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                         </Grid>

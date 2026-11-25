@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace WinMon.Monitoring;
 
 /// <summary>The severity recorded by a Windows event.</summary>
@@ -136,6 +138,14 @@ public static class IncidentEventMapper
         if (samples.Count == 1) return (nearest, distance, ProcessRanking.Moment(samples[0]), true);
         if (pair < 0) return (nearest, distance, ProcessRanking.Moment(samples[nearest ?? 0]), true);
 
+        var (moment, approximate) = Place(timestamp, samples, containing, pair);
+        return (nearest, distance, moment, approximate);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static (double Moment, bool Approximate) Place(DateTimeOffset timestamp,
+        IReadOnlyList<MonitorSample> samples, List<int> containing, int pair)
+    {
         var first = samples[pair];
         var second = samples[pair + 1];
         var wallSeconds = (second.Timestamp - first.Timestamp).TotalSeconds;
@@ -156,7 +166,7 @@ public static class IncidentEventMapper
                 Math.Clamp((timestamp - left.Timestamp).TotalSeconds / duration, 0, 1);
             if (Math.Abs(candidate - moment) > .001) { ambiguous = true; break; }
         }
-        return (nearest, distance, moment, first.IsGap || second.IsGap || clockJump || ambiguous);
+        return (moment, first.IsGap || second.IsGap || clockJump || ambiguous);
     }
 
     private static ProcessUsage? LinkedProcess(IncidentEvent item,

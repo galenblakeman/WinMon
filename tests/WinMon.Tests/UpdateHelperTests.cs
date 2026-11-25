@@ -133,6 +133,72 @@ public sealed class UpdateHelperTests
         });
     }
 
+    [TestCase(false)]
+    [TestCase(true)]
+    [Category("Integration")]
+    public void RunningParentRemainsInHandoffUntilACommitOrCancelArrives(bool cancel)
+    {
+        using var fixture = new Fixture();
+        fixture.Host.Parent.HasExited = false;
+        fixture.Host.Event("Commit").Reset();
+        var reads = 0;
+        fixture.Host.Parent.OnHasExitedRead = () =>
+        {
+            if (++reads == 2) fixture.Host.Event(cancel ? "Cancel" : "Commit").Set();
+        };
+        fixture.Host.Parent.OnWait = () => fixture.Host.Parent.HasExited = true;
+
+        Assert.That(fixture.Run(), Is.EqualTo(cancel ? 1 : 0));
+        Assert.Multiple(() =>
+        {
+            Assert.That(reads, Is.EqualTo(2));
+            Assert.That(fixture.Host.Parent.Waits, Is.EqualTo(cancel ? Array.Empty<int>() : new[] { 60000 }));
+            Assert.That(fixture.Host.Parent.Disposed, Is.True);
+            Assert.That(fixture.Host.States, Is.EqualTo(cancel ? Array.Empty<string>() : new[] { "replacing", "awaiting-ready", "succeeded" }));
+            Assert.That(fixture.Host.Starts, Has.Count.EqualTo(cancel ? 0 : 1));
+            if (cancel) Assert.That(File.ReadAllText(fixture.Target), Is.EqualTo("old executable"));
+            else Assert.That(File.ReadAllBytes(fixture.Target), Is.EqualTo(fixture.Executable));
+        });
+    }
+
+    [Test]
+    [Category("Integration")]
+    public void SimultaneousCommitAndCancelWaitsForTheParentBeforeCancelling()
+    {
+        using var fixture = new Fixture();
+        fixture.Host.Event("Cancel").Set();
+
+        Assert.That(fixture.Run(), Is.EqualTo(1));
+        Assert.Multiple(() =>
+        {
+            Assert.That(fixture.Host.Parent.Waits, Is.EqualTo(new[] { 60000 }));
+            Assert.That(fixture.Host.Parent.Disposed, Is.True);
+            Assert.That(fixture.Host.States, Is.Empty);
+            Assert.That(fixture.Host.Starts, Is.Empty);
+            Assert.That(File.ReadAllText(fixture.Target), Is.EqualTo("old executable"));
+        });
+    }
+
+    [Test]
+    [Category("Integration")]
+    public void MatchingMalformedTokenIsRejectedBeforeTrustMaterialIsRead()
+    {
+        using var fixture = new Fixture();
+        fixture.Job = fixture.Job with { Token = "invalid" };
+        fixture.Host.Key = "not a public key";
+        fixture.SaveJob();
+
+        Assert.That(UpdateRuntime.RunHelper(fixture.Directory, "invalid", fixture.Host), Is.EqualTo(1));
+        Assert.Multiple(() =>
+        {
+            Assert.That(File.ReadAllText(Path.Combine(fixture.Directory, "helper-error.log")), Does.Contain("Invalid update job."));
+            Assert.That(File.ReadAllText(fixture.Target), Is.EqualTo("old executable"));
+            Assert.That(fixture.Host.Starts, Is.Empty);
+            Assert.That(fixture.Host.States, Is.Empty);
+            Assert.That(fixture.Host.Parent.Disposed, Is.False);
+        });
+    }
+
     [Test]
     [Category("Integration")]
     public void HealthyPortableReplacementCommitsAndDeletesOnlyTransactionFiles()
@@ -304,6 +370,47 @@ public sealed class UpdateHelperTests
         Assert.That(fixture.Host.Starts, Has.Count.EqualTo(1));
     }
 
+    [TestCase(0, false)]
+    [TestCase(1, false)]
+    [TestCase(4, false)]
+    [TestCase(5, false)]
+    [TestCase(6, false)]
+    [TestCase(0, true)]
+    [TestCase(1, true)]
+    [TestCase(4, true)]
+    [TestCase(5, true)]
+    [TestCase(6, true)]
+    [Category("Integration")]
+    public void HealthyReplacementJournalRetryBoundaryPreservesSuccessAndRecoveryFiles(int failures, bool unauthorized)
+    {
+        using var fixture = new Fixture();
+        fixture.Host.SuccessWriteFailures = failures;
+        fixture.Host.SuccessWriteUnauthorized = unauthorized;
+        var exhausted = failures >= 5;
+
+        Assert.That(fixture.Run(), Is.Zero);
+        Assert.Multiple(() =>
+        {
+            Assert.That(fixture.Host.SuccessWriteAttempts, Is.EqualTo(Math.Min(failures + 1, 5)));
+            Assert.That(fixture.Host.Sleeps, Is.EqualTo(Math.Min(failures, 4)));
+            Assert.That(fixture.Host.States, Is.EqualTo(exhausted
+                ? new[] { "replacing", "awaiting-ready" }
+                : new[] { "replacing", "awaiting-ready", "succeeded" }));
+            Assert.That(fixture.State.Status, Is.EqualTo(exhausted ? "awaiting-ready" : "succeeded"));
+            Assert.That(File.ReadAllBytes(fixture.Target), Is.EqualTo(fixture.Executable));
+            Assert.That(File.Exists(UpdateFiles.BackupPath(fixture.Job)), Is.EqualTo(exhausted));
+            if (exhausted)
+                Assert.That(File.ReadAllText(UpdateFiles.BackupPath(fixture.Job)), Is.EqualTo("old executable"));
+            Assert.That(File.Exists(fixture.Download), Is.EqualTo(exhausted));
+            Assert.That(File.Exists(Path.Combine(fixture.Directory, "helper-error.log")), Is.False);
+            Assert.That(fixture.Host.Starts, Has.Count.EqualTo(1));
+            Assert.That(fixture.Host.Child.Killed, Is.False);
+            Assert.That(fixture.Host.Child.Closed, Is.False);
+            Assert.That(fixture.Host.Child.Disposed, Is.True);
+            Assert.That(fixture.Host.Parent.Disposed, Is.True);
+        });
+    }
+
     [TestCase(false)]
     [TestCase(true)]
     [Category("Integration")]
@@ -367,7 +474,8 @@ public sealed class UpdateHelperTests
     private sealed class Fixture : IDisposable
     {
         private readonly string _root = Path.Combine(Path.GetTempPath(), "WinMon.HelperTests", Guid.NewGuid().ToString("N"));
-        internal Fixture(bool installed = false, bool existingCli = false, bool existingMcp = false)
+        internal Fixture(bool installed = false, bool existingCli = false, bool existingMcp = false,
+            byte[]? executable = null)
         {
             Application = Path.Combine(_root, "app");
             Target = Path.Combine(Application, "WinMon.exe");
@@ -375,7 +483,7 @@ public sealed class UpdateHelperTests
             System.IO.Directory.CreateDirectory(Application);
             System.IO.Directory.CreateDirectory(Directory);
             File.WriteAllText(Target, "old executable");
-            Executable = File.ReadAllBytes(typeof(UpdateRuntime).Assembly.Location);
+            Executable = executable ?? File.ReadAllBytes(typeof(UpdateRuntime).Assembly.Location);
             Job = new UpdateJob(Target, 42, 123, AppInfo.Version, installed, Guid.NewGuid().ToString("N"));
             if (existingCli) File.WriteAllText(UpdateFiles.CliJob(Job).Target, "old CLI");
             if (existingMcp) File.WriteAllText(UpdateFiles.McpJob(Job).Target, "old MCP");
@@ -385,7 +493,9 @@ public sealed class UpdateHelperTests
             {
                 using (var archive = new ZipArchive(memory, ZipArchiveMode.Create, leaveOpen: true))
                 {
-                    using (var entry = archive.CreateEntry("WinMon.exe").Open()) entry.Write(Executable);
+                    var zipEntry = archive.CreateEntry("WinMon.exe");
+                    zipEntry.LastWriteTime = new DateTimeOffset(2000, 1, 1, 0, 0, 0, TimeSpan.Zero);
+                    using (var entry = zipEntry.Open()) entry.Write(Executable);
                 }
                 portable = memory.ToArray();
             }
@@ -448,6 +558,8 @@ public sealed class UpdateHelperTests
         internal bool FailFirstLaunch;
         internal bool FailInstallerStart;
         internal int SuccessWriteFailures;
+        internal bool SuccessWriteUnauthorized;
+        internal int SuccessWriteAttempts;
         internal int Sleeps;
         internal Action? FailReplacing;
         internal Action? OnLaunch;
@@ -501,7 +613,15 @@ public sealed class UpdateHelperTests
         internal override void WriteState(string directory, UpdateState state)
         {
             if (state.Status == "replacing") FailReplacing?.Invoke();
-            if (state.Status == "succeeded" && SuccessWriteFailures-- > 0) throw new IOException("state locked");
+            if (state.Status == "succeeded")
+            {
+                SuccessWriteAttempts++;
+                if (SuccessWriteFailures-- > 0)
+                {
+                    if (SuccessWriteUnauthorized) throw new UnauthorizedAccessException("state denied");
+                    throw new IOException("state locked");
+                }
+            }
             States.Add(state.Status);
             base.WriteState(directory, state);
         }
@@ -518,7 +638,12 @@ public sealed class UpdateHelperTests
 
     private sealed class FakeProcess : IUpdateHelperProcess
     {
-        public bool HasExited { get; set; }
+        private bool _hasExited;
+        public bool HasExited
+        {
+            get { OnHasExitedRead?.Invoke(); return _hasExited; }
+            set => _hasExited = value;
+        }
         public int ExitCode { get; set; }
         public long StartTicks { get; set; } = 123;
         public string FileName { get; set; } = "";
@@ -528,8 +653,11 @@ public sealed class UpdateHelperTests
         internal bool Killed;
         internal int UnboundedWaits;
         internal Action? OnWait;
+        internal Action? OnHasExitedRead;
+        internal List<int> Waits { get; } = [];
         public bool WaitForExit(int milliseconds)
         {
+            Waits.Add(milliseconds);
             OnWait?.Invoke();
             return ExitsWithinTimeout;
         }

@@ -18,9 +18,15 @@ internal static class ServicePolicy
                 "Network service must run from its protected installation directory.");
         var directory = new DirectoryInfo(InstallDirectory);
         var programFiles = Path.GetFullPath(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles));
+        return ReadInstallation(directory, programFiles, CheckProtected);
+    }
+
+    internal static IReadOnlyCollection<string> ReadInstallation(DirectoryInfo directory, string programFiles,
+        Action<FileSystemInfo> checkProtected)
+    {
         for (var current = directory; current is not null; current = current.Parent)
         {
-            CheckProtected(current);
+            checkProtected(current);
             if (string.Equals(current.FullName, programFiles, StringComparison.OrdinalIgnoreCase)) break;
         }
 
@@ -31,11 +37,11 @@ internal static class ServicePolicy
             foreach (var entry in current.EnumerateFileSystemInfos())
             {
                 if (++entries > 4096) throw new InvalidDataException("Service installation contains too many entries.");
-                CheckProtected(entry);
+                checkProtected(entry);
                 if (entry is DirectoryInfo child) pending.Push(child);
             }
 
-        var path = Path.Combine(InstallDirectory, "allowed-users.json");
+        var path = Path.Combine(directory.FullName, "allowed-users.json");
         using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
         if (stream.Length is <= 0 or > 8192) throw new InvalidDataException("Invalid authorization policy size.");
         var users = JsonSerializer.Deserialize<string[]>(stream) ??
@@ -69,6 +75,11 @@ internal static class ServicePolicy
         var security = item is DirectoryInfo directory
             ? (FileSystemSecurity)directory.GetAccessControl()
             : ((FileInfo)item).GetAccessControl();
+        ValidateProtection(security);
+    }
+
+    internal static void ValidateProtection(FileSystemSecurity security)
+    {
         if (!TrustedWriter((SecurityIdentifier)security.GetOwner(typeof(SecurityIdentifier))!))
             throw new UnauthorizedAccessException("Service installation has an untrusted owner.");
         const FileSystemRights write = FileSystemRights.Write | FileSystemRights.Delete |

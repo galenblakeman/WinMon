@@ -106,15 +106,34 @@ public static class WindowsHardwareInventory
         var values = new List<HardwareDisk>();
         foreach (var drive in source.Take(256))
         {
-            token.ThrowIfCancellationRequested(); var number = drive.Number(drives is { Count: > 0 } ? "Index" : "Number");
-            var match = number is null ? [] : disks?.Where(d => d.Number("Number") == number).ToArray() ?? []; var disk = match.Length == 1 ? match[0] : null;
-            var id = disk?.Text("UniqueId"); var matches = string.IsNullOrWhiteSpace(id) || disk?.Number("UniqueIdFormat") is null ? [] : media?.Where(m => string.Equals(m.Text("UniqueId"), id, StringComparison.OrdinalIgnoreCase) && m.Number("UniqueIdFormat") == disk.Number("UniqueIdFormat")).ToArray() ?? [];
-            var unique = id is not null && disks?.Count(d => string.Equals(d.Text("UniqueId"), id, StringComparison.OrdinalIgnoreCase)) == 1;
-            var letters = number is null || partitions is null ? null : partitions.Where(p => p.Number("DiskNumber") == number).Select(p => Letter(p.Text("DriveLetter"))).Where(x => x is not null).Cast<string>().Distinct().Order().ToArray();
-            values.Add(new HardwareDisk(number, Text(drive,"Model"), Text(drive,"Manufacturer"), drive.Number("Size"), matches.Length == 1 && unique ? matches[0].Number("MediaType") : null, disk?.Number("BusType"), disk?.Number("HealthStatus"), letters));
+            token.ThrowIfCancellationRequested();
+            values.Add(ReadDisk(drive, drives is { Count: > 0 }, disks, media, partitions));
         }
         return Section(new HardwareDisks(values), drives is null || disks is null || media is null || partitions is null,
             source.Count > 256 || disks?.Count > 256 || media?.Count > 256 || partitions?.Count > 256);
+    }
+
+    private static HardwareDisk ReadDisk(HardwareRow drive, bool useIndex, IReadOnlyList<HardwareRow>? disks,
+        IReadOnlyList<HardwareRow>? media, IReadOnlyList<HardwareRow>? partitions)
+    {
+        var number = drive.Number(useIndex ? "Index" : "Number");
+        var disk = number is null ? null : UniqueDiskMatch(disks?.Where(d => d.Number("Number") == number));
+        var id = disk?.Text("UniqueId");
+        // An ID can only come from a row matched in disks.
+        var medium = string.IsNullOrWhiteSpace(id) || disk!.Number("UniqueIdFormat") is null ? null :
+            UniqueDiskMatch(media?.Where(m => string.Equals(m.Text("UniqueId"), id, StringComparison.OrdinalIgnoreCase) &&
+                m.Number("UniqueIdFormat") == disk.Number("UniqueIdFormat")));
+        var unique = id is not null && disks!.Count(d => string.Equals(d.Text("UniqueId"), id, StringComparison.OrdinalIgnoreCase)) == 1;
+        var letters = number is null || partitions is null ? null : partitions.Where(p => p.Number("DiskNumber") == number)
+            .Select(p => Letter(p.Text("DriveLetter"))).Where(x => x is not null).Cast<string>().Distinct().Order().ToArray();
+        return new HardwareDisk(number, Text(drive,"Model"), Text(drive,"Manufacturer"), drive.Number("Size"),
+            medium is not null && unique ? medium.Number("MediaType") : null, disk?.Number("BusType"), disk?.Number("HealthStatus"), letters);
+    }
+
+    private static HardwareRow? UniqueDiskMatch(IEnumerable<HardwareRow>? rows)
+    {
+        var matches = rows?.ToArray() ?? [];
+        return matches.Length == 1 ? matches[0] : null;
     }
 
     private static HardwareSection<HardwareVolumes> Volumes(IHardwareProbe probe, bool identifiers, CancellationToken token)

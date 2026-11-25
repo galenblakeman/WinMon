@@ -108,6 +108,7 @@ internal static class TerminalCharts
             GaugeReadoutText.DiskRate(r.DiskBytesPerSecond), DirectionRate(r.SendBytesPerSecond, unicode ? "↑" : "TX "),
             GaugeReadoutText.GpuMemory(r.GpuMemoryUsedBytes, r.GpuMemoryTotalBytes) };
         var cells = new string[5][];
+        Span<int> labelWidths = stackalloc int[5];
         for (var i = 0; i < cells.Length; i++)
         {
             var metric = i;
@@ -119,6 +120,7 @@ internal static class TerminalCharts
                 _ => s.Resources.GpuPercent
             }).ToArray();
             labels[i] = TerminalText.Fit(labels[i], inner - 2);
+            labelWidths[i] = labels[i].Length;
             cells[i] = [
                 (unicode ? "╭" : "+") + Pad(" " + labels[i] + " ", inner, unicode ? '─' : '-') + (unicode ? "╮" : "+"),
                 Box(values[i]), Box(Gauge(current[i], inner - 2, unicode)),
@@ -130,29 +132,7 @@ internal static class TerminalCharts
                     Strings.Format(Strings.CliResourceHistory, HistorySeconds)),
                 (unicode ? "╰" : "+") + new string(unicode ? '─' : '-', inner) + (unicode ? "╯" : "+")];
         }
-        var styles = new[] { TerminalChrome.Cpu, TerminalChrome.Memory, TerminalChrome.Disk, TerminalChrome.Network, TerminalChrome.Gpu };
-        var lines = new List<IRenderable>();
-        for (var line = 0; line < 7; line++)
-        {
-            var parts = new List<(string, Style?)>();
-            for (var i = 0; i < cells.Length; i++)
-            {
-                if (i > 0) parts.Add((" ", null));
-                var cell = cells[i][line];
-                if (line == 0)
-                {
-                    parts.Add((cell[..2], null));
-                    parts.Add((cell.Substring(2, labels[i].Length), styles[i]));
-                    parts.Add((cell[(2 + labels[i].Length)..], null));
-                    continue;
-                }
-                parts.Add((cell[..1], null));
-                parts.Add((cell[1..^1], line is 1 or 2 or 4 ? styles[i] : (Style?)null));
-                parts.Add((cell[^1..], null));
-            }
-            lines.Add(Line(width, parts.ToArray()));
-        }
-        return new Rows(lines);
+        return ComposePanels(width, cells, labelWidths);
 
         string Box(string text) => (unicode ? "│ " : "| ") + Pad(text, inner - 2) + (unicode ? " │" : " |");
     }
@@ -186,5 +166,32 @@ internal static class TerminalCharts
     {
         var clipped = TerminalText.Fit(text, width);
         return clipped + new string(padding, Math.Max(0, width - new Segment(clipped).CellCount()));
+    }
+
+    private static IRenderable ComposePanels(int width, string[][] cells, ReadOnlySpan<int> labelWidths)
+    {
+        var styles = new[] { TerminalChrome.Cpu, TerminalChrome.Memory, TerminalChrome.Disk, TerminalChrome.Network, TerminalChrome.Gpu };
+        var lines = new List<IRenderable>();
+        for (var line = 0; line < 7; line++)
+        {
+            var parts = new List<(string, Style?)>();
+            for (var i = 0; i < cells.Length; i++)
+            {
+                if (i > 0) parts.Add((" ", null));
+                var cell = cells[i][line];
+                if (line == 0)
+                {
+                    parts.Add((cell[..2], null));
+                    parts.Add((cell.Substring(2, labelWidths[i]), styles[i]));
+                    parts.Add((cell[(2 + labelWidths[i])..], null));
+                    continue;
+                }
+                parts.Add((cell[..1], null));
+                parts.Add((cell[1..^1], line is 1 or 2 or 4 ? styles[i] : (Style?)null));
+                parts.Add((cell[^1..], null));
+            }
+            lines.Add(Line(width, parts.ToArray()));
+        }
+        return new Rows(lines);
     }
 }

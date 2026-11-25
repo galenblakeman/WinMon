@@ -160,51 +160,10 @@ internal static class CaptureReportText
 
         var automatic = options is null;
         options ??= new ConnectionQueryOptions(ConnectionSortMetric.Receive, NetworkEnabled: capture.Network is not null);
-        var all = ConnectionQuery.Build(capture.Connections, capture.Owners, capture.Network, history ?? [capture], capture,
-            options);
-        var pinned = all.Where(group => pinnedKeys?.Contains(group.Key) == true).ToArray();
-        var unpinned = pinnedOnly ? [] : all.Where(group => pinnedKeys?.Contains(group.Key) != true);
-        var ranked = automatic
-            ? unpinned.OrderByDescending(group => group.Network.ReceiveBytesPerSecond + group.Network.SendBytesPerSecond ?? -1)
-                .ThenBy(group => group.Process is { } owner ? DisplayName(owner) : group.Key,
-                    StringComparer.CurrentCultureIgnoreCase)
-            : unpinned;
-        var groups = pinned.Concat(TopCountChoices.Limit(ranked, topCount)).ToArray();
-        var triggering = trigger is null ? null : all.FirstOrDefault(group => group.Key == ConnectionQuery.OwnerKey(trigger));
-        var triggerOutsideFilter = false;
-        if (trigger is not null && triggering is null)
-        {
-            triggering = ConnectionQuery.Build(capture.Connections, capture.Owners, capture.Network, history ?? [capture],
-                capture, options with { Search = "", AppsOnly = false }).FirstOrDefault(group => group.Key == ConnectionQuery.OwnerKey(trigger));
-            triggerOutsideFilter = triggering is not null;
-        }
-        if (triggering is not null && groups.All(group => group.Key != triggering.Key))
-        {
-            groups = [triggering, .. groups];
-            text.AppendLine(Strings.CaptureReportExtraTrigger);
-        }
-        if (capture.Network is not { } network)
-        {
-            text.AppendLine(Strings.NetworkProcessMonitoringUnavailable);
-        }
-        else
-        {
-            if (network.Quality.HasFlag(ProcessNetworkQuality.Unavailable))
-                text.AppendLine(Strings.NetworkProcessMonitoringUnavailable);
-            else if ((network.Quality & (ProcessNetworkQuality.Incomplete | ProcessNetworkQuality.Discontinuity |
-                                         ProcessNetworkQuality.CapacityExceeded)) != 0)
-                text.AppendLine(Strings.NetworkProcessMonitoringIncomplete);
-            else if (network.Quality.HasFlag(ProcessNetworkQuality.WarmingUp))
-                text.AppendLine(Strings.NetworkProcessMonitoringWarmingUp);
-            if (!network.FlowTrafficSupported) text.AppendLine(Strings.CaptureConnectionTrafficUnavailable);
-            else
-            {
-                if ((network.FlowQuality & (ProcessNetworkQuality.Incomplete | ProcessNetworkQuality.Discontinuity |
-                                            ProcessNetworkQuality.CapacityExceeded | ProcessNetworkQuality.Unavailable)) != 0)
-                    text.AppendLine(Strings.CaptureFlowIncomplete);
-                text.AppendLine(TrafficWindow(network));
-            }
-        }
+        var (groups, eligibleGroups, extraTrigger) = SelectConnectionGroups(capture, topCount, options, automatic,
+            pinnedKeys, pinnedOnly, history, trigger);
+        if (extraTrigger) text.AppendLine(Strings.CaptureReportExtraTrigger);
+        AppendConnectionNetworkStatus(text, capture);
 
         text.AppendLine(Strings.ConnectionsNetworkOwnerTotals);
         text.AppendLine(Strings.ConnectionsRateTiming);
@@ -215,44 +174,9 @@ internal static class CaptureReportText
         text.AppendLine(ConnectionsView.TrafficDetails(totals));
         foreach (var group in groups)
         {
-            var processId = group.Connections.FirstOrDefault()?.ProcessId ?? group.Flows.FirstOrDefault()?.ProcessId;
-            var name = group.Process is { } owner ? DisplayName(owner) : processId is { } pid
-                ? Strings.Format(Strings.PID, pid) : Strings.ConnectionsUnknownProcess;
-            text.AppendLine($"{name}: ↓ {ConnectionsView.NetworkRate(group.Network.ReceiveBytesPerSecond)}  ↑ {ConnectionsView.NetworkRate(group.Network.SendBytesPerSecond)}");
-            text.AppendLine($"{Strings.ProcessPathLabel}: {(group.Process?.ImagePath is { Length: > 0 } path ? path : Strings.ExecutablePathUnavailable)}");
-            var prefix = group.Traffic.Incomplete ? "≈ " : "";
-            text.AppendLine($"{Strings.ConnectionsReceived} / {Strings.ConnectionsSent}: " +
-                            (group.Traffic.Available ? $"{prefix}{UsageText.Bytes(group.Traffic.ReceivedBytes)} / {prefix}{UsageText.Bytes(group.Traffic.SentBytes)}" : Strings.MissingReading));
-            text.AppendLine($"PID\t{Strings.ConnectionsProtocol}\t{Strings.ConnectionsLocalEndpoint}\t{Strings.ConnectionsRemoteEndpoint}\t{Strings.ConnectionsState}\t{Strings.ConnectionsReceiveRate}\t{Strings.ConnectionsSendRate}\t{Strings.ConnectionsReceived}\t{Strings.ConnectionsSent}");
-            var reportedFlows = new HashSet<ProcessNetworkFlowIdentity>();
-            var rows = new List<(int Pid, TransportProtocol Protocol, string Local, string Remote, string State, ProcessNetworkFlowReading? Flow)>();
-            foreach (var connection in group.Connections)
-            {
-                var flow = Flow(capture.Network, connection);
-                if (flow is not null) reportedFlows.Add(FlowIdentity(flow));
-                rows.Add((connection.ProcessId, connection.Protocol, ConnectionQuery.Endpoint(connection.LocalEndpoint),
-                    connection.RemoteEndpoint is { } remote ? ConnectionQuery.Endpoint(remote) : Strings.MissingReading,
-                    State(connection.State), flow));
-            }
-            foreach (var flow in group.Flows.Where(flow => !reportedFlows.Contains(FlowIdentity(flow))))
-            {
-                rows.Add((flow.ProcessId, flow.Protocol, flow.LocalEndpoint, flow.RemoteEndpoint,
-                    Strings.CaptureObservedFlowMissingEndpoint, flow));
-            }
-            var selectedRows = rows.OrderByDescending(row => row.Flow?.ReceiveBytesPerSecond + row.Flow?.SendBytesPerSecond ?? -1)
-                .ThenBy(row => row.Pid).ThenBy(row => row.Protocol)
-                .ThenBy(row => row.Local, StringComparer.Ordinal).ThenBy(row => row.Remote, StringComparer.Ordinal)
-                .Take(ConnectionLimit).ToArray();
-            foreach (var row in selectedRows)
-                text.AppendLine($"{row.Pid}\t{Protocol(row.Protocol)}\t{row.Local}\t{row.Remote}\t{row.State}\t" +
-                                $"{ConnectionsView.NetworkRate(row.Flow?.ReceiveBytesPerSecond)}\t{ConnectionsView.NetworkRate(row.Flow?.SendBytesPerSecond)}\t" +
-                                $"{Bytes(row.Flow?.ReceivedBytes)}\t{Bytes(row.Flow?.SentBytes)}");
-            endpointRows += selectedRows.Length;
-            text.AppendLine(Strings.Format(Strings.CaptureConnectionLimit, ConnectionLimit, selectedRows.Length, rows.Count - selectedRows.Length));
+            endpointRows += AppendConnectionGroup(text, capture, group);
         }
 
-        var eligibleGroups = (pinnedOnly ? pinned.Length : all.Count) +
-                             (triggering is not null && (triggerOutsideFilter || pinnedOnly && pinned.All(group => group.Key != triggering.Key)) ? 1 : 0);
         text.AppendLine(Strings.Format(Strings.CaptureReportConnectionCount,
             topCount == 0 ? Strings.AllEntries : topCount.ToString(CultureInfo.CurrentCulture),
             groups.Length, eligibleGroups, eligibleGroups - groups.Length, endpointRows));
@@ -385,5 +309,102 @@ internal static class CaptureReportText
     private static string DisplayName(ProcessUsage process)
     {
         return process.AppName.Length > 0 ? process.AppName : process.Name;
+    }
+
+    private static (ConnectionQueryRow[] Groups, int EligibleGroups, bool ExtraTrigger) SelectConnectionGroups(
+        ConnectionCapture capture, int topCount, ConnectionQueryOptions options, bool automatic,
+        IReadOnlySet<string>? pinnedKeys, bool pinnedOnly, IReadOnlyList<ConnectionCapture>? history, ProcessUsage? trigger)
+    {
+        var all = ConnectionQuery.Build(capture.Connections, capture.Owners, capture.Network, history ?? [capture], capture,
+            options);
+        var pinned = all.Where(group => pinnedKeys?.Contains(group.Key) == true).ToArray();
+        var unpinned = pinnedOnly ? [] : all.Where(group => pinnedKeys?.Contains(group.Key) != true);
+        var ranked = automatic
+            ? unpinned.OrderByDescending(group => group.Network.ReceiveBytesPerSecond + group.Network.SendBytesPerSecond ?? -1)
+                .ThenBy(group => group.Process is { } owner ? DisplayName(owner) : group.Key,
+                    StringComparer.CurrentCultureIgnoreCase)
+            : unpinned;
+        var groups = pinned.Concat(TopCountChoices.Limit(ranked, topCount)).ToArray();
+        var triggering = trigger is null ? null : all.FirstOrDefault(group => group.Key == ConnectionQuery.OwnerKey(trigger));
+        var triggerOutsideFilter = false;
+        if (trigger is not null && triggering is null)
+        {
+            triggering = ConnectionQuery.Build(capture.Connections, capture.Owners, capture.Network, history ?? [capture],
+                capture, options with { Search = "", AppsOnly = false }).FirstOrDefault(group => group.Key == ConnectionQuery.OwnerKey(trigger));
+            triggerOutsideFilter = triggering is not null;
+        }
+        var extraTrigger = false;
+        if (triggering is not null && groups.All(group => group.Key != triggering.Key))
+        {
+            groups = [triggering, .. groups];
+            extraTrigger = true;
+        }
+        var eligibleGroups = (pinnedOnly ? pinned.Length : all.Count) +
+                             (triggering is not null && (triggerOutsideFilter || pinnedOnly && pinned.All(group => group.Key != triggering.Key)) ? 1 : 0);
+        return (groups, eligibleGroups, extraTrigger);
+    }
+
+    private static void AppendConnectionNetworkStatus(StringBuilder text, ConnectionCapture capture)
+    {
+        if (capture.Network is not { } network)
+        {
+            text.AppendLine(Strings.NetworkProcessMonitoringUnavailable);
+        }
+        else
+        {
+            if (network.Quality.HasFlag(ProcessNetworkQuality.Unavailable))
+                text.AppendLine(Strings.NetworkProcessMonitoringUnavailable);
+            else if ((network.Quality & (ProcessNetworkQuality.Incomplete | ProcessNetworkQuality.Discontinuity |
+                                         ProcessNetworkQuality.CapacityExceeded)) != 0)
+                text.AppendLine(Strings.NetworkProcessMonitoringIncomplete);
+            else if (network.Quality.HasFlag(ProcessNetworkQuality.WarmingUp))
+                text.AppendLine(Strings.NetworkProcessMonitoringWarmingUp);
+            if (!network.FlowTrafficSupported) text.AppendLine(Strings.CaptureConnectionTrafficUnavailable);
+            else
+            {
+                if ((network.FlowQuality & (ProcessNetworkQuality.Incomplete | ProcessNetworkQuality.Discontinuity |
+                                            ProcessNetworkQuality.CapacityExceeded | ProcessNetworkQuality.Unavailable)) != 0)
+                    text.AppendLine(Strings.CaptureFlowIncomplete);
+                text.AppendLine(TrafficWindow(network));
+            }
+        }
+    }
+
+    private static int AppendConnectionGroup(StringBuilder text, ConnectionCapture capture, ConnectionQueryRow group)
+    {
+        var processId = group.Connections.FirstOrDefault()?.ProcessId ?? group.Flows.FirstOrDefault()?.ProcessId;
+        var name = group.Process is { } owner ? DisplayName(owner) : processId is { } pid
+            ? Strings.Format(Strings.PID, pid) : Strings.ConnectionsUnknownProcess;
+        text.AppendLine($"{name}: ↓ {ConnectionsView.NetworkRate(group.Network.ReceiveBytesPerSecond)}  ↑ {ConnectionsView.NetworkRate(group.Network.SendBytesPerSecond)}");
+        text.AppendLine($"{Strings.ProcessPathLabel}: {(group.Process?.ImagePath is { Length: > 0 } path ? path : Strings.ExecutablePathUnavailable)}");
+        var prefix = group.Traffic.Incomplete ? "≈ " : "";
+        text.AppendLine($"{Strings.ConnectionsReceived} / {Strings.ConnectionsSent}: " +
+                        (group.Traffic.Available ? $"{prefix}{UsageText.Bytes(group.Traffic.ReceivedBytes)} / {prefix}{UsageText.Bytes(group.Traffic.SentBytes)}" : Strings.MissingReading));
+        text.AppendLine($"PID\t{Strings.ConnectionsProtocol}\t{Strings.ConnectionsLocalEndpoint}\t{Strings.ConnectionsRemoteEndpoint}\t{Strings.ConnectionsState}\t{Strings.ConnectionsReceiveRate}\t{Strings.ConnectionsSendRate}\t{Strings.ConnectionsReceived}\t{Strings.ConnectionsSent}");
+        var reportedFlows = new HashSet<ProcessNetworkFlowIdentity>();
+        var rows = new List<(int Pid, TransportProtocol Protocol, string Local, string Remote, string State, ProcessNetworkFlowReading? Flow)>();
+        foreach (var connection in group.Connections)
+        {
+            var flow = Flow(capture.Network, connection);
+            if (flow is not null) reportedFlows.Add(FlowIdentity(flow));
+            rows.Add((connection.ProcessId, connection.Protocol, ConnectionQuery.Endpoint(connection.LocalEndpoint),
+                connection.RemoteEndpoint is { } remote ? ConnectionQuery.Endpoint(remote) : Strings.MissingReading,
+                State(connection.State), flow));
+        }
+        foreach (var flow in group.Flows.Where(flow => !reportedFlows.Contains(FlowIdentity(flow))))
+        {
+            rows.Add((flow.ProcessId, flow.Protocol, flow.LocalEndpoint, flow.RemoteEndpoint,
+                Strings.CaptureObservedFlowMissingEndpoint, flow));
+        }
+        var selectedRows = rows.OrderByDescending(row => row.Flow?.ReceiveBytesPerSecond + row.Flow?.SendBytesPerSecond ?? -1)
+            .ThenBy(row => row.Pid).ThenBy(row => row.Protocol)
+            .ThenBy(row => row.Local, StringComparer.Ordinal).ThenBy(row => row.Remote, StringComparer.Ordinal)
+            .Take(ConnectionLimit).ToArray();
+        foreach (var row in selectedRows)
+            text.AppendLine($"{row.Pid}\t{Protocol(row.Protocol)}\t{row.Local}\t{row.Remote}\t{row.State}\t" +
+                            $"{ConnectionsView.NetworkRate(row.Flow?.ReceiveBytesPerSecond)}\t{ConnectionsView.NetworkRate(row.Flow?.SendBytesPerSecond)}\t" +
+                            $"{Bytes(row.Flow?.ReceivedBytes)}\t{Bytes(row.Flow?.SentBytes)}");
+        text.AppendLine(Strings.Format(Strings.CaptureConnectionLimit, ConnectionLimit, selectedRows.Length, rows.Count - selectedRows.Length));
+        return selectedRows.Length;
     }
 }

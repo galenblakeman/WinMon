@@ -44,48 +44,11 @@ public sealed partial class AppearancePreview : UserControl
                     finish?.Light == true;
         if (SystemParameters.HighContrast)
         {
-            Resources["PanelSurface"] = SystemColors.WindowBrush;
-            Resources["SectionHeaderSurface"] = SystemColors.WindowBrush;
-            Resources["PlotSurface"] = SystemColors.WindowBrush;
-            Resources["Text"] = SystemColors.WindowTextBrush;
-            Resources["Muted"] = SystemColors.WindowTextBrush;
-            Resources["Line"] = SystemColors.WindowTextBrush;
-            Resources["GaugeTrack"] = SystemColors.GrayTextBrush;
-            foreach (var key in AccentKeys)
-            {
-                Resources[key] = SystemColors.WindowTextBrush;
-                Resources[key.Replace("Accent", "ChartAccent", StringComparison.Ordinal)] =
-                    SystemColors.WindowTextBrush;
-            }
-
-            Resources["Accent"] = SystemColors.HighlightBrush;
+            ApplyHighContrastTheme();
         }
         else
         {
-            Resources["PanelSurface"] = finish is { Brushed: true }
-                ? ThemeFinishes.PanelBrush(finish)
-                : Brush(finish?.Surface ?? (light ? "#F0F5FA" : "#15191E"), finish?.PanelOpacity ?? byte.MaxValue);
-            Resources["SectionHeaderSurface"] = finish is { Brushed: true }
-                ? ThemeFinishes.ChromeBrush(finish, true)
-                : finish is { GlassSheen: true }
-                    ? ThemeFinishes.GlassHeaderBrush(finish, finish.HeaderOpacity)
-                    : Brush(finish?.Header ?? (light ? "#E5EEF7" : "#252A31"),
-                        finish?.HeaderOpacity ?? byte.MaxValue);
-            Resources["PlotSurface"] = Brush(finish?.Plot ?? (light ? "#FFFFFF" : "#15191E"));
-            Resources["Text"] = Brush(finish?.Text ?? (light ? "#20334A" : "#EDF2F6"));
-            Resources["Muted"] = Brush(finish?.Muted ?? (light ? "#465D78" : "#B3BDC8"));
-            Resources["Line"] = Brush(finish?.Line ?? (light ? "#CCD9E5" : "#35404B"));
-            Resources["GaugeTrack"] = Brush(finish?.GaugeTrack ?? (light ? "#CCD9E5" : "#35404B"));
-            var colors = ChartPalettes.ColorsForTheme(palette, light, finish);
-            var chartColors = ChartPalettes.ChartColorsForTheme(palette, light, finish);
-            for (var i = 0; i < AccentKeys.Length; i++)
-            {
-                Resources[AccentKeys[i]] = Brush(colors[i]);
-                Resources[AccentKeys[i].Replace("Accent", "ChartAccent", StringComparison.Ordinal)] =
-                    Brush(chartColors[i]);
-            }
-
-            Resources["Accent"] = Brush(finish?.UiAccent ?? (light ? "#1469B5" : colors[0]));
+            ApplyNormalTheme(finish, light, palette);
         }
 
         foreach (var (readout, value) in new[]
@@ -142,5 +105,57 @@ public sealed partial class AppearancePreview : UserControl
                 }
             };
         }).ToArray();
+    }
+
+    private void ApplyHighContrastTheme()
+    {
+        Resources["PanelSurface"] = SystemColors.WindowBrush;
+        Resources["SectionHeaderSurface"] = SystemColors.WindowBrush;
+        Resources["PlotSurface"] = SystemColors.WindowBrush;
+        Resources["Text"] = SystemColors.WindowTextBrush;
+        Resources["Muted"] = SystemColors.WindowTextBrush;
+        Resources["Line"] = SystemColors.WindowTextBrush;
+        Resources["GaugeTrack"] = SystemColors.GrayTextBrush;
+        foreach (var key in AccentKeys)
+        {
+            Resources[key] = SystemColors.WindowTextBrush;
+            Resources[key.Replace("Accent", "ChartAccent", StringComparison.Ordinal)] =
+                SystemColors.WindowTextBrush;
+        }
+
+        Resources["Accent"] = SystemColors.HighlightBrush;
+    }
+
+    private void ApplyNormalTheme(ThemeFinishes.Finish? finish, bool light, string palette)
+    {
+        ApplySurfaces(finish, light);
+        Resources["PlotSurface"] = Brush(finish?.Plot ?? (light ? "#FFFFFF" : "#15191E"));
+        Resources["Text"] = Brush(finish?.Text ?? (light ? "#20334A" : "#EDF2F6"));
+        Resources["Muted"] = Brush(finish?.Muted ?? (light ? "#465D78" : "#B3BDC8"));
+        Resources["Line"] = Brush(finish?.Line ?? (light ? "#CCD9E5" : "#35404B"));
+        Resources["GaugeTrack"] = Brush(finish?.GaugeTrack ?? (light ? "#CCD9E5" : "#35404B"));
+        var colors = ChartPalettes.ColorsForTheme(palette, light, finish);
+        var chartColors = ChartPalettes.ChartColorsForTheme(palette, light, finish);
+        for (var i = 0; i < AccentKeys.Length; i++)
+        {
+            Resources[AccentKeys[i]] = Brush(colors[i]);
+            Resources[AccentKeys[i].Replace("Accent", "ChartAccent", StringComparison.Ordinal)] =
+                Brush(chartColors[i]);
+        }
+
+        Resources["Accent"] = Brush(finish?.UiAccent ?? (light ? "#1469B5" : colors[0]));
+    }
+
+    private void ApplySurfaces(ThemeFinishes.Finish? finish, bool light)
+    {
+        Resources["PanelSurface"] = finish is { Brushed: true }
+            ? ThemeFinishes.PanelBrush(finish)
+            : Brush(finish?.Surface ?? (light ? "#F0F5FA" : "#15191E"), finish?.PanelOpacity ?? byte.MaxValue);
+        Resources["SectionHeaderSurface"] = finish is { Brushed: true }
+            ? ThemeFinishes.ChromeBrush(finish, true)
+            : finish is { GlassSheen: true }
+                ? ThemeFinishes.GlassHeaderBrush(finish, finish.HeaderOpacity)
+                : Brush(finish?.Header ?? (light ? "#E5EEF7" : "#252A31"),
+                    finish?.HeaderOpacity ?? byte.MaxValue);
     }
 }

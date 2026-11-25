@@ -151,18 +151,7 @@ public sealed class ProcessActionBar : Border
         _canShowConnections = canShowConnections;
         _canShowUsage = canShowUsage;
         var process = snapshot?.Process;
-        _accent.SetResourceReference(BackgroundProperty, process is null ? "Line" : "Accent");
-        _icon.Visibility = process is null ? Visibility.Collapsed : Visibility.Visible;
-        ((Border)_status.Parent).Visibility = process is null ? Visibility.Collapsed : Visibility.Visible;
-        _name.Text = process?.Name ?? Strings.SelectProcess;
-        _name.ToolTip = _name.Text;
-        _detail.Text = process is null
-            ? string.Empty
-            : (snapshot!.Grouped
-                  ? Strings.Format(Strings.Processes, process.MemberCount)
-                  : Strings.Format(Strings.PID, process.ProcessId)) +
-              (string.IsNullOrWhiteSpace(process.AppName) ? "" : " · " + process.AppName);
-        _detail.ToolTip = _detail.Text;
+        UpdateIdentity(snapshot, process);
         _status.Text = snapshot is null ? Strings.MissingReading :
             !snapshot.Grouped && !snapshot.Historical && _suspendedByWinMon?.Invoke(process!) == true &&
             _observedSuspensionIdentity == (process!.ProcessId, process.CreationTicks) &&
@@ -308,5 +297,21 @@ public sealed class ProcessActionBar : Border
         menu.PlacementTarget = _more;
         menu.Placement = PlacementMode.Top;
         menu.IsOpen = true;
+    }
+
+    private void UpdateIdentity(ProcessDetailsSnapshot? snapshot, ProcessUsage? process)
+    {
+        _accent.SetResourceReference(BackgroundProperty, process is null ? "Line" : "Accent");
+        _icon.Visibility = process is null ? Visibility.Collapsed : Visibility.Visible;
+        ((Border)_status.Parent).Visibility = process is null ? Visibility.Collapsed : Visibility.Visible;
+        _name.Text = process?.Name ?? Strings.SelectProcess;
+        _name.ToolTip = _name.Text;
+        _detail.Text = process is null
+            ? string.Empty
+            : (snapshot!.Grouped
+                  ? Strings.Format(Strings.Processes, process.MemberCount)
+                  : Strings.Format(Strings.PID, process.ProcessId)) +
+              (string.IsNullOrWhiteSpace(process.AppName) ? "" : " · " + process.AppName);
+        _detail.ToolTip = _detail.Text;
     }
 }

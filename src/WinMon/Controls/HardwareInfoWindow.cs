@@ -163,7 +163,7 @@ internal sealed partial class HardwareInfoWindow : Window
         Sections.Children.Add(new TextBlock { Text = Strings.ReadingHardwareInformation });
         try
         {
-            var sections = await Task.Run(WindowsHardwareInfo.Read);
+            var sections = await Task.Run(HardwareInfoReader.For(this));
             var capturedAt = DateTimeOffset.Now;
             if (_closed) return;
             Sections.Children.Clear();

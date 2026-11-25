@@ -73,6 +73,22 @@ internal sealed class ResourceTrendGraph : FrameworkElement
             Label(drawing, FormatValue(maximum * (4 - i) / 4), new Point(0, Math.Max(0, y - 7)), muted);
         }
         var width = Math.Max(1, (int)Math.Floor(bounds.Width));
+        DrawPrimarySeries(drawing, values, bounds, width, maximum, accent);
+        if (secondaryValues.Length > 0)
+            DrawBinnedLine(drawing, secondaryValues, bounds, width, maximum, Resource("NetworkAccent", Brushes.MediumPurple));
+        if (_selected >= 0 && _selected < _buckets.Count)
+        {
+            var x = bounds.Left + Column(_buckets[_selected].StartUtc, bounds, width);
+            var selectionPen = new Pen(muted, 1) { DashStyle = DashStyles.Dash };
+            drawing.DrawLine(selectionPen, new Point(x, bounds.Top), new Point(x, bounds.Bottom));
+        }
+        if (IsKeyboardFocused) drawing.DrawRectangle(null, new Pen(Resource("Text", Brushes.White), 1), new Rect(0.5, 0.5,
+            Math.Max(0, ActualWidth - 1), Math.Max(0, ActualHeight - 1)));
+    }
+
+    private void DrawPrimarySeries(DrawingContext drawing, (ResourceTrendBucket Bucket, ResourceTrendValue? Value)[] values,
+        Rect bounds, int width, double maximum, Brush accent)
+    {
         var columns = new TrendColumn?[width + 1];
         ResourceTrendBucket? previous = null;
         foreach (var (bucket, value) in values)
@@ -123,16 +139,6 @@ internal sealed class ResourceTrendGraph : FrameworkElement
         }
         if (segment.CanFreeze) segment.Freeze();
         drawing.DrawGeometry(null, new Pen(accent, 1.5), segment);
-        if (secondaryValues.Length > 0)
-            DrawBinnedLine(drawing, secondaryValues, bounds, width, maximum, Resource("NetworkAccent", Brushes.MediumPurple));
-        if (_selected >= 0 && _selected < _buckets.Count)
-        {
-            var x = bounds.Left + Column(_buckets[_selected].StartUtc, bounds, width);
-            var selectionPen = new Pen(muted, 1) { DashStyle = DashStyles.Dash };
-            drawing.DrawLine(selectionPen, new Point(x, bounds.Top), new Point(x, bounds.Bottom));
-        }
-        if (IsKeyboardFocused) drawing.DrawRectangle(null, new Pen(Resource("Text", Brushes.White), 1), new Rect(0.5, 0.5,
-            Math.Max(0, ActualWidth - 1), Math.Max(0, ActualHeight - 1)));
     }
 
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)

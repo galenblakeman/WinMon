@@ -16,18 +16,31 @@ public sealed record ConnectionTrafficTotals(
             (network.Quality & (ProcessNetworkQuality.Unavailable | ProcessNetworkQuality.WarmingUp)) != 0)
             return new(new Dictionary<ProcessLifetimeIdentity, (long, long)>(), 0, false, true);
 
-        static double Moment(MonitorSample sample)
-        {
-            return sample.MonotonicTimestamp > 0
-                ? sample.MonotonicTimestamp / (double)Stopwatch.Frequency
-                : sample.Timestamp.ToUnixTimeMilliseconds() / 1000d;
-        }
-
         var finish = Moment(end.Sample);
-        ConnectionCapture? start = null;
         var incomplete = (network.Quality & (ProcessNetworkQuality.Incomplete | ProcessNetworkQuality.CapacityExceeded |
                                              ProcessNetworkQuality.Discontinuity | ProcessNetworkQuality.WarmingUp)) !=
                          0;
+        var start = FindStart(history, finish, seconds, ref incomplete);
+        var covered = start is null ? 0 : Math.Max(0, finish - Moment(start.Sample));
+        if (seconds > 0 && (start is null || covered < seconds - 1)) incomplete = true;
+        if (seconds > 0 && start is null)
+            return new(new Dictionary<ProcessLifetimeIdentity, (long, long)>(), 0, false, true);
+
+        var totals = CollectTotals(network, start, seconds, ref incomplete);
+        return new(totals, covered, network.Processes.Count == 0 || totals.Count > 0, incomplete);
+    }
+
+    private static double Moment(MonitorSample sample)
+    {
+        return sample.MonotonicTimestamp > 0
+            ? sample.MonotonicTimestamp / (double)Stopwatch.Frequency
+            : sample.Timestamp.ToUnixTimeMilliseconds() / 1000d;
+    }
+
+    private static ConnectionCapture? FindStart(IReadOnlyList<ConnectionCapture> history, double finish, int seconds,
+        ref bool incomplete)
+    {
+        ConnectionCapture? start = null;
         var lastMoment = double.NaN;
         foreach (var capture in history)
         {
@@ -49,11 +62,12 @@ public sealed record ConnectionTrafficTotals(
             start ??= capture;
         }
 
-        var covered = start is null ? 0 : Math.Max(0, finish - Moment(start.Sample));
-        if (seconds > 0 && (start is null || covered < seconds - 1)) incomplete = true;
-        if (seconds > 0 && start is null)
-            return new(new Dictionary<ProcessLifetimeIdentity, (long, long)>(), 0, false, true);
+        return start;
+    }
 
+    private static Dictionary<ProcessLifetimeIdentity, (long Received, long Sent)> CollectTotals(
+        ProcessNetworkFrame network, ConnectionCapture? start, int seconds, ref bool incomplete)
+    {
         var baseline = new Dictionary<ProcessLifetimeIdentity, ProcessNetworkReading>();
         if (seconds > 0)
             foreach (var reading in start!.Network!.Processes)
@@ -77,7 +91,7 @@ public sealed record ConnectionTrafficTotals(
         }
 
         if (baseline.Keys.Any(identity => !totals.ContainsKey(identity))) incomplete = true;
-        return new(totals, covered, network.Processes.Count == 0 || totals.Count > 0, incomplete);
+        return totals;
     }
 
     private static ProcessLifetimeIdentity Identity(ProcessNetworkReading reading)

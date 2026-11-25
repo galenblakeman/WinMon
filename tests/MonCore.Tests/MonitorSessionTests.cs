@@ -685,6 +685,128 @@ public sealed class MonitorSessionTests
         });
     }
 
+    [TestCase("old", "", true)]
+    [TestCase("", "", false)]
+    [TestCase("", "new", false)]
+    [TestCase("old", "new", false)]
+    [TestCase("old", "  ", false)]
+    public async Task NetworkOwnerPathFallbackRetainsTheWholePreviousMetadataObject(string oldPath, string newPath, bool keepOld)
+    {
+        var old = new ProcessUsage(42, 100, "old-name", 1) { ImagePath = oldPath, PrivateBytes = 10 };
+        var current = old with { Name = "new-name", ImagePath = newPath, CpuPercent = 2, PrivateBytes = 20 };
+        var generation = Guid.NewGuid();
+        var session = Guid.NewGuid();
+        var reads = 0;
+        var harness = new Harness(() => new SamplingOptions
+            { ProcessNetwork = Network(generation, ++reads, reads * 100), ProcessNetworkSessionId = session },
+            options => new CapturedFrame(Frame(1)(options).Full with { Processes = [old] }),
+            options => new CapturedFrame(Frame(2)(options).Full with { Processes = [current] }));
+        await harness.RunToEnd();
+        harness.Drain();
+        Assert.Multiple(() =>
+        {
+            Assert.That(harness.Session.ProcessNetwork!.Owners.Single(), Is.SameAs(keepOld ? old : current));
+            Assert.That(harness.Session.LatestFull!.Processes.Single(), Is.SameAs(current));
+            Assert.That(harness.Session.Connections.Captures[0].Network!.Owners.Single(), Is.SameAs(old));
+            Assert.That(harness.Session.Connections.Captures[0].Network!.Owners,
+                Is.Not.SameAs(harness.Session.ProcessNetwork.Owners));
+        });
+    }
+
+    [TestCase(ProcessLifetimeDomain.WindowsFileTime, true)]
+    [TestCase(ProcessLifetimeDomain.UnixMicroseconds, false)]
+    public async Task NetworkOwnersRequireWindowsLifetimeDomainEvenWhenPidAndTokenMatch(ProcessLifetimeDomain domain, bool attached)
+    {
+        var owner = new ProcessUsage(42, 100, "worker", 0) { LifetimeDomain = domain, ImagePath = "known" };
+        var harness = new Harness(new SamplingOptions
+            { ProcessNetwork = Network(Guid.NewGuid(), 1, 100), ProcessNetworkSessionId = Guid.NewGuid() },
+            options => new CapturedFrame(Frame(1)(options).Full with { Processes = [owner] }));
+        await harness.RunToEnd();
+        harness.Drain();
+        Assert.That(harness.Session.ProcessNetwork!.Owners, Is.EqualTo(attached ? new[] { owner } : []));
+        Assert.That(harness.Session.LatestFull!.Processes.Single(), Is.SameAs(owner));
+    }
+
+    [TestCase(8191, false, true)]
+    [TestCase(8192, false, true)]
+    [TestCase(8193, true, false)]
+    public async Task NetworkOwnerMetadataCapacityIsInclusiveAndReportsRejectedMetadata(int count, bool exceeded, bool attached)
+    {
+        var owners = Enumerable.Range(1, count).Select(id => new ProcessUsage(id, id, "worker" + id, 0)).ToArray();
+        var snapshot = Network(Guid.NewGuid(), 1, 100) with { Processes = [new(count, count, 100, 200, 20, 40)] };
+        var harness = new Harness(new SamplingOptions { ProcessNetwork = snapshot, ProcessNetworkSessionId = Guid.NewGuid() },
+            options => new CapturedFrame(Frame(1)(options).Full with { Processes = owners }));
+        await harness.RunToEnd();
+        harness.Drain();
+        var network = harness.Session.ProcessNetwork!;
+        Assert.That(network.Owners, Is.EqualTo(attached ? new[] { owners[^1] } : []));
+        Assert.That(network.Quality.HasFlag(ProcessNetworkQuality.CapacityExceeded), Is.EqualTo(exceeded));
+        if (exceeded) Assert.That(network.Quality.HasFlag(ProcessNetworkQuality.Incomplete), Is.True);
+        Assert.That(harness.Session.Error, Is.Null);
+        Assert.That(harness.Session.LatestFull!.Processes, Has.Count.EqualTo(count));
+    }
+
+    [TestCase(false, false)]
+    [TestCase(false, true)]
+    [TestCase(true, false)]
+    [TestCase(true, true)]
+    public async Task NetworkOwnerCacheClearsOnClientSessionChangeRatherThanCollectorGeneration(bool changeSession, bool changeGeneration)
+    {
+        var owner = new ProcessUsage(42, 100, "worker", 0) { ImagePath = "known" };
+        var firstSession = Guid.NewGuid();
+        var nextSession = Guid.NewGuid();
+        var firstGeneration = Guid.NewGuid();
+        var nextGeneration = Guid.NewGuid();
+        var reads = 0;
+        var harness = new Harness(() =>
+        {
+            var read = ++reads;
+            return new SamplingOptions
+            {
+                ProcessNetworkSessionId = changeSession && read > 1 ? nextSession : firstSession,
+                ProcessNetwork = Network(changeGeneration && read > 1 ? nextGeneration : firstGeneration, read, read * 100)
+            };
+        }, options => new CapturedFrame(Frame(1)(options).Full with { Processes = [owner] }),
+            options => new CapturedFrame(Frame(2)(options).Full with { Processes = [] }));
+        await harness.RunToEnd();
+        harness.Drain();
+        Assert.That(harness.Session.ProcessNetwork!.Owners, Is.EqualTo(changeSession ? Array.Empty<ProcessUsage>() : [owner]));
+        Assert.That(harness.Session.Connections.Captures[0].Network!.Owners.Single(), Is.SameAs(owner));
+        Assert.That(harness.Session.LatestFull!.Processes, Is.Empty);
+    }
+
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task NetworkOwnerMetadataIncludesFlowOnlyLifetimesAndDeduplicatesSharedReadings(bool includeProcess)
+    {
+        var owner = new ProcessUsage(42, 100, "worker", 0) { ImagePath = "known" };
+        var generation = Guid.NewGuid();
+        var session = Guid.NewGuid();
+        var reads = 0;
+        var harness = new Harness(() =>
+        {
+            var read = ++reads;
+            var snapshot = Network(generation, read, read * 100);
+            return new SamplingOptions
+            {
+                ProcessNetworkSessionId = session,
+                ProcessNetwork = snapshot with
+                {
+                    Processes = includeProcess ? snapshot.Processes : [], FlowTrafficSupported = true,
+                    Flows = [new(42, 100, TransportProtocol.Tcp, "127.0.0.1:5000", "127.0.0.1:443", read * 100, 0, 20, 0),
+                        new(42, 100, TransportProtocol.Udp, "127.0.0.1:5001", "127.0.0.1:53", read * 100, 0, 20, 0)]
+                }
+            };
+        }, options => new CapturedFrame(Frame(1)(options).Full with { Processes = [owner] }),
+            options => new CapturedFrame(Frame(2)(options).Full with { Processes = [] }));
+        await harness.RunToEnd();
+        harness.Drain();
+        Assert.That(harness.Session.ProcessNetwork!.Owners.Single(), Is.SameAs(owner));
+        Assert.That(harness.Session.ProcessNetwork.Flows, Has.Count.EqualTo(2));
+        Assert.That(harness.Session.ProcessNetwork.Processes, Has.Count.EqualTo(includeProcess ? 1 : 0));
+        Assert.That(harness.Session.LatestFull!.Processes, Is.Empty);
+    }
+
     // Working sets rise with the PID, so compaction drops the ten smallest idle processes.
     private static Func<SamplingOptions, CapturedFrame> Frame(int second)
     {

@@ -365,7 +365,12 @@ public sealed class MonitorSession(
 
     private ProcessNetworkFrame AttachNetworkOwners(ProcessNetworkFrame frame, MonitorSample? full)
     {
-        var now = Stopwatch.GetTimestamp();
+        return AttachNetworkOwners(frame, full, Stopwatch.GetTimestamp());
+    }
+
+    // Retention uses one timestamp in Stopwatch units; the default path captures it before touching cached state.
+    internal ProcessNetworkFrame AttachNetworkOwners(ProcessNetworkFrame frame, MonitorSample? full, long now)
+    {
         var retained = _retainedNetworkLifetimes;
         retained.Clear();
         var readings = frame.Processes;
@@ -381,6 +386,25 @@ public sealed class MonitorSession(
         foreach (var pair in _networkOwners)
             if (!retained.Contains(pair.Key) && Stopwatch.GetElapsedTime(pair.Value.SeenAt, now).TotalSeconds > 30)
                 _networkOwners.Remove(pair.Key);
+        var capacityExceeded = RememberNetworkOwners(full, now);
+
+        var owners = new ProcessUsage[retained.Count];
+        var count = 0;
+        foreach (var identity in retained)
+            if (_networkOwners.TryGetValue(identity, out var owner))
+                owners[count++] = owner.Process;
+        if (count < owners.Length) Array.Resize(ref owners, count);
+        return frame with
+        {
+            Owners = owners,
+            Quality = frame.Quality | (capacityExceeded
+                ? ProcessNetworkQuality.CapacityExceeded | ProcessNetworkQuality.Incomplete
+                : 0)
+        };
+    }
+
+    private bool RememberNetworkOwners(MonitorSample? full, long now)
+    {
         var capacityExceeded = false;
         var processes = full?.Processes ?? [];
         for (var i = 0; i < processes.Count; i++)
@@ -400,19 +424,7 @@ public sealed class MonitorSession(
             _networkOwners[process.Identity] = (metadata, now);
         }
 
-        var owners = new ProcessUsage[retained.Count];
-        var count = 0;
-        foreach (var identity in retained)
-            if (_networkOwners.TryGetValue(identity, out var owner))
-                owners[count++] = owner.Process;
-        if (count < owners.Length) Array.Resize(ref owners, count);
-        return frame with
-        {
-            Owners = owners,
-            Quality = frame.Quality | (capacityExceeded
-                ? ProcessNetworkQuality.CapacityExceeded | ProcessNetworkQuality.Incomplete
-                : 0)
-        };
+        return capacityExceeded;
     }
 
     private IReadOnlyList<ProcessUsage> ConnectionOwners(NetworkConnectionsFrame? connections, MonitorSample? full,

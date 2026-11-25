@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.IO.Compression;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -89,22 +90,41 @@ public sealed class ResourceTrendArchive
         DateTimeOffset start;
         try { end = sample.Timestamp.ToUniversalTime(); start = end.AddSeconds(-sample.IntervalSeconds); }
         catch (ArgumentOutOfRangeException) { return; }
+        if (!TryAdvanceClock(sample, start, end, out var clockChanged)) return;
+        AccumulateInterval(sample, start, end, clockChanged);
+        _breakNext = false;
+        Prune(end);
+    }
+
+    private bool TryAdvanceClock(MonitorSample sample, DateTimeOffset start, DateTimeOffset end, out bool clockChanged)
+    {
+        clockChanged = false;
         var hasMonotonicInterval = _lastMonotonicTimestamp > 0 && sample.MonotonicTimestamp > 0;
         var elapsed = hasMonotonicInterval
             ? (sample.MonotonicTimestamp - _lastMonotonicTimestamp) / (double)Stopwatch.Frequency : 0;
-        if (hasMonotonicInterval && (elapsed <= 0 || sample.IntervalSeconds > elapsed + 1d / Stopwatch.Frequency)) return;
-        var clockChanged = _lastIntervalEnd is { } previous && hasMonotonicInterval &&
-            Math.Abs((end - previous).TotalSeconds - elapsed) > 5;
-        if (clockChanged && _lastIntervalEnd is { } beforeChange) _clockChangeUntil = beforeChange;
-        if (_clockChangeUntil is { } changedUntil && end <= changedUntil) clockChanged = true;
+        if (hasMonotonicInterval && (elapsed <= 0 || sample.IntervalSeconds > elapsed + 1d / Stopwatch.Frequency)) return false;
+        clockChanged = ObserveClockChange(end, hasMonotonicInterval, elapsed);
         // Wall time and QPC are read separately, so normal timestamp jitter is not an overlapping capture.
-        if (!hasMonotonicInterval && _lastIntervalEnd is { } prior && start < prior && !clockChanged) return;
+        if (!hasMonotonicInterval && _lastIntervalEnd is { } prior && start < prior && !clockChanged) return false;
         _lastIntervalEnd = end;
         _latestUtc = end;
         _lastMonotonicTimestamp = sample.MonotonicTimestamp;
         if (_clockChangeUntil is { } recoveredUntil && end > recoveredUntil) _clockChangeUntil = null;
         if (clockChanged) _lastDevices.Clear();
+        return true;
+    }
 
+    private bool ObserveClockChange(DateTimeOffset end, bool hasMonotonicInterval, double elapsed)
+    {
+        var clockChanged = _lastIntervalEnd is { } previous && hasMonotonicInterval &&
+            Math.Abs((end - previous).TotalSeconds - elapsed) > 5;
+        if (clockChanged && _lastIntervalEnd is { } beforeChange) _clockChangeUntil = beforeChange;
+        if (_clockChangeUntil is { } changedUntil && end <= changedUntil) clockChanged = true;
+        return clockChanged;
+    }
+
+    private void AccumulateInterval(MonitorSample sample, DateTimeOffset start, DateTimeOffset end, bool clockChanged)
+    {
         var resources = sample.Resources;
         var values = Values(sample, resources);
         while (start < end)
@@ -120,21 +140,26 @@ public sealed class ResourceTrendArchive
             if (!_buckets.TryGetValue(key, out var bucket)) _buckets.Add(key, bucket = new MutableBucket(minute));
             foreach (var value in values)
             {
-                var changed = NeedsDevice(value.Metric) && value.Value is { } reading && double.IsFinite(reading) && reading >= 0 &&
-                    !string.IsNullOrWhiteSpace(value.DeviceId) && _lastDevices.TryGetValue(value.Metric, out var priorDevice) &&
+                var trackDevice = TracksDevice(value.Metric, value.Value, value.DeviceId);
+                var changed = trackDevice && _lastDevices.TryGetValue(value.Metric, out var priorDevice) &&
                     !StringComparer.Ordinal.Equals(priorDevice, value.DeviceId);
                 bucket.Add(value.Metric, value.Value, InternDevice(value.DeviceId, value.DeviceLabel), seconds);
                 if (changed) bucket.MarkMetricBreak(value.Metric, ResourceTrendBreak.ResourceChanged);
-                if (NeedsDevice(value.Metric) && value.Value is { } valid && double.IsFinite(valid) && valid >= 0 && !string.IsNullOrWhiteSpace(value.DeviceId))
-                    _lastDevices[value.Metric] = value.DeviceId;
+                if (trackDevice) _lastDevices[value.Metric] = value.DeviceId;
             }
             if (_breakNext) bucket.MarkBreak(ResourceTrendBreak.CollectionRestart);
             if (clockChanged) bucket.MarkBreak(ResourceTrendBreak.ClockChanged);
             start = until;
         }
-        _breakNext = false;
-        Prune(end);
     }
+
+    // Device continuity deliberately remembers finite positive out-of-range readings that buckets reject.
+    private static bool TracksDevice(ResourceTrendMetric metric, double? value, string deviceId) =>
+        NeedsDevice(metric) && value is { } reading && double.IsFinite(reading) && reading >= 0 && !string.IsNullOrWhiteSpace(deviceId);
+
+    private static bool ValidLiveReading(ResourceTrendMetric metric, double reading) =>
+        double.IsFinite(reading) && reading is >= 0 and <= MaximumReading &&
+        !(metric is ResourceTrendMetric.Cpu or ResourceTrendMetric.MemoryPercent or ResourceTrendMetric.PrimaryDiskActive or ResourceTrendMetric.SecondaryDiskActive or ResourceTrendMetric.Gpu && reading > 100);
 
     /// <summary>Returns an immutable, ordered snapshot safe to serialize or render off the sampling path.</summary>
     public ResourceTrendArchiveState Snapshot(DateTimeOffset? endUtc = null)
@@ -264,23 +289,43 @@ public sealed class ResourceTrendArchive
         var prior = long.MinValue;
         foreach (var bucket in state.Buckets)
         {
-            if (bucket.StartUtc.Offset != TimeSpan.Zero || bucket.StartUtc.UtcTicks % TimeSpan.TicksPerMinute != 0 || bucket.StartUtc.UtcTicks <= prior ||
-                bucket.Values is null || bucket.Values.Count > Enum.GetValues<ResourceTrendMetric>().Length)
-                throw new InvalidDataException("Invalid resource trend bucket.");
+            ValidateBucket(bucket, prior);
             prior = bucket.StartUtc.UtcTicks;
-            foreach (var pair in bucket.Values)
-            {
-                var value = pair.Value;
-                if (!Enum.IsDefined(pair.Key) || value is null || value.Device is null || value.DeviceId is null || value.DeviceLabel is null ||
-                    value.Device.Length > MaximumDeviceLength || value.DeviceId.Length > MaximumDeviceLength || value.DeviceLabel.Length > MaximumDeviceLength || !double.IsFinite(value.WeightedSum) ||
-                    !double.IsFinite(value.ObservedSeconds) || !double.IsFinite(value.Minimum) || !double.IsFinite(value.Maximum) ||
-                    value.ObservedSeconds is <= 0 or > 60 || value.WeightedSum < 0 || value.Minimum < 0 || value.Maximum < value.Minimum ||
-                    value.WeightedSum > MaximumReading * 60 || value.Maximum > MaximumReading || value.WeightedSum < value.Minimum * value.ObservedSeconds - 0.001 || value.WeightedSum > value.Maximum * value.ObservedSeconds + 0.001 ||
-                    (pair.Key is ResourceTrendMetric.Cpu or ResourceTrendMetric.MemoryPercent or ResourceTrendMetric.PrimaryDiskActive or ResourceTrendMetric.SecondaryDiskActive or ResourceTrendMetric.Gpu && value.Maximum > 100) || !Enum.IsDefined(value.Break))
-                    throw new InvalidDataException("Invalid resource trend value.");
-            }
         }
     }
+
+    private static void ValidateBucket(ResourceTrendBucket bucket, long prior)
+    {
+        if (bucket.StartUtc.Offset != TimeSpan.Zero || bucket.StartUtc.UtcTicks % TimeSpan.TicksPerMinute != 0 || bucket.StartUtc.UtcTicks <= prior ||
+            bucket.Values is null || bucket.Values.Count > Enum.GetValues<ResourceTrendMetric>().Length)
+            throw new InvalidDataException("Invalid resource trend bucket.");
+        foreach (var pair in bucket.Values)
+            ValidateValue(pair.Key, pair.Value);
+    }
+
+    private static void ValidateValue(ResourceTrendMetric metric, ResourceTrendValue value)
+    {
+        if (!Enum.IsDefined(metric) || value is null || !ValidDeviceNames(value) ||
+            !ValidMeasurements(value) || !ValidRange(metric, value) || !Enum.IsDefined(value.Break))
+            throw new InvalidDataException("Invalid resource trend value.");
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool ValidDeviceNames(ResourceTrendValue value) =>
+        value.Device is not null && value.DeviceId is not null && value.DeviceLabel is not null &&
+        value.Device.Length <= MaximumDeviceLength && value.DeviceId.Length <= MaximumDeviceLength && value.DeviceLabel.Length <= MaximumDeviceLength;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool ValidMeasurements(ResourceTrendValue value) =>
+        double.IsFinite(value.WeightedSum) && double.IsFinite(value.ObservedSeconds) &&
+        double.IsFinite(value.Minimum) && double.IsFinite(value.Maximum) &&
+        value.ObservedSeconds is > 0 and <= 60 && value.WeightedSum >= 0 && value.Minimum >= 0 && value.Maximum >= value.Minimum;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool ValidRange(ResourceTrendMetric metric, ResourceTrendValue value) =>
+        !(value.WeightedSum > MaximumReading * 60 || value.Maximum > MaximumReading ||
+            value.WeightedSum < value.Minimum * value.ObservedSeconds - 0.001 || value.WeightedSum > value.Maximum * value.ObservedSeconds + 0.001 ||
+            (metric is ResourceTrendMetric.Cpu or ResourceTrendMetric.MemoryPercent or ResourceTrendMetric.PrimaryDiskActive or ResourceTrendMetric.SecondaryDiskActive or ResourceTrendMetric.Gpu && value.Maximum > 100));
 
     private sealed class MutableBucket(DateTimeOffset startUtc)
     {
@@ -291,8 +336,7 @@ public sealed class ResourceTrendArchive
 
         public void Add(ResourceTrendMetric metric, double? value, int device, double seconds)
         {
-            if (value is not { } reading || !double.IsFinite(reading) || reading is < 0 or > MaximumReading || seconds <= 0 ||
-                (metric is ResourceTrendMetric.Cpu or ResourceTrendMetric.MemoryPercent or ResourceTrendMetric.PrimaryDiskActive or ResourceTrendMetric.SecondaryDiskActive or ResourceTrendMetric.Gpu && reading > 100) ||
+            if (value is not { } reading || !ValidLiveReading(metric, reading) || seconds <= 0 ||
                 (NeedsDevice(metric) && device == 0)) return;
             ref var total = ref _values[(int)metric];
             seconds = Math.Min(seconds, 60 - total.Seconds);

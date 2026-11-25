@@ -898,119 +898,152 @@ public partial class MainWindow
 
     internal void ApplyTheme()
     {
+        ApplyTheme(null, null);
+    }
+
+    /// <summary>Supply observed appearance state for diagnostics; null retains each native read at its normal point.</summary>
+    internal void ApplyTheme(bool? highContrast, bool? backdropActive)
+    {
         var light = _preferences.Theme == "Light" || (_preferences.Theme == "System" && IsSystemLight());
         var finish = ThemeFinishes.IsFinish(_preferences.Theme) ? ThemeFinishes.For(_preferences.Theme) : null;
         light |= finish?.Light == true;
         ApplyGaugeStyle();
         var app = Application.Current;
         if (app is null) return;
-        BackdropActive = WindowTheme.SetBackdrop(this, finish?.Backdrop ?? ThemeFinishes.BackdropKind.None);
+        BackdropActive = backdropActive ?? WindowTheme.SetBackdrop(this, finish?.Backdrop ?? ThemeFinishes.BackdropKind.None);
         OverallGraph.UseSeriesPatterns = _preferences.ChartPalette == "Colorblind";
-        if (SystemParameters.HighContrast)
-        {
-            app.Resources["Surface"] = SystemColors.WindowBrush;
-            app.Resources["PanelSurface"] = SystemColors.WindowBrush;
-            app.Resources["Raised"] = SystemColors.ControlBrush;
-            app.Resources["TitleBarSurface"] = SystemColors.WindowBrush;
-            app.Resources["SectionHeaderSurface"] = SystemColors.WindowBrush;
-            app.Resources["PlotSurface"] = SystemColors.WindowBrush;
-            app.Resources["SearchSurface"] = SystemColors.WindowBrush;
-            app.Resources["SelectedSurface"] = SystemColors.HighlightBrush;
-            app.Resources["SelectedText"] = SystemColors.HighlightTextBrush;
-            app.Resources["SegmentSelectedSurface"] = SystemColors.HighlightBrush;
-            app.Resources["ChipText"] = SystemColors.WindowTextBrush;
-            app.Resources["ChipSelectedText"] = SystemColors.HighlightTextBrush;
-            app.Resources["SnapshotAccent"] = SystemColors.HighlightBrush;
-            app.Resources["ProcessPinAccent"] = SystemColors.WindowTextBrush;
-            app.Resources["SnapshotAccentText"] = SystemColors.HighlightTextBrush;
-            app.Resources["Text"] = SystemColors.WindowTextBrush;
-            app.Resources["TitleText"] = SystemColors.WindowTextBrush;
-            app.Resources["TitleMuted"] = SystemColors.WindowTextBrush;
-            app.Resources["TitleStatus"] = SystemColors.WindowTextBrush;
-            app.Resources["Muted"] = SystemColors.WindowTextBrush;
-            app.Resources["InactiveTabText"] = SystemColors.WindowTextBrush;
-            app.Resources["Line"] = SystemColors.WindowTextBrush;
-            // Resource colors are all WindowText here, so a gauge's empty part needs a different system color.
-            app.Resources["GaugeTrack"] = SystemColors.GrayTextBrush;
-            app.Resources["Accent"] = SystemColors.HighlightBrush;
-            app.Resources["AccentButtonText"] = SystemColors.HighlightTextBrush;
-            foreach (var key in new[]
-                     {
-                         "CpuAccent", "MemoryAccent", "DiskAccent", "NetworkAccent", "GpuAccent", "SecondaryDiskAccent",
-                         "CpuChartAccent", "MemoryChartAccent", "DiskChartAccent", "NetworkChartAccent",
-                         "GpuChartAccent", "SecondaryDiskChartAccent"
-                     }) app.Resources[key] = SystemColors.WindowTextBrush;
-        }
+        if (highContrast ?? SystemParameters.HighContrast)
+            ApplyHighContrastTheme(app);
         else
         {
-            SetBrush("Surface", finish?.Surface ?? (light ? "#F0F5FA" : "#15191E"));
-            if (finish is null || !finish.Brushed)
-                SetBrush("PanelSurface", finish?.Surface ?? (light ? "#F0F5FA" : "#15191E"),
-                    BackdropActive ? finish?.PanelOpacity ?? byte.MaxValue : byte.MaxValue);
-            else
-                app.Resources["PanelSurface"] = ThemeFinishes.PanelBrush(finish);
-            SetBrush("Raised", finish?.Raised ?? (light ? "#FFFFFF" : "#20262D"));
-            if (finish is null || !finish.Brushed)
-            {
-                SetBrush("TitleBarSurface", finish?.Chrome ?? (light ? "#DCE7F1" : "#30343B"),
-                    BackdropActive ? finish?.ChromeOpacity ?? byte.MaxValue : byte.MaxValue);
-                if (finish is { GlassSheen: true })
-                    app.Resources["SectionHeaderSurface"] = ThemeFinishes.GlassHeaderBrush(finish,
-                        BackdropActive ? finish.HeaderOpacity : byte.MaxValue);
-                else
-                    SetBrush("SectionHeaderSurface", finish?.Header ?? (light ? "#E5EEF7" : "#252A31"),
-                        BackdropActive ? finish?.HeaderOpacity ?? byte.MaxValue : byte.MaxValue);
-            }
-            else
-            {
-                app.Resources["TitleBarSurface"] = ThemeFinishes.ChromeBrush(finish, false);
-                app.Resources["SectionHeaderSurface"] = ThemeFinishes.ChromeBrush(finish, true);
-            }
-
-            SetBrush("PlotSurface", finish?.Plot ?? (light ? "#FFFFFF" : "#15191E"));
-            SetBrush("SearchSurface", finish?.Search ?? (light ? "#FFFFFF" : "#15191E"));
-            SetBrush("SelectedSurface", finish?.Selected ?? (light ? "#1469B5" : "#20262D"));
-            SetBrush("SelectedText", finish?.SelectedText ?? (light ? "#FFFFFF" : "#EDF2F6"));
-            SetBrush("SegmentSelectedSurface", finish?.SegmentSelected ?? (light ? "#1469B5" : "#3D4855"));
-            SetBrush("ChipText", finish?.Text ?? (light ? "#20334A" : "#EDF2F6"));
-            SetBrush("ChipSelectedText", finish is null
-                ? light ? "#FFFFFF" : "#EDF2F6"
-                : ThemeFinishes.SelectedChipText(finish));
-            SetBrush("SnapshotAccentText", "#07171B");
-            SetBrush("Text", finish?.Text ?? (light ? "#20334A" : "#EDF2F6"));
-            SetBrush("TitleText", finish?.TitleText ?? finish?.Text ?? (light ? "#20334A" : "#EDF2F6"));
-            SetBrush("TitleMuted", finish?.TitleText ?? finish?.Muted ?? (light ? "#465D78" : "#B3BDC8"));
-            SetBrush("Muted", finish?.Muted ?? (light ? "#465D78" : "#B3BDC8"));
-            SetBrush("InactiveTabText", finish is null
-                ? light ? "#465D78" : "#B3BDC8"
-                : ThemeFinishes.InactiveTabText(_preferences.Theme, finish));
-            SetBrush("Line", finish?.Line ?? (light ? "#CCD9E5" : "#35404B"));
-            SetBrush("GaugeTrack", finish?.GaugeTrack ?? (light ? "#CCD9E5" : "#35404B"));
-            var colors = ChartPalettes.ColorsForTheme(_preferences.ChartPalette, light, finish);
-            var chartColors = ChartPalettes.ChartColorsForTheme(_preferences.ChartPalette, light, finish);
-            var keys = new[]
-                { "CpuAccent", "MemoryAccent", "DiskAccent", "NetworkAccent", "GpuAccent", "SecondaryDiskAccent" };
-            for (var i = 0; i < keys.Length; i++)
-            {
-                SetBrush(keys[i], colors[i]);
-                SetBrush(keys[i].Replace("Accent", "ChartAccent", StringComparison.Ordinal), chartColors[i]);
-            }
-
-            var uiAccent = finish?.UiAccent ?? (light ? "#1469B5" : colors[0]);
-            SetBrush("Accent", uiAccent);
-            SetBrush("AccentButtonText", ChartPalettes.ContrastRatio(
-                (Color)ColorConverter.ConvertFromString(uiAccent), Colors.Black) >= 4.5
-                ? "#000000"
-                : "#FFFFFF");
-            SetBrush("SnapshotAccent", uiAccent);
-            SetBrush("ProcessPinAccent", uiAccent);
-            SetBrush("TitleStatus", finish?.TitleText ?? uiAccent);
+            ApplyThemeSurfaces(app, light, finish);
+            ApplyThemeChrome(app, light, finish);
+            ApplyThemeSelection(light, finish);
+            ApplyThemeText(light, finish);
+            ApplyThemeAccents(light, finish);
         }
 
         foreach (Window window in app.Windows) WindowTheme.Apply(window);
         foreach (var row in Processes.Rows) row.InvalidateVisual();
         _otherRow.InvalidateVisual();
         OverallGraph.InvalidateVisual();
+    }
+
+    private static void ApplyHighContrastTheme(Application app)
+    {
+        app.Resources["Surface"] = SystemColors.WindowBrush;
+        app.Resources["PanelSurface"] = SystemColors.WindowBrush;
+        app.Resources["Raised"] = SystemColors.ControlBrush;
+        app.Resources["TitleBarSurface"] = SystemColors.WindowBrush;
+        app.Resources["SectionHeaderSurface"] = SystemColors.WindowBrush;
+        app.Resources["PlotSurface"] = SystemColors.WindowBrush;
+        app.Resources["SearchSurface"] = SystemColors.WindowBrush;
+        app.Resources["SelectedSurface"] = SystemColors.HighlightBrush;
+        app.Resources["SelectedText"] = SystemColors.HighlightTextBrush;
+        app.Resources["SegmentSelectedSurface"] = SystemColors.HighlightBrush;
+        app.Resources["ChipText"] = SystemColors.WindowTextBrush;
+        app.Resources["ChipSelectedText"] = SystemColors.HighlightTextBrush;
+        app.Resources["SnapshotAccent"] = SystemColors.HighlightBrush;
+        app.Resources["ProcessPinAccent"] = SystemColors.WindowTextBrush;
+        app.Resources["SnapshotAccentText"] = SystemColors.HighlightTextBrush;
+        app.Resources["Text"] = SystemColors.WindowTextBrush;
+        app.Resources["TitleText"] = SystemColors.WindowTextBrush;
+        app.Resources["TitleMuted"] = SystemColors.WindowTextBrush;
+        app.Resources["TitleStatus"] = SystemColors.WindowTextBrush;
+        app.Resources["Muted"] = SystemColors.WindowTextBrush;
+        app.Resources["InactiveTabText"] = SystemColors.WindowTextBrush;
+        app.Resources["Line"] = SystemColors.WindowTextBrush;
+        // Resource colors are all WindowText here, so a gauge's empty part needs a different system color.
+        app.Resources["GaugeTrack"] = SystemColors.GrayTextBrush;
+        app.Resources["Accent"] = SystemColors.HighlightBrush;
+        app.Resources["AccentButtonText"] = SystemColors.HighlightTextBrush;
+        foreach (var key in new[]
+                 {
+                     "CpuAccent", "MemoryAccent", "DiskAccent", "NetworkAccent", "GpuAccent", "SecondaryDiskAccent",
+                     "CpuChartAccent", "MemoryChartAccent", "DiskChartAccent", "NetworkChartAccent",
+                     "GpuChartAccent", "SecondaryDiskChartAccent"
+                 }) app.Resources[key] = SystemColors.WindowTextBrush;
+    }
+
+    private void ApplyThemeSurfaces(Application app, bool light, ThemeFinishes.Finish? finish)
+    {
+        SetBrush("Surface", finish?.Surface ?? (light ? "#F0F5FA" : "#15191E"));
+        if (finish is null || !finish.Brushed)
+            SetBrush("PanelSurface", finish?.Surface ?? (light ? "#F0F5FA" : "#15191E"),
+                BackdropActive ? finish?.PanelOpacity ?? byte.MaxValue : byte.MaxValue);
+        else
+            app.Resources["PanelSurface"] = ThemeFinishes.PanelBrush(finish);
+        SetBrush("Raised", finish?.Raised ?? (light ? "#FFFFFF" : "#20262D"));
+    }
+
+    private void ApplyThemeChrome(Application app, bool light, ThemeFinishes.Finish? finish)
+    {
+        if (finish is null || !finish.Brushed)
+        {
+            SetBrush("TitleBarSurface", finish?.Chrome ?? (light ? "#DCE7F1" : "#30343B"),
+                BackdropActive ? finish?.ChromeOpacity ?? byte.MaxValue : byte.MaxValue);
+            if (finish is { GlassSheen: true })
+                app.Resources["SectionHeaderSurface"] = ThemeFinishes.GlassHeaderBrush(finish,
+                    BackdropActive ? finish.HeaderOpacity : byte.MaxValue);
+            else
+                SetBrush("SectionHeaderSurface", finish?.Header ?? (light ? "#E5EEF7" : "#252A31"),
+                    BackdropActive ? finish?.HeaderOpacity ?? byte.MaxValue : byte.MaxValue);
+        }
+        else
+        {
+            app.Resources["TitleBarSurface"] = ThemeFinishes.ChromeBrush(finish, false);
+            app.Resources["SectionHeaderSurface"] = ThemeFinishes.ChromeBrush(finish, true);
+        }
+    }
+
+    private static void ApplyThemeSelection(bool light, ThemeFinishes.Finish? finish)
+    {
+        SetBrush("PlotSurface", finish?.Plot ?? (light ? "#FFFFFF" : "#15191E"));
+        SetBrush("SearchSurface", finish?.Search ?? (light ? "#FFFFFF" : "#15191E"));
+        SetBrush("SelectedSurface", finish?.Selected ?? (light ? "#1469B5" : "#20262D"));
+        SetBrush("SelectedText", finish?.SelectedText ?? (light ? "#FFFFFF" : "#EDF2F6"));
+        SetBrush("SegmentSelectedSurface", finish?.SegmentSelected ?? (light ? "#1469B5" : "#3D4855"));
+        SetBrush("ChipText", finish?.Text ?? (light ? "#20334A" : "#EDF2F6"));
+        SetBrush("ChipSelectedText", finish is null
+            ? light ? "#FFFFFF" : "#EDF2F6"
+            : ThemeFinishes.SelectedChipText(finish));
+        SetBrush("SnapshotAccentText", "#07171B");
+    }
+
+    private void ApplyThemeText(bool light, ThemeFinishes.Finish? finish)
+    {
+        SetBrush("Text", finish?.Text ?? (light ? "#20334A" : "#EDF2F6"));
+        SetBrush("TitleText", finish?.TitleText ?? finish?.Text ?? (light ? "#20334A" : "#EDF2F6"));
+        SetBrush("TitleMuted", finish?.TitleText ?? finish?.Muted ?? (light ? "#465D78" : "#B3BDC8"));
+        SetBrush("Muted", finish?.Muted ?? (light ? "#465D78" : "#B3BDC8"));
+        SetBrush("InactiveTabText", finish is null
+            ? light ? "#465D78" : "#B3BDC8"
+            : ThemeFinishes.InactiveTabText(_preferences.Theme, finish));
+        SetBrush("Line", finish?.Line ?? (light ? "#CCD9E5" : "#35404B"));
+        SetBrush("GaugeTrack", finish?.GaugeTrack ?? (light ? "#CCD9E5" : "#35404B"));
+    }
+
+    private void ApplyThemeAccents(bool light, ThemeFinishes.Finish? finish)
+    {
+        var colors = ChartPalettes.ColorsForTheme(_preferences.ChartPalette, light, finish);
+        var chartColors = ChartPalettes.ChartColorsForTheme(_preferences.ChartPalette, light, finish);
+        var keys = new[]
+            { "CpuAccent", "MemoryAccent", "DiskAccent", "NetworkAccent", "GpuAccent", "SecondaryDiskAccent" };
+        for (var i = 0; i < keys.Length; i++)
+        {
+            SetBrush(keys[i], colors[i]);
+            SetBrush(keys[i].Replace("Accent", "ChartAccent", StringComparison.Ordinal), chartColors[i]);
+        }
+
+        var uiAccent = finish?.UiAccent ?? (light ? "#1469B5" : colors[0]);
+        SetBrush("Accent", uiAccent);
+        SetBrush("AccentButtonText", ChartPalettes.ContrastRatio(
+            (Color)ColorConverter.ConvertFromString(uiAccent), Colors.Black) >= 4.5
+            ? "#000000"
+            : "#FFFFFF");
+        SetBrush("SnapshotAccent", uiAccent);
+        SetBrush("ProcessPinAccent", uiAccent);
+        SetBrush("TitleStatus", finish?.TitleText ?? uiAccent);
     }
 
     internal static bool IsSystemLight()
@@ -1075,7 +1108,12 @@ public partial class MainWindow
 
     private void OnWindowKeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control)
+        HandleWindowKeyDown(e, null);
+    }
+
+    private void HandleWindowKeyDown(KeyEventArgs e, ModifierKeys? modifiers)
+    {
+        if (e.Key == Key.F && (modifiers ?? Keyboard.Modifiers) == ModifierKeys.Control)
         {
             if (CompactMode) SetCompactView(false);
             SetActivityPanelCollapsed(false);
@@ -1231,7 +1269,9 @@ public partial class MainWindow
             if (_updateRestartPending) UpdateLauncher.Commit();
             Lifetime.Dispose();
             _allowClose = true;
-            Close();
+            // Completed awaits can leave the original Closing event on the stack.
+            // Let that cancelled event return before requesting the final close.
+            _ = Dispatcher.BeginInvoke(new Action(Close));
         }
     }
 

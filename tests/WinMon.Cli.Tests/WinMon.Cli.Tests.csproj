@@ -15,5 +15,15 @@
     <PackageReference Include="NUnit3TestAdapter" Version="5.2.0" />
     <ProjectReference Include="../../src/WinMon.Cli/WinMon.Cli.csproj" />
     <Compile Include="../Shared/ToolUpdateTests.cs" Link="Shared/ToolUpdateTests.cs" />
+    <Compile Include="../Shared/UpdateManifestCharacterizationTests.cs" Link="Shared/UpdateManifestCharacterizationTests.cs" />
+    <Compile Include="../Shared/ToolInstallationDetectionTestsBase.cs" Link="Shared/ToolInstallationDetectionTestsBase.cs" />
+    <Compile Include="../Shared/NetworkSetupReplyCharacterizationTests.cs" Link="Shared/NetworkSetupReplyCharacterizationTests.cs" />
+    <Compile Include="../Shared/NetworkSetupAvailabilityCharacterizationTests.cs" Link="Shared/NetworkSetupAvailabilityCharacterizationTests.cs" />
+    <Compile Include="../Shared/NetworkSetupExtractionCharacterizationTests.cs" Link="Shared/NetworkSetupExtractionCharacterizationTests.cs" Condition="'$(StoreBuild)' != 'true'" />
+    <Compile Include="../Shared/HardwareLabelCharacterizationTests.cs" Link="Shared/HardwareLabelCharacterizationTests.cs" />
+    <Compile Include="../Shared/HardwareDetailsCharacterizationTests.cs" Link="Shared/HardwareDetailsCharacterizationTests.cs" />
+    <Compile Include="../Shared/ConnectionStateCharacterizationTestsBase.cs" Link="Shared/ConnectionStateCharacterizationTestsBase.cs" />
+    <None Update="Fixtures/InteractiveView/*.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Fixtures/InteractiveInput/*.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

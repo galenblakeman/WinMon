@@ -11,7 +11,7 @@ using WinMon.Updates;
 namespace WinMon.Tests;
 
 [TestFixture]
-public sealed class UpdateTests
+public sealed partial class UpdateTests
 {
     private string _directory = null!;
 
@@ -552,6 +552,211 @@ public sealed class UpdateTests
         }
     }
 
+    [TestCase(-1, true)]
+    [TestCase(0, false)]
+    [TestCase(1, false)]
+    [Category("Integration")]
+    public void ForeignTransactionRequiresStrictlyMoreThanSevenDaysOfInactivity(int ticks, bool removed)
+    {
+        var (directory, target, _) = PrepareRecovery("1.2.3", "succeeded");
+        Directory.Delete(Path.GetDirectoryName(target)!, true);
+        var sessionStart = new DateTime(2030, 1, 8, 0, 0, 0, DateTimeKind.Utc);
+        var written = sessionStart.AddDays(-7).AddTicks(ticks);
+        Directory.SetLastWriteTimeUtc(directory, written);
+        Assert.That(Directory.GetLastWriteTimeUtc(directory), Is.EqualTo(written));
+
+        UpdateRuntime.CompleteInterruptedTransaction(directory, Environment.ProcessPath!, "4.0.6", null, sessionStart);
+
+        Assert.That(Directory.Exists(directory), Is.EqualTo(!removed));
+    }
+
+    [TestCase(false, -1, true)]
+    [TestCase(false, 0, false)]
+    [TestCase(false, 1, false)]
+    [TestCase(true, -1, true)]
+    [TestCase(true, 0, false)]
+    [TestCase(true, 1, false)]
+    [Category("Integration")]
+    public void UnappliedTransactionMustPredateTheSessionBeforeDeletion(bool prepared, int ticks, bool removed)
+    {
+        var (directory, target, _) = PrepareRecovery("1.2.3", "unused");
+        File.Delete(Path.Combine(directory, "state.json"));
+        if (!prepared) File.Delete(Path.Combine(directory, "job.json"));
+        File.WriteAllText(Path.Combine(directory, "payload.bin"), "owned partial download");
+        var sessionStart = new DateTime(2030, 1, 8, 0, 0, 0, DateTimeKind.Utc);
+        var created = sessionStart.AddTicks(ticks);
+        Directory.SetCreationTimeUtc(directory, created);
+        Assert.That(Directory.GetCreationTimeUtc(directory), Is.EqualTo(created));
+
+        UpdateRuntime.CompleteInterruptedTransaction(directory, target, "1.2.2", null, sessionStart);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(Directory.Exists(directory), Is.EqualTo(!removed));
+            Assert.That(File.ReadAllText(target), Is.EqualTo("new executable"));
+            if (!removed)
+                Assert.That(File.ReadAllText(Path.Combine(directory, "payload.bin")), Is.EqualTo("owned partial download"));
+        });
+    }
+
+    [TestCase(true)]
+    [TestCase(false)]
+    [Category("Integration")]
+    public void HealthyRecoveryRejectsAnInvalidLegacyCompanionBeforeRecordingSuccess(bool cli)
+    {
+        var (directory, target, job) = PrepareRecovery("1.2.3", "awaiting-ready");
+        job = cli ? job with { CliExisted = true } : job with { McpExisted = false };
+        UpdateFiles.WriteJson(Path.Combine(directory, "job.json"), job);
+        var companion = cli ? UpdateFiles.CliJob(job) : UpdateFiles.McpJob(job);
+        File.WriteAllText(companion.Target, "wrong executable version");
+        File.WriteAllText(UpdateFiles.BackupPath(job), "original executable");
+
+        Assert.That(() => UpdateRuntime.CompleteInterruptedTransaction(directory, target, "1.2.3", null),
+            Throws.TypeOf<InvalidDataException>().With.Message.EqualTo("The executable version does not match the release."));
+        Assert.Multiple(() =>
+        {
+            Assert.That(UpdateFiles.ReadJson<UpdateState>(Path.Combine(directory, "state.json")).Status, Is.EqualTo("awaiting-ready"));
+            Assert.That(File.ReadAllText(UpdateFiles.BackupPath(job)), Is.EqualTo("original executable"));
+            Assert.That(File.ReadAllText(companion.Target), Is.EqualTo("wrong executable version"));
+        });
+    }
+
+    [Test]
+    [Category("Integration")]
+    public void HealthyRecoveryValidatesBothLegacyCompanionsBeforeDiscardingBackups()
+    {
+        var (directory, target, job) = PrepareRecovery(AppInfo.Version, "awaiting-ready");
+        job = job with { CliExisted = true, McpExisted = false };
+        UpdateFiles.WriteJson(Path.Combine(directory, "job.json"), job);
+        var executable = File.ReadAllBytes(typeof(UpdateRuntime).Assembly.Location);
+        foreach (var companion in new[] { UpdateFiles.CliJob(job), UpdateFiles.McpJob(job) })
+        {
+            File.WriteAllBytes(companion.Target, executable);
+            File.WriteAllText(UpdateFiles.BackupPath(companion), "old companion");
+        }
+
+        UpdateRuntime.CompleteInterruptedTransaction(directory, target, AppInfo.Version, null);
+
+        Assert.That(UpdateFiles.ReadJson<UpdateState>(Path.Combine(directory, "state.json")).Status, Is.EqualTo("succeeded"));
+        foreach (var companion in new[] { UpdateFiles.CliJob(job), UpdateFiles.McpJob(job) })
+        {
+            Assert.That(File.ReadAllBytes(companion.Target), Is.EqualTo(executable));
+            Assert.That(File.Exists(UpdateFiles.BackupPath(companion)), Is.False);
+        }
+    }
+
+    [Test]
+    [Category("Integration")]
+    public void LegacyCompanionRecoveryDefersWhileAnotherHelperOwnsTheGuard()
+    {
+        var (directory, target, job) = PrepareRecovery("1.2.3", "replacing");
+        job = job with { McpExisted = false };
+        UpdateFiles.WriteJson(Path.Combine(directory, "job.json"), job);
+        var companion = UpdateFiles.McpJob(job);
+        File.WriteAllText(companion.Target, "new companion");
+        Age(directory);
+        using var acquired = new ManualResetEventSlim();
+        using var release = new ManualResetEventSlim();
+        var helper = Task.Run(() =>
+        {
+            using var mutex = new Mutex(false, UpdateRuntime.UpdateMutexName);
+            mutex.WaitOne();
+            try { acquired.Set(); release.Wait(); }
+            finally { mutex.ReleaseMutex(); }
+        });
+        try
+        {
+            Assert.That(acquired.Wait(TimeSpan.FromSeconds(5)), Is.True);
+            UpdateRuntime.CompleteInterruptedTransaction(directory, target, "1.2.2", null, DateTime.UtcNow.AddMinutes(-1));
+            Assert.Multiple(() =>
+            {
+                Assert.That(File.ReadAllText(companion.Target), Is.EqualTo("new companion"));
+                Assert.That(UpdateFiles.ReadJson<UpdateState>(Path.Combine(directory, "state.json")).Status, Is.EqualTo("replacing"));
+            });
+        }
+        finally { release.Set(); helper.GetAwaiter().GetResult(); }
+    }
+
+    [Test]
+    [Category("Integration")]
+    public void AwaitingReadyRecoveryRollsBackLegacyChangesAndPreservesUnmanagedCompanions()
+    {
+        var (directory, target, job) = PrepareRecovery("1.2.3", "awaiting-ready");
+        job = job with { McpExisted = false };
+        UpdateFiles.WriteJson(Path.Combine(directory, "job.json"), job);
+        var cli = UpdateFiles.CliJob(job);
+        var mcp = UpdateFiles.McpJob(job);
+        File.WriteAllText(cli.Target, "unmanaged CLI");
+        File.WriteAllText(mcp.Target, "new MCP");
+        Age(directory);
+
+        UpdateRuntime.CompleteInterruptedTransaction(directory, target, "1.2.2", null, DateTime.UtcNow.AddMinutes(-1));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(UpdateFiles.ReadJson<UpdateState>(Path.Combine(directory, "state.json")).Status, Is.EqualTo("rolled-back"));
+            Assert.That(File.ReadAllText(cli.Target), Is.EqualTo("unmanaged CLI"));
+            Assert.That(File.Exists(mcp.Target), Is.False);
+            Assert.That(File.ReadAllText(target), Is.EqualTo("new executable"));
+        });
+    }
+
+    [TestCase(false)]
+    [TestCase(true)]
+    [Category("Integration")]
+    public void InterruptedRecoveryClaimsAndReleasesAnAbandonedGuard(bool foreign)
+    {
+        var (directory, target, job) = PrepareRecovery("1.2.3", foreign ? "failed" : "awaiting-ready");
+        job = job with { McpExisted = false };
+        UpdateFiles.WriteJson(Path.Combine(directory, "job.json"), job);
+        var mcp = UpdateFiles.McpJob(job);
+        File.WriteAllText(mcp.Target, "new MCP");
+        if (foreign) Directory.Delete(Path.GetDirectoryName(target)!, true);
+        var session = new DateTime(2030, 1, 8, 0, 0, 0, DateTimeKind.Utc);
+        Directory.SetCreationTimeUtc(directory, session.AddHours(-1));
+        Directory.SetLastWriteTimeUtc(directory, session.AddDays(-8));
+        using var guard = new Mutex(false, UpdateRuntime.UpdateMutexName);
+        var acquired = false;
+        Exception? ownerError = null;
+        var owner = new Thread(() =>
+        {
+            try { acquired = guard.WaitOne(3000); }
+            catch (AbandonedMutexException) { acquired = true; }
+            catch (Exception ex) { ownerError = ex; }
+            // Thread exit leaves the acquired guard abandoned for recovery.
+        }) { IsBackground = true };
+        owner.Start();
+        Assert.That(owner.Join(TimeSpan.FromSeconds(5)), Is.True);
+        Assert.That(ownerError, Is.Null);
+        Assert.That(acquired, Is.True);
+        try
+        {
+            UpdateRuntime.CompleteInterruptedTransaction(directory,
+                foreign ? Path.Combine(_directory, "current.exe") : target, "1.2.2", null, session);
+            Assert.That(Task.Run(() =>
+            {
+                using var observer = new Mutex(false, UpdateRuntime.UpdateMutexName);
+                if (!observer.WaitOne(0)) return false;
+                observer.ReleaseMutex();
+                return true;
+            }).WaitAsync(TimeSpan.FromSeconds(3)).GetAwaiter().GetResult(), Is.True,
+                "Another thread must be able to acquire the guard after recovery.");
+            if (foreign) Assert.That(Directory.Exists(directory), Is.False);
+            else
+                Assert.Multiple(() =>
+                {
+                    Assert.That(UpdateFiles.ReadJson<UpdateState>(Path.Combine(directory, "state.json")).Status, Is.EqualTo("rolled-back"));
+                    Assert.That(File.Exists(mcp.Target), Is.False);
+                    Assert.That(File.ReadAllText(target), Is.EqualTo("new executable"));
+                });
+        }
+        finally
+        {
+            try { guard.ReleaseMutex(); }
+            catch (ApplicationException) { }
+        }
+    }
+
     private static void Age(string directory)
     {
         Directory.SetCreationTimeUtc(directory, DateTime.UtcNow.AddHours(-1));
@@ -637,7 +842,7 @@ public sealed class UpdateTests
     }
 #endif
 
-    private static (byte[] Bytes, string Signature) SignedManifest(RSA key, string version)
+    internal static (byte[] Bytes, string Signature) SignedManifest(RSA key, string version)
     {
         var bytes = JsonSerializer.SerializeToUtf8Bytes(ManifestDocument(version));
         return (bytes,
@@ -697,7 +902,7 @@ public sealed class UpdateTests
         else ((Dictionary<string, object>)document[split[0]])[split[1]] = value;
     }
 
-    private static object Release(string tag, bool draft = false, bool prerelease = false, string[]? assets = null)
+    internal static object Release(string tag, bool draft = false, bool prerelease = false, string[]? assets = null)
     {
         return new
         {
@@ -712,19 +917,19 @@ public sealed class UpdateTests
         };
     }
 
-    private static HttpResponseMessage JsonResponse(object value, string? etag = null)
+    internal static HttpResponseMessage JsonResponse(object value, string? etag = null)
     {
         var response = BytesResponse(JsonSerializer.SerializeToUtf8Bytes(value));
         if (etag is not null) response.Headers.ETag = new EntityTagHeaderValue(etag);
         return response;
     }
 
-    private static HttpResponseMessage BytesResponse(byte[] bytes)
+    internal static HttpResponseMessage BytesResponse(byte[] bytes)
     {
         return new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(bytes) };
     }
 
-    private sealed class DelegateHandler(Func<HttpRequestMessage, HttpResponseMessage> response) : HttpMessageHandler
+    internal sealed class DelegateHandler(Func<HttpRequestMessage, HttpResponseMessage> response) : HttpMessageHandler
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
             CancellationToken cancellationToken)

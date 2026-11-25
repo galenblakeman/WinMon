@@ -10,13 +10,10 @@ internal static class UpdateRuntime
     internal const string UpdateMutexName = @"Local\WinMon.Update";
     private static string? _resultToken;
     private static string? _resultDirectory;
-    internal static bool IsExpectedRestart => _resultToken is not null;
+    internal static bool IsExpectedRestart => UpdateRestartIdentity.IsExpectedRestart(_resultToken);
 
     /// <summary>The history the previous version saved for this restart, with the token it must carry.</summary>
-    internal static (string Path, string Token)? RestartHistory =>
-        _resultToken is { } token && _resultDirectory is { } directory
-            ? (Path.Combine(directory, Monitoring.RestartHistory.FileName), token)
-            : null;
+    internal static (string Path, string Token)? RestartHistory => UpdateRestartIdentity.RestartHistory(_resultToken, _resultDirectory);
 
     internal static bool IsUpdating()
     {
@@ -36,17 +33,36 @@ internal static class UpdateRuntime
 
     internal static void AcceptResultArguments(string[] args)
     {
+        // Keep ordinary startup arguments on the original rejection path.
+        if (!UpdatePolicy.GitHubUpdatesEnabled) return;
+        if (args is not ["--update-result", _, _]) return;
+        AcceptResultArguments(args, ref _resultToken, ref _resultDirectory, null, null, null);
+    }
+
+    internal static void AcceptResultArguments(string[] args, ref string? resultToken, ref string? resultDirectory, string? stagingRoot, Func<string>? processPath,
+        Func<string, EventWaitHandle?>? openHealthy)
+    {
         if (!UpdatePolicy.GitHubUpdatesEnabled) return;
         if (args is not ["--update-result", var directory, var token]) return;
         try
         {
-            directory = UpdateFiles.ValidateDirectory(directory);
+            directory = UpdateFiles.ValidateDirectory(directory, stagingRoot);
             var job = UpdateFiles.ReadJson<UpdateJob>(Path.Combine(directory, "job.json"));
-            if (job.Token != token || !SamePath(job.Target, Environment.ProcessPath!)) return;
-            if (!EventWaitHandle.TryOpenExisting(UpdateLauncher.EventName(token, "Healthy"), out var healthy)) return;
+            if (job.Token != token || !SamePath(job.Target, processPath is null ? Environment.ProcessPath! : processPath())) return;
+            var eventName = UpdateLauncher.EventName(token, "Healthy");
+            EventWaitHandle? healthy;
+            if (openHealthy is null)
+            {
+                if (!EventWaitHandle.TryOpenExisting(eventName, out healthy)) return;
+            }
+            else
+            {
+                healthy = openHealthy(eventName);
+                if (healthy is null) return;
+            }
             healthy.Dispose();
-            _resultToken = token;
-            _resultDirectory = directory;
+            resultToken = token;
+            resultDirectory = directory;
         }
         catch (Exception ex)
         {
@@ -112,31 +128,7 @@ internal static class UpdateRuntime
         if (!Guid.TryParseExact(job.Token, "N", out _)) return;
         if (!SamePath(job.Target, target))
         {
-            // Removed portable/test copies cannot return to clean their own staging folders.
-            if (sessionStartUtc is not { } sessionStart ||
-                Directory.GetLastWriteTimeUtc(directory) >= sessionStart.AddDays(-7) ||
-                Directory.Exists(Path.GetDirectoryName(job.Target)) ||
-                IsProcessRunning(job.ParentId, job.ParentStartTicks)) return;
-            using var mutex = new Mutex(false, UpdateMutexName);
-            try
-            {
-                if (!mutex.WaitOne(0)) return;
-            }
-            catch (AbandonedMutexException)
-            {
-            }
-
-            try
-            {
-                if (!File.Exists(statePath) || UpdateFiles.ReadJson<UpdateState>(statePath).Status is
-                    "succeeded" or "failed" or "rolled-back")
-                    TryDeleteDirectory(directory);
-            }
-            finally
-            {
-                mutex.ReleaseMutex();
-            }
-
+            CleanupAbandonedForeignTransaction(directory, job, statePath, sessionStartUtc);
             return;
         }
         if (!File.Exists(statePath))
@@ -146,15 +138,52 @@ internal static class UpdateRuntime
             return;
         }
 
-        var state = UpdateFiles.ReadJson<UpdateState>(statePath);
+        var status = UpdateFiles.ReadJson<UpdateState>(statePath).Status;
+        if (!TryRecoverInterruptedCompanions(job, statePath, earlier, currentVersion, ref status)) return;
+        if (FinalizeHealthyReplacement(job, statePath, currentVersion, status)) status = "succeeded";
+        CleanupCompletedTransaction(directory, job, status, earlier);
+    }
+
+    private static void CleanupAbandonedForeignTransaction(string directory, UpdateJob job, string statePath,
+        DateTime? sessionStartUtc)
+    {
+        // Removed portable/test copies cannot return to clean their own staging folders.
+        if (sessionStartUtc is not { } sessionStart ||
+            Directory.GetLastWriteTimeUtc(directory) >= sessionStart.AddDays(-7) ||
+            Directory.Exists(Path.GetDirectoryName(job.Target)) ||
+            IsProcessRunning(job.ParentId, job.ParentStartTicks)) return;
+        using var mutex = new Mutex(false, UpdateMutexName);
+        try
+        {
+            if (!mutex.WaitOne(0)) return;
+        }
+        catch (AbandonedMutexException)
+        {
+        }
+
+        try
+        {
+            if (!File.Exists(statePath) || UpdateFiles.ReadJson<UpdateState>(statePath).Status is
+                "succeeded" or "failed" or "rolled-back")
+                TryDeleteDirectory(directory);
+        }
+        finally
+        {
+            mutex.ReleaseMutex();
+        }
+    }
+
+    private static bool TryRecoverInterruptedCompanions(UpdateJob job, string statePath, bool earlier,
+        string currentVersion, ref string status)
+    {
         if (!job.Installed && (job.CliExisted is not null || job.McpExisted is not null) && earlier &&
             UpdateManifest.ParseVersion(job.Version) > UpdateManifest.ParseVersion(currentVersion) &&
-            state.Status is "replacing" or "awaiting-ready")
+            status is "replacing" or "awaiting-ready")
         {
             using var guard = new Mutex(false, UpdateMutexName);
             try
             {
-                if (!guard.WaitOne(0)) return;
+                if (!guard.WaitOne(0)) return false;
             }
             catch (AbandonedMutexException)
             {
@@ -163,22 +192,32 @@ internal static class UpdateRuntime
             {
                 RestoreCompanions(job);
                 UpdateFiles.WriteJson(statePath, new UpdateState("rolled-back"));
-                state = new UpdateState("rolled-back");
+                status = "rolled-back";
             }
             finally { guard.ReleaseMutex(); }
         }
-        if (job.Version == currentVersion && state.Status is "replacing" or "awaiting-ready")
+        return true;
+    }
+
+    private static bool FinalizeHealthyReplacement(UpdateJob job, string statePath, string currentVersion,
+        string status)
+    {
+        if (job.Version == currentVersion && status is "replacing" or "awaiting-ready")
         {
             if (job.CliExisted is not null)
                 UpdateClient.ValidateExecutableVersion(UpdateFiles.CliJob(job).Target, job.Version);
             if (job.McpExisted is not null)
                 UpdateClient.ValidateExecutableVersion(UpdateFiles.McpJob(job).Target, job.Version);
             UpdateFiles.WriteJson(statePath, new UpdateState("succeeded"));
-            state = new UpdateState("succeeded");
+            return true;
         }
+        return false;
+    }
 
-        if (state.Status is not ("succeeded" or "failed" or "rolled-back")) return;
-        if (state.Status != "succeeded" && !earlier) return;
+    private static void CleanupCompletedTransaction(string directory, UpdateJob job, string status, bool earlier)
+    {
+        if (status is not ("succeeded" or "failed" or "rolled-back")) return;
+        if (status != "succeeded" && !earlier) return;
         // The small job and state files stay until the result notice has been shown.
         if (earlier && File.Exists(Path.Combine(directory, "notice-shown")) && File.Exists(job.Target))
         {
@@ -204,13 +243,16 @@ internal static class UpdateRuntime
     }
 
     internal static string? ConsumeNotice()
+        => ConsumeNotice(null, null);
+
+    internal static string? ConsumeNotice(Func<IEnumerable<string>>? transactions, Func<string>? processPath)
     {
         if (!UpdatePolicy.GitHubUpdatesEnabled) return null;
-        foreach (var directory in Transactions())
+        foreach (var directory in transactions is null ? Transactions() : transactions())
             try
             {
                 var job = UpdateFiles.ReadJson<UpdateJob>(Path.Combine(directory, "job.json"));
-                if (!SamePath(job.Target, Environment.ProcessPath!)) continue;
+                if (!SamePath(job.Target, processPath is null ? Environment.ProcessPath! : processPath())) continue;
                 var statePath = Path.Combine(directory, "state.json");
                 if (!File.Exists(statePath) || File.Exists(Path.Combine(directory, "notice-shown"))) continue;
                 var state = UpdateFiles.ReadJson<UpdateState>(statePath);
@@ -269,20 +311,7 @@ internal static class UpdateRuntime
             directory = UpdateFiles.ValidateDirectory(directory, host.StagingRoot);
             validatedDirectory = true;
             job = UpdateFiles.ReadJson<UpdateJob>(Path.Combine(directory, "job.json"));
-            if (job.Token != token || !Guid.TryParseExact(token, "N", out _) ||
-                !SamePath(Path.GetDirectoryName(host.ProcessPath)!, directory) ||
-                !Path.GetFileName(job.Target).Equals("WinMon.exe", StringComparison.OrdinalIgnoreCase))
-                throw new InvalidDataException("Invalid update job.");
-            var bytes = File.ReadAllBytes(Path.Combine(directory, "update-manifest.json"));
-            var signature = File.ReadAllText(Path.Combine(directory, "update-manifest.sig"));
-            var manifest = UpdateManifest.Verify(bytes, signature, host.PublicKey, job.Version);
-            if (UpdateManifest.ParseVersion(job.Version) <= UpdateManifest.ParseVersion(host.CurrentVersion))
-                throw new InvalidDataException("Refusing an update downgrade.");
-            if (job.Installed != host.IsInstalled(job.Target))
-                throw new InvalidDataException("Installation registration changed.");
-            var asset = job.Installed ? manifest.Installer : manifest.Portable;
-            var download = Path.Combine(directory, asset.Name);
-            UpdateManifest.VerifyFileAsync(download, asset, CancellationToken.None).GetAwaiter().GetResult();
+            var download = ValidateHelperDownload(directory, token, job, host);
             // Bind the job to the process that requested it, including its start time and executable path.
             using var parent = host.OpenProcess(job.ParentId);
             if (parent.StartTicks != job.ParentStartTicks || !SamePath(parent.FileName, job.Target))
@@ -306,44 +335,11 @@ internal static class UpdateRuntime
                 using var commit = host.Signal(token, "Commit");
                 using var cancel = host.Signal(token, "Cancel");
                 ready.Set();
-                // The app commits after its exit work, which has no fixed bound: a running service restart defers
-                // its close. Wait while it lives; it signals Commit or Cancel before it exits.
-                var signal = WaitHandle.WaitTimeout;
-                while (signal == WaitHandle.WaitTimeout)
-                {
-                    var exited = parent.HasExited;
-                    signal = WaitHandle.WaitAny([commit, cancel], exited ? 0 : 250);
-                    if (exited && signal == WaitHandle.WaitTimeout) return 1;
-                }
-
-                if (signal != 0) return 1;
-                if (!parent.WaitForExit(60000))
-                    throw new IOException("WinMon did not exit in time; the update was cancelled.");
-                if (cancel.WaitOne(0)) return 1;
+                if (!WaitForUpdateHandoff(parent, commit, cancel)) return 1;
                 host.WriteState(directory, new UpdateState("replacing"));
                 if (job.Installed)
                 {
-                    var installer = new ProcessStartInfo(download) { UseShellExecute = false, CreateNoWindow = true };
-                    foreach (var arg in new[]
-                             {
-                                 "/VERYSILENT", "/SUPPRESSMSGBOXES", "/SP-", "/NORESTART", "/NOCLOSEAPPLICATIONS",
-                                 "/NORESTARTAPPLICATIONS", "/DIR=" + Path.GetDirectoryName(job.Target),
-                                 "/LOG=" + Path.Combine(directory, "installer.log")
-                             }) installer.ArgumentList.Add(arg);
-                    using var setup = host.Start(installer) ??
-                                      throw new IOException("Cannot start the update installer.");
-                    if (!setup.WaitForExit(300000))
-                    {
-                        host.WriteState(directory,
-                            new UpdateState("installer-running",
-                                "Setup has exceeded five minutes; see installer.log."));
-                        // Setup may still be writing files. Retain the update guard until it has actually exited.
-                        setup.WaitForExit();
-                    }
-
-                    if (setup.ExitCode != 0)
-                        throw new IOException("Update installer failed with exit code " + setup.ExitCode + ".");
-                    UpdateClient.ValidateExecutableVersion(job.Target, job.Version);
+                    RunUpdateInstaller(directory, download, job, host);
                 }
                 else
                 {
@@ -359,10 +355,7 @@ internal static class UpdateRuntime
                 using var healthy = host.Signal(token, "Healthy", create: true);
                 // Only the transaction's authenticated restart may pass the startup guard until readiness.
                 child = Launch(job, directory, host);
-                var deadline = host.UtcNow.AddSeconds(60);
-                while (!healthy.WaitOne(100))
-                    if (child.HasExited || host.UtcNow >= deadline)
-                        throw new IOException("The updated app did not become ready.");
+                WaitForHealthyUpdate(child, healthy, host);
                 // The new version is healthy, so no failure from here may roll it back. Its first poll for the
                 // result notice can briefly hold the state file; if the write never lands, the next launch of this
                 // version records the success itself (CompleteInterruptedTransaction) and removes the backup.
@@ -408,55 +401,130 @@ internal static class UpdateRuntime
                     Trace.TraceWarning("WinMon could not save update error: {0}", logError.Message);
                 }
 
-            // ReSharper disable once InvertIf
             if (job is not null && validatedJob)
-                try
-                {
-                    if (job.Installed && child is { HasExited: false })
-                    {
-                        // Setup has installed and started the new version, but sampling is slow. Launching
-                        // another copy would just signal this one, and "failed" would be untrue. The state stays
-                        // awaiting-ready, which the next launch of this version records as succeeded.
-                        Trace.TraceWarning("WinMon updater left the slow new version running.");
-                        return 1;
-                    }
-
-                    if (replaced)
-                    {
-                        if (child is { HasExited: false })
-                        {
-                            child.CloseMainWindow();
-                            if (!child.WaitForExit(15000))
-                            {
-                                child.Kill();
-                                child.WaitForExit(15000);
-                            }
-                        }
-
-                        PortableUpdate.Restore(job.Target, UpdateFiles.BackupPath(job));
-                    }
-                    else if (!job.Installed)
-                    {
-                        PortableUpdate.RecoverIncompleteReplace(job.Target, UpdateFiles.BackupPath(job));
-                    }
-
-                    if (!job.Installed) RestoreCompanions(job);
-
-                    host.WriteState(directory,
-                        new UpdateState(replaced ? "rolled-back" : "failed", ex.Message));
-                    if (File.Exists(job.Target) && !host.IsProcessRunning(job.ParentId, job.ParentStartTicks))
-                        Launch(job, directory, host).Dispose();
-                }
-                catch (Exception recoveryError)
-                {
-                    Trace.TraceError("WinMon update recovery: {0}", recoveryError);
-                }
+                RecoverHelperFailure(directory, job, child, replaced, ex, host);
 
             return 1;
         }
         finally
         {
             child?.Dispose();
+        }
+    }
+
+    private static string ValidateHelperDownload(string directory, string token, UpdateJob job, UpdateHelperHost host)
+    {
+        if (job.Token != token || !Guid.TryParseExact(token, "N", out _) ||
+            !SamePath(Path.GetDirectoryName(host.ProcessPath)!, directory) ||
+            !Path.GetFileName(job.Target).Equals("WinMon.exe", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidDataException("Invalid update job.");
+        var bytes = File.ReadAllBytes(Path.Combine(directory, "update-manifest.json"));
+        var signature = File.ReadAllText(Path.Combine(directory, "update-manifest.sig"));
+        var manifest = UpdateManifest.Verify(bytes, signature, host.PublicKey, job.Version);
+        if (UpdateManifest.ParseVersion(job.Version) <= UpdateManifest.ParseVersion(host.CurrentVersion))
+            throw new InvalidDataException("Refusing an update downgrade.");
+        if (job.Installed != host.IsInstalled(job.Target))
+            throw new InvalidDataException("Installation registration changed.");
+        var asset = job.Installed ? manifest.Installer : manifest.Portable;
+        var download = Path.Combine(directory, asset.Name);
+        UpdateManifest.VerifyFileAsync(download, asset, CancellationToken.None).GetAwaiter().GetResult();
+        return download;
+    }
+
+    private static bool WaitForUpdateHandoff(IUpdateHelperProcess parent, WaitHandle commit, WaitHandle cancel)
+    {
+        // The app commits after its exit work, which has no fixed bound: a running service restart defers
+        // its close. Wait while it lives; it signals Commit or Cancel before it exits.
+        var signal = WaitHandle.WaitTimeout;
+        while (signal == WaitHandle.WaitTimeout)
+        {
+            var exited = parent.HasExited;
+            signal = WaitHandle.WaitAny([commit, cancel], exited ? 0 : 250);
+            if (exited && signal == WaitHandle.WaitTimeout) return false;
+        }
+
+        if (signal != 0) return false;
+        if (!parent.WaitForExit(60000))
+            throw new IOException("WinMon did not exit in time; the update was cancelled.");
+        return !cancel.WaitOne(0);
+    }
+
+    private static void RunUpdateInstaller(string directory, string download, UpdateJob job, UpdateHelperHost host)
+    {
+        var installer = new ProcessStartInfo(download) { UseShellExecute = false, CreateNoWindow = true };
+        foreach (var arg in new[]
+                 {
+                     "/VERYSILENT", "/SUPPRESSMSGBOXES", "/SP-", "/NORESTART", "/NOCLOSEAPPLICATIONS",
+                     "/NORESTARTAPPLICATIONS", "/DIR=" + Path.GetDirectoryName(job.Target),
+                     "/LOG=" + Path.Combine(directory, "installer.log")
+                 }) installer.ArgumentList.Add(arg);
+        using var setup = host.Start(installer) ??
+                          throw new IOException("Cannot start the update installer.");
+        if (!setup.WaitForExit(300000))
+        {
+            host.WriteState(directory,
+                new UpdateState("installer-running",
+                    "Setup has exceeded five minutes; see installer.log."));
+            // Setup may still be writing files. Retain the update guard until it has actually exited.
+            setup.WaitForExit();
+        }
+
+        if (setup.ExitCode != 0)
+            throw new IOException("Update installer failed with exit code " + setup.ExitCode + ".");
+        UpdateClient.ValidateExecutableVersion(job.Target, job.Version);
+    }
+
+    private static void WaitForHealthyUpdate(IUpdateHelperProcess child, WaitHandle healthy, UpdateHelperHost host)
+    {
+        var deadline = host.UtcNow.AddSeconds(60);
+        while (!healthy.WaitOne(100))
+            if (child.HasExited || host.UtcNow >= deadline)
+                throw new IOException("The updated app did not become ready.");
+    }
+
+    private static void RecoverHelperFailure(string directory, UpdateJob job, IUpdateHelperProcess? child,
+        bool replaced, Exception error, UpdateHelperHost host)
+    {
+        try
+        {
+            if (job.Installed && child is { HasExited: false })
+            {
+                // Setup has installed and started the new version, but sampling is slow. Launching
+                // another copy would just signal this one, and "failed" would be untrue. The state stays
+                // awaiting-ready, which the next launch of this version records as succeeded.
+                Trace.TraceWarning("WinMon updater left the slow new version running.");
+                return;
+            }
+
+            if (replaced)
+            {
+                if (child is { HasExited: false })
+                {
+                    child.CloseMainWindow();
+                    if (!child.WaitForExit(15000))
+                    {
+                        child.Kill();
+                        child.WaitForExit(15000);
+                    }
+                }
+
+                PortableUpdate.Restore(job.Target, UpdateFiles.BackupPath(job));
+            }
+            else if (!job.Installed)
+            {
+                PortableUpdate.RecoverIncompleteReplace(job.Target, UpdateFiles.BackupPath(job));
+            }
+
+            if (!job.Installed) RestoreCompanions(job);
+
+            host.WriteState(directory,
+                new UpdateState(replaced ? "rolled-back" : "failed", error.Message));
+            if (File.Exists(job.Target) && !host.IsProcessRunning(job.ParentId, job.ParentStartTicks))
+                Launch(job, directory, host).Dispose();
+        }
+        catch (Exception recoveryError)
+        {
+            Trace.TraceError("WinMon update recovery: {0}", recoveryError);
         }
     }
 

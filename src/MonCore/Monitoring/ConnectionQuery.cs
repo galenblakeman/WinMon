@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Net;
+using System.Runtime.CompilerServices;
 
 namespace WinMon.Monitoring;
 
@@ -174,10 +175,7 @@ public static class ConnectionQuery
         var received = 0L;
         var sent = 0L;
         var found = 0;
-        var rateCount = 0;
-        var receiveRate = 0d;
-        var sendRate = 0d;
-        var ratesAvailable = true;
+        var rates = new NetworkRates();
         foreach (var identity in identities)
         {
             if (!readings.TryGetValue(identity, out var reading)) continue;
@@ -186,23 +184,12 @@ public static class ConnectionQuery
             received = SaturatingAdd(received, reading.ReceivedBytes);
             sent = SaturatingAdd(sent, reading.SentBytes);
             if (network.CurrentLifetimes is not null && !network.CurrentLifetimes.Contains(identity)) continue;
-            rateCount++;
-            if (!ValidRate(reading.ReceiveBytesPerSecond) || !ValidRate(reading.SendBytesPerSecond) ||
-                reading.ReceiveBytesPerSecond is null || reading.SendBytesPerSecond is null)
-            {
-                ratesAvailable = false;
-                continue;
-            }
-
-            receiveRate += reading.ReceiveBytesPerSecond.Value;
-            sendRate += reading.SendBytesPerSecond.Value;
+            rates.Add(reading);
         }
 
         if (found == 0) return ConnectionNetworkSummary.Unavailable;
-        ratesAvailable &= double.IsFinite(receiveRate) && double.IsFinite(sendRate);
-        return new ConnectionNetworkSummary(received, sent,
-            ratesAvailable && rateCount > 0 ? receiveRate : null,
-            ratesAvailable && rateCount > 0 ? sendRate : null,
+        var (receiveRate, sendRate) = rates.Finish();
+        return new ConnectionNetworkSummary(received, sent, receiveRate, sendRate,
             network.Quality | (found == identities.Count ? ProcessNetworkQuality.None : ProcessNetworkQuality.Incomplete),
             true, true);
     }
@@ -262,16 +249,29 @@ public static class ConnectionQuery
                 observed.SelectMany(member => flowsByIdentity[member.Identity]).ToArray());
         }
 
-        var owners = new Dictionary<ProcessLifetimeIdentity, ProcessUsage>();
-        foreach (var owner in network.Owners.Concat(processes)) owners[owner.Identity] = owner;
+        var owners = FlowOwners(network.Owners.Concat(processes));
         foreach (var (identity, flows) in flowsByIdentity)
         {
             if (represented.Contains(identity)) continue;
-            owners.TryGetValue(identity, out var owner);
-            yield return owner is null
-                ? new Group(LifetimeKey(identity.ProcessId, identity.StartToken), [], [], null, flows)
-                : new Group(OwnerKey(owner), [], [owner], owner, flows);
+            yield return LifetimeFlowGroup(identity, flows, owners);
         }
+    }
+
+    private static Group LifetimeFlowGroup(ProcessLifetimeIdentity identity,
+        IReadOnlyList<ProcessNetworkFlowReading> flows,
+        Dictionary<ProcessLifetimeIdentity, ProcessUsage> owners)
+    {
+        owners.TryGetValue(identity, out var owner);
+        return owner is null
+            ? new Group(LifetimeKey(identity.ProcessId, identity.StartToken), [], [], null, flows)
+            : new Group(OwnerKey(owner), [], [owner], owner, flows);
+    }
+
+    private static Dictionary<ProcessLifetimeIdentity, ProcessUsage> FlowOwners(IEnumerable<ProcessUsage> source)
+    {
+        var owners = new Dictionary<ProcessLifetimeIdentity, ProcessUsage>();
+        foreach (var owner in source) owners[owner.Identity] = owner;
+        return owners;
     }
 
     private static ProcessLifetimeIdentity FlowIdentity(ProcessNetworkFlowReading flow)
@@ -350,6 +350,36 @@ public static class ConnectionQuery
     private static bool ValidRate(double? rate) => rate is null || (double.IsFinite(rate.Value) && rate.Value >= 0);
 
     private static long SaturatingAdd(long total, long value) => value > long.MaxValue - total ? long.MaxValue : total + value;
+
+    private struct NetworkRates
+    {
+        private int _count;
+        private bool _invalid;
+        private double _receive;
+        private double _send;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Add(ProcessNetworkReading reading)
+        {
+            _count++;
+            if (!ValidRate(reading.ReceiveBytesPerSecond) || !ValidRate(reading.SendBytesPerSecond) ||
+                reading.ReceiveBytesPerSecond is null || reading.SendBytesPerSecond is null)
+            {
+                _invalid = true;
+                return;
+            }
+
+            _receive += reading.ReceiveBytesPerSecond.Value;
+            _send += reading.SendBytesPerSecond.Value;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly (double? Receive, double? Send) Finish()
+        {
+            var available = !_invalid && double.IsFinite(_receive) && double.IsFinite(_send) && _count > 0;
+            return (available ? _receive : null, available ? _send : null);
+        }
+    }
 
     private sealed record Entry(NetworkConnection Connection, ProcessUsage? Process, string Key);
 

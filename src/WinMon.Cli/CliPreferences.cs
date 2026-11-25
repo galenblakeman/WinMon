@@ -22,20 +22,10 @@ public sealed record CliTabPreferences
 
     internal void Normalize(TerminalTab tab)
     {
-        if (Top is < 0 or > 1000) Top = 0;
-        var maximum = tab switch { TerminalTab.Services => 3, TerminalTab.Usage => 4, _ => 5 };
-        if (Sort < 0 || Sort > maximum || tab == TerminalTab.Services && Sort == 3 && Top != 0) Sort = 0;
+        NormalizeOrdering(tab);
         if (Status is < 0 or > 2) Status = 0;
         if (TrafficSeconds is not (0 or 60 or 300 or 1800)) TrafficSeconds = 300;
-        if (tab is TerminalTab.Services or TerminalTab.Hardware) AppsOnly = false;
-        if (tab != TerminalTab.Processes) Grouped = false;
-        if (tab == TerminalTab.Hardware)
-        {
-            Top = 0;
-            Sort = 0;
-            PinnedOnly = false;
-            Pins = [];
-        }
+        ApplyTabRestrictions(tab);
         // Preferences are input, including null array entries and obsolete PID-based identities.
         Pins = (Pins ?? []).Where(pin => pin is not null && pin.Identity is { Length: > 0 and <= 32768 } &&
             pin.Name is { Length: > 0 and <= 256 })
@@ -59,6 +49,26 @@ public sealed record CliTabPreferences
         var added = after.Pins.Where(pin => !before.Pins.Any(old => StringComparer.OrdinalIgnoreCase.Equals(old.Identity, pin.Identity)));
         target.Pins = target.Pins.Where(pin => !removed.Contains(pin.Identity)).Concat(added)
             .DistinctBy(pin => pin.Identity, StringComparer.OrdinalIgnoreCase).ToArray();
+    }
+
+    private void ApplyTabRestrictions(TerminalTab tab)
+    {
+        if (tab is TerminalTab.Services or TerminalTab.Hardware) AppsOnly = false;
+        if (tab != TerminalTab.Processes) Grouped = false;
+        if (tab == TerminalTab.Hardware)
+        {
+            Top = 0;
+            Sort = 0;
+            PinnedOnly = false;
+            Pins = [];
+        }
+    }
+
+    private void NormalizeOrdering(TerminalTab tab)
+    {
+        if (Top is < 0 or > 1000) Top = 0;
+        var maximum = tab switch { TerminalTab.Services => 3, TerminalTab.Usage => 4, _ => 5 };
+        if (Sort < 0 || Sort > maximum || tab == TerminalTab.Services && Sort == 3 && Top != 0) Sort = 0;
     }
 }
 

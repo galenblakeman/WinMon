@@ -27,9 +27,9 @@ public partial class MainWindow
             ServicesTab.IsChecked == true ? CsvExportKind.Services :
             ConnectionsTab.IsChecked == true ? CsvExportKind.Connections :
             ProcessesTab.IsChecked == true ? CsvExportKind.ProcessSamples : CsvExportKind.ResourceHistory;
-        var dialog = new CsvExportDialog(initial,
-            SelectedSample is null && UsageView.ArchiveDays == 0 ? null : UsageText.PeriodNote(CurrentUsageFrame())) { Owner = this };
-        if (dialog.ShowDialog() != true || dialog.Choice is not { } choice || IsClosing) return;
+        var choice = CsvExportOperations.Choose(initial,
+            SelectedSample is null && UsageView.ArchiveDays == 0 ? null : UsageText.PeriodNote(CurrentUsageFrame()), this);
+        if (choice is null || IsClosing) return;
 
         try
         {
@@ -38,7 +38,7 @@ public partial class MainWindow
                 Title = Strings.SaveCsv, Filter = Strings.ExportCsvFilter, DefaultExt = ".csv",
                 AddExtension = true, OverwritePrompt = true, FileName = choice.FileName
             };
-            if (save.ShowDialog(this) != true || IsClosing) return;
+            if (CsvExportOperations.ShowSave(save, this) != true || IsClosing) return;
 
             // Capture immutable snapshots on the UI thread, then write without blocking sampling or painting.
             var samples = choice.Kind is not (CsvExportKind.ResourceHistory or CsvExportKind.ProcessSamples)
@@ -78,7 +78,7 @@ public partial class MainWindow
             }
 
             var path = save.FileName;
-            var write = Task.Run(() => CsvExport.Write(path, choice.Kind, samples, apps, since, busyTicks,
+            var write = Task.Run(() => CsvExportOperations.Write(path, choice.Kind, samples, apps, since, busyTicks,
                 notAttributedTicks, services, connections, period));
             ExportWrites.Add(write);
             try

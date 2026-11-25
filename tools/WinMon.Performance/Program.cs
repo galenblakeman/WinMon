@@ -68,6 +68,23 @@ internal static class Program
         var thread = GetCurrentThread();
         var cyclesPerMs = CyclesPerMillisecond(thread);
         var results = new List<object>();
+        if (args.Contains("--metric-brush-only"))
+        {
+            MeasureChartRenders(true);
+            File.WriteAllText(args[0], JsonSerializer.Serialize(new
+            {
+                LoggingEnabled = diagnosticLog is not null, Runtime = Environment.Version.ToString(),
+                MetricBrushOnly = true, FixedMetricPalette = true, Samples = 120, Width = 800, Height = 240, SelectedIndex = 61,
+                WindowSeconds = 120, RenderFrames = WarmupFrames + Batches * FramesPerBatch,
+                WarmupFrames, Batches, FramesPerBatch,
+                AssemblySha256 = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(typeof(MainWindow).Assembly.Location))),
+                Results = results,
+                Limitation = "Fixed detached chart renders on the UI thread; excludes native collection and the WPF render thread."
+            }, new JsonSerializerOptions { WriteIndented = true }));
+            window.CloseForFixture();
+            app.Shutdown();
+            return;
+        }
         Measure("live-frame");
         if (args.Contains("--live-only"))
         {
@@ -186,6 +203,19 @@ internal static class Program
             throw new InvalidOperationException("Traffic history benchmark must render recorded owner rates.");
         foreach (var owner in connectionProcesses.Take(5)) window.ConnectionView.TogglePin(owner);
         Measure("connections-network-history-pinned-frame");
+        var networkViewportWidth = window.ConnectionView.HeaderScroller.ViewportWidth;
+        window.Preferences = window.Preferences with { TopUsageCount = 0, UsageAppsOnly = false, UsageSortColumn = 0 };
+        window.UsageView.Load(new WinMon.Controls.UsageListSettings(0, WinMon.Controls.UsageSort.CpuTime, false));
+        Check(window.UsageTab);
+        var usageRows = window.UsageView.Rows.Items.Count;
+        if (!window.UsageView.IsVisible || usageRows == 0 || usageRows != session.Usage.Apps.Count)
+            throw new InvalidOperationException("Usage benchmark requires every synthetic app in the active view.");
+        Measure("usage-live-frame");
+        if (window.UsageView.Rows.Items.Count != usageRows)
+            throw new InvalidOperationException("Usage benchmark rows changed during its fixed observation.");
+        var usagePixels = Pixels(Path.Combine(Path.GetDirectoryName(Path.GetFullPath(args[0]))!,
+            Path.GetFileNameWithoutExtension(args[0]) + "-usage.png"));
+        MeasureChartRenders();
         var report = new
         {
             LoggingEnabled = diagnosticLog is not null,
@@ -193,9 +223,12 @@ internal static class Program
             WarmupFrames, Batches, FramesPerBatch,
             AssemblySha256 = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(typeof(MainWindow).Assembly.Location))),
             Results = results,
-            EnabledNetworkViewportWidth = window.ConnectionView.HeaderScroller.ViewportWidth,
+            EnabledNetworkViewportWidth = networkViewportWidth,
             EnabledNetworkColumnFullyVisible = true,
             LivePixelsSha256 = pixels,
+            UsageRowCount = usageRows, UsagePixelsSha256 = usagePixels,
+            GuideModes = 4, GuideRenderWidth = 800, GuideRenderHeight = 240, GuideSamples = 120,
+            GuideRenderFrames = WarmupFrames + Batches * FramesPerBatch,
             Limitation = "UI thread only: refresh, layout, OnRender and channel commit, measured as thread cycles. Excludes native collection and the WPF render thread."
         };
         File.WriteAllText(args[0], JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true }));
@@ -213,6 +246,129 @@ internal static class Program
             Flush();
             QueryThreadCycleTime(thread, out var after);
             return (after - before, GC.GetAllocatedBytesForCurrentThread() - allocated);
+        }
+
+        void MeasureChartRenders(bool metricBrushes = false)
+        {
+            const int width = 800, height = 240;
+            var samples = Enumerable.Range(0, 120).Select(index => new MonitorSample(
+                anchor.AddSeconds(index), index * 7 % 100, [], 0,
+                MonotonicTimestamp: (100 + index) * Stopwatch.Frequency)
+            {
+                Resources = new ResourceSample
+                {
+                    TotalMemoryBytes = 100, UsedMemoryBytes = 65, DiskActivePercent = 30,
+                    SecondaryDiskActivePercent = 20, ReceiveBytesPerSecond = 100_000,
+                    SendBytesPerSecond = 50_000, GpuPercent = 40
+                }
+            }).ToArray();
+            string[] chartKeys = ["CpuChartAccent", "MemoryChartAccent", "DiskChartAccent", "NetworkChartAccent",
+                "GpuChartAccent", "SecondaryDiskChartAccent"];
+            SolidColorBrush[] chartBrushes = [Brushes.Red, Brushes.Lime, Brushes.Blue, Brushes.Yellow, Brushes.Magenta, Brushes.Cyan];
+            (ResourceChartType Mode, string Name, int? TileMetric)[] cases = metricBrushes
+                ? [(ResourceChartType.Overlay, "selected-overlay", null),
+                    (ResourceChartType.Overlay, "tile-0", 0), (ResourceChartType.Overlay, "tile-1", 1),
+                    (ResourceChartType.Overlay, "tile-2", 2), (ResourceChartType.Overlay, "tile-3", 3),
+                    (ResourceChartType.Overlay, "tile-4", 4), (ResourceChartType.Overlay, "tile-5", 5)]
+                : [(ResourceChartType.Overlay, "overlay", null), (ResourceChartType.Focus, "focus-network", null),
+                    (ResourceChartType.SmallMultiples, "small-multiples", null), (ResourceChartType.Heatmap, "heatmap", null)];
+            foreach (var (mode, name, tileMetric) in cases)
+            {
+                var selected = metricBrushes && tileMetric is null ? samples[61] : null;
+                var graph = new WinMon.Controls.CpuGraph
+                {
+                    ShowGrid = tileMetric is null, ChartType = mode, VisibleMetrics = 63, FocusMetric = 3,
+                    TileMetric = tileMetric
+                };
+                graph.Resources["PlotSurface"] = Brushes.Black;
+                graph.Resources["Line"] = Brushes.CornflowerBlue;
+                graph.Resources["Muted"] = Brushes.White;
+                if (metricBrushes)
+                {
+                    for (var metric = 0; metric < chartKeys.Length; metric++)
+                        graph.Resources[chartKeys[metric]] = chartBrushes[metric];
+                    graph.Resources["Raised"] = Brushes.Black;
+                }
+                graph.Measure(new Size(width, height));
+                graph.Arrange(new Rect(0, 0, width, height));
+                RenderTargetBitmap bitmap = null!;
+                (ulong Cycles, long Bytes) Render()
+                {
+                    var allocated = GC.GetAllocatedBytesForCurrentThread();
+                    QueryThreadCycleTime(thread, out var before);
+                    graph.SetData(samples, 120, selected);
+                    graph.UpdateLayout();
+                    bitmap = new RenderTargetBitmap(width, height, 96, 96, PixelFormats.Pbgra32);
+                    bitmap.Render(graph);
+                    QueryThreadCycleTime(thread, out var after);
+                    return (after - before, GC.GetAllocatedBytesForCurrentThread() - allocated);
+                }
+
+                for (var frame = 0; frame < WarmupFrames; frame++) Render();
+                var times = new List<double>();
+                var allocations = new List<double>();
+                for (var batch = 0; batch < Batches; batch++)
+                {
+                    GC.Collect(); GC.WaitForPendingFinalizers(); GC.Collect();
+                    ulong cycles = 0;
+                    long bytes = 0;
+                    for (var frame = 0; frame < FramesPerBatch; frame++)
+                    {
+                        var measured = Render();
+                        cycles += measured.Cycles;
+                        bytes += measured.Bytes;
+                    }
+                    times.Add(cycles / cyclesPerMs / FramesPerBatch);
+                    allocations.Add(bytes / (double)FramesPerBatch);
+                }
+                var drawings = ChartDrawings(VisualTreeHelper.GetDrawing(graph)).OfType<GeometryDrawing>().ToArray();
+                var selectionMarkers = drawings.Count(drawing => drawing.Geometry is EllipseGeometry && drawing.Pen is not null);
+                var traces = drawings.Count(drawing => drawing.Geometry is StreamGeometry && drawing.Brush is null && drawing.Pen is not null);
+                if (metricBrushes)
+                {
+                    if (selectionMarkers != (selected is null ? 0 : 6) || traces != (selected is null ? 1 : 6))
+                        throw new InvalidOperationException("Metric brush benchmark requires every fixed selection outline or tile trace.");
+                    var colors = drawings.Where(drawing => selected is null
+                            ? drawing.Geometry is StreamGeometry && drawing.Brush is null && drawing.Pen is not null
+                            : drawing.Geometry is EllipseGeometry && drawing.Pen is not null)
+                        .Select(drawing => ((SolidColorBrush)drawing.Pen.Brush).Color);
+                    var expectedColors = tileMetric is { } metric
+                        ? new[] { chartBrushes[metric].Color } : chartBrushes.Select(brush => brush.Color);
+                    if (!colors.SequenceEqual(expectedColors))
+                        throw new InvalidOperationException("Metric brush benchmark requires the six fixed resource colors.");
+                }
+                else
+                {
+                    var guides = drawings.Where(drawing => drawing.Geometry is LineGeometry &&
+                        drawing.Pen?.Brush is SolidColorBrush brush && brush.Color == Colors.CornflowerBlue).ToArray();
+                    var horizontal = mode is ResourceChartType.Overlay or ResourceChartType.Focus ? 5 : 0;
+                    if (guides.Count(drawing => drawing.Pen.Thickness == 0.5) != 5 ||
+                        guides.Count(drawing => drawing.Pen.Thickness == 0.7) != horizontal)
+                        throw new InvalidOperationException("Direct chart benchmark requires the actual mode-specific guides.");
+                }
+                var prefix = metricBrushes ? "metrics" : "guides";
+                var pixels = new byte[width * height * 4];
+                bitmap.CopyPixels(pixels, width * 4, 0);
+                var encoder = new PngBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create(bitmap));
+                using (var stream = File.Create(Path.Combine(Path.GetDirectoryName(Path.GetFullPath(args[0]))!,
+                           Path.GetFileNameWithoutExtension(args[0]) + $"-{prefix}-{name}.png"))) encoder.Save(stream);
+                results.Add(new
+                {
+                    Name = $"cpu-{(metricBrushes ? "metric-brush" : "guides")}-{name}-render", MedianMilliseconds = Median(times),
+                    MedianAllocatedBytes = Median(allocations), MillisecondsPerFrame = times,
+                    AllocatedBytesPerFrame = allocations, PixelsSha256 = Convert.ToHexString(SHA256.HashData(pixels)),
+                    SelectionMarkers = selectionMarkers, Traces = traces
+                });
+            }
+        }
+
+        static IEnumerable<Drawing> ChartDrawings(Drawing drawing)
+        {
+            if (drawing is DrawingGroup group)
+                foreach (var child in group.Children)
+                    foreach (var leaf in ChartDrawings(child)) yield return leaf;
+            else yield return drawing;
         }
 
         // The usage ledger runs inside Record, which the refresh scenarios leave out, so it is timed on its own:

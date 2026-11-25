@@ -188,11 +188,7 @@ internal sealed class NetworkTrafficLedger
         var windowEnd = Math.Max(0, nowQpc / _frequency * _frequency - HoldbackTicks);
         var windowStart = Math.Max(0, windowEnd - RateWindowTicks);
         var ratesAvailable = windowEnd > _startedQpc + RateWindowTicks && windowStart >= _ratesUnavailableUntilQpc;
-        var quality = ProcessNetworkQuality.Provisional;
-        if (!ratesAvailable) quality |= ProcessNetworkQuality.WarmingUp;
-        if (_incomplete) quality |= ProcessNetworkQuality.Incomplete;
-        if (_capacityExceeded) quality |= ProcessNetworkQuality.CapacityExceeded;
-        if (_discontinuity) quality |= ProcessNetworkQuality.Discontinuity;
+        var quality = SnapshotQuality(ratesAvailable);
 
         var owned = _lifetimes.Where(lifetime => string.Equals(lifetime.OwnerSid, ownerSid, StringComparison.Ordinal)).ToArray();
         var rows = owned.Where(lifetime => lifetime.ReceivedBytes != 0 || lifetime.SentBytes != 0)
@@ -212,6 +208,16 @@ internal sealed class NetworkTrafficLedger
                 .ThenBy(row => row.LocalEndpoint, StringComparer.Ordinal).ThenBy(row => row.RemoteEndpoint, StringComparer.Ordinal)
                 .ToArray()
         };
+    }
+
+    private ProcessNetworkQuality SnapshotQuality(bool ratesAvailable)
+    {
+        var quality = ProcessNetworkQuality.Provisional;
+        if (!ratesAvailable) quality |= ProcessNetworkQuality.WarmingUp;
+        if (_incomplete) quality |= ProcessNetworkQuality.Incomplete;
+        if (_capacityExceeded) quality |= ProcessNetworkQuality.CapacityExceeded;
+        if (_discontinuity) quality |= ProcessNetworkQuality.Discontinuity;
+        return quality;
     }
 
     private Lifetime? Resolve(int processId, long eventQpc)

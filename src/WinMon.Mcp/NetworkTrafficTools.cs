@@ -23,9 +23,7 @@ internal sealed partial class DiagnosticTools
         int? pid = null, string? expectedStartToken = null, string? expectedDomain = null,
         CancellationToken cancellationToken = default)
     {
-        if (sort is null || sort is not ("receive" or "send" or "received" or "sent") || limit is < 1 or > 200 ||
-            (pid is { } id ? !ValidIdentity(id, expectedStartToken, expectedDomain) :
-                expectedStartToken is not null || expectedDomain is not null)) return Invalid();
+        if (InvalidRequest(sort, limit, pid, expectedStartToken, expectedDomain)) return Invalid();
         cancellationToken.ThrowIfCancellationRequested();
         await using var request = await owner.AcquireAsync(cancellationToken);
         owner.EnableTraffic();
@@ -62,5 +60,10 @@ internal sealed partial class DiagnosticTools
             new TrafficResult(owner.TrafficState, quality, owner.TrafficSessionId,
                 "All adapters; observed bytes since this server subscribed; delayed five-second rates",
                 entries.Take(limit).ToArray()), status, Math.Min(entries.Length, limit), entries.Length > limit));
+
+        static bool InvalidRequest(string sort, int limit, int? pid, string? expectedStartToken, string? expectedDomain) =>
+            sort is null || sort is not ("receive" or "send" or "received" or "sent") || limit is < 1 or > 200 ||
+            (pid is { } id ? !ValidIdentity(id, expectedStartToken, expectedDomain) :
+                expectedStartToken is not null || expectedDomain is not null);
     }
 }

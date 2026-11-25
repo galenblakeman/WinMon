@@ -1014,21 +1014,7 @@ internal sealed class ConnectionDisplayRow(string key) : INotifyPropertyChanged
         Connections = group.Entries.Select(entry => entry.Connection).ToArray();
         Members = group.Members;
         NetworkSummary = network;
-        Name = DisplayName(Process);
-        Detail = status ?? (Members.Count > 1
-            ? Strings.Format(Strings.ConnectionsProcessCount, Members.Count)
-            : $"PID {(group.Entries.Count > 0 ? group.Entries[0].Connection.ProcessId : Process!.ProcessId).ToString(CultureInfo.InvariantCulture)}");
-        var countsAvailable = status is null || status == Strings.ConnectionsNoObservedEndpoints;
-        if (historical)
-            Detail += " · " + (Process?.ImagePath is { Length: > 0 } path ? path : Strings.ExecutablePathUnavailable);
-        Tcp = countsAvailable
-            ? Connections.Count(connection => connection.Protocol == TransportProtocol.Tcp)
-                .ToString(CultureInfo.CurrentCulture)
-            : Strings.MissingReading;
-        Udp = countsAvailable
-            ? Connections.Count(connection => connection.Protocol == TransportProtocol.Udp)
-                .ToString(CultureInfo.CurrentCulture)
-            : Strings.MissingReading;
+        UpdateLabels(group, status, historical);
         SetNetwork(network, true);
         AccessibleName = $"{Name}, {Detail}, {Tcp} TCP, {Udp} UDP" +
                          (network.Enabled
@@ -1088,5 +1074,24 @@ internal sealed class ConnectionDisplayRow(string key) : INotifyPropertyChanged
     {
         return (Name, Detail, AccessibleName, Tcp, Udp, PinLabel, Network, NetworkToolTip, Receive, Send,
             NetworkColumnWidth, ReceiveColumnWidth, SendColumnWidth, NetworkVisibility);
+    }
+
+    private void UpdateLabels(ConnectionsView.ConnectionGroup group, string? status, bool historical)
+    {
+        Name = DisplayName(Process);
+        Detail = status ?? (Members.Count > 1
+            ? Strings.Format(Strings.ConnectionsProcessCount, Members.Count)
+            : $"PID {(group.Entries.Count > 0 ? group.Entries[0].Connection.ProcessId : Process!.ProcessId).ToString(CultureInfo.InvariantCulture)}");
+        var countsAvailable = status is null || status == Strings.ConnectionsNoObservedEndpoints;
+        if (historical)
+            Detail += " · " + (Process?.ImagePath is { Length: > 0 } path ? path : Strings.ExecutablePathUnavailable);
+        Tcp = countsAvailable
+            ? Connections.Count(connection => connection.Protocol == TransportProtocol.Tcp)
+                .ToString(CultureInfo.CurrentCulture)
+            : Strings.MissingReading;
+        Udp = countsAvailable
+            ? Connections.Count(connection => connection.Protocol == TransportProtocol.Udp)
+                .ToString(CultureInfo.CurrentCulture)
+            : Strings.MissingReading;
     }
 }

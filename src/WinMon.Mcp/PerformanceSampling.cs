@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
 using WinMon.Monitoring;
@@ -15,10 +16,7 @@ internal sealed partial class DiagnosticTools
         int? pid = null, string? expectedStartToken = null, string? expectedDomain = null,
         CancellationToken cancellationToken = default)
     {
-        if (durationSeconds is < 1 or > 60 || outputIntervalSeconds is < 1 or > 10 ||
-            durationSeconds % outputIntervalSeconds != 0 ||
-            (pid is { } id ? !ValidIdentity(id, expectedStartToken, expectedDomain) :
-                expectedStartToken is not null || expectedDomain is not null)) return Invalid();
+        if (InvalidRequest(durationSeconds, outputIntervalSeconds, pid, expectedStartToken, expectedDomain)) return Invalid();
         if (!await _samplingSlots.WaitAsync(0, cancellationToken))
             return Responses.Result(new DiagnosticResponse(1, owner.UtcNow, "busy", "unavailable", 0, true, 0, "busy", null));
         try
@@ -30,6 +28,7 @@ internal sealed partial class DiagnosticTools
             if (pid is not null && IdentityStatus(process, expectedStartToken, expectedDomain) is var state && state != "ok")
                 return Responses.Result(Responses.Envelope(owner, initial, null, state));
             var identity = process?.Identity;
+            Func<ProcessUsage, bool>? matchesIdentity = null;
             var targets = PerformanceTargets.From(initial.Frame.Full.Resources);
             var targetsChanged = false;
             var collectionErrors = new HashSet<string>();
@@ -62,8 +61,9 @@ internal sealed partial class DiagnosticTools
                         var networkChanged = resources.NetworkId != initial.Frame.Full.Resources.NetworkId;
                         var gpuChanged = resources.GpuId != initial.Frame.Full.Resources.GpuId;
                         targetsChanged |= diskChanged || networkChanged || gpuChanged;
-                        var current = identity is null ? null : sample.Processes.FirstOrDefault(p => p.Identity == identity);
-                        if (identity is not null && current is null && !sample.IsGap)
+                        var observation = ObserveProcess(sample);
+                        var current = observation.Current;
+                        if (observation.Ended)
                         {
                             status = "notObserved";
                             finished = true;
@@ -88,8 +88,19 @@ internal sealed partial class DiagnosticTools
                 "Per-process network traffic is not collected; process I/O is not physical disk throughput.");
             return Responses.Result(Responses.Envelope(owner, latest, result, status,
                 count: result.Trend.Length, allowHistorical: true));
+
+            // Share the existing pinned-identity capture across recorded frames.
+            (ProcessUsage? Current, bool Ended) ObserveProcess(MonitorSample reading)
+            {
+                var current = identity is null ? null : reading.Processes.FirstOrDefault(matchesIdentity ??= p => p.Identity == identity);
+                return (current, identity is not null && current is null && !reading.IsGap);
+            }
         }
         finally { _samplingSlots.Release(); }
+
+        static bool InvalidRequest(int duration, int interval, int? processId, string? startToken, string? domain) =>
+            duration is < 1 or > 60 || interval is < 1 or > 10 || duration % interval != 0 ||
+            (processId is { } id ? !ValidIdentity(id, startToken, domain) : startToken is not null || domain is not null);
     }
 }
 
@@ -125,8 +136,24 @@ internal sealed class PerformanceAggregate(int duration, int interval)
         _previousEnd = Math.Max(_previousEnd, end);
         var finish = Math.Min(end, duration);
         var valid = fresh && !sample.IsGap && sample.IntervalSeconds is > 0 and <= 5;
+        var values = ReadValues(sample, process);
+        foreach (var (name, value, unit) in values)
+        {
+            AddTo(_total, name, valid ? value : null, Math.Max(0, finish - start), unit);
+            for (var i = 0; i < _buckets.Length; i++)
+            {
+                var overlap = Math.Max(0, Math.Min(finish, (i + 1) * interval) - Math.Max(start, i * interval));
+                AddTo(_buckets[i], name, valid ? value : null, overlap, unit);
+            }
+        }
+    }
+
+    // Preserve the caller's JIT optimization of the short-lived metric array.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static (string Name, double? Value, string Unit)[] ReadValues(MonitorSample sample, ProcessUsage? process)
+    {
         var r = sample.Resources;
-        (string Name, double? Value, string Unit)[] values =
+        return
         [
             ("cpuPercent", sample.TotalCpuPercent, "percentOfMachineCapacity"),
             ("memoryUsedBytes", r.UsedMemoryBytes, "bytes"),
@@ -145,15 +172,6 @@ internal sealed class PerformanceAggregate(int duration, int interval)
             ("processThreads", process?.ThreadCount, "count"),
             ("processHandles", process?.HandleCount, "count")
         ];
-        foreach (var (name, value, unit) in values)
-        {
-            AddTo(_total, name, valid ? value : null, Math.Max(0, finish - start), unit);
-            for (var i = 0; i < _buckets.Length; i++)
-            {
-                var overlap = Math.Max(0, Math.Min(finish, (i + 1) * interval) - Math.Max(start, i * interval));
-                AddTo(_buckets[i], name, valid ? value : null, overlap, unit);
-            }
-        }
     }
 
     internal Dictionary<string, MetricSummary> Summary() => Summarize(_total, duration);

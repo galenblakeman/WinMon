@@ -241,11 +241,21 @@ public sealed class ProcessRow : Grid
                 !_unavailable && _canSetPriority(target), _readPriority, _setPriority));
             ContextMenu.Items.Add(new Separator());
         }
-        if (_canControl is not null && _suspendedByWinMon is not null && _control is not null)
+        if (_canControl is not null) AddProcessControlItems(target);
+
+        item.IsEnabled &= !_unavailable;
+        item.Click += (_, _) => _end(target);
+        ContextMenu.Items.Add(item);
+        return true;
+    }
+
+    private void AddProcessControlItems(ProcessUsage target)
+    {
+        if (_suspendedByWinMon is not null && _control is not null)
         {
             var snapshot = new ProcessDetailsSnapshot(target, _grouped, _sampleAt, _historical?.Invoke() == true,
                 !_unavailable, _state, _sampleKey);
-            var enabled = !_unavailable && !_grouped && _historical?.Invoke() != true && _canControl(target);
+            var enabled = !_unavailable && !_grouped && _historical?.Invoke() != true && _canControl!(target);
             var owned = _suspendedByWinMon(target);
             var observed = enabled ? _isSuspended?.Invoke(target) : null;
             var suspend = ActionItem(owned ? Strings.ResumeProcess : Strings.SuspendProcess, ButtonIcon.Cancel);
@@ -268,11 +278,6 @@ public sealed class ProcessRow : Grid
             efficiency.Click += (_, _) => _control("efficiency", snapshot);
             ContextMenu.Items.Add(efficiency);
         }
-
-        item.IsEnabled &= !_unavailable;
-        item.Click += (_, _) => _end(target);
-        ContextMenu.Items.Add(item);
-        return true;
     }
 
     public ProcessRow()

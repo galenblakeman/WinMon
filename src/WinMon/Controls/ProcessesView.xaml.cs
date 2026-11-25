@@ -47,6 +47,15 @@ internal sealed record ProcessListFrame(
     ProcessListSettings Settings,
     ProcessUsage? Trigger = null);
 
+/// <summary>Optional instance-scoped control adapters; omitted dependencies retain the native defaults.</summary>
+internal sealed class ProcessActionDependencies(Func<int, IProcessControlTarget> openTarget,
+    Func<NetworkServiceProcessStatus> readService, Func<ProcessUsage, bool?> observeSuspension)
+{
+    internal Func<int, IProcessControlTarget> OpenTarget { get; } = openTarget;
+    internal Func<NetworkServiceProcessStatus> ReadService { get; } = readService;
+    internal Func<ProcessUsage, bool?> ObserveSuspension { get; } = observeSuspension;
+}
+
 /// <summary>Ranked, pinned and selected processes with their toolbar and action bar.</summary>
 /// <remarks>
 /// The window owns the settings and passes them in each <see cref="Update"/>. The view raises
@@ -64,10 +73,14 @@ public partial class ProcessesView
     private ProcessSelection? _liveSelection;
     private readonly SuspendedProcessTracker _suspended = new();
     private readonly Dictionary<(int ProcessId, long CreationTicks), bool?> _observedSuspensions = [];
+    private readonly ProcessActionDependencies? _actionDependencies;
     internal bool IsHistorical => _frame?.Selected is not null;
 
-    public ProcessesView()
+    public ProcessesView() : this(null) { }
+
+    internal ProcessesView(ProcessActionDependencies? actionDependencies)
     {
+        _actionDependencies = actionDependencies;
         InitializeComponent();
         ProcessActions.ActionRequested += OnProcessAction;
         ProcessActionDrawer.CollapsedChanged += hidden => ActionsHiddenChanged?.Invoke(hidden);
@@ -227,37 +240,7 @@ public partial class ProcessesView
         _frame = frame;
         var (topCount, processSort, grouped, appsOnly, _) = _settings = frame.Settings;
         var (samples, latest, visible, selected) = (frame.Samples, frame.Latest, frame.Visible, frame.Selected);
-        var historyMetric = processSort switch
-        {
-            ProcessSort.Gpu => grouped ? Strings.BusiestMemberGPU : Strings.GPU,
-            ProcessSort.Memory => grouped ? Strings.SummedPrivateMemory : Strings.MemoryLowercase,
-            ProcessSort.Io => grouped ? Strings.SummedIO : Strings.IO,
-            ProcessSort.Threads => Strings.Threads,
-            ProcessSort.Handles => Strings.Handles,
-            _ => grouped ? Strings.SummedCPU : Strings.CPU
-        };
-        ProcessHistoryHeader.ToolTip = Strings.Format(Strings.HistoryOnOneScaleSharedByEveryRowHoverA, historyMetric);
-        SelectionLabel.Text = selected is not null
-            ? visible is null
-                ? Strings.HistoryExpiredThisSampleHasLeftTheRecordingWindowReturn
-                : Strings.Format(Strings.ProcessesAtSAverage, visible.Timestamp, ProcessRanking.DefaultWindowSeconds,
-                    grouped ? Strings.IdleGroupMembersMayBeOmitted : "")
-            : string.Empty;
-        SelectionLabel.Visibility = selected is null ? Visibility.Collapsed : Visibility.Visible;
-        var selectedIndex = -1;
-        if (selected is not null)
-            for (var i = 0; i < samples.Count; i++)
-                if (ReferenceEquals(samples[i], selected))
-                {
-                    selectedIndex = i;
-                    break;
-                }
-
-        // Views over the history snapshot rather than copies of it, which run to 3,600 samples.
-        var rowSamples = selected is null ? samples : new SampleList(samples, selectedIndex + 1);
-        if (selected is null && frame.LatestFull is not null && rowSamples.Count > 0 &&
-            ReferenceEquals(rowSamples[^1], frame.LatestCompacted))
-            rowSamples = new SampleList(samples, samples.Count, frame.LatestFull);
+        var rowSamples = PrepareRowHistory(frame, samples, visible, selected, processSort, grouped);
         // Rank on a short average ending at the live or selected sample; single intervals are tick-quantized.
         var query = ProcessSearchBox.Text.Trim();
         var ranking = ProcessRanking.Rank(rowSamples, sort: processSort, grouped: grouped,
@@ -294,6 +277,59 @@ public partial class ProcessesView
         }
 
         RefreshProcessActions(rowSamples, grouped, Inclusive);
+        UpdateRemainderRow(rest, query, appsOnly, processSort, grouped, visible);
+        UpdateViewStatus(displayed, visible, selected, latest, appsOnly, query, processSort, pinnedOnly, frame, ranking);
+        if (selected is null || visible is null) return null;
+        return CreateSnapshotReport(visible, displayed, grouped, SortHeaders.First(h => h.Sort == processSort).Text,
+            processSort, query, appsOnly, rest, pinned, top, topCount, extraTrigger);
+
+        ProcessRanking Inclusive()
+        {
+            return inclusive ??= ProcessRanking.Rank(rowSamples, sort: processSort,
+                grouped: grouped, includeInactive: true);
+        }
+    }
+
+    private IReadOnlyList<MonitorSample> PrepareRowHistory(ProcessListFrame frame, IReadOnlyList<MonitorSample> samples,
+        MonitorSample? visible, MonitorSample? selected, ProcessSort processSort, bool grouped)
+    {
+        var historyMetric = processSort switch
+        {
+            ProcessSort.Gpu => grouped ? Strings.BusiestMemberGPU : Strings.GPU,
+            ProcessSort.Memory => grouped ? Strings.SummedPrivateMemory : Strings.MemoryLowercase,
+            ProcessSort.Io => grouped ? Strings.SummedIO : Strings.IO,
+            ProcessSort.Threads => Strings.Threads,
+            ProcessSort.Handles => Strings.Handles,
+            _ => grouped ? Strings.SummedCPU : Strings.CPU
+        };
+        ProcessHistoryHeader.ToolTip = Strings.Format(Strings.HistoryOnOneScaleSharedByEveryRowHoverA, historyMetric);
+        SelectionLabel.Text = selected is not null
+            ? visible is null
+                ? Strings.HistoryExpiredThisSampleHasLeftTheRecordingWindowReturn
+                : Strings.Format(Strings.ProcessesAtSAverage, visible.Timestamp, ProcessRanking.DefaultWindowSeconds,
+                    grouped ? Strings.IdleGroupMembersMayBeOmitted : "")
+            : string.Empty;
+        SelectionLabel.Visibility = selected is null ? Visibility.Collapsed : Visibility.Visible;
+        var selectedIndex = -1;
+        if (selected is not null)
+            for (var i = 0; i < samples.Count; i++)
+                if (ReferenceEquals(samples[i], selected))
+                {
+                    selectedIndex = i;
+                    break;
+                }
+
+        // Views over the history snapshot rather than copies of it, which run to 3,600 samples.
+        var rowSamples = selected is null ? samples : new SampleList(samples, selectedIndex + 1);
+        if (selected is null && frame.LatestFull is not null && rowSamples.Count > 0 &&
+            ReferenceEquals(rowSamples[^1], frame.LatestCompacted))
+            rowSamples = new SampleList(samples, samples.Count, frame.LatestFull);
+        return rowSamples;
+    }
+
+    private void UpdateRemainderRow(ProcessUsage[] rest, string query, bool appsOnly, ProcessSort processSort,
+        bool grouped, MonitorSample? visible)
+    {
         OtherRow.Visibility = rest.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
         if (rest.Length > 0)
             // Memory ranking also covers idle processes compacted out of the sample.
@@ -304,6 +340,12 @@ public partial class ProcessesView
                     : 0),
                 rest.Sum(p => p.CpuPercent),
                 rest.Any(p => p.IoBytesPerSecond is not null) ? rest.Sum(p => p.IoBytesPerSecond ?? 0) : null, grouped);
+    }
+
+    private void UpdateViewStatus(ProcessUsage[] displayed, MonitorSample? visible, MonitorSample? selected,
+        MonitorSample? latest, bool appsOnly, string query, ProcessSort processSort, bool pinnedOnly,
+        ProcessListFrame frame, ProcessRanking ranking)
+    {
         EmptyLabel.Visibility = displayed.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
         EmptyLabel.Text = visible is null && selected is not null
             ? Strings.ReturnToLiveToInspectCurrentActivity
@@ -328,9 +370,14 @@ public partial class ProcessesView
         if (frame.HistoryMemoryLimited)
             CoverageLabel.Text += (CoverageLabel.Text.Length > 0 ? " · " : "") + Strings.HistoryShortenedByMemoryLimit;
         CoverageLabel.ToolTip = CoverageLabel.Text + Strings.UnattributedCPUIsTotalCPUMinusAllMeasuredProcessesKernel;
-        if (selected is null || visible is null) return null;
+    }
+
+    private SnapshotReport CreateSnapshotReport(MonitorSample visible, ProcessUsage[] displayed, bool grouped,
+        string sortText, ProcessSort processSort, string query, bool appsOnly, ProcessUsage[] rest, PinnedProcess[] pinned,
+        ProcessUsage[] top, int topCount, bool extraTrigger)
+    {
         return new SnapshotReport(visible, displayed, grouped,
-                SortHeaders.First(h => h.Sort == processSort).Text, query, appsOnly,
+                sortText, query, appsOnly,
                 CoverageLabel.Text,
                 rest.Length == 0
                     ? null
@@ -348,12 +395,6 @@ public partial class ProcessesView
                 ProcessStates = [.. pinned.Select(p => ProcessRow.StateText(p.State)), .. top.Select(_ => "")],
                 TopCount = topCount, TriggerIncludedOutsideTop = extraTrigger
             };
-
-        ProcessRanking Inclusive()
-        {
-            return inclusive ??= ProcessRanking.Rank(rowSamples, sort: processSort,
-                grouped: grouped, includeInactive: true);
-        }
     }
 
     /// <summary>Show one process from another view: every process individually, filtered to its PID.</summary>
@@ -750,48 +791,77 @@ public partial class ProcessesView
                 new ProcessPropertiesWindow(snapshot, Copy) { Owner = Window.GetWindow(this) }.ShowDialog(); break;
             case "copy": CopyDetailsAsync(snapshot); break;
             case "location": OpenProcessLocation(process); break;
-            case "end" when snapshot is { Available: true, Historical: false } &&
-                            snapshot.Grouped == _settings.Grouped:
-                EndProcess(process); break;
-            case "dump" when snapshot is { Available: true, Historical: false } &&
-                             snapshot.Grouped == _settings.Grouped && CanDumpProcess(process):
-                new ProcessDumpDialog(process, () => CanDumpProcess(process)) { Owner = Window.GetWindow(this) }
-                    .ShowDialog();
+            case "end" or "dump":
+                OnDestructiveProcessAction(action, snapshot);
                 break;
             case "connections" or "usage": NavigationRequested?.Invoke(action, snapshot); break;
-            case "suspend" when snapshot is { Available: true, Historical: false, Grouped: false } && CanControlProcess(process):
-                if (new ProcessActionDialog(Strings.Format(Strings.SuspendProcessConfirmation, process.Name), true)
-                    { Owner = Window.GetWindow(this) }.ShowDialog() != true || !CanControlProcess(process)) break;
-                if (_suspended.Suspend(process) is { } suspendError)
-                    MessageDialog.ShowNotice(Window.GetWindow(this), suspendError, Strings.SuspendProcess);
-                else RefreshSuspensionStatus(process);
-                break;
-            case "resume" when snapshot is { Available: true, Historical: false, Grouped: false } && CanControlProcess(process):
-                if (_suspended.Resume(process) is { } resumeError)
-                    MessageDialog.ShowNotice(Window.GetWindow(this), resumeError, Strings.ResumeProcess);
-                else if (RefreshSuspensionStatus(process) == true)
-                    MessageDialog.ShowNotice(Window.GetWindow(this), Strings.ProcessStillSuspended, Strings.ResumeProcess);
-                break;
-            case "affinity" when snapshot is { Available: true, Historical: false, Grouped: false } && CanControlProcess(process):
-                if (ProcessController.ReadAffinity(process) is not { } affinity)
-                    MessageDialog.ShowNotice(Window.GetWindow(this), Strings.CpuAffinityUnavailable, Strings.SetAffinity);
-                else
-                {
-                    var dialog = new ProcessAffinityDialog(affinity.Process, affinity.System, affinity.Groups != 1)
-                        { Owner = Window.GetWindow(this) };
-                    if (dialog.ShowDialog() == true && CanControlProcess(process) &&
-                        ProcessController.SetAffinity(process, dialog.Result) is { } affinityError)
-                        MessageDialog.ShowNotice(Window.GetWindow(this), affinityError, Strings.SetAffinity);
-                }
-                break;
-            case "efficiency" when snapshot is { Available: true, Historical: false, Grouped: false } && CanControlProcess(process):
-                var state = ProcessController.ReadEfficiency(process);
-                if (state == EfficiencyModeState.Unavailable)
-                    MessageDialog.ShowNotice(Window.GetWindow(this), Strings.EfficiencyModeUnavailable, Strings.EfficiencyMode);
-                else if (ProcessController.SetEfficiency(process, state != EfficiencyModeState.On) is { } efficiencyError)
-                    MessageDialog.ShowNotice(Window.GetWindow(this), efficiencyError, Strings.EfficiencyMode);
+            case "suspend" or "resume" or "affinity" or "efficiency":
+                OnProcessControlAction(action, snapshot);
                 break;
         }
+    }
+
+    private void OnDestructiveProcessAction(string action, ProcessDetailsSnapshot snapshot)
+    {
+        if (snapshot is not { Available: true, Historical: false } || snapshot.Grouped != _settings.Grouped) return;
+        var process = snapshot.Process;
+        if (action == "end") EndProcess(process);
+        else if (CanDumpProcess(process))
+            new ProcessDumpDialog(process, () => CanDumpProcess(process)) { Owner = Window.GetWindow(this) }
+                .ShowDialog();
+    }
+
+    private void OnProcessControlAction(string action, ProcessDetailsSnapshot snapshot)
+    {
+        if (snapshot is not { Available: true, Historical: false, Grouped: false } || !CanControlProcess(snapshot.Process)) return;
+        var process = snapshot.Process;
+        switch (action)
+        {
+            case "suspend": SuspendProcess(process); break;
+            case "resume": ResumeProcess(process); break;
+            case "affinity": SetProcessAffinity(process); break;
+            case "efficiency": ToggleProcessEfficiency(process); break;
+        }
+    }
+
+    private void SuspendProcess(ProcessUsage process)
+    {
+        if (new ProcessActionDialog(Strings.Format(Strings.SuspendProcessConfirmation, process.Name), true)
+            { Owner = Window.GetWindow(this) }.ShowDialog() != true || !CanControlProcess(process)) return;
+        if (_suspended.Suspend(process, _actionDependencies?.OpenTarget, _actionDependencies?.ReadService) is { } error)
+            MessageDialog.ShowNotice(Window.GetWindow(this), error, Strings.SuspendProcess);
+        else RefreshSuspensionStatus(process);
+    }
+
+    private void ResumeProcess(ProcessUsage process)
+    {
+        if (_suspended.Resume(process, _actionDependencies?.OpenTarget) is { } error)
+            MessageDialog.ShowNotice(Window.GetWindow(this), error, Strings.ResumeProcess);
+        else if (RefreshSuspensionStatus(process) == true)
+            MessageDialog.ShowNotice(Window.GetWindow(this), Strings.ProcessStillSuspended, Strings.ResumeProcess);
+    }
+
+    private void SetProcessAffinity(ProcessUsage process)
+    {
+        if (ProcessController.ReadAffinity(process, _actionDependencies?.OpenTarget) is not { } affinity)
+        {
+            MessageDialog.ShowNotice(Window.GetWindow(this), Strings.CpuAffinityUnavailable, Strings.SetAffinity);
+            return;
+        }
+        var dialog = new ProcessAffinityDialog(affinity.Process, affinity.System, affinity.Groups != 1)
+            { Owner = Window.GetWindow(this) };
+        if (dialog.ShowDialog() == true && CanControlProcess(process) &&
+            ProcessController.SetAffinity(process, dialog.Result, _actionDependencies?.OpenTarget) is { } error)
+            MessageDialog.ShowNotice(Window.GetWindow(this), error, Strings.SetAffinity);
+    }
+
+    private void ToggleProcessEfficiency(ProcessUsage process)
+    {
+        var state = ProcessController.ReadEfficiency(process, _actionDependencies?.OpenTarget);
+        if (state == EfficiencyModeState.Unavailable)
+            MessageDialog.ShowNotice(Window.GetWindow(this), Strings.EfficiencyModeUnavailable, Strings.EfficiencyMode);
+        else if (ProcessController.SetEfficiency(process, state != EfficiencyModeState.On, _actionDependencies?.OpenTarget) is { } error)
+            MessageDialog.ShowNotice(Window.GetWindow(this), error, Strings.EfficiencyMode);
     }
 
     private void Copy(string text)
@@ -854,7 +924,9 @@ public partial class ProcessesView
 
     private bool? IsSuspended(ProcessUsage process)
     {
-        var observed = WindowsProcessSuspension.IsSuspended(process.ProcessId, process.CreationTicks);
+        var observed = _actionDependencies?.ObserveSuspension is { } observe
+            ? observe(process)
+            : WindowsProcessSuspension.IsSuspended(process.ProcessId, process.CreationTicks);
         var identity = (process.ProcessId, process.CreationTicks);
         if (_suspended.Contains(process)) _observedSuspensions[identity] = observed;
         else _observedSuspensions.Remove(identity);

@@ -5,6 +5,7 @@
 
 using System.Diagnostics;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Threading.Channels;
 using Microsoft.Diagnostics.Tracing;
 using Microsoft.Diagnostics.Tracing.Parsers;
@@ -25,6 +26,9 @@ internal sealed class EtwNetworkCollector : INetworkCollector
     private const int BatchSize = 4_096;
     private readonly object _gate = new();
     private readonly HashSet<string> _allowedSids;
+    private readonly IProcessOwnerProbe _processOwners;
+    // Null keeps production QPC reads on the original hot path, without virtual dispatch per packet.
+    private readonly TimeProvider? _timeProvider;
 
     private readonly Channel<CollectorEvent> _events = Channel.CreateBounded<CollectorEvent>(
         new BoundedChannelOptions(MaximumEvents)
@@ -52,13 +56,24 @@ internal sealed class EtwNetworkCollector : INetworkCollector
     private int _coverageReasons;
     private int _flowAmbiguous;
 
-    internal EtwNetworkCollector(IReadOnlyCollection<string> allowedSids)
+    internal EtwNetworkCollector(IReadOnlyCollection<string> allowedSids) : this(allowedSids, NativeProcessOwners.Instance) { }
+
+    internal EtwNetworkCollector(IReadOnlyCollection<string> allowedSids, IProcessOwnerProbe processOwners)
+        : this(allowedSids, processOwners, TimeProvider.System) { }
+
+    internal EtwNetworkCollector(IReadOnlyCollection<string> allowedSids, IProcessOwnerProbe processOwners,
+        TimeProvider timeProvider)
     {
         ArgumentNullException.ThrowIfNull(allowedSids);
         _allowedSids = new HashSet<string>(allowedSids.Where(sid => !string.IsNullOrWhiteSpace(sid)),
             StringComparer.Ordinal);
         if (_allowedSids.Count == 0)
             throw new ArgumentException("At least one provisioned SID is required.", nameof(allowedSids));
+        _processOwners = processOwners;
+        ArgumentNullException.ThrowIfNull(timeProvider);
+        if (timeProvider.TimestampFrequency != Stopwatch.Frequency)
+            throw new ArgumentException("The collector clock must use Stopwatch timestamp units.", nameof(timeProvider));
+        _timeProvider = ReferenceEquals(timeProvider, TimeProvider.System) ? null : timeProvider;
     }
 
     internal string? SessionName { get; private set; }
@@ -87,8 +102,8 @@ internal sealed class EtwNetworkCollector : INetworkCollector
                 // TraceEvent's QPC conversion APIs are not public in 3.1.23. Freeze one UTC/QPC
                 // calibration; all following values share Stopwatch's monotonic clock domain.
                 _sessionStartedUtc = _source.SessionStartTime.ToUniversalTime();
-                var calibrationUtc = DateTime.UtcNow;
-                var calibrationQpc = Stopwatch.GetTimestamp();
+                var calibrationUtc = UtcNow();
+                var calibrationQpc = Timestamp();
                 _qpcOffset = checked(calibrationQpc - ToTicks(calibrationUtc - _sessionStartedUtc));
                 _ledger = new NetworkTrafficLedger(Stopwatch.Frequency, _qpcOffset, MaximumOwners);
                 RegisterCallbacks(_source.Kernel);
@@ -130,7 +145,7 @@ internal sealed class EtwNetworkCollector : INetworkCollector
         lock (_gate)
         {
             if (Failed || _ledger is null || _source is null) return Unavailable();
-            var now = Stopwatch.GetTimestamp();
+            var now = Timestamp();
             DrainPendingQuality(now);
             _ledger.ReportLoss(_session?.EventsLost ?? 0, now);
             var snapshot = _ledger.Snapshot(ownerSid, now) with
@@ -198,9 +213,13 @@ internal sealed class EtwNetworkCollector : INetworkCollector
             return;
         }
         // ETW uses source/destination orientation; normalize every flow as local/remote.
+        if (!send)
+        {
+            (source, destination) = (destination, source);
+            (sourcePort, destinationPort) = (destinationPort, sourcePort);
+        }
         Enqueue(new(CollectorEventKind.Network, data.ProcessID, EventQpc(data), bytes, send, protocol,
-            send ? source : destination, send ? sourcePort : destinationPort,
-            send ? destination : source, send ? destinationPort : sourcePort));
+            source, sourcePort, destination, destinationPort));
     }
 
     private static string Endpoint(IPAddress address, int port)
@@ -221,14 +240,14 @@ internal sealed class EtwNetworkCollector : INetworkCollector
     {
         try
         {
-            var nextReconcile = Stopwatch.GetTimestamp();
+            var nextReconcile = Timestamp();
             Task<bool>? ready = null;
             Task? timeout = null;
             while (!_stop.IsCancellationRequested)
             {
                 ready ??= _events.Reader.WaitToReadAsync(_stop.Token).AsTask();
                 // Reuse the pending timer: a fresh one per wake piles up timers under heavy traffic.
-                timeout ??= Task.Delay(TimeSpan.FromSeconds(1), _stop.Token);
+                timeout ??= Task.Delay(TimeSpan.FromSeconds(1), _timeProvider ?? TimeProvider.System, _stop.Token);
                 var completed = await Task.WhenAny(ready, timeout).ConfigureAwait(false);
                 if (completed == timeout)
                 {
@@ -243,11 +262,11 @@ internal sealed class EtwNetworkCollector : INetworkCollector
                     }
                 }
 
-                var now = Stopwatch.GetTimestamp();
+                var now = Timestamp();
                 if (now >= nextReconcile)
                 {
                     Reconcile();
-                    nextReconcile = checked(Stopwatch.GetTimestamp() + Stopwatch.Frequency);
+                    nextReconcile = checked(Timestamp() + Stopwatch.Frequency);
                 }
             }
         }
@@ -278,11 +297,11 @@ internal sealed class EtwNetworkCollector : INetworkCollector
 
     private void Process(CollectorEvent item, NetworkTrafficLedger ledger)
     {
-        DrainPendingQuality(Stopwatch.GetTimestamp());
+        DrainPendingQuality(Timestamp());
         switch (item.Kind)
         {
             case CollectorEventKind.Start:
-                ResolveAndRegister(item.ProcessId, item.EventQpc, Stopwatch.GetTimestamp(), false);
+                ResolveAndRegister(item.ProcessId, item.EventQpc, Timestamp(), false);
                 break;
             case CollectorEventKind.Stop:
                 if (_owners.TryGetValue(item.ProcessId, out var current) && item.EventQpc > current.StartedQpc)
@@ -293,7 +312,7 @@ internal sealed class EtwNetworkCollector : INetworkCollector
 
                 break;
             case CollectorEventKind.Network:
-                var verifiedQpc = Stopwatch.GetTimestamp(); // taken before native ownership I/O
+                var verifiedQpc = Timestamp(); // taken before native ownership I/O
                 if (EnsureKnown(item.ProcessId, item.EventQpc, verifiedQpc))
                     ledger.Add(item.ProcessId, item.EventQpc, verifiedQpc, item.Send, item.Bytes, item.Protocol,
                         item.LocalAddress is { } local ? Endpoint(local, item.LocalPort) : "",
@@ -319,7 +338,7 @@ internal sealed class EtwNetworkCollector : INetworkCollector
 
             // Another account's process keeps its owner, so only PID reuse can change the verdict.
             if (rejected.OtherOwnerCreationTicks != 0 &&
-                ProcessOwnerProbe.TryReadCreation(processId, out var creation) &&
+                _processOwners.TryReadCreation(processId, out var creation) &&
                 creation == rejected.OtherOwnerCreationTicks)
             {
                 _rejectedUntil[processId] = rejected with { UntilQpc = checked(verifiedQpc + Stopwatch.Frequency) };
@@ -330,17 +349,24 @@ internal sealed class EtwNetworkCollector : INetworkCollector
         return ResolveAndRegister(processId, eventQpc, verifiedQpc, true);
     }
 
-    internal bool ResolveAndRegister(int processId, long eventQpc, long verifiedQpc, bool observedTraffic)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool TryRefreshKnownOwner(int processId, long eventQpc, long verifiedQpc)
     {
         // A process's token user never changes, so a known lifetime only needs its creation time rechecked.
         if (_ledger is not null && _owners.TryGetValue(processId, out var known) && eventQpc > known.StartedQpc &&
-            ProcessOwnerProbe.TryReadCreation(processId, out var knownCreation) && knownCreation == known.CreationTicks)
+            _processOwners.TryReadCreation(processId, out var knownCreation) && knownCreation == known.CreationTicks)
         {
             _owners[processId] = known with { ValidThroughQpc = verifiedQpc };
             return true;
         }
 
-        if (_ledger is null || !ProcessOwnerProbe.TryRead(processId, out var owner))
+        return false;
+    }
+
+    internal bool ResolveAndRegister(int processId, long eventQpc, long verifiedQpc, bool observedTraffic)
+    {
+        if (TryRefreshKnownOwner(processId, eventQpc, verifiedQpc)) return true;
+        if (_ledger is null || !_processOwners.TryRead(processId, out var owner))
         {
             Reject(processId, verifiedQpc, true);
             var retained = _ledger?.HasExitedLifetime(processId, eventQpc) == true;
@@ -398,9 +424,9 @@ internal sealed class EtwNetworkCollector : INetworkCollector
         {
             if (_ledger is null) return;
             // Bracket UTC after acquiring the lock so contention or preemption cannot look like clock drift.
-            var nowQpc = Stopwatch.GetTimestamp();
-            var utcNow = DateTime.UtcNow;
-            var sampledThroughQpc = Stopwatch.GetTimestamp();
+            var nowQpc = Timestamp();
+            var utcNow = UtcNow();
+            var sampledThroughQpc = Timestamp();
             if (!IsClockCalibrationValid(_sessionStartedUtc, _qpcOffset, Stopwatch.Frequency, nowQpc, utcNow,
                     sampledThroughQpc))
             {
@@ -412,7 +438,7 @@ internal sealed class EtwNetworkCollector : INetworkCollector
             _ledger.ReportLoss(_session?.EventsLost ?? 0, nowQpc);
             foreach (var processId in _owners.Keys.ToArray())
             {
-                if (!ProcessOwnerProbe.TryReadCreation(processId, out var creationTicks))
+                if (!_processOwners.TryReadCreation(processId, out var creationTicks))
                 {
                     _ledger.End(processId, nowQpc);
                     _owners.Remove(processId);
@@ -438,13 +464,17 @@ internal sealed class EtwNetworkCollector : INetworkCollector
         foreach (var process in System.Diagnostics.Process.GetProcesses())
             try
             {
-                Enqueue(new(CollectorEventKind.Start, process.Id, Stopwatch.GetTimestamp(), 0, false));
+                Enqueue(new(CollectorEventKind.Start, process.Id, Timestamp(), 0, false));
             }
             finally
             {
                 process.Dispose();
             }
     }
+
+    private long Timestamp() => _timeProvider is { } clock ? clock.GetTimestamp() : Stopwatch.GetTimestamp();
+
+    private DateTime UtcNow() => _timeProvider?.GetUtcNow().UtcDateTime ?? DateTime.UtcNow;
 
     private long EventQpc(TraceEvent data)
     {
@@ -532,6 +562,19 @@ internal sealed class EtwNetworkCollector : INetworkCollector
     private static Task AwaitBounded(Task? task)
     {
         return task is null ? Task.CompletedTask : task.WaitAsync(TimeSpan.FromSeconds(10));
+    }
+
+    internal interface IProcessOwnerProbe
+    {
+        bool TryReadCreation(int processId, out long creationTicks);
+        bool TryRead(int processId, out ProcessOwner owner);
+    }
+
+    private sealed class NativeProcessOwners : IProcessOwnerProbe
+    {
+        internal static NativeProcessOwners Instance { get; } = new();
+        public bool TryReadCreation(int processId, out long creationTicks) => ProcessOwnerProbe.TryReadCreation(processId, out creationTicks);
+        public bool TryRead(int processId, out ProcessOwner owner) => ProcessOwnerProbe.TryRead(processId, out owner);
     }
 
     private enum CollectorEventKind

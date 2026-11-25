@@ -25,10 +25,7 @@ internal sealed partial class DiagnosticTools
         var metric = Array.IndexOf(sorts, sort);
         if (!DateOnly.TryParseExact(startDate, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var first) ||
             !DateOnly.TryParseExact(endDate, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var last) ||
-            last == DateOnly.MaxValue || first > last || last.DayNumber - first.DayNumber >= UsageArchive.RetainedDays ||
-            metric < 0 || filter is null || filter.Length > 256 || limit is < 1 or > 200 ||
-            filePath is not null && (filePath.Length is < 3 or > 1024 || !char.IsAsciiLetter(filePath[0]) ||
-                filePath[1] != ':' || !Path.IsPathFullyQualified(filePath))) return Invalid();
+            InvalidOptions(first, last, metric, filter, limit, filePath)) return Invalid();
         cancellationToken.ThrowIfCancellationRequested();
         try
         {
@@ -57,6 +54,12 @@ internal sealed partial class DiagnosticTools
         {
             return Responses.Result(new DiagnosticResponse(1, owner.UtcNow, "unavailable", "historical", 0, true, 0, null, null));
         }
+
+        static bool InvalidOptions(DateOnly first, DateOnly last, int metric, string filter, int limit, string? filePath) =>
+            last == DateOnly.MaxValue || first > last || last.DayNumber - first.DayNumber >= UsageArchive.RetainedDays ||
+            metric < 0 || filter is null || filter.Length > 256 || limit is < 1 or > 200 ||
+            filePath is not null && (filePath.Length is < 3 or > 1024 || !char.IsAsciiLetter(filePath[0]) ||
+                filePath[1] != ':' || !Path.IsPathFullyQualified(filePath));
     }
 }
 

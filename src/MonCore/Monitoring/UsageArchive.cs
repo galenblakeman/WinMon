@@ -84,22 +84,42 @@ public sealed class UsageArchive
         if (state.SchemaVersion != 1 || state.Days is null || state.Days.Length > RetainedDays || state.Days.Any(d => d is null) ||
             state.Days.Select(d => d.Day).Distinct().Count() != state.Days.Length) throw new InvalidDataException("Invalid usage archive.");
         foreach (var day in state.Days)
-        {
-            var totals = day.Totals;
-            if (!double.IsFinite(day.ObservedSeconds) || day.ObservedSeconds is < 0 or > 1e9 || totals is null ||
-                totals.Apps is null || totals.Lifetimes is null || totals.Apps.Count > UsageLedger.MaxApps + 1 || totals.Lifetimes.Count > 100_000 ||
-                !double.IsFinite(totals.MachineBusyTicks) || totals.MachineBusyTicks is < 0 or > 1e17 || !double.IsFinite(totals.AttributedTicks) || totals.AttributedTicks is < 0 or > 1e17 ||
-                totals.Apps.Any(a => a is null || string.IsNullOrEmpty(a.Key) || a.Key.Length > 4096 ||
-                    a.Name is null || a.ImagePath is null || a.AppName is null || a.Publisher is null ||
-                    a.Name.Length > 4096 || a.ImagePath.Length > 4096 || a.AppName.Length > 4096 || a.Publisher.Length > 4096 ||
-                    !double.IsFinite(a.CpuTicks) || a.CpuTicks is < 0 or > 1e17 || !double.IsFinite(a.IoBytes) || a.IoBytes is < 0 or > 1e24 ||
-                    a.Lifetimes is < 0 or > 60_000_000 || a.GpuSeconds is { } gpu && (!double.IsFinite(gpu) || gpu is < 0 or > 1e10)) ||
-                totals.Apps.Select(a => a.Key).Distinct(ProcessIdentityPolicy.Windows.Comparer).Count() != totals.Apps.Count ||
-                totals.IdentityPolicyId != ProcessIdentityPolicy.Windows.Id ||
-                totals.Lifetimes.Any(l => l.ProcessId < 0 || l.CreationTicks < 0 || l.Absences < 0 || (uint)l.App >= (uint)totals.Apps.Count))
-                throw new InvalidDataException("Invalid usage totals.");
-        }
+            ValidateDay(day);
     }
+
+    private static void ValidateDay(UsageArchiveDay day)
+    {
+        ValidateDayMetadata(day);
+        var totals = day.Totals;
+        if (totals.Apps.Any(a => !ValidApp(a)) ||
+            totals.Apps.Select(a => a.Key).Distinct(ProcessIdentityPolicy.Windows.Comparer).Count() != totals.Apps.Count ||
+            totals.IdentityPolicyId != ProcessIdentityPolicy.Windows.Id ||
+            totals.Lifetimes.Any(l => l.ProcessId < 0 || l.CreationTicks < 0 || l.Absences < 0 || (uint)l.App >= (uint)totals.Apps.Count))
+            throw new InvalidDataException("Invalid usage totals.");
+    }
+
+    private static void ValidateDayMetadata(UsageArchiveDay day)
+    {
+        var totals = day.Totals;
+        if (!ValidTotal(day.ObservedSeconds, 1e9) || totals is null ||
+            totals.Apps is null || totals.Lifetimes is null || totals.Apps.Count > UsageLedger.MaxApps + 1 || totals.Lifetimes.Count > 100_000 ||
+            !ValidTotal(totals.MachineBusyTicks, 1e17) || !ValidTotal(totals.AttributedTicks, 1e17))
+            throw new InvalidDataException("Invalid usage totals.");
+    }
+
+    private static bool ValidApp(UsageAppState app) => app is not null && ValidAppIdentity(app) && ValidAppTotals(app);
+
+    private static bool ValidAppIdentity(UsageAppState app) =>
+        !string.IsNullOrEmpty(app.Key) && app.Key.Length <= 4096 &&
+        app.Name is not null && app.ImagePath is not null && app.AppName is not null && app.Publisher is not null &&
+        app.Name.Length <= 4096 && app.ImagePath.Length <= 4096 && app.AppName.Length <= 4096 && app.Publisher.Length <= 4096;
+
+    private static bool ValidAppTotals(UsageAppState app) =>
+        ValidTotal(app.CpuTicks, 1e17) && ValidTotal(app.IoBytes, 1e24) &&
+        app.Lifetimes is >= 0 and <= 60_000_000 &&
+        !(app.GpuSeconds is { } gpu && !ValidTotal(gpu, 1e10));
+
+    private static bool ValidTotal(double value, double maximum) => double.IsFinite(value) && value >= 0 && value <= maximum;
 
     public static async Task<UsageArchive> LoadAsync(string path, CancellationToken token = default)
     {

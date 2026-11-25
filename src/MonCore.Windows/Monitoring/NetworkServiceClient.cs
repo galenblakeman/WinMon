@@ -98,6 +98,12 @@ public sealed class NetworkServiceClient : IAsyncDisposable
 
     internal static void ValidateSnapshot(ProcessNetworkSnapshot snapshot)
     {
+        if (HasInvalidHeader(snapshot) || HasInvalidWindow(snapshot) || HasInvalidReadings(snapshot))
+            throw new InvalidDataException("Network service snapshot is invalid.");
+    }
+
+    private static bool HasInvalidHeader(ProcessNetworkSnapshot snapshot)
+    {
         const ProcessNetworkIncompleteReason knownReasons = ProcessNetworkIncompleteReason.OwnershipUnavailable |
                                                             ProcessNetworkIncompleteReason.InvalidEvent |
                                                             ProcessNetworkIncompleteReason.QueueOverflow |
@@ -109,19 +115,27 @@ public sealed class NetworkServiceClient : IAsyncDisposable
         const ProcessNetworkQuality knownFlowQuality = ProcessNetworkQuality.WarmingUp | ProcessNetworkQuality.Provisional |
                                                        ProcessNetworkQuality.Incomplete | ProcessNetworkQuality.CapacityExceeded |
                                                        ProcessNetworkQuality.Unavailable | ProcessNetworkQuality.Discontinuity;
-        if (snapshot.SubscriptionId == Guid.Empty || snapshot.Frequency <= 0 || snapshot.TimestampQpc < 0 ||
+        return snapshot.SubscriptionId == Guid.Empty || snapshot.Frequency <= 0 || snapshot.TimestampQpc < 0 ||
             snapshot.WindowStartQpc < 0 ||
             (snapshot.IncompleteReasons & ~knownReasons) != 0 ||
             (snapshot.IncompleteReasons != ProcessNetworkIncompleteReason.None &&
              !snapshot.Quality.HasFlag(ProcessNetworkQuality.Incomplete)) ||
             !Enum.IsDefined(snapshot.Failure) || (snapshot.FlowQuality & ~knownFlowQuality) != 0 ||
             (snapshot.Failure != ProcessNetworkFailure.None &&
-                                                  !snapshot.Quality.HasFlag(ProcessNetworkQuality.Unavailable)) ||
-            snapshot.WindowStartQpc > snapshot.WindowEndQpc || snapshot.WindowEndQpc > snapshot.TimestampQpc ||
+             !snapshot.Quality.HasFlag(ProcessNetworkQuality.Unavailable));
+    }
+
+    private static bool HasInvalidWindow(ProcessNetworkSnapshot snapshot)
+    {
+        return snapshot.WindowStartQpc > snapshot.WindowEndQpc || snapshot.WindowEndQpc > snapshot.TimestampQpc ||
             snapshot.Sequence < 0 || snapshot.EventsLost < 0 || snapshot.LateEvents < 0 || snapshot.DroppedEvents < 0 ||
             (!snapshot.Quality.HasFlag(ProcessNetworkQuality.Unavailable) &&
-             (snapshot.Generation == Guid.Empty || snapshot.Sequence == 0)) ||
-            snapshot.Processes is null || snapshot.Flows is null || snapshot.Processes.Count > 8192 ||
+             (snapshot.Generation == Guid.Empty || snapshot.Sequence == 0));
+    }
+
+    private static bool HasInvalidReadings(ProcessNetworkSnapshot snapshot)
+    {
+        return snapshot.Processes is null || snapshot.Flows is null || snapshot.Processes.Count > 8192 ||
             snapshot.Flows.Count > 65536 || (!snapshot.FlowTrafficSupported && snapshot.Flows.Count != 0) ||
             snapshot.Processes.Any(reading => reading is null || reading.ProcessId <= 0 || reading.CreationTicks <= 0 ||
                                               reading.ReceivedBytes < 0 || reading.SentBytes < 0 ||
@@ -138,8 +152,7 @@ public sealed class NetworkServiceClient : IAsyncDisposable
                                         (!double.IsFinite(send) || send < 0))) ||
             snapshot.Flows.Where(flow => flow is not null)
                 .Select(flow => (flow.ProcessId, flow.CreationTicks, flow.Protocol, flow.LocalEndpoint, flow.RemoteEndpoint))
-                .Distinct().Count() != snapshot.Flows.Count)
-            throw new InvalidDataException("Network service snapshot is invalid.");
+                .Distinct().Count() != snapshot.Flows.Count;
     }
 
     private static bool ValidFlowEndpoints(ProcessNetworkFlowReading flow)

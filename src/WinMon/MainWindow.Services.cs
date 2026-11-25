@@ -140,7 +140,7 @@ public partial class MainWindow
         {
             try
             {
-                await Task.Run(() => WindowsServices.ExecuteAsync(service.Name, action,
+                await Task.Run(() => ServiceActionOperations.ExecuteAsync(service.Name, action,
                     host?.ProcessId ?? 0, host?.CreationTicks ?? 0, actionCancellation), actionCancellation);
             }
             catch (Win32Exception ex) when (ex.NativeErrorCode == 5)
@@ -153,7 +153,7 @@ public partial class MainWindow
                 start.ArgumentList.Add(service.Name);
                 start.ArgumentList.Add((host?.ProcessId ?? 0).ToString(CultureInfo.InvariantCulture));
                 start.ArgumentList.Add((host?.CreationTicks ?? 0).ToString(CultureInfo.InvariantCulture));
-                using var helper = Process.Start(start) ?? throw new Win32Exception(5);
+                using var helper = ServiceActionOperations.Start(start) ?? throw new Win32Exception(5);
                 await helper.WaitForExitAsync(actionCancellation);
                 if (helper.ExitCode != 0) throw new Win32Exception(helper.ExitCode);
             }

@@ -180,45 +180,32 @@ public sealed class CpuGraph : FrameworkElement
 
         var alternative = ShowGrid && _process is null && TileMetric is null && ChartType != ResourceChartType.Overlay;
         if (ShowGrid)
-        {
-            drawingContext.DrawRectangle(Resource("PlotSurface", Brushes.Transparent), null, plot);
-            if (!alternative || ChartType == ResourceChartType.Focus)
-                for (var i = 0; i <= 4; i++)
-                {
-                    var height = alternative ? plot.Height * 0.55 : plot.Height;
-                    var y = plot.Top + height * i / 4;
-                    drawingContext.DrawLine(CachedPen(line, 0.7), new Point(plot.Left, y), new Point(plot.Right, y));
-                    var focusNetwork = alternative && ChartType == ResourceChartType.Focus && FocusMetric == 3 &&
-                                       (VisibleMetrics & 8) != 0;
-                    Label(drawingContext, focusNetwork
-                            ? RateText.Format(_networkScale * (4 - i) / 4)
-                            : Strings.Format(Strings.PercentInteger, 100 - i * 25),
-                        new Point(alternative ? plot.Left - 8 : 0, Math.Max(0, y - 7)), muted,
-                        alternative ? 1 : 0);
-                }
-
-            for (var i = 0; i <= 4; i++)
-            {
-                var x = plot.Left + plot.Width * i / 4;
-                drawingContext.DrawLine(CachedPen(line, 0.5), new Point(x, plot.Top), new Point(x, plot.Bottom));
-                var text = i == 0 ? Strings.Format(Strings.MinAgo, _seconds / 60d) :
-                    i == 4 ? Strings.Now : Ago(_seconds * (4 - i) / 4d);
-                Label(drawingContext, text, new Point(x, plot.Bottom + 5), muted, i == 0 ? 0 : i == 4 ? 1 : 0.5);
-            }
-        }
+            DrawGraphGuides(drawingContext, plot, line, muted, alternative);
 
         var network = Resource("NetworkAccent", accent);
         drawingContext.PushClip(new RectangleGeometry(alternative
             ? new Rect(0, plot.Top, ActualWidth, plot.Height)
             : plot));
+        DrawVisibleSeries(drawingContext, plot, accent, line, muted, alternative);
+        DrawSelection(drawingContext, plot, accent, muted, alternative);
+
+        drawingContext.Pop();
+        DrawSelectedTimestamp(drawingContext, plot, line, muted);
+
+        if (ShowGrid && _process is null) DrawMarkers(drawingContext, plot);
+
+        // Link utilization is nearly always ~0%, so the network trace uses its own throughput scale.
+        if (ShowGrid && _process is null && !alternative && (VisibleMetrics & 8) != 0)
+            Label(drawingContext, Strings.Format(Strings.NetworkScale0, RateText.Format(_networkScale)),
+                new Point(plot.Right - 4, plot.Top + 2), network, 1);
+    }
+
+    private void DrawVisibleSeries(DrawingContext drawingContext, Rect plot, Brush accent, Brush line, Brush muted,
+        bool alternative)
+    {
         if (TileMetric is { } tileMetric)
         {
-            var key = tileMetric switch
-            {
-                0 => "CpuChartAccent", 1 => "MemoryChartAccent", 2 => "DiskChartAccent",
-                3 => "NetworkChartAccent", 4 => "GpuChartAccent", _ => "SecondaryDiskChartAccent"
-            };
-            DrawSeries(drawingContext, plot, Resource(key, accent), tileMetric);
+            DrawSeries(drawingContext, plot, MetricBrush(tileMetric, accent), tileMetric);
         }
         else if (_process is not null || !ShowGrid)
         {
@@ -249,7 +236,10 @@ public sealed class CpuGraph : FrameworkElement
                 if ((VisibleMetrics & (1 << metric)) != 0)
                     DrawSeries(drawingContext, plot, Resource(keys[metric], accent), metric);
         }
+    }
 
+    private void DrawSelection(DrawingContext drawingContext, Rect plot, Brush accent, Brush muted, bool alternative)
+    {
         if (_selected is not null && _samples.Any(s => ReferenceEquals(s, _selected)) &&
             Moment(_selected) >= _end - _seconds)
         {
@@ -266,25 +256,38 @@ public sealed class CpuGraph : FrameworkElement
                         ? NetworkBitsPerSecond(_selected.Resources) * 100 / _networkScale
                         : MetricValue(_selected, metric);
                     if (value is null) continue;
-                    var key = metric switch
-                    {
-                        0 => "CpuChartAccent", 1 => "MemoryChartAccent", 2 => "DiskChartAccent",
-                        3 => "NetworkChartAccent", 4 => "GpuChartAccent", _ => "SecondaryDiskChartAccent"
-                    };
-                    drawingContext.DrawEllipse(Resource("Raised", Brushes.Black), CachedPen(Resource(key, accent), 2),
+                    drawingContext.DrawEllipse(Resource("Raised", Brushes.Black), CachedPen(MetricBrush(metric, accent), 2),
                         new Point(x, plot.Bottom - Math.Clamp(value.Value, 0, 100) / 100 * plot.Height), 3.5, 3.5);
                 }
         }
+    }
 
-        drawingContext.Pop();
-        DrawSelectedTimestamp(drawingContext, plot, line, muted);
+    private void DrawGraphGuides(DrawingContext drawingContext, Rect plot, Brush line, Brush muted, bool alternative)
+    {
+        drawingContext.DrawRectangle(Resource("PlotSurface", Brushes.Transparent), null, plot);
+        if (!alternative || ChartType == ResourceChartType.Focus)
+            for (var i = 0; i <= 4; i++)
+            {
+                var height = alternative ? plot.Height * 0.55 : plot.Height;
+                var y = plot.Top + height * i / 4;
+                drawingContext.DrawLine(CachedPen(line, 0.7), new Point(plot.Left, y), new Point(plot.Right, y));
+                var focusNetwork = alternative && ChartType == ResourceChartType.Focus && FocusMetric == 3 &&
+                                   (VisibleMetrics & 8) != 0;
+                Label(drawingContext, focusNetwork
+                        ? RateText.Format(_networkScale * (4 - i) / 4)
+                        : Strings.Format(Strings.PercentInteger, 100 - i * 25),
+                    new Point(alternative ? plot.Left - 8 : 0, Math.Max(0, y - 7)), muted,
+                    alternative ? 1 : 0);
+            }
 
-        if (ShowGrid && _process is null) DrawMarkers(drawingContext, plot);
-
-        // Link utilization is nearly always ~0%, so the network trace uses its own throughput scale.
-        if (ShowGrid && _process is null && !alternative && (VisibleMetrics & 8) != 0)
-            Label(drawingContext, Strings.Format(Strings.NetworkScale0, RateText.Format(_networkScale)),
-                new Point(plot.Right - 4, plot.Top + 2), network, 1);
+        for (var i = 0; i <= 4; i++)
+        {
+            var x = plot.Left + plot.Width * i / 4;
+            drawingContext.DrawLine(CachedPen(line, 0.5), new Point(x, plot.Top), new Point(x, plot.Bottom));
+            var text = i == 0 ? Strings.Format(Strings.MinAgo, _seconds / 60d) :
+                i == 4 ? Strings.Now : Ago(_seconds * (4 - i) / 4d);
+            Label(drawingContext, text, new Point(x, plot.Bottom + 5), muted, i == 0 ? 0 : i == 4 ? 1 : 0.5);
+        }
     }
 
     private void DrawSelectedTimestamp(DrawingContext dc, Rect plot, Brush line, Brush muted)

@@ -238,6 +238,101 @@ public sealed class IncidentRecordingTests
         Assert.That(IncidentRecording.Load(FilePath).WindowsEvents.Events, Has.Count.EqualTo(500));
     }
 
+    [TestCase("negative-clock")]
+    [TestCase("mixed-clocks")]
+    [TestCase("negative-unavailable")]
+    [TestCase("negative-compacted")]
+    [TestCase("negative-interval")]
+    [TestCase("nan-interval")]
+    [TestCase("nan-paging")]
+    [TestCase("missing-resources")]
+    [TestCase("missing-owners")]
+    [TestCase("partial-lifecycle")]
+    [TestCase("processor-limit")]
+    [TestCase("duplicate-traffic")]
+    [TestCase("span-limit")]
+    [TestCase("invalid-process")]
+    [TestCase("invalid-owners")]
+    [TestCase("invalid-started")]
+    [TestCase("invalid-stopped")]
+    public void Save_InvalidObservationPreservesFileAndValidationError(string kind)
+    {
+        var source = Recording();
+        source.Save(FilePath);
+        var original = File.ReadAllBytes(FilePath);
+        var first = source.Observations[0];
+        var sample = first.Sample;
+        var changed = kind switch
+        {
+            "negative-clock" => first with { Sample = sample with { MonotonicTimestamp = -1 } },
+            "mixed-clocks" => first with { Sample = sample with { MonotonicTimestamp = 0 } },
+            "negative-unavailable" => first with { Sample = sample with { UnavailableProcesses = -1 } },
+            "negative-compacted" => first with { Sample = sample with { CompactedProcesses = -1 } },
+            "negative-interval" => first with { Sample = sample with { IntervalSeconds = -1 } },
+            "nan-interval" => first with { Sample = sample with { IntervalSeconds = double.NaN } },
+            "nan-paging" => first with { Sample = sample with { Resources = sample.Resources with { PagingReadsPerSecond = double.NaN } } },
+            "missing-resources" => first with { Sample = sample with { Resources = null! } },
+            "missing-owners" => first with { Owners = null! },
+            "partial-lifecycle" => first with { Started = [], Stopped = null },
+            "processor-limit" => first with { Sample = sample with { LogicalProcessorPercents = new double?[4097] } },
+            "duplicate-traffic" => first with { Network = first.Network! with
+                { Processes = [first.Network!.Processes[0], first.Network.Processes[0]] } },
+            "span-limit" => first with { Sample = sample with
+                { MonotonicTimestamp = sample.MonotonicTimestamp - Stopwatch.Frequency } },
+            "invalid-process" => first with { Sample = sample with { Processes = [sample.Processes[0] with { Name = null! }] } },
+            "invalid-owners" => first with { Owners = [sample.Processes[0] with { Name = null! }] },
+            "invalid-started" => first with { Started = [sample.Processes[0] with { Name = null! }], Stopped = [] },
+            "invalid-stopped" => first with { Started = [], Stopped = [sample.Processes[0] with { Name = null! }] },
+            _ => throw new ArgumentOutOfRangeException(nameof(kind))
+        };
+        var second = source.Observations[1];
+        if (kind == "span-limit")
+            second = second with { Sample = second.Sample with
+                { MonotonicTimestamp = sample.MonotonicTimestamp + 86400L * Stopwatch.Frequency } };
+        var invalid = source with { Observations = [changed, second] };
+        var message = kind switch
+        {
+            "mixed-clocks" => "Incident observations must be ordered.",
+            "duplicate-traffic" => "Invalid incident traffic or observation limit.",
+            "span-limit" => "Incident span exceeds one day.",
+            _ => "Invalid incident observation."
+        };
+
+        Assert.That(() => invalid.Save(FilePath), Throws.TypeOf<InvalidDataException>().With.Message.EqualTo(message));
+        Assert.That(File.ReadAllBytes(FilePath), Is.EqualTo(original));
+        Assert.That(Directory.GetFiles(_directory), Has.Length.EqualTo(1));
+    }
+
+    [TestCase(false)]
+    [TestCase(true)]
+    public void SaveLoad_AcceptsOneDaySpanWithWallOrMonotonicClock(bool monotonic)
+    {
+        var source = WithoutTraffic();
+        source = source with { Observations = source.Observations.Select((frame, index) => frame with
+        {
+            Sample = frame.Sample with
+            {
+                Timestamp = DateTimeOffset.UnixEpoch.AddDays(index),
+                MonotonicTimestamp = monotonic ? (1 + index * 86400L) * Stopwatch.Frequency : 0
+            }
+        }).ToArray() };
+        source.Save(FilePath);
+        var loaded = IncidentRecording.Load(FilePath);
+        Assert.That(loaded.Observations[1].Sample.Timestamp - loaded.Observations[0].Sample.Timestamp,
+            Is.EqualTo(TimeSpan.FromDays(1)));
+        Assert.That(loaded.Observations[0].Sample.MonotonicTimestamp, Is.EqualTo(monotonic ? Stopwatch.Frequency : 0));
+    }
+
+    [Test]
+    public void SaveLoad_EmptyRecordingKeepsNoSelection()
+    {
+        var source = Recording() with { Observations = [], SelectedIndex = -1 };
+        source.Save(FilePath);
+        var loaded = IncidentRecording.Load(FilePath);
+        Assert.That(loaded.Observations, Is.Empty);
+        Assert.That(loaded.SelectedIndex, Is.EqualTo(-1));
+    }
+
     private static IncidentEventResult Events() => new(
         [new(DateTimeOffset.UnixEpoch, "Application Error", 1000, IncidentEventLevel.Error, "Crash", 1, 123)],
         [new("Application", IncidentEventCoverageStatus.Complete), new("System", IncidentEventCoverageStatus.TimedOut)], true);

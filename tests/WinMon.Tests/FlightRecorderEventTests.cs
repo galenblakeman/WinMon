@@ -50,7 +50,11 @@ public sealed class FlightRecorderEventTests
             Show(window);
             window.Update(Samples(10, 11));
             second.SetResult(Events("current", IncidentEventCoverageStatus.Complete));
-            await Task.Yield();
+            var elapsed = Stopwatch.StartNew();
+            while (window.EventReadPending && elapsed.Elapsed < TimeSpan.FromSeconds(10))
+                await Task.Yield();
+            Assert.That(window.EventReadPending, Is.False, "The current generation's completed query was not applied.");
+            Assert.That(window.EventMappings.Select(item => item.Event.Provider), Is.EqualTo(["current"]));
             first.SetResult(Events("stale", IncidentEventCoverageStatus.Complete));
             await Task.Yield();
             Assert.That(window.EventMappings.Select(item => item.Event.Provider), Is.EqualTo(["current"]));
@@ -165,7 +169,10 @@ public sealed class FlightRecorderEventTests
             Assert.That(frozen.WindowsEvents.Coverage.Select(item => item.Status),
                 Is.All.EqualTo(IncidentEventCoverageStatus.Unknown));
             pending.SetResult(Events("ready", IncidentEventCoverageStatus.Complete));
-            await Task.Yield();
+            var elapsed = Stopwatch.StartNew();
+            while (window.EventReadPending && elapsed.Elapsed < TimeSpan.FromSeconds(10))
+                await Task.Yield();
+            Assert.That(window.EventReadPending, Is.False, "The completed event query was not applied.");
             Assert.That(window.Recording().WindowsEvents.Events.Single().Provider, Is.EqualTo("ready"));
             Assert.That(frozen.WindowsEvents.Events, Is.Empty);
         }

@@ -180,6 +180,16 @@ public sealed class UsageArchiveTests
     [TestCase("negative lifetime absences")]
     [TestCase("negative io")]
     [TestCase("overlong app key")]
+    [TestCase("null app")]
+    [TestCase("null app name")]
+    [TestCase("null app path")]
+    [TestCase("null app display")]
+    [TestCase("null app publisher")]
+    [TestCase("overlong app name")]
+    [TestCase("nan cpu")]
+    [TestCase("infinite io")]
+    [TestCase("negative gpu")]
+    [TestCase("excessive lifetimes")]
     public async Task InvalidSavedStateCannotReplaceExistingData(string corruption)
     {
         var archive = new UsageArchive(TimeZoneInfo.Utc);
@@ -206,6 +216,16 @@ public sealed class UsageArchiveTests
                 { Lifetimes = [totals.Lifetimes.Single() with { Absences = -1 }] } }] },
             "negative io" => state with { Days = [day with { Totals = totals with { Apps = [app with { IoBytes = -1 }] } }] },
             "overlong app key" => state with { Days = [day with { Totals = totals with { Apps = [app with { Key = new string('x', 4097) }] } }] },
+            "null app" => state with { Days = [day with { Totals = totals with { Apps = [null!] } }] },
+            "null app name" => state with { Days = [day with { Totals = totals with { Apps = [app with { Name = null! }] } }] },
+            "null app path" => state with { Days = [day with { Totals = totals with { Apps = [app with { ImagePath = null! }] } }] },
+            "null app display" => state with { Days = [day with { Totals = totals with { Apps = [app with { AppName = null! }] } }] },
+            "null app publisher" => state with { Days = [day with { Totals = totals with { Apps = [app with { Publisher = null! }] } }] },
+            "overlong app name" => state with { Days = [day with { Totals = totals with { Apps = [app with { Name = new string('x', 4097) }] } }] },
+            "nan cpu" => state with { Days = [day with { Totals = totals with { Apps = [app with { CpuTicks = double.NaN }] } }] },
+            "infinite io" => state with { Days = [day with { Totals = totals with { Apps = [app with { IoBytes = double.PositiveInfinity }] } }] },
+            "negative gpu" => state with { Days = [day with { Totals = totals with { Apps = [app with { GpuSeconds = -1 }] } }] },
+            "excessive lifetimes" => state with { Days = [day with { Totals = totals with { Apps = [app with { Lifetimes = 60_000_001 }] } }] },
             _ => throw new ArgumentOutOfRangeException(nameof(corruption))
         };
         var folder = Path.Combine(TestContext.CurrentContext.WorkDirectory, "usage-invalid-" + Guid.NewGuid().ToString("N"));
@@ -221,6 +241,38 @@ public sealed class UsageArchiveTests
             Assert.That(Directory.GetFiles(folder, "*.tmp"), Is.Empty);
         }
         finally { if (Directory.Exists(folder)) Directory.Delete(folder, true); }
+    }
+
+    [TestCase("observed", 1e9)]
+    [TestCase("machine", 1e17)]
+    [TestCase("attributed", 1e17)]
+    [TestCase("cpu", 1e17)]
+    [TestCase("io", 1e24)]
+    [TestCase("gpu", 1e10)]
+    public void Restore_AcceptsInclusiveNumericLimitsAndRejectsNonfiniteOrOutsideValues(string field, double maximum)
+    {
+        var archive = new UsageArchive(TimeZoneInfo.Utc);
+        archive.Add(Sample(DateTimeOffset.Parse("2026-11-12T12:00:00Z")));
+        var state = archive.Export();
+        var day = state.Days.Single();
+        var totals = day.Totals;
+        var app = totals.Apps.Single();
+        UsageArchiveState WithValue(double value) => state with { Days = [field switch
+        {
+            "observed" => day with { ObservedSeconds = value },
+            "machine" => day with { Totals = totals with { MachineBusyTicks = value } },
+            "attributed" => day with { Totals = totals with { AttributedTicks = value } },
+            "cpu" => day with { Totals = totals with { Apps = [app with { CpuTicks = value }] } },
+            "io" => day with { Totals = totals with { Apps = [app with { IoBytes = value }] } },
+            "gpu" => day with { Totals = totals with { Apps = [app with { GpuSeconds = value }] } },
+            _ => throw new ArgumentOutOfRangeException(nameof(field))
+        }] };
+
+        foreach (var value in new[] { 0, maximum })
+            Assert.That(UsageArchive.Restore(WithValue(value)).Export().Days, Has.Length.EqualTo(1));
+        foreach (var value in new[] { -1, double.BitIncrement(maximum), double.NaN, double.PositiveInfinity, double.NegativeInfinity })
+            Assert.That(() => UsageArchive.Restore(WithValue(value)),
+                Throws.TypeOf<InvalidDataException>().With.Message.EqualTo("Invalid usage totals."));
     }
 
     [Test]

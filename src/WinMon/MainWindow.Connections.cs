@@ -71,18 +71,16 @@ public partial class MainWindow
         if (ConnectionsTab.IsChecked != true || CompactMode) return;
         var capture = SelectedSample is { } selected ? Session.Connections.Find(selected) :
             _samplingError == SamplingError.ReadingsUnavailable ? null : Session.Connections.Latest;
-        var frame = _diagnosticMode && SelectedSample is null ? _connections : capture?.Connections;
-        var owners = _diagnosticMode && SelectedSample is null
+        var diagnosticLive = _diagnosticMode && SelectedSample is null;
+        var frame = diagnosticLive ? _connections : capture?.Connections;
+        var owners = diagnosticLive
             ? Session.LatestFull?.Processes ?? []
             : capture?.Owners ?? [];
-        var network = _diagnosticMode && SelectedSample is null ? _networkForFixture : capture?.Network;
+        var network = diagnosticLive ? _networkForFixture : capture?.Network;
         var networkEnabled = SelectedSample is not null ? network is not null :
             _diagnosticMode ? _networkForFixture is not null :
             _preferences.ProcessNetworkMonitoringEnabled && NetworkSetupBroker.Supported;
-        UpdateActivityPair(ConnectionCounts, ConnectionTcpValue, ConnectionUdpValue,
-            frame?.Available == true ? (uint)frame.Connections.Count(c => c.Protocol == TransportProtocol.Tcp) : null,
-            frame?.Available == true ? (uint)frame.Connections.Count(c => c.Protocol == TransportProtocol.Udp) : null,
-            "TCP", "UDP", ref _connectionCounts);
+        UpdateConnectionEndpointCounts(frame);
         var end = _diagnosticMode && SelectedSample is null && Session.LatestFull is { } latest
             ? new ConnectionCapture(latest, frame, owners, network)
             : capture;
@@ -94,6 +92,23 @@ public partial class MainWindow
         var totals = networkEnabled
             ? ConnectionTrafficTotals.Build(history, end, _preferences.ConnectionTrafficSeconds)
             : null;
+        UpdateConnectionTrafficStatus(frame, networkEnabled, totals);
+        if (!_preferences.ActivityPanelCollapsed)
+            ConnectionView.Update(frame, owners, SelectedSample is not null, network, networkEnabled,
+                history, end, totals, SelectedCapture()?.Fired.Process);
+    }
+
+    private void UpdateConnectionEndpointCounts(NetworkConnectionsFrame? frame)
+    {
+        UpdateActivityPair(ConnectionCounts, ConnectionTcpValue, ConnectionUdpValue,
+            frame?.Available == true ? (uint)frame.Connections.Count(c => c.Protocol == TransportProtocol.Tcp) : null,
+            frame?.Available == true ? (uint)frame.Connections.Count(c => c.Protocol == TransportProtocol.Udp) : null,
+            "TCP", "UDP", ref _connectionCounts);
+    }
+
+    private void UpdateConnectionTrafficStatus(NetworkConnectionsFrame? frame, bool networkEnabled,
+        ConnectionTrafficTotals? totals)
+    {
         var sum = totals?.Sum() ?? (0L, 0L);
         var prefix = totals?.Incomplete == true ? "≈ " : "";
         ConnectionVolumeValue.Text = networkEnabled
@@ -113,8 +128,5 @@ public partial class MainWindow
                 $"\n{ConnectionVolumeValue.Text.Trim()}\n{ConnectionsView.TrafficDetails(totals)}";
         ConnectionCounts.ToolTip = details;
         AutomationProperties.SetName(ConnectionCounts, details);
-        if (!_preferences.ActivityPanelCollapsed)
-            ConnectionView.Update(frame, owners, SelectedSample is not null, network, networkEnabled,
-                history, end, totals, SelectedCapture()?.Fired.Process);
     }
 }

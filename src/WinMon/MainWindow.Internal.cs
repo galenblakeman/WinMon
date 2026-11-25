@@ -1,4 +1,5 @@
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Threading;
 using WinMon.Controls;
 using WinMon.Monitoring;
@@ -15,6 +16,9 @@ namespace WinMon;
 /// </summary>
 public partial class MainWindow
 {
+    /// <summary>Dispatch a diagnostic key with observed modifiers; the event binding retains native reads.</summary>
+    internal void DispatchWindowKeyForFixture(KeyEventArgs e, ModifierKeys modifiers) => HandleWindowKeyDown(e, modifiers);
+
     /// <summary>Optional synthetic Windows event source for diagnostics; null uses the Windows reader.</summary>
     internal Func<DateTimeOffset, DateTimeOffset, CancellationToken, Task<IncidentEventResult>>? FlightRecorderEventReader { get; set; }
 
@@ -86,6 +90,9 @@ public partial class MainWindow
     {
         return WriteCaptureAsync(marker, "", write);
     }
+
+    /// <summary>Seed a diagnostic capture without starting a report write or notification.</summary>
+    internal void AddCaptureMarkerForFixture(CaptureMarker marker) => _captureMarkers.Add(marker);
 
     internal bool CompactMode { get; set; }
 

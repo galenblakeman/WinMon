@@ -1,5 +1,9 @@
 # WinMon design assets
 
+- [Resource gauge centering](GAUGE-CENTERING.md) centers full-size and compact readouts while retaining their content width and the existing diagnostic tolerance.
+
+- [Deferred shutdown close](DEFERRED-SHUTDOWN-CLOSE.md) prevents recursive closing when shutdown work completes synchronously.
+
 - [Longer resource trends](LONGER-RESOURCE-TRENDS.md) proposes seven days of one-minute resource averages in History, with 24-hour/7-day views, explicit coverage and bounded local persistence.
 
 - [Network rate recovery](NETWORK-RATE-RECOVERY.md) preserves recorded rates through UI delays and restores History/capture rules after traffic collection recovers.

@@ -15,5 +15,7 @@
     <PackageReference Include="NUnit3TestAdapter" Version="5.2.0" />
     <ProjectReference Include="../../src/WinMon.Mcp/WinMon.Mcp.csproj" />
     <Compile Include="../Shared/ToolUpdateTests.cs" Link="Shared/ToolUpdateTests.cs" />
+    <Compile Include="../Shared/UpdateManifestCharacterizationTests.cs" Link="Shared/UpdateManifestCharacterizationTests.cs" />
+    <Compile Include="../Shared/ToolInstallationDetectionTestsBase.cs" Link="Shared/ToolInstallationDetectionTestsBase.cs" />
   </ItemGroup>
 </Project>

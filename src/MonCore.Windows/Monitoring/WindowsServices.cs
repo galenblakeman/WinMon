@@ -26,13 +26,23 @@ public static class WindowsServices
         private readonly byte[] _buffer = GC.AllocateUninitializedArray<byte>(BufferBytes, true);
         private Dictionary<string, ServiceObservation> _previous = new(StringComparer.Ordinal);
         private Dictionary<string, ServiceObservation> _next = new(StringComparer.Ordinal);
+        private readonly IServiceCatalogOperations _operations;
+        private readonly TimeProvider _timeProvider;
+
+        public Reader() : this(NativeCatalogOperations.Instance, TimeProvider.System) { }
+
+        internal Reader(IServiceCatalogOperations operations, TimeProvider timeProvider)
+        {
+            _operations = operations;
+            _timeProvider = timeProvider;
+        }
 
         public ServiceCatalog Read()
         {
             // Processes born after enumeration began cannot safely inherit an enumerated PID.
-            var observed = DateTime.UtcNow.ToFileTimeUtc();
-            using var manager = OpenSCManagerW(null, null, 4);
-            CheckHandle(manager);
+            var observed = _timeProvider.GetUtcNow().UtcDateTime.ToFileTimeUtc();
+            using var manager = _operations.OpenManager();
+            _operations.CheckHandle(manager);
             var address = Marshal.UnsafeAddrOfPinnedArrayElement(_buffer, 0);
             var services = new List<ServiceObservation>(_previous.Count);
             var previous = _previous.GetAlternateLookup<ReadOnlySpan<char>>();
@@ -40,9 +50,8 @@ public static class WindowsServices
             uint resume = 0;
             for (var page = 0; page < 32; page++)
             {
-                var success = EnumServicesStatusExW(manager, 0, 0x30, 3, address, BufferBytes,
-                    out _, out var count, ref resume, null);
-                var error = Marshal.GetLastPInvokeError();
+                var success = _operations.Enumerate(manager, address, BufferBytes, out var count, ref resume,
+                    out var error);
                 if (!success && error != 234) throw new Win32Exception(error);
                 var size = Marshal.SizeOf<EnumStatus>();
                 for (var i = 0; i < count; i++)
@@ -86,51 +95,133 @@ public static class WindowsServices
         }
     }
 
-    public static async Task ExecuteAsync(string name, string action, int expectedPid, long expectedCreation,
-        CancellationToken cancellationToken)
+    internal interface IServiceCatalogOperations
+    {
+        IServiceHandle OpenManager();
+        void CheckHandle(IServiceHandle manager);
+        bool Enumerate(IServiceHandle manager, nint address, int length, out int count, ref uint resume, out int error);
+    }
+
+    private sealed class NativeCatalogOperations : IServiceCatalogOperations
+    {
+        internal static NativeCatalogOperations Instance { get; } = new();
+        public IServiceHandle OpenManager() => OpenSCManagerW(null, null, 4);
+        public void CheckHandle(IServiceHandle manager) => WindowsServices.CheckHandle((ServiceHandle)manager);
+        public bool Enumerate(IServiceHandle manager, nint address, int length, out int count, ref uint resume, out int error)
+        {
+            var success = EnumServicesStatusExW((ServiceHandle)manager, 0, 0x30, 3, address, length,
+                out _, out count, ref resume, null);
+            error = Marshal.GetLastPInvokeError();
+            return success;
+        }
+    }
+
+    public static Task ExecuteAsync(string name, string action, int expectedPid, long expectedCreation,
+        CancellationToken cancellationToken) =>
+        ExecuteAsync(name, action, expectedPid, expectedCreation, cancellationToken, NativeOperations.Instance,
+            TimeProvider.System);
+
+    internal static async Task ExecuteAsync(string name, string action, int expectedPid, long expectedCreation,
+        CancellationToken cancellationToken, IServiceOperations operations, TimeProvider timeProvider)
     {
         if (action is not ("start" or "stop" or "restart")) throw new ArgumentException(nameof(action));
-        using var manager = OpenSCManagerW(null, null, 1);
-        CheckHandle(manager);
-        using var service = OpenServiceW(manager, name, 4u | action switch { "start" => 16u, "stop" => 32u, _ => 48u });
-        CheckHandle(service);
-        var status = Query(service);
+        using var manager = operations.OpenManager();
+        operations.CheckHandle(manager);
+        using var service = operations.OpenService(manager, name, 4u | action switch { "start" => 16u, "stop" => 32u, _ => 48u });
+        operations.CheckHandle(service);
+        var status = operations.Query(service);
         if (action == "start")
         {
             if (status.State != 1) throw new Win32Exception(1237);
         }
         else
         {
-            if (status.State is not (4 or 7) || status.ProcessId != expectedPid || expectedCreation <= 0)
-                throw new Win32Exception(1237);
-            using var process = Process.GetProcessById(expectedPid);
-            if (process.StartTime.ToUniversalTime().ToFileTimeUtc() != expectedCreation)
-                throw new Win32Exception(1237);
-            // SCM control targets a named service, not an atomic compare-and-stop process operation.
-            // Recheck after opening the process so ordinary restarts during validation are rejected.
-            status = Query(service);
-            if (process.HasExited || status.State is not (4 or 7) || status.ProcessId != expectedPid)
-                throw new Win32Exception(1237);
-            if (!ControlService(service, 1, out _)) throw new Win32Exception(Marshal.GetLastPInvokeError());
-            await WaitAsync(service, 1, cancellationToken);
+            CheckHostStatus(in status, expectedPid, expectedCreation);
+            using var process = operations.OpenProcess(expectedPid);
+            CheckOpenedHost(service, process, expectedPid, expectedCreation, operations);
+            operations.Stop(service);
+            await WaitAsync(service, 1, cancellationToken, operations, timeProvider);
         }
 
         if (action is "start" or "restart")
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (!StartServiceW(service, 0, 0)) throw new Win32Exception(Marshal.GetLastPInvokeError());
-            await WaitAsync(service, 4, cancellationToken);
+            operations.Start(service);
+            await WaitAsync(service, 4, cancellationToken, operations, timeProvider);
         }
     }
 
-    private static async Task WaitAsync(ServiceHandle service, uint state, CancellationToken cancellationToken)
+    private static void CheckHostStatus(in Status status, int expectedPid, long expectedCreation)
     {
-        var timer = Stopwatch.StartNew();
-        while (Query(service).State != state)
+        if (status.State is not (4 or 7) || status.ProcessId != expectedPid || expectedCreation <= 0)
+            throw new Win32Exception(1237);
+    }
+
+    private static void CheckOpenedHost(IServiceHandle service, IServiceProcess process, int expectedPid,
+        long expectedCreation, IServiceOperations operations)
+    {
+        if (process.CreationTicks != expectedCreation) throw new Win32Exception(1237);
+        // SCM cannot compare-and-stop atomically; recheck after opening the expected host.
+        var status = operations.Query(service);
+        if (process.HasExited || status.State is not (4 or 7) || status.ProcessId != expectedPid)
+            throw new Win32Exception(1237);
+    }
+
+    private static async Task WaitAsync(IServiceHandle service, uint state, CancellationToken cancellationToken,
+        IServiceOperations operations, TimeProvider timeProvider)
+    {
+        var started = timeProvider.GetTimestamp();
+        while (operations.Query(service).State != state)
         {
-            if (timer.Elapsed > TimeSpan.FromSeconds(30)) throw new Win32Exception(1053);
-            await Task.Delay(250, cancellationToken);
+            if (timeProvider.GetElapsedTime(started) > TimeSpan.FromSeconds(30)) throw new Win32Exception(1053);
+            await Task.Delay(TimeSpan.FromMilliseconds(250), timeProvider, cancellationToken);
         }
+    }
+
+    internal interface IServiceHandle : IDisposable;
+
+    internal interface IServiceProcess : IDisposable
+    {
+        long CreationTicks { get; }
+        bool HasExited { get; }
+    }
+
+    internal interface IServiceOperations
+    {
+        IServiceHandle OpenManager();
+        IServiceHandle OpenService(IServiceHandle manager, string name, uint access);
+        void CheckHandle(IServiceHandle handle);
+        Status Query(IServiceHandle service);
+        IServiceProcess OpenProcess(int processId);
+        void Stop(IServiceHandle service);
+        void Start(IServiceHandle service);
+    }
+
+    private sealed class NativeOperations : IServiceOperations
+    {
+        internal static NativeOperations Instance { get; } = new();
+        public IServiceHandle OpenManager() => OpenSCManagerW(null, null, 1);
+        public IServiceHandle OpenService(IServiceHandle manager, string name, uint access) =>
+            OpenServiceW((ServiceHandle)manager, name, access);
+        public void CheckHandle(IServiceHandle handle) => WindowsServices.CheckHandle((ServiceHandle)handle);
+        public Status Query(IServiceHandle service) => WindowsServices.Query((ServiceHandle)service);
+        public IServiceProcess OpenProcess(int processId) => new NativeProcess(processId);
+        public void Stop(IServiceHandle service)
+        {
+            if (!ControlService((ServiceHandle)service, 1, out _)) throw new Win32Exception(Marshal.GetLastPInvokeError());
+        }
+        public void Start(IServiceHandle service)
+        {
+            if (!StartServiceW((ServiceHandle)service, 0, 0)) throw new Win32Exception(Marshal.GetLastPInvokeError());
+        }
+    }
+
+    private sealed class NativeProcess(int processId) : IServiceProcess
+    {
+        private readonly Process _process = Process.GetProcessById(processId);
+        public long CreationTicks => _process.StartTime.ToUniversalTime().ToFileTimeUtc();
+        public bool HasExited => _process.HasExited;
+        public void Dispose() => _process.Dispose();
     }
 
     private static Status Query(ServiceHandle service)
@@ -145,7 +236,7 @@ public static class WindowsServices
         if (handle.IsInvalid) throw new Win32Exception(Marshal.GetLastPInvokeError());
     }
 
-    private sealed class ServiceHandle() : SafeHandleZeroOrMinusOneIsInvalid(true)
+    private sealed class ServiceHandle() : SafeHandleZeroOrMinusOneIsInvalid(true), IServiceHandle
     {
         protected override bool ReleaseHandle()
         {
@@ -154,7 +245,7 @@ public static class WindowsServices
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    private struct Status
+    internal struct Status
     {
         public uint Type, State, Controls, ExitCode, ServiceExitCode, Checkpoint, WaitHint, ProcessId, Flags;
     }

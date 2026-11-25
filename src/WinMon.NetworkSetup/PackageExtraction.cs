@@ -42,24 +42,29 @@ internal static class PackageExtraction
             var parent = Path.GetDirectoryName(destination) ??
                          throw new InvalidDataException("Invalid service archive path.");
             createDirectory(parent);
-            using var source = entry.Open();
-            using var target = createFile(destination);
-            var buffer = new byte[64 * 1024];
-            long written = 0;
-            int read;
-            while ((read = source.Read(buffer)) > 0)
-            {
-                if (read > entry.Length - written)
-                    throw new InvalidDataException("Archive entry exceeds its declared size.");
-                target.Write(buffer, 0, read);
-                written += read;
-            }
-
-            if (target.Length != entry.Length) throw new InvalidDataException("Truncated service archive entry.");
+            CopyEntry(entry, destination, createFile);
         }
 
         if (!File.Exists(Path.Combine(stagingDirectory, SetupPaths.ServiceExecutableName)))
             throw new InvalidDataException("Service executable is missing.");
+    }
+
+    private static void CopyEntry(ZipArchiveEntry entry, string destination, Func<string, FileStream> createFile)
+    {
+        using var source = entry.Open();
+        using var target = createFile(destination);
+        var buffer = new byte[64 * 1024];
+        long written = 0;
+        int read;
+        while ((read = source.Read(buffer)) > 0)
+        {
+            if (read > entry.Length - written)
+                throw new InvalidDataException("Archive entry exceeds its declared size.");
+            target.Write(buffer, 0, read);
+            written += read;
+        }
+
+        if (target.Length != entry.Length) throw new InvalidDataException("Truncated service archive entry.");
     }
 
     internal static string ValidateEntryName(string value)

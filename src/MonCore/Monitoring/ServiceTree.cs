@@ -147,6 +147,14 @@ public sealed class ServiceTree
         }
 
         Reset();
+        IndexHosts(sample, catalog);
+        AssignOwners();
+        CollectMembers();
+        return new ServiceFrame(moment, BuildGroups(catalog));
+    }
+
+    private void IndexHosts(MonitorSample sample, ServiceCatalog catalog)
+    {
         // Add, not the indexer: a duplicate PID fails the pass rather than picking one entry.
         foreach (var process in sample.Processes) _processes.Add(process.ProcessId, process);
         foreach (var service in catalog.Services)
@@ -166,6 +174,10 @@ public sealed class ServiceTree
             if (_processes.TryGetValue(pid, out var host) && host.CreationTicks > 0 &&
                 host.CreationTicks <= catalog.ObservedFileTime)
                 _hosts.Add(pid, host);
+    }
+
+    private void AssignOwners()
+    {
         var next = _nextOwners;
         next.Clear();
         foreach (var process in _processes.Values)
@@ -195,9 +207,13 @@ public sealed class ServiceTree
         }
 
         (_owners, _nextOwners) = (next, _owners);
+    }
+
+    private void CollectMembers()
+    {
         foreach (var process in _processes.Values)
         {
-            if (!next.TryGetValue((process.ProcessId, process.CreationTicks), out var owner)) continue;
+            if (!_owners.TryGetValue((process.ProcessId, process.CreationTicks), out var owner)) continue;
             if (!_members.TryGetValue(owner, out var list))
             {
                 list = _spareMemberLists.TryPop(out var spare) ? spare : [];
@@ -206,7 +222,10 @@ public sealed class ServiceTree
 
             list.Add(process);
         }
+    }
 
+    private List<ServiceGroup> BuildGroups(ServiceCatalog catalog)
+    {
         var groups = new List<ServiceGroup>(catalog.Services.Count);
         _nextHostGroups.Clear();
         _nextPendingGroups.Clear();
@@ -254,7 +273,7 @@ public sealed class ServiceTree
         (_hostGroups, _nextHostGroups) = (_nextHostGroups, _hostGroups);
         (_pendingGroups, _nextPendingGroups) = (_nextPendingGroups, _pendingGroups);
         (_serviceGroups, _nextServiceGroups) = (_nextServiceGroups, _serviceGroups);
-        return new ServiceFrame(moment, groups);
+        return groups;
     }
 
     private void Reset()

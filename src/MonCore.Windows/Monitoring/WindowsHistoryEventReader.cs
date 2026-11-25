@@ -148,14 +148,16 @@ public sealed class WindowsHistoryEventReader
         });
         var document = XDocument.Load(reader, LoadOptions.None);
         var system = document.Root?.Elements().FirstOrDefault(element => element.Name.LocalName == "System");
-        var provider = system?.Elements().FirstOrDefault(element => element.Name.LocalName == "Provider")?.Attribute("Name")?.Value;
-        var idText = system?.Elements().FirstOrDefault(element => element.Name.LocalName == "EventID")?.Value;
-        var timeText = system?.Elements().FirstOrDefault(element => element.Name.LocalName == "TimeCreated")?.Attribute("SystemTime")?.Value;
-        if (string.IsNullOrWhiteSpace(provider) || provider.Length > 256 || !int.TryParse(idText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var id) || id is < 0 or > 65535 ||
-            !DateTimeOffset.TryParse(timeText, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var timestamp)) return false;
-        var level = int.TryParse(system?.Elements().FirstOrDefault(element => element.Name.LocalName == "Level")?.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var rawLevel)
-            ? rawLevel switch { 1 or 2 => IncidentEventLevel.Error, 3 => IncidentEventLevel.Warning, 4 => IncidentEventLevel.Information, _ => IncidentEventLevel.Unknown } : IncidentEventLevel.Unknown;
-        int? pid = null; long? creation = null;
+        if (system is null || !TryReadSystem(system, out var provider, out var id, out var timestamp)) return false;
+        var level = ReadLevel(system);
+        ReadProcessLifetime(document, provider, id, out var pid, out var creation);
+        result = new IncidentEvent(timestamp, provider!, id, level, FirstLine(message), pid, creation);
+        return true;
+    }
+
+    private static void ReadProcessLifetime(XDocument document, string? provider, int id, out int? pid, out long? creation)
+    {
+        pid = null; creation = null;
         if (provider == "Application Error" && id == 1000)
         {
             foreach (var data in document.Descendants().Where(element => element.Name.LocalName == "Data"))
@@ -166,9 +168,21 @@ public sealed class WindowsHistoryEventReader
             }
             if (pid is null || creation is null || creation <= 0) { pid = null; creation = null; }
         }
-        result = new IncidentEvent(timestamp, provider, id, level, FirstLine(message), pid, creation);
-        return true;
     }
+
+    private static bool TryReadSystem(XElement system, out string? provider, out int id, out DateTimeOffset timestamp)
+    {
+        id = default; timestamp = default;
+        provider = system.Elements().FirstOrDefault(element => element.Name.LocalName == "Provider")?.Attribute("Name")?.Value;
+        var idText = system.Elements().FirstOrDefault(element => element.Name.LocalName == "EventID")?.Value;
+        var timeText = system.Elements().FirstOrDefault(element => element.Name.LocalName == "TimeCreated")?.Attribute("SystemTime")?.Value;
+        return !string.IsNullOrWhiteSpace(provider) && provider.Length <= 256 && int.TryParse(idText, NumberStyles.Integer, CultureInfo.InvariantCulture, out id) && id is >= 0 and <= 65535 &&
+            DateTimeOffset.TryParse(timeText, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out timestamp);
+    }
+
+    private static IncidentEventLevel ReadLevel(XElement system) =>
+        int.TryParse(system.Elements().FirstOrDefault(element => element.Name.LocalName == "Level")?.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var rawLevel)
+            ? rawLevel switch { 1 or 2 => IncidentEventLevel.Error, 3 => IncidentEventLevel.Warning, 4 => IncidentEventLevel.Information, _ => IncidentEventLevel.Unknown } : IncidentEventLevel.Unknown;
 
     private static string? RenderXml(SafeEvtHandle item)
     {
@@ -182,14 +196,17 @@ public sealed class WindowsHistoryEventReader
     }
 
     private static string FormatMessage(SafeEvtHandle item, string provider)
+        => FormatMessage(item, EvtOpenPublisherMetadata(IntPtr.Zero, provider, null, 0, 0));
+
+    internal static string FormatMessage(SafeHandle item, IEventMessageMetadata metadata)
     {
-        using var metadata = EvtOpenPublisherMetadata(IntPtr.Zero, provider, null, 0, 0);
+        using var lease = metadata;
         if (metadata.IsInvalid) return "";
         var buffer = new char[1024];
         while (true)
         {
-            if (EvtFormatMessage(metadata, item, 0, 0, IntPtr.Zero, EvtFormatMessageEvent, (uint)buffer.Length, buffer, out var used)) return new string(buffer, 0, Math.Min((int)used, buffer.Length)).TrimEnd('\0');
-            if (Marshal.GetLastPInvokeError() != ErrorInsufficientBuffer || used > MessageCharacters) return "";
+            if (metadata.TryFormat(item, buffer, out var used, out var error)) return new string(buffer, 0, Math.Min((int)used, buffer.Length)).TrimEnd('\0');
+            if (error != ErrorInsufficientBuffer || used > MessageCharacters) return "";
             buffer = new char[used];
         }
     }
@@ -212,10 +229,17 @@ public sealed class WindowsHistoryEventReader
             ? int.TryParse(value[2..], NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out parsed)
             : int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out parsed);
     }
-    private sealed class SafeEvtHandle : SafeHandleZeroOrMinusOneIsInvalid
+    private sealed class SafeEvtHandle : SafeHandleZeroOrMinusOneIsInvalid, IEventMessageMetadata
     {
         public SafeEvtHandle() : base(true) { }
         public SafeEvtHandle(nint value) : base(true) => SetHandle(value);
+        bool IEventMessageMetadata.TryFormat(SafeHandle item, char[] buffer, out uint used, out int error)
+        {
+            var success = EvtFormatMessage(this, (SafeEvtHandle)item, 0, 0, IntPtr.Zero, EvtFormatMessageEvent,
+                (uint)buffer.Length, buffer, out used);
+            error = success ? 0 : Marshal.GetLastPInvokeError();
+            return success;
+        }
         protected override bool ReleaseHandle() => EvtClose(handle);
     }
     [DllImport("wevtapi.dll", CharSet = CharSet.Unicode, SetLastError = true)] private static extern SafeEvtHandle EvtQuery(nint session, string? path, string query, uint flags);

@@ -1,5 +1,5 @@
 using System.ComponentModel;
-using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 using Microsoft.Win32.SafeHandles;
@@ -9,31 +9,53 @@ namespace WinMon.Monitoring;
 /// <summary>Rejects a same-named pipe unless its server is the running LocalSystem SCM service.</summary>
 internal static class NetworkServiceIdentity
 {
-    internal static async Task EnsureRunningAsync(CancellationToken token)
-    {
-        token.ThrowIfCancellationRequested();
-        using var service = OpenRegisteredService(ServiceQueryStatus | ServiceQueryConfig | ServiceStart);
-        if (!IsConfiguredAsOwnProcessLocalSystem(service))
-            throw new UnauthorizedAccessException("Registered network service configuration is not trusted.");
-        var status = QueryStatus(service);
-        if (status.CurrentState == ServiceRunning) return;
-        token.ThrowIfCancellationRequested();
-        if (!StartService(service, 0, IntPtr.Zero))
-        {
-            var error = Marshal.GetLastWin32Error();
-            if (error != ErrorServiceAlreadyRunning)
-                throw new Win32Exception(error, "Cannot start network monitoring service.");
-        }
+    internal static Task EnsureRunningAsync(CancellationToken token) => EnsureRunningAsync(token, null);
 
-        var deadline = Stopwatch.GetTimestamp() + (long)(Stopwatch.Frequency * 10d);
-        do
+    internal static Task EnsureRunningAsync(CancellationToken token, Func<uint, IServiceStartupScope>? open)
+    {
+        try
         {
             token.ThrowIfCancellationRequested();
-            if (QueryStatus(service).CurrentState == ServiceRunning) return;
-            await Task.Delay(50, token).ConfigureAwait(false);
-        } while (Stopwatch.GetTimestamp() < deadline);
+            var service = open is null
+                ? OpenRegisteredService(ServiceQueryStatus | ServiceQueryConfig | ServiceStart)
+                : open(ServiceQueryStatus | ServiceQueryConfig | ServiceStart);
+            return WaitForRunningAsync(service, token);
+        }
+        catch (Exception error)
+        {
+            // Keep opening failures on the returned task, including cancellation without a requested token.
+            var result = AsyncTaskMethodBuilder.Create();
+            result.SetException(error);
+            return result.Task;
+        }
+    }
 
-        throw new TimeoutException("Network monitoring service did not start in time.");
+    private static async Task WaitForRunningAsync(IServiceStartupScope service, CancellationToken token)
+    {
+        try
+        {
+            if (!service.IsTrusted)
+                throw new UnauthorizedAccessException("Registered network service configuration is not trusted.");
+            if (service.State == ServiceRunning) return;
+            token.ThrowIfCancellationRequested();
+            if (!service.TryStart(out var error) && error != ErrorServiceAlreadyRunning)
+                throw new Win32Exception(error, "Cannot start network monitoring service.");
+
+            var deadline = service.Clock.GetTimestamp() + (long)(service.Clock.TimestampFrequency * 10d);
+            do
+            {
+                token.ThrowIfCancellationRequested();
+                if (service.State == ServiceRunning) return;
+                await Task.Delay(TimeSpan.FromMilliseconds(50), service.Clock, token).ConfigureAwait(false);
+            } while (service.Clock.GetTimestamp() < deadline);
+
+            throw new TimeoutException("Network monitoring service did not start in time.");
+        }
+        finally
+        {
+            // Retain one owned handle reference across awaits, matching the original async state size.
+            service?.Dispose();
+        }
     }
 
     internal static void Verify(SafePipeHandle pipe)
@@ -47,6 +69,11 @@ internal static class NetworkServiceIdentity
         if (status.CurrentState != ServiceRunning || status.ProcessId != pipeProcessId)
             throw new UnauthorizedAccessException("Network service pipe is not owned by the registered service.");
 
+        VerifyProcessIdentity(service, pipeProcessId);
+    }
+
+    private static void VerifyProcessIdentity(SafeNativeHandle service, uint pipeProcessId)
+    {
         using var processHandle = OpenProcess(ProcessQueryLimitedInformation, false, pipeProcessId);
         if (processHandle.IsInvalid)
             throw new Win32Exception(Marshal.GetLastWin32Error(),
@@ -56,6 +83,17 @@ internal static class NetworkServiceIdentity
         if (exited != 0)
             throw new UnauthorizedAccessException("Network service process has already exited.");
 
+        var localSystem = IsLocalSystemProcess(processHandle, service);
+
+        var recheck = QueryStatus(service);
+        if (!localSystem || !GetProcessTimes(processHandle, out var recheckedCreation, out exited, out _, out _) ||
+            exited != 0 || recheckedCreation != created ||
+            recheck.CurrentState != ServiceRunning || recheck.ProcessId != pipeProcessId)
+            throw new UnauthorizedAccessException("Network service identity changed.");
+    }
+
+    private static bool IsLocalSystemProcess(SafeProcessHandle processHandle, SafeNativeHandle service)
+    {
         var localSystem = false;
         if (OpenProcessToken(processHandle, TokenQuery, out var token) && !token.IsInvalid)
             using (token)
@@ -68,12 +106,7 @@ internal static class NetworkServiceIdentity
             localSystem = IsConfiguredAsOwnProcessLocalSystem(service);
 
         token.Dispose();
-
-        var recheck = QueryStatus(service);
-        if (!localSystem || !GetProcessTimes(processHandle, out var recheckedCreation, out exited, out _, out _) ||
-            exited != 0 || recheckedCreation != created ||
-            recheck.CurrentState != ServiceRunning || recheck.ProcessId != pipeProcessId)
-            throw new UnauthorizedAccessException("Network service identity changed.");
+        return localSystem;
     }
 
     private static SafeNativeHandle OpenRegisteredService(uint access)
@@ -208,10 +241,21 @@ internal static class NetworkServiceIdentity
 
     // The P/Invoke marshaller constructs this SafeHandle for returned native handles.
     // ReSharper disable once ClassNeverInstantiated.Local
-    private sealed class SafeNativeHandle : SafeHandleZeroOrMinusOneIsInvalid
+    private sealed class SafeNativeHandle : SafeHandleZeroOrMinusOneIsInvalid, IServiceStartupScope
     {
         public SafeNativeHandle() : base(true)
         {
+        }
+
+        bool IServiceStartupScope.IsTrusted => IsConfiguredAsOwnProcessLocalSystem(this);
+        uint IServiceStartupScope.State => QueryStatus(this).CurrentState;
+        TimeProvider IServiceStartupScope.Clock => TimeProvider.System;
+
+        bool IServiceStartupScope.TryStart(out int error)
+        {
+            var started = StartService(this, 0, IntPtr.Zero);
+            error = started ? 0 : Marshal.GetLastWin32Error();
+            return started;
         }
 
         protected override bool ReleaseHandle()

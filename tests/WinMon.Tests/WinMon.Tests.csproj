@@ -17,8 +17,18 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../src/WinMon/WinMon.csproj" />
+    <ProjectReference Include="../WinMon.AppExitHost/WinMon.AppExitHost.csproj" />
+    <Compile Include="../Shared/ToolInstallationDetectionTestsBase.cs" Link="Shared/ToolInstallationDetectionTestsBase.cs" />
+    <Compile Include="../Shared/NetworkSetupReplyCharacterizationTests.cs" Link="Shared/NetworkSetupReplyCharacterizationTests.cs" />
+    <Compile Include="../Shared/NetworkSetupAvailabilityCharacterizationTests.cs" Link="Shared/NetworkSetupAvailabilityCharacterizationTests.cs" />
+    <Compile Include="../Shared/NetworkSetupExtractionCharacterizationTests.cs" Link="Shared/NetworkSetupExtractionCharacterizationTests.cs" Condition="'$(StoreBuild)' != 'true'" />
+    <Compile Include="../Shared/HardwareLabelCharacterizationTests.cs" Link="Shared/HardwareLabelCharacterizationTests.cs" />
+    <Compile Include="../Shared/HardwareDetailsCharacterizationTests.cs" Link="Shared/HardwareDetailsCharacterizationTests.cs" />
+    <Compile Include="../Shared/ConnectionStateCharacterizationTestsBase.cs" Link="Shared/ConnectionStateCharacterizationTestsBase.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Fixtures/**" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../src/WinMon/App.xaml" Link="Fixtures/DiagnosticPins/App.xaml.xml"
+          TargetPath="Fixtures/DiagnosticPins/App.xaml.xml" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

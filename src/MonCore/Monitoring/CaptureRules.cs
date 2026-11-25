@@ -123,7 +123,6 @@ public sealed class CaptureRules(IReadOnlyList<CaptureRuleSetting> rules, TimeSp
 
             if (!_runs.TryGetValue(rule.Metric, out var run)) _runs[rule.Metric] = run = new Run();
             var value = rule.IsTargeted ? ScopedValue(rule, full, services, network) : Value(rule.Metric, full);
-            if (rule.IsTargeted && rule.IsProcessCpu) value *= logicalProcessors;
             if (Step(rule, run, (rule.IsTargeted ? !full.IsGap : valid) ? value : null, full, moment) is { } result)
                 (fired ??= []).Add(result);
         }
@@ -131,27 +130,38 @@ public sealed class CaptureRules(IReadOnlyList<CaptureRuleSetting> rules, TimeSp
         return fired ?? (IReadOnlyList<CaptureFired>)[];
     }
 
-    private static double? ScopedValue(CaptureRuleSetting rule, MonitorSample full, ServiceFrame? services, ProcessNetworkFrame? network)
+    private double? ScopedValue(CaptureRuleSetting rule, MonitorSample full, ServiceFrame? services, ProcessNetworkFrame? network)
     {
-        if (rule.Target.Length == 0) return null;
-        IReadOnlyList<ProcessUsage> processes;
+        var processes = ScopedProcesses(rule, full, services);
+        if (processes.Count == 0) return null;
+        if (rule.IsMemory) return processes.All(p => p.PrivateBytes is not null)
+            ? processes.Sum(p => (double)p.PrivateBytes!.Value) / (1024 * 1024) : null;
+        if (!rule.IsNetwork) return processes.All(p => p.ObservedCpuPercent is not null)
+            ? processes.Sum(p => p.CpuPercent) * logicalProcessors : null;
+        return NetworkValue(processes, network);
+    }
+
+    private static IReadOnlyList<ProcessUsage> ScopedProcesses(CaptureRuleSetting rule, MonitorSample full, ServiceFrame? services)
+    {
+        if (rule.Target.Length == 0) return [];
         if (rule.IsService)
         {
-            if (services is not { Available: true } || !SampleKey.Of(full).Matches(services.Sample)) return null;
+            if (services is not { Available: true } || !SampleKey.Of(full).Matches(services.Sample)) return [];
             var group = services.Groups.FirstOrDefault(g => g.Services.Any(s => string.Equals(s.Name, rule.Target, StringComparison.OrdinalIgnoreCase)));
             // Shared host counters cannot be assigned to one named service.
-            if (group is null || group.Shared) return null;
-            processes = group.Processes;
+            if (group is null || group.Shared) return [];
+            return group.Processes;
         }
-        else processes = full.Processes.Where(p => Path.IsPathFullyQualified(rule.Target)
+
+        return full.Processes.Where(p => Path.IsPathFullyQualified(rule.Target)
             ? string.Equals(p.ImagePath, rule.Target, StringComparison.OrdinalIgnoreCase)
             : string.Equals(p.Name, rule.Target, StringComparison.OrdinalIgnoreCase) ||
               MemoryExtensions.Equals(Path.GetFileName(p.ImagePath.AsSpan()), rule.Target.AsSpan(), StringComparison.OrdinalIgnoreCase) ||
               MemoryExtensions.Equals(Path.GetFileNameWithoutExtension(p.ImagePath.AsSpan()), rule.Target.AsSpan(), StringComparison.OrdinalIgnoreCase)).ToArray();
-        if (processes.Count == 0) return null;
-        if (rule.IsMemory) return processes.All(p => p.PrivateBytes is not null)
-            ? processes.Sum(p => (double)p.PrivateBytes!.Value) / (1024 * 1024) : null;
-        if (!rule.IsNetwork) return processes.All(p => p.ObservedCpuPercent is not null) ? processes.Sum(p => p.CpuPercent) : null;
+    }
+
+    private static double? NetworkValue(IReadOnlyList<ProcessUsage> processes, ProcessNetworkFrame? network)
+    {
         if (network is null || (network.Quality & ~(ProcessNetworkQuality.Provisional | ProcessNetworkQuality.Incomplete)) != 0) return null;
         double receive = 0, send = 0;
         foreach (var process in processes)

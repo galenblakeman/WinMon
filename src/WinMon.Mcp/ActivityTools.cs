@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
 using WinMon.Monitoring;
@@ -13,7 +14,7 @@ internal sealed partial class DiagnosticTools
     public async Task<CallToolResult> ListServices(string sort = "cpu", string filter = "", int limit = 20,
         bool includeWorkers = true, CancellationToken cancellationToken = default)
     {
-        if (sort is not ("cpu" or "memory" or "io" or "name") || filter is null || filter.Length > 256 || limit is < 1 or > 200) return Invalid();
+        if (InvalidRequest(sort, filter, limit)) return Invalid();
         await using var request = await owner.AcquireAsync(cancellationToken);
         var current = await owner.CurrentAsync(cancellationToken);
         if (current is null || !owner.IsFresh(current)) return Responses.Result(Responses.Envelope(owner, current, null));
@@ -38,6 +39,11 @@ internal sealed partial class DiagnosticTools
             g.Processes.Take(200).Select(ProcessIdentity.From).ToArray(),
             g.Host is null ? null : ProcessIdentity.From(g.Host), ranking.Groups.GetValueOrDefault(g.Key) ?? ServiceMetrics.None)).ToArray();
         return Responses.BoundedList(Responses.Envelope(owner, current, null, count: Math.Min(entries.Length, limit), truncated: entries.Length > limit), entries.Take(limit).ToArray());
+
+        // Keep request checks inline, as they were before extraction.
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static bool InvalidRequest(string sort, string filter, int limit) =>
+            sort is not ("cpu" or "memory" or "io" or "name") || filter is null || filter.Length > 256 || limit is < 1 or > 200;
     }
 
     [McpServerTool(Name = "get_usage", ReadOnly = true, Destructive = false, OpenWorld = false,
@@ -73,7 +79,7 @@ internal sealed partial class DiagnosticTools
         int? pid = null, string? expectedStartToken = null, string? expectedDomain = null)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (seconds is < 1 or > 120 || top is < 1 or > 20 || sort is not ("cpu" or "memory" or "gpu" or "io" or "threads" or "handles") ||
+        if (InvalidOptions(seconds, top, sort) ||
             (pid is { } id ? expectedStartToken is null || !ValidIdentity(id, expectedStartToken, expectedDomain)
                 : expectedStartToken is not null || expectedDomain is not null))
             return Task.FromResult(Invalid());
@@ -94,6 +100,9 @@ internal sealed partial class DiagnosticTools
         return Task.FromResult(Responses.Result(Responses.Envelope(owner, frames.LastOrDefault(), result,
             frames.Length == 0 || pid is not null && !points.Any(p => p.Processes.Length > 0) ? "notObserved" : "ok",
             points.Length, allowHistorical: true)));
+
+        static bool InvalidOptions(int seconds, int top, string sort) =>
+            seconds is < 1 or > 120 || top is < 1 or > 20 || sort is not ("cpu" or "memory" or "gpu" or "io" or "threads" or "handles");
     }
 }
 

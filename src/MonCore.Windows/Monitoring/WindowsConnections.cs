@@ -73,9 +73,9 @@ public static class WindowsConnections
         return NetworkAddressFamilyStatus.Success;
     }
 
-    private delegate uint TableReader(IntPtr buffer, ref int size);
+    internal delegate uint TableReader(IntPtr buffer, ref int size);
 
-    private static TableResult ReadTable(TableReader read)
+    internal static TableResult ReadTable(TableReader read)
     {
         var size = 0;
         var result = read(IntPtr.Zero, ref size);
@@ -190,7 +190,7 @@ public static class WindowsConnections
         return MemoryMarshal.Read<uint>(bytes.AsSpan(offset, sizeof(uint)));
     }
 
-    private sealed record TableResult(byte[]? Buffer, int? ErrorCode)
+    internal sealed record TableResult(byte[]? Buffer, int? ErrorCode)
     {
         public bool Success => Buffer is not null;
     }

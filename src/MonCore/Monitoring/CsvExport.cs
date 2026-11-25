@@ -195,14 +195,20 @@ public static class CsvExport
                 var owner = connection.ProcessCreationTicks is { } created
                     ? owners.GetValueOrDefault((connection.ProcessId, created))
                     : null;
-                Row(writer, Utc(monitorSample.Timestamp), Bool(frame.Ipv4.Available), Bool(frame.Ipv6.Available),
-                    Number(connection.ProcessId), Number(connection.ProcessCreationTicks), Safe(owner?.Name ?? ""),
-                    Safe(owner?.ImagePath ?? ""), connection.Protocol.ToString(),
-                    Safe(connection.LocalEndpoint.Address.ToString()), Number(connection.LocalEndpoint.Port),
-                    Safe(connection.RemoteEndpoint?.Address.ToString() ?? ""),
-                    Number(connection.RemoteEndpoint?.Port), connection.State?.ToString());
+                WriteConnectionRow(writer, monitorSample.Timestamp, frame, connection, owner);
             }
         }
+    }
+
+    private static void WriteConnectionRow(TextWriter writer, DateTimeOffset timestamp,
+        NetworkConnectionsFrame frame, NetworkConnection connection, ProcessUsage? owner)
+    {
+        Row(writer, Utc(timestamp), Bool(frame.Ipv4.Available), Bool(frame.Ipv6.Available),
+            Number(connection.ProcessId), Number(connection.ProcessCreationTicks), Safe(owner?.Name ?? ""),
+            Safe(owner?.ImagePath ?? ""), connection.Protocol.ToString(),
+            Safe(connection.LocalEndpoint.Address.ToString()), Number(connection.LocalEndpoint.Port),
+            Safe(connection.RemoteEndpoint?.Address.ToString() ?? ""),
+            Number(connection.RemoteEndpoint?.Port), connection.State?.ToString());
     }
 
     private static void WriteNetworkTraffic(TextWriter writer, IReadOnlyList<ConnectionCapture> captures)

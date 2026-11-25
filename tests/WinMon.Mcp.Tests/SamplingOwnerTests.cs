@@ -287,7 +287,7 @@ public sealed class SamplingOwnerTests
         });
     }
 
-    private sealed class ManualClock : TimeProvider
+    internal sealed class ManualClock : TimeProvider
     {
         private readonly List<ManualTimer> _timers = [];
         private long _ticks;

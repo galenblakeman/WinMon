@@ -109,29 +109,18 @@ internal static class Responses
                 IsError = response.Status is "invalidInput" or "busy" or "identityMismatch"
             };
             if (JsonSerializer.SerializeToUtf8Bytes(result, Json).Length <= MaximumBytes) return result;
-            object? data = response.Data switch
+            (object? Data, int Count) trimmed = response.Data switch
             {
-                UsageResult usage => usage with { Apps = usage.Apps.Take(usage.Apps.Length / 2).ToArray() },
-                ArchivedUsageResult usage => usage with { Apps = usage.Apps.Take(usage.Apps.Length / 2).ToArray() },
-                HistoryResult history => history with { Points = history.Points.TakeLast(history.Points.Length / 2).ToArray() },
-                PerformanceResult performance => performance with { Trend = performance.Trend.Take(performance.Trend.Length / 2).ToArray() },
-                ConnectionResult connections => connections with { Connections = connections.Connections.Take(connections.Connections.Length / 2).ToArray() },
-                TrafficResult traffic => traffic with { Processes = traffic.Processes.Take(traffic.Processes.Length / 2).ToArray() },
-                Array entries => entries.Cast<object>().Take(entries.Length / 2).ToArray(),
-                _ => null
+                UsageResult usage => (usage with { Apps = usage.Apps.Take(usage.Apps.Length / 2).ToArray() }, usage.Apps.Length / 2),
+                ArchivedUsageResult usage => (usage with { Apps = usage.Apps.Take(usage.Apps.Length / 2).ToArray() }, usage.Apps.Length / 2),
+                HistoryResult history => (history with { Points = history.Points.TakeLast(history.Points.Length / 2).ToArray() }, history.Points.Length / 2),
+                PerformanceResult performance => (performance with { Trend = performance.Trend.Take(performance.Trend.Length / 2).ToArray() }, performance.Trend.Length / 2),
+                ConnectionResult connections => (connections with { Connections = connections.Connections.Take(connections.Connections.Length / 2).ToArray() }, connections.Connections.Length / 2),
+                TrafficResult traffic => (traffic with { Processes = traffic.Processes.Take(traffic.Processes.Length / 2).ToArray() }, traffic.Processes.Length / 2),
+                Array entries => (entries.Cast<object>().Take(entries.Length / 2).ToArray(), entries.Length / 2),
+                _ => (null, 0)
             };
-            var count = data switch
-            {
-                UsageResult usage => usage.Apps.Length,
-                ArchivedUsageResult usage => usage.Apps.Length,
-                HistoryResult history => history.Points.Length,
-                PerformanceResult performance => performance.Trend.Length,
-                ConnectionResult connections => connections.Connections.Length,
-                TrafficResult traffic => traffic.Processes.Length,
-                Array entries => entries.Length,
-                _ => 0
-            };
-            response = response with { Data = data, ReturnedCount = count, Truncated = true };
+            response = response with { Data = trimmed.Data, ReturnedCount = trimmed.Count, Truncated = true };
         }
     }
 
@@ -163,40 +152,83 @@ internal static class HardwareProjection
 {
     internal static HardwareInventorySnapshot Safe(HardwareInventorySnapshot source, out bool changed)
     {
-        var cpu = SafeSection(source.Cpu) with { Data = source.Cpu.Data is { } cpuData ? cpuData with
-        {
-            Names = cpuData.Names.Take(256).Select(x => Text(x) ?? "").ToArray(), Processors = cpuData.Processors.Take(256).Select(Safe).ToArray()
-        } : null };
-        var board = SafeSection(source.Motherboard) with { Data = source.Motherboard.Data is { } boardData ? boardData with
-        { Items = boardData.Items.Take(256).Select(x => x with { Manufacturer = Text(x.Manufacturer), Product = Text(x.Product), Version = Text(x.Version), SerialNumber = source.IdentifiersIncluded ? Text(x.SerialNumber) : null }).ToArray() } : null };
-        var memory = SafeSection(source.Memory) with { Data = source.Memory.Data is { } memoryData ? memoryData with
-        { Modules = memoryData.Modules.Take(256).Select(x => x with { DeviceLocator = Text(x.DeviceLocator), BankLabel = Text(x.BankLabel), Manufacturer = Text(x.Manufacturer), PartNumber = Text(x.PartNumber) }).ToArray() } : null };
-        var graphics = SafeSection(source.Graphics) with { Data = source.Graphics.Data is { } graphicsData ? graphicsData with
-        { Adapters = graphicsData.Adapters.Take(256).Select(x => x with { Name = Text(x.Name) }).ToArray() } : null };
-        var disks = SafeSection(source.Disks) with { Data = source.Disks.Data is { } disksData ? disksData with
-        { Items = disksData.Items.Take(256).Select(x => x with { Model = Text(x.Model), Manufacturer = Text(x.Manufacturer), DriveLetters = x.DriveLetters?.Take(256).Select(Text).Where(x => x is not null).Cast<string>().ToArray() }).ToArray() } : null };
-        var volumes = SafeSection(source.Volumes) with { Data = source.Volumes.Data is { } volumesData ? volumesData with
-        { Items = volumesData.Items.Take(256).Select(x => x with { Name = Text(x.Name) ?? "", Label = source.IdentifiersIncluded ? Text(x.Label) : null, FileSystem = Text(x.FileSystem) }).ToArray() } : null };
-        var network = SafeSection(source.Network) with { Data = source.Network.Data is { } networkData ? networkData with
-        { Adapters = networkData.Adapters.Take(256).Select(x => x with { Name = source.IdentifiersIncluded ? Text(x.Name) : null, Description = Text(x.Description) }).ToArray() } : null };
-        cpu = Clipped(cpu, source.Cpu.Data is { } c && (c.Names.Length > 256 || c.Processors.Length > 256 ||
-            c.Names.Any(ClippedText) || c.Processors.Any(p => new[] { p.Name, p.Manufacturer, p.SocketDesignation, p.DeviceId }.Any(ClippedText))));
-        board = Clipped(board, source.Motherboard.Data is { } b && (b.Items.Length > 256 || b.Items.Any(x =>
-            new[] { x.Manufacturer, x.Product, x.Version, source.IdentifiersIncluded ? x.SerialNumber : null }.Any(ClippedText))));
-        memory = Clipped(memory, source.Memory.Data is { } m && (m.Modules.Length > 256 || m.Modules.Any(x =>
-            new[] { x.DeviceLocator, x.BankLabel, x.Manufacturer, x.PartNumber }.Any(ClippedText))));
-        graphics = Clipped(graphics, source.Graphics.Data is { } g && (g.Adapters.Length > 256 || g.Adapters.Any(x => ClippedText(x.Name))));
-        disks = Clipped(disks, source.Disks.Data is { } d && (d.Items.Count > 256 || d.Items.Any(x =>
-            ClippedText(x.Model) || ClippedText(x.Manufacturer) || x.DriveLetters?.Length > 256 || x.DriveLetters?.Any(ClippedText) == true)));
-        volumes = Clipped(volumes, source.Volumes.Data is { } v && (v.Items.Length > 256 || v.Items.Any(x =>
-            new[] { x.Name, x.FileSystem, source.IdentifiersIncluded ? x.Label : null }.Any(ClippedText))));
-        network = Clipped(network, source.Network.Data is { } n && (n.Adapters.Length > 256 || n.Adapters.Any(x =>
-            ClippedText(x.Description) || source.IdentifiersIncluded && ClippedText(x.Name))));
+        var cpu = ProjectCpu();
+        var board = ProjectMotherboard();
+        var memory = ProjectMemory();
+        var graphics = ProjectGraphics();
+        var disks = ProjectDisks();
+        var volumes = ProjectVolumes();
+        var network = ProjectNetwork();
+        cpu = Clipped(cpu, CpuClipped());
+        board = Clipped(board, MotherboardClipped());
+        memory = Clipped(memory, MemoryClipped());
+        graphics = Clipped(graphics, GraphicsClipped());
+        disks = Clipped(disks, DisksClipped());
+        volumes = Clipped(volumes, VolumesClipped());
+        network = Clipped(network, NetworkClipped());
         IHardwareSection[] sections = [cpu, board, memory, graphics, disks, volumes, network];
         changed = sections.Any(section => section.Truncated);
         return source with { Status = changed && source.Status == "ok" ? "partial" : source.Status,
             Truncated = source.Truncated || changed, Cpu = cpu, Motherboard = board, Memory = memory,
             Graphics = graphics, Disks = disks, Volumes = volumes, Network = network };
+
+        // Local functions share the identifier-policy capture across both passes.
+        HardwareSection<HardwareCpu> ProjectCpu() =>
+            SafeSection(source.Cpu) with { Data = source.Cpu.Data is { } cpuData ? cpuData with
+            {
+                Names = cpuData.Names.Take(256).Select(x => Text(x) ?? "").ToArray(), Processors = cpuData.Processors.Take(256).Select(Safe).ToArray()
+            } : null };
+
+        HardwareSection<HardwareMotherboards> ProjectMotherboard() =>
+            SafeSection(source.Motherboard) with { Data = source.Motherboard.Data is { } boardData ? boardData with
+            { Items = boardData.Items.Take(256).Select(x => x with { Manufacturer = Text(x.Manufacturer), Product = Text(x.Product), Version = Text(x.Version), SerialNumber = source.IdentifiersIncluded ? Text(x.SerialNumber) : null }).ToArray() } : null };
+
+        HardwareSection<HardwareMemory> ProjectMemory() =>
+            SafeSection(source.Memory) with { Data = source.Memory.Data is { } memoryData ? memoryData with
+            { Modules = memoryData.Modules.Take(256).Select(x => x with { DeviceLocator = Text(x.DeviceLocator), BankLabel = Text(x.BankLabel), Manufacturer = Text(x.Manufacturer), PartNumber = Text(x.PartNumber) }).ToArray() } : null };
+
+        HardwareSection<HardwareGraphics> ProjectGraphics() =>
+            SafeSection(source.Graphics) with { Data = source.Graphics.Data is { } graphicsData ? graphicsData with
+            { Adapters = graphicsData.Adapters.Take(256).Select(x => x with { Name = Text(x.Name) }).ToArray() } : null };
+
+        HardwareSection<HardwareDisks> ProjectDisks() =>
+            SafeSection(source.Disks) with { Data = source.Disks.Data is { } disksData ? disksData with
+            { Items = disksData.Items.Take(256).Select(x => x with { Model = Text(x.Model), Manufacturer = Text(x.Manufacturer), DriveLetters = x.DriveLetters?.Take(256).Select(Text).Where(x => x is not null).Cast<string>().ToArray() }).ToArray() } : null };
+
+        HardwareSection<HardwareVolumes> ProjectVolumes() =>
+            SafeSection(source.Volumes) with { Data = source.Volumes.Data is { } volumesData ? volumesData with
+            { Items = volumesData.Items.Take(256).Select(x => x with { Name = Text(x.Name) ?? "", Label = source.IdentifiersIncluded ? Text(x.Label) : null, FileSystem = Text(x.FileSystem) }).ToArray() } : null };
+
+        HardwareSection<HardwareNetwork> ProjectNetwork() =>
+            SafeSection(source.Network) with { Data = source.Network.Data is { } networkData ? networkData with
+            { Adapters = networkData.Adapters.Take(256).Select(x => x with { Name = source.IdentifiersIncluded ? Text(x.Name) : null, Description = Text(x.Description) }).ToArray() } : null };
+
+        bool CpuClipped() =>
+            source.Cpu.Data is { } c && (c.Names.Length > 256 || c.Processors.Length > 256 ||
+                c.Names.Any(ClippedText) || c.Processors.Any(p => new[] { p.Name, p.Manufacturer, p.SocketDesignation, p.DeviceId }.Any(ClippedText)));
+
+        bool MotherboardClipped() =>
+            source.Motherboard.Data is { } b && (b.Items.Length > 256 || b.Items.Any(x =>
+                new[] { x.Manufacturer, x.Product, x.Version, source.IdentifiersIncluded ? x.SerialNumber : null }.Any(ClippedText)));
+
+        bool MemoryClipped() =>
+            source.Memory.Data is { } m && (m.Modules.Length > 256 || m.Modules.Any(x =>
+                new[] { x.DeviceLocator, x.BankLabel, x.Manufacturer, x.PartNumber }.Any(ClippedText)));
+
+        bool GraphicsClipped() =>
+            source.Graphics.Data is { } g && (g.Adapters.Length > 256 || g.Adapters.Any(x => ClippedText(x.Name)));
+
+        bool DisksClipped() =>
+            source.Disks.Data is { } d && (d.Items.Count > 256 || d.Items.Any(x =>
+                ClippedText(x.Model) || ClippedText(x.Manufacturer) || x.DriveLetters?.Length > 256 || x.DriveLetters?.Any(ClippedText) == true));
+
+        bool VolumesClipped() =>
+            source.Volumes.Data is { } v && (v.Items.Length > 256 || v.Items.Any(x =>
+                new[] { x.Name, x.FileSystem, source.IdentifiersIncluded ? x.Label : null }.Any(ClippedText)));
+
+        bool NetworkClipped() =>
+            source.Network.Data is { } n && (n.Adapters.Length > 256 || n.Adapters.Any(x =>
+                ClippedText(x.Description) || source.IdentifiersIncluded && ClippedText(x.Name)));
     }
 
     internal static HardwareInventorySnapshot? Trim(HardwareInventorySnapshot source)

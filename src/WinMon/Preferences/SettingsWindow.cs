@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Net.NetworkInformation;
+using System.Runtime.CompilerServices;
 using System.Security;
 using System.Windows;
 using System.Windows.Automation;
@@ -706,34 +707,7 @@ public sealed class SettingsWindow : Window
     {
         var key = e.Key == Key.System ? e.SystemKey : e.Key;
         var modifiers = Keyboard.Modifiers;
-        // Tab, Shift+Tab and Esc keep their dialog meaning.
-        if (key is Key.Tab or Key.Escape && (modifiers & ~ModifierKeys.Shift) == ModifierKeys.None) return;
-        e.Handled = true;
-        if (modifiers == ModifierKeys.None && key is Key.Back or Key.Delete)
-        {
-            _shortcut = null;
-            ShowShortcut(Strings.OffClickTheBoxAndPressACombinationToSet);
-            return;
-        }
-
-        if (key is Key.LeftCtrl or Key.RightCtrl or Key.LeftAlt or Key.RightAlt or Key.LeftShift or Key.RightShift
-            or Key.LWin or Key.RWin)
-        {
-            // Echo the held modifiers until the key arrives.
-            string[] held =
-            [
-                .. new[]
-                    {
-                        (ModifierKeys.Control, Strings.Ctrl), (ModifierKeys.Alt, Strings.Alt),
-                        (ModifierKeys.Shift, Strings.Shift), (ModifierKeys.Windows, Strings.Win)
-                    }
-                    .Where(m => modifiers.HasFlag(m.Item1)).Select(m => m.Item2)
-            ];
-            _shortcutBox.Text = held.Length == 0 ? ShortcutText(_shortcut) : string.Join(" + ", held) + " + …";
-            return;
-        }
-
-        RecordShortcut(new HotkeyGesture(ToHotkeyModifiers(modifiers), KeyInterop.VirtualKeyFromKey(key)));
+        CaptureShortcut(key, modifiers, e);
     }
 
     private void RecordShortcut(HotkeyGesture gesture)
@@ -807,12 +781,7 @@ public sealed class SettingsWindow : Window
     // Ctrl+Tab and Ctrl+Shift+Tab step through the sections, except while the shortcut box records a combination.
     private void OnSectionKeyDown(object sender, KeyEventArgs e)
     {
-        if (_networkMonitoringBusy || e.Key != Key.Tab || !Keyboard.Modifiers.HasFlag(ModifierKeys.Control) ||
-            _shortcutBox.IsKeyboardFocusWithin) return;
-        var step = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? -1 : 1;
-        _navigation.SelectedIndex = (_navigation.SelectedIndex + step + _pages.Count) % _pages.Count;
-        (_navigation.ItemContainerGenerator.ContainerFromIndex(_navigation.SelectedIndex) as ListBoxItem)?.Focus();
-        e.Handled = true;
+        HandleSectionKeyDown(e, null);
     }
 
     private void FollowDrives()
@@ -1459,5 +1428,49 @@ public sealed class SettingsWindow : Window
         _repairNetworkMonitoringButton.IsEnabled =
             NetworkSetupBroker.Supported && _changeNetworkMonitoring is not null &&
             !_networkMonitoringBusy;
+    }
+
+    internal void CaptureShortcut(Key key, ModifierKeys modifiers, KeyEventArgs e)
+    {
+        // Tab, Shift+Tab and Esc keep their dialog meaning.
+        if (key is Key.Tab or Key.Escape && (modifiers & ~ModifierKeys.Shift) == ModifierKeys.None) return;
+        e.Handled = true;
+        if (modifiers == ModifierKeys.None && key is Key.Back or Key.Delete)
+        {
+            _shortcut = null;
+            ShowShortcut(Strings.OffClickTheBoxAndPressACombinationToSet);
+            return;
+        }
+
+        if (key is Key.LeftCtrl or Key.RightCtrl or Key.LeftAlt or Key.RightAlt or Key.LeftShift or Key.RightShift
+            or Key.LWin or Key.RWin)
+        {
+            // Echo the held modifiers until the key arrives.
+            string[] held =
+            [
+                .. new[]
+                    {
+                        (ModifierKeys.Control, Strings.Ctrl), (ModifierKeys.Alt, Strings.Alt),
+                        (ModifierKeys.Shift, Strings.Shift), (ModifierKeys.Windows, Strings.Win)
+                    }
+                    .Where(m => modifiers.HasFlag(m.Item1)).Select(m => m.Item2)
+            ];
+            _shortcutBox.Text = held.Length == 0 ? ShortcutText(_shortcut) : string.Join(" + ", held) + " + …";
+            return;
+        }
+
+        RecordShortcut(new HotkeyGesture(ToHotkeyModifiers(modifiers), KeyInterop.VirtualKeyFromKey(key)));
+    }
+
+    // Keep the native-default event path free of an extra dispatch hop.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal void HandleSectionKeyDown(KeyEventArgs e, ModifierKeys? modifiers)
+    {
+        if (_networkMonitoringBusy || e.Key != Key.Tab || !(modifiers ?? Keyboard.Modifiers).HasFlag(ModifierKeys.Control) ||
+            _shortcutBox.IsKeyboardFocusWithin) return;
+        var step = (modifiers ?? Keyboard.Modifiers).HasFlag(ModifierKeys.Shift) ? -1 : 1;
+        _navigation.SelectedIndex = (_navigation.SelectedIndex + step + _pages.Count) % _pages.Count;
+        (_navigation.ItemContainerGenerator.ContainerFromIndex(_navigation.SelectedIndex) as ListBoxItem)?.Focus();
+        e.Handled = true;
     }
 }

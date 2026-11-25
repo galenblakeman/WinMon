@@ -24,13 +24,6 @@ internal static class ConnectionGraphData
         var paths = rows.Where(row => row.Process is not null).Select(row => row.Process!.ImagePath)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        bool Needed(ProcessUsage owner)
-        {
-            return owner.ImagePath.Length > 0
-                ? paths.Contains(owner.ImagePath)
-                : identities.Contains(owner.Identity);
-        }
-
         var moments = history.Select(capture => capture.Sample).ToArray();
         var peak = 0d;
         // Reused across captures: the traffic window holds hundreds of captures and this runs every refresh.
@@ -47,37 +40,8 @@ internal static class ConnectionGraphData
             owners.Clear();
             readings.Clear();
             totals.Clear();
-            foreach (var owner in network.Owners)
-                if (Needed(owner))
-                    owners[owner.Identity] = owner;
-            foreach (var owner in capture.Owners)
-                if (owner.ImagePath.Length > 0 || !owners.ContainsKey(owner.Identity))
-                {
-                    if (Needed(owner)) owners[owner.Identity] = owner;
-                    else owners.Remove(owner.Identity);
-                }
-
-            foreach (var reading in network.Processes)
-            {
-                var identity = new ProcessLifetimeIdentity(reading.ProcessId, reading.CreationTicks,
-                    ProcessLifetimeIdentity.WindowsFileTime);
-                if (owners.ContainsKey(identity)) readings.TryAdd(identity, reading);
-            }
-
-            foreach (var owner in owners.Values)
-            {
-                if (network.CurrentLifetimes is not null &&
-                    !network.CurrentLifetimes.Contains(owner.Identity)) continue;
-                var key = owner.ImagePath.Length == 0 ? Key(owner)
-                    : imageKeys.TryGetValue(owner.ImagePath, out var cached) ? cached
-                    : imageKeys[owner.ImagePath] = Key(owner);
-                if (!values.ContainsKey(key)) continue;
-                var valid = readings.TryGetValue(owner.Identity, out var reading) &&
-                            reading.ReceiveBytesPerSecond is { } receive && double.IsFinite(receive) && receive >= 0 &&
-                            reading.SendBytesPerSecond is { } send && double.IsFinite(send) && send >= 0;
-                var rate = valid ? reading!.ReceiveBytesPerSecond + reading.SendBytesPerSecond : null;
-                totals[key] = totals.TryGetValue(key, out var total) ? total + rate : rate;
-            }
+            ResolveCaptureOwnersAndReadings(capture, network, paths, identities, owners, readings);
+            AccumulateOwnerRates(network, owners, readings, values, imageKeys, totals);
 
             foreach (var (key, total) in totals)
                 if (total is { } value && double.IsFinite(value))
@@ -90,5 +54,56 @@ internal static class ConnectionGraphData
         var scale = Math.Max(1, peak * 1.1);
         return values.ToDictionary(pair => pair.Key,
             pair => new ProcessGraphData(moments, pair.Value, scale), StringComparer.Ordinal);
+    }
+
+    private static void ResolveCaptureOwnersAndReadings(ConnectionCapture capture, ProcessNetworkFrame network,
+        HashSet<string> paths, HashSet<ProcessLifetimeIdentity> identities,
+        Dictionary<ProcessLifetimeIdentity, ProcessUsage> owners,
+        Dictionary<ProcessLifetimeIdentity, ProcessNetworkReading> readings)
+    {
+        bool Needed(ProcessUsage owner)
+        {
+            return owner.ImagePath.Length > 0
+                ? paths.Contains(owner.ImagePath)
+                : identities.Contains(owner.Identity);
+        }
+
+        foreach (var owner in network.Owners)
+            if (Needed(owner))
+                owners[owner.Identity] = owner;
+        foreach (var owner in capture.Owners)
+            if (owner.ImagePath.Length > 0 || !owners.ContainsKey(owner.Identity))
+            {
+                if (Needed(owner)) owners[owner.Identity] = owner;
+                else owners.Remove(owner.Identity);
+            }
+
+        foreach (var reading in network.Processes)
+        {
+            var identity = new ProcessLifetimeIdentity(reading.ProcessId, reading.CreationTicks,
+                ProcessLifetimeIdentity.WindowsFileTime);
+            if (owners.ContainsKey(identity)) readings.TryAdd(identity, reading);
+        }
+    }
+
+    private static void AccumulateOwnerRates(ProcessNetworkFrame network,
+        Dictionary<ProcessLifetimeIdentity, ProcessUsage> owners,
+        Dictionary<ProcessLifetimeIdentity, ProcessNetworkReading> readings, Dictionary<string, double?[]> values,
+        Dictionary<string, string> imageKeys, Dictionary<string, double?> totals)
+    {
+        foreach (var owner in owners.Values)
+        {
+            if (network.CurrentLifetimes is not null &&
+                !network.CurrentLifetimes.Contains(owner.Identity)) continue;
+            var key = owner.ImagePath.Length == 0 ? Key(owner)
+                : imageKeys.TryGetValue(owner.ImagePath, out var cached) ? cached
+                : imageKeys[owner.ImagePath] = Key(owner);
+            if (!values.ContainsKey(key)) continue;
+            var valid = readings.TryGetValue(owner.Identity, out var reading) &&
+                        reading.ReceiveBytesPerSecond is { } receive && double.IsFinite(receive) && receive >= 0 &&
+                        reading.SendBytesPerSecond is { } send && double.IsFinite(send) && send >= 0;
+            var rate = valid ? reading!.ReceiveBytesPerSecond + reading.SendBytesPerSecond : null;
+            totals[key] = totals.TryGetValue(key, out var total) ? total + rate : rate;
+        }
     }
 }

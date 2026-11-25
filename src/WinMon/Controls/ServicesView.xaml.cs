@@ -410,55 +410,11 @@ public partial class ServicesView
             {
                 Add(group.Key, group, null, null, false, true);
                 if (!_expanded.Contains(group.Key)) continue;
-                if (group.Shared)
-                    foreach (var service in group.Services.OrderBy(s => s.DisplayName,
-                                 StringComparer.CurrentCultureIgnoreCase))
-                        Add(group.Key + ":service:" + service.Name, group, null, service, true, false);
-                var processes = Workers.IsChecked == true ? group.Processes :
-                    group.Host is null ? [] : new[] { group.Host };
-                foreach (var process in processes.OrderBy(p => p == group.Host ? 0 : 1)
-                             .ThenByDescending(p =>
-                                 ranking.Processes.GetValueOrDefault((p.ProcessId, p.CreationTicks))?.Cpu))
-                {
-                    if (group is { Shared: true, Processes.Count: 1 } && process == group.Host) continue;
-                    Add($"process:{process.ProcessId}:{process.CreationTicks}", group, process, null, true, false);
-                }
+                AddExpandedRows(group);
             }
 
-            // Move rows into place rather than reset the list: a reset re-creates every visible row's
-            // container and lays out its text again, and the CPU order changes most seconds.
-            for (var i = 0; i < desired.Count; i++)
-            {
-                if (i < _rows.Count && ReferenceEquals(_rows[i], desired[i])) continue;
-                var from = -1;
-                for (var j = i + 1; j < _rows.Count; j++)
-                    if (ReferenceEquals(_rows[j], desired[i]))
-                    {
-                        from = j;
-                        break;
-                    }
-
-                if (from >= 0) _rows.Move(from, i);
-                else _rows.Insert(i, desired[i]);
-            }
-
-            while (_rows.Count > desired.Count) _rows.RemoveAt(_rows.Count - 1);
-            // Keep the header rows of groups still observed, so a group re-entering the top rows keeps its row and
-            // graph. Child rows are not kept: a worker that exited would otherwise be kept while its host runs.
-            _spareRows.Clear();
-            var shown = desired.ToHashSet();
-            foreach (var (key, row) in old)
-                if (!shown.Contains(row) && key == row.Group.Key && _frame?.Index.IndexOf(key) >= 0)
-                    _spareRows[key] = row;
-            RefreshActionSelection(groups);
-            Rows.SelectedItem = _actionRow is null ? null : _rows.FirstOrDefault(r => r.Key == _actionRow.Key);
-            Notice.Text = _error ?? (_busy ? Strings.ServiceActionInProgress :
-                _frame is null ? _historical ? Strings.ServiceHistoryExpired : Strings.ServicesCollecting :
-                !_frame.Available ? Strings.ServicesUnavailable :
-                _rows.Count == 0 ? PinnedOnly ? Strings.NoPinnedServicesMatch : Strings.NoServicesMatch : string.Empty);
-            Notice.Visibility = Notice.Text.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
-            PinSummary.Text = _pins.Count == 0 ? "" : Strings.Format(Strings.PinnedServiceCount, _pins.Count);
-            PinSummary.Visibility = _pins.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+            PublishRows(desired, old, groups);
+            RefreshStatus();
 
             ServiceMetrics RankedMetrics(ServiceGroup group)
             {
@@ -515,6 +471,23 @@ public partial class ServicesView
                 }
 
                 desired.Add(row);
+            }
+
+            void AddExpandedRows(ServiceGroup group)
+            {
+                if (group.Shared)
+                    foreach (var service in group.Services.OrderBy(s => s.DisplayName,
+                                 StringComparer.CurrentCultureIgnoreCase))
+                        Add(group.Key + ":service:" + service.Name, group, null, service, true, false);
+                var processes = Workers.IsChecked == true ? group.Processes :
+                    group.Host is null ? [] : new[] { group.Host };
+                foreach (var process in processes.OrderBy(p => p == group.Host ? 0 : 1)
+                             .ThenByDescending(p =>
+                                 ranking.Processes.GetValueOrDefault((p.ProcessId, p.CreationTicks))?.Cpu))
+                {
+                    if (group is { Shared: true, Processes.Count: 1 } && process == group.Host) continue;
+                    Add($"process:{process.ProcessId}:{process.CreationTicks}", group, process, null, true, false);
+                }
             }
         }
         finally
@@ -773,6 +746,49 @@ public partial class ServicesView
             menu.Items.Add(entry);
         }
     }
+
+    private void PublishRows(List<ServiceDisplayRow> desired, Dictionary<string, ServiceDisplayRow> old,
+        IReadOnlyList<ServiceGroup> groups)
+    {
+        // Move rows into place rather than reset the list: a reset re-creates every visible row's
+        // container and lays out its text again, and the CPU order changes most seconds.
+        for (var i = 0; i < desired.Count; i++)
+        {
+            if (i < _rows.Count && ReferenceEquals(_rows[i], desired[i])) continue;
+            var from = -1;
+            for (var j = i + 1; j < _rows.Count; j++)
+                if (ReferenceEquals(_rows[j], desired[i]))
+                {
+                    from = j;
+                    break;
+                }
+
+            if (from >= 0) _rows.Move(from, i);
+            else _rows.Insert(i, desired[i]);
+        }
+
+        while (_rows.Count > desired.Count) _rows.RemoveAt(_rows.Count - 1);
+        // Keep the header rows of groups still observed, so a group re-entering the top rows keeps its row and
+        // graph. Child rows are not kept: a worker that exited would otherwise be kept while its host runs.
+        _spareRows.Clear();
+        var shown = desired.ToHashSet();
+        foreach (var (key, row) in old)
+            if (!shown.Contains(row) && key == row.Group.Key && _frame?.Index.IndexOf(key) >= 0)
+                _spareRows[key] = row;
+        RefreshActionSelection(groups);
+        Rows.SelectedItem = _actionRow is null ? null : _rows.FirstOrDefault(r => r.Key == _actionRow.Key);
+    }
+
+    private void RefreshStatus()
+    {
+        Notice.Text = _error ?? (_busy ? Strings.ServiceActionInProgress :
+            _frame is null ? _historical ? Strings.ServiceHistoryExpired : Strings.ServicesCollecting :
+            !_frame.Available ? Strings.ServicesUnavailable :
+            _rows.Count == 0 ? PinnedOnly ? Strings.NoPinnedServicesMatch : Strings.NoServicesMatch : string.Empty);
+        Notice.Visibility = Notice.Text.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
+        PinSummary.Text = _pins.Count == 0 ? "" : Strings.Format(Strings.PinnedServiceCount, _pins.Count);
+        PinSummary.Visibility = _pins.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+    }
 }
 
 internal sealed class ServiceDisplayRow(string key) : INotifyPropertyChanged
@@ -847,13 +863,7 @@ internal sealed class ServiceDisplayRow(string key) : INotifyPropertyChanged
             ? Strings.Format(Strings.SharedServiceHost, group.Host?.Name ?? "", group.Services[0].ProcessId)
             : (service ?? group.Services[0]).DisplayName);
         ExpandLabel = Strings.Format(Strings.ExpandService, Name);
-        Detail = process is not null ? Strings.Format(Strings.ServiceProcessPid, process.ProcessId) :
-            header ? group.Shared
-                ? Strings.Format(Strings.SharedServiceCount, group.Services.Count)
-                : group.Services[0].Name + " · " +
-                  (workers && group.Processes.Count > 1
-                      ? Strings.Format(Strings.ServiceHostWorkers, group.Processes.Count - 1)
-                      : Strings.ServiceDedicatedHost) : service!.Name + " · " + Strings.IncludedInHostTotal;
+        Detail = DetailText(group, process, service, header, workers);
         Status = process is not null ? "" :
             header && group.Shared ? "" : StateText((service ?? group.Services[0]).State);
         IsRunning = Status.Length > 0 && (service ?? group.Services[0]).State == 4;
@@ -865,27 +875,8 @@ internal sealed class ServiceDisplayRow(string key) : INotifyPropertyChanged
             : group.Host is not null || group.Shared
                 ? Visibility.Visible
                 : Visibility.Hidden;
-        Cpu = metrics.Cpu is { } cpu ? Strings.Format(Strings.PercentOneDecimal, cpu) : Strings.MissingReading;
-        Memory = metrics.PrivateBytes is { } memory
-            ? TableMetricText.Memory(memory)
-            : Strings.MissingReading;
-        Io = metrics.Io is { } io
-            ? TableMetricText.IoRate(io)
-            : Strings.MissingReading;
-        // Metric ticks must not refresh unchanged pin, identity and expansion bindings.
-        if (Name != shown.Name) Changed(nameof(Name));
-        if (Name != shown.Name || wasShared != group.Shared) RefreshPinLabels();
-        if (Detail != shown.Detail) Changed(nameof(Detail));
-        if (Status != shown.Status) Changed(nameof(Status));
-        if (IsRunning != shown.IsRunning) Changed(nameof(IsRunning));
-        if (Cpu != shown.Cpu) Changed(nameof(Cpu));
-        if (Memory != shown.Memory) Changed(nameof(Memory));
-        if (Io != shown.Io) Changed(nameof(Io));
-        if (Icon != shown.Icon) Changed(nameof(Icon));
-        if (ExpandGlyph != shown.ExpandGlyph) Changed(nameof(ExpandGlyph));
-        if (ExpandLabel != shown.ExpandLabel) Changed(nameof(ExpandLabel));
-        if (ExpandVisibility != shown.ExpandVisibility) Changed(nameof(ExpandVisibility));
-        if (Indent != shown.Indent) Changed(nameof(Indent));
+        UpdateMetrics(metrics);
+        NotifyChanges(group, wasShared, shown);
     }
 
     // The graph keeps this array only to draw it, and the row replaces its data before the next redraw.
@@ -913,5 +904,48 @@ internal sealed class ServiceDisplayRow(string key) : INotifyPropertyChanged
             5 => Strings.ServiceContinuing, 6 => Strings.ServicePausing, 7 => Strings.ServicePaused,
             _ => Strings.Unavailable
         };
+    }
+
+    private static string DetailText(ServiceGroup group, ProcessUsage? process, ServiceObservation? service,
+        bool header, bool workers)
+    {
+        return process is not null ? Strings.Format(Strings.ServiceProcessPid, process.ProcessId) :
+            header ? group.Shared
+                ? Strings.Format(Strings.SharedServiceCount, group.Services.Count)
+                : group.Services[0].Name + " · " +
+                  (workers && group.Processes.Count > 1
+                      ? Strings.Format(Strings.ServiceHostWorkers, group.Processes.Count - 1)
+                      : Strings.ServiceDedicatedHost) : service!.Name + " · " + Strings.IncludedInHostTotal;
+    }
+
+    private void UpdateMetrics(ServiceMetrics metrics)
+    {
+        Cpu = metrics.Cpu is { } cpu ? Strings.Format(Strings.PercentOneDecimal, cpu) : Strings.MissingReading;
+        Memory = metrics.PrivateBytes is { } memory
+            ? TableMetricText.Memory(memory)
+            : Strings.MissingReading;
+        Io = metrics.Io is { } io
+            ? TableMetricText.IoRate(io)
+            : Strings.MissingReading;
+    }
+
+    private void NotifyChanges(ServiceGroup group, bool? wasShared,
+        (string Name, string Detail, string Status, bool IsRunning, string Cpu, string Memory, string Io,
+            string Icon, string ExpandGlyph, string ExpandLabel, Visibility ExpandVisibility, Thickness Indent) shown)
+    {
+        // Metric ticks must not refresh unchanged pin, identity and expansion bindings.
+        if (Name != shown.Name) Changed(nameof(Name));
+        if (Name != shown.Name || wasShared != group.Shared) RefreshPinLabels();
+        if (Detail != shown.Detail) Changed(nameof(Detail));
+        if (Status != shown.Status) Changed(nameof(Status));
+        if (IsRunning != shown.IsRunning) Changed(nameof(IsRunning));
+        if (Cpu != shown.Cpu) Changed(nameof(Cpu));
+        if (Memory != shown.Memory) Changed(nameof(Memory));
+        if (Io != shown.Io) Changed(nameof(Io));
+        if (Icon != shown.Icon) Changed(nameof(Icon));
+        if (ExpandGlyph != shown.ExpandGlyph) Changed(nameof(ExpandGlyph));
+        if (ExpandLabel != shown.ExpandLabel) Changed(nameof(ExpandLabel));
+        if (ExpandVisibility != shown.ExpandVisibility) Changed(nameof(ExpandVisibility));
+        if (Indent != shown.Indent) Changed(nameof(Indent));
     }
 }

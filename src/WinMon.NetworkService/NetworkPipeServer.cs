@@ -236,23 +236,7 @@ internal sealed class NetworkPipeServer(
                         break;
                     case "snapshot" when lease is not null:
                         stage = PipeStage.Snapshot;
-                        var now = Stopwatch.GetTimestamp();
-                        if (lastSnapshot != 0 && Stopwatch.GetElapsedTime(lastSnapshot, now) < TimeSpan.FromSeconds(1))
-                        {
-                            Trace.TraceWarning("Network.PipeSnapshotRateExceeded intervalMs={0}",
-                                Stopwatch.GetElapsedTime(lastSnapshot, now).TotalMilliseconds);
-                            throw new InvalidDataException("Snapshot request rate exceeded.");
-                        }
-
-                        lastSnapshot = now;
-                        var current = snapshot(sid);
-                        if (generation != current.Generation)
-                        {
-                            generation = current.Generation;
-                            sequence = 0;
-                        }
-
-                        current = FitSnapshot(current with { SubscriptionId = subscriptionId, Sequence = checked(++sequence) });
+                        var current = PrepareSnapshot(sid, subscriptionId, ref lastSnapshot, ref generation, ref sequence);
                         stage = PipeStage.Write;
                         await NetworkServiceProtocol.WriteAsync(pipe,
                                 new NetworkServiceResponse(NetworkServiceProtocol.Version, "ok", current),
@@ -288,6 +272,28 @@ internal sealed class NetworkPipeServer(
         {
             if (lease is not null) await lease.DisposeAsync().ConfigureAwait(false);
         }
+    }
+
+    private ProcessNetworkSnapshot PrepareSnapshot(string sid, Guid subscriptionId, ref long lastSnapshot,
+        ref Guid generation, ref long sequence)
+    {
+        var now = Stopwatch.GetTimestamp();
+        if (lastSnapshot != 0 && Stopwatch.GetElapsedTime(lastSnapshot, now) < TimeSpan.FromSeconds(1))
+        {
+            Trace.TraceWarning("Network.PipeSnapshotRateExceeded intervalMs={0}",
+                Stopwatch.GetElapsedTime(lastSnapshot, now).TotalMilliseconds);
+            throw new InvalidDataException("Snapshot request rate exceeded.");
+        }
+
+        lastSnapshot = now;
+        var current = snapshot(sid);
+        if (generation != current.Generation)
+        {
+            generation = current.Generation;
+            sequence = 0;
+        }
+
+        return FitSnapshot(current with { SubscriptionId = subscriptionId, Sequence = checked(++sequence) });
     }
 
     internal static ProcessNetworkSnapshot FitSnapshot(ProcessNetworkSnapshot snapshot)

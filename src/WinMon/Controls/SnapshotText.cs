@@ -32,21 +32,21 @@ internal static class SnapshotText
         text.AppendLine(Strings.Format(Strings.ProductVersion, AppInfo.Version));
         text.AppendLine(Strings.Format(Strings.ExportSnapshotTime, sample.Timestamp));
         text.AppendLine(Strings.SnapshotExportIntervals);
-        Row(Strings.CPU, Percent(sample.TotalCpuPercent));
-        Row(Strings.Memory, r is { UsedMemoryBytes: { } used, TotalMemoryBytes: { } total }
+        AppendRow(text, Strings.CPU, Percent(sample.TotalCpuPercent));
+        AppendRow(text, Strings.Memory, r is { UsedMemoryBytes: { } used, TotalMemoryBytes: { } total }
             ? $"{Strings.Format(Strings.GiB, used / 1_073_741_824d, total / 1_073_741_824d)} ({Percent(r.MemoryPercent)})"
             : Percent(r.MemoryPercent));
-        Row(Strings.DetailSystemCache, Bytes(r.CachedBytes));
-        Row(Strings.DetailPagingReads, PerSecond(r.PagingReadsPerSecond));
-        Row(Strings.DetailStandby, Bytes(r.StandbyBytes));
-        Row(Strings.DetailModified, Bytes(r.ModifiedBytes));
-        Row(Strings.DetailFree, Bytes(r.FreeBytes));
-        Row(Strings.DetailCompressionStore, Bytes(r.CompressionStoreBytes));
-        Row(Strings.GPU, Percent(r.GpuPercent));
-        Disk(r.DiskName, r.DiskActivePercent, r.DiskBytesPerSecond);
+        AppendRow(text, Strings.DetailSystemCache, Bytes(r.CachedBytes));
+        AppendRow(text, Strings.DetailPagingReads, PerSecond(r.PagingReadsPerSecond));
+        AppendRow(text, Strings.DetailStandby, Bytes(r.StandbyBytes));
+        AppendRow(text, Strings.DetailModified, Bytes(r.ModifiedBytes));
+        AppendRow(text, Strings.DetailFree, Bytes(r.FreeBytes));
+        AppendRow(text, Strings.DetailCompressionStore, Bytes(r.CompressionStoreBytes));
+        AppendRow(text, Strings.GPU, Percent(r.GpuPercent));
+        AppendDisk(text, r.DiskName, r.DiskActivePercent, r.DiskBytesPerSecond);
         if (r.SecondaryDiskName.Length > 0)
-            Disk(r.SecondaryDiskName, r.SecondaryDiskActivePercent, r.SecondaryDiskBytesPerSecond);
-        Row(Strings.Network,
+            AppendDisk(text, r.SecondaryDiskName, r.SecondaryDiskActivePercent, r.SecondaryDiskBytesPerSecond);
+        AppendRow(text, Strings.Network,
             $"{Clean(r.NetworkName)} · ↓ {Rate(r.ReceiveBytesPerSecond)} · ↑ {Rate(r.SendBytesPerSecond)}");
 
         text.AppendLine();
@@ -58,55 +58,11 @@ internal static class SnapshotText
             report.Processes.Count));
         if (report.TriggerIncludedOutsideTop) text.AppendLine(Strings.CaptureReportExtraTrigger);
         if (report.Grouped) text.AppendLine(Strings.IdleGroupMembersMayBeOmitted);
-        if (report.Filter.Length > 0) Row(Strings.SearchNameOrPID, report.Filter);
+        if (report.Filter.Length > 0) AppendRow(text, Strings.SearchNameOrPID, report.Filter);
         if (report.AppsOnly) text.AppendLine(Strings.ProcessKindApp);
         if (report.Coverage.Length > 0) text.AppendLine(report.Coverage);
-        Row(Strings.ProcessColumn, "PID", $"{Strings.CPU} (%)", $"{Strings.GPU} (%)",
-            $"{(report.Grouped ? Strings.Private : Strings.Memory)} (MiB)", Strings.IOMBS, Strings.Threads,
-            Strings.Handles, Strings.ProcessPathLabel);
-        for (var index = 0; index < report.Processes.Count; index++)
-        {
-            var p = report.Processes[index];
-            var state = report.ProcessStates is { } states && index < states.Count ? states[index] : "";
-            var name = !string.IsNullOrWhiteSpace(p.AppName) ? p.AppName :
-                !string.IsNullOrWhiteSpace(p.ProductName) ? p.ProductName : p.Name;
-            if (p.MemberCount > 1) name += $" ×{p.MemberCount}";
-            if (state.Length > 0)
-            {
-                Row($"{name} · {state}", p.ProcessId.ToString(CultureInfo.CurrentCulture),
-                    Strings.MissingReading, Strings.MissingReading, Strings.MissingReading, Strings.MissingReading,
-                    Strings.MissingReading, Strings.MissingReading,
-                    p.ImagePath.Length > 0 ? p.ImagePath : Strings.ExecutablePathUnavailable);
-                continue;
-            }
-
-            Row(name,
-                p.MemberIds.Count > 0
-                    ? string.Join(", ", p.MemberIds)
-                    : p.ProcessId.ToString(CultureInfo.CurrentCulture),
-                Number(p.CpuPercent), Number(p.GpuPercent),
-                Number((report.Grouped ? p.PrivateBytes : p.WorkingSetBytes) / 1_048_576d),
-                Number(p.IoBytesPerSecond / 1_000_000d, "0.00"), Count(p.ThreadCount), Count(p.HandleCount),
-                p.ImagePath.Length > 0 ? p.ImagePath : Strings.ExecutablePathUnavailable);
-        }
-
-        if (report.Remainder is { } rest)
-            Row(Strings.Format(report.Grouped ? Strings.OtherExecutables : Strings.OtherProcesses, rest.Count), "",
-                Number(rest.CpuPercent), Strings.MissingReading, Strings.MissingReading,
-                Number(rest.IoBytesPerSecond / 1_000_000d, "0.00"), Strings.MissingReading, Strings.MissingReading,
-                Strings.MissingReading);
+        AppendProcessTable(text, report);
         return text.ToString().TrimEnd();
-
-        void Row(params string[] cells)
-        {
-            text.AppendLine(string.Join('\t', cells.Select(Clean)));
-        }
-
-        void Disk(string name, double? active, double? bytes)
-        {
-            Row(name.Length == 0 ? Strings.Disk : Strings.Format(Strings.DiskLabel, name),
-                $"{Percent(active)} · {(bytes is { } b ? Strings.Format(Strings.MBS, b / 1_000_000d) : Strings.MissingReading)}");
-        }
     }
 
     private static string Number(double? value, string format = "0.0")
@@ -142,5 +98,54 @@ internal static class SnapshotText
     private static string Clean(string value)
     {
         return value.Replace('\t', ' ').Replace('\r', ' ').Replace('\n', ' ');
+    }
+
+    private static void AppendProcessTable(StringBuilder text, SnapshotReport report)
+    {
+        AppendRow(text, Strings.ProcessColumn, "PID", $"{Strings.CPU} (%)", $"{Strings.GPU} (%)",
+            $"{(report.Grouped ? Strings.Private : Strings.Memory)} (MiB)", Strings.IOMBS, Strings.Threads,
+            Strings.Handles, Strings.ProcessPathLabel);
+        for (var index = 0; index < report.Processes.Count; index++)
+        {
+            var p = report.Processes[index];
+            var state = report.ProcessStates is { } states && index < states.Count ? states[index] : "";
+            var name = !string.IsNullOrWhiteSpace(p.AppName) ? p.AppName :
+                !string.IsNullOrWhiteSpace(p.ProductName) ? p.ProductName : p.Name;
+            if (p.MemberCount > 1) name += $" ×{p.MemberCount}";
+            if (state.Length > 0)
+            {
+                AppendRow(text, $"{name} · {state}", p.ProcessId.ToString(CultureInfo.CurrentCulture),
+                    Strings.MissingReading, Strings.MissingReading, Strings.MissingReading, Strings.MissingReading,
+                    Strings.MissingReading, Strings.MissingReading,
+                    p.ImagePath.Length > 0 ? p.ImagePath : Strings.ExecutablePathUnavailable);
+                continue;
+            }
+
+            AppendRow(text, name,
+                p.MemberIds.Count > 0
+                    ? string.Join(", ", p.MemberIds)
+                    : p.ProcessId.ToString(CultureInfo.CurrentCulture),
+                Number(p.CpuPercent), Number(p.GpuPercent),
+                Number((report.Grouped ? p.PrivateBytes : p.WorkingSetBytes) / 1_048_576d),
+                Number(p.IoBytesPerSecond / 1_000_000d, "0.00"), Count(p.ThreadCount), Count(p.HandleCount),
+                p.ImagePath.Length > 0 ? p.ImagePath : Strings.ExecutablePathUnavailable);
+        }
+
+        if (report.Remainder is { } rest)
+            AppendRow(text, Strings.Format(report.Grouped ? Strings.OtherExecutables : Strings.OtherProcesses, rest.Count), "",
+                Number(rest.CpuPercent), Strings.MissingReading, Strings.MissingReading,
+                Number(rest.IoBytesPerSecond / 1_000_000d, "0.00"), Strings.MissingReading, Strings.MissingReading,
+                Strings.MissingReading);
+    }
+
+    private static void AppendRow(StringBuilder text, params string[] cells)
+    {
+        text.AppendLine(string.Join('\t', cells.Select(Clean)));
+    }
+
+    private static void AppendDisk(StringBuilder text, string name, double? active, double? bytes)
+    {
+        AppendRow(text, name.Length == 0 ? Strings.Disk : Strings.Format(Strings.DiskLabel, name),
+            $"{Percent(active)} · {(bytes is { } b ? Strings.Format(Strings.MBS, b / 1_000_000d) : Strings.MissingReading)}");
     }
 }

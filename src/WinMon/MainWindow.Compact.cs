@@ -26,7 +26,7 @@ public partial class MainWindow
         {
             var column = CompactStrip.ColumnDefinitions.Count;
             CompactStrip.ColumnDefinitions.Add(new ColumnDefinition());
-            var readout = new MetricReadout { ShowSeriesToggle = false, Margin = new Thickness(10, 4, 8, 4) };
+            var readout = new MetricReadout { ShowSeriesToggle = false, Margin = new Thickness(9, 4, 9, 4) };
             readout.AccentKey = accent;
             readout.ScaleLabel.ToolTip = source.ToolTip;
             var box = new Border
