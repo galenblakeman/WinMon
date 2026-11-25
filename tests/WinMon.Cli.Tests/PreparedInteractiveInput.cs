@@ -1,7 +1,8 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using WinMon.Monitoring;
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 
 namespace WinMon.Cli.Tests;
 

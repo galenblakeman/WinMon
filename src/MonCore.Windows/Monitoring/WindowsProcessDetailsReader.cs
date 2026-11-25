@@ -1,11 +1,11 @@
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using Microsoft.Win32.SafeHandles;
+using MonCore.Monitoring;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Windows.Monitoring;
 
 /// <summary>Reads sensitive process details only on an explicit user request.</summary>
 public static class WindowsProcessDetailsReader
@@ -43,7 +43,7 @@ public static class WindowsProcessDetailsReader
     private static string? ReadCommandLine(SafeProcessHandle process)
     {
         _ = NtQueryInformationProcess(process, ProcessCommandLineInformation, IntPtr.Zero, 0, out var bytes);
-        if (bytes <= 0 || bytes > 1024 * 1024) return null;
+        if (bytes is <= 0 or > 1024 * 1024) return null;
         var buffer = Marshal.AllocHGlobal(bytes);
         try
         {
@@ -77,12 +77,12 @@ public static class WindowsProcessDetailsReader
                     if (GetTokenInformation(token, TokenUser, buffer, size, out _))
                     {
                         var sid = Marshal.ReadIntPtr(buffer);
-                        var nameLength = 0; var domainLength = 0; var use = 0;
-                        _ = LookupAccountSidW(null, sid, null, ref nameLength, null, ref domainLength, out use);
+                        var nameLength = 0; var domainLength = 0;
+                        _ = LookupAccountSidW(null, sid, null, ref nameLength, null, ref domainLength, out _);
                         if (nameLength > 0)
                         {
                             var name = new StringBuilder(nameLength); var domain = new StringBuilder(domainLength);
-                            if (LookupAccountSidW(null, sid, name, ref nameLength, domain, ref domainLength, out use))
+                            if (LookupAccountSidW(null, sid, name, ref nameLength, domain, ref domainLength, out _))
                                 account = domain.Length == 0 ? name.ToString() : domain + "\\" + name;
                         }
                     }

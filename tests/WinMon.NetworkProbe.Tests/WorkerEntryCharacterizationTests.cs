@@ -1,9 +1,8 @@
 using System.Globalization;
 using System.Text.Json;
 using NUnit.Framework;
-using WinMon.NetworkProbe;
 
-namespace WinMon.Tests;
+namespace WinMon.NetworkProbe.Tests;
 
 [TestFixture, NonParallelizable, Category("Integration")]
 public sealed class WorkerEntryCharacterizationTests

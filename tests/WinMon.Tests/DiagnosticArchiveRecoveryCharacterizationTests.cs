@@ -1,9 +1,9 @@
 using System.Reflection;
 using System.Text;
 using System.Windows;
+using MonCore.Monitoring;
 using NUnit.Framework;
 using WinMon.Diagnostics;
-using WinMon.Monitoring;
 using WinMon.Preferences;
 
 namespace WinMon.Tests;

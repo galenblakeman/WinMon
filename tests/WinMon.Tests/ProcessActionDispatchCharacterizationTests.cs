@@ -4,6 +4,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 using NUnit.Framework;
 using WinMon.Controls;
 using WinMon.Monitoring;

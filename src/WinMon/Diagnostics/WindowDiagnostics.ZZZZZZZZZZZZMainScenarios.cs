@@ -1,29 +1,12 @@
 using System.Diagnostics;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.Runtime.InteropServices;
-using System.Text.Json;
 using System.Windows;
 using System.Windows.Automation;
-using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using System.Windows.Forms;
-using System.Windows.Input;
-using System.Windows.Interop;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-using WinMon.Controls;
-using WinMon.Monitoring;
+using MonCore.Monitoring;
 using WinMon.Preferences;
-using Button = System.Windows.Controls.Button;
 using ButtonBase = System.Windows.Controls.Primitives.ButtonBase;
-using CheckBox = System.Windows.Controls.CheckBox;
-using MenuItem = System.Windows.Controls.MenuItem;
-using Point = System.Windows.Point;
 using RadioButton = System.Windows.Controls.RadioButton;
-using Size = System.Windows.Size;
-using ToolTip = System.Windows.Controls.ToolTip;
 
 // ReSharper disable StringLiteralTypo
 

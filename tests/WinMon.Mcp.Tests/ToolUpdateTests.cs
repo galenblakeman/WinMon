@@ -1,5 +1,5 @@
-using NUnit.Framework;
 using WinMon.Updates;
+using NUnit.Framework;
 
 namespace WinMon.Mcp.Tests;
 

@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json;
 using System.Windows.Controls;
+using MonCore.Monitoring;
 using Path = System.Windows.Shapes.Path;
 using WinMon.Controls;
 using WinMon.Monitoring;

@@ -1,12 +1,6 @@
-using System.Diagnostics;
 using System.Text.Json;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
-using System.Windows.Documents;
 using System.Windows.Interop;
-using WinMon.Controls;
-using WinMon.Monitoring;
 using WinMon.Preferences;
 
 namespace WinMon.Diagnostics;

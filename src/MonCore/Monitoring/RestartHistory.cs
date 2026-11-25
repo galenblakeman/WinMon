@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>The monotonic clocks a restart file is stamped and checked with; injectable for tests.</summary>
 /// <param name="Timestamp">Stopwatch ticks, which keep counting across process restarts on the same boot.</param>
@@ -275,39 +275,37 @@ public static class RestartHistory
     {
         version = 0;
         savedTimestamp = headerLength = 0;
-        using (var reader = new BinaryReader(stream, Encoding.UTF8, true))
+        using var reader = new BinaryReader(stream, Encoding.UTF8, true);
+        if (!reader.ReadBytes(HeaderMagic.Length).AsSpan().SequenceEqual(HeaderMagic)) return false;
+        version = reader.ReadInt32();
+        if (version is < 1 or > FormatVersion)
         {
-            if (!reader.ReadBytes(HeaderMagic.Length).AsSpan().SequenceEqual(HeaderMagic)) return false;
-            version = reader.ReadInt32();
-            if (version is < 1 or > FormatVersion)
-            {
-                Reject("an unknown format version");
-                return false;
-            }
-            _ = reader.ReadString();
-            if (reader.ReadString() != token)
-            {
-                Reject("another update's token");
-                return false;
-            }
-            var frequency = reader.ReadInt64();
-            savedTimestamp = reader.ReadInt64();
-            var savedTickCount = reader.ReadInt64();
-            if (frequency != clock.Frequency)
-            {
-                Reject("a different timer frequency");
-                return false;
-            }
-            var timerSeconds = (clock.Timestamp() - savedTimestamp) / (double)frequency;
-            var tickSeconds = (clock.TickCount() - savedTickCount) / 1000d;
-            if (validateRestart && (timerSeconds is < 0 or > MaxAgeSeconds || tickSeconds is < 0 or > MaxAgeSeconds ||
-                                    Math.Abs(timerSeconds - tickSeconds) > ClockToleranceSeconds))
-            {
-                Reject("monotonic clocks that do not match a recent restart");
-                return false;
-            }
-            headerLength = stream.Position;
+            Reject("an unknown format version");
+            return false;
         }
+        _ = reader.ReadString();
+        if (reader.ReadString() != token)
+        {
+            Reject("another update's token");
+            return false;
+        }
+        var frequency = reader.ReadInt64();
+        savedTimestamp = reader.ReadInt64();
+        var savedTickCount = reader.ReadInt64();
+        if (frequency != clock.Frequency)
+        {
+            Reject("a different timer frequency");
+            return false;
+        }
+        var timerSeconds = (clock.Timestamp() - savedTimestamp) / (double)frequency;
+        var tickSeconds = (clock.TickCount() - savedTickCount) / 1000d;
+        if (validateRestart && (timerSeconds is < 0 or > MaxAgeSeconds || tickSeconds is < 0 or > MaxAgeSeconds ||
+                                Math.Abs(timerSeconds - tickSeconds) > ClockToleranceSeconds))
+        {
+            Reject("monotonic clocks that do not match a recent restart");
+            return false;
+        }
+        headerLength = stream.Position;
         return true;
     }
 

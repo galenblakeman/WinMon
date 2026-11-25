@@ -1,9 +1,8 @@
 using System.Net.Sockets;
 using System.Text.Json;
 using NUnit.Framework;
-using WinMon.NetworkProbe;
 
-namespace WinMon.Tests;
+namespace WinMon.NetworkProbe.Tests;
 
 [TestFixture]
 [NonParallelizable]
@@ -44,8 +43,8 @@ public sealed class SocketWorkloadTests
             }
 
             var minimum = result.Scenario.EndsWith("existing", StringComparison.Ordinal) ||
-                          result.Scenario.StartsWith("tcp", StringComparison.Ordinal) &&
-                          result.Scenario.EndsWith("load", StringComparison.Ordinal)
+                          (result.Scenario.StartsWith("tcp", StringComparison.Ordinal) &&
+                           result.Scenario.EndsWith("load", StringComparison.Ordinal))
                 ? 16 * 1024 * 1024
                 : result.Scenario.EndsWith("short", StringComparison.Ordinal) ? 32 * 4096 : 1024 * 1024;
             Assert.Multiple(() =>

@@ -1,4 +1,5 @@
 using System.Globalization;
+using MonCore.Windows.Monitoring;
 using NUnit.Framework;
 using WinMon.Monitoring;
 using WinMon.Resources;

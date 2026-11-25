@@ -121,7 +121,7 @@ public sealed partial class MainWindowWorkflowCharacterizationTests
         var dictionary = new XElement(presentation + "ResourceDictionary",
             new XAttribute(XNamespace.Xmlns + "x", xaml.NamespaceName),
             new XAttribute(XNamespace.Xmlns + "controls", "clr-namespace:WinMon.Controls;assembly=WinMon"),
-            styles.Where(style => ((string?)style.Attribute(xaml + "Key")) is "ActionBarButton" or "ActionBarLastButton" ||
+            styles.Where(style => (string?)style.Attribute(xaml + "Key") is "ActionBarButton" or "ActionBarLastButton" ||
                                   (style.Attribute(xaml + "Key") is null && (string?)style.Attribute("TargetType") == "Button"))
                 .Select(style => new XElement(style)));
         var resources = (ResourceDictionary)XamlReader.Parse(dictionary.ToString());

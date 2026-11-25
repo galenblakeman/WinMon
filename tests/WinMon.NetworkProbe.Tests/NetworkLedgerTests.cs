@@ -1,7 +1,6 @@
 using NUnit.Framework;
-using WinMon.NetworkProbe;
 
-namespace WinMon.Tests;
+namespace WinMon.NetworkProbe.Tests;
 
 [TestFixture]
 public sealed class NetworkLedgerTests

@@ -1,4 +1,4 @@
-using WinMon.Monitoring;
+using MonCore.Monitoring;
 
 namespace WinMon.NetworkService;
 

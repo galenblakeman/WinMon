@@ -2,7 +2,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
-using WinMon.Monitoring;
+using MonCore.Monitoring;
 
 namespace WinMon.Mcp;
 

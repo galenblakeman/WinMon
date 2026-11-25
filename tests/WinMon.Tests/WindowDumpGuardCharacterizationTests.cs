@@ -2,9 +2,9 @@ using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
+using MonCore.Monitoring;
 using NUnit.Framework;
 using WinMon.Controls;
-using WinMon.Monitoring;
 using WinMon.Resources;
 
 namespace WinMon.Tests;
@@ -175,7 +175,7 @@ public sealed partial class MainWindowWorkflowCharacterizationTests
         internal CheckBox Full { get; }
         internal TextBlock Status { get; }
         internal bool Writing => (bool)WritingField.GetValue(Window)!;
-        internal OwnedDumpDialog(System.Windows.Window owner, Func<bool> canDump)
+        internal OwnedDumpDialog(Window owner, Func<bool> canDump)
         {
             Window = new ProcessDumpDialog(new ProcessUsage(42, 100, "owned dump target", 0), canDump);
             Assert.That(Window.Dispatcher, Is.SameAs(owner.Dispatcher));

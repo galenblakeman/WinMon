@@ -4,9 +4,9 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using MonCore.Monitoring;
 using NUnit.Framework;
 using WinMon.Controls;
-using WinMon.Monitoring;
 using WinMon.Resources;
 
 namespace WinMon.Tests;

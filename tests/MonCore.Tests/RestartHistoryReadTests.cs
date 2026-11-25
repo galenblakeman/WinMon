@@ -3,10 +3,10 @@ using System.Diagnostics;
 using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
+using MonCore.Monitoring;
 using NUnit.Framework;
-using WinMon.Monitoring;
 
-namespace WinMon.Tests;
+namespace MonCore.Tests;
 
 [TestFixture, NonParallelizable]
 public sealed class RestartHistoryReadTests

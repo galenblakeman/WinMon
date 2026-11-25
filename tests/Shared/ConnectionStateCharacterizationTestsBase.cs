@@ -1,7 +1,6 @@
 using System.Globalization;
 using System.Net.NetworkInformation;
 using NUnit.Framework;
-using WinMon.Resources;
 
 namespace WinMon.Tests;
 
@@ -48,7 +47,7 @@ public abstract class ConnectionStateCharacterizationTestsBase
         try
         {
             CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(culture);
-            var expected = Strings.ResourceManager.GetString(resourceKey, CultureInfo.CurrentUICulture);
+            var expected = Resources.Strings.ResourceManager.GetString(resourceKey, CultureInfo.CurrentUICulture);
             Assert.That(expected, Is.Not.Null.And.Not.Empty, "The expected label must exist in the resources.");
             AssertState(state, expected!);
         }

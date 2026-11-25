@@ -2,8 +2,9 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
+using MonCore.Monitoring;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Windows.Monitoring;
 
 public static class WindowsProcessDumpWriter
 {

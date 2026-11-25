@@ -1,7 +1,8 @@
 using System.Text.RegularExpressions;
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 using NUnit.Framework;
 using WinMon.Controls;
-using WinMon.Monitoring;
 
 namespace WinMon.Tests;
 

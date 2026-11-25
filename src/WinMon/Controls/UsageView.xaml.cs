@@ -8,7 +8,8 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using WinMon.Monitoring;
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 using WinMon.Preferences;
 
 namespace WinMon.Controls;

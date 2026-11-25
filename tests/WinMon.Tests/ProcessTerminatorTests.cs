@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Diagnostics;
+using MonCore.Monitoring;
 using NUnit.Framework;
 using WinMon.Monitoring;
 
@@ -154,12 +155,11 @@ public sealed class ProcessTerminatorTests
         public long CreationTicks { get; init; } = 700;
         public bool HasExited { get; init; }
         public Exception? CriticalError { get; init; }
-        private readonly bool _critical;
 
         public bool IsCritical
         {
-            get => CriticalError is null ? _critical : throw CriticalError;
-            init => _critical = value;
+            get => CriticalError is null ? field : throw CriticalError;
+            init;
         }
 
         public bool Terminated { get; private set; }

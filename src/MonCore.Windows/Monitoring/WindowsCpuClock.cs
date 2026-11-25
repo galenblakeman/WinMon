@@ -2,7 +2,7 @@ using System.Runtime.InteropServices;
 
 // ReSharper disable StringLiteralTypo
 
-namespace WinMon.Monitoring;
+namespace MonCore.Windows.Monitoring;
 
 /// <summary>Windows-reported current clock, averaged across logical processors.</summary>
 public sealed class WindowsCpuClock

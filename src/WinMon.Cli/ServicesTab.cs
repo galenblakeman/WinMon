@@ -1,6 +1,5 @@
 using System.Globalization;
-using WinMon.Monitoring;
-using WinMon.Resources;
+using MonCore.Monitoring;
 
 namespace WinMon.Cli;
 

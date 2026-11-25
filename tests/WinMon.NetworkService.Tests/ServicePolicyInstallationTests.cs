@@ -1,8 +1,7 @@
 using System.Text.Json;
 using NUnit.Framework;
-using WinMon.NetworkService;
 
-namespace WinMon.Tests;
+namespace WinMon.NetworkService.Tests;
 
 [TestFixture]
 [Category("Integration")]

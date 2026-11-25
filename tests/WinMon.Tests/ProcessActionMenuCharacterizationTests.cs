@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
+using MonCore.Monitoring;
 using NUnit.Framework;
 using WinMon.Controls;
 using WinMon.Monitoring;

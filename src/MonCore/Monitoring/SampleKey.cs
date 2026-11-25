@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>Identifies one recorded sample, so a later lookup finds that exact sample and never a neighbour.</summary>
 /// <remarks>Compaction keeps both timestamps, so a full sample and its compacted copy share a key.</remarks>

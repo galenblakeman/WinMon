@@ -1,4 +1,4 @@
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>Carry lifetime CPU time for one process identity.</summary>
 /// <param name="ProcessId">The Windows process identifier.</param>

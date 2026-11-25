@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>Metrics retained as minute averages for the longer resource trend.</summary>
 public enum ResourceTrendMetric
@@ -382,8 +382,8 @@ public sealed class ResourceTrendArchive
         private static void SetBreak(ref MetricValue value, ResourceTrendBreak reason)
         {
             // A restart must not turn mixed-device or ambiguous-clock totals into a usable average.
-            if (reason == ResourceTrendBreak.ClockChanged || value.Break != ResourceTrendBreak.ClockChanged &&
-                (reason == ResourceTrendBreak.ResourceChanged || value.Break == ResourceTrendBreak.None)) value.Break = reason;
+            if (reason == ResourceTrendBreak.ClockChanged || (value.Break != ResourceTrendBreak.ClockChanged &&
+                                                              (reason == ResourceTrendBreak.ResourceChanged || value.Break == ResourceTrendBreak.None))) value.Break = reason;
         }
     }
 

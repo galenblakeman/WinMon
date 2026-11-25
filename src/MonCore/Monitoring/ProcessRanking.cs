@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>Column that orders the process list.</summary>
 public enum ProcessSort

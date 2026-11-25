@@ -1,4 +1,4 @@
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>Measurements and actions a collector implementation can provide. Individual readings may still be unavailable.</summary>
 [Flags]

@@ -1,5 +1,3 @@
-using WinMon.Resources;
-
 namespace WinMon.Controls;
 
 /// <summary>Formats supporting text shown below resource gauges.</summary>

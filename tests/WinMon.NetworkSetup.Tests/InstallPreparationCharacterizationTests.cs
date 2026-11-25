@@ -1,8 +1,8 @@
+using MonCore.Windows.Monitoring;
 using System.Diagnostics;
 using System.Reflection;
 using System.Security.Cryptography;
 using NUnit.Framework;
-using WinMon.Monitoring;
 
 namespace WinMon.NetworkSetup.Tests;
 

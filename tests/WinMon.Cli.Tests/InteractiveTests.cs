@@ -1,9 +1,7 @@
-using System.CommandLine;
 using System.Globalization;
+using MonCore.Monitoring;
 using NUnit.Framework;
 using Spectre.Console;
-using WinMon.Cli;
-using WinMon.Monitoring;
 
 namespace WinMon.Cli.Tests;
 

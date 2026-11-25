@@ -1,13 +1,14 @@
+using WinMon.Tests;
 using System.Net;
 using System.Net.NetworkInformation;
+using MonCore.Monitoring;
 using NUnit.Framework;
-using WinMon.Monitoring;
 using WinMon.Resources;
 
 namespace WinMon.Cli.Tests;
 
 [TestFixture]
-public sealed class ConnectionStateCharacterizationTests : WinMon.Tests.ConnectionStateCharacterizationTestsBase
+public sealed class ConnectionStateCharacterizationTests : ConnectionStateCharacterizationTestsBase
 {
     protected override void AssertState(TcpState? state, string expected)
     {

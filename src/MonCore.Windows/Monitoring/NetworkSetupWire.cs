@@ -3,7 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Windows.Monitoring;
 
 /// <summary>Bounded protocol used only by the elevated network-service setup helper.</summary>
 public static class NetworkSetupWire

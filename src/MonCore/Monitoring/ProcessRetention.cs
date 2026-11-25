@@ -1,4 +1,4 @@
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>Bound history memory by keeping only the process entries that ranking and sparklines can use.</summary>
 /// <remarks>

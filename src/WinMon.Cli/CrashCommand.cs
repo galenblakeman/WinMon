@@ -1,9 +1,9 @@
 using System.CommandLine;
 using System.Globalization;
 using System.Text.Json;
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 using Spectre.Console;
-using WinMon.Monitoring;
-using WinMon.Resources;
 
 namespace WinMon.Cli;
 

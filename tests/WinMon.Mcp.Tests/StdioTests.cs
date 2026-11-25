@@ -2,7 +2,7 @@ using System.Collections.Concurrent;
 using ModelContextProtocol.Client;
 using NUnit.Framework;
 
-namespace WinMon.Tests;
+namespace WinMon.Mcp.Tests;
 
 [TestFixture, Category("Integration")]
 public sealed class StdioTests
@@ -13,7 +13,7 @@ public sealed class StdioTests
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(25));
         var errors = new ConcurrentQueue<string>();
         var executable = Environment.GetEnvironmentVariable("WINMON_MCP_TEST_EXE");
-        var assembly = typeof(WinMon.Mcp.SamplingOwner).Assembly.Location;
+        var assembly = typeof(SamplingOwner).Assembly.Location;
         var transport = new StdioClientTransport(new StdioClientTransportOptions
         {
             Name = "WinMon test",

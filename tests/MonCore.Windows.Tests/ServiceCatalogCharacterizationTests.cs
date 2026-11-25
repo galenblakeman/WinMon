@@ -1,11 +1,12 @@
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Text;
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 using NUnit.Framework;
-using WinMon.Monitoring;
-using Native = WinMon.Monitoring.WindowsServices;
+using Native = MonCore.Windows.Monitoring.WindowsServices;
 
-namespace WinMon.Tests;
+namespace MonCore.Windows.Tests;
 
 [TestFixture]
 public sealed class ServiceCatalogCharacterizationTests
@@ -291,7 +292,7 @@ public sealed class ServiceCatalogCharacterizationTests
         MemoryMarshal.Write(buffer, in value);
     }
 
-    private sealed class Backend : Native.IServiceCatalogOperations
+    private sealed class Backend : WindowsServices.IServiceCatalogOperations
     {
         private readonly Queue<Page> _pages;
         public Backend(params Page[] pages)
@@ -338,7 +339,7 @@ public sealed class ServiceCatalogCharacterizationTests
             OnPage?.Invoke();
             return page.Success;
         }
-        private sealed class Manager(Backend backend) : Native.IServiceHandle
+        private sealed class Manager(Backend backend) : WindowsServices.IServiceHandle
         { public void Dispose() { backend.Disposals++; backend.Record("dispose"); } }
     }
 

@@ -4,8 +4,8 @@
 using System.Diagnostics;
 using System.Security.Principal;
 using System.ServiceProcess;
-using WinMon.Diagnostics;
-using WinMon.Monitoring;
+using MonCore.Windows.Diagnostics;
+using MonCore.Windows.Monitoring;
 
 namespace WinMon.NetworkService;
 

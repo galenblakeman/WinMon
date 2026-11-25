@@ -2,8 +2,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
+using MonCore.Monitoring;
 using NUnit.Framework;
-using WinMon.Monitoring;
 
 namespace WinMon.Tests;
 

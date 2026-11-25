@@ -4,12 +4,12 @@ using System.IO.Pipes;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 using Microsoft.Win32.SafeHandles;
+using MonCore.Monitoring;
+using MonCore.Windows.Diagnostics;
+using MonCore.Windows.Monitoring;
 using NUnit.Framework;
-using WinMon.Diagnostics;
-using WinMon.Monitoring;
-using WinMon.NetworkService;
 
-namespace WinMon.Tests;
+namespace WinMon.NetworkService.Tests;
 
 public sealed partial class NetworkPipeTests
 {

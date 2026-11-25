@@ -1,8 +1,8 @@
 using System.Diagnostics;
+using MonCore.Windows.Diagnostics;
 using NUnit.Framework;
-using WinMon.Diagnostics;
 
-namespace WinMon.Tests;
+namespace MonCore.Windows.Tests;
 
 [TestFixture]
 [Category("Integration")]

@@ -1,15 +1,9 @@
 using System.Windows;
-using System.Windows.Automation;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Interop;
 using NUnit.Framework;
-using WinMon.Controls;
-using WinMon.Monitoring;
-using WinMon.Resources;
 using System.Windows.Threading;
-using System.Windows.Media;
-using ShapePath = System.Windows.Shapes.Path;
+using MonCore.Monitoring;
 
 namespace WinMon.Tests;
 
@@ -20,7 +14,7 @@ public sealed partial class SessionEndCharacterizationTests
     private MainWindow _window = null!;
     private string? _temporaryFolder;
     private SynchronizationContext? _previousContext;
-    private WinMon.Preferences.PreferenceStore _store = null!;
+    private Preferences.PreferenceStore _store = null!;
 
     [SetUp]
     public void SetUp()
@@ -34,14 +28,14 @@ public sealed partial class SessionEndCharacterizationTests
             app.Resources["TitleBarButtonText"] = new DataTemplate();
         if (!app.Resources.Contains(typeof(Button)))
             app.Resources[typeof(Button)] = new Style(typeof(Button));
-        _temporaryFolder = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "WinMon.SessionEnd." + Guid.NewGuid().ToString("N"));
-        System.IO.Directory.CreateDirectory(_temporaryFolder);
-        _store = new WinMon.Preferences.PreferenceStore(System.IO.Path.Combine(_temporaryFolder, "settings.json"));
+        _temporaryFolder = Path.Combine(Path.GetTempPath(), "WinMon.SessionEnd." + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(_temporaryFolder);
+        _store = new Preferences.PreferenceStore(Path.Combine(_temporaryFolder, "settings.json"));
         _window = CreateWindow(false);
         _window.Loaded -= _window.OnLoaded;
         _window.ApplyTheme(false, false);
         _previousContext = SynchronizationContext.Current;
-        SynchronizationContext.SetSynchronizationContext(new System.Windows.Threading.DispatcherSynchronizationContext());
+        SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext());
 
     }
 
@@ -62,13 +56,13 @@ public sealed partial class SessionEndCharacterizationTests
         SynchronizationContext.SetSynchronizationContext(_previousContext);
         if (_temporaryFolder is not null)
         {
-            System.IO.Directory.Delete(_temporaryFolder, recursive: true);
+            Directory.Delete(_temporaryFolder, recursive: true);
             _temporaryFolder = null;
         }
     }
 
     private MainWindow CreateWindow(bool diagnostic) => new(diagnostic,
-        new WinMon.Preferences.MonitorPreferences { KeepHistoryAcrossRestarts = false, Width = 1000, Height = 840 }, _store);
+        new Preferences.MonitorPreferences { KeepHistoryAcrossRestarts = false, Width = 1000, Height = 840 }, _store);
 
     private static void CloseOwnedWindow(MainWindow window)
     {
@@ -79,7 +73,7 @@ public sealed partial class SessionEndCharacterizationTests
 
     private static void LoadWithoutSampling(MainWindow window)
     {
-        Assert.That(WinMon.Updates.UpdateRuntime.RestartHistory, Is.Null, "Tests must not read a process-wide restart handoff");
+        Assert.That(Updates.UpdateRuntime.RestartHistory, Is.Null, "Tests must not read a process-wide restart handoff");
         Assert.That(window.SamplingTask, Is.Null);
         window.StopForFixtureAsync().GetAwaiter().GetResult();
         var before = Application.Current.Windows.Cast<Window>().ToHashSet();
@@ -146,17 +140,17 @@ public sealed partial class SessionEndCharacterizationTests
         {
             if (guard != "NotLoaded") LoadWithoutSampling(window);
             if (guard == "Closing") window.IsClosing = true;
-            var paths = new[] { System.IO.Path.Combine(_temporaryFolder!, "settings.json"), _store.UsageArchivePath,
+            var paths = new[] { Path.Combine(_temporaryFolder!, "settings.json"), _store.UsageArchivePath,
                 _store.ResourceTrendArchivePath, _store.NormalHistoryPath };
-            foreach (var path in paths) System.IO.File.WriteAllText(path, "owned sentinel " + System.IO.Path.GetFileName(path));
-            var before = paths.ToDictionary(path => path, System.IO.File.ReadAllBytes);
+            foreach (var path in paths) File.WriteAllText(path, "owned sentinel " + Path.GetFileName(path));
+            var before = paths.ToDictionary(path => path, File.ReadAllBytes);
 
             window.SaveForSessionEnd();
 
             Assert.Multiple(() =>
             {
-                foreach (var entry in before) Assert.That(System.IO.File.ReadAllBytes(entry.Key), Is.EqualTo(entry.Value));
-                Assert.That(System.IO.Directory.GetFiles(_temporaryFolder!), Is.EquivalentTo(paths));
+                foreach (var entry in before) Assert.That(File.ReadAllBytes(entry.Key), Is.EqualTo(entry.Value));
+                Assert.That(Directory.GetFiles(_temporaryFolder!), Is.EquivalentTo(paths));
             });
         }
         finally { if (!ReferenceEquals(window, _window)) CloseOwnedWindow(window); }
@@ -214,9 +208,9 @@ public sealed partial class SessionEndCharacterizationTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(System.IO.File.Exists(System.IO.Path.Combine(_temporaryFolder!, "settings.json")), Is.True);
-            Assert.That(System.IO.File.Exists(_store.UsageArchivePath), Is.EqualTo(usage));
-            Assert.That(System.IO.File.Exists(_store.ResourceTrendArchivePath), Is.EqualTo(trends));
+            Assert.That(File.Exists(Path.Combine(_temporaryFolder!, "settings.json")), Is.True);
+            Assert.That(File.Exists(_store.UsageArchivePath), Is.EqualTo(usage));
+            Assert.That(File.Exists(_store.ResourceTrendArchivePath), Is.EqualTo(trends));
         });
         if (usage)
         {
@@ -243,8 +237,8 @@ public sealed partial class SessionEndCharacterizationTests
 
         _window.SaveForSessionEnd();
 
-        Assert.That(System.IO.File.Exists(_store.UsageArchivePath), Is.False);
-        Assert.That(System.IO.File.Exists(System.IO.Path.Combine(_temporaryFolder!, "settings.json")), Is.True);
+        Assert.That(File.Exists(_store.UsageArchivePath), Is.False);
+        Assert.That(File.Exists(Path.Combine(_temporaryFolder!, "settings.json")), Is.True);
     }
 
     [TestCase(false)]
@@ -255,7 +249,7 @@ public sealed partial class SessionEndCharacterizationTests
         _window.Preferences = _window.Preferences with { KeepHistoryAcrossRestarts = keep };
         var sample = CurrentSample();
         _window.Session.Record(sample);
-        if (!keep) System.IO.File.WriteAllText(_store.NormalHistoryPath, "owned existing history");
+        if (!keep) File.WriteAllText(_store.NormalHistoryPath, "owned existing history");
 
         _window.SaveForSessionEnd();
 
@@ -266,7 +260,7 @@ public sealed partial class SessionEndCharacterizationTests
             Assert.That(restored!.Value.Samples.Single().TotalCpuPercent, Is.EqualTo(42));
             Assert.That(restored.Value.Samples.Single().Timestamp, Is.EqualTo(sample.Timestamp));
         }
-        else Assert.That(System.IO.File.ReadAllText(_store.NormalHistoryPath), Is.EqualTo("owned existing history"));
+        else Assert.That(File.ReadAllText(_store.NormalHistoryPath), Is.EqualTo("owned existing history"));
     }
 
     [Test]
@@ -275,14 +269,14 @@ public sealed partial class SessionEndCharacterizationTests
         LoadWithoutSampling(_window);
         _window.Preferences = _window.Preferences with { KeepHistoryAcrossRestarts = true };
         _window.Session.Record(CurrentSample());
-        var blocked = System.IO.Directory.CreateDirectory(System.IO.Path.Combine(_temporaryFolder!, "settings.json"));
+        var blocked = Directory.CreateDirectory(Path.Combine(_temporaryFolder!, "settings.json"));
 
         Assert.DoesNotThrow(_window.SaveForSessionEnd);
 
         Assert.Multiple(() =>
         {
-            Assert.That(System.IO.Directory.Exists(blocked.FullName), Is.True);
-            Assert.That(System.IO.File.Exists(_store.NormalHistoryPath), Is.True);
+            Assert.That(Directory.Exists(blocked.FullName), Is.True);
+            Assert.That(File.Exists(_store.NormalHistoryPath), Is.True);
         });
     }
 
@@ -294,15 +288,15 @@ public sealed partial class SessionEndCharacterizationTests
         LoadWithoutSampling(_window);
         _window.Preferences = _window.Preferences with { KeepHistoryAcrossRestarts = true };
         _window.Session.Record(CurrentSample());
-        System.IO.Directory.CreateDirectory(_store.UsageArchivePath);
+        Directory.CreateDirectory(_store.UsageArchivePath);
 
         Assert.DoesNotThrow(_window.SaveForSessionEnd);
 
         Assert.Multiple(() =>
         {
-            Assert.That(System.IO.Directory.Exists(_store.UsageArchivePath), Is.True);
-            Assert.That(System.IO.File.Exists(System.IO.Path.Combine(_temporaryFolder!, "settings.json")), Is.True);
-            Assert.That(System.IO.File.Exists(_store.NormalHistoryPath), Is.True);
+            Assert.That(Directory.Exists(_store.UsageArchivePath), Is.True);
+            Assert.That(File.Exists(Path.Combine(_temporaryFolder!, "settings.json")), Is.True);
+            Assert.That(File.Exists(_store.NormalHistoryPath), Is.True);
         });
     }
 
@@ -312,12 +306,12 @@ public sealed partial class SessionEndCharacterizationTests
         LoadWithoutSampling(_window);
         _window.Preferences = _window.Preferences with { KeepHistoryAcrossRestarts = true };
         _window.Session.Record(CurrentSample());
-        System.IO.Directory.CreateDirectory(_store.NormalHistoryPath);
+        Directory.CreateDirectory(_store.NormalHistoryPath);
 
         Assert.DoesNotThrow(_window.SaveForSessionEnd);
 
-        Assert.That(System.IO.Directory.Exists(_store.NormalHistoryPath), Is.True);
-        Assert.That(System.IO.File.Exists(System.IO.Path.Combine(_temporaryFolder!, "settings.json")), Is.True);
+        Assert.That(Directory.Exists(_store.NormalHistoryPath), Is.True);
+        Assert.That(File.Exists(Path.Combine(_temporaryFolder!, "settings.json")), Is.True);
     }
 
     [TestCase(false)]
@@ -327,14 +321,14 @@ public sealed partial class SessionEndCharacterizationTests
         Complete(_window.LoadResourceTrendsForFixtureAsync());
         _window.Preferences = _window.Preferences with { KeepResourceTrends = true };
         _window.RecordResourceTrendForFixture(CurrentSample());
-        if (previousFailure) _window.SetResourceTrendWriteForFixture(Task.FromException(new System.IO.IOException("owned checkpoint failure")));
+        if (previousFailure) _window.SetResourceTrendWriteForFixture(Task.FromException(new IOException("owned checkpoint failure")));
         LoadWithoutSampling(_window);
 
         _window.SaveForSessionEnd();
 
         var restored = Complete(ResourceTrendArchive.LoadAsync(_store.ResourceTrendArchivePath));
         Assert.That(restored.Snapshot().Buckets.Sum(bucket => bucket.Values[ResourceTrendMetric.Cpu].WeightedSum), Is.EqualTo(42));
-        Assert.That(System.IO.File.Exists(System.IO.Path.Combine(_temporaryFolder!, "settings.json")), Is.True);
+        Assert.That(File.Exists(Path.Combine(_temporaryFolder!, "settings.json")), Is.True);
     }
 
     [Test]
@@ -344,12 +338,12 @@ public sealed partial class SessionEndCharacterizationTests
         _window.Preferences = _window.Preferences with { KeepResourceTrends = true };
         _window.RecordResourceTrendForFixture(CurrentSample());
         LoadWithoutSampling(_window);
-        System.IO.Directory.CreateDirectory(_store.ResourceTrendArchivePath);
+        Directory.CreateDirectory(_store.ResourceTrendArchivePath);
 
         Assert.DoesNotThrow(_window.SaveForSessionEnd);
 
-        Assert.That(System.IO.Directory.Exists(_store.ResourceTrendArchivePath), Is.True);
-        Assert.That(System.IO.File.Exists(System.IO.Path.Combine(_temporaryFolder!, "settings.json")), Is.True);
+        Assert.That(Directory.Exists(_store.ResourceTrendArchivePath), Is.True);
+        Assert.That(File.Exists(Path.Combine(_temporaryFolder!, "settings.json")), Is.True);
     }
 
     private sealed class CapturedTrace : System.Diagnostics.TraceListener
@@ -377,7 +371,7 @@ public sealed partial class SessionEndCharacterizationTests
             Assert.Multiple(() =>
             {
                 Assert.That(pending.Task.IsCompleted, Is.False);
-                Assert.That(System.IO.File.Exists(System.IO.Path.Combine(_temporaryFolder!, "settings.json")), Is.True);
+                Assert.That(File.Exists(Path.Combine(_temporaryFolder!, "settings.json")), Is.True);
                 Assert.That(trace.Messages.Any(message => message.Contains("Resource trend save reached the session-end deadline.", StringComparison.Ordinal)), Is.True);
             });
         }
@@ -387,6 +381,6 @@ public sealed partial class SessionEndCharacterizationTests
             try { Complete(_window.SaveResourceTrendsForFixtureAsync()); }
             finally { System.Diagnostics.Trace.Listeners.Remove(trace); }
         }
-        Assert.That(System.IO.File.Exists(_store.ResourceTrendArchivePath), Is.True);
+        Assert.That(File.Exists(_store.ResourceTrendArchivePath), Is.True);
     }
 }

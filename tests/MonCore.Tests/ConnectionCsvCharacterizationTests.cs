@@ -2,10 +2,10 @@ using System.Globalization;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Text;
+using MonCore.Monitoring;
 using NUnit.Framework;
-using WinMon.Monitoring;
 
-namespace WinMon.Tests;
+namespace MonCore.Tests;
 
 [TestFixture, Category("Integration")]
 public sealed class ConnectionCsvCharacterizationTests

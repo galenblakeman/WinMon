@@ -1,8 +1,9 @@
-using NUnit.Framework;
-using WinMon.Monitoring;
 using System.Xml.Linq;
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
+using NUnit.Framework;
 
-namespace WinMon.Tests;
+namespace MonCore.Windows.Tests;
 
 [TestFixture]
 public sealed class WindowsHistoryEventReaderTests

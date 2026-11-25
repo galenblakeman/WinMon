@@ -1,7 +1,7 @@
 using System.Buffers.Binary;
 using System.Runtime.InteropServices;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Windows.Monitoring;
 
 /// <summary>One bounded system snapshot used only while a process menu is open.</summary>
 public static class WindowsProcessSuspension
@@ -54,7 +54,7 @@ public static class WindowsProcessSuspension
                 {
                     var thread = entry.Slice(ProcessHeaderSize + index * ThreadSize, ThreadSize);
                     if (BinaryPrimitives.ReadInt32LittleEndian(thread[ThreadState..]) != Waiting ||
-                        (BinaryPrimitives.ReadInt32LittleEndian(thread[WaitReason..]) is not (Suspended or WrSuspended))) return false;
+                        BinaryPrimitives.ReadInt32LittleEndian(thread[WaitReason..]) is not (Suspended or WrSuspended)) return false;
                 }
                 return true;
             }

@@ -27,11 +27,11 @@ public sealed record CliTabPreferences
         if (TrafficSeconds is not (0 or 60 or 300 or 1800)) TrafficSeconds = 300;
         ApplyTabRestrictions(tab);
         // Preferences are input, including null array entries and obsolete PID-based identities.
-        Pins = (Pins ?? []).Where(pin => pin is not null && pin.Identity is { Length: > 0 and <= 32768 } &&
-            pin.Name is { Length: > 0 and <= 256 })
+        Pins = (Pins ?? []).Where(pin => pin?.Identity is { Length: > 0 and <= 32768 } &&
+                                         pin.Name is { Length: > 0 and <= 256 })
             .Select(pin => pin.Identity.StartsWith("exe:", StringComparison.Ordinal) ? pin with { Identity = pin.Identity[4..] } : pin)
-            .Where(pin => pin.Identity.StartsWith("service:", StringComparison.Ordinal) && tab == TerminalTab.Services ||
-                tab != TerminalTab.Services && Path.IsPathFullyQualified(pin.Identity))
+            .Where(pin => (pin.Identity.StartsWith("service:", StringComparison.Ordinal) && tab == TerminalTab.Services) ||
+                (tab != TerminalTab.Services && Path.IsPathFullyQualified(pin.Identity)))
             .DistinctBy(pin => pin.Identity, StringComparer.OrdinalIgnoreCase).Take(256).ToArray();
     }
 
@@ -68,7 +68,7 @@ public sealed record CliTabPreferences
     {
         if (Top is < 0 or > 1000) Top = 0;
         var maximum = tab switch { TerminalTab.Services => 3, TerminalTab.Usage => 4, _ => 5 };
-        if (Sort < 0 || Sort > maximum || tab == TerminalTab.Services && Sort == 3 && Top != 0) Sort = 0;
+        if (Sort < 0 || Sort > maximum || (tab == TerminalTab.Services && Sort == 3 && Top != 0)) Sort = 0;
     }
 }
 

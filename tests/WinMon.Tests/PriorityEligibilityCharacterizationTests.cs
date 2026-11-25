@@ -2,6 +2,8 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 using NUnit.Framework;
 using WinMon.Controls;
 using WinMon.Monitoring;
@@ -25,7 +27,7 @@ public sealed class PriorityEligibilityCharacterizationTests
     {
         _helper = Process.Start(new ProcessStartInfo
         {
-            FileName = System.IO.Path.Combine(Environment.SystemDirectory, @"WindowsPowerShell\v1.0\powershell.exe"),
+            FileName = Path.Combine(Environment.SystemDirectory, @"WindowsPowerShell\v1.0\powershell.exe"),
             Arguments = "-NoProfile -NonInteractive -Command \"[Console]::WriteLine('ready'); Start-Sleep -Seconds 60\"",
             UseShellExecute = false, RedirectStandardOutput = true, CreateNoWindow = true,
             WindowStyle = ProcessWindowStyle.Hidden

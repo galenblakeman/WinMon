@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.NetworkInformation;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>One endpoint Windows associated with a process. It contains no transfer counters.</summary>
 public sealed record NetworkConnection(

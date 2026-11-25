@@ -638,12 +638,16 @@ public sealed class UpdateHelperTests
 
     private sealed class FakeProcess : IUpdateHelperProcess
     {
-        private bool _hasExited;
         public bool HasExited
         {
-            get { OnHasExitedRead?.Invoke(); return _hasExited; }
-            set => _hasExited = value;
+            get
+            {
+                OnHasExitedRead?.Invoke();
+                return field;
+            }
+            set;
         }
+
         public int ExitCode { get; set; }
         public long StartTicks { get; set; } = 123;
         public string FileName { get; set; } = "";

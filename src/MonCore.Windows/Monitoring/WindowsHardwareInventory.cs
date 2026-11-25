@@ -2,7 +2,7 @@ using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Security;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Windows.Monitoring;
 
 /// <summary>On-demand Windows hardware inventory; it is never part of the sampling loop.</summary>
 public static class WindowsHardwareInventory

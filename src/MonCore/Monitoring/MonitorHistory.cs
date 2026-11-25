@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>Retain sample observations within elapsed-time, sample-count and process-entry budgets.</summary>
 public sealed class MonitorHistory

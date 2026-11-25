@@ -1,8 +1,7 @@
-using System.ComponentModel;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Windows.Monitoring;
 
 /// <summary>Reads the installed network service PID without treating an unreadable service as stopped.</summary>
 public static class NetworkServiceProcess

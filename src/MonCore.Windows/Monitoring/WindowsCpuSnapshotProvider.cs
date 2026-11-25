@@ -5,8 +5,9 @@ using System.Buffers.Binary;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using MonCore.Monitoring;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Windows.Monitoring;
 
 /// <summary>Read Windows CPU counters for one active processor group, and every process in one system query.</summary>
 /// <remarks>

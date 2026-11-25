@@ -1,3 +1,6 @@
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
+
 namespace WinMon.Monitoring;
 
 /// <summary>Serializes one outstanding balanced Suspend/Resume request per process lifetime.</summary>

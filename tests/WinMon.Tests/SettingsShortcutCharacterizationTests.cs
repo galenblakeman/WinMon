@@ -20,8 +20,8 @@ public sealed partial class SettingsShortcutCharacterizationTests
     public void SetUp()
     {
         var app = Application.Current ?? new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
-        foreach (var (key, brush) in new[] { ("Surface", System.Windows.Media.Brushes.Black),
-                     ("Text", System.Windows.Media.Brushes.White) })
+        foreach (var (key, brush) in new[] { ("Surface", Brushes.Black),
+                     ("Text", Brushes.White) })
             if (!app.Resources.Contains(key)) { app.Resources[key] = brush; _addedResources.Add(key); }
     }
 

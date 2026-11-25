@@ -1,5 +1,3 @@
-using WinMon.Resources;
-
 namespace WinMon.Controls;
 
 /// <summary>Display table measurements in a unit chosen for each value.</summary>

@@ -2,13 +2,12 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Markup;
 using System.Windows.Media.Imaging;
 using System.Xml.Linq;
+using MonCore.Monitoring;
 using NUnit.Framework;
 using WinMon.Diagnostics;
-using WinMon.Monitoring;
 
 namespace WinMon.Tests;
 
@@ -131,7 +130,7 @@ public sealed partial class MainWindowWorkflowCharacterizationTests
                 Assert.That(scope.TimedOut, Is.False);
                 Assert.That(CultureInfo.CurrentUICulture.Name, Is.EqualTo(uiCulture.Name));
                 Assert.That(CultureInfo.DefaultThreadCurrentUICulture?.Name, Is.EqualTo("en"));
-                Assert.That(WinMon.Resources.Strings.Culture?.Name, Is.EqualTo("en"));
+                Assert.That(Resources.Strings.Culture?.Name, Is.EqualTo("en"));
                 Assert.That(caller.ServicesTab.IsChecked, Is.True);
                 Assert.That(caller.SamplingTask, Is.Null);
             });
@@ -178,7 +177,7 @@ public sealed partial class MainWindowWorkflowCharacterizationTests
         var dictionary = new XElement(presentation + "ResourceDictionary",
             new XAttribute(XNamespace.Xmlns + "x", xaml.NamespaceName),
             new XAttribute(XNamespace.Xmlns + "controls", "clr-namespace:WinMon.Controls;assembly=WinMon"),
-            styles.Where(style => ((string?)style.Attribute(xaml + "Key")) is "TitleActionButton" or "AlwaysOnTopButton" ||
+            styles.Where(style => (string?)style.Attribute(xaml + "Key") is "TitleActionButton" or "AlwaysOnTopButton" ||
                                   (style.Attribute(xaml + "Key") is null && (string?)style.Attribute("TargetType") == "Button"))
                 .Select(style => new XElement(style)));
         var resources = (ResourceDictionary)XamlReader.Parse(dictionary.ToString());

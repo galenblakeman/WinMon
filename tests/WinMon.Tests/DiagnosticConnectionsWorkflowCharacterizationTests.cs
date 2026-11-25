@@ -1,12 +1,12 @@
-using System.Net;
 using System.Reflection;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Media.Imaging;
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 using NUnit.Framework;
 using WinMon.Controls;
 using WinMon.Diagnostics;
-using WinMon.Monitoring;
 
 namespace WinMon.Tests;
 

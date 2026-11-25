@@ -1,6 +1,7 @@
 using System.Diagnostics;
+using MonCore.Monitoring;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Windows.Monitoring;
 
 /// <summary>
 /// Samples total-machine and per-process CPU use across successive calls.

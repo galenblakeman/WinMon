@@ -1,8 +1,7 @@
 using System.Globalization;
 using System.Net.NetworkInformation;
 using System.Text;
-using WinMon.Monitoring;
-using WinMon.Resources;
+using MonCore.Monitoring;
 
 namespace WinMon.Cli;
 
@@ -47,7 +46,7 @@ public static class ConnectionsTab
         var pid = row.Connections.FirstOrDefault()?.ProcessId ?? row.Process?.ProcessId;
         var identity = row.Members.Count > 1
             ? $"{process} ({string.Join(", ", row.Members.Select(member => member.ProcessId.ToString(CultureInfo.InvariantCulture)))})"
-            : $"{process} ({(pid?.ToString(CultureInfo.InvariantCulture) ?? Strings.MissingReading)})";
+            : $"{process} ({pid?.ToString(CultureInfo.InvariantCulture) ?? Strings.MissingReading})";
         var cells = new List<string>
         {
             identity,

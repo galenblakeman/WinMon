@@ -1,4 +1,4 @@
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>Windows SCM observation retained for the existing Services view.</summary>
 public sealed record ServiceObservation(

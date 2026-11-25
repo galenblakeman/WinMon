@@ -1,8 +1,7 @@
+using MonCore.Monitoring;
 using NUnit.Framework;
-using WinMon.Mcp;
-using WinMon.Monitoring;
 
-namespace WinMon.Tests;
+namespace WinMon.Mcp.Tests;
 
 [TestFixture]
 public sealed class SamplingOwnerTests

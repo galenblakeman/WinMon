@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Windows.Monitoring;
 
 /// <summary>Verifies and locks the signed payload consumed by the elevated setup helper.</summary>
 public sealed class NetworkSetupPackage : IDisposable

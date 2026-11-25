@@ -1,8 +1,8 @@
 using System.Text.Json;
 using System.Windows.Threading;
+using MonCore.Monitoring;
 using NUnit.Framework;
 using WinMon.Diagnostics;
-using WinMon.Monitoring;
 
 namespace WinMon.Tests;
 

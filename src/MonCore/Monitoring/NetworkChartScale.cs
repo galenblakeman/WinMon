@@ -1,4 +1,4 @@
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>Calculates portable network throughput values and chart limits.</summary>
 public static class NetworkChartScale

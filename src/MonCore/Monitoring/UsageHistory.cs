@@ -1,4 +1,4 @@
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>A bounded record of uncompacted usage intervals for Capture-mode period totals.</summary>
 public sealed class UsageHistory

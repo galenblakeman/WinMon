@@ -2,7 +2,7 @@ using System.Net;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>Immutable aligned observations saved with resource history; never resumes live traffic counters.</summary>
 public sealed class InvestigationHistory
@@ -20,38 +20,38 @@ public sealed class InvestigationHistory
     internal static bool Valid(Frame frame) => ValidServices(frame.Services) && ValidOwners(frame.Owners) &&
         ValidConnections(frame.Connections) && ValidNetwork(frame.Network) && ValidUsage(frame.Usage);
 
-    private static bool ValidProcess(ProcessUsage process) => process is not null && process.Name is not null &&
-        process.ImagePath is not null && process.AppName is not null && process.Publisher is not null &&
-        process.ProductName is not null && process.FileVersion is not null && process.ProductVersion is not null &&
-        process.GpuEngine is not null && process.GpuId is not null && process.MemberIds is not null;
+    private static bool ValidProcess(ProcessUsage process) => process?.Name != null &&
+                                                              process.ImagePath is not null && process.AppName is not null && process.Publisher is not null &&
+                                                              process.ProductName is not null && process.FileVersion is not null && process.ProductVersion is not null &&
+                                                              process.GpuEngine is not null && process.GpuId is not null && process.MemberIds is not null;
 
     private static bool ValidServices(IReadOnlyList<ServiceGroup>? groups) =>
-        groups is null || groups.Count <= ServiceHistory.MaximumObservations &&
-        groups.All(group => group is not null && group.Services is { Count: > 0 } &&
-            group.Services.All(service => service is not null && service.Name is not null && service.DisplayName is not null) &&
-            group.Processes is not null && group.Processes.All(ValidProcess) && (group.Host is null || ValidProcess(group.Host)));
+        groups is null || (groups.Count <= ServiceHistory.MaximumObservations &&
+                           groups.All(group => group?.Services is { Count: > 0 } &&
+                                               group.Services.All(service => service?.Name != null && service.DisplayName is not null) &&
+                                               group.Processes is not null && group.Processes.All(ValidProcess) && (group.Host is null || ValidProcess(group.Host))));
 
     private static bool ValidOwners(IReadOnlyList<ProcessUsage>? owners) =>
-        owners is null || owners.Count <= 100_000 && owners.All(ValidProcess);
+        owners is null || (owners.Count <= 100_000 && owners.All(ValidProcess));
 
     private static bool ValidConnections(NetworkConnectionsFrame? connections) =>
-        connections is null || connections.Connections is not null &&
-        connections.Connections.Count <= 100_000 && connections.Ipv4 is not null &&
-        connections.Ipv6 is not null && connections.Connections.All(connection =>
-            connection is not null && connection.LocalEndpoint is not null);
+        connections is null || (connections.Connections is not null &&
+                                connections.Connections.Count <= 100_000 && connections.Ipv4 is not null &&
+                                connections.Ipv6 is not null && connections.Connections.All(connection =>
+                                    connection?.LocalEndpoint != null));
 
     private static bool ValidNetwork(ProcessNetworkFrame? network) =>
-        network is null || network.Processes is not null && network.Flows is not null &&
-        network.Owners is not null && network.Owners.All(ValidProcess) &&
-        network.Processes.Count <= 100_000 && network.Flows.Count <= 100_000 &&
-        network.Processes.All(reading => reading is not null) && network.Flows.All(flow =>
-            flow is not null && flow.LocalEndpoint is not null && flow.RemoteEndpoint is not null);
+        network is null || (network.Processes is not null && network.Flows is not null &&
+                            network.Owners is not null && network.Owners.All(ValidProcess) &&
+                            network.Processes.Count <= 100_000 && network.Flows.Count <= 100_000 &&
+                            network.Processes.All(reading => reading is not null) && network.Flows.All(flow =>
+                                flow?.LocalEndpoint != null && flow.RemoteEndpoint is not null));
 
     private static bool ValidUsage(UsageHistory.Frame? usage) =>
-        usage is null || usage.Observations is { Length: <= 500_000 } &&
-        usage.Observations.All(observation => observation.Owner is { } owner &&
-            owner.Key is not null && owner.Name is not null && owner.ImagePath is not null &&
-            owner.AppName is not null && owner.Publisher is not null);
+        usage is null || (usage.Observations is { Length: <= 500_000 } &&
+                          usage.Observations.All(observation => observation.Owner is { } owner &&
+                                                                owner.Key is not null && owner.Name is not null && owner.ImagePath is not null &&
+                                                                owner.AppName is not null && owner.Publisher is not null));
 
     internal static InvestigationHistory Capture(MonitorSession session)
     {

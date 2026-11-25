@@ -1,4 +1,4 @@
-namespace WinMon.Monitoring;
+namespace MonCore.Windows.Monitoring;
 
 internal interface IServiceStartupScope : IDisposable
 {

@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>The severity recorded by a Windows event.</summary>
 public enum IncidentEventLevel
@@ -94,8 +94,8 @@ public static class IncidentEventMapper
             foreach (var process in sample.Processes)
                 if (process.LifetimeDomain == ProcessLifetimeIdentity.WindowsFileTime) retained.TryAdd(process.Identity, process);
             if (extraRetained is not null)
-            foreach (var process in extraRetained)
-                if (process.LifetimeDomain == ProcessLifetimeIdentity.WindowsFileTime) retained.TryAdd(process.Identity, process);
+                foreach (var process in extraRetained)
+                    if (process.LifetimeDomain == ProcessLifetimeIdentity.WindowsFileTime) retained.TryAdd(process.Identity, process);
         }
 
         var mapped = new IncidentEventMapping[result.Events.Count];

@@ -2,9 +2,9 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using MonCore.Monitoring;
 using NUnit.Framework;
 using WinMon.Controls;
-using WinMon.Monitoring;
 
 namespace WinMon.Tests;
 
@@ -254,8 +254,8 @@ public sealed class FlightRecorderEventTests
 
     private static void Show(FlightRecorderWindow window)
     {
-        window.Resources["Surface"] = System.Windows.Media.Brushes.Black;
-        window.Resources["Text"] = System.Windows.Media.Brushes.White;
+        window.Resources["Surface"] = Brushes.Black;
+        window.Resources["Text"] = Brushes.White;
         window.Show();
     }
 

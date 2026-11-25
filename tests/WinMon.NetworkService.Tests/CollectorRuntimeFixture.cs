@@ -2,10 +2,8 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Microsoft.Diagnostics.Tracing;
-using WinMon.NetworkService;
-using ProcessOwner = WinMon.NetworkService.ProcessOwner;
 
-namespace WinMon.Tests;
+namespace WinMon.NetworkService.Tests;
 
 internal sealed class CollectorTestClock : TimeProvider, IDisposable
 {

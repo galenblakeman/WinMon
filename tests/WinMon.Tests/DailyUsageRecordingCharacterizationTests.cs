@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Reflection;
+using MonCore.Monitoring;
 using NUnit.Framework;
-using WinMon.Monitoring;
 
 namespace WinMon.Tests;
 

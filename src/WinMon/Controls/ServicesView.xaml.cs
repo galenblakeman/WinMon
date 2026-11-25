@@ -10,7 +10,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using WinMon.Monitoring;
+using MonCore.Monitoring;
 using WinMon.Preferences;
 
 namespace WinMon.Controls;

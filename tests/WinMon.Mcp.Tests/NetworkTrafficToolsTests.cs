@@ -1,11 +1,11 @@
 using System.Diagnostics;
 using System.Text.Json;
 using System.Threading.Channels;
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 using NUnit.Framework;
-using WinMon.Mcp;
-using WinMon.Monitoring;
 
-namespace WinMon.Tests;
+namespace WinMon.Mcp.Tests;
 
 [TestFixture]
 public sealed class NetworkTrafficToolsTests

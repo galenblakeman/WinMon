@@ -2,9 +2,8 @@ using System.Reflection;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using NUnit.Framework;
-using WinMon.NetworkService;
 
-namespace WinMon.Tests;
+namespace WinMon.NetworkService.Tests;
 
 [TestFixture]
 public sealed class ServicePolicyOriginalTests

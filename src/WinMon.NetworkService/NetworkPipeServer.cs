@@ -8,7 +8,8 @@ using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Text.Json;
 using Microsoft.Win32.SafeHandles;
-using WinMon.Monitoring;
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 
 namespace WinMon.NetworkService;
 

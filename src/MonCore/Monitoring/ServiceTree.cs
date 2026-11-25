@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 public sealed record ServiceMetrics(double? Cpu, ulong? PrivateBytes, double? Io)
 {

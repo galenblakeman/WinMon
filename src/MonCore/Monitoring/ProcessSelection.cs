@@ -1,4 +1,4 @@
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>A selected lifetime (or executable group), independent of the ranked row slots.</summary>
 public sealed class ProcessSelection(ProcessIdentityPolicy? identityPolicy = null)

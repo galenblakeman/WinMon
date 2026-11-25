@@ -1,7 +1,6 @@
+using WinMon.Monitoring;
 using System.Globalization;
 using NUnit.Framework;
-using WinMon.Monitoring;
-using WinMon.Resources;
 
 namespace WinMon.Tests;
 
@@ -58,7 +57,7 @@ public sealed class HardwareLabelCharacterizationTests
         {
             var selected = CultureInfo.GetCultureInfo(culture);
             CultureInfo.CurrentUICulture = selected;
-            var expected = Strings.ResourceManager.GetString(key, selected);
+            var expected = Resources.Strings.ResourceManager.GetString(key, selected);
             Assert.That(expected, Is.Not.Null.And.Not.Empty, "The expected resource must exist.");
             Assert.That(label(), Is.EqualTo(expected));
             Assert.That(label(), Is.EqualTo(expected), "Repeated reads must retain the same label.");

@@ -3,9 +3,9 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Interop;
+using MonCore.Monitoring;
 using NUnit.Framework;
 using WinMon.Controls;
-using WinMon.Monitoring;
 
 namespace WinMon.Tests;
 
@@ -188,7 +188,7 @@ public sealed class SamplingSeriesCharacterizationTests
     [Test]
     public void RestoringChartTogglesDoesNotPublishIntermediateSeriesPreferences()
     {
-        Assert.That(WinMon.Updates.UpdateRuntime.RestartHistory, Is.Null);
+        Assert.That(Updates.UpdateRuntime.RestartHistory, Is.Null);
         foreach (var metric in Metrics) metric.Toggle.IsChecked = false;
         var observed = new List<(int Visible, bool Gpu, int Focus)>();
         RoutedEventHandler observe = (_, _) => observed.Add((_window.Preferences.VisibleMetrics,

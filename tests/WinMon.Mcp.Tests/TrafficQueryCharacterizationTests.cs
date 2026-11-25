@@ -3,11 +3,11 @@ using System.Diagnostics;
 using System.Text.Json;
 using System.Threading.Channels;
 using ModelContextProtocol.Protocol;
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 using NUnit.Framework;
-using WinMon.Mcp;
-using WinMon.Monitoring;
 
-namespace WinMon.Tests;
+namespace WinMon.Mcp.Tests;
 
 [TestFixture]
 public sealed class TrafficQueryCharacterizationTests
@@ -301,7 +301,7 @@ public sealed class TrafficQueryCharacterizationTests
         public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
         {
             // Timed repeated queries must release disposed timers instead of retaining the manual helper's timer history.
-            if (SystemTimers) return TimeProvider.System.CreateTimer(callback, state, dueTime, period);
+            if (SystemTimers) return System.CreateTimer(callback, state, dueTime, period);
             var timer = _inner.CreateTimer(callback, state, dueTime, period);
             if (dueTime == TimeSpan.FromSeconds(5)) CurrentCreated.TrySetResult();
             if (dueTime == TimeSpan.FromSeconds(30)) IdleCreated.TrySetResult();

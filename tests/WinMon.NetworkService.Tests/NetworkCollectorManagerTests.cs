@@ -1,8 +1,7 @@
+using MonCore.Monitoring;
 using NUnit.Framework;
-using WinMon.Monitoring;
-using WinMon.NetworkService;
 
-namespace WinMon.Tests;
+namespace WinMon.NetworkService.Tests;
 
 [TestFixture]
 public sealed class NetworkCollectorManagerTests

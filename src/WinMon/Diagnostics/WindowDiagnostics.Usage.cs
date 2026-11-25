@@ -1,10 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
-using WinMon.Controls;
-using WinMon.Monitoring;
+using MonCore.Monitoring;
 
 // ReSharper disable StringLiteralTypo
 

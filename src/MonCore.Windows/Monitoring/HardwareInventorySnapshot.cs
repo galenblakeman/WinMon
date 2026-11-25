@@ -1,4 +1,4 @@
-namespace WinMon.Monitoring;
+namespace MonCore.Windows.Monitoring;
 
 public interface IHardwareSection { string Status { get; } bool Truncated { get; } }
 public sealed record HardwareSection<T>(string Status, bool Truncated, string[] Issues, T? Data) : IHardwareSection;

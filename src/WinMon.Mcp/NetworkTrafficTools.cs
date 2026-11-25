@@ -2,7 +2,7 @@ using System.ComponentModel;
 using System.Globalization;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
-using WinMon.Monitoring;
+using MonCore.Monitoring;
 
 namespace WinMon.Mcp;
 
@@ -31,8 +31,8 @@ internal sealed partial class DiagnosticTools
         if (frame is null || !owner.IsFresh(frame)) return Responses.Result(Responses.Envelope(owner, frame, null));
         var network = frame.Network;
         var candidates = (network?.Processes ?? []).Where(reading => pid is null || reading.ProcessId == pid).ToArray();
-        var rows = candidates.Where(reading => expectedStartToken is null || expectedDomain == "WindowsFileTime" &&
-            reading.CreationTicks.ToString(CultureInfo.InvariantCulture) == expectedStartToken).ToArray();
+        var rows = candidates.Where(reading => expectedStartToken is null || (expectedDomain == "WindowsFileTime" &&
+                                                                              reading.CreationTicks.ToString(CultureInfo.InvariantCulture) == expectedStartToken)).ToArray();
         if (expectedStartToken is not null && candidates.Length > 0 && rows.Length == 0)
             return Responses.Result(Responses.Envelope(owner, frame, null, "identityMismatch"));
         var quality = network?.Quality ?? ProcessNetworkQuality.Unavailable;
@@ -62,7 +62,7 @@ internal sealed partial class DiagnosticTools
                 entries.Take(limit).ToArray()), status, Math.Min(entries.Length, limit), entries.Length > limit));
 
         static bool InvalidRequest(string sort, int limit, int? pid, string? expectedStartToken, string? expectedDomain) =>
-            sort is null || sort is not ("receive" or "send" or "received" or "sent") || limit is < 1 or > 200 ||
+            sort is not ("receive" or "send" or "received" or "sent") || limit is < 1 or > 200 ||
             (pid is { } id ? !ValidIdentity(id, expectedStartToken, expectedDomain) :
                 expectedStartToken is not null || expectedDomain is not null);
     }

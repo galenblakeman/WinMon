@@ -1,11 +1,10 @@
 using System.Diagnostics;
 using System.Net;
+using MonCore.Monitoring;
 using NUnit.Framework;
-using WinMon.Monitoring;
-using WinMon.NetworkService;
-using static WinMon.Tests.CollectorRuntimeFixture;
+using static WinMon.NetworkService.Tests.CollectorRuntimeFixture;
 
-namespace WinMon.Tests;
+namespace WinMon.NetworkService.Tests;
 
 [TestFixture]
 public sealed class CollectorEventProcessingTests
@@ -142,7 +141,7 @@ public sealed class CollectorEventProcessingTests
     [Test]
     public void NewClockOverloadRejectsNullOrAnotherTimestampDomain()
     {
-        var probe = new CollectorRuntimeFixture.Probe();
+        var probe = new Probe();
         Assert.That(Assert.Throws<ArgumentNullException>(() => _ = new EtwNetworkCollector([Owner], probe, null!))!.ParamName,
             Is.EqualTo("timeProvider"));
         Assert.That(Assert.Throws<ArgumentException>(() => _ = new EtwNetworkCollector([Owner], probe, new OtherDomain()))!.ParamName,

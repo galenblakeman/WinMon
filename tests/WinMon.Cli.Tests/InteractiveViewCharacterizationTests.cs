@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using MonCore.Windows.Monitoring;
 using NUnit.Framework;
-using WinMon.Monitoring;
 using WinMon.Resources;
 
 namespace WinMon.Cli.Tests;

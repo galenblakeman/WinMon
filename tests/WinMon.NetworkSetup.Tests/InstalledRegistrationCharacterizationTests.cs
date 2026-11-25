@@ -1,4 +1,3 @@
-using System.Security.AccessControl;
 using Microsoft.Win32;
 using NUnit.Framework;
 

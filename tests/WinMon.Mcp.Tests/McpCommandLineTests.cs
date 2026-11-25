@@ -1,8 +1,7 @@
-using NUnit.Framework;
-using WinMon.Mcp;
 using WinMon.Updates;
+using NUnit.Framework;
 
-namespace WinMon.Tests;
+namespace WinMon.Mcp.Tests;
 
 [TestFixture]
 public sealed class McpCommandLineTests

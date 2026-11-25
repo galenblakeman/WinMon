@@ -3,9 +3,8 @@ using System.Security.Principal;
 using System.Text.Json;
 using Microsoft.Diagnostics.Tracing.Session;
 using NUnit.Framework;
-using WinMon.NetworkProbe;
 
-namespace WinMon.Tests;
+namespace WinMon.NetworkProbe.Tests;
 
 [TestFixture]
 public sealed class ProbeStartupTests

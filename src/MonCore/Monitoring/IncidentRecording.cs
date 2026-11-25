@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.IO.Compression;
 using System.Text.Json;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>One frozen History observation, without socket endpoints or live session state.</summary>
 public sealed record IncidentObservation(MonitorSample Sample, ProcessNetworkFrame? Network,
@@ -83,7 +83,7 @@ public sealed record IncidentRecording(int Version, long Frequency, IncidentObse
             if (entries > 2_000_000 || frame.Network?.Processes.Select(p => (p.ProcessId, p.CreationTicks)).Distinct().Count()
                 != frame.Network?.Processes.Count)
                 throw new InvalidDataException("Invalid incident traffic or observation limit.");
-            if (previous is not null && ((sample.MonotonicTimestamp == 0) != (previous.MonotonicTimestamp == 0) ||
+            if (previous is not null && (sample.MonotonicTimestamp == 0 != (previous.MonotonicTimestamp == 0) ||
                 (sample.MonotonicTimestamp > 0 ? sample.MonotonicTimestamp <= previous.MonotonicTimestamp : sample.Timestamp <= previous.Timestamp)))
                 throw new InvalidDataException("Incident observations must be ordered.");
             previous = sample;
@@ -97,14 +97,14 @@ public sealed record IncidentRecording(int Version, long Frequency, IncidentObse
             Metric is < CaptureMetric.Cpu or > CaptureMetric.Gpu ||
             Observations is null || Observations.Length > 7200 ||
             SelectedIndex < -1 || SelectedIndex >= Observations.Length ||
-            Observations.Length > 0 && SelectedIndex < 0)
+            (Observations.Length > 0 && SelectedIndex < 0))
             throw new InvalidDataException("Invalid incident header or unsupported version.");
     }
 
     private static MonitorSample ValidateObservation(IncidentObservation frame)
     {
         if (frame?.Sample is not { Processes: not null, Resources: not null } sample ||
-            frame.Owners is null || frame.Started is null != (frame.Stopped is null) ||
+            frame.Owners is null || frame.Started is null != frame.Stopped is null ||
             !ValidSampleMetadata(sample) || !ValidObservationCollections(frame))
             throw new InvalidDataException("Invalid incident observation.");
         return sample;
@@ -171,14 +171,14 @@ public sealed record IncidentRecording(int Version, long Frequency, IncidentObse
         if (WindowsEvents is not { Events: not null, Coverage: not null } result ||
             result.Events.Count > 500 || result.Coverage.Count != 2 ||
             result.Coverage.Select(item => item?.Log).Distinct(StringComparer.Ordinal).Count() != 2 ||
-            result.Coverage.Any(item => item is null || item.Log is not ("Application" or "System") ||
-                !Enum.IsDefined(item.Status)))
+            result.Coverage.Any(item => item?.Log is not ("Application" or "System") ||
+                                        !Enum.IsDefined(item.Status)))
             throw new InvalidDataException("Invalid incident event coverage.");
     }
 
     private static void ValidateEvent(IncidentEvent item)
     {
-        if (item is null || item.Provider is not { Length: > 0 and <= 256 } ||
+        if (item?.Provider is not { Length: > 0 and <= 256 } ||
             item.Message is not { Length: <= 300 } || item.Message.IndexOfAny(['\r', '\n']) >= 0 ||
             item.EventId is < 0 or > 65535 || !Enum.IsDefined(item.Level))
             throw new InvalidDataException("Invalid incident event.");

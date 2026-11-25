@@ -4,6 +4,7 @@ using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
+using MonCore.Monitoring;
 using NUnit.Framework;
 using WinMon.Monitoring;
 using WinMon.Preferences;

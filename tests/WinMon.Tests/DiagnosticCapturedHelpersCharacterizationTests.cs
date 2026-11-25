@@ -1,10 +1,10 @@
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
+using MonCore.Monitoring;
 using NUnit.Framework;
 using WinMon.Controls;
 using WinMon.Diagnostics;
-using WinMon.Monitoring;
 
 namespace WinMon.Tests;
 
@@ -233,8 +233,8 @@ public sealed partial class MainWindowWorkflowCharacterizationTests
         }
         private static void SetPosition(UIElement control, double x, double y)
         {
-            System.Windows.Controls.Canvas.SetLeft(control, x);
-            System.Windows.Controls.Canvas.SetTop(control, y);
+            Canvas.SetLeft(control, x);
+            Canvas.SetTop(control, y);
         }
         private void Flush()
         {

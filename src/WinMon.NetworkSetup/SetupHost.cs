@@ -1,5 +1,5 @@
-using WinMon.Diagnostics;
-using WinMon.Monitoring;
+using MonCore.Windows.Diagnostics;
+using MonCore.Windows.Monitoring;
 
 namespace WinMon.NetworkSetup;
 

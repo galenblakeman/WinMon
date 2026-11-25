@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Windows.Monitoring;
 
 /// <summary>Observes window ownership once per sample, without opening each process.</summary>
 internal sealed class WindowsAppWindowProvider

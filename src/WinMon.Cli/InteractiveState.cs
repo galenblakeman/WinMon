@@ -1,4 +1,5 @@
-using WinMon.Monitoring;
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 
 namespace WinMon.Cli;
 
@@ -47,13 +48,18 @@ public sealed class InteractiveState
     private MonitorSession? _session;
     public int UsagePeriodSeconds { get; private set; } = 300;
     private readonly TerminalTabState[] _tabs = Enumerable.Range(0, Enum.GetValues<TerminalTab>().Length).Select(_ => new TerminalTabState()).ToArray();
-    private HardwareInventorySnapshot? _hardware;
     private TerminalTable? _hardwareTable;
+
     public HardwareInventorySnapshot? Hardware
     {
-        get => _hardware;
-        set { _hardware = value; _hardwareTable = null; }
+        get;
+        set
+        {
+            field = value;
+            _hardwareTable = null;
+        }
     }
+
     internal TerminalTable HardwareTable => Hardware is { } inventory
         ? _hardwareTable ??= HardwareReport.Table(inventory, false)
         : HardwareReport.Table(null, HardwareLoading);
@@ -147,7 +153,7 @@ public sealed class InteractiveState
                 { PeriodUsage = true, UsageAvailable = period is not null, UsageComplete = period?.Complete == true };
             var quality = _frozenObservations.Network?.Quality;
             _frozenNetworkStatus = quality is null || quality.Value.HasFlag(ProcessNetworkQuality.Unavailable)
-                ? NetworkTrafficState.Unavailable : (quality.Value & ~(ProcessNetworkQuality.Provisional)) != 0
+                ? NetworkTrafficState.Unavailable : (quality.Value & ~ProcessNetworkQuality.Provisional) != 0
                     ? NetworkTrafficState.Incomplete : NetworkTrafficState.Active;
             if (_frozenObservations.Services.LastOrDefault() is not { } service || !SampleKey.Of(sample).Matches(service.Sample))
                 _frozenObservations = _frozenObservations with { Services = [.. _frozenObservations.Services, new ServiceFrame(sample, [], false)] };
@@ -219,7 +225,7 @@ public sealed class InteractiveState
                     pins.Remove(pinKey);
                 if (!pins.Values.Any(row => StringComparer.OrdinalIgnoreCase.Equals(row.PinIdentity, saved.Identity)))
                     pins["saved:" + saved.Identity] = new TerminalRow("saved:" + saved.Identity,
-                        [saved.Name], WinMon.Resources.Strings.Unavailable) { PinIdentity = saved.Identity, Grouped = Active.Grouped };
+                        [saved.Name], Strings.Unavailable) { PinIdentity = saved.Identity, Grouped = Active.Grouped };
             }
         }
         foreach (var key in pins.Keys.ToArray())
@@ -228,12 +234,12 @@ public sealed class InteractiveState
         if (Query.Trim().Length == 0 && !Active.AppsOnly && (Tab != TerminalTab.Services || Active.Status == 0))
             pinned = pinned.Concat(pins.Values.Where(row => !visible.ContainsKey(row.Key) &&
                     (Tab != TerminalTab.Processes || row.Grouped == Active.Grouped ||
-                     row.PinIdentity is { } identity && Active.SavedPins.ContainsKey(identity)))
+                     (row.PinIdentity is { } identity && Active.SavedPins.ContainsKey(identity))))
                 .Select(row => row with
                 {
                     Cells = Enumerable.Range(0, table.Columns.Length)
-                        .Select(index => index == 0 ? row.Cells[0] : WinMon.Resources.Strings.Unavailable).ToArray(),
-                    Details = WinMon.Resources.Strings.Unavailable + "\n" + row.Cells[0]
+                        .Select(index => index == 0 ? row.Cells[0] : Strings.Unavailable).ToArray(),
+                    Details = Strings.Unavailable + "\n" + row.Cells[0]
                 }));
         var unpinned = table.Rows.Where(row => !pins.ContainsKey(row.Key));
         if (Active.Top > 0) unpinned = unpinned.Take(Active.Top);
@@ -290,7 +296,7 @@ public sealed class InteractiveState
             else { active.Filter = active.Draft = ""; active.Offset = 0; }
             return;
         }
-        if (key.Modifiers.HasFlag(ConsoleModifiers.Alt) && (key.Key is ConsoleKey.LeftArrow or ConsoleKey.RightArrow) && !active.Details && !Help)
+        if (key.Modifiers.HasFlag(ConsoleModifiers.Alt) && key.Key is ConsoleKey.LeftArrow or ConsoleKey.RightArrow && !active.Details && !Help)
         {
             NavigateHistory(key.Key == ConsoleKey.LeftArrow ? -60 : 60);
             return;
@@ -378,8 +384,8 @@ public sealed class InteractiveState
                     if (Tab == TerminalTab.Processes)
                         active.Sort = (int)(index switch { 0 => ProcessSort.Cpu, 1 => ProcessSort.Memory,
                             2 => ProcessSort.Gpu, 3 => ProcessSort.Io, 4 => ProcessSort.Threads, _ => ProcessSort.Handles });
-                    else if (Tab == TerminalTab.Services && index <= 3 && (index != 3 || active.Top == 0) ||
-                             Tab == TerminalTab.Usage && index <= 4 || Tab == TerminalTab.Connections) active.Sort = index;
+                    else if ((Tab == TerminalTab.Services && index <= 3 && (index != 3 || active.Top == 0)) ||
+                             (Tab == TerminalTab.Usage && index <= 4) || Tab == TerminalTab.Connections) active.Sort = index;
                     active.Offset = 0;
                     active.SelectedKey = null;
                     active.RevealSort = true;

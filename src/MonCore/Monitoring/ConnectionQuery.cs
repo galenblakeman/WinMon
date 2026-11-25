@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Net;
 using System.Runtime.CompilerServices;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>Column used to order grouped connection observations. The values match the desktop Connections tab.</summary>
 public enum ConnectionSortMetric

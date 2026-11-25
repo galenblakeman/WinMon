@@ -1,9 +1,9 @@
 using System.Collections.Concurrent;
 using System.Globalization;
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 using Spectre.Console;
 using Spectre.Console.Rendering;
-using WinMon.Monitoring;
-using WinMon.Resources;
 using static WinMon.Cli.SnapshotReport;
 
 namespace WinMon.Cli;
@@ -87,7 +87,7 @@ public static class InteractiveMonitor
                         {
                             if (console.Input.ReadKey(true) is { } key)
                                 state.Handle(key, PageSize(state, size.Width, size.Height));
-                            if (state.NetworkEnabled != (traffic is not null))
+                            if (state.NetworkEnabled != traffic is not null)
                             {
                                 var previous = Interlocked.Exchange(ref traffic, null);
                                 if (previous is not null)
@@ -129,7 +129,10 @@ public static class InteractiveMonitor
             session.Close();
             stop.Cancel();
             try { Task.WhenAll(sampling, trafficTask).GetAwaiter().GetResult(); }
-            finally { if (traffic is not null) traffic.DisposeAsync().AsTask().GetAwaiter().GetResult(); }
+            finally
+            {
+                traffic?.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            }
         }
         return token.IsCancellationRequested ? 130 : 0;
     }
@@ -149,7 +152,7 @@ public static class InteractiveMonitor
                 { Note = data.PeriodUsage ? Strings.Format(Strings.CliUsagePeriod, state.UsagePeriodSeconds,
                     data.UsageSince.ToLocalTime(), state.DisplayedFrame?.Full.Timestamp.ToLocalTime()) +
                     (data.UsageComplete ? "" : " " + Strings.UsagePeriodPartial) :
-                    string.Format(System.Globalization.CultureInfo.CurrentCulture, Strings.UsageReportSince, data.UsageSince.LocalDateTime) }
+                    string.Format(CultureInfo.CurrentCulture, Strings.UsageReportSince, data.UsageSince.LocalDateTime) }
                 : new TerminalTable([], [], Strings.UsagePeriodUnavailable),
             TerminalTab.Connections => ConnectionsTab.Build(capture?.Connections, capture?.Owners ?? [],
                 capture?.Network, data.Connections, capture, new ConnectionQueryOptions((ConnectionSortMetric)settings.Sort,
@@ -229,7 +232,7 @@ public static class InteractiveMonitor
         var controls = $"B {Strings.Network} {Mark(state.NetworkEnabled)}{separator}" +
             $"T {Strings.Top} {(settings.Top == 0 ? Strings.AllEntries : settings.Top)}{separator}" +
             (state.Tab == TerminalTab.Services
-                ? "S " + (settings.Status switch { 1 => Strings.ServiceRunning, 2 => Strings.ServiceStopped, _ => Strings.AllServiceStatuses }) +
+                ? "S " + settings.Status switch { 1 => Strings.ServiceRunning, 2 => Strings.ServiceStopped, _ => Strings.AllServiceStatuses } +
                     $"{separator}W {Strings.ServiceWorkers} {Mark(settings.Workers)}"
                 : $"A {Strings.AppOnly} {Mark(settings.AppsOnly)}") + separator + pins;
         if (state.Tab == TerminalTab.Processes) controls += $"{separator}G {Strings.Grouped} {Mark(settings.Grouped)}";
@@ -261,8 +264,8 @@ public static class InteractiveMonitor
     }
 
     private static Color WarningColor(InteractiveState state, string warning) =>
-        state.SettingsSaveFailed || state.Error is not null || state.NetworkEnabled && state.Tab == TerminalTab.Connections &&
-            state.NetworkStatus is NetworkTrafficState.Unavailable or NetworkTrafficState.UpdateRequired ? TerminalChrome.Red :
+        state.SettingsSaveFailed || state.Error is not null || (state.NetworkEnabled && state.Tab == TerminalTab.Connections &&
+                                                                state.NetworkStatus is NetworkTrafficState.Unavailable or NetworkTrafficState.UpdateRequired) ? TerminalChrome.Red :
             state.NetworkEnabled && state.Tab == TerminalTab.Connections && state.NetworkStatus == NetworkTrafficState.Active
                 && warning == TrafficNote(state) ? TerminalChrome.Green : TerminalChrome.Gold;
 
@@ -307,7 +310,7 @@ public static class InteractiveMonitor
         columnsHidden = indices.Length < result.Columns.Length - 1;
         var nameWidth = state.Tab == TerminalTab.Hardware ? Math.Min(25, width / 3) : Math.Clamp(width - 3 - 15 * indices.Length, 22, 40);
         var valueWidth = state.Tab == TerminalTab.Hardware ? Math.Max(1, width - nameWidth - 5) : 13;
-        bool Right(int index) => !(state.Tab == TerminalTab.Hardware || state.Tab == TerminalTab.Services && index == 1 || state.Tab == TerminalTab.Usage && index == 6);
+        bool Right(int index) => !(state.Tab == TerminalTab.Hardware || (state.Tab == TerminalTab.Services && index == 1) || (state.Tab == TerminalTab.Usage && index == 6));
         var keys = state.Tab switch { TerminalTab.Services => 4, TerminalTab.Usage => 5, _ => 6 };
         var header = new Paragraph("  ");
         foreach (var index in indices.Prepend(0))

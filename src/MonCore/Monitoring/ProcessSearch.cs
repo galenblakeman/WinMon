@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>Search ranked rows without changing their order or grouped totals.</summary>
 public static class ProcessSearch

@@ -2,10 +2,11 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
+using MonCore.Monitoring;
 
 // ReSharper disable ClassNeverInstantiated.Local
 
-namespace WinMon.Monitoring;
+namespace MonCore.Windows.Monitoring;
 
 /// <summary>Local SCM enumeration and explicit service control. No driver services or host termination.</summary>
 public static class WindowsServices

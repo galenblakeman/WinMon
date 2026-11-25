@@ -1,7 +1,6 @@
 using System.Reflection;
 using System.Text.Json;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using NUnit.Framework;
 using WinMon.Diagnostics;

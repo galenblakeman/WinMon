@@ -1,4 +1,5 @@
 using System.Globalization;
+using MonCore.Windows.Monitoring;
 
 namespace WinMon.Monitoring;
 

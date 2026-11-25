@@ -7,7 +7,6 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using NUnit.Framework;
 using WinMon.Diagnostics;
-using WinMon.Monitoring;
 
 namespace WinMon.Tests;
 
@@ -200,7 +199,7 @@ public sealed partial class MainWindowWorkflowCharacterizationTests
         public void Dispose()
         {
             foreach (var tooltip in Opened) tooltip.IsOpen = false;
-            if (Created is not null) Created.IsOpen = false;
+            Created?.IsOpen = false;
             _ui.Dispose();
         }
     }

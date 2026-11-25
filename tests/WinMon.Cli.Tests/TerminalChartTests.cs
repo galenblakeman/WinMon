@@ -1,9 +1,9 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
+using MonCore.Monitoring;
 using NUnit.Framework;
 using Spectre.Console;
 using Spectre.Console.Rendering;
-using WinMon.Monitoring;
 using WinMon.Resources;
 
 namespace WinMon.Cli.Tests;
@@ -91,7 +91,7 @@ public sealed class TerminalChartTests
                 .And.Contain(SnapshotReport.Rate(998_500)));
             Assert.That(lines[3], Does.StartWith(Strings.Network).And.Contain("12.5 MB/s").And.Contain("1 MB/s"));
             Assert.That(lines[4], Does.StartWith(Strings.GPU).And.Contain("76.0%")
-                .And.Contain(WinMon.Controls.GaugeReadoutText.GpuMemory(sample.Resources.GpuMemoryUsedBytes, sample.Resources.GpuMemoryTotalBytes)));
+                .And.Contain(Controls.GaugeReadoutText.GpuMemory(sample.Resources.GpuMemoryUsedBytes, sample.Resources.GpuMemoryTotalBytes)));
             Assert.That(lines.All(line => Regex.IsMatch(line, unicode ? @"\[[█░]{10}\]" : @"\[[#-]{10}\]")), Is.True);
             Assert.That(lines.Select(line => line.IndexOf('[')).Distinct().Count(), Is.EqualTo(1));
             Assert.That(lines.All(line => new Segment(line).CellCount() <= 80), Is.True);

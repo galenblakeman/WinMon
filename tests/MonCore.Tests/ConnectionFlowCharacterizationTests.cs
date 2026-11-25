@@ -1,8 +1,8 @@
 using System.Net;
+using MonCore.Monitoring;
 using NUnit.Framework;
-using WinMon.Monitoring;
 
-namespace WinMon.Tests;
+namespace MonCore.Tests;
 
 [TestFixture]
 public sealed class ConnectionFlowCharacterizationTests

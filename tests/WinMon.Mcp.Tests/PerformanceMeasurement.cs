@@ -3,7 +3,7 @@ using System.Text.Json;
 using ModelContextProtocol.Client;
 using NUnit.Framework;
 
-namespace WinMon.Tests;
+namespace WinMon.Mcp.Tests;
 
 [TestFixture, Category("Performance")]
 public sealed class PerformanceMeasurement

@@ -3,7 +3,8 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
-using WinMon.Monitoring;
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 
 namespace WinMon.Mcp;
 
@@ -90,8 +91,8 @@ internal sealed partial class DiagnosticTools(SamplingOwner owner,
         }
         var connections = frame.Frame.Connections;
         var entries = (connections?.Connections ?? []).Where(c => pid is null || c.ProcessId == pid)
-            .Where(c => requestedProcess is null || requestedProcess.LifetimeDomain == ProcessLifetimeDomain.WindowsFileTime &&
-                c.ProcessCreationTicks == requestedProcess.CreationTicks)
+            .Where(c => requestedProcess is null || (requestedProcess.LifetimeDomain == ProcessLifetimeDomain.WindowsFileTime &&
+                                                     c.ProcessCreationTicks == requestedProcess.CreationTicks))
             .Where(c => expectedStartToken is null || c.ProcessCreationTicks?.ToString(CultureInfo.InvariantCulture) == expectedStartToken)
             .Take(limit + 1).Select(c =>
             {
@@ -151,16 +152,16 @@ internal sealed partial class DiagnosticTools(SamplingOwner owner,
         "invalidInput", "unavailable", 0, true, 0, "invalidInput", null));
 
     internal static bool ValidIdentity(int pid, string? token, string? domain) => pid > 0 &&
-        (token is null && domain is null || token is not null &&
-         long.TryParse(token, NumberStyles.None, CultureInfo.InvariantCulture, out var parsed) && parsed > 0 &&
-         parsed.ToString(CultureInfo.InvariantCulture) == token &&
-         domain is "WindowsFileTime" or "UnixMicroseconds");
+        ((token is null && domain is null) || (token is not null &&
+                                               long.TryParse(token, NumberStyles.None, CultureInfo.InvariantCulture, out var parsed) && parsed > 0 &&
+                                               parsed.ToString(CultureInfo.InvariantCulture) == token &&
+                                               domain is "WindowsFileTime" or "UnixMicroseconds"));
 
     internal static string IdentityStatus(ProcessUsage? process, string? token, string? domain)
     {
         if (process is null) return "notObserved";
-        return token is null || process.CreationTicks.ToString(CultureInfo.InvariantCulture) == token &&
-            process.LifetimeDomain.ToString() == domain ? "ok" : "identityMismatch";
+        return token is null || (process.CreationTicks.ToString(CultureInfo.InvariantCulture) == token &&
+                                 process.LifetimeDomain.ToString() == domain) ? "ok" : "identityMismatch";
     }
 }
 

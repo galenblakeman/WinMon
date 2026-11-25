@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Interop;
 using NUnit.Framework;
 using WinMon.Controls;
@@ -9,6 +8,7 @@ using WinMon.Monitoring;
 using WinMon.Resources;
 using System.Windows.Threading;
 using System.Windows.Media;
+using MonCore.Monitoring;
 using ShapePath = System.Windows.Shapes.Path;
 
 namespace WinMon.Tests;
@@ -37,9 +37,9 @@ public sealed class CaptureMenuCharacterizationTests
         _window.Loaded -= _window.OnLoaded;
         _window.ApplyTheme(false, false);
         _previousContext = SynchronizationContext.Current;
-        SynchronizationContext.SetSynchronizationContext(new System.Windows.Threading.DispatcherSynchronizationContext());
-        _temporaryFolder = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "WinMon.CaptureMenu." + Guid.NewGuid().ToString("N"));
-        System.IO.Directory.CreateDirectory(_temporaryFolder);
+        SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext());
+        _temporaryFolder = Path.Combine(Path.GetTempPath(), "WinMon.CaptureMenu." + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(_temporaryFolder);
         _window.Preferences = _window.Preferences with { AutoCapture = _window.Preferences.AutoCapture with { Folder = _temporaryFolder } };
     }
 
@@ -60,7 +60,7 @@ public sealed class CaptureMenuCharacterizationTests
         SynchronizationContext.SetSynchronizationContext(_previousContext);
         if (_temporaryFolder is not null)
         {
-            System.IO.Directory.Delete(_temporaryFolder, recursive: true);
+            Directory.Delete(_temporaryFolder, recursive: true);
             _temporaryFolder = null;
         }
     }
@@ -215,17 +215,17 @@ public sealed class CaptureMenuCharacterizationTests
     public void ReportCountReadsOwnedReportsWithoutChangingTheirContents(int count)
     {
         for (var index = 0; index < count; index++)
-            System.IO.File.WriteAllText(System.IO.Path.Combine(_temporaryFolder!,
+            File.WriteAllText(Path.Combine(_temporaryFolder!,
                 CaptureReports.FileName(DateTimeOffset.UnixEpoch.AddSeconds(index), CaptureMetric.Cpu)),
                 CaptureReports.FirstLine(Guid.Empty) + "\nowned body");
-        var before = System.IO.Directory.GetFiles(_temporaryFolder!).ToDictionary(path => path, System.IO.File.ReadAllText);
+        var before = Directory.GetFiles(_temporaryFolder!).ToDictionary(path => path, File.ReadAllText);
 
         ReadMenu(count);
 
         Assert.Multiple(() =>
         {
-            Assert.That(System.IO.Directory.GetFiles(_temporaryFolder!), Is.EquivalentTo(before.Keys));
-            foreach (var entry in before) Assert.That(System.IO.File.ReadAllText(entry.Key), Is.EqualTo(entry.Value));
+            Assert.That(Directory.GetFiles(_temporaryFolder!), Is.EquivalentTo(before.Keys));
+            foreach (var entry in before) Assert.That(File.ReadAllText(entry.Key), Is.EqualTo(entry.Value));
         });
     }
 
@@ -233,27 +233,27 @@ public sealed class CaptureMenuCharacterizationTests
     public void ReportCountIgnoresUnrelatedInvalidAndNestedFiles()
     {
         var body = CaptureReports.FirstLine(Guid.Empty) + "\nowned";
-        System.IO.File.WriteAllText(System.IO.Path.Combine(_temporaryFolder!, CaptureReports.FileName(DateTimeOffset.UnixEpoch, CaptureMetric.Cpu)), body);
-        System.IO.File.WriteAllText(System.IO.Path.Combine(_temporaryFolder!, CaptureReports.FileName(DateTimeOffset.UnixEpoch.AddSeconds(1), CaptureMetric.Memory)), body);
-        System.IO.File.WriteAllText(System.IO.Path.Combine(_temporaryFolder!, CaptureReports.FileName(DateTimeOffset.UnixEpoch.AddSeconds(2), CaptureMetric.Cpu)), "unrelated first line");
-        System.IO.File.WriteAllText(System.IO.Path.Combine(_temporaryFolder!, "unrelated.txt"), body);
-        var child = System.IO.Directory.CreateDirectory(System.IO.Path.Combine(_temporaryFolder!, "nested"));
-        System.IO.File.WriteAllText(System.IO.Path.Combine(child.FullName, CaptureReports.FileName(DateTimeOffset.UnixEpoch, CaptureMetric.Cpu)), body);
+        File.WriteAllText(Path.Combine(_temporaryFolder!, CaptureReports.FileName(DateTimeOffset.UnixEpoch, CaptureMetric.Cpu)), body);
+        File.WriteAllText(Path.Combine(_temporaryFolder!, CaptureReports.FileName(DateTimeOffset.UnixEpoch.AddSeconds(1), CaptureMetric.Memory)), body);
+        File.WriteAllText(Path.Combine(_temporaryFolder!, CaptureReports.FileName(DateTimeOffset.UnixEpoch.AddSeconds(2), CaptureMetric.Cpu)), "unrelated first line");
+        File.WriteAllText(Path.Combine(_temporaryFolder!, "unrelated.txt"), body);
+        var child = Directory.CreateDirectory(Path.Combine(_temporaryFolder!, "nested"));
+        File.WriteAllText(Path.Combine(child.FullName, CaptureReports.FileName(DateTimeOffset.UnixEpoch, CaptureMetric.Cpu)), body);
 
         ReadMenu(2);
 
-        Assert.That(System.IO.Directory.GetFiles(_temporaryFolder!, "*", System.IO.SearchOption.AllDirectories), Has.Length.EqualTo(5));
+        Assert.That(Directory.GetFiles(_temporaryFolder!, "*", SearchOption.AllDirectories), Has.Length.EqualTo(5));
     }
 
     [Test]
     public void CountingMissingFolderDoesNotCreateIt()
     {
-        var missing = System.IO.Path.Combine(_temporaryFolder!, "not-created");
+        var missing = Path.Combine(_temporaryFolder!, "not-created");
         _window.Preferences = _window.Preferences with { AutoCapture = _window.Preferences.AutoCapture with { Folder = missing } };
 
         ReadMenu();
 
-        Assert.That(System.IO.Directory.Exists(missing), Is.False);
+        Assert.That(Directory.Exists(missing), Is.False);
     }
 
     [TestCase(0, 30)]

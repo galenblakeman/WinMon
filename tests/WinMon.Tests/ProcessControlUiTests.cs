@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using MonCore.Monitoring;
 using NUnit.Framework;
 using WinMon.Controls;
 using WinMon.Monitoring;
@@ -22,9 +23,9 @@ public sealed class ProcessControlUiTests
         var choices = Descendants(dialog).OfType<CheckBox>().ToArray();
         Assert.That(choices.All(choice => Equals(choice.Foreground, System.Windows.Media.Brushes.Lime)), Is.True);
         Assert.That(choices.Select(choice => choice.IsChecked), Is.EqualTo(new bool?[] { true, true, false }));
-        FindButton(dialog, Strings.AllProcessors).RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
+        FindButton(dialog, Strings.AllProcessors).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         Assert.That(choices.Select(choice => choice.IsChecked), Is.All.True);
-        FindButton(dialog, Strings.NoProcessors).RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
+        FindButton(dialog, Strings.NoProcessors).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         Assert.That(choices.Select(choice => choice.IsChecked), Is.All.False);
     }
 
@@ -79,11 +80,11 @@ public sealed class ProcessControlUiTests
     public void CloseDialog_ButtonsSetOnlyExplicitResumeOrLeaveChoices()
     {
         var resume = new SuspendedProcessCloseDialog();
-        FindButton(resume, Strings.ResumeProcess).RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
+        FindButton(resume, Strings.ResumeProcess).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         var leave = new SuspendedProcessCloseDialog();
-        FindButton(leave, Strings.LeaveSuspended).RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
+        FindButton(leave, Strings.LeaveSuspended).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         var cancel = new SuspendedProcessCloseDialog();
-        FindButton(cancel, Strings.CancelClose).RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
+        FindButton(cancel, Strings.CancelClose).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         Assert.Multiple(() =>
         {
             Assert.That(resume.Choice, Is.EqualTo(SuspendedCloseChoice.Resume));
@@ -124,7 +125,7 @@ public sealed class ProcessControlUiTests
         Assert.That(System.Windows.Automation.AutomationProperties.GetName(row), Does.Not.Contain(Strings.ProcessSuspendedByWinMon));
     }
 
-    private static System.Windows.Controls.Button FindButton(DependencyObject root, string content) =>
+    private static Button FindButton(DependencyObject root, string content) =>
         Descendants(root).OfType<Button>().Single(button => Equals(button.Content, content));
 
     private static IEnumerable<DependencyObject> Descendants(DependencyObject root)

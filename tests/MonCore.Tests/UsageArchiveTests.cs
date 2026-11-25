@@ -1,8 +1,8 @@
-using NUnit.Framework;
 using System.Diagnostics;
-using WinMon.Monitoring;
+using MonCore.Monitoring;
+using NUnit.Framework;
 
-namespace WinMon.Tests;
+namespace MonCore.Tests;
 
 [TestFixture]
 public sealed class UsageArchiveTests

@@ -2,7 +2,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
-using WinMon.Monitoring;
+using MonCore.Monitoring;
 
 namespace WinMon.Mcp;
 
@@ -98,7 +98,7 @@ internal sealed partial class DiagnosticTools
         var result = new HistoryResult(start, end, all.FirstOrDefault()?.Frame.Full.Timestamp,
             all.LastOrDefault()?.Frame.Full.Timestamp, points);
         return Task.FromResult(Responses.Result(Responses.Envelope(owner, frames.LastOrDefault(), result,
-            frames.Length == 0 || pid is not null && !points.Any(p => p.Processes.Length > 0) ? "notObserved" : "ok",
+            frames.Length == 0 || (pid is not null && !points.Any(p => p.Processes.Length > 0)) ? "notObserved" : "ok",
             points.Length, allowHistorical: true)));
 
         static bool InvalidOptions(int seconds, int top, string sort) =>

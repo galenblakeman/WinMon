@@ -8,16 +8,8 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Security.Principal;
 using System.Text.Json;
-using System.Windows;
-using System.Windows.Automation;
-using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Threading;
-using WinMon.Controls;
-using WinMon.Monitoring;
-using WinMon.Preferences;
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 
 namespace WinMon.Diagnostics;
 

@@ -1,6 +1,8 @@
 using System.Diagnostics;
+using MonCore.Monitoring;
+using MonCore.Windows.Diagnostics;
+using MonCore.Windows.Monitoring;
 using NUnit.Framework;
-using WinMon.Diagnostics;
 using WinMon.Monitoring;
 using WinMon.Preferences;
 

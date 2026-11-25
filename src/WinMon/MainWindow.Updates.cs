@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using System.Windows;
-using WinMon.Monitoring;
+using MonCore.Monitoring;
 using WinMon.Updates;
 
 namespace WinMon;

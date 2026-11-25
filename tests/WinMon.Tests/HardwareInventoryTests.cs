@@ -1,3 +1,4 @@
+using MonCore.Windows.Monitoring;
 using NUnit.Framework;
 using WinMon.Monitoring;
 

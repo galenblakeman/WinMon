@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Windows.Controls;
+using MonCore.Monitoring;
 using WinMon.Monitoring;
 
 namespace WinMon.Controls;

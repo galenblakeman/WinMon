@@ -1,10 +1,11 @@
 using System.Buffers.Binary;
 using System.Diagnostics;
-using System.IO;
 using System.Text;
 using System.Text.Json;
+using MonCore.Windows.Monitoring;
 using NUnit.Framework;
 using WinMon.Monitoring;
+using NetworkSetupWireJsonContext = MonCore.Windows.Monitoring.NetworkSetupWireJsonContext;
 
 namespace WinMon.Tests;
 

@@ -1,4 +1,6 @@
-namespace WinMon.Monitoring;
+using MonCore.Monitoring;
+
+namespace MonCore.Windows.Monitoring;
 
 /// <summary>Read-only connection to the optional local network-monitor service.</summary>
 public interface INetworkTrafficConnection : IAsyncDisposable

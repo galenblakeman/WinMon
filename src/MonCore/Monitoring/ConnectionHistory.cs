@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>A connection observation aligned with one resource sample. It is unavailable when collection did not complete.</summary>
 public sealed record ConnectionCapture(

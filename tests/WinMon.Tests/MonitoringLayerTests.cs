@@ -1,8 +1,8 @@
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.InteropServices;
+using MonCore.Monitoring;
 using NUnit.Framework;
-using WinMon.Monitoring;
 
 namespace WinMon.Tests;
 
@@ -45,7 +45,7 @@ public sealed class MonitoringLayerTests
     {
         var assembly = typeof(ProcessRanking).Assembly;
         var violations = new SortedSet<string>(StringComparer.Ordinal);
-        var monitoring = assembly.GetTypes().Where(t => t.Namespace == "WinMon.Monitoring").ToArray();
+        var monitoring = assembly.GetTypes().Where(t => t.Namespace == "MonCore.Monitoring").ToArray();
         Assert.That(monitoring, Is.Not.Empty);
         foreach (var type in monitoring)
         {
@@ -95,7 +95,7 @@ public sealed class MonitoringLayerTests
         var root = type;
         while (root.DeclaringType is not null) root = root.DeclaringType;
         // Global types in WinMon are compiler-generated: fixed buffers, string literal data and similar.
-        return root.Namespace is not null and not "WinMon.Monitoring" and not "WinMon.Resources";
+        return root.Namespace is not null and not "MonCore.Monitoring";
     }
 
     private static IEnumerable<MemberInfo> BodyReferences(MethodBase method)

@@ -7,8 +7,9 @@ using System.Diagnostics;
 using System.IO.Pipes;
 using System.Net;
 using System.Security.Principal;
+using MonCore.Monitoring;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Windows.Monitoring;
 
 /// <summary>Client for the fixed local network-monitor service endpoint.</summary>
 public sealed class NetworkServiceClient : IAsyncDisposable

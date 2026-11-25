@@ -5,9 +5,8 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using NUnit.Framework;
-using WinMon.Mcp;
 
-namespace WinMon.Tests;
+namespace WinMon.Mcp.Tests;
 
 [TestFixture, Category("Integration"), NonParallelizable]
 public sealed class InstallerRegistrationCharacterizationTests

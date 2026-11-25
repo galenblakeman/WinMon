@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using MonCore.Monitoring;
 using WinMon.Monitoring;
 
 namespace WinMon.Controls;

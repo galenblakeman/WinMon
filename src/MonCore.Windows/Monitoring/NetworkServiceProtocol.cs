@@ -1,7 +1,8 @@
 using System.Buffers.Binary;
 using System.Text.Json;
+using MonCore.Monitoring;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Windows.Monitoring;
 
 /// <summary>Bounded local protocol shared only by the Windows client and network service.</summary>
 public static class NetworkServiceProtocol

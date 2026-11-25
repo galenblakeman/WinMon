@@ -13,6 +13,8 @@ using System.Windows.Media.Animation;
 using System.Windows.Shell;
 using System.Windows.Threading;
 using Microsoft.Win32;
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 using WinMon.Controls;
 using WinMon.Monitoring;
 using WinMon.Preferences;

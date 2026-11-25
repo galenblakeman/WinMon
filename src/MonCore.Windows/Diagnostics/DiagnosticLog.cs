@@ -9,7 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Channels;
 
-namespace WinMon.Diagnostics;
+namespace MonCore.Windows.Diagnostics;
 
 /// <summary>Bounded, privacy-conscious file collection for existing Trace events.</summary>
 public sealed class DiagnosticLog : TraceListener

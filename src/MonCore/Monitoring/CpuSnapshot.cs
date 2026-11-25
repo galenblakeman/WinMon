@@ -1,4 +1,4 @@
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>Carry raw native timing values for one monotonic collection instant.</summary>
 /// <param name="Timestamp">Wall-clock label for the collection.</param>

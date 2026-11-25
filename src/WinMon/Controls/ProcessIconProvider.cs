@@ -7,7 +7,7 @@ using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media.Imaging;
 using Microsoft.Win32.SafeHandles;
-using WinMon.Monitoring;
+using MonCore.Monitoring;
 
 namespace WinMon.Controls;
 

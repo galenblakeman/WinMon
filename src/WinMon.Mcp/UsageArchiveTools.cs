@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Text.Json;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
-using WinMon.Monitoring;
+using MonCore.Monitoring;
 
 namespace WinMon.Mcp;
 
@@ -58,8 +58,8 @@ internal sealed partial class DiagnosticTools
         static bool InvalidOptions(DateOnly first, DateOnly last, int metric, string filter, int limit, string? filePath) =>
             last == DateOnly.MaxValue || first > last || last.DayNumber - first.DayNumber >= UsageArchive.RetainedDays ||
             metric < 0 || filter is null || filter.Length > 256 || limit is < 1 or > 200 ||
-            filePath is not null && (filePath.Length is < 3 or > 1024 || !char.IsAsciiLetter(filePath[0]) ||
-                filePath[1] != ':' || !Path.IsPathFullyQualified(filePath));
+            (filePath is not null && (filePath.Length is < 3 or > 1024 || !char.IsAsciiLetter(filePath[0]) ||
+                                      filePath[1] != ':' || !Path.IsPathFullyQualified(filePath)));
     }
 }
 

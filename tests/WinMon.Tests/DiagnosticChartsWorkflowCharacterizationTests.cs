@@ -4,9 +4,9 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using MonCore.Monitoring;
 using NUnit.Framework;
 using WinMon.Diagnostics;
-using WinMon.Monitoring;
 using WinMon.Preferences;
 using WinMon.Resources;
 
@@ -205,7 +205,7 @@ public sealed partial class MainWindowWorkflowCharacterizationTests
             {
                 InstallDesignActionStyles();
                 InstallServicesWorkflowTitleStyles();
-                Assert.That(WinMon.Updates.UpdateRuntime.RestartHistory, Is.Null);
+                Assert.That(Updates.UpdateRuntime.RestartHistory, Is.Null);
                 Window.StopForFixtureAsync().GetAwaiter().GetResult();
                 Window.OnLoaded(Window, new RoutedEventArgs(FrameworkElement.LoadedEvent));
                 Window.Preferences = Window.Preferences with { Language = "en", Theme = "Dark" };

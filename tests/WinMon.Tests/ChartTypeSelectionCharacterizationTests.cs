@@ -1,8 +1,8 @@
 using System.Windows;
 using System.Windows.Controls;
+using MonCore.Monitoring;
 using NUnit.Framework;
 using WinMon.Controls;
-using WinMon.Monitoring;
 using WinMon.Preferences;
 using WinMon.Resources;
 
@@ -193,7 +193,7 @@ public sealed class ChartTypeSelectionCharacterizationTests
 
     private void Prepare()
     {
-        Assert.That(WinMon.Updates.UpdateRuntime.RestartHistory, Is.Null);
+        Assert.That(Updates.UpdateRuntime.RestartHistory, Is.Null);
         _window.StopForFixtureAsync().GetAwaiter().GetResult();
         _window.OnLoaded(_window, new RoutedEventArgs(FrameworkElement.LoadedEvent));
         Assert.That(_window.SamplingTask, Is.Null);

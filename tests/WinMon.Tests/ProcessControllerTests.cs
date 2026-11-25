@@ -1,5 +1,7 @@
 using System.ComponentModel;
 using System.Diagnostics;
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 using NUnit.Framework;
 using WinMon.Monitoring;
 using WinMon.Resources;
@@ -218,8 +220,17 @@ public sealed class ProcessControllerTests
         public ushort ProcessGroupCount => GroupCount;
         public ulong SystemMask { get; init; } = 3;
         public bool AffinityWasSet { get; private set; }
-        private ProcessPriorityClass _priority = ProcessPriorityClass.Normal;
-        public ProcessPriorityClass PriorityClass { get { PriorityReads++; return PriorityReadError is null ? _priority : throw PriorityReadError; } set => _priority = value; }
+
+        public ProcessPriorityClass PriorityClass
+        {
+            get
+            {
+                PriorityReads++;
+                return PriorityReadError is null ? field : throw PriorityReadError;
+            }
+            set;
+        } = ProcessPriorityClass.Normal;
+
         public ProcessPowerThrottlingState Power { get; set; } = new(0, 0);
         public bool FailPriority { get; init; }
         public bool FailRollback { get; init; }

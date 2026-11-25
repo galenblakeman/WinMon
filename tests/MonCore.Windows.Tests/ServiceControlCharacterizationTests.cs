@@ -1,10 +1,11 @@
 using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Diagnostics;
+using MonCore.Windows.Monitoring;
 using NUnit.Framework;
-using Native = WinMon.Monitoring.WindowsServices;
+using Native = MonCore.Windows.Monitoring.WindowsServices;
 
-namespace WinMon.Tests;
+namespace MonCore.Windows.Tests;
 
 [TestFixture]
 public sealed class ServiceControlCharacterizationTests
@@ -360,7 +361,7 @@ public sealed class ServiceControlCharacterizationTests
         });
     }
 
-    private sealed class Backend : Native.IServiceOperations, IDisposable
+    private sealed class Backend : WindowsServices.IServiceOperations, IDisposable
     {
         private readonly Native.Status[] _statuses;
         private readonly ConcurrentQueue<string> _log = new();
@@ -397,14 +398,14 @@ public sealed class ServiceControlCharacterizationTests
         public void Dispose() => Clock.Dispose();
     }
 
-    private sealed class Handle(Backend backend, string name) : Native.IServiceHandle
+    private sealed class Handle(Backend backend, string name) : WindowsServices.IServiceHandle
     {
         public string Name => name;
         public int Disposals { get; private set; }
         public void Dispose() { Disposals++; backend.Record("dispose:" + name); }
     }
 
-    private sealed class Host(Backend backend) : Native.IServiceProcess
+    private sealed class Host(Backend backend) : WindowsServices.IServiceProcess
     {
         public bool Exited { get; set; }
         public long Token { get; set; } = 100;

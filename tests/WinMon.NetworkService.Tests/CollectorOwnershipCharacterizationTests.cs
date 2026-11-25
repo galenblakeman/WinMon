@@ -1,12 +1,10 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Reflection;
+using MonCore.Monitoring;
 using NUnit.Framework;
-using WinMon.Monitoring;
-using WinMon.NetworkService;
-using ProcessOwner = WinMon.NetworkService.ProcessOwner;
 
-namespace WinMon.Tests;
+namespace WinMon.NetworkService.Tests;
 
 [TestFixture]
 public sealed class CollectorOwnershipCharacterizationTests

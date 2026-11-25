@@ -1,4 +1,4 @@
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>One executable's totals since the ledger started or was reset.</summary>
 /// <param name="Key">The Grouped-mode identity, <see cref="ProcessRanking.GroupKey"/>, or <see cref="UsageLedger.OtherAppsKey"/>.</param>

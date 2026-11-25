@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Win32;
+using MonCore.Monitoring;
 using WinMon.Monitoring;
 
 namespace WinMon.Controls;

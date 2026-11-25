@@ -1,8 +1,8 @@
 using System.Globalization;
 using System.Text.Json;
+using MonCore.Monitoring;
 using Spectre.Console;
 using WinMon.Monitoring;
-using WinMon.Resources;
 
 namespace WinMon.Cli;
 

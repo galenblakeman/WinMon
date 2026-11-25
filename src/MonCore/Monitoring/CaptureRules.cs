@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>What an automatic capture rule watches; stored by name in preferences.</summary>
 [JsonConverter(typeof(JsonStringEnumConverter<CaptureMetric>))]

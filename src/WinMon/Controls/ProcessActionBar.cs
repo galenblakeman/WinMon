@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
+using MonCore.Monitoring;
 using WinMon.Monitoring;
 
 namespace WinMon.Controls;

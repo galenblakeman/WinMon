@@ -1,8 +1,8 @@
 using System.Reflection;
 using System.Text.RegularExpressions;
+using MonCore.Monitoring;
 using NUnit.Framework;
 using Spectre.Console;
-using WinMon.Monitoring;
 
 namespace WinMon.Cli.Tests;
 

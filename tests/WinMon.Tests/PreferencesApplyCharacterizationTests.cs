@@ -3,8 +3,8 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
+using MonCore.Monitoring;
 using NUnit.Framework;
-using WinMon.Monitoring;
 using WinMon.Preferences;
 using WinMon.Resources;
 

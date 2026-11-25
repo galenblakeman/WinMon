@@ -6,8 +6,8 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Input;
+using MonCore.Monitoring;
 using WinMon.Controls;
-using WinMon.Monitoring;
 using Path = System.Windows.Shapes.Path;
 
 // ReSharper disable StringLiteralTypo

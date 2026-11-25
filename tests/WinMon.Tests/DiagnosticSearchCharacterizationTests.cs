@@ -4,16 +4,16 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using MonCore.Monitoring;
 using NUnit.Framework;
 using WinMon.Controls;
 using WinMon.Diagnostics;
-using WinMon.Monitoring;
 
 namespace WinMon.Tests;
 
 public sealed partial class MainWindowWorkflowCharacterizationTests
 {
-    [TestCase(1000), TestCase(1400), NUnit.Framework.Category("Integration")]
+    [TestCase(1000), TestCase(1400), Category("Integration")]
     public void SearchDiagnosticPreservesAllCapturesSortingAndFinalLiveState(double width)
     {
         using var fixture = new SearchDiagnostic(_directory, width: width);

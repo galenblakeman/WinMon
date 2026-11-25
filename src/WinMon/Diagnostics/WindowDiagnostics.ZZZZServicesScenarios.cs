@@ -4,8 +4,8 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using MonCore.Monitoring;
 using WinMon.Controls;
-using WinMon.Monitoring;
 
 namespace WinMon.Diagnostics;
 

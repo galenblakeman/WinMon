@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using System.Security.Principal;
 using Microsoft.Win32.SafeHandles;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Windows.Monitoring;
 
 public static class NetworkSetupPipe
 {

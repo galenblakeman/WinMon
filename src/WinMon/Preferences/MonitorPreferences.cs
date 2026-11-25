@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization;
-using WinMon.Monitoring;
+using MonCore.Monitoring;
 using WinMon.Shortcuts;
 
 namespace WinMon.Preferences;

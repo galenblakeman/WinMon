@@ -1,8 +1,7 @@
 using System.CommandLine;
 using System.Globalization;
 using System.Text.Json;
-using WinMon.Monitoring;
-using WinMon.Resources;
+using MonCore.Monitoring;
 
 namespace WinMon.Cli;
 
@@ -29,17 +28,17 @@ internal static class UsageArchiveCommand
                 var date = DateOnly.ParseExact(result.GetValue(ending)!, "yyyy-MM-dd", CultureInfo.InvariantCulture);
                 if (date.DayNumber < result.GetValue(days) || date == DateOnly.MaxValue) { await error.WriteLineAsync(Strings.CliArchiveEnding); return 1; }
                 var archive = await UsageArchive.LoadAsync(result.GetValue(file)!, token);
-                var query = archive.Query(date.AddDays(1 - result.GetValue(days)), date);
-                var period = query.Period;
+                var (period, observedSeconds) = archive.Query(date.AddDays(1 - result.GetValue(days)), date);
                 token.ThrowIfCancellationRequested();
                 if (result.GetValue(format) == "json")
                     await output.WriteLineAsync(JsonSerializer.Serialize(new { schemaVersion = 1, timeZone = archive.TimeZoneId,
-                        period.Since, period.Latest, query.ObservedSeconds, period.MachineBusyTicks, period.NotAttributedTicks,
+                        period.Since, period.Latest,
+                        ObservedSeconds = observedSeconds, period.MachineBusyTicks, period.NotAttributedTicks,
                         complete = false, apps = period.Apps.Select(a => new { a.Name, a.AppName, a.ImagePath,
                             a.CpuTicks, a.IoBytes, a.GpuSeconds, dailyLifetimeObservations = a.Lifetimes, running = (int?)null,
                             lastActiveUtc = a.LastActive?.Timestamp.ToUniversalTime() }) }, SnapshotReport.JsonOptions));
                 else ActivityCommands.Render(UsageTab.Build(period.Apps, period.Since, period.MachineBusyTicks,
-                    period.Latest, 0, "", false, 0, true) with { Note = Strings.Format(Strings.UsageArchiveObserved, query.ObservedSeconds) }, output, result.GetValue(noColor));
+                    period.Latest, 0, "", false, 0, true) with { Note = Strings.Format(Strings.UsageArchiveObserved, observedSeconds) }, output, result.GetValue(noColor));
                 return 0;
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested) { return 130; }

@@ -1,9 +1,8 @@
 using System.Net;
 using System.Windows;
-using System.Windows.Controls;
+using MonCore.Monitoring;
 using NUnit.Framework;
 using WinMon.Controls;
-using WinMon.Monitoring;
 using WinMon.Resources;
 
 namespace WinMon.Tests;

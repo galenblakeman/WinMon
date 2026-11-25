@@ -1,9 +1,10 @@
 using System.Buffers.Binary;
 using System.Diagnostics;
 using System.Text;
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 using NUnit.Framework;
 using WinMon.Controls;
-using WinMon.Monitoring;
 
 namespace WinMon.Tests;
 

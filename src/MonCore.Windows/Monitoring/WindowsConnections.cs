@@ -3,8 +3,9 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
+using MonCore.Monitoring;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Windows.Monitoring;
 
 /// <summary>Reads ordinary-user TCP and UDP endpoint ownership through IP Helper tables.</summary>
 public static class WindowsConnections

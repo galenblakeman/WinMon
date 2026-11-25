@@ -2,8 +2,9 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
+using MonCore.Monitoring;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Windows.Monitoring;
 
 /// <summary>Pair adapter-wide dedicated usage with DXGI capacity for the same adapter LUID.</summary>
 internal sealed class WindowsGpuMemory : IDisposable

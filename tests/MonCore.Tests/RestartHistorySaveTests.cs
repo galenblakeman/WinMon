@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using System.Text;
+using MonCore.Monitoring;
 using NUnit.Framework;
-using WinMon.Monitoring;
 
-namespace WinMon.Tests;
+namespace MonCore.Tests;
 
 [TestFixture, Category("Integration"), NonParallelizable]
 public sealed class RestartHistorySaveTests
@@ -219,7 +219,7 @@ public sealed class RestartHistorySaveTests
             {
                 var kind = reader.ReadByte(); var length = reader.ReadInt32(); _ = reader.ReadUInt32();
                 reader.BaseStream.Position += length;
-                if (checkpoint == "sample" && kind == 2 || checkpoint == "investigation" && kind == 3)
+                if ((checkpoint == "sample" && kind == 2) || (checkpoint == "investigation" && kind == 3))
                 { limit = reader.BaseStream.Position - 1; break; }
             }
         }

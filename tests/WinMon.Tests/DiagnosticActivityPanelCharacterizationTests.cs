@@ -217,7 +217,7 @@ public sealed partial class MainWindowWorkflowCharacterizationTests
         internal Task Run(CancellationToken token = default, string? output = null) => typeof(WindowDiagnostics)
             .GetMethod("CaptureActivityPanelAsync", BindingFlags.Instance | BindingFlags.NonPublic)!
             .CreateDelegate<Func<string, CancellationToken, Task>>(new WindowDiagnostics(Window))(output ?? _directory, token);
-        internal void AssertRestored(WinMon.Preferences.MonitorPreferences original, int tab)
+        internal void AssertRestored(Preferences.MonitorPreferences original, int tab)
         {
             Assert.That(Window.Preferences, Is.EqualTo(original));
             Assert.That(Window.Width, Is.EqualTo(1000));

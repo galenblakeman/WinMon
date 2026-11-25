@@ -1,6 +1,6 @@
 using System.IO.Pipes;
 using System.Security.Principal;
-using WinMon.Monitoring;
+using MonCore.Windows.Monitoring;
 
 namespace WinMon.NetworkSetup;
 

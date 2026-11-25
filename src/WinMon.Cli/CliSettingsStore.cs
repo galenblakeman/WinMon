@@ -121,7 +121,7 @@ public sealed class CliSettingsSession(CliSettingsStore store, InteractiveState 
     public void Flush(bool force = false)
     {
         if (Failed || _before is not { } before || _after is not { } after ||
-            !force && Clock.GetElapsedTime(_changedAt) < TimeSpan.FromMilliseconds(500)) return;
+            (!force && Clock.GetElapsedTime(_changedAt) < TimeSpan.FromMilliseconds(500))) return;
         try
         {
             store.Update(current => CliPreferences.Merge(before, after, current));

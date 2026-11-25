@@ -7,6 +7,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using MonCore.Monitoring;
 using WinMon.Monitoring;
 using Path = System.Windows.Shapes.Path;
 

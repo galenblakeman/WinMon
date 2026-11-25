@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using MonCore.Monitoring;
 using WinMon.Monitoring;
 using WinMon.Preferences;
 
@@ -340,7 +341,7 @@ internal static class CaptureReportText
             extraTrigger = true;
         }
         var eligibleGroups = (pinnedOnly ? pinned.Length : all.Count) +
-                             (triggering is not null && (triggerOutsideFilter || pinnedOnly && pinned.All(group => group.Key != triggering.Key)) ? 1 : 0);
+                             (triggering is not null && (triggerOutsideFilter || (pinnedOnly && pinned.All(group => group.Key != triggering.Key))) ? 1 : 0);
         return (groups, eligibleGroups, extraTrigger);
     }
 

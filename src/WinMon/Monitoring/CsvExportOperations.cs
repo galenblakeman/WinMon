@@ -1,8 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
 using System.Windows;
 using Microsoft.Win32;
+using MonCore.Monitoring;
 using WinMon.Controls;
 
 namespace WinMon.Monitoring;

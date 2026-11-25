@@ -1,7 +1,8 @@
 using System.ComponentModel;
 using System.Diagnostics;
+using MonCore.Monitoring;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Windows.Monitoring;
 
 /// <summary>Captures processes, resources and services from Windows, keeping what remains readable.</summary>
 public sealed class WindowsFrameSource : IFrameSource

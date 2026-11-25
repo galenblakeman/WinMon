@@ -1,9 +1,11 @@
 using System.Security.Cryptography;
 using System.Text.Json;
+using MonCore.Windows.Monitoring;
 using NUnit.Framework;
-using WinMon.Monitoring;
+using NetworkSetupManifestJsonContext = MonCore.Windows.Monitoring.NetworkSetupManifestJsonContext;
+using NetworkSetupWireJsonContext = MonCore.Windows.Monitoring.NetworkSetupWireJsonContext;
 
-namespace WinMon.Tests;
+namespace MonCore.Windows.Tests;
 
 [TestFixture]
 public sealed class NetworkSetupPackageTests
@@ -263,7 +265,7 @@ public sealed class NetworkSetupPackageTests
         await stream.WriteAsync(BitConverter.GetBytes(NetworkSetupWire.MaximumMessageBytes + 1));
         stream.Position = 0;
 
-        Assert.ThrowsAsync<InvalidDataException>(async () => await NetworkSetupWire.ReadAsync(stream,
+        Assert.ThrowsAsync<InvalidDataException>(async () => await NetworkSetupWire.ReadAsync<NetworkSetupReply>(stream,
             NetworkSetupWireJsonContext.Default.NetworkSetupReply, TestContext.CurrentContext.CancellationToken));
     }
 
@@ -276,7 +278,7 @@ public sealed class NetworkSetupPackageTests
             default);
         stream.Position = 0;
         Assert.That(
-            await NetworkSetupWire.ReadAsync(stream, NetworkSetupWireJsonContext.Default.NetworkSetupReply, default),
+            await NetworkSetupWire.ReadAsync<NetworkSetupReply>(stream, NetworkSetupWireJsonContext.Default.NetworkSetupReply, default),
             Is.EqualTo(expected));
     }
 

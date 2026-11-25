@@ -3,11 +3,10 @@ using System.Globalization;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Text.Json;
+using MonCore.Monitoring;
 using NUnit.Framework;
-using WinMon.Mcp;
-using WinMon.Monitoring;
 
-namespace WinMon.Tests;
+namespace WinMon.Mcp.Tests;
 
 [TestFixture]
 public sealed class ConnectionQueryCharacterizationTests
@@ -284,7 +283,7 @@ public sealed class ConnectionQueryCharacterizationTests
         public override DateTimeOffset GetUtcNow() => Origin.AddTicks(GetTimestamp());
         public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
         {
-            if (SystemTimers) return TimeProvider.System.CreateTimer(callback, state, dueTime, period);
+            if (SystemTimers) return System.CreateTimer(callback, state, dueTime, period);
             var timer = _inner.CreateTimer(callback, state, dueTime, period);
             if (dueTime == TimeSpan.FromSeconds(5)) CurrentCreated.TrySetResult();
             if (dueTime == TimeSpan.FromSeconds(30)) IdleCreated.TrySetResult();

@@ -1,9 +1,8 @@
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Windows.Monitoring;
 
 internal readonly record struct MemoryPressureRaw(double? PagingReadsPerSecond, ulong? StandbyCoreBytes,
     ulong? StandbyNormalBytes, ulong? StandbyReserveBytes, ulong? ModifiedBytes, ulong? FreeBytes,

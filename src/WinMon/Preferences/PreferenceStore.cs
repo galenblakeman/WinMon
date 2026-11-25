@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json;
-using WinMon.Monitoring;
+using MonCore.Monitoring;
 using WinMon.Shortcuts;
 
 namespace WinMon.Preferences;

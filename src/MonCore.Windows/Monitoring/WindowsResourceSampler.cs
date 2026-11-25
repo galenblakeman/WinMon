@@ -4,8 +4,9 @@ using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 using System.Security;
 using Microsoft.Win32.SafeHandles;
+using MonCore.Monitoring;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Windows.Monitoring;
 
 /// <summary>Collect memory, system-volume activity, one network link, and busiest-engine GPU utilization.</summary>
 internal sealed class WindowsResourceSampler : IDisposable

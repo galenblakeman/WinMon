@@ -1,8 +1,8 @@
-using System.CommandLine;
+using WinMon.Resources;
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 using NUnit.Framework;
 using Spectre.Console;
-using WinMon.Cli;
-using WinMon.Monitoring;
 
 namespace WinMon.Cli.Tests;
 
@@ -242,7 +242,7 @@ public sealed class FullInteractiveTests
         var console = AnsiConsole.Create(new AnsiConsoleSettings { Enrichment = new() { UseDefaultEnrichers = false }, Out = new AnsiConsoleOutput(output), Ansi = AnsiSupport.No });
         console.Profile.Width = 120;
         console.Write(InteractiveMonitor.BuildView(state, 0, 3, 120, 24));
-        var label = WinMon.Resources.Strings.NetworkProcessMonitoringDisabled;
+        var label = Strings.NetworkProcessMonitoringDisabled;
         Assert.That(output.ToString().Split(label, StringSplitOptions.None).Length - 1, Is.EqualTo(1));
     }
 

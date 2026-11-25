@@ -1,4 +1,4 @@
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>Shared filtering and ranking policy for executable usage totals.</summary>
 public static class UsageQuery

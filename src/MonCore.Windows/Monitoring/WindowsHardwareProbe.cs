@@ -2,7 +2,7 @@ using System.Runtime.InteropServices;
 using System.Security;
 using Microsoft.Win32;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Windows.Monitoring;
 
 /// <summary>Raw Windows hardware readings. The application formats and localizes them.</summary>
 public static class WindowsHardwareProbe

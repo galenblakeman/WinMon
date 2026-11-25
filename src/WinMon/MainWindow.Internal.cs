@@ -1,8 +1,8 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
+using MonCore.Monitoring;
 using WinMon.Controls;
-using WinMon.Monitoring;
 using WinMon.Preferences;
 using Forms = System.Windows.Forms;
 

@@ -1,8 +1,7 @@
 using System.Collections;
 using System.Reflection;
-using WinMon.NetworkService;
 
-namespace WinMon.Tests;
+namespace WinMon.NetworkService.Tests;
 
 internal sealed class CollectorOwnershipState
 {

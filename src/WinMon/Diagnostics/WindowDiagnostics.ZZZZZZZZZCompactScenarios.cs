@@ -1,10 +1,9 @@
 using System.Diagnostics;
-using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
-using System.Windows.Interop;
+using MonCore.Monitoring;
 using WinMon.Controls;
 using WinMon.Monitoring;
 using WinMon.Preferences;
@@ -217,7 +216,7 @@ internal sealed partial class WindowDiagnostics
             var labels = new[] { Strings.DetailPagingReads, Strings.DetailStandby, Strings.DetailModified,
                 Strings.DetailFree, Strings.DetailCompressionStore };
             if (details.Rows.Count != 11 || !details.Rows.Skip(4).Take(5).Select(row => row.Label).SequenceEqual(labels) ||
-                details.Rows.Skip(4).Take(5).Any(row => (row.Value == Strings.MissingReading) != unavailable))
+                details.Rows.Skip(4).Take(5).Any(row => row.Value == Strings.MissingReading != unavailable))
                 throw new InvalidOperationException("Memory pressure details lost their labels, values or unavailable state.");
             var surface = new Border
             {

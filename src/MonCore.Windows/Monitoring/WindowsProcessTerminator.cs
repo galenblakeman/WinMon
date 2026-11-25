@@ -2,7 +2,7 @@ using System.ComponentModel;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Windows.Monitoring;
 
 public interface IProcessTerminationTarget : IDisposable
 {

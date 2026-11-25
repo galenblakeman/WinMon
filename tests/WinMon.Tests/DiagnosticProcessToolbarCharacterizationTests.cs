@@ -146,7 +146,7 @@ public sealed partial class MainWindowWorkflowCharacterizationTests
 
         internal Rect Bounds(FrameworkElement control) => control.TransformToAncestor(Grid).TransformBounds(new Rect(control.RenderSize));
         internal (string Name, int Row, Rect Bounds, double MinimumWidth)[] Snapshot() => Controls.Select(control =>
-            (control.Name, System.Windows.Controls.Grid.GetRow(control), Bounds(control), control.MinWidth)).ToArray();
+            (control.Name, Grid.GetRow(control), Bounds(control), control.MinWidth)).ToArray();
         internal string LayoutFailure(FrameworkElement control) =>
             $"Process toolbar control {control.Name} overlaps, clips, or wraps at width {Grid.ActualWidth}.";
         public void Dispose()

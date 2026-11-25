@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using System.Net;
 using System.Net.NetworkInformation;
+using MonCore.Monitoring;
 using NUnit.Framework;
 using Spectre.Console;
-using WinMon.Monitoring;
 
 namespace WinMon.Cli.Tests;
 

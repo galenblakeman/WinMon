@@ -1,10 +1,10 @@
+using WinMon.Updates;
 using System.CommandLine;
 using System.Globalization;
 using System.Text.Json;
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 using Spectre.Console;
-using WinMon.Monitoring;
-using WinMon.Resources;
-using WinMon.Updates;
 
 namespace WinMon.Cli;
 
@@ -127,7 +127,7 @@ public static class CliCommand
             }
             catch (InvalidOperationException) { return; } // The parser reports invalid individual option values.
             if (result.GetResult(tab) is { Implicit: false } && tabName is not null && sortName is not null &&
-                (ResolveSort(tabName, sortName) < 0 || tabName == "services" && sortName == "name" && selectedTop != 0))
+                (ResolveSort(tabName, sortName) < 0 || (tabName == "services" && sortName == "name" && selectedTop != 0)))
                 result.AddError(Strings.CliSort);
         });
         watch.SetAction(async (result, token) =>

@@ -1,10 +1,10 @@
 using System.Diagnostics;
 using System.Net;
 using System.Net.NetworkInformation;
+using MonCore.Monitoring;
 using NUnit.Framework;
-using WinMon.Monitoring;
 
-namespace WinMon.Tests;
+namespace MonCore.Tests;
 
 [TestFixture, Category("Integration")]
 public sealed class InvestigationHistoryTests

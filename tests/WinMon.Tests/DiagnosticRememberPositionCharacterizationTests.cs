@@ -1,4 +1,3 @@
-using System.Reflection;
 using System.Windows;
 using NUnit.Framework;
 using DrawingPoint = System.Drawing.Point;

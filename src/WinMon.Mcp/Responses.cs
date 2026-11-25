@@ -1,7 +1,8 @@
 using System.Globalization;
 using System.Text.Json;
 using ModelContextProtocol.Protocol;
-using WinMon.Monitoring;
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 
 namespace WinMon.Mcp;
 
@@ -245,7 +246,7 @@ internal static class HardwareProjection
 
         bool NetworkClipped() =>
             source.Network.Data is { } n && (n.Adapters.Length > 256 || n.Adapters.Any(x =>
-                ClippedText(x.Description) || source.IdentifiersIncluded && ClippedText(x.Name)));
+                ClippedText(x.Description) || (source.IdentifiersIncluded && ClippedText(x.Name))));
     }
 
     internal static HardwareInventorySnapshot? Trim(HardwareInventorySnapshot source)

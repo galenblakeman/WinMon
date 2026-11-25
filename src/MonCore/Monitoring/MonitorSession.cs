@@ -6,7 +6,7 @@ using System.Diagnostics;
 
 // ReSharper disable GrammarMistakeInComment
 
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>Why the latest capture is incomplete.</summary>
 public enum SamplingError

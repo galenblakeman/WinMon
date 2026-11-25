@@ -1,15 +1,11 @@
 using System.Windows;
-using System.Windows.Automation;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Interop;
 using NUnit.Framework;
-using WinMon.Controls;
 using WinMon.Monitoring;
 using WinMon.Resources;
 using System.Windows.Threading;
-using System.Windows.Media;
-using ShapePath = System.Windows.Shapes.Path;
+using MonCore.Monitoring;
 
 namespace WinMon.Tests;
 
@@ -37,10 +33,10 @@ public sealed class CaptureObservationCharacterizationTests
         _window.Loaded -= _window.OnLoaded;
         _window.ApplyTheme(false, false);
         _previousContext = SynchronizationContext.Current;
-        SynchronizationContext.SetSynchronizationContext(new System.Windows.Threading.DispatcherSynchronizationContext());
-        _temporaryFolder = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "WinMon.CaptureObservation." + Guid.NewGuid().ToString("N"));
-        System.IO.Directory.CreateDirectory(_temporaryFolder);
-        _window.Preferences = _window.Preferences with { AutoCapture = new WinMon.Preferences.AutoCapturePreferences { Enabled = true, Notify = false, Folder = System.IO.Path.Combine(_temporaryFolder, "reports"), CooldownMinutes = 1, Rules = [new(CaptureMetric.Cpu, true, 90, 3), new(CaptureMetric.Memory, false, 90, 3)] } };
+        SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext());
+        _temporaryFolder = Path.Combine(Path.GetTempPath(), "WinMon.CaptureObservation." + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(_temporaryFolder);
+        _window.Preferences = _window.Preferences with { AutoCapture = new Preferences.AutoCapturePreferences { Enabled = true, Notify = false, Folder = Path.Combine(_temporaryFolder, "reports"), CooldownMinutes = 1, Rules = [new(CaptureMetric.Cpu, true, 90, 3), new(CaptureMetric.Memory, false, 90, 3)] } };
     }
 
     [TearDown]
@@ -61,7 +57,7 @@ public sealed class CaptureObservationCharacterizationTests
         SynchronizationContext.SetSynchronizationContext(_previousContext);
         if (_temporaryFolder is not null)
         {
-            System.IO.Directory.Delete(_temporaryFolder, recursive: true);
+            Directory.Delete(_temporaryFolder, recursive: true);
             _temporaryFolder = null;
         }
     }
@@ -116,11 +112,11 @@ public sealed class CaptureObservationCharacterizationTests
             {
                 Assert.That(marker.WriteFailed, Is.False);
                 Assert.That(marker.ReportPath, Is.Not.Null);
-                Assert.That(System.IO.File.Exists(marker.ReportPath), Is.True);
-                Assert.That(System.IO.Path.GetFullPath(marker.ReportPath!).StartsWith(
-                    System.IO.Path.GetFullPath(_temporaryFolder!) + System.IO.Path.DirectorySeparatorChar,
+                Assert.That(File.Exists(marker.ReportPath), Is.True);
+                Assert.That(Path.GetFullPath(marker.ReportPath!).StartsWith(
+                    Path.GetFullPath(_temporaryFolder!) + Path.DirectorySeparatorChar,
                     StringComparison.OrdinalIgnoreCase), Is.True);
-                Assert.That(System.IO.File.ReadLines(marker.ReportPath!).First(), Is.EqualTo(CaptureReports.FirstLine(marker.ReportId)));
+                Assert.That(File.ReadLines(marker.ReportPath!).First(), Is.EqualTo(CaptureReports.FirstLine(marker.ReportId)));
             });
         }
         Assert.That(_window.IsVisible, Is.False);
@@ -138,7 +134,7 @@ public sealed class CaptureObservationCharacterizationTests
         Assert.Multiple(() =>
         {
             Assert.That(_window.CaptureMarkers, Is.Empty);
-            Assert.That(System.IO.Directory.Exists(_window.Preferences.AutoCapture.Folder), Is.False);
+            Assert.That(Directory.Exists(_window.Preferences.AutoCapture.Folder), Is.False);
         });
     }
 
@@ -147,7 +143,7 @@ public sealed class CaptureObservationCharacterizationTests
     {
         Assert.That(Assert.Throws<ArgumentNullException>(() => _window.ObserveForCaptures(null!))!.ParamName, Is.EqualTo("full"));
         Assert.That(_window.CaptureMarkers, Is.Empty);
-        Assert.That(System.IO.Directory.Exists(_window.Preferences.AutoCapture.Folder), Is.False);
+        Assert.That(Directory.Exists(_window.Preferences.AutoCapture.Folder), Is.False);
     }
 
     [TestCase(false)]
@@ -162,7 +158,7 @@ public sealed class CaptureObservationCharacterizationTests
         for (var second = 0; second < 4; second++) Feed(second, 99);
 
         Assert.That(_window.CaptureMarkers, Is.Empty);
-        Assert.That(System.IO.Directory.Exists(_window.Preferences.AutoCapture.Folder), Is.False);
+        Assert.That(Directory.Exists(_window.Preferences.AutoCapture.Folder), Is.False);
     }
 
     [TestCase("Preferences")]
@@ -180,7 +176,7 @@ public sealed class CaptureObservationCharacterizationTests
             AutoCapture = change switch
             {
                 "EqualRules" => original with { Rules = original.Rules.Select(rule => rule with { }).ToArray() },
-                "Folder" => original with { Folder = System.IO.Path.Combine(_temporaryFolder!, "moved") },
+                "Folder" => original with { Folder = Path.Combine(_temporaryFolder!, "moved") },
                 _ => original with { }
             }
         };
@@ -195,7 +191,7 @@ public sealed class CaptureObservationCharacterizationTests
             Assert.That(marker.Fired.Peak, Is.SameAs(peak));
             Assert.That(marker.Fired.PeakValue, Is.EqualTo(99));
             Assert.That(marker.Fired.Run, Is.EqualTo(new[] { first.TotalCpuPercent!.Value, 99d, 96 }));
-            Assert.That(System.IO.Path.GetDirectoryName(marker.ReportPath), Is.EqualTo(_window.Preferences.AutoCapture.Folder).IgnoreCase);
+            Assert.That(Path.GetDirectoryName(marker.ReportPath), Is.EqualTo(_window.Preferences.AutoCapture.Folder).IgnoreCase);
         });
     }
 
@@ -313,8 +309,8 @@ public sealed class CaptureObservationCharacterizationTests
 
     private string BlockFolder(string name)
     {
-        var path = System.IO.Path.Combine(_temporaryFolder!, name);
-        System.IO.File.WriteAllText(path, "owned blocker");
+        var path = Path.Combine(_temporaryFolder!, name);
+        File.WriteAllText(path, "owned blocker");
         _window.Preferences = _window.Preferences with { AutoCapture = _window.Preferences.AutoCapture with { Folder = path } };
         _window.UpdateFooter.Visibility = Visibility.Collapsed;
         _window.UpdateNowButton.Visibility = Visibility.Collapsed;
@@ -336,7 +332,7 @@ public sealed class CaptureObservationCharacterizationTests
         {
             Assert.That(marker.WriteFailed, Is.True);
             Assert.That(marker.ReportPath, Is.Null);
-            Assert.That(System.IO.File.ReadAllText(blocked), Is.EqualTo("owned blocker"));
+            Assert.That(File.ReadAllText(blocked), Is.EqualTo("owned blocker"));
             Assert.That(_window.UpdateFooter.Visibility, Is.EqualTo(closing ? Visibility.Collapsed : Visibility.Visible));
             Assert.That(_window.OwnedWindows.Count, Is.Zero);
             if (!closing) Assert.That(_window.UpdateStatusText.Text, Is.EqualTo(Strings.Format(Strings.AutoCaptureWriteFailed, blocked)));
@@ -351,8 +347,8 @@ public sealed class CaptureObservationCharacterizationTests
         Feed(0);
         var notice = _window.UpdateStatusText.Text;
         Assert.That(notice, Is.EqualTo(Strings.Format(Strings.AutoCaptureWriteFailed, first)));
-        var second = System.IO.Path.Combine(_temporaryFolder!, "second-blocked");
-        System.IO.File.WriteAllText(second, "second blocker");
+        var second = Path.Combine(_temporaryFolder!, "second-blocked");
+        File.WriteAllText(second, "second blocker");
         _window.Preferences = _window.Preferences with { AutoCapture = _window.Preferences.AutoCapture with { Folder = second } };
         Feed(1, 96);
         Assert.That(_window.CaptureMarkers.Count, Is.EqualTo(1));
@@ -365,7 +361,7 @@ public sealed class CaptureObservationCharacterizationTests
             Assert.That(_window.CaptureMarkers.Count, Is.EqualTo(2));
             Assert.That(_window.CaptureMarkers.All(marker => marker.WriteFailed && marker.ReportPath is null), Is.True);
             Assert.That(_window.UpdateStatusText.Text, Is.EqualTo(notice));
-            Assert.That(System.IO.File.ReadAllText(second), Is.EqualTo("second blocker"));
+            Assert.That(File.ReadAllText(second), Is.EqualTo("second blocker"));
         });
     }
 }

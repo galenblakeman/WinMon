@@ -1,7 +1,7 @@
+using MonCore.Windows.Monitoring;
 using System.IO.Pipes;
 using System.Reflection;
 using NUnit.Framework;
-using WinMon.Monitoring;
 using Win32Exception = System.ComponentModel.Win32Exception;
 
 namespace WinMon.NetworkSetup.Tests;
@@ -189,7 +189,7 @@ public sealed class HandshakeCharacterizationTests
                 PrepareParent = () =>
                 {
                     PrepareCalls++;
-                    if (prepare is not null) prepare();
+                    prepare?.Invoke();
                     throw Unexpected();
                 },
                 EnsureOwnedOrAbsent = () => throw Unexpected(),

@@ -1,4 +1,4 @@
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>The stable identity of recurring application failures. Versions deliberately do not participate.</summary>
 public sealed record CrashGroupKey(CrashKind Kind, string Application, string? Module, uint? ExceptionCode, ulong? Offset);
@@ -19,9 +19,9 @@ public static class CrashSignatures
         if (signature is null || !Enum.IsDefined(signature.Kind) || !ValidName(signature.Application) ||
             !ValidVersion(signature.ApplicationVersion)) return false;
         var crash = signature.Kind == CrashKind.Crash;
-        return crash == (signature.Module is not null) && crash == (signature.ModuleVersion is not null) &&
+        return crash == signature.Module is not null && crash == signature.ModuleVersion is not null &&
             crash == signature.ExceptionCode.HasValue && crash == signature.Offset.HasValue &&
-            (!crash || ValidName(signature.Module!) && ValidVersion(signature.ModuleVersion!));
+            (!crash || (ValidName(signature.Module!) && ValidVersion(signature.ModuleVersion!)));
     }
 
     private static bool ValidName(string value) => value is { Length: > 0 and <= 260 } && !string.IsNullOrWhiteSpace(value) &&

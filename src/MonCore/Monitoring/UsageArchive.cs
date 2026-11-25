@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 public sealed record UsageArchiveDay(DateOnly Day, UsageLedgerState Totals, double ObservedSeconds);
 public sealed record UsageArchiveState(int SchemaVersion, string TimeZoneId, UsageArchiveDay[] Days);
@@ -101,8 +101,7 @@ public sealed class UsageArchive
     private static void ValidateDayMetadata(UsageArchiveDay day)
     {
         var totals = day.Totals;
-        if (!ValidTotal(day.ObservedSeconds, 1e9) || totals is null ||
-            totals.Apps is null || totals.Lifetimes is null || totals.Apps.Count > UsageLedger.MaxApps + 1 || totals.Lifetimes.Count > 100_000 ||
+        if (!ValidTotal(day.ObservedSeconds, 1e9) || totals?.Apps is null || totals.Lifetimes is null || totals.Apps.Count > UsageLedger.MaxApps + 1 || totals.Lifetimes.Count > 100_000 ||
             !ValidTotal(totals.MachineBusyTicks, 1e17) || !ValidTotal(totals.AttributedTicks, 1e17))
             throw new InvalidDataException("Invalid usage totals.");
     }

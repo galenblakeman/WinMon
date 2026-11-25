@@ -3,7 +3,6 @@ using System.Text.Json;
 using System.Windows;
 using System.Windows.Media.Imaging;
 using NUnit.Framework;
-using WinMon.Controls;
 using WinMon.Diagnostics;
 
 namespace WinMon.Tests;

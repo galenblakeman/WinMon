@@ -4,7 +4,7 @@
 using System.Security.AccessControl;
 using System.Security.Principal;
 
-namespace WinMon.Diagnostics;
+namespace MonCore.Windows.Diagnostics;
 
 /// <summary>Protected shared locations for WinMon diagnostic logs.</summary>
 public static class LogDirectories

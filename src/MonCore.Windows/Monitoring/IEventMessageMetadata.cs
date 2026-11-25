@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Windows.Monitoring;
 
 internal interface IEventMessageMetadata : IDisposable
 {

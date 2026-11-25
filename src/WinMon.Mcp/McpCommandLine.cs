@@ -15,7 +15,7 @@ internal static class McpCommandLine
 
         if (IsHelp(args))
         {
-            output.WriteLine(string.Format(Strings.ToolUpdateUsage, "WinMon.Mcp.exe"));
+            output.WriteLine(Strings.ToolUpdateUsage, "WinMon.Mcp.exe");
             return 0;
         }
 
@@ -23,7 +23,7 @@ internal static class McpCommandLine
             return await (runUpdate?.Invoke(action, cancellationToken) ??
                 ToolUpdateCommand.RunAsync(ToolUpdateProduct.Mcp, action, output, error, cancellationToken));
 
-        error.WriteLine(string.Format(Strings.ToolUpdateUsage, "WinMon.Mcp.exe"));
+        error.WriteLine(Strings.ToolUpdateUsage, "WinMon.Mcp.exe");
         return 64;
     }
 

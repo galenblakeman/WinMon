@@ -1,6 +1,7 @@
 using System.Security;
 using System.Windows;
 using Microsoft.Win32;
+using MonCore.Monitoring;
 using WinMon.Controls;
 using WinMon.Monitoring;
 

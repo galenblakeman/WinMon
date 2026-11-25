@@ -2,6 +2,7 @@ using System.Net;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
+using MonCore.Monitoring;
 using NUnit.Framework;
 using WinMon.Monitoring;
 using WinMon.Resources;

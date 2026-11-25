@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.AccessControl;
 using System.Security.Principal;
-using WinMon.Monitoring;
+using MonCore.Windows.Monitoring;
 
 namespace WinMon.NetworkSetup;
 

@@ -1,11 +1,9 @@
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows.Interop;
+using MonCore.Monitoring;
 using NUnit.Framework;
 using WinMon.Controls;
-using WinMon.Monitoring;
 using WinMon.Resources;
 
 namespace WinMon.Tests;
@@ -50,7 +48,7 @@ public sealed class CapturePresentationCharacterizationTests
         _resources.Clear();
         if (_temporaryFolder is not null)
         {
-            System.IO.Directory.Delete(_temporaryFolder, recursive: true);
+            Directory.Delete(_temporaryFolder, recursive: true);
             _temporaryFolder = null;
         }
     }
@@ -248,10 +246,10 @@ public sealed class CapturePresentationCharacterizationTests
     public void SelectedReportAvailabilityPreservesFailureAndPendingPrecedence(string state, bool exists)
     {
         RecordHistory();
-        _temporaryFolder = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "WinMon.CapturePresentation." + Guid.NewGuid().ToString("N"));
-        System.IO.Directory.CreateDirectory(_temporaryFolder);
-        var path = System.IO.Path.Combine(_temporaryFolder, "owned-report.txt");
-        if (exists) System.IO.File.WriteAllText(path, "owned report");
+        _temporaryFolder = Path.Combine(Path.GetTempPath(), "WinMon.CapturePresentation." + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(_temporaryFolder);
+        var path = Path.Combine(_temporaryFolder, "owned-report.txt");
+        if (exists) File.WriteAllText(path, "owned report");
         var marker = Marker(20, 10);
         marker.WriteFailed = state is "Failed" or "MissingFailed" or "ExistsFailed";
         marker.ReportPath = state switch
@@ -288,10 +286,10 @@ public sealed class CapturePresentationCharacterizationTests
         _window.RefreshVisiblePresentation();
         Assert.That(_window.OpenReportButton.ToolTip, Is.EqualTo(Strings.AutoCaptureReportPending));
 
-        _temporaryFolder = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "WinMon.CapturePresentation." + Guid.NewGuid().ToString("N"));
-        System.IO.Directory.CreateDirectory(_temporaryFolder);
-        var path = System.IO.Path.Combine(_temporaryFolder, "completed.txt");
-        System.IO.File.WriteAllText(path, "owned report");
+        _temporaryFolder = Path.Combine(Path.GetTempPath(), "WinMon.CapturePresentation." + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(_temporaryFolder);
+        var path = Path.Combine(_temporaryFolder, "completed.txt");
+        File.WriteAllText(path, "owned report");
         marker.ReportPath = path;
         _window.RefreshVisiblePresentation();
         Assert.Multiple(() =>
@@ -300,7 +298,7 @@ public sealed class CapturePresentationCharacterizationTests
             Assert.That(_window.OpenReportButton.ToolTip, Is.EqualTo(path));
         });
 
-        System.IO.File.Delete(path);
+        File.Delete(path);
         _window.RefreshVisiblePresentation();
         Assert.Multiple(() =>
         {

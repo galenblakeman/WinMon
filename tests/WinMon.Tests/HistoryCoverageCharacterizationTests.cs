@@ -1,8 +1,8 @@
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
+using MonCore.Monitoring;
 using NUnit.Framework;
-using WinMon.Monitoring;
 using WinMon.Resources;
 
 namespace WinMon.Tests;
@@ -122,7 +122,7 @@ public sealed class HistoryCoverageCharacterizationTests
         _window.SelectedSample = sample;
         AssertDetails(Enumerable.Range(0, 4).SelectMany(source => new[]
         {
-            Line(source, source == 3 ? "0:00:01" : "0:00:00", source is 1 or 2 || source == 0 && !gap),
+            Line(source, source == 3 ? "0:00:01" : "0:00:00", source is 1 or 2 || (source == 0 && !gap)),
             Bounds(source == 3 ? sample.Timestamp.AddSeconds(-1) : sample.Timestamp, sample.Timestamp)
         }).ToArray());
     }

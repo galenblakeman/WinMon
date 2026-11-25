@@ -1,10 +1,9 @@
 using System.Reflection;
 using System.ServiceProcess;
+using MonCore.Windows.Monitoring;
 using NUnit.Framework;
-using WinMon.Monitoring;
-using WinMon.NetworkService;
 
-namespace WinMon.Tests;
+namespace WinMon.NetworkService.Tests;
 
 [TestFixture]
 [NonParallelizable]

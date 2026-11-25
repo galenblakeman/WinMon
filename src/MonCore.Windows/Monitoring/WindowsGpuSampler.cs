@@ -4,10 +4,11 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
+using MonCore.Monitoring;
 
 // ReSharper disable StringLiteralTypo
 
-namespace WinMon.Monitoring;
+namespace MonCore.Windows.Monitoring;
 
 /// <summary>Report the busiest physical GPU engine across all adapters, without vendor dependencies.</summary>
 internal sealed class WindowsGpuSampler : IDisposable

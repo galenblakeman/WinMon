@@ -1,4 +1,4 @@
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>
 /// Captures the CPU, process and resource measurements available for one sampling instant.

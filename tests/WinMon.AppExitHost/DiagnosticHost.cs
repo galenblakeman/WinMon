@@ -41,8 +41,8 @@ internal static class DiagnosticHost
         Console.WriteLine(JsonSerializer.Serialize(new
         {
             Mode = mode, RunCode = runCode, ProcessId = Environment.ProcessId,
-            AppPath = typeof(global::WinMon.App).Assembly.Location,
-            AppMvid = typeof(global::WinMon.App).Module.ModuleVersionId,
+            AppPath = typeof(App).Assembly.Location,
+            AppMvid = typeof(App).Module.ModuleVersionId,
             Events = events, OperationCompleted = task?.IsCompleted ?? false,
             OperationSucceeded = task?.IsCompletedSuccessfully ?? false,
             ErrorType = taskError?.GetType().FullName,
@@ -61,28 +61,28 @@ internal static class DiagnosticHost
         return runCode;
     }
 
-    private static object? ProductField(object target, string name) => typeof(global::WinMon.App)
+    private static object? ProductField(object target, string name) => typeof(App)
         .GetField(name, BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(target);
 
     private sealed class DiagnosticOnlyApp(string mode, string root, string output, List<string> events)
-        : global::WinMon.App
+        : App
     {
         internal Task? Operation { get; private set; }
         internal bool WindowClosed { get; private set; }
         internal bool SamplingStarted { get; private set; }
-        private global::WinMon.MainWindow? _window;
+        private MainWindow? _window;
 
         protected override void OnStartup(StartupEventArgs e)
         {
             // Never call product startup: it owns real logging, activation, mutexes and sampling.
             events.Add("host.startup");
-            var constructor = typeof(global::WinMon.MainWindow).GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic)
+            var constructor = typeof(MainWindow).GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic)
                 .Single(value => value.GetParameters().Length == 3 && value.GetParameters()[0].ParameterType == typeof(bool));
             var storeType = constructor.GetParameters()[2].ParameterType;
             var store = storeType.GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, null,
                 [typeof(string)], null)!.Invoke([Path.Combine(root, "settings.json")]);
-            _window = (global::WinMon.MainWindow)constructor.Invoke([true, null, store]);
-            var loaded = typeof(global::WinMon.MainWindow).GetMethod("OnLoaded",
+            _window = (MainWindow)constructor.Invoke([true, null, store]);
+            var loaded = typeof(MainWindow).GetMethod("OnLoaded",
                 BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly, null,
                 [typeof(object), typeof(RoutedEventArgs)], null)!;
             _window.Loaded -= loaded.CreateDelegate<RoutedEventHandler>(_window);
@@ -91,7 +91,7 @@ internal static class DiagnosticHost
                 WindowClosed = true;
                 events.Add("window.closed");
             };
-            var method = typeof(global::WinMon.App).GetMethod(mode == "services"
+            var method = typeof(App).GetMethod(mode == "services"
                 ? "RunServicesDiagnosticsAsync" : "RunDiagnosticsAsync", BindingFlags.Instance | BindingFlags.NonPublic)!;
             var selected = mode is "recover" or "locked" ? "features" : mode;
             object?[] arguments = mode == "services" ? [_window, output, "--services-smoke-output"] :
@@ -103,7 +103,7 @@ internal static class DiagnosticHost
 
         protected override void OnExit(ExitEventArgs e)
         {
-            SamplingStarted = _window is not null && typeof(global::WinMon.MainWindow)
+            SamplingStarted = _window is not null && typeof(MainWindow)
                 .GetProperty("SamplingTask", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(_window) is not null;
             events.Add("app.exit:" + e.ApplicationExitCode);
             base.OnExit(e);

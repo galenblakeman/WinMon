@@ -3,11 +3,10 @@ using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Text.Json;
 using Microsoft.Diagnostics.Tracing.Session;
+using MonCore.Monitoring;
 using NUnit.Framework;
-using WinMon.Monitoring;
-using WinMon.NetworkService;
 
-namespace WinMon.Tests;
+namespace WinMon.NetworkService.Tests;
 
 [TestFixture]
 public sealed class NativeNetworkCollectorTests

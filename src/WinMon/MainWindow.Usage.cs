@@ -1,5 +1,5 @@
+using MonCore.Monitoring;
 using WinMon.Controls;
-using WinMon.Monitoring;
 using WinMon.Preferences;
 
 namespace WinMon;

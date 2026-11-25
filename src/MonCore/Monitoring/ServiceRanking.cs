@@ -1,4 +1,4 @@
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>Five-second CPU/I/O averages; memory and membership are from the selected latest frame.</summary>
 public sealed record ServiceRanking(

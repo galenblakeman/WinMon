@@ -1,4 +1,4 @@
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>Saved pin identity and display metadata, without sampled resource readings.</summary>
 public sealed record SavedProcessPin(

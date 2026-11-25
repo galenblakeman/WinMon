@@ -1,9 +1,9 @@
 using System.Diagnostics;
+using MonCore.Monitoring;
 using NUnit.Framework;
-using WinMon.Monitoring;
-using static WinMon.Tests.CollectorRuntimeFixture;
+using static WinMon.NetworkService.Tests.CollectorRuntimeFixture;
 
-namespace WinMon.Tests;
+namespace WinMon.NetworkService.Tests;
 
 [TestFixture]
 public sealed class CollectorTimerTests

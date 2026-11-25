@@ -1,3 +1,6 @@
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
+
 namespace WinMon.Monitoring;
 
 /// <summary>WinMon's localized policy for writing a dump of a verified process lifetime.</summary>

@@ -7,8 +7,9 @@ using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using Microsoft.Win32.SafeHandles;
+using MonCore.Monitoring;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Windows.Monitoring;
 
 /// <summary>Reads a small, curated set of Windows events for a frozen history range.</summary>
 public sealed class WindowsHistoryEventReader

@@ -1,9 +1,8 @@
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Threading;
+using MonCore.Monitoring;
 using WinMon.Controls;
-using WinMon.Monitoring;
 using WinMon.Preferences;
 
 namespace WinMon.Diagnostics;

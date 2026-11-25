@@ -1,8 +1,7 @@
 using System.Diagnostics;
 using NUnit.Framework;
-using WinMon.Mcp;
 
-namespace WinMon.Tests;
+namespace WinMon.Mcp.Tests;
 
 [TestFixture, Category("Integration")]
 [NonParallelizable]

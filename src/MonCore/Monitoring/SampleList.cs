@@ -1,6 +1,6 @@
 using System.Collections;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>A read-only prefix of a sample list, optionally ending in a replacement sample, without copying it.</summary>
 /// <remarks>Implements <see cref="IList{T}"/> so LINQ takes its indexed paths instead of enumerating.</remarks>

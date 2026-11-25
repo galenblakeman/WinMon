@@ -1,7 +1,7 @@
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Text.Json;
-using WinMon.Monitoring;
+using MonCore.Windows.Monitoring;
 
 namespace WinMon.NetworkService;
 

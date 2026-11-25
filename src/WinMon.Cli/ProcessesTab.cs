@@ -1,6 +1,5 @@
 using System.Globalization;
-using WinMon.Monitoring;
-using WinMon.Resources;
+using MonCore.Monitoring;
 using static WinMon.Cli.SnapshotReport;
 
 namespace WinMon.Cli;

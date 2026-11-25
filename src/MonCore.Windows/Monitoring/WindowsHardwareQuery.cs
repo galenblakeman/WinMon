@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Security;
 using EnumerationOptions = System.Management.EnumerationOptions;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Windows.Monitoring;
 
 /// <summary>Read-only hardware observations supplied by Windows Management Instrumentation.</summary>
 public interface IHardwareQuery

@@ -1,10 +1,9 @@
 using System.Diagnostics;
 using System.Security.Principal;
+using MonCore.Monitoring;
 using NUnit.Framework;
-using WinMon.Monitoring;
-using WinMon.NetworkService;
 
-namespace WinMon.Tests;
+namespace WinMon.NetworkService.Tests;
 
 [TestFixture]
 [Category("Integration")]

@@ -1,4 +1,4 @@
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>Represent system CPU counters in native 100-nanosecond units.</summary>
 /// <param name="IdleTicks">Aggregated idle time.</param>

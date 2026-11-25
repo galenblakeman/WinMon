@@ -2,13 +2,10 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
 using NUnit.Framework;
-using WinMon.Controls;
-using WinMon.Monitoring;
 using System.Windows.Threading;
 using System.Reflection;
-#if !WINMON_STORE
+using MonCore.Monitoring;
 using WinMon.Updates;
-#endif
 
 namespace WinMon.Tests;
 
@@ -19,7 +16,7 @@ public sealed class NormalShutdownCharacterizationTests
     private MainWindow _window = null!;
     private string? _temporaryFolder;
     private SynchronizationContext? _previousContext;
-    private WinMon.Preferences.PreferenceStore _store = null!;
+    private Preferences.PreferenceStore _store = null!;
 
     [SetUp]
     public void SetUp()
@@ -33,14 +30,14 @@ public sealed class NormalShutdownCharacterizationTests
             app.Resources["TitleBarButtonText"] = new DataTemplate();
         if (!app.Resources.Contains(typeof(Button)))
             app.Resources[typeof(Button)] = new Style(typeof(Button));
-        _temporaryFolder = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "WinMon.Shutdown." + Guid.NewGuid().ToString("N"));
-        System.IO.Directory.CreateDirectory(_temporaryFolder);
-        _store = new WinMon.Preferences.PreferenceStore(System.IO.Path.Combine(_temporaryFolder, "settings.json"));
+        _temporaryFolder = Path.Combine(Path.GetTempPath(), "WinMon.Shutdown." + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(_temporaryFolder);
+        _store = new Preferences.PreferenceStore(Path.Combine(_temporaryFolder, "settings.json"));
         _window = CreateWindow(false);
         _window.Loaded -= _window.OnLoaded;
         _window.ApplyTheme(false, false);
         _previousContext = SynchronizationContext.Current;
-        SynchronizationContext.SetSynchronizationContext(new System.Windows.Threading.DispatcherSynchronizationContext());
+        SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext());
 
     }
 
@@ -61,17 +58,17 @@ public sealed class NormalShutdownCharacterizationTests
         SynchronizationContext.SetSynchronizationContext(_previousContext);
         if (_temporaryFolder is not null)
         {
-            System.IO.Directory.Delete(_temporaryFolder, recursive: true);
+            Directory.Delete(_temporaryFolder, recursive: true);
             _temporaryFolder = null;
         }
     }
 
     private MainWindow CreateWindow(bool diagnostic) => new(diagnostic,
-        new WinMon.Preferences.MonitorPreferences { KeepHistoryAcrossRestarts = false, Width = 1000, Height = 840 }, _store);
+        new Preferences.MonitorPreferences { KeepHistoryAcrossRestarts = false, Width = 1000, Height = 840 }, _store);
 
     private static void LoadWithoutSampling(MainWindow window)
     {
-        Assert.That(WinMon.Updates.UpdateRuntime.RestartHistory, Is.Null, "Tests must not read a process-wide restart handoff");
+        Assert.That(UpdateRuntime.RestartHistory, Is.Null, "Tests must not read a process-wide restart handoff");
         Assert.That(window.SamplingTask, Is.Null);
         window.StopForFixtureAsync().GetAwaiter().GetResult();
         var before = Application.Current.Windows.Cast<Window>().ToHashSet();
@@ -174,8 +171,8 @@ public sealed class NormalShutdownCharacterizationTests
             Assert.That(_window.IsClosing, Is.True);
             Assert.That(_window.IsEnabled, Is.False);
             Assert.That(pending.Task.IsCompleted, Is.False);
-            Assert.That(System.IO.File.Exists(System.IO.Path.Combine(_temporaryFolder!, "settings.json")), Is.False);
-            Assert.That(System.IO.File.Exists(_store.NormalHistoryPath), Is.False);
+            Assert.That(File.Exists(Path.Combine(_temporaryFolder!, "settings.json")), Is.False);
+            Assert.That(File.Exists(_store.NormalHistoryPath), Is.False);
         }), () => pending.TrySetResult());
         Assert.That(closingCancelled, Is.EqualTo(new[] { true, false }));
         var saved = Complete(_store.LoadAsync(CancellationToken.None));
@@ -186,10 +183,10 @@ public sealed class NormalShutdownCharacterizationTests
         Assert.That(history!.Value.Samples.Single().TotalCpuPercent, Is.EqualTo(42));
         var trends = Complete(ResourceTrendArchive.LoadAsync(_store.ResourceTrendArchivePath));
         Assert.That(trends.Snapshot().Buckets.Sum(bucket => bucket.Values[ResourceTrendMetric.Cpu].WeightedSum), Is.EqualTo(42));
-        using var released = new System.IO.FileStream(_store.ResourceTrendArchivePath + ".lock",
-            System.IO.FileMode.Open, System.IO.FileAccess.ReadWrite, System.IO.FileShare.None);
+        using var released = new FileStream(_store.ResourceTrendArchivePath + ".lock",
+            FileMode.Open, FileAccess.ReadWrite, FileShare.None);
     }
-    private string SettingsPath => System.IO.Path.Combine(_temporaryFolder!, "settings.json");
+    private string SettingsPath => Path.Combine(_temporaryFolder!, "settings.json");
 
     private void CloseAfterCheckpoint()
     {
@@ -200,8 +197,8 @@ public sealed class NormalShutdownCharacterizationTests
 
     private void AssertArchiveLockReleased(string path)
     {
-        using var released = new System.IO.FileStream(path + ".lock", System.IO.FileMode.Open,
-            System.IO.FileAccess.ReadWrite, System.IO.FileShare.None);
+        using var released = new FileStream(path + ".lock", FileMode.Open,
+            FileAccess.ReadWrite, FileShare.None);
     }
 
     [TestCase(false, false)]
@@ -228,8 +225,8 @@ public sealed class NormalShutdownCharacterizationTests
             Assert.That(saved.Width, Is.EqualTo(1000));
             Assert.That(saved.Height, Is.EqualTo(840));
             Assert.That(saved.AlwaysOnTop, Is.True);
-            Assert.That(System.IO.File.Exists(_store.UsageArchivePath), Is.EqualTo(usage));
-            Assert.That(System.IO.File.Exists(_store.ResourceTrendArchivePath), Is.EqualTo(trends));
+            Assert.That(File.Exists(_store.UsageArchivePath), Is.EqualTo(usage));
+            Assert.That(File.Exists(_store.ResourceTrendArchivePath), Is.EqualTo(trends));
         });
         if (usage)
         {
@@ -252,9 +249,9 @@ public sealed class NormalShutdownCharacterizationTests
         LoadWithoutSampling(_window);
         _window.Preferences = _window.Preferences with { KeepHistoryAcrossRestarts = keep };
         _window.Session.Record(CurrentSample());
-        System.IO.File.WriteAllText(_store.NormalHistoryPath, "owned previous history");
+        File.WriteAllText(_store.NormalHistoryPath, "owned previous history");
         CloseAfterCheckpoint();
-        Assert.That(System.IO.File.Exists(_store.NormalHistoryPath), Is.EqualTo(keep));
+        Assert.That(File.Exists(_store.NormalHistoryPath), Is.EqualTo(keep));
         if (keep)
         {
             var restored = RestartHistory.ReadNormal(_store.NormalHistoryPath, RestartClock.System, DateTimeOffset.UtcNow, 600);
@@ -274,15 +271,15 @@ public sealed class NormalShutdownCharacterizationTests
         _window.RecordResourceTrendForFixture(sample);
         _window.Session.Record(sample);
         _window.Preferences = _window.Preferences with { KeepHistoryAcrossRestarts = true };
-        System.IO.File.WriteAllText(_store.NormalHistoryPath, "owned previous history");
-        System.IO.Directory.CreateDirectory(SettingsPath);
+        File.WriteAllText(_store.NormalHistoryPath, "owned previous history");
+        Directory.CreateDirectory(SettingsPath);
         CloseAfterCheckpoint();
         Assert.Multiple(() =>
         {
-            Assert.That(System.IO.Directory.Exists(SettingsPath), Is.True);
-            Assert.That(System.IO.File.ReadAllText(_store.NormalHistoryPath), Is.EqualTo("owned previous history"));
-            Assert.That(System.IO.File.Exists(_store.UsageArchivePath), Is.True);
-            Assert.That(System.IO.File.Exists(_store.ResourceTrendArchivePath), Is.True);
+            Assert.That(Directory.Exists(SettingsPath), Is.True);
+            Assert.That(File.ReadAllText(_store.NormalHistoryPath), Is.EqualTo("owned previous history"));
+            Assert.That(File.Exists(_store.UsageArchivePath), Is.True);
+            Assert.That(File.Exists(_store.ResourceTrendArchivePath), Is.True);
         });
         AssertArchiveLockReleased(_store.UsageArchivePath);
         AssertArchiveLockReleased(_store.ResourceTrendArchivePath);
@@ -299,13 +296,13 @@ public sealed class NormalShutdownCharacterizationTests
         _window.DailyUsageArchive!.Add(sample);
         _window.RecordResourceTrendForFixture(sample);
         var path = failing == "Usage" ? _store.UsageArchivePath : _store.ResourceTrendArchivePath;
-        System.IO.Directory.CreateDirectory(path);
+        Directory.CreateDirectory(path);
         CloseAfterCheckpoint();
         Assert.Multiple(() =>
         {
-            Assert.That(System.IO.Directory.Exists(path), Is.True);
-            Assert.That(System.IO.File.Exists(SettingsPath), Is.True);
-            Assert.That(System.IO.File.Exists(failing == "Usage" ? _store.ResourceTrendArchivePath : _store.UsageArchivePath), Is.True);
+            Assert.That(Directory.Exists(path), Is.True);
+            Assert.That(File.Exists(SettingsPath), Is.True);
+            Assert.That(File.Exists(failing == "Usage" ? _store.ResourceTrendArchivePath : _store.UsageArchivePath), Is.True);
         });
         AssertArchiveLockReleased(_store.UsageArchivePath);
         AssertArchiveLockReleased(_store.ResourceTrendArchivePath);
@@ -326,12 +323,12 @@ public sealed class NormalShutdownCharacterizationTests
             Assert.Multiple(() =>
             {
                 Assert.That(cancellations, Is.EqualTo(new[] { true, true }));
-                Assert.That(System.IO.File.Exists(SettingsPath), Is.False);
+                Assert.That(File.Exists(SettingsPath), Is.False);
                 Assert.That(_window.IsEnabled, Is.False);
             });
         }, () => pending.TrySetResult());
         Assert.That(cancellations, Is.EqualTo(new[] { true, true, false }));
-        Assert.That(System.IO.File.Exists(SettingsPath), Is.True);
+        Assert.That(File.Exists(SettingsPath), Is.True);
     }
 
     [Test]
@@ -350,7 +347,7 @@ public sealed class NormalShutdownCharacterizationTests
                 Assert.That(_window.IsClosing, Is.False);
                 Assert.That(_window.IsEnabled, Is.True);
                 Assert.That(_window.Lifetime.IsCancellationRequested, Is.False);
-                Assert.That(System.IO.File.Exists(SettingsPath), Is.False);
+                Assert.That(File.Exists(SettingsPath), Is.False);
             });
         }
         finally { _window.ServiceActionBusy = false; }
@@ -367,7 +364,7 @@ public sealed class NormalShutdownCharacterizationTests
         {
             Assert.That(cancellations, Is.EqualTo(new[] { true }));
             Assert.That(_window.Lifetime.IsCancellationRequested, Is.False);
-            Assert.That(System.IO.File.Exists(SettingsPath), Is.False);
+            Assert.That(File.Exists(SettingsPath), Is.False);
         });
     }
 
@@ -386,10 +383,10 @@ public sealed class NormalShutdownCharacterizationTests
         {
             Assert.That(writing.IsCompleted, Is.False);
             Assert.That(_window.IsClosing, Is.True);
-            Assert.That(System.IO.File.Exists(SettingsPath), Is.False);
+            Assert.That(File.Exists(SettingsPath), Is.False);
         }), () =>
         {
-            if (fail) pending.TrySetException(new System.IO.IOException("owned capture failure"));
+            if (fail) pending.TrySetException(new IOException("owned capture failure"));
             else pending.TrySetResult("owned-report.html");
         });
         Complete(writing);
@@ -398,7 +395,7 @@ public sealed class NormalShutdownCharacterizationTests
             Assert.That(marker.WriteFailed, Is.EqualTo(fail));
             Assert.That(marker.ReportPath, Is.EqualTo(fail ? null : "owned-report.html"));
             Assert.That(_window.UpdateFooter.Visibility, Is.EqualTo(footer));
-            Assert.That(System.IO.File.Exists(SettingsPath), Is.True);
+            Assert.That(File.Exists(SettingsPath), Is.True);
         });
     }
 
@@ -418,7 +415,7 @@ public sealed class NormalShutdownCharacterizationTests
         {
             Assert.That(closingCancelled, Is.EqualTo(new[] { true, false }));
             Assert.That(Application.Current.Windows.Cast<Window>(), Does.Not.Contain(_window));
-            Assert.That(System.IO.File.Exists(SettingsPath), Is.False);
+            Assert.That(File.Exists(SettingsPath), Is.False);
         });
     }
 
@@ -430,14 +427,14 @@ public sealed class NormalShutdownCharacterizationTests
         _window.Preferences = _window.Preferences with { KeepHistoryAcrossRestarts = true };
         _window.Session.Record(CurrentSample());
         var sampling = cancelled ? Task.FromCanceled(new CancellationToken(true))
-            : Task.FromException(new System.IO.IOException("owned sampling failure"));
+            : Task.FromException(new IOException("owned sampling failure"));
         var property = typeof(MainWindow).GetProperty(nameof(MainWindow.SamplingTask), BindingFlags.Instance | BindingFlags.NonPublic)
             ?? throw new AssertionException("Missing sampling completion boundary");
         property.SetValue(_window, sampling);
 
         CloseAfterCheckpoint();
 
-        Assert.That(System.IO.File.Exists(SettingsPath), Is.True);
+        Assert.That(File.Exists(SettingsPath), Is.True);
         var history = RestartHistory.ReadNormal(_store.NormalHistoryPath, RestartClock.System, DateTimeOffset.UtcNow, 600);
         Assert.That(history, Is.Not.Null);
         Assert.That(history!.Value.Samples.Single().TotalCpuPercent, Is.EqualTo(42));
@@ -449,7 +446,7 @@ public sealed class NormalShutdownCharacterizationTests
     public void EarlierPreferenceTaskFailureDoesNotPreventSavingOwnedExitPreferences()
     {
         LoadWithoutSampling(_window);
-        SetCloseField("_settingsWriteTask", Task.FromException(new System.IO.IOException("owned earlier preference failure")));
+        SetCloseField("_settingsWriteTask", Task.FromException(new IOException("owned earlier preference failure")));
         _window.Left = 57;
         _window.Top = 67;
 
@@ -474,10 +471,10 @@ public sealed class NormalShutdownCharacterizationTests
         _window.Session.Record(CurrentSample());
         _window.Left = 58;
         _window.Top = 68;
-        System.IO.File.WriteAllText(_store.NormalHistoryPath, "owned pre-update history");
+        File.WriteAllText(_store.NormalHistoryPath, "owned pre-update history");
         if (failedEarlierWrite)
-            SetCloseField("_settingsWriteTask", Task.FromException(new System.IO.IOException("owned earlier update preference failure")));
-        var target = System.IO.Path.Combine(_temporaryFolder!, "owned-restart.json");
+            SetCloseField("_settingsWriteTask", Task.FromException(new IOException("owned earlier update preference failure")));
+        var target = Path.Combine(_temporaryFolder!, "owned-restart.json");
         var token = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N");
         SetCloseField("_restartHistoryTarget", (target, token));
         SetCloseField("_updateRestartPending", true);
@@ -487,7 +484,7 @@ public sealed class NormalShutdownCharacterizationTests
         property.SetValue(_window, sampling.Task);
         var cancellation = new TaskCompletionSource<(bool Preferences, bool History, bool Commit)>(TaskCreationOptions.RunContinuationsAsynchronously);
         using var registration = _window.Lifetime.Token.Register(() => cancellation.TrySetResult(
-            (System.IO.File.Exists(SettingsPath), System.IO.File.Exists(target), signals.Committed)));
+            (File.Exists(SettingsPath), File.Exists(target), signals.Committed)));
 
         CloseAndWait(() =>
         {
@@ -506,7 +503,7 @@ public sealed class NormalShutdownCharacterizationTests
             Assert.That(saved.Top, Is.EqualTo(68));
             Assert.That(signals.Committed, Is.True);
             Assert.That(signals.Cancelled, Is.False);
-            Assert.That(System.IO.File.ReadAllText(_store.NormalHistoryPath), Is.EqualTo("owned pre-update history"));
+            Assert.That(File.ReadAllText(_store.NormalHistoryPath), Is.EqualTo("owned pre-update history"));
             Assert.That(history, Is.Not.Null);
         });
         Assert.That(history!.Samples.Single().TotalCpuPercent, Is.EqualTo(42));
@@ -531,7 +528,7 @@ public sealed class NormalShutdownCharacterizationTests
                 Assert.That(_window.IsClosing, Is.False);
                 Assert.That(_window.IsEnabled, Is.False);
                 Assert.That(_window.Lifetime.IsCancellationRequested, Is.False);
-                Assert.That(System.IO.File.Exists(SettingsPath), Is.False);
+                Assert.That(File.Exists(SettingsPath), Is.False);
                 Assert.That(signals.Committed, Is.False);
                 Assert.That(signals.Cancelled, Is.False);
             });
@@ -540,7 +537,7 @@ public sealed class NormalShutdownCharacterizationTests
         Assert.Multiple(() =>
         {
             Assert.That(requests, Is.EqualTo(new[] { true, true, false }));
-            Assert.That(System.IO.File.Exists(SettingsPath), Is.True);
+            Assert.That(File.Exists(SettingsPath), Is.True);
             Assert.That(signals.Committed, Is.True);
             Assert.That(signals.Cancelled, Is.False);
         });
@@ -553,15 +550,15 @@ public sealed class NormalShutdownCharacterizationTests
         LoadWithoutSampling(_window);
         _window.Preferences = _window.Preferences with { KeepHistoryAcrossRestarts = true };
         _window.Session.Record(CurrentSample());
-        System.IO.File.WriteAllText(_store.NormalHistoryPath, "owned history before failed update");
-        System.IO.Directory.CreateDirectory(SettingsPath);
+        File.WriteAllText(_store.NormalHistoryPath, "owned history before failed update");
+        Directory.CreateDirectory(SettingsPath);
         SetCloseField("_updateRestartPending", true);
         var failed = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         var descriptor = System.ComponentModel.DependencyPropertyDescriptor.FromProperty(TextBlock.TextProperty, typeof(TextBlock))
             ?? throw new AssertionException("Missing status text observation");
         EventHandler changed = (_, _) =>
         {
-            if (_window.UpdateStatusText.Text == WinMon.Resources.Strings.UpdateFailed) failed.TrySetResult(true);
+            if (_window.UpdateStatusText.Text == Resources.Strings.UpdateFailed) failed.TrySetResult(true);
         };
         descriptor.AddValueChanged(_window.UpdateStatusText, changed);
         try
@@ -578,13 +575,13 @@ public sealed class NormalShutdownCharacterizationTests
             Assert.That(Application.Current.Windows.Cast<Window>(), Does.Contain(_window));
             Assert.That(signals.Committed, Is.False);
             Assert.That(signals.Cancelled, Is.True);
-            Assert.That(System.IO.Directory.Exists(SettingsPath), Is.True);
-            Assert.That(System.IO.File.ReadAllText(_store.NormalHistoryPath), Is.EqualTo("owned history before failed update"));
-            Assert.That(_window.UpdateStatusText.Text, Is.EqualTo(WinMon.Resources.Strings.UpdateFailed));
+            Assert.That(Directory.Exists(SettingsPath), Is.True);
+            Assert.That(File.ReadAllText(_store.NormalHistoryPath), Is.EqualTo("owned history before failed update"));
+            Assert.That(_window.UpdateStatusText.Text, Is.EqualTo(Resources.Strings.UpdateFailed));
         });
-        System.IO.Directory.Delete(SettingsPath);
+        Directory.Delete(SettingsPath);
         CloseAfterCheckpoint();
-        Assert.That(System.IO.File.Exists(SettingsPath), Is.True);
+        Assert.That(File.Exists(SettingsPath), Is.True);
         Assert.That(signals.Committed, Is.False);
         Assert.That(signals.Cancelled, Is.True);
         var history = RestartHistory.ReadNormal(_store.NormalHistoryPath, RestartClock.System, DateTimeOffset.UtcNow, 600);

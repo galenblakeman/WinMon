@@ -1,4 +1,4 @@
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>Immutable system resources for a single interval. Null means unavailable, never zero.</summary>
 public sealed record ResourceSample

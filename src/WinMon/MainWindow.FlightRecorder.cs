@@ -1,6 +1,7 @@
 using System.Windows;
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 using WinMon.Controls;
-using WinMon.Monitoring;
 
 namespace WinMon;
 

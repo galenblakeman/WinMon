@@ -1,11 +1,11 @@
 using System.IO.Pipes;
 using System.Security.Principal;
 using System.Text.Json;
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 using NUnit.Framework;
-using WinMon.Monitoring;
-using WinMon.NetworkService;
 
-namespace WinMon.Tests;
+namespace WinMon.NetworkService.Tests;
 
 [TestFixture]
 public sealed partial class NetworkPipeTests

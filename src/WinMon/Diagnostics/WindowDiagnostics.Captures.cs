@@ -4,7 +4,7 @@
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Threading;
-using WinMon.Monitoring;
+using MonCore.Monitoring;
 using WinMon.Preferences;
 
 // ReSharper disable StringLiteralTypo

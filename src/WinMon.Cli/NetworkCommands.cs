@@ -1,8 +1,9 @@
 using System.CommandLine;
 using System.ComponentModel;
 using System.Diagnostics;
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 using WinMon.Monitoring;
-using WinMon.Resources;
 
 namespace WinMon.Cli;
 

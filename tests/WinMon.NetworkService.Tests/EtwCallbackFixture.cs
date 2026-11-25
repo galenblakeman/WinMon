@@ -6,10 +6,9 @@ using System.Runtime.InteropServices;
 using System.Threading.Channels;
 using Microsoft.Diagnostics.Tracing;
 using Microsoft.Diagnostics.Tracing.Parsers.Kernel;
-using WinMon.Monitoring;
-using WinMon.NetworkService;
+using MonCore.Monitoring;
 
-namespace WinMon.Tests;
+namespace WinMon.NetworkService.Tests;
 
 // TraceEvent 3.2.8 exposes no event-header factory; this owns only synthetic memory, never an ETW session.
 internal sealed class EtwHeader : IDisposable

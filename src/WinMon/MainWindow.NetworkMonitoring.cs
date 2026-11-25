@@ -1,3 +1,4 @@
+using MonCore.Monitoring;
 using WinMon.Monitoring;
 using WinMon.Preferences;
 

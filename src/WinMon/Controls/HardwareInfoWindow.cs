@@ -6,7 +6,7 @@ using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Navigation;
-using WinMon.Diagnostics;
+using MonCore.Windows.Diagnostics;
 using WinMon.Monitoring;
 using WinMon.Updates;
 

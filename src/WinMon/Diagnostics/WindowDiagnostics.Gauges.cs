@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using MonCore.Monitoring;
 using WinMon.Controls;
 using WinMon.Monitoring;
 using WinMon.Preferences;

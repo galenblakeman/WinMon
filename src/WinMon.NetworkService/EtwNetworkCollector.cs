@@ -10,7 +10,7 @@ using System.Threading.Channels;
 using Microsoft.Diagnostics.Tracing;
 using Microsoft.Diagnostics.Tracing.Parsers;
 using Microsoft.Diagnostics.Tracing.Session;
-using WinMon.Monitoring;
+using MonCore.Monitoring;
 
 namespace WinMon.NetworkService;
 

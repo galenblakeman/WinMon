@@ -1,10 +1,11 @@
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
+using MonCore.Monitoring;
 
 // ReSharper disable StringLiteralTypo
 // ReSharper disable CommentTypo
 
-namespace WinMon.Monitoring;
+namespace MonCore.Windows.Monitoring;
 
 /// <summary>Caches executable paths by process lifetime on the sampling thread.</summary>
 internal sealed class ProcessImagePathProvider

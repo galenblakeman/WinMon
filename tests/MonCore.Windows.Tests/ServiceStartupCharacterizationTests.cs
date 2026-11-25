@@ -1,11 +1,10 @@
 using System.Collections.Concurrent;
 using System.ComponentModel;
-using System.Diagnostics;
+using MonCore.Windows.Monitoring;
 using NUnit.Framework;
-using WinMon.Monitoring;
-using StartupSession = WinMon.Monitoring.IServiceStartupScope;
+using StartupSession = MonCore.Windows.Monitoring.IServiceStartupScope;
 
-namespace WinMon.Tests;
+namespace MonCore.Windows.Tests;
 
 [TestFixture]
 public sealed class ServiceStartupCharacterizationTests
@@ -370,7 +369,7 @@ public sealed class ServiceStartupCharacterizationTests
         public void Dispose() { Cancel.Cancel(); Clock.Dispose(); Cancel.Dispose(); }
     }
 
-    private sealed class Session(Scenario scenario, uint[] states) : StartupSession
+    private sealed class Session(Scenario scenario, uint[] states) : IServiceStartupScope
     {
         public bool Trusted { get; set; } = true;
         public bool StartSucceeds { get; set; } = true;

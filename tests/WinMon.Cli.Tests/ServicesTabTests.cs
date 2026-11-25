@@ -1,7 +1,6 @@
 using NUnit.Framework;
 using System.Globalization;
-using WinMon.Cli;
-using WinMon.Monitoring;
+using MonCore.Monitoring;
 using WinMon.Resources;
 
 namespace WinMon.Cli.Tests;

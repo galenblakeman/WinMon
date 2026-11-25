@@ -221,8 +221,8 @@ public sealed partial class MainWindowWorkflowCharacterizationTests
         }
         private static void SetPosition(UIElement element, double x, double y)
         {
-            System.Windows.Controls.Canvas.SetLeft(element, x);
-            System.Windows.Controls.Canvas.SetTop(element, y);
+            Canvas.SetLeft(element, x);
+            Canvas.SetTop(element, y);
         }
         internal void Flush()
         {

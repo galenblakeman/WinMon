@@ -1,5 +1,5 @@
 using System.Runtime.CompilerServices;
-using WinMon.Monitoring;
+using MonCore.Monitoring;
 
 namespace WinMon.Controls;
 
@@ -182,7 +182,7 @@ internal sealed record ProcessGraphData(
             for (var p = 0; p < processes.Count; p++)
             {
                 var process = processes[p];
-                if (!indices.TryGetValue(process.Identity, out var index) || copied && cached[index]) continue;
+                if (!indices.TryGetValue(process.Identity, out var index) || (copied && cached[index])) continue;
                 // Keep the first imported entry, including an explicitly unavailable reading.
                 if (observed[index]) continue;
                 observed[index] = true;
@@ -218,7 +218,7 @@ internal sealed record ProcessGraphData(
             {
                 var process = processes[p];
                 if (!indices.TryGetValue(ProcessRanking.GroupKey(process), out var index) ||
-                    copied && cached[index]) continue;
+                    (copied && cached[index])) continue;
                 observed[index][sampleIndex] = true;
                 if (Value(process, sort, true) is not { } value)
                 {

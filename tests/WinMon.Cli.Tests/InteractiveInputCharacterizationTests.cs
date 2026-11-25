@@ -1,6 +1,7 @@
 using System.Text.Json;
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 using NUnit.Framework;
-using WinMon.Monitoring;
 
 namespace WinMon.Cli.Tests;
 
@@ -277,7 +278,7 @@ public sealed class InteractiveInputCharacterizationTests
         Press(state, ConsoleKey.D1, (char)('0' + digit));
         var expected = 99;
         if (tab == TerminalTab.Processes) expected = (int)new[] { ProcessSort.Cpu, ProcessSort.Memory, ProcessSort.Gpu, ProcessSort.Io, ProcessSort.Threads, ProcessSort.Handles }[digit - 1];
-        if (tab == TerminalTab.Connections || tab == TerminalTab.Services && (digit <= 3 || digit == 4 && all) || tab == TerminalTab.Usage && digit <= 5) expected = digit - 1;
+        if (tab == TerminalTab.Connections || (tab == TerminalTab.Services && (digit <= 3 || (digit == 4 && all))) || (tab == TerminalTab.Usage && digit <= 5)) expected = digit - 1;
         Assert.That(state.Active.Sort, Is.EqualTo(expected)); Assert.That(state.Offset, Is.Zero);
         Assert.That(state.Active.SelectedKey, Is.Null); Assert.That(state.Active.RevealSort, Is.True);
     }

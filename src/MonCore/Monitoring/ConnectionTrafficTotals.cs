@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>Observed counter differences, ending at the displayed capture, without interpolating missing traffic.</summary>
 public sealed record ConnectionTrafficTotals(

@@ -1,10 +1,11 @@
 using System.Buffers.Binary;
 using System.Net;
 using System.Net.NetworkInformation;
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 using NUnit.Framework;
-using WinMon.Monitoring;
 
-namespace WinMon.Tests;
+namespace MonCore.Windows.Tests;
 
 [TestFixture]
 public sealed class WindowsConnectionsTests

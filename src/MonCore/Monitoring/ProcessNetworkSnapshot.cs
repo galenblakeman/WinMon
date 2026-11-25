@@ -1,4 +1,4 @@
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>Quality of observed traffic, independent of the current adapter's counters.</summary>
 [Flags]

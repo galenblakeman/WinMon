@@ -1,6 +1,6 @@
+using WinMon.Monitoring;
 using System.Diagnostics;
 using NUnit.Framework;
-using WinMon.Monitoring;
 
 namespace WinMon.Tests;
 

@@ -1,6 +1,6 @@
+using MonCore.Windows.Monitoring;
 using Spectre.Console;
 using WinMon.Monitoring;
-using WinMon.Resources;
 
 namespace WinMon.Cli;
 

@@ -1,6 +1,5 @@
 using System.Windows.Automation;
-using WinMon.Monitoring;
-using WinMon.Resources;
+using MonCore.Monitoring;
 
 namespace WinMon.Diagnostics;
 

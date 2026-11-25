@@ -1,8 +1,8 @@
 using System.ComponentModel;
 using System.Windows;
+using MonCore.Monitoring;
 using NUnit.Framework;
 using WinMon.Controls;
-using WinMon.Monitoring;
 using WinMon.Resources;
 
 namespace WinMon.Tests;
@@ -57,7 +57,7 @@ public sealed class ServiceDisplayRowCharacterizationTests
             : shared ? Strings.Format(Strings.SharedServiceCount, 2)
             : "alpha · " + (role == "dedicated-workers"
                 ? Strings.Format(Strings.ServiceHostWorkers, 2) : Strings.ServiceDedicatedHost);
-        var expectedStatus = process is not null || shared && header ? ""
+        var expectedStatus = process is not null || (shared && header) ? ""
             : service == Beta ? Strings.ServiceStopped : Strings.ServiceRunning;
         Assert.Multiple(() =>
         {

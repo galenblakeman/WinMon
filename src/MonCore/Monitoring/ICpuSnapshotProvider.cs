@@ -1,4 +1,4 @@
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>Capture a system and process CPU timing observation.</summary>
 internal interface ICpuSnapshotProvider

@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Reflection;
 using NUnit.Framework;
 
 namespace WinMon.Cli.Tests;

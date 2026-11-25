@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Windows;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using MonCore.Monitoring;
 using NUnit.Framework;
 using WinMon.Diagnostics;
 using WinMon.Monitoring;
@@ -176,13 +177,13 @@ public sealed partial class MainWindowWorkflowCharacterizationTests
         using var scope = new AutoCaptureDiagnosticScope(_directory);
         var observeBusy = image == "settings-network-busy.png";
         var dispatcher = Dispatcher.CurrentDispatcher;
-        var observed = new HashSet<WinMon.Preferences.SettingsWindow>();
-        var busy = new HashSet<WinMon.Preferences.SettingsWindow>();
+        var observed = new HashSet<Preferences.SettingsWindow>();
+        var busy = new HashSet<Preferences.SettingsWindow>();
         var closedStates = new List<(bool Navigation, bool Save, string Status)>();
         void ObserveSettings(object? sender, DispatcherHookEventArgs e)
         {
             if (!dispatcher.CheckAccess()) return;
-            foreach (var settings in Application.Current.Windows.OfType<WinMon.Preferences.SettingsWindow>())
+            foreach (var settings in Application.Current.Windows.OfType<Preferences.SettingsWindow>())
             {
                 if (!ReferenceEquals(settings.Owner, scope.Window)) continue;
                 if (observed.Add(settings))

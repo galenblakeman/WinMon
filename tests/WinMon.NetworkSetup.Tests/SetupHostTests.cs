@@ -1,10 +1,10 @@
+using MonCore.Windows.Monitoring;
 using System.IO.Compression;
 using System.IO.Pipes;
 using System.Reflection;
 using System.Security.Principal;
 using System.Text;
 using NUnit.Framework;
-using WinMon.Monitoring;
 
 namespace WinMon.NetworkSetup.Tests;
 

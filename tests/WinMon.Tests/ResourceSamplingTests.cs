@@ -1,7 +1,8 @@
 using System.Diagnostics;
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 using NUnit.Framework;
 using WinMon.Controls;
-using WinMon.Monitoring;
 using WinMon.Preferences;
 
 namespace WinMon.Tests;

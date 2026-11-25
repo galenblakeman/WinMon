@@ -43,13 +43,13 @@ public static class Program
             Requested = requested, Mode = args[1], RunCode = result, EventCalls = eventCalls,
             CaughtType = app.Caught?.GetType().FullName, CaughtSameException = ReferenceEquals(expected, app.Caught),
             Events = events, Traces = traces, WindowCounts = app.WindowCounts,
-            ProcessId = Environment.ProcessId, AppMvid = typeof(global::WinMon.App).Module.ModuleVersionId,
-            AppPath = typeof(global::WinMon.App).Assembly.Location
+            ProcessId = Environment.ProcessId, AppMvid = typeof(App).Module.ModuleVersionId,
+            AppPath = typeof(App).Assembly.Location
         }));
         return result;
     }
 
-    private sealed class ExitOnlyApp(int code, List<string> events, Exception expected) : global::WinMon.App
+    private sealed class ExitOnlyApp(int code, List<string> events, Exception expected) : App
     {
         public Exception? Caught { get; private set; }
         public List<int> WindowCounts { get; } = [];

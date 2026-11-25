@@ -1,10 +1,10 @@
 using System.Globalization;
 using PropertyChangedEventArgs = System.ComponentModel.PropertyChangedEventArgs;
 using System.Reflection;
-using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using MonCore.Monitoring;
 using NUnit.Framework;
 using WinMon.Diagnostics;
 using WinMon.Preferences;
@@ -25,7 +25,7 @@ public sealed partial class MainWindowWorkflowCharacterizationTests
         Assert.That(fixture.Window.Preferences, Is.SameAs(original));
         Assert.That(fixture.Window.SelectedSample, Is.Null);
         Assert.That(fixture.Window.Processes.ProcessSearchBox.Text, Is.EqualTo("owned original query"));
-        Assert.That(fixture.Window.Processes.ProcessSortSelector.SelectedIndex, Is.EqualTo((int)WinMon.Monitoring.ProcessSort.Cpu));
+        Assert.That(fixture.Window.Processes.ProcessSortSelector.SelectedIndex, Is.EqualTo((int)ProcessSort.Cpu));
         Assert.That(fixture.Window.Tray, Is.Null);
         Assert.That(fixture.Window.ShownSamplingError, Is.Null);
         Assert.That(fixture.Window.Session.History.Samples, Is.EqualTo(samples));
@@ -126,20 +126,20 @@ public sealed partial class MainWindowWorkflowCharacterizationTests
                     case "memory-name": AutomationProperties.SetName(window.MemoryMetric.Toggle, "owned stale memory name"); break;
                     case "tray-show": window.Tray!.ContextMenuStrip!.Items[0].Text = "owned stale tray show"; break;
                     case "tray-exit": window.Tray!.ContextMenuStrip!.Items[1].Text = "owned stale tray exit"; break;
-                    case "sort-preference": window.Preferences = window.Preferences with { ProcessSort = WinMon.Monitoring.ProcessSort.Cpu }; break;
+                    case "sort-preference": window.Preferences = window.Preferences with { ProcessSort = ProcessSort.Cpu }; break;
                     case "sort-index":
-                        window.Processes.ProcessSortSelector.SelectedIndex = (int)WinMon.Monitoring.ProcessSort.Cpu;
-                        window.Preferences = window.Preferences with { ProcessSort = WinMon.Monitoring.ProcessSort.Memory };
+                        window.Processes.ProcessSortSelector.SelectedIndex = (int)ProcessSort.Cpu;
+                        window.Preferences = window.Preferences with { ProcessSort = ProcessSort.Memory };
                         independentSortState = window.Processes.ProcessSortSelector.SelectedIndex == 0 &&
-                            window.Preferences.ProcessSort == WinMon.Monitoring.ProcessSort.Memory;
+                            window.Preferences.ProcessSort == ProcessSort.Memory;
                         break;
                     case "sort-item":
                         var items = window.Processes.ProcessSortSelector.Items.Cast<object>().ToArray();
-                        items[(int)WinMon.Monitoring.ProcessSort.Memory] = "owned stale sort label";
+                        items[(int)ProcessSort.Memory] = "owned stale sort label";
                         window.Processes.ProcessSortSelector.ItemsSource = items;
-                        window.Processes.ProcessSortSelector.SelectedIndex = (int)WinMon.Monitoring.ProcessSort.Memory;
-                        independentSortState = window.Processes.ProcessSortSelector.SelectedIndex == (int)WinMon.Monitoring.ProcessSort.Memory &&
-                            window.Preferences.ProcessSort == WinMon.Monitoring.ProcessSort.Memory;
+                        window.Processes.ProcessSortSelector.SelectedIndex = (int)ProcessSort.Memory;
+                        independentSortState = window.Processes.ProcessSortSelector.SelectedIndex == (int)ProcessSort.Memory &&
+                            window.Preferences.ProcessSort == ProcessSort.Memory;
                         break;
                     case "query": window.Processes.ProcessSearchBox.Text = "owned stale query"; break;
                     case "selection": window.SelectedSample = null; break;

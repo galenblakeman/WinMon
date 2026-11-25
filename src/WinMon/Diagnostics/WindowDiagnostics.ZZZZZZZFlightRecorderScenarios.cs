@@ -1,7 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
+using MonCore.Monitoring;
 using WinMon.Controls;
-using WinMon.Monitoring;
 
 namespace WinMon.Diagnostics;
 

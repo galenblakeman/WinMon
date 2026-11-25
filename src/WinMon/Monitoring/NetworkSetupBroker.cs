@@ -3,7 +3,8 @@ using System.Security;
 using System.Security.AccessControl;
 using System.Security.Cryptography;
 using System.Security.Principal;
-using WinMon.Diagnostics;
+using MonCore.Windows.Diagnostics;
+using MonCore.Windows.Monitoring;
 
 namespace WinMon.Monitoring;
 

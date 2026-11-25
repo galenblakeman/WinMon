@@ -1,5 +1,5 @@
+using MonCore.Monitoring;
 using NUnit.Framework;
-using WinMon.Monitoring;
 using WinMon.Preferences;
 
 namespace WinMon.Tests;

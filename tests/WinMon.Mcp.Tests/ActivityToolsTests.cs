@@ -1,10 +1,10 @@
-using System.Text.Json;
-using System.Diagnostics;
-using NUnit.Framework;
-using WinMon.Mcp;
 using WinMon.Monitoring;
+using System.Diagnostics;
+using System.Text.Json;
+using MonCore.Monitoring;
+using NUnit.Framework;
 
-namespace WinMon.Tests;
+namespace WinMon.Mcp.Tests;
 
 [TestFixture]
 public sealed class ActivityToolsTests

@@ -1,9 +1,9 @@
 using System.Reflection;
 using System.Windows.Media.Imaging;
+using MonCore.Monitoring;
 using NUnit.Framework;
 using WinMon.Controls;
 using WinMon.Diagnostics;
-using WinMon.Monitoring;
 using WinMon.Resources;
 
 namespace WinMon.Tests;

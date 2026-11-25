@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
+using MonCore.Monitoring;
 
 namespace WinMon.Monitoring;
 

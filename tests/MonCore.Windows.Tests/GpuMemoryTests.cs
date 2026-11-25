@@ -1,7 +1,8 @@
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 using NUnit.Framework;
-using WinMon.Monitoring;
 
-namespace WinMon.Tests;
+namespace MonCore.Windows.Tests;
 
 public sealed class GpuMemoryTests
 {

@@ -6,9 +6,9 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 using Spectre.Console;
-using WinMon.Monitoring;
-using WinMon.Resources;
 
 namespace WinMon.Cli.Tests;
 

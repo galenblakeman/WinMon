@@ -2,7 +2,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Security;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Windows.Monitoring;
 
 /// <summary>Reads friendly executable names on the sampling thread, once per cached path.</summary>
 internal sealed class ProcessAppNameProvider

@@ -1,7 +1,7 @@
 using System.Security.AccessControl;
 using System.Security.Principal;
 using NUnit.Framework;
-using WinMon.Diagnostics;
+using MonCore.Windows.Diagnostics;
 
 namespace MonCore.Windows.Tests;
 

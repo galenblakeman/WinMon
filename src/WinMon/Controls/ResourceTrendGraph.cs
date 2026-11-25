@@ -2,7 +2,7 @@ using System.Windows;
 using System.Windows.Automation.Peers;
 using System.Windows.Input;
 using System.Windows.Media;
-using WinMon.Monitoring;
+using MonCore.Monitoring;
 
 namespace WinMon.Controls;
 
@@ -95,7 +95,7 @@ internal sealed class ResourceTrendGraph : FrameworkElement
         {
             var x = Column(bucket.StartUtc, bounds, width);
             var item = columns[x];
-            var breaks = value!.IsBreak || previous is not null && bucket.StartUtc - previous.StartUtc > TimeSpan.FromMinutes(1);
+            var breaks = value!.IsBreak || (previous is not null && bucket.StartUtc - previous.StartUtc > TimeSpan.FromMinutes(1));
             columns[x] = item is null ? new TrendColumn(value.WeightedSum, value.ObservedSeconds, value.Average!.Value,
                 value.Average.Value, breaks, Partial: value.ObservedSeconds < 59.999) : item.Value.Add(value, breaks);
             previous = bucket;
@@ -188,9 +188,9 @@ internal sealed class ResourceTrendGraph : FrameworkElement
         {
             var column = Column(bucket.StartUtc, bounds, width);
             var prior = columns[column];
-            var breaks = value!.IsBreak || previous is not null && bucket.StartUtc - previous.StartUtc > TimeSpan.FromMinutes(1);
-            columns[column] = prior is null ? new TrendColumn(value.WeightedSum, value.ObservedSeconds, value.Average!.Value,
-                value.Average.Value, breaks) : prior.Value.Add(value, breaks);
+            var breaks = value!.IsBreak || (previous is not null && bucket.StartUtc - previous.StartUtc > TimeSpan.FromMinutes(1));
+            columns[column] = prior?.Add(value, breaks) ?? new TrendColumn(value.WeightedSum, value.ObservedSeconds, value.Average!.Value,
+                value.Average.Value, breaks);
             previous = bucket;
         }
         var line = new StreamGeometry();

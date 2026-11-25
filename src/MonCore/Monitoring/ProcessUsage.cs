@@ -1,4 +1,4 @@
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>
 /// Describes CPU consumed by a process during one sampling interval.

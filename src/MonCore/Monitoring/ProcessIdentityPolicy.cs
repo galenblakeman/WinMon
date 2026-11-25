@@ -1,4 +1,4 @@
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>A PID plus an opaque start token in an explicitly named clock domain. Valid only on the originating machine/boot.</summary>
 public readonly record struct ProcessLifetimeIdentity

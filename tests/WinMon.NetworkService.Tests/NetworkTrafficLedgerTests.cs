@@ -1,11 +1,10 @@
-using NUnit.Framework;
 using System.Diagnostics;
-using System.IO;
 using System.Text.Json;
-using WinMon.Monitoring;
-using WinMon.NetworkService;
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
+using NUnit.Framework;
 
-namespace WinMon.Tests;
+namespace WinMon.NetworkService.Tests;
 
 [TestFixture]
 public sealed class NetworkTrafficLedgerTests

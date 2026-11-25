@@ -3,10 +3,10 @@ using DependencyPropertyDescriptor = System.ComponentModel.DependencyPropertyDes
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
+using MonCore.Monitoring;
 using NUnit.Framework;
 using WinMon.Controls;
 using WinMon.Diagnostics;
-using WinMon.Monitoring;
 using WinMon.Resources;
 
 namespace WinMon.Tests;
@@ -192,7 +192,7 @@ public sealed partial class MainWindowWorkflowCharacterizationTests
             descriptor.AddValueChanged(element, apply);
             _cleanup.Add(() => descriptor.RemoveValueChanged(element, apply));
         }
-        internal void AssertRestored(WinMon.Preferences.MonitorPreferences original)
+        internal void AssertRestored(Preferences.MonitorPreferences original)
         {
             Assert.That(Window.Preferences, Is.SameAs(original));
             Assert.That(Window.Processes.ActionsHidden, Is.EqualTo(original.ProcessActionsHidden));

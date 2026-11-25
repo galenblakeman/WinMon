@@ -1,4 +1,4 @@
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>On-demand analysis of a frozen set of retained observations.</summary>
 public static class IncidentTimeline
@@ -122,8 +122,8 @@ public static class IncidentTimeline
             double? rate = null;
             if (valid && process.CreationTicks > 0 && readings.TryGetValue(process.Identity, out var reading) &&
                 (frame!.CurrentLifetimes is null || frame.CurrentLifetimes.Contains(process.Identity)) &&
-                reading.ReceiveBytesPerSecond is >= 0 and { } receive &&
-                reading.SendBytesPerSecond is >= 0 and { } send && double.IsFinite(receive + send))
+                reading.ReceiveBytesPerSecond is >= 0 and var receive &&
+                reading.SendBytesPerSecond is >= 0 and var send && double.IsFinite(receive + send))
                 rate = receive + send;
             return new ProcessReading(process, rate);
         });

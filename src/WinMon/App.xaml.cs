@@ -2,6 +2,8 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Windows;
+using MonCore.Windows.Diagnostics;
+using MonCore.Windows.Monitoring;
 using WinMon.Controls;
 using WinMon.Diagnostics;
 using WinMon.Monitoring;

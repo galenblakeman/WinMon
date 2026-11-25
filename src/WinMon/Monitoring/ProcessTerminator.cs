@@ -1,4 +1,6 @@
 using System.ComponentModel;
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 
 namespace WinMon.Monitoring;
 

@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Text;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 public enum CsvExportKind
 {

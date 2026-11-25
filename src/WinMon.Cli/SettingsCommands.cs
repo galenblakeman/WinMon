@@ -1,6 +1,5 @@
 using System.CommandLine;
 using System.Diagnostics;
-using WinMon.Resources;
 
 namespace WinMon.Cli;
 

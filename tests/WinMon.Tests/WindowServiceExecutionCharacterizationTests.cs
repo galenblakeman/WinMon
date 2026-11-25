@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Windows;
+using MonCore.Monitoring;
 using NUnit.Framework;
 using WinMon.Monitoring;
 using WinMon.Resources;

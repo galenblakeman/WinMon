@@ -3,7 +3,7 @@
 
 using System.Runtime.CompilerServices;
 
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>Client-session process-network totals adjusted from service-generation counters.</summary>
 public sealed record ProcessNetworkFrame(

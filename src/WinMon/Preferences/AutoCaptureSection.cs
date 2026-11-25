@@ -6,6 +6,7 @@ using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Shapes;
 using Microsoft.Win32;
+using MonCore.Monitoring;
 using WinMon.Controls;
 using WinMon.Monitoring;
 using Path = System.IO.Path;

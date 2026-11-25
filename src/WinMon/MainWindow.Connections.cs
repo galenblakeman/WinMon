@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Automation;
+using MonCore.Monitoring;
 using WinMon.Controls;
 using WinMon.Monitoring;
 using WinMon.Preferences;

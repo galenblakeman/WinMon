@@ -14,6 +14,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using MonCore.Monitoring;
 using WinMon.Monitoring;
 using WinMon.Preferences;
 
@@ -230,9 +231,9 @@ public partial class ConnectionsView
 
     internal bool ShowApp(ProcessUsage process)
     {
-        var entry = Entries().FirstOrDefault(entry => entry.Process is { ImagePath.Length: > 0 } owner &&
-                process.ImagePath.Length > 0 && ProcessIdentityPolicy.Windows.Comparer.Equals(owner.ImagePath, process.ImagePath) ||
-            entry.Connection.ProcessId == process.ProcessId && entry.Connection.ProcessCreationTicks == process.CreationTicks);
+        var entry = Entries().FirstOrDefault(entry => (entry.Process is { ImagePath.Length: > 0 } owner &&
+                                                       process.ImagePath.Length > 0 && ProcessIdentityPolicy.Windows.Comparer.Equals(owner.ImagePath, process.ImagePath)) ||
+            (entry.Connection.ProcessId == process.ProcessId && entry.Connection.ProcessCreationTicks == process.CreationTicks));
         if (entry is null) return false;
         AppsOnly.IsChecked = false;
         PinnedOnly.IsChecked = false;

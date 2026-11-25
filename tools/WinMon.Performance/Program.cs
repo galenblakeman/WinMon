@@ -1,3 +1,4 @@
+using MonCore.Monitoring;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -28,7 +29,7 @@ internal static class Program
     [STAThread]
     private static void Main(string[] args)
     {
-        using var diagnosticLog = args.Contains("--without-logging") ? null : new WinMon.Diagnostics.DiagnosticLog(
+        using var diagnosticLog = args.Contains("--without-logging") ? null : new MonCore.Windows.Diagnostics.DiagnosticLog(
             Path.Combine(Path.GetDirectoryName(Path.GetFullPath(args[0]))!, "Logs"), "App");
         if (diagnosticLog is not null) Trace.Listeners.Add(diagnosticLog);
         System.Windows.Input.Keyboard.DefaultRestoreFocusMode = System.Windows.Input.RestoreFocusMode.None;

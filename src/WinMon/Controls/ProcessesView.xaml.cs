@@ -4,6 +4,8 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 using WinMon.Monitoring;
 using WinMon.Preferences;
 

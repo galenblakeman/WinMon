@@ -6,9 +6,8 @@ using Microsoft.Diagnostics.Tracing;
 using Microsoft.Diagnostics.Tracing.Parsers.Kernel;
 using Microsoft.Diagnostics.Tracing.Session;
 using NUnit.Framework;
-using WinMon.NetworkProbe;
 
-namespace WinMon.Tests;
+namespace WinMon.NetworkProbe.Tests;
 
 [TestFixture]
 public sealed class NetworkCaptureAccountingCharacterizationTests

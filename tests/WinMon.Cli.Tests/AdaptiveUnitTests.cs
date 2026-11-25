@@ -1,6 +1,7 @@
+using WinMon.Resources;
 using System.Globalization;
+using MonCore.Monitoring;
 using NUnit.Framework;
-using WinMon.Monitoring;
 
 namespace WinMon.Cli.Tests;
 
@@ -46,8 +47,8 @@ public sealed class AdaptiveUnitTests
             Assert.That(report.Processes.Single().WorkingSetBytes, Is.EqualTo(1048576));
             Assert.That(report.Processes.Single().PrivateBytes, Is.EqualTo(2147483648));
             Assert.That(report.Processes.Single().IoBytesPerSecond, Is.EqualTo(125000));
-            Assert.That(SnapshotReport.Memory(null), Is.EqualTo(WinMon.Resources.Strings.Unavailable));
-            Assert.That(SnapshotReport.Rate(null), Is.EqualTo(WinMon.Resources.Strings.Unavailable));
+            Assert.That(SnapshotReport.Memory(null), Is.EqualTo(Strings.Unavailable));
+            Assert.That(SnapshotReport.Rate(null), Is.EqualTo(Strings.Unavailable));
         });
     }
 

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using MonCore.Monitoring;
 using NUnit.Framework;
 using WinMon.Controls;
 using WinMon.Monitoring;

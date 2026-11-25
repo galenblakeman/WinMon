@@ -1,8 +1,8 @@
+using MonCore.Monitoring;
 using Spectre.Console;
 using Spectre.Console.Rendering;
 using WinMon.Controls;
 using WinMon.Monitoring;
-using WinMon.Resources;
 using static WinMon.Cli.SnapshotReport;
 
 namespace WinMon.Cli;
@@ -148,7 +148,7 @@ internal static class TerminalCharts
 
     private static Paragraph Line(int width, params (string Text, Style? Style)[] parts)
     {
-        var clean = parts.Select(part => (Text: SafeText(part.Text), part.Style)).ToArray();
+        var clean = parts.Select(part => part with { Text = SafeText(part.Text) }).ToArray();
         var text = TerminalText.Fit(string.Concat(clean.Select(part => part.Text)), width);
         var result = new Paragraph();
         var offset = 0;

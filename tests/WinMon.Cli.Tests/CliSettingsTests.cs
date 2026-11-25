@@ -1,6 +1,7 @@
+using WinMon.Resources;
 using System.Text.Json;
+using MonCore.Monitoring;
 using NUnit.Framework;
-using WinMon.Monitoring;
 
 namespace WinMon.Cli.Tests;
 
@@ -324,7 +325,7 @@ public sealed class CliSettingsTests
 
         Assert.That(await command.Parse(["watch"]).InvokeAsync(), Is.Zero);
         Assert.That(watched, Is.True);
-        Assert.That(error.ToString(), Does.Contain(WinMon.Resources.Strings.CliSettingsLoadFailed));
+        Assert.That(error.ToString(), Does.Contain(Strings.CliSettingsLoadFailed));
         Assert.That(File.ReadAllText(_store.Path), Is.EqualTo(original));
     }
 
@@ -340,7 +341,7 @@ public sealed class CliSettingsTests
         using var error = new StringWriter();
         var command = CliCommand.Create(output: output, error: error, settingsStore: _store);
         Assert.That(await command.Parse(["settings", "set", "--network=true"]).InvokeAsync(), Is.EqualTo(1));
-        Assert.That(error.ToString(), Does.Contain(WinMon.Resources.Strings.CliSettingsSaveFailed));
+        Assert.That(error.ToString(), Does.Contain(Strings.CliSettingsSaveFailed));
 
         var state = State(new());
         var warnings = 0;
@@ -464,7 +465,7 @@ public sealed class CliSettingsTests
         Key(state, ConsoleKey.G);
         var row = state.Present(empty, 5).Rows.Single();
         Assert.That(row.Cells[0], Is.EqualTo("first"));
-        Assert.That(row.Cells[1], Is.EqualTo(WinMon.Resources.Strings.Unavailable));
+        Assert.That(row.Cells[1], Is.EqualTo(Strings.Unavailable));
     }
 
     [TestCase(TerminalTab.Services, "service:[\"Demo\"]")]
@@ -497,7 +498,7 @@ public sealed class CliSettingsTests
         var table = state.Present(new TerminalTable(["Process"], [other]), 5);
         Assert.That(state.Active.Pins.ContainsKey(other.Key), Is.False);
         Assert.That(table.Rows[0].Cells[0], Is.EqualTo("Demo"));
-        Assert.That(table.Rows[0].Details, Does.Contain(WinMon.Resources.Strings.Unavailable));
+        Assert.That(table.Rows[0].Details, Does.Contain(Strings.Unavailable));
     }
 
     [Test]

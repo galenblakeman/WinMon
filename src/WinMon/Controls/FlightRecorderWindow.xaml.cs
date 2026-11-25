@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Win32;
-using WinMon.Monitoring;
+using MonCore.Monitoring;
 
 namespace WinMon.Controls;
 
@@ -223,7 +223,7 @@ internal partial class FlightRecorderWindow : Window
     private void MoveTrend(int direction)
     {
         if (_trendBuckets.Length == 0) return;
-        var index = _trendSelection is null ? (direction < 0 ? _trendBuckets.Length - 1 : 0) :
+        var index = _trendSelection is null ? direction < 0 ? _trendBuckets.Length - 1 : 0 :
             Math.Clamp(Array.IndexOf(_trendBuckets, _trendSelection) + direction, 0, _trendBuckets.Length - 1);
         TrendGraph.Select(index);
     }

@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using MonCore.Monitoring;
 using WinMon.Controls;
 using WinMon.Monitoring;
 
@@ -42,15 +43,15 @@ public partial class MainWindow
 
     private bool CanNavigateProcess(string target, ProcessDetailsSnapshot snapshot)
     {
-        if (snapshot.Historical != (SelectedSample is not null) ||
-            snapshot.Historical && (snapshot.Sample is not { } key || SelectedSample is null || !key.Matches(SelectedSample)) ||
-            SelectedSample is { } past && !Session.History.Samples.Contains(past)) return false;
+        if (snapshot.Historical != SelectedSample is not null ||
+            (snapshot.Historical && (snapshot.Sample is not { } key || SelectedSample is null || !key.Matches(SelectedSample))) ||
+            (SelectedSample is { } past && !Session.History.Samples.Contains(past))) return false;
         var process = snapshot.Process;
         if (target == "usage")
             return SelectedSample is null ? Session.Usage.ContainsExecutable(process) :
                 CurrentUsageFrame().Apps.Any(app => ProcessIdentityPolicy.Windows.Comparer.Equals(app.Key,
                     ProcessIdentityPolicy.Windows.ExecutableKey(process)));
-        if (target != "connections" || snapshot.Grouped && process.ImagePath.Length == 0) return false;
+        if (target != "connections" || (snapshot.Grouped && process.ImagePath.Length == 0)) return false;
         var capture = SelectedSample is { } selected ? Session.Connections.Find(selected) : Session.Connections.Latest;
         var frame = _diagnosticMode && SelectedSample is null ? _connections : capture?.Connections;
         if (frame?.Available != true) return false;

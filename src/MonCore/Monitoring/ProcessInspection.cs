@@ -1,4 +1,4 @@
-namespace WinMon.Monitoring;
+namespace MonCore.Monitoring;
 
 /// <summary>Optional, on-demand details for one confirmed process lifetime.</summary>
 public sealed record ProcessInspection(bool Exited, string? CommandLine, ProcessOwner? Owner, ProcessSignature Signature);

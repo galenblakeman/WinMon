@@ -1,5 +1,3 @@
-using WinMon.Resources;
-
 namespace WinMon.Monitoring;
 
 /// <summary>Format bit-based network samples as decimal byte rates; link speeds retain bit units.</summary>

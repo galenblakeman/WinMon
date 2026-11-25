@@ -1,8 +1,6 @@
 using NUnit.Framework;
-using System.CommandLine;
 using System.Text.Json;
-using WinMon.Cli;
-using WinMon.Monitoring;
+using MonCore.Monitoring;
 
 namespace WinMon.Cli.Tests;
 

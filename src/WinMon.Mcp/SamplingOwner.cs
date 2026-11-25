@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Hosting;
-using WinMon.Monitoring;
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 
 namespace WinMon.Mcp;
 

@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Automation.Peers;
 using System.Windows.Input;
 using System.Windows.Media;
+using MonCore.Monitoring;
 using WinMon.Monitoring;
 using WinMon.Preferences;
 

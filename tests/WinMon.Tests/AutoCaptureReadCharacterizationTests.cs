@@ -1,9 +1,8 @@
 using System.Globalization;
-using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
+using MonCore.Monitoring;
 using NUnit.Framework;
-using WinMon.Monitoring;
 using WinMon.Preferences;
 using WinMon.Resources;
 
@@ -267,7 +266,7 @@ public sealed class AutoCaptureReadCharacterizationTests
     {
         var section = new AutoCaptureSection(new AutoCapturePreferences { Folder = "incidents", Rules = [] },
             @"C:\", "C:", null);
-        var expected = System.IO.Path.Combine(AppContext.BaseDirectory, "incidents");
+        var expected = Path.Combine(AppContext.BaseDirectory, "incidents");
         Assert.Multiple(() =>
         {
             Assert.That(ReadValid(section).Folder, Is.EqualTo(expected));
