@@ -1,5 +1,7 @@
 # WinMon design assets
 
+- [CPU and GPU temperature](TEMPERATURE.md) proposes unprivileged GPU temperature, CPU throttling and system thermal-zone readings on the gauges and in their tooltips, gated on a hardware spike.
+
 - [Crash summaries](CRASH-SUMMARIES.md) groups the crash and hang events History already reads by signature, shown in History and exposed through a `crashes` CLI command and a `list_crashes` MCP tool.
 
 - [Resource gauge centering](GAUGE-CENTERING.md) centers full-size and compact readouts while retaining their content width and the existing diagnostic tolerance.
