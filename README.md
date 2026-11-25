@@ -28,7 +28,7 @@ Memory details show paging reads per second, standby, modified, free/zero memory
 
 ## Download and requirements
 
-Current version: **4.2.0**.
+Current version: **4.3.0**.
 
 [Download the latest release](https://github.com/galenblakeman/WinMon/releases/latest), then choose:
 
@@ -55,6 +55,8 @@ Click **History** beside **Capture** in the chart toolbar to open **What just ha
 Choose CPU, memory, either configured disk, network or GPU. Network ranks contributors by retained received + sent rates across all adapters; process I/O includes file, network and device activity and does not identify physical disk traffic. Starts/stops appear only where adjacent inventories are complete and collection is continuous.
 
 **Save incident…** preserves this frozen timeline as a `.wmincident` file. **Open incident…** reopens it in History, including resource/process readings, app traffic and observed starts/stops. Live monitoring continues; **Refresh** returns to the current recording. History also queries selected local Windows events when opened or refreshed, with severity markers, event details and explicit log coverage. Saved incidents include those events and reopen without querying this PC. Files include process names, executable paths and event messages that may contain account or path names, so review them before sharing. Socket endpoints are excluded.
+
+The **Crashes** summary groups recurring application crashes and hangs in the frozen History range. Select a group to highlight its events beside the recorded resource activity. Counts cover the retained Windows log; a faulting module identifies where a failure surfaced, without establishing its cause. Standalone reports are available through `WinMon.Cli crashes --days 30` and the MCP `list_crashes` tool, with log coverage and no executable paths or event messages.
 
 For an investigation within the dashboard:
 

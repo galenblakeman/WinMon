@@ -139,6 +139,8 @@ In watch, press **F5** or start with `watch --tab hardware`. Select one of seven
 
 `snapshot` takes a baseline, waits one second, then prints a table or JSON and exits. It supports the six process sorts, text/PID filtering and `--top 0` for All; it intentionally reports one measured interval. JSON uses raw bytes/bytes per second, explicit null readings and schema version 1. Use `--no-color` or `NO_COLOR` to suppress colors; redirected tables have no ANSI styling. Redirected `watch` output is rejected; use snapshots for scripts. Exit codes are 0 for a completed report/normal quit, 1 for failure, and 130 for cancellation; invalid arguments return a nonzero code.
 
+`crashes --days 30 --format table` reads Application Error and Application Hang events already retained in the Windows Application log. It groups recurring signatures by application, module, exception code and fault offset; versions remain in each group so a recurring failure can span updates. Use `--filter appname` to limit groups by application and `--format json` for schema-version-1 output. The coverage section reports whether the Application log could be read, whether the 2,000-event cap was reached and its oldest retained event, because log rollover means these counts are not authoritative crash totals. Names are display-safe text and reports omit executable, module and report paths. The command does not start sampling or change settings.
+
 The monitoring views do not terminate processes, change priority, control arbitrary services or create dumps. The explicit `network` commands manage only WinMon's network service. Process paths, publishers and endpoint details stay local unless you share the output.
 
 ## Your system, at a glance

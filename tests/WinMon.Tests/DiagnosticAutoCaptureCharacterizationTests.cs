@@ -110,7 +110,7 @@ public sealed partial class MainWindowWorkflowCharacterizationTests
         using var locked = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
         try
         {
-            Assert.Throws<IOException>(() => scope.Run());
+            AssertLockedPngWriteFailure(scope.Run);
             scope.DrainWrites();
             Assert.Multiple(() =>
             {
@@ -144,7 +144,7 @@ public sealed partial class MainWindowWorkflowCharacterizationTests
         using var lockedContent = new FileStream(contentPath, FileMode.Open, FileAccess.Read, FileShare.Read);
         try
         {
-            Assert.Throws<IOException>(() => scope.Run());
+            AssertLockedPngWriteFailure(scope.Run);
             scope.DrainWrites();
             Assert.Multiple(() =>
             {
@@ -204,7 +204,7 @@ public sealed partial class MainWindowWorkflowCharacterizationTests
         try
         {
             if (observeBusy) dispatcher.Hooks.OperationPosted += ObserveSettings;
-            Assert.Throws<IOException>(() => scope.Run());
+            AssertLockedPngWriteFailure(scope.Run);
             scope.DrainWrites();
             Assert.Multiple(() =>
             {

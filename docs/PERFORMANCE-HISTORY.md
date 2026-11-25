@@ -2,6 +2,12 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## Crash summaries: bounded History loading (November 25, 2026)
+
+Compared the original reader from `HEAD` with the implemented reader in a Release harness, using the same frozen 30-day local event-log range and alternating order across six pairs. Both returned 500 events, reached the existing History cap, and reported Application Complete / System Unknown. Reads and message formatting stayed on the calling worker thread. Median read time was 1,476.6 ms before and 1,461.2 ms after; this small native-I/O difference is not evidence of a speedup. The first grouping call after each current read added a median 7.78 ms. Read allocations rose from 16,144,908 to 16,366,620 bytes; grouping added 85,832 bytes. The additional 307,544 bytes per capped load (about 1.9%) retain structured signatures, version counts and group members. No sampling-path work was added.
+
+Non-crash events skip structured-field collection. These measurements cover bounded event loading and grouping, not whole-app rendering, collection or long-running heap retention. Native timing depends on the local event log and filesystem cache; the unchanged five-second budget remains the bound. Raw evidence: `artifacts/crap/history-event-xml/crash-summary-native-*.json` and `crash-summary-native-summary.json`; the source-projection harness is in `artifacts/crap/history-event-xml/bench/`. See [the feature note](design/CRASH-SUMMARIES.md).
+
 ## Resource gauge centering: cosmetic layout fix (November 25, 2026)
 
 Full-size and compact resource readouts now use symmetric 9/9 horizontal margins instead of 10/8. The 18-DIP total inset, content width, gauge geometry and sampling work are unchanged. This is a constant-only cosmetic layout fix;no algorithm,additional allocation or new I/O was introduced, and no timing benchmark or performance improvement is claimed. Previous performance gates and withdrawn candidates remain unchanged.

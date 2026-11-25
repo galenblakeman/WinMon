@@ -2121,4 +2121,15 @@ Auch das Wiederherstellen der Drosselung ist fehlgeschlagen: {1}</value></data>
   <data name="FlightRecorderEventReading" xml:space="preserve"><value>Wird gelesen…</value></data>
   <data name="FlightRecorderTrendReceive" xml:space="preserve"><value>Netzwerk · Download</value></data><data name="FlightRecorderTrendSend" xml:space="preserve"><value>Netzwerk · Upload</value></data><data name="FlightRecorderTrendClockChanged" xml:space="preserve"><value>Uhrzeit geändert — diese Minute ist mehrdeutig.</value></data><data name="FlightRecorderTrendRestart" xml:space="preserve"><value>WinMon wurde neu gestartet — Messwerte werden nach dieser Lücke fortgesetzt.</value></data><data name="FlightRecorderTrendDevice" xml:space="preserve"><value>{0}</value></data>
   <data name="FlightRecorderTrendPrimaryDisk" xml:space="preserve"><value>Primärer Datenträger</value></data><data name="FlightRecorderTrendSecondaryDisk" xml:space="preserve"><value>Zweiter Datenträger</value></data><data name="FlightRecorderTrendNetworkLegend" xml:space="preserve"><value>Durchgezogen: Download · gepunktet: Upload</value></data>
+  <data name="FlightRecorderCrashes" xml:space="preserve"><value>Abstürze</value></data>
+  <data name="FlightRecorderCrashNotResponding" xml:space="preserve"><value>Reagiert nicht</value></data>
+  <data name="FlightRecorderCrashDetails" xml:space="preserve"><value>{0} Abstürze · Zuletzt: {1}</value></data>
+  <data name="FlightRecorderCrashCompactDetails" xml:space="preserve"><value>{0}× · {1:t}</value></data>
+  <data name="FlightRecorderCrashAccessViolation" xml:space="preserve"><value>Zugriffsverletzung</value></data>
+  <data name="FlightRecorderCrashStackBufferOverrun" xml:space="preserve"><value>Stapelüberlauf</value></data>
+  <data name="FlightRecorderCrashUnhandledDotNetException" xml:space="preserve"><value>Unbehandelte .NET-Ausnahme</value></data>
+  <data name="CliCrashes" xml:space="preserve"><value>Listet wiederkehrende Anwendungsabstürze und Hänger im gespeicherten Windows-Ereignisprotokoll auf.</value></data>
+  <data name="CliCrashDays" xml:space="preserve"><value>Anzahl der zu prüfenden Tage (1–90).</value></data>
+  <data name="CliCrashDaysRange" xml:space="preserve"><value>--days muss zwischen 1 und 90 liegen.</value></data>
+  <data name="CliCrashApplication" xml:space="preserve"><value>Anwendung</value></data><data name="CliCrashFailure" xml:space="preserve"><value>Fehler</value></data><data name="CliCrashCount" xml:space="preserve"><value>Anzahl</value></data><data name="CliCrashLatestUtc" xml:space="preserve"><value>Letzter (UTC)</value></data><data name="CliCrashNotResponding" xml:space="preserve"><value>Reagiert nicht</value></data><data name="CliCrashCoverage" xml:space="preserve"><value>Anwendungsprotokoll: {0}; Ereignislimit erreicht: {1}; ältestes gespeichertes Ereignis: {2}</value></data><data name="CliCrashUnknown" xml:space="preserve"><value>unbekannt</value></data>
 </root>

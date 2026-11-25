@@ -117,6 +117,7 @@ internal static class Responses
                 PerformanceResult performance => (performance with { Trend = performance.Trend.Take(performance.Trend.Length / 2).ToArray() }, performance.Trend.Length / 2),
                 ConnectionResult connections => (connections with { Connections = connections.Connections.Take(connections.Connections.Length / 2).ToArray() }, connections.Connections.Length / 2),
                 TrafficResult traffic => (traffic with { Processes = traffic.Processes.Take(traffic.Processes.Length / 2).ToArray() }, traffic.Processes.Length / 2),
+                CrashListResult crashes => TrimCrash(crashes),
                 Array entries => (entries.Cast<object>().Take(entries.Length / 2).ToArray(), entries.Length / 2),
                 _ => (null, 0)
             };
@@ -146,6 +147,22 @@ internal static class Responses
 
     internal static CallToolResult BoundedList<T>(DiagnosticResponse response, IReadOnlyList<T> entries)
         => Result(response with { Data = entries.ToArray(), ReturnedCount = entries.Count });
+
+    private static CrashListResult Trim(CrashListResult source)
+    {
+        if (source.Groups.Length > 1) return source with { Groups = source.Groups.Take((source.Groups.Length + 1) / 2).ToArray() };
+        if (source.Groups.Length == 0) return source;
+        var group = source.Groups[0];
+        return group.Versions.Length > 1
+            ? source with { Groups = [group with { Versions = group.Versions.Take((group.Versions.Length + 1) / 2).ToArray() }] }
+            : source with { Groups = [] };
+    }
+
+    private static (object? Data, int Count) TrimCrash(CrashListResult source)
+    {
+        var trimmed = Trim(source);
+        return (trimmed, trimmed.Groups.Length);
+    }
 }
 
 internal static class HardwareProjection

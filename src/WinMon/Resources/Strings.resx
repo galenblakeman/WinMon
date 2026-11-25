@@ -2140,4 +2140,21 @@ Restoring throttling also failed: {1}</value></data>
   <data name="FlightRecorderEventUnreadable" xml:space="preserve"><value>Unavailable</value></data>
   <data name="FlightRecorderEventComplete" xml:space="preserve"><value>Complete</value></data>
   <data name="FlightRecorderEventReading" xml:space="preserve"><value>Reading…</value></data>
+  <data name="FlightRecorderCrashes" xml:space="preserve"><value>Crashes</value></data>
+  <data name="FlightRecorderCrashNotResponding" xml:space="preserve"><value>Not responding</value></data>
+  <data name="FlightRecorderCrashDetails" xml:space="preserve"><value>{0} crashes · Latest: {1}</value></data>
+  <data name="FlightRecorderCrashCompactDetails" xml:space="preserve"><value>{0}× · {1:t}</value></data>
+  <data name="FlightRecorderCrashAccessViolation" xml:space="preserve"><value>Access violation</value></data>
+  <data name="FlightRecorderCrashStackBufferOverrun" xml:space="preserve"><value>Stack buffer overrun</value></data>
+  <data name="FlightRecorderCrashUnhandledDotNetException" xml:space="preserve"><value>Unhandled .NET exception</value></data>
+  <data name="CliCrashes" xml:space="preserve"><value>List recurring application crashes and hangs in the retained Windows event log.</value></data>
+  <data name="CliCrashDays" xml:space="preserve"><value>Number of days to inspect (1–90).</value></data>
+  <data name="CliCrashDaysRange" xml:space="preserve"><value>--days must be from 1 through 90.</value></data>
+  <data name="CliCrashApplication" xml:space="preserve"><value>Application</value></data>
+  <data name="CliCrashFailure" xml:space="preserve"><value>Failure</value></data>
+  <data name="CliCrashCount" xml:space="preserve"><value>Count</value></data>
+  <data name="CliCrashLatestUtc" xml:space="preserve"><value>Latest (UTC)</value></data>
+  <data name="CliCrashNotResponding" xml:space="preserve"><value>Not responding</value></data>
+  <data name="CliCrashCoverage" xml:space="preserve"><value>Application log: {0}; event cap reached: {1}; oldest retained event: {2}</value></data>
+  <data name="CliCrashUnknown" xml:space="preserve"><value>unknown</value></data>
 </root>

@@ -183,6 +183,7 @@ public sealed record IncidentRecording(int Version, long Frequency, IncidentObse
             item.EventId is < 0 or > 65535 || !Enum.IsDefined(item.Level))
             throw new InvalidDataException("Invalid incident event.");
         ValidateEventIdentity(item);
+        ValidateCrashSignature(item.CrashSignature);
     }
 
     private static void ValidateEventIdentity(IncidentEvent item)
@@ -190,6 +191,13 @@ public sealed record IncidentRecording(int Version, long Frequency, IncidentObse
         if (item.ProcessId.HasValue != item.CreationTicks.HasValue ||
             item.ProcessId is <= 0 || item.CreationTicks is <= 0)
             throw new InvalidDataException("Invalid incident event.");
+    }
+
+    private static void ValidateCrashSignature(CrashSignature? signature)
+    {
+        if (signature is null) return;
+        if (!CrashSignatures.IsValid(signature))
+            throw new InvalidDataException("Invalid incident event crash signature.");
     }
 
     // Bound decoded bytes as well as file size so a compressed input cannot exhaust memory.

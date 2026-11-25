@@ -2112,4 +2112,12 @@ Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。<
   <data name="FlightRecorderEventReading" xml:space="preserve"><value>正在读取…</value></data>
   <data name="FlightRecorderTrendReceive" xml:space="preserve"><value>网络 · 下载</value></data><data name="FlightRecorderTrendSend" xml:space="preserve"><value>网络 · 上传</value></data><data name="FlightRecorderTrendClockChanged" xml:space="preserve"><value>时钟已更改，此分钟不明确。</value></data><data name="FlightRecorderTrendRestart" xml:space="preserve"><value>WinMon 已重新启动，读数会在此间隙后恢复。</value></data><data name="FlightRecorderTrendDevice" xml:space="preserve"><value>{0}</value></data>
   <data name="FlightRecorderTrendPrimaryDisk" xml:space="preserve"><value>主磁盘</value></data><data name="FlightRecorderTrendSecondaryDisk" xml:space="preserve"><value>第二个磁盘</value></data><data name="FlightRecorderTrendNetworkLegend" xml:space="preserve"><value>实线：下载 · 虚线：上传</value></data>
+  <data name="FlightRecorderCrashes" xml:space="preserve"><value>崩溃</value></data>
+  <data name="FlightRecorderCrashNotResponding" xml:space="preserve"><value>无响应</value></data>
+  <data name="FlightRecorderCrashDetails" xml:space="preserve"><value>{0} 次崩溃 · 最新: {1}</value></data>
+  <data name="FlightRecorderCrashCompactDetails" xml:space="preserve"><value>{0}× · {1:t}</value></data>
+  <data name="FlightRecorderCrashAccessViolation" xml:space="preserve"><value>访问冲突</value></data>
+  <data name="FlightRecorderCrashStackBufferOverrun" xml:space="preserve"><value>堆栈缓冲区溢出</value></data>
+  <data name="FlightRecorderCrashUnhandledDotNetException" xml:space="preserve"><value>未处理的 .NET 异常</value></data>
+  <data name="CliCrashes" xml:space="preserve"><value>列出保留的 Windows 事件日志中反复发生的应用程序崩溃和挂起。</value></data><data name="CliCrashDays" xml:space="preserve"><value>要检查的天数（1–90）。</value></data><data name="CliCrashDaysRange" xml:space="preserve"><value>--days 必须介于 1 到 90 之间。</value></data><data name="CliCrashApplication" xml:space="preserve"><value>应用程序</value></data><data name="CliCrashFailure" xml:space="preserve"><value>故障</value></data><data name="CliCrashCount" xml:space="preserve"><value>计数</value></data><data name="CliCrashLatestUtc" xml:space="preserve"><value>最新 (UTC)</value></data><data name="CliCrashNotResponding" xml:space="preserve"><value>无响应</value></data><data name="CliCrashCoverage" xml:space="preserve"><value>应用程序日志: {0}; 已达到事件上限: {1}; 最早保留事件: {2}</value></data><data name="CliCrashUnknown" xml:space="preserve"><value>未知</value></data>
 </root>

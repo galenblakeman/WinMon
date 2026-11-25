@@ -1,8 +1,10 @@
 using Win32Exception = System.ComponentModel.Win32Exception;
+using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using NUnit.Framework;
 using WinMon.Controls;
 using WinMon.Monitoring;
@@ -49,6 +51,37 @@ public sealed class CpuControlNavigationCharacterizationTests
         graph.RaiseEvent(input);
         Assert.That(published, Is.EqualTo(new[] { key == Key.Left ? before : after }));
         Assert.That(input.Handled, Is.True);
+    }
+
+    [Test]
+    public void ControlArrowInitializesModifiersBeforeReplacingKeyboardStateOnAFreshStaThread()
+    {
+        Exception? failure = null;
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                using var state = new ThreadKeyboardState(ModifierKeys.Control);
+                var before = Marker(5);
+                var after = Marker(15);
+                var graph = Graph(before, after);
+                var published = new List<ChartMarker>();
+                graph.MarkerSelected += (_, marker) => published.Add(marker);
+                var input = Input(Key.Left);
+                graph.RaiseEvent(input);
+                Assert.Multiple(() =>
+                {
+                    Assert.That(published, Is.EqualTo(new[] { before }));
+                    Assert.That(input.Handled, Is.True);
+                });
+            }
+            catch (Exception error) { failure = error; }
+            finally { Dispatcher.CurrentDispatcher.InvokeShutdown(); }
+        }) { IsBackground = true };
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        Assert.That(thread.Join(TimeSpan.FromSeconds(10)), Is.True, "The fresh keyboard thread must finish before cleanup");
+        if (failure is not null) ExceptionDispatchInfo.Capture(failure).Throw();
     }
 
     [TestCase(Key.Left, false)]
@@ -164,6 +197,10 @@ public sealed class CpuControlNavigationCharacterizationTests
 
         internal ThreadKeyboardState(ModifierKeys modifiers, ModifierKeys? expectedWpfModifiers = null)
         {
+            // WPF initializes its keyboard provider lazily. Do that before replacing this thread's native state,
+            // otherwise the first modifier read can observe the pre-initialization None state.
+            _ = Keyboard.PrimaryDevice.ActiveSource;
+            _ = Keyboard.Modifiers;
             Check(GetKeyboardState(_original));
             var replacement = (byte[])_original.Clone();
             foreach (var key in new[] { 0x10, 0x11, 0x12, 0x5B, 0x5C, 0xA0, 0xA1, 0xA2, 0xA3, 0xA4, 0xA5 })

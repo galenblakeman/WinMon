@@ -11,7 +11,7 @@ internal sealed partial class WindowDiagnostics
     {
         fixture.FlightRecorderButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         await Task.Yield();
-        if (recorder.Events.Items.Count == 0 || recorder.Graph.Markers.Count == 0 ||
+        if (recorder.Events.Items.Count == 0 || recorder.Graph.Markers.Count == 0 || recorder.CrashSummaryGroups.Count != 2 || recorder.Crashes.Items.Count != 2 ||
             !recorder.EventCoverageTextValue.Contains("Application", StringComparison.Ordinal) ||
             !recorder.EventCoverageTextValue.Contains(Strings.FlightRecorderEventUnreadable, StringComparison.Ordinal) ||
             !recorder.EventCoverageTextValue.Contains(Strings.Format(Strings.FlightRecorderEventLimit, 2), StringComparison.Ordinal))
@@ -215,7 +215,17 @@ internal sealed partial class WindowDiagnostics
             if (empty.Selection is not null || empty.PeakButton.IsEnabled || empty.NextButton.IsEnabled ||
                 empty.PreviousButton.IsEnabled || empty.Coverage.Text != Strings.FlightRecorderEmpty)
                 throw new InvalidOperationException("Empty history needs an explanation and disabled navigation.");
+            if (empty.Crashes.Visibility != Visibility.Collapsed)
+                throw new InvalidOperationException("An empty history must not show a crash summary.");
             await CaptureServiceWindowAsync(empty, Path.Combine(output, "flight-recorder-empty.png"), cancellationToken);
+            foreach (var theme in new[] { "Dark", "Light" })
+            {
+                fixture.Preferences = fixture.Preferences with { Theme = theme };
+                fixture.ApplyTheme();
+                WindowTheme.Apply(empty);
+                await CaptureServiceWindowAsync(empty, Path.Combine(output, $"flight-recorder-empty-{theme.ToLowerInvariant()}.png"),
+                    cancellationToken);
+            }
             refreshSamples = [fixture.Session.History.Samples[^1]];
             empty.RefreshButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             if (!ReferenceEquals(empty.Selection, refreshSamples[0]) || !empty.PeakButton.IsEnabled || empty.Processes.Items.Count == 0)

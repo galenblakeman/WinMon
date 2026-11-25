@@ -206,6 +206,19 @@ public sealed partial class MainWindowWorkflowCharacterizationTests
     }
 
     [Test, Apartment(ApartmentState.STA), NonParallelizable, SetUICulture("en-US")]
+    public void WindowSettingsEntryDiagnosticModeDoesNotReadStartupRegistration()
+    {
+        using var ui = new UpdateUi(_directory, diagnostic: true);
+        using var flow = new SettingsEntryFlow(ui);
+        flow.Open(dialog => dialog.Close());
+        Assert.Multiple(() =>
+        {
+            Assert.That(flow.Notices, Is.Zero);
+            Assert.That(ui.Window.Preferences.StartWithWindows, Is.False);
+        });
+    }
+
+    [Test, Apartment(ApartmentState.STA), NonParallelizable, SetUICulture("en-US")]
     public void WindowSettingsEntrySavedResultIsIgnoredWhenTheParentStartsClosing()
     {
         using var ui = new UpdateUi(_directory, diagnostic: true);

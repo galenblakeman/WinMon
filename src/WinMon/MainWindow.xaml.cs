@@ -777,7 +777,7 @@ public partial class MainWindow
         try
         {
             var dialog = new SettingsWindow(
-                _preferences with { AlwaysOnTop = Topmost, StartWithWindows = StartupRegistration.IsEnabled },
+                _preferences with { AlwaysOnTop = Topmost, StartWithWindows = !_diagnosticMode && StartupRegistration.IsEnabled },
                 IsShortcutAvailable, ShortcutStatus, async () =>
                 {
                     await CheckForUpdatesAsync(true, Lifetime.Token);

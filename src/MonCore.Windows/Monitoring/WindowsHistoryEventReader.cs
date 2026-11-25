@@ -14,6 +14,7 @@ namespace WinMon.Monitoring;
 public sealed class WindowsHistoryEventReader
 {
     internal const int MaximumEvents = 500;
+    internal const int MaximumCrashEvents = 2_000;
     private const int XmlBytes = 128 * 1024, MessageCharacters = 64 * 1024;
     private const int ErrorNoMoreItems = 259, ErrorInsufficientBuffer = 122, ErrorTimeout = 1460;
     private const uint EvtQueryChannelPath = 1, EvtQueryForwardDirection = 0x100, EvtRenderEventXml = 1, EvtFormatMessageEvent = 1;
@@ -29,6 +30,10 @@ public sealed class WindowsHistoryEventReader
     public IncidentEventResult Read(DateTimeOffset startUtc, DateTimeOffset endUtc, CancellationToken cancellationToken) =>
         Read(startUtc, endUtc, TimeSpan.FromSeconds(5), cancellationToken);
 
+    /// <summary>Reads only structured application crash and hang events for diagnostics clients.</summary>
+    public CrashEventResult ReadCrashes(DateTimeOffset startUtc, DateTimeOffset endUtc, CancellationToken cancellationToken) =>
+        ReadCrashes(startUtc, endUtc, TimeSpan.FromSeconds(5), cancellationToken);
+
     internal IncidentEventResult Read(DateTimeOffset startUtc, DateTimeOffset endUtc, TimeSpan budget, CancellationToken cancellationToken)
     {
         if (endUtc < startUtc) throw new ArgumentOutOfRangeException(nameof(endUtc));
@@ -39,6 +44,52 @@ public sealed class WindowsHistoryEventReader
 
         IEnumerable<IncidentEvent> ReadNativeLog(string log, CancellationToken token) =>
             ReadLog(log, startUtc, endUtc, started, budget, token);
+    }
+
+    internal CrashEventResult ReadCrashes(DateTimeOffset startUtc, DateTimeOffset endUtc, TimeSpan budget,
+        CancellationToken cancellationToken)
+    {
+        if (endUtc < startUtc) throw new ArgumentOutOfRangeException(nameof(endUtc));
+        if (budget <= TimeSpan.Zero) throw new ArgumentOutOfRangeException(nameof(budget));
+        cancellationToken.ThrowIfCancellationRequested();
+        var started = Stopwatch.StartNew();
+        return ReadCrashesCore(ReadNativeLog, ReadOldest, cancellationToken);
+
+        IEnumerable<IncidentEvent> ReadNativeLog(CancellationToken token) =>
+            ReadQuery(BuildCrashQuery(startUtc, endUtc), started, budget, token, includeMessage: false);
+        DateTimeOffset? ReadOldest(CancellationToken token) => ReadOldestApplicationEvent(started, budget, token);
+    }
+
+    internal static CrashEventResult ReadCrashesCore(CrashEventReader reader,
+        OldestApplicationEventReader oldestReader, CancellationToken cancellationToken)
+    {
+        var events = new List<IncidentEvent>(MaximumCrashEvents);
+        var status = IncidentEventCoverageStatus.Complete;
+        try
+        {
+            foreach (var item in reader(cancellationToken))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                events.Add(item);
+                if (events.Count < MaximumCrashEvents) continue;
+                status = IncidentEventCoverageStatus.Unknown;
+                break;
+            }
+        }
+        catch (TimeoutException) { status = IncidentEventCoverageStatus.TimedOut; }
+        catch (Exception ex) when (ex is Win32Exception or InvalidOperationException or XmlException or InvalidDataException)
+        { status = IncidentEventCoverageStatus.Unreadable; }
+
+        DateTimeOffset? oldest = null;
+        if (status is IncidentEventCoverageStatus.Complete or IncidentEventCoverageStatus.Unknown)
+        {
+            try { oldest = oldestReader(cancellationToken); }
+            catch (TimeoutException) { status = IncidentEventCoverageStatus.TimedOut; }
+            catch (Exception ex) when (ex is Win32Exception or InvalidOperationException or XmlException or InvalidDataException)
+            { status = IncidentEventCoverageStatus.Unreadable; }
+        }
+        return new CrashEventResult(events, new IncidentEventLogCoverage("Application", status),
+            events.Count == MaximumCrashEvents, oldest);
     }
 
     internal static IncidentEventResult ReadCore(IncidentEventLogReader reader, CancellationToken cancellationToken)
@@ -77,6 +128,8 @@ public sealed class WindowsHistoryEventReader
     }
 
     internal delegate IEnumerable<IncidentEvent> IncidentEventLogReader(string log, CancellationToken cancellationToken);
+    internal delegate IEnumerable<IncidentEvent> CrashEventReader(CancellationToken cancellationToken);
+    internal delegate DateTimeOffset? OldestApplicationEventReader(CancellationToken cancellationToken);
 
     internal static string BuildQuery(string log, DateTimeOffset startUtc, DateTimeOffset endUtc)
     {
@@ -95,11 +148,27 @@ public sealed class WindowsHistoryEventReader
         return builder.Append("</Query></QueryList>").ToString();
     }
 
+    internal static string BuildCrashQuery(DateTimeOffset startUtc, DateTimeOffset endUtc)
+    {
+        var start = startUtc.UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ", CultureInfo.InvariantCulture);
+        var end = endUtc.UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ", CultureInfo.InvariantCulture);
+        var time = $"TimeCreated[@SystemTime &gt;= '{start}' and @SystemTime &lt;= '{end}']";
+        return "<QueryList><Query Id=\"0\" Path=\"Application\">" +
+            $"<Select Path=\"Application\">*[System[((Provider[@Name='Application Error'] and EventID=1000) or (Provider[@Name='Application Hang'] and EventID=1002)) and {time}]]</Select>" +
+            "</Query></QueryList>";
+    }
+
     private static IEnumerable<IncidentEvent> ReadLog(string log, DateTimeOffset startUtc, DateTimeOffset endUtc, Stopwatch started,
         TimeSpan budget, CancellationToken cancellationToken)
     {
+        return ReadQuery(BuildQuery(log, startUtc, endUtc), started, budget, cancellationToken, includeMessage: true);
+    }
+
+    private static IEnumerable<IncidentEvent> ReadQuery(string queryText, Stopwatch started, TimeSpan budget,
+        CancellationToken cancellationToken, bool includeMessage)
+    {
         if (started.Elapsed >= budget) throw new TimeoutException();
-        using var query = EvtQuery(IntPtr.Zero, null, BuildQuery(log, startUtc, endUtc), EvtQueryChannelPath | EvtQueryForwardDirection);
+        using var query = EvtQuery(IntPtr.Zero, null, queryText, EvtQueryChannelPath | EvtQueryForwardDirection);
         if (query.IsInvalid) throw new Win32Exception(Marshal.GetLastPInvokeError());
         var raw = new nint[1];
         while (true)
@@ -120,20 +189,28 @@ public sealed class WindowsHistoryEventReader
             }
             using var item = new SafeEvtHandle(raw[0]);
             raw[0] = 0;
-            if (!TryReadEvent(item, out var parsed)) throw new InvalidDataException("Unreadable Windows event.");
+            if (!TryReadEvent(item, includeMessage, out var parsed)) throw new InvalidDataException("Unreadable Windows event.");
             cancellationToken.ThrowIfCancellationRequested();
             if (started.Elapsed >= budget) throw new TimeoutException();
             yield return parsed;
         }
     }
 
-    private static bool TryReadEvent(SafeEvtHandle item, out IncidentEvent result)
+    private static DateTimeOffset? ReadOldestApplicationEvent(Stopwatch started, TimeSpan budget,
+        CancellationToken cancellationToken)
+    {
+        const string queryText = "<QueryList><Query Id=\"0\" Path=\"Application\"><Select Path=\"Application\">*[System[TimeCreated]]</Select></Query></QueryList>";
+        using var enumerator = ReadQuery(queryText, started, budget, cancellationToken, includeMessage: false).GetEnumerator();
+        return enumerator.MoveNext() ? enumerator.Current.Timestamp : null;
+    }
+
+    private static bool TryReadEvent(SafeEvtHandle item, bool includeMessage, out IncidentEvent result)
     {
         result = default!;
         var xml = RenderXml(item);
         if (xml is null) return false;
         if (!TryParseXml(xml, "", out var parsed)) return false;
-        result = parsed with { Message = FirstLine(FormatMessage(item, parsed.Provider)) };
+        result = includeMessage ? parsed with { Message = FirstLine(FormatMessage(item, parsed.Provider)) } : parsed;
         return true;
     }
 
@@ -150,22 +227,72 @@ public sealed class WindowsHistoryEventReader
         var system = document.Root?.Elements().FirstOrDefault(element => element.Name.LocalName == "System");
         if (system is null || !TryReadSystem(system, out var provider, out var id, out var timestamp)) return false;
         var level = ReadLevel(system);
-        ReadProcessLifetime(document, provider, id, out var pid, out var creation);
-        result = new IncidentEvent(timestamp, provider!, id, level, FirstLine(message), pid, creation);
+        var hasStructuredFailureData = (provider == "Application Error" && id == 1000) ||
+            (provider == "Application Hang" && id == 1002);
+        var eventData = hasStructuredFailureData ? ReadEventData(document) : EventDataFields.Empty;
+        ReadProcessLifetime(eventData, provider, id, out var pid, out var creation);
+        var signature = ReadCrashSignature(eventData, provider, id);
+        result = new IncidentEvent(timestamp, provider!, id, level, FirstLine(message), pid, creation, signature);
         return true;
     }
 
-    private static void ReadProcessLifetime(XDocument document, string? provider, int id, out int? pid, out long? creation)
+    private static CrashSignature? ReadCrashSignature(EventDataFields fields, string? provider, int id)
+    {
+        var kind = provider == "Application Error" && id == 1000 ? CrashKind.Crash :
+            provider == "Application Hang" && id == 1002 ? CrashKind.Hang : (CrashKind?)null;
+        if (kind is null) return null;
+        if (fields.DuplicateNames) return null;
+        var named = fields.Named.Count > 0;
+        var applicationText = named ? fields.Named.GetValueOrDefault("AppName") :
+            kind == CrashKind.Hang && fields.Values.Count == 10 ? fields.Values[0] : null;
+        var versionText = named ? fields.Named.GetValueOrDefault("AppVersion") :
+            kind == CrashKind.Hang && fields.Values.Count == 10 ? fields.Values[1] : null;
+        if (!TryReadName(applicationText, out var application) || !TryReadVersion(versionText, out var applicationVersion)) return null;
+        if (kind == CrashKind.Hang)
+        {
+            var signature = new CrashSignature(kind.Value, application, applicationVersion);
+            return CrashSignatures.IsValid(signature) ? signature : null;
+        }
+        if (!TryReadName(fields.Named.GetValueOrDefault("ModuleName"), out var module) ||
+            !TryReadVersion(fields.Named.GetValueOrDefault("ModuleVersion"), out var moduleVersion) ||
+            !TryParseUnsignedHex(fields.Named.GetValueOrDefault("ExceptionCode"), uint.MaxValue, out var exceptionCode) ||
+            !TryParseUnsignedHex(fields.Named.GetValueOrDefault("FaultingOffset"), ulong.MaxValue, out var offset)) return null;
+        var crash = new CrashSignature(kind.Value, application, applicationVersion, module, moduleVersion, (uint)exceptionCode, offset);
+        return CrashSignatures.IsValid(crash) ? crash : null;
+    }
+
+    private static EventDataFields ReadEventData(XDocument document)
+    {
+        var named = new Dictionary<string, string>(StringComparer.Ordinal);
+        var values = new List<string>();
+        var duplicateNames = false;
+        int? processId = null;
+        long? processCreation = null;
+        foreach (var element in document.Descendants().Where(element => element.Name.LocalName == "Data"))
+        {
+            values.Add(element.Value);
+            var name = element.Attribute("Name")?.Value;
+            if (name == "ProcessId" && TryParseProcessId(element.Value, out var parsedPid) && parsedPid > 0) processId = parsedPid;
+            if (name == "ProcessCreationTime" && TryParseHex(element.Value, out var parsedCreation)) processCreation = parsedCreation;
+            if (name is not null)
+            {
+                if (!named.TryAdd(name, element.Value))
+                {
+                    duplicateNames = true;
+                    named[name] = element.Value;
+                }
+            }
+        }
+        return new EventDataFields(named, values, duplicateNames, processId, processCreation);
+    }
+
+    private static void ReadProcessLifetime(EventDataFields data, string? provider, int id, out int? pid, out long? creation)
     {
         pid = null; creation = null;
         if (provider == "Application Error" && id == 1000)
         {
-            foreach (var data in document.Descendants().Where(element => element.Name.LocalName == "Data"))
-            {
-                var name = data.Attribute("Name")?.Value;
-                if (name == "ProcessId" && TryParseProcessId(data.Value, out var parsedPid) && parsedPid > 0) pid = parsedPid;
-                if (name == "ProcessCreationTime" && TryParseHex(data.Value, out var parsedCreation)) creation = parsedCreation;
-            }
+            pid = data.ProcessId;
+            creation = data.ProcessCreation;
             if (pid is null || creation is null || creation <= 0) { pid = null; creation = null; }
         }
     }
@@ -221,6 +348,35 @@ public sealed class WindowsHistoryEventReader
     {
         value = value.Trim(); if (value.StartsWith("0x", StringComparison.OrdinalIgnoreCase)) value = value[2..];
         return long.TryParse(value, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out parsed);
+    }
+
+    private sealed record EventDataFields(IReadOnlyDictionary<string, string> Named, IReadOnlyList<string> Values,
+        bool DuplicateNames, int? ProcessId, long? ProcessCreation)
+    {
+        public static EventDataFields Empty { get; } = new(new Dictionary<string, string>(), [], false, null, null);
+    }
+
+    private static bool TryParseUnsignedHex(string? value, ulong maximum, out ulong parsed)
+    {
+        parsed = default;
+        if (string.IsNullOrWhiteSpace(value)) return false;
+        value = value.Trim();
+        if (value.StartsWith("0x", StringComparison.OrdinalIgnoreCase)) value = value[2..];
+        return ulong.TryParse(value, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out parsed) && parsed <= maximum;
+    }
+    private static bool TryReadName(string? value, out string name)
+    {
+        var raw = value ?? "";
+        name = raw.Trim();
+        return name.Length is > 0 and <= 260 && !raw.Any(char.IsControl) &&
+            name.IndexOfAny(['\\', '/', ':']) < 0;
+    }
+    private static bool TryReadVersion(string? value, out string version)
+    {
+        var raw = value ?? "";
+        version = raw.Trim();
+        return version.Length is > 0 and <= 260 && !raw.Any(char.IsControl) &&
+            Version.TryParse(version, out _);
     }
     private static bool TryParseProcessId(string value, out int parsed)
     {

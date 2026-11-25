@@ -1,5 +1,7 @@
 using System.Diagnostics;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
 using NUnit.Framework;
 using WinMon.Controls;
 using WinMon.Monitoring;
@@ -158,6 +160,63 @@ public sealed class FlightRecorderEventTests
     }
 
     [Test]
+    public async Task CrashSummary_GroupsSignedEventsAndSelectsEveryMemberOnTheTimeline()
+    {
+        var samples = Samples(0, 1, 2);
+        var signature = new CrashSignature(CrashKind.Crash, "Example.exe", "1.0", "example.dll", "2.0", 0xC0000005, 0x10);
+        var events = new IncidentEventResult(
+            [new(samples[0].Timestamp, "Application Error", 1000, IncidentEventLevel.Error, "first", CrashSignature: signature),
+                new(samples[2].Timestamp, "Application Error", 1000, IncidentEventLevel.Error, "second", CrashSignature: signature),
+                new(samples[1].Timestamp, "Application Hang", 1002, IncidentEventLevel.Error, "hang",
+                    CrashSignature: new(CrashKind.Hang, "Hung.exe", "1.0"))],
+            [new("Application", IncidentEventCoverageStatus.Complete), new("System", IncidentEventCoverageStatus.Complete)], false);
+        var window = new FlightRecorderWindow(samples, eventReader: (_, _, _) => Task.FromResult(events));
+        try
+        {
+            Show(window);
+            await Task.Yield();
+            Assert.That(window.CrashSummaryGroups, Has.Count.EqualTo(2));
+            Assert.That(window.Crashes.Items.Count, Is.EqualTo(2));
+            foreach (var (width, height) in new[] { (1000d, 760d), (620d, 540d) })
+            {
+                window.Width = width;
+                window.Height = height;
+                window.UpdateLayout();
+                var scroll = Descendants<ScrollViewer>(window.Crashes).Single();
+                var row = (ListViewItem)window.Crashes.ItemContainerGenerator.ContainerFromIndex(0);
+                var count = Descendants<TextBlock>(row).Single(text => text.Text.Contains("× · ", StringComparison.Ordinal));
+                Assert.Multiple(() =>
+                {
+                    Assert.That(scroll.ComputedHorizontalScrollBarVisibility, Is.EqualTo(Visibility.Collapsed));
+                    Assert.That(row.ActualHeight, Is.GreaterThan(0));
+                    Assert.That(count.ActualWidth, Is.GreaterThan(0));
+                    Assert.That(count.Text, Does.StartWith("2× · "));
+                    Assert.That(count.Text.Split('·')[1].Trim(), Is.Not.Empty);
+                    Assert.That(count.TransformToAncestor(window.Crashes).Transform(new Point()).Y, Is.GreaterThanOrEqualTo(0));
+                    var bottomRight = count.TransformToAncestor(window.Crashes).Transform(new Point(count.ActualWidth, count.ActualHeight));
+                    Assert.That(bottomRight.Y, Is.LessThanOrEqualTo(window.Crashes.ActualHeight));
+                    Assert.That(bottomRight.X, Is.LessThanOrEqualTo(window.Crashes.ActualWidth));
+                });
+            }
+            window.Crashes.SelectedItem = window.Crashes.Items.Cast<object>().Single(item =>
+                item.GetType().GetProperty("Application")!.GetValue(item)?.ToString() == "Example.exe");
+            Assert.Multiple(() =>
+            {
+                Assert.That(window.SelectedEvent.Text, Does.Contain("second"));
+                Assert.That(window.Graph.Markers.Where(marker => ((IncidentEventMapping)marker.Tag).Event.CrashSignature == signature)
+                    .Select(marker => marker.Selected), Is.All.True);
+                Assert.That(window.Graph.Markers.Single(marker => ((IncidentEventMapping)marker.Tag).Event.CrashSignature!.Kind == CrashKind.Hang).Selected,
+                    Is.False);
+                Assert.That(window.Crashes.Items.Cast<object>().Select(item => item.GetType().GetProperty("Failure")!.GetValue(item)?.ToString()),
+                    Has.Some.Contains("Access violation"));
+            });
+            window.Crashes.SelectedItem = null;
+            Assert.That(window.Graph.Markers.Select(marker => marker.Selected), Has.None.True);
+        }
+        finally { window.Close(); }
+    }
+
+    [Test]
     public async Task Recording_DuringQueryPreservesUnknownCoverage()
     {
         var pending = new TaskCompletionSource<IncidentEventResult>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -198,6 +257,16 @@ public sealed class FlightRecorderEventTests
         window.Resources["Surface"] = System.Windows.Media.Brushes.Black;
         window.Resources["Text"] = System.Windows.Media.Brushes.White;
         window.Show();
+    }
+
+    private static IEnumerable<T> Descendants<T>(DependencyObject root) where T : DependencyObject
+    {
+        for (var index = 0; index < VisualTreeHelper.GetChildrenCount(root); index++)
+        {
+            var child = VisualTreeHelper.GetChild(root, index);
+            if (child is T match) yield return match;
+            foreach (var nested in Descendants<T>(child)) yield return nested;
+        }
     }
 
     private static IncidentEventResult Events(string provider, IncidentEventCoverageStatus coverage) => new(

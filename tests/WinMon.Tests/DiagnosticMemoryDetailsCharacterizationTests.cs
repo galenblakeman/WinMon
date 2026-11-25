@@ -97,11 +97,11 @@ public sealed partial class MainWindowWorkflowCharacterizationTests
 
         internal Task Start(string name, bool unavailable, CancellationToken token = default)
         {
-            var method = typeof(WindowDiagnostics).GetNestedTypes(BindingFlags.NonPublic)
-                .SelectMany(type => type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly))
-                .Single(value => value.Name.StartsWith("<CaptureCompactDiagnosticsAsync>g__CaptureMemoryDetails|", StringComparison.Ordinal));
-            var capture = AnonymousDiagnostic<Func<string, bool, Task>>(method.Name, _ui.Window, _output, token);
-            return capture(name, unavailable);
+            var method = typeof(WindowDiagnostics).GetMethod("CaptureCompactMemoryDetailsAsync",
+                BindingFlags.Static | BindingFlags.NonPublic)
+                ?? throw new InvalidOperationException("Missing compact memory-details diagnostic");
+            var capture = method.CreateDelegate<Func<MainWindow, string, string, bool, CancellationToken, Task>>();
+            return capture(_ui.Window, _output, name, unavailable, token);
         }
 
         internal void AssertPng(string name)

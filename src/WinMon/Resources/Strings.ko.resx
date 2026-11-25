@@ -2112,4 +2112,12 @@ Q 종료. Ctrl+C 취소. 실행 파일과 서비스 고정은 다음 실행에�
   <data name="FlightRecorderEventReading" xml:space="preserve"><value>읽는 중…</value></data>
   <data name="FlightRecorderTrendReceive" xml:space="preserve"><value>네트워크 · 다운로드</value></data><data name="FlightRecorderTrendSend" xml:space="preserve"><value>네트워크 · 업로드</value></data><data name="FlightRecorderTrendClockChanged" xml:space="preserve"><value>시계가 변경되어 이 분은 모호합니다.</value></data><data name="FlightRecorderTrendRestart" xml:space="preserve"><value>WinMon이 다시 시작되었습니다. 이 간격 후에 측정값이 다시 시작됩니다.</value></data><data name="FlightRecorderTrendDevice" xml:space="preserve"><value>{0}</value></data>
   <data name="FlightRecorderTrendPrimaryDisk" xml:space="preserve"><value>기본 디스크</value></data><data name="FlightRecorderTrendSecondaryDisk" xml:space="preserve"><value>두 번째 디스크</value></data><data name="FlightRecorderTrendNetworkLegend" xml:space="preserve"><value>실선: 다운로드 · 점선: 업로드</value></data>
+  <data name="FlightRecorderCrashes" xml:space="preserve"><value>충돌</value></data>
+  <data name="FlightRecorderCrashNotResponding" xml:space="preserve"><value>응답하지 않음</value></data>
+  <data name="FlightRecorderCrashDetails" xml:space="preserve"><value>{0}회 충돌 · 최근: {1}</value></data>
+  <data name="FlightRecorderCrashCompactDetails" xml:space="preserve"><value>{0}× · {1:t}</value></data>
+  <data name="FlightRecorderCrashAccessViolation" xml:space="preserve"><value>액세스 위반</value></data>
+  <data name="FlightRecorderCrashStackBufferOverrun" xml:space="preserve"><value>스택 버퍼 오버런</value></data>
+  <data name="FlightRecorderCrashUnhandledDotNetException" xml:space="preserve"><value>처리되지 않은 .NET 예외</value></data>
+  <data name="CliCrashes" xml:space="preserve"><value>보존된 Windows 이벤트 로그에서 반복되는 애플리케이션 충돌 및 중단을 나열합니다.</value></data><data name="CliCrashDays" xml:space="preserve"><value>검사할 일 수(1–90)입니다.</value></data><data name="CliCrashDaysRange" xml:space="preserve"><value>--days는 1에서 90 사이여야 합니다.</value></data><data name="CliCrashApplication" xml:space="preserve"><value>애플리케이션</value></data><data name="CliCrashFailure" xml:space="preserve"><value>오류</value></data><data name="CliCrashCount" xml:space="preserve"><value>횟수</value></data><data name="CliCrashLatestUtc" xml:space="preserve"><value>최근 (UTC)</value></data><data name="CliCrashNotResponding" xml:space="preserve"><value>응답하지 않음</value></data><data name="CliCrashCoverage" xml:space="preserve"><value>애플리케이션 로그: {0}; 이벤트 한도 도달: {1}; 가장 오래된 보존 이벤트: {2}</value></data><data name="CliCrashUnknown" xml:space="preserve"><value>알 수 없음</value></data>
 </root>

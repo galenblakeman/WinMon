@@ -42,6 +42,154 @@ public sealed class WindowsHistoryEventReaderTests
     }
 
     [Test]
+    public void TryParseXml_ReadsOnlyPathFreeStructuredApplicationErrorFields()
+    {
+        // Sanitized from a local Application Error 1000 event captured on 2026-11-25.
+        const string xml = """
+            <Event><System><Provider Name="Application Error"/><EventID>1000</EventID><Level>2</Level><TimeCreated SystemTime="2026-11-10T20:03:26.3281424Z"/></System><EventData><Data Name="AppName">WinMon.Performance.exe</Data><Data Name="AppVersion">4.0.6.0</Data><Data Name="ModuleName">KERNELBASE.dll</Data><Data Name="ModuleVersion">10.0.26100.9818</Data><Data Name="ExceptionCode">e0434352</Data><Data Name="FaultingOffset">00000000000c569a</Data><Data Name="AppPath">D:\\redacted\\WinMon.Performance.exe</Data><Data Name="ModulePath">C:\\WINDOWS\\System32\\KERNELBASE.dll</Data></EventData></Event>
+            """;
+
+        Assert.That(WindowsHistoryEventReader.TryParseXml(xml, "", out var item), Is.True);
+        Assert.That(item.CrashSignature, Is.EqualTo(new CrashSignature(CrashKind.Crash, "WinMon.Performance.exe",
+            "4.0.6.0", "KERNELBASE.dll", "10.0.26100.9818", 0xe0434352, 0xc569a)));
+    }
+
+    [TestCase("C:\\private\\app.exe", "1.0.0.0", "c0000005", "1")]
+    [TestCase("app.exe", "malformed", "c0000005", "1")]
+    [TestCase("app.exe", "1.0.0.0", "not-hex", "1")]
+    [TestCase("app.exe", "1.0.0.0", "c0000005", "10000000000000000")]
+    [TestCase("app.exe", "1.0.0.0", "100000000", "1")]
+    [TestCase("app&#x9;.exe", "1.0.0.0", "c0000005", "1")]
+    [TestCase("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "1.0.0.0", "c0000005", "1")]
+    public void TryParseXml_RejectsMalformedOrSensitiveCrashSignatureFields(string application, string version,
+        string exceptionCode, string offset)
+    {
+        var xml = $"<Event><System><Provider Name=\"Application Error\"/><EventID>1000</EventID><TimeCreated SystemTime=\"2026-11-10T20:03:26Z\"/></System><EventData><Data Name=\"AppName\">{application}</Data><Data Name=\"AppVersion\">{version}</Data><Data Name=\"ModuleName\">module.dll</Data><Data Name=\"ModuleVersion\">1.0.0.0</Data><Data Name=\"ExceptionCode\">{exceptionCode}</Data><Data Name=\"FaultingOffset\">{offset}</Data></EventData></Event>";
+
+        Assert.That(WindowsHistoryEventReader.TryParseXml(xml, "", out var item), Is.True);
+        Assert.That(item.CrashSignature, Is.Null);
+    }
+
+    [Test]
+    public void TryParseXml_LeavesMissingOrDuplicateNamedCrashFieldsUnsigned()
+    {
+        const string missing = """
+            <Event><System><Provider Name="Application Error"/><EventID>1000</EventID><TimeCreated SystemTime="2026-11-10T20:03:26Z"/></System><EventData><Data Name="AppName">app.exe</Data><Data Name="AppVersion">1.0.0.0</Data><Data Name="ModuleName">module.dll</Data><Data Name="ModuleVersion">1.0.0.0</Data><Data Name="ExceptionCode">c0000005</Data></EventData></Event>
+            """;
+        const string duplicate = """
+            <Event><System><Provider Name="Application Error"/><EventID>1000</EventID><TimeCreated SystemTime="2026-11-10T20:03:26Z"/></System><EventData><Data Name="AppName">app.exe</Data><Data Name="AppName">other.exe</Data><Data Name="AppVersion">1.0.0.0</Data><Data Name="ModuleName">module.dll</Data><Data Name="ModuleVersion">1.0.0.0</Data><Data Name="ExceptionCode">c0000005</Data><Data Name="FaultingOffset">1</Data></EventData></Event>
+            """;
+
+        Assert.That(WindowsHistoryEventReader.TryParseXml(missing, "", out var missingItem), Is.True);
+        Assert.That(WindowsHistoryEventReader.TryParseXml(duplicate, "", out var duplicateItem), Is.True);
+        Assert.That(missingItem.CrashSignature, Is.Null);
+        Assert.That(duplicateItem.CrashSignature, Is.Null);
+    }
+
+    [Test]
+    public void TryParseXml_ReadsTheFixtureCoveredUnnamedHangLayout()
+    {
+        // Sanitized from the ten-Data Application Hang 1002 XML layout in Microsoft Q&A 4210888.
+        const string xml = """
+            <Event><System><Provider Name="Application Hang"/><EventID>1002</EventID><TimeCreated SystemTime="2026-11-10T20:03:26Z"/></System><EventData><Data>Lightroom.exe</Data><Data>10.1.0.10</Data><Data>12c</Data><Data>01d6d2987e67eaa7</Data><Data>25</Data><Data>C:\\redacted\\Lightroom.exe</Data><Data>00000000-0000-0000-0000-000000000000</Data><Data></Data><Data></Data><Data>Unknown</Data></EventData></Event>
+            """;
+
+        Assert.That(WindowsHistoryEventReader.TryParseXml(xml, "", out var item), Is.True);
+        Assert.That(item.CrashSignature, Is.EqualTo(new CrashSignature(CrashKind.Hang, "Lightroom.exe", "10.1.0.10")));
+    }
+
+    [Test]
+    public void TryParseXml_ReadsNamedApplicationHangFields()
+    {
+        const string xml = """
+            <Event><System><Provider Name="Application Hang"/><EventID>1002</EventID><TimeCreated SystemTime="2026-11-10T20:03:26Z"/></System><EventData><Data Name="AppName">SystemSettings.exe</Data><Data Name="AppVersion">10.0.26100.3037</Data><Data Name="ExeFileName">C:\\redacted\\SystemSettings.exe</Data></EventData></Event>
+            """;
+
+        Assert.That(WindowsHistoryEventReader.TryParseXml(xml, "", out var item), Is.True);
+        Assert.That(item.CrashSignature, Is.EqualTo(new CrashSignature(CrashKind.Hang, "SystemSettings.exe", "10.0.26100.3037")));
+    }
+
+    [Test]
+    public void TryParseXml_LeavesAnUnrecognizedUnnamedHangLayoutUnsigned()
+    {
+        const string xml = """
+            <Event><System><Provider Name="Application Hang"/><EventID>1002</EventID><TimeCreated SystemTime="2026-11-10T20:03:26Z"/></System><EventData><Data>app.exe</Data><Data>1.0.0.0</Data></EventData></Event>
+            """;
+
+        Assert.That(WindowsHistoryEventReader.TryParseXml(xml, "", out var item), Is.True);
+        Assert.That(item.CrashSignature, Is.Null);
+    }
+
+    [Test]
+    public void BuildCrashQuery_SelectsOnlyApplicationErrorsAndHangsWithinTheRequestedRange()
+    {
+        var query = WindowsHistoryEventReader.BuildCrashQuery(DateTimeOffset.UnixEpoch, DateTimeOffset.UnixEpoch.AddDays(1));
+
+        Assert.DoesNotThrow(() => XDocument.Parse(query));
+        Assert.That(query, Does.Contain("Application Error").And.Contain("Application Hang"));
+        Assert.That(query, Does.Contain("1970-01-01T00:00:00.0000000Z").And.Contain("1970-01-02T00:00:00.0000000Z"));
+        Assert.That(query, Does.Not.Contain(".NET Runtime"));
+        var selector = XDocument.Parse(query).Descendants("Select").Single().Value;
+        Assert.That(selector, Does.Contain("System[((Provider[@Name='Application Error'] and EventID=1000) or (Provider[@Name='Application Hang'] and EventID=1002)) and TimeCreated"));
+    }
+
+    [Test]
+    public void ReadCrashesCore_PreservesOldestTimestampAtEventCap()
+    {
+        var oldestReads = 0;
+        var result = WindowsHistoryEventReader.ReadCrashesCore(Read, ReadOldest, CancellationToken.None);
+
+        Assert.That(result.Events, Has.Count.EqualTo(WindowsHistoryEventReader.MaximumCrashEvents));
+        Assert.That(result.LimitReached, Is.True);
+        Assert.That(result.ApplicationCoverage.Status, Is.EqualTo(IncidentEventCoverageStatus.Unknown));
+        Assert.That(result.OldestRetainedApplicationEvent, Is.EqualTo(DateTimeOffset.UnixEpoch));
+        Assert.That(oldestReads, Is.EqualTo(1));
+
+        IEnumerable<IncidentEvent> Read(CancellationToken token)
+        {
+            for (var i = 0; i < WindowsHistoryEventReader.MaximumCrashEvents + 1; i++)
+                yield return new IncidentEvent(DateTimeOffset.UnixEpoch, "Application Error", 1000,
+                    IncidentEventLevel.Error, "");
+        }
+        DateTimeOffset? ReadOldest(CancellationToken token)
+        {
+            oldestReads++;
+            return DateTimeOffset.UnixEpoch;
+        }
+    }
+
+    [TestCase("timeout", IncidentEventCoverageStatus.TimedOut)]
+    [TestCase("unreadable", IncidentEventCoverageStatus.Unreadable)]
+    public void ReadCrashesCore_ReportsFailuresAndDoesNotReadOldest(string failure, IncidentEventCoverageStatus expected)
+    {
+        var oldestReads = 0;
+        var result = WindowsHistoryEventReader.ReadCrashesCore(Read, ReadOldest, CancellationToken.None);
+
+        Assert.That(result.ApplicationCoverage.Status, Is.EqualTo(expected));
+        Assert.That(result.Events, Is.Empty);
+        Assert.That(result.OldestRetainedApplicationEvent, Is.Null);
+        Assert.That(oldestReads, Is.Zero);
+
+        IEnumerable<IncidentEvent> Read(CancellationToken token) => failure == "timeout"
+            ? throw new TimeoutException() : throw new System.ComponentModel.Win32Exception(5);
+        DateTimeOffset? ReadOldest(CancellationToken token) { oldestReads++; return DateTimeOffset.UnixEpoch; }
+    }
+
+    [Test, Category("Integration")]
+    public void ReadCrashes_ReportsApplicationCoverageForEmptyAndRetainedRanges()
+    {
+        var reader = new WindowsHistoryEventReader();
+        var empty = reader.ReadCrashes(DateTimeOffset.UnixEpoch, DateTimeOffset.UnixEpoch.AddDays(1), CancellationToken.None);
+        var retained = reader.ReadCrashes(DateTimeOffset.UtcNow.AddDays(-90), DateTimeOffset.UtcNow, CancellationToken.None);
+
+        Assert.That(empty.Events, Is.Empty);
+        Assert.That(empty.ApplicationCoverage.Status, Is.EqualTo(IncidentEventCoverageStatus.Complete));
+        Assert.That(retained.ApplicationCoverage.Status, Is.EqualTo(IncidentEventCoverageStatus.Complete));
+        Assert.That(retained.Events, Has.Count.LessThanOrEqualTo(WindowsHistoryEventReader.MaximumCrashEvents));
+        Assert.That(retained.OldestRetainedApplicationEvent, Is.Null.Or.LessThanOrEqualTo(DateTimeOffset.UtcNow));
+    }
+
+    [Test]
     public void ReadCore_GlobalCapLeavesTheUnqueriedLogUnknown()
     {
         var enumerated = 0;

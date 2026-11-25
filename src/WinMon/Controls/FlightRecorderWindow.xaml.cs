@@ -25,6 +25,9 @@ internal partial class FlightRecorderWindow : Window
     private IncidentEventResult _events = IncidentEventResult.Unknown;
     private IReadOnlyList<IncidentEventMapping> _eventMappings = [];
     private IncidentEventMapping? _selectedEvent;
+    private IReadOnlyList<CrashGroup> _crashGroups = [];
+    private CrashGroup? _selectedCrashGroup;
+    private bool _updatingCrashes;
     private IReadOnlyDictionary<SampleKey, ConnectionCapture> _traffic = new Dictionary<SampleKey, ConnectionCapture>();
     private IReadOnlyDictionary<SampleKey, (IReadOnlyList<ProcessUsage> Started, IReadOnlyList<ProcessUsage> Stopped)>? _changes;
     private ResourceTrendArchiveState? _trends;
@@ -478,6 +481,7 @@ internal partial class FlightRecorderWindow : Window
     }
 
     internal IReadOnlyList<IncidentEventMapping> EventMappings => _eventMappings;
+    internal IReadOnlyList<CrashGroup> CrashSummaryGroups => _crashGroups;
     internal bool EventReadPending => _eventReadPending;
     internal string EventCoverageTextValue => EventCoverageText.Text;
     internal void SelectEventForFixture(IncidentEventMapping item) => SelectEvent(item);
@@ -550,6 +554,9 @@ internal partial class FlightRecorderWindow : Window
             .Concat(_traffic.Values.SelectMany(capture => capture.Owners));
         _eventMappings = IncidentEventMapper.Map(result, _samples, retained);
         if (_selectedEvent is { } selected && !_eventMappings.Any(item => item.Event == selected.Event)) _selectedEvent = null;
+        _crashGroups = CrashGroups.Build(result.Events);
+        if (_selectedCrashGroup is { } selectedGroup)
+            _selectedCrashGroup = _crashGroups.FirstOrDefault(group => group.Key == selectedGroup.Key);
         RefreshMarkerSelection();
         UpdateEventPresentation();
     }
@@ -571,6 +578,7 @@ internal partial class FlightRecorderWindow : Window
                 displayed.FirstOrDefault(row => row.Mapping?.Event == _selectedEvent.Event);
         }
         finally { _updatingEvents = false; }
+        UpdateCrashPresentation();
         EventCoverageText.Text = FormatEventCoverage(_events);
         SelectedEvent.Text = _selectedEvent is null ? "" : EventTooltip(_selectedEvent);
         if (_selectedEvent?.LinkedProcess is { } linked)
@@ -599,6 +607,61 @@ internal partial class FlightRecorderWindow : Window
         if (!_updatingEvents && Events.SelectedItem is EventRow { Mapping: { } item }) SelectEvent(item);
     }
 
+    private void UpdateCrashPresentation()
+    {
+        var rows = _crashGroups.Select(group =>
+        {
+            var failure = CrashFailure(group);
+            var details = Strings.Format(Strings.FlightRecorderCrashDetails, group.Count, group.LastTime.ToLocalTime());
+            var summary = string.Join(" · ", group.Key.Application, failure, details);
+            return new CrashRow(group, group.Key.Application, failure, details, summary, summary,
+                Strings.Format(Strings.FlightRecorderCrashCompactDetails, group.Count, group.LastTime.ToLocalTime()));
+        }).ToArray();
+        _updatingCrashes = true;
+        try
+        {
+            Crashes.ItemsSource = rows;
+            Crashes.Visibility = rows.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
+            CrashHeading.Visibility = rows.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
+            Crashes.SelectedItem = _selectedCrashGroup is null ? null : rows.FirstOrDefault(row => row.Group.Key == _selectedCrashGroup.Key);
+        }
+        finally { _updatingCrashes = false; }
+    }
+
+    private static string CrashFailure(CrashGroup group)
+    {
+        if (group.Key.Kind == CrashKind.Hang) return Strings.FlightRecorderCrashNotResponding;
+        var code = group.Key.ExceptionCode is { } exception ? "0x" + exception.ToString("X8", CultureInfo.InvariantCulture) : "";
+        var named = ExceptionName(group.Key.ExceptionCode);
+        var exceptionText = named is null ? code : code + " (" + named + ")";
+        return string.Join(" · ", new[] { group.Key.Module, exceptionText }.Where(text => !string.IsNullOrEmpty(text)));
+    }
+
+    private static string? ExceptionName(uint? code) => code switch
+    {
+        0xC0000005 => Strings.FlightRecorderCrashAccessViolation,
+        0xC0000409 => Strings.FlightRecorderCrashStackBufferOverrun,
+        0xE0434352 => Strings.FlightRecorderCrashUnhandledDotNetException,
+        _ => null
+    };
+
+    private void OnCrashSelected(object sender, SelectionChangedEventArgs e)
+    {
+        if (_updatingCrashes) return;
+        if (Crashes.SelectedItem is not CrashRow row)
+        {
+            _selectedCrashGroup = null;
+            _selectedEvent = null;
+            RefreshMarkerSelection();
+            UpdateEventPresentation();
+            return;
+        }
+        _selectedCrashGroup = row.Group;
+        var item = _eventMappings.LastOrDefault(mapping => row.Group.Events.Any(member => ReferenceEquals(member, mapping.Event)));
+        if (item is not null) SelectEvent(item);
+        else RefreshMarkerSelection();
+    }
+
     private static ChartMarkerPattern EventPattern(IncidentEventLevel level) => level switch
     {
         IncidentEventLevel.Error => ChartMarkerPattern.Diamond,
@@ -623,7 +686,8 @@ internal partial class FlightRecorderWindow : Window
     private void RefreshMarkerSelection()
     {
         Graph.Markers = _eventMappings.OrderBy(item => item.Moment).Select(item => new ChartMarker(item.Moment, EventBrush(item.Event.Level), EventTooltip(item),
-            item.Event == _selectedEvent?.Event, item, EventPattern(item.Event.Level))).ToArray();
+            item.Event == _selectedEvent?.Event || _selectedCrashGroup?.Events.Any(member => ReferenceEquals(member, item.Event)) == true,
+            item, EventPattern(item.Event.Level))).ToArray();
         Graph.InvalidateVisual();
     }
     private string FormatEventCoverage(IncidentEventResult result)
@@ -647,4 +711,6 @@ internal partial class FlightRecorderWindow : Window
 
     private sealed record ProcessContributor(ProcessUsage Process, string Name, int Pid, string Cpu, string Memory, string Io, string Gpu, string Network);
     private sealed record EventRow(IncidentEventMapping? Mapping, string Summary, string Message);
+    private sealed record CrashRow(CrashGroup Group, string Application, string Failure, string Details, string Summary,
+        string AccessibleName, string CountText);
 }

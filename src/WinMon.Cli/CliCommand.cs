@@ -15,7 +15,8 @@ public static class CliCommand
         Func<string, CancellationToken, Task>? runNetwork = null, CliSettingsStore? settingsStore = null,
         Func<InteractiveState, bool, int>? runWatch = null,
         Func<string, CancellationToken, Task<int>>? runUpdate = null,
-        Func<bool, CancellationToken, HardwareInventorySnapshot>? readHardware = null)
+        Func<bool, CancellationToken, HardwareInventorySnapshot>? readHardware = null,
+        Func<DateTimeOffset, DateTimeOffset, CancellationToken, CrashEventResult>? readCrashes = null)
     {
         output ??= Console.Out;
         error ??= Console.Error;
@@ -188,7 +189,8 @@ public static class CliCommand
             ActivityCommands.Create("services", createSource, output, error),
             ActivityCommands.Create("connections", createSource, output, error),
             ActivityCommands.Create("usage", createSource, output, error),
-            UsageArchiveCommand.Create(output, error)
+            UsageArchiveCommand.Create(output, error),
+            CrashCommand.Create(output, error, readCrashes)
         };
     }
 

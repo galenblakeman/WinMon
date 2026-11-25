@@ -10,12 +10,15 @@ namespace WinMon.Mcp;
 [McpServerToolType]
 internal sealed partial class DiagnosticTools(SamplingOwner owner,
     Func<bool, CancellationToken, HardwareInventorySnapshot>? readHardware = null,
-    Func<string, CancellationToken, Task<UsageArchive>>? readUsageArchive = null)
+    Func<string, CancellationToken, Task<UsageArchive>>? readUsageArchive = null,
+    Func<DateTimeOffset, DateTimeOffset, CancellationToken, CrashEventResult>? readCrashes = null)
 {
     private readonly SemaphoreSlim _samplingSlots = new(4, 4);
     private readonly SemaphoreSlim _hardwareSlot = new(1, 1);
     private readonly Func<bool, CancellationToken, HardwareInventorySnapshot> _readHardware =
         readHardware ?? WindowsHardwareInventory.Read;
+    private readonly Func<DateTimeOffset, DateTimeOffset, CancellationToken, CrashEventResult> _readCrashes =
+        readCrashes ?? new WindowsHistoryEventReader().ReadCrashes;
 
     [McpServerTool(Name = "get_system_snapshot", ReadOnly = true, Destructive = false, OpenWorld = false, UseStructuredContent = true, OutputSchemaType = typeof(DiagnosticResponse)),
      Description("Read current system CPU, memory, selected disk/adapter and GPU. Null metrics are unavailable; CPU percent uses total machine capacity.")]

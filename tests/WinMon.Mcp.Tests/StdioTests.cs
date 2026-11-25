@@ -30,7 +30,7 @@ public sealed class StdioTests
         Assert.That(tools.Select(tool => tool.Name), Is.EquivalentTo(new[]
         {
             "get_system_snapshot", "list_processes", "get_process_details", "sample_performance", "get_network_connections",
-            "get_process_network_traffic", "get_hardware_info", "list_services", "get_usage", "get_performance_history",
+            "get_process_network_traffic", "get_hardware_info", "list_crashes", "list_services", "get_usage", "get_performance_history",
             "list_capture_reports", "read_capture_report", "get_usage_history"
         }));
         Assert.That(tools.All(tool => tool.ProtocolTool.Annotations?.ReadOnlyHint == true), Is.True);
@@ -53,6 +53,17 @@ public sealed class StdioTests
         });
         var invalid = await client.CallToolAsync("list_processes", new Dictionary<string, object?> { ["limit"] = 0 }, cancellationToken: timeout.Token);
         Assert.That(invalid.IsError, Is.True);
+        var crashes = await client.CallToolAsync("list_crashes", new Dictionary<string, object?>
+        {
+            ["days"] = 1, ["limit"] = 1
+        }, cancellationToken: timeout.Token);
+        Assert.Multiple(() =>
+        {
+            Assert.That(crashes.IsError, Is.Not.True);
+            Assert.That(crashes.StructuredContent!.Value.GetProperty("schemaVersion").GetInt32(), Is.EqualTo(1));
+            Assert.That(crashes.StructuredContent.Value.GetProperty("data").GetProperty("coverage").TryGetProperty("oldestRetainedApplicationEvent", out _), Is.True);
+            Assert.That(crashes.StructuredContent.Value.GetRawText(), Does.Not.Contain("appPath").And.Not.Contain("modulePath").And.Not.Contain("message"));
+        });
         var archive = await client.CallToolAsync("get_usage_history", new Dictionary<string, object?>
         {
             ["startDate"] = "2000-01-01", ["endDate"] = "2000-01-02"

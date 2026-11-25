@@ -11,6 +11,23 @@ public enum IncidentEventLevel
     Information = 4
 }
 
+/// <summary>The kind of a structured Windows application failure.</summary>
+public enum CrashKind
+{
+    Crash,
+    Hang
+}
+
+/// <summary>Structured, path-free identity fields emitted by an application failure event.</summary>
+public sealed record CrashSignature(
+    CrashKind Kind,
+    string Application,
+    string ApplicationVersion,
+    string? Module = null,
+    string? ModuleVersion = null,
+    uint? ExceptionCode = null,
+    ulong? Offset = null);
+
 /// <summary>The outcome of reading one Windows event log for an incident.</summary>
 public enum IncidentEventCoverageStatus
 {
@@ -28,7 +45,8 @@ public sealed record IncidentEvent(
     IncidentEventLevel Level,
     string Message,
     int? ProcessId = null,
-    long? CreationTicks = null);
+    long? CreationTicks = null,
+    CrashSignature? CrashSignature = null);
 
 /// <summary>Whether a Windows event log was fully covered while collecting an incident.</summary>
 public sealed record IncidentEventLogCoverage(string Log, IncidentEventCoverageStatus Status);

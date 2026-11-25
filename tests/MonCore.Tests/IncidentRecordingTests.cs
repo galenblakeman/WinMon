@@ -238,6 +238,50 @@ public sealed class IncidentRecordingTests
         Assert.That(IncidentRecording.Load(FilePath).WindowsEvents.Events, Has.Count.EqualTo(500));
     }
 
+    [Test]
+    public void SaveLoad_PreservesCrashSignatureInVersionTwoRecording()
+    {
+        var signature = new CrashSignature(CrashKind.Crash, "player.exe", "2.0", "app.dll", "1.0", 0xC0000005, 42);
+        var source = Recording() with { WindowsEvents = Events() with
+            { Events = [Events().Events[0] with { CrashSignature = signature }] } };
+
+        source.Save(FilePath);
+
+        Assert.That(IncidentRecording.Load(FilePath).WindowsEvents.Events.Single().CrashSignature, Is.EqualTo(signature));
+    }
+
+    [TestCase("application")]
+    [TestCase("application-boundary")]
+    [TestCase("control")]
+    [TestCase("path")]
+    [TestCase("version")]
+    [TestCase("unknown-kind")]
+    [TestCase("hang-fields")]
+    [TestCase("crash-fields")]
+    public void Load_RejectsInvalidCrashSignature(string kind)
+    {
+        var signature = new CrashSignature(CrashKind.Crash, "player.exe", "2.0", "app.dll", "1.0", 0xC0000005, 42);
+        signature = kind switch
+        {
+            "application" => signature with { Application = new string('x', 261) },
+            "application-boundary" => signature with { Application = new string('x', 260) },
+            "control" => signature with { Module = "bad\n.dll" },
+            "path" => signature with { Application = "C:\\apps\\player.exe" },
+            "version" => signature with { ApplicationVersion = "invalid" },
+            "unknown-kind" => signature with { Kind = (CrashKind)99 },
+            "hang-fields" => signature with { Kind = CrashKind.Hang },
+            _ => signature with { Offset = null }
+        };
+        var events = Events() with { Events = [Events().Events[0] with { CrashSignature = signature }] };
+        WriteJson(JsonSerializer.Serialize(WithoutTraffic() with { WindowsEvents = events }));
+
+        if (kind == "application-boundary")
+            Assert.That(() => IncidentRecording.Load(FilePath), Throws.Nothing);
+        else
+            Assert.That(() => IncidentRecording.Load(FilePath), Throws.TypeOf<InvalidDataException>()
+                .With.Message.EqualTo("Invalid incident event crash signature."));
+    }
+
     [TestCase("negative-clock")]
     [TestCase("mixed-clocks")]
     [TestCase("negative-unavailable")]

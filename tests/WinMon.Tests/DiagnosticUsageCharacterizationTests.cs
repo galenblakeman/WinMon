@@ -73,7 +73,7 @@ public sealed partial class MainWindowWorkflowCharacterizationTests
         using var contentLock = new FileStream(content, FileMode.Open, FileAccess.Read, FileShare.Read);
         try
         {
-            Assert.Throws<IOException>(() => scope.Run(WindowDiagnostics.CaptureUsageDiagnosticsAsync));
+            AssertLockedPngWriteFailure(() => scope.Run(WindowDiagnostics.CaptureUsageDiagnosticsAsync));
             AssertArchiveRecoveryOutputs(_directory);
             Assert.Multiple(() =>
             {

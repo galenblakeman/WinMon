@@ -2121,4 +2121,15 @@ También falló la restauración de la limitación: {1}</value></data>
   <data name="FlightRecorderEventReading" xml:space="preserve"><value>Leyendo…</value></data>
   <data name="FlightRecorderTrendReceive" xml:space="preserve"><value>Red · descarga</value></data><data name="FlightRecorderTrendSend" xml:space="preserve"><value>Red · carga</value></data><data name="FlightRecorderTrendClockChanged" xml:space="preserve"><value>El reloj cambió; este minuto es ambiguo.</value></data><data name="FlightRecorderTrendRestart" xml:space="preserve"><value>WinMon se reinició; las lecturas continúan después de esta brecha.</value></data><data name="FlightRecorderTrendDevice" xml:space="preserve"><value>{0}</value></data>
   <data name="FlightRecorderTrendPrimaryDisk" xml:space="preserve"><value>Disco principal</value></data><data name="FlightRecorderTrendSecondaryDisk" xml:space="preserve"><value>Segundo disco</value></data><data name="FlightRecorderTrendNetworkLegend" xml:space="preserve"><value>Sólida: descarga · punteada: carga</value></data>
+  <data name="FlightRecorderCrashes" xml:space="preserve"><value>Bloqueos</value></data>
+  <data name="FlightRecorderCrashNotResponding" xml:space="preserve"><value>No responde</value></data>
+  <data name="FlightRecorderCrashDetails" xml:space="preserve"><value>{0} bloqueos · Último: {1}</value></data>
+  <data name="FlightRecorderCrashCompactDetails" xml:space="preserve"><value>{0}× · {1:t}</value></data>
+  <data name="FlightRecorderCrashAccessViolation" xml:space="preserve"><value>Infracción de acceso</value></data>
+  <data name="FlightRecorderCrashStackBufferOverrun" xml:space="preserve"><value>Desbordamiento del búfer de pila</value></data>
+  <data name="FlightRecorderCrashUnhandledDotNetException" xml:space="preserve"><value>Excepción de .NET no controlada</value></data>
+  <data name="CliCrashes" xml:space="preserve"><value>Enumera bloqueos y bloqueos de respuesta recurrentes en el registro de eventos de Windows retenido.</value></data>
+  <data name="CliCrashDays" xml:space="preserve"><value>Número de días que se deben inspeccionar (1–90).</value></data>
+  <data name="CliCrashDaysRange" xml:space="preserve"><value>--days debe estar entre 1 y 90.</value></data>
+  <data name="CliCrashApplication" xml:space="preserve"><value>Aplicación</value></data><data name="CliCrashFailure" xml:space="preserve"><value>Error</value></data><data name="CliCrashCount" xml:space="preserve"><value>Recuento</value></data><data name="CliCrashLatestUtc" xml:space="preserve"><value>Último (UTC)</value></data><data name="CliCrashNotResponding" xml:space="preserve"><value>No responde</value></data><data name="CliCrashCoverage" xml:space="preserve"><value>Registro de aplicación: {0}; límite de eventos alcanzado: {1}; evento retenido más antiguo: {2}</value></data><data name="CliCrashUnknown" xml:space="preserve"><value>desconocido</value></data>
 </root>
