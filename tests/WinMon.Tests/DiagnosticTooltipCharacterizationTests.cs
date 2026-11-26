@@ -162,6 +162,8 @@ public sealed partial class MainWindowWorkflowCharacterizationTests
             style.Setters.Add(new EventSetter(ToolTip.OpenedEvent, new RoutedEventHandler((sender, _) => Opened.Add((ToolTip)sender))));
             Application.Current.Resources[typeof(ToolTip)] = style;
             _original = originalPresent ? new object() : null;
+            // The diagnostic opens its own tooltip. Keep the physical pointer from replacing it.
+            Window.OverallGraph.IsHitTestVisible = false;
             Window.OverallGraph.ToolTip = _original;
             if (seed)
             {

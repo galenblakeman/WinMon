@@ -871,11 +871,13 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
     {
         // Render-only fixture, separate from native sampling evidence. Never enters a user's session.
         var fixture = new MainWindow(true);
+        fixture.Preferences = fixture.Preferences with { CpuTemperatureMonitoringEnabled = true };
         fixture.ApplyTheme();
         fixture.RefreshVisiblePresentation();
         if (fixture.SnapshotModeButton.IsEnabled || fixture.LiveModeButton.IsChecked != true)
             throw new InvalidOperationException("An empty recording must start live with Snapshot disabled.");
         var anchor = DateTimeOffset.Now;
+        var cpuSensorGeneration = Guid.NewGuid();
         for (var i = 0; i < 120; i++)
         {
             var pulse = Math.Exp(-Math.Pow((i - 92) / 2d, 2));
@@ -906,12 +908,17 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                 {
                     TotalMemoryBytes = 32UL * 1_073_741_824,
                     UsedMemoryBytes = (ulong)((0.62 + 0.003 * Math.Sin(i)) * 32 * 1_073_741_824),
+                    CpuTemperature = new CpuTemperatureReading(cpuSensorGeneration, "fixture-cpu", "CPU",
+                        "fixture-package", "CPU Package", 46 + 28 * pulse, "Illustrative"),
+                    DiskTemperatureCelsius = 37 + 5 * pulse,
+                    SecondaryDiskTemperatureCelsius = 33 + 3 * pulse,
                     SecondaryDiskName = "D:", SecondaryDiskActivePercent = 42.6 + 18 * Math.Sin(i * 0.2),
                     SecondaryDiskBytesPerSecond = 128_000_000,
                     DiskName = "C:", DiskActivePercent = 7 + 5 * Math.Abs(Math.Sin(i * 0.8)) + 68 * pulse,
                     DiskBytesPerSecond = 84_000_000,
                     NetworkId = "fixture", NetworkName = "Ethernet", LinkBitsPerSecond = 1_000_000_000,
                     GpuId = "illustrative-adapter/0", GpuEngine = "3D",
+                    GpuThermals = [new("illustrative-adapter/0", "GPU", 52 + 13 * pulse, null, null, null, null)],
                     GpuPercent = 43 + 3 * Math.Sin(i * 0.3) + 28 * pulse,
                     ReceiveBytesPerSecond = (2 + 2 * Math.Abs(Math.Sin(i * 0.8)) + 38 * pulse) / 100 * 125_000_000,
                     SendBytesPerSecond = 125_000

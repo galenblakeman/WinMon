@@ -21,6 +21,7 @@ internal sealed partial class WindowDiagnostics
     {
         foreach (var chartType in Enum.GetValues<ResourceChartType>())
         {
+            if (chartType == ResourceChartType.Temperature && !fixture.Preferences.TemperatureChartsEnabled) continue;
             fixture.Preferences = fixture.Preferences with { ResourceChartType = chartType };
             fixture.BuildChartSelectors();
             fixture.RefreshVisiblePresentation();

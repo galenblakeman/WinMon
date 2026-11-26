@@ -37,8 +37,13 @@ public sealed partial class MainWindowWorkflowCharacterizationTests
             });
             AssertDesignFixtureLifetime(scope);
             var names = Directory.GetFiles(_directory, "*.png").Select(Path.GetFileName).ToArray();
-            foreach (var chart in Enum.GetValues<ResourceChartType>())
+            foreach (var chart in Enum.GetValues<ResourceChartType>().Where(type => type != ResourceChartType.Temperature))
                 Assert.That(names, Does.Contain($"chart-design-{chart.ToString().ToLowerInvariant()}.png"));
+#if WINMON_STORE
+            Assert.That(names, Does.Not.Contain("chart-design-temperature.png"));
+#else
+            Assert.That(names, Does.Contain("chart-design-temperature.png"));
+#endif
             foreach (var name in new[] { "apps-only-grouped-history.png", "chart-design-focus-second-disk.png",
                          "disks-settings-dark.png", "disks-settings-light.png", "gpu-process-sort.png",
                          "memory-process-sort.png", "grouped.png", "snapshot-short.png", "glacier-light.png" })

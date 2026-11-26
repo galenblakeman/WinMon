@@ -72,13 +72,14 @@ public sealed partial class MainWindowWorkflowCharacterizationTests
     {
         using var fixture = new MetricCaptureDiagnostic(_directory, activate: true);
         FinishWindowCheck(fixture.Workflow());
-        foreach (var name in new[] { "cpu", "memory", "disk", "gpu" })
+        foreach (var name in new[] { "cpu", "cpu-thermal", "memory", "disk", "gpu" })
         {
             fixture.AssertPng(name, false);
             fixture.AssertPng(name, true);
-            fixture.AssertClosed(fixture.Metric(name));
         }
-        Assert.That(Directory.GetFiles(_directory, "*.png"), Has.Length.EqualTo(8));
+        foreach (var name in new[] { "cpu", "memory", "disk", "gpu" })
+            fixture.AssertClosed(fixture.Metric(name));
+        Assert.That(Directory.GetFiles(_directory, "*.png"), Has.Length.EqualTo(10));
         Assert.That(fixture.Window.CompactMode, Is.False);
     }
 
@@ -107,7 +108,8 @@ public sealed partial class MainWindowWorkflowCharacterizationTests
         var error = Assert.Throws<InvalidOperationException>(() => FinishWindowCheck(fixture.Workflow()));
         Assert.That(error!.Message, Is.EqualTo("Memory details did not expose all nullable pressure readings."));
         fixture.AssertPng("cpu", false);
-        Assert.That(Directory.GetFiles(_directory, "*.png"), Has.Length.EqualTo(1));
+        fixture.AssertPng("cpu-thermal", false);
+        Assert.That(Directory.GetFiles(_directory, "*.png"), Has.Length.EqualTo(2));
         fixture.AssertClosed(fixture.Window.CpuMetric);
         Assert.That(fixture.Window.CompactMode, Is.False);
     }
@@ -140,7 +142,7 @@ public sealed partial class MainWindowWorkflowCharacterizationTests
             }
             var error = Assert.Throws<InvalidOperationException>(() => FinishWindowCheck(fixture.Workflow()));
             Assert.That(error!.Message, Is.EqualTo("Compact resource tile lacks keyboard-accessible details."));
-            Assert.That(Directory.GetFiles(_directory, "*.png"), Has.Length.EqualTo(4));
+            Assert.That(Directory.GetFiles(_directory, "*.png"), Has.Length.EqualTo(5));
             fixture.AssertClosed(fixture.Window.GpuMetric);
             Assert.That(fixture.Window.CompactMode, Is.False);
         }
@@ -155,7 +157,7 @@ public sealed partial class MainWindowWorkflowCharacterizationTests
         KeyboardNavigation.SetIsTabStop(second, false);
         var error = Assert.Throws<InvalidOperationException>(() => FinishWindowCheck(fixture.Workflow()));
         Assert.That(error!.Message, Is.EqualTo("Compact resource tab order is not left to right."));
-        Assert.That(Directory.GetFiles(_directory, "*.png"), Has.Length.EqualTo(8));
+        Assert.That(Directory.GetFiles(_directory, "*.png"), Has.Length.EqualTo(10));
         fixture.AssertClosed(fixture.Window.GpuMetric);
         Assert.That(fixture.Window.CompactMode, Is.False);
     }
