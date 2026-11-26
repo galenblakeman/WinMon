@@ -73,6 +73,7 @@ $cliPublish = Join-Path $work 'cli-publish'
 $mcpPublish = Join-Path $work 'mcp-publish'
 $assets = Join-Path $work 'assets'
 $networkServiceBundle = Join-Path $work 'network-service-bundle'
+$sensorServiceBundle = Join-Path $work 'sensor-service-bundle'
 New-Item -ItemType Directory -Path $assets -Force | Out-Null
 Push-Location $root
 try {
@@ -80,9 +81,10 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Release tests failed.' }
     if ($CodeSign) {
         & (Join-Path $PSScriptRoot 'New-NetworkServicePackage.ps1') -Version $version -UpdateSigningKeyPath $UpdateSigningKeyPath -OutputDirectory $networkServiceBundle @signingParameters
+        & (Join-Path $PSScriptRoot 'New-SensorServicePackage.ps1') -Version $version -UpdateSigningKeyPath $UpdateSigningKeyPath -OutputDirectory $sensorServiceBundle @signingParameters
     }
     $publishArguments = @('publish', 'src/WinMon/WinMon.csproj', '-c', 'Release', '-r', 'win-x64', '-m:1', '-p:UseSharedCompilation=false', "--artifacts-path=$work/build", '-o', $publish)
-    if ($CodeSign) { $publishArguments += "-p:NetworkServiceBundleDirectory=$networkServiceBundle" }
+    if ($CodeSign) { $publishArguments += "-p:NetworkServiceBundleDirectory=$networkServiceBundle"; $publishArguments += "-p:SensorServiceBundleDirectory=$sensorServiceBundle" }
     dotnet @publishArguments
     if ($LASTEXITCODE -ne 0) { throw 'Release publish failed.' }
     $cliPublishArguments = @('publish', 'src/WinMon.Cli/WinMon.Cli.csproj', '-c', 'Release', '-r', 'win-x64', '-m:1', '-p:UseSharedCompilation=false', "--artifacts-path=$work/build", '-o', $cliPublish)

@@ -90,4 +90,18 @@ public sealed class GaugeReadoutTextTests
                 Is.EqualTo("3D · 61 °C"));
         });
     }
+
+    [Test]
+    public void CpuDetail_PairsClockWithAvailableTemperatureAndOmitsMissingTemperature()
+    {
+        Assert.Multiple(() =>
+        {
+            Assert.That(GaugeReadoutText.CpuDetail(4300, 61, TemperatureUnit.Celsius),
+                Is.EqualTo("4.30 GHz · 61 °C"));
+            Assert.That(GaugeReadoutText.CpuDetail(4300, 61, TemperatureUnit.Fahrenheit),
+                Is.EqualTo("4.30 GHz · 142 °F"));
+            Assert.That(GaugeReadoutText.CpuDetail(4300, null, TemperatureUnit.Celsius),
+                Is.EqualTo("4.30 GHz"));
+        });
+    }
 }

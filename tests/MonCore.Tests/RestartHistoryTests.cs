@@ -145,6 +145,8 @@ public sealed class RestartHistoryTests
             Resources = new ResourceSample
             {
                 CpuClockMhz = 4200,
+                CpuTemperature = new(Guid.NewGuid(), "cpu/0", "CPU", "package", "CPU Package", 55,
+                    "LibreHardwareMonitorLib 0.9.6"),
                 CpuPerformanceLimitPercent = 62,
                 CpuPerformanceLimitFlags = 2,
                 ThermalZones = [new ThermalZoneReading("zone", 55, false)],
@@ -156,6 +158,7 @@ public sealed class RestartHistoryTests
         Assert.Multiple(() =>
         {
             Assert.That(restored.CpuClockMhz, Is.EqualTo(4200));
+            Assert.That(restored.CpuTemperature, Is.Null);
             Assert.That(restored.CpuPerformanceLimitPercent, Is.Null);
             Assert.That(restored.CpuPerformanceLimitFlags, Is.Null);
             Assert.That(restored.ThermalZones, Is.Empty);
@@ -603,7 +606,7 @@ public sealed class RestartHistoryTests
         // Temperature is live-only until a format-versioned history/incident design explicitly includes it.
         return Settable(typeof(ResourceSample)).Where(property => property.Name is not
             (nameof(ResourceSample.CpuPerformanceLimitPercent) or nameof(ResourceSample.CpuPerformanceLimitFlags)
-            or nameof(ResourceSample.ThermalZones) or nameof(ResourceSample.GpuThermals)));
+            or nameof(ResourceSample.ThermalZones) or nameof(ResourceSample.GpuThermals) or nameof(ResourceSample.CpuTemperature)));
     }
 
     private static object? Default(Type type)

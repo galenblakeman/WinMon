@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <ApplicationManifest>..\WinMon.NetworkSetup\app.manifest</ApplicationManifest>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishAot>true</PublishAot>
+    <PublishSingleFile>true</PublishSingleFile>
+    <StripSymbols>true</StripSymbols>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyName>WinMon.SensorSetup</AssemblyName>
+    <DefineConstants>$(DefineConstants);SENSOR_SETUP</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="WinMon.SensorSetup.Tests" />
+    <Compile Include="..\WinMon.NetworkSetup\*.cs" Link="%(Filename)%(Extension)" />
+    <Compile Include="..\MonCore.Windows\Monitoring\NetworkSetupWire.cs" Link="NetworkSetupWire.cs" />
+    <Compile Include="..\MonCore.Windows\Monitoring\NetworkSetupPackage.cs" Link="NetworkSetupPackage.cs" />
+    <Compile Include="..\MonCore.Windows\Monitoring\ProtectedServiceEndpoint.cs" Link="ProtectedServiceEndpoint.cs" />
+    <Compile Include="..\MonCore.Windows\Monitoring\PawnIoPrerequisite.cs" Link="PawnIoPrerequisite.cs" />
+    <Compile Include="..\MonCore.Windows\Diagnostics\LogDirectories.cs" Link="Diagnostics\LogDirectories.cs" />
+    <EmbeddedResource Include="..\WinMon\Updates\update-public-key.pem" Link="Monitoring\sensor-setup-public-key.pem" LogicalName="WinMon.NetworkSetupPublicKey" />
+  </ItemGroup>
+</Project>

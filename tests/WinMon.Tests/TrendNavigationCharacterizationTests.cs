@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using MonCore.Monitoring;
 using NUnit.Framework;
 using WinMon.Controls;
@@ -11,6 +12,15 @@ public sealed class TrendNavigationCharacterizationTests
 {
     private static readonly DateTimeOffset Start = new(2025, 2, 11, 12, 0, 0, TimeSpan.Zero);
 
+    [SetUp]
+    public void SetUp()
+    {
+        var app = Application.Current ?? new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
+        // ServicesView can realize a deferred template after a previous fixture removes its temporary styles.
+        // Retain this shared resource for the test host without changing other fixtures' apartment state.
+        if (!app.Resources.Contains("CaptionButton")) app.Resources["CaptionButton"] = new Style();
+    }
+
     [TestCase("not-loaded")]
     [TestCase("empty-archive")]
     public void EmptyTrendsIgnoreBothNavigationCommands(string partition)
@@ -18,6 +28,13 @@ public sealed class TrendNavigationCharacterizationTests
         var window = new FlightRecorderWindow([]);
         try
         {
+            window.Resources["Surface"] = Brushes.Black;
+            window.Resources["Text"] = Brushes.White;
+            window.ShowInTaskbar = false;
+            window.ShowActivated = false;
+            window.Opacity = 0;
+            window.Show();
+            window.UpdateLayout();
             if (partition == "empty-archive") window.UpdateTrends(new(1, Start, []));
             window.HistoryMode.SelectedIndex = 1;
             var selected = new List<ResourceTrendBucket>();

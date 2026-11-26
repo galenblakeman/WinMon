@@ -21,7 +21,9 @@ internal sealed partial class WindowDiagnostics
             // Keep it clearly separate from native-composed screenshots; never substitute it in the gallery.
             var contentPath = Path.Combine(Path.GetDirectoryName(path)!,
                 Path.GetFileNameWithoutExtension(path) + "-content.png");
-            await CaptureVisualAsync(window, contentPath, 1, cancellationToken);
+            // Render the client visual directly, as the gauge and Settings captures do. An occluded Window root
+            // can retain a partial composition clip and leave unchanged controls blank in the fallback bitmap.
+            await CaptureVisualAsync(window.Content as FrameworkElement ?? window, contentPath, 1, cancellationToken);
             await File.AppendAllTextAsync(Path.Combine(Path.GetDirectoryName(path)!, "content-capture-notes.txt"),
                 Path.GetFileName(contentPath) + ": WPF content capture; native caption not verified.\n",
                 cancellationToken);

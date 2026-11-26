@@ -135,6 +135,24 @@ public sealed class DiagnosticLog : TraceListener
         }
     }
 
+    /// <summary>Starts a service log in a protected component subdirectory so services never contend for a writer.</summary>
+    public static DiagnosticLog? StartService(string component)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(component);
+        if (component.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || component.Contains(Path.DirectorySeparatorChar) ||
+            component.Contains(Path.AltDirectorySeparatorChar))
+            throw new ArgumentException("Invalid service log component.", nameof(component));
+        try
+        {
+            LogDirectories.ValidateServicePath();
+            return Attach(new DiagnosticLog(Path.Combine(LogDirectories.ServicePath, component), component));
+        }
+        catch (Exception ex) when (IsStorageFailure(ex))
+        {
+            return null;
+        }
+    }
+
     private static DiagnosticLog Attach(DiagnosticLog log)
     {
         Trace.Listeners.Add(log);

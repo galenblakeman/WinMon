@@ -21,6 +21,35 @@ public sealed class MetricDetailsCharacterizationTests
     private MainWindow _window = null!;
     private static string Dash => Strings.MissingReading;
 
+    [Test]
+    public void CpuDetails_ShowTheCurrentSensorAndPeakOnlyForTheMatchingIdentityAndGeneration()
+    {
+        var generation = Guid.NewGuid();
+        var now = DateTimeOffset.UnixEpoch.AddMinutes(20);
+        CpuTemperatureReading Reading(Guid value, string sensor, double celsius) =>
+            new(value, "cpu/0", "CPU", sensor, "CPU Package", celsius, "LibreHardwareMonitorLib 0.9.6");
+        MonitorSample Sample(int seconds, CpuTemperatureReading reading) =>
+            new(now.AddSeconds(seconds), 25, [], 0) { Resources = new ResourceSample
+                { CpuClockMhz = 4300, CpuTemperature = reading } };
+        var matchingPeak = Sample(-10, Reading(generation, "cpu/0/temp", 70));
+        var differentGeneration = Sample(-5, Reading(Guid.NewGuid(), "cpu/0/temp", 95));
+        var current = Sample(0, Reading(generation, "cpu/0/temp", 55));
+        _window.Session.Record(matchingPeak);
+        _window.Session.Record(differentGeneration);
+        _window.Session.Record(current);
+        _window.OpenDetails(_window.CpuMetric);
+        _window.RefreshVisiblePresentation();
+        var details = (MetricDetails)_window.CpuMetric.ToolTip;
+        Assert.Multiple(() =>
+        {
+            Assert.That(_window.CpuMetric.DetailLabel.Text, Is.EqualTo("4.30 GHz · 55 °C"));
+            Assert.That(details.Rows[1].Value, Is.EqualTo("55 °C"));
+            Assert.That(details.Rows[2].Value, Is.EqualTo(Strings.Format(Strings.TemperaturePeakAt,
+                "70 °C", matchingPeak.Timestamp.ToLocalTime())));
+            Assert.That(details.Rows[3].Value, Is.EqualTo("CPU Package · LibreHardwareMonitorLib 0.9.6"));
+        });
+    }
+
     [SetUp]
     public void SetUp()
     {
@@ -151,7 +180,8 @@ public sealed class MetricDetailsCharacterizationTests
         Record(Filled with { ThermalZones = [new("cool", 80, false), new("hot", 70, false)] });
         Record(Filled with { ThermalZones = [new("cool", 30, true), new("hot", 60, false)] }, 1);
         _window.OpenDetails(_window.CpuMetric);
-        var lines = Details(_window.CpuMetric).Rows[7].Value.Split('\n');
+        var lines = Details(_window.CpuMetric).Rows.Single(row => row.Label == Strings.DetailSystemThermalZones)
+            .Value.Split('\n');
         Assert.Multiple(() =>
         {
             Assert.That(lines[0], Does.StartWith("hot: 60 °C").And.Contain("70 °C"));
@@ -165,10 +195,12 @@ public sealed class MetricDetailsCharacterizationTests
     {
         Record(Filled with { CpuPerformanceLimitPercent = 100 });
         _window.OpenDetails(_window.CpuMetric);
-        Assert.That(Details(_window.CpuMetric).Rows[6].Value, Is.EqualTo("100.0%"));
+        Assert.That(Details(_window.CpuMetric).Rows.Single(row => row.Label == Strings.DetailPerformanceLimit).Value,
+            Is.EqualTo("100.0%"));
         Record(Filled with { CpuPerformanceLimitPercent = 62 }, 1);
         _window.OpenDetails(_window.CpuMetric);
-        Assert.That(Details(_window.CpuMetric).Rows[6].Value, Is.EqualTo("62.0%"));
+        Assert.That(Details(_window.CpuMetric).Rows.Single(row => row.Label == Strings.DetailPerformanceLimit).Value,
+            Is.EqualTo("62.0%"));
     }
 
     private void AssertRows(string name, string[] expected)
@@ -214,8 +246,10 @@ public sealed class MetricDetailsCharacterizationTests
     {
         Record(Filled);
         _window.OpenDetails(_window.CpuMetric);
-        Assert.That(Details(_window.CpuMetric).Rows.Skip(6).Select(row => row.Visibility),
-            Is.All.EqualTo(Visibility.Collapsed));
+        Assert.That(Details(_window.CpuMetric).Rows.Where(row => row.Label == Strings.DetailCpuTemperature ||
+            row.Label == Strings.DetailTemperaturePeak || row.Label == Strings.DetailCpuTemperatureSensor ||
+            row.Label == Strings.DetailPerformanceLimit || row.Label == Strings.DetailSystemThermalZones)
+            .Select(row => row.Visibility).ToList(), Has.Count.EqualTo(5).And.All.EqualTo(Visibility.Collapsed));
         _window.OpenDetails(_window.GpuMetric);
         Assert.That(Details(_window.GpuMetric).Rows.Skip(5).Select(row => row.Visibility),
             Is.All.EqualTo(Visibility.Collapsed));

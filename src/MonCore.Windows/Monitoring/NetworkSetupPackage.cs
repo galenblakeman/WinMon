@@ -12,10 +12,6 @@ public sealed class NetworkSetupPackage : IDisposable
 {
     private const int SchemaVersion = 1;
     private const string Runtime = "win-x64";
-    private const string HelperFileName = "WinMon.NetworkSetup.exe";
-    private const string ArchiveFileName = "network-service.zip";
-    private const string ManifestFileName = "network-service-manifest.json";
-    private const string SignatureFileName = "network-service-manifest.sig";
     private const string ExpectedPublisher = "Galen Blakeman";
     private const long MaximumHelperBytes = 200L * 1024 * 1024;
     private const long MaximumArchiveBytes = 500L * 1024 * 1024;
@@ -33,14 +29,22 @@ public sealed class NetworkSetupPackage : IDisposable
 
     public static NetworkSetupPackage Open(string directory, string expectedVersion)
     {
+        return Open(directory, expectedVersion, ProtectedServiceEndpoints.NetworkPackage);
+    }
+
+    /// <summary>Opens a fixed signed privileged-service package; callers cannot supply asset names from IPC.</summary>
+    public static NetworkSetupPackage Open(string directory, string expectedVersion,
+        ProtectedSetupPackageDescriptor descriptor)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
         if (string.IsNullOrWhiteSpace(directory))
             throw new ArgumentException("A package directory is required.", nameof(directory));
         var root = Path.GetFullPath(directory);
         if (!Directory.Exists(root)) throw new InvalidDataException("Network setup package directory is missing.");
 
-        var manifestBytes = ReadSmallFile(root, ManifestFileName, 64 * 1024);
-        var signature = Encoding.ASCII.GetString(ReadSmallFile(root, SignatureFileName, 16 * 1024)).Trim();
-        var manifest = VerifyManifest(manifestBytes, signature, expectedVersion);
+        var manifestBytes = ReadSmallFile(root, descriptor.ManifestFileName, 64 * 1024);
+        var signature = Encoding.ASCII.GetString(ReadSmallFile(root, descriptor.SignatureFileName, 16 * 1024)).Trim();
+        var manifest = VerifyManifest(manifestBytes, signature, expectedVersion, descriptor);
 
         FileStream? helper = null;
         FileStream? archive = null;
@@ -65,12 +69,27 @@ public sealed class NetworkSetupPackage : IDisposable
 
     public static NetworkSetupManifest VerifyManifest(byte[] manifestBytes, string signature, string expectedVersion)
     {
-        return VerifyManifest(manifestBytes, signature, expectedVersion, ReadEmbeddedPublicKey());
+        return VerifyManifest(manifestBytes, signature, expectedVersion, ProtectedServiceEndpoints.NetworkPackage);
+    }
+
+    public static NetworkSetupManifest VerifyManifest(byte[] manifestBytes, string signature, string expectedVersion,
+        ProtectedSetupPackageDescriptor descriptor)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+        return VerifyManifest(manifestBytes, signature, expectedVersion, ReadEmbeddedPublicKey(descriptor), descriptor);
     }
 
     internal static NetworkSetupManifest VerifyManifest(byte[] manifestBytes, string signature, string expectedVersion,
         string publicKeyPem)
     {
+        return VerifyManifest(manifestBytes, signature, expectedVersion, publicKeyPem,
+            ProtectedServiceEndpoints.NetworkPackage);
+    }
+
+    internal static NetworkSetupManifest VerifyManifest(byte[] manifestBytes, string signature, string expectedVersion,
+        string publicKeyPem, ProtectedSetupPackageDescriptor descriptor)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
         if (manifestBytes is null || manifestBytes.Length is <= 0 or > 64 * 1024)
             throw new InvalidDataException("Network setup manifest size is invalid.");
         if (string.IsNullOrWhiteSpace(signature))
@@ -119,8 +138,8 @@ public sealed class NetworkSetupPackage : IDisposable
         if (manifest.SchemaVersion != SchemaVersion || manifest.Version != expectedVersion ||
             manifest.Runtime != Runtime || manifest.Protocol != NetworkSetupWire.Version)
             throw new InvalidDataException("Network setup manifest is not compatible with this application.");
-        ValidateAsset(manifest.Helper, HelperFileName, MaximumHelperBytes);
-        ValidateAsset(manifest.ServiceArchive, ArchiveFileName, MaximumArchiveBytes);
+        ValidateAsset(manifest.Helper, descriptor.HelperFileName, MaximumHelperBytes);
+        ValidateAsset(manifest.ServiceArchive, descriptor.ArchiveFileName, MaximumArchiveBytes);
         return manifest;
     }
 
@@ -193,10 +212,10 @@ public sealed class NetworkSetupPackage : IDisposable
             throw new InvalidDataException("Network setup manifest asset is invalid.");
     }
 
-    private static string ReadEmbeddedPublicKey()
+    private static string ReadEmbeddedPublicKey(ProtectedSetupPackageDescriptor descriptor)
     {
         using var stream =
-            typeof(NetworkSetupPackage).Assembly.GetManifestResourceStream("WinMon.NetworkSetupPublicKey")
+            typeof(NetworkSetupPackage).Assembly.GetManifestResourceStream(descriptor.PublicKeyResourceName)
             ?? throw new InvalidOperationException("Network setup trust key is missing.");
         using var reader = new StreamReader(stream, Encoding.UTF8, true);
         return reader.ReadToEnd();

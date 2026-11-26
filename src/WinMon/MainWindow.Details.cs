@@ -23,7 +23,7 @@ public partial class MainWindow
         {
             var details = new MetricDetails { Accent = metric.ValueLabel.Foreground };
             _metricDetails.Add(metric, details);
-            var count = metric == CpuMetric ? 8 : metric == MemoryMetric ? 11 : metric == NetworkMetric ? 5 :
+            var count = metric == CpuMetric ? 11 : metric == MemoryMetric ? 11 : metric == NetworkMetric ? 5 :
                 metric == GpuMetric ? 10 : 6;
             for (var i = 0; i < count; i++) details.Rows.Add(new DetailRow { Value = Strings.MissingReading });
             metric.ToolTip = details;
@@ -66,8 +66,9 @@ public partial class MainWindow
             var keys = metric == CpuMetric
                 ? new[]
                 {
-                    "DetailClockSpeed", "DetailUserKernel", "DetailProcessesThreads", "DetailHandles",
-                    "DetailBusiestProcess", "DetailUpTime", "DetailPerformanceLimit", "DetailSystemThermalZones"
+                    "DetailClockSpeed", "DetailCpuTemperature", "DetailTemperaturePeak", "DetailCpuTemperatureSensor",
+                    "DetailUserKernel", "DetailProcessesThreads", "DetailHandles", "DetailBusiestProcess",
+                    "DetailUpTime", "DetailPerformanceLimit", "DetailSystemThermalZones"
                 }
                 : metric == MemoryMetric
                     ?
@@ -117,19 +118,27 @@ public partial class MainWindow
             rows[0].Value = resource?.CpuClockMhz is > 0
                 ? F("{0:0.00} GHz", resource.CpuClockMhz.Value / 1000)
                 : Dash;
-            rows[1].Value = latest?.TotalCpuPercent is { } total && resource?.CpuKernelPercent is { } kernel
+            var temperature = resource?.CpuTemperature;
+            rows[1].Value = GaugeReadoutText.Temperature(temperature?.Celsius, _preferences.TemperatureUnit);
+            rows[2].Value = CpuTemperaturePeakText(latest, temperature);
+            rows[3].Value = temperature is null ? Dash : temperature.SensorName + " · " + temperature.Source;
+            rows[4].Value = latest?.TotalCpuPercent is { } total && resource?.CpuKernelPercent is { } kernel
                 ? F("{0:0.0}% / {1:0.0}%", Math.Max(0, total - kernel), kernel)
                 : Dash;
-            rows[2].Value = ProcessThreadCounts(resource);
-            rows[3].Value = HandleCountText(resource);
-            rows[4].Value = Busiest(CpuMetric, ProcessSort.Cpu);
+            rows[5].Value = ProcessThreadCounts(resource);
+            rows[6].Value = HandleCountText(resource);
+            rows[7].Value = Busiest(CpuMetric, ProcessSort.Cpu);
             var upTime = TimeSpan.FromMilliseconds(Environment.TickCount64);
-            rows[5].Value = F("{0} d {1:00}:{2:00}", (int)upTime.TotalDays, upTime.Hours, upTime.Minutes);
-            rows[6].Value = PerformanceLimitText(latest);
-            rows[7].Value = ThermalZonesText(latest);
-            rows[6].Visibility = resource?.CpuPerformanceLimitPercent is not null
+            rows[8].Value = F("{0} d {1:00}:{2:00}", (int)upTime.TotalDays, upTime.Hours, upTime.Minutes);
+            rows[9].Value = PerformanceLimitText(latest);
+            rows[10].Value = ThermalZonesText(latest);
+            rows[1].Visibility = temperature is not null ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+            rows[2].Visibility = temperature is not null && latest is not null && CpuTemperaturePeak(latest, temperature) is not null
                 ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
-            rows[7].Visibility = resource?.ThermalZones.Count > 0
+            rows[3].Visibility = temperature is not null ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+            rows[9].Visibility = resource?.CpuPerformanceLimitPercent is not null
+                ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+            rows[10].Visibility = resource?.ThermalZones.Count > 0
                 ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
         }
         else if (metric == MemoryMetric)
@@ -250,6 +259,14 @@ public partial class MainWindow
     {
         if (thermal is null || latest is null) return Dash;
         var peak = GpuThermalPeak(latest, thermal.AdapterId);
+        return peak is { } item ? Strings.Format(Strings.TemperaturePeakAt,
+            GaugeReadoutText.Temperature(item.Value, _preferences.TemperatureUnit), item.Sample.Timestamp.ToLocalTime()) : Dash;
+    }
+
+    private string CpuTemperaturePeakText(MonitorSample? latest, CpuTemperatureReading? temperature)
+    {
+        if (latest is null || temperature is null) return Dash;
+        var peak = CpuTemperaturePeak(latest, temperature);
         return peak is { } item ? Strings.Format(Strings.TemperaturePeakAt,
             GaugeReadoutText.Temperature(item.Value, _preferences.TemperatureUnit), item.Sample.Timestamp.ToLocalTime()) : Dash;
     }

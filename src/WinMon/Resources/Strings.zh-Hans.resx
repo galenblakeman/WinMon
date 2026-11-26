@@ -2143,4 +2143,22 @@ Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。<
   <data name="TemperatureCelsiusValue" xml:space="preserve"><value>{0:0} °C</value></data>
   <data name="TemperatureFahrenheitValue" xml:space="preserve"><value>{0:0} °F</value></data>
   <data name="TemperatureFanRpmValue" xml:space="preserve"><value>{0:0} RPM</value></data>
+  <data name="DetailCpuTemperature" xml:space="preserve"><value>CPU 温度</value></data>
+  <data name="DetailCpuTemperatureSensor" xml:space="preserve"><value>传感器</value></data>
+  <data name="GaugeCpuTemperaturePair" xml:space="preserve"><value>{0} · {1}</value></data>
+  <data name="CpuTemperatureMonitoringEnabled" xml:space="preserve"><value>监视 CPU 温度</value></data>
+  <data name="CpuTemperatureMonitoringNote" xml:space="preserve"><value>通过可选的本地 WinMon 传感器服务读取 CPU 封装或芯片传感器。设置需要管理员批准。启用此功能前，请单独安装官方 PawnIO 驱动程序。</value></data>
+  <data name="CpuTemperatureMonitoringDisabled" xml:space="preserve"><value>CPU 温度监控已关闭。</value></data>
+  <data name="CpuTemperatureMonitoringEnabling" xml:space="preserve"><value>正在应用 CPU 温度监控设置…</value></data>
+  <data name="CpuTemperatureMonitoringStarting" xml:space="preserve"><value>正在启动 CPU 温度监控。</value></data>
+  <data name="CpuTemperatureMonitoringActive" xml:space="preserve"><value>CPU 温度监控已启用。</value></data>
+  <data name="CpuTemperatureMonitoringUnavailable" xml:space="preserve"><value>CPU 温度监控不可用。</value></data>
+  <data name="CpuTemperatureMonitoringUpdateRequired" xml:space="preserve"><value>需要更新传感器服务。</value></data>
+  <data name="CpuTemperatureMonitoringSetupUnavailable" xml:space="preserve"><value>已签名的 CPU 传感器设置不可用。</value></data>
+  <data name="CpuTemperatureMonitoringCancelled" xml:space="preserve"><value>已取消更改 CPU 温度监控。</value></data>
+  <data name="CpuTemperatureMonitoringFailed" xml:space="preserve"><value>无法启用 CPU 温度监控。</value></data>
+  <data name="CpuTemperatureMonitoringStoreUnavailable" xml:space="preserve"><value>CPU 温度监控在 Microsoft Store 版本中不可用。</value></data>
+  <data name="CpuTemperatureMonitoringRemove" xml:space="preserve"><value>删除 CPU 传感器服务…</value></data>
+  <data name="CpuTemperatureMonitoringRemoveConfirm" xml:space="preserve"><value>要为此计算机上的所有 Windows 用户删除 CPU 传感器服务吗？需要管理员批准。所有用户的 CPU 温度监控都将停止。</value></data>
+  <data name="CpuTemperatureMonitoringRepair" xml:space="preserve"><value>修复 CPU 温度监控</value></data>
 </root>

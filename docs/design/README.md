@@ -1,6 +1,6 @@
 # WinMon design assets
 
-- [Optional CPU temperature](HARDWARE-SENSORS.md) uses stable LibreHardwareMonitorLib 0.9.6 in a CPU-only prototype before a separate optional service. Native AMD/Intel acceptance gates service implementation; fans and other sensors can later extend the same provider.
+- [Optional CPU temperature](HARDWARE-SENSORS.md) implements a separate optional CPU-only service using stable LibreHardwareMonitorLib 0.9.6. Native AMD/Intel hardware acceptance follows implementation; fans and other sensors can later extend the same provider.
 
 - [Effective CPU clock](EFFECTIVE-CPU-CLOCK.md) derives the CPU clock from the rated clock and Windows processor performance, so it follows boost and idle instead of reporting a fixed rated clock.
 

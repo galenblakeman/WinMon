@@ -2,6 +2,24 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## Separate CPU temperature service (November 26, 2026)
+
+Compared the preserved phase 1 Release benchmark with the CPU-service implementation on the development VM. The baseline contains the built-in GPU/thermal-zone presentation and performance-limit markers, but no CPU service reading or CPU temperature peaks. Eight UI pairs alternated launch order in two sets; the second set reversed the first set's starting order. Each run used the existing 850-process live-frame fixture, 400 warm-up frames and seven batches of 60. Four additional runs included CPU temperature 52 °C alongside the existing illustrative GPU, thermal-zone and performance-limit inputs.
+
+| Live UI frame | Phase 1, 8 runs | CPU service, absent, 8 runs | Temperature fixture, 4 runs |
+| --- | ---: | ---: | ---: |
+| Median of run medians | 4.217 ms | 4.387 ms | 4.505 ms |
+| Run median range | 4.023–5.126 ms | 4.220–4.992 ms | 4.240–4.903 ms |
+| Median allocated bytes/frame | 560,927 | 560,925 | 561,194 |
+
+The first four pairs reported +11.4% by the ratio of run medians; the independent repeat reported −8.2%. Across all eight pairs, the median paired difference was +0.089 ms (+2.1%), with individual differences from −17.7% to +22.7%. The initial slowdown did not reproduce consistently, and the small combined difference is below this VM's observed run variation. These measurements establish neither zero overhead nor a speedup. Absent-sensor pixel hashes match the baseline in every run, and fixture hashes are stable. Fixture allocation includes the illustrative sensor records; it is not an isolated measurement of CPU service polling.
+
+Four alternating native resource-sampler pairs used 30 warm-up and 200 back-to-back reads with zero process rows. Median time was 1.750 ms before and 1.801 ms after; run medians ranged 1.627–1.959 ms and 1.627–2.880 ms. Median allocation was 222,664 versus 219,892 bytes/sample, with overlapping ranges (212,984–222,664 and 213,080–222,760). Allocations vary between runs; the lower median does not establish an allocation improvement. Sampling consumes a cached optional CPU reading and never waits for the service. The harness excludes real one-second scheduling, service polling, supported-device acquisition and whole-app/render-thread cost.
+
+The exact CPU-only LibreHardwareMonitorLib 0.9.6 provider also completed six two-second observations with registered PawnIO 2.1.0.0. Every reading was unavailable (probe exit 4). Open took 242.8 ms; updates ranged 4.3–53.8 ms (mean 24.9 ms), working set 32.8–37.4 MiB, and process CPU deltas were below timer resolution. These are diagnostic observations of this unavailable-sensor VM path, not physical AMD/Intel accuracy, supported-hardware cost, or a LocalSystem service measurement. No service or driver was installed by the checks.
+
+Raw evidence: `artifacts/cpu-service/performance/`, `performance-repeat/`, `provider-native.log` and `verification.md`. The UI/sampler measurements cover the final functional code; the subsequent content-only capture fallback correction runs only in diagnostics. See [the hardware sensor design](design/HARDWARE-SENSORS.md). Physical accuracy, HVCI/coexistence and signed installation acceptance remain separate gates.
+
 ## Built-in temperatures and performance limits (November 25, 2026)
 
 Compared the preserved pre-change Release benchmark with the final desktop build after tests and smokes stopped. Four pairs alternated launch order on the development VM, using the existing 850-process live-frame benchmark (400 warm-up frames, seven batches of 60). Four additional changed-build runs enabled `--temperature`, with a paired GPU temperature, a thermal zone and a confirmed CPU performance limit.

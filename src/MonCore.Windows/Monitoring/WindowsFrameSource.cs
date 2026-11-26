@@ -50,7 +50,7 @@ public sealed class WindowsFrameSource : IFrameSource
         }
 
         var full = _resources.Sample(sample, options.PrimaryDrive, options.SecondaryDrive,
-            options.NetworkInterfaceId);
+            options.NetworkInterfaceId, options.CpuTemperature);
         NetworkConnectionsFrame? connections = null;
         try
         {

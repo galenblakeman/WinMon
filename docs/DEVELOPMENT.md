@@ -234,7 +234,7 @@ $run.ExitCode
 
 Limits:
 
-- General UI diagnostics time out after 90 seconds; the remaining non-profile modes use 60 seconds. The full smoke includes a 15-second quiet observation as well as feature and fixture renders, so its budget allows slower CI desktops to finish. Verification and installer validation wait at most 120 seconds for smoke completion.
+- General UI diagnostics and the Capture Settings gallery time out after 90 seconds; the remaining non-profile modes use 60 seconds. The gallery allows native-caption retries and content fallback for its additional CPU temperature pages. The full smoke includes a 15-second quiet observation as well as feature and fixture renders, so its budget allows slower CI desktops to finish. Verification and installer validation wait at most 120 seconds for smoke completion.
 - Use a new output directory for each run.
 - Renders at several scales are layout evidence. They do not prove real DPI changes, mixed-DPI monitor moves, keyboard automation, tray interaction or startup at sign-in, which remain manual checks. Smoke never ends a process or changes a service.
 - Some renders use labelled illustrative data, such as `design-compact*.png`; they compare against the design reference and are not measurements.
@@ -418,6 +418,14 @@ Connections places its localized saved-pin count in the first column header, usi
 
 The live-language Settings diagnostic keeps modal save/cancel orchestration in `CaptureLanguageSettingsDiagnosticsAsync` and checks localized window/recording invariants in the private `ValidateLiveLanguageState` helper at the original post-render point. Completed diagnostic saves survive cancellation or image-write failures while the original in-memory window state is restored. Its focused characterization and frozen paired performance evidence are recorded in [the CRAP report](CRAP-REMEDIATION-2026-11-21.md).
 
+### Optional CPU temperature service
+
+The desktop opt-in uses `CpuTemperatureClient` to poll an authenticated `WinMonSensorMonitor` connection in the background. Capture only reads its immutable, validated cache through `SamplingOptions.CpuTemperature`; sampling never waits for service I/O. Five-second pass and per-sensor QPC freshness, valid metadata, sequence and collector generation are checked before projection. Stale, partial, failed and retired-generation readings become null. The separate provider owns locked LibreHardwareMonitorLib 0.9.6; the app and portable core have no hardware-library dependency.
+
+Settings → CPU temperature supplies enable/status/repair/remove. Signed setup reuses network transaction, policy and trust checks with fixed sensor-specific descriptors. Official PawnIO is a separately installed prerequisite; setup does not change its installation. Default monitoring is off. Preference restoration reconnects/retries without elevation. Store hides the section and rejects a supplied `SensorServiceBundleDirectory`.
+
+The service updates every two seconds while leased, closes after a two-second grace and serializes native operations. A watchdog never starts a replacement while a native call may still own handles; uncertain cleanup latches failure until service restart. See [the implementation](../src/WinMon.SensorService/README.md). CPU service readings remain live-only: restart and incident versions are unchanged, and persisted JSON omits this field. The CPU provider probe references the actual service provider for native observations. Physical AMD/Intel accuracy and signed setup acceptance are tracked separately from deterministic tests.
+
 ## Performance
 
 History's four lists use `HistoryListView` to create rows with local horizontal/vertical content alignment. These values survive snapshot replacement and container detachment, avoiding the default row style's ancestor-alignment binding errors. The highlight templates remain in XAML. `FlightRecorderEventTests.HistoryNavigation_ReplacingRowsDoesNotLoseAlignmentBindingSources` enables WPF binding tracing and covers tab navigation, snapshot replacement, empty history and closing.
@@ -494,7 +502,7 @@ dotnet build tools/WinMon.Performance/WinMon.Performance.csproj -c Release -m:1 
 ```
 
 - Build a baseline from `main` before editing, and keep its output folder so it stays runnable.
-- Add `--temperature` to the benchmark's `--live-only` run to feed fixed thermal zones, a paired GPU temperature and CPU/GPU limit states through the same live rendering workload. Compare ordinary no-sensor runs separately so the cost of the visible feature is distinguishable from changes to the normal path.
+- Add `--temperature` to the benchmark's `--live-only` run to feed fixed thermal zones, a paired GPU temperature, CPU service temperature and CPU/GPU limit states through the same live rendering workload. Compare ordinary no-sensor runs separately so the cost of the visible feature is distinguishable from changes to the normal path.
 - Alternate baseline and changed runs on a quiet machine, at least four of each, and compare medians. An IDE indexing in the background hides real differences.
 - Pixel hashes should match the baseline. The window is on screen, so a pointer over it can produce a known alternate frame.
 - The first scenario is sensitive to JIT tiering. If only it differs, rerun both builds with `DOTNET_TieredCompilation=0` to tell tiering from extra work.

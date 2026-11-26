@@ -310,7 +310,9 @@ public partial class App
     private async Task RunServicesDiagnosticsAsync(MainWindow window, string output, string mode)
     {
         var exit = 0;
-        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+        // The Settings gallery may spend a second per render retrying native-caption activation before its
+        // content fallback. Its growing desktop gallery needs more than the ordinary service smoke budget.
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(mode == "--capture-smoke-output" ? 90 : 60));
         try
         {
             Directory.CreateDirectory(output);

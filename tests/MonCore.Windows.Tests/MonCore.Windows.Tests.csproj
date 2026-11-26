@@ -15,7 +15,4 @@
     <PackageReference Include="NUnit3TestAdapter" Version="5.2.0" />
     <ProjectReference Include="../../src/MonCore.Windows/MonCore.Windows.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="../../tools/CpuTemperatureProbe/CpuTemperatureProbeRules.cs" Link="CpuTemperatureProbeRules.cs" />
-  </ItemGroup>
 </Project>

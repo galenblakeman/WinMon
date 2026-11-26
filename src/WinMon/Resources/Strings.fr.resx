@@ -2155,4 +2155,22 @@ La restauration de la limitation a aussi échoué : {1}</value></data>
   <data name="TemperatureCelsiusValue" xml:space="preserve"><value>{0:0} °C</value></data>
   <data name="TemperatureFahrenheitValue" xml:space="preserve"><value>{0:0} °F</value></data>
   <data name="TemperatureFanRpmValue" xml:space="preserve"><value>{0:0} RPM</value></data>
+  <data name="DetailCpuTemperature" xml:space="preserve"><value>Température du processeur</value></data>
+  <data name="DetailCpuTemperatureSensor" xml:space="preserve"><value>Capteur</value></data>
+  <data name="GaugeCpuTemperaturePair" xml:space="preserve"><value>{0} · {1}</value></data>
+  <data name="CpuTemperatureMonitoringEnabled" xml:space="preserve"><value>Surveiller la température du processeur</value></data>
+  <data name="CpuTemperatureMonitoringNote" xml:space="preserve"><value>Lit le capteur de boîtier ou de puce du processeur via le service de capteurs local WinMon facultatif. La configuration nécessite une approbation administrateur. Installez séparément le pilote officiel PawnIO avant d’activer cette fonctionnalité.</value></data>
+  <data name="CpuTemperatureMonitoringDisabled" xml:space="preserve"><value>La surveillance de la température du processeur est désactivée.</value></data>
+  <data name="CpuTemperatureMonitoringEnabling" xml:space="preserve"><value>Application du paramètre de surveillance de la température du processeur…</value></data>
+  <data name="CpuTemperatureMonitoringStarting" xml:space="preserve"><value>La surveillance de la température du processeur démarre.</value></data>
+  <data name="CpuTemperatureMonitoringActive" xml:space="preserve"><value>La surveillance de la température du processeur est active.</value></data>
+  <data name="CpuTemperatureMonitoringUnavailable" xml:space="preserve"><value>La surveillance de la température du processeur est indisponible.</value></data>
+  <data name="CpuTemperatureMonitoringUpdateRequired" xml:space="preserve"><value>Une mise à jour du service de capteurs est requise.</value></data>
+  <data name="CpuTemperatureMonitoringSetupUnavailable" xml:space="preserve"><value>La configuration signée du capteur de processeur est indisponible.</value></data>
+  <data name="CpuTemperatureMonitoringCancelled" xml:space="preserve"><value>La modification de la surveillance de la température du processeur a été annulée.</value></data>
+  <data name="CpuTemperatureMonitoringFailed" xml:space="preserve"><value>Impossible d’activer la surveillance de la température du processeur.</value></data>
+  <data name="CpuTemperatureMonitoringStoreUnavailable" xml:space="preserve"><value>La surveillance de la température du processeur est indisponible dans la version Microsoft Store.</value></data>
+  <data name="CpuTemperatureMonitoringRemove" xml:space="preserve"><value>Supprimer le service de capteurs du processeur…</value></data>
+  <data name="CpuTemperatureMonitoringRemoveConfirm" xml:space="preserve"><value>Supprimer le service de capteurs du processeur pour tous les utilisateurs Windows de cet ordinateur ? L’autorisation d’un administrateur est requise. La surveillance de la température du processeur s’arrêtera pour tous les utilisateurs.</value></data>
+  <data name="CpuTemperatureMonitoringRepair" xml:space="preserve"><value>Réparer la surveillance de la température du processeur</value></data>
 </root>

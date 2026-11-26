@@ -29,8 +29,12 @@ internal sealed record SetupArguments(string? PipeName, byte[]? Token, bool Unin
 
     private static bool IsPipeName(string value)
     {
-        if (value.Length != "WinMon.NetworkSetup.".Length + 32 ||
-            !value.StartsWith("WinMon.NetworkSetup.", StringComparison.Ordinal)) return false;
-        return value.AsSpan("WinMon.NetworkSetup.".Length).ToString().All(Uri.IsHexDigit);
+#if SENSOR_SETUP
+        const string prefix = "WinMon.SensorSetup.";
+#else
+        const string prefix = "WinMon.NetworkSetup.";
+#endif
+        return value.Length == prefix.Length + 32 && value.StartsWith(prefix, StringComparison.Ordinal) &&
+               value.AsSpan(prefix.Length).ToString().All(Uri.IsHexDigit);
     }
 }

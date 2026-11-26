@@ -66,6 +66,20 @@ public partial class MainWindow
         return peak;
     }
 
+    private TemperaturePeak? CpuTemperaturePeak(MonitorSample latest, CpuTemperatureReading temperature)
+    {
+        TemperaturePeak? peak = null;
+        foreach (var sample in Session.History.Samples.Reverse())
+        {
+            if (!InTemperatureWindow(sample, latest) || sample.IsGap) break;
+            var reading = sample.Resources.CpuTemperature;
+            if (reading is null || reading.Generation != temperature.Generation ||
+                reading.HardwareId != temperature.HardwareId || reading.SensorId != temperature.SensorId) continue;
+            if (peak is null || reading.Celsius > peak.Value.Value) peak = new TemperaturePeak(reading.Celsius, sample);
+        }
+        return peak;
+    }
+
     private static bool InTemperatureWindow(MonitorSample sample, MonitorSample latest)
     {
         return GaugeSampleAge(sample, latest) is var age && age >= 0 && age <= 600;

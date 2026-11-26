@@ -59,14 +59,19 @@ public sealed partial class SettingsSaveCharacterizationTests
     private SettingsWindow Window(MonitorPreferences? preferences = null,
         Func<bool, CancellationToken, Task<NetworkMonitoringChangeResult>>? change = null,
         Func<CancellationToken, Task<NetworkMonitoringChangeResult>>? remove = null,
-        NetworkMonitoringState networkState = NetworkMonitoringState.Disabled)
+        NetworkMonitoringState networkState = NetworkMonitoringState.Disabled,
+        Func<bool, CancellationToken, Task<SensorMonitoringChangeResult>>? changeCpu = null,
+        Func<CancellationToken, Task<SensorMonitoringChangeResult>>? removeCpu = null,
+        SensorMonitoringState cpuState = SensorMonitoringState.Disabled)
     {
         var window = new SettingsWindow(preferences ?? Preferences(),
             () => [new("C:", "Owned C"), new("D:", "Owned D")],
             startupAvailability: StartupAvailability.Available,
             loadNetworkInterfaces: () => [new("old", "Owned old adapter"), new("new", "Owned new adapter")],
             captureFolder: DefaultFolder, checkForUpdates: () => Task.FromResult("owned check"),
-            changeNetworkMonitoring: change, removeNetworkService: remove, networkMonitoringState: networkState);
+            changeNetworkMonitoring: change, removeNetworkService: remove, networkMonitoringState: networkState,
+            changeCpuTemperatureMonitoring: changeCpu, removeCpuTemperatureService: removeCpu,
+            cpuTemperatureMonitoringState: cpuState);
         _windows.Add(window);
         return window;
     }

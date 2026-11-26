@@ -1,0 +1,66 @@
+using MonCore.Monitoring;
+using WinMon.Monitoring;
+using WinMon.Preferences;
+
+namespace WinMon;
+
+public partial class MainWindow
+{
+    private CpuTemperatureClient? _cpuTemperature;
+    private Task? _cpuTemperatureRestore;
+
+    private void InitializeCpuTemperatureMonitoring()
+    {
+        if (_diagnosticMode || !SensorSetupBroker.Supported) return;
+        _cpuTemperature = new CpuTemperatureClient();
+        if (_preferences.CpuTemperatureMonitoringEnabled)
+            _cpuTemperatureRestore = _cpuTemperature.RestoreAsync(true, Lifetime.Token);
+    }
+
+    private Task<SensorMonitoringChangeResult> ChangeCpuTemperatureMonitoringAsync(bool enabled, CancellationToken token) =>
+        _cpuTemperature is { } client
+            ? client.ChangeAsync(enabled, token)
+            : Task.FromResult(new SensorMonitoringChangeResult(false, SensorSetupBroker.Supported
+                ? SensorMonitoringState.SetupUnavailable : SensorMonitoringState.StoreUnavailable));
+
+    private async Task<SensorMonitoringChangeResult> RemoveCpuTemperatureServiceAsync(CancellationToken token)
+    {
+        if (_cpuTemperature is not { } client)
+            return new SensorMonitoringChangeResult(false, SensorMonitoringState.SetupUnavailable);
+        var result = await client.RemoveAsync(token);
+        if (result.Success)
+        {
+            var preferences = _preferences with { CpuTemperatureMonitoringEnabled = false };
+            await _preferenceStore.SaveAsync(preferences, Lifetime.Token);
+            _preferences = preferences;
+        }
+        return result;
+    }
+
+    private void ObserveCpuTemperatureMonitoring(SettingsWindow dialog)
+    {
+        if (_cpuTemperature is not { } client) return;
+        void Changed(SensorMonitoringState state)
+        {
+            if (!Dispatcher.HasShutdownStarted)
+                Dispatcher.BeginInvoke(() => { if (dialog.IsVisible) dialog.RefreshCpuTemperatureMonitoringState(state); });
+        }
+        client.StateChanged += Changed;
+        dialog.Closed += (_, _) => client.StateChanged -= Changed;
+    }
+
+    private async Task RestoreCpuTemperatureMonitoringPreferenceAsync()
+    {
+        if (_cpuTemperature is { } client && !IsClosing)
+            await client.RestoreAsync(_preferences.CpuTemperatureMonitoringEnabled, Lifetime.Token);
+    }
+
+    private async Task ShutdownCpuTemperatureMonitoringAsync()
+    {
+        if (_cpuTemperature is { } client) await client.DisposeAsync();
+        if (_cpuTemperatureRestore is { } restore) await restore;
+    }
+
+    private CpuTemperatureReading? CurrentCpuTemperature() =>
+        _preferences.CpuTemperatureMonitoringEnabled && SensorSetupBroker.Supported ? _cpuTemperature?.Reading : null;
+}

@@ -60,25 +60,22 @@ public sealed class SettingsLayoutTests
         try
         {
             var opened = window.Section;
-            SettingsSection[] expected = UpdatePolicy.GitHubUpdatesEnabled
-                ?
-                [
-                    SettingsSection.General, SettingsSection.Appearance, SettingsSection.Monitoring,
-                    SettingsSection.Network,
-                    SettingsSection.AutomaticCaptures,
-                    SettingsSection.Updates
-                ]
-                :
-                [
-                    SettingsSection.General, SettingsSection.Appearance, SettingsSection.Monitoring,
-                    SettingsSection.Network,
-                    SettingsSection.AutomaticCaptures
-                ];
+            var expected = new List<SettingsSection>
+                { SettingsSection.General, SettingsSection.Appearance, SettingsSection.Monitoring };
+            if (SensorSetupBroker.Supported) expected.Add(SettingsSection.CpuTemperature);
+            expected.Add(SettingsSection.Network);
+            expected.Add(SettingsSection.AutomaticCaptures);
+            if (UpdatePolicy.GitHubUpdatesEnabled) expected.Add(SettingsSection.Updates);
             var shown = expected.Select(section =>
             {
                 window.ShowSection(section);
                 return window.Section;
             }).ToArray();
+            if (!SensorSetupBroker.Supported)
+            {
+                window.ShowSection(SettingsSection.CpuTemperature);
+                Assert.That(window.Section, Is.Not.EqualTo(SettingsSection.CpuTemperature));
+            }
 
             Assert.Multiple(() =>
             {
@@ -753,6 +750,78 @@ public sealed class SettingsLayoutTests
             if (!change.Task.IsCompleted)
                 change.TrySetCanceled();
             window.Close();
+        }
+    }
+
+    [Test]
+    public async Task CpuTemperatureMonitoring_UsesDedicatedStatusAndInvokesSaveAndRepairCallbacks()
+    {
+        var changes = new List<bool>();
+        var window = new SettingsWindow(new MonitorPreferences(), () => [],
+            changeCpuTemperatureMonitoring: (enabled, _) =>
+            {
+                changes.Add(enabled);
+                return Task.FromResult(new SensorMonitoringChangeResult(true,
+                    enabled ? SensorMonitoringState.Active : SensorMonitoringState.Disabled));
+            });
+        var app = Application.Current ?? new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
+        var addedResources = new List<string>();
+        foreach (var (key, brush) in new[] { ("Surface", Brushes.Black), ("Text", Brushes.White) })
+            if (!app.Resources.Contains(key)) { app.Resources[key] = brush; addedResources.Add(key); }
+        try
+        {
+            if (!SensorSetupBroker.Supported)
+            {
+                Assert.Multiple(() =>
+                {
+                    Assert.That(window.CpuTemperatureMonitoringCheckBox.IsEnabled, Is.False);
+                    Assert.That(window.CpuTemperatureMonitoringStatus.Text,
+                        Is.EqualTo(Strings.CpuTemperatureMonitoringStoreUnavailable));
+                });
+                return;
+            }
+
+            Exception? failure = null;
+            window.ContentRendered += async (_, _) =>
+            {
+                try { await ExerciseAsync(); }
+                catch (Exception exception) { failure = exception; }
+                finally { window.Close(); }
+            };
+            window.ShowDialog();
+            if (failure is not null) System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(failure).Throw();
+
+            async Task ExerciseAsync()
+            {
+            window.RefreshCpuTemperatureMonitoringState(SensorMonitoringState.UpdateRequired);
+            Assert.Multiple(() =>
+            {
+                Assert.That(window.CpuTemperatureMonitoringStatus.Text,
+                    Is.EqualTo(Strings.CpuTemperatureMonitoringUpdateRequired));
+                Assert.That(window.RepairCpuTemperatureMonitoringButton.Visibility, Is.EqualTo(Visibility.Collapsed));
+            });
+
+            window.CpuTemperatureMonitoringCheckBox.IsChecked = true;
+            await window.SaveAsync();
+            Assert.Multiple(() =>
+            {
+                Assert.That(changes, Is.EqualTo([true]));
+                Assert.That(window.Result!.CpuTemperatureMonitoringEnabled, Is.True);
+                Assert.That(window.CpuTemperatureMonitoringStatus.Text, Is.EqualTo(Strings.CpuTemperatureMonitoringActive));
+            });
+
+            window.RefreshCpuTemperatureMonitoringState(SensorMonitoringState.Failed);
+            Assert.That(window.RepairCpuTemperatureMonitoringButton.Visibility, Is.EqualTo(Visibility.Visible));
+            window.RepairCpuTemperatureMonitoringButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            await System.Windows.Threading.Dispatcher.Yield(System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+            Assert.That(changes, Is.EqualTo([true, true]));
+
+            }
+        }
+        finally
+        {
+            window.Close();
+            foreach (var key in addedResources) app.Resources.Remove(key);
         }
     }
 

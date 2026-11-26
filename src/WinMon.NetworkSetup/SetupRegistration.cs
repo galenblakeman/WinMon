@@ -6,7 +6,11 @@ namespace WinMon.NetworkSetup;
 
 internal static class SetupRegistration
 {
+#if SENSOR_SETUP
+    private const string KeyName = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\WinMonSensorMonitor";
+#else
     private const string KeyName = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\WinMonNetworkMonitor";
+#endif
 
     private static readonly string[] Names =
         ["DisplayName", "DisplayVersion", "Publisher", "InstallLocation", "UninstallString", "NoModify", "NoRepair"];
@@ -26,7 +30,12 @@ internal static class SetupRegistration
     internal static void Write()
     {
         using var key = CreateKey();
-        key.SetValue("DisplayName", "WinMon Network Monitoring Service");
+        key.SetValue("DisplayName",
+#if SENSOR_SETUP
+            "WinMon CPU Temperature Service");
+#else
+            "WinMon Network Monitoring Service");
+#endif
         key.SetValue("DisplayVersion", typeof(SetupRegistration).Assembly.GetName().Version!.ToString(3));
         key.SetValue("Publisher", "Galen Blakeman");
         key.SetValue("InstallLocation", SetupPaths.InstallDirectory);

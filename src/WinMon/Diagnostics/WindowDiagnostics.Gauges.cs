@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 using WinMon.Controls;
 using WinMon.Monitoring;
 using WinMon.Preferences;
@@ -274,7 +275,7 @@ internal sealed partial class WindowDiagnostics
         try
         {
         var lastTemperatureSample = fixture.Session.History.Samples[^1];
-        MonitorSample AddTemperatureSample(int second, double? limit, GpuThermalReading? thermal)
+        MonitorSample AddTemperatureSample(int second, double? limit, GpuThermalReading? thermal, bool staleCpu = false)
         {
             var sample = new MonitorSample(lastTemperatureSample.Timestamp.AddSeconds(second), 45, [], 0,
                 MonotonicTimestamp: lastTemperatureSample.MonotonicTimestamp + Stopwatch.Frequency * second)
@@ -282,6 +283,8 @@ internal sealed partial class WindowDiagnostics
                 Resources = lastTemperatureSample.Resources with
                 {
                     CpuPerformanceLimitPercent = limit,
+                    CpuClockMhz = 4300,
+                    CpuTemperature = thermal is null ? null : CpuTemperatureFixture(staleCpu),
                     CpuPerformanceLimitFlags = limit is null ? null : 2,
                     GpuId = thermal is null ? "" : thermal.AdapterId,
                     GpuThermals = thermal is null ? [] : [thermal]
@@ -311,7 +314,16 @@ internal sealed partial class WindowDiagnostics
             await CaptureVisualAsync(visual, Path.Combine(output, $"temperature-limited-{theme.ToLowerInvariant()}.png"),
                 1, cancellationToken);
         }
-        AddTemperatureSample(4, null, null);
+        AddTemperatureSample(4, 100, normalThermal, staleCpu: true);
+        foreach (var theme in new[] { "Dark", "Light" })
+        {
+            fixture.Preferences = fixture.Preferences with { Theme = theme, GaugeStyle = GaugeStyle.Bowl };
+            fixture.ApplyTheme();
+            Draw(1000);
+            await CaptureVisualAsync(visual, Path.Combine(output, $"temperature-cpu-stale-{theme.ToLowerInvariant()}.png"),
+                1, cancellationToken);
+        }
+        AddTemperatureSample(5, null, null);
         foreach (var theme in new[] { "Dark", "Light" })
         {
             fixture.Preferences = fixture.Preferences with { Theme = theme, GaugeStyle = GaugeStyle.Bowl };
@@ -348,6 +360,16 @@ internal sealed partial class WindowDiagnostics
             fixture.RefreshVisiblePresentation();
             visual.UpdateLayout();
         }
+    }
+
+    private static CpuTemperatureReading? CpuTemperatureFixture(bool stale)
+    {
+        var now = Stopwatch.GetTimestamp();
+        var observed = stale ? now - 6 * Stopwatch.Frequency : now;
+        return SensorSnapshotValidation.TryGetReading(new SensorSnapshot(
+            Guid.Parse("B44EA93F-5545-4B2B-870F-EA026F7871C9"), 1, observed, Stopwatch.Frequency,
+            SensorServiceQuality.Complete, new("cpu/0", "Fixture CPU", "cpu/0/package", "CPU Package", 52,
+                "LibreHardwareMonitorLib 0.9.6", observed)), now);
     }
 
     // Named diagnostic seam: tests must not depend on a compiler-generated lambda ordinal.

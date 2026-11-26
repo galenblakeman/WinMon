@@ -205,6 +205,7 @@ public partial class MainWindow
             Trace.TraceInformation("Startup.SamplingStarted");
             InitializeUpdates();
             InitializeNetworkMonitoring();
+            InitializeCpuTemperatureMonitoring();
         }
         catch (OperationCanceledException) when (Lifetime.IsCancellationRequested)
         {
@@ -232,7 +233,8 @@ public partial class MainWindow
             preferences.TopProcessCount == 0, preferences.NetworkInterfaceId)
         {
             ProcessNetwork = network?.Snapshot,
-            ProcessNetworkSessionId = network?.SessionId ?? Guid.Empty
+            ProcessNetworkSessionId = network?.SessionId ?? Guid.Empty,
+            CpuTemperature = CurrentCpuTemperature()
         };
     }
 
@@ -376,7 +378,8 @@ public partial class MainWindow
         var gpuThermal = PairedGpuThermal(resource);
         GpuMetric.DetailLabel.Text = GaugeReadoutText.GpuDetail(resource?.GpuMemoryUsedBytes,
             resource?.GpuMemoryTotalBytes, gpuThermal?.TemperatureCelsius, _preferences.TemperatureUnit);
-        CpuMetric.DetailLabel.Text = GaugeReadoutText.CpuClock(resource?.CpuClockMhz);
+        CpuMetric.DetailLabel.Text = GaugeReadoutText.CpuDetail(resource?.CpuClockMhz,
+            resource?.CpuTemperature?.Celsius, _preferences.TemperatureUnit);
         UpdateTemperatureMarkers(latest, gpuThermal);
         MemoryMetric.ValueLabel.Text = Percent(resource?.MemoryPercent);
         MemoryMetric.DetailLabel.Text = GaugeReadoutText.Memory(
@@ -822,8 +825,14 @@ public partial class MainWindow
                 RemoveNetworkMonitoringAsync,
                 _networkMonitoring?.State ?? (NetworkSetupBroker.Supported
                     ? NetworkMonitoringState.Disabled
-                    : NetworkMonitoringState.StoreUnavailable)) { Owner = this };
+                    : NetworkMonitoringState.StoreUnavailable),
+                ChangeCpuTemperatureMonitoringAsync,
+                RemoveCpuTemperatureServiceAsync,
+                _cpuTemperature?.State ?? (SensorSetupBroker.Supported
+                    ? SensorMonitoringState.Disabled
+                    : SensorMonitoringState.StoreUnavailable)) { Owner = this };
             ObserveNetworkMonitoring(dialog);
+            ObserveCpuTemperatureMonitoring(dialog);
             dialog.ClearResourceTrendsRequested += ClearResourceTrendsAsync;
             dialog.ShowSection(_lastSettingsSection);
             // Let the shortcut recorder receive WinMon's own combination; Save or the finally block takes it back.
@@ -852,6 +861,7 @@ public partial class MainWindow
             if (!IsClosing)
             {
                 await RestoreNetworkMonitoringPreferenceAsync();
+                await RestoreCpuTemperatureMonitoringPreferenceAsync();
                 SettingsButton.IsEnabled = true;
                 Processes.RankingEnabled = true;
                 if (_hotkey is { Current: null }) ApplyShortcut();
@@ -1253,6 +1263,7 @@ public partial class MainWindow
         {
             await Lifetime.CancelAsync();
             await ShutdownNetworkMonitoringAsync();
+            await ShutdownCpuTemperatureMonitoringAsync();
             try
             {
                 if (SamplingTask is not null) await SamplingTask;

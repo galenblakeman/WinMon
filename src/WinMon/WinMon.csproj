@@ -48,9 +48,19 @@
     <EmbeddedResource Include="$(NetworkServiceBundleDirectory)\network-service-manifest.json" LogicalName="WinMon.NetworkSetup.Manifest.json" />
     <EmbeddedResource Include="$(NetworkServiceBundleDirectory)\network-service-manifest.sig" LogicalName="WinMon.NetworkSetup.Manifest.sig" />
   </ItemGroup>
+  <ItemGroup Condition="'$(SensorServiceBundleDirectory)' != '' And '$(StoreBuild)' != 'true'">
+    <EmbeddedResource Include="$(SensorServiceBundleDirectory)\WinMon.SensorSetup.exe" LogicalName="WinMon.SensorSetup.exe" />
+    <EmbeddedResource Include="$(SensorServiceBundleDirectory)\sensor-service.zip" LogicalName="WinMon.SensorSetup.Service.zip" />
+    <EmbeddedResource Include="$(SensorServiceBundleDirectory)\sensor-service-manifest.json" LogicalName="WinMon.SensorSetup.Manifest.json" />
+    <EmbeddedResource Include="$(SensorServiceBundleDirectory)\sensor-service-manifest.sig" LogicalName="WinMon.SensorSetup.Manifest.sig" />
+  </ItemGroup>
   <Target Name="ValidateNetworkServiceBundle" BeforeTargets="PrepareResources" Condition="'$(NetworkServiceBundleDirectory)' != ''">
     <Error Condition="'$(StoreBuild)' == 'true'" Text="Microsoft Store builds cannot include the network service setup bundle." />
     <Error Condition="!Exists('$(NetworkServiceBundleDirectory)\WinMon.NetworkSetup.exe') Or !Exists('$(NetworkServiceBundleDirectory)\network-service.zip') Or !Exists('$(NetworkServiceBundleDirectory)\network-service-manifest.json') Or !Exists('$(NetworkServiceBundleDirectory)\network-service-manifest.sig')" Text="Network service bundle is incomplete." />
+  </Target>
+  <Target Name="ValidateSensorServiceBundle" BeforeTargets="PrepareResources" Condition="'$(SensorServiceBundleDirectory)' != ''">
+    <Error Condition="'$(StoreBuild)' == 'true'" Text="Microsoft Store builds cannot include the sensor service setup bundle." />
+    <Error Condition="!Exists('$(SensorServiceBundleDirectory)\WinMon.SensorSetup.exe') Or !Exists('$(SensorServiceBundleDirectory)\sensor-service.zip') Or !Exists('$(SensorServiceBundleDirectory)\sensor-service-manifest.json') Or !Exists('$(SensorServiceBundleDirectory)\sensor-service-manifest.sig')" Text="Sensor service bundle is incomplete." />
   </Target>
   <ItemGroup>
     <AssemblyMetadata Include="RepositoryUrl" Value="$(RepositoryUrl)" />

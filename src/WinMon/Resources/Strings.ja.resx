@@ -2143,4 +2143,22 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
   <data name="TemperatureCelsiusValue" xml:space="preserve"><value>{0:0} °C</value></data>
   <data name="TemperatureFahrenheitValue" xml:space="preserve"><value>{0:0} °F</value></data>
   <data name="TemperatureFanRpmValue" xml:space="preserve"><value>{0:0} RPM</value></data>
+  <data name="DetailCpuTemperature" xml:space="preserve"><value>CPU 温度</value></data>
+  <data name="DetailCpuTemperatureSensor" xml:space="preserve"><value>センサー</value></data>
+  <data name="GaugeCpuTemperaturePair" xml:space="preserve"><value>{0} · {1}</value></data>
+  <data name="CpuTemperatureMonitoringEnabled" xml:space="preserve"><value>CPU 温度を監視する</value></data>
+  <data name="CpuTemperatureMonitoringNote" xml:space="preserve"><value>オプションのローカル WinMon センサー サービスを通じて CPU パッケージまたはダイ センサーを読み取ります。セットアップには管理者の承認が必要です。この機能を有効にする前に、公式 PawnIO ドライバーを別途インストールしてください。</value></data>
+  <data name="CpuTemperatureMonitoringDisabled" xml:space="preserve"><value>CPU 温度監視はオフです。</value></data>
+  <data name="CpuTemperatureMonitoringEnabling" xml:space="preserve"><value>CPU 温度監視設定を適用しています…</value></data>
+  <data name="CpuTemperatureMonitoringStarting" xml:space="preserve"><value>CPU 温度監視を開始しています。</value></data>
+  <data name="CpuTemperatureMonitoringActive" xml:space="preserve"><value>CPU 温度監視は有効です。</value></data>
+  <data name="CpuTemperatureMonitoringUnavailable" xml:space="preserve"><value>CPU 温度監視は利用できません。</value></data>
+  <data name="CpuTemperatureMonitoringUpdateRequired" xml:space="preserve"><value>センサー サービスの更新が必要です。</value></data>
+  <data name="CpuTemperatureMonitoringSetupUnavailable" xml:space="preserve"><value>署名済み CPU センサー セットアップは利用できません。</value></data>
+  <data name="CpuTemperatureMonitoringCancelled" xml:space="preserve"><value>CPU 温度監視の変更をキャンセルしました。</value></data>
+  <data name="CpuTemperatureMonitoringFailed" xml:space="preserve"><value>CPU 温度監視を有効にできませんでした。</value></data>
+  <data name="CpuTemperatureMonitoringStoreUnavailable" xml:space="preserve"><value>CPU 温度監視は Microsoft Store 版では利用できません。</value></data>
+  <data name="CpuTemperatureMonitoringRemove" xml:space="preserve"><value>CPU センサー サービスを削除…</value></data>
+  <data name="CpuTemperatureMonitoringRemoveConfirm" xml:space="preserve"><value>このコンピューターのすべての Windows ユーザー用に CPU センサー サービスを削除しますか？ 管理者の承認が必要です。すべてのユーザーで CPU 温度の監視が停止します。</value></data>
+  <data name="CpuTemperatureMonitoringRepair" xml:space="preserve"><value>CPU 温度監視を修復</value></data>
 </root>

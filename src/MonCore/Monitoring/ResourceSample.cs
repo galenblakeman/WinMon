@@ -3,6 +3,8 @@ namespace MonCore.Monitoring;
 /// <summary>Immutable system resources for a single interval. Null means unavailable, never zero.</summary>
 public sealed record ResourceSample
 {
+    [System.Text.Json.Serialization.JsonIgnore]
+    public CpuTemperatureReading? CpuTemperature { get; init; }
     public double? CpuPerformanceLimitPercent { get; init; }
     public uint? CpuPerformanceLimitFlags { get; init; }
     public IReadOnlyList<ThermalZoneReading> ThermalZones { get; init; } = [];
@@ -73,6 +75,10 @@ public sealed record ResourceSample
 
 /// <summary>An ACPI thermal-zone reading. This is a system sensor, not a CPU die temperature.</summary>
 public sealed record ThermalZoneReading(string Name, double Celsius, bool Unchanging);
+
+/// <summary>A live CPU sensor observation from one optional collector generation.</summary>
+public sealed record CpuTemperatureReading(Guid Generation, string HardwareId, string HardwareName,
+    string SensorId, string SensorName, double Celsius, string Source);
 
 /// <summary>Readings reported by one physical GPU adapter. Null means that field is unavailable.</summary>
 public sealed record GpuThermalReading(string AdapterId, string Name, double? TemperatureCelsius, double? FanRpm,

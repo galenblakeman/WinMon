@@ -25,6 +25,7 @@ internal enum SettingsSection
     General,
     Appearance,
     Monitoring,
+    CpuTemperature,
     Network,
     AutomaticCaptures,
     Updates
@@ -113,6 +114,16 @@ public sealed class SettingsWindow : Window
     private readonly CheckBox _keepHistoryCheckBox;
     private readonly CheckBox _keepResourceTrendsCheckBox;
     private readonly CheckBox _processNetworkMonitoringCheckBox;
+    private readonly CheckBox _cpuTemperatureMonitoringCheckBox;
+    private readonly TextBlock _cpuTemperatureMonitoringStatus = new() { FontSize = 12, TextWrapping = TextWrapping.Wrap };
+    private readonly Button _repairCpuTemperatureMonitoringButton;
+    private readonly Button _removeCpuTemperatureServiceButton;
+    private readonly Func<bool, CancellationToken, Task<SensorMonitoringChangeResult>>? _changeCpuTemperatureMonitoring;
+    private readonly Func<CancellationToken, Task<SensorMonitoringChangeResult>>? _removeCpuTemperatureService;
+    private SensorMonitoringState _cpuTemperatureMonitoringState;
+    private CancellationTokenSource? _cpuTemperatureMonitoringCancellation;
+    private bool _cpuTemperatureMonitoringBusy;
+    private bool _cpuTemperatureMonitoringEnabledAtOpen;
 
     private readonly TextBlock _processNetworkMonitoringStatus =
         new() { FontSize = 12, TextWrapping = TextWrapping.Wrap };
@@ -186,10 +197,15 @@ public sealed class SettingsWindow : Window
         DateTimeOffset? lastUpdateCheck = null, string? currentNetworkName = null,
         Func<bool, CancellationToken, Task<NetworkMonitoringChangeResult>>? changeNetworkMonitoring = null,
         Func<CancellationToken, Task<NetworkMonitoringChangeResult>>? removeNetworkService = null,
-        NetworkMonitoringState networkMonitoringState = NetworkMonitoringState.Disabled)
+        NetworkMonitoringState networkMonitoringState = NetworkMonitoringState.Disabled,
+        Func<bool, CancellationToken, Task<SensorMonitoringChangeResult>>? changeCpuTemperatureMonitoring = null,
+        Func<CancellationToken, Task<SensorMonitoringChangeResult>>? removeCpuTemperatureService = null,
+        SensorMonitoringState cpuTemperatureMonitoringState = SensorMonitoringState.Disabled)
         : this(preferences, DiscoverDrives, isShortcutAvailable, shortcutStatus, checkForUpdates, captureFolder,
             lastUpdateCheck, currentNetworkName: currentNetworkName, changeNetworkMonitoring: changeNetworkMonitoring,
-            removeNetworkService: removeNetworkService, networkMonitoringState: networkMonitoringState)
+            removeNetworkService: removeNetworkService, networkMonitoringState: networkMonitoringState,
+            changeCpuTemperatureMonitoring: changeCpuTemperatureMonitoring, removeCpuTemperatureService: removeCpuTemperatureService,
+            cpuTemperatureMonitoringState: cpuTemperatureMonitoringState)
     {
     }
 
@@ -200,7 +216,10 @@ public sealed class SettingsWindow : Window
         Func<NetworkChoice[]>? loadNetworkInterfaces = null, string? currentNetworkName = null,
         Func<bool, CancellationToken, Task<NetworkMonitoringChangeResult>>? changeNetworkMonitoring = null,
         Func<CancellationToken, Task<NetworkMonitoringChangeResult>>? removeNetworkService = null,
-        NetworkMonitoringState networkMonitoringState = NetworkMonitoringState.Disabled)
+        NetworkMonitoringState networkMonitoringState = NetworkMonitoringState.Disabled,
+        Func<bool, CancellationToken, Task<SensorMonitoringChangeResult>>? changeCpuTemperatureMonitoring = null,
+        Func<CancellationToken, Task<SensorMonitoringChangeResult>>? removeCpuTemperatureService = null,
+        SensorMonitoringState cpuTemperatureMonitoringState = SensorMonitoringState.Disabled)
     {
         ArgumentNullException.ThrowIfNull(preferences);
         _loadDrives = loadDrives;
@@ -211,6 +230,10 @@ public sealed class SettingsWindow : Window
         _networkMonitoringEnabledAtOpen = preferences.ProcessNetworkMonitoringEnabled;
         _changeNetworkMonitoring = changeNetworkMonitoring;
         _removeNetworkService = removeNetworkService;
+        _cpuTemperatureMonitoringEnabledAtOpen = preferences.CpuTemperatureMonitoringEnabled;
+        _changeCpuTemperatureMonitoring = changeCpuTemperatureMonitoring;
+        _removeCpuTemperatureService = removeCpuTemperatureService;
+        _cpuTemperatureMonitoringState = SensorSetupBroker.Supported ? cpuTemperatureMonitoringState : SensorMonitoringState.StoreUnavailable;
         _networkMonitoringState = NetworkSetupBroker.Supported
             ? networkMonitoringState
             : NetworkMonitoringState.StoreUnavailable;
@@ -340,6 +363,15 @@ public sealed class SettingsWindow : Window
         _keepResourceTrendsCheckBox = CreateCheckBox(Strings.KeepResourceTrends, preferences.KeepResourceTrends);
         _processNetworkMonitoringCheckBox = CreateCheckBox(Strings.NetworkProcessMonitoringEnabled,
             preferences.ProcessNetworkMonitoringEnabled);
+        _cpuTemperatureMonitoringCheckBox = CreateCheckBox(Strings.CpuTemperatureMonitoringEnabled,
+            preferences.CpuTemperatureMonitoringEnabled);
+        _cpuTemperatureMonitoringCheckBox.IsEnabled = SensorSetupBroker.Supported;
+        _cpuTemperatureMonitoringStatus.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
+        _repairCpuTemperatureMonitoringButton = new Button { Content = Strings.CpuTemperatureMonitoringRepair, MinWidth = 180, Margin = new Thickness(0, 4, 0, 0) };
+        _repairCpuTemperatureMonitoringButton.Click += async (_, _) => await ChangeCpuTemperatureMonitoringAsync(true);
+        _removeCpuTemperatureServiceButton = new Button { Content = Strings.CpuTemperatureMonitoringRemove, MinWidth = 220, Margin = new Thickness(0, 4, 0, 0) };
+        _removeCpuTemperatureServiceButton.Click += async (_, _) => await RemoveCpuTemperatureServiceAsync();
+        ShowCpuTemperatureMonitoringStatus(_cpuTemperatureMonitoringState);
         _processNetworkMonitoringCheckBox.IsEnabled = NetworkSetupBroker.Supported;
         _processNetworkMonitoringStatus.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
         AutomationProperties.SetLiveSetting(_processNetworkMonitoringStatus, AutomationLiveSetting.Polite);
@@ -391,6 +423,8 @@ public sealed class SettingsWindow : Window
         _pages.Add((SettingsSection.General, Strings.SettingsGeneral, ButtonIcon.Settings, CreateGeneralPage()));
         _pages.Add((SettingsSection.Appearance, Strings.Appearance, AppearanceIcon, CreateAppearancePage()));
         _pages.Add((SettingsSection.Monitoring, Strings.SettingsMonitoring, Monitoring, CreateMonitoringPage()));
+        if (SensorSetupBroker.Supported)
+            _pages.Add((SettingsSection.CpuTemperature, Strings.DetailCpuTemperature, Monitoring, CreateCpuTemperaturePage()));
         _pages.Add((SettingsSection.Network, Strings.Network, NetworkIcon, CreateNetworkPage()));
         _pages.Add((SettingsSection.AutomaticCaptures, Strings.AutoCaptureHeading, Capture, CreateCapturePage()));
         // Store builds update through the Store, so they have no Updates section.
@@ -480,9 +514,17 @@ public sealed class SettingsWindow : Window
 
     internal CheckBox ProcessNetworkMonitoringCheckBox => _processNetworkMonitoringCheckBox;
 
+    internal CheckBox CpuTemperatureMonitoringCheckBox => _cpuTemperatureMonitoringCheckBox;
+
     internal TextBlock ProcessNetworkMonitoringStatus => _processNetworkMonitoringStatus;
 
+    internal TextBlock CpuTemperatureMonitoringStatus => _cpuTemperatureMonitoringStatus;
+
     internal Button RepairNetworkMonitoringButton => _repairNetworkMonitoringButton;
+
+    internal Button RepairCpuTemperatureMonitoringButton => _repairCpuTemperatureMonitoringButton;
+
+    internal Button RemoveCpuTemperatureServiceButton => _removeCpuTemperatureServiceButton;
 
     internal Button RemoveNetworkMonitoringServiceButton => _removeNetworkMonitoringServiceButton;
 
@@ -520,6 +562,7 @@ public sealed class SettingsWindow : Window
             KeepHistoryAcrossRestarts = settings.KeepHistoryAcrossRestarts,
             KeepResourceTrends = settings.KeepResourceTrends,
             ProcessNetworkMonitoringEnabled = settings.ProcessNetworkMonitoringEnabled,
+            CpuTemperatureMonitoringEnabled = settings.CpuTemperatureMonitoringEnabled,
             MinimizeToTray = settings.MinimizeToTray,
             StartWithWindows = settings.StartWithWindows,
             AutomaticallyCheckForUpdates = settings.AutomaticallyCheckForUpdates,
@@ -989,6 +1032,16 @@ public sealed class SettingsWindow : Window
         return page;
     }
 
+    private StackPanel CreateCpuTemperaturePage()
+    {
+        var page = Page(Strings.DetailCpuTemperature, _cpuTemperatureMonitoringCheckBox);
+        page.Children.Add(Note(Strings.CpuTemperatureMonitoringNote));
+        page.Children.Add(_cpuTemperatureMonitoringStatus);
+        page.Children.Add(_repairCpuTemperatureMonitoringButton);
+        page.Children.Add(_removeCpuTemperatureServiceButton);
+        return page;
+    }
+
     private StackPanel CreateCapturePage()
     {
         var page = Page(Strings.AutoCaptureHeading, AutoCapture.EnabledSwitch);
@@ -1198,7 +1251,7 @@ public sealed class SettingsWindow : Window
 
     internal async Task SaveAsync()
     {
-        if (_networkMonitoringBusy) return;
+        if (_networkMonitoringBusy || _cpuTemperatureMonitoringBusy) return;
         var primary = (PrimaryDriveSelector.SelectedItem as DriveChoice)?.Name;
         var secondary = (SecondaryDriveSelector.SelectedItem as DriveChoice)?.Name;
         if (primary is null || primary == secondary)
@@ -1225,6 +1278,10 @@ public sealed class SettingsWindow : Window
         var processNetworkMonitoringEnabled = _processNetworkMonitoringCheckBox.IsChecked == true;
         if (processNetworkMonitoringEnabled != _networkMonitoringEnabledAtOpen &&
             !await ChangeNetworkMonitoringAsync(processNetworkMonitoringEnabled))
+            return;
+        var cpuTemperatureMonitoringEnabled = _cpuTemperatureMonitoringCheckBox.IsChecked == true;
+        if (cpuTemperatureMonitoringEnabled != _cpuTemperatureMonitoringEnabledAtOpen &&
+            !await ChangeCpuTemperatureMonitoringAsync(cpuTemperatureMonitoringEnabled))
             return;
 
         Result = ApplySettings(_initialPreferences, new MonitorPreferences
@@ -1256,6 +1313,7 @@ public sealed class SettingsWindow : Window
             KeepHistoryAcrossRestarts = _keepHistoryCheckBox.IsChecked == true,
             KeepResourceTrends = _keepResourceTrendsCheckBox.IsChecked == true,
             ProcessNetworkMonitoringEnabled = processNetworkMonitoringEnabled,
+            CpuTemperatureMonitoringEnabled = cpuTemperatureMonitoringEnabled,
             MinimizeToTray = _minimizeToTrayCheckBox.IsChecked == true,
             StartWithWindows = _startupCheckBox.IsChecked == true,
             AutomaticallyCheckForUpdates = _automaticUpdateCheckBox.IsChecked == true,
@@ -1412,8 +1470,9 @@ public sealed class SettingsWindow : Window
 
     private void SettingsWindow_Closing(object? sender, CancelEventArgs e)
     {
-        if (!_networkMonitoringBusy) return;
+        if (!_networkMonitoringBusy && !_cpuTemperatureMonitoringBusy) return;
         _networkMonitoringCancellation?.Cancel();
+        _cpuTemperatureMonitoringCancellation?.Cancel();
         e.Cancel = true;
     }
 
@@ -1441,6 +1500,155 @@ public sealed class SettingsWindow : Window
     internal void RefreshNetworkMonitoringState(NetworkMonitoringState state)
     {
         if (!_networkMonitoringBusy) ShowNetworkMonitoringStatus(state);
+    }
+
+    // CPU sensor status is surfaced by the readout; this hook keeps Settings observers safe while the dialog is open.
+    internal void RefreshCpuTemperatureMonitoringState(SensorMonitoringState state)
+    {
+        if (!_cpuTemperatureMonitoringBusy) ShowCpuTemperatureMonitoringStatus(state);
+    }
+
+    private async Task<bool> ChangeCpuTemperatureMonitoringAsync(bool enabled)
+    {
+        ShowSection(SettingsSection.CpuTemperature);
+        if (_cpuTemperatureMonitoringBusy) return false;
+        if (_changeCpuTemperatureMonitoring is null || !SensorSetupBroker.Supported)
+        {
+            ShowCpuTemperatureMonitoringStatus(SensorSetupBroker.Supported
+                ? SensorMonitoringState.SetupUnavailable : SensorMonitoringState.StoreUnavailable);
+            _cpuTemperatureMonitoringCheckBox.Focus();
+            return false;
+        }
+
+        SetCpuTemperatureMonitoringBusy(true);
+        try
+        {
+            SensorMonitoringChangeResult result;
+            try
+            {
+                result = await _changeCpuTemperatureMonitoring(enabled, _cpuTemperatureMonitoringCancellation!.Token);
+                if (_cpuTemperatureMonitoringCancellation!.IsCancellationRequested)
+                    result = new SensorMonitoringChangeResult(false, SensorMonitoringState.Cancelled);
+            }
+            catch (OperationCanceledException) when (_cpuTemperatureMonitoringCancellation!.IsCancellationRequested)
+            {
+                result = new SensorMonitoringChangeResult(false, SensorMonitoringState.Cancelled);
+            }
+            catch
+            {
+                result = new SensorMonitoringChangeResult(false, SensorMonitoringState.Failed);
+            }
+
+            ShowCpuTemperatureMonitoringStatus(result.State);
+            if (!result.Success)
+            {
+                _cpuTemperatureMonitoringCheckBox.IsChecked = _cpuTemperatureMonitoringEnabledAtOpen;
+                _cpuTemperatureMonitoringCheckBox.Focus();
+                return false;
+            }
+
+            _cpuTemperatureMonitoringEnabledAtOpen = enabled;
+            return true;
+        }
+        finally
+        {
+            SetCpuTemperatureMonitoringBusy(false);
+        }
+    }
+
+    private async Task RemoveCpuTemperatureServiceAsync()
+    {
+        if (_removeCpuTemperatureService is null || !SensorSetupBroker.Supported || _cpuTemperatureMonitoringBusy ||
+            !MessageDialog.Confirm(this, Strings.CpuTemperatureMonitoringRemoveConfirm,
+                Strings.DetailCpuTemperature, Strings.CpuTemperatureMonitoringRemove)) return;
+
+        SetCpuTemperatureMonitoringBusy(true);
+        try
+        {
+            SensorMonitoringChangeResult result;
+            try
+            {
+                result = await _removeCpuTemperatureService(_cpuTemperatureMonitoringCancellation!.Token);
+                if (_cpuTemperatureMonitoringCancellation!.IsCancellationRequested)
+                    result = new SensorMonitoringChangeResult(false, SensorMonitoringState.Cancelled);
+            }
+            catch (OperationCanceledException) when (_cpuTemperatureMonitoringCancellation!.IsCancellationRequested)
+            {
+                result = new SensorMonitoringChangeResult(false, SensorMonitoringState.Cancelled);
+            }
+            catch
+            {
+                result = new SensorMonitoringChangeResult(false, SensorMonitoringState.Failed);
+            }
+
+            ShowCpuTemperatureMonitoringStatus(result.Success ? SensorMonitoringState.Disabled : result.State);
+            if (result.Success)
+            {
+                _cpuTemperatureMonitoringEnabledAtOpen = false;
+                _cpuTemperatureMonitoringCheckBox.IsChecked = false;
+            }
+            else _removeCpuTemperatureServiceButton.Focus();
+        }
+        finally
+        {
+            SetCpuTemperatureMonitoringBusy(false);
+        }
+    }
+
+    private void SetCpuTemperatureMonitoringBusy(bool busy)
+    {
+        _cpuTemperatureMonitoringBusy = busy;
+        if (busy)
+        {
+            _cpuTemperatureMonitoringCancellation = new CancellationTokenSource();
+            _saveButton!.IsEnabled = false;
+            _page.IsEnabled = false;
+            _navigation.IsEnabled = false;
+            _cpuTemperatureMonitoringCheckBox.IsEnabled = false;
+            _repairCpuTemperatureMonitoringButton.IsEnabled = false;
+            _removeCpuTemperatureServiceButton.IsEnabled = false;
+            ShowCpuTemperatureMonitoringStatus(SensorMonitoringState.Enabling);
+            return;
+        }
+
+        _cpuTemperatureMonitoringCancellation?.Dispose();
+        _cpuTemperatureMonitoringCancellation = null;
+        _saveButton!.IsEnabled = true;
+        _page.IsEnabled = true;
+        _navigation.IsEnabled = true;
+        _cpuTemperatureMonitoringCheckBox.IsEnabled = SensorSetupBroker.Supported;
+        _removeCpuTemperatureServiceButton.IsEnabled = SensorSetupBroker.Supported && _removeCpuTemperatureService is not null;
+        UpdateCpuTemperatureMonitoringButtons();
+    }
+
+    private void ShowCpuTemperatureMonitoringStatus(SensorMonitoringState state)
+    {
+        _cpuTemperatureMonitoringState = state;
+        _cpuTemperatureMonitoringStatus.Text = state switch
+        {
+            SensorMonitoringState.Disabled => Strings.CpuTemperatureMonitoringDisabled,
+            SensorMonitoringState.Enabling => Strings.CpuTemperatureMonitoringEnabling,
+            SensorMonitoringState.Starting => Strings.CpuTemperatureMonitoringStarting,
+            SensorMonitoringState.Active => Strings.CpuTemperatureMonitoringActive,
+            SensorMonitoringState.Unavailable => Strings.CpuTemperatureMonitoringUnavailable,
+            SensorMonitoringState.UpdateRequired => Strings.CpuTemperatureMonitoringUpdateRequired,
+            SensorMonitoringState.SetupUnavailable => Strings.CpuTemperatureMonitoringSetupUnavailable,
+            SensorMonitoringState.Cancelled => Strings.CpuTemperatureMonitoringCancelled,
+            SensorMonitoringState.StoreUnavailable => Strings.CpuTemperatureMonitoringStoreUnavailable,
+            _ => Strings.CpuTemperatureMonitoringFailed
+        };
+        UpdateCpuTemperatureMonitoringButtons();
+    }
+
+    private void UpdateCpuTemperatureMonitoringButtons()
+    {
+        _repairCpuTemperatureMonitoringButton.Visibility = _cpuTemperatureMonitoringEnabledAtOpen && _cpuTemperatureMonitoringState is
+            SensorMonitoringState.Unavailable or SensorMonitoringState.SetupUnavailable or SensorMonitoringState.UpdateRequired or SensorMonitoringState.Failed
+            ? Visibility.Visible : Visibility.Collapsed;
+        _repairCpuTemperatureMonitoringButton.IsEnabled = SensorSetupBroker.Supported &&
+            _changeCpuTemperatureMonitoring is not null && !_cpuTemperatureMonitoringBusy;
+        _removeCpuTemperatureServiceButton.Visibility = _removeCpuTemperatureService is not null && SensorSetupBroker.Supported
+            ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void UpdateRepairButton()

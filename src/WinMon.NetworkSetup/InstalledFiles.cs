@@ -6,7 +6,11 @@ namespace WinMon.NetworkSetup;
 internal static class InstalledFiles
 {
     internal const string FileName = "installed-files.json";
+#if SENSOR_SETUP
+    private const string Owner = "WinMonSensorMonitor.v1";
+#else
     private const string Owner = "WinMonNetworkMonitor.v1";
+#endif
 
     internal static void Write(string root)
     {

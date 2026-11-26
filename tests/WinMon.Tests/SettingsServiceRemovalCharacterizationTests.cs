@@ -37,6 +37,24 @@ public sealed partial class SettingsSaveCharacterizationTests
         else buttons[answer == 1 ? 0 : 1].RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
     });
 
+    private SettingsWindow CpuRemovalWindow(
+        Func<CancellationToken, Task<SensorMonitoringChangeResult>>? remove = null,
+        Func<bool, CancellationToken, Task<SensorMonitoringChangeResult>>? change = null) =>
+        Window(Preferences() with { CpuTemperatureMonitoringEnabled = true }, changeCpu: change, removeCpu: remove,
+            cpuState: SensorMonitoringState.Active);
+
+    private static Task ConfirmCpuRemoval(SettingsWindow window, int answer = 1) => WithNotice(window, () =>
+    {
+        window.RemoveCpuTemperatureServiceButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        return Task.CompletedTask;
+    }, Strings.DetailCpuTemperature, Strings.CpuTemperatureMonitoringRemoveConfirm, dialog =>
+    {
+        var buttons = Descendants(dialog).OfType<Button>().ToArray();
+        Assert.That(buttons.Select(button => button.Content),
+            Is.EqualTo(new[] { Strings.CpuTemperatureMonitoringRemove, Strings.Cancel }));
+        buttons[answer == 1 ? 0 : 1].RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+    });
+
     private static async Task RemovalReady(SettingsWindow window)
     {
         var timer = Stopwatch.StartNew();
@@ -282,6 +300,118 @@ public sealed partial class SettingsSaveCharacterizationTests
             finally
             {
                 pending.TrySetResult(new(false, NetworkMonitoringState.Failed));
+                await RemovalReady(window);
+            }
+        }), Is.False);
+    }
+#endif
+
+#if !WINMON_STORE
+    [Test]
+    public void CpuServiceRemovalDismissalNeverCallsTheProvider()
+    {
+        var calls = 0;
+        var window = CpuRemovalWindow(_ =>
+        {
+            calls++;
+            return Task.FromResult(new SensorMonitoringChangeResult(true, SensorMonitoringState.Disabled));
+        });
+        Assert.That(RunDialog(window, async () =>
+        {
+            await ConfirmCpuRemoval(window, 0);
+            Assert.Multiple(() =>
+            {
+                Assert.That(calls, Is.Zero);
+                Assert.That(window.CpuTemperatureMonitoringCheckBox.IsChecked, Is.True);
+                Assert.That(window.CpuTemperatureMonitoringStatus.Text, Is.EqualTo(Strings.CpuTemperatureMonitoringActive));
+                Assert.That(window.SaveButton.IsEnabled, Is.True);
+                Assert.That(window.Navigation.IsEnabled, Is.True);
+            });
+        }), Is.False);
+    }
+
+    [Test]
+    public void CpuServiceRemovalPendingWorkBlocksReentryAndRestoresControlsAfterSuccess()
+    {
+        var pending = new TaskCompletionSource<SensorMonitoringChangeResult>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var calls = 0;
+        var window = CpuRemovalWindow(_ =>
+        {
+            calls++;
+            return pending.Task;
+        });
+        Assert.That(RunDialog(window, async () =>
+        {
+            try
+            {
+                await ConfirmCpuRemoval(window);
+                Assert.Multiple(() =>
+                {
+                    Assert.That(window.SaveButton.IsEnabled, Is.False);
+                    Assert.That(window.Navigation.IsEnabled, Is.False);
+                    Assert.That(window.CpuTemperatureMonitoringCheckBox.IsEnabled, Is.False);
+                    Assert.That(window.RemoveCpuTemperatureServiceButton.IsEnabled, Is.False);
+                });
+                window.RemoveCpuTemperatureServiceButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                Assert.That(calls, Is.EqualTo(1));
+                pending.SetResult(new SensorMonitoringChangeResult(true, SensorMonitoringState.Disabled));
+                await RemovalReady(window);
+                Assert.Multiple(() =>
+                {
+                    Assert.That(window.CpuTemperatureMonitoringCheckBox.IsChecked, Is.False);
+                    Assert.That(window.CpuTemperatureMonitoringStatus.Text, Is.EqualTo(Strings.CpuTemperatureMonitoringDisabled));
+                    Assert.That(window.SaveButton.IsEnabled, Is.True);
+                    Assert.That(window.Navigation.IsEnabled, Is.True);
+                    Assert.That(window.CpuTemperatureMonitoringCheckBox.IsEnabled, Is.True);
+                    Assert.That(window.RemoveCpuTemperatureServiceButton.IsEnabled, Is.True);
+                });
+            }
+            finally
+            {
+                pending.TrySetResult(new SensorMonitoringChangeResult(false, SensorMonitoringState.Failed));
+                await RemovalReady(window);
+            }
+        }), Is.False);
+    }
+
+    [Test]
+    public void CpuTemperatureApplyCancellationOnCloseWinsOverLateSuccess()
+    {
+        var pending = new TaskCompletionSource<SensorMonitoringChangeResult>(TaskCreationOptions.RunContinuationsAsynchronously);
+        CancellationToken token = default;
+        var window = Window(Preferences(), changeCpu: (_, received) =>
+        {
+            token = received;
+            return pending.Task;
+        });
+        Assert.That(RunDialog(window, async () =>
+        {
+            try
+            {
+                window.CpuTemperatureMonitoringCheckBox.IsChecked = true;
+                var saving = window.SaveAsync();
+                await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+                window.Close();
+                Assert.Multiple(() =>
+                {
+                    Assert.That(window.IsVisible, Is.True);
+                    Assert.That(token.IsCancellationRequested, Is.True);
+                    Assert.That(window.SaveButton.IsEnabled, Is.False);
+                });
+                pending.SetResult(new SensorMonitoringChangeResult(true, SensorMonitoringState.Active));
+                await saving;
+                Assert.Multiple(() =>
+                {
+                    Assert.That(window.CpuTemperatureMonitoringCheckBox.IsChecked, Is.False);
+                    Assert.That(window.CpuTemperatureMonitoringStatus.Text, Is.EqualTo(Strings.CpuTemperatureMonitoringCancelled));
+                    Assert.That(window.SaveButton.IsEnabled, Is.True);
+                    Assert.That(window.Navigation.IsEnabled, Is.True);
+                    Assert.That(window.Result, Is.Null);
+                });
+            }
+            finally
+            {
+                pending.TrySetResult(new SensorMonitoringChangeResult(false, SensorMonitoringState.Failed));
                 await RemovalReady(window);
             }
         }), Is.False);

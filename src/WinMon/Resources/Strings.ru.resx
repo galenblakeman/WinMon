@@ -2143,4 +2143,22 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
   <data name="TemperatureCelsiusValue" xml:space="preserve"><value>{0:0} °C</value></data>
   <data name="TemperatureFahrenheitValue" xml:space="preserve"><value>{0:0} °F</value></data>
   <data name="TemperatureFanRpmValue" xml:space="preserve"><value>{0:0} RPM</value></data>
+  <data name="DetailCpuTemperature" xml:space="preserve"><value>Температура ЦП</value></data>
+  <data name="DetailCpuTemperatureSensor" xml:space="preserve"><value>Датчик</value></data>
+  <data name="GaugeCpuTemperaturePair" xml:space="preserve"><value>{0} · {1}</value></data>
+  <data name="CpuTemperatureMonitoringEnabled" xml:space="preserve"><value>Отслеживать температуру ЦП</value></data>
+  <data name="CpuTemperatureMonitoringNote" xml:space="preserve"><value>Считывает датчик корпуса или кристалла ЦП через необязательную локальную службу датчиков WinMon. Для настройки требуется одобрение администратора. Перед включением этой функции отдельно установите официальный драйвер PawnIO.</value></data>
+  <data name="CpuTemperatureMonitoringDisabled" xml:space="preserve"><value>Мониторинг температуры ЦП выключен.</value></data>
+  <data name="CpuTemperatureMonitoringEnabling" xml:space="preserve"><value>Применяется настройка мониторинга температуры ЦП…</value></data>
+  <data name="CpuTemperatureMonitoringStarting" xml:space="preserve"><value>Запускается мониторинг температуры ЦП.</value></data>
+  <data name="CpuTemperatureMonitoringActive" xml:space="preserve"><value>Мониторинг температуры ЦП активен.</value></data>
+  <data name="CpuTemperatureMonitoringUnavailable" xml:space="preserve"><value>Мониторинг температуры ЦП недоступен.</value></data>
+  <data name="CpuTemperatureMonitoringUpdateRequired" xml:space="preserve"><value>Требуется обновление службы датчиков.</value></data>
+  <data name="CpuTemperatureMonitoringSetupUnavailable" xml:space="preserve"><value>Подписанная установка датчика ЦП недоступна.</value></data>
+  <data name="CpuTemperatureMonitoringCancelled" xml:space="preserve"><value>Изменение мониторинга температуры процессора отменено.</value></data>
+  <data name="CpuTemperatureMonitoringFailed" xml:space="preserve"><value>Не удалось включить мониторинг температуры ЦП.</value></data>
+  <data name="CpuTemperatureMonitoringStoreUnavailable" xml:space="preserve"><value>Мониторинг температуры ЦП недоступен в версии Microsoft Store.</value></data>
+  <data name="CpuTemperatureMonitoringRemove" xml:space="preserve"><value>Удалить службу датчиков ЦП…</value></data>
+  <data name="CpuTemperatureMonitoringRemoveConfirm" xml:space="preserve"><value>Удалить службу датчиков ЦП для всех пользователей Windows на этом компьютере? Требуется одобрение администратора. Мониторинг температуры ЦП будет остановлен для всех пользователей.</value></data>
+  <data name="CpuTemperatureMonitoringRepair" xml:space="preserve"><value>Восстановить мониторинг температуры ЦП</value></data>
 </root>

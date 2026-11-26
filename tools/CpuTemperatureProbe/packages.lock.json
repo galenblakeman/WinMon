@@ -2,21 +2,6 @@
   "version": 1,
   "dependencies": {
     "net10.0-windows7.0": {
-      "LibreHardwareMonitorLib": {
-        "type": "Direct",
-        "requested": "[0.9.6, )",
-        "resolved": "0.9.6",
-        "contentHash": "W4hQ5Ja51/1cEDZnh9kG5UHFBwjjY2+oIpSUhSsgeYXKRKezrkw3sEFrhQkrOuo53xkXyfWV8ZErMqQuGqWIMQ==",
-        "dependencies": {
-          "DiskInfoToolkit": "1.1.2",
-          "HidSharp": "2.6.4",
-          "Mono.Posix.NETStandard": "1.0.0",
-          "RAMSPDToolkit-NDD": "1.4.2",
-          "System.IO.FileSystem.AccessControl": "5.0.0",
-          "System.IO.Ports": "10.0.3",
-          "System.Management": "10.0.2"
-        }
-      },
       "Microsoft.NET.ILLink.Tasks": {
         "type": "Direct",
         "requested": "[10.0.15, )",
@@ -40,6 +25,20 @@
         "type": "Transitive",
         "resolved": "2.6.4",
         "contentHash": "UcGvtnXFcatwHBXr+ei8GEXvg//wjGmDGQ6Xvb+7M4vHjURAhSLIJ+dSZv0BnAhQEpNlH8G4P7JxYnMH8Aph4g=="
+      },
+      "LibreHardwareMonitorLib": {
+        "type": "Transitive",
+        "resolved": "0.9.6",
+        "contentHash": "W4hQ5Ja51/1cEDZnh9kG5UHFBwjjY2+oIpSUhSsgeYXKRKezrkw3sEFrhQkrOuo53xkXyfWV8ZErMqQuGqWIMQ==",
+        "dependencies": {
+          "DiskInfoToolkit": "1.1.2",
+          "HidSharp": "2.6.4",
+          "Mono.Posix.NETStandard": "1.0.0",
+          "RAMSPDToolkit-NDD": "1.4.2",
+          "System.IO.FileSystem.AccessControl": "5.0.0",
+          "System.IO.Ports": "10.0.3",
+          "System.Management": "10.0.2"
+        }
       },
       "Mono.Posix.NETStandard": {
         "type": "Transitive",
@@ -160,8 +159,13 @@
       },
       "System.CodeDom": {
         "type": "Transitive",
-        "resolved": "10.0.2",
-        "contentHash": "eih1MnL4tnSjHUhzae0dmpu50Sm0s54faHZc8yhzYfmubAubkBIIulYYN28fasD1m41mhl6Cenhs9/F0aLv3FA=="
+        "resolved": "10.0.15",
+        "contentHash": "6oO8bbuYBjHWA9lZgDYRzVwtDwN5M1uW8MUcjiEHcHIEKM9B+xolkxVY9NCqzEn8yqGonMaat44cYKvv9TgYXw=="
+      },
+      "System.Diagnostics.EventLog": {
+        "type": "Transitive",
+        "resolved": "10.0.15",
+        "contentHash": "d1ynyO/BvCyi8SI1m6/xASazxrZm20V/mTDJay4qmL947RsA5MEiMk1JWvafw6JX005VVBAHvjWQP1dRRBvYKw=="
       },
       "System.IO.FileSystem.AccessControl": {
         "type": "Transitive",
@@ -178,17 +182,42 @@
       },
       "System.Management": {
         "type": "Transitive",
-        "resolved": "10.0.2",
-        "contentHash": "eFftuy3i844lVKCb4lJvvjKfcvPVcW8KrAdSaIOcRL42/Fisj46hwUs8Bky+4avzMe5Snm5t7aSayOI1mybYXg==",
+        "resolved": "10.0.15",
+        "contentHash": "U21LynVbH2ayLFLTqlLnd3hx52Fe/acpCXO4BAUIqfWs8CwFWT0zxlg8WR2+LZ7zcLgi/d08eq7rp4iLMMt+4w==",
         "dependencies": {
-          "System.CodeDom": "10.0.2"
+          "System.CodeDom": "10.0.15"
+        }
+      },
+      "System.ServiceProcess.ServiceController": {
+        "type": "Transitive",
+        "resolved": "10.0.15",
+        "contentHash": "F76lv6rSZM/tooJREAFeq9RUPEyW48ubG4co8oPN1RBG/h/Ob7dUjQfLRhaApCWqwhAeIPxzAHIPrUkE2eatzg==",
+        "dependencies": {
+          "System.Diagnostics.EventLog": "10.0.15"
+        }
+      },
+      "moncore": {
+        "type": "Project"
+      },
+      "moncore.windows": {
+        "type": "Project",
+        "dependencies": {
+          "MonCore": "[3.4.1-macos.1, )",
+          "System.Management": "[10.0.15, )"
+        }
+      },
+      "winmon.sensorservice": {
+        "type": "Project",
+        "dependencies": {
+          "LibreHardwareMonitorLib": "[0.9.6, )",
+          "MonCore.Windows": "[4.3.0, )",
+          "System.ServiceProcess.ServiceController": "[10.0.15, )"
         }
       }
     },
     "net10.0-windows7.0/win-x64": {
       "LibreHardwareMonitorLib": {
-        "type": "Direct",
-        "requested": "[0.9.6, )",
+        "type": "Transitive",
         "resolved": "0.9.6",
         "contentHash": "W4hQ5Ja51/1cEDZnh9kG5UHFBwjjY2+oIpSUhSsgeYXKRKezrkw3sEFrhQkrOuo53xkXyfWV8ZErMqQuGqWIMQ==",
         "dependencies": {
@@ -286,6 +315,11 @@
         "resolved": "10.0.3",
         "contentHash": "L1gcOL5kcfeeujKQbqJmpeTLsT0c6DeaJ9w6PY9oZ+/WESyya+Zj7StKguXR5j93o3o86FjcN05yufpoCz7R2g=="
       },
+      "System.Diagnostics.EventLog": {
+        "type": "Transitive",
+        "resolved": "10.0.15",
+        "contentHash": "d1ynyO/BvCyi8SI1m6/xASazxrZm20V/mTDJay4qmL947RsA5MEiMk1JWvafw6JX005VVBAHvjWQP1dRRBvYKw=="
+      },
       "System.IO.FileSystem.AccessControl": {
         "type": "Transitive",
         "resolved": "5.0.0",
@@ -301,10 +335,18 @@
       },
       "System.Management": {
         "type": "Transitive",
-        "resolved": "10.0.2",
-        "contentHash": "eFftuy3i844lVKCb4lJvvjKfcvPVcW8KrAdSaIOcRL42/Fisj46hwUs8Bky+4avzMe5Snm5t7aSayOI1mybYXg==",
+        "resolved": "10.0.15",
+        "contentHash": "U21LynVbH2ayLFLTqlLnd3hx52Fe/acpCXO4BAUIqfWs8CwFWT0zxlg8WR2+LZ7zcLgi/d08eq7rp4iLMMt+4w==",
         "dependencies": {
-          "System.CodeDom": "10.0.2"
+          "System.CodeDom": "10.0.15"
+        }
+      },
+      "System.ServiceProcess.ServiceController": {
+        "type": "Transitive",
+        "resolved": "10.0.15",
+        "contentHash": "F76lv6rSZM/tooJREAFeq9RUPEyW48ubG4co8oPN1RBG/h/Ob7dUjQfLRhaApCWqwhAeIPxzAHIPrUkE2eatzg==",
+        "dependencies": {
+          "System.Diagnostics.EventLog": "10.0.15"
         }
       }
     }

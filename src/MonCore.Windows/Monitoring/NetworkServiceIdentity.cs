@@ -9,7 +9,8 @@ namespace MonCore.Windows.Monitoring;
 /// <summary>Rejects a same-named pipe unless its server is the running LocalSystem SCM service.</summary>
 internal static class NetworkServiceIdentity
 {
-    internal static Task EnsureRunningAsync(CancellationToken token) => EnsureRunningAsync(token, null);
+    internal static Task EnsureRunningAsync(CancellationToken token) =>
+        ProtectedServiceIdentity.EnsureRunningAsync(ProtectedServiceEndpoints.Network, token);
 
     internal static Task EnsureRunningAsync(CancellationToken token, Func<uint, IServiceStartupScope>? open)
     {
@@ -59,6 +60,11 @@ internal static class NetworkServiceIdentity
     }
 
     internal static void Verify(SafePipeHandle pipe)
+    {
+        VerifyLegacy(pipe);
+    }
+
+    private static void VerifyLegacy(SafePipeHandle pipe)
     {
         if (!GetNamedPipeServerProcessId(pipe, out var pipeProcessId) || pipeProcessId == 0)
             throw new UnauthorizedAccessException("Cannot identify network service pipe server.");
@@ -161,10 +167,7 @@ internal static class NetworkServiceIdentity
 
     internal static bool ConfigurationMatches(uint serviceType, string? account, string? command)
     {
-        return serviceType == ServiceWin32OwnProcess &&
-               string.Equals(account, "LocalSystem", StringComparison.OrdinalIgnoreCase) &&
-               string.Equals(command?.Trim(), $"\"{NetworkServiceProtocol.InstalledExecutable}\"",
-                   StringComparison.OrdinalIgnoreCase);
+        return ProtectedServiceIdentity.ConfigurationMatches(ProtectedServiceEndpoints.Network, serviceType, account, command);
     }
 
     private const uint ScManagerConnect = 0x0001,

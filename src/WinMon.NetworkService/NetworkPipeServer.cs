@@ -4,10 +4,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO.Pipes;
-using System.Runtime.InteropServices;
-using System.Security.Principal;
 using System.Text.Json;
-using Microsoft.Win32.SafeHandles;
 using MonCore.Monitoring;
 using MonCore.Windows.Monitoring;
 
@@ -24,7 +21,7 @@ internal sealed class NetworkPipeServer(
     private readonly SemaphoreSlim _clients = new(MaximumClients, MaximumClients);
     private readonly ConcurrentDictionary<Task, byte> _handlers = new();
     private int _firstInstance = 1;
-    private readonly string _serverSid = GetServerSid();
+    private readonly string _serverSid = ProtectedServicePipe.GetCurrentSid();
 
     internal async Task RunAsync(CancellationToken token)
     {
@@ -74,15 +71,7 @@ internal sealed class NetworkPipeServer(
     {
         try
         {
-            string? sid = null;
-            pipe.RunAsClient(() =>
-            {
-                using var identity = WindowsIdentity.GetCurrent(TokenAccessLevels.Query);
-                sid = identity.User?.Value;
-            });
-            if (sid is null) throw new UnauthorizedAccessException("Pipe client has no SID.");
-            if (!allowedSids.Contains(sid, StringComparer.Ordinal))
-                throw new UnauthorizedAccessException("Pipe client is not provisioned.");
+            var sid = ProtectedServicePipe.AuthenticateClient(pipe, allowedSids);
             await ServeAsync(pipe, sid, stopping).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (stopping.IsCancellationRequested)
@@ -109,64 +98,8 @@ internal sealed class NetworkPipeServer(
 
     private NamedPipeServerStream CreatePipe()
     {
-        var sddl = "D:P(A;;GA;;;SY)" + (_serverSid == "S-1-5-18" ? "" : $"(A;;GA;;;{_serverSid})") +
-                   string.Concat(allowedSids.Where(sid => !string.Equals(sid, _serverSid, StringComparison.Ordinal))
-                       .Select(sid => $"(D;;0x4;;;{sid})(A;;0x12019B;;;{sid})"));
-        if (!ConvertStringSecurityDescriptorToSecurityDescriptor(sddl, 1, out var descriptor, out _))
-            throw new UnauthorizedAccessException("Cannot create network service pipe security descriptor.");
-        try
-        {
-            var attributes = new SecurityAttributes
-                { Length = Marshal.SizeOf<SecurityAttributes>(), SecurityDescriptor = descriptor };
-            var mode = PipeTypeByte | PipeReadmodeByte | PipeRejectRemoteClients;
-            var openMode = PipeAccessDuplex | FileFlagOverlapped;
-            if (Interlocked.Exchange(ref _firstInstance, 0) == 1) openMode |= PipeFirstInstance;
-            var handle = CreateNamedPipe($"\\\\.\\pipe\\{pipeName}", openMode,
-                mode, MaximumClients + 1,
-                NetworkServiceProtocol.MaximumMessageBytes, NetworkServiceProtocol.MaximumMessageBytes, 10000,
-                ref attributes);
-            if (handle.IsInvalid)
-                throw new UnauthorizedAccessException("Cannot create protected network service pipe.");
-            return new NamedPipeServerStream(PipeDirection.InOut, true, false, handle);
-        }
-        finally
-        {
-            _ = LocalFree(descriptor);
-        }
-    }
-
-    private const uint PipeAccessDuplex = 0x00000003;
-    private const uint FileFlagOverlapped = 0x40000000;
-    private const uint PipeTypeByte = 0;
-    private const uint PipeReadmodeByte = 0;
-    private const uint PipeRejectRemoteClients = 0x00000008;
-    private const uint PipeFirstInstance = 0x00080000;
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct SecurityAttributes
-    {
-        public int Length;
-        public IntPtr SecurityDescriptor;
-        public IntPtr InheritHandle;
-    }
-
-    [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool ConvertStringSecurityDescriptorToSecurityDescriptor(string sddl, uint revision,
-        out IntPtr descriptor, out uint size);
-
-    [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-    private static extern SafePipeHandle CreateNamedPipe(string name, uint openMode, uint pipeMode,
-        uint maximumInstances,
-        uint outputSize, uint inputSize, uint timeout, ref SecurityAttributes attributes);
-
-    [DllImport("kernel32.dll")]
-    private static extern IntPtr LocalFree(IntPtr memory);
-
-    private static string GetServerSid()
-    {
-        using var identity = WindowsIdentity.GetCurrent(TokenAccessLevels.Query);
-        return identity.User?.Value ?? throw new InvalidOperationException("Network service has no Windows SID.");
+        return ProtectedServicePipe.CreateServer(pipeName, allowedSids, _serverSid, MaximumClients,
+            NetworkServiceProtocol.MaximumMessageBytes, Interlocked.Exchange(ref _firstInstance, 0) == 1);
     }
 
     private async Task ServeAsync(NamedPipeServerStream pipe, string sid, CancellationToken stopping)

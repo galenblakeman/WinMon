@@ -201,7 +201,7 @@ internal sealed partial class WindowDiagnostics
         try
         {
         var previous = fixture.Session.History.Samples[^1];
-        MonitorSample Add(int second, double? limit, GpuThermalReading? thermal)
+        MonitorSample Add(int second, double? limit, GpuThermalReading? thermal, bool staleCpu = false)
         {
             var sample = new MonitorSample(previous.Timestamp.AddSeconds(second), 40, [], 0,
                 MonotonicTimestamp: previous.MonotonicTimestamp + Stopwatch.Frequency * second)
@@ -209,6 +209,7 @@ internal sealed partial class WindowDiagnostics
                 Resources = previous.Resources with
                 {
                     CpuPerformanceLimitPercent = limit, CpuPerformanceLimitFlags = limit is null ? null : 2,
+                    CpuClockMhz = 4300, CpuTemperature = thermal is null ? null : CpuTemperatureFixture(staleCpu),
                     GpuId = thermal?.AdapterId ?? "", GpuThermals = thermal is null ? [] : [thermal]
                 }
             };
@@ -231,7 +232,14 @@ internal sealed partial class WindowDiagnostics
             fixture.ApplyTheme(); DrawCompactScenario(fixture, visual, 836);
             await CaptureVisualAsync(visual, Path.Combine(output, $"temperature-compact-limited-{theme.ToLowerInvariant()}.png"), 1, cancellationToken);
         }
-        Add(4, null, null);
+        Add(4, 100, normal, staleCpu: true);
+        foreach (var theme in new[] { "Dark", "Light" })
+        {
+            fixture.Preferences = fixture.Preferences with { Theme = theme, GaugeStyle = GaugeStyle.Bowl };
+            fixture.ApplyTheme(); DrawCompactScenario(fixture, visual, 836);
+            await CaptureVisualAsync(visual, Path.Combine(output, $"temperature-compact-cpu-stale-{theme.ToLowerInvariant()}.png"), 1, cancellationToken);
+        }
+        Add(5, null, null);
         foreach (var theme in new[] { "Dark", "Light" })
         {
             fixture.Preferences = fixture.Preferences with { Theme = theme, GaugeStyle = GaugeStyle.Bowl };

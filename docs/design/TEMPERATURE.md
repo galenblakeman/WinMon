@@ -230,7 +230,7 @@ The original option was to reuse an installed driver from the network service. T
   WinMon is MIT. Bundling module blobs or the library needs a licensing check.
 - **Names and defaults:** HWiNFO's object name, its header poll-time field, and whether LibreHardwareMonitor publishes WMI by default come from memory. Verify them against each tool before building on it. Core Temp's names and HWiNFO's 12-hour limit are verified from the linked official pages.
 
-The LibreHardwareMonitor CPU prototype described in [Optional CPU temperature](HARDWARE-SENSORS.md#verify-before-building) investigates these questions on both the AMD desktop and Intel laptop. Run it unelevated and elevated, recording the NuGet package and driver versions and whether Memory integrity was on. Native success on both paths is a gate before implementing the service; the built-in [temperature probe](../../tools/TemperatureProbe.cs) remains independent of PawnIO.
+The service-backed LibreHardwareMonitor CPU probe described in [Optional CPU temperature](HARDWARE-SENSORS.md#validation) investigates these questions on both the AMD desktop and Intel laptop. Run it unelevated and elevated, recording the NuGet package and driver versions and whether Memory integrity was on. Native accuracy on both paths remains acceptance work after service implementation; the built-in [temperature probe](../../tools/TemperatureProbe.cs) remains independent of PawnIO.
 
 ## Deferred
 - **Vendor GPU SDKs.** Load NVML, ADLX or IGCL dynamically only if users ask for hotspot or memory-junction temperatures.
@@ -260,11 +260,11 @@ Implemented in the working tree:
 
 Verification is recorded in `artifacts/temperature-implementation/verification.md`. Full desktop and Store test selections passed 11,242 and 11,079 tests. A capture smoke found Appearance overflow from the unit selector; reduced page padding, then the affected Settings/preview reruns passed 80 tests in each variant and capture smokes passed 57 desktop / 51 Store renders. Gauges and Compact passed 57 / 112 renders per variant. All twelve temperature states were visually inspected; Store images match desktop byte-for-byte. The final LibreHardwareMonitor prototype/collector run passed 38 tests, and its locked restore, build, publish and missing-PawnIO diagnostic passed. The earlier direct-register prototype is superseded.
 
-Four alternating performance pairs measured UI frame medians of 4.599 ms before / 4.646 ms after, with unchanged absent-sensor pixels and about 552 added bytes/frame. Native resource-sampler medians were 1.401 / 1.416 ms. See [performance history](../PERFORMANCE-HISTORY.md) for fixture results, variation and measurement limits. Physical sensor accuracy and the optional CPU service remain outside these completed checks.
+Four alternating performance pairs measured UI frame medians of 4.599 ms before / 4.646 ms after, with unchanged absent-sensor pixels and about 552 added bytes/frame. Native resource-sampler medians were 1.401 / 1.416 ms. See [performance history](../PERFORMANCE-HISTORY.md) for fixture results, variation and measurement limits. Physical sensor accuracy and optional CPU service native acceptance remain outside these completed checks.
 
 Departures and native limits:
 
 - Temperatures and CPU limits are live-only; the restart-history binary format is unchanged and restores these fields unavailable. An explicit round-trip regression guards this boundary.
 - The existing desktop/hybrid hardware spike informed implementation. The integrated-only laptop, a confirmed sleeping-GPU power-state comparison and an observed real performance limit below 100 remain unverified.
 - A six-sample idle probe in this development environment completed and reported unsupported GPU performance queries, no zones and CPU limit 100. This verifies graceful absence here, not sensor accuracy on physical GPUs.
-- Optional CPU die/package temperature is a separate LibreHardwareMonitor prototype; its native gate and service status belong to [Optional CPU temperature](HARDWARE-SENSORS.md).
+- Optional CPU die/package temperature uses the separate LibreHardwareMonitor service; its native acceptance and service status belong to [Optional CPU temperature](HARDWARE-SENSORS.md).

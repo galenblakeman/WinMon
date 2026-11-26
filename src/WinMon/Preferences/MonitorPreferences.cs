@@ -233,6 +233,9 @@ public sealed record MonitorPreferences
     /// <summary>Collect network send and receive throughput for individual processes when the optional service is active.</summary>
     public bool ProcessNetworkMonitoringEnabled { get; init; }
 
+    /// <summary>Read CPU temperature from the optional local sensor service; disabled unless the user enables it.</summary>
+    public bool CpuTemperatureMonitoringEnabled { get; init; }
+
     /// <summary>Gets a value indicating whether minimizing the monitor hides it in the notification area.</summary>
     public bool MinimizeToTray { get; init; }
 

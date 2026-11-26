@@ -2,13 +2,24 @@ namespace WinMon.NetworkSetup;
 
 internal static class SetupPaths
 {
+#if SENSOR_SETUP
+    internal const string ServiceName = "WinMonSensorMonitor";
+    internal const string ServiceExecutableName = "WinMon.SensorService.exe";
+    internal const string SetupExecutableName = "WinMon.SensorSetup.exe";
+#else
     internal const string ServiceName = "WinMonNetworkMonitor";
     internal const string ServiceExecutableName = "WinMon.NetworkService.exe";
     internal const string SetupExecutableName = "WinMon.NetworkSetup.exe";
+#endif
     internal const string PolicyFileName = "allowed-users.json";
 
     internal static string InstallDirectory =>
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "WinMon", "NetworkMonitor");
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "WinMon",
+#if SENSOR_SETUP
+            "SensorMonitor");
+#else
+            "NetworkMonitor");
+#endif
 
     internal static string ServiceExecutable => Path.Combine(InstallDirectory, ServiceExecutableName);
     internal static string InstalledSetupExecutable => Path.Combine(InstallDirectory, SetupExecutableName);

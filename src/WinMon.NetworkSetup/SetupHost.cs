@@ -8,6 +8,10 @@ internal sealed class SetupHost
 {
     internal string InstallDirectory { get; init; } = SetupPaths.InstallDirectory;
     internal Action PrepareParent { get; init; } = ProtectedInstallation.PrepareParent;
+#if SENSOR_SETUP
+    // Kept before PrepareParent so a missing separately-installed driver cannot leave setup artifacts behind.
+    internal Action EnsureSensorPrerequisite { get; init; } = PawnIoPrerequisite.EnsureInstalled;
+#endif
     internal Action EnsureOwnedOrAbsent { get; init; } = NativeService.EnsureOwnedOrAbsent;
     internal Func<NativeService.ServiceState> CaptureState { get; init; } = NativeService.CaptureState;
     internal Action<CancellationToken> StopOwnedIfRunning { get; init; } = NativeService.StopOwnedIfRunning;

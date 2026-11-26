@@ -2143,4 +2143,22 @@ Przywrócenie ograniczania również nie powiodło się: {1}</value></data>
   <data name="TemperatureCelsiusValue" xml:space="preserve"><value>{0:0} °C</value></data>
   <data name="TemperatureFahrenheitValue" xml:space="preserve"><value>{0:0} °F</value></data>
   <data name="TemperatureFanRpmValue" xml:space="preserve"><value>{0:0} RPM</value></data>
+  <data name="DetailCpuTemperature" xml:space="preserve"><value>Temperatura procesora</value></data>
+  <data name="DetailCpuTemperatureSensor" xml:space="preserve"><value>Czujnik</value></data>
+  <data name="GaugeCpuTemperaturePair" xml:space="preserve"><value>{0} · {1}</value></data>
+  <data name="CpuTemperatureMonitoringEnabled" xml:space="preserve"><value>Monitoruj temperaturę procesora</value></data>
+  <data name="CpuTemperatureMonitoringNote" xml:space="preserve"><value>Odczytuje czujnik pakietu lub rdzenia procesora przez opcjonalną lokalną usługę czujników WinMon. Konfiguracja wymaga zgody administratora. Przed włączeniem tej funkcji zainstaluj osobno oficjalny sterownik PawnIO.</value></data>
+  <data name="CpuTemperatureMonitoringDisabled" xml:space="preserve"><value>Monitorowanie temperatury CPU jest wyłączone.</value></data>
+  <data name="CpuTemperatureMonitoringEnabling" xml:space="preserve"><value>Stosowanie ustawienia monitorowania temperatury CPU…</value></data>
+  <data name="CpuTemperatureMonitoringStarting" xml:space="preserve"><value>Uruchamianie monitorowania temperatury CPU.</value></data>
+  <data name="CpuTemperatureMonitoringActive" xml:space="preserve"><value>Monitorowanie temperatury CPU jest aktywne.</value></data>
+  <data name="CpuTemperatureMonitoringUnavailable" xml:space="preserve"><value>Monitorowanie temperatury CPU jest niedostępne.</value></data>
+  <data name="CpuTemperatureMonitoringUpdateRequired" xml:space="preserve"><value>Wymagana jest aktualizacja usługi czujników.</value></data>
+  <data name="CpuTemperatureMonitoringSetupUnavailable" xml:space="preserve"><value>Podpisana konfiguracja czujnika CPU jest niedostępna.</value></data>
+  <data name="CpuTemperatureMonitoringCancelled" xml:space="preserve"><value>Anulowano zmianę monitorowania temperatury procesora.</value></data>
+  <data name="CpuTemperatureMonitoringFailed" xml:space="preserve"><value>Nie można było włączyć monitorowania temperatury CPU.</value></data>
+  <data name="CpuTemperatureMonitoringStoreUnavailable" xml:space="preserve"><value>Monitorowanie temperatury CPU jest niedostępne w wersji Microsoft Store.</value></data>
+  <data name="CpuTemperatureMonitoringRemove" xml:space="preserve"><value>Usuń usługę czujników CPU…</value></data>
+  <data name="CpuTemperatureMonitoringRemoveConfirm" xml:space="preserve"><value>Usunąć usługę czujników CPU dla wszystkich użytkowników systemu Windows na tym komputerze? Wymagana jest zgoda administratora. Monitorowanie temperatury CPU zostanie zatrzymane dla wszystkich użytkowników.</value></data>
+  <data name="CpuTemperatureMonitoringRepair" xml:space="preserve"><value>Napraw monitorowanie temperatury CPU</value></data>
 </root>

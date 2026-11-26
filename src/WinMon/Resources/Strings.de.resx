@@ -2155,4 +2155,22 @@ Auch das Wiederherstellen der Drosselung ist fehlgeschlagen: {1}</value></data>
   <data name="TemperatureCelsiusValue" xml:space="preserve"><value>{0:0} °C</value></data>
   <data name="TemperatureFahrenheitValue" xml:space="preserve"><value>{0:0} °F</value></data>
   <data name="TemperatureFanRpmValue" xml:space="preserve"><value>{0:0} RPM</value></data>
+  <data name="DetailCpuTemperature" xml:space="preserve"><value>CPU-Temperatur</value></data>
+  <data name="DetailCpuTemperatureSensor" xml:space="preserve"><value>Sensor</value></data>
+  <data name="GaugeCpuTemperaturePair" xml:space="preserve"><value>{0} · {1}</value></data>
+  <data name="CpuTemperatureMonitoringEnabled" xml:space="preserve"><value>CPU-Temperatur überwachen</value></data>
+  <data name="CpuTemperatureMonitoringNote" xml:space="preserve"><value>Liest den CPU-Paket- oder Die-Sensor über den optionalen lokalen WinMon-Sensordienst. Die Einrichtung erfordert eine Administratorgenehmigung. Installieren Sie den offiziellen PawnIO-Treiber separat, bevor Sie diese Funktion aktivieren.</value></data>
+  <data name="CpuTemperatureMonitoringDisabled" xml:space="preserve"><value>Die CPU-Temperaturüberwachung ist aus.</value></data>
+  <data name="CpuTemperatureMonitoringEnabling" xml:space="preserve"><value>CPU-Temperaturüberwachungseinstellung wird angewendet…</value></data>
+  <data name="CpuTemperatureMonitoringStarting" xml:space="preserve"><value>Die CPU-Temperaturüberwachung wird gestartet.</value></data>
+  <data name="CpuTemperatureMonitoringActive" xml:space="preserve"><value>Die CPU-Temperaturüberwachung ist aktiv.</value></data>
+  <data name="CpuTemperatureMonitoringUnavailable" xml:space="preserve"><value>Die CPU-Temperaturüberwachung ist nicht verfügbar.</value></data>
+  <data name="CpuTemperatureMonitoringUpdateRequired" xml:space="preserve"><value>Eine Aktualisierung des Sensordiensts ist erforderlich.</value></data>
+  <data name="CpuTemperatureMonitoringSetupUnavailable" xml:space="preserve"><value>Die signierte CPU-Sensoreinrichtung ist nicht verfügbar.</value></data>
+  <data name="CpuTemperatureMonitoringCancelled" xml:space="preserve"><value>Die Änderung der CPU-Temperaturüberwachung wurde abgebrochen.</value></data>
+  <data name="CpuTemperatureMonitoringFailed" xml:space="preserve"><value>Die CPU-Temperaturüberwachung konnte nicht aktiviert werden.</value></data>
+  <data name="CpuTemperatureMonitoringStoreUnavailable" xml:space="preserve"><value>Die CPU-Temperaturüberwachung ist in der Microsoft-Store-Version nicht verfügbar.</value></data>
+  <data name="CpuTemperatureMonitoringRemove" xml:space="preserve"><value>CPU-Sensordienst entfernen…</value></data>
+  <data name="CpuTemperatureMonitoringRemoveConfirm" xml:space="preserve"><value>Den CPU-Sensordienst für alle Windows-Benutzer dieses Computers entfernen? Eine Administratorgenehmigung ist erforderlich. Die CPU-Temperaturüberwachung wird für alle Benutzer beendet.</value></data>
+  <data name="CpuTemperatureMonitoringRepair" xml:space="preserve"><value>CPU-Temperaturüberwachung reparieren</value></data>
 </root>

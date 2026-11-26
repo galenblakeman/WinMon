@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(StoreBuild)' == 'true'">
+    <TargetFramework>net10.0-windows10.0.17763.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Update="Licenses/**;THIRD-PARTY-NOTICES.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.6" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="10.0.15" />
+    <ProjectReference Include="../MonCore.Windows/MonCore.Windows.csproj" />
+    <InternalsVisibleTo Include="WinMon.SensorService.Tests" />
+    <InternalsVisibleTo Include="CpuTemperatureProbe" />
+    <RuntimeHostConfigurationOption Include="System.GC.Gen0MaxBudget" Value="6291456" />
+  </ItemGroup>
+</Project>

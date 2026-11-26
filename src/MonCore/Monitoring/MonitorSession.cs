@@ -38,6 +38,9 @@ public sealed record SamplingOptions(
     public ProcessNetworkSnapshot? ProcessNetwork { get; init; }
 
     public Guid ProcessNetworkSessionId { get; init; }
+
+    /// <summary>Latest validated CPU temperature from the optional local sensor service.</summary>
+    public CpuTemperatureReading? CpuTemperature { get; init; }
 }
 
 /// <summary>One complete capture: the full sample, its service frame, and a partial failure if there was one.</summary>

@@ -106,6 +106,11 @@ internal static class Program
         if (!string.Equals(path, Path.Combine(directory, SetupPaths.SetupExecutableName),
                 StringComparison.OrdinalIgnoreCase))
             throw new UnauthorizedAccessException("Untrusted setup executable name.");
-        return NetworkSetupPackage.Open(directory, typeof(Program).Assembly.GetName().Version!.ToString(3));
+        return NetworkSetupPackage.Open(directory, typeof(Program).Assembly.GetName().Version!.ToString(3),
+#if SENSOR_SETUP
+            ProtectedServiceEndpoints.SensorPackage);
+#else
+            ProtectedServiceEndpoints.NetworkPackage);
+#endif
     }
 }

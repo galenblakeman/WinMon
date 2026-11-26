@@ -36,6 +36,34 @@ public sealed class IncidentRecordingTests
     }
 
     [Test]
+    public void SaveLoad_OmitsLiveCpuServiceReadingsWithoutChangingIncidentVersion()
+    {
+        var source = Recording();
+        source = source with { Observations = source.Observations.Select(frame => frame with
+        {
+            Sample = frame.Sample with { Resources = frame.Sample.Resources with
+            {
+                CpuClockMhz = 4300,
+                CpuTemperature = new(Guid.NewGuid(), "cpu-service-only", "CPU", "package", "CPU Package",
+                    55, "LibreHardwareMonitorLib 0.9.6")
+            } }
+        }).ToArray() };
+        source.Save(FilePath);
+        var loaded = IncidentRecording.Load(FilePath);
+        using var file = File.OpenRead(FilePath);
+        using var compressed = new GZipStream(file, CompressionMode.Decompress);
+        using var reader = new StreamReader(compressed);
+        var json = reader.ReadToEnd();
+        Assert.Multiple(() =>
+        {
+            Assert.That(loaded.Version, Is.EqualTo(2));
+            Assert.That(loaded.Observations.All(frame => frame.Sample.Resources.CpuTemperature is null), Is.True);
+            Assert.That(loaded.Observations.All(frame => frame.Sample.Resources.CpuClockMhz == 4300), Is.True);
+            Assert.That(json, Does.Not.Contain("cpu-service-only"));
+        });
+    }
+
+    [Test]
     public void SaveLoad_PreservesTimelineTrafficLifecycleSelectionAndPaths()
     {
         var source = Recording();

@@ -21,4 +21,11 @@ internal static partial class GaugeReadoutText
             ? GpuMemory(usedBytes, totalBytes)
             : Strings.Format(Strings.GaugeGpuTemperaturePair, GpuMemory(usedBytes, totalBytes), temperature);
     }
+
+    internal static string CpuDetail(double? megahertz, double? temperatureCelsius, TemperatureUnit unit)
+    {
+        var clock = CpuClock(megahertz);
+        var temperature = Temperature(temperatureCelsius, unit);
+        return temperature == Strings.Unavailable ? clock : Strings.Format(Strings.GaugeCpuTemperaturePair, clock, temperature);
+    }
 }

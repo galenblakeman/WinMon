@@ -47,7 +47,7 @@ internal sealed class WindowsResourceSampler : IDisposable
     private string? _networkInterfaceId;
 
     public MonitorSample Sample(MonitorSample cpu, string? primaryDrive = null, string? secondaryDrive = null,
-        string? networkInterfaceId = null)
+        string? networkInterfaceId = null, CpuTemperatureReading? cpuTemperature = null)
     {
         var reset = cpu.IsGap;
         if (reset) Reset();
@@ -58,7 +58,8 @@ internal sealed class WindowsResourceSampler : IDisposable
             CpuKernelPercent = cpu.Resources.CpuKernelPercent,
             CpuPerformanceLimitPercent = pressure.ProcessorPerformanceLimitPercent,
             CpuPerformanceLimitFlags = pressure.ProcessorPerformanceLimitFlags,
-            ThermalZones = _thermalZones.Read(pressure.ThermalZones, cpu.TotalCpuPercent, reset)
+            ThermalZones = _thermalZones.Read(pressure.ThermalZones, cpu.TotalCpuPercent, reset),
+            CpuTemperature = cpuTemperature
         };
         var memory = new MemoryStatus { Length = (uint)Marshal.SizeOf<MemoryStatus>() };
         if (Native.GlobalMemoryStatusEx(ref memory) && memory.TotalPhysical > 0 &&
@@ -115,7 +116,7 @@ internal sealed class WindowsResourceSampler : IDisposable
         }
 
         var sampled = _gpu.Sample(cpu with { Resources = result }, reset);
-        if (result.CpuPerformanceLimitPercent is not null || result.ThermalZones.Count > 0 ||
+        if (result.CpuTemperature is not null || result.CpuPerformanceLimitPercent is not null || result.ThermalZones.Count > 0 ||
             sampled.Resources.GpuThermals.Count > 0)
             Volatile.Write(ref _hasTemperature, true);
         return sampled;

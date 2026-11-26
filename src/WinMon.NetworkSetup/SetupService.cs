@@ -20,6 +20,11 @@ internal static class SetupService
     {
         if (operation is not ("install" or "remove")) throw new InvalidDataException("Unsupported setup operation.");
         host ??= new SetupHost();
+#if SENSOR_SETUP
+        // This is deliberately before setup creates or stages any installation content. Removal remains available
+        // after PawnIO is removed, so users can recover from a changed driver installation.
+        if (RequiresSensorPrerequisite(operation)) host.EnsureSensorPrerequisite();
+#endif
         host.PrepareParent();
         var lease = await AcquireLockAsync(token, host).ConfigureAwait(false);
         try
@@ -208,8 +213,16 @@ internal static class SetupService
     internal static string StagingPath(string kind, string? installDirectory = null)
     {
         return Path.Combine(Path.GetDirectoryName(installDirectory ?? SetupPaths.InstallDirectory)!,
+#if SENSOR_SETUP
+            $".SensorMonitor-{kind}-{Guid.NewGuid():N}");
+#else
             $".NetworkMonitor-{kind}-{Guid.NewGuid():N}");
+#endif
     }
+
+#if SENSOR_SETUP
+    internal static bool RequiresSensorPrerequisite(string operation) => operation == "install";
+#endif
 
     internal static void ValidateUpgrade(string? installed, string requested)
     {
@@ -227,7 +240,12 @@ internal static class SetupService
 
     private static async Task<FileStream> AcquireLockAsync(CancellationToken token, SetupHost host)
     {
-        var path = Path.Combine(Path.GetDirectoryName(host.InstallDirectory)!, ".network-setup.lock");
+        var path = Path.Combine(Path.GetDirectoryName(host.InstallDirectory)!,
+#if SENSOR_SETUP
+            ".sensor-setup.lock");
+#else
+            ".network-setup.lock");
+#endif
         while (true)
         {
             token.ThrowIfCancellationRequested();
