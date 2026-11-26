@@ -52,6 +52,10 @@ public sealed record UsageAppState(
 public readonly record struct UsageLifetimeState(int ProcessId, long CreationTicks, int App, int Absences)
 {
     public ProcessLifetimeDomain LifetimeDomain { get; init; } = ProcessLifetimeIdentity.WindowsFileTime;
+
+    /// <summary>Actual executable identity when its totals belong to a shared overflow entry.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public string? ExecutableKey { get; init; }
 }
 
 /// <summary>
@@ -108,7 +112,7 @@ public sealed class UsageLedger(DateTimeOffset since, ProcessIdentityPolicy? ide
     /// <summary>Whether a sample's process list describes the machine, rather than a baseline or gap.</summary>
     public static bool IsValid(MonitorSample sample)
     {
-        return sample is { IsGap: false, TotalCpuPercent: not null };
+        return sample is { IsGap: false } && (sample.TotalCpuPercent is not null || sample.IndependentProcessReadings);
     }
 
     /// <summary>Add one live, uncompacted sample. Invalid samples change nothing.</summary>
@@ -123,23 +127,28 @@ public sealed class UsageLedger(DateTimeOffset since, ProcessIdentityPolicy? ide
         foreach (var process in full.Processes)
         {
             var id = process.Identity;
+            var executableKey = ReferenceEquals(_identityPolicy, ProcessIdentityPolicy.Windows)
+                ? null : _identityPolicy.ExecutableKey(process);
             if (!_lifetimes.TryGetValue(id, out var lifetime))
             {
                 // Hash the path once per lifetime, not once per second.
-                lifetime = new Lifetime(EntryFor(process));
+                lifetime = new Lifetime(EntryFor(process), executableKey);
                 _lifetimes.Add(id, lifetime);
                 lifetime.Entry.Lifetimes++;
             }
 
             // exec can replace an executable without changing its PID/start identity. Portable policies must
             // reassign future usage instead of attributing the replacement to the previous executable.
-            if (!ReferenceEquals(_identityPolicy, ProcessIdentityPolicy.Windows) &&
-                !_identityPolicy.Comparer.Equals(lifetime.Entry.Key, _identityPolicy.ExecutableKey(process)))
+            if (executableKey is not null && lifetime.ExecutableKey is not null &&
+                !_identityPolicy.Comparer.Equals(lifetime.ExecutableKey, executableKey))
             {
-                lifetime = new Lifetime(EntryFor(process));
+                lifetime = new Lifetime(EntryFor(process), executableKey);
                 _lifetimes[id] = lifetime;
                 lifetime.Entry.Lifetimes++;
             }
+
+            // Older snapshots did not save overflow executable keys. Establish that baseline without recounting.
+            lifetime.ExecutableKey ??= executableKey;
 
             lifetime.Seen = _generation;
             lifetime.Absences = 0;
@@ -177,7 +186,8 @@ public sealed class UsageLedger(DateTimeOffset since, ProcessIdentityPolicy? ide
             [.. entries.Select(entry => entry.ToState())],
             [
                 .. _lifetimes.Select(pair => new UsageLifetimeState(pair.Key.ProcessId, pair.Key.StartToken,
-                    index[pair.Value.Entry], pair.Value.Absences) { LifetimeDomain = pair.Key.Domain })
+                    index[pair.Value.Entry], pair.Value.Absences)
+                    { LifetimeDomain = pair.Key.Domain, ExecutableKey = pair.Value.ExecutableKey })
             ]) { IdentityPolicyId = _identityPolicy.Id };
     }
 
@@ -199,7 +209,10 @@ public sealed class UsageLedger(DateTimeOffset since, ProcessIdentityPolicy? ide
         foreach (var lifetime in state.Lifetimes)
             _lifetimes[
                     new ProcessLifetimeIdentity(lifetime.ProcessId, lifetime.CreationTicks, lifetime.LifetimeDomain)] =
-                new Lifetime(entries[lifetime.App]) { Seen = _generation, Absences = lifetime.Absences };
+                new Lifetime(entries[lifetime.App], lifetime.ExecutableKey ??
+                    (ReferenceEquals(_identityPolicy, ProcessIdentityPolicy.Windows) || entries[lifetime.App].Key == OtherAppsKey
+                        ? null : entries[lifetime.App].Key))
+                { Seen = _generation, Absences = lifetime.Absences };
         _machineBusyTicks = state.MachineBusyTicks;
         _attributedTicks = state.AttributedTicks;
     }
@@ -219,9 +232,10 @@ public sealed class UsageLedger(DateTimeOffset since, ProcessIdentityPolicy? ide
         return entry;
     }
 
-    private sealed class Lifetime(Entry entry)
+    private sealed class Lifetime(Entry entry, string? executableKey)
     {
         public Entry Entry { get; } = entry;
+        public string? ExecutableKey { get; set; } = executableKey;
         public long Seen { get; set; }
         public int Absences { get; set; }
     }

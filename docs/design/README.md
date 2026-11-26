@@ -1,5 +1,7 @@
 # WinMon design assets
 
+- [MonCore accounting corrections](MONCORE-ACCOUNTING-CORRECTIONS.md) isolates connection rate baselines and preserves portable executable identity and independent usage readings.
+
 - [Optional CPU temperature](HARDWARE-SENSORS.md) implements a separate optional CPU-only service using stable LibreHardwareMonitorLib 0.9.6. Native AMD/Intel hardware acceptance follows implementation; fans and other sensors can later extend the same provider.
 
 - [Effective CPU clock](EFFECTIVE-CPU-CLOCK.md) derives the CPU clock from the rated clock and Windows processor performance, so it follows boost and idle instead of reporting a fixed rated clock.

@@ -13,6 +13,7 @@ public sealed class UsageHistory
         double AttributedTicks, Observation[] Observations)
     {
         public double StartMoment => Key.Moment - IntervalSeconds;
+        public bool CpuComplete { get; init; } = true;
     }
 
     private readonly Queue<Frame> _frames = [];
@@ -112,7 +113,7 @@ public sealed class UsageHistory
 
         var busy = valid ? (sample.TotalCpuPercent ?? 0) / 100 * sample.IntervalCpuTicks : 0;
         _frames.Enqueue(new Frame(SampleKey.Of(sample), Math.Max(0, sample.IntervalSeconds), valid, busy, attributed,
-            observations));
+            observations) { CpuComplete = sample.TotalCpuPercent is not null && sample.Processes.All(p => p.CpuAvailable) });
         _entries += observations.Length;
         Trim(SampleKey.Of(sample));
     }
@@ -159,7 +160,7 @@ public sealed class UsageHistory
         Frame? previous = null;
         foreach (var frame in frames)
         {
-            complete &= frame.Valid;
+            complete &= frame.Valid && frame.CpuComplete;
             if (previous is not null && frame.StartMoment > previous.Key.Moment + 0.000001) complete = false;
             busy += frame.MachineBusyTicks;
             attributed += frame.AttributedTicks;

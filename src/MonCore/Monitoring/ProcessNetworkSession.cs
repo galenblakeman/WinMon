@@ -323,9 +323,19 @@ public sealed class ProcessNetworkSession
                     ReceiveBytesPerSecond = null, SendBytesPerSecond = null
                 }).ToArray())
         {
-            Flows = flows.Select(reading => flowRatesAvailable && currentFlows.Contains(FlowIdentity(reading))
-                ? reading
-                : reading with { ReceiveBytesPerSecond = null, SendBytesPerSecond = null }).ToArray(),
+            Flows = flows.Select(reading =>
+            {
+                if (flowRatesAvailable)
+                {
+                    var identity = FlowIdentity(reading);
+                    if (currentFlows.Contains(identity) && _flows.TryGetValue(identity, out var flow))
+                    {
+                        if (snapshot.WindowStartQpc >= flow.RatesBlockedUntilQpc) return reading;
+                        adjustedFlowQuality |= ProcessNetworkQuality.Incomplete;
+                    }
+                }
+                return reading with { ReceiveBytesPerSecond = null, SendBytesPerSecond = null };
+            }).ToArray(),
             WindowStartQpc = snapshot.WindowStartQpc,
             WindowEndQpc = snapshot.WindowEndQpc,
             CurrentLifetimes = currentLifetimes,
@@ -380,14 +390,14 @@ public sealed class ProcessNetworkSession
                 flow = new FlowLifetime();
                 _flows.Add(identity, flow);
                 // The service rate includes traffic before this client baseline for a newly observed endpoint pair.
-                _flowRatesBlockedUntilQpc = Math.Max(_flowRatesBlockedUntilQpc, snapshot.TimestampQpc);
+                flow.RatesBlockedUntilQpc = snapshot.TimestampQpc;
             }
 
             if (flow.Totals.HasBaseline &&
                 (reading.ReceivedBytes < flow.Totals.LastReceived || reading.SentBytes < flow.Totals.LastSent))
             {
                 flowQuality |= ProcessNetworkQuality.Incomplete;
-                _flowRatesBlockedUntilQpc = Math.Max(_flowRatesBlockedUntilQpc, snapshot.TimestampQpc);
+                flow.RatesBlockedUntilQpc = Math.Max(flow.RatesBlockedUntilQpc, snapshot.TimestampQpc);
                 flow.Totals.ResetGeneration();
             }
 
@@ -444,6 +454,7 @@ public sealed class ProcessNetworkSession
     {
         internal Lifetime Totals { get; } = new();
         internal long SeenAtQpc { get; set; }
+        internal long RatesBlockedUntilQpc { get; set; }
     }
 
     private sealed class Lifetime

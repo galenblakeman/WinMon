@@ -2,6 +2,25 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## MonCore accounting corrections (November 26, 2026)
+
+Compared the original MonCore source at task start with the fixed Release library using the same compiled, dependency-free measurement host on .NET 10.0.15. Each scenario warmed up 400 calls, then ran seven batches of 60 calls. Three before/after pairs alternated launch order; the table reports the median of the three run medians. Ranking uses five observations of 850 processes grouped into 85 executables; usage uses 850 processes and network accounting uses 80 stable flows. These synthetic timings exclude native collection, desktop rendering and scheduling.
+
+| Operation | Before, ms/call | After, ms/call | Before / after allocated bytes/call |
+| --- | ---: | ---: | ---: |
+| Windows grouped ranking | 0.334 | 0.341 | 32,464 / 32,464 |
+| Portable grouped ranking | 0.329 | 0.548 | 73,264 / 73,264 |
+| Windows usage ledger | 0.092 | 0.095 | 32 / 32 |
+| Portable usage ledger | 0.127 | 0.136 | 40,832 / 40,832 |
+| Usage history | 0.121 | 0.122 | 34,104 / 34,104 |
+| Network, 80 flows | 0.055 | 0.062 | 25,400 / 25,416 |
+
+Portable grouping now hashes and compares executable identity as well as process lifetime across every interval, preserving activity on both sides of an executable replacement. Its measured additional cost is about 0.22 ms per ranking. Reused scratch tables and member lists keep allocations level; internal ExactPaths keys avoid allocating the public path prefix per interval. The original Windows ranking path remains in place. Flow accounting adds one dictionary lookup per current flow and 16 bytes per frame for the rate-quality closure. The small remaining differences are not evidence of improvements or regressions beyond these identified costs.
+
+One isolated pair with the existing real-window live-only benchmark (400 warm-up frames, seven batches of 60) measured 4.347 ms before and 4.007 ms after, with matching 560,901 bytes/frame and identical pixel hashes. One pair does not establish a speedup. Both runs used the same benchmark/dependency files, replacing only MonCore.dll. The earlier allocation-heavy candidate was rejected before final validation.
+
+Raw results and the three-pair comparison are under `artifacts/moncore-audit-fixes/` (`core-*-pair*.json`, `performance.csv`, `live-before.json`, `live-after-final.json`). See [the correction note](design/MONCORE-ACCOUNTING-CORRECTIONS.md).
+
 ## Separate CPU temperature service (November 26, 2026)
 
 Compared the preserved phase 1 Release benchmark with the CPU-service implementation on the development VM. The baseline contains the built-in GPU/thermal-zone presentation and performance-limit markers, but no CPU service reading or CPU temperature peaks. Eight UI pairs alternated launch order in two sets; the second set reversed the first set's starting order. Each run used the existing 850-process live-frame fixture, 400 warm-up frames and seven batches of 60. Four additional runs included CPU temperature 52 °C alongside the existing illustrative GPU, thermal-zone and performance-limit inputs.

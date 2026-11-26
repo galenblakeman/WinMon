@@ -23,6 +23,50 @@ public sealed class ProcessNetworkSessionTests
             $"127.0.0.1:{port}", received, sent, receiveRate, sendRate);
     }
 
+    [TestCase(false)]
+    [TestCase(true)]
+    public void Add_OneFlowsBaselineDoesNotSuppressOtherFlows(bool resetCounter)
+    {
+        var session = new ProcessNetworkSession();
+        session.Add(Snapshot(1, 100, 10, 10, windowStart: 40, windowEnd: 90) with
+        { FlowTrafficSupported = true, Flows = [Flow(100, 200)] }, 100);
+        session.Add(Snapshot(2, 110, 20, 20, windowStart: 100, windowEnd: 105) with
+        { FlowTrafficSupported = true, Flows = [Flow(125, 235)] }, 110);
+        var frame = session.Add(Snapshot(3, 120, 30, 30, windowStart: 110, windowEnd: 115) with
+        {
+            FlowTrafficSupported = true,
+            Flows = resetCounter ? [Flow(1, 2), Flow(50, 60, port: 444)] : [Flow(150, 270), Flow(50, 60, port: 444)]
+        }, 120);
+        var establishedPort = resetCounter ? 444 : 443;
+        if (resetCounter)
+        {
+            // Make both flows established, then reset only one counter.
+            session.Add(Snapshot(4, 130, 40, 40, windowStart: 120, windowEnd: 125) with
+            { FlowTrafficSupported = true, Flows = [Flow(10, 20), Flow(60, 70, port: 444)] }, 130);
+            frame = session.Add(Snapshot(5, 140, 50, 50, windowStart: 130, windowEnd: 135) with
+            { FlowTrafficSupported = true, Flows = [Flow(1, 2), Flow(70, 80, port: 444)] }, 140);
+        }
+        Assert.Multiple(() =>
+        {
+            Assert.That(frame.Flows.Single(f => f.RemoteEndpoint.EndsWith(":" + establishedPort, StringComparison.Ordinal)).ReceiveBytesPerSecond, Is.EqualTo(11));
+            Assert.That(frame.Flows.Single(f => !f.RemoteEndpoint.EndsWith(":" + establishedPort, StringComparison.Ordinal)).ReceiveBytesPerSecond, Is.Null);
+            Assert.That(frame.Processes.Single().ReceiveBytesPerSecond, Is.EqualTo(11));
+            Assert.That(frame.FlowQuality.HasFlag(ProcessNetworkQuality.Incomplete), Is.True);
+        });
+        var replaySequence = resetCounter ? 5 : 3;
+        var replayTimestamp = resetCounter ? 140 : 120;
+        var replay = session.Add(Snapshot(replaySequence, replayTimestamp, 50, 50,
+            windowStart: replayTimestamp - 10, windowEnd: replayTimestamp - 5) with
+        { FlowTrafficSupported = true, Flows = [Flow(1, 2), Flow(70, 80, port: 444)] }, replayTimestamp);
+        Assert.That(replay.FlowQuality.HasFlag(ProcessNetworkQuality.Incomplete), Is.True);
+        Assert.That(replay.Flows.Single(f => f.RemoteEndpoint.EndsWith(":" + establishedPort, StringComparison.Ordinal)).ReceiveBytesPerSecond, Is.EqualTo(11));
+        var timestamp = resetCounter ? 150 : 130;
+        var resumed = session.Add(Snapshot(resetCounter ? 6 : 4, timestamp, 60, 60,
+            windowStart: timestamp - 10, windowEnd: timestamp - 5) with
+        { FlowTrafficSupported = true, Flows = [Flow(300, 500), Flow(300, 500, port: 444)] }, timestamp);
+        Assert.That(resumed.Flows.Select(f => f.ReceiveBytesPerSecond), Is.All.EqualTo(11));
+    }
+
     [Test]
     public void Add_FlowBaselinesAcrossReconnectAndPublishesServiceWindow()
     {

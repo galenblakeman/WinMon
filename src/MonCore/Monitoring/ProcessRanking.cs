@@ -64,6 +64,8 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
         var first = WindowStart(history, windowSeconds);
         for (var i = history.Count - 1; i >= first; i--) window.Add(history[i]);
         if (window.Count == 0) return new ProcessRanking([], null, 0);
+        if (grouped && !ReferenceEquals(policy, ProcessIdentityPolicy.Windows))
+            return RankExecutableGroups(window, policy, sort, includeInactive);
 
         // Reused on each thread: for ~1,000 processes, new collections would land on the large object heap on
         // every refresh. Cleared again on exit so they do not keep samples alive.
@@ -86,6 +88,93 @@ public sealed record ProcessRanking(IReadOnlyList<ProcessUsage> Processes, doubl
         {
             ClearScratch(newest, totals, groups);
         }
+    }
+
+    // exec changes the executable within a lifetime. Keep its old activity in the old group, while only the
+    // newest executable contributes current memory/counts. Windows keeps its allocation-free scratch path.
+    private static ProcessRanking RankExecutableGroups(List<MonitorSample> window, ProcessIdentityPolicy policy,
+        ProcessSort sort, bool includeInactive)
+    {
+        if (_scratchExecutableTotals?.Comparer is not ExecutableLifetimeComparer comparer ||
+            !ReferenceEquals(comparer.Comparer, policy.Comparer))
+        {
+            comparer = new ExecutableLifetimeComparer(policy.Comparer);
+            _scratchExecutableTotals = new Dictionary<ExecutableLifetime, WindowTotals>(comparer);
+            _scratchExecutableNewest = new HashSet<ExecutableLifetime>(comparer);
+        }
+        var totals = _scratchExecutableTotals;
+        var newest = _scratchExecutableNewest!;
+        if (_scratchGroups is null || !ReferenceEquals(_scratchGroups.Comparer, policy.Comparer))
+            _scratchGroups = new Dictionary<string, List<Member>>(policy.Comparer);
+        var groups = _scratchGroups;
+        try
+        {
+            foreach (var process in window[0].Processes)
+                newest.Add(new ExecutableLifetime(process.Identity, ExecutableForRanking(process, policy)));
+            foreach (var sample in window)
+            foreach (var process in sample.Processes)
+            {
+                var key = new ExecutableLifetime(process.Identity, ExecutableForRanking(process, policy));
+                ref var total = ref CollectionsMarshal.GetValueRefOrAddDefault(totals, key, out _);
+                total = new WindowTotals(total.Latest ?? process,
+                    total.GpuLatest ?? (process.GpuPercent is not null ? process : null),
+                    total.Cpu + (process.CpuAvailable ? process.CpuPercent : 0),
+                    total.Io + (process.IoBytesPerSecond ?? 0), total.Gpu + (process.GpuPercent ?? 0),
+                    total.CpuUnavailable + (process.CpuAvailable ? 0 : 1),
+                    total.IoCount + (process.IoBytesPerSecond is null ? 0 : 1),
+                    total.GpuCount + (process.GpuPercent is null ? 0 : 1));
+            }
+
+            var measuredCpu = 0d;
+            foreach (var (key, total) in totals)
+            {
+                var cpuCount = window.Count - total.CpuUnavailable;
+                var cpu = cpuCount > 0 ? total.Cpu / cpuCount : 0;
+                measuredCpu += cpu;
+                var groupKey = ReferenceEquals(policy, ProcessIdentityPolicy.ExactPaths)
+                    ? policy.ExecutableKey(total.Latest!) : key.Executable;
+                if (!groups.TryGetValue(groupKey, out var members))
+                {
+                    members = _spareMembers?.TryPop(out var spare) == true ? spare : [];
+                    groups.Add(groupKey, members);
+                }
+                members.Add(new Member(total.Latest!, cpu, total.IoCount > 0 ? total.Io / window.Count : null,
+                    total.GpuCount > 0 ? total.Gpu / total.GpuCount : null,
+                    total.GpuLatest?.GpuId ?? "", total.GpuLatest?.GpuEngine ?? "", newest.Contains(key), cpuCount > 0));
+            }
+            return new ProcessRanking(OrderRows([], groups, sort, true, includeInactive),
+                window.Average(s => s.TotalCpuPercent), window.Count) { MeasuredCpuPercent = measuredCpu };
+        }
+        finally
+        {
+            totals.Clear();
+            newest.Clear();
+            var spares = _spareMembers ??= [];
+            foreach (var members in groups.Values)
+            {
+                members.Clear();
+                spares.Push(members);
+            }
+            groups.Clear();
+        }
+    }
+
+    [ThreadStatic] private static Dictionary<ExecutableLifetime, WindowTotals>? _scratchExecutableTotals;
+    [ThreadStatic] private static HashSet<ExecutableLifetime>? _scratchExecutableNewest;
+
+    // The lifetime already distinguishes unreadable ExactPaths identities. Use the original path internally
+    // instead of allocating its public "path:" prefix for every process in every interval.
+    private static string ExecutableForRanking(ProcessUsage process, ProcessIdentityPolicy policy) =>
+        ReferenceEquals(policy, ProcessIdentityPolicy.ExactPaths) ? process.ImagePath : policy.ExecutableKey(process);
+    private readonly record struct ExecutableLifetime(ProcessLifetimeIdentity Lifetime, string Executable);
+
+    private sealed class ExecutableLifetimeComparer(StringComparer comparer) : IEqualityComparer<ExecutableLifetime>
+    {
+        public StringComparer Comparer { get; } = comparer;
+        public bool Equals(ExecutableLifetime x, ExecutableLifetime y) =>
+            x.Lifetime == y.Lifetime && Comparer.Equals(x.Executable, y.Executable);
+        public int GetHashCode(ExecutableLifetime value) =>
+            HashCode.Combine(value.Lifetime, Comparer.GetHashCode(value.Executable));
     }
 
     private static void AccumulateWindow(List<MonitorSample> window, Dictionary<ProcessLifetimeIdentity, WindowTotals> totals)
