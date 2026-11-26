@@ -16,10 +16,12 @@ public sealed class CpuClockTests
     }
 
     [Test]
-    public void Clock_AveragesRatedClockAcrossProcessors()
+    public void Clock_HybridCoresUseHighestRatedClock_LikeTaskManagerBaseSpeed()
     {
-        WindowsCpuClock.ProcessorPowerInformation[] hybrid = [new() { MaxMhz = 4000 }, new() { MaxMhz = 3000 }];
-        Assert.That(WindowsCpuClock.EffectiveMhz(hybrid, 50), Is.EqualTo(1750));
+        // Core Ultra 9 275HX: 8 performance cores at 2,700 MHz, 16 efficient cores at 2,100 MHz; Task Manager base 2.70 GHz.
+        var hybrid = Enumerable.Repeat(new WindowsCpuClock.ProcessorPowerInformation { MaxMhz = 2100 }, 16)
+            .Concat(Enumerable.Repeat(new WindowsCpuClock.ProcessorPowerInformation { MaxMhz = 2700 }, 8)).ToArray();
+        Assert.That(WindowsCpuClock.EffectiveMhz(hybrid, 156), Is.EqualTo(4212).Within(0.001));
     }
 
     [TestCase(null)]
