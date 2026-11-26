@@ -16,7 +16,7 @@ Unavailable optional memory-pressure counters leave the other resource readings 
 
 Settings → **Devices** groups primary and secondary disk volumes, the network adapter, and GPU selection. GPU defaults to **Automatic**, following the busiest engine across all GPUs. Choose a specific graphics processor to keep its resource gauge and chart fixed to that device; process GPU readings still cover all GPUs. A missing selected GPU stays selected and shows unavailable readings until it returns or you choose another device. Changes apply when you save.
 
-The GPU gauge shows temperature and power on one line when the Windows graphics driver supplies both. Fan speed is available in the GPU gauge details. Resource details include available GPU fan/power readings and clearly labelled system thermal zones. A CPU performance-limit indicator reports reduced available performance without attributing the cause to heat. Disk gauges add drive temperature to the throughput subtitle when Windows supplies a reading for the physical drive behind the volume. Settings → Services combines hardware sensor and per-process network service controls. Choose Celsius or Fahrenheit under Settings → Monitoring. CPU and system fan speeds appear in the CPU gauge details when the optional sensor service and motherboard report them. Desktop builds offer optional CPU temperature through a [separate LibreHardwareMonitor service](docs/design/HARDWARE-SENSORS.md), enabled under Settings → Services. It requires official PawnIO installed separately and signed service setup with administrator approval. Missing or stale sensors show no temperature. Signed service installation, repair and removal passed VM acceptance; native AMD/Intel temperature accuracy remains unverified. Store builds omit this optional service feature.
+The GPU gauge shows temperature and power when the Windows graphics driver supplies both, with fan speed in its details. Disk gauges show drive temperature when Windows supplies a reading for the physical drive behind the volume. CPU details show available system thermal zones and report reduced performance when Windows supplies a limit. The optional desktop [hardware sensor service](docs/design/HARDWARE-SENSORS.md) adds CPU package temperature and available CPU and system fan speeds. Choose Celsius or Fahrenheit in Settings → Monitoring. Missing or stale sensor readings appear as unavailable.
 
 MCP performance recordings retain valid captured intervals even when report processing falls behind collection.
 
@@ -40,17 +40,15 @@ Memory details show paging reads per second, standby, modified, free/zero memory
 
 *Actual WinMon UI with illustrative data. [Browse the gallery](docs/example/README.md) for more views and capture details.*
 
-With the optional sensor service enabled, temperature chart choices appear in the chart dropdown and History. Temperature history includes a Temperature chart with its own Celsius/Fahrenheit axis, saved CPU/GPU/drive readings and performance-limit observations, minute peaks in Longer trends, and optional automatic captures for sustained temperatures or reported limits. Older recordings without sensor data show unavailable readings. See [temperature history and captures](docs/design/TEMPERATURE-HISTORY.md).
-
 ## Download and requirements
 
-Current version: **4.3.0**.
+Current version: **5.0.1**.
 
 [Download the latest release](https://github.com/galenblakeman/WinMon/releases/latest), then choose:
 
 | Download | Get started |
 | --- | --- |
-| **Desktop installer / ZIP** | Choose `WinMon-<version>-Setup-x64.exe` or `WinMon-<version>-win-x64.zip`. These contain desktop WinMon only. Portable preferences stay beside the app. |
+| **Desktop installer / ZIP** | Choose `WinMon-<version>-Setup-x64.exe` or `WinMon-<version>-win-x64.zip`. Portable preferences stay beside the app. The ZIP includes signed CLI and MCP companions for older desktop updaters. |
 | **CLI installer / ZIP** | Choose `WinMon-Cli-<version>-Setup-x64.exe` or `WinMon-Cli-<version>-win-x64.zip`. The installer offers optional user PATH integration. Run `WinMon.Cli.exe` from a terminal. |
 | **MCP installer / ZIP** | Choose `WinMon-Mcp-<version>-Setup-x64.exe` or `WinMon-Mcp-<version>-win-x64.zip`. Both include the optional Claude Code plugin in `claude-code-plugin` beside the server; see [MCP setup](docs/MCP.md). The installer offers optional registration with existing Codex and Claude Code clients. |
 
@@ -60,7 +58,7 @@ WinMon ships as a self-contained **Windows x64** app, so you do not need to inst
 
 Ordinary resource monitoring and connection lists run without administrator rights. Optional per-app network traffic monitoring requires a separately installed service and administrator approval to install it.
 
-The signed desktop installer offers unchecked options for per-app network monitoring and hardware sensors. Hardware sensors silently installs the official PawnIO driver package if it is missing, then installs and enables the sensor service for your account. Windows may request administrator approval for each setup step or a restart. Existing PawnIO installations are preserved, and removing WinMon does not remove PawnIO. If setup fails or is declined, WinMon remains installed; retry through Settings → Services after resolving any prerequisite or restart requirement.
+The signed desktop installer offers unchecked options for per-app network monitoring and hardware sensors. Choosing **Hardware sensors** installs the official PawnIO driver package if needed, then installs and enables the signed sensor service for your account. Windows may request administrator approval for each setup step or a restart. Existing PawnIO installations are preserved, and removing WinMon does not remove PawnIO. To enable hardware sensors later, install official PawnIO first, then use Settings → Services. The Microsoft Store build omits these optional services.
 
 ## Investigate a spike
 
@@ -68,7 +66,7 @@ Click **History** beside **Capture** in the chart toolbar to open **What just ha
 
 **Compare periods** shows observed averages for three adjacent 10-second windows around the selected moment, with sample counts and the 10 processes with the largest absolute change from before to during. **Selected moment** keeps the original process readings. Missing observations remain unavailable rather than zero; network process comparisons use retained received + sent rates, and process I/O does not identify a physical disk.
 
-![History investigation showing the CPU peak and ranked process contributors](docs/example/example_history.png)
+![History comparing process activity around the CPU peak with the Events sidebar collapsed on the right](docs/example/example_history.png)
 
 Choose CPU, memory, either configured disk, network or GPU. Network ranks contributors by retained received + sent rates across all adapters; process I/O includes file, network and device activity and does not identify physical disk traffic. Starts/stops appear only where adjacent inventories are complete and collection is continuous.
 
@@ -90,6 +88,8 @@ History defaults to **30 minutes**, with retention configurable up to **60 minut
 
 For slowdowns that build over hours, choose **History → Longer trends**. The **Last 24 hours** and **Last 7 days** views show one-minute resource averages saved locally across restarts. Recording uses WinMon's existing sampling while it runs, including in the tray; closed-app time, sleep and unavailable readings remain gaps. Settings → Monitoring can stop recording or clear the resource trend archive. No new service is installed.
 
+With the hardware sensor service enabled, choose **Temperature** in the dashboard chart selector or select a temperature series in History. Saved incidents retain available CPU, GPU and drive readings and reported performance limits. Longer trends keeps each minute's temperature peak. Under Settings → Automatic captures, you can save a report when a selected temperature stays above or at its threshold, or when a reported performance limit persists. Enter temperature thresholds in Celsius, regardless of the display unit. [Temperature history and captures](docs/design/TEMPERATURE-HISTORY.md).
+
 ## Explore your system
 
 | Feature | What it helps you do |
@@ -106,7 +106,7 @@ For slowdowns that build over hours, choose **History → Longer trends**. The *
 
 ## Command line
 
-Run `WinMon.Cli` for a keyboard-driven monitor with Processes, Services, Connections, Usage and Hardware tabs. Use `snapshot` for a one-time performance report or `hardware` for the inventory shown in desktop Info. Both commands support table and JSON output. The CLI has its own installer and portable ZIP; desktop and Microsoft Store packages do not include it.
+Run `WinMon.Cli` for a keyboard-driven monitor with Processes, Services, Connections, Usage and Hardware tabs. Use `snapshot` for a one-time performance report or `hardware` for the inventory shown in desktop Info. Both commands support table and JSON output. The CLI has its own installer and portable ZIP.
 
 ```powershell
 .\WinMon.Cli.exe

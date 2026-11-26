@@ -2,15 +2,17 @@
 
 [Download WinMon](https://github.com/galenblakeman/WinMon/releases/latest) · [Overview](../../README.md) · [User guide](../USER-GUIDE.md)
 
-Actual WinMon windows with illustrative identities and measurements. These images show features, not performance measurements. Click any preview to open the full-size image.
+Actual WinMon windows with illustrative identities and measurements. Click any preview to open the full-size image.
 
-Captured November 19, 2026, with **WinMon 4.2.0** on Windows build **26300.9974**, x64. The main gallery uses the installer/portable configuration; the separate Store Settings image uses `StoreBuild=true` and does not prove installed MSIX behavior.
+Captured November 26, 2026, with **WinMon 5.0.1** on Windows build **26300.10075**, x64. The main gallery uses the desktop build. The separate Store Settings image comes from an unpackaged build with `StoreBuild=true`.
 
 ## Investigate
 
-[![History investigation showing a frozen timeline, CPU peak and process contributors](example_history.png)](example_history.png)
+[![History showing the CPU peak, the before and after comparison, and the collapsed Events sidebar on the right](example_history.png)](example_history.png)
 
-**Find what was busy at a spike.** Choose History beside Capture to open What just happened? It selects the recorded CPU peak. Choose another resource, find its peak or step through observations; Refresh loads the latest recording while monitoring continues. Network uses CPU ranking, and process I/O does not identify physical disk traffic. Observed starts/stops require complete adjacent inventories without collection gaps.
+**Find what was busy at a spike.** Choose **History** beside **Capture** to open **What just happened?** at the CPU peak. Use **Compare periods** to see which processes changed most across the 10-second windows before, during and after the selected moment. **Selected moment** shows the recorded readings at the cursor. Choose another resource or use **Refresh** to load the latest recording. Network ranks processes by recorded receive and send rates when available.
+
+Expand **Events** on the right to inspect related Windows events or select a group in **Crashes** to highlight recurring failures on the timeline. Use **Save incident…** to keep the selected recording and its events for later.
 
 | Watch live activity | Look back at a spike |
 | --- | --- |
@@ -34,6 +36,8 @@ Captured November 19, 2026, with **WinMon 4.2.0** on Windows build **26300.9974*
 | Small multiples make simultaneous trends easier to compare. | Focus gives one resource more room and its own scale. |
 
 The app also offers Heatmap and Logical processors charts. See the [chart guide](../USER-GUIDE.md#your-system-at-a-glance) for all choices.
+
+With the hardware sensor service enabled, select **Temperature** to compare CPU, GPU and drive readings on a Celsius or Fahrenheit scale. In **History → Longer trends**, select a temperature series to review minute peaks across the last day or week. To capture a sustained spike, open **Settings → Automatic captures**, choose the sensor metric and set a Celsius threshold and duration. [Temperature history and captures](../design/TEMPERATURE-HISTORY.md).
 
 ## Find and follow apps
 
