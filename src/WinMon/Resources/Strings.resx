@@ -2225,4 +2225,10 @@ Restoring throttling also failed: {1}</value></data>
   <data name="FlightRecorderCollapseEvents" xml:space="preserve"><value>Collapse events</value></data>
   <data name="FlightRecorderExpandEvents" xml:space="preserve"><value>Expand events</value></data>
   <data name="FlightRecorderResizeEvents" xml:space="preserve"><value>Resize events sidebar</value></data>
+  <data name="InstallerSensorServiceTask" xml:space="preserve">
+    <value>Install hardware sensors, including PawnIO if missing (requires administrator approval)</value>
+  </data>
+  <data name="InstallerSensorServiceSetupFailed" xml:space="preserve">
+    <value>WinMon was installed, but hardware sensors could not be enabled. If a restart is requested, restart Windows, then try again in Settings &gt; Services.</value>
+  </data>
 </root>

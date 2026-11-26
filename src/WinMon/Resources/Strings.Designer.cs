@@ -674,6 +674,8 @@ public static partial class Strings
     public static string InstallerMcpDirectoryConflict => ResourceManager.GetString(nameof(InstallerMcpDirectoryConflict), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string InstallerMcpRegistrationFailed => ResourceManager.GetString(nameof(InstallerMcpRegistrationFailed), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string InstallerMcpRegistrationHelp => ResourceManager.GetString(nameof(InstallerMcpRegistrationHelp), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string InstallerSensorServiceSetupFailed => ResourceManager.GetString(nameof(InstallerSensorServiceSetupFailed), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string InstallerSensorServiceTask => ResourceManager.GetString(nameof(InstallerSensorServiceTask), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string IntervalReadingsTopReadoutsStayLive => ResourceManager.GetString(nameof(IntervalReadingsTopReadoutsStayLive), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string IO => ResourceManager.GetString(nameof(IO), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string IOMBS => ResourceManager.GetString(nameof(IOMBS), Culture ?? CultureInfo.CurrentUICulture)!;

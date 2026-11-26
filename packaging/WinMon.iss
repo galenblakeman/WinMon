@@ -18,6 +18,23 @@
 #ifndef NetworkServiceSetup
   #define NetworkServiceSetup "0"
 #endif
+#ifndef SensorServiceSetup
+  #define SensorServiceSetup "0"
+#endif
+#if SensorServiceSetup == "1"
+  #ifndef SensorServiceTask
+    #error SensorServiceTask must be supplied
+  #endif
+  #ifndef SensorServiceSetupFailed
+    #error SensorServiceSetupFailed must be supplied
+  #endif
+  #ifndef PawnIoInstaller
+    #error PawnIoInstaller must be supplied
+  #endif
+  #ifndef PawnIoSha256
+    #error PawnIoSha256 must be supplied
+  #endif
+#endif
 
 [Setup]
 AppId={{D736D24F-6A1E-4FD4-AC66-790F93DC61B4}
@@ -50,9 +67,17 @@ WizardStyle=modern
 Name: "desktopicon"; Description: "Create a desktop shortcut"; Flags: unchecked
 #if NetworkServiceSetup == "1"
 Name: "networkservice"; Description: "Install and enable per-process network monitoring (requires administrator approval)"; Flags: unchecked checkedonce
+#endif
+#if SensorServiceSetup == "1"
+Name: "sensorservice"; Description: "{#SensorServiceTask}"; Flags: unchecked checkedonce
+#endif
 
 [CustomMessages]
+#if NetworkServiceSetup == "1"
 NetworkServiceSetupFailed=WinMon was installed, but network monitoring could not be enabled. You can try again in Settings > Network.
+#endif
+#if SensorServiceSetup == "1"
+SensorServiceSetupFailed={#SensorServiceSetupFailed}
 #endif
 
 [Files]
@@ -61,6 +86,9 @@ Source: "{#PublishDirectory}\WinMon.exe"; DestDir: "{app}"
 Source: "{#PublishDirectory}\WinMon.Cli.exe"; DestDir: "{app}"; Flags: onlyifdestfileexists
 Source: "{#PublishDirectory}\WinMon.Mcp.exe"; DestDir: "{app}"; Flags: onlyifdestfileexists
 Source: "..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
+#if SensorServiceSetup == "1"
+Source: "{#PawnIoInstaller}"; DestName: "PawnIO_setup.exe"; Flags: dontcopy
+#endif
 
 [Icons]
 ; Separate from the app's opt-in WinMon.lnk, whose presence enables launch hotkeys.
@@ -73,6 +101,9 @@ Filename: "{app}\WinMon.exe"; Description: "Launch WinMon"; Flags: nowait postin
 [Code]
 const FileAttributeReparsePoint = $400;
 const InvalidFileAttributes = $FFFFFFFF;
+#if SensorServiceSetup == "1"
+var PawnIoRestartRequired: Boolean;
+#endif
 function GetFileAttributes(Path: String): Cardinal; external 'GetFileAttributesW@kernel32.dll stdcall';
 
 function SameOrNested(const First, Second: String): Boolean;
@@ -142,21 +173,16 @@ begin
   if (Result = '') and IsDowngrade then Result := '{#DowngradeBlocked}';
 end;
 
-procedure CurStepChanged(CurStep: TSetupStep);
-#if NetworkServiceSetup == "1"
+#if (NetworkServiceSetup == "1") || (SensorServiceSetup == "1")
+procedure InstallOptionalService(const TaskName, Argument, FailureMessage: String);
 var
   ResultCode: Integer;
   Succeeded: Boolean;
-#endif
 begin
-  if CurStep <> ssPostInstall then Exit;
-  if FileExists(ExpandConstant('{app}\WinMon.Cli.exe')) or FileExists(ExpandConstant('{app}\WinMon.Mcp.exe')) then
-    Log('Legacy bundled CLI or MCP executable preserved; install standalone tools before removing these copies.');
-#if NetworkServiceSetup == "1"
-  if not WizardIsTaskSelected('networkservice') then Exit;
+  if not WizardIsTaskSelected(TaskName) then Exit;
   Succeeded := False;
   try
-    if ExecAsOriginalUser(ExpandConstant('{app}\WinMon.exe'), '--install-network-service',
+    if ExecAsOriginalUser(ExpandConstant('{app}\WinMon.exe'), Argument,
       ExpandConstant('{app}'), SW_HIDE, ewWaitUntilTerminated, ResultCode) then
       Succeeded := ResultCode = 0;
   except
@@ -164,10 +190,70 @@ begin
   end;
   if not Succeeded then
   begin
-    Log(CustomMessage('NetworkServiceSetupFailed'));
+    Log(CustomMessage(FailureMessage));
     if not WizardSilent then
-      SuppressibleMsgBox(CustomMessage('NetworkServiceSetupFailed'), mbError, MB_OK, IDOK);
+      SuppressibleMsgBox(CustomMessage(FailureMessage), mbError, MB_OK, IDOK);
   end;
+end;
+#endif
+
+#if SensorServiceSetup == "1"
+function IsPawnIoInstalled: Boolean;
+var Name, Version: String;
+begin
+  Result := RegQueryStringValue(HKLM64, 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\PawnIO', 'DisplayName', Name) and
+    (Name = 'PawnIO') and
+    RegQueryStringValue(HKLM64, 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\PawnIO', 'DisplayVersion', Version) and
+    (Version <> '');
+end;
+
+function NeedRestart: Boolean;
+begin
+  Result := PawnIoRestartRequired;
+end;
+
+procedure InstallHardwareSensors;
+var Path: String; ResultCode: Integer; Succeeded: Boolean;
+begin
+  if not WizardIsTaskSelected('sensorservice') then Exit;
+  Succeeded := False;
+  try
+    if IsPawnIoInstalled then Succeeded := True
+    else begin
+      ExtractTemporaryFile('PawnIO_setup.exe');
+      Path := ExpandConstant('{tmp}\PawnIO_setup.exe');
+      if CompareText(GetSHA256OfFile(Path), '{#PawnIoSha256}') <> 0 then
+        RaiseException('PawnIO installer SHA-256 mismatch.');
+      if ShellExec('runas', Path, '-install -silent', ExpandConstant('{tmp}'), SW_HIDE,
+        ewWaitUntilTerminated, ResultCode) then begin
+        Log(Format('PawnIO setup exit code: %d', [ResultCode]));
+        if ResultCode = 3010 then PawnIoRestartRequired := True;
+        Succeeded := ((ResultCode = 0) or (ResultCode = 3010)) and IsPawnIoInstalled;
+      end else Log(Format('PawnIO setup launch failed: %d', [ResultCode]));
+    end;
+  except
+    Log(GetExceptionMessage);
+  end;
+  if Succeeded then
+    InstallOptionalService('sensorservice', '--install-sensor-service', 'SensorServiceSetupFailed')
+  else begin
+    Log(CustomMessage('SensorServiceSetupFailed'));
+    if not WizardSilent then
+      SuppressibleMsgBox(CustomMessage('SensorServiceSetupFailed'), mbError, MB_OK, IDOK);
+  end;
+end;
+#endif
+
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if CurStep <> ssPostInstall then Exit;
+  if FileExists(ExpandConstant('{app}\WinMon.Cli.exe')) or FileExists(ExpandConstant('{app}\WinMon.Mcp.exe')) then
+    Log('Legacy bundled CLI or MCP executable preserved; install standalone tools before removing these copies.');
+#if NetworkServiceSetup == "1"
+  InstallOptionalService('networkservice', '--install-network-service', 'NetworkServiceSetupFailed');
+#endif
+#if SensorServiceSetup == "1"
+  InstallHardwareSensors;
 #endif
 end;
 

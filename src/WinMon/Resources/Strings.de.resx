@@ -2200,4 +2200,10 @@ Auch das Wiederherstellen der Drosselung ist fehlgeschlagen: {1}</value></data>
   <data name="FlightRecorderCollapseEvents" xml:space="preserve"><value>Ereignisse einklappen</value></data>
   <data name="FlightRecorderExpandEvents" xml:space="preserve"><value>Ereignisse ausklappen</value></data>
   <data name="FlightRecorderResizeEvents" xml:space="preserve"><value>Größe der Ereignis-Seitenleiste ändern</value></data>
+  <data name="InstallerSensorServiceTask" xml:space="preserve">
+    <value>Hardware-Sensoren installieren, einschließlich PawnIO, falls nicht vorhanden (Administratorgenehmigung erforderlich)</value>
+  </data>
+  <data name="InstallerSensorServiceSetupFailed" xml:space="preserve">
+    <value>WinMon wurde installiert, aber die Hardware-Sensoren konnten nicht aktiviert werden. Falls ein Neustart angefordert wird, starten Sie Windows neu und versuchen Sie es erneut unter Einstellungen &gt; Dienste.</value>
+  </data>
 </root>

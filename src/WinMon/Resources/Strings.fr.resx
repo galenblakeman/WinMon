@@ -2200,4 +2200,10 @@ La restauration de la limitation a aussi échoué : {1}</value></data>
   <data name="FlightRecorderCollapseEvents" xml:space="preserve"><value>Réduire les événements</value></data>
   <data name="FlightRecorderExpandEvents" xml:space="preserve"><value>Développer les événements</value></data>
   <data name="FlightRecorderResizeEvents" xml:space="preserve"><value>Redimensionner le volet des événements</value></data>
+  <data name="InstallerSensorServiceTask" xml:space="preserve">
+    <value>Installer les capteurs matériels, avec PawnIO si absent (approbation administrateur requise)</value>
+  </data>
+  <data name="InstallerSensorServiceSetupFailed" xml:space="preserve">
+    <value>WinMon a été installé, mais impossible de démarrer les capteurs matériels. Si un redémarrage est demandé, redémarrez Windows, puis réessayez dans Paramètres &gt; Services.</value>
+  </data>
 </root>

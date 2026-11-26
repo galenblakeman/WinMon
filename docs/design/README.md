@@ -7,6 +7,7 @@
 - [Devices settings](DEVICES-SETTINGS.md) groups disk, network and GPU targets with persistent manual GPU selection and Automatic as the default.
 
 - [Sensors settings](SENSORS-SETTINGS.md) documents hardware sensor setup, temperature units, and drive and fan readings.
+- [Installer sensor setup](INSTALLER-SENSOR-SETUP.md) documents the optional sensor service task and silent PawnIO prerequisite installation.
 
 - [Network collector corrections](NETWORK-COLLECTOR-CORRECTIONS.md) bounds inferred process lifetimes by native verification and keeps queue batches from starving reconciliation.
 

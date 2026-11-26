@@ -2188,4 +2188,10 @@ A restauração da limitação também falhou: {1}</value></data>
   <data name="FlightRecorderCollapseEvents" xml:space="preserve"><value>Recolher eventos</value></data>
   <data name="FlightRecorderExpandEvents" xml:space="preserve"><value>Expandir eventos</value></data>
   <data name="FlightRecorderResizeEvents" xml:space="preserve"><value>Redimensionar a barra lateral de eventos</value></data>
+  <data name="InstallerSensorServiceTask" xml:space="preserve">
+    <value>Instalar sensores de hardware, incluindo PawnIO se ausente (requer aprovação de administrador)</value>
+  </data>
+  <data name="InstallerSensorServiceSetupFailed" xml:space="preserve">
+    <value>O WinMon foi instalado, mas não foi possível ativar os sensores de hardware. Se uma reinicialização for solicitada, reinicie o Windows e tente novamente em Configurações &gt; Serviços.</value>
+  </data>
 </root>

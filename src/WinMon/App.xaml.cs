@@ -133,7 +133,7 @@ public partial class App
         if (UpdateRuntime.IsUpdating() && !UpdateRuntime.IsExpectedRestart)
         {
             Trace.TraceInformation("Startup.UpdateInProgress");
-            Shutdown(e.Args is ["--install-network-service"] ? 1618 : 0);
+            Shutdown(e.Args is ["--install-network-service" or "--install-sensor-service"] ? 1618 : 0);
             return;
         }
 
@@ -141,7 +141,7 @@ public partial class App
         if (!_ownsInstance)
         {
             Trace.TraceInformation("Startup.AlreadyRunning");
-            if (e.Args is ["--install-network-service"])
+            if (e.Args is ["--install-network-service" or "--install-sensor-service"])
             {
                 Shutdown(1618);
                 return;
@@ -172,6 +172,24 @@ public partial class App
             return;
         }
 
+        if (e.Args is ["--install-sensor-service"])
+        {
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            var result = 1;
+            try
+            {
+                await using var client = new CpuTemperatureClient();
+                result = await InstallSensorServiceAsync(client, preferenceStore);
+            }
+            catch (Exception exception)
+            {
+                Trace.TraceError("Sensor.InstallerSetupFailed: {0}", exception);
+            }
+
+            Shutdown(result);
+            return;
+        }
+
         _activation =
             InstanceActivation.Listen(() => Dispatcher.BeginInvoke(() => (MainWindow as MainWindow)?.ShowRequested()));
         base.OnStartup(e);
@@ -187,6 +205,16 @@ public partial class App
         if (!result.Success) return 1;
         var preferences = await preferenceStore.LoadAsync();
         await preferenceStore.SaveAsync(preferences with { ProcessNetworkMonitoringEnabled = true });
+        return 0;
+    }
+
+    internal static async Task<int> InstallSensorServiceAsync(CpuTemperatureClient client,
+        PreferenceStore preferenceStore)
+    {
+        var result = await client.ChangeAsync(true, CancellationToken.None);
+        if (!result.Success) return 1;
+        var preferences = await preferenceStore.LoadAsync();
+        await preferenceStore.SaveAsync(preferences with { CpuTemperatureMonitoringEnabled = true });
         return 0;
     }
 

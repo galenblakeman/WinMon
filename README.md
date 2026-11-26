@@ -58,6 +58,8 @@ WinMon ships as a self-contained **Windows x64** app, so you do not need to inst
 
 Ordinary resource monitoring and connection lists run without administrator rights. Optional per-app network traffic monitoring requires a separately installed service and administrator approval to install it.
 
+The signed desktop installer offers unchecked options for per-app network monitoring and hardware sensors. Hardware sensors silently installs the official PawnIO driver package if it is missing, then installs and enables the sensor service for your account. Windows may request administrator approval for each setup step or a restart. Existing PawnIO installations are preserved, and removing WinMon does not remove PawnIO. If setup fails or is declined, WinMon remains installed; retry through Settings → Services after resolving any prerequisite or restart requirement.
+
 ## Investigate a spike
 
 Click **History** beside **Capture** in the chart toolbar to open **What just happened?**. It freezes the retained recording and selects the CPU peak, with process contributors for that moment. Choose a resource and use **Find peak**, click the timeline or step through observations with the keyboard. WinMon keeps sampling; **Refresh** loads the latest recording in the same window. History tables use theme-aware row highlights and a separate keyboard focus outline to keep selected rows readable. The Events sidebar starts collapsed on the left, giving Compare periods and Selected moment more room. Expand it using the chevron, then drag its divider to resize it. WinMon remembers its width and collapsed state.

@@ -2188,4 +2188,10 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
   <data name="FlightRecorderCollapseEvents" xml:space="preserve"><value>Свернуть события</value></data>
   <data name="FlightRecorderExpandEvents" xml:space="preserve"><value>Развернуть события</value></data>
   <data name="FlightRecorderResizeEvents" xml:space="preserve"><value>Изменить размер боковой панели событий</value></data>
+  <data name="InstallerSensorServiceTask" xml:space="preserve">
+    <value>Установить аппаратные датчики и PawnIO, если он отсутствует (требуется одобрение администратора)</value>
+  </data>
+  <data name="InstallerSensorServiceSetupFailed" xml:space="preserve">
+    <value>WinMon установлен, но не удалось включить аппаратные датчики. Если требуется перезапуск, перезапустите Windows и повторите попытку в Настройки &gt; Службы.</value>
+  </data>
 </root>

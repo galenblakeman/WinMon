@@ -40,6 +40,9 @@ $desktopDirectoryConflict = [string](($strings.root.data | Where-Object name -ce
 $downgradeBlocked = [string](($strings.root.data | Where-Object name -ceq 'InstallerDowngradeBlocked').value)
 $mcpRegistrationHelp = [string](($strings.root.data | Where-Object name -ceq 'InstallerMcpRegistrationHelp').value)
 $mcpCleanupSkipped = [string](($strings.root.data | Where-Object name -ceq 'InstallerMcpCleanupSkipped').value)
+$sensorServiceTask = [string](($strings.root.data | Where-Object name -ceq 'InstallerSensorServiceTask').value)
+$sensorServiceSetupFailed = [string](($strings.root.data | Where-Object name -ceq 'InstallerSensorServiceSetupFailed').value)
+if (!$sensorServiceTask -or !$sensorServiceSetupFailed) { throw 'Installer sensor resources are missing.' }
 $mcpCleanupSkipped = $mcpCleanupSkipped.Replace("'", "''")
 if (!$cliPathTask -or !$cliPathFailed -or !$cliLegacyPathTask -or !$cliDirectoryConflict -or !$mcpCodexTask -or !$mcpClaudeTask -or !$mcpRegistrationFailed -or !$mcpDirectoryConflict -or !$desktopDirectoryConflict -or !$downgradeBlocked -or !$mcpRegistrationHelp -or !$mcpCleanupSkipped) { throw 'Installer resources are missing.' }
 if ($UpdateSigningKeyPath) {
@@ -74,6 +77,8 @@ $mcpPublish = Join-Path $work 'mcp-publish'
 $assets = Join-Path $work 'assets'
 $networkServiceBundle = Join-Path $work 'network-service-bundle'
 $sensorServiceBundle = Join-Path $work 'sensor-service-bundle'
+$pawnIoInstaller = Join-Path $work 'PawnIO_setup.exe'
+$pawnIoPin = Get-Content -LiteralPath (Join-Path $root 'packaging/PawnIO.json') -Raw | ConvertFrom-Json
 New-Item -ItemType Directory -Path $assets -Force | Out-Null
 Push-Location $root
 try {
@@ -82,6 +87,7 @@ try {
     if ($CodeSign) {
         & (Join-Path $PSScriptRoot 'New-NetworkServicePackage.ps1') -Version $version -UpdateSigningKeyPath $UpdateSigningKeyPath -OutputDirectory $networkServiceBundle @signingParameters
         & (Join-Path $PSScriptRoot 'New-SensorServicePackage.ps1') -Version $version -UpdateSigningKeyPath $UpdateSigningKeyPath -OutputDirectory $sensorServiceBundle @signingParameters
+        & (Join-Path $PSScriptRoot 'Get-PawnIoInstaller.ps1') -OutputPath $pawnIoInstaller
     }
     $publishArguments = @('publish', 'src/WinMon/WinMon.csproj', '-c', 'Release', '-r', 'win-x64', '-m:1', '-p:UseSharedCompilation=false', "--artifacts-path=$work/build", '-o', $publish)
     if ($CodeSign) { $publishArguments += "-p:NetworkServiceBundleDirectory=$networkServiceBundle"; $publishArguments += "-p:SensorServiceBundleDirectory=$sensorServiceBundle" }
@@ -104,7 +110,7 @@ try {
     }
     # Legacy desktop helpers validate bundled companions after installing or extracting an update.
     Copy-Item -LiteralPath (Join-Path $cliPublish 'WinMon.Cli.exe'), (Join-Path $mcpPublish 'WinMon.Mcp.exe') -Destination $publish
-    & $InnoCompiler "/DAppVersion=$version" "/DPublishDirectory=$publish" "/DDesktopDirectoryConflict=$desktopDirectoryConflict" "/DDowngradeBlocked=$downgradeBlocked" "/DReleaseDirectory=$assets" "/DNetworkServiceSetup=$([int][bool]$CodeSign)" (Join-Path $root 'packaging/WinMon.iss')
+    & $InnoCompiler "/DAppVersion=$version" "/DPublishDirectory=$publish" "/DDesktopDirectoryConflict=$desktopDirectoryConflict" "/DDowngradeBlocked=$downgradeBlocked" "/DReleaseDirectory=$assets" "/DNetworkServiceSetup=$([int][bool]$CodeSign)" "/DSensorServiceSetup=$([int][bool]$CodeSign)" "/DSensorServiceTask=$sensorServiceTask" "/DSensorServiceSetupFailed=$sensorServiceSetupFailed" "/DPawnIoInstaller=$pawnIoInstaller" "/DPawnIoSha256=$($pawnIoPin.sha256)" (Join-Path $root 'packaging/WinMon.iss')
     if ($LASTEXITCODE -ne 0) { throw 'Installer compilation failed.' }
     $installer = Join-Path $assets "WinMon-$version-Setup-x64.exe"
     & $InnoCompiler "/DAppVersion=$version" "/DCliPublishDirectory=$cliPublish" "/DCliPathTask=$cliPathTask" "/DCliPathFailed=$cliPathFailed" "/DCliLegacyPathTask=$cliLegacyPathTask" "/DCliDirectoryConflict=$cliDirectoryConflict" "/DDowngradeBlocked=$downgradeBlocked" "/DReleaseDirectory=$assets" (Join-Path $root 'packaging/WinMon.Cli.iss')

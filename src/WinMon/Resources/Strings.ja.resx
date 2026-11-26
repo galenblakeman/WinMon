@@ -2188,4 +2188,10 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
   <data name="FlightRecorderCollapseEvents" xml:space="preserve"><value>イベントを折りたたむ</value></data>
   <data name="FlightRecorderExpandEvents" xml:space="preserve"><value>イベントを展開する</value></data>
   <data name="FlightRecorderResizeEvents" xml:space="preserve"><value>イベントサイドバーのサイズを変更</value></data>
+  <data name="InstallerSensorServiceTask" xml:space="preserve">
+    <value>ハードウェアセンサーをインストール（PawnIO がない場合は含める。管理者の承認が必要）</value>
+  </data>
+  <data name="InstallerSensorServiceSetupFailed" xml:space="preserve">
+    <value>WinMon はインストールされましたが、ハードウェアセンサーを有効にできませんでした。再起動が要求された場合は Windows を再起動し、設定 &gt; サービスで再試行してください。</value>
+  </data>
 </root>

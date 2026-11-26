@@ -5,12 +5,57 @@ using MonCore.Monitoring;
 using MonCore.Windows.Monitoring;
 using NUnit.Framework;
 using WinMon.Monitoring;
+using WinMon.Preferences;
 
 namespace WinMon.Tests;
 
 [TestFixture]
 public sealed class CpuTemperatureClientTests
 {
+    [TestCase("success")]
+    [TestCase("cancelled")]
+    [TestCase("failed")]
+    [NUnit.Framework.Category("Integration")]
+    public async Task InstallerEnablesSensorsOnlyAfterSuccessfulSetup(string outcome)
+    {
+        var folder = Path.Combine(Path.GetTempPath(), "WinMon.SensorInstaller." + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var store = new PreferenceStore(Path.Combine(folder, "settings.json"));
+            await store.SaveAsync(new MonitorPreferences { TopProcessCount = 20, ProcessNetworkMonitoringEnabled = true });
+            var installed = false;
+            var setupCalls = 0;
+            var connection = new FakeConnection(Complete(Guid.NewGuid(), 1));
+            await using var client = new CpuTemperatureClient(_ => installed
+                    ? Task.FromResult<ISensorTemperatureConnection>(connection)
+                    : throw new IOException("Service not installed"),
+                async (operation, verify, token) =>
+                {
+                    setupCalls++;
+                    Assert.That(operation, Is.EqualTo("install"));
+                    Assert.That((await store.LoadAsync()).CpuTemperatureMonitoringEnabled, Is.False);
+                    if (outcome == "cancelled") throw new Win32Exception(1223);
+                    if (outcome == "failed") throw new IOException("Setup failed");
+                    installed = true;
+                    await verify(token);
+                }, () => true, delay: (_, token) => Task.Delay(Timeout.Infinite, token));
+            var result = await App.InstallSensorServiceAsync(client, store);
+            var saved = await store.LoadAsync();
+            Assert.Multiple(() =>
+            {
+                Assert.That(result, Is.EqualTo(outcome == "success" ? 0 : 1));
+                Assert.That(saved.CpuTemperatureMonitoringEnabled, Is.EqualTo(outcome == "success"));
+                Assert.That(saved.ProcessNetworkMonitoringEnabled, Is.True);
+                Assert.That(saved.TopProcessCount, Is.EqualTo(20));
+                Assert.That(setupCalls, Is.EqualTo(1));
+            });
+        }
+        finally
+        {
+            if (Directory.Exists(folder)) Directory.Delete(folder, true);
+        }
+    }
+
     [Test]
     public async Task DeclinedInitialEnable_DoesNotLeaveBackgroundMonitoringEnabled()
     {

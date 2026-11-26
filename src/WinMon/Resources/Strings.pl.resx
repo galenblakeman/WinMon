@@ -2188,4 +2188,10 @@ Przywrócenie ograniczania również nie powiodło się: {1}</value></data>
   <data name="FlightRecorderCollapseEvents" xml:space="preserve"><value>Zwiń zdarzenia</value></data>
   <data name="FlightRecorderExpandEvents" xml:space="preserve"><value>Rozwiń zdarzenia</value></data>
   <data name="FlightRecorderResizeEvents" xml:space="preserve"><value>Zmień rozmiar panelu zdarzeń</value></data>
+  <data name="InstallerSensorServiceTask" xml:space="preserve">
+    <value>Zainstaluj czujniki sprzętowe oraz PawnIO, jeśli go brakuje (wymagana zgoda administratora)</value>
+  </data>
+  <data name="InstallerSensorServiceSetupFailed" xml:space="preserve">
+    <value>Zainstalowano WinMon, ale nie udało się włączyć czujników sprzętowych. Jeśli wymagane jest ponowne uruchomienie, uruchom ponownie system Windows i spróbuj w Ustawienia &gt; Usługi.</value>
+  </data>
 </root>

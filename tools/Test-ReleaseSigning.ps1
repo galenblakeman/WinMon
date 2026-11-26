@@ -7,14 +7,21 @@ Set-StrictMode -Version Latest
 $root = Split-Path $PSScriptRoot -Parent
 $run = Join-Path $root "artifacts/signing-validation/$([guid]::NewGuid().ToString('N'))"
 $fixture = Join-Path $run 'fixture'
-foreach ($directory in @('tools', 'src/WinMon/Updates', 'src/WinMon/Resources', 'src/WinMon.NetworkService', 'src/WinMon.NetworkSetup', 'packaging', 'plugins/claude-code')) {
+foreach ($directory in @('tools', 'src/WinMon/Updates', 'src/WinMon/Resources', 'src/WinMon.NetworkService', 'src/WinMon.NetworkSetup', 'src/WinMon.SensorService', 'src/WinMon.SensorSetup', 'packaging', 'plugins/claude-code')) {
     New-Item -ItemType Directory -Path (Join-Path $fixture $directory) -Force | Out-Null
 }
 Copy-Item -LiteralPath (Join-Path $root 'plugins/claude-code/winmon') -Destination (Join-Path $fixture 'plugins/claude-code') -Recurse
-foreach ($name in @('New-Release.ps1', 'New-NetworkServicePackage.ps1', 'Sign-ReleaseFile.ps1', 'New-WinGetManifest.ps1', 'New-UpdateManifest.ps1')) {
+foreach ($name in @('New-Release.ps1', 'New-NetworkServicePackage.ps1', 'New-SensorServicePackage.ps1', 'Get-PawnIoInstaller.ps1', 'Sign-ReleaseFile.ps1', 'New-WinGetManifest.ps1', 'New-UpdateManifest.ps1')) {
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot $name) -Destination (Join-Path $fixture 'tools')
 }
 Copy-Item -LiteralPath (Join-Path $root 'LICENSE') -Destination $fixture
+Copy-Item -LiteralPath (Join-Path $root 'packaging/PawnIO.json') -Destination (Join-Path $fixture 'packaging')
+# Substitute only the downloaded bytes/hash in the disposable fixture; real releases use the upstream pin.
+$pawnIoBytes = [Text.Encoding]::UTF8.GetBytes('OFFICIAL-PAWNIO-FIXTURE')
+$pawnIoPinPath = Join-Path $fixture 'packaging/PawnIO.json'
+$pawnIoPin = Get-Content $pawnIoPinPath -Raw | ConvertFrom-Json
+$pawnIoPin.sha256 = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($pawnIoBytes))
+$pawnIoPin | ConvertTo-Json | Set-Content $pawnIoPinPath
 '<Project><PropertyGroup><Version>9.8.7</Version></PropertyGroup></Project>' |
     Set-Content (Join-Path $fixture 'Directory.Build.props')
 '<assembly><assemblyIdentity version="9.8.7.0" /></assembly>' |
@@ -33,6 +40,8 @@ Copy-Item -LiteralPath (Join-Path $root 'LICENSE') -Destination $fixture
   <data name="InstallerDowngradeBlocked"><value>An older WinMon version cannot replace a newer installation.</value></data>
   <data name="InstallerMcpRegistrationHelp"><value>Registers a local read-only diagnostics server with the selected client.</value></data>
   <data name="InstallerMcpCleanupSkipped"><value>Registration with {0} was left unchanged. Inspect it manually.</value></data>
+  <data name="InstallerSensorServiceTask"><value>Install hardware sensors including PawnIO if missing</value></data>
+  <data name="InstallerSensorServiceSetupFailed"><value>Hardware sensors could not be enabled.</value></data>
 </root>
 '@ | Set-Content (Join-Path $fixture 'src/WinMon/Resources/Strings.resx')
 $key = [Security.Cryptography.RSA]::Create(2048)
@@ -55,6 +64,10 @@ if ($script -eq 'WinMon.iss') {
         if ($testState.Mode -ne 'unsigned' -and $tool -notmatch 'SIGNED') { throw 'Desktop compatibility installer received an unsigned companion.' }
     }
     if ($options.NetworkServiceSetup -cne $(if ($testState.Mode -eq 'unsigned') { '0' } else { '1' })) { throw 'Installer network-service option must be present only in signed packages.' }
+    if ($options.SensorServiceSetup -cne $options.NetworkServiceSetup) { throw 'Installer sensor option must be present only in signed packages.' }
+    if ($testState.Mode -ne 'unsigned') {
+        if ((Get-FileHash $options.PawnIoInstaller).Hash -ine $options.PawnIoSha256) { throw 'Installer received an unverified PawnIO package.' }
+    } elseif (Test-Path $options.PawnIoInstaller) { throw 'Unsigned installer must not download PawnIO.' }
     if ($testState.Mode -ne 'unsigned' -and $payload -notmatch 'SIGNED') { throw 'Installer received an unsigned application.' }
     [IO.File]::WriteAllText((Join-Path $options.ReleaseDirectory 'WinMon-9.8.7-Setup-x64.exe'), "INSTALLER:${payload}")
 }
@@ -77,6 +90,11 @@ else { throw "Unexpected installer script: $script" }
 $global:LASTEXITCODE = 0
 '@ | Set-Content -LiteralPath $compiler
 $testState = @{ Mode = 'valid'; Calls = 0 }
+function Invoke-WebRequest {
+    param($Uri, $OutFile)
+    if ($Uri -cne 'https://github.com/namazso/PawnIO.Setup/releases/download/2.2.0/PawnIO_setup.exe') { throw 'Unexpected PawnIO URL.' }
+    [IO.File]::WriteAllBytes($OutFile, $(if ($testState.Mode -eq 'pawnio-mismatch') { [byte[]]@(1, 2, 3) } else { $pawnIoBytes }))
+}
 function Import-Module { param($Name, $RequiredVersion, $ErrorAction) }
 function dotnet {
     if ($args[0] -eq 'publish') {
@@ -87,6 +105,12 @@ function dotnet {
         }
         elseif ($args[1] -like '*WinMon.NetworkSetup*') {
             [IO.File]::WriteAllText((Join-Path $output 'WinMon.NetworkSetup.exe'), 'SETUP')
+        }
+        elseif ($args[1] -like '*WinMon.SensorService*') {
+            [IO.File]::WriteAllText((Join-Path $output 'WinMon.SensorService.exe'), 'SENSOR-SERVICE')
+        }
+        elseif ($args[1] -like '*WinMon.SensorSetup*') {
+            [IO.File]::WriteAllText((Join-Path $output 'WinMon.SensorSetup.exe'), 'SENSOR-SETUP')
         }
         elseif ($args[1] -like '*WinMon.Cli*') {
             [IO.File]::WriteAllText((Join-Path $output 'WinMon.Cli.exe'), 'CLI')
@@ -126,7 +150,7 @@ function Get-AuthenticodeSignature {
         $certificate | Add-Member ScriptMethod GetNameInfo { param($Type, $Issuer) 'Other Publisher' } -Force
     }
     [pscustomobject]@{
-        Status = $(if ($testState.Mode -eq 'invalid' -or ($testState.Mode -eq 'installer-invalid' -and $testState.Calls -eq 8)) { 'HashMismatch' } else { 'Valid' })
+        Status = $(if ($testState.Mode -eq 'invalid' -or ($testState.Mode -eq 'installer-invalid' -and $testState.Calls -eq 10)) { 'HashMismatch' } else { 'Valid' })
         StatusMessage = 'Simulated Authenticode result'
         SignerCertificate = $certificate
         TimeStamperCertificate = $(if ($testState.Mode -ne 'no-timestamp') { [pscustomobject]@{ Subject = 'CN=Test TSA' } })
@@ -135,7 +159,7 @@ function Get-AuthenticodeSignature {
 $release = Join-Path $fixture 'tools/New-Release.ps1'
 $output = Join-Path $run 'release'
 & $release -CodeSign -InnoCompiler $compiler -OutputDirectory $output -UpdateSigningKeyPath (Join-Path $run 'private.pem')
-if ($testState.Calls -ne 8) { throw 'Expected exactly eight signing calls.' }
+if ($testState.Calls -ne 10) { throw 'Expected exactly ten signing calls, including both service bundles.' }
 Expand-Archive (Join-Path $output 'WinMon-9.8.7-win-x64.zip') (Join-Path $run 'portable')
 if ((Get-Content (Join-Path $run 'portable/WinMon.exe') -Raw) -cne 'APPLICATION:SIGNED') { throw 'Portable executable was not signed.' }
 if ((Get-Content (Join-Path $run 'portable/WinMon.Cli.exe') -Raw) -cne 'CLI:SIGNED') { throw 'Legacy desktop update archive is missing the signed CLI.' }
@@ -226,6 +250,7 @@ $expectedErrors = @{
     'wrong-publisher' = 'Unexpected signing publisher'
     'no-timestamp' = 'Missing timestamp'
     'provider-error' = 'Simulated Azure signing failure'
+    'pawnio-mismatch' = 'PawnIO installer SHA-256 does not match'
 }
 foreach ($mode in $expectedErrors.Keys) {
     $testState.Mode = $mode
