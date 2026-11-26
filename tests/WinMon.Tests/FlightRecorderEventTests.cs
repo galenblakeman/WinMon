@@ -13,6 +13,63 @@ namespace WinMon.Tests;
 [SetUICulture("en")]
 public sealed class FlightRecorderEventTests
 {
+    [Test, NonParallelizable]
+    public void HistoryNavigation_ReplacingRowsDoesNotLoseAlignmentBindingSources()
+    {
+        using var output = new StringWriter();
+        using var listener = new TextWriterTraceListener(output);
+        PresentationTraceSources.Refresh();
+        var source = PresentationTraceSources.DataBindingSource;
+        var previousLevel = source.Switch.Level;
+        source.Switch.Level = SourceLevels.Error;
+        source.Listeners.Add(listener);
+        var samples = Samples(0, 1, 2).Select(sample => sample with
+        {
+            Processes = [new ProcessUsage(123, 123, "fixture", 10)]
+        }).ToArray();
+        var events = Events("fixture", IncidentEventCoverageStatus.Complete);
+        events = events with { Events = [events.Events[0] with
+        {
+            CrashSignature = new(CrashKind.Crash, "fixture.exe", "1.0", "fixture.dll", "1.0", 1, 1)
+        }] };
+        FlightRecorderWindow? window = null;
+        try
+        {
+            window = new FlightRecorderWindow(samples, eventReader: (_, _, _) => Task.FromResult(events));
+            Show(window);
+            window.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+            window.UpdateLayout();
+            Assert.That(window.Crashes.ItemContainerGenerator.ContainerFromIndex(0), Is.TypeOf<ListViewItem>());
+            foreach (var tab in new[] { 0, 1, 0, 1 })
+            {
+                window.Views.SelectedIndex = tab;
+                window.UpdateLayout();
+                var list = tab == 0 ? window.ComparisonProcesses : window.Processes;
+                Assert.That(list.ItemContainerGenerator.ContainerFromIndex(0), Is.TypeOf<ListViewItem>());
+                window.Select(1);
+                window.Select(2);
+                window.Update(samples);
+                window.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+            }
+            window.Update([]);
+            window.UpdateLayout();
+            window.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+        }
+        finally
+        {
+            window?.Close();
+            window?.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+            source.Listeners.Remove(listener);
+            source.Switch.Level = previousLevel;
+        }
+        listener.Flush();
+        var rowAlignmentErrors = output.ToString().Split(Environment.NewLine).Where(line =>
+            line.Contains("target element is 'ListViewItem'", StringComparison.Ordinal) &&
+            (line.Contains("Path=HorizontalContentAlignment", StringComparison.Ordinal) ||
+             line.Contains("Path=VerticalContentAlignment", StringComparison.Ordinal)));
+        Assert.That(rowAlignmentErrors, Is.Empty);
+    }
+
     [Test]
     public void MarkerNavigation_FollowsTimeFromBetweenObservationEventsAcrossLogs()
     {
