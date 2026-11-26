@@ -2139,7 +2139,7 @@ Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。<
   <data name="TemperatureLimitedTo" xml:space="preserve"><value>限制为 {0:0}% 已持续 {1}，标志 0x{2:X}</value></data>
   <data name="TemperatureAtThreshold" xml:space="preserve"><value>{0} / {1}</value></data>
   <data name="TemperatureMaxFormat" xml:space="preserve"><value>{0} / 最大 {1}</value></data>
-  <data name="TemperaturePeakAt" xml:space="preserve"><value>{1} 时为 {0}</value></data>
+  <data name="TemperaturePeakAt" xml:space="preserve"><value>{1:t} 时为 {0}</value></data>
   <data name="TemperatureCelsiusValue" xml:space="preserve"><value>{0:0} °C</value></data>
   <data name="TemperatureFahrenheitValue" xml:space="preserve"><value>{0:0} °F</value></data>
   <data name="TemperatureFanRpmValue" xml:space="preserve"><value>{0:0} RPM</value></data>
@@ -2182,4 +2182,7 @@ Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。<
   <data name="ServicesNetworkNote" xml:space="preserve"><value>所有网络适配器的收发活动。禁用后停止收集，但共享服务仍保留安装。</value></data>
   <data name="ServicesRepair" xml:space="preserve"><value>修复</value></data>
   <data name="ServicesRemove" xml:space="preserve"><value>移除…</value></data>
+  <data name="DetailNoPerformanceLimit" xml:space="preserve"><value>无性能限制</value></data>
+  <data name="DetailTemperaturePeakWindow" xml:space="preserve"><value>温度峰值 · {0} 分钟</value></data>
+  <data name="GaugeCpuUsagePeakOverWindow" xml:space="preserve"><value>CPU 使用率峰值 · 最近 {0} 分钟</value></data>
 </root>

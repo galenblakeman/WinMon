@@ -681,6 +681,34 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                 await CaptureVisualAsync(tooltip,
                     Path.Combine(output, $"tooltip-{name}-{theme}-{(compact ? "compact" : "full")}.png"), 1,
                     cancellationToken);
+                if (metric == window.CpuMetric)
+                {
+                    // Exercise the long thermal rows even on machines without optional sensors.
+                    var details = (MetricDetails)metric.ToolTip;
+                    var thermalDetails = new MetricDetails
+                    {
+                        Title = details.Title, Live = details.Live, Definition = details.Definition,
+                        Accent = details.Accent, Peak = details.Peak
+                    };
+                    foreach (var row in details.Rows)
+                        thermalDetails.Rows.Add(new DetailRow
+                        {
+                            Label = row.Label, Value = row.Value, Visibility = row.Visibility, FullWidth = row.FullWidth
+                        });
+                    var rows = thermalDetails.Rows;
+                    rows[1].Value = GaugeReadoutText.Temperature(47, window.Preferences.TemperatureUnit);
+                    rows[2].Value = Strings.Format(Strings.TemperaturePeakAt,
+                        GaugeReadoutText.Temperature(68, window.Preferences.TemperatureUnit), DateTimeOffset.Now);
+                    rows[8].Value = Strings.DetailNoPerformanceLimit;
+                    rows[9].Value = "\\_TZ.THRM: " + rows[2].Value + "\n\\_TZ.LONG_THERMAL_ZONE_IDENTIFIER: " +
+                        rows[1].Value + "\n" + Strings.DetailAcpiThermalZoneNotCpuDie;
+                    foreach (var index in new[] { 1, 2, 8, 9 }) rows[index].Visibility = Visibility.Visible;
+                    tooltip.Content = thermalDetails;
+                    tooltip.UpdateLayout();
+                    await CaptureVisualAsync(tooltip,
+                        Path.Combine(output, $"tooltip-cpu-thermal-{theme}-{(compact ? "compact" : "full")}.png"),
+                        1, cancellationToken);
+                }
             }
             finally
             {

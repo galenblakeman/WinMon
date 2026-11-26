@@ -10,6 +10,8 @@ Sampling uses a dedicated worker with elevated scheduling priority on Windows to
 
 The CPU clock under the CPU gauge is the effective clock, as Task Manager reports it. It rises above the rated clock while boosting and falls at idle, including on processors where Windows reports only the fixed rated clock.
 
+CPU details distinguish ten-minute temperature peaks from configurable CPU usage peaks and use short local times. Thermal-zone readings wrap in full; the CPU sensor-source row is omitted, and unrestricted CPU performance shows a no-limit status.
+
 Unavailable optional memory-pressure counters leave the other resource readings working. Shared GPU memory readings retry after a temporary read failure.
 
 Settings → **Devices** groups primary and secondary disk volumes, the network adapter, and GPU selection. GPU defaults to **Automatic**, following the busiest engine across all GPUs. Choose a specific graphics processor to keep its resource gauge and chart fixed to that device; process GPU readings still cover all GPUs. A missing selected GPU stays selected and shows unavailable readings until it returns or you choose another device. Changes apply when you save.

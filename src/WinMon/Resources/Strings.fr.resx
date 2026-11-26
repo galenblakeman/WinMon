@@ -2151,7 +2151,7 @@ La restauration de la limitation a aussi échoué : {1}</value></data>
   <data name="TemperatureLimitedTo" xml:space="preserve"><value>Limité à {0:0}% pendant {1}, indicateurs 0x{2:X}</value></data>
   <data name="TemperatureAtThreshold" xml:space="preserve"><value>{0} sur {1}</value></data>
   <data name="TemperatureMaxFormat" xml:space="preserve"><value>{0} sur {1} max.</value></data>
-  <data name="TemperaturePeakAt" xml:space="preserve"><value>{0} à {1}</value></data>
+  <data name="TemperaturePeakAt" xml:space="preserve"><value>{0} à {1:t}</value></data>
   <data name="TemperatureCelsiusValue" xml:space="preserve"><value>{0:0} °C</value></data>
   <data name="TemperatureFahrenheitValue" xml:space="preserve"><value>{0:0} °F</value></data>
   <data name="TemperatureFanRpmValue" xml:space="preserve"><value>{0:0} RPM</value></data>
@@ -2194,4 +2194,7 @@ La restauration de la limitation a aussi échoué : {1}</value></data>
   <data name="ServicesNetworkNote" xml:space="preserve"><value>Activité d’envoi et de réception sur toutes les cartes réseau. La désactivation arrête la collecte mais conserve le service partagé installé.</value></data>
   <data name="ServicesRepair" xml:space="preserve"><value>Réparer</value></data>
   <data name="ServicesRemove" xml:space="preserve"><value>Supprimer…</value></data>
+  <data name="DetailNoPerformanceLimit" xml:space="preserve"><value>Aucune limitation de performance</value></data>
+  <data name="DetailTemperaturePeakWindow" xml:space="preserve"><value>Pic de température · {0} min</value></data>
+  <data name="GaugeCpuUsagePeakOverWindow" xml:space="preserve"><value>Pic d’utilisation du CPU · {0} dernières min</value></data>
 </root>

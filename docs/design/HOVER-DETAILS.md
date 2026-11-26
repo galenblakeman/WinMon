@@ -175,3 +175,7 @@ Record `WinMon.Performance` before and after on the same machine, as [STRUCTURE.
 1. Sampling: the `ResourceSample` fields, the PDH counters, `GetPerformanceInfo`, the free-space reader and network totals, with tests and a benchmark.
 2. `MetricDetails`, its template, the busiest-process rule, and wiring for all five tiles: tile and toggle in full view, plus focusable compact boxes. Remove the old string tooltips.
 3. Localized strings, diagnostics captures and a README line under "Your system, at a glance".
+
+## November 26, 2026: CPU detail readability
+
+Landed: wrapping detail labels and values, full-width ACPI zone details, short local temperature-peak times, an explicit ten-minute CPU temperature peak label and a distinct CPU usage peak heading. Unrestricted performance displays a no-limit status. The CPU sensor-source row was removed. This departs from the original single-line ellipsis design so diagnostic readings remain visible.

@@ -62,6 +62,8 @@ public sealed class MetricDetails : INotifyPropertyChanged
 /// <summary>A fixed tooltip row whose value changes only when the text changes.</summary>
 public sealed class DetailRow : INotifyPropertyChanged
 {
+    public bool FullWidth { get; init; }
+
     private string _label = "";
     private string _value = "";
     private Visibility _visibility = Visibility.Visible;

@@ -95,7 +95,8 @@ public partial class MainWindow
 
     private string GaugePeakTooltip(MetricReadout metric, MonitorSample? latest)
     {
-        var heading = Strings.Format(Strings.GaugePeakOverWindow, _preferences.GaugePeakWindowSeconds / 60);
+        var heading = Strings.Format(metric == CpuMetric ? Strings.GaugeCpuUsagePeakOverWindow : Strings.GaugePeakOverWindow,
+            _preferences.GaugePeakWindowSeconds / 60);
         var peak = PeakFor(metric);
         var current = CompactMode ? _compactMetrics[metric] : metric;
         if (latest is null || peak.Sample is not { } sample || peak.Value is not { } value ||

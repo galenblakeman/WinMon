@@ -1,5 +1,9 @@
 # WinMon performance history
 
+## CPU tooltip readability (November 26, 2026)
+
+Measured the frozen baseline and updated Release production assemblies with identical WinMon.Performance harness bytes, using synthetic temperature readings, 400 warmup frames and seven batches of 60 frames per run. Sequential live-only runs used baseline, candidate, candidate, baseline order. The mean of the two live-frame medians was 4.647 ms before and 4.376 ms after; median allocations ranged from 552.8 to 561.4 kB before and 553.1 to 554.7 kB after. The broader open-tooltip scenario measured 13.796 ms / 1,032,326 bytes before and 11.872 ms / 972,726 bytes after. No regression was observed in the repeated live workload. Concurrent work made the first single live comparison noisy, so it was not used for acceptance. These UI-thread measurements exclude native collection and render-thread CPU, and the production snapshots include existing working-tree changes. Raw outputs and frozen binaries are under artifacts/tooltip-review; the four live-* directories contain the repeated results.
+
 ## Devices GPU selection (November 26, 2026)
 
 Measured 600 parsed engine counters using the same isolated reflection/expression harness against preserved original and candidate Release assemblies (5,000 warmup calls; seven batches of 10,000 calls). Automatic median was 0.028163 ms before and 0.028261 ms after (+0.35%); allocation remained 40 bytes per call. Manual selection across the two-adapter fixture took 0.015011 ms. This measures engine aggregation only; native discovery is cached for 30 seconds and is absent from Automatic sampling. Raw results and harness are under `artifacts/devices-baseline`, `artifacts/devices-focused` and `artifacts/devices-aggregation-benchmark.ps1`. Native physical multi-GPU/reboot/hot-plug acceptance remains open.

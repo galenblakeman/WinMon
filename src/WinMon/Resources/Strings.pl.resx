@@ -2139,7 +2139,7 @@ Przywrócenie ograniczania również nie powiodło się: {1}</value></data>
   <data name="TemperatureLimitedTo" xml:space="preserve"><value>Ograniczono do {0:0}% przez {1}, flagi 0x{2:X}</value></data>
   <data name="TemperatureAtThreshold" xml:space="preserve"><value>{0} z {1}</value></data>
   <data name="TemperatureMaxFormat" xml:space="preserve"><value>{0} z maks. {1}</value></data>
-  <data name="TemperaturePeakAt" xml:space="preserve"><value>{0} o {1}</value></data>
+  <data name="TemperaturePeakAt" xml:space="preserve"><value>{0} o {1:t}</value></data>
   <data name="TemperatureCelsiusValue" xml:space="preserve"><value>{0:0} °C</value></data>
   <data name="TemperatureFahrenheitValue" xml:space="preserve"><value>{0:0} °F</value></data>
   <data name="TemperatureFanRpmValue" xml:space="preserve"><value>{0:0} RPM</value></data>
@@ -2182,4 +2182,7 @@ Przywrócenie ograniczania również nie powiodło się: {1}</value></data>
   <data name="ServicesNetworkNote" xml:space="preserve"><value>Wysyłanie i odbieranie danych przez wszystkie karty sieciowe. Wyłączenie zatrzymuje zbieranie danych, pozostawiając wspólną usługę zainstalowaną.</value></data>
   <data name="ServicesRepair" xml:space="preserve"><value>Napraw</value></data>
   <data name="ServicesRemove" xml:space="preserve"><value>Usuń…</value></data>
+  <data name="DetailNoPerformanceLimit" xml:space="preserve"><value>Bez ograniczenia wydajności</value></data>
+  <data name="DetailTemperaturePeakWindow" xml:space="preserve"><value>Szczyt temperatury · {0} min</value></data>
+  <data name="GaugeCpuUsagePeakOverWindow" xml:space="preserve"><value>Szczyt użycia CPU · ostatnie {0} min</value></data>
 </root>

@@ -2139,7 +2139,7 @@ Q 종료. Ctrl+C 취소. 실행 파일과 서비스 고정은 다음 실행에�
   <data name="TemperatureLimitedTo" xml:space="preserve"><value>{1} 동안 {0:0}%로 제한됨, 플래그 0x{2:X}</value></data>
   <data name="TemperatureAtThreshold" xml:space="preserve"><value>{0} / {1}</value></data>
   <data name="TemperatureMaxFormat" xml:space="preserve"><value>{0} / 최대 {1}</value></data>
-  <data name="TemperaturePeakAt" xml:space="preserve"><value>{1}의 {0}</value></data>
+  <data name="TemperaturePeakAt" xml:space="preserve"><value>{1:t}의 {0}</value></data>
   <data name="TemperatureCelsiusValue" xml:space="preserve"><value>{0:0} °C</value></data>
   <data name="TemperatureFahrenheitValue" xml:space="preserve"><value>{0:0} °F</value></data>
   <data name="TemperatureFanRpmValue" xml:space="preserve"><value>{0:0} RPM</value></data>
@@ -2182,4 +2182,7 @@ Q 종료. Ctrl+C 취소. 실행 파일과 서비스 고정은 다음 실행에�
   <data name="ServicesNetworkNote" xml:space="preserve"><value>모든 네트워크 어댑터의 송수신 활동입니다. 비활성화하면 수집이 중지되지만 공유 서비스는 설치된 상태로 유지됩니다.</value></data>
   <data name="ServicesRepair" xml:space="preserve"><value>복구</value></data>
   <data name="ServicesRemove" xml:space="preserve"><value>제거…</value></data>
+  <data name="DetailNoPerformanceLimit" xml:space="preserve"><value>성능 제한 없음</value></data>
+  <data name="DetailTemperaturePeakWindow" xml:space="preserve"><value>최고 온도 · {0}분</value></data>
+  <data name="GaugeCpuUsagePeakOverWindow" xml:space="preserve"><value>CPU 사용률 최고 · 지난 {0}분</value></data>
 </root>

@@ -23,9 +23,10 @@ public partial class MainWindow
         {
             var details = new MetricDetails { Accent = metric.ValueLabel.Foreground };
             _metricDetails.Add(metric, details);
-            var count = metric == CpuMetric ? 13 : metric == MemoryMetric ? 11 : metric == NetworkMetric ? 5 :
+            var count = metric == CpuMetric ? 12 : metric == MemoryMetric ? 11 : metric == NetworkMetric ? 5 :
                 metric == GpuMetric ? 10 : 6;
-            for (var i = 0; i < count; i++) details.Rows.Add(new DetailRow { Value = Strings.MissingReading });
+            for (var i = 0; i < count; i++)
+                details.Rows.Add(new DetailRow { Value = Strings.MissingReading, FullWidth = metric == CpuMetric && i == 9 });
             metric.ToolTip = details;
             metric.Focusable = true;
             metric.SetResourceReference(FocusVisualStyleProperty, "MetricTileFocusVisual");
@@ -66,7 +67,7 @@ public partial class MainWindow
             var keys = metric == CpuMetric
                 ? new[]
                 {
-                    "DetailClockSpeed", "DetailCpuTemperature", "DetailTemperaturePeak", "DetailCpuTemperatureSensor",
+                    "DetailClockSpeed", "DetailCpuTemperature", "DetailTemperaturePeakWindow",
                     "DetailUserKernel", "DetailProcessesThreads", "DetailHandles", "DetailBusiestProcess",
                     "DetailUpTime", "DetailPerformanceLimit", "DetailSystemThermalZones",
                     "DetailCpuFans", "DetailSystemFans"
@@ -96,7 +97,9 @@ public partial class MainWindow
                                 "DetailActiveTime", "DetailRead", "DetailWrite", "DetailAverageResponse",
                                 "DetailQueueLength", "DetailFreeSpace"
                             ];
-            for (var i = 0; i < keys.Length; i++) details.Rows[i].Label = DetailText(keys[i]);
+            for (var i = 0; i < keys.Length; i++)
+                details.Rows[i].Label = keys[i] == "DetailTemperaturePeakWindow"
+                    ? Strings.Format(Strings.DetailTemperaturePeakWindow, 10) : DetailText(keys[i]);
             AutomationProperties.SetHelpText(metric.Toggle, details.Definition);
             AutomationProperties.SetHelpText(metric, details.Definition);
         }
@@ -122,26 +125,24 @@ public partial class MainWindow
             var temperature = resource?.CpuTemperature;
             rows[1].Value = GaugeReadoutText.Temperature(temperature?.Celsius, _preferences.TemperatureUnit);
             rows[2].Value = CpuTemperaturePeakText(latest, temperature);
-            rows[3].Value = temperature is null ? Dash : temperature.SensorName + " · " + temperature.Source;
-            rows[4].Value = latest?.TotalCpuPercent is { } total && resource?.CpuKernelPercent is { } kernel
+            rows[3].Value = latest?.TotalCpuPercent is { } total && resource?.CpuKernelPercent is { } kernel
                 ? F("{0:0.0}% / {1:0.0}%", Math.Max(0, total - kernel), kernel)
                 : Dash;
-            rows[5].Value = ProcessThreadCounts(resource);
-            rows[6].Value = HandleCountText(resource);
-            rows[7].Value = Busiest(CpuMetric, ProcessSort.Cpu);
+            rows[4].Value = ProcessThreadCounts(resource);
+            rows[5].Value = HandleCountText(resource);
+            rows[6].Value = Busiest(CpuMetric, ProcessSort.Cpu);
             var upTime = TimeSpan.FromMilliseconds(Environment.TickCount64);
-            rows[8].Value = F("{0} d {1:00}:{2:00}", (int)upTime.TotalDays, upTime.Hours, upTime.Minutes);
-            rows[9].Value = PerformanceLimitText(latest);
-            rows[10].Value = ThermalZonesText(latest);
-            UpdateFanDetail(rows[11], resource?.HardwareFans, cpu: true);
-            UpdateFanDetail(rows[12], resource?.HardwareFans, cpu: false);
+            rows[7].Value = F("{0} d {1:00}:{2:00}", (int)upTime.TotalDays, upTime.Hours, upTime.Minutes);
+            rows[8].Value = PerformanceLimitText(latest);
+            rows[9].Value = ThermalZonesText(latest);
+            UpdateFanDetail(rows[10], resource?.HardwareFans, cpu: true);
+            UpdateFanDetail(rows[11], resource?.HardwareFans, cpu: false);
             rows[1].Visibility = temperature is not null ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
             rows[2].Visibility = temperature is not null && latest is not null && CpuTemperaturePeak(latest, temperature) is not null
                 ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
-            rows[3].Visibility = temperature is not null ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
-            rows[9].Visibility = resource?.CpuPerformanceLimitPercent is not null
+            rows[8].Visibility = resource?.CpuPerformanceLimitPercent is not null
                 ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
-            rows[10].Visibility = resource?.ThermalZones.Count > 0
+            rows[9].Visibility = resource?.ThermalZones.Count > 0
                 ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
         }
         else if (metric == MemoryMetric)
@@ -229,6 +230,7 @@ public partial class MainWindow
         var duration = CpuPerformanceLimitDuration(latest);
         var resource = latest?.Resources;
         if (resource?.CpuPerformanceLimitPercent is not { } value) return Dash;
+        if (value >= 100) return Strings.DetailNoPerformanceLimit;
         return duration is { } elapsed && resource.CpuPerformanceLimitFlags is { } flags
             ? Strings.Format(Strings.TemperatureLimitedTo, value, elapsed, flags)
             : Percent(value);

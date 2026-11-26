@@ -2151,7 +2151,7 @@ Auch das Wiederherstellen der Drosselung ist fehlgeschlagen: {1}</value></data>
   <data name="TemperatureLimitedTo" xml:space="preserve"><value>Auf {0:0}% begrenzt seit {1}, Flags 0x{2:X}</value></data>
   <data name="TemperatureAtThreshold" xml:space="preserve"><value>{0} von {1}</value></data>
   <data name="TemperatureMaxFormat" xml:space="preserve"><value>{0} von max. {1}</value></data>
-  <data name="TemperaturePeakAt" xml:space="preserve"><value>{0} um {1}</value></data>
+  <data name="TemperaturePeakAt" xml:space="preserve"><value>{0} um {1:t}</value></data>
   <data name="TemperatureCelsiusValue" xml:space="preserve"><value>{0:0} °C</value></data>
   <data name="TemperatureFahrenheitValue" xml:space="preserve"><value>{0:0} °F</value></data>
   <data name="TemperatureFanRpmValue" xml:space="preserve"><value>{0:0} RPM</value></data>
@@ -2194,4 +2194,7 @@ Auch das Wiederherstellen der Drosselung ist fehlgeschlagen: {1}</value></data>
   <data name="ServicesNetworkNote" xml:space="preserve"><value>Sende- und Empfangsaktivität aller Netzwerkadapter. Beim Deaktivieren wird die Erfassung beendet; der gemeinsame Dienst bleibt installiert.</value></data>
   <data name="ServicesRepair" xml:space="preserve"><value>Reparieren</value></data>
   <data name="ServicesRemove" xml:space="preserve"><value>Entfernen…</value></data>
+  <data name="DetailNoPerformanceLimit" xml:space="preserve"><value>Keine Leistungsbegrenzung</value></data>
+  <data name="DetailTemperaturePeakWindow" xml:space="preserve"><value>Temperaturspitze · {0} Min.</value></data>
+  <data name="GaugeCpuUsagePeakOverWindow" xml:space="preserve"><value>CPU-Auslastungsspitze · letzte {0} Min.</value></data>
 </root>

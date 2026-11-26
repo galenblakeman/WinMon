@@ -377,6 +377,7 @@ public static partial class Strings
     public static string DetailMemoryDefinition => ResourceManager.GetString(nameof(DetailMemoryDefinition), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailModified => ResourceManager.GetString(nameof(DetailModified), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailNetworkDefinition => ResourceManager.GetString(nameof(DetailNetworkDefinition), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string DetailNoPerformanceLimit => ResourceManager.GetString(nameof(DetailNoPerformanceLimit), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailOtherGpuAdapters => ResourceManager.GetString(nameof(DetailOtherGpuAdapters), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailPagedNonPaged => ResourceManager.GetString(nameof(DetailPagedNonPaged), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailPagingReads => ResourceManager.GetString(nameof(DetailPagingReads), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -397,6 +398,7 @@ public static partial class Strings
     public static string DetailSystemThermalZones => ResourceManager.GetString(nameof(DetailSystemThermalZones), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailTemperature => ResourceManager.GetString(nameof(DetailTemperature), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailTemperaturePeak => ResourceManager.GetString(nameof(DetailTemperaturePeak), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string DetailTemperaturePeakWindow => ResourceManager.GetString(nameof(DetailTemperaturePeakWindow), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailUnchangedFor10Minutes => ResourceManager.GetString(nameof(DetailUnchangedFor10Minutes), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailUpTime => ResourceManager.GetString(nameof(DetailUpTime), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailUserKernel => ResourceManager.GetString(nameof(DetailUserKernel), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -537,6 +539,7 @@ public static partial class Strings
     public static string GaugeBowl => ResourceManager.GetString(nameof(GaugeBowl), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GaugeCpuClockGHz => ResourceManager.GetString(nameof(GaugeCpuClockGHz), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GaugeCpuTemperaturePair => ResourceManager.GetString(nameof(GaugeCpuTemperaturePair), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string GaugeCpuUsagePeakOverWindow => ResourceManager.GetString(nameof(GaugeCpuUsagePeakOverWindow), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GaugeGpuEngine3D => ResourceManager.GetString(nameof(GaugeGpuEngine3D), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GaugeGpuMemoryPair => ResourceManager.GetString(nameof(GaugeGpuMemoryPair), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GaugeGpuPower => ResourceManager.GetString(nameof(GaugeGpuPower), Culture ?? CultureInfo.CurrentUICulture)!;

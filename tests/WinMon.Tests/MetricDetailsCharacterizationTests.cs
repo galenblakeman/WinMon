@@ -46,7 +46,11 @@ public sealed class MetricDetailsCharacterizationTests
             Assert.That(details.Rows[1].Value, Is.EqualTo("55 °C"));
             Assert.That(details.Rows[2].Value, Is.EqualTo(Strings.Format(Strings.TemperaturePeakAt,
                 "70 °C", matchingPeak.Timestamp.ToLocalTime())));
-            Assert.That(details.Rows[3].Value, Is.EqualTo("CPU Package · LibreHardwareMonitorLib 0.9.6"));
+            Assert.That(details.Rows.Select(row => row.Label), Does.Not.Contain(Strings.DetailCpuTemperatureSensor));
+            Assert.That(details.Rows.Select(row => row.Value), Has.None.Contains("LibreHardwareMonitor"));
+            Assert.That(details.Rows[2].Label, Is.EqualTo(Strings.Format(Strings.DetailTemperaturePeakWindow, 10)));
+            Assert.That(details.Rows[2].Value, Does.Not.Contain("+00:00").And.Not.Contain("2026"));
+            Assert.That(details.Peak, Does.StartWith(Strings.Format(Strings.GaugeCpuUsagePeakOverWindow, 2)));
         });
     }
 
@@ -220,7 +224,7 @@ public sealed class MetricDetailsCharacterizationTests
         Record(Filled with { CpuPerformanceLimitPercent = 100 });
         _window.OpenDetails(_window.CpuMetric);
         Assert.That(Details(_window.CpuMetric).Rows.Single(row => row.Label == Strings.DetailPerformanceLimit).Value,
-            Is.EqualTo("100.0%"));
+            Is.EqualTo(Strings.DetailNoPerformanceLimit));
         Record(Filled with { CpuPerformanceLimitPercent = 62 }, 1);
         _window.OpenDetails(_window.CpuMetric);
         Assert.That(Details(_window.CpuMetric).Rows.Single(row => row.Label == Strings.DetailPerformanceLimit).Value,
@@ -249,7 +253,7 @@ public sealed class MetricDetailsCharacterizationTests
         var details = Details(metric);
         Assert.That(details.Title, Is.EqualTo("fixture " + name));
         Assert.That(details.Accent, Is.SameAs(Brushes.Tomato));
-        Assert.That(details.Peak, Is.EqualTo("Peak · last 2 min\n" + Dash));
+        Assert.That(details.Peak, Is.EqualTo(ExpectedPeakHeading(name) + Dash));
         Assert.That(AutomationProperties.GetHelpText(metric), Is.EqualTo(details.Definition + "\n" + details.Peak));
         Assert.That(AutomationProperties.GetHelpText(metric.Toggle), Is.EqualTo(AutomationProperties.GetHelpText(metric)));
     }
@@ -271,9 +275,9 @@ public sealed class MetricDetailsCharacterizationTests
         Record(Filled);
         _window.OpenDetails(_window.CpuMetric);
         Assert.That(Details(_window.CpuMetric).Rows.Where(row => row.Label == Strings.DetailCpuTemperature ||
-            row.Label == Strings.DetailTemperaturePeak || row.Label == Strings.DetailCpuTemperatureSensor ||
+            row.Label == Strings.Format(Strings.DetailTemperaturePeakWindow, 10) ||
             row.Label == Strings.DetailPerformanceLimit || row.Label == Strings.DetailSystemThermalZones)
-            .Select(row => row.Visibility).ToList(), Has.Count.EqualTo(5).And.All.EqualTo(Visibility.Collapsed));
+            .Select(row => row.Visibility).ToList(), Has.Count.EqualTo(4).And.All.EqualTo(Visibility.Collapsed));
         _window.OpenDetails(_window.GpuMetric);
         Assert.That(Details(_window.GpuMetric).Rows.Skip(5).Select(row => row.Visibility),
             Is.All.EqualTo(Visibility.Collapsed));
@@ -566,6 +570,9 @@ public sealed class MetricDetailsCharacterizationTests
         return peak;
     }
 
+    private static string ExpectedPeakHeading(string name) =>
+        name == "cpu" ? "CPU usage peak · last 2 min\n" : "Peak · last 2 min\n";
+
     private string ExpectedGaugePeak(string name, MonitorSample peak, int age)
     {
         var reading = name switch
@@ -578,7 +585,7 @@ public sealed class MetricDetailsCharacterizationTests
             "gpu" => Metric(name).Label + ": 70.0%\nGPU memory used at utilization peak: 2.0 GiB",
             _ => throw new ArgumentOutOfRangeException(nameof(name))
         };
-        return "Peak · last 2 min\n" + reading + "\n" +
+        return ExpectedPeakHeading(name) + reading + "\n" +
                Strings.Format(Strings.GaugePeakAtTime, peak.Timestamp.ToLocalTime(), age);
     }
 
@@ -624,13 +631,13 @@ public sealed class MetricDetailsCharacterizationTests
         Assert.That(Details(metric).Peak, Is.EqualTo(ExpectedGaugePeak(name, peak, 12)),
             "An already-open tooltip currently refreshes before the gauge becomes unavailable.");
         _window.OpenDetails(metric);
-        Assert.That(Details(metric).Peak, Is.EqualTo("Peak · last 2 min\n" + Dash));
+        Assert.That(Details(metric).Peak, Is.EqualTo(ExpectedPeakHeading(name) + Dash));
 
         var recovered = Sample(13, WithGaugeReading(CurrentReading, name, 0)) with
             { TotalCpuPercent = name == "cpu" ? 0 : 20 };
         _window.Session.Record(recovered, recovered);
         _window.RefreshVisiblePresentation();
-        Assert.That(Details(metric).Peak, Is.EqualTo("Peak · last 2 min\n" + Dash),
+        Assert.That(Details(metric).Peak, Is.EqualTo(ExpectedPeakHeading(name) + Dash),
             "The open tooltip still observes the preceding unavailable gauge during refresh.");
         _window.OpenDetails(metric);
         Assert.That(Details(metric).Peak, Is.EqualTo(ExpectedGaugePeak(name, peak, 13)));
@@ -664,7 +671,7 @@ public sealed class MetricDetailsCharacterizationTests
         _window.RefreshVisiblePresentation();
         if (!compact) Assert.That(_window.CpuMetric.Gauge.Level, Is.Null, "A gauge requires both current and peak readings.");
         _window.OpenDetails(_window.CpuMetric);
-        Assert.That(Details(_window.CpuMetric).Peak, Is.EqualTo("Peak · last 2 min\n" + Dash));
+        Assert.That(Details(_window.CpuMetric).Peak, Is.EqualTo(ExpectedPeakHeading("cpu") + Dash));
     }
 
     [TestCase(60)]
@@ -679,7 +686,7 @@ public sealed class MetricDetailsCharacterizationTests
         foreach (var sample in new[] { excluded, boundary, latest }) _window.Session.Record(sample, sample);
         _window.RefreshVisiblePresentation();
         _window.OpenDetails(_window.CpuMetric);
-        var heading = "Peak · last " + seconds / 60 + " min\n";
+        var heading = "CPU usage peak · last " + seconds / 60 + " min\n";
         Assert.That(Details(_window.CpuMetric).Peak, Is.EqualTo(heading + _window.CpuMetric.Label + ": 80.0%\n" +
             Strings.Format(Strings.GaugePeakAtTime, boundary.Timestamp.ToLocalTime(), seconds)));
 
