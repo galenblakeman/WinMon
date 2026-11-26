@@ -149,12 +149,16 @@ public sealed partial class MainWindowWorkflowCharacterizationTests
         Assert.That(flow.Hook(flow.Handle, 0x0232, 0, 0, ref handled), Is.EqualTo(nint.Zero));
         Assert.That(handled, Is.True, "The hook observes messages without claiming them");
         Assert.That(flow.Timer.IsEnabled, Is.False);
-        Assert.That(flow.Saved, Is.EqualTo(WindowPosition.Capture(screen.DeviceName, screen.WorkingArea, new DrawingPoint(moved.Left, moved.Top))));
+        var saved = WindowPosition.Capture(screen.DeviceName, screen.WorkingArea, new DrawingPoint(moved.Left, moved.Top));
+        Assert.That(flow.Saved, Is.EqualTo(saved));
+        var size = new DrawingSize(moved.Right - moved.Left, moved.Bottom - moved.Top);
+        var expected = saved.Resolve([(screen.DeviceName, screen.WorkingArea)], size);
         flow.Window.Left += 20;
         flow.Flush();
         flow.Recover();
         flow.Flush();
-        Assert.That((flow.Bounds().Left, flow.Bounds().Top), Is.EqualTo((moved.Left, moved.Top)));
+        var restored = flow.Bounds();
+        Assert.That(new DrawingPoint(restored.Left, restored.Top), Is.EqualTo(expected));
     }
 
     [Test]

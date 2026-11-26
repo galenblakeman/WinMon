@@ -47,15 +47,18 @@ public sealed class PreferenceValidationCharacterizationTests
         })
         {
             foreach (var value in Enum.GetValues(type))
-                yield return new TestCaseData(field, Convert.ToInt32(value), value.ToString())
+            {
+                var expected = value is ResourceChartType.Temperature ? fallback : value.ToString();
+                yield return new TestCaseData(field, Convert.ToInt32(value), expected)
                     .SetName($"DefinedEnum_{field}_{value}");
+            }
             yield return new TestCaseData(field, -1, fallback).SetName($"UndefinedEnum_{field}_Negative");
             yield return new TestCaseData(field, int.MaxValue, fallback).SetName($"UndefinedEnum_{field}_Large");
         }
     }
 
     [TestCaseSource(nameof(EnumCases))]
-    public void EnumFieldsPreserveEveryDefinedValueAndUseTheirOwnFallback(string field, int value, string expected)
+    public void EnumFieldsPreserveSupportedValuesAndUseTheirOwnFallback(string field, int value, string expected)
     {
         var input = new MonitorPreferences();
         input = field switch
