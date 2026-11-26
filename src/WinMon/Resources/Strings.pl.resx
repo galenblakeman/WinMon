@@ -2053,6 +2053,17 @@ Zakończone od poprzedniej obserwacji: {1}</value>
   <data name="FlightRecorderFilter" xml:space="preserve"><value>Incydent WinMon (*.wmincident)|*.wmincident</value></data>
   <data name="FlightRecorderFileError" xml:space="preserve"><value>Nie można zapisać lub otworzyć incydentu: {0}</value></data>
   <data name="FlightRecorderOpened" xml:space="preserve"><value>Otwarty incydent: {0}. Odśwież wraca do bieżącego nagrania.</value></data>
+  <data name="FlightRecorderSaveLocation" xml:space="preserve"><value>Lokalizacja</value></data>
+  <data name="FlightRecorderChangeLocation" xml:space="preserve"><value>Zmień…</value></data>
+  <data name="FlightRecorderInvalidFileName" xml:space="preserve"><value>Wprowadź prawidłową nazwę pliku.</value></data>
+  <data name="FlightRecorderSaveFolderMissing" xml:space="preserve"><value>Wybierz istniejący folder.</value></data>
+  <data name="FlightRecorderReplace" xml:space="preserve"><value>Zastąp</value></data>
+  <data name="FlightRecorderReplaceFile" xml:space="preserve"><value>Zastąpić istniejący plik zdarzenia „{0}”?</value></data>
+  <data name="FlightRecorderSaveRange" xml:space="preserve"><value>Zakres zapisu</value></data>
+  <data name="FlightRecorderSaveRangeShort" xml:space="preserve"><value>±30 sekund</value></data>
+  <data name="FlightRecorderSaveRangeMedium" xml:space="preserve"><value>±1 minuta</value></data>
+  <data name="FlightRecorderSaveRangeLong" xml:space="preserve"><value>±5 minut</value></data>
+  <data name="FlightRecorderSaveRangeAll" xml:space="preserve"><value>Cały zapis</value></data>
   <data name="FlightRecorderFileHelp" xml:space="preserve"><value>Zapisuje zamrożoną oś czasu, nazwy procesów, ścieżki plików wykonywalnych, ruch aplikacji i komunikaty zdarzeń Windows. Sprawdź przed udostępnieniem. Punkty końcowe gniazd są wykluczone.</value></data>
   <data name="ProcessCommandLineLabel" xml:space="preserve"><value>Wiersz polecenia</value></data>
   <data name="ProcessFileSignedByLabel" xml:space="preserve"><value>Plik na dysku podpisany przez</value></data>

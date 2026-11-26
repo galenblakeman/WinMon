@@ -2053,6 +2053,17 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
   <data name="FlightRecorderFilter" xml:space="preserve"><value>WinMon インシデント (*.wmincident)|*.wmincident</value></data>
   <data name="FlightRecorderFileError" xml:space="preserve"><value>インシデントを保存または開くことができませんでした: {0}</value></data>
   <data name="FlightRecorderOpened" xml:space="preserve"><value>開いたインシデント: {0}。更新すると現在の記録に戻ります。</value></data>
+  <data name="FlightRecorderSaveLocation" xml:space="preserve"><value>保存先</value></data>
+  <data name="FlightRecorderChangeLocation" xml:space="preserve"><value>変更…</value></data>
+  <data name="FlightRecorderInvalidFileName" xml:space="preserve"><value>有効なファイル名を入力してください。</value></data>
+  <data name="FlightRecorderSaveFolderMissing" xml:space="preserve"><value>既存のフォルダーを選択してください。</value></data>
+  <data name="FlightRecorderReplace" xml:space="preserve"><value>置き換え</value></data>
+  <data name="FlightRecorderReplaceFile" xml:space="preserve"><value>既存のインシデント ファイル「{0}」を置き換えますか？</value></data>
+  <data name="FlightRecorderSaveRange" xml:space="preserve"><value>保存範囲</value></data>
+  <data name="FlightRecorderSaveRangeShort" xml:space="preserve"><value>前後30秒</value></data>
+  <data name="FlightRecorderSaveRangeMedium" xml:space="preserve"><value>前後1分</value></data>
+  <data name="FlightRecorderSaveRangeLong" xml:space="preserve"><value>前後5分</value></data>
+  <data name="FlightRecorderSaveRangeAll" xml:space="preserve"><value>記録全体</value></data>
   <data name="FlightRecorderFileHelp" xml:space="preserve"><value>固定されたタイムライン、プロセス名、実行可能ファイルのパス、アプリ トラフィック、Windows イベント メッセージを保存します。共有前に確認してください。ソケット エンドポイントは除外されます。</value></data>
   <data name="ProcessCommandLineLabel" xml:space="preserve"><value>コマンドライン</value></data>
   <data name="ProcessFileSignedByLabel" xml:space="preserve"><value>ディスク上のファイルの署名者</value></data>

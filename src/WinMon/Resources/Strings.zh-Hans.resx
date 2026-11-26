@@ -2053,6 +2053,17 @@ Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。<
   <data name="FlightRecorderFilter" xml:space="preserve"><value>WinMon 事件 (*.wmincident)|*.wmincident</value></data>
   <data name="FlightRecorderFileError" xml:space="preserve"><value>无法保存或打开事件：{0}</value></data>
   <data name="FlightRecorderOpened" xml:space="preserve"><value>已打开事件：{0}。刷新将返回当前记录。</value></data>
+  <data name="FlightRecorderSaveLocation" xml:space="preserve"><value>位置</value></data>
+  <data name="FlightRecorderChangeLocation" xml:space="preserve"><value>更改…</value></data>
+  <data name="FlightRecorderInvalidFileName" xml:space="preserve"><value>请输入有效的文件名。</value></data>
+  <data name="FlightRecorderSaveFolderMissing" xml:space="preserve"><value>请选择现有文件夹。</value></data>
+  <data name="FlightRecorderReplace" xml:space="preserve"><value>替换</value></data>
+  <data name="FlightRecorderReplaceFile" xml:space="preserve"><value>是否替换现有事件文件“{0}”？</value></data>
+  <data name="FlightRecorderSaveRange" xml:space="preserve"><value>保存范围</value></data>
+  <data name="FlightRecorderSaveRangeShort" xml:space="preserve"><value>前后 30 秒</value></data>
+  <data name="FlightRecorderSaveRangeMedium" xml:space="preserve"><value>前后 1 分钟</value></data>
+  <data name="FlightRecorderSaveRangeLong" xml:space="preserve"><value>前后 5 分钟</value></data>
+  <data name="FlightRecorderSaveRangeAll" xml:space="preserve"><value>完整记录</value></data>
   <data name="FlightRecorderFileHelp" xml:space="preserve"><value>保存冻结的时间线、进程名称、可执行文件路径、应用流量和 Windows 事件消息。共享前请检查。已排除套接字端点。</value></data>
   <data name="ProcessCommandLineLabel" xml:space="preserve"><value>命令行</value></data>
   <data name="ProcessFileSignedByLabel" xml:space="preserve"><value>磁盘文件签名者</value></data>

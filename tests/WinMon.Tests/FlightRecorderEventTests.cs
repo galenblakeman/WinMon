@@ -296,6 +296,60 @@ public sealed class FlightRecorderEventTests
     }
 
     [Test]
+    public async Task SaveRecording_DefaultRangeKeepsSelectedMomentAndClipsObservationsAndEvents()
+    {
+        var samples = Samples(0, 1, 2, 31, 42, 61, 62, 66);
+        var process = new ProcessUsage(123, 123, "fixture-process", 10);
+        samples[1] = samples[1] with { Processes = [process] };
+        var sourceEvents = Events("fixture", IncidentEventCoverageStatus.Complete);
+        sourceEvents = sourceEvents with
+        {
+            Events = new[] { 0, 1, 18, 61, 62 }.Select(second => sourceEvents.Events[0] with
+                { Timestamp = DateTimeOffset.UnixEpoch.AddSeconds(second) }).ToArray(),
+            LimitReached = true
+        };
+        var window = new FlightRecorderWindow(samples, eventReader: (_, _, _) => Task.FromResult(sourceEvents));
+        var folder = Directory.CreateTempSubdirectory();
+        var dialog = new FlightRecorderSaveDialog("fixture moment");
+        var path = Path.Combine(folder.FullName, "fixture.wmincident");
+        try
+        {
+            window.Select(3);
+            dialog.LocationPath.Text = folder.FullName;
+            var invalidNameRejected = false;
+            dialog.Loaded += (_, _) =>
+            {
+                dialog.FileNameBox.Text = "../invalid";
+                dialog.SaveButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                invalidNameRejected = dialog.Choice is null && dialog.ErrorText.Visibility == Visibility.Visible;
+                dialog.FileNameBox.Text = "fixture";
+                dialog.SaveButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                if (dialog.Choice is null) dialog.Close();
+            };
+            Assert.That(dialog.ShowDialog(), Is.True);
+            Assert.That(invalidNameRejected, Is.True);
+            var choice = dialog.Choice!.Value;
+            Assert.That(choice.Path, Is.EqualTo(path));
+            Assert.That(choice.Overwrite, Is.False);
+            await window.SaveRecordingAsync(choice.Path, choice.SecondsBeforeAndAfter, choice.Overwrite);
+            var saved = IncidentRecording.Load(path);
+            Assert.Multiple(() =>
+            {
+                Assert.That(saved.Observations.Select(frame => frame.Sample.Timestamp),
+                    Is.EqualTo(samples[1..6].Select(sample => sample.Timestamp)));
+                Assert.That(saved.Observations[saved.SelectedIndex].Sample.Timestamp, Is.EqualTo(samples[3].Timestamp));
+                Assert.That(saved.Observations[0].Started?.Select(item => item.Identity), Is.EqualTo(new[] { process.Identity }));
+                Assert.That(saved.WindowsEvents.Events, Is.EqualTo(sourceEvents.Events.Skip(1).Take(3)));
+                Assert.That(saved.WindowsEvents.Coverage, Is.EqualTo(sourceEvents.Coverage));
+                Assert.That(saved.WindowsEvents.LimitReached, Is.True);
+                Assert.That(window.Selection, Is.SameAs(samples[3]));
+                Assert.That(window.Recording().Observations, Has.Length.EqualTo(samples.Length));
+            });
+        }
+        finally { window.Close(); File.Delete(path); folder.Delete(); }
+    }
+
+    [Test]
     public async Task EventQuery_FailureShowsPerLogUnavailableCoverage()
     {
         var window = new FlightRecorderWindow(Samples(0, 1), eventReader: (_, _, _) =>

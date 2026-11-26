@@ -2083,6 +2083,17 @@ Stopped since previous observation: {1}</value>
   <data name="FlightRecorderFilter" xml:space="preserve"><value>WinMon incident (*.wmincident)|*.wmincident</value></data>
   <data name="FlightRecorderFileError" xml:space="preserve"><value>Could not save or open the incident: {0}</value></data>
   <data name="FlightRecorderOpened" xml:space="preserve"><value>Opened incident: {0}. Refresh returns to the current recording.</value></data>
+  <data name="FlightRecorderSaveLocation" xml:space="preserve"><value>Location</value></data>
+  <data name="FlightRecorderChangeLocation" xml:space="preserve"><value>Change…</value></data>
+  <data name="FlightRecorderInvalidFileName" xml:space="preserve"><value>Enter a valid file name.</value></data>
+  <data name="FlightRecorderSaveFolderMissing" xml:space="preserve"><value>Choose an existing folder.</value></data>
+  <data name="FlightRecorderReplace" xml:space="preserve"><value>Replace</value></data>
+  <data name="FlightRecorderReplaceFile" xml:space="preserve"><value>Replace the existing incident file “{0}”?</value></data>
+  <data name="FlightRecorderSaveRange" xml:space="preserve"><value>Save range</value></data>
+  <data name="FlightRecorderSaveRangeShort" xml:space="preserve"><value>±30 seconds</value></data>
+  <data name="FlightRecorderSaveRangeMedium" xml:space="preserve"><value>±1 minute</value></data>
+  <data name="FlightRecorderSaveRangeLong" xml:space="preserve"><value>±5 minutes</value></data>
+  <data name="FlightRecorderSaveRangeAll" xml:space="preserve"><value>Entire recording</value></data>
   <data name="FlightRecorderFileHelp" xml:space="preserve"><value>Saves the frozen timeline, process names, executable paths, app traffic and Windows event messages. Review before sharing. Socket endpoints are excluded.</value></data>
   <data name="ProcessCommandLineLabel" xml:space="preserve"><value>Command line</value></data>
   <data name="ProcessFileSignedByLabel" xml:space="preserve"><value>File on disk signed by</value></data>

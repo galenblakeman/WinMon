@@ -2062,6 +2062,17 @@ Arrêtés depuis la dernière observation : {1}</value>
   <data name="FlightRecorderFilter" xml:space="preserve"><value>Incident WinMon (*.wmincident)|*.wmincident</value></data>
   <data name="FlightRecorderFileError" xml:space="preserve"><value>Impossible d’enregistrer ou d’ouvrir l’incident : {0}</value></data>
   <data name="FlightRecorderOpened" xml:space="preserve"><value>Incident ouvert : {0}. Actualiser revient à l’enregistrement actuel.</value></data>
+  <data name="FlightRecorderSaveLocation" xml:space="preserve"><value>Emplacement</value></data>
+  <data name="FlightRecorderChangeLocation" xml:space="preserve"><value>Modifier…</value></data>
+  <data name="FlightRecorderInvalidFileName" xml:space="preserve"><value>Saisissez un nom de fichier valide.</value></data>
+  <data name="FlightRecorderSaveFolderMissing" xml:space="preserve"><value>Choisissez un dossier existant.</value></data>
+  <data name="FlightRecorderReplace" xml:space="preserve"><value>Remplacer</value></data>
+  <data name="FlightRecorderReplaceFile" xml:space="preserve"><value>Remplacer le fichier d&#8217;incident existant « {0} » ?</value></data>
+  <data name="FlightRecorderSaveRange" xml:space="preserve"><value>Plage à enregistrer</value></data>
+  <data name="FlightRecorderSaveRangeShort" xml:space="preserve"><value>±30 secondes</value></data>
+  <data name="FlightRecorderSaveRangeMedium" xml:space="preserve"><value>±1 minute</value></data>
+  <data name="FlightRecorderSaveRangeLong" xml:space="preserve"><value>±5 minutes</value></data>
+  <data name="FlightRecorderSaveRangeAll" xml:space="preserve"><value>Enregistrement complet</value></data>
   <data name="FlightRecorderFileHelp" xml:space="preserve"><value>Enregistre la chronologie figée, les noms de processus, les chemins exécutables, le trafic des applications et les messages d&apos;événements Windows. Vérifiez avant de partager. Les points de terminaison de socket sont exclus.</value></data>
   <data name="ProcessCommandLineLabel" xml:space="preserve"><value>Ligne de commande</value></data>
   <data name="ProcessFileSignedByLabel" xml:space="preserve"><value>Fichier sur disque signé par</value></data>

@@ -2053,6 +2053,17 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
   <data name="FlightRecorderFilter" xml:space="preserve"><value>Инцидент WinMon (*.wmincident)|*.wmincident</value></data>
   <data name="FlightRecorderFileError" xml:space="preserve"><value>Не удалось сохранить или открыть инцидент: {0}</value></data>
   <data name="FlightRecorderOpened" xml:space="preserve"><value>Открыт инцидент: {0}. Обновление вернёт текущую запись.</value></data>
+  <data name="FlightRecorderSaveLocation" xml:space="preserve"><value>Расположение</value></data>
+  <data name="FlightRecorderChangeLocation" xml:space="preserve"><value>Изменить…</value></data>
+  <data name="FlightRecorderInvalidFileName" xml:space="preserve"><value>Введите допустимое имя файла.</value></data>
+  <data name="FlightRecorderSaveFolderMissing" xml:space="preserve"><value>Выберите существующую папку.</value></data>
+  <data name="FlightRecorderReplace" xml:space="preserve"><value>Заменить</value></data>
+  <data name="FlightRecorderReplaceFile" xml:space="preserve"><value>Заменить существующий файл инцидента «{0}»?</value></data>
+  <data name="FlightRecorderSaveRange" xml:space="preserve"><value>Диапазон сохранения</value></data>
+  <data name="FlightRecorderSaveRangeShort" xml:space="preserve"><value>±30 секунд</value></data>
+  <data name="FlightRecorderSaveRangeMedium" xml:space="preserve"><value>±1 минута</value></data>
+  <data name="FlightRecorderSaveRangeLong" xml:space="preserve"><value>±5 минут</value></data>
+  <data name="FlightRecorderSaveRangeAll" xml:space="preserve"><value>Вся запись</value></data>
   <data name="FlightRecorderFileHelp" xml:space="preserve"><value>Сохраняет зафиксированную шкалу времени, имена процессов, пути исполняемых файлов, трафик приложений и сообщения событий Windows. Проверьте перед отправкой. Конечные точки сокетов исключены.</value></data>
   <data name="ProcessCommandLineLabel" xml:space="preserve"><value>Командная строка</value></data>
   <data name="ProcessFileSignedByLabel" xml:space="preserve"><value>Подписант файла на диске</value></data>

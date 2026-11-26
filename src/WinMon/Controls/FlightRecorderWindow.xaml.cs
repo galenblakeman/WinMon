@@ -490,16 +490,49 @@ internal partial class FlightRecorderWindow : Window
     private static DateTimeOffset Minute(DateTimeOffset value) => new(value.UtcDateTime.AddTicks(
         -(value.UtcDateTime.Ticks % TimeSpan.TicksPerMinute)));
 
-    internal IncidentRecording Recording() => new(IncidentRecording.CurrentVersion, Stopwatch.Frequency,
-        _samples.Select((sample, index) =>
+    internal IncidentRecording Recording(int secondsBeforeAndAfter = 0)
+    {
+        var first = 0;
+        var end = _samples.Length;
+        var events = _eventReadPending ? IncidentEventResult.Unknown : _events;
+        if (secondsBeforeAndAfter > 0 && Selection is { } selected)
         {
+            first = _index;
+            end = _index + 1;
+            while (first > 0 && WithinSaveRange(_samples[first - 1], selected, secondsBeforeAndAfter)) first--;
+            while (end < _samples.Length && WithinSaveRange(_samples[end], selected, secondsBeforeAndAfter)) end++;
+
+            // Event logs use wall time, even when the observations are ordered by the monotonic clock.
+            var samples = _samples.AsSpan(first, end - first);
+            var earliest = selected.Timestamp;
+            var latest = earliest;
+            foreach (var sample in samples)
+            {
+                if (sample.Timestamp < earliest) earliest = sample.Timestamp;
+                if (sample.Timestamp > latest) latest = sample.Timestamp;
+            }
+            events = events with { Events = events.Events.Where(item => item.Timestamp >= earliest && item.Timestamp <= latest).ToArray() };
+        }
+
+        var observations = new IncidentObservation[end - first];
+        for (var index = first; index < end; index++)
+        {
+            var sample = _samples[index];
             var capture = _traffic.GetValueOrDefault(SampleKey.Of(sample));
             var changes = _changes is not null && _changes.TryGetValue(SampleKey.Of(sample), out var known)
                 ? known : IncidentTimeline.Changes(index > 0 ? _samples[index - 1] : null, sample);
-            return new IncidentObservation(sample, capture?.Network is { } network
+            observations[index - first] = new IncidentObservation(sample, capture?.Network is { } network
                 ? network with { Flows = [], CurrentFlows = null } : null, capture?.Owners ?? [],
                 changes?.Started, changes?.Stopped);
-        }).ToArray(), SelectedMetric, _index) { WindowsEvents = _eventReadPending ? IncidentEventResult.Unknown : _events };
+        }
+        return new IncidentRecording(IncidentRecording.CurrentVersion, Stopwatch.Frequency,
+            observations, SelectedMetric, _index - first) { WindowsEvents = events };
+    }
+
+    private static bool WithinSaveRange(MonitorSample sample, MonitorSample selected, int seconds) =>
+        sample.MonotonicTimestamp > 0 && selected.MonotonicTimestamp > 0
+            ? Math.Abs(sample.MonotonicTimestamp - selected.MonotonicTimestamp) <= seconds * Stopwatch.Frequency
+            : Math.Abs((sample.Timestamp - selected.Timestamp).Ticks) <= seconds * TimeSpan.TicksPerSecond;
 
     internal void OpenRecording(IncidentRecording recording, string name)
     {
@@ -523,20 +556,19 @@ internal partial class FlightRecorderWindow : Window
     {
         try
         {
-            var dialog = new SaveFileDialog { Title = Strings.FlightRecorderSave, Filter = Strings.FlightRecorderFilter,
-                DefaultExt = ".wmincident", AddExtension = true, OverwritePrompt = true,
-                FileName = $"WinMon-{DateTime.Now:yyyyMMdd-HHmmss}.wmincident" };
-            if (dialog.ShowDialog(this) != true) return;
-            await SaveRecordingAsync(dialog.FileName);
+            if (Selection is null) return;
+            var dialog = new FlightRecorderSaveDialog(SelectedTime.Text) { Owner = this };
+            if (dialog.ShowDialog() != true || dialog.Choice is not { } choice) return;
+            await SaveRecordingAsync(choice.Path, choice.SecondsBeforeAndAfter, choice.Overwrite);
         }
         catch (Exception ex) { FileError(ex); }
     }
 
-    internal async Task SaveRecordingAsync(string path)
+    internal async Task SaveRecordingAsync(string path, int secondsBeforeAndAfter, bool overwrite = false)
     {
-        var recording = Recording();
+        var recording = Recording(secondsBeforeAndAfter);
         SetFileBusy(true);
-        var write = Task.Run(() => recording.Save(path));
+        var write = Task.Run(() => recording.Save(path, overwrite));
         SaveStarted?.Invoke(write);
         _recordedMetric = recording.Metric;
         try { await write; }

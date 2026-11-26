@@ -464,6 +464,7 @@ public static partial class Strings
     public static string FlightRecorderAfter => ResourceManager.GetString(nameof(FlightRecorderAfter), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string FlightRecorderAttribution => ResourceManager.GetString(nameof(FlightRecorderAttribution), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string FlightRecorderBefore => ResourceManager.GetString(nameof(FlightRecorderBefore), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string FlightRecorderChangeLocation => ResourceManager.GetString(nameof(FlightRecorderChangeLocation), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string FlightRecorderChanges => ResourceManager.GetString(nameof(FlightRecorderChanges), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string FlightRecorderChangeSummary => ResourceManager.GetString(nameof(FlightRecorderChangeSummary), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string FlightRecorderChangesUnavailable => ResourceManager.GetString(nameof(FlightRecorderChangesUnavailable), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -503,6 +504,7 @@ public static partial class Strings
     public static string FlightRecorderFileError => ResourceManager.GetString(nameof(FlightRecorderFileError), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string FlightRecorderFileHelp => ResourceManager.GetString(nameof(FlightRecorderFileHelp), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string FlightRecorderFilter => ResourceManager.GetString(nameof(FlightRecorderFilter), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string FlightRecorderInvalidFileName => ResourceManager.GetString(nameof(FlightRecorderInvalidFileName), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string FlightRecorderLongerTrends => ResourceManager.GetString(nameof(FlightRecorderLongerTrends), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string FlightRecorderMoment => ResourceManager.GetString(nameof(FlightRecorderMoment), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string FlightRecorderNext => ResourceManager.GetString(nameof(FlightRecorderNext), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -513,9 +515,18 @@ public static partial class Strings
     public static string FlightRecorderPartial => ResourceManager.GetString(nameof(FlightRecorderPartial), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string FlightRecorderPeak => ResourceManager.GetString(nameof(FlightRecorderPeak), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string FlightRecorderPrevious => ResourceManager.GetString(nameof(FlightRecorderPrevious), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string FlightRecorderReplace => ResourceManager.GetString(nameof(FlightRecorderReplace), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string FlightRecorderReplaceFile => ResourceManager.GetString(nameof(FlightRecorderReplaceFile), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string FlightRecorderResizeEvents => ResourceManager.GetString(nameof(FlightRecorderResizeEvents), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string FlightRecorderResource => ResourceManager.GetString(nameof(FlightRecorderResource), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string FlightRecorderSave => ResourceManager.GetString(nameof(FlightRecorderSave), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string FlightRecorderSaveFolderMissing => ResourceManager.GetString(nameof(FlightRecorderSaveFolderMissing), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string FlightRecorderSaveLocation => ResourceManager.GetString(nameof(FlightRecorderSaveLocation), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string FlightRecorderSaveRange => ResourceManager.GetString(nameof(FlightRecorderSaveRange), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string FlightRecorderSaveRangeAll => ResourceManager.GetString(nameof(FlightRecorderSaveRangeAll), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string FlightRecorderSaveRangeLong => ResourceManager.GetString(nameof(FlightRecorderSaveRangeLong), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string FlightRecorderSaveRangeMedium => ResourceManager.GetString(nameof(FlightRecorderSaveRangeMedium), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string FlightRecorderSaveRangeShort => ResourceManager.GetString(nameof(FlightRecorderSaveRangeShort), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string FlightRecorderShort => ResourceManager.GetString(nameof(FlightRecorderShort), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string FlightRecorderTimeline => ResourceManager.GetString(nameof(FlightRecorderTimeline), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string FlightRecorderTitle => ResourceManager.GetString(nameof(FlightRecorderTitle), Culture ?? CultureInfo.CurrentUICulture)!;

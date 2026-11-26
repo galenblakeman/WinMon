@@ -91,7 +91,7 @@ internal sealed partial class WindowDiagnostics
                 throw new InvalidOperationException("Incident file controls must be disabled during save.");
         };
         recorder.SaveFinished += _ => saveFinished = true;
-        await recorder.SaveRecordingAsync(incidentPath);
+        await recorder.SaveRecordingAsync(incidentPath, secondsBeforeAndAfter: 0);
         if (!saveStarted || !saveFinished)
             throw new InvalidOperationException("Incident saves must participate in the owner's export shutdown tracking.");
         recorder.Update([]);
@@ -128,6 +128,14 @@ internal sealed partial class WindowDiagnostics
             fixture.Preferences = fixture.Preferences with { Theme = theme };
             fixture.ApplyTheme();
             WindowTheme.Apply(recorder);
+            var saveDialog = new FlightRecorderSaveDialog(recorder.SelectedTime.Text) { Owner = recorder };
+            try
+            {
+                saveDialog.Show();
+                await CaptureServiceWindowAsync(saveDialog,
+                    Path.Combine(output, $"flight-recorder-save-{theme.ToLowerInvariant()}.png"), cancellationToken);
+            }
+            finally { saveDialog.Close(); }
             foreach (var width in new[] { 1000d, 620d })
             {
                 recorder.Width = width;

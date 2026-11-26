@@ -2062,6 +2062,17 @@ Finalizados desde la observación anterior: {1}</value>
   <data name="FlightRecorderFilter" xml:space="preserve"><value>Incidente de WinMon (*.wmincident)|*.wmincident</value></data>
   <data name="FlightRecorderFileError" xml:space="preserve"><value>No se pudo guardar o abrir el incidente: {0}</value></data>
   <data name="FlightRecorderOpened" xml:space="preserve"><value>Incidente abierto: {0}. Actualizar vuelve a la grabación actual.</value></data>
+  <data name="FlightRecorderSaveLocation" xml:space="preserve"><value>Ubicación</value></data>
+  <data name="FlightRecorderChangeLocation" xml:space="preserve"><value>Cambiar…</value></data>
+  <data name="FlightRecorderInvalidFileName" xml:space="preserve"><value>Introduce un nombre de archivo válido.</value></data>
+  <data name="FlightRecorderSaveFolderMissing" xml:space="preserve"><value>Elige una carpeta existente.</value></data>
+  <data name="FlightRecorderReplace" xml:space="preserve"><value>Reemplazar</value></data>
+  <data name="FlightRecorderReplaceFile" xml:space="preserve"><value>¿Reemplazar el archivo de incidente existente «{0}»?</value></data>
+  <data name="FlightRecorderSaveRange" xml:space="preserve"><value>Intervalo para guardar</value></data>
+  <data name="FlightRecorderSaveRangeShort" xml:space="preserve"><value>±30 segundos</value></data>
+  <data name="FlightRecorderSaveRangeMedium" xml:space="preserve"><value>±1 minuto</value></data>
+  <data name="FlightRecorderSaveRangeLong" xml:space="preserve"><value>±5 minutos</value></data>
+  <data name="FlightRecorderSaveRangeAll" xml:space="preserve"><value>Grabación completa</value></data>
   <data name="FlightRecorderFileHelp" xml:space="preserve"><value>Guarda la línea de tiempo congelada, nombres de procesos, rutas ejecutables, tráfico de aplicaciones y mensajes de eventos de Windows. Revíselo antes de compartirlo. Se excluyen los extremos de socket.</value></data>
   <data name="ProcessCommandLineLabel" xml:space="preserve"><value>Línea de comandos</value></data>
   <data name="ProcessFileSignedByLabel" xml:space="preserve"><value>Archivo en disco firmado por</value></data>

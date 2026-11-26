@@ -2053,6 +2053,17 @@ Encerrados desde a observação anterior: {1}</value>
   <data name="FlightRecorderFilter" xml:space="preserve"><value>Incidente do WinMon (*.wmincident)|*.wmincident</value></data>
   <data name="FlightRecorderFileError" xml:space="preserve"><value>Não foi possível salvar ou abrir o incidente: {0}</value></data>
   <data name="FlightRecorderOpened" xml:space="preserve"><value>Incidente aberto: {0}. Atualizar retorna à gravação atual.</value></data>
+  <data name="FlightRecorderSaveLocation" xml:space="preserve"><value>Local</value></data>
+  <data name="FlightRecorderChangeLocation" xml:space="preserve"><value>Alterar…</value></data>
+  <data name="FlightRecorderInvalidFileName" xml:space="preserve"><value>Digite um nome de arquivo válido.</value></data>
+  <data name="FlightRecorderSaveFolderMissing" xml:space="preserve"><value>Escolha uma pasta existente.</value></data>
+  <data name="FlightRecorderReplace" xml:space="preserve"><value>Substituir</value></data>
+  <data name="FlightRecorderReplaceFile" xml:space="preserve"><value>Substituir o arquivo de incidente existente “{0}”?</value></data>
+  <data name="FlightRecorderSaveRange" xml:space="preserve"><value>Intervalo para salvar</value></data>
+  <data name="FlightRecorderSaveRangeShort" xml:space="preserve"><value>±30 segundos</value></data>
+  <data name="FlightRecorderSaveRangeMedium" xml:space="preserve"><value>±1 minuto</value></data>
+  <data name="FlightRecorderSaveRangeLong" xml:space="preserve"><value>±5 minutos</value></data>
+  <data name="FlightRecorderSaveRangeAll" xml:space="preserve"><value>Gravação inteira</value></data>
   <data name="FlightRecorderFileHelp" xml:space="preserve"><value>Salva a linha do tempo congelada, nomes de processos, caminhos executáveis, tráfego de aplicativos e mensagens de eventos do Windows. Revise antes de compartilhar. Os pontos de extremidade de soquete são excluídos.</value></data>
   <data name="ProcessCommandLineLabel" xml:space="preserve"><value>Linha de comando</value></data>
   <data name="ProcessFileSignedByLabel" xml:space="preserve"><value>Arquivo em disco assinado por</value></data>

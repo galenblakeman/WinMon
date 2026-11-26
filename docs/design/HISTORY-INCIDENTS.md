@@ -1,6 +1,6 @@
 # Save and reopen incidents
 
-History offers Save incident and Open incident. Save persists the entire currently frozen recording, selected resource and selected observation. Open replaces the investigation window's data without restoring anything into the sampling session. Refresh returns to current retained history. The source filename remains visible, with its full explanation in a tooltip.
+History offers Save incident and Open incident. Save persists the selected range of the frozen recording, the selected resource and the selected observation. The range defaults to 30 seconds on each side, with options for 1 minute, 5 minutes and the entire recording. Open replaces the investigation window's data without restoring anything into the sampling session. Refresh returns to current retained history. The source filename remains visible, with its full explanation in a tooltip.
 
 Use the existing monitoring records and serialization converters. `IncidentRecording` stores versioned GZip JSON containing resource/process observations, app traffic and frozen started/stopped lists. It records the source Stopwatch frequency; loading rebases sample offsets to the local frequency without changing wall time. Missing coverage remains missing. Endpoints, service inventories, Usage totals and live collector state are excluded.
 
@@ -9,6 +9,8 @@ Limit files to 64 MiB compressed, 256 MiB decoded, 7,200 observations, two milli
 Files contain process names and executable paths. Save explains this in its tooltip; user documentation asks users to review files before sharing. There is no upload, file association or automatic collection.
 
 ## What landed
+
+The Save incident dialog shows the selected moment, range, file name and location. Change opens the Windows folder picker. Save adds the incident extension when needed and asks before replacing an existing file. A scoped export saves the available observations around the selected point and rebases its index in the file. It keeps Windows events between the earliest and latest exported wall timestamps and preserves the source log coverage and limit indicator. Entire recording preserves the original full export. Both choices use the same incident format and limits.
 
 Implemented `IncidentRecording`, Save/Open in `FlightRecorderWindow`, localized labels and privacy/error text, `IncidentRecordingTests` and a capture-smoke round trip covering loaded state, network comparison and return to live history. Manual frozen snapshots landed as designed; guaranteed pre/post-trigger recording and automatic incident-file creation remain outside this feature.
 

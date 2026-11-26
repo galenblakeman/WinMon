@@ -2062,6 +2062,17 @@ Seit letzter Beobachtung beendet: {1}</value>
   <data name="FlightRecorderFilter" xml:space="preserve"><value>WinMon-Vorfall (*.wmincident)|*.wmincident</value></data>
   <data name="FlightRecorderFileError" xml:space="preserve"><value>Der Vorfall konnte nicht gespeichert oder geöffnet werden: {0}</value></data>
   <data name="FlightRecorderOpened" xml:space="preserve"><value>Geöffneter Vorfall: {0}. Aktualisieren lädt die aktuelle Aufzeichnung.</value></data>
+  <data name="FlightRecorderSaveLocation" xml:space="preserve"><value>Speicherort</value></data>
+  <data name="FlightRecorderChangeLocation" xml:space="preserve"><value>Ändern…</value></data>
+  <data name="FlightRecorderInvalidFileName" xml:space="preserve"><value>Geben Sie einen gültigen Dateinamen ein.</value></data>
+  <data name="FlightRecorderSaveFolderMissing" xml:space="preserve"><value>Wählen Sie einen vorhandenen Ordner.</value></data>
+  <data name="FlightRecorderReplace" xml:space="preserve"><value>Ersetzen</value></data>
+  <data name="FlightRecorderReplaceFile" xml:space="preserve"><value>Die vorhandene Vorfallsdatei „{0}“ ersetzen?</value></data>
+  <data name="FlightRecorderSaveRange" xml:space="preserve"><value>Speicherbereich</value></data>
+  <data name="FlightRecorderSaveRangeShort" xml:space="preserve"><value>±30 Sekunden</value></data>
+  <data name="FlightRecorderSaveRangeMedium" xml:space="preserve"><value>±1 Minute</value></data>
+  <data name="FlightRecorderSaveRangeLong" xml:space="preserve"><value>±5 Minuten</value></data>
+  <data name="FlightRecorderSaveRangeAll" xml:space="preserve"><value>Gesamte Aufzeichnung</value></data>
   <data name="FlightRecorderFileHelp" xml:space="preserve"><value>Speichert die eingefrorene Zeitachse, Prozessnamen, ausführbare Pfade, App-Datenverkehr und Windows-Ereignismeldungen. Vor dem Teilen prüfen. Socket-Endpunkte sind ausgeschlossen.</value></data>
   <data name="ProcessCommandLineLabel" xml:space="preserve"><value>Befehlszeile</value></data>
   <data name="ProcessFileSignedByLabel" xml:space="preserve"><value>Datei auf Datenträger signiert von</value></data>
