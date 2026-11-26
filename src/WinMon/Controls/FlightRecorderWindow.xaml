@@ -8,6 +8,52 @@
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False" PreviewKeyDown="OnKeyDown"
         Background="{DynamicResource Surface}" Foreground="{DynamicResource Text}">
     <Window.Resources>
+        <!-- Own the row chrome: the system ListView highlight can be light even in a dark theme. -->
+        <Style TargetType="ListViewItem">
+            <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="4,2"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListViewItem">
+                        <Grid>
+                            <Border x:Name="Row" Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                                    Padding="{TemplateBinding Padding}">
+                                <Grid>
+                                    <GridViewRowPresenter x:Name="Columns" Content="{TemplateBinding Content}"
+                                                          Columns="{Binding View.Columns, RelativeSource={RelativeSource AncestorType=ListView}}"/>
+                                    <ContentPresenter x:Name="Item" Visibility="Collapsed"
+                                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                                </Grid>
+                            </Border>
+                            <Border x:Name="FocusOutline" BorderBrush="{DynamicResource Text}" BorderThickness="1"
+                                    IsHitTestVisible="False" Visibility="Collapsed"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <DataTrigger Binding="{Binding View, RelativeSource={RelativeSource AncestorType=ListView}}" Value="{x:Null}">
+                                <Setter TargetName="Columns" Property="Visibility" Value="Collapsed"/>
+                                <Setter TargetName="Item" Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Row" Property="Background" Value="{DynamicResource Raised}"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Row" Property="Background" Value="{DynamicResource Raised}"/>
+                                <Setter TargetName="Row" Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                <Setter TargetName="FocusOutline" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
                 <Style TargetType="TabItem">
                     <Setter Property="Foreground" Value="{DynamicResource Text}" />
                     <Setter Property="Template">
@@ -168,7 +214,7 @@
                       ScrollViewer.VerticalScrollBarVisibility="Auto" HorizontalContentAlignment="Stretch"
                       AutomationProperties.Name="{Binding [FlightRecorderCrashes], Source={x:Static r:Strings.Text}}">
                 <ListView.ItemContainerStyle>
-                    <Style TargetType="ListViewItem">
+                    <Style TargetType="ListViewItem" BasedOn="{StaticResource {x:Type ListViewItem}}">
                         <Setter Property="AutomationProperties.Name" Value="{Binding AccessibleName}"/>
                     </Style>
                 </ListView.ItemContainerStyle>

@@ -131,6 +131,9 @@ internal sealed partial class WindowDiagnostics
             {
                 recorder.Width = width;
                 recorder.Height = width == 620 ? 540 : 760;
+                recorder.Crashes.SelectedIndex = 0;
+                recorder.Events.SelectedIndex = 0;
+                recorder.ComparisonProcesses.SelectedIndex = 0;
                 recorder.UpdateLayout();
                 var refreshHost = (FrameworkElement)recorder.RefreshButton.Parent;
                 var refreshRight = recorder.RefreshButton.TranslatePoint(
@@ -146,11 +149,16 @@ internal sealed partial class WindowDiagnostics
                 await CaptureServiceWindowAsync(recorder,
                     Path.Combine(output, $"flight-recorder-{theme.ToLowerInvariant()}-{width:0}.png"), cancellationToken);
                 recorder.Views.SelectedIndex = 1;
+                recorder.Processes.SelectedIndex = 0;
                 recorder.UpdateLayout();
                 if (recorder.Processes.ActualHeight < 40)
                     throw new InvalidOperationException("Selected-moment contributors must remain available in their tab.");
                 await CaptureServiceWindowAsync(recorder,
                     Path.Combine(output, $"flight-recorder-moment-{theme.ToLowerInvariant()}-{width:0}.png"), cancellationToken);
+                ((ListViewItem)recorder.Processes.ItemContainerGenerator.ContainerFromIndex(0)).Focus();
+                await CaptureServiceWindowAsync(recorder,
+                    Path.Combine(output, $"flight-recorder-moment-focused-{theme.ToLowerInvariant()}-{width:0}.png"), cancellationToken);
+                recorder.RefreshButton.Focus();
                 recorder.Views.SelectedIndex = 0;
                 var trendNow = DateTimeOffset.UtcNow;
                 var trendEnd = new DateTimeOffset(trendNow.UtcDateTime.AddTicks(
