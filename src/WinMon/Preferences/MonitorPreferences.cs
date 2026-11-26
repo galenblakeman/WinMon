@@ -44,6 +44,9 @@ public sealed record MonitorPreferences
     /// <summary>A specific network adapter ID, or null to select one automatically.</summary>
     public string? NetworkInterfaceId { get; init; }
 
+    /// <summary>Persistent GPU hardware identity; null selects the busiest GPU automatically.</summary>
+    public string? GpuDeviceId { get; init; }
+
     internal int SeriesMask => VisibleMetrics | (ShowGpu ? 16 : 0) |
                                (SecondaryDrive is not null && ShowSecondaryDisk ? 32 : 0);
 

@@ -83,12 +83,12 @@ public sealed class SamplingSeriesCharacterizationTests
     {
         _window.Preferences = _window.Preferences with
         {
-            PrimaryDrive = "", SecondaryDrive = null, NetworkInterfaceId = null, TopProcessCount = 0
+            PrimaryDrive = "", SecondaryDrive = null, NetworkInterfaceId = null, GpuDeviceId = null, TopProcessCount = 0
         };
         var automatic = _window.CurrentSamplingOptions();
         _window.Preferences = _window.Preferences with
         {
-            PrimaryDrive = @"S:\", SecondaryDrive = @"T:\", NetworkInterfaceId = "adapter-next", TopProcessCount = 7
+            PrimaryDrive = @"S:\", SecondaryDrive = @"T:\", NetworkInterfaceId = "adapter-next", GpuDeviceId = "gpu-next", TopProcessCount = 7
         };
         var selected = _window.CurrentSamplingOptions();
         Assert.Multiple(() =>
@@ -96,10 +96,12 @@ public sealed class SamplingSeriesCharacterizationTests
             Assert.That(automatic.PrimaryDrive, Is.Empty);
             Assert.That(automatic.SecondaryDrive, Is.Null);
             Assert.That(automatic.NetworkInterfaceId, Is.Null);
+            Assert.That(automatic.GpuDeviceId, Is.Null);
             Assert.That(automatic.RetainAll, Is.True);
             Assert.That(selected.PrimaryDrive, Is.EqualTo(@"S:\"));
             Assert.That(selected.SecondaryDrive, Is.EqualTo(@"T:\"));
             Assert.That(selected.NetworkInterfaceId, Is.EqualTo("adapter-next"));
+            Assert.That(selected.GpuDeviceId, Is.EqualTo("gpu-next"));
             Assert.That(selected.RetainAll, Is.False);
         });
     }

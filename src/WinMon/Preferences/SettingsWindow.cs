@@ -11,6 +11,9 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using System.Windows.Threading;
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 using WinMon.Controls;
 using WinMon.Monitoring;
 using WinMon.Shortcuts;
@@ -25,6 +28,7 @@ internal enum SettingsSection
     General,
     Appearance,
     Monitoring,
+    Devices,
     CpuTemperature,
     Network,
     AutomaticCaptures,
@@ -110,6 +114,11 @@ public sealed class SettingsWindow : Window
     private readonly ComboBox _startupViewSelector;
     private readonly Func<NetworkChoice[]> _loadNetworkInterfaces;
     private readonly string? _currentNetworkName;
+    private readonly Func<WindowsGpuDevice[]> _loadGpuDevices;
+    private readonly TextBlock _gpuStatus = new() { TextWrapping = TextWrapping.Wrap, FontSize = 12 };
+    private Task? _gpuLoadTask;
+    private bool _gpuDiscoveryFailed;
+    internal Func<ResourceSample?>? GetGpuSample { get; set; }
     private Task? _networkLoadTask;
     private readonly CheckBox _keepHistoryCheckBox;
     private readonly CheckBox _keepResourceTrendsCheckBox;
@@ -170,6 +179,7 @@ public sealed class SettingsWindow : Window
     private Button? _saveButton;
 
     private static readonly Geometry Monitoring = Geometry.Parse("M 1,9 L 4,9 L 6,3 L 9,13 L 11,7 L 15,7");
+    private static readonly Geometry DevicesIcon = Geometry.Parse("M 1,2 L 15,2 L 15,11 L 1,11 Z M 6,11 L 6,14 M 10,11 L 10,14 M 4,14 L 12,14");
 
     private static readonly Geometry NetworkIcon = Geometry.Parse(
         "M 5,1 L 11,1 L 11,5 L 5,5 Z M 8,5 L 8,8 M 3,8 L 13,8 M 3,8 L 3,11 M 13,8 L 13,11 M 1,11 L 5,11 L 5,15 L 1,15 Z M 11,11 L 15,11 L 15,15 L 11,15 Z");
@@ -219,10 +229,12 @@ public sealed class SettingsWindow : Window
         NetworkMonitoringState networkMonitoringState = NetworkMonitoringState.Disabled,
         Func<bool, CancellationToken, Task<SensorMonitoringChangeResult>>? changeCpuTemperatureMonitoring = null,
         Func<CancellationToken, Task<SensorMonitoringChangeResult>>? removeCpuTemperatureService = null,
-        SensorMonitoringState cpuTemperatureMonitoringState = SensorMonitoringState.Disabled)
+        SensorMonitoringState cpuTemperatureMonitoringState = SensorMonitoringState.Disabled,
+        Func<WindowsGpuDevice[]>? loadGpuDevices = null)
     {
         ArgumentNullException.ThrowIfNull(preferences);
         _loadDrives = loadDrives;
+        _loadGpuDevices = loadGpuDevices ?? WindowsGpuDevices.Discover;
         _loadNetworkInterfaces = loadNetworkInterfaces ?? DiscoverNetworkInterfaces;
         _currentNetworkName = preferences.NetworkInterfaceId is null ? currentNetworkName : null;
         _startupAvailability = startupAvailability ?? StartupRegistration.Availability;
@@ -406,6 +418,10 @@ public sealed class SettingsWindow : Window
 
         PrimaryDriveSelector = CreateDriveSelector(preferences.PrimaryDrive, false);
         SecondaryDriveSelector = CreateDriveSelector(preferences.SecondaryDrive, true);
+        GpuSelector = CreateSelector([], "");
+        SetGpuChoices([], preferences.GpuDeviceId);
+        GpuSelector.SelectionChanged += (_, _) => UpdateGpuStatus();
+        _gpuStatus.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
         NetworkInterfaceSelector = CreateNetworkInterfaceSelector(preferences.NetworkInterfaceId, _currentNetworkName);
         NetworkInterfaceSelector.SelectionChanged += (_, _) =>
             NetworkInterfaceSelector.ToolTip = (NetworkInterfaceSelector.SelectedItem as NetworkChoice)?.Label;
@@ -414,6 +430,7 @@ public sealed class SettingsWindow : Window
             preferences.SecondaryDrive);
         ContentRendered += async (_, _) => await LoadDrivesAsync();
         ContentRendered += async (_, _) => await LoadNetworkInterfacesAsync();
+        ContentRendered += async (_, _) => await LoadGpuDevicesAsync();
         Closed += (_, _) => _closed = true;
         Closing += SettingsWindow_Closing;
 
@@ -423,6 +440,7 @@ public sealed class SettingsWindow : Window
         _pages.Add((SettingsSection.General, Strings.SettingsGeneral, ButtonIcon.Settings, CreateGeneralPage()));
         _pages.Add((SettingsSection.Appearance, Strings.Appearance, AppearanceIcon, CreateAppearancePage()));
         _pages.Add((SettingsSection.Monitoring, Strings.SettingsMonitoring, Monitoring, CreateMonitoringPage()));
+        _pages.Add((SettingsSection.Devices, Strings.SettingsDevices, DevicesIcon, CreateDevicesPage()));
         if (SensorSetupBroker.Supported)
             _pages.Add((SettingsSection.CpuTemperature, Strings.DetailCpuTemperature, Monitoring, CreateCpuTemperaturePage()));
         _pages.Add((SettingsSection.Network, Strings.Network, NetworkIcon, CreateNetworkPage()));
@@ -511,6 +529,8 @@ public sealed class SettingsWindow : Window
     internal ComboBox StartupViewSelector => _startupViewSelector;
 
     internal ComboBox NetworkInterfaceSelector { get; }
+    internal ComboBox GpuSelector { get; }
+    internal TextBlock GpuStatus => _gpuStatus;
 
     internal CheckBox ProcessNetworkMonitoringCheckBox => _processNetworkMonitoringCheckBox;
 
@@ -551,6 +571,7 @@ public sealed class SettingsWindow : Window
             PrimaryDrive = settings.PrimaryDrive,
             SecondaryDrive = settings.SecondaryDrive,
             NetworkInterfaceId = settings.NetworkInterfaceId,
+            GpuDeviceId = settings.GpuDeviceId,
             StartupView = settings.StartupView,
             Theme = settings.Theme,
             Language = settings.Language,
@@ -592,6 +613,53 @@ public sealed class SettingsWindow : Window
         public override string ToString()
         {
             return Label;
+        }
+    }
+
+    internal sealed record GpuChoice(string? Id, string Label, bool Available = true)
+    {
+        public override string ToString() => Label;
+    }
+
+    private void SetGpuChoices(WindowsGpuDevice[] devices, string? selected)
+    {
+        var choices = new List<GpuChoice> { new(null, Strings.NetworkAutomatic) };
+        foreach (var device in devices)
+        {
+            var duplicate = devices.Count(other => other.Name == device.Name) > 1;
+            choices.Add(new GpuChoice(device.Id, duplicate ? $"{device.Name} — {device.Id}" : device.Name));
+        }
+        if (selected is not null && !choices.Any(choice => string.Equals(choice.Id, selected, StringComparison.OrdinalIgnoreCase)))
+            choices.Add(new GpuChoice(selected, Strings.GpuDeviceUnavailable, false));
+        GpuSelector.ItemsSource = choices;
+        GpuSelector.SelectedItem = choices.First(choice => string.Equals(choice.Id, selected, StringComparison.OrdinalIgnoreCase));
+        UpdateGpuStatus();
+    }
+
+    private void UpdateGpuStatus()
+    {
+        var choice = GpuSelector.SelectedItem as GpuChoice;
+        GpuSelector.ToolTip = choice?.Label;
+        _gpuStatus.Text = _gpuDiscoveryFailed ? Strings.GpuDiscoveryFailed
+            : choice is { Available: false } ? Strings.GpuDeviceUnavailableNote
+            : choice?.Id is null && GetGpuSample?.Invoke()?.GpuName is { Length: > 0 } name
+                ? Strings.Format(Strings.GpuCurrentDevice, name) : "";
+    }
+
+    internal Task LoadGpuDevicesAsync() => _gpuLoadTask ??= LoadGpuDevicesCoreAsync();
+
+    private async Task LoadGpuDevicesCoreAsync()
+    {
+        try
+        {
+            var devices = await Task.Run(_loadGpuDevices);
+            if (_closed) return;
+            SetGpuChoices(devices, (GpuSelector.SelectedItem as GpuChoice)?.Id);
+        }
+        catch (Exception ex)
+        {
+            Trace.TraceWarning("WinMon GPU device discovery: {0}", ex);
+            if (!_closed) { _gpuDiscoveryFailed = true; UpdateGpuStatus(); }
         }
     }
 
@@ -988,6 +1056,13 @@ public sealed class SettingsWindow : Window
         page.Children.Add(Note(Strings.ChartPreferencesNote));
         page.Children.Add(CreateHeading(Strings.ResourceGauges));
         page.Children.Add(Field(Strings.GaugePeakWindow, _gaugePeakWindowSelector));
+        return page;
+    }
+
+    private StackPanel CreateDevicesPage()
+    {
+        var page = Page(Strings.SettingsDevices);
+        page.Children.Add(Note(Strings.DevicesNote));
         page.Children.Add(CreateHeading(Strings.DiskMonitoring));
         page.Children.Add(Note(Strings.ChooseUpTo2Volumes));
         var disks = new Grid { Margin = new Thickness(0, 3, 0, 3) };
@@ -1011,7 +1086,22 @@ public sealed class SettingsWindow : Window
         }
         page.Children.Add(disks);
         page.Children.Add(Note(Strings.SelectNoneToMonitorOneDriveActiveTimeAndRead));
-        // Longer retention explanations still fit the designed page without hiding controls.
+        page.Children.Add(CreateHeading(Strings.Network));
+        page.Children.Add(DeviceField(Strings.NetworkInterfaceLabel, NetworkInterfaceSelector));
+        page.Children.Add(Note(Strings.NetworkSelectionNote));
+        page.Children.Add(CreateHeading(Strings.GPU));
+        page.Children.Add(DeviceField(Strings.GpuDeviceLabel, GpuSelector));
+        page.Children.Add(_gpuStatus);
+        page.Children.Add(Note(Strings.GpuSelectionNote));
+        var timer = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromSeconds(1) };
+        timer.Tick += (_, _) => UpdateGpuStatus();
+        page.IsVisibleChanged += (_, _) =>
+        {
+            if (page.IsVisible) { UpdateGpuStatus(); timer.Start(); }
+            else timer.Stop();
+        };
+        Closed += (_, _) => timer.Stop();
+        // Keep the device targets together at the dialog's designed height.
         page.Margin = new Thickness(26, 6, 26, 6);
         foreach (var text in page.Children.OfType<TextBlock>())
         {
@@ -1025,8 +1115,6 @@ public sealed class SettingsWindow : Window
     private StackPanel CreateNetworkPage()
     {
         var page = Page(Strings.Network);
-        page.Children.Add(Field(Strings.NetworkInterfaceLabel, NetworkInterfaceSelector));
-        page.Children.Add(Note(Strings.NetworkSelectionNote));
         page.Children.Add(new NetworkMonitoringSettings(_processNetworkMonitoringCheckBox,
             _processNetworkMonitoringStatus, _repairNetworkMonitoringButton, _removeNetworkMonitoringServiceButton));
         return page;
@@ -1179,6 +1267,18 @@ public sealed class SettingsWindow : Window
         };
     }
 
+    private static Grid DeviceField(string label, ComboBox control)
+    {
+        var field = Field(label, control);
+        field.ColumnDefinitions.Clear();
+        field.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        field.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        ((TextBlock)field.Children[0]).Margin = new Thickness(0, 0, 0, 4);
+        Grid.SetColumn(control, 0);
+        Grid.SetRow(control, 1);
+        return field;
+    }
+
     private static Grid Field(string label, Control control)
     {
         Grid field = new() { Margin = new Thickness(0, 3, 0, 3) };
@@ -1256,7 +1356,7 @@ public sealed class SettingsWindow : Window
         var secondary = (SecondaryDriveSelector.SelectedItem as DriveChoice)?.Name;
         if (primary is null || primary == secondary)
         {
-            Reject(SettingsSection.Monitoring, primary is null ? PrimaryDriveSelector : SecondaryDriveSelector,
+            Reject(SettingsSection.Devices, primary is null ? PrimaryDriveSelector : SecondaryDriveSelector,
                 Strings.ChooseAPrimaryVolumeAndADifferentSecondVolumeOr, Strings.DiskMonitoring);
             return;
         }
@@ -1289,6 +1389,7 @@ public sealed class SettingsWindow : Window
             PrimaryDrive = primary,
             SecondaryDrive = secondary,
             NetworkInterfaceId = (NetworkInterfaceSelector.SelectedItem as NetworkChoice)?.Id,
+            GpuDeviceId = (GpuSelector.SelectedItem as GpuChoice)?.Id,
             StartupView = _startupViewSelector.SelectedValue as StartupViewMode? ?? StartupViewMode.LastUsed,
             Theme = (_themeSelector.SelectedItem as ThemeChoice)?.Name ?? "Dark",
             Language = LanguageSelector.SelectedValue as string ?? AppLanguages.SystemDefault,

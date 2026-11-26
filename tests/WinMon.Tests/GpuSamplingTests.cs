@@ -10,6 +10,39 @@ namespace WinMon.Tests;
 public sealed class GpuSamplingTests
 {
     [Test]
+    public void DeviceIdentity_DropsBootControlSetAndKeepsPhysicalInstance()
+    {
+        var a = WindowsGpuDevices.NormalizeKey(@"\REGISTRY\MACHINE\SYSTEM\ControlSet001\Enum\PCI\VEN_ABCD\one\Device Parameters");
+        var b = WindowsGpuDevices.NormalizeKey(@"\REGISTRY\MACHINE\SYSTEM\ControlSet002\Enum\PCI\VEN_ABCD\one\Device Parameters");
+        var other = WindowsGpuDevices.NormalizeKey(@"\REGISTRY\MACHINE\SYSTEM\ControlSet001\Enum\PCI\VEN_ABCD\two\Device Parameters");
+        Assert.Multiple(() =>
+        {
+            Assert.That(a, Is.EqualTo(@"PCI\VEN_ABCD\one"));
+            Assert.That(b, Is.EqualTo(a));
+            Assert.That(other, Is.Not.EqualTo(a));
+            Assert.That(WindowsGpuDevices.NormalizeKey(""), Is.Null);
+            Assert.That(WindowsGpuDevices.NormalizeKey("unknown registry layout"), Is.Null);
+        });
+    }
+
+    [Test]
+    public void Selection_UsesOnlyChosenAdapterAndDoesNotFilterProcessReadings()
+    {
+        var readings = WindowsGpuSampler.Parse([Counter(1, "1234", 0, 20), Counter(2, "5678", 0, 95)]);
+        var aggregation = new WindowsGpuSampler.EngineAggregation();
+        Assert.Multiple(() =>
+        {
+            Assert.That(aggregation.Busiest(readings)!.Percent, Is.EqualTo(95));
+            Assert.That(aggregation.Busiest(readings, "0x00000000_0x1234/0")!.Percent, Is.EqualTo(20));
+            Assert.That(aggregation.Busiest(readings, "missing"), Is.Null);
+            Assert.That(aggregation.ByProcess(readings)[2]!.Percent, Is.EqualTo(95));
+        });
+        var invalid = WindowsGpuSampler.Parse([Counter(1, "1234", 0, 20, 0xC0000BC6), Counter(2, "5678", 0, 95)]);
+        Assert.That(aggregation.Busiest(invalid, "0x00000000_0x1234/0"), Is.Null,
+            "An unavailable chosen GPU cannot substitute another adapter's reading.");
+    }
+
+    [Test]
     public void Aggregation_ReusedStorageDropsOldEnginesAndPreservesReturnedSnapshots()
     {
         var aggregation = new WindowsGpuSampler.EngineAggregation();

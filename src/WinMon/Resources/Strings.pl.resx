@@ -2161,4 +2161,12 @@ Przywrócenie ograniczania również nie powiodło się: {1}</value></data>
   <data name="CpuTemperatureMonitoringRemove" xml:space="preserve"><value>Usuń usługę czujników CPU…</value></data>
   <data name="CpuTemperatureMonitoringRemoveConfirm" xml:space="preserve"><value>Usunąć usługę czujników CPU dla wszystkich użytkowników systemu Windows na tym komputerze? Wymagana jest zgoda administratora. Monitorowanie temperatury CPU zostanie zatrzymane dla wszystkich użytkowników.</value></data>
   <data name="CpuTemperatureMonitoringRepair" xml:space="preserve"><value>Napraw monitorowanie temperatury CPU</value></data>
+  <data name="SettingsDevices" xml:space="preserve"><value>Urządzenia</value></data>
+  <data name="DevicesNote" xml:space="preserve"><value>Wybierz urządzenia wyświetlane na wskaźnikach i wykresach zasobów.</value></data>
+  <data name="GpuDeviceLabel" xml:space="preserve"><value>Procesor graficzny</value></data>
+  <data name="GpuSelectionNote" xml:space="preserve"><value>Tryb automatyczny śledzi GPU z najbardziej obciążonym silnikiem. Odczyty GPU procesów obejmują wszystkie GPU.</value></data>
+  <data name="GpuDeviceUnavailable" xml:space="preserve"><value>GPU niedostępny</value></data>
+  <data name="GpuDeviceUnavailableNote" xml:space="preserve"><value>Ten GPU jest niedostępny. Wybierz inny GPU lub tryb automatyczny.</value></data>
+  <data name="GpuCurrentDevice" xml:space="preserve"><value>Obecnie monitorowane: {0}</value></data>
+  <data name="GpuDiscoveryFailed" xml:space="preserve"><value>Wykrywanie GPU nie powiodło się. Zamknij i otwórz ponownie Ustawienia.</value></data>
 </root>

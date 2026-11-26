@@ -234,7 +234,8 @@ public partial class MainWindow
         {
             ProcessNetwork = network?.Snapshot,
             ProcessNetworkSessionId = network?.SessionId ?? Guid.Empty,
-            CpuTemperature = CurrentCpuTemperature()
+            CpuTemperature = CurrentCpuTemperature(),
+            GpuDeviceId = preferences.GpuDeviceId
         };
     }
 
@@ -830,7 +831,11 @@ public partial class MainWindow
                 RemoveCpuTemperatureServiceAsync,
                 _cpuTemperature?.State ?? (SensorSetupBroker.Supported
                     ? SensorMonitoringState.Disabled
-                    : SensorMonitoringState.StoreUnavailable)) { Owner = this };
+                    : SensorMonitoringState.StoreUnavailable))
+            {
+                Owner = this,
+                GetGpuSample = () => Session.LatestFull?.Resources
+            };
             ObserveNetworkMonitoring(dialog);
             ObserveCpuTemperatureMonitoring(dialog);
             dialog.ClearResourceTrendsRequested += ClearResourceTrendsAsync;

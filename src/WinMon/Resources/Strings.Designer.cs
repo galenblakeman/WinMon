@@ -401,6 +401,7 @@ public static partial class Strings
     public static string DetailUtilization => ResourceManager.GetString(nameof(DetailUtilization), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailWrite => ResourceManager.GetString(nameof(DetailWrite), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DevicesAreShownAsWindowsExposesThemRAIDAndVirtual => ResourceManager.GetString(nameof(DevicesAreShownAsWindowsExposesThemRAIDAndVirtual), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string DevicesNote => ResourceManager.GetString(nameof(DevicesNote), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string Disabled => ResourceManager.GetString(nameof(Disabled), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string Disconnected => ResourceManager.GetString(nameof(Disconnected), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string Disk => ResourceManager.GetString(nameof(Disk), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -561,7 +562,13 @@ public static partial class Strings
     public static string GigabytesPerSecond => ResourceManager.GetString(nameof(GigabytesPerSecond), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GPU => ResourceManager.GetString(nameof(GPU), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GPUCountersUnavailableOrCollectingAFreshInterval => ResourceManager.GetString(nameof(GPUCountersUnavailableOrCollectingAFreshInterval), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string GpuCurrentDevice => ResourceManager.GetString(nameof(GpuCurrentDevice), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string GpuDeviceLabel => ResourceManager.GetString(nameof(GpuDeviceLabel), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string GpuDeviceUnavailable => ResourceManager.GetString(nameof(GpuDeviceUnavailable), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string GpuDeviceUnavailableNote => ResourceManager.GetString(nameof(GpuDeviceUnavailableNote), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string GpuDiscoveryFailed => ResourceManager.GetString(nameof(GpuDiscoveryFailed), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GPUPercentagesRepresentDifferentEnginesAndCannotBeSummed => ResourceManager.GetString(nameof(GPUPercentagesRepresentDifferentEnginesAndCannotBeSummed), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string GpuSelectionNote => ResourceManager.GetString(nameof(GpuSelectionNote), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GPUUtilizationUnavailableForThisProcessNoValidCounterOr => ResourceManager.GetString(nameof(GPUUtilizationUnavailableForThisProcessNoValidCounterOr), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GraphicsAdapters => ResourceManager.GetString(nameof(GraphicsAdapters), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string Grouped => ResourceManager.GetString(nameof(Grouped), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -1016,6 +1023,7 @@ public static partial class Strings
     public static string SettingsAutomaticChecks => ResourceManager.GetString(nameof(SettingsAutomaticChecks), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string SettingsCheckedAt => ResourceManager.GetString(nameof(SettingsCheckedAt), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string SettingsCouldNotBeSavedCheckAccessToYourLocal => ResourceManager.GetString(nameof(SettingsCouldNotBeSavedCheckAccessToYourLocal), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string SettingsDevices => ResourceManager.GetString(nameof(SettingsDevices), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string SettingsGeneral => ResourceManager.GetString(nameof(SettingsGeneral), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string SettingsHistory => ResourceManager.GetString(nameof(SettingsHistory), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string SettingsInstalledVersion => ResourceManager.GetString(nameof(SettingsInstalledVersion), Culture ?? CultureInfo.CurrentUICulture)!;

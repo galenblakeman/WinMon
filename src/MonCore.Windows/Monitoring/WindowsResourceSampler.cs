@@ -47,7 +47,7 @@ internal sealed class WindowsResourceSampler : IDisposable
     private string? _networkInterfaceId;
 
     public MonitorSample Sample(MonitorSample cpu, string? primaryDrive = null, string? secondaryDrive = null,
-        string? networkInterfaceId = null, CpuTemperatureReading? cpuTemperature = null)
+        string? networkInterfaceId = null, CpuTemperatureReading? cpuTemperature = null, string? gpuDeviceId = null)
     {
         var reset = cpu.IsGap;
         if (reset) Reset();
@@ -115,7 +115,7 @@ internal sealed class WindowsResourceSampler : IDisposable
             _networkChoices = null;
         }
 
-        var sampled = _gpu.Sample(cpu with { Resources = result }, reset);
+        var sampled = _gpu.Sample(cpu with { Resources = result }, reset, gpuDeviceId);
         if (result.CpuTemperature is not null || result.CpuPerformanceLimitPercent is not null || result.ThermalZones.Count > 0 ||
             sampled.Resources.GpuThermals.Count > 0)
             Volatile.Write(ref _hasTemperature, true);

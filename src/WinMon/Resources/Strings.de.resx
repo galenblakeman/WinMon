@@ -2173,4 +2173,12 @@ Auch das Wiederherstellen der Drosselung ist fehlgeschlagen: {1}</value></data>
   <data name="CpuTemperatureMonitoringRemove" xml:space="preserve"><value>CPU-Sensordienst entfernen…</value></data>
   <data name="CpuTemperatureMonitoringRemoveConfirm" xml:space="preserve"><value>Den CPU-Sensordienst für alle Windows-Benutzer dieses Computers entfernen? Eine Administratorgenehmigung ist erforderlich. Die CPU-Temperaturüberwachung wird für alle Benutzer beendet.</value></data>
   <data name="CpuTemperatureMonitoringRepair" xml:space="preserve"><value>CPU-Temperaturüberwachung reparieren</value></data>
+  <data name="SettingsDevices" xml:space="preserve"><value>Geräte</value></data>
+  <data name="DevicesNote" xml:space="preserve"><value>Wählen Sie die Geräte für Ressourcenanzeigen und Diagramme.</value></data>
+  <data name="GpuDeviceLabel" xml:space="preserve"><value>Grafikprozessor</value></data>
+  <data name="GpuSelectionNote" xml:space="preserve"><value>Automatisch folgt der GPU mit der stärksten Engine-Auslastung. GPU-Prozesswerte umfassen alle GPUs.</value></data>
+  <data name="GpuDeviceUnavailable" xml:space="preserve"><value>GPU nicht verfügbar</value></data>
+  <data name="GpuDeviceUnavailableNote" xml:space="preserve"><value>Diese GPU ist nicht verfügbar. Wählen Sie eine andere GPU oder Automatisch.</value></data>
+  <data name="GpuCurrentDevice" xml:space="preserve"><value>Aktuell überwacht: {0}</value></data>
+  <data name="GpuDiscoveryFailed" xml:space="preserve"><value>GPU-Erkennung fehlgeschlagen. Schließen und öffnen Sie die Einstellungen erneut.</value></data>
 </root>

@@ -30,7 +30,24 @@ internal sealed class WindowsGpuSampler : IDisposable
     private static readonly SearchValues<char> HexDigits = SearchValues.Create("0123456789abcdefABCDEF");
     private static readonly int ValueOffset = (int)Marshal.OffsetOf<CounterItem>(nameof(CounterItem.Value));
 
-    public MonitorSample Sample(MonitorSample sample, bool reset)
+    private WindowsGpuDevice[] _devices = [];
+    private long _devicesRead;
+    private string? _deviceId;
+
+    private WindowsGpuDevice? ResolveDevice(string deviceId)
+    {
+        var now = Stopwatch.GetTimestamp();
+        if (_devicesRead == 0 || _deviceId != deviceId || now - _devicesRead > 30 * Stopwatch.Frequency)
+        {
+            _devices = WindowsGpuDevices.Discover();
+            _devicesRead = now;
+            _deviceId = deviceId;
+        }
+        return _devices.FirstOrDefault(device => string.Equals(device.Id, deviceId,
+            StringComparison.OrdinalIgnoreCase));
+    }
+
+    public MonitorSample Sample(MonitorSample sample, bool reset, string? deviceId = null)
     {
         if (reset) Reset();
         sample = sample with { Resources = sample.Resources with { GpuThermals = _thermals.Read() } };
@@ -56,7 +73,8 @@ internal sealed class WindowsGpuSampler : IDisposable
             if (!validInterval) return sample;
             var readings = Parse(ReadCounters(_counter), _instances, _nextInstances);
             (_instances, _nextInstances) = (_nextInstances, _instances);
-            var busiest = _aggregation.Busiest(readings);
+            var device = deviceId is null ? null : ResolveDevice(deviceId);
+            var busiest = deviceId is not null && device is null ? null : _aggregation.Busiest(readings, device?.Adapter);
             var perProcess = _aggregation.ByProcess(readings);
             return sample with
             {
@@ -64,7 +82,8 @@ internal sealed class WindowsGpuSampler : IDisposable
                     ? sample.Resources
                     : _memory.Attach(sample.Resources with
                     {
-                        GpuPercent = busiest.Percent, GpuId = busiest.Adapter, GpuEngine = busiest.Engine
+                        GpuPercent = busiest.Percent, GpuId = busiest.Adapter, GpuEngine = busiest.Engine,
+                        GpuName = device?.Name ?? sample.Resources.GpuName
                     }),
                 Processes = AttachProcesses(sample.Processes, perProcess, intervalStart, ReadCreationTime)
             };
@@ -158,11 +177,12 @@ internal sealed class WindowsGpuSampler : IDisposable
         private readonly Dictionary<(int ProcessId, string Adapter, string Engine), EngineTotal> _processEngines = [];
         private readonly Dictionary<int, EngineTotal?> _busiestProcesses = [];
 
-        public GpuUsage? Busiest(List<EngineReading> readings)
+        public GpuUsage? Busiest(List<EngineReading> readings, string? adapter = null)
         {
             _physicalEngines.Clear();
             foreach (var reading in readings)
             {
+                if (adapter is not null && reading.Instance.Adapter != adapter) continue;
                 var key = (reading.Instance.Adapter, reading.Instance.Engine);
                 _physicalEngines[key] =
                     (_physicalEngines.TryGetValue(key, out var total) ? total : EngineTotal.Start(reading.Instance))

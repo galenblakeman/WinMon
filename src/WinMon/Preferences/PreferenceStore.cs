@@ -178,6 +178,7 @@ public sealed class PreferenceStore
         {
             PrimaryDrive = primary,
             SecondaryDrive = secondary == primary ? null : secondary,
+            GpuDeviceId = string.IsNullOrWhiteSpace(preferences.GpuDeviceId) ? null : preferences.GpuDeviceId.Trim(),
             NetworkInterfaceId = string.IsNullOrWhiteSpace(preferences.NetworkInterfaceId)
                 ? null
                 : preferences.NetworkInterfaceId.Trim(),

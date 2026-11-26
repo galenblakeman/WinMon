@@ -2198,4 +2198,12 @@ Restoring throttling also failed: {1}</value></data>
   <data name="CpuTemperatureMonitoringRemove" xml:space="preserve"><value>Remove CPU sensor service…</value></data>
   <data name="CpuTemperatureMonitoringRemoveConfirm" xml:space="preserve"><value>Remove the CPU sensor service for every Windows user on this computer? Administrator approval is required. CPU temperature monitoring will stop for all users.</value></data>
   <data name="CpuTemperatureMonitoringRepair" xml:space="preserve"><value>Repair CPU temperature monitoring</value></data>
+  <data name="SettingsDevices" xml:space="preserve"><value>Devices</value></data>
+  <data name="DevicesNote" xml:space="preserve"><value>Choose the devices shown in resource gauges and charts.</value></data>
+  <data name="GpuDeviceLabel" xml:space="preserve"><value>Graphics processor</value></data>
+  <data name="GpuSelectionNote" xml:space="preserve"><value>Automatic follows the GPU with the busiest engine. Process GPU readings cover all GPUs.</value></data>
+  <data name="GpuDeviceUnavailable" xml:space="preserve"><value>Unavailable GPU</value></data>
+  <data name="GpuDeviceUnavailableNote" xml:space="preserve"><value>This GPU is unavailable. Choose another GPU or Automatic.</value></data>
+  <data name="GpuCurrentDevice" xml:space="preserve"><value>Currently monitoring: {0}</value></data>
+  <data name="GpuDiscoveryFailed" xml:space="preserve"><value>GPU discovery failed. Close and reopen Settings to try again.</value></data>
 </root>

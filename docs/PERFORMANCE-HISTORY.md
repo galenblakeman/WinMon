@@ -1,5 +1,9 @@
 # WinMon performance history
 
+## Devices GPU selection (November 26, 2026)
+
+Measured 600 parsed engine counters using the same isolated reflection/expression harness against preserved original and candidate Release assemblies (5,000 warmup calls; seven batches of 10,000 calls). Automatic median was 0.028163 ms before and 0.028261 ms after (+0.35%); allocation remained 40 bytes per call. Manual selection across the two-adapter fixture took 0.015011 ms. This measures engine aggregation only; native discovery is cached for 30 seconds and is absent from Automatic sampling. Raw results and harness are under `artifacts/devices-baseline`, `artifacts/devices-focused` and `artifacts/devices-aggregation-benchmark.ps1`. Native physical multi-GPU/reboot/hot-plug acceptance remains open.
+
 [Back to the developer guide](DEVELOPMENT.md)
 
 ## Network collector batch fairness and lifetime bounds (November 26, 2026)

@@ -2173,4 +2173,12 @@ La restauration de la limitation a aussi échoué : {1}</value></data>
   <data name="CpuTemperatureMonitoringRemove" xml:space="preserve"><value>Supprimer le service de capteurs du processeur…</value></data>
   <data name="CpuTemperatureMonitoringRemoveConfirm" xml:space="preserve"><value>Supprimer le service de capteurs du processeur pour tous les utilisateurs Windows de cet ordinateur ? L’autorisation d’un administrateur est requise. La surveillance de la température du processeur s’arrêtera pour tous les utilisateurs.</value></data>
   <data name="CpuTemperatureMonitoringRepair" xml:space="preserve"><value>Réparer la surveillance de la température du processeur</value></data>
+  <data name="SettingsDevices" xml:space="preserve"><value>Périphériques</value></data>
+  <data name="DevicesNote" xml:space="preserve"><value>Choisissez les périphériques des jauges et graphiques de ressources.</value></data>
+  <data name="GpuDeviceLabel" xml:space="preserve"><value>Processeur graphique</value></data>
+  <data name="GpuSelectionNote" xml:space="preserve"><value>Automatique suit le GPU dont le moteur est le plus sollicité. Les mesures GPU des processus couvrent tous les GPU.</value></data>
+  <data name="GpuDeviceUnavailable" xml:space="preserve"><value>GPU indisponible</value></data>
+  <data name="GpuDeviceUnavailableNote" xml:space="preserve"><value>Ce GPU est indisponible. Choisissez un autre GPU ou Automatique.</value></data>
+  <data name="GpuCurrentDevice" xml:space="preserve"><value>Surveillance actuelle : {0}</value></data>
+  <data name="GpuDiscoveryFailed" xml:space="preserve"><value>Échec de la détection des GPU. Fermez puis rouvrez les paramètres.</value></data>
 </root>

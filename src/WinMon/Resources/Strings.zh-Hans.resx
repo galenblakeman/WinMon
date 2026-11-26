@@ -2161,4 +2161,12 @@ Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。<
   <data name="CpuTemperatureMonitoringRemove" xml:space="preserve"><value>删除 CPU 传感器服务…</value></data>
   <data name="CpuTemperatureMonitoringRemoveConfirm" xml:space="preserve"><value>要为此计算机上的所有 Windows 用户删除 CPU 传感器服务吗？需要管理员批准。所有用户的 CPU 温度监控都将停止。</value></data>
   <data name="CpuTemperatureMonitoringRepair" xml:space="preserve"><value>修复 CPU 温度监控</value></data>
+  <data name="SettingsDevices" xml:space="preserve"><value>设备</value></data>
+  <data name="DevicesNote" xml:space="preserve"><value>选择资源仪表和图表中显示的设备。</value></data>
+  <data name="GpuDeviceLabel" xml:space="preserve"><value>图形处理器</value></data>
+  <data name="GpuSelectionNote" xml:space="preserve"><value>自动模式跟踪引擎最繁忙的 GPU。进程 GPU 读数涵盖所有 GPU。</value></data>
+  <data name="GpuDeviceUnavailable" xml:space="preserve"><value>GPU 不可用</value></data>
+  <data name="GpuDeviceUnavailableNote" xml:space="preserve"><value>此 GPU 不可用。请选择其他 GPU 或自动模式。</value></data>
+  <data name="GpuCurrentDevice" xml:space="preserve"><value>当前监控：{0}</value></data>
+  <data name="GpuDiscoveryFailed" xml:space="preserve"><value>GPU 检测失败。请关闭并重新打开设置。</value></data>
 </root>

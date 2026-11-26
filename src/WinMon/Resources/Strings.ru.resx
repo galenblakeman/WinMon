@@ -2161,4 +2161,12 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
   <data name="CpuTemperatureMonitoringRemove" xml:space="preserve"><value>Удалить службу датчиков ЦП…</value></data>
   <data name="CpuTemperatureMonitoringRemoveConfirm" xml:space="preserve"><value>Удалить службу датчиков ЦП для всех пользователей Windows на этом компьютере? Требуется одобрение администратора. Мониторинг температуры ЦП будет остановлен для всех пользователей.</value></data>
   <data name="CpuTemperatureMonitoringRepair" xml:space="preserve"><value>Восстановить мониторинг температуры ЦП</value></data>
+  <data name="SettingsDevices" xml:space="preserve"><value>Устройства</value></data>
+  <data name="DevicesNote" xml:space="preserve"><value>Выберите устройства для индикаторов и графиков ресурсов.</value></data>
+  <data name="GpuDeviceLabel" xml:space="preserve"><value>Графический процессор</value></data>
+  <data name="GpuSelectionNote" xml:space="preserve"><value>Автоматический режим выбирает GPU с наиболее загруженным движком. Показатели GPU процессов охватывают все GPU.</value></data>
+  <data name="GpuDeviceUnavailable" xml:space="preserve"><value>GPU недоступен</value></data>
+  <data name="GpuDeviceUnavailableNote" xml:space="preserve"><value>Этот GPU недоступен. Выберите другой GPU или автоматический режим.</value></data>
+  <data name="GpuCurrentDevice" xml:space="preserve"><value>Сейчас отслеживается: {0}</value></data>
+  <data name="GpuDiscoveryFailed" xml:space="preserve"><value>Не удалось обнаружить GPU. Закройте и снова откройте настройки.</value></data>
 </root>

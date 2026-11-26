@@ -2161,4 +2161,12 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
   <data name="CpuTemperatureMonitoringRemove" xml:space="preserve"><value>CPU センサー サービスを削除…</value></data>
   <data name="CpuTemperatureMonitoringRemoveConfirm" xml:space="preserve"><value>このコンピューターのすべての Windows ユーザー用に CPU センサー サービスを削除しますか？ 管理者の承認が必要です。すべてのユーザーで CPU 温度の監視が停止します。</value></data>
   <data name="CpuTemperatureMonitoringRepair" xml:space="preserve"><value>CPU 温度監視を修復</value></data>
+  <data name="SettingsDevices" xml:space="preserve"><value>デバイス</value></data>
+  <data name="DevicesNote" xml:space="preserve"><value>リソースゲージとグラフに表示するデバイスを選択します。</value></data>
+  <data name="GpuDeviceLabel" xml:space="preserve"><value>グラフィックスプロセッサ</value></data>
+  <data name="GpuSelectionNote" xml:space="preserve"><value>自動では最も使用率の高いエンジンを持つGPUを追跡します。プロセスのGPU値はすべてのGPUを対象とします。</value></data>
+  <data name="GpuDeviceUnavailable" xml:space="preserve"><value>GPUを利用できません</value></data>
+  <data name="GpuDeviceUnavailableNote" xml:space="preserve"><value>このGPUは利用できません。別のGPUまたは自動を選択してください。</value></data>
+  <data name="GpuCurrentDevice" xml:space="preserve"><value>現在監視中: {0}</value></data>
+  <data name="GpuDiscoveryFailed" xml:space="preserve"><value>GPUの検出に失敗しました。設定を閉じて開き直してください。</value></data>
 </root>

@@ -182,7 +182,11 @@ internal sealed partial class WindowDiagnostics
         Task? networkSave = null;
         var settings = new SettingsWindow(fixture.Preferences, captureFolder: reports,
             checkForUpdates: () => Task.FromResult(Strings.UpToDate),
-            changeNetworkMonitoring: (_, _) => networkChange.Task) { Owner = fixture };
+            changeNetworkMonitoring: (_, _) => networkChange.Task)
+        {
+            Owner = fixture,
+            GetGpuSample = () => new ResourceSample { GpuName = "Example GPU" }
+        };
         try
         {
             settings.Show();
@@ -194,7 +198,7 @@ internal sealed partial class WindowDiagnostics
                 overflow[$"{theme} {section}"] = Math.Round(settings.PageOverflow, 1);
                 // These sections must show every setting without scrolling at full height.
                 if (section is SettingsSection.Appearance or SettingsSection.Monitoring
-                        or SettingsSection.Network && settings.PageOverflow > 0.5 &&
+                        or SettingsSection.Devices or SettingsSection.Network && settings.PageOverflow > 0.5 &&
                     !settings.HeightLimitedByWorkArea)
                     throw new InvalidOperationException(
                         $"Settings {section} scrolls by {settings.PageOverflow:F0} DIPs in {theme}.");

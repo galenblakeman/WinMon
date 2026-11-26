@@ -7,6 +7,20 @@ namespace WinMon.Tests;
 [TestFixture]
 public sealed class PreferenceStoreTests
 {
+    [Test]
+    [Category("Integration")]
+    public async Task GpuDeviceChoiceRoundTripsAndLegacySettingsDefaultToAutomatic()
+    {
+        Directory.CreateDirectory(testDirectory);
+        await File.WriteAllTextAsync(settingsPath, "{}");
+        Assert.That((await new PreferenceStore(settingsPath).LoadAsync()).GpuDeviceId, Is.Null);
+        var store = new PreferenceStore(settingsPath);
+        await store.SaveAsync(new MonitorPreferences { GpuDeviceId = "  PCI\\GPU-A  " });
+        Assert.That((await new PreferenceStore(settingsPath).LoadAsync()).GpuDeviceId, Is.EqualTo("PCI\\GPU-A"));
+        await store.SaveAsync(new MonitorPreferences { GpuDeviceId = " " });
+        Assert.That((await new PreferenceStore(settingsPath).LoadAsync()).GpuDeviceId, Is.Null);
+    }
+
     [TestCase(20, 0, 0, true)]
     [TestCase(5, 1, 1, false)]
     [TestCase(10, 2, 2, true)]

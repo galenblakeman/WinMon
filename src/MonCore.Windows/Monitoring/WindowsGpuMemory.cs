@@ -86,7 +86,8 @@ internal sealed class WindowsGpuMemory : IDisposable
         return usage;
     }
 
-    public static IReadOnlyDictionary<string, ulong> ReadCapacities(Dictionary<string, string>? names = null)
+    public static IReadOnlyDictionary<string, ulong> ReadCapacities(Dictionary<string, string>? names = null,
+        List<WindowsGpuDevice>? devices = null)
     {
         var result = new Dictionary<string, ulong>(StringComparer.Ordinal);
         var iid = new Guid("770AAE78-F26F-4DBA-A829-253C83D1B387"); // IDXGIFactory1
@@ -107,6 +108,9 @@ internal sealed class WindowsGpuMemory : IDisposable
                     var id = $"0x{description.LuidHigh:x8}_0x{description.LuidLow:x8}/0";
                     names?[id] = description.Description.TrimEnd('\0', ' ');
                     if ((description.Flags & 2) != 0) continue; // Software adapter has no physical capacity.
+                    if (devices is not null)
+                        WindowsGpuDevices.Add(devices, description.LuidLow, description.LuidHigh,
+                            description.Description.TrimEnd('\0', ' '));
                     // DXGI describes one adapter. Do not reuse its capacity for linked physical GPUs.
                     result[id] = description.DedicatedVideoMemory.ToUInt64();
                 }

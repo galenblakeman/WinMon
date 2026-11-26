@@ -41,6 +41,8 @@ public sealed record SamplingOptions(
 
     /// <summary>Latest validated CPU temperature from the optional local sensor service.</summary>
     public CpuTemperatureReading? CpuTemperature { get; init; }
+    /// <summary>Persistent GPU device identity, or null to follow the busiest engine across all GPUs.</summary>
+    public string? GpuDeviceId { get; init; }
 }
 
 /// <summary>One complete capture: the full sample, its service frame, and a partial failure if there was one.</summary>

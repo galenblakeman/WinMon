@@ -18,6 +18,53 @@ namespace WinMon.Tests;
 public sealed class SettingsLayoutTests
 {
     [Test]
+    public async Task Devices_GpuDefaultsToAutomaticAndKeepsManualIdentityAcrossDiscoveryAndApply()
+    {
+        var window = new SettingsWindow(new MonitorPreferences(), () => [], loadGpuDevices: () =>
+        [
+            new("device-a", "Example GPU", "boot-a"),
+            new("device-b", "Example GPU", "boot-b")
+        ]);
+        try
+        {
+            window.GetGpuSample = () => new ResourceSample { GpuName = "Current GPU" };
+            await window.LoadGpuDevicesAsync();
+            Assert.That(((SettingsWindow.GpuChoice)window.GpuSelector.SelectedItem).Id, Is.Null);
+            Assert.That(window.GpuStatus.Text, Does.Contain("Current GPU"));
+            var choices = window.GpuSelector.Items.Cast<SettingsWindow.GpuChoice>().ToArray();
+            Assert.That(choices[1].Label, Is.Not.EqualTo(choices[2].Label), "Identical model names must be distinguishable.");
+            window.GpuSelector.SelectedIndex = 2;
+            var original = new MonitorPreferences { GpuDeviceId = "device-a" };
+            var applied = SettingsWindow.ApplySettings(original, new MonitorPreferences
+            {
+                GpuDeviceId = ((SettingsWindow.GpuChoice)window.GpuSelector.SelectedItem).Id
+            });
+            Assert.That(applied.GpuDeviceId, Is.EqualTo("device-b"));
+            window.GpuSelector.SelectedIndex = 0;
+            Assert.That(((SettingsWindow.GpuChoice)window.GpuSelector.SelectedItem).Id, Is.Null);
+        }
+        finally { window.Close(); }
+    }
+
+    [Test]
+    public async Task Devices_MissingGpuRemainsSelectedWithRecoveryMessage()
+    {
+        var window = new SettingsWindow(new MonitorPreferences { GpuDeviceId = "unplugged" }, () => [],
+            loadGpuDevices: () => [new("other", "Other GPU", "boot-id")]);
+        try
+        {
+            await window.LoadGpuDevicesAsync();
+            Assert.Multiple(() =>
+            {
+                Assert.That(((SettingsWindow.GpuChoice)window.GpuSelector.SelectedItem).Id, Is.EqualTo("unplugged"));
+                Assert.That(window.GpuStatus.Text, Is.EqualTo(Strings.GpuDeviceUnavailableNote));
+                Assert.That(window.GpuSelector.Items.Count, Is.EqualTo(3));
+            });
+        }
+        finally { window.Close(); }
+    }
+
+    [Test]
     public void ChartReset_IsDeferredUntilSave_AndOrdinarySettingsKeepChartChanges()
     {
         var original = PreferenceStore.Validate(new MonitorPreferences { ChartRangeSeconds = 600 });
@@ -62,6 +109,7 @@ public sealed class SettingsLayoutTests
             var opened = window.Section;
             var expected = new List<SettingsSection>
                 { SettingsSection.General, SettingsSection.Appearance, SettingsSection.Monitoring };
+            expected.Add(SettingsSection.Devices);
             if (SensorSetupBroker.Supported) expected.Add(SettingsSection.CpuTemperature);
             expected.Add(SettingsSection.Network);
             expected.Add(SettingsSection.AutomaticCaptures);
@@ -107,6 +155,8 @@ public sealed class SettingsLayoutTests
             window.GaugePeakWindowSelector.SelectedIndex = 2;
             var pendingPeakWindow = window.GaugePeakWindowSelector.SelectedItem;
             var monitoring = Descendants(window).ToArray();
+            window.ShowSection(SettingsSection.Devices);
+            var devices = Descendants(window).ToArray();
             window.ShowSection(SettingsSection.Network);
             var network = Descendants(window).ToArray();
             window.ShowSection(SettingsSection.Monitoring);
@@ -128,11 +178,15 @@ public sealed class SettingsLayoutTests
                 Assert.That(appearance, Does.Contain(window.GaugeSelector));
                 Assert.That(appearance, Does.Not.Contain(window.GaugePeakWindowSelector));
                 Assert.That(monitoring, Does.Contain(window.GaugePeakWindowSelector));
-                Assert.That(monitoring, Does.Contain(window.PrimaryDriveSelector));
-                Assert.That(monitoring, Does.Contain(window.SecondaryDriveSelector));
+                Assert.That(monitoring, Does.Not.Contain(window.PrimaryDriveSelector));
+                Assert.That(devices, Does.Contain(window.PrimaryDriveSelector));
+                Assert.That(devices, Does.Contain(window.SecondaryDriveSelector));
+                Assert.That(devices, Does.Contain(window.NetworkInterfaceSelector));
+                Assert.That(devices, Does.Contain(window.GpuSelector));
+                Assert.That(monitoring, Does.Not.Contain(window.SecondaryDriveSelector));
                 Assert.That(monitoring, Does.Not.Contain(window.NetworkInterfaceSelector));
                 Assert.That(monitoring.OfType<NetworkMonitoringSettings>(), Is.Empty);
-                Assert.That(network, Does.Contain(window.NetworkInterfaceSelector));
+                Assert.That(network, Does.Not.Contain(window.NetworkInterfaceSelector));
                 Assert.That(network.OfType<NetworkMonitoringSettings>(), Is.Not.Empty);
                 Assert.That(network, Does.Not.Contain(window.GaugePeakWindowSelector));
                 Assert.That(network, Does.Not.Contain(window.PrimaryDriveSelector));
@@ -165,7 +219,7 @@ public sealed class SettingsLayoutTests
             foreach (var section in new[]
                      {
                          SettingsSection.General, SettingsSection.Appearance, SettingsSection.Monitoring,
-                         SettingsSection.Network
+                         SettingsSection.Devices
                      })
             {
                 window.ShowSection(section);
@@ -176,6 +230,12 @@ public sealed class SettingsLayoutTests
                 foreach (var selector in selectors)
                 {
                     var field = (Grid)LogicalTreeHelper.GetParent(selector);
+                    if (selector == window.GpuSelector || selector == window.NetworkInterfaceSelector)
+                    {
+                        Assert.That(selector.ActualWidth, Is.EqualTo(field.ActualWidth).Within(0.5),
+                            "Device names use the full field width.");
+                        continue;
+                    }
                     Assert.That(selector.ActualWidth, Is.LessThanOrEqualTo(field.ActualWidth / 2 + 0.5),
                         section.ToString());
                 }
@@ -564,7 +624,7 @@ public sealed class SettingsLayoutTests
             ], currentNetworkName: "Ethernet");
         try
         {
-            window.ShowSection(SettingsSection.Network);
+            window.ShowSection(SettingsSection.Devices);
             Assert.That(Descendants(window), Does.Contain(window.NetworkInterfaceSelector));
             await window.LoadNetworkInterfacesAsync();
             Assert.Multiple(() =>

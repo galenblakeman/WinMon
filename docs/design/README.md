@@ -1,5 +1,7 @@
 # WinMon design assets
 
+- [Devices settings](DEVICES-SETTINGS.md) groups disk, network and GPU targets with persistent manual GPU selection and Automatic as the default.
+
 - [Network collector corrections](NETWORK-COLLECTOR-CORRECTIONS.md) bounds inferred process lifetimes by native verification and keeps queue batches from starving reconciliation.
 
 - [CLI report corrections](CLI-REPORT-CORRECTIONS.md) gives archived activity an explicit date/time and bounds connection-report output work before formatting.

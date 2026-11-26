@@ -20,6 +20,32 @@ namespace WinMon.Tests;
 public sealed partial class SettingsSaveCharacterizationTests
 {
     private readonly List<SettingsWindow> _windows = [];
+    [TestCase(true)]
+    [TestCase(false)]
+    public void DevicesGpuSelectionAppliesOnlyOnSave(bool save)
+    {
+        var initial = Preferences() with { GpuDeviceId = "saved-device" };
+        var window = Window(initial);
+        var result = RunDialog(window, async () =>
+        {
+            window.ShowSection(SettingsSection.Devices);
+            Assert.That(((SettingsWindow.GpuChoice)window.GpuSelector.SelectedItem).Id, Is.EqualTo("saved-device"));
+            window.GpuSelector.SelectedIndex = 0;
+            window.ShowSection(SettingsSection.General);
+            window.ShowSection(SettingsSection.Devices);
+            Assert.That(((SettingsWindow.GpuChoice)window.GpuSelector.SelectedItem).Id, Is.Null);
+            if (save) await window.SaveAsync();
+            else window.Close();
+        });
+        Assert.That(initial.GpuDeviceId, Is.EqualTo("saved-device"));
+        if (save)
+        {
+            Assert.That(result, Is.True);
+            Assert.That(window.Result!.GpuDeviceId, Is.Null);
+        }
+        else Assert.That(window.Result, Is.Null);
+    }
+
     private readonly List<object> _addedResources = [];
     private string _folder = null!;
     private string DefaultFolder => Path.Combine(_folder, "default-reports");
@@ -314,7 +340,7 @@ public sealed partial class SettingsSaveCharacterizationTests
             await WithNotice(window, window.SaveAsync, driveError ? Strings.DiskMonitoring : Strings.AutoCaptureHeading, expected);
             Assert.Multiple(() =>
             {
-                Assert.That(window.Section, Is.EqualTo(driveError ? SettingsSection.Monitoring : SettingsSection.AutomaticCaptures));
+                Assert.That(window.Section, Is.EqualTo(driveError ? SettingsSection.Devices : SettingsSection.AutomaticCaptures));
                 Assert.That(window.Result, Is.Null);
                 Assert.That(window.IsVisible, Is.True);
                 Assert.That(calls, Is.Zero);

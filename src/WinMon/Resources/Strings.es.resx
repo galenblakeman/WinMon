@@ -2173,4 +2173,12 @@ También falló la restauración de la limitación: {1}</value></data>
   <data name="CpuTemperatureMonitoringRemove" xml:space="preserve"><value>Quitar el servicio de sensores de CPU…</value></data>
   <data name="CpuTemperatureMonitoringRemoveConfirm" xml:space="preserve"><value>¿Quitar el servicio de sensores de CPU para todos los usuarios de Windows de este equipo? Se requiere aprobación de administrador. La supervisión de temperatura de CPU se detendrá para todos los usuarios.</value></data>
   <data name="CpuTemperatureMonitoringRepair" xml:space="preserve"><value>Reparar la supervisión de temperatura de la CPU</value></data>
+  <data name="SettingsDevices" xml:space="preserve"><value>Dispositivos</value></data>
+  <data name="DevicesNote" xml:space="preserve"><value>Elija los dispositivos de los indicadores y gráficos de recursos.</value></data>
+  <data name="GpuDeviceLabel" xml:space="preserve"><value>Procesador gráfico</value></data>
+  <data name="GpuSelectionNote" xml:space="preserve"><value>Automático sigue la GPU con el motor más ocupado. Los datos GPU por proceso incluyen todas las GPU.</value></data>
+  <data name="GpuDeviceUnavailable" xml:space="preserve"><value>GPU no disponible</value></data>
+  <data name="GpuDeviceUnavailableNote" xml:space="preserve"><value>Esta GPU no está disponible. Elija otra GPU o Automático.</value></data>
+  <data name="GpuCurrentDevice" xml:space="preserve"><value>Supervisando: {0}</value></data>
+  <data name="GpuDiscoveryFailed" xml:space="preserve"><value>No se pudieron detectar las GPU. Cierre y vuelva a abrir Configuración.</value></data>
 </root>
