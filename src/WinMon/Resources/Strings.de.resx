@@ -2197,4 +2197,7 @@ Auch das Wiederherstellen der Drosselung ist fehlgeschlagen: {1}</value></data>
   <data name="DetailNoPerformanceLimit" xml:space="preserve"><value>Keine Leistungsbegrenzung</value></data>
   <data name="DetailTemperaturePeakWindow" xml:space="preserve"><value>Temperaturspitze · {0} Min.</value></data>
   <data name="GaugeCpuUsagePeakOverWindow" xml:space="preserve"><value>CPU-Auslastungsspitze · letzte {0} Min.</value></data>
+  <data name="FlightRecorderCollapseEvents" xml:space="preserve"><value>Ereignisse einklappen</value></data>
+  <data name="FlightRecorderExpandEvents" xml:space="preserve"><value>Ereignisse ausklappen</value></data>
+  <data name="FlightRecorderResizeEvents" xml:space="preserve"><value>Größe der Ereignis-Seitenleiste ändern</value></data>
 </root>

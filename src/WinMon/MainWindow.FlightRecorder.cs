@@ -22,6 +22,12 @@ public partial class MainWindow
             new WindowsHistoryEventReader().Read(start, end, cancellation), cancellation));
         var recorder = new FlightRecorderWindow(samples, IncidentTimeline.CaptureChanges(samples, Session.UsageHistory),
             Session.Connections.Captures, eventReader) { Owner = this };
+        recorder.ConfigureEventsSidebar(_preferences.HistoryEventsCollapsed, _preferences.HistoryEventsRatio);
+        recorder.EventsSidebarChanged += (collapsed, ratio) => _preferences = _preferences with
+        {
+            HistoryEventsCollapsed = collapsed,
+            HistoryEventsRatio = ratio
+        };
         recorder.UpdateTrends(_resourceTrends.Snapshot(DateTimeOffset.UtcNow), ResourceTrendNotice);
         recorder.SaveStarted += write => ExportWrites.Add(write);
         recorder.SaveFinished += write => ExportWrites.Remove(write);

@@ -2,6 +2,8 @@ using System.Globalization;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Automation;
+using System.Windows.Controls.Primitives;
 using Microsoft.Win32;
 using MonCore.Monitoring;
 
@@ -43,12 +45,63 @@ internal partial class FlightRecorderWindow : Window
     internal event Action<Task>? SaveStarted;
     internal event Action<Task>? SaveFinished;
 
+    internal event Action<bool, double>? EventsSidebarChanged;
+    internal bool EventsCollapsed { get; private set; }
+    private double _eventsRatio = 0.5;
+
+    internal void ConfigureEventsSidebar(bool collapsed, double ratio)
+    {
+        _eventsRatio = double.IsFinite(ratio) ? Math.Clamp(ratio, 0.1, 2) : 0.5;
+        var moveFocus = collapsed && (EventsBody.IsKeyboardFocusWithin || EventsDivider.IsKeyboardFocusWithin);
+        EventsCollapsed = collapsed;
+        EventsBody.Visibility = collapsed ? Visibility.Collapsed : Visibility.Visible;
+        EventsHeading.Visibility = collapsed ? Visibility.Collapsed : Visibility.Visible;
+        CrashHeading.Visibility = !collapsed && _crashGroups.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        EventsRail.Visibility = collapsed ? Visibility.Visible : Visibility.Collapsed;
+        EventsDivider.Visibility = collapsed ? Visibility.Collapsed : Visibility.Visible;
+        EventsColumn.MinWidth = collapsed ? 44 : 180;
+        EventsColumn.Width = collapsed ? new GridLength(44) : new GridLength(_eventsRatio, GridUnitType.Star);
+        EventsDividerColumn.Width = new GridLength(collapsed ? 0 : 10);
+        HistoryDetailsColumn.Width = new GridLength(1, GridUnitType.Star);
+        var label = collapsed ? Strings.FlightRecorderExpandEvents : Strings.FlightRecorderCollapseEvents;
+        EventsToggle.ToolTip = label;
+        AutomationProperties.SetName(EventsToggle, label);
+        ButtonIcon.SetData(EventsToggle, collapsed ? ButtonIcon.ChevronRight : ButtonIcon.ChevronLeft);
+        EventsToggle.SetExpanded(!collapsed);
+        if (moveFocus) EventsToggle.Focus();
+    }
+
+    private void OnToggleEvents(object sender, RoutedEventArgs e)
+    {
+        ConfigureEventsSidebar(!EventsCollapsed, _eventsRatio);
+        EventsSidebarChanged?.Invoke(EventsCollapsed, _eventsRatio);
+    }
+
+    private void OnEventsResized(object sender, DragCompletedEventArgs e)
+    {
+        RememberEventsRatio();
+    }
+
+    private void OnEventsResizeKeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+    {
+        if (e.Key is System.Windows.Input.Key.Left or System.Windows.Input.Key.Right)
+            RememberEventsRatio();
+    }
+
+    private void RememberEventsRatio()
+    {
+        if (EventsCollapsed || HistoryDetailsColumn.ActualWidth <= 0) return;
+        _eventsRatio = Math.Clamp(EventsColumn.ActualWidth / HistoryDetailsColumn.ActualWidth, 0.1, 2);
+        EventsSidebarChanged?.Invoke(false, _eventsRatio);
+    }
+
     internal FlightRecorderWindow(IReadOnlyList<MonitorSample> samples,
         IReadOnlyDictionary<SampleKey, (IReadOnlyList<ProcessUsage> Started, IReadOnlyList<ProcessUsage> Stopped)>? changes = null,
         IReadOnlyList<ConnectionCapture>? traffic = null,
         Func<DateTimeOffset, DateTimeOffset, CancellationToken, Task<IncidentEventResult>>? eventReader = null)
     {
         InitializeComponent();
+        ConfigureEventsSidebar(false, 0.5);
         WindowTheme.Attach(this);
         Closing += (_, args) => args.Cancel = _fileBusy;
         Closed += (_, _) => { _closed = true; InvalidateEventRead(); };
@@ -574,6 +627,7 @@ internal partial class FlightRecorderWindow : Window
         try
         {
             Events.ItemsSource = displayed;
+            EventsCount.Text = rows.Length.ToString(CultureInfo.CurrentCulture);
             Events.SelectedItem = _selectedEvent is null ? null :
                 displayed.FirstOrDefault(row => row.Mapping?.Event == _selectedEvent.Event);
         }
@@ -622,7 +676,7 @@ internal partial class FlightRecorderWindow : Window
         {
             Crashes.ItemsSource = rows;
             Crashes.Visibility = rows.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
-            CrashHeading.Visibility = rows.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
+            CrashHeading.Visibility = rows.Length == 0 || EventsCollapsed ? Visibility.Collapsed : Visibility.Visible;
             Crashes.SelectedItem = _selectedCrashGroup is null ? null : rows.FirstOrDefault(row => row.Group.Key == _selectedCrashGroup.Key);
         }
         finally { _updatingCrashes = false; }

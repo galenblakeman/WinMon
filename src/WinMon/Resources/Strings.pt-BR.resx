@@ -2185,4 +2185,7 @@ A restauração da limitação também falhou: {1}</value></data>
   <data name="DetailNoPerformanceLimit" xml:space="preserve"><value>Sem limite de desempenho</value></data>
   <data name="DetailTemperaturePeakWindow" xml:space="preserve"><value>Pico de temperatura · {0} min</value></data>
   <data name="GaugeCpuUsagePeakOverWindow" xml:space="preserve"><value>Pico de uso da CPU · últimos {0} min</value></data>
+  <data name="FlightRecorderCollapseEvents" xml:space="preserve"><value>Recolher eventos</value></data>
+  <data name="FlightRecorderExpandEvents" xml:space="preserve"><value>Expandir eventos</value></data>
+  <data name="FlightRecorderResizeEvents" xml:space="preserve"><value>Redimensionar a barra lateral de eventos</value></data>
 </root>

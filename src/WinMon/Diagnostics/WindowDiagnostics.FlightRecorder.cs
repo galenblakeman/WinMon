@@ -7,6 +7,31 @@ namespace WinMon.Diagnostics;
 
 internal sealed partial class WindowDiagnostics
 {
+    private static async Task CaptureHistorySidebarContentAsync(FlightRecorderWindow recorder, string path,
+        CancellationToken cancellationToken)
+    {
+        var content = (FrameworkElement)recorder.Content;
+        content.UpdateLayout();
+        await content.Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.Render, cancellationToken);
+        // A visual brush isolates the client content from the root's margin and desktop occlusion.
+        var drawing = new System.Windows.Media.DrawingVisual();
+        using (var context = drawing.RenderOpen())
+            context.DrawRectangle(new System.Windows.Media.VisualBrush(content)
+                {
+                    ViewboxUnits = System.Windows.Media.BrushMappingMode.Absolute,
+                    Viewbox = new Rect(content.Margin.Left, content.Margin.Top, content.ActualWidth, content.ActualHeight)
+                }, null,
+                new Rect(0, 0, content.ActualWidth, content.ActualHeight));
+        var bitmap = new System.Windows.Media.Imaging.RenderTargetBitmap((int)Math.Ceiling(content.ActualWidth),
+            (int)Math.Ceiling(content.ActualHeight), 96, 96, System.Windows.Media.PixelFormats.Pbgra32);
+        bitmap.Render(drawing);
+        var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder();
+        encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(bitmap));
+        using var buffer = new MemoryStream();
+        encoder.Save(buffer);
+        await File.WriteAllBytesAsync(path, buffer.ToArray(), cancellationToken);
+    }
+
     private static async Task CaptureFlightRecorderAsync(MainWindow fixture, string output,
         CancellationToken cancellationToken)
     {
@@ -34,9 +59,43 @@ internal sealed partial class WindowDiagnostics
         }
         finally { recorder.Close(); fixture.FlightRecorderEventReader = null; }
 
+        VerifyHistorySidebarPreference(fixture);
+
         await CaptureHangOnlyFlightRecorderAsync(fixture, output, cancellationToken);
         await CaptureEmptyFlightRecorderAsync(fixture, output, cancellationToken);
         await CaptureLifecycleFlightRecorderAsync(fixture, output, cancellationToken);
+    }
+
+    private static void VerifyHistorySidebarPreference(MainWindow fixture)
+    {
+        var original = fixture.Preferences;
+        FlightRecorderWindow? recorder = null;
+        try
+        {
+            fixture.FlightRecorderButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            recorder = fixture.OwnedWindows.OfType<FlightRecorderWindow>().Single();
+            recorder.ConfigureEventsSidebar(false, 0.75);
+            recorder.UpdateLayout();
+            recorder.EventsDivider.RaiseEvent(new System.Windows.Controls.Primitives.DragCompletedEventArgs(0, 0, false));
+            var ratio = fixture.Preferences.HistoryEventsRatio;
+            if (Math.Abs(ratio - 0.75) > 0.01)
+                throw new InvalidOperationException("Resizing History events must update its saved width ratio.");
+            recorder.EventsToggle.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            recorder.Close();
+            fixture.FlightRecorderButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            recorder = fixture.OwnedWindows.OfType<FlightRecorderWindow>().Single();
+            if (!recorder.EventsCollapsed)
+                throw new InvalidOperationException("Reopening History must restore the collapsed events rail.");
+            recorder.EventsToggle.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            recorder.UpdateLayout();
+            if (Math.Abs(recorder.EventsColumn.ActualWidth / recorder.HistoryDetailsColumn.ActualWidth - ratio) > 0.01)
+                throw new InvalidOperationException("Reopening History must restore its expanded events width.");
+        }
+        finally
+        {
+            recorder?.Close();
+            fixture.Preferences = original;
+        }
     }
 
     private static async Task CaptureHangOnlyFlightRecorderAsync(MainWindow fixture, string output,

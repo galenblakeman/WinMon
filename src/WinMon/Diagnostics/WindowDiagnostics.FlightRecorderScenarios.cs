@@ -122,6 +122,7 @@ internal sealed partial class WindowDiagnostics
     private static async Task CaptureFlightRecorderLayoutsAsync(MainWindow fixture, FlightRecorderWindow recorder, string output,
         CancellationToken cancellationToken)
     {
+        recorder.ConfigureEventsSidebar(false, fixture.Preferences.HistoryEventsRatio);
         foreach (var theme in new[] { "Dark", "Light" })
         {
             fixture.Preferences = fixture.Preferences with { Theme = theme };
@@ -139,6 +140,7 @@ internal sealed partial class WindowDiagnostics
                 var refreshRight = recorder.RefreshButton.TranslatePoint(
                     new Point(recorder.RefreshButton.ActualWidth, 0), refreshHost).X;
                 if (recorder.ComparisonProcesses.ActualHeight < 40 || recorder.Events.ActualHeight < 40 || recorder.Graph.ActualHeight < 100 ||
+                    recorder.Events.TranslatePoint(new Point(0, recorder.Events.ActualHeight), recorder.DetailPanels).Y > recorder.DetailPanels.ActualHeight + 1 ||
                     recorder.PeakButton.TranslatePoint(new Point(recorder.PeakButton.ActualWidth, 0), recorder).X > recorder.ActualWidth ||
                     Math.Abs(refreshRight - refreshHost.ActualWidth) > 1 ||
                     recorder.RefreshButton.TranslatePoint(new Point(), recorder).Y > 75)
@@ -148,6 +150,36 @@ internal sealed partial class WindowDiagnostics
                 }
                 await CaptureServiceWindowAsync(recorder,
                     Path.Combine(output, $"flight-recorder-{theme.ToLowerInvariant()}-{width:0}.png"), cancellationToken);
+                await CaptureHistorySidebarContentAsync(recorder,
+                    Path.Combine(output, $"flight-recorder-sidebar-expanded-{theme.ToLowerInvariant()}-{width:0}-content.png"), cancellationToken);
+                var selectedEvent = recorder.Events.SelectedItem;
+                var selection = recorder.Selection;
+                var expandedWidth = recorder.Views.ActualWidth;
+                if (recorder.EventsSidebar.TranslatePoint(new Point(), recorder).X >=
+                    recorder.Views.TranslatePoint(new Point(), recorder).X)
+                    throw new InvalidOperationException("History events must be left of process details.");
+                // Exercise focus recovery and UI Automation disclosure through the same button users invoke.
+                recorder.Events.Focus();
+                recorder.EventsToggle.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                recorder.UpdateLayout();
+                var peer = System.Windows.Automation.Peers.UIElementAutomationPeer.CreatePeerForElement(recorder.EventsToggle)!;
+                var disclosure = (System.Windows.Automation.Provider.IExpandCollapseProvider)peer.GetPattern(
+                    System.Windows.Automation.Peers.PatternInterface.ExpandCollapse);
+                if (!recorder.EventsCollapsed || recorder.EventsBody.IsVisible || recorder.EventsDivider.IsVisible ||
+                    !recorder.EventsToggle.IsKeyboardFocused || recorder.Views.ActualWidth <= expandedWidth + 100 ||
+                    disclosure.ExpandCollapseState != System.Windows.Automation.ExpandCollapseState.Collapsed ||
+                    !ReferenceEquals(recorder.Selection, selection) || !ReferenceEquals(recorder.Events.SelectedItem, selectedEvent))
+                    throw new InvalidOperationException("Collapsing events must reclaim width, preserve selection and recover focus.");
+                await CaptureServiceWindowAsync(recorder,
+                    Path.Combine(output, $"flight-recorder-collapsed-{theme.ToLowerInvariant()}-{width:0}.png"), cancellationToken);
+                await CaptureHistorySidebarContentAsync(recorder,
+                    Path.Combine(output, $"flight-recorder-sidebar-collapsed-{theme.ToLowerInvariant()}-{width:0}-content.png"), cancellationToken);
+                disclosure.Expand();
+                recorder.UpdateLayout();
+                if (recorder.EventsCollapsed || !recorder.EventsBody.IsVisible ||
+                    Math.Abs(recorder.Views.ActualWidth - expandedWidth) > 1 ||
+                    !ReferenceEquals(recorder.Events.SelectedItem, selectedEvent))
+                    throw new InvalidOperationException("Expanding events must restore the pane width and selection.");
                 recorder.Views.SelectedIndex = 1;
                 recorder.Processes.SelectedIndex = 0;
                 recorder.UpdateLayout();

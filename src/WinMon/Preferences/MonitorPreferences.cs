@@ -9,6 +9,12 @@ namespace WinMon.Preferences;
 /// </summary>
 public sealed record MonitorPreferences
 {
+    /// <summary>Keep the History events rail collapsed between investigations.</summary>
+    public bool HistoryEventsCollapsed { get; init; } = true;
+
+    /// <summary>History events width relative to the process detail pane.</summary>
+    public double HistoryEventsRatio { get; init; } = 0.5;
+
     /// <summary>Display unit for temperature readings; collection and history remain Celsius.</summary>
     public TemperatureUnit TemperatureUnit { get; init; } = TemperatureUnit.Celsius;
 

@@ -186,6 +186,7 @@ public sealed class PreferenceStore
             Width = ClampFinite(preferences.Width, 600, 600, 2000),
             Height = ClampFinite(preferences.Height, 840, 160, 1500),
             ActivityPanelRatio = ClampFinite(preferences.ActivityPanelRatio, 1.25, 0.05, 20),
+            HistoryEventsRatio = ClampFinite(preferences.HistoryEventsRatio, 0.5, 0.1, 2),
             SelectedActivityTab = NormalizeColumn(preferences.SelectedActivityTab, 3),
             Left = ValidateCoordinate(preferences.Left),
             Top = ValidateCoordinate(preferences.Top),

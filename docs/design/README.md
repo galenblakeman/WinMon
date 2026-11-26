@@ -1,5 +1,7 @@
 # WinMon design assets
 
+- [History Events sidebar](HISTORY-EVENTS-SIDEBAR.md) provides a resizable left pane and a persistent collapsed rail.
+
 - [Services settings](SERVICES-SETTINGS.md) combines hardware sensor and per-process network controls with a visible live preview, following the compact mockup.
 
 - [Devices settings](DEVICES-SETTINGS.md) groups disk, network and GPU targets with persistent manual GPU selection and Automatic as the default.

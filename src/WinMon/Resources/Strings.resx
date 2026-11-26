@@ -2222,4 +2222,7 @@ Restoring throttling also failed: {1}</value></data>
   <data name="DetailNoPerformanceLimit" xml:space="preserve"><value>No performance limit</value></data>
   <data name="DetailTemperaturePeakWindow" xml:space="preserve"><value>Temperature peak · {0} min</value></data>
   <data name="GaugeCpuUsagePeakOverWindow" xml:space="preserve"><value>CPU usage peak · last {0} min</value></data>
+  <data name="FlightRecorderCollapseEvents" xml:space="preserve"><value>Collapse events</value></data>
+  <data name="FlightRecorderExpandEvents" xml:space="preserve"><value>Expand events</value></data>
+  <data name="FlightRecorderResizeEvents" xml:space="preserve"><value>Resize events sidebar</value></data>
 </root>

@@ -79,7 +79,7 @@
                 </Style>
 
     </Window.Resources>
-    <Grid Margin="12">
+    <Grid Margin="12" Background="{DynamicResource Surface}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
             <RowDefinition Height="*" MinHeight="100" MaxHeight="220"/><RowDefinition Height="Auto"/>
@@ -132,8 +132,78 @@
                        ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
         </StackPanel>
         <Grid x:Name="DetailPanels" Grid.Row="4">
-            <Grid.ColumnDefinitions><ColumnDefinition Width="2*"/><ColumnDefinition Width="*" MinWidth="180"/></Grid.ColumnDefinitions>
-        <TabControl x:Name="Views" Grid.Column="0" Background="{DynamicResource Surface}" Foreground="{DynamicResource Text}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition x:Name="EventsColumn" Width="*" MinWidth="180"/>
+                <ColumnDefinition x:Name="EventsDividerColumn" Width="10"/>
+                <ColumnDefinition x:Name="HistoryDetailsColumn" Width="2*" MinWidth="240"/>
+            </Grid.ColumnDefinitions>
+        <Grid x:Name="EventsSidebar" Grid.Column="0" Margin="0,6,0,0">
+            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+            <DockPanel LastChildFill="True">
+                <controls:ActivityPanelButton x:Name="EventsToggle" DockPanel.Dock="Right"
+                    Margin="8,0" Style="{DynamicResource ActionBarCollapseButton}" Command="{x:Null}" Click="OnToggleEvents"/>
+                <TextBlock x:Name="CrashHeading" DockPanel.Dock="Right"
+                    Text="{Binding [FlightRecorderCrashes], Source={x:Static r:Strings.Text}}"
+                    FontWeight="SemiBold" VerticalAlignment="Center" Margin="6,0" Visibility="Collapsed"/>
+                <TextBlock x:Name="EventsHeading" Text="{Binding [FlightRecorderEvents], Source={x:Static r:Strings.Text}}"
+                    FontWeight="SemiBold" VerticalAlignment="Center" Margin="6,0"/>
+            </DockPanel>
+            <StackPanel x:Name="EventsRail" Grid.Row="1" Visibility="Collapsed" Margin="0,8,0,0"
+                        ToolTip="{Binding [FlightRecorderEvents], Source={x:Static r:Strings.Text}}">
+                <TextBlock x:Name="EventsCount" HorizontalAlignment="Center" Foreground="{DynamicResource Muted}"/>
+                <TextBlock Text="{Binding [FlightRecorderEvents], Source={x:Static r:Strings.Text}}"
+                           HorizontalAlignment="Center" Margin="0,12,0,0" Foreground="{DynamicResource Muted}">
+                    <TextBlock.LayoutTransform><RotateTransform Angle="-90"/></TextBlock.LayoutTransform>
+                </TextBlock>
+            </StackPanel>
+        <Grid x:Name="EventsBody" Grid.Row="1" Margin="0,6,0,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*" MaxHeight="60"/>
+                <RowDefinition Height="2*" MinHeight="40"/>
+            </Grid.RowDefinitions>
+            <controls:HistoryListView x:Name="Crashes" Grid.Row="1" MaxHeight="26" Margin="0,0,0,2"
+                      Background="{DynamicResource Surface}" Foreground="{DynamicResource Text}"
+                      SelectionChanged="OnCrashSelected" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                      ScrollViewer.VerticalScrollBarVisibility="Auto" HorizontalContentAlignment="Stretch"
+                      AutomationProperties.Name="{Binding [FlightRecorderCrashes], Source={x:Static r:Strings.Text}}">
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem" BasedOn="{StaticResource {x:Type ListViewItem}}">
+                        <Setter Property="AutomationProperties.Name" Value="{Binding AccessibleName}"/>
+                    </Style>
+                </ListView.ItemContainerStyle>
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Margin="4,1" ToolTip="{Binding Summary}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="2*"/><ColumnDefinition Width="3*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <TextBlock Text="{Binding Application}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Application}"/>
+                            <TextBlock Grid.Column="1" Text="{Binding Failure}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Failure}" Foreground="{DynamicResource Muted}"/>
+                            <TextBlock Grid.Column="2" Text="{Binding CountText}" Margin="4,0,0,0" FontWeight="SemiBold" ToolTip="{Binding Details}"/>
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </controls:HistoryListView>
+            <TextBlock x:Name="EventCoverageText" Grid.Row="2" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource Muted}" Margin="6,0,6,6"
+                       ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+            <controls:HistoryListView x:Name="Events" Grid.Row="3" MinHeight="40" Background="{DynamicResource Surface}" Foreground="{DynamicResource Text}"
+                      SelectionChanged="OnEventSelected"
+                      ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                      AutomationProperties.Name="{Binding [FlightRecorderEvents], Source={x:Static r:Strings.Text}}">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Margin="6,4">
+                            <TextBlock Text="{Binding Summary}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" ToolTip="{Binding Summary}"/>
+                            <TextBlock Text="{Binding Message}" TextWrapping="Wrap" MaxHeight="54" TextTrimming="CharacterEllipsis" ToolTip="{Binding Message}" Foreground="{DynamicResource Muted}"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </controls:HistoryListView>
+        </Grid>
+        </Grid>
+        <GridSplitter x:Name="EventsDivider" Grid.Column="1" Width="6" HorizontalAlignment="Center"
+                      VerticalAlignment="Stretch" Background="{DynamicResource Line}" ResizeDirection="Columns"
+                      ResizeBehavior="PreviousAndNext" DragCompleted="OnEventsResized" KeyUp="OnEventsResizeKeyUp" Focusable="True"
+                      AutomationProperties.Name="{Binding [FlightRecorderResizeEvents], Source={x:Static r:Strings.Text}}"/>
+        <TabControl x:Name="Views" Grid.Column="2" Background="{DynamicResource Surface}" Foreground="{DynamicResource Text}">
             <TabControl.Resources>
                 <Style TargetType="GridViewColumnHeader">
                     <Setter Property="Foreground" Value="{DynamicResource Muted}"/>
@@ -198,53 +268,7 @@
                 </DockPanel>
             </TabItem>
         </TabControl>
-        <Grid Grid.Column="1" Margin="10,6,0,0">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
-                <RowDefinition Height="*" MinHeight="40"/>
-            </Grid.RowDefinitions>
-            <DockPanel>
-                <TextBlock x:Name="CrashHeading" DockPanel.Dock="Right" Text="{Binding [FlightRecorderCrashes], Source={x:Static r:Strings.Text}}"
-                           FontWeight="SemiBold" Margin="6,0,6,6" Visibility="Collapsed"/>
-                <TextBlock Text="{Binding [FlightRecorderEvents], Source={x:Static r:Strings.Text}}" FontWeight="SemiBold" Margin="6,0,6,6"/>
-            </DockPanel>
-            <controls:HistoryListView x:Name="Crashes" Grid.Row="1" MaxHeight="26" Margin="0,0,0,2"
-                      Background="{DynamicResource Surface}" Foreground="{DynamicResource Text}"
-                      SelectionChanged="OnCrashSelected" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                      ScrollViewer.VerticalScrollBarVisibility="Auto" HorizontalContentAlignment="Stretch"
-                      AutomationProperties.Name="{Binding [FlightRecorderCrashes], Source={x:Static r:Strings.Text}}">
-                <ListView.ItemContainerStyle>
-                    <Style TargetType="ListViewItem" BasedOn="{StaticResource {x:Type ListViewItem}}">
-                        <Setter Property="AutomationProperties.Name" Value="{Binding AccessibleName}"/>
-                    </Style>
-                </ListView.ItemContainerStyle>
-                <ListView.ItemTemplate>
-                    <DataTemplate>
-                        <Grid Margin="4,1" ToolTip="{Binding Summary}">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="2*"/><ColumnDefinition Width="3*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                            <TextBlock Text="{Binding Application}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Application}"/>
-                            <TextBlock Grid.Column="1" Text="{Binding Failure}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Failure}" Foreground="{DynamicResource Muted}"/>
-                            <TextBlock Grid.Column="2" Text="{Binding CountText}" Margin="4,0,0,0" FontWeight="SemiBold" ToolTip="{Binding Details}"/>
-                        </Grid>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </controls:HistoryListView>
-            <TextBlock x:Name="EventCoverageText" Grid.Row="2" TextWrapping="Wrap" Foreground="{DynamicResource Muted}" Margin="6,0,6,6"
-                       ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
-            <controls:HistoryListView x:Name="Events" Grid.Row="3" MinHeight="40" Background="{DynamicResource Surface}" Foreground="{DynamicResource Text}"
-                      SelectionChanged="OnEventSelected"
-                      ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                      AutomationProperties.Name="{Binding [FlightRecorderEvents], Source={x:Static r:Strings.Text}}">
-                <ListView.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Margin="6,4">
-                            <TextBlock Text="{Binding Summary}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" ToolTip="{Binding Summary}"/>
-                            <TextBlock Text="{Binding Message}" TextWrapping="Wrap" MaxHeight="54" TextTrimming="CharacterEllipsis" ToolTip="{Binding Message}" Foreground="{DynamicResource Muted}"/>
-                        </StackPanel>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </controls:HistoryListView>
-        </Grid>
+
         </Grid>
         <Grid x:Name="TrendSurface" Grid.Row="1" Grid.RowSpan="4" Visibility="Collapsed">
             <Grid.RowDefinitions>

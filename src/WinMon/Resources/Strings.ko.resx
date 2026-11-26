@@ -2185,4 +2185,7 @@ Q 종료. Ctrl+C 취소. 실행 파일과 서비스 고정은 다음 실행에�
   <data name="DetailNoPerformanceLimit" xml:space="preserve"><value>성능 제한 없음</value></data>
   <data name="DetailTemperaturePeakWindow" xml:space="preserve"><value>최고 온도 · {0}분</value></data>
   <data name="GaugeCpuUsagePeakOverWindow" xml:space="preserve"><value>CPU 사용률 최고 · 지난 {0}분</value></data>
+  <data name="FlightRecorderCollapseEvents" xml:space="preserve"><value>이벤트 접기</value></data>
+  <data name="FlightRecorderExpandEvents" xml:space="preserve"><value>이벤트 펼치기</value></data>
+  <data name="FlightRecorderResizeEvents" xml:space="preserve"><value>이벤트 사이드바 크기 조정</value></data>
 </root>

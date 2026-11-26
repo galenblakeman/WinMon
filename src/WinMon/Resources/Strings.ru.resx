@@ -2185,4 +2185,7 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
   <data name="DetailNoPerformanceLimit" xml:space="preserve"><value>Без ограничения производительности</value></data>
   <data name="DetailTemperaturePeakWindow" xml:space="preserve"><value>Пик температуры · {0} мин.</value></data>
   <data name="GaugeCpuUsagePeakOverWindow" xml:space="preserve"><value>Пик загрузки ЦП · последние {0} мин.</value></data>
+  <data name="FlightRecorderCollapseEvents" xml:space="preserve"><value>Свернуть события</value></data>
+  <data name="FlightRecorderExpandEvents" xml:space="preserve"><value>Развернуть события</value></data>
+  <data name="FlightRecorderResizeEvents" xml:space="preserve"><value>Изменить размер боковой панели событий</value></data>
 </root>

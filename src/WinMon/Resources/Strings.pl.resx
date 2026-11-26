@@ -2185,4 +2185,7 @@ Przywrócenie ograniczania również nie powiodło się: {1}</value></data>
   <data name="DetailNoPerformanceLimit" xml:space="preserve"><value>Bez ograniczenia wydajności</value></data>
   <data name="DetailTemperaturePeakWindow" xml:space="preserve"><value>Szczyt temperatury · {0} min</value></data>
   <data name="GaugeCpuUsagePeakOverWindow" xml:space="preserve"><value>Szczyt użycia CPU · ostatnie {0} min</value></data>
+  <data name="FlightRecorderCollapseEvents" xml:space="preserve"><value>Zwiń zdarzenia</value></data>
+  <data name="FlightRecorderExpandEvents" xml:space="preserve"><value>Rozwiń zdarzenia</value></data>
+  <data name="FlightRecorderResizeEvents" xml:space="preserve"><value>Zmień rozmiar panelu zdarzeń</value></data>
 </root>

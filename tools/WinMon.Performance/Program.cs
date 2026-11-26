@@ -17,7 +17,7 @@ using WinMon.Preferences;
 // and historical frames it covers grouping, the Services tab, compact mode, and pinned and selected processes.
 // usage: WinMon.Performance <result.json> [screenshot.png]
 // It reaches WinMon through InternalsVisibleTo, so renaming a member it uses breaks the build, not the run.
-internal static class Program
+internal static partial class Program
 {
     private const int Processes = 850;
     private const int WarmupFrames = 400;
@@ -79,6 +79,14 @@ internal static class Program
         for (var i = 0; i < 600; i++) AddSample();
         window.RefreshPresentation();
         Flush();
+
+        if (args.Contains("--history-layout-only"))
+        {
+            MeasureHistoryLayout(args[0], history.Samples);
+            window.CloseForFixture();
+            app.Shutdown();
+            return;
+        }
 
         var thread = GetCurrentThread();
         var cyclesPerMs = CyclesPerMillisecond(thread);

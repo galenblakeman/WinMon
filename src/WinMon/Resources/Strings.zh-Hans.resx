@@ -2185,4 +2185,7 @@ Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。<
   <data name="DetailNoPerformanceLimit" xml:space="preserve"><value>无性能限制</value></data>
   <data name="DetailTemperaturePeakWindow" xml:space="preserve"><value>温度峰值 · {0} 分钟</value></data>
   <data name="GaugeCpuUsagePeakOverWindow" xml:space="preserve"><value>CPU 使用率峰值 · 最近 {0} 分钟</value></data>
+  <data name="FlightRecorderCollapseEvents" xml:space="preserve"><value>折叠事件</value></data>
+  <data name="FlightRecorderExpandEvents" xml:space="preserve"><value>展开事件</value></data>
+  <data name="FlightRecorderResizeEvents" xml:space="preserve"><value>调整事件侧栏大小</value></data>
 </root>
