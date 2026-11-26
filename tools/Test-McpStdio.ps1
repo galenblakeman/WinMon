@@ -56,7 +56,7 @@ try {
     $process.StandardInput.Flush()
     $tools = Invoke-McpRequest 2 'tools/list' @{}
     $names = @($tools.tools | ForEach-Object name)
-    if ((@($names | Sort-Object) -join ',') -cne 'get_hardware_info,get_network_connections,get_performance_history,get_process_details,get_process_network_traffic,get_system_snapshot,get_usage,get_usage_history,list_capture_reports,list_processes,list_services,read_capture_report,sample_performance') {
+    if ((@($names | Sort-Object) -join ',') -cne 'get_hardware_info,get_network_connections,get_performance_history,get_process_details,get_process_network_traffic,get_system_snapshot,get_usage,get_usage_history,list_capture_reports,list_crashes,list_processes,list_services,read_capture_report,sample_performance') {
         throw 'MCP tool discovery did not match the intended read-only tools.'
     }
     foreach ($tool in $tools.tools) {
