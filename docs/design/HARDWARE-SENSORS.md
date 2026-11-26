@@ -194,7 +194,7 @@ Acceptance requires:
 Implemented in phase 2:
 
 - `WinMon.SensorService`: CPU-only stable LibreHardwareMonitorLib 0.9.6 provider and locked graph, with one selected sensor identity per generation. Public sensor extrema are reset before updates so a retained getter alone cannot masquerade as a new library assignment. This proves a library assignment, not independent native sensor accuracy.
-- Serialized acquisition, two-second updates, leases with two-second idle grace, responsive status during native hangs, ten-second watchdog/shutdown/recovery budgets and restart-required failure latching when safe cleanup cannot be established.
+- Serialized acquisition, two-second updates, leases with two-second idle grace, responsive status during native hangs, ten-second watchdog/shutdown/recovery budgets and restart-required failure latching when safe cleanup cannot be established. Recovery is measured from the first timeout; a later cleanup timeout cannot reset that deadline. Regression tests cover both open and update timeouts followed by a cleanup timeout.
 - Shared protected pipe creation/authentication, bounded framing, policy/process DACL and descriptor-based service verification. Existing network regression tests remain part of acceptance.
 - `WinMon.SensorSetup` reuses hardened setup sources, transactions and signed-package verification with sensor-specific paths/registration. Release packaging embeds a separately signed sensor bundle; unsigned development and Store builds cannot install it.
 - A cached nonblocking app client, opt-in Settings with status/repair/removal, CPU gauge/details/peaks in Full and Compact, translated strings and unavailable/stale handling. Portable core carries only immutable readings; Libre stays outside WPF.

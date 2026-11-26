@@ -128,7 +128,8 @@ internal sealed class SensorCollectorWorker : IAsyncDisposable
         if (await Task.WhenAny(task, Task.Delay(_operationBudget, CancellationToken.None)).ConfigureAwait(false) != task)
         {
             Interlocked.Exchange(ref _timedOut, 1);
-            Volatile.Write(ref _timedOutAt, Stopwatch.GetTimestamp());
+            // Cleanup can time out too; recovery must remain anchored to the first timeout.
+            Interlocked.CompareExchange(ref _timedOutAt, Stopwatch.GetTimestamp(), 0);
             Publish(SensorCollectorQuality.Failed, null, name + " timed out");
             RequestStop(invalidate: false);
             // A native call may still own handles. Do not start another worker until this task returns.
@@ -142,7 +143,8 @@ internal sealed class SensorCollectorWorker : IAsyncDisposable
         if (await Task.WhenAny(task, Task.Delay(_operationBudget, CancellationToken.None)).ConfigureAwait(false) != task)
         {
             Interlocked.Exchange(ref _timedOut, 1);
-            Volatile.Write(ref _timedOutAt, Stopwatch.GetTimestamp());
+            // Cleanup can time out too; recovery must remain anchored to the first timeout.
+            Interlocked.CompareExchange(ref _timedOutAt, Stopwatch.GetTimestamp(), 0);
             Publish(SensorCollectorQuality.Failed, null, name + " timed out");
             RequestStop(invalidate: false);
         }

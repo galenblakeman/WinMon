@@ -176,9 +176,64 @@ public sealed class SensorCollectorManagerTests
         });
     }
 
+    [TestCase(true)]
+    [TestCase(false)]
+    public async Task RepeatedTimeouts_KeepRecoveryBudgetAnchoredToFirstTimeout(bool timeoutDuringOpen)
+    {
+        var provider = new RepeatedTimeoutProvider(timeoutDuringOpen);
+        await using var worker = new SensorCollectorWorker(provider, TimeSpan.Zero, TimeSpan.FromMilliseconds(100));
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var recoveryBudget = TimeSpan.FromMilliseconds(500);
+        try
+        {
+            await WaitForTimeoutAsync(timeoutDuringOpen ? "open timed out" : "update timed out");
+            // Exhaust recovery from the first timeout before allowing cleanup to start.
+            await Task.Delay(recoveryBudget + TimeSpan.FromMilliseconds(100), timeout.Token);
+            provider.ReleaseOperation.TrySetResult();
+            await WaitForTimeoutAsync("close timed out");
+            provider.ReleaseClose.TrySetResult();
+            await worker.Completion.WaitAsync(timeout.Token);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(worker.Snapshot.Quality, Is.EqualTo(SensorCollectorQuality.Failed));
+                Assert.That(worker.CleanupFailed, Is.False, "Cleanup returned successfully, but too late for recovery.");
+                Assert.That(worker.CleanupReturnedWithin(recoveryBudget), Is.False,
+                    "A cleanup timeout must not give an already-expired recovery budget a new start time.");
+            });
+        }
+        finally
+        {
+            provider.ReleaseOperation.TrySetResult();
+            provider.ReleaseClose.TrySetResult();
+        }
+
+        async Task WaitForTimeoutAsync(string reason)
+        {
+            while (worker.Snapshot.FailureReason != reason)
+                await Task.Delay(10, timeout.Token);
+        }
+    }
+
     private static SensorCollectorManager Manager(Func<ISensorProvider> create, TimeSpan idleGrace,
         TimeSpan? budget = null, TimeSpan? retry = null) =>
         new([User], create, idleGrace, TimeSpan.FromMilliseconds(5), budget ?? TimeSpan.FromSeconds(1), retry ?? TimeSpan.Zero);
+
+    private sealed class RepeatedTimeoutProvider(bool timeoutDuringOpen) : ISensorProvider
+    {
+        internal readonly TaskCompletionSource ReleaseOperation = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal readonly TaskCompletionSource ReleaseClose = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public Task OpenAsync(CancellationToken token) => timeoutDuringOpen ? ReleaseOperation.Task : Task.CompletedTask;
+
+        public async Task<SensorReading?> ReadCpuTemperatureAsync(CancellationToken token)
+        {
+            await ReleaseOperation.Task;
+            return null;
+        }
+
+        public ValueTask DisposeAsync() => new(ReleaseClose.Task);
+    }
 
     private sealed class FakeProvider : ISensorProvider
     {
