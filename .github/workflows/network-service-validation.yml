@@ -1,4 +1,4 @@
-name: Build signed network service test bundle
+name: Build signed service test bundles
 
 on:
   workflow_dispatch:
@@ -24,8 +24,10 @@ jobs:
       - name: Verify service and setup boundaries
         run: |
           $ErrorActionPreference = 'Stop'
-          foreach ($project in @('MonCore.Tests', 'MonCore.Windows.Tests', 'WinMon.NetworkService.Tests', 'WinMon.NetworkSetup.Tests')) {
-            dotnet test "tests/$project/$project.csproj" -c Release -m:1 -p:UseSharedCompilation=false --artifacts-path artifacts/network-validation/build --logger 'trx;LogFilePrefix=network' --results-directory artifacts/network-validation/results
+          $build = Join-Path $PWD 'artifacts/network-validation/build'
+          $results = Join-Path $PWD 'artifacts/network-validation/results'
+          foreach ($project in @('MonCore.Tests', 'MonCore.Windows.Tests', 'WinMon.NetworkService.Tests', 'WinMon.NetworkSetup.Tests', 'WinMon.SensorService.Tests', 'WinMon.SensorSetup.Tests')) {
+            dotnet test "tests/$project/$project.csproj" -c Release -m:1 -p:UseSharedCompilation=false --artifacts-path $build --logger 'trx;LogFilePrefix=service' --results-directory $results
             if ($LASTEXITCODE -ne 0) { throw "$project failed." }
           }
       - name: Sign in to Azure using GitHub OIDC
@@ -49,6 +51,7 @@ jobs:
             [IO.File]::WriteAllBytes($keyPath, [Convert]::FromBase64String($env:UPDATE_SIGNING_KEY_BASE64))
             Remove-Item Env:UPDATE_SIGNING_KEY_BASE64
             ./tools/New-NetworkServicePackage.ps1 -Version $version -UpdateSigningKeyPath $keyPath -OutputDirectory "$PWD/artifacts/network-validation/bundle"
+            ./tools/New-SensorServicePackage.ps1 -Version $version -UpdateSigningKeyPath $keyPath -OutputDirectory "$PWD/artifacts/network-validation/sensor-bundle"
           }
           finally {
             if (Test-Path -LiteralPath $keyPath) { Remove-Item -LiteralPath $keyPath -Force }
@@ -59,6 +62,12 @@ jobs:
           name: network-service-test-bundle-${{ github.run_id }}
           path: artifacts/network-validation/bundle/*
           if-no-files-found: error
+      - name: Upload signed sensor test bundle
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: sensor-service-test-bundle-${{ github.run_id }}
+          path: artifacts/network-validation/sensor-bundle/*
+          if-no-files-found: error
       - name: Upload test evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -68,4 +77,6 @@ jobs:
             artifacts/network-validation/results/*
             artifacts/packaging/network-service-*/network-service-signature.json
             artifacts/packaging/network-service-*/network-setup-signature.json
+            artifacts/packaging/sensor-service-*/sensor-service-signature.json
+            artifacts/packaging/sensor-service-*/sensor-setup-signature.json
           if-no-files-found: warn
