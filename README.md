@@ -16,6 +16,8 @@ GPU gauges show temperature when the Windows graphics driver supplies it. Resour
 
 MCP performance recordings retain valid captured intervals even when report processing falls behind collection.
 
+MCP process recordings continue through temporary CPU collection failures. Failed executable-path lookups retry after 30 seconds, so friendly names, grouping and saved executable pins can recover while the process remains running.
+
 Per-app network history retains rates collected while the interface is busy. After a temporary network-monitor disconnect, fresh rates can again contribute to History comparisons and automatic captures; session byte totals keep their incomplete-coverage warning.
 
 Opening a new connection keeps established connections' traffic rates available while the new connection establishes its own baseline.

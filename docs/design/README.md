@@ -1,5 +1,7 @@
 # WinMon design assets
 
+- [Sampling recovery corrections](SAMPLING-RECOVERY-CORRECTIONS.md) keeps MCP process recordings alive through CPU collection failures and retries unavailable executable paths without repeated lookups every tick.
+
 - [MonCore accounting corrections](MONCORE-ACCOUNTING-CORRECTIONS.md) isolates connection rate baselines and preserves portable executable identity and independent usage readings.
 
 - [Optional counter recovery](OPTIONAL-COUNTER-RECOVERY.md) keeps optional counter failures local and connects service startup tests to the production loop.

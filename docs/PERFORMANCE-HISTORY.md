@@ -2,6 +2,19 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## Executable-path recovery (November 26, 2026)
+
+Compared the preserved pre-fix adapter with the corrected Release adapter in four alternating before/after pairs. Each process used 850 fixed process lifetimes, 1,000 warm-up captures and seven batches of 4,000 captures per case. The clock used real monotonic time; injected lookup delegates returned either a stable path or an unavailable path. These cases measure cached successful lookups and the failed-lookup backoff between retries, excluding native queries and full UI/sampling cost.
+
+| Cached path case | Before, ms/capture | After, ms/capture | Before / after run-median range, ms |
+| --- | ---: | ---: | --- |
+| All readable | 0.01320 | 0.01489 | 0.01305–0.01455 / 0.01426–0.01749 |
+| All unavailable, within backoff | 0.01336 | 0.01867 | 0.01325–0.01349 / 0.01850–0.02932 |
+
+Values are medians of the four run medians. Added cost is about 1.7 microseconds for 850 readable entries and 5.3 microseconds for 850 unavailable entries per capture, from the timestamped cache and elapsed-time checks. Mean measured allocation remained below one byte per capture in both cases; no per-entry allocation was added. The cache stores one additional timestamp per retained lifetime. Native retry cost is deliberately paid only after the 30-second backoff and is not measured here. This bounded synthetic increase is accepted to restore recovery; these results do not establish whole-app overhead or a speedup.
+
+Harness, preserved assemblies, raw pairs and summary: `artifacts/audit-fixes/perf/`. See [sampling recovery corrections](design/SAMPLING-RECOVERY-CORRECTIONS.md).
+
 ## Optional counter recovery and shared startup tests (November 26, 2026)
 
 Compared preserved baseline `82f30c5` and corrected Release Windows adapter builds using the existing native resource-sampler probe. Four pairs alternated launch order after both test hosts had exited. Each process warmed up for 30 reads, then measured 200 back-to-back resource samples with zero process rows.

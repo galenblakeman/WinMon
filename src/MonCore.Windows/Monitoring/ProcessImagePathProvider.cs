@@ -10,23 +10,33 @@ namespace MonCore.Windows.Monitoring;
 /// <summary>Caches executable paths by process lifetime on the sampling thread.</summary>
 internal sealed class ProcessImagePathProvider
 {
+    private static readonly TimeSpan RetryInterval = TimeSpan.FromSeconds(30);
     private readonly Func<int, long, string> _read;
     private readonly Func<int, string> _fallback;
-    private Dictionary<(int, long), string> _paths = [];
-    private Dictionary<(int, long), string> _nextPaths = [];
+    private readonly TimeProvider _clock;
+    private Dictionary<(int, long), CachedPath> _paths = [];
+    private Dictionary<(int, long), CachedPath> _nextPaths = [];
     private Dictionary<(int, long), string> _pending = [];
     private Dictionary<(int, long), string> _nextPending = [];
     private readonly char[] _pathBuffer = new char[1024];
     private char[]? _nativeBuffer;
 
     public ProcessImagePathProvider(Func<int, long, string>? read = null, Func<int, string>? fallback = null)
+        : this(read, fallback, TimeProvider.System)
     {
+    }
+
+    internal ProcessImagePathProvider(Func<int, long, string>? read, Func<int, string>? fallback, TimeProvider clock)
+    {
+        ArgumentNullException.ThrowIfNull(clock);
+        _clock = clock;
         _read = read ?? Read;
         _fallback = fallback ?? ReadByProcessId;
     }
 
     public void Capture(List<ProcessCpuTimes> processes)
     {
+        var now = _clock.GetTimestamp();
         _nextPaths.Clear();
         _nextPending.Clear();
         for (var i = 0; i < processes.Count; i++)
@@ -35,7 +45,13 @@ internal sealed class ProcessImagePathProvider
             var key = (process.ProcessId, process.CreationTicks);
             // A PID-only query is made after one system snapshot, then accepted only if the
             // next snapshot still contains that exact lifetime. Never publish an unverified path.
-            if (!_pending.TryGetValue(key, out var path) && !_paths.TryGetValue(key, out path))
+            CachedPath cached;
+            if (_pending.TryGetValue(key, out var path))
+                cached = new CachedPath(path, now);
+            else if (_paths.TryGetValue(key, out cached) &&
+                     (cached.Path.Length > 0 || _clock.GetElapsedTime(cached.ObservedAt, now) < RetryInterval))
+                path = cached.Path;
+            else
             {
                 path = _read(process.ProcessId, process.CreationTicks);
                 if (path.Length == 0)
@@ -43,15 +59,18 @@ internal sealed class ProcessImagePathProvider
                     var candidate = _fallback(process.ProcessId);
                     if (candidate.Length > 0) _nextPending[key] = candidate;
                 }
+                cached = new CachedPath(path, now);
             }
 
-            _nextPaths[key] = path;
+            _nextPaths[key] = cached;
             processes[i] = process with { ImagePath = path };
         }
 
         (_paths, _nextPaths) = (_nextPaths, _paths);
         (_pending, _nextPending) = (_nextPending, _pending);
     }
+
+    private readonly record struct CachedPath(string Path, long ObservedAt);
 
     private string Read(int processId, long created)
     {

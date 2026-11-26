@@ -89,6 +89,39 @@ public sealed class PerformanceSamplingCharacterizationTests
     }
 
     [Test]
+    public async Task CpuCollectionFailureDoesNotEndPinnedLifetimeBeforeRecovery()
+    {
+        await using var harness = await Harness.Create();
+        var request = harness.Tools.SamplePerformance(2, 1, 42, "100", "WindowsFileTime");
+        await harness.Clock.TimerCreated.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        await harness.Publish(null, process: false, error: SamplingError.CpuUnavailable, interval: 0);
+        await harness.Publish(30);
+        var response = (await request.WaitAsync(TimeSpan.FromSeconds(5))).StructuredContent!.Value;
+        var data = response.GetProperty("data");
+        Assert.That(response.GetProperty("status").GetString(), Is.EqualTo("ok"));
+        Assert.That(data.GetProperty("actualDurationSeconds").GetDouble(), Is.EqualTo(2));
+        Assert.That(data.GetProperty("identity").GetProperty("startToken").GetString(), Is.EqualTo("100"));
+        var cpu = data.GetProperty("metrics").GetProperty("processCpuPercent");
+        Assert.That(cpu.GetProperty("average").GetDouble(), Is.EqualTo(20));
+        Assert.That(cpu.GetProperty("validSampleCount").GetInt32(), Is.EqualTo(1));
+        Assert.That(cpu.GetProperty("coverage").GetDouble(), Is.EqualTo(0.5));
+        Assert.That(data.GetProperty("collectionErrors").EnumerateArray().Select(value => value.GetString()),
+            Is.EqualTo(new[] { "CpuUnavailable" }));
+    }
+
+    [Test]
+    public async Task IndependentProcessInventoryWithoutSystemCpuStillEndsMissingLifetime()
+    {
+        await using var harness = await Harness.Create();
+        var request = harness.Tools.SamplePerformance(2, 1, 42, "100", "WindowsFileTime");
+        await harness.Clock.TimerCreated.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        await harness.Publish(null, process: false, independent: true);
+        var response = (await request.WaitAsync(TimeSpan.FromSeconds(5))).StructuredContent!.Value;
+        Assert.That(response.GetProperty("status").GetString(), Is.EqualTo("notObserved"));
+        Assert.That(response.GetProperty("data").GetProperty("actualDurationSeconds").GetDouble(), Is.EqualTo(1));
+    }
+
+    [Test]
     public async Task GapDoesNotEndPinnedLifetimeButReusedPidDoes()
     {
         await using var harness = await Harness.Create();
@@ -274,17 +307,18 @@ public sealed class PerformanceSamplingCharacterizationTests
             }
             catch { await result.DisposeAsync(); throw; }
         }
-        private CapturedFrame Frame(double cpu, string name = "disk-original", bool gap = false, bool process = true, long processToken = 100,
-            string target = "disk", SamplingError? error = null) =>
+        private CapturedFrame Frame(double? cpu, string name = "disk-original", bool gap = false, bool process = true, long processToken = 100,
+            string target = "disk", SamplingError? error = null, double interval = 1, bool independent = false) =>
             new(new MonitorSample(Clock.GetUtcNow(), cpu, process ? [new ProcessUsage(42, processToken, "fixture", 20)] : [], 1, gap)
-            { IntervalSeconds = 1, Resources = new ResourceSample { DiskName = target == "disk" ? name : "disk-original",
+            { IntervalSeconds = interval, IndependentProcessReadings = independent,
+                Resources = new ResourceSample { DiskName = target == "disk" ? name : "disk-original",
                 NetworkId = target == "network" ? name : "network", GpuId = target == "gpu" ? name : "gpu" } }, Error: error);
-        internal async Task Publish(double cpu, string name = "disk-original", bool gap = false, bool process = true, long processToken = 100,
-            string target = "disk", SamplingError? error = null)
+        internal async Task Publish(double? cpu, string name = "disk-original", bool gap = false, bool process = true, long processToken = 100,
+            string target = "disk", SamplingError? error = null, double interval = 1, bool independent = false)
         {
             var sequence = Owner.ReadAfter(0).Last().Sequence;
             Clock.Advance(TimeSpan.FromSeconds(1));
-            _source.Frames.Add(Frame(cpu, name, gap, process, processToken, target, error));
+            _source.Frames.Add(Frame(cpu, name, gap, process, processToken, target, error, interval, independent));
             await Owner.WaitForChangeAsync(sequence, default).WaitAsync(TimeSpan.FromSeconds(5));
         }
         public async ValueTask DisposeAsync()

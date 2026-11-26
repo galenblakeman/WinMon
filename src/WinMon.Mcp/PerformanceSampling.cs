@@ -93,7 +93,9 @@ internal sealed partial class DiagnosticTools
             (ProcessUsage? Current, bool Ended) ObserveProcess(MonitorSample reading)
             {
                 var current = identity is null ? null : reading.Processes.FirstOrDefault(matchesIdentity ??= p => p.Identity == identity);
-                return (current, identity is not null && current is null && !reading.IsGap);
+                // CPU failures can carry an empty process list without marking a resource gap.
+                // Only a valid process inventory can establish that this lifetime was not observed.
+                return (current, identity is not null && current is null && UsageLedger.IsValid(reading));
             }
         }
         finally { _samplingSlots.Release(); }

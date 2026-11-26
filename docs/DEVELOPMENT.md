@@ -1,5 +1,7 @@
 # WinMon developer guide
 
+MCP `sample_performance` uses `UsageLedger.IsValid` before interpreting an absent process lifetime as no longer observed. An empty inventory from failed Windows CPU collection does not end the requested recording; gaps remain excluded, while valid independent process inventories can still establish absence. `ProcessImagePathProvider` retains successful paths for the observed lifetime and retries empty direct/fallback results after 30 monotonic seconds. PID-only fallback results still wait for a later matching lifetime snapshot. An instance-local `TimeProvider` controls retry boundaries in tests; disappeared lifetimes drop their cache and retry state. See [sampling recovery corrections](design/SAMPLING-RECOVERY-CORRECTIONS.md).
+
 ReSharper uses the shared `WinMon.sln.DotSettings` syntax policy and dictionary. Keep correctness inspections enabled and explain intentional exceptions beside the source. The [inspection review](INSPECTION-REVIEW.md) records the disposition of the November 8, 2026 report.
 
 `SelectedActivityTab` persists the last activity tab (Processes=0, Services=1, Usage=2, Connections=3). Missing or invalid values select Processes. Startup restores the tab after loading view preferences, suppressing the usual tab-selection expansion so the saved collapsed state is preserved. Tab changes use the existing exit-save path.

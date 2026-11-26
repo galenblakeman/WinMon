@@ -104,6 +104,94 @@ public sealed class ProcessImagePathProviderTests
         Assert.That(reads, Is.EqualTo(1));
     }
 
+    [TestCase(false)]
+    [TestCase(true)]
+    public void Capture_FailedLookupRetriesAtThirtySecondsAndCachesRecoveredPath(bool fallback)
+    {
+        var clock = new PathClock();
+        var available = false;
+        var reads = 0;
+        var fallbackReads = 0;
+        const string expected = @"C:\Recovered\updater.exe";
+        var provider = new ProcessImagePathProvider((_, _) =>
+        {
+            reads++;
+            return available && !fallback ? expected : "";
+        }, _ =>
+        {
+            fallbackReads++;
+            return available && fallback ? expected : "";
+        }, clock);
+        List<ProcessCpuTimes> processes = [Process()];
+        provider.Capture(processes);
+        available = true;
+        clock.Advance(TimeSpan.FromSeconds(30) - TimeSpan.FromTicks(1));
+        provider.Capture(processes);
+        Assert.That(processes[0].ImagePath, Is.Empty);
+        Assert.That(reads, Is.EqualTo(1));
+        Assert.That(fallbackReads, Is.EqualTo(1));
+
+        clock.Advance(TimeSpan.FromTicks(1));
+        provider.Capture(processes);
+        Assert.That(reads, Is.EqualTo(2));
+        Assert.That(fallbackReads, Is.EqualTo(fallback ? 2 : 1));
+        Assert.That(processes[0].ImagePath, Is.EqualTo(fallback ? "" : expected));
+        // A recovered PID-only path still needs a later snapshot of the same lifetime.
+        provider.Capture(processes);
+        Assert.That(processes[0].ImagePath, Is.EqualTo(expected));
+
+        available = false;
+        clock.Advance(TimeSpan.FromMinutes(1));
+        provider.Capture(processes);
+        Assert.That(processes[0].ImagePath, Is.EqualTo(expected));
+        Assert.That(reads, Is.EqualTo(2));
+        Assert.That(fallbackReads, Is.EqualTo(fallback ? 2 : 1));
+    }
+
+    [Test]
+    public void Capture_RepeatedLookupFailureStartsAnotherThirtySecondBackoff()
+    {
+        var clock = new PathClock();
+        var reads = 0;
+        var provider = new ProcessImagePathProvider((_, _) => { reads++; return ""; }, _ => "", clock);
+        List<ProcessCpuTimes> processes = [Process()];
+        provider.Capture(processes);
+        clock.Advance(TimeSpan.FromSeconds(30));
+        provider.Capture(processes);
+        Assert.That(reads, Is.EqualTo(2));
+        clock.Advance(TimeSpan.FromSeconds(30) - TimeSpan.FromTicks(1));
+        provider.Capture(processes);
+        Assert.That(reads, Is.EqualTo(2));
+        clock.Advance(TimeSpan.FromTicks(1));
+        provider.Capture(processes);
+        Assert.That(reads, Is.EqualTo(3));
+        Assert.That(processes[0].ImagePath, Is.Empty);
+    }
+
+    [TestCase(false)]
+    [TestCase(true)]
+    public void Capture_FailedLookupBackoffDoesNotSurviveLifetimeChangeOrDisappearance(bool disappears)
+    {
+        var clock = new PathClock();
+        var path = "";
+        var provider = new ProcessImagePathProvider((_, _) => path, _ => "", clock);
+        List<ProcessCpuTimes> processes = [Process()];
+        provider.Capture(processes);
+        if (disappears) provider.Capture([]);
+        path = @"C:\New\updater.exe";
+        processes = [Process(disappears ? 100 : 200)];
+        provider.Capture(processes);
+        Assert.That(processes[0].ImagePath, Is.EqualTo(path));
+    }
+
+    private sealed class PathClock : TimeProvider
+    {
+        private long _timestamp;
+        public override long TimestampFrequency => TimeSpan.TicksPerSecond;
+        public override long GetTimestamp() => _timestamp;
+        internal void Advance(TimeSpan elapsed) => _timestamp += elapsed.Ticks;
+    }
+
     [TestCase(@"\Device\HarddiskVolume3\Apps\updater.exe", @"C:\Apps\updater.exe")]
     [TestCase(@"\device\harddiskvolume3\Apps\updater.exe", @"C:\Apps\updater.exe")]
     [TestCase(@"\Device\HarddiskVolume30\Apps\updater.exe", "")]
