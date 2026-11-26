@@ -149,6 +149,9 @@ public sealed class RestartHistoryTests
                     "LibreHardwareMonitorLib 0.9.6"),
                 CpuPerformanceLimitPercent = 62,
                 CpuPerformanceLimitFlags = 2,
+                HardwareFans = [new HardwareFanReading("CPU Fan", 1200, true)],
+                DiskTemperatureCelsius = 40,
+                SecondaryDiskTemperatureCelsius = 45,
                 ThermalZones = [new ThermalZoneReading("zone", 55, false)],
                 GpuThermals = [new GpuThermalReading("gpu/0", "GPU", 65, 1000, 30, 80, 90)]
             }
@@ -161,6 +164,9 @@ public sealed class RestartHistoryTests
             Assert.That(restored.CpuTemperature, Is.Null);
             Assert.That(restored.CpuPerformanceLimitPercent, Is.Null);
             Assert.That(restored.CpuPerformanceLimitFlags, Is.Null);
+            Assert.That(restored.HardwareFans, Is.Empty);
+            Assert.That(restored.DiskTemperatureCelsius, Is.Null);
+            Assert.That(restored.SecondaryDiskTemperatureCelsius, Is.Null);
             Assert.That(restored.ThermalZones, Is.Empty);
             Assert.That(restored.GpuThermals, Is.Empty);
         });
@@ -603,10 +609,12 @@ public sealed class RestartHistoryTests
 
     private static IEnumerable<PropertyInfo> SettablePersistedResources()
     {
-        // Temperature is live-only until a format-versioned history/incident design explicitly includes it.
+        // Sensor readings are live-only until a format-versioned history design explicitly includes them.
         return Settable(typeof(ResourceSample)).Where(property => property.Name is not
             (nameof(ResourceSample.CpuPerformanceLimitPercent) or nameof(ResourceSample.CpuPerformanceLimitFlags)
-            or nameof(ResourceSample.ThermalZones) or nameof(ResourceSample.GpuThermals) or nameof(ResourceSample.CpuTemperature)));
+            or nameof(ResourceSample.ThermalZones) or nameof(ResourceSample.GpuThermals) or nameof(ResourceSample.CpuTemperature)
+            or nameof(ResourceSample.HardwareFans) or nameof(ResourceSample.DiskTemperatureCelsius)
+            or nameof(ResourceSample.SecondaryDiskTemperatureCelsius)));
     }
 
     private static object? Default(Type type)
