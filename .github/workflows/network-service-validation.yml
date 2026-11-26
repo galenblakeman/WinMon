@@ -30,16 +30,15 @@ jobs:
             dotnet test "tests/$project/$project.csproj" -c Release -m:1 -p:UseSharedCompilation=false --artifacts-path $build --logger 'trx;LogFilePrefix=service' --results-directory $results
             if ($LASTEXITCODE -ne 0) { throw "$project failed." }
           }
-      - name: Sign in to Azure using GitHub OIDC
-        uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       - name: Install pinned Artifact Signing module
         run: Install-Module ArtifactSigning -RequiredVersion 0.1.20 -Repository PSGallery -Scope CurrentUser -Force
       - name: Build and sign the standalone test bundle
         env:
+          WINMON_SIGNING_GITHUB_OIDC: 'true'
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          AZURE_CONFIG_DIR: ${{ runner.temp }}/winmon-azure
           UPDATE_SIGNING_KEY_BASE64: ${{ secrets.WINMON_UPDATE_SIGNING_KEY_BASE64 }}
         run: |
           $ErrorActionPreference = 'Stop'

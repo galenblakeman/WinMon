@@ -21,7 +21,7 @@ The `release` GitHub environment must exist and contain:
 | `AZURE_SUBSCRIPTION_ID` | Subscription containing the signing account |
 | `WINMON_UPDATE_SIGNING_KEY_BASE64` | Base64-encoded permanent RSA PKCS#8 update private-key PEM |
 
-The application's federated credential must trust the repository's OIDC token for environment `release`. The release job declares that environment and requests `id-token: write`. Its Azure login action is pinned to an immutable commit. No Azure client secret or user password is needed. Assign the application the **Artifact Signing Certificate Profile Signer** role on the signing account or individual profile.
+The application's federated credential must trust the repository's OIDC token for environment `release`. The release job declares that environment and requests `id-token: write`. Assign the application the **Artifact Signing Certificate Profile Signer** role on the signing account or individual profile.
 
 For this repository's current immutable-ID subject format, the configured subject is:
 
@@ -41,7 +41,7 @@ GitHub installs Microsoft's `ArtifactSigning` PowerShell module at version **0.1
 4. Create the portable ZIP, WinGet manifests, RSA update manifest, and checksums from the final bytes.
 5. Validate installer lifecycle/startup and WinGet manifests, then create a draft release for a version tag.
 
-Signing uses SHA-256 and RFC 3161 timestamping at `http://timestamp.acs.microsoft.com`. Authentication uses only the Azure CLI session established by GitHub OIDC. Provider errors, invalid signatures, unexpected publishers, and absent timestamps fail packaging. The Windows signature check establishes trust on the build machine; it does not guarantee immediate SmartScreen acceptance on every customer's machine.
+Signing uses SHA-256 and RFC 3161 timestamping at `http://timestamp.acs.microsoft.com`. In GitHub Actions, each signing call exchanges a fresh GitHub OIDC assertion for an Azure CLI session in the runner's temporary directory. This lets long tests and builds finish before Azure receives the short-lived assertion. Local signing uses the existing Azure CLI login. Provider errors, invalid signatures, unexpected publishers, and absent timestamps fail packaging. The Windows signature check establishes trust on the build machine; SmartScreen evaluates downloads on the end user's machine.
 
 Desktop, CLI, MCP and all three installer signatures have evidence under `artifacts/packaging/<run>/`: `application-signature.json`, `cli-signature.json`, `mcp-signature.json`, `installer-signature.json`, `cli-installer-signature.json` and `mcp-installer-signature.json`. These are uploaded with validation evidence and contain final hashes and certificate details. Upstream dependencies are not individually re-signed as WinMon code. The generated Inno uninstallers are not separately signed by this integration.
 

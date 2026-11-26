@@ -89,13 +89,36 @@ elseif ($script -eq 'WinMon.Mcp.iss') {
 else { throw "Unexpected installer script: $script" }
 $global:LASTEXITCODE = 0
 '@ | Set-Content -LiteralPath $compiler
-$testState = @{ Mode = 'valid'; Calls = 0 }
+$testState = @{ Mode = 'valid'; Calls = 0; OidcRequests = 0; AzureLogins = 0; SubscriptionSelections = 0 }
 function Invoke-WebRequest {
     param($Uri, $OutFile)
     if ($Uri -cne 'https://github.com/namazso/PawnIO.Setup/releases/download/2.2.0/PawnIO_setup.exe') { throw 'Unexpected PawnIO URL.' }
     [IO.File]::WriteAllBytes($OutFile, $(if ($testState.Mode -eq 'pawnio-mismatch') { [byte[]]@(1, 2, 3) } else { $pawnIoBytes }))
 }
 function Import-Module { param($Name, $RequiredVersion, $ErrorAction) }
+function Invoke-RestMethod {
+    param($Uri, $Headers, $MaximumRedirection, $TimeoutSec)
+    if ($Uri -cne 'https://fixture.test/oidc?api-version=2.0&audience=api%3A%2F%2FAzureADTokenExchange' -or
+        $Headers.Authorization -cne 'Bearer fixture-request' -or $MaximumRedirection -ne 0) {
+        throw 'Unexpected OIDC request.'
+    }
+    $testState.OidcRequests++
+    @{ value = "fixture.payload.$($testState.OidcRequests)" }
+}
+function az {
+    if ($args[0] -ceq 'login') {
+        if (($args -join ' ') -cne "login --service-principal --username fixture-client --tenant fixture-tenant --federated-token fixture.payload.$($testState.OidcRequests) --only-show-errors --output none") {
+            throw 'Azure CLI did not receive the fresh fixture assertion.'
+        }
+        if ($testState.Mode -eq 'oidc-error') { $global:LASTEXITCODE = 1; return }
+        $testState.AzureLogins++
+    }
+    elseif (($args -join ' ') -ceq 'account set --subscription fixture-subscription --only-show-errors') {
+        $testState.SubscriptionSelections++
+    }
+    else { throw 'Unexpected Azure CLI command.' }
+    $global:LASTEXITCODE = 0
+}
 function dotnet {
     if ($args[0] -eq 'publish') {
         $output = $args[[Array]::IndexOf($args, '-o') + 1]
@@ -139,6 +162,11 @@ function Invoke-ArtifactSigning {
         throw 'Unexpected signing configuration.'
     }
     $testState.Calls++
+    if ($env:WINMON_SIGNING_GITHUB_OIDC -ceq 'true' -and
+        ($testState.OidcRequests -ne $testState.Calls -or $testState.AzureLogins -ne $testState.Calls -or
+            $testState.SubscriptionSelections -ne $testState.Calls)) {
+        throw 'Each signing call must obtain a fresh assertion and select the subscription first.'
+    }
     if ($testState.Mode -eq 'provider-error') { throw 'Simulated Azure signing failure.' }
     [IO.File]::AppendAllText($Files, ':SIGNED')
 }
@@ -158,7 +186,37 @@ function Get-AuthenticodeSignature {
 }
 $release = Join-Path $fixture 'tools/New-Release.ps1'
 $output = Join-Path $run 'release'
-& $release -CodeSign -InnoCompiler $compiler -OutputDirectory $output -UpdateSigningKeyPath (Join-Path $run 'private.pem')
+$fixtureEnvironment = @{
+    WINMON_SIGNING_GITHUB_OIDC = 'true'
+    GITHUB_ACTIONS = 'true'
+    ACTIONS_ID_TOKEN_REQUEST_URL = 'https://fixture.test/oidc?api-version=2.0'
+    ACTIONS_ID_TOKEN_REQUEST_TOKEN = 'fixture-request'
+    AZURE_CLIENT_ID = 'fixture-client'
+    AZURE_TENANT_ID = 'fixture-tenant'
+    AZURE_SUBSCRIPTION_ID = 'fixture-subscription'
+}
+$originalEnvironment = @{}
+try {
+    foreach ($entry in $fixtureEnvironment.GetEnumerator()) {
+        $originalEnvironment[$entry.Key] = [Environment]::GetEnvironmentVariable($entry.Key)
+        [Environment]::SetEnvironmentVariable($entry.Key, $entry.Value)
+    }
+    & $release -CodeSign -InnoCompiler $compiler -OutputDirectory $output -UpdateSigningKeyPath (Join-Path $run 'private.pem')
+    $testState.Mode = 'oidc-error'
+    $signingError = try {
+        & (Join-Path $fixture 'tools/Sign-ReleaseFile.ps1') -Path (Join-Path $output 'WinMon-9.8.7-Setup-x64.exe') `
+            -Endpoint 'https://eus.codesigning.azure.net/' -AccountName 'galenwinmonsigning' `
+            -CertificateProfileName 'WinMonPublic' -ExpectedPublisher 'Galen Blakeman'
+    }
+    catch { $_.Exception.Message }
+    if ($signingError -cne 'GitHub OIDC sign-in to Azure CLI failed.') { throw 'Signing must stop when OIDC sign-in fails.' }
+}
+finally {
+    foreach ($entry in $originalEnvironment.GetEnumerator()) {
+        [Environment]::SetEnvironmentVariable($entry.Key, $entry.Value)
+    }
+    $testState.Mode = 'valid'
+}
 if ($testState.Calls -ne 10) { throw 'Expected exactly ten signing calls, including both service bundles.' }
 Expand-Archive (Join-Path $output 'WinMon-9.8.7-win-x64.zip') (Join-Path $run 'portable')
 if ((Get-Content (Join-Path $run 'portable/WinMon.exe') -Raw) -cne 'APPLICATION:SIGNED') { throw 'Portable executable was not signed.' }
