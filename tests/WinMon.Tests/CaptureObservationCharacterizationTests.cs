@@ -42,9 +42,11 @@ public sealed class CaptureObservationCharacterizationTests
     [TearDown]
     public void TearDown()
     {
-        WaitForReports();
         if (_window is not null)
         {
+            var writes = _window.FinishCaptureWritesForFixtureAsync();
+            WaitForCaptureWork(() => writes.IsCompleted);
+            writes.GetAwaiter().GetResult();
             foreach (var view in new FrameworkElement[] { _window.UsageView, _window.Processes, _window.ServiceView, _window.ConnectionView })
                 view.RaiseEvent(new RoutedEventArgs(FrameworkElement.UnloadedEvent));
             _window.CloseForFixture();
@@ -62,14 +64,17 @@ public sealed class CaptureObservationCharacterizationTests
         }
     }
 
-    private void WaitForReports()
+    private void WaitForReports() => WaitForCaptureWork(() =>
+        _window.CaptureMarkers.All(marker => marker.ReportPath is not null || marker.WriteFailed));
+
+    private void WaitForCaptureWork(Func<bool> complete)
     {
-        if (_window is null || _window.CaptureMarkers.All(marker => marker.ReportPath is not null || marker.WriteFailed)) return;
+        if (complete()) return;
         var frame = new DispatcherFrame();
         var timedOut = false;
         DispatcherHookEventHandler completed = (_, _) =>
         {
-            if (_window.CaptureMarkers.All(marker => marker.ReportPath is not null || marker.WriteFailed)) frame.Continue = false;
+            if (complete()) frame.Continue = false;
         };
         var deadline = new DispatcherTimer(DispatcherPriority.Send) { Interval = TimeSpan.FromSeconds(10) };
         deadline.Tick += (_, _) => { timedOut = true; frame.Continue = false; };

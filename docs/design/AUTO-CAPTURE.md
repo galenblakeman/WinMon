@@ -1,5 +1,7 @@
 # Automatic captures
 
+The original text-report design is recorded below. [Automatic incident saving](AUTOMATIC-INCIDENTS.md) extends it with reopenable History files.
+
 Proposed on 2026-10-24. Status: implemented on 2026-10-24 (Sequence steps 1 to 6); see Implementation notes.
 
 ## Why

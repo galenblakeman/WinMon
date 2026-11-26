@@ -46,6 +46,7 @@ public partial class MainWindow
 
     private async Task WhenCapturesFinishAsync()
     {
+        FinishCaptureIncidents(double.PositiveInfinity);
         while (_captureWrites.Where(write => !write.IsCompleted).ToArray() is { Length: > 0 } running)
             await Task.WhenAll(running).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing |
                                                        ConfigureAwaitOptions.ContinueOnCapturedContext);
@@ -67,6 +68,7 @@ public partial class MainWindow
     /// <summary>Evaluate the rules on one live sample and record whatever fired.</summary>
     internal void ObserveForCaptures(MonitorSample full)
     {
+        if (full is not null && _pendingCaptureIncidents.Count > 0) FinishCaptureIncidents(SampleKey.Of(full).Moment);
         var settings = _preferences.AutoCapture;
         if (!settings.Enabled)
         {
@@ -83,6 +85,7 @@ public partial class MainWindow
                 WindowsCpuClock.LogicalProcessorCount);
         _captureRulesSource = settings;
 
+        ArgumentNullException.ThrowIfNull(full);
         foreach (var fired in _captureRules!.Observe(full, Session.Services.Frames.LastOrDefault(), Session.ProcessNetwork)) RecordCapture(fired, settings);
     }
 
@@ -94,18 +97,16 @@ public partial class MainWindow
         var marker = new CaptureMarker(fired, Guid.NewGuid(), CaptureReportText.Rule(fired));
         _captureMarkers.Add(marker);
         var snapshot = CaptureReportText.Snapshot(fired, history, CaptureReportText.AppLimit, grouped: true);
-        var networkCapture = Session.Connections.Captures.FirstOrDefault(capture => marker.Peak.Matches(capture.Sample));
+        var connections = Session.Connections.Captures;
+        var networkCapture = connections.FirstOrDefault(capture => marker.Peak.Matches(capture.Sample));
         var text = CaptureReportText.Report(fired, marker.ReportId, snapshot, networkCapture,
             CaptureReportText.AppLimit,
-            Session.Connections.Captures.Where(capture => CpuGraph.Moment(capture.Sample) <=
+            connections.Where(capture => CpuGraph.Moment(capture.Sample) <=
                                                           CpuGraph.Moment(fired.Peak)).ToArray());
         var folder = settings.Folder ?? _preferenceStore.DefaultCaptureFolder;
-        _ = WriteCaptureAsync(marker, folder, Task.Run(() =>
-        {
-            var path = CaptureReports.Write(folder, marker.Fired.Fired.Timestamp, marker.Fired.Rule.Metric, text);
-            CaptureReports.Prune(folder);
-            return path;
-        }));
+        var report = Task.Run(() => CaptureReports.Write(folder, marker.FiredKey.Timestamp, fired.Rule.Metric, text));
+        _ = WriteCaptureAsync(marker, folder, report);
+        QueueCaptureIncident(marker, history, connections, folder, report);
         if (settings.Notify) NotifyCapture(marker, CaptureReportText.Notification(fired, snapshot));
     }
 

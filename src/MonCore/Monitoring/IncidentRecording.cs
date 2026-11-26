@@ -8,7 +8,7 @@ namespace MonCore.Monitoring;
 public sealed record IncidentObservation(MonitorSample Sample, ProcessNetworkFrame? Network,
     IReadOnlyList<ProcessUsage> Owners, IReadOnlyList<ProcessUsage>? Started, IReadOnlyList<ProcessUsage>? Stopped);
 
-/// <summary>A bounded, versioned, explicitly saved investigation. Loading never restores a live session.</summary>
+/// <summary>A bounded, versioned investigation. Loading never restores a live session.</summary>
 public sealed record IncidentRecording(int Version, long Frequency, IncidentObservation[] Observations,
     CaptureMetric Metric, int SelectedIndex)
 {
@@ -17,7 +17,10 @@ public sealed record IncidentRecording(int Version, long Frequency, IncidentObse
     public const int CurrentVersion = 3;
     public IncidentEventResult WindowsEvents { get; init; } = IncidentEventResult.Unknown;
 
-    public void Save(string path)
+    public void Save(string path) => Save(path, overwrite: true);
+
+    /// <summary>Write a validated recording atomically, optionally preserving an existing destination.</summary>
+    public void Save(string path, bool overwrite)
     {
         Validate();
         var temporary = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(path))!,
@@ -32,7 +35,7 @@ public sealed record IncidentRecording(int Version, long Frequency, IncidentObse
                 if (file.Length > MaximumBytes) throw new InvalidDataException("Incident exceeds 64 MiB.");
                 file.Flush(true);
             }
-            File.Move(temporary, path, true);
+            File.Move(temporary, path, overwrite);
         }
         finally
         {

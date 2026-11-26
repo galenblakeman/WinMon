@@ -26,6 +26,7 @@ internal partial class FlightRecorderWindow : Window
     private int _eventReadGeneration;
     private bool _eventReadPending;
     private bool _openedRecording;
+    private CaptureMetric? _recordedMetric;
     private bool _loadingRecording;
     private bool _closed;
     private bool _updatingEvents;
@@ -54,6 +55,7 @@ internal partial class FlightRecorderWindow : Window
     internal event Action<Task>? SaveStarted;
     internal event Action<Task>? SaveFinished;
     internal event Action<bool, double>? EventsSidebarChanged;
+    internal Func<string>? CaptureFolder { get; set; }
     internal bool EventsCollapsed { get; private set; }
     private double _eventsRatio = 0.5;
 
@@ -110,7 +112,7 @@ internal partial class FlightRecorderWindow : Window
         bool temperatureChartsEnabled = false)
     {
         _temperatureChartsEnabled = temperatureChartsEnabled;
-        _metrics = AllMetrics.Where(metric => temperatureChartsEnabled || !ThermalMetrics.IsTemperature(metric)).ToArray();
+        _metrics = DetailedMetrics();
         _trendMetrics = AllTrendMetrics.Where(metric => temperatureChartsEnabled || !ResourceTrendArchive.IsTemperature(metric)).ToArray();
         InitializeComponent();
         ConfigureEventsSidebar(false, 0.5);
@@ -135,7 +137,7 @@ internal partial class FlightRecorderWindow : Window
         var trendMetric = SelectedTrendMetric;
         var selectedIndex = _index;
         _temperatureChartsEnabled = enabled;
-        _metrics = AllMetrics.Where(item => enabled || !ThermalMetrics.IsTemperature(item)).ToArray();
+        _metrics = DetailedMetrics();
         _trendMetrics = AllTrendMetrics.Where(item => enabled || !ResourceTrendArchive.IsTemperature(item)).ToArray();
         Metric.ItemsSource = _metrics.Select(item => CaptureReportText.MetricName(item, Selection?.Resources ?? new ResourceSample())).ToArray();
         Metric.SelectedIndex = Math.Max(0, Array.IndexOf(_metrics, metric));
@@ -154,7 +156,9 @@ internal partial class FlightRecorderWindow : Window
         _openedRecording = false;
         InvalidateEventRead();
         var selected = Selection is { } previous ? SampleKey.Of(previous) : (SampleKey?)null;
-        var metricIndex = Math.Max(0, Metric.SelectedIndex);
+        var metric = SelectedMetric;
+        if (!_loadingRecording) _recordedMetric = null;
+        _metrics = DetailedMetrics();
         _samples = samples.ToArray();
         _changes = changes;
         var keys = _samples.Select(SampleKey.Of).ToHashSet();
@@ -166,7 +170,7 @@ internal partial class FlightRecorderWindow : Window
                 _samples[^1].Timestamp.ToLocalTime(), _samples.Length);
         Metric.ItemsSource = _metrics.Select(metric => CaptureReportText.MetricName(metric,
             _samples.LastOrDefault()?.Resources ?? new ResourceSample())).ToArray();
-        Metric.SelectedIndex = metricIndex;
+        Metric.SelectedIndex = Math.Max(0, Array.IndexOf(_metrics, metric));
         var retained = selected is { } key ? Array.FindIndex(_samples, key.Matches) : -1;
         if (retained >= 0) Select(retained);
         else FindPeak();
@@ -174,6 +178,9 @@ internal partial class FlightRecorderWindow : Window
     }
 
     private CaptureMetric SelectedMetric => _metrics[Math.Clamp(Metric.SelectedIndex, 0, _metrics.Length - 1)];
+
+    private CaptureMetric[] DetailedMetrics() => AllMetrics.Where(metric =>
+        _temperatureChartsEnabled || !ThermalMetrics.IsTemperature(metric) || metric == _recordedMetric).ToArray();
 
     internal MonitorSample? Selection => _index >= 0 && _index < _samples.Length ? _samples[_index] : null;
     internal void SelectTrendMinuteForFixture(DateTimeOffset startUtc)
@@ -531,6 +538,7 @@ internal partial class FlightRecorderWindow : Window
         SetFileBusy(true);
         var write = Task.Run(() => recording.Save(path));
         SaveStarted?.Invoke(write);
+        _recordedMetric = recording.Metric;
         try { await write; }
         finally
         {
@@ -538,6 +546,7 @@ internal partial class FlightRecorderWindow : Window
             SetFileBusy(false);
         }
     }
+        HistoryMode.SelectedIndex = 0;
 
     private async void OnOpen(object sender, RoutedEventArgs e)
     {
@@ -576,6 +585,7 @@ internal partial class FlightRecorderWindow : Window
     private void OnPeak(object sender, RoutedEventArgs e) => FindPeak();
     private void OnPrevious(object sender, RoutedEventArgs e) => Select(_index - 1);
     private void OnNext(object sender, RoutedEventArgs e) => Select(_index + 1);
+            if (CaptureFolder?.Invoke() is { } folder && Directory.Exists(folder)) dialog.InitialDirectory = folder;
     private void OnClose(object sender, RoutedEventArgs e) => Close();
     private void OnKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
     {

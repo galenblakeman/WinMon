@@ -134,6 +134,30 @@ public sealed class CaptureReportsTests
     }
 
     [Test]
+    public void Prune_RemovesTheMatchingAutomaticIncidentAndKeepsOtherIncidents()
+    {
+        var id = Guid.NewGuid();
+        var report = CaptureReports.Write(_folder, Fired, CaptureMetric.GpuTemperature,
+            CaptureReports.FirstLine(id) + "\n");
+        var incident = CaptureReports.IncidentPath(report, id.ToString("N"));
+        var manual = Path.ChangeExtension(report, ".wmincident");
+        var differentId = CaptureReports.IncidentPath(report, Guid.NewGuid().ToString("N"));
+        foreach (var path in new[] { incident, manual, differentId }) File.WriteAllText(path, "sentinel");
+        var newest = CaptureReports.Write(_folder, Fired.AddSeconds(1), CaptureMetric.Cpu, Report());
+
+        CaptureReports.Prune(_folder, keep: 1);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(File.Exists(report), Is.False);
+            Assert.That(File.Exists(incident), Is.False);
+            Assert.That(File.ReadAllText(manual), Is.EqualTo("sentinel"));
+            Assert.That(File.ReadAllText(differentId), Is.EqualTo("sentinel"));
+            Assert.That(CaptureReports.Find(_folder), Is.EqualTo(new[] { newest }));
+        });
+    }
+
+    [Test]
     public void Find_IgnoresUnicodeDigitsInCopyNumber()
     {
         var genuine = CaptureReports.Write(_folder, Fired, CaptureMetric.Cpu, Report());

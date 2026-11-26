@@ -25,7 +25,8 @@ internal sealed partial class WindowDiagnostics
         for (var i = 0; i < 120; i++)
         {
             var cpuSpike = i is >= 30 and < 42;
-            var diskSpike = i is >= 70 and < 82;
+            // Leave the disk incident's follow-up open so the shutdown path must finish it.
+            var diskSpike = i >= 111;
             ProcessUsage[] processes =
             [
                 new(12000, 1, "chrome", cpuSpike ? 60 + i % 3 : 6, 900_000_000, 400_000)

@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Text.Json;
 using System.Windows;
@@ -56,6 +55,18 @@ public sealed partial class MainWindowWorkflowCharacterizationTests
                 Assert.That(Path.GetFullPath(marker.ReportPath!), Does.StartWith(root).IgnoreCase);
                 Assert.That(marker.WriteFailed, Is.False);
                 Assert.That(File.ReadAllText(marker.ReportPath!), Does.StartWith(CaptureReports.FirstLine(marker.ReportId)));
+                var incidentPath = CaptureReports.IncidentPath(marker.ReportPath!, marker.ReportId.ToString("N"));
+                var incident = IncidentRecording.Load(incidentPath);
+                var tailSeconds = marker.Fired.Rule.Metric == CaptureMetric.Cpu ? 15 : 5;
+                Assert.Multiple(() =>
+                {
+                    Assert.That(incident.Metric, Is.EqualTo(marker.Fired.Rule.Metric));
+                    Assert.That(incident.Observations, Has.Length.EqualTo(31 + tailSeconds));
+                    Assert.That(incident.Observations[0].Sample.Timestamp, Is.EqualTo(marker.FiredKey.Timestamp.AddSeconds(-30)));
+                    Assert.That(incident.Observations[^1].Sample.Timestamp, Is.EqualTo(marker.FiredKey.Timestamp.AddSeconds(tailSeconds)));
+                    Assert.That(incident.Observations[incident.SelectedIndex].Sample.Timestamp, Is.EqualTo(marker.FiredKey.Timestamp));
+                    Assert.That(incident.WindowsEvents.Events, Is.Empty);
+                });
             }
             Assert.That(File.ReadAllText(markers[1].ReportPath!), Does.Contain(Strings.AutoCaptureIoDisclaimer));
             var images = Directory.GetFiles(_directory, "*.png");
@@ -365,10 +376,7 @@ public sealed partial class MainWindowWorkflowCharacterizationTests
         internal void DrainWrites()
         {
             if (Window is null) return;
-            var drain = (typeof(MainWindow).GetMethod("WhenCapturesFinishAsync", BindingFlags.NonPublic | BindingFlags.Instance)
-                ?? throw new InvalidOperationException("Missing capture write lifecycle"))
-                .CreateDelegate<Func<Task>>(Window);
-            Wait(drain(), TimeSpan.FromSeconds(10));
+            Wait(Window.FinishCaptureWritesForFixtureAsync(), TimeSpan.FromSeconds(10));
         }
         private void Wait(Task task, TimeSpan timeout)
         {

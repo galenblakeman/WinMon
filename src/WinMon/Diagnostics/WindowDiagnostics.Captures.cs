@@ -5,6 +5,8 @@ using System.Text.Json;
 using System.Windows;
 using System.Windows.Threading;
 using MonCore.Monitoring;
+using WinMon.Controls;
+using WinMon.Monitoring;
 using WinMon.Preferences;
 
 // ReSharper disable StringLiteralTypo
@@ -45,6 +47,9 @@ internal sealed partial class WindowDiagnostics
             SeedAutoCaptureScenario(fixture);
             var markers = fixture.CaptureMarkers;
             var files = await VerifyAutoCaptureReportsAsync(markers, reports, cancellationToken);
+            var pendingIncident = CaptureReports.IncidentPath(markers[1].ReportPath!, markers[1].ReportId.ToString("N"));
+            if (File.Exists(pendingIncident))
+                throw new InvalidOperationException("The disk incident must still be collecting its follow-up before shutdown.");
             await CaptureAutoCaptureToolbarAsync(fixture, output, cancellationToken);
             await CaptureAutoCaptureMarkersAsync(fixture, markers, output, cancellationToken);
             await CaptureFlightRecorderAsync(fixture, output, cancellationToken);
@@ -64,11 +69,23 @@ internal sealed partial class WindowDiagnostics
                 delayed.SetResult(markers[0].ReportPath!);
                 await write.WaitAsync(cancellationToken);
                 await closed.Task.WaitAsync(cancellationToken);
+                if (!File.Exists(pendingIncident))
+                    throw new InvalidOperationException("Shutdown must finish the pending disk incident.");
             }
             finally
             {
                 delayed.TrySetResult(markers[0].ReportPath!);
             }
+
+            var incidentPath = CaptureReports.IncidentPath(markers[0].ReportPath!, markers[0].ReportId.ToString("N"));
+            var reopened = new FlightRecorderWindow([]);
+            try
+            {
+                await reopened.OpenRecordingAsync(incidentPath);
+                if (reopened.Selection?.Timestamp != markers[0].FiredKey.Timestamp)
+                    throw new InvalidOperationException("Reopening the automatic incident must select its firing observation.");
+            }
+            finally { reopened.Close(); }
 
             await File.WriteAllTextAsync(Path.Combine(output, "captures.json"), JsonSerializer.Serialize(new
             {

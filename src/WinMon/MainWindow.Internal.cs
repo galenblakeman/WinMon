@@ -91,6 +91,8 @@ public partial class MainWindow
         return WriteCaptureAsync(marker, "", write);
     }
 
+    internal Task FinishCaptureWritesForFixtureAsync() => WhenCapturesFinishAsync();
+
     /// <summary>Seed a diagnostic capture without starting a report write or notification.</summary>
     internal void AddCaptureMarkerForFixture(CaptureMarker marker) => _captureMarkers.Add(marker);
 

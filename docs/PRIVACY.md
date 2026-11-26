@@ -24,7 +24,7 @@ Resource and process history stays in memory for the current session by default.
 
 Diagnostic and performance command-line modes write reports and, for some modes, screenshots to the output folder you supply. These files can contain process and system details. Choose a local folder if you want to keep them off shared storage, and review them before sharing.
 
-When you turn on automatic captures (off by default), WinMon writes capture reports containing process names, IDs, executable paths and measurements to the folder you choose, `%LOCALAPPDATA%\WinMon\Captures` by default. It keeps the newest 200 and deletes only files it wrote, identified by their name and first line. Nothing is uploaded.
+When you turn on automatic captures (off by default), WinMon writes text reports and companion incident files to the folder you choose, `%LOCALAPPDATA%\WinMon\Captures` by default. They can contain process names, IDs, executable paths and measurements. The incident contains up to 45 seconds of observations around the trigger and excludes socket endpoints and Windows event logs. WinMon keeps the newest 200 reports and prunes their paired incidents using the ID in each report's first line. Nothing is uploaded.
 
 When you choose Export, WinMon saves a CSV file in the location you select. Depending on the dataset, it can contain resource readings, process names, IDs, executable paths, publishers and Usage totals. The export remains on your PC unless you share it.
 

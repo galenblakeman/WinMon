@@ -21,7 +21,7 @@ internal static class CaptureReports
 
     // Plain regular expressions: generated ones would add types outside the Monitoring namespace.
     private static readonly Regex NamePattern = new(
-        @"^WinMon-capture_(?<time>[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}-[0-9]{2})(?:_o(?<offset>[+-][0-9]{4}))?_(cpu|memory|disk1|disk2|network|gpu|process)(_(?<n>[2-9]|[1-9][0-9]{1,3}))?\.txt$",
+        @"^WinMon-capture_(?<time>[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}-[0-9]{2})(?:_o(?<offset>[+-][0-9]{4}))?_(cpu|memory|disk1|disk2|network|gpu|process|(?:cpu|gpu|disk1|disk2)-temperature|(?:cpu|gpu)-limit)(_(?<n>[2-9]|[1-9][0-9]{1,3}))?\.txt$",
         RegexOptions.CultureInvariant);
 
     private static readonly Regex FirstLinePattern =
@@ -111,7 +111,7 @@ internal static class CaptureReports
         foreach (var path in Directory.EnumerateFiles(folder, "WinMon-capture_*.txt", SearchOption.TopDirectoryOnly))
         {
             var match = NamePattern.Match(Path.GetFileName(path));
-            if (!match.Success || !IsOwn(path) || !TryMoment(path, match, out var moment)) continue;
+            if (!match.Success || ReportId(path) is null || !TryMoment(path, match, out var moment)) continue;
             var copy = match.Groups["n"].Success
                 ? int.Parse(match.Groups["n"].Value, CultureInfo.InvariantCulture)
                 : 1;
@@ -164,6 +164,9 @@ internal static class CaptureReports
             foreach (var path in Find(folder).Skip(keep))
                 try
                 {
+                    if (ReportId(path) is not { } id) continue;
+                    var incident = IncidentPath(path, id);
+                    if (IsPlainFile(incident)) File.Delete(incident);
                     File.Delete(path);
                 }
                 catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
@@ -189,13 +192,18 @@ internal static class CaptureReports
         }
     }
 
-    private static bool IsOwn(string path)
+    internal static string IncidentPath(string report, string id) =>
+        Path.ChangeExtension(report, $"{id}.wmincident");
+
+    private static bool IsPlainFile(string path) => File.Exists(path) &&
+        (File.GetAttributes(path) & (FileAttributes.Directory | FileAttributes.ReparsePoint | FileAttributes.ReadOnly |
+                                    FileAttributes.Hidden | FileAttributes.System)) == 0;
+
+    internal static string? ReportId(string path)
     {
         try
         {
-            var attributes = File.GetAttributes(path);
-            if ((attributes & (FileAttributes.Directory | FileAttributes.ReparsePoint | FileAttributes.ReadOnly |
-                               FileAttributes.Hidden | FileAttributes.System)) != 0) return false;
+            if (!IsPlainFile(path)) return null;
             Span<byte> start = stackalloc byte[128];
             int read;
             using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
@@ -205,12 +213,12 @@ internal static class CaptureReports
 
             var text = Encoding.UTF8.GetString(start[..read]);
             var end = text.IndexOfAny(['\r', '\n']);
-            return end > 0 && FirstLinePattern.IsMatch(text[..end]);
+            return end > 0 && FirstLinePattern.IsMatch(text[..end]) ? text[FirstLinePrefix.Length..end] : null;
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             Trace.TraceWarning("WinMon left capture report {0} alone: {1}", path, ex.Message);
-            return false;
+            return null;
         }
     }
 }

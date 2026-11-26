@@ -1,5 +1,9 @@
 # WinMon performance history
 
+## Automatic incident saving (November 26, 2026)
+
+The Release `--live-only` harness used 400 warm-up frames and seven batches of 60. Two runs against `3427660` measured 5.09–5.21 ms per frame and 551.8–552.2 kB allocated. Two runs with automatic incident saving measured 4.46–5.78 ms and 552.6–553.0 kB. The timing ranges overlap. Concurrent verification and other working-tree changes limit attribution. This workload measures ordinary synthetic UI frames and does not fire automatic captures or measure native collection. The capture smoke verifies the separate trigger and save path. Raw results are under `artifacts/verify/automatic-incidents-performance/`.
+
 ## Temperature history and captures (November 26, 2026)
 
 Compared preserved pre-change and candidate Release assemblies in baseline, candidate, candidate, baseline order. Ordinary live-frame medians ranged 4.71–5.15 ms before and 4.33–4.73 ms after, using 400 warmups and seven batches of 60 frames. Allocations were about 552.2–552.8 kB before and 552.9–553.0 kB after. No consistent rendering slowdown appeared. Concurrent verification and other working-tree work limit attribution; this is a sanity check.

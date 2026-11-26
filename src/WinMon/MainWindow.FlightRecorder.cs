@@ -23,6 +23,7 @@ public partial class MainWindow
         var recorder = new FlightRecorderWindow(samples, IncidentTimeline.CaptureChanges(samples, Session.UsageHistory),
             Session.Connections.Captures, eventReader, _preferences.TemperatureChartsEnabled) { Owner = this, TemperatureUnit = _preferences.TemperatureUnit };
         recorder.ConfigureEventsSidebar(_preferences.HistoryEventsCollapsed, _preferences.HistoryEventsRatio);
+        recorder.CaptureFolder = () => _preferences.AutoCapture.Folder ?? _preferenceStore.DefaultCaptureFolder;
         recorder.EventsSidebarChanged += (collapsed, ratio) => _preferences = _preferences with
         {
             HistoryEventsCollapsed = collapsed,
