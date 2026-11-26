@@ -142,7 +142,7 @@ public sealed class ThermalHistoryTests
             }
             Assert.That(values[ResourceTrendMetric.CpuPerformanceLimited].Average, Is.EqualTo(1));
             Assert.That(values[ResourceTrendMetric.GpuThermalLimited].Average, Is.EqualTo(1));
-            Assert.That(restored.Snapshot().SchemaVersion, Is.EqualTo(2));
+            Assert.That(restored.Snapshot().SchemaVersion, Is.EqualTo(3));
         }
         finally { File.Delete(path); }
     }

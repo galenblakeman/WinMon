@@ -72,6 +72,13 @@ public sealed class PreparedTrendRender
             case "break": _buckets = [Bucket(0, 10), Bucket(60, 50, 60, ResourceTrendBreak.CollectionRestart), Bucket(120, 90)]; break;
             case "gap": _buckets = [Bucket(0, 10), Bucket(120, 50), Bucket(180, 90)]; break;
             case "collapsed-gap": Width = 44; _buckets = [Bucket(0, 10), Bucket(120, 90)]; break;
+            case "peak-across-collapsed-gap":
+                Width = 44;
+                _buckets = [new(Start, new Dictionary<ResourceTrendMetric, ResourceTrendValue>
+                {
+                    [ResourceTrendMetric.Cpu] = Value(4) with { Maximum = 98, PeakUtcTicks = Start.AddSeconds(5).UtcTicks }
+                }), Bucket(120, 9)];
+                break;
             case "receive": case "secondary-only": case "send":
                 Metric = name == "send" ? ResourceTrendMetric.Send : ResourceTrendMetric.Receive;
                 _buckets = Enumerable.Range(0, 2).Select(index =>

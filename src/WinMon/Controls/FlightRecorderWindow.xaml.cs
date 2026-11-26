@@ -1,11 +1,13 @@
 using System.Globalization;
 using System.Diagnostics;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Automation;
 using System.Windows.Controls.Primitives;
 using Microsoft.Win32;
 using MonCore.Monitoring;
+using WinMon.Monitoring;
 
 namespace WinMon.Controls;
 
@@ -26,6 +28,7 @@ internal partial class FlightRecorderWindow : Window
     private int _eventReadGeneration;
     private bool _eventReadPending;
     private bool _openedRecording;
+    private bool _findingTrendIncident;
     private CaptureMetric? _recordedMetric;
     private bool _loadingRecording;
     private bool _closed;
@@ -336,7 +339,9 @@ internal partial class FlightRecorderWindow : Window
 
     private void UpdateTrendPresentation()
     {
-        TrendLegend.Text = SelectedTrendMetric == ResourceTrendMetric.Receive ? Strings.FlightRecorderTrendNetworkLegend : ResourceTrendArchive.IsThermal(SelectedTrendMetric) ? Strings.ThermalTrendPeaks : "";
+        TrendLegend.Text = SelectedTrendMetric == ResourceTrendMetric.Receive
+            ? Strings.FlightRecorderTrendNetworkLegend + " · " + Strings.FlightRecorderTrendPeakLegend
+            : ResourceTrendArchive.IsThermal(SelectedTrendMetric) ? Strings.ThermalTrendPeaks : Strings.FlightRecorderTrendPeakLegend;
         if (_trends is null)
         {
             TrendCoverage.Text = _trendNotice ?? Strings.FlightRecorderTrendEmpty;
@@ -397,38 +402,123 @@ internal partial class FlightRecorderWindow : Window
               + (value.Break != ResourceTrendBreak.None ? " · " + TrendBreakText(value.Break) : "")
               + (bucket.StartUtc.AddMinutes(1) > _trends?.EndUtc ? " · " + Strings.FlightRecorderTrendInProgress : "")
             : Strings.Format(Strings.FlightRecorderTrendSelected, TrendMinuteTime(bucket), TrendBreakText(value?.Break), 0);
+        TrendSelection.Text += TrendPeakText(value);
         if (SelectedTrendMetric == ResourceTrendMetric.Receive)
         {
             var upload = bucket.Values.GetValueOrDefault(ResourceTrendMetric.Send);
             TrendSelection.Text = Strings.FlightRecorderTrendReceive + ": " + TrendSelection.Text + Environment.NewLine +
                 Strings.FlightRecorderTrendSend + ": " + Strings.Format(Strings.FlightRecorderTrendSelected,
                     TrendMinuteTime(bucket), upload?.Average is { } rate ? TableMetricText.IoRate(rate) : TrendBreakText(upload?.Break),
-                    upload?.Average is not null ? upload.ObservedSeconds : 0);
+                    upload?.Average is not null ? upload.ObservedSeconds : 0) + TrendPeakText(upload);
         }
         var index = Array.IndexOf(_trendBuckets, bucket);
         TrendPrevious.IsEnabled = index > 0;
         TrendNext.IsEnabled = index >= 0 && index < _trendBuckets.Length - 1;
-        OpenTrendDetail.IsEnabled = NearestDetailedSample(bucket) is not null;
+        var hasDetail = NearestDetailedSample(bucket) is not null;
+        var canLookUp = CaptureFolder is not null && KnownPeak(bucket) is not null;
+        OpenTrendDetail.Content = !hasDetail && canLookUp ? Strings.FlightRecorderTrendFindIncident : Strings.FlightRecorderOpenDetailed;
+        OpenTrendDetail.IsEnabled = !_findingTrendIncident && (hasDetail || canLookUp);
     }
+
+    private string TrendPeakText(ResourceTrendValue? value) => value is { Average: not null, PeakUtcTicks: { } ticks }
+        ? " · " + Strings.Format(Strings.FlightRecorderTrendPeak, TrendValue(value.Maximum), new DateTimeOffset(ticks, TimeSpan.Zero).ToLocalTime())
+        : "";
 
     private static string TrendMinuteTime(ResourceTrendBucket bucket) => bucket.StartUtc.ToLocalTime().ToString("G", CultureInfo.CurrentCulture)
         + " – " + bucket.StartUtc.AddMinutes(1).ToLocalTime().ToString("T", CultureInfo.CurrentCulture)
         + " (" + bucket.StartUtc.ToLocalTime().ToString("zzz", CultureInfo.CurrentCulture) + ")";
 
-    private void OnOpenTrendDetail(object sender, RoutedEventArgs e)
+    private async void OnOpenTrendDetail(object sender, RoutedEventArgs e)
     {
-        if (_trendSelection is not { } bucket || NearestDetailedSample(bucket) is not { } sample) return;
-        HistoryMode.SelectedIndex = 0;
-        Select(Array.IndexOf(_samples, sample));
+        if (_trendSelection is not { } bucket || _findingTrendIncident) return;
+        if (NearestDetailedSample(bucket) is { } sample)
+        {
+            HistoryMode.SelectedIndex = 0;
+            Metric.SelectedIndex = Math.Max(0, Array.IndexOf(_metrics, DetailMetric(SelectedTrendMetric)));
+            Select(Array.IndexOf(_samples, sample));
+            return;
+        }
+        if (KnownPeak(bucket) is not { } peak || CaptureFolder?.Invoke() is not { } folder) return;
+        var metric = SelectedTrendMetric;
+        _findingTrendIncident = true;
+        OpenTrendDetail.IsEnabled = false;
+        var missing = false;
+        try
+        {
+            var match = await Task.Run(() => FindTrendIncident(folder, peak.Metric, peak.Value));
+            if (_closed || _fileBusy || HistoryMode.SelectedIndex != 1 || _trendSelection != bucket || SelectedTrendMetric != metric) return;
+            if (match is { } found) OpenRecording(found.Recording, found.Name);
+            else missing = true;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            if (!_closed) FileError(ex);
+        }
+        finally
+        {
+            _findingTrendIncident = false;
+            if (!_closed) UpdateTrendSelection();
+        }
+        if (missing) TrendSelection.Text += Environment.NewLine + Strings.FlightRecorderTrendIncidentMissing;
+    }
+
+    private (ResourceTrendMetric Metric, ResourceTrendValue Value)? KnownPeak(ResourceTrendBucket bucket)
+    {
+        var metric = SelectedTrendMetric;
+        var value = bucket.Values.GetValueOrDefault(metric);
+        if (metric == ResourceTrendMetric.Receive && bucket.Values.GetValueOrDefault(ResourceTrendMetric.Send) is
+            { Average: not null, PeakUtcTicks: not null } upload &&
+            (value is not { Average: not null, PeakUtcTicks: not null } || upload.Maximum > value.Maximum))
+        {
+            metric = ResourceTrendMetric.Send;
+            value = upload;
+        }
+        return value is { Average: not null, PeakUtcTicks: not null } ? (metric, value) : null;
     }
 
     private MonitorSample? NearestDetailedSample(ResourceTrendBucket bucket)
     {
+        if (_openedRecording) return null;
+        if (KnownPeak(bucket) is { } peak)
+            return _samples.FirstOrDefault(sample => IsTrendPeak(sample, peak.Metric, peak.Value));
         var end = bucket.StartUtc.AddMinutes(1);
-        return _openedRecording ? null : _samples.Where(sample => !sample.IsGap && sample.Timestamp.ToUniversalTime() >= bucket.StartUtc && sample.Timestamp.ToUniversalTime() < end &&
-                TrendSampleValue(sample) is not null)
+        return _samples.Where(sample => !sample.IsGap && sample.Timestamp >= bucket.StartUtc && sample.Timestamp < end &&
+                (TrendSampleValue(sample, SelectedTrendMetric) is not null ||
+                 (SelectedTrendMetric == ResourceTrendMetric.Receive && sample.Resources.SendBytesPerSecond is not null)))
             .MinBy(sample => Math.Abs((sample.Timestamp.ToUniversalTime() - bucket.StartUtc.AddSeconds(30)).Ticks));
     }
+
+    private static bool IsTrendPeak(MonitorSample sample, ResourceTrendMetric metric, ResourceTrendValue peak) =>
+        !sample.IsGap && sample.Timestamp.UtcTicks == peak.PeakUtcTicks && TrendSampleValue(sample, metric) == peak.Maximum;
+
+    internal static (IncidentRecording Recording, string Name)? FindTrendIncident(string folder, ResourceTrendMetric metric,
+        ResourceTrendValue peak)
+    {
+        if (peak.PeakUtcTicks is not { } ticks) return null;
+        foreach (var path in CaptureReports.FindIncidentsCovering(folder, ticks).Take(CaptureReports.Keep))
+        {
+            try
+            {
+                var recording = IncidentRecording.Load(path);
+                var index = Array.FindIndex(recording.Observations, item => IsTrendPeak(item.Sample, metric, peak));
+                if (index >= 0) return (recording with { Metric = DetailMetric(metric), SelectedIndex = index }, Path.GetFileName(path));
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException or JsonException or OverflowException)
+            {
+                Trace.TraceWarning("WinMon could not read a saved incident for a trend peak: {0}", ex.Message);
+            }
+        }
+        return null;
+    }
+
+    private static CaptureMetric DetailMetric(ResourceTrendMetric metric) => metric switch
+    {
+        ResourceTrendMetric.MemoryBytes => CaptureMetric.Memory,
+        ResourceTrendMetric.PrimaryDiskActive => CaptureMetric.PrimaryDisk,
+        ResourceTrendMetric.SecondaryDiskActive => CaptureMetric.SecondaryDisk,
+        ResourceTrendMetric.Receive or ResourceTrendMetric.Send => CaptureMetric.Network,
+        _ => Enum.TryParse<CaptureMetric>(metric.ToString(), out var capture) ? capture : CaptureMetric.Cpu
+    };
 
     private string TrendMetricName(ResourceTrendMetric metric) => metric switch
     {
@@ -475,16 +565,16 @@ internal partial class FlightRecorderWindow : Window
             ? " · ↓" + TableMetricText.IoRate(received) + " · ↑" + TableMetricText.IoRate(writeRate) : "";
     }
 
-    private double? TrendSampleValue(MonitorSample sample) => SelectedTrendMetric switch
+    private static double? TrendSampleValue(MonitorSample sample, ResourceTrendMetric metric) => metric switch
     {
         ResourceTrendMetric.Cpu => sample.TotalCpuPercent,
         ResourceTrendMetric.MemoryBytes => sample.Resources.UsedMemoryBytes,
         ResourceTrendMetric.PrimaryDiskActive => sample.Resources.DiskActivePercent,
         ResourceTrendMetric.SecondaryDiskActive => sample.Resources.SecondaryDiskActivePercent,
-        ResourceTrendMetric.Receive => sample.Resources.ReceiveBytesPerSecond ?? sample.Resources.SendBytesPerSecond,
+        ResourceTrendMetric.Receive => sample.Resources.ReceiveBytesPerSecond,
         ResourceTrendMetric.Send => sample.Resources.SendBytesPerSecond,
         ResourceTrendMetric.Gpu => sample.Resources.GpuPercent,
-        _ => Enum.TryParse<CaptureMetric>(SelectedTrendMetric.ToString(), out var capture) ? ThermalMetrics.Value(capture, sample.Resources) : null
+        _ => Enum.TryParse<CaptureMetric>(metric.ToString(), out var capture) ? ThermalMetrics.Value(capture, sample.Resources) : null
     };
 
     private static DateTimeOffset Minute(DateTimeOffset value) => new(value.UtcDateTime.AddTicks(
@@ -538,6 +628,7 @@ internal partial class FlightRecorderWindow : Window
     {
         InvalidateEventRead();
         _loadingRecording = true;
+        _recordedMetric = recording.Metric;
         var observations = recording.Observations;
         var changes = observations.Where(frame => frame.Started is not null && frame.Stopped is not null)
             .ToDictionary(frame => SampleKey.Of(frame.Sample), frame => (frame.Started!, frame.Stopped!));
@@ -545,6 +636,7 @@ internal partial class FlightRecorderWindow : Window
             observations.Select(frame => new ConnectionCapture(frame.Sample, null, frame.Owners, frame.Network)).ToArray());
         _loadingRecording = false;
         _openedRecording = true;
+        HistoryMode.SelectedIndex = 0;
         Metric.SelectedIndex = Math.Max(0, Array.IndexOf(_metrics, recording.Metric));
         Select(recording.SelectedIndex);
         Source.Text = Strings.Format(Strings.FlightRecorderOpened, name);
@@ -570,7 +662,6 @@ internal partial class FlightRecorderWindow : Window
         SetFileBusy(true);
         var write = Task.Run(() => recording.Save(path, overwrite));
         SaveStarted?.Invoke(write);
-        _recordedMetric = recording.Metric;
         try { await write; }
         finally
         {
@@ -578,13 +669,13 @@ internal partial class FlightRecorderWindow : Window
             SetFileBusy(false);
         }
     }
-        HistoryMode.SelectedIndex = 0;
 
     private async void OnOpen(object sender, RoutedEventArgs e)
     {
         try
         {
             var dialog = new OpenFileDialog { Title = Strings.FlightRecorderOpen, Filter = Strings.FlightRecorderFilter };
+            if (CaptureFolder?.Invoke() is { } folder && Directory.Exists(folder)) dialog.InitialDirectory = folder;
             if (dialog.ShowDialog(this) != true) return;
             await OpenRecordingAsync(dialog.FileName);
         }
@@ -617,7 +708,6 @@ internal partial class FlightRecorderWindow : Window
     private void OnPeak(object sender, RoutedEventArgs e) => FindPeak();
     private void OnPrevious(object sender, RoutedEventArgs e) => Select(_index - 1);
     private void OnNext(object sender, RoutedEventArgs e) => Select(_index + 1);
-            if (CaptureFolder?.Invoke() is { } folder && Directory.Exists(folder)) dialog.InitialDirectory = folder;
     private void OnClose(object sender, RoutedEventArgs e) => Close();
     private void OnKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
     {

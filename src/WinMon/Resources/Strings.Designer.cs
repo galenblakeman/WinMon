@@ -538,9 +538,13 @@ public static partial class Strings
     public static string FlightRecorderTrendDevice => ResourceManager.GetString(nameof(FlightRecorderTrendDevice), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string FlightRecorderTrendDeviceChanged => ResourceManager.GetString(nameof(FlightRecorderTrendDeviceChanged), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string FlightRecorderTrendEmpty => ResourceManager.GetString(nameof(FlightRecorderTrendEmpty), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string FlightRecorderTrendFindIncident => ResourceManager.GetString(nameof(FlightRecorderTrendFindIncident), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string FlightRecorderTrendIncidentMissing => ResourceManager.GetString(nameof(FlightRecorderTrendIncidentMissing), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string FlightRecorderTrendInProgress => ResourceManager.GetString(nameof(FlightRecorderTrendInProgress), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string FlightRecorderTrendNetworkLegend => ResourceManager.GetString(nameof(FlightRecorderTrendNetworkLegend), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string FlightRecorderTrendNoReading => ResourceManager.GetString(nameof(FlightRecorderTrendNoReading), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string FlightRecorderTrendPeak => ResourceManager.GetString(nameof(FlightRecorderTrendPeak), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string FlightRecorderTrendPeakLegend => ResourceManager.GetString(nameof(FlightRecorderTrendPeakLegend), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string FlightRecorderTrendPrimaryDisk => ResourceManager.GetString(nameof(FlightRecorderTrendPrimaryDisk), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string FlightRecorderTrendRange => ResourceManager.GetString(nameof(FlightRecorderTrendRange), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string FlightRecorderTrendReceive => ResourceManager.GetString(nameof(FlightRecorderTrendReceive), Culture ?? CultureInfo.CurrentUICulture)!;

@@ -2211,4 +2211,8 @@ Przywrócenie ograniczania również nie powiodło się: {1}</value></data>
   <data name="ThermalCaptureHelp" xml:space="preserve"><value>Reguły temperatury używają stopni Celsjusza i uruchamiają się po osiągnięciu lub przekroczeniu progu. Reguły ograniczeń działają, gdy ograniczenie jest aktywne. Brak odczytów i zmiana czujnika zerują czas.</value></data>
   <data name="ThermalTrendPeaks" xml:space="preserve"><value>Szczyty minutowe</value></data>
   <data name="TemperatureChartHelp" xml:space="preserve"><value>Temperatury CPU, GPU i dysków na osobnej skali Celsjusza lub Fahrenheita. Brak odczytu i zmiana czujnika przerywają linię.</value></data>
+  <data name="FlightRecorderTrendPeakLegend" xml:space="preserve"><value>Linia: średnia minutowa · znaczniki szczytu: najwyższy odczyt</value></data>
+  <data name="FlightRecorderTrendPeak" xml:space="preserve"><value>Szczyt {0} o {1:T}</value></data>
+  <data name="FlightRecorderTrendFindIncident" xml:space="preserve"><value>Znajdź zapisany incydent</value></data>
+  <data name="FlightRecorderTrendIncidentMissing" xml:space="preserve"><value>Żaden zapisany incydent nie zawiera próbki ze szczytu.</value></data>
 </root>

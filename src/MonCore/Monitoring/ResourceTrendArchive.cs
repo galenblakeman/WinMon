@@ -6,7 +6,7 @@ using System.Text.Json.Serialization;
 
 namespace MonCore.Monitoring;
 
-/// <summary>Metrics retained as minute averages for the longer resource trend.</summary>
+/// <summary>Metrics retained as minute averages and observed peaks for the longer resource trend.</summary>
 public enum ResourceTrendMetric
 {
     Cpu,
@@ -39,6 +39,8 @@ public sealed record ResourceTrendValue(double WeightedSum, double ObservedSecon
 {
     public string DeviceId { get; init; } = "";
     public string DeviceLabel { get; init; } = "";
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public long? PeakUtcTicks { get; init; }
     [JsonIgnore] public double? Average => Break is not (ResourceTrendBreak.ResourceChanged or ResourceTrendBreak.ClockChanged) && ObservedSeconds > 0
         ? WeightedSum / ObservedSeconds : null;
     [JsonIgnore] public bool IsBreak => Break != ResourceTrendBreak.None;
@@ -144,7 +146,7 @@ public sealed class ResourceTrendArchive
                 var trackDevice = TracksDevice(value.Metric, value.Value, value.DeviceId);
                 var changed = trackDevice && _lastDevices.TryGetValue(value.Metric, out var priorDevice) &&
                     !StringComparer.Ordinal.Equals(priorDevice, value.DeviceId);
-                bucket.Add(value.Metric, value.Value, InternDevice(value.DeviceId, value.DeviceLabel), seconds);
+                bucket.Add(value.Metric, value.Value, InternDevice(value.DeviceId, value.DeviceLabel), seconds, end.UtcTicks);
                 if (changed) bucket.MarkMetricBreak(value.Metric, ResourceTrendBreak.ResourceChanged);
                 if (trackDevice) _lastDevices[value.Metric] = value.DeviceId;
             }
@@ -169,7 +171,7 @@ public sealed class ResourceTrendArchive
     {
         var end = (endUtc ?? _latestUtc ?? DateTimeOffset.UtcNow).ToUniversalTime();
         Prune(end);
-        return new ResourceTrendArchiveState(2, end, _buckets.Values.Where(bucket => bucket.StartUtc < end).Select(bucket => bucket.Freeze(_devices)).ToArray());
+        return new ResourceTrendArchiveState(3, end, _buckets.Values.Where(bucket => bucket.StartUtc < end).Select(bucket => bucket.Freeze(_devices)).ToArray());
     }
 
     /// <summary>Gets retained UTC minute buckets intersecting the requested elapsed range.</summary>
@@ -308,7 +310,7 @@ public sealed class ResourceTrendArchive
 
     private static void Validate(ResourceTrendArchiveState state)
     {
-        if (state.SchemaVersion is < 1 or > 2 || state.EndUtc.Offset != TimeSpan.Zero || state.Buckets is null || state.Buckets.Length > RetainedMinutes || state.Buckets.Any(b => b is null))
+        if (state.SchemaVersion is < 1 or > 3 || state.EndUtc.Offset != TimeSpan.Zero || state.Buckets is null || state.Buckets.Length > RetainedMinutes || state.Buckets.Any(b => b is null))
             throw new InvalidDataException("Invalid resource trend archive.");
         var prior = long.MinValue;
         foreach (var bucket in state.Buckets)
@@ -324,13 +326,14 @@ public sealed class ResourceTrendArchive
             bucket.Values is null || bucket.Values.Count > Enum.GetValues<ResourceTrendMetric>().Length)
             throw new InvalidDataException("Invalid resource trend bucket.");
         foreach (var pair in bucket.Values)
-            ValidateValue(pair.Key, pair.Value);
+            ValidateValue(pair.Key, pair.Value, bucket.StartUtc.UtcTicks);
     }
 
-    private static void ValidateValue(ResourceTrendMetric metric, ResourceTrendValue value)
+    private static void ValidateValue(ResourceTrendMetric metric, ResourceTrendValue value, long minute)
     {
         if (!Enum.IsDefined(metric) || value is null || !ValidDeviceNames(value) ||
-            !ValidMeasurements(value) || !ValidRange(metric, value) || !Enum.IsDefined(value.Break))
+            !ValidMeasurements(value) || !ValidRange(metric, value) || !Enum.IsDefined(value.Break) ||
+            (value.PeakUtcTicks is { } ticks && (ticks < minute || ticks - minute >= 65 * TimeSpan.TicksPerSecond || ticks > DateTime.MaxValue.Ticks)))
             throw new InvalidDataException("Invalid resource trend value.");
     }
 
@@ -360,7 +363,7 @@ public sealed class ResourceTrendArchive
         private MetricValue[] _values = new MetricValue[Enum.GetValues<ResourceTrendMetric>().Length];
         private uint _present;
 
-        public void Add(ResourceTrendMetric metric, double? value, int device, double seconds)
+        public void Add(ResourceTrendMetric metric, double? value, int device, double seconds, long observedAt)
         {
             if (value is not { } reading || !ValidLiveReading(metric, reading) || seconds <= 0 ||
                 (NeedsDevice(metric) && device == 0)) return;
@@ -368,8 +371,21 @@ public sealed class ResourceTrendArchive
             seconds = Math.Min(seconds, 60 - total.Seconds);
             if (seconds <= 0) return;
             if (total.Seconds > 0 && total.Device != device) SetBreak(ref total, ResourceTrendBreak.ResourceChanged);
-            if (total.Seconds == 0) { total.Minimum = reading; total.Maximum = reading; }
-            else { total.Minimum = Math.Min(total.Minimum, reading); total.Maximum = Math.Max(total.Maximum, reading); }
+            if (total.Seconds == 0)
+            {
+                total.Minimum = total.Maximum = reading;
+                total.PeakUtcTicks = observedAt;
+            }
+            else
+            {
+                total.Minimum = Math.Min(total.Minimum, reading);
+                if (reading > total.Maximum)
+                {
+                    total.Maximum = reading;
+                    // A minute partly restored from an older archive still has unknown peak coverage.
+                    if (total.PeakUtcTicks != 0) total.PeakUtcTicks = observedAt;
+                }
+            }
             total.WeightedSum += reading * seconds;
             total.Seconds += seconds;
             total.Device = device;
@@ -378,7 +394,7 @@ public sealed class ResourceTrendArchive
 
         public void Restore(ResourceTrendMetric metric, ResourceTrendValue value, int device)
         {
-            _values[(int)metric] = new MetricValue { WeightedSum = value.WeightedSum, Seconds = value.ObservedSeconds, Minimum = value.Minimum, Maximum = value.Maximum, Device = device, Break = value.Break };
+            _values[(int)metric] = new MetricValue { WeightedSum = value.WeightedSum, Seconds = value.ObservedSeconds, Minimum = value.Minimum, Maximum = value.Maximum, Device = device, Break = value.Break, PeakUtcTicks = value.PeakUtcTicks.GetValueOrDefault() };
             _present |= (uint)(1 << (int)metric);
         }
 
@@ -389,11 +405,10 @@ public sealed class ResourceTrendArchive
             {
                 if ((_present & (1 << index)) == 0) continue;
                 var value = _values[index];
-                var average = value.WeightedSum / value.Seconds;
                 var device = devices[value.Device];
                 values.Add((ResourceTrendMetric)index, new ResourceTrendValue(IsThermal((ResourceTrendMetric)index) ? value.Maximum * value.Seconds : value.WeightedSum, value.Seconds,
-                    IsThermal((ResourceTrendMetric)index) ? value.Minimum : average, IsThermal((ResourceTrendMetric)index) ? value.Maximum : average, device.Label, value.Break)
-                { DeviceId = device.Id, DeviceLabel = device.Label });
+                    value.Minimum, value.Maximum, device.Label, value.Break)
+                { DeviceId = device.Id, DeviceLabel = device.Label, PeakUtcTicks = value.PeakUtcTicks == 0 ? null : value.PeakUtcTicks });
             }
             return new ResourceTrendBucket(StartUtc, values);
         }
@@ -422,6 +437,7 @@ public sealed class ResourceTrendArchive
         public double Minimum;
         public double Maximum;
         public double Seconds;
+        public long PeakUtcTicks;
         public int Device;
         public ResourceTrendBreak Break;
     }

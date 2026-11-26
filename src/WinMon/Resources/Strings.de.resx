@@ -2223,4 +2223,8 @@ Auch das Wiederherstellen der Drosselung ist fehlgeschlagen: {1}</value></data>
   <data name="ThermalCaptureHelp" xml:space="preserve"><value>Temperaturregeln verwenden Celsius und lösen ab dem Schwellenwert aus. Begrenzungsregeln lösen bei aktiver Begrenzung aus. Fehlende Werte und Sensorwechsel setzen die Dauer zurück.</value></data>
   <data name="ThermalTrendPeaks" xml:space="preserve"><value>Minütliche Spitzenwerte</value></data>
   <data name="TemperatureChartHelp" xml:space="preserve"><value>CPU-, GPU- und Laufwerkstemperaturen auf einer eigenen Celsius- oder Fahrenheit-Skala. Fehlende Messwerte und Sensorwechsel unterbrechen die Linien.</value></data>
+  <data name="FlightRecorderTrendPeakLegend" xml:space="preserve"><value>Linie: Minutenmittel · Spitzenmarken: höchster Messwert</value></data>
+  <data name="FlightRecorderTrendPeak" xml:space="preserve"><value>Spitze {0} um {1:T}</value></data>
+  <data name="FlightRecorderTrendFindIncident" xml:space="preserve"><value>Gespeicherten Vorfall suchen</value></data>
+  <data name="FlightRecorderTrendIncidentMissing" xml:space="preserve"><value>Kein gespeicherter Vorfall enthält die Spitzenmessung.</value></data>
 </root>

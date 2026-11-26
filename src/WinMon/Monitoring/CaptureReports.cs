@@ -17,6 +17,8 @@ namespace WinMon.Monitoring;
 internal static class CaptureReports
 {
     internal const int Keep = 200;
+    internal const int IncidentLeadSeconds = 30;
+    internal const int IncidentTailSeconds = 15;
     private const string FirstLinePrefix = "WinMon automatic capture v1 · id ";
 
     // Plain regular expressions: generated ones would add types outside the Monitoring namespace.
@@ -194,6 +196,20 @@ internal static class CaptureReports
 
     internal static string IncidentPath(string report, string id) =>
         Path.ChangeExtension(report, $"{id}.wmincident");
+
+    internal static IEnumerable<string> FindIncidentsCovering(string folder, long utcTicks)
+    {
+        if (!Directory.Exists(folder)) yield break;
+        foreach (var report in Directory.EnumerateFiles(folder, "WinMon-capture_*.txt", SearchOption.TopDirectoryOnly))
+        {
+            var match = NamePattern.Match(Path.GetFileName(report));
+            if (!match.Success || !TryMoment(report, match, out var moment) ||
+                utcTicks - moment > (IncidentTailSeconds + 1) * TimeSpan.TicksPerSecond ||
+                moment - utcTicks > IncidentLeadSeconds * TimeSpan.TicksPerSecond || ReportId(report) is not { } id) continue;
+            var path = IncidentPath(report, id);
+            if (IsPlainFile(path)) yield return path;
+        }
+    }
 
     private static bool IsPlainFile(string path) => File.Exists(path) &&
         (File.GetAttributes(path) & (FileAttributes.Directory | FileAttributes.ReparsePoint | FileAttributes.ReadOnly |

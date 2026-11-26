@@ -83,8 +83,9 @@ public sealed class ResourceTrendArchiveTests
         {
             Assert.That(value.Average, Is.EqualTo(40));
             Assert.That(value.ObservedSeconds, Is.EqualTo(4));
-            Assert.That(value.Minimum, Is.EqualTo(40));
-            Assert.That(value.Maximum, Is.EqualTo(40));
+            Assert.That(value.Minimum, Is.EqualTo(10));
+            Assert.That(value.Maximum, Is.EqualTo(50));
+            Assert.That(value.PeakUtcTicks, Is.EqualTo(DateTimeOffset.UnixEpoch.AddSeconds(4).UtcTicks));
         });
     }
 
@@ -101,6 +102,50 @@ public sealed class ResourceTrendArchiveTests
             Assert.That(buckets, Has.Length.EqualTo(2));
             Assert.That(buckets[0].Values[ResourceTrendMetric.Cpu].ObservedSeconds, Is.EqualTo(2));
             Assert.That(buckets[1].Values[ResourceTrendMetric.Cpu].ObservedSeconds, Is.EqualTo(2));
+            Assert.That(buckets.Select(bucket => bucket.Values[ResourceTrendMetric.Cpu].PeakUtcTicks),
+                Is.All.EqualTo(DateTimeOffset.UnixEpoch.AddSeconds(62).UtcTicks));
+        });
+    }
+
+    [Test]
+    public async Task BriefPeakAndItsTimestampSurviveSaveAndRestore()
+    {
+        var archive = new ResourceTrendArchive();
+        for (var second = 1; second <= 59; second++)
+            archive.Add(Sample(1, second == 5 ? 98 : 2, DateTimeOffset.UnixEpoch.AddSeconds(second)));
+        var path = Path.Combine(Path.GetTempPath(), $"WinMon-trends-{Guid.NewGuid():N}.json.gz");
+        try
+        {
+            await ResourceTrendArchive.SaveAsync(path, archive.Snapshot());
+            var restored = await ResourceTrendArchive.LoadAsync(path);
+            var value = restored.Snapshot().Buckets.Single().Values[ResourceTrendMetric.Cpu];
+            Assert.Multiple(() =>
+            {
+                Assert.That(value.Average, Is.LessThan(4));
+                Assert.That(value.Maximum, Is.EqualTo(98));
+                Assert.That(value.PeakUtcTicks, Is.EqualTo(DateTimeOffset.UnixEpoch.AddSeconds(5).UtcTicks));
+            });
+        }
+        finally { File.Delete(path); }
+    }
+
+    [Test]
+    public void LegacyPartialMinuteKeepsUnknownPeakWhenMoreSamplesArrive()
+    {
+        var anchor = DateTimeOffset.UnixEpoch;
+        var values = new Dictionary<ResourceTrendMetric, ResourceTrendValue>
+        {
+            [ResourceTrendMetric.Cpu] = new(20, 1, 20, 20, "", ResourceTrendBreak.None)
+        };
+        var restored = ResourceTrendArchive.Restore(new ResourceTrendArchiveState(2, anchor.AddSeconds(1), [new(anchor, values)]));
+        restored.Add(Sample(1, 90, anchor.AddSeconds(2)));
+        restored.Add(Sample(1, 60, anchor.AddSeconds(61)));
+        var buckets = restored.Snapshot().Buckets;
+        Assert.Multiple(() =>
+        {
+            Assert.That(buckets[0].Values[ResourceTrendMetric.Cpu].Average, Is.EqualTo(55));
+            Assert.That(buckets[0].Values[ResourceTrendMetric.Cpu].PeakUtcTicks, Is.Null);
+            Assert.That(buckets[1].Values[ResourceTrendMetric.Cpu].PeakUtcTicks, Is.EqualTo(anchor.AddSeconds(61).UtcTicks));
         });
     }
 
@@ -253,7 +298,7 @@ public sealed class ResourceTrendArchiveTests
             Assert.That(restored.Snapshot().Buckets.Single().Values[ResourceTrendMetric.Cpu].Average, Is.EqualTo(42));
 
             Assert.That(() => ResourceTrendArchive.SaveAsync(path,
-                new ResourceTrendArchiveState(3, DateTimeOffset.UtcNow, [])).GetAwaiter().GetResult(), Throws.TypeOf<InvalidDataException>());
+                new ResourceTrendArchiveState(4, DateTimeOffset.UtcNow, [])).GetAwaiter().GetResult(), Throws.TypeOf<InvalidDataException>());
             Assert.That(await File.ReadAllBytesAsync(path), Is.EqualTo(saved));
         }
         finally

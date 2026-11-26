@@ -206,11 +206,14 @@ internal sealed partial class WindowDiagnostics
                 var trendBuckets = Enumerable.Range(0, ResourceTrendArchive.RetainedMinutes).Select(index =>
                 {
                     var value = 20 + index % 55;
-                    return new ResourceTrendBucket(trendEnd.AddMinutes(index - ResourceTrendArchive.RetainedMinutes + 1),
+                    var minute = trendEnd.AddMinutes(index - ResourceTrendArchive.RetainedMinutes + 1);
+                    var peak = index % 721 == 0 || minute == trendEnd.AddMinutes(-1) ? 99 : value + 2;
+                    return new ResourceTrendBucket(minute,
                         index is 3_600 or 7_200 ? new Dictionary<ResourceTrendMetric, ResourceTrendValue>() :
                         new Dictionary<ResourceTrendMetric, ResourceTrendValue>
                         {
-                            [ResourceTrendMetric.Cpu] = new(value * 60, 60, value - 2, value + 2, "", ResourceTrendBreak.None),
+                            [ResourceTrendMetric.Cpu] = new(value * 60, 60, value - 2, peak, "", ResourceTrendBreak.None)
+                                { PeakUtcTicks = minute.AddSeconds(9).UtcTicks },
                             [ResourceTrendMetric.MemoryBytes] = new((8 + index / 630d) * 1_073_741_824 * 60, 60,
                                 0, 32d * 1_073_741_824, "", ResourceTrendBreak.None),
                             [ResourceTrendMetric.MemoryPercent] = new((25 + index / 201.6) * 60, 60, 0, 100, "", ResourceTrendBreak.None),
@@ -218,13 +221,13 @@ internal sealed partial class WindowDiagnostics
                             [ResourceTrendMetric.Send] = new(index * 50_000d, 60, index * 700, index * 900, "Ethernet", ResourceTrendBreak.None)
                         });
                 }).ToArray();
-                var trend = new ResourceTrendArchiveState(1, trendEnd, trendBuckets);
+                var trend = new ResourceTrendArchiveState(3, trendEnd, trendBuckets);
                 recorder.UpdateTrends(trend);
                 recorder.HistoryMode.SelectedIndex = 1;
                 recorder.TrendRange.SelectedIndex = 1;
                 recorder.UpdateLayout();
                 recorder.SelectTrendMinuteForFixture(trendEnd.AddMinutes(-1));
-                if (recorder.TrendGraph.ActualHeight < 100 || recorder.TrendSelection.Text.Length == 0 ||
+                if (recorder.TrendGraph.ActualHeight < 100 || !recorder.TrendSelection.Text.Contains(99d.ToString("F1") + "%", StringComparison.Ordinal) ||
                     recorder.TrendSelection.Text.Contains(Strings.FlightRecorderTrendNoReading, StringComparison.Ordinal))
                     throw new InvalidOperationException("Longer trends must render its selected minute and preserve chart space.");
                 await CaptureServiceWindowAsync(recorder,

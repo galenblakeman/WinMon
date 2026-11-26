@@ -1,5 +1,11 @@
 # WinMon performance history
 
+## Peak evidence in Longer trends (November 26, 2026)
+
+A Release console fixture compared the prior MonCore archive with schema 3 in baseline, candidate, candidate, baseline order. After two warm-up passes, seven batches of 10,000 synthetic resource frames measured medians of 1.70–3.21 µs per sample before and 1.60–1.90 µs after. Median allocation increased from 1,153.6 to 1,156.0 bytes per sample. Concurrent builds and the spread limit timing conclusions.
+
+With 10,080 populated minutes, snapshot time was 17.7–20.5 ms before and 16.5–17.0 ms after. The compressed fixture grew from 782,268 to 1,080,339 bytes with the peak timestamps. Save time increased from 387–424 ms to 468–573 ms, and load time ranged 311–413 ms before and 372–474 ms after. These measurements use one reading per minute for persistence and exclude WPF rendering and native collection. The script and raw outputs are in `artifacts/verify/trend-peaks-performance/`.
+
 ## Automatic incident saving (November 26, 2026)
 
 The Release `--live-only` harness used 400 warm-up frames and seven batches of 60. Two runs against `3427660` measured 5.09–5.21 ms per frame and 551.8–552.2 kB allocated. Two runs with automatic incident saving measured 4.46–5.78 ms and 552.6–553.0 kB. The timing ranges overlap. Concurrent verification and other working-tree changes limit attribution. This workload measures ordinary synthetic UI frames and does not fire automatic captures or measure native collection. The capture smoke verifies the separate trigger and save path. Raw results are under `artifacts/verify/automatic-incidents-performance/`.

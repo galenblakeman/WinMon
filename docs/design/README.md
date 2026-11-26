@@ -1,5 +1,7 @@
 # WinMon design assets
 
+- [Peaks in Longer trends](LONGER-TREND-PEAKS.md) preserves brief resource spikes and opens matching process evidence.
+
 - [Automatic incident saving](AUTOMATIC-INCIDENTS.md) keeps a reopenable History recording beside each automatic capture report.
 
 - [History Events sidebar](HISTORY-EVENTS-SIDEBAR.md) provides a resizable right pane and a persistent collapsed rail.

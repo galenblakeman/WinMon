@@ -96,6 +96,15 @@ public sealed class ResourceTrendRenderCharacterizationTests
         Assert.That(Washes(prepared), Is.Empty);
     }
 
+    [Test]
+    public void KnownPeakRemainsVisibleWhenAGapBreaksTheCollapsedColumn()
+    {
+        var prepared = Render("peak-across-collapsed-gap");
+        Assert.That(PreparedTrendRender.Points(Primary(prepared).Geometry), Is.Empty);
+        var marker = prepared.Shapes.Single(shape => shape.Pen is null && shape.Brush == Brushes.Red);
+        Assert.That(marker.Geometry.Bounds, Is.EqualTo(new Rect(34, 8, 1, 2)));
+    }
+
     [TestCase("receive", 2)]
     [TestCase("secondary-only", 0)]
     public void ReceiveUsesTheSendTraceAndOneSharedMaximum(string name, int primaryPoints)

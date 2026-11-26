@@ -2211,4 +2211,8 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
   <data name="ThermalCaptureHelp" xml:space="preserve"><value>温度ルールは摂氏を使用し、しきい値以上で発動します。制限ルールは制限が有効な間に発動します。測定値の欠落やセンサーの変更で継続時間がリセットされます。</value></data>
   <data name="ThermalTrendPeaks" xml:space="preserve"><value>1分ごとのピーク</value></data>
   <data name="TemperatureChartHelp" xml:space="preserve"><value>CPU、GPU、ドライブの温度を独立した摂氏または華氏の目盛で表示します。測定値の欠落やセンサーの変更で線が途切れます。</value></data>
+  <data name="FlightRecorderTrendPeakLegend" xml:space="preserve"><value>線：1 分間の平均 · ピークマーク：観測された最大値</value></data>
+  <data name="FlightRecorderTrendPeak" xml:space="preserve"><value>ピーク {0}（{1:T}）</value></data>
+  <data name="FlightRecorderTrendFindIncident" xml:space="preserve"><value>保存済みインシデントを探す</value></data>
+  <data name="FlightRecorderTrendIncidentMissing" xml:space="preserve"><value>ピークのサンプルを含む保存済みインシデントはありません。</value></data>
 </root>

@@ -2223,4 +2223,8 @@ También falló la restauración de la limitación: {1}</value></data>
   <data name="ThermalCaptureHelp" xml:space="preserve"><value>Las reglas de temperatura usan Celsius y se activan al alcanzar o superar el umbral. Las reglas de limitación se activan mientras exista el límite. Las lecturas ausentes y los cambios de sensor reinician la duración.</value></data>
   <data name="ThermalTrendPeaks" xml:space="preserve"><value>Máximos por minuto</value></data>
   <data name="TemperatureChartHelp" xml:space="preserve"><value>Temperaturas de CPU, GPU y unidades en una escala independiente en Celsius o Fahrenheit. Las lecturas ausentes y los cambios de sensor interrumpen las líneas.</value></data>
+  <data name="FlightRecorderTrendPeakLegend" xml:space="preserve"><value>Línea: promedio del minuto · marcas de pico: lectura máxima observada</value></data>
+  <data name="FlightRecorderTrendPeak" xml:space="preserve"><value>Pico de {0} a las {1:T}</value></data>
+  <data name="FlightRecorderTrendFindIncident" xml:space="preserve"><value>Buscar incidente guardado</value></data>
+  <data name="FlightRecorderTrendIncidentMissing" xml:space="preserve"><value>Ningún incidente guardado contiene la muestra del pico.</value></data>
 </root>

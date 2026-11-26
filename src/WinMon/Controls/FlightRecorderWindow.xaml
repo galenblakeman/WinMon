@@ -284,7 +284,7 @@
                        ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
             <Grid Grid.Row="2">
                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-                <TextBlock x:Name="TrendLegend" Foreground="{DynamicResource Muted}" Margin="0,0,0,4"/>
+                <TextBlock x:Name="TrendLegend" TextWrapping="Wrap" Foreground="{DynamicResource Muted}" Margin="0,0,0,4"/>
                 <controls:ResourceTrendGraph x:Name="TrendGraph" Grid.Row="1" Focusable="True"
                                              AutomationProperties.Name="{Binding [FlightRecorderLongerTrends], Source={x:Static r:Strings.Text}}"/>
             </Grid>

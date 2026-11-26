@@ -2211,4 +2211,8 @@ Q 종료. Ctrl+C 취소. 실행 파일과 서비스 고정은 다음 실행에�
   <data name="ThermalCaptureHelp" xml:space="preserve"><value>온도 규칙은 섭씨를 사용하며 임계값 이상에서 작동합니다. 제한 규칙은 보고된 제한이 활성 상태일 때 작동합니다. 측정값 누락 및 센서 변경 시 지속 시간이 초기화됩니다.</value></data>
   <data name="ThermalTrendPeaks" xml:space="preserve"><value>분별 최고값</value></data>
   <data name="TemperatureChartHelp" xml:space="preserve"><value>CPU, GPU 및 드라이브 온도를 별도의 섭씨 또는 화씨 눈금으로 표시합니다. 측정값 누락이나 센서 변경 시 선이 끊어집니다.</value></data>
+  <data name="FlightRecorderTrendPeakLegend" xml:space="preserve"><value>선: 분 평균 · 최고점 표시: 관측된 최댓값</value></data>
+  <data name="FlightRecorderTrendPeak" xml:space="preserve"><value>최고점 {0} ({1:T})</value></data>
+  <data name="FlightRecorderTrendFindIncident" xml:space="preserve"><value>저장된 인시던트 찾기</value></data>
+  <data name="FlightRecorderTrendIncidentMissing" xml:space="preserve"><value>최고점 샘플이 포함된 저장된 인시던트가 없습니다.</value></data>
 </root>

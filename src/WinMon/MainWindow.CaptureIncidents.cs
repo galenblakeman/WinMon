@@ -7,8 +7,6 @@ namespace WinMon;
 
 public partial class MainWindow
 {
-    private const int IncidentLeadSeconds = 30;
-    private const int IncidentTailSeconds = 15;
     private const int MaxPendingCaptureIncidents = 20;
     private readonly List<PendingCaptureIncident> _pendingCaptureIncidents = [];
     private bool _captureIncidentErrorShown;
@@ -16,7 +14,7 @@ public partial class MainWindow
     private sealed record PendingCaptureIncident(CaptureMarker Marker, string Folder, Task<string> Report,
         MonitorSample[] Lead, ConnectionCapture[] Traffic)
     {
-        internal double End => Marker.FiredKey.Moment + IncidentTailSeconds;
+        internal double End => Marker.FiredKey.Moment + CaptureReports.IncidentTailSeconds;
     }
 
     private void QueueCaptureIncident(CaptureMarker marker, IReadOnlyList<MonitorSample> history,
@@ -26,10 +24,10 @@ public partial class MainWindow
             FinishCaptureIncidents(_pendingCaptureIncidents[0].End);
 
         var trigger = marker.FiredKey.Moment;
-        var start = trigger - IncidentLeadSeconds;
+        var start = trigger - CaptureReports.IncidentLeadSeconds;
         var lead = NewestFirst(history).TakeWhile(sample => SampleKey.Of(sample).Moment >= start)
-            .Where(sample => SampleKey.Of(sample).Moment < trigger).Take(IncidentLeadSeconds).Reverse().ToArray();
-        var traffic = CaptureTraffic(connections, start, trigger, IncidentLeadSeconds + 1);
+            .Where(sample => SampleKey.Of(sample).Moment < trigger).Take(CaptureReports.IncidentLeadSeconds).Reverse().ToArray();
+        var traffic = CaptureTraffic(connections, start, trigger, CaptureReports.IncidentLeadSeconds + 1);
         _pendingCaptureIncidents.Add(new PendingCaptureIncident(marker, folder, report, lead, traffic));
     }
 
@@ -43,9 +41,9 @@ public partial class MainWindow
             var tail = NewestFirst(Session.History.Samples)
                 .TakeWhile(sample => SampleKey.Of(sample).Moment > trigger)
                 .Where(sample => SampleKey.Of(sample).Moment <= pending.End)
-                .Reverse().Take(IncidentTailSeconds).ToArray();
+                .Reverse().Take(CaptureReports.IncidentTailSeconds).ToArray();
             var traffic = CaptureTraffic(Session.Connections.Captures, Math.BitIncrement(trigger), pending.End,
-                IncidentTailSeconds);
+                CaptureReports.IncidentTailSeconds);
             MonitorSample[] samples = [.. pending.Lead, pending.Marker.Fired.Fired, .. tail];
             var write = Task.Run(() => SaveCaptureIncidentAsync(pending, samples, traffic));
             _ = TrackCaptureIncidentAsync(write);

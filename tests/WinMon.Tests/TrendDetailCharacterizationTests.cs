@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using MonCore.Monitoring;
 using NUnit.Framework;
 using WinMon.Controls;
+using WinMon.Monitoring;
 
 namespace WinMon.Tests;
 
@@ -47,6 +48,59 @@ public sealed class TrendDetailCharacterizationTests
 
     private static void Open(FlightRecorderWindow window) =>
         window.OpenTrendDetail.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+
+    [Test]
+    public void RecordedPeakOpensExactSampleInsteadOfMinuteMidpoint()
+    {
+        var peak = Sample(5, ResourceTrendMetric.Cpu, 98);
+        var midpoint = Sample(30, ResourceTrendMetric.Cpu, 4);
+        var archive = new ResourceTrendArchive();
+        archive.Add(peak);
+        archive.Add(midpoint);
+        var window = new FlightRecorderWindow([peak, midpoint]);
+        try
+        {
+            window.UpdateTrends(archive.Snapshot(Start.AddMinutes(1)));
+            window.HistoryMode.SelectedIndex = 1;
+            window.SelectTrendMinuteForFixture(Start);
+            Assert.That(window.TrendSelection.Text, Does.Contain("Peak 98.0%"));
+            Open(window);
+            Assert.That(window.Selection, Is.SameAs(peak));
+        }
+        finally { window.Close(); }
+    }
+
+    [Test]
+    public void SavedIncidentOnlyAttributesAnExactPeakAndRetainsItsContributors()
+    {
+        var peak = Sample(5, ResourceTrendMetric.Cpu, 98) with { Processes = [new(72, 123, "worker", 90)] };
+        var trigger = Sample(8, ResourceTrendMetric.Cpu, 80);
+        var folder = Path.Combine(Path.GetTempPath(), "WinMon.TrendIncident." + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(folder);
+        try
+        {
+            var id = Guid.NewGuid();
+            var report = CaptureReports.Write(folder, trigger.Timestamp, CaptureMetric.Memory, CaptureReports.FirstLine(id) + "\n");
+            var path = CaptureReports.IncidentPath(report, id.ToString("N"));
+            new IncidentRecording(IncidentRecording.CurrentVersion, Stopwatch.Frequency,
+                [new(peak, null, [], null, null), new(trigger, null, [], null, null)], CaptureMetric.Memory, 1).Save(path);
+            var point = new ResourceTrendValue(98, 1, 98, 98, "", ResourceTrendBreak.None) { PeakUtcTicks = peak.Timestamp.UtcTicks };
+
+            var found = FlightRecorderWindow.FindTrendIncident(folder, ResourceTrendMetric.Cpu, point);
+
+            Assert.That(found, Is.Not.Null);
+            var recording = found!.Value.Recording;
+            Assert.Multiple(() =>
+            {
+                Assert.That(recording.Metric, Is.EqualTo(CaptureMetric.Cpu));
+                Assert.That(recording.Observations[recording.SelectedIndex].Sample.Processes.Single().Name, Is.EqualTo("worker"));
+                Assert.That(FlightRecorderWindow.FindTrendIncident(folder, ResourceTrendMetric.Cpu, point with { Maximum = 99 }), Is.Null);
+                Assert.That(FlightRecorderWindow.FindTrendIncident(folder, ResourceTrendMetric.Cpu,
+                    point with { PeakUtcTicks = peak.Timestamp.AddSeconds(1).UtcTicks }), Is.Null);
+            });
+        }
+        finally { Directory.Delete(folder, recursive: true); }
+    }
 
     [Test]
     public void EachMetricRequiresItsOwnReadingAndAcceptsZero(

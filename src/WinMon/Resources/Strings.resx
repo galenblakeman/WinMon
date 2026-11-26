@@ -2248,4 +2248,8 @@ Restoring throttling also failed: {1}</value></data>
   <data name="ThermalCaptureHelp" xml:space="preserve"><value>Temperature rules use Celsius and trigger at or above the threshold. Limit rules trigger while the reported limit is active. Missing readings and sensor changes reset the duration.</value></data>
   <data name="ThermalTrendPeaks" xml:space="preserve"><value>Minute peaks</value></data>
   <data name="TemperatureChartHelp" xml:space="preserve"><value>CPU, GPU and drive temperatures on a separate Celsius or Fahrenheit scale. Missing readings and sensor changes break the lines.</value></data>
+  <data name="FlightRecorderTrendPeakLegend" xml:space="preserve"><value>Line: minute average · peak marks: highest observed reading</value></data>
+  <data name="FlightRecorderTrendPeak" xml:space="preserve"><value>Peak {0} at {1:T}</value></data>
+  <data name="FlightRecorderTrendFindIncident" xml:space="preserve"><value>Find saved incident</value></data>
+  <data name="FlightRecorderTrendIncidentMissing" xml:space="preserve"><value>No saved incident contains the peak sample.</value></data>
 </root>

@@ -36,8 +36,7 @@ internal sealed class ResourceTrendGraph : FrameworkElement
     protected override void OnRender(DrawingContext drawing)
     {
         base.OnRender(drawing);
-        var rail = ResourceTrendArchive.IsTemperature(_metric) ? 64 : 34;
-        var bounds = new Rect(rail, 8, Math.Max(0, ActualWidth - rail - 8), Math.Max(0, ActualHeight - 30));
+        var bounds = PlotBounds();
         if (bounds.Width < 2 || bounds.Height < 2) return;
         var line = Resource("Line", Brushes.DimGray);
         var muted = Resource("Muted", Brushes.Gray);
@@ -67,7 +66,7 @@ internal sealed class ResourceTrendGraph : FrameworkElement
                 Math.Max(0, ActualWidth - 1), Math.Max(0, ActualHeight - 1)));
             return;
         }
-        var maximum = values.Concat(secondaryValues).Max(pair => pair.Value!.Average!.Value);
+        var maximum = values.Concat(secondaryValues).Max(pair => PlotMaximum(pair.Value!));
         maximum = Math.Max(1, maximum);
         for (var i = 0; i <= 4; i++)
         {
@@ -98,8 +97,7 @@ internal sealed class ResourceTrendGraph : FrameworkElement
             var x = Column(bucket.StartUtc, bounds, width);
             var item = columns[x];
             var breaks = value!.IsBreak || (previous is not null && bucket.StartUtc - previous.StartUtc > TimeSpan.FromMinutes(1));
-            columns[x] = item is null ? new TrendColumn(value.WeightedSum, value.ObservedSeconds, value.Average!.Value,
-                value.Average.Value, breaks, Partial: value.ObservedSeconds < 59.999) : item.Value.Add(value, breaks);
+            columns[x] = item is null ? TrendColumn.From(value, breaks) : item.Value.Add(value, breaks);
             previous = bucket;
         }
         var wash = SystemParameters.HighContrast ? null : new SolidColorBrush(Color.FromArgb(56,
@@ -109,7 +107,12 @@ internal sealed class ResourceTrendGraph : FrameworkElement
         if (wash is { CanFreeze: true }) wash.Freeze();
         for (var x = 0; x < columns.Length; x++)
         {
-            if (columns[x] is not { } column || column.GapWithinColumn) continue;
+            if (columns[x] is not { } column) continue;
+            if (column.Peak is { } peak && (column.GapWithinColumn || peak > column.Average))
+            {
+                drawing.DrawRectangle(accent, null, new Rect(bounds.Left + x, Y(peak, maximum, bounds), 1, 2));
+            }
+            if (column.GapWithinColumn) continue;
             var top = Y(column.Max, maximum, bounds);
             var bottom = Y(column.Min, maximum, bounds);
             drawing.DrawRectangle(wash, null, new Rect(bounds.Left + x, top, 1, Math.Max(1, bottom - top)));
@@ -147,7 +150,7 @@ internal sealed class ResourceTrendGraph : FrameworkElement
     {
         base.OnMouseLeftButtonDown(e);
         Focus();
-        SelectAt(e.GetPosition(this).X);
+        SelectAt(e.GetPosition(this));
     }
 
     protected override void OnKeyDown(KeyEventArgs e)
@@ -173,12 +176,53 @@ internal sealed class ResourceTrendGraph : FrameworkElement
         BucketSelected?.Invoke(this, _buckets[_selected]);
     }
 
-    private void SelectAt(double x)
+    private Rect PlotBounds()
+    {
+        var rail = ResourceTrendArchive.IsTemperature(_metric) ? 64 : 34;
+        return new Rect(rail, 8, Math.Max(0, ActualWidth - rail - 8), Math.Max(0, ActualHeight - 30));
+    }
+
+    private void SelectAt(Point point)
     {
         if (_buckets.Count == 0) return;
-        var fraction = Math.Clamp((x - 34) / Math.Max(1, ActualWidth - 42), 0, 1);
+        var bounds = PlotBounds();
+        if (bounds.Width > 1 && bounds.Contains(point) && PeakNear(point, bounds) is { } index)
+        {
+            Select(index);
+            return;
+        }
+        var fraction = Math.Clamp((point.X - bounds.Left) / Math.Max(1, bounds.Width), 0, 1);
         var time = _start + TimeSpan.FromTicks((long)((_end - _start).Ticks * fraction));
         Select(_buckets.Select((bucket, index) => (bucket, index)).MinBy(item => Math.Abs((item.bucket.StartUtc - time).Ticks)).index);
+    }
+
+    private int? PeakNear(Point point, Rect bounds)
+    {
+        var width = (int)Math.Floor(bounds.Width);
+        var maximum = 1d;
+        var series = _metric == ResourceTrendMetric.Receive ? new[] { _metric, ResourceTrendMetric.Send } : [_metric];
+        foreach (var bucket in _buckets)
+            foreach (var metric in series)
+                if (Value(bucket, metric) is { Average: not null } value) maximum = Math.Max(maximum, PlotMaximum(value));
+
+        int? selected = null;
+        var closest = 4d;
+        for (var index = 0; index < _buckets.Count; index++)
+        {
+            var bucket = _buckets[index];
+            var dx = Math.Abs(bounds.Left + Column(bucket.StartUtc, bounds, width) - point.X);
+            if (dx > 2) continue;
+            foreach (var metric in series)
+            {
+                if (Value(bucket, metric) is not { Average: { } average, PeakUtcTicks: not null } value || value.Maximum <= average)
+                    continue;
+                var distance = dx + Math.Abs(Y(value.Maximum, maximum, bounds) - point.Y);
+                if (distance >= closest) continue;
+                closest = distance;
+                selected = index;
+            }
+        }
+        return selected;
     }
 
     private void DrawBinnedLine(DrawingContext drawing, (ResourceTrendBucket Bucket, ResourceTrendValue? Value)[] values,
@@ -191,8 +235,7 @@ internal sealed class ResourceTrendGraph : FrameworkElement
             var column = Column(bucket.StartUtc, bounds, width);
             var prior = columns[column];
             var breaks = value!.IsBreak || (previous is not null && bucket.StartUtc - previous.StartUtc > TimeSpan.FromMinutes(1));
-            columns[column] = prior?.Add(value, breaks) ?? new TrendColumn(value.WeightedSum, value.ObservedSeconds, value.Average!.Value,
-                value.Average.Value, breaks);
+            columns[column] = prior?.Add(value, breaks) ?? TrendColumn.From(value, breaks);
             previous = bucket;
         }
         var line = new StreamGeometry();
@@ -202,6 +245,10 @@ internal sealed class ResourceTrendGraph : FrameworkElement
             for (var x = 0; x < columns.Length; x++)
             {
                 if (columns[x] is not { } column) continue;
+                if (column.Peak is { } peak && (column.GapWithinColumn || peak > column.Average))
+                {
+                    drawing.DrawRectangle(brush, null, new Rect(bounds.Left + x, Y(peak, maximum, bounds), 1, 2));
+                }
                 if (column.GapWithinColumn) { open = false; continue; }
                 var point = new Point(bounds.Left + x, Y(column.Average, maximum, bounds));
                 if (!open || column.BreaksBefore) context.BeginFigure(point, false, false);
@@ -243,12 +290,20 @@ internal sealed class ResourceTrendGraph : FrameworkElement
         drawing.DrawText(glyph, new Point(point.X - glyph.Width * alignment, point.Y));
     }
 
+    private static double PlotMaximum(ResourceTrendValue value) => value.PeakUtcTicks.HasValue ? value.Maximum : value.Average!.Value;
+
     private readonly record struct TrendColumn(double WeightedSum, double Seconds, double Min, double Max, bool BreaksBefore,
-        bool GapWithinColumn = false, bool Partial = false)
+        double? Peak, bool GapWithinColumn = false, bool Partial = false)
     {
         internal double Average => WeightedSum / Seconds;
+        internal static TrendColumn From(ResourceTrendValue value, bool breaksBefore) => new(value.WeightedSum,
+            value.ObservedSeconds, value.Average!.Value, PlotMaximum(value), breaksBefore,
+            value.PeakUtcTicks.HasValue ? value.Maximum : null,
+            Partial: value.ObservedSeconds < 59.999);
         internal TrendColumn Add(ResourceTrendValue value, bool breaksBefore) => new(WeightedSum + value.WeightedSum,
-            Seconds + value.ObservedSeconds, Math.Min(Min, value.Average!.Value), Math.Max(Max, value.Average.Value),
-            BreaksBefore || breaksBefore, GapWithinColumn || breaksBefore, Partial || value.ObservedSeconds < 59.999);
+            Seconds + value.ObservedSeconds, Math.Min(Min, value.Average!.Value), Math.Max(Max, PlotMaximum(value)),
+            BreaksBefore || breaksBefore, value.PeakUtcTicks.HasValue ? Math.Max(Peak ?? 0, value.Maximum) : Peak,
+            GapWithinColumn || breaksBefore,
+            Partial || value.ObservedSeconds < 59.999);
     }
 }

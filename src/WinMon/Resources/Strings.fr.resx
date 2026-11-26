@@ -2223,4 +2223,8 @@ La restauration de la limitation a aussi échoué : {1}</value></data>
   <data name="ThermalCaptureHelp" xml:space="preserve"><value>Les règles de température utilisent les degrés Celsius et se déclenchent au seuil ou au-delà. Les règles de limitation se déclenchent tant que la limite est active. Une mesure absente ou un changement de capteur réinitialise la durée.</value></data>
   <data name="ThermalTrendPeaks" xml:space="preserve"><value>Pics par minute</value></data>
   <data name="TemperatureChartHelp" xml:space="preserve"><value>Températures du processeur, du GPU et des disques sur une échelle Celsius ou Fahrenheit distincte. Les mesures absentes et les changements de capteur interrompent les courbes.</value></data>
+  <data name="FlightRecorderTrendPeakLegend" xml:space="preserve"><value>Courbe : moyenne par minute · repères de pointe : maximum observé</value></data>
+  <data name="FlightRecorderTrendPeak" xml:space="preserve"><value>Pic de {0} à {1:T}</value></data>
+  <data name="FlightRecorderTrendFindIncident" xml:space="preserve"><value>Rechercher un incident enregistré</value></data>
+  <data name="FlightRecorderTrendIncidentMissing" xml:space="preserve"><value>Aucun incident enregistré ne contient la mesure du pic.</value></data>
 </root>

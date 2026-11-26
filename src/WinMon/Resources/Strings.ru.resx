@@ -2211,4 +2211,8 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
   <data name="ThermalCaptureHelp" xml:space="preserve"><value>Правила температуры используют градусы Цельсия и срабатывают при достижении или превышении порога. Правила ограничений срабатывают, пока ограничение активно. Пропуски показаний и смена датчика сбрасывают длительность.</value></data>
   <data name="ThermalTrendPeaks" xml:space="preserve"><value>Минутные пики</value></data>
   <data name="TemperatureChartHelp" xml:space="preserve"><value>Температуры CPU, GPU и дисков на отдельной шкале Цельсия или Фаренгейта. Пропуски показаний и смена датчика разрывают линии.</value></data>
+  <data name="FlightRecorderTrendPeakLegend" xml:space="preserve"><value>Линия: среднее за минуту · отметки пиков: наибольшее наблюдение</value></data>
+  <data name="FlightRecorderTrendPeak" xml:space="preserve"><value>Пик {0} в {1:T}</value></data>
+  <data name="FlightRecorderTrendFindIncident" xml:space="preserve"><value>Найти сохранённый инцидент</value></data>
+  <data name="FlightRecorderTrendIncidentMissing" xml:space="preserve"><value>Ни один сохранённый инцидент не содержит замер пика.</value></data>
 </root>
