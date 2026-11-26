@@ -2,6 +2,18 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## CLI connection report projection (November 26, 2026)
+
+Compared preserved baseline and corrected Release `WinMon.Cli` assemblies on .NET 10 with SDK 10.0.404. A prepared fixture uses 1,000 process owners and 100, 10,000 or 30,000 TCP endpoints belonging to the final owner, with name sorting, no filter and Top 1. Each separate PowerShell process disables tiered compilation, warms each case three times, then measures five report constructions. The table gives medians; allocations include the common reflection/PowerShell invocation overhead. Fixture construction, native collection, serialization, terminal rendering and whole-process memory are excluded.
+
+| Endpoints | Before | After | Allocated before | Allocated after |
+| --- | ---: | ---: | ---: | ---: |
+| 100 | 0.694 ms | 0.049 ms | 100,408 B | 48,816 B |
+| 10,000 | 66.867 ms | 3.180 ms | 9,676,448 B | 484,440 B |
+| 30,000 | 218.953 ms | 2.718 ms | 29,196,464 B | 1,364,456 B |
+
+The 30,000-endpoint case is about 81 times faster with 95% less allocation. These short prepared measurements include scheduling/GC noise; they establish the reduction in repeated work, not a whole-command latency guarantee. Serialized JSON plus selected table-cell fingerprints match in all three cases. Deterministic tests separately enforce one owner-list pass and no formatting beyond Top, along with lifetime identity, filtering, stable ordering and count/truncation metadata. The probe, raw measurements and preserved baseline are under ignored `artifacts/cli-audit-fix/` (`Measure-Connections.ps1`, `before.json`, `after.json`, `baseline/`).
+
 ## Executable-path recovery (November 26, 2026)
 
 Compared the preserved pre-fix adapter with the corrected Release adapter in four alternating before/after pairs. Each process used 850 fixed process lifetimes, 1,000 warm-up captures and seven batches of 4,000 captures per case. The clock used real monotonic time; injected lookup delegates returned either a stable path or an unavailable path. These cases measure cached successful lookups and the failed-lookup backoff between retries, excluding native queries and full UI/sampling cost.

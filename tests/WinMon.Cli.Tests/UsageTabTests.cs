@@ -71,4 +71,49 @@ public sealed class UsageTabTests
 
         Assert.That(table.Rows.Single().Cells[6], Is.EqualTo(Strings.UsageNow));
     }
+
+    [TestCase(1)]
+    [TestCase(5)]
+    [TestCase(6)]
+    public void ArchivedUsageShowsRecordedDateTimeInCellsAndDetails(int secondsBeforeMidnight)
+    {
+        var ending = new DateTimeOffset(2026, 11, 2, 0, 0, 0, TimeSpan.Zero);
+        var active = ending.AddSeconds(-secondsBeforeMidnight);
+        var app = new AppUsage("worker", "worker", "", "", "", 1, 0, null, 1, 0, false,
+            new SampleKey(1, active));
+
+        var row = UsageTab.Build([app], ending.AddDays(-1), 1, ending, 0, "", false, 0, archived: true).Rows.Single();
+
+        var expected = active.ToLocalTime().ToString("g", CultureInfo.CurrentCulture);
+        Assert.Multiple(() =>
+        {
+            Assert.That(row.Cells[6], Is.EqualTo(expected));
+            Assert.That(row.Details, Does.EndWith($"{Strings.UsageLastActive}: {expected}"));
+        });
+    }
+
+    [Test]
+    public void ArchivedUsageIncludesTheDateEvenForToday()
+    {
+        var active = DateTimeOffset.Now;
+        var app = new AppUsage("worker", "worker", "", "", "", 1, 0, null, 1, 0, false,
+            new SampleKey(1, active));
+
+        var row = UsageTab.Build([app], active.AddHours(-1), 1, active.AddMinutes(1), 0, "", false, 0, archived: true).Rows.Single();
+
+        var expected = active.ToLocalTime().ToString("g", CultureInfo.CurrentCulture);
+        Assert.That(row.Cells[6], Is.EqualTo(expected));
+        Assert.That(row.Details, Does.EndWith($"{Strings.UsageLastActive}: {expected}"));
+    }
+
+    [Test]
+    public void ArchivedUsageKeepsMissingActivityUnavailable()
+    {
+        var app = new AppUsage("worker", "worker", "", "", "", 0, 0, null, 1, 0, false, null);
+
+        var row = UsageTab.Build([app], DateTimeOffset.UnixEpoch, 1, DateTimeOffset.UnixEpoch, 0, "", false, 0, archived: true).Rows.Single();
+
+        Assert.That(row.Cells[6], Is.EqualTo(Strings.MissingReading));
+        Assert.That(row.Details, Does.EndWith($"{Strings.UsageLastActive}: {Strings.MissingReading}"));
+    }
 }

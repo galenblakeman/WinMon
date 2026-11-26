@@ -16,7 +16,7 @@ public static class UsageTab
             () => [
                 DisplayName(app), CpuTime(app.CpuTicks), Share(app.CpuTicks, machineBusyTicks), Bytes(app.IoBytes),
                 app.GpuSeconds is { } gpu ? Duration(TimeSpan.FromSeconds(gpu)) : Strings.MissingReading,
-                Processes(app, archived), LastActive(app.LastActive, latest)
+                Processes(app, archived), LastActive(app.LastActive, latest, archived)
             ], () => Details(app, since, machineBusyTicks, latest, archived)) { PinIdentity = CliPin.Executable(app.ImagePath) }).ToArray();
         return new TerminalTable(
             [Strings.UsageApp, Strings.UsageCpuTime, Strings.UsageShare, Strings.IO, Strings.UsageGpuTime,
@@ -43,7 +43,7 @@ public static class UsageTab
         text.AppendLine($"{Strings.IO}: {Bytes(app.IoBytes)}");
         text.AppendLine($"{Strings.UsageGpuTime}: {(app.GpuSeconds is { } gpu ? Duration(TimeSpan.FromSeconds(gpu)) : Strings.MissingReading)}");
         text.AppendLine($"{Strings.ProcessesTab}: {Processes(app, archived)}");
-        text.Append($"{Strings.UsageLastActive}: {LastActive(app.LastActive, latest)}");
+        text.Append($"{Strings.UsageLastActive}: {LastActive(app.LastActive, latest, archived)}");
         return text.ToString();
     }
 
@@ -71,11 +71,12 @@ public static class UsageTab
             string.Create(CultureInfo.CurrentCulture, $"{app.Lifetimes:N0} ({app.Running:N0})");
     }
 
-    private static string LastActive(SampleKey? active, DateTimeOffset? latest)
+    private static string LastActive(SampleKey? active, DateTimeOffset? latest, bool archived)
     {
         if (active is not { } key) return Strings.MissingReading;
-        if (latest is { } now && (now - key.Timestamp).TotalSeconds <= 5) return Strings.UsageNow;
         var local = key.Timestamp.ToLocalTime();
+        if (archived) return local.ToString("g", CultureInfo.CurrentCulture);
+        if (latest is { } now && (now - key.Timestamp).TotalSeconds <= 5) return Strings.UsageNow;
         return local.Date == DateTimeOffset.Now.Date ? local.ToString("T", CultureInfo.CurrentCulture) :
             local.ToString("g", CultureInfo.CurrentCulture);
     }

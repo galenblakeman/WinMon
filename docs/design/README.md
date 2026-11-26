@@ -1,5 +1,7 @@
 # WinMon design assets
 
+- [CLI report corrections](CLI-REPORT-CORRECTIONS.md) gives archived activity an explicit date/time and bounds connection-report output work before formatting.
+
 - [Sampling recovery corrections](SAMPLING-RECOVERY-CORRECTIONS.md) keeps MCP process recordings alive through CPU collection failures and retries unavailable executable paths without repeated lookups every tick.
 
 - [MonCore accounting corrections](MONCORE-ACCOUNTING-CORRECTIONS.md) isolates connection rate baselines and preserves portable executable identity and independent usage readings.

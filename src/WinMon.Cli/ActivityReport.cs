@@ -16,6 +16,7 @@ internal sealed record ActivityReport(object Data, TerminalTable Table)
             _ => new TerminalTable([Strings.ProcessColumn, Strings.CliPid, Strings.ConnectionsTab], [])
         };
         object[] entries;
+        int? matchingCount = null;
         var available = true;
         if (kind == "services")
         {
@@ -42,22 +43,34 @@ internal sealed record ActivityReport(object Data, TerminalTable Table)
         else
         {
             available = latest.Connections?.Available == true;
-            ProcessUsage? Owner(NetworkConnection c) => latest.Full.Processes.FirstOrDefault(p =>
-                p.ProcessId == c.ProcessId && p.CreationTicks == c.ProcessCreationTicks && p.LifetimeDomain == ProcessLifetimeDomain.WindowsFileTime);
-            var connections = (latest.Connections?.Connections ?? []).Where(c => filter.Length == 0 ||
-                c.ProcessId.ToString().Contains(filter, StringComparison.OrdinalIgnoreCase) ||
-                Owner(c)?.Name.Contains(filter, StringComparison.OrdinalIgnoreCase) == true);
-            var ordered = sort == 0 ? connections.OrderBy(c => c.ProcessId) : connections.OrderBy(c => Owner(c)?.Name, StringComparer.OrdinalIgnoreCase);
-            entries = ordered.Select(c => (object)new { pid = c.ProcessId, name = Owner(c)?.Name,
+            var owners = new Dictionary<(int Pid, long Created), ProcessUsage>(latest.Full.Processes.Count);
+            foreach (var process in latest.Full.Processes)
+                if (process.LifetimeDomain == ProcessLifetimeDomain.WindowsFileTime)
+                    owners.TryAdd((process.ProcessId, process.CreationTicks), process);
+            var connections = (latest.Connections?.Connections ?? []).Select(c => (Connection: c,
+                Owner: c.ProcessCreationTicks is { } created ? owners.GetValueOrDefault((c.ProcessId, created)) : null))
+                .Where(row => filter.Length == 0 ||
+                    row.Connection.ProcessId.ToString().Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                    row.Owner?.Name.Contains(filter, StringComparison.OrdinalIgnoreCase) == true);
+            var ordered = (sort == 0 ? connections.OrderBy(row => row.Connection.ProcessId) :
+                connections.OrderBy(row => row.Owner?.Name, StringComparer.OrdinalIgnoreCase)).ToArray();
+            matchingCount = ordered.Length;
+            var selected = top > 0 ? ordered.Take(top) : ordered;
+            entries = selected.Select(row =>
+            {
+                var c = row.Connection;
+                return (object)new { pid = c.ProcessId, name = row.Owner?.Name,
                 startToken = c.ProcessCreationTicks?.ToString(System.Globalization.CultureInfo.InvariantCulture), domain = c.ProcessCreationTicks is null ? null : "WindowsFileTime",
                 protocol = c.Protocol.ToString(), state = c.State?.ToString(), localAddress = c.LocalEndpoint.Address.ToString(), localPort = c.LocalEndpoint.Port,
-                remoteAddress = c.RemoteEndpoint?.Address.ToString(), remotePort = c.RemoteEndpoint?.Port }).ToArray();
-            table = new TerminalTable([Strings.ProcessColumn, Strings.CliPid, Strings.ConnectionsTab], ordered.Select(c =>
-                new TerminalRow("", [Owner(c)?.Name ?? Strings.Unavailable, c.ProcessId.ToString(), $"{c.Protocol} {c.LocalEndpoint} → {c.RemoteEndpoint}"], "")).ToArray());
+                remoteAddress = c.RemoteEndpoint?.Address.ToString(), remotePort = c.RemoteEndpoint?.Port };
+            }).ToArray();
+            table = new TerminalTable([Strings.ProcessColumn, Strings.CliPid, Strings.ConnectionsTab], selected.Select(row =>
+                new TerminalRow("", [row.Owner?.Name ?? Strings.Unavailable, row.Connection.ProcessId.ToString(),
+                    $"{row.Connection.Protocol} {row.Connection.LocalEndpoint} → {row.Connection.RemoteEndpoint}"], "")).ToArray());
         }
-        var total = entries.Length;
+        var total = matchingCount ?? entries.Length;
         if (!available) table = table with { Note = Strings.Unavailable + " · " + table.Note };
-        if (top > 0) { entries = entries.Take(top).ToArray(); table = table with { Rows = table.Rows.Take(top).ToArray() }; }
+        if (top > 0 && matchingCount is null) { entries = entries.Take(top).ToArray(); table = table with { Rows = table.Rows.Take(top).ToArray() }; }
         return new(new { schemaVersion = 1, kind, sinceUtc = ledger.Since.ToUniversalTime(), timestampUtc = latest.Full.Timestamp.ToUniversalTime(),
             available, isGap = latest.Full.IsGap, samplingError = latest.Error?.ToString(),
             intervalSeconds = latest.Full.IntervalSeconds, observedSeconds = frames.Where(f => UsageLedger.IsValid(f.Full)).Sum(f => f.Full.IntervalSeconds),

@@ -112,6 +112,8 @@ Use `services`, `connections` or `usage` with `--format json` for scriptable act
 
 In interactive mode, `[` / `]` inspect earlier/later retained samples, Alt+Left/Right moves 60 observations, Space returns live, and U changes the historical Usage period. `usage-history --days 7 --format json` reads desktop daily totals without starting another collector. Rejected CLI settings fall back to defaults with a warning; automatic saves preserve the rejected file.
 
+Archived Usage tables show the recorded local date and time for last activity, including activity near midnight, instead of a relative “now” label.
+
 ## Coding agent diagnostics
 
 `WinMon.Mcp.exe` is a separately installed local read-only MCP server for hardware inventory, system snapshots, process details, bounded performance trends, connection observations and per-process traffic from an already-installed network service. Its installer offers unchecked Codex and Claude Code registration options; a separate Claude Code plugin adds a diagnostics skill. Command lines and executable paths are excluded. Network addresses/ports and hardware identifiers require explicit opt-in. See [MCP setup and privacy](docs/MCP.md) for downloads and registration.
