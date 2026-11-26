@@ -185,14 +185,7 @@ internal sealed partial class WindowDiagnostics
             changeNetworkMonitoring: (_, _) => networkChange.Task)
         {
             Owner = fixture,
-            GetGpuSample = () => new ResourceSample { GpuName = "Example GPU" },
-            GetSensorSample = () => new ResourceSample
-            {
-                CpuTemperature = CpuTemperatureFixture(stale: false),
-                DiskName = "C:",
-                DiskTemperatureCelsius = 39,
-                GpuThermals = [new GpuThermalReading("fixture-gpu", "Example GPU", 46, null, 38, null, null)]
-            }
+            GetGpuSample = () => new ResourceSample { GpuName = "Example GPU" }
         };
         try
         {
@@ -205,7 +198,7 @@ internal sealed partial class WindowDiagnostics
                 overflow[$"{theme} {section}"] = Math.Round(settings.PageOverflow, 1);
                 // These sections must show every setting without scrolling at full height.
                 if (section is SettingsSection.Appearance or SettingsSection.Monitoring
-                        or SettingsSection.Devices or SettingsSection.Network && settings.PageOverflow > 0.5 &&
+                        or SettingsSection.Devices && settings.PageOverflow > 0.5 &&
                     !settings.HeightLimitedByWorkArea)
                     throw new InvalidOperationException(
                         $"Settings {section} scrolls by {settings.PageOverflow:F0} DIPs in {theme}.");
@@ -220,7 +213,7 @@ internal sealed partial class WindowDiagnostics
                     await CaptureServiceWindowAsync(settings, Path.Combine(output, "settings-scoped-rules-" + theme + ".png"), cancellationToken);
                     settings.ScrollSettingsPageToTop();
                 }
-                if (section == SettingsSection.Network)
+                if (section == SettingsSection.Services)
                 {
                     settings.RemoveNetworkMonitoringServiceButton.BringIntoView();
                     settings.UpdateLayout();
