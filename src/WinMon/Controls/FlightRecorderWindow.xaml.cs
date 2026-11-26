@@ -66,7 +66,7 @@ internal partial class FlightRecorderWindow : Window
         var label = collapsed ? Strings.FlightRecorderExpandEvents : Strings.FlightRecorderCollapseEvents;
         EventsToggle.ToolTip = label;
         AutomationProperties.SetName(EventsToggle, label);
-        ButtonIcon.SetData(EventsToggle, collapsed ? ButtonIcon.ChevronRight : ButtonIcon.ChevronLeft);
+        ButtonIcon.SetData(EventsToggle, collapsed ? ButtonIcon.ChevronLeft : ButtonIcon.ChevronRight);
         EventsToggle.SetExpanded(!collapsed);
         if (moveFocus) EventsToggle.Focus();
     }

@@ -1,6 +1,6 @@
 # History Events sidebar
 
-Events navigate an investigation; Compare periods and Selected moment need width for process columns. Put Events on the left below the full-width timeline, with a draggable divider and a visible collapse button.
+Events navigate an investigation; Compare periods and Selected moment need width for process columns. Put Events on the right below the full-width timeline, with a draggable divider and a visible collapse button.
 
 Start collapsed in a 44-DIP rail showing the Events label, the number of nearby events (excluding the empty-state row), and the expand button. Collapse hides the existing controls so selection and scrolling survive. The process area uses the freed width. Keep crash groups and log coverage inside the sidebar. At minimum window height, coverage can shorten with an ellipsis and its full tooltip so the event list remains inside the available detail area.
 
@@ -12,4 +12,4 @@ Capture smoke renders expanded and collapsed layouts in Dark and Light at 1000 a
 
 ## Landed
 
-Implemented in FlightRecorderWindow.xaml and its code-behind, with MainWindow preference wiring and translated control names. The timeline and trend views retain their full width. No departure from the proposed interaction.
+Implemented in FlightRecorderWindow.xaml and its code-behind, with MainWindow preference wiring and translated control names. The timeline and trend views retain their full width. The sidebar moved to the right after review; collapse and resize behavior is unchanged.

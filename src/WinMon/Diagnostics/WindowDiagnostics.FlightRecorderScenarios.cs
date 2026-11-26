@@ -155,9 +155,9 @@ internal sealed partial class WindowDiagnostics
                 var selectedEvent = recorder.Events.SelectedItem;
                 var selection = recorder.Selection;
                 var expandedWidth = recorder.Views.ActualWidth;
-                if (recorder.EventsSidebar.TranslatePoint(new Point(), recorder).X >=
+                if (recorder.EventsSidebar.TranslatePoint(new Point(), recorder).X <=
                     recorder.Views.TranslatePoint(new Point(), recorder).X)
-                    throw new InvalidOperationException("History events must be left of process details.");
+                    throw new InvalidOperationException("History events must be right of process details.");
                 // Exercise focus recovery and UI Automation disclosure through the same button users invoke.
                 recorder.Events.Focus();
                 recorder.EventsToggle.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
