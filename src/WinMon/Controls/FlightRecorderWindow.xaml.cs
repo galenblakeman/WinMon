@@ -17,7 +17,8 @@ internal partial class FlightRecorderWindow : Window
     private static readonly CaptureMetric[] AllMetrics = [CaptureMetric.Cpu, CaptureMetric.Memory, CaptureMetric.PrimaryDisk,
         CaptureMetric.SecondaryDisk, CaptureMetric.Network, CaptureMetric.Gpu,
         CaptureMetric.CpuTemperature, CaptureMetric.GpuTemperature, CaptureMetric.PrimaryDiskTemperature, CaptureMetric.SecondaryDiskTemperature,
-        CaptureMetric.CpuPerformanceLimited, CaptureMetric.GpuThermalLimited];
+        CaptureMetric.CpuPerformanceLimited, CaptureMetric.GpuThermalLimited,
+        CaptureMetric.PrimaryDiskLatency, CaptureMetric.SecondaryDiskLatency];
     private CaptureMetric[] _metrics = AllMetrics;
     private bool _temperatureChartsEnabled;
     internal WinMon.Preferences.TemperatureUnit TemperatureUnit { get; set; }
@@ -50,7 +51,8 @@ internal partial class FlightRecorderWindow : Window
         ResourceTrendMetric.PrimaryDiskActive, ResourceTrendMetric.SecondaryDiskActive, ResourceTrendMetric.Receive,
         ResourceTrendMetric.Gpu, ResourceTrendMetric.CpuTemperature, ResourceTrendMetric.GpuTemperature,
         ResourceTrendMetric.PrimaryDiskTemperature, ResourceTrendMetric.SecondaryDiskTemperature,
-        ResourceTrendMetric.CpuPerformanceLimited, ResourceTrendMetric.GpuThermalLimited];
+        ResourceTrendMetric.CpuPerformanceLimited, ResourceTrendMetric.GpuThermalLimited,
+        ResourceTrendMetric.PrimaryDiskLatency, ResourceTrendMetric.SecondaryDiskLatency];
 
     private ResourceTrendMetric[] _trendMetrics = AllTrendMetrics;
 
@@ -269,6 +271,8 @@ internal partial class FlightRecorderWindow : Window
         if (sample.IsGap || sample.CompactedProcesses > 0 || sample.UnavailableProcesses > 0)
             Changes.Text += Environment.NewLine + Strings.Format(Strings.FlightRecorderPartial,
                 sample.CompactedProcesses, sample.UnavailableProcesses);
+        if (CaptureRules.IsDiskLatency(SelectedMetric))
+            Changes.Text += Environment.NewLine + Strings.AutoCaptureIoDisclaimer;
         UpdateEventPresentation();
     }
 
@@ -294,7 +298,8 @@ internal partial class FlightRecorderWindow : Window
             ? Percent(value * 100) : CaptureReportText.Value(SelectedMetric, value) : SelectedMetric switch
     {
         CaptureMetric.Memory => TableMetricText.Memory((ulong)value),
-        CaptureMetric.PrimaryDisk or CaptureMetric.SecondaryDisk or CaptureMetric.Network => TableMetricText.IoRate(value),
+        CaptureMetric.PrimaryDisk or CaptureMetric.SecondaryDisk or CaptureMetric.PrimaryDiskLatency or CaptureMetric.SecondaryDiskLatency or
+            CaptureMetric.Network => TableMetricText.IoRate(value),
         _ => Percent(value)
     };
 
@@ -528,7 +533,8 @@ internal partial class FlightRecorderWindow : Window
         ResourceTrendMetric.SecondaryDiskActive => Strings.FlightRecorderTrendSecondaryDisk,
         ResourceTrendMetric.Receive => Strings.Network,
         ResourceTrendMetric.Gpu => Strings.GPU,
-        _ => Enum.TryParse<CaptureMetric>(metric.ToString(), out var capture) && ThermalMetrics.IsThermal(capture)
+        _ => Enum.TryParse<CaptureMetric>(metric.ToString(), out var capture) &&
+            (ThermalMetrics.IsThermal(capture) || CaptureRules.IsDiskLatency(capture))
             ? CaptureReportText.MetricName(capture, new ResourceSample()) : Strings.Unavailable
     };
 
@@ -538,6 +544,7 @@ internal partial class FlightRecorderWindow : Window
             ? value > 0 ? Strings.SettingsOn : Strings.SettingsOff : SelectedTrendMetric switch
     {
         ResourceTrendMetric.MemoryBytes => TableMetricText.Memory((ulong)value),
+        ResourceTrendMetric.PrimaryDiskLatency or ResourceTrendMetric.SecondaryDiskLatency => CaptureReportText.Latency(value),
         ResourceTrendMetric.Receive or ResourceTrendMetric.Send or ResourceTrendMetric.PrimaryDiskRead or
             ResourceTrendMetric.PrimaryDiskWrite or ResourceTrendMetric.SecondaryDiskRead or ResourceTrendMetric.SecondaryDiskWrite =>
             TableMetricText.IoRate(value),
@@ -574,6 +581,8 @@ internal partial class FlightRecorderWindow : Window
         ResourceTrendMetric.Receive => sample.Resources.ReceiveBytesPerSecond,
         ResourceTrendMetric.Send => sample.Resources.SendBytesPerSecond,
         ResourceTrendMetric.Gpu => sample.Resources.GpuPercent,
+        ResourceTrendMetric.PrimaryDiskLatency => CaptureRules.Value(CaptureMetric.PrimaryDiskLatency, sample),
+        ResourceTrendMetric.SecondaryDiskLatency => CaptureRules.Value(CaptureMetric.SecondaryDiskLatency, sample),
         _ => Enum.TryParse<CaptureMetric>(metric.ToString(), out var capture) ? ThermalMetrics.Value(capture, sample.Resources) : null
     };
 

@@ -23,7 +23,7 @@ internal static class CaptureReports
 
     // Plain regular expressions: generated ones would add types outside the Monitoring namespace.
     private static readonly Regex NamePattern = new(
-        @"^WinMon-capture_(?<time>[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}-[0-9]{2})(?:_o(?<offset>[+-][0-9]{4}))?_(cpu|memory|disk1|disk2|network|gpu|process|(?:cpu|gpu|disk1|disk2)-temperature|(?:cpu|gpu)-limit)(_(?<n>[2-9]|[1-9][0-9]{1,3}))?\.txt$",
+        @"^WinMon-capture_(?<time>[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}-[0-9]{2})(?:_o(?<offset>[+-][0-9]{4}))?_(cpu|memory|disk1|disk2|network|gpu|process|(?:cpu|gpu|disk1|disk2)-temperature|(?:cpu|gpu)-limit|(?:disk1|disk2)-latency)(_(?<n>[2-9]|[1-9][0-9]{1,3}))?\.txt$",
         RegexOptions.CultureInvariant);
 
     private static readonly Regex FirstLinePattern =
@@ -45,6 +45,7 @@ internal static class CaptureReports
             CaptureMetric.CpuTemperature => "cpu-temperature", CaptureMetric.GpuTemperature => "gpu-temperature",
             CaptureMetric.PrimaryDiskTemperature => "disk1-temperature", CaptureMetric.SecondaryDiskTemperature => "disk2-temperature",
             CaptureMetric.CpuPerformanceLimited => "cpu-limit", CaptureMetric.GpuThermalLimited => "gpu-limit",
+            CaptureMetric.PrimaryDiskLatency => "disk1-latency", CaptureMetric.SecondaryDiskLatency => "disk2-latency",
             _ => "process"
         };
     }

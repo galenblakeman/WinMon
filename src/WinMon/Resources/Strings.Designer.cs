@@ -104,6 +104,7 @@ public static partial class Strings
     public static string CapacityGiB => ResourceManager.GetString(nameof(CapacityGiB), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CapacityMiB => ResourceManager.GetString(nameof(CapacityMiB), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CapacityType => ResourceManager.GetString(nameof(CapacityType), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string CaptureAddScopedRule => ResourceManager.GetString(nameof(CaptureAddScopedRule), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CaptureAppCpu => ResourceManager.GetString(nameof(CaptureAppCpu), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CaptureAppMemory => ResourceManager.GetString(nameof(CaptureAppMemory), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CaptureAppNetwork => ResourceManager.GetString(nameof(CaptureAppNetwork), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -113,14 +114,18 @@ public static partial class Strings
     public static string CaptureConnectionTrafficScope => ResourceManager.GetString(nameof(CaptureConnectionTrafficScope), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CaptureConnectionTrafficUnavailable => ResourceManager.GetString(nameof(CaptureConnectionTrafficUnavailable), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CaptureConnectionTrafficWindow => ResourceManager.GetString(nameof(CaptureConnectionTrafficWindow), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string CaptureDuplicateScopedTarget => ResourceManager.GetString(nameof(CaptureDuplicateScopedTarget), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CaptureDurationHelp => ResourceManager.GetString(nameof(CaptureDurationHelp), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CaptureFlowIncomplete => ResourceManager.GetString(nameof(CaptureFlowIncomplete), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CaptureLatestSnapshot => ResourceManager.GetString(nameof(CaptureLatestSnapshot), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CaptureObservedFlowMissingEndpoint => ResourceManager.GetString(nameof(CaptureObservedFlowMissingEndpoint), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CapturePrivateMemoryUnit => ResourceManager.GetString(nameof(CapturePrivateMemoryUnit), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string CaptureRemoveScopedRule => ResourceManager.GetString(nameof(CaptureRemoveScopedRule), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CaptureReportConnectionCount => ResourceManager.GetString(nameof(CaptureReportConnectionCount), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CaptureReportExtraTrigger => ResourceManager.GetString(nameof(CaptureReportExtraTrigger), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CaptureReportProcessCount => ResourceManager.GetString(nameof(CaptureReportProcessCount), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string CaptureScopedMetric => ResourceManager.GetString(nameof(CaptureScopedMetric), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string CaptureScopedRuleLimit => ResourceManager.GetString(nameof(CaptureScopedRuleLimit), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CaptureServiceCpu => ResourceManager.GetString(nameof(CaptureServiceCpu), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CaptureServiceMemory => ResourceManager.GetString(nameof(CaptureServiceMemory), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CaptureServiceNetwork => ResourceManager.GetString(nameof(CaptureServiceNetwork), Culture ?? CultureInfo.CurrentUICulture)!;

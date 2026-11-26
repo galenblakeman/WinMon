@@ -7,6 +7,34 @@ namespace MonCore.Tests;
 [TestFixture]
 public sealed class CaptureRulesTests
 {
+    [TestCase(CaptureMetric.PrimaryDiskLatency, false)]
+    [TestCase(CaptureMetric.SecondaryDiskLatency, true)]
+    public void DiskLatencyRuleRequiresConsecutiveReadingsFromTheSameVolume(CaptureMetric metric, bool secondary)
+    {
+        var rules = new CaptureRules([new(metric, true, 25, 2)], TimeSpan.FromMinutes(5), 4);
+        MonitorSample Sample(int second, string volume, double? milliseconds) => new(DateTimeOffset.UnixEpoch.AddSeconds(second),
+            null, [], 0, MonotonicTimestamp: second * System.Diagnostics.Stopwatch.Frequency)
+        {
+            Resources = secondary
+                ? new ResourceSample { SecondaryDiskName = volume, SecondaryDiskResponseSeconds = milliseconds / 1000 }
+                : new ResourceSample { DiskName = volume, DiskResponseSeconds = milliseconds / 1000 }
+        };
+
+        Assert.That(rules.Observe(Sample(1, "C:", 40)), Is.Empty);
+        Assert.That(rules.Observe(Sample(2, "D:", 40)), Is.Empty);
+        Assert.That(rules.Observe(Sample(3, "D:", null)), Is.Empty);
+        Assert.That(rules.Observe(Sample(4, "D:", 30)), Is.Empty);
+        var fired = rules.Observe(Sample(5, "D:", 50)).Single();
+        Assert.Multiple(() =>
+        {
+            Assert.That(fired.Rule.Metric, Is.EqualTo(metric));
+            Assert.That(fired.Run, Is.EqualTo(new[] { 30d, 50d }));
+            Assert.That(fired.PeakValue, Is.EqualTo(50));
+            Assert.That(CaptureRules.Value(metric, Sample(6, "", 90)), Is.Null);
+            Assert.That(CaptureRules.Value(metric, Sample(6, "D:", double.NaN)), Is.Null);
+        });
+    }
+
     private static readonly DateTimeOffset Anchor = DateTimeOffset.Parse("2026-10-24T14:00:00Z");
 
     [Test]

@@ -268,13 +268,14 @@ public sealed record MonitorPreferences
     public AutoCapturePreferences AutoCapture { get; init; } = new();
 }
 
-/// <summary>Automatic captures: one rule per resource, a cooldown, the reports folder and notifications.</summary>
+/// <summary>Automatic capture rules, cooldown, reports folder and notifications.</summary>
 public sealed record AutoCapturePreferences
 {
+    internal const int MaxTargetsPerMetric = 8;
     /// <summary>Gets a value indicating whether any rule may fire; reports contain process names, so off by default.</summary>
     public bool Enabled { get; init; }
 
-    /// <summary>Gets one rule per <see cref="CaptureMetric"/>, in display order.</summary>
+    /// <summary>Gets resource and scoped rules in display order.</summary>
     public CaptureRuleSetting[] Rules { get; init; } = CaptureRuleSetting.Defaults;
 
     /// <summary>Gets the minutes a rule waits after firing before it may fire again.</summary>
@@ -286,7 +287,7 @@ public sealed record AutoCapturePreferences
     /// <summary>Gets a value indicating whether a saved capture also shows a notification.</summary>
     public bool Notify { get; init; }
 
-    /// <summary>A copy with one valid rule per metric, missing ones at their defaults, and the cooldown in range.</summary>
+    /// <summary>A copy with distinct scoped targets, missing metrics at their defaults, and the cooldown in range.</summary>
     internal AutoCapturePreferences Normalized()
     {
         // Deserialized settings can contain null despite the non-nullable declarations.
@@ -294,14 +295,19 @@ public sealed record AutoCapturePreferences
         var rules = Rules ?? [];
         return this with
         {
-            Rules =
-            [
-                .. CaptureRuleSetting.Defaults.Select(fallback =>
-                    // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
-                    (rules.FirstOrDefault(rule => rule?.Metric == fallback.Metric) ?? fallback).Normalized())
-            ],
+            Rules = CaptureRuleSetting.Defaults.SelectMany(fallback => RulesForMetric(rules, fallback)).ToArray(),
             CooldownMinutes = Math.Clamp(CooldownMinutes, 1, 1440),
             Folder = string.IsNullOrWhiteSpace(Folder) ? null : Folder.Trim()
         };
+    }
+
+    private static IEnumerable<CaptureRuleSetting> RulesForMetric(CaptureRuleSetting[] rules, CaptureRuleSetting fallback)
+    {
+        var matching = rules.Where(rule => rule?.Metric == fallback.Metric).Select(rule => rule.Normalized());
+        if (!fallback.IsTargeted) return [matching.FirstOrDefault() ?? fallback];
+
+        var targets = matching.Where(rule => rule.Target.Length > 0)
+            .DistinctBy(rule => rule.Target, StringComparer.OrdinalIgnoreCase).Take(MaxTargetsPerMetric).ToArray();
+        return targets.Length > 0 ? targets : [(matching.FirstOrDefault() ?? fallback) with { Enabled = false }];
     }
 }

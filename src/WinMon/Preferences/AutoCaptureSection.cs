@@ -57,9 +57,25 @@ internal sealed class AutoCaptureSection : StackPanel
         Place(Header(Strings.AutoCaptureRuleHeader), 0, 0);
         Place(Header(Strings.AutoCaptureAboveHeader), 0, 1, 2);
         Place(Header(Strings.AutoCaptureForHeader), 0, 3, 2);
-        var row = 1;
-        foreach (var setting in preferences.Rules)
+        var scopedDefaults = CaptureRuleSetting.Defaults.Where(rule => rule.IsTargeted).ToArray();
+        var scopedMetric = new ComboBox { ItemsSource = scopedDefaults.Select(rule =>
+            CaptureReportText.MetricName(rule.Metric, new ResourceSample())).ToArray(), SelectedIndex = 0,
+            MinWidth = 180, Margin = new Thickness(0, 4, 8, 0) };
+        AutomationProperties.SetName(scopedMetric, Strings.CaptureScopedMetric);
+        var addScopedRule = ActionButton(Strings.CaptureAddScopedRule);
+        addScopedRule.Click += (_, _) => AddScopedRule();
+        scopedMetric.SelectionChanged += (_, _) => UpdateAddScopedRule();
+        var scopeActions = new WrapPanel { Margin = new Thickness(0, 0, 0, 8) };
+        scopeActions.Children.Add(scopedMetric);
+        scopeActions.Children.Add(addScopedRule);
+        Children.Add(scopeActions);
+
+        foreach (var setting in preferences.Rules) AddRule(setting);
+        UpdateAddScopedRule();
+
+        Rule AddRule(CaptureRuleSetting setting)
         {
+            var row = table.RowDefinitions.Count;
             table.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             var label = new TextBlock { VerticalAlignment = VerticalAlignment.Center };
             var swatch = new Rectangle
@@ -86,6 +102,7 @@ internal sealed class AutoCaptureSection : StackPanel
                 CaptureMetric.Process => Strings.AutoCapturePercentOfCore,
                 CaptureMetric.ApplicationCpu or CaptureMetric.ServiceCpu => Strings.AutoCapturePercentOfCore,
                 CaptureMetric.PrimaryDisk or CaptureMetric.SecondaryDisk => Strings.AutoCapturePercentActive,
+                CaptureMetric.PrimaryDiskLatency or CaptureMetric.SecondaryDiskLatency => "ms",
                 _ => "%"
             };
             if (ThermalMetrics.IsThermal(setting.Metric) && !ThermalMetrics.IsTemperature(setting.Metric))
@@ -114,11 +131,18 @@ internal sealed class AutoCaptureSection : StackPanel
                 AutomationProperties.SetName(target, setting.IsService ? Strings.CaptureServiceTarget : Strings.CaptureAppTarget);
                 AutomationProperties.SetLabeledBy(target, label);
                 table.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-                Place(target, ++row, 0, 5);
+                Place(target, row + 1, 0, 3);
                 target.Margin = new Thickness(18, 0, 0, 6);
             }
-            _rules.Add(new Rule(setting.Metric, enabled, label, threshold, seconds, setting, target));
-            row++;
+            var rule = new Rule(setting.Metric, enabled, label, threshold, seconds, setting, target);
+            _rules.Add(rule);
+            if (target is not null)
+            {
+                var remove = ActionButton(Strings.CaptureRemoveScopedRule, () => RemoveRule(rule));
+                AutomationProperties.SetLabeledBy(remove, label);
+                Place(remove, row + 1, 3, 2);
+            }
+            return rule;
         }
 
         UpdateDrives(primaryDrive, secondaryDrive);
@@ -171,6 +195,48 @@ internal sealed class AutoCaptureSection : StackPanel
         Children.Add(_notify);
         return;
 
+        void AddScopedRule()
+        {
+            if (scopedMetric.SelectedIndex < 0) return;
+            var setting = scopedDefaults[scopedMetric.SelectedIndex];
+            var blank = _rules.FirstOrDefault(rule => rule.Metric == setting.Metric &&
+                rule.Enabled.IsChecked != true && rule.Target is { Text.Length: 0 });
+            if (blank is null && _rules.Count(rule => rule.Metric == setting.Metric) >= AutoCapturePreferences.MaxTargetsPerMetric)
+                return;
+            var rule = blank ?? AddRule(setting);
+            rule.Label.Text = CaptureReportText.MetricName(setting.Metric, new ResourceSample());
+            LabelFields(rule);
+            rule.Enabled.IsChecked = true;
+            rule.Target!.BringIntoView();
+            rule.Target.Focus();
+            UpdateAddScopedRule();
+        }
+
+        void UpdateAddScopedRule()
+        {
+            if (scopedMetric.SelectedIndex < 0) { addScopedRule.IsEnabled = false; return; }
+            var metric = scopedDefaults[scopedMetric.SelectedIndex].Metric;
+            addScopedRule.IsEnabled = _rules.Count(rule => rule.Metric == metric) < AutoCapturePreferences.MaxTargetsPerMetric;
+            addScopedRule.ToolTip = addScopedRule.IsEnabled ? null :
+                Strings.Format(Strings.CaptureScopedRuleLimit, AutoCapturePreferences.MaxTargetsPerMetric);
+        }
+
+        void RemoveRule(Rule rule)
+        {
+            var first = Grid.GetRow(rule.Enabled);
+            const int rowCount = 2;
+            foreach (var child in table.Children.Cast<UIElement>().ToArray())
+            {
+                var row = Grid.GetRow(child);
+                if (row >= first + rowCount) Grid.SetRow(child, row - rowCount);
+                else if (row >= first) table.Children.Remove(child);
+            }
+            table.RowDefinitions.RemoveRange(first, rowCount);
+            _rules.Remove(rule);
+            UpdateAddScopedRule();
+            scopedMetric.Focus();
+        }
+
         void Place(UIElement element, int at, int column, int span = 1)
         {
             Grid.SetRow(element, at);
@@ -212,6 +278,8 @@ internal sealed class AutoCaptureSection : StackPanel
                 CaptureMetric.SecondaryDisk => secondaryDrive is null
                     ? Strings.SecondDrive
                     : Strings.Format(Strings.DiskLabel, secondaryDrive),
+                CaptureMetric.PrimaryDiskLatency or CaptureMetric.SecondaryDiskLatency => CaptureReportText.MetricName(rule.Metric,
+                    new ResourceSample { DiskName = primaryDrive ?? "", SecondaryDiskName = secondaryDrive ?? "" }),
                 CaptureMetric.Network => Strings.Network, CaptureMetric.Gpu => Strings.GPU,
                 CaptureMetric.ApplicationCpu => Strings.CaptureAppCpu,
                 CaptureMetric.ApplicationMemory => Strings.CaptureAppMemory,
@@ -221,14 +289,18 @@ internal sealed class AutoCaptureSection : StackPanel
                 CaptureMetric.ServiceNetwork => Strings.CaptureServiceNetwork,
                 _ => Strings.AutoCaptureAnyProcess
             };
-            AutomationProperties.SetName(rule.Threshold,
-                Strings.Format(Strings.AutoCaptureThresholdFor, rule.Label.Text));
-            AutomationProperties.SetName(rule.Seconds, Strings.Format(Strings.AutoCaptureSecondsFor, rule.Label.Text));
-            if (rule.Metric != CaptureMetric.SecondaryDisk) continue;
+            LabelFields(rule);
+            if (rule.Metric is not (CaptureMetric.SecondaryDisk or CaptureMetric.SecondaryDiskLatency)) continue;
             // The values are kept, so choosing a second drive again restores the rule as it was.
             var available = secondaryDrive is not null;
             rule.Enabled.IsEnabled = rule.Threshold.IsEnabled = rule.Seconds.IsEnabled = available;
         }
+    }
+
+    private static void LabelFields(Rule rule)
+    {
+        AutomationProperties.SetName(rule.Threshold, Strings.Format(Strings.AutoCaptureThresholdFor, rule.Label.Text));
+        AutomationProperties.SetName(rule.Seconds, Strings.Format(Strings.AutoCaptureSecondsFor, rule.Label.Text));
     }
 
     /// <summary>The page's settings, or null with a message and the field to fix when a number is out of range.</summary>
@@ -237,6 +309,7 @@ internal sealed class AutoCaptureSection : StackPanel
         error = null;
         invalid = null;
         var rules = new List<CaptureRuleSetting>();
+        var targets = new Dictionary<CaptureMetric, HashSet<string>>();
         foreach (var rule in _rules)
         {
             var minimum = rule.Setting.IsNetwork ? 0.1 / 8 : 1;
@@ -265,8 +338,20 @@ internal sealed class AutoCaptureSection : StackPanel
                 invalid = target;
                 return null;
             }
+            var targetText = rule.Target?.Text.Trim() ?? "";
+            if (targetText.Length > 0)
+            {
+                if (!targets.TryGetValue(rule.Metric, out var seen))
+                    targets.Add(rule.Metric, seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase));
+                if (!seen.Add(targetText))
+                {
+                    error = Strings.CaptureDuplicateScopedTarget;
+                    invalid = rule.Target;
+                    return null;
+                }
+            }
             rules.Add(new CaptureRuleSetting(rule.Metric, rule.Enabled.IsChecked == true,
-                rule.Setting.IsNetwork ? threshold * 8 : threshold, seconds) { Target = rule.Target?.Text.Trim() ?? "" });
+                rule.Setting.IsNetwork ? threshold * 8 : threshold, seconds) { Target = targetText });
         }
 
         if (!int.TryParse(_cooldown.Text, NumberStyles.Integer, CultureInfo.CurrentCulture, out var cooldown) ||
@@ -381,12 +466,12 @@ internal sealed class AutoCaptureSection : StackPanel
         return block;
     }
 
-    private static Button ActionButton(string label, Action click)
+    private static Button ActionButton(string label, Action? click = null)
     {
         var button = new Button { Content = label, MinWidth = 70, Margin = new Thickness(0, 4, 6, 0) };
         button.SetResourceReference(Control.BackgroundProperty, "Raised");
         button.SetResourceReference(Control.ForegroundProperty, "Text");
-        button.Click += (_, _) => click();
+        if (click is not null) button.Click += (_, _) => click();
         return button;
     }
 }

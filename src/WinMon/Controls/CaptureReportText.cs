@@ -16,8 +16,10 @@ internal static class CaptureReportText
     {
         return metric switch
         {
-            CaptureMetric.Memory or CaptureMetric.ApplicationMemory or CaptureMetric.ServiceMemory => "MemoryAccent", CaptureMetric.PrimaryDisk => "DiskAccent",
-            CaptureMetric.SecondaryDisk => "SecondaryDiskAccent", CaptureMetric.Network or CaptureMetric.ApplicationNetwork or CaptureMetric.ServiceNetwork => "NetworkAccent",
+            CaptureMetric.Memory or CaptureMetric.ApplicationMemory or CaptureMetric.ServiceMemory => "MemoryAccent",
+            CaptureMetric.PrimaryDisk or CaptureMetric.PrimaryDiskLatency => "DiskAccent",
+            CaptureMetric.SecondaryDisk or CaptureMetric.SecondaryDiskLatency => "SecondaryDiskAccent",
+            CaptureMetric.Network or CaptureMetric.ApplicationNetwork or CaptureMetric.ServiceNetwork => "NetworkAccent",
             CaptureMetric.Gpu or CaptureMetric.GpuTemperature or CaptureMetric.GpuThermalLimited => "GpuAccent",
             CaptureMetric.PrimaryDiskTemperature => "DiskAccent", CaptureMetric.SecondaryDiskTemperature => "SecondaryDiskAccent", _ => "CpuAccent"
         };
@@ -26,7 +28,7 @@ internal static class CaptureReportText
     /// <summary>Disk and network process lists cannot be attributed to that drive or adapter.</summary>
     internal static bool AttributesProcesses(CaptureMetric metric)
     {
-        return !ThermalMetrics.IsThermal(metric) && metric is not (CaptureMetric.PrimaryDisk or CaptureMetric.SecondaryDisk or CaptureMetric.Network or
+        return !ThermalMetrics.IsThermal(metric) && !CaptureRules.IsDiskLatency(metric) && metric is not (CaptureMetric.PrimaryDisk or CaptureMetric.SecondaryDisk or CaptureMetric.Network or
             CaptureMetric.ApplicationNetwork or CaptureMetric.ServiceNetwork);
     }
 
@@ -48,6 +50,8 @@ internal static class CaptureReportText
             CaptureMetric.SecondaryDisk => resources.SecondaryDiskName.Length > 0
                 ? Strings.Format(Strings.DiskLabel, resources.SecondaryDiskName)
                 : Strings.SecondDrive,
+            CaptureMetric.PrimaryDiskLatency => DiskLatencyName(resources.DiskName, Strings.FlightRecorderTrendPrimaryDisk),
+            CaptureMetric.SecondaryDiskLatency => DiskLatencyName(resources.SecondaryDiskName, Strings.FlightRecorderTrendSecondaryDisk),
             CaptureMetric.Network => Strings.Network, CaptureMetric.Gpu => Strings.GPU,
             CaptureMetric.ApplicationCpu => Strings.CaptureAppCpu, CaptureMetric.ApplicationMemory => Strings.CaptureAppMemory,
             CaptureMetric.ApplicationNetwork => Strings.CaptureAppNetwork, CaptureMetric.ServiceCpu => Strings.CaptureServiceCpu,
@@ -56,6 +60,11 @@ internal static class CaptureReportText
         };
     }
 
+    private static string DiskLatencyName(string volume, string fallback) =>
+        (volume.Length > 0 ? Strings.Format(Strings.DiskLabel, volume) : fallback) + " · " + Strings.DetailAverageResponse;
+
+    internal static string Latency(double milliseconds) => milliseconds.ToString("F1", CultureInfo.CurrentCulture) + " ms";
+
     internal static string Value(CaptureMetric metric, double value)
     {
         if (ThermalMetrics.IsTemperature(metric)) return Strings.Format(Strings.TemperatureCelsiusValue,
@@ -63,6 +72,7 @@ internal static class CaptureReportText
         if (ThermalMetrics.IsThermal(metric)) return value > 0 ? Strings.SettingsOn : Strings.SettingsOff;
         return metric switch
         {
+            CaptureMetric.PrimaryDiskLatency or CaptureMetric.SecondaryDiskLatency => Latency(value),
             CaptureMetric.Network or CaptureMetric.ApplicationNetwork or CaptureMetric.ServiceNetwork => RateText.Format(value * 1_000_000),
             CaptureMetric.ApplicationMemory or CaptureMetric.ServiceMemory => UsageText.Bytes(value * 1024 * 1024),
             CaptureMetric.Process or CaptureMetric.ApplicationCpu or CaptureMetric.ServiceCpu => Strings.Format(Strings.AutoCapturePercentOfCoreValue, value),
@@ -271,7 +281,8 @@ internal static class CaptureReportText
         var sort = metric switch
         {
             CaptureMetric.Memory or CaptureMetric.ApplicationMemory or CaptureMetric.ServiceMemory => ProcessSort.Memory, CaptureMetric.Gpu => ProcessSort.Gpu,
-            CaptureMetric.PrimaryDisk or CaptureMetric.SecondaryDisk or CaptureMetric.Network or CaptureMetric.ApplicationNetwork or CaptureMetric.ServiceNetwork => ProcessSort.Io,
+            CaptureMetric.PrimaryDisk or CaptureMetric.SecondaryDisk or CaptureMetric.PrimaryDiskLatency or CaptureMetric.SecondaryDiskLatency or
+                CaptureMetric.Network or CaptureMetric.ApplicationNetwork or CaptureMetric.ServiceNetwork => ProcessSort.Io,
             _ => ProcessSort.Cpu
         };
         var rankedProcesses = ProcessRanking.Rank(window, sort: sort, grouped: grouped).Processes;

@@ -1,5 +1,11 @@
 # WinMon performance history
 
+## Multiple scoped rules and disk latency (November 26, 2026)
+
+A Release console fixture compared the prior trend build with the scoped-rule and latency build. It used 850 named processes, two warm-up passes and seven measured passes of 600 observations. One application CPU rule took 52.6–54.8 µs before and 48.1–49.2 µs after. Eight evaluation rows took 101.5–129.6 µs before and 114.7–120.2 µs after. The earlier engine could evaluate those rows but shared their rule state. The new engine tracks each independently. Allocations with eight rules were 1,664 to 1,728 bytes per sample.
+
+Aggregating two volume response measurements took 3.24–3.45 µs per sample, compared with 2.66–3.35 µs before those fields were archived. Allocation rose from 1,009 to 1,075 bytes per sample. These measurements exclude WPF rendering and native collection and ran alongside verification. The harness and raw results are in `artifacts/verify/scoped-latency-performance/`.
+
 ## Peak evidence in Longer trends (November 26, 2026)
 
 A Release console fixture compared the prior MonCore archive with schema 3 in baseline, candidate, candidate, baseline order. After two warm-up passes, seven batches of 10,000 synthetic resource frames measured medians of 1.70–3.21 µs per sample before and 1.60–1.90 µs after. Median allocation increased from 1,153.6 to 1,156.0 bytes per sample. Concurrent builds and the spread limit timing conclusions.

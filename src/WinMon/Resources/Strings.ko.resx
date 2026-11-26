@@ -2215,4 +2215,9 @@ Q 종료. Ctrl+C 취소. 실행 파일과 서비스 고정은 다음 실행에�
   <data name="FlightRecorderTrendPeak" xml:space="preserve"><value>최고점 {0} ({1:T})</value></data>
   <data name="FlightRecorderTrendFindIncident" xml:space="preserve"><value>저장된 인시던트 찾기</value></data>
   <data name="FlightRecorderTrendIncidentMissing" xml:space="preserve"><value>최고점 샘플이 포함된 저장된 인시던트가 없습니다.</value></data>
+  <data name="CaptureScopedMetric" xml:space="preserve"><value>대상 규칙 유형</value></data>
+  <data name="CaptureAddScopedRule" xml:space="preserve"><value>대상 규칙 추가</value></data>
+  <data name="CaptureRemoveScopedRule" xml:space="preserve"><value>제거</value></data>
+  <data name="CaptureScopedRuleLimit" xml:space="preserve"><value>지표당 최대 {0}개 대상을 설정할 수 있습니다.</value></data>
+  <data name="CaptureDuplicateScopedTarget" xml:space="preserve"><value>이 지표에 해당 대상의 규칙이 이미 있습니다.</value></data>
 </root>

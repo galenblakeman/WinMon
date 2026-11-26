@@ -2215,4 +2215,9 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
   <data name="FlightRecorderTrendPeak" xml:space="preserve"><value>ピーク {0}（{1:T}）</value></data>
   <data name="FlightRecorderTrendFindIncident" xml:space="preserve"><value>保存済みインシデントを探す</value></data>
   <data name="FlightRecorderTrendIncidentMissing" xml:space="preserve"><value>ピークのサンプルを含む保存済みインシデントはありません。</value></data>
+  <data name="CaptureScopedMetric" xml:space="preserve"><value>対象ルールの種類</value></data>
+  <data name="CaptureAddScopedRule" xml:space="preserve"><value>対象ルールを追加</value></data>
+  <data name="CaptureRemoveScopedRule" xml:space="preserve"><value>削除</value></data>
+  <data name="CaptureScopedRuleLimit" xml:space="preserve"><value>指標ごとに最大 {0} 件の対象を設定できます。</value></data>
+  <data name="CaptureDuplicateScopedTarget" xml:space="preserve"><value>この指標には同じ対象のルールがすでにあります。</value></data>
 </root>

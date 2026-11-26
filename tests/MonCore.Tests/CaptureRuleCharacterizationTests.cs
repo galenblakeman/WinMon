@@ -306,14 +306,24 @@ public sealed class CaptureRuleCharacterizationTests
     }
 
     [Test]
-    public void Observe_DuplicateMetricSettingsShareTheExistingRunInRuleOrder()
+    public void Observe_ScopedTargetsKeepSeparateRunsAndCooldownsForTheSameMetric()
     {
         var a = new CaptureRuleSetting(CaptureMetric.ApplicationCpu, true, 10, 2) { Target = "a" };
         var b = a with { Target = "b" };
-        var sample = Frame(1, Process() with { Name = "a" }, Process(2, 6) with { Name = "b" });
-        var result = new CaptureRules([a, b], TimeSpan.Zero, 4).Observe(sample).Single();
-        Assert.That(result.Rule, Is.EqualTo(b));
-        Assert.That(result.Run, Is.EqualTo(new[] { 20d, 24d }));
+        var engine = new CaptureRules([a, b], TimeSpan.FromMinutes(1), 4);
+        var processA = Process() with { Name = "a" };
+        var processB = Process(2, 6) with { Name = "b" };
+        Assert.That(engine.Observe(Frame(1, processA, processB)), Is.Empty);
+        var resultA = engine.Observe(Frame(2, processA)).Single();
+        Assert.That(engine.Observe(Frame(3, processA, processB)), Is.Empty);
+        var resultB = engine.Observe(Frame(4, processA, processB)).Single();
+        Assert.Multiple(() =>
+        {
+            Assert.That(resultA.Rule, Is.EqualTo(a));
+            Assert.That(resultA.Run, Is.EqualTo(new[] { 20d, 20d }));
+            Assert.That(resultB.Rule, Is.EqualTo(b));
+            Assert.That(resultB.Run, Is.EqualTo(new[] { 24d, 24d }));
+        });
     }
 
     [Test]

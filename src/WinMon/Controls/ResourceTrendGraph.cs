@@ -178,7 +178,7 @@ internal sealed class ResourceTrendGraph : FrameworkElement
 
     private Rect PlotBounds()
     {
-        var rail = ResourceTrendArchive.IsTemperature(_metric) ? 64 : 34;
+        var rail = ResourceTrendArchive.IsDiskLatency(_metric) ? 72 : ResourceTrendArchive.IsTemperature(_metric) ? 64 : 34;
         return new Rect(rail, 8, Math.Max(0, ActualWidth - rail - 8), Math.Max(0, ActualHeight - 30));
     }
 
@@ -279,6 +279,7 @@ internal sealed class ResourceTrendGraph : FrameworkElement
             ? value == 0 ? Strings.SettingsOff : value == 1 ? Strings.SettingsOn : "" : _metric switch
     {
         ResourceTrendMetric.MemoryBytes => TableMetricText.Memory((ulong)value),
+        ResourceTrendMetric.PrimaryDiskLatency or ResourceTrendMetric.SecondaryDiskLatency => CaptureReportText.Latency(value),
         ResourceTrendMetric.Receive or ResourceTrendMetric.Send or ResourceTrendMetric.PrimaryDiskRead or
             ResourceTrendMetric.PrimaryDiskWrite or ResourceTrendMetric.SecondaryDiskRead or ResourceTrendMetric.SecondaryDiskWrite => TableMetricText.IoRate(value),
         _ => value.ToString("F0", System.Globalization.CultureInfo.CurrentCulture) + "%"

@@ -68,7 +68,7 @@ public static class IncidentTimeline
     private static double? ProcessValue(ProcessUsage process, CaptureMetric metric) => metric switch
     {
         CaptureMetric.Memory => process.WorkingSetBytes,
-        CaptureMetric.PrimaryDisk or CaptureMetric.SecondaryDisk => process.IoBytesPerSecond,
+        CaptureMetric.PrimaryDisk or CaptureMetric.SecondaryDisk or CaptureMetric.PrimaryDiskLatency or CaptureMetric.SecondaryDiskLatency => process.IoBytesPerSecond,
         CaptureMetric.Gpu => process.GpuPercent,
         _ => process.ObservedCpuPercent
     };
@@ -139,7 +139,7 @@ public static class IncidentTimeline
         : sample.Processes.OrderByDescending(process => metric switch
         {
             CaptureMetric.Memory => process.WorkingSetBytes,
-            CaptureMetric.PrimaryDisk or CaptureMetric.SecondaryDisk => process.IoBytesPerSecond,
+            CaptureMetric.PrimaryDisk or CaptureMetric.SecondaryDisk or CaptureMetric.PrimaryDiskLatency or CaptureMetric.SecondaryDiskLatency => process.IoBytesPerSecond,
             CaptureMetric.Gpu => process.GpuPercent,
             _ => process.ObservedCpuPercent
         }).ThenBy(process => process.ProcessId).ToArray();

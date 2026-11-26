@@ -2252,4 +2252,9 @@ Restoring throttling also failed: {1}</value></data>
   <data name="FlightRecorderTrendPeak" xml:space="preserve"><value>Peak {0} at {1:T}</value></data>
   <data name="FlightRecorderTrendFindIncident" xml:space="preserve"><value>Find saved incident</value></data>
   <data name="FlightRecorderTrendIncidentMissing" xml:space="preserve"><value>No saved incident contains the peak sample.</value></data>
+  <data name="CaptureScopedMetric" xml:space="preserve"><value>Scoped rule type</value></data>
+  <data name="CaptureAddScopedRule" xml:space="preserve"><value>Add scoped rule</value></data>
+  <data name="CaptureRemoveScopedRule" xml:space="preserve"><value>Remove</value></data>
+  <data name="CaptureScopedRuleLimit" xml:space="preserve"><value>Up to {0} targets per metric.</value></data>
+  <data name="CaptureDuplicateScopedTarget" xml:space="preserve"><value>This metric already has a rule for that target.</value></data>
 </root>

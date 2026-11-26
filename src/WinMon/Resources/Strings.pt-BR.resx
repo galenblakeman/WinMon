@@ -2215,4 +2215,9 @@ A restauração da limitação também falhou: {1}</value></data>
   <data name="FlightRecorderTrendPeak" xml:space="preserve"><value>Pico de {0} às {1:T}</value></data>
   <data name="FlightRecorderTrendFindIncident" xml:space="preserve"><value>Encontrar incidente salvo</value></data>
   <data name="FlightRecorderTrendIncidentMissing" xml:space="preserve"><value>Nenhum incidente salvo contém a amostra do pico.</value></data>
+  <data name="CaptureScopedMetric" xml:space="preserve"><value>Tipo de regra com alvo</value></data>
+  <data name="CaptureAddScopedRule" xml:space="preserve"><value>Adicionar regra com alvo</value></data>
+  <data name="CaptureRemoveScopedRule" xml:space="preserve"><value>Remover</value></data>
+  <data name="CaptureScopedRuleLimit" xml:space="preserve"><value>Até {0} alvos por métrica.</value></data>
+  <data name="CaptureDuplicateScopedTarget" xml:space="preserve"><value>Já existe uma regra para esse alvo e essa métrica.</value></data>
 </root>

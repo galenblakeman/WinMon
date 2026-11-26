@@ -176,7 +176,7 @@ public sealed class ResourceTrendIngestionTests
             var limit = metric is ResourceTrendMetric.Cpu or ResourceTrendMetric.PrimaryDiskActive or ResourceTrendMetric.SecondaryDiskActive or ResourceTrendMetric.Gpu ? 100d : 1e20;
             yield return new TestCaseData(metric, 0d, true);
             yield return new TestCaseData(metric, limit, true);
-            yield return new TestCaseData(metric, Math.BitIncrement(limit), false);
+            yield return new TestCaseData(metric, ResourceTrendArchive.IsDiskLatency(metric) ? limit * 1.01 : Math.BitIncrement(limit), false);
             yield return new TestCaseData(metric, -1d, false);
             yield return new TestCaseData(metric, double.NaN, false);
             yield return new TestCaseData(metric, double.PositiveInfinity, false);
@@ -195,6 +195,8 @@ public sealed class ResourceTrendIngestionTests
             ResourceTrendMetric.SecondaryDiskActive => resources with { SecondaryDiskActivePercent = reading },
             ResourceTrendMetric.SecondaryDiskRead => resources with { SecondaryDiskReadBytesPerSecond = reading },
             ResourceTrendMetric.SecondaryDiskWrite => resources with { SecondaryDiskWriteBytesPerSecond = reading },
+            ResourceTrendMetric.PrimaryDiskLatency => resources with { DiskResponseSeconds = reading / 1000 },
+            ResourceTrendMetric.SecondaryDiskLatency => resources with { SecondaryDiskResponseSeconds = reading / 1000 },
             ResourceTrendMetric.Receive => resources with { ReceiveBytesPerSecond = reading },
             ResourceTrendMetric.Send => resources with { SendBytesPerSecond = reading },
             ResourceTrendMetric.Gpu => resources with { GpuPercent = reading },

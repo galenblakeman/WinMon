@@ -1,5 +1,7 @@
 # WinMon design assets
 
+- [Scoped rules and disk response time](SCOPED-RULE-TARGETS-AND-DISK-LATENCY.md) adds independent targets and reports sustained volume latency.
+
 - [Peaks in Longer trends](LONGER-TREND-PEAKS.md) preserves brief resource spikes and opens matching process evidence.
 
 - [Automatic incident saving](AUTOMATIC-INCIDENTS.md) keeps a reopenable History recording beside each automatic capture report.

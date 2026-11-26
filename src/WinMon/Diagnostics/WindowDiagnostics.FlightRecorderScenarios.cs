@@ -218,7 +218,9 @@ internal sealed partial class WindowDiagnostics
                                 0, 32d * 1_073_741_824, "", ResourceTrendBreak.None),
                             [ResourceTrendMetric.MemoryPercent] = new((25 + index / 201.6) * 60, 60, 0, 100, "", ResourceTrendBreak.None),
                             [ResourceTrendMetric.Receive] = new(index * 100_000d, 60, index * 1_500, index * 1_800, "Ethernet", ResourceTrendBreak.None),
-                            [ResourceTrendMetric.Send] = new(index * 50_000d, 60, index * 700, index * 900, "Ethernet", ResourceTrendBreak.None)
+                            [ResourceTrendMetric.Send] = new(index * 50_000d, 60, index * 700, index * 900, "Ethernet", ResourceTrendBreak.None),
+                            [ResourceTrendMetric.PrimaryDiskLatency] = new(180, 60, 1, index % 721 == 0 ? 45 : 6, "C:", ResourceTrendBreak.None)
+                                { DeviceLabel = "C:", PeakUtcTicks = minute.AddSeconds(9).UtcTicks }
                         });
                 }).ToArray();
                 var trend = new ResourceTrendArchiveState(3, trendEnd, trendBuckets);
@@ -239,6 +241,12 @@ internal sealed partial class WindowDiagnostics
                     await CaptureServiceWindowAsync(recorder,
                         Path.Combine(output, $"flight-recorder-trends-{(metric == 1 ? "memory" : "network")}-{theme.ToLowerInvariant()}-{width:0}.png"), cancellationToken);
                 }
+                recorder.TrendMetric.SelectedItem = CaptureReportText.MetricName(CaptureMetric.PrimaryDiskLatency, new ResourceSample());
+                recorder.UpdateLayout();
+                if (!recorder.TrendSelection.Text.Contains(" ms", StringComparison.Ordinal))
+                    throw new InvalidOperationException("Disk response trend must show milliseconds.");
+                await CaptureServiceWindowAsync(recorder,
+                    Path.Combine(output, $"flight-recorder-trends-disk-latency-{theme.ToLowerInvariant()}-{width:0}.png"), cancellationToken);
                 recorder.TrendMetric.SelectedIndex = 0;
                 recorder.HistoryMode.SelectedIndex = 0;
             }

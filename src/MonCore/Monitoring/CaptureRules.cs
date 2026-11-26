@@ -15,12 +15,13 @@ public enum CaptureMetric
     Process,
     ApplicationCpu, ApplicationMemory, ApplicationNetwork,
     ServiceCpu, ServiceMemory, ServiceNetwork,
-    CpuTemperature, GpuTemperature, PrimaryDiskTemperature, SecondaryDiskTemperature, CpuPerformanceLimited, GpuThermalLimited
+    CpuTemperature, GpuTemperature, PrimaryDiskTemperature, SecondaryDiskTemperature, CpuPerformanceLimited, GpuThermalLimited,
+    PrimaryDiskLatency, SecondaryDiskLatency
 }
 
 /// <summary>One automatic capture rule as the user set it.</summary>
 /// <param name="Threshold">
-/// Percent for machine resources and disk active time, Mbps for network, and percent of one logical processor for
+/// Percent for machine resources and disk active time, milliseconds for disk latency, Mbps for network, and percent of one logical processor for
 /// <see cref="CaptureMetric.Process"/>.
 /// </param>
 /// <param name="Seconds">Consecutive valid samples the value must stay above the threshold.</param>
@@ -50,7 +51,8 @@ public sealed record CaptureRuleSetting(CaptureMetric Metric, bool Enabled, doub
         new(CaptureMetric.ServiceMemory, false, 1024, 30), new(CaptureMetric.ServiceNetwork, false, 50, 10),
         new(CaptureMetric.CpuTemperature, false, 85, 30), new(CaptureMetric.GpuTemperature, false, 85, 30),
         new(CaptureMetric.PrimaryDiskTemperature, false, 60, 30), new(CaptureMetric.SecondaryDiskTemperature, false, 60, 30),
-        new(CaptureMetric.CpuPerformanceLimited, false, 1, 10), new(CaptureMetric.GpuThermalLimited, false, 1, 10)
+        new(CaptureMetric.CpuPerformanceLimited, false, 1, 10), new(CaptureMetric.GpuThermalLimited, false, 1, 10),
+        new(CaptureMetric.PrimaryDiskLatency, false, 25, 10), new(CaptureMetric.SecondaryDiskLatency, false, 25, 10)
     ];
 
     /// <summary>The highest threshold a rule accepts; percent rules stop at 100.</summary>
@@ -63,6 +65,7 @@ public sealed record CaptureRuleSetting(CaptureMetric Metric, bool Enabled, doub
             CaptureMetric.Network or CaptureMetric.ApplicationNetwork or CaptureMetric.ServiceNetwork => 100_000,
             CaptureMetric.Process or CaptureMetric.ApplicationCpu or CaptureMetric.ServiceCpu => 25_600,
             CaptureMetric.ApplicationMemory or CaptureMetric.ServiceMemory => 1_048_576,
+            CaptureMetric.PrimaryDiskLatency or CaptureMetric.SecondaryDiskLatency => 60_000,
             _ => 100
         };
     }
@@ -105,10 +108,8 @@ public sealed record CaptureFired(
 /// </remarks>
 public sealed class CaptureRules(IReadOnlyList<CaptureRuleSetting> rules, TimeSpan cooldown, int logicalProcessors)
 {
-    private readonly CaptureRuleSetting[] _rules = [.. rules.Where(rule => rule.Enabled).Select(r => r.Normalized())];
-    private readonly Dictionary<CaptureMetric, Run> _runs = [];
+    private readonly RuleState[] _rules = [.. rules.Where(rule => rule.Enabled).Select(rule => new RuleState(rule.Normalized()))];
     private readonly Dictionary<ProcessLifetimeIdentity, Run> _processRuns = [];
-    private readonly Dictionary<CaptureMetric, double> _lastFired = [];
     private readonly List<ProcessLifetimeIdentity> _absent = [];
 
     /// <summary>Feed one live, uncompacted sample; returns the rules it completed.</summary>
@@ -118,26 +119,40 @@ public sealed class CaptureRules(IReadOnlyList<CaptureRuleSetting> rules, TimeSp
         List<CaptureFired>? fired = null;
         var moment = ProcessRanking.Moment(full);
         var valid = full is { IsGap: false, TotalCpuPercent: not null };
-        foreach (var rule in _rules)
+        foreach (var state in _rules)
         {
+            var rule = state.Setting;
             if (rule.Metric == CaptureMetric.Process)
             {
-                ObserveProcesses(rule, full, valid || (!full.IsGap && full.IndependentProcessReadings), moment,
+                ObserveProcesses(state, full, valid || (!full.IsGap && full.IndependentProcessReadings), moment,
                     ref fired);
                 continue;
             }
 
-            if (!_runs.TryGetValue(rule.Metric, out var run)) _runs[rule.Metric] = run = new Run();
-            if (ThermalMetrics.IsThermal(rule.Metric))
+            var run = state.Run;
+            var thermal = ThermalMetrics.IsThermal(rule.Metric);
+            var latency = IsDiskLatency(rule.Metric);
+            if (thermal || latency)
             {
-                var identity = ThermalMetrics.Identity(rule.Metric, full.Resources);
-                if (run.Identity != identity || (run.Seen > 0 && (moment <= run.Seen || moment - run.Seen > 2.5)))
+                var identity = rule.Metric switch
+                {
+                    CaptureMetric.PrimaryDiskLatency => full.Resources.DiskName,
+                    CaptureMetric.SecondaryDiskLatency => full.Resources.SecondaryDiskName,
+                    _ => ThermalMetrics.Identity(rule.Metric, full.Resources)
+                };
+                var changed = run.Identity != identity && (!latency || identity.Length > 0);
+                if (changed || (run.Seen > 0 && (moment <= run.Seen || moment - run.Seen > 2.5)))
                 { run.Break(); run.Below = 0; }
+                if (changed && latency)
+                {
+                    run.Armed = true;
+                    state.LastFired = null;
+                }
                 run.Seen = moment;
-                run.Identity = identity;
+                if (!latency || identity.Length > 0) run.Identity = identity;
             }
             var value = rule.IsTargeted ? ScopedValue(rule, full, services, network) : Value(rule.Metric, full);
-            if (Step(rule, run, (rule.IsTargeted || ThermalMetrics.IsThermal(rule.Metric) ? !full.IsGap : valid) ? value : null, full, moment) is { } result)
+            if (Step(state, run, (rule.IsTargeted || thermal || latency ? !full.IsGap : valid) ? value : null, full, moment) is { } result)
                 (fired ??= []).Add(result);
         }
 
@@ -167,7 +182,8 @@ public sealed class CaptureRules(IReadOnlyList<CaptureRuleSetting> rules, TimeSp
             return group.Processes;
         }
 
-        return full.Processes.Where(p => Path.IsPathFullyQualified(rule.Target)
+        var qualified = Path.IsPathFullyQualified(rule.Target);
+        return full.Processes.Where(p => qualified
             ? string.Equals(p.ImagePath, rule.Target, StringComparison.OrdinalIgnoreCase)
             : string.Equals(p.Name, rule.Target, StringComparison.OrdinalIgnoreCase) ||
               MemoryExtensions.Equals(Path.GetFileName(p.ImagePath.AsSpan()), rule.Target.AsSpan(), StringComparison.OrdinalIgnoreCase) ||
@@ -188,13 +204,13 @@ public sealed class CaptureRules(IReadOnlyList<CaptureRuleSetting> rules, TimeSp
         return Math.Max(receive, send) * 8 / 1_000_000;
     }
 
-    private void ObserveProcesses(CaptureRuleSetting rule, MonitorSample full, bool valid, double moment,
+    private void ObserveProcesses(RuleState state, MonitorSample full, bool valid, double moment,
         ref List<CaptureFired>? fired)
     {
         if (!valid)
         {
             // A gap lists no processes; it breaks every run but is not evidence that any process exited.
-            foreach (var run in _processRuns.Values) Step(rule, run, null, full, moment);
+            foreach (var run in _processRuns.Values) Step(state, run, null, full, moment);
             return;
         }
 
@@ -203,7 +219,7 @@ public sealed class CaptureRules(IReadOnlyList<CaptureRuleSetting> rules, TimeSp
             var key = process.Identity;
             if (!_processRuns.TryGetValue(key, out var run)) _processRuns[key] = run = new Run();
             run.Seen = moment;
-            if (Step(rule, run, process.ObservedCpuPercent * logicalProcessors, full, moment) is { } result)
+            if (Step(state, run, process.ObservedCpuPercent * logicalProcessors, full, moment) is { } result)
                 (fired ??= []).Add(result with { Process = process });
         }
 
@@ -217,8 +233,9 @@ public sealed class CaptureRules(IReadOnlyList<CaptureRuleSetting> rules, TimeSp
         _absent.Clear();
     }
 
-    private CaptureFired? Step(CaptureRuleSetting rule, Run run, double? value, MonitorSample sample, double moment)
+    private CaptureFired? Step(RuleState state, Run run, double? value, MonitorSample sample, double moment)
     {
+        var rule = state.Setting;
         if (value is not { } current)
         {
             run.Break();
@@ -240,10 +257,10 @@ public sealed class CaptureRules(IReadOnlyList<CaptureRuleSetting> rules, TimeSp
             }
 
             if (run.Values.Count < rule.Seconds ||
-                (_lastFired.TryGetValue(rule.Metric, out var last) && moment - last < cooldown.TotalSeconds))
+                (state.LastFired is { } last && moment - last < cooldown.TotalSeconds))
                 return null;
             var result = new CaptureFired(rule, sample, run.Peak, run.PeakValue, [.. run.Values]);
-            _lastFired[rule.Metric] = moment;
+            state.LastFired = moment;
             run.Armed = false;
             run.Break();
             return result;
@@ -273,12 +290,26 @@ public sealed class CaptureRules(IReadOnlyList<CaptureRuleSetting> rules, TimeSp
             CaptureMetric.Memory => r.MemoryPercent,
             CaptureMetric.PrimaryDisk => r.DiskActivePercent,
             CaptureMetric.SecondaryDisk => r.SecondaryDiskName.Length > 0 ? r.SecondaryDiskActivePercent : null,
+            CaptureMetric.PrimaryDiskLatency => sample.IsGap ? null : DiskMilliseconds(r.DiskName, r.DiskResponseSeconds),
+            CaptureMetric.SecondaryDiskLatency => sample.IsGap ? null : DiskMilliseconds(r.SecondaryDiskName, r.SecondaryDiskResponseSeconds),
             CaptureMetric.Network => r is { ReceiveBytesPerSecond: { } rx, SendBytesPerSecond: { } tx }
                 ? Math.Max(rx, tx) * 8 / 1_000_000
                 : null,
             CaptureMetric.Gpu => r.GpuPercent,
             _ => null
         };
+    }
+
+    public static bool IsDiskLatency(CaptureMetric metric) => metric is CaptureMetric.PrimaryDiskLatency or CaptureMetric.SecondaryDiskLatency;
+
+    private static double? DiskMilliseconds(string volume, double? seconds) =>
+        volume.Length > 0 && seconds * 1000 is { } ms && double.IsFinite(ms) && ms >= 0 ? ms : null;
+
+    private sealed class RuleState(CaptureRuleSetting setting)
+    {
+        public CaptureRuleSetting Setting { get; } = setting;
+        public Run Run { get; } = new();
+        public double? LastFired { get; set; }
     }
 
     private sealed class Run

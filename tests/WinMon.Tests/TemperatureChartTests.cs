@@ -126,15 +126,15 @@ public sealed class TemperatureChartTests
             var trendMetric = (ComboBox)window.FindName("TrendMetric");
             metric.SelectedIndex = trendMetric.SelectedIndex = 6;
             window.ConfigureTemperatureCharts(false);
-            Assert.That(metric.Items.Count, Is.EqualTo(8));
-            Assert.That(trendMetric.Items.Count, Is.EqualTo(8));
+            Assert.That(metric.Items.Count, Is.EqualTo(10));
+            Assert.That(trendMetric.Items.Count, Is.EqualTo(10));
             Assert.That(metric.SelectedIndex, Is.EqualTo(0));
             Assert.That(trendMetric.SelectedIndex, Is.EqualTo(0));
             Assert.That(((CpuGraph)window.FindName("Graph")).ChartType, Is.EqualTo(ResourceChartType.Overlay));
             Assert.That(window.Recording().Observations[1].Sample.Resources.CpuTemperature!.Celsius, Is.EqualTo(90));
             window.ConfigureTemperatureCharts(true);
-            Assert.That(metric.Items.Count, Is.EqualTo(12));
-            Assert.That(trendMetric.Items.Count, Is.EqualTo(12));
+            Assert.That(metric.Items.Count, Is.EqualTo(14));
+            Assert.That(trendMetric.Items.Count, Is.EqualTo(14));
         }
         finally { window.Close(); }
     }

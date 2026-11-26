@@ -277,7 +277,8 @@
             <WrapPanel Margin="0,0,0,8">
                 <ComboBox x:Name="TrendRange" Width="160" Margin="0,0,8,0" SelectionChanged="OnTrendRangeChanged"
                           AutomationProperties.Name="{Binding [FlightRecorderTrendRange], Source={x:Static r:Strings.Text}}"/>
-                <ComboBox x:Name="TrendMetric" Width="180" SelectionChanged="OnTrendMetricChanged"
+                <ComboBox x:Name="TrendMetric" Width="225" SelectionChanged="OnTrendMetricChanged"
+                          ToolTip="{Binding SelectedItem, RelativeSource={RelativeSource Self}}"
                           AutomationProperties.Name="{Binding [FlightRecorderResource], Source={x:Static r:Strings.Text}}"/>
             </WrapPanel>
             <TextBlock x:Name="TrendCoverage" Grid.Row="1" TextWrapping="Wrap" Foreground="{DynamicResource Muted}" Margin="0,0,0,6"

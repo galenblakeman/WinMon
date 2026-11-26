@@ -181,7 +181,13 @@ internal sealed partial class WindowDiagnostics
         var networkChange = new TaskCompletionSource<NetworkMonitoringChangeResult>(
             TaskCreationOptions.RunContinuationsAsynchronously);
         Task? networkSave = null;
-        var settings = new SettingsWindow(fixture.Preferences, captureFolder: reports,
+        var scoped = fixture.Preferences.AutoCapture with
+        {
+            Rules = [.. fixture.Preferences.AutoCapture.Rules,
+                new(CaptureMetric.ApplicationCpu, true, 70, 10) { Target = "renderer.exe" },
+                new(CaptureMetric.ApplicationCpu, true, 95, 30) { Target = "worker.exe" }]
+        };
+        var settings = new SettingsWindow(fixture.Preferences with { AutoCapture = scoped.Normalized() }, captureFolder: reports,
             checkForUpdates: () => Task.FromResult(Strings.UpToDate),
             changeNetworkMonitoring: (_, _) => networkChange.Task)
         {

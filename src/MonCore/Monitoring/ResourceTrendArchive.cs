@@ -21,7 +21,8 @@ public enum ResourceTrendMetric
     Receive,
     Send,
     Gpu,
-    CpuTemperature, GpuTemperature, PrimaryDiskTemperature, SecondaryDiskTemperature, CpuPerformanceLimited, GpuThermalLimited
+    CpuTemperature, GpuTemperature, PrimaryDiskTemperature, SecondaryDiskTemperature, CpuPerformanceLimited, GpuThermalLimited,
+    PrimaryDiskLatency, SecondaryDiskLatency
 }
 
 /// <summary>Why a minute cannot be connected to the preceding resource trend point.</summary>
@@ -257,6 +258,10 @@ public sealed class ResourceTrendArchive
                      resources.DiskName, resources.DiskActivePercent, resources.DiskReadBytesPerSecond, resources.DiskWriteBytesPerSecond)) yield return item;
         foreach (var item in Disk(ResourceTrendMetric.SecondaryDiskActive, ResourceTrendMetric.SecondaryDiskRead, ResourceTrendMetric.SecondaryDiskWrite,
                      resources.SecondaryDiskName, resources.SecondaryDiskActivePercent, resources.SecondaryDiskReadBytesPerSecond, resources.SecondaryDiskWriteBytesPerSecond)) yield return item;
+        if (CaptureRules.Value(CaptureMetric.PrimaryDiskLatency, sample) is { } primaryLatency)
+            yield return (ResourceTrendMetric.PrimaryDiskLatency, primaryLatency, resources.DiskName, resources.DiskName);
+        if (CaptureRules.Value(CaptureMetric.SecondaryDiskLatency, sample) is { } secondaryLatency)
+            yield return (ResourceTrendMetric.SecondaryDiskLatency, secondaryLatency, resources.SecondaryDiskName, resources.SecondaryDiskName);
         yield return (ResourceTrendMetric.Receive, resources.ReceiveBytesPerSecond, resources.NetworkId, resources.NetworkName);
         yield return (ResourceTrendMetric.Send, resources.SendBytesPerSecond, resources.NetworkId, resources.NetworkName);
         yield return (ResourceTrendMetric.Gpu, resources.GpuPercent, resources.GpuId, resources.GpuName);
@@ -290,8 +295,9 @@ public sealed class ResourceTrendArchive
     };
     public static bool IsThermal(ResourceTrendMetric metric) => metric >= ResourceTrendMetric.CpuTemperature && metric <= ResourceTrendMetric.GpuThermalLimited;
     public static bool IsTemperature(ResourceTrendMetric metric) => metric >= ResourceTrendMetric.CpuTemperature && metric <= ResourceTrendMetric.SecondaryDiskTemperature;
+    public static bool IsDiskLatency(ResourceTrendMetric metric) => metric is ResourceTrendMetric.PrimaryDiskLatency or ResourceTrendMetric.SecondaryDiskLatency;
 
-    private static bool NeedsDevice(ResourceTrendMetric metric) => IsTemperature(metric) || metric == ResourceTrendMetric.GpuThermalLimited || metric is ResourceTrendMetric.PrimaryDiskActive or ResourceTrendMetric.PrimaryDiskRead or ResourceTrendMetric.PrimaryDiskWrite or
+    private static bool NeedsDevice(ResourceTrendMetric metric) => IsTemperature(metric) || IsDiskLatency(metric) || metric == ResourceTrendMetric.GpuThermalLimited || metric is ResourceTrendMetric.PrimaryDiskActive or ResourceTrendMetric.PrimaryDiskRead or ResourceTrendMetric.PrimaryDiskWrite or
         ResourceTrendMetric.SecondaryDiskActive or ResourceTrendMetric.SecondaryDiskRead or ResourceTrendMetric.SecondaryDiskWrite or ResourceTrendMetric.Receive or ResourceTrendMetric.Send or ResourceTrendMetric.Gpu;
 
     private int InternDevice(string id, string label)

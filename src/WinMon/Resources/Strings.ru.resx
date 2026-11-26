@@ -2215,4 +2215,9 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
   <data name="FlightRecorderTrendPeak" xml:space="preserve"><value>Пик {0} в {1:T}</value></data>
   <data name="FlightRecorderTrendFindIncident" xml:space="preserve"><value>Найти сохранённый инцидент</value></data>
   <data name="FlightRecorderTrendIncidentMissing" xml:space="preserve"><value>Ни один сохранённый инцидент не содержит замер пика.</value></data>
+  <data name="CaptureScopedMetric" xml:space="preserve"><value>Тип правила для цели</value></data>
+  <data name="CaptureAddScopedRule" xml:space="preserve"><value>Добавить правило для цели</value></data>
+  <data name="CaptureRemoveScopedRule" xml:space="preserve"><value>Удалить</value></data>
+  <data name="CaptureScopedRuleLimit" xml:space="preserve"><value>До {0} целей на показатель.</value></data>
+  <data name="CaptureDuplicateScopedTarget" xml:space="preserve"><value>Для этой цели и показателя уже есть правило.</value></data>
 </root>

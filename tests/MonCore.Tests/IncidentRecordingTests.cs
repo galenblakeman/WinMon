@@ -36,6 +36,24 @@ public sealed class IncidentRecordingTests
     }
 
     [Test]
+    public void SaveLoad_PreservesDiskLatencySelectionAndReadings()
+    {
+        var source = Recording();
+        var first = source.Observations[0];
+        source.Observations[0] = first with { Sample = first.Sample with { Resources = first.Sample.Resources with
+            { SecondaryDiskName = "D:", SecondaryDiskResponseSeconds = .035 } } };
+        source = source with { Metric = CaptureMetric.SecondaryDiskLatency, SelectedIndex = 0 };
+        source.Save(FilePath);
+        var loaded = IncidentRecording.Load(FilePath);
+        Assert.Multiple(() =>
+        {
+            Assert.That(loaded.Metric, Is.EqualTo(CaptureMetric.SecondaryDiskLatency));
+            Assert.That(CaptureRules.Value(loaded.Metric, loaded.Observations[loaded.SelectedIndex].Sample), Is.EqualTo(35));
+            Assert.That(IncidentTimeline.ProcessReadings(loaded.Observations[0].Sample, loaded.Metric).Single().Value, Is.EqualTo(5678));
+        });
+    }
+
+    [Test]
     public void SaveLoad_PreservesCpuSensorIdentityAndValue()
     {
         var source = Recording();

@@ -2215,4 +2215,9 @@ Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。<
   <data name="FlightRecorderTrendPeak" xml:space="preserve"><value>峰值 {0}（{1:T}）</value></data>
   <data name="FlightRecorderTrendFindIncident" xml:space="preserve"><value>查找已保存的事件</value></data>
   <data name="FlightRecorderTrendIncidentMissing" xml:space="preserve"><value>没有包含峰值样本的已保存事件。</value></data>
+  <data name="CaptureScopedMetric" xml:space="preserve"><value>定向规则类型</value></data>
+  <data name="CaptureAddScopedRule" xml:space="preserve"><value>添加定向规则</value></data>
+  <data name="CaptureRemoveScopedRule" xml:space="preserve"><value>移除</value></data>
+  <data name="CaptureScopedRuleLimit" xml:space="preserve"><value>每项指标最多可设 {0} 个目标。</value></data>
+  <data name="CaptureDuplicateScopedTarget" xml:space="preserve"><value>此指标已为该目标设置规则。</value></data>
 </root>

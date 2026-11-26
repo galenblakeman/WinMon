@@ -2227,4 +2227,9 @@ La restauration de la limitation a aussi échoué : {1}</value></data>
   <data name="FlightRecorderTrendPeak" xml:space="preserve"><value>Pic de {0} à {1:T}</value></data>
   <data name="FlightRecorderTrendFindIncident" xml:space="preserve"><value>Rechercher un incident enregistré</value></data>
   <data name="FlightRecorderTrendIncidentMissing" xml:space="preserve"><value>Aucun incident enregistré ne contient la mesure du pic.</value></data>
+  <data name="CaptureScopedMetric" xml:space="preserve"><value>Type de règle ciblée</value></data>
+  <data name="CaptureAddScopedRule" xml:space="preserve"><value>Ajouter une règle ciblée</value></data>
+  <data name="CaptureRemoveScopedRule" xml:space="preserve"><value>Supprimer</value></data>
+  <data name="CaptureScopedRuleLimit" xml:space="preserve"><value>Jusqu’à {0} cibles par mesure.</value></data>
+  <data name="CaptureDuplicateScopedTarget" xml:space="preserve"><value>Une règle existe déjà pour cette cible et cette mesure.</value></data>
 </root>

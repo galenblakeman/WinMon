@@ -2227,4 +2227,9 @@ Auch das Wiederherstellen der Drosselung ist fehlgeschlagen: {1}</value></data>
   <data name="FlightRecorderTrendPeak" xml:space="preserve"><value>Spitze {0} um {1:T}</value></data>
   <data name="FlightRecorderTrendFindIncident" xml:space="preserve"><value>Gespeicherten Vorfall suchen</value></data>
   <data name="FlightRecorderTrendIncidentMissing" xml:space="preserve"><value>Kein gespeicherter Vorfall enthält die Spitzenmessung.</value></data>
+  <data name="CaptureScopedMetric" xml:space="preserve"><value>Typ der Zielregel</value></data>
+  <data name="CaptureAddScopedRule" xml:space="preserve"><value>Zielregel hinzufügen</value></data>
+  <data name="CaptureRemoveScopedRule" xml:space="preserve"><value>Entfernen</value></data>
+  <data name="CaptureScopedRuleLimit" xml:space="preserve"><value>Bis zu {0} Ziele pro Messgröße.</value></data>
+  <data name="CaptureDuplicateScopedTarget" xml:space="preserve"><value>Für dieses Ziel gibt es bereits eine Regel für diese Messgröße.</value></data>
 </root>

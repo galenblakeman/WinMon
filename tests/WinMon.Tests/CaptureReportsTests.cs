@@ -158,6 +158,23 @@ public sealed class CaptureReportsTests
     }
 
     [Test]
+    public void LatencyReportShowsMillisecondsAndKeepsTheDiskAttributionDisclaimer()
+    {
+        var sample = Sample(1, 0, 20) with { Resources = new ResourceSample { DiskName = "C:", DiskResponseSeconds = .040 } };
+        var fired = new CaptureFired(new(CaptureMetric.PrimaryDiskLatency, true, 25, 1), sample, sample, 40, [40]);
+        var id = Guid.NewGuid();
+        var snapshot = CaptureReportText.Snapshot(fired, [sample], CaptureReportText.AppLimit, grouped: true);
+        var report = CaptureReportText.Report(fired, id, snapshot);
+        var path = CaptureReports.Write(_folder, sample.Timestamp, fired.Rule.Metric, report);
+        Assert.Multiple(() =>
+        {
+            Assert.That(report, Does.Contain(CaptureReportText.Latency(40)));
+            Assert.That(report, Does.Contain(Strings.AutoCaptureIoDisclaimer));
+            Assert.That(CaptureReports.Find(_folder), Is.EqualTo(new[] { path }));
+        });
+    }
+
+    [Test]
     public void Find_IgnoresUnicodeDigitsInCopyNumber()
     {
         var genuine = CaptureReports.Write(_folder, Fired, CaptureMetric.Cpu, Report());

@@ -2215,4 +2215,9 @@ Przywrócenie ograniczania również nie powiodło się: {1}</value></data>
   <data name="FlightRecorderTrendPeak" xml:space="preserve"><value>Szczyt {0} o {1:T}</value></data>
   <data name="FlightRecorderTrendFindIncident" xml:space="preserve"><value>Znajdź zapisany incydent</value></data>
   <data name="FlightRecorderTrendIncidentMissing" xml:space="preserve"><value>Żaden zapisany incydent nie zawiera próbki ze szczytu.</value></data>
+  <data name="CaptureScopedMetric" xml:space="preserve"><value>Typ reguły dla celu</value></data>
+  <data name="CaptureAddScopedRule" xml:space="preserve"><value>Dodaj regułę dla celu</value></data>
+  <data name="CaptureRemoveScopedRule" xml:space="preserve"><value>Usuń</value></data>
+  <data name="CaptureScopedRuleLimit" xml:space="preserve"><value>Maksymalnie {0} celów dla jednej miary.</value></data>
+  <data name="CaptureDuplicateScopedTarget" xml:space="preserve"><value>Reguła dla tego celu i tej miary już istnieje.</value></data>
 </root>

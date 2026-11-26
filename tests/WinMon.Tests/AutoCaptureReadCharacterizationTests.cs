@@ -14,6 +14,29 @@ public sealed class AutoCaptureReadCharacterizationTests
 {
     private const string DefaultFolder = @"C:\WinMon-test\Reports";
 
+    [Test]
+    public void ScopedRuleEditorAddsAndRemovesTargetsAndKeepsBothAfterNormalization()
+    {
+        var first = new CaptureRuleSetting(CaptureMetric.ApplicationCpu, true, 25, 5) { Target = "worker.exe" };
+        var section = new AutoCaptureSection(new AutoCapturePreferences { Rules = [first] }, DefaultFolder, "C:", null);
+        var add = section.Children.OfType<WrapPanel>().SelectMany(panel => panel.Children.OfType<Button>())
+            .Single(button => Equals(button.Content, Strings.CaptureAddScopedRule));
+        add.RaiseEvent(new System.Windows.RoutedEventArgs(Button.ClickEvent));
+        var target = Field(section, 4, 0);
+        target.Text = "WORKER.EXE";
+        AssertRejected(section, target, Strings.CaptureDuplicateScopedTarget);
+        target.Text = "render.exe";
+        Field(section, 3, 1).Text = "90";
+        Field(section, 3, 3).Text = "20";
+
+        var options = ReadValid(section).Normalized().Rules.Where(rule => rule.Metric == CaptureMetric.ApplicationCpu).ToArray();
+        Assert.That(options, Is.EqualTo(new[] { first, new CaptureRuleSetting(CaptureMetric.ApplicationCpu, true, 90, 20)
+            { Target = "render.exe" } }));
+        var remove = RuleTable(section).Children.OfType<Button>().Single(button => Grid.GetRow(button) == 4);
+        remove.RaiseEvent(new System.Windows.RoutedEventArgs(Button.ClickEvent));
+        Assert.That(ReadValid(section).Rules, Is.EqualTo(new[] { first }));
+    }
+
     [TestCase(CaptureMetric.CpuPerformanceLimited)]
     [TestCase(CaptureMetric.GpuThermalLimited)]
     public void LimitRulesHaveFixedActiveStateAndEditableDuration(CaptureMetric metric)
@@ -41,6 +64,7 @@ public sealed class AutoCaptureReadCharacterizationTests
                 CaptureMetric.ApplicationMemory or CaptureMetric.ServiceMemory => 1048576d,
                 CaptureMetric.CpuTemperature or CaptureMetric.GpuTemperature or CaptureMetric.PrimaryDiskTemperature or CaptureMetric.SecondaryDiskTemperature => 150d,
                 CaptureMetric.CpuPerformanceLimited or CaptureMetric.GpuThermalLimited => 1d,
+                CaptureMetric.PrimaryDiskLatency or CaptureMetric.SecondaryDiskLatency => 60000d,
                 _ => 100d
             };
             var minimum = network ? .0125 : 1;

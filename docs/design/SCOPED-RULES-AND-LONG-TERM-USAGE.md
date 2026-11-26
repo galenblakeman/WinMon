@@ -1,5 +1,7 @@
 # Scoped rules, CLI history and calendar Usage
 
+[Scoped rules and disk response time](SCOPED-RULE-TARGETS-AND-DISK-LATENCY.md) extends the original single-target rules described below.
+
 Implement feature gaps 5, 6 and 7 while preserving the existing collectors, recent-history limits and session totals.
 
 ## Scope

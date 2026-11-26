@@ -97,7 +97,7 @@ public sealed record IncidentRecording(int Version, long Frequency, IncidentObse
     private void ValidateHeader()
     {
         if (Version is < 1 or > CurrentVersion || Frequency is <= 0 or > 1_000_000_000_000 ||
-            (!Enum.IsDefined(Metric) || (Metric > CaptureMetric.Gpu && !ThermalMetrics.IsThermal(Metric))) ||
+            (!Enum.IsDefined(Metric) || (Metric > CaptureMetric.Gpu && !ThermalMetrics.IsThermal(Metric) && !CaptureRules.IsDiskLatency(Metric))) ||
             Observations is null || Observations.Length > 7200 ||
             SelectedIndex < -1 || SelectedIndex >= Observations.Length ||
             (Observations.Length > 0 && SelectedIndex < 0))

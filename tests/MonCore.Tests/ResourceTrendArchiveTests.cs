@@ -8,6 +8,32 @@ namespace MonCore.Tests;
 [TestFixture]
 public sealed class ResourceTrendArchiveTests
 {
+    [Test]
+    public void DiskResponseTrendsKeepPerVolumeAveragesAndPeaksInMilliseconds()
+    {
+        var archive = new ResourceTrendArchive();
+        var anchor = DateTimeOffset.UnixEpoch;
+        var resource = new ResourceSample { DiskName = "C:", DiskResponseSeconds = .002,
+            SecondaryDiskName = "D:", SecondaryDiskResponseSeconds = .020 };
+        archive.Add(Sample(1, 0, anchor.AddSeconds(1)) with { Resources = resource });
+        archive.Add(Sample(1, 0, anchor.AddSeconds(2)) with { Resources = resource with
+            { DiskResponseSeconds = .038, SecondaryDiskResponseSeconds = null } });
+        archive.Add(Sample(1, 0, anchor.AddSeconds(61)) with { Resources = resource with { DiskName = "E:" } });
+
+        var buckets = archive.Snapshot().Buckets;
+        var primary = buckets[0].Values[ResourceTrendMetric.PrimaryDiskLatency];
+        var secondary = buckets[0].Values[ResourceTrendMetric.SecondaryDiskLatency];
+        Assert.Multiple(() =>
+        {
+            Assert.That(primary.Average, Is.EqualTo(20));
+            Assert.That(primary.Maximum, Is.EqualTo(38));
+            Assert.That(secondary.Average, Is.EqualTo(20));
+            Assert.That(secondary.ObservedSeconds, Is.EqualTo(1));
+            Assert.That(buckets[1].Values[ResourceTrendMetric.PrimaryDiskLatency].DeviceLabel, Is.EqualTo("E:"));
+            Assert.That(buckets[1].Values[ResourceTrendMetric.PrimaryDiskLatency].Break, Is.EqualTo(ResourceTrendBreak.ResourceChanged));
+        });
+    }
+
     [TestCase(-0.0001)]
     [TestCase(0.0001)]
     public void Add_JitteredWallClock_KeepsElapsedTimeCoverage(double jitter)
