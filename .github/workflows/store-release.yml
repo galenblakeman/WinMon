@@ -45,6 +45,8 @@ jobs:
           if ($env:RELEASE_TAG -cne "v$($props.Project.PropertyGroup.Version)") { throw 'Published release tag must match Directory.Build.props.' }
       - name: Test submission safeguards without network access
         run: ./tools/Test-StoreSubmission.ps1
+      - name: Configure display for native window tests
+        run: ./.github/scripts/Initialize-TestDisplay.ps1
       - name: Test standard build
         run: |
           dotnet test tests/WinMon.Tests/WinMon.Tests.csproj -c Release -m:1 -p:UseSharedCompilation=false --artifacts-path artifacts/store-validation/standard

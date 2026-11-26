@@ -18,6 +18,7 @@ Technical notes for the current code. The [README](../README.md) gives the produ
 - The portable `MonCore` project and `MonCore.Tests` target plain `net10.0`; they can also build and run on macOS with the .NET 10 SDK. That macOS run is a separate verification step.
 - The .NET SDK pinned in [global.json](../global.json) (10.0.402, latest-patch roll-forward).
 - An interactive desktop session for the smoke modes and the benchmark, which open real windows.
+- GitHub Actions sets the Windows runner to 1920 × 1080 for integration and release validation so the native diagnostic windows fit on screen.
 
 ## Build and test
 

@@ -28,6 +28,8 @@ jobs:
           global-json-file: global.json
           # ArtifactSigning 0.1.20 also requires the .NET 8 runtime.
           dotnet-version: '8.0.x'
+      - name: Configure display for native window tests
+        run: ./.github/scripts/Initialize-TestDisplay.ps1
       - name: Install pinned Inno Setup compiler
         run: ./tools/Install-InnoSetup.ps1
       - name: Sign in to Azure using GitHub OIDC
