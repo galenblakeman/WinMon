@@ -2,6 +2,20 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## Network collector batch fairness and lifetime bounds (November 26, 2026)
+
+Compared the preserved pre-fix collector and corrected Release collector with the same compiled timing probe on .NET 10, with tiered compilation disabled. Four before/after pairs alternated launch order. Each process warmed up one completed-queue drain, then measured seven drains of 32,769 synthetic stop events for an untracked PID. Fixture construction, event enqueueing and disposal were outside the measured interval; the manual clock's read-list capacity was reserved beforehand. The queue and fake clock are the existing service-test fixtures, and the measured consumer is production `ConsumeAsync`.
+
+| Completed-queue drain | Before | After |
+| --- | ---: | ---: |
+| Median of four run medians | 1.176 ms | 1.171 ms |
+| Run median range | 1.151–1.300 ms | 1.160–1.190 ms |
+| Median managed allocation per drain | 576 bytes | 1,152 bytes |
+
+No timing regression was observed in this bounded probe; the small difference does not establish a speedup. Returning through the existing async wait loop between batches adds 576 bytes per 32,769-event drain (about 0.018 bytes/event). That small bounded cost buys cancellation and reconciliation progress without waiting for an empty queue. The lifetime-bound change is outside the ordinary per-packet path. This probe excludes native ETW delivery, ownership I/O, endpoint formatting and whole-service performance under sustained traffic; it does not establish native acceptance.
+
+Harness, preserved assemblies and raw measurements: `artifacts/network-collector-fixes/`. See [network collector corrections](design/NETWORK-COLLECTOR-CORRECTIONS.md).
+
 ## CLI connection report projection (November 26, 2026)
 
 Compared preserved baseline and corrected Release `WinMon.Cli` assemblies on .NET 10 with SDK 10.0.404. A prepared fixture uses 1,000 process owners and 100, 10,000 or 30,000 TCP endpoints belonging to the final owner, with name sorting, no filter and Top 1. Each separate PowerShell process disables tiered compilation, warms each case three times, then measures five report constructions. The table gives medians; allocations include the common reflection/PowerShell invocation overhead. Fixture construction, native collection, serialization, terminal rendering and whole-process memory are excluded.

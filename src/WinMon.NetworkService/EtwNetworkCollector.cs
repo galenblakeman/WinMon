@@ -257,9 +257,8 @@ internal sealed class EtwNetworkCollector : INetworkCollector
                 {
                     if (!await ready.ConfigureAwait(false)) break;
                     ready = null;
-                    while (ProcessBatch())
-                    {
-                    }
+                    // Return to cancellation and the maintenance deadline even if producers keep the queue full.
+                    ProcessBatch();
                 }
 
                 var now = Timestamp();
@@ -392,8 +391,7 @@ internal sealed class EtwNetworkCollector : INetworkCollector
                 return true;
             }
 
-            _ledger.End(processId, createdQpc);
-            _owners.Remove(processId);
+            EndInferredLifetime(processId, createdQpc);
         }
 
         if (_owners.Count >= MaximumOwners)
@@ -418,6 +416,17 @@ internal sealed class EtwNetworkCollector : INetworkCollector
         _rejectedUntil[processId] = new(checked(verifiedQpc + Stopwatch.Frequency), unknown, otherOwnerCreationTicks);
     }
 
+    private void EndInferredLifetime(int processId, long observedEndQpc)
+    {
+        // A failed probe or a successor's creation time cannot prove when this lifetime ended:
+        // missed lifecycle events may hide another account's intervening use of the same PID.
+        var verifiedThrough = _owners[processId].ValidThroughQpc;
+        _ledger!.End(processId, Math.Min(observedEndQpc, verifiedThrough));
+        _owners.Remove(processId);
+        if (observedEndQpc > verifiedThrough)
+            SignalIncomplete(ProcessNetworkIncompleteReason.AmbiguousLifetime);
+    }
+
     private void Reconcile()
     {
         lock (_gate)
@@ -440,8 +449,7 @@ internal sealed class EtwNetworkCollector : INetworkCollector
             {
                 if (!_processOwners.TryReadCreation(processId, out var creationTicks))
                 {
-                    _ledger.End(processId, nowQpc);
-                    _owners.Remove(processId);
+                    EndInferredLifetime(processId, nowQpc);
                     continue;
                 }
 
@@ -452,8 +460,7 @@ internal sealed class EtwNetworkCollector : INetworkCollector
                     continue;
                 }
 
-                _ledger.End(processId, createdQpc);
-                _owners.Remove(processId);
+                EndInferredLifetime(processId, createdQpc);
                 ResolveAndRegister(processId, nowQpc, nowQpc, false);
             }
         }

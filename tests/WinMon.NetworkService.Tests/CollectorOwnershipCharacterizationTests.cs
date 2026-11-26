@@ -291,7 +291,8 @@ public sealed class CollectorOwnershipCharacterizationTests
         {
             Assert.That(f.Probe.Calls, Is.EqualTo(new[] { "creation:42", "owner:42" }));
             Assert.That(f.State.Cached(42), Is.EqualTo(new CachedOwner(nextBirth, nextCreated, nextCreated + 2)));
-            Assert.That(f.State.Ledger.Add(42, nextCreated - 1, nextCreated + 2, false, 5), Is.True);
+            Assert.That(f.State.Ledger.Add(42, Created + 1, nextCreated + 2, false, 5), Is.True);
+            Assert.That(f.State.Ledger.Add(42, nextCreated - 1, nextCreated + 2, false, 100), Is.False);
             Assert.That(f.State.Ledger.Add(42, nextCreated, nextCreated + 2, false, 100), Is.False);
             Assert.That(f.State.Ledger.Add(42, nextCreated + 1, nextCreated + 2, true, 7), Is.True);
         });

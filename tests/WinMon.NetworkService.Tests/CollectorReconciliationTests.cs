@@ -70,7 +70,7 @@ public sealed class CollectorReconciliationTests
     }
 
     [Test]
-    public async Task FailedCreationReadEndsTheLifetimeAtObservationTimeEvenWhenItsOldTokenIsReturned()
+    public async Task FailedCreationReadEndsTheLifetimeAtLastVerificationEvenWhenItsOldTokenIsReturned()
     {
         await using var f = new CollectorRuntimeFixture();
         Assert.That(f.Register(), Is.True);
@@ -82,9 +82,11 @@ public sealed class CollectorReconciliationTests
         {
             Assert.That(f.Native.Reads, Is.EqualTo(new[] { "creation:42" }));
             Assert.That(f.State.OwnerCount, Is.Zero);
-            Assert.That(f.State.Ledger.HasExitedLifetime(42, Tick(5)), Is.True);
+            Assert.That(f.State.Ledger.HasExitedLifetime(42, Tick(2)), Is.True);
+            Assert.That(f.State.Ledger.HasExitedLifetime(42, Tick(3)), Is.False);
+            Assert.That(f.State.Ledger.HasExitedLifetime(42, Tick(5)), Is.False);
             Assert.That(f.State.Ledger.HasExitedLifetime(42, Tick(10)), Is.False);
-            Assert.That(f.Collector.CoverageReasons, Is.EqualTo(ProcessNetworkIncompleteReason.None));
+            Assert.That(f.Collector.CoverageReasons, Is.EqualTo(ProcessNetworkIncompleteReason.AmbiguousLifetime));
         });
     }
 
@@ -110,7 +112,7 @@ public sealed class CollectorReconciliationTests
     {
         await using var f = new CollectorRuntimeFixture();
         Assert.That(f.Register(), Is.True);
-        Assert.That(f.State.Ledger.Add(42, Tick(5), Tick(10), false, 5), Is.True);
+        Assert.That(f.State.Ledger.Add(42, Tick(2), Tick(10), false, 5), Is.True);
         f.Native.Reads.Clear();
         f.Native.CreationRead = _ => Birth(6);
         f.Native.OwnerRead = pid => verdict == "missing" ? null : new(pid, Birth(6), verdict == "other" ? Other : "unprovisioned");
@@ -118,11 +120,12 @@ public sealed class CollectorReconciliationTests
         Assert.Multiple(() =>
         {
             Assert.That(f.Native.Reads, Is.EqualTo(new[] { "creation:42", "owner:42" }));
-            Assert.That(f.State.Ledger.HasExitedLifetime(42, Tick(5)), Is.True);
+            Assert.That(f.State.Ledger.HasExitedLifetime(42, Tick(2)), Is.True);
+            Assert.That(f.State.Ledger.HasExitedLifetime(42, Tick(5)), Is.False);
             Assert.That(f.State.Ledger.HasExitedLifetime(42, Tick(6)), Is.False);
             Assert.That(f.State.Cached(42), Is.EqualTo(verdict == "other" ? new CachedOwner(Birth(6), Tick(6), Tick(10)) : null));
             Assert.That(f.State.Rejected(42), Is.EqualTo(verdict == "other" ? null : new RejectedOwner(Tick(11), verdict == "missing", verdict == "missing" ? 0 : Birth(6))));
-            Assert.That(f.Collector.CoverageReasons, Is.EqualTo(ProcessNetworkIncompleteReason.None));
+            Assert.That(f.Collector.CoverageReasons, Is.EqualTo(ProcessNetworkIncompleteReason.AmbiguousLifetime));
         });
         if (verdict == "other")
         {
