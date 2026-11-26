@@ -145,6 +145,10 @@ public sealed partial class CpuGraph : FrameworkElement
         _processSort = data?.Sort ?? ProcessSort.Cpu;
         _end = history.Count > 0 ? Moment(history[^1]) : 0;
         ScaleMaximum = data?.ScaleMaximum ?? 100;
+        if (ShowGrid && _process is null && TileMetric is null && ChartType == ResourceChartType.Temperature)
+            UpdateTemperatureAxis();
+        else
+            _temperatureAxis = null;
         InvalidateVisual();
     }
 

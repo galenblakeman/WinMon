@@ -45,7 +45,9 @@ public sealed class TemperatureChartTests
     {
         var plot = rendered.Graph.PlotBounds;
         var x = (int)Math.Round(plot.Right - (10 - second) / 10 * plot.Width);
-        var y = (int)Math.Round(plot.Bottom - celsius / 150 * plot.Height);
+        var (minimum, maximum) = rendered.Graph.TemperatureAxis;
+        var y = (int)Math.Round(plot.Bottom - (celsius - minimum) / (maximum - minimum) * plot.Height);
+        if (y < 1 || y >= 239) return false;
         for (var dx = -1; dx <= 1; dx++)
         for (var dy = -1; dy <= 1; dy++)
         {
@@ -61,10 +63,60 @@ public sealed class TemperatureChartTests
         var samples = Enumerable.Range(1, 10).Select(i => Sample(i)).ToArray();
         var celsius = Render(samples);
         var fahrenheit = Render(samples, TemperatureUnit.Fahrenheit);
-        Assert.That(RedAt(celsius, 5, 75), Is.True, "75 C must appear halfway up the 0–150 C axis.");
+        Assert.That(celsius.Graph.TemperatureAxis, Is.EqualTo((70, 80)));
+        Assert.That(fahrenheit.Graph.TemperatureAxis, Is.EqualTo((70, 80)));
+        Assert.That(RedAt(celsius, 5, 75), Is.True, "75 C must appear halfway up the 70–80 C axis.");
         Assert.That(RedAt(celsius, 5, 100), Is.False, "CPU utilization must not become a temperature series.");
         Assert.That(RedAt(fahrenheit, 5, 75), Is.True, "Changing display units must preserve curve geometry.");
         Assert.That(fahrenheit.Pixels, Is.Not.EqualTo(celsius.Pixels), "The axis labels must change to Fahrenheit.");
+    }
+
+    [Test]
+    public void TemperatureAxisFitsVisibleSensorsAndTimeWindowWithRoundedHeadroom()
+    {
+        var samples = Enumerable.Range(1, 20).Select(i =>
+        {
+            var sample = Sample(i, i < 10 ? 120 : i == 15 ? 54 : 46);
+            return sample with { Resources = sample.Resources with { DiskName = "C:", DiskTemperatureCelsius = 36 } };
+        }).ToArray();
+        samples[12] = Sample(13, 145) with { IsGap = true };
+
+        var rendered = Render(samples, mask: 1 | 4);
+        Assert.That(rendered.Graph.TemperatureAxis, Is.EqualTo((30, 60)));
+        rendered.Graph.VisibleMetrics = 4;
+        rendered.Graph.SetData(samples, 10, null);
+        Assert.That(rendered.Graph.TemperatureAxis, Is.EqualTo((30, 40)));
+        rendered.Graph.VisibleMetrics = 1;
+        rendered.Graph.SetData(samples, 5, null);
+        Assert.That(rendered.Graph.TemperatureAxis, Is.EqualTo((40, 60)));
+        rendered.Graph.SetData(samples, 4, null);
+        Assert.That(rendered.Graph.TemperatureAxis, Is.EqualTo((40, 50)));
+    }
+
+    [Test]
+    public void TemperatureAxisExpandsImmediatelyAndContractsInTimedSteps()
+    {
+        var graph = new CpuGraph { ShowGrid = true, ChartType = ResourceChartType.Temperature, VisibleMetrics = 1 };
+        var samples = Enumerable.Range(1, 29).Select(i => Sample(i, i switch { 7 => 92, 8 => 20, _ => 48 })).ToArray();
+
+        graph.SetData(samples[..6], 10, null);
+        Assert.That(graph.TemperatureAxis, Is.EqualTo((40, 60)));
+        graph.SetData(samples[..7], 10, null);
+        Assert.That(graph.TemperatureAxis, Is.EqualTo((40, 100)));
+        graph.SetData(samples[..8], 10, null);
+        Assert.That(graph.TemperatureAxis, Is.EqualTo((10, 100)));
+        graph.SetData(samples[..17], 10, null);
+        Assert.That(graph.TemperatureAxis, Is.EqualTo((10, 100)), "Both spikes are still in the window.");
+        graph.SetData(samples[..18], 10, null);
+        Assert.That(graph.TemperatureAxis, Is.EqualTo((10, 100)));
+        graph.SetData(samples[..22], 10, null);
+        Assert.That(graph.TemperatureAxis, Is.EqualTo((20, 90)));
+        graph.SetData(samples[..22], 10, samples[20]);
+        Assert.That(graph.TemperatureAxis, Is.EqualTo((20, 90)), "Redrawing the same window must not advance contraction.");
+        graph.SetData(samples[..27], 10, null);
+        Assert.That(graph.TemperatureAxis, Is.EqualTo((30, 80)));
+        graph.SetData(samples[..6], 10, null);
+        Assert.That(graph.TemperatureAxis, Is.EqualTo((40, 60)), "A new earlier view should fit immediately.");
     }
 
     [TestCase("missing")]
@@ -88,8 +140,10 @@ public sealed class TemperatureChartTests
     {
         var samples = Enumerable.Range(1, 10).Select(i => Sample(i, null)).ToArray();
         var unavailable = Render(samples);
+        Assert.That(unavailable.Graph.TemperatureAxis, Is.EqualTo((0, 150)));
         Assert.That(RedAt(unavailable, 5, 0), Is.False);
         var hidden = Render(Enumerable.Range(1, 10).Select(i => Sample(i)).ToArray(), mask: 0);
+        Assert.That(hidden.Graph.TemperatureAxis, Is.EqualTo((0, 150)));
         Assert.That(RedAt(hidden, 5, 75), Is.False);
         Assert.That(CpuGraph.TemperatureValue(Sample(1) with { IsGap = true }, CaptureMetric.CpuTemperature), Is.Null);
     }

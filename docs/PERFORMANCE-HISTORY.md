@@ -1,5 +1,9 @@
 # WinMon performance history
 
+## Automatic temperature chart scale (November 26, 2026)
+
+The Release temperature-chart benchmark used the same harness for four runs per variant, with 400 warmup frames and seven batches of 60 frames per run. The median of the run medians was 4.667 ms before and 4.573 ms after. Baseline runs ranged from 4.437 to 4.782 ms, and candidate runs ranged from 4.452 to 4.765 ms. Median allocation rose from 562,593 to 563,777 bytes per frame (0.21%). The synthetic 42–83 °C readings drew seven labeled grid lines on the automatic 30–90 °C axis, compared with four on the fixed 0–150 °C axis. These runs used the default chart height and preceded the minimum label spacing for shorter charts. The benchmark measures UI-thread refresh, layout and rendering with synthetic samples. It excludes native sampling and render-thread CPU. Raw runs and screenshots are in `artifacts/temperature-axis/`.
+
 ## Multiple scoped rules and disk latency (November 26, 2026)
 
 A Release console fixture compared the prior trend build with the scoped-rule and latency build. It used 850 named processes, two warm-up passes and seven measured passes of 600 observations. One application CPU rule took 52.6–54.8 µs before and 48.1–49.2 µs after. Eight evaluation rows took 101.5–129.6 µs before and 114.7–120.2 µs after. The earlier engine could evaluate those rows but shared their rule state. The new engine tracks each independently. Allocations with eight rules were 1,664 to 1,728 bytes per sample.
