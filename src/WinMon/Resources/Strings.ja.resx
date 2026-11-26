@@ -1364,7 +1364,9 @@ Windows の正常性状態: {2}</value>
   <data name="NoPinnedProcessesMatch" xml:space="preserve"><value>この表示に固定されたプロセスはありません。行の固定ボタンまたはメニューを使用してください。</value></data>
   <data name="ProcessesHeading" xml:space="preserve"><value>プロセス</value></data>
   <data name="CompactView" xml:space="preserve"><value>コンパクト表示</value></data>
+  <data name="CompactViewButtonLabel" xml:space="preserve"><value>コンパクト</value></data>
   <data name="FullView" xml:space="preserve"><value>全体表示</value></data>
+  <data name="FullViewButtonLabel" xml:space="preserve"><value>全体</value></data>
   <data name="ProcessProperties" xml:space="preserve"><value>プロセスのプロパティ</value></data>
   <data name="OpenFileLocation" xml:space="preserve"><value>ファイルの場所を開く</value></data>
   <data name="CopyDetails" xml:space="preserve"><value>詳細をコピー</value></data>
@@ -1393,7 +1395,7 @@ Windows の正常性状態: {2}</value>
   <data name="ProcessDumpFailed" xml:space="preserve"><value>Could not create the dump: {0}</value></data>
   <data name="ProcessFileMissing" xml:space="preserve"><value>The recorded executable no longer exists at this location.</value></data>
   <data name="ProcessApplicationLabel" xml:space="preserve"><value>アプリケーション</value></data>
-  <data name="AlwaysOnTop" xml:space="preserve"><value>常に最前面</value></data>
+  <data name="AlwaysOnTop" xml:space="preserve"><value>最前面</value></data>
   <data name="CpuClockDescription" xml:space="preserve"><value>Windows が報告する現在の CPU クロック（論理プロセッサの平均）。</value></data>
   <data name="ResizeChartAndProcesses" xml:space="preserve"><value>ドラッグしてグラフとプロセスの高さを調整</value></data>
   <data name="ProcessesTab" xml:space="preserve"><value>プロセス</value></data>
@@ -1846,8 +1848,8 @@ Windows の正常性状態: {2}</value>
   <data name="GuideAutomaticStep2" xml:space="preserve"><value>グラフのツールバーの自動からキャプチャを確認します。条件を満たすとローカルにテキストレポートを保存し、クールダウンで連続キャプチャを防ぎます。</value></data>
   <data name="GuideCompactTitle" xml:space="preserve"><value>コンパクト表示とショートカット</value></data>
   <data name="GuideCompactIntro" xml:space="preserve"><value>監視画面をすぐ使える状態にします。</value></data>
-  <data name="GuideCompactStep1" xml:space="preserve"><value>タイトルバーでコンパクト表示を選ぶとゲージを表示し、全体表示でダッシュボードに戻ります。</value></data>
-  <data name="GuideCompactStep2" xml:space="preserve"><value>常に最前面を使うか、設定 → 全般で表示・非表示のショートカットと起動時の表示を設定します。</value></data>
+  <data name="GuideCompactStep1" xml:space="preserve"><value>タイトルバーでコンパクトを選ぶとゲージを表示し、全体でダッシュボードに戻ります。</value></data>
+  <data name="GuideCompactStep2" xml:space="preserve"><value>最前面を使うか、設定 → 全般で表示・非表示のショートカットと起動時の表示を設定します。</value></data>
   <data name="GuideWalkthroughTitle" xml:space="preserve"><value>試してみる：CPU スパイクの調査</value></data>
   <data name="GuideWalkthroughIntro" xml:space="preserve"><value>グラフのスパイクから原因のアプリをたどります。</value></data>
   <data name="GuideWalkthroughStep1" xml:space="preserve"><value>グラフのスパイクを選び、プロセスを開いて CPU 順に並べ替えます。</value></data>

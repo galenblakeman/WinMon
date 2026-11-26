@@ -86,7 +86,7 @@ public partial class MainWindow
     private void UpdateCompactButton()
     {
         var text = CompactMode ? Strings.FullView : Strings.CompactView;
-        CompactViewButton.Content = text;
+        CompactViewButton.Content = CompactMode ? Strings.FullViewButtonLabel : Strings.CompactViewButtonLabel;
         CompactViewButton.ToolTip = text;
         AutomationProperties.SetName(CompactViewButton, text);
         ButtonIcon.SetData(CompactViewButton, CompactMode ? ButtonIcon.Expand : ButtonIcon.Compact);

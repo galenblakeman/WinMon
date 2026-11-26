@@ -1364,7 +1364,9 @@ Windows 상태: {2}</value>
   <data name="NoPinnedProcessesMatch" xml:space="preserve"><value>이 보기에 고정된 프로세스가 없습니다. 행의 고정 버튼이나 메뉴로 프로세스를 고정하세요.</value></data>
   <data name="ProcessesHeading" xml:space="preserve"><value>프로세스</value></data>
   <data name="CompactView" xml:space="preserve"><value>간략 보기</value></data>
+  <data name="CompactViewButtonLabel" xml:space="preserve"><value>간략</value></data>
   <data name="FullView" xml:space="preserve"><value>전체 보기</value></data>
+  <data name="FullViewButtonLabel" xml:space="preserve"><value>전체</value></data>
   <data name="ProcessProperties" xml:space="preserve"><value>프로세스 속성</value></data>
   <data name="OpenFileLocation" xml:space="preserve"><value>파일 위치 열기</value></data>
   <data name="CopyDetails" xml:space="preserve"><value>세부 정보 복사</value></data>
@@ -1393,7 +1395,7 @@ Windows 상태: {2}</value>
   <data name="ProcessDumpFailed" xml:space="preserve"><value>Could not create the dump: {0}</value></data>
   <data name="ProcessFileMissing" xml:space="preserve"><value>The recorded executable no longer exists at this location.</value></data>
   <data name="ProcessApplicationLabel" xml:space="preserve"><value>응용 프로그램</value></data>
-  <data name="AlwaysOnTop" xml:space="preserve"><value>항상 위에 표시</value></data>
+  <data name="AlwaysOnTop" xml:space="preserve"><value>맨 위</value></data>
   <data name="CpuClockDescription" xml:space="preserve"><value>Windows가 보고한 현재 CPU 클럭(논리 프로세서 평균).</value></data>
   <data name="ResizeChartAndProcesses" xml:space="preserve"><value>드래그하여 차트와 프로세스 높이 조절</value></data>
   <data name="ProcessesTab" xml:space="preserve"><value>프로세스</value></data>
@@ -1846,8 +1848,8 @@ Windows 상태: {2}</value>
   <data name="GuideAutomaticStep2" xml:space="preserve"><value>차트 도구 모음의 자동으로 캡처를 검토합니다. 조건을 충족한 규칙은 로컬 텍스트 보고서를 저장하며 대기 시간이 반복 캡처를 방지합니다.</value></data>
   <data name="GuideCompactTitle" xml:space="preserve"><value>간략 보기와 바로 가기</value></data>
   <data name="GuideCompactIntro" xml:space="preserve"><value>모니터링을 가까이 두고 사용합니다.</value></data>
-  <data name="GuideCompactStep1" xml:space="preserve"><value>제목 표시줄에서 간략 보기를 선택하면 게이지를 표시하고 전체 보기를 선택하면 대시보드로 돌아갑니다.</value></data>
-  <data name="GuideCompactStep2" xml:space="preserve"><value>항상 위에 표시를 사용하거나 설정 → 일반에서 표시/숨기기 바로 가기와 시작 보기를 구성합니다.</value></data>
+  <data name="GuideCompactStep1" xml:space="preserve"><value>제목 표시줄에서 간략 버튼을 누르면 게이지를 표시하고 전체 버튼을 누르면 대시보드로 돌아갑니다.</value></data>
+  <data name="GuideCompactStep2" xml:space="preserve"><value>맨 위를 사용하거나 설정 → 일반에서 표시/숨기기 바로 가기와 시작 보기를 구성합니다.</value></data>
   <data name="GuideWalkthroughTitle" xml:space="preserve"><value>직접 해 보기: CPU 급증 조사</value></data>
   <data name="GuideWalkthroughIntro" xml:space="preserve"><value>차트의 급증에서 원인 앱까지 추적합니다.</value></data>
   <data name="GuideWalkthroughStep1" xml:space="preserve"><value>차트에서 급증 시점을 선택하고 프로세스를 연 다음 CPU별로 정렬합니다.</value></data>

@@ -1364,7 +1364,9 @@ Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse
   <data name="NoPinnedProcessesMatch" xml:space="preserve"><value>Keine angehefteten Prozesse in dieser Ansicht. Nutzen Sie die Pin-Schaltfläche oder das Zeilenmenü.</value></data>
   <data name="ProcessesHeading" xml:space="preserve"><value>Prozesse</value></data>
   <data name="CompactView" xml:space="preserve"><value>Kompaktansicht</value></data>
+  <data name="CompactViewButtonLabel" xml:space="preserve"><value>Kompakt</value></data>
   <data name="FullView" xml:space="preserve"><value>Vollansicht</value></data>
+  <data name="FullViewButtonLabel" xml:space="preserve"><value>Voll</value></data>
   <data name="ProcessProperties" xml:space="preserve"><value>Prozesseigenschaften</value></data>
   <data name="OpenFileLocation" xml:space="preserve"><value>Dateispeicherort öffnen</value></data>
   <data name="CopyDetails" xml:space="preserve"><value>Details kopieren</value></data>
@@ -1393,7 +1395,7 @@ Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse
   <data name="ProcessDumpFailed" xml:space="preserve"><value>Could not create the dump: {0}</value></data>
   <data name="ProcessFileMissing" xml:space="preserve"><value>The recorded executable no longer exists at this location.</value></data>
   <data name="ProcessApplicationLabel" xml:space="preserve"><value>Anwendung</value></data>
-  <data name="AlwaysOnTop" xml:space="preserve"><value>Immer im Vordergrund</value></data>
+  <data name="AlwaysOnTop" xml:space="preserve"><value>Vorne</value></data>
   <data name="CpuClockDescription" xml:space="preserve"><value>Von Windows gemeldeter aktueller CPU-Takt, gemittelt über die logischen Prozessoren.</value></data>
   <data name="ResizeChartAndProcesses" xml:space="preserve"><value>Ziehen, um Diagramm und Prozesse zu skalieren</value></data>
   <data name="ProcessesTab" xml:space="preserve"><value>Prozesse</value></data>
@@ -1855,8 +1857,8 @@ Nicht gespeicherte Arbeit kann verloren gehen. Alle unten aufgeführten Prozesse
   <data name="GuideAutomaticStep2" xml:space="preserve"><value>Prüfen Sie Aufnahmen über Auto in der Diagrammleiste. Passende Regeln speichern lokale Textberichte; die Abklingzeit verhindert wiederholte Aufnahmen.</value></data>
   <data name="GuideCompactTitle" xml:space="preserve"><value>Kompaktansicht und Tastenkürzel</value></data>
   <data name="GuideCompactIntro" xml:space="preserve"><value>Halten Sie die Überwachung griffbereit.</value></data>
-  <data name="GuideCompactStep1" xml:space="preserve"><value>Wählen Sie Kompaktansicht in der Titelleiste für Anzeigen; Vollansicht stellt das Dashboard wieder her.</value></data>
-  <data name="GuideCompactStep2" xml:space="preserve"><value>Nutzen Sie Immer im Vordergrund oder legen Sie Tastenkürzel zum Ein-/Ausblenden und Startansicht unter Einstellungen → Allgemein fest.</value></data>
+  <data name="GuideCompactStep1" xml:space="preserve"><value>Wählen Sie Kompakt in der Titelleiste für Anzeigen; Voll stellt das Dashboard wieder her.</value></data>
+  <data name="GuideCompactStep2" xml:space="preserve"><value>Nutzen Sie Vorne oder legen Sie Tastenkürzel zum Ein-/Ausblenden und Startansicht unter Einstellungen → Allgemein fest.</value></data>
   <data name="GuideWalkthroughTitle" xml:space="preserve"><value>Ausprobieren: CPU-Spitze untersuchen</value></data>
   <data name="GuideWalkthroughIntro" xml:space="preserve"><value>Verfolgen Sie eine Spitze vom Diagramm bis zur verursachenden App.</value></data>
   <data name="GuideWalkthroughStep1" xml:space="preserve"><value>Wählen Sie die Spitze im Diagramm, öffnen Sie Prozesse und sortieren Sie nach CPU.</value></data>

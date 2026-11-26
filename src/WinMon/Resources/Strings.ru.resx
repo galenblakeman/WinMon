@@ -1364,7 +1364,9 @@ GPU {11} · {12}
   <data name="NoPinnedProcessesMatch" xml:space="preserve"><value>В этом представлении нет закреплённых процессов. Используйте кнопку закрепления или меню строки.</value></data>
   <data name="ProcessesHeading" xml:space="preserve"><value>Процессы</value></data>
   <data name="CompactView" xml:space="preserve"><value>Компактный вид</value></data>
+  <data name="CompactViewButtonLabel" xml:space="preserve"><value>Компактный</value></data>
   <data name="FullView" xml:space="preserve"><value>Полный вид</value></data>
+  <data name="FullViewButtonLabel" xml:space="preserve"><value>Полный</value></data>
   <data name="ProcessProperties" xml:space="preserve"><value>Свойства процесса</value></data>
   <data name="OpenFileLocation" xml:space="preserve"><value>Открыть расположение файла</value></data>
   <data name="CopyDetails" xml:space="preserve"><value>Копировать сведения</value></data>
@@ -1393,7 +1395,7 @@ GPU {11} · {12}
   <data name="ProcessDumpFailed" xml:space="preserve"><value>Could not create the dump: {0}</value></data>
   <data name="ProcessFileMissing" xml:space="preserve"><value>The recorded executable no longer exists at this location.</value></data>
   <data name="ProcessApplicationLabel" xml:space="preserve"><value>Приложение</value></data>
-  <data name="AlwaysOnTop" xml:space="preserve"><value>Всегда поверх окон</value></data>
+  <data name="AlwaysOnTop" xml:space="preserve"><value>Поверх окон</value></data>
   <data name="CpuClockDescription" xml:space="preserve"><value>Текущая частота ЦП по данным Windows, среднее по логическим процессорам.</value></data>
   <data name="ResizeChartAndProcesses" xml:space="preserve"><value>Перетащите для изменения высоты графика и процессов</value></data>
   <data name="ProcessesTab" xml:space="preserve"><value>Процессы</value></data>
@@ -1846,8 +1848,8 @@ GPU {11} · {12}
   <data name="GuideAutomaticStep2" xml:space="preserve"><value>Используйте Авто на панели графика для просмотра снимков. Сработавшие правила сохраняют локальные текстовые отчёты; пауза предотвращает повторные снимки.</value></data>
   <data name="GuideCompactTitle" xml:space="preserve"><value>Компактный вид и сочетания клавиш</value></data>
   <data name="GuideCompactIntro" xml:space="preserve"><value>Держите мониторинг под рукой.</value></data>
-  <data name="GuideCompactStep1" xml:space="preserve"><value>Выберите Компактный вид в заголовке окна для индикаторов; Полный вид восстанавливает панель.</value></data>
-  <data name="GuideCompactStep2" xml:space="preserve"><value>Используйте Всегда поверх окон или настройте сочетание показа/скрытия и вид при запуске в Настройки → Общие.</value></data>
+  <data name="GuideCompactStep1" xml:space="preserve"><value>Выберите Компактный в заголовке окна для индикаторов; Полный восстанавливает панель.</value></data>
+  <data name="GuideCompactStep2" xml:space="preserve"><value>Используйте Поверх окон или настройте сочетание показа/скрытия и вид при запуске в Настройки → Общие.</value></data>
   <data name="GuideWalkthroughTitle" xml:space="preserve"><value>Попробуйте: исследуйте пик ЦП</value></data>
   <data name="GuideWalkthroughIntro" xml:space="preserve"><value>Проследите пик от графика до вызвавшего его приложения.</value></data>
   <data name="GuideWalkthroughStep1" xml:space="preserve"><value>Выберите пик на графике, откройте Процессы и сортируйте по ЦП.</value></data>

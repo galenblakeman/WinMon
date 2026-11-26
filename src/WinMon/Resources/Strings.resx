@@ -1364,7 +1364,9 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="NoPinnedProcessesMatch" xml:space="preserve"><value>No pinned processes in this view. Pin a process using its pin button or row menu.</value></data>
   <data name="ProcessesHeading" xml:space="preserve"><value>Processes</value></data>
   <data name="CompactView" xml:space="preserve"><value>Compact view</value></data>
+  <data name="CompactViewButtonLabel" xml:space="preserve"><value>Compact</value></data>
   <data name="FullView" xml:space="preserve"><value>Full view</value></data>
+  <data name="FullViewButtonLabel" xml:space="preserve"><value>Full</value></data>
   <data name="ProcessProperties" xml:space="preserve"><value>Process properties</value></data>
   <data name="OpenFileLocation" xml:space="preserve"><value>Open file location</value></data>
   <data name="CopyDetails" xml:space="preserve"><value>Copy details</value></data>
@@ -1393,7 +1395,7 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="ProcessDumpFailed" xml:space="preserve"><value>Could not create the dump: {0}</value></data>
   <data name="ProcessFileMissing" xml:space="preserve"><value>The recorded executable no longer exists at this location.</value></data>
   <data name="ProcessApplicationLabel" xml:space="preserve"><value>Application</value></data>
-  <data name="AlwaysOnTop" xml:space="preserve"><value>Always on top</value></data>
+  <data name="AlwaysOnTop" xml:space="preserve"><value>Top</value></data>
   <data name="CpuClockDescription" xml:space="preserve"><value>Windows-reported current CPU clock, averaged across logical processors.</value></data>
   <data name="ResizeChartAndProcesses" xml:space="preserve"><value>Drag to resize chart and processes</value></data>
   <data name="ProcessesTab" xml:space="preserve"><value>Processes</value></data>
@@ -1876,8 +1878,8 @@ Unsaved work may be lost. All processes listed below will be ended. Processes st
   <data name="GuideAutomaticStep2" xml:space="preserve"><value>Use Auto on the chart toolbar to review captures. Matching rules save local text reports; cooldown prevents repeated captures.</value></data>
   <data name="GuideCompactTitle" xml:space="preserve"><value>Compact view and shortcuts</value></data>
   <data name="GuideCompactIntro" xml:space="preserve"><value>Keep monitoring within reach.</value></data>
-  <data name="GuideCompactStep1" xml:space="preserve"><value>Choose Compact view in the title bar for gauges; choose Full view to restore the dashboard.</value></data>
-  <data name="GuideCompactStep2" xml:space="preserve"><value>Use Always on top or configure the show/hide shortcut and Startup view in Settings → General.</value></data>
+  <data name="GuideCompactStep1" xml:space="preserve"><value>Choose Compact in the title bar for gauges; choose Full to restore the dashboard.</value></data>
+  <data name="GuideCompactStep2" xml:space="preserve"><value>Use Top or configure the show/hide shortcut and Startup view in Settings → General.</value></data>
   <data name="GuideWalkthroughTitle" xml:space="preserve"><value>Try it: investigate a CPU spike</value></data>
   <data name="GuideWalkthroughIntro" xml:space="preserve"><value>Follow a spike from the chart to the app behind it.</value></data>
   <data name="GuideWalkthroughStep1" xml:space="preserve"><value>Select the spike on the chart, then open Processes and sort by CPU.</value></data>

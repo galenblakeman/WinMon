@@ -134,7 +134,7 @@ MCP sampling starts with a live-metrics request and stops after 30 seconds witho
 
 ## Compact view and customization
 
-Switch to **Compact view** to keep resource readings visible in a slim window. Enable **Always on top**, minimize to the notification area, or show and hide WinMon with a configurable shortcut (**Ctrl+Shift+M** by default).
+Select **Compact** in the title bar to keep resource readings visible in a slim window. Select **Full** to return to the dashboard. Select **Top** to keep WinMon above other windows. You can also minimize to the notification area or show and hide WinMon with a configurable shortcut (**Ctrl+Shift+M** by default).
 
 ![WinMon Compact view with live CPU, memory, disk, network and GPU readings](docs/example/example_compact.png)
 

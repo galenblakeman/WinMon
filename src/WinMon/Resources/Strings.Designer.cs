@@ -233,6 +233,7 @@ public static partial class Strings
     public static string CollectingDisconnected => ResourceManager.GetString(nameof(CollectingDisconnected), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CollectingTheFirstInterval => ResourceManager.GetString(nameof(CollectingTheFirstInterval), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CompactView => ResourceManager.GetString(nameof(CompactView), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string CompactViewButtonLabel => ResourceManager.GetString(nameof(CompactViewButtonLabel), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConfiguredSpeedReportedSpeed => ResourceManager.GetString(nameof(ConfiguredSpeedReportedSpeed), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConfirmServiceAction => ResourceManager.GetString(nameof(ConfirmServiceAction), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ConnectionsAddressesPorts => ResourceManager.GetString(nameof(ConnectionsAddressesPorts), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -538,6 +539,7 @@ public static partial class Strings
     public static string FlightRecorderTrendSend => ResourceManager.GetString(nameof(FlightRecorderTrendSend), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string FlightRecorderView => ResourceManager.GetString(nameof(FlightRecorderView), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string FullView => ResourceManager.GetString(nameof(FullView), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string FullViewButtonLabel => ResourceManager.GetString(nameof(FullViewButtonLabel), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GaugeBottomBar => ResourceManager.GetString(nameof(GaugeBottomBar), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GaugeBowl => ResourceManager.GetString(nameof(GaugeBowl), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GaugeCpuClockGHz => ResourceManager.GetString(nameof(GaugeCpuClockGHz), Culture ?? CultureInfo.CurrentUICulture)!;

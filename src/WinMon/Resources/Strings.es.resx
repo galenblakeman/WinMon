@@ -1364,7 +1364,9 @@ Se puede perder el trabajo sin guardar. Se finalizarán todos los procesos indic
   <data name="NoPinnedProcessesMatch" xml:space="preserve"><value>No hay procesos fijados en esta vista. Fije uno con su botón o menú de fila.</value></data>
   <data name="ProcessesHeading" xml:space="preserve"><value>Procesos</value></data>
   <data name="CompactView" xml:space="preserve"><value>Vista compacta</value></data>
+  <data name="CompactViewButtonLabel" xml:space="preserve"><value>Compacta</value></data>
   <data name="FullView" xml:space="preserve"><value>Vista completa</value></data>
+  <data name="FullViewButtonLabel" xml:space="preserve"><value>Completa</value></data>
   <data name="ProcessProperties" xml:space="preserve"><value>Propiedades del proceso</value></data>
   <data name="OpenFileLocation" xml:space="preserve"><value>Abrir ubicación del archivo</value></data>
   <data name="CopyDetails" xml:space="preserve"><value>Copiar detalles</value></data>
@@ -1393,7 +1395,7 @@ Se puede perder el trabajo sin guardar. Se finalizarán todos los procesos indic
   <data name="ProcessDumpFailed" xml:space="preserve"><value>Could not create the dump: {0}</value></data>
   <data name="ProcessFileMissing" xml:space="preserve"><value>The recorded executable no longer exists at this location.</value></data>
   <data name="ProcessApplicationLabel" xml:space="preserve"><value>Aplicación</value></data>
-  <data name="AlwaysOnTop" xml:space="preserve"><value>Siempre visible</value></data>
+  <data name="AlwaysOnTop" xml:space="preserve"><value>Fijar</value></data>
   <data name="CpuClockDescription" xml:space="preserve"><value>Frecuencia actual de CPU indicada por Windows, media de los procesadores lógicos.</value></data>
   <data name="ResizeChartAndProcesses" xml:space="preserve"><value>Arrastrar para ajustar el gráfico y los procesos</value></data>
   <data name="ProcessesTab" xml:space="preserve"><value>Procesos</value></data>
@@ -1855,8 +1857,8 @@ Se puede perder el trabajo sin guardar. Se finalizarán todos los procesos indic
   <data name="GuideAutomaticStep2" xml:space="preserve"><value>Use Auto en la barra del gráfico para revisar capturas. Las reglas coincidentes guardan informes de texto locales; el tiempo de espera evita capturas repetidas.</value></data>
   <data name="GuideCompactTitle" xml:space="preserve"><value>Vista compacta y atajos</value></data>
   <data name="GuideCompactIntro" xml:space="preserve"><value>Mantenga la supervisión a mano.</value></data>
-  <data name="GuideCompactStep1" xml:space="preserve"><value>Elija Vista compacta en la barra de título para ver indicadores; Vista completa restaura el panel.</value></data>
-  <data name="GuideCompactStep2" xml:space="preserve"><value>Use Siempre visible o configure el atajo para mostrar/ocultar y la vista inicial en Ajustes → General.</value></data>
+  <data name="GuideCompactStep1" xml:space="preserve"><value>Elija Compacta en la barra de título para ver indicadores; Completa restaura el panel.</value></data>
+  <data name="GuideCompactStep2" xml:space="preserve"><value>Use Fijar o configure el atajo para mostrar/ocultar y la vista inicial en Ajustes → General.</value></data>
   <data name="GuideWalkthroughTitle" xml:space="preserve"><value>Pruébelo: investigar un pico de CPU</value></data>
   <data name="GuideWalkthroughIntro" xml:space="preserve"><value>Siga un pico desde el gráfico hasta la app responsable.</value></data>
   <data name="GuideWalkthroughStep1" xml:space="preserve"><value>Seleccione el pico en el gráfico, abra Procesos y ordene por CPU.</value></data>

@@ -1364,7 +1364,9 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
   <data name="NoPinnedProcessesMatch" xml:space="preserve"><value>Brak przypiętych procesów w tym widoku. Przypnij proces przyciskiem lub w menu wiersza.</value></data>
   <data name="ProcessesHeading" xml:space="preserve"><value>Procesy</value></data>
   <data name="CompactView" xml:space="preserve"><value>Widok kompaktowy</value></data>
+  <data name="CompactViewButtonLabel" xml:space="preserve"><value>Kompakt</value></data>
   <data name="FullView" xml:space="preserve"><value>Pełny widok</value></data>
+  <data name="FullViewButtonLabel" xml:space="preserve"><value>Pełny</value></data>
   <data name="ProcessProperties" xml:space="preserve"><value>Właściwości procesu</value></data>
   <data name="OpenFileLocation" xml:space="preserve"><value>Otwórz lokalizację pliku</value></data>
   <data name="CopyDetails" xml:space="preserve"><value>Kopiuj szczegóły</value></data>
@@ -1393,7 +1395,7 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
   <data name="ProcessDumpFailed" xml:space="preserve"><value>Could not create the dump: {0}</value></data>
   <data name="ProcessFileMissing" xml:space="preserve"><value>The recorded executable no longer exists at this location.</value></data>
   <data name="ProcessApplicationLabel" xml:space="preserve"><value>Aplikacja</value></data>
-  <data name="AlwaysOnTop" xml:space="preserve"><value>Zawsze na wierzchu</value></data>
+  <data name="AlwaysOnTop" xml:space="preserve"><value>Na wierzchu</value></data>
   <data name="CpuClockDescription" xml:space="preserve"><value>Bieżące taktowanie CPU zgłaszane przez Windows, średnia procesorów logicznych.</value></data>
   <data name="ResizeChartAndProcesses" xml:space="preserve"><value>Przeciągnij, aby zmienić wysokość wykresu i procesów</value></data>
   <data name="ProcessesTab" xml:space="preserve"><value>Procesy</value></data>
@@ -1846,8 +1848,8 @@ Niezapisana praca może zostać utracona. Wszystkie poniższe procesy zostaną z
   <data name="GuideAutomaticStep2" xml:space="preserve"><value>Użyj Auto na pasku wykresu, aby przeglądać przechwycenia. Spełnione reguły zapisują lokalne raporty tekstowe; czas oczekiwania zapobiega powtórzeniom.</value></data>
   <data name="GuideCompactTitle" xml:space="preserve"><value>Widok kompaktowy i skróty</value></data>
   <data name="GuideCompactIntro" xml:space="preserve"><value>Miej monitorowanie pod ręką.</value></data>
-  <data name="GuideCompactStep1" xml:space="preserve"><value>Wybierz Widok kompaktowy na pasku tytułu dla wskaźników; Pełny widok przywraca pulpit.</value></data>
-  <data name="GuideCompactStep2" xml:space="preserve"><value>Użyj Zawsze na wierzchu lub ustaw skrót pokaż/ukryj i widok początkowy w Ustawienia → Ogólne.</value></data>
+  <data name="GuideCompactStep1" xml:space="preserve"><value>Wybierz Kompakt na pasku tytułu dla wskaźników; Pełny przywraca pulpit.</value></data>
+  <data name="GuideCompactStep2" xml:space="preserve"><value>Użyj Na wierzchu lub ustaw skrót pokaż/ukryj i widok początkowy w Ustawienia → Ogólne.</value></data>
   <data name="GuideWalkthroughTitle" xml:space="preserve"><value>Wypróbuj: zbadaj skok CPU</value></data>
   <data name="GuideWalkthroughIntro" xml:space="preserve"><value>Prześledź skok od wykresu do odpowiedzialnej aplikacji.</value></data>
   <data name="GuideWalkthroughStep1" xml:space="preserve"><value>Wybierz skok na wykresie, otwórz Procesy i sortuj według CPU.</value></data>

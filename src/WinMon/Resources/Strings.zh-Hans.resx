@@ -1364,7 +1364,9 @@ Windows 健康状态：{2}</value>
   <data name="NoPinnedProcessesMatch" xml:space="preserve"><value>此视图没有已固定的进程。使用进程的固定按钮或行菜单进行固定。</value></data>
   <data name="ProcessesHeading" xml:space="preserve"><value>进程</value></data>
   <data name="CompactView" xml:space="preserve"><value>紧凑视图</value></data>
+  <data name="CompactViewButtonLabel" xml:space="preserve"><value>紧凑</value></data>
   <data name="FullView" xml:space="preserve"><value>完整视图</value></data>
+  <data name="FullViewButtonLabel" xml:space="preserve"><value>完整</value></data>
   <data name="ProcessProperties" xml:space="preserve"><value>进程属性</value></data>
   <data name="OpenFileLocation" xml:space="preserve"><value>打开文件所在的位置</value></data>
   <data name="CopyDetails" xml:space="preserve"><value>复制详细信息</value></data>
@@ -1393,7 +1395,7 @@ Windows 健康状态：{2}</value>
   <data name="ProcessDumpFailed" xml:space="preserve"><value>Could not create the dump: {0}</value></data>
   <data name="ProcessFileMissing" xml:space="preserve"><value>The recorded executable no longer exists at this location.</value></data>
   <data name="ProcessApplicationLabel" xml:space="preserve"><value>应用程序</value></data>
-  <data name="AlwaysOnTop" xml:space="preserve"><value>始终置顶</value></data>
+  <data name="AlwaysOnTop" xml:space="preserve"><value>置顶</value></data>
   <data name="CpuClockDescription" xml:space="preserve"><value>Windows 报告的当前 CPU 时钟频率，取逻辑处理器的平均值。</value></data>
   <data name="ResizeChartAndProcesses" xml:space="preserve"><value>拖动以调整图表和进程区域的高度</value></data>
   <data name="ProcessesTab" xml:space="preserve"><value>进程</value></data>
@@ -1846,8 +1848,8 @@ Windows 健康状态：{2}</value>
   <data name="GuideAutomaticStep2" xml:space="preserve"><value>使用图表工具栏上的自动按钮查看捕获。符合条件的规则会保存本地文本报告；冷却时间可防止重复捕获。</value></data>
   <data name="GuideCompactTitle" xml:space="preserve"><value>紧凑视图与快捷键</value></data>
   <data name="GuideCompactIntro" xml:space="preserve"><value>随时方便地查看监控。</value></data>
-  <data name="GuideCompactStep1" xml:space="preserve"><value>在标题栏选择紧凑视图以显示仪表；选择完整视图以恢复仪表板。</value></data>
-  <data name="GuideCompactStep2" xml:space="preserve"><value>使用始终置顶，或在设置 → 常规中配置显示/隐藏快捷键和启动视图。</value></data>
+  <data name="GuideCompactStep1" xml:space="preserve"><value>在标题栏选择紧凑以显示仪表；选择完整以恢复仪表板。</value></data>
+  <data name="GuideCompactStep2" xml:space="preserve"><value>使用置顶，或在设置 → 常规中配置显示/隐藏快捷键和启动视图。</value></data>
   <data name="GuideWalkthroughTitle" xml:space="preserve"><value>试一试：调查 CPU 峰值</value></data>
   <data name="GuideWalkthroughIntro" xml:space="preserve"><value>从图表上的峰值找到相关应用。</value></data>
   <data name="GuideWalkthroughStep1" xml:space="preserve"><value>选择图表上的峰值，打开进程并按 CPU 排序。</value></data>

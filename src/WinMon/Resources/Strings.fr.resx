@@ -1364,7 +1364,9 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
   <data name="NoPinnedProcessesMatch" xml:space="preserve"><value>Aucun processus épinglé dans cette vue. Utilisez le bouton ou le menu de la ligne pour en épingler un.</value></data>
   <data name="ProcessesHeading" xml:space="preserve"><value>Processus</value></data>
   <data name="CompactView" xml:space="preserve"><value>Vue compacte</value></data>
+  <data name="CompactViewButtonLabel" xml:space="preserve"><value>Compacte</value></data>
   <data name="FullView" xml:space="preserve"><value>Vue complète</value></data>
+  <data name="FullViewButtonLabel" xml:space="preserve"><value>Complète</value></data>
   <data name="ProcessProperties" xml:space="preserve"><value>Propriétés du processus</value></data>
   <data name="OpenFileLocation" xml:space="preserve"><value>Ouvrir l’emplacement du fichier</value></data>
   <data name="CopyDetails" xml:space="preserve"><value>Copier les détails</value></data>
@@ -1393,7 +1395,7 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
   <data name="ProcessDumpFailed" xml:space="preserve"><value>Could not create the dump: {0}</value></data>
   <data name="ProcessFileMissing" xml:space="preserve"><value>The recorded executable no longer exists at this location.</value></data>
   <data name="ProcessApplicationLabel" xml:space="preserve"><value>Application</value></data>
-  <data name="AlwaysOnTop" xml:space="preserve"><value>Toujours au premier plan</value></data>
+  <data name="AlwaysOnTop" xml:space="preserve"><value>Épingler</value></data>
   <data name="CpuClockDescription" xml:space="preserve"><value>Fréquence actuelle du processeur indiquée par Windows, moyenne des processeurs logiques.</value></data>
   <data name="ResizeChartAndProcesses" xml:space="preserve"><value>Faire glisser pour redimensionner le graphique et les processus</value></data>
   <data name="ProcessesTab" xml:space="preserve"><value>Processus</value></data>
@@ -1855,8 +1857,8 @@ Le travail non enregistré peut être perdu. Tous les processus ci-dessous seron
   <data name="GuideAutomaticStep2" xml:space="preserve"><value>Utilisez Auto dans la barre du graphique pour consulter les captures. Les règles déclenchées sauvegardent des rapports texte locaux ; le délai évite les captures répétées.</value></data>
   <data name="GuideCompactTitle" xml:space="preserve"><value>Vue compacte et raccourcis</value></data>
   <data name="GuideCompactIntro" xml:space="preserve"><value>Gardez la surveillance à portée de main.</value></data>
-  <data name="GuideCompactStep1" xml:space="preserve"><value>Choisissez Vue compacte dans la barre de titre pour les jauges ; Vue complète rétablit le tableau de bord.</value></data>
-  <data name="GuideCompactStep2" xml:space="preserve"><value>Utilisez Toujours au premier plan ou configurez le raccourci afficher/masquer et la vue au démarrage dans Paramètres → Général.</value></data>
+  <data name="GuideCompactStep1" xml:space="preserve"><value>Choisissez Compacte dans la barre de titre pour les jauges ; Complète rétablit le tableau de bord.</value></data>
+  <data name="GuideCompactStep2" xml:space="preserve"><value>Utilisez Épingler ou configurez le raccourci afficher/masquer et la vue au démarrage dans Paramètres → Général.</value></data>
   <data name="GuideWalkthroughTitle" xml:space="preserve"><value>À essayer : examiner un pic CPU</value></data>
   <data name="GuideWalkthroughIntro" xml:space="preserve"><value>Remontez du pic dans le graphique à l’app concernée.</value></data>
   <data name="GuideWalkthroughStep1" xml:space="preserve"><value>Sélectionnez le pic dans le graphique, ouvrez Processus et triez par CPU.</value></data>

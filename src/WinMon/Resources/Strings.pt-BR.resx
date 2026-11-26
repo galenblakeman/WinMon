@@ -1364,7 +1364,9 @@ O trabalho não salvo pode ser perdido. Todos os processos listados abaixo serã
   <data name="NoPinnedProcessesMatch" xml:space="preserve"><value>Nenhum processo fixado nesta exibição. Use o botão ou o menu da linha para fixar um processo.</value></data>
   <data name="ProcessesHeading" xml:space="preserve"><value>Processos</value></data>
   <data name="CompactView" xml:space="preserve"><value>Vista compacta</value></data>
+  <data name="CompactViewButtonLabel" xml:space="preserve"><value>Compacta</value></data>
   <data name="FullView" xml:space="preserve"><value>Vista completa</value></data>
+  <data name="FullViewButtonLabel" xml:space="preserve"><value>Completa</value></data>
   <data name="ProcessProperties" xml:space="preserve"><value>Propriedades do processo</value></data>
   <data name="OpenFileLocation" xml:space="preserve"><value>Abrir local do arquivo</value></data>
   <data name="CopyDetails" xml:space="preserve"><value>Copiar detalhes</value></data>
@@ -1393,7 +1395,7 @@ O trabalho não salvo pode ser perdido. Todos os processos listados abaixo serã
   <data name="ProcessDumpFailed" xml:space="preserve"><value>Could not create the dump: {0}</value></data>
   <data name="ProcessFileMissing" xml:space="preserve"><value>The recorded executable no longer exists at this location.</value></data>
   <data name="ProcessApplicationLabel" xml:space="preserve"><value>Aplicativo</value></data>
-  <data name="AlwaysOnTop" xml:space="preserve"><value>Sempre visível</value></data>
+  <data name="AlwaysOnTop" xml:space="preserve"><value>Fixar</value></data>
   <data name="CpuClockDescription" xml:space="preserve"><value>Frequência atual da CPU informada pelo Windows, média dos processadores lógicos.</value></data>
   <data name="ResizeChartAndProcesses" xml:space="preserve"><value>Arraste para redimensionar o gráfico e os processos</value></data>
   <data name="ProcessesTab" xml:space="preserve"><value>Processos</value></data>
@@ -1846,8 +1848,8 @@ O trabalho não salvo pode ser perdido. Todos os processos listados abaixo serã
   <data name="GuideAutomaticStep2" xml:space="preserve"><value>Use Auto na barra do gráfico para revisar capturas. As regras acionadas salvam relatórios de texto locais; o intervalo evita capturas repetidas.</value></data>
   <data name="GuideCompactTitle" xml:space="preserve"><value>Vista compacta e atalhos</value></data>
   <data name="GuideCompactIntro" xml:space="preserve"><value>Mantenha o monitoramento ao alcance.</value></data>
-  <data name="GuideCompactStep1" xml:space="preserve"><value>Escolha Vista compacta na barra de título para os medidores; Vista completa restaura o painel.</value></data>
-  <data name="GuideCompactStep2" xml:space="preserve"><value>Use Sempre visível ou configure o atalho de mostrar/ocultar e a visualização inicial em Configurações → Geral.</value></data>
+  <data name="GuideCompactStep1" xml:space="preserve"><value>Escolha Compacta na barra de título para os medidores; Completa restaura o painel.</value></data>
+  <data name="GuideCompactStep2" xml:space="preserve"><value>Use Fixar ou configure o atalho de mostrar/ocultar e a visualização inicial em Configurações → Geral.</value></data>
   <data name="GuideWalkthroughTitle" xml:space="preserve"><value>Experimente: investigar um pico de CPU</value></data>
   <data name="GuideWalkthroughIntro" xml:space="preserve"><value>Siga um pico do gráfico até o app responsável.</value></data>
   <data name="GuideWalkthroughStep1" xml:space="preserve"><value>Selecione o pico no gráfico, abra Processos e ordene por CPU.</value></data>
