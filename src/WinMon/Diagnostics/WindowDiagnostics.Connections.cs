@@ -8,6 +8,7 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Security.Principal;
 using System.Text.Json;
+using System.Windows;
 using MonCore.Monitoring;
 using MonCore.Windows.Monitoring;
 
@@ -80,6 +81,8 @@ internal sealed partial class WindowDiagnostics
 
         var fixture = new MainWindow(true) { Width = 1200, Height = 950 };
         fixture.Loaded -= fixture.OnLoaded;
+        fixture.Left = SystemParameters.WorkArea.Left + 20;
+        fixture.Top = SystemParameters.WorkArea.Top + 20;
         fixture.Preferences = fixture.Preferences with { ActivityPanelRatio = 1.3 };
         fixture.ApplyActivityPanel();
         using var self = Process.GetCurrentProcess();
