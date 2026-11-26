@@ -3,11 +3,12 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.Security.Principal;
+using Microsoft.Win32.SafeHandles;
 
 namespace WinMon.NetworkSetup;
 
 /// <summary>All SCM mutations are restricted to the fixed, verified WinMon service configuration.</summary>
-internal static class NativeService
+internal static partial class NativeService
 {
     private const uint AllAccess = 0xF01FF;
 
@@ -229,13 +230,46 @@ internal static class NativeService
         token.ThrowIfCancellationRequested();
         var status = Status(service);
         if (status.State == 1) return;
-        if (status.State != 3 && !ControlService(service, 1, out _))
+        // SCM's Stopped notification precedes process teardown. Pin the process while
+        // its PID is valid so repair cannot swap files that are still mapped into it.
+        if (status.State is not (4 or 5 or 6 or 7))
+            throw new InvalidOperationException("Service is changing state; retry setup after it settles.");
+        using var process = OpenProcessForExit(status.ProcessId);
+        if (!ControlService(service, 1, out _))
         {
             var error = Marshal.GetLastWin32Error();
             if (error != 1062) throw new Win32Exception(error);
         }
 
         Wait(service, 1, token);
+        WaitForProcessExit(process, TimeSpan.FromSeconds(20), token);
+    }
+
+    internal static SafeProcessHandle OpenProcessForExit(uint processId)
+    {
+        if (processId == 0) throw new InvalidOperationException("Service process ID is unavailable.");
+        // SYNCHRONIZE only: setup observes exit and never terminates the process.
+        var process = OpenProcess(0x100000, 0, processId);
+        if (!process.IsInvalid) return process;
+        var error = Marshal.GetLastWin32Error();
+        process.Dispose();
+        throw new Win32Exception(error);
+    }
+
+    internal static void WaitForProcessExit(SafeProcessHandle process, TimeSpan timeout, CancellationToken token)
+    {
+        var started = Stopwatch.GetTimestamp();
+        while (true)
+        {
+            token.ThrowIfCancellationRequested();
+            var result = WaitForSingleObject(process, 0);
+            if (result == 0) return;
+            if (result == uint.MaxValue) Throw();
+            if (result != 258) throw new InvalidOperationException("Unexpected process wait result.");
+            if (Stopwatch.GetElapsedTime(started) >= timeout)
+                throw new TimeoutException("Stopped service process did not exit; its files may still be in use.");
+            if (token.WaitHandle.WaitOne(50)) token.ThrowIfCancellationRequested();
+        }
     }
 
     private static void Wait(SafeScHandle service, uint target, CancellationToken token)
@@ -301,6 +335,12 @@ internal static class NativeService
     {
         throw new Win32Exception(Marshal.GetLastWin32Error());
     }
+
+    [LibraryImport("kernel32.dll", SetLastError = true)]
+    private static partial SafeProcessHandle OpenProcess(uint access, int inheritHandle, uint processId);
+
+    [LibraryImport("kernel32.dll", SetLastError = true)]
+    private static partial uint WaitForSingleObject(SafeProcessHandle handle, uint milliseconds);
 
     [DllImport("advapi32.dll", EntryPoint = "OpenSCManagerW", SetLastError = true, CharSet = CharSet.Unicode)]
     private static extern SafeScHandle OpenScManager(string? machine, string? database, uint access);
