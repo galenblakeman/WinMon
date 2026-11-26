@@ -10,7 +10,7 @@ This design adds temperature and throttling readings that need **no elevation, n
 
 Outside this design:
 
-- True CPU package or per-core temperature. It needs a kernel driver (LibreHardwareMonitor with PawnIO; WinRing0 is on Microsoft's vulnerable-driver blocklist). See [Deferred](#deferred).
+- True CPU package or per-core temperature, and motherboard fans. Windows has no unprivileged source for them. [External sensor sources](#external-sensor-sources) lists the follow-up options.
 - Vendor SDKs (NVML, AMD ADLX, Intel IGCL) for GPU hotspot and memory-junction temperatures.
 - Fan control, overclocking, voltages, motherboard or drive sensors, and any action that changes hardware.
 - Danger colors based on a guessed maximum safe temperature (TjMax). GPU warnings use only the driver-reported threshold below; the CPU gets none.
@@ -39,18 +39,18 @@ The thermal zone is labelled **System thermal zone** everywhere, never "CPU temp
 
 ## Data model
 
-Add to `ResourceSample`, all nullable:
+Add to `ResourceSample`:
 
-| Field | Unit |
-| --- | --- |
-| `CpuPerformanceLimitPercent` | Percentage of nominal performance; 100 means no limit |
-| `ThermalZoneCelsius` | Hottest zone that passed the checks below |
-| `ThermalZoneName` | Instance name of that zone |
-| `GpuTemperatureCelsius` | For the adapter in `GpuId` |
-| `GpuFanRpm` | For the adapter in `GpuId` |
-| `GpuPowerPercent` | For the adapter in `GpuId` |
-| `GpuTemperatureWarningCelsius` | Driver-reported throttle threshold for that adapter |
-| `GpuTemperatureMaxCelsius` | Driver-reported maximum for that adapter |
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `CpuPerformanceLimitPercent` | `double?` | Percentage of nominal performance; 100 means no limit |
+| `CpuPerformanceLimitFlags` | `uint?` | Raw `Performance Limit Flags`, kept so a later build can name the reason |
+| `ThermalZones` | `IReadOnlyList<ThermalZoneReading>` | Every zone that passed the checks below; empty when none |
+| `GpuThermals` | `IReadOnlyList<GpuThermalReading>` | One per physical adapter that reported anything; empty when none |
+
+`ThermalZoneReading` is `(string Name, double Celsius, bool Unchanging)`. `GpuThermalReading` is `(string AdapterId, string Name, double? TemperatureCelsius, double? FanRpm, double? PowerPercent, double? WarningCelsius, double? MaxCelsius)`. Both are immutable records, and the lists are never mutated after the sample is built.
+
+`AdapterId` uses the same `luid/physical-index` form as `GpuId`, which `WindowsGpuSampler` builds from the engine instance name. The gauge shows the `GpuThermals` entry whose `AdapterId` equals `GpuId`, so a linked-adapter GPU pairs by physical index as well as LUID.
 
 Add a `SystemMetricCapabilities.Temperature` flag. It is set when at least one of the readings above was seen during the session. Without it, the UI shows nothing new.
 
@@ -60,12 +60,13 @@ Store every temperature in Celsius. A °C/°F setting changes display only.
 
 ## Validation rules
 
-- **GPU adapter.** Temperature, fan and power come from the same adapter LUID as `GpuId`, the adapter whose engine is busiest. Never average across adapters. The tooltip may list the others.
+- **GPU adapter.** The gauge's temperature, fan and power come from the `GpuThermals` entry matching `GpuId` (LUID and physical index), the adapter whose engine is busiest. Never average across adapters. The tooltip lists the other entries under their own names.
 - **Zero means missing.** D3DKMT reports 0 for an unsupported field. Treat 0 °C and 0% power as null. Treat 0 RPM as null only when caps report no `MaxFanRpm`; with a maximum it means the fans have stopped, which many cards do when cool.
 - **Powered-off GPU.** Do not use `PowerStateOverride` to hide readings: a running desktop RTX 5080 reports 0. A hybrid laptop run must show what a powered-off GPU returns and that the query does not wake it.
 - **Plausible range.** Discard temperatures outside 1–150 °C.
-- **Stuck thermal zones.** Discard a zone whose value has not changed for 10 minutes of sampling while CPU load varied by more than 20 points. Common fake constants (for example 27.8 °C) are caught by this rule, so no hard-coded list is needed.
-- **Several zones.** The gauge shows the hottest valid zone. The tooltip lists each one.
+- **Unchanging thermal zones.** A steady value is not proof of a broken sensor: a chassis sensor can stay level while the CPU works. So never drop a zone for being steady. Set `Unchanging` when a High Precision zone has not changed for 10 minutes of sampling while CPU load varied by more than 20 points, and show it in the tooltip as "unchanged for 10 min". Clear the flag on the next change. A sampling gap or collector reset clears the history, as it does for other rates. Whole-kelvin zones are never flagged, because a one-kelvin step hides small changes.
+- **Several zones.** The tooltip lists every zone, hottest first. No zone appears on the gauge.
+- **Peaks follow identity.** A 10-minute peak belongs to one zone name or one `AdapterId`. When `GpuId` switches to another adapter, the GPU tooltip shows that adapter's own peak, never one carried over from the previous adapter. A peak's history resets with the same gaps and resets as above.
 
 ## UI
 
@@ -73,26 +74,30 @@ The [mockup](#mockup) shows the three placements below, on the dark theme in Ful
 
 ### Secondary gauge line
 
-When a reading exists, append it after the existing sub-value: `4.30 GHz · 52 °C` for CPU and `3D · 61 °C` for GPU. With no reading the line stays exactly as it is today. Compact view uses the same line.
+GPU only: when the paired adapter reports a temperature, append it after the existing sub-value, as in `3D · 61 °C`. With no reading the line stays exactly as it is today. Compact view uses the same line.
 
-### Thermal-limit marker
+The CPU line stays the clock alone. A thermal zone is not the CPU's temperature, and a number under the CPU label would read as one, so zones appear only in the tooltip under their own heading.
 
-While the performance limit is below 100 for at least two consecutive samples:
+### Limit markers
 
-- an amber flame icon follows the "CPU" label, with the accessible name "Thermal limit";
+**CPU: performance limited.** While `CpuPerformanceLimitPercent` is below 100 for at least two consecutive samples:
+
+- a limit icon (a gauge with a downward arrow, not a flame) follows the "CPU" label, with the accessible name "Performance limited";
 - the clock value turns amber;
 - the gauge tile gets an amber border.
 
-The percentage arc keeps its resource color. Throttling is a separate signal from load and does not turn the gauge into a warning. The marker needs a non-color cue (the icon) and must read correctly in every theme and palette.
+The wording stays "Performance limited", because the counter drops for power and firmware limits as well as heat. `CpuPerformanceLimitFlags` is stored with every sample. A later build may say "Thermal limit" only once real hardware has tied a flag bit to thermal throttling. Until then the tooltip shows the raw flags value for diagnosis.
 
-The GPU gauge shows the same marker when its temperature reaches the driver-reported `TemperatureWarning`. Without that threshold the GPU gets no marker. Neither GPU in the first hardware run reported one, so expect the GPU marker to be rare.
+**GPU: thermal limit.** The GPU gauge shows a flame icon, accessible name "Thermal limit", when the paired adapter's temperature reaches its driver-reported `TemperatureWarning`. That threshold is defined as where temperature-based throttling begins, so this marker is thermal by definition. Without the threshold the GPU gets no marker. Neither GPU in the first hardware run reported one, so expect it to be rare.
+
+The percentage arc keeps its resource color in both cases. A limit is a separate signal from load and does not turn the gauge into a warning. Each marker has a non-color cue (its icon) and must read correctly in every theme and palette.
 
 ### Tooltips
 
 Extend the existing [resource detail tooltips](HOVER-DETAILS.md):
 
-- **CPU:** kernel share, clock and its maximum, the limit with its current duration ("Limited to 62% for 0:42"), system thermal zone with each zone listed, the 10-minute peak with its time, and the footnote "ACPI thermal zone, not the CPU die".
-- **GPU:** adapter name, temperature with the throttle threshold when reported ("61 °C of 83 °C"), otherwise with `TemperatureMax` ("61 °C of 88 °C max"), fan, power, the existing dedicated memory, the 10-minute peak with its time, and the footnote "Same adapter as utilization".
+- **CPU:** kernel share, clock and its maximum, the limit with its current duration and raw flags ("Limited to 62% for 0:42, flags 0x2"), a "System thermal zones" heading with every zone, hottest first, each with its own 10-minute peak and time, and the footnote "ACPI thermal zone, not the CPU die".
+- **GPU:** adapter name, temperature with the throttle threshold when reported ("61 °C of 83 °C"), otherwise with `TemperatureMax` ("61 °C of 88 °C max"), fan, power, the existing dedicated memory, that adapter's 10-minute peak with its time, other adapters' temperatures by name, and the footnote "Same adapter as utilization".
 
 All visible text, tooltips and accessibility names go in `Strings.resx` and the nine translations. Check German and Polish for wrapping in the gauge header and tooltip rows.
 
@@ -102,7 +107,7 @@ Not part of the first delivery, listed so the data model allows them:
 
 - An optional temperature series in the [chart legend](CHART-RESOURCE-LEGEND.md), plotted against its own °C axis.
 - Temperature in History, incident recordings and [longer trends](LONGER-RESOURCE-TRENDS.md). Longer trends keep each minute's maximum, not its average.
-- Automatic-capture conditions such as "GPU temperature ≥ 85 °C for 30 s" or "CPU throttled for 10 s". This adds `CaptureMetric` values.
+- Automatic-capture conditions such as "GPU temperature ≥ 85 °C for 30 s" or "CPU performance limited for 10 s". This adds `CaptureMetric` values.
 - CLI snapshot fields and MCP resource tools.
 
 ## Performance
@@ -113,14 +118,14 @@ One D3DKMT call per adapter per tick, opened with `D3DKMTOpenAdapterFromLuid` on
 
 1. **Hardware spike.** [tools/TemperatureProbe.cs](../../tools/TemperatureProbe.cs) is a throwaway single-file console probe that prints, once a second for two minutes under idle and full load: D3DKMT perf data and caps for each adapter (including whether a powered-off GPU stays off), every thermal zone, `% Performance Limit` and `MhzLimit`. Run it on at least one desktop with a discrete GPU, one laptop with only an integrated GPU, and one laptop with both. Record the results in this note. If thermal zones are stuck or absent on most of these machines, drop the thermal zone and ship throttling and GPU readings only.
 2. **Collectors and model.** The `ResourceSample` fields, the capability flag, validation rules and unit tests fed through the fake `IFrameSource`.
-3. **UI.** Secondary line, thermal-limit marker, tooltips, strings and translations, °C/°F setting.
+3. **UI.** GPU secondary line, limit markers, tooltips, strings and translations, °C/°F setting.
 4. **Docs.** Remove the "temperature is out of scope" statements from README, the user guide, DEVELOPMENT.md and the design notes that carry them.
 
 Acceptance requires:
 
-- Unit tests for each validation rule: zero-as-missing, range limits, stuck-zone detection, hottest-zone choice and adapter pairing with `GpuId`.
+- Unit tests for each validation rule: zero-as-missing, range limits, setting and clearing `Unchanging` (including after a gap), zone ordering, adapter pairing with `GpuId` including the physical index, and peaks staying with their own zone or adapter when `GpuId` switches.
 - A characterization test showing that a sample with every new field null renders the gauges identically to today.
-- A smoke mode, or an extension of an existing one, rendering normal, throttled, GPU-with-sensor and no-sensor states in Dark and Light, and in Compact view. Review the PNGs.
+- A smoke mode, or an extension of an existing one, rendering normal, CPU performance-limited, GPU thermal-limit, GPU-with-sensor and no-sensor states in Dark and Light, and in Compact view. Review the PNGs.
 - `./tools/Verify.ps1` and `./tools/Verify.ps1 -Store` (the Settings page changes).
 - Before/after measurements in performance history with no unexplained regression.
 
@@ -148,21 +153,81 @@ What the desktop shows:
 
 The integrated-only laptop and the hybrid laptop are still to run.
 
-## Deferred
+## External sensor sources
 
-- **CPU die temperature.** It would need a signed ring-0 driver loaded by the existing LocalSystem network service, as an explicit opt-in that the Store build cannot offer. Consider it only if users ask for it after throttling ships, and only with a driver that is not on the vulnerable-driver blocklist.
+CPU die temperature and motherboard fans need ring-0 access to chip registers, which no Windows API offers. WinMon will not ship a kernel driver. It can instead detect sensor sources the user already has and read from them. None of this is part of the first delivery.
+
+The CAM comparison on the spike desktop shows how other tools do it. CAM showed a 73 °C CPU temperature and a 1,775 RPM CPU fan, while that machine had six third-party kernel drivers loaded for this purpose: AMD's Ryzen Master SDK driver, a CPUID SDK driver, Corsair's low-level access driver, and MSI's `MsIo64` and two `NTIOLib` copies. `MsIo64` has a published arbitrary physical-memory read/write vulnerability (CVE-2019-18845).
+
+### Monitoring tools the user runs
+
+These publish sensors only while the tool is **running**. WinMon reads them unprivileged, so the Store build can use them too.
+
+| Source | Detect | Read | Covers |
+| --- | --- | --- | --- |
+| HWiNFO | Shared memory `Global\HWiNFO_SENS_SM2` exists; needs "Shared Memory Support" on in HWiNFO | `MemoryMappedFile.OpenExisting`; documented header plus sensor and reading records | Broadest: CPU, motherboard, fans, drives, GPUs. The free version is believed to stop sharing after 12 hours until re-enabled. |
+| LibreHardwareMonitor (app) | WMI namespace `root\LibreHardwareMonitor` exists | WMI query on its `Sensor` class; `System.Management` is already referenced | CPU, motherboard, fans, GPUs, drives |
+| Core Temp | Its named shared-memory object exists | Documented fixed-layout struct | CPU temperatures only |
+
+MSI Afterburner and AIDA64 also publish shared memory. Afterburner is mostly GPU and partly undocumented, and AIDA64 is a paid product, so neither is planned.
+
+### Driver layers the user installs
+
+These are detected as **installed**. They probably need elevation, so reads would run in the existing LocalSystem network service, which users already opt into once with elevation. The desktop app would ask the service for sensor values as it already does for traffic. The Store build cannot offer these.
+
+| Source | Detect | Read | Notes |
+| --- | --- | --- | --- |
+| [PawnIO](https://pawnio.eu/) | `HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\PawnIO` `InstallLocation`, falling back to `%ProgramFiles%\PawnIO` | Load `PawnIOLib` from the install folder; `pawnio_open`, `pawnio_load(module)`, `pawnio_execute`. Plain exports, so ordinary P/Invoke. | A signed, general-purpose driver that runs small hardware modules: `IntelMSR`, `IntelPCHThermal`, `AMDFamily17`, `RyzenSMU`, `LpcIO`, SMBus modules. The project asks apps to link users to pawnio.eu rather than bundle it. |
+| LibreHardwareMonitorLib on PawnIO | As PawnIO | Reference the NuGet library in the network service | Supplies the chip-by-chip knowledge that raw PawnIO calls would need. A large dependency on a sampling path. |
+| AMD Ryzen Master Monitoring SDK | `C:\Program Files\AMD\RyzenMasterSDK` (present on the spike desktop) | C++ class API, so it needs a native shim | AMD CPUs only. Tied to SDK versions. |
+
+### Rejected
+
+- **CPUID SDK:** commercial license.
+- **WinRing0 and InpOut:** vulnerable, and blocklisted or flagged by Defender.
+- **Motherboard-vendor drivers** (MSI `NTIOLib`/`MsIo64`, Corsair `LLAccess` and similar): undocumented, several with published vulnerabilities.
+- **Intel:** there is no current public SDK. Power Gadget is discontinued, XTU has no public SDK, and Intel PCM needs its own driver on Windows.
+- **Vendor ACPI-WMI interfaces** (some ASUS, Gigabyte, Dell and Lenovo boards): patchy, and different per vendor.
+- **WMI `MSAcpi_ThermalZoneTemperature`:** needs admin and returns the same ACPI zones as the PDH counters.
+
+### Rules for any external source
+
+- **Untrusted input.** Another process's shared memory or WMI data crosses a trust boundary. Bounds-check every size and offset against the mapped length, cap the sensor count, and range-check values as the [validation rules](#validation-rules) do.
+- **Attribution.** Tooltips name the source ("from HWiNFO") and keep the tool's own sensor names. A die temperature from these tools may appear under the CPU, labelled with its source. An ACPI zone never does.
+- **One source per sensor.** When several are present, use a fixed order: HWiNFO, LibreHardwareMonitor, Core Temp, then a driver layer. Never mix sources for the same sensor.
+- **Disappearing sources.** When a tool exits, its readings become null and the UI returns to the built-in view. Re-detect about every 30 seconds, not every tick.
+- **No installs.** WinMon never installs a tool or driver. Settings may link to the project's own download page.
+
+### Open questions
+
+- **PawnIO elevation:** whether opening the driver needs admin. The project's sources don't say.
+- **Zen 5:** whether `AMDFamily17` covers family 1Ah (the spike desktop's 9950X3D). No module is named for 19h or 1Ah.
+- **Memory integrity:** whether PawnIO loads with Memory integrity (HVCI) on.
+- **Licensing:**
+  - The PawnIO driver is GPL-2.0, with an exception for programs that use only its device interface.
+  - `PawnIOLib` and the modules are LGPL-2.1.
+  - The signed binaries are proprietary, but their installer may be redistributed.
+  - LibreHardwareMonitorLib is MPL-2.0.
+
+  WinMon is MIT. Bundling module blobs or the library needs a licensing check.
+- **Names and defaults:** the shared-memory object names, HWiNFO's free-version limit and whether LibreHardwareMonitor publishes WMI by default come from memory. Verify each against the tool before building on it.
+
+A PawnIO mode in [the probe](../../tools/TemperatureProbe.cs), run elevated on the spike desktop and compared with CAM, would settle the first three questions. The cheapest first step is the HWiNFO and LibreHardwareMonitor readers: unprivileged and small, covering Intel and AMD for anyone running either tool.
+
+## Deferred
 - **Vendor GPU SDKs.** Load NVML, ADLX or IGCL dynamically only if users ask for hotspot or memory-junction temperatures.
 - **Thresholds and colors.** A user-set temperature threshold, if automatic-capture conditions prove useful.
 
 ## Mockup
 
-An illustrative mockup was drawn during design review (not saved as a file). It shows, left to right, CPU normal (`4.30 GHz · 52 °C`), CPU throttled (amber flame, amber `2.10 GHz`, amber border), GPU with a sensor (`3D · 61 °C`) and GPU without one (`3D`, unchanged), then the CPU and GPU tooltips described above. All values were illustrative.
+An illustrative mockup was drawn during design review (not saved as a file). It shows, left to right, CPU normal (`4.30 GHz · 52 °C`), CPU throttled (amber flame, amber `2.10 GHz`, amber border), GPU with a sensor (`3D · 61 °C`) and GPU without one (`3D`, unchanged), then the CPU and GPU tooltips described above. All values were illustrative. The mockup predates the design review: it put a thermal-zone temperature on the CPU gauge and used a flame for the CPU marker, and both have since changed (see [UI](#ui)).
 
 ## Sources
 
 - [D3DKMT_ADAPTER_PERFDATA](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/d3dkmthk/ns-d3dkmthk-_d3dkmt_adapter_perfdata): GPU temperature, fan RPM, power and power state fields.
 - [D3DKMT_ADAPTER_PERFDATACAPS](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/d3dkmthk/ns-d3dkmthk-_d3dkmt_adapter_perfdatacaps): `TemperatureWarning` and `TemperatureMax`, WDDM 2.4 and later.
 - [PROCESSOR_POWER_INFORMATION](https://learn.microsoft.com/en-us/windows/win32/power/processor-power-information-str): `CurrentMhz`, `MaxMhz` and `MhzLimit`.
+- [PawnIO](https://pawnio.eu/), [PawnIO](https://github.com/namazso/PawnIO), [PawnIO.Modules](https://github.com/namazso/PawnIO.Modules) and its [wiki](https://github.com/namazso/PawnIO.Modules/wiki): driver editions, installation, detection, API and licenses.
 - [Microsoft vulnerable driver blocklist](https://learn.microsoft.com/en-us/windows/security/application-security/application-control/app-control-for-business/design/microsoft-recommended-driver-block-rules): why a WinRing0-style driver is not an option.
 
 ## What landed and departures
