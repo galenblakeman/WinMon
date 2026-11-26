@@ -2162,10 +2162,7 @@ Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。<
   <data name="CpuTemperatureMonitoringRemoveConfirm" xml:space="preserve"><value>要为此计算机上的所有 Windows 用户删除 CPU 传感器服务吗？需要管理员批准。所有用户的 CPU 温度监控都将停止。</value></data>
   <data name="CpuTemperatureMonitoringRepair" xml:space="preserve"><value>修复 CPU 温度监控</value></data>
   <data name="SettingsSensors" xml:space="preserve"><value>传感器</value></data>
-  <data name="SensorGpuTemperature" xml:space="preserve"><value>GPU 温度</value></data>
-  <data name="SensorGpuPower" xml:space="preserve"><value>GPU 功率</value></data>
   <data name="GaugeGpuPower" xml:space="preserve"><value>功率 {0}</value></data>
-  <data name="SensorPreview" xml:space="preserve"><value>传感器预览</value></data>
   <data name="SensorHardwareMonitoring" xml:space="preserve"><value>硬件监控</value></data>
   <data name="SensorEnableHardware" xml:space="preserve"><value>启用硬件传感器</value></data>
   <data name="DetailCpuFans" xml:space="preserve"><value>CPU 风扇</value></data>
@@ -2179,4 +2176,10 @@ Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。<
   <data name="GpuDeviceUnavailableNote" xml:space="preserve"><value>此 GPU 不可用。请选择其他 GPU 或自动模式。</value></data>
   <data name="GpuCurrentDevice" xml:space="preserve"><value>当前监控：{0}</value></data>
   <data name="GpuDiscoveryFailed" xml:space="preserve"><value>GPU 检测失败。请关闭并重新打开设置。</value></data>
+  <data name="ServicesIntro" xml:space="preserve"><value>可选的后台服务。首次设置需要管理员批准。</value></data>
+  <data name="ServicesHardwareHeading" xml:space="preserve"><value>硬件传感器</value></data>
+  <data name="ServicesHardwareNote" xml:space="preserve"><value>CPU 温度和支持的风扇转速。需要单独安装官方 PawnIO。</value></data>
+  <data name="ServicesNetworkNote" xml:space="preserve"><value>所有网络适配器的收发活动。禁用后停止收集，但共享服务仍保留安装。</value></data>
+  <data name="ServicesRepair" xml:space="preserve"><value>修复</value></data>
+  <data name="ServicesRemove" xml:space="preserve"><value>移除…</value></data>
 </root>

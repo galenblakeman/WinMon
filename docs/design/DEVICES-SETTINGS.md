@@ -27,3 +27,5 @@ The exact Devices-only commit projection, without the pre-existing sensor work, 
 Physical multi-GPU/reboot/hot-plug acceptance requires suitable hardware. The current environment exposes ambiguous virtual software adapters; native queries were exercised, but that does not establish physical-driver acceptance.
 
 What landed: the proposed Devices page and GPU Automatic/manual choice. Departure: adapters without a unique persistent hardware key remain available through Automatic only, rather than exposing a manual choice that cannot safely survive a restart.
+
+November 26 follow-up: sensor and network service controls were combined under Services. Device selection stays in Devices; the shared temperature unit is in Monitoring. See [Services settings](SERVICES-SETTINGS.md).

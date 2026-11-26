@@ -2174,10 +2174,7 @@ Auch das Wiederherstellen der Drosselung ist fehlgeschlagen: {1}</value></data>
   <data name="CpuTemperatureMonitoringRemoveConfirm" xml:space="preserve"><value>Den CPU-Sensordienst für alle Windows-Benutzer dieses Computers entfernen? Eine Administratorgenehmigung ist erforderlich. Die CPU-Temperaturüberwachung wird für alle Benutzer beendet.</value></data>
   <data name="CpuTemperatureMonitoringRepair" xml:space="preserve"><value>CPU-Temperaturüberwachung reparieren</value></data>
   <data name="SettingsSensors" xml:space="preserve"><value>Sensoren</value></data>
-  <data name="SensorGpuTemperature" xml:space="preserve"><value>GPU-Temperatur</value></data>
-  <data name="SensorGpuPower" xml:space="preserve"><value>GPU-Leistung</value></data>
   <data name="GaugeGpuPower" xml:space="preserve"><value>{0} Leistung</value></data>
-  <data name="SensorPreview" xml:space="preserve"><value>Sensorvorschau</value></data>
   <data name="SensorHardwareMonitoring" xml:space="preserve"><value>Hardwareüberwachung</value></data>
   <data name="SensorEnableHardware" xml:space="preserve"><value>Hardwaresensoren aktivieren</value></data>
   <data name="DetailCpuFans" xml:space="preserve"><value>CPU-Lüfter</value></data>
@@ -2191,4 +2188,10 @@ Auch das Wiederherstellen der Drosselung ist fehlgeschlagen: {1}</value></data>
   <data name="GpuDeviceUnavailableNote" xml:space="preserve"><value>Diese GPU ist nicht verfügbar. Wählen Sie eine andere GPU oder Automatisch.</value></data>
   <data name="GpuCurrentDevice" xml:space="preserve"><value>Aktuell überwacht: {0}</value></data>
   <data name="GpuDiscoveryFailed" xml:space="preserve"><value>GPU-Erkennung fehlgeschlagen. Schließen und öffnen Sie die Einstellungen erneut.</value></data>
+  <data name="ServicesIntro" xml:space="preserve"><value>Optionale Hintergrunddienste. Die Ersteinrichtung erfordert Administratorrechte.</value></data>
+  <data name="ServicesHardwareHeading" xml:space="preserve"><value>Hardwaresensoren</value></data>
+  <data name="ServicesHardwareNote" xml:space="preserve"><value>CPU-Temperatur und unterstützte Lüfterdrehzahlen. Erfordert separat installiertes offizielles PawnIO.</value></data>
+  <data name="ServicesNetworkNote" xml:space="preserve"><value>Sende- und Empfangsaktivität aller Netzwerkadapter. Beim Deaktivieren wird die Erfassung beendet; der gemeinsame Dienst bleibt installiert.</value></data>
+  <data name="ServicesRepair" xml:space="preserve"><value>Reparieren</value></data>
+  <data name="ServicesRemove" xml:space="preserve"><value>Entfernen…</value></data>
 </root>

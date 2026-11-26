@@ -992,11 +992,8 @@ public static partial class Strings
     public static string SelectProcess => ResourceManager.GetString(nameof(SelectProcess), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string SelectService => ResourceManager.GetString(nameof(SelectService), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string SensorEnableHardware => ResourceManager.GetString(nameof(SensorEnableHardware), Culture ?? CultureInfo.CurrentUICulture)!;
-    public static string SensorGpuPower => ResourceManager.GetString(nameof(SensorGpuPower), Culture ?? CultureInfo.CurrentUICulture)!;
-    public static string SensorGpuTemperature => ResourceManager.GetString(nameof(SensorGpuTemperature), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string SensorHardwareMonitoring => ResourceManager.GetString(nameof(SensorHardwareMonitoring), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string SensorHardwareNote => ResourceManager.GetString(nameof(SensorHardwareNote), Culture ?? CultureInfo.CurrentUICulture)!;
-    public static string SensorPreview => ResourceManager.GetString(nameof(SensorPreview), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ServiceActionFailed => ResourceManager.GetString(nameof(ServiceActionFailed), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ServiceActionInProgress => ResourceManager.GetString(nameof(ServiceActionInProgress), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ServiceAverageSummary => ResourceManager.GetString(nameof(ServiceAverageSummary), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -1015,7 +1012,13 @@ public static partial class Strings
     public static string Services => ResourceManager.GetString(nameof(Services), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ServicesBy => ResourceManager.GetString(nameof(ServicesBy), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ServicesCollecting => ResourceManager.GetString(nameof(ServicesCollecting), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ServicesHardwareHeading => ResourceManager.GetString(nameof(ServicesHardwareHeading), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ServicesHardwareNote => ResourceManager.GetString(nameof(ServicesHardwareNote), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ServicesIntro => ResourceManager.GetString(nameof(ServicesIntro), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ServicesNetworkNote => ResourceManager.GetString(nameof(ServicesNetworkNote), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ServiceSort => ResourceManager.GetString(nameof(ServiceSort), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ServicesRemove => ResourceManager.GetString(nameof(ServicesRemove), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ServicesRepair => ResourceManager.GetString(nameof(ServicesRepair), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ServicesTabHelp => ResourceManager.GetString(nameof(ServicesTabHelp), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ServiceStarting => ResourceManager.GetString(nameof(ServiceStarting), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ServiceStatus => ResourceManager.GetString(nameof(ServiceStatus), Culture ?? CultureInfo.CurrentUICulture)!;

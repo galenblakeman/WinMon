@@ -82,10 +82,10 @@ public sealed partial class SettingsShortcutCharacterizationTests
     {
         WithInactiveKeyboard(window =>
         {
-            window.ShowSection(SettingsSection.Network);
+            window.ShowSection(SettingsSection.Services);
             var input = Input(Key.Tab);
             window.RaiseEvent(input);
-            Assert.That(window.Section, Is.EqualTo(SettingsSection.Network));
+            Assert.That(window.Section, Is.EqualTo(SettingsSection.Services));
             Assert.That(input.Handled, Is.False);
             Assert.That(window.Result, Is.Null);
         });
@@ -132,14 +132,14 @@ public sealed partial class SettingsShortcutCharacterizationTests
     public void SectionNavigationControlledModifiersRespectTheBusyGuard(Key key)
     {
         var window = Window(new MonitorPreferences(), _ => throw new AssertionException("Busy navigation must not probe shortcuts"));
-        window.ShowSection(SettingsSection.Network);
+        window.ShowSection(SettingsSection.Services);
         var busy = NetworkBusy(window);
         busy(true);
         try
         {
             var input = Input(key);
             window.HandleSectionKeyDown(input, ModifierKeys.Control | ModifierKeys.Shift);
-            Assert.That(window.Section, Is.EqualTo(SettingsSection.Network));
+            Assert.That(window.Section, Is.EqualTo(SettingsSection.Services));
             Assert.That(input.Handled, Is.False);
             Assert.That(window.Navigation.IsEnabled, Is.False);
             Assert.That(window.SaveButton.IsEnabled, Is.False);

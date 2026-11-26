@@ -839,8 +839,7 @@ public partial class MainWindow
                     : SensorMonitoringState.StoreUnavailable))
             {
                 Owner = this,
-                GetGpuSample = () => Session.LatestFull?.Resources,
-                GetSensorSample = () => Session.LatestFull?.Resources
+                GetGpuSample = () => Session.LatestFull?.Resources
             };
             ObserveNetworkMonitoring(dialog);
             ObserveCpuTemperatureMonitoring(dialog);

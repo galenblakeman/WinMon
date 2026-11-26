@@ -25,7 +25,7 @@ public partial class MainWindow
     {
         ConnectionView.TrafficSettingsRequested += () =>
         {
-            _lastSettingsSection = SettingsSection.Network;
+            _lastSettingsSection = SettingsSection.Services;
             OnSettings(this, new RoutedEventArgs());
         };
         ConnectionView.CanShowInProcesses = process =>

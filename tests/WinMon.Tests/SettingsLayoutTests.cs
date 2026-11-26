@@ -110,8 +110,7 @@ public sealed class SettingsLayoutTests
             var expected = new List<SettingsSection>
                 { SettingsSection.General, SettingsSection.Appearance, SettingsSection.Monitoring };
             expected.Add(SettingsSection.Devices);
-            expected.Add(SettingsSection.Sensors);
-            expected.Add(SettingsSection.Network);
+            expected.Add(SettingsSection.Services);
             expected.Add(SettingsSection.AutomaticCaptures);
             if (UpdatePolicy.GitHubUpdatesEnabled) expected.Add(SettingsSection.Updates);
             var shown = expected.Select(section =>
@@ -152,7 +151,7 @@ public sealed class SettingsLayoutTests
             var monitoring = Descendants(window).ToArray();
             window.ShowSection(SettingsSection.Devices);
             var devices = Descendants(window).ToArray();
-            window.ShowSection(SettingsSection.Network);
+            window.ShowSection(SettingsSection.Services);
             var network = Descendants(window).ToArray();
             window.ShowSection(SettingsSection.Monitoring);
 
@@ -182,9 +181,9 @@ public sealed class SettingsLayoutTests
                 Assert.That(devices, Does.Contain(window.GpuSelector));
                 Assert.That(monitoring, Does.Not.Contain(window.SecondaryDriveSelector));
                 Assert.That(monitoring, Does.Not.Contain(window.NetworkInterfaceSelector));
-                Assert.That(monitoring.OfType<NetworkMonitoringSettings>(), Is.Empty);
+                Assert.That(monitoring.OfType<ServicesSettings>(), Is.Empty);
                 Assert.That(network, Does.Not.Contain(window.NetworkInterfaceSelector));
-                Assert.That(network.OfType<NetworkMonitoringSettings>(), Is.Not.Empty);
+                Assert.That(network.OfType<ServicesSettings>(), Is.Not.Empty);
                 Assert.That(network, Does.Not.Contain(window.GaugePeakWindowSelector));
                 Assert.That(network, Does.Not.Contain(window.PrimaryDriveSelector));
                 Assert.That(network, Does.Not.Contain(window.SecondaryDriveSelector));
@@ -675,7 +674,7 @@ public sealed class SettingsLayoutTests
 
             await window.SaveAsync();
 
-            Assert.That(window.Section, Is.EqualTo(SettingsSection.Network));
+            Assert.That(window.Section, Is.EqualTo(SettingsSection.Services));
             if (!NetworkSetupBroker.Supported)
             {
                 Assert.Multiple(() =>

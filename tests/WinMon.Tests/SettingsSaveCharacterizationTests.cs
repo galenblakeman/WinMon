@@ -429,7 +429,7 @@ public sealed partial class SettingsSaveCharacterizationTests
                 Assert.That(calls, Is.EqualTo(outcome == "missing" ? 0 : 1));
                 Assert.That(window.Result, Is.Null);
                 Assert.That(window.IsVisible, Is.True);
-                Assert.That(window.Section, Is.EqualTo(SettingsSection.Network));
+                Assert.That(window.Section, Is.EqualTo(SettingsSection.Services));
                 Assert.That(window.SaveButton.IsEnabled, Is.True);
                 Assert.That(window.Navigation.IsEnabled, Is.True);
                 Assert.That(window.ProcessNetworkMonitoringCheckBox.IsEnabled, Is.True);
@@ -515,7 +515,7 @@ public sealed partial class SettingsSaveCharacterizationTests
             {
                 Assert.That(calls, Is.Zero);
                 Assert.That(window.Result, Is.Null);
-                Assert.That(window.Section, Is.EqualTo(SettingsSection.Network));
+                Assert.That(window.Section, Is.EqualTo(SettingsSection.Services));
                 Assert.That(window.ProcessNetworkMonitoringStatus.Text, Is.EqualTo(Strings.NetworkProcessMonitoringStoreUnavailable));
                 Assert.That(window.SaveButton.IsEnabled, Is.True);
             });

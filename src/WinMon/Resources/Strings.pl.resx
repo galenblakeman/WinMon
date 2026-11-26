@@ -2162,10 +2162,7 @@ Przywrócenie ograniczania również nie powiodło się: {1}</value></data>
   <data name="CpuTemperatureMonitoringRemoveConfirm" xml:space="preserve"><value>Usunąć usługę czujników CPU dla wszystkich użytkowników systemu Windows na tym komputerze? Wymagana jest zgoda administratora. Monitorowanie temperatury CPU zostanie zatrzymane dla wszystkich użytkowników.</value></data>
   <data name="CpuTemperatureMonitoringRepair" xml:space="preserve"><value>Napraw monitorowanie temperatury CPU</value></data>
   <data name="SettingsSensors" xml:space="preserve"><value>Czujniki</value></data>
-  <data name="SensorGpuTemperature" xml:space="preserve"><value>Temperatura GPU</value></data>
-  <data name="SensorGpuPower" xml:space="preserve"><value>Moc GPU</value></data>
   <data name="GaugeGpuPower" xml:space="preserve"><value>{0} mocy</value></data>
-  <data name="SensorPreview" xml:space="preserve"><value>Podgląd czujników</value></data>
   <data name="SensorHardwareMonitoring" xml:space="preserve"><value>Monitorowanie sprzętu</value></data>
   <data name="SensorEnableHardware" xml:space="preserve"><value>Włącz czujniki sprzętowe</value></data>
   <data name="DetailCpuFans" xml:space="preserve"><value>Wentylatory CPU</value></data>
@@ -2179,4 +2176,10 @@ Przywrócenie ograniczania również nie powiodło się: {1}</value></data>
   <data name="GpuDeviceUnavailableNote" xml:space="preserve"><value>Ten GPU jest niedostępny. Wybierz inny GPU lub tryb automatyczny.</value></data>
   <data name="GpuCurrentDevice" xml:space="preserve"><value>Obecnie monitorowane: {0}</value></data>
   <data name="GpuDiscoveryFailed" xml:space="preserve"><value>Wykrywanie GPU nie powiodło się. Zamknij i otwórz ponownie Ustawienia.</value></data>
+  <data name="ServicesIntro" xml:space="preserve"><value>Opcjonalne usługi w tle. Pierwsza konfiguracja wymaga zgody administratora.</value></data>
+  <data name="ServicesHardwareHeading" xml:space="preserve"><value>Czujniki sprzętowe</value></data>
+  <data name="ServicesHardwareNote" xml:space="preserve"><value>Temperatura CPU i obsługiwane prędkości wentylatorów. Wymaga osobnej instalacji oficjalnego PawnIO.</value></data>
+  <data name="ServicesNetworkNote" xml:space="preserve"><value>Wysyłanie i odbieranie danych przez wszystkie karty sieciowe. Wyłączenie zatrzymuje zbieranie danych, pozostawiając wspólną usługę zainstalowaną.</value></data>
+  <data name="ServicesRepair" xml:space="preserve"><value>Napraw</value></data>
+  <data name="ServicesRemove" xml:space="preserve"><value>Usuń…</value></data>
 </root>

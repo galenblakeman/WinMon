@@ -2174,10 +2174,7 @@ La restauration de la limitation a aussi échoué : {1}</value></data>
   <data name="CpuTemperatureMonitoringRemoveConfirm" xml:space="preserve"><value>Supprimer le service de capteurs du processeur pour tous les utilisateurs Windows de cet ordinateur ? L’autorisation d’un administrateur est requise. La surveillance de la température du processeur s’arrêtera pour tous les utilisateurs.</value></data>
   <data name="CpuTemperatureMonitoringRepair" xml:space="preserve"><value>Réparer la surveillance de la température du processeur</value></data>
   <data name="SettingsSensors" xml:space="preserve"><value>Capteurs</value></data>
-  <data name="SensorGpuTemperature" xml:space="preserve"><value>Température du GPU</value></data>
-  <data name="SensorGpuPower" xml:space="preserve"><value>Puissance du GPU</value></data>
   <data name="GaugeGpuPower" xml:space="preserve"><value>Puiss. {0}</value></data>
-  <data name="SensorPreview" xml:space="preserve"><value>Aperçu des capteurs</value></data>
   <data name="SensorHardwareMonitoring" xml:space="preserve"><value>Surveillance du matériel</value></data>
   <data name="SensorEnableHardware" xml:space="preserve"><value>Activer les capteurs matériels</value></data>
   <data name="DetailCpuFans" xml:space="preserve"><value>Ventilateurs du processeur</value></data>
@@ -2191,4 +2188,10 @@ La restauration de la limitation a aussi échoué : {1}</value></data>
   <data name="GpuDeviceUnavailableNote" xml:space="preserve"><value>Ce GPU est indisponible. Choisissez un autre GPU ou Automatique.</value></data>
   <data name="GpuCurrentDevice" xml:space="preserve"><value>Surveillance actuelle : {0}</value></data>
   <data name="GpuDiscoveryFailed" xml:space="preserve"><value>Échec de la détection des GPU. Fermez puis rouvrez les paramètres.</value></data>
+  <data name="ServicesIntro" xml:space="preserve"><value>Services facultatifs en arrière-plan. La configuration initiale nécessite une autorisation administrateur.</value></data>
+  <data name="ServicesHardwareHeading" xml:space="preserve"><value>Capteurs matériels</value></data>
+  <data name="ServicesHardwareNote" xml:space="preserve"><value>Température du processeur et vitesses de ventilateurs prises en charge. Nécessite PawnIO officiel installé séparément.</value></data>
+  <data name="ServicesNetworkNote" xml:space="preserve"><value>Activité d’envoi et de réception sur toutes les cartes réseau. La désactivation arrête la collecte mais conserve le service partagé installé.</value></data>
+  <data name="ServicesRepair" xml:space="preserve"><value>Réparer</value></data>
+  <data name="ServicesRemove" xml:space="preserve"><value>Supprimer…</value></data>
 </root>

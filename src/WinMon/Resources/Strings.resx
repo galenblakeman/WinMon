@@ -2199,10 +2199,7 @@ Restoring throttling also failed: {1}</value></data>
   <data name="CpuTemperatureMonitoringRemoveConfirm" xml:space="preserve"><value>Remove the CPU sensor service for every Windows user on this computer? Administrator approval is required. CPU temperature monitoring will stop for all users.</value></data>
   <data name="CpuTemperatureMonitoringRepair" xml:space="preserve"><value>Repair CPU temperature monitoring</value></data>
   <data name="SettingsSensors" xml:space="preserve"><value>Sensors</value></data>
-  <data name="SensorGpuTemperature" xml:space="preserve"><value>GPU temperature</value></data>
-  <data name="SensorGpuPower" xml:space="preserve"><value>GPU power</value></data>
   <data name="GaugeGpuPower" xml:space="preserve"><value>{0} power</value></data>
-  <data name="SensorPreview" xml:space="preserve"><value>Sensor preview</value></data>
   <data name="SensorHardwareMonitoring" xml:space="preserve"><value>Hardware monitoring</value></data>
   <data name="SensorEnableHardware" xml:space="preserve"><value>Enable hardware sensors</value></data>
   <data name="DetailCpuFans" xml:space="preserve"><value>CPU fans</value></data>
@@ -2216,4 +2213,10 @@ Restoring throttling also failed: {1}</value></data>
   <data name="GpuDeviceUnavailableNote" xml:space="preserve"><value>This GPU is unavailable. Choose another GPU or Automatic.</value></data>
   <data name="GpuCurrentDevice" xml:space="preserve"><value>Currently monitoring: {0}</value></data>
   <data name="GpuDiscoveryFailed" xml:space="preserve"><value>GPU discovery failed. Close and reopen Settings to try again.</value></data>
+  <data name="ServicesIntro" xml:space="preserve"><value>Optional background services. First-time setup requires administrator approval.</value></data>
+  <data name="ServicesHardwareHeading" xml:space="preserve"><value>Hardware sensors</value></data>
+  <data name="ServicesHardwareNote" xml:space="preserve"><value>CPU temperature and supported fan speeds. Requires official PawnIO, installed separately.</value></data>
+  <data name="ServicesNetworkNote" xml:space="preserve"><value>Send and receive activity across all network adapters. Disabling stops collection but leaves the shared service installed.</value></data>
+  <data name="ServicesRepair" xml:space="preserve"><value>Repair</value></data>
+  <data name="ServicesRemove" xml:space="preserve"><value>Remove…</value></data>
 </root>

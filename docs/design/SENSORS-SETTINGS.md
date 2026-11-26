@@ -1,6 +1,6 @@
 # Sensors settings and gauge readings
 
-Settings → Sensors uses a microchip outline in the sidebar. The shared Celsius/Fahrenheit selector lives under Settings → Monitoring, beside the resource gauge options. Option 2 uses a read-only preview of CPU and GPU temperatures, GPU power, and available drive temperatures. The preview updates from the existing live sample while visible. The optional hardware sensor service has its own enable control, status, repair and removal. The Store edition keeps the preview with GPU and available drive readings; the temperature unit remains available under Monitoring.
+The hardware sensor controls live in Settings → Services alongside per-process network monitoring. See [Services settings](SERVICES-SETTINGS.md). The shared Celsius/Fahrenheit selector lives under Settings → Monitoring, beside the resource gauge options. The Store edition keeps the temperature unit and built-in sensor readings in the gauges and resource details.
 
 The CPU, disk and GPU gauges use one subtitle. CPU pairs clock and temperature. Disk pairs throughput and drive temperature. GPU pairs temperature and the driver-reported power percentage. Missing sensors leave the remaining measurements visible. Fan speeds stay in the resource details, available on hover and keyboard focus. The CPU details group board channels labeled CPU separately from other named board fans.
 
@@ -8,4 +8,4 @@ The disk collector uses read-only Windows storage IOCTLs on a background task. I
 
 The signed optional sensor service reads supported board tachometers using [LibreHardwareMonitor 0.9.6](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor/blob/v0.9.6/LibreHardwareMonitorLib/Hardware/Computer.cs). It sends up to 16 named channels as an optional field on the existing protocol. The client accepts only current, validated readings. A supported zero RPM is shown. An older service continues to provide CPU temperature and needs a new signed package for fans.
 
-The implementation keeps the restart history format unchanged. New disk and fan readings are available in the current session. Older and restored samples without those fields use the existing fallback. The preview has no per-sensor visibility controls.
+The implementation keeps the restart history format unchanged. New disk and fan readings are available in the current session. Older and restored samples without those fields use the existing fallback. The Services page contains setup, status and maintenance controls.

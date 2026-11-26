@@ -2162,10 +2162,7 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
   <data name="CpuTemperatureMonitoringRemoveConfirm" xml:space="preserve"><value>このコンピューターのすべての Windows ユーザー用に CPU センサー サービスを削除しますか？ 管理者の承認が必要です。すべてのユーザーで CPU 温度の監視が停止します。</value></data>
   <data name="CpuTemperatureMonitoringRepair" xml:space="preserve"><value>CPU 温度監視を修復</value></data>
   <data name="SettingsSensors" xml:space="preserve"><value>センサー</value></data>
-  <data name="SensorGpuTemperature" xml:space="preserve"><value>GPU 温度</value></data>
-  <data name="SensorGpuPower" xml:space="preserve"><value>GPU 電力</value></data>
   <data name="GaugeGpuPower" xml:space="preserve"><value>電力 {0}</value></data>
-  <data name="SensorPreview" xml:space="preserve"><value>センサーのプレビュー</value></data>
   <data name="SensorHardwareMonitoring" xml:space="preserve"><value>ハードウェアの監視</value></data>
   <data name="SensorEnableHardware" xml:space="preserve"><value>ハードウェアセンサーを有効にする</value></data>
   <data name="DetailCpuFans" xml:space="preserve"><value>CPU ファン</value></data>
@@ -2179,4 +2176,10 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
   <data name="GpuDeviceUnavailableNote" xml:space="preserve"><value>このGPUは利用できません。別のGPUまたは自動を選択してください。</value></data>
   <data name="GpuCurrentDevice" xml:space="preserve"><value>現在監視中: {0}</value></data>
   <data name="GpuDiscoveryFailed" xml:space="preserve"><value>GPUの検出に失敗しました。設定を閉じて開き直してください。</value></data>
+  <data name="ServicesIntro" xml:space="preserve"><value>オプションのバックグラウンドサービス。初回設定には管理者の承認が必要です。</value></data>
+  <data name="ServicesHardwareHeading" xml:space="preserve"><value>ハードウェアセンサー</value></data>
+  <data name="ServicesHardwareNote" xml:space="preserve"><value>CPU温度と対応するファン速度。公式PawnIOを別途インストールする必要があります。</value></data>
+  <data name="ServicesNetworkNote" xml:space="preserve"><value>すべてのネットワークアダプターの送受信を記録します。無効にすると収集は停止しますが、共有サービスはインストールされたままです。</value></data>
+  <data name="ServicesRepair" xml:space="preserve"><value>修復</value></data>
+  <data name="ServicesRemove" xml:space="preserve"><value>削除…</value></data>
 </root>

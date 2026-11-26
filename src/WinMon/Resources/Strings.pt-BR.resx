@@ -2162,10 +2162,7 @@ A restauração da limitação também falhou: {1}</value></data>
   <data name="CpuTemperatureMonitoringRemoveConfirm" xml:space="preserve"><value>Remover o serviço de sensores da CPU para todos os usuários do Windows neste computador? É necessária aprovação de administrador. O monitoramento da temperatura da CPU será interrompido para todos os usuários.</value></data>
   <data name="CpuTemperatureMonitoringRepair" xml:space="preserve"><value>Reparar o monitoramento da temperatura da CPU</value></data>
   <data name="SettingsSensors" xml:space="preserve"><value>Sensores</value></data>
-  <data name="SensorGpuTemperature" xml:space="preserve"><value>Temperatura da GPU</value></data>
-  <data name="SensorGpuPower" xml:space="preserve"><value>Potência da GPU</value></data>
   <data name="GaugeGpuPower" xml:space="preserve"><value>{0} pot.</value></data>
-  <data name="SensorPreview" xml:space="preserve"><value>Prévia dos sensores</value></data>
   <data name="SensorHardwareMonitoring" xml:space="preserve"><value>Monitoramento de hardware</value></data>
   <data name="SensorEnableHardware" xml:space="preserve"><value>Ativar sensores de hardware</value></data>
   <data name="DetailCpuFans" xml:space="preserve"><value>Ventoinhas da CPU</value></data>
@@ -2179,4 +2176,10 @@ A restauração da limitação também falhou: {1}</value></data>
   <data name="GpuDeviceUnavailableNote" xml:space="preserve"><value>Esta GPU está indisponível. Escolha outra GPU ou Automático.</value></data>
   <data name="GpuCurrentDevice" xml:space="preserve"><value>Monitorando: {0}</value></data>
   <data name="GpuDiscoveryFailed" xml:space="preserve"><value>Falha ao detectar GPUs. Feche e reabra as Configurações.</value></data>
+  <data name="ServicesIntro" xml:space="preserve"><value>Serviços opcionais em segundo plano. A configuração inicial requer aprovação de administrador.</value></data>
+  <data name="ServicesHardwareHeading" xml:space="preserve"><value>Sensores de hardware</value></data>
+  <data name="ServicesHardwareNote" xml:space="preserve"><value>Temperatura da CPU e velocidades de ventoinhas compatíveis. Requer o PawnIO oficial instalado separadamente.</value></data>
+  <data name="ServicesNetworkNote" xml:space="preserve"><value>Envio e recebimento em todos os adaptadores de rede. Desativar interrompe a coleta, mas mantém o serviço compartilhado instalado.</value></data>
+  <data name="ServicesRepair" xml:space="preserve"><value>Reparar</value></data>
+  <data name="ServicesRemove" xml:space="preserve"><value>Remover…</value></data>
 </root>
