@@ -118,7 +118,8 @@ public sealed class RestartHistoryReadTests
     [TestCase(2, true)]
     [TestCase(3, true)]
     [TestCase(4, true)]
-    [TestCase(5, false)]
+    [TestCase(5, true)]
+    [TestCase(6, false)]
     public void Read_HeaderVersionLimitsAreInclusive(int version, bool accepted)
     {
         var data = FileData();

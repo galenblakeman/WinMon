@@ -40,6 +40,8 @@ Memory details show paging reads per second, standby, modified, free/zero memory
 
 *Actual WinMon UI with illustrative data. [Browse the gallery](docs/example/README.md) for more views and capture details.*
 
+With the optional sensor service enabled, temperature chart choices appear in the chart dropdown and History. Temperature history includes a Temperature chart with its own Celsius/Fahrenheit axis, saved CPU/GPU/drive readings and performance-limit observations, minute peaks in Longer trends, and optional automatic captures for sustained temperatures or reported limits. Older recordings without sensor data show unavailable readings. See [temperature history and captures](docs/design/TEMPERATURE-HISTORY.md).
+
 ## Download and requirements
 
 Current version: **4.3.0**.

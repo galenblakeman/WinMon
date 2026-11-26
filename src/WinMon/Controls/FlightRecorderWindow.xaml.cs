@@ -12,8 +12,13 @@ namespace WinMon.Controls;
 internal partial class FlightRecorderWindow : Window
 {
     private MonitorSample[] _samples = [];
-    private readonly CaptureMetric[] _metrics = [CaptureMetric.Cpu, CaptureMetric.Memory, CaptureMetric.PrimaryDisk,
-        CaptureMetric.SecondaryDisk, CaptureMetric.Network, CaptureMetric.Gpu];
+    private static readonly CaptureMetric[] AllMetrics = [CaptureMetric.Cpu, CaptureMetric.Memory, CaptureMetric.PrimaryDisk,
+        CaptureMetric.SecondaryDisk, CaptureMetric.Network, CaptureMetric.Gpu,
+        CaptureMetric.CpuTemperature, CaptureMetric.GpuTemperature, CaptureMetric.PrimaryDiskTemperature, CaptureMetric.SecondaryDiskTemperature,
+        CaptureMetric.CpuPerformanceLimited, CaptureMetric.GpuThermalLimited];
+    private CaptureMetric[] _metrics = AllMetrics;
+    private bool _temperatureChartsEnabled;
+    internal WinMon.Preferences.TemperatureUnit TemperatureUnit { get; set; }
     private int _index;
     private bool _fileBusy;
     private readonly Func<DateTimeOffset, DateTimeOffset, CancellationToken, Task<IncidentEventResult>>? _eventReader;
@@ -37,14 +42,17 @@ internal partial class FlightRecorderWindow : Window
     private ResourceTrendBucket? _trendSelection;
     private string? _trendNotice;
     private bool _updatingTrends;
-    private readonly ResourceTrendMetric[] _trendMetrics = [ResourceTrendMetric.Cpu, ResourceTrendMetric.MemoryBytes,
+    private static readonly ResourceTrendMetric[] AllTrendMetrics = [ResourceTrendMetric.Cpu, ResourceTrendMetric.MemoryBytes,
         ResourceTrendMetric.PrimaryDiskActive, ResourceTrendMetric.SecondaryDiskActive, ResourceTrendMetric.Receive,
-        ResourceTrendMetric.Gpu];
+        ResourceTrendMetric.Gpu, ResourceTrendMetric.CpuTemperature, ResourceTrendMetric.GpuTemperature,
+        ResourceTrendMetric.PrimaryDiskTemperature, ResourceTrendMetric.SecondaryDiskTemperature,
+        ResourceTrendMetric.CpuPerformanceLimited, ResourceTrendMetric.GpuThermalLimited];
+
+    private ResourceTrendMetric[] _trendMetrics = AllTrendMetrics;
 
     internal event EventHandler? RefreshRequested;
     internal event Action<Task>? SaveStarted;
     internal event Action<Task>? SaveFinished;
-
     internal event Action<bool, double>? EventsSidebarChanged;
     internal bool EventsCollapsed { get; private set; }
     private double _eventsRatio = 0.5;
@@ -98,8 +106,12 @@ internal partial class FlightRecorderWindow : Window
     internal FlightRecorderWindow(IReadOnlyList<MonitorSample> samples,
         IReadOnlyDictionary<SampleKey, (IReadOnlyList<ProcessUsage> Started, IReadOnlyList<ProcessUsage> Stopped)>? changes = null,
         IReadOnlyList<ConnectionCapture>? traffic = null,
-        Func<DateTimeOffset, DateTimeOffset, CancellationToken, Task<IncidentEventResult>>? eventReader = null)
+        Func<DateTimeOffset, DateTimeOffset, CancellationToken, Task<IncidentEventResult>>? eventReader = null,
+        bool temperatureChartsEnabled = false)
     {
+        _temperatureChartsEnabled = temperatureChartsEnabled;
+        _metrics = AllMetrics.Where(metric => temperatureChartsEnabled || !ThermalMetrics.IsTemperature(metric)).ToArray();
+        _trendMetrics = AllTrendMetrics.Where(metric => temperatureChartsEnabled || !ResourceTrendArchive.IsTemperature(metric)).ToArray();
         InitializeComponent();
         ConfigureEventsSidebar(false, 0.5);
         WindowTheme.Attach(this);
@@ -114,6 +126,25 @@ internal partial class FlightRecorderWindow : Window
         TrendGraph.BucketSelected += (_, bucket) => SelectTrend(bucket);
         HistoryMode.SelectedIndex = 0;
         Update(samples, changes, traffic);
+    }
+
+    internal void ConfigureTemperatureCharts(bool enabled)
+    {
+        if (_temperatureChartsEnabled == enabled) return;
+        var metric = SelectedMetric;
+        var trendMetric = SelectedTrendMetric;
+        var selectedIndex = _index;
+        _temperatureChartsEnabled = enabled;
+        _metrics = AllMetrics.Where(item => enabled || !ThermalMetrics.IsTemperature(item)).ToArray();
+        _trendMetrics = AllTrendMetrics.Where(item => enabled || !ResourceTrendArchive.IsTemperature(item)).ToArray();
+        Metric.ItemsSource = _metrics.Select(item => CaptureReportText.MetricName(item, Selection?.Resources ?? new ResourceSample())).ToArray();
+        Metric.SelectedIndex = Math.Max(0, Array.IndexOf(_metrics, metric));
+        _updatingTrends = true;
+        TrendMetric.ItemsSource = _trendMetrics.Select(TrendMetricName).ToArray();
+        TrendMetric.SelectedIndex = Math.Max(0, Array.IndexOf(_trendMetrics, trendMetric));
+        _updatingTrends = false;
+        UpdateTrendPresentation();
+        Select(selectedIndex);
     }
 
     internal void Update(IReadOnlyList<MonitorSample> samples,
@@ -142,7 +173,7 @@ internal partial class FlightRecorderWindow : Window
         BeginEventRead();
     }
 
-    private CaptureMetric SelectedMetric => _metrics[Math.Max(0, Metric.SelectedIndex)];
+    private CaptureMetric SelectedMetric => _metrics[Math.Clamp(Metric.SelectedIndex, 0, _metrics.Length - 1)];
 
     internal MonitorSample? Selection => _index >= 0 && _index < _samples.Length ? _samples[_index] : null;
     internal void SelectTrendMinuteForFixture(DateTimeOffset startUtc)
@@ -180,6 +211,8 @@ internal partial class FlightRecorderWindow : Window
         SaveButton.IsEnabled = !_fileBusy && sample is not null;
         var seconds = _samples.Length < 2 ? 1 :
             Math.Max(1, (int)Math.Ceiling(CpuGraph.Moment(_samples[^1]) - CpuGraph.Moment(_samples[0])) + 1);
+        Graph.ChartType = ThermalMetrics.IsTemperature(SelectedMetric) ? WinMon.Preferences.ResourceChartType.Temperature : WinMon.Preferences.ResourceChartType.Overlay;
+        Graph.TemperatureUnit = TemperatureUnit;
         Graph.SetData(_samples, seconds, sample);
         if (sample is null)
         {
@@ -193,9 +226,9 @@ internal partial class FlightRecorderWindow : Window
             return;
         }
         SelectedTime.Text = sample.Timestamp.ToLocalTime().ToString("G", CultureInfo.CurrentCulture);
-        Readings.Text = string.Join("   ·   ", _metrics.Select(metric =>
+        Readings.Text = string.Join("   ·   ", AllMetrics.OrderByDescending(metric => metric == SelectedMetric).Select(metric =>
             CaptureReportText.MetricName(metric, sample.Resources) + " " +
-            (CaptureRules.Value(metric, sample) is { } value ? CaptureReportText.Value(metric, value) : "—")));
+            HistoricalValue(metric, sample)));
         var comparison = IncidentTimeline.Compare(_samples, sample, SelectedMetric, _traffic);
         ComparisonSummary.Text = CaptureReportText.MetricName(SelectedMetric, sample.Resources) + ": " +
             string.Join("   ·   ", new[] { (Strings.FlightRecorderBefore, comparison.Before),
@@ -229,13 +262,26 @@ internal partial class FlightRecorderWindow : Window
         UpdateEventPresentation();
     }
 
+    private string HistoricalValue(CaptureMetric metric, MonitorSample sample)
+    {
+        if (CaptureRules.Value(metric, sample) is not { } value) return "—";
+        if (ThermalMetrics.IsTemperature(metric)) return GaugeReadoutText.Temperature(value, TemperatureUnit);
+        var text = CaptureReportText.Value(metric, value);
+        if (metric == CaptureMetric.CpuPerformanceLimited && sample.Resources.CpuPerformanceLimitPercent is { } limit)
+            text += " (" + Strings.DetailPerformanceLimit + " " + Percent(limit) +
+                (sample.Resources.CpuPerformanceLimitFlags is { } flags ? " · 0x" + flags.ToString("X", CultureInfo.InvariantCulture) : "") + ")";
+        return text;
+    }
+
     private static string Percent(double? value) => value is { } number
         ? number.ToString("F1", CultureInfo.CurrentCulture) + "%" : "—";
 
     private string Reading(IncidentTimeline.Reading reading, bool process) => reading.Average is { } value
         ? Strings.Format(Strings.FlightRecorderObservedMean, Value(value, process), reading.Observations) : "—";
 
-    private string Value(double value, bool process) => !process ? CaptureReportText.Value(SelectedMetric, value) : SelectedMetric switch
+    private string Value(double value, bool process) => !process ? ThermalMetrics.IsTemperature(SelectedMetric)
+        ? GaugeReadoutText.Temperature(value, TemperatureUnit) : ThermalMetrics.IsThermal(SelectedMetric)
+            ? Percent(value * 100) : CaptureReportText.Value(SelectedMetric, value) : SelectedMetric switch
     {
         CaptureMetric.Memory => TableMetricText.Memory((ulong)value),
         CaptureMetric.PrimaryDisk or CaptureMetric.SecondaryDisk or CaptureMetric.Network => TableMetricText.IoRate(value),
@@ -265,7 +311,7 @@ internal partial class FlightRecorderWindow : Window
         if (trends) UpdateTrendPresentation();
     }
 
-    private ResourceTrendMetric SelectedTrendMetric => _trendMetrics[Math.Max(0, TrendMetric.SelectedIndex)];
+    private ResourceTrendMetric SelectedTrendMetric => _trendMetrics[Math.Clamp(TrendMetric.SelectedIndex, 0, _trendMetrics.Length - 1)];
     private TimeSpan SelectedTrendRange => TrendRange.SelectedIndex == 1 ? TimeSpan.FromDays(7) : TimeSpan.FromHours(24);
 
     private void OnTrendRangeChanged(object sender, SelectionChangedEventArgs e) { if (!_updatingTrends) UpdateTrendPresentation(); }
@@ -283,7 +329,7 @@ internal partial class FlightRecorderWindow : Window
 
     private void UpdateTrendPresentation()
     {
-        TrendLegend.Text = SelectedTrendMetric == ResourceTrendMetric.Receive ? Strings.FlightRecorderTrendNetworkLegend : "";
+        TrendLegend.Text = SelectedTrendMetric == ResourceTrendMetric.Receive ? Strings.FlightRecorderTrendNetworkLegend : ResourceTrendArchive.IsThermal(SelectedTrendMetric) ? Strings.ThermalTrendPeaks : "";
         if (_trends is null)
         {
             TrendCoverage.Text = _trendNotice ?? Strings.FlightRecorderTrendEmpty;
@@ -317,6 +363,7 @@ internal partial class FlightRecorderWindow : Window
                 "≈" + Math.Min(SelectedTrendRange.TotalMinutes, observed / 60).ToString("N1", CultureInfo.CurrentCulture),
                 SelectedTrendRange.TotalMinutes);
         TrendCoverage.Text = _trendNotice is { Length: > 0 } ? coverage + Environment.NewLine + _trendNotice : coverage;
+        TrendGraph.TemperatureUnit = TemperatureUnit;
         TrendGraph.SetData(_trendBuckets, SelectedTrendMetric, start, end, _trendSelection);
         if (_trendSelection is null && _trendBuckets.Length > 0) TrendGraph.Select(_trendBuckets.Length - 1);
         else UpdateTrendSelection();
@@ -384,10 +431,14 @@ internal partial class FlightRecorderWindow : Window
         ResourceTrendMetric.SecondaryDiskActive => Strings.FlightRecorderTrendSecondaryDisk,
         ResourceTrendMetric.Receive => Strings.Network,
         ResourceTrendMetric.Gpu => Strings.GPU,
-        _ => Strings.Unavailable
+        _ => Enum.TryParse<CaptureMetric>(metric.ToString(), out var capture) && ThermalMetrics.IsThermal(capture)
+            ? CaptureReportText.MetricName(capture, new ResourceSample()) : Strings.Unavailable
     };
 
-    private string TrendValue(double value) => SelectedTrendMetric switch
+    private string TrendValue(double value) => ResourceTrendArchive.IsTemperature(SelectedTrendMetric)
+        ? GaugeReadoutText.Temperature(value, TemperatureUnit)
+        : SelectedTrendMetric is ResourceTrendMetric.CpuPerformanceLimited or ResourceTrendMetric.GpuThermalLimited
+            ? value > 0 ? Strings.SettingsOn : Strings.SettingsOff : SelectedTrendMetric switch
     {
         ResourceTrendMetric.MemoryBytes => TableMetricText.Memory((ulong)value),
         ResourceTrendMetric.Receive or ResourceTrendMetric.Send or ResourceTrendMetric.PrimaryDiskRead or
@@ -426,7 +477,7 @@ internal partial class FlightRecorderWindow : Window
         ResourceTrendMetric.Receive => sample.Resources.ReceiveBytesPerSecond ?? sample.Resources.SendBytesPerSecond,
         ResourceTrendMetric.Send => sample.Resources.SendBytesPerSecond,
         ResourceTrendMetric.Gpu => sample.Resources.GpuPercent,
-        _ => null
+        _ => Enum.TryParse<CaptureMetric>(SelectedTrendMetric.ToString(), out var capture) ? ThermalMetrics.Value(capture, sample.Resources) : null
     };
 
     private static DateTimeOffset Minute(DateTimeOffset value) => new(value.UtcDateTime.AddTicks(
@@ -454,7 +505,7 @@ internal partial class FlightRecorderWindow : Window
             observations.Select(frame => new ConnectionCapture(frame.Sample, null, frame.Owners, frame.Network)).ToArray());
         _loadingRecording = false;
         _openedRecording = true;
-        Metric.SelectedIndex = Array.IndexOf(_metrics, recording.Metric);
+        Metric.SelectedIndex = Math.Max(0, Array.IndexOf(_metrics, recording.Metric));
         Select(recording.SelectedIndex);
         Source.Text = Strings.Format(Strings.FlightRecorderOpened, name);
         ApplyEvents(recording.WindowsEvents);

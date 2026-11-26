@@ -21,7 +21,7 @@ public partial class MainWindow
         var eventReader = FlightRecorderEventReader ?? ((DateTimeOffset start, DateTimeOffset end, CancellationToken cancellation) => Task.Run(() =>
             new WindowsHistoryEventReader().Read(start, end, cancellation), cancellation));
         var recorder = new FlightRecorderWindow(samples, IncidentTimeline.CaptureChanges(samples, Session.UsageHistory),
-            Session.Connections.Captures, eventReader) { Owner = this };
+            Session.Connections.Captures, eventReader, _preferences.TemperatureChartsEnabled) { Owner = this, TemperatureUnit = _preferences.TemperatureUnit };
         recorder.ConfigureEventsSidebar(_preferences.HistoryEventsCollapsed, _preferences.HistoryEventsRatio);
         recorder.EventsSidebarChanged += (collapsed, ratio) => _preferences = _preferences with
         {

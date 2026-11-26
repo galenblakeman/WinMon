@@ -7,5 +7,6 @@ public enum ResourceChartType
     SmallMultiples,
     Heatmap,
     Focus,
-    LogicalProcessors
+    LogicalProcessors,
+    Temperature
 }

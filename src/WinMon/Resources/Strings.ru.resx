@@ -2194,4 +2194,8 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
   <data name="InstallerSensorServiceSetupFailed" xml:space="preserve">
     <value>WinMon установлен, но не удалось включить аппаратные датчики. Если требуется перезапуск, перезапустите Windows и повторите попытку в Настройки &gt; Службы.</value>
   </data>
+  <data name="ThermalCaptureRuleText" xml:space="preserve"><value>{0} в течение {1} с</value></data>
+  <data name="ThermalCaptureHelp" xml:space="preserve"><value>Правила температуры используют градусы Цельсия и срабатывают при достижении или превышении порога. Правила ограничений срабатывают, пока ограничение активно. Пропуски показаний и смена датчика сбрасывают длительность.</value></data>
+  <data name="ThermalTrendPeaks" xml:space="preserve"><value>Минутные пики</value></data>
+  <data name="TemperatureChartHelp" xml:space="preserve"><value>Температуры CPU, GPU и дисков на отдельной шкале Цельсия или Фаренгейта. Пропуски показаний и смена датчика разрывают линии.</value></data>
 </root>

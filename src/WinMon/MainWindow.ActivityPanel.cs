@@ -17,6 +17,8 @@ public partial class MainWindow
 
     private void UpdateChartLegend()
     {
+        var temperature = _preferences.ResourceChartType == ResourceChartType.Temperature;
+        MemoryMetric.Toggle.Visibility = NetworkMetric.Toggle.Visibility = temperature ? Visibility.Collapsed : Visibility.Visible;
         var relevant = _preferences.ResourceChartType != ResourceChartType.LogicalProcessors;
         ChartResourcesToggle.Visibility = relevant ? Visibility.Visible : Visibility.Collapsed;
         ChartResourcesToggle.IsEnabled = !_preferences.ChartPanelCollapsed;

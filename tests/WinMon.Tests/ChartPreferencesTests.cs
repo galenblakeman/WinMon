@@ -101,13 +101,13 @@ public sealed class ChartPreferencesTests
         var lanes = preferences.SelectChart(ResourceChartType.SmallMultiples);
         Assert.Multiple(() =>
         {
-            Assert.That(preferences.ChartConfigurations, Has.Length.EqualTo(5));
+            Assert.That(preferences.ChartConfigurations, Has.Length.EqualTo(Enum.GetValues<ResourceChartType>().Length));
             Assert.That(lanes.ShowSecondaryDisk, Is.True);
             Assert.That(lanes.SeriesMask, Is.EqualTo(31));
             Assert.That(lanes.EffectiveChartRange, Is.EqualTo(120));
             Assert.That(lanes.FocusMetric, Is.Zero, "An unconfigured second disk cannot be focused.");
             Assert.That(PreferenceStore.Validate(preferences with { ChartConfigurations = null! }).ChartConfigurations,
-                Has.Length.EqualTo(5));
+                Has.Length.EqualTo(Enum.GetValues<ResourceChartType>().Length));
         });
     }
 

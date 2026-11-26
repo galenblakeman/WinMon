@@ -1112,6 +1112,7 @@ public static partial class Strings
     public static string TemperatureAtThreshold => ResourceManager.GetString(nameof(TemperatureAtThreshold), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string TemperatureCelsius => ResourceManager.GetString(nameof(TemperatureCelsius), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string TemperatureCelsiusValue => ResourceManager.GetString(nameof(TemperatureCelsiusValue), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string TemperatureChartHelp => ResourceManager.GetString(nameof(TemperatureChartHelp), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string TemperatureFahrenheit => ResourceManager.GetString(nameof(TemperatureFahrenheit), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string TemperatureFahrenheitValue => ResourceManager.GetString(nameof(TemperatureFahrenheitValue), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string TemperatureFanRpmValue => ResourceManager.GetString(nameof(TemperatureFanRpmValue), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -1140,7 +1141,10 @@ public static partial class Strings
     public static string ThemeWildberry => ResourceManager.GetString(nameof(ThemeWildberry), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string TheOriginalProcessHasExitedAndItsPIDHasBeen => ResourceManager.GetString(nameof(TheOriginalProcessHasExitedAndItsPIDHasBeen), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string TheProcessCouldNotBeEnded => ResourceManager.GetString(nameof(TheProcessCouldNotBeEnded), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ThermalCaptureHelp => ResourceManager.GetString(nameof(ThermalCaptureHelp), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ThermalCaptureRuleText => ResourceManager.GetString(nameof(ThermalCaptureRuleText), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ThermalLimit => ResourceManager.GetString(nameof(ThermalLimit), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ThermalTrendPeaks => ResourceManager.GetString(nameof(ThermalTrendPeaks), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string TheWindowsKeyIsReservedForWindowsShortcuts => ResourceManager.GetString(nameof(TheWindowsKeyIsReservedForWindowsShortcuts), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ThisProcessCannotBeEndedFromWinMon => ResourceManager.GetString(nameof(ThisProcessCannotBeEndedFromWinMon), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ThisProcessHasAlreadyExited => ResourceManager.GetString(nameof(ThisProcessHasAlreadyExited), Culture ?? CultureInfo.CurrentUICulture)!;

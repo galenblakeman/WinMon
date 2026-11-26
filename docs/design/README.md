@@ -214,3 +214,5 @@ Implemented on 2026-10-24; each note ends with what landed and where it departed
 The [visual QA record](../design-qa.md) retains dated implementation checks. References there to removed mockups identify historical review inputs.
 
 - [Helpful tooltips](HELPFUL-TOOLTIPS.md) explains Settings and activity filter choices.
+
+- [Temperature history and captures](TEMPERATURE-HISTORY.md): temperature chart, versioned persistence, minute peaks and sensor capture rules.

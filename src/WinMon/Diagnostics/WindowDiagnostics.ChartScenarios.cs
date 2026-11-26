@@ -32,10 +32,11 @@ internal sealed partial class WindowDiagnostics
                             Strings.ChartSmallMultiples, Strings.ChartSmallMultiplesHelp,
                             Strings.ChartHeatmap, Strings.ChartHeatmapHelp,
                             Strings.ChartLogicalProcessors, Strings.ChartLogicalProcessorsHelp,
+                            Strings.DetailTemperature, Strings.TemperatureChartHelp,
                             Strings.ChartFocus, Strings.ChartFocusHelp
                         }))
                         throw new InvalidOperationException(
-                            "Chart help did not contain five separate labeled descriptions.");
+                            "Chart help did not contain six separate labeled descriptions.");
                     tooltip.PlacementTarget = target;
                     tooltip.Placement = PlacementMode.Bottom;
                     try

@@ -3,7 +3,6 @@ namespace MonCore.Monitoring;
 /// <summary>Immutable system resources for a single interval. Null means unavailable, never zero.</summary>
 public sealed record ResourceSample
 {
-    [System.Text.Json.Serialization.JsonIgnore]
     public CpuTemperatureReading? CpuTemperature { get; init; }
     public IReadOnlyList<HardwareFanReading> HardwareFans { get; init; } = [];
     public double? DiskTemperatureCelsius { get; init; }

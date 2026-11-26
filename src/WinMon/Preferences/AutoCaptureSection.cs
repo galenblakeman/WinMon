@@ -79,7 +79,8 @@ internal sealed class AutoCaptureSection : StackPanel
             if (setting.IsNetwork)
                 threshold.Text = (setting.Threshold / 8).ToString(CultureInfo.CurrentCulture);
             var seconds = Number(setting.Seconds);
-            var unit = setting.IsMemory ? Strings.CapturePrivateMemoryUnit : setting.IsNetwork ? Strings.MegabytesPerSecond : setting.Metric switch
+            if (ThermalMetrics.IsThermal(setting.Metric)) enabled.ToolTip = Strings.ThermalCaptureHelp;
+            var unit = ThermalMetrics.IsTemperature(setting.Metric) ? Strings.TemperatureCelsius : ThermalMetrics.IsThermal(setting.Metric) ? Strings.SettingsOn : setting.IsMemory ? Strings.CapturePrivateMemoryUnit : setting.IsNetwork ? Strings.MegabytesPerSecond : setting.Metric switch
             {
                 CaptureMetric.Network => Strings.MegabytesPerSecond,
                 CaptureMetric.Process => Strings.AutoCapturePercentOfCore,
@@ -87,6 +88,11 @@ internal sealed class AutoCaptureSection : StackPanel
                 CaptureMetric.PrimaryDisk or CaptureMetric.SecondaryDisk => Strings.AutoCapturePercentActive,
                 _ => "%"
             };
+            if (ThermalMetrics.IsThermal(setting.Metric) && !ThermalMetrics.IsTemperature(setting.Metric))
+            {
+                threshold.IsEnabled = false;
+                threshold.Visibility = Visibility.Collapsed;
+            }
             threshold.ToolTip = Strings.Format(Strings.CaptureThresholdHelp, unit) +
                                 (setting.Metric == CaptureMetric.Process ? " " + Strings.AutoCaptureProcessHelp : "");
             AutomationProperties.SetHelpText(threshold, (string)threshold.ToolTip);
@@ -197,7 +203,7 @@ internal sealed class AutoCaptureSection : StackPanel
     {
         foreach (var rule in _rules)
         {
-            rule.Label.Text = rule.Metric switch
+            rule.Label.Text = ThermalMetrics.IsThermal(rule.Metric) ? CaptureReportText.MetricName(rule.Metric, new ResourceSample()) : rule.Metric switch
             {
                 CaptureMetric.Cpu => Strings.CPU, CaptureMetric.Memory => Strings.Memory,
                 CaptureMetric.PrimaryDisk => primaryDrive is null

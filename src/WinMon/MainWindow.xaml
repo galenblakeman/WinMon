@@ -49,6 +49,10 @@
                 <TextBlock Style="{StaticResource ChartHelpHeading}" Text="{Binding [ChartLogicalProcessors], Source={x:Static resources:Strings.Text}}" />
                 <TextBlock Text="{Binding [ChartLogicalProcessorsHelp], Source={x:Static resources:Strings.Text}}" />
             </StackPanel></Border>
+            <Border><StackPanel>
+                <TextBlock Style="{StaticResource ChartHelpHeading}" Text="{Binding [DetailTemperature], Source={x:Static resources:Strings.Text}}" />
+                <TextBlock Text="{Binding [TemperatureChartHelp], Source={x:Static resources:Strings.Text}}" />
+            </StackPanel></Border>
             <Border Padding="0,10,0,0"><StackPanel>
                 <TextBlock Style="{StaticResource ChartHelpHeading}" Text="{Binding [ChartFocus], Source={x:Static resources:Strings.Text}}" />
                 <TextBlock Text="{Binding [ChartFocusHelp], Source={x:Static resources:Strings.Text}}" />

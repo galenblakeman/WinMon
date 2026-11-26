@@ -14,7 +14,7 @@ public sealed record IncidentRecording(int Version, long Frequency, IncidentObse
 {
     public const long MaximumBytes = 64L * 1024 * 1024;
     public const long MaximumDecodedBytes = 256L * 1024 * 1024;
-    public const int CurrentVersion = 2;
+    public const int CurrentVersion = 3;
     public IncidentEventResult WindowsEvents { get; init; } = IncidentEventResult.Unknown;
 
     public void Save(string path)
@@ -94,7 +94,7 @@ public sealed record IncidentRecording(int Version, long Frequency, IncidentObse
     private void ValidateHeader()
     {
         if (Version is < 1 or > CurrentVersion || Frequency is <= 0 or > 1_000_000_000_000 ||
-            Metric is < CaptureMetric.Cpu or > CaptureMetric.Gpu ||
+            (!Enum.IsDefined(Metric) || (Metric > CaptureMetric.Gpu && !ThermalMetrics.IsThermal(Metric))) ||
             Observations is null || Observations.Length > 7200 ||
             SelectedIndex < -1 || SelectedIndex >= Observations.Length ||
             (Observations.Length > 0 && SelectedIndex < 0))
@@ -105,7 +105,7 @@ public sealed record IncidentRecording(int Version, long Frequency, IncidentObse
     {
         if (frame?.Sample is not { Processes: not null, Resources: not null } sample ||
             frame.Owners is null || frame.Started is null != frame.Stopped is null ||
-            !ValidSampleMetadata(sample) || !ValidObservationCollections(frame))
+            !ValidSampleMetadata(sample) || !ThermalHistory.From(sample.Resources).Valid() || !ValidObservationCollections(frame))
             throw new InvalidDataException("Invalid incident observation.");
         return sample;
     }

@@ -2194,4 +2194,8 @@ Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。<
   <data name="InstallerSensorServiceSetupFailed" xml:space="preserve">
     <value>WinMon 已安装，但无法启用硬件传感器。如果提示重新启动，请重新启动 Windows，然后在设置 &gt; 服务中重试。</value>
   </data>
+  <data name="ThermalCaptureRuleText" xml:space="preserve"><value>{0} 持续 {1} 秒</value></data>
+  <data name="ThermalCaptureHelp" xml:space="preserve"><value>温度规则使用摄氏度，在达到或超过阈值时触发。限制规则在报告的限制生效期间触发。缺失读数或更换传感器会重置持续时间。</value></data>
+  <data name="ThermalTrendPeaks" xml:space="preserve"><value>每分钟峰值</value></data>
+  <data name="TemperatureChartHelp" xml:space="preserve"><value>使用独立的摄氏或华氏刻度显示 CPU、GPU 和驱动器温度。缺失读数或更换传感器时曲线会断开。</value></data>
 </root>

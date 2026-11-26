@@ -23,7 +23,7 @@ internal sealed record ChartMarker(double Moment, string BrushKey, string Toolti
     ChartMarkerPattern Pattern = ChartMarkerPattern.Triangle);
 
 /// <summary>Draw time-based resource graphs and auto-scaled process sparklines.</summary>
-public sealed class CpuGraph : FrameworkElement
+public sealed partial class CpuGraph : FrameworkElement
 {
     private IReadOnlyList<MonitorSample> _samples = [];
     private ProcessUsage? _process;
@@ -167,6 +167,11 @@ public sealed class CpuGraph : FrameworkElement
         var line = Resource("Line", Brushes.DimGray);
         var muted = Resource("Muted", Brushes.Gray);
         drawingContext.DrawRectangle(Brushes.Transparent, null, new Rect(RenderSize));
+        if (ShowGrid && _process is null && TileMetric is null && ChartType == ResourceChartType.Temperature)
+        {
+            DrawTemperatures(drawingContext, plot, line, muted);
+            return;
+        }
         if (ShowGrid && _process is null && TileMetric is null && ChartType == ResourceChartType.LogicalProcessors)
         {
             drawingContext.DrawRectangle(Resource("PlotSurface", Brushes.Transparent), null, plot);
@@ -775,7 +780,7 @@ public sealed class CpuGraph : FrameworkElement
             ? Strings.NoSampleInThisInterval
             : processor is { } index
                 ? DescribeLogicalProcessorSample(sample, index)
-                : DescribeSample(sample);
+                : ChartType == ResourceChartType.Temperature ? DescribeTemperatureSample(sample) : DescribeSample(sample);
     }
 
     internal void RefreshLanguage()
@@ -791,7 +796,7 @@ public sealed class CpuGraph : FrameworkElement
                     ? Strings.NoSampleInThisInterval
                     : processor is { } index
                         ? DescribeLogicalProcessorSample(sample, index)
-                        : DescribeSample(sample);
+                        : ChartType == ResourceChartType.Temperature ? DescribeTemperatureSample(sample) : DescribeSample(sample);
         }
 
         _labels.Clear();
@@ -915,6 +920,8 @@ public sealed class CpuGraph : FrameworkElement
     private Rect Plot()
     {
         if (!ShowGrid) return new Rect(0, 0, ActualWidth, ActualHeight);
+        if (ChartType == ResourceChartType.Temperature)
+            return new Rect(65, 28, Math.Max(0, ActualWidth - 72), Math.Max(0, ActualHeight - 53));
         if (ChartType == ResourceChartType.Overlay)
             return new Rect(39, 8, Math.Max(0, ActualWidth - 41), Math.Max(0, ActualHeight - 33));
         if (ChartType == ResourceChartType.LogicalProcessors)

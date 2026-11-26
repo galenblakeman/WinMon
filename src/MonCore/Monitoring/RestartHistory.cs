@@ -50,7 +50,7 @@ public static class RestartHistory
     public const string FileName = "restart-history.bin";
     public const string NormalFileName = "history.bin";
     private const string NormalToken = "normal-exit";
-    public const int FormatVersion = 4;
+    public const int FormatVersion = 5;
     public const int ChunkSamples = 60;
     private const int MaximumLogicalProcessors = 64;
     public static readonly TimeSpan Budget = TimeSpan.FromSeconds(1.5);
@@ -671,6 +671,7 @@ public static class RestartHistory
         Write(writer, r.SendBytesPerSecond);
         Write(writer, r.ReceivedBytesSinceStart);
         Write(writer, r.SentBytesSinceStart);
+        ThermalHistory.Write(writer, r);
     }
 
     private static ResourceSample ReadResources(BinaryReader reader, int version)
@@ -730,7 +731,7 @@ public static class RestartHistory
         };
         if (resources.PagingReadsPerSecond is { } rate && (!double.IsFinite(rate) || rate < 0))
             throw new FormatException("Invalid paging-read rate.");
-        return resources;
+        return version >= 5 ? ThermalHistory.Read(reader, resources) : resources;
     }
 
     private static void WriteUsage(BinaryWriter writer, UsageLedgerState? usage)

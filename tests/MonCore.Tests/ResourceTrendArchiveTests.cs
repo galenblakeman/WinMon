@@ -253,7 +253,7 @@ public sealed class ResourceTrendArchiveTests
             Assert.That(restored.Snapshot().Buckets.Single().Values[ResourceTrendMetric.Cpu].Average, Is.EqualTo(42));
 
             Assert.That(() => ResourceTrendArchive.SaveAsync(path,
-                new ResourceTrendArchiveState(2, DateTimeOffset.UtcNow, [])).GetAwaiter().GetResult(), Throws.TypeOf<InvalidDataException>());
+                new ResourceTrendArchiveState(3, DateTimeOffset.UtcNow, [])).GetAwaiter().GetResult(), Throws.TypeOf<InvalidDataException>());
             Assert.That(await File.ReadAllBytesAsync(path), Is.EqualTo(saved));
         }
         finally

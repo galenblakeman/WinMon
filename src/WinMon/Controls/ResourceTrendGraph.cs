@@ -14,6 +14,7 @@ internal sealed class ResourceTrendGraph : FrameworkElement
     private DateTimeOffset _start;
     private DateTimeOffset _end;
     private int _selected = -1;
+    internal WinMon.Preferences.TemperatureUnit TemperatureUnit { get; set; }
 
     internal event EventHandler<ResourceTrendBucket>? BucketSelected;
 
@@ -35,7 +36,8 @@ internal sealed class ResourceTrendGraph : FrameworkElement
     protected override void OnRender(DrawingContext drawing)
     {
         base.OnRender(drawing);
-        var bounds = new Rect(34, 8, Math.Max(0, ActualWidth - 42), Math.Max(0, ActualHeight - 30));
+        var rail = ResourceTrendArchive.IsTemperature(_metric) ? 64 : 34;
+        var bounds = new Rect(rail, 8, Math.Max(0, ActualWidth - rail - 8), Math.Max(0, ActualHeight - 30));
         if (bounds.Width < 2 || bounds.Height < 2) return;
         var line = Resource("Line", Brushes.DimGray);
         var muted = Resource("Muted", Brushes.Gray);
@@ -224,7 +226,10 @@ internal sealed class ResourceTrendGraph : FrameworkElement
     private int Column(DateTimeOffset time, Rect bounds, int width) => Math.Clamp((int)((time - _start).TotalSeconds / (_end - _start).TotalSeconds * width), 0, width);
     private static double Y(double value, double maximum, Rect bounds) => bounds.Bottom - Math.Clamp(value / maximum, 0, 1) * bounds.Height;
     private Brush Resource(string key, Brush fallback) => TryFindResource(key) as Brush ?? fallback;
-    private string FormatValue(double value) => _metric switch
+    private string FormatValue(double value) => ResourceTrendArchive.IsTemperature(_metric)
+        ? GaugeReadoutText.Temperature(value, TemperatureUnit)
+        : _metric is ResourceTrendMetric.CpuPerformanceLimited or ResourceTrendMetric.GpuThermalLimited
+            ? value == 0 ? Strings.SettingsOff : value == 1 ? Strings.SettingsOn : "" : _metric switch
     {
         ResourceTrendMetric.MemoryBytes => TableMetricText.Memory((ulong)value),
         ResourceTrendMetric.Receive or ResourceTrendMetric.Send or ResourceTrendMetric.PrimaryDiskRead or

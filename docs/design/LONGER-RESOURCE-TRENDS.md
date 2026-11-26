@@ -1,6 +1,6 @@
 # Longer resource trends
 
-Status: implemented, 2026-11-21. Automated validation and remaining manual checks are recorded below.
+Status: implemented, 2026-11-21. Automated validation and remaining manual checks are recorded below. The November 26 [temperature extension](TEMPERATURE-HISTORY.md) adds minute temperature and limit peaks using schema 2, with schema 1 still readable. Other metrics retain weighted averages.
 
 ## Outcome and scope
 

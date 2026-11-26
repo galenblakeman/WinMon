@@ -1,24 +1,24 @@
 # Optional CPU temperature
 
-This note records the original CPU temperature service. The later [Sensors settings and gauge design](SENSORS-SETTINGS.md) adds supported board fan readings to the same service.
+This note records the original CPU temperature service and its acceptance evidence. Current extensions are defined in [Sensors settings and gauge readings](SENSORS-SETTINGS.md), [installer sensor setup](INSTALLER-SENSOR-SETUP.md), and [temperature history and captures](TEMPERATURE-HISTORY.md). Board fan collection is enabled. The signed desktop installer can install the pinned official PawnIO prerequisite; Settings and portable setup still require it to be installed already.
 
 Date: November 26, 2026. Status: separate LibreHardwareMonitor CPU service, signed setup path and app integration implemented; automated verification completed. The user approved implementing the service before AMD/Intel hardware acceptance on November 25. See [Validation](#validation) and [What landed and departures](#what-landed-and-departures).
 
 ## Purpose and scope
 
-Show real CPU die/package temperature, which [CPU and GPU temperature](TEMPERATURE.md) cannot provide without kernel access. Use the official stable **LibreHardwareMonitorLib 0.9.6 NuGet package** inside a separate, optional, privileged Windows service. WinMon itself stays unelevated. LibreHardwareMonitor owns hardware identification, register access and decoding; WinMon owns sensor selection, validation, freshness, authorization and presentation. Enable CPU hardware first. Fans and other sensors can later use the same provider without replacing its acquisition stack.
+Show real CPU die/package temperature, which [CPU and GPU temperature](TEMPERATURE.md) cannot provide without kernel access. Use the official stable **LibreHardwareMonitorLib 0.9.6 NuGet package** inside a separate, optional, privileged Windows service. WinMon itself stays unelevated. LibreHardwareMonitor owns hardware identification, register access and decoding; WinMon owns sensor selection, validation, freshness, authorization and presentation. The provider enables CPU and motherboard categories, projecting the selected CPU temperature and supported board fan tachometers. Other hardware categories remain disabled.
 
 | Area | Decision |
 | --- | --- |
 | Default | Disabled. Ordinary monitoring installs no service or driver. |
 | Hosting | Its own service, `WinMonSensorMonitor`, separate from `WinMonNetworkMonitor`. It reuses the network service's setup, pipe and verification code by generalizing it, not copying it. |
-| Driver | Official PawnIO must already be installed separately. Signed WinMon setup provisions only its optional sensor service; removal leaves PawnIO installed. |
+| Driver | The signed desktop installer can install pinned official PawnIO when absent. Settings and portable service setup require an existing installation. Removal leaves PawnIO installed. |
 | First presentation | CPU temperature on the CPU gauge, with the library's actual sensor meaning and LibreHardwareMonitor source named in the tooltip and accessible text. |
 | Other sources | None. The unprivileged HWiNFO and LibreHardwareMonitor-app readers listed in the temperature note are not planned. |
 | Store channel | Unavailable, as for network monitoring. |
 | Channels | Installer and portable desktop builds. |
 
-Outside this design: fan and motherboard monitoring, tuning or fan-control writes, overclocking, a sensor browser, chart series, History, incident recordings, automatic-capture conditions, CLI and MCP output, and sensor alerts. Register-selection writes required to acquire a reading are allowed inside the fixed official module operation; hardware configuration writes are not.
+The original CPU-service delivery excluded board fans, chart series, History, incident recordings and capture conditions; the linked extension designs now implement those paths. Still outside scope: tuning or fan-control writes, overclocking, a sensor browser, CLI/MCP sensor tools and separate sensor alerts. Register-selection writes required to acquire a reading are allowed inside the fixed official module operation; hardware configuration writes are not.
 
 ## Repository baseline
 
@@ -65,7 +65,7 @@ Initial native acceptance targets remain the Ryzen 9 9950X3D desktop and Core Ul
 - **Lifecycle:** one owning worker creates `Computer` with `IsCpuEnabled = true` and every other category disabled. It opens once, calls `Update()` before reading CPU temperature sensors and closes in `finally`. Updates, resets and close never overlap. See the [exact-version lifecycle source](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor/blob/v0.9.6/LibreHardwareMonitorLib/Hardware/Computer.cs).
 - **Identity and selection:** preserve hardware identifier, sensor identifier and the actual sensor name. Prefer a characterized `CPU Package`, `Core (Tdie)`, `Core (Tctl/Tdie)` or `Core (Tctl)` reading, in that order; never relabel the latter meanings as Tdie. Reject ambiguous duplicate meanings and multiple packages until explicit package selection exists. A hottest core is not a package fallback.
 - **Driver:** 0.9.6 embeds its PawnIO modules and uses the installed PawnIO device directly; it does not require WinMon to load external module files or PawnIOLib. The probe checks the library's installed-PawnIO indication before opening hardware. Registry presence alone does not prove driver access. See the [exact-version PawnIO implementation](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor/blob/v0.9.6/LibreHardwareMonitorLib/PawnIo/PawnIo.cs).
-- **Future sensors:** add explicitly enabled categories and typed sensor projections behind this same provider when fans or other readings are approved. Do not enable motherboard/controller/storage scanning during the CPU-only phase. Never expose library control/write APIs over the pipe.
+- **Sensor categories:** CPU and motherboard categories are explicitly enabled for CPU temperature and board tachometers. Disk temperature uses the independent Windows storage collector. Other categories remain disabled. Never expose library control/write APIs over the pipe.
 
 **Acquisition contract:** `Update()` returning and a retained non-null `ISensor.Value` alone are insufficient. The service resets public Min/Max before each pass and accepts only a valid value that the library assigned during that pass, including unchanged temperatures. It stamps the confirmed library observation in QPC time; this is not an independent native-accuracy guarantee. Physical lock-contention, driver-failure and sensor-accuracy behavior remain native acceptance work.
 
@@ -92,7 +92,7 @@ The optional service is configured under **Settings → Sensors**. The original 
 5. **Transactional setup.** Install/repair health-checks the service before the app commits the transaction. Failure or cancellation rolls back the sensor installation. Its policy, protected directory and independent Installed apps registration do not replace network monitoring.
 6. **Independent removal.** Remove shuts down and removes only the sensor service and owned files/policy/registration. It leaves PawnIO, network monitoring and other tools alone. A close/process-exit failure reports restart required instead of starting another collector over live handles.
 
-Automatic PawnIO installation is a later setup enhancement requiring a selected signed upstream installer and separate acceptance; it is not implied by a successful library read.
+Automatic PawnIO installation is implemented only in the signed desktop installer; see [installer sensor setup](INSTALLER-SENSOR-SETUP.md). Its native clean-machine, blocked-driver and reboot acceptance remains separate from a successful library read.
 
 ## Service lifecycle
 
@@ -140,7 +140,7 @@ Only absolute CPU temperature crosses this protocol: finite and within 1–150 �
 - **Selection:** use the characterized library sensor for the detected CPU. Initial support is single-package systems only. Identity is fixed for the collector generation. If unavailable, show null. Re-evaluate on a new generation, resetting peak history.
 - **Labelling:** the tooltip and accessible name preserve the library's actual sensor meaning, followed by "from LibreHardwareMonitor". Never rename a control, CCD, core or ACPI temperature to package temperature.
 
-**CPU tooltip** gains the die/package reading, source and ten-minute peak. Peaks follow package identity and collector generation as in the temperature note. Fans and motherboard readings are deferred.
+**CPU tooltip** gains the die/package reading, source and ten-minute peak. Peaks follow package identity and collector generation as in the temperature note. Supported board fan tachometers are now included by [the sensor extension](SENSORS-SETTINGS.md); other motherboard readings remain deferred.
 
 All text goes in `Strings.resx` and the nine translations. Settings reports service availability and explains the separately installed PawnIO prerequisite; the provider probe records the registered driver version.
 
@@ -200,7 +200,7 @@ Implemented in phase 2:
 - Shared protected pipe creation/authentication, bounded framing, policy/process DACL and descriptor-based service verification. Existing network regression tests remain part of acceptance.
 - `WinMon.SensorSetup` reuses hardened setup sources, transactions and signed-package verification with sensor-specific paths/registration. Release packaging embeds a separately signed sensor bundle; unsigned development and Store builds cannot install it.
 - A cached nonblocking app client, opt-in Settings with status/repair/removal, CPU gauge/details/peaks in Full and Compact, translated strings and unavailable/stale handling. Portable core carries only immutable readings; Libre stays outside WPF.
-- CPU service readings are omitted from persisted incidents and restart history; both format versions are unchanged. The provider probe exercises the actual service provider and reports update cost and working set.
+- At the phase-2 baseline, CPU service readings were omitted from persisted incidents and restart history. [Temperature history and captures](TEMPERATURE-HISTORY.md) now versions and persists these observations. The provider probe exercises the actual service provider and reports update cost and working set.
 
 Phase 1 is committed as `81bac70`. Phase 2 implements the separate CPU service and app integration. Full test projects passed 11,327 desktop and 11,158 Store tests, with zero failures and repository-allowlisted skips. Final Gauge/Compact/Capture galleries passed and the CPU states and Settings were reviewed. Diagnostic-only fixes increased the Capture gallery budget to 90 seconds and render client content when native activation is denied. Eight UI performance pairs and four native sampler pairs are recorded in [performance history](../PERFORMANCE-HISTORY.md); detailed commands, interim failures and final evidence are in `artifacts/cpu-service/verification.md`.
 
@@ -212,4 +212,4 @@ The first signed repair attempt exposed a shutdown race: SCM reported Stopped be
 
 Live service snapshots in this VM reported Partial quality with null Celsius before and after repair. Physical AMD/Intel accuracy, HVCI/coexistence, real idle/load behavior and broader clean-machine setup acceptance remain unverified.
 
-Departures: PawnIO is separately installed rather than automatically bundled. The user removed the native-before-implementation gate; native acceptance still precedes claims of supported physical hardware. Fan/motherboard categories remain disabled and can extend this provider later.
+Current departures: the signed installer optionally bundles pinned official PawnIO, while Settings and portable service setup require a separately installed prerequisite. CPU and motherboard categories are enabled for the selected CPU sensor and board fans. The user removed the native-before-implementation gate; physical accuracy, HVCI/coexistence and broader clean-machine acceptance remain open. Earlier phase-2 evidence above describes its CPU-only, separately installed-driver build.

@@ -2231,4 +2231,8 @@ Restoring throttling also failed: {1}</value></data>
   <data name="InstallerSensorServiceSetupFailed" xml:space="preserve">
     <value>WinMon was installed, but hardware sensors could not be enabled. If a restart is requested, restart Windows, then try again in Settings &gt; Services.</value>
   </data>
+  <data name="ThermalCaptureRuleText" xml:space="preserve"><value>{0} for {1} s</value></data>
+  <data name="ThermalCaptureHelp" xml:space="preserve"><value>Temperature rules use Celsius and trigger at or above the threshold. Limit rules trigger while the reported limit is active. Missing readings and sensor changes reset the duration.</value></data>
+  <data name="ThermalTrendPeaks" xml:space="preserve"><value>Minute peaks</value></data>
+  <data name="TemperatureChartHelp" xml:space="preserve"><value>CPU, GPU and drive temperatures on a separate Celsius or Fahrenheit scale. Missing readings and sensor changes break the lines.</value></data>
 </root>

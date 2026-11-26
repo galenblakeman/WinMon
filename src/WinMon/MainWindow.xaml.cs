@@ -284,9 +284,13 @@ public partial class MainWindow
         UpdateResources(allUnavailable ? null : latest);
         UpdateSystemCounts(allUnavailable && SelectedSample is null ? null : visible?.Resources);
         UpdateMetricGauges(samples, latest);
+        if (_temperatureChartOptionsEnabled != _preferences.TemperatureChartsEnabled ||
+            (_preferences.ResourceChartType == ResourceChartType.Temperature && !_preferences.TemperatureChartsEnabled))
+            BuildChartSelectors();
         OverallGraph.ChartType = _preferences.ResourceChartType;
         UpdateChartLegend();
         OverallGraph.FocusMetric = _preferences.FocusMetric;
+        OverallGraph.TemperatureUnit = _preferences.TemperatureUnit;
         OverallGraph.MetricLabels = Metrics.Select(metric => metric.Label).ToArray();
         OverallGraph.SetData(samples, range, SelectedSample);
         AutomationProperties.SetName(OverallGraph,
@@ -297,7 +301,13 @@ public partial class MainWindow
                       (value is { } percent && visible?.IsGap != true
                           ? Strings.Format(Strings.PercentInteger, Math.Round(percent))
                           : Strings.MissingReading)))
-                : Strings.CPUMemoryConfiguredDisksNetworkAndGPUOverlayHistoryClick);
+                : _preferences.ResourceChartType == ResourceChartType.Temperature
+                    ? Strings.DetailTemperature + " · " + (visible is null ? Strings.Unavailable :
+                        string.Join(", ", new[] { MonCore.Monitoring.CaptureMetric.CpuTemperature, MonCore.Monitoring.CaptureMetric.GpuTemperature,
+                            MonCore.Monitoring.CaptureMetric.PrimaryDiskTemperature, MonCore.Monitoring.CaptureMetric.SecondaryDiskTemperature }.Select(metric =>
+                            CaptureReportText.MetricName(metric, visible.Resources) + " " + GaugeReadoutText.Temperature(
+                                visible.IsGap ? null : MonCore.Monitoring.ThermalMetrics.Value(metric, visible.Resources), _preferences.TemperatureUnit))))
+                    : Strings.CPUMemoryConfiguredDisksNetworkAndGPUOverlayHistoryClick);
         RefreshCompactView();
         RefreshServices();
         RefreshUsage();
@@ -369,6 +379,7 @@ public partial class MainWindow
         };
         OverallGraph.VisibleMetrics = _preferences.SeriesMask;
         OverallGraph.FocusMetric = _preferences.FocusMetric;
+        OverallGraph.TemperatureUnit = _preferences.TemperatureUnit;
         if (focusChanged) BuildChartSelectors();
         OverallGraph.InvalidateVisual();
     }
@@ -537,8 +548,14 @@ public partial class MainWindow
         }
     }
 
+    private bool _temperatureChartOptionsEnabled;
+
     internal void BuildChartSelectors()
     {
+        _temperatureChartOptionsEnabled = _preferences.TemperatureChartsEnabled;
+        if (_preferences.ResourceChartType == ResourceChartType.Temperature && !_temperatureChartOptionsEnabled)
+            _preferences = _preferences.SelectChart(ResourceChartType.Overlay);
+        _flightRecorder?.ConfigureTemperatureCharts(_temperatureChartOptionsEnabled);
         var visible = _preferences.SeriesMask;
         if (visible != 0 && (visible & (1 << _preferences.FocusMetric)) == 0)
             _preferences = _preferences with
@@ -554,12 +571,16 @@ public partial class MainWindow
                          (ResourceChartType.Overlay, Strings.ChartOverlay),
                          (ResourceChartType.SmallMultiples, Strings.ChartSmallMultiples),
                          (ResourceChartType.Heatmap, Strings.ChartHeatmap),
-                         (ResourceChartType.LogicalProcessors, Strings.ChartLogicalProcessors)
+                         (ResourceChartType.LogicalProcessors, Strings.ChartLogicalProcessors),
+                         (ResourceChartType.Temperature, Strings.DetailTemperature)
                      })
+            {
+                if (type == ResourceChartType.Temperature && !_temperatureChartOptionsEnabled) continue;
                 ChartTypeSelector.Items.Add(new ComboBoxItem
                 {
                     Content = label, Tag = new ResourceChartChoice(type), ToolTip = label
                 });
+            }
             ChartTypeSelector.Items.Add(new Separator());
             foreach (var metric in new[] { 0, 1, 2, 5, 3, 4 })
             {

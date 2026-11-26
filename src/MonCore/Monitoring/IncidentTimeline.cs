@@ -30,7 +30,8 @@ public static class IncidentTimeline
             windows[offset < -5 ? 0 : offset < 5 ? 1 : 2].Add(sample);
         }
         var resource = windows.Select(window => Mean(window.Select(sample => CaptureRules.Value(metric, sample)))).ToArray();
-        var processes = windows.Select(window => ProcessMeans(window, metric, traffic)).ToArray();
+        var processes = windows.Select(window => ThermalMetrics.IsThermal(metric)
+            ? new Dictionary<ProcessLifetimeIdentity, (ProcessUsage Process, Reading Reading)>() : ProcessMeans(window, metric, traffic)).ToArray();
         var rows = processes.SelectMany(window => window.Keys).Distinct().Select(identity =>
         {
             var owner = processes.Last(window => window.ContainsKey(identity))[identity].Process;
@@ -97,7 +98,7 @@ public static class IncidentTimeline
     private static IEnumerable<ProcessReading> ProcessValues(MonitorSample sample, CaptureMetric metric,
         ConnectionCapture? traffic = null)
     {
-        return metric == CaptureMetric.Network ? NetworkProcessValues(sample, traffic) : ScalarProcessValues(sample, metric);
+        return ThermalMetrics.IsThermal(metric) ? [] : metric == CaptureMetric.Network ? NetworkProcessValues(sample, traffic) : ScalarProcessValues(sample, metric);
     }
 
     private static IEnumerable<ProcessReading> ScalarProcessValues(MonitorSample sample, CaptureMetric metric) =>

@@ -14,6 +14,21 @@ public sealed class AutoCaptureReadCharacterizationTests
 {
     private const string DefaultFolder = @"C:\WinMon-test\Reports";
 
+    [TestCase(CaptureMetric.CpuPerformanceLimited)]
+    [TestCase(CaptureMetric.GpuThermalLimited)]
+    public void LimitRulesHaveFixedActiveStateAndEditableDuration(CaptureMetric metric)
+    {
+        var section = new AutoCaptureSection(new AutoCapturePreferences { Enabled = true, Rules = [new(metric, true, 1, 10)] },
+            DefaultFolder, "C:", "D:");
+        Assert.That(Field(section, 1, 1).Visibility, Is.EqualTo(System.Windows.Visibility.Collapsed));
+        Assert.That(Field(section, 1, 1).IsEnabled, Is.False);
+        Field(section, 1, 3).Text = "20";
+        var rule = ReadValid(section).Rules.Single();
+        Assert.That(rule.Metric, Is.EqualTo(metric));
+        Assert.That(rule.Threshold, Is.EqualTo(1));
+        Assert.That(rule.Seconds, Is.EqualTo(20));
+    }
+
     public static IEnumerable<TestCaseData> ThresholdCases()
     {
         foreach (var metric in Enum.GetValues<CaptureMetric>())
@@ -24,6 +39,8 @@ public sealed class AutoCaptureReadCharacterizationTests
                 CaptureMetric.Network or CaptureMetric.ApplicationNetwork or CaptureMetric.ServiceNetwork => 12500d,
                 CaptureMetric.Process or CaptureMetric.ApplicationCpu or CaptureMetric.ServiceCpu => 25600d,
                 CaptureMetric.ApplicationMemory or CaptureMetric.ServiceMemory => 1048576d,
+                CaptureMetric.CpuTemperature or CaptureMetric.GpuTemperature or CaptureMetric.PrimaryDiskTemperature or CaptureMetric.SecondaryDiskTemperature => 150d,
+                CaptureMetric.CpuPerformanceLimited or CaptureMetric.GpuThermalLimited => 1d,
                 _ => 100d
             };
             var minimum = network ? .0125 : 1;

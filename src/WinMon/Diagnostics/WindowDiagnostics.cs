@@ -155,12 +155,13 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
         window.ChartResourcesToggle.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
         if (window.Session.History.Samples.Count < 3)
             throw new InvalidOperationException("Native chart samples did not arrive.");
-        if (window.ChartTypeSelector.Items.OfType<ComboBoxItem>().Count() != 9 ||
+        if (window.ChartTypeSelector.Items.OfType<ComboBoxItem>().Count() != (window.Preferences.TemperatureChartsEnabled ? 10 : 9) ||
             window.ChartTypeSelector.Items.OfType<Separator>().Count() != 1)
             throw new InvalidOperationException("The combined chart menu has the wrong choices.");
         await CaptureChartHelpAsync(outputDirectory, cancellationToken);
 
-        foreach (var chartType in Enum.GetValues<ResourceChartType>())
+        foreach (var chartType in Enum.GetValues<ResourceChartType>().Where(type =>
+                     type != ResourceChartType.Temperature || window.Preferences.TemperatureChartsEnabled))
             await CaptureChartScenarioAsync(chartType, outputDirectory, cancellationToken);
 
         window.ChartTypeSelector.SelectedItem = ChartChoiceItem(window, ResourceChartType.Focus, 3);

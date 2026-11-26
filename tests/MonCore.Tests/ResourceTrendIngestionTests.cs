@@ -171,7 +171,7 @@ public sealed class ResourceTrendIngestionTests
 
     private static IEnumerable<TestCaseData> NumericLimits()
     {
-        foreach (var metric in Enum.GetValues<ResourceTrendMetric>().Where(m => m is not (ResourceTrendMetric.MemoryBytes or ResourceTrendMetric.MemoryPercent)))
+        foreach (var metric in Enum.GetValues<ResourceTrendMetric>().Where(m => !ResourceTrendArchive.IsThermal(m) && m is not (ResourceTrendMetric.MemoryBytes or ResourceTrendMetric.MemoryPercent)))
         {
             var limit = metric is ResourceTrendMetric.Cpu or ResourceTrendMetric.PrimaryDiskActive or ResourceTrendMetric.SecondaryDiskActive or ResourceTrendMetric.Gpu ? 100d : 1e20;
             yield return new TestCaseData(metric, 0d, true);

@@ -14,7 +14,8 @@ public enum CaptureMetric
     Gpu,
     Process,
     ApplicationCpu, ApplicationMemory, ApplicationNetwork,
-    ServiceCpu, ServiceMemory, ServiceNetwork
+    ServiceCpu, ServiceMemory, ServiceNetwork,
+    CpuTemperature, GpuTemperature, PrimaryDiskTemperature, SecondaryDiskTemperature, CpuPerformanceLimited, GpuThermalLimited
 }
 
 /// <summary>One automatic capture rule as the user set it.</summary>
@@ -46,7 +47,10 @@ public sealed record CaptureRuleSetting(CaptureMetric Metric, bool Enabled, doub
         new(CaptureMetric.Process, false, 90, 30),
         new(CaptureMetric.ApplicationCpu, false, 90, 30), new(CaptureMetric.ApplicationMemory, false, 1024, 30),
         new(CaptureMetric.ApplicationNetwork, false, 50, 10), new(CaptureMetric.ServiceCpu, false, 90, 30),
-        new(CaptureMetric.ServiceMemory, false, 1024, 30), new(CaptureMetric.ServiceNetwork, false, 50, 10)
+        new(CaptureMetric.ServiceMemory, false, 1024, 30), new(CaptureMetric.ServiceNetwork, false, 50, 10),
+        new(CaptureMetric.CpuTemperature, false, 85, 30), new(CaptureMetric.GpuTemperature, false, 85, 30),
+        new(CaptureMetric.PrimaryDiskTemperature, false, 60, 30), new(CaptureMetric.SecondaryDiskTemperature, false, 60, 30),
+        new(CaptureMetric.CpuPerformanceLimited, false, 1, 10), new(CaptureMetric.GpuThermalLimited, false, 1, 10)
     ];
 
     /// <summary>The highest threshold a rule accepts; percent rules stop at 100.</summary>
@@ -54,6 +58,8 @@ public sealed record CaptureRuleSetting(CaptureMetric Metric, bool Enabled, doub
     {
         return metric switch
         {
+            CaptureMetric.CpuTemperature or CaptureMetric.GpuTemperature or CaptureMetric.PrimaryDiskTemperature or CaptureMetric.SecondaryDiskTemperature => 150,
+            CaptureMetric.CpuPerformanceLimited or CaptureMetric.GpuThermalLimited => 1,
             CaptureMetric.Network or CaptureMetric.ApplicationNetwork or CaptureMetric.ServiceNetwork => 100_000,
             CaptureMetric.Process or CaptureMetric.ApplicationCpu or CaptureMetric.ServiceCpu => 25_600,
             CaptureMetric.ApplicationMemory or CaptureMetric.ServiceMemory => 1_048_576,
@@ -122,8 +128,16 @@ public sealed class CaptureRules(IReadOnlyList<CaptureRuleSetting> rules, TimeSp
             }
 
             if (!_runs.TryGetValue(rule.Metric, out var run)) _runs[rule.Metric] = run = new Run();
+            if (ThermalMetrics.IsThermal(rule.Metric))
+            {
+                var identity = ThermalMetrics.Identity(rule.Metric, full.Resources);
+                if (run.Identity != identity || (run.Seen > 0 && (moment <= run.Seen || moment - run.Seen > 2.5)))
+                { run.Break(); run.Below = 0; }
+                run.Seen = moment;
+                run.Identity = identity;
+            }
             var value = rule.IsTargeted ? ScopedValue(rule, full, services, network) : Value(rule.Metric, full);
-            if (Step(rule, run, (rule.IsTargeted ? !full.IsGap : valid) ? value : null, full, moment) is { } result)
+            if (Step(rule, run, (rule.IsTargeted || ThermalMetrics.IsThermal(rule.Metric) ? !full.IsGap : valid) ? value : null, full, moment) is { } result)
                 (fired ??= []).Add(result);
         }
 
@@ -212,7 +226,7 @@ public sealed class CaptureRules(IReadOnlyList<CaptureRuleSetting> rules, TimeSp
             return null;
         }
 
-        if (current > rule.Threshold)
+        if (ThermalMetrics.IsThermal(rule.Metric) ? current >= rule.Threshold : current > rule.Threshold)
         {
             run.Below = 0;
             if (!run.Armed) return null;
@@ -252,6 +266,7 @@ public sealed class CaptureRules(IReadOnlyList<CaptureRuleSetting> rules, TimeSp
     public static double? Value(CaptureMetric metric, MonitorSample sample)
     {
         var r = sample.Resources;
+        if (ThermalMetrics.IsThermal(metric)) return sample.IsGap ? null : ThermalMetrics.Value(metric, r);
         return metric switch
         {
             CaptureMetric.Cpu => sample.TotalCpuPercent,
@@ -274,6 +289,7 @@ public sealed class CaptureRules(IReadOnlyList<CaptureRuleSetting> rules, TimeSp
         public bool Armed { get; set; } = true;
         public int Below { get; set; }
         public double Seen { get; set; }
+        public string Identity { get; set; } = "";
 
         public void Break()
         {

@@ -2194,4 +2194,8 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
   <data name="InstallerSensorServiceSetupFailed" xml:space="preserve">
     <value>WinMon はインストールされましたが、ハードウェアセンサーを有効にできませんでした。再起動が要求された場合は Windows を再起動し、設定 &gt; サービスで再試行してください。</value>
   </data>
+  <data name="ThermalCaptureRuleText" xml:space="preserve"><value>{0} が {1} 秒間</value></data>
+  <data name="ThermalCaptureHelp" xml:space="preserve"><value>温度ルールは摂氏を使用し、しきい値以上で発動します。制限ルールは制限が有効な間に発動します。測定値の欠落やセンサーの変更で継続時間がリセットされます。</value></data>
+  <data name="ThermalTrendPeaks" xml:space="preserve"><value>1分ごとのピーク</value></data>
+  <data name="TemperatureChartHelp" xml:space="preserve"><value>CPU、GPU、ドライブの温度を独立した摂氏または華氏の目盛で表示します。測定値の欠落やセンサーの変更で線が途切れます。</value></data>
 </root>

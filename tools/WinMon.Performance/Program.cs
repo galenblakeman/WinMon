@@ -58,6 +58,7 @@ internal static partial class Program
                         CpuClockMhz = 4300, CpuPerformanceLimitPercent = 62, CpuPerformanceLimitFlags = 2,
                         CpuTemperature = new(Guid.Parse("B44EA93F-5545-4B2B-870F-EA026F7871C9"), "cpu/0",
                             "Benchmark CPU", "cpu/0/package", "CPU Package", 52, "LibreHardwareMonitorLib 0.9.6"),
+                        DiskTemperatureCelsius = 42, SecondaryDiskTemperatureCelsius = 45,
                         GpuId = "benchmark/0",
                         GpuThermals = [new("benchmark/0", "Benchmark GPU", 83, 900, 42, 83, 88)],
                         ThermalZones = [new("benchmark-zone", 52, false)]
@@ -107,6 +108,19 @@ internal static partial class Program
             window.CloseForFixture();
             app.Shutdown();
             return;
+        }
+        if (args.Contains("--temperature-chart"))
+        {
+            window.Preferences = window.Preferences with
+            {
+                CpuTemperatureMonitoringEnabled = true,
+                ResourceChartType = ResourceChartType.Temperature,
+                TemperatureUnit = args.Contains("--fahrenheit") ? TemperatureUnit.Fahrenheit : TemperatureUnit.Celsius,
+                Theme = args.Contains("--light") ? "Light" : "Dark"
+            };
+            window.ApplyTheme();
+            window.RefreshPresentation();
+            Flush();
         }
         Measure("live-frame");
         if (args.Contains("--live-only"))

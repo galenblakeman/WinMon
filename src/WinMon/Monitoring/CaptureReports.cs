@@ -40,6 +40,9 @@ internal static class CaptureReports
         {
             CaptureMetric.Cpu => "cpu", CaptureMetric.Memory or CaptureMetric.ApplicationMemory or CaptureMetric.ServiceMemory => "memory", CaptureMetric.PrimaryDisk => "disk1",
             CaptureMetric.SecondaryDisk => "disk2", CaptureMetric.Network or CaptureMetric.ApplicationNetwork or CaptureMetric.ServiceNetwork => "network", CaptureMetric.Gpu => "gpu",
+            CaptureMetric.CpuTemperature => "cpu-temperature", CaptureMetric.GpuTemperature => "gpu-temperature",
+            CaptureMetric.PrimaryDiskTemperature => "disk1-temperature", CaptureMetric.SecondaryDiskTemperature => "disk2-temperature",
+            CaptureMetric.CpuPerformanceLimited => "cpu-limit", CaptureMetric.GpuThermalLimited => "gpu-limit",
             _ => "process"
         };
     }

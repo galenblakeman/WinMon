@@ -20,7 +20,8 @@ public enum ResourceTrendMetric
     SecondaryDiskWrite,
     Receive,
     Send,
-    Gpu
+    Gpu,
+    CpuTemperature, GpuTemperature, PrimaryDiskTemperature, SecondaryDiskTemperature, CpuPerformanceLimited, GpuThermalLimited
 }
 
 /// <summary>Why a minute cannot be connected to the preceding resource trend point.</summary>
@@ -159,6 +160,8 @@ public sealed class ResourceTrendArchive
 
     private static bool ValidLiveReading(ResourceTrendMetric metric, double reading) =>
         double.IsFinite(reading) && reading is >= 0 and <= MaximumReading &&
+        (!IsTemperature(metric) || ThermalHistory.IsTemperature(reading)) &&
+        (!(metric is ResourceTrendMetric.CpuPerformanceLimited or ResourceTrendMetric.GpuThermalLimited) || reading <= 1) &&
         !(metric is ResourceTrendMetric.Cpu or ResourceTrendMetric.MemoryPercent or ResourceTrendMetric.PrimaryDiskActive or ResourceTrendMetric.SecondaryDiskActive or ResourceTrendMetric.Gpu && reading > 100);
 
     /// <summary>Returns an immutable, ordered snapshot safe to serialize or render off the sampling path.</summary>
@@ -166,7 +169,7 @@ public sealed class ResourceTrendArchive
     {
         var end = (endUtc ?? _latestUtc ?? DateTimeOffset.UtcNow).ToUniversalTime();
         Prune(end);
-        return new ResourceTrendArchiveState(1, end, _buckets.Values.Where(bucket => bucket.StartUtc < end).Select(bucket => bucket.Freeze(_devices)).ToArray());
+        return new ResourceTrendArchiveState(2, end, _buckets.Values.Where(bucket => bucket.StartUtc < end).Select(bucket => bucket.Freeze(_devices)).ToArray());
     }
 
     /// <summary>Gets retained UTC minute buckets intersecting the requested elapsed range.</summary>
@@ -255,6 +258,15 @@ public sealed class ResourceTrendArchive
         yield return (ResourceTrendMetric.Receive, resources.ReceiveBytesPerSecond, resources.NetworkId, resources.NetworkName);
         yield return (ResourceTrendMetric.Send, resources.SendBytesPerSecond, resources.NetworkId, resources.NetworkName);
         yield return (ResourceTrendMetric.Gpu, resources.GpuPercent, resources.GpuId, resources.GpuName);
+        foreach (var metric in ThermalCaptureMetrics)
+        {
+            var reading = ThermalMetrics.Value(metric, resources);
+            if (reading is null) continue;
+            var identity = ThermalMetrics.Identity(metric, resources);
+            var label = metric == CaptureMetric.CpuTemperature ? resources.CpuTemperature?.SensorName ?? "" :
+                metric is CaptureMetric.GpuTemperature or CaptureMetric.GpuThermalLimited ? resources.GpuName : identity;
+            yield return (TrendMetric(metric), reading, identity, label);
+        }
     }
 
     private static IEnumerable<(ResourceTrendMetric Metric, double? Value, string DeviceId, string DeviceLabel)> Disk(ResourceTrendMetric active, ResourceTrendMetric read,
@@ -265,7 +277,19 @@ public sealed class ResourceTrendArchive
         yield return (write, writeValue, device, device);
     }
 
-    private static bool NeedsDevice(ResourceTrendMetric metric) => metric is ResourceTrendMetric.PrimaryDiskActive or ResourceTrendMetric.PrimaryDiskRead or ResourceTrendMetric.PrimaryDiskWrite or
+    private static readonly CaptureMetric[] ThermalCaptureMetrics = [CaptureMetric.CpuTemperature, CaptureMetric.GpuTemperature,
+        CaptureMetric.PrimaryDiskTemperature, CaptureMetric.SecondaryDiskTemperature, CaptureMetric.CpuPerformanceLimited, CaptureMetric.GpuThermalLimited];
+    public static ResourceTrendMetric TrendMetric(CaptureMetric metric) => metric switch
+    {
+        CaptureMetric.CpuTemperature => ResourceTrendMetric.CpuTemperature, CaptureMetric.GpuTemperature => ResourceTrendMetric.GpuTemperature,
+        CaptureMetric.PrimaryDiskTemperature => ResourceTrendMetric.PrimaryDiskTemperature, CaptureMetric.SecondaryDiskTemperature => ResourceTrendMetric.SecondaryDiskTemperature,
+        CaptureMetric.CpuPerformanceLimited => ResourceTrendMetric.CpuPerformanceLimited, CaptureMetric.GpuThermalLimited => ResourceTrendMetric.GpuThermalLimited,
+        _ => throw new ArgumentOutOfRangeException(nameof(metric))
+    };
+    public static bool IsThermal(ResourceTrendMetric metric) => metric >= ResourceTrendMetric.CpuTemperature && metric <= ResourceTrendMetric.GpuThermalLimited;
+    public static bool IsTemperature(ResourceTrendMetric metric) => metric >= ResourceTrendMetric.CpuTemperature && metric <= ResourceTrendMetric.SecondaryDiskTemperature;
+
+    private static bool NeedsDevice(ResourceTrendMetric metric) => IsTemperature(metric) || metric == ResourceTrendMetric.GpuThermalLimited || metric is ResourceTrendMetric.PrimaryDiskActive or ResourceTrendMetric.PrimaryDiskRead or ResourceTrendMetric.PrimaryDiskWrite or
         ResourceTrendMetric.SecondaryDiskActive or ResourceTrendMetric.SecondaryDiskRead or ResourceTrendMetric.SecondaryDiskWrite or ResourceTrendMetric.Receive or ResourceTrendMetric.Send or ResourceTrendMetric.Gpu;
 
     private int InternDevice(string id, string label)
@@ -284,7 +308,7 @@ public sealed class ResourceTrendArchive
 
     private static void Validate(ResourceTrendArchiveState state)
     {
-        if (state.SchemaVersion != 1 || state.EndUtc.Offset != TimeSpan.Zero || state.Buckets is null || state.Buckets.Length > RetainedMinutes || state.Buckets.Any(b => b is null))
+        if (state.SchemaVersion is < 1 or > 2 || state.EndUtc.Offset != TimeSpan.Zero || state.Buckets is null || state.Buckets.Length > RetainedMinutes || state.Buckets.Any(b => b is null))
             throw new InvalidDataException("Invalid resource trend archive.");
         var prior = long.MinValue;
         foreach (var bucket in state.Buckets)
@@ -323,7 +347,9 @@ public sealed class ResourceTrendArchive
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool ValidRange(ResourceTrendMetric metric, ResourceTrendValue value) =>
-        !(value.WeightedSum > MaximumReading * 60 || value.Maximum > MaximumReading ||
+        !((IsTemperature(metric) && (!ThermalHistory.IsTemperature(value.Minimum) || !ThermalHistory.IsTemperature(value.Maximum))) ||
+            (metric is ResourceTrendMetric.CpuPerformanceLimited or ResourceTrendMetric.GpuThermalLimited && value.Maximum > 1) ||
+            value.WeightedSum > MaximumReading * 60 || value.Maximum > MaximumReading ||
             value.WeightedSum < value.Minimum * value.ObservedSeconds - 0.001 || value.WeightedSum > value.Maximum * value.ObservedSeconds + 0.001 ||
             (metric is ResourceTrendMetric.Cpu or ResourceTrendMetric.MemoryPercent or ResourceTrendMetric.PrimaryDiskActive or ResourceTrendMetric.SecondaryDiskActive or ResourceTrendMetric.Gpu && value.Maximum > 100));
 
@@ -332,7 +358,7 @@ public sealed class ResourceTrendArchive
         private readonly long _startTicks = startUtc.UtcTicks;
         public DateTimeOffset StartUtc => new(_startTicks, TimeSpan.Zero);
         private MetricValue[] _values = new MetricValue[Enum.GetValues<ResourceTrendMetric>().Length];
-        private ushort _present;
+        private uint _present;
 
         public void Add(ResourceTrendMetric metric, double? value, int device, double seconds)
         {
@@ -342,16 +368,18 @@ public sealed class ResourceTrendArchive
             seconds = Math.Min(seconds, 60 - total.Seconds);
             if (seconds <= 0) return;
             if (total.Seconds > 0 && total.Device != device) SetBreak(ref total, ResourceTrendBreak.ResourceChanged);
+            if (total.Seconds == 0) { total.Minimum = reading; total.Maximum = reading; }
+            else { total.Minimum = Math.Min(total.Minimum, reading); total.Maximum = Math.Max(total.Maximum, reading); }
             total.WeightedSum += reading * seconds;
             total.Seconds += seconds;
             total.Device = device;
-            _present |= (ushort)(1 << (int)metric);
+            _present |= (uint)(1 << (int)metric);
         }
 
         public void Restore(ResourceTrendMetric metric, ResourceTrendValue value, int device)
         {
-            _values[(int)metric] = new MetricValue { WeightedSum = value.WeightedSum, Seconds = value.ObservedSeconds, Device = device, Break = value.Break };
-            _present |= (ushort)(1 << (int)metric);
+            _values[(int)metric] = new MetricValue { WeightedSum = value.WeightedSum, Seconds = value.ObservedSeconds, Minimum = value.Minimum, Maximum = value.Maximum, Device = device, Break = value.Break };
+            _present |= (uint)(1 << (int)metric);
         }
 
         public ResourceTrendBucket Freeze(IReadOnlyList<DeviceInfo> devices)
@@ -363,7 +391,8 @@ public sealed class ResourceTrendArchive
                 var value = _values[index];
                 var average = value.WeightedSum / value.Seconds;
                 var device = devices[value.Device];
-                values.Add((ResourceTrendMetric)index, new ResourceTrendValue(value.WeightedSum, value.Seconds, average, average, device.Label, value.Break)
+                values.Add((ResourceTrendMetric)index, new ResourceTrendValue(IsThermal((ResourceTrendMetric)index) ? value.Maximum * value.Seconds : value.WeightedSum, value.Seconds,
+                    IsThermal((ResourceTrendMetric)index) ? value.Minimum : average, IsThermal((ResourceTrendMetric)index) ? value.Maximum : average, device.Label, value.Break)
                 { DeviceId = device.Id, DeviceLabel = device.Label });
             }
             return new ResourceTrendBucket(StartUtc, values);
@@ -390,6 +419,8 @@ public sealed class ResourceTrendArchive
     private struct MetricValue
     {
         public double WeightedSum;
+        public double Minimum;
+        public double Maximum;
         public double Seconds;
         public int Device;
         public ResourceTrendBreak Break;

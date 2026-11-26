@@ -2194,4 +2194,8 @@ Przywrócenie ograniczania również nie powiodło się: {1}</value></data>
   <data name="InstallerSensorServiceSetupFailed" xml:space="preserve">
     <value>Zainstalowano WinMon, ale nie udało się włączyć czujników sprzętowych. Jeśli wymagane jest ponowne uruchomienie, uruchom ponownie system Windows i spróbuj w Ustawienia &gt; Usługi.</value>
   </data>
+  <data name="ThermalCaptureRuleText" xml:space="preserve"><value>{0} przez {1} s</value></data>
+  <data name="ThermalCaptureHelp" xml:space="preserve"><value>Reguły temperatury używają stopni Celsjusza i uruchamiają się po osiągnięciu lub przekroczeniu progu. Reguły ograniczeń działają, gdy ograniczenie jest aktywne. Brak odczytów i zmiana czujnika zerują czas.</value></data>
+  <data name="ThermalTrendPeaks" xml:space="preserve"><value>Szczyty minutowe</value></data>
+  <data name="TemperatureChartHelp" xml:space="preserve"><value>Temperatury CPU, GPU i dysków na osobnej skali Celsjusza lub Fahrenheita. Brak odczytu i zmiana czujnika przerywają linię.</value></data>
 </root>

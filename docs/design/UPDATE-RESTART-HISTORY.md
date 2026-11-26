@@ -2,6 +2,8 @@
 
 Proposed on 2026-10-24. Status: implemented on 2026-10-24 (Sequence steps 1 to 5), except the native update smoke test; see Implementation notes.
 
+Current sensor extension: [Temperature history and captures](TEMPERATURE-HISTORY.md) adds a bounded per-sample thermal payload in restart format 5, preserving readers for formats 1–4. The implementation notes below describe their original delivery.
+
 ## Why
 
 **Update now** exits WinMon, replaces the executable and starts the new version. Today that wipes the monitoring history, and the README warns: "Restarting clears the current monitoring history." Someone who installs an update in the middle of an investigation loses the spike they were looking at. This note covers only that restart. A normal exit, a crash, sign-out and reboot still clear history, as they do today.

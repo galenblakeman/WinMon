@@ -36,7 +36,7 @@ public sealed class IncidentRecordingTests
     }
 
     [Test]
-    public void SaveLoad_OmitsLiveCpuServiceReadingsWithoutChangingIncidentVersion()
+    public void SaveLoad_PreservesCpuSensorIdentityAndValue()
     {
         var source = Recording();
         source = source with { Observations = source.Observations.Select(frame => frame with
@@ -56,10 +56,10 @@ public sealed class IncidentRecordingTests
         var json = reader.ReadToEnd();
         Assert.Multiple(() =>
         {
-            Assert.That(loaded.Version, Is.EqualTo(2));
-            Assert.That(loaded.Observations.All(frame => frame.Sample.Resources.CpuTemperature is null), Is.True);
+            Assert.That(loaded.Version, Is.EqualTo(IncidentRecording.CurrentVersion));
+            Assert.That(loaded.Observations.All(frame => frame.Sample.Resources.CpuTemperature?.Celsius == 55), Is.True);
             Assert.That(loaded.Observations.All(frame => frame.Sample.Resources.CpuClockMhz == 4300), Is.True);
-            Assert.That(json, Does.Not.Contain("cpu-service-only"));
+            Assert.That(json, Does.Contain("cpu-service-only"));
         });
     }
 
@@ -200,7 +200,7 @@ public sealed class IncidentRecordingTests
         var source = Recording() with { Version = 1, WindowsEvents = Events() };
         source.Save(FilePath);
         var loaded = IncidentRecording.Load(FilePath);
-        Assert.That(loaded.Version, Is.EqualTo(2));
+        Assert.That(loaded.Version, Is.EqualTo(IncidentRecording.CurrentVersion));
         Assert.That(loaded.WindowsEvents.Events, Is.EqualTo(source.WindowsEvents.Events));
         Assert.That(loaded.WindowsEvents.Coverage, Is.EqualTo(source.WindowsEvents.Coverage));
         Assert.That(loaded.WindowsEvents.LimitReached, Is.True);
@@ -217,7 +217,7 @@ public sealed class IncidentRecordingTests
         Assert.That(loaded.WindowsEvents.Coverage.Select(item => item.Status),
             Is.All.EqualTo(IncidentEventCoverageStatus.Unknown));
         loaded.Save(FilePath);
-        Assert.That(IncidentRecording.Load(FilePath).Version, Is.EqualTo(2));
+        Assert.That(IncidentRecording.Load(FilePath).Version, Is.EqualTo(IncidentRecording.CurrentVersion));
     }
 
     [TestCase("too-many")]

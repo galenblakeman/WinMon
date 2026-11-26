@@ -2194,4 +2194,8 @@ A restauração da limitação também falhou: {1}</value></data>
   <data name="InstallerSensorServiceSetupFailed" xml:space="preserve">
     <value>O WinMon foi instalado, mas não foi possível ativar os sensores de hardware. Se uma reinicialização for solicitada, reinicie o Windows e tente novamente em Configurações &gt; Serviços.</value>
   </data>
+  <data name="ThermalCaptureRuleText" xml:space="preserve"><value>{0} por {1} s</value></data>
+  <data name="ThermalCaptureHelp" xml:space="preserve"><value>As regras de temperatura usam Celsius e disparam no limite ou acima dele. As regras de limitação disparam enquanto o limite está ativo. Leituras ausentes e mudanças de sensor reiniciam a duração.</value></data>
+  <data name="ThermalTrendPeaks" xml:space="preserve"><value>Picos por minuto</value></data>
+  <data name="TemperatureChartHelp" xml:space="preserve"><value>Temperaturas da CPU, GPU e unidades em uma escala separada em Celsius ou Fahrenheit. Leituras ausentes e mudanças de sensor interrompem as linhas.</value></data>
 </root>

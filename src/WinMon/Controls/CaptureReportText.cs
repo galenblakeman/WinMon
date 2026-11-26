@@ -18,14 +18,15 @@ internal static class CaptureReportText
         {
             CaptureMetric.Memory or CaptureMetric.ApplicationMemory or CaptureMetric.ServiceMemory => "MemoryAccent", CaptureMetric.PrimaryDisk => "DiskAccent",
             CaptureMetric.SecondaryDisk => "SecondaryDiskAccent", CaptureMetric.Network or CaptureMetric.ApplicationNetwork or CaptureMetric.ServiceNetwork => "NetworkAccent",
-            CaptureMetric.Gpu => "GpuAccent", _ => "CpuAccent"
+            CaptureMetric.Gpu or CaptureMetric.GpuTemperature or CaptureMetric.GpuThermalLimited => "GpuAccent",
+            CaptureMetric.PrimaryDiskTemperature => "DiskAccent", CaptureMetric.SecondaryDiskTemperature => "SecondaryDiskAccent", _ => "CpuAccent"
         };
     }
 
     /// <summary>Disk and network process lists cannot be attributed to that drive or adapter.</summary>
     internal static bool AttributesProcesses(CaptureMetric metric)
     {
-        return metric is not (CaptureMetric.PrimaryDisk or CaptureMetric.SecondaryDisk or CaptureMetric.Network or
+        return !ThermalMetrics.IsThermal(metric) && metric is not (CaptureMetric.PrimaryDisk or CaptureMetric.SecondaryDisk or CaptureMetric.Network or
             CaptureMetric.ApplicationNetwork or CaptureMetric.ServiceNetwork);
     }
 
@@ -33,6 +34,13 @@ internal static class CaptureReportText
     {
         return metric switch
         {
+            CaptureMetric.CpuTemperature => resources.CpuTemperature is { } cpu
+                ? Strings.DetailCpuTemperature + " · " + cpu.SensorName : Strings.DetailCpuTemperature,
+            CaptureMetric.GpuTemperature => Strings.GPU + " · " + Strings.DetailTemperature,
+            CaptureMetric.PrimaryDiskTemperature => Strings.FlightRecorderTrendPrimaryDisk + " · " + Strings.DetailTemperature,
+            CaptureMetric.SecondaryDiskTemperature => Strings.FlightRecorderTrendSecondaryDisk + " · " + Strings.DetailTemperature,
+            CaptureMetric.CpuPerformanceLimited => Strings.CPU + " · " + Strings.PerformanceLimited,
+            CaptureMetric.GpuThermalLimited => Strings.GPU + " · " + Strings.ThermalLimit,
             CaptureMetric.Cpu => Strings.CPU, CaptureMetric.Memory => Strings.Memory,
             CaptureMetric.PrimaryDisk => resources.DiskName.Length > 0
                 ? Strings.Format(Strings.DiskLabel, resources.DiskName)
@@ -50,6 +58,9 @@ internal static class CaptureReportText
 
     internal static string Value(CaptureMetric metric, double value)
     {
+        if (ThermalMetrics.IsTemperature(metric)) return Strings.Format(Strings.TemperatureCelsiusValue,
+            value.ToString("G", CultureInfo.CurrentCulture));
+        if (ThermalMetrics.IsThermal(metric)) return value > 0 ? Strings.SettingsOn : Strings.SettingsOff;
         return metric switch
         {
             CaptureMetric.Network or CaptureMetric.ApplicationNetwork or CaptureMetric.ServiceNetwork => RateText.Format(value * 1_000_000),
@@ -66,6 +77,8 @@ internal static class CaptureReportText
             ? DisplayName(process)
             : MetricName(fired.Rule.Metric, fired.Fired.Resources);
         if (fired.Rule.IsTargeted) name = fired.Rule.Target + " · " + name;
+        if (ThermalMetrics.IsThermal(fired.Rule.Metric)) return Strings.Format(Strings.ThermalCaptureRuleText,
+            name + (ThermalMetrics.IsTemperature(fired.Rule.Metric) ? " ≥ " + Value(fired.Rule.Metric, fired.Rule.Threshold) : ""), fired.Rule.Seconds);
         return Strings.Format(Strings.AutoCaptureRuleText, name, Value(fired.Rule.Metric, fired.Rule.Threshold),
             fired.Rule.Seconds);
     }

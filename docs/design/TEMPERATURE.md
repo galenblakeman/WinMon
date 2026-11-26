@@ -103,7 +103,7 @@ All visible text, tooltips and accessibility names go in `Strings.resx` and the 
 
 ### Later placements
 
-Not part of the first delivery, listed so the data model allows them:
+Temperature chart series, History/incident persistence, longer-trend peaks and automatic-capture conditions are now implemented in [Temperature history and captures](TEMPERATURE-HISTORY.md). The list below records the original follow-up scope; CLI/MCP sensor exposure remains deferred:
 
 - An optional temperature series in the [chart legend](CHART-RESOURCE-LEGEND.md), plotted against its own °C axis.
 - Temperature in History, incident recordings and [longer trends](LONGER-RESOURCE-TRENDS.md). Longer trends keep each minute's maximum, not its average.
@@ -166,7 +166,7 @@ The integrated-only laptop is still to run.
 
 CPU die temperature and motherboard fans need ring-0 access to chip registers, which no Windows API offers. WinMon will not ship a kernel driver of its own. None of this is part of the first delivery.
 
-**Decision:** [Optional CPU temperature](HARDWARE-SENSORS.md) is authoritative for CPU die/package readings: stable LibreHardwareMonitorLib NuGet in its own service, with explicit consent to install the service and official driver. CPU sensors come first; fans and motherboard monitoring can extend the same library provider later. WinMon's UI stays unelevated, and the network service gains no sensor collection. The monitoring-tool readers below are rejected alternatives retained for reference. Only the common validation, attribution and unit principles below apply to the selected service; its lifecycle and freshness protocol are defined in that design.
+**Decision:** [Optional CPU temperature](HARDWARE-SENSORS.md) is authoritative for CPU die/package readings: stable LibreHardwareMonitorLib NuGet in its own service, with explicit consent to install the service and official driver. The provider now includes the selected CPU sensor and supported board fan tachometers, as described in [sensor settings](SENSORS-SETTINGS.md). WinMon's UI stays unelevated, and the network service gains no sensor collection. The monitoring-tool readers below are rejected alternatives retained for reference. Only the common validation, attribution and unit principles below apply to the selected service; its lifecycle and freshness protocol are defined in that design.
 
 The CAM comparison on the spike desktop shows how other tools do it. CAM showed a 73 °C CPU temperature and a 1,775 RPM CPU fan, while that machine had six third-party kernel drivers loaded for this purpose: AMD's Ryzen Master SDK driver, a CPUID SDK driver, Corsair's low-level access driver, and MSI's `MsIo64` and two `NTIOLib` copies. `MsIo64` has a published arbitrary physical-memory read/write vulnerability (CVE-2019-18845).
 
@@ -264,7 +264,7 @@ Four alternating performance pairs measured UI frame medians of 4.599 ms before 
 
 Departures and native limits:
 
-- Temperatures and CPU limits are live-only; the restart-history binary format is unchanged and restores these fields unavailable. An explicit round-trip regression guards this boundary.
+- The first delivery kept temperatures and CPU limits live-only. The [history extension](TEMPERATURE-HISTORY.md) now persists them using restart format 5 and incident format 3; older files retain unavailable fields.
 - The existing desktop/hybrid hardware spike informed implementation. The integrated-only laptop, a confirmed sleeping-GPU power-state comparison and an observed real performance limit below 100 remain unverified.
 - A six-sample idle probe in this development environment completed and reported unsupported GPU performance queries, no zones and CPU limit 100. This verifies graceful absence here, not sensor accuracy on physical GPUs.
 - Optional CPU die/package temperature uses the separate LibreHardwareMonitor service; its native acceptance and service status belong to [Optional CPU temperature](HARDWARE-SENSORS.md).

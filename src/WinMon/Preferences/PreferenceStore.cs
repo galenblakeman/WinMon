@@ -230,7 +230,9 @@ public sealed class PreferenceStore
             AutoCapture = (preferences.AutoCapture ?? new AutoCapturePreferences()).Normalized(),
             ShowShortcut = HotkeyGesture.Normalize(preferences.ShowShortcut)
         };
-        return normalized.RememberChartConfiguration();
+        normalized = normalized.RememberChartConfiguration();
+        return normalized.ResourceChartType == ResourceChartType.Temperature && !normalized.TemperatureChartsEnabled
+            ? normalized.SelectChart(ResourceChartType.Overlay) : normalized;
     }
 
     internal static string? NormalizeDrive(string? drive)

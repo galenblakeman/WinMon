@@ -2206,4 +2206,8 @@ Auch das Wiederherstellen der Drosselung ist fehlgeschlagen: {1}</value></data>
   <data name="InstallerSensorServiceSetupFailed" xml:space="preserve">
     <value>WinMon wurde installiert, aber die Hardware-Sensoren konnten nicht aktiviert werden. Falls ein Neustart angefordert wird, starten Sie Windows neu und versuchen Sie es erneut unter Einstellungen &gt; Dienste.</value>
   </data>
+  <data name="ThermalCaptureRuleText" xml:space="preserve"><value>{0} für {1} s</value></data>
+  <data name="ThermalCaptureHelp" xml:space="preserve"><value>Temperaturregeln verwenden Celsius und lösen ab dem Schwellenwert aus. Begrenzungsregeln lösen bei aktiver Begrenzung aus. Fehlende Werte und Sensorwechsel setzen die Dauer zurück.</value></data>
+  <data name="ThermalTrendPeaks" xml:space="preserve"><value>Minütliche Spitzenwerte</value></data>
+  <data name="TemperatureChartHelp" xml:space="preserve"><value>CPU-, GPU- und Laufwerkstemperaturen auf einer eigenen Celsius- oder Fahrenheit-Skala. Fehlende Messwerte und Sensorwechsel unterbrechen die Linien.</value></data>
 </root>

@@ -191,6 +191,26 @@ public sealed class ChartTypeSelectionCharacterizationTests
         });
     }
 
+    [TestCase(false)]
+    [TestCase(true)]
+    public void TemperatureChoiceRequiresEnabledSensorServiceAndFallsBackWhenDisabled(bool enabled)
+    {
+        Prepare();
+        _window.Preferences = _window.Preferences with { CpuTemperatureMonitoringEnabled = enabled };
+        _window.BuildChartSelectors();
+        var available = _window.ChartTypeSelector.Items.OfType<ComboBoxItem>()
+            .Count(item => item.Tag is ResourceChartChoice { Type: ResourceChartType.Temperature });
+        Assert.That(available, Is.EqualTo(_window.Preferences.TemperatureChartsEnabled ? 1 : 0));
+        if (_window.Preferences.TemperatureChartsEnabled) Choose(ResourceChartType.Temperature);
+        _window.Preferences = _window.Preferences with { CpuTemperatureMonitoringEnabled = false };
+        _window.BuildChartSelectors();
+        _window.RefreshPresentation();
+        Assert.That(_window.Preferences.ResourceChartType, Is.EqualTo(ResourceChartType.Overlay));
+        Assert.That(_window.OverallGraph.ChartType, Is.EqualTo(ResourceChartType.Overlay));
+        Assert.That(_window.ChartTypeSelector.Items.OfType<ComboBoxItem>()
+            .Any(item => item.Tag is ResourceChartChoice { Type: ResourceChartType.Temperature }), Is.False);
+    }
+
     private void Prepare()
     {
         Assert.That(Updates.UpdateRuntime.RestartHistory, Is.Null);

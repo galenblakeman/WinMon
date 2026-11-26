@@ -1,5 +1,15 @@
 # WinMon performance history
 
+## Temperature history and captures (November 26, 2026)
+
+Compared preserved pre-change and candidate Release assemblies in baseline, candidate, candidate, baseline order. Ordinary live-frame medians ranged 4.71–5.15 ms before and 4.33–4.73 ms after, using 400 warmups and seven batches of 60 frames. Allocations were about 552.2–552.8 kB before and 552.9–553.0 kB after. No consistent rendering slowdown appeared. Concurrent verification and other working-tree work limit attribution; this is a sanity check.
+
+The portable-core harness on PowerShell's .NET 10.0.14 used 1,000 warmups and seven batches of 10,000 additions. No-sensor timings ranged 2.47–6.16 µs before and 2.06–2.69 µs after, with about 24 added bytes per observation. With CPU/GPU/disk temperatures and limits supplied, additions took 0.86–0.87 µs before (omitting those metrics) and 1.22–1.66 µs after, with about 400 added bytes per observation. New projections, CPU identities and larger minute slots explain that cost; the no-sensor spread limits timing conclusions.
+
+A 3,600-observation restart fixture with 32 processes per observation and CPU limit percentage/flags measured mean save medians of 258.7 ms before / 341.9 ms after, and read medians of 154.7 / 234.2 ms. Compressed files grew from about 423.2 to 445.6 kB. Every save met the existing deadline and every read restored all 3,600 observations. Bounded sensor JSON explains the added serialization and storage work. This is not the full 500,000-process-entry budget or a rich multi-sensor fixture.
+
+Raw evidence and preserved binaries: `artifacts/thermal-history/`. Measurements precede the final service-visibility guard. The user stopped tests, so idle repeats, populated chart-gallery review and final acceptance were not completed. Native acquisition and render-thread work are excluded.
+
 ## Collapsible History Events sidebar (November 26, 2026)
 
 The focused `--history-layout-only` workload selects synthetic retained observations, lays out the History dialog and renders WPF content. Each process runs 400 warm-up frames and seven batches of 60 frames. Four alternating runs per variant gave a median of run medians of 18.603 ms before and 19.124 ms after (+0.521 ms, 2.8%); run medians ranged from 17.484–20.302 ms before and 18.098–20.184 ms after. Median allocations increased from 2,866,352 to 2,870,922 bytes per selection/render (+4,570 bytes, 0.16%), consistent with the additional disclosure controls and sidebar layout. This is a small interaction-render cost, not a sampling-path change. Timing ranges overlap; concurrent desktop verification and other working-tree changes limit attribution, so these figures are a UI sanity check rather than an isolated causal benchmark. Native collection and compositor work are excluded. Preserved binaries, all eight alternating results and the summary are under `artifacts/history-sidebar/`; initial baseline-only runs are retained separately.

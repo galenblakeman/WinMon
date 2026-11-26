@@ -138,7 +138,7 @@ public sealed class RestartHistoryTests
     }
 
     [Test]
-    public void RoundTrip_IntentionallyOmitsLiveTemperatureReadingsWithoutChangingFormatOne()
+    public void RoundTrip_PreservesTemperatureIdentityLimitsAndDiskReadings()
     {
         var sample = Valid(1, []) with
         {
@@ -161,14 +161,14 @@ public sealed class RestartHistoryTests
         Assert.Multiple(() =>
         {
             Assert.That(restored.CpuClockMhz, Is.EqualTo(4200));
-            Assert.That(restored.CpuTemperature, Is.Null);
-            Assert.That(restored.CpuPerformanceLimitPercent, Is.Null);
-            Assert.That(restored.CpuPerformanceLimitFlags, Is.Null);
+            Assert.That(restored.CpuTemperature, Is.EqualTo(sample.Resources.CpuTemperature));
+            Assert.That(restored.CpuPerformanceLimitPercent, Is.EqualTo(62));
+            Assert.That(restored.CpuPerformanceLimitFlags, Is.EqualTo(2));
             Assert.That(restored.HardwareFans, Is.Empty);
-            Assert.That(restored.DiskTemperatureCelsius, Is.Null);
-            Assert.That(restored.SecondaryDiskTemperatureCelsius, Is.Null);
-            Assert.That(restored.ThermalZones, Is.Empty);
-            Assert.That(restored.GpuThermals, Is.Empty);
+            Assert.That(restored.DiskTemperatureCelsius, Is.EqualTo(40));
+            Assert.That(restored.SecondaryDiskTemperatureCelsius, Is.EqualTo(45));
+            Assert.That(restored.ThermalZones, Is.EqualTo(sample.Resources.ThermalZones));
+            Assert.That(restored.GpuThermals, Is.EqualTo(sample.Resources.GpuThermals));
         });
     }
 
@@ -442,6 +442,30 @@ public sealed class RestartHistoryTests
 
         Assert.That(RestartHistory.Read(SaveWith([sample]), Token, Later(10))!.Samples, Is.Empty,
             "A malformed paging rate must not surface as a reading.");
+    }
+
+    [TestCase(4)]
+    [TestCase(5)]
+    public void Fixture_ThermalFormatReadsPreviousAndCurrentVersions(int version)
+    {
+        var path = Path.Combine(_directory, RestartHistory.FileName);
+        File.Copy(Path.Combine(TestContext.CurrentContext.TestDirectory, "Fixtures", $"restart-history-v{version}.bin"), path);
+        var resources = RestartHistory.Read(path, Token, Later(10))!.Samples.Single().Resources;
+        Assert.That(resources.CpuClockMhz, Is.EqualTo(4300));
+        Assert.That(resources.PagingReadsPerSecond, Is.EqualTo(12.5));
+        if (version == 4)
+        {
+            Assert.That(resources.CpuTemperature, Is.Null);
+            Assert.That(resources.CpuPerformanceLimitPercent, Is.Null);
+            Assert.That(resources.GpuThermals, Is.Empty);
+        }
+        else
+        {
+            Assert.That(resources.CpuTemperature!.Celsius, Is.EqualTo(55));
+            Assert.That(resources.CpuTemperature.SensorName, Is.EqualTo("CPU Package"));
+            Assert.That(resources.CpuPerformanceLimitPercent, Is.EqualTo(62));
+            Assert.That(resources.CpuPerformanceLimitFlags, Is.EqualTo(2));
+        }
     }
 
     // Regenerates the checked-in fixture. Run it only when deliberately introducing a new format version.

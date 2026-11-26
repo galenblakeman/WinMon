@@ -179,6 +179,7 @@ public sealed record MonitorPreferences
 
     internal MonitorPreferences SelectChart(ResourceChartType type, int? focusMetric = null)
     {
+        if (type == ResourceChartType.Temperature && !TemperatureChartsEnabled) type = ResourceChartType.Overlay;
         var remembered = RememberChartConfiguration();
         var chart = remembered.ChartConfigurations.Single(item => item.Type == type);
         var mask = chart.VisibleMetrics;
@@ -244,6 +245,8 @@ public sealed record MonitorPreferences
 
     /// <summary>Read CPU temperature from the optional local sensor service; disabled unless the user enables it.</summary>
     public bool CpuTemperatureMonitoringEnabled { get; init; }
+
+    internal bool TemperatureChartsEnabled => CpuTemperatureMonitoringEnabled && WinMon.Monitoring.SensorSetupBroker.Supported;
 
     /// <summary>Gets a value indicating whether minimizing the monitor hides it in the notification area.</summary>
     public bool MinimizeToTray { get; init; }

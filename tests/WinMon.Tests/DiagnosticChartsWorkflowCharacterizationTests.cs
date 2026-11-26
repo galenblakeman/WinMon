@@ -148,7 +148,7 @@ public sealed partial class MainWindowWorkflowCharacterizationTests
             foreach (var theme in new[] { "dark", "light" })
             foreach (var target in new[] { "header", "selector" })
                 Assert.That(names, Does.Contain($"chart-help-{target}-{theme}.png"));
-            foreach (var type in Enum.GetValues<ResourceChartType>())
+            foreach (var type in Enum.GetValues<ResourceChartType>().Where(type => type != ResourceChartType.Temperature))
                 Assert.That(names, Does.Contain($"chart-{type.ToString().ToLowerInvariant()}.png"));
             foreach (var name in new[] { "chart-menu.png", "chart-focus-network.png", "chart-legend-narrow-german.png" })
                 Assert.That(names, Does.Contain(name));
