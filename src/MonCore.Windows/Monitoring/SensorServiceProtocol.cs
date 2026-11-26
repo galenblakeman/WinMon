@@ -24,13 +24,18 @@ public enum SensorServiceQuality { Idle, Starting, Complete, Partial, Failed, Su
 public sealed record SensorServiceRequest(int Version, string Operation);
 public sealed record SensorServiceResponse(int Version, string Status, SensorSnapshot? Snapshot = null);
 public sealed record SensorSnapshot(Guid Generation, long Sequence, long UpdatedAt, long Frequency,
-    SensorServiceQuality Quality, CpuSensorReading? CpuTemperature, string? FailureReason = null);
+    SensorServiceQuality Quality, CpuSensorReading? CpuTemperature, string? FailureReason = null)
+{
+    public IReadOnlyList<HardwareFanReading>? Fans { get; init; }
+}
 public sealed record CpuSensorReading(string HardwareId, string HardwareName, string SensorId, string SensorName,
     double? Celsius, string Source, long LastReadAt, string? AvailabilityReason = null);
 
 /// <summary>Validates untrusted metadata and maps only recent successful observations into portable samples.</summary>
 public static class SensorSnapshotValidation
 {
+    public const int MaximumFans = 16;
+
     public static void Validate(SensorSnapshot snapshot)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
@@ -38,9 +43,10 @@ public static class SensorSnapshotValidation
             snapshot.Frequency != System.Diagnostics.Stopwatch.Frequency ||
             snapshot.FailureReason?.Length > 1024 ||
             snapshot.Quality is SensorServiceQuality.Complete && snapshot.CpuTemperature is null ||
-            snapshot.CpuTemperature is { } reading && !IsValid(reading, snapshot.UpdatedAt))
+            snapshot.CpuTemperature is { } reading && !IsValid(reading, snapshot.UpdatedAt) ||
+            snapshot.Fans is { } fans && !ValidFans(fans))
             throw new InvalidDataException("Sensor service snapshot is invalid.");
-        if (snapshot.CpuTemperature is not null && snapshot.Generation == Guid.Empty)
+        if ((snapshot.CpuTemperature is not null || snapshot.Fans is { Count: > 0 }) && snapshot.Generation == Guid.Empty)
             throw new InvalidDataException("Sensor service generation is missing.");
     }
 
@@ -52,6 +58,15 @@ public static class SensorSnapshotValidation
 
     private static bool Text(string? value) => !string.IsNullOrWhiteSpace(value) && value.Length <= 256 &&
         !value.Any(char.IsControl);
+
+    private static bool ValidFans(IReadOnlyList<HardwareFanReading> fans) =>
+        fans.Count <= MaximumFans && fans.All(fan => fan is not null && Text(fan.Name) && fan.Rpm is >= 0 and <= 30000);
+
+    public static IReadOnlyList<HardwareFanReading> GetFreshFans(SensorSnapshot? snapshot, long now) =>
+        snapshot is { Quality: SensorServiceQuality.Complete or SensorServiceQuality.Partial,
+            Fans: { Count: > 0 } fans, UpdatedAt: > 0 } && snapshot.Generation != Guid.Empty &&
+        snapshot.UpdatedAt <= now && snapshot.Frequency == System.Diagnostics.Stopwatch.Frequency &&
+        (now - snapshot.UpdatedAt) / (double)snapshot.Frequency <= 5 && ValidFans(fans) ? fans : [];
 
     public static CpuTemperatureReading? TryGetReading(SensorSnapshot? snapshot, long now)
     {

@@ -7,4 +7,5 @@ internal interface ISensorProvider : IAsyncDisposable
 {
     Task OpenAsync(CancellationToken token);
     Task<SensorReading?> ReadCpuTemperatureAsync(CancellationToken token);
+    IReadOnlyList<MonCore.Monitoring.HardwareFanReading> ReadFans(CancellationToken token) => [];
 }

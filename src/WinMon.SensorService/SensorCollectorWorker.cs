@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using MonCore.Monitoring;
 
 namespace WinMon.SensorService;
 
@@ -68,13 +69,13 @@ internal sealed class SensorCollectorWorker : IAsyncDisposable
             await RunOperationAsync(_provider.OpenAsync, "open").ConfigureAwait(false);
             while (!_stop.IsCancellationRequested)
             {
-                var reading = await RunOperationAsync(_provider.ReadCpuTemperatureAsync, "update")
+                var (reading, fans) = await RunOperationAsync(ReadAsync, "update")
                     .ConfigureAwait(false);
                 if (_stop.IsCancellationRequested || Volatile.Read(ref _timedOut) != 0) break;
                 var quality = reading?.Celsius is null || reading.LastReadAt == 0
                     ? SensorCollectorQuality.Partial
                     : SensorCollectorQuality.Complete;
-                Publish(quality, reading, reading?.AvailabilityReason);
+                Publish(quality, reading, reading?.AvailabilityReason, fans);
                 await Task.Delay(_sampleInterval, _stop.Token).ConfigureAwait(false);
             }
         }
@@ -102,6 +103,17 @@ internal sealed class SensorCollectorWorker : IAsyncDisposable
             {
                 Volatile.Write(ref _cleanupCompletedAt, Stopwatch.GetTimestamp());
             }
+        }
+    }
+
+    private async Task<(SensorReading?, IReadOnlyList<HardwareFanReading>)> ReadAsync(CancellationToken token)
+    {
+        var temperature = await _provider.ReadCpuTemperatureAsync(token).ConfigureAwait(false);
+        try { return (temperature, _provider.ReadFans(token)); }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            // Optional board telemetry should not clear a successfully sampled CPU temperature.
+            return (temperature, []);
         }
     }
 
@@ -152,22 +164,27 @@ internal sealed class SensorCollectorWorker : IAsyncDisposable
         await task.ConfigureAwait(false);
     }
 
-    private void Publish(SensorCollectorQuality quality, SensorReading? reading, string? failure = null)
+    private void Publish(SensorCollectorQuality quality, SensorReading? reading, string? failure = null,
+        IReadOnlyList<HardwareFanReading>? fans = null)
     {
         lock (_snapshotLock)
         {
             if ((quality is SensorCollectorQuality.Complete or SensorCollectorQuality.Partial) &&
                 (_stop.IsCancellationRequested || Volatile.Read(ref _disposeRequested) != 0 ||
                  Volatile.Read(ref _timedOut) != 0)) return;
-            PublishLocked(quality, reading, failure);
+            PublishLocked(quality, reading, failure, fans);
         }
     }
 
-    private void PublishLocked(SensorCollectorQuality quality, SensorReading? reading, string? failure)
+    private void PublishLocked(SensorCollectorQuality quality, SensorReading? reading, string? failure,
+        IReadOnlyList<HardwareFanReading>? fans = null)
     {
         var current = Snapshot;
         Volatile.Write(ref _snapshot, new SensorCollectorSnapshot(_generation, current.Sequence + 1,
-            Stopwatch.GetTimestamp(), Stopwatch.Frequency, quality, reading, failure));
+            Stopwatch.GetTimestamp(), Stopwatch.Frequency, quality, reading, failure)
+        {
+            Fans = fans is { Count: > 0 } ? fans : null
+        });
     }
 
     private SensorCollectorSnapshot NewSnapshot(SensorCollectorQuality quality) =>

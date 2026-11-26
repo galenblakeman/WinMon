@@ -167,7 +167,8 @@ internal sealed class SensorPipeServer(
             _ => throw new InvalidDataException("Unknown collector quality.")
         }, value.CpuTemperature is { } reading ? new CpuSensorReading(reading.HardwareId, reading.HardwareName,
             reading.SensorId, reading.SensorName, reading.Celsius, reading.Source, reading.LastReadAt,
-            reading.AvailabilityReason) : null, value.FailureReason);
+            reading.AvailabilityReason) : null, value.FailureReason)
+        { Fans = value.Fans };
 
     private NamedPipeServerStream CreatePipe()
     {
