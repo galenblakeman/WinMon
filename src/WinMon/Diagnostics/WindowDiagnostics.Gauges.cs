@@ -114,13 +114,7 @@ internal sealed partial class WindowDiagnostics
                     (fixture.SecondaryDiskMetric, TableMetricText.IoRate(300_000)),
                     (fixture.GpuMetric, Strings.Format(Strings.GaugePeakShort, 69d))
                 ];
-                if (corners.Any(corner => corner.Readout.ScaleLabel.Text !=
-                                          (arcs.Contains(style) ? corner.Text : "") ||
-                                          (arcs.Contains(style) && !ReferenceEquals(corner.Readout.ScaleLabel.ToolTip,
-                                              corner.Readout.ToolTip)) ||
-                                          corner.Readout.ScaleLabel.Visibility == Visibility.Visible !=
-                                          arcs.Contains(style) ||
-                                          corner.Readout.PeakIconVisible != arcs.Contains(style)))
+                if (corners.Any(corner => InvalidGaugeCorner(style, corner)))
                     throw new InvalidOperationException($"{style} showed a resource corner label wrongly.");
                 if (fixture.NetworkMetric.PeakIconVisible != arcs.Contains(style))
                     throw new InvalidOperationException($"{style} showed the network peak icon wrongly.");
@@ -271,6 +265,69 @@ internal sealed partial class WindowDiagnostics
             settings.Close();
         }
 
+        // Temperature presentation states: normal paired sensor, both limit markers, then an absent sensor.
+        // These stay in the existing gauge mode so dark/light review covers the regular full resource strip.
+        var temperatureHistory = fixture.Session.History;
+        var originalTemperatureSamples = temperatureHistory.Samples.ToArray();
+        var originalTemperatureCapacity = temperatureHistory.Capacity;
+        var originalTemperaturePreferences = fixture.Preferences;
+        try
+        {
+        var lastTemperatureSample = fixture.Session.History.Samples[^1];
+        MonitorSample AddTemperatureSample(int second, double? limit, GpuThermalReading? thermal)
+        {
+            var sample = new MonitorSample(lastTemperatureSample.Timestamp.AddSeconds(second), 45, [], 0,
+                MonotonicTimestamp: lastTemperatureSample.MonotonicTimestamp + Stopwatch.Frequency * second)
+            {
+                Resources = lastTemperatureSample.Resources with
+                {
+                    CpuPerformanceLimitPercent = limit,
+                    CpuPerformanceLimitFlags = limit is null ? null : 2,
+                    GpuId = thermal is null ? "" : thermal.AdapterId,
+                    GpuThermals = thermal is null ? [] : [thermal]
+                }
+            };
+            fixture.Session.History.Add(sample);
+            return sample;
+        }
+
+        var normalThermal = new GpuThermalReading("fixture/0", "Fixture GPU", 61, 900, 42, 83, 88);
+        AddTemperatureSample(1, 100, normalThermal);
+        foreach (var theme in new[] { "Dark", "Light" })
+        {
+            fixture.Preferences = fixture.Preferences with { Theme = theme, GaugeStyle = GaugeStyle.Bowl };
+            fixture.ApplyTheme();
+            Draw(1000);
+            await CaptureVisualAsync(visual, Path.Combine(output, $"temperature-normal-{theme.ToLowerInvariant()}.png"),
+                1, cancellationToken);
+        }
+        AddTemperatureSample(2, 62, normalThermal with { TemperatureCelsius = 83 });
+        AddTemperatureSample(3, 62, normalThermal with { TemperatureCelsius = 83 });
+        foreach (var theme in new[] { "Dark", "Light" })
+        {
+            fixture.Preferences = fixture.Preferences with { Theme = theme, GaugeStyle = GaugeStyle.Bowl };
+            fixture.ApplyTheme();
+            Draw(1000);
+            await CaptureVisualAsync(visual, Path.Combine(output, $"temperature-limited-{theme.ToLowerInvariant()}.png"),
+                1, cancellationToken);
+        }
+        AddTemperatureSample(4, null, null);
+        foreach (var theme in new[] { "Dark", "Light" })
+        {
+            fixture.Preferences = fixture.Preferences with { Theme = theme, GaugeStyle = GaugeStyle.Bowl };
+            fixture.ApplyTheme();
+            Draw(1000);
+            await CaptureVisualAsync(visual, Path.Combine(output, $"temperature-no-sensor-{theme.ToLowerInvariant()}.png"),
+                1, cancellationToken);
+        }
+        }
+        finally
+        {
+            RestoreTemperatureFixture(temperatureHistory, originalTemperatureSamples, originalTemperatureCapacity);
+            fixture.Preferences = originalTemperaturePreferences;
+            fixture.ApplyTheme();
+        }
+
         await File.WriteAllTextAsync(Path.Combine(output, "gauges.json"), JsonSerializer.Serialize(new
         {
             Styles = Enum.GetNames<GaugeStyle>(), Themes = new[] { "Dark", "Light" }.Concat(ThemeFinishes.Names),
@@ -291,5 +348,15 @@ internal sealed partial class WindowDiagnostics
             fixture.RefreshVisiblePresentation();
             visual.UpdateLayout();
         }
+    }
+
+    // Named diagnostic seam: tests must not depend on a compiler-generated lambda ordinal.
+    internal static bool InvalidGaugeCorner(GaugeStyle style, (MetricReadout Readout, string Text) corner)
+    {
+        var arc = style is GaugeStyle.Bowl or GaugeStyle.Needle or GaugeStyle.SegmentedArc;
+        return corner.Readout.ScaleLabel.Text != (arc ? corner.Text : "") ||
+               arc && !ReferenceEquals(corner.Readout.ScaleLabel.ToolTip, corner.Readout.ToolTip) ||
+               corner.Readout.ScaleLabel.Visibility == Visibility.Visible != arc ||
+               corner.Readout.PeakIconVisible != arc;
     }
 }

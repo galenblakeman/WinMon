@@ -43,7 +43,7 @@ Left out on purpose:
 
 - Per-disk process I/O. Windows process I/O counters include network and device I/O, so a "busiest on this disk" row would be wrong.
 - IP addresses. Screenshots of WinMon get shared in issues. The Info window already lists adapters.
-- GPU temperature. The README already says it is outside this view.
+- GPU temperature was outside the original tooltip delivery. The later [temperature design](TEMPERATURE.md) extends GPU and CPU details with optional driver readings, generic CPU performance limits and labelled ACPI zones.
 
 ## Design
 

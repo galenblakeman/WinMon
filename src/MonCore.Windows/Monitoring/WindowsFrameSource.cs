@@ -7,9 +7,10 @@ namespace MonCore.Windows.Monitoring;
 /// <summary>Captures processes, resources and services from Windows, keeping what remains readable.</summary>
 public sealed class WindowsFrameSource : IFrameSource
 {
-    public CollectorCapabilities Capabilities { get; } = new(
+    public CollectorCapabilities Capabilities => new(
         SystemMetricCapabilities.Cpu | SystemMetricCapabilities.Memory | SystemMetricCapabilities.Disk |
-        SystemMetricCapabilities.Network | SystemMetricCapabilities.Gpu | SystemMetricCapabilities.Services,
+        SystemMetricCapabilities.Network | SystemMetricCapabilities.Gpu | SystemMetricCapabilities.Services |
+        (_resources.HasTemperature ? SystemMetricCapabilities.Temperature : SystemMetricCapabilities.None),
         ProcessMetricCapabilities.Cpu | ProcessMetricCapabilities.ResidentMemory |
         ProcessMetricCapabilities.PrivateMemory | ProcessMetricCapabilities.Io | ProcessMetricCapabilities.Gpu |
         ProcessMetricCapabilities.Threads | ProcessMetricCapabilities.Handles |

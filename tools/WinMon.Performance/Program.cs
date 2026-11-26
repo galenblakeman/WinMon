@@ -45,10 +45,22 @@ internal static class Program
         var anchor = DateTimeOffset.Parse("2026-10-19T12:00:00Z");
         var second = 0;
         var fixedConnectionHistory = false;
+        var includeTemperature = args.Contains("--temperature");
         void AddSample()
         {
             second++;
             var full = Sample(anchor, second);
+            if (includeTemperature)
+                full = full with
+                {
+                    Resources = full.Resources with
+                    {
+                        CpuClockMhz = 4300, CpuPerformanceLimitPercent = 62, CpuPerformanceLimitFlags = 2,
+                        GpuId = "benchmark/0",
+                        GpuThermals = [new("benchmark/0", "Benchmark GPU", 83, 900, 42, 83, 88)],
+                        ThermalZones = [new("benchmark-zone", 52, false)]
+                    }
+                };
             var options = window.CurrentSamplingOptions();
             var compacted = ProcessRetention.Compact(full, 32, options.Retain, options.RetainAll);
             session.Record(compacted, full, serviceTree.Capture(full, catalog));

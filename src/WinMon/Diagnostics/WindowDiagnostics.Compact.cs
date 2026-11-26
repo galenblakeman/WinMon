@@ -18,6 +18,7 @@ internal sealed partial class WindowDiagnostics
         await CaptureCompactGaugeStylesAsync(fixture, visual, output, cancellationToken);
         await CaptureCompactThemeFinishesAsync(fixture, visual, output, cancellationToken);
         await CaptureCompactNativePeaksAsync(fixture, visual, output, cancellationToken);
+        await CaptureCompactTemperatureStatesAsync(fixture, visual, output, cancellationToken);
         await CaptureCompactUnavailableReadingsAsync(fixture, visual, output, cancellationToken);
         VerifyCompactFullViewRestoration(fixture);
         await File.WriteAllTextAsync(Path.Combine(output, "compact.json"), JsonSerializer.Serialize(new

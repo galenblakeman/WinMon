@@ -128,6 +128,102 @@ public sealed class MetricGaugeTests
     }
 
     [Test]
+    public void CpuPerformanceLimit_RequiresTwoConsecutiveValidSamplesAndResetsAtGaps()
+    {
+        var now = DateTimeOffset.UnixEpoch;
+        MonitorSample Sample(int seconds, double? limit, bool gap = false) => new(now.AddSeconds(seconds), 10, [], 0, gap)
+        {
+            Resources = new ResourceSample { CpuPerformanceLimitPercent = limit }
+        };
+        var one = Sample(0, 80);
+        var two = Sample(1, 80);
+        var gap = Sample(2, 80, true);
+        var afterGap = Sample(3, 80);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(MainWindow.CpuPerformanceLimited([one], one, out _), Is.False);
+            Assert.That(MainWindow.CpuPerformanceLimited([one, two], two, out var duration), Is.True);
+            Assert.That(duration, Is.EqualTo(TimeSpan.FromSeconds(1)));
+            Assert.That(MainWindow.CpuPerformanceLimited([one, two, gap, afterGap], afterGap, out _), Is.False);
+            Assert.That(MainWindow.CpuPerformanceLimited([one, two, Sample(2, null)], Sample(2, null), out _), Is.False);
+            Assert.That(MainWindow.CpuPerformanceLimited([Sample(0, -1), Sample(1, -1)], Sample(1, -1), out _),
+                Is.False);
+            Assert.That(MainWindow.CpuPerformanceLimited([Sample(0, double.NaN), Sample(1, double.NaN)],
+                Sample(1, double.NaN), out _), Is.False);
+            Assert.That(MainWindow.CpuPerformanceLimited([Sample(0, 80), Sample(10, 80)], Sample(10, 80), out _),
+                Is.False);
+        });
+    }
+
+    [Test]
+    [Apartment(ApartmentState.STA)]
+    public void LimitMarker_ClearsWhenTheCurrentReadingIsUnavailable()
+    {
+        var readout = new MetricReadout();
+        readout.SetLimitMarker(MetricLimitMarker.Performance);
+        Assert.That(readout.LimitMarker, Is.EqualTo(MetricLimitMarker.Performance));
+        readout.SetLimitMarker(MetricLimitMarker.None);
+        Assert.That(readout.LimitMarker, Is.EqualTo(MetricLimitMarker.None));
+    }
+
+    [TestCaseSource(nameof(GaugeStyles))]
+    [Apartment(ApartmentState.STA)]
+    public void LimitMarker_IsInsertedInEveryGaugeStyleHeader(GaugeStyle style)
+    {
+        var readout = new MetricReadout { GaugeStyle = style };
+        readout.SetLimitMarker(MetricLimitMarker.Performance);
+        Assert.That(readout.LimitIconInHeader, Is.True);
+        readout.SetLimitMarker(MetricLimitMarker.None);
+        Assert.That(readout.LimitIconInHeader, Is.False);
+    }
+
+    private static IEnumerable<GaugeStyle> GaugeStyles => Enum.GetValues<GaugeStyle>();
+
+    [Test]
+    public void LimitBrush_UsesContrastingCachedAmberForLightAndDarkThemes()
+    {
+        var darkTheme = MetricReadout.LimitBrushFor(Brushes.White, false);
+        var lightTheme = MetricReadout.LimitBrushFor(Brushes.Black, false);
+        Assert.Multiple(() =>
+        {
+            Assert.That(darkTheme, Is.SameAs(MetricReadout.LimitBrushFor(Brushes.White, false)));
+            Assert.That(lightTheme, Is.SameAs(MetricReadout.LimitBrushFor(Brushes.Black, false)));
+            Assert.That(Contrast((SolidColorBrush)darkTheme, Colors.Black), Is.GreaterThanOrEqualTo(4.5));
+            Assert.That(Contrast((SolidColorBrush)lightTheme, Colors.White), Is.GreaterThanOrEqualTo(4.5));
+            Assert.That(MetricReadout.LimitBrushFor(Brushes.Black, true), Is.SameAs(SystemColors.WindowTextBrush));
+        });
+    }
+
+    private static double Contrast(SolidColorBrush foreground, Color background)
+    {
+        static double Channel(byte value)
+        {
+            var channel = value / 255d;
+            return channel <= 0.04045 ? channel / 12.92 : Math.Pow((channel + 0.055) / 1.055, 2.4);
+        }
+        static double Luminance(Color color) => 0.2126 * Channel(color.R) + 0.7152 * Channel(color.G) + 0.0722 * Channel(color.B);
+        var first = Luminance(foreground.Color);
+        var second = Luminance(background);
+        return (Math.Max(first, second) + 0.05) / (Math.Min(first, second) + 0.05);
+    }
+
+    [Test]
+    public void GpuThermalMarker_RequiresAPairedReadingAndDriverThreshold()
+    {
+        var paired = new GpuThermalReading("luid/0", "GPU", 80, null, null, 80, null);
+        var resource = new ResourceSample { GpuId = "luid/0", GpuThermals = [paired] };
+        Assert.Multiple(() =>
+        {
+            Assert.That(MainWindow.PairedGpuThermal(resource), Is.SameAs(paired));
+            Assert.That(MainWindow.GpuThermalLimited(paired), Is.True);
+            Assert.That(MainWindow.PairedGpuThermal(resource with { GpuId = "luid/1" }), Is.Null);
+            Assert.That(MainWindow.GpuThermalLimited(null), Is.False);
+            Assert.That(MainWindow.GpuThermalLimited(paired with { WarningCelsius = null }), Is.False);
+        });
+    }
+
+    [Test]
     [Apartment(ApartmentState.STA)]
     public void Gauge_NormalizesPhysicalScaleAndHidesUnavailableReading()
     {

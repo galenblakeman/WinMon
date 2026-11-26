@@ -55,12 +55,21 @@ public sealed class MetricReadout : Grid
         { FontSize = 11, Visibility = Visibility.Collapsed, TextTrimming = TextTrimming.CharacterEllipsis };
 
     private readonly StackPanel _labels = new();
+    private readonly DockPanel _labelHeader = new() { LastChildFill = true };
 
     private readonly StackPanel _gaugeColumn = new()
         { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 0) };
 
     private readonly DockPanel _toggleRow = new() { LastChildFill = true };
     private readonly DockPanel _corner = new() { LastChildFill = true };
+    private readonly Path _limitIcon = new()
+    {
+        Width = 14, Height = 14, StrokeThickness = 1.4, Stretch = Stretch.Uniform,
+        VerticalAlignment = VerticalAlignment.Center, Visibility = Visibility.Collapsed,
+        Margin = new Thickness(4, 0, 0, 0), IsHitTestVisible = false
+    };
+    private static readonly SolidColorBrush DarkLimitBrush = CreateLimitBrush(218, 151, 0);
+    private static readonly SolidColorBrush LightLimitBrush = CreateLimitBrush(155, 95, 0);
 
     private readonly Path _peakIcon = new()
     {
@@ -70,10 +79,13 @@ public sealed class MetricReadout : Grid
     };
 
     internal bool PeakIconVisible => _peakIcon.Visibility == Visibility.Visible;
+    internal bool LimitIconInHeader => _limitIcon.Parent is not null && _limitIcon.Visibility == Visibility.Visible;
     private readonly Grid _bowl = new();
     private GaugeStyle _style;
     private bool _valid;
     private bool _peakLabel;
+    private MetricLimitMarker _limitMarker;
+    internal MetricLimitMarker LimitMarker => _limitMarker;
     private string _fullCornerLabel = "";
     private string _shortCornerLabel = "";
 
@@ -89,12 +101,40 @@ public sealed class MetricReadout : Grid
         _corner.Children.Add(_peakIcon);
         _corner.Children.Add(ScaleLabel);
         DetailLabel.SetResourceReference(TextBlock.ForegroundProperty, "Text");
+        _limitIcon.Stroke = LimitBrush;
         Lay(GaugeStyle.Bowl);
         SizeChanged += (_, _) =>
         {
             Fit();
             UpdateCornerLabel();
         };
+    }
+
+    internal void SetLimitMarker(MetricLimitMarker marker)
+    {
+        _limitMarker = marker;
+        var visible = marker != MetricLimitMarker.None;
+        _limitIcon.Data = marker == MetricLimitMarker.Performance ? ButtonIcon.PerformanceLimit : ButtonIcon.ThermalLimit;
+        _limitIcon.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+        AutomationProperties.SetName(_limitIcon, marker == MetricLimitMarker.Performance
+            ? Strings.PerformanceLimited
+            : marker == MetricLimitMarker.Thermal ? Strings.ThermalLimit : "");
+        AutomationProperties.SetHelpText(_limitIcon, AutomationProperties.GetName(_limitIcon));
+        _limitIcon.Stroke = LimitBrush;
+        if (marker == MetricLimitMarker.Performance)
+            DetailLabel.Foreground = LimitBrush;
+        else
+            DetailLabel.SetResourceReference(TextBlock.ForegroundProperty, "Text");
+    }
+
+    /// <summary>Shared marker/border color, selected for the active theme and high-contrast mode.</summary>
+    internal Brush LimitBrush => LimitBrushFor(TryFindResource("Text") as Brush, SystemParameters.HighContrast);
+
+    internal static Brush LimitBrushFor(Brush? text, bool highContrast)
+    {
+        if (highContrast) return SystemColors.WindowTextBrush;
+        var color = (text as SolidColorBrush)?.Color ?? Colors.White;
+        return color.R * 299 + color.G * 587 + color.B * 114 >= 128_000 ? DarkLimitBrush : LightLimitBrush;
     }
 
     /// <summary>Gauge appearance and surrounding layout.</summary>
@@ -170,6 +210,7 @@ public sealed class MetricReadout : Grid
         _style = style;
         Children.Clear();
         _labels.Children.Clear();
+        _labelHeader.Children.Clear();
         _gaugeColumn.Children.Clear();
         _toggleRow.Children.Clear();
         _bowl.Children.Clear();
@@ -248,7 +289,10 @@ public sealed class MetricReadout : Grid
 
         StackPanel AddLabels()
         {
-            _labels.Children.Add(_showSeriesToggle ? Toggle : _plainName);
+            DockPanel.SetDock(_limitIcon, Dock.Right);
+            _labelHeader.Children.Add(_limitIcon);
+            _labelHeader.Children.Add(_showSeriesToggle ? Toggle : _plainName);
+            _labels.Children.Add(_labelHeader);
             _labels.Children.Add(ValueLabel);
             _labels.Children.Add(DetailLabel);
             Children.Add(_labels);
@@ -264,6 +308,8 @@ public sealed class MetricReadout : Grid
             ScaleLabel.VerticalAlignment = VerticalAlignment.Center;
             ScaleLabel.Margin = new Thickness(4, 0, CornerRightInset, 0);
             _toggleRow.Children.Add(_corner);
+            DockPanel.SetDock(_limitIcon, Dock.Right);
+            _toggleRow.Children.Add(_limitIcon);
             _toggleRow.Children.Add(_showSeriesToggle ? Toggle : _plainName);
             Children.Add(_toggleRow);
         }
@@ -341,6 +387,7 @@ public sealed class MetricReadout : Grid
         else if (ValueLabel.Text != source.ValueLabel.Text)
             ValueLabel.Text = source.ValueLabel.Text;
         if (DetailLabel.Text != source.DetailLabel.Text) DetailLabel.Text = source.DetailLabel.Text;
+        SetLimitMarker(source._limitMarker);
     }
 
     private readonly Run _number = new();
@@ -356,4 +403,18 @@ public sealed class MetricReadout : Grid
             Gauge.SetResourceReference(MetricGauge.FillProperty, value);
         }
     }
+
+    private static SolidColorBrush CreateLimitBrush(byte red, byte green, byte blue)
+    {
+        var brush = new SolidColorBrush(Color.FromRgb(red, green, blue));
+        brush.Freeze();
+        return brush;
+    }
+}
+
+internal enum MetricLimitMarker
+{
+    None,
+    Performance,
+    Thermal
 }

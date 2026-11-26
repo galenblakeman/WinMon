@@ -99,7 +99,7 @@ public sealed class RestartHistoryTests
         var sample = Samples(1)[0];
         Assert.Multiple(() =>
         {
-            foreach (var property in Settable(typeof(ResourceSample)))
+            foreach (var property in SettablePersistedResources())
                 Assert.That(property.GetValue(sample.Resources), Is.Not.EqualTo(Default(property.PropertyType)),
                     property.Name);
             foreach (var property in Settable(typeof(ProcessUsage)))
@@ -134,6 +134,32 @@ public sealed class RestartHistoryTests
                 "A process running through the restart is not counted again.");
             Assert.That(copy.MachineBusyTicks, Is.EqualTo(ledger.MachineBusyTicks));
             Assert.That(copy.RememberedLifetimes, Is.EqualTo(ledger.RememberedLifetimes));
+        });
+    }
+
+    [Test]
+    public void RoundTrip_IntentionallyOmitsLiveTemperatureReadingsWithoutChangingFormatOne()
+    {
+        var sample = Valid(1, []) with
+        {
+            Resources = new ResourceSample
+            {
+                CpuClockMhz = 4200,
+                CpuPerformanceLimitPercent = 62,
+                CpuPerformanceLimitFlags = 2,
+                ThermalZones = [new ThermalZoneReading("zone", 55, false)],
+                GpuThermals = [new GpuThermalReading("gpu/0", "GPU", 65, 1000, 30, 80, 90)]
+            }
+        };
+
+        var restored = RestartHistory.Read(SaveWith([sample]), Token, Later(10))!.Samples.Single().Resources;
+        Assert.Multiple(() =>
+        {
+            Assert.That(restored.CpuClockMhz, Is.EqualTo(4200));
+            Assert.That(restored.CpuPerformanceLimitPercent, Is.Null);
+            Assert.That(restored.CpuPerformanceLimitFlags, Is.Null);
+            Assert.That(restored.ThermalZones, Is.Empty);
+            Assert.That(restored.GpuThermals, Is.Empty);
         });
     }
 
@@ -492,7 +518,7 @@ public sealed class RestartHistoryTests
     {
         var resources = new ResourceSample();
         var n = 0;
-        foreach (var property in Settable(typeof(ResourceSample)).Where(property => property.Name is not
+        foreach (var property in SettablePersistedResources().Where(property => property.Name is not
                      (nameof(ResourceSample.PagingReadsPerSecond) or nameof(ResourceSample.StandbyBytes) or
                       nameof(ResourceSample.ModifiedBytes) or nameof(ResourceSample.FreeBytes) or
                       nameof(ResourceSample.CompressionStoreBytes))))
@@ -526,7 +552,7 @@ public sealed class RestartHistoryTests
     {
         var resources = new ResourceSample();
         var n = 0;
-        foreach (var property in Settable(typeof(ResourceSample)))
+        foreach (var property in SettablePersistedResources())
             property.SetValue(resources, Value(property, i, ++n));
         ProcessUsage[] processes =
         [
@@ -570,6 +596,14 @@ public sealed class RestartHistoryTests
             .Where(property => property.SetMethod is not null && property.Name is not
                 (nameof(ProcessUsage.LifetimeDomain) or nameof(ProcessUsage.StartedAtUtc)
                 or nameof(ProcessUsage.CpuAvailable)));
+    }
+
+    private static IEnumerable<PropertyInfo> SettablePersistedResources()
+    {
+        // Temperature is live-only until a format-versioned history/incident design explicitly includes it.
+        return Settable(typeof(ResourceSample)).Where(property => property.Name is not
+            (nameof(ResourceSample.CpuPerformanceLimitPercent) or nameof(ResourceSample.CpuPerformanceLimitFlags)
+            or nameof(ResourceSample.ThermalZones) or nameof(ResourceSample.GpuThermals)));
     }
 
     private static object? Default(Type type)

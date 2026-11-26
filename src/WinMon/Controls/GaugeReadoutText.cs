@@ -1,7 +1,7 @@
 namespace WinMon.Controls;
 
 /// <summary>Formats supporting text shown below resource gauges.</summary>
-internal static class GaugeReadoutText
+internal static partial class GaugeReadoutText
 {
     internal static string CpuClock(double? megahertz)
     {
@@ -30,4 +30,5 @@ internal static class GaugeReadoutText
             ? Strings.Format(Strings.GaugeGpuMemoryPair, used / 1_073_741_824d, total / 1_073_741_824d)
             : Strings.GaugeGpuEngine3D;
     }
+
 }

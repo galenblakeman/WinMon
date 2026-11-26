@@ -10,7 +10,8 @@ public enum SystemMetricCapabilities
     Disk = 4,
     Network = 8,
     Gpu = 16,
-    Services = 32
+    Services = 32,
+    Temperature = 64
 }
 
 [Flags]

@@ -2120,4 +2120,27 @@ Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。<
   <data name="FlightRecorderCrashStackBufferOverrun" xml:space="preserve"><value>堆栈缓冲区溢出</value></data>
   <data name="FlightRecorderCrashUnhandledDotNetException" xml:space="preserve"><value>未处理的 .NET 异常</value></data>
   <data name="CliCrashes" xml:space="preserve"><value>列出保留的 Windows 事件日志中反复发生的应用程序崩溃和挂起。</value></data><data name="CliCrashDays" xml:space="preserve"><value>要检查的天数（1–90）。</value></data><data name="CliCrashDaysRange" xml:space="preserve"><value>--days 必须介于 1 到 90 之间。</value></data><data name="CliCrashApplication" xml:space="preserve"><value>应用程序</value></data><data name="CliCrashFailure" xml:space="preserve"><value>故障</value></data><data name="CliCrashCount" xml:space="preserve"><value>计数</value></data><data name="CliCrashLatestUtc" xml:space="preserve"><value>最新 (UTC)</value></data><data name="CliCrashNotResponding" xml:space="preserve"><value>无响应</value></data><data name="CliCrashCoverage" xml:space="preserve"><value>应用程序日志: {0}; 已达到事件上限: {1}; 最早保留事件: {2}</value></data><data name="CliCrashUnknown" xml:space="preserve"><value>未知</value></data>
+  <data name="TemperatureUnit" xml:space="preserve"><value>温度单位</value></data>
+  <data name="TemperatureCelsius" xml:space="preserve"><value>摄氏度 (°C)</value></data>
+  <data name="TemperatureFahrenheit" xml:space="preserve"><value>华氏度 (°F)</value></data>
+  <data name="PerformanceLimited" xml:space="preserve"><value>性能受限</value></data>
+  <data name="ThermalLimit" xml:space="preserve"><value>温度限制</value></data>
+  <data name="GaugeGpuTemperaturePair" xml:space="preserve"><value>{0} · {1}</value></data>
+  <data name="DetailPerformanceLimit" xml:space="preserve"><value>性能限制</value></data>
+  <data name="DetailSystemThermalZones" xml:space="preserve"><value>系统温度区域</value></data>
+  <data name="DetailTemperature" xml:space="preserve"><value>温度</value></data>
+  <data name="DetailFanSpeed" xml:space="preserve"><value>风扇速度</value></data>
+  <data name="DetailPower" xml:space="preserve"><value>功耗</value></data>
+  <data name="DetailTemperaturePeak" xml:space="preserve"><value>温度峰值</value></data>
+  <data name="DetailOtherGpuAdapters" xml:space="preserve"><value>其他 GPU 适配器</value></data>
+  <data name="DetailAcpiThermalZoneNotCpuDie" xml:space="preserve"><value>ACPI 温度区域，不是 CPU 芯片</value></data>
+  <data name="DetailSameAdapterAsUtilization" xml:space="preserve"><value>与利用率相同的适配器</value></data>
+  <data name="DetailUnchangedFor10Minutes" xml:space="preserve"><value>10 分钟未变化</value></data>
+  <data name="TemperatureLimitedTo" xml:space="preserve"><value>限制为 {0:0}% 已持续 {1}，标志 0x{2:X}</value></data>
+  <data name="TemperatureAtThreshold" xml:space="preserve"><value>{0} / {1}</value></data>
+  <data name="TemperatureMaxFormat" xml:space="preserve"><value>{0} / 最大 {1}</value></data>
+  <data name="TemperaturePeakAt" xml:space="preserve"><value>{1} 时为 {0}</value></data>
+  <data name="TemperatureCelsiusValue" xml:space="preserve"><value>{0:0} °C</value></data>
+  <data name="TemperatureFahrenheitValue" xml:space="preserve"><value>{0:0} °F</value></data>
+  <data name="TemperatureFanRpmValue" xml:space="preserve"><value>{0:0} RPM</value></data>
 </root>

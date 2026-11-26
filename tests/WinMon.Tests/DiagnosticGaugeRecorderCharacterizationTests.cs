@@ -33,8 +33,7 @@ public sealed partial class MainWindowWorkflowCharacterizationTests
     [Test]
     public void GaugeCornerDiagnosticPreservesTheOriginalNullReadoutFailure()
     {
-        var check = AnonymousDiagnostic<Func<(MetricReadout, string), bool>>("<CaptureGaugeDiagnosticsAsync>b__6",
-            GaugeStyle.Bowl, new[] { GaugeStyle.Bowl, GaugeStyle.Needle, GaugeStyle.SegmentedArc });
+        Func<(MetricReadout, string), bool> check = corner => WindowDiagnostics.InvalidGaugeCorner(GaugeStyle.Bowl, corner);
         Assert.Throws<NullReferenceException>(() => check((null!, "80%")));
     }
 
@@ -63,8 +62,7 @@ public sealed partial class MainWindowWorkflowCharacterizationTests
         if (partition == "collapsed") readout.ScaleLabel.Visibility = Visibility.Collapsed;
         var before = (readout.ScaleLabel.Text, readout.ScaleLabel.ToolTip, readout.ToolTip,
             readout.ScaleLabel.Visibility, readout.PeakIconVisible, readout.GaugeStyle);
-        var check = AnonymousDiagnostic<Func<(MetricReadout, string), bool>>("<CaptureGaugeDiagnosticsAsync>b__6",
-            style, new[] { GaugeStyle.Bowl, GaugeStyle.Needle, GaugeStyle.SegmentedArc });
+        Func<(MetricReadout, string), bool> check = corner => WindowDiagnostics.InvalidGaugeCorner(style, corner);
 
         Assert.That(check((readout, "80%")), Is.EqualTo(rejected));
         Assert.That(check((readout, "80%")), Is.EqualTo(rejected));
@@ -122,8 +120,7 @@ public sealed partial class MainWindowWorkflowCharacterizationTests
 
     private static T AnonymousDiagnostic<T>(string name, params object[] captures) where T : Delegate
     {
-        // These exact compiler-generated callbacks are report targets. Supply only the typed
-        // captures they read; never execute their parent capture workflows to reach them.
+        // Retained for unrelated example diagnostics; gauge-corner checks use the named seam above.
         var method = typeof(WindowDiagnostics).GetNestedTypes(BindingFlags.NonPublic)
             .SelectMany(type => type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly))
             .Single(value => value.Name == name);

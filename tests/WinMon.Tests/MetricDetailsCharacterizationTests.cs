@@ -58,7 +58,8 @@ public sealed class MetricDetailsCharacterizationTests
     };
 
     private static MetricDetails Details(MetricReadout metric) => (MetricDetails)metric.ToolTip;
-    private static string[] Values(MetricReadout metric) => Details(metric).Rows.Select(row => row.Value).ToArray();
+    private static string[] Values(MetricReadout metric) => Details(metric).Rows
+        .Where(row => row.Visibility == Visibility.Visible).Select(row => row.Value).ToArray();
     private static ResourceSample Filled => new()
     {
         CpuClockMhz = 3250, CpuKernelPercent = 12.5, ProcessCount = 1247, ThreadCount = 18903, HandleCount = 612880,
@@ -114,6 +115,62 @@ public sealed class MetricDetailsCharacterizationTests
         Assert.That(days * 1440 + hours * 60 + minutes, Is.InRange(before / 60_000, after / 60_000));
     }
 
+    [Test]
+    public void TemperaturePeaks_FollowThePairedPhysicalAdapterWhenUtilizationSwitches()
+    {
+        var first = new GpuThermalReading("first/0", "First GPU", 95, null, null, null, null);
+        var second = new GpuThermalReading("second/1", "Second GPU", 65, null, null, null, null);
+        Record(Filled with { GpuId = first.AdapterId, GpuThermals = [first, second] });
+        Record(Filled with { GpuId = second.AdapterId, GpuThermals = [first, second with { TemperatureCelsius = 60 }] }, 1);
+        _window.OpenDetails(_window.GpuMetric);
+        Assert.Multiple(() =>
+        {
+            Assert.That(Details(_window.GpuMetric).Rows[5].Value, Is.EqualTo("60 °C"));
+            Assert.That(Details(_window.GpuMetric).Rows[8].Value, Is.EqualTo(
+                Strings.Format(Strings.TemperaturePeakAt, "65 °C", Start.ToLocalTime())));
+            Assert.That(Details(_window.GpuMetric).Rows[9].Value, Does.Contain("First GPU: 95 °C"));
+        });
+    }
+
+    [Test]
+    public void TemperaturePeaks_ResetAtSamplingGapsInsteadOfRestoringAnEarlierHotReading()
+    {
+        var thermal = new GpuThermalReading("paired/0", "GPU", 90, null, null, null, null);
+        Record(Filled with { GpuId = thermal.AdapterId, GpuThermals = [thermal] });
+        var gap = Sample(1, new ResourceSample()) with { IsGap = true };
+        _window.Session.Record(gap, gap);
+        Record(Filled with { GpuId = thermal.AdapterId, GpuThermals = [thermal with { TemperatureCelsius = 55 }] }, 2);
+        _window.OpenDetails(_window.GpuMetric);
+        Assert.That(Details(_window.GpuMetric).Rows[8].Value, Is.EqualTo(
+            Strings.Format(Strings.TemperaturePeakAt, "55 °C", Start.AddSeconds(2).ToLocalTime())));
+    }
+
+    [Test]
+    public void ThermalZones_AreOrderedByCurrentHeatWithSeparateSensorPeaksAndAnAcpiLabel()
+    {
+        Record(Filled with { ThermalZones = [new("cool", 80, false), new("hot", 70, false)] });
+        Record(Filled with { ThermalZones = [new("cool", 30, true), new("hot", 60, false)] }, 1);
+        _window.OpenDetails(_window.CpuMetric);
+        var lines = Details(_window.CpuMetric).Rows[7].Value.Split('\n');
+        Assert.Multiple(() =>
+        {
+            Assert.That(lines[0], Does.StartWith("hot: 60 °C").And.Contain("70 °C"));
+            Assert.That(lines[1], Does.StartWith("cool: 30 °C").And.Contain("80 °C").And.Contain(Strings.DetailUnchangedFor10Minutes));
+            Assert.That(lines[^1], Is.EqualTo(Strings.DetailAcpiThermalZoneNotCpuDie));
+        });
+    }
+
+    [Test]
+    public void PerformanceLimitDetails_ShowKnownPercentBeforeTheTwoSampleMarkerIsConfirmed()
+    {
+        Record(Filled with { CpuPerformanceLimitPercent = 100 });
+        _window.OpenDetails(_window.CpuMetric);
+        Assert.That(Details(_window.CpuMetric).Rows[6].Value, Is.EqualTo("100.0%"));
+        Record(Filled with { CpuPerformanceLimitPercent = 62 }, 1);
+        _window.OpenDetails(_window.CpuMetric);
+        Assert.That(Details(_window.CpuMetric).Rows[6].Value, Is.EqualTo("62.0%"));
+    }
+
     private void AssertRows(string name, string[] expected)
     {
         var values = Values(Metric(name));
@@ -150,6 +207,18 @@ public sealed class MetricDetailsCharacterizationTests
         var values = Values(Metric(name));
         Assert.That(name == "cpu" ? values.Take(5) : values, Is.All.EqualTo(Dash));
         if (name == "cpu") AssertUptime(values[5], before, after);
+    }
+
+    [Test]
+    public void NoSensorReadings_LeaveTemperatureDetailRowsCollapsed()
+    {
+        Record(Filled);
+        _window.OpenDetails(_window.CpuMetric);
+        Assert.That(Details(_window.CpuMetric).Rows.Skip(6).Select(row => row.Visibility),
+            Is.All.EqualTo(Visibility.Collapsed));
+        _window.OpenDetails(_window.GpuMetric);
+        Assert.That(Details(_window.GpuMetric).Rows.Skip(5).Select(row => row.Visibility),
+            Is.All.EqualTo(Visibility.Collapsed));
     }
 
     [TestCase("cpu"), TestCase("memory"), TestCase("disk"), TestCase("secondary"), TestCase("network"), TestCase("gpu")]

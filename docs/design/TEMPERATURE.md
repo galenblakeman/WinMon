@@ -1,10 +1,10 @@
 # CPU and GPU temperature
 
-Date: November 25, 2026. Status: proposal. Nothing is implemented. A short hardware spike must come before any UI work; see [Delivery and acceptance](#delivery-and-acceptance).
+Date: November 25, 2026. Status: built-in collection and presentation implemented; verification and remaining native acceptance are tracked in [What landed and departures](#what-landed-and-departures).
 
 ## Purpose and scope
 
-Answer one question: **is heat slowing this machine down?** Today WinMon shows CPU clock and GPU utilization but no temperature. [DEVELOPMENT.md](../DEVELOPMENT.md), the [user guide](../USER-GUIDE.md), [Resource detail tooltips](HOVER-DETAILS.md) and [Hardware inventory in the CLI and MCP](HARDWARE-CLI-MCP.md) all list temperature as out of scope, because the GPU path avoids vendor libraries and Windows offers no unprivileged CPU die temperature.
+Answer one question: **is heat slowing this machine down?** Before this change WinMon showed CPU clock and GPU utilization but no temperature. The original resource-detail and hardware-inventory designs excluded temperatures because the GPU path avoids vendor libraries and Windows offers no unprivileged CPU die temperature. This delivery extends desktop resource details; CLI/MCP hardware inventory still excludes live sensors.
 
 This design adds temperature and throttling readings that need **no elevation, no driver and no new dependency**. They also work in the Store build. The display follows the rule that a missing reading is null, never zero: machines without a sensor look exactly as they do today.
 
@@ -17,11 +17,11 @@ Outside this design:
 
 ## Repository baseline
 
-At the latest revision the repository is at product version 4.3.0 on .NET 10 Windows. Recheck before implementation.
+Implemented against product version 4.3.0 on .NET 10 Windows.
 
 - [ResourceSample](../../src/MonCore/Monitoring/ResourceSample.cs) holds nullable system readings. Null means unavailable, never zero.
-- [SystemMetricCapabilities](../../src/MonCore/Monitoring/CollectorCapabilities.cs) has flags for Cpu, Memory, Disk, Network, Gpu and Services.
-- [WindowsCpuClock](../../src/MonCore.Windows/Monitoring/WindowsCpuClock.cs) reads `CallNtPowerInformation(ProcessorInformation)` each tick for `CpuClockMhz`. The same structure carries `MhzLimit`, which WinMon does not read yet.
+- [SystemMetricCapabilities](../../src/MonCore/Monitoring/CollectorCapabilities.cs) includes Temperature when collection has observed available readings during the session.
+- CPU clock uses the existing `% Processor Performance` counter in [MemoryPressureCounter](../../src/MonCore.Windows/Monitoring/MemoryPressureCounter.cs), with the existing [WindowsCpuClock](../../src/MonCore.Windows/Monitoring/WindowsCpuClock.cs) power-information fallback. The temperature change adds optional performance-limit counters to that shared query; it does not use `MhzLimit` as a thermal signal.
 - [WindowsGpuSampler](../../src/MonCore.Windows/Monitoring/WindowsGpuSampler.cs) reports the busiest engine from `\GPU Engine(*)\Utilization Percentage`. [WindowsGpuMemory](../../src/MonCore.Windows/Monitoring/WindowsGpuMemory.cs) pairs PDH usage with DXGI capacity by adapter LUID and refreshes adapter names every 30 seconds.
 - [WindowsHistoryEventReader](../../src/MonCore.Windows/Monitoring/WindowsHistoryEventReader.cs) already reads Kernel-Processor-Power 37 ("Firmware is limiting processor speed") into History.
 - [CaptureRules](../../src/MonCore/Monitoring/CaptureRules.cs) and [ResourceTrendArchive](../../src/MonCore/Monitoring/ResourceTrendArchive.cs) enumerate the metrics that automatic captures and longer trends can use.
@@ -30,9 +30,9 @@ At the latest revision the repository is at product version 4.3.0 on .NET 10 Win
 
 | Reading | Source | Notes |
 | --- | --- | --- |
-| GPU temperature, fan RPM, power | `D3DKMTQueryAdapterInfo` with `KMTQAITYPE_ADAPTERPERFDATA` (`D3DKMT_ADAPTER_PERFDATA`) | Task Manager reads the same data. Works for every vendor with a WDDM 2.4+ driver. Temperature is in tenths of °C; power is in tenths of a percent. Integrated GPUs may report zero, which must become null. `PowerStateOverride` is not a power-off signal; see [Spike results](#spike-results). |
+| GPU temperature, fan RPM, power | `D3DKMTQueryAdapterInfo` with `KMTQAITYPE_ADAPTERPERFDATA` (`D3DKMT_ADAPTER_PERFDATA`) | Available when the graphics driver supports the query; individual fields may be absent. Temperature is in tenths of °C; power is in tenths of a percent. Integrated GPUs may report zero, which must become null. `PowerStateOverride` is not a power-off signal; see [Spike results](#spike-results). |
 | GPU throttle threshold | `KMTQAITYPE_ADAPTERPERFDATA_CAPS` (`D3DKMT_ADAPTER_PERFDATACAPS`), read once per adapter | `TemperatureWarning` is where temperature-based throttling begins and `TemperatureMax` is the damage level, both in tenths of °C, reported by the driver. Zero means not reported. |
-| CPU throttling | PDH `\Processor Information(_Total)\% Performance Limit` | The performance the processor guarantees, as a percentage of nominal. It reads 100 when nothing limits the CPU and drops below 100 under a thermal, power or firmware limit. `Performance Limit Flags` records why. Compare it with `MhzLimit` from the data `WindowsCpuClock` already reads, and keep whichever the spike shows is reliable. |
+| CPU performance limit | PDH `\Processor Information(_Total)\% Performance Limit` | A value below 100 indicates reduced available performance; it does not establish a thermal cause. Optional `Performance Limit Flags` are shown as raw flags without guessing their meaning. Missing values remain unavailable. |
 | System thermal zone | PDH `\Thermal Zone Information(*)\High Precision Temperature`, falling back to `Temperature` | ACPI zones, in tenths of a kelvin or whole kelvins. Usually a motherboard or chassis sensor, not the CPU die. Some firmware reports a value that never changes. |
 
 The thermal zone is labelled **System thermal zone** everywhere, never "CPU temperature". The throttle reading is the main CPU signal, because it answers the purpose question directly.
@@ -166,13 +166,13 @@ The integrated-only laptop is still to run.
 
 CPU die temperature and motherboard fans need ring-0 access to chip registers, which no Windows API offers. WinMon will not ship a kernel driver of its own. None of this is part of the first delivery.
 
-**Decision:** [Optional hardware sensors](HARDWARE-SENSORS.md) chooses LibreHardwareMonitorLib on PawnIO, in a separate optional service. The monitoring-tool readers below are not planned. This section remains as the record of the options considered, and its rules for external sources apply to that service.
+**Decision:** [Optional CPU temperature](HARDWARE-SENSORS.md) is authoritative for CPU die/package readings: stable LibreHardwareMonitorLib NuGet in its own service, with explicit consent to install the service and official driver. CPU sensors come first; fans and motherboard monitoring can extend the same library provider later. WinMon's UI stays unelevated, and the network service gains no sensor collection. The monitoring-tool readers below are rejected alternatives retained for reference. Only the common validation, attribution and unit principles below apply to the selected service; its lifecycle and freshness protocol are defined in that design.
 
 The CAM comparison on the spike desktop shows how other tools do it. CAM showed a 73 °C CPU temperature and a 1,775 RPM CPU fan, while that machine had six third-party kernel drivers loaded for this purpose: AMD's Ryzen Master SDK driver, a CPUID SDK driver, Corsair's low-level access driver, and MSI's `MsIo64` and two `NTIOLib` copies. `MsIo64` has a published arbitrary physical-memory read/write vulnerability (CVE-2019-18845).
 
 ### Monitoring tools the user runs
 
-These publish sensors only while the tool is **running**. WinMon reads them unprivileged, so the Store build can use them too.
+These alternatives would read sensors from a **running** monitoring tool without elevating WinMon. No such reader is planned, and this does not add sensor support to the Store build.
 
 | Source | Detect | Read | Covers |
 | --- | --- | --- | --- |
@@ -184,12 +184,12 @@ MSI Afterburner and AIDA64 also publish shared memory. Afterburner is mostly GPU
 
 ### Driver layers the user installs
 
-These are detected as **installed**. They probably need elevation, so reads would run in the existing LocalSystem network service, which users already opt into once with elevation. The desktop app would ask the service for sensor values as it already does for traffic. The Store build cannot offer these.
+The original option was to reuse an installed driver from the network service. That hosting approach was rejected in favor of [a separate sensor service](HARDWARE-SENSORS.md#why-a-separate-service). The selected setup may install or upgrade PawnIO after explicit consent; the UI never opens the driver. The Store build cannot offer this feature.
 
 | Source | Detect | Read | Notes |
 | --- | --- | --- | --- |
 | [PawnIO](https://pawnio.eu/) | `HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\PawnIO` `InstallLocation`, falling back to `%ProgramFiles%\PawnIO` | Load `PawnIOLib` from the install folder; `pawnio_open`, `pawnio_load(module)`, `pawnio_execute`. Plain exports, so ordinary P/Invoke. | A signed, general-purpose driver that runs small hardware modules: `IntelMSR`, `IntelPCHThermal`, `AMDFamily17`, `RyzenSMU`, `LpcIO`, SMBus modules. The project asks apps to link users to pawnio.eu rather than bundle it. |
-| LibreHardwareMonitorLib on PawnIO | As PawnIO | Reference the NuGet library in the network service | Supplies the chip-by-chip knowledge that raw PawnIO calls would need. A large dependency on a sampling path. |
+| LibreHardwareMonitorLib on PawnIO | As PawnIO | Library in a separate service | Selected: stable LibreHardwareMonitorLib 0.9.6, CPU-only initially; the library owns hardware access and decoding. See [Optional CPU temperature](HARDWARE-SENSORS.md). |
 
 ### Rejected
 
@@ -210,20 +210,16 @@ These are detected as **installed**. They probably need elevation, so reads woul
 
 - **Untrusted input.** Another process's shared memory or WMI data crosses a trust boundary. Bounds-check every size and offset against the mapped length, cap the sensor count, and range-check values as the [validation rules](#validation-rules) do.
 - **Attribution.** Tooltips name the source ("from HWiNFO") and keep the tool's own sensor names. A die temperature from these tools may appear under the CPU, labelled with its source. An ACPI zone never does.
-- **One source per sensor.** When several are present, use a fixed order: HWiNFO, LibreHardwareMonitor, Core Temp, then a driver layer. Never mix sources for the same sensor.
-- **Freshness, not presence.** A named shared-memory object stays alive while any process holds it open, WinMon included, so finding the object proves nothing. Readings are only current while all of these hold:
-  - **The producer is alive:** its process is running (HWiNFO, Core Temp), or its WMI namespace answers (LibreHardwareMonitor).
-  - **The data advances:** HWiNFO's header carries a poll time, which must move forward. Core Temp's structure has no counter or timestamp, so a snapshot counts as stale when no field changes for 10 seconds while its producer is alive.
-  - **The data is recent:** discard readings older than 5 seconds by the source's own time, or by the time WinMon last saw a change.
-
-  Otherwise the readings become null and the UI returns to the built-in view. Close and reopen the mapping when it goes stale, and re-detect about every 30 seconds, not every tick. Tests cover producer exit, a frozen producer, a restart (including a changed layout or sensor count) and sharing being turned off, as HWiNFO's free version does after 12 hours. ([Windows mapping lifetime](https://learn.microsoft.com/en-us/windows/win32/memory/sharing-files-and-memory).)
-- **Units and meaning.** Normalize every value to absolute Celsius before validation, display or peaks. Core Temp can publish Fahrenheit (`ucFahrenheit`) or distance below TjMax (`ucDeltaToTjMax`). Either can pass the 1–150 °C range check and still show the wrong temperature. Convert Fahrenheit first, then for delta mode use temperature = TjMax − delta with the matching `uiTjMax` entry. If the TjMax mapping for a core is unclear, report null rather than guess. Tests cover Celsius, Fahrenheit, delta, and delta with Fahrenheit.
-- **No installs.** WinMon never installs a tool or driver. Settings may link to the project's own download page.
+- **One source per sensor.** The selected service supplies LibreHardwareMonitor CPU readings initially; it does not discover or prioritize running monitoring tools. Keep package identity, sensor meaning and source with each reading, and reset peaks when identity or collector generation changes.
+- **Freshness, not presence.** Apply the selected service's [per-sensor acquisition and timestamp contract](HARDWARE-SENSORS.md#protocol). A completed library pass is not proof that each sensor was read successfully. Unavailable or unverified readings are null; successfully reacquired unchanged values remain valid.
+- **Historical reader caveat.** Finding a shared-memory object or answering WMI namespace would not establish current data. WinMon's own mapping handle can keep an object alive after its producer exits ([Windows mapping lifetime](https://learn.microsoft.com/en-us/windows/win32/memory/sharing-files-and-memory)). A future reader would need producer-liveness and acquisition/heartbeat evidence. Core Temp has no timestamp in the documented structure; unchanged values alone cannot distinguish a frozen producer from stable hardware. Its reader remains unplanned rather than assigning a false freshness guarantee based on value changes.
+- **Units and meaning.** Normalize temperature readings to absolute Celsius before validation, display or peaks; fan readings stay in RPM. Validate by sensor kind: temperatures must be finite and within 1–150 °C; RPM must be finite and nonnegative, with a confirmed zero meaning stopped and unavailable data remaining null. Reject unsupported kinds. If the unplanned Core Temp reader is revisited, characterize its Fahrenheit and distance-to-TjMax flags, including their combination and per-core TjMax mapping, before accepting values. Absolute Fahrenheit and Fahrenheit temperature differences require different conversions; do not apply an absolute-temperature offset to a delta.
+- **Installation policy.** Built-in temperature collection installs nothing. Optional hardware sensors use the separate service's explicit-consent setup to install or upgrade PawnIO; no monitoring tool is installed. The earlier universal "no installs" rule applied to rejected readers and is superseded by [that setup design](HARDWARE-SENSORS.md#setup-and-pawnio).
 
 ### Open questions
 
 - **PawnIO elevation:** whether opening the driver needs admin. The project's sources don't say. Only an unelevated run can answer it; an elevated run shows only that admin works.
-- **Zen 5:** whether `AMDFamily17` covers family 1Ah (the spike desktop's 9950X3D). No module is named for 19h or 1Ah.
+- **Zen 5:** whether the pinned stable LibreHardwareMonitorLib package supplies a correctly labelled, accurate reading on the spike desktop's 9950X3D. Module names alone do not establish support.
 - **Memory integrity:** whether PawnIO loads with Memory integrity (HVCI) on. A successful run proves this only if Memory integrity was actually on at the time.
 - **Licensing:**
   - The PawnIO driver is GPL-2.0, with an exception for programs that use only its device interface.
@@ -234,7 +230,7 @@ These are detected as **installed**. They probably need elevation, so reads woul
   WinMon is MIT. Bundling module blobs or the library needs a licensing check.
 - **Names and defaults:** HWiNFO's object name, its header poll-time field, and whether LibreHardwareMonitor publishes WMI by default come from memory. Verify them against each tool before building on it. Core Temp's names and HWiNFO's 12-hour limit are verified from the linked official pages.
 
-A PawnIO mode in [the probe](../../tools/TemperatureProbe.cs) would settle the first three questions. Run it on the spike desktop twice, once unelevated and once elevated, and compare with CAM. Each run records the PawnIO driver version and whether Memory integrity was on. [Optional hardware sensors](HARDWARE-SENSORS.md#verify-before-building) plans that check as a library prototype.
+The LibreHardwareMonitor CPU prototype described in [Optional CPU temperature](HARDWARE-SENSORS.md#verify-before-building) investigates these questions on both the AMD desktop and Intel laptop. Run it unelevated and elevated, recording the NuGet package and driver versions and whether Memory integrity was on. Native success on both paths is a gate before implementing the service; the built-in [temperature probe](../../tools/TemperatureProbe.cs) remains independent of PawnIO.
 
 ## Deferred
 - **Vendor GPU SDKs.** Load NVML, ADLX or IGCL dynamically only if users ask for hotspot or memory-junction temperatures.
@@ -254,4 +250,21 @@ An illustrative mockup was drawn during design review (not saved as a file). It 
 
 ## What landed and departures
 
-Not implemented yet. This section will record what shipped and where it departed from the design.
+Implemented in the working tree:
+
+- Portable nullable CPU performance-limit readings and immutable thermal-zone/GPU reading records.
+- Optional thermal-zone and performance-limit counters in the existing memory-pressure PDH query, with per-zone high-precision/coarse fallback and state reset rules.
+- D3DKMT GPU collection with physical-adapter identity, driver capabilities/names and 30-second handle caching. Unsupported fields remain missing.
+- GPU gauge temperature, CPU performance-limit and GPU thermal markers, identity-specific ten-minute peaks, details, persisted Celsius/Fahrenheit preference, translations and Full/Compact diagnostic fixtures.
+- The shared query now preserves `PDH_FMT_NOSCALE` and also uses the correct `PDH_FMT_NOCAP100` value (`0x8000`); the former `0x1000` constant was actually NOSCALE and could clip the existing processor-performance reading.
+
+Verification is recorded in `artifacts/temperature-implementation/verification.md`. Full desktop and Store test selections passed 11,242 and 11,079 tests. A capture smoke found Appearance overflow from the unit selector; reduced page padding, then the affected Settings/preview reruns passed 80 tests in each variant and capture smokes passed 57 desktop / 51 Store renders. Gauges and Compact passed 57 / 112 renders per variant. All twelve temperature states were visually inspected; Store images match desktop byte-for-byte. The final LibreHardwareMonitor prototype/collector run passed 38 tests, and its locked restore, build, publish and missing-PawnIO diagnostic passed. The earlier direct-register prototype is superseded.
+
+Four alternating performance pairs measured UI frame medians of 4.599 ms before / 4.646 ms after, with unchanged absent-sensor pixels and about 552 added bytes/frame. Native resource-sampler medians were 1.401 / 1.416 ms. See [performance history](../PERFORMANCE-HISTORY.md) for fixture results, variation and measurement limits. Physical sensor accuracy and the optional CPU service remain outside these completed checks.
+
+Departures and native limits:
+
+- Temperatures and CPU limits are live-only; the restart-history binary format is unchanged and restores these fields unavailable. An explicit round-trip regression guards this boundary.
+- The existing desktop/hybrid hardware spike informed implementation. The integrated-only laptop, a confirmed sleeping-GPU power-state comparison and an observed real performance limit below 100 remain unverified.
+- A six-sample idle probe in this development environment completed and reported unsupported GPU performance queries, no zones and CPU limit 100. This verifies graceful absence here, not sensor accuracy on physical GPUs.
+- Optional CPU die/package temperature is a separate LibreHardwareMonitor prototype; its native gate and service status belong to [Optional CPU temperature](HARDWARE-SENSORS.md).

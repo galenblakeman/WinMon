@@ -1,10 +1,10 @@
 # WinMon design assets
 
-- [Optional hardware sensors](HARDWARE-SENSORS.md) proposes CPU package temperature and fan speeds from LibreHardwareMonitorLib in a separate optional service on PawnIO, installed with one-time consent.
+- [Optional CPU temperature](HARDWARE-SENSORS.md) uses stable LibreHardwareMonitorLib 0.9.6 in a CPU-only prototype before a separate optional service. Native AMD/Intel acceptance gates service implementation; fans and other sensors can later extend the same provider.
 
 - [Effective CPU clock](EFFECTIVE-CPU-CLOCK.md) derives the CPU clock from the rated clock and Windows processor performance, so it follows boost and idle instead of reporting a fixed rated clock.
 
-- [CPU and GPU temperature](TEMPERATURE.md) proposes unprivileged GPU temperature, CPU throttling and system thermal-zone readings on the gauges and in their tooltips, gated on a hardware spike.
+- [CPU and GPU temperature](TEMPERATURE.md) adds unprivileged GPU temperature, generic CPU performance limits and labelled system thermal-zone readings; its delivery record separates automated checks from native hardware acceptance.
 
 - [Crash summaries](CRASH-SUMMARIES.md) groups the crash and hang events History already reads by signature, shown in History and exposed through a `crashes` CLI command and a `list_crashes` MCP tool.
 

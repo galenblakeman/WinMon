@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using WinMon.Controls;
+using WinMon.Preferences;
 using WinMon.Resources;
 
 namespace WinMon.Tests;
@@ -75,6 +76,18 @@ public sealed class GaugeReadoutTextTests
             Assert.That(GaugeReadoutText.GpuMemory(null, 1), Is.EqualTo(Strings.GaugeGpuEngine3D));
             Assert.That(GaugeReadoutText.GpuMemory(1, null), Is.EqualTo(Strings.GaugeGpuEngine3D));
             Assert.That(GaugeReadoutText.GpuMemory(1, 0), Is.EqualTo(Strings.GaugeGpuEngine3D));
+        });
+    }
+
+    [Test]
+    public void Temperature_UsesTheChosenDisplayUnit()
+    {
+        Assert.Multiple(() =>
+        {
+            Assert.That(GaugeReadoutText.Temperature(61, TemperatureUnit.Celsius), Is.EqualTo("61 °C"));
+            Assert.That(GaugeReadoutText.Temperature(61, TemperatureUnit.Fahrenheit), Is.EqualTo("142 °F"));
+            Assert.That(GaugeReadoutText.GpuDetail(null, null, 61, TemperatureUnit.Celsius),
+                Is.EqualTo("3D · 61 °C"));
         });
     }
 }

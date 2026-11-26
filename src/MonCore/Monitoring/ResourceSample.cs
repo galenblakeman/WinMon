@@ -3,6 +3,9 @@ namespace MonCore.Monitoring;
 /// <summary>Immutable system resources for a single interval. Null means unavailable, never zero.</summary>
 public sealed record ResourceSample
 {
+    public double? CpuPerformanceLimitPercent { get; init; }
+    public uint? CpuPerformanceLimitFlags { get; init; }
+    public IReadOnlyList<ThermalZoneReading> ThermalZones { get; init; } = [];
     public double? CpuClockMhz { get; init; }
     public double? CpuKernelPercent { get; init; }
     public ulong? AvailableMemoryBytes { get; init; }
@@ -26,6 +29,7 @@ public sealed record ResourceSample
     public ulong? GpuMemoryTotalBytes { get; init; }
     public ulong? GpuSharedMemoryUsedBytes { get; init; }
     public string GpuName { get; init; } = "";
+    public IReadOnlyList<GpuThermalReading> GpuThermals { get; init; } = [];
     public ulong? TotalMemoryBytes { get; init; }
     public ulong? UsedMemoryBytes { get; init; }
 
@@ -66,6 +70,13 @@ public sealed record ResourceSample
             ? Math.Clamp(Math.Max(rx, tx) * 800d / LinkBitsPerSecond.Value, 0, 100)
             : null;
 }
+
+/// <summary>An ACPI thermal-zone reading. This is a system sensor, not a CPU die temperature.</summary>
+public sealed record ThermalZoneReading(string Name, double Celsius, bool Unchanging);
+
+/// <summary>Readings reported by one physical GPU adapter. Null means that field is unavailable.</summary>
+public sealed record GpuThermalReading(string AdapterId, string Name, double? TemperatureCelsius, double? FanRpm,
+    double? PowerPercent, double? WarningCelsius, double? MaxCelsius);
 
 /// <summary>Validate cumulative counters before turning them into rates.</summary>
 public static class ResourceRates

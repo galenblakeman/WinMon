@@ -2120,4 +2120,27 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
   <data name="FlightRecorderCrashStackBufferOverrun" xml:space="preserve"><value>スタック バッファー オーバーラン</value></data>
   <data name="FlightRecorderCrashUnhandledDotNetException" xml:space="preserve"><value>処理されていない .NET 例外</value></data>
   <data name="CliCrashes" xml:space="preserve"><value>保持されている Windows イベント ログ内の繰り返し発生するアプリケーションのクラッシュとハングを一覧表示します。</value></data><data name="CliCrashDays" xml:space="preserve"><value>調査する日数 (1～90)。</value></data><data name="CliCrashDaysRange" xml:space="preserve"><value>--days は 1 ～ 90 にする必要があります。</value></data><data name="CliCrashApplication" xml:space="preserve"><value>アプリケーション</value></data><data name="CliCrashFailure" xml:space="preserve"><value>障害</value></data><data name="CliCrashCount" xml:space="preserve"><value>回数</value></data><data name="CliCrashLatestUtc" xml:space="preserve"><value>最新 (UTC)</value></data><data name="CliCrashNotResponding" xml:space="preserve"><value>応答なし</value></data><data name="CliCrashCoverage" xml:space="preserve"><value>アプリケーション ログ: {0}; イベント上限到達: {1}; 保持されている最古のイベント: {2}</value></data><data name="CliCrashUnknown" xml:space="preserve"><value>不明</value></data>
+  <data name="TemperatureUnit" xml:space="preserve"><value>温度の単位</value></data>
+  <data name="TemperatureCelsius" xml:space="preserve"><value>摂氏 (°C)</value></data>
+  <data name="TemperatureFahrenheit" xml:space="preserve"><value>華氏 (°F)</value></data>
+  <data name="PerformanceLimited" xml:space="preserve"><value>パフォーマンスが制限されています</value></data>
+  <data name="ThermalLimit" xml:space="preserve"><value>温度制限</value></data>
+  <data name="GaugeGpuTemperaturePair" xml:space="preserve"><value>{0} · {1}</value></data>
+  <data name="DetailPerformanceLimit" xml:space="preserve"><value>パフォーマンス制限</value></data>
+  <data name="DetailSystemThermalZones" xml:space="preserve"><value>システム温度ゾーン</value></data>
+  <data name="DetailTemperature" xml:space="preserve"><value>温度</value></data>
+  <data name="DetailFanSpeed" xml:space="preserve"><value>ファン速度</value></data>
+  <data name="DetailPower" xml:space="preserve"><value>電力</value></data>
+  <data name="DetailTemperaturePeak" xml:space="preserve"><value>温度のピーク</value></data>
+  <data name="DetailOtherGpuAdapters" xml:space="preserve"><value>他の GPU アダプター</value></data>
+  <data name="DetailAcpiThermalZoneNotCpuDie" xml:space="preserve"><value>ACPI 温度ゾーン（CPU ダイではありません）</value></data>
+  <data name="DetailSameAdapterAsUtilization" xml:space="preserve"><value>使用率と同じアダプター</value></data>
+  <data name="DetailUnchangedFor10Minutes" xml:space="preserve"><value>10 分間変化なし</value></data>
+  <data name="TemperatureLimitedTo" xml:space="preserve"><value>{1}、{0:0}% に制限、フラグ 0x{2:X}</value></data>
+  <data name="TemperatureAtThreshold" xml:space="preserve"><value>{0} / {1}</value></data>
+  <data name="TemperatureMaxFormat" xml:space="preserve"><value>{0} / 最大 {1}</value></data>
+  <data name="TemperaturePeakAt" xml:space="preserve"><value>{1} の {0}</value></data>
+  <data name="TemperatureCelsiusValue" xml:space="preserve"><value>{0:0} °C</value></data>
+  <data name="TemperatureFahrenheitValue" xml:space="preserve"><value>{0:0} °F</value></data>
+  <data name="TemperatureFanRpmValue" xml:space="preserve"><value>{0:0} RPM</value></data>
 </root>

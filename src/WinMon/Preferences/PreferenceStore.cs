@@ -190,6 +190,7 @@ public sealed class PreferenceStore
             Top = ValidateCoordinate(preferences.Top),
             Theme = NormalizeTheme(preferences.Theme),
             Language = AppLanguages.Normalize(preferences.Language),
+            TemperatureUnit = NormalizeEnum(preferences.TemperatureUnit, TemperatureUnit.Celsius),
             ChartPalette = ChartPalettes.Normalize(preferences.ChartPalette),
             GaugeStyle = NormalizeEnum(preferences.GaugeStyle, GaugeStyle.Bowl),
             GaugePeakWindowSeconds = preferences.GaugePeakWindowSeconds is 60 or 120 or 300 or 600

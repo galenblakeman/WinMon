@@ -2120,4 +2120,27 @@ Q 종료. Ctrl+C 취소. 실행 파일과 서비스 고정은 다음 실행에�
   <data name="FlightRecorderCrashStackBufferOverrun" xml:space="preserve"><value>스택 버퍼 오버런</value></data>
   <data name="FlightRecorderCrashUnhandledDotNetException" xml:space="preserve"><value>처리되지 않은 .NET 예외</value></data>
   <data name="CliCrashes" xml:space="preserve"><value>보존된 Windows 이벤트 로그에서 반복되는 애플리케이션 충돌 및 중단을 나열합니다.</value></data><data name="CliCrashDays" xml:space="preserve"><value>검사할 일 수(1–90)입니다.</value></data><data name="CliCrashDaysRange" xml:space="preserve"><value>--days는 1에서 90 사이여야 합니다.</value></data><data name="CliCrashApplication" xml:space="preserve"><value>애플리케이션</value></data><data name="CliCrashFailure" xml:space="preserve"><value>오류</value></data><data name="CliCrashCount" xml:space="preserve"><value>횟수</value></data><data name="CliCrashLatestUtc" xml:space="preserve"><value>최근 (UTC)</value></data><data name="CliCrashNotResponding" xml:space="preserve"><value>응답하지 않음</value></data><data name="CliCrashCoverage" xml:space="preserve"><value>애플리케이션 로그: {0}; 이벤트 한도 도달: {1}; 가장 오래된 보존 이벤트: {2}</value></data><data name="CliCrashUnknown" xml:space="preserve"><value>알 수 없음</value></data>
+  <data name="TemperatureUnit" xml:space="preserve"><value>온도 단위</value></data>
+  <data name="TemperatureCelsius" xml:space="preserve"><value>섭씨 (°C)</value></data>
+  <data name="TemperatureFahrenheit" xml:space="preserve"><value>화씨 (°F)</value></data>
+  <data name="PerformanceLimited" xml:space="preserve"><value>성능 제한됨</value></data>
+  <data name="ThermalLimit" xml:space="preserve"><value>열 제한</value></data>
+  <data name="GaugeGpuTemperaturePair" xml:space="preserve"><value>{0} · {1}</value></data>
+  <data name="DetailPerformanceLimit" xml:space="preserve"><value>성능 제한</value></data>
+  <data name="DetailSystemThermalZones" xml:space="preserve"><value>시스템 열 영역</value></data>
+  <data name="DetailTemperature" xml:space="preserve"><value>온도</value></data>
+  <data name="DetailFanSpeed" xml:space="preserve"><value>팬 속도</value></data>
+  <data name="DetailPower" xml:space="preserve"><value>전력</value></data>
+  <data name="DetailTemperaturePeak" xml:space="preserve"><value>최고 온도</value></data>
+  <data name="DetailOtherGpuAdapters" xml:space="preserve"><value>다른 GPU 어댑터</value></data>
+  <data name="DetailAcpiThermalZoneNotCpuDie" xml:space="preserve"><value>ACPI 열 영역이며 CPU 다이가 아님</value></data>
+  <data name="DetailSameAdapterAsUtilization" xml:space="preserve"><value>사용률과 같은 어댑터</value></data>
+  <data name="DetailUnchangedFor10Minutes" xml:space="preserve"><value>10분 동안 변경 없음</value></data>
+  <data name="TemperatureLimitedTo" xml:space="preserve"><value>{1} 동안 {0:0}%로 제한됨, 플래그 0x{2:X}</value></data>
+  <data name="TemperatureAtThreshold" xml:space="preserve"><value>{0} / {1}</value></data>
+  <data name="TemperatureMaxFormat" xml:space="preserve"><value>{0} / 최대 {1}</value></data>
+  <data name="TemperaturePeakAt" xml:space="preserve"><value>{1}의 {0}</value></data>
+  <data name="TemperatureCelsiusValue" xml:space="preserve"><value>{0:0} °C</value></data>
+  <data name="TemperatureFahrenheitValue" xml:space="preserve"><value>{0:0} °F</value></data>
+  <data name="TemperatureFanRpmValue" xml:space="preserve"><value>{0:0} RPM</value></data>
 </root>

@@ -2120,4 +2120,27 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
   <data name="FlightRecorderCrashStackBufferOverrun" xml:space="preserve"><value>Переполнение буфера стека</value></data>
   <data name="FlightRecorderCrashUnhandledDotNetException" xml:space="preserve"><value>Необработанное исключение .NET</value></data>
   <data name="CliCrashes" xml:space="preserve"><value>Выводит повторяющиеся сбои и зависания приложений из сохраненного журнала событий Windows.</value></data><data name="CliCrashDays" xml:space="preserve"><value>Количество дней для проверки (1–90).</value></data><data name="CliCrashDaysRange" xml:space="preserve"><value>--days должно быть от 1 до 90.</value></data><data name="CliCrashApplication" xml:space="preserve"><value>Приложение</value></data><data name="CliCrashFailure" xml:space="preserve"><value>Сбой</value></data><data name="CliCrashCount" xml:space="preserve"><value>Количество</value></data><data name="CliCrashLatestUtc" xml:space="preserve"><value>Последний (UTC)</value></data><data name="CliCrashNotResponding" xml:space="preserve"><value>Не отвечает</value></data><data name="CliCrashCoverage" xml:space="preserve"><value>Журнал приложений: {0}; достигнут лимит событий: {1}; самое старое сохраненное событие: {2}</value></data><data name="CliCrashUnknown" xml:space="preserve"><value>неизвестно</value></data>
+  <data name="TemperatureUnit" xml:space="preserve"><value>Единица температуры</value></data>
+  <data name="TemperatureCelsius" xml:space="preserve"><value>Цельсий (°C)</value></data>
+  <data name="TemperatureFahrenheit" xml:space="preserve"><value>Фаренгейт (°F)</value></data>
+  <data name="PerformanceLimited" xml:space="preserve"><value>Производительность ограничена</value></data>
+  <data name="ThermalLimit" xml:space="preserve"><value>Тепловое ограничение</value></data>
+  <data name="GaugeGpuTemperaturePair" xml:space="preserve"><value>{0} · {1}</value></data>
+  <data name="DetailPerformanceLimit" xml:space="preserve"><value>Ограничение производительности</value></data>
+  <data name="DetailSystemThermalZones" xml:space="preserve"><value>Тепловые зоны системы</value></data>
+  <data name="DetailTemperature" xml:space="preserve"><value>Температура</value></data>
+  <data name="DetailFanSpeed" xml:space="preserve"><value>Скорость вентилятора</value></data>
+  <data name="DetailPower" xml:space="preserve"><value>Питание</value></data>
+  <data name="DetailTemperaturePeak" xml:space="preserve"><value>Пик температуры</value></data>
+  <data name="DetailOtherGpuAdapters" xml:space="preserve"><value>Другие адаптеры GPU</value></data>
+  <data name="DetailAcpiThermalZoneNotCpuDie" xml:space="preserve"><value>Тепловая зона ACPI, не кристалл ЦП</value></data>
+  <data name="DetailSameAdapterAsUtilization" xml:space="preserve"><value>Тот же адаптер, что и загрузка</value></data>
+  <data name="DetailUnchangedFor10Minutes" xml:space="preserve"><value>без изменений 10 мин</value></data>
+  <data name="TemperatureLimitedTo" xml:space="preserve"><value>Ограничено до {0:0}% в течение {1}, флаги 0x{2:X}</value></data>
+  <data name="TemperatureAtThreshold" xml:space="preserve"><value>{0} из {1}</value></data>
+  <data name="TemperatureMaxFormat" xml:space="preserve"><value>{0} из {1} макс.</value></data>
+  <data name="TemperaturePeakAt" xml:space="preserve"><value>{0} в {1}</value></data>
+  <data name="TemperatureCelsiusValue" xml:space="preserve"><value>{0:0} °C</value></data>
+  <data name="TemperatureFahrenheitValue" xml:space="preserve"><value>{0:0} °F</value></data>
+  <data name="TemperatureFanRpmValue" xml:space="preserve"><value>{0:0} RPM</value></data>
 </root>

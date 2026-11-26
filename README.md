@@ -10,6 +10,8 @@ Sampling uses a dedicated worker with elevated scheduling priority on Windows to
 
 The CPU clock under the CPU gauge is the effective clock, as Task Manager reports it. It rises above the rated clock while boosting and falls at idle, including on processors where Windows reports only the fixed rated clock.
 
+GPU gauges show temperature when the Windows graphics driver supplies it. Resource details include available GPU fan/power readings and clearly labelled system thermal zones. A CPU performance-limit indicator reports reduced available performance without attributing the cause to heat. Temperature units can be changed between Celsius and Fahrenheit in Settings. Missing sensors add no gauge temperature; CPU die/package temperature requires the separate, still experimental [LibreHardwareMonitor prototype](docs/design/HARDWARE-SENSORS.md).
+
 MCP performance recordings retain valid captured intervals even when report processing falls behind collection.
 
 Per-app network history retains rates collected while the interface is busy. After a temporary network-monitor disconnect, fresh rates can again contribute to History comparisons and automatic captures; session byte totals keep their incomplete-coverage warning.

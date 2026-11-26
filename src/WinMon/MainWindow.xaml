@@ -241,6 +241,8 @@
                                 Margin="9,4,9,4"
                                 AccentKey="CpuAccent"
                                 Label="{Binding [CPU], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                            <Border x:Name="CpuMetricHost" Grid.Column="0" BorderThickness="1"
+                                    BorderBrush="Transparent" IsHitTestVisible="False" />
                             <controls:MetricReadout
                                 x:Name="MemoryMetric"
                                 ShowSeriesToggle="False"

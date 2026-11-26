@@ -23,7 +23,8 @@ public partial class MainWindow
         {
             var details = new MetricDetails { Accent = metric.ValueLabel.Foreground };
             _metricDetails.Add(metric, details);
-            var count = metric == MemoryMetric ? 11 : metric == NetworkMetric || metric == GpuMetric ? 5 : 6;
+            var count = metric == CpuMetric ? 8 : metric == MemoryMetric ? 11 : metric == NetworkMetric ? 5 :
+                metric == GpuMetric ? 10 : 6;
             for (var i = 0; i < count; i++) details.Rows.Add(new DetailRow { Value = Strings.MissingReading });
             metric.ToolTip = details;
             metric.Focusable = true;
@@ -66,7 +67,7 @@ public partial class MainWindow
                 ? new[]
                 {
                     "DetailClockSpeed", "DetailUserKernel", "DetailProcessesThreads", "DetailHandles",
-                    "DetailBusiestProcess", "DetailUpTime"
+                    "DetailBusiestProcess", "DetailUpTime", "DetailPerformanceLimit", "DetailSystemThermalZones"
                 }
                 : metric == MemoryMetric
                     ?
@@ -85,7 +86,8 @@ public partial class MainWindow
                             ?
                             [
                                 "DetailAdapterName", "DetailBusiestEngine", "DetailDedicatedMemory",
-                                "DetailSharedMemory", "DetailBusiestProcess"
+                                "DetailSharedMemory", "DetailBusiestProcess", "DetailTemperature", "DetailFanSpeed",
+                                "DetailPower", "DetailTemperaturePeak", "DetailOtherGpuAdapters"
                             ]
                             :
                             [
@@ -123,6 +125,12 @@ public partial class MainWindow
             rows[4].Value = Busiest(CpuMetric, ProcessSort.Cpu);
             var upTime = TimeSpan.FromMilliseconds(Environment.TickCount64);
             rows[5].Value = F("{0} d {1:00}:{2:00}", (int)upTime.TotalDays, upTime.Hours, upTime.Minutes);
+            rows[6].Value = PerformanceLimitText(latest);
+            rows[7].Value = ThermalZonesText(latest);
+            rows[6].Visibility = resource?.CpuPerformanceLimitPercent is not null
+                ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+            rows[7].Visibility = resource?.ThermalZones.Count > 0
+                ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
         }
         else if (metric == MemoryMetric)
         {
@@ -179,7 +187,81 @@ public partial class MainWindow
             rows[2].Value = PairBytes(resource?.GpuMemoryUsedBytes, resource?.GpuMemoryTotalBytes);
             rows[3].Value = Bytes(resource?.GpuSharedMemoryUsedBytes);
             rows[4].Value = Busiest(GpuMetric, ProcessSort.Gpu);
+            var thermal = PairedGpuThermal(resource);
+            rows[5].Value = GpuTemperatureText(thermal);
+            rows[6].Value = thermal?.FanRpm is { } fan ? Strings.Format(Strings.TemperatureFanRpmValue, fan) : Dash;
+            rows[7].Value = Percent(thermal?.PowerPercent);
+            rows[8].Value = GpuTemperaturePeakText(latest, thermal);
+            rows[9].Value = OtherGpuTemperatures(resource, thermal);
+            var pairedVisible = thermal is { TemperatureCelsius: not null } or { FanRpm: not null } or { PowerPercent: not null };
+            rows[5].Visibility = thermal?.TemperatureCelsius is not null
+                ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+            rows[6].Visibility = thermal?.FanRpm is not null
+                ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+            rows[7].Visibility = thermal?.PowerPercent is not null
+                ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+            rows[8].Visibility = pairedVisible && latest is not null && GpuThermalPeak(latest, thermal!.AdapterId) is not null
+                ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+            rows[9].Visibility = resource?.GpuThermals.Any(item => item.AdapterId != thermal?.AdapterId &&
+                item.TemperatureCelsius is not null) == true || pairedVisible
+                ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
         }
+    }
+
+    private string PerformanceLimitText(MonitorSample? latest)
+    {
+        var duration = CpuPerformanceLimitDuration(latest);
+        var resource = latest?.Resources;
+        if (resource?.CpuPerformanceLimitPercent is not { } value) return Dash;
+        return duration is { } elapsed && resource.CpuPerformanceLimitFlags is { } flags
+            ? Strings.Format(Strings.TemperatureLimitedTo, value, elapsed, flags)
+            : Percent(value);
+    }
+
+    private string ThermalZonesText(MonitorSample? latest)
+    {
+        var zones = latest?.Resources.ThermalZones;
+        if (zones is not { Count: > 0 }) return Dash;
+        return string.Join("\n", zones.OrderByDescending(zone => zone.Celsius).Select(zone =>
+        {
+            var peak = ThermalZonePeak(latest!, zone.Name);
+            var detail = zone.Name + ": " + GaugeReadoutText.Temperature(zone.Celsius, _preferences.TemperatureUnit);
+            if (peak is { } item) detail += " · " + Strings.Format(Strings.TemperaturePeakAt,
+                GaugeReadoutText.Temperature(item.Value, _preferences.TemperatureUnit), item.Sample.Timestamp.ToLocalTime());
+            if (zone.Unchanging) detail += " · " + Strings.DetailUnchangedFor10Minutes;
+            return detail;
+        })) + "\n" + Strings.DetailAcpiThermalZoneNotCpuDie;
+    }
+
+    private string GpuTemperatureText(GpuThermalReading? thermal)
+    {
+        if (thermal?.TemperatureCelsius is not { } value) return Dash;
+        var temperature = GaugeReadoutText.Temperature(value, _preferences.TemperatureUnit);
+        if (thermal.WarningCelsius is { } warning)
+            return Strings.Format(Strings.TemperatureAtThreshold, temperature,
+                GaugeReadoutText.Temperature(warning, _preferences.TemperatureUnit));
+        return thermal.MaxCelsius is { } maximum
+            ? Strings.Format(Strings.TemperatureMaxFormat, temperature,
+                GaugeReadoutText.Temperature(maximum, _preferences.TemperatureUnit))
+            : temperature;
+    }
+
+    private string GpuTemperaturePeakText(MonitorSample? latest, GpuThermalReading? thermal)
+    {
+        if (thermal is null || latest is null) return Dash;
+        var peak = GpuThermalPeak(latest, thermal.AdapterId);
+        return peak is { } item ? Strings.Format(Strings.TemperaturePeakAt,
+            GaugeReadoutText.Temperature(item.Value, _preferences.TemperatureUnit), item.Sample.Timestamp.ToLocalTime()) : Dash;
+    }
+
+    private string OtherGpuTemperatures(ResourceSample? resource, GpuThermalReading? paired)
+    {
+        var others = resource?.GpuThermals.Where(reading => reading.AdapterId != paired?.AdapterId &&
+                                                             reading.TemperatureCelsius is not null).ToArray();
+        if (others is not { Length: > 0 }) return paired is null ? Dash : Strings.DetailSameAdapterAsUtilization;
+        var text = string.Join("\n", others.Select(reading => reading.Name + ": " +
+            GaugeReadoutText.Temperature(reading.TemperatureCelsius, _preferences.TemperatureUnit)));
+        return paired is null ? text : text + "\n" + Strings.DetailSameAdapterAsUtilization;
     }
 
     private void UpdateDiskDetails(MetricReadout metric, double? active, double? read, double? write,

@@ -191,6 +191,70 @@ internal sealed partial class WindowDiagnostics
         await CaptureCompactMemoryDetailsAsync(fixture, output, "unavailable-light", true, cancellationToken);
     }
 
+    private static async Task CaptureCompactTemperatureStatesAsync(MainWindow fixture, FrameworkElement visual, string output,
+        CancellationToken cancellationToken)
+    {
+        var history = fixture.Session.History;
+        var originalSamples = history.Samples.ToArray();
+        var originalCapacity = history.Capacity;
+        var originalPreferences = fixture.Preferences;
+        try
+        {
+        var previous = fixture.Session.History.Samples[^1];
+        MonitorSample Add(int second, double? limit, GpuThermalReading? thermal)
+        {
+            var sample = new MonitorSample(previous.Timestamp.AddSeconds(second), 40, [], 0,
+                MonotonicTimestamp: previous.MonotonicTimestamp + Stopwatch.Frequency * second)
+            {
+                Resources = previous.Resources with
+                {
+                    CpuPerformanceLimitPercent = limit, CpuPerformanceLimitFlags = limit is null ? null : 2,
+                    GpuId = thermal?.AdapterId ?? "", GpuThermals = thermal is null ? [] : [thermal]
+                }
+            };
+            fixture.Session.History.Add(sample);
+            return sample;
+        }
+
+        var normal = new GpuThermalReading("fixture/0", "Fixture GPU", 61, 900, 42, 83, 88);
+        Add(1, 100, normal);
+        foreach (var theme in new[] { "Dark", "Light" })
+        {
+            fixture.Preferences = fixture.Preferences with { Theme = theme, GaugeStyle = GaugeStyle.Bowl };
+            fixture.ApplyTheme(); DrawCompactScenario(fixture, visual, 836);
+            await CaptureVisualAsync(visual, Path.Combine(output, $"temperature-compact-normal-{theme.ToLowerInvariant()}.png"), 1, cancellationToken);
+        }
+        Add(2, 62, normal with { TemperatureCelsius = 83 }); Add(3, 62, normal with { TemperatureCelsius = 83 });
+        foreach (var theme in new[] { "Dark", "Light" })
+        {
+            fixture.Preferences = fixture.Preferences with { Theme = theme, GaugeStyle = GaugeStyle.Bowl };
+            fixture.ApplyTheme(); DrawCompactScenario(fixture, visual, 836);
+            await CaptureVisualAsync(visual, Path.Combine(output, $"temperature-compact-limited-{theme.ToLowerInvariant()}.png"), 1, cancellationToken);
+        }
+        Add(4, null, null);
+        foreach (var theme in new[] { "Dark", "Light" })
+        {
+            fixture.Preferences = fixture.Preferences with { Theme = theme, GaugeStyle = GaugeStyle.Bowl };
+            fixture.ApplyTheme(); DrawCompactScenario(fixture, visual, 836);
+            await CaptureVisualAsync(visual, Path.Combine(output, $"temperature-compact-no-sensor-{theme.ToLowerInvariant()}.png"), 1, cancellationToken);
+        }
+        }
+        finally
+        {
+            RestoreTemperatureFixture(history, originalSamples, originalCapacity);
+            fixture.Preferences = originalPreferences;
+            fixture.ApplyTheme();
+        }
+    }
+
+    private static void RestoreTemperatureFixture(MonitorHistory history, MonitorSample[] samples, int capacity)
+    {
+        history.Resize(1);
+        history.Add(samples[0]);
+        history.Resize(capacity);
+        foreach (var sample in samples.Skip(1)) history.Add(sample);
+    }
+
     private static void VerifyCompactFullViewRestoration(MainWindow fixture)
     {
         fixture.SetCompactView(false);

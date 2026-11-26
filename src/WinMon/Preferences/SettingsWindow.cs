@@ -53,6 +53,14 @@ public sealed class SettingsWindow : Window
         }
     }
 
+    private sealed record TemperatureUnitChoice(TemperatureUnit Unit, string Label)
+    {
+        public override string ToString()
+        {
+            return Label;
+        }
+    }
+
     // WPF reads the selected value through SelectedValuePath.
     // ReSharper disable once NotAccessedPositionalProperty.Local
     private sealed record StartupViewChoice(StartupViewMode Mode, string Label)
@@ -94,6 +102,7 @@ public sealed class SettingsWindow : Window
     private readonly ComboBox _themeSelector;
     private readonly ComboBox _paletteSelector;
     private readonly ComboBox _gaugeSelector;
+    private readonly ComboBox _temperatureUnitSelector;
     private readonly ComboBox _gaugePeakWindowSelector;
     private readonly AppearancePreview _appearancePreview;
     private readonly ComboBox _retentionSelector;
@@ -296,6 +305,15 @@ public sealed class SettingsWindow : Window
         _gaugeSelector.DisplayMemberPath = nameof(GaugeChoice.Label);
         _gaugeSelector.SelectedValuePath = nameof(GaugeChoice.Style);
         _gaugeSelector.SelectedValue = preferences.GaugeStyle;
+        _temperatureUnitSelector = CreateSelector([], "");
+        _temperatureUnitSelector.ItemsSource = new[]
+        {
+            new TemperatureUnitChoice(TemperatureUnit.Celsius, Strings.TemperatureCelsius),
+            new TemperatureUnitChoice(TemperatureUnit.Fahrenheit, Strings.TemperatureFahrenheit)
+        };
+        _temperatureUnitSelector.DisplayMemberPath = nameof(TemperatureUnitChoice.Label);
+        _temperatureUnitSelector.SelectedValuePath = nameof(TemperatureUnitChoice.Unit);
+        _temperatureUnitSelector.SelectedValue = preferences.TemperatureUnit;
         _gaugePeakWindowSelector = CreateSelector(new[] { 60, 120, 300, 600 }.Select(seconds =>
                 Strings.Format(Strings.GaugePeakWindowMinutes, seconds / 60)).ToArray(),
             Strings.Format(Strings.GaugePeakWindowMinutes, preferences.GaugePeakWindowSeconds / 60));
@@ -452,6 +470,8 @@ public sealed class SettingsWindow : Window
 
     internal ComboBox GaugeSelector => _gaugeSelector;
 
+    internal ComboBox TemperatureUnitSelector => _temperatureUnitSelector;
+
     internal ComboBox GaugePeakWindowSelector => _gaugePeakWindowSelector;
 
     internal ComboBox StartupViewSelector => _startupViewSelector;
@@ -494,6 +514,7 @@ public sealed class SettingsWindow : Window
             Language = settings.Language,
             ChartPalette = settings.ChartPalette,
             GaugeStyle = settings.GaugeStyle,
+            TemperatureUnit = settings.TemperatureUnit,
             GaugePeakWindowSeconds = settings.GaugePeakWindowSeconds,
             RetentionSeconds = settings.RetentionSeconds,
             KeepHistoryAcrossRestarts = settings.KeepHistoryAcrossRestarts,
@@ -874,9 +895,12 @@ public sealed class SettingsWindow : Window
     private StackPanel CreateAppearancePage()
     {
         var page = Page(Strings.Appearance);
+        // Keep the unit selector and the complete preview visible at the designed dialog height.
+        page.Margin = new Thickness(26, 4, 26, 4);
         page.Children.Add(Field(Strings.Theme, _themeSelector));
         page.Children.Add(Field(Strings.ChartPalette, _paletteSelector));
         page.Children.Add(Field(Strings.ResourceGauges, _gaugeSelector));
+        page.Children.Add(Field(Strings.TemperatureUnit, _temperatureUnitSelector));
         page.Children.Add(new PreviewHost
         {
             Child = _appearancePreview, Margin = new Thickness(0, 8, 0, 4)
@@ -1213,6 +1237,9 @@ public sealed class SettingsWindow : Window
             Language = LanguageSelector.SelectedValue as string ?? AppLanguages.SystemDefault,
             ChartPalette = _paletteSelector.SelectedValue as string ?? "Classic",
             GaugeStyle = SelectedGaugeStyle,
+            TemperatureUnit = _temperatureUnitSelector.SelectedValue is TemperatureUnit unit
+                ? unit
+                : TemperatureUnit.Celsius,
             GaugePeakWindowSeconds = (_gaugePeakWindowSelector.SelectedItem as string) switch
             {
                 var label when label == Strings.Format(Strings.GaugePeakWindowMinutes, 1) => 60,

@@ -6,10 +6,20 @@ namespace MonCore.Windows.Monitoring;
 
 internal readonly record struct MemoryPressureRaw(double? PagingReadsPerSecond, ulong? StandbyCoreBytes,
     ulong? StandbyNormalBytes, ulong? StandbyReserveBytes, ulong? ModifiedBytes, ulong? FreeBytes,
-    double? ProcessorPerformancePercent = null, bool Collected = true);
+    double? ProcessorPerformancePercent = null, double? ProcessorPerformanceLimitPercent = null,
+    double? ProcessorPerformanceLimitFlags = null, bool Collected = true)
+{
+    public IReadOnlyList<ThermalZoneRaw> ThermalZones { get; init; } = [];
+}
 
 internal readonly record struct MemoryPressureReading(double? PagingReadsPerSecond, ulong? StandbyBytes,
-    ulong? ModifiedBytes, ulong? FreeBytes, double? ProcessorPerformancePercent = null);
+    ulong? ModifiedBytes, ulong? FreeBytes, double? ProcessorPerformancePercent = null,
+    double? ProcessorPerformanceLimitPercent = null, uint? ProcessorPerformanceLimitFlags = null)
+{
+    public IReadOnlyList<ThermalZoneRaw> ThermalZones { get; init; } = [];
+}
+
+internal readonly record struct ThermalZoneRaw(string Name, double Kelvin, bool HighPrecision);
 
 internal interface IMemoryPressurePdh : IDisposable
 {
@@ -44,7 +54,10 @@ internal sealed class MemoryPressureCounter(IMemoryPressurePdh? pdh = null, Func
         return new MemoryPressureReading(
             validRate ? ValidRate(raw.PagingReadsPerSecond) : null,
             Sum(raw.StandbyCoreBytes, raw.StandbyNormalBytes, raw.StandbyReserveBytes), raw.ModifiedBytes, raw.FreeBytes,
-            validRate ? ValidRate(raw.ProcessorPerformancePercent) : null);
+            validRate ? ValidRate(raw.ProcessorPerformancePercent) : null,
+            validRate ? ValidPercent(raw.ProcessorPerformanceLimitPercent) : null,
+            validRate ? ValidFlags(raw.ProcessorPerformanceLimitFlags) : null)
+        { ThermalZones = raw.ThermalZones };
     }
 
     public void Reset()
@@ -66,11 +79,33 @@ internal sealed class MemoryPressureCounter(IMemoryPressurePdh? pdh = null, Func
     private static double? ValidRate(double? value) => value is { } rate && double.IsFinite(rate) && rate >= 0
         ? rate : null;
 
+    private static double? ValidPercent(double? value) => value is { } percent && double.IsFinite(percent) &&
+        percent is >= 0 and <= 100 ? percent : null;
+
+    private static uint? ValidFlags(double? value) => value is { } flags && double.IsFinite(flags) &&
+        flags is >= 0 and <= uint.MaxValue && Math.Truncate(flags) == flags ? (uint)flags : null;
+
+    internal static IReadOnlyList<ThermalZoneRaw> SelectThermalZones(IReadOnlyList<ThermalZoneRaw> high,
+        IReadOnlyList<ThermalZoneRaw> coarse)
+    {
+        if (high.Count == 0 && coarse.Count == 0) return [];
+        var result = new List<ThermalZoneRaw>(high.Count + coarse.Count);
+        var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var zone in high)
+            if (!string.IsNullOrWhiteSpace(zone.Name) && WindowsThermalZones.ToCelsius(zone.Kelvin, zone.HighPrecision) is not null && names.Add(zone.Name))
+                result.Add(zone);
+        foreach (var zone in coarse)
+            if (!string.IsNullOrWhiteSpace(zone.Name) && WindowsThermalZones.ToCelsius(zone.Kelvin, zone.HighPrecision) is not null && names.Add(zone.Name))
+                result.Add(zone);
+        return result;
+    }
+
     private sealed class NativeMemoryPressurePdh : IMemoryPressurePdh
     {
         private static readonly long RetryDelay = 30 * Stopwatch.Frequency;
         private SafeMemoryPdhQuery? _query;
-        private IntPtr _pagingReads, _standbyCore, _standbyNormal, _standbyReserve, _modified, _free, _performance;
+        private IntPtr _pagingReads, _standbyCore, _standbyNormal, _standbyReserve, _modified, _free, _performance,
+            _performanceLimit, _performanceLimitFlags, _thermalHigh, _thermalCoarse;
         private long _retryAfter;
 
         public MemoryPressureRaw Collect()
@@ -83,15 +118,19 @@ internal sealed class MemoryPressureCounter(IMemoryPressurePdh? pdh = null, Func
                 return default;
             }
 
+            var high = ReadZones(_thermalHigh, true);
+            var coarse = ReadZones(_thermalCoarse, false);
             return new MemoryPressureRaw(Read(_pagingReads), Bytes(_standbyCore), Bytes(_standbyNormal),
-                Bytes(_standbyReserve), Bytes(_modified), Bytes(_free), Read(_performance));
+                Bytes(_standbyReserve), Bytes(_modified), Bytes(_free), Read(_performance), Read(_performanceLimit),
+                Read(_performanceLimitFlags)) { ThermalZones = SelectThermalZones(high, coarse) };
         }
 
         public void Reset()
         {
             _query?.Dispose();
             _query = null;
-            _pagingReads = _standbyCore = _standbyNormal = _standbyReserve = _modified = _free = _performance = IntPtr.Zero;
+            _pagingReads = _standbyCore = _standbyNormal = _standbyReserve = _modified = _free = _performance =
+                _performanceLimit = _performanceLimitFlags = _thermalHigh = _thermalCoarse = IntPtr.Zero;
             _retryAfter = 0;
         }
 
@@ -119,6 +158,10 @@ internal sealed class MemoryPressureCounter(IMemoryPressurePdh? pdh = null, Func
             _free = AddOptional(query, @"\Memory\Free & Zero Page List Bytes");
             // Can exceed 100 while boosting; Read passes PDH_FMT_NOCAP100 so it is not clipped.
             _performance = AddOptional(query, @"\Processor Information(_Total)\% Processor Performance");
+            _performanceLimit = AddOptional(query, @"\Processor Information(_Total)\% Performance Limit");
+            _performanceLimitFlags = AddOptional(query, @"\Processor Information(_Total)\Performance Limit Flags");
+            _thermalHigh = AddOptional(query, @"\Thermal Zone Information(*)\High Precision Temperature");
+            _thermalCoarse = AddOptional(query, @"\Thermal Zone Information(*)\Temperature");
             return true;
         }
 
@@ -140,7 +183,7 @@ internal sealed class MemoryPressureCounter(IMemoryPressurePdh? pdh = null, Func
         private static double? Read(IntPtr counter)
         {
             if (counter == IntPtr.Zero) return null;
-            var status = Native.PdhGetFormattedCounterValue(counter, PdhFmtDouble | PdhFmtNoCap100, out _, out var value);
+            var status = Native.PdhGetFormattedCounterValue(counter, PdhFmtDouble | PdhFmtNoScale | PdhFmtNoCap100, out _, out var value);
             return status == 0 && value.Status is 0 or 1 && double.IsFinite(value.Value) && value.Value >= 0
                 ? value.Value : null;
         }
@@ -151,8 +194,36 @@ internal sealed class MemoryPressureCounter(IMemoryPressurePdh? pdh = null, Func
             return value is >= 0 and <= ulong.MaxValue ? (ulong)value.Value : null;
         }
 
+        private static IReadOnlyList<ThermalZoneRaw> ReadZones(IntPtr counter, bool highPrecision)
+        {
+            if (counter == IntPtr.Zero) return [];
+            uint bytes = 0;
+            var status = Native.PdhGetFormattedCounterArrayW(counter, PdhFmtDouble, ref bytes, out _, IntPtr.Zero);
+            if (status == 0 && bytes == 0) return [];
+            if (status != 0x800007D2 || bytes is 0 or > 1024 * 1024) return [];
+            var buffer = Marshal.AllocHGlobal(checked((int)bytes));
+            try
+            {
+                status = Native.PdhGetFormattedCounterArrayW(counter, PdhFmtDouble, ref bytes, out var count, buffer);
+                if (status != 0 || count > 4096 || (ulong)count * (uint)Marshal.SizeOf<CounterItem>() > bytes) return [];
+                var result = new List<ThermalZoneRaw>((int)count);
+                var stride = Marshal.SizeOf<CounterItem>();
+                for (var i = 0; i < count; i++)
+                {
+                    var item = IntPtr.Add(buffer, checked((int)i * stride));
+                    var value = Marshal.PtrToStructure<CounterItem>(item);
+                    if (value.Value.Status is 0 or 1 && double.IsFinite(value.Value.Value))
+                        result.Add(new ThermalZoneRaw(Marshal.PtrToStringUni(value.Name) ?? "", value.Value.Value, highPrecision));
+                }
+                return result;
+            }
+            finally { Marshal.FreeHGlobal(buffer); }
+        }
+
         private const uint PdhFmtDouble = 0x00000200;
-        private const uint PdhFmtNoCap100 = 0x00001000;
+        // Preserve unscaled byte/rate values and avoid clipping processor boost at 100.
+        private const uint PdhFmtNoScale = 0x00001000;
+        private const uint PdhFmtNoCap100 = 0x00008000;
 
         private sealed class SafeMemoryPdhQuery() : SafeHandleZeroOrMinusOneIsInvalid(true)
         {
@@ -165,6 +236,9 @@ internal sealed class MemoryPressureCounter(IMemoryPressurePdh? pdh = null, Func
             [FieldOffset(0)] public uint Status;
             [FieldOffset(8)] public double Value;
         }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct CounterItem { public IntPtr Name; public CounterValue Value; }
 
         private static class Native
         {
@@ -181,6 +255,10 @@ internal sealed class MemoryPressureCounter(IMemoryPressurePdh? pdh = null, Func
             [DllImport("pdh.dll", ExactSpelling = true)]
             internal static extern uint PdhGetFormattedCounterValue(IntPtr counter, uint format, out uint type,
                 out CounterValue value);
+
+            [DllImport("pdh.dll", ExactSpelling = true)]
+            internal static extern uint PdhGetFormattedCounterArrayW(IntPtr counter, uint format, ref uint bytes,
+                out uint count, IntPtr buffer);
 
             [DllImport("pdh.dll", ExactSpelling = true)]
             internal static extern uint PdhCloseQuery(IntPtr query);

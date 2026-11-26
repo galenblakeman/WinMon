@@ -2132,4 +2132,27 @@ Auch das Wiederherstellen der Drosselung ist fehlgeschlagen: {1}</value></data>
   <data name="CliCrashDays" xml:space="preserve"><value>Anzahl der zu prüfenden Tage (1–90).</value></data>
   <data name="CliCrashDaysRange" xml:space="preserve"><value>--days muss zwischen 1 und 90 liegen.</value></data>
   <data name="CliCrashApplication" xml:space="preserve"><value>Anwendung</value></data><data name="CliCrashFailure" xml:space="preserve"><value>Fehler</value></data><data name="CliCrashCount" xml:space="preserve"><value>Anzahl</value></data><data name="CliCrashLatestUtc" xml:space="preserve"><value>Letzter (UTC)</value></data><data name="CliCrashNotResponding" xml:space="preserve"><value>Reagiert nicht</value></data><data name="CliCrashCoverage" xml:space="preserve"><value>Anwendungsprotokoll: {0}; Ereignislimit erreicht: {1}; ältestes gespeichertes Ereignis: {2}</value></data><data name="CliCrashUnknown" xml:space="preserve"><value>unbekannt</value></data>
+  <data name="TemperatureUnit" xml:space="preserve"><value>Temperatureinheit</value></data>
+  <data name="TemperatureCelsius" xml:space="preserve"><value>Celsius (°C)</value></data>
+  <data name="TemperatureFahrenheit" xml:space="preserve"><value>Fahrenheit (°F)</value></data>
+  <data name="PerformanceLimited" xml:space="preserve"><value>Leistung begrenzt</value></data>
+  <data name="ThermalLimit" xml:space="preserve"><value>Temperaturlimit</value></data>
+  <data name="GaugeGpuTemperaturePair" xml:space="preserve"><value>{0} · {1}</value></data>
+  <data name="DetailPerformanceLimit" xml:space="preserve"><value>Leistungsgrenze</value></data>
+  <data name="DetailSystemThermalZones" xml:space="preserve"><value>Systemtemperaturzonen</value></data>
+  <data name="DetailTemperature" xml:space="preserve"><value>Temperatur</value></data>
+  <data name="DetailFanSpeed" xml:space="preserve"><value>Lüfterdrehzahl</value></data>
+  <data name="DetailPower" xml:space="preserve"><value>Leistung</value></data>
+  <data name="DetailTemperaturePeak" xml:space="preserve"><value>Temperaturspitze</value></data>
+  <data name="DetailOtherGpuAdapters" xml:space="preserve"><value>Weitere GPU-Adapter</value></data>
+  <data name="DetailAcpiThermalZoneNotCpuDie" xml:space="preserve"><value>ACPI-Temperaturzone, nicht der CPU-Die</value></data>
+  <data name="DetailSameAdapterAsUtilization" xml:space="preserve"><value>Derselbe Adapter wie bei der Auslastung</value></data>
+  <data name="DetailUnchangedFor10Minutes" xml:space="preserve"><value>seit 10 Min. unverändert</value></data>
+  <data name="TemperatureLimitedTo" xml:space="preserve"><value>Auf {0:0}% begrenzt seit {1}, Flags 0x{2:X}</value></data>
+  <data name="TemperatureAtThreshold" xml:space="preserve"><value>{0} von {1}</value></data>
+  <data name="TemperatureMaxFormat" xml:space="preserve"><value>{0} von max. {1}</value></data>
+  <data name="TemperaturePeakAt" xml:space="preserve"><value>{0} um {1}</value></data>
+  <data name="TemperatureCelsiusValue" xml:space="preserve"><value>{0:0} °C</value></data>
+  <data name="TemperatureFahrenheitValue" xml:space="preserve"><value>{0:0} °F</value></data>
+  <data name="TemperatureFanRpmValue" xml:space="preserve"><value>{0:0} RPM</value></data>
 </root>

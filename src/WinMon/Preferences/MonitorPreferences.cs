@@ -9,6 +9,9 @@ namespace WinMon.Preferences;
 /// </summary>
 public sealed record MonitorPreferences
 {
+    /// <summary>Display unit for temperature readings; collection and history remain Celsius.</summary>
+    public TemperatureUnit TemperatureUnit { get; init; } = TemperatureUnit.Celsius;
+
     /// <summary>Open the compact resource gauges while retaining full-view window dimensions.</summary>
     public bool CompactMode { get; init; }
 

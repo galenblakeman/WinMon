@@ -2,6 +2,22 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## Built-in temperatures and performance limits (November 25, 2026)
+
+Compared the preserved pre-change Release benchmark with the final desktop build after tests and smokes stopped. Four pairs alternated launch order on the development VM, using the existing 850-process live-frame benchmark (400 warm-up frames, seven batches of 60). Four additional changed-build runs enabled `--temperature`, with a paired GPU temperature, a thermal zone and a confirmed CPU performance limit.
+
+| Live UI frame | Before | After, sensors absent | After, temperature fixture |
+| --- | ---: | ---: | ---: |
+| Median of four run medians | 4.599 ms | 4.646 ms | 4.315 ms |
+| Run median range | 4.022–4.954 ms | 4.207–4.797 ms | 3.949–4.684 ms |
+| Median allocated bytes/frame | 560,421 | 560,973 | 561,021 |
+
+Absent-sensor pixel hashes match the baseline in every run. Temperature-fixture hashes are stable across all four runs. The small timing difference is within the overlapping run variation; the lower fixture median is not evidence of a speedup. Added nullable sensor presentation and marker work costs about 552–600 managed bytes per synthetic frame (roughly 0.1%).
+
+A separate native resource-sampler harness alternated the same four build pairs, with 30 warm-up and 200 timed back-to-back reads per run. Median sampling time was 1.401 ms before and 1.416 ms after; run medians were 1.382–1.408 ms and 1.407–1.561 ms. Median allocation rose from 201,648 to 204,030 bytes/sample (changed range 203,304–208,144), consistent with the additional optional counter results and thermal-reading state in the shared PDH query. No additional PDH query or sampling loop was added. This VM returned no thermal zones or GPU temperatures, so native measurements cover graceful absence, not supported-device acquisition cost, adapter wake behavior or the optional CPU library.
+
+The native harness uses reflection and zero process rows; the UI benchmark excludes collection and the WPF render thread. These are focused measurements, not whole-app profiling. Evidence and helper scripts: `artifacts/temperature-implementation/performance/summary.json`, the individual JSON/PNG files, `Measure-Final.ps1` and `sampler/`. The CPU LibreHardwareMonitor probe remains separate and its service has not been implemented or benchmarked. See [the temperature design](design/TEMPERATURE.md).
+
 ## Effective CPU clock (November 25, 2026)
 
 The CPU clock now comes from `\Processor Information(_Total)\% Processor Performance`, added to the existing memory-pressure PDH query, instead of `CurrentMhz` alone. Compared the `HEAD` and changed `MonCore.Windows` Release builds with a focused probe of `WindowsResourceSampler.Sample` (the resource half of each tick). The probe used 850 synthetic process rows, 30 warm-up samples and 200 timed back-to-back samples per run. Six pairs alternated launch order on the Hyper-V development VM (24 logical processors, Ryzen 9 9950X3D host), after verification had finished.

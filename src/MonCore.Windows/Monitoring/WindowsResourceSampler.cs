@@ -15,6 +15,11 @@ internal sealed class WindowsResourceSampler : IDisposable
 
     private readonly WindowsCpuClock _cpuClock = new();
     private readonly MemoryPressureCounter _memoryPressure = new();
+    private readonly WindowsThermalZones _thermalZones = new();
+
+    // Capabilities describe what this collector has observed during its session, not the latest read's quality.
+    internal bool HasTemperature => Volatile.Read(ref _hasTemperature);
+    private bool _hasTemperature;
 
     // Enumerating adapters costs far more than reading one adapter's counters, so the candidate list is
     // refreshed only when Windows reports a network change, or every 30 seconds for speed changes.
@@ -50,7 +55,10 @@ internal sealed class WindowsResourceSampler : IDisposable
         var result = new ResourceSample
         {
             CpuClockMhz = _cpuClock.ReadMhz(pressure.ProcessorPerformancePercent),
-            CpuKernelPercent = cpu.Resources.CpuKernelPercent
+            CpuKernelPercent = cpu.Resources.CpuKernelPercent,
+            CpuPerformanceLimitPercent = pressure.ProcessorPerformanceLimitPercent,
+            CpuPerformanceLimitFlags = pressure.ProcessorPerformanceLimitFlags,
+            ThermalZones = _thermalZones.Read(pressure.ThermalZones, cpu.TotalCpuPercent, reset)
         };
         var memory = new MemoryStatus { Length = (uint)Marshal.SizeOf<MemoryStatus>() };
         if (Native.GlobalMemoryStatusEx(ref memory) && memory.TotalPhysical > 0 &&
@@ -106,13 +114,18 @@ internal sealed class WindowsResourceSampler : IDisposable
             _networkChoices = null;
         }
 
-        return _gpu.Sample(cpu with { Resources = result }, reset);
+        var sampled = _gpu.Sample(cpu with { Resources = result }, reset);
+        if (result.CpuPerformanceLimitPercent is not null || result.ThermalZones.Count > 0 ||
+            sampled.Resources.GpuThermals.Count > 0)
+            Volatile.Write(ref _hasTemperature, true);
+        return sampled;
     }
 
     public void Reset()
     {
         _gpu.Reset();
         _memoryPressure.Reset();
+        _thermalZones.Reset();
         _primaryDisk.Reset();
         _secondaryDisk.Reset();
         _previousNetwork = null;
@@ -384,6 +397,7 @@ internal sealed class WindowsResourceSampler : IDisposable
         NetworkChange.NetworkAvailabilityChanged -= OnNetworkChanged;
         Reset();
         _memoryPressure.Dispose();
+        _thermalZones.Dispose();
     }
 
     public sealed record NetworkObservation(string Id, long Speed, long Timestamp, long Received, long Sent);

@@ -373,9 +373,11 @@ public partial class MainWindow
     {
         var resource = latest?.Resources;
         GpuMetric.ValueLabel.Text = Percent(resource?.GpuPercent);
-        GpuMetric.DetailLabel.Text = GaugeReadoutText.GpuMemory(
-            resource?.GpuMemoryUsedBytes, resource?.GpuMemoryTotalBytes);
+        var gpuThermal = PairedGpuThermal(resource);
+        GpuMetric.DetailLabel.Text = GaugeReadoutText.GpuDetail(resource?.GpuMemoryUsedBytes,
+            resource?.GpuMemoryTotalBytes, gpuThermal?.TemperatureCelsius, _preferences.TemperatureUnit);
         CpuMetric.DetailLabel.Text = GaugeReadoutText.CpuClock(resource?.CpuClockMhz);
+        UpdateTemperatureMarkers(latest, gpuThermal);
         MemoryMetric.ValueLabel.Text = Percent(resource?.MemoryPercent);
         MemoryMetric.DetailLabel.Text = GaugeReadoutText.Memory(
             resource?.UsedMemoryBytes, resource?.TotalMemoryBytes);
@@ -403,6 +405,36 @@ public partial class MainWindow
             : Strings.CollectingDisconnected;
         UpdateMetricDetails(latest);
         OverallGraph.VisibleMetrics = _preferences.SeriesMask;
+    }
+
+    internal static GpuThermalReading? PairedGpuThermal(ResourceSample? resource)
+    {
+        return resource is { GpuId.Length: > 0 }
+            ? resource.GpuThermals.FirstOrDefault(reading => reading.AdapterId == resource.GpuId)
+            : null;
+    }
+
+    private void UpdateTemperatureMarkers(MonitorSample? latest, GpuThermalReading? gpuThermal)
+    {
+        var cpuLimited = CpuPerformanceLimitDuration(latest) is not null;
+        var gpuLimited = GpuThermalLimited(gpuThermal);
+        CpuMetric.SetLimitMarker(cpuLimited ? MetricLimitMarker.Performance : MetricLimitMarker.None);
+        GpuMetric.SetLimitMarker(gpuLimited ? MetricLimitMarker.Thermal : MetricLimitMarker.None);
+        CpuMetricHost.BorderBrush = cpuLimited ? CpuMetric.LimitBrush : System.Windows.Media.Brushes.Transparent;
+        foreach (var (source, box, _) in _compactTiles)
+            if (source == CpuMetric)
+            {
+                box.BorderThickness = cpuLimited ? new Thickness(1) : new Thickness(0, 0, 1, 0);
+                if (cpuLimited)
+                    box.BorderBrush = CpuMetric.LimitBrush;
+                else
+                    box.SetResourceReference(System.Windows.Controls.Border.BorderBrushProperty, "Line");
+            }
+    }
+
+    internal static bool GpuThermalLimited(GpuThermalReading? thermal)
+    {
+        return thermal is { TemperatureCelsius: { } temperature, WarningCelsius: { } warning } && temperature >= warning;
     }
 
     private void ConfigureDiskLayout()

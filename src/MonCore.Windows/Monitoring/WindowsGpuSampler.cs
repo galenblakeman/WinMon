@@ -16,6 +16,8 @@ internal sealed class WindowsGpuSampler : IDisposable
     private SafeQuery? _query;
     private IntPtr _counter;
     private readonly WindowsGpuMemory _memory = new();
+    private readonly WindowsGpuThermals _thermals = new();
+    internal bool HasTemperature => _thermals.HasTemperature;
     private long _timestamp;
 
     private long _collectionFileTime;
@@ -31,6 +33,7 @@ internal sealed class WindowsGpuSampler : IDisposable
     public MonitorSample Sample(MonitorSample sample, bool reset)
     {
         if (reset) Reset();
+        sample = sample with { Resources = sample.Resources with { GpuThermals = _thermals.Read() } };
         try
         {
             if (_query is null)
@@ -273,6 +276,7 @@ internal sealed class WindowsGpuSampler : IDisposable
     public void Reset()
     {
         _memory.Dispose();
+        _thermals.Reset();
         _query?.Dispose();
         _query = null;
         _counter = IntPtr.Zero;

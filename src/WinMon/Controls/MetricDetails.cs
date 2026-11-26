@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Windows;
 using System.Windows.Media;
 
 namespace WinMon.Controls;
@@ -63,6 +64,7 @@ public sealed class DetailRow : INotifyPropertyChanged
 {
     private string _label = "";
     private string _value = "";
+    private Visibility _visibility = Visibility.Visible;
 
     public string Label
     {
@@ -76,11 +78,17 @@ public sealed class DetailRow : INotifyPropertyChanged
         set => Set(ref _value, value);
     }
 
+    public Visibility Visibility
+    {
+        get => _visibility;
+        set => Set(ref _visibility, value);
+    }
+
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private void Set(ref string field, string value, [CallerMemberName] string? property = null)
+    private void Set<T>(ref T field, T value, [CallerMemberName] string? property = null)
     {
-        if (field == value) return;
+        if (EqualityComparer<T>.Default.Equals(field, value)) return;
         field = value;
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(property));
     }

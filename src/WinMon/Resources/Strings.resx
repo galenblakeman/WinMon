@@ -2157,4 +2157,27 @@ Restoring throttling also failed: {1}</value></data>
   <data name="CliCrashNotResponding" xml:space="preserve"><value>Not responding</value></data>
   <data name="CliCrashCoverage" xml:space="preserve"><value>Application log: {0}; event cap reached: {1}; oldest retained event: {2}</value></data>
   <data name="CliCrashUnknown" xml:space="preserve"><value>unknown</value></data>
+  <data name="TemperatureUnit" xml:space="preserve"><value>Temperature unit</value></data>
+  <data name="TemperatureCelsius" xml:space="preserve"><value>Celsius (°C)</value></data>
+  <data name="TemperatureFahrenheit" xml:space="preserve"><value>Fahrenheit (°F)</value></data>
+  <data name="PerformanceLimited" xml:space="preserve"><value>Performance limited</value></data>
+  <data name="ThermalLimit" xml:space="preserve"><value>Thermal limit</value></data>
+  <data name="GaugeGpuTemperaturePair" xml:space="preserve"><value>{0} · {1}</value></data>
+  <data name="DetailPerformanceLimit" xml:space="preserve"><value>Performance limit</value></data>
+  <data name="DetailSystemThermalZones" xml:space="preserve"><value>System thermal zones</value></data>
+  <data name="DetailTemperature" xml:space="preserve"><value>Temperature</value></data>
+  <data name="DetailFanSpeed" xml:space="preserve"><value>Fan speed</value></data>
+  <data name="DetailPower" xml:space="preserve"><value>Power</value></data>
+  <data name="DetailTemperaturePeak" xml:space="preserve"><value>Temperature peak</value></data>
+  <data name="DetailOtherGpuAdapters" xml:space="preserve"><value>Other GPU adapters</value></data>
+  <data name="DetailAcpiThermalZoneNotCpuDie" xml:space="preserve"><value>ACPI thermal zone, not the CPU die</value></data>
+  <data name="DetailSameAdapterAsUtilization" xml:space="preserve"><value>Same adapter as utilization</value></data>
+  <data name="DetailUnchangedFor10Minutes" xml:space="preserve"><value>unchanged for 10 min</value></data>
+  <data name="TemperatureLimitedTo" xml:space="preserve"><value>Limited to {0:0}% for {1}, flags 0x{2:X}</value></data>
+  <data name="TemperatureAtThreshold" xml:space="preserve"><value>{0} of {1}</value></data>
+  <data name="TemperatureMaxFormat" xml:space="preserve"><value>{0} of {1} max</value></data>
+  <data name="TemperaturePeakAt" xml:space="preserve"><value>{0} at {1}</value></data>
+  <data name="TemperatureCelsiusValue" xml:space="preserve"><value>{0:0} °C</value></data>
+  <data name="TemperatureFahrenheitValue" xml:space="preserve"><value>{0:0} °F</value></data>
+  <data name="TemperatureFanRpmValue" xml:space="preserve"><value>{0:0} RPM</value></data>
 </root>

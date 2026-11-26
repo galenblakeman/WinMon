@@ -2120,4 +2120,27 @@ Przywrócenie ograniczania również nie powiodło się: {1}</value></data>
   <data name="FlightRecorderCrashStackBufferOverrun" xml:space="preserve"><value>Przepełnienie buforu stosu</value></data>
   <data name="FlightRecorderCrashUnhandledDotNetException" xml:space="preserve"><value>Nieobsłużony wyjątek .NET</value></data>
   <data name="CliCrashes" xml:space="preserve"><value>Wyświetla powtarzające się awarie i zawieszenia aplikacji w zachowanym dzienniku zdarzeń systemu Windows.</value></data><data name="CliCrashDays" xml:space="preserve"><value>Liczba dni do sprawdzenia (1–90).</value></data><data name="CliCrashDaysRange" xml:space="preserve"><value>--days musi mieć wartość od 1 do 90.</value></data><data name="CliCrashApplication" xml:space="preserve"><value>Aplikacja</value></data><data name="CliCrashFailure" xml:space="preserve"><value>Awaria</value></data><data name="CliCrashCount" xml:space="preserve"><value>Liczba</value></data><data name="CliCrashLatestUtc" xml:space="preserve"><value>Ostatnia (UTC)</value></data><data name="CliCrashNotResponding" xml:space="preserve"><value>Brak odpowiedzi</value></data><data name="CliCrashCoverage" xml:space="preserve"><value>Dziennik aplikacji: {0}; osiągnięto limit zdarzeń: {1}; najstarsze zachowane zdarzenie: {2}</value></data><data name="CliCrashUnknown" xml:space="preserve"><value>nieznane</value></data>
+  <data name="TemperatureUnit" xml:space="preserve"><value>Jednostka temperatury</value></data>
+  <data name="TemperatureCelsius" xml:space="preserve"><value>Celsjusz (°C)</value></data>
+  <data name="TemperatureFahrenheit" xml:space="preserve"><value>Fahrenheit (°F)</value></data>
+  <data name="PerformanceLimited" xml:space="preserve"><value>Ograniczona wydajność</value></data>
+  <data name="ThermalLimit" xml:space="preserve"><value>Limit termiczny</value></data>
+  <data name="GaugeGpuTemperaturePair" xml:space="preserve"><value>{0} · {1}</value></data>
+  <data name="DetailPerformanceLimit" xml:space="preserve"><value>Limit wydajności</value></data>
+  <data name="DetailSystemThermalZones" xml:space="preserve"><value>Strefy termiczne systemu</value></data>
+  <data name="DetailTemperature" xml:space="preserve"><value>Temperatura</value></data>
+  <data name="DetailFanSpeed" xml:space="preserve"><value>Prędkość wentylatora</value></data>
+  <data name="DetailPower" xml:space="preserve"><value>Moc</value></data>
+  <data name="DetailTemperaturePeak" xml:space="preserve"><value>Szczyt temperatury</value></data>
+  <data name="DetailOtherGpuAdapters" xml:space="preserve"><value>Inne karty GPU</value></data>
+  <data name="DetailAcpiThermalZoneNotCpuDie" xml:space="preserve"><value>Strefa termiczna ACPI, nie rdzeń CPU</value></data>
+  <data name="DetailSameAdapterAsUtilization" xml:space="preserve"><value>Ten sam adapter co użycie</value></data>
+  <data name="DetailUnchangedFor10Minutes" xml:space="preserve"><value>bez zmian przez 10 min</value></data>
+  <data name="TemperatureLimitedTo" xml:space="preserve"><value>Ograniczono do {0:0}% przez {1}, flagi 0x{2:X}</value></data>
+  <data name="TemperatureAtThreshold" xml:space="preserve"><value>{0} z {1}</value></data>
+  <data name="TemperatureMaxFormat" xml:space="preserve"><value>{0} z maks. {1}</value></data>
+  <data name="TemperaturePeakAt" xml:space="preserve"><value>{0} o {1}</value></data>
+  <data name="TemperatureCelsiusValue" xml:space="preserve"><value>{0:0} °C</value></data>
+  <data name="TemperatureFahrenheitValue" xml:space="preserve"><value>{0:0} °F</value></data>
+  <data name="TemperatureFanRpmValue" xml:space="preserve"><value>{0:0} RPM</value></data>
 </root>

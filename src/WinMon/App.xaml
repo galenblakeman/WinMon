@@ -200,7 +200,7 @@
                 <ItemsControl ItemsSource="{Binding Rows}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Grid Margin="0,4,0,4">
+                            <Grid Margin="0,4,0,4" Visibility="{Binding Visibility}">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" SharedSizeGroup="DetailLabels" />
                                     <ColumnDefinition Width="*" />

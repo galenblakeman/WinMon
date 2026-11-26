@@ -645,6 +645,37 @@ public sealed class PreferenceStoreTests
         });
     }
 
+    [Test]
+    public void TemperatureUnit_DefaultsToCelsius_RejectsUnknownValues_AndSettingsApplyIt()
+    {
+        var defaulted = PreferenceStore.Validate(new MonitorPreferences());
+        var invalid = PreferenceStore.Validate(new MonitorPreferences { TemperatureUnit = (TemperatureUnit)42 });
+        var applied = SettingsWindow.ApplySettings(new MonitorPreferences { TemperatureUnit = TemperatureUnit.Celsius },
+            new MonitorPreferences { TemperatureUnit = TemperatureUnit.Fahrenheit });
+        Assert.Multiple(() =>
+        {
+            Assert.That(defaulted.TemperatureUnit, Is.EqualTo(TemperatureUnit.Celsius));
+            Assert.That(invalid.TemperatureUnit, Is.EqualTo(TemperatureUnit.Celsius));
+            Assert.That(applied.TemperatureUnit, Is.EqualTo(TemperatureUnit.Fahrenheit));
+        });
+    }
+
+    [Test]
+    [Category("Integration")]
+    public async Task TemperatureUnit_RoundTripsAsItsNamedJsonValue()
+    {
+        Directory.CreateDirectory(testDirectory);
+        var store = new PreferenceStore(settingsPath);
+        await store.SaveAsync(new MonitorPreferences { TemperatureUnit = TemperatureUnit.Fahrenheit });
+        var loaded = await store.LoadAsync();
+        var json = await File.ReadAllTextAsync(settingsPath);
+        Assert.Multiple(() =>
+        {
+            Assert.That(loaded.TemperatureUnit, Is.EqualTo(TemperatureUnit.Fahrenheit));
+            Assert.That(json, Does.Contain("\"TemperatureUnit\": \"Fahrenheit\""));
+        });
+    }
+
     [TestCase("{}", 120)]
     [TestCase("{\"GaugePeakDisplay\":\"NativeValue\",\"GaugePeakWindowSeconds\":300}", 300)]
     [TestCase("{\"GaugePeakDisplay\":42,\"GaugePeakWindowSeconds\":42}", 120)]
