@@ -110,7 +110,7 @@ public sealed class SettingsLayoutTests
             var expected = new List<SettingsSection>
                 { SettingsSection.General, SettingsSection.Appearance, SettingsSection.Monitoring };
             expected.Add(SettingsSection.Devices);
-            if (SensorSetupBroker.Supported) expected.Add(SettingsSection.CpuTemperature);
+            expected.Add(SettingsSection.Sensors);
             expected.Add(SettingsSection.Network);
             expected.Add(SettingsSection.AutomaticCaptures);
             if (UpdatePolicy.GitHubUpdatesEnabled) expected.Add(SettingsSection.Updates);
@@ -119,11 +119,6 @@ public sealed class SettingsLayoutTests
                 window.ShowSection(section);
                 return window.Section;
             }).ToArray();
-            if (!SensorSetupBroker.Supported)
-            {
-                window.ShowSection(SettingsSection.CpuTemperature);
-                Assert.That(window.Section, Is.Not.EqualTo(SettingsSection.CpuTemperature));
-            }
 
             Assert.Multiple(() =>
             {
@@ -178,6 +173,8 @@ public sealed class SettingsLayoutTests
                 Assert.That(appearance, Does.Contain(window.GaugeSelector));
                 Assert.That(appearance, Does.Not.Contain(window.GaugePeakWindowSelector));
                 Assert.That(monitoring, Does.Contain(window.GaugePeakWindowSelector));
+                Assert.That(monitoring, Does.Contain(window.TemperatureUnitSelector));
+                Assert.That(appearance, Does.Not.Contain(window.TemperatureUnitSelector));
                 Assert.That(monitoring, Does.Not.Contain(window.PrimaryDriveSelector));
                 Assert.That(devices, Does.Contain(window.PrimaryDriveSelector));
                 Assert.That(devices, Does.Contain(window.SecondaryDriveSelector));

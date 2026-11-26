@@ -2161,6 +2161,16 @@ A restauração da limitação também falhou: {1}</value></data>
   <data name="CpuTemperatureMonitoringRemove" xml:space="preserve"><value>Remover o serviço de sensores da CPU…</value></data>
   <data name="CpuTemperatureMonitoringRemoveConfirm" xml:space="preserve"><value>Remover o serviço de sensores da CPU para todos os usuários do Windows neste computador? É necessária aprovação de administrador. O monitoramento da temperatura da CPU será interrompido para todos os usuários.</value></data>
   <data name="CpuTemperatureMonitoringRepair" xml:space="preserve"><value>Reparar o monitoramento da temperatura da CPU</value></data>
+  <data name="SettingsSensors" xml:space="preserve"><value>Sensores</value></data>
+  <data name="SensorGpuTemperature" xml:space="preserve"><value>Temperatura da GPU</value></data>
+  <data name="SensorGpuPower" xml:space="preserve"><value>Potência da GPU</value></data>
+  <data name="GaugeGpuPower" xml:space="preserve"><value>{0} pot.</value></data>
+  <data name="SensorPreview" xml:space="preserve"><value>Prévia dos sensores</value></data>
+  <data name="SensorHardwareMonitoring" xml:space="preserve"><value>Monitoramento de hardware</value></data>
+  <data name="SensorEnableHardware" xml:space="preserve"><value>Ativar sensores de hardware</value></data>
+  <data name="DetailCpuFans" xml:space="preserve"><value>Ventoinhas da CPU</value></data>
+  <data name="DetailSystemFans" xml:space="preserve"><value>Ventoinhas do sistema</value></data>
+  <data name="SensorHardwareNote" xml:space="preserve"><value>O serviço de sensores opcional lê a temperatura da CPU e as velocidades das ventoinhas compatíveis. Instale o PawnIO oficial separadamente. A configuração requer permissão de administrador.</value></data>
   <data name="SettingsDevices" xml:space="preserve"><value>Dispositivos</value></data>
   <data name="DevicesNote" xml:space="preserve"><value>Escolha os dispositivos exibidos nos indicadores e gráficos de recursos.</value></data>
   <data name="GpuDeviceLabel" xml:space="preserve"><value>Processador gráfico</value></data>

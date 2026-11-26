@@ -2173,6 +2173,16 @@ Auch das Wiederherstellen der Drosselung ist fehlgeschlagen: {1}</value></data>
   <data name="CpuTemperatureMonitoringRemove" xml:space="preserve"><value>CPU-Sensordienst entfernen…</value></data>
   <data name="CpuTemperatureMonitoringRemoveConfirm" xml:space="preserve"><value>Den CPU-Sensordienst für alle Windows-Benutzer dieses Computers entfernen? Eine Administratorgenehmigung ist erforderlich. Die CPU-Temperaturüberwachung wird für alle Benutzer beendet.</value></data>
   <data name="CpuTemperatureMonitoringRepair" xml:space="preserve"><value>CPU-Temperaturüberwachung reparieren</value></data>
+  <data name="SettingsSensors" xml:space="preserve"><value>Sensoren</value></data>
+  <data name="SensorGpuTemperature" xml:space="preserve"><value>GPU-Temperatur</value></data>
+  <data name="SensorGpuPower" xml:space="preserve"><value>GPU-Leistung</value></data>
+  <data name="GaugeGpuPower" xml:space="preserve"><value>{0} Leistung</value></data>
+  <data name="SensorPreview" xml:space="preserve"><value>Sensorvorschau</value></data>
+  <data name="SensorHardwareMonitoring" xml:space="preserve"><value>Hardwareüberwachung</value></data>
+  <data name="SensorEnableHardware" xml:space="preserve"><value>Hardwaresensoren aktivieren</value></data>
+  <data name="DetailCpuFans" xml:space="preserve"><value>CPU-Lüfter</value></data>
+  <data name="DetailSystemFans" xml:space="preserve"><value>Systemlüfter</value></data>
+  <data name="SensorHardwareNote" xml:space="preserve"><value>Der optionale lokale Sensordienst liest CPU-Temperatur und unterstützte Lüfterdrehzahlen. Installieren Sie das offizielle PawnIO separat. Die Einrichtung erfordert Administratorrechte.</value></data>
   <data name="SettingsDevices" xml:space="preserve"><value>Geräte</value></data>
   <data name="DevicesNote" xml:space="preserve"><value>Wählen Sie die Geräte für Ressourcenanzeigen und Diagramme.</value></data>
   <data name="GpuDeviceLabel" xml:space="preserve"><value>Grafikprozessor</value></data>

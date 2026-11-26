@@ -86,7 +86,7 @@ public sealed class GaugeReadoutTextTests
         {
             Assert.That(GaugeReadoutText.Temperature(61, TemperatureUnit.Celsius), Is.EqualTo("61 °C"));
             Assert.That(GaugeReadoutText.Temperature(61, TemperatureUnit.Fahrenheit), Is.EqualTo("142 °F"));
-            Assert.That(GaugeReadoutText.GpuDetail(null, null, 61, TemperatureUnit.Celsius),
+            Assert.That(GaugeReadoutText.GpuDetail(null, null, 61, TemperatureUnit.Celsius, powerPercent: null),
                 Is.EqualTo("3D · 61 °C"));
         });
     }

@@ -28,4 +28,7 @@ internal sealed record SensorCollectorSnapshot(
     long Frequency,
     SensorCollectorQuality Quality,
     SensorReading? CpuTemperature = null,
-    string? FailureReason = null);
+    string? FailureReason = null)
+{
+    public IReadOnlyList<MonCore.Monitoring.HardwareFanReading>? Fans { get; init; }
+}

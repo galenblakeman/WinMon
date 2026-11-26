@@ -2173,6 +2173,16 @@ También falló la restauración de la limitación: {1}</value></data>
   <data name="CpuTemperatureMonitoringRemove" xml:space="preserve"><value>Quitar el servicio de sensores de CPU…</value></data>
   <data name="CpuTemperatureMonitoringRemoveConfirm" xml:space="preserve"><value>¿Quitar el servicio de sensores de CPU para todos los usuarios de Windows de este equipo? Se requiere aprobación de administrador. La supervisión de temperatura de CPU se detendrá para todos los usuarios.</value></data>
   <data name="CpuTemperatureMonitoringRepair" xml:space="preserve"><value>Reparar la supervisión de temperatura de la CPU</value></data>
+  <data name="SettingsSensors" xml:space="preserve"><value>Sensores</value></data>
+  <data name="SensorGpuTemperature" xml:space="preserve"><value>Temperatura de la GPU</value></data>
+  <data name="SensorGpuPower" xml:space="preserve"><value>Potencia de la GPU</value></data>
+  <data name="GaugeGpuPower" xml:space="preserve"><value>{0} pot.</value></data>
+  <data name="SensorPreview" xml:space="preserve"><value>Vista previa de sensores</value></data>
+  <data name="SensorHardwareMonitoring" xml:space="preserve"><value>Supervisión de hardware</value></data>
+  <data name="SensorEnableHardware" xml:space="preserve"><value>Activar sensores de hardware</value></data>
+  <data name="DetailCpuFans" xml:space="preserve"><value>Ventiladores de CPU</value></data>
+  <data name="DetailSystemFans" xml:space="preserve"><value>Ventiladores del sistema</value></data>
+  <data name="SensorHardwareNote" xml:space="preserve"><value>El servicio de sensores opcional lee la temperatura de la CPU y las velocidades de los ventiladores compatibles. Instala PawnIO oficial por separado. La configuración requiere permisos de administrador.</value></data>
   <data name="SettingsDevices" xml:space="preserve"><value>Dispositivos</value></data>
   <data name="DevicesNote" xml:space="preserve"><value>Elija los dispositivos de los indicadores y gráficos de recursos.</value></data>
   <data name="GpuDeviceLabel" xml:space="preserve"><value>Procesador gráfico</value></data>

@@ -14,9 +14,17 @@ internal static partial class GaugeReadoutText
     }
 
     internal static string GpuDetail(ulong? usedBytes, ulong? totalBytes, double? temperatureCelsius,
-        TemperatureUnit unit)
+        TemperatureUnit unit, double? powerPercent)
     {
         var temperature = Temperature(temperatureCelsius, unit);
+        if (powerPercent is { } power && double.IsFinite(power))
+        {
+            var powerText = Strings.Format(Strings.GaugeGpuPower, Strings.Format(Strings.PercentInteger, power));
+            return temperature == Strings.Unavailable
+                ? powerText
+                : Strings.Format(Strings.GaugeGpuTemperaturePair, temperature, powerText);
+        }
+
         return temperature == Strings.Unavailable
             ? GpuMemory(usedBytes, totalBytes)
             : Strings.Format(Strings.GaugeGpuTemperaturePair, GpuMemory(usedBytes, totalBytes), temperature);
@@ -27,5 +35,13 @@ internal static partial class GaugeReadoutText
         var clock = CpuClock(megahertz);
         var temperature = Temperature(temperatureCelsius, unit);
         return temperature == Strings.Unavailable ? clock : Strings.Format(Strings.GaugeCpuTemperaturePair, clock, temperature);
+    }
+
+    internal static string DiskDetail(double? bytesPerSecond, double? temperatureCelsius, TemperatureUnit unit)
+    {
+        var rate = DiskRate(bytesPerSecond);
+        var temperature = Temperature(temperatureCelsius, unit);
+        if (temperature == Strings.Unavailable) return rate;
+        return bytesPerSecond is null ? temperature : Strings.Format(Strings.GaugeCpuTemperaturePair, rate, temperature);
     }
 }

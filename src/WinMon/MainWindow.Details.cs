@@ -23,7 +23,7 @@ public partial class MainWindow
         {
             var details = new MetricDetails { Accent = metric.ValueLabel.Foreground };
             _metricDetails.Add(metric, details);
-            var count = metric == CpuMetric ? 11 : metric == MemoryMetric ? 11 : metric == NetworkMetric ? 5 :
+            var count = metric == CpuMetric ? 13 : metric == MemoryMetric ? 11 : metric == NetworkMetric ? 5 :
                 metric == GpuMetric ? 10 : 6;
             for (var i = 0; i < count; i++) details.Rows.Add(new DetailRow { Value = Strings.MissingReading });
             metric.ToolTip = details;
@@ -68,7 +68,8 @@ public partial class MainWindow
                 {
                     "DetailClockSpeed", "DetailCpuTemperature", "DetailTemperaturePeak", "DetailCpuTemperatureSensor",
                     "DetailUserKernel", "DetailProcessesThreads", "DetailHandles", "DetailBusiestProcess",
-                    "DetailUpTime", "DetailPerformanceLimit", "DetailSystemThermalZones"
+                    "DetailUpTime", "DetailPerformanceLimit", "DetailSystemThermalZones",
+                    "DetailCpuFans", "DetailSystemFans"
                 }
                 : metric == MemoryMetric
                     ?
@@ -132,6 +133,8 @@ public partial class MainWindow
             rows[8].Value = F("{0} d {1:00}:{2:00}", (int)upTime.TotalDays, upTime.Hours, upTime.Minutes);
             rows[9].Value = PerformanceLimitText(latest);
             rows[10].Value = ThermalZonesText(latest);
+            UpdateFanDetail(rows[11], resource?.HardwareFans, cpu: true);
+            UpdateFanDetail(rows[12], resource?.HardwareFans, cpu: false);
             rows[1].Visibility = temperature is not null ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
             rows[2].Visibility = temperature is not null && latest is not null && CpuTemperaturePeak(latest, temperature) is not null
                 ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
@@ -197,19 +200,23 @@ public partial class MainWindow
             rows[3].Value = Bytes(resource?.GpuSharedMemoryUsedBytes);
             rows[4].Value = Busiest(GpuMetric, ProcessSort.Gpu);
             var thermal = PairedGpuThermal(resource);
-            rows[5].Value = GpuTemperatureText(thermal);
+            var showTemperature = thermal?.TemperatureCelsius is not null;
+            var gpuPower = GpuPowerDetails(resource, thermal);
+            rows[5].Value = showTemperature ? GpuTemperatureText(thermal) : Dash;
             rows[6].Value = thermal?.FanRpm is { } fan ? Strings.Format(Strings.TemperatureFanRpmValue, fan) : Dash;
-            rows[7].Value = Percent(thermal?.PowerPercent);
-            rows[8].Value = GpuTemperaturePeakText(latest, thermal);
+            rows[7].Value = gpuPower ?? Dash;
+            rows[8].Value = showTemperature ? GpuTemperaturePeakText(latest, thermal) : Dash;
             rows[9].Value = OtherGpuTemperatures(resource, thermal);
-            var pairedVisible = thermal is { TemperatureCelsius: not null } or { FanRpm: not null } or { PowerPercent: not null };
-            rows[5].Visibility = thermal?.TemperatureCelsius is not null
+            var pairedVisible = (showTemperature && thermal?.TemperatureCelsius is not null) ||
+                                thermal?.FanRpm is not null ||
+                                thermal?.PowerPercent is not null;
+            rows[5].Visibility = showTemperature && thermal?.TemperatureCelsius is not null
                 ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
             rows[6].Visibility = thermal?.FanRpm is not null
                 ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
-            rows[7].Visibility = thermal?.PowerPercent is not null
+            rows[7].Visibility = gpuPower is not null
                 ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
-            rows[8].Visibility = pairedVisible && latest is not null && GpuThermalPeak(latest, thermal!.AdapterId) is not null
+            rows[8].Visibility = showTemperature && pairedVisible && latest is not null && GpuThermalPeak(latest, thermal!.AdapterId) is not null
                 ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
             rows[9].Visibility = resource?.GpuThermals.Any(item => item.AdapterId != thermal?.AdapterId &&
                 item.TemperatureCelsius is not null) == true || pairedVisible
@@ -269,6 +276,33 @@ public partial class MainWindow
         var peak = CpuTemperaturePeak(latest, temperature);
         return peak is { } item ? Strings.Format(Strings.TemperaturePeakAt,
             GaugeReadoutText.Temperature(item.Value, _preferences.TemperatureUnit), item.Sample.Timestamp.ToLocalTime()) : Dash;
+    }
+
+    private static void UpdateFanDetail(DetailRow row, IReadOnlyList<HardwareFanReading>? fans, bool cpu)
+    {
+        var readings = fans is { Count: > 0 }
+            ? string.Join("\n", fans.Where(fan => fan.IsCpu == cpu).Select(fan =>
+                fan.Name + ": " + Strings.Format(Strings.TemperatureFanRpmValue, fan.Rpm)))
+            : "";
+        row.Value = readings.Length == 0 ? Dash : readings;
+        row.Visibility = readings.Length == 0 ? System.Windows.Visibility.Collapsed : System.Windows.Visibility.Visible;
+    }
+
+    private string? GpuPowerDetails(ResourceSample? resource, GpuThermalReading? paired)
+    {
+        var primary = paired?.PowerPercent is { } power
+            ? Percent(power) : null;
+        var adapters = resource?.GpuThermals;
+        if (adapters is null || adapters.Count <= (paired is null ? 0 : 1)) return primary;
+
+        var readings = new List<string>();
+        if (primary is not null) readings.Add(primary);
+        foreach (var adapter in adapters)
+        {
+            if (adapter.AdapterId != paired?.AdapterId && adapter.PowerPercent is { } value)
+                readings.Add(adapter.Name + ": " + Percent(value));
+        }
+        return readings.Count == 0 ? null : string.Join("\n", readings);
     }
 
     private string OtherGpuTemperatures(ResourceSample? resource, GpuThermalReading? paired)

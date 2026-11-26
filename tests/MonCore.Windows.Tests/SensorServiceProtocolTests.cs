@@ -1,6 +1,7 @@
 using System.Buffers.Binary;
 using System.Diagnostics;
 using System.Text;
+using MonCore.Monitoring;
 using MonCore.Windows.Monitoring;
 using NUnit.Framework;
 
@@ -12,6 +13,33 @@ public sealed class SensorServiceProtocolTests
     private static SensorSnapshot Valid(long now) => new(Guid.NewGuid(), 1, now, Stopwatch.Frequency,
         SensorServiceQuality.Complete,
         new("/cpu/0", "CPU", "/cpu/0/temperature/0", "CPU Package", 52.5, "LibreHardwareMonitor", now));
+
+    [Test]
+    public async Task FanOnlySnapshot_RoundTripsZeroRpmAndDropsStaleOrInvalidReadings()
+    {
+        var now = 10 * Stopwatch.Frequency;
+        var snapshot = Valid(now) with
+        {
+            Quality = SensorServiceQuality.Partial,
+            CpuTemperature = null,
+            Fans = [new HardwareFanReading("CPU Fan", 0, true), new HardwareFanReading("Chassis Fan", 1240, false)]
+        };
+        using var stream = new MemoryStream();
+        await SensorServiceProtocol.WriteAsync(stream, snapshot, CancellationToken.None);
+        stream.Position = 0;
+        var received = await SensorServiceProtocol.ReadAsync<SensorSnapshot>(stream, CancellationToken.None);
+        SensorSnapshotValidation.Validate(received);
+        var invalid = received with { Fans = [new HardwareFanReading("Fan", -1, false)] };
+        Assert.Multiple(() =>
+        {
+            Assert.That(SensorSnapshotValidation.GetFreshFans(received, now + 5 * Stopwatch.Frequency),
+                Is.EqualTo(snapshot.Fans));
+            Assert.That(SensorSnapshotValidation.GetFreshFans(received, now + 5 * Stopwatch.Frequency + 1), Is.Empty);
+            Assert.That(SensorSnapshotValidation.GetFreshFans(received with { Fans = null }, now), Is.Empty);
+            Assert.That(SensorSnapshotValidation.GetFreshFans(invalid, now), Is.Empty);
+            Assert.That(() => SensorSnapshotValidation.Validate(invalid), Throws.TypeOf<InvalidDataException>());
+        });
+    }
 
     [Test]
     public void CurrentSnapshot_PreservesSensorIdentityMeaningAndGeneration()

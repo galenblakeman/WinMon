@@ -235,6 +235,8 @@ public partial class MainWindow
             ProcessNetwork = network?.Snapshot,
             ProcessNetworkSessionId = network?.SessionId ?? Guid.Empty,
             CpuTemperature = CurrentCpuTemperature(),
+            HardwareFans = _cpuTemperature?.Fans ?? [],
+            IncludeDiskTemperatures = !_diagnosticMode,
             GpuDeviceId = preferences.GpuDeviceId
         };
     }
@@ -378,7 +380,8 @@ public partial class MainWindow
         GpuMetric.ValueLabel.Text = Percent(resource?.GpuPercent);
         var gpuThermal = PairedGpuThermal(resource);
         GpuMetric.DetailLabel.Text = GaugeReadoutText.GpuDetail(resource?.GpuMemoryUsedBytes,
-            resource?.GpuMemoryTotalBytes, gpuThermal?.TemperatureCelsius, _preferences.TemperatureUnit);
+            resource?.GpuMemoryTotalBytes, gpuThermal?.TemperatureCelsius, _preferences.TemperatureUnit,
+            gpuThermal?.PowerPercent);
         CpuMetric.DetailLabel.Text = GaugeReadoutText.CpuDetail(resource?.CpuClockMhz,
             resource?.CpuTemperature?.Celsius, _preferences.TemperatureUnit);
         UpdateTemperatureMarkers(latest, gpuThermal);
@@ -388,11 +391,13 @@ public partial class MainWindow
         ConfigureDiskLayout();
         UpdateDiskMetric(DiskMetric, _preferences.PrimaryDrive,
             resource?.DiskName == _preferences.PrimaryDrive ? resource.DiskActivePercent : null,
-            resource?.DiskName == _preferences.PrimaryDrive ? resource.DiskBytesPerSecond : null);
+            resource?.DiskName == _preferences.PrimaryDrive ? resource.DiskBytesPerSecond : null,
+            resource?.DiskName == _preferences.PrimaryDrive ? resource.DiskTemperatureCelsius : null);
         if (_preferences.SecondaryDrive is { } secondary)
             UpdateDiskMetric(SecondaryDiskMetric, secondary,
                 resource?.SecondaryDiskName == secondary ? resource.SecondaryDiskActivePercent : null,
-                resource?.SecondaryDiskName == secondary ? resource.SecondaryDiskBytesPerSecond : null);
+                resource?.SecondaryDiskName == secondary ? resource.SecondaryDiskBytesPerSecond : null,
+                resource?.SecondaryDiskName == secondary ? resource.SecondaryDiskTemperatureCelsius : null);
         // Throughput leads: link utilization is almost always near 0% and says little on its own.
         if (resource?.ReceiveBytesPerSecond is { } receive)
         {
@@ -451,11 +456,11 @@ public partial class MainWindow
         if (Width < MinWidth) Width = MinWidth;
     }
 
-    private static void UpdateDiskMetric(MetricReadout metric, string name, double? active, double? bytes)
+    private void UpdateDiskMetric(MetricReadout metric, string name, double? active, double? bytes, double? celsius)
     {
         metric.Label = Strings.Format(Strings.DiskLabel, name);
         metric.ValueLabel.Text = Percent(active);
-        metric.DetailLabel.Text = GaugeReadoutText.DiskRate(bytes);
+        metric.DetailLabel.Text = GaugeReadoutText.DiskDetail(bytes, celsius, _preferences.TemperatureUnit);
     }
 
     internal static string Percent(double? value)
@@ -834,7 +839,8 @@ public partial class MainWindow
                     : SensorMonitoringState.StoreUnavailable))
             {
                 Owner = this,
-                GetGpuSample = () => Session.LatestFull?.Resources
+                GetGpuSample = () => Session.LatestFull?.Resources,
+                GetSensorSample = () => Session.LatestFull?.Resources
             };
             ObserveNetworkMonitoring(dialog);
             ObserveCpuTemperatureMonitoring(dialog);

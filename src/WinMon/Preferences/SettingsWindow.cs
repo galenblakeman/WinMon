@@ -29,7 +29,7 @@ internal enum SettingsSection
     Appearance,
     Monitoring,
     Devices,
-    CpuTemperature,
+    Sensors,
     Network,
     AutomaticCaptures,
     Updates
@@ -177,6 +177,12 @@ public sealed class SettingsWindow : Window
 
     private readonly TextBlock _lastChecked = new();
     private Button? _saveButton;
+
+    private readonly SensorReadingsView _sensorReadings = new();
+    internal Func<ResourceSample?>? GetSensorSample { get; set; }
+
+    private static readonly Geometry SensorsIcon = Geometry.Parse(
+        "M 4,4 H 12 V 12 H 4 Z M 6,1 V 4 M 10,1 V 4 M 6,12 V 15 M 10,12 V 15 M 1,6 H 4 M 1,10 H 4 M 12,6 H 15 M 12,10 H 15");
 
     private static readonly Geometry Monitoring = Geometry.Parse("M 1,9 L 4,9 L 6,3 L 9,13 L 11,7 L 15,7");
     private static readonly Geometry DevicesIcon = Geometry.Parse("M 1,2 L 15,2 L 15,11 L 1,11 Z M 6,11 L 6,14 M 10,11 L 10,14 M 4,14 L 12,14");
@@ -375,7 +381,7 @@ public sealed class SettingsWindow : Window
         _keepResourceTrendsCheckBox = CreateCheckBox(Strings.KeepResourceTrends, preferences.KeepResourceTrends);
         _processNetworkMonitoringCheckBox = CreateCheckBox(Strings.NetworkProcessMonitoringEnabled,
             preferences.ProcessNetworkMonitoringEnabled);
-        _cpuTemperatureMonitoringCheckBox = CreateCheckBox(Strings.CpuTemperatureMonitoringEnabled,
+        _cpuTemperatureMonitoringCheckBox = CreateCheckBox(Strings.SensorEnableHardware,
             preferences.CpuTemperatureMonitoringEnabled);
         _cpuTemperatureMonitoringCheckBox.IsEnabled = SensorSetupBroker.Supported;
         _cpuTemperatureMonitoringStatus.SetResourceReference(TextBlock.ForegroundProperty, "Muted");
@@ -441,8 +447,7 @@ public sealed class SettingsWindow : Window
         _pages.Add((SettingsSection.Appearance, Strings.Appearance, AppearanceIcon, CreateAppearancePage()));
         _pages.Add((SettingsSection.Monitoring, Strings.SettingsMonitoring, Monitoring, CreateMonitoringPage()));
         _pages.Add((SettingsSection.Devices, Strings.SettingsDevices, DevicesIcon, CreateDevicesPage()));
-        if (SensorSetupBroker.Supported)
-            _pages.Add((SettingsSection.CpuTemperature, Strings.DetailCpuTemperature, Monitoring, CreateCpuTemperaturePage()));
+        _pages.Add((SettingsSection.Sensors, Strings.SettingsSensors, SensorsIcon, CreateSensorsPage()));
         _pages.Add((SettingsSection.Network, Strings.Network, NetworkIcon, CreateNetworkPage()));
         _pages.Add((SettingsSection.AutomaticCaptures, Strings.AutoCaptureHeading, Capture, CreateCapturePage()));
         // Store builds update through the Store, so they have no Updates section.
@@ -1011,7 +1016,6 @@ public sealed class SettingsWindow : Window
         page.Children.Add(Field(Strings.Theme, _themeSelector));
         page.Children.Add(Field(Strings.ChartPalette, _paletteSelector));
         page.Children.Add(Field(Strings.ResourceGauges, _gaugeSelector));
-        page.Children.Add(Field(Strings.TemperatureUnit, _temperatureUnitSelector));
         page.Children.Add(new PreviewHost
         {
             Child = _appearancePreview, Margin = new Thickness(0, 8, 0, 4)
@@ -1056,6 +1060,7 @@ public sealed class SettingsWindow : Window
         page.Children.Add(Note(Strings.ChartPreferencesNote));
         page.Children.Add(CreateHeading(Strings.ResourceGauges));
         page.Children.Add(Field(Strings.GaugePeakWindow, _gaugePeakWindowSelector));
+        page.Children.Add(Field(Strings.TemperatureUnit, _temperatureUnitSelector));
         return page;
     }
 
@@ -1120,13 +1125,44 @@ public sealed class SettingsWindow : Window
         return page;
     }
 
-    private StackPanel CreateCpuTemperaturePage()
+    private StackPanel CreateSensorsPage()
     {
-        var page = Page(Strings.DetailCpuTemperature, _cpuTemperatureMonitoringCheckBox);
-        page.Children.Add(Note(Strings.CpuTemperatureMonitoringNote));
-        page.Children.Add(_cpuTemperatureMonitoringStatus);
-        page.Children.Add(_repairCpuTemperatureMonitoringButton);
-        page.Children.Add(_removeCpuTemperatureServiceButton);
+        var page = Page(Strings.SettingsSensors);
+        if (SensorSetupBroker.Supported)
+        {
+            page.Children.Add(CreateHeading(Strings.SensorHardwareMonitoring));
+            page.Children.Add(_cpuTemperatureMonitoringCheckBox);
+            page.Children.Add(Note(Strings.SensorHardwareNote));
+            page.Children.Add(_cpuTemperatureMonitoringStatus);
+        }
+
+        page.Children.Add(CreateHeading(Strings.SensorPreview));
+        page.Children.Add(_sensorReadings);
+        if (SensorSetupBroker.Supported)
+        {
+            page.Children.Add(_repairCpuTemperatureMonitoringButton);
+            page.Children.Add(_removeCpuTemperatureServiceButton);
+        }
+
+        void Refresh() => _sensorReadings.Update(GetSensorSample?.Invoke(),
+            _temperatureUnitSelector.SelectedValue as TemperatureUnit? ?? TemperatureUnit.Celsius);
+
+        var timer = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromSeconds(1) };
+        timer.Tick += (_, _) => Refresh();
+        page.IsVisibleChanged += (_, _) =>
+        {
+            if (page.IsVisible)
+            {
+                Refresh();
+                timer.Start();
+            }
+            else
+            {
+                timer.Stop();
+            }
+        };
+        _temperatureUnitSelector.SelectionChanged += (_, _) => Refresh();
+        Closed += (_, _) => timer.Stop();
         return page;
     }
 
@@ -1611,7 +1647,7 @@ public sealed class SettingsWindow : Window
 
     private async Task<bool> ChangeCpuTemperatureMonitoringAsync(bool enabled)
     {
-        ShowSection(SettingsSection.CpuTemperature);
+        ShowSection(SettingsSection.Sensors);
         if (_cpuTemperatureMonitoringBusy) return false;
         if (_changeCpuTemperatureMonitoring is null || !SensorSetupBroker.Supported)
         {

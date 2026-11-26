@@ -41,6 +41,8 @@ public sealed record SamplingOptions(
 
     /// <summary>Latest validated CPU temperature from the optional local sensor service.</summary>
     public CpuTemperatureReading? CpuTemperature { get; init; }
+    public IReadOnlyList<HardwareFanReading> HardwareFans { get; init; } = [];
+    public bool IncludeDiskTemperatures { get; init; }
     /// <summary>Persistent GPU device identity, or null to follow the busiest engine across all GPUs.</summary>
     public string? GpuDeviceId { get; init; }
 }

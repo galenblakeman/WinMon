@@ -2198,6 +2198,16 @@ Restoring throttling also failed: {1}</value></data>
   <data name="CpuTemperatureMonitoringRemove" xml:space="preserve"><value>Remove CPU sensor service…</value></data>
   <data name="CpuTemperatureMonitoringRemoveConfirm" xml:space="preserve"><value>Remove the CPU sensor service for every Windows user on this computer? Administrator approval is required. CPU temperature monitoring will stop for all users.</value></data>
   <data name="CpuTemperatureMonitoringRepair" xml:space="preserve"><value>Repair CPU temperature monitoring</value></data>
+  <data name="SettingsSensors" xml:space="preserve"><value>Sensors</value></data>
+  <data name="SensorGpuTemperature" xml:space="preserve"><value>GPU temperature</value></data>
+  <data name="SensorGpuPower" xml:space="preserve"><value>GPU power</value></data>
+  <data name="GaugeGpuPower" xml:space="preserve"><value>{0} power</value></data>
+  <data name="SensorPreview" xml:space="preserve"><value>Sensor preview</value></data>
+  <data name="SensorHardwareMonitoring" xml:space="preserve"><value>Hardware monitoring</value></data>
+  <data name="SensorEnableHardware" xml:space="preserve"><value>Enable hardware sensors</value></data>
+  <data name="DetailCpuFans" xml:space="preserve"><value>CPU fans</value></data>
+  <data name="DetailSystemFans" xml:space="preserve"><value>System fans</value></data>
+  <data name="SensorHardwareNote" xml:space="preserve"><value>The optional local sensor service reads CPU temperature and supported fan speeds. Install official PawnIO separately. Service setup requires administrator approval.</value></data>
   <data name="SettingsDevices" xml:space="preserve"><value>Devices</value></data>
   <data name="DevicesNote" xml:space="preserve"><value>Choose the devices shown in resource gauges and charts.</value></data>
   <data name="GpuDeviceLabel" xml:space="preserve"><value>Graphics processor</value></data>

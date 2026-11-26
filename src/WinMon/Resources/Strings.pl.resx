@@ -2161,6 +2161,16 @@ Przywrócenie ograniczania również nie powiodło się: {1}</value></data>
   <data name="CpuTemperatureMonitoringRemove" xml:space="preserve"><value>Usuń usługę czujników CPU…</value></data>
   <data name="CpuTemperatureMonitoringRemoveConfirm" xml:space="preserve"><value>Usunąć usługę czujników CPU dla wszystkich użytkowników systemu Windows na tym komputerze? Wymagana jest zgoda administratora. Monitorowanie temperatury CPU zostanie zatrzymane dla wszystkich użytkowników.</value></data>
   <data name="CpuTemperatureMonitoringRepair" xml:space="preserve"><value>Napraw monitorowanie temperatury CPU</value></data>
+  <data name="SettingsSensors" xml:space="preserve"><value>Czujniki</value></data>
+  <data name="SensorGpuTemperature" xml:space="preserve"><value>Temperatura GPU</value></data>
+  <data name="SensorGpuPower" xml:space="preserve"><value>Moc GPU</value></data>
+  <data name="GaugeGpuPower" xml:space="preserve"><value>{0} mocy</value></data>
+  <data name="SensorPreview" xml:space="preserve"><value>Podgląd czujników</value></data>
+  <data name="SensorHardwareMonitoring" xml:space="preserve"><value>Monitorowanie sprzętu</value></data>
+  <data name="SensorEnableHardware" xml:space="preserve"><value>Włącz czujniki sprzętowe</value></data>
+  <data name="DetailCpuFans" xml:space="preserve"><value>Wentylatory CPU</value></data>
+  <data name="DetailSystemFans" xml:space="preserve"><value>Wentylatory systemowe</value></data>
+  <data name="SensorHardwareNote" xml:space="preserve"><value>Opcjonalna usługa czujników odczytuje temperaturę procesora i prędkości obsługiwanych wentylatorów. Zainstaluj oficjalny PawnIO osobno. Konfiguracja wymaga uprawnień administratora.</value></data>
   <data name="SettingsDevices" xml:space="preserve"><value>Urządzenia</value></data>
   <data name="DevicesNote" xml:space="preserve"><value>Wybierz urządzenia wyświetlane na wskaźnikach i wykresach zasobów.</value></data>
   <data name="GpuDeviceLabel" xml:space="preserve"><value>Procesor graficzny</value></data>

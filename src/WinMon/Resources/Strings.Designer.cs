@@ -360,6 +360,7 @@ public static partial class Strings
     public static string DetailCommittedLimit => ResourceManager.GetString(nameof(DetailCommittedLimit), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailCompressionStore => ResourceManager.GetString(nameof(DetailCompressionStore), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailCpuDefinition => ResourceManager.GetString(nameof(DetailCpuDefinition), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string DetailCpuFans => ResourceManager.GetString(nameof(DetailCpuFans), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailCpuTemperature => ResourceManager.GetString(nameof(DetailCpuTemperature), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailCpuTemperatureSensor => ResourceManager.GetString(nameof(DetailCpuTemperatureSensor), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailDedicatedMemory => ResourceManager.GetString(nameof(DetailDedicatedMemory), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -392,6 +393,7 @@ public static partial class Strings
     public static string DetailStandby => ResourceManager.GetString(nameof(DetailStandby), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailsUnavailable => ResourceManager.GetString(nameof(DetailsUnavailable), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailSystemCache => ResourceManager.GetString(nameof(DetailSystemCache), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string DetailSystemFans => ResourceManager.GetString(nameof(DetailSystemFans), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailSystemThermalZones => ResourceManager.GetString(nameof(DetailSystemThermalZones), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailTemperature => ResourceManager.GetString(nameof(DetailTemperature), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string DetailTemperaturePeak => ResourceManager.GetString(nameof(DetailTemperaturePeak), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -537,6 +539,7 @@ public static partial class Strings
     public static string GaugeCpuTemperaturePair => ResourceManager.GetString(nameof(GaugeCpuTemperaturePair), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GaugeGpuEngine3D => ResourceManager.GetString(nameof(GaugeGpuEngine3D), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GaugeGpuMemoryPair => ResourceManager.GetString(nameof(GaugeGpuMemoryPair), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string GaugeGpuPower => ResourceManager.GetString(nameof(GaugeGpuPower), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GaugeGpuTemperaturePair => ResourceManager.GetString(nameof(GaugeGpuTemperaturePair), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GaugeLeftBar => ResourceManager.GetString(nameof(GaugeLeftBar), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GaugeNeedle => ResourceManager.GetString(nameof(GaugeNeedle), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -988,6 +991,12 @@ public static partial class Strings
     public static string SelectNoneToMonitorOneDriveActiveTimeAndRead => ResourceManager.GetString(nameof(SelectNoneToMonitorOneDriveActiveTimeAndRead), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string SelectProcess => ResourceManager.GetString(nameof(SelectProcess), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string SelectService => ResourceManager.GetString(nameof(SelectService), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string SensorEnableHardware => ResourceManager.GetString(nameof(SensorEnableHardware), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string SensorGpuPower => ResourceManager.GetString(nameof(SensorGpuPower), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string SensorGpuTemperature => ResourceManager.GetString(nameof(SensorGpuTemperature), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string SensorHardwareMonitoring => ResourceManager.GetString(nameof(SensorHardwareMonitoring), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string SensorHardwareNote => ResourceManager.GetString(nameof(SensorHardwareNote), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string SensorPreview => ResourceManager.GetString(nameof(SensorPreview), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ServiceActionFailed => ResourceManager.GetString(nameof(ServiceActionFailed), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ServiceActionInProgress => ResourceManager.GetString(nameof(ServiceActionInProgress), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ServiceAverageSummary => ResourceManager.GetString(nameof(ServiceAverageSummary), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -1034,6 +1043,7 @@ public static partial class Strings
     public static string SettingsOn => ResourceManager.GetString(nameof(SettingsOn), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string SettingsRetentionNote => ResourceManager.GetString(nameof(SettingsRetentionNote), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string SettingsSections => ResourceManager.GetString(nameof(SettingsSections), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string SettingsSensors => ResourceManager.GetString(nameof(SettingsSensors), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string SettingsStartupAndTray => ResourceManager.GetString(nameof(SettingsStartupAndTray), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string SettingsUpdatesNote => ResourceManager.GetString(nameof(SettingsUpdatesNote), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string SharedServiceCount => ResourceManager.GetString(nameof(SharedServiceCount), Culture ?? CultureInfo.CurrentUICulture)!;

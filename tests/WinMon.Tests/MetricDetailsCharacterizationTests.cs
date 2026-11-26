@@ -191,6 +191,30 @@ public sealed class MetricDetailsCharacterizationTests
     }
 
     [Test]
+    public void FanDetails_SeparateCpuFromSystemAndCollapseWhenTheSampleLosesFans()
+    {
+        Record(Filled with { HardwareFans = [new("CPU Fan", 0, true), new("Chassis Fan", 1240, false)] });
+        _window.OpenDetails(_window.CpuMetric);
+        var rows = Details(_window.CpuMetric).Rows;
+        var cpu = rows.Single(row => row.Label == Strings.DetailCpuFans);
+        var system = rows.Single(row => row.Label == Strings.DetailSystemFans);
+        Assert.Multiple(() =>
+        {
+            Assert.That(cpu.Value, Is.EqualTo("CPU Fan: 0 RPM"));
+            Assert.That(system.Value, Is.EqualTo("Chassis Fan: 1240 RPM"));
+            Assert.That(cpu.Visibility, Is.EqualTo(Visibility.Visible));
+            Assert.That(system.Visibility, Is.EqualTo(Visibility.Visible));
+        });
+        Record(Filled, 1);
+        _window.OpenDetails(_window.CpuMetric);
+        Assert.Multiple(() =>
+        {
+            Assert.That(cpu.Visibility, Is.EqualTo(Visibility.Collapsed));
+            Assert.That(system.Visibility, Is.EqualTo(Visibility.Collapsed));
+        });
+    }
+
+    [Test]
     public void PerformanceLimitDetails_ShowKnownPercentBeforeTheTwoSampleMarkerIsConfirmed()
     {
         Record(Filled with { CpuPerformanceLimitPercent = 100 });

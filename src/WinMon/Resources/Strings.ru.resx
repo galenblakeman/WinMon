@@ -2161,6 +2161,16 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
   <data name="CpuTemperatureMonitoringRemove" xml:space="preserve"><value>Удалить службу датчиков ЦП…</value></data>
   <data name="CpuTemperatureMonitoringRemoveConfirm" xml:space="preserve"><value>Удалить службу датчиков ЦП для всех пользователей Windows на этом компьютере? Требуется одобрение администратора. Мониторинг температуры ЦП будет остановлен для всех пользователей.</value></data>
   <data name="CpuTemperatureMonitoringRepair" xml:space="preserve"><value>Восстановить мониторинг температуры ЦП</value></data>
+  <data name="SettingsSensors" xml:space="preserve"><value>Датчики</value></data>
+  <data name="SensorGpuTemperature" xml:space="preserve"><value>Температура GPU</value></data>
+  <data name="SensorGpuPower" xml:space="preserve"><value>Мощность GPU</value></data>
+  <data name="GaugeGpuPower" xml:space="preserve"><value>{0} мощн.</value></data>
+  <data name="SensorPreview" xml:space="preserve"><value>Предпросмотр датчиков</value></data>
+  <data name="SensorHardwareMonitoring" xml:space="preserve"><value>Мониторинг оборудования</value></data>
+  <data name="SensorEnableHardware" xml:space="preserve"><value>Включить датчики оборудования</value></data>
+  <data name="DetailCpuFans" xml:space="preserve"><value>Вентиляторы процессора</value></data>
+  <data name="DetailSystemFans" xml:space="preserve"><value>Системные вентиляторы</value></data>
+  <data name="SensorHardwareNote" xml:space="preserve"><value>Дополнительная служба датчиков считывает температуру процессора и скорость поддерживаемых вентиляторов. Установите официальный PawnIO отдельно. Для настройки нужны права администратора.</value></data>
   <data name="SettingsDevices" xml:space="preserve"><value>Устройства</value></data>
   <data name="DevicesNote" xml:space="preserve"><value>Выберите устройства для индикаторов и графиков ресурсов.</value></data>
   <data name="GpuDeviceLabel" xml:space="preserve"><value>Графический процессор</value></data>

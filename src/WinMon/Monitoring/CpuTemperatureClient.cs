@@ -49,6 +49,9 @@ internal sealed class CpuTemperatureClient : IAsyncDisposable
     internal CpuTemperatureReading? Reading => _enabled
         ? SensorSnapshotValidation.TryGetReading(Volatile.Read(ref _snapshot), Stopwatch.GetTimestamp())
         : null;
+    internal IReadOnlyList<HardwareFanReading> Fans => _enabled
+        ? SensorSnapshotValidation.GetFreshFans(Volatile.Read(ref _snapshot), Stopwatch.GetTimestamp())
+        : [];
 
     internal event Action<SensorMonitoringState>? StateChanged;
 

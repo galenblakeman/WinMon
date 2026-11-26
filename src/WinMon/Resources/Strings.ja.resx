@@ -2161,6 +2161,16 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
   <data name="CpuTemperatureMonitoringRemove" xml:space="preserve"><value>CPU センサー サービスを削除…</value></data>
   <data name="CpuTemperatureMonitoringRemoveConfirm" xml:space="preserve"><value>このコンピューターのすべての Windows ユーザー用に CPU センサー サービスを削除しますか？ 管理者の承認が必要です。すべてのユーザーで CPU 温度の監視が停止します。</value></data>
   <data name="CpuTemperatureMonitoringRepair" xml:space="preserve"><value>CPU 温度監視を修復</value></data>
+  <data name="SettingsSensors" xml:space="preserve"><value>センサー</value></data>
+  <data name="SensorGpuTemperature" xml:space="preserve"><value>GPU 温度</value></data>
+  <data name="SensorGpuPower" xml:space="preserve"><value>GPU 電力</value></data>
+  <data name="GaugeGpuPower" xml:space="preserve"><value>電力 {0}</value></data>
+  <data name="SensorPreview" xml:space="preserve"><value>センサーのプレビュー</value></data>
+  <data name="SensorHardwareMonitoring" xml:space="preserve"><value>ハードウェアの監視</value></data>
+  <data name="SensorEnableHardware" xml:space="preserve"><value>ハードウェアセンサーを有効にする</value></data>
+  <data name="DetailCpuFans" xml:space="preserve"><value>CPU ファン</value></data>
+  <data name="DetailSystemFans" xml:space="preserve"><value>システムファン</value></data>
+  <data name="SensorHardwareNote" xml:space="preserve"><value>オプションのセンサーサービスは CPU 温度と対応するファンの回転数を読み取ります。公式の PawnIO は別途インストールしてください。セットアップには管理者権限が必要です。</value></data>
   <data name="SettingsDevices" xml:space="preserve"><value>デバイス</value></data>
   <data name="DevicesNote" xml:space="preserve"><value>リソースゲージとグラフに表示するデバイスを選択します。</value></data>
   <data name="GpuDeviceLabel" xml:space="preserve"><value>グラフィックスプロセッサ</value></data>

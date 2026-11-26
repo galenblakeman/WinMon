@@ -185,7 +185,14 @@ internal sealed partial class WindowDiagnostics
             changeNetworkMonitoring: (_, _) => networkChange.Task)
         {
             Owner = fixture,
-            GetGpuSample = () => new ResourceSample { GpuName = "Example GPU" }
+            GetGpuSample = () => new ResourceSample { GpuName = "Example GPU" },
+            GetSensorSample = () => new ResourceSample
+            {
+                CpuTemperature = CpuTemperatureFixture(stale: false),
+                DiskName = "C:",
+                DiskTemperatureCelsius = 39,
+                GpuThermals = [new GpuThermalReading("fixture-gpu", "Example GPU", 46, null, 38, null, null)]
+            }
         };
         try
         {

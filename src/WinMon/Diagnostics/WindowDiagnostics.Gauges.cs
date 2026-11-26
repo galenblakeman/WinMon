@@ -285,6 +285,8 @@ internal sealed partial class WindowDiagnostics
                     CpuPerformanceLimitPercent = limit,
                     CpuClockMhz = 4300,
                     CpuTemperature = thermal is null ? null : CpuTemperatureFixture(staleCpu),
+                    DiskTemperatureCelsius = thermal is null ? null : 39,
+                    SecondaryDiskTemperatureCelsius = thermal is null ? null : 44,
                     CpuPerformanceLimitFlags = limit is null ? null : 2,
                     GpuId = thermal is null ? "" : thermal.AdapterId,
                     GpuThermals = thermal is null ? [] : [thermal]

@@ -1,5 +1,7 @@
 # Optional CPU temperature
 
+This note records the original CPU temperature service. The later [Sensors settings and gauge design](SENSORS-SETTINGS.md) adds supported board fan readings to the same service.
+
 Date: November 26, 2026. Status: separate LibreHardwareMonitor CPU service, signed setup path and app integration implemented; automated verification completed. The user approved implementing the service before AMD/Intel hardware acceptance on November 25. See [Validation](#validation) and [What landed and departures](#what-landed-and-departures).
 
 ## Purpose and scope
@@ -81,7 +83,7 @@ Network-specific code (ETW, ledger, ownership probes) stays in the network servi
 
 ## Setup and PawnIO
 
-Settings has a **CPU temperature** section. Monitoring defaults off. Its note explains that the optional service needs administrator approval and official PawnIO must be installed separately. This delivery does not bundle or execute a PawnIO installer.
+The optional service is configured under **Settings → Sensors**. The original delivery used a separate **CPU temperature** section. Monitoring defaults off. Its note explains that the optional service needs administrator approval and official PawnIO must be installed separately. This delivery does not bundle or execute a PawnIO installer.
 
 1. **Check without elevation.** Connecting checks the fixed registered sensor service, starts it with provisioned SCM rights, connects to its local pipe and verifies its LocalSystem process identity.
 2. **Explicit setup.** Enabling or repairing can launch the signed sensor helper with UAC. Restoring a saved preference only reconnects/retries an installed service; it never silently requests elevation.

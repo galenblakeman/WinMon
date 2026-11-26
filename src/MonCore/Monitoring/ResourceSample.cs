@@ -5,6 +5,9 @@ public sealed record ResourceSample
 {
     [System.Text.Json.Serialization.JsonIgnore]
     public CpuTemperatureReading? CpuTemperature { get; init; }
+    public IReadOnlyList<HardwareFanReading> HardwareFans { get; init; } = [];
+    public double? DiskTemperatureCelsius { get; init; }
+    public double? SecondaryDiskTemperatureCelsius { get; init; }
     public double? CpuPerformanceLimitPercent { get; init; }
     public uint? CpuPerformanceLimitFlags { get; init; }
     public IReadOnlyList<ThermalZoneReading> ThermalZones { get; init; } = [];

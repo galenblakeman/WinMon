@@ -4,6 +4,11 @@
 
 Measured 600 parsed engine counters using the same isolated reflection/expression harness against preserved original and candidate Release assemblies (5,000 warmup calls; seven batches of 10,000 calls). Automatic median was 0.028163 ms before and 0.028261 ms after (+0.35%); allocation remained 40 bytes per call. Manual selection across the two-adapter fixture took 0.015011 ms. This measures engine aggregation only; native discovery is cached for 30 seconds and is absent from Automatic sampling. Raw results and harness are under `artifacts/devices-baseline`, `artifacts/devices-focused` and `artifacts/devices-aggregation-benchmark.ps1`. Native physical multi-GPU/reboot/hot-plug acceptance remains open.
 
+## Disk temperature and board fans (November 26, 2026)
+
+Compared the immediately preceding Store assemblies with the drive and fan candidate using the same Release WinMon.Performance harness. Ran the synthetic UI live-frame thermal case twice per variant in baseline, candidate, candidate, baseline order. Each process used 400 warmup frames and seven batches of 60 frames. Baseline medians were 4.638 and 4.812 ms per frame. Candidate medians were 4.897 and 4.552 ms. The mean of the two medians was 4.725 ms on both sides. Median allocations were about 561.4 kB per frame in all four runs. This is a small UI sanity check. It excludes native storage queries, service polling and real devices. An initial comparison against the older gauge subtitle build overlapped verification and was not used for acceptance. Raw results are in `artifacts/verify/drive-fan-performance`.
+
+
 [Back to the developer guide](DEVELOPMENT.md)
 
 ## Network collector batch fairness and lifetime bounds (November 26, 2026)

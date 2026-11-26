@@ -42,12 +42,16 @@ internal sealed class WindowsResourceSampler : IDisposable
 
     private readonly DiskCounter _primaryDisk = new();
     private readonly DiskCounter _secondaryDisk = new();
+    private readonly WindowsDiskTemperature _primaryTemperature = new();
+    private readonly WindowsDiskTemperature _secondaryTemperature = new();
     private NetworkObservation? _previousNetwork;
     private NetworkObservation? _networkStart;
     private string? _networkInterfaceId;
 
     public MonitorSample Sample(MonitorSample cpu, string? primaryDrive = null, string? secondaryDrive = null,
-        string? networkInterfaceId = null, CpuTemperatureReading? cpuTemperature = null, string? gpuDeviceId = null)
+        string? networkInterfaceId = null, CpuTemperatureReading? cpuTemperature = null,
+        IReadOnlyList<HardwareFanReading>? hardwareFans = null, bool includeDiskTemperatures = false,
+        string? gpuDeviceId = null)
     {
         var reset = cpu.IsGap;
         if (reset) Reset();
@@ -59,7 +63,8 @@ internal sealed class WindowsResourceSampler : IDisposable
             CpuPerformanceLimitPercent = pressure.ProcessorPerformanceLimitPercent,
             CpuPerformanceLimitFlags = pressure.ProcessorPerformanceLimitFlags,
             ThermalZones = _thermalZones.Read(pressure.ThermalZones, cpu.TotalCpuPercent, reset),
-            CpuTemperature = cpuTemperature
+            CpuTemperature = cpuTemperature,
+            HardwareFans = hardwareFans ?? []
         };
         var memory = new MemoryStatus { Length = (uint)Marshal.SizeOf<MemoryStatus>() };
         if (Native.GlobalMemoryStatusEx(ref memory) && memory.TotalPhysical > 0 &&
@@ -91,10 +96,13 @@ internal sealed class WindowsResourceSampler : IDisposable
         result = result with
         {
             DiskName = primary.Name, DiskActivePercent = primary.Active, DiskBytesPerSecond = primary.Bytes,
+            DiskTemperatureCelsius = _primaryTemperature.Read(includeDiskTemperatures ? primary.Name : null),
             DiskReadBytesPerSecond = primary.Read, DiskWriteBytesPerSecond = primary.Write,
             DiskResponseSeconds = primary.Response, DiskQueueLength = primary.Queue,
             DiskFreeBytes = primary.Free, DiskTotalBytes = primary.Total,
             SecondaryDiskName = secondary.Name, SecondaryDiskActivePercent = secondary.Active,
+            SecondaryDiskTemperatureCelsius =
+                _secondaryTemperature.Read(includeDiskTemperatures ? secondary.Name : null),
             SecondaryDiskBytesPerSecond = secondary.Bytes,
             SecondaryDiskReadBytesPerSecond = secondary.Read,
             SecondaryDiskWriteBytesPerSecond = secondary.Write,
@@ -117,7 +125,8 @@ internal sealed class WindowsResourceSampler : IDisposable
 
         var sampled = _gpu.Sample(cpu with { Resources = result }, reset, gpuDeviceId);
         if (result.CpuTemperature is not null || result.CpuPerformanceLimitPercent is not null || result.ThermalZones.Count > 0 ||
-            sampled.Resources.GpuThermals.Count > 0)
+            sampled.Resources.GpuThermals.Count > 0 || result.DiskTemperatureCelsius is not null ||
+            result.SecondaryDiskTemperatureCelsius is not null)
             Volatile.Write(ref _hasTemperature, true);
         return sampled;
     }
@@ -129,6 +138,8 @@ internal sealed class WindowsResourceSampler : IDisposable
         _thermalZones.Reset();
         _primaryDisk.Reset();
         _secondaryDisk.Reset();
+        _primaryTemperature.Reset();
+        _secondaryTemperature.Reset();
         _previousNetwork = null;
         // A gap invalidates rates, not totals: the adapter's counters keep counting through it.
     }
