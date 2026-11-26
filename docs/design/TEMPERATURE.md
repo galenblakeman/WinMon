@@ -17,7 +17,7 @@ Outside this design:
 
 ## Repository baseline
 
-At design time the repository is at product version 4.2.0 on .NET 10 Windows. Recheck before implementation.
+At the latest revision the repository is at product version 4.3.0 on .NET 10 Windows. Recheck before implementation.
 
 - [ResourceSample](../../src/MonCore/Monitoring/ResourceSample.cs) holds nullable system readings. Null means unavailable, never zero.
 - [SystemMetricCapabilities](../../src/MonCore/Monitoring/CollectorCapabilities.cs) has flags for Cpu, Memory, Disk, Network, Gpu and Services.
@@ -138,6 +138,7 @@ Run the probe with `dotnet run tools/TemperatureProbe.cs -- 120 > probe.csv`. On
 | Hyper-V VM, Ryzen 9 9950X3D host, Windows 10.0.26300 (2026-11-25) | Not available: Hyper-V Video and Remote Display adapters reject the perf query (`0xC000000D`) | 0 / 0 | None | 100 throughout, flags 0 | 4,300 = `MaxMhz` throughout |
 
 | Desktop host of that VM: Ryzen 9 9950X3D (integrated Radeon) and GeForce RTX 5080, Windows 10.0.26300, 32 logical processors (2026-11-25) | **Works on both GPUs.** Radeon 51–55 °C, RTX 5080 37–40 °C, both moving; power 4.5–20.3%. Fan 0 RPM on both. A third, unnamed adapter rejects the query (`0xC000000D`). | Radeon 0 / 0. RTX 5080 warning 0, max 88 °C, max fan 3,600 RPM | None | 100 throughout, flags 0. `% of Maximum Frequency` 94–100 | 4,300 = `MaxMhz` throughout; `CurrentMhz` also fixed at 4,300 |
+| Hybrid laptop: Core Ultra 9 275HX (Intel Graphics) and GeForce RTX 5080 Laptop GPU, Windows 10.0.26300, 24 logical processors (2026-11-25) | **RTX 5080 Laptop works:** 34–44 °C, moving, rising under CPU load. Power 0 and fan 0 on it. **Intel Graphics reports 0 for everything.** Two unnamed adapters report zeros or reject the query. | RTX 5080 Laptop warning 0, max 89 °C, max fan 0. Others 0 / 0. | **`\_TZ.THRM`, high precision, moving:** 43–49 °C idle, 47–67 °C under load | 100 throughout, flags 0. `% of Maximum Frequency` 87–100 | `CurrentMhz` fixed (mean 2,300). `MaxMhz` up to 2,700, `MhzLimit` down to 2,100. |
 
 The VM confirms only that the probe runs and that every missing reading stays empty. The clock is fixed at 4,300 MHz under load there.
 
@@ -149,13 +150,23 @@ What the desktop shows:
 - **No GPU reported `TemperatureWarning`.** The GPU thermal-limit marker would never appear on this machine. The tooltip can still show `TemperatureMax` ("38 °C of 88 °C max").
 - **No thermal zones on this desktop.** CPU temperature is simply unavailable here, as expected for many desktop boards. The CPU side reduces to the throttle reading.
 - **A minute of full CPU load caused no throttling** (`% Performance Limit` stayed at 100). That is expected for a well-cooled desktop. It still has to be observed falling below 100 on a laptop.
-- **Side finding: WinMon's existing clock reading is static on this CPU.** `CallNtPowerInformation` `CurrentMhz`, which `WindowsCpuClock` reads, stayed at the 4,300 MHz base clock while the CPU was idling and boosting. The gauge's "4.30 GHz" therefore never moves here. The probe now also records `\Processor Information(_Total)\% Processor Performance` and multiplies it by `MaxMhz`. On the host, a two-minute run read 119–128%, an effective 5,121–5,516 MHz (lower under all-core load, as expected for boost), while `CurrentMhz` stayed at 4,300 throughout. The VM showed the same. Under full load `% Processor Utility` equals `% Processor Performance`, which fits utility being busy time × performance. Fixing `WindowsCpuClock` is a separate change from this feature.
+- **Side finding, since fixed: WinMon's clock reading was static on this CPU.** `CallNtPowerInformation` `CurrentMhz`, which `WindowsCpuClock` read at the time, stayed at the 4,300 MHz base clock while the CPU was idling and boosting. The gauge's "4.30 GHz" therefore never moves here. The probe now also records `\Processor Information(_Total)\% Processor Performance` and multiplies it by `MaxMhz`. On the host, a two-minute run read 119–128%, an effective 5,121–5,516 MHz (lower under all-core load, as expected for boost), while `CurrentMhz` stayed at 4,300 throughout. The VM showed the same. Under full load `% Processor Utility` equals `% Processor Performance`, which fits utility being busy time × performance. `WindowsCpuClock` now reports `MaxMhz` × `% Processor Performance` / 100; see [Effective CPU clock](EFFECTIVE-CPU-CLOCK.md). The `4.30 GHz` examples elsewhere in this note show the base clock and are illustrative.
 
-The integrated-only laptop and the hybrid laptop are still to run.
+What the hybrid laptop shows:
+
+- **A real thermal zone, and it is not the CPU die.** `\_TZ.THRM` moved with load, from 43–49 °C idle to 67 °C after a minute of all-core load. A 275HX die under that load runs far hotter, so this is a slower chassis or controller sensor. That supports keeping zones off the CPU gauge and labelling them "System thermal zone". It changed steadily, so the unchanging-zone flag would not fire.
+- **The discrete GPU reports temperature; the integrated one reports nothing.** The RTX 5080 Laptop gave moving temperatures with no fan or power data. Laptop fans belong to the system, so 0 RPM with no `MaxFanRpm` correctly becomes null. Intel Graphics gave 0 for temperature, power and fan, which the zero-as-missing rule turns into null. Both rules held on real hardware.
+- **Whether the probe wakes a sleeping discrete GPU is still open.** The RTX 5080 Laptop reported `PowerStateOverride` 0 throughout, yet returned a temperature every second. Either it was already awake (the CPU load warmed it through the shared cooler) or the query works without waking it. A run on battery with nothing using the GPU, watching Task Manager's GPU activity before and during the probe, would tell them apart.
+- **Still no throttling.** `% Performance Limit` stayed at 100 with flags 0 through a minute of all-core load at about 175% performance. A drop below 100 is still unobserved; a longer load, on battery, is the next attempt.
+- **Hybrid cores have different rated clocks.** `MaxMhz` reached 2,700 (performance cores) and `MhzLimit` went down to 2,100 (efficient cores). The probe's `effective_mhz` multiplies by the highest `MaxMhz` and read 4,717–4,736 MHz under load. The first version of the [effective clock](EFFECTIVE-CPU-CLOCK.md) multiplied by the **mean** `MaxMhz`, about 2,300 here (8 × 2,700 + 16 × 2,100, divided by 24). Task Manager on this laptop shows a base speed of 2.70 GHz and a Speed of 4.21 GHz at about 156% performance, so it scales the highest rated clock. The mean would have read about 15% low. The clock now uses the highest `MaxMhz`. On the desktop every core shares one rated clock, so it isn't affected.
+
+The integrated-only laptop is still to run.
 
 ## External sensor sources
 
-CPU die temperature and motherboard fans need ring-0 access to chip registers, which no Windows API offers. WinMon will not ship a kernel driver. It can instead detect sensor sources the user already has and read from them. None of this is part of the first delivery.
+CPU die temperature and motherboard fans need ring-0 access to chip registers, which no Windows API offers. WinMon will not ship a kernel driver of its own. None of this is part of the first delivery.
+
+**Decision:** [Optional hardware sensors](HARDWARE-SENSORS.md) chooses LibreHardwareMonitorLib on PawnIO, in a separate optional service. The monitoring-tool readers below are not planned. This section remains as the record of the options considered, and its rules for external sources apply to that service.
 
 The CAM comparison on the spike desktop shows how other tools do it. CAM showed a 73 °C CPU temperature and a 1,775 RPM CPU fan, while that machine had six third-party kernel drivers loaded for this purpose: AMD's Ryzen Master SDK driver, a CPUID SDK driver, Corsair's low-level access driver, and MSI's `MsIo64` and two `NTIOLib` copies. `MsIo64` has a published arbitrary physical-memory read/write vulnerability (CVE-2019-18845).
 
@@ -165,9 +176,9 @@ These publish sensors only while the tool is **running**. WinMon reads them unpr
 
 | Source | Detect | Read | Covers |
 | --- | --- | --- | --- |
-| HWiNFO | Shared memory `Global\HWiNFO_SENS_SM2` exists; needs "Shared Memory Support" on in HWiNFO | `MemoryMappedFile.OpenExisting`; documented header plus sensor and reading records | Broadest: CPU, motherboard, fans, drives, GPUs. The free version is believed to stop sharing after 12 hours until re-enabled. |
+| HWiNFO | Shared memory `Global\HWiNFO_SENS_SM2` exists; needs "Shared Memory Support" on in HWiNFO | `MemoryMappedFile.OpenExisting`; documented header plus sensor and reading records | Broadest: CPU, motherboard, fans, drives, GPUs. The free version turns shared memory off after 12 hours of run time, and the user has to re-enable it ([HWiNFO licenses](https://www.hwinfo.com/licenses/)). |
 | LibreHardwareMonitor (app) | WMI namespace `root\LibreHardwareMonitor` exists | WMI query on its `Sensor` class; `System.Management` is already referenced | CPU, motherboard, fans, GPUs, drives |
-| Core Temp | Its named shared-memory object exists | Documented fixed-layout struct | CPU temperatures only |
+| Core Temp | Shared memory `CoreTempMappingObjectEx` exists (older versions: `CoreTempMappingObject`) | Documented `core_temp_shared_data_ex`, 4-byte aligned, `uiStructVersion` 2 ([Core Temp developers](https://www.alcpu.com/CoreTemp/developers.html)) | CPU temperatures only. Values need conversion first; see below. |
 
 MSI Afterburner and AIDA64 also publish shared memory. Afterburner is mostly GPU and partly undocumented, and AIDA64 is a paid product, so neither is planned.
 
@@ -179,11 +190,16 @@ These are detected as **installed**. They probably need elevation, so reads woul
 | --- | --- | --- | --- |
 | [PawnIO](https://pawnio.eu/) | `HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\PawnIO` `InstallLocation`, falling back to `%ProgramFiles%\PawnIO` | Load `PawnIOLib` from the install folder; `pawnio_open`, `pawnio_load(module)`, `pawnio_execute`. Plain exports, so ordinary P/Invoke. | A signed, general-purpose driver that runs small hardware modules: `IntelMSR`, `IntelPCHThermal`, `AMDFamily17`, `RyzenSMU`, `LpcIO`, SMBus modules. The project asks apps to link users to pawnio.eu rather than bundle it. |
 | LibreHardwareMonitorLib on PawnIO | As PawnIO | Reference the NuGet library in the network service | Supplies the chip-by-chip knowledge that raw PawnIO calls would need. A large dependency on a sampling path. |
-| AMD Ryzen Master Monitoring SDK | `C:\Program Files\AMD\RyzenMasterSDK` (present on the spike desktop) | C++ class API, so it needs a native shim | AMD CPUs only. Tied to SDK versions. |
 
 ### Rejected
 
 - **CPUID SDK:** commercial license.
+- **AMD Ryzen Master SDK** (installed on the spike desktop at `C:\Program Files\AMD\RyzenMasterSDK`, version V29 driver):
+  - Its `License_Public.txt` allows use only under a Ryzen Master SDK license agreement signed with AMD, and forbids distribution beyond that agreement. That rules it out for an MIT app unless such an agreement is signed.
+  - The sample readme requires an administrator prompt.
+  - It is an overclocking SDK: next to read calls such as `GetCurrentTemperature` and `GetEffectiveFrequency`, it exposes write calls such as `SetOverclockFreqAllCores` and `SetPPTLimit`.
+  - The API is C++ classes and covers AMD CPUs only.
+  - It was not added to the probe.
 - **WinRing0 and InpOut:** vulnerable, and blocklisted or flagged by Defender.
 - **Motherboard-vendor drivers** (MSI `NTIOLib`/`MsIo64`, Corsair `LLAccess` and similar): undocumented, several with published vulnerabilities.
 - **Intel:** there is no current public SDK. Power Gadget is discontinued, XTU has no public SDK, and Intel PCM needs its own driver on Windows.
@@ -195,14 +211,20 @@ These are detected as **installed**. They probably need elevation, so reads woul
 - **Untrusted input.** Another process's shared memory or WMI data crosses a trust boundary. Bounds-check every size and offset against the mapped length, cap the sensor count, and range-check values as the [validation rules](#validation-rules) do.
 - **Attribution.** Tooltips name the source ("from HWiNFO") and keep the tool's own sensor names. A die temperature from these tools may appear under the CPU, labelled with its source. An ACPI zone never does.
 - **One source per sensor.** When several are present, use a fixed order: HWiNFO, LibreHardwareMonitor, Core Temp, then a driver layer. Never mix sources for the same sensor.
-- **Disappearing sources.** When a tool exits, its readings become null and the UI returns to the built-in view. Re-detect about every 30 seconds, not every tick.
+- **Freshness, not presence.** A named shared-memory object stays alive while any process holds it open, WinMon included, so finding the object proves nothing. Readings are only current while all of these hold:
+  - **The producer is alive:** its process is running (HWiNFO, Core Temp), or its WMI namespace answers (LibreHardwareMonitor).
+  - **The data advances:** HWiNFO's header carries a poll time, which must move forward. Core Temp's structure has no counter or timestamp, so a snapshot counts as stale when no field changes for 10 seconds while its producer is alive.
+  - **The data is recent:** discard readings older than 5 seconds by the source's own time, or by the time WinMon last saw a change.
+
+  Otherwise the readings become null and the UI returns to the built-in view. Close and reopen the mapping when it goes stale, and re-detect about every 30 seconds, not every tick. Tests cover producer exit, a frozen producer, a restart (including a changed layout or sensor count) and sharing being turned off, as HWiNFO's free version does after 12 hours. ([Windows mapping lifetime](https://learn.microsoft.com/en-us/windows/win32/memory/sharing-files-and-memory).)
+- **Units and meaning.** Normalize every value to absolute Celsius before validation, display or peaks. Core Temp can publish Fahrenheit (`ucFahrenheit`) or distance below TjMax (`ucDeltaToTjMax`). Either can pass the 1–150 °C range check and still show the wrong temperature. Convert Fahrenheit first, then for delta mode use temperature = TjMax − delta with the matching `uiTjMax` entry. If the TjMax mapping for a core is unclear, report null rather than guess. Tests cover Celsius, Fahrenheit, delta, and delta with Fahrenheit.
 - **No installs.** WinMon never installs a tool or driver. Settings may link to the project's own download page.
 
 ### Open questions
 
-- **PawnIO elevation:** whether opening the driver needs admin. The project's sources don't say.
+- **PawnIO elevation:** whether opening the driver needs admin. The project's sources don't say. Only an unelevated run can answer it; an elevated run shows only that admin works.
 - **Zen 5:** whether `AMDFamily17` covers family 1Ah (the spike desktop's 9950X3D). No module is named for 19h or 1Ah.
-- **Memory integrity:** whether PawnIO loads with Memory integrity (HVCI) on.
+- **Memory integrity:** whether PawnIO loads with Memory integrity (HVCI) on. A successful run proves this only if Memory integrity was actually on at the time.
 - **Licensing:**
   - The PawnIO driver is GPL-2.0, with an exception for programs that use only its device interface.
   - `PawnIOLib` and the modules are LGPL-2.1.
@@ -210,9 +232,9 @@ These are detected as **installed**. They probably need elevation, so reads woul
   - LibreHardwareMonitorLib is MPL-2.0.
 
   WinMon is MIT. Bundling module blobs or the library needs a licensing check.
-- **Names and defaults:** the shared-memory object names, HWiNFO's free-version limit and whether LibreHardwareMonitor publishes WMI by default come from memory. Verify each against the tool before building on it.
+- **Names and defaults:** HWiNFO's object name, its header poll-time field, and whether LibreHardwareMonitor publishes WMI by default come from memory. Verify them against each tool before building on it. Core Temp's names and HWiNFO's 12-hour limit are verified from the linked official pages.
 
-A PawnIO mode in [the probe](../../tools/TemperatureProbe.cs), run elevated on the spike desktop and compared with CAM, would settle the first three questions. The cheapest first step is the HWiNFO and LibreHardwareMonitor readers: unprivileged and small, covering Intel and AMD for anyone running either tool.
+A PawnIO mode in [the probe](../../tools/TemperatureProbe.cs) would settle the first three questions. Run it on the spike desktop twice, once unelevated and once elevated, and compare with CAM. Each run records the PawnIO driver version and whether Memory integrity was on. [Optional hardware sensors](HARDWARE-SENSORS.md#verify-before-building) plans that check as a library prototype.
 
 ## Deferred
 - **Vendor GPU SDKs.** Load NVML, ADLX or IGCL dynamically only if users ask for hotspot or memory-junction temperatures.

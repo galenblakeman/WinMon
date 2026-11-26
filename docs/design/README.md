@@ -1,5 +1,7 @@
 # WinMon design assets
 
+- [Optional hardware sensors](HARDWARE-SENSORS.md) proposes CPU package temperature and fan speeds from LibreHardwareMonitorLib in a separate optional service on PawnIO, installed with one-time consent.
+
 - [Effective CPU clock](EFFECTIVE-CPU-CLOCK.md) derives the CPU clock from the rated clock and Windows processor performance, so it follows boost and idle instead of reporting a fixed rated clock.
 
 - [CPU and GPU temperature](TEMPERATURE.md) proposes unprivileged GPU temperature, CPU throttling and system thermal-zone readings on the gauges and in their tooltips, gated on a hardware spike.
