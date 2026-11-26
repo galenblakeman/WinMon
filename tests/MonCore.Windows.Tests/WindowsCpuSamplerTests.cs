@@ -352,6 +352,42 @@ public sealed class WindowsCpuSamplerTests
         Assert.That(result.TotalCpuPercent, Is.Null);
     }
 
+    [Test]
+    public void Sample_HandleTotalCountsEveryProcessOnce_IncludingGapSamplesAndNewProcesses()
+    {
+        // GetPerformanceInfo counts System's handles twice; this total counts System once, like Task Manager.
+        var system = new ProcessCpuTimes(4, 4, "System", 0) { HandleCount = 10_572 };
+        var explorer = new ProcessCpuTimes(100, 1, "explorer", 0) { HandleCount = 3_000 };
+        var started = new ProcessCpuTimes(200, 2, "new", 0) { HandleCount = 400 };
+        using var sampler = new WindowsCpuSampler(new SequenceSnapshotProvider(
+            Snapshot(1, 1_000, 100, [system, explorer]),
+            Snapshot(2, 2_000, 200, [system, explorer, started])));
+        var gap = sampler.Sample();
+        var next = sampler.Sample();
+        Assert.Multiple(() =>
+        {
+            Assert.That(gap.IsGap, Is.True);
+            Assert.That(gap.Resources.HandleCount, Is.EqualTo(13_572));
+            // The new process has no CPU baseline yet, so it is not a row, but its handles still count.
+            Assert.That(next.Processes.Select(process => process.ProcessId), Does.Not.Contain(200));
+            Assert.That(next.Resources.HandleCount, Is.EqualTo(13_972));
+        });
+    }
+
+    [Test]
+    public void HandleTotal_IsUnavailableWhenSnapshotIsIncomplete()
+    {
+        var counted = new ProcessCpuTimes(10, 1, "app", 0) { HandleCount = 100 };
+        Assert.Multiple(() =>
+        {
+            Assert.That(WindowsCpuSampler.HandleTotal(Snapshot(1, 1_000, 100, [counted], unavailableProcesses: 1)),
+                Is.Null);
+            Assert.That(WindowsCpuSampler.HandleTotal(Snapshot(1, 1_000, 100, [counted, counted with { HandleCount = null }])),
+                Is.Null);
+            Assert.That(WindowsCpuSampler.HandleTotal(Snapshot(1, 1_000, 100, [])), Is.Null);
+        });
+    }
+
     private static CpuSnapshot Snapshot(
         long seconds,
         long totalTicks,

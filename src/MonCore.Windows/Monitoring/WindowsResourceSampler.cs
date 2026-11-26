@@ -74,6 +74,7 @@ internal sealed class WindowsResourceSampler : IDisposable
                 HandleCount = performance.HandleCount
             };
         result = ApplyMemoryPressure(result, pressure, cpu.Processes);
+        result = result with { HandleCount = cpu.Resources.HandleCount ?? result.HandleCount };
 
         // PDH failures only make disk unavailable; they never stop memory, network or CPU.
         var primary = _primaryDisk.Read(primaryDrive ?? Path.GetPathRoot(Environment.SystemDirectory)!.TrimEnd('\\'));

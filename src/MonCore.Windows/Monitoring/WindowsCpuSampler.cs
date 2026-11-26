@@ -43,11 +43,12 @@ public sealed class WindowsCpuSampler : IDisposable
         ObjectDisposedException.ThrowIf(_disposed, this);
         var current = _provider.Capture();
 
+        var handles = new ResourceSample { HandleCount = HandleTotal(current) };
         if (_previous is null || IsGap(_previous, current))
         {
             Rebaseline(current);
             return new MonitorSample(current.Timestamp, null, [], current.UnavailableProcesses, true,
-                current.MonotonicTimestamp);
+                current.MonotonicTimestamp) { Resources = handles };
         }
 
         var prior = _previous;
@@ -59,7 +60,7 @@ public sealed class WindowsCpuSampler : IDisposable
         {
             Rebaseline(current);
             return new MonitorSample(current.Timestamp, null, [], current.UnavailableProcesses, true,
-                current.MonotonicTimestamp);
+                current.MonotonicTimestamp) { Resources = handles };
         }
 
         var elapsedSeconds = (current.MonotonicTimestamp - prior.MonotonicTimestamp) / (double)Stopwatch.Frequency;
@@ -76,7 +77,7 @@ public sealed class WindowsCpuSampler : IDisposable
         {
             IntervalSeconds = elapsedSeconds,
             IntervalCpuTicks = totalDelta,
-            Resources = new ResourceSample
+            Resources = handles with
             {
                 CpuKernelPercent = kernelDelta >= 0 && kernelDelta <= busyDelta
                     ? 100d * kernelDelta / totalDelta
@@ -112,6 +113,24 @@ public sealed class WindowsCpuSampler : IDisposable
         _previous = snapshot;
         _baselines.Clear();
         foreach (var process in snapshot.Processes) _baselines[(process.ProcessId, process.CreationTicks)] = process;
+    }
+
+    /// <summary>
+    /// Every process's handles counted once, as Task Manager does, from the full snapshot rather than the rows with a
+    /// CPU baseline, so the first sample and new processes count too. <c>GetPerformanceInfo</c> adds the System process's
+    /// handles a second time. Null when the snapshot hit its process cap or any count is missing.
+    /// </summary>
+    internal static uint? HandleTotal(CpuSnapshot snapshot)
+    {
+        if (snapshot.UnavailableProcesses != 0 || snapshot.Processes.Count == 0) return null;
+        long total = 0;
+        foreach (var process in snapshot.Processes)
+        {
+            if (process.HandleCount is not { } handles || handles < 0) return null;
+            total += handles;
+        }
+
+        return total <= uint.MaxValue ? (uint)total : null;
     }
 
     private static bool IsGap(CpuSnapshot previousSnapshot, CpuSnapshot currentSnapshot)
