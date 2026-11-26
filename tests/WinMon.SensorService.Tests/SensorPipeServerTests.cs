@@ -37,10 +37,9 @@ public sealed class SensorPipeServerTests
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
         await using var client = new NamedPipeClientStream(".", server.Name, PipeDirection.InOut, PipeOptions.Asynchronous);
         await client.ConnectAsync(timeout.Token);
-        await SensorServiceProtocol.WriteAsync(client, new SensorServiceRequest(SensorServiceProtocol.Version, "status"),
-            timeout.Token);
-        Assert.That(async () => await SensorServiceProtocol.ReadAsync<SensorServiceResponse>(client, timeout.Token),
-            Throws.InstanceOf<EndOfStreamException>());
+        // Rejection can close the connection before the write completes or while the client awaits a reply.
+        Assert.That(async () => await ExchangeAsync(client, "status", timeout.Token),
+            Throws.InstanceOf<IOException>());
     }
 
     [Test]
