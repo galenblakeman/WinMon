@@ -9,12 +9,21 @@ namespace MonCore.Windows.Monitoring;
 /// <summary>Pair adapter-wide dedicated usage with DXGI capacity for the same adapter LUID.</summary>
 internal sealed class WindowsGpuMemory : IDisposable
 {
-    private SafeQuery? _query;
-    private IntPtr _counter;
-    private IntPtr _sharedCounter;
+    private ICounters? _counters;
+    private readonly Func<ICounters> _openCounters;
+    private readonly Func<Dictionary<string, string>, IReadOnlyDictionary<string, ulong>> _readCapacities;
     private IReadOnlyDictionary<string, ulong> _capacities = new Dictionary<string, ulong>();
     private readonly Dictionary<string, string> _names = new(StringComparer.Ordinal);
     private long _capacitiesRead;
+
+    public WindowsGpuMemory() : this(() => new NativeCounters(), names => ReadCapacities(names)) { }
+
+    internal WindowsGpuMemory(Func<ICounters> openCounters,
+        Func<Dictionary<string, string>, IReadOnlyDictionary<string, ulong>> readCapacities)
+    {
+        _openCounters = openCounters;
+        _readCapacities = readCapacities;
+    }
 
     public ResourceSample Attach(ResourceSample sample)
     {
@@ -24,7 +33,7 @@ internal sealed class WindowsGpuMemory : IDisposable
             if (_capacitiesRead == 0 || now - _capacitiesRead > 30 * Stopwatch.Frequency)
             {
                 _names.Clear();
-                _capacities = ReadCapacities(_names);
+                _capacities = _readCapacities(_names);
                 _capacitiesRead = now;
             }
 
@@ -32,39 +41,18 @@ internal sealed class WindowsGpuMemory : IDisposable
             if (name is null) return sample;
             sample = sample with { GpuName = name };
             _capacities.TryGetValue(sample.GpuId, out var capacity);
-            if (_query is null)
-            {
-                Check(PdhOpenQueryW(null, UIntPtr.Zero, out var query));
-                _query = query;
-                Check(PdhAddEnglishCounterW(query, @"\GPU Adapter Memory(*)\Dedicated Usage", UIntPtr.Zero,
-                    out _counter));
-                var sharedStatus = PdhAddEnglishCounterW(query, @"\GPU Adapter Memory(*)\Shared Usage", UIntPtr.Zero,
-                    out _sharedCounter);
-                if (sharedStatus != 0)
-                {
-                    Trace.TraceWarning("GPU shared-memory counter unavailable: 0x{0:X8}", sharedStatus);
-                    _sharedCounter = IntPtr.Zero;
-                }
-            }
-
-            Check(PdhCollectQueryData(_query));
-            var used = SelectUsage(WindowsGpuSampler.ReadCounters(_counter), sample.GpuId);
+            _counters ??= _openCounters();
+            _counters.Collect();
+            var used = SelectUsage(_counters.ReadDedicated(), sample.GpuId);
             ulong? shared = null;
-            if (_sharedCounter == IntPtr.Zero)
-                return sample with
-                {
-                    GpuMemoryUsedBytes = capacity == 0 ? null : used,
-                    GpuMemoryTotalBytes = used is null || capacity == 0 ? null : capacity,
-                    GpuSharedMemoryUsedBytes = shared
-                };
             try
             {
-                shared = SelectUsage(WindowsGpuSampler.ReadCounters(_sharedCounter), sample.GpuId);
+                shared = SelectUsage(_counters.ReadShared(), sample.GpuId);
             }
             catch (Win32Exception ex)
             {
                 Trace.TraceWarning("GPU shared-memory reading unavailable: {0}", ex.Message);
-                _sharedCounter = IntPtr.Zero;
+                // Keep the counter: a transient formatting failure must not disable future reads.
             }
 
             return sample with
@@ -167,10 +155,49 @@ internal sealed class WindowsGpuMemory : IDisposable
 
     public void Dispose()
     {
-        _query?.Dispose();
-        _query = null;
-        _counter = IntPtr.Zero;
-        _sharedCounter = IntPtr.Zero;
+        _counters?.Dispose();
+        _counters = null;
+    }
+
+    internal interface ICounters : IDisposable
+    {
+        void Collect();
+        WindowsGpuSampler.EngineCounter[] ReadDedicated();
+        WindowsGpuSampler.EngineCounter[] ReadShared();
+    }
+
+    private sealed class NativeCounters : ICounters
+    {
+        private readonly SafeQuery _query;
+        private readonly IntPtr _dedicated, _shared;
+
+        public NativeCounters()
+        {
+            Check(PdhOpenQueryW(null, UIntPtr.Zero, out _query));
+            try
+            {
+                Check(PdhAddEnglishCounterW(_query, @"\GPU Adapter Memory(*)\Dedicated Usage", UIntPtr.Zero,
+                    out _dedicated));
+                var status = PdhAddEnglishCounterW(_query, @"\GPU Adapter Memory(*)\Shared Usage", UIntPtr.Zero,
+                    out _shared);
+                if (status != 0)
+                {
+                    Trace.TraceWarning("GPU shared-memory counter unavailable: 0x{0:X8}", status);
+                    _shared = IntPtr.Zero;
+                }
+            }
+            catch
+            {
+                _query.Dispose();
+                throw;
+            }
+        }
+
+        public void Collect() => Check(PdhCollectQueryData(_query));
+        public WindowsGpuSampler.EngineCounter[] ReadDedicated() => WindowsGpuSampler.ReadCounters(_dedicated);
+        public WindowsGpuSampler.EngineCounter[] ReadShared() => _shared == IntPtr.Zero
+            ? [] : WindowsGpuSampler.ReadCounters(_shared);
+        public void Dispose() => _query.Dispose();
     }
 
     // Created by the P/Invoke marshaller.

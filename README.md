@@ -10,6 +10,8 @@ Sampling uses a dedicated worker with elevated scheduling priority on Windows to
 
 The CPU clock under the CPU gauge is the effective clock, as Task Manager reports it. It rises above the rated clock while boosting and falls at idle, including on processors where Windows reports only the fixed rated clock.
 
+Unavailable optional memory-pressure counters leave the other resource readings working. Shared GPU memory readings retry after a temporary read failure.
+
 GPU gauges show temperature when the Windows graphics driver supplies it. Resource details include available GPU fan/power readings and clearly labelled system thermal zones. A CPU performance-limit indicator reports reduced available performance without attributing the cause to heat. Temperature units can be changed between Celsius and Fahrenheit in Settings. Desktop builds offer optional CPU temperature through a [separate LibreHardwareMonitor service](docs/design/HARDWARE-SENSORS.md), enabled under Settings → CPU temperature. It requires official PawnIO installed separately and signed service setup with administrator approval. Missing or stale sensors show no temperature. Native AMD/Intel accuracy and signed installation acceptance remain unverified; Store builds omit this optional service feature.
 
 MCP performance recordings retain valid captured intervals even when report processing falls behind collection.

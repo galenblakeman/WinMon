@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 using Microsoft.Win32.SafeHandles;
@@ -12,52 +11,8 @@ internal static class NetworkServiceIdentity
     internal static Task EnsureRunningAsync(CancellationToken token) =>
         ProtectedServiceIdentity.EnsureRunningAsync(ProtectedServiceEndpoints.Network, token);
 
-    internal static Task EnsureRunningAsync(CancellationToken token, Func<uint, IServiceStartupScope>? open)
-    {
-        try
-        {
-            token.ThrowIfCancellationRequested();
-            var service = open is null
-                ? OpenRegisteredService(ServiceQueryStatus | ServiceQueryConfig | ServiceStart)
-                : open(ServiceQueryStatus | ServiceQueryConfig | ServiceStart);
-            return WaitForRunningAsync(service, token);
-        }
-        catch (Exception error)
-        {
-            // Keep opening failures on the returned task, including cancellation without a requested token.
-            var result = AsyncTaskMethodBuilder.Create();
-            result.SetException(error);
-            return result.Task;
-        }
-    }
-
-    private static async Task WaitForRunningAsync(IServiceStartupScope service, CancellationToken token)
-    {
-        try
-        {
-            if (!service.IsTrusted)
-                throw new UnauthorizedAccessException("Registered network service configuration is not trusted.");
-            if (service.State == ServiceRunning) return;
-            token.ThrowIfCancellationRequested();
-            if (!service.TryStart(out var error) && error != ErrorServiceAlreadyRunning)
-                throw new Win32Exception(error, "Cannot start network monitoring service.");
-
-            var deadline = service.Clock.GetTimestamp() + (long)(service.Clock.TimestampFrequency * 10d);
-            do
-            {
-                token.ThrowIfCancellationRequested();
-                if (service.State == ServiceRunning) return;
-                await Task.Delay(TimeSpan.FromMilliseconds(50), service.Clock, token).ConfigureAwait(false);
-            } while (service.Clock.GetTimestamp() < deadline);
-
-            throw new TimeoutException("Network monitoring service did not start in time.");
-        }
-        finally
-        {
-            // Retain one owned handle reference across awaits, matching the original async state size.
-            service?.Dispose();
-        }
-    }
+    internal static Task EnsureRunningAsync(CancellationToken token, Func<uint, IServiceStartupScope>? open) =>
+        ProtectedServiceIdentity.EnsureRunningAsync(ProtectedServiceEndpoints.Network, token, open);
 
     internal static void Verify(SafePipeHandle pipe)
     {
@@ -172,25 +127,20 @@ internal static class NetworkServiceIdentity
 
     private const uint ScManagerConnect = 0x0001,
         ServiceQueryConfig = 0x0001,
-        ServiceQueryStatus = 0x0004,
-        ServiceStart = 0x0010;
+        ServiceQueryStatus = 0x0004;
 
     private const uint TokenQuery = 0x0008,
         ProcessQueryLimitedInformation = 0x1000,
         ServiceWin32OwnProcess = 0x10,
         ServiceRunning = 4;
 
-    private const int ErrorAccessDenied = 5, ErrorPrivilegeNotHeld = 1314, ErrorServiceAlreadyRunning = 1056;
+    private const int ErrorAccessDenied = 5, ErrorPrivilegeNotHeld = 1314;
 
     [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
     private static extern SafeNativeHandle OpenSCManager(string? machine, string? database, uint access);
 
     [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
     private static extern SafeNativeHandle OpenService(SafeNativeHandle manager, string serviceName, uint access);
-
-    [DllImport("advapi32.dll", SetLastError = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool StartService(SafeNativeHandle service, int arguments, IntPtr argumentVectors);
 
     [DllImport("advapi32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
@@ -244,21 +194,10 @@ internal static class NetworkServiceIdentity
 
     // The P/Invoke marshaller constructs this SafeHandle for returned native handles.
     // ReSharper disable once ClassNeverInstantiated.Local
-    private sealed class SafeNativeHandle : SafeHandleZeroOrMinusOneIsInvalid, IServiceStartupScope
+    private sealed class SafeNativeHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         public SafeNativeHandle() : base(true)
         {
-        }
-
-        bool IServiceStartupScope.IsTrusted => IsConfiguredAsOwnProcessLocalSystem(this);
-        uint IServiceStartupScope.State => QueryStatus(this).CurrentState;
-        TimeProvider IServiceStartupScope.Clock => TimeProvider.System;
-
-        bool IServiceStartupScope.TryStart(out int error)
-        {
-            var started = StartService(this, 0, IntPtr.Zero);
-            error = started ? 0 : Marshal.GetLastWin32Error();
-            return started;
         }
 
         protected override bool ReleaseHandle()

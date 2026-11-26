@@ -6,16 +6,20 @@ using StartupSession = MonCore.Windows.Monitoring.IServiceStartupScope;
 
 namespace MonCore.Windows.Tests;
 
-[TestFixture]
-public sealed class ServiceStartupCharacterizationTests
+[TestFixture(false)]
+[TestFixture(true)]
+public sealed class ServiceStartupCharacterizationTests(bool sensor)
 {
+    private readonly ProtectedServiceEndpoint _endpoint = sensor
+        ? ProtectedServiceEndpoints.Sensor : ProtectedServiceEndpoints.Network;
+
     [Test]
     public async Task ActualDefaultPreCanceledEntryReturnsCanceledTaskWithoutSynchronousThrow()
     {
         using var canceled = new CancellationTokenSource();
         canceled.Cancel();
         Task operation = null!;
-        Assert.DoesNotThrow(() => operation = NetworkServiceIdentity.EnsureRunningAsync(canceled.Token));
+        Assert.DoesNotThrow(() => operation = ProtectedServiceIdentity.EnsureRunningAsync(_endpoint, canceled.Token));
         var error = await Cancellation(operation);
         Assert.That(error.CancellationToken, Is.EqualTo(canceled.Token));
     }
@@ -23,7 +27,7 @@ public sealed class ServiceStartupCharacterizationTests
     [Test]
     public async Task PreCancellationPreventsOpeningOrDisposingAService()
     {
-        using var s = new Scenario(4);
+        using var s = new Scenario(_endpoint, 4);
         s.Cancel.Cancel();
         var error = await Cancellation(s.Run());
         Assert.Multiple(() =>
@@ -40,7 +44,7 @@ public sealed class ServiceStartupCharacterizationTests
     [TestCase("cancel-without-request")]
     public async Task OpenFailuresRemainOnTheReturnedTask(string kind)
     {
-        using var s = new Scenario(4);
+        using var s = new Scenario(_endpoint, 4);
         Exception failure = kind switch
         {
             "access" => new UnauthorizedAccessException("fixture access"),
@@ -65,14 +69,14 @@ public sealed class ServiceStartupCharacterizationTests
     [TestCase(true)]
     public async Task UntrustedConfigurationWinsBeforeStatusStartAndLaterCancellation(bool cancelOnOpen)
     {
-        using var s = new Scenario(4);
+        using var s = new Scenario(_endpoint, 4);
         s.Service.Trusted = false;
         if (cancelOnOpen) s.OnOpen = s.Cancel.Cancel;
         var error = await Failure(s.Run());
         Assert.Multiple(() =>
         {
             Assert.That(error, Is.TypeOf<UnauthorizedAccessException>());
-            Assert.That(error.Message, Is.EqualTo("Registered network service configuration is not trusted."));
+            Assert.That(error.Message, Is.EqualTo("Registered service configuration is not trusted."));
             Assert.That(s.Log, Is.EqualTo(new[] { "open:21", "trust", "dispose" }));
             Assert.That(s.Service.Disposals, Is.EqualTo(1));
         });
@@ -83,7 +87,7 @@ public sealed class ServiceStartupCharacterizationTests
     [TestCase("query")]
     public async Task AlreadyRunningReturnsBeforeStartAndSecondCancellationCheck(string cancelAt)
     {
-        using var s = new Scenario(4);
+        using var s = new Scenario(_endpoint, 4);
         if (cancelAt == "open") s.OnOpen = s.Cancel.Cancel;
         if (cancelAt == "query") s.Service.OnQuery = _ => s.Cancel.Cancel();
         await s.Run();
@@ -100,7 +104,7 @@ public sealed class ServiceStartupCharacterizationTests
     [TestCase("query")]
     public async Task CancellationAfterOpeningStoppedServicePreventsStart(string cancelAt)
     {
-        using var s = new Scenario(1);
+        using var s = new Scenario(_endpoint, 1);
         if (cancelAt == "open") s.OnOpen = s.Cancel.Cancel;
         else s.Service.OnQuery = _ => s.Cancel.Cancel();
         var error = await Cancellation(s.Run());
@@ -118,7 +122,7 @@ public sealed class ServiceStartupCharacterizationTests
     [TestCase(1060)]
     public async Task FailedStartPreservesNativeErrorIncludingZero(int code)
     {
-        using var s = new Scenario(1);
+        using var s = new Scenario(_endpoint, 1);
         s.Service.StartSucceeds = false;
         s.Service.StartError = code;
         var error = await Failure(s.Run());
@@ -126,7 +130,7 @@ public sealed class ServiceStartupCharacterizationTests
         {
             Assert.That(error, Is.TypeOf<Win32Exception>());
             Assert.That(((Win32Exception)error).NativeErrorCode, Is.EqualTo(code));
-            Assert.That(error.Message, Is.EqualTo("Cannot start network monitoring service."));
+            Assert.That(error.Message, Is.EqualTo("Cannot start privileged WinMon service."));
             Assert.That(s.Log, Is.EqualTo(new[] { "open:21", "trust", "query:1", "start", "dispose" }));
             Assert.That(s.Clock.Reads, Is.Zero);
             Assert.That(s.Service.Disposals, Is.EqualTo(1));
@@ -137,7 +141,7 @@ public sealed class ServiceStartupCharacterizationTests
     [TestCase(false)]
     public async Task SuccessfulOrAlreadyRunningStartPollsImmediatelyWithoutDelay(bool succeeds)
     {
-        using var s = new Scenario(1, 4);
+        using var s = new Scenario(_endpoint, 1, 4);
         s.Service.StartSucceeds = succeeds;
         s.Service.StartError = 1056;
         await s.Run();
@@ -159,7 +163,7 @@ public sealed class ServiceStartupCharacterizationTests
     [TestCase(7u)]
     public async Task NonRunningStatesUseFiftyMillisecondPollingUntilRunning(uint state)
     {
-        using var s = new Scenario(state, state, 4);
+        using var s = new Scenario(_endpoint, state, state, 4);
         var operation = s.Run();
         await s.Clock.NextTimer();
         Assert.Multiple(() =>
@@ -186,7 +190,7 @@ public sealed class ServiceStartupCharacterizationTests
     [TestCase(5000, 2)]
     public async Task ExactTenSecondDeadlineStopsAfterDelayWithoutAnExtraPoll(int advanceMs, int delays)
     {
-        using var s = new Scenario(1);
+        using var s = new Scenario(_endpoint, 1);
         var operation = s.Run();
         for (var i = 0; i < delays; i++)
         {
@@ -197,7 +201,7 @@ public sealed class ServiceStartupCharacterizationTests
         Assert.Multiple(() =>
         {
             Assert.That(error, Is.TypeOf<TimeoutException>());
-            Assert.That(error.Message, Is.EqualTo("Network monitoring service did not start in time."));
+            Assert.That(error.Message, Is.EqualTo("Privileged WinMon service did not start in time."));
             Assert.That(s.Service.Queries, Is.EqualTo(1 + delays));
             Assert.That(s.Clock.Created, Is.EqualTo(delays));
             Assert.That(s.Service.Disposals, Is.EqualTo(1));
@@ -208,7 +212,7 @@ public sealed class ServiceStartupCharacterizationTests
     [Test]
     public async Task RunningReplyAtDeadlineStillWinsBeforeDelayOrDeadlineCheck()
     {
-        using var s = new Scenario(1, 4);
+        using var s = new Scenario(_endpoint, 1, 4);
         s.Service.OnQuery = index => { if (index == 2) s.Clock.Advance(TimeSpan.FromSeconds(10)); };
         await s.Run();
         Assert.Multiple(() =>
@@ -225,7 +229,7 @@ public sealed class ServiceStartupCharacterizationTests
     [TestCase("poll-query")]
     public async Task QueryFailuresRemainFaultedAndCloseTheOwnedHandle(string point)
     {
-        using var s = new Scenario(1);
+        using var s = new Scenario(_endpoint, 1);
         var failure = new UnauthorizedAccessException("fixture query");
         if (point == "trust") s.Service.TrustFailure = failure;
         else s.Service.OnQuery = index => { if (index == (point == "initial-query" ? 1 : 2)) throw failure; };
@@ -244,7 +248,7 @@ public sealed class ServiceStartupCharacterizationTests
     [TestCase(false, 5)]
     public async Task CancellationDuringStartPreservesNativeFailureAndPollingPrecedence(bool succeeds, int code)
     {
-        using var s = new Scenario(1);
+        using var s = new Scenario(_endpoint, 1);
         s.Service.StartSucceeds = succeeds;
         s.Service.StartError = code;
         s.Service.OnStart = s.Cancel.Cancel;
@@ -264,7 +268,7 @@ public sealed class ServiceStartupCharacterizationTests
         if (nativeFailure)
         {
             Assert.That(((Win32Exception)error).NativeErrorCode, Is.EqualTo(code));
-            Assert.That(error.Message, Is.EqualTo("Cannot start network monitoring service."));
+            Assert.That(error.Message, Is.EqualTo("Cannot start privileged WinMon service."));
         }
         else Assert.That(((OperationCanceledException)error).CancellationToken, Is.EqualTo(s.Cancel.Token));
     }
@@ -272,7 +276,7 @@ public sealed class ServiceStartupCharacterizationTests
     [Test]
     public async Task CancellationDuringDelayClosesTheHandleAndRemovesTheTimer()
     {
-        using var s = new Scenario(1);
+        using var s = new Scenario(_endpoint, 1);
         var operation = s.Run();
         await s.Clock.NextTimer();
         s.Cancel.Cancel();
@@ -290,7 +294,7 @@ public sealed class ServiceStartupCharacterizationTests
     [TestCase(10000, true)]
     public async Task CancellationAfterDelayPreservesDeadlinePrecedence(int advanceMs, bool timesOut)
     {
-        using var s = new Scenario(1);
+        using var s = new Scenario(_endpoint, 1);
         s.Clock.OnRead = index => { if (index == 2) s.Cancel.Cancel(); };
         var operation = s.Run();
         await s.Clock.NextTimer();
@@ -309,7 +313,7 @@ public sealed class ServiceStartupCharacterizationTests
     [Test]
     public async Task IncompletePollingDoesNotCaptureCallerSynchronizationContext()
     {
-        using var s = new Scenario(1, 1, 4);
+        using var s = new Scenario(_endpoint, 1, 1, 4);
         var context = new CountingContext();
         var previous = SynchronizationContext.Current;
         Task operation;
@@ -350,7 +354,12 @@ public sealed class ServiceStartupCharacterizationTests
     private sealed class Scenario : IDisposable
     {
         private readonly ConcurrentQueue<string> _log = new();
-        public Scenario(params uint[] states) => Service = new Session(this, states);
+        public Scenario(ProtectedServiceEndpoint endpoint, params uint[] states)
+        {
+            _endpoint = endpoint;
+            Service = new Session(this, states);
+        }
+        private readonly ProtectedServiceEndpoint _endpoint;
         public ManualClock Clock { get; } = new();
         public CancellationTokenSource Cancel { get; } = new();
         public Session Service { get; }
@@ -358,7 +367,9 @@ public sealed class ServiceStartupCharacterizationTests
         public Action? OnOpen { get; set; }
         public string[] Log => _log.ToArray();
         internal void Record(string entry) => _log.Enqueue(entry);
-        public Task Run() => NetworkServiceIdentity.EnsureRunningAsync(Cancel.Token, Open);
+        public Task Run() => _endpoint == ProtectedServiceEndpoints.Network
+            ? NetworkServiceIdentity.EnsureRunningAsync(Cancel.Token, Open)
+            : ProtectedServiceIdentity.EnsureRunningAsync(_endpoint, Cancel.Token, Open);
         private StartupSession Open(uint access)
         {
             Record("open:" + access);

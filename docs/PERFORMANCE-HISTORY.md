@@ -2,6 +2,20 @@
 
 [Back to the developer guide](DEVELOPMENT.md)
 
+## Optional counter recovery and shared startup tests (November 26, 2026)
+
+Compared preserved baseline `82f30c5` and corrected Release Windows adapter builds using the existing native resource-sampler probe. Four pairs alternated launch order after both test hosts had exited. Each process warmed up for 30 reads, then measured 200 back-to-back resource samples with zero process rows.
+
+| Native resource sampler | Before | After |
+| --- | ---: | ---: |
+| Median of four run medians | 1.476 ms | 1.438 ms |
+| Run median range | 1.433–1.603 ms | 1.343–1.465 ms |
+| Managed bytes/sample, every run | 203,400 | 203,400 |
+
+No regression was observed in this probe; the small timing difference does not establish a speedup. A preliminary four-pair run while tests were active measured 1.840 versus 1.852 ms with the same allocation; the quiet repeat removed that load uncertainty. The GPU counter boundary adds one owned object per query rather than per sample. Service startup's owned scope is outside the sampling loop; its native install/start cost was not measured.
+
+The probe uses reflection and excludes process enumeration, real one-second scheduling, whole-app/render-thread work and supported physical GPU fault injection. The baseline probe reproduced the null thermal-zone failure under sandbox counter restrictions and completed outside the sandbox. Raw measurements are `artifacts/audit-fixes/adapter-quiet-*.json`; both Release builds, preliminary measurements and verification evidence remain alongside them. Desktop verification passed 11,381 tests and the 59-render gauges and 23-render connections smokes; the focused Store target passed 102 tests. See [optional counter recovery](design/OPTIONAL-COUNTER-RECOVERY.md).
+
 ## MonCore accounting corrections (November 26, 2026)
 
 Compared the original MonCore source at task start with the fixed Release library using the same compiled, dependency-free measurement host on .NET 10.0.15. Each scenario warmed up 400 calls, then ran seven batches of 60 calls. Three before/after pairs alternated launch order; the table reports the median of the three run medians. Ranking uses five observations of 850 processes grouped into 85 executables; usage uses 850 processes and network accounting uses 80 stable flows. These synthetic timings exclude native collection, desktop rendering and scheduling.

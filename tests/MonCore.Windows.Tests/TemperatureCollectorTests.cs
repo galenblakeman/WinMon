@@ -7,6 +7,35 @@ namespace MonCore.Windows.Tests;
 [TestFixture]
 public sealed class TemperatureCollectorTests
 {
+    [Test]
+    public void FailedMemoryCollection_LeavesThermalZonesEmptyAndAllowsRecovery()
+    {
+        long ticks = 0;
+        using var counter = new MemoryPressureCounter(new FakePdh(
+            new MemoryPressureRaw(4, 1, 2, 3, 4, 5), default,
+            new MemoryPressureRaw(8, 1, 2, 3, 4, 5),
+            new MemoryPressureRaw(10, 1, 2, 3, 4, 5)), () => ticks += Stopwatch.Frequency);
+        using var zones = new WindowsThermalZones();
+        counter.Read();
+
+        var failed = counter.Read();
+        Assert.Multiple(() =>
+        {
+            Assert.That(failed.ThermalZones, Is.Empty);
+            Assert.That(failed.StandbyBytes, Is.Null);
+            Assert.That(failed.PagingReadsPerSecond, Is.Null);
+        });
+        Assert.That(zones.Read(failed.ThermalZones, 10, false), Is.Empty,
+            "Optional counter failure must remain safe for the resource sampler's thermal reader.");
+        var recovered = counter.Read();
+        Assert.Multiple(() =>
+        {
+            Assert.That(recovered.StandbyBytes, Is.EqualTo(6));
+            Assert.That(recovered.PagingReadsPerSecond, Is.Null, "Recovery needs a fresh rate baseline.");
+            Assert.That(counter.Read().PagingReadsPerSecond, Is.EqualTo(10));
+        });
+    }
+
     [TestCase(0, null)]
     [TestCase(9, null)]
     [TestCase(10, 1)]

@@ -19,24 +19,30 @@ internal static class ProtectedServiceIdentity
     private const uint TokenQuery = 0x0008;
     private const int ErrorServiceAlreadyRunning = 1056;
 
-    internal static async Task EnsureRunningAsync(ProtectedServiceEndpoint endpoint, CancellationToken token)
+    internal static Task EnsureRunningAsync(ProtectedServiceEndpoint endpoint, CancellationToken token)
+        => EnsureRunningAsync(endpoint, token, null);
+
+    internal static async Task EnsureRunningAsync(ProtectedServiceEndpoint endpoint, CancellationToken token,
+        Func<uint, IServiceStartupScope>? open)
     {
         ArgumentNullException.ThrowIfNull(endpoint);
         token.ThrowIfCancellationRequested();
-        using var service = Open(endpoint, ServiceQueryStatus | ServiceQueryConfig | ServiceStart);
-        if (!ConfigurationMatches(endpoint, QueryConfiguration(service)))
+        using var service = open is null
+            ? new NativeStartupScope(endpoint, ServiceQueryStatus | ServiceQueryConfig | ServiceStart)
+            : open(ServiceQueryStatus | ServiceQueryConfig | ServiceStart);
+        if (!service.IsTrusted)
             throw new UnauthorizedAccessException("Registered service configuration is not trusted.");
-        if (QueryStatus(service).CurrentState == ServiceRunning) return;
+        if (service.State == ServiceRunning) return;
         token.ThrowIfCancellationRequested();
-        if (!StartService(service, 0, IntPtr.Zero) && Marshal.GetLastWin32Error() != ErrorServiceAlreadyRunning)
-            throw new Win32Exception(Marshal.GetLastWin32Error(), "Cannot start privileged WinMon service.");
-        var deadline = Stopwatch.GetTimestamp() + (long)(Stopwatch.Frequency * 10d);
+        if (!service.TryStart(out var error) && error != ErrorServiceAlreadyRunning)
+            throw new Win32Exception(error, "Cannot start privileged WinMon service.");
+        var deadline = service.Clock.GetTimestamp() + (long)(service.Clock.TimestampFrequency * 10d);
         do
         {
             token.ThrowIfCancellationRequested();
-            if (QueryStatus(service).CurrentState == ServiceRunning) return;
-            await Task.Delay(50, token).ConfigureAwait(false);
-        } while (Stopwatch.GetTimestamp() < deadline);
+            if (service.State == ServiceRunning) return;
+            await Task.Delay(TimeSpan.FromMilliseconds(50), service.Clock, token).ConfigureAwait(false);
+        } while (service.Clock.GetTimestamp() < deadline);
         throw new TimeoutException("Privileged WinMon service did not start in time.");
     }
 
@@ -101,6 +107,21 @@ internal static class ProtectedServiceIdentity
         if (!service.IsInvalid) return service;
         service.Dispose();
         throw new InvalidOperationException("Privileged WinMon service is not installed or accessible.");
+    }
+
+    private sealed class NativeStartupScope(ProtectedServiceEndpoint endpoint, uint access) : IServiceStartupScope
+    {
+        private readonly SafeServiceHandle _service = Open(endpoint, access);
+        public bool IsTrusted => ConfigurationMatches(endpoint, QueryConfiguration(_service));
+        public uint State => QueryStatus(_service).CurrentState;
+        public TimeProvider Clock => TimeProvider.System;
+        public bool TryStart(out int error)
+        {
+            var started = StartService(_service, 0, IntPtr.Zero);
+            error = Marshal.GetLastWin32Error();
+            return started;
+        }
+        public void Dispose() => _service.Dispose();
     }
 
     private static ServiceStatusProcess QueryStatus(SafeServiceHandle service)

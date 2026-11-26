@@ -45,7 +45,8 @@ internal sealed class MemoryPressureCounter(IMemoryPressurePdh? pdh = null, Func
         {
             _hasBaseline = false;
             _previousTimestamp = 0;
-            return default;
+            // default bypasses struct property initializers, including the empty zone list.
+            return new MemoryPressureReading(null, null, null, null);
         }
         var current = _timestamp();
         var validRate = _hasBaseline && (current - _previousTimestamp) / (double)Stopwatch.Frequency is > 0 and <= 5;
