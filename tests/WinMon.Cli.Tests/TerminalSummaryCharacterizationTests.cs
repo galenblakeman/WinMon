@@ -84,7 +84,7 @@ public sealed class TerminalSummaryCharacterizationTests
             Assert.That(Cells(4).All(cell => cell.Length == 1), Is.True);
             Assert.That(Cells(5)[0], Is.EqualTo(Strings.Format(Strings.CliResourceHistory, 60)));
             Assert.That(Cells(5)[1], Is.EqualTo(Strings.Format(Strings.CliScaledHistory, 60, 50, 55)));
-            Assert.That(Cells(5)[3], Is.EqualTo(Strings.Format(Strings.CliRateHistory, 60, "250KB/s")));
+            Assert.That(Cells(5)[3], Is.EqualTo(Strings.Format(Strings.CliRateHistory, 60, "500KB/s")));
         });
     }
 
@@ -125,7 +125,7 @@ public sealed class TerminalSummaryCharacterizationTests
             Assert.That(Render(sample, [peak with { Timestamp = DateTimeOffset.UnixEpoch.AddSeconds(-1) }, sample], 120, 24, true), Is.EqualTo(ordinary));
             Assert.That(Render(sample, [peak, sample], 120, 24, true), Is.Not.EqualTo(ordinary));
             Assert.That(Render(sample, [sample, peak with { Timestamp = DateTimeOffset.UnixEpoch.AddSeconds(61) }], 120, 24, true), Is.Not.EqualTo(ordinary));
-            Assert.That(Render(sample, [peak with { Resources = peak.Resources with { NetworkId = "other" } }, sample], 120, 24, true), Does.Contain("250KB/s"));
+            Assert.That(Render(sample, [peak with { Resources = peak.Resources with { NetworkId = "other" } }, sample], 120, 24, true), Does.Contain("500KB/s"));
         });
     }
 

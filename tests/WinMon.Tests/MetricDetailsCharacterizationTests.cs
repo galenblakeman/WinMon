@@ -641,7 +641,7 @@ public sealed class MetricDetailsCharacterizationTests
             "memory" => Metric(name).Label + ": 75.0%\nRAM used at utilization peak: 6.0 GiB",
             "disk" => Metric(name).Label + ": 60.0%\nDisk throughput at utilization peak: 3.0 MB/s",
             "secondary" => Metric(name).Label + ": 50.0%\nDisk throughput at utilization peak: 7.0 MB/s",
-            "network" => "Download: 10 MB/s\nNetwork scale 0–125 MB/s",
+            "network" => "Download: 10 MB/s\nNetwork scale 0–100 MB/s",
             "gpu" => Metric(name).Label + ": 70.0%",
             _ => throw new ArgumentOutOfRangeException(nameof(name))
         };

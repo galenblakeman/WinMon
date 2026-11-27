@@ -579,6 +579,18 @@ Windows からモジュールの詳細を取得できません。</value>
   <data name="NetworkScale0" xml:space="preserve">
     <value>ネットワークスケール 0–{0}</value>
   </data>
+  <data name="LaneScaleRange" xml:space="preserve">
+    <value>0–{0}</value>
+  </data>
+  <data name="ChartKernel" xml:space="preserve">
+    <value>カーネル</value>
+  </data>
+  <data name="ChartInUse" xml:space="preserve">
+    <value>使用中</value>
+  </data>
+  <data name="ChartResponse" xml:space="preserve">
+    <value>応答</value>
+  </data>
   <data name="No" xml:space="preserve">
     <value>いいえ</value>
   </data>

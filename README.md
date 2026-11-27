@@ -98,7 +98,7 @@ With the hardware sensor service enabled, choose **Temperature** in the dashboar
 
 | Feature | What it helps you do |
 | --- | --- |
-| **Resource charts** | Compare CPU, memory, disk, network and GPU activity on a shared timeline. Choose overlay, small multiples, heatmap, focused resource or logical processor charts. Each view remembers its preferences. |
+| **Resource charts** | Compare CPU, memory, disk, network and GPU activity on a shared timeline. Choose overlay, small multiples, heatmap, focused resource or logical processor charts. Focus breaks each resource down: CPU kernel share, memory composition and commit, disk throughput and response time, GPU dedicated memory, and network receive and send. Each view remembers its preferences. |
 | **Processes** | Rank by CPU, GPU, memory, I/O, threads or handles. Group processes by executable, search, and keep important apps pinned. |
 | **Services** | Follow Windows services, their hosts and observed workers. Inspect resource use or start, stop and restart eligible services with confirmation and elevation where required. |
 | **Connections** | See apps with TCP connections and UDP endpoints. Optional per-app traffic monitoring adds receive/send rates, history and observed byte totals. |

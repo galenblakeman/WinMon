@@ -579,6 +579,18 @@ Windows에서 모듈 세부 정보를 가져올 수 없습니다.</value>
   <data name="NetworkScale0" xml:space="preserve">
     <value>네트워크 눈금 0–{0}</value>
   </data>
+  <data name="LaneScaleRange" xml:space="preserve">
+    <value>0–{0}</value>
+  </data>
+  <data name="ChartKernel" xml:space="preserve">
+    <value>커널</value>
+  </data>
+  <data name="ChartInUse" xml:space="preserve">
+    <value>사용 중</value>
+  </data>
+  <data name="ChartResponse" xml:space="preserve">
+    <value>응답</value>
+  </data>
   <data name="No" xml:space="preserve">
     <value>아니요</value>
   </data>

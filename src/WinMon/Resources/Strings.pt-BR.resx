@@ -579,6 +579,18 @@ Detalhes dos módulos indisponíveis no Windows.</value>
   <data name="NetworkScale0" xml:space="preserve">
     <value>Escala de rede 0–{0}</value>
   </data>
+  <data name="LaneScaleRange" xml:space="preserve">
+    <value>0–{0}</value>
+  </data>
+  <data name="ChartKernel" xml:space="preserve">
+    <value>Kernel</value>
+  </data>
+  <data name="ChartInUse" xml:space="preserve">
+    <value>Em uso</value>
+  </data>
+  <data name="ChartResponse" xml:space="preserve">
+    <value>Resposta</value>
+  </data>
   <data name="No" xml:space="preserve">
     <value>Não</value>
   </data>

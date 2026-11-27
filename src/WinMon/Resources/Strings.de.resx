@@ -579,6 +579,18 @@ Moduldetails sind unter Windows nicht verfügbar.</value>
   <data name="NetworkScale0" xml:space="preserve">
     <value>Netzwerkskala 0–{0}</value>
   </data>
+  <data name="LaneScaleRange" xml:space="preserve">
+    <value>0–{0}</value>
+  </data>
+  <data name="ChartKernel" xml:space="preserve">
+    <value>Kernel</value>
+  </data>
+  <data name="ChartInUse" xml:space="preserve">
+    <value>Belegt</value>
+  </data>
+  <data name="ChartResponse" xml:space="preserve">
+    <value>Antwortzeit</value>
+  </data>
   <data name="No" xml:space="preserve">
     <value>Nein</value>
   </data>

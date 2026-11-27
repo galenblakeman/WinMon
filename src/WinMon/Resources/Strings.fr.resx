@@ -579,6 +579,18 @@ Windows ne fournit pas de détails sur les modules.</value>
   <data name="NetworkScale0" xml:space="preserve">
     <value>Échelle réseau 0–{0}</value>
   </data>
+  <data name="LaneScaleRange" xml:space="preserve">
+    <value>0–{0}</value>
+  </data>
+  <data name="ChartKernel" xml:space="preserve">
+    <value>Noyau</value>
+  </data>
+  <data name="ChartInUse" xml:space="preserve">
+    <value>Utilisée</value>
+  </data>
+  <data name="ChartResponse" xml:space="preserve">
+    <value>Réponse</value>
+  </data>
   <data name="No" xml:space="preserve">
     <value>Non</value>
   </data>

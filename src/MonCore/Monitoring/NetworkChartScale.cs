@@ -16,7 +16,10 @@ public static class NetworkChartScale
         return double.IsFinite(bits) ? bits : null;
     }
 
-    /// <summary>Rounds the visible network peak up to a 1-2-5 step, with a 1 Mbps minimum.</summary>
+    /// <summary>
+    ///     Rounds the visible network peak, in bits per second, up to a 1-2-5 step of bytes per second with a 100 KB/s
+    ///     minimum. Rates are shown in bytes, so rounding there keeps the scale and its quarter ticks short.
+    /// </summary>
     public static double Maximum(IEnumerable<MonitorSample> visible)
     {
         ArgumentNullException.ThrowIfNull(visible);
@@ -28,10 +31,15 @@ public static class NetworkChartScale
                 peak = Math.Max(peak, rate);
         }
 
-        var target = Math.Max(peak, 1_000_000);
-        var magnitude = Math.Pow(10, Math.Floor(Math.Log10(target)));
-        var step = target / magnitude;
-        var rounded = (step <= 1 ? 1 : step <= 2 ? 2 : step <= 5 ? 5 : 10) * magnitude;
+        var rounded = RoundUp(Math.Max(peak / 8, 100_000)) * 8;
         return double.IsFinite(rounded) ? rounded : double.MaxValue;
+    }
+
+    /// <summary>Rounds a positive chart maximum up to the next 1, 2 or 5 times a power of ten.</summary>
+    public static double RoundUp(double value)
+    {
+        var magnitude = Math.Pow(10, Math.Floor(Math.Log10(value)));
+        var step = value / magnitude;
+        return (step <= 1 ? 1 : step <= 2 ? 2 : step <= 5 ? 5 : 10) * magnitude;
     }
 }

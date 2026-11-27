@@ -17,14 +17,14 @@ public sealed class NetworkScaleTests
         };
     }
 
-    [TestCase(0, 1_000_000)]
-    [TestCase(400_000, 1_000_000)]
-    [TestCase(1_200_000, 2_000_000)]
-    [TestCase(3_000_000, 5_000_000)]
-    [TestCase(7_000_000, 10_000_000)]
-    [TestCase(10_000_000, 10_000_000)]
-    [TestCase(180_000_000, 200_000_000)]
-    public void NetworkScale_RoundsBusierDirectionUpToOneTwoFiveStep(double peakBits, double expected)
+    [TestCase(0, 800_000)]
+    [TestCase(400_000, 800_000)]
+    [TestCase(1_200_000, 1_600_000)]
+    [TestCase(3_000_000, 4_000_000)]
+    [TestCase(7_000_000, 8_000_000)]
+    [TestCase(8_000_000, 8_000_000)]
+    [TestCase(180_000_000, 400_000_000)]
+    public void NetworkScale_RoundsBusierDirectionUpToOneTwoFiveByteRateStep(double peakBits, double expected)
     {
         var history = new[] { Sample(peakBits / 8, 0), Sample(0, peakBits / 16) };
         Assert.That(CpuGraph.NetworkScale(history), Is.EqualTo(expected).Within(0.001));
@@ -36,8 +36,8 @@ public sealed class NetworkScaleTests
         var history = new[] { Sample(100_000_000, 0, true), Sample(null, 1_000), Sample(250_000, 0) };
         Assert.Multiple(() =>
         {
-            Assert.That(CpuGraph.NetworkScale(history), Is.EqualTo(2_000_000).Within(0.001));
-            Assert.That(CpuGraph.NetworkScale([]), Is.EqualTo(1_000_000).Within(0.001));
+            Assert.That(CpuGraph.NetworkScale(history), Is.EqualTo(4_000_000).Within(0.001));
+            Assert.That(CpuGraph.NetworkScale([]), Is.EqualTo(800_000).Within(0.001));
             Assert.That(CpuGraph.NetworkBitsPerSecond(history[1].Resources), Is.Null);
         });
     }

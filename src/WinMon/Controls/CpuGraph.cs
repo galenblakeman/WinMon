@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Numerics;
 using System.Windows;
 using System.Windows.Automation.Peers;
 using System.Windows.Input;
@@ -162,6 +163,7 @@ public sealed partial class CpuGraph : FrameworkElement
         if (ActualWidth < 2 || ActualHeight < 2) return;
         if ((ShowGrid || TileMetric == 3) && _process is null)
             _networkScale = NetworkScale(_samples.Where(s => Moment(s) >= _end - _seconds));
+        if (ShowGrid && _process is null && TileMetric is null) UpdateFocusDetailScales();
         var plot = Plot();
         if (plot.Width < 2 || plot.Height < 2) return;
         var accent = Resource("Accent", Brushes.LimeGreen);
@@ -214,7 +216,7 @@ public sealed partial class CpuGraph : FrameworkElement
     {
         if (TileMetric is { } tileMetric)
         {
-            DrawSeries(drawingContext, plot, MetricBrush(tileMetric, accent), tileMetric);
+            if ((uint)tileMetric < 6) DrawSeries(drawingContext, plot, MetricBrush(tileMetric, accent), tileMetric);
         }
         else if (_process is not null || !ShowGrid)
         {
@@ -236,8 +238,9 @@ public sealed partial class CpuGraph : FrameworkElement
                 "CpuChartAccent", "MemoryChartAccent", "DiskChartAccent", "NetworkChartAccent",
                 "GpuChartAccent", "SecondaryDiskChartAccent"
             };
-            // Paint every wash first so later series cannot tint an earlier trace.
-            if (!SystemParameters.HighContrast)
+            // Paint every wash first so later series cannot tint an earlier trace. More than two washes stack into
+            // a gray film over the plot, so busier overlays keep only the lines.
+            if (!SystemParameters.HighContrast && BitOperations.PopCount((uint)(VisibleMetrics & 63)) <= 2)
                 for (var metric = 0; metric < keys.Length; metric++)
                     if ((VisibleMetrics & (1 << metric)) != 0)
                         DrawSeries(drawingContext, plot, Resource(keys[metric], accent), metric, true);
@@ -261,9 +264,7 @@ public sealed partial class CpuGraph : FrameworkElement
                 for (var metric = 0; metric < 6; metric++)
                 {
                     if ((VisibleMetrics & (1 << metric)) == 0 || _selected.IsGap) continue;
-                    var value = metric == 3
-                        ? NetworkBitsPerSecond(_selected.Resources) * 100 / _networkScale
-                        : MetricValue(_selected, metric);
+                    var value = SeriesValue(_selected, metric);
                     if (value is null) continue;
                     drawingContext.DrawEllipse(Resource("Raised", Brushes.Black), CachedPen(MetricBrush(metric, accent), 2),
                         new Point(x, plot.Bottom - Math.Clamp(value.Value, 0, 100) / 100 * plot.Height), 3.5, 3.5);
@@ -484,20 +485,30 @@ public sealed partial class CpuGraph : FrameworkElement
         {
             var focus = FocusedResource();
             var main = FocusPlot(plot);
-            if (!SystemParameters.HighContrast)
-                DrawSeries(dc, main, MetricBrush(focus, accent), focus, true);
-            DrawSeries(dc, main, MetricBrush(focus, accent), focus, dashOverride: HasFocusTemperature ? DashStyles.Solid : null);
-            if (HasFocusTemperature)
-                DrawTemperatureTrace(dc, main, FocusTemperatureBrush(focus, accent), _focusTemperatureMetric!.Value,
-                    focus, FocusTemperatureDash);
-            else
-                Label(dc, MetricName(focus), new Point(plot.Left + 5, plot.Top + 4), MetricTextBrush(focus, accent));
-            var others = metrics.Where(i => i != focus).ToArray();
-            for (var index = 0; index < others.Length; index++)
+            if (focus == 3)
             {
-                var lane = Lane(plot, index, others.Length, 0.59, 1);
-                DrawLane(dc, lane, others[index], accent, line, muted, false, true);
+                DrawFocusNetwork(dc, plot, main, MetricBrush(3, accent), MetricTextBrush(3, accent));
             }
+            else
+            {
+                // The memory stack replaces the single wash; high contrast draws no washes.
+                if (!SystemParameters.HighContrast && focus != 1)
+                    DrawSeries(dc, main, MetricBrush(focus, accent), focus, true);
+                DrawFocusDetails(dc, plot, main, focus, MetricBrush(focus, accent), MetricTextBrush(focus, accent));
+                DrawSeries(dc, main, MetricBrush(focus, accent), focus,
+                    dashOverride: HasFocusTemperature ? DashStyles.Solid : null);
+                if (HasFocusTemperature)
+                    DrawTemperatureTrace(dc, main, FocusTemperatureBrush(focus, accent), _focusTemperatureMetric!.Value,
+                        focus, FocusTemperatureDash);
+                else
+                    Label(dc, MetricName(focus), new Point(plot.Left + 5, plot.Top + 4), MetricTextBrush(focus, accent));
+            }
+            var others = metrics.Where(i => i != focus).ToArray();
+            var details = FocusDetailLaneCount;
+            if (details > 0) DrawDiskDetailLanes(dc, plot, others.Length, focus, accent, line, muted);
+            for (var index = 0; index < others.Length; index++)
+                DrawLane(dc, ContextLane(plot, index + details, others.Length), others[index], accent, line, muted,
+                    false, true);
         }
         else
         {
@@ -508,6 +519,23 @@ public sealed partial class CpuGraph : FrameworkElement
                     ChartType == ResourceChartType.Heatmap);
             }
         }
+    }
+
+    private static readonly (string Arrow, DashStyle Dash)[] NetworkLegend =
+        [("↓", DashStyles.Solid), ("↑", DashStyles.Dash)];
+
+    /// <summary>Draw receive solid and send dashed on the shared throughput scale, with an arrow legend.</summary>
+    private void DrawFocusNetwork(DrawingContext dc, Rect plot, Rect main, Brush color, Brush text)
+    {
+        if (!SystemParameters.HighContrast)
+            DrawSeries(dc, main, color, ReceiveSeries, true);
+        DrawSeries(dc, main, color, ReceiveSeries, dashOverride: DashStyles.Solid);
+        DrawSeries(dc, main, color, SendSeries, dashOverride: DashStyles.Dash);
+        var name = MetricName(3);
+        Label(dc, name, new Point(plot.Left + 5, plot.Top + 4), text);
+        var legend = new Point(plot.Left + 17 + LabelWidth(name), plot.Top + 4);
+        foreach (var (arrow, dash) in NetworkLegend)
+            LegendItem(dc, ref legend, plot.Right - 5, arrow, color, text, dash);
     }
 
     private int FocusedResource()
@@ -529,18 +557,26 @@ public sealed partial class CpuGraph : FrameworkElement
             DrawTemperatureSelection(dc, FocusPlot(plot),
                 FocusTemperatureBrush(focus, fallback), _focusTemperatureMetric!.Value, sample, x);
         var others = metrics.Where(i => i != focus).ToArray();
+        if (FocusesNetworkDirections)
+        {
+            var main = FocusPlot(plot);
+            foreach (var direction in (ReadOnlySpan<int>)[ReceiveSeries, SendSeries])
+                if (SeriesValue(sample, direction) is { } rate)
+                    dc.DrawEllipse(Resource("Raised", Brushes.Black), CachedPen(MetricBrush(3, fallback), 2),
+                        new Point(x, main.Bottom - Math.Clamp(rate, 0, 100) / 100 * main.Height), 3.5, 3.5);
+        }
+
         for (var index = 0; index < metrics.Length; index++)
         {
             var metric = metrics[index];
-            var value = metric == 3
-                ? NetworkBitsPerSecond(sample.Resources) * 100 / _networkScale
-                : MetricValue(sample, metric);
+            if (metric == focus && FocusesNetworkDirections) continue;
+            var value = SeriesValue(sample, metric);
             if (value is null) continue;
             Rect lane;
             if (ChartType == ResourceChartType.Focus)
                 lane = metric == focus
                     ? FocusPlot(plot)
-                    : Lane(plot, Array.IndexOf(others, metric), others.Length, 0.59, 1);
+                    : ContextLane(plot, Array.IndexOf(others, metric) + FocusDetailLaneCount, others.Length);
             else lane = Lane(plot, index, metrics.Length, 0, 1);
             if (ChartType != ResourceChartType.Focus || metric != focus)
                 lane = new Rect(lane.Left, lane.Top + 3, lane.Width, Math.Max(1, lane.Height - 6));
@@ -559,11 +595,18 @@ public sealed partial class CpuGraph : FrameworkElement
             new Point(lane.Left - 8, lane.Top + Math.Max(2, lane.Height / 2 - (compact ? 7 : 12))),
             MetricTextBrush(metric, accent), 1);
         if (!compact)
-            Label(dc, metric == 3 ? RateText.Format(_networkScale) : Strings.Format(Strings.PercentInteger, 100),
-                new Point(lane.Left - 8, lane.Top + Math.Max(14, lane.Height / 2 + 2)), muted, 1);
+            Label(dc, LaneScale(metric), new Point(lane.Left - 8, lane.Top + Math.Max(14, lane.Height / 2 + 2)),
+                muted, 1);
         var inset = new Rect(lane.Left, lane.Top + 3, lane.Width, Math.Max(1, lane.Height - 6));
         if (heatmap) DrawHeatmap(dc, inset, metric, color);
         else DrawSeries(dc, inset, color, metric);
+    }
+
+    /// <summary>The lane's range, such as "0–100%", so it does not read as the current value.</summary>
+    private string LaneScale(int metric)
+    {
+        return Strings.Format(Strings.LaneScaleRange,
+            metric == 3 ? RateText.Format(_networkScale) : Strings.Format(Strings.PercentInteger, 100));
     }
 
     private void DrawHeatmap(DrawingContext dc, Rect lane, int metric, Brush color)
@@ -575,9 +618,7 @@ public sealed partial class CpuGraph : FrameworkElement
             var sample = _samples[sampleIndex];
             // A sample past the newest one, from out-of-order history, would give a negative cell width.
             if (Moment(sample) is var moment && (moment < _end - _seconds || moment > _end)) continue;
-            var value = metric == 3
-                ? NetworkBitsPerSecond(sample.Resources) * 100 / _networkScale
-                : MetricValue(sample, metric);
+            var value = SeriesValue(sample, metric);
             if (!sample.IsGap && value is { } amount &&
                 (previousSource is null || SameSource(previousSource, sample.Resources, metric)))
             {
@@ -709,29 +750,50 @@ public sealed partial class CpuGraph : FrameworkElement
         return NetworkChartScale.BitsPerSecond(resources);
     }
 
-    /// <summary>Round the visible network peak up to a 1-2-5 step, at least 1 Mbps so idle traffic stays low.</summary>
+    /// <summary>Round the visible network peak up to a 1-2-5 byte-rate step, at least 100 KB/s so idle traffic stays low.</summary>
     internal static double NetworkScale(IEnumerable<MonitorSample> visible)
     {
         return NetworkChartScale.Maximum(visible);
     }
 
+    // Focus: Network draws receive and send as their own traces; other views draw the busier direction (metric 3).
+    private const int ReceiveSeries = 6;
+    private const int SendSeries = 7;
+
+    /// <summary>A resource reading as a percentage of its chart scale; network rates use the throughput scale.</summary>
+    private double? SeriesValue(MonitorSample sample, int metric)
+    {
+        return metric switch
+        {
+            3 => NetworkBitsPerSecond(sample.Resources) * 100 / _networkScale,
+            ReceiveSeries => NetworkBitsPerSecond(sample.Resources) is null ? null
+                : sample.Resources.ReceiveBytesPerSecond * 800 / _networkScale,
+            SendSeries => NetworkBitsPerSecond(sample.Resources) is null ? null
+                : sample.Resources.SendBytesPerSecond * 800 / _networkScale,
+            < 6 => MetricValue(sample, metric),
+            _ => DetailValue(sample, metric)
+        };
+    }
+
+    private bool FocusesNetworkDirections => ChartType == ResourceChartType.Focus && FocusedResource() == 3;
+
     private void DrawSeries(DrawingContext drawingContext, Rect plot, Brush accent, int metric, bool fillOnly = false,
-        DashStyle? dashOverride = null)
+        DashStyle? dashOverride = null, double? fillOpacity = null)
     {
         _segment.Clear();
+        var source = SeriesSource(metric);
         double? previous = null;
         ResourceSample? previousSource = null;
         for (var sampleIndex = 0; sampleIndex < _samples.Count; sampleIndex++)
         {
             var sample = _samples[sampleIndex];
             if (Moment(sample) < _end - _seconds) continue;
-            var value = _process is not null ? _processValues![sampleIndex]
-                : metric == 3 ? NetworkBitsPerSecond(sample.Resources) * 100 / _networkScale
-                : MetricValue(sample, metric);
+            var value = _process is not null ? _processValues![sampleIndex] : SeriesValue(sample, metric);
             if (sample.IsGap || value is null || (previous is not null && Moment(sample) - previous.Value > 2.5) ||
-                (previousSource is not null && !SameSource(previousSource, sample.Resources, metric)))
+                (previousSource is not null && !SameSource(previousSource, sample.Resources, source)))
             {
-                DrawSegment(drawingContext, _segment, plot.Bottom, accent, ShowGrid, metric, fillOnly, dashOverride: dashOverride);
+                DrawSegment(drawingContext, _segment, plot.Bottom, accent, ShowGrid, metric, fillOnly,
+                    dashOverride: dashOverride, fillOpacity: fillOpacity);
                 _segment.Clear();
             }
 
@@ -742,7 +804,8 @@ public sealed partial class CpuGraph : FrameworkElement
             previousSource = sample.Resources;
         }
 
-        DrawSegment(drawingContext, _segment, plot.Bottom, accent, ShowGrid, metric, fillOnly, dashOverride: dashOverride);
+        DrawSegment(drawingContext, _segment, plot.Bottom, accent, ShowGrid, metric, fillOnly,
+            dashOverride: dashOverride, fillOpacity: fillOpacity);
         _segment.Clear();
     }
 
@@ -949,14 +1012,21 @@ public sealed partial class CpuGraph : FrameworkElement
         if (ChartType == ResourceChartType.LogicalProcessors)
             return new Rect(2, 8, Math.Max(0, ActualWidth - 4), Math.Max(0, ActualHeight - 33));
 
-        var labelWidth = LabelWidth(Strings.Format(Strings.PercentInteger, 100));
+        // Focus axis ticks are bare values; the other views label each lane with its range.
+        var focus = ChartType == ResourceChartType.Focus;
+        var labelWidth = LabelWidth(focus ? Strings.Format(Strings.PercentInteger, 100) : LaneScale(0));
         foreach (var metric in MetricOrder)
         {
             if ((VisibleMetrics & (1 << metric)) == 0) continue;
             labelWidth = Math.Max(labelWidth, LabelWidth(MetricName(metric)));
             if (metric == 3)
-                labelWidth = Math.Max(labelWidth, LabelWidth(RateText.Format(_networkScale)));
+                labelWidth = Math.Max(labelWidth, LabelWidth(focus ? RateText.Format(_networkScale) : LaneScale(3)));
         }
+
+        if (FocusesDisk)
+            for (var lane = 0; lane < 2; lane++)
+                labelWidth = Math.Max(labelWidth,
+                    Math.Max(LabelWidth(DiskDetailLaneNames[lane]), LabelWidth(DiskDetailRange(lane))));
 
         var left = Math.Ceiling(labelWidth + 10);
         var top = HasFocusTemperature ? FocusTemperaturePlotTop : 8;
@@ -1075,7 +1145,7 @@ public sealed partial class CpuGraph : FrameworkElement
     }
 
     private void DrawSegment(DrawingContext dc, List<Point> points, double baseline, Brush accent, bool overlay,
-        int metric, bool fillOnly, bool allowFill = true, DashStyle? dashOverride = null)
+        int metric, bool fillOnly, bool allowFill = true, DashStyle? dashOverride = null, double? fillOpacity = null)
     {
         if (points.Count == 0) return;
         if (points.Count == 1)
@@ -1098,7 +1168,8 @@ public sealed partial class CpuGraph : FrameworkElement
             }
 
             area.Freeze();
-            dc.DrawGeometry(CachedFill(accent, TileMetric is not null ? 0.23 : overlay ? 0.08 : 0.14), null, area);
+            dc.DrawGeometry(CachedFill(accent, fillOpacity ?? (TileMetric is not null ? 0.23 : overlay ? 0.08 : 0.14)),
+                null, area);
         }
 
         if (fillOnly) return;

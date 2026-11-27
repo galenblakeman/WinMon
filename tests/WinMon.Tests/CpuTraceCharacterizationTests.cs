@@ -28,7 +28,7 @@ public sealed class CpuTraceCharacterizationTests
             Resources = new ResourceSample
             {
                 TotalMemoryBytes = 100, UsedMemoryBytes = (ulong)value, DiskActivePercent = value,
-                SecondaryDiskActivePercent = value, ReceiveBytesPerSecond = value * 1_250,
+                SecondaryDiskActivePercent = value, ReceiveBytesPerSecond = value * 1_000,
                 SendBytesPerSecond = 0, GpuPercent = value
             }
         };
@@ -359,26 +359,30 @@ public sealed class CpuTraceCharacterizationTests
     }
 
     [Test]
-    public void OverlayPaintsEveryWashBeforeAnyTraceThenTheCursorAndSelectionOutlines()
+    [TestCase(3, 2)]
+    [TestCase(63, 6)]
+    public void OverlayPaintsWashesOnlyForTwoSeriesThenTracesCursorAndSelectionOutlines(int visible, int count)
     {
-        var graph = Graph(visible: 63);
+        var graph = Graph(visible: visible);
         graph.Resources["Muted"] = Brushes.White;
         var selected = Sample(1, 50);
         graph.SetData([Sample(0, 25), selected, Sample(2, 75)], 10, selected);
         var rendered = Render(graph);
         var layers = rendered.Drawings.Where(drawing => drawing.Geometry is StreamGeometry).ToArray();
-        var washes = SystemParameters.HighContrast ? 0 : 6;
+        // More than two washes stack into a gray film, so busier overlays draw lines only.
+        var washes = SystemParameters.HighContrast || count > 2 ? 0 : count;
+        var colors = MetricColors.Take(count).ToArray();
         Assert.That(layers.Select(drawing => drawing.Brush is null ? "trace" : "wash"),
-            Is.EqualTo(Enumerable.Repeat("wash", washes).Concat(Enumerable.Repeat("trace", 6))));
+            Is.EqualTo(Enumerable.Repeat("wash", washes).Concat(Enumerable.Repeat("trace", count))));
         Assert.That(layers.Skip(washes).Select(drawing => ((SolidColorBrush)drawing.Pen.Brush).Color),
-            Is.EqualTo(MetricColors));
+            Is.EqualTo(colors));
         var cursor = rendered.Drawings.Single(drawing => drawing.Geometry is LineGeometry &&
             drawing.Pen.Thickness == 1 && drawing.Pen.Brush is SolidColorBrush { Color: var color } && color == Colors.White);
         var outlines = rendered.Drawings.Where(drawing => drawing.Geometry is EllipseGeometry && drawing.Pen is not null).ToArray();
-        Assert.That(outlines.Select(drawing => ((SolidColorBrush)drawing.Pen.Brush).Color), Is.EqualTo(MetricColors));
+        Assert.That(outlines.Select(drawing => ((SolidColorBrush)drawing.Pen.Brush).Color), Is.EqualTo(colors));
         Assert.That(Array.IndexOf(rendered.Drawings, layers[^1]), Is.LessThan(Array.IndexOf(rendered.Drawings, cursor)));
         Assert.That(Array.IndexOf(rendered.Drawings, cursor), Is.LessThan(Array.IndexOf(rendered.Drawings, outlines[0])));
-        AssertColorNear(rendered, ((EllipseGeometry)outlines[^1].Geometry).Center, Colors.Cyan);
+        AssertColorNear(rendered, ((EllipseGeometry)outlines[^1].Geometry).Center, colors[^1]);
     }
 
     [TestCase("none", false, false)]

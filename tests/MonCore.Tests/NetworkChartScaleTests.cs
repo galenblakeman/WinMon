@@ -6,19 +6,29 @@ namespace MonCore.Tests;
 [TestFixture]
 public sealed class NetworkChartScaleTests
 {
-    [TestCase(0, 1_000_000)]
-    [TestCase(400_000, 1_000_000)]
-    [TestCase(1_200_000, 2_000_000)]
-    [TestCase(3_000_000, 5_000_000)]
-    [TestCase(7_000_000, 10_000_000)]
-    [TestCase(10_000_000, 10_000_000)]
-    [TestCase(180_000_000, 200_000_000)]
-    public void Maximum_RoundsPeakUpToOneTwoFiveStep(double bitsPerSecond, double expected)
+    // Inputs and results are bits per second; the 1-2-5 step applies to the byte rate shown on the axis.
+    [TestCase(0, 800_000)]
+    [TestCase(400_000, 800_000)]
+    [TestCase(1_200_000, 1_600_000)]
+    [TestCase(3_000_000, 4_000_000)]
+    [TestCase(7_000_000, 8_000_000)]
+    [TestCase(8_000_000, 8_000_000)]
+    [TestCase(100_000_000, 160_000_000)]
+    [TestCase(180_000_000, 400_000_000)]
+    public void Maximum_RoundsPeakUpToOneTwoFiveByteRateStep(double bitsPerSecond, double expected)
     {
         var samples = new[] { Sample(receiveBytesPerSecond: bitsPerSecond / 8, sendBytesPerSecond: 0) };
 
         Assert.That(NetworkChartScale.Maximum(samples), Is.EqualTo(expected));
     }
+
+    [TestCase(0.3, 0.5)]
+    [TestCase(1, 1)]
+    [TestCase(1.2, 2)]
+    [TestCase(37, 50)]
+    [TestCase(600, 1000)]
+    public void RoundUp_ReturnsTheNextOneTwoFiveStep(double value, double expected) =>
+        Assert.That(NetworkChartScale.RoundUp(value), Is.EqualTo(expected).Within(1e-9));
 
     [Test]
     public void Maximum_IgnoresGapsAndMissingRates()
@@ -30,7 +40,7 @@ public sealed class NetworkChartScaleTests
             Sample(1, null)
         };
 
-        Assert.That(NetworkChartScale.Maximum(samples), Is.EqualTo(1_000_000));
+        Assert.That(NetworkChartScale.Maximum(samples), Is.EqualTo(800_000));
     }
 
     [Test]
@@ -44,7 +54,7 @@ public sealed class NetworkChartScaleTests
             Sample(187_500, 125_000)
         };
 
-        Assert.That(NetworkChartScale.Maximum(samples), Is.EqualTo(2_000_000));
+        Assert.That(NetworkChartScale.Maximum(samples), Is.EqualTo(1_600_000));
     }
 
     [Test]

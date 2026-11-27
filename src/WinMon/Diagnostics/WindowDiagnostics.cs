@@ -908,6 +908,15 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                 {
                     TotalMemoryBytes = 32UL * 1_073_741_824,
                     UsedMemoryBytes = (ulong)((0.62 + 0.003 * Math.Sin(i)) * 32 * 1_073_741_824),
+                    // Focus breakdowns: kernel share, memory composition and commit, disk I/O and GPU memory.
+                    CpuKernelPercent = 3 + 9 * pulse,
+                    ModifiedBytes = 640UL * 1_048_576, StandbyBytes = 9UL * 1_073_741_824,
+                    FreeBytes = (ulong)((0.38 - 0.003 * Math.Sin(i)) * 32 * 1_073_741_824) - 9UL * 1_073_741_824,
+                    CommittedBytes = (ulong)((24 + 6 * pulse) * 1_073_741_824), CommitLimitBytes = 48UL * 1_073_741_824,
+                    DiskReadBytesPerSecond = 20_000_000 + 300_000_000 * pulse,
+                    DiskWriteBytesPerSecond = 8_000_000 + 60_000_000 * pulse,
+                    DiskResponseSeconds = 0.0006 + 0.012 * pulse,
+                    GpuMemoryUsedBytes = (ulong)((3.5 + 2 * pulse) * 1_073_741_824), GpuMemoryTotalBytes = 8UL * 1_073_741_824,
                     CpuTemperature = new CpuTemperatureReading(cpuSensorGeneration, "fixture-cpu", "CPU",
                         "fixture-package", "CPU Package", 46 + 28 * pulse, "Illustrative"),
                     DiskTemperatureCelsius = 37 + 5 * pulse,
@@ -921,7 +930,7 @@ internal sealed partial class WindowDiagnostics(MainWindow window)
                     GpuThermals = [new("illustrative-adapter/0", "GPU", 52 + 13 * pulse, null, null, null, null)],
                     GpuPercent = 43 + 3 * Math.Sin(i * 0.3) + 28 * pulse,
                     ReceiveBytesPerSecond = (2 + 2 * Math.Abs(Math.Sin(i * 0.8)) + 38 * pulse) / 100 * 125_000_000,
-                    SendBytesPerSecond = 125_000
+                    SendBytesPerSecond = 125_000 + 3_000_000 * pulse
                 }
             });
         }

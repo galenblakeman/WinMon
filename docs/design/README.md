@@ -1,5 +1,9 @@
 # WinMon design assets
 
+- [Focus breakdowns](FOCUS-BREAKDOWNS.md) adds CPU kernel share, memory composition and commit, disk I/O and response lanes, and GPU dedicated memory to Focus.
+
+- [Chart scales and network direction](CHART-SCALES-AND-NETWORK-DIRECTION.md) rounds the network scale in bytes, labels lane ranges, splits receive and send in Focus: Network and limits Overlay fills.
+
 - [Scoped rules and disk response time](SCOPED-RULE-TARGETS-AND-DISK-LATENCY.md) adds independent targets and reports sustained volume latency.
 
 - [Peaks in Longer trends](LONGER-TREND-PEAKS.md) preserves brief resource spikes and opens matching process evidence.

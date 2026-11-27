@@ -507,14 +507,15 @@ internal sealed partial class WindowDiagnostics
     private static async Task CaptureFocusTemperatureChartsAsync(MainWindow fixture, FrameworkElement visual,
         string outputDirectory, CancellationToken cancellationToken)
     {
-        foreach (var (focus, name) in new[] { (0, "cpu"), (2, "disk"), (4, "gpu") })
+        foreach (var (focus, name) in new[] { (0, "cpu"), (2, "disk"), (4, "gpu"), (1, "memory") })
         {
             fixture.Preferences = fixture.Preferences with { FocusMetric = focus };
             fixture.BuildChartSelectors();
             fixture.RefreshVisiblePresentation();
             visual.UpdateLayout();
-            await CaptureVisualAsync(visual, Path.Combine(outputDirectory, $"chart-design-focus-{name}-temperature.png"),
-                1, cancellationToken);
+            // Memory has no temperature; its render shows the memory composition and commit.
+            var file = focus == 1 ? $"chart-design-focus-{name}.png" : $"chart-design-focus-{name}-temperature.png";
+            await CaptureVisualAsync(visual, Path.Combine(outputDirectory, file), 1, cancellationToken);
         }
     }
 

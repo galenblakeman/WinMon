@@ -26,8 +26,8 @@ public sealed class CpuAlternativeSelectionCharacterizationTests
             Resources = new ResourceSample
             {
                 TotalMemoryBytes = 100, UsedMemoryBytes = 50, DiskActivePercent = 75,
-                SecondaryDiskActivePercent = 10, ReceiveBytesPerSecond = 62_500,
-                SendBytesPerSecond = 31_250, GpuPercent = 80
+                SecondaryDiskActivePercent = 10, ReceiveBytesPerSecond = 50_000,
+                SendBytesPerSecond = 25_000, GpuPercent = 80
             }
         };
 
@@ -137,7 +137,8 @@ public sealed class CpuAlternativeSelectionCharacterizationTests
     {
         var graph = Graph(ResourceChartType.Focus, visible: 12, focus: focus);
         SetSelected(graph, Sample());
-        AssertMarkers(Render(graph), (2, 0.1375, 0), (3, 0.795, 0));
+        // Disk Focus adds two double-height lanes (throughput, response) above the network lane: 5 units in all.
+        AssertMarkers(Render(graph), (2, 0.1375, 0), (3, 0.59 + 0.41 * 9 / 10, 0));
     }
 
     [TestCase(-20, 0.55)]
@@ -177,7 +178,7 @@ public sealed class CpuAlternativeSelectionCharacterizationTests
     }
 
     [Test]
-    public void NetworkUsesTheBusierDirectionAndVisibleNonGapPeakRatherThanLinkUtilization()
+    public void NetworkFocusMarksReceiveAndSendOnTheVisibleNonGapPeakRatherThanLinkUtilization()
     {
         var graph = Graph(ResourceChartType.Focus, visible: 8, focus: 3);
         var selected = Sample();
@@ -185,8 +186,8 @@ public sealed class CpuAlternativeSelectionCharacterizationTests
         var peak = Sample(20) with { Resources = new ResourceSample { ReceiveBytesPerSecond = 250_000, SendBytesPerSecond = 0 } };
         graph.SetData([Sample(0) with { Resources = huge }, selected,
             Sample(17) with { IsGap = true, Resources = huge }, peak], 10, selected);
-        // Selected500Kbps on a2Mbps scale is25%, leaving75% of the focus lane above its marker.
-        AssertMarkers(Render(graph), (3, 0.4125, 0));
+        // A 250 KB/s peak rounds to a 500 KB/s scale: receive 50 KB/s is 10% and send 25 KB/s is 5%.
+        AssertMarkers(Render(graph), (3, 0.55 * 0.9, 0), (3, 0.55 * 0.95, 0));
     }
 
     [TestCase(ResourceChartType.Focus, "none")]

@@ -158,6 +158,8 @@ public static partial class Strings
     public static string ChartFocusResourceChoice => ResourceManager.GetString(nameof(ChartFocusResourceChoice), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartHeatmap => ResourceManager.GetString(nameof(ChartHeatmap), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartHeatmapHelp => ResourceManager.GetString(nameof(ChartHeatmapHelp), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ChartInUse => ResourceManager.GetString(nameof(ChartInUse), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ChartKernel => ResourceManager.GetString(nameof(ChartKernel), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartLogicalProcessors => ResourceManager.GetString(nameof(ChartLogicalProcessors), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartLogicalProcessorsHelp => ResourceManager.GetString(nameof(ChartLogicalProcessorsHelp), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartOverlay => ResourceManager.GetString(nameof(ChartOverlay), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -166,6 +168,7 @@ public static partial class Strings
     public static string ChartPreferences => ResourceManager.GetString(nameof(ChartPreferences), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartPreferencesNote => ResourceManager.GetString(nameof(ChartPreferencesNote), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartResources => ResourceManager.GetString(nameof(ChartResources), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string ChartResponse => ResourceManager.GetString(nameof(ChartResponse), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartSmallMultiples => ResourceManager.GetString(nameof(ChartSmallMultiples), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartSmallMultiplesHelp => ResourceManager.GetString(nameof(ChartSmallMultiplesHelp), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ChartTimeRange => ResourceManager.GetString(nameof(ChartTimeRange), Culture ?? CultureInfo.CurrentUICulture)!;
@@ -760,6 +763,7 @@ public static partial class Strings
     public static string KilobitsPerSecond => ResourceManager.GetString(nameof(KilobitsPerSecond), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string KilobytesPerSecond => ResourceManager.GetString(nameof(KilobytesPerSecond), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string L2CacheReportedL3CacheReported => ResourceManager.GetString(nameof(L2CacheReportedL3CacheReported), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string LaneScaleRange => ResourceManager.GetString(nameof(LaneScaleRange), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string Language => ResourceManager.GetString(nameof(Language), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string LanguageApplyNote => ResourceManager.GetString(nameof(LanguageApplyNote), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string LanguageChinese => ResourceManager.GetString(nameof(LanguageChinese), Culture ?? CultureInfo.CurrentUICulture)!;

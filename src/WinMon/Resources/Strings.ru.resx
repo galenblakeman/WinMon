@@ -579,6 +579,18 @@ GPU {11} · {12}
   <data name="NetworkScale0" xml:space="preserve">
     <value>Шкала сети 0–{0}</value>
   </data>
+  <data name="LaneScaleRange" xml:space="preserve">
+    <value>0–{0}</value>
+  </data>
+  <data name="ChartKernel" xml:space="preserve">
+    <value>Ядро</value>
+  </data>
+  <data name="ChartInUse" xml:space="preserve">
+    <value>Используется</value>
+  </data>
+  <data name="ChartResponse" xml:space="preserve">
+    <value>Отклик</value>
+  </data>
   <data name="No" xml:space="preserve">
     <value>Нет</value>
   </data>

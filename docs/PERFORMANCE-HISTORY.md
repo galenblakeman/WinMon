@@ -1,5 +1,21 @@
 # WinMon performance history
 
+## Chart scales, network direction and Focus breakdowns (November 27, 2026)
+
+A Release WPF fixture rendered `CpuGraph` at 830 × 280 with 120 synthetic observations carrying every new reading: kernel share, memory composition and commit, disk read/write/response, GPU memory and both network directions. Each case warmed up 300 renders and measured seven batches of 60. The baseline was `4fb8c5b`, whose chart code matches the current HEAD, which did not build on its own; the candidate was the working tree. Runs went before, after, after, before.
+
+| View | Before ms | After ms | Before bytes | After bytes |
+| --- | --- | --- | --- | --- |
+| CPU Focus | 2.85–3.00 | 2.81–3.04 | 37,112 | 39,768 |
+| Memory Focus | 2.02–3.51 | 2.96–3.19 | 29,163–29,187 | 42,491 |
+| Disk Focus | 2.45–3.35 | 2.55–3.24 | 36,219 | 46,363 |
+| Network Focus | 2.08–2.18 | 2.44–2.65 | 29,075 | 31,755–31,787 |
+| GPU Focus | 1.97–2.06 | 2.28–2.30 | 36,219 | 38,963 |
+| Overlay (six resources) | 2.91 | 1.72–3.09 | 38,907 | 23,806–23,811 |
+| Small multiples | 1.67–1.78 | 1.68–1.86 | 26,147 | 26,707 |
+
+Each Focus view allocates 2.7–14 KB more per render for its added geometry: the four memory layers and commit line, the two disk lanes, the second network trace, and the legends. Overlay allocates 15 KB less because six washes are no longer drawn. GPU Focus first measured 3.21–3.59 ms after. Further runs measured 3.38–3.88 ms with its dedicated-memory trace and 2.10–2.28 ms with the GPU memory readings removed, while Network Focus's solid second trace added only about 0.3 ms, so `DashStyles.Dot` was the cost. With a dot pattern of half the density (dash 1, gap 3), three runs measured 2.28–2.30 ms with the trace and 1.85–1.93 ms without it; the table shows that final build. The fixture rasterizes synchronously into a bitmap; in the app, WPF strokes dash patterns on the render thread. The other timing ranges overlap. Each view redraws once a second, only while it is selected. Native sampling is excluded. The harness, both builds and raw results are in `artifacts/focus-breakdowns/`.
+
 ## Expanded gauge details (November 27, 2026)
 
 The Release live-frame benchmark with the divider collapsed recorded 4.573 ms and 560,973 bytes per frame before, and 4.017 ms and 560,973 bytes after. Each run warmed up 400 frames and measured seven batches of 60. The single before/after pair measures the default view, so it does not establish timing variance or the cost of visible detail rows. Results are in `artifacts/gauge-details/`.

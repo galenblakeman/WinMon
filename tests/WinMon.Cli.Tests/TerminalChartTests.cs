@@ -158,7 +158,7 @@ public sealed class TerminalChartTests
         {
             Assert.That(primary, Is.EqualTo(new[] { "40.0%", "50.0%", "10.0%", "↓12.5 MB/s", "76.0%" }));
             Assert.That(secondary, Is.EqualTo(new[] { "4.30 GHz", "16.0 / 32 GiB", "0.2 MB/s", "↑1 MB/s", "3D" }));
-            Assert.That(lines[start + 5], Does.Contain("60s · 0–12.5MB/s"));
+            Assert.That(lines[start + 5], Does.Contain("60s · 0–20MB/s"));
         });
     }
 
@@ -175,8 +175,8 @@ public sealed class TerminalChartTests
         {
             Assert.That(lines[start + 1].Split('│')[7].Trim(), Is.EqualTo("↓125 KB/s"));
             Assert.That(lines[start + 3].Split('│')[7].Trim(), Is.EqualTo("↑375 KB/s"));
-            Assert.That(lines[start + 5].Split('│')[7].Trim(), Does.Contain("625KB/s"));
-            Assert.That(lines[start + 2].Split('│')[7].Count(c => c == '█'), Is.EqualTo(3));
+            Assert.That(lines[start + 5].Split('│')[7].Trim(), Does.Contain("500KB/s"));
+            Assert.That(lines[start + 2].Split('│')[7].Count(c => c == '█'), Is.EqualTo(4));
         });
     }
 
