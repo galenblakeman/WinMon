@@ -421,11 +421,15 @@ public static class RestartHistory
         return buffer.ToArray();
     }
 
+    // Fields are a few bytes each; unbuffered, every one is a separate locked call into the compressor.
+    private const int CompressionBufferBytes = 64 * 1024;
+
     private static void WriteChunk(Stream stream, MemoryStream buffer, byte kind, Action<BinaryWriter> body)
     {
         buffer.SetLength(0);
         using (var deflate = new DeflateStream(buffer, CompressionLevel.Fastest, true))
-        using (var writer = new BinaryWriter(deflate, Encoding.UTF8, true))
+        using (var buffered = new BufferedStream(deflate, CompressionBufferBytes))
+        using (var writer = new BinaryWriter(buffered, Encoding.UTF8, true))
         {
             body(writer);
         }
@@ -444,7 +448,8 @@ public static class RestartHistory
         try
         {
             using var deflate = new DeflateStream(new MemoryStream(payload), CompressionMode.Decompress);
-            using var reader = new BinaryReader(deflate, Encoding.UTF8);
+            using var buffered = new BufferedStream(deflate, CompressionBufferBytes);
+            using var reader = new BinaryReader(buffered, Encoding.UTF8);
             return read(reader);
         }
         catch (Exception ex) when (ex is IOException or InvalidDataException or ArgumentException or
