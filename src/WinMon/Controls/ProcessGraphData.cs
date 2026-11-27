@@ -171,6 +171,16 @@ internal sealed record ProcessGraphData(
         int shared, ProcessSort sort)
     {
         var observed = new bool[identities.Count];
+        // A few rows are matched against every process of every visible sample. These process ID filters skip
+        // most processes before the identity lookup; copied samples only need the rows without cached values.
+        ulong allRows = 0, uncachedRows = 0;
+        for (var i = 0; i < identities.Count; i++)
+        {
+            var bit = ProcessIdBit(identities[i].ProcessId);
+            allRows |= bit;
+            if (!cached[i]) uncachedRows |= bit;
+        }
+
         for (var sampleIndex = uncached == 0 ? shared : 0; sampleIndex < visible.Length; sampleIndex++)
         {
             var sample = visible[sampleIndex];
@@ -178,10 +188,12 @@ internal sealed record ProcessGraphData(
             var copied = sampleIndex < shared;
             Array.Clear(observed);
             var remaining = copied ? uncached : identities.Count;
+            var rows = copied ? uncachedRows : allRows;
             var processes = sample.Processes;
             for (var p = 0; p < processes.Count; p++)
             {
                 var process = processes[p];
+                if ((rows & ProcessIdBit(process.ProcessId)) == 0) continue;
                 if (!indices.TryGetValue(process.Identity, out var index) || (copied && cached[index])) continue;
                 // Keep the first imported entry, including an explicitly unavailable reading.
                 if (observed[index]) continue;
@@ -201,23 +213,38 @@ internal sealed record ProcessGraphData(
         }
     }
 
+    // Windows process IDs are multiples of four, so the low two bits would leave most of the filter unused.
+    private static ulong ProcessIdBit(int processId) => 1UL << ((processId >> 2) & 63);
+    private static ulong KeyLengthBit(string key) => 1UL << (key.Length & 63);
+
     private static void PopulateGroupValues(MonitorSample[] visible, IReadOnlyList<ProcessUsage> groups,
         ProcessSort sort, Dictionary<string, int> indices, double?[][] values, bool[][] observed,
         bool[] cached, int shared, int uncached)
     {
         var missingCounts = sort is ProcessSort.Cpu or ProcessSort.Threads or ProcessSort.Handles
             ? new bool[groups.Count] : null;
+        // Case-insensitive keys that match have equal lengths, so a length filter skips most processes before hashing.
+        ulong allRows = 0, uncachedRows = 0;
+        foreach (var (key, index) in indices)
+        {
+            var bit = KeyLengthBit(key);
+            allRows |= bit;
+            if (!cached[index]) uncachedRows |= bit;
+        }
+
         for (var sampleIndex = uncached == 0 ? shared : 0; sampleIndex < visible.Length; sampleIndex++)
         {
             var sample = visible[sampleIndex];
             if (sample.IsGap) continue;
             var copied = sampleIndex < shared;
             if (missingCounts is not null) Array.Clear(missingCounts);
+            var rows = copied ? uncachedRows : allRows;
             var processes = sample.Processes;
             for (var p = 0; p < processes.Count; p++)
             {
                 var process = processes[p];
-                if (!indices.TryGetValue(ProcessRanking.GroupKey(process), out var index) ||
+                var key = ProcessRanking.GroupKey(process);
+                if ((rows & KeyLengthBit(key)) == 0 || !indices.TryGetValue(key, out var index) ||
                     (copied && cached[index])) continue;
                 observed[index][sampleIndex] = true;
                 if (Value(process, sort, true) is not { } value)
