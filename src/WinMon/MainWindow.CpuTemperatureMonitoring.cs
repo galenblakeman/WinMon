@@ -76,8 +76,12 @@ public partial class MainWindow
         if (_cpuTemperatureRestore is { } restore) await restore;
     }
 
+    // Samples hold the last valid reading through two missed refreshes, under eight seconds, as the gauge does, so a
+    // brief sensor miss does not break charts and history or restart a sustained temperature rule.
     private CpuTemperatureReading? CurrentCpuTemperature() =>
-        _preferences.CpuTemperatureMonitoringEnabled && SensorSetupBroker.Supported ? _cpuTemperature?.Reading : null;
+        _preferences.CpuTemperatureMonitoringEnabled && SensorSetupBroker.Supported
+            ? _cpuTemperature?.GetDisplayReading(System.Diagnostics.Stopwatch.GetTimestamp())
+            : null;
 
     private CpuTemperatureReading? CpuTemperatureForDisplay(ResourceSample? resource)
     {
