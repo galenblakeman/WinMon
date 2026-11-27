@@ -2138,6 +2138,7 @@ Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。<
   <data name="TemperatureFahrenheit" xml:space="preserve"><value>华氏度 (°F)</value></data>
   <data name="PerformanceLimited" xml:space="preserve"><value>性能受限</value></data>
   <data name="ThermalLimit" xml:space="preserve"><value>温度限制</value></data>
+  <data name="GaugeGpuClockMHz" xml:space="preserve"><value>{0:N0} MHz</value></data>
   <data name="GaugeGpuTemperaturePair" xml:space="preserve"><value>{0} · {1}</value></data>
   <data name="DetailPerformanceLimit" xml:space="preserve"><value>性能限制</value></data>
   <data name="DetailSystemThermalZones" xml:space="preserve"><value>系统温度区域</value></data>

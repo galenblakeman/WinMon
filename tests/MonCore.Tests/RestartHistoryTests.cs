@@ -554,7 +554,7 @@ public sealed class RestartHistoryTests
         foreach (var property in SettablePersistedResources().Where(property => property.Name is not
                      (nameof(ResourceSample.PagingReadsPerSecond) or nameof(ResourceSample.StandbyBytes) or
                       nameof(ResourceSample.ModifiedBytes) or nameof(ResourceSample.FreeBytes) or
-                      nameof(ResourceSample.CompressionStoreBytes))))
+                      nameof(ResourceSample.CompressionStoreBytes) or nameof(ResourceSample.GpuGraphicsClockMhz))))
             property.SetValue(resources, Value(property, i, ++n));
         ProcessUsage[] processes =
         [

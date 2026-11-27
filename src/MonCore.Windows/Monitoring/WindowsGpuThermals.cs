@@ -7,7 +7,7 @@ namespace MonCore.Windows.Monitoring;
 /// <summary>WDDM performance data, with retained adapter handles refreshed every 30 seconds.</summary>
 internal sealed class WindowsGpuThermals(WindowsGpuThermals.IApi? api = null, Func<long>? timestamp = null) : IDisposable
 {
-    private const uint RegistryInfo = 8, PerfData = 62, PerfCaps = 63, PhysicalCount = 30;
+    private const uint RegistryInfo = 8, NodePerfData = 61, PerfData = 62, PerfCaps = 63, PhysicalCount = 30;
     private static readonly long RefreshInterval = 30 * Stopwatch.Frequency;
     private readonly List<Adapter> _adapters = [];
     private readonly IApi _api = api ?? new NativeApi();
@@ -32,6 +32,24 @@ internal sealed class WindowsGpuThermals(WindowsGpuThermals.IApi? api = null, Fu
         }
         if (result.Count > 0) HasTemperature = true;
         return result;
+    }
+
+    internal unsafe double? ReadGraphicsClock(string adapterId, uint nodeOrdinal)
+    {
+        foreach (var adapter in _adapters)
+        {
+            if (adapter.Id != adapterId) continue;
+            var data = new NodeData { Node = nodeOrdinal, Physical = adapter.Physical };
+            var query = new AdapterQuery
+            {
+                Handle = adapter.Handle, Type = NodePerfData, Data = (IntPtr)(&data), Size = (uint)sizeof(NodeData)
+            };
+            return _api.Query(ref query) == 0 && data.Frequency is > 0 and <= 1_000_000_000_000
+                ? data.Frequency / 1_000_000d
+                : null;
+        }
+
+        return null;
     }
 
     private void Refresh()
@@ -109,6 +127,14 @@ internal sealed class WindowsGpuThermals(WindowsGpuThermals.IApi? api = null, Fu
     [StructLayout(LayoutKind.Sequential)] private struct CloseAdapter { public uint Handle; }
     [StructLayout(LayoutKind.Sequential)] internal struct AdapterQuery { public uint Handle, Type; public IntPtr Data; public uint Size; }
     [StructLayout(LayoutKind.Sequential)] internal struct Data { public uint Physical; public ulong A, B, C, D, E; public uint FanRpm, Power, Temperature; public byte State; }
+    // D3DKMT_NODE_PERFDATA layout in the Windows 10.0.26100 SDK.
+    [StructLayout(LayoutKind.Explicit, Size = 56)]
+    private struct NodeData
+    {
+        [FieldOffset(0)] public uint Node;
+        [FieldOffset(4)] public uint Physical;
+        [FieldOffset(8)] public ulong Frequency;
+    }
     [StructLayout(LayoutKind.Sequential)] internal struct Caps { public uint Physical; public ulong A, B; public uint MaxFan, Maximum, Warning; }
     internal interface IApi
     {

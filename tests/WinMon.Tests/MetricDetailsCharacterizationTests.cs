@@ -151,14 +151,18 @@ public sealed class MetricDetailsCharacterizationTests
     [Test]
     public void TemperaturePeaks_FollowThePairedPhysicalAdapterWhenUtilizationSwitches()
     {
-        var first = new GpuThermalReading("first/0", "First GPU", 95, null, null, null, null);
-        var second = new GpuThermalReading("second/1", "Second GPU", 65, null, null, null, null);
+        var first = new GpuThermalReading("first/0", "First GPU", 95, 1800, null, null, null);
+        var second = new GpuThermalReading("second/1", "Second GPU", 65, 950, null, null, null);
         Record(Filled with { GpuId = first.AdapterId, GpuThermals = [first, second] });
-        Record(Filled with { GpuId = second.AdapterId, GpuThermals = [first, second with { TemperatureCelsius = 60 }] }, 1);
+        Record(Filled with { GpuId = second.AdapterId, GpuGraphicsClockMhz = 1860,
+            GpuThermals = [first, second with { TemperatureCelsius = 60 }] }, 1);
         _window.OpenDetails(_window.GpuMetric);
         Assert.Multiple(() =>
         {
             Assert.That(Details(_window.GpuMetric).Rows[5].Value, Is.EqualTo("60 °C"));
+            Assert.That(Details(_window.GpuMetric).Rows[6].Value, Is.EqualTo("950 RPM"));
+            Assert.That(Details(_window.GpuMetric).Rows[6].Visibility, Is.EqualTo(Visibility.Visible));
+            Assert.That(Details(_window.GpuMetric).Rows[10].Value, Is.EqualTo("1,860 MHz"));
             Assert.That(Details(_window.GpuMetric).Rows[8].Value, Is.EqualTo(
                 Strings.Format(Strings.TemperaturePeakAt, "65 °C", Start.ToLocalTime())));
             Assert.That(Details(_window.GpuMetric).Rows[9].Value, Does.Contain("First GPU: 95 °C"));
@@ -582,7 +586,7 @@ public sealed class MetricDetailsCharacterizationTests
             "disk" => Metric(name).Label + ": 60.0%\nDisk throughput at utilization peak: 3.0 MB/s",
             "secondary" => Metric(name).Label + ": 50.0%\nDisk throughput at utilization peak: 7.0 MB/s",
             "network" => "Download: 10 MB/s\nNetwork scale 0–125 MB/s",
-            "gpu" => Metric(name).Label + ": 70.0%\nGPU memory used at utilization peak: 2.0 GiB",
+            "gpu" => Metric(name).Label + ": 70.0%",
             _ => throw new ArgumentOutOfRangeException(nameof(name))
         };
         return ExpectedPeakHeading(name) + reading + "\n" +

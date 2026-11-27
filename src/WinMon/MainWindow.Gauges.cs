@@ -77,8 +77,6 @@ public partial class MainWindow
         if (resource is null) return null;
         if (metric == MemoryMetric && resource.UsedMemoryBytes is { } memory)
             return TableMetricText.Memory(memory);
-        if (metric == GpuMetric && resource.GpuMemoryUsedBytes is { } gpuMemory)
-            return TableMetricText.Memory(gpuMemory);
         var rate = metric == DiskMetric ? resource.DiskBytesPerSecond
             : metric == SecondaryDiskMetric ? resource.SecondaryDiskBytesPerSecond : null;
         return Valid(rate) is { } bytes ? TableMetricText.IoRate(bytes) : null;
@@ -109,8 +107,7 @@ public partial class MainWindow
             measurement += "\n" + Strings.Format(Strings.NetworkScale0, RateText.Format(_networkGaugeScale));
         if (GaugePeakNativeValue(metric, sample.Resources) is { } native)
         {
-            var name = metric == MemoryMetric ? Strings.GaugePeakRamUsed
-                : metric == GpuMetric ? Strings.GaugePeakGpuMemoryUsed : Strings.GaugePeakDiskThroughput;
+            var name = metric == MemoryMetric ? Strings.GaugePeakRamUsed : Strings.GaugePeakDiskThroughput;
             measurement += "\n" + Strings.Format(Strings.GaugePeakNativeAtPeak, name, native);
         }
 

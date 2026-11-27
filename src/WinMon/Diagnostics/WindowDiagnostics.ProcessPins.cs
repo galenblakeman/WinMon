@@ -107,7 +107,7 @@ internal sealed partial class WindowDiagnostics
             fixture.NetworkMetric.ValueLabel.Inlines.FirstInline is not Run { Text: var networkText } ||
             !networkText.StartsWith('↓') || !fixture.NetworkMetric.DetailLabel.Text.StartsWith('↑') ||
             fixture.NetworkMetric.DetailLabel.Text.Contains('↓') ||
-            fixture.GpuMetric.DetailLabel.Text != $"{2.1:0.0} / {8.0:0.0} GiB" ||
+            fixture.GpuMetric.DetailLabel.Text != Strings.Unavailable ||
             fixture.Processes.MemoryHeader.Text != Strings.Memory)
             throw new InvalidOperationException(
                 $"UI presentation failed: filled={ButtonIcon.GetFilled(filledPin)}, fill={pinPath.Fill}, foreground={filledPin.Foreground}, clock={fixture.CpuMetric.DetailLabel.Text}, network={fixture.NetworkMetric.ValueLabel.Text}, memory={fixture.Processes.MemoryHeader.Text}.");

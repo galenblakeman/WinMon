@@ -9,6 +9,25 @@ namespace MonCore.Windows.Tests;
 public sealed class GpuThermalLifetimeTests
 {
     [Test]
+    public void GraphicsClock_UsesTheRequestedPhysicalAdapterAndDropsFailedReadings()
+    {
+        var api = new FakeApi();
+        using var collector = new WindowsGpuThermals(api, () => 1);
+        collector.Read();
+        const string adapter = "0x00000000_0x0000002a/1";
+
+        Assert.That(collector.ReadGraphicsClock(adapter, 3), Is.EqualTo(1860d));
+        Assert.That(api.ClockTarget, Is.EqualTo((7u, 3, 1)));
+        Assert.That(collector.ReadGraphicsClock("missing", 0), Is.Null);
+
+        api.FailPerformance = true;
+        Assert.That(collector.ReadGraphicsClock(adapter, 3), Is.Null);
+        api.FailPerformance = false;
+        api.ClockHertz = 0;
+        Assert.That(collector.ReadGraphicsClock(adapter, 3), Is.Null);
+    }
+
+    [Test]
     public void Cache_ReusesHandlesAndCapsUntilThirtySecondsThenClosesThePreviousGeneration()
     {
         long now = 0;
@@ -111,6 +130,8 @@ public sealed class GpuThermalLifetimeTests
         public int EnumerationCalls { get; private set; }
         public int CapsCalls { get; private set; }
         public int PerformanceCalls { get; private set; }
+        public long ClockHertz { get; set; } = 1_860_000_000;
+        public (uint Handle, int Node, int Physical) ClockTarget { get; private set; }
         public List<uint> Closed { get; } = [];
 
         public int Enumerate(ref WindowsGpuThermals.Enumeration adapters)
@@ -144,6 +165,12 @@ public sealed class GpuThermalLifetimeTests
                     PerformanceCalls++;
                     if (FailPerformance) return unchecked((int)0xC000000D);
                     Marshal.StructureToPtr(new WindowsGpuThermals.Data { Physical = physical, Temperature = 610 + physical * 10, Power = 203 }, query.Data, false);
+                    return 0;
+                case 61:
+                    Assert.That(query.Size, Is.EqualTo(56));
+                    ClockTarget = (query.Handle, Marshal.ReadInt32(query.Data), Marshal.ReadInt32(query.Data, 4));
+                    if (FailPerformance) return unchecked((int)0xC000000D);
+                    Marshal.WriteInt64(query.Data, 8, ClockHertz);
                     return 0;
                 default:
                     throw new AssertionException("Unexpected native query type.");

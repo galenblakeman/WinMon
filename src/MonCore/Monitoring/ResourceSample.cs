@@ -29,6 +29,8 @@ public sealed record ResourceSample
     public double? GpuPercent { get; init; }
     public string GpuId { get; init; } = "";
     public string GpuEngine { get; init; } = "";
+    /// <summary>Sampled 3D engine frequency for the adapter identified by <see cref="GpuId"/>.</summary>
+    public double? GpuGraphicsClockMhz { get; init; }
     public ulong? GpuMemoryUsedBytes { get; init; }
     public ulong? GpuMemoryTotalBytes { get; init; }
     public ulong? GpuSharedMemoryUsedBytes { get; init; }

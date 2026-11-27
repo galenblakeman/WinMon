@@ -24,7 +24,7 @@ public partial class MainWindow
             var details = new MetricDetails { Accent = metric.ValueLabel.Foreground };
             _metricDetails.Add(metric, details);
             var count = metric == CpuMetric ? 12 : metric == MemoryMetric ? 11 : metric == NetworkMetric ? 5 :
-                metric == GpuMetric ? 10 : 6;
+                metric == GpuMetric ? 11 : 6;
             for (var i = 0; i < count; i++)
                 details.Rows.Add(new DetailRow { Value = Strings.MissingReading, FullWidth = metric == CpuMetric && i == 9 });
             metric.ToolTip = details;
@@ -90,7 +90,7 @@ public partial class MainWindow
                             [
                                 "DetailAdapterName", "DetailBusiestEngine", "DetailDedicatedMemory",
                                 "DetailSharedMemory", "DetailBusiestProcess", "DetailTemperature", "DetailFanSpeed",
-                                "DetailPower", "DetailTemperaturePeak", "DetailOtherGpuAdapters"
+                                "DetailPower", "DetailTemperaturePeak", "DetailOtherGpuAdapters", "DetailClockSpeed"
                             ]
                             :
                             [
@@ -222,6 +222,9 @@ public partial class MainWindow
             rows[9].Visibility = resource?.GpuThermals.Any(item => item.AdapterId != thermal?.AdapterId &&
                 item.TemperatureCelsius is not null) == true || pairedVisible
                 ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+            var clock = GaugeReadoutText.GpuClock(resource?.GpuGraphicsClockMhz);
+            rows[10].Value = clock ?? Dash;
+            rows[10].Visibility = clock is not null ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
         }
     }
 

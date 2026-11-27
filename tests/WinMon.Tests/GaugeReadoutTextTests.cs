@@ -86,9 +86,19 @@ public sealed class GaugeReadoutTextTests
         {
             Assert.That(GaugeReadoutText.Temperature(61, TemperatureUnit.Celsius), Is.EqualTo("61 °C"));
             Assert.That(GaugeReadoutText.Temperature(61, TemperatureUnit.Fahrenheit), Is.EqualTo("142 °F"));
-            Assert.That(GaugeReadoutText.GpuDetail(null, null, 61, TemperatureUnit.Celsius, powerPercent: null),
-                Is.EqualTo("3D · 61 °C"));
         });
+    }
+
+    [TestCase(1860d, 37d, TemperatureUnit.Celsius, "1,860 MHz · 37 °C")]
+    [TestCase(1860d, 37d, TemperatureUnit.Fahrenheit, "1,860 MHz · 99 °F")]
+    [TestCase(1860d, null, TemperatureUnit.Celsius, "1,860 MHz")]
+    [TestCase(null, 37d, TemperatureUnit.Celsius, "37 °C")]
+    [TestCase(0d, 37d, TemperatureUnit.Celsius, "37 °C")]
+    [TestCase(double.NaN, null, TemperatureUnit.Celsius, null)]
+    public void GpuDetail_ShowsAvailableClockAndTemperature(double? clock, double? temperature,
+        TemperatureUnit unit, string? expected)
+    {
+        Assert.That(GaugeReadoutText.GpuDetail(clock, temperature, unit), Is.EqualTo(expected ?? Strings.Unavailable));
     }
 
     [Test]

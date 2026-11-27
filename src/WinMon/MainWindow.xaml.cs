@@ -390,9 +390,8 @@ public partial class MainWindow
         var resource = latest?.Resources;
         GpuMetric.ValueLabel.Text = Percent(resource?.GpuPercent);
         var gpuThermal = PairedGpuThermal(resource);
-        GpuMetric.DetailLabel.Text = GaugeReadoutText.GpuDetail(resource?.GpuMemoryUsedBytes,
-            resource?.GpuMemoryTotalBytes, gpuThermal?.TemperatureCelsius, _preferences.TemperatureUnit,
-            gpuThermal?.PowerPercent);
+        GpuMetric.DetailLabel.Text = GaugeReadoutText.GpuDetail(resource?.GpuGraphicsClockMhz,
+            gpuThermal?.TemperatureCelsius, _preferences.TemperatureUnit);
         CpuMetric.DetailLabel.Text = GaugeReadoutText.CpuDetail(resource?.CpuClockMhz,
             resource?.CpuTemperature?.Celsius, _preferences.TemperatureUnit);
         UpdateTemperatureMarkers(latest, gpuThermal);

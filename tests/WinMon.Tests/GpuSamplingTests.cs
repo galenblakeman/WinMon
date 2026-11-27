@@ -10,6 +10,22 @@ namespace WinMon.Tests;
 public sealed class GpuSamplingTests
 {
     [Test]
+    public void GraphicsNode_FollowsTheUtilizationAdapterAndSelectsIts3DEngine()
+    {
+        var readings = WindowsGpuSampler.Parse([
+            new("pid_1_luid_0x00000000_0x1234_phys_1_eng_2_engtype_VideoDecode", 95),
+            new("pid_1_luid_0x00000000_0x1234_phys_1_eng_7_engtype_3D", 10),
+            new("pid_2_luid_0x00000000_0x1234_phys_0_eng_4_engtype_3D", 80)
+        ]);
+        var aggregation = new WindowsGpuSampler.EngineAggregation();
+        var busiest = aggregation.Busiest(readings);
+
+        Assert.That(busiest?.Engine, Is.EqualTo("VideoDecode"));
+        Assert.That(aggregation.GraphicsNode(busiest!.Adapter), Is.EqualTo(7u));
+        Assert.That(aggregation.GraphicsNode("missing"), Is.Null);
+    }
+
+    [Test]
     public void DeviceIdentity_DropsBootControlSetAndKeepsPhysicalInstance()
     {
         var a = WindowsGpuDevices.NormalizeKey(@"\REGISTRY\MACHINE\SYSTEM\ControlSet001\Enum\PCI\VEN_ABCD\one\Device Parameters");

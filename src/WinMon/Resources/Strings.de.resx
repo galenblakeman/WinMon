@@ -2150,6 +2150,7 @@ Auch das Wiederherstellen der Drosselung ist fehlgeschlagen: {1}</value></data>
   <data name="TemperatureFahrenheit" xml:space="preserve"><value>Fahrenheit (°F)</value></data>
   <data name="PerformanceLimited" xml:space="preserve"><value>Leistung begrenzt</value></data>
   <data name="ThermalLimit" xml:space="preserve"><value>Temperaturlimit</value></data>
+  <data name="GaugeGpuClockMHz" xml:space="preserve"><value>{0:N0} MHz</value></data>
   <data name="GaugeGpuTemperaturePair" xml:space="preserve"><value>{0} · {1}</value></data>
   <data name="DetailPerformanceLimit" xml:space="preserve"><value>Leistungsgrenze</value></data>
   <data name="DetailSystemThermalZones" xml:space="preserve"><value>Systemtemperaturzonen</value></data>

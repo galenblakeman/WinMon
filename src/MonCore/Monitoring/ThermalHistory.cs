@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace MonCore.Monitoring;
 
@@ -6,14 +7,18 @@ namespace MonCore.Monitoring;
 public sealed record ThermalHistory(CpuTemperatureReading? Cpu, double? CpuLimit, uint? CpuLimitFlags,
     ThermalZoneReading[] Zones, GpuThermalReading[] Gpus, double? Disk, double? SecondaryDisk)
 {
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public double? GpuGraphicsClockMhz { get; init; }
+
     public static ThermalHistory From(ResourceSample r) => new(r.CpuTemperature, r.CpuPerformanceLimitPercent,
         r.CpuPerformanceLimitFlags, r.ThermalZones?.ToArray()!, r.GpuThermals?.ToArray()!,
-        r.DiskTemperatureCelsius, r.SecondaryDiskTemperatureCelsius);
+        r.DiskTemperatureCelsius, r.SecondaryDiskTemperatureCelsius) { GpuGraphicsClockMhz = r.GpuGraphicsClockMhz };
 
     public ResourceSample Apply(ResourceSample r) => r with
     {
         CpuTemperature = Cpu, CpuPerformanceLimitPercent = CpuLimit, CpuPerformanceLimitFlags = CpuLimitFlags,
-        ThermalZones = Zones, GpuThermals = Gpus, DiskTemperatureCelsius = Disk, SecondaryDiskTemperatureCelsius = SecondaryDisk
+        ThermalZones = Zones, GpuThermals = Gpus, DiskTemperatureCelsius = Disk, SecondaryDiskTemperatureCelsius = SecondaryDisk,
+        GpuGraphicsClockMhz = GpuGraphicsClockMhz
     };
 
     public static bool IsTemperature(double? value) => value is >= 1 and <= 150;
@@ -22,7 +27,7 @@ public sealed record ThermalHistory(CpuTemperatureReading? Cpu, double? CpuLimit
     private static bool GpuName(string? value) => value is { Length: <= 1024 } && !value.Any(char.IsControl);
     private static bool Nonnegative(double? value) => value is null || value is >= 0 and <= 1_000_000;
 
-    public bool Valid() => Temperature(Disk) && Temperature(SecondaryDisk) &&
+    public bool Valid() => Temperature(Disk) && Temperature(SecondaryDisk) && Nonnegative(GpuGraphicsClockMhz) &&
         (CpuLimit is null || CpuLimit is >= 0 and <= 100) &&
         (Cpu is null || (IsTemperature(Cpu.Celsius) && Cpu.Generation != Guid.Empty && Name(Cpu.HardwareId) &&
             Name(Cpu.HardwareName) && Name(Cpu.SensorId) && Name(Cpu.SensorName) && Name(Cpu.Source))) &&
@@ -37,7 +42,8 @@ public sealed record ThermalHistory(CpuTemperatureReading? Cpu, double? CpuLimit
     {
         if (resources.CpuTemperature is null && resources.CpuPerformanceLimitPercent is null && resources.CpuPerformanceLimitFlags is null &&
             resources.ThermalZones is { Count: 0 } && resources.GpuThermals is { Count: 0 } &&
-            resources.DiskTemperatureCelsius is null && resources.SecondaryDiskTemperatureCelsius is null)
+            resources.DiskTemperatureCelsius is null && resources.SecondaryDiskTemperatureCelsius is null &&
+            resources.GpuGraphicsClockMhz is null)
         {
             writer.Write(0);
             return;

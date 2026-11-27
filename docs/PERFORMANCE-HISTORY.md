@@ -1,5 +1,9 @@
 # WinMon performance history
 
+## GPU clock and utilization peak (November 26, 2026)
+
+The Release live-frame benchmark used synthetic thermal data, 400 warm-up frames, and seven batches of 60 measured frames per run. The two baseline medians were 4.150 and 5.129 ms per frame, compared with 4.980 and 3.294 ms with the new clock readout. Median UI-thread allocation ranged from 551,725 to 552,297 bytes before and from 551,661 to 552,081 bytes after. Other verification work ran during the comparison, so timing varies substantially between runs. The benchmark excludes native driver sampling. Results and renders are under `artifacts/gpu-gauge/`.
+
 ## Automatic temperature chart scale (November 26, 2026)
 
 The Release temperature-chart benchmark used the same harness for four runs per variant, with 400 warmup frames and seven batches of 60 frames per run. The median of the run medians was 4.667 ms before and 4.573 ms after. Baseline runs ranged from 4.437 to 4.782 ms, and candidate runs ranged from 4.452 to 4.765 ms. Median allocation rose from 562,593 to 563,777 bytes per frame (0.21%). The synthetic 42–83 °C readings drew seven labeled grid lines on the automatic 30–90 °C axis, compared with four on the fixed 0–150 °C axis. These runs used the default chart height and preceded the minimum label spacing for shorter charts. The benchmark measures UI-thread refresh, layout and rendering with synthetic samples. It excludes native sampling and render-thread CPU. Raw runs and screenshots are in `artifacts/temperature-axis/`.

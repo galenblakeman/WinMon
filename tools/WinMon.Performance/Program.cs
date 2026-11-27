@@ -60,6 +60,7 @@ internal static partial class Program
                             "Benchmark CPU", "cpu/0/package", "CPU Package", 52, "LibreHardwareMonitorLib 0.9.6"),
                         DiskTemperatureCelsius = 42, SecondaryDiskTemperatureCelsius = 45,
                         GpuId = "benchmark/0",
+                        GpuGraphicsClockMhz = 1860,
                         GpuThermals = [new("benchmark/0", "Benchmark GPU", 83, 900, 42, 83, 88)],
                         ThermalZones = [new("benchmark-zone", 52, false)]
                     }

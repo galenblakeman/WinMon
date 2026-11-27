@@ -35,9 +35,9 @@ internal sealed partial class WindowDiagnostics
                     DiskBytesPerSecond = i == 94 ? 200_000 : 900_000,
                     SecondaryDiskName = "D:", SecondaryDiskActivePercent = 97 + 2 * pulse,
                     SecondaryDiskBytesPerSecond = 300_000,
-                    GpuEngine = "3D", GpuPercent = 9 + 60 * pulse,
-                    // The utilization peak has no memory reading, so the native setting must fall back to percent.
-                    GpuMemoryUsedBytes = i == 94 ? null : 4UL * 1_073_741_824,
+                    GpuEngine = "3D", GpuPercent = 9 + 60 * pulse, GpuId = "gpu/0",
+                    GpuMemoryUsedBytes = 4UL * 1_073_741_824, GpuGraphicsClockMhz = 1860,
+                    GpuThermals = [new("gpu/0", "Fixture GPU", 37, 900, 20, null, null)],
                     CpuClockMhz = 4300,
                     NetworkId = "fixture", NetworkName = "Ethernet", LinkBitsPerSecond = 1_000_000_000,
                     ReceiveBytesPerSecond = 1_190 + 8_000_000 * pulse, SendBytesPerSecond = 2_100
@@ -117,6 +117,11 @@ internal sealed partial class WindowDiagnostics
                 ];
                 if (corners.Any(corner => InvalidGaugeCorner(style, corner)))
                     throw new InvalidOperationException($"{style} showed a resource corner label wrongly.");
+                var gpuDetail = fixture.GpuMetric.DetailLabel;
+                var expectedGpuDetail = Strings.Format(Strings.GaugeGpuTemperaturePair,
+                    Strings.Format(Strings.GaugeGpuClockMHz, 1860d), Strings.Format(Strings.TemperatureCelsiusValue, 37d));
+                if (gpuDetail.Text != expectedGpuDetail)
+                    throw new InvalidOperationException($"{style} did not show the GPU clock and temperature.");
                 if (fixture.NetworkMetric.PeakIconVisible != arcs.Contains(style))
                     throw new InvalidOperationException($"{style} showed the network peak icon wrongly.");
                 await CaptureVisualAsync(visual,
@@ -155,7 +160,7 @@ internal sealed partial class WindowDiagnostics
             var expectedGpu = Strings.Format(Strings.GaugePeakShort, 69d);
             if (disk != expectedDisk || fixture.GpuMetric.ScaleLabel.Text != expectedGpu)
                 throw new InvalidOperationException(
-                    "Native labels did not use the utilization peak sample or fallback: " +
+                    "Disk throughput or GPU utilization peak label is incorrect: " +
                     $"disk '{disk}' expected '{expectedDisk}', GPU '{fixture.GpuMetric.ScaleLabel.Text}' expected '{expectedGpu}'.");
             await CaptureVisualAsync(visual,
                 Path.Combine(output, $"gauges-native-{theme.ToLowerInvariant()}-{width}.png"), 1, cancellationToken);

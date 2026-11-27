@@ -2138,6 +2138,7 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
   <data name="TemperatureFahrenheit" xml:space="preserve"><value>Фаренгейт (°F)</value></data>
   <data name="PerformanceLimited" xml:space="preserve"><value>Производительность ограничена</value></data>
   <data name="ThermalLimit" xml:space="preserve"><value>Тепловое ограничение</value></data>
+  <data name="GaugeGpuClockMHz" xml:space="preserve"><value>{0:N0} MHz</value></data>
   <data name="GaugeGpuTemperaturePair" xml:space="preserve"><value>{0} · {1}</value></data>
   <data name="DetailPerformanceLimit" xml:space="preserve"><value>Ограничение производительности</value></data>
   <data name="DetailSystemThermalZones" xml:space="preserve"><value>Тепловые зоны системы</value></data>

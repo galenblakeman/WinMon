@@ -29,6 +29,8 @@
 
 - [Effective CPU clock](EFFECTIVE-CPU-CLOCK.md) derives the CPU clock from the rated clock and Windows processor performance, so it follows boost and idle instead of reporting a fixed rated clock.
 
+- [GPU gauge clock and peak](GPU-GAUGE-CLOCK.md) shows live graphics frequency and temperature with a utilization peak in percent.
+
 - [CPU and GPU temperature](TEMPERATURE.md) adds unprivileged GPU temperature, generic CPU performance limits and labelled system thermal-zone readings; its delivery record separates automated checks from native hardware acceptance.
 
 - [Crash summaries](CRASH-SUMMARIES.md) groups the crash and hang events History already reads by signature, shown in History and exposed through a `crashes` CLI command and a `list_crashes` MCP tool.

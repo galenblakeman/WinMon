@@ -83,6 +83,9 @@ internal sealed class WindowsGpuSampler : IDisposable
                     : _memory.Attach(sample.Resources with
                     {
                         GpuPercent = busiest.Percent, GpuId = busiest.Adapter, GpuEngine = busiest.Engine,
+                        GpuGraphicsClockMhz = _aggregation.GraphicsNode(busiest.Adapter) is { } node
+                            ? _thermals.ReadGraphicsClock(busiest.Adapter, node)
+                            : null,
                         GpuName = device?.Name ?? sample.Resources.GpuName
                     }),
                 Processes = AttachProcesses(sample.Processes, perProcess, intervalStart, ReadCreationTime)
@@ -194,6 +197,20 @@ internal sealed class WindowsGpuSampler : IDisposable
                 if (total.Valid && (busiest is not { } current || total.Precedes(current)))
                     busiest = total;
             return busiest?.ToUsage();
+        }
+
+        internal uint? GraphicsNode(string adapter)
+        {
+            EngineTotal? graphics = null;
+            foreach (var total in _physicalEngines.Values)
+                if (total.Adapter == adapter && total.EngineType.Equals("3D", StringComparison.OrdinalIgnoreCase) &&
+                    (graphics is not { } current || total.Precedes(current)))
+                    graphics = total;
+
+            return graphics is { } engine &&
+                   uint.TryParse(engine.Engine, NumberStyles.None, CultureInfo.InvariantCulture, out var ordinal)
+                ? ordinal
+                : null;
         }
 
         public Dictionary<int, GpuUsage?> ByProcess(List<EngineReading> readings)

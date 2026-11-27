@@ -584,6 +584,7 @@ public static partial class Strings
     public static string GaugeCpuClockGHz => ResourceManager.GetString(nameof(GaugeCpuClockGHz), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GaugeCpuTemperaturePair => ResourceManager.GetString(nameof(GaugeCpuTemperaturePair), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GaugeCpuUsagePeakOverWindow => ResourceManager.GetString(nameof(GaugeCpuUsagePeakOverWindow), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string GaugeGpuClockMHz => ResourceManager.GetString(nameof(GaugeGpuClockMHz), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GaugeGpuEngine3D => ResourceManager.GetString(nameof(GaugeGpuEngine3D), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GaugeGpuMemoryPair => ResourceManager.GetString(nameof(GaugeGpuMemoryPair), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string GaugeGpuPower => ResourceManager.GetString(nameof(GaugeGpuPower), Culture ?? CultureInfo.CurrentUICulture)!;
