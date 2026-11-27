@@ -21,7 +21,8 @@ public sealed partial class CpuGraph
     private bool HasFocusTemperature => ChartType == ResourceChartType.Focus &&
                                         _focusTemperatureMetric.HasValue && _temperatureAxis.HasValue;
     private const double FocusTemperaturePlotTop = 27;
-    private static readonly DashStyle FocusTemperatureDash = Frozen(new DashStyle([4d, 3d], 0));
+    // Thinner than the 1.7 activity trace and tinted, so the two read apart without a dash pattern.
+    private const double FocusTemperatureThickness = 1;
     internal (int Minimum, int Maximum) TemperatureAxis => _temperatureAxis ?? (0, 150);
     private static readonly (CaptureMetric Metric, int Resource)[] TemperatureSeries =
     [
@@ -164,7 +165,7 @@ public sealed partial class CpuGraph
     }
 
     private void DrawTemperatureTrace(DrawingContext dc, Rect plot, Brush brush, CaptureMetric metric, int resource,
-        DashStyle? dash = null)
+        DashStyle? dash = null, double? thickness = null)
     {
         _segment.Clear();
         MonitorSample? previous = null;
@@ -175,13 +176,13 @@ public sealed partial class CpuGraph
             if (value is null || (previous is not null && (Moment(sample) - Moment(previous) > 2.5 ||
                 !SameTemperatureSource(previous.Resources, sample.Resources, resource))))
             {
-                DrawSegment(dc, _segment, plot.Bottom, brush, true, resource, false, false, dash);
+                DrawSegment(dc, _segment, plot.Bottom, brush, true, resource, false, false, dash, thickness: thickness);
                 _segment.Clear();
             }
             if (value is { } celsius) _segment.Add(new Point(X(sample, plot), TemperatureY(celsius, plot)));
             previous = value.HasValue ? sample : null;
         }
-        DrawSegment(dc, _segment, plot.Bottom, brush, true, resource, false, false, dash);
+        DrawSegment(dc, _segment, plot.Bottom, brush, true, resource, false, false, dash, thickness: thickness);
         _segment.Clear();
     }
 
@@ -250,7 +251,7 @@ public sealed partial class CpuGraph
         Label(dc, activityText, new Point(plot.Left + 26, 3), MetricTextBrush(focus, accent));
         if (legendLeft >= plot.Left + LabelWidth(activityText) + 32)
         {
-            dc.DrawLine(CachedPen(brush, 1.7, FocusTemperatureDash), new Point(legendLeft, 10), new Point(legendLeft + 20, 10));
+            dc.DrawLine(CachedPen(brush, FocusTemperatureThickness), new Point(legendLeft, 10), new Point(legendLeft + 20, 10));
             Label(dc, temperatureText, new Point(legendLeft + 26, 3), brush);
         }
     }

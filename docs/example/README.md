@@ -37,7 +37,7 @@ To catch the next Chrome spike while you’re away, open **Auto → Automatic ca
 | [![Small multiples with a separate chart for each resource](example_small_multiples.png)](example_small_multiples.png) | [![Network Focus chart with a throughput scale and smaller context charts](example_focus_network.png)](example_focus_network.png) |
 | Small multiples give each resource its own scale on a shared timeline. | Network Focus separates receive and send rates while keeping the other resources visible for context. |
 
-The app also offers Heatmap and Logical processors charts. Choose CPU, Disk or GPU Focus to see activity and available temperature readings together. Temperature uses a dashed trace and a scale on the right. See the [chart guide](../USER-GUIDE.md#your-system-at-a-glance) for all choices.
+The app also offers Heatmap and Logical processors charts. Choose CPU, Disk or GPU Focus to see activity and available temperature readings together. Temperature uses a thin trace and a scale on the right. See the [chart guide](../USER-GUIDE.md#your-system-at-a-glance) for all choices.
 
 With the hardware sensor service enabled, select **Temperature** to compare CPU, GPU and drive readings on a Celsius or Fahrenheit scale. In **History → Longer trends**, select a temperature series to review minute peaks across the last day or week. To capture a sustained spike, open **Settings → Automatic captures**, choose the sensor metric and set a Celsius threshold and duration. [Temperature history and captures](../design/TEMPERATURE-HISTORY.md).
 

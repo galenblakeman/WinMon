@@ -87,7 +87,7 @@ public sealed class TemperatureChartTests
     }
 
     [Test]
-    public void FocusTemperatureTraceUsesThePaletteAndRendersDashes()
+    public void FocusTemperatureTraceUsesThePaletteAndRendersAContinuousLine()
     {
         if (SystemParameters.HighContrast) Assert.Ignore("The OS high contrast scheme supplies the chart colors.");
         var samples = Enumerable.Range(1, 10).Select(second => Sample(second) with { TotalCpuPercent = 10 }).ToArray();
@@ -95,17 +95,18 @@ public sealed class TemperatureChartTests
         var blue = Render(samples, focus: 0, paletteBrush: Brushes.Blue);
         var plot = red.Graph.PlotBounds;
         var y = (int)Math.Floor(plot.Top + plot.Height * 0.55 / 2);
+        // A 1-DIP line can straddle two pixel rows, so each column checks a three-row band.
         int ColoredPixels((CpuGraph Graph, byte[] Pixels) render, bool redTint) =>
-            Enumerable.Range((int)plot.Left + 120, 160).Count(x =>
+            Enumerable.Range((int)plot.Left + 120, 160).Count(x => Enumerable.Range(y - 1, 3).Any(row =>
             {
-                var index = (y * 600 + x) * 4;
+                var index = (row * 600 + x) * 4;
                 var dominant = render.Pixels[index + (redTint ? 2 : 0)];
                 var other = render.Pixels[index + (redTint ? 0 : 2)];
                 return dominant - other > 45;
-            });
+            }));
 
-        Assert.That(ColoredPixels(red, true), Is.InRange(30, 155));
-        Assert.That(ColoredPixels(blue, false), Is.InRange(30, 155));
+        Assert.That(ColoredPixels(red, true), Is.EqualTo(160));
+        Assert.That(ColoredPixels(blue, false), Is.EqualTo(160));
         Assert.That(ColoredPixels(red, false), Is.Zero);
     }
 

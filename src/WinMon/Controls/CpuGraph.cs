@@ -499,7 +499,7 @@ public sealed partial class CpuGraph : FrameworkElement
                     dashOverride: HasFocusTemperature ? DashStyles.Solid : null);
                 if (HasFocusTemperature)
                     DrawTemperatureTrace(dc, main, FocusTemperatureBrush(focus, accent), _focusTemperatureMetric!.Value,
-                        focus, FocusTemperatureDash);
+                        focus, DashStyles.Solid, FocusTemperatureThickness);
                 else
                     Label(dc, MetricName(focus), new Point(plot.Left + 5, plot.Top + 4), MetricTextBrush(focus, accent));
             }
@@ -1145,7 +1145,8 @@ public sealed partial class CpuGraph : FrameworkElement
     }
 
     private void DrawSegment(DrawingContext dc, List<Point> points, double baseline, Brush accent, bool overlay,
-        int metric, bool fillOnly, bool allowFill = true, DashStyle? dashOverride = null, double? fillOpacity = null)
+        int metric, bool fillOnly, bool allowFill = true, DashStyle? dashOverride = null, double? fillOpacity = null,
+        double? thickness = null)
     {
         if (points.Count == 0) return;
         if (points.Count == 1)
@@ -1191,7 +1192,7 @@ public sealed partial class CpuGraph : FrameworkElement
                 1 => DashStyles.Dash, 2 => DashStyles.Dot, 3 => DashStyles.DashDot, 4 => DashStyles.DashDotDot,
                 5 => LongDash, _ => DashStyles.Solid
             };
-        dc.DrawGeometry(null, CachedPen(accent, overlay ? 1.7 : 1.2, dashOverride ?? dashStyle), trace);
+        dc.DrawGeometry(null, CachedPen(accent, thickness ?? (overlay ? 1.7 : 1.2), dashOverride ?? dashStyle), trace);
     }
 
     private static readonly DashStyle LongDash = Frozen(new DashStyle([6d, 2d], 0));
