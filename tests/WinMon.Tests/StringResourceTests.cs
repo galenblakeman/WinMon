@@ -14,6 +14,31 @@ namespace WinMon.Tests;
 [SetUICulture("en")]
 public sealed class StringResourceTests
 {
+    [Test, NonParallelizable]
+    public void CachedText_FollowsTheSelectedCulture()
+    {
+        var original = Strings.Culture;
+        try
+        {
+            Strings.SetCulture(CultureInfo.GetCultureInfo("de"));
+            var german = Strings.Actions;
+            Strings.SetCulture(CultureInfo.GetCultureInfo("en"));
+            var english = Strings.Actions;
+            Strings.SetCulture(CultureInfo.GetCultureInfo("de"));
+            Assert.Multiple(() =>
+            {
+                Assert.That(german, Is.EqualTo("Aktionen"));
+                Assert.That(english, Is.EqualTo("Actions"));
+                Assert.That(Strings.Actions, Is.EqualTo("Aktionen"));
+                Assert.That(Strings.Text[nameof(Strings.Actions)], Is.EqualTo("Aktionen"));
+            });
+        }
+        finally
+        {
+            Strings.SetCulture(original);
+        }
+    }
+
     [Test]
     public void AllTextResources_AreEmbeddedAndHaveValidFormatPlaceholders()
     {

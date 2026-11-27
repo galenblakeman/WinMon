@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Globalization;
 using System.Windows.Data;
@@ -12,6 +13,20 @@ public static partial class Strings
     public static CultureInfo? Culture => Volatile.Read(ref _culture);
 
     public static LocalizedTextSource Text { get; } = new();
+
+    // Views read the same text every second; ResourceManager takes a lock and walks the culture fallbacks each time.
+    private sealed record TextCache(CultureInfo Culture, ConcurrentDictionary<string, string> Values);
+    private static TextCache? _text;
+
+    /// <summary>Resource text for the selected UI culture, read once per culture.</summary>
+    internal static string Get(string name)
+    {
+        var culture = Culture ?? CultureInfo.CurrentUICulture;
+        var cache = Volatile.Read(ref _text);
+        if (cache is null || !ReferenceEquals(cache.Culture, culture))
+            Volatile.Write(ref _text, cache = new TextCache(culture, new ConcurrentDictionary<string, string>()));
+        return cache.Values.GetOrAdd(name, static (key, culture) => ResourceManager.GetString(key, culture)!, culture);
+    }
 
     internal static void SetCulture(CultureInfo? culture)
     {
@@ -30,8 +45,7 @@ public static partial class Strings
 /// <summary>A binding source that refreshes resource text without rebuilding windows.</summary>
 public sealed class LocalizedTextSource : INotifyPropertyChanged
 {
-    public string this[string key] =>
-        Strings.ResourceManager.GetString(key, Strings.Culture ?? CultureInfo.CurrentUICulture)!;
+    public string this[string key] => Strings.Get(key);
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
