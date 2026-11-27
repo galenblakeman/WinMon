@@ -43,6 +43,7 @@ public partial class ConnectionsView
         nameof(ConnectionRowMinWidth), typeof(double), typeof(ConnectionsView), new PropertyMetadata(758d));
 
     private readonly ObservableCollection<ConnectionDisplayRow> _rows = [];
+    private readonly ConnectionGraphData.Reuse _graphReuse = new();
     private readonly Dictionary<string, ConnectionDisplayRow> _cache = new(StringComparer.Ordinal);
     internal ProcessPins Pins { get; } = new();
     internal event Action? PinsChanged;
@@ -430,7 +431,7 @@ public partial class ConnectionsView
                                                      CpuGraph.Moment(_capture.Sample) - _settings.TrafficSeconds)
             .ToArray();
         var graphs = _networkEnabled
-            ? ConnectionGraphData.Build(graphHistory, desired)
+            ? ConnectionGraphData.Build(graphHistory, desired, _graphReuse)
             : null;
         var firstRanked = !_historical && desired.Any(row => row.Pinned) ? desired.FirstOrDefault(row => !row.Pinned) : null;
         foreach (var row in desired)

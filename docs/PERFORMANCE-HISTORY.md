@@ -1,5 +1,18 @@
 # WinMon performance history
 
+## Connection graph window reuse (November 27, 2026)
+
+`ConnectionGraphData.Build` resolved owners and readings for every capture in the traffic window on every Connections refresh; a sampling trace put it at 45% of `ConnectionsView.Update`. While the row set is unchanged, it now copies the leading captures the previous window also held and resolves only the newer ones. The baseline was HEAD `d4321b1` with the same uncommitted UI files, built in a separate worktree; four baseline and four candidate full runs alternated, each warming up 400 frames and measuring seven batches of 60. Pixel hashes matched in every scenario.
+
+| Scenario | Baseline ms | Candidate ms | Baseline bytes per frame | Candidate bytes per frame |
+| --- | --- | --- | --- | --- |
+| Connections, network history, executables | 2.44–2.53 | 1.76–1.84 | 1,257,200–1,257,696 | 1,220,056–1,220,488 |
+| Connections, network history, pinned | 2.44–2.60 | 1.74–1.80 | 1,260,256–1,260,752 | 1,223,112–1,223,544 |
+| Connections, live network readings | 2.68–2.77 | 2.74–2.79 | 1,286,119–1,286,503 | 1,286,159–1,286,591 |
+| Connections, no network readings | 2.12–2.21 | 2.08–2.15 | 511,792–512,176 | 511,744–512,176 |
+
+The live network scenario keeps its timing because its synthetic window changes every frame, so nothing is shared; in the app, live captures persist and slide like the history case. Other scenarios did not change beyond run-to-run variation. A minimal-move reordering of the Services, Connections and Usage lists was measured in the same session and rejected: Connections frames went from 2.09–2.17 to 1.95–1.98 ms, but Services frames went from 4.66–5.19 to 5.44–6.04 ms and allocated about 216 KB more each, mostly in list change notifications and in containers prepared again for moved rows. Raw results are in `artifacts/perf-tune/` and `artifacts/perf-tune/run4-reorder/`.
+
 ## Process graph filters, cached resource text and buffered restart history (November 27, 2026)
 
 A sampling trace of the Release UI benchmark showed three costs. `ProcessGraphData` matched each displayed row against every process of every visible sample whenever a row was new (13% of a live frame), and the grouped path hashed every executable path case-insensitively (57% of process-list refresh time across all scenarios). Generated `Strings` properties called `ResourceManager.GetString` on every read, which took a lock and walked culture fallbacks; Services refresh spent 44% of its time there. Restart-history chunks wrote and read each field straight through `DeflateStream`, entering the compressor once per field. The changes are a 64-bit process-ID (individual) or key-length (grouped) filter ahead of the identity lookup, a per-culture string cache behind the generated properties, and a 64 KiB `BufferedStream` on both sides of each chunk's deflate stream.

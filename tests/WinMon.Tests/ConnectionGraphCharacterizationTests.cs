@@ -44,6 +44,35 @@ public sealed class ConnectionGraphCharacterizationTests
         ConnectionGraphData.Build(captures, [Row(requested)])[ConnectionGraphData.Key(requested)];
 
     [Test]
+    public void ReusedWindowsMatchFreshBuildsAsTheWindowSlidesAndRowsChange()
+    {
+        var first = Owner(42, @"C:\fixture\one.exe");
+        var second = Owner(43, @"C:\fixture\two.exe");
+        var unnamed = Owner(44, "");
+        var captures = Enumerable.Range(0, 40).Select(i => Capture(i, [first, second, unnamed],
+            [Reading(first, i, 1), Reading(second, 2 * i, i % 3 == 0 ? null : 1), Reading(unnamed, 5, i)],
+            i % 11 == 5 ? ProcessNetworkQuality.WarmingUp : ProcessNetworkQuality.None)).ToArray();
+        ConnectionDisplayRow[] both = [Row(first), Row(second)], all = [Row(first), Row(second), Row(unnamed)];
+        var reuse = new ConnectionGraphData.Reuse();
+
+        for (var end = 10; end <= captures.Length; end++)
+        {
+            var window = captures[Math.Max(0, end - 20)..end];
+            var rows = end is >= 25 and < 30 ? all : both;
+            var reused = ConnectionGraphData.Build(window, rows, reuse);
+            var fresh = ConnectionGraphData.Build(window, rows);
+            Assert.That(reused.Keys, Is.EquivalentTo(fresh.Keys), $"window ending {end}");
+            foreach (var (key, data) in fresh)
+                Assert.Multiple(() =>
+                {
+                    Assert.That(reused[key].Values, Is.EqualTo(data.Values), $"{key} ending {end}");
+                    Assert.That(reused[key].ScaleMaximum, Is.EqualTo(data.ScaleMaximum), $"{key} ending {end}");
+                    Assert.That(reused[key].Samples, Is.EqualTo(data.Samples), $"{key} ending {end}");
+                });
+        }
+    }
+
+    [Test]
     public void EmptyRowsReturnBeforeAccessingHistory()
     {
         Assert.That(ConnectionGraphData.Build(null!, []), Is.Empty);
