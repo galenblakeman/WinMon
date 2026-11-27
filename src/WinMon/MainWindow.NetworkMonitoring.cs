@@ -25,12 +25,12 @@ public partial class MainWindow
                 NetworkSetupBroker.Supported
                     ? NetworkMonitoringState.SetupUnavailable
                     : NetworkMonitoringState.StoreUnavailable);
-        var result = await controller.ChangeAsync(enabled, token);
+        using var operation = CancellationTokenSource.CreateLinkedTokenSource(token, Lifetime.Token);
+        var result = await controller.ChangeAsync(enabled, operation.Token);
         if (result.Success && _preferences.ProcessNetworkMonitoringEnabled != enabled)
         {
             var preferences = _preferences with { ProcessNetworkMonitoringEnabled = enabled };
-            using var save = CancellationTokenSource.CreateLinkedTokenSource(token, Lifetime.Token);
-            try { await _preferenceStore.SaveAsync(preferences, save.Token); }
+            try { await _preferenceStore.SaveAsync(preferences, operation.Token); }
             catch
             {
                 await RestoreNetworkMonitoringPreferenceAsync();

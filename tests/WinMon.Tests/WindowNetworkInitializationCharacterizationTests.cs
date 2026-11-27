@@ -72,7 +72,9 @@ public sealed class WindowNetworkInitializationCharacterizationTests
             Assert.That(change.IsCompletedSuccessfully, Is.True);
             var expected = diagnostic || !supported
                 ? new NetworkMonitoringChangeResult(false, supported ? NetworkMonitoringState.SetupUnavailable : NetworkMonitoringState.StoreUnavailable)
-                : new NetworkMonitoringChangeResult(true, NetworkMonitoringState.Disabled);
+                : enabled
+                    ? new NetworkMonitoringChangeResult(false, NetworkMonitoringState.Cancelled)
+                    : new NetworkMonitoringChangeResult(true, NetworkMonitoringState.Disabled);
             Assert.That(change.GetAwaiter().GetResult(), Is.EqualTo(expected));
             Assert.That(window.Preferences, Is.SameAs(preferences));
             Assert.That(window.SamplingTask, Is.Null);
