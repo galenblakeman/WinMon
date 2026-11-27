@@ -307,7 +307,9 @@ public partial class MainWindow
                             MonCore.Monitoring.CaptureMetric.PrimaryDiskTemperature, MonCore.Monitoring.CaptureMetric.SecondaryDiskTemperature }.Select(metric =>
                             CaptureReportText.MetricName(metric, visible.Resources) + " " + GaugeReadoutText.Temperature(
                                 visible.IsGap ? null : MonCore.Monitoring.ThermalMetrics.Value(metric, visible.Resources), _preferences.TemperatureUnit))))
-                    : Strings.CPUMemoryConfiguredDisksNetworkAndGPUOverlayHistoryClick);
+                    : OverallGraph.FocusTemperatureDescription(visible) is { } temperature
+                        ? Strings.CPUMemoryConfiguredDisksNetworkAndGPUOverlayHistoryClick + " " + temperature
+                        : Strings.CPUMemoryConfiguredDisksNetworkAndGPUOverlayHistoryClick);
         RefreshCompactView();
         RefreshServices();
         RefreshUsage();

@@ -82,6 +82,7 @@ internal sealed partial class WindowDiagnostics
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "chart-design-focus-capture.png"), 1,
             cancellationToken);
         fixture.SelectedSample = null;
+        await CaptureFocusTemperatureChartsAsync(fixture, visual, outputDirectory, cancellationToken);
         fixture.Preferences = fixture.Preferences with
         {
             ResourceChartType = ResourceChartType.Overlay,
@@ -501,6 +502,20 @@ internal sealed partial class WindowDiagnostics
             throw new InvalidOperationException("Historical details left too little room for the process list.");
         await CaptureVisualAsync(visual, Path.Combine(outputDirectory, "process-count-history.png"), 1,
             cancellationToken);
+    }
+
+    private static async Task CaptureFocusTemperatureChartsAsync(MainWindow fixture, FrameworkElement visual,
+        string outputDirectory, CancellationToken cancellationToken)
+    {
+        foreach (var (focus, name) in new[] { (0, "cpu"), (2, "disk"), (4, "gpu") })
+        {
+            fixture.Preferences = fixture.Preferences with { FocusMetric = focus };
+            fixture.BuildChartSelectors();
+            fixture.RefreshVisiblePresentation();
+            visual.UpdateLayout();
+            await CaptureVisualAsync(visual, Path.Combine(outputDirectory, $"chart-design-focus-{name}-temperature.png"),
+                1, cancellationToken);
+        }
     }
 
     private static void ArrangeDesignSnapshot(FrameworkElement visual, double width, double height)

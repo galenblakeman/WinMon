@@ -24,10 +24,16 @@ public sealed class TemperatureChartTests
         }
     };
 
-    private static (CpuGraph Graph, byte[] Pixels) Render(MonitorSample[] samples, TemperatureUnit unit = TemperatureUnit.Celsius, int mask = 1)
+    private static (CpuGraph Graph, byte[] Pixels) Render(MonitorSample[] samples, TemperatureUnit unit = TemperatureUnit.Celsius,
+        int mask = 1, int? focus = null, Brush? paletteBrush = null)
     {
-        var graph = new CpuGraph { ShowGrid = true, ChartType = ResourceChartType.Temperature, TemperatureUnit = unit, VisibleMetrics = mask };
-        graph.Resources["CpuChartAccent"] = Brushes.Red;
+        var graph = new CpuGraph
+        {
+            ShowGrid = true, ChartType = focus.HasValue ? ResourceChartType.Focus : ResourceChartType.Temperature,
+            FocusMetric = focus ?? 0, TemperatureUnit = unit, VisibleMetrics = mask
+        };
+        graph.Resources["CpuChartAccent"] = paletteBrush ?? Brushes.Red;
+        graph.Resources["Text"] = Brushes.White;
         graph.Resources["Muted"] = Brushes.Gray;
         graph.Resources["Line"] = Brushes.Gray;
         graph.Measure(new Size(600, 240));
@@ -39,6 +45,68 @@ public sealed class TemperatureChartTests
         var pixels = new byte[600 * 240 * 4];
         bitmap.CopyPixels(pixels, 600 * 4, 0);
         return (graph, pixels);
+    }
+
+    [TestCase(0, 70, 80)]
+    [TestCase(2, 30, 40)]
+    [TestCase(4, 80, 90)]
+    [TestCase(5, 40, 50)]
+    public void FocusTemperatureAxisUsesOnlyTheFocusedSensorInTheVisibleWindow(int focus, int minimum, int maximum)
+    {
+        var samples = Enumerable.Range(1, 20).Select(second =>
+        {
+            var sample = Sample(second, second < 10 ? 120 : 75);
+            return sample with
+            {
+                Resources = sample.Resources with
+                {
+                    DiskName = "C:", DiskTemperatureCelsius = 35,
+                    SecondaryDiskName = "D:", SecondaryDiskTemperatureCelsius = 45,
+                    GpuId = "selected", GpuThermals = [new("other", "", 120, null, null, null, null),
+                        new("selected", "", 85, null, null, null, null)]
+                }
+            };
+        }).ToArray();
+        var focusChart = Render(samples, mask: 63, focus: focus).Graph;
+        Assert.That(focusChart.TemperatureAxis, Is.EqualTo((minimum, maximum)));
+        Assert.That(focusChart.PlotBounds.Right, Is.LessThan(580));
+    }
+
+    [TestCase(0)]
+    [TestCase(1)]
+    public void FocusTemperatureAxisLeavesWhenTheFocusedResourceHasNoVisibleReading(int focus)
+    {
+        var samples = Enumerable.Range(1, 20).Select(second =>
+        {
+            var sample = Sample(second, second < 10 ? 75 : null);
+            return sample with { Resources = sample.Resources with { DiskName = "C:", DiskTemperatureCelsius = 35 } };
+        }).ToArray();
+        var graph = Render(samples, mask: 7, focus: focus).Graph;
+        Assert.That(graph.TemperatureAxis, Is.EqualTo((0, 150)));
+        Assert.That(graph.PlotBounds.Right, Is.EqualTo(598));
+    }
+
+    [Test]
+    public void FocusTemperatureTraceUsesThePaletteAndRendersDashes()
+    {
+        if (SystemParameters.HighContrast) Assert.Ignore("The OS high contrast scheme supplies the chart colors.");
+        var samples = Enumerable.Range(1, 10).Select(second => Sample(second) with { TotalCpuPercent = 10 }).ToArray();
+        var red = Render(samples, focus: 0, paletteBrush: Brushes.Red);
+        var blue = Render(samples, focus: 0, paletteBrush: Brushes.Blue);
+        var plot = red.Graph.PlotBounds;
+        var y = (int)Math.Floor(plot.Top + plot.Height * 0.55 / 2);
+        int ColoredPixels((CpuGraph Graph, byte[] Pixels) render, bool redTint) =>
+            Enumerable.Range((int)plot.Left + 120, 160).Count(x =>
+            {
+                var index = (y * 600 + x) * 4;
+                var dominant = render.Pixels[index + (redTint ? 2 : 0)];
+                var other = render.Pixels[index + (redTint ? 0 : 2)];
+                return dominant - other > 45;
+            });
+
+        Assert.That(ColoredPixels(red, true), Is.InRange(30, 155));
+        Assert.That(ColoredPixels(blue, false), Is.InRange(30, 155));
+        Assert.That(ColoredPixels(red, false), Is.Zero);
     }
 
     private static bool RedAt((CpuGraph Graph, byte[] Pixels) rendered, double second, double celsius)

@@ -145,10 +145,7 @@ public sealed partial class CpuGraph : FrameworkElement
         _processSort = data?.Sort ?? ProcessSort.Cpu;
         _end = history.Count > 0 ? Moment(history[^1]) : 0;
         ScaleMaximum = data?.ScaleMaximum ?? 100;
-        if (ShowGrid && _process is null && TileMetric is null && ChartType == ResourceChartType.Temperature)
-            UpdateTemperatureAxis();
-        else
-            _temperatureAxis = null;
+        UpdateTemperatureAxis();
         InvalidateVisual();
     }
 
@@ -200,6 +197,8 @@ public sealed partial class CpuGraph : FrameworkElement
         DrawSelection(drawingContext, plot, accent, muted, alternative);
 
         drawingContext.Pop();
+        if (HasFocusTemperature)
+            DrawFocusTemperatureGuides(drawingContext, FocusPlot(plot), FocusedResource(), accent);
         DrawSelectedTimestamp(drawingContext, plot, line, muted);
 
         if (ShowGrid && _process is null) DrawMarkers(drawingContext, plot);
@@ -278,7 +277,7 @@ public sealed partial class CpuGraph : FrameworkElement
         if (!alternative || ChartType == ResourceChartType.Focus)
             for (var i = 0; i <= 4; i++)
             {
-                var height = alternative ? plot.Height * 0.55 : plot.Height;
+                var height = alternative ? FocusPlot(plot).Height : plot.Height;
                 var y = plot.Top + height * i / 4;
                 drawingContext.DrawLine(CachedPen(line, 0.7), new Point(plot.Left, y), new Point(plot.Right, y));
                 var focusNetwork = alternative && ChartType == ResourceChartType.Focus && FocusMetric == 3 &&
@@ -483,12 +482,16 @@ public sealed partial class CpuGraph : FrameworkElement
         if (metrics.Length == 0) return;
         if (ChartType == ResourceChartType.Focus)
         {
-            var focus = metrics.Contains(FocusMetric) ? FocusMetric : metrics[0];
-            var main = new Rect(plot.Left, plot.Top, plot.Width, plot.Height * 0.55);
+            var focus = FocusedResource();
+            var main = FocusPlot(plot);
             if (!SystemParameters.HighContrast)
                 DrawSeries(dc, main, MetricBrush(focus, accent), focus, true);
-            DrawSeries(dc, main, MetricBrush(focus, accent), focus);
-            Label(dc, MetricName(focus), new Point(plot.Left + 5, plot.Top + 4), MetricTextBrush(focus, accent));
+            DrawSeries(dc, main, MetricBrush(focus, accent), focus, dashOverride: HasFocusTemperature ? DashStyles.Solid : null);
+            if (HasFocusTemperature)
+                DrawTemperatureTrace(dc, main, FocusTemperatureBrush(focus, accent), _focusTemperatureMetric!.Value,
+                    focus, FocusTemperatureDash);
+            else
+                Label(dc, MetricName(focus), new Point(plot.Left + 5, plot.Top + 4), MetricTextBrush(focus, accent));
             var others = metrics.Where(i => i != focus).ToArray();
             for (var index = 0; index < others.Length; index++)
             {
@@ -507,11 +510,24 @@ public sealed partial class CpuGraph : FrameworkElement
         }
     }
 
+    private int FocusedResource()
+    {
+        if ((uint)FocusMetric < 6 && (VisibleMetrics & (1 << FocusMetric)) != 0) return FocusMetric;
+        foreach (var metric in MetricOrder)
+            if ((VisibleMetrics & (1 << metric)) != 0) return metric;
+        return -1;
+    }
+
+    private static Rect FocusPlot(Rect plot) => new(plot.Left, plot.Top, plot.Width, plot.Height * 0.55);
+
     private void DrawAlternativeSelection(DrawingContext dc, Rect plot, double x, MonitorSample sample,
         Brush fallback)
     {
         var metrics = MetricOrder.Where(i => (VisibleMetrics & (1 << i)) != 0).ToArray();
-        var focus = metrics.Contains(FocusMetric) ? FocusMetric : metrics.FirstOrDefault();
+        var focus = FocusedResource();
+        if (HasFocusTemperature)
+            DrawTemperatureSelection(dc, FocusPlot(plot),
+                FocusTemperatureBrush(focus, fallback), _focusTemperatureMetric!.Value, sample, x);
         var others = metrics.Where(i => i != focus).ToArray();
         for (var index = 0; index < metrics.Length; index++)
         {
@@ -523,7 +539,7 @@ public sealed partial class CpuGraph : FrameworkElement
             Rect lane;
             if (ChartType == ResourceChartType.Focus)
                 lane = metric == focus
-                    ? new Rect(plot.Left, plot.Top, plot.Width, plot.Height * 0.55)
+                    ? FocusPlot(plot)
                     : Lane(plot, Array.IndexOf(others, metric), others.Length, 0.59, 1);
             else lane = Lane(plot, index, metrics.Length, 0, 1);
             if (ChartType != ResourceChartType.Focus || metric != focus)
@@ -631,6 +647,7 @@ public sealed partial class CpuGraph : FrameworkElement
     {
         var surface = Resource("PlotSurface", Brushes.Black);
         var text = Resource("Text", Brushes.White);
+        var markerTop = HasFocusTemperature ? plot.Top - 8 : 0;
         foreach (var marker in Markers)
         {
             if (MarkerX(marker, plot) is not { } x) continue;
@@ -640,20 +657,20 @@ public sealed partial class CpuGraph : FrameworkElement
                 switch (marker.Pattern)
                 {
                     case ChartMarkerPattern.Diamond:
-                        context.BeginFigure(new Point(x, 0), true, true);
-                        context.LineTo(new Point(x + 5, 5), true, false);
+                        context.BeginFigure(new Point(x, markerTop), true, true);
+                        context.LineTo(new Point(x + 5, markerTop + 5), true, false);
                         context.LineTo(new Point(x, plot.Top + 8), true, false);
-                        context.LineTo(new Point(x - 5, 5), true, false);
+                        context.LineTo(new Point(x - 5, markerTop + 5), true, false);
                         break;
                     case ChartMarkerPattern.Square:
-                        context.BeginFigure(new Point(x - 4, 0), true, true);
-                        context.LineTo(new Point(x + 4, 0), true, false);
+                        context.BeginFigure(new Point(x - 4, markerTop), true, true);
+                        context.LineTo(new Point(x + 4, markerTop), true, false);
                         context.LineTo(new Point(x + 4, plot.Top + 7), true, false);
                         context.LineTo(new Point(x - 4, plot.Top + 7), true, false);
                         break;
                     default:
-                        context.BeginFigure(new Point(x - 6, 0), true, true);
-                        context.LineTo(new Point(x + 6, 0), true, false);
+                        context.BeginFigure(new Point(x - 6, markerTop), true, true);
+                        context.LineTo(new Point(x + 6, markerTop), true, false);
                         context.LineTo(new Point(x, plot.Top + 3), true, false);
                         break;
                 }
@@ -676,7 +693,7 @@ public sealed partial class CpuGraph : FrameworkElement
     {
         if (!ShowGrid || _process is not null || Markers.Count == 0) return null;
         var plot = Plot();
-        if (point.Y > plot.Top + 6) return null;
+        if (point.Y > plot.Top + 6 || (HasFocusTemperature && point.Y < plot.Top - 8)) return null;
         return Markers.Where(m => MarkerX(m, plot) is { } x && Math.Abs(x - point.X) <= 8)
             .MinBy(m => Math.Abs(MarkerX(m, plot)!.Value - point.X));
     }
@@ -698,7 +715,8 @@ public sealed partial class CpuGraph : FrameworkElement
         return NetworkChartScale.Maximum(visible);
     }
 
-    private void DrawSeries(DrawingContext drawingContext, Rect plot, Brush accent, int metric, bool fillOnly = false)
+    private void DrawSeries(DrawingContext drawingContext, Rect plot, Brush accent, int metric, bool fillOnly = false,
+        DashStyle? dashOverride = null)
     {
         _segment.Clear();
         double? previous = null;
@@ -713,7 +731,7 @@ public sealed partial class CpuGraph : FrameworkElement
             if (sample.IsGap || value is null || (previous is not null && Moment(sample) - previous.Value > 2.5) ||
                 (previousSource is not null && !SameSource(previousSource, sample.Resources, metric)))
             {
-                DrawSegment(drawingContext, _segment, plot.Bottom, accent, ShowGrid, metric, fillOnly);
+                DrawSegment(drawingContext, _segment, plot.Bottom, accent, ShowGrid, metric, fillOnly, dashOverride: dashOverride);
                 _segment.Clear();
             }
 
@@ -724,7 +742,7 @@ public sealed partial class CpuGraph : FrameworkElement
             previousSource = sample.Resources;
         }
 
-        DrawSegment(drawingContext, _segment, plot.Bottom, accent, ShowGrid, metric, fillOnly);
+        DrawSegment(drawingContext, _segment, plot.Bottom, accent, ShowGrid, metric, fillOnly, dashOverride: dashOverride);
         _segment.Clear();
     }
 
@@ -784,7 +802,7 @@ public sealed partial class CpuGraph : FrameworkElement
             ? Strings.NoSampleInThisInterval
             : processor is { } index
                 ? DescribeLogicalProcessorSample(sample, index)
-                : ChartType == ResourceChartType.Temperature ? DescribeTemperatureSample(sample) : DescribeSample(sample);
+                : DescribeResourceSample(sample);
     }
 
     internal void RefreshLanguage()
@@ -800,7 +818,7 @@ public sealed partial class CpuGraph : FrameworkElement
                     ? Strings.NoSampleInThisInterval
                     : processor is { } index
                         ? DescribeLogicalProcessorSample(sample, index)
-                        : ChartType == ResourceChartType.Temperature ? DescribeTemperatureSample(sample) : DescribeSample(sample);
+                        : DescribeResourceSample(sample);
         }
 
         _labels.Clear();
@@ -941,7 +959,9 @@ public sealed partial class CpuGraph : FrameworkElement
         }
 
         var left = Math.Ceiling(labelWidth + 10);
-        return new Rect(left, 8, Math.Max(0, ActualWidth - left - 2), Math.Max(0, ActualHeight - 33));
+        var top = HasFocusTemperature ? FocusTemperaturePlotTop : 8;
+        var right = HasFocusTemperature ? FocusTemperatureAxisWidth() : 2;
+        return new Rect(left, top, Math.Max(0, ActualWidth - left - right), Math.Max(0, ActualHeight - top - 25));
     }
 
     private double LabelWidth(string text)
@@ -1055,7 +1075,7 @@ public sealed partial class CpuGraph : FrameworkElement
     }
 
     private void DrawSegment(DrawingContext dc, List<Point> points, double baseline, Brush accent, bool overlay,
-        int metric, bool fillOnly, bool allowFill = true)
+        int metric, bool fillOnly, bool allowFill = true, DashStyle? dashOverride = null)
     {
         if (points.Count == 0) return;
         if (points.Count == 1)
@@ -1100,7 +1120,7 @@ public sealed partial class CpuGraph : FrameworkElement
                 1 => DashStyles.Dash, 2 => DashStyles.Dot, 3 => DashStyles.DashDot, 4 => DashStyles.DashDotDot,
                 5 => LongDash, _ => DashStyles.Solid
             };
-        dc.DrawGeometry(null, CachedPen(accent, overlay ? 1.7 : 1.2, dashStyle), trace);
+        dc.DrawGeometry(null, CachedPen(accent, overlay ? 1.7 : 1.2, dashOverride ?? dashStyle), trace);
     }
 
     private static readonly DashStyle LongDash = Frozen(new DashStyle([6d, 2d], 0));
