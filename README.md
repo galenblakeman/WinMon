@@ -42,7 +42,7 @@ Memory details show paging reads per second, standby, modified, free/zero memory
 
 ## Download and requirements
 
-**WinMon 5.2.1** adds expandable meter details in Full and Compact views, more hardware sensor readings on supported devices, and resource breakdowns in Focus charts. Open **History** directly from the Full view title bar.
+**WinMon 5.2.2** updates the optional hardware sensor and network services along with the app, so readings added in newer versions, such as CPU package power, appear after an in-app update. 5.2 also adds expandable meter details in Full and Compact views, more hardware sensor readings on supported devices, and resource breakdowns in Focus charts. Open **History** directly from the Full view title bar.
 
 [Download the latest release](https://github.com/galenblakeman/WinMon/releases/latest), then choose:
 
