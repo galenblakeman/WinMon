@@ -2192,7 +2192,9 @@ Przywrócenie ograniczania również nie powiodło się: {1}</value></data>
   <data name="GpuDiscoveryFailed" xml:space="preserve"><value>Wykrywanie GPU nie powiodło się. Zamknij i otwórz ponownie Ustawienia.</value></data>
   <data name="ServicesIntro" xml:space="preserve"><value>Opcjonalne usługi w tle. Pierwsza konfiguracja wymaga zgody administratora.</value></data>
   <data name="ServicesHardwareHeading" xml:space="preserve"><value>Czujniki sprzętowe</value></data>
-  <data name="ServicesHardwareNote" xml:space="preserve"><value>Temperatura CPU i obsługiwane prędkości wentylatorów. Wymaga osobnej instalacji oficjalnego PawnIO.</value></data>
+  <data name="ServicesHardwareNote" xml:space="preserve"><value>Wyświetla temperaturę procesora i prędkości obsługiwanych wentylatorów. Konfiguracja wymaga zgody administratora i instaluje sterownik PawnIO, jeśli go brakuje.</value></data>
+  <data name="SensorPawnIoSetupFailed" xml:space="preserve"><value>WinMon nie mógł zainstalować PawnIO. Spróbuj ponownie włączyć czujniki sprzętowe.</value></data>
+  <data name="SensorPawnIoRestartRequired" xml:space="preserve"><value>Uruchom ponownie system Windows, a następnie ponownie włącz czujniki sprzętowe.</value></data>
   <data name="ServicesNetworkNote" xml:space="preserve"><value>Wysyłanie i odbieranie danych przez wszystkie karty sieciowe. Wyłączenie zatrzymuje zbieranie danych, pozostawiając wspólną usługę zainstalowaną.</value></data>
   <data name="ServicesRepair" xml:space="preserve"><value>Napraw</value></data>
   <data name="ServicesRemove" xml:space="preserve"><value>Usuń…</value></data>

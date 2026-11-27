@@ -2204,7 +2204,9 @@ La restauration de la limitation a aussi échoué : {1}</value></data>
   <data name="GpuDiscoveryFailed" xml:space="preserve"><value>Échec de la détection des GPU. Fermez puis rouvrez les paramètres.</value></data>
   <data name="ServicesIntro" xml:space="preserve"><value>Services facultatifs en arrière-plan. La configuration initiale nécessite une autorisation administrateur.</value></data>
   <data name="ServicesHardwareHeading" xml:space="preserve"><value>Capteurs matériels</value></data>
-  <data name="ServicesHardwareNote" xml:space="preserve"><value>Température du processeur et vitesses de ventilateurs prises en charge. Nécessite PawnIO officiel installé séparément.</value></data>
+  <data name="ServicesHardwareNote" xml:space="preserve"><value>Affiche la température du processeur et la vitesse des ventilateurs pris en charge. La configuration nécessite l’autorisation d’un administrateur et installe le pilote PawnIO s’il est absent.</value></data>
+  <data name="SensorPawnIoSetupFailed" xml:space="preserve"><value>WinMon n’a pas pu installer PawnIO. Réessayez d’activer les capteurs matériels.</value></data>
+  <data name="SensorPawnIoRestartRequired" xml:space="preserve"><value>Redémarrez Windows, puis réactivez les capteurs matériels.</value></data>
   <data name="ServicesNetworkNote" xml:space="preserve"><value>Activité d’envoi et de réception sur toutes les cartes réseau. La désactivation arrête la collecte mais conserve le service partagé installé.</value></data>
   <data name="ServicesRepair" xml:space="preserve"><value>Réparer</value></data>
   <data name="ServicesRemove" xml:space="preserve"><value>Supprimer…</value></data>

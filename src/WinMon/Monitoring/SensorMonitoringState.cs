@@ -12,7 +12,9 @@ public enum SensorMonitoringState
     SetupUnavailable,
     Cancelled,
     Failed,
-    StoreUnavailable
+    StoreUnavailable,
+    PawnIoSetupFailed,
+    RestartRequired
 }
 
 public sealed record SensorMonitoringChangeResult(bool Success, SensorMonitoringState State);

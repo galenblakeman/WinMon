@@ -12,6 +12,19 @@ namespace WinMon.Tests;
 [TestFixture]
 public sealed class CpuTemperatureClientTests
 {
+    [TestCase(5, SensorMonitoringState.PawnIoSetupFailed)]
+    [TestCase(3010, SensorMonitoringState.RestartRequired)]
+    public async Task PawnIoSetupFailurePreventsEnableAndReportsTheOutcome(int exitCode, SensorMonitoringState expected)
+    {
+        await using var client = new CpuTemperatureClient(_ => throw new IOException("Service missing"),
+            (_, _, _) => throw new SensorSetupFailedException("pawnio", exitCode), () => true);
+
+        var result = await client.ChangeAsync(true, CancellationToken.None);
+
+        Assert.That(result, Is.EqualTo(new SensorMonitoringChangeResult(false, expected)));
+        Assert.That(client.Reading, Is.Null);
+    }
+
     [TestCase("success")]
     [TestCase("cancelled")]
     [TestCase("failed")]

@@ -2192,7 +2192,9 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
   <data name="GpuDiscoveryFailed" xml:space="preserve"><value>GPUの検出に失敗しました。設定を閉じて開き直してください。</value></data>
   <data name="ServicesIntro" xml:space="preserve"><value>オプションのバックグラウンドサービス。初回設定には管理者の承認が必要です。</value></data>
   <data name="ServicesHardwareHeading" xml:space="preserve"><value>ハードウェアセンサー</value></data>
-  <data name="ServicesHardwareNote" xml:space="preserve"><value>CPU温度と対応するファン速度。公式PawnIOを別途インストールする必要があります。</value></data>
+  <data name="ServicesHardwareNote" xml:space="preserve"><value>プロセッサーの温度と対応ファンの回転数を表示します。セットアップには管理者の承認が必要です。PawnIO ドライバーが未インストールの場合は、セットアップ時にインストールします。</value></data>
+  <data name="SensorPawnIoSetupFailed" xml:space="preserve"><value>WinMon は PawnIO をインストールできませんでした。ハードウェアセンサーをもう一度有効にしてください。</value></data>
+  <data name="SensorPawnIoRestartRequired" xml:space="preserve"><value>Windows を再起動してから、ハードウェアセンサーをもう一度有効にしてください。</value></data>
   <data name="ServicesNetworkNote" xml:space="preserve"><value>すべてのネットワークアダプターの送受信を記録します。無効にすると収集は停止しますが、共有サービスはインストールされたままです。</value></data>
   <data name="ServicesRepair" xml:space="preserve"><value>修復</value></data>
   <data name="ServicesRemove" xml:space="preserve"><value>削除…</value></data>

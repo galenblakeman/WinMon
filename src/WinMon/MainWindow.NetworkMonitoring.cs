@@ -18,14 +18,27 @@ public partial class MainWindow
             _networkRestore = _networkMonitoring.RestoreAsync(true, Lifetime.Token);
     }
 
-    private Task<NetworkMonitoringChangeResult> ChangeNetworkMonitoringAsync(bool enabled, CancellationToken token)
+    private async Task<NetworkMonitoringChangeResult> ChangeNetworkMonitoringAsync(bool enabled, CancellationToken token)
     {
-        return _networkMonitoring is { } controller
-            ? controller.ChangeAsync(enabled, token)
-            : Task.FromResult(new NetworkMonitoringChangeResult(false,
+        if (_networkMonitoring is not { } controller)
+            return new NetworkMonitoringChangeResult(false,
                 NetworkSetupBroker.Supported
                     ? NetworkMonitoringState.SetupUnavailable
-                    : NetworkMonitoringState.StoreUnavailable));
+                    : NetworkMonitoringState.StoreUnavailable);
+        var result = await controller.ChangeAsync(enabled, token);
+        if (result.Success && _preferences.ProcessNetworkMonitoringEnabled != enabled)
+        {
+            var preferences = _preferences with { ProcessNetworkMonitoringEnabled = enabled };
+            using var save = CancellationTokenSource.CreateLinkedTokenSource(token, Lifetime.Token);
+            try { await _preferenceStore.SaveAsync(preferences, save.Token); }
+            catch
+            {
+                await RestoreNetworkMonitoringPreferenceAsync();
+                throw;
+            }
+            _preferences = _preferences with { ProcessNetworkMonitoringEnabled = enabled };
+        }
+        return result;
     }
 
     private async Task<NetworkMonitoringChangeResult> RemoveNetworkMonitoringAsync(CancellationToken token)

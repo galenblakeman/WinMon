@@ -20,16 +20,15 @@ internal static class SetupService
     {
         if (operation is not ("install" or "remove")) throw new InvalidDataException("Unsupported setup operation.");
         host ??= new SetupHost();
-#if SENSOR_SETUP
-        // This is deliberately before setup creates or stages any installation content. Removal remains available
-        // after PawnIO is removed, so users can recover from a changed driver installation.
-        if (RequiresSensorPrerequisite(operation)) host.EnsureSensorPrerequisite();
-#endif
         host.PrepareParent();
         var lease = await AcquireLockAsync(token, host).ConfigureAwait(false);
         try
         {
             host.EnsureOwnedOrAbsent();
+#if SENSOR_SETUP
+            if (RequiresSensorPrerequisite(operation))
+                await host.EnsureSensorPrerequisite(host.InstallDirectory, token).ConfigureAwait(false);
+#endif
             var state = host.CaptureState();
             var complete = true;
             if (Directory.Exists(host.InstallDirectory))

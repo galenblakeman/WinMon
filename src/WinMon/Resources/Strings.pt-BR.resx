@@ -2192,7 +2192,9 @@ A restauração da limitação também falhou: {1}</value></data>
   <data name="GpuDiscoveryFailed" xml:space="preserve"><value>Falha ao detectar GPUs. Feche e reabra as Configurações.</value></data>
   <data name="ServicesIntro" xml:space="preserve"><value>Serviços opcionais em segundo plano. A configuração inicial requer aprovação de administrador.</value></data>
   <data name="ServicesHardwareHeading" xml:space="preserve"><value>Sensores de hardware</value></data>
-  <data name="ServicesHardwareNote" xml:space="preserve"><value>Temperatura da CPU e velocidades de ventoinhas compatíveis. Requer o PawnIO oficial instalado separadamente.</value></data>
+  <data name="ServicesHardwareNote" xml:space="preserve"><value>Mostra a temperatura do processador e a velocidade das ventoinhas compatíveis. A configuração requer aprovação de um administrador e instala o driver PawnIO se ele estiver ausente.</value></data>
+  <data name="SensorPawnIoSetupFailed" xml:space="preserve"><value>O WinMon não conseguiu instalar o PawnIO. Tente ativar os sensores de hardware novamente.</value></data>
+  <data name="SensorPawnIoRestartRequired" xml:space="preserve"><value>Reinicie o Windows e depois ative os sensores de hardware novamente.</value></data>
   <data name="ServicesNetworkNote" xml:space="preserve"><value>Envio e recebimento em todos os adaptadores de rede. Desativar interrompe a coleta, mas mantém o serviço compartilhado instalado.</value></data>
   <data name="ServicesRepair" xml:space="preserve"><value>Reparar</value></data>
   <data name="ServicesRemove" xml:space="preserve"><value>Remover…</value></data>

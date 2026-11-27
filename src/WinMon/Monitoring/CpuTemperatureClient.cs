@@ -109,6 +109,13 @@ internal sealed class CpuTemperatureClient : IAsyncDisposable
                 await DisconnectAsync().ConfigureAwait(false);
                 return Result(false, SensorMonitoringState.Cancelled);
             }
+            catch (SensorSetupFailedException exception) when (exception.Phase == "pawnio")
+            {
+                Trace.TraceWarning("WinMon PawnIO setup returned {0}.", exception.ErrorCode);
+                await DisconnectAsync().ConfigureAwait(false);
+                return Result(false, exception.ErrorCode == 3010
+                    ? SensorMonitoringState.RestartRequired : SensorMonitoringState.PawnIoSetupFailed);
+            }
             catch (Exception exception)
             {
                 Trace.TraceError("WinMon CPU temperature monitoring could not be enabled: {0}", exception);

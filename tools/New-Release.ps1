@@ -86,8 +86,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Release tests failed.' }
     if ($CodeSign) {
         & (Join-Path $PSScriptRoot 'New-NetworkServicePackage.ps1') -Version $version -UpdateSigningKeyPath $UpdateSigningKeyPath -OutputDirectory $networkServiceBundle @signingParameters
-        & (Join-Path $PSScriptRoot 'New-SensorServicePackage.ps1') -Version $version -UpdateSigningKeyPath $UpdateSigningKeyPath -OutputDirectory $sensorServiceBundle @signingParameters
         & (Join-Path $PSScriptRoot 'Get-PawnIoInstaller.ps1') -OutputPath $pawnIoInstaller
+        & (Join-Path $PSScriptRoot 'New-SensorServicePackage.ps1') -Version $version -UpdateSigningKeyPath $UpdateSigningKeyPath -OutputDirectory $sensorServiceBundle -PawnIoInstaller $pawnIoInstaller @signingParameters
     }
     $publishArguments = @('publish', 'src/WinMon/WinMon.csproj', '-c', 'Release', '-r', 'win-x64', '-m:1', '-p:UseSharedCompilation=false', "--artifacts-path=$work/build", '-o', $publish)
     if ($CodeSign) { $publishArguments += "-p:NetworkServiceBundleDirectory=$networkServiceBundle"; $publishArguments += "-p:SensorServiceBundleDirectory=$sensorServiceBundle" }

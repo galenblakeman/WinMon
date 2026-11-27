@@ -92,7 +92,7 @@ The optional service is configured under **Settings → Sensors**. The original 
 5. **Transactional setup.** Install/repair health-checks the service before the app commits the transaction. Failure or cancellation rolls back the sensor installation. Its policy, protected directory and independent Installed apps registration do not replace network monitoring.
 6. **Independent removal.** Remove shuts down and removes only the sensor service and owned files/policy/registration. It leaves PawnIO, network monitoring and other tools alone. A close/process-exit failure reports restart required instead of starting another collector over live handles.
 
-Automatic PawnIO installation is implemented only in the signed desktop installer; see [installer sensor setup](INSTALLER-SENSOR-SETUP.md). Its native clean-machine, blocked-driver and reboot acceptance remains separate from a successful library read.
+The signed desktop installer and signed desktop Settings can install missing PawnIO. See [installer sensor setup](INSTALLER-SENSOR-SETUP.md) and [Services settings](SERVICES-SETTINGS.md). Its native clean-machine, blocked-driver and reboot acceptance remains separate from a successful library read.
 
 ## Service lifecycle
 
@@ -212,4 +212,4 @@ The first signed repair attempt exposed a shutdown race: SCM reported Stopped be
 
 Live service snapshots in this VM reported Partial quality with null Celsius before and after repair. Physical AMD/Intel accuracy, HVCI/coexistence, real idle/load behavior and broader clean-machine setup acceptance remain unverified.
 
-Current departures: the signed installer optionally bundles pinned official PawnIO, while Settings and portable service setup require a separately installed prerequisite. CPU and motherboard categories are enabled for the selected CPU sensor and board fans. The user removed the native-before-implementation gate; physical accuracy, HVCI/coexistence and broader clean-machine acceptance remain open. Earlier phase-2 evidence above describes its CPU-only, separately installed-driver build.
+Current departures: signed desktop and portable builds include the pinned official PawnIO installer in the sensor setup helper, so Settings can install it when needed. CPU and motherboard categories are enabled for the selected CPU sensor and board fans. The user removed the native-before-implementation gate; physical accuracy, HVCI/coexistence and broader clean-machine acceptance remain open. Earlier phase-2 evidence above describes its CPU-only, separately installed-driver build.

@@ -472,21 +472,53 @@ public sealed partial class SettingsSaveCharacterizationTests
         }), Is.False);
     }
 
+    [Test]
+    public void SaveAppliesSensorsEvenWhenNetworkSetupFails()
+    {
+        var sensorCalls = 0;
+        var window = Window(change: (_, _) => Task.FromResult(new NetworkMonitoringChangeResult(false, NetworkMonitoringState.Failed)),
+            changeCpu: (enabled, _) =>
+            {
+                Assert.That(enabled, Is.True);
+                sensorCalls++;
+                return Task.FromResult(new SensorMonitoringChangeResult(true, SensorMonitoringState.Active));
+            });
+        Assert.That(RunDialog(window, async () =>
+        {
+            window.ProcessNetworkMonitoringCheckBox.IsChecked = true;
+            window.CpuTemperatureMonitoringCheckBox.IsChecked = true;
+            await window.SaveAsync();
+            Assert.That(window.Result, Is.Null);
+            Assert.That(window.ProcessNetworkMonitoringStatus.Text, Is.EqualTo(Strings.NetworkProcessMonitoringFailed));
+            Assert.That(window.CpuTemperatureMonitoringStatus.Text, Is.EqualTo(Strings.CpuTemperatureMonitoringActive));
+            await window.SaveAsync();
+        }), Is.True);
+        Assert.That(window.Result!.CpuTemperatureMonitoringEnabled, Is.True);
+        Assert.That(window.Result.ProcessNetworkMonitoringEnabled, Is.False);
+        Assert.That(sensorCalls, Is.EqualTo(1));
+    }
+
     [TestCase("success"), TestCase("cancelled")]
     public void BusySaveRejectsConcurrentCallsAndCloseCancelsTheChangeBeforeARetry(string completion)
     {
         var pending = new TaskCompletionSource<NetworkMonitoringChangeResult>(TaskCreationOptions.RunContinuationsAsynchronously);
         var token = CancellationToken.None;
         var calls = 0;
+        var sensorCalls = 0;
         var window = Window(change: (_, cancellation) =>
         {
             calls++;
             token = cancellation;
             return calls == 1 ? pending.Task : Task.FromResult(new NetworkMonitoringChangeResult(true, NetworkMonitoringState.Active));
+        }, changeCpu: (_, _) =>
+        {
+            sensorCalls++;
+            return Task.FromResult(new SensorMonitoringChangeResult(true, SensorMonitoringState.Active));
         });
         Assert.That(RunDialog(window, async () =>
         {
             window.ProcessNetworkMonitoringCheckBox.IsChecked = true;
+            window.CpuTemperatureMonitoringCheckBox.IsChecked = true;
             var firstSave = window.SaveAsync();
             try
             {
@@ -508,6 +540,7 @@ public sealed partial class SettingsSaveCharacterizationTests
                 Assert.Multiple(() =>
                 {
                     Assert.That(window.Result, Is.Null);
+                    Assert.That(sensorCalls, Is.Zero);
                     Assert.That(window.ProcessNetworkMonitoringCheckBox.IsChecked, Is.False);
                     Assert.That(window.ProcessNetworkMonitoringStatus.Text, Is.EqualTo(Strings.NetworkProcessMonitoringCancelled));
                     Assert.That(window.SaveButton.IsEnabled, Is.True);
@@ -523,6 +556,7 @@ public sealed partial class SettingsSaveCharacterizationTests
             await window.SaveAsync();
         }), Is.True);
         Assert.That(calls, Is.EqualTo(2));
+        Assert.That(sensorCalls, Is.EqualTo(1));
         Assert.That(window.Result!.ProcessNetworkMonitoringEnabled, Is.True);
     }
 #else

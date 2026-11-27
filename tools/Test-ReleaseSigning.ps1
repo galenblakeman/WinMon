@@ -133,6 +133,10 @@ function dotnet {
             [IO.File]::WriteAllText((Join-Path $output 'WinMon.SensorService.exe'), 'SENSOR-SERVICE')
         }
         elseif ($args[1] -like '*WinMon.SensorSetup*') {
+            $pawnIoArgument = $args | Where-Object { $_ -like '-p:PawnIoInstaller=*' }
+            if (!$pawnIoArgument -or (Get-FileHash -LiteralPath ($pawnIoArgument -replace '^-p:PawnIoInstaller=')).Hash -ine $pawnIoPin.sha256) {
+                throw 'Sensor setup publish did not receive the verified PawnIO installer.'
+            }
             [IO.File]::WriteAllText((Join-Path $output 'WinMon.SensorSetup.exe'), 'SENSOR-SETUP')
         }
         elseif ($args[1] -like '*WinMon.Cli*') {

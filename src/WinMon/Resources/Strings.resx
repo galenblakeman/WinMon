@@ -2229,7 +2229,9 @@ Restoring throttling also failed: {1}</value></data>
   <data name="GpuDiscoveryFailed" xml:space="preserve"><value>GPU discovery failed. Close and reopen Settings to try again.</value></data>
   <data name="ServicesIntro" xml:space="preserve"><value>Optional background services. First-time setup requires administrator approval.</value></data>
   <data name="ServicesHardwareHeading" xml:space="preserve"><value>Hardware sensors</value></data>
-  <data name="ServicesHardwareNote" xml:space="preserve"><value>CPU temperature and supported fan speeds. Requires official PawnIO, installed separately.</value></data>
+  <data name="ServicesHardwareNote" xml:space="preserve"><value>Show processor temperature and supported fan speeds. Setup requires administrator approval and installs the PawnIO driver if it’s missing.</value></data>
+  <data name="SensorPawnIoSetupFailed" xml:space="preserve"><value>WinMon couldn’t install PawnIO. Try enabling hardware sensors again.</value></data>
+  <data name="SensorPawnIoRestartRequired" xml:space="preserve"><value>Restart Windows, then enable hardware sensors again.</value></data>
   <data name="ServicesNetworkNote" xml:space="preserve"><value>Send and receive activity across all network adapters. Disabling stops collection but leaves the shared service installed.</value></data>
   <data name="ServicesRepair" xml:space="preserve"><value>Repair</value></data>
   <data name="ServicesRemove" xml:space="preserve"><value>Remove…</value></data>

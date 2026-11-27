@@ -1044,6 +1044,8 @@ public static partial class Strings
     public static string SensorEnableHardware => ResourceManager.GetString(nameof(SensorEnableHardware), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string SensorHardwareMonitoring => ResourceManager.GetString(nameof(SensorHardwareMonitoring), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string SensorHardwareNote => ResourceManager.GetString(nameof(SensorHardwareNote), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string SensorPawnIoRestartRequired => ResourceManager.GetString(nameof(SensorPawnIoRestartRequired), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string SensorPawnIoSetupFailed => ResourceManager.GetString(nameof(SensorPawnIoSetupFailed), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ServiceActionFailed => ResourceManager.GetString(nameof(ServiceActionFailed), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ServiceActionInProgress => ResourceManager.GetString(nameof(ServiceActionInProgress), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string ServiceAverageSummary => ResourceManager.GetString(nameof(ServiceAverageSummary), Culture ?? CultureInfo.CurrentUICulture)!;

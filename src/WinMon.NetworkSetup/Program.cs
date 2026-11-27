@@ -6,8 +6,6 @@ namespace WinMon.NetworkSetup;
 
 internal static class Program
 {
-    private static readonly TimeSpan SetupTimeout = TimeSpan.FromSeconds(75);
-
     [STAThread]
     private static async Task<int> Main(string[] args)
     {
@@ -47,7 +45,7 @@ internal static class Program
     internal static async Task RunHandshakeAsync(SetupArguments invocation,
         Func<NetworkSetupPackage>? openPackage = null, SetupHost? host = null)
     {
-        using var timeout = new CancellationTokenSource(SetupTimeout);
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(75));
         using var package = (openPackage ?? OpenOwnPackage)();
         await using var pipe = new NamedPipeClientStream(".", invocation.PipeName!,
             PipeAccessRights.ReadData | PipeAccessRights.WriteData | PipeAccessRights.ReadPermissions |
@@ -63,6 +61,9 @@ internal static class Program
             request.Operation is not ("install" or "remove"))
             throw new UnauthorizedAccessException("Invalid setup request.");
         requester.VerifyStillSameProcess();
+#if SENSOR_SETUP
+        if (request.Operation == "install") timeout.CancelAfter(TimeSpan.FromMinutes(3));
+#endif
         try
         {
             await using var transaction = await SetupService

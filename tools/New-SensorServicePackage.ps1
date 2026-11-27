@@ -4,6 +4,7 @@ param(
     [Parameter(Mandatory)][string]$Version,
     [Parameter(Mandatory)][ValidateScript({ Test-Path -LiteralPath $_ -PathType Leaf })][string]$UpdateSigningKeyPath,
     [Parameter(Mandatory)][string]$OutputDirectory,
+    [string]$PawnIoInstaller,
     [Alias('Endpoint')][string]$SigningEndpoint = 'https://eus.codesigning.azure.net/',
     [Alias('AccountName')][string]$SigningAccountName = 'galenwinmonsigning',
     [string]$CertificateProfileName = 'WinMonPublic',
@@ -34,11 +35,20 @@ $archive = Join-Path $output 'sensor-service.zip'; $helper = Join-Path $output '
 $signing = @{ Endpoint = $SigningEndpoint; AccountName = $SigningAccountName; CertificateProfileName = $CertificateProfileName; ExpectedPublisher = $ExpectedPublisher }
 try {
     New-Item -ItemType Directory -Path $output, $work | Out-Null
+    if (!$PawnIoInstaller) {
+        $PawnIoInstaller = Join-Path $work 'PawnIO_setup.exe'
+        & (Join-Path $PSScriptRoot 'Get-PawnIoInstaller.ps1') -OutputPath $PawnIoInstaller
+    }
+    $PawnIoInstaller = (Resolve-Path -LiteralPath $PawnIoInstaller).Path
+    $pawnIoPin = Get-Content -LiteralPath (Join-Path $root 'packaging/PawnIO.json') -Raw | ConvertFrom-Json
+    if ((Get-FileHash -LiteralPath $PawnIoInstaller -Algorithm SHA256).Hash -ine $pawnIoPin.sha256) {
+        throw 'Sensor setup requires the pinned official PawnIO installer.'
+    }
     Push-Location $root
     try {
         dotnet publish src/WinMon.SensorService/WinMon.SensorService.csproj -c Release -r win-x64 --self-contained true -m:1 -p:UseSharedCompilation=false -o $servicePublish
         if ($LASTEXITCODE -ne 0) { throw 'Sensor service publish failed.' }
-        dotnet publish src/WinMon.SensorSetup/WinMon.SensorSetup.csproj -c Release -r win-x64 --self-contained true -m:1 -p:UseSharedCompilation=false -p:PublishAot=true -o $helperPublish
+        dotnet publish src/WinMon.SensorSetup/WinMon.SensorSetup.csproj -c Release -r win-x64 --self-contained true -m:1 -p:UseSharedCompilation=false -p:PublishAot=true "-p:PawnIoInstaller=$PawnIoInstaller" -o $helperPublish
         if ($LASTEXITCODE -ne 0) { throw 'NativeAOT sensor setup helper publish failed. Install the Visual Studio Desktop C++ workload and Windows SDK.' }
     }
     finally { Pop-Location }

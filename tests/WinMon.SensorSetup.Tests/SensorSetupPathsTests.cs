@@ -28,19 +28,36 @@ public sealed class SensorSetupPathsTests
         Assert.Throws<ArgumentException>(() => SetupArguments.Parse(["--pipe", "WinMon.NetworkSetup." + pipeSuffix, "--token", token]));
     }
 
-    [Test]
-    public void MissingPawnIo_StopsInstallationBeforeAnySetupHostMutation()
+    [TestCase(5)]
+    [TestCase(3010)]
+    public void PawnIoInstallerPreservesFailureAndRestartExitCodes(int exitCode)
     {
-        var prepared = false;
-        var host = new SetupHost
-        {
-            EnsureSensorPrerequisite = () => throw new InvalidOperationException("PawnIO is required."),
-            PrepareParent = () => prepared = true
-        };
+        var failure = Assert.ThrowsAsync<SetupFailure>(() => PawnIoInstaller.EnsureInstalledAsync(
+            () => false, _ => Task.FromResult(exitCode), CancellationToken.None));
+        Assert.That(failure!.Phase, Is.EqualTo("pawnio"));
+        Assert.That(failure.ErrorCode, Is.EqualTo(exitCode));
+    }
 
-        Assert.That(Assert.ThrowsAsync<InvalidOperationException>(() => SetupService.BeginAsync("install", "S-1-5-21-1-2-3-1001", null!, CancellationToken.None, host))!.Message,
-            Is.EqualTo("PawnIO is required."));
-        Assert.That(prepared, Is.False);
+    [Test]
+    public async Task RegisteredPawnIoSkipsInstaller()
+    {
+        await PawnIoInstaller.EnsureInstalledAsync(() => true,
+            _ => throw new AssertionException("Installer called for a registered PawnIO package."), CancellationToken.None);
+    }
+
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task SuccessfulPawnIoExitRequiresRegistration(bool registers)
+    {
+        var installed = false;
+        Task ProvisionAsync() => PawnIoInstaller.EnsureInstalledAsync(() => installed, _ =>
+        {
+            installed = registers;
+            return Task.FromResult(0);
+        }, CancellationToken.None);
+
+        if (registers) await ProvisionAsync();
+        else Assert.That(Assert.ThrowsAsync<SetupFailure>(ProvisionAsync)!.Phase, Is.EqualTo("pawnio"));
     }
 
     [Test]

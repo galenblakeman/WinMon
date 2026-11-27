@@ -17,11 +17,26 @@ public partial class MainWindow
             _cpuTemperatureRestore = _cpuTemperature.RestoreAsync(true, Lifetime.Token);
     }
 
-    private Task<SensorMonitoringChangeResult> ChangeCpuTemperatureMonitoringAsync(bool enabled, CancellationToken token) =>
-        _cpuTemperature is { } client
-            ? client.ChangeAsync(enabled, token)
-            : Task.FromResult(new SensorMonitoringChangeResult(false, SensorSetupBroker.Supported
-                ? SensorMonitoringState.SetupUnavailable : SensorMonitoringState.StoreUnavailable));
+    private async Task<SensorMonitoringChangeResult> ChangeCpuTemperatureMonitoringAsync(bool enabled, CancellationToken token)
+    {
+        if (_cpuTemperature is not { } client)
+            return new SensorMonitoringChangeResult(false, SensorSetupBroker.Supported
+                ? SensorMonitoringState.SetupUnavailable : SensorMonitoringState.StoreUnavailable);
+        var result = await client.ChangeAsync(enabled, token);
+        if (result.Success && _preferences.CpuTemperatureMonitoringEnabled != enabled)
+        {
+            var preferences = _preferences with { CpuTemperatureMonitoringEnabled = enabled };
+            using var save = CancellationTokenSource.CreateLinkedTokenSource(token, Lifetime.Token);
+            try { await _preferenceStore.SaveAsync(preferences, save.Token); }
+            catch
+            {
+                await RestoreCpuTemperatureMonitoringPreferenceAsync();
+                throw;
+            }
+            _preferences = _preferences with { CpuTemperatureMonitoringEnabled = enabled };
+        }
+        return result;
+    }
 
     private async Task<SensorMonitoringChangeResult> RemoveCpuTemperatureServiceAsync(CancellationToken token)
     {

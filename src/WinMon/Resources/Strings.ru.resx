@@ -2192,7 +2192,9 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
   <data name="GpuDiscoveryFailed" xml:space="preserve"><value>Не удалось обнаружить GPU. Закройте и снова откройте настройки.</value></data>
   <data name="ServicesIntro" xml:space="preserve"><value>Дополнительные фоновые службы. Первоначальная настройка требует разрешения администратора.</value></data>
   <data name="ServicesHardwareHeading" xml:space="preserve"><value>Аппаратные датчики</value></data>
-  <data name="ServicesHardwareNote" xml:space="preserve"><value>Температура CPU и поддерживаемые скорости вентиляторов. Требуется отдельная установка официального PawnIO.</value></data>
+  <data name="ServicesHardwareNote" xml:space="preserve"><value>Показывает температуру процессора и скорость вращения поддерживаемых вентиляторов. Для настройки требуется разрешение администратора. Если драйвер PawnIO отсутствует, он будет установлен.</value></data>
+  <data name="SensorPawnIoSetupFailed" xml:space="preserve"><value>WinMon не удалось установить PawnIO. Попробуйте снова включить аппаратные датчики.</value></data>
+  <data name="SensorPawnIoRestartRequired" xml:space="preserve"><value>Перезапустите Windows, затем снова включите аппаратные датчики.</value></data>
   <data name="ServicesNetworkNote" xml:space="preserve"><value>Отправка и получение данных через все сетевые адаптеры. Отключение останавливает сбор данных, но общая служба остаётся установленной.</value></data>
   <data name="ServicesRepair" xml:space="preserve"><value>Восстановить</value></data>
   <data name="ServicesRemove" xml:space="preserve"><value>Удалить…</value></data>

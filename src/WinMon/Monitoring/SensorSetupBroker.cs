@@ -40,7 +40,7 @@ internal sealed class SensorSetupBroker
         if (!IsAvailable) throw new InvalidOperationException("Signed sensor setup is unavailable.");
         if (operation is not ("install" or "remove")) throw new ArgumentException("Invalid setup operation.", nameof(operation));
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(token);
-        timeout.CancelAfter(TimeSpan.FromSeconds(90));
+        timeout.CancelAfter(operation == "install" ? TimeSpan.FromMinutes(4) : TimeSpan.FromSeconds(90));
         var root = Path.Combine(Path.GetTempPath(), "WinMon.SensorSetup." + Guid.NewGuid().ToString("N"));
         var pipeName = ProtectedServiceEndpoints.Sensor.SetupPipePrefix + Guid.NewGuid().ToString("N");
         var nonce = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
@@ -114,7 +114,7 @@ internal sealed class SensorSetupBroker
     }
 
     private static bool IsFailurePhase(string? phase) => phase is "prepare" or "archive" or "helper" or "policy" or
-        "protect" or "inventory" or "verify" or "stop" or "swap" or "service" or "registration" or "unknown";
+        "protect" or "inventory" or "verify" or "stop" or "swap" or "service" or "registration" or "pawnio" or "unknown";
 
     private static void Extract(string root, CancellationToken token)
     {

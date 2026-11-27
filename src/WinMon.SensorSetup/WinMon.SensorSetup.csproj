@@ -26,4 +26,8 @@
     <Compile Include="..\MonCore.Windows\Diagnostics\LogDirectories.cs" Link="Diagnostics\LogDirectories.cs" />
     <EmbeddedResource Include="..\WinMon\Updates\update-public-key.pem" Link="Monitoring\sensor-setup-public-key.pem" LogicalName="WinMon.NetworkSetupPublicKey" />
   </ItemGroup>
+  <ItemGroup Condition="'$(PawnIoInstaller)' != ''">
+    <EmbeddedResource Include="$(PawnIoInstaller)" LogicalName="WinMon.PawnIO.Setup.exe" />
+    <EmbeddedResource Include="..\..\packaging\PawnIO.json" LogicalName="WinMon.PawnIO.json" />
+  </ItemGroup>
 </Project>
