@@ -2220,4 +2220,22 @@ Przywrócenie ograniczania również nie powiodło się: {1}</value></data>
   <data name="CaptureRemoveScopedRule" xml:space="preserve"><value>Usuń</value></data>
   <data name="CaptureScopedRuleLimit" xml:space="preserve"><value>Maksymalnie {0} celów dla jednej miary.</value></data>
   <data name="CaptureDuplicateScopedTarget" xml:space="preserve"><value>Reguła dla tego celu i tej miary już istnieje.</value></data>
+  <data name="CaptureSettingsIntro" xml:space="preserve"><value>Po wyzwoleniu reguły oznacza moment na wykresie i zapisuje raport.</value></data>
+  <data name="CaptureBuiltInTab" xml:space="preserve"><value>Wbudowane wyzwalacze</value></data>
+  <data name="CaptureTargetsTab" xml:space="preserve"><value>Aplikacje i usługi</value></data>
+  <data name="CaptureReportOptionsTab" xml:space="preserve"><value>Opcje raportów</value></data>
+  <data name="CaptureTargetsIntro" xml:space="preserve"><value>Przechwytuj aktywność wybranego pliku wykonywalnego lub usługi systemu Windows.</value></data>
+  <data name="CaptureAddRule" xml:space="preserve"><value>Dodaj regułę</value></data>
+  <data name="CaptureNoTargetRules" xml:space="preserve"><value>Brak reguł aplikacji lub usług.</value></data>
+  <data name="CaptureTargetType" xml:space="preserve"><value>Typ celu</value></data>
+  <data name="CaptureWindowsService" xml:space="preserve"><value>Usługa systemu Windows</value></data>
+  <data name="CaptureExecutablePath" xml:space="preserve"><value>Nazwa lub ścieżka pliku wykonywalnego</value></data>
+  <data name="CaptureMetricLabel" xml:space="preserve"><value>Metryka</value></data>
+  <data name="CaptureNewRule" xml:space="preserve"><value>Nowa reguła</value></data>
+  <data name="CaptureEditRule" xml:space="preserve"><value>Edytuj regułę</value></data>
+  <data name="CaptureUpdateRule" xml:space="preserve"><value>Zaktualizuj regułę</value></data>
+  <data name="CaptureAddToList" xml:space="preserve"><value>Dodaj do listy</value></data>
+  <data name="CaptureDiscardRule" xml:space="preserve"><value>Odrzuć</value></data>
+  <data name="CaptureFinishRule" xml:space="preserve"><value>Przed zapisaniem ustawień dodaj, zaktualizuj lub odrzuć otwartą regułę.</value></data>
+  <data name="CaptureNetworkTargetHelp" xml:space="preserve"><value>Reguły sieciowe wymagają monitorowania sieci dla poszczególnych aplikacji.</value></data>
 </root>

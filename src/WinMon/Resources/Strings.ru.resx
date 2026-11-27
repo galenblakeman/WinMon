@@ -2220,4 +2220,22 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
   <data name="CaptureRemoveScopedRule" xml:space="preserve"><value>Удалить</value></data>
   <data name="CaptureScopedRuleLimit" xml:space="preserve"><value>До {0} целей на показатель.</value></data>
   <data name="CaptureDuplicateScopedTarget" xml:space="preserve"><value>Для этой цели и показателя уже есть правило.</value></data>
+  <data name="CaptureSettingsIntro" xml:space="preserve"><value>При срабатывании правила отмечает момент на графике и сохраняет отчёт.</value></data>
+  <data name="CaptureBuiltInTab" xml:space="preserve"><value>Встроенные триггеры</value></data>
+  <data name="CaptureTargetsTab" xml:space="preserve"><value>Приложения и службы</value></data>
+  <data name="CaptureReportOptionsTab" xml:space="preserve"><value>Параметры отчётов</value></data>
+  <data name="CaptureTargetsIntro" xml:space="preserve"><value>Записывайте данные о работе конкретной программы или службы Windows.</value></data>
+  <data name="CaptureAddRule" xml:space="preserve"><value>Добавить правило</value></data>
+  <data name="CaptureNoTargetRules" xml:space="preserve"><value>Правил для приложений и служб пока нет.</value></data>
+  <data name="CaptureTargetType" xml:space="preserve"><value>Тип цели</value></data>
+  <data name="CaptureWindowsService" xml:space="preserve"><value>Служба Windows</value></data>
+  <data name="CaptureExecutablePath" xml:space="preserve"><value>Имя или путь к исполняемому файлу</value></data>
+  <data name="CaptureMetricLabel" xml:space="preserve"><value>Показатель</value></data>
+  <data name="CaptureNewRule" xml:space="preserve"><value>Новое правило</value></data>
+  <data name="CaptureEditRule" xml:space="preserve"><value>Изменить правило</value></data>
+  <data name="CaptureUpdateRule" xml:space="preserve"><value>Обновить правило</value></data>
+  <data name="CaptureAddToList" xml:space="preserve"><value>Добавить в список</value></data>
+  <data name="CaptureDiscardRule" xml:space="preserve"><value>Отменить правки</value></data>
+  <data name="CaptureFinishRule" xml:space="preserve"><value>Добавьте, обновите или закройте правило без сохранения, прежде чем сохранять настройки.</value></data>
+  <data name="CaptureNetworkTargetHelp" xml:space="preserve"><value>Для сетевых правил нужен мониторинг сети по приложениям.</value></data>
 </root>

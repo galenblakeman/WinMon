@@ -2220,4 +2220,22 @@ A restauração da limitação também falhou: {1}</value></data>
   <data name="CaptureRemoveScopedRule" xml:space="preserve"><value>Remover</value></data>
   <data name="CaptureScopedRuleLimit" xml:space="preserve"><value>Até {0} alvos por métrica.</value></data>
   <data name="CaptureDuplicateScopedTarget" xml:space="preserve"><value>Já existe uma regra para esse alvo e essa métrica.</value></data>
+  <data name="CaptureSettingsIntro" xml:space="preserve"><value>Marca o gráfico e salva um relatório quando uma regra é acionada.</value></data>
+  <data name="CaptureBuiltInTab" xml:space="preserve"><value>Gatilhos integrados</value></data>
+  <data name="CaptureTargetsTab" xml:space="preserve"><value>Aplicativos e serviços</value></data>
+  <data name="CaptureReportOptionsTab" xml:space="preserve"><value>Opções de relatório</value></data>
+  <data name="CaptureTargetsIntro" xml:space="preserve"><value>Capture a atividade de um executável ou serviço do Windows específico.</value></data>
+  <data name="CaptureAddRule" xml:space="preserve"><value>Adicionar regra</value></data>
+  <data name="CaptureNoTargetRules" xml:space="preserve"><value>Ainda não há regras de aplicativos ou serviços.</value></data>
+  <data name="CaptureTargetType" xml:space="preserve"><value>Tipo de alvo</value></data>
+  <data name="CaptureWindowsService" xml:space="preserve"><value>Serviço do Windows</value></data>
+  <data name="CaptureExecutablePath" xml:space="preserve"><value>Nome ou caminho do executável</value></data>
+  <data name="CaptureMetricLabel" xml:space="preserve"><value>Métrica</value></data>
+  <data name="CaptureNewRule" xml:space="preserve"><value>Nova regra</value></data>
+  <data name="CaptureEditRule" xml:space="preserve"><value>Editar regra</value></data>
+  <data name="CaptureUpdateRule" xml:space="preserve"><value>Atualizar regra</value></data>
+  <data name="CaptureAddToList" xml:space="preserve"><value>Adicionar à lista</value></data>
+  <data name="CaptureDiscardRule" xml:space="preserve"><value>Descartar</value></data>
+  <data name="CaptureFinishRule" xml:space="preserve"><value>Adicione, atualize ou descarte a regra aberta antes de salvar as configurações.</value></data>
+  <data name="CaptureNetworkTargetHelp" xml:space="preserve"><value>As regras de rede exigem monitoramento de rede por aplicativo.</value></data>
 </root>

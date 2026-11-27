@@ -2232,4 +2232,22 @@ También falló la restauración de la limitación: {1}</value></data>
   <data name="CaptureRemoveScopedRule" xml:space="preserve"><value>Quitar</value></data>
   <data name="CaptureScopedRuleLimit" xml:space="preserve"><value>Hasta {0} objetivos por métrica.</value></data>
   <data name="CaptureDuplicateScopedTarget" xml:space="preserve"><value>Ya existe una regla para ese objetivo y esa métrica.</value></data>
+  <data name="CaptureSettingsIntro" xml:space="preserve"><value>Marca el gráfico y guarda un informe cuando se activa una regla.</value></data>
+  <data name="CaptureBuiltInTab" xml:space="preserve"><value>Disparadores integrados</value></data>
+  <data name="CaptureTargetsTab" xml:space="preserve"><value>Aplicaciones y servicios</value></data>
+  <data name="CaptureReportOptionsTab" xml:space="preserve"><value>Opciones de informes</value></data>
+  <data name="CaptureTargetsIntro" xml:space="preserve"><value>Captura la actividad de un ejecutable o servicio de Windows específico.</value></data>
+  <data name="CaptureAddRule" xml:space="preserve"><value>Añadir regla</value></data>
+  <data name="CaptureNoTargetRules" xml:space="preserve"><value>Todavía no hay reglas de aplicaciones o servicios.</value></data>
+  <data name="CaptureTargetType" xml:space="preserve"><value>Tipo de objetivo</value></data>
+  <data name="CaptureWindowsService" xml:space="preserve"><value>Servicio de Windows</value></data>
+  <data name="CaptureExecutablePath" xml:space="preserve"><value>Nombre o ruta del ejecutable</value></data>
+  <data name="CaptureMetricLabel" xml:space="preserve"><value>Métrica</value></data>
+  <data name="CaptureNewRule" xml:space="preserve"><value>Nueva regla</value></data>
+  <data name="CaptureEditRule" xml:space="preserve"><value>Editar regla</value></data>
+  <data name="CaptureUpdateRule" xml:space="preserve"><value>Actualizar regla</value></data>
+  <data name="CaptureAddToList" xml:space="preserve"><value>Añadir a la lista</value></data>
+  <data name="CaptureDiscardRule" xml:space="preserve"><value>Descartar</value></data>
+  <data name="CaptureFinishRule" xml:space="preserve"><value>Añade, actualiza o descarta la regla abierta antes de guardar la configuración.</value></data>
+  <data name="CaptureNetworkTargetHelp" xml:space="preserve"><value>Las reglas de red requieren supervisión de red por aplicación.</value></data>
 </root>

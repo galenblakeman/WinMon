@@ -267,7 +267,7 @@ public sealed partial class SettingsSaveCharacterizationTests
             if (UpdatePolicy.GitHubUpdatesEnabled)
                 Check(window, SettingsSection.Updates, Strings.AutomaticallyCheckForUpdates).IsChecked = value;
             window.AutoCapture.EnabledSwitch.IsChecked = value;
-            window.AutoCapture.Children.OfType<CheckBox>().Single().IsChecked = value;
+            window.AutoCapture.ReportOptions.Children.OfType<CheckBox>().Single().IsChecked = value;
             await window.SaveAsync();
         }), Is.True);
         var result = window.Result!;
@@ -310,6 +310,35 @@ public sealed partial class SettingsSaveCharacterizationTests
             Assert.That(result.TopProcessCount, Is.EqualTo(initial.TopProcessCount));
             Assert.That(initial.ResourceChartType, Is.EqualTo(ResourceChartType.Focus));
         });
+    }
+
+    [Test]
+    public async Task SavingReportOptionsPreservesExecutableAndServiceCaptureRulesInOrder()
+    {
+        var executable = new CaptureRuleSetting(CaptureMetric.ApplicationCpu, true, 90.125, 30)
+            { Target = @"C:\Tools\worker.exe" };
+        var service = new CaptureRuleSetting(CaptureMetric.ServiceNetwork, false, 0.1, 42)
+            { Target = "Spooler" };
+        var captures = new AutoCapturePreferences { Enabled = true, Rules = [executable, service] }.Normalized();
+        var store = new PreferenceStore(Path.Combine(_folder, "settings.json"));
+        await store.SaveAsync(Preferences() with { AutoCapture = captures });
+        var window = Window(await store.LoadAsync());
+
+        Assert.That(RunDialog(window, async () =>
+        {
+            window.ShowSection(SettingsSection.AutomaticCaptures);
+            var section = window.AutoCapture;
+            section.CaptureTabs.SelectedItem = section.ReportTab;
+            section.ReportOptions.Children.OfType<CheckBox>().Single().IsChecked = true;
+            await window.SaveAsync();
+        }), Is.True);
+        Assert.Multiple(() =>
+        {
+            Assert.That(window.Result!.AutoCapture.Notify, Is.True);
+            Assert.That(window.Result.AutoCapture.Rules, Is.EqualTo(captures.Rules));
+        });
+        await store.SaveAsync(window.Result!);
+        Assert.That((await store.LoadAsync()).AutoCapture.Rules, Is.EqualTo(captures.Rules));
     }
 
     [TestCase("primary"), TestCase("duplicate"), TestCase("threshold"), TestCase("seconds")]

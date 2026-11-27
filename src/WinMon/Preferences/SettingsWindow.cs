@@ -1361,7 +1361,7 @@ public sealed class SettingsWindow : Window
         // Only a chosen folder is probed; the default is created when the first report is written.
         if (autoCapture is { Enabled: true, Folder: { } folder } && !AutoCaptureSection.CanWrite(folder))
         {
-            Reject(SettingsSection.AutomaticCaptures, null, Strings.AutoCaptureFolderNotWritable,
+            Reject(SettingsSection.AutomaticCaptures, AutoCapture.ShowReportOptions(), Strings.AutoCaptureFolderNotWritable,
                 Strings.AutoCaptureHeading);
             return;
         }

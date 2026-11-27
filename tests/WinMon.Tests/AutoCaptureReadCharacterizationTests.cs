@@ -1,6 +1,8 @@
 using System.Globalization;
+using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Media;
 using MonCore.Monitoring;
 using NUnit.Framework;
 using WinMon.Preferences;
@@ -19,22 +21,51 @@ public sealed class AutoCaptureReadCharacterizationTests
     {
         var first = new CaptureRuleSetting(CaptureMetric.ApplicationCpu, true, 25, 5) { Target = "worker.exe" };
         var section = new AutoCaptureSection(new AutoCapturePreferences { Rules = [first] }, DefaultFolder, "C:", null);
-        var add = section.Children.OfType<WrapPanel>().SelectMany(panel => panel.Children.OfType<Button>())
-            .Single(button => Equals(button.Content, Strings.CaptureAddScopedRule));
-        add.RaiseEvent(new System.Windows.RoutedEventArgs(Button.ClickEvent));
-        var target = Field(section, 4, 0);
-        target.Text = "WORKER.EXE";
-        AssertRejected(section, target, Strings.CaptureDuplicateScopedTarget);
-        target.Text = "render.exe";
-        Field(section, 3, 1).Text = "90";
-        Field(section, 3, 3).Text = "20";
+        Assert.That(section.CaptureTabs.Items.Cast<TabItem>().Select(tab => tab.Header),
+            Is.EqualTo(new[] { Strings.CaptureBuiltInTab, Strings.CaptureTargetsTab, Strings.CaptureReportOptionsTab }));
+        section.CaptureTabs.SelectedItem = section.TargetsTab;
+        Click(section.AddRuleButton);
+        section.TargetName.Text = "WORKER.EXE";
+        CommitEditor(section, Strings.CaptureDuplicateScopedTarget);
+        section.TargetName.Text = "render.exe";
+        ((TextBox)section.ThresholdHost.Content).Text = "90";
+        ((TextBox)section.DurationHost.Content).Text = "20";
+        section.CaptureTabs.SelectedItem = section.ReportTab;
+        AssertRejected(section, section.TargetName, Strings.CaptureFinishRule);
+        Assert.That(section.CaptureTabs.SelectedItem, Is.SameAs(section.TargetsTab));
+        CommitEditor(section);
 
         var options = ReadValid(section).Normalized().Rules.Where(rule => rule.Metric == CaptureMetric.ApplicationCpu).ToArray();
         Assert.That(options, Is.EqualTo(new[] { first, new CaptureRuleSetting(CaptureMetric.ApplicationCpu, true, 90, 20)
             { Target = "render.exe" } }));
-        var remove = RuleTable(section).Children.OfType<Button>().Single(button => Grid.GetRow(button) == 4);
-        remove.RaiseEvent(new System.Windows.RoutedEventArgs(Button.ClickEvent));
+        EditTarget(section, 1);
+        section.TargetName.Text = "discarded.exe";
+        Click(section.DiscardRuleButton);
+        Assert.That(ReadValid(section).Rules, Is.EqualTo(options));
+        EditTarget(section, 1);
+        Click(section.RemoveRuleButton);
         Assert.That(ReadValid(section).Rules, Is.EqualTo(new[] { first }));
+    }
+
+    [Test]
+    public void ExistingExecutableAndServiceRulesKeepValuesAndAServiceCanBeEdited()
+    {
+        var executable = new CaptureRuleSetting(CaptureMetric.ApplicationCpu, true, 31.2345, 9)
+            { Target = @"C:\Program Files\Tools\worker.exe" };
+        var service = new CaptureRuleSetting(CaptureMetric.ServiceNetwork, false, 12.3456789, 42) { Target = "Spooler" };
+        var preferences = new AutoCapturePreferences { Rules = [executable, service] }.Normalized();
+        var section = new AutoCaptureSection(preferences, DefaultFolder, "C:", null);
+        Cooldown(section).Text = "9";
+        Assert.That(ReadValid(section).Normalized().Rules, Is.EqualTo(preferences.Rules));
+        Assert.That(section.TargetRulesList.Items.Count, Is.EqualTo(2));
+        EditTarget(section, 1);
+        Assert.That(section.TargetType.SelectedItem, Is.EqualTo(Strings.CaptureWindowsService));
+        Assert.That(section.TargetMetric.SelectedItem, Is.EqualTo(Strings.Network));
+        Assert.That(section.TargetName.Text, Is.EqualTo("Spooler"));
+        ((TextBox)section.DurationHost.Content).Text = "33";
+        CommitEditor(section);
+        Assert.That(ReadValid(section).Rules.Where(rule => rule.IsTargeted && !string.IsNullOrEmpty(rule.Target)),
+            Is.EqualTo(new[] { executable, service with { Seconds = 33 } }));
     }
 
     [TestCase(CaptureMetric.CpuPerformanceLimited)]
@@ -84,8 +115,17 @@ public sealed class AutoCaptureReadCharacterizationTests
         bool accepted, double stored, double minimum, double maximum)
     {
         var section = Section(metric);
-        var threshold = Field(section, 1, 1);
+        var targeted = IsTargeted(metric);
+        if (targeted) EditTarget(section, 0);
+        var threshold = targeted ? (TextBox)section.ThresholdHost.Content : Field(section, 1, 1);
         threshold.Text = input.ToString("G17", CultureInfo.CurrentCulture);
+
+        if (targeted)
+        {
+            var expectedError = accepted ? null : Strings.Format(Strings.AutoCaptureInvalidThreshold, minimum, maximum);
+            CommitEditor(section, expectedError);
+            if (!accepted) return;
+        }
 
         var result = section.Read(out var error, out var invalid);
 
@@ -160,35 +200,39 @@ public sealed class AutoCaptureReadCharacterizationTests
     public void EnabledTargetsAreRequiredAndTrimmedWhileDisabledTargetsMayBeEmpty(CaptureMetric metric)
     {
         var section = Section(metric);
-        var target = Field(section, 2, 0);
-        var enabled = RuleSwitch(section, 1);
-        target.Text = " \t ";
-        AssertRejected(section, target, Strings.CaptureTargetRequired);
-        target.Text = "  exact target.exe  ";
+        EditTarget(section, 0);
+        section.TargetName.Text = " \t ";
+        CommitEditor(section, Strings.CaptureTargetRequired);
+        section.TargetName.Text = "  exact target.exe  ";
+        CommitEditor(section);
         Assert.That(ReadValid(section).Rules.Single().Target, Is.EqualTo("exact target.exe"));
+
+        var enabled = RealizedTargetRow(section, 0).Children.OfType<CheckBox>().Single();
+        Assert.That(enabled.IsChecked, Is.True);
         enabled.IsChecked = false;
-        target.Text = " \t ";
+        EditTarget(section, 0);
+        section.TargetName.Text = " \t ";
+        CommitEditor(section);
         var result = ReadValid(section);
         Assert.Multiple(() =>
         {
             Assert.That(result.Rules.Single().Enabled, Is.False);
             Assert.That(result.Rules.Single().Target, Is.Empty);
+            Assert.That(section.TargetRulesList.Items, Is.Empty);
         });
-        enabled.IsChecked = null;
-        Assert.That(ReadValid(section).Rules.Single().Enabled, Is.False);
     }
 
     [Test]
     public void DisabledCaptureAndDisabledRuleStillValidateNumbersAndLeaveTextUnchanged()
     {
-        var section = Section(CaptureMetric.ApplicationCpu);
+        var section = Section(CaptureMetric.Cpu);
         section.EnabledSwitch.IsChecked = false;
         RuleSwitch(section, 1).IsChecked = false;
         var threshold = Field(section, 1, 1);
         var seconds = Field(section, 1, 3);
         threshold.Text = "invalid";
         seconds.Text = "0";
-        AssertRejected(section, threshold, Strings.Format(Strings.AutoCaptureInvalidThreshold, 1, 25600));
+        AssertRejected(section, threshold, Strings.Format(Strings.AutoCaptureInvalidThreshold, 1, 100));
         Assert.That(threshold.Text, Is.EqualTo("invalid"));
         threshold.Text = "90";
         AssertRejected(section, seconds, Strings.AutoCaptureInvalidSeconds);
@@ -208,21 +252,17 @@ public sealed class AutoCaptureReadCharacterizationTests
             Rules = [new(CaptureMetric.ApplicationCpu, true, 90, 10), new(CaptureMetric.Cpu, true, 80, 10)],
             Folder = "relative"
         }, DefaultFolder, "C:", "D:");
-        var first = Field(section, 1, 1);
-        var seconds = Field(section, 1, 3);
-        var target = Field(section, 2, 0);
-        var second = Field(section, 3, 1);
-        first.Text = second.Text = "invalid";
-        seconds.Text = "0";
+        var builtIn = Field(section, 1, 1);
+        builtIn.Text = "invalid";
         Cooldown(section).Text = "0";
-        AssertRejected(section, first, Strings.Format(Strings.AutoCaptureInvalidThreshold, 1, 25600));
-        first.Text = "90";
-        AssertRejected(section, seconds, Strings.AutoCaptureInvalidSeconds);
-        seconds.Text = "10";
-        AssertRejected(section, target, Strings.CaptureTargetRequired);
-        target.Text = " worker ";
-        AssertRejected(section, second, Strings.Format(Strings.AutoCaptureInvalidThreshold, 1, 100));
-        second.Text = "80";
+        section.CaptureTabs.SelectedItem = section.ReportTab;
+        AssertRejected(section, builtIn, Strings.Format(Strings.AutoCaptureInvalidThreshold, 1, 100));
+        Assert.That(section.CaptureTabs.SelectedItem, Is.SameAs(section.BuiltInTab));
+        builtIn.Text = "80";
+        AssertRejected(section, section.TargetName, Strings.CaptureTargetRequired);
+        Assert.That(section.CaptureTabs.SelectedItem, Is.SameAs(section.TargetsTab));
+        section.TargetName.Text = " worker ";
+        CommitEditor(section);
         AssertRejected(section, Cooldown(section), Strings.AutoCaptureInvalidCooldown);
         Assert.That(section.Folder, Is.EqualTo("relative"));
         Cooldown(section).Text = "1";
@@ -272,8 +312,10 @@ public sealed class AutoCaptureReadCharacterizationTests
         {
             CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(culture);
             var section = Section(CaptureMetric.ServiceNetwork);
-            Field(section, 1, 1).Text = text;
-            Field(section, 1, 3).Text = " +2 ";
+            EditTarget(section, 0);
+            ((TextBox)section.ThresholdHost.Content).Text = text;
+            ((TextBox)section.DurationHost.Content).Text = " +2 ";
+            CommitEditor(section);
             var result = ReadValid(section);
             Assert.Multiple(() =>
             {
@@ -290,7 +332,7 @@ public sealed class AutoCaptureReadCharacterizationTests
         var preferences = new AutoCapturePreferences { Enabled = !enabled, Notify = !notify, Rules = [] };
         var section = new AutoCaptureSection(preferences, DefaultFolder, "C:", null);
         section.EnabledSwitch.IsChecked = enabled;
-        section.Children.OfType<CheckBox>().Single().IsChecked = notify;
+        section.ReportOptions.Children.OfType<CheckBox>().Single().IsChecked = notify;
         var result = ReadValid(section);
         Assert.Multiple(() =>
         {
@@ -324,7 +366,7 @@ public sealed class AutoCaptureReadCharacterizationTests
     private static bool IsTargeted(CaptureMetric metric) => metric is CaptureMetric.ApplicationCpu or CaptureMetric.ApplicationMemory or
         CaptureMetric.ApplicationNetwork or CaptureMetric.ServiceCpu or CaptureMetric.ServiceMemory or CaptureMetric.ServiceNetwork;
 
-    private static Grid RuleTable(AutoCaptureSection section) => (Grid)section.Children.OfType<Border>().Single().Child;
+    private static Grid RuleTable(AutoCaptureSection section) => (Grid)((Border)section.BuiltInHost.Content).Child;
 
     private static TextBox Field(AutoCaptureSection section, int row, int column) => RuleTable(section).Children
         .OfType<TextBox>().Single(box => Grid.GetRow(box) == row && Grid.GetColumn(box) == column);
@@ -332,8 +374,39 @@ public sealed class AutoCaptureReadCharacterizationTests
     private static CheckBox RuleSwitch(AutoCaptureSection section, int row) => RuleTable(section).Children
         .OfType<CheckBox>().Single(box => Grid.GetRow(box) == row);
 
-    private static TextBox Cooldown(AutoCaptureSection section) => section.Children.OfType<WrapPanel>()
+    private static TextBox Cooldown(AutoCaptureSection section) => section.ReportOptions.Children.OfType<WrapPanel>()
         .SelectMany(panel => panel.Children.OfType<TextBox>()).Single(box => AutomationProperties.GetName(box) == Strings.AutoCaptureCooldown);
+
+    private static Grid TargetRow(AutoCaptureSection section, int index)
+    {
+        var row = (Border)section.TargetRulesList.ItemTemplate.LoadContent();
+        row.DataContext = section.TargetRulesList.Items[index];
+        return (Grid)row.Child;
+    }
+
+    private static Grid RealizedTargetRow(AutoCaptureSection section, int index)
+    {
+        section.Measure(new Size(560, 700));
+        section.Arrange(new Rect(0, 0, 560, 700));
+        section.UpdateLayout();
+        var presenter = section.TargetRulesList.ItemContainerGenerator.ContainerFromIndex(index);
+        return (Grid)((Border)VisualTreeHelper.GetChild(presenter, 0)).Child;
+    }
+
+    private static void EditTarget(AutoCaptureSection section, int index)
+    {
+        section.CaptureTabs.SelectedItem = section.TargetsTab;
+        Click(TargetRow(section, index).Children.OfType<Button>().Single());
+    }
+
+    private static void Click(Button button) => button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+
+    private static void CommitEditor(AutoCaptureSection section, string? expectedError = null)
+    {
+        Click(section.ApplyRuleButton);
+        Assert.That(section.RuleEditor.Visibility, Is.EqualTo(expectedError is null ? Visibility.Collapsed : Visibility.Visible));
+        if (expectedError is not null) Assert.That(section.EditorError.Text, Is.EqualTo(expectedError));
+    }
 
     private static AutoCapturePreferences ReadValid(AutoCaptureSection section)
     {

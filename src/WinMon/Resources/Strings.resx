@@ -2257,4 +2257,22 @@ Restoring throttling also failed: {1}</value></data>
   <data name="CaptureRemoveScopedRule" xml:space="preserve"><value>Remove</value></data>
   <data name="CaptureScopedRuleLimit" xml:space="preserve"><value>Up to {0} targets per metric.</value></data>
   <data name="CaptureDuplicateScopedTarget" xml:space="preserve"><value>This metric already has a rule for that target.</value></data>
+  <data name="CaptureSettingsIntro" xml:space="preserve"><value>Mark the chart and save a report when a rule triggers.</value></data>
+  <data name="CaptureBuiltInTab" xml:space="preserve"><value>Built-in triggers</value></data>
+  <data name="CaptureTargetsTab" xml:space="preserve"><value>Apps &amp; services</value></data>
+  <data name="CaptureReportOptionsTab" xml:space="preserve"><value>Report options</value></data>
+  <data name="CaptureTargetsIntro" xml:space="preserve"><value>Capture activity for a specific executable or Windows service.</value></data>
+  <data name="CaptureAddRule" xml:space="preserve"><value>Add rule</value></data>
+  <data name="CaptureNoTargetRules" xml:space="preserve"><value>No app or service rules yet.</value></data>
+  <data name="CaptureTargetType" xml:space="preserve"><value>Target type</value></data>
+  <data name="CaptureWindowsService" xml:space="preserve"><value>Windows service</value></data>
+  <data name="CaptureExecutablePath" xml:space="preserve"><value>Executable name or path</value></data>
+  <data name="CaptureMetricLabel" xml:space="preserve"><value>Metric</value></data>
+  <data name="CaptureNewRule" xml:space="preserve"><value>New rule</value></data>
+  <data name="CaptureEditRule" xml:space="preserve"><value>Edit rule</value></data>
+  <data name="CaptureUpdateRule" xml:space="preserve"><value>Update rule</value></data>
+  <data name="CaptureAddToList" xml:space="preserve"><value>Add to list</value></data>
+  <data name="CaptureDiscardRule" xml:space="preserve"><value>Discard</value></data>
+  <data name="CaptureFinishRule" xml:space="preserve"><value>Add, update, or discard the open rule before saving Settings.</value></data>
+  <data name="CaptureNetworkTargetHelp" xml:space="preserve"><value>Network rules require per-app network monitoring.</value></data>
 </root>

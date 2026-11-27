@@ -2232,4 +2232,22 @@ La restauration de la limitation a aussi échoué : {1}</value></data>
   <data name="CaptureRemoveScopedRule" xml:space="preserve"><value>Supprimer</value></data>
   <data name="CaptureScopedRuleLimit" xml:space="preserve"><value>Jusqu’à {0} cibles par mesure.</value></data>
   <data name="CaptureDuplicateScopedTarget" xml:space="preserve"><value>Une règle existe déjà pour cette cible et cette mesure.</value></data>
+  <data name="CaptureSettingsIntro" xml:space="preserve"><value>Marque le graphique et enregistre un rapport lorsqu’une règle se déclenche.</value></data>
+  <data name="CaptureBuiltInTab" xml:space="preserve"><value>Déclencheurs intégrés</value></data>
+  <data name="CaptureTargetsTab" xml:space="preserve"><value>Applications et services</value></data>
+  <data name="CaptureReportOptionsTab" xml:space="preserve"><value>Options des rapports</value></data>
+  <data name="CaptureTargetsIntro" xml:space="preserve"><value>Capturer l’activité d’un exécutable ou d’un service Windows précis.</value></data>
+  <data name="CaptureAddRule" xml:space="preserve"><value>Ajouter une règle</value></data>
+  <data name="CaptureNoTargetRules" xml:space="preserve"><value>Aucune règle d’application ou de service.</value></data>
+  <data name="CaptureTargetType" xml:space="preserve"><value>Type de cible</value></data>
+  <data name="CaptureWindowsService" xml:space="preserve"><value>Service Windows</value></data>
+  <data name="CaptureExecutablePath" xml:space="preserve"><value>Nom ou chemin de l’exécutable</value></data>
+  <data name="CaptureMetricLabel" xml:space="preserve"><value>Mesure</value></data>
+  <data name="CaptureNewRule" xml:space="preserve"><value>Nouvelle règle</value></data>
+  <data name="CaptureEditRule" xml:space="preserve"><value>Modifier la règle</value></data>
+  <data name="CaptureUpdateRule" xml:space="preserve"><value>Mettre à jour la règle</value></data>
+  <data name="CaptureAddToList" xml:space="preserve"><value>Ajouter à la liste</value></data>
+  <data name="CaptureDiscardRule" xml:space="preserve"><value>Annuler</value></data>
+  <data name="CaptureFinishRule" xml:space="preserve"><value>Ajoutez, mettez à jour ou abandonnez la règle ouverte avant d’enregistrer les paramètres.</value></data>
+  <data name="CaptureNetworkTargetHelp" xml:space="preserve"><value>Les règles réseau nécessitent la surveillance réseau par application.</value></data>
 </root>

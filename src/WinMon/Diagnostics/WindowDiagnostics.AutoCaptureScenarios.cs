@@ -4,6 +4,7 @@
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Automation;
+using System.Windows.Controls;
 using System.Windows.Threading;
 using MonCore.Monitoring;
 using WinMon.Controls;
@@ -185,7 +186,7 @@ internal sealed partial class WindowDiagnostics
         {
             Rules = [.. fixture.Preferences.AutoCapture.Rules,
                 new(CaptureMetric.ApplicationCpu, true, 70, 10) { Target = "renderer.exe" },
-                new(CaptureMetric.ApplicationCpu, true, 95, 30) { Target = "worker.exe" }]
+                new(CaptureMetric.ServiceMemory, false, 512, 30) { Target = "Spooler" }]
         };
         var settings = new SettingsWindow(fixture.Preferences with { AutoCapture = scoped.Normalized() }, captureFolder: reports,
             checkForUpdates: () => Task.FromResult(Strings.UpToDate),
@@ -215,10 +216,18 @@ internal sealed partial class WindowDiagnostics
                 await CaptureServiceWindowAsync(settings, Path.Combine(output, name), cancellationToken);
                 if (section == SettingsSection.AutomaticCaptures)
                 {
-                    settings.ScrollSettingsPageToBottom();
+                    var captures = settings.AutoCapture;
+                    captures.CaptureTabs.SelectedItem = captures.TargetsTab;
                     settings.UpdateLayout();
                     await CaptureServiceWindowAsync(settings, Path.Combine(output, "settings-scoped-rules-" + theme + ".png"), cancellationToken);
+                    captures.AddRuleButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                    settings.UpdateLayout();
+                    await CaptureServiceWindowAsync(settings, Path.Combine(output, "settings-scoped-editor-" + theme + ".png"), cancellationToken);
+                    captures.DiscardRuleButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                    captures.CaptureTabs.SelectedItem = captures.ReportTab;
                     settings.ScrollSettingsPageToTop();
+                    settings.UpdateLayout();
+                    await CaptureServiceWindowAsync(settings, Path.Combine(output, "settings-capture-report-options-" + theme + ".png"), cancellationToken);
                 }
                 if (section == SettingsSection.Services)
                 {

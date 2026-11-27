@@ -2232,4 +2232,22 @@ Auch das Wiederherstellen der Drosselung ist fehlgeschlagen: {1}</value></data>
   <data name="CaptureRemoveScopedRule" xml:space="preserve"><value>Entfernen</value></data>
   <data name="CaptureScopedRuleLimit" xml:space="preserve"><value>Bis zu {0} Ziele pro Messgröße.</value></data>
   <data name="CaptureDuplicateScopedTarget" xml:space="preserve"><value>Für dieses Ziel gibt es bereits eine Regel für diese Messgröße.</value></data>
+  <data name="CaptureSettingsIntro" xml:space="preserve"><value>Beim Auslösen einer Regel das Diagramm markieren und einen Bericht speichern.</value></data>
+  <data name="CaptureBuiltInTab" xml:space="preserve"><value>Integrierte Auslöser</value></data>
+  <data name="CaptureTargetsTab" xml:space="preserve"><value>Apps und Dienste</value></data>
+  <data name="CaptureReportOptionsTab" xml:space="preserve"><value>Berichtsoptionen</value></data>
+  <data name="CaptureTargetsIntro" xml:space="preserve"><value>Aktivität für eine bestimmte ausführbare Datei oder einen Windows-Dienst erfassen.</value></data>
+  <data name="CaptureAddRule" xml:space="preserve"><value>Regel hinzufügen</value></data>
+  <data name="CaptureNoTargetRules" xml:space="preserve"><value>Noch keine Regeln für Apps oder Dienste.</value></data>
+  <data name="CaptureTargetType" xml:space="preserve"><value>Zieltyp</value></data>
+  <data name="CaptureWindowsService" xml:space="preserve"><value>Windows-Dienst</value></data>
+  <data name="CaptureExecutablePath" xml:space="preserve"><value>Dateiname oder Pfad der Anwendung</value></data>
+  <data name="CaptureMetricLabel" xml:space="preserve"><value>Messgröße</value></data>
+  <data name="CaptureNewRule" xml:space="preserve"><value>Neue Regel</value></data>
+  <data name="CaptureEditRule" xml:space="preserve"><value>Regel bearbeiten</value></data>
+  <data name="CaptureUpdateRule" xml:space="preserve"><value>Regel aktualisieren</value></data>
+  <data name="CaptureAddToList" xml:space="preserve"><value>Zur Liste hinzufügen</value></data>
+  <data name="CaptureDiscardRule" xml:space="preserve"><value>Verwerfen</value></data>
+  <data name="CaptureFinishRule" xml:space="preserve"><value>Fügen Sie die offene Regel hinzu, aktualisieren oder verwerfen Sie sie, bevor Sie die Einstellungen speichern.</value></data>
+  <data name="CaptureNetworkTargetHelp" xml:space="preserve"><value>Netzwerkregeln erfordern die Netzwerküberwachung pro App.</value></data>
 </root>

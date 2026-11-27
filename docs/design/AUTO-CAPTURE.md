@@ -199,6 +199,14 @@ The existing `NotifyIcon` shows a balloon (`ShowBalloonTip`), which Windows rend
 
 Rules, cooldown, folder, notification and the master switch go into `MonitorPreferences`, in the existing JSON. Missing values mean off with the defaults shown above. Any process uses its own threshold field because its unit (percent of one core) differs from machine CPU. The disk rules are keyed by role, primary or secondary, not by letter, so changing the volume in Settings keeps the rule.
 
+### Settings tabs and inline rule editor
+
+The master switch stays in the Automatic captures page header. **Built-in triggers** opens by default and shows the resource and any-process controls. **Apps & services** shows configured targets with their conditions and enabled state. **Report options** contains cooldown, report location, retention information, notifications, and the report privacy note.
+
+The inline editor asks for the target type and identity before the metric, threshold, and duration. **Add to list** or **Update rule** stages a valid rule. **Discard** closes the draft, and **Remove** stages a deletion. Settings **Save** commits staged changes and brings the user back to the appropriate tab when a field or open draft needs attention.
+
+The implementation uses the existing persisted rule records and keeps the configured targets, enabled flags, thresholds, and durations when the layout changes. Disabled placeholders without a target stay hidden. The shipped layout follows the mockup's three tabs and inline editor, with a wrapping tab strip and localized controls.
+
 **Folder.** The default is `%LOCALAPPDATA%\WinMon\Captures`, or a `Captures` folder beside the executable for portable builds, matching where `PreferenceStore` puts settings. A custom folder is validated on save: it must be creatable and writable.
 
 ## Decisions
@@ -294,8 +302,8 @@ Steps 1 to 3 are a useful release on their own: reports on disk with no chart ch
 
 - `Monitoring/CaptureRules.cs` holds the rule state machine, `CaptureMetric` and `CaptureRuleSetting`; `Monitoring/CaptureReports.cs` names, writes, finds and prunes reports. Both stay in the `Monitoring` layer; the report patterns are plain `Regex` instances because generated regular expressions add types outside it.
 - `MonitorSession.LiveSampleRecorded` raises once per drained live frame, in order, so a drain of several frames evaluates each. Samples recorded through `Record`, including those restored after an update, do not raise it.
-- `MainWindow.Captures.cs` builds markers, the captures menu, the card banner and notifications; `Controls/CaptureReportText.cs` formats rules, reports and notification text. `Preferences/AutoCaptureSection.cs` is the Settings section; the Settings window is 500 DIPs wide to fit the rule table.
-- Preferences are one `AutoCapturePreferences` record on `MonitorPreferences`, normalized to one rule per metric so older settings files load with captures off and default rules.
+- `MainWindow.Captures.cs` builds markers, the captures menu, the card banner and notifications. `Controls/CaptureReportText.cs` formats rules, reports and notification text. `Preferences/AutoCaptureSection.xaml` defines the Settings tabs and inline editor in the 780-DIP Settings window.
+- Preferences are one `AutoCapturePreferences` record on `MonitorPreferences`. Normalization allows one built-in rule per metric and up to eight named targets per scoped metric. Settings preserves the order of existing rules so unrelated saves preserve in-progress runs and cooldowns.
 - The default folder is `Captures` beside the settings file, so a portable copy keeps its reports beside the executable.
 - Departures from the design: markers have no automation peer of their own. They are reachable from the keyboard through Ctrl+Left and Ctrl+Right on the chart and through the captures menu, whose items carry automation names. A failed report write uses the update footer line when it is free and a message box otherwise, so it never replaces an update offer.
 - Validation: `CaptureRulesTests` (duration, peak, gaps, cooldown, hysteresis, percent of one core, reused PIDs, disabled rules, network units, normalization), `CaptureReportsTests` (culture-independent names, numbered collisions, newest-first order by name, pruning that leaves decoy files alone, report first line and disk disclaimer, triggering process first, preference defaults), and `MonitorSessionTests` for the per-frame event. `WinMon.exe --capture-smoke-output <directory>` injects CPU and disk runs into a fixture window and checks both reports, the disclaimer, marker colors and hit testing, Capture-mode selection with the banner and Open report, and the captures menu, and renders the chart, the card in both themes and the Settings section. With captures off the refresh benchmark allocates exactly as before, and timings stay within run-to-run variation.

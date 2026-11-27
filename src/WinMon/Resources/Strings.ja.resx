@@ -2220,4 +2220,22 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
   <data name="CaptureRemoveScopedRule" xml:space="preserve"><value>削除</value></data>
   <data name="CaptureScopedRuleLimit" xml:space="preserve"><value>指標ごとに最大 {0} 件の対象を設定できます。</value></data>
   <data name="CaptureDuplicateScopedTarget" xml:space="preserve"><value>この指標には同じ対象のルールがすでにあります。</value></data>
+  <data name="CaptureSettingsIntro" xml:space="preserve"><value>ルールが発動すると、グラフに印を付けてレポートを保存します。</value></data>
+  <data name="CaptureBuiltInTab" xml:space="preserve"><value>組み込みトリガー</value></data>
+  <data name="CaptureTargetsTab" xml:space="preserve"><value>アプリとサービス</value></data>
+  <data name="CaptureReportOptionsTab" xml:space="preserve"><value>レポートの設定</value></data>
+  <data name="CaptureTargetsIntro" xml:space="preserve"><value>特定の実行ファイルまたは Windows サービスのアクティビティをキャプチャします。</value></data>
+  <data name="CaptureAddRule" xml:space="preserve"><value>ルールを追加</value></data>
+  <data name="CaptureNoTargetRules" xml:space="preserve"><value>アプリやサービスのルールはまだありません。</value></data>
+  <data name="CaptureTargetType" xml:space="preserve"><value>対象の種類</value></data>
+  <data name="CaptureWindowsService" xml:space="preserve"><value>Windows サービス</value></data>
+  <data name="CaptureExecutablePath" xml:space="preserve"><value>実行ファイル名またはパス</value></data>
+  <data name="CaptureMetricLabel" xml:space="preserve"><value>指標</value></data>
+  <data name="CaptureNewRule" xml:space="preserve"><value>新しいルール</value></data>
+  <data name="CaptureEditRule" xml:space="preserve"><value>ルールを編集</value></data>
+  <data name="CaptureUpdateRule" xml:space="preserve"><value>ルールを更新</value></data>
+  <data name="CaptureAddToList" xml:space="preserve"><value>リストに追加</value></data>
+  <data name="CaptureDiscardRule" xml:space="preserve"><value>破棄</value></data>
+  <data name="CaptureFinishRule" xml:space="preserve"><value>設定を保存する前に、編集中のルールを追加、更新、または破棄してください。</value></data>
+  <data name="CaptureNetworkTargetHelp" xml:space="preserve"><value>ネットワークルールにはアプリ別のネットワーク監視が必要です。</value></data>
 </root>

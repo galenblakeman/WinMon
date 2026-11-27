@@ -2220,4 +2220,22 @@ Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。<
   <data name="CaptureRemoveScopedRule" xml:space="preserve"><value>移除</value></data>
   <data name="CaptureScopedRuleLimit" xml:space="preserve"><value>每项指标最多可设 {0} 个目标。</value></data>
   <data name="CaptureDuplicateScopedTarget" xml:space="preserve"><value>此指标已为该目标设置规则。</value></data>
+  <data name="CaptureSettingsIntro" xml:space="preserve"><value>规则触发时在图表中标记并保存报告。</value></data>
+  <data name="CaptureBuiltInTab" xml:space="preserve"><value>内置触发条件</value></data>
+  <data name="CaptureTargetsTab" xml:space="preserve"><value>应用和服务</value></data>
+  <data name="CaptureReportOptionsTab" xml:space="preserve"><value>报告选项</value></data>
+  <data name="CaptureTargetsIntro" xml:space="preserve"><value>捕获指定可执行文件或 Windows 服务的活动。</value></data>
+  <data name="CaptureAddRule" xml:space="preserve"><value>添加规则</value></data>
+  <data name="CaptureNoTargetRules" xml:space="preserve"><value>尚无应用或服务规则。</value></data>
+  <data name="CaptureTargetType" xml:space="preserve"><value>目标类型</value></data>
+  <data name="CaptureWindowsService" xml:space="preserve"><value>Windows 服务</value></data>
+  <data name="CaptureExecutablePath" xml:space="preserve"><value>可执行文件名称或路径</value></data>
+  <data name="CaptureMetricLabel" xml:space="preserve"><value>指标</value></data>
+  <data name="CaptureNewRule" xml:space="preserve"><value>新建规则</value></data>
+  <data name="CaptureEditRule" xml:space="preserve"><value>编辑规则</value></data>
+  <data name="CaptureUpdateRule" xml:space="preserve"><value>更新规则</value></data>
+  <data name="CaptureAddToList" xml:space="preserve"><value>添加到列表</value></data>
+  <data name="CaptureDiscardRule" xml:space="preserve"><value>放弃</value></data>
+  <data name="CaptureFinishRule" xml:space="preserve"><value>请先添加、更新或放弃当前规则，再保存设置。</value></data>
+  <data name="CaptureNetworkTargetHelp" xml:space="preserve"><value>网络规则需要按应用监控网络。</value></data>
 </root>
