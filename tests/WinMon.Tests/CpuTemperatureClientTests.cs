@@ -193,6 +193,68 @@ public sealed class CpuTemperatureClientTests
     }
 
     [Test]
+    public async Task Display_HoldsForTwoMissedCyclesAndFreshSampleResetsTheHold()
+    {
+        var first = Complete(Guid.NewGuid(), 1);
+        var miss = first with { Sequence = 2, Quality = SensorServiceQuality.Partial, CpuTemperature = null };
+        var resumed = Complete(first.Generation, 5);
+        var connection = new FakeConnection(first, miss, miss, miss with { Sequence = 3 }, miss with { Sequence = 4 },
+            resumed, miss with { Sequence = 6 });
+        var delay = new ControlledDelay();
+        await using var client = Client(_ => Task.FromResult<ISensorTemperatureConnection>(connection), delay);
+        await client.ChangeAsync(true, CancellationToken.None);
+
+        for (var reply = 2; reply <= 5; reply++)
+        {
+            delay.ReleaseNext();
+            await delay.WaitForPendingAsync();
+            var display = client.GetDisplayReading(first.UpdatedAt + 4 * Stopwatch.Frequency);
+            Assert.Multiple(() =>
+            {
+                Assert.That(client.Reading, Is.Null);
+                Assert.That(display?.Celsius, Is.EqualTo(reply < 5 ? 52.5 : (double?)null));
+            });
+        }
+
+        delay.ReleaseNext();
+        await delay.WaitForPendingAsync();
+        Assert.That(client.GetDisplayReading(Stopwatch.GetTimestamp()), Is.EqualTo(client.Reading));
+        Assert.That(client.Reading, Is.Not.Null);
+        delay.ReleaseNext();
+        await delay.WaitForPendingAsync();
+        Assert.That(client.GetDisplayReading(resumed.UpdatedAt + 7 * Stopwatch.Frequency), Is.Not.Null);
+        Assert.That(client.GetDisplayReading(resumed.UpdatedAt + 8 * Stopwatch.Frequency), Is.Null);
+    }
+
+    [TestCase("generation")]
+    [TestCase("sensor")]
+    [TestCase("failed")]
+    [TestCase("disconnect")]
+    public async Task Display_InvalidationClearsThePreviousReading(string invalidation)
+    {
+        var first = Complete(Guid.NewGuid(), 1);
+        var miss = first with { Sequence = 2, Quality = SensorServiceQuality.Partial, CpuTemperature = null };
+        object invalidated = invalidation switch
+        {
+            "generation" => miss with { Generation = Guid.NewGuid() },
+            "sensor" => miss with { Sequence = 3, CpuTemperature = first.CpuTemperature! with { SensorId = "other", Celsius = null, LastReadAt = 0 } },
+            "failed" => miss with { Sequence = 3, Quality = SensorServiceQuality.Failed },
+            _ => new IOException("pipe closed")
+        };
+        var connection = new FakeConnection(first, miss, invalidated);
+        var delay = new ControlledDelay();
+        await using var client = Client(_ => Task.FromResult<ISensorTemperatureConnection>(connection), delay);
+        await client.ChangeAsync(true, CancellationToken.None);
+        delay.ReleaseNext();
+        await delay.WaitForPendingAsync();
+        Assert.That(client.GetDisplayReading(Stopwatch.GetTimestamp()), Is.Not.Null);
+
+        delay.ReleaseNext();
+        await delay.WaitForPendingAsync();
+        Assert.That(client.GetDisplayReading(Stopwatch.GetTimestamp()), Is.Null);
+    }
+
+    [Test]
     public async Task Poll_RetiresAnOlderGenerationAfterANewerGenerationArrives()
     {
         var first = Complete(Guid.NewGuid(), 1);
@@ -312,6 +374,7 @@ public sealed class CpuTemperatureClientTests
     private sealed class ControlledDelay
     {
         private readonly ConcurrentQueue<TaskCompletionSource> _waiters = new();
+        public Task WaitForPendingAsync() => WaitForAsync(() => !_waiters.IsEmpty);
         public Task WaitAsync(TimeSpan _, CancellationToken token)
         {
             var waiter = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);

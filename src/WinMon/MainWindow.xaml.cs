@@ -395,7 +395,7 @@ public partial class MainWindow
         GpuMetric.DetailLabel.Text = GaugeReadoutText.GpuDetail(resource?.GpuGraphicsClockMhz,
             gpuThermal?.TemperatureCelsius, _preferences.TemperatureUnit);
         CpuMetric.DetailLabel.Text = GaugeReadoutText.CpuDetail(resource?.CpuClockMhz,
-            resource?.CpuTemperature?.Celsius, _preferences.TemperatureUnit);
+            CpuTemperatureForDisplay(resource)?.Celsius, _preferences.TemperatureUnit);
         UpdateTemperatureMarkers(latest, gpuThermal);
         MemoryMetric.ValueLabel.Text = Percent(resource?.MemoryPercent);
         MemoryMetric.DetailLabel.Text = GaugeReadoutText.Memory(

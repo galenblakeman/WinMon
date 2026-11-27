@@ -35,7 +35,7 @@ try
         using var process = Process.GetCurrentProcess();
         var beforeCpu = process.TotalProcessorTime;
         var clock = Stopwatch.GetTimestamp();
-        var reading = await provider.ReadCpuTemperatureAsync(CancellationToken.None);
+        var (reading, packagePower) = await provider.ReadCpuAsync(CancellationToken.None);
         var updateMs = Stopwatch.GetElapsedTime(clock).TotalMilliseconds;
         process.Refresh();
         found |= reading?.Celsius is not null;
@@ -44,6 +44,7 @@ try
             ObservedUtc = DateTimeOffset.UtcNow,
             Source = "LibreHardwareMonitorLib 0.9.6",
             Reading = reading,
+            CpuPackagePower = packagePower,
             UpdateMs = updateMs,
             ProcessCpuMs = (process.TotalProcessorTime - beforeCpu).TotalMilliseconds,
             WorkingSetBytes = process.WorkingSet64,

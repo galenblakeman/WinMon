@@ -8,6 +8,8 @@ namespace WinMon.Monitoring;
 /// <summary>Owns optional CPU-sensor service polling; capture reads only its cached validated observation.</summary>
 internal sealed class CpuTemperatureClient : IAsyncDisposable
 {
+    private const int MaximumHeldMisses = 2;
+    private static readonly TimeSpan DisplayHoldLimit = TimeSpan.FromSeconds(8);
     private readonly Func<CancellationToken, Task<ISensorTemperatureConnection>> _connect;
     private readonly Func<string, Func<CancellationToken, Task>, CancellationToken, Task> _setup;
     private readonly Func<bool> _canSetup;
@@ -18,10 +20,12 @@ internal sealed class CpuTemperatureClient : IAsyncDisposable
     private CancellationTokenSource? _pollCancellation;
     private Task? _poll;
     private ISensorTemperatureConnection? _connection;
-    private SensorSnapshot? _snapshot;
+    private PublishedTemperature? _published;
     private bool _enabled;
     private long _lastSequence;
     private Guid _generation;
+    private WindowsGpuDevice[] _gpuDevices = [];
+    private long _nextGpuDiscovery;
     private readonly Queue<Guid> _retiredGenerations = new();
     private readonly HashSet<Guid> _retiredGenerationSet = [];
 
@@ -47,11 +51,31 @@ internal sealed class CpuTemperatureClient : IAsyncDisposable
 
     /// <summary>Fresh validated reading for the sampler, or null when disabled, stale, incomplete, or replaced.</summary>
     internal CpuTemperatureReading? Reading => _enabled
-        ? SensorSnapshotValidation.TryGetReading(Volatile.Read(ref _snapshot), Stopwatch.GetTimestamp())
+        ? SensorSnapshotValidation.TryGetReading(Volatile.Read(ref _published)?.Snapshot, Stopwatch.GetTimestamp())
         : null;
     internal IReadOnlyList<HardwareFanReading> Fans => _enabled
-        ? SensorSnapshotValidation.GetFreshFans(Volatile.Read(ref _snapshot), Stopwatch.GetTimestamp())
+        ? SensorSnapshotValidation.GetFreshFans(Volatile.Read(ref _published)?.Snapshot, Stopwatch.GetTimestamp())
         : [];
+    internal double? PackageWatts => _enabled
+        ? SensorSnapshotValidation.GetFreshCpuPackageWatts(Volatile.Read(ref _published)?.Snapshot, Stopwatch.GetTimestamp())
+        : null;
+    internal IReadOnlyList<HardwareSensorReading> HardwareSensors => _enabled
+        ? SensorSnapshotValidation.GetFreshHardwareSensors(Volatile.Read(ref _published)?.Snapshot, Stopwatch.GetTimestamp())
+        : [];
+
+    internal string? GetGpuHardwareId(string adapterId) => Volatile.Read(ref _gpuDevices)
+        .FirstOrDefault(device => string.Equals(device.Adapter, adapterId, StringComparison.OrdinalIgnoreCase))?.Id;
+
+    internal CpuTemperatureReading? GetDisplayReading(long now)
+    {
+        var published = _enabled ? Volatile.Read(ref _published) : null;
+        if (SensorSnapshotValidation.TryGetReading(published?.Snapshot, now) is { } fresh)
+            return fresh;
+        if (published?.LastGood is not { } last || last.ReadAt > now) return null;
+
+        var age = Stopwatch.GetElapsedTime(last.ReadAt, now);
+        return age < DisplayHoldLimit ? last.Reading : null;
+    }
 
     internal event Action<SensorMonitoringState>? StateChanged;
 
@@ -71,7 +95,6 @@ internal sealed class CpuTemperatureClient : IAsyncDisposable
         try
         {
             if (!_supported) return Result(false, SensorMonitoringState.StoreUnavailable);
-            Clear();
             await DisconnectAsync().ConfigureAwait(false);
             if (!enabled)
             {
@@ -145,7 +168,6 @@ internal sealed class CpuTemperatureClient : IAsyncDisposable
         {
             if (!_supported) return Result(false, SensorMonitoringState.StoreUnavailable);
             if (!_canSetup()) return Result(false, SensorMonitoringState.SetupUnavailable);
-            Clear();
             await DisconnectAsync().ConfigureAwait(false);
             try
             {
@@ -180,6 +202,7 @@ internal sealed class CpuTemperatureClient : IAsyncDisposable
             await connection.SubscribeAsync(token).ConfigureAwait(false);
             var snapshot = await connection.SnapshotAsync(token).ConfigureAwait(false);
             var published = Publish(snapshot);
+            if (published) await RefreshGpuDevicesAsync(snapshot, token).ConfigureAwait(false);
             _connection = connection;
             if (published) SetState(StateFor(snapshot));
         }
@@ -205,15 +228,19 @@ internal sealed class CpuTemperatureClient : IAsyncDisposable
                     else
                     {
                         var snapshot = await _connection.SnapshotAsync(token).ConfigureAwait(false);
-                        if (Publish(snapshot)) SetState(StateFor(snapshot));
+                        if (Publish(snapshot))
+                        {
+                            SetState(StateFor(snapshot));
+                            await RefreshGpuDevicesAsync(snapshot, token).ConfigureAwait(false);
+                        }
                     }
                 }
                 catch (OperationCanceledException) when (token.IsCancellationRequested) { throw; }
                 catch (SensorServiceProtocolMismatchException)
                 {
                     var connection = Interlocked.Exchange(ref _connection, null);
-                    if (connection is not null) await connection.DisposeAsync().ConfigureAwait(false);
                     Clear();
+                    if (connection is not null) await connection.DisposeAsync().ConfigureAwait(false);
                     SetState(SensorMonitoringState.UpdateRequired);
                     return; // An incompatible service needs explicit repair, not automatic reconnect loops.
                 }
@@ -221,8 +248,8 @@ internal sealed class CpuTemperatureClient : IAsyncDisposable
                 {
                     Trace.TraceWarning("CPU sensor request failed: {0}", exception.Message);
                     var connection = Interlocked.Exchange(ref _connection, null);
-                    if (connection is not null) await connection.DisposeAsync().ConfigureAwait(false);
                     Clear();
+                    if (connection is not null) await connection.DisposeAsync().ConfigureAwait(false);
                     SetState(SensorMonitoringState.Unavailable);
                 }
             }
@@ -240,10 +267,43 @@ internal sealed class CpuTemperatureClient : IAsyncDisposable
             _lastSequence = 0;
         }
         if (_generation == snapshot.Generation && snapshot.Sequence < _lastSequence) return false;
+        var previous = Volatile.Read(ref _published);
+        if (previous is not null && previous.Snapshot.Generation == snapshot.Generation && snapshot.Sequence == _lastSequence)
+            return true;
         _generation = snapshot.Generation;
         _lastSequence = snapshot.Sequence;
-        Volatile.Write(ref _snapshot, snapshot);
+        var now = Stopwatch.GetTimestamp();
+        var last = previous?.LastGood;
+        if (SensorSnapshotValidation.TryGetReading(snapshot, now) is { } fresh)
+            last = new(fresh, snapshot.CpuTemperature!.LastReadAt, snapshot.Sequence);
+        else if (last is null || snapshot.Quality != SensorServiceQuality.Partial || snapshot.UpdatedAt > now ||
+                 last.Reading.Generation != snapshot.Generation || snapshot.Sequence - last.Sequence > MaximumHeldMisses ||
+                 (snapshot.CpuTemperature is { } sensor &&
+                  (sensor.HardwareId != last.Reading.HardwareId || sensor.SensorId != last.Reading.SensorId)))
+            last = null;
+        Volatile.Write(ref _published, new(snapshot, last));
         return true;
+    }
+
+    private async Task RefreshGpuDevicesAsync(SensorSnapshot snapshot, CancellationToken token)
+    {
+        var now = Stopwatch.GetTimestamp();
+        if (now < _nextGpuDiscovery || snapshot.Sensors?.Any(reading => reading.Kind is
+                HardwareSensorKind.GpuTemperature or HardwareSensorKind.GpuPower or HardwareSensorKind.GpuFan) != true)
+            return;
+
+        _nextGpuDiscovery = now + 30 * Stopwatch.Frequency;
+        try
+        {
+            var devices = await Task.Run(WindowsGpuDevices.Discover, token).ConfigureAwait(false);
+            Volatile.Write(ref _gpuDevices, devices.GroupBy(device => device.Adapter, StringComparer.OrdinalIgnoreCase)
+                .Where(group => group.Count() == 1).Select(group => group.Single()).ToArray());
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            Volatile.Write(ref _gpuDevices, []);
+            Trace.TraceWarning("WinMon GPU sensor matching failed: {0}", ex.Message);
+        }
     }
 
     private SensorMonitoringState StateFor(SensorSnapshot snapshot) => snapshot.Quality switch
@@ -266,6 +326,7 @@ internal sealed class CpuTemperatureClient : IAsyncDisposable
         cancellation?.Dispose();
         _pollCancellation = null;
         var connection = Interlocked.Exchange(ref _connection, null);
+        Clear();
         if (connection is not null) await connection.DisposeAsync().ConfigureAwait(false);
     }
 
@@ -273,7 +334,9 @@ internal sealed class CpuTemperatureClient : IAsyncDisposable
     {
         _generation = Guid.Empty;
         _lastSequence = 0;
-        Volatile.Write(ref _snapshot, null);
+        Volatile.Write(ref _published, null);
+        Volatile.Write(ref _gpuDevices, []);
+        _nextGpuDiscovery = 0;
     }
 
     private void RetireGeneration(Guid generation)
@@ -301,7 +364,10 @@ internal sealed class CpuTemperatureClient : IAsyncDisposable
     {
         _lifetime.Cancel();
         await _gate.WaitAsync().ConfigureAwait(false);
-        try { _enabled = false; await DisconnectAsync().ConfigureAwait(false); Clear(); }
+        try { _enabled = false; await DisconnectAsync().ConfigureAwait(false); }
         finally { _gate.Release(); _lifetime.Dispose(); _gate.Dispose(); }
     }
+
+    private sealed record PublishedTemperature(SensorSnapshot Snapshot, LastGoodTemperature? LastGood);
+    private sealed record LastGoodTemperature(CpuTemperatureReading Reading, long ReadAt, long Sequence);
 }

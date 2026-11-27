@@ -42,6 +42,67 @@ public sealed class SensorServiceProtocolTests
     }
 
     [Test]
+    public void PackageWatts_UsesItsOwnFreshnessAndWorksWithoutTemperature()
+    {
+        var now = 10 * Stopwatch.Frequency;
+        var boundary = now - 5 * Stopwatch.Frequency;
+        var snapshot = Valid(now) with
+        {
+            Quality = SensorServiceQuality.Partial,
+            CpuTemperature = null,
+            CpuPackagePower = new(0.5, boundary)
+        };
+        SensorSnapshotValidation.Validate(snapshot);
+        Assert.Multiple(() =>
+        {
+            Assert.That(SensorSnapshotValidation.GetFreshCpuPackageWatts(snapshot, now), Is.EqualTo(0.5));
+            Assert.That(SensorSnapshotValidation.GetFreshCpuPackageWatts(snapshot, now + 1), Is.Null);
+            Assert.That(SensorSnapshotValidation.GetFreshCpuPackageWatts(snapshot with { CpuPackagePower = null }, now),
+                Is.Null);
+            Assert.That(SensorSnapshotValidation.GetFreshCpuPackageWatts(snapshot with { UpdatedAt = now + 1 }, now),
+                Is.Null);
+            Assert.That(SensorSnapshotValidation.GetFreshCpuPackageWatts(snapshot with { Quality = SensorServiceQuality.Failed }, now),
+                Is.Null);
+        });
+    }
+
+    [TestCase(double.NaN)]
+    [TestCase(double.PositiveInfinity)]
+    [TestCase(0)]
+    [TestCase(-1)]
+    [TestCase(SensorSnapshotValidation.MaximumCpuPackageWatts + 1)]
+    public void InvalidPackageWatts_AreRejectedBeforeDisplay(double watts)
+    {
+        var now = Stopwatch.GetTimestamp();
+        var snapshot = Valid(now) with { CpuPackagePower = new(watts, now) };
+        Assert.That(() => SensorSnapshotValidation.Validate(snapshot), Throws.TypeOf<InvalidDataException>());
+        Assert.That(SensorSnapshotValidation.GetFreshCpuPackageWatts(snapshot, now), Is.Null);
+    }
+
+    [Test]
+    public void HardwareReadings_ExpireBySensorKindAndRequireAFreshSnapshot()
+    {
+        var now = 60 * Stopwatch.Frequency;
+        var lastRead = now - 5 * Stopwatch.Frequency;
+        var board = new HardwareSensorReading(HardwareSensorKind.BoardTemperature, null, "VRM", 43, lastRead);
+        var gpu = new HardwareSensorReading(HardwareSensorKind.GpuFan, "pci/gpu-a", "Fan 1", 0, lastRead);
+        var disk = new HardwareSensorReading(HardwareSensorKind.NvmeEnduranceUsed, "C:", null, 106, now - 35 * Stopwatch.Frequency);
+        var snapshot = Valid(now) with { Quality = SensorServiceQuality.Partial, Sensors = [board, gpu, disk] };
+        var refreshed = snapshot with { Sensors = [board, gpu, disk with { LastReadAt = now }] };
+        Assert.Multiple(() =>
+        {
+            Assert.That(() => SensorSnapshotValidation.Validate(snapshot), Throws.Nothing);
+            Assert.That(SensorSnapshotValidation.GetFreshHardwareSensors(snapshot, now), Is.EqualTo(snapshot.Sensors));
+            Assert.That(SensorSnapshotValidation.GetFreshHardwareSensors(snapshot, now + 1), Is.Empty);
+            Assert.That(SensorSnapshotValidation.GetFreshHardwareSensors(refreshed, now + 5 * Stopwatch.Frequency + 1), Is.Empty);
+            Assert.That(() => SensorSnapshotValidation.Validate(snapshot with { Sensors = [disk with { Target = "bad" }] }),
+                Throws.TypeOf<InvalidDataException>());
+            Assert.That(() => SensorSnapshotValidation.Validate(snapshot with { Sensors = [gpu with { Target = "C:" }] }),
+                Throws.TypeOf<InvalidDataException>());
+        });
+    }
+
+    [Test]
     public void CurrentSnapshot_PreservesSensorIdentityMeaningAndGeneration()
     {
         var now = Stopwatch.GetTimestamp();

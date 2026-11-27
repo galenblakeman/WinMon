@@ -9,7 +9,10 @@ internal sealed record SensorReading(
     double? Celsius,
     string Source,
     long LastReadAt,
-    string? AvailabilityReason = null);
+    string? AvailabilityReason = null)
+{
+    internal const string NotRefreshed = "not-refreshed";
+}
 
 internal enum SensorCollectorQuality
 {
@@ -31,4 +34,6 @@ internal sealed record SensorCollectorSnapshot(
     string? FailureReason = null)
 {
     public IReadOnlyList<MonCore.Monitoring.HardwareFanReading>? Fans { get; init; }
+    public MonCore.Windows.Monitoring.CpuPackagePowerReading? CpuPackagePower { get; init; }
+    public IReadOnlyList<MonCore.Windows.Monitoring.HardwareSensorReading>? Sensors { get; init; }
 }

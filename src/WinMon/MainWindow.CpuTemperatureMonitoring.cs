@@ -78,4 +78,14 @@ public partial class MainWindow
 
     private CpuTemperatureReading? CurrentCpuTemperature() =>
         _preferences.CpuTemperatureMonitoringEnabled && SensorSetupBroker.Supported ? _cpuTemperature?.Reading : null;
+
+    private CpuTemperatureReading? CpuTemperatureForDisplay(ResourceSample? resource)
+    {
+        if (resource is null) return null;
+        if (_cpuTemperature is null)
+            return (_diagnosticMode ? HeldCpuTemperatureForFixture : null) ?? resource.CpuTemperature;
+        return _preferences.CpuTemperatureMonitoringEnabled
+            ? _cpuTemperature.GetDisplayReading(System.Diagnostics.Stopwatch.GetTimestamp())
+            : null;
+    }
 }

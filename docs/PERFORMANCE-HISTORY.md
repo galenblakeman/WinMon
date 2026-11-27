@@ -1,5 +1,9 @@
 # WinMon performance history
 
+## Optional hardware telemetry (November 27, 2026)
+
+Two Release console probes ran four observations two seconds apart on the same host. The first CPU and peripheral pass took 27.1 ms on baseline `4fb8c5b` and 30.9 ms with the new sensors. GPU initialization and the first volume scan increased the peripheral portion from 0.60 to 16.82 ms. Over the next three observations, the peripheral portion ranged from 0.014–0.030 ms before and 0.033–0.069 ms after. The host reported SAS disks and supplied no usable CPU, motherboard, GPU or NVMe readings. This measures the unsupported-hardware path during concurrent verification. Supported-device acquisition and the 30-second NVMe refresh cost still need physical hardware measurements.
+
 ## GPU clock and utilization peak (November 26, 2026)
 
 The Release live-frame benchmark used synthetic thermal data, 400 warm-up frames, and seven batches of 60 measured frames per run. The two baseline medians were 4.150 and 5.129 ms per frame, compared with 4.980 and 3.294 ms with the new clock readout. Median UI-thread allocation ranged from 551,725 to 552,297 bytes before and from 551,661 to 552,081 bytes after. Other verification work ran during the comparison, so timing varies substantially between runs. The benchmark excludes native driver sampling. Results and renders are under `artifacts/gpu-gauge/`.

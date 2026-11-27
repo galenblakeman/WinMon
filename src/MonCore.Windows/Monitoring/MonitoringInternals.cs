@@ -4,3 +4,4 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("MonCore.Windows.Tests")]
 [assembly: InternalsVisibleTo("WinMon.Performance")]
 [assembly: InternalsVisibleTo("WinMon.NetworkService.Tests")]
+[assembly: InternalsVisibleTo("WinMon.SensorService")]

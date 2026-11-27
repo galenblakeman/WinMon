@@ -2158,6 +2158,16 @@ Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。<
   <data name="TemperatureFahrenheitValue" xml:space="preserve"><value>{0:0} °F</value></data>
   <data name="TemperatureFanRpmValue" xml:space="preserve"><value>{0:0} RPM</value></data>
   <data name="DetailCpuTemperature" xml:space="preserve"><value>CPU 温度</value></data>
+  <data name="DetailCpuPackagePower" xml:space="preserve"><value>CPU 封装功耗</value></data>
+  <data name="DetailMotherboardSensors" xml:space="preserve"><value>主板传感器</value></data>
+  <data name="DetailGpuHardwareSensors" xml:space="preserve"><value>GPU 硬件传感器</value></data>
+  <data name="DetailNvmeHealth" xml:space="preserve"><value>NVMe 健康状况</value></data>
+  <data name="DetailNvmeEnduranceUsed" xml:space="preserve"><value>已用耐久度</value></data>
+  <data name="DetailNvmeAvailableSpare" xml:space="preserve"><value>可用备用空间</value></data>
+  <data name="DetailVoltsValue" xml:space="preserve"><value>{0:0.000} V</value></data>
+  <data name="DetailSensorPercent" xml:space="preserve"><value>{0:0}%</value></data>
+  <data name="DetailSensorAtLeastPercent" xml:space="preserve"><value>≥{0:0}%</value></data>
+  <data name="DetailWattsValue" xml:space="preserve"><value>{0:0.0} W</value></data>
   <data name="DetailCpuTemperatureSensor" xml:space="preserve"><value>传感器</value></data>
   <data name="GaugeCpuTemperaturePair" xml:space="preserve"><value>{0} · {1}</value></data>
   <data name="CpuTemperatureMonitoringEnabled" xml:space="preserve"><value>监视 CPU 温度</value></data>
@@ -2192,7 +2202,7 @@ Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。<
   <data name="GpuDiscoveryFailed" xml:space="preserve"><value>GPU 检测失败。请关闭并重新打开设置。</value></data>
   <data name="ServicesIntro" xml:space="preserve"><value>可选的后台服务。首次设置需要管理员批准。</value></data>
   <data name="ServicesHardwareHeading" xml:space="preserve"><value>硬件传感器</value></data>
-  <data name="ServicesHardwareNote" xml:space="preserve"><value>显示处理器温度和受支持的风扇转速。设置需要管理员批准，并会在缺少 PawnIO 驱动程序时安装该驱动程序。</value></data>
+  <data name="ServicesHardwareNote" xml:space="preserve"><value>显示 CPU、主板、GPU 和驱动器的可用读数。设置需要管理员批准，并会在缺少 PawnIO 驱动程序时安装该驱动程序。</value></data>
   <data name="SensorPawnIoSetupFailed" xml:space="preserve"><value>WinMon 无法安装 PawnIO。请重试启用硬件传感器。</value></data>
   <data name="SensorPawnIoRestartRequired" xml:space="preserve"><value>请重启 Windows，然后再次启用硬件传感器。</value></data>
   <data name="ServicesNetworkNote" xml:space="preserve"><value>所有网络适配器的收发活动。禁用后停止收集，但共享服务仍保留安装。</value></data>

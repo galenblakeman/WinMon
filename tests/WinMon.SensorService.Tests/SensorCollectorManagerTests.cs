@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using MonCore.Windows.Monitoring;
 using NUnit.Framework;
 
 namespace WinMon.SensorService.Tests;
@@ -7,6 +8,37 @@ namespace WinMon.SensorService.Tests;
 public sealed class SensorCollectorManagerTests
 {
     private const string User = "S-1-5-21-1-2-3-1001";
+
+    [TestCase(2)]
+    [TestCase(3)]
+    [TestCase(null)]
+    public async Task MissedCpuRefresh_PerformsAtMostTwoRetriesBeforePublishing(int? successfulAttempt)
+    {
+        var missed = new SensorReading("cpu/0", "CPU", "package", "CPU Package", null, "test", 0, "not-refreshed");
+        var retried = successfulAttempt.HasValue ? missed with { Celsius = 54, LastReadAt = Stopwatch.GetTimestamp(), AvailabilityReason = null }
+            : missed;
+        var attemptCount = successfulAttempt ?? 3;
+        var provider = new FakeProvider
+        {
+            ScriptedReadings = new Queue<SensorReading>(Enumerable.Repeat(missed, attemptCount - 1).Append(retried)),
+            PackagePower = new(42.5, Stopwatch.GetTimestamp())
+        };
+        await using var worker = new SensorCollectorWorker(provider, TimeSpan.FromMinutes(1), TimeSpan.FromSeconds(2));
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+        while (worker.Snapshot.Sequence == 0)
+            await Task.Delay(10, timeout.Token);
+
+        var snapshot = worker.Snapshot;
+        Assert.Multiple(() =>
+        {
+            Assert.That(provider.Reads, Is.EqualTo(attemptCount));
+            Assert.That(snapshot.Sequence, Is.EqualTo(1));
+            Assert.That(snapshot.Quality, Is.EqualTo(successfulAttempt.HasValue ? SensorCollectorQuality.Complete : SensorCollectorQuality.Partial));
+            Assert.That(snapshot.CpuTemperature, Is.SameAs(retried));
+            Assert.That(snapshot.CpuPackagePower, Is.EqualTo(provider.PackagePower));
+            Assert.That(snapshot.FailureReason, Is.EqualTo(retried.AvailabilityReason));
+        });
+    }
 
     [Test]
     public async Task CompletedFailure_RemainsFailedWhenCleanupResourcesAreDisposedAndStopIsRequested()
@@ -226,10 +258,10 @@ public sealed class SensorCollectorManagerTests
 
         public Task OpenAsync(CancellationToken token) => timeoutDuringOpen ? ReleaseOperation.Task : Task.CompletedTask;
 
-        public async Task<SensorReading?> ReadCpuTemperatureAsync(CancellationToken token)
+        public async Task<(SensorReading? Temperature, CpuPackagePowerReading? PackagePower)> ReadCpuAsync(CancellationToken token)
         {
             await ReleaseOperation.Task;
-            return null;
+            return default;
         }
 
         public ValueTask DisposeAsync() => new(ReleaseClose.Task);
@@ -245,6 +277,9 @@ public sealed class SensorCollectorManagerTests
         internal bool Disposed;
         internal int Opens;
         internal int MaxConcurrentCalls;
+        internal int Reads;
+        internal Queue<SensorReading>? ScriptedReadings;
+        internal CpuPackagePowerReading? PackagePower;
         internal Exception? OpenFailure;
         internal Exception? CloseFailure;
 
@@ -255,15 +290,16 @@ public sealed class SensorCollectorManagerTests
             return Task.CompletedTask;
         }
 
-        public async Task<SensorReading?> ReadCpuTemperatureAsync(CancellationToken token)
+        public async Task<(SensorReading? Temperature, CpuPackagePowerReading? PackagePower)> ReadCpuAsync(CancellationToken token)
         {
             var active = Interlocked.Increment(ref _active);
             MaxConcurrentCalls = Math.Max(MaxConcurrentCalls, active);
             try
             {
                 ReadStarted.TrySetResult();
-                if (BlockRead) return await _blocked.Task.ConfigureAwait(false);
-                return CurrentReading();
+                Reads++;
+                if (BlockRead) return (await _blocked.Task.ConfigureAwait(false), null);
+                return (ScriptedReadings is { } readings ? readings.Dequeue() : CurrentReading(), PackagePower);
             }
             finally
             {
@@ -295,12 +331,12 @@ public sealed class SensorCollectorManagerTests
 
         public Task OpenAsync(CancellationToken token) => Task.CompletedTask;
 
-        public Task<SensorReading?> ReadCpuTemperatureAsync(CancellationToken token)
+        public Task<(SensorReading? Temperature, CpuPackagePowerReading? PackagePower)> ReadCpuAsync(CancellationToken token)
         {
             ReadStarted.TrySetResult();
             release.Wait(); // Models a blocking native LHM/PawnIO call before it can return a Task.
-            return Task.FromResult<SensorReading?>(new SensorReading("cpu/0", "CPU", "package", "CPU Package", 51,
-                "test", Stopwatch.GetTimestamp()));
+            return Task.FromResult<(SensorReading?, CpuPackagePowerReading?)>((new SensorReading("cpu/0", "CPU",
+                "package", "CPU Package", 51, "test", Stopwatch.GetTimestamp()), null));
         }
 
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
@@ -313,11 +349,11 @@ public sealed class SensorCollectorManagerTests
 
         public Task OpenAsync(CancellationToken token) => Task.CompletedTask;
 
-        public Task<SensorReading?> ReadCpuTemperatureAsync(CancellationToken token)
+        public Task<(SensorReading? Temperature, CpuPackagePowerReading? PackagePower)> ReadCpuAsync(CancellationToken token)
         {
             ReadStarted.TrySetResult();
-            return Task.FromResult<SensorReading?>(new SensorReading("cpu/0", "CPU", "package", "CPU Package", 51,
-                "test", Stopwatch.GetTimestamp()));
+            return Task.FromResult<(SensorReading?, CpuPackagePowerReading?)>((new SensorReading("cpu/0", "CPU",
+                "package", "CPU Package", 51, "test", Stopwatch.GetTimestamp()), null));
         }
 
         public ValueTask DisposeAsync()

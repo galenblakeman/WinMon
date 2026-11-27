@@ -2195,6 +2195,16 @@ Restoring throttling also failed: {1}</value></data>
   <data name="TemperatureFahrenheitValue" xml:space="preserve"><value>{0:0} °F</value></data>
   <data name="TemperatureFanRpmValue" xml:space="preserve"><value>{0:0} RPM</value></data>
   <data name="DetailCpuTemperature" xml:space="preserve"><value>CPU temperature</value></data>
+  <data name="DetailCpuPackagePower" xml:space="preserve"><value>CPU package power</value></data>
+  <data name="DetailMotherboardSensors" xml:space="preserve"><value>Motherboard sensors</value></data>
+  <data name="DetailGpuHardwareSensors" xml:space="preserve"><value>GPU hardware sensors</value></data>
+  <data name="DetailNvmeHealth" xml:space="preserve"><value>NVMe health</value></data>
+  <data name="DetailNvmeEnduranceUsed" xml:space="preserve"><value>Endurance used</value></data>
+  <data name="DetailNvmeAvailableSpare" xml:space="preserve"><value>Available spare</value></data>
+  <data name="DetailVoltsValue" xml:space="preserve"><value>{0:0.000} V</value></data>
+  <data name="DetailSensorPercent" xml:space="preserve"><value>{0:0}%</value></data>
+  <data name="DetailSensorAtLeastPercent" xml:space="preserve"><value>≥{0:0}%</value></data>
+  <data name="DetailWattsValue" xml:space="preserve"><value>{0:0.0} W</value></data>
   <data name="DetailCpuTemperatureSensor" xml:space="preserve"><value>Sensor</value></data>
   <data name="GaugeCpuTemperaturePair" xml:space="preserve"><value>{0} · {1}</value></data>
   <data name="CpuTemperatureMonitoringEnabled" xml:space="preserve"><value>Monitor CPU temperature</value></data>
@@ -2229,7 +2239,7 @@ Restoring throttling also failed: {1}</value></data>
   <data name="GpuDiscoveryFailed" xml:space="preserve"><value>GPU discovery failed. Close and reopen Settings to try again.</value></data>
   <data name="ServicesIntro" xml:space="preserve"><value>Optional background services. First-time setup requires administrator approval.</value></data>
   <data name="ServicesHardwareHeading" xml:space="preserve"><value>Hardware sensors</value></data>
-  <data name="ServicesHardwareNote" xml:space="preserve"><value>Show processor temperature and supported fan speeds. Setup requires administrator approval and installs the PawnIO driver if it’s missing.</value></data>
+  <data name="ServicesHardwareNote" xml:space="preserve"><value>Show supported CPU, motherboard, GPU and drive readings. Setup requires administrator approval and installs the PawnIO driver if needed.</value></data>
   <data name="SensorPawnIoSetupFailed" xml:space="preserve"><value>WinMon couldn’t install PawnIO. Try enabling hardware sensors again.</value></data>
   <data name="SensorPawnIoRestartRequired" xml:space="preserve"><value>Restart Windows, then enable hardware sensors again.</value></data>
   <data name="ServicesNetworkNote" xml:space="preserve"><value>Send and receive activity across all network adapters. Disabling stops collection but leaves the shared service installed.</value></data>

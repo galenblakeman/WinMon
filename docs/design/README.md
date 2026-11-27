@@ -25,7 +25,7 @@
 
 - [Optional counter recovery](OPTIONAL-COUNTER-RECOVERY.md) keeps optional counter failures local and connects service startup tests to the production loop.
 
-- [Optional CPU temperature](HARDWARE-SENSORS.md) implements a separate optional CPU-only service using stable LibreHardwareMonitorLib 0.9.6. Native AMD/Intel hardware acceptance follows implementation; fans and other sensors can later extend the same provider.
+- [Optional hardware sensors](HARDWARE-SENSORS.md) covers the separate optional service for CPU, motherboard, GPU, and NVMe telemetry. Physical hardware acceptance is tracked in the design.
 
 - [Effective CPU clock](EFFECTIVE-CPU-CLOCK.md) derives the CPU clock from the rated clock and Windows processor performance, so it follows boost and idle instead of reporting a fixed rated clock.
 

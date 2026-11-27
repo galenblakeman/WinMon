@@ -2170,6 +2170,16 @@ Auch das Wiederherstellen der Drosselung ist fehlgeschlagen: {1}</value></data>
   <data name="TemperatureFahrenheitValue" xml:space="preserve"><value>{0:0} °F</value></data>
   <data name="TemperatureFanRpmValue" xml:space="preserve"><value>{0:0} RPM</value></data>
   <data name="DetailCpuTemperature" xml:space="preserve"><value>CPU-Temperatur</value></data>
+  <data name="DetailCpuPackagePower" xml:space="preserve"><value>CPU-Paketleistung</value></data>
+  <data name="DetailMotherboardSensors" xml:space="preserve"><value>Mainboard-Sensoren</value></data>
+  <data name="DetailGpuHardwareSensors" xml:space="preserve"><value>GPU-Hardwaresensoren</value></data>
+  <data name="DetailNvmeHealth" xml:space="preserve"><value>NVMe-Zustand</value></data>
+  <data name="DetailNvmeEnduranceUsed" xml:space="preserve"><value>Verbrauchte Lebensdauer</value></data>
+  <data name="DetailNvmeAvailableSpare" xml:space="preserve"><value>Verfügbare Reserve</value></data>
+  <data name="DetailVoltsValue" xml:space="preserve"><value>{0:0.000} V</value></data>
+  <data name="DetailSensorPercent" xml:space="preserve"><value>{0:0}%</value></data>
+  <data name="DetailSensorAtLeastPercent" xml:space="preserve"><value>≥{0:0}%</value></data>
+  <data name="DetailWattsValue" xml:space="preserve"><value>{0:0.0} W</value></data>
   <data name="DetailCpuTemperatureSensor" xml:space="preserve"><value>Sensor</value></data>
   <data name="GaugeCpuTemperaturePair" xml:space="preserve"><value>{0} · {1}</value></data>
   <data name="CpuTemperatureMonitoringEnabled" xml:space="preserve"><value>CPU-Temperatur überwachen</value></data>
@@ -2204,7 +2214,7 @@ Auch das Wiederherstellen der Drosselung ist fehlgeschlagen: {1}</value></data>
   <data name="GpuDiscoveryFailed" xml:space="preserve"><value>GPU-Erkennung fehlgeschlagen. Schließen und öffnen Sie die Einstellungen erneut.</value></data>
   <data name="ServicesIntro" xml:space="preserve"><value>Optionale Hintergrunddienste. Die Ersteinrichtung erfordert Administratorrechte.</value></data>
   <data name="ServicesHardwareHeading" xml:space="preserve"><value>Hardwaresensoren</value></data>
-  <data name="ServicesHardwareNote" xml:space="preserve"><value>Zeigt die Prozessortemperatur und unterstützte Lüfterdrehzahlen an. Die Einrichtung erfordert Administratorrechte und installiert den PawnIO-Treiber, falls er fehlt.</value></data>
+  <data name="ServicesHardwareNote" xml:space="preserve"><value>Zeigt verfügbare Messwerte für CPU, Mainboard, GPU und Laufwerke an. Die Einrichtung erfordert Administratorrechte und installiert den PawnIO-Treiber, falls er fehlt.</value></data>
   <data name="SensorPawnIoSetupFailed" xml:space="preserve"><value>WinMon konnte PawnIO nicht installieren. Versuchen Sie erneut, die Hardwaresensoren zu aktivieren.</value></data>
   <data name="SensorPawnIoRestartRequired" xml:space="preserve"><value>Starten Sie Windows neu und aktivieren Sie dann die Hardwaresensoren erneut.</value></data>
   <data name="ServicesNetworkNote" xml:space="preserve"><value>Sende- und Empfangsaktivität aller Netzwerkadapter. Beim Deaktivieren wird die Erfassung beendet; der gemeinsame Dienst bleibt installiert.</value></data>

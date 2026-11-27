@@ -2158,6 +2158,16 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
   <data name="TemperatureFahrenheitValue" xml:space="preserve"><value>{0:0} °F</value></data>
   <data name="TemperatureFanRpmValue" xml:space="preserve"><value>{0:0} RPM</value></data>
   <data name="DetailCpuTemperature" xml:space="preserve"><value>Температура ЦП</value></data>
+  <data name="DetailCpuPackagePower" xml:space="preserve"><value>Мощность пакета ЦП</value></data>
+  <data name="DetailMotherboardSensors" xml:space="preserve"><value>Датчики материнской платы</value></data>
+  <data name="DetailGpuHardwareSensors" xml:space="preserve"><value>Аппаратные датчики ГП</value></data>
+  <data name="DetailNvmeHealth" xml:space="preserve"><value>Состояние NVMe</value></data>
+  <data name="DetailNvmeEnduranceUsed" xml:space="preserve"><value>Израсходованный ресурс</value></data>
+  <data name="DetailNvmeAvailableSpare" xml:space="preserve"><value>Доступный резерв</value></data>
+  <data name="DetailVoltsValue" xml:space="preserve"><value>{0:0.000} V</value></data>
+  <data name="DetailSensorPercent" xml:space="preserve"><value>{0:0}%</value></data>
+  <data name="DetailSensorAtLeastPercent" xml:space="preserve"><value>≥{0:0}%</value></data>
+  <data name="DetailWattsValue" xml:space="preserve"><value>{0:0.0} W</value></data>
   <data name="DetailCpuTemperatureSensor" xml:space="preserve"><value>Датчик</value></data>
   <data name="GaugeCpuTemperaturePair" xml:space="preserve"><value>{0} · {1}</value></data>
   <data name="CpuTemperatureMonitoringEnabled" xml:space="preserve"><value>Отслеживать температуру ЦП</value></data>
@@ -2192,7 +2202,7 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
   <data name="GpuDiscoveryFailed" xml:space="preserve"><value>Не удалось обнаружить GPU. Закройте и снова откройте настройки.</value></data>
   <data name="ServicesIntro" xml:space="preserve"><value>Дополнительные фоновые службы. Первоначальная настройка требует разрешения администратора.</value></data>
   <data name="ServicesHardwareHeading" xml:space="preserve"><value>Аппаратные датчики</value></data>
-  <data name="ServicesHardwareNote" xml:space="preserve"><value>Показывает температуру процессора и скорость вращения поддерживаемых вентиляторов. Для настройки требуется разрешение администратора. Если драйвер PawnIO отсутствует, он будет установлен.</value></data>
+  <data name="ServicesHardwareNote" xml:space="preserve"><value>Показывает доступные показания датчиков ЦП, материнской платы, ГП и накопителей. Для настройки требуется разрешение администратора. Если драйвер PawnIO отсутствует, он будет установлен.</value></data>
   <data name="SensorPawnIoSetupFailed" xml:space="preserve"><value>WinMon не удалось установить PawnIO. Попробуйте снова включить аппаратные датчики.</value></data>
   <data name="SensorPawnIoRestartRequired" xml:space="preserve"><value>Перезапустите Windows, затем снова включите аппаратные датчики.</value></data>
   <data name="ServicesNetworkNote" xml:space="preserve"><value>Отправка и получение данных через все сетевые адаптеры. Отключение останавливает сбор данных, но общая служба остаётся установленной.</value></data>

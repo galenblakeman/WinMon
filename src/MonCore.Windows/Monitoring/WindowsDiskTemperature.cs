@@ -52,9 +52,20 @@ internal sealed class WindowsDiskTemperature
 
     private static double? Query(string volume)
     {
-        const uint getDiskExtents = 0x00560000;
-        const uint queryStorageProperty = 0x002D1400;
         const int storageDeviceTemperatureProperty = 52;
+        if (DiskNumber(volume) is not { } diskNumber) return null;
+        using var disk = Open(FormattableString.Invariant($"PhysicalDrive{diskNumber}"));
+        if (disk.IsInvalid) return null;
+        var request = new byte[12];
+        BinaryPrimitives.WriteInt32LittleEndian(request, storageDeviceTemperatureProperty);
+        var data = new byte[24 + 16 * 64];
+        return QueryStorageProperty(disk, request, data, out var count) &&
+            count <= data.Length ? CompositeTemperature(data.AsSpan(0, count)) : null;
+    }
+
+    internal static uint? DiskNumber(string volume)
+    {
+        const uint getDiskExtents = 0x00560000;
         using var volumeHandle = Open(volume);
         // One DISK_EXTENT is sufficient. ERROR_MORE_DATA or multiple extents leaves the mapping unavailable.
         var extents = new byte[32];
@@ -63,14 +74,7 @@ internal sealed class WindowsDiskTemperature
             count < extents.Length || BinaryPrimitives.ReadUInt32LittleEndian(extents) != 1)
             return null;
 
-        var diskNumber = BinaryPrimitives.ReadUInt32LittleEndian(extents.AsSpan(8));
-        using var disk = Open(FormattableString.Invariant($"PhysicalDrive{diskNumber}"));
-        if (disk.IsInvalid) return null;
-        var request = new byte[12];
-        BinaryPrimitives.WriteInt32LittleEndian(request, storageDeviceTemperatureProperty);
-        var data = new byte[24 + 16 * 64];
-        return DeviceIoControl(disk, queryStorageProperty, request, request.Length, data, data.Length,
-            out count, IntPtr.Zero) && count <= data.Length ? CompositeTemperature(data.AsSpan(0, count)) : null;
+        return BinaryPrimitives.ReadUInt32LittleEndian(extents.AsSpan(8));
     }
 
     internal static double? CompositeTemperature(ReadOnlySpan<byte> descriptor)
@@ -90,8 +94,11 @@ internal sealed class WindowsDiskTemperature
         return null;
     }
 
-    private static SafeFileHandle Open(string device) =>
-        CreateFileW(@"\\.\" + device, 0, 3, IntPtr.Zero, 3, 0, IntPtr.Zero);
+    internal static SafeFileHandle Open(string device, uint access = 0) =>
+        CreateFileW(@"\\.\" + device, access, 3, IntPtr.Zero, 3, 0, IntPtr.Zero);
+
+    internal static bool QueryStorageProperty(SafeFileHandle disk, byte[] request, byte[] data, out int count) =>
+        DeviceIoControl(disk, 0x002D1400, request, request.Length, data, data.Length, out count, IntPtr.Zero);
 
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode, ExactSpelling = true)]
     private static extern SafeFileHandle CreateFileW(string path, uint access, uint share,

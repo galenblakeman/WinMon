@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 using WinMon.Controls;
 using WinMon.Monitoring;
 
@@ -23,10 +24,12 @@ public partial class MainWindow
         {
             var details = new MetricDetails { Accent = metric.ValueLabel.Foreground };
             _metricDetails.Add(metric, details);
-            var count = metric == CpuMetric ? 12 : metric == MemoryMetric ? 11 : metric == NetworkMetric ? 5 :
-                metric == GpuMetric ? 11 : 6;
+            var count = metric == CpuMetric ? 14 : metric == MemoryMetric ? 11 : metric == NetworkMetric ? 5 :
+                metric == GpuMetric ? 12 : 7;
             for (var i = 0; i < count; i++)
-                details.Rows.Add(new DetailRow { Value = Strings.MissingReading, FullWidth = metric == CpuMetric && i == 9 });
+                details.Rows.Add(new DetailRow { Value = Strings.MissingReading,
+                    FullWidth = metric == CpuMetric && i == 10 ||
+                        i == count - 1 && metric != MemoryMetric && metric != NetworkMetric });
             metric.ToolTip = details;
             metric.Focusable = true;
             metric.SetResourceReference(FocusVisualStyleProperty, "MetricTileFocusVisual");
@@ -67,10 +70,10 @@ public partial class MainWindow
             var keys = metric == CpuMetric
                 ? new[]
                 {
-                    "DetailClockSpeed", "DetailCpuTemperature", "DetailTemperaturePeakWindow",
+                    "DetailClockSpeed", "DetailCpuTemperature", "DetailCpuPackagePower", "DetailTemperaturePeakWindow",
                     "DetailUserKernel", "DetailProcessesThreads", "DetailHandles", "DetailBusiestProcess",
                     "DetailUpTime", "DetailPerformanceLimit", "DetailSystemThermalZones",
-                    "DetailCpuFans", "DetailSystemFans"
+                    "DetailCpuFans", "DetailSystemFans", "DetailMotherboardSensors"
                 }
                 : metric == MemoryMetric
                     ?
@@ -90,12 +93,13 @@ public partial class MainWindow
                             [
                                 "DetailAdapterName", "DetailBusiestEngine", "DetailDedicatedMemory",
                                 "DetailSharedMemory", "DetailBusiestProcess", "DetailTemperature", "DetailFanSpeed",
-                                "DetailPower", "DetailTemperaturePeak", "DetailOtherGpuAdapters", "DetailClockSpeed"
+                                "DetailPower", "DetailTemperaturePeak", "DetailOtherGpuAdapters", "DetailClockSpeed",
+                                "DetailGpuHardwareSensors"
                             ]
                             :
                             [
                                 "DetailActiveTime", "DetailRead", "DetailWrite", "DetailAverageResponse",
-                                "DetailQueueLength", "DetailFreeSpace"
+                                "DetailQueueLength", "DetailFreeSpace", "DetailNvmeHealth"
                             ];
             for (var i = 0; i < keys.Length; i++)
                 details.Rows[i].Label = keys[i] == "DetailTemperaturePeakWindow"
@@ -123,26 +127,31 @@ public partial class MainWindow
                 ? F("{0:0.00} GHz", resource.CpuClockMhz.Value / 1000)
                 : Dash;
             var temperature = resource?.CpuTemperature;
-            rows[1].Value = GaugeReadoutText.Temperature(temperature?.Celsius, _preferences.TemperatureUnit);
-            rows[2].Value = CpuTemperaturePeakText(latest, temperature);
-            rows[3].Value = latest?.TotalCpuPercent is { } total && resource?.CpuKernelPercent is { } kernel
+            var displayTemperature = CpuTemperatureForDisplay(resource);
+            rows[1].Value = GaugeReadoutText.Temperature(displayTemperature?.Celsius, _preferences.TemperatureUnit);
+            var packageWatts = CpuPackageWatts(resource);
+            rows[2].Value = packageWatts is { } watts ? Strings.Format(Strings.DetailWattsValue, watts) : Dash;
+            rows[2].Visibility = packageWatts is not null ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+            rows[3].Value = CpuTemperaturePeakText(latest, temperature);
+            rows[4].Value = latest?.TotalCpuPercent is { } total && resource?.CpuKernelPercent is { } kernel
                 ? F("{0:0.0}% / {1:0.0}%", Math.Max(0, total - kernel), kernel)
                 : Dash;
-            rows[4].Value = ProcessThreadCounts(resource);
-            rows[5].Value = HandleCountText(resource);
-            rows[6].Value = Busiest(CpuMetric, ProcessSort.Cpu);
+            rows[5].Value = ProcessThreadCounts(resource);
+            rows[6].Value = HandleCountText(resource);
+            rows[7].Value = Busiest(CpuMetric, ProcessSort.Cpu);
             var upTime = TimeSpan.FromMilliseconds(Environment.TickCount64);
-            rows[7].Value = F("{0} d {1:00}:{2:00}", (int)upTime.TotalDays, upTime.Hours, upTime.Minutes);
-            rows[8].Value = PerformanceLimitText(latest);
-            rows[9].Value = ThermalZonesText(latest);
-            UpdateFanDetail(rows[10], resource?.HardwareFans, cpu: true);
-            UpdateFanDetail(rows[11], resource?.HardwareFans, cpu: false);
-            rows[1].Visibility = temperature is not null ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
-            rows[2].Visibility = temperature is not null && latest is not null && CpuTemperaturePeak(latest, temperature) is not null
+            rows[8].Value = F("{0} d {1:00}:{2:00}", (int)upTime.TotalDays, upTime.Hours, upTime.Minutes);
+            rows[9].Value = PerformanceLimitText(latest);
+            rows[10].Value = ThermalZonesText(latest);
+            UpdateFanDetail(rows[11], resource?.HardwareFans, cpu: true);
+            UpdateFanDetail(rows[12], resource?.HardwareFans, cpu: false);
+            UpdateHardwareSensorDetail(rows[13], resource, null);
+            rows[1].Visibility = displayTemperature is not null ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+            rows[3].Visibility = temperature is not null && latest is not null && CpuTemperaturePeak(latest, temperature) is not null
                 ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
-            rows[8].Visibility = resource?.CpuPerformanceLimitPercent is not null
+            rows[9].Visibility = resource?.CpuPerformanceLimitPercent is not null
                 ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
-            rows[9].Visibility = resource?.ThermalZones.Count > 0
+            rows[10].Visibility = resource?.ThermalZones.Count > 0
                 ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
         }
         else if (metric == MemoryMetric)
@@ -169,6 +178,7 @@ public partial class MainWindow
                 matches ? resource?.DiskQueueLength : null,
                 matches ? resource?.DiskFreeBytes : null,
                 matches ? resource?.DiskTotalBytes : null);
+            UpdateHardwareSensorDetail(rows[6], matches ? resource : null, _preferences.PrimaryDrive);
         }
         else if (metric == SecondaryDiskMetric)
         {
@@ -180,6 +190,7 @@ public partial class MainWindow
                 matches ? resource?.SecondaryDiskQueueLength : null,
                 matches ? resource?.SecondaryDiskFreeBytes : null,
                 matches ? resource?.SecondaryDiskTotalBytes : null);
+            UpdateHardwareSensorDetail(rows[6], matches ? resource : null, _preferences.SecondaryDrive);
         }
         else if (metric == NetworkMetric)
         {
@@ -225,7 +236,49 @@ public partial class MainWindow
             var clock = GaugeReadoutText.GpuClock(resource?.GpuGraphicsClockMhz);
             rows[10].Value = clock ?? Dash;
             rows[10].Visibility = clock is not null ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+            if (resource?.GpuId is { Length: > 0 } adapter)
+            {
+                var hardwareId = _diagnosticMode ? adapter : _cpuTemperature?.GetGpuHardwareId(adapter);
+                UpdateHardwareSensorDetail(rows[11], hardwareId is not null ? resource : null, hardwareId);
+            }
+            else
+                UpdateHardwareSensorDetail(rows[11], null, null);
         }
+    }
+
+    private void UpdateHardwareSensorDetail(DetailRow row, ResourceSample? resource, string? target)
+    {
+        var sensors = resource is null ? [] : _diagnosticMode ? HardwareSensorsForFixture :
+            _preferences.CpuTemperatureMonitoringEnabled ? _cpuTemperature?.HardwareSensors ?? [] : [];
+        var text = string.Join("\n", sensors
+            .Where(sensor => string.Equals(sensor.Target, target, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(sensor => sensor.Kind)
+            .Take(16)
+            .Select(HardwareSensorText));
+        row.Value = text.Length == 0 ? Dash : text;
+        row.Visibility = text.Length == 0 ? System.Windows.Visibility.Collapsed : System.Windows.Visibility.Visible;
+    }
+
+    private string HardwareSensorText(HardwareSensorReading sensor)
+    {
+        var name = sensor.Kind switch
+        {
+            HardwareSensorKind.NvmeEnduranceUsed => Strings.DetailNvmeEnduranceUsed,
+            HardwareSensorKind.NvmeAvailableSpare => Strings.DetailNvmeAvailableSpare,
+            _ => sensor.Name
+        };
+        var value = sensor.Kind switch
+        {
+            HardwareSensorKind.BoardTemperature or HardwareSensorKind.GpuTemperature =>
+                GaugeReadoutText.Temperature(sensor.Value, _preferences.TemperatureUnit),
+            HardwareSensorKind.BoardVoltage => Strings.Format(Strings.DetailVoltsValue, sensor.Value),
+            HardwareSensorKind.GpuPower => Strings.Format(Strings.DetailWattsValue, sensor.Value),
+            HardwareSensorKind.GpuFan => Strings.Format(Strings.TemperatureFanRpmValue, sensor.Value),
+            HardwareSensorKind.NvmeEnduranceUsed when sensor.Value == 255 =>
+                Strings.Format(Strings.DetailSensorAtLeastPercent, sensor.Value),
+            _ => Strings.Format(Strings.DetailSensorPercent, sensor.Value)
+        };
+        return name + ": " + value;
     }
 
     private string PerformanceLimitText(MonitorSample? latest)
@@ -286,7 +339,7 @@ public partial class MainWindow
     private static void UpdateFanDetail(DetailRow row, IReadOnlyList<HardwareFanReading>? fans, bool cpu)
     {
         var readings = fans is { Count: > 0 }
-            ? string.Join("\n", fans.Where(fan => fan.IsCpu == cpu).Select(fan =>
+            ? string.Join("\n", fans.Where(fan => fan.IsCpu == cpu && (cpu || fan.Rpm > 0)).Select(fan =>
                 fan.Name + ": " + Strings.Format(Strings.TemperatureFanRpmValue, fan.Rpm)))
             : "";
         row.Value = readings.Length == 0 ? Dash : readings;

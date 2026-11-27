@@ -1,6 +1,6 @@
 # Optional CPU sensor service
 
-`WinMonSensorMonitor` is a separate, demand-start LocalSystem service. It references locked stable LibreHardwareMonitorLib 0.9.6 and enables CPU hardware only. The WPF app, portable core, CLI and MCP do not load the hardware library. Fans and other categories remain disabled.
+`WinMonSensorMonitor` is a separate, demand-start LocalSystem service. It uses locked LibreHardwareMonitorLib 0.9.6 for CPU, motherboard, and GPU telemetry, and the Windows NVMe health-log query for storage. The WPF app, portable core, CLI and MCP do not load the hardware library.
 
 The service accepts only provisioned Windows SIDs over `WinMonSensorMonitor.v1`. Authentication, pipe creation, process/policy protection and signed setup share the network service infrastructure; each service retains its own endpoint, protected install directory, allow-list, registration and log files.
 

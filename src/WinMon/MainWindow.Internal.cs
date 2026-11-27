@@ -2,6 +2,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
 using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 using WinMon.Controls;
 using WinMon.Preferences;
 using Forms = System.Windows.Forms;
@@ -23,6 +24,9 @@ public partial class MainWindow
     internal Func<DateTimeOffset, DateTimeOffset, CancellationToken, Task<IncidentEventResult>>? FlightRecorderEventReader { get; set; }
 
     internal UsageArchive? DailyUsageArchive { get => _usageArchive; set => _usageArchive = value; }
+    internal CpuTemperatureReading? HeldCpuTemperatureForFixture { get; set; }
+    internal double? CpuPackageWattsForFixture { get; set; }
+    internal IReadOnlyList<HardwareSensorReading> HardwareSensorsForFixture { get; set; } = [];
     internal Task LoadUsageArchiveForFixtureAsync() => LoadUsageArchiveAsync();
     internal Task SaveUsageArchiveForFixtureAsync() => SaveUsageArchiveAsync();
     internal ResourceTrendArchive ResourceTrendsForFixture => _resourceTrends;

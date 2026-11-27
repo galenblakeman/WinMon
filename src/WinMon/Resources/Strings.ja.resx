@@ -2158,6 +2158,16 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
   <data name="TemperatureFahrenheitValue" xml:space="preserve"><value>{0:0} °F</value></data>
   <data name="TemperatureFanRpmValue" xml:space="preserve"><value>{0:0} RPM</value></data>
   <data name="DetailCpuTemperature" xml:space="preserve"><value>CPU 温度</value></data>
+  <data name="DetailCpuPackagePower" xml:space="preserve"><value>CPU パッケージ電力</value></data>
+  <data name="DetailMotherboardSensors" xml:space="preserve"><value>マザーボードセンサー</value></data>
+  <data name="DetailGpuHardwareSensors" xml:space="preserve"><value>GPU ハードウェアセンサー</value></data>
+  <data name="DetailNvmeHealth" xml:space="preserve"><value>NVMe の状態</value></data>
+  <data name="DetailNvmeEnduranceUsed" xml:space="preserve"><value>消費した寿命</value></data>
+  <data name="DetailNvmeAvailableSpare" xml:space="preserve"><value>利用可能な予備領域</value></data>
+  <data name="DetailVoltsValue" xml:space="preserve"><value>{0:0.000} V</value></data>
+  <data name="DetailSensorPercent" xml:space="preserve"><value>{0:0}%</value></data>
+  <data name="DetailSensorAtLeastPercent" xml:space="preserve"><value>≥{0:0}%</value></data>
+  <data name="DetailWattsValue" xml:space="preserve"><value>{0:0.0} W</value></data>
   <data name="DetailCpuTemperatureSensor" xml:space="preserve"><value>センサー</value></data>
   <data name="GaugeCpuTemperaturePair" xml:space="preserve"><value>{0} · {1}</value></data>
   <data name="CpuTemperatureMonitoringEnabled" xml:space="preserve"><value>CPU 温度を監視する</value></data>
@@ -2192,7 +2202,7 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
   <data name="GpuDiscoveryFailed" xml:space="preserve"><value>GPUの検出に失敗しました。設定を閉じて開き直してください。</value></data>
   <data name="ServicesIntro" xml:space="preserve"><value>オプションのバックグラウンドサービス。初回設定には管理者の承認が必要です。</value></data>
   <data name="ServicesHardwareHeading" xml:space="preserve"><value>ハードウェアセンサー</value></data>
-  <data name="ServicesHardwareNote" xml:space="preserve"><value>プロセッサーの温度と対応ファンの回転数を表示します。セットアップには管理者の承認が必要です。PawnIO ドライバーが未インストールの場合は、セットアップ時にインストールします。</value></data>
+  <data name="ServicesHardwareNote" xml:space="preserve"><value>CPU、マザーボード、GPU、ドライブで利用可能な測定値を表示します。セットアップには管理者の承認が必要です。PawnIO ドライバーがなければインストールします。</value></data>
   <data name="SensorPawnIoSetupFailed" xml:space="preserve"><value>WinMon は PawnIO をインストールできませんでした。ハードウェアセンサーをもう一度有効にしてください。</value></data>
   <data name="SensorPawnIoRestartRequired" xml:space="preserve"><value>Windows を再起動してから、ハードウェアセンサーをもう一度有効にしてください。</value></data>
   <data name="ServicesNetworkNote" xml:space="preserve"><value>すべてのネットワークアダプターの送受信を記録します。無効にすると収集は停止しますが、共有サービスはインストールされたままです。</value></data>

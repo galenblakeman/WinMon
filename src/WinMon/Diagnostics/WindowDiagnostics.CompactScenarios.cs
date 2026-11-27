@@ -240,6 +240,10 @@ internal sealed partial class WindowDiagnostics
             await CaptureVisualAsync(visual, Path.Combine(output, $"temperature-compact-cpu-stale-{theme.ToLowerInvariant()}.png"), 1, cancellationToken);
         }
         Add(5, null, null);
+        fixture.HeldCpuTemperatureForFixture = CpuTemperatureFixture(false);
+        DrawCompactScenario(fixture, visual, 836);
+        await CaptureVisualAsync(visual, Path.Combine(output, "temperature-compact-cpu-held.png"), 1, cancellationToken);
+        fixture.HeldCpuTemperatureForFixture = default;
         foreach (var theme in new[] { "Dark", "Light" })
         {
             fixture.Preferences = fixture.Preferences with { Theme = theme, GaugeStyle = GaugeStyle.Bowl };
@@ -249,6 +253,7 @@ internal sealed partial class WindowDiagnostics
         }
         finally
         {
+            fixture.HeldCpuTemperatureForFixture = default;
             RestoreTemperatureFixture(history, originalSamples, originalCapacity);
             fixture.Preferences = originalPreferences;
             fixture.ApplyTheme();

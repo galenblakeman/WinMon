@@ -24,6 +24,9 @@ public sealed class SensorPipeServerTests
         {
             Assert.That(snapshot.Quality, Is.EqualTo(SensorServiceQuality.Complete));
             Assert.That(snapshot.CpuTemperature!.Celsius, Is.EqualTo(51));
+            Assert.That(snapshot.CpuPackagePower?.Watts, Is.EqualTo(42.5));
+            Assert.That(snapshot.Sensors?.Single(),
+                Is.EqualTo(new HardwareSensorReading(HardwareSensorKind.BoardTemperature, null, "VRM", 43, snapshot.UpdatedAt)));
         });
         Assert.That((await ExchangeAsync(client, "unsubscribe", timeout.Token)).Status, Is.EqualTo("ok"));
         Assert.That(released, Is.EqualTo(1));
@@ -132,9 +135,14 @@ public sealed class SensorPipeServerTests
         internal ServerScope(IReadOnlyCollection<string> users,
             Func<string, CancellationToken, Task<IAsyncDisposable>>? subscribe = null)
         {
-            var snapshot = new SensorCollectorSnapshot(Guid.NewGuid(), 1, Stopwatch.GetTimestamp(), Stopwatch.Frequency,
+            var now = Stopwatch.GetTimestamp();
+            var snapshot = new SensorCollectorSnapshot(Guid.NewGuid(), 1, now, Stopwatch.Frequency,
                 SensorCollectorQuality.Complete, new SensorReading("cpu/0", "CPU", "package", "CPU Package", 51,
-                    "test", Stopwatch.GetTimestamp()));
+                    "test", now))
+            {
+                CpuPackagePower = new(42.5, now),
+                Sensors = [new(HardwareSensorKind.BoardTemperature, null, "VRM", 43, now)]
+            };
             var server = new SensorPipeServer(users,
                 subscribe ?? ((_, _) => Task.FromResult<IAsyncDisposable>(new CallbackDisposable(() => { }))), _ => snapshot, Name);
             _running = server.RunAsync(_stop.Token);

@@ -310,6 +310,52 @@ internal sealed partial class WindowDiagnostics
             Draw(1000);
             await CaptureVisualAsync(visual, Path.Combine(output, $"temperature-normal-{theme.ToLowerInvariant()}.png"),
                 1, cancellationToken);
+            fixture.CpuPackageWattsForFixture = 42.5;
+            fixture.HardwareSensorsForFixture =
+            [
+                new(HardwareSensorKind.BoardTemperature, null, "VRM MOS", 43, 1),
+                new(HardwareSensorKind.BoardTemperature, null, "Chipset", 41, 1),
+                new(HardwareSensorKind.BoardVoltage, null, "+12 V", 12.032, 1),
+                new(HardwareSensorKind.GpuTemperature, normalThermal.AdapterId, "GPU Hot Spot", 74, 1),
+                new(HardwareSensorKind.GpuTemperature, normalThermal.AdapterId, "GPU Memory Junction", 68, 1),
+                new(HardwareSensorKind.GpuPower, normalThermal.AdapterId, "GPU Package", 123.4, 1),
+                new(HardwareSensorKind.GpuFan, normalThermal.AdapterId, "GPU Fan 1", 900, 1),
+                new(HardwareSensorKind.GpuFan, normalThermal.AdapterId, "GPU Fan 2", 970, 1),
+                new(HardwareSensorKind.NvmeEnduranceUsed, "C:", null, 7, 1),
+                new(HardwareSensorKind.NvmeAvailableSpare, "C:", null, 100, 1)
+            ];
+            try
+            {
+                fixture.Show();
+                foreach (var (metric, name) in new[]
+                         {
+                             (fixture.CpuMetric, "cpu-hardware-sensors"), (fixture.GpuMetric, "gpu-hardware-sensors"),
+                             (fixture.DiskMetric, "nvme-health")
+                         })
+                {
+                    var tooltip = new ToolTip { Content = metric.ToolTip, PlacementTarget = metric };
+                    try
+                    {
+                        fixture.OpenDetails(metric);
+                        tooltip.IsOpen = true;
+                        await fixture.Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.Render,
+                            cancellationToken);
+                        await CaptureVisualAsync(tooltip, Path.Combine(output, $"{name}-{theme.ToLowerInvariant()}.png"),
+                            1, cancellationToken);
+                    }
+                    finally
+                    {
+                        tooltip.IsOpen = false;
+                        fixture.CloseDetails(metric);
+                    }
+                }
+            }
+            finally
+            {
+                fixture.Hide();
+                fixture.CpuPackageWattsForFixture = null;
+                fixture.HardwareSensorsForFixture = [];
+            }
         }
         AddTemperatureSample(2, 62, normalThermal with { TemperatureCelsius = 83 });
         AddTemperatureSample(3, 62, normalThermal with { TemperatureCelsius = 83 });
@@ -331,6 +377,10 @@ internal sealed partial class WindowDiagnostics
                 1, cancellationToken);
         }
         AddTemperatureSample(5, null, null);
+        fixture.HeldCpuTemperatureForFixture = CpuTemperatureFixture(false);
+        Draw(1000);
+        await CaptureVisualAsync(visual, Path.Combine(output, "temperature-cpu-held.png"), 1, cancellationToken);
+        fixture.HeldCpuTemperatureForFixture = default;
         foreach (var theme in new[] { "Dark", "Light" })
         {
             fixture.Preferences = fixture.Preferences with { Theme = theme, GaugeStyle = GaugeStyle.Bowl };
@@ -342,6 +392,7 @@ internal sealed partial class WindowDiagnostics
         }
         finally
         {
+            fixture.HeldCpuTemperatureForFixture = default;
             RestoreTemperatureFixture(temperatureHistory, originalTemperatureSamples, originalTemperatureCapacity);
             fixture.Preferences = originalTemperaturePreferences;
             fixture.ApplyTheme();

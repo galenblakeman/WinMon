@@ -1,12 +1,11 @@
 using System.Diagnostics;
 using LibreHardwareMonitor.Hardware;
-using MonCore.Monitoring;
 using MonCore.Windows.Monitoring;
 
 namespace WinMon.SensorService;
 
-/// <summary>Reads CPU temperatures and board fan tachometers through LibreHardwareMonitor.</summary>
-internal sealed class LibreHardwareMonitorProvider : ISensorProvider
+/// <summary>Owns LibreHardwareMonitor CPU, board and GPU acquisition for one collector.</summary>
+internal sealed partial class LibreHardwareMonitorProvider : ISensorProvider
 {
     private readonly Computer _computer = new() { IsCpuEnabled = true, IsMotherboardEnabled = true };
     private bool _opened;
@@ -39,32 +38,42 @@ internal sealed class LibreHardwareMonitorProvider : ISensorProvider
         return Task.CompletedTask;
     }
 
-    public Task<SensorReading?> ReadCpuTemperatureAsync(CancellationToken token)
+    public Task<(SensorReading? Temperature, CpuPackagePowerReading? PackagePower)> ReadCpuAsync(CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
         if (!_opened) throw new InvalidOperationException("CPU sensor provider is not open.");
-        var readings = new List<SensorReading>();
         var cpuHardware = _computer.Hardware.Where(item => item.HardwareType == HardwareType.Cpu).ToArray();
-        if (cpuHardware.Length != 1) return Task.FromResult<SensorReading?>(null);
-        foreach (var hardware in cpuHardware)
+        if (cpuHardware.Length != 1) return Task.FromResult<(SensorReading?, CpuPackagePowerReading?)>(default);
+
+        var hardware = cpuHardware[0];
+        var devices = Descendants(hardware).ToArray();
+        var temperatures = devices.SelectMany(device => device.Sensors)
+            .Where(sensor => sensor.SensorType == SensorType.Temperature).ToArray();
+        // These are the Intel and AMD package power names in LibreHardwareMonitor 0.9.6.
+        var powerSensors = hardware.Sensors.Where(sensor =>
+            sensor.SensorType == SensorType.Power && sensor.Name is "CPU Package" or "Package").ToArray();
+        var packageSensor = powerSensors.Length == 1 ? powerSensors[0] : null;
+
+        // A retained Value alone is never enough: it may be from before a native failure.
+        foreach (var sensor in temperatures)
         {
-            var devices = Descendants(hardware).ToArray();
-            var sensors = devices.SelectMany(device => device.Sensors)
-                .Where(sensor => sensor.SensorType == SensorType.Temperature).ToArray();
-            // Resetting extrema before every pass gives public-API evidence that Update assigned the value this pass.
-            // A retained Value alone is never enough: it may be from before a native failure.
-            foreach (var sensor in sensors)
-            {
-                sensor.ResetMin();
-                sensor.ResetMax();
-            }
-
-            foreach (var device in devices) device.Update();
-            AddReadings(sensors, hardware.Identifier.ToString(), hardware.Name, readings);
+            sensor.ResetMin();
+            sensor.ResetMax();
         }
+        packageSensor?.ResetMin();
+        packageSensor?.ResetMax();
+        foreach (var device in devices) device.Update();
 
+        CpuPackagePowerReading? packagePower = null;
+        if (packageSensor is { Value: { } watts } &&
+            watts is > 0 and <= SensorSnapshotValidation.MaximumCpuPackageWatts &&
+            packageSensor.Min == watts && packageSensor.Max == watts)
+            packagePower = new(watts, Stopwatch.GetTimestamp());
+
+        var readings = new List<SensorReading>();
+        AddReadings(temperatures, hardware.Identifier.ToString(), hardware.Name, readings);
         if (_sensorId is not null)
-            return Task.FromResult(SensorSelection.SelectFixedCandidate(readings, _hardwareId!, _sensorId, _sensorName!));
+            return Task.FromResult((SensorSelection.SelectFixedCandidate(readings, _hardwareId!, _sensorId!, _sensorName!), packagePower));
 
         var selected = SensorSelection.SelectPackageCandidate(readings);
         if (selected is not null)
@@ -73,38 +82,7 @@ internal sealed class LibreHardwareMonitorProvider : ISensorProvider
             _sensorId = selected.SensorId;
             _sensorName = selected.SensorName;
         }
-        return Task.FromResult(selected);
-    }
-
-    public IReadOnlyList<HardwareFanReading> ReadFans(CancellationToken token)
-    {
-        token.ThrowIfCancellationRequested();
-        if (!_opened) return [];
-        var boards = _computer.Hardware.Where(device => device.HardwareType == HardwareType.Motherboard);
-        var result = new List<HardwareFanReading>();
-        foreach (var device in boards.SelectMany(Descendants))
-        {
-            token.ThrowIfCancellationRequested();
-            var sensors = device.Sensors.Where(sensor => sensor.SensorType == SensorType.Fan).ToArray();
-            // Update even without active sensors so providers can discover fan channels.
-            foreach (var sensor in sensors)
-            {
-                sensor.ResetMin();
-                sensor.ResetMax();
-            }
-            device.Update();
-            foreach (var sensor in sensors)
-            {
-                var name = sensor.Name;
-                var value = sensor.Value;
-                if (value is not (>= 0 and <= 30000) || sensor.Min != value || sensor.Max != value ||
-                    string.IsNullOrWhiteSpace(name) || name.Length > 256 || name.Any(char.IsControl)) continue;
-                result.Add(new HardwareFanReading(name, value.Value,
-                    name.StartsWith("CPU", StringComparison.OrdinalIgnoreCase)));
-                if (result.Count == SensorSnapshotValidation.MaximumFans) return result;
-            }
-        }
-        return result;
+        return Task.FromResult((selected, packagePower));
     }
 
     private static IEnumerable<IHardware> Descendants(IHardware root)
@@ -122,7 +100,7 @@ internal sealed class LibreHardwareMonitorProvider : ISensorProvider
             var celsius = SensorSelection.FreshCelsius(sensor.Value, sensor.Min, sensor.Max);
             readings.Add(new SensorReading(hardwareId, hardwareName, sensor.Identifier.ToString(), sensor.Name,
                 celsius, "LibreHardwareMonitorLib 0.9.6", celsius is null ? 0 : Stopwatch.GetTimestamp(),
-                celsius is null ? "not-refreshed" : null));
+                celsius is null ? SensorReading.NotRefreshed : null));
         }
     }
 

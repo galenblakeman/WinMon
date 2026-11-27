@@ -168,7 +168,7 @@ internal sealed class SensorPipeServer(
         }, value.CpuTemperature is { } reading ? new CpuSensorReading(reading.HardwareId, reading.HardwareName,
             reading.SensorId, reading.SensorName, reading.Celsius, reading.Source, reading.LastReadAt,
             reading.AvailabilityReason) : null, value.FailureReason)
-        { Fans = value.Fans };
+        { Fans = value.Fans, CpuPackagePower = value.CpuPackagePower, Sensors = value.Sensors };
 
     private NamedPipeServerStream CreatePipe()
     {

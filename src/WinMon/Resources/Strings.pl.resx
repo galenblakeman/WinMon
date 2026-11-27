@@ -2158,6 +2158,16 @@ Przywrócenie ograniczania również nie powiodło się: {1}</value></data>
   <data name="TemperatureFahrenheitValue" xml:space="preserve"><value>{0:0} °F</value></data>
   <data name="TemperatureFanRpmValue" xml:space="preserve"><value>{0:0} RPM</value></data>
   <data name="DetailCpuTemperature" xml:space="preserve"><value>Temperatura procesora</value></data>
+  <data name="DetailCpuPackagePower" xml:space="preserve"><value>Moc pakietu procesora</value></data>
+  <data name="DetailMotherboardSensors" xml:space="preserve"><value>Czujniki płyty głównej</value></data>
+  <data name="DetailGpuHardwareSensors" xml:space="preserve"><value>Czujniki sprzętowe GPU</value></data>
+  <data name="DetailNvmeHealth" xml:space="preserve"><value>Stan NVMe</value></data>
+  <data name="DetailNvmeEnduranceUsed" xml:space="preserve"><value>Wykorzystana wytrzymałość</value></data>
+  <data name="DetailNvmeAvailableSpare" xml:space="preserve"><value>Dostępna rezerwa</value></data>
+  <data name="DetailVoltsValue" xml:space="preserve"><value>{0:0.000} V</value></data>
+  <data name="DetailSensorPercent" xml:space="preserve"><value>{0:0}%</value></data>
+  <data name="DetailSensorAtLeastPercent" xml:space="preserve"><value>≥{0:0}%</value></data>
+  <data name="DetailWattsValue" xml:space="preserve"><value>{0:0.0} W</value></data>
   <data name="DetailCpuTemperatureSensor" xml:space="preserve"><value>Czujnik</value></data>
   <data name="GaugeCpuTemperaturePair" xml:space="preserve"><value>{0} · {1}</value></data>
   <data name="CpuTemperatureMonitoringEnabled" xml:space="preserve"><value>Monitoruj temperaturę procesora</value></data>
@@ -2192,7 +2202,7 @@ Przywrócenie ograniczania również nie powiodło się: {1}</value></data>
   <data name="GpuDiscoveryFailed" xml:space="preserve"><value>Wykrywanie GPU nie powiodło się. Zamknij i otwórz ponownie Ustawienia.</value></data>
   <data name="ServicesIntro" xml:space="preserve"><value>Opcjonalne usługi w tle. Pierwsza konfiguracja wymaga zgody administratora.</value></data>
   <data name="ServicesHardwareHeading" xml:space="preserve"><value>Czujniki sprzętowe</value></data>
-  <data name="ServicesHardwareNote" xml:space="preserve"><value>Wyświetla temperaturę procesora i prędkości obsługiwanych wentylatorów. Konfiguracja wymaga zgody administratora i instaluje sterownik PawnIO, jeśli go brakuje.</value></data>
+  <data name="ServicesHardwareNote" xml:space="preserve"><value>Wyświetla dostępne odczyty procesora, płyty głównej, GPU i dysków. Konfiguracja wymaga zgody administratora i instaluje sterownik PawnIO, jeśli go brakuje.</value></data>
   <data name="SensorPawnIoSetupFailed" xml:space="preserve"><value>WinMon nie mógł zainstalować PawnIO. Spróbuj ponownie włączyć czujniki sprzętowe.</value></data>
   <data name="SensorPawnIoRestartRequired" xml:space="preserve"><value>Uruchom ponownie system Windows, a następnie ponownie włącz czujniki sprzętowe.</value></data>
   <data name="ServicesNetworkNote" xml:space="preserve"><value>Wysyłanie i odbieranie danych przez wszystkie karty sieciowe. Wyłączenie zatrzymuje zbieranie danych, pozostawiając wspólną usługę zainstalowaną.</value></data>

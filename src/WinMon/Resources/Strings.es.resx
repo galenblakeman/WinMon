@@ -2170,6 +2170,16 @@ También falló la restauración de la limitación: {1}</value></data>
   <data name="TemperatureFahrenheitValue" xml:space="preserve"><value>{0:0} °F</value></data>
   <data name="TemperatureFanRpmValue" xml:space="preserve"><value>{0:0} RPM</value></data>
   <data name="DetailCpuTemperature" xml:space="preserve"><value>Temperatura de CPU</value></data>
+  <data name="DetailCpuPackagePower" xml:space="preserve"><value>Potencia del paquete de CPU</value></data>
+  <data name="DetailMotherboardSensors" xml:space="preserve"><value>Sensores de la placa base</value></data>
+  <data name="DetailGpuHardwareSensors" xml:space="preserve"><value>Sensores de hardware de la GPU</value></data>
+  <data name="DetailNvmeHealth" xml:space="preserve"><value>Estado de NVMe</value></data>
+  <data name="DetailNvmeEnduranceUsed" xml:space="preserve"><value>Resistencia consumida</value></data>
+  <data name="DetailNvmeAvailableSpare" xml:space="preserve"><value>Reserva disponible</value></data>
+  <data name="DetailVoltsValue" xml:space="preserve"><value>{0:0.000} V</value></data>
+  <data name="DetailSensorPercent" xml:space="preserve"><value>{0:0}%</value></data>
+  <data name="DetailSensorAtLeastPercent" xml:space="preserve"><value>≥{0:0}%</value></data>
+  <data name="DetailWattsValue" xml:space="preserve"><value>{0:0.0} W</value></data>
   <data name="DetailCpuTemperatureSensor" xml:space="preserve"><value>Sensor</value></data>
   <data name="GaugeCpuTemperaturePair" xml:space="preserve"><value>{0} · {1}</value></data>
   <data name="CpuTemperatureMonitoringEnabled" xml:space="preserve"><value>Supervisar la temperatura de la CPU</value></data>
@@ -2204,7 +2214,7 @@ También falló la restauración de la limitación: {1}</value></data>
   <data name="GpuDiscoveryFailed" xml:space="preserve"><value>No se pudieron detectar las GPU. Cierre y vuelva a abrir Configuración.</value></data>
   <data name="ServicesIntro" xml:space="preserve"><value>Servicios opcionales en segundo plano. La configuración inicial requiere autorización de administrador.</value></data>
   <data name="ServicesHardwareHeading" xml:space="preserve"><value>Sensores de hardware</value></data>
-  <data name="ServicesHardwareNote" xml:space="preserve"><value>Muestra la temperatura del procesador y la velocidad de los ventiladores compatibles. La configuración requiere aprobación de un administrador e instala el controlador PawnIO si falta.</value></data>
+  <data name="ServicesHardwareNote" xml:space="preserve"><value>Muestra las lecturas disponibles de la CPU, la placa base, la GPU y las unidades. La configuración requiere aprobación de un administrador e instala el controlador PawnIO si falta.</value></data>
   <data name="SensorPawnIoSetupFailed" xml:space="preserve"><value>WinMon no pudo instalar PawnIO. Intenta activar de nuevo los sensores de hardware.</value></data>
   <data name="SensorPawnIoRestartRequired" xml:space="preserve"><value>Reinicia Windows y vuelve a activar los sensores de hardware.</value></data>
   <data name="ServicesNetworkNote" xml:space="preserve"><value>Actividad de envío y recepción de todos los adaptadores de red. Al desactivar, se detiene la recopilación y el servicio compartido permanece instalado.</value></data>

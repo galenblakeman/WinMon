@@ -1,3 +1,6 @@
+using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
+
 namespace WinMon.SensorService;
 
 /// <summary>
@@ -6,6 +9,9 @@ namespace WinMon.SensorService;
 internal interface ISensorProvider : IAsyncDisposable
 {
     Task OpenAsync(CancellationToken token);
-    Task<SensorReading?> ReadCpuTemperatureAsync(CancellationToken token);
-    IReadOnlyList<MonCore.Monitoring.HardwareFanReading> ReadFans(CancellationToken token) => [];
+    Task<(SensorReading? Temperature, CpuPackagePowerReading? PackagePower)> ReadCpuAsync(CancellationToken token);
+    PeripheralSensorPass ReadPeripherals(CancellationToken token) => default;
 }
+
+internal readonly record struct PeripheralSensorPass(IReadOnlyList<HardwareFanReading>? Fans,
+    IReadOnlyList<HardwareSensorReading>? Sensors);

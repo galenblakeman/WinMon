@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 
 namespace WinMon.SensorService;
 
@@ -9,6 +9,8 @@ namespace WinMon.SensorService;
 /// </summary>
 internal sealed class SensorCollectorWorker : IAsyncDisposable
 {
+    private const int MaximumCpuRefreshRetries = 2;
+    private static readonly TimeSpan CpuRefreshRetryDelay = TimeSpan.FromMilliseconds(200);
     private readonly ISensorProvider _provider;
     private readonly TimeSpan _sampleInterval;
     private readonly TimeSpan _operationBudget;
@@ -69,13 +71,13 @@ internal sealed class SensorCollectorWorker : IAsyncDisposable
             await RunOperationAsync(_provider.OpenAsync, "open").ConfigureAwait(false);
             while (!_stop.IsCancellationRequested)
             {
-                var (reading, fans) = await RunOperationAsync(ReadAsync, "update")
+                var (reading, packagePower, peripherals) = await RunOperationAsync(ReadAsync, "update")
                     .ConfigureAwait(false);
                 if (_stop.IsCancellationRequested || Volatile.Read(ref _timedOut) != 0) break;
                 var quality = reading?.Celsius is null || reading.LastReadAt == 0
                     ? SensorCollectorQuality.Partial
                     : SensorCollectorQuality.Complete;
-                Publish(quality, reading, reading?.AvailabilityReason, fans);
+                Publish(quality, reading, reading?.AvailabilityReason, peripherals, packagePower);
                 await Task.Delay(_sampleInterval, _stop.Token).ConfigureAwait(false);
             }
         }
@@ -106,14 +108,22 @@ internal sealed class SensorCollectorWorker : IAsyncDisposable
         }
     }
 
-    private async Task<(SensorReading?, IReadOnlyList<HardwareFanReading>)> ReadAsync(CancellationToken token)
+    private async Task<(SensorReading?, CpuPackagePowerReading?, PeripheralSensorPass)> ReadAsync(
+        CancellationToken token)
     {
-        var temperature = await _provider.ReadCpuTemperatureAsync(token).ConfigureAwait(false);
-        try { return (temperature, _provider.ReadFans(token)); }
+        var (temperature, packagePower) = await _provider.ReadCpuAsync(token).ConfigureAwait(false);
+        for (var retry = 0; retry < MaximumCpuRefreshRetries &&
+             temperature?.AvailabilityReason == SensorReading.NotRefreshed; retry++)
+        {
+            // Give transient hardware contention time to clear within the same update budget.
+            await Task.Delay(CpuRefreshRetryDelay, token).ConfigureAwait(false);
+            (temperature, packagePower) = await _provider.ReadCpuAsync(token).ConfigureAwait(false);
+        }
+        try { return (temperature, packagePower, _provider.ReadPeripherals(token)); }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            // Optional board telemetry should not clear a successfully sampled CPU temperature.
-            return (temperature, []);
+            // An optional device failure does not invalidate CPU readings from this pass.
+            return (temperature, packagePower, default);
         }
     }
 
@@ -165,25 +175,27 @@ internal sealed class SensorCollectorWorker : IAsyncDisposable
     }
 
     private void Publish(SensorCollectorQuality quality, SensorReading? reading, string? failure = null,
-        IReadOnlyList<HardwareFanReading>? fans = null)
+        PeripheralSensorPass peripherals = default, CpuPackagePowerReading? packagePower = null)
     {
         lock (_snapshotLock)
         {
             if ((quality is SensorCollectorQuality.Complete or SensorCollectorQuality.Partial) &&
                 (_stop.IsCancellationRequested || Volatile.Read(ref _disposeRequested) != 0 ||
                  Volatile.Read(ref _timedOut) != 0)) return;
-            PublishLocked(quality, reading, failure, fans);
+            PublishLocked(quality, reading, failure, peripherals, packagePower);
         }
     }
 
     private void PublishLocked(SensorCollectorQuality quality, SensorReading? reading, string? failure,
-        IReadOnlyList<HardwareFanReading>? fans = null)
+        PeripheralSensorPass peripherals = default, CpuPackagePowerReading? packagePower = null)
     {
         var current = Snapshot;
         Volatile.Write(ref _snapshot, new SensorCollectorSnapshot(_generation, current.Sequence + 1,
             Stopwatch.GetTimestamp(), Stopwatch.Frequency, quality, reading, failure)
         {
-            Fans = fans is { Count: > 0 } ? fans : null
+            Fans = peripherals.Fans is { Count: > 0 } ? peripherals.Fans : null,
+            CpuPackagePower = packagePower,
+            Sensors = peripherals.Sensors is { Count: > 0 } ? peripherals.Sensors : null
         });
     }
 

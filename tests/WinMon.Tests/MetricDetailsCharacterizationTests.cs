@@ -6,6 +6,7 @@ using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Media;
 using MonCore.Monitoring;
+using MonCore.Windows.Monitoring;
 using NUnit.Framework;
 using WinMon.Controls;
 using WinMon.Resources;
@@ -44,12 +45,12 @@ public sealed class MetricDetailsCharacterizationTests
         {
             Assert.That(_window.CpuMetric.DetailLabel.Text, Is.EqualTo("4.30 GHz · 55 °C"));
             Assert.That(details.Rows[1].Value, Is.EqualTo("55 °C"));
-            Assert.That(details.Rows[2].Value, Is.EqualTo(Strings.Format(Strings.TemperaturePeakAt,
+            Assert.That(details.Rows[3].Value, Is.EqualTo(Strings.Format(Strings.TemperaturePeakAt,
                 "70 °C", matchingPeak.Timestamp.ToLocalTime())));
             Assert.That(details.Rows.Select(row => row.Label), Does.Not.Contain(Strings.DetailCpuTemperatureSensor));
             Assert.That(details.Rows.Select(row => row.Value), Has.None.Contains("LibreHardwareMonitor"));
-            Assert.That(details.Rows[2].Label, Is.EqualTo(Strings.Format(Strings.DetailTemperaturePeakWindow, 10)));
-            Assert.That(details.Rows[2].Value, Does.Not.Contain("+00:00").And.Not.Contain("2026"));
+            Assert.That(details.Rows[3].Label, Is.EqualTo(Strings.Format(Strings.DetailTemperaturePeakWindow, 10)));
+            Assert.That(details.Rows[3].Value, Does.Not.Contain("+00:00").And.Not.Contain("2026"));
             Assert.That(details.Peak, Does.StartWith(Strings.Format(Strings.GaugeCpuUsagePeakOverWindow, 2)));
         });
     }
@@ -199,9 +200,12 @@ public sealed class MetricDetailsCharacterizationTests
     }
 
     [Test]
-    public void FanDetails_SeparateCpuFromSystemAndCollapseWhenTheSampleLosesFans()
+    public void FanDetails_HideStoppedSystemFansAndKeepStoppedCpuFans()
     {
-        Record(Filled with { HardwareFans = [new("CPU Fan", 0, true), new("Chassis Fan", 1240, false)] });
+        Record(Filled with
+        {
+            HardwareFans = [new("CPU Fan", 0, true), new("Chassis Fan", 1240, false), new("Case Fan", 0, false)]
+        });
         _window.OpenDetails(_window.CpuMetric);
         var rows = Details(_window.CpuMetric).Rows;
         var cpu = rows.Single(row => row.Label == Strings.DetailCpuFans);
@@ -213,13 +217,65 @@ public sealed class MetricDetailsCharacterizationTests
             Assert.That(cpu.Visibility, Is.EqualTo(Visibility.Visible));
             Assert.That(system.Visibility, Is.EqualTo(Visibility.Visible));
         });
-        Record(Filled, 1);
+        Record(Filled with { HardwareFans = [new("Case Fan", 0, false)] }, 1);
         _window.OpenDetails(_window.CpuMetric);
         Assert.Multiple(() =>
         {
             Assert.That(cpu.Visibility, Is.EqualTo(Visibility.Collapsed));
             Assert.That(system.Visibility, Is.EqualTo(Visibility.Collapsed));
         });
+    }
+
+    [Test]
+    public void HardwareDetails_ShowBoardSensorsAndMatchGpuAndDriveReadingsToTheirOwnDevices()
+    {
+        Record(Filled with { GpuId = "gpu-a" });
+        _window.HardwareSensorsForFixture =
+        [
+            new(HardwareSensorKind.BoardTemperature, null, "VRM", 42, 1),
+            new(HardwareSensorKind.BoardVoltage, null, "+12 V", 12.032, 1),
+            new(HardwareSensorKind.GpuTemperature, "gpu-a", "GPU Hot Spot", 71, 1),
+            new(HardwareSensorKind.GpuPower, "gpu-a", "GPU Package", 92.3, 1),
+            new(HardwareSensorKind.GpuFan, "gpu-a", "GPU Fan 1", 900, 1),
+            new(HardwareSensorKind.GpuTemperature, "gpu-b", "Other GPU", 53, 1),
+            new(HardwareSensorKind.NvmeEnduranceUsed, "C:", null, 255, 1),
+            new(HardwareSensorKind.NvmeAvailableSpare, "D:", null, 95, 1)
+        ];
+        _window.OpenDetails(_window.CpuMetric);
+        var board = Details(_window.CpuMetric).Rows[^1];
+        _window.OpenDetails(_window.GpuMetric);
+        var gpu = Details(_window.GpuMetric).Rows[^1];
+        _window.OpenDetails(_window.DiskMetric);
+        var primary = Details(_window.DiskMetric).Rows[^1];
+        _window.OpenDetails(_window.SecondaryDiskMetric);
+        var secondary = Details(_window.SecondaryDiskMetric).Rows[^1];
+        Assert.Multiple(() =>
+        {
+            Assert.That(board.Value, Is.EqualTo("VRM: 42 °C\n+12 V: 12.032 V"));
+            Assert.That(gpu.Value, Is.EqualTo("GPU Hot Spot: 71 °C\nGPU Package: 92.3 W\nGPU Fan 1: 900 RPM"));
+            Assert.That(primary.Value, Is.EqualTo("Endurance used: ≥255%"));
+            Assert.That(secondary.Value, Is.EqualTo("Available spare: 95%"));
+        });
+    }
+
+    [Test]
+    public void CpuPackagePower_ShowsWattsBesideTemperatureAndHidesWhenUnavailable()
+    {
+        Record(Filled with { CpuTemperature = new(Guid.NewGuid(), "cpu/0", "CPU", "package", "CPU Package", 52, "test") });
+        _window.CpuPackageWattsForFixture = 42.5;
+        _window.OpenDetails(_window.CpuMetric);
+        var rows = Details(_window.CpuMetric).Rows;
+        var power = rows.Single(row => row.Label == Strings.DetailCpuPackagePower);
+        Assert.Multiple(() =>
+        {
+            Assert.That(rows[rows.IndexOf(power) - 1].Label, Is.EqualTo(Strings.DetailCpuTemperature));
+            Assert.That(power.Value, Is.EqualTo("42.5 W"));
+            Assert.That(power.Visibility, Is.EqualTo(Visibility.Visible));
+        });
+
+        _window.CpuPackageWattsForFixture = null;
+        _window.OpenDetails(_window.CpuMetric);
+        Assert.That(power.Visibility, Is.EqualTo(Visibility.Collapsed));
     }
 
     [Test]
