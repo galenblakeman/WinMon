@@ -1,5 +1,27 @@
 # WinMon performance history
 
+## Process graph filters, cached resource text and buffered restart history (November 27, 2026)
+
+A sampling trace of the Release UI benchmark showed three costs. `ProcessGraphData` matched each displayed row against every process of every visible sample whenever a row was new (13% of a live frame), and the grouped path hashed every executable path case-insensitively (57% of process-list refresh time across all scenarios). Generated `Strings` properties called `ResourceManager.GetString` on every read, which took a lock and walked culture fallbacks; Services refresh spent 44% of its time there. Restart-history chunks wrote and read each field straight through `DeflateStream`, entering the compressor once per field. The changes are a 64-bit process-ID (individual) or key-length (grouped) filter ahead of the identity lookup, a per-culture string cache behind the generated properties, and a 64 KiB `BufferedStream` on both sides of each chunk's deflate stream.
+
+The baseline was HEAD `58cead5` with the same uncommitted UI files as the candidate, built in a separate worktree. Full runs alternated baseline and candidate; the first candidate pair ran while another process loaded the machine and is excluded, leaving six baseline and four candidate runs. Each frame scenario warmed up 400 frames and measured seven batches of 60. Pixel hashes matched in every scenario.
+
+| Scenario | Baseline median ms (range) | Candidate median ms (range) |
+| --- | --- | --- |
+| Focus live frame | 2.61 (2.51–2.68) | 2.28 (2.26–2.43) |
+| Heatmap live frame | 2.76 (2.66–2.88) | 2.42 (2.35–2.54) |
+| Small multiples live frame | 2.60 (2.51–2.70) | 2.47 (2.41–2.58) |
+| Grouped live frame | 5.82 (5.64–5.97) | 5.33 (5.26–5.42) |
+| Pinned and selected | 3.21 (3.12–3.99) | 2.82 (2.77–2.85) |
+| Pinned, selected and grouped | 6.92 (6.63–7.77) | 6.48 (6.29–6.71) |
+| 12 logical processors, pinned and selected | 5.53 (5.26–6.20) | 4.76 (4.74–4.83) |
+| Services live frame | 5.24 (4.96–7.04) | 5.25 (5.06–5.31) |
+| Compact live frame | 1.42 (1.40–1.49) | 1.42 (1.41–1.46) |
+
+The first scenario, the default live frame, measured 4.02–4.45 ms before and 3.90–4.63 ms after. It is sensitive to JIT tiering, so both builds ran it again with `DOTNET_TieredCompilation=0` in the same alternating order, four runs each: 4.46–4.70 ms before and 3.83–3.95 ms after. Allocation per frame was unchanged within 0.1% in every scenario: the filters and cache avoid work, not allocations, and Services still allocates about 1 MB per frame elsewhere.
+
+The 60-minute restart history (1,961 samples, about 500,000 process entries) saved in 1,031–1,065 ms and read in 759–803 ms before, and saved in 382–396 ms and read in 460–482 ms after. The 60-minute normal history saved in 1,019–1,068 ms and read in 653–682 ms before, and saved in 374–384 ms and read in 302–325 ms after. Restart saves run under a time budget that stops writing older chunks, so the faster write keeps more history across updates on slow disks or busy machines. The 10-minute investigation recording saved in 793–839 ms before and 597–609 ms after; its read, 1,460–1,527 ms before and 1,274–1,435 ms after, is dominated by JSON. These measure the UI thread and file work with synthetic samples and exclude native collection. Raw results are in `artifacts/perf-tune/run2/`, `artifacts/perf-tune/` and `artifacts/perf-tune/tc0/`.
+
 ## GPU counter instance names (November 27, 2026)
 
 An allocation trace of the Release app sampling live (`dotnet-trace`, 60 seconds) showed that `WindowsGpuSampler.ReadCounters` copied every `GPU Engine` instance name into a new string each second. Those names were 8% of all sampled app allocation, the largest steady-state allocation in the sampler. Names that recur from the previous pass now reuse that pass's string through a span lookup; new names are still copied. A Release console harness called `WindowsGpuSampler.Sample` every 250 ms on this host, with 8 warm-up calls and 60 measured calls per run, in baseline, candidate, candidate, baseline order, twice. Median allocation per call fell from 190,328–195,168 bytes to 53,728–54,968 bytes. Median thread time was 6.5–8.1 million cycles before and 6.9–7.9 million after; the native counter query dominates it, so the timings overlap. The saving grows with the number of processes using GPU engines. Six alternating 60-second `--profile-output` runs varied too much with machine activity (40–107 ms CPU per second) to resolve a change of this size. The UI-thread benchmark excludes native sampling and was not rerun. The harness and raw results are in `artifacts/perf-tune/`.
