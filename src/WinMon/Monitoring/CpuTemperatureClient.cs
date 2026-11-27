@@ -13,6 +13,7 @@ internal sealed class CpuTemperatureClient : IAsyncDisposable
     private readonly Func<CancellationToken, Task<ISensorTemperatureConnection>> _connect;
     private readonly Func<string, Func<CancellationToken, Task>, CancellationToken, Task> _setup;
     private readonly Func<bool> _canSetup;
+    private readonly Func<bool> _outdated;
     private readonly bool _supported;
     private readonly Func<TimeSpan, CancellationToken, Task> _delay;
     private readonly SemaphoreSlim _gate = new(1, 1);
@@ -31,23 +32,28 @@ internal sealed class CpuTemperatureClient : IAsyncDisposable
 
     internal CpuTemperatureClient() : this(async token => await SensorServiceClient.ConnectAsync(token)
             .ConfigureAwait(false), new SensorSetupBroker().RunAsync,
-        () => SensorSetupBroker.IsAvailable, SensorSetupBroker.Supported)
+        () => SensorSetupBroker.IsAvailable, SensorSetupBroker.Supported,
+        outdated: () => SensorSetupBroker.ServiceOutdated)
     {
     }
 
     internal CpuTemperatureClient(Func<CancellationToken, Task<ISensorTemperatureConnection>> connect,
         Func<string, Func<CancellationToken, Task>, CancellationToken, Task> setup, Func<bool> canSetup,
-        bool supported = true, Func<TimeSpan, CancellationToken, Task>? delay = null)
+        bool supported = true, Func<TimeSpan, CancellationToken, Task>? delay = null, Func<bool>? outdated = null)
     {
         _connect = connect;
         _setup = setup;
         _canSetup = canSetup;
+        _outdated = outdated ?? (() => false);
         _supported = supported;
         _delay = delay ?? Task.Delay;
         State = supported ? SensorMonitoringState.Disabled : SensorMonitoringState.StoreUnavailable;
     }
 
     internal SensorMonitoringState State { get; private set; }
+
+    /// <summary>Enabling now would replace an older installed service with this app's version.</summary>
+    internal bool ServiceUpdateAvailable => _supported && _canSetup() && _outdated();
 
     /// <summary>Fresh validated reading for the sampler, or null when disabled, stale, incomplete, or replaced.</summary>
     internal CpuTemperatureReading? Reading => _enabled
@@ -107,16 +113,22 @@ internal sealed class CpuTemperatureClient : IAsyncDisposable
             SetState(SensorMonitoringState.Enabling);
             try
             {
-                try { await OpenAsync(linked.Token).ConfigureAwait(false); }
-                catch (SensorServiceProtocolMismatchException) when (!allowSetup || !_canSetup())
-                {
-                    return Result(false, SensorMonitoringState.UpdateRequired);
-                }
-                catch (Exception exception) when (exception is not OperationCanceledException || !linked.IsCancellationRequested)
-                {
-                    if (!allowSetup) { StartPolling(); return Result(false, SensorMonitoringState.Unavailable); }
-                    if (!_canSetup()) return Result(false, SensorMonitoringState.SetupUnavailable);
+                // A compatible older service would otherwise be reused and miss readings added since it was installed.
+                if (allowSetup && ServiceUpdateAvailable)
                     await _setup("install", OpenAsync, linked.Token).ConfigureAwait(false);
+                else
+                {
+                    try { await OpenAsync(linked.Token).ConfigureAwait(false); }
+                    catch (SensorServiceProtocolMismatchException) when (!allowSetup || !_canSetup())
+                    {
+                        return Result(false, SensorMonitoringState.UpdateRequired);
+                    }
+                    catch (Exception exception) when (exception is not OperationCanceledException || !linked.IsCancellationRequested)
+                    {
+                        if (!allowSetup) { StartPolling(); return Result(false, SensorMonitoringState.Unavailable); }
+                        if (!_canSetup()) return Result(false, SensorMonitoringState.SetupUnavailable);
+                        await _setup("install", OpenAsync, linked.Token).ConfigureAwait(false);
+                    }
                 }
                 StartPolling();
                 applied = true;

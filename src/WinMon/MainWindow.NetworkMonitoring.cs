@@ -1,6 +1,7 @@
 using MonCore.Monitoring;
 using WinMon.Monitoring;
 using WinMon.Preferences;
+using WinMon.Updates;
 
 namespace WinMon;
 
@@ -15,7 +16,16 @@ public partial class MainWindow
         if (_diagnosticMode || !NetworkSetupBroker.Supported) return;
         _networkMonitoring = new NetworkMonitoringController();
         if (_preferences.ProcessNetworkMonitoringEnabled)
-            _networkRestore = _networkMonitoring.RestoreAsync(true, Lifetime.Token);
+            _networkRestore = UpdateRuntime.IsExpectedRestart && _networkMonitoring.ServiceUpdateAvailable
+                ? UpdateNetworkServiceAsync(_networkMonitoring)
+                : _networkMonitoring.RestoreAsync(true, Lifetime.Token);
+    }
+
+    // An in-app update replaces the older service too; a declined or failed setup keeps using the old one.
+    private async Task UpdateNetworkServiceAsync(NetworkMonitoringController controller)
+    {
+        if (!(await controller.ChangeAsync(true, Lifetime.Token)).Success && !IsClosing)
+            await controller.RestoreAsync(true, Lifetime.Token);
     }
 
     private async Task<NetworkMonitoringChangeResult> ChangeNetworkMonitoringAsync(bool enabled, CancellationToken token)

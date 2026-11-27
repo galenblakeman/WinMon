@@ -70,6 +70,36 @@ public sealed class CpuTemperatureClientTests
     }
 
     [Test]
+    public async Task ExplicitEnableReplacesAnOlderCompatibleServiceButRestoreKeepsIt()
+    {
+        var outdated = true;
+        var setups = 0;
+        await using var client = new CpuTemperatureClient(
+            _ => Task.FromResult<ISensorTemperatureConnection>(new FakeConnection(Complete(Guid.NewGuid(), 1))),
+            async (operation, verify, token) =>
+            {
+                setups++;
+                Assert.That(operation, Is.EqualTo("install"));
+                outdated = false;
+                await verify(token);
+            }, () => true, delay: (_, token) => Task.Delay(Timeout.Infinite, token), outdated: () => outdated);
+
+        Assert.That((await client.RestoreAsync(true, CancellationToken.None)).Success, Is.True);
+        Assert.That(setups, Is.Zero, "Startup restore never prompts on its own.");
+        Assert.That(client.ServiceUpdateAvailable, Is.True);
+        var result = await client.ChangeAsync(true, CancellationToken.None);
+        await client.ChangeAsync(true, CancellationToken.None);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Success, Is.True);
+            Assert.That(setups, Is.EqualTo(1));
+            Assert.That(client.ServiceUpdateAvailable, Is.False);
+            Assert.That(client.Reading, Is.Not.Null);
+        });
+    }
+
+    [Test]
     public async Task DeclinedInitialEnable_DoesNotLeaveBackgroundMonitoringEnabled()
     {
         var connects = 0;

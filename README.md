@@ -58,7 +58,7 @@ WinMon ships as a self-contained **Windows x64** app, so you do not need to inst
 
 Ordinary resource monitoring and connection lists run without administrator rights. Optional per-app network traffic monitoring requires a separately installed service and administrator approval to install it.
 
-The signed desktop installer offers unchecked options for per-app network monitoring and hardware sensors. You can also enable either feature later in **Settings → Services** and select **Save**, including in signed portable builds. WinMon reuses a working service or requests administrator approval to set it up. Hardware sensor setup also installs the official PawnIO driver if it’s missing. If Settings asks you to restart Windows, enable hardware sensors again after restarting. Removing WinMon preserves PawnIO for other apps. The Microsoft Store build omits these optional services.
+The signed desktop installer offers unchecked options for per-app network monitoring and hardware sensors. You can also enable either feature later in **Settings → Services** and select **Save**, including in signed portable builds. WinMon reuses a working service or requests administrator approval to set it up. After an in-app update, WinMon asks for administrator approval once for each enabled service that is older than the app and updates it. If you decline, the older service keeps running; select **Repair** in Settings → Services to update it later. Hardware sensor setup also installs the official PawnIO driver if it’s missing. If Settings asks you to restart Windows, enable hardware sensors again after restarting. Removing WinMon preserves PawnIO for other apps. The Microsoft Store build omits these optional services.
 
 ## Investigate a spike
 

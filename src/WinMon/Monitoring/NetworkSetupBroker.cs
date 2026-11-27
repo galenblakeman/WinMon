@@ -21,6 +21,10 @@ internal sealed class NetworkSetupBroker
     internal static bool IsAvailable => Supported && Assets.All(asset =>
         typeof(NetworkSetupBroker).Assembly.GetManifestResourceInfo(asset.Resource) is not null);
 
+    /// <summary>The installed service predates this app, so setup would replace it with the bundled version.</summary>
+    internal static bool ServiceOutdated => IsAvailable &&
+        ProtectedServiceEndpoints.Network.IsInstalledOlderThan(typeof(NetworkSetupBroker).Assembly.GetName().Version!);
+
     internal static bool Supported
     {
         get

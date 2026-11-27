@@ -49,6 +49,35 @@ public sealed class NetworkMonitoringControllerTests
     }
 
     [Test]
+    public async Task ExplicitEnableReplacesAnOlderCompatibleServiceButRestoreKeepsIt()
+    {
+        var outdated = true;
+        var setups = 0;
+        await using var controller = new NetworkMonitoringController(
+            _ => Task.FromResult<INetworkMonitoringConnection>(new FakeConnection()),
+            async (operation, verify, token) =>
+            {
+                setups++;
+                Assert.That(operation, Is.EqualTo("install"));
+                outdated = false;
+                await verify(token);
+            }, () => true, delay: (_, token) => Task.Delay(Timeout.Infinite, token), outdated: () => outdated);
+
+        Assert.That((await controller.RestoreAsync(true, default)).Success, Is.True);
+        Assert.That(setups, Is.Zero, "Startup restore never prompts on its own.");
+        // The connected, warming-up service is replaced rather than reused.
+        var result = await controller.ChangeAsync(true, default);
+        await controller.ChangeAsync(true, default);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Success, Is.True);
+            Assert.That(setups, Is.EqualTo(1));
+            Assert.That(controller.ServiceUpdateAvailable, Is.False);
+        });
+    }
+
+    [Test]
     [NonParallelizable]
     [Category("Integration")]
     public async Task ConnectionRecovery_LogsFailureStateAndOutageSummary()

@@ -22,6 +22,18 @@ public sealed class SensorServiceSetupDescriptorTests
         });
     }
 
+    [TestCase("5.1.0.0", "5.2.1", true)]
+    [TestCase("5.2.0.0", "5.2.1", true)]
+    [TestCase("5.2.1.0", "5.2.1", false)]
+    [TestCase("5.2.1.7", "5.2.1", false)]
+    [TestCase("5.3.0.0", "5.2.1", false)]
+    [TestCase(null, "5.2.1", false)]
+    [TestCase("not a version", "5.2.1", false)]
+    public void InstalledServiceIsOlderOnlyWhenItsMajorMinorOrBuildIsLower(string? installed, string app, bool older)
+    {
+        Assert.That(ProtectedServiceEndpoint.IsOlder(installed, Version.Parse(app)), Is.EqualTo(older));
+    }
+
     [Test]
     public void SensorPackage_UsesFixedNamesAndTheExistingReleaseTrustRoot()
     {

@@ -18,6 +18,7 @@
 
 - [Sensors settings](SENSORS-SETTINGS.md) documents hardware sensor setup, temperature units, and drive and fan readings.
 - [Installer sensor setup](INSTALLER-SENSOR-SETUP.md) documents the optional sensor service task and silent PawnIO prerequisite installation.
+- [Service updates](SERVICE-UPDATES.md) replaces older sensor and network services after an in-app update and on explicit enable or Repair.
 
 - [Network collector corrections](NETWORK-COLLECTOR-CORRECTIONS.md) bounds inferred process lifetimes by native verification and keeps queue batches from starving reconciliation.
 

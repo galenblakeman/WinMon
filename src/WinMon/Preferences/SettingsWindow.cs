@@ -1746,9 +1746,11 @@ public sealed class SettingsWindow : Window
 
     private void UpdateCpuTemperatureMonitoringButtons()
     {
-        _repairCpuTemperatureMonitoringButton.Visibility = _cpuTemperatureMonitoringEnabledAtOpen && _cpuTemperatureMonitoringState is
+        // A working but older service also offers Repair, which replaces it with this app's version.
+        _repairCpuTemperatureMonitoringButton.Visibility = _cpuTemperatureMonitoringEnabledAtOpen && (_cpuTemperatureMonitoringState is
             SensorMonitoringState.Unavailable or SensorMonitoringState.SetupUnavailable or SensorMonitoringState.UpdateRequired or
-                SensorMonitoringState.Failed or SensorMonitoringState.PawnIoSetupFailed or SensorMonitoringState.RestartRequired
+                SensorMonitoringState.Failed or SensorMonitoringState.PawnIoSetupFailed or SensorMonitoringState.RestartRequired ||
+            SensorSetupBroker.ServiceOutdated)
             ? Visibility.Visible : Visibility.Collapsed;
         _repairCpuTemperatureMonitoringButton.IsEnabled = SensorSetupBroker.Supported &&
             _changeCpuTemperatureMonitoring is not null && !_cpuTemperatureMonitoringBusy;
@@ -1759,10 +1761,11 @@ public sealed class SettingsWindow : Window
     private void UpdateRepairButton()
     {
         _repairNetworkMonitoringButton.Visibility = _networkMonitoringEnabledAtOpen &&
-                                                    _networkMonitoringState is NetworkMonitoringState.Unavailable
-                                                        or NetworkMonitoringState.SetupUnavailable or
-                                                        NetworkMonitoringState.UpdateRequired
-                                                        or NetworkMonitoringState.Failed
+                                                    (_networkMonitoringState is NetworkMonitoringState.Unavailable
+                                                         or NetworkMonitoringState.SetupUnavailable or
+                                                         NetworkMonitoringState.UpdateRequired
+                                                         or NetworkMonitoringState.Failed ||
+                                                     NetworkSetupBroker.ServiceOutdated)
             ? Visibility.Visible
             : Visibility.Collapsed;
         _repairNetworkMonitoringButton.IsEnabled =

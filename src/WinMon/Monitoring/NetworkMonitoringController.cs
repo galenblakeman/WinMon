@@ -18,6 +18,7 @@ internal sealed class NetworkMonitoringController : IAsyncDisposable
     private readonly Func<CancellationToken, Task<INetworkMonitoringConnection>> _connect;
     private readonly Func<string, Func<CancellationToken, Task>, CancellationToken, Task> _setup;
     private readonly Func<bool> _canSetup;
+    private readonly Func<bool> _outdated;
     private readonly bool _supported;
     private readonly Func<TimeSpan, CancellationToken, Task> _delay;
     private readonly SemaphoreSlim _gate = new(1, 1);
@@ -33,23 +34,28 @@ internal sealed class NetworkMonitoringController : IAsyncDisposable
     private NetworkMonitoringSample _sample = new(Guid.Empty, null);
 
     internal NetworkMonitoringController() : this(ConnectAsync, new NetworkSetupBroker().RunAsync,
-        () => NetworkSetupBroker.IsAvailable, NetworkSetupBroker.Supported)
+        () => NetworkSetupBroker.IsAvailable, NetworkSetupBroker.Supported,
+        outdated: () => NetworkSetupBroker.ServiceOutdated)
     {
     }
 
     internal NetworkMonitoringController(Func<CancellationToken, Task<INetworkMonitoringConnection>> connect,
         Func<string, Func<CancellationToken, Task>, CancellationToken, Task> setup, Func<bool> canSetup,
-        bool supported = true, Func<TimeSpan, CancellationToken, Task>? delay = null)
+        bool supported = true, Func<TimeSpan, CancellationToken, Task>? delay = null, Func<bool>? outdated = null)
     {
         _connect = connect;
         _setup = setup;
         _canSetup = canSetup;
+        _outdated = outdated ?? (() => false);
         _supported = supported;
         _delay = delay ?? Task.Delay;
         State = supported ? NetworkMonitoringState.Disabled : NetworkMonitoringState.StoreUnavailable;
     }
 
     internal NetworkMonitoringState State { get; private set; }
+
+    /// <summary>Enabling now would replace an older installed service with this app's version.</summary>
+    internal bool ServiceUpdateAvailable => _supported && _canSetup() && _outdated();
     internal NetworkMonitoringSample Sample => Volatile.Read(ref _sample);
     internal ProcessNetworkSnapshot? LatestSnapshot => Sample.Snapshot;
     internal event Action<NetworkMonitoringState>? StateChanged;
@@ -79,7 +85,9 @@ internal sealed class NetworkMonitoringController : IAsyncDisposable
 
         try
         {
-            if (enabled && _connection is not null && _poll is { IsCompleted: false } &&
+            // A compatible older service would otherwise be reused and miss changes made since it was installed.
+            var update = enabled && allowSetup && ServiceUpdateAvailable;
+            if (enabled && !update && _connection is not null && _poll is { IsCompleted: false } &&
                 State is NetworkMonitoringState.Active or NetworkMonitoringState.WarmingUp
                     or NetworkMonitoringState.Incomplete)
                 return new NetworkMonitoringChangeResult(true, State);
@@ -103,27 +111,32 @@ internal sealed class NetworkMonitoringController : IAsyncDisposable
             SetState(NetworkMonitoringState.Enabling);
             try
             {
-                try
-                {
-                    await OpenAsync(linked.Token).ConfigureAwait(false);
-                }
-                catch (NetworkServiceProtocolMismatchException)
-                {
-                    if (!allowSetup || !_canSetup()) return Result(false, NetworkMonitoringState.UpdateRequired);
+                if (update)
                     await _setup("install", OpenAsync, linked.Token).ConfigureAwait(false);
-                }
-                catch (Exception exception) when (exception is not OperationCanceledException ||
-                                                  !linked.IsCancellationRequested)
+                else
                 {
-                    ReportConnectionFailure(exception);
-                    if (!allowSetup)
+                    try
                     {
-                        StartPolling();
-                        return Result(false, NetworkMonitoringState.Unavailable);
+                        await OpenAsync(linked.Token).ConfigureAwait(false);
                     }
+                    catch (NetworkServiceProtocolMismatchException)
+                    {
+                        if (!allowSetup || !_canSetup()) return Result(false, NetworkMonitoringState.UpdateRequired);
+                        await _setup("install", OpenAsync, linked.Token).ConfigureAwait(false);
+                    }
+                    catch (Exception exception) when (exception is not OperationCanceledException ||
+                                                      !linked.IsCancellationRequested)
+                    {
+                        ReportConnectionFailure(exception);
+                        if (!allowSetup)
+                        {
+                            StartPolling();
+                            return Result(false, NetworkMonitoringState.Unavailable);
+                        }
 
-                    if (!_canSetup()) return Result(false, NetworkMonitoringState.SetupUnavailable);
-                    await _setup("install", OpenAsync, linked.Token).ConfigureAwait(false);
+                        if (!_canSetup()) return Result(false, NetworkMonitoringState.SetupUnavailable);
+                        await _setup("install", OpenAsync, linked.Token).ConfigureAwait(false);
+                    }
                 }
 
                 linked.Token.ThrowIfCancellationRequested();

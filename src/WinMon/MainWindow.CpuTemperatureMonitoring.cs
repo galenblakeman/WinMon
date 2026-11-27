@@ -1,6 +1,7 @@
 using MonCore.Monitoring;
 using WinMon.Monitoring;
 using WinMon.Preferences;
+using WinMon.Updates;
 
 namespace WinMon;
 
@@ -14,7 +15,16 @@ public partial class MainWindow
         if (_diagnosticMode || !SensorSetupBroker.Supported) return;
         _cpuTemperature = new CpuTemperatureClient();
         if (_preferences.CpuTemperatureMonitoringEnabled)
-            _cpuTemperatureRestore = _cpuTemperature.RestoreAsync(true, Lifetime.Token);
+            _cpuTemperatureRestore = UpdateRuntime.IsExpectedRestart && _cpuTemperature.ServiceUpdateAvailable
+                ? UpdateCpuTemperatureServiceAsync(_cpuTemperature)
+                : _cpuTemperature.RestoreAsync(true, Lifetime.Token);
+    }
+
+    // An in-app update replaces the older service too; a declined or failed setup keeps using the old one.
+    private async Task UpdateCpuTemperatureServiceAsync(CpuTemperatureClient client)
+    {
+        if (!(await client.ChangeAsync(true, Lifetime.Token)).Success && !IsClosing)
+            await client.RestoreAsync(true, Lifetime.Token);
     }
 
     private async Task<SensorMonitoringChangeResult> ChangeCpuTemperatureMonitoringAsync(bool enabled, CancellationToken token)
