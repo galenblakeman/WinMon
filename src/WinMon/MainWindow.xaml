@@ -195,6 +195,18 @@
                         ToolTip="{Binding [WinMonSettings], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
                         WindowChrome.IsHitTestVisibleInChrome="True" />
                     <Button
+                        x:Name="FlightRecorderButton"
+                        controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.History}"
+                        AutomationProperties.Name="{Binding [FlightRecorderTitle], Source={x:Static resources:Strings.Text}}"
+                        Click="OnFlightRecorder"
+                        Content="{Binding [FlightRecorderShort], Source={x:Static resources:Strings.Text}}"
+                        ContentTemplate="{StaticResource TitleBarButtonText}"
+                        DockPanel.Dock="Left"
+                        Foreground="{DynamicResource TitleText}"
+                        Style="{StaticResource TitleActionButton}"
+                        ToolTip="{Binding [FlightRecorderTitle], Source={x:Static resources:Strings.Text}}"
+                        WindowChrome.IsHitTestVisibleInChrome="True" />
+                    <Button
                         x:Name="ExportButton"
                         controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.Download}"
                         AutomationProperties.Name="{Binding [ExportCsv], Source={x:Static resources:Strings.Text}, Mode=OneWay}"
@@ -429,13 +441,6 @@
                                             </RadioButton>
                                         </StackPanel>
                                     </Border>
-                                    <Button x:Name="FlightRecorderButton" Margin="8,0,0,0" Padding="6,2"
-                                            VerticalAlignment="Center" FontSize="12"
-                                            Content="{Binding [FlightRecorderShort], Source={x:Static resources:Strings.Text}}"
-                                            AutomationProperties.Name="{Binding [FlightRecorderTitle], Source={x:Static resources:Strings.Text}}"
-                                            ToolTip="{Binding [FlightRecorderTitle], Source={x:Static resources:Strings.Text}}"
-                                            Click="OnFlightRecorder" controls:ButtonIcon.Data="{x:Static controls:ButtonIcon.History}"
-                                            Style="{StaticResource TitleActionButton}" />
                                     <Button
                                         x:Name="CapturesButton"
                                         Margin="8,0,0,0"

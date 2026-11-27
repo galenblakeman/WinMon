@@ -81,15 +81,10 @@ internal sealed partial class WindowDiagnostics
             throw new InvalidOperationException("The captures button needs its count and full description.");
         var captureRight = fixture.ChartModeSwitch.TranslatePoint(
             new Point(fixture.ChartModeSwitch.ActualWidth, 0), fixture).X;
-        var historyLeft = fixture.FlightRecorderButton.TranslatePoint(new Point(), fixture).X;
-        var historyRight = fixture.FlightRecorderButton.TranslatePoint(
-            new Point(fixture.FlightRecorderButton.ActualWidth, 0), fixture).X;
         var autoLeft = fixture.CapturesButton.TranslatePoint(new Point(), fixture).X;
-        if (Math.Abs(historyLeft - captureRight - 8) > 1.5 || Math.Abs(autoLeft - historyRight - 8) > 1.5 ||
-            fixture.ChartTypeSelector.ActualWidth != 150 ||
-            !ReferenceEquals(ButtonIcon.GetData(fixture.FlightRecorderButton), ButtonIcon.History))
+        if (Math.Abs(autoLeft - captureRight - 8) > 1.5 || fixture.ChartTypeSelector.ActualWidth != 150)
             throw new InvalidOperationException(
-                "History must follow Capture with its clock icon, then Auto, while the chart type selector stays narrow.");
+                "Auto must follow Live/Capture while the chart type selector stays narrow.");
         fixture.Width = 836;
         fixture.UpdateLayout();
         var autoRight = fixture.CapturesButton.TranslatePoint(
@@ -98,6 +93,7 @@ internal sealed partial class WindowDiagnostics
         if (autoRight + 8 > rangeLeft)
             throw new InvalidOperationException("Auto overlaps the time range controls at minimum width.");
         VerifyAutoCaptureScenarioToolbar(fixture);
+        VerifyHistoryTitleBarPlacement(fixture);
         if (fixture.ResourceHeader.ActualHeight > 44)
             throw new InvalidOperationException("The English chart toolbar must stay on one row at minimum width.");
         await CaptureVisualAsync((FrameworkElement)fixture.Content,
@@ -109,6 +105,7 @@ internal sealed partial class WindowDiagnostics
             fixture.RefreshVisiblePresentation();
             fixture.UpdateLayout();
             VerifyAutoCaptureScenarioToolbar(fixture);
+            VerifyHistoryTitleBarPlacement(fixture);
             await CaptureVisualAsync((FrameworkElement)fixture.Content,
                 Path.Combine(output, "captures-toolbar-german-narrow.png"), 1, cancellationToken);
         }
@@ -331,5 +328,16 @@ internal sealed partial class WindowDiagnostics
             actions.IntersectsWith(Bounds(fixture.ChartTypeSelector)) ||
             actions.IntersectsWith(Bounds(fixture.RangeSelector)))
             throw new InvalidOperationException("Chart investigation actions overlap or leave the toolbar at minimum width.");
+    }
+
+    private static void VerifyHistoryTitleBarPlacement(MainWindow fixture)
+    {
+        var history = fixture.FlightRecorderButton;
+        var historyRight = history.TranslatePoint(new Point(history.ActualWidth, 0), fixture.TitleBarArea);
+        var exportLeft = fixture.ExportButton.TranslatePoint(new Point(), fixture.TitleBarArea);
+        if (!history.IsVisible || Math.Abs(historyRight.X - exportLeft.X) > 1.5 ||
+            Math.Abs(historyRight.Y - exportLeft.Y) > 1.5 ||
+            !ReferenceEquals(ButtonIcon.GetData(history), ButtonIcon.History))
+            throw new InvalidOperationException("History must appear immediately before Export in the title bar with its clock icon.");
     }
 }
