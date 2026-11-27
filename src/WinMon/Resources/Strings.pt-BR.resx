@@ -2252,4 +2252,19 @@ A restauração da limitação também falhou: {1}</value></data>
   <data name="CaptureFinishRule" xml:space="preserve"><value>Adicione, atualize ou descarte a regra aberta antes de salvar as configurações.</value></data>
   <data name="CaptureNetworkTargetHelp" xml:space="preserve"><value>As regras de rede exigem monitoramento de rede por aplicativo.</value></data>
   <data name="CaptureAddRuleMenu" xml:space="preserve"><value>Adicionar regra de captura automática</value></data>
+  <data name="GaugeDetailsFan" xml:space="preserve"><value>Ventoinha</value></data>
+  <data name="GaugeDetailsKernel" xml:space="preserve"><value>Kernel</value></data>
+  <data name="GaugeDetailsCommit" xml:space="preserve"><value>Confirmada</value></data>
+  <data name="GaugeDetailsPaging" xml:space="preserve"><value>Paginação</value></data>
+  <data name="GaugeDetailsLatency" xml:space="preserve"><value>Latência</value></data>
+  <data name="GaugeDetailsQueue" xml:space="preserve"><value>Fila</value></data>
+  <data name="GaugeDetailsFree" xml:space="preserve"><value>Livre</value></data>
+  <data name="GaugeDetailsSession" xml:space="preserve"><value>Sessão</value></data>
+  <data name="GaugeDetailsReceivedSession" xml:space="preserve"><value>Recebido nesta sessão</value></data>
+  <data name="GaugeDetailsLink" xml:space="preserve"><value>Link</value></data>
+  <data name="GaugeDetailsVram" xml:space="preserve"><value>VRAM</value></data>
+  <data name="GaugeDetailsShared" xml:space="preserve"><value>Compartilhada</value></data>
+  <data name="GaugeDetailsEngine" xml:space="preserve"><value>Mecanismo</value></data>
+  <data name="GaugeDetailsDividerHelp" xml:space="preserve"><value>Arraste o divisor para cima ou para baixo para ocultar ou mostrar os detalhes. Com o divisor em foco, use as setas para cima ou para baixo.</value></data>
+  <data name="GaugeDetailsProcesses" xml:space="preserve"><value>Processos</value></data>
 </root>

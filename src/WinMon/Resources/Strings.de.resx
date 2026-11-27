@@ -2264,4 +2264,19 @@ Auch das Wiederherstellen der Drosselung ist fehlgeschlagen: {1}</value></data>
   <data name="CaptureFinishRule" xml:space="preserve"><value>Fügen Sie die offene Regel hinzu, aktualisieren oder verwerfen Sie sie, bevor Sie die Einstellungen speichern.</value></data>
   <data name="CaptureNetworkTargetHelp" xml:space="preserve"><value>Netzwerkregeln erfordern die Netzwerküberwachung pro App.</value></data>
   <data name="CaptureAddRuleMenu" xml:space="preserve"><value>Regel für automatische Erfassung hinzufügen</value></data>
+  <data name="GaugeDetailsFan" xml:space="preserve"><value>Lüfter</value></data>
+  <data name="GaugeDetailsKernel" xml:space="preserve"><value>Kernel</value></data>
+  <data name="GaugeDetailsCommit" xml:space="preserve"><value>Zusage</value></data>
+  <data name="GaugeDetailsPaging" xml:space="preserve"><value>Paging</value></data>
+  <data name="GaugeDetailsLatency" xml:space="preserve"><value>Latenz</value></data>
+  <data name="GaugeDetailsQueue" xml:space="preserve"><value>Warteschl.</value></data>
+  <data name="GaugeDetailsFree" xml:space="preserve"><value>Frei</value></data>
+  <data name="GaugeDetailsSession" xml:space="preserve"><value>Sitzung</value></data>
+  <data name="GaugeDetailsReceivedSession" xml:space="preserve"><value>In dieser Sitzung empfangen</value></data>
+  <data name="GaugeDetailsLink" xml:space="preserve"><value>Link</value></data>
+  <data name="GaugeDetailsVram" xml:space="preserve"><value>VRAM</value></data>
+  <data name="GaugeDetailsShared" xml:space="preserve"><value>Geteilt</value></data>
+  <data name="GaugeDetailsEngine" xml:space="preserve"><value>Engine</value></data>
+  <data name="GaugeDetailsDividerHelp" xml:space="preserve"><value>Ziehen Sie den Trenner nach oben oder unten, um Messdetails auszublenden oder einzublenden. Verwenden Sie bei fokussiertem Trenner die Pfeiltasten nach oben oder unten.</value></data>
+  <data name="GaugeDetailsProcesses" xml:space="preserve"><value>Prozesse</value></data>
 </root>

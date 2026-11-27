@@ -15,6 +15,31 @@
     Loaded="OnLoaded"
     PreviewKeyDown="OnWindowKeyDown">
     <Window.Resources>
+        <ControlTemplate x:Key="HorizontalDividerTemplate" TargetType="Thumb">
+            <Grid Background="Transparent">
+                <Border
+                    x:Name="DividerLine"
+                    Height="1"
+                    VerticalAlignment="Center"
+                    Background="{DynamicResource Line}" />
+                <Border
+                    x:Name="DividerGrip"
+                    Width="32"
+                    Height="3"
+                    VerticalAlignment="Center"
+                    Background="{DynamicResource Muted}"
+                    CornerRadius="1.5" />
+            </Grid>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter TargetName="DividerGrip" Property="Background" Value="{DynamicResource Accent}" />
+                </Trigger>
+                <Trigger Property="IsKeyboardFocused" Value="True">
+                    <Setter TargetName="DividerLine" Property="Background" Value="{DynamicResource Accent}" />
+                    <Setter TargetName="DividerGrip" Property="Background" Value="{DynamicResource Accent}" />
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
         <StackPanel x:Key="ChartTypesHelpContent" x:Shared="False" MaxWidth="440">
             <StackPanel.Resources>
                 <Style TargetType="TextBlock">
@@ -188,7 +213,13 @@
                 x:Name="CompactStrip"
                 Grid.Row="1"
                 Background="{DynamicResource PanelSurface}"
-                Visibility="Collapsed" />
+                Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <controls:GaugeDetailsStrip x:Name="CompactGaugeDetails" Grid.Row="1" Grid.ColumnSpan="6" />
+            </Grid>
             <Border
                 x:Name="FullView"
                 Grid.Row="1"
@@ -214,6 +245,10 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <Grid Grid.Row="0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition />
                                 <ColumnDefinition />
@@ -289,6 +324,7 @@
                                 Margin="9,4,9,4"
                                 AccentKey="GpuAccent"
                                 Label="{Binding [GPU], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
+                            <controls:GaugeDetailsStrip x:Name="FullGaugeDetails" Grid.Row="1" Grid.ColumnSpan="6" />
                         </Grid>
                         <!--  Compact live headers; historical resource details appear only during inspection.  -->
                         <Border
@@ -679,35 +715,8 @@
                             ResizeBehavior="PreviousAndNext"
                             ResizeDirection="Rows"
                             ShowsPreview="False"
-                            ToolTip="{Binding [ResizeChartAndProcesses], Source={x:Static resources:Strings.Text}, Mode=OneWay}">
-                            <GridSplitter.Template>
-                                <ControlTemplate TargetType="GridSplitter">
-                                    <Grid Background="Transparent">
-                                        <Border
-                                            x:Name="DividerLine"
-                                            Height="1"
-                                            VerticalAlignment="Center"
-                                            Background="{DynamicResource Line}" />
-                                        <Border
-                                            x:Name="DividerGrip"
-                                            Width="32"
-                                            Height="3"
-                                            VerticalAlignment="Center"
-                                            Background="{DynamicResource Muted}"
-                                            CornerRadius="1.5" />
-                                    </Grid>
-                                    <ControlTemplate.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="DividerGrip" Property="Background" Value="{DynamicResource Accent}" />
-                                        </Trigger>
-                                        <Trigger Property="IsKeyboardFocused" Value="True">
-                                            <Setter TargetName="DividerLine" Property="Background" Value="{DynamicResource Accent}" />
-                                            <Setter TargetName="DividerGrip" Property="Background" Value="{DynamicResource Accent}" />
-                                        </Trigger>
-                                    </ControlTemplate.Triggers>
-                                </ControlTemplate>
-                            </GridSplitter.Template>
-                        </GridSplitter>
+                            Template="{StaticResource HorizontalDividerTemplate}"
+                            ToolTip="{Binding [ResizeChartAndProcesses], Source={x:Static resources:Strings.Text}, Mode=OneWay}" />
                         <!-- Named part retained for bindings and diagnostic inspection. -->
                         <!-- ReSharper disable once UnusedMember.Global -->
                         <Grid x:Name="ActivityPanel" Grid.Row="4">

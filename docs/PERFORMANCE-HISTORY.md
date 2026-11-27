@@ -1,5 +1,9 @@
 # WinMon performance history
 
+## Expanded gauge details (November 27, 2026)
+
+The Release live-frame benchmark with the divider collapsed recorded 4.573 ms and 560,973 bytes per frame before, and 4.017 ms and 560,973 bytes after. Each run warmed up 400 frames and measured seven batches of 60. The single before/after pair measures the default view, so it does not establish timing variance or the cost of visible detail rows. Results are in `artifacts/gauge-details/`.
+
 ## Optional hardware telemetry (November 27, 2026)
 
 Two Release console probes ran four observations two seconds apart on the same host. The first CPU and peripheral pass took 27.1 ms on baseline `4fb8c5b` and 30.9 ms with the new sensors. GPU initialization and the first volume scan increased the peripheral portion from 0.60 to 16.82 ms. Over the next three observations, the peripheral portion ranged from 0.014–0.030 ms before and 0.033–0.069 ms after. The host reported SAS disks and supplied no usable CPU, motherboard, GPU or NVMe readings. This measures the unsupported-hardware path during concurrent verification. Supported-device acquisition and the 30-second NVMe refresh cost still need physical hardware measurements.

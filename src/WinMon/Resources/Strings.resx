@@ -2289,4 +2289,19 @@ Restoring throttling also failed: {1}</value></data>
   <data name="CaptureFinishRule" xml:space="preserve"><value>Add, update, or discard the open rule before saving Settings.</value></data>
   <data name="CaptureNetworkTargetHelp" xml:space="preserve"><value>Network rules require per-app network monitoring.</value></data>
   <data name="CaptureAddRuleMenu" xml:space="preserve"><value>Add auto capture rule</value></data>
+  <data name="GaugeDetailsFan" xml:space="preserve"><value>Fan</value></data>
+  <data name="GaugeDetailsKernel" xml:space="preserve"><value>Kernel</value></data>
+  <data name="GaugeDetailsCommit" xml:space="preserve"><value>Commit</value></data>
+  <data name="GaugeDetailsPaging" xml:space="preserve"><value>Paging</value></data>
+  <data name="GaugeDetailsLatency" xml:space="preserve"><value>Latency</value></data>
+  <data name="GaugeDetailsQueue" xml:space="preserve"><value>Queue</value></data>
+  <data name="GaugeDetailsFree" xml:space="preserve"><value>Free</value></data>
+  <data name="GaugeDetailsSession" xml:space="preserve"><value>Session</value></data>
+  <data name="GaugeDetailsReceivedSession" xml:space="preserve"><value>Received this session</value></data>
+  <data name="GaugeDetailsLink" xml:space="preserve"><value>Link</value></data>
+  <data name="GaugeDetailsVram" xml:space="preserve"><value>VRAM</value></data>
+  <data name="GaugeDetailsShared" xml:space="preserve"><value>Shared</value></data>
+  <data name="GaugeDetailsEngine" xml:space="preserve"><value>Engine</value></data>
+  <data name="GaugeDetailsDividerHelp" xml:space="preserve"><value>Drag the divider up or down to hide or show meter details. With focus on the divider, use the Up or Down arrow keys.</value></data>
+  <data name="GaugeDetailsProcesses" xml:space="preserve"><value>Processes</value></data>
 </root>

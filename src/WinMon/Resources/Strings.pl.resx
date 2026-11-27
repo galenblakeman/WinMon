@@ -2252,4 +2252,19 @@ Przywrócenie ograniczania również nie powiodło się: {1}</value></data>
   <data name="CaptureFinishRule" xml:space="preserve"><value>Przed zapisaniem ustawień dodaj, zaktualizuj lub odrzuć otwartą regułę.</value></data>
   <data name="CaptureNetworkTargetHelp" xml:space="preserve"><value>Reguły sieciowe wymagają monitorowania sieci dla poszczególnych aplikacji.</value></data>
   <data name="CaptureAddRuleMenu" xml:space="preserve"><value>Dodaj regułę automatycznego przechwytywania</value></data>
+  <data name="GaugeDetailsFan" xml:space="preserve"><value>Wentylator</value></data>
+  <data name="GaugeDetailsKernel" xml:space="preserve"><value>Jądro</value></data>
+  <data name="GaugeDetailsCommit" xml:space="preserve"><value>Zadekl.</value></data>
+  <data name="GaugeDetailsPaging" xml:space="preserve"><value>Stronicow.</value></data>
+  <data name="GaugeDetailsLatency" xml:space="preserve"><value>Opóźnienie</value></data>
+  <data name="GaugeDetailsQueue" xml:space="preserve"><value>Kolejka</value></data>
+  <data name="GaugeDetailsFree" xml:space="preserve"><value>Wolne</value></data>
+  <data name="GaugeDetailsSession" xml:space="preserve"><value>Sesja</value></data>
+  <data name="GaugeDetailsReceivedSession" xml:space="preserve"><value>Odebrano w tej sesji</value></data>
+  <data name="GaugeDetailsLink" xml:space="preserve"><value>Łącze</value></data>
+  <data name="GaugeDetailsVram" xml:space="preserve"><value>VRAM</value></data>
+  <data name="GaugeDetailsShared" xml:space="preserve"><value>Wspólna</value></data>
+  <data name="GaugeDetailsEngine" xml:space="preserve"><value>Silnik</value></data>
+  <data name="GaugeDetailsDividerHelp" xml:space="preserve"><value>Przeciągnij separator w górę lub w dół, aby ukryć lub pokazać szczegóły mierników. Gdy separator ma fokus, użyj klawiszy strzałek w górę lub w dół.</value></data>
+  <data name="GaugeDetailsProcesses" xml:space="preserve"><value>Procesy</value></data>
 </root>

@@ -2252,4 +2252,19 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
   <data name="CaptureFinishRule" xml:space="preserve"><value>Добавьте, обновите или закройте правило без сохранения, прежде чем сохранять настройки.</value></data>
   <data name="CaptureNetworkTargetHelp" xml:space="preserve"><value>Для сетевых правил нужен мониторинг сети по приложениям.</value></data>
   <data name="CaptureAddRuleMenu" xml:space="preserve"><value>Добавить правило автоматического захвата</value></data>
+  <data name="GaugeDetailsFan" xml:space="preserve"><value>Вентилятор</value></data>
+  <data name="GaugeDetailsKernel" xml:space="preserve"><value>Ядро</value></data>
+  <data name="GaugeDetailsCommit" xml:space="preserve"><value>Выделено</value></data>
+  <data name="GaugeDetailsPaging" xml:space="preserve"><value>Подкачка</value></data>
+  <data name="GaugeDetailsLatency" xml:space="preserve"><value>Задержка</value></data>
+  <data name="GaugeDetailsQueue" xml:space="preserve"><value>Очередь</value></data>
+  <data name="GaugeDetailsFree" xml:space="preserve"><value>Свободно</value></data>
+  <data name="GaugeDetailsSession" xml:space="preserve"><value>Сеанс</value></data>
+  <data name="GaugeDetailsReceivedSession" xml:space="preserve"><value>Получено за этот сеанс</value></data>
+  <data name="GaugeDetailsLink" xml:space="preserve"><value>Канал</value></data>
+  <data name="GaugeDetailsVram" xml:space="preserve"><value>VRAM</value></data>
+  <data name="GaugeDetailsShared" xml:space="preserve"><value>Общая</value></data>
+  <data name="GaugeDetailsEngine" xml:space="preserve"><value>Движок</value></data>
+  <data name="GaugeDetailsDividerHelp" xml:space="preserve"><value>Перетащите разделитель вверх или вниз, чтобы скрыть или показать подробности. Когда разделитель в фокусе, используйте клавиши со стрелками вверх или вниз.</value></data>
+  <data name="GaugeDetailsProcesses" xml:space="preserve"><value>Процессы</value></data>
 </root>

@@ -9,7 +9,8 @@ namespace WinMon;
 
 public partial class MainWindow
 {
-    internal const double CompactHeight = 142;
+    internal const double CompactHeight = 142 + GaugeDetailsStrip.DividerHeight;
+    private const double FullMinimumHeight = 160;
     private Size _fullViewSize = new(1000, 840);
 
     private readonly List<(MetricReadout Source, Border Box, MetricReadout Readout)> _compactTiles = [];
@@ -73,14 +74,26 @@ public partial class MainWindow
         InfoButton.Visibility = SettingsButton.Visibility = ExportButton.Visibility =
             compact ? Visibility.Collapsed : Visibility.Visible;
         VersionRun.Text = compact ? "" : $" {AppInfo.Version}";
-        MaxHeight = compact ? CompactHeight : double.PositiveInfinity;
-        MinHeight = compact ? CompactHeight : 160;
-        Height = compact ? CompactHeight : Math.Max(MinHeight, _fullViewSize.Height);
+        if (compact) SizeCompactWindow();
+        else
+        {
+            MaxHeight = double.PositiveInfinity;
+            MinHeight = FullMinimumHeight + FullGaugeDetails.DetailsHeight;
+            Height = Math.Max(MinHeight, _fullViewSize.Height);
+        }
         if (!compact) Width = Math.Max(MinWidth, _fullViewSize.Width);
         UpdateCompactButton();
         RefreshPresentation();
         EnsureVisible();
         CompactViewButton.Focus();
+    }
+
+    private void SizeCompactWindow()
+    {
+        var height = CompactHeight + CompactGaugeDetails.DetailsHeight;
+        MaxHeight = height;
+        MinHeight = height;
+        Height = height;
     }
 
     private void UpdateCompactButton()

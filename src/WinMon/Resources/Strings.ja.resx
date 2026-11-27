@@ -2252,4 +2252,19 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
   <data name="CaptureFinishRule" xml:space="preserve"><value>設定を保存する前に、編集中のルールを追加、更新、または破棄してください。</value></data>
   <data name="CaptureNetworkTargetHelp" xml:space="preserve"><value>ネットワークルールにはアプリ別のネットワーク監視が必要です。</value></data>
   <data name="CaptureAddRuleMenu" xml:space="preserve"><value>自動キャプチャルールを追加</value></data>
+  <data name="GaugeDetailsFan" xml:space="preserve"><value>ファン</value></data>
+  <data name="GaugeDetailsKernel" xml:space="preserve"><value>カーネル</value></data>
+  <data name="GaugeDetailsCommit" xml:space="preserve"><value>コミット</value></data>
+  <data name="GaugeDetailsPaging" xml:space="preserve"><value>ページング</value></data>
+  <data name="GaugeDetailsLatency" xml:space="preserve"><value>遅延</value></data>
+  <data name="GaugeDetailsQueue" xml:space="preserve"><value>キュー</value></data>
+  <data name="GaugeDetailsFree" xml:space="preserve"><value>空き</value></data>
+  <data name="GaugeDetailsSession" xml:space="preserve"><value>セッション</value></data>
+  <data name="GaugeDetailsReceivedSession" xml:space="preserve"><value>このセッションの受信量</value></data>
+  <data name="GaugeDetailsLink" xml:space="preserve"><value>リンク</value></data>
+  <data name="GaugeDetailsVram" xml:space="preserve"><value>VRAM</value></data>
+  <data name="GaugeDetailsShared" xml:space="preserve"><value>共有</value></data>
+  <data name="GaugeDetailsEngine" xml:space="preserve"><value>エンジン</value></data>
+  <data name="GaugeDetailsDividerHelp" xml:space="preserve"><value>仕切りを上下にドラッグすると、メーターの詳細を表示または非表示にできます。仕切りにフォーカスがあるときは上下の矢印キーを使えます。</value></data>
+  <data name="GaugeDetailsProcesses" xml:space="preserve"><value>プロセス</value></data>
 </root>

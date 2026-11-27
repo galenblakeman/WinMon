@@ -92,6 +92,8 @@ public partial class MainWindow
         InitializeComponent();
         InitializeMetricDetails();
         InitializeCompactView();
+        FullGaugeDetails.DetailsHeightRequested += SetGaugeDetailsHeight;
+        CompactGaugeDetails.DetailsHeightRequested += SetGaugeDetailsHeight;
         InitializeServices();
         InitializeUsage();
         Session.LiveSampleRecorded += RecordResourceTrend;
@@ -394,6 +396,7 @@ public partial class MainWindow
         var gpuThermal = PairedGpuThermal(resource);
         GpuMetric.DetailLabel.Text = GaugeReadoutText.GpuDetail(resource?.GpuGraphicsClockMhz,
             gpuThermal?.TemperatureCelsius, _preferences.TemperatureUnit);
+        UpdateGaugeDetails(resource, gpuThermal);
         CpuMetric.DetailLabel.Text = GaugeReadoutText.CpuDetail(resource?.CpuClockMhz,
             CpuTemperatureForDisplay(resource)?.Celsius, _preferences.TemperatureUnit);
         UpdateTemperatureMarkers(latest, gpuThermal);

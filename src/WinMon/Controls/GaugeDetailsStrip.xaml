@@ -1,0 +1,67 @@
+<UserControl
+    x:Class="WinMon.Controls.GaugeDetailsStrip"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:automation="clr-namespace:System.Windows.Automation;assembly=PresentationCore"
+    xmlns:resources="clr-namespace:WinMon.Resources">
+    <UserControl.Resources>
+        <DataTemplate x:Key="Reading">
+            <Grid Height="24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" MaxWidth="76" />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource Muted}"
+                           Text="{Binding Label}" TextTrimming="CharacterEllipsis"
+                           ToolTip="{Binding LabelHelp}" />
+                <TextBlock Grid.Column="1" Margin="4,0,0,0" VerticalAlignment="Center"
+                           Foreground="{DynamicResource Text}" TextAlignment="Right"
+                           Text="{Binding Value}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Value}" />
+            </Grid>
+        </DataTemplate>
+        <DataTemplate x:Key="GaugeColumn">
+            <StackPanel Margin="8,0" TextElement.FontSize="11">
+                <ContentPresenter Content="{Binding First}" ContentTemplate="{StaticResource Reading}" />
+                <ContentPresenter Content="{Binding Second}" ContentTemplate="{StaticResource Reading}" />
+                <ContentPresenter Content="{Binding Third}" ContentTemplate="{StaticResource Reading}" />
+            </StackPanel>
+        </DataTemplate>
+        <Style x:Key="ColumnDivider" TargetType="Border">
+            <Setter Property="BorderBrush" Value="{DynamicResource Line}" />
+            <Setter Property="BorderThickness" Value="0,0,1,0" />
+        </Style>
+    </UserControl.Resources>
+    <StackPanel>
+        <Border x:Name="RowsViewport" Height="0" Visibility="Collapsed" ClipToBounds="True">
+            <Grid Height="72" VerticalAlignment="Top">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                    <ColumnDefinition x:Name="SecondaryColumn" Width="0" />
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <ContentControl x:Name="Cpu" Grid.Column="0" ContentTemplate="{StaticResource GaugeColumn}" />
+                <ContentControl x:Name="Memory" Grid.Column="1" ContentTemplate="{StaticResource GaugeColumn}" />
+                <ContentControl x:Name="Disk" Grid.Column="2" ContentTemplate="{StaticResource GaugeColumn}" />
+                <ContentControl x:Name="SecondaryDisk" Grid.Column="3" ContentTemplate="{StaticResource GaugeColumn}" />
+                <ContentControl x:Name="Network" Grid.Column="4" ContentTemplate="{StaticResource GaugeColumn}" />
+                <ContentControl x:Name="Gpu" Grid.Column="5" ContentTemplate="{StaticResource GaugeColumn}" />
+                <Border Grid.Column="0" Style="{StaticResource ColumnDivider}" IsHitTestVisible="False" />
+                <Border Grid.Column="1" Style="{StaticResource ColumnDivider}" IsHitTestVisible="False" />
+                <Border Grid.Column="2" Style="{StaticResource ColumnDivider}" IsHitTestVisible="False" />
+                <Border x:Name="SecondaryDivider" Grid.Column="3" Style="{StaticResource ColumnDivider}"
+                        IsHitTestVisible="False" Visibility="Collapsed" />
+                <Border Grid.Column="4" Style="{StaticResource ColumnDivider}" IsHitTestVisible="False" />
+            </Grid>
+        </Border>
+        <Thumb x:Name="Divider" Height="14" Focusable="True" Cursor="SizeNS"
+               automation:AutomationProperties.Name="{Binding [Details], Source={x:Static resources:Strings.Text}}"
+               automation:AutomationProperties.HelpText="{Binding [GaugeDetailsDividerHelp], Source={x:Static resources:Strings.Text}}"
+               Template="{DynamicResource HorizontalDividerTemplate}"
+               ToolTip="{Binding [GaugeDetailsDividerHelp], Source={x:Static resources:Strings.Text}}"
+               DragStarted="OnDragStarted" DragDelta="OnDragDelta" DragCompleted="OnDragCompleted"
+               KeyDown="OnDividerKeyDown" />
+    </StackPanel>
+</UserControl>

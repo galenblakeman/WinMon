@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using MonCore.Monitoring;
 using MonCore.Windows.Monitoring;
@@ -31,16 +32,24 @@ internal sealed partial class WindowDiagnostics
                 Resources = new ResourceSample
                 {
                     TotalMemoryBytes = 64UL * 1_073_741_824, UsedMemoryBytes = 35_433_480_192,
+                    CommittedBytes = 48UL << 30, CommitLimitBytes = 64UL << 30,
+                    CachedBytes = 12UL << 30, PagingReadsPerSecond = 2,
                     DiskName = "C:", DiskActivePercent = 0.1 + 62 * pulse,
                     DiskBytesPerSecond = i == 94 ? 200_000 : 900_000,
+                    DiskResponseSeconds = 0.0007, DiskQueueLength = 0.02, DiskFreeBytes = 312UL << 30,
                     SecondaryDiskName = "D:", SecondaryDiskActivePercent = 97 + 2 * pulse,
                     SecondaryDiskBytesPerSecond = 300_000,
+                    SecondaryDiskResponseSeconds = 0.0018, SecondaryDiskQueueLength = 0.08,
+                    SecondaryDiskFreeBytes = 1300UL << 30,
                     GpuEngine = "3D", GpuPercent = 9 + 60 * pulse, GpuId = "gpu/0",
                     GpuMemoryUsedBytes = 4UL * 1_073_741_824, GpuGraphicsClockMhz = 1860,
+                    GpuMemoryTotalBytes = 12UL << 30, GpuSharedMemoryUsedBytes = 512UL << 20,
                     GpuThermals = [new("gpu/0", "Fixture GPU", 37, 900, 20, null, null)],
-                    CpuClockMhz = 4300,
+                    CpuClockMhz = 4300, CpuKernelPercent = 2.8, ProcessCount = 231, ThreadCount = 4186,
+                    HardwareFans = [new("Fixture CPU fan", 1240, true)],
                     NetworkId = "fixture", NetworkName = "Ethernet", LinkBitsPerSecond = 1_000_000_000,
-                    ReceiveBytesPerSecond = 1_190 + 8_000_000 * pulse, SendBytesPerSecond = 2_100
+                    ReceiveBytesPerSecond = 1_190 + 8_000_000 * pulse, SendBytesPerSecond = 2_100,
+                    ReceivedBytesSinceStart = 183UL << 20
                 }
             });
         }
@@ -220,6 +229,8 @@ internal sealed partial class WindowDiagnostics
                         cancellationToken);
                 }
             }
+
+            await CaptureExpandedGaugeDetailsAsync(fixture, visual, output, cancellationToken);
         }
         finally
         {
@@ -417,6 +428,74 @@ internal sealed partial class WindowDiagnostics
             // Gauges draw at their arranged size, so refresh once more as a live tick would.
             fixture.RefreshVisiblePresentation();
             visual.UpdateLayout();
+        }
+    }
+
+    private static async Task CaptureExpandedGaugeDetailsAsync(MainWindow fixture, FrameworkElement visual,
+        string output, CancellationToken cancellationToken)
+    {
+        fixture.Width = 836;
+        fixture.Preferences = fixture.Preferences with { Theme = "Dark", GaugeStyle = GaugeStyle.SegmentedArc };
+        fixture.ApplyTheme();
+        var strip = fixture.FullGaugeDetails;
+        var source = PresentationSource.FromVisual(fixture) ??
+            throw new InvalidOperationException("Meter divider has no presentation source.");
+        Press(strip, Key.Down);
+        fixture.RefreshVisiblePresentation();
+        visual.UpdateLayout();
+        AssertText(strip.Cpu, column => column.First, Strings.GaugeDetailsProcesses, "231");
+        AssertText(strip.Memory, column => column.First, Strings.GaugeDetailsCommit, MainWindow.Percent(75));
+        AssertText(strip.Network, column => column.Third, Strings.DetailAdapter, "Ethernet");
+        if (strip.DetailsHeight != GaugeDetailsStrip.ExpandedHeight)
+            throw new InvalidOperationException("The divider did not expand the full view.");
+        await CaptureVisualAsync(visual, Path.Combine(output, "gauges-details-full-836.png"), 1, cancellationToken);
+
+        if (SensorSetupBroker.Supported)
+        {
+            fixture.Preferences = fixture.Preferences with { CpuTemperatureMonitoringEnabled = true };
+            fixture.CpuPackageWattsForFixture = 74;
+            fixture.RefreshVisiblePresentation();
+            AssertText(strip.Cpu, column => column.First, Strings.GaugeDetailsFan,
+                Strings.Format(Strings.TemperatureFanRpmValue, 1240d));
+            AssertText(strip.Cpu, column => column.Second, Strings.DetailPower, Strings.Format("{0:0} W", 74d));
+            AssertText(strip.Cpu, column => column.Third, Strings.GaugeDetailsKernel, MainWindow.Percent(2.8));
+            AssertText(strip.Gpu, column => column.First, Strings.GaugeDetailsFan,
+                Strings.Format(Strings.TemperatureFanRpmValue, 900d));
+        }
+
+        fixture.SetCompactView(true);
+        strip = fixture.CompactGaugeDetails;
+        if (fixture.Height != MainWindow.CompactHeight + GaugeDetailsStrip.ExpandedHeight ||
+            strip.DetailsHeight != GaugeDetailsStrip.ExpandedHeight)
+            throw new InvalidOperationException(
+                $"Compact view did not retain the expanded meter height: window {fixture.Height}, rows {strip.DetailsHeight}.");
+        await CaptureVisualAsync(visual, Path.Combine(output, "gauges-details-compact-836.png"), 1, cancellationToken);
+
+        fixture.Preferences = fixture.Preferences with { SecondaryDrive = null };
+        fixture.RefreshVisiblePresentation();
+        if (strip.SecondaryDisk.Visibility != Visibility.Collapsed)
+            throw new InvalidOperationException("The details retained a column for an unconfigured secondary disk.");
+        Press(strip, Key.Up);
+        if (strip.DetailsHeight != 0 || fixture.FullGaugeDetails.DetailsHeight != 0 ||
+            fixture.Height != MainWindow.CompactHeight)
+            throw new InvalidOperationException("The divider did not collapse the rows in both views.");
+        await CaptureVisualAsync(visual, Path.Combine(output, "gauges-details-collapsed-836.png"), 1, cancellationToken);
+        fixture.SetCompactView(false);
+        fixture.Preferences = fixture.Preferences with { SecondaryDrive = "D:", CpuTemperatureMonitoringEnabled = false };
+        fixture.CpuPackageWattsForFixture = null;
+
+        void Press(GaugeDetailsStrip details, Key key) =>
+            details.Divider.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, source, Environment.TickCount, key)
+            {
+                RoutedEvent = Keyboard.KeyDownEvent
+            });
+
+        static void AssertText(ContentControl control, Func<GaugeDetailsStrip.Column, GaugeDetailsStrip.Reading> pick,
+            string label, string value)
+        {
+            if (control.Content is not GaugeDetailsStrip.Column column || pick(column) is not { } reading ||
+                reading.Label != label || reading.Value != value)
+                throw new InvalidOperationException($"The gauge details did not show {label} {value}.");
         }
     }
 

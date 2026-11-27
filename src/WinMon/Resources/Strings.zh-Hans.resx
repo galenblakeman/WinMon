@@ -2252,4 +2252,19 @@ Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。<
   <data name="CaptureFinishRule" xml:space="preserve"><value>请先添加、更新或放弃当前规则，再保存设置。</value></data>
   <data name="CaptureNetworkTargetHelp" xml:space="preserve"><value>网络规则需要按应用监控网络。</value></data>
   <data name="CaptureAddRuleMenu" xml:space="preserve"><value>添加自动捕获规则</value></data>
+  <data name="GaugeDetailsFan" xml:space="preserve"><value>风扇</value></data>
+  <data name="GaugeDetailsKernel" xml:space="preserve"><value>内核</value></data>
+  <data name="GaugeDetailsCommit" xml:space="preserve"><value>提交</value></data>
+  <data name="GaugeDetailsPaging" xml:space="preserve"><value>分页</value></data>
+  <data name="GaugeDetailsLatency" xml:space="preserve"><value>延迟</value></data>
+  <data name="GaugeDetailsQueue" xml:space="preserve"><value>队列</value></data>
+  <data name="GaugeDetailsFree" xml:space="preserve"><value>可用</value></data>
+  <data name="GaugeDetailsSession" xml:space="preserve"><value>会话</value></data>
+  <data name="GaugeDetailsReceivedSession" xml:space="preserve"><value>本次会话接收量</value></data>
+  <data name="GaugeDetailsLink" xml:space="preserve"><value>链路</value></data>
+  <data name="GaugeDetailsVram" xml:space="preserve"><value>显存</value></data>
+  <data name="GaugeDetailsShared" xml:space="preserve"><value>共享</value></data>
+  <data name="GaugeDetailsEngine" xml:space="preserve"><value>引擎</value></data>
+  <data name="GaugeDetailsDividerHelp" xml:space="preserve"><value>向上或向下拖动分隔条可隐藏或显示仪表详情。分隔条获得焦点后，可使用向上或向下箭头键。</value></data>
+  <data name="GaugeDetailsProcesses" xml:space="preserve"><value>进程</value></data>
 </root>

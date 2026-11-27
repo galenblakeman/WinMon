@@ -146,6 +146,8 @@ Choose light, dark or additional appearances, independent chart palettes and sev
 
 Resource readouts stay centered in their columns in full and compact views.
 
+Drag the centered divider grip below the gauges down to reveal three detail rows per meter, or up to hide them. With the divider focused, the Down and Up arrow keys do the same. Enabling hardware sensor monitoring automatically adds CPU fan, CPU package power and GPU fan readings where supported.
+
 [Compare appearances and palettes](docs/example/README.md#customize) · [Customize WinMon](docs/USER-GUIDE.md#make-it-yours)
 
 ## Permissions and limitations
