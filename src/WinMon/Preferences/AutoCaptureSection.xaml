@@ -113,6 +113,7 @@
                                     <TextBlock x:Name="TargetNameLabel" Style="{StaticResource EditorLabel}" />
                                     <TextBox x:Name="TargetName" MaxLength="512" MinHeight="26"
                                              VerticalContentAlignment="Center" Background="{DynamicResource Raised}"
+                                             Foreground="{DynamicResource Text}"
                                              AutomationProperties.LabeledBy="{Binding ElementName=TargetNameLabel}" />
                                 </StackPanel>
                             </Grid>

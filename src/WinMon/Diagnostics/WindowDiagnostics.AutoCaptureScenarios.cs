@@ -248,7 +248,10 @@ internal sealed partial class WindowDiagnostics
                     settings.UpdateLayout();
                     await CaptureServiceWindowAsync(settings, Path.Combine(output, "settings-scoped-rules-" + theme + ".png"), cancellationToken);
                     captures.AddRuleButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                    captures.TargetName.Text = @"C:\Tools\worker.exe";
                     settings.UpdateLayout();
+                    if (!Equals(captures.TargetName.Foreground, captures.TargetName.FindResource("Text")))
+                        throw new InvalidOperationException("The capture target field must use the settings text color.");
                     await CaptureServiceWindowAsync(settings, Path.Combine(output, "settings-scoped-editor-" + theme + ".png"), cancellationToken);
                     captures.DiscardRuleButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
                     captures.CaptureTabs.SelectedItem = captures.ReportTab;
