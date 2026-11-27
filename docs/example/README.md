@@ -4,7 +4,7 @@
 
 Actual WinMon windows with illustrative identities and measurements. Click any preview to open the full-size image.
 
-Captured November 26, 2026, with **WinMon 5.0.1** on Windows build **26300.10075**, x64. The main gallery uses the desktop build. The separate Store Settings image comes from an unpackaged build with `StoreBuild=true`.
+Captured November 26, 2026, with **WinMon 5.1.0** on Windows build **26300.10075**, x64. The main gallery uses the desktop build. The separate Store Settings image comes from an unpackaged build with `StoreBuild=true`.
 
 ## Investigate
 
@@ -12,12 +12,14 @@ Captured November 26, 2026, with **WinMon 5.0.1** on Windows build **26300.10075
 
 **Find what was busy at a spike.** Choose **History** beside **Capture** to open **What just happened?** at the CPU peak. Use **Compare periods** to see which processes changed most across the 10-second windows before, during and after the selected moment. **Selected moment** shows the recorded readings at the cursor. Choose another resource or use **Refresh** to load the latest recording. Network ranks processes by recorded receive and send rates when available.
 
-Expand **Events** on the right to inspect related Windows events or select a group in **Crashes** to highlight recurring failures on the timeline. Use **Save incident…** to keep the selected recording and its events for later.
+Expand **Events** on the right to inspect related Windows events or select a group in **Crashes** to highlight recurring failures on the timeline. Use **Save incident…** to choose how much of the recording and its events to keep. If the spike has already rolled out of History, check **History → Longer trends** for its minute peak and any saved automatic incident covering it.
 
 | Watch live activity | Look back at a spike |
 | --- | --- |
 | [![Live dashboard with resource gauges, a recent spike and process rankings](example_individual.png)](example_individual.png) | [![Capture showing Chrome's CPU activity during an earlier spike](example_snapshot.png)](example_snapshot.png) |
 | See current resource use alongside recent history. | Click a spike to inspect its interval and process rankings. Top gauges remain live; process CPU averages five seconds. |
+
+To catch the next Chrome spike while you’re away, open **Auto → Automatic capture settings…**, choose the application CPU metric, and add a scoped rule for `chrome.exe`. Set the CPU threshold and how long it must hold. Open the resulting `.wmincident` in History to review the readings around the trigger.
 
 | Follow services and their workers | Find apps with network activity |
 | --- | --- |
@@ -35,7 +37,7 @@ Expand **Events** on the right to inspect related Windows events or select a gro
 | [![Small multiples with a separate chart for each resource](example_small_multiples.png)](example_small_multiples.png) | [![Network Focus chart with a throughput scale and smaller context charts](example_focus_network.png)](example_focus_network.png) |
 | Small multiples make simultaneous trends easier to compare. | Focus gives one resource more room and its own scale. |
 
-The app also offers Heatmap and Logical processors charts. See the [chart guide](../USER-GUIDE.md#your-system-at-a-glance) for all choices.
+The app also offers Heatmap and Logical processors charts. Choose CPU, Disk or GPU Focus to see activity and available temperature readings together. Temperature uses a dashed trace and a scale on the right. See the [chart guide](../USER-GUIDE.md#your-system-at-a-glance) for all choices.
 
 With the hardware sensor service enabled, select **Temperature** to compare CPU, GPU and drive readings on a Celsius or Fahrenheit scale. In **History → Longer trends**, select a temperature series to review minute peaks across the last day or week. To capture a sustained spike, open **Settings → Automatic captures**, choose the sensor metric and set a Celsius threshold and duration. [Temperature history and captures](../design/TEMPERATURE-HISTORY.md).
 

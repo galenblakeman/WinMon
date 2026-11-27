@@ -42,7 +42,7 @@ Memory details show paging reads per second, standby, modified, free/zero memory
 
 ## Download and requirements
 
-Current version: **5.0.1**.
+Current version **5.1.0** adds automatic capture rules for specific apps and services, disk latency triggers, and temperature traces in focused resource charts.
 
 [Download the latest release](https://github.com/galenblakeman/WinMon/releases/latest), then choose:
 
@@ -86,7 +86,7 @@ For an investigation within the dashboard:
 
 History defaults to **30 minutes**, with retention configurable up to **60 minutes**, subject to memory limits. Capture mode reports the retained span and selected-moment availability for each activity view. Optional **Automatic captures** mark threshold events and save text reports while you are away, including app receive/send leaders when network traffic was recorded. [Learn about history and captures](docs/USER-GUIDE.md#catch-the-spikeeven-after-it-passes).
 
-Automatic captures also save a `.wmincident` beside each report with up to 30 seconds before and 15 seconds after the trigger. Use **History → Open incident…** to revisit it after the live recording rolls over or WinMon restarts.
+Open **Auto → Automatic capture settings…** to configure rules for disk latency, specific executables, or Windows services. Each scoped rule has its own threshold and duration. Automatic captures save a `.wmincident` beside each report with up to 30 seconds before and 15 seconds after the trigger. Use **History → Open incident…** to revisit it after the live recording rolls over or WinMon restarts.
 
 For slowdowns that build over hours, choose **History → Longer trends**. The **Last 24 hours** and **Last 7 days** views show one-minute averages and mark brief peaks. Select a minute to see when its peak was recorded and open the exact detailed reading or find a saved automatic incident that contains it. Trends are saved locally across restarts, with gaps for sleep, closed-app time and unavailable readings. Settings → Monitoring can stop recording or clear the archive.
 
