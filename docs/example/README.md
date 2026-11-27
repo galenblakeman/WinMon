@@ -4,13 +4,13 @@
 
 Actual WinMon windows with illustrative identities and measurements. Click any preview to open the full-size image.
 
-Captured November 26, 2026, with **WinMon 5.1.0** on Windows build **26300.10075**, x64. The main gallery uses the desktop build. The separate Store Settings image comes from an unpackaged build with `StoreBuild=true`.
+Captured November 27, 2026, with **WinMon 5.2.0** on Windows build **26300.10075**, x64. The main gallery uses the desktop build. The separate Store Settings image comes from an unpackaged build with `StoreBuild=true`.
 
 ## Investigate
 
 [![History showing the CPU peak, the before and after comparison, and the collapsed Events sidebar on the right](example_history.png)](example_history.png)
 
-**Find what was busy at a spike.** Choose **History** beside **Capture** to open **What just happened?** at the CPU peak. Use **Compare periods** to see which processes changed most across the 10-second windows before, during and after the selected moment. **Selected moment** shows the recorded readings at the cursor. Choose another resource or use **Refresh** to load the latest recording. Network ranks processes by recorded receive and send rates when available.
+**Find what was busy at a spike.** Choose **History** just before **Export** in the Full view title bar to open **What just happened?** at the CPU peak. Use **Compare periods** to see which processes changed most across the 10-second windows before, during and after the selected moment. **Selected moment** shows the recorded readings at the cursor. Choose another resource or use **Refresh** to load the latest recording. Network ranks processes by recorded receive and send rates when available.
 
 Expand **Events** on the right to inspect related Windows events or select a group in **Crashes** to highlight recurring failures on the timeline. Use **Save incident…** to choose how much of the recording and its events to keep. If the spike has already rolled out of History, check **History → Longer trends** for its minute peak and any saved automatic incident covering it.
 
@@ -35,7 +35,7 @@ To catch the next Chrome spike while you’re away, open **Auto → Automatic ca
 | Separate resource trends | Focus on one resource |
 | --- | --- |
 | [![Small multiples with a separate chart for each resource](example_small_multiples.png)](example_small_multiples.png) | [![Network Focus chart with a throughput scale and smaller context charts](example_focus_network.png)](example_focus_network.png) |
-| Small multiples make simultaneous trends easier to compare. | Focus gives one resource more room and its own scale. |
+| Small multiples give each resource its own scale on a shared timeline. | Network Focus separates receive and send rates while keeping the other resources visible for context. |
 
 The app also offers Heatmap and Logical processors charts. Choose CPU, Disk or GPU Focus to see activity and available temperature readings together. Temperature uses a dashed trace and a scale on the right. See the [chart guide](../USER-GUIDE.md#your-system-at-a-glance) for all choices.
 
@@ -82,6 +82,8 @@ Store builds use Store-managed updates and omit the GitHub Updates section. This
 [![Light Compact view showing the same readings](example_compact_light.png)](example_compact_light.png)
 
 **Compact view** keeps live readings and peak marks visible without the chart or activity list.
+
+Drag the divider below the meters down in Full or Compact view to see three more readings per resource, such as disk latency, network link speed, and GPU memory use. Drag it back up to collapse the details, or focus the divider and use the Up and Down arrow keys.
 
 <details>
 <summary>Dashboard at its minimum width</summary>

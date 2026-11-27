@@ -42,7 +42,7 @@ Memory details show paging reads per second, standby, modified, free/zero memory
 
 ## Download and requirements
 
-Current version **5.1.0** adds automatic capture rules for specific apps and services, disk latency triggers, and temperature traces in focused resource charts.
+**WinMon 5.2.0** adds expandable meter details in Full and Compact views, more hardware sensor readings on supported devices, and resource breakdowns in Focus charts. Open **History** directly from the Full view title bar.
 
 [Download the latest release](https://github.com/galenblakeman/WinMon/releases/latest), then choose:
 
