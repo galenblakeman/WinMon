@@ -99,9 +99,9 @@ public sealed partial class MainWindowWorkflowCharacterizationTests
         {
             Assert.That(samples[94].TotalCpuPercent, Is.EqualTo(77.8).Within(0.000001));
             Assert.That(samples[94].Resources.GpuPercent, Is.EqualTo(69));
-            Assert.That(samples[94].Resources.GpuMemoryUsedBytes, Is.Null);
+            Assert.That(samples[94].Resources.GpuMemoryUsedBytes, Is.EqualTo(4UL * 1_073_741_824));
             Assert.That(samples[94].Resources.DiskBytesPerSecond, Is.EqualTo(200_000));
-            Assert.That(samples[^1].Resources.GpuMemoryUsedBytes, Is.EqualTo(4UL * 1_073_741_824));
+            Assert.That(samples[^1].Resources.GpuGraphicsClockMhz, Is.EqualTo(1860));
             Assert.That(samples[^1].Resources.DiskBytesPerSecond, Is.EqualTo(900_000));
             Assert.That(samples[^1].Resources.TotalMemoryBytes, Is.EqualTo(64UL * 1_073_741_824));
             Assert.That(samples[^1].Timestamp - samples[0].Timestamp, Is.EqualTo(TimeSpan.FromSeconds(119)));
