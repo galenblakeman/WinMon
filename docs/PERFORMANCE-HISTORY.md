@@ -1,5 +1,9 @@
 # WinMon performance history
 
+## GPU counter instance names (November 27, 2026)
+
+An allocation trace of the Release app sampling live (`dotnet-trace`, 60 seconds) showed that `WindowsGpuSampler.ReadCounters` copied every `GPU Engine` instance name into a new string each second. Those names were 8% of all sampled app allocation, the largest steady-state allocation in the sampler. Names that recur from the previous pass now reuse that pass's string through a span lookup; new names are still copied. A Release console harness called `WindowsGpuSampler.Sample` every 250 ms on this host, with 8 warm-up calls and 60 measured calls per run, in baseline, candidate, candidate, baseline order, twice. Median allocation per call fell from 190,328–195,168 bytes to 53,728–54,968 bytes. Median thread time was 6.5–8.1 million cycles before and 6.9–7.9 million after; the native counter query dominates it, so the timings overlap. The saving grows with the number of processes using GPU engines. Six alternating 60-second `--profile-output` runs varied too much with machine activity (40–107 ms CPU per second) to resolve a change of this size. The UI-thread benchmark excludes native sampling and was not rerun. The harness and raw results are in `artifacts/perf-tune/`.
+
 ## Chart scales, network direction and Focus breakdowns (November 27, 2026)
 
 A Release WPF fixture rendered `CpuGraph` at 830 × 280 with 120 synthetic observations carrying every new reading: kernel share, memory composition and commit, disk read/write/response, GPU memory and both network directions. Each case warmed up 300 renders and measured seven batches of 60. The baseline was `4fb8c5b`, whose chart code matches the current HEAD, which did not build on its own; the candidate was the working tree. Runs went before, after, after, before.

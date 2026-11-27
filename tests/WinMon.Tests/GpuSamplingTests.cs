@@ -10,6 +10,30 @@ namespace WinMon.Tests;
 public sealed class GpuSamplingTests
 {
     [Test]
+    public void InstanceName_ReusesLastPassNamesAndCopiesNewOnes()
+    {
+        const string name = "pid_1_luid_0x00000000_0x1234_phys_0_eng_0_engtype_3D";
+        var known = new Dictionary<string, WindowsGpuSampler.EngineInstance?>(StringComparer.Ordinal) { [name] = null };
+        var recurring = System.Runtime.InteropServices.Marshal.StringToHGlobalUni(name);
+        var added = System.Runtime.InteropServices.Marshal.StringToHGlobalUni(name.Replace("pid_1", "pid_2"));
+        try
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(WindowsGpuSampler.InstanceName(recurring, known), Is.SameAs(name));
+                Assert.That(WindowsGpuSampler.InstanceName(added, known), Is.EqualTo(name.Replace("pid_1", "pid_2")));
+                Assert.That(WindowsGpuSampler.InstanceName(recurring, null), Is.EqualTo(name).And.Not.SameAs(name));
+                Assert.That(WindowsGpuSampler.InstanceName(IntPtr.Zero, known), Is.Empty);
+            });
+        }
+        finally
+        {
+            System.Runtime.InteropServices.Marshal.FreeHGlobal(recurring);
+            System.Runtime.InteropServices.Marshal.FreeHGlobal(added);
+        }
+    }
+
+    [Test]
     public void GraphicsNode_FollowsTheUtilizationAdapterAndSelectsIts3DEngine()
     {
         var readings = WindowsGpuSampler.Parse([

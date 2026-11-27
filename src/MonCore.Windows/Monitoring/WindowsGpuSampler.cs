@@ -71,7 +71,7 @@ internal sealed class WindowsGpuSampler : IDisposable
             // Formatting a rate before its second collection can fail. Keep the query
             // alive so that failure cannot turn every pass into another first sample.
             if (!validInterval) return sample;
-            var readings = Parse(ReadCounters(_counter), _instances, _nextInstances);
+            var readings = Parse(ReadCounters(_counter, _instances), _instances, _nextInstances);
             (_instances, _nextInstances) = (_nextInstances, _instances);
             var device = deviceId is null ? null : ResolveDevice(deviceId);
             var busiest = deviceId is not null && device is null ? null : _aggregation.Busiest(readings, device?.Adapter);
@@ -264,7 +264,9 @@ internal sealed class WindowsGpuSampler : IDisposable
             : null;
     }
 
-    public static EngineCounter[] ReadCounters(IntPtr counter)
+    /// <param name="counter">The wildcard counter to read.</param>
+    /// <param name="known">Names from the last pass; recurring instance names reuse those strings.</param>
+    public static EngineCounter[] ReadCounters(IntPtr counter, Dictionary<string, EngineInstance?>? known = null)
     {
         // Instance counts can change between sizing and reading. Bound retries and allocation.
         for (var attempt = 0; attempt < 3; attempt++)
@@ -289,7 +291,7 @@ internal sealed class WindowsGpuSampler : IDisposable
                 {
                     // Read fields in place; PtrToStructure would box every item.
                     var item = IntPtr.Add(buffer, i * stride);
-                    result[i] = new EngineCounter(Marshal.PtrToStringUni(Marshal.ReadIntPtr(item)) ?? "",
+                    result[i] = new EngineCounter(InstanceName(Marshal.ReadIntPtr(item), known),
                         BitConverter.Int64BitsToDouble(Marshal.ReadInt64(item, ValueOffset + 8)),
                         unchecked((uint)Marshal.ReadInt32(item, ValueOffset)));
                 }
@@ -303,6 +305,16 @@ internal sealed class WindowsGpuSampler : IDisposable
         }
 
         throw new Win32Exception("GPU counter instances changed during collection.");
+    }
+
+    // Instance names recur every second, one per process engine; copying each again was most of the sampler's allocation.
+    internal static unsafe string InstanceName(IntPtr pointer, Dictionary<string, EngineInstance?>? known)
+    {
+        if (pointer == IntPtr.Zero) return "";
+        var name = MemoryMarshal.CreateReadOnlySpanFromNullTerminated((char*)pointer);
+        return known is not null && known.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(name, out var existing, out _)
+            ? existing
+            : name.ToString();
     }
 
     private static void Check(uint status)
