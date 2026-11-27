@@ -68,6 +68,25 @@ public sealed class AutoCaptureReadCharacterizationTests
             Is.EqualTo(new[] { executable, service with { Seconds = 33 } }));
     }
 
+    [Test]
+    public void ServiceShortcutOpensAnUncommittedRuleForTheServiceName()
+    {
+        var section = new AutoCaptureSection(new AutoCapturePreferences { Rules = [] }, DefaultFolder, "C:", null);
+        section.StartTargetRule(true, "Spooler");
+        Assert.Multiple(() =>
+        {
+            Assert.That(section.CaptureTabs.SelectedItem, Is.SameAs(section.TargetsTab));
+            Assert.That(section.RuleEditor.Visibility, Is.EqualTo(Visibility.Visible));
+            Assert.That(section.TargetType.SelectedItem, Is.EqualTo(Strings.CaptureWindowsService));
+            Assert.That(section.TargetName.Text, Is.EqualTo("Spooler"));
+            Assert.That(section.TargetRulesList.Items, Is.Empty);
+        });
+        CommitEditor(section);
+        Assert.That(ReadValid(section).Rules.Single(),
+            Is.EqualTo(new CaptureRuleSetting(CaptureMetric.ServiceCpu, true, 90, 30) { Target = "Spooler" }));
+        Assert.That(section.IsOn, Is.False);
+    }
+
     [TestCase(CaptureMetric.CpuPerformanceLimited)]
     [TestCase(CaptureMetric.GpuThermalLimited)]
     public void LimitRulesHaveFixedActiveStateAndEditableDuration(CaptureMetric metric)

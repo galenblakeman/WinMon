@@ -2250,4 +2250,5 @@ Auch das Wiederherstellen der Drosselung ist fehlgeschlagen: {1}</value></data>
   <data name="CaptureDiscardRule" xml:space="preserve"><value>Verwerfen</value></data>
   <data name="CaptureFinishRule" xml:space="preserve"><value>Fügen Sie die offene Regel hinzu, aktualisieren oder verwerfen Sie sie, bevor Sie die Einstellungen speichern.</value></data>
   <data name="CaptureNetworkTargetHelp" xml:space="preserve"><value>Netzwerkregeln erfordern die Netzwerküberwachung pro App.</value></data>
+  <data name="CaptureAddRuleMenu" xml:space="preserve"><value>Regel für automatische Erfassung hinzufügen</value></data>
 </root>

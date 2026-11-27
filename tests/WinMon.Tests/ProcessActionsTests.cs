@@ -18,6 +18,26 @@ public sealed class ProcessActionsTests
     private static ProcessUsage Example => new(12345, DateTime.UtcNow.AddHours(-1).ToFileTimeUtc(), "example.exe", 87.6,
         42 * 1_048_576, 250_000) { ImagePath = @"C:\Apps\example.exe", ThreadCount = 12, HandleCount = 400 };
 
+    [TestCase(@"C:\Apps\example.exe", @"C:\Apps\example.exe")]
+    [TestCase("", "example.exe")]
+    [TestCase("relative.exe", "example.exe")]
+    [Apartment(ApartmentState.STA)]
+    public void AddAutoCaptureRuleUsesTheExecutableFromTheOriginalRow(string path, string expected)
+    {
+        var row = new ProcessRow();
+        row.EnableProcessActions(_ => false, _ => { });
+        string? target = null;
+        row.EnableCaptureRuleAction(value => target = value);
+        row.Update(Example with { ImagePath = path }, [], 120, false, null);
+        Assert.That(row.PrepareProcessMenu(), Is.True);
+        var addRule = row.ContextMenu!.Items.OfType<MenuItem>()
+            .Single(item => Equals(item.Header, Strings.CaptureAddRuleMenu));
+        row.Update(Example with { ImagePath = @"C:\Apps\replacement.exe", Name = "replacement.exe" }, [],
+            120, false, null);
+        addRule.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+        Assert.That(target, Is.EqualTo(expected));
+    }
+
     [Test]
     [Apartment(ApartmentState.STA)]
     public void NavigationMenuCapturesTheRowBeforeTheNextRefresh()

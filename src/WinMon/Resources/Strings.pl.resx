@@ -2238,4 +2238,5 @@ Przywrócenie ograniczania również nie powiodło się: {1}</value></data>
   <data name="CaptureDiscardRule" xml:space="preserve"><value>Odrzuć</value></data>
   <data name="CaptureFinishRule" xml:space="preserve"><value>Przed zapisaniem ustawień dodaj, zaktualizuj lub odrzuć otwartą regułę.</value></data>
   <data name="CaptureNetworkTargetHelp" xml:space="preserve"><value>Reguły sieciowe wymagają monitorowania sieci dla poszczególnych aplikacji.</value></data>
+  <data name="CaptureAddRuleMenu" xml:space="preserve"><value>Dodaj regułę automatycznego przechwytywania</value></data>
 </root>

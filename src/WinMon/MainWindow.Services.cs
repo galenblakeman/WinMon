@@ -39,6 +39,8 @@ public partial class MainWindow
         };
         ServiceView.ActionRequested += RunServiceAction;
         ServiceView.CopyRequested += CopyProcessDetails;
+        ServiceView.CaptureRuleRequested += async target =>
+            await ShowSettingsAsync((true, target));
         ServiceView.PropertiesRequested += (name, details) =>
             new ServicePropertiesWindow(name, details, CopyProcessDetails) { Owner = this }.ShowDialog();
     }

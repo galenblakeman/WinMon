@@ -2238,4 +2238,5 @@ A restauração da limitação também falhou: {1}</value></data>
   <data name="CaptureDiscardRule" xml:space="preserve"><value>Descartar</value></data>
   <data name="CaptureFinishRule" xml:space="preserve"><value>Adicione, atualize ou descarte a regra aberta antes de salvar as configurações.</value></data>
   <data name="CaptureNetworkTargetHelp" xml:space="preserve"><value>As regras de rede exigem monitoramento de rede por aplicativo.</value></data>
+  <data name="CaptureAddRuleMenu" xml:space="preserve"><value>Adicionar regra de captura automática</value></data>
 </root>

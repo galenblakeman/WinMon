@@ -908,6 +908,13 @@ public sealed class SettingsWindow : Window
     internal ListBox Navigation => _navigation;
     internal AutoCaptureSection AutoCapture { get; }
 
+    internal void ShowCaptureRuleEditor(bool isService, string target)
+    {
+        ShowSection(SettingsSection.AutomaticCaptures);
+        AutoCapture.StartTargetRule(isService, target);
+        Loaded += (_, _) => AutoCapture.TargetMetric.Focus();
+    }
+
     // Ctrl+Tab and Ctrl+Shift+Tab step through the sections, except while the shortcut box records a combination.
     private void OnSectionKeyDown(object sender, KeyEventArgs e)
     {

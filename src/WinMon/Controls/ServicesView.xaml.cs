@@ -43,6 +43,7 @@ public partial class ServicesView
 
     internal event Action<ProcessUsage>? ProcessRequested;
     internal event Action<string, string>? PropertiesRequested;
+    internal event Action<string>? CaptureRuleRequested;
     internal event Action<string>? CopyRequested;
     internal event Action<int>? TopServiceCountChanged;
     internal event Action? FiltersChanged;
@@ -726,6 +727,8 @@ public partial class ServicesView
         {
             if (details is not null) CopyRequested?.Invoke(details);
         });
+        if (service is { Name.Length: > 0 } && CaptureRuleRequested is { } addCaptureRule)
+            Add(Strings.CaptureAddRuleMenu, ButtonIcon.CaptureFrame, true, () => addCaptureRule(service.Name));
         menu.Items.Add(new Separator());
         Add(Strings.StartService, ButtonIcon.Start, CanServiceAction(service, host, "start"),
             () => RequestService(service!, host, "start"));

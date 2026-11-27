@@ -67,6 +67,7 @@ public sealed class ProcessRow : Grid
     private Action<ProcessDetailsSnapshot>? _properties;
     private Action<ProcessDetailsSnapshot>? _copyDetails;
     private Action<ProcessUsage>? _openLocation;
+    private Action<string>? _addCaptureRule;
     private Action<ProcessUsage>? _dump;
     private Func<ProcessUsage, bool>? _canDump;
     private Func<bool>? _historical;
@@ -179,6 +180,8 @@ public sealed class ProcessRow : Grid
         return item;
     }
 
+    internal void EnableCaptureRuleAction(Action<string> add) => _addCaptureRule = add;
+
     internal bool PrepareProcessMenu()
     {
         if (ContextMenu is null) return false;
@@ -224,6 +227,19 @@ public sealed class ProcessRow : Grid
                 ButtonIcon.Pin);
             pinItem.Click += (_, _) => _togglePin(target, grouped);
             ContextMenu.Items.Add(pinItem);
+        }
+
+        if (_addCaptureRule is { } addCaptureRule && target.ProcessId > 0)
+        {
+            var executable = target.ImagePath.Length <= 512 && System.IO.Path.IsPathFullyQualified(target.ImagePath)
+                ? target.ImagePath
+                : target.Name.Trim();
+            if (executable.Length is > 0 and <= 512)
+            {
+                var capture = ActionItem(Strings.CaptureAddRuleMenu, ButtonIcon.CaptureFrame);
+                capture.Click += (_, _) => addCaptureRule(executable);
+                ContextMenu.Items.Add(capture);
+            }
         }
 
         if (_dump is not null)

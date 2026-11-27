@@ -2238,4 +2238,5 @@ Q退出。Ctrl+C取消。固定的程序和服务会在下次启动时保留。<
   <data name="CaptureDiscardRule" xml:space="preserve"><value>放弃</value></data>
   <data name="CaptureFinishRule" xml:space="preserve"><value>请先添加、更新或放弃当前规则，再保存设置。</value></data>
   <data name="CaptureNetworkTargetHelp" xml:space="preserve"><value>网络规则需要按应用监控网络。</value></data>
+  <data name="CaptureAddRuleMenu" xml:space="preserve"><value>添加自动捕获规则</value></data>
 </root>

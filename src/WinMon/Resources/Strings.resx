@@ -2275,4 +2275,5 @@ Restoring throttling also failed: {1}</value></data>
   <data name="CaptureDiscardRule" xml:space="preserve"><value>Discard</value></data>
   <data name="CaptureFinishRule" xml:space="preserve"><value>Add, update, or discard the open rule before saving Settings.</value></data>
   <data name="CaptureNetworkTargetHelp" xml:space="preserve"><value>Network rules require per-app network monitoring.</value></data>
+  <data name="CaptureAddRuleMenu" xml:space="preserve"><value>Add auto capture rule</value></data>
 </root>

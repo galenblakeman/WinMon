@@ -169,9 +169,36 @@ internal sealed partial class WindowDiagnostics
         if (openedSection != SettingsSection.AutomaticCaptures)
             throw new InvalidOperationException("The captures menu must open Automatic captures settings.");
 
+        VerifyProcessCaptureRuleShortcut(fixture);
         foreach (var theme in new[] { "Dark", "Light" })
             await CaptureAutoCaptureSettingsThemeAsync(fixture, reports, output, theme, overflow, cancellationToken);
         return overflow;
+    }
+
+    private static void VerifyProcessCaptureRuleShortcut(MainWindow fixture)
+    {
+        const string executable = @"C:\Tools\node.exe";
+        fixture.ProcessesTab.IsChecked = true;
+        fixture.RefreshVisiblePresentation();
+        var row = fixture.Processes.Rows.First(row => row.Represents((process, _) => process.ImagePath == executable));
+        row.PrepareProcessMenu();
+        var action = row.ContextMenu!.Items.OfType<MenuItem>()
+            .Single(item => Equals(item.Header, Strings.CaptureAddRuleMenu));
+        var rules = fixture.Preferences.AutoCapture.Rules;
+        var prefilled = false;
+        _ = fixture.Dispatcher.BeginInvoke(() =>
+        {
+            var dialog = fixture.OwnedWindows.OfType<SettingsWindow>().Single();
+            var captures = dialog.AutoCapture;
+            prefilled = dialog.Section == SettingsSection.AutomaticCaptures &&
+                        captures.CaptureTabs.SelectedItem == captures.TargetsTab &&
+                        captures.RuleEditor.Visibility == Visibility.Visible &&
+                        captures.TargetType.SelectedIndex == 0 && captures.TargetName.Text == executable;
+            dialog.Close();
+        });
+        action.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+        if (!prefilled || !ReferenceEquals(rules, fixture.Preferences.AutoCapture.Rules))
+            throw new InvalidOperationException("The process capture shortcut must open a prefilled, uncommitted rule.");
     }
 
     private static async Task CaptureAutoCaptureSettingsThemeAsync(MainWindow fixture, string reports, string output, string theme,

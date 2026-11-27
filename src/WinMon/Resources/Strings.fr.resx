@@ -2250,4 +2250,5 @@ La restauration de la limitation a aussi échoué : {1}</value></data>
   <data name="CaptureDiscardRule" xml:space="preserve"><value>Annuler</value></data>
   <data name="CaptureFinishRule" xml:space="preserve"><value>Ajoutez, mettez à jour ou abandonnez la règle ouverte avant d’enregistrer les paramètres.</value></data>
   <data name="CaptureNetworkTargetHelp" xml:space="preserve"><value>Les règles réseau nécessitent la surveillance réseau par application.</value></data>
+  <data name="CaptureAddRuleMenu" xml:space="preserve"><value>Ajouter une règle de capture automatique</value></data>
 </root>

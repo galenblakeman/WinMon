@@ -2238,4 +2238,5 @@ Qで終了。Ctrl+Cでキャンセル。実行ファイルとサービスのピ�
   <data name="CaptureDiscardRule" xml:space="preserve"><value>破棄</value></data>
   <data name="CaptureFinishRule" xml:space="preserve"><value>設定を保存する前に、編集中のルールを追加、更新、または破棄してください。</value></data>
   <data name="CaptureNetworkTargetHelp" xml:space="preserve"><value>ネットワークルールにはアプリ別のネットワーク監視が必要です。</value></data>
+  <data name="CaptureAddRuleMenu" xml:space="preserve"><value>自動キャプチャルールを追加</value></data>
 </root>

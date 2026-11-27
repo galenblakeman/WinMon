@@ -833,11 +833,13 @@ public partial class MainWindow
         Activate();
     }
 
-    // WPF requires a void event handler; operation failures are caught and logged below.
+    // WPF requires a void event handler; ShowSettingsAsync handles operation failures.
     // ReSharper disable once AsyncVoidEventHandlerMethod
-    private async void OnSettings(object sender, RoutedEventArgs e)
+    private async void OnSettings(object sender, RoutedEventArgs e) => await ShowSettingsAsync();
+
+    private async Task ShowSettingsAsync((bool IsService, string Target)? captureTarget = null)
     {
-        if (IsClosing) return;
+        if (IsClosing || !SettingsButton.IsEnabled) return;
         try
         {
             var dialog = new SettingsWindow(
@@ -865,7 +867,8 @@ public partial class MainWindow
             ObserveNetworkMonitoring(dialog);
             ObserveCpuTemperatureMonitoring(dialog);
             dialog.ClearResourceTrendsRequested += ClearResourceTrendsAsync;
-            dialog.ShowSection(_lastSettingsSection);
+            if (captureTarget is { } capture) dialog.ShowCaptureRuleEditor(capture.IsService, capture.Target);
+            else dialog.ShowSection(_lastSettingsSection);
             // Let the shortcut recorder receive WinMon's own combination; Save or the finally block takes it back.
             _hotkeyRetry?.Stop();
             _hotkey?.Unregister();

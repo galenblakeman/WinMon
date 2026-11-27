@@ -62,6 +62,12 @@ internal sealed partial class AutoCaptureSection
 
     private CaptureRuleSetting SelectedTargetDefault => TargetDefaults[(TargetType.SelectedIndex * 3) + TargetMetric.SelectedIndex];
 
+    internal void StartTargetRule(bool isService, string target)
+    {
+        CaptureTabs.SelectedItem = TargetsTab;
+        OpenEditor(null, seed: (isService, target));
+    }
+
     private void AddRule_Click(object sender, RoutedEventArgs e) => OpenEditor(null);
 
     private void EditRule_Click(object sender, RoutedEventArgs e)
@@ -80,14 +86,14 @@ internal sealed partial class AutoCaptureSection
         _orderedSettings[row.Index] = _orderedSettings[row.Index] with { Enabled = row.Enabled };
     }
 
-    private void OpenEditor(int? index, Button? opener = null)
+    private void OpenEditor(int? index, Button? opener = null, (bool IsService, string Target)? seed = null)
     {
         _editingIndex = index;
         _editOpener = opener;
         var rule = index is { } existing ? _orderedSettings[existing] : null;
-        TargetType.SelectedIndex = rule?.IsService == true ? 1 : 0;
+        TargetType.SelectedIndex = (rule?.IsService ?? seed?.IsService) == true ? 1 : 0;
         TargetMetric.SelectedIndex = rule?.IsNetwork == true ? 2 : rule?.IsMemory == true ? 1 : 0;
-        TargetName.Text = rule?.Target ?? "";
+        TargetName.Text = rule?.Target ?? seed?.Target ?? "";
         SetTargetCondition(rule ?? DefaultForNewRule());
         EditorHeading.Text = index.HasValue ? Strings.CaptureEditRule : Strings.CaptureNewRule;
         ApplyRuleButton.Content = index.HasValue ? Strings.CaptureUpdateRule : Strings.CaptureAddToList;

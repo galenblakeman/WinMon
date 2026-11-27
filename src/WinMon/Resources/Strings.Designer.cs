@@ -105,6 +105,7 @@ public static partial class Strings
     public static string CapacityMiB => ResourceManager.GetString(nameof(CapacityMiB), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CapacityType => ResourceManager.GetString(nameof(CapacityType), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CaptureAddRule => ResourceManager.GetString(nameof(CaptureAddRule), Culture ?? CultureInfo.CurrentUICulture)!;
+    public static string CaptureAddRuleMenu => ResourceManager.GetString(nameof(CaptureAddRuleMenu), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CaptureAddScopedRule => ResourceManager.GetString(nameof(CaptureAddScopedRule), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CaptureAddToList => ResourceManager.GetString(nameof(CaptureAddToList), Culture ?? CultureInfo.CurrentUICulture)!;
     public static string CaptureAppCpu => ResourceManager.GetString(nameof(CaptureAppCpu), Culture ?? CultureInfo.CurrentUICulture)!;

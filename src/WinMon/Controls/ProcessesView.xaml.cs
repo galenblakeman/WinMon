@@ -135,6 +135,7 @@ public partial class ProcessesView
 
     internal event Action<string>? CopyRequested;
     internal event Action<string, ProcessDetailsSnapshot>? NavigationRequested;
+    internal event Action<string>? CaptureRuleRequested;
     internal Func<string, ProcessDetailsSnapshot, bool>? CanNavigate { get; set; }
 
     /// <summary>Pinned and selected processes that compacted history keeps even while idle.</summary>
@@ -684,6 +685,7 @@ public partial class ProcessesView
             CanDumpProcess, () => _frame?.Selected is not null,
             (action, snapshot) => NavigationRequested?.Invoke(action, snapshot),
             (action, snapshot) => CanNavigate?.Invoke(action, snapshot) == true);
+        row.EnableCaptureRuleAction(target => CaptureRuleRequested?.Invoke(target));
         row.EnablePinning(Pins.Contains, ToggleProcessPin);
     }
 

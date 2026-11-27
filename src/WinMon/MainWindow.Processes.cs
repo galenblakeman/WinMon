@@ -34,6 +34,8 @@ public partial class MainWindow
         Processes.CopyRequested += CopyProcessDetails;
         Processes.CanNavigate = CanNavigateProcess;
         Processes.NavigationRequested += NavigateProcess;
+        Processes.CaptureRuleRequested += async target =>
+            await ShowSettingsAsync((false, target));
         // One preference hides the action bar on every tab.
         Processes.ActionsHiddenChanged += OnActionsHiddenChanged;
         ServiceView.ActionsHiddenChanged += OnActionsHiddenChanged;

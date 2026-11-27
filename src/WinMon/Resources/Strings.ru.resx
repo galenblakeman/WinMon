@@ -2238,4 +2238,5 @@ Q — выход. Ctrl+C — отмена. Закреплённые програ
   <data name="CaptureDiscardRule" xml:space="preserve"><value>Отменить правки</value></data>
   <data name="CaptureFinishRule" xml:space="preserve"><value>Добавьте, обновите или закройте правило без сохранения, прежде чем сохранять настройки.</value></data>
   <data name="CaptureNetworkTargetHelp" xml:space="preserve"><value>Для сетевых правил нужен мониторинг сети по приложениям.</value></data>
+  <data name="CaptureAddRuleMenu" xml:space="preserve"><value>Добавить правило автоматического захвата</value></data>
 </root>

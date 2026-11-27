@@ -313,6 +313,8 @@ public sealed class ServicesViewTests
     public void ContextMenu_SelectsRowAndCapturesTargetsAcrossSelectionChanges()
     {
         var view = new ServicesView();
+        string? captureTarget = null;
+        view.CaptureRuleRequested += name => captureTarget = name;
         var frame = SelectionFrame(1, 80);
         view.Update(frame, [frame], false);
         var rows = (ListBox)view.FindName("Rows");
@@ -323,10 +325,10 @@ public sealed class ServicesViewTests
         Assert.That(items.Select(i => i.Header), Is.EqualTo(new[]
         {
             Strings.ViewServiceProcess,
-            Strings.CopyDetails, Strings.StartService, Strings.StopService, Strings.RestartService
+            Strings.CopyDetails, Strings.CaptureAddRuleMenu, Strings.StartService, Strings.StopService, Strings.RestartService
         }));
         Assert.That(items.All(i => i.Icon is Path), Is.True);
-        Assert.That(items.Select(i => i.IsEnabled), Is.EqualTo(new[] { true, true, false, true, true }));
+        Assert.That(items.Select(i => i.IsEnabled), Is.EqualTo(new[] { true, true, true, false, true, true }));
         rows.SelectedIndex = 1;
         ProcessUsage? process = null;
         ServiceObservation? service = null;
@@ -336,9 +338,11 @@ public sealed class ServicesViewTests
         view.CopyRequested += text => copy = text;
         items[0].RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
         items[1].RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
-        items[4].RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+        items[2].RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+        items[5].RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
         Assert.That(process, Is.SameAs(frame.Groups[0].Host));
         Assert.That(service?.Name, Is.EqualTo("agent"));
+        Assert.That(captureTarget, Is.EqualTo("agent"));
         Assert.That(copy, Does.Contain("Build Agent (agent)"));
     }
 
@@ -379,6 +383,7 @@ public sealed class ServicesViewTests
     public void ContextMenu_WorkerAndSharedHostHaveNoServiceControls()
     {
         var view = new ServicesView();
+        view.CaptureRuleRequested += _ => Assert.Fail("A shared host or worker cannot identify one service.");
         var frame = SelectionFrame(1, 80);
         var group = frame.Groups[0];
         group = group with { Services = [.. group.Services, new("second", "Second Service", 4, 10, 1)] };
@@ -389,6 +394,8 @@ public sealed class ServicesViewTests
         var host = rows.Items.Cast<ServiceDisplayRow>().First();
         Assert.That(view.CreateServiceMenu(host)!.Items.OfType<MenuItem>().Skip(2).Any(i => i.IsEnabled), Is.False);
         var service = rows.Items.Cast<ServiceDisplayRow>().Single(r => r.Service?.Name == "agent");
+        Assert.That(view.CreateServiceMenu(service)!.Items.OfType<MenuItem>().Select(item => item.Header),
+            Does.Contain(Strings.CaptureAddRuleMenu));
         Assert.That(view.CreateServiceMenu(service)!.Items.OfType<MenuItem>().Last().IsEnabled, Is.True);
         frame = SelectionFrame(2, 80);
         view.Update(frame, [frame], false);

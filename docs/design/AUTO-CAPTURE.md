@@ -205,6 +205,8 @@ The master switch stays in the Automatic captures page header. **Built-in trigge
 
 The inline editor asks for the target type and identity before the metric, threshold, and duration. **Add to list** or **Update rule** stages a valid rule. **Discard** closes the draft, and **Remove** stages a deletion. Settings **Save** commits staged changes and brings the user back to the appropriate tab when a field or open draft needs attention.
 
+The process and service context menus offer **Add auto capture rule**. The process action prefers a usable absolute image path and falls back to the recorded executable name. The service action uses the precise Windows service name from a named row, including a named child in a shared host. The menu retains the clicked target while live rows refresh and passes it to the same inline editor as a draft. The user chooses the trigger and saves the settings.
+
 The implementation uses the existing persisted rule records and keeps the configured targets, enabled flags, thresholds, and durations when the layout changes. Disabled placeholders without a target stay hidden. The shipped layout follows the mockup's three tabs and inline editor, with a wrapping tab strip and localized controls.
 
 **Folder.** The default is `%LOCALAPPDATA%\WinMon\Captures`, or a `Captures` folder beside the executable for portable builds, matching where `PreferenceStore` puts settings. A custom folder is validated on save: it must be creatable and writable.
