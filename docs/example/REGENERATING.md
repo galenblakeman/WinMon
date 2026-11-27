@@ -1,6 +1,6 @@
 # Regenerate the screenshot gallery
 
-[Back to the gallery](README.md). These commands build and open real diagnostic windows; they do not change normal preferences. Run one capture at a time.
+[Back to the WinMon examples](README.md). These commands build and open real diagnostic windows; they do not change normal preferences. Run one capture at a time.
 
 From the repository root with the SDK pinned in `global.json`:
 

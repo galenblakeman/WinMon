@@ -64,4 +64,6 @@ Chrome is the first process to investigate. The readings show when it was busy a
 1. Rewrite the existing gallery and update its incoming link labels in the root README and user guide. Walk through each example against the controls and confirm every outcome described in an image is visible in that capture. Check local links and anchors and read the page at a narrow width. Preserve the capture date, version and build provenance for reused images.
 2. Add captures only for outcomes the current images cannot show. Start with opening an automatically saved incident. Use the diagnostic fixtures and existing smoke modes. Review the completed native-window captures and record provenance by image or capture group if old and new images coexist. [Capture and review instructions](../example/REGENERATING.md).
 
-This follow-up is a design proposal. Gallery edits and new captures are pending.
+### What landed
+
+The gallery now leads with seven walkthroughs. It reuses the November 27 captures and puts themes, palettes, and window variants in a collapsed Appearance examples section. Automatic capture is a text walkthrough. The Pinned only capture is linked as an Individual-mode example because it shows individual process pins. The README and user guide link directly to the relevant sections.

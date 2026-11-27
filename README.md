@@ -34,11 +34,11 @@ Memory details show paging reads per second, standby, modified, free/zero memory
 
 **Windows x64 · No separate .NET installation · Installer or portable ZIP · MIT licensed**
 
-[**Download latest release**](https://github.com/galenblakeman/WinMon/releases/latest) · [User guide](docs/USER-GUIDE.md) · [Screenshot gallery](docs/example/README.md) · [Report an issue](https://github.com/galenblakeman/WinMon/issues)
+[**Download latest release**](https://github.com/galenblakeman/WinMon/releases/latest) · [User guide](docs/USER-GUIDE.md) · [WinMon examples](docs/example/README.md) · [Report an issue](https://github.com/galenblakeman/WinMon/issues)
 
 ![WinMon dashboard with live resource gauges, a recent activity spike and individual process rankings](docs/example/example_individual.png)
 
-*Actual WinMon UI with illustrative data. [Browse the gallery](docs/example/README.md) for more views and capture details.*
+*Actual WinMon UI with illustrative data. [Browse the walkthroughs](docs/example/README.md) to see how to use each view.*
 
 ## Download and requirements
 
@@ -148,7 +148,7 @@ Resource readouts stay centered in their columns in full and compact views.
 
 Drag the centered divider grip below the gauges down to reveal three detail rows per meter, or up to hide them. With the divider focused, the Down and Up arrow keys do the same. Enabling hardware sensor monitoring automatically adds CPU fan, CPU package power and GPU fan readings where supported.
 
-[Compare appearances and palettes](docs/example/README.md#customize) · [Customize WinMon](docs/USER-GUIDE.md#make-it-yours)
+[Compare appearances and palettes](docs/example/README.md#appearance-examples) · [Customize WinMon](docs/USER-GUIDE.md#make-it-yours)
 
 ## Permissions and limitations
 
@@ -171,7 +171,7 @@ WinMon samples once per second and skips drawing while hidden or minimized. A No
 ## Documentation and source build
 
 - [User guide](docs/USER-GUIDE.md): settings, measurements, captures, exports and updates.
-- [Screenshot gallery](docs/example/README.md): examples grouped by task and appearance.
+- [WinMon examples](docs/example/README.md) walk through common monitoring and investigation tasks.
 - [Developer guide](docs/DEVELOPMENT.md): architecture, tests, diagnostics and performance.
 - [Updates](docs/UPDATING.md), [code signing](docs/CODE_SIGNING.md) and [release packaging](packaging/RELEASING.md).
 

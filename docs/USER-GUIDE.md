@@ -1,6 +1,6 @@
 # WinMon user guide
 
-[Overview and download](../README.md) · [Screenshot gallery](example/README.md) · [Developer guide](DEVELOPMENT.md)
+[Overview and download](../README.md) · [WinMon examples](example/README.md) · [Developer guide](DEVELOPMENT.md)
 
 Detailed instructions for the desktop app and command-line monitor. Screenshots use illustrative data; see the gallery for capture version and provenance.
 
@@ -21,7 +21,7 @@ Detailed instructions for the desktop app and command-line monitor. Screenshots 
 
 WinMon is distributed for Windows x64 and bundles .NET 10. The desktop installer's configured minimum is Windows 10 version 1607 (build 14393); the Store package manifest requires version 1809 (build 17763). These are packaging limits, not proof that every intervening Windows version has been tested. Use a Windows edition/version supported by [.NET 10's OS policy](https://github.com/dotnet/core/blob/main/release-notes/10.0/supported-os.md).
 
-See the [screenshot gallery](example/README.md) for the WinMon version, Windows build and package configuration used in the examples. Older Windows releases, ARM emulation and installed Store behavior were outside the screenshot checks. Translucent system backdrops require Windows 11 build 22621 or later. Other systems use opaque theme colors.
+See the [capture details](example/README.md#about-these-examples) for the WinMon version, Windows build and package configuration used in the examples. Older Windows releases, ARM emulation and installed Store behavior were outside the screenshot checks. Translucent system backdrops require Windows 11 build 22621 or later. Other systems use opaque theme colors.
 
 ## Get started
 
@@ -208,7 +208,7 @@ Search and App only filter both pinned and ranked rows. Pinned processes do not 
 
 </details>
 
-See [grouped, filtered and pinned process views](example/README.md) in the example gallery.
+Follow the [Chrome grouping and pinning example](example/README.md#keep-an-app-in-view-as-rankings-change).
 
 **Properties** and **Copy details** include file and product versions from the executable metadata, or a missing reading when unavailable. Versions are cached by executable path and retained with captured history; they describe the file read on disk and may differ from a running image after an update.
 
@@ -360,7 +360,7 @@ Candy and Porcelain offer warm light surfaces; Midnight, Evergreen and Wildberry
 
 Choose how the resource gauges look under **Resource gauges** in Settings: **Bowl** (the default), **Needle**, **Segmented arc**, **Left bar**, **Bottom bar**, **Segmented bar** or **None**. A sample on the Appearance page combines the selected theme, chart palette and gauge style across all six resource colors before you save. Every style keeps the same height, so the chart doesn't move when you switch. **Bowl** and **Segmented arc** hold the reading inside a nearly round arc, with the detail line below. **Needle** draws a half-circle dial with the reading underneath; its detail line, such as clock speed or memory in use, appears when you hover the tile. Radial gauges sit below the resource name for clearer spacing. The full-view gauge row uses the window's full content width, with the same tile margins as Compact view. **None** hides the gauges.
 
-See [Light appearance and additional palettes](example/README.md) in the example gallery.
+See [Light appearance and additional palettes](example/README.md#appearance-examples) in the examples.
 
 <details>
 <summary>Compare palettes and view Settings</summary>
